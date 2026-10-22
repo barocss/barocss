@@ -16,7 +16,8 @@ import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED } from './renderer';
-import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, ThemeName, ViewRenderer, ViewState } from './renderer';
+import type { EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState } from './renderer';
+import { hatchAngle } from './sectionView';
 import type { ScalarMap } from './scalarMaps';
 import type { ProposalOverlay } from '../engine/client';
 
@@ -295,6 +296,25 @@ export class GpuRenderer implements ViewRenderer {
     }
     this.viewer.requestRender();
   }
+  /**
+   * The hatch on the exact section's cut faces (G19.3): a line mesh a body, 1 CSS pixel wide, the face's colour × 0.45
+   * under it; made when the section changes, moved with its body by the body's transform (setState, G19.4).
+   */
+  setSectionHatch(hatch: SectionHatch | null): void {
+    for (const m of this.hatchLines.values()) { m.remove(); m.geometry.dispose(); }
+    this.hatchLines.clear();
+    for (const h of hatch ?? []) {
+      const b = this.bodies[h.body]; if (!b || h.segments.length < 6) continue;
+      // (Black at 0.55 over the face: its colour × 0.45 however it is lit, as the caps' hatch.)
+      const m = this.viewer.add({ positions: h.segments, topology: 'lines' }, { name: 'section hatch', pickable: false, castShadow: false, receiveShadow: false, clipped: false, bounded: false,
+        material: { color: '#000000', opacity: 0.55, unlit: true, lineWidth: 1 } });
+      // (The segments in the part's frame, as the body's mesh: drawn through the body's own transform, G1.)
+      m.transform = b.surface.transform; m.visible = b.surface.visible;
+      this.hatchLines.set(h.body, m);
+    }
+    this.viewer.requestRender();
+  }
+  private hatchLines = new Map<number, Mesh>();
   /** Overlay points by key (G8): one point mesh each, made when they change. */
   setOverlayPoints(key: string, points: OverlayPoints | null): void {
     const had = this.overlays.get(key);
@@ -379,10 +399,15 @@ export class GpuRenderer implements ViewRenderer {
    */
   private applyClip(): void {
     if (!this.clip) return;
-    const bodies = this.clip.bodies, cut = new Set<Mesh>();
+    const bodies = this.clip.bodies, cut = new Set<Mesh>(), spacing = this.clip.hatch ?? 0;
     for (const b of this.bodies) for (const m of [b.surface, b.edges, b.highlight]) if (m) { m.clipped = bodies; cut.add(m); }
-    for (const b of this.bodies) b.surface.cap = true;
-    for (const it of this.instances) { for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.clipped = true; cut.add(m); } for (const m of it.surfaces) m.cap = true; }
+    // (G19.3: each surface's cap hatched at its angle by its turn — the bodies', then the placed parts'.)
+    let turn = 0;
+    for (const b of this.bodies) { b.surface.cap = true; b.surface.capHatch = spacing > 0 && bodies ? { angle: hatchAngle(turn), spacing } : null; turn++; }
+    for (const it of this.instances) {
+      for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.clipped = true; cut.add(m); }
+      for (const m of it.surfaces) { m.cap = true; m.capHatch = spacing > 0 ? { angle: hatchAngle(turn), spacing } : null; turn++; }
+    }
     for (const m of this.viewer.meshList) if (!cut.has(m)) m.clipped = false;
   }
 
@@ -502,6 +527,9 @@ export class GpuRenderer implements ViewRenderer {
       b.surface.outline = view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
+      // (Its hatch on the exact section's cut, G19.3/4: moved with it, faint when it is.)
+      const hatch = this.hatchLines.get(bi);
+      if (hatch) { hatch.transform = moved; hatch.visible = !hidden; hatch.material = { opacity: ghost ? 0.55 * 0.35 : 0.55 }; }
       if (b.edges) { b.edges.material = { opacity: ghost ? 0.35 : 0.9 }; b.edges.pickable = !ghost && !hidden && !halvesOn; b.edges.visible = !hidden && (this.settings ? this.settings.environment.edges : true); }
     });
     this.applyClip();

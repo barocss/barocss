@@ -9,6 +9,7 @@ import { bodyKeyFor } from '@barocss/cad-model/engine/ids';
 import type { DisplayFace, DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import { refOf } from '@barocss/cad-model/app/bodyRef';
 import { posedBody } from '@barocss/cad-model/robot/preview';
+import { capHatchAxes } from '@barocss/gpu/viewer';
 import { motionOf } from './instancePose';
 
 type Axis = 'x' | 'y' | 'z';
@@ -139,17 +140,17 @@ export function sectionedInstances<T extends Placed>(instances: T[], poses: Read
 /**
  * The exact section's document (G2, G19): each body the planes cross split by them in turn — each kept piece split by
  * the next plane that crosses it — and the keys of the pieces kept (bodies wholly kept as they are, those wholly cut
- * away left out). One axis plane: by the bodies' boxes, as before; otherwise by their display meshes clipped plane by
+ * away left out), and each kept piece's body (`from`, by its key). One axis plane: by the bodies' boxes, as before; otherwise by their display meshes clipped plane by
  * plane (whether a plane crosses what is left of a body; the kernel refuses a split that does not).
  */
-export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[], s: Section): { doc: StudioDoc; kept: string[] } {
+export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[], s: Section): { doc: StudioDoc; kept: string[]; from: string[] } {
   let doc: StudioDoc = { ...evaluated, nodes: [...evaluated.nodes] };
-  const kept: string[] = [], one = s.planes.length === 1 ? planeAxis(s.planes[0]) : null;
+  const kept: string[] = [], from: string[] = [], one = s.planes.length === 1 ? planeAxis(s.planes[0]) : null;
   for (const b of bodies) {
     if (one) {
       const { min, max } = b.mesh.bounds, { k, at, keep } = one;
-      if (min[k] < at - 1e-6 && max[k] > at + 1e-6) { doc = withNode(doc, split(refOf(b), s.planes[0])); kept.push(bodyKeyFor(doc.nodes, doc.nodes.length - 1, keep)); }
-      else if (keep === 'negative' ? max[k] <= at + 1e-6 : min[k] >= at - 1e-6) kept.push(b.key);
+      if (min[k] < at - 1e-6 && max[k] > at + 1e-6) { doc = withNode(doc, split(refOf(b), s.planes[0])); kept.push(bodyKeyFor(doc.nodes, doc.nodes.length - 1, keep)); from.push(b.key); }
+      else if (keep === 'negative' ? max[k] <= at + 1e-6 : min[k] >= at - 1e-6) { kept.push(b.key); from.push(b.key); }
       continue;
     }
     let ref: BodyRef | null = null, key = b.key, mesh: DisplayMesh | null = b.mesh;
@@ -163,9 +164,9 @@ export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[
       mesh = clipMeshPlane(mesh!, p, 'section');
       if (!mesh) break;
     }
-    if (mesh) kept.push(key);
+    if (mesh) { kept.push(key); from.push(b.key); }
   }
-  return { doc, kept };
+  return { doc, kept, from };
 }
 /** The split node for a plane: across an axis, or across the plane normal·p = offset (the kept piece its positive one). */
 function split(parent: BodyRef, p: SectionPlane): ModelNode {
@@ -186,3 +187,71 @@ function classify(m: DisplayMesh, p: SectionPlane): 'kept' | 'cut' | 'cross' {
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const cross = (a: readonly number[], b: readonly number[]): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const unit = (v: Vec3): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+
+/**
+ * The hatch's angles (G19.3), degrees, by body: the bodies' and then the placed parts' surfaces in turn, so neighbours
+ * read apart.
+ */
+export const HATCH_ANGLES = [45, 135, 30, 120, 60, 150] as const;
+export const hatchAngle = (i: number) => HATCH_ANGLES[i % HATCH_ANGLES.length];
+const HATCH_STEPS = [0.5, 1, 2, 5, 10];
+/** The hatch's spacing (mm) for a scene box: a sixtieth of its diagonal, down to the step below (0.5, 1, 2, 5, 10 mm). */
+export function hatchSpacing(box: { min: readonly number[]; max: readonly number[] } | null): number {
+  const d = box ? Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]) / 60 : 0;
+  let s = HATCH_STEPS[0];
+  for (const step of HATCH_STEPS) if (step <= d) s = step;
+  return s;
+}
+
+const hatchScratch = { h: [0, 0, 0] as number[] };
+/**
+ * A mesh's hatch on the cut (G19.3; WebGL2's, and the exact section's on either renderer): the lines `spacing` apart at
+ * `angle` in each plane's axes (capHatchAxes, as the viewer's cap shader draws them, through the world's origin), cut
+ * against its triangles lying on a plane and facing the side cut away — a clipped mesh's caps, an exact piece's cut
+ * faces. Six numbers a segment.
+ */
+export function hatchSegments(m: DisplayMesh, planes: readonly SectionPlane[], angle: number, spacing: number): Float32Array {
+  const P = m.positions, I = m.indices, out: number[] = [], { h } = hatchScratch;
+  const tol = 1e-3, c = Math.cos(angle * Math.PI / 180), sn = Math.sin(angle * Math.PI / 180);
+  const across = planes.map(p => { const { u, v } = capHatchAxes(p.normal); return [(c * v[0] - sn * u[0]) / spacing, (c * v[1] - sn * u[1]) / spacing, (c * v[2] - sn * u[2]) / spacing]; });
+  for (let t = 0; t + 2 < I.length; t += 3) {
+    const a = 3 * I[t], b = 3 * I[t + 1], d = 3 * I[t + 2];
+    const plane = planeOf(P, a, b, d, planes, tol);
+    if (plane < 0) continue;
+    const w = across[plane];
+    h[0] = w[0] * P[a] + w[1] * P[a + 1] + w[2] * P[a + 2]; h[1] = w[0] * P[b] + w[1] * P[b + 1] + w[2] * P[b + 2]; h[2] = w[0] * P[d] + w[1] * P[d + 1] + w[2] * P[d + 2];
+    const k0 = Math.ceil(Math.min(h[0], h[1], h[2])), k1 = Math.floor(Math.max(h[0], h[1], h[2]));
+    for (let k = k0; k <= k1; k++) {
+      // (Half open: an edge crosses line k when its ends lie either side of it, k on the upper side — two edges or none.)
+      const n0 = out.length;
+      crossing(P, a, b, h[0], h[1], k, out); crossing(P, b, d, h[1], h[2], k, out); crossing(P, d, a, h[2], h[0], k, out);
+      if (out.length - n0 !== 6) out.length = n0;
+    }
+  }
+  return new Float32Array(out);
+}
+/** The plane a triangle lies on, facing the side it cuts away (−normal), or −1. */
+function planeOf(P: ArrayLike<number>, a: number, b: number, d: number, planes: readonly SectionPlane[], tol: number): number {
+  const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[d] - P[a], vy = P[d + 1] - P[a + 1], vz = P[d + 2] - P[a + 2];
+  const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, nl = Math.hypot(nx, ny, nz);
+  if (nl < 1e-12) return -1;
+  for (let i = 0; i < planes.length; i++) {
+    const p = planes[i], q = p.normal;
+    if ((nx * q[0] + ny * q[1] + nz * q[2]) / nl > -0.999) continue;
+    if (Math.abs(q[0] * P[a] + q[1] * P[a + 1] + q[2] * P[a + 2] - p.offset) > tol || Math.abs(q[0] * P[b] + q[1] * P[b + 1] + q[2] * P[b + 2] - p.offset) > tol || Math.abs(q[0] * P[d] + q[1] * P[d + 1] + q[2] * P[d + 2] - p.offset) > tol) continue;
+    return i;
+  }
+  return -1;
+}
+/** Where an edge crosses line k (its ends' values ha, hb), pushed. */
+function crossing(P: ArrayLike<number>, a: number, b: number, ha: number, hb: number, k: number, out: number[]): void {
+  if ((ha < k) === (hb < k)) return;
+  const f = (k - ha) / (hb - ha);
+  out.push(P[a] + (P[b] - P[a]) * f, P[a + 1] + (P[b + 1] - P[a + 1]) * f, P[a + 2] + (P[b + 2] - P[a + 2]) * f);
+}
+/** Each body's hatch on the cut (G19.3): its segments at its angle by its index; bodies with none left out. */
+export function sectionHatch(bodies: readonly BodyResult[], planes: readonly SectionPlane[], spacing: number): { body: number; segments: Float32Array }[] {
+  const out: { body: number; segments: Float32Array }[] = [];
+  for (let i = 0; i < bodies.length; i++) { const segments = hatchSegments(bodies[i].mesh, planes, hatchAngle(i), spacing); if (segments.length) out.push({ body: i, segments }); }
+  return out;
+}

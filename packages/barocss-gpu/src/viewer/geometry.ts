@@ -352,20 +352,46 @@ function rayTriangle(t: number): void {
   ray.bestT = d; ray.bestTri = t; ray.bestBack = det < 0;
 }
 
-/** Whether a point is on every plane's kept side (planes packed: nx, ny, nz, d each). */
+/**
+ * A clip plane's hatch axes (G19.3; as hatchAcross in shaders.ts): the normal turned so its largest component is
+ * positive (a plane and its flip hatch alike), u the next world axis after that component's (x → y → z → x) into the
+ * plane, v = n × u. A hatch at angle θ runs along cos θ·u + sin θ·v.
+ */
+export function capHatchAxes(normal: readonly number[]): { u: [number, number, number]; v: [number, number, number] } {
+  const m = normal.map(Math.abs), k = m[0] >= m[1] && m[0] >= m[2] ? 0 : m[1] >= m[2] ? 1 : 2;
+  const l = Math.hypot(normal[0], normal[1], normal[2]) || 1, sg = normal[k] < 0 ? -1 / l : 1 / l;
+  const n = [normal[0] * sg, normal[1] * sg, normal[2] * sg], j = (k + 1) % 3, d = n[j];
+  const a = [-n[0] * d, -n[1] * d, -n[2] * d]; a[j] += 1;
+  const al = Math.hypot(a[0], a[1], a[2]);
+  const u: [number, number, number] = [a[0] / al, a[1] / al, a[2] / al];
+  return { u, v: [n[1] * u[2] - n[2] * u[1], n[2] * u[0] - n[0] * u[2], n[0] * u[1] - n[1] * u[0]] };
+}
+
+/**
+ * Whether packed planes (nx, ny, nz, d each; G20: one number more, 1, for a cut-out) are a cut-out: what they keep is on
+ * any plane's kept side, the removed region the intersection of their cut-away sides.
+ */
+export const packedCutout = (planes: ArrayLike<number>): boolean => (planes.length & 3) === 1 && planes[planes.length - 1] > 0;
+/** Whether a point is kept by packed planes: on every plane's kept side (G19), or on any one's (a cut-out, G20). */
 export function keptBy(planes: ArrayLike<number>, x: number, y: number, z: number): boolean {
+  if (packedCutout(planes)) {
+    for (let i = 0; i + 3 < planes.length; i += 4) if (planes[i] * x + planes[i + 1] * y + planes[i + 2] * z >= planes[i + 3]) return true;
+    return false;
+  }
   for (let i = 0; i + 3 < planes.length; i += 4) if (planes[i] * x + planes[i + 1] * y + planes[i + 2] * z < planes[i + 3]) return false;
   return true;
 }
-/** World planes with their offsets, as clip planes are given: one (normal, offset), or `planes` (G19). */
-export type ClipPlanes = { normal: readonly number[]; offset: number; planes?: readonly { normal: readonly number[]; offset: number }[] };
+/** World planes with their offsets, as clip planes are given: one (normal, offset), or `planes` (G19); `cutout` (G20). */
+export type ClipPlanes = { normal: readonly number[]; offset: number; planes?: readonly { normal: readonly number[]; offset: number }[]; cutout?: boolean };
 const planesOf = (c: ClipPlanes) => c.planes ?? [c];
 /**
  * World planes (dot(n, p) ≥ offset) in the space a transform maps from: (Aᵀ n)·x ≥ offset − n·t for p = A x + t — 4
  * numbers a plane (every one of `planes`, else the one).
  */
 export function localPlane(M: ArrayLike<number>, c: ClipPlanes): Float64Array {
-  const list = planesOf(c), out = new Float64Array(4 * list.length);
+  // (A cut-out's flag last, G20.)
+  const list = planesOf(c), out = new Float64Array(4 * list.length + (c.cutout ? 1 : 0));
+  if (c.cutout) out[4 * list.length] = 1;
   for (let i = 0; i < list.length; i++) {
     const n = list[i].normal;
     for (let j = 0; j < 3; j++) out[4 * i + j] = M[j * 4] * n[0] + M[j * 4 + 1] * n[1] + M[j * 4 + 2] * n[2];
@@ -374,13 +400,27 @@ export function localPlane(M: ArrayLike<number>, c: ClipPlanes): Float64Array {
   return out;
 }
 /**
- * Where a world ray comes into the planes' kept region (G19: the intersection of their kept sides, convex): the
+ * Where a world ray comes into what is kept past the cut, C. G19 — the planes' kept region (the intersection of their
+ * kept sides, convex): the
  * parameter of its last crossing into a plane's kept side, and that plane's index — the latest over the planes it
  * moves into; −1 when it moves into none — and where it leaves it (the first crossing out; the region along the ray is
- * empty when that is not after the entry).
+ * empty when that is not after the entry). G20, a cut-out: where the ray leaves the removed region (convex), and the
+ * plane it leaves through; it is kept from there on.
  */
 export function regionEntry(c: ClipPlanes, origin: readonly number[], direction: readonly number[]): { t: number; plane: number; exit: number } {
   const list = planesOf(c);
+  if (c.cutout) {
+    // (G20: where the ray leaves the removed region R — n·p < d for every plane, convex: one stretch of the ray — after
+    // which it stays kept; none when it never is in R, or never leaves it through a plane.)
+    let lo = -Infinity, hi = Infinity, at = -1;
+    for (let i = 0; i < list.length; i++) {
+      const p = list[i], den = dot3(p.normal, direction), f = dot3(p.normal, origin) - p.offset;
+      if (Math.abs(den) < 1e-20) { if (f >= 0) lo = Infinity; continue; }
+      const tp = -f / den;
+      if (den < 0) { if (tp > lo) lo = tp; } else if (tp < hi) { hi = tp; at = i; }
+    }
+    return lo < hi && at >= 0 ? { t: hi, plane: at, exit: Infinity } : { t: -1, plane: -1, exit: Infinity };
+  }
   let t = -Infinity, plane = -1, exit = Infinity;
   for (let i = 0; i < list.length; i++) {
     const p = list[i], den = dot3(p.normal, direction), f = dot3(p.normal, origin) - p.offset;
@@ -419,7 +459,8 @@ export function clippedRayFull(g: PreparedGeometry, M: ArrayLike<number>, origin
     const e = regionEntry(clip, origin, direction);
     if (e.plane >= 0 && e.t > 0 && e.t < e.exit) {
       const first = rayTriangles(g, lo, ld, null, true, e.t), beyond = first ? { t: first.t, back: first.back } : null;
-      const hit = beyond?.back ? { t: e.t, triangle: null, cap: true, plane: e.plane } : kept;
+      // (A cut-out, G20: a kept surface may lie before the removed corner — nearer than the cap, it is the hit.)
+      const hit = beyond?.back && !(kept && kept.t < e.t) ? { t: e.t, triangle: null, cap: true, plane: e.plane } : kept;
       return { hit, kept, beyond, entry: e.t, plane: e.plane };
     }
   }
@@ -480,12 +521,27 @@ function clipOf(out: Float64Array, M: ArrayLike<number>, P: Float32Array, i: num
 /** One segment against the best so far (`near`): the same arithmetic, in the same order, as the viewer's walk had. */
 function testSegment(g: PreparedGeometry, M: ArrayLike<number>, sgm: number, x: number, y: number, cw: number, ch: number, radius: number, earlier: number): void {
   if (segClip.skip && segClip.skip.has(sgm)) return;
-  const P = g.positions, I = g.indices, ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1, a = clipA, b = clipB, eps = 1e-6;
+  const P = g.positions, I = g.indices, ia = I ? I[2 * sgm] : 2 * sgm, ib = I ? I[2 * sgm + 1] : 2 * sgm + 1, a = clipA, b = clipB;
   clipOf(a, M, P, ia); clipOf(b, M, P, ib);
   let s0 = 0, s1 = 1;
   // The clip planes' kept part (clip coordinates are linear along the segment, so are cut at the same parameter): the
   // intersection of each plane's kept interval of it (G19).
   const pl = segClip.planes;
+  if (pl && packedCutout(pl)) {
+    // (G20, a cut-out: the segment less the removed region's stretch of it — R convex, one stretch [r0, r1] — so up to
+    // two kept pieces, each tried.)
+    let r0 = 0, r1 = 1;
+    for (let i = 0; i + 3 < pl.length; i += 4) {
+      const fa = pl[i] * P[3 * ia] + pl[i + 1] * P[3 * ia + 1] + pl[i + 2] * P[3 * ia + 2] - pl[i + 3], fb = pl[i] * P[3 * ib] + pl[i + 1] * P[3 * ib + 1] + pl[i + 2] * P[3 * ib + 2] - pl[i + 3];
+      if (fa >= 0 && fb >= 0) { r0 = 1; r1 = 0; break; }
+      if (fa >= 0) r0 = Math.max(r0, fa / (fa - fb)); else if (fb >= 0) r1 = Math.min(r1, fa / (fa - fb));
+    }
+    if (r0 >= r1) { testPiece(sgm, 0, 1, x, y, cw, ch, radius, earlier); return; }
+    const ax = a[0], ay = a[1], aw = a[2], ex = b[0] - ax, ey = b[1] - ay, ew = b[2] - aw;
+    if (r0 > 0) { a[0] = ax; a[1] = ay; a[2] = aw; b[0] = ax + ex * r0; b[1] = ay + ey * r0; b[2] = aw + ew * r0; testPiece(sgm, 0, r0, x, y, cw, ch, radius, earlier); }
+    if (r1 < 1) { a[0] = ax + ex * r1; a[1] = ay + ey * r1; a[2] = aw + ew * r1; b[0] = ax + ex; b[1] = ay + ey; b[2] = aw + ew; testPiece(sgm, r1, 1, x, y, cw, ch, radius, earlier); }
+    return;
+  }
   if (pl) {
     let lo = 0, hi = 1;
     for (let i = 0; i + 3 < pl.length; i += 4) {
@@ -500,6 +556,11 @@ function testSegment(g: PreparedGeometry, M: ArrayLike<number>, sgm: number, x: 
       s0 = lo; s1 = hi;
     }
   }
+  testPiece(sgm, s0, s1, x, y, cw, ch, radius, earlier);
+}
+/** The kept piece of a segment in clipA–clipB (clip coordinates), s0 … s1 of it, against the best so far (`near`). */
+function testPiece(sgm: number, s0: number, s1: number, x: number, y: number, cw: number, ch: number, radius: number, earlier: number): void {
+  const a = clipA, b = clipB, eps = 1e-6;
   if (a[2] < eps && b[2] < eps) return;
   // Clip to the space in front of the eye, keeping the 3D parameters of the kept ends.
   if (a[2] < eps) { const k = (eps - a[2]) / (b[2] - a[2]); for (let j = 0; j < 3; j++) a[j] = a[j] + (b[j] - a[j]) * k; s0 = s0 + (s1 - s0) * k; }

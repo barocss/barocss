@@ -324,6 +324,114 @@ test('G19 several clip planes: a box section inside a solid capped on the kept c
   } finally { await s.close(); }
 });
 
+// G19's known limit, pinned (so a fix shows as a changed expectation): a solid wholly inside another and wholly kept. Past
+// the plane the first surface after the ray's entry is the inner solid's front face — not a back face — so the outer one's
+// cap is missing over the inner one's outline: its front face shows through the hole, on the GPU and in the CPU's ray; the
+// outer cap is drawn round it. (In a valid part or assembly that is an overlap, which an interference check flags.)
+test('G19 the known limit: a solid wholly inside another, wholly kept, shows through the outer one\'s cap (pinned)', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen, pixel } = window, canvas = document.getElementById('c');
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      viewer.add(box(10, 10, 10).surface, { name: 'outer', material: { color: '#ffffff', unlit: true }, cap: true, capColor: '#ff00ff' });
+      viewer.add(box(2, 2, 2).surface, { name: 'inner', material: { color: '#00ff00', unlit: true }, cap: true, capColor: '#0000ff', transform: api.translation([0, 2, 0]) });
+      viewer.camera.fit({ min: [-6, -6, -6], max: [6, 6, 6] }, viewer.aspect);
+      // (Kept y ≥ 0: the inner box, y 1 … 3, wholly kept.)
+      viewer.clipPlane = { normal: [0, 1, 0], offset: 0 };
+      const img = await viewer.capture(), at = p => screen(viewer, p);
+      const [cx, cy] = at([0, 0, 0]), [ox, oy] = at([3, 0, 3]);
+      const c = viewer.raycast(cx, cy), g = await viewer.pick(cx, cy), o = viewer.raycast(ox, oy);
+      const out = { centre: pixel(img, [cx, cy]).slice(0, 3), outside: pixel(img, [ox, oy]).slice(0, 3), cpu: c && { name: c.mesh.name, cap: !!c.cap }, gpu: g && { name: g.mesh.name, cap: !!g.cap }, beside: o && { name: o.mesh.name, cap: !!o.cap } };
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    // The limit: over the inner box its green front face, no cap (the outer's magenta cap would be right).
+    assert.deepEqual(r.centre, [0, 255, 0]); assert.deepEqual(r.cpu, { name: 'inner', cap: false }); assert.deepEqual(r.gpu, { name: 'inner', cap: false });
+    // Beside it the outer one's cap.
+    assert.deepEqual(r.outside, [255, 0, 255]); assert.deepEqual(r.beside, { name: 'outer', cap: true });
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
+// G20: a cut-out — the clip planes keep what is on any plane's kept side, the corner where their cut-away sides meet
+// removed. A 4 mm cube with the quarter x > 0, y > 0 cut out, seen obliquely (orthographic): its caps are the notch's two
+// faces, 2 × 4 each, whose screen area is 8(|vx| + |vy|); with the octant (z > 0 too) three 2 × 2 faces, 4(|vx| + |vy| +
+// |vz|). GPU picks equal to the CPU's rays over the notch; an edge in the removed corner not found, the rest of it found.
+// Shadows: the octant cut-out shadows the ground as the seven 2 mm cubes it is made of do.
+test('G20 cut-outs: a quarter and an octant cut from a cube, the notch\'s caps at the closed form; GPU picks equal to CPU rays; lines in the removed corner not found; the shadow of the seven cubes', { timeout: 180000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const v = [0.7, 0.55, 0.45], l = Math.hypot(...v), vn = v.map(x => x / l);
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: vn.map(x => x * 40), target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const isCap = (d, i) => d[i] > 200 && d[i + 1] < 60 && d[i + 2] > 200;
+      const capPixels = img => { let n = 0; for (let i = 0; i < img.data.length; i += 4) if (isCap(img.data, i)) n++; return n; };
+      const cube = viewer.add(box(4, 4, 4).surface, { name: 'cube', material: { color: '#404040', unlit: true }, cap: true });
+      const edges = viewer.add(box(4, 4, 4).edges, { name: 'edges', material: { color: '#00ff00', unlit: true } });
+      viewer.camera.fit({ min: [-3, -3, -3], max: [3, 3, 3] }, viewer.aspect);
+      const quarter = [{ normal: [-1, 0, 0], offset: 0, cap: '#ff00ff' }, { normal: [0, -1, 0], offset: 0 }];
+      viewer.clipCutout = true; viewer.clipPlanes = quarter;
+      const unit = () => { return 400 / (2 * viewer.camera.halfHeight); };
+      const imgQ = await viewer.capture(), u = unit();
+      const q = { pixels: capPixels(imgQ), want: 8 * (Math.abs(vn[0]) + Math.abs(vn[1])) * u * u, outline: (4 + 4 + 4) * 2 * u };
+      // (The edge along x at y = 2, z = 2: its +x half in the removed quarter, its −x half kept.)
+      const [ax, ay] = screen(viewer, [1, 2, 2]), [bx, by] = screen(viewer, [-1, 2, 2]);
+      const lines = { cut: viewer.pickLine(ax, ay, 3)?.mesh.name ?? null, kept: viewer.pickLine(bx, by, 3)?.mesh.name ?? null };
+      // Picks over the notch.
+      let seed = 9; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const picks = [];
+      const compare = async (n, name) => {
+        const c = [0, 1, 2, 3, 4, 5, 6, 7].map(i => screen(viewer, [i & 1 ? 2 : -2, i & 2 ? 2 : -2, i & 4 ? 2 : -2]));
+        const x0 = Math.min(...c.map(p => p[0])), x1 = Math.max(...c.map(p => p[0])), y0 = Math.min(...c.map(p => p[1])), y1 = Math.max(...c.map(p => p[1]));
+        for (let k = 0; k < n; k++) {
+          const x = Math.floor(x0 + rand() * (x1 - x0)) + 0.5, y = Math.floor(y0 + rand() * (y1 - y0)) + 0.5, cr = viewer.raycast(x, y), g = await viewer.pick(x, y);
+          picks.push({ name, cpu: cr && { name: cr.mesh.name, cap: !!cr.cap, plane: cr.capPlane ?? null }, gpu: g && { name: g.mesh.name, cap: !!g.cap, plane: g.capPlane ?? null } });
+        }
+      };
+      await compare(150, 'quarter');
+      // The octant.
+      viewer.clipPlanes = [...quarter, { normal: [0, 0, -1], offset: 0 }];
+      const imgO = await viewer.capture();
+      const o = { pixels: capPixels(imgO), want: 4 * (Math.abs(vn[0]) + Math.abs(vn[1]) + Math.abs(vn[2])) * u * u, outline: (2 + 2 + 2) * 2 * 2 * u };
+      await compare(150, 'octant');
+      edges.visible = false;
+      viewer.dispose();
+      // Shadows: the octant cut-out and its seven cubes, lit from above on a ground.
+      const sh = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -0.01, 40], target: [0, 0, 0], up: [0, 1, 0], projection: 'orthographic' }, lights: [{ kind: 'directional', direction: [0.5, 0.3, -1], intensity: 2.5, castShadow: true }], environment: { ambient: 0.25 } });
+      sh.add({ positions: [-30, -30, -6, 30, -30, -6, 30, 30, -6, -30, 30, -6], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] }, { name: 'ground', material: { color: '#ffffff', roughness: 1 }, clipped: false, castShadow: false });
+      const red = { color: '#ff0000', roughness: 1 };
+      sh.camera.fit({ min: [-12, -12, -6], max: [12, 12, 3] }, sh.aspect);
+      const count = img => { let dark = 0; for (let i = 0; i < img.data.length; i += 4) { const [R, G, B] = [img.data[i], img.data[i + 1], img.data[i + 2]]; if (Math.abs(R - G) > 12 || Math.abs(G - B) > 12 || R === 0) continue; if (G < 120) dark++; } return dark; };
+      const whole = sh.add(box(4, 4, 4).surface, { name: 'cube', material: red, cap: true, capColor: '#ff0000' });
+      sh.clipCutout = true; sh.clipPlanes = [{ normal: [-1, 0, 0], offset: 0 }, { normal: [0, -1, 0], offset: 0 }, { normal: [0, 0, -1], offset: 0 }];
+      const cut = count(await sh.capture());
+      whole.visible = false; sh.clipPlanes = null;
+      for (let i = 0; i < 8; i++) if (i !== 7) sh.add(box(2, 2, 2).surface, { material: red, transform: api.translation([i & 1 ? 1 : -1, i & 2 ? 1 : -1, i & 4 ? 1 : -1]) });
+      const seven = count(await sh.capture()), su = 400 / (2 * sh.camera.halfHeight);
+      sh.dispose();
+      return { q, o, lines, picks, shadow: { cut, seven, outline: 4 * 4 * 2 * su } };
+    });
+    t.diagnostic(JSON.stringify({ q: r.q, o: r.o, lines: r.lines, shadow: r.shadow }));
+    assert.ok(Math.abs(r.q.pixels - r.q.want) <= r.q.outline, `the quarter's caps: ${r.q.pixels} px against ${r.q.want.toFixed(0)} ± ${r.q.outline.toFixed(0)}`);
+    assert.ok(Math.abs(r.o.pixels - r.o.want) <= r.o.outline, `the octant's caps: ${r.o.pixels} px against ${r.o.want.toFixed(0)} ± ${r.o.outline.toFixed(0)}`);
+    assert.deepEqual(r.lines, { cut: null, kept: 'edges' });
+    let differ = 0, caps = 0;
+    for (const k of r.picks) {
+      if ((k.cpu?.name ?? null) !== (k.gpu?.name ?? null) || (k.cpu?.cap ?? false) !== (k.gpu?.cap ?? false) || (k.cpu?.plane ?? null) !== (k.gpu?.plane ?? null)) { differ++; continue; }
+      if (k.cpu?.cap) caps++;
+    }
+    t.diagnostic(JSON.stringify({ picks: r.picks.length, differ, caps }));
+    assert.ok(differ <= 2, `GPU picks against CPU rays: ${differ} of ${r.picks.length} differ ${JSON.stringify(r.picks.filter(k => (k.cpu?.name ?? null) !== (k.gpu?.name ?? null) || (k.cpu?.cap ?? false) !== (k.gpu?.cap ?? false)).slice(0, 3))}`);
+    assert.ok(caps > 30, `${caps} picks on caps`);
+    assert.ok(r.shadow.seven > 300 && Math.abs(r.shadow.cut - r.shadow.seven) <= r.shadow.outline, `the octant's shadow ${r.shadow.cut} against the seven cubes' ${r.shadow.seven} ± ${r.shadow.outline.toFixed(0)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
 // G2b: a mesh's own cap colour, times its material colour; none: the plane's.
 test('G2b each mesh\'s cap in its own colour times its material colour; without one, the plane\'s', { timeout: 120000 }, async t => {
   const s = await open(t); if (!s) return;
@@ -346,6 +454,201 @@ test('G2b each mesh\'s cap in its own colour times its material colour; without 
     t.diagnostic(JSON.stringify(r));
     assert.deepEqual(r.own, [0, 255, 0]); assert.deepEqual(r.timesMaterial, [255, 0, 0]); assert.deepEqual(r.plane, [0, 0, 255]);
     assert.deepEqual(r.changed, [255, 0, 255]); assert.deepEqual(r.back, [0, 0, 255]);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
+// G19.3: hatch lines on caps, fixed in the world. Two boxes cut by a plane, each cap hatched at its own angle; the lines'
+// darkening read back per pixel (α: how much of the cap colour × 0.45 a pixel is): its mean over a cap is 1 pixel over
+// the spacing in pixels (a line 1 pixel wide), and of the angles every 5°, the lines of the mesh's own angle and spacing
+// through the world's origin lie where α is (its own phase, the axes capHatchAxes gives); the same after the camera moves;
+// an oblique plane the same; off, no lines.
+test('G19.3 hatch on caps: a line a pixel wide over the spacing, at each mesh\'s angle in capHatchAxes\'s axes, fixed in the world as the camera moves; an oblique plane; off', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -30, 0], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const white = { color: '#ffffff', unlit: true };
+      const a = viewer.add(box(6, 6, 6).surface, { name: 'a', material: white, cap: true, capColor: '#ffffff', capHatch: { angle: 45, spacing: 0.4 }, transform: api.translation([-4, 0, 0]) });
+      const b = viewer.add(box(6, 6, 6).surface, { name: 'b', material: white, cap: true, capColor: '#ffffff', capHatch: { angle: 120, spacing: 0.6 }, transform: api.translation([4, 0, 0]) });
+      viewer.camera.fit({ min: [-8, -4, -4], max: [8, 4, 4] }, viewer.aspect);
+      const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+      // Per pixel of the capture: its ray onto the plane, the point, and α; the pixels on a mesh's cap (from the pick).
+      const read = async (plane, meshes) => {
+        const img = await viewer.capture(), W = img.width, H = img.height, rows = Object.fromEntries(meshes.map(m => [m.name, []]));
+        for (let y = 2; y < H - 2; y++) for (let x = 2; x < W - 2; x++) {
+          const i = (y * W + x) * 4, g = img.data[i + 1];
+          if (img.data[i] !== g || img.data[i + 2] !== g || g === 0) continue;
+          const ray = viewer.camera.ray(((x + 0.5) / W) * 2 - 1, 1 - ((y + 0.5) / H) * 2, viewer.aspect);
+          const den = ray.direction.reduce((s, d, k) => s + d * plane.normal[k], 0), tt = (plane.offset - ray.origin.reduce((s, o, k) => s + o * plane.normal[k], 0)) / den;
+          const p = ray.origin.map((o, k) => o + ray.direction[k] * tt);
+          // (Inside a cap less a pixel's margin round its edge: which box by x along the boxes' row.)
+          const m = meshes.find(m => m.inside(p));
+          if (m) rows[m.name].push([p, (1 - lin(g)) / 0.55]);
+        }
+        return { rows, unit: H / (2 * viewer.camera.halfHeight) };
+      };
+      // The angle (of 0, 5, … 175°) whose lines, `spacing` apart through the origin in the plane's axes, lie where α is:
+      // the mean α of the pixels within 0.3 pixel of one.
+      const best = (rows, plane, spacing, unit) => {
+        const near = 0.3 / (spacing * unit);
+        const { u, v } = api.capHatchAxes(plane.normal);
+        let top = null;
+        for (let deg = 0; deg < 180; deg += 5) {
+          const c = Math.cos(deg * Math.PI / 180), s = Math.sin(deg * Math.PI / 180), across = u.map((uk, k) => c * v[k] - s * uk);
+          let on = 0, n = 0;
+          for (const [p, al] of rows) { const h = p.reduce((q, x, k) => q + x * across[k], 0) / spacing, d = Math.abs(h - Math.round(h)); if (d < near) { on += al; n++; } }
+          const score = n ? on / n : 0;
+          if (!top || score > top.score) top = { deg, score };
+        }
+        return top;
+      };
+      const mean = rows => rows.reduce((q, [, al]) => q + al, 0) / rows.length;
+      const y0 = { normal: [0, 1, 0], offset: 0 };
+      viewer.clipPlane = { ...y0, cap: '#ffffff' };
+      const inA = { name: 'a', inside: p => Math.abs(p[0] + 4) < 2.8 && Math.abs(p[2]) < 2.8 }, inB = { name: 'b', inside: p => Math.abs(p[0] - 4) < 2.8 && Math.abs(p[2]) < 2.8 };
+      const out = {};
+      const one = (R, name, plane, spacing) => ({ n: R.rows[name].length, mean: mean(R.rows[name]), want: 1 / (spacing * R.unit), best: best(R.rows[name], plane, spacing, R.unit) });
+      let R = await read(y0, [inA, inB]);
+      out.first = { a: one(R, 'a', y0, 0.4), b: one(R, 'b', y0, 0.6) };
+      // Moved: panned and zoomed — the lines where they were in the world.
+      Object.assign(viewer.camera, { position: [1.3, -30, 0.7], target: [1.3, 0, 0.7] });
+      viewer.camera.fit({ min: [-7, -3, -3], max: [9, 3, 3] }, viewer.aspect);
+      R = await read(y0, [inA, inB]);
+      out.moved = { a: one(R, 'a', y0, 0.4), b: one(R, 'b', y0, 0.6) };
+      // An oblique plane through both, seen along its normal.
+      const nq = [0.3, 0.9, -0.3], l = Math.hypot(...nq), ob = { normal: nq.map(x => x / l), offset: 0.2 };
+      viewer.clipPlane = { ...ob, cap: '#ffffff' };
+      Object.assign(viewer.camera, { position: ob.normal.map((x, k) => -30 * x), target: [0, 0, 0], up: [0, 0, 1] });
+      viewer.camera.fit({ min: [-8, -4, -4], max: [8, 4, 4] }, viewer.aspect);
+      const inside = c => p => Math.abs(p[0] - c) < 2.6 && Math.abs(p[1]) < 2.6 && Math.abs(p[2]) < 2.6;
+      R = await read(ob, [{ name: 'a', inside: inside(-4) }, { name: 'b', inside: inside(4) }]);
+      out.oblique = { a: one(R, 'a', ob, 0.4), b: one(R, 'b', ob, 0.6) };
+      // Off: the cap plain.
+      a.capHatch = null; b.capHatch = null;
+      R = await read(ob, [{ name: 'a', inside: inside(-4) }, { name: 'b', inside: inside(4) }]);
+      out.off = { a: mean(R.rows.a), b: mean(R.rows.b), n: R.rows.a.length };
+      out.hatch = [a.capHatch, b.capHatch];
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    for (const k of ['first', 'moved', 'oblique']) for (const [m, deg] of [['a', 45], ['b', 120]]) {
+      const x = r[k][m];
+      assert.ok(x.n > 2000, `${k} ${m}: ${x.n} cap pixels`);
+      assert.ok(Math.abs(x.mean - x.want) < 0.15 * x.want, `${k} ${m}: mean darkening ${x.mean.toFixed(4)} against a pixel over the spacing ${x.want.toFixed(4)}`);
+      assert.equal(x.best.deg, deg, `${k} ${m}: the lines at ${x.best.deg}° (score ${x.best.score.toFixed(3)}), set at ${deg}°`);
+      assert.ok(x.best.score > 0.6, `${k} ${m}: on the lines darkened ${x.best.score.toFixed(3)}`);
+    }
+    assert.ok(r.off.n > 2000 && r.off.a < 0.01 && r.off.b < 0.01, `off: ${JSON.stringify(r.off)}`);
+    assert.deepEqual(r.hatch, [null, null]);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
+// G19.4: the caps cast shadows. A box section wholly inside a solid leaves nothing of the solid's own surface — before,
+// a block with no shadow; now its caps are drawn into the shadow map from the light (its own probe: the entry into the
+// kept region along the light's rays, inside the solid). Oracle: the same kept cube as a plain mesh, unclipped — the
+// ground's shadow the same pixels within its outline; and the probe's rule from the light: a cube kept whole under the
+// planes (a solid inside the region, not cut) casts its own shadow once, not a cap's.
+test('G19.4 caps cast shadows: a box section\'s kept cube shadows the ground as the same cube unclipped does; a whole kept solid as before', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const light = { kind: 'directional', direction: [0.45, 0.25, -1], intensity: 2.5, castShadow: true };
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -0.01, 40], target: [0, 0, 0], up: [0, 1, 0], projection: 'orthographic' }, lights: [light], environment: { ambient: 0.25 } });
+      const ground = viewer.add({ positions: [-30, -30, -6, 30, -30, -6, 30, 30, -6, -30, 30, -6], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] }, { name: 'ground', material: { color: '#ffffff', roughness: 1 }, clipped: false, castShadow: false });
+      const red = { color: '#ff0000', roughness: 1 };
+      const big = viewer.add(box(10, 10, 10).surface, { name: 'big', material: red, cap: true, capColor: '#ffffff' });
+      viewer.camera.fit({ min: [-14, -14, -6], max: [14, 14, 5] }, viewer.aspect);
+      const h = 1.5, planes = [0, 1, 2].flatMap(k => [1, -1].map(sg => { const n = [0, 0, 0]; n[k] = sg; return { normal: n, offset: -h }; }));
+      // (The ground's pixels: grey — lit, or shadowed below the midway; the red block and its caps apart.)
+      const count = img => { let lit = 0, dark = 0; for (let i = 0; i < img.data.length; i += 4) { const [R, G, B] = [img.data[i], img.data[i + 1], img.data[i + 2]]; if (Math.abs(R - G) > 12 || Math.abs(G - B) > 12 || R === 0) continue; if (G < 120) dark++; else lit++; } return { lit, dark }; };
+      const out = {};
+      viewer.clipPlanes = null; out.whole = count(await viewer.capture());
+      viewer.clipPlanes = planes; out.section = count(await viewer.capture());
+      // The oracle: the kept cube as a mesh, nothing clipped.
+      big.visible = false; viewer.clipPlanes = null;
+      const cube = viewer.add(box(3, 3, 3).surface, { name: 'cube', material: red });
+      out.cube = count(await viewer.capture());
+      // A cube kept whole inside the region (planes round it, cutting nothing): its shadow as without the planes.
+      cube.cap = true; viewer.clipPlanes = [0, 1, 2].flatMap(k => [1, -1].map(sg => { const n = [0, 0, 0]; n[k] = sg; return { normal: n, offset: -4 }; }));
+      out.inside = count(await viewer.capture());
+      const unit = viewer.canvas.height / (2 * viewer.camera.halfHeight);
+      out.outline = 4 * 3 * 2 * unit;
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.ok(r.whole.dark > 1000, `the whole solid shadows the ground: ${r.whole.dark}`);
+    assert.ok(r.cube.dark > 200, `the cube's shadow: ${r.cube.dark}`);
+    assert.ok(Math.abs(r.section.dark - r.cube.dark) <= r.outline, `the box section's shadow ${r.section.dark} against the cube's ${r.cube.dark} ± ${r.outline.toFixed(0)}`);
+    assert.ok(Math.abs(r.inside.dark - r.cube.dark) <= r.outline * 0.25, `a cube kept whole: ${r.inside.dark} against ${r.cube.dark}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
+// G19.4: a see-through (ghosted) mesh's caps, in the order-independent pass at its opacity. Oracle: the same solid
+// clipped on the CPU — its kept half a plain mesh whose cut is a real face, the same see-through material — through the
+// same viewer: the frames the same but along their outlines. The overlap limit, measured and pinned: two see-through
+// solids overlapping where the plane cuts both — the probe keeps one surface a pixel, so there only one of the two caps
+// is drawn (the CPU's copies show two layers): the frames differ over the overlap's cap and nowhere else. GPU picks and
+// CPU rays agree over the ghost section (a see-through cap is drawn, not picked).
+test('G19.4 ghost caps: a see-through solid\'s cap as the CPU-clipped copy\'s face; the overlap limit pinned (one cap where two overlap); picks as the CPU\'s', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [3, -30, 2], target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const ghost = c => ({ color: c, unlit: true, opacity: 0.35 });
+      const fit = () => viewer.camera.fit({ min: [-6, -3, -3], max: [6, 3, 3] }, viewer.aspect);
+      const diff = (a, b, pred) => { let n = 0; for (let y = 0; y < a.height; y++) for (let x = 0; x < a.width; x++) { const i = (y * a.width + x) * 4; if (pred && !pred(x, y)) continue; if (Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]) > 24) n++; } return n; };
+      const lit = img => { let n = 0; for (let i = 0; i < img.data.length; i += 4) if (img.data[i] + img.data[i + 1] + img.data[i + 2] > 0) n++; return n; };
+      // (The kept half y ≥ 0 of a w × 2d × 4 box at x0: a plain mesh, its y = 0 face the cut.)
+      const half = (w, x0, d = 2) => { const g = box(w, d, 4).surface; return { ...g, positions: g.positions.map((v, i) => i % 3 === 0 ? v + x0 : i % 3 === 1 ? v + d / 2 : v) }; };
+      const plane = { normal: [0, 1, 0], offset: 0, cap: '#ffffff' };
+      fit();
+      // A. One ghost box, GPU-capped, against its CPU-clipped half.
+      const a = viewer.add(box(4, 4, 4).surface, { name: 'ghost', material: ghost('#ff8000'), cap: true, capColor: '#ffffff' });
+      viewer.clipPlane = plane; const gpu = await viewer.capture();
+      a.visible = false; viewer.clipPlane = null;
+      const c = viewer.add(half(4, 0), { name: 'half', material: ghost('#ff8000') });
+      const cpu = await viewer.capture();
+      const unit = gpu.height / (2 * viewer.camera.halfHeight), out = { one: { differ: diff(gpu, cpu), lit: lit(gpu), outline: 4 * 4 * 2 * unit } };
+      c.visible = false;
+      // B. Two ghost boxes overlapping over x −1 … 1, q the shallower (y −1.5 … 1.5): past the plane its back face is the
+      // first surface over the overlap, so there only q's cap is drawn. (Equally deep, their back faces tie and both are.)
+      const p = viewer.add(box(4, 4, 4).surface, { name: 'p', material: ghost('#ff0000'), cap: true, capColor: '#ffffff', transform: api.translation([-1, 0, 0]) });
+      const q = viewer.add(box(4, 3, 4).surface, { name: 'q', material: ghost('#0000ff'), cap: true, capColor: '#ffffff', transform: api.translation([1, 0, 0]) });
+      viewer.clipPlane = plane; const gpu2 = await viewer.capture();
+      // (Picks over it: GPU against CPU.)
+      let differ = 0, n = 0; const [x0, x1, y0, y1] = [200, 600, 60, 340];
+      for (let k = 0; k < 120; k++) {
+        const x = x0 + ((k * 37) % (x1 - x0)) + 0.5, y = y0 + ((k * 53) % (y1 - y0)) + 0.5, cr = viewer.raycast(x, y), g = await viewer.pick(x, y);
+        n++; if ((cr?.mesh.name ?? null) !== (g?.mesh.name ?? null) || !!cr?.cap !== !!g?.cap) differ++;
+      }
+      p.visible = false; q.visible = false; viewer.clipPlane = null;
+      viewer.add(half(4, -1), { name: 'hp', material: ghost('#ff0000') }); viewer.add(half(4, 1, 1.5), { name: 'hq', material: ghost('#0000ff') });
+      const cpu2 = await viewer.capture();
+      // (The cap's overlap on screen: x −1 … 1, z −2 … 2 at y = 0; the rest of the frame.)
+      const at = w => window.screen(viewer, w), [ox0, oy0] = at([-1, 0, 2]), [ox1, oy1] = at([1, 0, -2]);
+      const inOverlap = (x, y) => x > ox0 + 2 && x < ox1 - 2 && y > oy0 + 2 && y < oy1 - 2;
+      out.two = { overlap: diff(gpu2, cpu2, inOverlap), area: (ox1 - ox0 - 4) * (oy1 - oy0 - 4), elsewhere: diff(gpu2, cpu2, (x, y) => !(x > ox0 - 3 && x < ox1 + 3 && y > oy0 - 3 && y < oy1 + 3)), outline: 4 * 8 * 2 * unit, picks: n, differ };
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.ok(r.one.lit > 5000, `drawn: ${r.one.lit}`);
+    assert.ok(r.one.differ <= r.one.outline, `the ghost's cap against the CPU-clipped face: ${r.one.differ} pixels differ (± ${r.one.outline.toFixed(0)} along the outlines)`);
+    // The limit: over the overlap one cap, not two — nearly every pixel there differs; nowhere else but outlines.
+    assert.ok(r.two.overlap >= 0.9 * r.two.area, `the overlap: ${r.two.overlap} of ${r.two.area.toFixed(0)} differ (one cap of two, pinned)`);
+    assert.ok(r.two.elsewhere <= r.two.outline, `elsewhere ${r.two.elsewhere} (± ${r.two.outline.toFixed(0)})`);
+    assert.ok(r.two.differ <= 2, `picks: ${r.two.differ} of ${r.two.picks} differ`);
     assert.deepEqual(s.errors, []);
   } finally { await s.close(); }
 });

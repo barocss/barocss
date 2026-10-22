@@ -229,10 +229,14 @@ try {
     const s = await page.evaluate(() => window.__studioSection());
     if (renderer === 'webgl2') { assert.equal(s.gpu, false, 'WebGL2 clips on the CPU'); assert.equal(s.clip, null); return null; }
     assert.equal(s.gpu, true, 'WebGPU clips on the GPU'); assert.ok(s.clip, 'the clip plane set');
+    // (G19.3: the caps compared unhatched — the hatch's own parity is G19.3's step.)
+    const hatched = await page.locator('[aria-label="Hatch the cut"][aria-pressed="true"]').count();
+    if (hatched) await page.click('[aria-label="Hatch the cut"]');
     const shot = async cpu => { await page.evaluate(c => window.__studioSectionDebug({ hold: true, cpu: c }), cpu); await page.waitForTimeout(500); return page.locator('canvas.vp-canvas').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-${name}-${cpu ? 'cpu' : 'gpu'}.png`) }); };
     const gpu = await shot(false), cpu = await shot(true);
     const held = await page.evaluate(() => window.__studioSection());
     await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+    if (hatched) await page.click('[aria-label="Hatch the cut"]');
     assert.equal(held.clip, null, 'the CPU path: no clip plane');
     return page.evaluate(async ([a, b]) => {
       const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height); };
@@ -6869,6 +6873,164 @@ try {
     await exactAt(40 * 10 * 10, 'one plane');
     assert.equal(await page.locator('[aria-label="Section"] [aria-label="Sketch the section"]').isDisabled(), false);
     await page.click('[aria-label="Section view"]');
+  });
+
+  // ---- G19.3: the hatch on the cut ----------------------------------------------------------------------------------------
+  await check('G19.3: the hatch on the cut — on by default at the scene\'s spacing; lines on the exact section\'s cut face; the GPU caps\' hatch and the CPU\'s lines the same ink; off and on — on either renderer', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const plate = join(out, 'g193-plate.bcad');
+    fs.writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await openModel(plate, 2); await idle(); await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(300);
+    const sec = () => page.evaluate(() => window.__studioSection());
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Hatch the cut"]', { timeout: 5000 });
+    await page.waitForFunction(() => window.__studioSection()?.exact, null, { timeout: 30000 });
+    // On by default; the plate's diagonal (45.8 mm) over 60, down to 0.5 mm.
+    let s = await sec();
+    assert.equal(await page.locator('[aria-label="Hatch the cut"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(s.hatch?.spacing, 0.5, JSON.stringify(s.hatch));
+    // The exact section's cut face (40 × 10 on y = 10, the lines at 45° 0.5 apart): lines on it, on either renderer.
+    assert.equal(s.hatch.lines?.length, 1, JSON.stringify(s.hatch)); assert.ok(s.hatch.lines[0].segments > 40, JSON.stringify(s.hatch));
+    const shot = name => page.locator('canvas.vp-canvas').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g193-${name}.png`) });
+    // The ink of the hatch: how much darker the frame is with it than without (sum over pixels of the luminance lost).
+    const ink = (on, off) => page.evaluate(async ([a, b]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(a), B = await load(b); let sum = 0, px = 0;
+      for (let k = 0; k < A.length; k += 4) { const d = (B[k] + B[k + 1] + B[k + 2] - A[k] - A[k + 1] - A[k + 2]) / 3; if (d > 0) sum += d; if (Math.abs(d) > 8) px++; }
+      return { ink: Math.round(sum), pixels: px };
+    }, [on.toString('base64'), off.toString('base64')]);
+    const toggle = async want => { await page.click('[aria-label="Hatch the cut"]'); await page.waitForFunction(w => !!window.__studioSection().hatch === w, want, { timeout: 5000 }); await page.waitForTimeout(400); };
+    const pair = async name => { const on = await shot(name + '-on'); await toggle(false); const off = await shot(name + '-off'); await toggle(true); return ink(on, off); };
+    const exact = await pair('exact');
+    assert.ok(exact.ink > 0 && exact.pixels > 100, `the exact cut face's lines: ${JSON.stringify(exact)}`);
+    const out193 = { renderer, spacing: s.hatch.spacing, exact };
+    if (renderer === 'webgpu') {
+      // While the plane moves (the exact section held back): the caps' hatch on the GPU, and the CPU's lines — the same ink.
+      await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: false })); await page.waitForTimeout(500);
+      s = await sec(); assert.equal(s.clip?.hatch, 0.5, JSON.stringify(s.clip)); assert.equal(s.hatch.lines, null, 'no lines: the shader hatches');
+      out193.gpu = await pair('gpu');
+      await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: true })); await page.waitForTimeout(500);
+      s = await sec(); assert.equal(s.clip, null); assert.ok(s.hatch.lines?.[0]?.segments > 40, JSON.stringify(s.hatch));
+      out193.cpu = await pair('cpu');
+      await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+      assert.ok(out193.gpu.ink > 0 && Math.abs(out193.gpu.ink - out193.cpu.ink) <= 0.2 * out193.cpu.ink, `GPU hatch against the CPU's lines: ${JSON.stringify(out193)}`);
+    } else {
+      // (WebGL2: the planes cut on the CPU; while they move the clipped caps' lines.)
+      await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: false })); await page.waitForTimeout(500);
+      s = await sec(); assert.equal(s.clip, null); assert.ok(s.hatch.lines?.[0]?.segments > 40, JSON.stringify(s.hatch));
+      out193.cpu = await pair('cpu');
+      await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+      assert.ok(out193.cpu.ink > 0, JSON.stringify(out193));
+    }
+    console.log(`  G19.3 hatch: ${JSON.stringify(out193)}`);
+    // Off: no hatch, no lines, no shader hatch; on again.
+    await toggle(false); s = await sec();
+    assert.equal(s.hatch, null); if (s.clip) assert.equal(s.clip.hatch, null);
+    await toggle(true); await snap('g193-hatch');
+    await page.click('[aria-label="Section view"]');
+  });
+
+  // ---- G19.4: a section across a welded frame (FRk's gussets, end caps and beads) ------------------------------------------------
+  await check('G19.4: a section across a welded frame — members, a gusset, an end cap and beads (FRk1/2) cut by the exact section at the clipped volume, each cut hatched, GPU against CPU — on either renderer', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
+    const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
+      { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
+      { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
+      { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 },
+      { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'start', fit: 'over', thickness: 4 }] });
+    const file = join(out, 'g194-welded.step'); (await import('node:fs')).writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'g194-welded' }));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    await page.waitForFunction(() => /10 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(300);
+    const sec = () => page.evaluate(() => window.__studioSection());
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    // Across Y through the middle (the frame's plane, y = 0): every body cut in two, the +Y halves kept.
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Hatch the cut"]', { timeout: 5000 });
+    await page.waitForFunction(() => window.__studioSection()?.exact, null, { timeout: 60000 }).catch(async e => { throw new Error(`the exact section: ${JSON.stringify(await sec())} — ${e.message.split('\n')[0]}`); });
+    let s = await sec();
+    const exact = s.volume, lines = s.hatch.lines;
+    // The CPU's clipped meshes (the exact section held back): their volume the exact one's.
+    await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: true })); await page.waitForTimeout(500);
+    s = await sec(); const clipped = s.shownVolume, cpuLines = s.hatch.lines;
+    await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
+    const total = part.outputs.reduce((v, o) => v + o.massProperties(1).volumeMM3, 0);
+    console.log(`  G19.4 welded frame: ${JSON.stringify({ renderer, total: Math.round(total), exact: Math.round(exact), clipped: Math.round(clipped), lines: lines.length, cpuLines: cpuLines.length })}`);
+    assert.ok(Math.abs(exact - clipped) <= 1e-3 * total, `the exact section ${exact} against the clipped meshes ${clipped}`);
+    assert.ok(exact > 0.3 * total && exact < 0.7 * total, `about half kept: ${exact} of ${total}`);
+    // (The plane crosses six of the ten: the three members, the gusset, the end cap and the T's bead; the gusset's four
+    // runs lie off it — two cut away, two wholly kept. At the frame's spacing, 10 mm, every cut of a spacing square or
+    // more is hatched — the members', the gusset's, the cap's — and the bead's 9 mm² may get a line or none.)
+    for (const [l, what] of [[lines, 'exact'], [cpuLines, 'clipped']]) assert.ok(l.length >= 5 && l.length <= 6, `${what}: the bodies hatched ${JSON.stringify(l)}`);
+    const g = await sectionAgainstCpu('g194-frame');
+    // (0.2 %, not the 0.1 % of the solid sections: the cut walls are long strips 3–4 mm wide, and a GPU cap's edge is
+    // decided once a pixel — at its centre — where the CPU's cut face is antialiased sample by sample: the strips' edges,
+    // two a strip, are where they differ.)
+    if (g) { console.log(`  G19.4 welded frame, GPU against CPU: ${JSON.stringify(g)}`); assert.ok(g.strong <= g.pixels * 0.002, JSON.stringify(g)); }
+    await snap('g194-frame');
+    await page.click('[aria-label="Section view"]');
+  });
+
+  // ---- G19.5: the section in the Render workspace ------------------------------------------------------------------------
+  await check('G19.5: the section in the Render workspace — the planes cut and cap the rendered bodies, the exported image cut, an animated body moved as itself with bodies left out and split', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
+    // (G19.4's welded frame: of its ten bodies the section across Y leaves two out and splits six — by index the bodies
+    // after the first left out were others.)
+    const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
+      { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
+      { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
+      { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 },
+      { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'start', fit: 'over', thickness: 4 }] });
+    const file = join(out, 'g195-welded.step'); fs.writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'g195-welded' }));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    await page.waitForFunction(() => /10 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(300);
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    // The Render workspace; the last body (the end cap) animated 30 mm along X over two seconds.
+    await page.click('button:text-is("Render")'); await page.waitForTimeout(500);
+    await page.locator('.outliner .ol').nth(9).click();
+    await page.fill('[aria-label="Time"]', '0'); await page.click('.timeline button:text-is("Set key")');
+    await page.fill('[aria-label="Time"]', '2'); await page.fill('[aria-label="Offset X"]', '30'); await page.click('.timeline button:text-is("Set key")');
+    const tracks = await page.evaluate(() => window.__studioDoc.render.animation.tracks), animated = Object.keys(tracks);
+    assert.equal(animated.length, 1, JSON.stringify(tracks));
+    await page.keyboard.press('Escape'); await page.waitForTimeout(400);
+    const shot = name => page.locator('canvas.vp-canvas').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g195-${name}.png`) });
+    const plain = await shot('whole');
+    const before = await page.evaluate(() => window.__studioSection());
+    assert.deepEqual(before.offsets?.map(o => o[0]), animated, 'without the section: on the body itself');
+    const exported = async () => { if (renderer !== 'webgpu') return null; const d = page.waitForEvent('download'); await page.click('[aria-label="Export image"]'); return fs.readFileSync(await (await d).path()); };
+    const imgWhole = await exported();
+    // The section view, in the Render workspace.
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Hatch the cut"]', { timeout: 5000 });
+    await page.waitForFunction(() => window.__studioSection()?.exact, null, { timeout: 60000 }); await page.waitForTimeout(500);
+    const s = await page.evaluate(() => window.__studioSection());
+    if (renderer === 'webgpu') assert.ok(s.clip && s.clip.planes.length === 1, JSON.stringify(s.clip));
+    // The animated body's offset on the piece cut from it, nowhere else.
+    console.log(`  G19.5 render: ${JSON.stringify({ renderer, offsets: s.offsets, sources: s.sources, animated })}`);
+    assert.equal(s.offsets.length, 1, JSON.stringify(s.offsets));
+    assert.deepEqual(s.offsets[0][1], [30, 0, 0]);
+    assert.equal(s.sources[s.shownKeys.indexOf(s.offsets[0][0])], animated[0], `the offset on a piece of the animated body: ${JSON.stringify(s)}`);
+    // The rendered frame cut open, and the exported image with it.
+    const cut = await shot('section');
+    const changed = await page.evaluate(async ([a, b]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(a), B = await load(b); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 24) n++;
+      return n;
+    }, [plain.toString('base64'), cut.toString('base64')]);
+    assert.ok(changed > 2000, `the section changes the rendered frame: ${changed} pixels`);
+    const imgCut = await exported();
+    if (imgWhole) assert.ok(imgCut && !imgCut.equals(imgWhole), 'the exported image is cut');
+    await snap('g195-render-section');
+    await page.click('[aria-label="Section view"]');
+    await page.click('button:text-is("Model")');
   });
 
   await check('command palette and light theme', async () => {
