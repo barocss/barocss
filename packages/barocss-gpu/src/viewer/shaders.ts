@@ -626,11 +626,13 @@ struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instanc
 // whether a back face; the nearest kept by the depth test, a back face drawn a little nearer so that it wins a tie (two
 // solids touching: the cap is the first's).
 struct Probe { @location(0) v: vec2f, @builtin(frag_depth) z: f32 }
+// (Which way is nearer: +1 in the scene's reversed depth, −1 in the shadow map's — the light's probe, G19.4.)
+override nearer: f32 = 1.0;
 @fragment fn fsCapProbe(in: POut, @builtin(front_facing) front: bool) -> Probe {
   if (capPoint(in.world).w < 0.5) { discard; }
   var o: Probe;
   o.v = vec2f(in.clip.z, select(1.0, 0.0, front));
-  o.z = min(1.0, in.clip.z + select(4e-7, 0.0, front));
+  o.z = clamp(in.clip.z + select(4e-7 * nearer, 0.0, front), 0.0, 1.0);
   return o;
 }
 // The shadow map: depth only, less what the clip plane cuts away.
@@ -642,6 +644,13 @@ struct CapIds { @location(0) id: u32, @location(1) depth: f32, @location(2) inst
   let z = capDepth(capPoint(in.world));
   if (z < 0.0) { discard; }
   return CapIds(object.pick.x, z, in.instance, z);
+}
+// The caps in the shadow map (G19.4): as in the scene, from the light — its probe read, the cap at its entry's depth.
+@fragment fn fsCapShadow(in: POut) -> @builtin(frag_depth) f32 {
+  if (!capFirst(in.clip)) { discard; }
+  let z = capDepth(capPoint(in.world));
+  if (z < 0.0) { discard; }
+  return z;
 }
 struct CapMask { @location(0) id: u32, @builtin(frag_depth) z: f32 }
 @fragment fn fsCapMask(in: POut) -> CapMask {

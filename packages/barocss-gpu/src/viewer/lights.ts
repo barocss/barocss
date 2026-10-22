@@ -54,7 +54,8 @@ export const defaultLights = (): Light[] => [
 ];
 
 /** The shadow of the casting light: its view-projection, normal offset (world), texel size (uv) and depth bias. */
-export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number }
+/** The shadow-casting light's view (`eye`, `direction`: where it looks from and along — the caps' probe from it, G19.4). */
+export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number; eye?: Vec3; direction?: Vec3 }
 
 /** The directional lights the frame lights with (the shadow index refers to this list). */
 export const directionalLights = (lights: readonly Light[]): DirectionalLight[] => lights.filter((l): l is DirectionalLight => l.kind === 'directional').slice(0, MAX_DIRECTIONAL);

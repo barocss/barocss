@@ -552,6 +552,9 @@ export class Viewer {
   private frameGroup!: BindGroup;
   private shadowFrameBuffer!: Buffer;
   private shadowFrameGroup!: BindGroup;
+  /** The caps' probe from the light (G19.4; the shadow map's size, made while the planes cap a caster) and its group. */
+  private lightProbe: Texture | null = null;
+  private shadowCapGroup: BindGroup | null = null;
   private shadowSampler!: object;
   private emptyShadow!: Texture;
   /** A one-texel nearest front depth (none): what the frame bind groups hold where the caps' prepass target is not bound. */
@@ -688,6 +691,7 @@ export class Viewer {
     this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, front);
     this.frameGroupBare = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, this.emptyFront);
     this.shadowFrameGroup = group(this.shadowFrameBuffer, this.emptyShadow, this.emptyFront);
+    this.shadowCapGroup = this.lightProbe ? group(this.shadowFrameBuffer, this.emptyShadow, this.lightProbe) : null;
   }
 
   private async createPipelines(): Promise<void> {
@@ -851,6 +855,19 @@ export class Viewer {
       fragment: { module: modules.pick, entryPoint: 'fsCapMask', targets: [{ format: 'r32uint' }] },
       primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    // (G19.4: the caps' probe from the light — the shadow map's depth, nearer smaller — and the caps into the shadow map.)
+    jobs.push(make('shadowProbe', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapProbe', targets: [{ format: 'rg32float' }], constants: { nearer: -1 } },
+      primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less' },
+    }));
+    jobs.push(make('shadowCap', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapShadow', targets: [] },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less' },
     }));
     jobs.push(make('shadow', {
       vertex: positionOnly(modules.pick),
@@ -1346,8 +1363,16 @@ export class Viewer {
     const r = Math.max(boxRadius(scene), 1e-6), c = boxCenter(scene), d = normalize(light.direction);
     const up: Vec3 = Math.abs(d[2]) < 0.9 ? [0, 0, 1] : [0, 1, 0], eye = sub(c, scale(d, 2 * r));
     if (!cross(up, d).some(x => x !== 0)) return null;
-    const viewProjection = multiply(orthographic(r, r, r * 0.9, r * 3.1), lookAt(eye, c, up)), size = this.shadowMapSize;
-    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005 };
+    // (Its depth range holds the capped meshes' whole boxes too, as the camera's does — the caps' probe from the light
+    // reads their faces cut away, G19.4; its breadth is the scene's.)
+    let near = r * 0.9, far = r * 3.1;
+    const deep = this.clip ? this.depthBounds() : null;
+    if (deep) for (let i = 0; i < 8; i++) {
+      const t = ((i & 1 ? deep.max[0] : deep.min[0]) - eye[0]) * d[0] + ((i & 2 ? deep.max[1] : deep.min[1]) - eye[1]) * d[1] + ((i & 4 ? deep.max[2] : deep.min[2]) - eye[2]) * d[2];
+      if (t - r * 0.01 < near) near = Math.max(r * 1e-3, t - r * 0.01); if (t + r * 0.01 > far) far = t + r * 0.01;
+    }
+    const viewProjection = multiply(orthographic(r, r, near, far), lookAt(eye, c, up)), size = this.shadowMapSize;
+    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005, eye, direction: d };
   }
 
   /** The grid this frame: a power-of-ten cell fitted to the view distance unless one is set. */
@@ -1362,7 +1387,12 @@ export class Viewer {
     // (Into the frame block kept for it, G13.)
     const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
     this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, vpt, this.gridFrame(), this.clip, frameBlock));
-    if (shadow) this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip));
+    if (shadow) {
+      const f = packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip);
+      // (Seen from the light — orthographic, along its direction: the caps' entry into the kept region along its rays, G19.4.)
+      if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
+      this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, f);
+    }
     let lo = Infinity, hi = -1;
     for (const m of this.meshes) if (m.dirty) {
       m.pack(this.objectData, m.slot * OBJECT_STRIDE, this.pixelRatio);
@@ -1469,6 +1499,31 @@ export class Viewer {
     }
     pass.end();
   }
+  /**
+   * The caps' probe from the shadow-casting light (G19.4): as drawCapFront, the capped casters' faces unclipped, the
+   * nearest beyond each texel's entry into the kept region along the light — in the shadow map's depth (cleared and drawn
+   * again by the shadow pass after it), read by the caps drawn into the shadow map.
+   */
+  private drawLightProbe(enc: ReturnType<Device['createCommandEncoder']>, casters: readonly Mesh[]): void {
+    const size = this.shadowMapSize;
+    if (!this.lightProbe || this.lightProbe.width !== size) {
+      this.lightProbe?.destroy();
+      this.lightProbe = this.device.createTexture({ size: [size, size], format: 'rg32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe from the light' });
+      this.bindFrames();
+    }
+    const pass = enc.beginRenderPass({
+      colorAttachments: [{ view: this.lightProbe.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+      depthStencilAttachment: { view: this.shadowMap!.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+    });
+    pass.setBindGroup(0, this.shadowFrameGroup);
+    pass.setPipeline(this.pipelines.get('shadowProbe')!);
+    for (const m of casters) {
+      if (!this.capped(m) || !this.upload(m.geometry)) continue;
+      { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+      this.drawTriangles(pass, m, false);
+    }
+    pass.end();
+  }
   /** The caps of the opaque meshes in a pass ('litCap' in the scene, 'capMask', 'capPick'): their count. */
   private drawCaps(pass: RenderPass, list: readonly Mesh[], current: { pipeline?: Pipeline }, key: 'litCap' | 'capMask' | 'capPick'): number {
     if (!this.clip) return 0;
@@ -1500,7 +1555,7 @@ export class Viewer {
     // (The clip plane changes what casts.)
     if (this.clip) { k[n++] = this.clip.planes.length; for (const p of this.clip.planes) { k[n++] = p.normal[0]; k[n++] = p.normal[1]; k[n++] = p.normal[2]; k[n++] = p.offset; } } else k[n++] = 0;
     for (let i = 0; i < viewProjection.length; i++) k[n++] = viewProjection[i];
-    for (const m of casters) { k[n++] = m.slot; k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
+    for (const m of casters) { k[n++] = m.slot * 2 + (this.capped(m) ? 1 : 0); k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
     const was = this.shadowDrawn;
     let same = this.shadowDrawnLength === n;
     for (let i = 0; same && i < n; i++) same = was[i] === k[i];
@@ -1562,14 +1617,25 @@ export class Viewer {
     const casters = this.casterList; casters.length = 0;
     if (shadow) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
     if (shadow && this.shadowMap && this.shadowChanged(shadow.viewProjection, casters)) {
+      // (G19.4: the capped casters' caps too — first the probe from the light, into the shadow map's own depth.)
+      const capping = this.clip ? casters.some(m => this.capped(m)) : false;
+      if (capping) this.drawLightProbe(enc, casters);
       // Every shadow caster, in view or not.
       const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
-      sp.setBindGroup(0, this.shadowFrameGroup);
+      sp.setBindGroup(0, capping && this.shadowCapGroup ? this.shadowCapGroup : this.shadowFrameGroup);
       sp.setPipeline(this.pipelines.get('shadow')!);
-      for (const m of this.meshes) {
-        if (!m.visible || !m.castShadow || m.transparent || m.geometry.topology !== 'triangles' || !this.upload(m.geometry)) continue;
+      for (const m of casters) {
+        if (!this.upload(m.geometry)) continue;
         sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
         this.drawTriangles(sp, m, false);
+      }
+      if (capping && this.shadowCapGroup) {
+        sp.setPipeline(this.pipelines.get('shadowCap')!);
+        for (const m of casters) {
+          if (!this.capped(m) || !m.geometry.gpu) continue;
+          sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+          this.drawTriangles(sp, m, false);
+        }
       }
       sp.end();
     }
@@ -2021,7 +2087,7 @@ export class Viewer {
     this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
     if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
     this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy(); this.shadowFrameBuffer?.destroy();
-    this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.emptyFront?.destroy();
+    this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.emptyFront?.destroy(); this.lightProbe?.destroy();
     this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy(); this.zeroParams?.destroy();
     for (const t of this.textures) t.dispose();
     this.textures.clear();

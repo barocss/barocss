@@ -471,6 +471,50 @@ test('G19.3 hatch on caps: a line a pixel wide over the spacing, at each mesh\'s
   } finally { await s.close(); }
 });
 
+// G19.4: the caps cast shadows. A box section wholly inside a solid leaves nothing of the solid's own surface — before,
+// a block with no shadow; now its caps are drawn into the shadow map from the light (its own probe: the entry into the
+// kept region along the light's rays, inside the solid). Oracle: the same kept cube as a plain mesh, unclipped — the
+// ground's shadow the same pixels within its outline; and the probe's rule from the light: a cube kept whole under the
+// planes (a solid inside the region, not cut) casts its own shadow once, not a cap's.
+test('G19.4 caps cast shadows: a box section\'s kept cube shadows the ground as the same cube unclipped does; a whole kept solid as before', { timeout: 120000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const light = { kind: 'directional', direction: [0.45, 0.25, -1], intensity: 2.5, castShadow: true };
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -0.01, 40], target: [0, 0, 0], up: [0, 1, 0], projection: 'orthographic' }, lights: [light], environment: { ambient: 0.25 } });
+      const ground = viewer.add({ positions: [-30, -30, -6, 30, -30, -6, 30, 30, -6, -30, 30, -6], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] }, { name: 'ground', material: { color: '#ffffff', roughness: 1 }, clipped: false, castShadow: false });
+      const red = { color: '#ff0000', roughness: 1 };
+      const big = viewer.add(box(10, 10, 10).surface, { name: 'big', material: red, cap: true, capColor: '#ffffff' });
+      viewer.camera.fit({ min: [-14, -14, -6], max: [14, 14, 5] }, viewer.aspect);
+      const h = 1.5, planes = [0, 1, 2].flatMap(k => [1, -1].map(sg => { const n = [0, 0, 0]; n[k] = sg; return { normal: n, offset: -h }; }));
+      // (The ground's pixels: grey — lit, or shadowed below the midway; the red block and its caps apart.)
+      const count = img => { let lit = 0, dark = 0; for (let i = 0; i < img.data.length; i += 4) { const [R, G, B] = [img.data[i], img.data[i + 1], img.data[i + 2]]; if (Math.abs(R - G) > 12 || Math.abs(G - B) > 12 || R === 0) continue; if (G < 120) dark++; else lit++; } return { lit, dark }; };
+      const out = {};
+      viewer.clipPlanes = null; out.whole = count(await viewer.capture());
+      viewer.clipPlanes = planes; out.section = count(await viewer.capture());
+      // The oracle: the kept cube as a mesh, nothing clipped.
+      big.visible = false; viewer.clipPlanes = null;
+      const cube = viewer.add(box(3, 3, 3).surface, { name: 'cube', material: red });
+      out.cube = count(await viewer.capture());
+      // A cube kept whole inside the region (planes round it, cutting nothing): its shadow as without the planes.
+      cube.cap = true; viewer.clipPlanes = [0, 1, 2].flatMap(k => [1, -1].map(sg => { const n = [0, 0, 0]; n[k] = sg; return { normal: n, offset: -4 }; }));
+      out.inside = count(await viewer.capture());
+      const unit = viewer.canvas.height / (2 * viewer.camera.halfHeight);
+      out.outline = 4 * 3 * 2 * unit;
+      viewer.dispose();
+      return out;
+    });
+    t.diagnostic(JSON.stringify(r));
+    assert.ok(r.whole.dark > 1000, `the whole solid shadows the ground: ${r.whole.dark}`);
+    assert.ok(r.cube.dark > 200, `the cube's shadow: ${r.cube.dark}`);
+    assert.ok(Math.abs(r.section.dark - r.cube.dark) <= r.outline, `the box section's shadow ${r.section.dark} against the cube's ${r.cube.dark} ± ${r.outline.toFixed(0)}`);
+    assert.ok(Math.abs(r.inside.dark - r.cube.dark) <= r.outline * 0.25, `a cube kept whole: ${r.inside.dark} against ${r.cube.dark}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
 // G3: a line pick passes over a segment a surface hides — the GPU's depth at its pixel is the oracle: nothing found lies
 // behind a surface, and every segment found through surfaces that the GPU shows is found (or a nearer one); the clip
 // plane's cut-away faces hide nothing, its cap does; another mesh hides too.
