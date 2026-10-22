@@ -6,7 +6,8 @@
 // become its `next` (their revision moves), and every lease it touches expires — its holder's next patch is refused
 // CONTRACT_MOVED until the Architect renews it; rejected, nothing changes.
 import type { StudioDoc } from '../engine/doc';
-import { interfacesRevision, readInterfaces, type Interfaces, type Lease, type PartPatch } from './parts';
+import { interfacesRevision, readInterfaces, type Interfaces } from './interfaces';
+import type { Lease, PartPatch } from './parts';
 import { digestOf, partDigests } from './digest';
 
 export interface EcrChange { item: string; kind: 'added' | 'removed' | 'changed'; parts: string[] }

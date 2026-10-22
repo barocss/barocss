@@ -13,6 +13,13 @@ import { authorizeRows, ROW_KINDS, rowEntries, rowKey, validRowSupplies, type Ro
 import { personRowFile, ROWS_NOT_FROM_PERSON, type PersonRowFiles, type RowFileSource } from './rowFiles';
 
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+const positive = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0;
+/** The file's rows replace the same ids in place and the rest are appended; the unnamed rows keep their objects. */
+function mergeById<T extends { id: string }>(was: readonly T[] | undefined, incoming: readonly T[]): T[] {
+  const byId = new Map(incoming.map(r => [r.id, r])), out = (was ?? []).map(r => byId.get(r.id) ?? r);
+  for (const r of incoming) if (!(was ?? []).some(w => w.id === r.id)) out.push(r);
+  return out;
+}
 
 export function loadPersonRows(doc: StudioDoc, kind: unknown, fileId: unknown, feature?: unknown, context?: PersonRowFiles): { doc: StudioDoc; source: RowFileSource; rows: number } | { error: string } {
   const file = personRowFile(context, fileId);
@@ -38,25 +45,32 @@ export function loadPersonRows(doc: StudioDoc, kind: unknown, fileId: unknown, f
       result = 'error' in converted ? converted : editSections(doc, converted.rows); break;
     }
     case 'stock': {
+      // (CNC7b, O102: each row checked, a bad one refused by name. Rows merge by id like every other kind: a placed part's
+      // view keeps its inherited rows, and a row the file does not name stays.)
       const good: StockRow[] = [];
-      const positive = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0;
-      for (const value of raw) {
+      for (const [k, value] of raw.entries()) {
         const r = value as Record<string, unknown>, id = typeof r.id === 'string' ? r.id : '', source = typeof r.source === 'string' ? r.source.trim() : '';
-        if (!id || !source) return { error: '[STOCK_ROW] Each stock row needs an id and source.' };
+        if (!id || !source) return { error: `[STOCK_ROW] row ${k}: an id and a source (where the size comes from: your shop, a page) are needed.` };
         if (r.kind === 'block' && Array.isArray(r.size) && r.size.length === 3 && r.size.every(positive)) good.push({ id, kind: 'block', size: [...r.size] as [number, number, number], source });
         else if (r.kind === 'bar' && positive(r.diameter) && (r.maxLength === undefined || positive(r.maxLength))) good.push({ id, kind: 'bar', diameter: r.diameter, ...(r.maxLength !== undefined ? { maxLength: r.maxLength as number } : {}), source });
-        else return { error: `[STOCK_ROW] Invalid block or bar ${id}.` };
+        else return { error: `[STOCK_ROW] row ${k} (${id}): a block has size [a, b, c] > 0; a bar a diameter > 0 (and maxLength > 0).` };
       }
-      result = { doc: { ...doc, machining: { ...doc.machining, version: 1, stock: good } } }; break;
+      if (new Set(good.map(r => r.id)).size !== good.length) return { error: '[STOCK_ROW] two rows with one id.' };
+      result = { doc: { ...doc, machining: { ...doc.machining, version: 1, stock: mergeById(doc.machining?.stock, good) } } }; break;
     }
     case 'frame-stock': {
+      // (FRb, O116: the same, for frame stock lengths.)
       const good: FrameStockRow[] = [];
-      for (const value of raw) {
+      for (const [k, value] of raw.entries()) {
         const r = value as Record<string, unknown>, id = typeof r.id === 'string' ? r.id : '', source = typeof r.source === 'string' ? r.source.trim() : '', length = r.lengthMM ?? r.length;
-        if (!id || !source || typeof length !== 'number' || !Number.isFinite(length) || length <= 0 || (r.count !== undefined && (!Number.isInteger(r.count) || (r.count as number) <= 0)) || (r.section !== undefined && (typeof r.section !== 'string' || !r.section))) return { error: '[FRAME_STOCK_ROW] Invalid id, source, length, count or section.' };
+        if (!id || !source) return { error: `[FRAME_STOCK_ROW] row ${k}: an id and a source (where the length comes from: your shop, a page) are needed.` };
+        if (!positive(length)) return { error: `[FRAME_STOCK_ROW] row ${k} (${id}): length is mm > 0.` };
+        if (r.count !== undefined && !(Number.isInteger(r.count) && (r.count as number) > 0)) return { error: `[FRAME_STOCK_ROW] row ${k} (${id}): count is a whole number > 0 (unset: as many as needed).` };
+        if (r.section !== undefined && !(typeof r.section === 'string' && r.section)) return { error: `[FRAME_STOCK_ROW] row ${k} (${id}): section is the cut list's section text (unset: any section).` };
         good.push({ id, lengthMM: length, ...(r.count !== undefined ? { count: r.count as number } : {}), ...(r.section !== undefined ? { section: r.section as string } : {}), source });
       }
-      result = { doc: { ...doc, frames: { ...doc.frames, version: 1, stock: good } } }; break;
+      if (new Set(good.map(r => r.id)).size !== good.length) return { error: '[FRAME_STOCK_ROW] two rows with one id.' };
+      result = { doc: { ...doc, frames: { ...doc.frames, version: 1, stock: mergeById(doc.frames?.stock, good) } } }; break;
     }
     case 'bend': {
       if (!Number.isInteger(feature) || (feature as number) < 0) return { error: '[ROWS_INPUT] A bend table needs the index of an existing sheet feature.' };

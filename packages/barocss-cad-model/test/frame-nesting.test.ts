@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type FrameStockRow, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
+import { personFile } from './person-file';
 import { partCutList, type PartCutList } from '../src/app/cutList';
 import { EXACT_PIECES, KERF_ESTIMATE_MM, nestCutList, nestingCsv, nestLowerBound, type Nesting } from '../src/frames/nesting';
 
@@ -52,7 +53,8 @@ test('FRb the welded table frame (FR4b): its 12 long points, 9320 mm, into 6000 
   // (No stock loaded: the cut list says how to load it.)
   let r = await dispatchTool(state, 'cut_list', {}, evaluate), out = JSON.parse(r.content);
   assert.match(out.nesting.error, /^\[NEST_NO_STOCK\] .*none is built in/);
-  r = await dispatchTool(state, 'set_frame_stock', { rows: [{ id: 'L6', length: 6000, source: 'a test value' }], kerf: 3 }, evaluate); assert.ok(!r.isError, r.content); state = r.state;
+  const L6 = personFile('frame-stock.json', [{ id: 'L6', length: 6000, source: 'a test value' }]);
+  r = await dispatchTool({ ...state, rowFiles: L6.rowFiles }, 'set_frame_stock', { file: L6.file, kerf: 3 }, evaluate); assert.ok(!r.isError, r.content); state = r.state;
   out = JSON.parse((await dispatchTool(state, 'cut_list', {}, evaluate)).content);
   const two = out.nesting as Nesting;
   assert.equal(two.totals.bars, 2); assert.equal(two.totals.stockMM, 12000); assert.equal(two.totals.piecesMM, 9320); assert.equal(two.totals.wasteMM, 12000 - 9320 - 3 * 10);
@@ -61,7 +63,9 @@ test('FRb the welded table frame (FR4b): its 12 long points, 9320 mm, into 6000 
   // (Each piece by its body key and name, from the cut list's rows.)
   const keys = partCutList(state.doc, state.bodies)!.rows.flatMap(x => x.pieces);
   assert.deepEqual(two.bars.flatMap(b => b.pieces.map(p => p.key)).sort(), [...keys].sort());
-  r = await dispatchTool(state, 'set_frame_stock', { rows: [{ id: 'L6', length: 6000, source: 'a test value' }, { id: 'L4', length: 4000, source: 'a test value' }] }, evaluate); state = r.state;
+  const L4 = personFile('frame-stock-more.json', [{ id: 'L4', length: 4000, source: 'a test value' }]);
+  r = await dispatchTool({ ...state, rowFiles: L4.rowFiles }, 'set_frame_stock', { file: L4.file }, evaluate); assert.ok(!r.isError, r.content); state = r.state;
+  assert.deepEqual(state.doc.frames?.stock?.map(x => x.id), ['L6', 'L4'], 'the file adds L4; L6 stays');
   const mixed = nestCutList(state.doc, partCutList(state.doc, state.bodies)); assert.ok(mixed.ok);
   assert.deepEqual(mixed.nesting.bars.map(b => b.stock).sort(), ['L4', 'L6']); assert.equal(mixed.nesting.totals.stockMM, 10000); assert.equal(mixed.nesting.totals.wasteMM, 10000 - 9320 - 30);
   sound(mixed.nesting, longs, 3);
@@ -103,16 +107,23 @@ test(`FRb past ${EXACT_PIECES} pieces first-fit-decreasing, its gap said: 40 pie
   assert.equal(nestLowerBound(9320, 12, 3, 6000, 6000), 12000);
 });
 
-test('FRb set_frame_stock refuses by name: no source, a length of 0, a count of 1.5, an empty section, two rows of one id, a kerf of 25', async () => {
+test('FRb set_frame_stock refuses by name: no source, a length of 0, a count of 1.5, an empty section, two rows of one id, a kerf of 25; rows the agent writes', async () => {
   const s: ChatState = { doc: emptyDoc(), bodies: [] };
-  for (const [args, re] of [
-    [{ rows: [{ id: 'a', length: 6000 }] }, /\[FRAME_STOCK_ROW\] row 0: an id and a source/],
-    [{ rows: [{ id: 'a', length: 0, source: 's' }] }, /\[FRAME_STOCK_ROW\] row 0 \(a\): length/],
-    [{ rows: [{ id: 'a', length: 6000, count: 1.5, source: 's' }] }, /\[FRAME_STOCK_ROW\] row 0 \(a\): count/],
-    [{ rows: [{ id: 'a', length: 6000, section: '', source: 's' }] }, /\[FRAME_STOCK_ROW\] row 0 \(a\): section/],
-    [{ rows: [{ id: 'a', length: 6000, source: 's' }, { id: 'a', length: 3000, source: 's' }] }, /two rows with one id/],
-    [{ kerf: 25 }, /\[FRAME_KERF\]/],
-  ] as const) { const r = await dispatchTool(s, 'set_frame_stock', args as Record<string, unknown>, evaluate); assert.ok(r.isError, JSON.stringify(args)); assert.match(JSON.parse(r.content).error, re); }
-  const ok = await dispatchTool(s, 'set_frame_stock', { rows: [{ id: 'a', length: 6000, count: 4, section: 'RHS', source: 'the shop' }], kerf: 2 }, evaluate);
-  assert.ok(!ok.isError); assert.deepEqual(ok.state.doc.frames, { version: 1, stock: [{ id: 'a', lengthMM: 6000, count: 4, section: 'RHS', source: 'the shop' }], kerfMM: 2 });
+  for (const [rows, re] of [
+    [[{ id: 'a', length: 6000 }], /\[FRAME_STOCK_ROW\] row 0: an id and a source/],
+    [[{ id: 'a', length: 0, source: 's' }], /\[FRAME_STOCK_ROW\] row 0 \(a\): length/],
+    [[{ id: 'a', length: 6000, count: 1.5, source: 's' }], /\[FRAME_STOCK_ROW\] row 0 \(a\): count/],
+    [[{ id: 'a', length: 6000, section: '', source: 's' }], /\[FRAME_STOCK_ROW\] row 0 \(a\): section/],
+    [[{ id: 'a', length: 6000, source: 's' }, { id: 'a', length: 3000, source: 's' }], /two rows with one id/],
+    [undefined, /\[FRAME_KERF\]/],
+  ] as const) {
+    const f = personFile('frame-stock.json', rows ?? []);
+    const r = await dispatchTool({ ...s, rowFiles: f.rowFiles }, 'set_frame_stock', rows ? { file: f.file } : { kerf: 25 }, evaluate);
+    assert.ok(r.isError, JSON.stringify(rows)); assert.match(JSON.parse(r.content).error, re);
+  }
+  const good = [{ id: 'a', length: 6000, count: 4, section: 'RHS', source: 'the shop' }], f = personFile('frame-stock.json', good);
+  const raw = await dispatchTool({ ...s, rowFiles: f.rowFiles }, 'set_frame_stock', { rows: good, kerf: 2 }, evaluate);
+  assert.ok(raw.isError); assert.match(JSON.parse(raw.content).error, /ROWS_NOT_FROM_PERSON/);
+  const ok = await dispatchTool({ ...s, rowFiles: f.rowFiles }, 'set_frame_stock', { file: f.file, kerf: 2 }, evaluate);
+  assert.ok(!ok.isError, ok.content); assert.deepEqual(ok.state.doc.frames, { version: 1, stock: [{ id: 'a', lengthMM: 6000, count: 4, section: 'RHS', source: 'the shop' }], kerfMM: 2 });
 });

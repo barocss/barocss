@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
+import { personFile } from './person-file';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { weldList, weldListSource } from '../src/frames/welds';
 import { drawingInputs } from '../src/chat/drawing';
@@ -98,8 +99,9 @@ test('FRd1 a seam along curved sides: an RHS 20 × 20 × 2 with 3 mm outer corne
 
 test('A9-1 a table frame\'s top corners, three members trimmed in order: the leg runs through (no joint at its run-on end); each rail end is a butt on its leg — 8 joints of 160, sizes 3 (estimate); the person\'s records taken; a bead there refused by the kernel, said, the part still built', async () => {
   const RHS = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 };
-  let s: ChatState = { doc: emptyDoc(), bodies: [] };
-  const lib = await dispatchTool(s, 'features', { action: 'frame_sections', rows: [{ id: 'R40', name: 'RHS 40', section: RHS, source: 'a test value' }] }, evaluate); assert.ok(!lib.isError, lib.content); s = lib.state;
+  const sections = personFile('sections.json', [{ id: 'R40', name: 'RHS 40', section: RHS, source: 'a test value' }]);
+  let s: ChatState = { doc: emptyDoc(), bodies: [], rowFiles: sections.rowFiles };
+  const lib = await dispatchTool(s, 'features', { action: 'frame_sections', file: sections.file }, evaluate); assert.ok(!lib.isError, lib.content); s = lib.state;
   const f = await dispatchTool(s, 'features', { action: 'command', command: 'frame', values: { skeleton: 'table', W: 400, D: 300, H: 300, x: 0, y: 0, z: 0, section: 'library', row: 'R40', corners: 'butt' } }, evaluate);
   assert.ok(!f.isError, f.content); s = f.state;
   const w = weldList(s.doc, s.bodies), rails = ['b0_part4', 'b0_part5', 'b0_part6', 'b0_part7'], legs = ['b0_part0', 'b0_part1', 'b0_part2', 'b0_part3'];

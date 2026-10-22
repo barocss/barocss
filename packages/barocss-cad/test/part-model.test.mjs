@@ -566,7 +566,10 @@ test('sketch regions and holes: one extrude makes a windowed plate and a separat
   const onSide = evaluateCadPart(D([{ ...rect('t', 0, 0, 20, 10), plane: side, holes: [ring(10, 5, 2)] }, extrude('w', 't', 3)])).output('w');
   assert.ok(close(volume(onSide), (200 - 4 * pi) * 3, 1e-9));
   refused(D([plate, { id: 'd', kind: 'extrude', sketch: 's', height: 4, draft: 5 }]), 'CAPABILITY', /drafted extrude takes one loop/);
-  refused(D([plate, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }]), 'CAPABILITY', /revolve takes a sketch of one loop/);
+  refused(D([plate, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }]), 'CAPABILITY', /revolve takes one outer loop with optional holes \(no regions\)/);
+  // A sweep takes one loop: its holes are refused, never dropped (D176: 99da385a1 had lifted the refusal and swept the outer loop alone).
+  refused(D([{ ...rect('t', 0, 0, 20, 10), holes: [ring(10, 5, 2)] }, { id: 'w', kind: 'sweep', sketch: 't', path: [{ kind: 'straight', length: 10 }] }]), 'CAPABILITY', /sweep takes a sketch of one loop \(no regions or holes\)/);
+  refused(D([plate, { id: 'w', kind: 'sweep', sketch: 's', path: [{ kind: 'straight', length: 10 }] }]), 'CAPABILITY', /sweep takes a sketch of one loop/);
   refused(D([{ ...rect('x', 0, 0, 1, 1), holes: 'no' }]), 'INPUT', /holes must list/);
 });
 

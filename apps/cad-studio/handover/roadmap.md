@@ -1,173 +1,123 @@
----
-work_id: cad-review-continuation-20261022
-artifact_type: continuation-roadmap
-status: in_progress
-owner_role: CAD Coordinator
-source_request: "Current chat: resume CAD work in separate Kernel, Model and GPU Works."
-last_updated: 2026-10-23
----
+# barocss CAD roadmap
 
-# CAD continuation roadmap
+Current as of 2026-10-23, after the Codex import. This file is the one place for **what we do, in what order, and
+when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
+`codex/cad-coordinator-handover-20261022`.
 
-[Current status and Work identities](state.yaml) · [Handover protocol](protocol.md) ·
-[Source checkpoint](notes/coordinator-handover-2026-10-22.md) ·
-[Owner roadmap](notes/owner-roadmap-2026-10-22.md)
+Details and contracts live in the decision logs: `decisions.md` (kernel, D), `decisions-outer.md` (outer, O),
+`decisions-gpu.md` (GPU, G). Each lane's README §0 block says where that lane stands. How the work is run (lanes,
+coordinator, verification tiers) is in `notes/claude-resume-2026-10-23/`.
 
-[Feature delivery brief and sent instructions](notes/feature-delivery-assignments-2026-10-22.md)
+**The goal (owner):** AI takes a brief to a manufacturable, buyable product. A9 is the first end-to-end run of that path.
 
-[Consumer connections and follow-up instructions](notes/feature-delivery-followup-2026-10-22.md)
+## Where we are
 
-This roadmap defines scope, dependencies and exits. `state.yaml` holds current
-status, exact commits and receipts. A recorded completion is limited to the
-profile and evidence in its decision record. A source fix, a lane check, local
-adoption, integrated browser acceptance, remote merge and release are separate.
+Integration is `review/cad-gpu-engine-2026-10-14` at `6bfd0ad97`, local only.
 
-## Goal
+| | |
+|---|---|
+| Content | develop (#2185) + Codex's work squashed (`99da385a1`, no evidence files) + the GPU lint fix |
+| Last fully verified commit | `9fec9950c`, 2026-10-22: full flow 264/264 |
+| Integration window at `99da385a1` | builds and tsc pass; gpu 179/179; kernel 1597/1608 (4 real failures); model 902/915; studio 166/187; studio lint 1 error (fixed since); browser flow not run |
 
-AI takes a brief to a manufacturable, buyable product. A9 is the first full
-acceptance path. The owner roadmap is the scope reference; current acceptance
-stays in state and evidence.
+Done, per area (see the logs):
+- **Kernel core:** R1–R12c, track K and PKG.
+- **Frames:** FR1–FR4, FRa–FRg, FRk1, FRk2, FRk3 (I/H, tapered channels, D172), FRk4 (curved and bent members, D173/D174) and FRk5 (weld gaps and notches, D175). FRk5 has open items below.
+- **Shared weld seams:** D170.
+- **Robots:** RM1–RM9, RD1–RD3, RD9.
+- **Manufacturing:** AM1–AM7, IM1–IM8, CNC1–CNC8.
+- **Drawings and exchange:** R11b DXF and R14 drawings.
+- **AI collaboration:** A1–A8.
+- **Robustness:** RB1–RB4.
+- **GPU:** G1–G20.2, plus G21's display modes, curved silhouettes and isolate/fade.
+- **Codex review fixes:** REVIEW-K1, M1, M2, M3 and G1.
+- **A9, built but not accepted end to end:**
+  - A9-1 to A9-6, A9-8, A9-9 and A9-10 are built.
+  - A9-13 (the part drawing draws every instance) is built.
+  - A9-7's native cross-part housing context is built.
 
-## Coordination windows
+## Phase 0: only what a green baseline needs, now
 
-The owner requested finish on 2026-10-23. Implementation and automatic dispatch
-are stopped; cad-work is PAUSED. Read [Codex handback](notes/codex-handback-2026-10-23.md)
-and state.yaml for exact commits, lane WIP, blockers and resume commands. Final
-window244321188 passed builds and types, failed Studio lint, and encountered a
-Model test failure before repeated ENOSPC prevented completion. Remaining package
-suites and full browser flow are not run. No new fully verified head is claimed.
+Owner (2026-10-23): fix Codex's leftovers only where the roadmap needs them, and go by our own roadmap
+("codex 가 남긴 문제가 로드맵에 필요 없으면 안해도 돼, 너만의 로드맵으로 가"). Phase 0 is therefore only what stops the
+suites from loading or passing, so that the roadmap's work can be verified. The rest is folded into Phase 1 items or
+moved to Later.
 
-Kernel FRk6 sourceabb697f, GPU A9-7 source8789/evidence0eff and CNC source5c9
-remain preserved outside integration. Model A9-7 native source remains adopted.
-A9-9 scripted upload/paste is controlled fixture evidence; actual-person row
-acceptance requires the original human-supplied file and source. G22/G23/FRk5
-actual-flow gaps remain open. Resume only on an explicit owner instruction.
+| # | Problem | Lane | Exit |
+|---|---|---|---|
+| S1 | **Import cycle in cad-model.** Codex's `chat/outputs.ts` makes `commands` undefined at load. Whole test files fail: chat, decimate, frame, palette, palette-rank, sheet and cageEdit. | outer | Those files load and pass; public paths unchanged |
+| S2 | **Rows rule (b) fixtures.** The tests and the cad-cli/cad-mcp paths still pass agent-written rows, which rule (b) refuses. | outer | Fixtures load rows through person files; raw `rows` still refused; rule unchanged. The P2 merge-by-id fix rides along |
+| S3 | **The frozen v2 contract test.** Codex changed tools without updating `tools-v2.json`. | outer, then owner if breaking | Diff written: additive → update with a record; breaking → owner decides |
+| S4 | Failures still left after S1 and S2 | outer | Each fixed or assigned with a cause |
+| S5 | Kernel failures from the window: frk-3's dropped oracle, stale S0 expectations, sweep dropping holes | kernel | **done**: D176 `b0e22e572`. The V notch moves to K1 |
+| S6 | Studio lint | GPU | **done**: `59582a911` |
+| S9 | Window and full browser flow at one commit | coordinator | The new "last fully verified" commit |
 
-## Review corrections
+Moved out of Phase 0:
+- the V notch precision regression goes to K1 (same quadrature file as FRk6);
+- the model review's P3 findings are fixed when a roadmap item touches that code (the owner's no-nested-functions rule still applies there);
+- REVIEW-A1 (recovery metadata before the blob write) goes to Later.
 
-| ID | Owner | Required exit |
+## Phase 1: the roadmap, per lane (starts as each lane's Phase 0 items close)
+
+### Kernel lane: finish the frame track (FRk)
+
+| # | Item | Exit |
 |---|---|---|
-| REVIEW-K1 | Kernel | Overlapping Sweep mass, centroid and inertia agree with the final B-rep; the five-bend example agrees with `64π`, and disjoint controls retain their exact results. |
-| REVIEW-M1 | Model | Direct, batch and script calls enforce the same approval policy; permitted changes survive save/reopen; dry-run, no-op and rejected operations retain accepted state. |
-| REVIEW-M2 | Model | A section-row edit that changes geometry invalidates analysis, revision and approval pins; unchanged input stays current. |
-| REVIEW-M3 | Model | Welded direct evaluation and worker evaluation contain the same bead bodies; weld changes invalidate the evaluation key. |
-| REVIEW-G1 | GPU | GPU pick metadata selects the nearest kept face or cap; CPU and GPU agree for quarter, plane and instance cases. Mock and actual device evidence are named separately. |
-| REVIEW-A1 | Model / app contract | Failed mesh persistence is reported and cannot leave a misleading successful recovery state; restore remains coherent with the offered copy and accepted work. |
+| K1 | **FRk6** ordered-trim speed. From Codex's unverified WIP `abb697f2`: hoist `stripSpanD1`'s closure and per-element callbacks first (owner rule). Includes the V notch mass regression (rel 1.42e-11 against 1e-11 since the import), in the same quadrature code. | Member5 mass at 1e-9, the reversal case, the general fallback and the frame regression set pass; the round-cornered table ≤ 2 s (one corner was 1.2–1.5 s, the table 5.7 s). D177 |
+| K2 | **FRk5 leftovers.** The notch screen/file flow, and the WebGPU failure Codex retained (with the GPU lane for the viewport part). | The notch made, saved and reopened in the app on both renderers |
+| K3 | **FRk7** SubD display folds inside single B-spline faces (`surfaceTriangles`) | The pipe clamp's worst fold under 25° (88.6° now) |
+| K4 | **FRk8a** the bearing housing's shoulder checked against the row's Da max, read from the housing's faces | A typed refusal when it doesn't fit |
+| K5 | **FRk8b's second half** (exact-trim integration), only if K1 still needs speed | — |
+| K6 | **FRk9** acceptance by the agent: a welded table with gussets, caps and beads; a tapered-I portal; a bent-tube rail | `conformance/frk/accept-*` pass through v2 tools |
 
-## Product tracks and dependencies
+### Outer lane: A9, brief → buyable, manufacturable product
 
-| Track | Next scope | Dependency / exit |
+| # | Item | Exit |
 |---|---|---|
-| Kernel FR completion | A9 planar ordered-trim bead dependency → FRk3 I/H and tapered channels → FRk4 arc members → FRk5 gaps/notches → FRk6 trim speed → FRk7 SubD slivers → FRk8a housing check → optional exact-trim integration → FRk9 acceptance | Follow D165's reordered queue and the latest Kernel handover. One D-record and checkpoint per stage. |
-| Model A9 | Verify A9-1/2/5/6 → A9-13 part drawing → A9-4 drawing options → A9-10/8 output tools and shop-row inheritance → A9-9 person-supplied rows → A9-11 CSV provenance → A9-7 housing connection → acceptance | The bead refusal and key/bearing fixture conflict remain explicit prerequisites. The acceptance uses real v2 tools and fresh files. |
-| GPU | Finish G20.2 → G21 display modes → G22 clearance → G23 print/CNC preview → G24 3D annotations → G25 analysis | G22/G23/G24 consume the existing model contracts. Prepared data does not complete their display. Verify both renderer paths at each stage. |
-| Robustness | RB5 fuzz, RB6 corpus, RB7 STEP hardening, RB8 wider sweeps; RB9 actual-agent evidence | Keep downloads, live-model budgets and inherited approvals separate from deterministic local checks. |
-| Publication | Public model-package build, docs inventory, legal and release checks | Publishing, deployment and release need their own owner request; no release completion follows from a merge. |
+| O1 | Verify A9-1, A9-2, A9-5/6 and A9-13, A9-4, A9-10/A9-8 in the full suites (Codex checked them only in focused runs) | Their tests pass in the Phase 0 window |
+| O2 | **A9-11** the Studio download flow (CSV and outputs with their sources) | The flow step downloads, reopens and matches |
+| O3 | **The A9 brief** fixture: the default shaft's key clashes with the 6204 (115 mm³) | The key or the bearing moved; the clearance map shows no clash |
+| O4 | **A9-7** linked bearing housing in the app: the GPU lane ports the UI (G-lane item below); the outer lane owns the model side | Linked-bearing success flow. **Needs a real person-supplied row/fit file from the owner**; never a generated one |
+| O5 | **The A9 acceptance run** (`test/a9-acceptance.test.ts`, `conformance/a9`) | Brief → part, drawings, BOM, CSV, manufacturing outputs and purchase list, all through v2 tools; reopened identical |
+| O6 | Open items: aligned sections for off-axis features; a welded-fabrication DFM profile (A9-12, needs sourced rules) | Decide, then build or close |
 
-## Preserved decisions
+### GPU lane: viewer track G21–G25
 
-- Kernel → model → app remains the package boundary. Model modules are fully
-  public experimental APIs, with no browser/UI import or new dependency shortcut.
-- Shop rows come from the person, a sourced page or an explicitly marked estimate.
-  A9-9 requires a file supplied by the person in the conversation and its provenance.
-- CAE/FEA and the mesher remain held. ECAD, DWG and SAT retain the source
-  decisions. RD10 deterministic output is not live-model acceptance.
-- Every Work uses its own checkout. Only the coordinator writes current handover
-  state and adopts checkpoints. No source changes occur in a running flow's checkout.
+| # | Item | Exit |
+|---|---|---|
+| G1 | **A9-7 UI**, ported from Codex's `8789e468`: Housing path, linked BOM refusal CSV, useAssembly faceTable. Its tests move to `apps/cad-studio/test`. | The no-row flow as before; linked success with the owner's file (O4) |
+| G2 | **G23 CNC preview** from Codex's source `5c9f861f`: App, Viewport and renderer connections and tests | Material removal shown on both renderers; NOT FOR PRODUCTION kept |
+| G3 | **G21 rest**: silhouettes, isolate/hide in every display mode, the WebGL2 instance display | Each mode on both renderers, picks unchanged |
+| G4 | **G22** the clearance map on screen (states overlap/contact/touching/designed/near/clear) and **G23** print layers: dual-renderer and Save/Open acceptance | Flow steps on WebGPU and WebGL2 |
+| G5 | **G24** 3D PMI, using the outer lane's glyph builders | Annotations placed, picked and saved |
+| G6 | **G25** GPU analyses | Each analysis matches its CPU result within its stated tolerance |
+| G7 | Antialiased cap edges | — |
 
-Use the dated source handover and D/O/G logs for formulas, supported profiles,
-capacity, fixtures, numerical budgets and decisions. This file does not replace
-those contracts or turn known limits into completed product acceptance.
+## Later (on the roadmap, not started)
 
-## Later owner experiment
+- **REVIEW-A1** (from Codex): recovery metadata can report success before the mesh blob is stored. A real defect, off the current path.
+- **RB5–RB8:** fuzzing, the CI corpus, STEP import hardening and the nightly ABC sweep. RB6 and RB8 need downloads, which need the owner's permission.
+- **Live AI runs:** RB9 live trials, RD10 L3 and the A7/A8 live comparison. They need a token budget from the owner.
+- **After G25, when need is measured:** occlusion culling, progressive photoreal rendering, turntable and explode video.
+- **Publication:** the cad-model package build, the docs inventory (`check:docs` drift for @barocss/gpu), the A6.5 legal review, release. Only when the owner asks.
+- **After the whole roadmap:** the full spec and conformance suite, and a fresh-AI reimplementation test (owner's experiment).
 
-After the whole roadmap is complete, write the full specification and conformance
-suite, then test a fresh AI reimplementation from them. This is a later owner
-experiment, with no implementation assigned in the current window.
+## Waiting on the owner
 
-## A9 shared seams
+- A person-supplied row/fit file for A9-7/A9's acceptance (O4, O5).
+- Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle.
+- A v3 decision, if S3 finds a breaking v2 change.
+- Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review.
+- The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu).
 
-The ordered-trim S0 found shared weld material: nominal joint quantities total
-2880 mm3, while four duplicate 180 mm3 prisms make unique material2160 mm3.
-Preserve the original failed no-overlap check. Request a shared-seam ownership
-and reporting contract before implementation; equal partition is the preferred
-proposal. Physical material, nominal requested quantity and joint references
-must remain separate and auditable. The isolated360 mm3 T control stays fixed.
+## Off the roadmap (owner decisions)
 
-The shared-seam contract must preserve valid nonshared legacy controls without
-automatically writing a policy. A detected shared component with missing or
-incomplete context must refuse atomically. Removing a failed peer and retrying
-the remaining full nominal bead must not produce overlapping material or
-misleading mass totals. Final Model and Kernel agreement precedes implementation.
-
-The coordinator accepted D170 with the Model S0 five-boundary corrections and
-assigned separate Kernel and Model implementations at `b9d8b4834`. The Kernel
-error must carry the complete structured shared component. The Model retains
-unaffected bodies, labels incomplete bead subtotals, and prevents whole-part
-mass/inertia/BOM approval from succeeding on omitted shared material. Model
-acceptance requires the actual reviewed Kernel API; proposal and synthetic
-transport checks do not qualify automatic discovery or partitioning.
-
-## Bounded G21 progression
-
-Deliver the five display modes through the existing App Views control and
-GPU/viewport backend as one usable feature. Preserve the current default, native
-picks, clip geometry and document state. The exact App display-mode lease and
-failure correction belong to the feature delivery brief and current state.
-Unsupported combinations need an explicit reason and safe default. Silhouettes,
-focus and the missing WebGL2 instance display bridge remain whole-G21 work;
-backend checks or the bounded display-mode feature do not complete all G21.
-
-The recovery S0 found metadata-before-blob completion, incomplete-reference false
-success and wrong-key cleanup after failed Restore. Its six isolated diagnostic
-groups do not provide React or real IndexedDB proof. Preserve the evidence; route
-a narrow App/helper fix after GPU returns its exclusive display-mode App lease.
-
-## Historical feature delivery order
-
-Use the [sent feature contracts](notes/feature-delivery-assignments-2026-10-22.md)
-to keep three independent implementation lanes productive. Kernel implements
-D164 FRk4 on its FRk3 native result. Model consumes that exact FRk3 API through
-the existing section editor, commands, v2 tools and Save/Open. GPU connects the
-existing display-mode backend to actual App controls and resolves the retained
-WebGPU image failure. Required tests stay inside these implementation tasks.
-The coordinator separately reviews and adopts the already received A9 shared-seam
-and FRk3 native results; pending aggregate verification does not require independent
-implementation lanes to remain idle. A9 acceptance and its remaining queue still
-require the real shared-seam and brief-fixture dependencies.
-
-Shared-seam and FRk3 native code are now available in local integration, with
-focused checks recorded in current state. This does not complete FRk3 screen/file
-acceptance or the full A9 path. A ready feature may use a free verification slot
-before an unready reservation; notify the affected Works and preserve one active
-heavy lease at a time.
-
-FRk3 editor screen/file evidence and the bounded G21 display-mode feature have
-since been accepted at their native SHAs and adopted locally. Current state records
-the separate aggregate window. Complete FRk4 through its existing editor consumer
-before advancing Kernel to FRk5; a named Model-file lease keeps that work separate
-from Model's A9-13 drawing correction. A9-13 means removing unrelated instance
-geometry and automatic dimensions from a part drawing, while preserving assembly
-BOM and balloons. GPU next connects default assembly instance display/pick on
-WebGL2. Silhouettes, isolate/hide and nondefault instance display modes remain
-explicit whole-G21 work.
-
-Every manufacturing source table must fit within the drawing frame and page,
-with every column and value visible in the actual exported file. Successful
-v2 calls, file download and text extraction alone do not complete A9-4 output
-acceptance. Compare the original render and saved coordinates before
-classifying a suspected overflow; preserve and correct the finding when the
-original evidence disproves it.
-
-A9-13 must also preserve assembly drawing corrections: suppress automatic part
-dimensions, while keeping existing table/note placement and scale fixes in both
-UI and v2 Fix-all. Review found a broad assembly rejection in the first candidate;
-the same feature needs that correction before its actual drawing acceptance.
-
-## Window continuation proof
-
-The approved gear-URDF refresh changes eight inertial numbers and adds independent
-geometric guards. A resumed window checks the repaired target and its prerequisites,
-then the remaining types/lint and full browser flow. Keep the original package-suite
-SHA and the new browser SHA explicit. This fixture repair does not include the new
-shared-seam consumer or G21 source. Their acceptance remains separate.
+CAE (FEM, mesher, mould-fill; RD4–RD8 held), PCB/ECAD (deferred), DWG/SAT reading (deferred; DWG writing no-go),
+FRf2 sibling-part frames (refused). Standing:
+- no WASM and no new runtime dependencies;
+- no standards text or built-in tables;
+- rows rule (b);
+- v2 tools only;
+- the icon font is never bundled;
+- benchmarks against Tailwind only.

@@ -28,6 +28,19 @@ no npm publish.
 
 ## 0. Start here — hand-over of 2026-10-18 (read this section first)
 
+### Kernel lane: resumed after Codex (2026-10-23) — read this block first, then the FRk8b block below
+
+Codex ran the lanes on 2026-10-22/23; its kernel work came into integration with `99da385a1`: FRk3 (D172), FRk4
+(D173/D174), FRk5 (D175), the Sweep mass correction and shared weld seams. For the import, the lane briefs and the
+window at it, see `notes/claude-resume-2026-10-23/`.
+
+| Checkpoint | Record | State |
+|---|---|---|
+| Window repairs: frk-3's oracle path; two refusal checks FRk4 made stale; sweep's silently dropped holes (a defect from the import) refused again | D176 | done (T1) |
+| V notch precision (rel 1.42e-11 against 1e-11) | D176 (c) | next |
+| FRk6 (Codex WIP `abb697f2`: hoist the closures, member5 at 1e-9, the fallback, ≤ 2 s) | D177 | queued |
+| FRk5 leftovers, FRk7, FRk8a, FRk8b second half, FRk9 | — | queued (`notes/claude-resume-2026-10-23/kernel.md`) |
+
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 
 The owner moved the work to another account mid-track. The kernel lane stops cleanly after FRk8b's defect half, and a fresh session picks it up from here. The R12c → FR geometry block below is kept as history; its FRk lines are brought up to date here.
@@ -802,7 +815,18 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 
 ### Outer lane (owner, 2026-10-19: a second implementation session; the coordinator merges it into this branch)
 
-#### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) — read this block first
+#### Outer lane: resumed after Codex (2026-10-23) — read this block first
+
+**State.** Branch `claude/cad-outer-lane-531d5a`, at integration `fc739afed` plus this lane's checkpoints. The brief is `notes/claude-resume-2026-10-23/outer.md`; the block below it is the 2026-10-22 hand-over, kept as history.
+
+| commit | item | verified |
+|---|---|---|
+| `0d4ff6a4c` O149 | the import cycle Codex's `chat/outputs` closed, broken | sheet 8/8 (with O150), cageEdit 7/7, tsc (model, studio), eslint 0 errors |
+| O150 | rows rule (b) through the fixtures (8 test files, `test/person-file.ts`); stock and frame stock merge by id (P2) | those 8 files and person-rows 9/9, tsc (model, studio), eslint 0 errors |
+
+**Next:** the frozen v2 contract test (toolset), then tool-contract, enclosure O73 and shop-rows, then the studio suite's rows (b) fixtures (cad-cli). Open for the coordinator: a `remove` for stock and frame-stock rows (O150).
+
+#### Outer lane: hand-over at A9-5/6 (account change, 2026-10-22) (history)
 
 **State.** Branch `claude/cad-outer-lane-531d5a` (worktree `.claude/worktrees/studio-mates-cbde0e`), local only. The last O-number is O148; later entries in `decisions-outer.md` are titled, not numbered (queue 3–5b, G22, G23, A9). The last work commit is `65eeac483`; this block's commit follows it.
 

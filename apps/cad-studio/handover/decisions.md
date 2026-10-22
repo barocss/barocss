@@ -10666,3 +10666,45 @@ Kernel D STOP record was reviewed at `b5fceedfba4a018899e85daceea264113b8c4a15`.
 with the final window. That documentation review does not adopt the branch's
 unverified product source. See [handback](notes/codex-handback-2026-10-23.md) and
 state for exact WIP, process cleanup, blockers and first resume steps.
+
+## D176 — Kernel window repairs after the Codex import (2026-10-23)
+
+The coordinator's window at `99da385a1` (develop `c3ae0d5de` + Codex's final tree `0eabecf7f` without its evidence
+folders) gave the full kernel suite 1597/1608, 6 skipped, 5 failing. One failure is the known env-only
+"actual native Split source…" test (it pins Node 22.23.3). This checkpoint repairs three of the other four and finds
+one real defect.
+
+**(a) `test/frk-3.test.mjs` failed at load.**
+- Cause: it imported its oracle from `test/receipts/frk3-oracle-moments.mjs`, which the squash dropped with the other
+  receipt folders. It is the only test that imports from a removed path.
+- Repair: the oracle moves to `test/frk3-oracle.mjs`, byte for byte as at `0eabecf7f` (signed triangles and circular
+  sectors, no production code). The import now points there; no expected value changed. 7/7.
+
+**(b) "FRk S0 members along arcs" pinned revolve's one-loop refusal, which FRk4 (D173) lifted.**
+- Revolve now takes holes.
+- Repair: the refusal check becomes a positive one. The same Ø30 × 2 tube, revolved 90° from one sketch with its bore
+  as a hole, gives Pappus A_RT · 150 · π/2 to 1e-11, one body, and validates.
+
+**(d) "sketch regions and holes" pinned revolve's old refusal text.**
+- The test now expects FRk4's text: "revolve takes one outer loop with optional holes (no regions)", still CAPABILITY.
+
+**A real defect behind (d), introduced with `99da385a1`: sweep dropped holes silently.**
+- How: FRk4's edit to `src/part-model.ts` gave the `sweep` case revolve's new check. That check refuses only regions
+  and says "revolve takes…", while `sweepBrep` uses only the outer loop.
+- Effect: a sketch's holes were dropped without a word. A Ø30 sweep with a Ø26 hole, 100 mm long, gave 70 685.83 mm³
+  instead of 17 592.92.
+- Repair: sweep's own refusal is restored, as before the import: "sweep takes a sketch of one loop (no regions or
+  holes) yet", CAPABILITY.
+- Tests: two refusal checks in `part-model.test.mjs`, holes alone and regions with holes.
+- Not affected: the frame members' curve sweep (`sweepSolid`, which carries holes through) is a separate path.
+
+**(c) Still open: "FRk S0 saddle notches", the V notch.**
+- Got 50 516.7061409051 against the oracle's 50 516.70614162129: relative error 1.42e-11 against the test's 1e-11.
+- It passed at FRk8b (`75647da69`). Codex's FRk5 quadrature and notch changes are the likely cause, not yet confirmed.
+- Next checkpoint: bisect on `codex/cad-kernel-sweep-mass-20261022`. The tolerance and the oracle stay as they are.
+
+**Checks (T1):**
+- `packages/barocss-cad`: lint 0 errors, type-check clean, `build:library`.
+- Per file: part-model, frk-s0, frk-3, frk-4-revolve, sweep-mass-overlap and sweep-solid give 55/56; the one failure
+  is (c).
+- Not run: the full kernel suite, RB and properties (no brep core change here).
