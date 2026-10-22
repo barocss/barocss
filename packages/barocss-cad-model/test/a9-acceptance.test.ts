@@ -224,7 +224,7 @@ test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; th
   assert.equal(s.doc.instances?.length, 3, 'steps 1–8 first');
   // 9. A drawing per made part: the weldment on the base's own drawing, each placed part on its own (part-scoped), each
   // set by a proposal the person accepts, then auto-dimensioned and fixed. Every one is drawn; the plate's is clean; no
-  // drawing is short of a fit row. (What is still left on the others is O165's F8, not asserted here.)
+  // drawing is short of a fit row or has an error. (The warnings still left are O165's F8, not asserted here.)
   const propose = async (title: string, args: Record<string, unknown>) => {
     const pr = await dispatchTool(s, 'proposals', { action: 'propose', title, ops: [{ tool: 'drawing', args: { action: 'set', ...args } }] }, evaluate);
     assert.ok(!pr.isError, pr.content);
@@ -244,6 +244,8 @@ test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; th
   assert.ok(s.doc.drawing?.weldSymbols && s.doc.drawing.balloons && s.doc.drawing.tables?.length === 3);
   assert.deepEqual(issues.p1, [], 'the plate\'s drawing is clean');
   assert.deepEqual(Object.values(issues).flat().filter(x => x.code === 'FIT_ROW_MISSING'), []);
+  // (O170, O171: no error on any of them — the S0's oracle after drawing.fix.)
+  assert.deepEqual(Object.fromEntries(Object.entries(issues).map(([k, v]) => [k, v.filter(x => x.severity === 'error').map(x => x.code)])), { base: [], p1: [], p2: [], p3: [] });
 
   // 10. The BOM and the purchase CSV through v2. The CSV holds exactly the bought lines — the key (no row, no source, an
   // estimate: A9-11), the 6204 and the 214 with their rows and sources; the BOM's made parts their materials' masses

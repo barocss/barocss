@@ -7111,3 +7111,29 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - **Weldment:** BALLOON_NO_EDGE, WELD_NOT_SHOWN.
 
 **Verified (T1):** drawing-fix-rounds 1/1; chat-drawing 4/4, drawing-issues 9/9, drawing-scope 8/8, frame-acceptance 2/2, frame-weld-symbols 3/3, tool-contract 3/3, toolset 9/9; a9-acceptance 3/3 (the shaft's drawing now has no error); tsc of model and studio; eslint 0 errors.
+
+## O171 — F8, second error: a frame member's bore gives no levels; the weldment's drawing has no error (2026-10-23)
+
+**The defect:**
+- A9's welded table frame drawing (A3, four views asked, weld symbols, balloons, the BOM, cut-list and weld-list tables), after `auto` and `fix`, kept two TEXT_OVER_LINES errors with no fix: a dimension "3" over lines, and the top view's name pushed into the next view by the dimensions under it.
+- **Cause:** at every member end, Auto-dimension took the tube's bore edges as levels: they are visible looking into the open end. So it gave a 3 and a 37 (the wall, and the bore's other side) at each, 19 dimensions in all.
+- Those crowded the sheet past its room. The layout's scale search then found no readable clean scale at A3 and kept the attempt with the fewest errors.
+
+**The fix** (drawing/auto.ts `levels`):
+- A frame member's bore, a face named `n<frame>.m<member>.bore…`, gives no levels. Its wall is its section's, said in the cut list and in the section's callout.
+- Gears' and pulleys' `.bore` faces are not frame members and are unchanged.
+- `levels` also serves the view choice and STEP_NOT_LOCATED, which therefore no longer ask for those levels either.
+
+**Result:**
+- The frame gets 11 dimensions (the overall 400, 300 and 320, the rails' 40s, 340, 440 and the levels of the gussets and caps).
+- Auto finds a readable 1:10 on A3, and Fix has nothing to do.
+- What is left is the two warnings, BALLOON_NO_EDGE and WELD_NOT_SHOWN, which are F8's next items.
+
+**Tests:**
+- weldment-drawing, "O171": that frame with a placed plate. After `auto` and one `fix`, there is no error, no dimension to a member's bore, and the overall 400, 300 and 320 are given. The test fails without the fix.
+- The A9 run's step 9 now asserts the S0's oracle: no error on any of the four drawings.
+
+**Verified (T1):**
+- model: weldment-drawing 1/1, a9-acceptance 3/3, and every model test file on auto-dimension, auto layout, drawing issues or frames, all passing;
+- studio: every test file on drawings, auto or frames, all passing;
+- tsc of model and studio; eslint 0 errors.
