@@ -32,7 +32,11 @@
           "relTol": 1e-9
         },
         "centroidMM": {
-          "value": [-0.003578316, -0.006196303, -12.499990699],
+          "value": [
+            -0.003578316,
+            -0.006196767,
+            -12.499997178
+          ],
           "absTol": 0.000001
         },
         "bodies": 1,
@@ -54,5 +58,5 @@
       }
     ]
   },
-  "oracle": "this kernel; watertightness is exact (shared corner points)"
+  "oracle": "this kernel; watertightness is exact (shared corner points); z̄ re-taken at FRk8b (D167), when the trimmed faces' quadrature stopped straddling knot spans — agreeing with D149's Green theorem in the faces' domains (24, 48 and 96 pieces alike) to 1e-11 (z̄ −12.4999971784; it was 6.5e-6 off)"
 }

@@ -9892,3 +9892,68 @@ Ran:
 - **Test names against `names/*.D165.txt`:** none missing. New: kernel +10 (5 tests, 5 conformance cases); cad-model +7 (the outer lane's O148 X1–X3); studio unchanged.
 
 Not run: the full kernel suite (no brep core change); RB and properties (3rd checkpoint, not T3); the full browser flow (the coordinator's window flow).
+
+## D167 — FRk8b: the trimmed-face quadrature's wrong mass — the rule straddled knot spans; strips dropped at the domain's edge (2026-10-22)
+
+The defect half of FRk8b, moved up by the coordinator after FRk2 (a wrong mass outranks speed). D152 left it open. On the 16/20 bevel pair at 4°, the kernel gave 39.109 against D149's Green value of 38.571 and the 64-segment mesh's 38.497.
+
+**Found** (per face; the kernel's own field ∫x·n_x dA against an oracle using the same field):
+- **18 of the 22 faces agreed to 1e-14 … 5e-6:** the whole patches, the tips, the roots, heel#3 and toe#3.
+- **The four trimmed flank faces** (`p/w.flankR2#1`, `#2`) were 0.1–0.4 off, and moved between 8 and 16 segments a quarter (p.flankR2#1: 149.73 → 152.36, the oracle 152.32). Richardson's cube rate then made them worse.
+  - **The cause:** each such face had 5–6 domain triangles at 8 segments a quarter, and each triangle spanned several knot spans of the fitted flank. The 16-point rule straddled the spans' breaks, where the integrand is not smooth, so its error moved with the triangulation: 1–2 % of each face's area. Their areas showed it: the kernel 13.42, 13.66, 13.63 at 8, 16, 32 segments; the oracle 13.6555; the 64-segment mesh 13.6552.
+- **Strips dropped silently.** The boundary strips' inversion (Gauss–Newton by finite differences) stepped past the domain's edge, the evaluator refused, and the strip was dropped:
+  - 27 on the pair;
+  - 5764 over the conformance cases, half of them seeded on the domain's edge;
+  - plus 34 in the strip's own loop and 78 at its tangents.
+  - On the pair this did not move the value. Fixed with the rest.
+- **Neither earlier oracle was the truth on the spherical faces** (heels, toes, roots: rational biquadratic sphere patches):
+  - D149's Green in the domain does not converge there: heel#2 15.476, 15.473, 15.455, 15.426 at 24, 48, 96, 192 pieces; toe#2 −7.33, −7.51, −7.47, −7.43;
+  - the mesh is not in its asymptotic range there either: the 16/32/64 ratios are 2.1–2.9, and 64 and 128 segments give the same mesh;
+  - so D152's 38.571 and the mesh's 38.497 were both off.
+
+**Fixed** (`brep-mass-quadrature.ts`; `brep-tessellate.ts` marks its parameters):
+- **Each domain triangle is cut along the surface's knot lines** before the rule (`cellTriangles`: convex cuts, each piece fanned), so the rule runs within one polynomial span.
+  - Pieces of no area (a knot line through a vertex, to rounding) are left out: their rule's points at the domain's edge could fall an ulp outside it. The R11.2b SubD shell found that before commit.
+  - Splitting each piece in four as well changed the pair by 1e-11 at twice the time, so it is not done.
+- **Only where `uv` is the surface's own.** A ruled wall's frame parameters (a cylinder extruded: v in mm) are not the surface's: their knots and domain do not apply. `FaceParameters.own` says which.
+  - The first build took the surface's [0, 1] domain for every face, and its clamped inversions threw away half the strips on a sphere cut by a cylinder (1e-4 off). That was found by FRk S0's oracle before commit.
+- **The inversion keeps to the face's own domain:**
+  - its steps are clamped there and its differences taken inwards at the edge;
+  - a point held at the domain's edge must have reached the edge point (within 1e-6 of its size), else the point lies off the domain (across a seam) and gives no strip;
+  - inside the domain the nearest point stands as before: an intersection edge's fitted points lie a little off either surface. Requiring 1e-7 everywhere dropped half the strips.
+- **No strip is dropped silently.** Every strip that cannot be integrated (no inversion, far off its chord, no tangents) is counted (`dropped`), and its face is held to its vector area (∫n dA against ½∮x × dx) within 1e-9 of its area, not 5 %. A face that does not hold sends the B-rep to the tessellation's route, which its mass's `method` then says.
+  - Over the conformance cases: 48,212 strips integrated, 26,875 trims straight in (u, v) (no strip needed), 512 dropped.
+  - The dropped strips are all on 8 faces, whose vector areas hold within 7e-11: edges across a seam. Before: 5,842 dropped.
+  - `brepQuadratureIntegrals` returns `dropped`.
+
+**The pair now:** 38.559407 at every step (8, 16, 32 segments: 38.559383, 38.559404, 38.559172), no strip dropped.
+
+**The oracles** (`test/frk-8b.test.mjs`, 2 tests; none of them the kernel's):
+- **D149's Green theorem in a face's domain** where it converges: 24 and 48 pieces agree to 1e-9, as asserted in the test.
+- **On a face lying on a sphere,** Green's theorem in spherical coordinates, written for this record:
+  - about an axis square to the face's mean direction (no wrap in θ);
+  - ∬ g R² sin φ dφ dθ = ∮ G dθ, with the boundary the exact edges mapped by atan2 and acos, per knot span, 4 × 8 Gauss points;
+  - its orientation read off the loop's own signed area in (φ, θ), and the outward normal along the radius or against it from the surface's tangents and the face's sense;
+  - no surface parameters, no projection. It converges to 9 digits by 4 pieces a span.
+  - **Checked against closed forms:** a sphere's cap (two halves and a disc) πh²(3R − h)/3, to 4e-11; a sphere cut by a cylinder off its axis (FRk S0's two-variable Gauss–Legendre), to 2e-9.
+- **The pair's oracle volume: 38.5591836.** The kernel's 38.5594071 is within 5.8e-6, under the test's 1e-5 (HEAD fails it: 39.109, 1.4 %). It is the same at 8, 16 and 32 segments to 1e-5, no strip dropped.
+  - The residual sits on the four non-converging-for-Green sphere faces: 1.1e-4 to 2.6e-4 each (1.4e-5 relative) against the sphere oracle. heel#3 and toe#3 agree with it to 5e-6.
+- **The pair is a fixture** (`test/fixtures/frk8b-bevel-pair-4deg.brep.json`, 104 kB, built by the kernel at 56e11f3ae), so the test does not rebuild it (24 s); 3.4 s alone.
+
+**Conformance moved, and checked** (both were this kernel's own values; both now agree with D149's Green, converged at 24, 48 and 96 pieces, to 1e-11):
+- `rb2/helical-rod-watertight`: z̄ −12.499990699 → −12.499997178 (it was 6.5e-6 off; the oracle −12.4999971784); ȳ −0.006196303 → −0.006196767.
+- `rb3/helical-bolt-roundtrip`: area 1274.61606622 → 1274.616073813 (it was 6e-9 off; the oracle 1274.6160738).
+- Their `oracle` notes say so.
+
+**Cost** (load 30–35, both builds the same session, one run each, fresh B-reps):
+- the throated wheel (724 faces): mass 6.0 s at HEAD, 6.4 s now; its STEP export 5.2 s and 3.6 s (noise at this load); its volume the same to all printed digits;
+- the bevel pair: 724 ms at HEAD, 218 ms now.
+- D151's speed (meshing twice) is unchanged in kind. FRk8b's second half (integration over exact trims in the domain) is not needed for accuracy now; for speed it stays on the list, "if still needed".
+
+**Checks** (T2: brep core changed; the 4th checkpoint since R12c's T3, so RB and properties):
+- **Kernel:** type-check and lint clean (the changed files). The full kernel suite at concurrency 4, in a detached scratch worktree at 56e11f3ae with this change: 1545/1552, 6 skipped, 372 s. It failed only the env-only "actual native Split source…".
+  - Its first run (before the sliver and `own` fixes) failed the R11.2b SubD shell (a quadrature refused for an ulp) and the two helical cases (values moved, checked above).
+  - Test names: none of FR/FRk/conformance missing against `names/*.D166.txt`; the full list saved (`names/kernel-full.D167.txt`, 1552).
+- **RB:** 418 cases (+9: the frk cases since R12c's 409), no new failures. The non-OK totals are unchanged: 4 refused, 3 invalid, 5 wrong (the 8 known TODOs). 153 s.
+- **Properties:** 11/11, no failures, 174 s. Among them the coaxial fillets against Pappus (200 random cone rims) and "mass by quadrature and by a finer and finer tessellation agree" (200).
+- **Not run:** cad-model and studio (no change there; their masses go through this kernel, so the coordinator's merge checks cover them); the flow.

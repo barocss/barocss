@@ -277,6 +277,8 @@ export interface FaceParameters {
   readonly uv: readonly XY[]; readonly at: (u: number, v: number) => Point;
   /** The triangles covering the domain (local indices) when they differ from the mesh's: on a pole side, those collapsed in space. */
   readonly domain?: readonly (readonly [number, number, number])[];
+  /** `uv` is the surface's own (u, v), `at` its own evaluator: its knots and domain apply (FRk8b, D167). Else a frame's (a ruled wall's) parameters. */
+  readonly own?: true;
 }
 /** The mesh with, for the faces triangulated in a parameter domain, each vertex's (u, v) there; `only`: just those faces (their edges sampled as for the whole B-rep). */
 /** An edge's stretch between two of its samples: its curve, and the parameters at `from` (a sample point) and at the other end. */
@@ -431,7 +433,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
           if (!(l > 0) || Math.abs(dot(g, m)) / (l * lm) >= cosTilt) continue;
           for (const [x, y] of [[a, b], [b, c], [c, a]]) { const hit = segIndex.get(segmentKey(pts[x], pts[y])); if (hit) (splits.get(hit[0]) ?? splits.set(hit[0], new Set()).get(hit[0])!).add(hit[1]); }
         }
-        parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain }); continue;
+        parameters?.set(face.id, { uv, at: surfaceEvaluator(face.surface), domain, own: true }); continue;
       }
       const [r1, r2] = rails, A = along(sides[r1]), B = [...along(sides[r2])].reverse();
       const chain = (from: number, to: number) => { const out: Point[] = []; for (let i = (from + 1) % count; i !== to; i = (i + 1) % count) out.push(...along(sides[i]).slice(0, -1)); return out.slice(1); };

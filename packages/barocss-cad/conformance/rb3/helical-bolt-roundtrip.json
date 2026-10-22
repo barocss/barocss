@@ -36,7 +36,11 @@
           "relTol": 1e-9
         },
         "centroidMM": {
-          "value": [0, 0, -3.879080157],
+          "value": [
+            0,
+            0,
+            -3.879080157
+          ],
           "absTol": 0.000001
         },
         "bodies": 1,
@@ -59,7 +63,7 @@
           "b.thread"
         ],
         "areaMM2": {
-          "value": 1274.61606622,
+          "value": 1274.616073813,
           "relTol": 1e-9
         }
       }
@@ -68,5 +72,5 @@
       "relTol": 0.000001
     }
   },
-  "oracle": "this kernel (area by tensor Gauss over whole patches)"
+  "oracle": "this kernel (area by tensor Gauss over whole patches); the area re-taken at FRk8b (D167), when the trimmed faces' quadrature stopped straddling knot spans — agreeing with D149's Green theorem in the faces' domains (24, 48 and 96 pieces alike) to 1e-11 (1274.6160738; it was 6e-9 off)"
 }
