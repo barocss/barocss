@@ -540,9 +540,22 @@ export class Viewer {
       if (!(l > 0) || !Number.isFinite(l) || !Number.isFinite(p.offset)) throw new RangeError('A clip plane needs a normal and a finite offset');
       return { normal: [p.normal[0] / l, p.normal[1] / l, p.normal[2] / l] as Vec3, offset: p.offset / l };
     });
-    this.clip = { normal: planes[0].normal, offset: planes[0].offset, cap: parseColor(list.find(p => p.cap)?.cap, [0.85, 0.7, 0.35]), planes };
+    this.clip = { normal: planes[0].normal, offset: planes[0].offset, cap: parseColor(list.find(p => p.cap)?.cap, [0.85, 0.7, 0.35]), planes, cutout: this._cutout };
     this.requestRender();
   }
+  /**
+   * Whether the clip planes cut out a corner (G20; default false): the meshes they clip kept on any plane's kept side —
+   * what is removed the intersection of their cut-away sides (two planes a quarter, three an octant) — and capped where
+   * the eye's ray leaves that removed corner inside a solid. False: kept on every plane's kept side (G19).
+   */
+  get clipCutout(): boolean { return this._cutout; }
+  set clipCutout(v: boolean) {
+    if (v === this._cutout) return;
+    this._cutout = v;
+    if (this.clip) this.clip = { ...this.clip, cutout: v };
+    this.requestRender();
+  }
+  private _cutout = false;
 
   private device!: Device;
   private context!: CanvasContext;
@@ -1565,7 +1578,7 @@ export class Viewer {
     let n = 0;
     k[n++] = this.idOf(this.device); k[n++] = this.shadowMapSize;
     // (The clip plane changes what casts.)
-    if (this.clip) { k[n++] = this.clip.planes.length; for (const p of this.clip.planes) { k[n++] = p.normal[0]; k[n++] = p.normal[1]; k[n++] = p.normal[2]; k[n++] = p.offset; } } else k[n++] = 0;
+    if (this.clip) { k[n++] = this.clip.planes.length * (this.clip.cutout ? -1 : 1); for (const p of this.clip.planes) { k[n++] = p.normal[0]; k[n++] = p.normal[1]; k[n++] = p.normal[2]; k[n++] = p.offset; } } else k[n++] = 0;
     for (let i = 0; i < viewProjection.length; i++) k[n++] = viewProjection[i];
     for (const m of casters) { k[n++] = m.slot * 2 + (this.capped(m) ? 1 : 0); k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
     const was = this.shadowDrawn;
@@ -2120,10 +2133,19 @@ export class Viewer {
 }
 
 /** A box cut by a clip plane along an axis (dot(n, p) ≥ offset, n ±x, ±y or ±z); null when it is wholly cut away; as it is for another plane. */
-/** A box cut by the clip planes that are axis-aligned (each of `planes`, else the one); the others leave it. */
-export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: number; planes?: readonly { normal: ArrayLike<number>; offset: number }[] }): Box3 | null {
+/** A box cut by the clip planes that are axis-aligned (each of `planes`, else the one); the others leave it. A cut-out leaves it (G20). */
+export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: number; planes?: readonly { normal: ArrayLike<number>; offset: number }[]; cutout?: boolean }): Box3 | null {
   if (!b) return b;
   const min = [b.min[0], b.min[1], b.min[2]], max = [b.max[0], b.max[1], b.max[2]], list = c.planes ?? [c];
+  // (A cut-out, G20: the box itself — a corner taken off leaves its extent — or none when the removed corner holds all of
+  // it: every corner of the box on every plane's cut-away side, R convex.)
+  if (c.cutout) {
+    for (let i = 0; i < 8; i++) {
+      const x = i & 1 ? max[0] : min[0], y = i & 2 ? max[1] : min[1], z = i & 4 ? max[2] : min[2];
+      if (list.some(p => p.normal[0] * x + p.normal[1] * y + p.normal[2] * z >= p.offset)) return b;
+    }
+    return null;
+  }
   let cut = false;
   for (let i = 0; i < list.length; i++) {
     const n = list[i].normal, k = Math.abs(n[0]) === 1 ? 0 : Math.abs(n[1]) === 1 ? 1 : Math.abs(n[2]) === 1 ? 2 : -1;

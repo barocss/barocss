@@ -37,7 +37,8 @@ struct Frame {
   grid: vec4f,
   gridColor: vec4f,
   // The clip planes (G2, G19): what is drawn of a mesh they clip is where dot(clips[i].xyz, world) >= clips[i].w for
-  // every plane — the intersection of their kept sides; the caps' colour (linear), w the number of planes (0: none).
+  // every plane — the intersection of their kept sides — or, w negative, for any plane (a cut-out, G20); the caps'
+  // colour (linear), |w| the number of planes (0: none).
   clipColor: vec4f,
   clips: array<vec4f, ${MAX_CLIP_PLANES}>,
 }
@@ -71,22 +72,46 @@ fn envAt(d: vec3f, lod: f32) -> vec3f {
 /** Every surface draw is instanced (a plain mesh: one identity instance): a transform and colour each. */
 struct Instance { @location(3) c0: vec4f, @location(4) c1: vec4f, @location(5) c2: vec4f, @location(6) c3: vec4f, @location(7) color: vec4f }
 fn instanceMatrix(i: Instance) -> mat4x4f { return mat4x4f(i.c0, i.c1, i.c2, i.c3); }
-/** Whether a world point is on a side a clip plane cuts away, for a mesh they clip (object.pick.z bit 1). */
+/** The number of clip planes (frame.clipColor.w: negative for a cut-out, G20). */
+fn clipCount() -> u32 { return u32(abs(frame.clipColor.w) + 0.5); }
+/**
+ * Whether the planes cut out a corner (G20): kept on any plane's kept side, the removed region R the intersection of
+ * their cut-away sides (convex); else (G19) kept on every plane's kept side.
+ */
+fn clipCutout() -> bool { return frame.clipColor.w < -0.5; }
+/** Whether a world point is where the clip planes cut away, for a mesh they clip (object.pick.z bit 1). */
 fn clippedAway(world: vec3f) -> bool {
-  if (frame.clipColor.w < 0.5 || (object.pick.z & 2u) == 0u) { return false; }
-  let n = u32(frame.clipColor.w + 0.5);
+  let n = clipCount();
+  if (n == 0u || (object.pick.z & 2u) == 0u) { return false; }
+  if (clipCutout()) {
+    for (var i = 0u; i < n; i++) { let p = frame.clips[i]; if (dot(p.xyz, world) >= p.w) { return false; } }
+    return true;
+  }
   for (var i = 0u; i < n; i++) { let p = frame.clips[i]; if (dot(p.xyz, world) < p.w) { return true; } }
   return false;
 }
 /**
- * The kept region along the eye's ray through a world point (G19): the ray as world + t·dir (dir from the eye toward
- * it, so the point is at t = 0 and, in perspective, the eye at −1); the region's entry and exit parameters and the
- * entry's plane (−1: none — the ray moves into no plane).
+ * Where the eye's ray through a world point comes into what is kept past the cut (G19, G20): the ray as world + t·dir
+ * (dir from the eye toward it, so the point is at t = 0 and, in perspective, the eye at −1). x: the parameter of that
+ * point C; y: where the kept stretch after it ends (C is none when that is not past it); z: the plane C is on (−1: none).
+ * G19 — the kept region, convex: C its entry. G20 — a cut-out: C where the ray leaves the removed region R (convex, one
+ * stretch of the ray), after which it stays kept.
  */
 fn regionAlong(world: vec3f) -> vec3f {
   let dir = select(frame.forward.xyz, world - frame.eye.xyz, frame.eye.w > 0.5);
-  let n = u32(frame.clipColor.w + 0.5);
+  let n = clipCount();
   var lo = -1e30; var hi = 1e30; var at = -1.0;
+  if (clipCutout()) {
+    // (R: n·p < d for every plane — entered past each crossing out of a kept side, left at the first crossing into one.)
+    for (var i = 0u; i < n; i++) {
+      let p = frame.clips[i]; let den = dot(p.xyz, dir); let f = dot(p.xyz, world) - p.w;
+      if (abs(den) < 1e-20) { if (f >= 0.0) { lo = 1e30; } continue; }
+      let t = -f / den;
+      if (den < 0.0) { lo = max(lo, t); } else if (t < hi) { hi = t; at = f32(i); }
+    }
+    if (lo >= hi) { return vec3f(0.0, 0.0, -1.0); }
+    return vec3f(hi, 1e30, at);
+  }
   for (var i = 0u; i < n; i++) {
     let p = frame.clips[i]; let den = dot(p.xyz, dir); let f = dot(p.xyz, world) - p.w;
     if (abs(den) < 1e-20) { if (f < 0.0) { hi = -1e30; } continue; }

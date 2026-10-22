@@ -355,6 +355,83 @@ test('G19 the known limit: a solid wholly inside another, wholly kept, shows thr
   } finally { await s.close(); }
 });
 
+// G20: a cut-out — the clip planes keep what is on any plane's kept side, the corner where their cut-away sides meet
+// removed. A 4 mm cube with the quarter x > 0, y > 0 cut out, seen obliquely (orthographic): its caps are the notch's two
+// faces, 2 × 4 each, whose screen area is 8(|vx| + |vy|); with the octant (z > 0 too) three 2 × 2 faces, 4(|vx| + |vy| +
+// |vz|). GPU picks equal to the CPU's rays over the notch; an edge in the removed corner not found, the rest of it found.
+// Shadows: the octant cut-out shadows the ground as the seven 2 mm cubes it is made of do.
+test('G20 cut-outs: a quarter and an octant cut from a cube, the notch\'s caps at the closed form; GPU picks equal to CPU rays; lines in the removed corner not found; the shadow of the seven cubes', { timeout: 180000 }, async t => {
+  const s = await open(t); if (!s) return;
+  try {
+    const r = await s.p.evaluate(async () => {
+      const { api, box, screen } = window, canvas = document.getElementById('c');
+      canvas.style.width = '800px'; canvas.style.height = '400px';
+      const v = [0.7, 0.55, 0.45], l = Math.hypot(...v), vn = v.map(x => x / l);
+      const viewer = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: vn.map(x => x * 40), target: [0, 0, 0], up: [0, 0, 1], projection: 'orthographic' }, lights: [] });
+      const isCap = (d, i) => d[i] > 200 && d[i + 1] < 60 && d[i + 2] > 200;
+      const capPixels = img => { let n = 0; for (let i = 0; i < img.data.length; i += 4) if (isCap(img.data, i)) n++; return n; };
+      const cube = viewer.add(box(4, 4, 4).surface, { name: 'cube', material: { color: '#404040', unlit: true }, cap: true });
+      const edges = viewer.add(box(4, 4, 4).edges, { name: 'edges', material: { color: '#00ff00', unlit: true } });
+      viewer.camera.fit({ min: [-3, -3, -3], max: [3, 3, 3] }, viewer.aspect);
+      const quarter = [{ normal: [-1, 0, 0], offset: 0, cap: '#ff00ff' }, { normal: [0, -1, 0], offset: 0 }];
+      viewer.clipCutout = true; viewer.clipPlanes = quarter;
+      const unit = () => { return 400 / (2 * viewer.camera.halfHeight); };
+      const imgQ = await viewer.capture(), u = unit();
+      const q = { pixels: capPixels(imgQ), want: 8 * (Math.abs(vn[0]) + Math.abs(vn[1])) * u * u, outline: (4 + 4 + 4) * 2 * u };
+      // (The edge along x at y = 2, z = 2: its +x half in the removed quarter, its −x half kept.)
+      const [ax, ay] = screen(viewer, [1, 2, 2]), [bx, by] = screen(viewer, [-1, 2, 2]);
+      const lines = { cut: viewer.pickLine(ax, ay, 3)?.mesh.name ?? null, kept: viewer.pickLine(bx, by, 3)?.mesh.name ?? null };
+      // Picks over the notch.
+      let seed = 9; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      const picks = [];
+      const compare = async (n, name) => {
+        const c = [0, 1, 2, 3, 4, 5, 6, 7].map(i => screen(viewer, [i & 1 ? 2 : -2, i & 2 ? 2 : -2, i & 4 ? 2 : -2]));
+        const x0 = Math.min(...c.map(p => p[0])), x1 = Math.max(...c.map(p => p[0])), y0 = Math.min(...c.map(p => p[1])), y1 = Math.max(...c.map(p => p[1]));
+        for (let k = 0; k < n; k++) {
+          const x = Math.floor(x0 + rand() * (x1 - x0)) + 0.5, y = Math.floor(y0 + rand() * (y1 - y0)) + 0.5, cr = viewer.raycast(x, y), g = await viewer.pick(x, y);
+          picks.push({ name, cpu: cr && { name: cr.mesh.name, cap: !!cr.cap, plane: cr.capPlane ?? null }, gpu: g && { name: g.mesh.name, cap: !!g.cap, plane: g.capPlane ?? null } });
+        }
+      };
+      await compare(150, 'quarter');
+      // The octant.
+      viewer.clipPlanes = [...quarter, { normal: [0, 0, -1], offset: 0 }];
+      const imgO = await viewer.capture();
+      const o = { pixels: capPixels(imgO), want: 4 * (Math.abs(vn[0]) + Math.abs(vn[1]) + Math.abs(vn[2])) * u * u, outline: (2 + 2 + 2) * 2 * 2 * u };
+      await compare(150, 'octant');
+      edges.visible = false;
+      viewer.dispose();
+      // Shadows: the octant cut-out and its seven cubes, lit from above on a ground.
+      const sh = await api.createViewer(canvas, { pixelRatio: 1, antialias: false, background: '#000000', camera: { position: [0, -0.01, 40], target: [0, 0, 0], up: [0, 1, 0], projection: 'orthographic' }, lights: [{ kind: 'directional', direction: [0.5, 0.3, -1], intensity: 2.5, castShadow: true }], environment: { ambient: 0.25 } });
+      sh.add({ positions: [-30, -30, -6, 30, -30, -6, 30, 30, -6, -30, 30, -6], normals: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1], indices: [0, 1, 2, 0, 2, 3] }, { name: 'ground', material: { color: '#ffffff', roughness: 1 }, clipped: false, castShadow: false });
+      const red = { color: '#ff0000', roughness: 1 };
+      sh.camera.fit({ min: [-12, -12, -6], max: [12, 12, 3] }, sh.aspect);
+      const count = img => { let dark = 0; for (let i = 0; i < img.data.length; i += 4) { const [R, G, B] = [img.data[i], img.data[i + 1], img.data[i + 2]]; if (Math.abs(R - G) > 12 || Math.abs(G - B) > 12 || R === 0) continue; if (G < 120) dark++; } return dark; };
+      const whole = sh.add(box(4, 4, 4).surface, { name: 'cube', material: red, cap: true, capColor: '#ff0000' });
+      sh.clipCutout = true; sh.clipPlanes = [{ normal: [-1, 0, 0], offset: 0 }, { normal: [0, -1, 0], offset: 0 }, { normal: [0, 0, -1], offset: 0 }];
+      const cut = count(await sh.capture());
+      whole.visible = false; sh.clipPlanes = null;
+      for (let i = 0; i < 8; i++) if (i !== 7) sh.add(box(2, 2, 2).surface, { material: red, transform: api.translation([i & 1 ? 1 : -1, i & 2 ? 1 : -1, i & 4 ? 1 : -1]) });
+      const seven = count(await sh.capture()), su = 400 / (2 * sh.camera.halfHeight);
+      sh.dispose();
+      return { q, o, lines, picks, shadow: { cut, seven, outline: 4 * 4 * 2 * su } };
+    });
+    t.diagnostic(JSON.stringify({ q: r.q, o: r.o, lines: r.lines, shadow: r.shadow }));
+    assert.ok(Math.abs(r.q.pixels - r.q.want) <= r.q.outline, `the quarter's caps: ${r.q.pixels} px against ${r.q.want.toFixed(0)} ± ${r.q.outline.toFixed(0)}`);
+    assert.ok(Math.abs(r.o.pixels - r.o.want) <= r.o.outline, `the octant's caps: ${r.o.pixels} px against ${r.o.want.toFixed(0)} ± ${r.o.outline.toFixed(0)}`);
+    assert.deepEqual(r.lines, { cut: null, kept: 'edges' });
+    let differ = 0, caps = 0;
+    for (const k of r.picks) {
+      if ((k.cpu?.name ?? null) !== (k.gpu?.name ?? null) || (k.cpu?.cap ?? false) !== (k.gpu?.cap ?? false) || (k.cpu?.plane ?? null) !== (k.gpu?.plane ?? null)) { differ++; continue; }
+      if (k.cpu?.cap) caps++;
+    }
+    t.diagnostic(JSON.stringify({ picks: r.picks.length, differ, caps }));
+    assert.ok(differ <= 2, `GPU picks against CPU rays: ${differ} of ${r.picks.length} differ ${JSON.stringify(r.picks.filter(k => (k.cpu?.name ?? null) !== (k.gpu?.name ?? null) || (k.cpu?.cap ?? false) !== (k.gpu?.cap ?? false)).slice(0, 3))}`);
+    assert.ok(caps > 30, `${caps} picks on caps`);
+    assert.ok(r.shadow.seven > 300 && Math.abs(r.shadow.cut - r.shadow.seven) <= r.shadow.outline, `the octant's shadow ${r.shadow.cut} against the seven cubes' ${r.shadow.seven} ± ${r.shadow.outline.toFixed(0)}`);
+    assert.deepEqual(s.errors, []);
+  } finally { await s.close(); }
+});
+
 // G2b: a mesh's own cap colour, times its material colour; none: the plane's.
 test('G2b each mesh\'s cap in its own colour times its material colour; without one, the plane\'s', { timeout: 120000 }, async t => {
   const s = await open(t); if (!s) return;
