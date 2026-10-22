@@ -6988,3 +6988,29 @@ The A9 run (`test/a9-acceptance.test.ts`) is three tests on one state: steps 1�
 No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 
 **Verified (T1):** model cam-package 6/6, chat-outputs 7/7, a9-acceptance 3/3; studio cnc-cam 5/5, cnc-preview 8/8, made-bodies-previews 2/2; tsc of model and studio; eslint 0 errors.
+
+## O167 — F6: the chat's edit_feature links an existing bearing to another part's housing (2026-10-23)
+
+**The gap** (A9's F6):
+- A part-scoped `edit_feature` called `editFields(nodes, index)` with neither an assembly input nor the part draft's bearing context. Its Housing choice was only the part's own bodies (none, 0, 1), and its seat-class choices were empty, because no fit tables were passed.
+- The bearing command already offered the other parts' bodies, through the draft's context (`bearingPartView`). So an agent had to delete a bearing and put it again to link its housing.
+
+**The fix:**
+- `editFields` takes an optional fifth argument, `EditScope { context?, fits? }`, used only when no assembly input is given:
+  - the housing options come from `bearingHousingOptions(…, context)`, the same as the bearing command's;
+  - the seat classes include the draft's fit tables.
+- The chat's edit handler (tools.ts) passes `{ context: bearingContextOf(state.doc), fits: state.doc.fits }`. In a part-scoped call, `state.doc` is the part's shop view, carrying its context and its inherited rows.
+- The studio's call (App.tsx, with its assembly input) is unchanged.
+
+**Tests:**
+- bearing-housing-context, "O167 (F6)":
+  - an existing bearing on p2 is linked by `edit_feature {housing: part:{p1, b1}, housingClass: H7}`: `housingRef` set, `housing` unset, the class H7, and the report covered;
+  - then cleared with `none`;
+  - a housing in a part that does not exist is refused.
+- The command path with a housing stays tested in the file's A9-7 test.
+- **The A9 run** now edits the bearing it put in step 6, rather than deleting and re-adding it. The bearing keeps its id (n2), and the clearance map names its seats as "bearing n2 …".
+
+**Verified (T1):**
+- model: bearing-housing-context 9/9, a9-acceptance 3/3, and every model test file using `edit_feature` or `editFields` (28 files, all passing);
+- studio: bearing-edit 7/7, bom-linked-ui 5/5, assembly-linked-faces 5/5;
+- tsc of model and studio; eslint 0 errors.

@@ -199,11 +199,11 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   // 8. Placed exactly: the plate on the rails' top (z 320), its holes over the rail centres; the shaft through the bore with
   // the bearing's 14 in the plate's 14 (z 320–334); the cover on the plate over the bore, its Ø22 hole round the shaft's end.
   for (const [part, position] of [['p1', [100, 0, 320]], ['p2', [200, 150, 250]], ['p3', [200, 150, 334]]] as const) await call('assembly', { action: 'place', part, position: [...position] });
-  // (A9-7: the 6204's housing is the plate's bore, another part: linked through the bearing command, H7 the housing's seat.
-  // The chat's edit_feature cannot set a cross-part housing yet — O164's F6 — so the bearing is put again with it.)
+  // (A9-7: the 6204's housing is the plate's bore, another part. The agent edits the bearing it put in step 6 (O167, F6:
+  // edit_feature offers the other parts' bodies, as the bearing command does — that path is A9-7's own test), H7 the
+  // housing's seat.)
   const plateKey = partBodies('p1')[0].key, bearingAt = s.doc.instances![1].doc.nodes.findIndex(n => n.kind === 'bearing');
-  await call('features', { action: 'delete', part: 'p2', index: bearingAt });
-  await call('features', { action: 'command', part: 'p2', command: 'bearing', bodies: ['b0'], values: { sc: 'k5', step: 3, against: 'start', housing: `part:${JSON.stringify({ part: 'p1', body: plateKey })}`, hc: 'H7' } });
+  await call('features', { action: 'edit', part: 'p2', index: bearingAt, values: { housing: `part:${JSON.stringify({ part: 'p1', body: plateKey })}`, housingClass: 'H7' } });
   const housed = partBodies('p2').flatMap(b => (b.notes ?? []).map(n => n.text));
   assert.ok(housed.includes('In the housing\'s Ø47 bore; no overlap') && housed.includes('Housing seat H7: 47 to 47.025 (the ring\'s tolerance is not in its row), an estimate'), JSON.stringify(housed));
   assert.ok(housed.some(t => /^the housing has no shoulder at either face of the bearing/.test(t)), 'D181: the plain bore does not locate the outer ring');
@@ -213,7 +213,7 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   for (const p of [...map.pairs]) if (p.overlap && 'pending' in p.overlap) assert.ok(applyFill(map, fillOverlap(map, bodies, p)));
   assert.deepEqual(map.pairs.filter(p => p.state === 'overlap').map(p => [p.a, p.b]), []);
   const designed = map.pairs.filter(p => p.state === 'designed' && !/^weld bead/.test(p.designed ?? '')).map(p => p.designed).sort();
-  assert.deepEqual(designed, ['O-ring n3 in its gland n2 (its squeeze)', 'bearing n3 (6204) in p1/b9, seat H7', 'bearing n3 (6204) on its shaft, seat k5', 'key n1 in its keyseat']);
+  assert.deepEqual(designed, ['O-ring n3 in its gland n2 (its squeeze)', 'bearing n2 (6204) in p1/b9, seat H7', 'bearing n2 (6204) on its shaft, seat k5', 'key n1 in its keyseat']);
   const near = map.pairs.filter(p => p.state === 'near');
   assert.deepEqual(near.map(p => [p.a, p.b]), [['p2/b0', 'p3/b4']]);
   assert.ok(near[0].minGapMM <= COVER_CLEARANCE_MM && near[0].minGapMM >= COVER_CLEARANCE_MM - 0.02, String(near[0].minGapMM));
