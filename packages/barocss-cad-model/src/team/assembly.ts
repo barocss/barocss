@@ -96,7 +96,8 @@ export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomVi
 }
 /** The BOM checked against the assembly: every instance on one line once, each line's quantity its parts, the totals. */
 export function checkBom(view: BomView, bom: Bom): string[] {
-  const out: string[] = [], seen = new Map<string, number>(), lines = bom.lines.filter(l => l.kind === undefined && !l.plate), bought = bom.lines.filter(l => l.kind !== undefined);
+  const isBase = (l: Bom['lines'][number]) => l.parts.length > 0 && l.parts.every(p => p.startsWith('base:'));
+  const out: string[] = [], seen = new Map<string, number>(), lines = bom.lines.filter(l => l.kind === undefined && !l.plate && !l.member && !isBase(l)), bought = bom.lines.filter(l => l.kind !== undefined);
   if (JSON.stringify(view.beadAccounting) !== JSON.stringify(bom.beadAccounting)) out.push('bead accounting must retain the built view completeness and body subtotals');
   for (const l of bom.lines) if (l.qty !== l.parts.length) out.push(`${l.item}: quantity ${l.qty}, ${l.parts.length} parts`);
   for (const l of lines) for (const p of l.parts) seen.set(p, (seen.get(p) ?? 0) + 1);
@@ -121,9 +122,22 @@ export function checkBom(view: BomView, bom: Bom): string[] {
   }
   for (const x of plates) if ((onPlate.get(`${x.part}:${x.item}`) ?? 0) !== 1) out.push(`${x.part}:${x.item} (${x.kind}) is on ${onPlate.get(`${x.part}:${x.item}`) ?? 0} plate lines, not one`);
   if (plates.length && bom.plateQty !== plates.length) out.push(`plates ${bom.plateQty ?? 0}, the assembly has ${plates.length}`);
+  // (O169, F10: the base part's members, each piece on its cut-list row's line once — its section, length and material;
+  // its other made bodies, each on a line of its own.)
+  const rows = view.base?.members ?? [], onMember = new Map<string, number>();
+  for (const l of bom.lines) if (l.member) for (const p of l.parts) {
+    onMember.set(p, (onMember.get(p) ?? 0) + 1);
+    const r = rows.find(m => m.pieces.some(k => `base:${k}` === p));
+    if (!r) out.push(`${l.item}: ${p} is no frame member of the base part`);
+    else if (r.section !== l.member.section || r.lengthMM !== l.member.lengthMM || r.material !== l.material) out.push(`${l.item}: ${p} is a ${r.section} × ${r.lengthMM}, not this line's`);
+  }
+  for (const r of rows) for (const k of r.pieces) if ((onMember.get(`base:${k}`) ?? 0) !== 1) out.push(`base:${k} (member) is on ${onMember.get(`base:${k}`) ?? 0} member lines, not one`);
+  const others = view.base?.others ?? [];
+  for (const l of bom.lines) if (!l.member && isBase(l) && !l.kind && !l.plate) for (const p of l.parts) if (!others.some(o => `base:${o.key}` === p)) out.push(`${l.item}: ${p} is no made body of the base part`);
+  for (const o of others) if (bom.lines.filter(l => !l.member && l.parts.includes(`base:${o.key}`)).length !== 1) out.push(`base:${o.key} is not on one line`);
   for (const p of view.parts) if ((seen.get(p.id) ?? 0) !== 1) out.push(`${p.id} (${p.name}) is on ${seen.get(p.id) ?? 0} lines, not one`);
   for (const id of seen.keys()) if (!view.parts.some(p => p.id === id)) out.push(`${id} is not in the assembly`);
-  const qty = view.parts.length, mass = r6(view.parts.reduce((s, p) => s + p.massG, 0));
+  const qty = view.parts.length, mass = r6(view.parts.reduce((s, p) => s + p.massG, 0) + (view.base?.massG ?? 0));
   if (bom.totalQty !== qty) out.push(`total quantity ${bom.totalQty}, the assembly has ${qty} parts`);
   if (Math.abs(bom.totalMassG - mass) > 1e-6 * Math.max(1, mass)) out.push(`total mass ${bom.totalMassG} g, the assembly weighs ${mass} g`);
   for (const l of lines) { const lib = view.parts.find(p => p.id === l.parts[0])?.library; if (lib && l.source !== lib) out.push(`${l.item}: a library part with no source (${lib})`); }
