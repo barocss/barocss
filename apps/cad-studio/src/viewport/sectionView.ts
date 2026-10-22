@@ -140,17 +140,17 @@ export function sectionedInstances<T extends Placed>(instances: T[], poses: Read
 /**
  * The exact section's document (G2, G19): each body the planes cross split by them in turn — each kept piece split by
  * the next plane that crosses it — and the keys of the pieces kept (bodies wholly kept as they are, those wholly cut
- * away left out). One axis plane: by the bodies' boxes, as before; otherwise by their display meshes clipped plane by
+ * away left out), and each kept piece's body (`from`, by its key). One axis plane: by the bodies' boxes, as before; otherwise by their display meshes clipped plane by
  * plane (whether a plane crosses what is left of a body; the kernel refuses a split that does not).
  */
-export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[], s: Section): { doc: StudioDoc; kept: string[] } {
+export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[], s: Section): { doc: StudioDoc; kept: string[]; from: string[] } {
   let doc: StudioDoc = { ...evaluated, nodes: [...evaluated.nodes] };
-  const kept: string[] = [], one = s.planes.length === 1 ? planeAxis(s.planes[0]) : null;
+  const kept: string[] = [], from: string[] = [], one = s.planes.length === 1 ? planeAxis(s.planes[0]) : null;
   for (const b of bodies) {
     if (one) {
       const { min, max } = b.mesh.bounds, { k, at, keep } = one;
-      if (min[k] < at - 1e-6 && max[k] > at + 1e-6) { doc = withNode(doc, split(refOf(b), s.planes[0])); kept.push(bodyKeyFor(doc.nodes, doc.nodes.length - 1, keep)); }
-      else if (keep === 'negative' ? max[k] <= at + 1e-6 : min[k] >= at - 1e-6) kept.push(b.key);
+      if (min[k] < at - 1e-6 && max[k] > at + 1e-6) { doc = withNode(doc, split(refOf(b), s.planes[0])); kept.push(bodyKeyFor(doc.nodes, doc.nodes.length - 1, keep)); from.push(b.key); }
+      else if (keep === 'negative' ? max[k] <= at + 1e-6 : min[k] >= at - 1e-6) { kept.push(b.key); from.push(b.key); }
       continue;
     }
     let ref: BodyRef | null = null, key = b.key, mesh: DisplayMesh | null = b.mesh;
@@ -164,9 +164,9 @@ export function sectionSplits(evaluated: StudioDoc, bodies: readonly BodyResult[
       mesh = clipMeshPlane(mesh!, p, 'section');
       if (!mesh) break;
     }
-    if (mesh) kept.push(key);
+    if (mesh) { kept.push(key); from.push(b.key); }
   }
-  return { doc, kept };
+  return { doc, kept, from };
 }
 /** The split node for a plane: across an axis, or across the plane normal·p = offset (the kept piece its positive one). */
 function split(parent: BodyRef, p: SectionPlane): ModelNode {

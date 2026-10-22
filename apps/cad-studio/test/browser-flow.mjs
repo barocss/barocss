@@ -6974,6 +6974,65 @@ try {
     await page.click('[aria-label="Section view"]');
   });
 
+  // ---- G19.5: the section in the Render workspace ------------------------------------------------------------------------
+  await check('G19.5: the section in the Render workspace — the planes cut and cap the rendered bodies, the exported image cut, an animated body moved as itself with bodies left out and split', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
+    // (G19.4's welded frame: of its ten bodies the section across Y leaves two out and splits six — by index the bodies
+    // after the first left out were others.)
+    const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
+      { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
+      { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
+      { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 },
+      { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'start', fit: 'over', thickness: 4 }] });
+    const file = join(out, 'g195-welded.step'); fs.writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'g195-welded' }));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.locator('input[aria-label="Model file"]').setInputFiles(file);
+    await page.waitForFunction(() => /10 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 60000 }); await idle();
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(300);
+    if (await page.locator('[aria-label="Section mode"]').count()) await page.click('[aria-label="Section view"]');
+    // The Render workspace; the last body (the end cap) animated 30 mm along X over two seconds.
+    await page.click('button:text-is("Render")'); await page.waitForTimeout(500);
+    await page.locator('.outliner .ol').nth(9).click();
+    await page.fill('[aria-label="Time"]', '0'); await page.click('.timeline button:text-is("Set key")');
+    await page.fill('[aria-label="Time"]', '2'); await page.fill('[aria-label="Offset X"]', '30'); await page.click('.timeline button:text-is("Set key")');
+    const tracks = await page.evaluate(() => window.__studioDoc.render.animation.tracks), animated = Object.keys(tracks);
+    assert.equal(animated.length, 1, JSON.stringify(tracks));
+    await page.keyboard.press('Escape'); await page.waitForTimeout(400);
+    const shot = name => page.locator('canvas.vp-canvas').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g195-${name}.png`) });
+    const plain = await shot('whole');
+    const before = await page.evaluate(() => window.__studioSection());
+    assert.deepEqual(before.offsets?.map(o => o[0]), animated, 'without the section: on the body itself');
+    const exported = async () => { if (renderer !== 'webgpu') return null; const d = page.waitForEvent('download'); await page.click('[aria-label="Export image"]'); return fs.readFileSync(await (await d).path()); };
+    const imgWhole = await exported();
+    // The section view, in the Render workspace.
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[aria-label="Hatch the cut"]', { timeout: 5000 });
+    await page.waitForFunction(() => window.__studioSection()?.exact, null, { timeout: 60000 }); await page.waitForTimeout(500);
+    const s = await page.evaluate(() => window.__studioSection());
+    if (renderer === 'webgpu') assert.ok(s.clip && s.clip.planes.length === 1, JSON.stringify(s.clip));
+    // The animated body's offset on the piece cut from it, nowhere else.
+    console.log(`  G19.5 render: ${JSON.stringify({ renderer, offsets: s.offsets, sources: s.sources, animated })}`);
+    assert.equal(s.offsets.length, 1, JSON.stringify(s.offsets));
+    assert.deepEqual(s.offsets[0][1], [30, 0, 0]);
+    assert.equal(s.sources[s.shownKeys.indexOf(s.offsets[0][0])], animated[0], `the offset on a piece of the animated body: ${JSON.stringify(s)}`);
+    // The rendered frame cut open, and the exported image with it.
+    const cut = await shot('section');
+    const changed = await page.evaluate(async ([a, b]) => {
+      const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+      const A = await load(a), B = await load(b); let n = 0;
+      for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 24) n++;
+      return n;
+    }, [plain.toString('base64'), cut.toString('base64')]);
+    assert.ok(changed > 2000, `the section changes the rendered frame: ${changed} pixels`);
+    const imgCut = await exported();
+    if (imgWhole) assert.ok(imgCut && !imgCut.equals(imgWhole), 'the exported image is cut');
+    await snap('g195-render-section');
+    await page.click('[aria-label="Section view"]');
+    await page.click('button:text-is("Model")');
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

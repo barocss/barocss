@@ -1208,3 +1208,30 @@ a union of two half-space removals, a corner taken out) — to be scheduled, not
     the cap test per sample.
   - A cut smaller than a spacing square may get no hatch line.
   - Ghost caps only with order-independent transparency on.
+
+## G19.5 — the section in the Render workspace (2026-10-22)
+
+- **What the probe found**:
+  - The section applies there as in Model: the planes cut and cap the rendered bodies (the render looks, the
+    environment, the ground), the hatch is on, and the exported image is cut.
+  - One fault: the Render workspace's animated offsets (its timeline's tracks, by body key) were put on the bodies
+    shown by index into the part's bodies. In a section the shown bodies are others — those wholly cut away left out,
+    and in the exact section the pieces split from them. An animated body then did not move, or another did.
+  - Example (the welded frame across Y): the end cap, body 9 of 10, was index 9. The exact section shows 8 bodies, so
+    the offset fell on none.
+- **Fix**:
+  - `sectionSplits` returns `from`, each kept piece's body by key; the exact section's state keeps it.
+  - The offsets are computed by key (`animatedAt`) and put on the shown bodies (`animatedOffsets`), each by its own
+    body's key — an exact piece by the body it was cut from.
+  - The GPU's moving section and the CPU's clipped bodies keep their keys. The hatch lines follow (G19.4).
+- **Evidence**:
+  - Flow step G19.5 (new), both renderers: the welded frame (10 bodies) in the Render workspace, the end cap animated
+    30 mm along X.
+    - Before the section, its offset is on itself.
+    - With the section across Y: the clip set on the GPU, one offset `[30, 0, 0]`, on `b6_positive`, whose source is
+      the end cap (`b0_part9`); the frame changed in 2 000+ pixels.
+    - On WebGPU, the exported PNG differs from the one before the section.
+  - `section-planes.test.ts`: the one-plane exact section's `from` against the code before.
+  - Every section step again on both renderers: 73, the instance and RM2 steps, G19.2–G19.5 — 8/8 each.
+- **Checks** (T1), in the verify worktree on 6bfb02f22 plus these changes: studio tsc and eslint clean, suite
+  211/211; the flow steps above. Not run: the full flow, gpu (not touched), cad-model.
