@@ -7109,6 +7109,99 @@ try {
     await page.click('[aria-label="Section view"]');
   });
 
+  // ---- K2 (FRk5, D175/D182): a notched tee in the app — shown, saved and reopened the same, on either renderer -----------------------
+  await check('K2 FRk5 notches: a V-notched and a hole-saw-notched tee of Ø30 × 2 tubes — each body to its oracle (volume 1e-9 relative, centroid 1e-6 mm), the same after Save, New and Open; a V notch too deep refused with its reason', async () => {
+    const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    // (The kernel lane's conformance cases, as the studio's frame node: the same points, segments, section and corners.)
+    const asStudio = (name) => {
+      const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/frk', name), 'utf8')), f = c.input.partDocument.features[0];
+      const node = { id: 'n0', kind: 'frame', points: f.points, segments: f.segments, section: f.section, up: f.up, corners: f.corners };
+      return { c, file: join(out, name.replace('.json', '.bcad')), doc: { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [node], outputs: {}, nextId: 1 } };
+    };
+    const shown = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length > 0 && b.bodies.every(x => x.volumeMM3 !== null); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
+    const matches = (bodies, expect, label) => {
+      assert.equal(bodies.length, expect.outputs.length, `${label}: ${bodies.length} bodies`);
+      // (Each expected output found among the bodies by its volume, then its centroid checked.)
+      for (const o of expect.outputs) {
+        const b = bodies.find(x => Math.abs(x.volumeMM3 - o.volumeMM3.value) <= o.volumeMM3.relTol * o.volumeMM3.value);
+        assert.ok(b, `${label}: no body of ${o.volumeMM3.value} mm³ in ${JSON.stringify(bodies.map(x => x.volumeMM3))}`);
+        assert.ok(b.centroid && b.centroid.every((v, k) => Math.abs(v - o.centroidMM.value[k]) <= Math.max(o.centroidMM.absTol, 1e-6)), `${label}: centroid ${JSON.stringify(b.centroid)} vs ${JSON.stringify(o.centroidMM.value)}`);
+      }
+    };
+    for (const name of ['notch-v-tee.json', 'notch-holesaw-tee.json']) {
+      const { c, file, doc } = asStudio(name);
+      fs.writeFileSync(file, JSON.stringify(doc));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.setInputFiles('input[aria-label="Model file"]', file);
+      const first = await shown(); matches(first, c.expect, `${name} opened (${renderer})`);
+      assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
+      // (A drawn frame: the canvas is not one flat colour — Codex saw a black first WebGPU canvas with real geometry, D175.)
+      await iso(); const shot = await page.locator('canvas.vp-canvas').screenshot();
+      const colours = await page.evaluate(async src => {
+        const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode();
+        const c = new OffscreenCanvas(img.width, img.height), g = c.getContext('2d'); g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, img.width, img.height).data, seen = new Set();
+        for (let k = 0; k < d.length; k += 4 * 97) seen.add((d[k] >> 4) << 8 | (d[k + 1] >> 4) << 4 | d[k + 2] >> 4);
+        return seen.size;
+      }, shot.toString('base64'));
+      assert.ok(colours > 8, `${name}: the canvas looks blank on ${renderer} (${colours} colours)`);
+      await snap(`k2-${name.replace('.json', '')}`);
+      // (Saved with the studio's own Save, a new part, the download opened: the same bodies.)
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+      const again = join(out, `saved-${name.replace('.json', '.bcad')}`); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await page.setInputFiles('input[aria-label="Model file"]', again);
+      matches(await shown(), c.expect, `${name} reopened (${renderer})`);
+    }
+    // (Too deep: the kernel's refusal said, no body made.)
+    const { c, file, doc } = asStudio('refuse-notch-v-depth.json');
+    fs.writeFileSync(file, JSON.stringify(doc));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    const reason = /v depth must be under the branch width and length/;
+    await page.waitForFunction(r => new RegExp(r).test(document.body.innerText), reason.source, { timeout: 60000 });
+    assert.ok(JSON.stringify(c).includes('NOTCH_CUTTER'));
+    assert.equal((await page.evaluate(() => window.__studioBodies().bodies)).length, 0, 'no body from a refused notch');
+    await snap('k2-refuse-notch-v-depth');
+  });
+
+  // ---- G23 CNC (G-R3–G-R5): material removal along the Model's program, on either renderer --------------------------------
+  await check('G23 CNC: CNC8\'s pocket from its machining stock — NOT FOR PRODUCTION first; 0, the middle and the end of its program; no overcut, the floor reached; Print layers closes it; reopened, the same', async () => {
+    // (The plate and pocket the Model's own commands make, with a stock row the fixture writes: not agent-loaded rows.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    const cam = () => page.evaluate(() => { const c = window.__studioCam?.(), d = c?.display; return c && { stage: c.stage, error: c.error, reason: c.reason, progress: d?.progress, moves: d?.setup.moves.length, removed: d?.removal.removedMM3, overcut: d?.removal.overcutCells, unc: d?.removal.lateralUncertaintyMM, top: d && 'max' in d.package.stock ? d.package.stock.max[2] : null, banner: d?.package.banner }; });
+    const at = (p) => page.waitForFunction(q => { const c = window.__studioCam?.(); return c?.stage === 'ready' && (q === 'end' ? c.display.progress === c.display.setup.moves.length : Math.abs(c.display.progress - q) < 1e-9); }, p, { timeout: 60000 }).then(cam);
+    const progressTo = (v) => page.locator('[aria-label="CNC progress"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    await page.check('input[aria-label="CNC preview"]');
+    const start = await at(0);
+    assert.equal(start.removed, 0, JSON.stringify(start)); assert.equal(start.overcut, 0); assert.match(start.banner, /NOT FOR PRODUCTION/);
+    assert.match(await page.locator('.card[aria-label="CNC preview"]').innerText(), /NOT FOR PRODUCTION/);
+    await page.click('[aria-label="CNC progress to the end"]');
+    const end = await at('end');
+    // (The pocket's 1500 mm² less its four corners a flat Ø6 cannot reach and the field's stated band, cut from the stock's top to the floor.)
+    const area = end.removed / (end.top - 12), corners = 4 * (1 - Math.PI / 4) * 9;
+    assert.ok(area <= 1500 + 1e-6 && area >= 1500 - corners - 160 * end.unc, JSON.stringify({ area, ...end }));
+    assert.equal(end.overcut, 0, `the program enters the part: ${JSON.stringify(end)}`);
+    const mid = Math.round(end.moves / 2);
+    await progressTo(mid); const half = await at(mid);
+    assert.ok(half.removed > 0 && half.removed < end.removed, JSON.stringify({ half, end }));
+    assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
+    await iso(); await snap('g23-cnc-middle');
+    // (Print layers takes the viewport: the CNC preview says why it stops, and shows nothing.)
+    await page.check('input[aria-label="Print layers"]');
+    await page.waitForFunction(() => /Close Print layers/.test(window.__studioCam?.().reason ?? '') && !window.__studioCam?.().display, null, { timeout: 15000 });
+    await page.uncheck('input[aria-label="Print layers"]');
+    await page.click('[aria-label="CNC progress to the end"]');
+    assert.equal((await at('end')).removed, end.removed, 'the same end after the preview closed and came back');
+    // (Reopened from the file: the same program and the same removal — nothing of the preview is stored.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    await page.click('[aria-label="CNC progress to the end"]');
+    assert.equal((await at('end')).removed, end.removed, 'reopened: the same removal');
+    await snap('g23-cnc-end');
+    await page.uncheck('input[aria-label="CNC preview"]');
+    await page.waitForFunction(() => !window.__studioCam?.().display, null, { timeout: 15000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

@@ -30,7 +30,7 @@ import { CamPanel } from './viewport/CamPanel';
 import { useCamPreview } from './viewport/camPreview';
 import type { CamOptions } from './viewport/camDisplay';
 import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
-import { printOptionsOf, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
+import { printOptionsOf, printSourceMeshes, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
 import { documentPrintPreviewProblem } from '@barocss/cad-model/engine/printPreview';
 import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
@@ -449,6 +449,8 @@ export function App() {
 
   // Dev/test hook: the flow test reads the accepted document.
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioDoc: StudioDoc }).__studioDoc = doc; }, [doc]);
+  // (Dev/test: the bodies as evaluated for the document shown — exact volumes and centroids, for checks to their tolerance.)
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioBodies: () => unknown }).__studioBodies = () => ({ fresh: bodiesFor === evaluated, bodies: bodies.map(b => ({ key: b.key, volumeMM3: b.volumeMM3, centroid: b.centroid ?? null })) }); });
   // (Dev/test: what is picked, as the commands see it.)
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSelection: unknown }).__studioSelection = { selection, bodies: bodies.length, active: active?.cmd.id ?? null, sketch: !!sketch, measure: !!measure }; });
   // Dev/test hooks: select an edge or a face by its persistent name (canvas picks are not reproducible).
@@ -2094,7 +2096,7 @@ export function App() {
   }, [clearanceResult, clearanceClip, isolatedInstances, instancePreview]);
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioClearance: () => unknown }).__studioClearance = () => clearanceDisplay; }, [clearanceDisplay]);
 
-  const printMeshes = useMemo(() => bodies.filter(b => !lookOf(doc, b).hidden).map(b => b.mesh), [bodies, doc.bodies]);
+  const printMeshes = useMemo(() => printSourceMeshes(doc, bodies), [bodies, doc.bodies, doc.nodes]);
   const printInputProblem = useMemo(() => documentPrintPreviewProblem(doc), [doc]);
   const printOptions = useMemo<PrintOptions>(() => printInputProblem ? { layer: 0, supports: true, printed: true } : printOptionsOf(doc, printing?.thresholds.maxOverhangDeg.value), [printInputProblem, doc.printPreview, doc.print, printing]);
   const printReason = printInputProblem ?? (camEnabled ? 'Close the CNC preview to preview print layers.' : rendering || drawing ? 'Print layers are available in Model view.'
