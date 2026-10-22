@@ -32,6 +32,8 @@ export interface SetupProgram {
   safeZ: { mm: number; basis: 'estimate' };
   entry: { rampDeg: number; basis: 'estimate'; rule: string };
   moves: Move[]; passes: Pass[];
+  /** What this setup leaves to another (O161: a through hole is drilled once, by the first setup that reaches it). */
+  notes?: string[];
 }
 export type StockSolid = { kind: 'box'; min: Vec3; max: Vec3 } | { kind: 'cylinder'; start: Vec3; axis: Vec3; length: number; diameter: number };
 export interface CamPackage {
@@ -73,7 +75,25 @@ export function camPackage(doc: StudioDoc, all: readonly BodyResult[], o: { tool
     setups.set(setup, prog);
     return prog;
   };
-  for (const op of p.operations) { if (op.kind === 'pocket') pocketMoves(programOf(op.setup), op); else drillMoves(programOf(op.setup), op); }
+  // (O161: a hole reachable from several setups — a through hole, from both ends — is drilled once, by the first of them
+  // in setup order, the order the operations bring the setups in; each other setup that has work of its own says so.)
+  const order: string[] = [];
+  for (const op of p.operations) if (!order.includes(op.setup)) order.push(op.setup);
+  const drillSetup = new Map<string, string>(), alsoFrom = new Map<string, string[]>();
+  for (const op of p.operations) {
+    if (op.kind !== 'drill') continue;
+    const had = drillSetup.get(op.feature);
+    if (had === undefined || order.indexOf(op.setup) < order.indexOf(had)) drillSetup.set(op.feature, op.setup);
+    alsoFrom.set(op.feature, [...(alsoFrom.get(op.feature) ?? []), op.setup]);
+  }
+  for (const op of p.operations) {
+    if (op.kind === 'pocket') pocketMoves(programOf(op.setup), op);
+    else if (drillSetup.get(op.feature) === op.setup) drillMoves(programOf(op.setup), op);
+  }
+  for (const [feature, from] of alsoFrom) {
+    const by = drillSetup.get(feature)!;
+    for (const setup of from) { const s = setup === by ? undefined : setups.get(setup); if (s) (s.notes ??= []).push(`${feature}: drilled in the ${by} setup, not again here`); }
+  }
   for (const s of setups.values()) { const last = s.moves.at(-1); if (last && last.b[2] < s.safeZ.mm) s.moves.push({ kind: 'retract', a: last.b, b: [last.b[0], last.b[1], s.safeZ.mm] }); }
   return { banner: NOT_FOR_PRODUCTION, notForProduction: true, version: CAM_PACKAGE_VERSION, tool, stepoverMM: p.stepoverMM, stepdownMM: p.stepdownMM, basis: p.basis, stock, setups: [...setups.values()], skipped: p.skipped };
 }

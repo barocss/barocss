@@ -133,9 +133,13 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   // 5 (the plate's CAM package, G23 B, from its own document on the base's inherited stock): the pocket's levels 11, 8, 6
   // at step-down 3 in the +Z setup; the stock a box from B1 with the allowance 1.
   const cam = await call('query', { action: 'cam', part: 'p1' }) as { files: { path: string; text: string }[] };
-  const pkg = JSON.parse(cam.files[0].text) as { notForProduction: boolean; stock: { kind: string; min: number[]; max: number[] }; setups: { setup: string; moves: { kind: string; a: number[] }[] }[] };
+  const pkg = JSON.parse(cam.files[0].text) as { notForProduction: boolean; stock: { kind: string; min: number[]; max: number[] }; setups: { setup: string; moves: { kind: string; a: number[] }[]; passes: { kind: string; feature: string }[] }[] };
   assert.equal(pkg.notForProduction, true);
   assert.deepEqual([pkg.stock.kind, pkg.stock.max.map((v, k) => v - pkg.stock.min[k])], ['box', [210, 310, 16]]);
+  // (O161, F2: the through holes are drilled once, from the top: one +Z setup, each of the five holes once.)
+  assert.deepEqual(pkg.setups.map(x => x.setup), ['+Z']);
+  const drilled = pkg.setups.flatMap(x => x.passes.filter(q => q.kind === 'drill').map(q => q.feature));
+  assert.deepEqual([drilled.length, new Set(drilled).size], [5, 5]);
   const top = pkg.setups.find(x => x.setup === '+Z')!;
   assert.deepEqual([...new Set(top.moves.filter(m => m.kind === 'feed').map(m => +m.a[2].toFixed(6)))], [11, 8, 6]);
   // (O160, F1: the shaft's CAM with its key and bearing sizes the bare shaft, 95 × 25 × 25 — milled stock cannot hold it

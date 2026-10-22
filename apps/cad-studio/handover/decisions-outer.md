@@ -6796,3 +6796,27 @@ The BOM already tells made from bought; manufacturing did not ask.
 - model: made-bodies 1/1, a9-acceptance 1/1, and every model test file using printability, machinability, CAM or print layers (21 files, all passing);
 - studio: cnc-preview, cnc-cam, chat, im7, cnc-stock, im8b, mould-undercut, all passing;
 - tsc of model and studio; eslint 0 errors.
+
+## O161 — F2: a through hole is drilled once, by the first setup that reaches it (2026-10-23)
+
+**The defect** (A9's F2): the CAM package drilled every through hole in both its +Z and its −Z setup. `camPreview` lists each setup a hole is reachable from (`drillPoints`, one per access direction), and `camPackage` programmed them all.
+
+**The coordinator's rule, built in camPackage:**
+- **Setup order** is the order the operations bring the setups in. The pockets come first, so on CNC8's and A9's plates that is +Z.
+- **A hole reachable from several setups** is drilled once, in the first of them.
+- **Each other setup that has work of its own** records `notes: ["hole1: drilled in the +Z setup, not again here"]`. `SetupProgram.notes` is a new optional field, so cam-package-v1 readers are unaffected.
+- **A setup left with no work** is not made at all: A9's plate is one +Z setup.
+- **The preview** (`camPreview`, its SVG and the studio's cnc-cam test) still lists every direction a hole is reachable from. That list is about access, not the program.
+
+**The expectation change**, a decision-backed one:
+- The old cam-package test "CNC8's holes" pinned the through hole in −Z too.
+- It now has three holes: a through Ø6.6, a blind Ø5 from the top, and a blind Ø4 from the bottom, so the −Z setup still exists.
+- Each hole is drilled exactly once, and the through and top holes come from +Z, at depths 0 and 10.
+- −Z has only the bottom hole, a turned-over frame (axis [0, 0, −1]) and the note naming the through hole. +Z has no notes.
+
+**A9:** the plate's package is the one +Z setup, with its five holes each drilled once. The Ø47 bore is still a drill there, which is F3, next.
+
+**Verified (T1):**
+- model: cam-package 4/4, a9-acceptance 1/1, chat-outputs 7/7, cnc-holes 6/6, cnc-features 4/4, cnc-access 4/4;
+- studio: cnc-cam 5/5, cnc-preview 8/8;
+- tsc of model and studio; eslint 0 errors.
