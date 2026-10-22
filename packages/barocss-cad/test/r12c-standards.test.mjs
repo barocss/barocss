@@ -64,7 +64,9 @@ test('R12c.7 U1\'s USB-C opening in a panel\'s top: the removal A·6.2, the body
   assert.equal(b.connectorBody.overlapMM3, 0);
   // The body's top at z 10 − 6.2 + 6.51.
   const zs = b.brep.vertices.map(v => v.point[2]); near(Math.max(...zs), 10.31, 1e-9, 'its top'); near(Math.min(...zs), 3.8, 1e-9, 'its bottom');
-  assert.deepEqual(r.keepOut, { frame: { origin: [20 - 10.25 / 2, 10 - 4.4 / 2, 10], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [10.25, 4.4, 15], clearance: 0 });
+  // (From the body's front, 0.31 out of the face: the plug fills the space up to there.)
+  assert.deepEqual(r.keepOut.frame.origin.map(x => Math.round(x * 1e9) / 1e9), [20 - 10.25 / 2, 10 - 4.4 / 2, 10.31]);
+  assert.deepEqual([r.keepOut.frame.normal, r.keepOut.frame.xAxis, r.keepOut.size, r.keepOut.clearance], [[0, 0, 1], [1, 0, 0], [10.25, 4.4, 15], 0]);
   assert.equal(r.source, U1.source); assert.equal(r.estimate, false);
   const turned = evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: U1, center: [20, 10, 10], rotation: 90 }])).output('o').connector;
   near(turned.frame.x[1], 1, 1e-12, 'x along world Y'); near(turned.keepOut.frame.origin[0], 20 + 4.4 / 2, 1e-12, 'the keep-out turned');

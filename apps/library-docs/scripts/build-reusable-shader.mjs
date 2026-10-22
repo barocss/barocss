@@ -9,7 +9,9 @@ const defaultApp = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export async function bundleReusableShader(app = defaultApp, platform = 'browser', consumerText, consumerName = 'reusable-shader') {
   if (!/^[a-z][a-z0-9-]{0,47}$/.test(consumerName)) throw Error('Invalid shader consumer name');
   const root = resolve(app, '../..');
-  const profile = JSON.parse(await readFile(resolve(app, 'scripts/profiles/gpu-reusable-functions-v0.json'), 'utf8'));
+  // (G18.2: the browser host draws on the WebGPU viewer — its own pin, the commit with the WGSL lowering; the CPU
+  // consumers keep their material profile's pin.)
+  const profile = JSON.parse(await readFile(resolve(app, `scripts/profiles/${platform === 'browser' ? 'gpu-uv-repeating-webgpu-v0.json' : 'gpu-reusable-functions-v0.json'}`), 'utf8'));
   const snapshot = resolve(app, 'docs/.vitepress/cache/reusable-shader', profile.sourcePin);
   const git = args => execFileSync('git', args, { cwd: root, maxBuffer: 64 * 1024 * 1024 });
   if (git(['rev-parse', '--show-object-format']).toString().trim() !== 'sha1') throw Error('Unexpected Git format');
@@ -59,7 +61,7 @@ export async function bundleReusableShader(app = defaultApp, platform = 'browser
   const unexpected = Object.keys(result.metafile.inputs).filter(path => !path.startsWith('packages/') && path !== relative(snapshot, entry));
   if (!ownInputs.length || unexpected.length) throw Error(`Unexpected advanced closure: ${unexpected.join(', ')}`);
   const provenance = { sourcePin: profile.sourcePin, verifiedBlobs: Object.keys(profile.files).length,
-    ownSourceInputs: ownInputs.length, ownDistInputs: 0, host: platform === 'browser' ? 'App WebGL2 quad consuming public trusted lowering' : 'CPU public compile/binding/evaluation consumer; no GL',
+    ownSourceInputs: ownInputs.length, ownDistInputs: 0, host: platform === 'browser' ? 'WebGPU viewer drawing the public WGSL repeating UV lowering (G18.2)' : 'CPU public compile/binding/evaluation consumer; no GL',
     oldVisualPinUnchanged: '5f5ad866205a21510ac69552e704cc162fa253b5' };
   await writeFile(resolve(consumers, platform === 'browser' ? 'browser-metafile.json' : `${consumerName}-node-metafile.json`), JSON.stringify(result.metafile, null, 2) + '\n');
   return { result, provenance };

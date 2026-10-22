@@ -473,3 +473,37 @@ button.chip.snap:hover { background: #3a3c41; }
 .bom-table th { color: var(--text-2); font-weight: 500; }
 .bom-table tr + tr td { border-top: 1px solid var(--line-soft); }
 .bom-table select { font-size: 11px; padding: 1px 2px; }
+/* G17: the 3D sketch's marks (SkeletonMarks.tsx). */
+.vp-overlay .skel-faint { stroke: #9aa3b2; stroke-width: 1; stroke-dasharray: 4 3; opacity: 0.6; pointer-events: none; }
+.vp-overlay .skel-plane { fill: none; stroke: rgba(160, 166, 176, 0.28); stroke-width: 1; pointer-events: none; }
+.vp-overlay .skel-seg { stroke: #f1f2f4; stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.vp-overlay .skel-seg.sel { stroke: var(--accent); stroke-width: 3; }
+.vp-overlay .skel-band { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 4; pointer-events: none; }
+.vp-overlay .skel-axis { stroke-width: 1; stroke-dasharray: 8 4; opacity: 0.8; pointer-events: none; }
+.vp-overlay .skel-point { fill: #f1f2f4; stroke: #1b2230; stroke-width: 1.5; pointer-events: none; }
+.vp-overlay .skel-point.free { fill: #7fb2ff; }
+.vp-overlay .skel-point.sel { fill: var(--accent); stroke: #fff; }
+.vp-overlay .skel-snap { fill: none; stroke: var(--accent); stroke-width: 1.5; pointer-events: none; }
+.vp-overlay .skel-cursor { fill: var(--accent); pointer-events: none; }
+.vp-overlay .skel-mark { pointer-events: auto; cursor: pointer; }
+.vp-overlay .skel-mark rect { fill: #1b2230; stroke: #59657a; stroke-width: 1; }
+.vp-overlay .skel-mark text { fill: #e6e9ee; font-size: 11px; font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+.vp-overlay .skel-mark.over rect { stroke: #e0a040; }
+.vp-overlay .skel-mark.bad rect { stroke: #e5534b; fill: #3a1d1f; }
+.vp-overlay .skel-mark.sel rect { stroke: var(--accent); stroke-width: 2; }
+:root[data-theme='light'] .vp-overlay .skel-seg { stroke: #283040; }
+:root[data-theme='light'] .vp-overlay .skel-point { fill: #283040; stroke: #fff; }
+:root[data-theme='light'] .vp-overlay .skel-point.free { fill: #3b78d8; }
+:root[data-theme='light'] .vp-overlay .skel-mark rect { fill: #fff; stroke: #9aa3b2; }
+:root[data-theme='light'] .vp-overlay .skel-mark text { fill: #283040; }
+.skeleton-status { margin: 6px 0; padding: 4px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--line, #3a4150); }
+.skeleton-status.well { border-color: #57b26b; color: #8fd49c; }
+.skeleton-status.under { border-color: #4f8ff7; color: #9cc0ff; }
+.skeleton-status.over { border-color: #e0a040; color: #f0c070; }
+.skeleton-status.conflict, .skeleton-status.error { border-color: #e5534b; color: #f08a84; }
+.skeleton-constraints { list-style: none; margin: 6px 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 220px; overflow: auto; }
+.skeleton-constraints li { display: flex; align-items: center; gap: 6px; }
+.skeleton-constraints li.sel button { color: var(--accent); }
+.skeleton-constraints li.bad button { color: #f08a84; }
+.skeleton-constraints li.over button { color: #f0c070; }
+.skeleton-constraints input { width: 80px; }

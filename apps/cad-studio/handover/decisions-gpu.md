@@ -736,3 +736,180 @@ Measured before anything was changed; the coordinator's order.
   FLOW_ONLY (G12 and step 98) 3/3 on WebGPU and 3/3 on WebGL2. Not run: the full flow (the coordinator's), the cad-model
   suite (not touched), benches (no frame path changed but the decal pipelines' creation).
 
+## G16 — WebGL2 parity: curves and surfaces, a dragged body's turn, edge picks' depth, the proposal overlay (2026-10-22)
+
+All four items are brought to parity on the WebGL2 fallback (`viewport/renderer.ts`); none stays WebGPU-only.
+
+- **A dragged body's turn**: the mesh and line programs take a model matrix (`uModel`) and a normal matrix (`uNormal`,
+  the inverse transpose) instead of `uOffset`; a body is drawn by its gizmo drag's matrix (`ViewState.transforms`), else
+  moved by its offset (`placeBody`). Face and edge picks move it the same way. Before: the move only, the turn not shown.
+- **Edge picks pass over what a surface hides (G3 on WebGL2)**: a pick pass of its own (`pickPass`, a second program on
+  the mesh's vertex shader) writes an id and the depth (24 bits, packed into RGBA8) to two colour targets at once — the
+  opaque bodies as drawn (their polygon offset too) and the direct surfaces; it is drawn again only when the scene or the
+  camera changed, so a pointer's face pick and edge pick share it. `pickEdge` takes each body's segments within the radius
+  nearest first, its point nearest the pointer (back through the perspective), and passes over one when the depth at its
+  pixel lies in front of the point brought a pixel and a half nearer the eye (in world units at its depth) — the GPU
+  viewer's rule — trying up to 16 a body. Ghosted and hidden bodies neither hide nor are picked. Before: a CPU search with
+  no depth, an edge at the back of a body picked through its faces.
+- **Direct curves and surfaces**: `setDirect` and `pickDirect` on WebGL2 — surfaces lit, two-sided, in the GPU's blue
+  (`#8fb3d9`) or the accent when selected; curves as wide lines (2 CSS px, selected 3, `#5ec8e5` / `#ffd35c`); a selected
+  one's isocurves (1 px, 0.55) and control net (1.2 px, `#c9a3ff`); they count in the bounds (F frames them). `pickDirect`:
+  a curve within 6 px that a surface does not hide, else the surface under the pointer (its id in the pick pass); a direct
+  surface in front of a body is no face (as the GPU's raycast). The browser's "Curves and surfaces show in browsers with
+  WebGPU" note is gone. **Left out**: the outline round a selected surface (the GPU viewer's outline pass; the accent
+  colour marks it here).
+- **The proposal overlay (G12)**: `setProposalOverlay` on WebGL2 — the added (green) and removed (red) material
+  see-through (0.5), lit, two-sided, pulled in front of the faces it lies on (polygon offset −1 against the bodies' +1:
+  the decal), with its edges at 0.9 and at 0.35 of that where hidden (a second draw with the depth test reversed). The
+  volume chips are SVG in the viewport's overlay where the renderer draws no labels (`aria-label` "Material added" /
+  "removed"). The faces tint (`proposalTint`) is now only for the `faces` method, on either renderer.
+- **Also**: `Renderer.capture()` (the frame drawn again and read in the same task, the canvas keeping none). DEV hooks
+  for the flow, on either renderer: `__studioPixels(points)`, `__studioFrame(n)`, `__studioEdgeAt(point)`,
+  `__studioDirectAt(point)`, `__studioEye()`.
+- **Evidence**: flow step G16 (new, before the theme step), the same assertions on both renderers —
+  - the study fixture's panel lit blue and picked, the arc's quarter point drawn and picked, the panel clicked in the
+    canvas selected (the accent);
+  - a 40 × 20 × 8 plate: at the midpoints of the three edges at its corner farthest from the eye no pick finds them; at
+    the nearest corner's three each is found;
+  - turned 45° about X with the Rotate gizmo: the frame mid-drag (32 × 32 samples) against the frame the turn makes and
+    the frame before the drag — WebGL2 0.48 and 8.32 (WebGPU 0.55 and 7.33).
+  - On the old behaviour the step fails: with the depth test off (`shown` always true) at the edges; with the transforms
+    ignored (offsets only) at the turn (mid-drag 11.9 from the result, 5.3 from before).
+  - Step G12 on WebGL2 now draws the overlay: `tinted: false`, the chips `+500 mm³` / `−101 mm³`, the block's pixel
+    green-led and the hole's red-led — the same pixel checks as WebGPU (through `__studioPixels`, the GPU-only capture
+    replaced).
+- **Checks** (v2), in the detached verify worktree on `921b6e4bd` plus these changes: studio tsc clean, eslint 0 errors
+  (the flow's console warnings as before), suite 196/196; gpu unit 80/80 and browser 12/12 (not touched; 63 s with the
+  studio's, load 42–78). `FLOW_ONLY` on the steps each item touches — the direct steps 49–55, 46–48, 56–57, 63, the edge
+  steps 31/33/84, 98, G12 and G16: WebGPU 20/20 in 35 s; WebGL2 19/20 in 49 s (load 31–78), step 31 (fillet from the
+  palette) failing on its immediate read of the outliner after the fillet — it failed the same way in the WebGL2 run before
+  these changes (load 364) and alone passes one run in two: a flake of its own, not of the renderer. Not run: the full flow
+  (the coordinator's), the cad-model suite (not touched), benches (the WebGPU frame path is unchanged; the WebGL2 renderer
+  has none).
+
+## G17 — the 3D skeleton sketch tool in the viewport (2026-10-22)
+
+On the outer lane's model and solver (FRf O121 skeleton nodes, FRg O122 `solveSketch3D` with its typed diagnosis, O140
+values bound to parameters; integration `cadfe4700`, merged here as `83bf01685`). Nothing in cad-model changed: the
+command is the studio's (`SKETCH3D_COMMAND`, "3D sketch", keywords `3d sketch` only — "skeleton" stays the Frame
+command's, FR2's rule), offered after the model's in the palette (`Palette`'s `extra`).
+
+- **The viewport's tool hook** (`ViewportTool`, `ToolView` in `Viewport.tsx`): a tool takes the left button before the
+  viewport's own picking (orbit, pan, wheel stay the viewport's) and draws its marks in the SVG overlay — alike on both
+  renderers, over the scene as the thing edited. `ToolView` gives pixels of world points, the ray under a pixel and the
+  shown bodies' corners.
+- **Placing** (`skeleton/skeletonTool.ts`): a point goes on the sketch's own point within 10 px (reused: segments meet
+  there), else a body's corner within 10 px (in 3D: the end of one of its edges), else with an axis lock (X, Y, Z) on the
+  line through the last point along it (the closest point to the pointer's ray), else on the work plane (XY, XZ, YZ;
+  keys 1–3, Tab) through the last point — on the grid (the snap step). Each click joins the last point; a click back on
+  one of its points closes the chain; Esc ends it.
+- **Dragging, solved live**: a point dragged on the work plane through where it was (or along the axis lock), snapped to
+  the other points and corners; each move solves through FRg's LM in two passes (`dragSolve`) — first with the point
+  held at the pointer (a `fixed` constraint added): where the constraints let it go there it lies under the pointer and
+  the rest move as little as they can (LM's small step); where they hold it (the hold left unmet) the constraints alone
+  from the pointer as the start, the point as near as they let it. A fixed point does not move. **No solver API was
+  needed**: a weighted target would give the same where the point can reach the pointer; where it cannot, the two-pass
+  result is the constraints' nearest solution from there rather than a weighted compromise — the dragged point is never
+  left off its constraints.
+- **Constraints and diagnosis** (`SkeletonPanel`, `SkeletonMarks`): the selection's offers — a segment: length (as it
+  is), along X/Y/Z; two segments: parallel, perpendicular, angle; two points: coincident, distance; a point: fix, on the
+  work plane, on an axis — each solved on add (the points settle where they can). The constraints listed with their
+  values (editable; a bound one shows its parameter), each a mark on the canvas beside its segment or point (a click
+  picks it). FRg's diagnosis: the status chip (Fully defined / Under-defined · n free / Over-defined · n redundant /
+  Conflict · n unmet), free points blue, redundant marks amber, unmet red; Apply refused on a conflict.
+- **Session**: ⌘Z / ⇧⌘Z its own undo, Delete the picked points, segments or constraints (the constraints on them with
+  them, the rest renumbered), Enter Apply, Esc (chain, axis lock, selection, then the session). Apply writes one
+  skeleton feature — new, or the one edited from the timeline ("Edit in 3D sketch") — stored solved (`solvedSkeleton`)
+  and checked against the frames that follow it (`skeletonEditRefusal`). The part changing under an edit ends it with
+  nothing written. Applied skeletons are drawn faint (dashed) in the viewport.
+- **Evidence**:
+  - studio unit `test/skeleton-tool.test.ts` (6): the plane and the axis line under a ray, the grid, snaps (own point,
+    else corner, else none); drags — a free end reaches the pointer with the constrained segment kept, a constrained end
+    is held (10, 0, 0), a fixed point does not move, a free segment's length kept by its other end moving; the diagnosis
+    (well at 0 degrees of freedom, a conflict, an unbound parameter refused); offers by selection; removal renumbering.
+  - flow step G17 (new, before the theme step), the same on both renderers: a 40 × 20 loop drawn on XY in the top view
+    (4 points, 4 segments, under); point 0 fixed, side 0 along X at 40; corner 2 dragged — under the pointer mid-drag
+    and at the end (< 3 px); corner 1 dragged — held (< 1.5 px); the rest constrained to Fully defined; sides 0 and 1
+    parallel — Conflict, the marks red, Apply disabled; undone; applied — the node's points back on the 40 × 20 (to
+    1e-6), its seven constraints, drawn faint; the 40 × 20 × 8 plate in the iso view, a new sketch's first point clicked
+    near its top corner lands on (40, 20, 8) (< 1 px); cancelled, nothing written.
+- **Also in this checkpoint**: step 31 (fillet from the palette) waits for the outliner's body count after the fillet,
+  as other steps do (the coordinator's fix for its WebGL2 flake); README §0 has the WebGL2 support statement.
+- **Checks** (v2), in the detached verify worktree on `83bf01685` plus these changes: studio tsc clean, eslint 0 errors
+  (the flow's console warnings as before), suite 203/203 (197 + the 6 new); gpu unit 80/80 and browser 12/12 (not
+  touched; 87 s with the studio's, load 46–48). `FLOW_ONLY` on every FR step (FR1–FR4b, FRb–FRf2, both FRg), step 31,
+  G16, G17 and the theme step (its palette): WebGPU 21/21 in 79 s, WebGL2 21/21 in 138 s (load 23–47). Not run: the full
+  flow (the coordinator's), the cad-model suite (not touched), benches (no frame path changed: the marks are SVG).
+
+## G18.1 — the packed package: CAD external, no source, its consumer tests green (2026-10-22)
+
+The owner's go for G18 ("G18 지금 셋다 합니다"), first of three. `packages/barocss-gpu` only; no version change, no
+publish, no new dependency (the lockfile untouched).
+
+- **CAD external (REVIEW G9)**: `build:library` bundles with `--external:@barocss/cad`. `dist/index.js` 1 240 049 →
+  725 483 bytes (−41.5 %); CAD's own definitions gone from it (`function validateCoplanarFaceBooleanMesh`,
+  `compileCadModel`, `tessellateSurface`, `sampleCurve`: 1, 1, 1, 3 → 0 each), seven `import … from "@barocss/cad"`
+  in their place — a consumer installs CAD once, as the dependency (`0.0.0-experimental` in the packed manifest).
+- **No source in the package**: `files` is `dist`, README, LICENSE (`src` dropped — the published entries are
+  `publishConfig`'s, all `dist`). The tarball: 217 files, 472 350 bytes, `dist` only.
+- **`test:consumer`** (3 tests) was failing at its first check (the pack held `src`); past it, two more stale checks:
+  - the packed manifest's `private: true` — the package is public since #657 (`3caa10604`, its compiled entries); the
+    check is now: not private, `main` `./dist/index.js`, CAD a versioned dependency;
+  - a consumer's type annotation `schemaVersion: 1` — the compiler's IR has a version 2 (scenes of version 1, with
+    rotations): `1 | 2`.
+  The three tests share `tests/packed.mjs`: gpu's tarball and CAD's (its packed manifest's `dist` entries) unpacked
+  under a scratch `node_modules`, as npm would install them; each consumer then runs as before (the ESM import, the
+  compiler, the mesh packet, and a strict `tsc` of a consumer against the packed declarations, CAD's with them).
+- **The workspace's own tests**: with CAD external, a test loading `dist` meets `@barocss/cad`, which the workspace
+  resolves to CAD's TypeScript sources. `tests/cad-dist.mjs` (a resolve hook, `module.registerHooks`) points it at
+  CAD's built entry — what a consumer gets — for `test` and `test:browser` (`node --import ./tests/cad-dist.mjs`);
+  `scene-viewer-browser` maps it on its page (an import map, CAD's `dist` served beside the bundle).
+- **Outside the package, noted**: the old example harnesses under `examples/gpu-scene/*.mjs` that import gpu's
+  `dist/index.js` from Node need the same hook (`node --import ./packages/barocss-gpu/tests/cad-dist.mjs …`: checked on
+  `boolean-buffers-flow.mjs`, which then reaches its own argument check); pages served by `examples/gpu-scene/server.mjs`
+  need an import map for `@barocss/cad` — G18.2 (the demo hosts) takes that up.
+- **Checks** (v2), in the verify worktree: gpu `build:library`, type-check and lint clean, unit 80/80, `test:consumer`
+  3/3 (was 0/3), browser 12/12 (39 s, load 11–36); studio tsc clean and suite 203/203 (not touched: its `@barocss/gpu`
+  is the workspace's sources). Not run: flows (no studio code changed), benches, the cad-model suite.
+
+## G18.2 — the repeating UV shader demos in WGSL, on the WebGPU viewer (2026-10-22)
+
+- **The lowering** (`packages/barocss-gpu/src/engine-uv-repeating-material-wgsl.ts`, new; the integration worktree's
+  untracked `engine-uv-material-wgsl.ts` — another session's — read for reference only, not adopted, moved or deleted,
+  and this file named apart from it so no merge meets it): `lowerEngineUVRepeatingMaterialWGSL` mirrors
+  `validateEngineUVRepeatingMaterialIR` — the input reconstructed by it (its source compiled again, as the GLSL lowering
+  does), the same tree; `uv_u`/`uv_v` as `engine_uv.x/y`, uniforms in the 64-byte `materialParams` slot (16 at most),
+  `mix` the viewer's `material_mix`, the result clamped; every coefficient and uniform bound checked as f32 (finite,
+  nonzero not flushed: RANGE, as G5's mesh lowering). Colour literals: the language's gamma-2.2 decode (the GLSL
+  lowering's) or, with `srgb`, the exact decode for the viewer.
+- **The viewer**: `materialShader` takes repeating UV sources (after the mesh profile, before UV01; a source refused
+  by all gets the diagnostics of the profile whose inputs it reads — a `uv_u` source's RANGE, not the mesh profile's
+  TYPE); `uvRepeatingShader(material, uniforms)` for a compiled material, its uniforms clamped into the slot.
+- **The docs hosts** (`apps/library-docs/scripts/snippets/advanced-shader-host.mjs`, `reusable-shader-host.mjs`): off
+  app-owned WebGL2 — the public preparer's binding drawn by `createViewer` as an unlit quad filling the canvas (uv 0..1
+  across it, as before), its shader material the public WGSL lowering; the same interface (update, setUniform, report,
+  dispose; created async, awaited by `VisualExamples.vue`). Their browser bundles have their own pin,
+  `scripts/profiles/gpu-uv-repeating-webgpu-v0.json` (`6d5dcb69d`, the lowering's commit; 488 verified blobs, no dist
+  inputs); the CPU consumers and the pages' material-profile pins (`7e96b959`, `363f583c`) are unchanged.
+- **`examples/gpu-scene/server.mjs`** (G18.1's note): its `/gpu.js` is the GPU bundle with CAD's built entry folded in
+  (esbuild, the root devDependency, once on the first request) — its pages' CSP admits no inline import map.
+- **Oracle** (`tests/uv-repeating-browser.test.mjs`, in `test:browser`): the six docs demos (advanced, caustics, weave,
+  contour, halftone, reusable), each at its defaults and at its uniforms' maxima, 96 × 96:
+  - the WGSL lowering in a raw WebGPU pass against the GLSL lowering on WebGL2 (the old host's program), the same colour
+    model: max 0–1/255 on five demos; on contour every pixel off by more than 2 (119 at the defaults, 467 at the maxima)
+    lies on a jump — where `fract(elevation·bands)` wraps the f32 GPUs land on either side (the CPU evaluator, binary64,
+    changes by more than 24/255 within 2e-5 of its uv) — and off them 0/255;
+  - on the viewer (exact sRGB decode and encode) against the GLSL host: max 1–4/255, the colour model alone (its bound,
+    the 2.2 power against the sRGB curve, is 8.55/255 at linear 0.0022); contour's jumps as above;
+  - f32: a literal flushed to zero (`0.`+45 zeros+`1`) and one past the range (`1`+39 zeros) refused RANGE where the
+    source compiles, so by `materialShader` too; an IR not the compiler's refused by the reconstruction.
+  - `tests/uv-repeating-wgsl.test.mjs` (2, in `test`): the WGSL text's structure, the alias and the slot, the clamp of
+    uniforms, the refusals, without a device.
+- **The hosts on WebGPU** (`apps/library-docs/scripts/check-shader-hosts-webgpu.mjs`): each of the six presets drawn
+  (a pattern: spread 155–236), a control moved changing 15–94 % of the frame, a refused source (TYPE) leaving the
+  accepted frame (100 % of pixels kept), the report's backend "Example WebGPU viewer · public WGSL repeating UV
+  material". The CPU consumers (`check-{advanced,weave,contour,halftone,reusable}-shader.mjs`) pass as before.
+- **Checks** (v2), in the verify worktree on `11d36ef0b`: cad and gpu `build:library`; gpu type-check and lint clean,
+  unit 82/82, `test:consumer` 3/3, browser 13/13; studio tsc clean, suite 203/203; `FLOW_ONLY` on step 48 (the render
+  workspace's shader material, `materialShader`'s other user) on WebGPU 2/2 in 9 s (load 33–54). Not run: the full
+  flow, the cad-model suite, benches, the docs site build (G18.3 builds it).
