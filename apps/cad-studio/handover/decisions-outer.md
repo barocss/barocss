@@ -6867,3 +6867,53 @@ The kernel lane's D181 (`ec4a4724c`) adds `report.housing.shoulder { at, diamete
 - model: cam-package 5/5, a9-acceptance 1/1, chat-outputs 7/7, tool-contract 3/3;
 - studio: cnc-cam 5/5, cnc-preview 8/8, made-bodies-previews 2/2, chat 18/18;
 - tsc of model and studio; eslint 0 errors.
+
+## O164 — O5, second half begun: the weldment (step 4) and the assembly with a clean clearance map (step 8) (2026-10-23)
+
+The A9 run's second test continues the first's state. It is one run on one document, with the brief as O158 corrected it.
+
+**Two brief adjustments, made so the parts fit together:**
+- **The plate's holes** sit 10 in from its 300 ends (y 10 and 290), so all four land on the rails. The rails' centres are 300 apart and each rail is 40 wide (z 280–320); 20 in from the ends would miss one rail. The exact volume is unchanged.
+- **F4 (b), the coordinator's choice:** the cover has a Ø22 hole round the shaft's end. That is the Ø20 step plus a stated 1 mm a side (`SHAFT_END_MM`, `COVER_CLEARANCE_MM`). The cover still prints in 40 layers with no support.
+
+**4. The weldment:**
+- **Gussets:** 4 at the leg tops, each 60 × 60 × 5 clipped 10, with its 360 rail. Each is (60·60 − 10²)/2·5 = 8750 mm³ (FRk1).
+- **End caps:** 4 inset caps, 4 thick, in the legs' feet, each 34·34·4 = 4624 mm³.
+- **Joints:** 20 — 8 rail ends, 8 gusset seams and 4 caps.
+- **A cap's weld** defaults to butt. A fillet record on a cap is refused (the caps' joints are in `refusedJointIds`), the part still evaluates, and the records are removed.
+- **Fillets** of 3 mm at the other 16 joints, with bead ownership `{version 1, equal-length}`. Without it, the shared seams are refused (BEAD_SHARED_CONTEXT).
+- **Beads:**
+  - each rail end is the kernel's `bead-tee-flush` case, 360 mm³ nominal (8 × 360 = 2880, as the S0 froze it);
+  - each gusset's 200 mm of seams at leg 3 is 3²/2·200 = 900 mm³;
+  - complete: 12 bodies, 6480 mm³ nominal, none refused.
+
+**8. The assembly:**
+- **Placed exactly:**
+  - the plate at (100, 0, 320), on the rails' top;
+  - the shaft at (200, 150, 250), so the bearing's 14 lies in the plate's 14, z 320–334;
+  - the cover at (200, 150, 334), on the plate over the bore.
+- **A9-7, the 6204 housed in the plate's bore** (another part) through the bearing command with `housing: part:{p1, b9}` and H7:
+  - "In the housing's Ø47 bore; no overlap";
+  - "Housing seat H7: 47 to 47.025…";
+  - D181's warning that the plain bore does not locate the outer ring.
+- **The clearance map**, with every contact filled (83 pairs, about 4 s), is clean:
+  - no pair overlaps;
+  - the designed seats are named: the key in its keyseat, the bearing on its shaft (k5) and in p1/b9 (H7), the O-ring in its gland;
+  - the weld beads are designed with their members;
+  - the rest touch or are clear;
+  - the one near pair is the shaft's end in the cover's hole: 1 mm a side by construction, which the display meshes measure as 0.984 (their chords). It is asserted within 0.02 below 1.
+
+**Findings (not fixed here):**
+- **F6. The chat's `edit_feature` cannot set a cross-part housing.**
+  - `editFields` gets no assembly context in a part-scoped edit, so its Housing choice is only "none, 0, 1". The bearing command does get the context, through the part draft's view (`bearingPartView`).
+  - An agent has to delete the bearing and put it again with the housing, which is what the run does.
+  - The fix is in this lane: pass the part draft's bearing context to `editFields` from the edit handler (tools.ts:899).
+- **F7. The cap's bead refusal is reported only as ids in this order.**
+  - With the fillet records set first and the ownership after, the weld list puts the caps in `refusedJointIds` but gives no `bead.refused` message on the joint.
+  - In a scratch probe that set them in another order, the joint carried "[BEAD_KIND] a cap sits flush…".
+  - It is a reporting gap: the refusal itself holds.
+- **F5 (O160)** is unchanged: the shaft's turning report takes about 50 s, and the run is now about 65 s.
+
+**Still to do in O5:** step 9 (the drawings, one per made part in sequence: the document has one drawing and its scope picks the part), step 10 (the BOM and the purchase CSV), step 11 (the bundle), and reopened identical.
+
+**Verified (T1):** a9-acceptance 2/2 (about 65 s), tsc, eslint 0 errors.
