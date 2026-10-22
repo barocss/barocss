@@ -55,6 +55,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 191: a plane tangent to a cylinder's wall cut a slit — no cut now | D189 | done (T1+) |
 | Fuzz 35 / 149: pinched faces (a tangent disc) — strict check against the prismatic crescent convention | — | decision asked |
 | The 61 empty-operand refusals: Booleans and patterns keep the algebra (A ∪ ∅ = A …); the fuzz rerun 163 OK / 31 refused / 6 INVALID | D190 | done (T1+) |
+| Fuzz 93, 83: a crossing seen only on a curve's 9-sample chords is confirmed on chords 8× finer before it is reported | D191 | done (T2) |
 | Fuzz 93, 83 (loops cross), 5 / 56 / 118 (open mesh edges); the 26 non-manifold refusals | — | next |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |

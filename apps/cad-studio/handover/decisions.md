@@ -11358,3 +11358,20 @@ still refused, with the same message.
 - Kernel lint 0 errors, type-check clean.
 - In a scratch worktree: 121 kernel files plus the part-model, pattern and Boolean ones, 1151/1152, 1 skipped, 0
   failing; after the pattern change, the part-model, pattern and Boolean files 209/209.
+
+## D191 — A loop crossing seen only on a curve's chords is confirmed on finer chords before it is reported (2026-10-23)
+
+**Findings.** L4 fuzz 93 (cone ∪ cone) and 83 (cylinder − frustum): strict L0 reported a face's loops crossing. In both,
+a planar cap is cut by the other solid along a curve that runs 0.01–0.06 mm inside the cap's own rim arc. The rim's
+9-sample chords dip up to 0.07 mm inside the arc (their sagitta), across the curve's samples; the edges themselves do
+not meet. The volumes stood within the oracle's bounds.
+
+**Fix (`src/brep-check-geometry.ts`).** A crossing found on the 9-sample rings is confirmed on rings sampled 8 times
+finer (65 per curved edge use, the sagitta 64 times smaller). Only one still there is reported. Lines keep their 3
+samples. The finer pass runs only on a face whose coarse rings meet, so a clean face costs nothing more.
+
+**Test:** `test/brep-check-strict.test.mjs`. A 0.01 mm strip inside a quarter arc of radius 10 is valid; it failed
+before. A line from the arc's end across it is still reported.
+
+**After it:** 83 passes every RB stage. 93 validated, and its STEP round trip then showed a volume error (D192).
+

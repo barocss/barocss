@@ -38,6 +38,34 @@ test('strict L0: an edge off its face\'s surface, a crossing loop, a sliver and 
   for (const r of [off, bow, sliver, loose]) assert.equal(r.valid, false);
 });
 
+// A sheet on z = 0 bounded by `parts`, each a line (its two points) or an arc ({ r, from, to } in degrees about the
+// origin, one rational quadratic span per at most 90°); consecutive parts share their ends.
+function curvedSheet(parts) {
+  const at = (r, deg) => [r * Math.cos(deg * Math.PI / 180), r * Math.sin(deg * Math.PI / 180), 0];
+  const curve = (id, p) => {
+    if (Array.isArray(p)) return lineCurve(id, p[0], p[1]);
+    const spans = Math.ceil(Math.abs(p.to - p.from) / 90), dt = (p.to - p.from) / spans, w = Math.cos(Math.abs(dt) * Math.PI / 360), cp = [at(p.r, p.from)], wt = [1], knots = [0, 0, 0];
+    for (let k = 0; k < spans; k++) { cp.push(at(p.r / w, p.from + dt * (k + 0.5)), at(p.r, p.from + dt * (k + 1))); wt.push(w, 1); if (k < spans - 1) knots.push((k + 1) / spans, (k + 1) / spans); }
+    return { kind: 'curve', id, degree: 2, knots: [...knots, 1, 1, 1], controlPoints: cp, weights: wt };
+  };
+  const curves = parts.map((p, k) => curve(`e${k}`, p)), vertices = curves.map((c, k) => ({ id: `v${k}`, point: c.controlPoints[0] }));
+  const edges = curves.map((c, k) => ({ id: `e${k}`, curve: c, vertices: [`v${k}`, `v${(k + 1) % curves.length}`] }));
+  const plane = { kind: 'surface', id: 'p', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[[-20, -20, 0], [-20, 20, 0]], [[20, -20, 0], [20, 20, 0]]], weights: [[1, 1], [1, 1]] };
+  return buildBrep({ source: { family: 'test', id: 's' }, vertices, edges,
+    bodies: [{ id: 'b', kind: 'sheet', shells: [{ id: 's', closed: false, faces: [{ id: 'f', surface: plane, sense: 'forward', loops: [{ kind: 'outer', uses: edges.map(e => ({ edge: e.id, sense: 'forward' })) }] }] }] }] });
+}
+const deg = (r, d) => [r * Math.cos(d * Math.PI / 180), r * Math.sin(d * Math.PI / 180), 0];
+
+test('strict L0: a strip thinner than a curve\'s chord sagitta is not a crossing; a line across an arc still is (D191)', () => {
+  // A 0.01 mm strip inside a quarter arc of radius 10: its 9-sample chords dip 0.048 mm inside the arc, across the
+  // inner arc's samples (taken at other angles), though the edges themselves are 0.01 mm apart (L4 fuzz 83, 93).
+  const strip = checkBrep(curvedSheet([{ r: 10, from: 0, to: 90 }, [deg(10, 90), deg(9.99, 85)], { r: 9.99, from: 85, to: 5 }, [deg(9.99, 5), deg(10, 0)]]), { strict: true });
+  assert.equal(strip.valid, true, strip.issues.join('; '));
+  // A line from the arc's end across it, out to (8, 8) and back: the loop crosses itself at (4.7, 8.8).
+  const across = checkBrep(curvedSheet([{ r: 10, from: 0, to: 90 }, [deg(10, 90), [8, 8, 0]], [[8, 8, 0], deg(10, 0)]]), { strict: true });
+  assert.ok(across.issues.some(i => /loops cross or touch/.test(i)), across.issues.join('; '));
+});
+
 test('strict L0 at a pole: an edge along a sphere patch\'s meridian from its pole is on it (no false gap)', () => {
   // Every edge of a box filleted all round: the corner balls' patches have poles; their edges lie on them exactly.
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });

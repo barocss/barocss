@@ -60,33 +60,15 @@
     "note": "K10 L4 fuzz finding (D188, seed 20261023 case 56), unfixed: a box (turned 180° about Y and X, snapped) less an upright cylinder r 2: the tessellation has 2 edges not used exactly twice (the volume holds). Its expect is the ray oracle's volume and centroid."
   },
   {
-    "case": "corpus/fuzz/fuzz-20261023-93.json",
-    "stage": "validate",
-    "status": "INVALID",
-    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 93), unfixed: the union of two cones (generic placements, one turned about Y and X): a face's loops cross (strict L0). Its expect is the ray oracle's volume and centroid."
-  },
-  {
-    "case": "corpus/fuzz/fuzz-20261023-93.json",
-    "stage": "expect",
-    "status": "WRONG",
-    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 93), unfixed: the union of two cones (generic placements, one turned about Y and X): a face's loops cross (strict L0). Its expect is the ray oracle's volume and centroid."
-  },
-  {
     "case": "corpus/fuzz/fuzz-20261023-5.json",
     "stage": "tessellate",
     "status": "INVALID",
     "note": "K10 L4 fuzz finding (D190's rerun, seed 20261023 case 5; hidden before by the empty-operand refusal), unfixed: an upright cylinder r 2.5 less a shelled box turned twice about Y (generic): the tessellation has 1 edge not used exactly twice (the volume holds). Its expect is the ray oracle's volume and centroid."
   },
   {
-    "case": "corpus/fuzz/fuzz-20261023-83.json",
-    "stage": "validate",
-    "status": "INVALID",
-    "note": "K10 L4 fuzz finding (D190's rerun, seed 20261023 case 83; hidden before by the empty-operand refusal), unfixed: an upright cylinder less a frustum turned 278.5° about X (generic): a face's loops cross (strict L0). Its expect is the ray oracle's volume and centroid."
-  },
-  {
-    "case": "corpus/fuzz/fuzz-20261023-83.json",
-    "stage": "expect",
+    "case": "corpus/fuzz/fuzz-20261023-93.json",
+    "stage": "roundtrip",
     "status": "WRONG",
-    "note": "K10 L4 fuzz finding (D190's rerun, seed 20261023 case 83; hidden before by the empty-operand refusal), unfixed: an upright cylinder less a frustum turned 278.5° about X (generic): a face's loops cross (strict L0). Its expect is the ray oracle's volume and centroid."
+    "note": "K10 L4 fuzz finding (D188, seed 20261023 case 93), unfixed after D191: its STEP read-back moves the volume by 1.25e-6 of it; the kernel volume is 8.5e-4 mm³ off a 2048² × 8 oracle (the pole route, D192)."
   }
 ]

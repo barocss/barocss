@@ -149,7 +149,11 @@ export function strictGeometry(brep: Brep, maps: Maps, size: number, add: (kind:
       rings.push(ring);
     }
     if (mapper.closed) continue;
-    const crossing = ringsCross(rings);
+    // (A curve's chords cut inside its bulge: where the strip between a curve and another edge of the face is thinner
+    // than a 9-sample chord's sagitta, the chords cross though the edges do not. A crossing found on them is confirmed
+    // on chords 8 times finer, their sagitta 64 times smaller, and only one that is still there is reported: L4 fuzz 83
+    // and 93, D191.)
+    const crossing = ringsCross(rings) && ringsCross(sampledRings(face, maps, mapper, 8 * (SAMPLES_CURVE - 1) + 1));
     if (crossing) add('geometry', `face ${face.id}: its loops cross or touch themselves or each other (${crossing})`);
     // A sliver: a planar face whose width (twice its area over its perimeter) is below its edges' tolerance.
     if (mapper.planar) {
@@ -205,6 +209,25 @@ function segmentDistance(x: Point, a: Point, b: Point): number {
   return Math.hypot(x[0] - a[0] - t * d[0], x[1] - a[1] - t * d[1], x[2] - a[2] - t * d[2]);
 }
 
+/** A face's loops in its parameters, `curveSamples` samples along each curved edge use (a line: its ends and middle). */
+function sampledRings(face: BrepFace, maps: Maps, mapper: Mapper, curveSamples: number): XY[][] {
+  const rings: XY[][] = [];
+  for (const lid of face.loops) {
+    const loop = maps.loops.get(lid); if (!loop) continue;
+    const ring: XY[] = [];
+    for (const cid of loop.coedges) {
+      const c = maps.coedges.get(cid), e = c && maps.edges.get(c.edge); if (!c || !e) continue;
+      const at = curveEvaluator(e.curve), [t0, t1] = curveDomain(e.curve), n = e.curve.degree === 1 && e.curve.controlPoints.length === 2 ? SAMPLES_LINE : curveSamples;
+      let hint: XY | null = null;
+      for (let k = 0; k < n - 1; k++) {
+        const f = k / (n - 1), q = mapper.uv(at(c.sense === 'forward' ? t0 + (t1 - t0) * f : t1 - (t1 - t0) * f), hint);
+        hint = q; ring.push([q[0] * mapper.ku, q[1] * mapper.kv]);
+      }
+    }
+    rings.push(ring);
+  }
+  return rings;
+}
 /**
  * A description of the first contact between segments of the rings that are not neighbours in one ring (a
  * crossing, or a touch: a loop through one point twice, two loops meeting), or null. Consecutive repeated
