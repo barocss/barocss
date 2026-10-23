@@ -5,13 +5,17 @@ import type { BodyResult } from '../engine/evaluate';
 import { boundsOf } from '../engine/bounds';
 
 type V3 = [number, number, number];
-const AL = 2.7; // g/cm³, the density the kernel's figures are for
+/** g/cm³: the density the kernel's mass and inertia are for (aluminium); a material's figures scale by its own over this. */
+export const KERNEL_DENSITY = 2.7;
+/** A volume's mass (g) at a density (g/cm³). */
+export const massGOf = (volumeMM3: number, gPerCm3: number) => volumeMM3 * gPerCm3 / 1000;
 
 /** A body's mass (g) and inertia about its centre of mass (kg·mm²) in a material of `gPerCm3`. */
 export function bodyMass(b: BodyResult, gPerCm3: number): { massG: number; centroid: V3; inertia: number[][] } | null {
   if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
-  const k = gPerCm3 / AL;
-  return { massG: b.volumeMM3 * gPerCm3 / 1000, centroid: b.centroid, inertia: b.inertia.map(r => r.map(v => v * k * 1e6)) };
+  // (The inertia as v · (ρ / 2.7) · 1e6, in that order; chat/analysis's (v · ρ) / 2.7 rounds differently, so they stay apart.)
+  const k = gPerCm3 / KERNEL_DENSITY;
+  return { massG: massGOf(b.volumeMM3, gPerCm3), centroid: b.centroid, inertia: b.inertia.map(r => r.map(v => v * k * 1e6)) };
 }
 /** Inertia (kg·mm²) moved from the centre of mass to `about`: I + m (|d|² E − d dᵀ), d from `about` to the centre. */
 export function inertiaAbout(inertia: number[][], massG: number, centroid: V3, about: V3): number[][] {

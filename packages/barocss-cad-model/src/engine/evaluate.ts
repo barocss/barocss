@@ -92,6 +92,7 @@ export type EvalResult =
 /** The main evaluation's rebuild (O10): the features built again and those reused, and each one's own cost (D228). */
 export interface RebuildData { evaluated: readonly string[]; reused: readonly string[]; profile: Readonly<Record<string, CadPartFeatureProfile>> }
 
+// (kg/m³, the kernel's massProperties argument: app/mass's KERNEL_DENSITY is the same aluminium in g/cm³.)
 const ALUMINIUM = 2700;
 // The last successful evaluation: unchanged features are reused by the next one.
 let last: CadPartSnapshot | null = null;

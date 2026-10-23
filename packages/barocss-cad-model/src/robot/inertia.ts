@@ -13,9 +13,8 @@ import { materialIdOf } from '../app/bodies';
 import { materialOf } from '../app/materials';
 import { rotationMatrix } from '../assembly/mates';
 import type { JointTree } from './joints';
+import { KERNEL_DENSITY } from '../app/mass';
 
-/** The kernel's mass and inertia are for aluminium (g/cm³). */
-const KERNEL_DENSITY = 2.7;
 export type Mat3 = [number, number, number, number, number, number, number, number, number];
 export type V3 = [number, number, number];
 export interface Frame { /** Origin, in the part's coordinates (mm). */ origin: V3; /** Axes as columns, in the part's coordinates. */ R: Mat3 }
@@ -47,6 +46,7 @@ export const rotateInertia = (I: Mat3, R: Mat3): Mat3 => mul(mul(transpose(R), I
 function bodyMass(doc: StudioDoc, b: BodyResult): { m: number; c: V3; I: Mat3; material: string; assumed: boolean } | null {
   if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
   const id = materialIdOf(doc, b), mat = materialOf(id), k = mat.gPerCm3 / KERNEL_DENSITY;
+  // (Mass in kg as V · ρ · 1e-6, inertia in kg·m² as I · k: its own units and order, so not app/mass's bodyMass.)
   return { m: b.volumeMM3 * mat.gPerCm3 * 1e-6, c: b.centroid, I: b.inertia.flat().map(x => x * k) as Mat3, material: mat.label, assumed: !id };
 }
 
