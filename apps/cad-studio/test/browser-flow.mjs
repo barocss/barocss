@@ -1638,7 +1638,7 @@ try {
     await page.evaluate(() => window.__studioUnscriptChat()); await page.unroute(statusUrl);
   });
 
-  await check('chat renders a scripted conversation (O17): text runs, a tool ok and one failed, an error notice, Stop, a proposal linked to its card, New conversation', async () => {
+  await check('chat renders a scripted conversation (O17): the thinking collapsed, text runs, a tool ok and one failed, an error notice, Stop, a proposal linked to its card, New conversation', async () => {
     const statusUrl = u => u.pathname === '/api/chat/status';
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
     await page.click('[aria-label="New part"]'); await idle();
@@ -1650,7 +1650,7 @@ try {
     await page.click('[aria-label="Chat"]');
     await page.waitForFunction(() => !!window.__studioScriptChat);
     await page.evaluate(turns => window.__studioScriptChat(turns), [
-      [{ type: 'text', delta: 'A box first.' }, { type: 'tool', name: 'features', input: { action: 'command', command: 'box' }, summary: 'Box → 1 body, 8000 mm³', isError: false }, { type: 'state', doc: box },
+      [{ type: 'reasoning', delta: 'A box is the simplest start.' }, { type: 'text', delta: 'A box first.' }, { type: 'tool', name: 'features', input: { action: 'command', command: 'box' }, summary: 'Box → 1 body, 8000 mm³', isError: false }, { type: 'state', doc: box },
         { type: 'tool', name: 'features', input: { action: 'command', command: 'no-such-command' }, summary: 'Unknown command "no-such-command".', isError: true }, { type: 'text', delta: 'Done: a 40 × 20 × 10 box.' }, { type: 'done', doc: box, end: 'done' }],
       [{ type: 'done', end: 'error', error: 'claude exited with 1' }],
       [{ type: 'tool', name: 'features', input: { action: 'command', command: 'hole' }, summary: 'Hole', isError: false }, { type: 'sleep', ms: 20000 }, { type: 'done', end: 'done' }],
@@ -1662,6 +1662,10 @@ try {
     assert.equal(await page.locator('.chat-msg.assistant').count(), 2, 'two text runs, either side of the calls');
     assert.equal(await page.locator('.chat-tool').count(), 2); assert.equal(await page.locator('.chat-tool.err').count(), 1);
     assert.match(await page.locator('.chat-tool').first().innerText(), /features\.command\s+Box → 1 body/);
+    // (O17c: the thinking, one collapsed line that opens to its text.)
+    assert.equal(await page.locator('.chat-thinking').count(), 1); assert.equal(await page.locator('.chat-thinking[open]').count(), 0);
+    assert.equal((await page.locator('.chat-thinking summary').innerText()).trim(), 'Thinking…');
+    await page.click('.chat-thinking summary'); assert.match(await page.locator('.chat-thinking').innerText(), /simplest start/);
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2);
     await say('again');
     await page.waitForSelector('.chat-msg.notice:has-text("claude exited with 1")');

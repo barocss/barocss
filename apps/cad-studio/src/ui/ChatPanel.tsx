@@ -15,6 +15,7 @@ import type { StudioMessage } from '../chat/transport';
 import { Message } from '@/components/ai/message';
 import { Tool } from '@/components/ai/tool';
 import { ProposalLink } from '@/components/ai/proposal';
+import { Reasoning } from '@/components/ai/reasoning';
 import { Icon } from './atoms';
 import './chat.css';
 
@@ -147,10 +148,12 @@ export function ChatPanel(props: ChatPanelProps) {
   );
 }
 
-/** One part of an assistant message: a run of text, a tool call (a proposal's linked card under its `propose`), a notice. */
+/** One part of an assistant message: a run of text, a tool call (a proposal's linked card under its `propose`), a notice, the thinking. */
 function ChatPart({ part: p, ...props }: { part: StudioMessage['parts'][number] } & ChatPanelProps) {
   if (p.type === 'text') return <Message from="assistant">{p.text}</Message>;
   if (p.type === 'data-notice') return <Message from="notice">{p.data.text}</Message>;
+  // (O17c: the model's thinking, when the CLI streams it — one collapsed line.)
+  if (p.type === 'reasoning') return p.text ? <Reasoning text={p.text} /> : null;
   if (p.type !== 'dynamic-tool') return null;
   const failed = p.state === 'output-error', summary = failed ? p.errorText ?? '' : p.state === 'output-available' ? (p.output as { summary?: string } | undefined)?.summary ?? '' : '';
   const label = toolLabel(p.toolName, p.input), id = label === 'proposals.propose' && !failed ? /\bP\d+\b/.exec(summary)?.[0] : undefined, proposal = id ? props.proposals?.find(q => q.id === id) : undefined;

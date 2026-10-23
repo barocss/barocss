@@ -17,17 +17,17 @@ function chatOf(turns: ScriptedEvent[][], notices: (d: TurnDone) => string[]) {
   };
   return { chat: new Chat<StudioMessage>({ transport }), ends };
 }
-const shape = (m: StudioMessage) => m.parts.map(p => p.type === 'text' ? `text:${p.text}` : p.type === 'dynamic-tool' ? `tool:${p.toolName}:${p.state}` : p.type === 'data-notice' ? `notice:${p.data.text}` : p.type).filter(t => t !== 'step-start');
+const shape = (m: StudioMessage) => m.parts.map(p => p.type === 'text' ? `text:${p.text}` : p.type === 'reasoning' ? `reasoning:${p.text}` : p.type === 'dynamic-tool' ? `tool:${p.toolName}:${p.state}` : p.type === 'data-notice' ? `notice:${p.data.text}` : p.type).filter(t => t !== 'step-start');
 const say = (chat: Chat<StudioMessage>, text: string) => chat.sendMessage({ role: 'user', parts: [{ type: 'text', text }] });
 
 test('O17 scripted: turns in order, text and tool parts as the server\'s, the end run on done with its notices', async () => {
   const { chat, ends } = chatOf([
-    [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'features', input: { action: 'command' }, summary: 'Box', isError: false },
+    [{ type: 'reasoning', delta: 'Plate, then holes.' }, { type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'features', input: { action: 'command' }, summary: 'Box', isError: false },
       { type: 'tool', name: 'features', input: { action: 'command' }, summary: 'Unknown command', isError: true }, { type: 'text', delta: 'Done.' }, { type: 'done', end: 'done', session: 's1' }],
     [{ type: 'done', end: 'error', error: 'claude exited with 1' }],
   ], d => d.end === 'error' ? [d.error!] : []);
   await say(chat, 'a plate');
-  assert.deepEqual(shape(chat.messages[1]), ['text:Plate first.', 'tool:features:output-available', 'tool:features:output-error', 'text:Done.']);
+  assert.deepEqual(shape(chat.messages[1]), ['reasoning:Plate, then holes.', 'text:Plate first.', 'tool:features:output-available', 'tool:features:output-error', 'text:Done.']);
   await say(chat, 'again');
   assert.deepEqual(shape(chat.messages[3]), ['notice:claude exited with 1']);
   assert.deepEqual(ends.map(d => [d.end, d.session]), [['done', 's1'], ['error', undefined]]);
