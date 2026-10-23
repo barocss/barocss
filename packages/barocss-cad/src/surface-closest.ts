@@ -88,7 +88,14 @@ export function closestPointOnSurface(surface: Surface, p: ArrayLike<number>, op
     const a = e.du[0] * e.du[0] + e.du[1] * e.du[1] + e.du[2] * e.du[2], b = e.du[0] * e.dv[0] + e.du[1] * e.dv[1] + e.du[2] * e.dv[2], c = e.dv[0] * e.dv[0] + e.dv[1] * e.dv[1] + e.dv[2] * e.dv[2];
     const gu = rx * e.du[0] + ry * e.du[1] + rz * e.du[2], gv = rx * e.dv[0] + ry * e.dv[1] + rz * e.dv[2], det = a * c - b * b;
     if (!(Math.abs(det) > 1e-300)) break;
-    const du = -(c * gu - b * gv) / det, dv = -(a * gv - b * gu) / det;
+    let du = -(c * gu - b * gv) / det, dv = -(a * gv - b * gu) / det;
+    // (On a domain edge with the step pointing out of it, the foot lies on that edge: the other parameter alone is
+    // solved for, Gauss–Newton along the edge's curve. The step solved in both and then clamped kept pointing out, and
+    // its free part, coupled to the clamped one, crawled: a point off a face's patch, its foot on an edge, ran all 30
+    // steps. K11, D211.)
+    const outU = (u <= U[0] && du < 0) || (u >= U[1] && du > 0), outV = (v <= V[0] && dv < 0) || (v >= V[1] && dv > 0);
+    if (outU && !outV) { du = 0; dv = -gv / c; } else if (outV && !outU) { dv = 0; du = -gu / a; }
+    const edge = outU !== outV ? (outU ? 1 : 0) : -1;
     // The step taken whole when it brings the surface nearer (always, near the surface: Gauss–Newton's own iteration);
     // else halved until it does. Far from a convex surface — farther than its radius of curvature — the whole step
     // overshoots by about 1 + distance × curvature and would swing round the surface without converging.
@@ -108,7 +115,14 @@ export function closestPointOnSurface(surface: Surface, p: ArrayLike<number>, op
     const ratio = size / last;
     if (ratio > 0.3 && lastRatio > 0.3 && size > 1e-12 * (U[1] - U[0] + V[1] - V[0])) {
       const h = secondDerivatives(Ev, surface, u, v);
-      if (h) {
+      // (Along an edge, Newton's step in its one parameter.)
+      if (h && edge === 0) {
+        const A = a + rx * h.duu[0] + ry * h.duu[1] + rz * h.duu[2];
+        if (A > 0) { const wu = Math.min(U[1], Math.max(U[0], u - gu / A)), w = d1Near(d1, wu, v, U, V), w2 = dist2(w.point, x, y, z); if (w2 < n2) { su = wu - u; sv = 0; nu = wu; nv = v; next = w; n2 = w2; } }
+      } else if (h && edge === 1) {
+        const C = c + rx * h.dvv[0] + ry * h.dvv[1] + rz * h.dvv[2];
+        if (C > 0) { const wv = Math.min(V[1], Math.max(V[0], v - gv / C)), w = d1Near(d1, u, wv, U, V), w2 = dist2(w.point, x, y, z); if (w2 < n2) { su = 0; sv = wv - v; nu = u; nv = wv; next = w; n2 = w2; } }
+      } else if (h) {
         const A = a + rx * h.duu[0] + ry * h.duu[1] + rz * h.duu[2], B = b + rx * h.duv[0] + ry * h.duv[1] + rz * h.duv[2], C = c + rx * h.dvv[0] + ry * h.dvv[1] + rz * h.dvv[2], D = A * C - B * B;
         if (A > 0 && D > 0) {
           const wu = Math.min(U[1], Math.max(U[0], u - (C * gu - B * gv) / D)), wv = Math.min(V[1], Math.max(V[0], v - (A * gv - B * gu) / D)), w = d1Near(d1, wu, wv, U, V), w2 = dist2(w.point, x, y, z);
@@ -116,6 +130,10 @@ export function closestPointOnSurface(surface: Surface, p: ArrayLike<number>, op
         }
       }
     }
+    // (At the rounding floor — a small step larger than the last, the distance not falling — it is done, at the point
+    // before: there Gauss–Newton's step, where distance × curvature exceeds 1, grows from the rounding noise each time and
+    // the step test never held. K11, D211.)
+    if (ratio > 1 && n2 >= f2 && Math.abs(su) + Math.abs(sv) < 1e-8 * (U[1] - U[0] + V[1] - V[0])) { it++; break; }
     last = size; lastRatio = ratio;
     u = nu; v = nv; e = next; f2 = n2;
     // (Done when the step is below rounding: 1e-15 of the parameters' own size.)

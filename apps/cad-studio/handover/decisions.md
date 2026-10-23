@@ -11879,3 +11879,48 @@ in `robustness/corpus/fuzz/` with `bodies: 2`.
 
 **Test:** `test/boolean-tangent-plane-piece.test.mjs`, failing before: two bodies, strictly valid, the exact volume,
 both orders.
+
+## D211 — K11 (F5's remainder): a foot on a patch's edge is solved along that edge, and the iteration stops at the rounding floor (2026-10-23)
+
+**Finding.** A9's turning report (cad-model's `exactNormals`) makes 72 914 foot queries, with 4 220 974 first-derivative
+and 887 602 second-derivative calls. 33 988 of the queries (47 %) ran all 30 steps. Those are points 3–12 mm off a
+patch, because a display face's exact normal is taken from the nearest of its B-rep pieces, so each point is also
+queried against the pieces it does not lie on. In 400 sampled queries every foot lay on a patch edge (none at a corner).
+Two things kept the iteration from stopping:
+- **On the edge**, the step solved in both parameters and then clamped kept pointing out, and its free part, coupled to
+  the clamped one, crawled.
+- **At the rounding floor**, where distance × curvature exceeds 1, Gauss–Newton's step grew about sixfold each time
+  from the rounding noise. The halving test accepts a step that does not increase the distance beyond 1e-12, so the
+  step test never held.
+
+On a torus patch, from points 4–16 mm off its tube, 197 of 604 feet on an edge ran all 30 steps, up to 5e-4 mm short
+of the nearest point.
+
+**Fix (`src/surface-closest.ts`).**
+- On a domain edge with the step pointing out of it, only the other parameter is solved for: Gauss–Newton along the
+  edge's curve, and in the slow case Newton with that parameter's second derivative.
+- When a small step (below 1e-8 of the domain) is larger than the last one and the distance did not fall, the iteration
+  stops at the point before.
+
+A first version that stopped when the distance no longer fell measurably stopped too early: on the K4 cylinder, feet
+were up to 2.6e-7 mm off.
+
+**Results:**
+
+| Measure (A9, `--cpu-prof`) | Before | After |
+|---|---|---|
+| `turningOf` | 8.1 s | 4.4 s |
+| `closestPointOnSurface` | 8.0 s | 4.2 s |
+| First-derivative calls | 4 220 974 | 1 396 442 |
+| Second-derivative calls | 887 602 | 76 652 |
+| Queries at the 30-step cap | 33 988 | 148 |
+
+Accuracy:
+- **400 sampled capped queries:** every foot is at least as near as the old code's after 2000 steps, up to 2.4e-10 mm
+  nearer; the feet moved by up to 1.9e-5 mm.
+- **K4's cylinder:** worst foot error 1.6e-11 mm (2.6e-11 before).
+- **The torus edge feet:** within 9e-15 of the scan oracle.
+- A9 passes.
+
+**Test:** `test/k11-closest-edge.test.mjs`, failing before: torus edge feet within 1e-9 of a dense-scan oracle, and at
+most 1 in 20 at the step cap.
