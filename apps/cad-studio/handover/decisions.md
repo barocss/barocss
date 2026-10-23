@@ -11863,3 +11863,19 @@ touching hole) is triangulated reversed and counts negatively. Other failures, a
 Both are in `robustness/corpus/fuzz/`.
 
 **Test:** `test/boolean-pinched-piece.test.mjs`, failing before.
+
+## D210 — A planar piece whose middle lies where a surface only touches it is judged again too (2026-10-23)
+
+**Finding.** L4 fuzz 15, shrunk: a box ∪ a cylinder r 1 under it, touching its bottom face along a line through that
+face's middle. Refused as "not a manifold solid (edge … has 1 uses)". The bottom face's interior point lies on the
+line of touch, so the face was judged opposite (on the cylinder) and dropped. D205's re-judging covered curved pieces
+only.
+
+**Fix (`src/analytic-boolean.ts`).** The re-judging applies to planar pieces too. A planar piece on a coplanar face has
+no clear point, so it stays as it was. D205's self-touch check and its fallback apply unchanged.
+
+**Result:** 15 is two bodies, as D204's contract has them: 36.566371 mm³, 3 · 4 · 2 + π · 4, either way round. It is
+in `robustness/corpus/fuzz/` with `bodies: 2`.
+
+**Test:** `test/boolean-tangent-plane-piece.test.mjs`, failing before: two bodies, strictly valid, the exact volume,
+both orders.

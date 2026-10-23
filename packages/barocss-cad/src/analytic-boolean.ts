@@ -1257,10 +1257,11 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
       const p2 = regionInteriorPoint(region); if (!p2 || Math.abs(regionArea(region)) <= tol * tol) continue;
       const x = to3(f, p2), other = f.solid === 0 ? B : A;
       let where = classify(x, normalOut(f, x), other, tol);
-      // (A curved piece whose point lies on the other solid's surface where that surface only touches it — a plane
-      // tangent to a cylinder along a ruling, the domain's middle on that line — is judged at other points of it, the
-      // first clear one deciding; a piece on a coincident surface stays on it. L4 fuzz 56, D205.)
-      if (rejudge && (where === 'same' || where === 'opposite') && f.surf.kind !== 'plane') { const w = clearWhere(f, region, other, tol); if (w) { where = w; touches.push({ x, n: normalOut(f, x) }); } }
+      // (A piece whose point lies on the other solid's surface where that surface only touches it — a plane tangent to
+      // a cylinder along a ruling, the domain's middle on that line — is judged at other points of it, the first clear
+      // one deciding; a piece on a coincident surface stays on it. L4 fuzz 56, D205. Planar pieces too: a box's face
+      // the cylinder touches along a line through its middle. L4 fuzz 15, D210.)
+      if (rejudge && (where === 'same' || where === 'opposite')) { const w = clearWhere(f, region, other, tol); if (w) { where = w; touches.push({ x, n: normalOut(f, x) }); } }
       pieces.push({ face: f, region, out: 1, key: x, where });
     }
   }

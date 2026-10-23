@@ -74,6 +74,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 173 (robust refusal): a traced curve's box in the arrangement allows for its bulge between samples | D207 | done (T2) |
 | Fuzz 158 (robust refusal): a traced curve through a pole of one surface on the other goes on to the pole | D208 | done (T2) |
 | Fuzz 137, 125 (robust refusals): a curved piece pinched at a vertex (a hole touching its boundary there) is measured | D209 | done (T2) |
+| Fuzz 15 (robust refusal): a planar piece whose middle lies where a surface only touches it is re-judged too (two bodies) | D210 | done (T2) |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
