@@ -7733,6 +7733,38 @@ try {
     await display.click();
   });
 
+  await check('O10 Rebuild panel: a box, then a hole drilled in it — the hole built, the box reused, the sketch an input, each with its time; the clearance fixture\'s copies in its frame costs by their keys; closed, gone', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole' && window.__studioFresh === true, null, { timeout: 15000 }); await idle();
+    const hole = await page.evaluate(() => { const n = window.__studioDoc.nodes; return n.at(-1).id ?? `n${n.length - 1}`; });
+    await page.click('[aria-label="Rebuild"]');
+    const panel = page.locator('[aria-label="Rebuild panel"]');
+    await panel.waitFor({ timeout: 5000 });
+    const rows = () => panel.locator('tr[data-rebuild-state]').evaluateAll(rs => rs.map(r => [r.getAttribute('aria-label').slice(8), r.dataset.rebuildState, +r.children[2].textContent]));
+    const seen = await rows();
+    const state = Object.fromEntries(seen.map(([id, s]) => [id, s]));
+    assert.equal(state[hole], 'built', JSON.stringify(seen));
+    assert.ok(seen.some(([, s]) => s === 'reused') && seen.some(([, s]) => s === 'input'), JSON.stringify(seen));
+    assert.ok(seen.every(([, , t]) => Number.isFinite(t) && t >= 0), JSON.stringify(seen));
+    assert.match(await panel.locator('[aria-label="Rebuild totals"]').innerText(), /Evaluation \d+ \(last evaluation\), revision [0-9a-f]{16} · [1-9]\d* built in [\d.]+ ms · [1-9]\d* reused · [\d.]+ ms in all/);
+    assert.match(await panel.locator('[aria-label="Rebuild mates"]').innerText(), /No mates/);
+    console.log(`  O10 rebuild (${renderer}): ${seen.map(([id, s, t]) => `${id} ${s} ${t} ms`).join(', ')}`);
+    // (The clearance fixture: its bodies, the eight copies by their keys, in the frame costs the panel reads every 500 ms.)
+    await openModel(join(root, 'test/fixtures/clearance-states.bcad'), 2, 60000); await idle();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Frame costs"] tr[aria-label^="Frame cost "]').length >= 10, null, { timeout: 15000 });
+    const keys = await panel.locator('tr[aria-label^="Frame cost "]').evaluateAll(rs => rs.map(r => r.getAttribute('aria-label').slice(11)).sort());
+    assert.deepEqual(keys.filter(k => k.includes('/')), [1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}/b1`), keys.join(','));
+    assert.match(await panel.locator('[aria-label="Frame cost totals"]').innerText(), new RegExp(`^${renderer}, shaded-with-edges`));
+    await snap('o10-rebuild-panel');
+    await panel.locator('[aria-label="Close Rebuild"]').click();
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Rebuild panel"]'), null, { timeout: 5000 });
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

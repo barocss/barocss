@@ -125,6 +125,8 @@ function placeFace(f: MateFace, R: Mat3, t: Vec3): MateFace {
 }
 
 export interface Problem { mate: string; reason: string }
+/** How a mate in a loop is refused (the rebuild report groups those mates into their loops, O10). */
+export const LOOP_REASON = 'It closes a loop';
 export interface Solved {
   /** The instances with every mated one placed (unchanged where a mate failed). */
   instances: PartInstance[];
@@ -190,7 +192,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     const ready = waiting.filter(id => valid.every(m => m.b.part !== id || placed.has(m.a.part)));
     if (!ready.length) {
       // What is left moves in a loop (A placed by B placed by A): none of it can be solved.
-      for (const id of waiting) for (const m of valid) if (m.b.part === id) problems.push({ mate: m.id, reason: `It closes a loop: ${name(m.a.part)} is itself placed by mates to ${name(id)}. Fix one of the parts or delete a mate in the loop.` });
+      for (const id of waiting) for (const m of valid) if (m.b.part === id) problems.push({ mate: m.id, reason: `${LOOP_REASON}: ${name(m.a.part)} is itself placed by mates to ${name(id)}. Fix one of the parts or delete a mate in the loop.` });
       for (const id of waiting) { const i = byId.get(id)!; placed.set(id, { R: rotationMatrix(i.rotation), t: [...i.position] }); }
       break;
     }

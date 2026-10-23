@@ -182,6 +182,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   'cad-measure': <>{face('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z', TONE.right)}{line('M2.8 15.6L15.6 2.8l5.6 5.6L8.4 21.2z')}{ac('M6.2 12.2l2.2 2.2M9 9.4l1.5 1.5M11.8 6.6l2.2 2.2M14.6 3.8l1.5 1.5')}</>,
   // A parts list: a sheet with its lines, their item marks in the accent (O147's BOM).
   'cad-bom': <>{face('M5 2.8h10.4l3.6 3.6v14.8H5z', TONE.right)}{line('M5 2.8h10.4l3.6 3.6v14.8H5z')}{line('M10.4 9.2h5.6M10.4 13h5.6M10.4 16.8h4')}{ac('M7.4 9.2h1.2M7.4 13h1.2M7.4 16.8h1.2')}</>,
+  // A rebuild (O10): a block in a turning arrow, the arrow in the accent.
+  'cad-rebuild': <><g transform="translate(0 1.2)">{block(0.22, 0.22, 0.05, 0.78, 0.78, 0.6)}</g>{ac('M20.2 11.4A8.2 8.2 0 1 1 17.8 5.8')}{ac('M18.4 2.6l-.4 3.4-3.4-.2')}</>,
   // Primitive solids.
   'cad-box': <>{block(0, 0, 0, 1, 1, 1)}</>,
   'cad-cylinder': <>{cylinder(0.5, 0.5, -0.05, 0.95)}</>,
