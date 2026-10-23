@@ -13,5 +13,8 @@ Every row either cites where its numbers come from or says it is an estimate:
 - R40 (sections): an estimate, sharp-cornered (`outerRadius` 0), so A = 40² − 34² as the A9 S0 freezes.
 - Stock (B1, R30) and frame stock (S6): an illustrative shop list for this run, not a real shop's. Their loaders
   require a source text, which names this fixture.
+- The fastener row SCS-M6x20 (F9): an illustrative shop row for the four cap screws, not a real supplier's; its
+  loader requires a source text, which names this fixture. It names what is bought; the screws' shape is the fastener
+  command's own.
 
 Dimensions only: no standards text and no copied tables.

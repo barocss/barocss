@@ -17,7 +17,7 @@ export function rowEntries(doc: StudioDoc): { kind: RowKind; value: Row }[] {
   const rows: { kind: RowKind; value: Row }[] = [];
   const add = (kind: RowKind, values: readonly { id: string }[] | undefined) => { for (const value of values ?? []) rows.push({ kind, value }); };
   add('fits', doc.fits?.tables); add('bearings', doc.bearings?.rows); add('orings', doc.orings?.rows);
-  add('rings', doc.rings?.rows); add('drives', doc.drives?.rows); add('connectors', doc.connectors?.rows);
+  add('rings', doc.rings?.rows); add('drives', doc.drives?.rows); add('connectors', doc.connectors?.rows); add('fasteners', doc.fasteners?.rows);
   add('sections', doc.frames?.sections); add('stock', doc.machining?.stock); add('frame-stock', doc.frames?.stock);
   for (const n of doc.nodes) if ((n.kind === 'sheet-base' || n.kind === 'sheet-contour') && n.bendTable) rows.push({ kind: 'bend', value: n.bendTable });
   return rows;

@@ -66,14 +66,16 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
         <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Row</th><th>Source</th><th /></tr></thead>
         <tbody>{data.bom.lines.map((l, k) => {
           // (A plate — a gusset, an end cap — may be set bought too: a laser-cut plate ordered in, FRk1.)
-          const element = l.kind !== undefined || !!l.plate, w = l.kind !== undefined ? why(l.parts) : '';
+          // (F9: a placed fastener is bought as a part of its own — no element to mark made; its estimate's reason from its part.)
+          const fastener = l.kind === 'fastener', element = (l.kind !== undefined && !fastener) || !!l.plate;
+          const w = fastener ? (data.view.parts.find(p => p.id === l.parts[0])?.fastener?.why ?? []).join('; ') : l.kind !== undefined ? why(l.parts) : '';
           return <tr key={k} aria-label={`BOM line ${k + 1}`}>
             <td className="mono">{k + 1}</td>
             <td title={l.size ?? ''}>{l.item}</td>
             <td className="mono">{l.qty}</td>
             <td>{[l.row, l.catalogue].filter(Boolean).join(' · ') || '—'}</td>
             <td title={w}>{l.source}{l.source && l.estimate ? ' · ' : ''}{l.estimate ? <span className="warn">estimate</span> : (!l.source ? '—' : null)}</td>
-            <td>{element ? toggle(l.parts, l.override ? 'bought' : 'default', l.item) : <span className="muted small">{l.source ? 'catalogue part' : 'made'}</span>}</td>
+            <td>{element ? toggle(l.parts, l.override ? 'bought' : 'default', l.item) : <span className="muted small">{fastener ? 'bought part' : l.source ? 'catalogue part' : 'made'}</span>}</td>
           </tr>;
         })}</tbody>
       </table>

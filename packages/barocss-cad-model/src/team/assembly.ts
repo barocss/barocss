@@ -97,10 +97,17 @@ export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomVi
 /** The BOM checked against the assembly: every instance on one line once, each line's quantity its parts, the totals. */
 export function checkBom(view: BomView, bom: Bom): string[] {
   const isBase = (l: Bom['lines'][number]) => l.parts.length > 0 && l.parts.every(p => p.startsWith('base:'));
-  const out: string[] = [], seen = new Map<string, number>(), lines = bom.lines.filter(l => l.kind === undefined && !l.plate && !l.member && !isBase(l)), bought = bom.lines.filter(l => l.kind !== undefined);
+  const out: string[] = [], seen = new Map<string, number>(), lines = bom.lines.filter(l => (l.kind === undefined || l.kind === 'fastener') && !l.plate && !l.member && !isBase(l)), bought = bom.lines.filter(l => l.kind !== undefined && l.kind !== 'fastener');
   if (JSON.stringify(view.beadAccounting) !== JSON.stringify(bom.beadAccounting)) out.push('bead accounting must retain the built view completeness and body subtotals');
   for (const l of bom.lines) if (l.qty !== l.parts.length) out.push(`${l.item}: quantity ${l.qty}, ${l.parts.length} parts`);
   for (const l of lines) for (const p of l.parts) seen.set(p, (seen.get(p) ?? 0) + 1);
+  // (F9: a placed fastener's line is a part line, each of its parts that fastener — its size and row the line's, an estimate said.)
+  for (const l of bom.lines) if (l.kind === 'fastener') for (const p of l.parts) {
+    const f = view.parts.find(x => x.id === p)?.fastener;
+    if (!f) out.push(`${l.item}: ${p} is no placed fastener`);
+    else if (f.size !== l.size || f.row !== (l.row ?? null)) out.push(`${l.item}: ${p} is ${f.size}${f.row ? ` (row ${f.row})` : ''}, not this line's`);
+    else if (f.estimate && !l.estimate) out.push(`${l.item}: ${p} is an estimate (${f.why.join('; ')}), the line does not say so`);
+  }
   // (O142: each bought element on one line once, its line's kind, size and row its own; the count.)
   const els = view.elements ?? [], on = new Map<string, number>();
   for (const l of bought) for (const p of l.parts) {
