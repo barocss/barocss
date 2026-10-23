@@ -3890,8 +3890,7 @@ try {
     await page.click('[aria-label="New part"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     // (The G10 finding, 2026-10-23: the default table's trims got faster — 1.3–1.4 s now — so it no longer is a case of
-    // seconds. The box skeleton's 12 members and 8 three-way corners take 2.7–2.8 s in node: the case measured. The
-    // 2000 ms premise stays.)
+    // seconds. The box skeleton's 12 members and 8 three-way corners: the case measured, 1.7 s after K13 — a few polls.)
     await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
     // A probe of the main thread: the longest gap between 10 ms ticks from here on.
     await page.evaluate(() => { const w = window; w.__gap = 0; w.__last = performance.now(); w.__tick = setInterval(() => { const t = performance.now(); w.__gap = Math.max(w.__gap, t - w.__last); w.__last = t; }, 10); });
@@ -3915,7 +3914,9 @@ try {
     console.log(`FR3b round box frame: preview after ${preview} ms (${polls} polls, the slowest answered in ${slowest} ms); bodies after ${built} ms; longest main-thread gap ${Math.round(gap)} ms; shown meanwhile: ${[...seen].join(' / ')}`);
     // (Meanwhile the HUD says so: "evaluating…".)
     assert.ok([...seen].some(x => /^evaluating…/.test(x)), [...seen].join(' / '));
-    assert.ok(preview > 2000, `the preview took ${preview} ms: not the case being measured`);
+    // (No wall-time floor: K13 made this preview 1.7 s. What is measured is the page answering while the worker computes,
+    // so the case only has to span a few of the 100 ms polls — the HUD seen "evaluating…" between them.)
+    assert.ok(polls >= 3, `the preview came after ${preview} ms, ${polls} polls: too quick to measure the page meanwhile`);
     assert.ok(slowest < 500, `the page took ${slowest} ms to answer while computing`);
     assert.ok(gap < 500, `the main thread was blocked ${Math.round(gap)} ms`);
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), leg = await bodyVolume();
