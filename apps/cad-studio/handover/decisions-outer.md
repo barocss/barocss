@@ -8340,3 +8340,9 @@ values. Part-level configurations stay as they are (folding them into variants l
   computed; re-evaluation 543 → 47 ms, the first open unchanged (the kernel's check, the kernel lane's code).
 - **Proposal, not built:** the spring's mass quadrature (2.05 s at open) could be computed only when the inspector, the
   BOM or mass properties ask — a studio-side saving to weigh when the O11 UI is designed.
+- **D241 (lazy mass), stopped at measurement:** the worker's reply forces it. MeshSender.pack (engine/meshWire.ts) takes
+  each body apart with a rest spread, which reads every property, so a lazy getter would run in the worker on every
+  evaluation reply, at open included. Every other reader is on request (the inspector, InstancePanel, MapLegend,
+  sectionView, the preview ghost; in the model only cutPiece for members; factsOf and the fingerprint when called).
+  Laziness needs mass left off the wire and fetched per body, with its readers awaiting it (src/engine, App.tsx,
+  src/ui): for the post-G12b UI list, not built.
