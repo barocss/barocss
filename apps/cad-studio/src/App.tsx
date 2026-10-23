@@ -30,6 +30,8 @@ import { CamPanel } from './viewport/CamPanel';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
+import { useJoints } from './state/useJoints';
+import { useScenePoses } from './state/useScenePoses';
 import { CommandButtons, CommandStrip, commandStates } from './ui/ToolButton';
 import { useDrawingSheet } from './ui/useDrawingSheet';
 import { pmiSelection } from './viewport/pmiGeometry';
@@ -77,14 +79,13 @@ import { defaultDrawing, readDrawing, type DrawingSettings } from '@barocss/cad-
 import { MatePanel } from './ui/MatePanel';
 import { JointsPanel } from './ui/JointsPanel';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
-import { forwardKinematics, gearPairAt, sliderRange } from '@barocss/cad-model/robot/fk';
 import { treeInertia } from '@barocss/cad-model/robot/inertia';
 import { gravityTorques, linkMasses } from '@barocss/cad-model/robot/dynamics';
 import { exportUrdf } from '@barocss/cad-model/robot/urdf';
 import { exportMjcf, type MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 import { sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { sweepTimed, type JointLimits } from '@barocss/cad-model/robot/ccd';
-import { workspaceMap, type WorkspaceMap } from '@barocss/cad-model/robot/workspace';
+import { workspaceMap } from '@barocss/cad-model/robot/workspace';
 import { exportSdf } from '@barocss/cad-model/robot/sdf';
 import { exportUsd } from '@barocss/cad-model/robot/usd';
 import { closureOfDoc } from '@barocss/cad-model/robot/loop';
@@ -95,8 +96,8 @@ import { fastenerName, fastenerThread } from '@barocss/cad-model/app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import type { Analysis } from './viewport/analysis';
-import { boundsUnder, instancePoses, poseMatrix } from './viewport/instancePose';
-import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, sectionedInstances, type AxisSection, type Section } from './viewport/sectionView';
+import { poseMatrix } from './viewport/instancePose';
+import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, type AxisSection, type Section } from './viewport/sectionView';
 import { SectionBar, sectionHandles } from './ui/SectionBar';
 import { mapsOf, type MapKind } from './viewport/scalarMaps';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
@@ -718,13 +719,7 @@ export function App() {
     return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
   }), [jointTree, robotReady, doc, bodies, instanceBodies]);
   // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.
-  const [jointValues, setJointValues] = useState<Record<string, number>>({});
-  const [jointPlaying, setJointPlaying] = useState<string | null>(null);
-  const [pathCheck, setPathCheck] = useState<{ text: string; contact: boolean } | null>(null);
-  // (RM9a: the waypoints recorded for Check path, a preview like the pose; nothing saved.)
-  const [jointWaypoints, setJointWaypoints] = useState<Record<string, number>[]>([]);
-  // (RM9b: the workspace map shown, a preview; nothing saved.)
-  const [workspace, setWorkspace] = useState<WorkspaceMap | null>(null);
+  const { jointValues, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk, gearLines } = useJoints(jointTree);
   /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
   const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
   /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
@@ -739,45 +734,14 @@ export function App() {
   /** A synthetic workspace map for the bench (G8, DEV: `__studioSetCloud`), shown in place of the arm's. */
   const [benchCloud, setBenchCloud] = useState<{ at: Vec3; t: number }[] | null>(null);
   const workspaceCloud = useMemo(() => { if (!workspace) return null; const best = Math.max(0, ...workspace.voxels.map(v => v.w)); return workspace.voxels.map(v => ({ at: v.c as Vec3, t: best > 0 ? v.w / best : 0 })); }, [workspace]);
-  // (A path checked is for the pose it was checked to: moving a joint clears it.)
-  useEffect(() => setPathCheck(null), [jointValues, jointTree]);
-  useEffect(() => { setJointWaypoints([]); setWorkspace(null); }, [jointTree]);
-  const jointFk = useMemo(() => jointTree && Object.values(jointValues).some(v => v !== 0) ? forwardKinematics(jointTree, jointValues) : null, [jointTree, jointValues]);
-  const gearLines = useMemo(() => (jointTree?.couplings ?? []).map(c => { const at = gearPairAt(c, jointFk?.values ?? {}), home = gearPairAt(c, {}), d = Math.abs(at.phaseDeg - home.phaseDeg); return { leader: c.leader, follower: c.follower, multiplier: c.multiplier, held: Math.min(d, 360 / c.g2.spec.teeth - d) < 1e-6, backlashMM: at.backlashMM }; }), [jointTree, jointFk]);
-  // (Joints gone from the tree lose their values; a joint played swings through its range, a period of 4 s.)
-  useEffect(() => { const keys = new Set(jointTree?.joints.map(j => j.key) ?? []); setJointValues(v => Object.keys(v).every(k => keys.has(k)) ? v : Object.fromEntries(Object.entries(v).filter(([k]) => keys.has(k)))); if (jointPlaying && !keys.has(jointPlaying)) setJointPlaying(null); }, [jointTree]);
-  useEffect(() => {
-    const j = jointPlaying ? jointTree?.joints.find(x => x.key === jointPlaying) : undefined;
-    if (!j) return;
-    const r = sliderRange(j), mid = (r.min + r.max) / 2, amp = (r.max - r.min) / 2, t0 = performance.now();
-    let frame = requestAnimationFrame(function step(now) { setJointValues(v => ({ ...v, [j.key]: mid + amp * Math.sin(2 * Math.PI * (now - t0) / 4000) })); frame = requestAnimationFrame(step); });
-    return () => cancelAnimationFrame(frame);
-  }, [jointPlaying, jointTree]);
   // (Each with its placement, as the bodies were placed: copies of one tessellation share a geometry in the viewer, G10.)
-  const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => { const b = instanceBodies.get(i.id)!, p = placementOf(b.inst); return { id: i.id, bodies: b.bodies, placement: poseMatrix({ R: Float64Array.from(p.m), t: Float64Array.from(p.t) }, undefined) }; }), [doc.instances, instanceBodies]);
   // The exploded view (display only): each instance pushed out from the middle by the explode factor.
   const [explode, setExplode] = useState(0);
   // (Dev/bench: any explode factor, as a drag would set it frame by frame; the button steps 0, 0.5, 1, 2.)
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSetExplode: (k: number) => void }).__studioSetExplode = setExplode; }, []);
-  // (G1: posed and exploded by a matrix per instance on its meshes, not by moved copies of them: the meshes are made once.)
-  const instancePoseMap = useMemo(() => instancePoses(bodies, instancesPlaced, jointFk, explode), [instancesPlaced, explode, bodies, jointFk]);
   const [instDrag, setInstDrag] = useState<{ id: string; drag: InstanceDrag; settling: boolean; key: string } | null>(null);
-  const cpuInstanceSection = !!section && !sketch && !gpuSection;
-  // A CPU section cuts the complete displayed placement, including a live drag, in world space.
-  // The clipped copy must not receive that drag a second time after its cap has been made.
-  const instanceSectionPoses = useMemo(() => {
-    if (!cpuInstanceSection || !instDrag) return instancePoseMap;
-    const poses = new Map(instancePoseMap), drag = previewMatrix(instDrag.drag), pose = poses.get(instDrag.id);
-    poses.set(instDrag.id, pose ? multiply(drag, pose) : drag);
-    return poses;
-  }, [cpuInstanceSection, instDrag, instancePoseMap]);
-  // (The flow's view of what is shown, RM2: each instance's bounds as placed, posed or exploded.)
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioInstanceBounds: () => unknown }).__studioInstanceBounds = () => instancesPlaced.map(i => { const b = i.bodies[0]?.mesh, M = instancePoseMap.get(i.id), box = b && M ? boundsUnder(b.positions, M) : b?.bounds; return { id: i.id, min: box?.min, max: box?.max }; }); }, [instancesPlaced, instancePoseMap]);
-  // The section view cuts the placed parts too: on WebGPU by the clip plane where their matrices put them (G2), on WebGL2
-  // as moved copies clipped and capped.
-  const instancesShown = useMemo(() => !section || sketch ? instancesPlaced : sectionedInstances(instancesPlaced, instanceSectionPoses, section, gpuSection), [instancesPlaced, instanceSectionPoses, section, sketch, gpuSection]);
-  // (The CPU's clipped copies are already moved; otherwise the meshes take the matrices.)
-  const instanceTransforms = cpuInstanceSection ? undefined : instancePoseMap;
+  // (R1c (3a): the placed parts as they are shown — placed, posed, exploded, dragged and sectioned.)
+  const { instancesPlaced, instancePoseMap, cpuInstanceSection, instancesShown, instanceTransforms } = useScenePoses(doc, instanceBodies, bodies, jointFk, explode, section, sketch, gpuSection, instDrag);
   const insertPart = async (file: File) => {
     try {
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
