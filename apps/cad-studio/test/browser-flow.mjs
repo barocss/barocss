@@ -2242,6 +2242,7 @@ try {
       assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /my-motor/);
       // (O16: the panel at 1440 in the dock, for the checkpoint.)
       await page.locator('[aria-label="Shop rows"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-shop-rows.png`) });
+      await page.locator('[aria-label="Library panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-o16-library.png`) });
     } finally { await page.click('[aria-label="Close library"]'); }
   });
 
