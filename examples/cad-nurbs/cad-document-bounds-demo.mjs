@@ -325,7 +325,7 @@ const publicAPI = await import(pathToFileURL(runtimePath).href);
 const runtimeExports = ['queryCadDocumentBounds', 'validateCadDocumentBounds', 'CadDocumentBoundsError', 'CadDocumentBoundsDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CadDocumentBoundsDiagnosticCode, CadDocumentBoundsDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-document-bounds.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./document/cad-document-bounds.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/document/cad-document-bounds.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CadDocumentBoundsReport', 'CadDocumentBoundsResult'];

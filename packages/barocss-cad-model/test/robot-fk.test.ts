@@ -120,7 +120,7 @@ test('the forward_kinematics tool: placements as place_part takes them, the gear
 test('the preview: instances moved on copies, the evaluated bodies untouched; nothing moved at home', async () => {
   const doc = caseDoc('revolute'), s = solveDoc(doc), inst = s.doc.instances![0];
   const r = await evaluate(inst.doc); assert.ok(r.ok);
-  const { placeBody } = await import('../src/engine/evaluate'), { rotationMatrix } = await import('../src/assembly/mates');
+  const { placeBody } = await import('../src/engine/evaluate'), { rotationMatrix } = await import('../src/engine/placement');
   const placed = r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(inst.rotation), inst.position));
   const before = Float32Array.from(placed[0].mesh.positions), t = treeOf(doc);
   const home = posedInstances([{ id: 'arm', bodies: placed }], forwardKinematics(t, {}));

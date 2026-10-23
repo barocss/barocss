@@ -21,7 +21,7 @@ const bridge = 'export * from ' + JSON.stringify(indexSource) + ';\n'
 const bundle = await esbuild.build({ absWorkingDir: repo, stdin: { contents: bridge, resolveDir: repo, sourcefile: 'line-width-face-demo-source-bridge.mjs', loader: 'js' }, bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
 assert.equal(bundle.outputFiles.length, 1);
 const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
-for (const leaf of ['source-line-width-face.ts', 'compatible-ruled-surface.ts', 'own-convex-planar-face.ts', 'boundary.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['nurbs/source-wide/source-line-width-face.ts', 'nurbs/surfaces/compatible-ruled-surface.ts', 'own-convex-planar-face.ts', 'core/boundary.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(!inputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 assert.ok(inputs.filter(path => path.includes('/packages/barocss-cad/')).every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));

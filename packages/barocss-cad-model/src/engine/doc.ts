@@ -408,7 +408,8 @@ import type { RenderSettings } from './render';
 import type { SketchRule } from '../sketch/terms';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
-import { rotationMatrix, rotationSteps, type Mate } from '../assembly/mates';
+import { type Mate } from '../assembly/mates';
+import { rotationMatrix, rotationSteps } from './placement';
 import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
@@ -565,30 +566,6 @@ export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   const flat = flattenAssembly(flattenShopView(resolved));
   return prefixDoc(flat, flat.nodes.length);
 }
-/**
- * An instance's placement as the kernel applies it to every body: the turns of `rotationSteps` in order
- * (quarter turns exactly), then the move — x' = m·x + t, m row-major.
- */
-export function placementOf(inst: PartInstance): { m: number[]; t: [number, number, number] } {
-  let m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-  for (const { axis, angleDegrees } of rotationSteps(inst.rotation)) m = mul3(turnMatrix(axis, angleDegrees), m);
-  return { m, t: [inst.position[0], inst.position[1], inst.position[2]] };
-}
-/** A turn about an axis through the origin, as the kernel's rotate feature makes it. */
-function turnMatrix(axis: 'x' | 'y' | 'z', deg: number): number[] {
-  const k = Math.round(deg / 90);
-  if (k * 90 === deg) {
-    const turns = ((k % 4) + 4) % 4, c = [1, 0, -1, 0][turns], s = [0, 1, 0, -1][turns];
-    return axis === 'x' ? [1, 0, 0, 0, c, -s, 0, s, c] : axis === 'y' ? [c, 0, s, 0, 1, 0, -s, 0, c] : [c, -s, 0, s, c, 0, 0, 0, 1];
-  }
-  const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
-  return axis === 'z' ? [c, -sn, 0, sn, c, 0, 0, 0, 1] : axis === 'x' ? [1, 0, 0, 0, c, -sn, 0, sn, c] : [c, 0, sn, 0, 1, 0, -sn, 0, c];
-}
-function mul3(a: readonly number[], b: readonly number[]): number[] {
-  const out = Array<number>(9);
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) out[3 * i + j] = a[3 * i] * b[j] + a[3 * i + 1] * b[3 + j] + a[3 * i + 2] * b[6 + j];
-  return out;
-}
 
 export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   // (A sub-assembly: its own instances folded in as features, see assembly/flatten.ts.)
@@ -682,9 +659,11 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
-    else if (node.kind === 'frame' && (node.bends !== undefined || frameSegmentCount(nodes, node) > 1)) {
-      const geometry = frameGeometry(nodes, node), indices = frameMemberIndices(node, 'segments' in geometry ? geometry.segments : node.segments);
-      indices.forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'frame') {
+      // (Its members, from the frame's geometry worked out once here — R4 C4: frameSegmentCount and this each worked it out.)
+      const indices = frameIndices(nodes, node);
+      if (node.bends !== undefined || indices.length > 1) indices.forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+      else refs.push({ node: index, side: 'solid' });
     }
     else if (node.kind === 'mesh' && (node.pieces ?? 1) > 1) Array.from({ length: node.pieces! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
@@ -986,4 +965,6 @@ export function frameMemberIndices(node: FrameNode, segments: readonly ModelFram
   }
   return [...retained].sort((a, b) => a - b);
 }
-export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { const g = frameGeometry(nodes, node); return frameMemberIndices(node, 'segments' in g ? g.segments : node.segments).length; }
+/** A frame's member indices, from its geometry as followed now (default parameters, no placed parts). */
+function frameIndices(nodes: readonly ModelNode[], node: FrameNode): number[] { const g = frameGeometry(nodes, node); return frameMemberIndices(node, 'segments' in g ? g.segments : node.segments); }
+export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { return frameIndices(nodes, node).length; }

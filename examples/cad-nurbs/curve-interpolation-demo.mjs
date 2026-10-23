@@ -310,7 +310,7 @@ const runtimeNames = ['buildInterpolatingCurve', 'validateInterpolatingCurve', '
 const typeNames = ['CurveInterpolationPoint', 'CurveInterpolationOptions', 'CurveInterpolationReport', 'CurveInterpolationResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CurveInterpolationDiagnosticCode, CurveInterpolationDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-interpolation.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/curves/curve-interpolation.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/curve-interpolation.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'known_quadratic').authoredFile, 'utf8'));

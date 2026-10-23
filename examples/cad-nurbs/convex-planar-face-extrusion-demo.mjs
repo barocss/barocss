@@ -14,7 +14,7 @@ const bridge = 'export * from ' + JSON.stringify(entry) + ';\nexport {parseCadDo
 const bundle = await esbuild.build({ absWorkingDir: repo, stdin: { contents: bridge, resolveDir: repo, sourcefile: 'convex-face-extrusion-demo-bridge.mjs', loader: 'js' }, bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
 assert.equal(bundle.outputFiles.length, 1);
 const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
-for (const leaf of ['convex-planar-face-extrusion.ts', 'source-line-width-face.ts', 'closed-exact-patch-shell.ts', 'exact-boundary-face-adjacency.ts', 'own-plane-cylinder-intersection-internal.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['planar-solids/convex-planar-face-extrusion.ts', 'nurbs/source-wide/source-line-width-face.ts', 'brep/closed-exact-patch-shell.ts', 'exact-proof/exact-boundary-face-adjacency.ts', 'intersect/own-plane-cylinder-intersection-internal.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(!inputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const { extrudeConvexPlanarFace: extrude, validateConvexPlanarFaceExtrusion: validate, ConvexPlanarFaceExtrusionError: ExtrusionError, ConvexPlanarFaceExtrusionDiagnosticCode: codes, buildSourceLineWidthFace, buildConvexPlanarFace, compileCadModel, demoParseAuthoredRecipe: parseRecipe } = api;

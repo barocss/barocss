@@ -346,10 +346,10 @@ async function nativeStage() {
       graph.push({ path, sha256: hash(text), imports, emittedPath: target, emittedSHA256: hash(transformed.outputText) });
     }
     const inputs = [...seen];
-    for (const leaf of ['paired-roof-body-split.ts', 'paired-roof-body-split-proof-internal.ts', 'paired-roof-difference-body.ts',
-      'paired-roof-difference-body-construction-internal.ts', 'paired-roof-difference-body-proof-internal.ts',
-      'paired-surface-material-body.ts', 'paired-surface-material-body-proof-internal.ts', 'paired-surface-uv-split-faces.ts',
-      'paired-surface-b-uv-split-faces.ts', 'compatible-ruled-surface.ts', 'face.ts', 'source-surface-control-net-wide.ts'])
+    for (const leaf of ['paired/paired-roof-body-split.ts', 'paired/paired-roof-body-split-proof-internal.ts', 'paired/paired-roof-difference-body.ts',
+      'paired/paired-roof-difference-body-construction-internal.ts', 'paired/paired-roof-difference-body-proof-internal.ts',
+      'paired/paired-surface-material-body.ts', 'paired/paired-surface-material-body-proof-internal.ts', 'paired/paired-surface-uv-split-faces.ts',
+      'paired/paired-surface-b-uv-split-faces.ts', 'nurbs/surfaces/compatible-ruled-surface.ts', 'core/face.ts', 'nurbs/source-wide/source-surface-control-net-wide.ts'])
       assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
     assert.ok(!inputs.some(path => path.includes('/packages/barocss-cad/dist/')));
     saveJSON('source-api.metafile', { transpiler: 'typescript.transpileModule', typescriptVersion: ts.version, inProcess: true, inputs: graph });

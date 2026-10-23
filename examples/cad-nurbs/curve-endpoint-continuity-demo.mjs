@@ -12,7 +12,7 @@ const entry = resolve(repo, 'packages/barocss-cad/src/index.ts');
 const bundle = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true});
 assert.equal(bundle.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path)), cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['index.ts', 'curve-endpoint-continuity.ts', 'local-curvature.ts', 'second-derivatives.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['index.ts', 'nurbs/curves/curve-endpoint-continuity.ts', 'nurbs/surfaces/local-curvature.ts', 'core/second-derivatives.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -196,7 +196,7 @@ const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse
 const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'], runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types);
 assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function'); assert.deepEqual(publicAPI.CurveEndpointContinuityDiagnosticCode, CurveEndpointContinuityDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-endpoint-continuity.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/curves/curve-endpoint-continuity.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/curve-endpoint-continuity.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 for (const row of cases) {

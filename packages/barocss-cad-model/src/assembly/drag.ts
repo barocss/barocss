@@ -2,7 +2,8 @@
 // the centre of its box, as a new placement (position, rotation X then Y then Z in degrees). The
 // matrices are what the renderer shows while dragging, before the instance is evaluated there.
 import type { PartInstance } from '../engine/doc';
-import { eulerOf, rotationMatrix, type Freedom } from './mates';
+import { type Freedom } from './mates';
+import { eulerOf, rotationMatrix } from '../engine/placement';
 import type { Axis3 } from '../engine/vec3';
 
 type Vec3 = [number, number, number];

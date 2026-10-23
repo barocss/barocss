@@ -8,6 +8,7 @@
 import type { PartInstance } from '../engine/doc';
 import type { Sig } from '../engine/references';
 import { dot, cross, add, sub, len } from '../engine/vec3';
+import { axisAngle, clean, DEG, eulerOf, matMul, rotationMatrix, type Mat3 } from '../engine/placement';
 
 export type Vec3 = [number, number, number];
 export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock';
@@ -46,24 +47,13 @@ export const kindsFor = (a: MateFace, b: MateFace): MateKind[] =>
   a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance', 'angle'] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric', 'tangent'] : ['tangent'];
 
 // ── Small exact vector and rotation helpers (row-major 3 × 3) ──
-type Mat3 = [number, number, number, number, number, number, number, number, number];
 const mul = (a: Vec3, s: number): Vec3 => [a[0] * s, a[1] * s, a[2] * s];
 const unit = (a: Vec3): Vec3 => mul(a, 1 / len(a));
 const apply = (m: Mat3, v: Vec3): Vec3 => [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[3] * v[0] + m[4] * v[1] + m[5] * v[2], m[6] * v[0] + m[7] * v[1] + m[8] * v[2]];
-const matMul = (a: Mat3, b: Mat3): Mat3 => {
-  const r = new Array(9).fill(0) as Mat3;
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) for (let k = 0; k < 3; k++) r[i * 3 + j] += a[i * 3 + k] * b[k * 3 + j];
-  return r;
-};
 const IDENTITY: Mat3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 /** Columns c0, c1, c2 as a matrix, and a frame's transpose. */
 const fromColumns = (c0: Vec3, c1: Vec3, c2: Vec3): Mat3 => [c0[0], c1[0], c2[0], c0[1], c1[1], c2[1], c0[2], c1[2], c2[2]];
 const transpose = (m: Mat3): Mat3 => [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
-/** Rotation by `angle` radians about the unit `axis` (Rodrigues). */
-function axisAngle(axis: Vec3, angle: number): Mat3 {
-  const [x, y, z] = axis, c = Math.cos(angle), s = Math.sin(angle), t = 1 - c;
-  return [t * x * x + c, t * x * y - s * z, t * x * z + s * y, t * x * y + s * z, t * y * y + c, t * y * z - s * x, t * x * z - s * y, t * y * z + s * x, t * z * z + c];
-}
 /** The smallest rotation taking unit `from` onto unit `to`; a half turn about the perpendicular nearest +Z (else +X) when they are opposed. */
 function turnOnto(from: Vec3, to: Vec3): Mat3 {
   const c = dot(from, to);
@@ -76,47 +66,7 @@ function turnOnto(from: Vec3, to: Vec3): Mat3 {
   return axisAngle(mul(k, 1 / s), Math.atan2(s, c));
 }
 
-const DEG = Math.PI / 180;
-/** An instance's rotation (degrees about X, then Y, then Z, as placedDoc applies it): R = Rz · Ry · Rx. */
-export function rotationMatrix(rotation: readonly number[]): Mat3 {
-  return matMul(axisAngle([0, 0, 1], rotation[2] * DEG), matMul(axisAngle([0, 1, 0], rotation[1] * DEG), axisAngle([1, 0, 0], rotation[0] * DEG)));
-}
-/**
- * An instance's rotation as kernel turns, applied in order: X → Y → Z when the X and Y angles are quarter
- * turns (the kernel turns about X and Y by those only), else the same rotation exactly as Z turns between
- * quarter turns about X — R = Rz(a) · Rx(−90) · Rz(b) · Rx(90) · Rz(c), since Rx(−90) Rz(b) Rx(90) = Ry(b).
- */
-export function rotationSteps(rotation: readonly number[]): { axis: 'x' | 'y' | 'z'; angleDegrees: number }[] {
-  const quarter = (v: number) => Math.abs(v / 90 - Math.round(v / 90)) < 1e-12;
-  if (quarter(rotation[0]) && quarter(rotation[1])) return (['x', 'y', 'z'] as const).flatMap((axis, k) => rotation[k] ? [{ axis, angleDegrees: rotation[k] }] : []);
-  const m = rotationMatrix(rotation);
-  // Z–Y–Z angles of R: b from R22, then a and c (b at 0 or 180: one Z turn).
-  const b = Math.acos(Math.max(-1, Math.min(1, m[8]))), sb = Math.sin(b);
-  let a: number, c: number;
-  if (sb > 1e-12) { a = Math.atan2(m[5], m[2]); c = Math.atan2(m[7], -m[6]); }
-  else if (m[8] > 0) { a = Math.atan2(m[3], m[0]); c = 0; }
-  else { a = Math.atan2(-m[3], -m[0]); c = 0; }
-  const deg = (r: number) => clean(r / DEG, 1e-9);
-  return [{ axis: 'z' as const, angleDegrees: deg(c) }, { axis: 'x' as const, angleDegrees: 90 }, { axis: 'z' as const, angleDegrees: deg(b) },
-    { axis: 'x' as const, angleDegrees: 270 }, { axis: 'z' as const, angleDegrees: deg(a) }].filter(s => s.angleDegrees !== 0);
-}
 
-/** Values a hair from a round number are that number (and −0 is 0), so solved placements read cleanly. */
-export const clean = (v: number, step = 1e-9) => { const r = Math.round(v); const x = Math.abs(v - r) < step ? r : v; return x === 0 ? 0 : x; };
-/**
- * Angles within a micro-degree of a whole degree are that degree: a slanted face's normal is read back from
- * its surface to about 1e-10, which would otherwise leave 44.99999999745° where the face is at 45°.
- */
-const ANGLE_SNAP = 1e-6;
-/** The X→Y→Z angles (degrees) of a rotation; at ±90° about Y the X angle is 0. */
-export function eulerOf(m: Mat3): Vec3 {
-  const sy = -m[6];
-  if (Math.abs(sy) > 1 - 1e-12) {
-    const y = sy > 0 ? 90 : -90;
-    return [0, y, clean(Math.atan2(-m[1], m[4]) / DEG, ANGLE_SNAP)];
-  }
-  return [clean(Math.atan2(m[7], m[8]) / DEG, ANGLE_SNAP), clean(Math.atan2(sy, Math.hypot(m[7], m[8])) / DEG, ANGLE_SNAP), clean(Math.atan2(m[3], m[0]) / DEG, ANGLE_SNAP)];
-}
 
 /** A face moved by a placement (R, t). */
 function placeFace(f: MateFace, R: Mat3, t: Vec3): MateFace {

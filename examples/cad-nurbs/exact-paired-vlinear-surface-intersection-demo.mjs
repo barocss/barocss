@@ -16,7 +16,7 @@ const esbuild = require('esbuild');
 const bundle = await esbuild.build({ entryPoints: [resolve(repo, 'packages/barocss-cad/src/index.ts')], absWorkingDir: repo, bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
 assert.equal(bundle.outputFiles.length, 1);
 const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
-for (const leaf of ['exact-paired-vlinear-surface-intersection.ts', 'exact-paired-vlinear-polynomial-internal.ts', 'model-compiler.ts', 'math.ts', 'derivatives.ts', 'source-surface-control-net-wide.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['exact-proof/exact-paired-vlinear-surface-intersection.ts', 'exact-proof/exact-paired-vlinear-polynomial-internal.ts', 'model-compiler.ts', 'core/math.ts', 'core/derivatives.ts', 'nurbs/source-wide/source-surface-control-net-wide.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(!inputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const { buildExactPairedVLinearSurfaceIntersection: build, validateExactPairedVLinearSurfaceIntersection: validate, ExactPairedVLinearSurfaceIntersectionError: FamilyError, ExactPairedVLinearSurfaceIntersectionDiagnosticCode: codes, compileCadModel, evaluateCurve, evaluateCurveD1, evaluateSurface, evaluateSurfaceD1, editSourceSurfaceControlNetWide, validateSourceSurfaceControlNetWideEdit } = api;

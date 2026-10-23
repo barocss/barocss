@@ -4,7 +4,8 @@ import { evaluateCadPart, faceGeometry, type Brep } from '@barocss/cad';
 import { withBeadRetry } from '../engine/part';
 import { contentKey } from '../engine/evalMemo';
 import type { StudioDoc } from '../engine/doc';
-import { BASE, clean, type FaceTable, type Vec3 } from './mates';
+import { BASE, type FaceTable, type Vec3 } from './mates';
+import { clean } from '../engine/placement';
 import { datumWorld, readReferences } from '../chat/references';
 
 /** Values within a nanometre of a round number are that number (a circle read back from its NURBS). */

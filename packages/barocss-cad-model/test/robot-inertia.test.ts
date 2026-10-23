@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { tablesFor } from '../src/assembly/faces';
-import { rotationMatrix } from '../src/assembly/mates';
+import { rotationMatrix } from '../src/engine/placement';
 import { solveDoc } from '../src/chat/assembly';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { MATERIALS } from '../src/library/materials';

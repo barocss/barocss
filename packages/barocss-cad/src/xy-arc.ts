@@ -1,7 +1,7 @@
 import { requireCurveValue, snapshotCurveRequest, compileCurveSource } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
-import type { XYPoint } from './xy-profile.js';
+import type { XYPoint } from './sketch/xy-profile.js';
 
 export type XYArcRequest = { kind: 'quarter-arc'; id: string; center: XYPoint; radius: number; quadrant: 0 | 1 | 2 | 3 }
   | { kind: 'circle'; id: string; center: XYPoint; radius: number };

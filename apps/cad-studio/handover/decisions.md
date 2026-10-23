@@ -12446,3 +12446,51 @@ its output.
 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to the scratch script's at D206.
 
 **Refusal texts.** R5 changed none: the fingerprint holds every refusal message in full, identical at every step.
+
+## D233 — R5.4 batch 4: the sketch and planar-solid modules move into folders; the modeling closure stays at the root (2026-10-24)
+
+**What.** The last 72 movable kernel src files move, unchanged but for their import specifiers:
+
+| Folder | Files | Modules |
+|---|---|---|
+| `src/sketch/` | 23 | circle-graph-internal, driven-mixed-sketch-lines, driven-sketch-circle-feature-graph, mixed-workplane-sketch-document, sketch-circle-feature-graph, sketch-rectangle-feature-graph, workplane-sketch-document, … |
+| `src/planar-solids/` | 45 | axis-box-mass-frame, axis-box-point-classification, axis-box-principal-inertia, axis-box-solid-feature-document, axis-rectangle-extrusion, axis-rectangle-feature-document, convex-planar-face-extrusion, … |
+| `src/features/` | 2 | z-axis-revolve-document, z-axis-revolve-preview |
+| `src/core/` | 2 | preview, public-api |
+
+**At the src root now: 40 files.** They are `index.ts` and everything a trap pins beside `modeling.ts` (your ruling):
+- the modeling facade's pure modules and providers (modeling, its `modeling-*-internal` modules, cad-document,
+  data-copy, xy-affine-prism-feature-document-internal, xy-arc, xy-affine-sketch(-prism), xy-circle-prism-shell, the
+  convex-planar-solid providers, axis-box-boolean, axis-box-solid-mass, orthogonal-solid-boolean, own-plate-circular-hole,
+  stored-circle-prism-solid, stored-plate-hole-solid);
+- the internal-leaf allowlists' siblings (convex-planar-solid-proof-internal, section-rational-internal,
+  numeric-policy);
+- the two sha256-pinned legacy harnesses' `./` imports (convex-planar-solid, own-convex-planar-face, types, …);
+- model-compiler (the opt-in offset trap);
+- qualified-strip-binary-stl-encoding-internal (modeling-stl.test).
+
+**How references keep resolving.** The D229 script rewrote 88 src files and 26 outside files. No test addresses a moved
+module as a `./` sibling.
+
+**cad-nurbs demos.** 111 demos named moved modules in two shapes the path rewrite did not cover:
+- a basename list resolved under `src/`: `['index.ts', 'coplanar-face-boolean.ts', …]`;
+- an `index.d.ts` re-export check: `'./coplanar-face-boolean.js'`.
+
+These were missed for batches 1–3 too, so this commit makes all of them folder-qualified.
+
+**Most demos cannot run here, as before R5.** They import `manifest.exports['.'].import`, which is the development entry
+`./src/index.ts` (dist is under `publishConfig`), so Node loads TypeScript directly and does not resolve its `./types.js`
+specifiers. This is not an R5 change. Each batch's changed demos failed the same way before and after their move.
+
+**Checks:** a full build, tsc, lint; the moved modules' tests, the modeling tests and the traps; the kernel suite, RB,
+the R5 fingerprint; cad-model and studio; the changed demos, against their run before the move.
+
+**Refusal table.** `apps/library-docs/docs/reference/_refusals.md` is regenerated in this commit (`node
+scripts/refusals.mjs`): its "Raised in" folders follow the moves. No message text changed.
+
+**Checks run:** build, tsc, lint; 146 tests of the moved modules and the modeling tests with the 20 traps (1020 tests);
+the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256
+`ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 990/990, studio 274/274.
+Before the demo-path fix, two of batch 4's 21 changed demos newly failed (coplanar-face-boolean, stored-plate-hole-point),
+and that is what found the two shapes. The comparison of all 119 R5.4 demos, after against before R5.4 (D228), follows
+in the next record.

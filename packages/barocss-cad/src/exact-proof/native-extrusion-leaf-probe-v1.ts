@@ -1,6 +1,6 @@
 import { validateBooleanExtrusionFeatureGraph } from '../features/boolean-extrusion-feature-graph.js';
 import type { BooleanExtrusionFeatureGraphResult } from '../features/boolean-extrusion-feature-graph.js';
-import { extrudeCoplanarFaceBoolean } from '../coplanar-face-boolean-extrusion.js';
+import { extrudeCoplanarFaceBoolean } from '../planar-solids/coplanar-face-boolean-extrusion.js';
 import { same } from '../core/structural-equality.js';
 
 /**

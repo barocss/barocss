@@ -11,7 +11,8 @@ import { table } from './helpers/shared-bead-scene';
 import { WireSender } from '../src/engine/wireDoc';
 import { MeshReceiver, type WireBody, type WireResult } from '../src/engine/meshWire';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
-import { placedDoc, placementOf, type PartInstance } from '../src/engine/doc';
+import { placedDoc, type PartInstance } from '../src/engine/doc';
+import { placementOf } from '../src/engine/placement';
 
 // The unmodified production handler runs in a real Node worker with structured clone and buffer transfer.
 // This adapter provides Web Worker's message surface only; it is not browser or UI evidence.

@@ -4,7 +4,8 @@ import type { CadLibraryInterface } from '@barocss/cad';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { insertLibraryPart, libraryInstance, memberInterfaces, snapByInterfaces } from '../src/library/libraries';
-import { BASE, rotationMatrix } from '../src/assembly/mates';
+import { BASE } from '../src/assembly/mates';
+import { rotationMatrix } from '../src/engine/placement';
 
 // FRe (O120): a T-slot frame member's interfaces, read off its faces, are tslot-20's own profile's — every slot, end and
 // face frame the same in each one's section coordinates (20×20 with four slots open, and 20×40 with six) — and a slot

@@ -17,7 +17,7 @@ import { bearingHousingRef } from '../engine/bearingContext';
 import { booleanAnalytic, brepMassProperties, meshClearance, nearestDistance2, transformBrep, triangleBvh, type Brep, type TriangleBvh } from '@barocss/cad';
 import { placedBase, type PartInstance, type StudioDoc } from '../engine/doc';
 import { featureId } from '../engine/ids';
-import { rotationMatrix } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import { partBreps, type BodyResult } from '../engine/evaluate';
 import { bodyMesh, type DisplayMesh } from '../engine/mesh';
 import type { Evaluate } from '../chat/tools';

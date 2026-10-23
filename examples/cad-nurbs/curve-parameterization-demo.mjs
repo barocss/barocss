@@ -235,7 +235,7 @@ const runtimeNames = ['buildParameterizedInterpolatingCurve', 'validateParameter
 const typeNames = ['CurveParameterizationMethod', 'CurveParameterizationOptions', 'CurveParameterizationReport', 'CurveParameterizationResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CurveParameterizationDiagnosticCode, CurveParameterizationDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-parameterization.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/curves/curve-parameterization.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/curve-parameterization.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'same_points_chord').authoredFile, 'utf8'));

@@ -1,7 +1,7 @@
-import { tessellateConvexPlanarSolid } from './convex-planar-solid-mesh.js';
-import type { ConvexPlanarSolidMeshResult } from './convex-planar-solid-mesh.js';
+import { tessellateConvexPlanarSolid } from './planar-solids/convex-planar-solid-mesh.js';
+import type { ConvexPlanarSolidMeshResult } from './planar-solids/convex-planar-solid-mesh.js';
 import type { ConvexPlanarSolidResult } from './convex-planar-solid.js';
-import { MassLedger, MASS_LIMITS, ConvexPlanarSolidMassError } from './convex-planar-solid-mass-internal.js';
+import { MassLedger, MASS_LIMITS, ConvexPlanarSolidMassError } from './planar-solids/convex-planar-solid-mass-internal.js';
 import { encodeQualifiedStripBinaryStlTrusted } from './qualified-strip-binary-stl-encoding-internal.js';
 import type { QualifiedStlCounts, QualifiedStlEncodingResult, QualifiedStlGeometry } from './qualified-strip-binary-stl-encoding-internal.js';
 import { SectionRationalContext } from './section-rational-internal.js';

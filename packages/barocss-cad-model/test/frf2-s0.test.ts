@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, placedDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import { rotationMatrix } from '../src/assembly/mates';
+import { rotationMatrix } from '../src/engine/placement';
 import { revisionOf } from '../src/team/team';
 import { partDigest } from '../src/team/digest';
 import { modelInput } from '../src/team/freshness';

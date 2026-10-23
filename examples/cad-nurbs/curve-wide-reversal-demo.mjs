@@ -337,7 +337,7 @@ const publicAPI = await import(pathToFileURL(runtimePath).href);
 const runtimeExports = ['reverseCurveWide', 'validateWideReversedCurveResult', 'WideCurveReversalError', 'WideCurveReversalDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.WideCurveReversalDiagnosticCode, WideCurveReversalDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-wide-reversal.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/curve-wide-reversal.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/curve-wide-reversal.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'WideReversedCurveReport', 'WideReversedCurveResult'];

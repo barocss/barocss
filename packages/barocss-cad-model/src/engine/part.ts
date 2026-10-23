@@ -14,7 +14,7 @@ import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, type BodyRef, type 
 import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
-import { rotationSteps } from '../assembly/mates';
+import { rotationSteps } from './placement';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../team/revision';
 import { resolveSkeletons } from '../frames/skeleton';
@@ -397,6 +397,8 @@ export function partSnapshot(doc: StudioDoc, build: (part: CadPartDocument) => C
   const taken = new Map<string, CadPartSnapshot>();
   const read = (source: StudioDoc, make: (part: CadPartDocument) => CadPartSnapshot): CadPartSnapshot => {
     source = resolveShopTree(source);
+    // (Geometry is always built from the solved skeletons, here, whoever calls; provenance — stepFor's source revision —
+    // is always the authored document's, the one a saved file hashes to. Both on purpose: see test/r4-skeletons.test.ts.)
     const solved = resolveSkeletons(source); if ('error' in solved) throw new Error(solved.error); source = solved.doc;
     bearingDependencyKey(source);
     const context = bearingContextOf(source), snapshot = withBeadRetry(source, make), reports = new Map<number, BearingReport>();

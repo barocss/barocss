@@ -385,7 +385,7 @@ const runtimeExports = ['createCadGeometryReference', 'resolveCadGeometryReferen
   'CadReferenceError', 'CadReferenceDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CadReferenceDiagnosticCode, CadReferenceDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-document-reference.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./document/cad-document-reference.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/document/cad-document-reference.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CadGeometryReferenceInput', 'CadGeometryReferenceV0',

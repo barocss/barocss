@@ -365,7 +365,7 @@ const publicAPI = await import(pathToFileURL(runtimePath).href);
 const runtimeExports = ['queryCadDocumentCurveArcLength', 'validateCadDocumentCurveArcLength', 'CadCurveArcLengthError', 'CadCurveArcLengthDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CadCurveArcLengthDiagnosticCode, CadCurveArcLengthDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-curve-arc-length.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/curves/cad-curve-arc-length.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/cad-curve-arc-length.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CadCurveArcLengthOptions', 'CadCurveArcLengthPanel', 'CadCurveArcLengthReport', 'CadCurveArcLengthResult'];
