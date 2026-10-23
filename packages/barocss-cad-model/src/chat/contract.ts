@@ -28,7 +28,7 @@ const READ: Record<string, JsonSchema | null> = {
   output_cam_package: o({ revision: str, files: arr }, ['revision', 'files']),
   output_print_layers: o({ revision: str, files: arr }, ['revision', 'files']),
   output_bundle: o({ revision: str, files: arr }, ['revision', 'files']),
-  get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr, note: str, followed_changed: arr }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
+  get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr, note: str, followed_changed: arr, variability: obj }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
   get_image_layers: null,
   measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle_deg: num, normal_distance: num, resolved: arr }),
   mass_properties: o({ bodies: arr, note: str }, ['bodies']),
@@ -79,7 +79,7 @@ const ALTERS: Record<string, boolean> = {
   load_rows: true, edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, set_frame_stock: true, set_frame_sections: true, set_welds: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
   place_part: true, delete_part: true, edit_mate: true, delete_mate: true, snap_part: true, orient_for_print: true,
-  auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true,
+  auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true, set_inputs: true, set_variants: true,
 };
 
 const titleOf = (name: string) => name.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());

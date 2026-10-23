@@ -22,6 +22,8 @@
        "add_mate",
        "edit_mate",
        "delete_mate",
+       "inputs",
+       "variants",
        "insert",
        "snap",
        "joints",

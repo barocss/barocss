@@ -8224,3 +8224,33 @@ required peer, pinned because `auto-install-peers=true` would otherwise pull a y
   lane orders requests, not renders: it would take that reply, a behaviour change. Kept as it is.
 - The App and src/ui callers (section, bearing, placed, preview, proposalDiff, mould; useDrawingSheet,
   DrawingWorkspace) wait for G12b.
+
+## O11 — assembly inputs and variants, regenerated from the one master; the agent's two actions (2026-10-24)
+
+**Model side (19d5d86e4, refusal table 552338c2b).** `doc.variability {version 1, inputs, variants?, active?}`: an
+input has a name, a type (number, boolean, choice), a unit, min/max or choices, a default and explicit bindings — a
+part's parameter (scale·v + offset), a feature's suppression (by stable id, when a value), the part a placed instance
+uses ({like: instance} or a shipped library part), a mate's distance or angle. A variant is a named set of input
+values. Part-level configurations stay as they are (folding them into variants later is a UI question). No migration.
+- `variantOf(master, values)` applies each binding to a copy and solves the mates again; the master is never written,
+  and every value at its default gives the master itself. `checkVariability` requires the master to be the default
+  variant (INPUT_DEFAULT): a bound target holds what the default gives it.
+- **No cycle by construction:** inputs never refer to inputs and bindings only write, so no check is added. A mate loop
+  reached through a mate input is the solver's own problem, passed through (tested).
+- A library component must be a shipped part and must build where it is placed (rows rule b), else INPUT_CHOICE.
+- Oracle: each fixture's variants A → B → A through the kept snapshots equal fresh evaluations byte for byte (bodies,
+  STEP, B-reps, BOM, clearance map). The fingerprint gained the 12 fixture documents; the 133 earlier ones identical.
+
+**Agent side.** Two actions in the existing `assembly` group, no new tool; both write `doc.variability` only, so
+`approvalOf` (instances, mates, drawing, robot, locked parts) is untouched by them:
+- `assembly.inputs` (`set_inputs {inputs: {name: input | null}}`): adds, replaces by name, or removes. Structural:
+  refused at L1 (propose), refused with `needs_proposal` at L2 — even on an empty part, unlike the first-build
+  exception for features — applied at L3+. Every defined variant is regenerated against the new inputs, so removing an
+  input a variant uses is refused, named.
+- `assembly.variants` (`set_variants {variants?: {name: values | null}, active?: name | null}`): values only — refused
+  at L1, applied at L2+. A variant defined or made active is regenerated before it is kept; its unmet mates come back
+  in the reply. Deleting the active variant leaves the master active, said in the reply.
+- Both are batchable, so a proposal can carry them; contract: altering, idempotent.
+- `query.summary` gains `variability`: the inputs (with what each drives), the variants and the active one.
+- Per turn 23,276 → 23,446 of 25,000 (toolset guard).
+- The tools act on the master and its bodies; the studio showing the active variant comes with the UI after G12b.

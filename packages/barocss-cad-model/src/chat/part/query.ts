@@ -16,6 +16,7 @@ import { beadAccounting } from '../../frames/beadAccounting';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, responseFormat, v3, json, describeBodies, features, fail, strings } from '../toolKit';
 import { r3Signed as r3 } from '../../util/round';
 import { isObj } from '../../util/guards';
+import { variabilityView } from '../variability';
 
 /** D155: a fit's limits as a result shows them (each row's deviations, sizes, table and row, estimate and source). */
 export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMinUM: l.clearanceMinUM, clearanceMaxUM: l.clearanceMaxUM, estimate: l.estimate,
@@ -33,7 +34,9 @@ async function getPartSummaryTool(state: ChatState, args: Record<string, unknown
     features: features(state.doc).map(f => responseFormat === 'concise' ? { index: f.index, label: f.label } : { ...f, node: f.node.kind === 'sketch' ? { kind: 'sketch', profile: f.node.profile } : f.node }),
     bodies: list, ...(many && !only ? { note: 'Faces and edges are listed per body: call again with {"body": key}.' } : {}),
     // (FRf2, O125: frames following a placed part's sketch that changed since linked — current geometry, to relink.)
-    ...(stale.length ? { followed_changed: stale.map(x => ({ frame: x.frame, part: x.part, sketch: x.sketch, was: x.was, now: x.now, message: staleText(x) })) } : {}) };
+    ...(stale.length ? { followed_changed: stale.map(x => ({ frame: x.frame, part: x.part, sketch: x.sketch, was: x.was, now: x.now, message: staleText(x) })) } : {}),
+    // (O11: the assembly's inputs, its variants and the active one — the master is what the tools edit.)
+    ...(state.doc.variability ? { variability: variabilityView(state.doc.variability) } : {}) };
   return { state, content: json(body), isError: false, changed: false, summary: `${state.doc.nodes.length} features, ${state.bodies.length} bod${state.bodies.length === 1 ? 'y' : 'ies'}` };
 }
 async function measureTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
