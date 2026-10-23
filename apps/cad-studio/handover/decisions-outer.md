@@ -8270,8 +8270,11 @@ values. Part-level configurations stay as they are (folding them into variants l
   SDF a link with the dummy links' 1e-9 kg inertial (an SDF link without one weighs 1 kg) on a fixed joint; MJCF a
   welded body without mass holding a `<site>` of the frame's name. **USD differs from the plan:** a child Xform
   beneath its link's prim, no joint — a PhysicsFixedJoint to a prim that is not a rigid body ties the link to the world.
-- **Refusals:** FRAME_LINK_MISSING, FRAME_LINK_STALE (a part not joined to the base link), FRAME_NAME (pattern, or a
-  link's or joint's export name), FRAME_POSE; in the tree's problems, refused by set_frames for the frames it names, and
+- **Refusals:** FRAME_LINK_MISSING, FRAME_LINK_STALE (a part not joined to the base link), FRAME_NAME, FRAME_POSE.
+  FRAME_NAME checks the pattern, then the name after the exporters' own naming — the links' namer (sanitised, then made
+  unique in order) for the frame's link, the joints' for its `<name>_fixed` joint; each exporter also refuses a frame
+  it would rename (USD's root prim is named after the export, so a frame "robot" is refused there only). The namer moved
+  to robot/frames.ts (urdf.ts re-exports it). They sit in the tree's problems, refused by set_frames for the frames it names, and
   by every export (never dropped).
 - **Agent:** `assembly.frames` (`set_frames`); it writes `robot`, so approvalOf proposes it at every level, as
   set_joints. set_joints keeps the frames. forward_kinematics returns `frames`; get_joints shows them. No IK action
@@ -8281,4 +8284,6 @@ values. Part-level configurations stay as they are (folding them into variants l
   frame prims, worst 6.1e-17, 7 rigid bodies and 6 joints as without frames; check_urdf parses it, each frame a child of
   its link. Committed under conformance/rm/arm-6r/frames/ (scripts/frames-oracle.py). **SDF: no external reader here**
   (no gz/libsdformat installed), our own reader only.
+- **Diffs:** no frames → every export byte for byte as before (the committed arm-6r files) and the R4 fingerprint
+  unchanged; with frames, each export is the old one plus its frames' lines only (URDF 6, SDF 12, MJCF 3, USD 5 per frame).
 - Not done here: the sliders' readout and the frames in the viewport wait for G12b.
