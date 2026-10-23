@@ -1,5 +1,5 @@
 import type { ClearanceDisplay } from './clearanceDisplay';
-import { useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState, useSyncExternalStore, forwardRef } from 'react';
 import { countRender } from '../devRenders';
 import type { PrintDisplay } from './printDisplay';
 import type { CamDisplay } from './camDisplay';
@@ -242,6 +242,20 @@ const BOX_EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7
 /** A box's 12 edges as segments, from min and max (six numbers). */
 /** The workspace map's band colours (sRGB 0–1), as the SVG's hsl(240 − 34k, 80 %, 55 %). */
 const CLOUD_BANDS = Array.from({ length: 8 }, (_, k) => hslRgb(240 - k * 34, 0.8, 0.55));
+/** The viewport's frame counter (R1): the overlay subscribes to it, so a frame draws the overlay again, not the whole viewport. */
+interface FrameTicker { n: number; listeners: Set<() => void>; subscribe(listener: () => void): () => void; get(): number }
+function frameTicker(): FrameTicker {
+  const t: FrameTicker = { n: 0, listeners: new Set(), subscribe: l => { t.listeners.add(l); return () => { t.listeners.delete(l); }; }, get: () => t.n };
+  return t;
+}
+function bumpTicker(t: FrameTicker): void { t.n++; for (const l of t.listeners) l(); }
+/** What the viewport draws over its canvas, again in each frame (R1: the frame's render is this component's alone). */
+function FrameOverlay({ ticker, draw }: { ticker: FrameTicker; draw: () => React.ReactNode }) {
+  useSyncExternalStore(ticker.subscribe, ticker.get);
+  countRender('ViewportOverlay');
+  return <>{draw()}</>;
+}
+
 function hslRgb(h: number, s: number, l: number): [number, number, number] {
   const a = s * Math.min(l, 1 - l), f = (n: number) => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
   return [f(0), f(8), f(4)];
@@ -404,7 +418,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
   const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
   const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
-  const [, setTick] = useState(0);
+  const ticker = useMemo(frameTicker, []);
   const [error, setError] = useState<string | null>(null);
   const [printError, setPrintError] = useState<string | null>(null);
   const [camError, setCamError] = useState<string | null>(null);
@@ -449,8 +463,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     frame.current = requestAnimationFrame(() => {
       frame.current = 0;
       const r = renderer.current; if (!r) return;
+      // (The annotations' texts as facing the eye: set again in the frame which ones face it changes.)
+      const p = propsRef.current;
+      if (p.annotations?.length && r.setOverlayLabels && pmiFacingKey(p.annotations, camera.current.basis().forward) !== pmiFacing.current) applyPmiLabels();
       r.render(camera.current, viewState());
-      setTick(t => t + 1);
+      bumpTicker(ticker);
     });
   };
   requestRef.current = request;
@@ -550,12 +567,16 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   // (G24: the annotations' lines and heads on either renderer; their texts as WebGPU's planar labels, facing the eye when a
   // plane is nearly edge-on — rebuilt only when which ones face it changes. WebGL2 draws the texts in the SVG overlay.)
   useEffect(() => { renderer.current?.setAnnotationDrawings?.(props.annotations?.length ? pmiDrawings(props.annotations, props.annotationSelected ?? null) : null); request(); }, [props.annotations, props.annotationSelected, backend]);
-  const pmiForward = camera.current.basis().forward, pmiFacing = props.annotations?.length ? pmiFacingKey(props.annotations, pmiForward) : '';
-  useEffect(() => {
-    const r = renderer.current; if (!r?.setOverlayLabels) return;
-    const l = props.annotations?.length ? pmiLabels(props.annotations, camera.current.basis().forward, props.annotationSelected ?? null) : null;
-    r.setOverlayLabels('pmi:text', l?.plain.labels.length ? l.plain : null); r.setOverlayLabels('pmi:text:selected', l?.selected ?? null); request();
-  }, [props.annotations, props.annotationSelected, pmiFacing, backend]);
+  // (R1: which texts face the eye is checked in each frame — it was in each render, the viewport rendering every frame.)
+  const pmiFacing = useRef('');
+  const applyPmiLabels = () => {
+    const r = renderer.current, p = propsRef.current; if (!r?.setOverlayLabels) return;
+    const forward = camera.current.basis().forward;
+    pmiFacing.current = p.annotations?.length ? pmiFacingKey(p.annotations, forward) : '';
+    const l = p.annotations?.length ? pmiLabels(p.annotations, forward, p.annotationSelected ?? null) : null;
+    r.setOverlayLabels('pmi:text', l?.plain.labels.length ? l.plain : null); r.setOverlayLabels('pmi:text:selected', l?.selected ?? null);
+  };
+  useEffect(() => { applyPmiLabels(); request(); }, [props.annotations, props.annotationSelected, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
@@ -1361,6 +1382,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       {!propsRef.current.sketch && <ViewCube right={basis.right} up={basis.up} forward={basis.forward} onLook={lookFrom} onOrbit={(dx, dy) => { camera.current.orbit(dx, dy); request(); }} />}</>;
   };
 
+  const drawOverlay = () => <>{overlay()}{!renderer.current?.setOverlayLabels && !!props.annotations?.length && pmiSvg(props.annotations, props.annotationSelected ?? null)}</>;
   return (
     <div className="viewport" data-renderer={backend ?? undefined}
       data-display-mode-requested={props.requestedDisplayMode ?? props.displayMode ?? 'shaded-with-edges'}
@@ -1373,8 +1395,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
           if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
-      {overlay()}
-      {!renderer.current?.setOverlayLabels && !!props.annotations?.length && pmiSvg(props.annotations, props.annotationSelected ?? null)}
+      <FrameOverlay ticker={ticker} draw={drawOverlay} />
       {error && <div className="vp-error" role="alert">{error}</div>}
       {printError && <div className="vp-error" role="alert">{printError}</div>}
       {camError && <div className="vp-error" role="alert">{camError}</div>}
