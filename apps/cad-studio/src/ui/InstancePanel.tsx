@@ -32,8 +32,8 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, o
             <Button variant="ghost" onClick={onDismiss}>Keep Rev {inst.part.rev}</Button>
           </div></div>}
         <div className="row-actions" style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
-          {onRevision && <label className="ghost small file-button" title="Load a newer file of this part: nothing changes until you accept it">New revision…
-            <input type="file" accept=".bcad,.json" aria-label="New revision file" hidden onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onRevision(f); }} /></label>}
+          {onRevision && <Button variant="ghost" asChild><label className="file-button" title="Load a newer file of this part: nothing changes until you accept it">New revision…
+            <input type="file" accept=".bcad,.json" aria-label="New revision file" hidden onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onRevision(f); }} /></label></Button>}
           {shared > 1 && onIndependent && <Button variant="ghost" title="This instance gets a definition of its own: later revisions of the shared one leave it as it is" onClick={onIndependent}>Make independent</Button>}
         </div>
       </>}
@@ -44,7 +44,7 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, o
       <div className="row-actions" style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
         <Button variant="ghost" onClick={onDuplicate}>Duplicate</Button>
         <Button variant="ghost" onClick={() => onChange({ ...inst, hidden: !inst.hidden })}>{inst.hidden ? 'Show' : 'Hide'}</Button>
-        {onGround && <Button variant="ghost" className={'ghost' + (inst.grounded ? ' on' : '')} title="A fixed part stays where it is: mates move the other part" onClick={() => onGround(!inst.grounded)}>{inst.grounded ? 'Unfix' : 'Fix in place'}</Button>}
+        {onGround && <Button variant={inst.grounded ? 'secondary' : 'ghost'} aria-pressed={!!inst.grounded} title="A fixed part stays where it is: mates move the other part" onClick={() => onGround(!inst.grounded)}>{inst.grounded ? 'Unfix' : 'Fix in place'}</Button>}
         <Button variant="ghost" onClick={onRemove}>Remove</Button>
       </div>
     </aside>

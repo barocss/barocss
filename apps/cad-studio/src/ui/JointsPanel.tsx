@@ -79,7 +79,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       })}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
       {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
-      {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="kv" aria-label="Workspace">
+      {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px] [&>label]:inline-flex [&>label]:items-center [&>label]:gap-1 [&>label]:whitespace-nowrap" aria-label="Workspace">
         <label>N <Input type="number" aria-label="Workspace samples" min={100} max={200000} step={1000} value={wsN} onChange={e => setWsN(Number(e.target.value))} style={{ width: 70 }} /></label>
         <label> h <Input type="number" aria-label="Workspace voxel" min={0.5} step={1} value={wsH} onChange={e => setWsH(Number(e.target.value))} style={{ width: 48 }} /> mm</label>
         <label title="Leave out poses where two links interpenetrate (RM6's exact test): slower"> <input type="checkbox" className={TICK} aria-label="Workspace contact-free" checked={wsFree} onChange={e => setWsFree(e.target.checked)} /> contact-free</label>

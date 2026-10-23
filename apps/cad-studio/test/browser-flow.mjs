@@ -3104,6 +3104,7 @@ try {
     const half = await cageNow();
     assert.ok(half.cage.positions.filter((_, k) => k % 3 === 0).every(x => x >= -1e-9), 'the half on + x');
     await page.waitForTimeout(1200); await snap('cage-mirror');
+    await page.locator('[aria-label="Cage editor"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-cage.png`) });
     // ⌘Z in the session: the mirror undone (the whole cage again, the loop and crease kept).
     await press('Meta+z');
     await page.waitForFunction(() => window.__studioCage().mirror === null && window.__studioCage().cageFaces === 116 && window.__studioCage().creases === 16, null, { timeout: 5000 });
@@ -5971,6 +5972,7 @@ try {
     const k1 = await page.locator('[aria-label="Keep-out K1"]').innerText();
     assert.match(k1, new RegExp(`clear, ${c.expect.keepout_clearance_mm} mm`), k1);
     await snap('a6-3-reference');
+    await page.locator('[aria-label="Reference bodies"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-references.png`) });
     // (The part grown into it — the same document with the box 35 tall, saved and opened — enters the envelope: violated.)
     const doc = await page.evaluate(() => window.__studioDoc), file = join(out, 'grown.bcad');
     doc.nodes[1].height = 35;
@@ -7210,6 +7212,7 @@ try {
     await press('Meta+z');
     await page.waitForFunction(() => document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.status === 'well', null, { timeout: 5000 });
     await snap('g17-well');
+    await page.locator('aside[aria-label="3D sketch"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-skeleton.png`) });
     await page.click('aside[aria-label="3D sketch"] button[aria-label="Apply 3D sketch"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'skeleton', null, { timeout: 10000 });
     const node = await page.evaluate(() => window.__studioDoc.nodes.at(-1));
@@ -7942,6 +7945,7 @@ try {
     assert.deepEqual(keys.filter(k => k.includes('/')), [1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}/b1`), keys.join(','));
     assert.match(await panel.locator('[aria-label="Frame cost totals"]').innerText(), new RegExp(`^${renderer}, shaded-with-edges`));
     await snap('o10-rebuild-panel');
+    await page.locator('[aria-label="Rebuild panel"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-rebuild.png`) });
     await panel.locator('[aria-label="Close Rebuild"]').click();
     await page.waitForFunction(() => !document.querySelector('[aria-label="Rebuild panel"]'), null, { timeout: 5000 });
   });
