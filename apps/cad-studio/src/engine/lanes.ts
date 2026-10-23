@@ -19,4 +19,6 @@ export class Lanes {
     const result = await request();
     return this.latest.get(lane) === ticket ? { stale: false, lane, revision: asked.revision, source: asked.source, result } : { stale: true, lane, revision: asked.revision };
   }
+  /** Every request waiting on the lane comes back stale (R4b: what the caller asked for is gone — an effect's cleanup). */
+  cancel(lane: string): void { this.latest.set(lane, ++this.seq); }
 }

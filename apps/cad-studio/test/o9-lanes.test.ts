@@ -35,3 +35,12 @@ test('O9 lanes: an older reply arriving first is still stale once a newer reques
   // (A request whose worker stopped still comes back, as the worker's refusal: the lane is its own until overtaken.)
   assert.equal(resultOf(await lanes.run('section:view', asked(4), () => later('Stopped', 5))), 'Stopped');
 });
+
+test('R4b lanes: cancel makes every request waiting on its lane come back stale, others untouched; a later request is current', async () => {
+  const lanes = new Lanes();
+  const a = lanes.run('cage', asked(1), () => later('a', 10)), b = lanes.run('section:front', asked(1), () => later('b', 10));
+  lanes.cancel('cage');
+  assert.deepEqual([resultOf(await a), resultOf(await b)], ['stale', 'b']);
+  assert.equal(resultOf(await lanes.run('cage', asked(2), () => later('c', 1))), 'c');
+  lanes.cancel('nothing waiting'); // (a lane with no request: nothing to make stale)
+});
