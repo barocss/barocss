@@ -68,7 +68,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
     {!data && blocked && <div className="row-actions"><Button variant="ghost" aria-label="Export purchase list" disabled>Export purchase list</Button></div>}
     {data && <>
       <Table className="bom-table" aria-label="BOM lines">
-        <colgroup><col className="w-6" /><col /><col className="w-8" /><col className="w-[16%]" /><col className="w-[19%]" /><col className="w-[5.5rem]" /></colgroup>
+        <colgroup><col className="w-6" /><col /><col className="w-10" /><col className="w-[12%]" /><col className="w-[18%]" /><col className="w-[5.25rem]" /></colgroup>
         <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead>Row</TableHead><TableHead>Source</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>{data.bom.lines.map((l, k) => {
           // (A plate — a gusset, an end cap — may be set bought too: a laser-cut plate ordered in, FRk1.)
@@ -89,7 +89,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
       {!!data.made.length && <>
         <div className="card-title" style={{ marginTop: 8 }}>MADE ELEMENTS</div>
         <Table className="bom-table" aria-label="Made elements">
-          <colgroup><col /><col className="w-8" /><col className="w-[22%]" /><col className="w-[5.5rem]" /></colgroup>
+          <colgroup><col /><col className="w-10" /><col className="w-[18%]" /><col className="w-[5.25rem]" /></colgroup>
           <TableBody>{data.made.map((m, k) => <TableRow key={k} aria-label={`Made element ${m.item}`}>
             <TableCell title={m.item}>{m.item}</TableCell><TableCell className="mono">{m.qty}</TableCell><TableCell title={m.row ?? ''}>{m.row ?? '—'}</TableCell>
             <TableCell>{toggle(m.parts, m.override ? 'made' : 'default', m.item)}</TableCell></TableRow>)}</TableBody>
