@@ -7,7 +7,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { stepFor, type BodyResult } from '../engine/evaluate';
 import { lookOf, materialIdOf } from '../app/bodies';
-import { massProperties } from '../chat/analysis';
+import { massBoundOf, massProperties } from '../chat/analysis';
 import { materialData, processProfile } from '../library/materials';
 import { printability, type PrintabilityReport } from '../print/rules';
 import { documentRevision } from '../team/bundle';
@@ -22,10 +22,18 @@ export interface QuoteRequest {
   process: 'injection'; revision: string;
   material: { id: string; label: string; basis: 'body' | 'brief' } | null;
   finish: { id: string; label: string; minDraftDeg: number } | null; pull: [number, number, number] | null; quantity: number | null;
-  part: { sizeMM: [number, number, number]; volumeMM3: number; massG: number | null; bodies: number };
+  /** `volumeBasis` (O179): the volume is partly from the mesh — how far it and the mass may be off; an estimate. */
+  part: { sizeMM: [number, number, number]; volumeMM3: number; massG: number | null; bodies: number; volumeBasis?: { method: 'tessellated'; boundMM3: number | null; massBoundG: number | null } };
   tolerance: { mm: number; perMM: number; source: string } | null; shrink: number | null;
   limits: { largestPartMM: [number, number, number] } | null;
   note: string;
+}
+/** O179: the part's volume basis when any body's volume is from the mesh — the bodies' bounds summed (null: unknown). */
+function volumeBasisOfBodies(doc: StudioDoc, bodies: readonly BodyResult[]): { volumeBasis?: NonNullable<QuoteRequest['part']['volumeBasis']> } {
+  const t = bodies.filter(b => b.volumeBasis);
+  if (!t.length) return {};
+  const v = t.some(b => b.volumeBasis!.boundMM3 === null) ? null : r6(t.reduce((s, b) => s + b.volumeBasis!.boundMM3!, 0)), g = massBoundOf(doc, bodies);
+  return { volumeBasis: { method: 'tessellated', boundMM3: v, massBoundG: g === null ? null : r6(g) } };
 }
 export interface QuoteManifest { format: 'barocss-quote'; version: 1; files: { path: string; sha256: string; bytes: number }[]; open: string[]; complete: boolean }
 const ENC = new TextEncoder(), json = (v: unknown) => JSON.stringify(v, null, 1) + '\n', r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
@@ -41,7 +49,7 @@ function page(name: string, req: QuoteRequest, rep: PrintabilityReport, open: re
     `| finish | ${req.finish ? `${req.finish.label}: at least ${req.finish.minDraftDeg}° draft` : '**not set**'} |`,
     `| pull | ${req.pull ? req.pull.join(', ') : '**not set**'} |`,
     `| quantity | ${req.quantity ?? '**not stated**'} |`,
-    `| part | ${req.part.sizeMM.join(' × ')} mm, ${req.part.volumeMM3} mm³${req.part.massG !== null ? `, ${req.part.massG} g` : ''} |`,
+    `| part | ${req.part.sizeMM.join(' × ')} mm, ${req.part.volumeMM3} mm³${req.part.massG !== null ? `, ${req.part.massG} g` : ''}${req.part.volumeBasis ? ` (an estimate from the mesh: ± ${req.part.volumeBasis.boundMM3 ?? '?'} mm³${req.part.volumeBasis.massBoundG !== null && req.part.massG !== null ? `, ± ${req.part.volumeBasis.massBoundG} g` : ''})` : ''} |`,
     `| tolerance | ${req.tolerance ? `±${req.tolerance.mm} mm + ${req.tolerance.perMM} mm/mm (${req.tolerance.source})` : '—'} |`,
     `| shrink | ${req.shrink ?? 'no sourced value for this material'} |`, '',
     '## Manufacturability (IM1–IM5)', '', '| rule | status | |', '|---|---|---|', ...rep.rules.map(row), '',
@@ -73,7 +81,7 @@ export async function quotePackage(doc: StudioDoc, bodies: readonly BodyResult[]
     material: id && m ? { id, label: m.label, basis: own ? 'body' : 'brief' } : null,
     finish: finish ? { id: finish.id, label: finish.label, minDraftDeg: finish.draftMinDeg } : null,
     pull: rep.direction ? rep.direction.map(r6) as [number, number, number] : null, quantity: o.quantity ?? briefQty,
-    part: { sizeMM: [0, 1, 2].map(k => r6(hi[k] - lo[k])) as [number, number, number], volumeMM3: r6(bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), massG: id && m ? r6(mass.reduce((s, x) => s + (x.mass_g ?? 0), 0)) : null, bodies: bodies.length },
+    part: { sizeMM: [0, 1, 2].map(k => r6(hi[k] - lo[k])) as [number, number, number], volumeMM3: r6(bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), massG: id && m ? r6(mass.reduce((s, x) => s + (x.mass_g ?? 0), 0)) : null, bodies: bodies.length, ...volumeBasisOfBodies(doc, bodies) },
     tolerance: t('tolMM') && t('tolResinMMPerMM') ? { mm: t('tolMM').value, perMM: t('tolResinMMPerMM').value, source: t('tolMM').page?.url ?? t('tolMM').source } : null,
     shrink: m?.mouldShrink ?? null,
     limits: t('maxPartLongMM') ? { largestPartMM: [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value] } : null,

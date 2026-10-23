@@ -2578,6 +2578,8 @@ export function App() {
             <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { commit(withLook(doc, b, { hidden: !e.target.checked })); if (!e.target.checked) setSelection(emptySel); }} /></label>
             <label className="kv"><span>Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
             {b.volumeMM3 !== null && <div className="kv">Volume <b>{fmt(Math.round(b.volumeMM3))} mm³</b></div>}
+            {/* (O179: a volume the kernel found from the mesh, said so with its bound — its mass is as good.) */}
+            {b.volumeMM3 !== null && b.volumeBasis && <div className="kv warn" aria-label="Volume basis" title="The kernel could not integrate this body: its volume, mass and centre of mass are from the display mesh">From the mesh <b>± {b.volumeBasis.boundMM3 === null ? '?' : fmt(Math.round(b.volumeBasis.boundMM3 * 10) / 10)} mm³</b></div>}
             {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density; return <>
               {b.volumeMM3 !== null && <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * own.gPerCm3 / 100) / 10)} g</b></div>}
               {/* The body's own material (the default for new bodies stays the studio's). */}
