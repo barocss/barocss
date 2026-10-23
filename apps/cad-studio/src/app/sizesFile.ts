@@ -1,4 +1,4 @@
-// The person's shop rows loaded in the studio (O7e, O7c): fastener sizes and casting rules, from their file or the shipped
+// The person's shop rows loaded in the studio (O7e, O7c, O14): fastener sizes, casting rules and mounts, from their file or the shipped
 // sample, received as a person's file — the click is the person's act, a one-turn receipt of its own — and loaded as chat's
 // load_rows loads one, its receipt naming the file. The agent cannot call it (it is no tool).
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
@@ -8,7 +8,7 @@ import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 /** A sample's name in its receipt (a receipt's file name holds no folders): samples/rows/<kind>.json. */
 export const sampleFile = (kind: ShopKind) => `cad-model sample ${kind}.json`;
 export const SAMPLE_SIZES_FILE = sampleFile('fastener-sizes');
-export type ShopKind = 'fastener-sizes' | 'casting-rules';
+export type ShopKind = 'fastener-sizes' | 'casting-rules' | 'mounts';
 const hex = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join('');
 
 /** The person's file loaded into the document's rows of a kind, its receipt kept. */

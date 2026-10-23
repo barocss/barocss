@@ -2228,6 +2228,23 @@ try {
     await snap('hole-types');
   });
 
+  await check('O14 / O16: the Library\'s shop rows on shadcn — none of the mount rows built in; Load sample mounts loads the four (its receipt kept), a file adds one', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /none — a mount needs its row/);
+      await page.click('[aria-label="Load sample mounts"]');
+      await page.waitForFunction(() => window.__studioDoc.mounts?.rows?.length === 4 && window.__studioDoc.rowSources?.rows?.some(r => r.kind === 'mounts' && r.file.filename === 'cad-model sample mounts.json'), null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /nema17, nema23, ucp204, ucfl204/);
+      const row = { id: 'my-motor', type: 'motor', holes: { pattern: 'square', spacingMM: 31, diameterMM: 3.4 }, shaftMM: 5, shaftHeightMM: 0, clearanceMM: 0.5, estimate: true };
+      await page.setInputFiles('[aria-label="Mounts file"]', { name: 'my-mounts.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify([row])) });
+      await page.waitForFunction(() => window.__studioDoc.mounts?.rows?.length === 5, null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /my-motor/);
+      // (O16: the panel at 1440 in the dock, for the checkpoint.)
+      await page.locator('[aria-label="Shop rows"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-shop-rows.png`) });
+    } finally { await page.click('[aria-label="Close library"]'); }
+  });
+
   await check('O7e: no fastener sizes loaded — a tapped hole is refused in the HUD with [FASTENER_SIZE_ROW], the Library says none; loading the sample (the person’s click, its receipt kept) gives the seven sizes', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.fastenerSizes, null, { timeout: 15000 }); await idle();
@@ -2321,7 +2338,10 @@ try {
     await page.click('[aria-label="Apply small"]');
     await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: 5000 });
     assert.match(await page.locator('aside[aria-label="Parameters panel"]').innerText(), /small · now/);
-    await snap('parameters'); await page.click('[aria-label="Close parameters"]');
+    await snap('parameters');
+    // (O16: the panel at 1440 in the dock.)
+    await page.locator('aside[aria-label="Parameters panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-parameters.png`) });
+    await page.click('[aria-label="Close parameters"]');
   });
 
   await check('a cut right through a box leaves two pieces; Separate makes them two bodies', async () => {
@@ -4249,6 +4269,11 @@ try {
       await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
       await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === undefined && !!document.querySelector('[aria-label="BOM line 2"]'), null, { timeout: 30000 });
       await snap('bom-panel');
+      // (O16: the table at the dock's width — no wider than the panel, no item name wrapped.)
+      const fit = await page.evaluate(() => { const panel = document.querySelector('[aria-label="BOM panel"]'), table = document.querySelector('[aria-label="BOM lines"]'), items = [...table.querySelectorAll('tbody tr td:nth-child(2)')];
+        return { over: table.scrollWidth - panel.clientWidth, wrapped: items.filter(td => td.getClientRects().length && td.scrollHeight > td.clientHeight + 1).length, nowrap: items.every(td => getComputedStyle(td).whiteSpace === 'nowrap') }; });
+      assert.ok(fit.over <= 0 && fit.wrapped === 0 && fit.nowrap, JSON.stringify(fit));
+      await page.locator('[aria-label="BOM panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-bom-panel.png`) });
       const [csvFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export purchase list"]')]);
       const rows = fs.readFileSync(await csvFile.path(), 'utf8').trim().split('\n');
       assert.equal(rows[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
