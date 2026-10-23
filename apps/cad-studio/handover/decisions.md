@@ -11578,3 +11578,65 @@ ellipses (semi-axes 0.5–1 against 300): recorded, not fixed.
 
 All four are strictly valid, watertight and one body. Over the seed's 31 refusals, 71, 73, 117 and 139 now build; the
 other 27 are as they were.
+
+## D198 — Which chords beside a pole take no strip is the same at every step (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 65, shrunk: a cone (apex) ∪ a turned cylinder. The quadrature volume was
+131.7537735 against the ray oracle's 131.7733069 ± 8.1e-6 at 1024² × 8, which is 2400 e off.
+
+**Cause.** By step, the pole part was:
+
+| Segments a quarter | 4 | 8 | 16 | 32 |
+|---|---|---|---|---|
+| Pole part | 11.1532258 | 11.1532194 | 11.0946130 | 11.0946122 |
+
+It did not fall with the step: it jumped between 8 and 16. D192 gave a chord its strip where it lay farther than
+four of its lengths from the pole. A long trim near the apex was beside it at 8 and not at 16, so its strip came in
+at 16 only. The extrapolation took the jump for the square of the step's error. Before D192 this case was off too
+(+1433 e): no strip at all.
+
+**Fix (`src/brep-mass-quadrature.ts`).** Beside a pole now means passing within a thousandth of the face's size of it,
+a distance that does not depend on the step. Each chord is measured as a segment, not by its ends.
+
+**Result:** 131.7733090, 0.26 e. 93 (D192) is unchanged at 147.9216303.
+
+**Test:** `test/mass-pole-steps.test.mjs`, the case against the ray oracle at 256² × 6, within 3 e.
+
+## D199 — A cap about a sphere's pole, its trim round the whole turn in a few samples, is integrated (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 171: a circular pattern of three overlapping balls (r 4). The quadrature
+returned null, so the mass fell back to the 64-segment mesh: 362.967 against the oracle's 363.293 ± 1.9e-4, which is
+0.09 % off and a WRONG.
+
+**Cause.** One face, a 0.64 mm² cap about a ball's pole: its trim runs round the whole turn of u in 7 samples. Each
+domain triangle spans some 50° of u, and the surface over it bends from its flat triangle far more than a step's sag.
+The coverage check compared the domain's area, 0.700, with the flat triangles', 0.643, found them 9 % apart (bound
+5 %) and gave up the body, at 8 and at 16 segments.
+
+**Fix (`src/brep-mass-quadrature.ts`).** Where the check fails, the domain's flat triangles cut in sixteen (four along
+each side) are the measure, held to the same 5 %. Coverage gone wrong still shows, since that measure keeps the
+domain's own triangles. The bound is unchanged.
+
+**Result:** 363.2931458, −0.33 e, method quadrature.
+
+**Test:** `test/mass-pole-cap.test.mjs`, the case against the ray oracle at 256² × 6, within 3 e. Before the fix the
+body's mass was tessellated and 43 e off at that resolution.
+
+## D200 — A curved body's tessellated mass states its volume's error (2026-10-23)
+
+**Coordinator's ask (from 171).** When the quadrature cannot integrate a curved body, its mass falls back to the mesh,
+and that must not be a quiet 0.09 % error.
+
+**Change (`src/solid-mass.ts`).** The value is unchanged: the same mesh, so every tessellated result stays bit for bit.
+With method `tessellated` it now carries `volumeBoundMM3`, the volume's change from a mesh of half the segments. The
+chord error falls with the square of the step, so that change is some three times the error itself. A part output's
+fallback mesh is 32 segments a quarter, its bound from 16. Other methods carry none. Only a body that falls back pays
+the second mesh.
+
+**Test:** `test/mass-tessellated-bound.test.mjs`. A ball and a cylinder with the quadrature turned off, at 8 and 16
+segments: each states a bound, and the true error (closed forms) is within it.
+
+**cad-model (outer lane, not changed here).** `chat/analysis.ts`'s `massProperties` and `engine/evaluate.ts`'s
+`bodyOf` report `volume_mm3` and `mass_g` with no basis. The area has `area_basis`; the volume has nothing. A tessellated
+volume is shown as if exact. Sent to the coordinator as a finding: a `volume_basis` with the bound, as `area_basis` is
+given.

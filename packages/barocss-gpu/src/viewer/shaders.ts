@@ -62,8 +62,9 @@ struct Object {
 // The caps' probe per pixel (G19): the nearest capped surface beyond the ray's entry into the kept region — its depth,
 // and 1 when a back face (drawn first while the planes cap something; 0, 0 none).
 @group(0) @binding(5) var capFront: texture_2d<f32>;
-// Scene caps use the same sample locations as the scene. Picks, masks and light probes retain binding 5.
-@group(0) @binding(6) var capFrontSamples: texture_multisampled_2d<f32>;
+// Scene caps use the same sample locations as the scene. Picks, masks and light probes retain binding 5. Each sample holds
+// the key of the triangle the probe found there when a back face (probeKey; 0: none or a front face) — G9: 2 bytes a sample.
+@group(0) @binding(6) var capFrontSamples: texture_multisampled_2d<u32>;
 /** The environment map (equirectangular, Z up) in a direction, at a mip level. */
 fn envAt(d: vec3f, lod: f32) -> vec3f {
   let u = atan2(d.y, d.x) / 6.2831853 + 0.5;
@@ -144,20 +145,26 @@ fn capFirst(pos: vec4f) -> bool {
   let p = textureLoad(capFront, vec2i(pos.xy), 0);
   return p.y > 0.5 && abs(p.x - pos.z) <= 1e-6;
 }
-// rgba16float supports MSAA without a feature request. Split a float32 depth's bits into exact
-// half-float integers (11/11/10 bits); storing the depth directly in half-float loses the probe tolerance.
-fn capProbeBits(z: f32, back: bool) -> vec4f {
-  let bits = bitcast<u32>(z);
-  return vec4f(f32(bits & 2047u), f32((bits >> 11u) & 2047u), f32(bits >> 22u), select(0.0, 1.0, back));
+/**
+ * A triangle's key in the caps' samples (G9, in place of its depth's 32 bits): its mesh's slot (object.pick.z's high half),
+ * its first vertex and its instance, hashed to 16 bits, never 0. The probe and the caps draw the same triangle at a sample,
+ * so its key there is the same: the caps of the triangle the probe found, and no other face of that mesh behind it (a
+ * ghost's cap is added once). Two triangles on one ray share a key 1 time in 65 535.
+ */
+fn probeKey(vi: u32, ii: u32) -> u32 {
+  var h = ((object.pick.z >> 16u) * 0x9E3779B1u) ^ (vi * 0x85EBCA77u) ^ (ii * 0xC2B2AE3Du);
+  h = (h ^ (h >> 15u)) * 0x2C1B3C6Du;
+  h = (h ^ (h >> 12u)) * 0x297A2D39u;
+  let k = (h ^ (h >> 15u)) & 0xFFFFu;
+  return select(k, 1u, k == 0u);
 }
+/** A world point's depth (reversed): the probe's per sample, at the sample's own interpolated point. */
 fn capSampleDepth(world: vec3f) -> f32 {
   let clip = frame.viewProj * vec4f(world, 1.0);
   return clip.z / clip.w;
 }
-fn capFirstSample(pos: vec4f, world: vec3f, sample: u32) -> bool {
-  let p = textureLoad(capFrontSamples, vec2i(pos.xy), i32(sample));
-  let z = bitcast<f32>(u32(p.x) | (u32(p.y) << 11u) | (u32(p.z) << 22u));
-  return p.w > 0.5 && abs(z - capSampleDepth(world)) <= 1e-6;
+fn capFirstSample(pos: vec4f, key: u32, sample: u32) -> bool {
+  return textureLoad(capFrontSamples, vec2i(pos.xy), i32(sample)).x == key;
 }
 /** The reversed depth of a cap point, or −1 when it is not in the view's depth range. */
 fn capDepth(q: vec4f) -> f32 {
@@ -199,10 +206,13 @@ struct VOut {
   @location(2) color: vec4f,
   @location(3) uv: vec2f,
   // A colour map's scalar (G6; 0 elsewhere).
-  @location(4) scalar: f32,
+  @location(4) scalar: f32,${capSamples ? `
+  // The triangle's key in the caps' samples (probeKey).
+  @location(5) @interpolate(flat) key: u32,` : ''}
 }
-@vertex fn vs(@location(0) position: vec3f, @location(1) normal: vec3f, @location(2) color: vec4f, inst: Instance, @location(8) uv: vec2f) -> VOut {
-  var o: VOut;
+@vertex fn vs(@location(0) position: vec3f, @location(1) normal: vec3f, @location(2) color: vec4f, inst: Instance, @location(8) uv: vec2f${capSamples ? ', @builtin(vertex_index) vi: u32, @builtin(instance_index) ii: u32' : ''}) -> VOut {
+  var o: VOut;${capSamples ? `
+  o.key = probeKey(vi, ii);` : ''}
   let world = object.model * instanceMatrix(inst) * vec4f(position, 1.0);
   o.clip = frame.viewProj * world;
   o.world = world.xyz;
@@ -361,7 +371,7 @@ fn capShade(in: VOut, sample: u32) -> vec4f {
   let across = hatchAcross(frame.clips[u32(max(q.w - 0.5, 0.0))].xyz, object.hatch.x, object.hatch.y);
   let h = dot(q.xyz, across) / max(object.hatch.z, 1e-12);
   let hw = length(vec2f(dpdx(h), dpdy(h)));
-  if (!${capSamples ? 'capFirstSample(in.clip, in.world, sample)' : 'capFirst(in.clip)'}) { discard; }
+  if (!${capSamples ? 'capFirstSample(in.clip, in.key, sample)' : 'capFirst(in.clip)'}) { discard; }
   let z = capDepth(q);
   if (z < 0.0) { discard; }
   let n = -normalize(capPlane(q).xyz);
@@ -697,10 +707,11 @@ fn axisLine(x: f32) -> f32 { return 1.0 - min(abs(x) / max(fwidth(x), 1e-6) / 1.
 `;
 
 const pickShader = (capSamples = false): string => common + /* wgsl */ `
-struct POut { @builtin(position) clip: vec4f, @location(0) @interpolate(flat) instance: u32, @location(1) ${capSamples ? '@interpolate(perspective, sample) ' : ''}world: vec3f }
+struct POut { @builtin(position) clip: vec4f, @location(0) @interpolate(flat) instance: u32, @location(1) ${capSamples ? '@interpolate(perspective, sample) ' : ''}world: vec3f${capSamples ? ', @location(2) @interpolate(flat) key: u32' : ''} }
 struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instance: u32 }
-@vertex fn vs(@location(0) position: vec3f, inst: Instance, @builtin(instance_index) ii: u32) -> POut {
-  var o: POut;
+@vertex fn vs(@location(0) position: vec3f, inst: Instance, @builtin(instance_index) ii: u32${capSamples ? ', @builtin(vertex_index) vi: u32' : ''}) -> POut {
+  var o: POut;${capSamples ? `
+  o.key = probeKey(vi, ii);` : ''}
   let world = object.model * instanceMatrix(inst) * vec4f(position, 1.0);
   o.clip = frame.viewProj * world;
   o.instance = ii;
@@ -720,14 +731,14 @@ struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instanc
 // The caps' probe (G19): a capped mesh's face, unclipped, beyond its ray's entry into the kept region — its depth, and
 // whether a back face; the nearest kept by the depth test, a back face drawn a little nearer so that it wins a tie (two
 // solids touching: the cap is the first's).
-struct Probe { @location(0) v: ${capSamples ? 'vec4f' : 'vec2f'}, @builtin(frag_depth) z: f32 }
+struct Probe { @location(0) v: ${capSamples ? 'u32' : 'vec2f'}, @builtin(frag_depth) z: f32 }
 // (Which way is nearer: +1 in the scene's reversed depth, −1 in the shadow map's — the light's probe, G19.4.)
 override nearer: f32 = 1.0;
 @fragment fn fsCapProbe(in: POut, @builtin(front_facing) front: bool${capSamples ? ', @builtin(sample_index) sample: u32' : ''}) -> Probe {
   if (capPoint(in.world).w < 0.5) { discard; }
   var o: Probe;
   let z = ${capSamples ? 'capSampleDepth(in.world)' : 'in.clip.z'};
-  o.v = ${capSamples ? 'capProbeBits(z, !front)' : 'vec2f(z, select(1.0, 0.0, front))'};
+  o.v = ${capSamples ? 'select(in.key, 0u, front)' : 'vec2f(z, select(1.0, 0.0, front))'};
   // (A back face's lead: enough to win a tie — two faces at one depth, to rounding — and no more. In the scene's reversed
   // depth, a share of it (G20.2: a fixed 4e-7 there, far from the eye, put a back face just behind a front one — near an
   // edge — ahead of it, a cap leaking over the edge); in the shadow map's, linear in distance, a fixed one.)

@@ -17,6 +17,11 @@ export interface SolidMassProperties {
   readonly inertiaCentroidKgM2: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
   /** `quadrature`: Gauss quadrature exact across and to rounding along smooth (rational) edges. */
   readonly method: 'closed-form' | 'planar-exact' | 'tessellated' | 'quadrature';
+  /**
+   * `tessellated` only (a curved body the quadrature could not integrate): an estimate of the volume's error, mm³ — the
+   * change from a mesh of half the segments, which the chord error's square makes some three times the error itself.
+   */
+  readonly volumeBoundMM3?: number;
 }
 export class SolidMassError extends Error { constructor(detail: string) { super('Mass properties: ' + detail); this.name = 'SolidMassError'; } }
 
@@ -110,7 +115,16 @@ export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: 
     const Q = quadrature(brep, q);
     if (Q && Q[0] > 0) return solidMassFromIntegrals(Q, densityKgPerM3, 'quadrature');
   }
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
+  const segments = curved ? options.segmentsPerQuarter ?? 64 : 1, I = meshIntegrals(brep, segments);
+  if (!curved) return solidMassFromIntegrals(I, densityKgPerM3, 'planar-exact');
+  // (Not silently: the chord error is the mesh's, and it is stated — the volume's change from half the segments, some
+  // three times its error as the error falls with the square of the step. L4 fuzz 171, D200.)
+  const half = meshIntegrals(brep, Math.max(1, Math.floor(segments / 2)));
+  return { ...solidMassFromIntegrals(I, densityKgPerM3, 'tessellated'), volumeBoundMM3: Math.abs(I[0] - half[0]) };
+}
+/** Volume integrals over a B-rep's watertight tessellation: tetrahedra from the origin (divergence theorem). */
+function meshIntegrals(brep: Brep, segmentsPerQuarter: number): number[] {
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter }), p = mesh.positionsMM, ix = mesh.indices;
   const I = Array(10).fill(0) as number[];
   for (let t = 0; t < ix.length; t += 3) {
     const a = [p[ix[t] * 3], p[ix[t] * 3 + 1], p[ix[t] * 3 + 2]], b = [p[ix[t + 1] * 3], p[ix[t + 1] * 3 + 1], p[ix[t + 1] * 3 + 2]], c = [p[ix[t + 2] * 3], p[ix[t + 2] * 3 + 1], p[ix[t + 2] * 3 + 2]];
@@ -120,7 +134,7 @@ export function brepMassProperties(brep: Brep, densityKgPerM3: number, options: 
     I[0] += D / 6; I[1] += D / 24 * s[0]; I[2] += D / 24 * s[1]; I[3] += D / 24 * s[2];
     I[4] += second(0, 0); I[5] += second(1, 1); I[6] += second(2, 2); I[7] += second(0, 1); I[8] += second(0, 2); I[9] += second(1, 2);
   }
-  return solidMassFromIntegrals(I, densityKgPerM3, curved ? 'tessellated' : 'planar-exact');
+  return I;
 }
 
 /**

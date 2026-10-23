@@ -63,6 +63,9 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | A prismatic crescent built exactly (a non-manifold edge, or a split at the tangency) | — | later (c) |
 | The fuzz's 31 refusals: triage — 6 exact contacts of separate lumps (non-manifold as one solid; over-refusals by prismatic's separate-bodies convention, a decision), 8 near-degenerate and 17 robust refusals of valid inputs (kernel weaknesses) | D196 | done |
 | Fuzz 73, 117, 139, 71 (robust refusals): a point on a sparsely sampled curve maps onto its own branch (paramOf) | D197 | done (T2) |
+| Fuzz seed 20261024 #65 (WRONG, 2400 e): which chords beside a pole take no strip is the same at every step | D198 | done (T2) |
+| Fuzz seed 20261024 #171 (WRONG, 0.09 %): a cap about a sphere's pole, its trim round the whole turn in a few samples, is integrated | D199 | done (T2) |
+| A curved body's tessellated mass states its volume's error (volumeBoundMM3); cad-model's volume_basis is the outer lane's | D200 | done (T2) |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
