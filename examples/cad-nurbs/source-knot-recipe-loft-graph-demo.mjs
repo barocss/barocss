@@ -16,7 +16,7 @@ const bundle = await esbuild.build({ absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundle.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['source-knot-recipe-loft-graph.ts', 'source-curve-knot-insertion.ts', 'source-knot-aligned-loft.ts', 'piecewise-rational-loft.ts', 'source-curve-control-polygon.ts', 'index.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['nurbs/source-wide/source-knot-recipe-loft-graph.ts', 'nurbs/source-wide/source-curve-knot-insertion.ts', 'nurbs/source-wide/source-knot-aligned-loft.ts', 'features/piecewise-rational-loft.ts', 'nurbs/source-wide/source-curve-control-polygon.ts', 'index.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -450,7 +450,7 @@ const runtimePath = resolve(packageRoot, declared.import), declarationPath = res
 const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SourceKnotRecipeLoftGraphDiagnosticCode, codes);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./source-knot-recipe-loft-graph.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/source-knot-recipe-loft-graph.js'));
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(readFileSync(leafDeclarationPath, 'utf8').includes(name), name);
 const savedMain = JSON.parse(readFileSync(cases[0].resultFile, 'utf8'));
 assert.deepEqual(publicAPI.evaluateSourceKnotRecipeLoftGraph(savedMain.document, savedMain.options), savedMain);
@@ -459,7 +459,7 @@ assert.equal(publicAPI.serializeSourceKnotRecipeLoftGraph(revision3.result.docum
 assert.deepEqual(publicAPI.parseSourceKnotRecipeLoftGraph(authoredText, graphOptions), revision3.result);
 assert.deepEqual(publicAPI.updateSourceKnotRecipeLoftGraph(coldOpen, middleEdits), revision4);
 assert.deepEqual(publicAPI.validateSourceKnotRecipeLoftGraphUpdate(revision4), revision4.transaction.report);
-const emittedArtifacts = ['index.js', 'index.d.ts', 'source-knot-recipe-loft-graph.js', 'source-knot-recipe-loft-graph.d.ts'].map(name => {
+const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-knot-recipe-loft-graph.js', 'source-knot-recipe-loft-graph.d.ts'].map(name => {
   const path = resolve(packageRoot, 'dist', name); assert.ok(existsSync(path)); const bytes = readFileSync(path); return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
 });
 const compiledConsumer = { runtimePath, declarationPath, leafDeclarationPath, runtimeNames, typeNames, publicNameCount: 16, currentMainEvaluateOwnedReplay: 1, realMiddleUpdateAndCodecReplay: true, emittedArtifacts };

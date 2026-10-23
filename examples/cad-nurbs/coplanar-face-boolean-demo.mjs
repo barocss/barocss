@@ -25,7 +25,7 @@ assert.equal(built.outputFiles.length, 1);
 const sourceInputs = Object.keys(built.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
 assert.ok(cadInputs.includes(entry));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/coplanar-face-boolean.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/planar-solids/coplanar-face-boolean.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' +
@@ -479,8 +479,8 @@ const typeNames = ['CoplanarFaceBooleanOptions', 'CoplanarFaceBooleanContributor
   'CoplanarFaceBooleanFragment', 'CoplanarFaceBooleanLoop', 'CoplanarFaceBooleanComponent', 'CoplanarFaceBooleanReport', 'CoplanarFaceBooleanResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CoplanarFaceBooleanDiagnosticCode, CoplanarFaceBooleanDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./coplanar-face-boolean.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/coplanar-face-boolean.d.ts');
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./planar-solids/coplanar-face-boolean.js'));
+const leafDeclarationPath = resolve(packageRoot, 'dist/planar-solids/coplanar-face-boolean.d.ts');
 const declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) {
   assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);

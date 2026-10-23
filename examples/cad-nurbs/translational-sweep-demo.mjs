@@ -326,7 +326,7 @@ const runtimeNames = ['buildTranslationalSweepSurface', 'validateTranslationalSw
 const typeNames = ['TranslationalSweepOptions', 'TranslationalSweepProvenance', 'TranslationalSweepObservation', 'TranslationalSweepReport', 'TranslationalSweepResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.TranslationalSweepDiagnosticCode, TranslationalSweepDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./translational-sweep-surface.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/surfaces/translational-sweep-surface.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/surfaces/translational-sweep-surface.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries[0].resultFile, 'utf8'));

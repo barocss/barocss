@@ -14,7 +14,7 @@ const bridge = 'export * from ' + JSON.stringify(entry) + ';\nexport {parseCadDo
 const bundle = await esbuild.build({ absWorkingDir: repo, stdin: { contents: bridge, resolveDir: repo, sourcefile: 'paired-surface-demo-source-bridge.mjs', loader: 'js' }, bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
 assert.equal(bundle.outputFiles.length, 1);
 const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
-for (const leaf of ['paired-surface-intersection-branch.ts', 'math.ts', 'derivatives.ts', 'model-compiler.ts', 'source-surface-control-net-wide.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['paired/paired-surface-intersection-branch.ts', 'core/math.ts', 'core/derivatives.ts', 'model-compiler.ts', 'nurbs/source-wide/source-surface-control-net-wide.ts']) assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(!inputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const { tracePairedSurfaceIntersectionBranch: trace, validatePairedSurfaceIntersectionBranch: validate, PairedSurfaceIntersectionBranchError: BranchError, PairedSurfaceIntersectionBranchDiagnosticCode: codes, compileCadModel, evaluateSurface, evaluateSurfaceD1, editSourceSurfaceControlNetWide, validateSourceSurfaceControlNetWideEdit, demoParseOwnRequest: parseRequest, demoDecimal } = api;

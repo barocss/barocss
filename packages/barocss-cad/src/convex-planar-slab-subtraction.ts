@@ -4,9 +4,9 @@ import { buildConvexPlanarFace } from './own-convex-planar-face.js';
 import type { Curve, Point } from './types.js';
 import type { ExactPoint, ExactPointData } from './convex-planar-solid-proof-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
-import { SolidProof, SlabSubtractionLedger, SLAB_LIMITS, demand, fields, identity, same, at } from './convex-planar-slab-subtraction-internal.js';
-export { ConvexPlanarSlabSubtractionError } from './convex-planar-slab-subtraction-internal.js';
-export type { SlabSubtractionCode as ConvexPlanarSlabSubtractionDiagnosticCode } from './convex-planar-slab-subtraction-internal.js';
+import { SolidProof, SlabSubtractionLedger, SLAB_LIMITS, demand, fields, identity, same, at } from './planar-solids/convex-planar-slab-subtraction-internal.js';
+export { ConvexPlanarSlabSubtractionError } from './planar-solids/convex-planar-slab-subtraction-internal.js';
+export type { SlabSubtractionCode as ConvexPlanarSlabSubtractionDiagnosticCode } from './planar-solids/convex-planar-slab-subtraction-internal.js';
 
 export interface ConvexPlanarSlabFaceReference { sourceId: string; faceId: string }
 export interface ConvexPlanarSlabSubtractionOptions {

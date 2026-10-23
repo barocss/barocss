@@ -1,11 +1,11 @@
 import { buildSourceLineWidthFace, SourceLineWidthFaceError } from './source-line-width-face.js';
-import { extrudeConvexPlanarFace } from '../../convex-planar-face-extrusion.js';
-import { qualifyRectangularFaceExtrusionBody } from '../../rectangular-face-extrusion-body.js';
+import { extrudeConvexPlanarFace } from '../../planar-solids/convex-planar-face-extrusion.js';
+import { qualifyRectangularFaceExtrusionBody } from '../../planar-solids/rectangular-face-extrusion-body.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../../cad-document.js';
 
 import type { SourceLineWidthFaceOptions, SourceLineWidthFaceResult } from './source-line-width-face.js';
-import type { ConvexPlanarFaceExtrusionResult } from '../../convex-planar-face-extrusion.js';
-import type { RectangularFaceExtrusionBodyOptions, RectangularFaceExtrusionBodyResult } from '../../rectangular-face-extrusion-body.js';
+import type { ConvexPlanarFaceExtrusionResult } from '../../planar-solids/convex-planar-face-extrusion.js';
+import type { RectangularFaceExtrusionBodyOptions, RectangularFaceExtrusionBodyResult } from '../../planar-solids/rectangular-face-extrusion-body.js';
 import { same } from '../../core/structural-equality.js';
 
 type Size = { utf16: number; utf8: number };

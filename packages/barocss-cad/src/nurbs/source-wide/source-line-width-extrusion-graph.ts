@@ -1,10 +1,10 @@
 import { buildSourceLineWidthFace } from './source-line-width-face.js';
 import { SourceLineWidthFaceError } from './source-line-width-face.js';
-import { extrudeConvexPlanarFace } from '../../convex-planar-face-extrusion.js';
+import { extrudeConvexPlanarFace } from '../../planar-solids/convex-planar-face-extrusion.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../../cad-document.js';
 
 import type { SourceLineWidthFaceOptions,SourceLineWidthFaceResult } from './source-line-width-face.js';
-import type { ConvexPlanarFaceExtrusionResult } from '../../convex-planar-face-extrusion.js';
+import type { ConvexPlanarFaceExtrusionResult } from '../../planar-solids/convex-planar-face-extrusion.js';
 import { same } from '../../core/structural-equality.js';
 type Size={utf16:number;utf8:number};
 type Pair<T>=[T,T];

@@ -51,9 +51,9 @@ assert.equal(bundle.outputFiles.length,
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo,
 path)),
 cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['source-surface-knot-insertion.ts',
-'curve-knot-insertion.ts',
-'source-surface-control-net-wide.ts',
+for (const leaf of ['nurbs/source-wide/source-surface-knot-insertion.ts',
+'nurbs/curves/curve-knot-insertion.ts',
+'nurbs/source-wide/source-surface-control-net-wide.ts',
 'index.ts']) assert.ok(cadInputs.includes(resolve(repo,
 'packages/barocss-cad/src',
 leaf)),
@@ -1968,7 +1968,7 @@ name.endsWith('Code')?'object':'function');
 assert.deepEqual(publicAPI.SourceSurfaceKnotInsertionDiagnosticCode,
 codes);
 assert.ok(readFileSync(declarationPath,
-'utf8').includes('./source-surface-knot-insertion.js'));
+'utf8').includes('./nurbs/source-wide/source-surface-knot-insertion.js'));
 for(const name of [...runtimeNames,
 ...typeNames])assert.ok(readFileSync(leafDeclarationPath,
 'utf8').includes(name),
@@ -1998,7 +1998,7 @@ currentResult.model]]){
 }
 const emittedArtifacts=['index.js',
 'index.d.ts',
-'source-surface-knot-insertion.js',
+'nurbs/source-wide/source-surface-knot-insertion.js',
 'source-surface-knot-insertion.d.ts'].map(name=>{
   const path=resolve(packageRoot,
   'dist',

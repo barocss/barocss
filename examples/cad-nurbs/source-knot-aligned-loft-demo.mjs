@@ -16,7 +16,7 @@ const bundle = await esbuild.build({ absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundle.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['source-knot-aligned-loft.ts', 'curve-knot-insertion.ts', 'source-curve-knot-insertion.ts', 'piecewise-rational-loft.ts', 'source-curve-control-polygon.ts', 'index.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['nurbs/source-wide/source-knot-aligned-loft.ts', 'nurbs/curves/curve-knot-insertion.ts', 'nurbs/source-wide/source-curve-knot-insertion.ts', 'features/piecewise-rational-loft.ts', 'nurbs/source-wide/source-curve-control-polygon.ts', 'index.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -768,7 +768,7 @@ const runtimePath = resolve(packageRoot, declared.import), declarationPath = res
 const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SourceKnotAlignedLoftDiagnosticCode, codes);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./source-knot-aligned-loft.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/source-knot-aligned-loft.js'));
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(readFileSync(leafDeclarationPath, 'utf8').includes(name), name);
 const currentRequest = JSON.parse(readFileSync(cases[0].requestFile, 'utf8')), currentResult = JSON.parse(readFileSync(cases[0].resultFile, 'utf8'));
 assert.deepEqual(publicAPI.buildSourceKnotAlignedLoft(currentRequest), currentResult);
@@ -776,7 +776,7 @@ assert.deepEqual(publicAPI.validateSourceKnotAlignedLoft(currentResult), current
 for (const context of [...currentResult.originalSources, ...currentResult.alignedSections, { source: currentResult.loft.source, model: currentResult.loft.model }]) {
   const cold = publicAPI.compileCadModel(context.source, { sourceVersion: 0 }); assert.equal(cold.ok, true); assert.deepEqual(cold.model, context.model);
 }
-const emittedArtifacts = ['index.js', 'index.d.ts', 'source-knot-aligned-loft.js', 'source-knot-aligned-loft.d.ts'].map(name => {
+const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-knot-aligned-loft.js', 'source-knot-aligned-loft.d.ts'].map(name => {
   const path = resolve(packageRoot, 'dist', name); assert.ok(existsSync(path)); const bytes = readFileSync(path);
   return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
 });

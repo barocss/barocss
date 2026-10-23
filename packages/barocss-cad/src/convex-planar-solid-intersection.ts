@@ -4,9 +4,9 @@ import { buildConvexPlanarFace } from './own-convex-planar-face.js';
 import type { Curve, Point } from './types.js';
 import type { ExactPoint, ExactPointData } from './convex-planar-solid-proof-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
-import { SolidProof, IntersectionLedger, INTERSECTION_LIMITS, demand, fields, identity, same, at } from './convex-planar-solid-intersection-internal.js';
-export { ConvexPlanarSolidIntersectionError } from './convex-planar-solid-intersection-internal.js';
-export type { IntersectionCode as ConvexPlanarSolidIntersectionDiagnosticCode } from './convex-planar-solid-intersection-internal.js';
+import { SolidProof, IntersectionLedger, INTERSECTION_LIMITS, demand, fields, identity, same, at } from './planar-solids/convex-planar-solid-intersection-internal.js';
+export { ConvexPlanarSolidIntersectionError } from './planar-solids/convex-planar-solid-intersection-internal.js';
+export type { IntersectionCode as ConvexPlanarSolidIntersectionDiagnosticCode } from './planar-solids/convex-planar-solid-intersection-internal.js';
 
 export interface ConvexPlanarSolidIntersectionOptions { operationId: string; solidId: string; resultIdPrefix: string }
 export interface ConvexPlanarSolidIntersectionSource { operand: 'left' | 'right'; sourceId: string; faceId: string; surfaceId: string; loopId: string }

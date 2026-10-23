@@ -53,7 +53,7 @@ test('equal-length refusals and the 16-segment budget', () => {
 });
 
 test('equal-length analytic Jacobian matches central finite differences', async () => {
-  const { evaluate } = await import('../dist/xy-numerical-sketch-solver-internal.js');
+  const { evaluate } = await import('../dist/sketch/xy-numerical-sketch-solver-internal.js');
   const d = doc({ A: [1, 2], B: [7, -3], C: [-4, 5], D: [2.5, 9] }, [['ab', 'A', 'B'], ['cd', 'C', 'D']], [{ id: 'e', kind: 'equal-length', segmentA: 'ab', segmentB: 'cd' }]);
   const x = d.points.flatMap(p => p.position), e = evaluate(d, x), h = 1e-6;
   for (let j = 0; j < x.length; j++) {

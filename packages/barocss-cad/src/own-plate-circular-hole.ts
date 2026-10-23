@@ -1,4 +1,4 @@
-import { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
+import { buildAxisRectangleExtrusion } from './planar-solids/axis-rectangle-extrusion.js';
 import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
 import { evaluateCurve, evaluateSurface, curveDomain, validateCurve, validateSurface } from './core/math.js';
 import { evaluateSurfaceD1 } from './core/derivatives.js';

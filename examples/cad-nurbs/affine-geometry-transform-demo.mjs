@@ -14,7 +14,7 @@ const bundled = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundled.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundled.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const file of ['index.ts', 'affine-geometry-transform.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', file)));
+for (const file of ['index.ts', 'features/affine-geometry-transform.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', file)));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0].text).toString('base64'));
@@ -302,7 +302,7 @@ const runtimeNames = ['transformNativeGeometryAffine', 'validateAffineGeometryTr
 const typeNames = ['CadAffineMatrix3x4', 'AffineGeometryTransformOptions', 'AffineGeometryTransformObservation', 'AffineGeometryTransformReport', 'AffineGeometryTransformResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.AffineGeometryTransformDiagnosticCode, AffineGeometryTransformDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./affine-geometry-transform.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./features/affine-geometry-transform.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/features/affine-geometry-transform.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'identity_rational_curve').authoredFile, 'utf8'));

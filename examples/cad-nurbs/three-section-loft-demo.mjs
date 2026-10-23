@@ -405,7 +405,7 @@ const declarationExports = [...runtimeExports, 'ThreeSectionLoftOptions', 'Three
   'ThreeSectionLoftProvenance', 'ThreeSectionLoftReport', 'ThreeSectionLoftResult'];
 const leafDeclarationPath = resolve(packageRoot, 'dist/features/three-section-loft.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./three-section-loft.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./features/three-section-loft.js'));
 for (const name of declarationExports) {
   assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 }

@@ -23,7 +23,7 @@ const doc = () => ({ format: 'barocss-xy-numerical-sketch', version: 0, profile:
     { id: 'brace_angle', kind: 'signed-angle', segmentA: 'AB', segmentB: 'AC', angleRad: 37 * Math.PI / 180 }],
   branchGuards: [{ id: 'forward', kind: 'positive-projection', segmentId: 'AB', direction: [1, 0] }, { id: 'above', kind: 'oriented-triplet', pointA: 'A', pointB: 'B', pointC: 'C', orientation: 'ccw' }] });
 if (mode === '--controls') {
-  const { qr, evaluate } = await import(await bundle('packages/barocss-cad/src/xy-numerical-sketch-solver-internal.ts', 'controls'));
+  const { qr, evaluate } = await import(await bundle('packages/barocss-cad/src/sketch/xy-numerical-sketch-solver-internal.ts', 'controls'));
   const a = qr([[1, 0], [0, 1], [1, 1]], [2, 3, 5], 2); assert.equal(a.rank, 2); assert.ok(Math.abs(a.solution[0] - 2) < 1e-12 && Math.abs(a.solution[1] - 3) < 1e-12);
   assert.equal(qr([[1, 2], [2, 4]], [0, 0], 2).rank, 1); assert.equal(qr([], [], 4).rank, 0);
   assert.equal(qr([[1, 0], [0, 1e-12]], [0, 0], 2).rank, 1);

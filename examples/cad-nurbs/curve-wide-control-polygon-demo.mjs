@@ -346,7 +346,7 @@ const runtimeExports = ['editCurveControlPolygonWide', 'validateWideCurveControl
   'WideCurveControlPolygonEditError', 'WideCurveControlPolygonEditDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.WideCurveControlPolygonEditDiagnosticCode, WideCurveControlPolygonEditDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-wide-control-polygon.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/curve-wide-control-polygon.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/curve-wide-control-polygon.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'WideCurveControlPolygonEditReport', 'WideCurveControlPolygonEditResult'];

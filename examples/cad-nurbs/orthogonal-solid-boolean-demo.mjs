@@ -17,7 +17,7 @@ async function sourceModule(file) {
   writeFileSync(destination, result.outputFiles[0].text); return import(pathToFileURL(destination));
 }
 const api = mode === '--source' || mode === '--planner' ? await sourceModule('packages/barocss-cad/src/index.ts') : await import(pathToFileURL(resolve(repo, 'packages/barocss-cad/dist/index.js')));
-const internal = mode === '--planner' ? await sourceModule('packages/barocss-cad/src/orthogonal-solid-boolean-internal.ts') : null;
+const internal = mode === '--planner' ? await sourceModule('packages/barocss-cad/src/planar-solids/orthogonal-solid-boolean-internal.ts') : null;
 const faceCorners = [[0, 4, 6, 2], [1, 3, 7, 5], [0, 1, 5, 4], [2, 6, 7, 3], [0, 2, 3, 1], [4, 5, 7, 6]];
 const specs = [['stock', [0, 0, 0], [6, 6, 4]], ['pocket', [2, 2, 2], [4, 4, 6]], ['boss', [0, 0, 4], [2, 2, 6]], ['slot', [0, 0, 1], [6, 1, 2]]];
 const operations = ['difference', 'union', 'difference'];

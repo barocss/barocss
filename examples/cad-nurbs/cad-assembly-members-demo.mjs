@@ -356,7 +356,7 @@ const runtimeNames = ['transactCadAssemblyMembers', 'validateCadAssemblyMemberTr
 const typeNames = ['CadAssemblyMemberTransaction', 'CadAssemblyMemberReport', 'CadAssemblyMemberResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], 'function');
 assert.deepEqual(publicAPI.CadAssemblyDiagnosticCode, CadAssemblyDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-assembly-members.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./document/cad-assembly-members.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/document/cad-assembly-members.d.ts');
 const declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) {

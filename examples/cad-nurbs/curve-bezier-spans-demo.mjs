@@ -439,7 +439,7 @@ const runtimeExports = ['extractCurveBezierSpans', 'validateCurveBezierSpans',
   'CurveBezierSpanExtractionError', 'CurveBezierSpanExtractionDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CurveBezierSpanExtractionDiagnosticCode, CurveBezierSpanExtractionDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-bezier-spans.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/curves/curve-bezier-spans.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/curve-bezier-spans.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = ['extractCurveBezierSpans', 'validateCurveBezierSpans',

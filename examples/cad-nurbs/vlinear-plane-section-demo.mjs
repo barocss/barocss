@@ -10,7 +10,7 @@ const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? repo, 'packa
 const bundle = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true});
 assert.equal(bundle.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path)), cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['index.ts', 'vlinear-plane-section.ts', 'section-rational-internal.ts', 'rational-ruled-surface.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['index.ts', 'intersect/vlinear-plane-section.ts', 'section-rational-internal.ts', 'nurbs/surfaces/rational-ruled-surface.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/'))); assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const {buildVLinearSurfacePlaneSection: build, validateVLinearSurfacePlaneSection: validate, VLinearSurfacePlaneSectionError: SectionError, VLinearSurfacePlaneSectionDiagnosticCode,
@@ -231,7 +231,7 @@ const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse
 const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'], runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types);
 assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function'); assert.deepEqual(publicAPI.VLinearSurfacePlaneSectionDiagnosticCode, VLinearSurfacePlaneSectionDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./vlinear-plane-section.js')); const leafDeclarationPath = resolve(packageRoot, 'dist/intersect/vlinear-plane-section.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./intersect/vlinear-plane-section.js')); const leafDeclarationPath = resolve(packageRoot, 'dist/intersect/vlinear-plane-section.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 for (const row of cases) { const request = JSON.parse(readFileSync(row.requestFile, 'utf8')), stored = JSON.parse(readFileSync(row.resultFile, 'utf8')); assert.deepEqual(publicAPI.buildVLinearSurfacePlaneSection(request.surfaceAsset, request.planeAsset, request.options), stored); assert.deepEqual(publicAPI.validateVLinearSurfacePlaneSection(stored), stored.report); }
 const compiledConsumer = {runtimePath, declarationPath, leafDeclarationPath, runtimeNames, typeNames, publicNameCount: 8, exportSelection: manifest.publishConfig?.exports?.['.'] ? 'publishConfig.exports root' : 'exports root'};

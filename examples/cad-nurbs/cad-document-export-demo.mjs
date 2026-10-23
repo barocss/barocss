@@ -354,7 +354,7 @@ const runtimeExports = ['getCadDocumentExportCapabilities', 'inspectCadDocumentE
   'validateCadDocumentExport', 'CadDocumentExportError', 'CadDocumentExportDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CadDocumentExportDiagnosticCode, CadDocumentExportDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-document-export.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./document/cad-document-export.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/document/cad-document-export.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CadDocumentExportCapability', 'CadDocumentExportSelection',

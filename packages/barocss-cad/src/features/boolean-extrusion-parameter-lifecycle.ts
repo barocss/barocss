@@ -1,7 +1,7 @@
 import { evaluateBooleanExtrusionFeatureGraph, validateBooleanExtrusionFeatureGraph,
   BooleanExtrusionFeatureGraphError, BooleanExtrusionFeatureGraphDiagnosticCode } from './boolean-extrusion-feature-graph.js';
 import type { BooleanExtrusionFeatureGraphResult, BooleanExtrusionLengthParameter, BooleanExtrusionLengthDefinition } from './boolean-extrusion-feature-graph.js';
-import { admitParameter, definition } from '../circle-graph-internal.js';
+import { admitParameter, definition } from '../sketch/circle-graph-internal.js';
 import { copyCadData } from '../data-copy.js';
 
 export type BooleanExtrusionParameterOperation = { kind: 'upsert'; parameter: BooleanExtrusionLengthParameter } | { kind: 'remove'; parameterId: string };

@@ -308,7 +308,7 @@ const runtimeName = 'transactBooleanExtrusionFeatureGraphFeatures';
 const typeNames = ['BooleanExtrusionFeatureOperation', 'BooleanExtrusionFeatureTransaction'];
 assert.equal(typeof publicAPI[runtimeName], 'function');
 assert.deepEqual(publicAPI.BooleanExtrusionFeatureGraphDiagnosticCode, BooleanExtrusionFeatureGraphDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./boolean-extrusion-feature-lifecycle.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./features/boolean-extrusion-feature-lifecycle.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/features/boolean-extrusion-feature-lifecycle.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [runtimeName, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 const compiledOriginal = publicAPI.parseBooleanExtrusionFeatureGraph(authoredText, original.options); assert.deepEqual(compiledOriginal, original);

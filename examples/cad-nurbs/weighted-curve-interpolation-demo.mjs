@@ -17,7 +17,7 @@ const bundled = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundled.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundled.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const file of ['index.ts', 'curve-interpolation.ts', 'curve-interpolation-kernel-internal.ts', 'weighted-curve-interpolation.ts'])
+for (const file of ['index.ts', 'nurbs/curves/curve-interpolation.ts', 'nurbs/curves/curve-interpolation-kernel-internal.ts', 'nurbs/curves/weighted-curve-interpolation.ts'])
   assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', file)));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
@@ -290,7 +290,7 @@ const runtimeNames = ['buildWeightedInterpolatingCurve', 'validateWeightedInterp
 const typeNames = ['WeightedCurveInterpolationPoint', 'WeightedCurveInterpolationOptions', 'WeightedCurveInterpolationReport', 'WeightedCurveInterpolationResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.WeightedCurveInterpolationDiagnosticCode, WeightedCurveInterpolationDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./weighted-curve-interpolation.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/curves/weighted-curve-interpolation.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/weighted-curve-interpolation.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const oldRuntimeNames = ['buildInterpolatingCurve', 'validateInterpolatingCurve', 'CurveInterpolationError', 'CurveInterpolationDiagnosticCode'];

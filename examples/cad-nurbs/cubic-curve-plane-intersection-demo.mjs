@@ -401,7 +401,7 @@ const runtimeExports = ['intersectCubicBezierCurveWithAffinePlaneSurface', 'vali
   'CubicCurveAffinePlaneIntersectionError', 'CubicCurveAffinePlaneIntersectionDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CubicCurveAffinePlaneIntersectionDiagnosticCode, CubicCurveAffinePlaneIntersectionDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./own-cubic-curve-plane-intersection.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./intersect/own-cubic-curve-plane-intersection.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/intersect/own-cubic-curve-plane-intersection.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CubicCurveAffinePlaneIntersectionOptions',

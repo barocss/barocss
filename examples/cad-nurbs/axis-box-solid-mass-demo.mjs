@@ -8,7 +8,7 @@ const repo = resolve(fileURLToPath(new URL('../../', import.meta.url))), output 
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? repo, 'package.json')), esbuild = require('esbuild'), entry = resolve(repo, 'packages/barocss-cad/src/index.ts');
 const bundle = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true}); assert.equal(bundle.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path)), cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['index.ts', 'axis-box-solid-mass.ts', 'axis-box-boolean.ts', 'section-rational-internal.ts', 'box-shell.ts', 'box-solid.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['index.ts', 'axis-box-solid-mass.ts', 'axis-box-boolean.ts', 'section-rational-internal.ts', 'core/box-shell.ts', 'core/box-solid.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/'))); assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const {measureAxisBoxSolidBooleanMass: measure, validateAxisBoxSolidBooleanMass: validate, AxisBoxSolidMassError: MassError, AxisBoxSolidMassDiagnosticCode,
