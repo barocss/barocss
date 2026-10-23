@@ -147,6 +147,7 @@ import { useBottomRow } from './ui/useBottomRow';
 import { useLayout } from './layout/useLayout';
 import { ChatColumn, columnShown } from './layout/ChatColumn';
 import { Dock } from './layout/Dock';
+import { PreviewSection, type PreviewMode } from './layout/PreviewSection';
 import { CHAT_DEFAULT, CHAT_STRIP } from './layout/useLayout';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
@@ -379,11 +380,14 @@ export function App() {
   const [ortho, setOrtho] = useState(false);
   // Session appearance only: no document, history, recovery or analysis input changes.
   const [displayMode, setDisplayMode] = useState<DisplayMode>('shaded-with-edges');
-  const [clearanceEnabled, setClearanceEnabled] = useState(false);
+  // (G12c: the previews one at a time — CNC, print layers, clearance or the analysis maps — a choice, not toggles that
+  // refuse each other. Each panel's own toggle sets or clears its mode.)
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('none');
+  const clearanceEnabled = previewMode === 'clearance', setClearanceEnabled = useCallback((on: boolean) => setPreviewMode(m => on ? 'clearance' : m === 'clearance' ? 'none' : m), []);
   const [clearanceNearMM, setClearanceNearMM] = useState(1);
-  const [printEnabled, setPrintEnabled] = useState(false);
+  const printEnabled = previewMode === 'print', setPrintEnabled = useCallback((on: boolean) => setPreviewMode(m => on ? 'print' : m === 'print' ? 'none' : m), []);
   // (G23 CNC: the material-removal preview, session only.)
-  const [camEnabled, setCamEnabled] = useState(false);
+  const camEnabled = previewMode === 'cnc', setCamEnabled = useCallback((on: boolean) => setPreviewMode(m => on ? 'cnc' : m === 'cnc' ? 'none' : m), []);
   const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellMM: 0.5 });
   // (G24: the drawing's annotations on the model, session only, and the one picked.)
   const [pmiEnabled, setPmiEnabled] = useState(false);
@@ -403,6 +407,11 @@ export function App() {
   const [analysis, setAnalysis] = useState<'zebra' | 'curvature' | 'overhang' | null>(null);
   // (G6: an analysis map on the bodies — IM4 wall thickness; IM2 draft and CNC access when their data lands — and its value under the pointer.)
   const [mapKind, setMapKind] = useState<MapKind | 'parting' | 'halves' | null>(null);
+  // (G12c: the surface analysis and the analysis maps are the Analysis preview: turned on, they take its place; another
+  // preview chosen, they go; both off, no preview is left.)
+  useEffect(() => { if (analysis || mapKind) setPreviewMode('analysis'); else setPreviewMode(m => m === 'analysis' ? 'none' : m); }, [analysis, mapKind]);
+  useEffect(() => { if (previewMode !== 'analysis') { setAnalysis(null); setMapKind(null); } }, [previewMode]);
+  const choosePreview = useCallback((m: PreviewMode) => { setPreviewMode(m); if (m === 'analysis') setAnalysis(a => a ?? 'zebra'); }, []);
   /** The viewport's renderer (G10): the analysis maps and the mould's view are drawn on WebGPU only. */
   const [viewBackend, setViewBackend] = useState<'webgpu' | 'webgl2' | null>(null);
   const [mapHover, setMapHover] = useState<number | null>(null);
@@ -2153,7 +2162,7 @@ export function App() {
   const clearanceVisibleInstances = useMemo(() => instancesPlaced.map(i => i.id), [instancesPlaced]);
   const clearanceLabels = useMemo(() => new Map([...bodies.map(b => [b.key, bodyName(doc, b)] as const), ...(doc.instances ?? []).map(i => [i.id + '/', i.name ?? i.id] as const)]), [bodies, doc]);
   const clearanceReady = (doc.instances ?? []).filter(i => !i.hidden).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
-  const clearanceReason = printEnabled ? 'Close Print layers to use assembly clearance.' : camEnabled ? 'Close the CNC preview to use assembly clearance.' : rendering || drawing ? 'Assembly clearance is available in Model view.'
+  const clearanceReason = rendering || drawing ? 'Assembly clearance is available in Model view.'
     : sketch || previewBodies || active || ghost || assembly.draft || cageEd.overlay || skel.tool ? 'Pending · finish the current edit to classify its geometry.'
     : viewAnalysis || scalarMaps?.length || mouldShown || directShown.length ? 'Assembly clearance requires the ordinary solid view.'
     : !fresh || !clearanceReady ? 'Pending · waiting for the current source geometry.' : undefined;
@@ -2170,7 +2179,7 @@ export function App() {
   const printMeshes = useMemo(() => printSourceMeshes(doc, bodies), [bodies, doc.bodies, doc.nodes]);
   const printInputProblem = useMemo(() => documentPrintPreviewProblem(doc), [doc]);
   const printOptions = useMemo<PrintOptions>(() => printInputProblem ? { layer: 0, supports: true, printed: true } : printOptionsOf(doc, printing?.thresholds.maxOverhangDeg.value), [printInputProblem, doc.printPreview, doc.print, printing]);
-  const printReason = printInputProblem ?? (camEnabled ? 'Close the CNC preview to preview print layers.' : rendering || drawing ? 'Print layers are available in Model view.'
+  const printReason = printInputProblem ?? (rendering || drawing ? 'Print layers are available in Model view.'
     : doc.instances?.some(i => !i.hidden) ? 'Print layers currently support root part solids. Placed assemblies are not supported.'
     : refShown.length ? 'Hide reference parts and keep-outs to preview print layers of the root part.'
     : sketch || active || previewBodies || ghost || assembly.draft || cageEd.overlay || skel.tool || bodyDrag ? 'Finish the current edit to preview print layers.'
@@ -2182,8 +2191,7 @@ export function App() {
   const printDisplay = printEnabled && !printReason ? printState.display : null;
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioPrint: () => unknown }).__studioPrint = () => ({ reason: printReason, stage: printState.stage, display: printDisplay }); }, [printReason, printState.stage, printDisplay]);
   // (G23 CNC: the root part's program from the document's machining stock, one setup at a time; the other previews closed.)
-  const camReason = printEnabled ? 'Close Print layers to preview CNC removal.' : clearanceEnabled ? 'Close assembly clearance to preview CNC removal.'
-    : rendering || drawing ? 'The CNC preview is available in Model view.'
+  const camReason = rendering || drawing ? 'The CNC preview is available in Model view.'
     : doc.instances?.some(i => !i.hidden) ? 'The CNC preview supports the root part. Placed assemblies are not supported.'
     : refShown.length ? 'Hide reference parts and keep-outs to preview CNC removal of the root part.'
     : sketch || active || previewBodies || ghost || assembly.draft || cageEd.overlay || skel.tool || bodyDrag ? 'Finish the current edit to preview CNC removal.'
@@ -2230,6 +2238,20 @@ export function App() {
   // (G12a: proposals are in the chat column; while one is open the column shows it, the chat open or not.)
   const openProposals = doc.proposals?.filter(p => p.status === 'open').length ?? 0, decidedProposals = (doc.proposals?.length ?? 0) - openProposals;
   const chatColumnShown = columnShown(chat && !rendering && !drawing, openProposals, decidedProposals, decidedShown);
+  // (G12c: the previews' panels in the dock's Preview & analysis section; the 3D annotations an overlay beside them.)
+  const previewPanels = (<>
+        <PrintPanel enabled={printEnabled} onEnabled={setPrintEnabled} options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
+        <CamPanel enabled={camEnabled} onEnabled={setCamEnabled} options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
+        <ClearancePanel enabled={clearanceEnabled} onEnabled={setClearanceEnabled} nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
+  </>);
+  const previewOverlays = (
+        <div className="card" aria-label="3D annotations" style={{ padding: '6px 10px', maxWidth: 420 }}>
+          <label><input type="checkbox" checked={pmiEnabled} aria-label="3D annotations" onChange={e => setPmiEnabled(e.target.checked)} /> 3D annotations</label>
+          {pmiEnabled && <div role="status">{pmiReason ?? pmiSheet.error ?? (pmiSheet.busy || !pmiSheet.annotations ? 'Pending · building the drawing\'s sheet'
+            : !pmiItems?.length ? 'No annotations on the model yet: dimension the part in the Drawing workspace.'
+            : `${pmiItems.length} annotation${pmiItems.length === 1 ? '' : 's'} from the drawing${pmiSheet.annotations.left.length ? ` · ${pmiSheet.annotations.left.length} only on the sheet` : ''}${pmiSelected ? ` · ${pmiItems.find(a => a.id === pmiSelected)?.text.join(' ') ?? ''}` : ''}`)}</div>}
+        </div>
+  );
   // (G12b: the right dock — the Browser (its mount movable: browserPlacement), the running command's HUD and the inspector;
   // the HUD floats at the stage's right as before when the dock is a strip.)
   const browserPlacement = 'dock' as 'dock' | 'left';
@@ -2747,21 +2769,12 @@ export function App() {
           {/* (Why a mode cannot apply, said where the mode is chosen: never over the panels.) */}
           {displayModeNotice && <span id="cad-display-mode-status" className="cad-display-status" role="status">{displayModeNotice} Shaded with edges is active.</span>}
         </div>
-        <PrintPanel enabled={printEnabled} onEnabled={setPrintEnabled} options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
-        <div className="card" aria-label="3D annotations" style={{ padding: '6px 10px', maxWidth: 420 }}>
-          <label><input type="checkbox" checked={pmiEnabled} aria-label="3D annotations" onChange={e => setPmiEnabled(e.target.checked)} /> 3D annotations</label>
-          {pmiEnabled && <div role="status">{pmiReason ?? pmiSheet.error ?? (pmiSheet.busy || !pmiSheet.annotations ? 'Pending · building the drawing\'s sheet'
-            : !pmiItems?.length ? 'No annotations on the model yet: dimension the part in the Drawing workspace.'
-            : `${pmiItems.length} annotation${pmiItems.length === 1 ? '' : 's'} from the drawing${pmiSheet.annotations.left.length ? ` · ${pmiSheet.annotations.left.length} only on the sheet` : ''}${pmiSelected ? ` · ${pmiItems.find(a => a.id === pmiSelected)?.text.join(' ') ?? ''}` : ''}`)}</div>}
-        </div>
-        <CamPanel enabled={camEnabled} onEnabled={setCamEnabled} options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
-        <ClearancePanel enabled={clearanceEnabled} onEnabled={setClearanceEnabled} nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
         </div>}
     {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
         </div>
         <div className="card views" role="group" aria-label="Views">
-          <button aria-label="Display and previews" aria-expanded={displayOpen} className={displayOpen || printEnabled || camEnabled || pmiEnabled || clearanceEnabled || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'on' : ''}
-            title="The display mode, isolate, and the print, CNC, 3D-annotation and clearance previews" onClick={() => setDisplayOpen(o => !o)}>Display</button>
+          <button aria-label="Display and previews" aria-expanded={displayOpen} className={displayOpen || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'on' : ''}
+            title="The display mode and isolate (the previews are in the dock)" onClick={() => setDisplayOpen(o => !o)}>Display</button>
           {(['iso', 'top', 'front', 'right'] as const).map(v => <button key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</button>)}
           <button onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></button>
           <button className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
@@ -2893,6 +2906,7 @@ export function App() {
         {browserPlacement === 'dock' && browserPanel}
         {dockDocked && hud}
         {inspector}
+        <PreviewSection mode={previewMode} onMode={choosePreview} panels={previewPanels} overlays={previewOverlays} />
       </Dock>
       {/* (G12a: the chat column, shown at the left (order: -1) and full height; after the stage in the document, so the top bar's
           Chat button stays the first [aria-label="Chat"]. The centre — top bar, viewport and its bars — is the stage.) */}
