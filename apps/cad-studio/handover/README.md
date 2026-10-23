@@ -107,6 +107,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K12: fuzz 110 as fuzzed and 25 — a march through a point where the surfaces touch kept turning back with n₁ × n₂'s sign; each step's tangent keeps the previous one's direction | D238 | done (T1, fingerprint: 25, 110 refused → valid; corrected after checkpoint 2: the first version broke the long ground spring) |
 | K12 queue closed: 25, 74, 110, 119, 170 build; 51 built already; 85 a correct refusal (a lump touching itself, D205); the nudge findings left open | D239 | done |
 | K12 step 3: opening time measured (report only) — frames: 120 analytic Booleans (10 of 13 s in Node; intervals' unboxed segment tests 2.5 s); spring and worm: the body's mass quadrature and mesh, not the kernel features; A9: the O-ring overlap's quadrature 1.3 s, instance p2 fails BEARING_HOUSING_REFERENCE | D240 | done (measured) |
+| K13 step 1: the Boolean's intervals skip segment pairs whose boxes lie 4 eps apart (`segmentsApart`), and `intersectSegments` tests each end against the other segment first — frames 13 219 → 11 500 ms, others unchanged | D242 | done (T1, fingerprint identical, scene digests identical) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

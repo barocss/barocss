@@ -241,7 +241,9 @@ function grazeCrossings(curve: CurveSegment2, line: Extract<CurveSegment2, { kin
 export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number, graze = false): XY[] {
   const out: XY[] = [], on = (x: CurveSegment2, p: XY) => !surelyOff(x, p, eps) && segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
-  const ends = () => { for (const p of [segStart(s), segEnd(s), segStart(t), segEnd(t)]) push(p); };
+  // (Each end is tested against the other segment first: it lies on its own nearly always, and the other test — a general
+  // curve's nearest-point search — mostly fails at once. The same points, in the same order: K13, D242.)
+  const ends = () => { for (const p of [segStart(s), segEnd(s)]) if (on(t, p) && on(s, p)) out.push(p); for (const p of [segStart(t), segEnd(t)]) push(p); };
   if (s.kind === 'curve' || t.kind === 'curve') {
     // Polyline crossings refined by Newton's method on A(u) − B(v) = 0.
     const n = (x: CurveSegment2) => x.kind === 'line' ? 1 : x.kind === 'curve' ? CURVE_SAMPLES : Math.max(4, Math.ceil(Math.abs(x.sweep) / (Math.PI / 32)));
@@ -299,6 +301,27 @@ export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: numbe
   const band = 2 * eps * arc.r;
   if (h2 >= -band) { const h = h2 > band ? Math.sqrt(h2) : 0; for (const sgn of h > 0 ? [-1, 1] : [0]) { const k = -proj + sgn * h; push([line.a[0] + ux * k, line.a[1] + uy * k]); } }
   ends(); return out;
+}
+
+/**
+ * A segment's box into `out` (x0, y0, x1, y1): a line's ends, an arc's whole circle, a general curve's samples padded by its
+ * longest chord (the box `surelyOff` tests against).
+ */
+function boxInto(s: CurveSegment2, out: Float64Array): void {
+  if (s.kind === 'line') { out[0] = Math.min(s.a[0], s.b[0]); out[1] = Math.min(s.a[1], s.b[1]); out[2] = Math.max(s.a[0], s.b[0]); out[3] = Math.max(s.a[1], s.b[1]); return; }
+  if (s.kind === 'arc') { out[0] = s.c[0] - s.r; out[1] = s.c[1] - s.r; out[2] = s.c[0] + s.r; out[3] = s.c[1] + s.r; return; }
+  const { lo, hi } = samples(s); out[0] = lo[0]; out[1] = lo[1]; out[2] = hi[0]; out[3] = hi[1];
+}
+const boxS = new Float64Array(4), boxT = new Float64Array(4);
+/**
+ * Whether two segments' boxes lie more than 4 eps apart, so that `intersectSegments(s, t, eps)` finds nothing: every point
+ * it keeps lies within eps of both (and inside a general curve's box padded by eps). 4 eps rather than 2 leaves room for
+ * the rounding of the nearest points it measures to. (K13, D242.)
+ */
+export function segmentsApart(s: CurveSegment2, t: CurveSegment2, eps: number): boolean {
+  boxInto(s, boxS); boxInto(t, boxT);
+  const m = 4 * eps;
+  return boxT[0] - boxS[2] > m || boxS[0] - boxT[2] > m || boxT[1] - boxS[3] > m || boxS[1] - boxT[3] > m;
 }
 
 type Piece = { seg: CurveSegment2; polygon: number };
