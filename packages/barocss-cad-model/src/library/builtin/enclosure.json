@@ -25,7 +25,7 @@
      "value": 2.5,
      "unit": "mm",
      "estimate": true,
-     "source": "BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue); verify with your moulder or printer",
+     "source": "the library's own estimate: a BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue, and not read from your fastener sizes); verify with your moulder or printer",
      "description": "pilot hole for a thread-forming screw"
     },
     "OD": {
@@ -54,7 +54,7 @@
      "value": 1.0,
      "unit": "mm",
      "estimate": true,
-     "source": "BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue); verify with your moulder or printer",
+     "source": "the library's own estimate: a BaroCSS rule of thumb for plastic bosses (written for this library, not from a standard or a catalogue, and not read from your fastener sizes); verify with your moulder or printer",
      "description": "gusset thickness"
     },
     "rl": {
@@ -572,21 +572,21 @@
      "value": 4.0,
      "unit": "mm",
      "estimate": true,
-     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "source": "the library's own estimate: written for this library as a typical brass heat-set insert for plastics (no supplier's table copied, and not read from your fastener sizes); use your insert's own datasheet",
      "description": "hole diameter"
     },
     "Lh": {
      "value": 5.0,
      "unit": "mm",
      "estimate": true,
-     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "source": "the library's own estimate: written for this library as a typical brass heat-set insert for plastics (no supplier's table copied, and not read from your fastener sizes); use your insert's own datasheet",
      "description": "hole depth"
     },
     "De": {
      "value": 4.6,
      "unit": "mm",
      "estimate": true,
-     "source": "written for this library as a typical brass heat-set insert for plastics (no supplier's table copied); use your insert's own datasheet",
+     "source": "the library's own estimate: written for this library as a typical brass heat-set insert for plastics (no supplier's table copied, and not read from your fastener sizes); use your insert's own datasheet",
      "description": "the insert's outer diameter"
     }
    },
@@ -778,7 +778,7 @@
      "value": 2.0,
      "unit": "mm",
      "estimate": true,
-     "source": "BaroCSS rule of thumb for printed or moulded PCB standoffs (written for this library); verify with your process",
+     "source": "the library's own estimate: a BaroCSS rule of thumb for printed or moulded PCB standoffs (written for this library, not read from your fastener sizes); verify with your process",
      "description": "pilot hole for a thread-forming screw"
     },
     "OD": {
