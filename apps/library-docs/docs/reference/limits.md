@@ -59,7 +59,8 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
 
 - **The CNC preview** is not for production: a 2.5D display estimate, with no G-code, feeds, speeds or collision
   check. `cad-cli cam-preview` is the same. ([Manufacturing](/studio/manufacturing))
-- **One preview at a time.** The print preview and the CNC preview take turns.
+- **One preview at a time.** The dock's **Preview & analysis** shows one of CNC, Print, Clearance or Analysis at a
+  time.
 - **Unknown, not passed.** A check that lacks what it needs reports `unknown`, never `pass`.
 
 ## Drawings
