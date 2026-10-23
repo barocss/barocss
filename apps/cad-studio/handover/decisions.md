@@ -12012,3 +12012,64 @@ vec3 is not exported from index, so the public surface is unchanged.
 **Checks:** type-check, lint, T2 (brep-core), the test names identical to the last run, the R5 fingerprint identical.
 
 **Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D212's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 976/976, studio 266/266; test names identical.
+
+## D214 — R5.1c: one Gauss–Legendre `gauss(n)` in `quadrature.ts`; curved-arrangement's two 8-point tables are one (2026-10-23)
+
+**What.**
+- brep-mass-quadrature (an arrow) and loft (a function) each computed `gauss(n)` on [0, 1] by the same Newton
+  iteration. The arithmetic was identical; only the step variable's name differed. It is now `export function gauss`
+  in `src/quadrature.ts`, loft's text unchanged.
+- curved-arrangement held the same hard-coded 8-point table twice, `GL8` and `GL`. `GL` goes and its three uses read
+  `GL8`.
+
+**Left as they are:**
+- spring's table on [−1, 1] (another node formula and other weights);
+- the hard-coded 12-, 5- and inline tables in extruded-profile-solid, sheet-flat and revolve;
+- the closed-form 3- and 5-point rules in cad-curve-arc-length and cad-surface-area.
+
+**Checks:** type-check, lint, T2 (brep-mass-quadrature), the test names identical, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D213's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; kernel test names identical (cad-model/studio differ only by the outer lane's O7 tests merged meanwhile).
+
+## D215 — R5.1d: `guardKnots` once, in `knot-guard.ts` (2026-10-23)
+
+**What.** compatible-ruled-surface, curve-control-polygon, curve-knot-insertion, curve-parameter-split and
+z-axis-revolved-surface each defined the same three-line `guardKnots(knots, degree, min, max)`. It now lives in
+`src/knot-guard.ts`, text unchanged, and they import it. surface-knot-insertion's `guardKnots(surface)` is another
+function and stays.
+
+**Checks:** type-check, lint, T2, the test names identical, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D214's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; test names identical.
+
+## D216 — R5.2a: the mass quadrature's inverter picks its four nearest grid points without sorting all 625 (2026-10-23)
+
+**What (`src/brep-mass-quadrature.ts`).** When a hint misses, the inverter used to map all 625 grid points to
+`{ g, d }` objects, sort them and slice off four. `nearestGridPoints` now keeps the four nearest in one pass, into a
+reused array:
+- the squared distance is the same expression, `dx·dx + dy·dy + dz·dz` in that order, as `dot(sub, sub)`;
+- a point joins only when strictly nearer than the fourth;
+- it goes in after every kept point at the same or a smaller distance, so ties keep the grid's order, as the stable
+  sort did;
+- a distance that is not a number takes the old sort's path.
+
+Newton's step also builds its two partials and the final distance without the `.map` closures and the spread; the
+values are the same.
+
+**Tie-breaking, proved on constructed ties** (`test/r5-nearest-grid.test.mjs`, against the stable sort written as it
+was):
+- a 25 × 25 integer lattice with p on a lattice point, at a cell centre, on an edge midpoint and off the grid, so the
+  fourth place falls inside a tie of 4 or 8;
+- a grid with one point repeated 25 times (a pole's row);
+- 300 random grids on a coarse step, many of them tied, some with fewer than four points;
+- a NaN distance.
+
+Both mutations fail it: `>=` for `>` in the shift, and `<=` for `<` at the fourth.
+
+**Measured:** massProperties over the 400 fuzz documents' outputs went from 58.3 s to 51.5 s, best of 3 (load 25,
+indicative).
+
+**Checks:** type-check, lint, T2 (brep-mass-quadrature is brep core), the test names identical plus the new test, the
+R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; RB no new rows; the passing test names identical to the previous step.

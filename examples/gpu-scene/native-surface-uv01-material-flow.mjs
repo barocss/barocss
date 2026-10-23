@@ -20,11 +20,11 @@ const ordinary = resolve(output, 'ordinary-public.mjs'), emitted = resolve(pkg, 
 const bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm',
   target: 'node22', outfile: ordinary, metafile: true });
 // One explicitly internal compatibility control; no new public binding export.
-const internalOrdinary = resolve(output, 'internal-legacy-binding-source.mjs'), internalEmitted = resolve(pkg, 'dist/mesh-material.js');
-const internalBundle = await build({ entryPoints: [resolve(pkg, 'src/mesh-material.ts')], bundle: true, platform: 'node', format: 'esm',
+const internalOrdinary = resolve(output, 'internal-legacy-binding-source.mjs'), internalEmitted = resolve(pkg, 'dist/material/mesh-material.js');
+const internalBundle = await build({ entryPoints: [resolve(pkg, 'src/material/mesh-material.ts')], bundle: true, platform: 'node', format: 'esm',
   target: 'node22', outfile: internalOrdinary, metafile: true });
 const sourceGraph = Object.keys(bundle.metafile.inputs);
-assert.ok(sourceGraph.some(p => p.endsWith('/src/mesh-material.ts')));
+assert.ok(sourceGraph.some(p => p.endsWith('/src/material/mesh-material.ts')));
 assert.ok(sourceGraph.some(p => p.includes('barocss-cad/src/')), 'Actual own CAD source dependency closure is disclosed');
 assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)), 'Ordinary actual source graph');
 const hash = value => createHash('sha256').update(value).digest('hex');

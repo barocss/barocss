@@ -7562,6 +7562,111 @@ try {
     await display.click();
   });
 
+  // ---- G22 / G23 (roadmap G4): the clearance map and print layers on screen, on either renderer, the same after Save and Open ----
+  const canvasShot = async () => (await page.locator('canvas.vp-canvas').screenshot()).toString('base64');
+  const canvasDiffers = (a, b) => page.evaluate(async ([x, y]) => {
+    const load = async src => { const img = new Image(); img.src = 'data:image/png;base64,' + src; await img.decode(); const k = new OffscreenCanvas(img.width, img.height), g = k.getContext('2d'); g.drawImage(img, 0, 0); return g.getImageData(0, 0, img.width, img.height).data; };
+    const A = await load(x), B = await load(y); let n = 0;
+    for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
+    return n / (A.length / 4);
+  }, [a, b]);
+  const saveAndReopen = async (name, nodes) => {
+    const fs = await import('node:fs');
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, name); fs.writeFileSync(file, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    await openModel(file, nodes, 60000); await idle();
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  };
+
+  await check('G22 clearance: a shaft and its key (designed) and four pairs of boxes — in contact at once, then touching and overlap; near; clear; drawn on the model and gone when closed; Print layers refuses the assembly; the same after Save, New and Open', async () => {
+    // (The fixture: the default shaft and a key in its keyseat at the root, and 20 × 20 × 10 boxes placed side by side
+    // (touching), 10 mm into each other (overlap), 0.5 mm apart (near) and 0.8 mm off in x and y (clear: 1.13 mm > 1).)
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await openModel(join(root, 'test/fixtures/clearance-states.bcad'), 2, 60000); await idle(); await iso();
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const clearance = () => page.evaluate(() => { const d = window.__studioClearance?.(); return d && { request: d.request, stage: d.stage, error: d.error, pairs: d.pairs.map(p => [p.a, p.b, p.state, p.designed ?? '']), overlays: [...new Set(d.overlays.map(o => o.state))].sort() }; });
+    const ready = (after = 0) => page.waitForFunction(n => { const d = window.__studioClearance?.(); return d && d.request > n && (d.stage === 'ready' || d.stage === 'error'); }, after, { timeout: 120000 }).then(clearance);
+    const want = [['b0', 'b1', 'designed', 'key n1 in its keyseat'], ['i1/b1', 'i2/b1', 'touching', ''], ['i3/b1', 'i4/b1', 'overlap', ''], ['i5/b1', 'i6/b1', 'near', ''], ['i7/b1', 'i8/b1', 'clear', '']];
+    const before = await canvasShot();
+    await page.evaluate(() => { window.__studioClearanceLog = []; });
+    await page.check('input[aria-label="Assembly clearance"]');
+    const shown = await ready();
+    assert.equal(shown.error, undefined, shown.error);
+    assert.deepEqual(shown.pairs, want);
+    // (In contact at once — the map before the overlaps are worked out — then touching (0 mm³) and overlap (2000 mm³).)
+    const log = await page.evaluate(n => window.__studioClearanceLog.filter(e => e.request === n), shown.request);
+    assert.deepEqual(log.find(e => e.stage === 'map')?.states, ['designed', 'contact', 'contact', 'near', 'clear'], JSON.stringify(log));
+    assert.deepEqual(await page.locator('li[data-clearance-state]').evaluateAll(l => l.map(x => x.dataset.clearanceState)), ['designed', 'touching', 'overlap', 'near', 'clear']);
+    // (Drawn: the bands of the four pairs within near and the overlap's volume; nothing for the clear pair.)
+    assert.deepEqual(shown.overlays, ['designed', 'near', 'overlap', 'touching']);
+    await page.waitForTimeout(400);
+    const changed = await canvasDiffers(before, await canvasShot());
+    console.log(`  G22 (${renderer}): ${shown.pairs.map(p => p[2]).join(', ')}; ${(100 * changed).toFixed(2)} % of the canvas changed`);
+    assert.ok(changed > 0.002, `${renderer}: the clearance map changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    await snap('g22-clearance');
+    // (Print layers and the clearance map exclude each other: the assembly is refused by Print layers, and the clearance map waits.)
+    await page.check('input[aria-label="Print layers"]');
+    await page.waitForFunction(() => /Placed assemblies are not supported/.test(window.__studioPrint?.().reason ?? '') && !window.__studioClearance?.(), null, { timeout: 15000 });
+    assert.match(await page.locator('.card[aria-label="Assembly clearance"] [role="status"]').innerText(), /Close Print layers/);
+    await page.uncheck('input[aria-label="Print layers"]');
+    const back = await ready(shown.request);
+    assert.deepEqual(back.pairs, want);
+    // (Closed: the model as it was.)
+    await page.uncheck('input[aria-label="Assembly clearance"]');
+    await page.waitForFunction(() => !window.__studioClearance?.(), null, { timeout: 15000 }); await page.waitForTimeout(400);
+    const gone = await canvasDiffers(before, await canvasShot());
+    assert.ok(gone < 0.002, `${renderer}: closed, ${(100 * gone).toFixed(3)} % still changed`);
+    // (Saved, a new part, the download opened: the same pairs — nothing of the map is stored, the instances are.)
+    await page.check('input[aria-label="Assembly clearance"]');
+    const last = (await ready(back.request)).request;
+    await saveAndReopen('saved-g22-clearance.bcad', 2);
+    const reopened = await ready(last);
+    assert.deepEqual([reopened.pairs, reopened.overlays], [want, shown.overlays]);
+    await page.uncheck('input[aria-label="Assembly clearance"]'); await display.click();
+  });
+
+  await check('G23 print layers: CNC8\'s plate sliced — its layers drawn, the height set and the layer moved changing the view, printed-up-to off; the settings saved, the same layer after Save, New and Open', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle(); await iso();
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const print = () => page.evaluate(() => { const p = window.__studioPrint?.(), d = p?.display; return p && { reason: p.reason, stage: p.stage, count: d?.summary.count, k: d?.layer.k, z: d?.layer.z, top: d?.topMM, printed: d?.printed, supports: d?.supports }; });
+    const at = (q) => page.waitForFunction(([k, n]) => { const p = window.__studioPrint?.(), d = p?.display; return !p?.reason && p?.stage === 'ready' && d?.layer.k === k && (n === null || d.summary.count === n); }, q, { timeout: 60000 }).then(print);
+    const rangeTo = (v) => page.locator('[aria-label="Print layer"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
+    const before = await canvasShot();
+    await page.check('input[aria-label="Print layers"]');
+    const first = await at([0, null]);
+    assert.ok(first.count > 1 && first.printed && first.supports, JSON.stringify(first));
+    await page.waitForTimeout(400);
+    const bottom = await canvasShot(), changed = await canvasDiffers(before, bottom);
+    assert.ok(changed > 0.002, `${renderer}: print layers changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    // (The height set to 0.5 mm: fewer layers; the layer moved to the middle: another view.)
+    await page.check('input[aria-label="Set layer height"]');
+    await page.locator('input[aria-label="Print layer height (mm)"]').fill('0.5');
+    const coarse = await page.waitForFunction(n => { const d = window.__studioPrint?.()?.display; return d && d.summary.count < n; }, first.count, { timeout: 60000 }).then(print);
+    const mid = Math.floor(coarse.count / 2);
+    await rangeTo(mid);
+    const middle = await at([mid, coarse.count]);
+    assert.ok(middle.z > 0 && middle.z < middle.top, JSON.stringify(middle));
+    await page.waitForTimeout(400);
+    const moved = await canvasDiffers(bottom, await canvasShot());
+    console.log(`  G23 print (${renderer}): ${first.count} layers at 0.2 mm, ${coarse.count} at 0.5 mm; layer ${mid + 1} at ${middle.z.toFixed(3)} mm; ${(100 * changed).toFixed(2)} % changed shown, ${(100 * moved).toFixed(2)} % moved`);
+    assert.ok(moved > 0.002, `${renderer}: the layer moved changed ${(100 * moved).toFixed(3)} % of the canvas`);
+    await page.uncheck('input[aria-label="Printed up to layer"]');
+    await page.waitForFunction(() => window.__studioPrint?.()?.display?.printed === false, null, { timeout: 30000 });
+    await snap('g23-print-middle');
+    // (Saved: the layer settings are the document's; a new part, the download opened: the same layer, the same height.)
+    const saved = await saveAndReopen('saved-g23-print.bcad', 5);
+    assert.deepEqual([saved.printPreview?.layer, saved.printPreview?.layerMM, saved.printPreview?.printed], [mid, 0.5, false], JSON.stringify(saved.printPreview));
+    const reopened = await at([mid, coarse.count]);
+    assert.deepEqual([reopened.z, reopened.top, reopened.printed], [middle.z, middle.top, false]);
+    await page.uncheck('input[aria-label="Print layers"]');
+    await page.waitForFunction(() => !window.__studioPrint?.()?.display, null, { timeout: 15000 });
+    await display.click();
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');

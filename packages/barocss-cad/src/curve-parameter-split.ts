@@ -7,6 +7,7 @@ import { curveDecimal, requireCurveValue } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
 import { same as sameData } from './structural-equality.js';
+import { guardKnots } from './knot-guard.js';
 
 export interface CurveParameterSplitOptions { parameter: number; lowerCurveId: string; upperCurveId: string }
 export interface CurveSplitPoleMapping { refinedPoleIndex: number; childPoleIndex: number }
@@ -82,9 +83,6 @@ function samples(curve: Curve): number[] {
     }
   }
   return [...values].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-}
-function guardKnots(knots: number[], degree: number, min: number, max: number): number[] {
-  return [...new Set(knots)].filter(k => k > min && k < max && knots.filter(x => x === k).length >= degree);
 }
 
 function admit(input: unknown): Curve {

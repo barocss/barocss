@@ -2385,3 +2385,163 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **Not yet done**: the GPU section row still renders the App at each step (60 App renders, 32 submits; task 25.7 ms
   under load 33, LOADED). Something still sets App state per step and has to be found with the bench's setter trace.
   Until then the perf goal of (3c) is open.
+
+## G-R34 — R1c (3c), part 2: the section drag no longer renders the App (roadmap R1, 2026-10-23; R1 done)
+
+- **What still rendered the App** (after G-R33: 59–61 App renders over the 60 steps): a minimal DevTools hook in the
+  bench (BENCH_TRACE: "app hooks changed", the App fiber's hook states compared at each commit) showed two causes.
+  - **Hook 106, 33 times**: `useStoreValue`'s useSyncExternalStore, even when not subscribed. After each commit React
+    checks the snapshot again, and it renders again when the store has moved meanwhile.
+  - **Hook 114, 23 times**: the exact section's results. Each App render took the live plane, started an engine job for
+    it, and its result rendered the App again.
+- **Fixes**:
+  - `useStoreValue(store, false)` reads `store.get()` outside useSyncExternalStore: no snapshot to check, so no forced
+    render.
+  - On WebGPU the App takes the plane as the drag started (`sectionDragFrom`), not the live one. The exact section waits
+    for the release: no engine job while dragging, and none shown, since its cut would be the old plane's. The live
+    plane's clip and handles are SceneViewport's (G-R33). The release commits, and the exact section then follows.
+  - On WebGL2 (or with the CPU path forced) the App follows the live plane as before: its CPU copies are cut in each
+    frame.
+  - **The one behaviour change**: during a drag paused without letting go, the exact section no longer comes in. It
+    comes after the release.
+- **Bench** (BENCH_TRACE, load 30 → 15, LOADED):
+  - **section drag, GPU**: App 59 → 5; task 25.7 → **5.9 ms** a frame (budget 33). The GPU time a submit was 7.55 ms
+    (budget 6; 5.0–6.6 in earlier loaded runs), so the row still reads SLOW on GPU time alone. The same frames' GPU
+    work was not changed here.
+  - section drag, CPU (WebGL2's path): App renders each step, as designed.
+  - pose (App 3, 4.0 ms), explode (App 1, 8.7 ms) and pick (47 ms) as before.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 267/267.
+  - FLOW_ONLY on both renderers (load 11–16), all pass: 73 (its G-R33 checks: no undo entry, the document unchanged,
+    the handle following and committed), G19.2–G19.5, G20.2, RM2, K2 notches and G3.
+- **R1 done.** Its rows against where they started (all LOADED, so compare only):
+  - pick 129 → 47 ms;
+  - ghosted orbits 19.6 → 2.7 ms;
+  - pose 23.4 → 4.0 ms;
+  - explode 27.8 → 8.7 ms;
+  - section drag 30.8 → 5.9 ms;
+  - one Viewport render per orbit, not one a frame.
+
+## G-R35 — R2b: one display-policy module for both studio renderers (roadmap R2, 2026-10-23)
+
+- **A user-visible change named (from G-R34)**: on WebGPU, while a section plane is dragged, the GPU's clip follows
+  the plane live, and the exact section comes in after the release (before G-R34 it could also come in during a pause
+  in the drag). The coordinator accepted it.
+- **What** (`viewport/displayPolicy.ts`), what both renderers had as their own copies, with the same values:
+  - the display modes' factors: x-ray 0.25, faded 0.15, ghost 0.35, edges 0.9, hidden lines dashed at 0.55 with a
+    [6, 4] dash, the hatch at 0.55, threads at 0.55;
+  - the accent and a selection's share of it (0.42);
+  - the themes' shared colours (`PALETTE`: background, grid, base, edge). Each renderer keeps what is tuned for it:
+    its ambient, grid opacity, shadow and AO.
+  - `faceStateOf` / `edgeStateOf`: a body's hovered (1) and selected (2) faces and edges from the view state. These
+    were line-for-line the same in both.
+- **Left as they are**: numbers that only look the same.
+  - The proposal overlay's 0.35 is its hidden share, not a ghost.
+  - WebGL2's shader mixes 0.22 for a hovered body and 0.55 for its uBodySel hover; WebGPU's hover face is 0.2.
+  - The ground's 0.55 under a render setting.
+  - The lights' directions.
+- **Checks**:
+  - gpu unit 189/189 (cad-gpu-display-contract bundles gpuRenderer); studio tsc 0 (after the merge), eslint 0, unit
+    268/268.
+  - FLOW_ONLY on both renderers (load 19–40), passing: G3 display modes, the G19.3 hatch, section 73, proposals (ghost
+    and before/after), hole types, the selection filter, an instance placed, 258 and K2 L gap.
+  - Not passing: **81** (a countersunk screw inserted as its own part) fails on both renderers, and the same way at
+    f18177709 before this change, so it is not this change. Handed to the coordinator. It may follow the built-in
+    tables becoming person-loaded sample rows.
+
+## G-R36 — R2c: viewer.ts and shaders.ts split behind their facades (roadmap R2, 2026-10-23)
+
+- **shaders.ts** (918 lines) is now `viewer/shaders/` by program: common (the uniform blocks' sizes and the WGSL every
+  program starts with), surface, line, point, label, oit, grid, pick, output and mip. `shaders.ts` is the facade with
+  its exports as they were; `common` itself stays internal, as it was.
+  - **Checked**: the old and the new module, each bundled, export the same 19 names. All 29 values are identical,
+    strings byte for byte, the program functions called with each kind of argument: custom surface shaders, the
+    capSamples and multisampled variants.
+- **viewer.ts** (2 311 lines → 1 921) gives `viewer/scene.ts` (410) its scene objects as they were: ViewerError, the
+  material, texture, mesh, clip-plane, colour-map and instances options, ImageTexture, packColorMap, the instances'
+  packing, Geometry, Mesh, the cap hatch and the material normaliser.
+  - Mesh's scratch moved with it: the object block's normal matrix and its words.
+  - `viewer.ts` imports them and exports the same public names as before. The viewer's own internal helpers
+    (`packInstances`, `INSTANCE_STRIDE`, `hatchOf`, `materialOf`) are exported from scene.ts as @internal only, not
+    from the facade.
+  - The two classes reached each other only through public members, so nothing about access changed.
+- **Tests' file servers**: four browser specs served `dist/viewer/*.js` from the top folder only, and
+  `dist/viewer/shaders/*` was refused. They now walk subfolders. The examples read the kernel's dist or walk already.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, build, unit 189/189. Browser specs, one file each, all pass: viewer, scene-viewer,
+    pose-clip 18/18, cap-aa 3/3, contour, uv-repeating, compute-thickness, compute-access.
+  - studio: tsc 0, unit 268/268.
+  - FLOW_ONLY on WebGPU, all pass: 73, G19.4, G3, G24, 258, RM2, K2 L gap, the palette.
+
+## G-R37 — R2d: the gpu package's top-level files into folders (roadmap R2, 2026-10-23; R2 done)
+
+- **What**: 96 files moved with `git mv`, their basenames unchanged and unique; `index.ts`, `viewer/` and `compute/` as
+  they were.
+  - scene 15, boolean 4, geometry 21, mesh 17, native/lights 8, native/uv01 7, engine 13, material 9 (the
+    engine-uv-* and mesh-material files among them), core 2 (gpu-error, rotation).
+  - Every relative import in src was rewritten from the file's new place to its target's.
+- **What else followed, in the same commit**:
+  - The gpu tests' deep dist imports (gpu-compiler, material-colour-f32, mesh-packet) and the esbuild entries in
+    native-point-light-program-wgsl.
+  - 52 examples/gpu-scene flows: their deep imports, the `src/<file>.ts` receipts and the bundle-graph assertions
+    (`endsWith('/src/<file>.ts')`). Lines reading a pinned commit (`gitFile(…)`, `commit:`) were left on their old
+    paths.
+- **Not edited** (the coordinator's rule): any profile, evidence or ledger JSON, and the physics examples' evidence
+  bundle (`native-freeze/source-bundle.js`).
+  - The library-docs builders read gpu sources through git at each profile's pinned sourceCommit, so they keep
+    resolving. **The docs profiles pick up the new paths only when the docs owner next re-pins them.**
+- **Nothing live left on the old paths**: outside packages/barocss-gpu, apart from index and viewer/index, JSON and
+  evidence, the only `barocss-gpu/(src|dist)/` paths left are:
+  - prose in the handover notes;
+  - the studio tests' imports of `src/viewer/*` (not moved);
+  - `.github/scripts/affected-ci.test.mjs`' template `src/${name}.ts` (a synthetic path);
+  - pinned reads (`engine-uv-texture-material-flow`'s `gitFile`);
+  - the negative assertions that the graph does not include dist.
+- **Checks**:
+  - gpu: build, tsc 0, eslint 0, unit 189/189. Browser specs, one file each (load 19–27), all pass: viewer,
+    scene-viewer, pose-clip 18/18, cap-aa 3/3, contour, uv-repeating, compute-thickness, compute-access.
+  - The library-docs scripts without a pin: cad-impact-map.test.mjs 7/7; check-viewer-authored-directional-lights
+    passes.
+  - studio: tsc 0, unit 268/268. FLOW_ONLY on WebGPU: 73 and G3 pass.
+  - The examples/gpu-scene flows tried (material-scalar-abs, engine-scene, native-surface-uv01-frame,
+    triangle-geometry, scene-generated, material-smoothstep, engine-uv-texture-material-wgsl) fail, and fail the same
+    way at d50c2fe82, before the move. Some cannot find the kernel's `src/types.js`; others assert a git-diff file list
+    against an old base. Not this move: noted for the kernel lane and the examples' owner.
+- **R2 done**: per-frame allocations (R2a), the display-policy module (R2b), the viewer/shaders split (R2c) and these
+  folders.
+
+## G-R38 — G4: the clearance map and print layers as flow steps on both renderers (roadmap G4, 2026-10-23)
+
+- **No WebGL2 limit here.** Both studio renderers already draw the clearance overlays (`setClearanceDisplay`) and the
+  print layers (`setPrintDisplay`), so neither needs a disabled button with a reason, unlike G6.
+- **Fixture** `test/fixtures/clearance-states.bcad` (generated once from the model's own commands, not agent rows):
+  - At the root: the default shaft and a key in its keyseat, a designed pair ("key n1 in its keyseat").
+  - Placed 20 × 20 × 10 boxes:
+    - side by side: touching;
+    - 10 mm into each other: an overlap of 2000 mm³;
+    - 0.5 mm apart: near;
+    - 0.8 mm off in both x and y: clear, at a gap of 1.13 mm against near = 1 mm.
+- **DEV hook** `__studioClearanceLog`: records each display the worker sends, with its stage and the raw and shown pair
+  states. It lives in useClearanceAnalysis's onmessage, not in a render, because a render can batch two messages. The
+  flow reads the `map` stage from it to see the contact state, before the overlaps are worked out. The log is capped at
+  200 entries and is DEV only.
+- **Flow step 273, G22 clearance** checks:
+  - The pairs at `ready`: designed, touching, overlap, near, clear.
+  - The `map` stage before them: designed, contact, contact, near, clear.
+  - The panel's `li[data-clearance-state]`.
+  - Overlays for designed, near, overlap and touching, and none for clear.
+  - The canvas changes, then returns once closed (< 0.2 %).
+  - With Print layers checked, the assembly is refused there and the clearance panel says "Close Print layers"; after
+    it closes, the same pairs.
+  - Save → New → Open gives the same pairs and overlays.
+- **Flow step 274, G23 print layers**, on CNC8's plate:
+  - 100 layers at the estimated 0.2 mm.
+  - Height set to 0.5 mm: 40 layers.
+  - Layer moved to 21, at bed Z 10.25 mm: the view changes.
+  - "Printed up to layer" turned off.
+  - The saved file holds `printPreview` { layer 20, layerMM 0.5, printed false }. Reopened: the same layer, the same Z,
+    the same top.
+- **Runs** (FLOW_ONLY `^G22 clearance|^G23 print layers`): both steps pass on both renderers, first run.
+  - WebGPU: 2.03 % of the canvas changed for the map; print 11.73 % shown, 5.60 % moved.
+  - WebGL2: 2.12 %; print 12.39 % shown, 5.65 % moved.
+  - studio tsc 0, eslint 0 on the changed source.

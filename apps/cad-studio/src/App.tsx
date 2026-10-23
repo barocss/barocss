@@ -449,21 +449,23 @@ export function App() {
   // as before: its CPU copies are cut again in each frame. The release commits it.
   const [committedSection, setCommittedSection] = useState<Section | null>(null);
   const sectionLive = useMemo(() => createValueStore<Section | null>(null), []);
-  const liveSection = useStoreValue(sectionLive, !!committedSection && (viewBackend !== 'webgpu' || sectionDebug.cpu));
-  const section = liveSection ?? committedSection;
+  const cpuSectionPath = viewBackend !== 'webgpu' || sectionDebug.cpu;
+  const liveSection = useStoreValue(sectionLive, !!committedSection && cpuSectionPath);
+  // (On WebGPU the App takes the plane as the drag started — its exact section waits for the release; R1c (3c).)
+  const [sectionDragFrom, setSectionDragFrom] = useState<Section | null>(null);
+  const section = cpuSectionPath ? liveSection ?? committedSection : sectionDragFrom ?? committedSection;
   const committedSectionRef = useRef(committedSection); committedSectionRef.current = committedSection;
-  const [, setSectionDragging] = useState(false);
   /** A section set (the toggle, the bar, a face, the hooks): committed, a drag's plane with it. */
   const setSection = useCallback((next: Section | null | ((s: Section | null) => Section | null)) => {
     const base = sectionLive.get();
     setCommittedSection(prev => typeof next === 'function' ? next(base ?? prev) : next);
-    sectionLive.set(null); setSectionDragging(false);
+    sectionLive.set(null); setSectionDragFrom(null);
   }, [sectionLive]);
   /** A section handle dragged: its plane into the store at each step, the App told once as it starts; the release commits. */
   const dragSection = useCallback((f: (s: Section | null) => Section | null, done: boolean) => {
     const was = sectionLive.get(), next = f(was ?? committedSectionRef.current);
     if (done) { setSection(() => next); return; }
-    if (!was) setSectionDragging(true);
+    if (!was) setSectionDragFrom(next);
     sectionLive.set(next);
   }, [sectionLive, setSection]);
   const [sectionFacePick, setSectionFacePick] = useState<number | null>(null);
@@ -554,6 +556,7 @@ export function App() {
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
     if (!section) { setSectionExact(null); return; }
+    if (sectionDragFrom) return;
     let live = true; const key = JSON.stringify(section);
     // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
     const { doc, kept, from } = sectionSplits(evaluated, bodies, section);
@@ -562,7 +565,7 @@ export function App() {
     run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) { const x = exactBodies(r.bodies, kept, from); setSectionExact({ key, source: evaluated, sourceBodies: bodies, bodies: x.bodies, from: x.from }); } };
     if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
     return () => { live = false; };
-  }, [section, bodies, evaluated, engine]);
+  }, [section, bodies, evaluated, engine, sectionDragFrom]);
   // At once (while the plane is dragged, until the exact section arrives): on WebGPU the bodies whole, cut and capped by
   // the viewer's clip plane (G2); on WebGL2 the meshes clipped and capped on the CPU.
   const gpuSection = viewport.current?.backend === 'webgpu' && !sectionDebug.cpu;
@@ -571,7 +574,7 @@ export function App() {
     // (The section's first split is the next feature: its cut faces are named after the next id, engine/ids.ts.)
     return sectionedBodies(bodies, section, gpuSection, `n${nextSerial(evaluated)}.cut`);
   }, [section, bodies, evaluated, gpuSection]);
-  const sectionExactShown = !!section && sectionExact?.key === JSON.stringify(section) && sectionExact.source === evaluated && sectionExact.sourceBodies === bodies && !sectionDebug.hold;
+  const sectionExactShown = !!section && !sectionDragFrom && sectionExact?.key === JSON.stringify(section) && sectionExact.source === evaluated && sectionExact.sourceBodies === bodies && !sectionDebug.hold;
   const sectionBodies = section ? (sectionExactShown ? sectionExact!.bodies : sectionClipped) : null;
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 

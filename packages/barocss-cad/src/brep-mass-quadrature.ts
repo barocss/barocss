@@ -16,6 +16,7 @@ import type { Curve, Point, Surface } from './types.js';
 import { facetIntegrals } from './facet-patch.js';
 import type { FacetPatch } from './types.js';
 import { cross, dot, sub } from './vec3.js';
+import { gauss } from './quadrature.js';
 
 type XY = readonly [number, number];
 /** Dunavant's degree-8 rule on the unit triangle (16 points): barycentric (a, b, c) and weight (sum 1). */
@@ -44,6 +45,31 @@ function accumulate(I: number[], p: Point, n: Point, w: number) {
 }
 const normal: Point = [0, 0, 0];
 
+/**
+ * The indices of the (at most) four grid points nearest p, nearest first, into `out`; their count. Equal distances
+ * keep the grid's order, as a stable sort of all of them by squared distance would (R5.2, D216: the sort it replaces).
+ * A distance that is not a number takes that sort's own path.
+ */
+export function nearestGridPoints(grid: readonly { readonly p: Point }[], p: Point, out: number[]): number {
+  let n = 0;
+  for (let i = 0; i < grid.length; i++) {
+    const g = grid[i].p, dx = g[0] - p[0], dy = g[1] - p[1], dz = g[2] - p[2], d = dx * dx + dy * dy + dz * dz;
+    if (d !== d) return sortedNearest(grid, p, out);
+    if (n === 4 && !(d < dist4(grid, p, out[3]))) continue;
+    // (After every kept one at the same or a smaller distance: a stable sort's order.)
+    let k = n < 4 ? n : 3;
+    while (k > 0 && dist4(grid, p, out[k - 1]) > d) { if (k < 4) out[k] = out[k - 1]; k--; }
+    out[k] = i; if (n < 4) n++;
+  }
+  return n;
+}
+const dist4 = (grid: readonly { readonly p: Point }[], p: Point, i: number) => { const g = grid[i].p, dx = g[0] - p[0], dy = g[1] - p[1], dz = g[2] - p[2]; return dx * dx + dy * dy + dz * dz; };
+function sortedNearest(grid: readonly { readonly p: Point }[], p: Point, out: number[]): number {
+  const near = grid.map((g, i) => ({ i, d: dot(sub(g.p, p), sub(g.p, p)) })).sort((x, y) => x.d - y.d).slice(0, 4);
+  near.forEach((x, k) => { out[k] = x.i; });
+  return near.length;
+}
+
 /** Newton's closest point on a surface, from the nearest of a coarse grid or a hint (null when off the surface). */
 function inverter(S: Surface) {
   const at = surfaceEvaluator(S), { u: U, v: V } = surfaceDomain(S), N = 24, grid: { a: number; b: number; p: Point }[] = [];
@@ -52,38 +78,28 @@ function inverter(S: Surface) {
   const newton = (a: number, b: number, p: Point): [number, number, number] => {
     for (let it = 0; it < 30; it++) {
       const ha = 1e-7 * (U[1] - U[0]), hb = 1e-7 * (V[1] - V[0]), ia = a + ha <= U[1] ? ha : -ha, ib = b + hb <= V[1] ? hb : -hb;
-      const q = at(a, b), Su = sub(at(a + ia, b), q).map(c => c / ia) as Point, Sv = sub(at(a, b + ib), q).map(c => c / ib) as Point, r = sub(p, q);
+      const q = at(a, b), eu = sub(at(a + ia, b), q), ev = sub(at(a, b + ib), q), Su: Point = [eu[0] / ia, eu[1] / ia, eu[2] / ia], Sv: Point = [ev[0] / ib, ev[1] / ib, ev[2] / ib], r = sub(p, q);
       const g11 = dot(Su, Su), g12 = dot(Su, Sv), g22 = dot(Sv, Sv), det = g11 * g22 - g12 * g12;
       if (!(Math.abs(det) > 1e-300)) break;
       const da = (dot(r, Su) * g22 - dot(r, Sv) * g12) / det, db = (g11 * dot(r, Sv) - g12 * dot(r, Su)) / det;
       a = clamp(a + da, U); b = clamp(b + db, V);
       if (Math.abs(da) < 1e-14 * (U[1] - U[0]) && Math.abs(db) < 1e-14 * (V[1] - V[0])) break;
     }
-    return [a, b, Math.hypot(...sub(at(a, b), p))];
+    const e = sub(at(a, b), p);
+    return [a, b, Math.hypot(e[0], e[1], e[2])];
   };
+  const near = [0, 0, 0, 0];
   return (p: Point, hint: XY | null): XY | null => {
     let best: [number, number, number] = hint ? newton(hint[0], hint[1], p) : [0, 0, Infinity];
     if (best[2] > 1e-9 * size) {
-      const near = grid.map(g => ({ g, d: dot(sub(g.p, p), sub(g.p, p)) })).sort((x, y) => x.d - y.d).slice(0, 4);
-      for (const { g } of near) { const r = newton(g.a, g.b, p); if (r[2] < best[2]) best = r; if (best[2] <= 1e-9 * size) break; }
+      const n = nearestGridPoints(grid, p, near);
+      for (let k = 0; k < n; k++) { const g = grid[near[k]], r = newton(g.a, g.b, p); if (r[2] < best[2]) best = r; if (best[2] <= 1e-9 * size) break; }
     }
     return best[2] <= 1e-6 * size ? [best[0], best[1]] : null;
   };
 }
 
 /** Gauss–Legendre on [0, 1]: 4 points (exact to degree 7) and 12 points (along curves, per knot span). */
-const gauss = (n: number): { x: number[]; w: number[] } => {
-  const x: number[] = [], w: number[] = [];
-  for (let i = 1; i <= n; i++) {
-    let t = Math.cos(Math.PI * (i - 0.25) / (n + 0.5)), d = 0;
-    for (let it = 0; it < 100; it++) {
-      let p0 = 1, p1 = t; for (let k = 2; k <= n; k++) { const p2 = ((2 * k - 1) * t * p1 - (k - 1) * p0) / k; p0 = p1; p1 = p2; }
-      d = n * (t * p1 - p0) / (t * t - 1); const dt = p1 / d; t -= dt; if (Math.abs(dt) < 1e-16) break;
-    }
-    x.push((1 - t) / 2); w.push(1 / ((1 - t * t) * d * d));
-  }
-  return { x, w };
-};
 const G4 = gauss(4), G12 = gauss(12), rules = new Map<number, { x: number[]; w: number[] }>();
 const gaussOf = (n: number) => { let r = rules.get(n); if (!r) rules.set(n, r = gauss(n)); return r; };
 

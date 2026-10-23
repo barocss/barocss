@@ -4,6 +4,7 @@ import { curveDecimal, requireCurveValue } from './curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same as sameData } from './structural-equality.js';
+import { guardKnots } from './knot-guard.js';
 
 export interface CompatibleRuledSurfaceOptions { surfaceId: string }
 export interface CompatibleRuledSurfaceConstruction {
@@ -68,9 +69,6 @@ function samples(curve: Curve): number[] {
     }
   }
   return [...values].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-}
-function guardKnots(knots: number[], degree: number, min: number, max: number): number[] {
-  return [...new Set(knots)].filter(k => k > min && k < max && knots.filter(x => x === k).length >= degree);
 }
 function admitCurve(input: unknown): Curve {
   const data = record(input, ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights']);

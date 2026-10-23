@@ -6,6 +6,7 @@ import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCur
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same as sameData } from './structural-equality.js';
+import { guardKnots } from './knot-guard.js';
 
 export interface ZAxisRevolvedSurfaceOptions { surfaceId: string }
 export interface ZAxisRevolvedSurfaceConstruction {
@@ -73,9 +74,6 @@ function samples(curve: Curve): number[] {
     }
   }
   return [...values].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-}
-function guardKnots(knots: number[], degree: number, min: number, max: number): number[] {
-  return [...new Set(knots)].filter(k => k > min && k < max && knots.filter(x => x === k).length >= degree);
 }
 /** Full global +Z revolution from actual original meridian and circle bases. */
 export function buildZAxisRevolvedSurface(meridianInput: Curve, options: ZAxisRevolvedSurfaceOptions): ZAxisRevolvedSurfaceResult {

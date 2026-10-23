@@ -500,11 +500,6 @@ export function booleanCurveRegions(a: readonly (readonly CurveSegment2[])[], b:
   return outers.map(o => ({ outer: o.outer, holes: o.holes }));
 }
 
-// Gauss–Legendre nodes / weights on [0, 1] (8 points: exact for polynomials of degree ≤ 15).
-const GL = (() => {
-  const x = [0.1834346424956498, 0.5255324099163290, 0.7966664774136267, 0.9602898564975363], w = [0.3626837833783620, 0.3137066458778873, 0.2223810344533745, 0.1012285362903763];
-  return [...x.map((v, i) => [(1 - v) / 2, w[i] / 2]), ...x.map((v, i) => [(1 + v) / 2, w[i] / 2])] as [number, number][];
-})();
 /**
  * Area moments of a region by Green's theorem: [∫dA, ∫x, ∫y, ∫x², ∫y², ∫xy]. Lines are integrated
  * exactly; arcs by Gauss–Legendre on pieces of at most 1/16 turn (error far below binary64 rounding).
@@ -516,10 +511,10 @@ export function regionMoments(region: CurveRegion2): [number, number, number, nu
     m[3] += w * x * x * x * dy / 3; m[4] -= w * y * y * y * dx / 3; m[5] += w * x * x * y * dy / 2;
   };
   for (const ring of [region.outer, ...region.holes]) for (const s of ring) {
-    if (s.kind === 'line') { const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1]; for (const [u, w] of GL) add(s.a[0] + dx * u, s.a[1] + dy * u, dx, dy, w); continue; }
-    if (s.kind === 'curve') { for (let k = 0; k < 16; k++) for (const [u, w] of GL) { const x = (k + u) / 16, p = segAt(s, x), a = segAt(s, Math.max(0, x - 1e-6)), b = segAt(s, Math.min(1, x + 1e-6)), du = Math.min(1, x + 1e-6) - Math.max(0, x - 1e-6); add(p[0], p[1], (b[0] - a[0]) / du / 16, (b[1] - a[1]) / du / 16, w); } continue; }
+    if (s.kind === 'line') { const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1]; for (const [u, w] of GL8) add(s.a[0] + dx * u, s.a[1] + dy * u, dx, dy, w); continue; }
+    if (s.kind === 'curve') { for (let k = 0; k < 16; k++) for (const [u, w] of GL8) { const x = (k + u) / 16, p = segAt(s, x), a = segAt(s, Math.max(0, x - 1e-6)), b = segAt(s, Math.min(1, x + 1e-6)), du = Math.min(1, x + 1e-6) - Math.max(0, x - 1e-6); add(p[0], p[1], (b[0] - a[0]) / du / 16, (b[1] - a[1]) / du / 16, w); } continue; }
     const pieces = Math.max(1, Math.ceil(Math.abs(s.sweep) / (Math.PI / 8)));
-    for (let k = 0; k < pieces; k++) for (const [u, w] of GL) {
+    for (let k = 0; k < pieces; k++) for (const [u, w] of GL8) {
       const t = s.t0 + s.sweep * (k + u) / pieces, dt = s.sweep / pieces;
       add(s.c[0] + s.r * Math.cos(t), s.c[1] + s.r * Math.sin(t), -s.r * Math.sin(t) * dt, s.r * Math.cos(t) * dt, w);
     }

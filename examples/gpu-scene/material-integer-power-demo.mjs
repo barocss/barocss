@@ -12,7 +12,7 @@ const pkg=resolve(repo,'packages/barocss-gpu'),manifest=JSON.parse(await readFil
 assert.equal(published.import,'./dist/index.js');assert.equal(published.types,'./dist/index.d.ts');
 const ordinary=resolve(output,'ordinary-source.mjs');
 const bundled=await build({entryPoints:[resolve(pkg,manifest.exports['.'].import)],bundle:true,format:'esm',platform:'node',target:'node22',outfile:ordinary,metafile:true});
-const graph=Object.keys(bundled.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/mesh-material.ts')));assert(!graph.some(p=>/barocss-(gpu|cad)\/dist\//.test(p)));
+const graph=Object.keys(bundled.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/material/mesh-material.ts')));assert(!graph.some(p=>/barocss-(gpu|cad)\/dist\//.test(p)));
 const hash=x=>createHash('sha256').update(x).digest('hex');
 async function receipt(path){const bytes=await readFile(path);return{path,bytes:bytes.length,sha256:hash(bytes)};}
 const header='@uniform strength:float(0,1,.5);';
@@ -69,6 +69,6 @@ for(const[provider,gpu]of providers){
  const accessor={...previous.material};Object.defineProperty(accessor,'source',{enumerable:true,get(){getters++;return previous.source;}});assert.throws(()=>gpu.validateMeshMaterialIR(accessor),e=>e.code==='INPUT');assert.equal(getters,0);refused++;
  assert.deepEqual(await readFile(previous.ir),previous.bytes);
 }
-const report={issue:1164,actualGL:false,accepted,refused,getters,exports:Object.keys(providers[0][1]).length,graph,source:await receipt(resolve(pkg,'src/mesh-material.ts')),declarations:await receipt(resolve(pkg,published.types)),ordinary:await receipt(ordinary),emitted:await receipt(resolve(pkg,published.import)),results};
+const report={issue:1164,actualGL:false,accepted,refused,getters,exports:Object.keys(providers[0][1]).length,graph,source:await receipt(resolve(pkg,'src/material/mesh-material.ts')),declarations:await receipt(resolve(pkg,published.types)),ordinary:await receipt(ordinary),emitted:await receipt(resolve(pkg,published.import)),results};
 assert.equal(report.declarations.sha256,'1a053e26308500aada122107823add113842a9ab0e4ba28ada51c65bf1012944','Existing declarations unchanged');
 await writeFile(resolve(output,'actual-result.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({issue:1164,accepted,refused,getters,exports:report.exports,actualGL:false}));

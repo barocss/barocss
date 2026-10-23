@@ -20,7 +20,7 @@ const ordinary = resolve(output, 'ordinary-source.mjs');
 const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
-assert(graph.some(p => p.endsWith('/src/engine-transform-clip.ts')));
+assert(graph.some(p => p.endsWith('/src/engine/engine-transform-clip.ts')));
 assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const hash = v => createHash('sha256').update(v).digest('hex');
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
@@ -260,7 +260,7 @@ for (const [name, gpu] of providers) {
 assert.equal(results[0].finalSampleSHA256, results[1].finalSampleSHA256);
 const report = { issue: 1274, stage: 'CPU-original-atomic-local-TRS-file', accepted, refused, getters,
   proxyReflections, oversizeOwnKeys, actualGL: false, sourceGraph: graph,
-  source: await receipt(resolve(pkg, 'src/engine-transform-clip.ts')), declarations: await receipt(declarationPath),
+  source: await receipt(resolve(pkg, 'src/engine/engine-transform-clip.ts')), declarations: await receipt(declarationPath),
   ordinary: await receipt(ordinary), emitted: await receipt(resolve(pkg, published.import)), results,
   support: 'One original and one complete selected-frame scene admission. Original scene0/complete TRS clip0/request0, caller seconds, componentwise linear translation and positive scale, shortest-path quaternion nlerp. Literal endpoints retain coefficients/sign bits; originals and derived buffers stay separate. Atomic valid frame despite real invalid single-channel intermediates, independent interior normal/ray/UV and cold original files. No timer, global interval certificate, blending, slerp, renderer/pixels, native source rewrite, performance or publication claim.' };
 const resultFile = resolve(output, 'actual-result.json');
