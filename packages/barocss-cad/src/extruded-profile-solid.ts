@@ -1,6 +1,7 @@
 import type { Curve, Point, Surface } from './types.js';
 import { evaluateCurve, evaluateSurface } from './math.js';
 import { encodeBinaryStl } from './stl.js';
+import { dist as d3 } from './vec3.js';
 
 // Extruded profile solids: a closed XY loop of lines and circular arcs, swept straight along +Z.
 // Geometry is binary64 with explicit tolerances (not exact rationals); arcs are exact rational
@@ -367,7 +368,6 @@ export function exportExtrudedProfileSolidStl(solid: ExtrudedProfileSolidResult,
   return encodeBinaryStl(mesh.positionsMM, mesh.indices, `barocss extruded profile ${solid.id}`);
 }
 
-const d3 = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 function deepFreeze<T>(value: T): T {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) { Object.freeze(value); for (const v of Object.values(value as object)) deepFreeze(v); }
   return value;

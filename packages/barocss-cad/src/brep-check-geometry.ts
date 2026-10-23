@@ -5,7 +5,7 @@
 import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
 import type { Brep, BrepFace } from './brep-core.js';
 import type { Point, Surface } from './types.js';
-import { add, cross, dot, sub, unit } from './vec3.js';
+import { add, cross, dist, dot, sub, unit } from './vec3.js';
 
 /** Every polyline edge vertex of a facet face is one of its patch's vertices (exactly). */
 function facetEdgesOnPatch(face: BrepFace, P: Float64Array, maps: Maps, add: (kind: string, detail: string) => void): void {
@@ -289,6 +289,5 @@ function meet(a: XY, b: XY, c: XY, d: XY): boolean {
   return on(a, b, c, o1) || on(a, b, d, o2) || on(c, d, a, o3) || on(c, d, b, o4);
 }
 const polygonArea = (r: readonly XY[]) => { let s = 0; for (let i = 0; i < r.length; i++) { const a = r[i], b = r[(i + 1) % r.length]; s += a[0] * b[1] - b[0] * a[1]; } return s / 2; };
-const dist = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const dist2 = (a: readonly number[], b: readonly number[]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
 const dist2d = (a: XY, b: XY) => Math.hypot(a[0] - b[0], a[1] - b[1]);

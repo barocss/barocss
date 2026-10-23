@@ -11991,3 +11991,24 @@ case and fuzz seeds 20261023/20261024 × 200): before (D206, 0845714bb) and afte
 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical. T2: kernel suite (the known
 Node-version demo test only), RB, fuzz on both seeds (INVALID 0, WRONG 0, refusals unchanged), cad-model 976/976,
 studio 266/266; the passing test names identical to D206's run (B9's timing test, failed there under load, passes).
+
+## D213 — R5.1b: `|a − b|` is `vec3.dist` (2026-10-23)
+
+**What.** `vec3.ts` gains `dist(a, b) = Math.hypot(a[0] − b[0], a[1] − b[1], a[2] − b[2])`. The five identical module
+copies import it:
+- brep-check-geometry and fit-plain, `dist`;
+- sew-solid, `dist`;
+- brep-core, `distance`;
+- extruded-profile-solid, `d3`.
+
+vec3 is not exported from index, so the public surface is unchanged.
+
+**Left as they are:**
+- the 2D distances;
+- squared distances;
+- `hypot(...a.map(...))` forms;
+- the checked (`finite`-wrapped) copies.
+
+**Checks:** type-check, lint, T2 (brep-core), the test names identical to the last run, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D212's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 976/976, studio 266/266; test names identical.

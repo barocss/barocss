@@ -10,4 +10,6 @@ export const cross = (a: V, b: V): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b
 export const len = (a: V) => Math.hypot(a[0], a[1], a[2]);
 /** a / |a| (a zero vector stays zero). */
 export const unit = (a: V): Point => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+/** |a − b|. */
+export const dist = (a: V, b: V) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 export const lerp = (a: V, b: V, t: number): Point => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];

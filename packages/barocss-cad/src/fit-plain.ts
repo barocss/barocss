@@ -7,6 +7,7 @@
 // UNCERTIFIED: these produce no report and no certificate — no basis matrix, pivots or through-point observations, no
 // bounds on size or count beyond what the arithmetic needs. Documents that need those take the certified path,
 // `buildInterpolatingCurve` / `buildInterpolatingSurface`, which these equal to rounding where both apply (D146).
+import { dist } from './vec3.js';
 
 export type PlainPoint = [number, number, number];
 export interface PlainFitCurve { degree: number; knots: number[]; points: PlainPoint[]; weights: number[] }
@@ -31,7 +32,6 @@ export function plainFindSpan(n: number, p: number, u: number, U: readonly numbe
   while (u < U[mid] || u >= U[mid + 1]) { if (u < U[mid]) hi = mid; else lo = mid; mid = (lo + hi) >> 1; }
   return mid;
 }
-const dist = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 /** Chord-length parameters of points in [0, 1] (equal spacing when they all coincide). */
 export function chordParameters(points: readonly (readonly number[])[]): number[] {
   const d: number[] = []; for (let k = 1; k < points.length; k++) d.push(dist(points[k], points[k - 1]));
