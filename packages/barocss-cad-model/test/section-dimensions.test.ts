@@ -127,16 +127,49 @@ test('X3: DIM_ON_HIDDEN on d − t1 carries add-section B–B square to the top 
   assert.ok(fixes.length && fixes.every(f => f?.kind === 'auto-dimension'), JSON.stringify(fixes));
 });
 
-test('X3: a keyway on a tilted bore — its axis along none of X, Y, Z — is said with no section offered', () => {
+// O178 (O6): the X3 case once said "an aligned section is not drawn yet". A keyway in a bore tilted 30° about X now gets an
+// aligned section, the plane square to the bore's axis through the keyway's middle: offered as the fix, cut by the
+// kernel's split along that normal, its cut faces hatched, seen along the axis, its cutting plane edge-on in the right
+// view (whose depth, X, is square to the axis), and kept the same through Save and Open.
+test('O178: a keyway on a tilted bore — an aligned section square to its axis is the fix; cut, hatched and seen along it; its cutting plane in the right view', () => {
   let doc = cmd('tube').build!(blank, { ...cmd('tube').defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 0 });
   doc = run(doc, 'rotate', { bodies: [doc.nodes.length - 1] }, { axis: 'x', angle: 30, px: 0, py: 0, pz: 0 });
   const bodies = evaluated(doc), bore = bodies.flatMap(b => b.mesh.faces.map(f => f.name)).find(n => /hole0\.side0$/.test(n))!;
   doc = run(doc, 'keyway', { face: bore }, { b: 6, t2: 2.8 });
   const i = inputs(doc), ctx = issueContext(i), way = (i.elements ?? []).find(e => e.element.kind === 'keyway');
-  assert.ok(way, 'the keyway element');
+  assert.ok(way && way.element.kind === 'keyway', 'the keyway element');
   const ends = i.views.front.edges.filter(e => e.ends && e.name.includes(`${way.id}.keyway`)).flatMap(e => e.ends!.map(p => ({ edge: e.name, at: 'end' as const, near: [p[0], p[1], p[2]] as [number, number, number] })));
   const r = sectionFor(ctx, { id: 'x', view: 'front', kind: 'linear', a: ends[0], b: ends[1], orient: 'aligned', place: [0, 0] });
-  assert.ok(r && !r.fix && /its axis runs along none of X, Y and Z, so no principal section shows it/.test(r.text), JSON.stringify(r));
+  assert.ok(r?.fix?.kind === 'add-section' && r.fix.dir, JSON.stringify(r));
+  const fix = r.fix as Extract<NonNullable<typeof r.fix>, { kind: 'add-section' }>;
+  // (The axis: the tube's Z turned 30° about X, (0, −sin 30°, cos 30°); nearest the top view's depth (−Z down), so seen as the top's, its normal on that side.)
+  const axis = way.element.report.axis, n = Math.hypot(...axis), u = axis.map(x => x / n);
+  assert.equal(fix.view, 'top');
+  assert.ok(Math.abs(Math.abs(fix.dir![0] * u[0] + fix.dir![1] * u[1] + fix.dir![2] * u[2]) - 1) < 1e-6 && fix.dir![2] < 0, JSON.stringify(fix.dir));
+  const settings = applyFix(ctx, fix), cutIn = inputs(doc, settings), c = cutIn.sections?.find(x => x.id === fix.id);
+  assert.ok(c, 'the aligned section cut');
+  assert.ok(c.rings.length >= 2, `its cut faces' rings: ${c.rings.length}`);
+  // (Seen along its normal: the projection's depth is the normal.)
+  const d = fix.dir!, dl = Math.hypot(...d), toward = c.projection.toward;
+  assert.ok(Math.abs(toward[0] + d[0] / dl) < 1e-9 && Math.abs(toward[1] + d[1] / dl) < 1e-9 && Math.abs(toward[2] + d[2] / dl) < 1e-9, JSON.stringify(toward));
+  // (Its cutting plane: in the right view, a line across it, its letter at both ends.)
+  const sheet = issueContext(cutIn).sheet, plane = sheet.groups.find(g => g.role === 'section' && g.id === fix.id && g.view);
+  assert.equal(plane?.view, 'right');
+  assert.equal(plane!.marks.filter(m => m.kind === 'text' && (m as { text: string }).text === fix.id).length, 2);
+  // (The section's own view on the sheet, hatched.)
+  assert.ok(sheet.groups.some(g => g.role === 'section' && g.id === fix.id && !g.view && g.marks.some(m => m.kind === 'hatch')));
+  // (In every format: the SVG and the PDF name it, the DXF of the sheet and of the section alone write.)
+  const built = issueContext(cutIn);
+  const svg = sheetSvg(built.sheet, 'tilted'); assert.ok(svg.includes(`SECTION ${fix.id}`), svg.match(/SECTION[^<]*/g)?.join(' | ') ?? '');
+  const pdf = new TextDecoder('latin1').decode(sheetPdf(built.sheet, 'tilted')); assert.ok(pdf.includes(`SECTION ${fix.id}`), pdf.match(/\(SECTION[^)]*/g)?.join(' | ') ?? '');
+  assert.ok(sheetDxf(built.sheet, built.layout).text.includes('HATCH'), 'sheet DXF hatch');
+  assert.ok(writeDxf(sectionDxfDocument(c)).text.includes('HATCH'));
+  // (Saved and opened, the same section, its direction kept.)
+  const back = readDrawing(JSON.parse(JSON.stringify(settings)));
+  assert.deepEqual(back.sections?.find(x => x.id === fix.id), { id: fix.id, view: fix.view, at: fix.at, dir: fix.dir });
+  // (The issue's text then says the section is there.)
+  const again = sectionFor(issueContext(cutIn), { id: 'x', view: 'front', kind: 'linear', a: ends[0], b: ends[1], orient: 'aligned', place: [0, 0] });
+  assert.equal(again?.fix?.kind, 'auto-dimension', JSON.stringify(again));
 });
 
 // ——— Queue 1 (after O148): adjacent parts hatched apart in one section

@@ -20,7 +20,7 @@ import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
 import { holeCallout } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
-import { sectionsOf, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
+import { sameSection, sectionsOf, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
 import type { EngineClient } from '../engine/client';
 
@@ -81,7 +81,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
 
   const title = settings.title ?? fileName;
   // (The sections the settings list, as cut for them: one whose letter, view or place changed is cut again first.)
-  const cuts = useMemo(() => sheetSections((projected?.model === model ? cutsMade ?? [] : []).filter(c => sectionList.some(x => x.id === c.id && x.view === c.view && x.at === c.at))), [cutsMade, sectionKey, projected, model]);
+  const cuts = useMemo(() => sheetSections((projected?.model === model ? cutsMade ?? [] : []).filter(c => sectionList.some(x => sameSection(x, c)))), [cutsMade, sectionKey, projected, model]);
   const sectionA = sectionList.find(x => x.id === 'A' && x.view === 'front'), cutA = cutsMade?.find(c => c.id === 'A' && c.view === 'front');
   const layout = useMemo(() => views && layoutSheet(views, settings, sectionExtents(settings, cuts)), [views, settings, cuts]);
   // Diameter dimensions on a hole read as its callout (count, size or thread, depth, counterbore or countersink).

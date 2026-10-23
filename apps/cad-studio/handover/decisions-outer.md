@@ -7329,3 +7329,42 @@ Their parts are `base:<body key>`; `targetOf` read that whole string as an insta
 - a9-acceptance 3/3, though the run took far longer than its usual 3 minutes: the machine's load was 48 from other runs, and its process was stopped by hand after its summary. A timed rerun is pending.
 - tsc of model and studio; eslint 0 errors on the changed files.
 - Not run: the flow.
+
+## O178 — O6: aligned sections for off-axis features (2026-10-23)
+
+**The item (the coordinator's: build it).** A feature whose axis runs along none of X, Y and Z, such as a keyway in a tilted bore, had no section to show it. X3 (O148) said so: "an aligned section is not drawn yet". Its dimensions stayed on hidden lines (DIM_ON_HIDDEN) with no fix.
+
+**What is new:**
+- **`DrawingSection.dir`** (optional): the section plane's own normal, in model axes and any length. `at` is along it (the plane is dot(p, dir/|dir|) = at, the far side kept). The section is laid out as `view`'s sections are.
+  - Principal sections are unchanged, with no `dir`.
+  - Saved and read back with its direction (`readDrawing`); `drawing.options` validates it (three finite numbers, not all zero).
+  - `withSections` never folds an aligned A into the old `section` field.
+  - Sections compare by letter, view, place and direction (`sameSection`): in options' reference check, the sheet's extents, and the studio's cut filter and Fix-all settle check. useDrawingSheet's outputs are unchanged.
+- **`sectionFrame`** (drawing/views): a section's unit depth, its principal axis (none for an aligned one), and the view it is seen in. An aligned section looks along its normal, with its view's up made square to it.
+- **The cut** (`sectionOf`, its new last argument `dir`):
+  - The kernel's split takes the plane's `normal`; a principal section keeps its axis split exactly as before.
+  - The cut faces' rings come from `planeRings`, on the general plane. `cutRings` is now that function on a principal axis, the same arithmetic.
+- **The cutting plane** (sheet): in the first shown view whose depth is square to the normal, a line across the view, padded past the part and clipped to the box. Its arrows point along the normal as seen there, the letter by each end.
+- **The fix** (issues `sectionFor`): an off-axis keyway's dimension now offers `add-section` with `dir`:
+  - the plane square to the axis through the keyway's middle;
+  - its view the principal one whose depth lies nearest the axis, the normal turned to that depth's side;
+  - once that section is there, the issue's fix is Auto-dimension.
+- **Turning the front** (reorient) keeps an aligned section as it is: its plane is the model's own.
+
+**Not in this step:** no studio control to type a direction. An aligned section comes from its issue's fix (Fix, Fix all) or from the chat's `drawing.options`.
+
+**Expectation changed:** X3's test (O148) said "no section offered" for the tilted keyway. That was the gap this item closes, so the test is replaced by O178's.
+
+**Test** (section-dimensions, O178): a keyway in a bore tilted 30° about X.
+- The fix is an aligned section with dir ∥ the bore's axis (top's side, −Z), laid out as the top's.
+- It cuts with rings, and the projection's depth is the normal.
+- Its cutting plane is in the right view with the letter twice; its view is hatched.
+- In the SVG and the PDF, and the sheet's and the section's DXF (HATCH).
+- Read back with `dir`; then the issue's fix is Auto-dimension.
+
+**Verified (T1):**
+- model: section-dimensions 8/8, and sections, reorient, dxf, frame-sections, frk3-section-tables, drawing, drawing-issues, drawing-fix-rounds, drawing-fix-elements, chat-drawing, drawing-scope, auto-dimension, toolset (23,198 of 25,000, unchanged), tool-contract and balloons-base, all passing;
+- a9-acceptance 3/3 in 161 s at load 13. O177's slow run (about 50 min) was the load of 48, not a regression.
+- studio: section-cutout, section-hatch, section-planes, section-view and pmi, all passing;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (no step makes an aligned section yet).
