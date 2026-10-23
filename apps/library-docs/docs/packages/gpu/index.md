@@ -102,3 +102,19 @@ With `viewer.costs` on, each mesh counts what the last frame cost it:
 
 These are work counts, not times; a frame's CPU time is in its stats. The studio reads them per body and display
 mode, but doesn't show them yet.
+
+### Measured
+
+The studio's heaviest scenes were measured on both renderers: an orbit per display mode, at 1440 × 900 on an Apple
+M-series machine in headless Chrome, with other work running. The scenes ranged from a 38-body assembly and a
+120-bracket pattern to a 114,000-triangle spring.
+
+- **Frame rate.** Every scene held 60 Hz: the frame interval's median was 16.7 ms.
+- **Headroom.**
+  - The main thread's work stayed under about 4 ms a frame.
+  - On WebGPU, the GPU's time stayed under about 5 ms a submit.
+
+  That leaves at least three times the 16.7 ms budget.
+
+The full tables are in `apps/cad-studio/handover/notes/g11-scene-profile.md`. Times depend on the machine. Only the
+counts are the same everywhere.

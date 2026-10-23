@@ -312,6 +312,46 @@ const steps = [
     await shot('studio/files', 'mesh-repair', 'studio/files: the mesh repair dialog', { target: page.locator('[aria-label="Mesh repair"]') });
     await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Cancel' }).click().catch(() => press('Escape'));
   }],
+  ['studio/parameters: a chamfer bound to C, a configuration', async () => {
+    await fresh(); await newPart(); await press('b'); await hudReady(); await press('Enter'); await shows('.outliner', /1 body/, 'a box makes one body'); await idle();
+    assert.ok(await page.evaluate(() => window.__studioPickEdge('n1.side0|n1.top')), 'an edge picks');
+    await fromPalette('chamfer'); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'chamfer', null, { timeout: WAIT }); await idle(); await press('Escape');
+    await page.click('[aria-label="Parameters"]');
+    await page.fill('[aria-label="New parameter name"]', 'C'); await page.fill('[aria-label="New parameter value"]', '3'); await page.click('[aria-label="Add parameter"]');
+    await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: WAIT });
+    await page.click('[aria-label="Close parameters"]');
+    if (await page.locator('.outliner [aria-label="Show its features"]').count()) await page.click('.outliner [aria-label="Show its features"]');
+    await page.locator('.outliner .ol-step', { hasText: 'Chamfer' }).click();
+    await page.waitForSelector('[aria-label="Distance parameter"]', { timeout: WAIT });
+    await page.selectOption('[aria-label="Distance parameter"]', 'C');
+    await shot('studio/parameters', 'bind', 'studio/parameters: a chamfer bound to C, a configuration', { target: page.locator('.node-editor') });
+    await page.locator('.node-editor button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => JSON.stringify(window.__studioDoc.nodes.at(-1)?.distance) === '{"parameter":"C"}', null, { timeout: WAIT }); await idle();
+    await page.click('[aria-label="Parameters"]');
+    await page.fill('[aria-label="Configuration name"]', 'small'); await page.click('[aria-label="Save configuration"]');
+    await page.fill('[aria-label="Value of C"]', '6'); await press('Tab');
+    await page.waitForFunction(() => window.__studioDoc.parameters.C === 6, null, { timeout: WAIT }); await idle();
+    await page.fill('[aria-label="Configuration name"]', 'large'); await page.click('[aria-label="Save configuration"]'); await iso(); await page.waitForTimeout(400);
+    await shot('studio/parameters', 'panel', 'studio/parameters: a chamfer bound to C, a configuration');
+    await page.click('[aria-label="Apply small"]');
+    await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: WAIT });
+    await page.click('[aria-label="Close parameters"]');
+  }],
+  ['studio/rendering: the Render workspace', async () => {
+    await fresh();
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('aside[aria-label="Render"]', { timeout: WAIT });
+    if (renderer === 'webgpu') {
+      await page.selectOption('[aria-label="Appearance preset"]', 'look-brass'); await page.waitForTimeout(1500);
+      await shot('studio/rendering', 'appearance', 'studio/rendering: the Render workspace', { caption: 'WebGPU only' });
+      await page.locator('aside[aria-label="Render"] [role="tab"]', { hasText: 'Lights' }).click(); await page.waitForTimeout(300);
+      await shot('studio/rendering', 'lights', 'studio/rendering: the Render workspace', { target: page.locator('aside[aria-label="Render"]') });
+      await page.locator('aside[aria-label="Render"] [role="tab"]', { hasText: 'Source' }).click(); await page.waitForTimeout(300);
+      await shot('studio/rendering', 'source', 'studio/rendering: the Render workspace', { target: page.locator('aside[aria-label="Render"]') });
+      await shot('studio/rendering', 'timeline', 'studio/rendering: the Render workspace', { target: page.locator('[aria-label="Timeline"]') });
+    } else await shows('aside[aria-label="Render"]', /Rendering needs a browser with WebGPU/, 'on WebGL2 the Render panel says it needs WebGPU');
+    await page.click('.mode button:text-is("Model")');
+  }],
   // ——— the agent pages: the real chat and tool servers, the calls scripted
   ['agent: a turn applied, a proposal', async () => {
     await fresh();
