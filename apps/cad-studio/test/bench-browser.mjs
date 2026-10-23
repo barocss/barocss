@@ -183,6 +183,18 @@ const browser = await chromium.launch({ executablePath: process.env.CHROME, head
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DPR ?? 1) });
 // Install these same checked functions in the page; each sample owns its asynchronous completions.
 await page.addInitScript({ content: `window.__benchTrace = ${!!process.env.BENCH_TRACE}; (${installBenchInstrumentation})(${timestampSample}, ${benchCounters});` });
+// (BENCH_TRACE: which of the App's hooks changed at each commit — a minimal DevTools hook, set before React loads; R1c.)
+if (process.env.BENCH_TRACE) await page.addInitScript({ content: `(() => {
+  const changes = window.__appHookChanges = {};
+  const shape = v => v === null ? 'null' : Array.isArray(v) ? 'array' + v.length : typeof v === 'object' ? 'object:' + Object.keys(v).slice(0, 4).join(',') : typeof v + ':' + String(v).slice(0, 20);
+  const findApp = f => { for (let n = f; n; n = n.child) { if (n.type && n.type.name === 'App') return n; const s = n.sibling && findApp(n.sibling); if (s) return s; } return null; };
+  window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = { supportsFiber: true, renderers: new Map(), inject() { return 1; }, onScheduleFiberRoot() {}, onCommitFiberUnmount() {}, checkDCE() {},
+    onCommitFiberRoot(id, root) {
+      const app = findApp(root.current); if (!app || !app.alternate) return;
+      let a = app.memoizedState, b = app.alternate.memoizedState, i = 0;
+      while (a && b) { if (a.queue && !Object.is(a.memoizedState, b.memoizedState)) { const k = i + ' ' + shape(a.memoizedState); changes[k] = (changes[k] ?? 0) + 1; } a = a.next; b = b.next; i++; }
+    } };
+})();` });
 // The budgets (G4: one table): submits and their most in one frame, the animation frames' average CPU (a 2 ms floor), the
 // main thread's task time and the GPU's time a submit (from it until the queue reports it done: wall time, so it holds
 // the queue's wait too) a frame, the upload a frame and the buffers made. About twice what was measured alone (G4,
@@ -233,6 +245,7 @@ const measure = async (name, budget, act) => {
   await page.evaluate(() => window.__benchReset());
   const renders0 = trace ? await page.evaluate(() => ({ ...(window.__studioRenders ?? {}) })) : null;
   const ms0 = trace ? await page.evaluate(() => ({ ...(window.__studioRenderMs ?? {}) })) : null;
+  if (trace) await page.evaluate(() => { const c = window.__appHookChanges ?? {}; for (const k in c) delete c[k]; });
   if (trace) await cdp.send('Profiler.enable').then(() => cdp.send('Profiler.setSamplingInterval', { interval: 200 })).then(() => cdp.send('Profiler.start'));
   const task0 = await taskTime(), t0 = Date.now(); await act(); await page.waitForTimeout(400);
   // (BENCH_TRACE: the main thread's self time by function over the row, from a CPU profile.)
@@ -265,6 +278,8 @@ const measure = async (name, budget, act) => {
     console.log(`  [${name}] renders ${JSON.stringify(Object.fromEntries(Object.keys(renders1).map(k => [k, renders1[k] - (renders0[k] ?? 0)])))}`);
     const ms1 = await page.evaluate(() => ({ ...(window.__studioRenderMs ?? {}) }));
     console.log(`  [${name}] render ms ${JSON.stringify(Object.fromEntries(Object.keys(ms1).map(k => [k, +(ms1[k] - (ms0[k] ?? 0)).toFixed(1)])))}`);
+    const hooks = await page.evaluate(() => { const c = window.__appHookChanges ?? {}, e = Object.entries(c); for (const k in c) delete c[k]; return e; });
+    console.log(`  [${name}] app hooks changed ${JSON.stringify(hooks.sort((x, y) => y[1] - x[1]).slice(0, 8))}`);
     console.log(`  [${name}] dirty ${JSON.stringify(Object.entries(b.dirty ?? {}).sort((x, y) => y[1] - x[1]).slice(0, 8))}`);
     for (const [k, n] of Object.entries(b.touched ?? {}).sort((x, y) => y[1] - x[1]).slice(0, 4)) console.log(`  [${name}] touched ${n} × ${k}`);
     console.log(`  [${name}] calls ${JSON.stringify(await page.evaluate(() => { const c = globalThis.__cnt; globalThis.__cnt = {}; return c; }))}`);

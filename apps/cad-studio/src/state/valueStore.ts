@@ -26,11 +26,13 @@ export function createValueStore<T>(initial: T): ValueStore<T> {
   };
 }
 
-const NOT_SUBSCRIBED = () => () => undefined;
+const NOT_SUBSCRIBED = () => () => undefined, NO_SNAPSHOT = () => null;
 /**
  * The store's value in a render. `subscribed` false: the value as it is when the component renders for another reason,
- * without rendering it when the value changes.
+ * without rendering it when the value changes — read outside useSyncExternalStore then, whose check after each commit
+ * would render it again for a value moved meanwhile (R1c (3c): that check rendered the App at each step of a drag).
  */
 export function useStoreValue<T>(store: ValueStore<T>, subscribed = true): T {
-  return useSyncExternalStore(subscribed ? store.subscribe : NOT_SUBSCRIBED, store.get);
+  const v = useSyncExternalStore(subscribed ? store.subscribe : NOT_SUBSCRIBED, subscribed ? store.get : NO_SNAPSHOT);
+  return subscribed ? v as T : store.get();
 }
