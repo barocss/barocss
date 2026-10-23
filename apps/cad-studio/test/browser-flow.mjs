@@ -2224,7 +2224,9 @@ try {
     await snap('hole-countersink'); await press('Shift+Enter');
     // One history step, a hole of its own with the countersink (the kernel cuts the cone).
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioDoc.nodes.at(-1)?.kind === 'hole' && window.__studioDoc.nodes.at(-1)?.countersink > 0, null, { timeout: 15000 });
-    await page.waitForFunction(() => /Countersunk Ø/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    // (The step's label in the Browser: the history bar is hidden again at once, the command running on — Shift+Enter —
+    // and a wait for it caught it only while the restart was late.)
+    await page.waitForFunction(() => /Countersunk Ø/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.waitForFunction(() => /Hole/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
     await field('Type').selectOption('tapped'); await field('Centre X').fill('23'); await hudReady(); await page.waitForTimeout(300);
     // (A bolt circle of the tapped holes: four round the top's middle.)
@@ -6615,6 +6617,54 @@ try {
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
   });
 
+  await check('layout (G12d): at 1440, 1280, 1024 and 800, the chat open and collapsed, each preview mode — no two panels or bars meet, each inside the window; no box with a left border alone and a radius', async () => {
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    // (The panels and bars as they show; the dock's sheet and the chat column among them. One inside another — the HUD in the
+    // dock — is not a meeting. A toast — the recovery card here — counts except on a cramped stage (an open sheet over a
+    // narrow centre), where it runs under the sheet.)
+    const problems = label => page.evaluate(label => {
+      const sel = ['.chat-col', '.dock', '.dock-strip', '.topbar', '.toolbar', '.history', '.corner-right', '.view-cube', '.hud', '.corner-stack > *',
+        ...(document.querySelector('.studio.stage-cramped') ? [] : ['.toast'])];
+      const els = [];
+      for (const s of sel) for (const e of document.querySelectorAll(s)) {
+        const b = e.getBoundingClientRect(), c = getComputedStyle(e);
+        if (b.width && b.height && c.display !== 'none' && c.visibility !== 'hidden' && !els.some(x => x.e === e)) els.push({ e, s: s + (e.getAttribute('aria-label') ? `[${e.getAttribute('aria-label')}]` : ''), b });
+      }
+      const bad = [], meets = (a, b) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+      for (const x of els) if (x.b.left < -0.5 || x.b.right > innerWidth + 0.5 || x.b.top < -0.5 || x.b.bottom > innerHeight + 0.5) bad.push(`${label}: ${x.s} leaves the window`);
+      for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+        const a = els[i], b = els[j];
+        if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+        if (meets(a.b, b.b)) bad.push(`${label}: ${a.s} meets ${b.s}`);
+      }
+      return bad;
+    }, label);
+    const leftBorders = () => page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+      const c = getComputedStyle(e), n = k => parseFloat(c[k]) || 0;
+      return n('borderLeftWidth') > 0 && !n('borderTopWidth') && !n('borderRightWidth') && !n('borderBottomWidth') && ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'].some(k => n(k) > 0);
+    }).map(e => String(e.className || e.tagName)).slice(0, 5));
+    const modes = ['None', 'CNC', 'Print', 'Clearance', 'Analysis'], bad = [];
+    try {
+      for (const [width, height] of [[1440, 900], [1280, 800], [1024, 800], [800, 800]]) for (const chat of [false, true]) {
+        await page.evaluate(() => window.__studioLayoutReset?.());
+        await page.setViewportSize({ width, height }); await page.waitForTimeout(300);
+        if (chat) { await page.click('[aria-label="Chat"]'); await page.waitForSelector('.chat-col .chat', { timeout: 5000 }); }
+        await page.waitForTimeout(300);
+        // (Where the dock is a strip its sheet holds the previews.)
+        if (await page.locator('[aria-label="Open the dock"]').count()) await page.click('[aria-label="Open the dock"]');
+        for (const m of modes) {
+          await page.click(`[aria-label="Preview: ${m}"]`); await page.waitForTimeout(400);
+          bad.push(...await problems(`${width}${chat ? ' chat' : ''} ${m}`));
+          if (width === 1440 && !chat && m === 'Clearance') await snap('layout-1440-clearance');
+          if (width === 1024 && m === 'CNC') await snap(`layout-1024-cnc${chat ? '-chat' : ''}`);
+        }
+        await page.click('[aria-label="Preview: None"]');
+        const lb = await leftBorders(); if (lb.length) bad.push(`${width}: left border alone with a radius: ${lb.join(', ')}`);
+      }
+      assert.deepEqual(bad.slice(0, 12), [], bad.slice(0, 12).join('\n'));
+    } finally { await page.evaluate(() => window.__studioLayoutReset?.()); await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('bottom row: the history bar and the view bar never overlap at 1440 × 900, 1280 × 800, 1024 and 800 — beside each other with room, else the history stacked above; the Display popover over neither', async () => {
     // (The chat column collapsed: the bar's room is the stage's, beside the column.)
     if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
@@ -7637,7 +7687,7 @@ try {
     if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
     // (A point of the plate's top away from its centre, where the feature's handle stands: the world point (16, 16, 8) on
     // screen, so the pick holds however wide the centre column is — G12b's dock narrows it.)
-    const box = await page.locator('canvas.vp-canvas').boundingBox(), [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
+    const [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
     // (Off the parts, as a world point too: the canvas's corner is the chat strip's button since G12a.)
     const off = await page.evaluate(() => window.__studioScreenOf([-30, -30, 0]));
     const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
@@ -7751,10 +7801,11 @@ try {
     assert.ok(half.removed > 0 && half.removed < end.removed, JSON.stringify({ half, end }));
     assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
     await iso(); await snap('g23-cnc-middle');
-    // (Print layers takes the viewport: the CNC preview says why it stops, and shows nothing.)
+    // (One preview at a time, G12c: Print layers chosen, the CNC preview closes — its toggle off, nothing shown; chosen
+    // again, the same end.)
     await page.check('input[aria-label="Print layers"]');
-    await page.waitForFunction(() => /Close Print layers/.test(window.__studioCam?.().reason ?? '') && !window.__studioCam?.().display, null, { timeout: 15000 });
-    await page.uncheck('input[aria-label="Print layers"]');
+    await page.waitForFunction(() => !window.__studioCam?.().display && !document.querySelector('input[aria-label="CNC preview"]')?.checked, null, { timeout: 15000 });
+    await page.check('input[aria-label="CNC preview"]');
     await page.click('[aria-label="CNC progress to the end"]');
     assert.equal((await at('end')).removed, end.removed, 'the same end after the preview closed and came back');
     // (Reopened from the file: the same program and the same removal — nothing of the preview is stored.)
@@ -7809,13 +7860,16 @@ try {
     await page.waitForTimeout(400);
     const changed = await canvasDiffers(before, await canvasShot());
     console.log(`  G22 (${renderer}): ${shown.pairs.map(p => p[2]).join(', ')}; ${(100 * changed).toFixed(2)} % of the canvas changed`);
-    assert.ok(changed > 0.002, `${renderer}: the clearance map changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    // (The overlays alone: 0.09 % here. Before G12c the panel grew over the canvas in the Display popover and the shot, taken
+    // of the screen's region, counted it — the 2 % then was mostly the panel.)
+    assert.ok(changed > 0.0005, `${renderer}: the clearance map changed ${(100 * changed).toFixed(3)} % of the canvas`);
     await snap('g22-clearance');
-    // (Print layers and the clearance map exclude each other: the assembly is refused by Print layers, and the clearance map waits.)
+    // (One preview at a time, G12c: Print layers chosen, the clearance map closes — and the assembly is refused there;
+    // clearance chosen again, the same pairs.)
     await page.check('input[aria-label="Print layers"]');
     await page.waitForFunction(() => /Placed assemblies are not supported/.test(window.__studioPrint?.().reason ?? '') && !window.__studioClearance?.(), null, { timeout: 15000 });
-    assert.match(await page.locator('.card[aria-label="Assembly clearance"] [role="status"]').innerText(), /Close Print layers/);
-    await page.uncheck('input[aria-label="Print layers"]');
+    assert.equal(await page.locator('input[aria-label="Assembly clearance"]').isChecked(), false);
+    await page.check('input[aria-label="Assembly clearance"]');
     const back = await ready(shown.request);
     assert.deepEqual(back.pairs, want);
     // (Closed: the model as it was.)

@@ -1,3 +1,5 @@
+/* (In the studio's legacy layer, below Tailwind's: styles.css orders the layers.) */
+@layer legacy {
 /* Sketch constraints and dimensions: viewport marks and the sketch panel's constraint section. */
 .vp-overlay .sk-pick-edge { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
 .vp-overlay .sk-pick-edge.hover { stroke-width: 4; opacity: 0.4; }
@@ -40,3 +42,4 @@
 /* The mono face has no ∥ / ⊥ glyphs: symbols use the system face. */
 .vp-overlay .cons-glyph .cons-text, .cons-tools button b { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
 .cons-tools.cons-dims { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
