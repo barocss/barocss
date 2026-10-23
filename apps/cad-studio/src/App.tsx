@@ -442,7 +442,30 @@ export function App() {
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
   // (G19: one plane, a box or two or three planes — the kept region their intersection; the next face click sets plane `sectionFacePick`.)
-  const [section, setSection] = useState<Section | null>(null);
+  // (Dev/test: the exact section held back, and the CPU's path forced, to compare the two clips through one viewer.)
+  const [sectionDebug, setSectionDebug] = useState({ hold: false, cpu: false });
+  // The section as committed, and the plane being dragged (R1c (3c)): a drag sets `sectionLive`, outside React state.
+  // On WebGPU only SceneViewport follows it in each frame, the App once as the drag starts. On WebGL2 the App follows it,
+  // as before: its CPU copies are cut again in each frame. The release commits it.
+  const [committedSection, setCommittedSection] = useState<Section | null>(null);
+  const sectionLive = useMemo(() => createValueStore<Section | null>(null), []);
+  const liveSection = useStoreValue(sectionLive, !!committedSection && (viewBackend !== 'webgpu' || sectionDebug.cpu));
+  const section = liveSection ?? committedSection;
+  const committedSectionRef = useRef(committedSection); committedSectionRef.current = committedSection;
+  const [, setSectionDragging] = useState(false);
+  /** A section set (the toggle, the bar, a face, the hooks): committed, a drag's plane with it. */
+  const setSection = useCallback((next: Section | null | ((s: Section | null) => Section | null)) => {
+    const base = sectionLive.get();
+    setCommittedSection(prev => typeof next === 'function' ? next(base ?? prev) : next);
+    sectionLive.set(null); setSectionDragging(false);
+  }, [sectionLive]);
+  /** A section handle dragged: its plane into the store at each step, the App told once as it starts; the release commits. */
+  const dragSection = useCallback((f: (s: Section | null) => Section | null, done: boolean) => {
+    const was = sectionLive.get(), next = f(was ?? committedSectionRef.current);
+    if (done) { setSection(() => next); return; }
+    if (!was) setSectionDragging(true);
+    sectionLive.set(next);
+  }, [sectionLive, setSection]);
   const [sectionFacePick, setSectionFacePick] = useState<number | null>(null);
   const sectionFacePickRef = useRef(sectionFacePick); sectionFacePickRef.current = sectionFacePick;
   const [sectionExact, setSectionExact] = useState<{ key: string; source: StudioDoc; sourceBodies: readonly BodyResult[]; bodies: BodyResult[]; from: ReadonlyMap<string, string> } | null>(null);
@@ -542,8 +565,6 @@ export function App() {
   }, [section, bodies, evaluated, engine]);
   // At once (while the plane is dragged, until the exact section arrives): on WebGPU the bodies whole, cut and capped by
   // the viewer's clip plane (G2); on WebGL2 the meshes clipped and capped on the CPU.
-  // (Dev/test: the exact section held back, and the CPU's path forced, to compare the two clips through one viewer.)
-  const [sectionDebug, setSectionDebug] = useState({ hold: false, cpu: false });
   const gpuSection = viewport.current?.backend === 'webgpu' && !sectionDebug.cpu;
   const sectionClipped = useMemo(() => {
     if (!section) return null;
@@ -1868,6 +1889,13 @@ export function App() {
   const [sectionHatchOn, setSectionHatchOn] = useState(true);
   const hatchStep = useMemo(() => hatchSpacing(sectionBox), [sectionBox]);
   const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null, cutout: section.mode === 'cutout' } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown, sectionHatchOn, hatchStep]);
+  // (R1c (3c): a dragged plane's clip and handles, made as the App's are — SceneViewport draws them in each frame of the
+  // drag on WebGPU, the App not rendering. On WebGL2 the App does, so there is none.)
+  const sectionLiveView = gpuSection && !sketch ? {
+    store: sectionLive,
+    clip: (s: Section) => ({ planes: sectionPlanes(s), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null, cutout: s.mode === 'cutout' }),
+    handles: (s: Section) => !active && bodies.length ? sectionHandles(s, sectionBox, dragSection) : [],
+  } : null;
   const sectionHatchLines = useMemo(() => section && !sketch && sectionHatchOn && shownBodies === sectionBodies && (!gpuSection || sectionExactShown) ? sectionHatch(shownBodies, sectionPlanes(section), hatchStep) : null,
     [section, sketch, sectionHatchOn, shownBodies, sectionBodies, gpuSection, sectionExactShown, hatchStep]);
   useEffect(() => {
@@ -1880,6 +1908,8 @@ export function App() {
     w.__studioSectionDebug = setSectionDebug;
     // (The axis form as before, or a section of planes, G19.)
     (window as unknown as { __studioSetSection: (s: Section | AxisSection | null) => void }).__studioSetSection = s => setSection(s ? asSection(s) : null);
+    // (R1c (3c), for the bench: a section dragged, its steps shown and its last one, `done`, committed — as a handle drags it.)
+    (window as unknown as { __studioDragSection: (s: Section | AxisSection | null, done: boolean) => void }).__studioDragSection = (s, done) => dragSection(() => s ? asSection(s) : null, done);
     (window as unknown as { __studioOverlayLines: () => Record<string, number> }).__studioOverlayLines = () => viewport.current?.overlayLines() ?? {};
     (window as unknown as { __studioOverlayTexts: () => Record<string, string[]> }).__studioOverlayTexts = () => viewport.current?.overlayTexts() ?? {};
     // (G12: the shown proposal's diff, as the overlay has it.)
@@ -1987,7 +2017,7 @@ export function App() {
   const sectionBoxRef = useRef(sectionBox); sectionBoxRef.current = sectionBox;
   // (Where the camera is: a cut-out's default corner faces it, G20.)
   const cameraEye = (): Vec3 | null => { const c = viewport.current?.getCamera(); if (!c) return null; const cp = Math.cos(c.pitch); return [c.target[0] + c.distance * cp * Math.cos(c.yaw), c.target[1] + c.distance * cp * Math.sin(c.yaw), c.target[2] + c.distance * Math.sin(c.pitch)]; };
-  const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, setSection) : [];
+  const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, dragSection) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
   // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
@@ -2166,7 +2196,7 @@ export function App() {
 
   return (
     <div className="studio">
-      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}

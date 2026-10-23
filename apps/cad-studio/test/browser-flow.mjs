@@ -1853,10 +1853,21 @@ try {
     await page.click('[aria-label="Section across X"]'); await page.waitForTimeout(600);
     await page.click('[aria-label="Flip the section"]'); await page.waitForTimeout(600);
     // Dragging the plane: the clipped, capped meshes follow at once (the exact section after).
+    // (R1c (3c): the dragged plane is shown from outside React state and committed on release. The section is a view
+    // setting, as before: no undo entry, the document unchanged; its handle follows the drag, and stays where it was let go.)
+    const undoState = () => page.evaluate(() => { const b = document.querySelector('[aria-label="Undo"]'); return { tip: b?.getAttribute('data-tip'), off: !!b?.disabled }; });
+    const undo0 = await undoState(), docBefore = JSON.stringify(await doc());
     const hb = await page.locator('[data-handle="section"]').boundingBox();
     await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2); await page.mouse.down();
     for (let i = 1; i <= 6; i++) await page.mouse.move(hb.x + hb.width / 2 + i * 12, hb.y + hb.height / 2 + i * 4);
-    await page.waitForTimeout(40); await snap('section-dragging'); await page.mouse.up(); await page.waitForTimeout(600);
+    await page.waitForTimeout(40); await snap('section-dragging');
+    await page.waitForFunction(b => { const r = document.querySelector('[data-handle="section"]')?.getBoundingClientRect(); return !!r && Math.hypot(r.x - b.x, r.y - b.y) > 4; }, hb, { timeout: 30000 });
+    const held = await page.locator('[data-handle="section"]').boundingBox();
+    await page.mouse.up(); await page.waitForTimeout(600);
+    const after = await page.locator('[data-handle="section"]').boundingBox();
+    assert.ok(Math.hypot(after.x - held.x, after.y - held.y) < 2, `the plane committed where it was let go: ${JSON.stringify({ held, after })}`);
+    assert.deepEqual(await undoState(), undo0, 'a section drag adds no undo entry');
+    assert.equal(JSON.stringify(await doc()), docBefore, 'nor changes the document');
     assert.equal((await doc()).nodes.length, nodes, 'the model is not changed');
     // Its outline as a sketch on the section plane: the box's cut with the hole's, one profile with a hole.
     await page.click('[aria-label="Section across Y"]'); await page.waitForTimeout(1500);
