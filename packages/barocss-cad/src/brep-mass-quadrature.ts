@@ -198,7 +198,13 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // The surface over the domain and the flat triangles share the boundary samples: their areas differ by the
     // surface's sag inside the triangles alone, a few % at most at 8 segments a quarter. Coverage gone wrong
     // shows as much more. (Before the strips: those add the chord error, no small part of a thin face's area.)
-    if (!(Math.abs(sink.area - areaSum) <= 5e-2 * areaSum)) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
+    // (Where a domain triangle spans a wide turn — a cap about a sphere's pole, its trim round the whole turn of u in a few
+    // samples — the surface over it bends from the flat triangle by more than a step's sag: the flat triangles of the same
+    // domain cut in sixteen are the measure then. Coverage gone wrong still shows. L4 fuzz 171, D199.)
+    if (!(Math.abs(sink.area - areaSum) <= 5e-2 * areaSum)) {
+      const fine = finerFlatArea(at, uv, domain, off);
+      if (!(Math.abs(sink.area - fine) <= 5e-2 * fine)) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
+    }
     // The curved strips between the domain's boundary chords and the edges, each integrated at once (`strip`).
     // (Not beside a surface's pole: there the parameters crowd and inversions are not to be trusted; such a face
     // keeps the square-of-the-step error, extrapolated as such.)
@@ -261,6 +267,19 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
   return { integrals: fromCentre(I.map((x, k) => x + squared[k] + cubed[k])), meshed: true, squared: fromCentre(squared), cubed: fromCentre(cubed), dropped };
 }
 
+/** The flat area of a face's domain triangles, each cut in sixteen (four along each side) and mapped onto the surface. */
+function finerFlatArea(at: (u: number, v: number) => Point, uv: readonly XY[], domain: readonly (readonly number[])[], off: number): number {
+  let area = 0;
+  for (const t of domain) {
+    const qa = uv[t[0] - off], qb = uv[t[1] - off], qc = uv[t[2] - off], n = 4, row: Point[][] = [];
+    for (let i = 0; i <= n; i++) { const r: Point[] = []; for (let j = 0; i + j <= n; j++) { const a = (n - i - j) / n, b = i / n, c = j / n; r.push(at(a * qa[0] + b * qb[0] + c * qc[0], a * qa[1] + b * qb[1] + c * qc[1])); } row.push(r); }
+    for (let i = 0; i < n; i++) for (let j = 0; i + j < n; j++) {
+      area += Math.hypot(...cross(sub(row[i + 1][j], row[i][j]), sub(row[i][j + 1], row[i][j]))) / 2;
+      if (i + j + 1 < n) area += Math.hypot(...cross(sub(row[i + 1][j + 1], row[i + 1][j]), sub(row[i][j + 1], row[i + 1][j]))) / 2;
+    }
+  }
+  return area;
+}
 /** Whether chord a → b passes within `near` of one of `poles` (points). */
 function besidePole(a: Point, b: Point, poles: readonly Point[], near: number): boolean {
   const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], l2 = dx * dx + dy * dy + dz * dz;
