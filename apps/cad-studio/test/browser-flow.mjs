@@ -5797,7 +5797,7 @@ try {
     const text = f => `(${f.o.map(v => (v * 1000).toFixed(1)).join(', ')}) · Z (${[f.R[2], f.R[5], f.R[8]].map(v => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; }).join(', ')})`;
     assert.equal(await frame('tcp'), text(zero.frames.tcp));
     assert.equal(await frame('cam'), text(zero.frames.cam));
-    assert.match(await page.locator('[aria-label="Frame tcp"]').innerText(), /^tcp tool · /);
+    assert.match(await page.locator('[aria-label="Frame tcp"]').evaluate(e => e.textContent), /^tcp tool · \S/);
     const cam = await frame('cam');
     await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI / 2);
     await page.waitForFunction(() => /^\(63\.0, 105\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
