@@ -170,6 +170,12 @@ const DrawingWorkspace = lazy(() => import('./ui/DrawingWorkspace').then(m => ({
 const RenderPanel = lazy(() => import('./ui/RenderPanel').then(m => ({ default: m.RenderPanel })));
 const DirectPanel = lazy(() => import('./ui/DirectPanel').then(m => ({ default: m.DirectPanel })));
 const emptyDirect = (): DirectGeometry => ({ sources: {}, objects: [] });
+/** O11: whether a change touches anything of the document but its variability (fields compared as objects: an edit makes new ones). */
+function changesBeyondVariability(a: StudioDoc, b: StudioDoc): boolean {
+  const x = a as unknown as Record<string, unknown>, y = b as unknown as Record<string, unknown>;
+  for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) if (k !== 'variability' && x[k] !== y[k]) return true;
+  return false;
+}
 type MassFields = Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'>;
 /** O18: bodies with the masses that came for their refs (placed by their massPlace); the same array when none did. */
 function withMasses(bodies: BodyResult[], got: ReadonlyMap<number, MassFields>): BodyResult[] {
@@ -289,7 +295,18 @@ export function App() {
   const viewport = useRef<ViewportHandle>(null);
   // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
   const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), bottomRow = useBottomRow(cornerRight, stripWidth, BROWSER_PLACEMENT === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT);
-  const [doc, setDoc] = useState<StudioDoc>(starterDoc);
+  const [doc, setDocState] = useState<StudioDoc>(starterDoc);
+  // (O11: one guard where every edit of the document lands. While a variant is shown, a change of anything but the
+  // document's variability is refused — said as start() says it — and the undo entry it asked for dropped; a whole
+  // document (opened, new) is always taken. Undo, redo and the system's own updates write the state directly.)
+  const docNow = useRef(doc); docNow.current = doc;
+  const shownVariant = useRef<string | null>(null), undoFor = useRef<{ doc: StudioDoc; marker: number | null } | null>(null);
+  const setDoc = (next: StudioDoc, whole = false) => {
+    const entry = undoFor.current; undoFor.current = null;
+    if (!whole && shownVariant.current && changesBeyondVariability(docNow.current, next)) { setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' }); return; }
+    if (entry) { setUndo(u => [...u.slice(-49), entry]); setRedo([]); }
+    docNow.current = next; setDocState(next);
+  };
   const [marker, setMarker] = useState<number | null>(null);
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
   const [redo, setRedo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
@@ -621,7 +638,7 @@ export function App() {
   // (FRf2, O125: and the placed parts, when a frame follows a part's sketch — not otherwise, so moving parts does not re-evaluate the base.)
   // (O11: what is evaluated and shown is the shown variant — the master itself unless a variant or edited values are
   // shown — regenerated from the master, which is never written by it.)
-  const variants = useVariants(doc), shownDoc = variants.shown;
+  const variants = useVariants(doc), shownDoc = variants.shown; shownVariant.current = variants.showing;
   const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
     try { return contentKey(shownDoc); }
@@ -688,7 +705,7 @@ export function App() {
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
-  const pushUndo = () => { setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]); };
+  const pushUndo = () => { undoFor.current = { doc, marker }; };
   // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.
   // `whole`: a new or opened document, nothing of the one before carried into it.)
   const commit = useCallback((next: StudioDoc, capture = true, whole = false) => {
@@ -701,7 +718,7 @@ export function App() {
     if (!whole) next = carryOver(next, was, doc);
     // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
     if (capture) next = captureSignatures(next, bodies);
-    setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
+    setDoc(next, whole); setMarker(null); setDirty(true); setEditNode(null);
     // An empty document has no bodies; clear them now so defaults are not computed from the old model.
     if (!Object.keys(next.outputs).length) { setBodies([]); claimBodies.current = true; setSelection(emptySel); }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
@@ -809,7 +826,7 @@ export function App() {
     const result = await engine.part(bearingFaceInput(doc, owner, input), revision.current++, 'read');
     return result.ok ? result.faceTable ?? null : null;
   }, [doc, engine]);
-  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
+  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc: setDocState, commit: commitAssembly, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
   // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
   const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
@@ -1236,13 +1253,13 @@ export function App() {
   };
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
-    setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
+    setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
   }, [undo, doc, marker, cancel]);
   // (The latest undo, for a toast made before the change it takes back was committed.)
   const undoNow = useRef(doUndo); undoNow.current = doUndo;
   const doRedo = useCallback(() => {
     if (!redo.length) return; const last = redo[redo.length - 1];
-    setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
+    setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
   }, [redo, doc, marker, cancel]);
 
   // Deleting a feature (with the sketches only it used): later features, mates and drawing dimensions follow.
@@ -1760,7 +1777,7 @@ export function App() {
     const v = await verifyReferences(opened, r.bodies, d => engine.part(d, revision.current++, 'refs'));
     setRefProblems(v.problems);
     if (!v.changes.length && !v.problems.length) return;
-    setDoc(cur => {
+    setDocState(cur => {
       if (cur.nodes !== opened.nodes && JSON.stringify(cur.nodes) !== JSON.stringify(opened.nodes)) return cur;
       const next = { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) };
       // Reference checking must not restore older print controls after a newer user change.
