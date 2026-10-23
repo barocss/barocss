@@ -38,7 +38,7 @@
 - **오너 결정 (2026-10-23).**
   1. "Parameters and configurations" 페이지를 추가합니다.
   2. 페이지마다 근거 소스 목록은 달지 않습니다.
-  3. Render 탭은 답을 기다립니다. Render 탭은 studio 자체의 렌더링 작업 공간이며 범위 안입니다. 짧은 페이지를 권합니다.
+  3. Render 탭은 studio 자체의 렌더링 작업 공간이며 범위 안입니다. 따로 Rendering 페이지를 만듭니다.
 
 ## Readers
 
@@ -106,7 +106,7 @@ Markdown.
 
 - **Sources:** `App.tsx`; `ui/ShortcutHelp.tsx`; the command definitions in `cad-model/src/app/*.ts`.
 - **Shots:** an annotated layout shot, and the command palette.
-- **Gaps:** the **Render** tab appears only by name. It links to the Rendering page, if decision 3 adds one.
+- **Gaps:** the **Render** tab appears only by name. It links to the Rendering page.
 
 #### Sketches (`/studio/sketches`): done
 
@@ -124,7 +124,7 @@ Markdown.
 - **Sources:** `cad-model/src/app/*.ts`; `chat/cageTools.ts`; the sheet modules.
 - **Shots:** the hole dialog's Copies; a SubD cage.
 
-#### Parameters and configurations: to write (added by the owner, decision 1)
+#### Parameters and configurations (`/studio/parameters`): to write (added by the owner, decision 1)
 
 - **Purpose:**
   - named sizes;
@@ -176,7 +176,7 @@ Markdown.
   - zebra.
 - **Gaps:** none.
 
-#### Rendering: proposed (decision 3)
+#### Rendering (`/studio/rendering`): to write (added by the owner, decision 3)
 
 - **Purpose:** the **Render** tab, the studio's own rendering workspace. It doesn't use the `@barocss/render`
   package. It draws with `@barocss/gpu` and keeps its settings in the document (`doc.render`). It never changes the
@@ -449,7 +449,7 @@ and its SHA is reported to the coordinator.
 | Agent | index, tools, cli, proposals, each with its shots; `samples/` begins with agent-tools, cli, proposals | 4 commits, about 450 lines |
 | Packages | samples harness and `test:samples`; cad index, modeling, robustness, formats; cad-model; gpu | 7 commits, about 700 lines |
 | Reference | refusals and its generator; document; rows; limits; verification | 5 commits, about 700 lines |
-| Studio gaps | features (SubD, sheet flat pattern, image tracing); Parameters and configurations; Rendering (if decision 3 adds it) | 2–3 commits, about 190 lines |
+| Studio gaps | features (SubD, sheet flat pattern, image tracing); Parameters and configurations; Rendering | 2–3 commits, about 190 lines |
 
 ## Definition of done
 
@@ -478,5 +478,5 @@ and its SHA is reported to the coordinator.
 1. **A Parameters and configurations page:** yes, under Studio after Part features (owner, 2026-10-23).
 2. **Source lists on pages:** none (owner, 2026-10-23). The stale check is dropped. Currency rests on the generated
    tables, the running samples, the label check and the merge notices.
-3. **The Render tab:** open. It is the studio's own rendering workspace, in scope, not the render package. The
-   recommendation is the short Rendering page planned above.
+3. **The Render tab:** its own Rendering page, under Studio after Display (owner, 2026-10-23). It is the studio's
+   own rendering workspace, in scope, not the render package.

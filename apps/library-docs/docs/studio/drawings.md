@@ -12,6 +12,8 @@ so it follows every change; the dimensions and notes you add are kept with it.
   **Tangent edges** and **Centre lines** toggle what they show.
 - The title block carries the drawing's title and revision. **Next revision** steps it (A, B, …). When the model has
   changed since that revision, **Revision out of date** says so.
+- Beside your REV, the title block's **SRC** line names the document revision the sheet was drawn from, in every
+  export of the sheet. See [Revisions and sources](/guide/concepts#revisions-and-sources).
 
 ## Sections
 
