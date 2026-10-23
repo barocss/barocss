@@ -41,3 +41,10 @@ test('O17 scripted: a slow turn stopped ends as aborted, sendMessage settles', a
   assert.deepEqual(ends.map(d => d.end), ['aborted']);
   assert.ok(shape(chat.messages[1]).includes('tool:features:output-available'));
 });
+
+test('O17 scripted: one transport a conversation — every message its own id', async () => {
+  const { chat } = chatOf([[{ type: 'text', delta: 'one' }, { type: 'done', end: 'done' }], [{ type: 'text', delta: 'two' }, { type: 'done', end: 'done' }]], () => []);
+  await say(chat, 'a'); await say(chat, 'b');
+  const ids = chat.messages.map(m => m.id);
+  assert.equal(new Set(ids).size, ids.length, ids.join(' '));
+});
