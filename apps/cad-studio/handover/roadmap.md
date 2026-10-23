@@ -110,6 +110,30 @@ Moved out of Phase 0:
 | G9 | GPU | capFrontSamples memory (63 MiB at 1080p) |
 | G10 | GPU | the full browser flow on WebGL2 |
 
+## Phase R: refactoring, once the current items close (owner, 2026-10-23)
+
+The owner asked for one refactoring pass when the features are reasonably complete: code that is only laid out flat is
+hard to find later, similar logic is likely duplicated, and UI code concentrated in one component hurts rendering.
+It starts per lane when that lane's current items close (K10b/K11, O6, G8–G10) and after a green coordinator window.
+
+Measured at 64df1c081 (lines): `App.tsx` 2905 with 110 `useState` and 252 hooks in one component; `Viewport.tsx` 1382;
+`renderer.ts` 1172; `gpuRenderer.ts` 1081; cad-model `chat/tools.ts` 1698; gpu `viewer/viewer.ts` 2272; kernel
+`part-model.ts` 4480.
+
+| # | Lane | Item |
+|---|---|---|
+| R0 | coordinator | Read-only survey: per file, what lives there, duplicated logic across packages, and for the studio the re-render map (which state changes re-render which panels; React Profiler counts on the A9 and gallery flows). Output: one plan in this file, a checkpoint list per lane |
+| R1 | GPU | Split `App.tsx`: state into domain hooks/contexts (document, selection, view/display, chat, drawing), panels subscribe only to their slice; memoise panel props; move viewport call sites into `viewport/`. Measure renders before and after on the same flow |
+| R2 | GPU | `Viewport.tsx` and the two renderers: shared code between `renderer.ts` and `gpuRenderer.ts` into one module; per-frame paths keep no closures |
+| R3 | outer | cad-model `chat/tools.ts`: one module per v2 action group, a shared argument/refusal helper; the ≤ 25,000-character guard unchanged |
+| R4 | outer | `src/ui`: shared panel pieces (field rows, refusal banners, lists) into one place; DrawingWorkspace split by sheet/view/table |
+| R5 | kernel | `part-model.ts` by feature family; duplicated curve/surface helpers in the source-* and boolean files gathered; no behaviour change |
+
+Rules: each R step is behaviour-preserving and its own checkpoint; no public export renamed without a re-export (saved
+documents and package paths keep resolving); the touched package suites, lint and types per step, and the full window
+plus the full flow at the end of the phase. Render counts and frame times are recorded in the decision logs, not as
+evidence files.
+
 ## Later (on the roadmap, not started)
 
 - **REVIEW-A1** (from Codex): recovery metadata can report success before the mesh blob is stored. A real defect, off the current path.
