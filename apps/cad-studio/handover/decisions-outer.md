@@ -7806,7 +7806,7 @@ The coordinator asked the owner, who answered: "D2 로 해줘" (go with D2).
 
 **Verified (O7d).** enclosure, library, rb9 and o7-legacy 31/31; no test reads those texts. T1.
 
-## O15 — RD10's L3 run: the tool, the run script and its guards; the live runs not yet made (2026-10-23)
+## O15 — RD10's L3 run: the tool, the run script and its guards; the live runs not yet made, deferred by the owner (2026-10-23)
 
 **Why.** O46's protocol: a live model sizes O48's undersized arm-3r with RD9's harness as its tool. The owner approved the live run, US$25 at most in all. The coordinator approved the plan and its notes: a per-run wall clock, independent runs, no coaching, the gate, and usage as the CLI reports it.
 
@@ -7849,6 +7849,6 @@ The coordinator asked the owner, who answered: "D2 로 해줘" (go with D2).
 - The first attempt (19:17 KST) met the CLI account's weekly usage limit: "You've hit your weekly limit · resets 7am (Asia/Seoul)".
 - All three ended in 2–3 s with 0 tokens, US$0 and 1 turn, and no tool call was made. They are not model results.
 - c40c77013 now stops the series on such a run.
-- Waiting for the coordinator's word to rerun after the reset, unchanged.
+- **Deferred by the owner** (via the coordinator, 2026-10-23 19:20 KST): "O15 는 다음에 하고 다른 것 부터 하자" (do O15 later, do other things first). The rerun after the reset is not made. The script and the tool stay as committed, inert without `CAD_ROBOT_L3=1`. O15 moves to the end of the outer lane's queue until the owner brings it back.
 
 **Tests.** o15-robot-check 2/2; tool-contract-mcp unchanged; tsc and eslint clean.
