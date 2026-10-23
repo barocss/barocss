@@ -26,6 +26,20 @@ Its header holds:
 - **New conversation**;
 - **Close chat**.
 
+## What the chat shows
+
+A turn appears in the chat as it happens:
+
+- **Its text.**
+- **Each tool call:** one line, with the action's name and a summary of its result. Open the line to see the call's
+  input. A failed call is marked as such.
+- **Thinking…**, one collapsed line, when the model's thinking is streamed. Open it to read the thinking; with none,
+  nothing is drawn.
+- **Its proposals:** each linked under its `proposals.propose` call:
+  - its id, its title, its risk as a chip and its status;
+  - **Reject** and **Accept** while it is open. Deciding here is deciding in the Proposals list.
+  - If the part changed since, the link says so, and you rebase the proposal from the Proposals list.
+
 ## What it can do
 
 - **Build and change the part:**

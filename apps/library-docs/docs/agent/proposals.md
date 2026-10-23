@@ -73,6 +73,9 @@ The card's buttons:
 
 **Show decided proposals** brings back the accepted and rejected ones, each with who decided it.
 
+The chat also links each proposal under the call that made it, with its risk, its status, and **Reject** and **Accept**
+while it is open. Deciding there decides the same proposal. A stale one is rebased from the Proposals list.
+
 These shots come from a scripted run (see [the example turn](/agent/#an-example-turn)): no model ran, but the gates and
 results are the studio's own.
 
