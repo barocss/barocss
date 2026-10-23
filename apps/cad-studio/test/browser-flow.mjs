@@ -6529,6 +6529,52 @@ try {
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
   });
 
+  await check('layout (G12d): at 1440, 1280, 1024 and 800, the chat open and collapsed, each preview mode — no two panels or bars meet, each inside the window; no box with a left border alone and a radius', async () => {
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    // (The panels and bars as they show; the dock's sheet and the chat column among them. One inside another — the HUD in the
+    // dock — is not a meeting. A toast is transient and left out.)
+    const problems = label => page.evaluate(label => {
+      const sel = ['.chat-col', '.dock', '.dock-strip', '.topbar', '.toolbar', '.history', '.corner-right', '.view-cube', '.hud', '.corner-stack > *'];
+      const els = [];
+      for (const s of sel) for (const e of document.querySelectorAll(s)) {
+        const b = e.getBoundingClientRect(), c = getComputedStyle(e);
+        if (b.width && b.height && c.display !== 'none' && c.visibility !== 'hidden' && !els.some(x => x.e === e)) els.push({ e, s: s + (e.getAttribute('aria-label') ? `[${e.getAttribute('aria-label')}]` : ''), b });
+      }
+      const bad = [], meets = (a, b) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+      for (const x of els) if (x.b.left < -0.5 || x.b.right > innerWidth + 0.5 || x.b.top < -0.5 || x.b.bottom > innerHeight + 0.5) bad.push(`${label}: ${x.s} leaves the window`);
+      for (let i = 0; i < els.length; i++) for (let j = i + 1; j < els.length; j++) {
+        const a = els[i], b = els[j];
+        if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
+        if (meets(a.b, b.b)) bad.push(`${label}: ${a.s} meets ${b.s}`);
+      }
+      return bad;
+    }, label);
+    const leftBorders = () => page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+      const c = getComputedStyle(e), n = k => parseFloat(c[k]) || 0;
+      return n('borderLeftWidth') > 0 && !n('borderTopWidth') && !n('borderRightWidth') && !n('borderBottomWidth') && ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'].some(k => n(k) > 0);
+    }).map(e => String(e.className || e.tagName)).slice(0, 5));
+    const modes = ['None', 'CNC', 'Print', 'Clearance', 'Analysis'], bad = [];
+    try {
+      for (const [width, height] of [[1440, 900], [1280, 800], [1024, 800], [800, 800]]) for (const chat of [false, true]) {
+        await page.evaluate(() => window.__studioLayoutReset?.());
+        await page.setViewportSize({ width, height }); await page.waitForTimeout(300);
+        if (chat) { await page.click('[aria-label="Chat"]'); await page.waitForSelector('.chat-col .chat', { timeout: 5000 }); }
+        await page.waitForTimeout(300);
+        // (Where the dock is a strip its sheet holds the previews.)
+        if (await page.locator('[aria-label="Open the dock"]').count()) await page.click('[aria-label="Open the dock"]');
+        for (const m of modes) {
+          await page.click(`[aria-label="Preview: ${m}"]`); await page.waitForTimeout(400);
+          bad.push(...await problems(`${width}${chat ? ' chat' : ''} ${m}`));
+          if (width === 1440 && !chat && m === 'Clearance') await snap('layout-1440-clearance');
+          if (width === 1024 && m === 'CNC') await snap(`layout-1024-cnc${chat ? '-chat' : ''}`);
+        }
+        await page.click('[aria-label="Preview: None"]');
+        const lb = await leftBorders(); if (lb.length) bad.push(`${width}: left border alone with a radius: ${lb.join(', ')}`);
+      }
+      assert.deepEqual(bad.slice(0, 12), [], bad.slice(0, 12).join('\n'));
+    } finally { await page.evaluate(() => window.__studioLayoutReset?.()); await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('bottom row: the history bar and the view bar never overlap at 1440 × 900, 1280 × 800, 1024 and 800 — beside each other with room, else the history stacked above; the Display popover over neither', async () => {
     // (The chat column collapsed: the bar's room is the stage's, beside the column.)
     if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
