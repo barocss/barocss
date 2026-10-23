@@ -93,6 +93,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | R5.3e: the shell and thicken leave operation() for part-shell.ts (verbatim; helpers frozen record) | D225 | done (batched checks, fingerprint identical) |
 | R5.3f: the sheet-metal features leave operation() for part-sheet.ts (verbatim; helpers frozen record) | D226 | done (batched checks, fingerprint identical) |
 | R5.3g: the frame and weldment features leave operation() for part-frame.ts (verbatim; helpers frozen record) | D227 | done (batched checks, fingerprint identical) |
+| O10 (kernel part): evaluateCadPart(…, { profile: true }) — per-feature wall time and kernel calls; off by default | D228 | done (fingerprint identical off and on) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
