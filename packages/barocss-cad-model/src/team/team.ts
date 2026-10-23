@@ -12,7 +12,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
 import type { Op } from '../chat/proposals';
 import { checkSpec, type Report } from '../chat/spec';
-import { interference, massProperties } from '../chat/analysis';
+import { interference, massProperties } from '../analysis/analysis';
 import { factsOf } from '../chat/observe';
 import { checkKeepouts, readReferences, type KeepoutResult } from '../chat/references';
 import { printability, type PrintabilityReport } from '../print/rules';

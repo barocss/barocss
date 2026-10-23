@@ -8,7 +8,7 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
-import { wallSamples } from '../chat/analysis';
+import { wallSamples } from '../analysis/analysis';
 import { faceTableOf } from '../assembly/faces';
 import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 

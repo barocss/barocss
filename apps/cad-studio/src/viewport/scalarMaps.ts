@@ -4,7 +4,7 @@
 // named them, O-G6); IM2 draft and CNC access when their exports reach this branch.
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { wallSamples } from '@barocss/cad-model/chat/analysis';
+import { wallSamples } from '@barocss/cad-model/analysis/analysis';
 import { wallsOf } from '@barocss/cad-model/mould/walls';
 import { materialIdOf } from '@barocss/cad-model/app/bodies';
 import { materialData, processProfile } from '@barocss/cad-model/library/materials';

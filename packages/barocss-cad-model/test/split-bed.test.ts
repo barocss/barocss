@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { interference } from '../src/chat/analysis';
+import { interference } from '../src/analysis/analysis';
 import { processProfile } from '../src/library/materials';
 import { fitsBed, planBedSplit, SplitError, type SplitOptions } from '../src/print/splitBed';
 

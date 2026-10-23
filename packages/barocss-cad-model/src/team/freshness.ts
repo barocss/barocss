@@ -12,7 +12,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
 import { briefMaterial } from '../chat/brief';
-import { massProperties } from '../chat/analysis';
+import { massProperties } from '../analysis/analysis';
 import { checkSpec, runCheck, type Outcome, type Query } from '../chat/spec';
 import { runDrawingTool } from '../chat/drawing';
 import { linkInertia } from '../robot/inertia';

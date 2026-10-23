@@ -9,7 +9,7 @@ import { meshClearance } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
-import { massProperties } from '../chat/analysis';
+import { massProperties } from '../analysis/analysis';
 import { meshesMeet } from '../robot/sweep';
 import { chordOf, measureBody } from '../chat/references';
 import { holesOff, placedBodies, readInterfaces } from './parts';

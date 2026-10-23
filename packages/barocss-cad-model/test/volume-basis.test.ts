@@ -4,7 +4,7 @@ import { brepMassProperties } from '@barocss/cad';
 import { evaluateDoc, partBreps, volumeBasisOf, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
-import { massProperties } from '../src/chat/analysis';
+import { massProperties } from '../src/analysis/analysis';
 import { bomView, deriveBom } from '../src/team/assembly';
 import { quotePackage, QUOTE_FILES } from '../src/mould/quote';
 

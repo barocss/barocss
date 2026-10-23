@@ -10,7 +10,7 @@ import { placeBody, type BodyResult } from '../engine/evaluate';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
 import type { Op } from '../chat/proposals';
 import { rotationMatrix } from '../engine/placement';
-import { massProperties } from '../chat/analysis';
+import { massProperties } from '../analysis/analysis';
 import { revisionOf, type Decision, type GateResult, type RoleReport } from './team';
 import { interfacesRevision, readInterfaces, type HolePattern, type Interfaces } from './interfaces';
 import { checkAssembly } from './assembly';

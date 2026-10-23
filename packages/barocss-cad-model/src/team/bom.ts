@@ -6,7 +6,7 @@ import { resolveShopTree, provenanceOfTree, type ShopRowProvenance } from '../en
 import type { ModelNode, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
-import { massProperties } from '../chat/analysis';
+import { massProperties } from '../analysis/analysis';
 import { bomViewOf, deriveBom, lumpsField, massBoundField, type Bom, type BomLine, type BomView } from './bomCore';
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';

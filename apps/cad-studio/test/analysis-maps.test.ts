@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, rectanglePart, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { refOf } from '@barocss/cad-model/app/bodyRef';
-import { wallSamples } from '@barocss/cad-model/chat/analysis';
+import { wallSamples } from '@barocss/cad-model/analysis/analysis';
 import { accessMaps, draftLimits, draftMap, thicknessLimits, thicknessMap } from '../src/viewport/scalarMaps';
 import { accessSamples } from '@barocss/cad-model/machining/access';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';

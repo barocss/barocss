@@ -6,7 +6,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
 import { materialOf } from '../library/materials';
-import { materialFact } from './analysis';
+import { materialFact } from '../analysis/analysis';
 import { roundFaceAxis } from '../app/measure';
 import type { Vec3 } from '../engine/mesh';
 import { beadAccounting, type BeadAccounting } from '../frames/beadAccounting';

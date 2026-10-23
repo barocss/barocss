@@ -13,7 +13,7 @@ export const massGOf = (volumeMM3: number, gPerCm3: number) => volumeMM3 * gPerC
 /** A body's mass (g) and inertia about its centre of mass (kg·mm²) in a material of `gPerCm3`. */
 export function bodyMass(b: BodyResult, gPerCm3: number): { massG: number; centroid: V3; inertia: number[][] } | null {
   if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
-  // (The inertia as v · (ρ / 2.7) · 1e6, in that order; chat/analysis's (v · ρ) / 2.7 rounds differently, so they stay apart.)
+  // (The inertia as v · (ρ / 2.7) · 1e6, in that order; analysis/analysis's (v · ρ) / 2.7 rounds differently, so they stay apart.)
   const k = gPerCm3 / KERNEL_DENSITY;
   return { massG: massGOf(b.volumeMM3, gPerCm3), centroid: b.centroid, inertia: b.inertia.map(r => r.map(v => v * k * 1e6)) };
 }

@@ -6,7 +6,7 @@ import { rebuildReport } from '../../team/rebuild';
 import { datumToFace, datumWorld, readReferences } from '../references';
 import { resolveEdge, resolveFace, resolveNames, type Resolved } from '../names';
 import { factsOf } from '../observe';
-import { draftAnalysis, interference, massProperties, section, wallThickness } from '../analysis';
+import { draftAnalysis, interference, massProperties, section, wallThickness } from '../../analysis/analysis';
 import { checkFit, cutListCsv, fitLimits, FitError, type FitLimits } from '@barocss/cad';
 import { partCutList } from '../../app/cutList';
 import { nestCutList } from '../../frames/nesting';

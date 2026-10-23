@@ -4,7 +4,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { APPEARANCES, defaultRender } from '../src/engine/render';
 import { lookKey, lookOf, materialIdOf, withLook } from '../src/app/bodies';
-import { massProperties } from '../src/chat/analysis';
+import { massProperties } from '../src/analysis/analysis';
 import { linkInertia } from '../src/robot/inertia';
 import { printability } from '../src/print/rules';
 import { bomView } from '../src/team/assembly';

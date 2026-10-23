@@ -6,7 +6,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
 import { faceTableOf } from '../assembly/faces';
-import { interference, wallThickness } from '../chat/analysis';
+import { interference, wallThickness } from '../analysis/analysis';
 import { bodyName, materialIdOf } from '../app/bodies';
 import { materialData, printerProfile, processProfile, type MouldFinish, type ProcessProfile } from '../library/materials';
 import { overhangOf, type Vec3 } from './overhang';

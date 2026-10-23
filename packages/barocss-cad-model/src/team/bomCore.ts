@@ -6,7 +6,7 @@ import { toPartDocument } from '../engine/part';
 // read it without a cycle through them.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { massBoundOf, massProperties } from '../chat/analysis';
+import { massBoundOf, massProperties } from '../analysis/analysis';
 import { materialIdOf } from '../app/bodies';
 import { elementLines, madeBodies } from '../engine/elements';
 import { partCutList } from '../app/cutList';

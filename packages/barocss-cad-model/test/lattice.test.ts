@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { evaluatePart, stepFor, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { interference, massProperties } from '../src/chat/analysis';
+import { interference, massProperties } from '../src/analysis/analysis';
 import { threeMfModelOf } from '../src/print/export3mf';
 import { cavityField, planHollow } from '../src/print/hollow';
 import { awayFromZero, gyroid, gyroidFraction, gyroidGradient, latticeField, LatticeError, mixedTetrahedra, planLattice, weldTau } from '../src/print/lattice';
