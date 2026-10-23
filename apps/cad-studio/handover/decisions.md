@@ -11844,3 +11844,22 @@ On the pole's own surface, the added point keeps the free coordinate of the end 
 `robustness/corpus/fuzz/`.
 
 **Test:** `test/boolean-apex-on-wall.test.mjs`, failing before.
+
+## D209 — A curved piece pinched at a vertex is measured (2026-10-23)
+
+**Finding.** L4 fuzz 137, shrunk: a box ∪ a cone, a corner of the box on the cone's top circle. Refused as "Planar face
+could not be triangulated". The cone's piece outside the box is one ring through that vertex twice: a hole touching the
+boundary at that point. The stitch takes each shell's volume, for its sign, from the pieces' domain polygons, and ear
+clipping failed on the pinch.
+
+**Fix (`src/analytic-boolean.ts`, `triangulatePinched`).** When that triangulation fails, the outer ring is cut where
+it passes a point twice (within the tolerance) into simple rings, each triangulated. A ring turning the other way (the
+touching hole) is triangulated reversed and counts negatively. Other failures, and pieces with holes, throw as before.
+
+**Results:**
+- 137 is valid and watertight, 118.418014 mm³ against the oracle's 118.418097 ± 5.9e-4 (−0.1 e);
+- 125, refused the same way, is valid and watertight, 341.342932 mm³ against 341.341578 ± 1.2e-2 (0.1 e).
+
+Both are in `robustness/corpus/fuzz/`.
+
+**Test:** `test/boolean-pinched-piece.test.mjs`, failing before.

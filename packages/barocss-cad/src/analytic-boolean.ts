@@ -504,6 +504,33 @@ function toPoles(chain: IntersectionChain, fa: GFace, fb: GFace, boxA: readonly 
   return points === chain.points ? chain : { points, tangents, closed: false, uvA, uvB };
 }
 const inBox = (p: XY, box: readonly [XY, XY], tol: number) => p[0] >= box[0][0] - tol && p[0] <= box[1][0] + tol && p[1] >= box[0][1] - tol && p[1] <= box[1][1] + tol;
+/**
+ * A piece's sampled domain polygon triangulated; one whose outer ring passes a point twice — a piece pinched at a vertex,
+ * two lobes meeting there within the tolerance — is cut there into simple rings, each triangulated; a lobe turning
+ * the other way (a hole touching the boundary at that point) is triangulated reversed and counts negatively. (Ear clipping failed on the pinch. L4
+ * fuzz 137, D209.)
+ */
+function triangulatePinched(outer: readonly XY[], holes: readonly (readonly XY[])[], tol: number): [number, number, number][] {
+  try { return triangulatePolygonWithHoles(outer, holes); } catch (e) {
+    if (!(e instanceof BrepError) || holes.length) throw e;
+    const rings: number[][] = [], stack: number[] = [];
+    for (let i = 0; i < outer.length; i++) {
+      const at = stack.findIndex(k => Math.hypot(outer[k][0] - outer[i][0], outer[k][1] - outer[i][1]) <= tol);
+      if (at >= 0) { rings.push(stack.splice(at)); }
+      stack.push(i);
+    }
+    rings.push(stack);
+    if (rings.length < 2) throw e;
+    const out: [number, number, number][] = [];
+    for (const r of rings) {
+      // (A lobe turning the other way is a hole touching the boundary there: its triangles count negatively.)
+      let area = 0; for (let i = 0; i < r.length; i++) { const a = outer[r[i]], b = outer[r[(i + 1) % r.length]]; area += a[0] * b[1] - b[0] * a[1]; }
+      const ring = area < 0 ? [...r].reverse() : r;
+      for (const [a, b, c] of triangulatePolygonWithHoles(ring.map(k => outer[k]), [])) out.push(area < 0 ? [ring[a], ring[c], ring[b]] : [ring[a], ring[b], ring[c]]);
+    }
+    return out;
+  }
+}
 /** A curve's parameter range cut where it crosses a cylinder face's domain seam (θ = ref ± π), so each piece maps continuously. */
 function seamRanges(f: GFace, at: (t: number) => P3, lo: number, hi: number): [number, number][] {
   if (f.surf.kind !== 'cylinder') return [[lo, hi]];
@@ -1917,7 +1944,7 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
       let area = 0; for (let i = 0; i < outer.length; i++) { const a = outer[i], b = outer[(i + 1) % outer.length]; area += a[0] * b[1] - b[0] * a[1]; }
       const flip = area < 0; if (flip) { outer = [...outer].reverse(); holes = holes.map(h => [...h].reverse()); }
       const pts = [...outer, ...holes.flat()].map(q => to3(p.face, q)); let v = 0;
-      for (const [a, b, c] of triangulatePolygonWithHoles(outer, holes)) v += dot(pts[a], cross(pts[b], pts[c])) / 6;
+      for (const [a, b, c] of triangulatePinched(outer, holes, tol)) v += dot(pts[a], cross(pts[b], pts[c])) / 6;
       return flip ? -v : v;
     }
     // ∫ x·n dA over the piece by Green's theorem in (U, V): only generators (dU = 0) contribute.
