@@ -328,6 +328,7 @@
        "wall",
        "draft",
        "fit_clearance",
+       "rebuild",
        "welds",
        "cutlist",
        "bom",

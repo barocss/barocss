@@ -1,7 +1,8 @@
 // The v2 `query` group's part handlers (R3, moved verbatim from chat/tools.ts's runPartTool): reads of the part
 // that change nothing.
 import { measureBetween, measureItem, type MeasurePick } from '../../app/measure';
-import { partBreps } from '../../engine/evaluate';
+import { partBreps, rebuildFromScratch } from '../../engine/evaluate';
+import { rebuildReport } from '../../team/rebuild';
 import { datumToFace, datumWorld, readReferences } from '../references';
 import { resolveEdge, resolveFace, resolveNames, type Resolved } from '../names';
 import { factsOf } from '../observe';
@@ -104,6 +105,12 @@ async function massPropertiesTool(state: ChatState, args: Record<string, unknown
   const accounting = beadAccounting(state.doc, state.bodies);
   return { state, content: json({ bodies: out, ...(accounting ? { beadAccounting: accounting } : {}), ...(out.some(b => b.assumed) ? { note: 'a body without a material is taken as aluminium: set its material before using its mass' } : {}) }), isError: false, changed: false, summary: `${accounting && !accounting.complete ? 'incomplete welded-part accounting; ' : ''}mass of ${out.length} reported bodies` };
 }
+/** O10: the part built from nothing, each feature timed (the studio's Rebuild panel shows the last evaluation instead). */
+async function rebuildReportTool(state: ChatState): Promise<ToolOutcome> {
+  const report = rebuildReport(state.doc, rebuildFromScratch(state.doc, 0), { basis: 'from scratch' });
+  if (!report) return fail(state, 'The part does not evaluate, so it has no rebuild to report.');
+  return { state, content: json(report), isError: false, changed: false, summary: `${report.built} features built in ${report.builtMs.toFixed(1)} ms (${report.evaluationMs.toFixed(0)} ms in all)${report.loops.length ? `; ${report.loops.length} mate loop${report.loops.length === 1 ? '' : 's'}` : ''}` };
+}
 async function interferenceTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const out = await interference(state.doc, state.bodies, evaluate, strings(args.bodies));
   return { state, content: json({ pairs: out, note: 'overlap by the kernel; clearance on the display mesh (to its chord error on curved faces)' }), isError: false, changed: false, summary: `${out.length} pairs` };
@@ -139,4 +146,4 @@ async function cutListTool(state: ChatState, args: Record<string, unknown>): Pro
 }
 
 /** The query group's handlers, by v1 tool name (R3). */
-export const QUERY_HANDLERS: Readonly<Record<string, PartHandler>> = { get_part_summary: getPartSummaryTool, measure: measureTool, weld_list: weldListTool, fit_clearance: fitClearanceTool, mass_properties: massPropertiesTool, interference: interferenceTool, section: sectionTool, wall_thickness: wallThicknessTool, draft: draftTool, cut_list: cutListTool };
+export const QUERY_HANDLERS: Readonly<Record<string, PartHandler>> = { get_part_summary: getPartSummaryTool, measure: measureTool, weld_list: weldListTool, fit_clearance: fitClearanceTool, mass_properties: massPropertiesTool, rebuild_report: rebuildReportTool, interference: interferenceTool, section: sectionTool, wall_thickness: wallThicknessTool, draft: draftTool, cut_list: cutListTool };

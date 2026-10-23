@@ -49,6 +49,7 @@ import { FlatPatternDialog } from './ui/FlatPatternDialog';
 import { CutListDialog } from './ui/CutListDialog';
 import { ToolsTray } from './ui/ToolsTray';
 import { BomPanel, bomHasLinkedHousing } from './ui/BomPanel';
+import { RebuildPanel, rebuildStoreOf } from './ui/RebuildPanel';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
@@ -434,6 +435,9 @@ export function App() {
   const [libraryOpen, setLibraryOpen] = useState(false);
   /** O147: the BOM panel. */
   const [bomOpen, setBomOpen] = useState(false);
+  /** O10: the Rebuild panel, and the last evaluation it reads (a store: an evaluation renders only the open panel). */
+  const [rebuildOpen, setRebuildOpen] = useState(false);
+  const rebuildStore = useMemo(rebuildStoreOf, []);
   // (AM2: the overhang map along +Z for the part's printing process, the bed at the bodies' lowest point.)
   const printing = processProfile(doc.process)?.additive ? processProfile(doc.process)! : null;
   const viewAnalysis: Analysis | null = analysis === 'overhang'
@@ -590,7 +594,7 @@ export function App() {
       if (result.ok) {
         // What is selected stays selected where it still is: faces, edges and bodies by their persistent names.
         const prev = bodiesRef.current;
-        setBodies(result.bodies); setBodiesFor(evaluated); claimBodies.current = false;
+        setBodies(result.bodies); setBodiesFor(evaluated); claimBodies.current = false; rebuildStore.set({ doc: evaluated, result });
         if (chatSelection.current) setSelection(resolveNames(result.bodies, chatSelection.current).selection); else setSelection(sel => carrySelection(sel, prev, result.bodies));
         if (again.current) { setRestart(again.current); again.current = null; }
         chatSelection.current = null;
@@ -2303,6 +2307,7 @@ export function App() {
             <CommandButtons list={GROUP_COMMANDS[gi]} {...groupStates[gi]} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
             {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
             {g === 'inspect' && <button className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></button>}
+            {g === 'inspect' && <button className={'tool' + (rebuildOpen ? ' on' : '')} aria-label="Rebuild" data-tip="Rebuild" data-tip-desc="What the last rebuild cost: each feature built or reused, its time and kernel calls" onClick={() => { setBomOpen(false); setRebuildOpen(v => !v); }}><Icon name="cad-rebuild" /></button>}
           </div>))}
       </nav></Profiler>
 
@@ -2410,6 +2415,7 @@ export function App() {
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onToCurves={sketchToCurves} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
+      {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => {

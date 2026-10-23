@@ -294,6 +294,19 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
 }
+/**
+ * The part built from nothing with its features profiled (O10, query.rebuild): no snapshot reused, the main one left as
+ * it is — each feature's whole cost. Only the rebuild comes back (no bodies are worked out).
+ */
+export function rebuildFromScratch(doc: StudioDoc, revision: number): EvalResult {
+  const t0 = performance.now();
+  try {
+    const snapshot = partSnapshot(skeletonsNow(doc), part => evaluateCadPart(part, undefined, PROFILED));
+    return { ok: true, revision, bodies: [], ms: performance.now() - t0, rebuild: rebuildOf(snapshot) };
+  } catch (cause) {
+    return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
+  }
+}
 /** The bodies with their fits' notes (R12c.2, D155; throws a fit's refusal). */
 function withFitNotes(bodies: BodyResult[], doc: StudioDoc, outputs: CadPartSnapshot['outputs']): BodyResult[] {
   if (!doc.fits?.faces?.length) return bodies;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc } from '../src/engine/evaluate';
+import { evaluateDoc, rebuildFromScratch } from '../src/engine/evaluate';
 import { featureLabel, rectanglePart, starterDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { featureId } from '../src/engine/ids';
 import { BASE, type Mate } from '../src/assembly/mates';
@@ -64,4 +64,17 @@ test('O10: mates in a loop are listed with the parts they join; a mate that can 
   // (The loop broken: no problem, no loop.)
   const fixed = rebuildReport({ ...doc, mates: [mates[0], mates[2]] }, evaluateDoc(doc, 2))!;
   assert.deepEqual([fixed.mates, fixed.loops], [[], []]);
+});
+
+test('O10: from scratch — every body feature built even right after a warm evaluation, and the main cache left as it was', () => {
+  const doc = starterDoc();
+  evaluateDoc(doc, 1);
+  const cold = rebuildReport(doc, rebuildFromScratch(doc, 2), { basis: 'from scratch' })!;
+  assert.equal(cold.basis, 'from scratch');
+  assert.equal(cold.reused, 0);
+  assert.deepEqual(cold.features.filter(f => f.state !== 'input').map(f => f.state), cold.features.filter(f => f.state !== 'input').map(() => 'built'));
+  assert.ok(cold.built >= 2 && cold.evaluationMs >= cold.builtMs - 1e-9);
+  // (The main evaluation still reuses what it built: the cold build did not replace its snapshot.)
+  const warm = rebuildReport(doc, evaluateDoc(doc, 3))!;
+  assert.deepEqual([warm.basis, warm.built, warm.reused], ['last evaluation', 0, cold.built]);
 });

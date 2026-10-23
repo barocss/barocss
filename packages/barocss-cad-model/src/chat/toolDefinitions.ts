@@ -197,6 +197,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     input_schema: { type: 'object', properties: { hole: { type: 'string' }, shaft: { type: 'string' }, hole_class: { type: 'string' }, shaft_class: { type: 'string' }, size: { type: 'number' } }, additionalProperties: false },
   },
   {
+    name: 'rebuild_report',
+    description: 'The part built from nothing with its features timed (read only): each feature\'s wall time and kernel calls (Booleans, tessellations, sweeps, shells, finishes), the slowest, and the mates that cannot be met with the loops among them, at the document\'s revision. Display meshes, placed copies and other parts are not timed.',
+    input_schema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
     name: 'mass_properties',
     description: 'Each body\'s volume, surface area, mass by its material (none set: aluminium, said as assumed), centroid, inertia about it (kg·m²) and box.',
     input_schema: { type: 'object', properties: { bodies: { ...nameList, description: 'Body keys (default: all).' } }, additionalProperties: false },
