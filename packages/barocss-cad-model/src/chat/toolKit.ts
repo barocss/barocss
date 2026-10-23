@@ -126,5 +126,9 @@ export function checkValues(fields: Field[], values: Values): string | null {
 
 export const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 export const strings = (v: unknown) => Array.isArray(v) ? v.map(String) : [];
+/** A finite number from `lo` (or above it, `loOpen`) to below `hi` — the ranged arguments' check (R3b). */
+export const inRange = (v: unknown, lo: number, hi: number, loOpen = false): v is number => typeof v === 'number' && Number.isFinite(v) && (loOpen ? v > lo : v >= lo) && v < hi;
+/** Three finite numbers — a point or a direction argument's check (R3b). */
+export const isVec3 = (v: unknown): v is [number, number, number] => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x));
 /** A list of names or selectors (objects kept as they are). */
 export const list = (v: unknown): unknown[] => Array.isArray(v) ? v.map(x => isObj(x) ? x : String(x)) : [];
