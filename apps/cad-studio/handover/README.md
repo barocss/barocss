@@ -67,6 +67,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz seed 20261024 #171 (WRONG, 0.09 %): a cap about a sphere's pole, its trim round the whole turn in a few samples, is integrated | D199 | done (T2) |
 | A curved body's tessellated mass states its volume's error (volumeBoundMM3); cad-model's volume_basis is the outer lane's | D200 | done (T2) |
 | Fuzz s2#41, s1#149 (full tree): a planar face's slit (a loop out along an edge and back, or a hole of nothing else) is taken out in stitch | D201 | done (T2) |
+| Fuzz 176, 101 (arc-on-cylinder refusals): an arc on a wall that is no cross-section maps into the domain as a curve | D202 | done (T2) |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 

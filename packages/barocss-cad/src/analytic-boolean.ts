@@ -243,7 +243,10 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
     return { kind: 'arc', c: c2, r: k.r, t0: Math.atan2(a[1] - c2[1], a[0] - c2[0]), sweep: k.sweep * Math.sign(turn), ...t };
   }
   const along = dot(k.n, s.a);
-  if (Math.abs(Math.abs(along) - 1) > 1e-9) throw new BrepError('GEOMETRY', 'analytic Boolean: an arc on a cylinder is not a cross-section circle');
+  // (An arc on the wall that is no cross-section — a short piece of a traced curve made an exact arc within the tolerance,
+  // as any curve's is: a sphere's meeting with the cylinder, 0.06 mm of it — maps into the domain as a curve does.
+  // L4 fuzz 176, D202.)
+  if (Math.abs(Math.abs(along) - 1) > 1e-9) { const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: memo(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2; }
   const a = to2(f, start);
   return { kind: 'line', a, b: [a[0] + s.s * s.r * k.sweep * Math.sign(along), a[1]], ...t };
 }

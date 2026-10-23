@@ -11659,3 +11659,27 @@ the other at its apex.
 **Result:** strictly valid, watertight, 114.5005021 mm³ against the oracle's 114.5004538 ± 2.4e-4 (0.2 e).
 
 **Test:** `test/boolean-spike-cut.test.mjs`. It fails before the fix.
+
+## D202 — An arc on a cylinder's wall that is no cross-section maps into its domain as a curve (2026-10-23)
+
+**Findings.** D196's two arc-on-cylinder refusals:
+- 176: a box ∩ (a ball ∪ a cylinder);
+- 101: a cylinder less (a cone ∪ a cylinder) ∩ a cylinder.
+Both were refused with "an arc on a cylinder is not a cross-section circle".
+
+**Cause (176).** The ball ∪ cylinder's edges are their traced meeting. Where the next Boolean's march looks for a face's
+edges lying on the other surface, `exactly` turned a 0.056 mm piece of one into an exact arc (sweep 0.0245 rad, r 2.29),
+as any short curve fits a circle within the tolerance. That arc lies on the cylinder's wall but is no cross-section, so
+`curve2` refused it.
+
+**Fix (`src/analytic-boolean.ts`, `curve2`).** Such an arc maps into the cylinder's domain as a curve does: its points'
+parameters, as a traced curve's are. A cross-section still maps to a line.
+
+**Results:** both are strictly valid, watertight and one body.
+
+| Case | Volume (mm³) | Off the oracle |
+|---|---|---|
+| 176 | 8.542017 | −0.1 e |
+| 101 | 56.159035 | +0.1 e |
+
+**Test:** `test/boolean-arc-on-wall.test.mjs`, 176 against the ray oracle. It fails before the fix.
