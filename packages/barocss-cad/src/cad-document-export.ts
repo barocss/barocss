@@ -2,8 +2,8 @@ import { createCadDocument, validateCadDocumentResult } from './cad-document.js'
 import type { CadDocumentResult } from './cad-document.js';
 import { resolveCadGeometryReference, CadReferenceError } from './cad-document-reference.js';
 import type { CadGeometryReferenceV0 } from './cad-document-reference.js';
-import { exportIGES } from './iges.js';
-import type { IGESExportReport } from './iges.js';
+import { exportIGES } from './io/iges.js';
+import type { IGESExportReport } from './io/iges.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model } from './types.js';
 import { same } from './structural-equality.js';

@@ -1,6 +1,6 @@
 import { compileCadModel } from './model-compiler.js';
 import type { CadCompileResult } from './model-compiler.js';
-import type { CadAstValue, CadAstDeclaration } from './source-ast.js';
+import type { CadAstValue, CadAstDeclaration } from './language/source-ast.js';
 import type { CurveControlPolygonEdits, CurvePoleField, CurvePoleEditProvenance, CurveControlPolygonD1Evaluation, CurveControlPolygonD1Observation } from './curve-control-polygon.js';
 import { validateCurve, curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';

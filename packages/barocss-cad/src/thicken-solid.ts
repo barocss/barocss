@@ -2,7 +2,7 @@
 // or the other way, or half each way) joined round the four edges, as one faceted closed mesh sampled
 // on a grid. An offset deeper than the surface's tightest curve towards it would fold over itself: refused by name
 // (`OFFSET_FOLDS`, the shell's check, R11.3, D114).
-import { brepFromTriangles } from './mesh-brep.js';
+import { brepFromTriangles } from './mesh/mesh-brep.js';
 import { evaluateSurface, surfaceDomain } from './math.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import type { Brep } from './brep-core.js';

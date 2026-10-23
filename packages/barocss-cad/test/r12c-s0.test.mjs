@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, buildBrep, checkBrep, brepMassProperties, booleanAnalytic, exportStep, importStep } from '../dist/index.js';
-import { extrudedProfile } from '../dist/gear.js';
+import { extrudedProfile } from '../dist/machine/gear.js';
 
 // R12c S0 (D139): the feasibility checkpoint before machine and power-transmission elements (README §4 "R12c"). No
 // research note; probed here against closed forms and quadratures written in the test, none of them the kernel's:

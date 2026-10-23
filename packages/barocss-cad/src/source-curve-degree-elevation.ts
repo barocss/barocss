@@ -1,6 +1,6 @@
 import { compileCadModel } from './model-compiler.js';
 import type { CadCompileResult } from './model-compiler.js';
-import type { CadAstDeclaration, CadAstValue } from './source-ast.js';
+import type { CadAstDeclaration, CadAstValue } from './language/source-ast.js';
 import { elevateC0BezierChainCoefficientsTrusted } from './curve-c0-degree-elevation-internal.js';
 import type { C0ElevationKnotBlock, C0ElevationCoefficientResult } from './curve-c0-degree-elevation-internal.js';
 import { curveDecimal } from './curve-source.js';

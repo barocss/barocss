@@ -1,6 +1,6 @@
 import { compileCadModel } from './model-compiler.js';
 import type { CadCompileResult } from './model-compiler.js';
-import type { CadAstDeclaration, CadAstValue } from './source-ast.js';
+import type { CadAstDeclaration, CadAstValue } from './language/source-ast.js';
 import { validateCurve, curveDomain } from './math.js';
 import { insertSourceCurveKnot } from './source-curve-knot-insertion.js';
 import type { SourceCurveKnotInsertionResult } from './source-curve-knot-insertion.js';

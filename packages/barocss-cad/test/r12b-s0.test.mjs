@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep, brepMassProperties, spurGear, spurGearDimensions, GearError } from '../dist/index.js';
-import { twistDeviation } from '../dist/gear.js';
+import { twistDeviation } from '../dist/machine/gear.js';
 
 // R12b S0 (D129): the feasibility checkpoint before internal, bevel and worm gears and the tool-generated root. No
 // research note; probed here against oracles written in this file, apart from the generators: closed forms, a

@@ -1,5 +1,5 @@
-import { CadAstError } from './source-ast.js';
-import type { CadExpression, CadAstValue, CadAstDeclaration, CadOrdinaryAstDeclaration, CadModelAst, CadSourceRange } from './source-ast.js';
+import { CadAstError } from './language/source-ast.js';
+import type { CadExpression, CadAstValue, CadAstDeclaration, CadOrdinaryAstDeclaration, CadModelAst, CadSourceRange } from './language/source-ast.js';
 import { copyCadData } from './data-copy.js';
 
 export type CadQuantityKind = 'length' | 'scalar';

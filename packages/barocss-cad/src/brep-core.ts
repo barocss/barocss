@@ -11,7 +11,7 @@ import { CadNumericPolicy } from './numeric-policy.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
 import { cross, dist as distance, dot, sub } from './vec3.js';
 import { strictGeometry } from './brep-check-geometry.js';
-import { facetPatchProblem, facetVectorArea } from './facet-patch.js';
+import { facetPatchProblem, facetVectorArea } from './mesh/facet-patch.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */

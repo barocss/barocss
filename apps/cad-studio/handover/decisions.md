@@ -12323,3 +12323,40 @@ lazily, after the evaluation, is not counted.
 - the profile is kept through `withDocument`.
 
 **Checks:** build, tsc, lint; the new test, the Boolean tests and the trap tests (80 files); the kernel suite (the known Node-version demo test only) and RB; the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical with the option off and with it on.
+
+## D229 — R5.4 batch 1: the part, machine, io, mesh, frame-sheet and language modules move into folders (2026-10-23)
+
+**What.** 53 files of `packages/barocss-cad/src` move into folders, unchanged but for their import specifiers:
+
+| Folder | Modules |
+|---|---|
+| `src/part/` | part-model and the seven part-* family modules |
+| `src/machine/` | bearing, cam, connector, drive, fits, the six gear modules, oring, shaft, shaft-parts, spring, thread-helical, thread-solid |
+| `src/io/` | dxf-writer, iges, iges-import, step, step-import, stl |
+| `src/mesh/` | the mesh-*, facet-* modules, triangle-bvh, voxel-field |
+| `src/frame-sheet/` | frame-cutlist, frame-section, frame-weldment, sheet-flat, sheet-metal |
+| `src/language/` | expression-parser, source-ast, semantic-model, lower-model |
+
+**How references keep resolving.**
+- A script (`git mv`, then every relative specifier recomputed) rewrote the imports of 69 src files, `index.ts` among
+  them. Basenames stay unique.
+- The kernel exports only `.`, so there are no shims: importers point at the new paths.
+- Outside src, the same commit updates every `dist/<name>.js` and `src/<name>.ts` path to a moved module: the tests
+  expression-ast, model-compiler, r12b-s0, r12c-s0 and source-ast, and `examples/cad-nurbs/iges-import-demo.mjs`.
+- The frozen ledgers under `examples/physics-*/` (source-freeze, base-tracked-ledger, precode-provider-hashes) are
+  records their scripts write, and no check reads them back. They stay as written.
+
+**Left at the root on purpose.** `model-compiler` stays: modeling.ts imports it as `./model-compiler.js`, the shape the
+opt-in `modeling-offset` admission trap keys on. It moves with the modeling closure, or stays, in batch 4.
+
+**Traps.**
+- `frk-6-ordered-trim`'s coverage trap finds the script ending `/part-model.js`, still true at `dist/part/`.
+- The modeling facade traps key by basename. `model-compiler`, their one provider in reach, did not move.
+- source-ast.test reads `../src/language/source-ast.ts`; its one import is still `./expression-parser.js`, a sibling.
+
+**Checks:** a full build (dist cleared), tsc, lint; the moved modules' tests and the trap tests; the kernel suite, RB
+and the R5 fingerprint; cad-model and studio (through index.ts); the moved demo run once.
+`apps/library-docs/evidence/current-public-api.json` stays at its pinned sourceCommit. The docs owner's next
+`--write-current` records the new source paths.
+
+**Checks run:** build, tsc, lint; 75 tests of the moved modules and the 20 trap tests (1021 tests); the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 983/983, studio 274/274; iges-import-demo passes with the new path.

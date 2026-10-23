@@ -13,7 +13,7 @@ import { curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './
 import { curveD1Evaluator, type CurveD1Result } from './derivatives.js';
 import type { Brep, BrepFace } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
-import { facetIntegrals } from './facet-patch.js';
+import { facetIntegrals } from './mesh/facet-patch.js';
 import type { FacetPatch } from './types.js';
 import { cross, dot, sub } from './vec3.js';
 import { gauss } from './quadrature.js';

@@ -1,6 +1,6 @@
 import { compileCadModel } from './model-compiler.js';
 import type { CadCompileResult } from './model-compiler.js';
-import type { CadAstDeclaration, CadAstValue } from './source-ast.js';
+import type { CadAstDeclaration, CadAstValue } from './language/source-ast.js';
 import { insertCurveKnotCoefficientsTrusted } from './curve-knot-insertion.js';
 import type { CurveKnotCoefficientResult } from './curve-knot-insertion.js';
 import { curveDecimal } from './curve-source.js';
