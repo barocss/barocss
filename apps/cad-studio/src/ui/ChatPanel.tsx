@@ -6,7 +6,7 @@ import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
 import { chatStatus, newChatBlobs, runServerTurn, type ChatStatus } from '../chat/client';
-import { receivePersonRowFiles, revokePersonRowFiles, pastedRowFile, type RowFileInput, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { receivePersonRowFiles, revokePersonRowFiles, pastedRowFile, type RowFileInput, type PersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { ACCEPT, imageUrl, prepareImage, type ChatImage } from '../chat/images';
 import { diffLine, withHistory } from '@barocss/cad-model/chat/proposals';
 import { treeDiff } from '@barocss/cad-model/chat/transactions';

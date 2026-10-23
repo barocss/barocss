@@ -12,8 +12,8 @@ import { editDriveRows } from '../engine/drives';
 import { editConnectorRows } from '../engine/connectors';
 import { editSections } from '../frames/sections';
 import { isSectionTable, sectionTableRows } from '../frames/sectionTables';
-import { authorizeRows, ROW_KINDS, rowEntries, rowKey, validRowSupplies, type RowKind, type SuppliedRowDoc } from './rowSources';
-import { personRowFile, ROWS_NOT_FROM_PERSON, type PersonRowFiles, type RowFileSource } from './rowFiles';
+import { authorizeRows, ROW_KINDS, rowEntries, rowKey, validRowSupplies, type RowKind, type SuppliedRowDoc } from '../engine/rowSources';
+import { personRowFile, ROWS_NOT_FROM_PERSON, type PersonRowFiles, type RowFileSource } from '../engine/rowFiles';
 
 const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const positive = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0;

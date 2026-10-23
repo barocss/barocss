@@ -410,7 +410,7 @@ import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
 import { type Mate } from '../assembly/mates';
 import { rotationMatrix, rotationSteps } from './placement';
-import { flattenAssembly } from '../assembly/flatten';
+import { flattenAssembly } from './flatten';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from './schema/spec';
@@ -449,7 +449,7 @@ export interface StudioDoc {
    * an agent's stays marked until a person confirms it (and only then may it be shared with the team).
    */
   /** Conversation file evidence, separate from strict row source/estimate fields. */
-  rowSources?: { version: 1; rows: import('../chat/rowSources').RowSupply[] };
+  rowSources?: { version: 1; rows: import('./rowSources').RowSupply[] };
   libraries?: { library: CadLibraryManifest; authoredBy: 'agent' | 'person'; confirmed?: boolean }[];
   /** The process the part is made by (R6b.7, D67): a process profile's id (injection, fdm, sla, sls, mjf) — its rules' thresholds. */
   process?: string;

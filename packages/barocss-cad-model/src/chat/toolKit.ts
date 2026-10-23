@@ -3,7 +3,7 @@
 import { refOf, shownFields, type Field, type Values } from '../app/commands';
 import { featureLabel, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import type { PersonRowFiles } from './rowFiles';
+import type { PersonRowFiles } from '../engine/rowFiles';
 import type { ImageTrace } from './trace';
 import type { NameSelection } from './names';
 import { changeOf, factsOf } from './observe';

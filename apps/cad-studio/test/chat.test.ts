@@ -20,7 +20,7 @@ import { planHollow } from '@barocss/cad-model/print/hollow';
 import { simplify, traceImage, traceLoops } from '@barocss/cad-model/chat/trace';
 import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
-import { receivePersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { loadPersonRows } from '@barocss/cad-model/chat/rows';
 import SAMPLE_FASTENER_SIZES from '@barocss/cad-model/samples/rows/fastener-sizes.json';
 

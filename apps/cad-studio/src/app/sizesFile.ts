@@ -3,7 +3,7 @@
 // load_rows loads one, its receipt naming the file. The agent cannot call it (it is no tool).
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { loadPersonRows } from '@barocss/cad-model/chat/rows';
-import { receivePersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 
 /** A sample's name in its receipt (a receipt's file name holds no folders): samples/rows/<kind>.json. */
 export const sampleFile = (kind: ShopKind) => `cad-model sample ${kind}.json`;

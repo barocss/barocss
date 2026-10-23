@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
 import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { flattenAssembly } from '../src/engine/flatten';
 import { featureIdsOf, nextSerial, nodeIndexOf, renameFeatureIds, withIds } from '../src/engine/ids';
 import { toPartDocument } from '../src/engine/part';
 import { readStudioDoc } from '../src/engine/migrate';

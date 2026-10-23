@@ -1,5 +1,5 @@
 // File evidence is separate from strict domain rows. A receipt is valid only for the exact row digest.
-import type { StudioDoc } from '../engine/doc';
+import type { StudioDoc } from './doc';
 import { canonical } from '../util/revision';
 import { sha256Hex } from '../util/digest';
 import { isPersonRowFiles, ROWS_NOT_FROM_PERSON, type PersonRowFiles, type RowFileSource } from './rowFiles';

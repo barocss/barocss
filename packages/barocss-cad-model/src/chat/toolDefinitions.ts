@@ -6,7 +6,7 @@ import type { ToolDefinition } from './api';
 import { CAGE_MUTATORS, CAGE_TOOLS } from './cageTools';
 import { DRAWING_CHANGES, DRAWING_TOOLS } from './drawing';
 import { OUTPUT_TOOLS } from './outputDefinitions';
-import { ROW_KINDS } from './rowDefinitions';
+import { ROW_KINDS } from '../engine/rowDefinitions';
 import { GROUPS, V2_OF } from './groups';
 import { ROBOT_TOOLS } from './robot';
 import { BRIEF_TOOLS } from './brief';

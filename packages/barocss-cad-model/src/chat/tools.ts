@@ -9,7 +9,7 @@ import { DRAWING_TOOL_NAMES, runDrawingTool } from './drawing';
 import { OUTPUT_TOOL_NAMES } from './outputDefinitions';
 import { resolveShopRows, resolveShopTree, restoreAuthoredShopRows } from '../engine/shopRows';
 import { friendly } from '../engine/errors';
-import { personRowsRefusal, reconcileRowSources } from './rowSources';
+import { personRowsRefusal, reconcileRowSources } from '../engine/rowSources';
 import { v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, runRobotTool } from './robot';
 import { BRIEF_TOOL_NAMES, runBriefTool } from './brief';

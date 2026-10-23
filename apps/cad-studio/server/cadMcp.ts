@@ -1,4 +1,4 @@
-import { receivePersonRowFiles, type RowFileInput, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { receivePersonRowFiles, type RowFileInput, type PersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 // The studio's chat tools as an MCP server (stdio, newline-delimited JSON-RPC) for the `claude` CLI.
 // The part lives in a state file the chat server writes before the turn and reads after each tool call:
 // {doc, selection?, changed}. Tools run in Node on the same engine as the studio (src/chat/tools.ts).

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { commands } from '@barocss/cad-model/app/commands';
 import { evaluateDoc, evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, featureLabel, rectanglePart, sectionLabel, withNode, type Dim, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
+import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { editFields } from '@barocss/cad-model/app/editFields';

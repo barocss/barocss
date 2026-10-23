@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { carryOver, NODE_EXTRA_FIELDS, rectanglePart, STUDIO_DOC_FIELDS, withNode, type ModelNode, type NodeExtras, type StudioDoc } from '../src/engine/doc';
 import { deleteFeature, duplicateBody, moveFeature, replaceRange } from '../src/chat/features';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { flattenAssembly } from '../src/engine/flatten';
 import { readStudioDoc } from '../src/engine/migrate';
 import { defaultRender } from '../src/engine/render';
 import { defaultDrawing } from '../src/drawing/types';

@@ -1,5 +1,5 @@
 // Read-only shop context. These views are evaluation inputs, never authored documents.
-import { inheritRowSources, rowEntries, rowKey, validRowSupplies, type RowKind, type RowSupply } from '../chat/rowSources';
+import { inheritRowSources, rowEntries, rowKey, validRowSupplies, type RowKind, type RowSupply } from './rowSources';
 import type { StudioDoc } from './doc';
 import { bearingAssemblyView, bearingPartView, withoutBearingContext } from './bearingContext';
 

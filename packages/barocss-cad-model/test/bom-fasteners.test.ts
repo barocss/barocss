@@ -7,7 +7,7 @@ import { bomPanelData, isBoughtLine, purchaseCsv } from '../src/bom/bom';
 import { bomView, checkBom, deriveBom } from '../src/team/assembly';
 import { withFastenerInstance } from '../src/app/fasteners';
 import { fastenerRowProblem } from '../src/engine/fastenerRows';
-import { ROWS_NOT_FROM_PERSON } from '../src/chat/rowFiles';
+import { ROWS_NOT_FROM_PERSON } from '../src/engine/rowFiles';
 import { personFile, withSampleRows } from './person-file';
 import { drawingInputs } from '../src/chat/drawing';
 import { issueContext } from '../src/drawing/issues';

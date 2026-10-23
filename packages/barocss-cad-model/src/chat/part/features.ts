@@ -4,8 +4,8 @@ import { commandById, commands, patchValues, shownFields, type Ctx, type Values 
 import { editFields } from '../../app/editFields';
 import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } from '../../engine/doc';
 import { loadPersonRows } from '../rows';
-import { ROWS_NOT_FROM_PERSON } from '../rowFiles';
-import type { RowKind } from '../rowDefinitions';
+import { ROWS_NOT_FROM_PERSON } from '../../engine/rowFiles';
+import type { RowKind } from '../../engine/rowDefinitions';
 import { datumPlane, readReferences, ReferenceError } from '../references';
 import { checkNode, deleteFeature } from '../features';
 import { withLook } from '../../app/bodies';

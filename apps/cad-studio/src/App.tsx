@@ -1,4 +1,4 @@
-import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
@@ -130,7 +130,7 @@ import { confirmDimension, draftWarning, liveDrafts, runDraftTool } from '@baroc
 import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand, featureOfPick } from '@barocss/cad-model/app/editCommand';
-import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
+import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from '@barocss/cad-model/assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from '@barocss/cad-model/assembly/drag';
 import { BASE, type Mate } from '@barocss/cad-model/assembly/mates';

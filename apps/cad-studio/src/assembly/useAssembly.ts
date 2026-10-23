@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type 
 import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { FaceClient } from './faceClient';
-import { flattenAssembly } from '@barocss/cad-model/assembly/flatten';
+import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { BASE, kindsFor, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
 
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */

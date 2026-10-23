@@ -5,10 +5,10 @@ import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { dispatchTool, runTool, acceptProposal, previewProposal, rebaseProposal } from '../src/chat/tools';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { resolveShopRows } from '../src/engine/shopRows';
-import { receivePersonRowFiles, revokePersonRowFiles, pastedRowFile, type PersonRowFiles } from '../src/chat/rowFiles';
+import { receivePersonRowFiles, revokePersonRowFiles, pastedRowFile, type PersonRowFiles } from '../src/engine/rowFiles';
 import { v2Result } from '../src/chat/groups';
 import { loadPersonRows } from '../src/chat/rows';
-import { personRowsRefusal, rowEntries, validRowSupplies, type RowKind } from '../src/chat/rowSources';
+import { personRowsRefusal, rowEntries, validRowSupplies, type RowKind } from '../src/engine/rowSources';
 
 // Existing domain test data, not a built-in catalogue: fits.test, bearing.test, gland.test,
 // ring-rows.test, drive.test, frame-sections.test, cam-package.test, frame-nesting.test,

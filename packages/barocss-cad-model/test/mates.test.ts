@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluatePart } from '../src/engine/evaluate';
 import { cylinderPart, emptyDoc, placedDoc, rectanglePart, starterDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { faceTableOf } from '../src/assembly/faces';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { flattenAssembly } from '../src/engine/flatten';
 import { BASE, lockRel, solveAssembly, type FaceTable, type Mate } from '../src/assembly/mates';
 import { eulerOf, rotationMatrix, rotationSteps } from '../src/engine/placement';
 
