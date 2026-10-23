@@ -2727,3 +2727,43 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - A full WebGPU flow run before the strip became an overlay showed 18 and 204 shifting; both pass now.
   - "shapes strip" and "R14.4" fail before G12a as well, at 09ef149d4 in the scratch worktree: pre-existing, not from
     this step.
+
+## G-R44 — G12b: shadcn/ui and Tailwind v4 set up, the right dock with the Browser, the HUD and the inspector (roadmap G12, 2026-10-24)
+
+- **Setup** (762499b9c, package.json and the lockfile only): tailwindcss and @tailwindcss/vite 4.1.13, clsx,
+  tailwind-merge, class-variance-authority, the Radix primitives (collapsible, scroll-area, toggle-group, tooltip, slot)
+  and react-resizable-panels, all exact. The owner confirmed the download in this session.
+- **Tailwind without its preflight**: only `tailwindcss/theme.css` and `utilities.css`, in layers.
+  - The studio's own CSS stays unlayered and keeps the browser defaults it was written against.
+  - shadcn's tokens are mapped onto the studio's in `src/tailwind.css`. shadcn's `--accent` (a hover fill) is
+    `--ui-hover` there, so the studio's yellow `--accent` keeps its meaning.
+  - `components.json` and `@/` mean src/. `cn()` is in `src/lib/utils.ts`.
+  - Collapsible, ScrollArea and Badge are copied into `src/components/ui`.
+- **Dock** (`layout/Dock.tsx`): 300 px, or 280 below 1280.
+  - It holds the Browser (moved from the left, its mount behind `browserPlacement`), the running command's HUD and
+    the inspector (today's right column). They sit flat in one plain scroll column. Radix's ScrollArea let the panels'
+    content grow past it.
+  - Where chat + dock + 560 px don't fit, the dock is a 44 px strip at the stage's right with a sheet over the viewport.
+    An opened BOM, Library or Parameters panel opens the sheet.
+- **Top bar**: spans the centre and the dock (the window less the chat column), with the dock under it.
+- **Fixes the narrower centre called for**:
+  - Strips take the pointer only on their buttons. Steps 72 and 273 had clicked the canvas's left edge, where the
+    chat strip lies.
+  - The top bar's z-index is set once (a later `z-index: 6` in the same rule had won).
+  - The inline dimension editor sits over the bar again (z 9, O137).
+  - Toasts sit at the stage's top left under the hint bar. The section bar is about 700 px wide in a narrow centre and
+    met them at the bottom.
+  - The view bar's room is the stage less both strips.
+- **Flow changes**:
+  - Each step starts with the columns as a fresh viewer has them (DEV `__studioLayoutReset`).
+  - G3's two clicks are world points on screen.
+  - R14.1's hand placement is 18 mm off the front view; at 30 mm it fell on the top view's label.
+  - The shapes strip picks the last shape that can start. Fastener, needing a row, is off.
+  - The bottom-row step follows the stage's room.
+  - The three-columns step checks that a click beside the strip's buttons reaches the viewport.
+- **Runs**:
+  - Full flow on WebGPU and on WebGL2 (scratch worktree, b3d6a2369): 279/280 each. The one failure is R14.4 (207),
+    fixed on the outer lane's branch (d2d62a94e).
+  - Studio unit 274/274, tsc and eslint clean, check:docs clean (533 labels).
+- **For the outer lane**: a click on a drawing view's label does not place a dimension. R14.1's placement fell on one in
+  the narrower centre.
