@@ -2,14 +2,21 @@ import { shownFields } from '@barocss/cad-model/app/commands';
 import { useEffect, useRef } from 'react';
 import type { Command, Ctx, Values } from '@barocss/cad-model/app/commands';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { NativeSelect } from '@/components/ui/native-select';
 import { Icon, Kbd } from './atoms';
+
+/** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
+const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
 
 interface Props {
   active: { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean };
   onChange(key: string, value: number | string): void; onApply(): void; onCancel(): void;
 }
 
-/** The floating command HUD: few fields, keyboard-first, with the kernel’s answer inline. */
+/** The floating command HUD: few fields, keyboard-first, with the kernel’s answer inline. (G12f: its fields, choices and
+ * actions shadcn's Input, NativeSelect and Button, at the HUD's 26 px in the studio's mono type.) */
 export function Hud({ active, onChange, onApply, onCancel }: Props) {
   const first = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement) first.current.select(); }, [active.cmd.id]);
@@ -28,9 +35,9 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
         {fields.map((f, i) => (
           <label key={f.key} className="field"><span>{f.label}</span>
             {f.kind === 'choice'
-              ? <select ref={i === 0 ? el => { first.current = el; } : undefined} value={String(active.values[f.key])} onChange={e => onChange(f.key, e.target.value)}>
-                {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-              : <span className="num"><input ref={i === 0 ? el => { first.current = el; } : undefined} type="number" step={f.kind === 'count' ? 1 : 'any'} min={f.min} max={f.max}
+              ? <NativeSelect className={FIELD} ref={i === 0 ? el => { first.current = el; } : undefined} value={String(active.values[f.key])} onChange={e => onChange(f.key, e.target.value)}>
+                {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</NativeSelect>
+              : <span className="num"><Input className={FIELD + ' pr-7!'} ref={i === 0 ? el => { first.current = el; } : undefined} type="number" step={f.kind === 'count' ? 1 : 'any'} min={f.min} max={f.max}
                 value={String(active.values[f.key] ?? '')} onChange={e => onChange(f.key, e.target.value === '' ? '' : Number(e.target.value))} />
                 {f.kind === 'mm' && <em>mm</em>}{f.kind === 'deg' && <em>°</em>}{f.kind === 'ratio' && <em>×</em>}</span>}
           </label>))}
@@ -42,8 +49,8 @@ export function Hud({ active, onChange, onApply, onCancel }: Props) {
       <div className="hud-actions">
         <span className="muted"><Kbd>Tab</Kbd> next <Kbd>Enter</Kbd> apply <Kbd>⇧Enter</Kbd> again <Kbd>Esc</Kbd> cancel</span>
         <span className="grow" />
-        <button className="ghost" onClick={onCancel}>Cancel</button>
-        <button className="primary" disabled={active.preview !== 'ok'} onClick={onApply}>Apply</button>
+        <Button variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button variant="default" disabled={active.preview !== 'ok'} onClick={onApply}>Apply</Button>
       </div>
     </div>
   );
