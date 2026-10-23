@@ -9,7 +9,7 @@
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCurve, validateSurface } from './math.js';
 import { CadNumericPolicy } from './numeric-policy.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
-import { cross, dot, sub } from './vec3.js';
+import { cross, dist as distance, dot, sub } from './vec3.js';
 import { strictGeometry } from './brep-check-geometry.js';
 import { facetPatchProblem, facetVectorArea } from './facet-patch.js';
 
@@ -70,7 +70,6 @@ export function nurbsOf(face: { readonly id: string; readonly surface: Surface |
   return face.surface;
 }
 export const isFacetFace = (face: { readonly surface: Surface | FacetPatch }) => face.surface.kind === 'facets';
-const distance = (a: Point, b: Point) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 /** ∂S/∂u × ∂S/∂v at the middle of the surface domain (central differences). */
 export function surfaceNormalAtCentre(surface: Surface): Point {
   const { u, v } = surfaceDomain(surface), um = (u[0] + u[1]) / 2, vm = (v[0] + v[1]) / 2, hu = (u[1] - u[0]) * 1e-4, hv = (v[1] - v[0]) * 1e-4;

@@ -24,6 +24,7 @@ import { evaluateCadPart } from './part-model.js';
 import { fitLimits, type FitLimits, type FitTable } from './fits.js';
 import type { ShaftReport } from './shaft.js';
 import type { Point } from './types.js';
+import { add, cross, dot, scale as scl, sub } from './vec3.js';
 
 export type ShaftPartCode = 'INVALID_INPUT' | 'KEY_FIT' | 'RING_FIT' | 'PIN_FIT';
 export class ShaftPartError extends Error {
@@ -63,12 +64,7 @@ const own = (b: Brep, tool: string, id: string): Brep => transformBrep(b, { matr
 const turnZ = (deg: number): BrepAffine['matrix'] => { const c = Math.cos(deg * Math.PI / 180), s = Math.sin(deg * Math.PI / 180); return [c, -s, 0, s, c, 0, 0, 0, 1]; };
 const apply = (m: BrepAffine, p: Point): Point => { const a = m.matrix, t = m.offset ?? [0, 0, 0]; return [a[0] * p[0] + a[1] * p[1] + a[2] * p[2] + t[0], a[3] * p[0] + a[4] * p[1] + a[5] * p[2] + t[1], a[6] * p[0] + a[7] * p[1] + a[8] * p[2] + t[2]]; };
 const dirOf = (m: BrepAffine, v: Point): Point => { const a = m.matrix; return [a[0] * v[0] + a[1] * v[1] + a[2] * v[2], a[3] * v[0] + a[4] * v[1] + a[5] * v[2], a[6] * v[0] + a[7] * v[1] + a[8] * v[2]]; };
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const unit = (a: Point): Point => { const n = Math.hypot(...a); return [a[0] / n, a[1] / n, a[2] / n]; };
-const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const add = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const scl = (a: Point, s: number): Point => [a[0] * s, a[1] * s, a[2] * s];
 /** A bore's reference direction square to its axis: +X projected, else +Y. */
 function reference(a: Point): Point { const x: Point = [1, 0, 0], y: Point = [0, 1, 0], r = Math.abs(dot(a, x)) < 0.9 ? x : y; return unit(sub(r, scl(a, dot(r, a)))); }
 

@@ -1,6 +1,7 @@
 import type { Brep } from './brep-core.js';
 import type { FrameEndReport, FrameMemberReport } from './frame-section.js';
 import { curveDomain, evaluateCurve } from './math.js';
+import { dot } from './vec3.js';
 
 // FR4a (D127): a frame's cut list. Each member as a piece to cut — its axis length (the centroidal line between its two
 // end planes, in closed form where both ends are planes; else its volume over its section's area), its long point (its
@@ -58,7 +59,6 @@ export class CutListError extends Error {
 }
 
 type V3 = readonly [number, number, number];
-const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const PLANE_KINDS = new Set(['square', 'through', 'mitre', 'butt']);
 
 /** An end's angles from square: its plane's normal against the section's x, y and the line u. */

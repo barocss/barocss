@@ -27,6 +27,7 @@ import { booleanAnalytic } from './analytic-boolean.js';
 import { transformBrep } from './brep-transform.js';
 import { glueAtSharedFace } from './brep-glue.js';
 import type { Curve, Point, Surface } from './types.js';
+import { add as vAdd, cross as vCross, dot as vDot, scale as vScl, sub as vSub } from './vec3.js';
 
 export type SpringDiagnosticCode = 'INVALID_INPUT' | 'SELF_INTERSECTION' | 'COILS_OVERLAP' | 'PROFILE_BUDGET_EXCEEDED' | 'UNSUPPORTED_SPRING_KIND' | 'LEG_OVERLAP';
 export interface SpringDiagnostic { readonly code: SpringDiagnosticCode; readonly severity: 'error' | 'warning'; readonly message: string }
@@ -437,11 +438,6 @@ export function compressionSpring(spec: SpringSpec, options: { readonly id?: str
 
 /** A pipe's section frame: its centre, e1 and e2 (the section's x and y); the tangent is e1 × e2. */
 interface Frame { readonly o: Point; readonly e1: Point; readonly e2: Point }
-const vAdd = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const vSub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const vScl = (a: Point, s: number): Point => [a[0] * s, a[1] * s, a[2] * s];
-const vDot = (a: Point, b: Point): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const vCross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const vUnit = (a: Point): Point => vScl(a, 1 / Math.hypot(a[0], a[1], a[2]));
 const tangentOf = (f: Frame): Point => vCross(f.e1, f.e2);
 /** v turned by angle t about the unit axis k (Rodrigues). */

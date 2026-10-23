@@ -427,8 +427,9 @@ try {
   }
   // G2: the section plane dragged 60 steps across the 120 brackets — cut by the GPU's clip plane, then (the same build) by
   // clipMesh on the CPU as WebGL2 does; the exact section held back in both (only the drag's own cost).
-  // (As a drag sets it: a new plane each animation frame, y from 20 to 160.)
-  const dragSection = () => page.evaluate(() => new Promise(done => { let i = 0; const step = () => { window.__studioSetSection({ axis: 'y', at: 20 + 140 * ++i / 60, keep: 'positive' }); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
+  // (As a drag sets it: a new plane each animation frame, y from 20 to 160 — R1c (3c): through the handle's own path, each
+  // step shown and the last, released, committed.)
+  const dragSection = () => page.evaluate(() => new Promise(done => { let i = 0; const step = () => { ++i; window.__studioDragSection({ axis: 'y', at: 20 + 140 * i / 60, keep: 'positive' }, i >= 60); if (i < 60) requestAnimationFrame(step); else done(); }; requestAnimationFrame(step); }));
   await page.click('[aria-label="Section view"]'); await page.waitForFunction(() => window.__studioSection?.().clip !== undefined, null, { timeout: 10000 });
   for (const [name, cpu, budget] of [['section: 120 brackets, 60-step drag (GPU)', false, BUDGET.sectionGpu], ['section: the same, CPU clipMesh (WebGL2\'s)', true, BUDGET.sectionCpu]]) {
     await page.evaluate(c => window.__studioSectionDebug({ hold: true, cpu: c }), cpu); await page.waitForTimeout(800);

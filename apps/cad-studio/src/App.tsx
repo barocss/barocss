@@ -1,5 +1,5 @@
 import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
-import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
@@ -22,7 +22,7 @@ import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
 import { measureBetween, measureItem, pointInBody, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { editFields } from '@barocss/cad-model/app/editFields';
-import { DRAG_TYPE, Viewport, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
+import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { ClearancePanel } from './viewport/ClearancePanel';
 import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
@@ -30,6 +30,12 @@ import { CamPanel } from './viewport/CamPanel';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
+import { poseKinematics, useJoints } from './state/useJoints';
+import { createValueStore, useStoreValue } from './state/valueStore';
+import { SceneViewport } from './viewport/SceneViewport';
+import { JointsPanelLive } from './ui/JointsPanelLive';
+import { ExplodeButton } from './ui/ExplodeButton';
+import { useScenePoses } from './state/useScenePoses';
 import { CommandButtons, CommandStrip, commandStates } from './ui/ToolButton';
 import { useDrawingSheet } from './ui/useDrawingSheet';
 import { pmiSelection } from './viewport/pmiGeometry';
@@ -75,16 +81,14 @@ import { resolveNames, type NameSelection } from '@barocss/cad-model/chat/names'
 import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents, moveFeature } from '@barocss/cad-model/chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from '@barocss/cad-model/drawing/types';
 import { MatePanel } from './ui/MatePanel';
-import { JointsPanel } from './ui/JointsPanel';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
-import { forwardKinematics, gearPairAt, sliderRange } from '@barocss/cad-model/robot/fk';
 import { treeInertia } from '@barocss/cad-model/robot/inertia';
-import { gravityTorques, linkMasses } from '@barocss/cad-model/robot/dynamics';
+import { linkMasses } from '@barocss/cad-model/robot/dynamics';
 import { exportUrdf } from '@barocss/cad-model/robot/urdf';
 import { exportMjcf, type MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 import { sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { sweepTimed, type JointLimits } from '@barocss/cad-model/robot/ccd';
-import { workspaceMap, type WorkspaceMap } from '@barocss/cad-model/robot/workspace';
+import { workspaceMap } from '@barocss/cad-model/robot/workspace';
 import { exportSdf } from '@barocss/cad-model/robot/sdf';
 import { exportUsd } from '@barocss/cad-model/robot/usd';
 import { closureOfDoc } from '@barocss/cad-model/robot/loop';
@@ -96,8 +100,8 @@ import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/ca
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import type { Analysis } from './viewport/analysis';
-import { boundsUnder, instancePoses, poseMatrix } from './viewport/instancePose';
-import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, sectionedInstances, type AxisSection, type Section } from './viewport/sectionView';
+import { poseMatrix } from './viewport/instancePose';
+import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, type AxisSection, type Section } from './viewport/sectionView';
 import { SectionBar, sectionHandles } from './ui/SectionBar';
 import { mapsOf, type MapKind } from './viewport/scalarMaps';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
@@ -438,7 +442,30 @@ export function App() {
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
   // (G19: one plane, a box or two or three planes — the kept region their intersection; the next face click sets plane `sectionFacePick`.)
-  const [section, setSection] = useState<Section | null>(null);
+  // (Dev/test: the exact section held back, and the CPU's path forced, to compare the two clips through one viewer.)
+  const [sectionDebug, setSectionDebug] = useState({ hold: false, cpu: false });
+  // The section as committed, and the plane being dragged (R1c (3c)): a drag sets `sectionLive`, outside React state.
+  // On WebGPU only SceneViewport follows it in each frame, the App once as the drag starts. On WebGL2 the App follows it,
+  // as before: its CPU copies are cut again in each frame. The release commits it.
+  const [committedSection, setCommittedSection] = useState<Section | null>(null);
+  const sectionLive = useMemo(() => createValueStore<Section | null>(null), []);
+  const liveSection = useStoreValue(sectionLive, !!committedSection && (viewBackend !== 'webgpu' || sectionDebug.cpu));
+  const section = liveSection ?? committedSection;
+  const committedSectionRef = useRef(committedSection); committedSectionRef.current = committedSection;
+  const [, setSectionDragging] = useState(false);
+  /** A section set (the toggle, the bar, a face, the hooks): committed, a drag's plane with it. */
+  const setSection = useCallback((next: Section | null | ((s: Section | null) => Section | null)) => {
+    const base = sectionLive.get();
+    setCommittedSection(prev => typeof next === 'function' ? next(base ?? prev) : next);
+    sectionLive.set(null); setSectionDragging(false);
+  }, [sectionLive]);
+  /** A section handle dragged: its plane into the store at each step, the App told once as it starts; the release commits. */
+  const dragSection = useCallback((f: (s: Section | null) => Section | null, done: boolean) => {
+    const was = sectionLive.get(), next = f(was ?? committedSectionRef.current);
+    if (done) { setSection(() => next); return; }
+    if (!was) setSectionDragging(true);
+    sectionLive.set(next);
+  }, [sectionLive, setSection]);
   const [sectionFacePick, setSectionFacePick] = useState<number | null>(null);
   const sectionFacePickRef = useRef(sectionFacePick); sectionFacePickRef.current = sectionFacePick;
   const [sectionExact, setSectionExact] = useState<{ key: string; source: StudioDoc; sourceBodies: readonly BodyResult[]; bodies: BodyResult[]; from: ReadonlyMap<string, string> } | null>(null);
@@ -538,8 +565,6 @@ export function App() {
   }, [section, bodies, evaluated, engine]);
   // At once (while the plane is dragged, until the exact section arrives): on WebGPU the bodies whole, cut and capped by
   // the viewer's clip plane (G2); on WebGL2 the meshes clipped and capped on the CPU.
-  // (Dev/test: the exact section held back, and the CPU's path forced, to compare the two clips through one viewer.)
-  const [sectionDebug, setSectionDebug] = useState({ hold: false, cpu: false });
   const gpuSection = viewport.current?.backend === 'webgpu' && !sectionDebug.cpu;
   const sectionClipped = useMemo(() => {
     if (!section) return null;
@@ -719,13 +744,10 @@ export function App() {
     return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
   }), [jointTree, robotReady, doc, bodies, instanceBodies]);
   // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.
-  const [jointValues, setJointValues] = useState<Record<string, number>>({});
-  const [jointPlaying, setJointPlaying] = useState<string | null>(null);
-  const [pathCheck, setPathCheck] = useState<{ text: string; contact: boolean } | null>(null);
-  // (RM9a: the waypoints recorded for Check path, a preview like the pose; nothing saved.)
-  const [jointWaypoints, setJointWaypoints] = useState<Record<string, number>[]>([]);
-  // (RM9b: the workspace map shown, a preview; nothing saved.)
-  const [workspace, setWorkspace] = useState<WorkspaceMap | null>(null);
+  // (R1c (3b): the App follows the pose and the explode factor in each frame only where it uses them itself — a CPU
+  // section's copies, the clearance check; elsewhere SceneViewport and the Joints card do, not the App.)
+  const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
+  const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk } = useJoints(jointTree, posesInApp);
   /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
   const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
   /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
@@ -740,45 +762,17 @@ export function App() {
   /** A synthetic workspace map for the bench (G8, DEV: `__studioSetCloud`), shown in place of the arm's. */
   const [benchCloud, setBenchCloud] = useState<{ at: Vec3; t: number }[] | null>(null);
   const workspaceCloud = useMemo(() => { if (!workspace) return null; const best = Math.max(0, ...workspace.voxels.map(v => v.w)); return workspace.voxels.map(v => ({ at: v.c as Vec3, t: best > 0 ? v.w / best : 0 })); }, [workspace]);
-  // (A path checked is for the pose it was checked to: moving a joint clears it.)
-  useEffect(() => setPathCheck(null), [jointValues, jointTree]);
-  useEffect(() => { setJointWaypoints([]); setWorkspace(null); }, [jointTree]);
-  const jointFk = useMemo(() => jointTree && Object.values(jointValues).some(v => v !== 0) ? forwardKinematics(jointTree, jointValues) : null, [jointTree, jointValues]);
-  const gearLines = useMemo(() => (jointTree?.couplings ?? []).map(c => { const at = gearPairAt(c, jointFk?.values ?? {}), home = gearPairAt(c, {}), d = Math.abs(at.phaseDeg - home.phaseDeg); return { leader: c.leader, follower: c.follower, multiplier: c.multiplier, held: Math.min(d, 360 / c.g2.spec.teeth - d) < 1e-6, backlashMM: at.backlashMM }; }), [jointTree, jointFk]);
-  // (Joints gone from the tree lose their values; a joint played swings through its range, a period of 4 s.)
-  useEffect(() => { const keys = new Set(jointTree?.joints.map(j => j.key) ?? []); setJointValues(v => Object.keys(v).every(k => keys.has(k)) ? v : Object.fromEntries(Object.entries(v).filter(([k]) => keys.has(k)))); if (jointPlaying && !keys.has(jointPlaying)) setJointPlaying(null); }, [jointTree]);
-  useEffect(() => {
-    const j = jointPlaying ? jointTree?.joints.find(x => x.key === jointPlaying) : undefined;
-    if (!j) return;
-    const r = sliderRange(j), mid = (r.min + r.max) / 2, amp = (r.max - r.min) / 2, t0 = performance.now();
-    let frame = requestAnimationFrame(function step(now) { setJointValues(v => ({ ...v, [j.key]: mid + amp * Math.sin(2 * Math.PI * (now - t0) / 4000) })); frame = requestAnimationFrame(step); });
-    return () => cancelAnimationFrame(frame);
-  }, [jointPlaying, jointTree]);
   // (Each with its placement, as the bodies were placed: copies of one tessellation share a geometry in the viewer, G10.)
-  const instancesPlaced = useMemo(() => (doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => { const b = instanceBodies.get(i.id)!, p = placementOf(b.inst); return { id: i.id, bodies: b.bodies, placement: poseMatrix({ R: Float64Array.from(p.m), t: Float64Array.from(p.t) }, undefined) }; }), [doc.instances, instanceBodies]);
   // The exploded view (display only): each instance pushed out from the middle by the explode factor.
-  const [explode, setExplode] = useState(0);
+  const explodeStore = useMemo(() => createValueStore(0), []);
+  const explode = useStoreValue(explodeStore, posesInApp), setExplode = explodeStore.set;
+  // (Whether it is exploded, followed always: the instance gizmo is not offered then.)
+  const exploded = useSyncExternalStore(explodeStore.subscribe, () => explodeStore.get() !== 0);
   // (Dev/bench: any explode factor, as a drag would set it frame by frame; the button steps 0, 0.5, 1, 2.)
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSetExplode: (k: number) => void }).__studioSetExplode = setExplode; }, []);
-  // (G1: posed and exploded by a matrix per instance on its meshes, not by moved copies of them: the meshes are made once.)
-  const instancePoseMap = useMemo(() => instancePoses(bodies, instancesPlaced, jointFk, explode), [instancesPlaced, explode, bodies, jointFk]);
   const [instDrag, setInstDrag] = useState<{ id: string; drag: InstanceDrag; settling: boolean; key: string } | null>(null);
-  const cpuInstanceSection = !!section && !sketch && !gpuSection;
-  // A CPU section cuts the complete displayed placement, including a live drag, in world space.
-  // The clipped copy must not receive that drag a second time after its cap has been made.
-  const instanceSectionPoses = useMemo(() => {
-    if (!cpuInstanceSection || !instDrag) return instancePoseMap;
-    const poses = new Map(instancePoseMap), drag = previewMatrix(instDrag.drag), pose = poses.get(instDrag.id);
-    poses.set(instDrag.id, pose ? multiply(drag, pose) : drag);
-    return poses;
-  }, [cpuInstanceSection, instDrag, instancePoseMap]);
-  // (The flow's view of what is shown, RM2: each instance's bounds as placed, posed or exploded.)
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioInstanceBounds: () => unknown }).__studioInstanceBounds = () => instancesPlaced.map(i => { const b = i.bodies[0]?.mesh, M = instancePoseMap.get(i.id), box = b && M ? boundsUnder(b.positions, M) : b?.bounds; return { id: i.id, min: box?.min, max: box?.max }; }); }, [instancesPlaced, instancePoseMap]);
-  // The section view cuts the placed parts too: on WebGPU by the clip plane where their matrices put them (G2), on WebGL2
-  // as moved copies clipped and capped.
-  const instancesShown = useMemo(() => !section || sketch ? instancesPlaced : sectionedInstances(instancesPlaced, instanceSectionPoses, section, gpuSection), [instancesPlaced, instanceSectionPoses, section, sketch, gpuSection]);
-  // (The CPU's clipped copies are already moved; otherwise the meshes take the matrices.)
-  const instanceTransforms = cpuInstanceSection ? undefined : instancePoseMap;
+  // (R1c (3a): the placed parts as they are shown — placed, posed, exploded, dragged and sectioned.)
+  const { instancesPlaced, instancePoseMap, cpuInstanceSection, instancesShown } = useScenePoses(doc, instanceBodies, bodies, jointFk, explode, section, sketch, gpuSection, instDrag);
   const insertPart = async (file: File) => {
     try {
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
@@ -1895,6 +1889,13 @@ export function App() {
   const [sectionHatchOn, setSectionHatchOn] = useState(true);
   const hatchStep = useMemo(() => hatchSpacing(sectionBox), [sectionBox]);
   const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null, cutout: section.mode === 'cutout' } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown, sectionHatchOn, hatchStep]);
+  // (R1c (3c): a dragged plane's clip and handles, made as the App's are — SceneViewport draws them in each frame of the
+  // drag on WebGPU, the App not rendering. On WebGL2 the App does, so there is none.)
+  const sectionLiveView = gpuSection && !sketch ? {
+    store: sectionLive,
+    clip: (s: Section) => ({ planes: sectionPlanes(s), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null, cutout: s.mode === 'cutout' }),
+    handles: (s: Section) => !active && bodies.length ? sectionHandles(s, sectionBox, dragSection) : [],
+  } : null;
   const sectionHatchLines = useMemo(() => section && !sketch && sectionHatchOn && shownBodies === sectionBodies && (!gpuSection || sectionExactShown) ? sectionHatch(shownBodies, sectionPlanes(section), hatchStep) : null,
     [section, sketch, sectionHatchOn, shownBodies, sectionBodies, gpuSection, sectionExactShown, hatchStep]);
   useEffect(() => {
@@ -1907,6 +1908,8 @@ export function App() {
     w.__studioSectionDebug = setSectionDebug;
     // (The axis form as before, or a section of planes, G19.)
     (window as unknown as { __studioSetSection: (s: Section | AxisSection | null) => void }).__studioSetSection = s => setSection(s ? asSection(s) : null);
+    // (R1c (3c), for the bench: a section dragged, its steps shown and its last one, `done`, committed — as a handle drags it.)
+    (window as unknown as { __studioDragSection: (s: Section | AxisSection | null, done: boolean) => void }).__studioDragSection = (s, done) => dragSection(() => s ? asSection(s) : null, done);
     (window as unknown as { __studioOverlayLines: () => Record<string, number> }).__studioOverlayLines = () => viewport.current?.overlayLines() ?? {};
     (window as unknown as { __studioOverlayTexts: () => Record<string, string[]> }).__studioOverlayTexts = () => viewport.current?.overlayTexts() ?? {};
     // (G12: the shown proposal's diff, as the overlay has it.)
@@ -2014,7 +2017,7 @@ export function App() {
   const sectionBoxRef = useRef(sectionBox); sectionBoxRef.current = sectionBox;
   // (Where the camera is: a cut-out's default corner faces it, G20.)
   const cameraEye = (): Vec3 | null => { const c = viewport.current?.getCamera(); if (!c) return null; const cp = Math.cos(c.pitch); return [c.target[0] + c.distance * cp * Math.cos(c.yaw), c.target[1] + c.distance * cp * Math.sin(c.yaw), c.target[2] + c.distance * Math.sin(c.pitch)]; };
-  const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, setSection) : [];
+  const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, dragSection) : [];
   const dragTransforms = useMemo(() => cmdBody !== undefined && bodyDrag ? new Map([[cmdBody, bodyDrag.matrix]]) : null, [cmdBody, bodyDrag]);
 
   // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
@@ -2022,7 +2025,7 @@ export function App() {
   // and shown as dragged until it is evaluated where it lands.
   const selectedInst = instanceSel.length === 1 ? doc.instances?.find(i => i.id === instanceSel[0]) : undefined;
   const instGizmo: TransformGizmo | null = (() => {
-    if (!selectedInst || active || sketch || rendering || drawing || measure || assembly.draft || explode) return null;
+    if (!selectedInst || active || sketch || rendering || drawing || measure || assembly.draft || exploded) return null;
     const ib = instanceBodies.get(selectedInst.id), axes = gizmoAxes(selectedInst, assembly.freedom[selectedInst.id]);
     if (!ib?.bodies.length || !axes) return null;
     const lo = [0, 1, 2].map(k => Math.min(...ib.bodies.map(b => b.mesh.bounds.min[k]))), hi = [0, 1, 2].map(k => Math.max(...ib.bodies.map(b => b.mesh.bounds.max[k])));
@@ -2193,8 +2196,8 @@ export function App() {
 
   return (
     <div className="studio">
-      <Viewport ref={viewport} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} instanceTransforms={instanceTransforms} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
@@ -2461,8 +2464,8 @@ export function App() {
           onAccept={() => commitParts(acceptRevision(doc, inst.part!.id))} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
-      {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanel tree={jointTree} instances={doc.instances ?? []}
-        values={jointFk?.values ?? jointValues} onValue={(k, v) => { setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={setJointPlaying} gears={gearLines} links={linkInertias}
+      {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanelLive poseStore={poseStore} tree={jointTree} masses={jointMasses} instances={doc.instances ?? []}
+        onValue={(k, v) => { setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={setJointPlaying} links={linkInertias}
         onExportUrdf={() => {
           // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
           const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
@@ -2470,7 +2473,7 @@ export function App() {
           void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
           if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
         }}
-        waypoints={jointWaypoints.length} onAddWaypoint={() => setJointWaypoints(w => [...w, { ...(jointFk?.values ?? jointValues) }])} onClearWaypoints={() => { setJointWaypoints([]); setPathCheck(null); }}
+        waypoints={jointWaypoints.length} onAddWaypoint={() => { const v = poseStore.get(), fk = poseKinematics(jointTree, v); setJointWaypoints(w => [...w, { ...(fk?.values ?? v) }]); }} onClearWaypoints={() => { setJointWaypoints([]); setPathCheck(null); }}
         onWorkspace={(n, h, free) => {
           // (RM9b: the deepest link's joint point over the joints' ranges; a slide without limits refused, said so.)
           const depth = (l: string): number => { const j = jointTree.joints.find(x => x.child === l); return j ? 1 + depth(j.parent) : 0; }, end = jointTree.links.reduce((b, l) => depth(l.id) > depth(b.id) ? l : b, jointTree.links[0]).id;
@@ -2485,7 +2488,7 @@ export function App() {
         workspace={workspace ? `Workspace of ${workspace.samples} poses${workspace.excluded ? ` (${workspace.excluded} in self-contact left out)` : ''}: ${workspace.voxels.length} voxels of ${workspace.h} mm, reach ${workspace.reach.toFixed(1)} mm, best manipulability ${Math.max(0, ...workspace.voxels.map(v => v.w)).toExponential(3)}` : null}
         onWorkspaceDownload={() => workspace && downloadBytes(new TextEncoder().encode(JSON.stringify(workspace)), `${fileName}-workspace.json`, 'application/json')}
         onWorkspaceHide={() => setWorkspace(null)}
-        path={pathCheck} ready={robotReady} holding={jointMasses && jointTree ? gravityTorques(jointTree, jointMasses, jointFk?.values ?? jointValues).torques : undefined}
+        path={pathCheck} ready={robotReady}
         onCheckPath={() => {
           // (RM6, RM9a: the timed path from the solved pose through the waypoints to the sliders', the links as placed; each
           // segment a trapezoid within the joints' velocity limits — 1 rad/s or 100 mm/s where none is set — and twice that
@@ -2493,7 +2496,7 @@ export function App() {
           const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions);
           const limits: Record<string, JointLimits> = {}, assumed: string[] = [];
           for (const j of jointTree.joints) { if (j.type === 'fixed' || j.mimic) continue; const v = j.limit?.velocity ?? (j.type === 'prismatic' ? 100 : 1); if (j.limit?.velocity === undefined) assumed.push(j.key); limits[j.key] = { v, a: 2 * v }; }
-          const r = sweepTimed(jointTree, links, { waypoints: [{}, ...jointWaypoints, jointValues], profile: 'trapezoid', limits });
+          const r = sweepTimed(jointTree, links, { waypoints: [{}, ...jointWaypoints, poseStore.get()], profile: 'trapezoid', limits });
           const name = (l: string) => jointTree.links.find(x => x.id === l)?.name ?? l, total = r.segments.reduce((t, g) => t + g.duration, 0), n = r.segments.length;
           const note = assumed.length ? `; no velocity limit on ${assumed.join(', ')}: 1 rad/s (100 mm/s) taken` : '';
           setPathCheck(r.toi !== undefined ? { contact: true, text: `Contact ${name(r.links![0])} – ${name(r.links![1])} at ${(total > 0 ? r.toi / total * 100 : 0).toFixed(1)} % of the move, t ${r.toi.toFixed(3)} s${n > 1 ? ` (segment ${r.segment! + 1} of ${n})` : ''} (${r.samples} steps${note})` }
@@ -2742,8 +2745,7 @@ export function App() {
             onClick={() => { setMapHover(null); setMouldSpread(0); const pull = !!doc.mould?.pull; setMapKind(k => k === null ? 'thickness' : k === 'thickness' ? (pull ? 'draft' : 'access') : k === 'draft' ? 'access' : k === 'access' ? (pull ? 'parting' : null) : k === 'parting' ? 'halves' : null); }}>{mapKind === 'thickness' ? 'Thickness' : mapKind === 'draft' ? 'Draft' : mapKind === 'access' ? 'Access' : mapKind === 'parting' ? 'Parting' : mapKind === 'halves' ? 'Halves' : 'Maps'}</button>}
           <button onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></button>
         </div>
-        {(doc.instances?.length ?? 0) > 0 && <button className={'chip snap' + (explode ? ' on' : '')} aria-label="Explode" data-tip="Exploded view" data-tip-desc="Spread the parts out from the middle to see how they go together (display only): click for more, then off"
-          onClick={() => setExplode(e => [0, 0.5, 1, 2][([0, 0.5, 1, 2].indexOf(e) + 1) % 4])}><Icon name="open_with" small />{explode ? `Explode ×${explode}` : 'Explode'}</button>}
+        {(doc.instances?.length ?? 0) > 0 && <ExplodeButton store={explodeStore} />}
         <button className="chip snap" aria-label="Selection filter" data-tip="Selection filter" data-tip-desc="What a click picks: anything, or only faces, edges or whole bodies (click for the next)"
           onClick={() => setPickFilter(f => { const all = ['all', 'face', 'edge', 'body'] as const, n = all[(all.indexOf(f) + 1) % all.length]; try { localStorage.setItem('studio.pick', n); } catch { /* private mode */ } return n; })}>
           <Icon name="ads_click" small />{({ all: 'Pick all', face: 'Faces', edge: 'Edges', body: 'Bodies' } as const)[pickFilter]}</button>

@@ -8,6 +8,7 @@ import { assertValidBrep, buildBrep, type Brep, type BrepFaceInput } from './bre
 import { evaluateCurve, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
 import { extractSurfaceIsoCurve } from './surface-isocurve.js';
 import type { Curve, Point, Surface } from './types.js';
+import { dist } from './vec3.js';
 
 export class SewError extends Error {
   constructor(message: string) { super(message); this.name = 'SewError'; }
@@ -21,7 +22,6 @@ export interface SewSolidRequest {
   readonly toleranceMM?: number;
 }
 
-const dist = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
 /** One boundary side of a face, as its loop runs (reversed: against its curve): from corner `from` to corner `to`. */
 interface Side { face: number; curve: Curve; at: (t: number) => Point; reversed: boolean; t0: number; t1: number; from: number; to: number }

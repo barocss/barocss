@@ -24,7 +24,7 @@ Done, per area (see the logs):
 - **Kernel core:** R1–R12c, track K and PKG.
 - **Frames:** FR1–FR4, FRa–FRg, FRk1, FRk2, FRk3 (I/H, tapered channels, D172), FRk4 (curved and bent members, D173/D174) and FRk5 (weld gaps and notches, D175). FRk5 has open items below.
 - **Shared weld seams:** D170.
-- **Robots:** RM1–RM9, RD1–RD3, RD9.
+- **Robots:** RM1–RM9 (joint tree from the mates by their free twists, FK and sliders, link inertia, URDF, MJCF, SDF, USD, collision sweep and continuous collision, workspace map, IK, the four-bar loop), RD1–RD3, RD9 (robot-check), RD10's deterministic part (robot-size). Compared with #2189 (robot CAD research), the open parts are O12–O14 below.
 - **Manufacturing:** AM1–AM7, IM1–IM8, CNC1–CNC8.
 - **Drawings and exchange:** R11b DXF and R14 drawings.
 - **AI collaboration:** A1–A8.
@@ -79,10 +79,10 @@ Moved out of Phase 0:
 
 | # | Item | Exit |
 |---|---|---|
-| O1 | Verify A9-1, A9-2, A9-5/6 and A9-13, A9-4, A9-10/A9-8 in the full suites (Codex checked them only in focused runs) | Their tests pass in the Phase 0 window |
+| O1 | **done** (the coordinator window at 218c5604a: cad-model 964/964 with every A9 test, studio 250/250). Verify A9-1, A9-2, A9-5/6 and A9-13, A9-4, A9-10/A9-8 in the full suites (Codex checked them only in focused runs) | Their tests pass in the Phase 0 window |
 | O2 | **done** O175 flow step. **A9-11** the Studio download flow (CSV and outputs with their sources) | The flow step downloads, reopens and matches |
 | O3 | **done** O158. **The A9 brief** fixture: the default shaft's key clashes with the 6204 (115 mm³) | The key or the bearing moved; the clearance map shows no clash |
-| O4 | **A9-7** linked bearing housing in the app: the GPU lane ports the UI (G-lane item below); the outer lane owns the model side | Linked-bearing success flow. **Needs a real person-supplied row/fit file from the owner**; never a generated one |
+| O4 | **waits on the owner** (a person-supplied rows file). **A9-7** linked bearing housing in the app: the GPU lane ports the UI (G-lane item below); the outer lane owns the model side | Linked-bearing success flow. **Needs a real person-supplied row/fit file from the owner**; never a generated one |
 | O5 | **done** O159, O164, O165 (automated end to end; the owner's own acceptance with a real file still pending). **The A9 acceptance run** (`test/a9-acceptance.test.ts`, `conformance/a9`) | Brief → part, drawings, BOM, CSV, manufacturing outputs and purchase list, all through v2 tools; reopened identical |
 | O5a | A9 findings from O159: F1 madeBodies (**done** O160; GPU display G-R6), F2 each hole drilled once (**done** O161), F3 the Ø47 bore as a circular pocket or a typed refusal, F4 a clearance hole in the cover (owner-free choice (b)) | Each with an oracle |
 | O6 | Open items: aligned sections for off-axis features (**done** O178); a welded-fabrication DFM profile (A9-12, needs sourced rules; waits on the owner) | Decide, then build or close |
@@ -102,12 +102,16 @@ Moved out of Phase 0:
 ### Next items (2026-10-23)
 | # | Lane | Item |
 |---|---|---|
-| O7 | outer | **Owner decision 2026-10-23 (option 3): built-in tables → sample rows.** `FASTENER_SIZES` (app/fasteners.ts), the casting allowances and die-casting thresholds in `library/builtin/materials.json`, and the M2–M3 boss/insert variants in `enclosure.json` leave the code and ship as example rows files, each row with its source. A table is used only once the person loads its file (rows rule (b)). Drawn shape follows the document's rows; a size with no row is a typed refusal. No schema bump and no legacy migration (owner, 2026-10-23: unreleased, so documents track the latest schema); O7a's fixtures are the equivalence oracle — with the sample rows loaded they give today's results. Other `STANDARD_TABLES` entries are reported before conversion; formulas (ISO 68-1 minor diameter) stay. Order: after O179 and R3, before R4 |
-| O8 | outer | After the kernel's separate-bodies checkpoint (K10b: lumps touching along a line or at a point become separate solids of one output, as a disjoint union already does): STL/3MF exports and print checks per lump (a position-welded mesh would read a line touch as non-manifold), a "lumps touch along a line or at a point" DFM flag (it brings back, as a warning on the result, the words of the old union refusal "The bodies only touch along an edge or a point", which D204 retires), and the lump count on the BOM row |
-| O9 | outer | **Results tied to their revision** (from #2188 M2): every worker reply (a command's preview, placed-part bodies, drawing views, CAM/print/clearance) is checked against the document revision it was computed from before it is shown; a late reply never overwrites a newer state; drawings and exports carry their source revision. Includes REVIEW-A1 (recovery reports success before the mesh blob is stored). After O7 |
+| O7 | outer | **in progress** — O7a, O7b, O7e done on the outer branch; O7c, O7d next. **Owner decision 2026-10-23 (option 3): built-in tables → sample rows.** `FASTENER_SIZES` (app/fasteners.ts), the casting allowances and die-casting thresholds in `library/builtin/materials.json`, and the M2–M3 boss/insert variants in `enclosure.json` leave the code and ship as example rows files, each row with its source. A table is used only once the person loads its file (rows rule (b)). Drawn shape follows the document's rows; a size with no row is a typed refusal. No schema bump and no legacy migration (owner, 2026-10-23: unreleased, so documents track the latest schema); O7a's fixtures are the equivalence oracle — with the sample rows loaded they give today's results. Other `STANDARD_TABLES` entries are reported before conversion; formulas (ISO 68-1 minor diameter) stay. Order: after O179 and R3, before R4 |
+| O8 | outer | **done** O8 5bca3663a (merged a19a54ae2). After the kernel's separate-bodies checkpoint (K10b: lumps touching along a line or at a point become separate solids of one output, as a disjoint union already does): STL/3MF exports and print checks per lump (a position-welded mesh would read a line touch as non-manifold), a "lumps touch along a line or at a point" DFM flag (it brings back, as a warning on the result, the words of the old union refusal "The bodies only touch along an edge or a point", which D204 retires), and the lump count on the BOM row |
+| O9 | outer | **Results tied to their revision** (from #2188 M2): every worker reply (a command's preview, placed-part bodies, drawing views, CAM/print/clearance) is checked against the document revision it was computed from before it is shown; a late reply never overwrites a newer state; drawings and exports carry their source revision. Includes REVIEW-A1 (recovery reports success before the mesh blob is stored) and the robot bundles (URDF, MJCF, SDF, USD: their source revision, input digest and the hand-set values, #2189 M4). After O7 |
 | O10 | outer + GPU | **Rebuild-cost diagnostics, read-only** (from #2188 M3): per feature, the time and the kernel calls of the last evaluation; dependency cycles and mate problems listed with their source revision; a studio panel and a v2 query action for the agent (the per-turn budget kept). The GPU lane adds per-body frame cost by display mode. Diagnostics never change geometry or history. The baseline R4's caching is measured against. After O9 |
 | O11 | outer | **Assembly-level variability** (from #2188 M1): a few named top-level inputs (name, type, unit, range, default) bound explicitly to dimensions, feature suppression, component choice and mates; variants regenerated from the one master and still editable; full regeneration the correctness oracle. Grows today's part-level `configurations`. After R4 |
 | K12 | kernel | Later: the near-degenerate refusals (fuzz s1 25, 51, 74, 85, 110, 119) triaged — a correct typed refusal or a fix — and 170 with a pole-safe domain map beside the closed-form sphere∩sphere (it broke s2#171 alone). After R5 |
+| O12 | outer | **Tool and sensor frames** (#2189 M1): named frames on a link with a local pose (a TCP, a camera), kept apart from the joints; FK, IK, the workspace map and the sliders report the tool frame; URDF, MJCF, SDF and USD write each as a fixed child link; a frame on a missing or stale link is refused, typed. After O11 |
+| O13 | coordinator | **done** (2026-10-23, owner's go-ahead for the downloads): MuJoCo 3.3.0 already closed RM4's and RM5's external read (O38, worst 1.1e-16 and 2.2e-16); now urdfdom 6.0.2 (`brew install urdfdom`) `check_urdf` parses urdf-2r, urdf-gears and arm-6r (cad-cli urdf) with the expected link trees, and MuJoCo's urdf-oracle on urdf-2r copied to another folder still passes (1.1e-16: the mesh paths are relative). **External read-back of the robot exports** (#2189 M4) |
+| O14 | outer | **Mounts from datasheet rows** (#2189 M3): servo, motor and bearing mount profiles whose hole spacing, pilot, shaft height and clearance come from a person-supplied datasheet rows file (rows rule b, each value with its source); bound to the link through O11's named inputs. After O12 |
+| O15 | outer | **RD10's L3 run** (owner's go-ahead 2026-10-23): the protocol of O46's S0 — a live model (the studio chat's default, claude-opus-5-5, through `claude -p` and cad-mcp) given the arm-3r sizing brief with a `robot_check` chat tool added for that run only (the per-turn budget kept); at least 3 runs; success only by a fresh harness run, never the model's word; rounds and margins compared with the scripted sizer's trace. Budget: at most US$25 of reported usage in all, a run stopped past US$8 or the turn cap. Next after O7 |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | **done** D197–D210, D206 (fuzz s1 refusals 31 → 16, s2 29 → 14; INVALID 0, WRONG 0 on both; touching lumps are separate bodies). the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | **done** D211 (turningOf 8.1 → 4.4 s; D1 calls 4.22 M → 1.40 M). F5's remainder (the turning report's first-derivative evaluations) |
@@ -131,12 +135,12 @@ Order inside a lane is lowest risk first: duplicate copies, then hot-path alloca
 
 | # | Lane | Item |
 |---|---|---|
-| R1 | GPU | **R1a, R1b done** (G-R24, G-R25: orbit Viewport 60 → 1 renders, ghosted orbit 66 → 1 with its Escape cause fixed, print props stable, the camera's matrix kept); R1c (outliner rows, toolbar, per-frame App state) next. The studio's re-renders. `Viewport.tsx`: the per-frame `setTick` (449) re-renders the whole viewport. Move the projected overlay into a child that owns the tick; give the print-mode props stable identities; build the `viewState` Map only when `transforms` changes; cache the view-projection in studio `camera.ts` `project`; wrap Viewport in `memo` with stable App callbacks. `App.tsx` (2905 lines, 110 `useState`): state into domain hooks/contexts, so each panel subscribes only to its slice. First targets from G8: pick 121–151 ms (budget 90; 63 ms in the outliner's 120 rows) and the ghosted orbit re-rendering every step. Render counts before and after on the same flow |
-| R2 | GPU | Per-frame allocations in the viewer and both renderers (dynamic-offset arrays, `packFrame`/`packOutput` reuse, `pipelineKey` cached on the mesh, closures and `[a,b]` arrays, `JSON.stringify` keys); then one studio display-policy module shared by `renderer.ts` and `gpuRenderer.ts` (theme, mode factors, dash, accent, face/edge state, instance sharing and matrix, bounds); then `viewer.ts`/`shaders.ts` split behind the facade; then the 98 top-level gpu files into folders (deep `dist/` test paths fixed in the same commit) |
+| R1 | GPU | **in progress** — R1a, R1b, R1c (1), (2a), (3a), (3b) done (pose: App 109 → 3 renders, 23.4 → 4.1 ms; G-R31); (3c) the section drag next (G-R24, G-R25: orbit Viewport 60 → 1 renders, ghosted orbit 66 → 1 with its Escape cause fixed, print props stable, the camera's matrix kept); R1c (outliner rows, toolbar, per-frame App state) next. The studio's re-renders. `Viewport.tsx`: the per-frame `setTick` (449) re-renders the whole viewport. Move the projected overlay into a child that owns the tick; give the print-mode props stable identities; build the `viewState` Map only when `transforms` changes; cache the view-projection in studio `camera.ts` `project`; wrap Viewport in `memo` with stable App callbacks. `App.tsx` (2905 lines, 110 `useState`): state into domain hooks/contexts, so each panel subscribes only to its slice. First targets from G8: pick 121–151 ms (budget 90; 63 ms in the outliner's 120 rows) and the ghosted orbit re-rendering every step. Render counts before and after on the same flow |
+| R2 | GPU | **in progress** — R2a done (G-R29). Per-frame allocations in the viewer and both renderers (dynamic-offset arrays, `packFrame`/`packOutput` reuse, `pipelineKey` cached on the mesh, closures and `[a,b]` arrays, `JSON.stringify` keys); then one studio display-policy module shared by `renderer.ts` and `gpuRenderer.ts` (theme, mode factors, dash, accent, face/edge state, instance sharing and matrix, bounds); then `viewer.ts`/`shaders.ts` split behind the facade; then the 98 top-level gpu files into folders (deep `dist/` test paths fixed in the same commit) |
 | R3 | outer | **done** R3a–R3e (tools.ts 1,699 → 236 lines; the tools list and prompt byte-identical throughout). `chat/tools.ts` → `chat/part/*` + `toolKit` + `toolDefinitions` (plan approved, R3a–R3e), with the shared patterns the survey found; the tools list and prompt byte-identical |
 | R4 | outer | Rule (from #2188 M1): every cache or incremental path is checked against a full re-evaluation on the same fixtures, and where the dependencies are not known it re-evaluates in full or refuses, never skips on a guess. cad-model duplicates: util/ (round, guards, units, nextFreeId), one `boundsOf`, one `bodyMass`, one material registry, generic `editRows`, `engine/placement.ts` (fixes engine → assembly), one instance-evaluation helper, the kernel's `symmetricEigen3`; then `evaluate.ts` (notes split, evaluateDoc/evaluatePart merged, `placedOutputs` and frame geometry computed once); then folder moves with `export *` shims (analysis/, BOM out of team/, document-schema types out of chat/, rb9 out of src) |
 | R4b | outer | `src/ui`: shared panel pieces; `DrawingWorkspace` split |
-| R5 | kernel | Exact copies first (vec3, Gauss–Legendre, `guardKnots`/`mapParameter`, `same`, the perpendicular frame, checked arithmetic); hot-path allocations (`rolling-ball` station solvers, `brep-mass-quadrature` nearest-4, `surface-intersection` all-pairs → the existing BVH, tessellate refinement); `part-model.ts` `operation()` split by family, then the other top-5 files; folders (part-model-only families first; modeling, sketch and planar-solids last, because of the 20 trap tests); the convex-planar templates as one factory; last, the admission boilerplate behind a budget object |
+| R5 | kernel | **in progress** — R5.1 (plan approved: R5.1 → R5.4). Exact copies first (vec3, Gauss–Legendre, `guardKnots`/`mapParameter`, `same`, the perpendicular frame, checked arithmetic); hot-path allocations (`rolling-ball` station solvers, `brep-mass-quadrature` nearest-4, `surface-intersection` all-pairs → the existing BVH, tessellate refinement); `part-model.ts` `operation()` split by family, then the other top-5 files; folders (part-model-only families first; modeling, sketch and planar-solids last, because of the 20 trap tests); the convex-planar templates as one factory; last, the admission boilerplate behind a budget object |
 
 Rules: each R step is behaviour-preserving and its own checkpoint; no public export renamed without a re-export (saved
 documents and package paths keep resolving); the touched package suites, lint and types per step, and the full window
@@ -178,6 +182,10 @@ evidence files.
 - **O9** — Results tied to their revision; REVIEW-A1 · ko: 결과를 계산한 리비전에 묶기; 복구 결함 REVIEW-A1
 - **O10** — Rebuild-cost diagnostics, read-only · ko: 재계산 비용 진단 (읽기 전용)
 - **O11** — Assembly-level variability · ko: 조립품 수준 변형 (최상위 입력으로 제품군)
+- **O12** — Robot tool and sensor frames · ko: 로봇 공구·센서 좌표계 (TCP, 카메라)
+- **O13** — External read-back of the robot exports · ko: 로봇 내보내기를 외부 도구로 다시 읽어 확인 (urdfdom, MuJoCo)
+- **O15** — RD10 L3: a live model sizes the 3-DoF arm · ko: RD10 실제 모델 실행: AI가 3자유도 팔 크기 정하기
+- **O14** — Robot mounts from datasheet rows · ko: 데이터시트 행으로 만드는 서보·모터·베어링 마운트
 - **G1** — A9-7 UI port · ko: A9-7 UI 이식
 - **G2** — G23: CNC preview · ko: G23: CNC 가공 미리보기
 - **G3** — G21: display modes, silhouettes, isolate and hide · ko: G21: 표시 모드, 실루엣, 격리와 숨기기
@@ -197,20 +205,20 @@ evidence files.
 
 ## Later (on the roadmap, not started)
 
-- **REVIEW-A1** (from Codex): recovery metadata can report success before the mesh blob is stored. A real defect, off the current path.
-- **RB5–RB8:** fuzzing, the CI corpus, STEP import hardening and the nightly ABC sweep. RB6 and RB8 need downloads, which need the owner's permission.
-- **Live AI runs:** RB9 live trials, RD10 L3 and the A7/A8 live comparison. They need a token budget from the owner.
-- **After G25, when need is measured:** occlusion culling, progressive photoreal rendering, turntable and explode video.
-- **Publication:** the cad-model package build, the docs inventory (`check:docs` drift for @barocss/gpu), the A6.5 legal review, release. Only when the owner asks.
-- **After the whole roadmap:** the full spec and conformance suite, and a fresh-AI reimplementation test (owner's experiment).
+- **REVIEW-A1** (from Codex): recovery metadata can report success before the mesh blob is stored. A real defect, off the current path. · ko: 복구가 메시 저장 전에 성공을 보고하는 결함 (지금은 O9에 포함)
+- **RB5–RB8:** fuzzing, the CI corpus, STEP import hardening and the nightly ABC sweep. RB6 and RB8 need downloads, which need the owner's permission. · ko: fuzz, CI 코퍼스, STEP 가져오기 강화, 야간 ABC 점검 (RB6·RB8은 다운로드 허락 필요)
+- **Live AI runs:** RB9 live trials, RD10 L3 and the A7/A8 live comparison. They need a token budget from the owner. · ko: 실제 AI 실행 시험 (토큰 예산 필요)
+- **After G25, when need is measured:** occlusion culling, progressive photoreal rendering, turntable and explode video. · ko: 가려진 물체 생략, 점진 사실적 렌더링, 회전·분해 영상 (필요가 확인되면)
+- **Publication:** the cad-model package build, the docs inventory (`check:docs` drift for @barocss/gpu), the A6.5 legal review, release. Only when the owner asks. · ko: cad-model 패키지 빌드, 문서 목록, 법률 검토, 릴리스 (오너가 요청할 때만)
+- **After the whole roadmap:** the full spec and conformance suite, and a fresh-AI reimplementation test (owner's experiment). · ko: 전체 명세와 적합성 시험, 새 AI가 다시 구현해 보는 실험
 
 ## Waiting on the owner
 
-- A person-supplied row/fit file for A9-7/A9's acceptance (O4, O5).
-- Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle.
-- A v3 decision, if S3 finds a breaking v2 change.
-- Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review.
-- The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu).
+- A person-supplied row/fit file for A9-7/A9's acceptance (O4, O5). · ko: A9-7·A9 인수 검사용 사람이 준 행·끼워맞춤 파일 (O4, O5)
+- Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle. · ko: 비스듬한 끝 용접 비드는 독립 오라클이 생길 때까지 거부
+- A v3 decision, if S3 finds a breaking v2 change. · ko: S3에서 v2 호환이 깨지면 v3 결정
+- Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
+- The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
 
 ## Off the roadmap (owner decisions)
 

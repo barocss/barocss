@@ -11,6 +11,7 @@ import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } 
 import { evaluateCurve, curveDomain } from './math.js';
 import { isoThreadRadius, type ThreadSolidRequest } from './thread-solid.js';
 import type { Curve, Surface } from './types.js';
+import { lerp as lerp3 } from './vec3.js';
 
 type P3 = [number, number, number];
 /** A polygon corner in (θ, φ), and the kind of the side that leaves it. */
@@ -33,7 +34,6 @@ function helixRow(cx: number, cy: number, r: number, f: number, ta: number, P: n
   }
   return out;
 }
-const lerp3 = (a: readonly number[], b: readonly number[], v: number): P3 => [a[0] + (b[0] - a[0]) * v, a[1] + (b[1] - a[1]) * v, a[2] + (b[2] - a[2]) * v];
 /** A Bézier curve's piece over [ta, tb] (either way round), by de Casteljau. */
 function bezierPiece(ctrl: readonly P3[], ta: number, tb: number): P3[] {
   if (ta > tb) return bezierPiece(ctrl, tb, ta).reverse();

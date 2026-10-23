@@ -2,13 +2,9 @@
 // sub-algorithm on the simplex (a point, segment, triangle or tetrahedron of the Minkowski difference; Ericson's
 // regions), our own; moved down from the studio's robot track (RM6, O19), where the links' convex hulls are the sets
 // and a distance above zero proves two links apart (the collision sweep's prefilter). 0 when they touch or overlap.
+import { add as addV, cross, dot, scale, sub } from './vec3.js';
 
 type V = [number, number, number];
-const sub = (a: V, b: V): V => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: V, b: V): V => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const scale = (a: V, s: number): V => [a[0] * s, a[1] * s, a[2] * s];
-const addV = (a: V, b: V): V => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 interface Closest { p: V; s: V[] }
 
 /** The point of `pts` farthest along d (a support point). */

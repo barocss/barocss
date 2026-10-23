@@ -7,6 +7,7 @@ import { tessellateBrep } from './brep-tessellate.js';
 import { brepMassProperties } from './solid-mass.js';
 import type { DxfDocument, DxfEntity } from './dxf-writer.js';
 import { lookupBend, type BendTable, type BendTableUse } from './sheet-metal.js';
+import { add, cross, dot, len, scale as scl, sub } from './vec3.js';
 
 // R12.2 (D117): a sheet-metal body's flat pattern, from its B-rep and the sheet's thickness T and K-factor alone (D115).
 // The skin — the faces joined to a fixed planar face across smooth edges — is developed onto that face's plane: planes
@@ -60,12 +61,6 @@ export interface FlatPatternOptions {
 
 // ---- vectors -----------------------------------------------------------------------------------------------------------
 type V = Point;
-const sub = (a: V, b: V): V => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const add = (a: V, b: V): V => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const scl = (a: V, s: number): V => [a[0] * s, a[1] * s, a[2] * s];
-const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: V, b: V): V => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const len = (a: V) => Math.hypot(a[0], a[1], a[2]);
 const unit = (a: V): V => scl(a, 1 / len(a));
 const baseName = (n: string) => n.replace(/#\d+$/, '');
 

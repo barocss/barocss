@@ -11964,3 +11964,51 @@ Both are in `robustness/corpus/fuzz/` with the oracle's volume, centroid and bod
 
 **Tests:** `test/boolean-seam-wrap.test.mjs`, failing before: both trees strictly valid, watertight and within 3 e of
 the ray oracle.
+
+## D212 — R5.1a: bit-identical copies of the vec3 helpers import them from `vec3.ts` (2026-10-23)
+
+**What.** 56 module-level copies of `add`, `sub`, `scale`, `dot`, `cross`, `len`, `unit` and `lerp` in 23 files now
+import the one in `src/vec3.ts`. A copy with another local name imports with an alias (`add as addV`, `cross as
+crossOf`, …). brep-tessellate's `unit3` calls now read `unit`.
+
+Only copies whose body is vec3's expression, operation for operation, were taken. A script checked each one against
+vec3's text with its parameters renamed. **Left as they are:**
+- `unit` that divides with no zero-vector fallback: connector, shaft-parts, facet-split, library-fit, gear-bevel;
+- `unit` that multiplies by the reciprocal: sheet-flat, spring;
+- `unit` that throws: sweep-solid;
+- subd-sd2's `lerp`, written `a + t·(b − a)`.
+
+**Traps.** No touched file is in the modeling facade closure or an internal-leaf allowlist, so no test changed.
+
+**Checks:**
+- type-check, lint;
+- T2 (brep core: brep-check-geometry, brep-mass-quadrature, brep-tessellate);
+- the test names identical to D206's run;
+- the R5 fingerprint identical (command and digests below).
+
+**Fingerprint** (`node scratch/r5/fp.mjs <package> <out> 3` after a full `build:library`; 855 cases — every RB corpus
+case and fuzz seeds 20261023/20261024 × 200): before (D206, 0845714bb) and after, sha256
+`ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical. T2: kernel suite (the known
+Node-version demo test only), RB, fuzz on both seeds (INVALID 0, WRONG 0, refusals unchanged), cad-model 976/976,
+studio 266/266; the passing test names identical to D206's run (B9's timing test, failed there under load, passes).
+
+## D213 — R5.1b: `|a − b|` is `vec3.dist` (2026-10-23)
+
+**What.** `vec3.ts` gains `dist(a, b) = Math.hypot(a[0] − b[0], a[1] − b[1], a[2] − b[2])`. The five identical module
+copies import it:
+- brep-check-geometry and fit-plain, `dist`;
+- sew-solid, `dist`;
+- brep-core, `distance`;
+- extruded-profile-solid, `d3`.
+
+vec3 is not exported from index, so the public surface is unchanged.
+
+**Left as they are:**
+- the 2D distances;
+- squared distances;
+- `hypot(...a.map(...))` forms;
+- the checked (`finite`-wrapped) copies.
+
+**Checks:** type-check, lint, T2 (brep-core), the test names identical to the last run, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D212's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 976/976, studio 266/266; test names identical.

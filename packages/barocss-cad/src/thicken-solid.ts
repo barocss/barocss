@@ -8,6 +8,7 @@ import { evaluateSurfaceD1 } from './derivatives.js';
 import type { Brep } from './brep-core.js';
 import { thickenFoldCheck } from './offset-cavity.js';
 import type { Point, Surface } from './types.js';
+import { cross, sub } from './vec3.js';
 
 export interface ThickenSolidRequest {
   readonly id?: string;
@@ -20,8 +21,6 @@ export interface ThickenSolidRequest {
   readonly grid?: number;
 }
 
-const sub = (a: readonly number[], b: readonly number[]): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const cross = (a: readonly number[], b: readonly number[]): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
 export function thickenSolid(req: ThickenSolidRequest): Brep {
   const t = req.thickness, n = req.grid ?? 40;
