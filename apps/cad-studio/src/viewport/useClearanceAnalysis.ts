@@ -5,6 +5,14 @@ import type { ClearanceDisplay } from './clearanceDisplay';
 import type { ClearanceRequest } from './clearance.worker';
 import { getBlob, type BlobArray } from '@barocss/cad-model/engine/blobs';
 import { clearanceBlobRefs } from './clearanceBlobs';
+import { clearancePairState } from './clearanceAnalysis';
+
+/** DEV: each display the worker sends, its stage and pair states — a render may batch two (the flow's G22 reads the stages in order). */
+function logStage(value: ClearanceDisplay) {
+  const log = ((window as unknown as { __studioClearanceLog?: unknown[] }).__studioClearanceLog ??= []);
+  log.push({ request: value.request, stage: value.stage, states: value.pairs.map(p => p.state), shown: value.pairs.map(clearancePairState) });
+  if (log.length > 200) log.splice(0, log.length - 200);
+}
 
 /** A single worker per active analysis; current document/pose identity is checked before anything reaches the Canvas. */
 export function useClearanceAnalysis(active: boolean, doc: StudioDoc, nearMM: number, motions: [string, Float64Array][], visibleKeys: string[], visibleInstances: string[]): ClearanceDisplay | null {
@@ -23,7 +31,7 @@ export function useClearanceAnalysis(active: boolean, doc: StudioDoc, nearMM: nu
     setState({ key, value: { version: CLEARANCE_MAP_VERSION, request: id, revision: '', nearMM, stage: 'evaluating', pairs: [], overlays: [] } });
     next.onmessage = (event: MessageEvent<ClearanceDisplay>) => {
       const value = event.data;
-      if (request.current === id && value.request === id && value.version === CLEARANCE_MAP_VERSION) setState({ key, value });
+      if (request.current === id && value.request === id && value.version === CLEARANCE_MAP_VERSION) { if (import.meta.env.DEV) logStage(value); setState({ key, value }); }
     };
     next.onerror = event => { if (request.current === id) setState({ key, value: { version: CLEARANCE_MAP_VERSION, request: id, revision: '', nearMM, stage: 'error', pairs: [], overlays: [], error: event.message || 'Clearance worker failed.' } }); };
     try {
