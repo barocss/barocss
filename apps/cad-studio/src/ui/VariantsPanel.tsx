@@ -8,6 +8,7 @@ import type { Input, InputValue } from '@barocss/cad-model/engine/schema/variabi
 import { runVariabilityTool, variabilityView } from '@barocss/cad-model/chat/variability';
 import { MASTER, valueSets, type VariantsState } from '../state/useVariants';
 import { Icon } from './atoms';
+import { DockSection } from '../layout/DockSection';
 import { CONTROL, FIELD, NUM, TICK } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input as TextInput } from '@/components/ui/input';
@@ -31,8 +32,8 @@ export function VariantsPanel({ doc, variants, onCommit, onError, onClose }: {
   };
   const show = (name: string) => { if (name === active) { setWorking({}); return; } write({ active: name === MASTER ? null : name }); };
   const set = (input: Input, x: InputValue) => setWorking({ ...working, [input.name]: x });
-  return <aside className="card props" aria-label="Variants">
-    <div className="card-title">VARIANTS <button className="tool tiny" aria-label="Close Variants" onClick={onClose}><Icon name="close" small /></button></div>
+  // (G12c: a dock section — its header folds it, its chip the set shown; closed from the toolbar or Close.)
+  return <aside className="card props" aria-label="Variants panel"><DockSection id="variants" title="Variants" summary={showing ?? active}>
     {!v && <div className="empty" role="status">No inputs yet. An input names what it drives (a part's parameter, a feature, a placed part, a mate); the agent's assembly.inputs adds them.</div>}
     {v && <>
       {showing && <div className="mb-2 rounded-md border border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] px-2 py-1.5 text-[11px]" role="status" aria-label="Variant shown">
@@ -75,5 +76,6 @@ export function VariantsPanel({ doc, variants, onCommit, onError, onClose }: {
       {error && <div className="hud-error" role="alert">{error}</div>}
       {problems.map(p => <div key={p.mate} className="warn small" role="status" aria-label={`Unmet mate ${p.mate}`}>Mate {p.mate} unmet in this variant: {p.reason}</div>)}
     </>}
-  </aside>;
+    <div className="flex justify-end pt-1"><Button variant="ghost" size="xs" aria-label="Close Variants" onClick={onClose}>Close</Button></div>
+  </DockSection></aside>;
 }
