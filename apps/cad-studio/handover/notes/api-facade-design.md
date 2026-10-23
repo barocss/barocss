@@ -58,11 +58,11 @@ import { part } from '@barocss/cad-model/api/index';   // `@barocss/cad-model/ap
 
 const bracket = part('bracket')
   .box(80, 40, 10)
-  .hole({ at: [20, 20], diameter: 8 })
+  .hole({ at: [20, 20], diameterMM: 8 })
   .fillet(body => body.edges().along('z'), 2);
 
 bracket.doc;               // the JSON above
-bracket.mass('al6061');    // { volumeMM3, massG, centroid, inertia }, the core's numbers
+bracket.mass('al6061');    // { volumeMM3, massG, centroidMM, inertiaGMM2 }: the core's numbers, in MMGS
 bracket.step();            // the core's STEP text
 ```
 
@@ -73,7 +73,7 @@ bracket.step();            // the core's STEP text
 | `Part` | an immutable part: a name and its document | `StudioDoc`; `rectanglePart`, `withNode`, `leafBodies` |
 | `BodyQuery` | one body's edges and faces, read once from the core's evaluation | `evaluateDoc` → `BodyResult.mesh` (`DisplayEdge`, `DisplayFace`) |
 | `EdgeQuery`, `FaceQuery` | typed, immutable selections: filter, sort, take | the mesh's `straight`, `axis`, `faces`, `normal`, `centroid`, `names` |
-| `ApiRefusal` | one typed error: `code`, `message`, `where`, plus `friendly` for the core's own words | the core's `FriendlyError` and `stepFor`'s `{ error }` |
+| `BarocssError` | one typed error in the conventions' shape (§6): `code`, `message`, `where`, `details` (the core's own words under `details.friendly`) | the core's `FriendlyError` and `stepFor`'s `{ error }` |
 
 These come later, in this order, each with the same oracle:
 - **More part features:** cylinder; sketches and extrude; chamfer; shell; patterns; mirror; Booleans between parts with
@@ -90,8 +90,13 @@ These come later, in this order, each with the same oracle:
 - **Modelling.** `box(w, d, h)` is `rectanglePart(w, d, h)`. `hole(...)` and `fillet(...)` are `withNode(doc, node)`
   with the node the studio itself writes. The parent body is the part's one leaf body (`leafBodies`).
 - **Results.**
-  - `mass(material)` is `bodyMass(body, material.gPerCm3)` on `evaluateDoc`'s body, plus its `volumeMM3`.
+  - `mass(material)` is `bodyMass(body, material.gPerCm3)` on `evaluateDoc`'s body, plus its `volumeMM3`. It's returned
+    in MMGS (conventions §2): `volumeMM3`, `massG`, `centroidMM` and `inertiaGMM2`. Today's core gives inertia in
+    kg·mm², so the adapter multiplies it by 1000 until R7.3 moves the core to MMGS.
   - `step(name)` is `stepFor(doc, name).text`.
+  - **One adapter, `src/api/core.ts`,** is the only place the facade calls the core's evaluation, mass and export
+    functions (`bodiesOf`, `massOf`, `stepOf`). R7.3's switch to one error type, result functions and MMGS happens
+    there alone.
 - **The oracle for every method:**
   - the facade's `.doc` equals the hand-built document, compared as JSON text;
   - each result equals the core function's on that document, compared as JSON text.
@@ -125,9 +130,9 @@ These come later, in this order, each with the same oracle:
 ## Refusals
 
 - **A core refusal is passed through.**
-  - `evaluateDoc`'s `{ ok: false, error }` becomes an `ApiRefusal` with `where: 'evaluate'`.
+  - `evaluateDoc`'s `{ ok: false, error }` becomes a `BarocssError` with `where: 'evaluate'`.
   - Its code is the bracketed code in the core's words, or `EVALUATION` when the words carry none.
-  - The core's `FriendlyError` (its title, hint and detail) stays on `.friendly`.
+  - The core's `FriendlyError` (its title, hint and detail) stays on `.details.friendly`.
   - `stepFor`'s `{ error }` becomes `where: 'export'`.
 - **The facade's own codes** cover only how it was called:
   - `NO_BODY`, `BODY_AMBIGUOUS`;
@@ -136,8 +141,9 @@ These come later, in this order, each with the same oracle:
   - `MATERIAL_UNKNOWN`, which lists the ids. The core's `materialOf` falls back to the first material, and the facade
     never does.
   - `MASS_UNKNOWN`.
-- **Its shape** is `{ code, message, where }`, the shape R7.3 gives the core. The message is `[CODE] words`, as the core
-  writes its refusals. When R7.3 lands, `ApiRefusal` becomes the core's type, or a re-export of it.
+- **Its shape** is conventions §6's `BarocssError { code, message, where?, details? }`, the type R7.3 gives the core.
+  The message is `[CODE] words`, as the core writes its refusals. The facade's own codes are one union type,
+  `FacadeCode`. When R7.3 lands, the facade's class becomes a re-export of the core's.
 
 ## Findings for other lanes (through the coordinator)
 
@@ -157,6 +163,32 @@ These come later, in this order, each with the same oracle:
    `exportStep`, which supports one (io/step.ts). A pass-through option would let the facade and the docs' samples
    give byte-stable STEP.
 
+## The kernel's old object API (`createCadModel`) and what replaces it
+
+`packages/barocss-cad/src/modeling.ts` has `createCadModel()` with `CadModel`, `CadShape` and `CadSketch`. It's a
+bounded, recipe-limited object API from before `evaluateCadPart`, and it's prior art for naming only. The facade
+doesn't build on it. Nothing outside cad calls it. R7.3 retires it once the facade covers what its tests show. Its 35
+`test/modeling-*.test.mjs` files (counts are files using each method) use these methods, which the facade covers as follows:
+
+| Old method (`CadShape` / `CadModel`) | Tests using it | Facade |
+|---|---|---|
+| `rectangle(...).extrude(h)` | 29 | **slice 1**: `part().box(w, d, h)` (a rectangle sketch extruded); a general `sketch().rectangle()` comes in step 2 |
+| `hole({ center, radius })` | 17 | **slice 1**: `.hole({ at, diameterMM, depthMM? })` |
+| `edges({ parallelTo, at }).one()` + `chamfer(edge, d)` | 22 / 21 | **slice 1** has the selectors (`along`, `sortBy`, `first`/`last`, `on`). `.chamfer(select, d)` comes in step 1, beside `.fillet` |
+| `massProperties(output, { densityKgPerM3 })` | 1 (modeling-mass) | **slice 1**: `.mass(material)`, by material id, in MMGS |
+| `exportStl(output)` | 1 (modeling-stl) | step 1: `.stl()` through the adapter (`stlFor`) |
+| `polygon(...)`, `constrainedPolygon(...)`, `extrude(h, { from })` | 15 / 12 | step 2: `sketch()` with `lineTo`/`close`, and constraints through the core's sketch solver |
+| `union`, `cut`, `intersect` | 8 / 14 / 11 | step 1: `.union(other)`, `.subtract(other)`, `.intersect(other)` (difference, union and intersect nodes) |
+| `split({ axis, at })` | 21 | step 1: `.split(plane)` (a split node, its two sides as bodies; needs the body chooser) |
+| `translate`, `rotate` (quarter turns, pivot), `mirror`, `scale` (½, 2) | 11 / 10 / 8 / 15 | step 3: `Location` and `.moved(loc)`, `.mirrored(plane)`, `.scaled(k)` on the core's transform nodes, any angle or factor the core allows |
+| `linearPattern`, `circularPattern` (counts 2–4, quarter turns) | 6 / 5 | step 1: `.pattern(...)` on the core's pattern nodes, any count the core allows |
+| `parameter(name, mm)`, `withParameters(edits)` | 25 / 12 | step 2: `part().parameter(name, mm)` and dimensions given as `{ parameter }`; `.withParameters(edits)` returns a new part |
+| `withSuppression(edits)` | 1 | step 2: `.suppressed(featureName, true)` (the node's `suppressed` flag) |
+| `save()` | 15 | `.doc` (the studio document itself), with cad-model's container for the file |
+
+So slice 1 covers `rectangle().extrude`, `hole`, the edge queries and `massProperties`. Steps 1–3 cover the rest
+without a recipe limit: any count, angle or factor the core allows instead of the fixed sets.
+
 ## Out of scope
 
 - Agent tools. They stay JSON.
@@ -173,7 +205,8 @@ These come later, in this order, each with the same oracle:
 - **The files:**
   - `src/api/part.ts`: `part()`, `Part.box/hole/fillet/select/mass/step`;
   - `src/api/select.ts`: `BodyQuery`, `EdgeQuery`, `FaceQuery`;
-  - `src/api/refusal.ts`: `ApiRefusal`;
+  - `src/api/core.ts`: the one adapter onto today's core;
+  - `src/api/refusal.ts`: `BarocssError`, `FacadeCode`;
   - `src/api/index.ts`.
 - **The test**, test/api-part.test.ts, has five tests and all pass:
   - the document is byte-equal to the hand-written one;
