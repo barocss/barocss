@@ -6529,6 +6529,8 @@ try {
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'die-casting');
     await page.selectOption('[aria-label="Pull direction"]', '+Z');
     await page.waitForFunction(() => window.__studioDoc.process === 'die-casting' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    // (O7c: the person's casting rules, the sample loaded in the Library panel — none is built in.)
+    await page.click('[aria-label="Load sample casting rules"]'); await page.waitForFunction(() => window.__studioDoc.castingRules?.rows?.length === 24, null, { timeout: 10000 });
     assert.equal(await page.locator('[aria-label="Mould finish"]').count(), 0, 'no finishes for casting');
     await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
@@ -6559,6 +6561,8 @@ try {
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'sand-casting');
     await page.selectOption('[aria-label="Pull direction"]', '+Z');
     await page.waitForFunction(() => window.__studioDoc.process === 'sand-casting' && window.__studioDoc.mould?.pull?.[2] === 1, null, { timeout: 5000 });
+    // (O7c: the person's casting rules, the sample loaded in the Library panel — none is built in.)
+    await page.click('[aria-label="Load sample casting rules"]'); await page.waitForFunction(() => window.__studioDoc.castingRules?.rows?.length === 24, null, { timeout: 10000 });
     await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
@@ -6587,6 +6591,8 @@ try {
     await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'sand-casting');
     await page.selectOption('[aria-label="Pull direction"]', '+Z');
     await page.waitForFunction(() => window.__studioDoc.process === 'sand-casting', null, { timeout: 5000 });
+    // (O7c: the person's casting rules, the sample loaded in the Library panel — none is built in.)
+    await page.click('[aria-label="Load sample casting rules"]'); await page.waitForFunction(() => window.__studioDoc.castingRules?.rows?.length === 24, null, { timeout: 10000 });
     await page.click('[aria-label="Close library"]');
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
