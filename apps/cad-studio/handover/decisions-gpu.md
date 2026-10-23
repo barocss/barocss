@@ -2093,3 +2093,105 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     G19.4 ghost caps), viewer, scene-viewer, uv-repeating, contour.
   - FLOW_ONLY on WebGPU, every step that sections, plus G3 display modes: 20 passed, 0 failed. The load started at 37
     and reached 60 at the end, with other lanes' runs beside it.
+
+## G-R23 — G10: the full browser flow on WebGL2, the parity statement (roadmap G10, 2026-10-23)
+
+- **Full flow, WebGL2**: from a detached scratch worktree at 6db68a8ef, chat port 52691, load 1m 15–19 at start and end.
+  - 255 passed and 17 failed.
+  - 9 of the 17 were my setup: the kernel's `dist` was not built in the scratch worktree ("Cannot find module …
+    barocss-cad/dist/index.js"). Built, they pass (42, 44, 45, 46, 83, 120, 121, 142, 264, 265).
+- **Reruns** (FLOW_ONLY, each failing step with its prerequisites), at b836b7efd with both dists fully built:
+  - load 8–10: 1, FRd1 (165), 255, 258, 269, 271 and 272 pass;
+  - 144 and 166 fail on WebGL2 and on WebGPU alike (see below).
+- **Real WebGL2 gaps, and what was done**:
+  - **G6 analysis maps and the mould's view (255)**: renderer.ts has no `setScalarMaps`, `scalarAt` or `setMould`. On
+    WebGL2 the Thickness button turned on and nothing was drawn. That was silent, and it cascaded: the maps were left on,
+    so display modes were refused in 269, and 271 and 272 waited.
+    - **Stated limit** (accepted by the coordinator): on WebGL2 the "Analysis map" button is disabled, with its reason:
+      "… are drawn with WebGPU; this browser draws with WebGL2".
+    - App.tsx learns the renderer through Viewport's new `onBackend`; the legend follows the same state.
+    - Step 255 on WebGL2 checks the disabled button, its reason and that no legend is shown.
+    - **Roadmap limits line**: analysis maps (thickness, draft, 3-axis access) and the mould's parting line and halves are
+      WebGPU only; WebGL2 says so.
+  - **G10 shared copies (258)**: WebGL2 shares a copy's tessellation too (renderer.ts' `instanceShapes`). The step read
+    the WebGPU viewer's DEV hook. Now:
+    - renderer.ts has a `shareCopies` toggle (every instance made again) and `instanceGeometries()`, with the DEV hooks
+      `__studioShareCopies` and `__studioInstanceGeometries`.
+    - Step 258's WebGL2 branch uses the renderer-neutral probes. Result (`G10 oracle (webgl2)`):
+      - 24 copies on 1 geometry, 24 when each has its own;
+      - the 96 × 96 frame the same: 0 of 9 216 samples differ by more than 96, max 2;
+      - 400 picks on the copies' tops: 366 hits, 0 differ;
+      - the edited copy on its own geometry (2 in all), the other 23 kept.
+- **Not WebGL2 (the same on WebGPU at b836b7efd, load 8)**, findings for their lanes:
+  - **144 FR3b** (D126): the round-cornered table's preview now arrives after 1 293–1 435 ms, and the step requires more
+    than 2 000 ms to be "the case being measured". The kernel's trims got faster; the step's premise is stale. What it
+    measures holds: the slowest answer was 1 ms, and the longest main-thread gap 73 ms.
+  - **166 FRd2** (O119): all 16 welds are now placed on A3, and none is said unshown. The step expects 11 placed and W8
+    and W13–W16 unshown. A drawing-model change since O119 (O174–O178) places the five.
+- **Bench**: `BENCH_TRACE` also prints the callers of React's `dispatchSetState`, for R1's ghosted-orbit question.
+- **Checks**: studio tsc 0, eslint 0, unit 250/250; the flow's syntax checked. The full flow runs at the end of Phase R,
+  as the survey's rules say.
+
+## G-R24 — R1a: the viewport's per-frame render moved into its overlay; Escape clears a part's selection (roadmap R1, 2026-10-23)
+
+- **How it is measured**: `countRender(name)` (DEV only, `src/devRenders.ts`) in App, Viewport and the new
+  ViewportOverlay. `bench:browser` under `BENCH_TRACE=1` prints each row's renders, the same rows before and after.
+  Numbers below are renders per row: App / Viewport (/ overlay).
+- **Before**, at de06d57b7 (load 9):
+  - every frame rendered the whole Viewport: orbit 60 frames → 60 Viewport renders; cloud orbits 60; underlay 61;
+  - ghosted orbits: 66 App and 128–129 Viewport renders, 124 submits, task 19.6 ms a frame.
+- **The ghosted orbit's cause** (G8's open question): the bench's `dispatchSetState` callers show `place` (App.tsx) ←
+  `onTurn` ← `gizmoDrag` (Viewport).
+  - After a bracket was picked, the bench pressed Escape. Escape cleared only the faces' selection.
+  - The bracket stayed selected, with its gizmo, and the orbit drag that followed turned it.
+  - **Fix (a behaviour fix, its own commit 53e0cb4cf)**: Escape clears the placed parts' and the direct objects'
+    selections too.
+- **R1a, the per-frame render**: `request()` set a state each frame (`setTick`), so the whole Viewport rendered again:
+  its handlers, its JSON keys, the camera basis and the PMI key, ViewCube's props.
+  - Now a frame bumps a ticker. Only `FrameOverlay`, which draws the SVG overlay, ViewCube and WebGL2's PMI texts,
+    subscribes to it (`useSyncExternalStore`).
+  - Which PMI texts face the eye was computed in each render; it is now checked in the frame, before it is drawn. The
+    texts are set again only when that changes, as before.
+- **After**, at the same rows (load 23 → 12):
+  - orbit: 1 Viewport render, 60 overlay renders (60 Viewport before);
+  - the cloud and underlay orbits likewise, 1 Viewport render each;
+  - hover over the plate: 0 Viewport (11 before), 11 overlay;
+  - ghosted orbits: 1 App, 1 Viewport, 60 overlay renders; 59 submits; task 3.3 ms a frame (19.6). Both rows are now
+    within budget.
+  - Rows the App renders every frame are unchanged, and are R1's next targets:
+    - pose: 100 App renders over 51 frames (the joint's value is App state);
+    - explode: 60;
+    - section drag: 154.
+  - pick is unchanged at 129 ms: the App's selection render, R1's App split.
+- **Checks**:
+  - studio tsc 0, eslint 0.
+  - FLOW_ONLY on both renderers, the steps that draw the overlay (load 7–13), all pass: constraints and typed dimensions,
+    a box's dimension arrows, measure, a dimension handle and the Rotate gizmo, the view cube, the section plane's drag,
+    K2 L gap, G3, G24 and G23.
+  - The instance steps 50, 57, 58 and 60 need their prerequisites. With 49, 56, 57 and 59, all pass on WebGPU (load 9).
+
+## G-R25 — R1b: the viewport's stable inputs (print views, offsets, the projector) (roadmap R1, 2026-10-23)
+
+- **Print views' props**:
+  - With Print layers or the CNC preview on, the viewport's props were made again in every App render: `bodies: []`,
+    the selection, `handles: []`, `profiles: []`, and the print projection's selection and face colours.
+  - The effects keyed on them (setBodies, setState) ran again each time.
+  - Now the empty lists are module constants, and the projected selection and face colours are memoised on their inputs
+    (`printSelection`, `printFaceColors`). The same values as before.
+- **The bodies' offsets**: `viewState()` runs in each frame and hover, and it made a new Map of the transforms' offsets
+  each time. Now that Map is made once for the transforms (or offsets) it comes from.
+- **The projector**: studio `camera.ts` `project` multiplied the view-projection again on every call. It runs for every
+  edge end on a hover (vertexAt) and every overlay point in a frame.
+  - Now the matrix is kept until a camera value changes: target, distance, yaw, pitch, fovY, ortho or aspect.
+  - It is the same `viewProjection`, so the projected points are bit-identical.
+- **Renders**: the bench rows read as G-R24 (load 18 → 11). These inputs did not drive the bench rows' renders; what
+  they save is work in each render and frame.
+- **Not done here**: `memo(Viewport)`. The App hands it about 15 props made in every render (inline callbacks,
+  `boundsBox`, `measureLine`, `profiles={active ? [] : …}`, `cageEd.shown(…)`), so memo would compare and still render.
+  They are made stable with the App split (R1c).
+- **Checks**:
+  - studio tsc 0, eslint 0, unit 250/250.
+  - FLOW_ONLY on both renderers (load 9–11), passing: the overlay steps, the instance steps (56–58), AM6, AM7a, G24 and
+    G23 (Print layers inside).
+  - 49 and 50 fail when run straight after 47 (measure), at R1a's f63c349f2 too, so the cause is the FLOW_ONLY order,
+    not R1b. In the full flow, 48 comes between them, and they passed (G-R23).

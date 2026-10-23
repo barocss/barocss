@@ -66,6 +66,11 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz seed 20261024 #65 (WRONG, 2400 e): which chords beside a pole take no strip is the same at every step | D198 | done (T2) |
 | Fuzz seed 20261024 #171 (WRONG, 0.09 %): a cap about a sphere's pole, its trim round the whole turn in a few samples, is integrated | D199 | done (T2) |
 | A curved body's tessellated mass states its volume's error (volumeBoundMM3); cad-model's volume_basis is the outer lane's | D200 | done (T2) |
+| Fuzz s2#41, s1#149 (full tree): a planar face's slit (a loop out along an edge and back, or a hole of nothing else) is taken out in stitch | D201 | done (T2) |
+| Fuzz 176, 101 (arc-on-cylinder refusals): an arc on a wall that is no cross-section maps into the domain as a curve | D202 | done (T2) |
+| Fuzz 2 (robust refusal): a curve that dips onto a revolution patch between two of onPatches' samples is found (patchMargin) | D203 | done (T2) |
+| Fuzz 4, 49, 50, 67, 92, 100, 131 (exact contacts): lumps touching along a line or at a point are separate bodies, as lumps apart are (cad-model union-touch flipped; its refusal title retires, O8's DFM warning returns it) | D204 | done (T2) |
+| Fuzz 56 and tangent contacts: a piece misjudged where a surface only touches it is re-judged; a lump touching itself is refused, typed; two lumps touching are two bodies | D205 | done (T2) |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
@@ -139,7 +144,7 @@ The owner moved the work to another account mid-track. The kernel lane stops cle
 
 **How to resume**
 1. Read this block, then D164 (FRk's S0) and D165–D167 in `decisions.md`, then the coordinator's brief.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. A flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>` in `apps/cad-studio`, on its own, with short titles.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`. The rows record the commit they ran on: run them on the committed code, or set the row's `commit` to the code's commit (as at 75647da69).
 5. Start FRk3 with D168.
@@ -204,7 +209,7 @@ block is kept as history.
 
 **How to resume**
 1. Read this block, then the FR records (D122–D128) and the FR hand-over block below, then the coordinator's brief.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own. Keep titles short: the step's screenshot is named by its title.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.
 5. Each step needs:
@@ -268,7 +273,7 @@ track K → queue block below, the **kernel-lane queue** is done: five items, D1
 
 **How to resume**
 1. Read this block, then D139 (R12c) and D148–D152 in `decisions.md`.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own.
    - A step that builds on the step before it (step 45 needs step 44's mesh) needs both in the regex.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.

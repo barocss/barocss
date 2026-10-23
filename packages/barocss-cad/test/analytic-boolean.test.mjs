@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { booleanAnalytic, brepFromBody, cad, brepFromPrismatic, prismaticFromProfile, transformBrep, quarterTurn, checkBrep, tessellateBrep, brepMassProperties, BrepError } from '../dist/index.js';
+import { booleanAnalytic, brepFromBody, cad, brepFromPrismatic, prismaticFromProfile, transformBrep, quarterTurn, checkBrep, tessellateBrep, brepMassProperties } from '../dist/index.js';
 
 const mulberry = seed => () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
@@ -85,10 +85,13 @@ test('ellipses, quartics, seams and merged faces (brep-core step 8)', () => {
   assert.ok(Math.abs(vol(SI) - steinmetz) < 2e-4 * steinmetz, String(vol(SI)));
   assert.ok(Math.abs(vol(SU) - (1000 * pi - steinmetz)) < 2e-4 * 1000 * pi && Math.abs(vol(SD) - (500 * pi - steinmetz)) < 2e-4 * 500 * pi);
   assert.equal(SD.bodies.length, 2);
-  // Crossing cylinders that stay apart; contact along a line is not a solid.
+  // Crossing cylinders that stay apart; boxes in contact along a line are two bodies, as lumps apart are (D204: refused
+  // before), each its own edge along the line — 500 + 500 mm³.
   const apart = booleanAnalytic(cylinder('z', [0, 0], 2, 0, 10), cylinder('x', [8, 5], 2, -10, 10), 'union');
   assert.equal(checkBrep(apart).valid, true); assert.equal(apart.bodies.length, 2);
-  assert.throws(() => booleanAnalytic(box([0, 0, 0], [10, 10, 5]), box([10, 0, 5], [20, 10, 10]), 'union'), e => e instanceof BrepError && e.code === 'TOPOLOGY' && /not a manifold/.test(e.message));
+  const edgeTouch = booleanAnalytic(box([0, 0, 0], [10, 10, 5]), box([10, 0, 5], [20, 10, 10]), 'union');
+  assert.equal(checkBrep(edgeTouch, { strict: true }).valid, true); assert.equal(edgeTouch.bodies.length, 2);
+  assert.ok(Math.abs(vol(edgeTouch) - 1000) < 1e-9 * 1000, String(vol(edgeTouch)));
   // Coplanar neighbours are one face: two overlapping slabs of one height give 1 top, 1 bottom, 8 sides.
   const slabs = booleanAnalytic(box([0, 0, 0], [10, 10, 5]), box([5, 5, 0], [15, 15, 5], 'B'), 'union');
   assert.equal(slabs.faces.length, 10); assert.ok(slabs.faces.some(f => f.name === 'b.top'));

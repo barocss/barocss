@@ -102,13 +102,15 @@ Moved out of Phase 0:
 ### Next items (2026-10-23)
 | # | Lane | Item |
 |---|---|---|
+| O7 | outer | **Owner decision 2026-10-23 (option 3): built-in tables → sample rows.** `FASTENER_SIZES` (app/fasteners.ts), the casting allowances and die-casting thresholds in `library/builtin/materials.json`, and the M2–M3 boss/insert variants in `enclosure.json` leave the code and ship as example rows files, each row with its source. A table is used only once the person loads its file (rows rule (b)). Drawn shape follows the document's rows; a size with no row is a typed refusal. Saved documents that used the built-in values get them frozen into the document as legacy rows and open identically (a versioned change). Other `STANDARD_TABLES` entries are reported before conversion; formulas (ISO 68-1 minor diameter) stay. Order: after O179 and R3, before R4 |
+| O8 | outer | After the kernel's separate-bodies checkpoint (K10b: lumps touching along a line or at a point become separate solids of one output, as a disjoint union already does): STL/3MF exports and print checks per lump (a position-welded mesh would read a line touch as non-manifold), a "lumps touch along a line or at a point" DFM flag (it brings back, as a warning on the result, the words of the old union refusal "The bodies only touch along an edge or a point", which D204 retires), and the lump count on the BOM row |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | F5's remainder (the turning report's first-derivative evaluations) |
 | O5b | outer | A9 findings: F8 drawings (**done** O170–O174), F9 fasteners as bought lines, F10 base members in the BOM (**done** O169), F6/F7 (**done** O167/O168) |
 | G8 | GPU | **done** G-R21: GPU contour for curved silhouettes, dirty-run block writes, clip flags kept; the two App findings moved to R1 |
 | G9 | GPU | **done** G-R22: r16uint triangle key, 15.8 MiB at 1080p, 63.3 at 4K (key collision ~1/65 535 per pair, measured) |
-| G10 | GPU | the full browser flow on WebGL2 |
+| G10 | GPU | **done** G-R23: the full flow on WebGL2; analysis maps (thickness, draft, 3-axis access) and the mould's parting line and halves are WebGPU only, and WebGL2 says so |
 
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
 
@@ -125,9 +127,9 @@ Order inside a lane is lowest risk first: duplicate copies, then hot-path alloca
 
 | # | Lane | Item |
 |---|---|---|
-| R1 | GPU | The studio's re-renders. `Viewport.tsx`: the per-frame `setTick` (449) re-renders the whole viewport. Move the projected overlay into a child that owns the tick; give the print-mode props stable identities; build the `viewState` Map only when `transforms` changes; cache the view-projection in studio `camera.ts` `project`; wrap Viewport in `memo` with stable App callbacks. `App.tsx` (2905 lines, 110 `useState`): state into domain hooks/contexts, so each panel subscribes only to its slice. First targets from G8: pick 121–151 ms (budget 90; 63 ms in the outliner's 120 rows) and the ghosted orbit re-rendering every step. Render counts before and after on the same flow |
+| R1 | GPU | **R1a, R1b done** (G-R24, G-R25: orbit Viewport 60 → 1 renders, ghosted orbit 66 → 1 with its Escape cause fixed, print props stable, the camera's matrix kept); R1c (outliner rows, toolbar, per-frame App state) next. The studio's re-renders. `Viewport.tsx`: the per-frame `setTick` (449) re-renders the whole viewport. Move the projected overlay into a child that owns the tick; give the print-mode props stable identities; build the `viewState` Map only when `transforms` changes; cache the view-projection in studio `camera.ts` `project`; wrap Viewport in `memo` with stable App callbacks. `App.tsx` (2905 lines, 110 `useState`): state into domain hooks/contexts, so each panel subscribes only to its slice. First targets from G8: pick 121–151 ms (budget 90; 63 ms in the outliner's 120 rows) and the ghosted orbit re-rendering every step. Render counts before and after on the same flow |
 | R2 | GPU | Per-frame allocations in the viewer and both renderers (dynamic-offset arrays, `packFrame`/`packOutput` reuse, `pipelineKey` cached on the mesh, closures and `[a,b]` arrays, `JSON.stringify` keys); then one studio display-policy module shared by `renderer.ts` and `gpuRenderer.ts` (theme, mode factors, dash, accent, face/edge state, instance sharing and matrix, bounds); then `viewer.ts`/`shaders.ts` split behind the facade; then the 98 top-level gpu files into folders (deep `dist/` test paths fixed in the same commit) |
-| R3 | outer | `chat/tools.ts` → `chat/part/*` + `toolKit` + `toolDefinitions` (plan approved, R3a–R3e), with the shared patterns the survey found; the tools list and prompt byte-identical |
+| R3 | outer | **done** R3a–R3e (tools.ts 1,699 → 236 lines; the tools list and prompt byte-identical throughout). `chat/tools.ts` → `chat/part/*` + `toolKit` + `toolDefinitions` (plan approved, R3a–R3e), with the shared patterns the survey found; the tools list and prompt byte-identical |
 | R4 | outer | cad-model duplicates: util/ (round, guards, units, nextFreeId), one `boundsOf`, one `bodyMass`, one material registry, generic `editRows`, `engine/placement.ts` (fixes engine → assembly), one instance-evaluation helper, the kernel's `symmetricEigen3`; then `evaluate.ts` (notes split, evaluateDoc/evaluatePart merged, `placedOutputs` and frame geometry computed once); then folder moves with `export *` shims (analysis/, BOM out of team/, document-schema types out of chat/, rb9 out of src) |
 | R4b | outer | `src/ui`: shared panel pieces; `DrawingWorkspace` split |
 | R5 | kernel | Exact copies first (vec3, Gauss–Legendre, `guardKnots`/`mapParameter`, `same`, the perpendicular frame, checked arithmetic); hot-path allocations (`rolling-ball` station solvers, `brep-mass-quadrature` nearest-4, `surface-intersection` all-pairs → the existing BVH, tessellate refinement); `part-model.ts` `operation()` split by family, then the other top-5 files; folders (part-model-only families first; modeling, sketch and planar-solids last, because of the 20 trap tests); the convex-planar templates as one factory; last, the admission boilerplate behind a budget object |
@@ -148,7 +150,6 @@ evidence files.
 
 ## Waiting on the owner
 
-- Built-in standards-like tables in cad-model (R0): `FASTENER_SIZES` (ISO M3–M12, drives tapped holes, drill sizes, threads, drawing tolerance, machining holes; person rows cover only what is bought), the NPTEL/efunda casting tables in `library/builtin/materials.json`, the M2–M3 boss/insert variants in `enclosure.json`. Keep, or move to person-supplied rows (a versioned change, saved documents keep resolving).
 - A person-supplied row/fit file for A9-7/A9's acceptance (O4, O5).
 - Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle.
 - A v3 decision, if S3 finds a breaking v2 change.

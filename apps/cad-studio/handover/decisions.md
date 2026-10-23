@@ -11640,3 +11640,172 @@ segments: each states a bound, and the true error (closed forms) is within it.
 `bodyOf` report `volume_mm3` and `mass_g` with no basis. The area has `area_basis`; the volume has nothing. A tessellated
 volume is shown as if exact. Sent to the coordinator as a finding: a `volume_basis` with the bound, as `area_basis` is
 given.
+
+## D201 — A cut ending inside a planar face leaves no slit (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 41, shrunk: two copies, 24.47° apart about Z, of a ball less a turned box.
+Strict L0 reported a face's loops touching. The face was a cut face of the box, a plane.
+
+**Cause.** Its loop ran out from a corner vertex along a 1.4e-4 mm arc, an edge of the other copy's ball, and straight
+back along it. The other ball passes within 1.4e-4 mm of that corner. The tip the arc cuts off is far below the
+pieces' area threshold, so it was not kept, and its arc stayed in the neighbour's loop as a slit: used twice, both
+ways, by one face.
+
+**Fix (`src/analytic-boolean.ts`, `stitch`).** In a planar piece's loop, uses of one edge out and straight back
+(consecutive, opposite senses) are taken out, again until none. The edge goes with them when nothing else uses it, and
+so does a vertex left with no edge. Planes only: a seam of a periodic face is met both ways, a cone's even one after
+the other at its apex.
+
+**Result:** strictly valid, watertight, 114.5005021 mm³ against the oracle's 114.5004538 ± 2.4e-4 (0.2 e).
+
+**Test:** `test/boolean-spike-cut.test.mjs`. It fails before the fix.
+
+## D202 — An arc on a cylinder's wall that is no cross-section maps into its domain as a curve (2026-10-23)
+
+**Findings.** D196's two arc-on-cylinder refusals:
+- 176: a box ∩ (a ball ∪ a cylinder);
+- 101: a cylinder less (a cone ∪ a cylinder) ∩ a cylinder.
+Both were refused with "an arc on a cylinder is not a cross-section circle".
+
+**Cause (176).** The ball ∪ cylinder's edges are their traced meeting. Where the next Boolean's march looks for a face's
+edges lying on the other surface, `exactly` turned a 0.056 mm piece of one into an exact arc (sweep 0.0245 rad, r 2.29),
+as any short curve fits a circle within the tolerance. That arc lies on the cylinder's wall but is no cross-section, so
+`curve2` refused it.
+
+**Fix (`src/analytic-boolean.ts`, `curve2`).** Such an arc maps into the cylinder's domain as a curve does: its points'
+parameters, as a traced curve's are. A cross-section still maps to a line.
+
+**Results:** both are strictly valid, watertight and one body.
+
+| Case | Volume (mm³) | Off the oracle |
+|---|---|---|
+| 176 | 8.542017 | −0.1 e |
+| 101 | 56.159035 | +0.1 e |
+
+**Test:** `test/boolean-arc-on-wall.test.mjs`, 176 against the ray oracle. It fails before the fix.
+
+## D203 — A curve that dips onto a surface-of-revolution patch between two samples is found there (2026-10-23)
+
+**Finding.** D196's robust refusal 2: a rounded box ∩ a pattern of two frustums. Refused as "not a manifold solid": an
+edge along the box's side x = 0.5 with one use.
+
+**Cause.** That side was not divided: its two cuts, one from each frustum, ended 0.035 mm apart. Between them the
+side's conic runs across a third patch: the first frustum's, 0.0046 rad inside its end.
+
+`onPatches` finds where a curve lies on the patches of revolution by 256 samples of their turn (0.0123 rad each).
+That piece, 0.012 rad long, lay between two samples outside, so the pair made no cut at all.
+
+**Fix (`src/analytic-boolean.ts`, `onPatches`; `src/surface-revolution.ts`, `patchMargin`).** A patch's margin, how far
+a point lies inside it (> 0) or outside it (< 0), is continuous along the curve. After the scan, wherever the margin
+peaks among its neighbours at a sample outside (at an end, beside its one neighbour), its maximum is sought between
+them. Where that is inside, the two crossings are bisected and the interval added. The scan's own intervals are as
+before.
+
+**Result:** 2 is strictly valid, watertight and one body, 12.282189 mm³ against the oracle's 12.280757 ± 1.2e-3
+(1.1 e).
+
+**Test:** `test/boolean-conic-patch.test.mjs`. It fails before the fix.
+
+## D204 — Lumps touching along a line or at a point are separate bodies, as lumps apart are (2026-10-23)
+
+**Contract (the coordinator's approval).** A Boolean or pattern whose result is lumps touching along a line or at a
+point returns what a disjoint result returns today.
+- **What comes back:** one output whose B-rep holds one solid body per lump. A lump is a connected component of the
+  result's interior. Each body is closed and manifold on its own and owns its edges and vertices; nothing is shared
+  across bodies, even where they coincide.
+- **Face touch is unchanged:** a union merges across the shared face, an intersection is empty, a difference is
+  unchanged.
+- **Body order and names are kept as they are:** `${feature}_body${k}` (the upright route's `_b${k}`), in the order a
+  disjoint union already has. That order is deterministic: the tool's lump first. Swapping the operands keeps the same
+  bodies.
+- **Still refused:** a lump touching itself, one body whose boundary meets itself along a line. The material left
+  around a line where two removed lumps touch is such a lump.
+- **No saved document changes,** since these inputs were all refused before.
+
+**Changes.**
+- **Analytic stitch (`src/analytic-boolean.ts`, `splitTouchingEdges`).** An edge used by four faces, two forward and two
+  reversed, has its uses paired by lump, and the second lump's pair moves to a copy of the edge. A lump is the pieces
+  joined through the edges used once each way. A vertex already stays one per disc of faces.
+  - **The pairing rule is connectivity, not radial order.** The four faces of a line touch belong to two lumps only
+    through their other edges, so the components settle it with no geometric test. Where all four uses fall in one lump
+    — a lump touching itself — nothing is split and the edge is refused as before.
+- **Upright route (`src/part-model.ts`).** `checkLumps`/`touchingLumps` are removed: brepFromPrismatic already emits
+  touching lumps as separate bodies (prismatic-solid.test's 'edge touch' and 'point touch'). The `check` parameter of
+  `boolean` goes with them.
+
+**Expected-value changes.**
+- **`analytic-boolean.test`:** "boxes in contact along a line" was a refusal. It is now two bodies, strictly valid,
+  500 + 500 mm³ (closed form).
+- **cad-model `test/union-touch.test.ts`** (the outer lane's file; the coordinator approved the change in this commit):
+  two 10 mm cubes touching at an edge, at a point, or along an edge at mid height were refused with the user-facing
+  title "The bodies only touch along an edge or a point". Each is now ok: one result, 1000 + 1000 = 2000 mm³, as the
+  same cubes 20 mm apart give.
+  - That title goes away as an error. The refusal was a limit of the kernel, not a product choice.
+  - The outer lane's O8 brings it back as a DFM warning on the result, so the person still learns the bodies only touch.
+- **Unchanged:** part-model.test's cavities meeting at a point (one lump touching itself) stay refused.
+
+**Results:** fuzz 4, 49, 50, 67, 92, 100 and 131, shrunk, each two bodies, strictly valid, watertight body by body.
+
+| Case | Kernel − oracle (e at 512² × 8) |
+|---|---|
+| 4 | +0.2 e |
+| 49 | −0.1 e |
+| 50 | 0.0 e |
+| 67 | −0.1 e |
+| 92 | 0.0 e |
+| 100 | +0.2 e |
+| 131 | −0.3 e |
+
+All seven are in `robustness/corpus/fuzz/` with `bodies` in their expect. Their full trees chain further Booleans onto
+the touching lumps, and the material left around the touch line touches itself, so those stay refused, rightly.
+
+**Tests:** `test/boolean-touching-lumps.test.mjs`, failing before:
+- fuzz 50 both ways round: the same two bodies, the tool's lump `_body0` both ways, the summed volume against the ray
+  oracle;
+- a pattern corner on the axis, a cylinder along a box's side and two boxes corner to corner, against closed forms.
+
+**For the outer lane (the coordinator's O-item):** mesh exports and print checks per lump; a "lumps touch along a line
+or at a point" DFM flag; the lump count on the BOM row.
+
+## D205 — A piece misjudged where a surface only touches it is judged again; a lump touching itself there is refused, typed (2026-10-23)
+
+**Finding.** L4 fuzz 56, shrunk: a box less (a cylinder r 2 tangent inside two of its sides ∪ a box). Refused as "not a
+manifold solid (edge … has 1 uses)": a wrong message for a right answer. One half of the cylinder's wall classified
+**same**, as on the other solid's surface: its interior point, its domain's middle, lies on the line where the box's
+side y = 0 only touches the wall. The difference keeps no such piece, so the half was dropped. The same misjudgement
+made two lumps that only touch there unbuildable, against D204's contract.
+
+**Fix (`src/analytic-boolean.ts`).**
+- **Re-judge.** A non-planar piece classified same or opposite is judged again at the points of a 6 × 6 grid over its
+  domain box that lie in it (`clearWhere`). The first clear one, in or out, decides, and the touch point is kept. A
+  piece on a truly coincident surface has no clear point and stays as it was.
+- **Then, at each such touch** (`selfTouch`), the result is classified body by body a step either side along that
+  surface's normal (10³ tolerances):
+  - **empty on both sides** (a zero wall, two cavities meeting) or **one body on both sides:** one lump touching itself.
+    Refused, typed: "the result's boundary touches itself at (x, y, z), where one surface only touches another: not a
+    manifold solid", even with no vertex or edge there;
+  - **two different bodies:** two lumps that only touch, so two bodies, as D204 has them.
+- **A result that is not strictly valid or not watertight body by body is not trusted.** The Boolean runs again
+  without the re-judging and gives today's answer.
+
+**Coordinator's rulings (2026-10-23).**
+- A lump whose boundary touches itself, geometrically, at a point or along a line is not a manifold solid.
+  part-model.test's two cavities tangent at a point stay refused. Were it a solid, the exact body is
+  8000 − 4π·20 − 9π·20 = 7183.1859 mm³; the kernel's re-judged pieces gave 7183.185910, but it is refused.
+- **56b, shrunk:** its hole's wall touches the outer face along a line, so it is refused. It is in
+  `robustness/corpus/fuzz/fuzz-20261023-56b.json` as an expected refusal.
+- **One inconsistency stays.** On the prismatic route, a crescent is the same geometry: a wall tangent inside a hole,
+  touching along a line. It is still accepted (KNOWN-CRESCENT, D195), by its convention and the call to keep saved
+  documents resolving. On the analytic route the same geometry (56b) is refused. In the crescent case, D195's DFM
+  zero-wall flag is what tells the person.
+
+**Results:**
+- L4 fuzz seed 20261024 #165 and seed 20261023 #56 are refusals, never INVALID: #56 as a self-touch, #165 by today's
+  path, its re-judged result not valid.
+- A box and a cylinder tangent to its face from outside (both turned 30° about X) are two bodies, either way round:
+  8 · 3 · 8 + π · 4 · 4 mm³, exact. With D204 alone they are refused.
+
+**Tests:** `test/boolean-tangent-piece.test.mjs`, both failing before:
+- 56b and the two cavities: refused, typed;
+- the box and tangent cylinder, both ways round: two bodies, the tool's lump first, the exact volume.
+part-model.test's pinned refusal passes unchanged: the message keeps "touch along an edge or at a vertex".

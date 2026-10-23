@@ -17,11 +17,11 @@
 // of the other solid, or inside / outside by ray parity, retried on a degenerate ray), kept by the
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
-import { revolutionOf, profileCrossings, onPatch, type Revolution } from './surface-revolution.js';
+import { revolutionOf, profileCrossings, onPatch, patchMargin, type Revolution } from './surface-revolution.js';
 import { curvePiece, curveReversed } from './curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from './facet-patch.js';
-import { circleOf, polesOf } from './brep-tessellate.js';
+import { circleOf, polesOf, tessellateBrep } from './brep-tessellate.js';
 import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
@@ -243,7 +243,10 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
     return { kind: 'arc', c: c2, r: k.r, t0: Math.atan2(a[1] - c2[1], a[0] - c2[0]), sweep: k.sweep * Math.sign(turn), ...t };
   }
   const along = dot(k.n, s.a);
-  if (Math.abs(Math.abs(along) - 1) > 1e-9) throw new BrepError('GEOMETRY', 'analytic Boolean: an arc on a cylinder is not a cross-section circle');
+  // (An arc on the wall that is no cross-section — a short piece of a traced curve made an exact arc within the tolerance,
+  // as any curve's is: a sphere's meeting with the cylinder, 0.06 mm of it — maps into the domain as a curve does.
+  // L4 fuzz 176, D202.)
+  if (Math.abs(Math.abs(along) - 1) > 1e-9) { const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: memo(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2; }
   const a = to2(f, start);
   return { kind: 'line', a, b: [a[0] + s.s * s.r * k.sweep * Math.sign(along), a[1]], ...t };
 }
@@ -407,6 +410,27 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
   });
 }
 
+/**
+ * The intervals of [lo, hi] (sampled at N + 1 points) where `margin` > 0 that lie between samples outside (margin < 0) and
+ * inside no interval of `found`: at each sample outside where the margin peaks among its neighbours (one, at an end), its
+ * maximum between them (golden section) and, when that is inside, the two crossings (bisection).
+ */
+function betweenSamples(margin: (t: number) => number, lo: number, hi: number, N: number, found: readonly [number, number][]): [number, number][] {
+  const out: [number, number][] = [], at = (i: number) => lo + (hi - lo) * i / N, m = Array.from({ length: N + 1 }, (_, i) => margin(at(i)));
+  for (let i = 0; i <= N; i++) {
+    // (At an end the bracket is the one chord beside it.)
+    const p = Math.max(0, i - 1), q = Math.min(N, i + 1);
+    if (!(m[i] < 0 && m[p] < 0 && m[q] < 0 && m[i] >= m[p] && m[i] >= m[q])) continue;
+    let a = at(p), b = at(q);
+    if (found.some(([x, y]) => x < b && y > a)) continue;
+    for (let k = 0; k < 80; k++) { const c = b - (b - a) * 0.6180339887, d = a + (b - a) * 0.6180339887; if (margin(c) > margin(d)) b = d; else a = c; }
+    const top = (a + b) / 2; if (!(margin(top) > 0)) continue;
+    let l0 = at(p), l1 = top, r0 = top, r1 = at(q);
+    for (let k = 0; k < 60; k++) { const x = (l0 + l1) / 2; if (margin(x) > 0) l1 = x; else l0 = x; const y = (r0 + r1) / 2; if (margin(y) > 0) r0 = y; else r1 = y; }
+    out.push([(l0 + l1) / 2, (r0 + r1) / 2]);
+  }
+  return out;
+}
 /** One root of a crossing-cylinder quadratic as a curve in the smaller cylinder's angle. */
 const branchOf = (point: (th: number, sign: number) => P3, sign: number) => (th: number) => point(th, sign);
 
@@ -622,6 +646,10 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
         prev = now;
       }
       if (start !== null) out.push([start, hi]);
+      // (A curve that dips onto a patch between two samples — a plane's conic across a patch's corner, 0.035 mm of it, under
+      // a 256th of the turn: L4 fuzz 2, D203 — is found where the patch's margin peaks between samples outside it.)
+      out.push(...betweenSamples(t => Math.min(...revs.map(R => patchMargin(R, at(t)))), lo, hi, N, out));
+      out.sort((x, y) => x[0] - y[0]);
       return out.filter(([a, b]) => b - a > 1e-9 * Math.max(1, hi - lo));
     };
     const piece = (at: (t: number) => P3, lo: number, hi: number, make: (a: number, b: number) => Curve3) => {
@@ -985,6 +1013,39 @@ function offSurface(g: { surf: Surf }, x: P3, limit: number): number {
 
 // ---- classification --------------------------------------------------------------------------------
 type Where = 'in' | 'out' | 'same' | 'opposite';
+/**
+ * Whether a result's boundary touches itself at x (normal n of a surface there): the points a step either side along n
+ * both outside it, or both inside one body of it.
+ */
+function selfTouch(result: Brep, x: P3, n: P3, tol: number): boolean {
+  const faces = facesOf(result, 0, tol), body = new Map(result.shells.map(s => [s.id, s.body])), step = 1e3 * tol;
+  const of = result.faces.map(f => body.get(f.shell)), bodies = [...new Set(of)];
+  const sideIn = (p: P3) => bodies.filter(bd => classify(p, null, faces.filter((_, k) => of[k] === bd), tol) === 'in');
+  const a = sideIn(add(x, scale(n, step))), b = sideIn(sub(x, scale(n, step)));
+  return (!a.length && !b.length) || a.some(bd => b.includes(bd));
+}
+/** Mesh edges (by position) not used exactly twice within one body's triangles, at 8 segments a quarter: how many. */
+function openByBody(brep: Brep): number {
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, shellBody = new Map(brep.shells.map(s => [s.id, s.body])), faceBody = new Map(brep.faces.map(f => [f.id, shellBody.get(f.shell)])), uses = new Map<string, number>();
+  for (const f of mesh.faces) for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t += 3) for (let k = 0; k < 3; k++) {
+    const i = mesh.indices[t + k], j = mesh.indices[t + (k + 1) % 3], a = `${P[3 * i]},${P[3 * i + 1]},${P[3 * i + 2]}`, b = `${P[3 * j]},${P[3 * j + 1]},${P[3 * j + 2]}`, key = `${faceBody.get(f.faceId)}|${a < b ? a + '|' + b : b + '|' + a}`;
+    uses.set(key, (uses.get(key) ?? 0) + 1);
+  }
+  let open = 0; for (const u of uses.values()) if (u !== 2) open++;
+  return open;
+}
+/** A piece's class at points of a 6 × 6 grid over its domain box that lie in it: the first in or out, or null. */
+function clearWhere(f: GFace, region: CurveRegion2, faces: readonly GFace[], tol: number): Where | null {
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  for (const ring of [region.outer, ...region.holes]) for (const g of ring) for (let i = 0; i <= 8; i++) { const q = segAtAny(g, i / 8); u0 = Math.min(u0, q[0]); u1 = Math.max(u1, q[0]); v0 = Math.min(v0, q[1]); v1 = Math.max(v1, q[1]); }
+  for (let i = 1; i <= 6; i++) for (let j = 1; j <= 6; j++) {
+    const q: XY = [u0 + (u1 - u0) * (i - 0.5) / 6, v0 + (v1 - v0) * (j - 0.5) / 6];
+    if (locateInRegion(q, region, 10 * tol) !== 'in') continue;
+    const x = to3(f, q), w = classify(x, normalOut(f, x), faces, tol);
+    if (w === 'in' || w === 'out') return w;
+  }
+  return null;
+}
 const RAYS: P3[] = [[0.5377, 0.3138, 0.7832], [-0.2961, 0.8573, 0.4213], [0.6993, -0.5126, 0.4982], [-0.4436, -0.3714, 0.8155], [0.1172, 0.9563, -0.2677], [0.8811, 0.2219, -0.4175]].map(v => unit(v as P3));
 function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number): Where {
   if (normal) for (const g of faces) {
@@ -1112,6 +1173,10 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
 let booleanTrace: ((pieces: { face: string; solid: number; where: string; at: P3; area: number; cuts: number; ends: P3[][]; ring: P3[][]; raw: unknown }[]) => void) | null = null;
 export function setBooleanTrace(f: typeof booleanTrace): void { booleanTrace = f; }
 export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitToleranceMM?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
+  return analyticBoolean(a, b, operation, options, true);
+}
+type AnalyticOptions = { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitToleranceMM?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] };
+function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: AnalyticOptions, rejudge: boolean): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
@@ -1131,12 +1196,17 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   // the exact copy (a line or an arc) over a fitted one.
   for (const f of [...A, ...B]) f.cuts = dedupeCuts(f.cuts, tol, f.surf.kind === 'plane');
   // 2–3. Pieces and their classes.
-  const pieces: (Piece & { where: Where })[] = [];
+  const pieces: (Piece & { where: Where })[] = [], touches: { x: P3; n: P3 }[] = [];
   for (const f of [...A, ...B]) {
     const regions = f.cuts.length ? curveFaceRegions([f.region.outer, ...f.region.holes], f.cuts, tol) : [f.region];
     for (const region of regions) {
       const p2 = regionInteriorPoint(region); if (!p2 || Math.abs(regionArea(region)) <= tol * tol) continue;
-      const x = to3(f, p2), where = classify(x, normalOut(f, x), f.solid === 0 ? B : A, tol);
+      const x = to3(f, p2), other = f.solid === 0 ? B : A;
+      let where = classify(x, normalOut(f, x), other, tol);
+      // (A curved piece whose point lies on the other solid's surface where that surface only touches it — a plane
+      // tangent to a cylinder along a ruling, the domain's middle on that line — is judged at other points of it, the
+      // first clear one deciding; a piece on a coincident surface stays on it. L4 fuzz 56, D205.)
+      if (rejudge && (where === 'same' || where === 'opposite') && f.surf.kind !== 'plane') { const w = clearWhere(f, region, other, tol); if (w) { where = w; touches.push({ x, n: normalOut(f, x) }); } }
       pieces.push({ face: f, region, out: 1, key: x, where });
     }
   }
@@ -1154,7 +1224,18 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
-  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
+  const result = stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
+  if (!touches.length) return result;
+  // (A piece re-judged where a surface only touches it leaves the result's boundary touching there. Two lumps meeting
+  // there are two bodies, as D204 has them; one lump touching itself — empty on both sides of the touch, or the same
+  // body on both — is not a manifold solid: refused as such, even with no vertex there. A result that is not valid or
+  // watertight body by body is not trusted: the Boolean as it was without the re-judging decides. L4 fuzz 56, D205.)
+  for (const t of touches) {
+    const self = selfTouch(result, t.x, t.n, tol);
+    if (self) throw new Refused(`the result's boundary touches itself at (${t.x.map(v => +v.toFixed(4)).join(', ')}), where one surface only touches another: not a manifold solid (the inputs touch along an edge or at a vertex)`);
+  }
+  if (!checkBrep(result, { strict: true }).valid || openByBody(result)) return analyticBoolean(a, b, operation, options, false);
+  return result;
 }
 
 // ---- a face split along curves (D149) ---------------------------------------------------------------
@@ -1682,6 +1763,38 @@ function regionLength(region: CurveRegion2): number {
 }
 
 /** `names`: per piece, its face's name as given (a face split keeps every other face's name exactly, D149). */
+/**
+ * Each edge used by four faces — two forward, two reversed — whose uses fall in two lumps (pieces joined through the
+ * edges used once each way), one forward and one reversed in each: the second lump's uses moved to a copy of the edge.
+ */
+function splitTouchingEdges(loops: { edge: string; sense: string; index: number }[][][], edges: { id: string }[], id: string, count: number): void {
+  const uses = new Map<number, { piece: number; use: { edge: string; sense: string; index: number } }[]>();
+  loops.forEach((ls, pi) => { for (const ring of ls) for (const u of ring) { const l = uses.get(u.index); if (l) l.push({ piece: pi, use: u }); else uses.set(u.index, [{ piece: pi, use: u }]); } });
+  const root = Array.from({ length: count }, (_, i) => i), find = (x: number): number => { while (root[x] !== x) x = root[x] = root[root[x]]; return x; };
+  for (const l of uses.values()) if (l.length === 2 && l[0].use.sense !== l[1].use.sense) root[find(l[0].piece)] = find(l[1].piece);
+  for (const [e, l] of uses) {
+    if (l.length !== 4 || l.filter(u => u.use.sense === 'forward').length !== 2) continue;
+    const lumps = [...new Set(l.map(u => find(u.piece)))];
+    if (lumps.length !== 2) continue;
+    const second = l.filter(u => find(u.piece) === lumps[1]);
+    if (second.length !== 2 || second[0].use.sense === second[1].use.sense) continue;
+    const copy = { ...edges[e], id: `${id}_e${edges.length}` }, k = edges.length;
+    edges.push(copy);
+    for (const u of second) { u.use.edge = copy.id; u.use.index = k; }
+  }
+}
+/** A loop's uses of one edge out and straight back (consecutive, either sense first, round its end) taken out, again until none (or `keep` uses are left). */
+function unspike(ring: { index: number; sense: string }[], keep: number): void {
+  for (let again = true; again && ring.length >= Math.max(2, keep);) {
+    again = false;
+    for (let i = 0; i < ring.length && ring.length >= Math.max(2, keep); i++) {
+      const j = (i + 1) % ring.length;
+      if (ring[i].index !== ring[j].index || ring[i].sense === ring[j].sense) continue;
+      if (j > i) ring.splice(i, 2); else { ring.splice(i, 1); ring.splice(0, 1); }
+      again = true; break;
+    }
+  }
+}
 function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitToleranceMM?: number): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
@@ -1736,6 +1849,20 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     for (let i = 0; i + 1 < stops.length; i++) if (stops[i].v !== stops[i + 1].v) out.push(edgeOf(part(k, stops[i].t, stops[i + 1].t, P[stops[i].v], P[stops[i + 1].v]), stops[i].v, stops[i + 1].v));
     return out;
   })));
+  // (A planar piece's loop that runs out along an edge and straight back along it — a cut ending inside the face, the tip
+  // it cut off too small to keep — bounds nothing there: both uses go, and the edge with them; a hole that is nothing
+  // else — a slit where a body touches the face along a line — goes whole. Planes only: a seam of a periodic face is met
+  // both ways, a cone's even one after the other at its apex. L4 fuzz seed 20261024 #41, 20261023 #149, D201.)
+  loops.forEach((ls, pi) => {
+    if (pieces[pi].face.surf.kind !== 'plane') return;
+    ls.forEach((ring, k) => unspike(ring, k > 0 ? 0 : 3));
+    for (let k = ls.length - 1; k > 0; k--) if (!ls[k].length) ls.splice(k, 1);
+  });
+  // (Two lumps touching along a curve: one edge used by four faces, two of each lump. Its uses are paired by lump —
+  // the pieces joined through every edge used once each way — and the second lump's pair gets an edge of its own, so
+  // each lump is a body on its own, as lumps apart are. A lump touching itself there, all four uses in one, stays
+  // refused below. L4 fuzz 49, 50, 100, 131, D204.)
+  splitTouchingEdges(loops, edges, id, pieces.length);
   // Vertices: one per disc of faces around a point (two solids touching at a point keep two vertices).
   const vroot = new Map<string, string>(), vfind = (x: string): string => { let r = x; while (vroot.has(r) && vroot.get(r) !== r) r = vroot.get(r)!; return r; };
   const endsOf = (u: { index: number; sense: string }) => { const v = edges[u.index].v; return u.sense === 'forward' ? [v[0], v[1]] : [v[1], v[0]]; };
@@ -1837,8 +1964,9 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     return { surface: { kind: 'surface', id: `${id}_s${pi}`, degreeU: curve.degree, degreeV: 1, knotsU: [...curve.knots], knotsV: [0, 0, 1, 1],
       controlPoints: curve.controlPoints.map(q => [q, add(q, scale(s.a, v1 - v0))]), weights: curve.weights.map(w => [w, w]) }, sense: s.s * p.out > 0 ? 'forward' : 'reversed' };
   };
+  const usedVertices = new Set(edgeList.filter((_, i) => uses.has(i)).flatMap(e => e.vertices));
   const result = buildBrep({ source: { family: 'analytic-boolean', id },
-    vertices: vertexList,
+    vertices: vertexList.filter(v => usedVertices.has(v.id)),
     edges: edgeList.filter((_, i) => uses.has(i)),
     bodies: bodies.map((bd, k) => ({ id: `${id}_body${k}`, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(pi => ({ id: 'f' + pi, name: faceNames[pi], ...surface(pi), loops: loops[pi].map((uses2, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses: uses2.map(u => ({ edge: u.edge, sense: u.sense })) })) })) })) })),

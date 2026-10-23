@@ -360,6 +360,10 @@ export class Renderer implements ViewRenderer {
   private bodies: GpuBody[] = [];
   private instances: InstanceShown[] = [];
   private instanceShapes = new Map<string, InstanceShape[]>();
+  /** Copies of one tessellation drawn from one geometry (G10); false: each its own, as before G10 — the oracle's. */
+  private shareCopies = true;
+  /** The last instances set, to make them again when shareCopies changes. */
+  private lastInstances: { items: InstanceItem[]; selected: readonly string[] } | null = null;
   private instanceSelection: readonly string[] = [];
   private silhouettes = new WeakMap<GpuBody, { key: string; line: Plain | null }>();
   private fadedInstance(id: string): boolean { const ids = this.view?.isolatedInstances; return !!ids?.length && !ids.includes(id); }
@@ -396,6 +400,12 @@ export class Renderer implements ViewRenderer {
     if (!gl) throw new Error('WebGL2 is not available in this browser.');
     this.gl = gl;
     this.samples = Math.min(4, gl.getParameter(gl.MAX_SAMPLES) as number);
+    if (import.meta.env?.DEV) {
+      // (G10's oracle on WebGL2: copies shared or each its own, every instance made again; and the geometries they draw.)
+      const w = window as unknown as { __studioShareCopies: (on: boolean) => void; __studioInstanceGeometries: () => ReturnType<Renderer['instanceGeometries']> };
+      w.__studioShareCopies = on => this.setShareCopies(on);
+      w.__studioInstanceGeometries = () => this.instanceGeometries();
+    }
     this.mesh = this.program(MESH_VS, MESH_FS); this.pick = this.program(MESH_VS, PICK_FS); this.line = this.program(LINE_VS, LINE_FS);
     this.grid = this.program(GRID_VS, GRID_FS); this.shadow = this.program(QUAD_VS, SHADOW_FS);
     this.bg = this.program(FULL_VS, BG_FS); this.ao = this.program(FULL_VS, AO_FS);
@@ -531,6 +541,27 @@ export class Renderer implements ViewRenderer {
     return { vao, count: g.count, state, stateData, lineVao, segments: g.segments, lineState, lineStateData, buffers: [state, lineState], result, geometry: g };
   }
 
+  /** Every instance made again, its copies shared or each its own (G10's oracle). */
+  setShareCopies(on: boolean): void {
+    if (on === this.shareCopies) return;
+    this.shareCopies = on;
+    const last = this.lastInstances; if (!last) return;
+    this.setInstances([], []); this.setInstances(last.items, last.selected);
+  }
+  /** The copies' bodies and the geometries they draw (G10's oracle): a number for each geometry, the same while it lives. */
+  instanceGeometries(): { copies: number; geometries: number; ids: Record<string, number[]> } {
+    const ids: Record<string, number[]> = {}, all = new Set<object>();
+    for (const it of this.instances) ids[it.item.id] = it.bodies.map(b => {
+      all.add(b.gpu.geometry);
+      let n = this.geometryIds.get(b.gpu.geometry);
+      if (n === undefined) { n = ++this.geometrySerial; this.geometryIds.set(b.gpu.geometry, n); }
+      return n;
+    });
+    return { copies: this.instances.length, geometries: all.size, ids };
+  }
+  private geometryIds = new WeakMap<object, number>();
+  private geometrySerial = 0;
+
   private freeBody(b: GpuBody): void {
     this.free(this.silhouettes.get(b)?.line ?? null); this.silhouettes.delete(b);
     const gl = this.gl; gl.deleteVertexArray(b.vao); gl.deleteVertexArray(b.lineVao); b.buffers.forEach(x => gl.deleteBuffer(x));
@@ -551,6 +582,7 @@ export class Renderer implements ViewRenderer {
 
   /** Original world-placed packets, with immutable geometry shared only after a full moved-copy check. */
   setInstances(items: InstanceItem[], selected: readonly string[]): void {
+    this.lastInstances = { items, selected };
     const old = new Map(this.instances.map(x => [x.item.id, x]));
     this.instances = items.map(item => {
       const previous = old.get(item.id);
@@ -559,6 +591,8 @@ export class Renderer implements ViewRenderer {
       }
       const P = item.placement ?? INSTANCE_IDENTITY;
       return { item, bodies: item.bodies.map(result => {
+        // (Not shared: the copy's own world-placed mesh, drawn through its motion alone.)
+        if (!this.shareCopies) return { gpu: this.uploadBody(result), share: INSTANCE_IDENTITY };
         const key = topologyKey(result.mesh), list = this.instanceShapes.get(key) ?? [];
         let shape = list.find(x => movedCopy(x.ref, result.mesh, multiply(P, x.inverse)));
         if (!shape) {
