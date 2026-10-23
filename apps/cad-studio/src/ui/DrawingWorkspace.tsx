@@ -3,7 +3,7 @@
 // points, or one straight edge, then where the dimension line goes), Diameter and Radius (a circle
 // that shows round in the view, then where the text goes). The sheet exports as SVG, PDF or DXF (R11b, O1);
 // section A–A also alone as a 1:1 DXF.
-import { changeDrawingScope, drawsMadeOnly } from '@barocss/cad-model/drawing/scope';
+import { drawsMadeOnly } from '@barocss/cad-model/drawing/scope';
 
 
 
@@ -18,29 +18,35 @@ import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
-import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sectionMiddle, sheetSections } from '@barocss/cad-model/drawing/sheet';
+import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheetSections } from '@barocss/cad-model/drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/io/svg';
-import { toleranceText } from '@barocss/cad-model/drawing/sheet';
+
 import { pdfMissing, sheetPdf } from '@barocss/cad-model/io/pdf';
 import { sectionDxfDocument, sheetDxf } from '@barocss/cad-model/io/dxf';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, frontByInformation } from '@barocss/cad-model/drawing/layout';
 import { reorient, turnSections } from '@barocss/cad-model/drawing/reorient';
 import { applyFix, drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, type DrawingFix, type DrawingIssue, type FixRoundStep, type FixRounds, type SheetInputs } from '@barocss/cad-model/drawing/issues';
-import { acceptAll, applySuggestion, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
+import { acceptAll, toleranceSuggestions, type ToleranceSuggestion } from '@barocss/cad-model/drawing/tolerance';
 import { writeDxf, type DxfVersion } from '@barocss/cad';
 
 
-import { ORIENTATIONS, SCALES, VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
+import { VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sameSection, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, withSections, type SectionViewId, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { VIEW_IDS, isSectionRef, sameSection, sectionLetter, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { today, useDrawingSheet } from './useDrawingSheet';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { Icon, Kbd } from './atoms';
+import { SIDE_NAMES } from './drawing/sheetShared';
+import { SheetSettings } from './drawing/SheetSettings';
+import { IssuesList } from './drawing/IssuesList';
+import { TolerancingList } from './drawing/TolerancingList';
+import { DimensionsList } from './drawing/DimensionsList';
+import { ToleranceEditor } from './drawing/ToleranceEditor';
+import { NotesList } from './drawing/NotesList';
+import { ExportActions } from './drawing/ExportActions';
 import '../drawing/drawing.css';
 
-/** The front view's sides, as the SHEET card names them (R14.3b). */
-const SIDE_NAMES: Record<Orientation, string> = { 'y-': '−Y (default)', 'x+': '+X', 'y+': '+Y', 'x-': '−X' };
 type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note';
 const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: string }[] = [
   { tool: 'select', label: 'Select', icon: 'arrow_selector_tool', key: 'V', hint: 'Click a dimension to select it, drag to move it · Delete removes it · drag the paper to pan, scroll to zoom' },
@@ -60,13 +66,6 @@ type Pending =
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
 
 
-/** The settings with a source's table on or off (its id the source's name); no tables left, none kept. */
-function withTable(settings: DrawingSettings, from: string, on: boolean): DrawingSettings {
-  const rest = (settings.tables ?? []).filter(x => x.from !== from), tables = on ? [...rest, { id: from, from }] : rest;
-  const { tables: _t, ...base } = settings; void _t;
-  return tables.length ? { ...base, tables } : base;
-}
-
 export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName, onChange: sourceOnChange, onToast }: {
   engine: EngineClient; doc: StudioDoc; bodies?: readonly BodyResult[]; settings: DrawingSettings; fileName: string;
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
@@ -77,8 +76,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
     sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
   };
-  const [sectionY, setSectionY] = useState<string | null>(null);
-  const [sectionAt, setSectionAt] = useState<{ id: string; text: string } | null>(null);
   const [dxfSection, setDxfSection] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('select');
   const [pending, setPending] = useState<Pending | null>(null);
@@ -98,7 +95,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     const t = setTimeout(() => { noteBox.current?.focus(); noteBox.current?.select(); setTypeNote(null); }, 0);
     return () => clearTimeout(t);
   }, [typeNote, shownNote]);
-  const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const svg = useRef<SVGSVGElement>(null);
   useEffect(() => {
     setPending(null); setSelected(null); setHover(null); setDrag(null); setNoteDraft(null); setTolDraft({});
@@ -466,7 +462,6 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints, bom]);
 
   const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
-  const lost = sheet?.dimensions.filter(r => !r.ok) ?? [];
   const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
 
   return (
@@ -490,177 +485,20 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       </div>
 
       <aside className="card dw-panel" aria-label="Drawing settings">
-        <div className="card-title">SHEET {busy && views && <span className="muted">updating…</span>}</div>
-        <label className="field"><span>Scope</span><select aria-label="Drawing scope" disabled={!!scopeRead.error} value={scopeRead.error ? 'invalid' : scope.kind === 'assembly' ? 'assembly' : scope.part ? `part:${scope.part}` : 'part'} onChange={e => {
-          const value = e.target.value;
-          try {
-            const next = changeDrawingScope(settings, value === 'assembly' ? { kind: 'assembly' } : value === 'part' ? { kind: 'part' } : { kind: 'part', part: value.slice(5) });
-            onChange(next); setPending(null); setSelected(null); setHover(null); setDrag(null);
-          } catch (cause) { onToast({ title: 'Drawing scope unchanged', hint: cause instanceof Error ? cause.message : String(cause), detail: '' }); }
-        }}>
-          <option value="part">Part: base</option>
-          {scopeRead.error && <option value="invalid">Invalid saved scope</option>}
-          {scope.kind === 'part' && scope.part && !sourceDoc.instances?.some(i => i.id === scope.part) && <option value={`part:${scope.part}`}>Missing part: {scope.part}</option>}
-          {(sourceDoc.instances ?? []).map(i => <option key={i.id} value={`part:${i.id}`}>Part: {i.id}</option>)}
-          <option value="assembly">Assembly</option>
-        </select></label>
-        {scope.kind === 'assembly' && <div className="empty">Auto-dimension is available for a part scope. Assembly scope keeps its BOM table and balloons.</div>}
-        <label className="field"><span>Size</span><select aria-label="Sheet size" value={settings.sheet} onChange={e => onChange({ ...settings, sheet: e.target.value as 'A4' })}>
-          <option value="A4">A4 landscape</option><option value="A3">A3 landscape</option></select></label>
-        <label className="field"><span>Scale</span><select aria-label="Scale" value={settings.scale ?? 'auto'} onChange={e => { const v = e.target.value; const rest = { ...settings }; delete rest.scale; onChange(v === 'auto' ? rest : { ...rest, scale: Number(v) }); }}>
-          <option value="auto">Auto{layout && settings.scale === undefined ? ` (${scaleLabel(layout.scale)})` : ''}</option>
-          {SCALES.map(s => <option key={s} value={s}>{scaleLabel(s)}</option>)}</select></label>
-        <label className="field"><span>Front from</span><select aria-label="Front view side" value={settings.orientation ?? 'y-'} onChange={e => void turnTo(e.target.value as Orientation)}>
-          {ORIENTATIONS.map(o => <option key={o} value={o}>{SIDE_NAMES[o]}</option>)}</select></label>
-        <label className="field"><span>Projection</span><select aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
-          <option value="third">Third angle</option><option value="first">First angle</option></select></label>
-        <label className="field"><span>Hidden lines</span><input type="checkbox" className="check" aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
-        <label className="field"><span>Section A–A</span><input type="checkbox" className="check" aria-label="Section A–A" checked={!!sectionA} onChange={e => {
-          const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));
-          // By default through the middle of the part, front to back.
-          const at = views ? sectionMiddle(views, 'front', settings.orientation) : null;
-          onChange(withSections(settings, e.target.checked && at !== null && !rest.some(x => x.id === 'A') ? [{ id: 'A', view: 'front', at }, ...rest] : rest));
-        }} /></label>
-        {sectionA && <label className="field"><span>Cut at Y</span><span className="num"><input type="number" step="any" aria-label="Section Y" value={sectionY ?? sectionA.at}
-          onChange={e => setSectionY(e.target.value)}
-          onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange(withSections(settings, sectionList.map(x => x === sectionA ? { ...x, at: y } : x))); setSectionY(null); }}
-          onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span></label>}
-        {sectionA && cutA && !cutA.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {cutA.result.error}</div>}
-        {/* (O148 X1: more sections, each square to the front, top or right view's depth; letters in order.) */}
-        {sectionList.filter(x => x !== sectionA).map(x => {
-          const made = cutsMade?.find(c => sameSection(c, x));
-          return <div key={x.id} className="field" aria-label={`Section ${x.id}`}>
-            <span>Section {x.id}–{x.id}</span>
-            <select aria-label={`Section ${x.id} view`} value={x.view} onChange={e => { const view = e.target.value as SectionViewId, at = views ? sectionMiddle(views, view, settings.orientation) : null; if (at !== null) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, view, at } : y))); }}>
-              {SECTION_VIEWS.map(v => <option key={v} value={v}>{VIEWS[v].label.toLowerCase()}</option>)}</select>
-            <span className="num"><input type="number" step="any" aria-label={`Section ${x.id} at`} value={sectionAt?.id === x.id ? sectionAt.text : x.at}
-              onChange={e => setSectionAt({ id: x.id, text: e.target.value })}
-              onBlur={() => { const v = Number(sectionAt?.text); if (sectionAt?.id === x.id && sectionAt.text.trim() !== '' && Number.isFinite(v)) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, at: v } : y))); setSectionAt(null); }}
-              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span>
-            <button className="tool tiny" aria-label={`Remove section ${x.id}`} title={`Remove section ${x.id}–${x.id}`} onClick={() => onChange(withSections(settings, sectionList.filter(y => y !== x)))}><Icon name="close" small /></button>
-            {made && !made.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>{made.result.error}</div>}
-          </div>;
-        })}
-        <button className="ghost small" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
-          const view: SectionViewId = sectionList.some(x => x.view === 'top') ? 'right' : 'top', at = views ? sectionMiddle(views, view, settings.orientation) : null;
-          // (A is the front's, by its checkbox above: added sections take B on.)
-          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList]), view, at }]));
-        }}>Add section</button>
-        {(['right', 'iso'] as const).map(v => <label key={v} className="field"><span>{v === 'right' ? 'Right view' : 'Isometric view'}</span><input type="checkbox" className="check" aria-label={v === 'right' ? 'Right view' : 'Isometric view'} checked={!settings.views || settings.views.includes(v)} onChange={e => {
-          const on = new Set(settings.views ?? VIEW_IDS); if (e.target.checked) on.add(v); else on.delete(v);
-          const next = { ...settings }; delete next.views; onChange(on.size === VIEW_IDS.length ? next : { ...next, views: VIEW_IDS.filter(x => on.has(x)) });
-        }} /></label>)}
-        <label className="field"><span>Tangent edges</span><input type="checkbox" className="check" aria-label="Tangent edges" checked={!!settings.tangent} onChange={e => { const rest = { ...settings }; delete rest.tangent; onChange(e.target.checked ? { ...rest, tangent: true } : rest); }} /></label>
-        <label className="field"><span>Centre lines</span><input type="checkbox" className="check" aria-label="Centre lines" checked={settings.centers !== false} onChange={e => { const rest = { ...settings }; delete rest.centers; onChange(e.target.checked ? rest : { ...rest, centers: false }); }} /></label>
-        {hasSheet && <label className="field"><span>Bend table</span><input type="checkbox" className="check" aria-label="Bend table" checked={!!settings.tables?.some(x => x.from === 'bends')} onChange={e => { const rest = (settings.tables ?? []).filter(x => x.from !== 'bends'); const tables = e.target.checked ? [...rest, { id: 'bends', from: 'bends' }] : rest; const { tables: _t, ...base } = settings; void _t; onChange(tables.length ? { ...base, tables } : base); }} /></label>}
-        {hasFrame && <label className="field"><span>Cut list</span><input type="checkbox" className="check" aria-label="Cut list table" checked={!!settings.tables?.some(x => x.from === 'cut-list')} onChange={e => onChange(withTable(settings, 'cut-list', e.target.checked))} /></label>}
-        {/* (FRd1, O118: the frame's welds as a table, W1… with the cut list's items.) */}
-        {hasFrame && <label className="field"><span>Weld list</span><input type="checkbox" className="check" aria-label="Weld list table" checked={!!settings.tables?.some(x => x.from === 'weld-list')} onChange={e => onChange(withTable(settings, 'weld-list', e.target.checked))} /></label>}
-        {hasFrame && <label className="field"><span>Weld symbols</span><input type="checkbox" className="check" aria-label="Weld symbols" checked={!!settings.weldSymbols} onChange={e => { const { weldSymbols: _w, ...base } = settings; void _w; onChange(e.target.checked ? { ...base, weldSymbols: true } : base); }} /></label>}
-        {(kinds.size > 0 || hasBought) && <label className="field"><span>Element list</span><input type="checkbox" className="check" aria-label="Element list table" checked={!!settings.tables?.some(x => x.from === 'elements')} onChange={e => onChange(withTable(settings, 'elements', e.target.checked))} /></label>}
-        {kinds.has('spring') && <label className="field"><span>Spring data</span><input type="checkbox" className="check" aria-label="Spring data table" checked={!!settings.tables?.some(x => x.from === 'springs')} onChange={e => onChange(withTable(settings, 'springs', e.target.checked))} /></label>}
-        {kinds.has('oring-gland') && <label className="field"><span>Gland table</span><input type="checkbox" className="check" aria-label="Gland table" checked={!!settings.tables?.some(x => x.from === 'glands')} onChange={e => onChange(withTable(settings, 'glands', e.target.checked))} /></label>}
-        {/* (O147 B2: the BOM as a table and its item balloons, for an assembly or a part with machine elements.) */}
-        {(!!doc.instances?.length || kinds.size > 0) && <label className="field"><span>BOM table</span><input type="checkbox" className="check" aria-label="BOM table" checked={!!settings.tables?.some(x => x.from === 'bom')} onChange={e => onChange(withTable(settings, 'bom', e.target.checked))} /></label>}
-        {(!!doc.instances?.length || kinds.size > 0) && <label className="field"><span>Balloons</span><input type="checkbox" className="check" aria-label="Balloons" checked={!!settings.balloons} onChange={e => { const { balloons: _b, ...base } = settings; void _b; onChange(e.target.checked ? { ...base, balloons: true } : base); }} /></label>}
-        <label className="field"><span>Title</span><input aria-label="Drawing title" value={titleDraft ?? title} onChange={e => setTitleDraft(e.target.value)}
-          onBlur={() => { if (titleDraft !== null) { const rest = { ...settings }; delete rest.title; onChange(titleDraft.trim() && titleDraft.trim() !== fileName ? { ...rest, title: titleDraft.trim() } : rest); setTitleDraft(null); } }}
-          onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>
-        {(() => { const print = modelPrint(doc.nodes), stale = !!settings.revision && !!settings.revisedModel && settings.revisedModel !== print;
-          const set = (rev: string) => onChange(rev ? { ...settings, revision: rev, revisedModel: print } : (({ revision: _r, revisedModel: _m, ...rest }) => rest)(settings));
-          return <>
-            <label className="field"><span>Revision</span><input aria-label="Revision" value={settings.revision ?? ''} placeholder="-" maxLength={6} onChange={e => set(e.target.value.trim().toUpperCase())} />
-              <button className="ghost small" aria-label="Next revision" data-tip="Next revision" data-tip-desc="A → B, 01 → 02: the drawing’s new issue" onClick={() => set(nextRevision(settings.revision))}>Next</button></label>
-            {stale && <div className="empty" style={{ color: 'var(--warn)' }} aria-label="Revision out of date">The model changed since revision {settings.revision}: give the drawing its next revision when you issue it.</div>}
-          </>; })()}
-        {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
+        <SheetSettings sheet={{ scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }} settings={settings} sourceDoc={sourceDoc} fileName={fileName} onChange={onChange} onToast={onToast}
+          onScopeChanged={() => { setPending(null); setSelected(null); setHover(null); setDrag(null); }} turnTo={turnTo} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>ISSUES <span className="muted" aria-label="Issue count">{issues.length}</span>
-          {issues.some(x => x.fix) && <button className="ghost small" disabled={!issues.some(x => x.fix && (scope.kind !== 'assembly' || x.fix.kind !== 'auto-dimension'))} onClick={fixEvery} aria-label="Fix all issues" data-tip="Fix all" data-tip-desc="Available fixes, one at a time; assembly scope excludes automatic part dimensions">Fix all</button>}</div>
-        <div className="dw-issues" aria-label="Drawing issues">
-          {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}
-            onClick={() => { const d = x.dims?.[0]; if (d) { setSelected(d); setTool('select'); } }}>
-            <Icon name={x.severity === 'error' ? 'error' : 'warning'} small /><span>{x.message}</span>
-            {x.fix && <button disabled={scope.kind === 'assembly' && x.fix.kind === 'auto-dimension'} className="ghost tiny" aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'add-section' ? `Add ${x.fix.id}–${x.fix.id}` : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</button>}
-          </div>)}
-          {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
-        </div>
+        <IssuesList issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={d => { setSelected(d); setTool('select'); }} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>TOLERANCING <span className="muted" aria-label="Suggestion count">{suggestions.length}</span>
-          {suggestions.length > 0 && <button className="ghost small" onClick={acceptEvery} aria-label="Accept all suggestions" data-tip="Accept all" data-tip-desc="Every suggestion, datums before the frames that name them; then what overlaps is moved clear">Accept all</button>}</div>
-        <label className="field"><span>Mode</span><select aria-label="Tolerancing" value={settings.tolerancing ?? 'plus-minus'} onChange={e => { const next = { ...settings }; delete next.tolerancing; onChange(e.target.value === 'geometric' ? { ...next, tolerancing: 'geometric' } : next); }}>
-          <option value="plus-minus">± dimensions</option><option value="geometric">Geometric (datums, position)</option></select></label>
-        <div className="dw-issues" aria-label="Tolerance suggestions">
-          {suggestions.map(x => <div key={x.id} className="dw-issue" title={x.basis}>
-            <Icon name={x.estimate ? 'help' : 'lightbulb'} small /><span>{x.message}<br /><span className="muted">{x.estimate ? 'Estimate — ' : ''}{x.basis}</span></span>
-            <button className="ghost tiny" aria-label={`Accept: ${x.message}`} onClick={() => onChange(applySuggestion(settings, x))}>Accept</button>
-          </div>)}
-          {!suggestions.length && views && <div className="empty">Nothing to suggest: {settings.tolerancing === 'geometric' ? 'datums, positions and the general note are there' : 'the general note and hole positions are toleranced'}.</div>}
-        </div>
+        <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>DIMENSIONS <span className="muted">{settings.dimensions.length}</span>
-          <button className="ghost small" disabled={!views || !layout || scope.kind === 'assembly'} onClick={() => void autoDimension()} aria-label="Auto-dimension" data-tip="Auto-dimension" data-tip-desc="Views laid out with room, a scale and sheet that read cleanly, then overall sizes, steps, hole positions and callouts: replaces its own earlier ones, keeps yours">Auto</button></div>
-        <div className="dw-dims">
-          {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
-            onClick={() => { setSelected(r.dim.id); setTool('select'); }}>
-            <b>{r.ok ? r.text : 'lost'}{r.dim.tol ? ` ${toleranceText(r.dim.tol, r.dim.kind === 'angle' ? '°' : '')}` : ''}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>
-            <span className="muted" />
-            <button className="tool tiny" aria-label={`Remove dimension ${r.ok ? r.text : r.dim.id}`} onClick={e => { e.stopPropagation(); remove(r.dim.id); }}><Icon name="close" small /></button>
-          </div>)}
-          {!settings.dimensions.length && <div className="empty">Pick a dimension tool (<Kbd>D</Kbd> linear, <Kbd>O</Kbd> diameter, <Kbd>R</Kbd> radius, <Kbd>A</Kbd> angle) and click in a view. Values come from the model in mm and follow it as it changes.</div>}
-          {lost.length > 0 && <div className="empty" style={{ color: 'var(--warn)' }}>{lost.length} dimension{lost.length > 1 ? 's' : ''} lost {lost.length > 1 ? 'their' : 'its'} reference (the part changed).</div>}
-        </div>
+        <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selected} onSelect={id => { setSelected(id); setTool('select'); }} remove={remove} autoDimension={autoDimension} />
 
-        {selDim && <>
-          <div className="card-title" style={{ marginTop: 8 }}>TOLERANCE</div>
-          <label className="field"><span>Kind</span><select aria-label="Tolerance" value={selDim.tol?.kind ?? 'none'} onChange={e => {
-            const k = e.target.value, rest = { ...selDim }; delete rest.tol;
-            const tol: Tolerance | null = k === 'symmetric' ? { kind: 'symmetric', value: 0.1 } : k === 'deviation' ? { kind: 'deviation', upper: 0.1, lower: 0 } : k === 'fit' ? { kind: 'fit', code: selDim.kind === 'diameter' ? 'H7' : 'h7' } : null;
-            setTolDraft({}); commitDims(settings.dimensions.map(d => d.id === selDim.id ? (tol ? { ...rest, tol } : rest) as DrawingDimension : d));
-          }}><option value="none">None</option><option value="symmetric">± symmetric</option><option value="deviation">Upper / lower</option><option value="fit">Fit (H7, h6 …)</option></select></label>
-          {selDim.tol && (selDim.tol.kind === 'symmetric' ? [['value', '±']] : selDim.tol.kind === 'deviation' ? [['upper', 'Upper'], ['lower', 'Lower']] : [['code', 'Fit']]).map(([key, label]) => {
-            const t = selDim.tol as Record<string, unknown>, shown = tolDraft[key] ?? String(t[key]);
-            const apply = () => {
-              const raw = tolDraft[key]; if (raw === undefined) return;
-              const next = { ...t, [key]: key === 'code' ? raw.trim() : Number(raw) } as Tolerance;
-              const ok = next.kind === 'fit' ? /^[A-Za-z]{1,2}\d{1,2}$/.test(next.code) : next.kind === 'symmetric' ? Number.isFinite(next.value) && next.value > 0 : Number.isFinite(next.upper) && Number.isFinite(next.lower) && next.upper >= next.lower;
-              if (ok) commitDims(settings.dimensions.map(d => d.id === selDim.id ? { ...d, tol: next } as DrawingDimension : d));
-              else setMessage(next.kind === 'fit' ? 'A fit is a letter or two and a grade, as H7 or js6.' : next.kind === 'symmetric' ? 'A ± tolerance is a number above 0.' : 'The upper deviation must not be below the lower.');
-              setTolDraft(m => { const rest = { ...m }; delete rest[key]; return rest; });
-            };
-            return <label key={key} className="field"><span>{label}</span><input aria-label={`Tolerance ${label}`} type={key === 'code' ? 'text' : 'number'} step="any" value={shown}
-              onChange={e => setTolDraft(m => ({ ...m, [key]: e.target.value }))} onBlur={apply} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></label>;
-          })}
-        </>}
+        <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>NOTES <span className="muted">{settings.notes?.length ?? 0}</span></div>
-        <div className="dw-dims">
-          {(settings.notes ?? []).map(n => <div key={n.id} role="button" tabIndex={0} className={'dw-dim' + (selected === n.id ? ' sel' : '')} onClick={() => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }}>
-            <b className="dw-note-text">{n.text.split('\n')[0]}</b><span>{n.leader ? `→ ${n.leader.view}` : ''}</span><span className="muted" />
-            <button className="tool tiny" aria-label={`Remove note ${n.id}`} onClick={e => { e.stopPropagation(); remove(n.id); }}><Icon name="close" small /></button>
-          </div>)}
-          {!settings.notes?.length && <div className="empty"><Kbd>N</Kbd> adds a note: click the paper, or a view for a leader first.</div>}
-          {selNote && <>
-            <textarea ref={noteBox} className="dw-note-edit" aria-label="Note text" rows={3} value={noteDraft ?? selNote.text}
-              onChange={e => setNoteDraft(e.target.value)}
-              onBlur={() => { const t = (noteDraft ?? selNote.text).replace(/\s+$/, ''); if (t && t !== selNote.text) onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { ...n, text: t } : n) }); setNoteDraft(null); }}
-              onKeyDown={e => { if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) (e.target as HTMLTextAreaElement).blur(); }} />
-            {selNote.leader && <button className="ghost" onClick={() => onChange({ ...settings, notes: settings.notes!.map(n => n.id === selNote.id ? { id: n.id, text: n.text, at: n.at } : n) })}>Remove leader</button>}
-          </>}
-        </div>
+        <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }} remove={remove} onChange={onChange} />
 
-        <div className="card-title" style={{ marginTop: 8 }}>EXPORT</div>
-        <div className="dw-actions">
-          <button className="primary" disabled={!sheet} onClick={exportSvg} aria-label="Export SVG"><Icon name="download" small /> SVG</button>
-          <button className="ghost" disabled={!sheet} onClick={exportPdf} aria-label="Export PDF">PDF</button>
-          <button className="ghost" disabled={!sheet} onClick={exportDxf} aria-label="Export DXF" title="The sheet as DXF, at true size in mm, layers by line kind">DXF</button>
-          <select aria-label="DXF version" value={dxfVersion} onChange={e => setDxfVersion(e.target.value as DxfVersion)} title="DXF 2000, or R12 for older programs (curves as polylines)">
-            <option value="AC1015">2000</option><option value="AC1009">R12</option>
-          </select>
-          {cuts.length > 1 && <select aria-label="Section for DXF" value={dxfCut?.id} onChange={e => setDxfSection(e.target.value)} title="The section to export alone">{cuts.map(c => <option key={c.id} value={c.id}>{c.id}–{c.id}</option>)}</select>}
-          {dxfCut && <button className="ghost" onClick={exportSectionDxf} aria-label="Export section DXF" title={`Section ${dxfCut.id}–${dxfCut.id} alone, 1:1 in model mm`}>{dxfCut.id}–{dxfCut.id} DXF</button>}
-        </div>
-        {sheet && <div className="empty">{scaleLabel(layout!.scale)} · {settings.sheet} · {VIEW_IDS.map(id => `${VIEWS[id].label.toLowerCase()} ${views![id].edges.length}`).join(', ')} edges</div>}
+        <ExportActions sheet={sheet} layout={layout} views={views} cuts={cuts} settings={settings} dxfVersion={dxfVersion} setDxfVersion={setDxfVersion} dxfCut={dxfCut} setDxfSection={setDxfSection} exportSvg={exportSvg} exportPdf={exportPdf} exportDxf={exportDxf} exportSectionDxf={exportSectionDxf} />
       </aside>
 
       <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
