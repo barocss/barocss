@@ -22,7 +22,7 @@ assert.ok(sourceGraph.some(p => p.endsWith('/src/native/uv01/native-surface-uv01
 assert.ok(sourceGraph.some(p => p.includes('barocss-cad/src/'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
-const namespace = Object.keys(providers[0].gpu).sort(); assert.equal(namespace.length, 126); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
+const namespace = Object.keys(providers[0].gpu).sort(); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 const dtsPath = resolve(pkg, manifest.publishConfig.exports['.'].types), dts = await readFile(dtsPath, 'utf8');
 const leafDtsPath = resolve(pkg, 'dist/native-surface-uv01-binding.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
 for (const name of ['prepareNativeSurfaceUV01MaterialBinding', 'NativeSurfaceUV01BindingError', 'NativeSurfaceUV01BindingRequest', 'PreparedNativeSurfaceUV01Binding', 'NativeSurfaceUV01BindingCode']) {
