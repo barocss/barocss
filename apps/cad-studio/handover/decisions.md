@@ -12012,3 +12012,21 @@ vec3 is not exported from index, so the public surface is unchanged.
 **Checks:** type-check, lint, T2 (brep-core), the test names identical to the last run, the R5 fingerprint identical.
 
 **Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D212's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 976/976, studio 266/266; test names identical.
+
+## D214 — R5.1c: one Gauss–Legendre `gauss(n)` in `quadrature.ts`; curved-arrangement's two 8-point tables are one (2026-10-23)
+
+**What.**
+- brep-mass-quadrature (an arrow) and loft (a function) each computed `gauss(n)` on [0, 1] by the same Newton
+  iteration. The arithmetic was identical; only the step variable's name differed. It is now `export function gauss`
+  in `src/quadrature.ts`, loft's text unchanged.
+- curved-arrangement held the same hard-coded 8-point table twice, `GL8` and `GL`. `GL` goes and its three uses read
+  `GL8`.
+
+**Left as they are:**
+- spring's table on [−1, 1] (another node formula and other weights);
+- the hard-coded 12-, 5- and inline tables in extruded-profile-solid, sheet-flat and revolve;
+- the closed-form 3- and 5-point rules in cad-curve-arc-length and cad-surface-area.
+
+**Checks:** type-check, lint, T2 (brep-mass-quadrature), the test names identical, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D213's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; kernel test names identical (cad-model/studio differ only by the outer lane's O7 tests merged meanwhile).

@@ -10,6 +10,7 @@ import { buildBrep, lineCurve, BrepError, type Brep, type BrepFaceInput } from '
 import { buildProfileLoop, capSurface, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import { solidMassFromIntegrals, type SolidMassProperties } from './solid-mass.js';
 import type { Curve, Point, Surface } from './types.js';
+import { gauss } from './quadrature.js';
 
 type XY = [number, number];
 type Piece = { readonly kind: 'line'; readonly a: XY; readonly b: XY } | { readonly kind: 'arc'; readonly c: XY; readonly r: number; readonly t0: number; readonly dt: number };
@@ -45,22 +46,6 @@ const bezier = (q: Piece): Bezier => {
 const quadratic = (b: Bezier, w: number): Bezier => b.p.length === 3 ? b : { p: [b.p[0], [(b.p[0][0] + b.p[1][0]) / 2, (b.p[0][1] + b.p[1][1]) / 2], b.p[1]], w: [1, w, 1] };
 const curve3 = (b: Bezier, z: number, id: string): Curve => ({ kind: 'curve', id, degree: b.p.length - 1, knots: b.p.length === 2 ? [0, 0, 1, 1] : [0, 0, 0, 1, 1, 1], controlPoints: b.p.map(p => [p[0], p[1], z] as Point), weights: [...b.w] });
 
-// Gauss–Legendre nodes and weights on [0, 1].
-function gauss(n: number): { x: number[]; w: number[] } {
-  const x: number[] = [], w: number[] = [];
-  for (let i = 1; i <= n; i++) {
-    let t = Math.cos(Math.PI * (i - 0.25) / (n + 0.5)), d = 0;
-    for (let it = 0; it < 100; it++) {
-      let p0 = 1, p1 = t;
-      for (let k = 2; k <= n; k++) { const p2 = ((2 * k - 1) * t * p1 - (k - 1) * p0) / k; p0 = p1; p1 = p2; }
-      d = n * (t * p1 - p0) / (t * t - 1);
-      const dx = p1 / d; t -= dx;
-      if (Math.abs(dx) < 1e-16) break;
-    }
-    x.push((1 - t) / 2); w.push(1 / ((1 - t * t) * d * d));
-  }
-  return { x, w };
-}
 const G3 = gauss(3), G24 = gauss(24);
 /** A rational Bézier's point and derivative at s. */
 function at(b: Bezier, s: number): [XY, XY] {

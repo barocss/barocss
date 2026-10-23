@@ -79,6 +79,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 151, 46 (robust refusals): a cross-section past a cylinder face's seam is probed on the domain's other side; X2's d + t2 22.8 moves to section:B (outer lane's ruling) | D206 | done (T2) |
 | R5.1a: bit-identical vec3 copies (56 in 23 files) import vec3.ts; variants (no fallback, reciprocal, throwing) stay | D212 | done (T2, fingerprint identical) |
 | R5.1b: |a − b| is vec3.dist (5 identical copies) | D213 | done (T2, fingerprint identical) |
+| R5.1c: one Gauss–Legendre gauss(n) (quadrature.ts); curved-arrangement's duplicate GL8 table gone | D214 | done (T2, fingerprint identical) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

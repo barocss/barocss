@@ -16,6 +16,7 @@ import type { Curve, Point, Surface } from './types.js';
 import { facetIntegrals } from './facet-patch.js';
 import type { FacetPatch } from './types.js';
 import { cross, dot, sub } from './vec3.js';
+import { gauss } from './quadrature.js';
 
 type XY = readonly [number, number];
 /** Dunavant's degree-8 rule on the unit triangle (16 points): barycentric (a, b, c) and weight (sum 1). */
@@ -72,18 +73,6 @@ function inverter(S: Surface) {
 }
 
 /** Gauss–Legendre on [0, 1]: 4 points (exact to degree 7) and 12 points (along curves, per knot span). */
-const gauss = (n: number): { x: number[]; w: number[] } => {
-  const x: number[] = [], w: number[] = [];
-  for (let i = 1; i <= n; i++) {
-    let t = Math.cos(Math.PI * (i - 0.25) / (n + 0.5)), d = 0;
-    for (let it = 0; it < 100; it++) {
-      let p0 = 1, p1 = t; for (let k = 2; k <= n; k++) { const p2 = ((2 * k - 1) * t * p1 - (k - 1) * p0) / k; p0 = p1; p1 = p2; }
-      d = n * (t * p1 - p0) / (t * t - 1); const dt = p1 / d; t -= dt; if (Math.abs(dt) < 1e-16) break;
-    }
-    x.push((1 - t) / 2); w.push(1 / ((1 - t * t) * d * d));
-  }
-  return { x, w };
-};
 const G4 = gauss(4), G12 = gauss(12), rules = new Map<number, { x: number[]; w: number[] }>();
 const gaussOf = (n: number) => { let r = rules.get(n); if (!r) rules.set(n, r = gauss(n)); return r; };
 
