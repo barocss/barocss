@@ -43,4 +43,5 @@ for (const [k, call] of calls.entries()) {
 say({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: `Scripted: ${calls.filter(c => typeof c.pause !== 'number').length} call${calls.filter(c => typeof c.pause !== 'number').length === 1 ? '' : 's'}.` } }, parent_tool_use_id: null });
 server.stdin.end();
 await new Promise(resolve => server.on('close', resolve));
-say({ type: 'result', subtype: 'success', is_error: false, result: 'done' });
+// (O15's dry run: a cost as the live CLI reports it, to test the run's guards.)
+say({ type: 'result', subtype: 'success', is_error: false, result: 'done', ...(process.env.CAD_SCRIPTED_COST_USD ? { total_cost_usd: Number(process.env.CAD_SCRIPTED_COST_USD), num_turns: calls.length + 1 } : {}) });

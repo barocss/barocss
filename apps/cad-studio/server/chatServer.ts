@@ -21,6 +21,7 @@ import type { StateFile } from './cadMcp';
 import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import type { BlobType, WireBlobs } from '@barocss/cad-model/engine/blobs';
 import { createHash } from 'node:crypto';
+import { ROBOT_CHECK, robotL3, robotL3Env } from './robotL3/tool';
 
 export const DEFAULT_MODEL = 'claude-opus-5-5';
 export const MAX_TURNS = 24;
@@ -77,7 +78,9 @@ export function claudeArgs(o: { mcpConfig: string; model: string; session?: stri
     '-p', '--input-format', 'stream-json', '--output-format', 'stream-json', '--verbose', '--include-partial-messages',
     '--model', o.model, '--max-turns', String(MAX_TURNS),
     // Only the studio's tools: no built-in tools, no other MCP servers, settings or skills.
-    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', TOOLSET.tools.map(t => `mcp__cad__${t.name}`).join(','),
+    '--tools', '', '--mcp-config', o.mcpConfig, '--strict-mcp-config', '--allowedTools', [...TOOLSET.tools.map(t => `mcp__cad__${t.name}`), ...(robotL3() ? [`mcp__cad__${ROBOT_CHECK}`] : [])].join(','),
+    // (O15: the L3 run's own spending cap, the CLI's.)
+    ...(process.env.CAD_MAX_BUDGET_USD ? ['--max-budget-usd', process.env.CAD_MAX_BUDGET_USD] : []),
     '--permission-prompts', 'none', '--setting-sources', '', '--disable-slash-commands',
     '--system-prompt', TOOLSET.prompt,
     ...(o.session ? ['--resume', o.session] : []),
@@ -242,7 +245,7 @@ export function createChatServer(options: ChatServerOptions) {
     writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
-    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
+    const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
     const prompt = `${stateNote(body.doc as StudioDoc, level)}\n\n${body.text}${rowNote}`;
     const args = claudeArgs({ mcpConfig, model, ...(typeof body.session === 'string' ? { session: body.session } : {}) });
 
