@@ -354,6 +354,7 @@ try {
     const W = Math.round(Number(await page.inputValue('#sk-len0'))) + 6, Hh = Math.round(Number(await page.inputValue('#sk-len1'))) + 3;
     await page.fill('#sk-len0', String(W)); assert.match(await status(), /1 DOF/);
     await page.fill('#sk-len1', String(Hh)); assert.match(await status(), /Fully defined/);
+    await page.locator('aside[aria-label="Sketch"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-sketch.png`) });
     assert.equal(await page.inputValue('#sk-len2'), String(W)); assert.equal(await page.inputValue('#sk-len3'), String(Hh));
     await page.fill('#sk-len1', ''); assert.match(await status(), /1 DOF/);
     await page.focus('#sk-len1'); await press('Enter'); assert.match(await status(), /Fully defined/); await snap('fully-defined');
@@ -1173,14 +1174,17 @@ try {
     await page.locator('.outliner .ol').first().click();
     await page.selectOption('[aria-label="Appearance preset"]', 'look-brass');
     await page.check('.render-panel [aria-label="Two-sided"]');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-render-look.png`) });
     await page.click('.render-panel [role="tab"]:text-is("Lights")');
     await page.click('.render-panel button:text-is("Add point")');
     await page.locator('.render-panel [aria-label="Range"]').last().fill('200');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-render-lights.png`) });
     await page.click('.render-panel [role="tab"]:text-is("Scene")');
     // An environment image lighting the part (and its reflections).
     await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
     await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? ''), null, { timeout: 5000 });
     await page.waitForTimeout(600); await snap('render-environment');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-render-scene.png`) });
     await page.locator('.render-panel [aria-label="Field of view"]').fill('50');
     await page.click('.render-panel button:text-is("Save this view")');
     const r = await page.evaluate(() => window.__studioDoc.render);
@@ -1251,6 +1255,7 @@ try {
     // Where the arc crosses X = 10: once, at its top.
     await page.selectOption('[aria-label="Crossing plane"]', 'x'); await page.fill('.direct-panel [aria-label="At"]', '10'); await page.click('[aria-label="Find crossings"]');
     assert.match(await page.locator('[aria-label="Crossing"]').innerText(), /10, 5, 0/);
+    await page.locator('.direct-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-direct.png`) });
     await page.click('.direct-panel button:text-is("Split")');
     await page.waitForSelector('.direct-panel .card-title:has-text("2 OBJECTS")');
     await page.locator('.ol.direct', { hasText: 'top' }).click();
