@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { offsetsAt, withKey, type RenderAnimation } from '@barocss/cad-model/engine/render';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 
 /**
  * The Render workspace's timeline: play, scrub, the duration and a turntable; for the selected body, its
- * offset at the current time and its keys (set one, jump to one, remove one).
+ * offset at the current time and its keys (set one, jump to one, remove one). (G12f: its button, fields and Set key
+ * shadcn's.)
  */
+const NUM = 'w-14 h-6! [font-family:var(--mono)] bg-[var(--bg)]';
 export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime, onPlay, onChange }: {
   animation: RenderAnimation; time: number; playing: boolean;
   bodyKey: string | null; bodyLabel: string;
@@ -25,18 +30,18 @@ export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime,
   const animated = Object.keys(animation.tracks).length;
   return (
     <div className="card timeline" aria-label="Timeline">
-      <button className="tool" aria-label={playing ? 'Pause' : 'Play'} onClick={() => onPlay(!playing)}><Icon name={playing ? 'pause' : 'play_arrow'} /></button>
+      <ToolIconButton aria-label={playing ? 'Pause' : 'Play'} onClick={() => onPlay(!playing)}><Icon name={playing ? 'pause' : 'play_arrow'} /></ToolIconButton>
       <input className="scrub" type="range" aria-label="Time" min={0} max={animation.duration} step={0.01} value={time} onChange={e => onTime(Number(e.target.value))} />
       <span className="mono">{time.toFixed(2)} / </span>
-      <input className="mono dur" type="number" aria-label="Duration" min={0.1} step={0.5} value={animation.duration}
+      <Input className={'dur ' + NUM} type="number" aria-label="Duration" min={0.1} step={0.5} value={animation.duration}
         onChange={e => { const v = Number(e.target.value); if (v >= 0.1) onChange({ ...animation, duration: v }); }} /><span className="mono">s</span>
       <label className="check-inline"><input type="checkbox" aria-label="Turntable" checked={animation.turntable} onChange={e => onChange({ ...animation, turntable: e.target.checked })} />Turntable</label>
       <div className="sep" />
       {bodyKey ? <>
         <span className="muted small">{bodyLabel}</span>
-        {(['X', 'Y', 'Z'] as const).map((a, k) => <input key={a} className="mono off" type="number" step="any" aria-label={`Offset ${a}`} title={`Offset ${a} (mm)`} placeholder={a} value={offset[k]}
+        {(['X', 'Y', 'Z'] as const).map((a, k) => <Input key={a} className={'off ' + NUM} type="number" step="any" aria-label={`Offset ${a}`} title={`Offset ${a} (mm)`} placeholder={a} value={offset[k]}
           onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) setOffset(o => o.map((x, j) => j === k ? v : x) as [number, number, number]); }} />)}
-        <button className="ghost" onClick={setKey}>Set key</button>
+        <Button variant="ghost" onClick={setKey}>Set key</Button>
         {keys.map(k => <span key={k.t} className="key-chip"><button className="link" title="Go to this key" onClick={() => onTime(k.t)}>{k.t}s</button>
           <button className="link" aria-label={`Remove key at ${k.t}s`} onClick={() => removeKey(k.t)}>×</button></span>)}
       </> : <span className="muted small">{animated ? `${animated} animated bod${animated > 1 ? 'ies' : 'y'} · ` : ''}Select a body to key its position.</span>}
