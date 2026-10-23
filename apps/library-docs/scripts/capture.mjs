@@ -6,8 +6,10 @@
 // A heavy run: it takes the barocss-lanes-guard gate itself (BAROCSS_GATE, or the mod's gate.sh) and gives it back.
 // The studio runs on 127.0.0.1:52820 and its chat port is 52891, where no chat server runs: the chat panel is off.
 // The walk steps check the labels Getting started names, and the run fails on the first one that differs.
+// The agent pages' step starts the real chat server on 52891 with the browser flow's scripted stand-in for the claude
+// CLI (no model runs: each message names the tool calls to make), and stops that one process when it is done.
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
@@ -309,6 +311,40 @@ const steps = [
     await page.waitForSelector('[aria-label="Repair report"]', { timeout: WAIT }); await page.waitForTimeout(300);
     await shot('studio/files', 'mesh-repair', 'studio/files: the mesh repair dialog', { target: page.locator('[aria-label="Mesh repair"]') });
     await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Cancel' }).click().catch(() => press('Escape'));
+  }],
+  // ——— the agent pages: the real chat and tool servers, the calls scripted
+  ['agent: a turn applied, a proposal', async () => {
+    await fresh();
+    const origin = new URL(url).origin;
+    const chat = spawn(process.execPath, [join(studio, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CHAT_PORT: String(CHAT_PORT), CAD_STUDIO_CLAUDE: join(studio, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    try {
+      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
+      await newPart(); await page.click('button[aria-label="Chat"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 2 * WAIT });
+      const send = async (said, calls) => {
+        const n = await page.locator('.chat-msg.assistant').count();
+        await page.fill('[aria-label="Chat message"]', `${said}\nscript ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
+        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 4 * WAIT });
+      };
+      // The first build of an empty part applies directly (L2), said so with an undo.
+      const box = { tool: 'features', args: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 8, x: 0, y: 0, z: 0 } } };
+      await send('A 60 × 40 plate, 8 thick.', [box]);
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 2 * WAIT }); await idle();
+      await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: WAIT }); await iso();
+      await shot('agent', 'turn-applied', 'agent: a turn applied, a proposal');
+      // Two features in one change: refused at L2, then proposed; the part stays as it is until the person accepts.
+      const thicker = { tool: 'features', args: { action: 'edit', index: 1, values: { h: 10 } } };
+      const hole = { tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 30, y: 20 } } };
+      await send('Make it 10 thick, with an 8 mm hole in the middle.', [{ tool: 'features', args: { action: 'batch', ops: [thicker, hole] } }, { tool: 'proposals', args: { action: 'propose', title: 'Thicker, with a hole', ops: [thicker, hole] } }]);
+      await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 2 * WAIT });
+      assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude'], 'the part is unchanged until the proposal is accepted');
+      await shot('agent/proposals', 'refused-then-proposed', 'agent: a turn applied, a proposal', { target: page.locator('aside.chat') });
+      await page.click('button[aria-label="Chat"]');
+      await page.locator('[aria-label="Proposal P1"] button:text-is("Preview")').click();
+      await page.waitForSelector('[aria-label="P1 features"]', { timeout: 2 * WAIT }); await page.waitForTimeout(800);
+      await shot('agent/proposals', 'preview', 'agent: a turn applied, a proposal');
+      await shot('agent/proposals', 'card', 'agent: a turn applied, a proposal', { target: page.locator('[aria-label="Proposal P1"]') });
+    } finally { chat.kill(); }
   }],
 ];
 
