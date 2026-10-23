@@ -4266,6 +4266,11 @@ try {
       await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
       await page.waitForFunction(() => window.__studioDoc.nodes.find(n => n.kind === 'key')?.bought === undefined && !!document.querySelector('[aria-label="BOM line 2"]'), null, { timeout: 30000 });
       await snap('bom-panel');
+      // (O16: the table at the dock's width — no wider than the panel, no item name wrapped.)
+      const fit = await page.evaluate(() => { const panel = document.querySelector('[aria-label="BOM panel"]'), table = document.querySelector('[aria-label="BOM lines"]'), items = [...table.querySelectorAll('tbody tr td:nth-child(2)')];
+        return { over: table.scrollWidth - panel.clientWidth, wrapped: items.filter(td => td.getClientRects().length && td.scrollHeight > td.clientHeight + 1).length, nowrap: items.every(td => getComputedStyle(td).whiteSpace === 'nowrap') }; });
+      assert.ok(fit.over <= 0 && fit.wrapped === 0 && fit.nowrap, JSON.stringify(fit));
+      await page.locator('[aria-label="BOM panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-bom-panel.png`) });
       const [csvFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export purchase list"]')]);
       const rows = fs.readFileSync(await csvFile.path(), 'utf8').trim().split('\n');
       assert.equal(rows[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
