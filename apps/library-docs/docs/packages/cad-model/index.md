@@ -24,6 +24,7 @@ The package is public module by module. Import each module by its path; the pack
 
 | Module | What it holds |
 |---|---|
+| `api/` | Experimental, R7 in progress: the object facade over the data-and-functions core. `part()` makes an immutable part, each method returning a new one, with typed edge and face selectors, `.doc`, `.mass()`, `.step()`, and one error class, `BarocssError`. Imported as `@barocss/cad-model/api` |
 | `engine/` | The studio document (`doc`), its evaluation into bodies and meshes, ids, mesh blobs, the `.bcad` container, shop rows and their sources, flattening an assembly |
 | `engine/schema/` | The types of the brief, questions, references, drafts, requirements and proposals; their functions are in `chat/` |
 | `sketch/` | Sketch profiles, constraints, trim, offset, corners, splines, reading a DXF and its underlay |
