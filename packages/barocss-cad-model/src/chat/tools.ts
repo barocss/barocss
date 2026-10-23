@@ -17,7 +17,7 @@ import { personRowsRefusal, reconcileRowSources } from './rowSources';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { GROUPS, V2_OF, v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, ROBOT_TOOLS, runRobotTool } from './robot';
-import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool, saidIn } from './brief';
+import { BRIEF_TOOL_NAMES, BRIEF_TOOLS, runBriefTool } from './brief';
 import { QUESTION_TOOL_NAMES, QUESTION_TOOLS, runQuestionTool } from './questions';
 import { DRAFT_TOOL_NAMES, DRAFT_TOOLS, runDraftTool } from './drafts';
 import { runStandardsTool, STANDARDS_TOOL_NAMES, STANDARDS_TOOLS } from '../standards/provenance';
@@ -25,21 +25,22 @@ import { datumPlane, readReferences, REFERENCE_TOOL_NAMES, REFERENCE_TOOLS, refe
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
 import { deleteFeatures, featureDependents, renumber } from './features';
 import { ASSEMBLY_TOOL_NAMES, ASSEMBLY_TOOLS, runAssemblyTool, solveDoc } from './assembly';
-import { resolveNames, resolveSelectors, type NameSelection } from './names';
-import { changeOf, edgeDetail, faceDetail, factsOf } from './observe';
-import { renderViews } from './views';
+import { resolveNames, type NameSelection } from './names';
+import { changeOf, factsOf } from './observe';
 import { newTransactions, OP_IDS, treeDiff, type TreeDiff } from './transactions';
 import { canonical } from '../team/revision';
 import { moveOp } from './remap';
 import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf, riskRank, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
-import { checkRequirement, checkSpec, expectedOf, modelHash, newPolicy, updatePolicy, validateSuite, type Requirement } from './spec';
+import { checkSpec, modelHash, newPolicy } from './spec';
 import { verifyReferences } from '../engine/references';
 import { rememberedEvaluate } from '../engine/evalMemo';
 import { partEditRefusal, refreshFollowed } from '../frames/skeleton';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, because, setCall, json, CHECKPOINTS, accept, fail, isObj, strings, list, isVec3 } from './toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, because, setCall, json, CHECKPOINTS, accept, fail, isObj, strings, isVec3 } from './toolKit';
 import { QUERY_HANDLERS } from './part/query';
 import { IMAGE_HANDLERS } from './part/image';
 import { CHAT_COMMANDS, COMMAND_DOCS, FEATURE_HANDLERS } from './part/features';
+import { REQUIREMENT_HANDLERS } from './part/requirements';
+import { VIEW_HANDLERS } from './part/views';
 // ./outputs is loaded on first use: it reaches team/bundle → baseline → assembly → parts, which import this
 // module, so a static import closes a cycle that leaves `commands` undefined here at load.
 let outputsModule: Promise<typeof import('./outputs')> | undefined;
@@ -49,7 +50,7 @@ export { describeBodies, type ChatState, type Evaluate, type ToolOutcome } from 
 export { INFLATE, layerSketches, surfaceAt } from './part/image';
 export { CHAT_COMMANDS, COMMAND_DOCS } from './part/features';
 /** Every moved handler, by v1 tool name (R3): built once, at load. */
-const PART_HANDLERS: Readonly<Record<string, PartHandler>> = { ...QUERY_HANDLERS, ...IMAGE_HANDLERS, ...FEATURE_HANDLERS };
+const PART_HANDLERS: Readonly<Record<string, PartHandler>> = { ...QUERY_HANDLERS, ...IMAGE_HANDLERS, ...FEATURE_HANDLERS, ...REQUIREMENT_HANDLERS, ...VIEW_HANDLERS };
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
@@ -535,37 +536,6 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
   // (R3: the handlers moved to a module per v2 action group, found by name first.)
   if (Object.hasOwn(PART_HANDLERS, name)) return PART_HANDLERS[name](state, args, evaluate, runToolCounted);
   switch (name) {
-    case 'set_requirements': {
-      const list = Array.isArray(args.requirements) ? args.requirements : null;
-      if (!list) return fail(state, 'Pass "requirements": a list of {id, source, hard, basis?, subject?, assume?, check: {op, query, value | min, max, tol?, unit?}}.');
-      for (const r of list) { const why = checkRequirement(r); if (why) return fail(state, why); }
-      const ids = list.map(r => (r as Requirement).id); if (new Set(ids).size !== ids.length) return fail(state, 'Requirement ids repeat.');
-      // (The user's say, A6.2: only the user confirms; a stated source is their words, checked against the conversation
-      // when there is one; what the user stated or confirmed is not replaced or dropped by an assumption.)
-      const given = list as Requirement[], own = (r: Requirement) => !!r.confirmed || r.said === 'verified';
-      for (const r of given) {
-        if (r.confirmed !== undefined || r.said !== undefined) return fail(state, `[CONFIRM_IS_THE_USERS] ${r.id}: only the user confirms a requirement, in the studio; leave "confirmed" and "said" out.`);
-        if ((r.basis ?? 'stated') === 'stated' && state.turns && !saidIn(r.source, state.turns)) return fail(state, `[SOURCE_NOT_SAID] ${r.id}: "${r.source}" is not in what the user wrote this conversation; quote their words exactly, or say it is assumed.`);
-      }
-      for (const was of state.doc.requirements ?? []) {
-        if (!own(was)) continue;
-        const next = given.find(r => r.id === was.id);
-        if (next ? (next.basis ?? 'stated') !== 'stated' : args.replace === true) return fail(state, `[STATED_KEPT] ${was.id} was ${was.confirmed ? `confirmed by ${was.confirmed.by}` : 'stated by the user'} ("${was.source}"): an assumption does not ${next ? 'replace' : 'drop'} it.`);
-      }
-      const marked = given.map(r => ((r.basis ?? 'stated') === 'stated' ? { ...r, said: state.turns ? 'verified' as const : 'unverified' as const } : r));
-      const kept = args.replace === true ? [] : (state.doc.requirements ?? []).filter(r => !ids.includes(r.id));
-      const doc = { ...state.doc, requirements: [...kept, ...marked] };
-      return { state: { ...state, doc }, content: json({ ok: true, requirements: doc.requirements.map(r => ({ id: r.id, hard: r.hard, check: `${r.check.query.fn} ${expectedOf(r.check)}` })) }), isError: false, changed: true, summary: `${list.length} requirement${list.length === 1 ? '' : 's'} set` };
-    }
-    case 'check_spec': {
-      if (!state.doc.requirements?.length) return fail(state, 'There are no requirements yet: set_requirements first, from the brief.');
-      const { outcomes, ...report } = await checkSpec(state.doc, state.bodies, evaluate);
-      // (validate: the suite against cheap mutants, to catch checks that cannot fail; the policy: best, rounds, hint.)
-      const validation = args.validate === true ? await validateSuite(state.doc, state.bodies, evaluate, outcomes) : undefined;
-      const turns = typeof process !== 'undefined' && process.env?.CAD_MAX_TURNS ? Number(process.env.CAD_MAX_TURNS) : undefined;
-      const { policy, out } = updatePolicy(state.policy ?? newPolicy(), state.doc, report, outcomes, turns);
-      return { state: { ...state, policy }, content: json({ ...report, ...(validation ?? {}), policy: out }), isError: false, changed: false, summary: `${report.summary.pass} pass, ${report.summary.fail} fail, ${report.summary.unknown} unknown` };
-    }
     case 'apply_ops': {
       // All or nothing: each op runs on what the one before left; one refusal and nothing is applied.
       const tx = state.tx ?? newTransactions(), dry = args.dryRun === true, run = await runOps(state, args.ops, evaluate);
@@ -648,30 +618,6 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
       if (!best) return fail(state, 'No checked snapshot yet: run check_spec first.');
       if (best.hash === modelHash(state.doc)) return fail(state, 'The part is the best snapshot already.');
       return accept(state, best.doc, evaluate, `restored the best snapshot ${best.hash} (${best.pass} passing)`);
-    }
-    case 'render_views': {
-      const highlight = strings(args.highlight), sec = isObj(args.section) ? args.section : undefined;
-      if (sec && (!['x', 'y', 'z'].includes(String(sec.axis)) || !Number.isFinite(Number(sec.at)))) return fail(state, 'A section takes an axis (x, y or z) and at (mm).');
-      const r = await renderViews(state.doc, state.bodies, evaluate, { ...(highlight.length ? { highlight } : {}), ...(sec ? { section: { axis: String(sec.axis) as 'x' | 'y' | 'z', at: Number(sec.at) } } : {}) });
-      if (typeof r === 'string') return fail(state, r);
-      const { image, ...rest } = r;
-      return { state, content: json(rest), isError: false, changed: false, summary: `views (${Object.keys(r.legend).length} faces labelled)`, images: [{ data: image, mediaType: 'image/png' }] };
-    }
-    case 'inspect': {
-      const r = resolveSelectors(state.doc.nodes, state.bodies, { faces: list(args.faces), edges: list(args.edges) });
-      if (r.error) return fail(state, r.error);
-      const faces = r.names.faces.map(n => faceDetail(state.doc, state.bodies, n) ?? { name: n, error: 'no such face' });
-      const edges = r.names.edges.map(n => edgeDetail(state.doc, state.bodies, n) ?? { name: n, error: 'no such edge' });
-      const out = { ...(faces.length ? { faces } : {}), ...(edges.length ? { edges } : {}), ...(r.resolved.length ? { resolved: r.resolved } : {}) };
-      return { state, content: json(out), isError: false, changed: false, summary: `${faces.length + edges.length} inspected` };
-    }
-    case 'select': {
-      const r = resolveSelectors(state.doc.nodes, state.bodies, { faces: list(args.faces), edges: list(args.edges), bodies: list(args.bodies) });
-      if (r.error) return fail(state, r.error);
-      const sel: NameSelection = r.names, { unknown } = resolveNames(state.bodies, sel);
-      if (unknown.length) return fail(state, `No face, edge or body named ${unknown.map(n => `"${n}"`).join(', ')}.`);
-      const count = sel.faces.length + sel.edges.length + sel.bodies.length;
-      return { state: { ...state, selection: sel }, content: json({ ok: true, selected: sel, ...(r.resolved.length ? { resolved: r.resolved } : {}) }), isError: false, changed: false, summary: `${count} selected` };
     }
   }
   // (R8.2: the SubD cage tools, D83.)
