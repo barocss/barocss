@@ -2169,3 +2169,29 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     a box's dimension arrows, measure, a dimension handle and the Rotate gizmo, the view cube, the section plane's drag,
     K2 L gap, G3, G24 and G23.
   - The instance steps 50, 57, 58 and 60 need their prerequisites. With 49, 56, 57 and 59, all pass on WebGPU (load 9).
+
+## G-R25 — R1b: the viewport's stable inputs (print views, offsets, the projector) (roadmap R1, 2026-10-23)
+
+- **Print views' props**:
+  - With Print layers or the CNC preview on, the viewport's props were made again in every App render: `bodies: []`,
+    the selection, `handles: []`, `profiles: []`, and the print projection's selection and face colours.
+  - The effects keyed on them (setBodies, setState) ran again each time.
+  - Now the empty lists are module constants, and the projected selection and face colours are memoised on their inputs
+    (`printSelection`, `printFaceColors`). The same values as before.
+- **The bodies' offsets**: `viewState()` runs in each frame and hover, and it made a new Map of the transforms' offsets
+  each time. Now that Map is made once for the transforms (or offsets) it comes from.
+- **The projector**: studio `camera.ts` `project` multiplied the view-projection again on every call. It runs for every
+  edge end on a hover (vertexAt) and every overlay point in a frame.
+  - Now the matrix is kept until a camera value changes: target, distance, yaw, pitch, fovY, ortho or aspect.
+  - It is the same `viewProjection`, so the projected points are bit-identical.
+- **Renders**: the bench rows read as G-R24 (load 18 → 11). These inputs did not drive the bench rows' renders; what
+  they save is work in each render and frame.
+- **Not done here**: `memo(Viewport)`. The App hands it about 15 props made in every render (inline callbacks,
+  `boundsBox`, `measureLine`, `profiles={active ? [] : …}`, `cageEd.shown(…)`), so memo would compare and still render.
+  They are made stable with the App split (R1c).
+- **Checks**:
+  - studio tsc 0, eslint 0, unit 250/250.
+  - FLOW_ONLY on both renderers (load 9–11), passing: the overlay steps, the instance steps (56–58), AM6, AM7a, G24 and
+    G23 (Print layers inside).
+  - 49 and 50 fail when run straight after 47 (measure), at R1a's f63c349f2 too, so the cause is the FLOW_ONLY order,
+    not R1b. In the full flow, 48 comes between them, and they passed (G-R23).
