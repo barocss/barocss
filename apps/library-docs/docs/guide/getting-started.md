@@ -42,7 +42,7 @@ The studio opens on a starter plate with one Ø8 hole. Start your own part inste
 
    ![The box's fields in the HUD, previewed in the viewport](/shots/guide/getting-started/box-hud.jpg)
 3. Press <kbd>Enter</kbd>. The history shows `Box 64×32×8` and the **Browser** one body.
-4. Click **Top** in the view buttons, then click the top face. The properties panel shows `SELECTION · FACE`.
+4. Click **Top** in the view buttons, then click the top face. The inspector, in the dock at the right, shows `SELECTION · FACE`.
 5. Press <kbd>H</kbd> for a hole. Set **Diameter** 8, **Centre X** 32 and **Centre Y** 16, wait for the HUD to say
    `preview`, and press <kbd>Enter</kbd>. The **Browser** lists `Hole Ø8`.
 

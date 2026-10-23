@@ -10,7 +10,7 @@ The **autonomy level** decides which way a change goes.
 
 ## Autonomy levels
 
-**Autonomy**, at the top of the chat panel, sets the level for the next turn. The studio remembers it in this browser.
+**Autonomy**, at the top of the chat, sets the level for the next turn. The studio remembers it in this browser.
 The default is **L2**.
 
 | Level | The agent changes the part directly | The agent accepts its own proposals |
@@ -53,7 +53,8 @@ At any level, some changes are always proposals that only you can accept:
 
 ## The proposal card
 
-A proposal waits in the **Browser**, under **Proposals**, with a count of the open ones. Its card shows:
+A proposal waits in the chat column, over the conversation, under **Proposals**, with a count of the open ones. While
+one is open, the column shows it, whether the chat is open or not. Its card shows:
 
 - **Its id and title**, for example `P1 Thicker, with a hole`. Ids are never reused.
 - **Its risk**, as a badge:
@@ -95,5 +96,5 @@ results are the studio's own.
 
 ## The design history
 
-Each prompt, change, acceptance and rejection is kept in the part's **Design history**, in the Browser, with who made
+Each prompt, change, acceptance and rejection is kept in the part's **Design history**, in the **Browser**, with who made
 it. It is saved with the part, chat messages included. **Save a copy without it** writes a copy to share.
