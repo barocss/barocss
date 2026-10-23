@@ -2005,6 +2005,8 @@ try {
     await press('h'); await hudReady(); await field('Centre X').fill('32'); await field('Centre Y').fill('16'); await field('Diameter').fill('6.6'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await press('Escape');
+    // (The iso view, framed: the hover points below are the hole's walls on this view, not on a camera an earlier step left.)
+    await iso();
     await shape('Fastener'); await hudReady();
     // Over the hole's wall (whichever side faces the eye): the fitted bolt follows.
     let fitted = false;
