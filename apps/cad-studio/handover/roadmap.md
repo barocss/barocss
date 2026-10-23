@@ -139,6 +139,54 @@ documents and package paths keep resolving); the touched package suites, lint an
 plus the full flow at the end of the phase. Render counts and frame times are recorded in the decision logs, not as
 evidence files.
 
+## Item index (one line each; the /lanes pane shows these titles)
+
+- **S1** — Import cycle in cad-model
+- **S2** — Rows rule (b) test fixtures and CLI paths
+- **S3** — Frozen v2 tool-contract test
+- **S4** — Remaining failures after S1–S2
+- **S5** — Kernel failures from the first window
+- **S6** — Studio lint error
+- **S9** — Full window and browser flow at one commit (the "last fully verified" commit)
+- **K1** — FRk6: ordered-trim speed (5.7 → 1.1 s)
+- **K2** — FRk5 leftovers: notch cases on a tee
+- **K3** — FRk7: SubD display folds
+- **K4** — FRk8a: bearing housing shoulder against Da max
+- **K5** — FRk8b second half (not needed)
+- **K6** — FRk9: weldment acceptance by the agent
+- **K7** — r6 sphere-intersect pin against a closed form
+- **K8** — F5: cnc-turning report speed (55 → 15 s)
+- **K9** — Graze cases (1 nm, 10 µm, 1 µm)
+- **K10** — Fuzz harness and its first findings
+- **K10b** — Fuzz refusals: robust, near-degenerate, touching lumps
+- **K11** — F5 remainder: the turning report's derivatives
+- **O1** — Verify the A9 items in the full suites
+- **O2** — A9-11: Studio download flow
+- **O3** — A9 brief fixture: key against bearing clash
+- **O4** — A9-7: linked bearing housing in the app (needs a person's rows file)
+- **O5** — A9 acceptance run, end to end
+- **O5a** — A9 findings F1–F5: made bodies, holes, bore, tool size, housing
+- **O5b** — A9 findings F6–F10: drawings, fasteners, BOM base members
+- **O6** — Aligned sections; welded DFM profile (waits on the owner)
+- **O7** — Built-in tables → person-loaded sample rows
+- **O8** — Touching lumps: per-lump exports, DFM warning, BOM count
+- **G1** — A9-7 UI port
+- **G2** — G23: CNC preview
+- **G3** — G21: display modes, silhouettes, isolate and hide
+- **G4** — G22: clearance map on screen
+- **G5** — G24: 3D PMI
+- **G6** — G25: GPU analyses (thickness, draft, access)
+- **G7** — Antialiased cap edges
+- **G8** — Performance regression check
+- **G9** — Cap sample memory
+- **G10** — Full browser flow on WebGL2
+- **R1** — Studio re-renders: Viewport and the App split
+- **R2** — Viewer per-frame allocations, shared renderer code, viewer.ts split, gpu folders
+- **R3** — chat/tools.ts split by action group
+- **R4** — cad-model duplicates, layering and folders
+- **R4b** — src/ui shared panel pieces; DrawingWorkspace split
+- **R5** — Kernel duplicates, hot paths, part-model split, folders
+
 ## Later (on the roadmap, not started)
 
 - **REVIEW-A1** (from Codex): recovery metadata can report success before the mesh blob is stored. A real defect, off the current path.
