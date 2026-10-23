@@ -20,7 +20,7 @@ export function modelContent(doc: StudioDoc): Record<string, unknown> {
   };
 }
 /** What a revision covers: every model input plus the authored contracts a patch may depend on. */
-const REVISION_FIELDS = [...MODEL_FIELDS, 'frames', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'drafts', 'interfaces', 'instances', 'fastenerSizes', 'castingRules'] as const;
+const REVISION_FIELDS = [...MODEL_FIELDS, 'frames', 'bodies', 'requirements', 'brief', 'references', 'process', 'printer', 'print', 'mould', 'machining', 'casting', 'drafts', 'interfaces', 'instances', 'fastenerSizes', 'castingRules', 'mounts'] as const;
 /** The canonical JSON of what a revision covers: equal exactly when the states a patch depends on are equal. */
 /** The fields a revision reads, as a value. */
 export const revisionContent = (doc: StudioDoc) => Object.fromEntries(REVISION_FIELDS.map(k => [k, (doc as unknown as Record<string, unknown>)[k]]));

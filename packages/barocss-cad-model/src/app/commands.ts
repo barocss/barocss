@@ -12,6 +12,7 @@ import { connectorCommands } from './connectorCommands';
 import { weldmentCommands } from './weldmentCommands';
 import { alignCommand } from './alignCommand';
 import { fastenerCommand } from './fasteners';
+import { mountCommand } from './mounts';
 import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows';
 import { duplicateBody } from '../chat/features';
 import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
@@ -37,7 +38,8 @@ export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
 export type Field = (
   | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio' | 'number'; min?: number; max?: number; step?: number }
-  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[]; /** Why there is nothing to choose, when the options are none (O7: no rows loaded). */ empty?: string }
+  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[]; /** Why there is nothing to choose, when the options are none (O7: no rows loaded). */ empty?: string;
+      /** Why a value is none of them, when that has a typed refusal of its own (O14: no such row). */ unknown?: (value: string) => string }
 ) & { when?: (values: Values) => boolean };
 export const shownFields = (fields: Field[], values: Values) => fields.filter(f => !f.when || f.when(values));
 
@@ -357,6 +359,7 @@ const allCommands: Command[] = [
   },
   ...primitives,
   fastenerCommand,
+  mountCommand,
   {
     id: 'hole', label: 'Hole', icon: 'cad-hole', hint: 'A round hole into a flat face: through, to a depth, counterbored, countersunk or tapped', shortcut: 'H', group: 'create', keywords: 'drill bore through side cross counterbore blind countersink countersunk csk tapped thread tap',
     available: ctx => {

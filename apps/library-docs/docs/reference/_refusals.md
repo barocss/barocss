@@ -118,6 +118,9 @@
 | `[INPUT_TARGET]` | `assembly` | …: … has no parameter … |
 | `[INPUT_TYPE]` | `assembly`, `chat` | … (…) cannot drive … |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
+| `[MOUNT_FACE]` | `app` | select the flat face the mount goes on |
+| `[MOUNT_RANGE]` | `app`, `engine` | mount row …: its bearing …'s bore Ø… is not its shaft Ø… |
+| `[MOUNT_ROW]` | `app`, `engine` | mount row … names bearing row …, not loaded — load your bearing rows |
 | `[NO_REFERENCE]` | `chat` | no reference …; references: …. |
 | `[NO_ROW]` | `standards` | … … has no field …; fields: … |
 | `[NO_RUN]` | `team` | … is not a run for … … |

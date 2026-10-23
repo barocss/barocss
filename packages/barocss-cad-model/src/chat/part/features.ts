@@ -19,6 +19,8 @@ import { beadOwnershipError, type BeadOwnership } from '../../frames/beadOwnersh
 import { bearingContextOf } from '../../engine/bearingContext';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, accept, fail, checkValues, strings, list, inRange } from '../toolKit';
 import { isObj, isVec3 } from '../../util/guards';
+import { mountRowsOf } from '../../engine/mountRows';
+import { mountAxis } from '../../app/mounts';
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
 // (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with
@@ -90,6 +92,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   move: { selection: 'bodies: [one body]', values: { x: 'ΔX', y: 'ΔY', z: 'ΔZ', ax: 'to X (the box corner; the HUD keeps it with ΔX — give one of the two)', ay: 'to Y', az: 'to Z' } },
   rotate: { selection: 'bodies: [one body]', values: { axis: 'x | y | z', angle: 'degrees', px: 'pivot x mm (default: the body\'s centre)', py: 'pivot y mm', pz: 'pivot z mm' } },
   scale: { selection: 'bodies: [one body]', values: { factor: 'uniform factor (1 = unchanged)', px: 'pivot x mm (default: the body\'s centre)', py: 'pivot y mm', pz: 'pivot z mm' } },
+  mount: { selection: 'faces: [one flat face facing ±X/±Y/±Z]', values: { row: 'a mount row\'s id (the person\'s datasheet rows, loaded with features.load_rows kind mounts)', x: 'the output axis on the face, first axis (as hole)', y: 'the output axis, second axis', turn: '0 | 90 | 180 | 270 (degrees about the face\'s normal)', pilot: 'through | recess (the pilot its depth, the shaft through), for a row with a pilot depth' } },
   fastener: { selection: 'none', values: { kind: 'hex-bolt (ISO 4017) | socket-screw (ISO 4762) | csk-screw (ISO 10642, countersunk: the head sinks below z, its top flush) | hex-nut (ISO 4032) | washer (ISO 7089)', size: 'M3 | M4 | M5 | M6 | M8 | M10 | M12 (coarse pitch)', length: 'bolt/screw length in mm, from the size\'s standard lengths (ISO 4017 for hex bolts, ISO 4762 for cap screws, ISO 10642 for countersunk screws, overall; as text, e.g. "20")', joint: 'free (on its own) | nut (through a clearance hole: washer + nut under the far face, `grip` below the seat) | tapped (into a tapped hole)', grip: 'with joint nut: the clamped thickness in mm below the seat (the bolt must reach grip + washer + nut + 2 pitches)', x: 'axis X', y: 'axis Y', z: 'seat Z: heads, nuts and washers sit on it, a shank goes down from it (a hole\'s rim)', insert: 'part (its features join this part) | instance (a part of its own placed in the assembly: in the bill of materials, mated like any part)', model: 'hex-bolt and hex-nut: cosmetic (a plain cylinder, the thread drawn) | modelled (the ISO 68-1 thread as helical B-spline faces: true shape and mass)' } },
   duplicate: { selection: 'bodies: [one body]', values: { dx: 'copy offset X', dy: 'copy offset Y', dz: 'copy offset Z' } },
   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy; keeps the original', at: 'where the plane crosses its axis (yz: X; 0: through the origin)' } },
@@ -143,8 +146,17 @@ async function runCommandTool(state: ChatState, args: Record<string, unknown>, e
   const values: Values = patchValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, Object.fromEntries(Object.entries(given).map(([k, v]) => [k, typeof v === 'number' ? v : String(v)])));
   const why = checkValues(fields, values);
   if (why) return fail(state, `${cmd.label}: ${why}`);
-  const next = cmd.build(ctx, values);
+  // (A command's own refusal — its build throws it — comes back as the tool's, the part unchanged; O14's typed ones among them.)
+  let next: StudioDoc;
+  try { next = cmd.build(ctx, values); } catch (e) { return fail(state, `${cmd.label}: ${e instanceof Error ? e.message : String(e)}`); }
   const shown = Object.fromEntries(shownFields(fields, values).map(f => [f.key, values[f.key]]));
+  // (O14: a mount reports its row's source and its output axis — for a concentric mate, or set_frames as it is.)
+  if (cmd.id === 'mount') {
+    const row = mountRowsOf(state.doc).get(String(values.row))!, f = selection.faces[0], face = state.bodies[f.body].mesh.faces[f.face], k = [0, 1, 2].find(i => Math.abs(Math.abs(face.normal[i]) - 1) < 1e-6)!;
+    const mount = { row: row.id, ...(row.designation ? { designation: row.designation } : {}), type: row.type, ...(row.source ? { source: row.source } : { estimate: true }), ...(row.unchecked?.length ? { unchecked: row.unchecked } : {}),
+      axis: mountAxis(row, face, face.centroid[k], Number(values.x), Number(values.y), Number(values.turn ?? 0)), shaftMM: row.shaftMM };
+    return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), mount, added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
+  }
   return accept(state, next, evaluate, `${cmd.label} ${json(shown)}`, { ...(sel.resolved.length ? { resolved: sel.resolved } : {}), added: next.nodes.slice(state.doc.nodes.length).map((n, k) => `${state.doc.nodes.length + k}: ${featureLabel(n, state.doc.nodes.length + k, next.nodes)}`) });
 }
 async function addFeaturesTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
