@@ -12285,3 +12285,41 @@ How (the same for every R5.3 step):
 and the R5 fingerprint, byte-identical (see the batch line below).
 
 **Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D228 — O10: `evaluateCadPart(…, { profile: true })` gives each feature its wall time and kernel calls (2026-10-23)
+
+**What (additive public option).**
+- `CadPartEvaluationOptions.profile?: boolean`.
+- With it, `snapshot.profile` maps each feature id to `{ ms, calls }`:
+  - `ms` is the feature's own **wall time**, by `performance.now()` (the clock the package already uses, in
+    mesh-decimate);
+  - `calls` is `{ booleans, planarBooleans, tessellations, sweeps, shells, finishes }`.
+- New exported types: `CadPartProfileCalls` and `CadPartFeatureProfile`.
+- `withParameters`/`withDocument` keep the option; a reused feature's entry is its lookup.
+
+**Where the calls are counted** (the part model's own entry points, in `src/part-model.ts`):
+
+| Counter | Entry point |
+|---|---|
+| `booleans` | the Boolean dispatcher `boolean` |
+| `planarBooleans` | `planarBoolean` |
+| `tessellations` | `clearanceAbove`'s tessellation (the holes' obstruction test) |
+| `sweeps` | `sweepBrep` (stepped paths) and the curved path's `sweepSolid` |
+| `shells` | `shellOf`, each call including nested ones |
+| `finishes` | `finishEdges` (fillets and chamfers) |
+
+Calls made by a machine element's own sub-evaluation count for the feature that made it. A body's B-rep or mesh built
+lazily, after the evaluation, is not counted.
+
+**Off (the default).**
+- Each feature takes the `if (profile)` test twice. Each counted call takes one `if (profiling)` test on a
+  module-level variable that is null.
+- There is no allocation and no closure, and `snapshot.profile` is absent.
+
+**Test:** `test/o10-profile.test.mjs`:
+- every feature has an entry, frozen, with a finite `ms` and integer calls;
+- unions and differences count Booleans, fillets count finishes, and sketches count nothing;
+- the body's volume and centroid are bit-identical with and without the option;
+- the profile is kept through `withDocument`.
+
+**Checks:** build, tsc, lint; the new test, the Boolean tests and the trap tests (80 files); the kernel suite (the known Node-version demo test only) and RB; the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical with the option off and with it on.

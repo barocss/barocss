@@ -656,6 +656,8 @@ export interface CadPartSnapshot {
   readonly features: readonly { readonly id: string; readonly kind: CadPartFeature['kind']; readonly dependencies: readonly string[] }[];
   /** Features computed in this evaluation, and features reused unchanged from the previous one. */
   readonly recomputation: { readonly evaluated: readonly string[]; readonly reused: readonly string[] };
+  /** With `profile`: each feature's cost, by id (a reused feature's is its lookup). */
+  readonly profile?: Readonly<Record<string, CadPartFeatureProfile>>;
   output(id: string): CadPartOutput;
   /** Re-evaluates with new parameter values; unchanged features are reused. */
   withParameters(edits: Readonly<Record<string, number>>): CadPartSnapshot;
@@ -781,6 +783,8 @@ export const FACET_EXPLODE_TRIANGLES = 16000;
 export const FACET_PREVIEW_TRIANGLES = 5000;
 /** The limit of the evaluation running now (evaluateCadPart is synchronous: set for its run, restored after). */
 let facetLimit = FACET_EXPLODE_TRIANGLES;
+/** The current feature's kernel calls while `profile` evaluates (null otherwise: one test per counted call). */
+let profiling: CadPartProfileCalls | null = null;
 function explodeFacets(b: Brep, at: string, what: string): Brep {
   if (!b.faces.some(isFacetFace)) return b;
   if (!b.faces.every(isFacetFace)) throw new CadPartError('CAPABILITY', at, `${what} on a body mixing mesh and other faces is not supported yet`);
@@ -815,6 +819,7 @@ const HOLE_PLANE_AXES: readonly (readonly [number, number])[] = [[1, 2], [0, 2],
  * least hit, or Infinity when nothing is above.
  */
 function clearanceAbove(brep: Brep, k: number, dir: 1 | -1, face: number, c: XY, r: number): number {
+  if (profiling) profiling.tessellations++;
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), bvh = triangleBvh(mesh.positionsMM, mesh.indices), [a, b] = HOLE_PLANE_AXES[k];
   const o: Point = [0, 0, 0], d: Point = [0, 0, 0]; d[k] = dir;
   let least = Infinity;
@@ -906,20 +911,32 @@ function hashOfArray(a: Float64Array | Float32Array | Uint32Array | Int32Array):
  */
 type Cache = Map<string, { deps: readonly Result[]; result: Result }[]>;
 
-/** `facetExplodeTriangles`: the F0 planar-path limit for this evaluation (FACET_PREVIEW_TRIANGLES for a preview; default FACET_EXPLODE_TRIANGLES). */
-export interface CadPartEvaluationOptions { readonly facetExplodeTriangles?: number }
+/**
+ * `facetExplodeTriangles`: the F0 planar-path limit for this evaluation (FACET_PREVIEW_TRIANGLES for a preview; default
+ * FACET_EXPLODE_TRIANGLES). `profile` (O10, D228): the snapshot's `profile`, each feature's own wall time and kernel calls.
+ */
+export interface CadPartEvaluationOptions { readonly facetExplodeTriangles?: number; readonly profile?: boolean }
+/**
+ * A feature's kernel calls during its evaluation (`profile`), counted at the part model's own entry points: its Boolean
+ * dispatcher (`booleans`), the planar Boolean (`planarBooleans`), tessellations it makes, sweeps (the stepped and the
+ * curved path), shells and edge finishes (fillets and chamfers). Calls a machine element's own sub-evaluation makes count
+ * for the feature that made it. A body's B-rep built lazily, after the evaluation, is not counted.
+ */
+export interface CadPartProfileCalls { booleans: number; planarBooleans: number; tessellations: number; sweeps: number; shells: number; finishes: number }
+/** A feature's cost in one evaluation: `ms`, its own wall time (performance.now(), not CPU time); `calls`, as above. */
+export interface CadPartFeatureProfile { readonly ms: number; readonly calls: Readonly<CadPartProfileCalls> }
 export function evaluateCadPart(input: CadPartDocument, previous?: Cache, options: CadPartEvaluationOptions = {}): CadPartSnapshot {
-  const was = facetLimit;
+  const was = facetLimit, wasProfiling = profiling;
   facetLimit = Math.min(FACET_EXPLODE_TRIANGLES, options.facetExplodeTriangles ?? FACET_EXPLODE_TRIANGLES);
   try { return evaluateWith(input, previous, options); }
-  finally { facetLimit = was; }
+  finally { facetLimit = was; profiling = wasProfiling; }
 }
 function evaluateWith(input: CadPartDocument, previous: Cache | undefined, options: CadPartEvaluationOptions): CadPartSnapshot {
   const doc = admit(input), cache: Cache = new Map(), results = new Map<string, Result>();
   const lookup = (key: string, deps: readonly Result[]) => previous?.get(key)?.find(e => e.deps.length === deps.length && e.deps.every((d, i) => d === deps[i]))?.result;
   const remember = (key: string, deps: readonly Result[], result: Result) => { const list = cache.get(key); if (list) list.push({ deps, result }); else cache.set(key, [{ deps, result }]); };
   const consumed = new Map<string, Set<number> | 'all'>(), features: { id: string; kind: CadPartFeature['kind']; dependencies: string[] }[] = [];
-  const evaluated: string[] = [], reusedIds: string[] = [];
+  const evaluated: string[] = [], reusedIds: string[] = [], profile: Record<string, CadPartFeatureProfile> | null = options.profile === true ? {} : null;
   // One frame plan per evaluation. A participant cannot escape a peer's refusal through the result cache.
   const beadPlans = new Map<string, ReturnType<typeof planEndpointBeads>>();
   const endpointBead: Tools['endpointBead'] = (f, byMember, frame) => {
@@ -931,6 +948,8 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
   };
   for (const feature of doc.features) {
     const at = feature.id, deps: string[] = [];
+    let started = 0;
+    if (profile) { profiling = { booleans: 0, planarBooleans: 0, tessellations: 0, sweeps: 0, shells: 0, finishes: 0 }; started = performance.now(); }
     const fail = (code: CadPartErrorCode, detail: string): never => { throw new CadPartError(code, at, detail); };
     const dim = (v: CadPartDim | undefined, what: string, positive = false): number => {
       let x: unknown = v;
@@ -998,6 +1017,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       throw new CadPartError('GEOMETRY', at, known ? (cause as Error).message : `unexpected kernel failure: ${cause instanceof Error ? cause.message : String(cause)}`);
     }
     results.set(at, result); features.push({ id: at, kind: f.kind, dependencies: [...new Set(deps)] });
+    if (profile) { profile[at] = Object.freeze({ ms: performance.now() - started, calls: Object.freeze(profiling!) }); profiling = null; }
   }
   // Outputs: parts not consumed by a later feature.
   const outputs: CadPartOutput[] = [];
@@ -1011,6 +1031,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
   }
   const snapshot: CadPartSnapshot = {
     document: deepFreeze(doc), outputs: Object.freeze(outputs), features: deepFreeze(features), recomputation: deepFreeze({ evaluated, reused: reusedIds }),
+    ...(profile ? { profile: Object.freeze(profile) } : undefined),
     output(id: string) { const o = outputs.find(x => x.id === id); if (!o) throw new CadPartError('REFERENCE', null, `no output ${id}`); return o; },
     withParameters(edits) {
       const parameters = { ...doc.parameters };
@@ -1575,6 +1596,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const m = sk.frame?.m ?? [1, 0, 0, 0, 1, 0, 0, 0, 1];
       return () => {
         try {
+          if (profiling) profiling.sweeps++;
           return one({ kind: 'brep', brep: sweepSolid({ id: at, outer: loopPoints(sk.outer), holes: (sk.holes ?? []).map(loopPoints), xAxis: [m[0], m[3], m[6]], yAxis: [m[1], m[4], m[7]], path: curve }) });
         } catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
       };
@@ -1682,6 +1704,7 @@ function boxSolid(min: Point, max: Point, tag: string): Solid {
 
 /** Upright Booleans stay upright; otherwise both bodies must be planar for the exact polyhedral Boolean. */
 function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, edgeFitToleranceMM?: number): Solid {
+  if (profiling) profiling.booleans++;
   if (empty(b)) return op === 'intersection' ? b : a;
   if (empty(a)) return op === 'union' ? b : a;
   if (a.kind === 'upright' && b.kind === 'upright') {
@@ -1714,6 +1737,7 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
  * takes the pair (FR3a, D125: a mitred sharp tube on a 120° or 3D corner, and two such tubes welded, were refused).
  */
 function planarBoolean(a: Brep, b: Brep, op: 'union' | 'difference' | 'intersection', at: string): Brep {
+  if (profiling) profiling.planarBooleans++;
   try { return booleanPolyhedra(a, b, op, { id: at }); }
   catch (cause) { if (!(cause instanceof BrepError && cause.reason === 'NOT_PLANAR_WITHIN_FLOAT')) throw cause; }
   return booleanAnalytic(a, b, op, { id: at });
@@ -3079,6 +3103,7 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
  * cross-sections and are joined.
  */
 function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY, sideTags?: readonly string[]): { brep: Brep; mass: (density: number) => SolidMassProperties } {
+  if (profiling) profiling.sweeps++;
   // The path runs through the profile's centroid (or a given point): the profile is moved there, the body back.
   const centre = through ?? buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
   const outer: ProfileSegmentInput[] = profile.map(g => g.kind === 'line' ? { kind: 'line', start: [g.start[0] - centre[0], g.start[1] - centre[1]] } : { ...g, start: [g.start[0] - centre[0], g.start[1] - centre[1]], center: [g.center[0] - centre[0], g.center[1] - centre[1]] });
@@ -3134,6 +3159,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
  */
 /** The shell of a part, by how it was made (its mass exact when that can be). */
 function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools['fail']): Part {
+  if (profiling) profiling.shells++;
   // A mesh body (facet faces): its cavity its triangles offset in, the wall it achieves measured (R11.3, D114).
   const s = part.solid;
   if (s.kind === 'brep' && s.brep.faces.length && s.brep.faces.every(isFacetFace)) {
@@ -3411,6 +3437,7 @@ function hollowOf(solid: PrismaticSolid, t: number, open: string[], at: string, 
 
 // ---- chamfers and fillets ------------------------------------------------------------------------------
 function finishEdges(part: Part, names: string[], size: number, kind: 'chamfer' | 'fillet', at: string, fail: Tools['fail'], reports?: FilletReport[], radii?: readonly { at: Point; radius: number }[], shape?: { kind: 'conic'; rho: number } | { kind: 'g2'; tension: number }): Solid {
+  if (profiling) profiling.finishes++;
   // Vertical corners of an upright body keep it upright (its section is finished exactly); straight
   // chamfers elsewhere cut a wedge; every other edge (sloping or curved, on any body) gets a rolling-ball
   // tool (finishBrepEdges).
