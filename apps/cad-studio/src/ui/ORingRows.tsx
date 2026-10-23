@@ -3,6 +3,8 @@
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { editORingRows } from '@barocss/cad-model/engine/orings';
 import { Icon } from './atoms';
+import { ROW } from './panelStyles';
+import { Button } from '@/components/ui/button';
 
 export function ORingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.orings?.rows ?? [];
@@ -14,12 +16,12 @@ export function ORingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit
   return <section aria-label="O-ring rows">
     <div className="card-title" style={{ marginTop: 8 }}>O-RINGS</div>
     {!rows.length && <div className="empty">No O-ring rows: load your own (JSON: dash, inside diameter, cross-section; each citing its source or marked an estimate). None is built in.</div>}
-    {rows.map(r => <div key={r.id} className="param-row" aria-label={`O-ring row ${r.id}`}>
+    {rows.map(r => <div key={r.id} className={ROW} aria-label={`O-ring row ${r.id}`}>
       <span title={r.source ?? 'an estimate'}><b>{r.dash ?? r.id}</b> <span className="muted small">ID {r.insideDiameterMM} × CS {r.crossSectionMM} · {r.source ?? 'estimate'}</span></span>
-      <button className="ghost small" aria-label={`Remove O-ring row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></button>
+      <Button variant="ghost" aria-label={`Remove O-ring row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>
     </div>)}
-    <div className="row-actions">
-      <label className="ghost small file-button">Add an O-ring rows file…<input type="file" accept="application/json,.json" aria-label="O-ring rows file" hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(f); ev.currentTarget.value = ''; }} /></label>
+    <div className="flex flex-wrap gap-1">
+      <Button variant="ghost" asChild><label className="file-button">Add an O-ring rows file…<input type="file" accept="application/json,.json" aria-label="O-ring rows file" hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(f); ev.currentTarget.value = ''; }} /></label></Button>
     </div>
   </section>;
 }

@@ -11,7 +11,4 @@ export function withTable(settings: DrawingSettings, from: string, on: boolean):
   return tables.length ? { ...base, tables } : base;
 }
 
-/** The settings rows' look on shadcn (O16): a label and its control on one line, the control at the right. */
-export const FIELD = 'flex items-center justify-between gap-2 py-0.5 text-[11px] [&>span:first-child]:text-muted-foreground [&>span:first-child]:shrink-0';
-/** A select or text field in a row, and a tick. */
-export const CONTROL = 'w-auto max-w-[62%]', TICK = 'size-3.5 accent-[var(--accent)]';
+export { CONTROL, FIELD, TICK } from '../panelStyles';
