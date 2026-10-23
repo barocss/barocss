@@ -38,5 +38,9 @@ export function useLayout() {
   }, [chatWidth]);
   // (The width shown: what was dragged, less what the centre needs — never under the column's least width.)
   const chatShown = Math.min(chatWidth, Math.max(CHAT_MIN, windowWidth - CENTRE_MIN));
-  return { chatOpen, setChatOpen, chatWidth, chatShown, setChatWidth };
+  // (G12b: the dock's width, and whether it is docked beside the centre or a strip with a sheet — the chat shown or not.)
+  const dockWidth = windowWidth >= 1280 ? DOCK_WIDTH : DOCK_NARROW;
+  const [dockSheet, setDockSheet] = useState(false);
+  const dockDocked = (chatColumnWidth: number) => windowWidth - chatColumnWidth >= dockWidth + CENTRE_MIN;
+  return { chatOpen, setChatOpen, chatWidth, chatShown, setChatWidth, windowWidth, dockWidth, dockDocked, dockSheet, setDockSheet };
 }

@@ -1,4 +1,5 @@
 import { defineConfig, type Connect, type Plugin } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import { connect } from 'node:net';
 import { resolve } from 'node:path';
 
@@ -26,7 +27,9 @@ const chatOff: Connect.NextHandleFunction = (req, res, next) => {
 const chatStatusOff: Plugin = { name: 'cad-studio-chat-status-off', configureServer: s => { s.middlewares.use(chatOff); }, configurePreviewServer: s => { s.middlewares.use(chatOff); } };
 
 export default defineConfig({
-  plugins: [chatStatusOff],
+  // (G12b: Tailwind v4 for the shadcn/ui components; `@/` is src/, as components.json has it.)
+  plugins: [tailwindcss(), chatStatusOff],
+  resolve: { alias: [{ find: /^@\//, replacement: resolve(import.meta.dirname, 'src') + '/' }] },
   worker: { format: 'es' },
   server: { host: '127.0.0.1', port: 52020, strictPort: true, fs: { allow: [repo] }, proxy: { '/api/chat': chat } },
   preview: { proxy: { '/api/chat': chat } },
