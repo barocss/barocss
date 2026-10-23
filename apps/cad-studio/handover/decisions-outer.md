@@ -7930,3 +7930,50 @@ The coordinator asked the owner, who answered: "D2 로 해줘" (go with D2).
   - CNC5;
   - the new O9 section step.
 - On the first run, "unsaved work" and RM9c failed alone: their documents come from the steps before. Rerun with those steps, they pass. These were FLOW_ONLY prerequisites, not this change.
+
+## O10 step A — one key for a placed copy's body, whoever produces it (2026-10-23)
+
+**Why.** O10's plan, step A: a placed copy's body had two keys. `placedDoc` appends the copy's transform nodes to the
+part's, so the studio's evaluation keyed a copy's first body `i1/b2` while interference and the clearance map keyed it
+`i1/b1`. The clearance worker hid this by matching a shown body by its owner's prefix (`i1/…`).
+
+**What.**
+- **The key is the origin's.** A placed body is keyed by the node it comes from in the part as placed (`placedBase`), not
+  by the transformed copy: `originNode` walks a transform node back to its parent until it is one of the base's nodes.
+  - evaluatePlaced (engine/evaluate.ts) keys and places each output by its origin output;
+  - the clearance map (team/clearanceMap.ts), `placedBodies` (team/parts.ts) and the assembly (team/assembly.ts) evaluate
+    `placedBase` and key from it.
+  - Every producer now gives `${instance}/${key}`, the same key for the same body.
+- **Exact matching.** `visibleClearanceBodies(bodies, visibleKeys)` keeps a body only when its key is shown; the owner
+  prefix match and the `visibleInstances` argument are gone from the filter (clearanceAnalysis.ts, clearance.worker.ts).
+  A disagreement now shows as a missing overlay, not a match by prefix.
+- **The studio's shown keys** (App.tsx:2129, approved): the root's shown bodies plus every placed copy's
+  `${i.id}/${b.key}`. Built from `instancesPlaced` (shown, not hidden, unsectioned) rather than `instancesShown`: under a
+  section the latter holds the cut copies, while the root's keys come from the unsectioned `bodies`. A deviation from the
+  approved line ("built from instancesShown"), for that reason; the coordinator accepted it. 2130 stays.
+- **Second bug, found on the way.** stepFor's instance loop left out the root's role bodies (infill) but not a placed
+  copy's: a copy's infill went into the STEP. It now looks up the copy's origin node and leaves it out when it has a role.
+- **Wording correction (docs lane's request).** The fastener command's hint said "a standard … (ISO, M3–M12)"; since O7b
+  the sizes are the person's rows. It now reads "A bolt, cap screw, nut or washer from your loaded fastener sizes — …".
+- **Chat agrees too.** The plan's item 3 (chat's clearance through placedBase) came with the clearance map's own change:
+  `assemblyPlacedBodies` evaluates `placedBase` for each shown copy, so chat and the worker key a sub-assembly alike.
+- **Unchanged:** the BOM (approved); no expected value changed.
+
+**Tests.**
+- o10-body-keys 3/3 (new): copies at the origin, moved, and moved and turned — the studio's key equals interference's
+  and the clearance map's; a copy's material read by `lookOf`; a sub-assembly moved to [5, 7, 0] and turned 90° about Z,
+  its two bodies keyed the same by every producer.
+- gpu cad-clearance-analysis (cross-lane, approved) rewritten for exact matching: `arm/b2` and `armature/b1` are not
+  matched by `arm`'s prefix; 13/13.
+- toolset, tool-contract, fasteners and the clearance tests: 41/41 with o10-body-keys. Full suites after the model change:
+  model 986/986, studio 274/274.
+
+**Verified (O10 step A).**
+- FLOW_ONLY at 224147c04 (T1), WebGPU and WebGL2, each 14 steps ok (flow exit 0 on the rerun): STEP export, 3MF,
+  STEP and meshes (with its prerequisite, the mesh repair, step 44: alone it failed on both for want of the repaired
+  cup, a FLOW_ONLY prerequisite), place / drag / mate a copy, interference, RM1, RM4 (URDF), RM5 (MJCF), G3 display
+  modes, **G22 clearance** (eight copies i1–i8 placed apart: the exact-key match finds every pair, the same after Save,
+  New and Open) and O10 frame costs.
+- Not run: a flow step with a turned copy under the clearance map (the unit test covers the turn); the full flow (the
+  coordinator's, per merge window).
+- tsc (model, studio) and eslint on the changed files clean.
