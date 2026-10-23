@@ -439,11 +439,13 @@ function surfacePoint(s: typeof sink, u: number, v: number, k: number, I: number
     vec[0] += n[0] * k; vec[1] += n[1] * k; vec[2] += n[2] * k; s.area += Math.hypot(...n) * Math.abs(k);
     return;
   }
-  const cu = stencilU(s, u), cv = stencilV(s, v), pu = at(cu + hu, v), mu = at(cu - hu, v), pv = at(u, cv + hv), mv = at(u, cv - hv), su = 2 * hu, sv = 2 * hv;
+  // (The point itself between the two stencils: each of its parameters then repeats the call before, and the evaluator
+  // keeps that basis. K13, D244.)
+  const cu = stencilU(s, u), cv = stencilV(s, v), pu = at(cu + hu, v), mu = at(cu - hu, v), p = at(u, v), pv = at(u, cv + hv), mv = at(u, cv - hv), su = 2 * hu, sv = 2 * hv;
   const ux = (pu[0] - mu[0]) / su, uy = (pu[1] - mu[1]) / su, uz = (pu[2] - mu[2]) / su, vx = (pv[0] - mv[0]) / sv, vy = (pv[1] - mv[1]) / sv, vz = (pv[2] - mv[2]) / sv;
   // The mesh is wound outward throughout: sigma times the signed (u, v) area is outward.
   normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
-  accumulate(I, at(u, v), normal, k);
+  accumulate(I, p, normal, k);
   vec[0] += normal[0] * k; vec[1] += normal[1] * k; vec[2] += normal[2] * k; s.area += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
 }
 // (A strip's edge parameters and their derivatives at the t nodes, and its integrals before they are kept.)
@@ -655,7 +657,7 @@ function wholePatch(face: BrepFace, maps: Maps): boolean {
     let last: Point | null = null;
     for (let k = 0; k <= EDGE_SAMPLES; k++) {
       const p = c(t0 + (t1 - t0) * k / EDGE_SAMPLES);
-      if (k % (EDGE_SAMPLES / 8) === 0 && !(boundaryDistance(at, U, V, sides, p) <= near)) return false;
+      if (k % (EDGE_SAMPLES / 8) === 0 && !nearBoundary(at, U, V, sides, p, near)) return false;
       if (last) length += Math.hypot(p[0] - last[0], p[1] - last[1], p[2] - last[2]);
       last = p;
     }
@@ -674,21 +676,29 @@ const ISO_SAMPLES = 64;
 function sidePoint(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], k: number, s: number): Point {
   return k < 2 ? at(U[k], V[0] + (V[1] - V[0]) * s) : at(U[0] + (U[1] - U[0]) * s, V[k - 2]);
 }
-/** The distance from p to the domain boundary's image: the nearest cached sample, refined by golden section on its side. */
-function boundaryDistance(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], sides: Float64Array[], p: Point): number {
+/**
+ * Whether p lies within `near` of the domain boundary's image: the nearest cached sample, refined by golden section on its
+ * side. (A sample within `near` settles it: the search only lowers the distance. Its points lie between the side's
+ * samples, which were evaluated without fault. K13, D244.)
+ */
+function nearBoundary(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], sides: Float64Array[], p: Point, near: number): boolean {
   let side = 0, best = 0, bestD = Infinity;
   for (let k = 0; k < 4; k++) for (let i = 0; i <= ISO_SAMPLES; i++) {
     const s = sides[k], d = Math.hypot(s[3 * i] - p[0], s[3 * i + 1] - p[1], s[3 * i + 2] - p[2]);
     if (d < bestD) { bestD = d; side = k; best = i; }
   }
-  const d = (s: number) => { const q = sidePoint(at, U, V, side, s); return Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]); };
+  if (bestD <= near) return true;
   let a = Math.max(0, best - 1) / ISO_SAMPLES, b = Math.min(ISO_SAMPLES, best + 1) / ISO_SAMPLES;
   const g = (Math.sqrt(5) - 1) / 2;
-  let x1 = b - g * (b - a), x2 = a + g * (b - a), f1 = d(x1), f2 = d(x2);
+  let x1 = b - g * (b - a), x2 = a + g * (b - a), f1 = sideDistance(at, U, V, side, x1, p), f2 = sideDistance(at, U, V, side, x2, p);
   for (let it = 0; it < 60 && b - a > 1e-15; it++) {
-    if (f1 < f2) { b = x2; x2 = x1; f2 = f1; x1 = b - g * (b - a); f1 = d(x1); } else { a = x1; x1 = x2; f1 = f2; x2 = a + g * (b - a); f2 = d(x2); }
+    if (f1 < f2) { b = x2; x2 = x1; f2 = f1; x1 = b - g * (b - a); f1 = sideDistance(at, U, V, side, x1, p); } else { a = x1; x1 = x2; f1 = f2; x2 = a + g * (b - a); f2 = sideDistance(at, U, V, side, x2, p); }
   }
-  return Math.min(bestD, f1, f2);
+  return Math.min(bestD, f1, f2) <= near;
+}
+/** The distance from p to the point at fraction s along boundary side k. */
+function sideDistance(at: (u: number, v: number) => Point, U: readonly number[], V: readonly number[], k: number, s: number, p: Point): number {
+  const q = sidePoint(at, U, V, k, s); return Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]);
 }
 /**
  * A whole patch's ten integrals, added to I: tensor Gauss–Legendre on each knot span, n points a direction
