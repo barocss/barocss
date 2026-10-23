@@ -4,7 +4,7 @@ import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import { boughtOf, elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
-import { brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
+import { brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { lumpTouches } from './lumps';
 import { friendly, type FriendlyError } from './errors';
@@ -85,8 +85,12 @@ export interface BodyResult {
 export type EvalResult =
   // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
   // print rules and mates read, kept so they do not evaluate the part again; PERF3 A1.)
-  | { ok: true; revision: number; bodies: BodyResult[]; ms: number; faceTable?: FaceTable; shopRows?: readonly ShopTreeProvenance[] }
+  // (`rebuild`: the part's own evaluation as the kernel profiled it — evaluateDoc only; O10.)
+  | { ok: true; revision: number; bodies: BodyResult[]; ms: number; faceTable?: FaceTable; shopRows?: readonly ShopTreeProvenance[]; rebuild?: RebuildData }
   | { ok: false; revision: number; error: FriendlyError; ms: number };
+
+/** The main evaluation's rebuild (O10): the features built again and those reused, and each one's own cost (D228). */
+export interface RebuildData { evaluated: readonly string[]; reused: readonly string[]; profile: Readonly<Record<string, CadPartFeatureProfile>> }
 
 const ALUMINIUM = 2700;
 // The last successful evaluation: unchanged features are reused by the next one.
@@ -268,9 +272,12 @@ function oneFeature(bends: readonly { name: string }[]): boolean {
  */
 const bendLabel = (name: string, short: boolean): string => short ? name.slice(name.lastIndexOf('.') + 1) : name;
 
+/** The main part's evaluation profiles its features (O10; a reused snapshot keeps the option). */
+const PROFILED = { profile: true } as const;
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
-  return partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part));
+  return partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part, undefined, PROFILED));
 }
+const rebuildOf = (s: CadPartSnapshot): RebuildData | undefined => s.profile && { evaluated: s.recomputation.evaluated, reused: s.recomputation.reused, profile: s.profile };
 
 /** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved), or their refusal. */
 function skeletonsNow(doc: StudioDoc): StudioDoc { const r = resolveSkeletons(doc); if ('error' in r) throw new Error(r.error); return r.doc; }
@@ -282,7 +289,7 @@ export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): Eval
     const snapshot = snapshotOf(doc); last = snapshot;
     const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
     const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
-    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows };
+    return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows, rebuild: rebuildOf(snapshot) };
   } catch (cause) {
     return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
   }
