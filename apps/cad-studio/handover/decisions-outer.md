@@ -8287,3 +8287,36 @@ values. Part-level configurations stay as they are (folding them into variants l
 - **Diffs:** no frames → every export byte for byte as before (the committed arm-6r files) and the R4 fingerprint
   unchanged; with frames, each export is the old one plus its frames' lines only (URDF 6, SDF 12, MJCF 3, USD 5 per frame).
 - Not done here: the sliders' readout and the frames in the viewport wait for G12b.
+
+## O14 — mounts from the person's datasheet rows (2026-10-24)
+
+- **Row kind `mounts`** (doc.mounts; **a STUDIO_DOC_FIELDS entry**), in the existing rows machinery: ROW_KINDS,
+  rowEntries, resolveShopRows (inherited by placed parts), restoreAuthoredShopRows, flattenShopView's scope check,
+  the revision fields, load_rows. Person-only (rows rule b), with receipts; nothing built in.
+- **A row** is how a part is mounted, not what it can do: type motor | servo | bearing-unit, the bolt pattern (square,
+  rect, or 2–12 on a circle) and its clearance hole, pilot and its depth, shaft and its offset and height above the face,
+  a servo's body, the clearance round the cuts, source | estimate, fieldSources, unchecked. Ratings stay in the actuator
+  catalogue. mountRowProblem's limits are in MOUNT_LIMITS; every refusal [MOUNT_RANGE], naming the row and field.
+- **Bearing rows:** not duplicated. The kernel's BearingRow is a rolling bearing's envelope; a bearing unit's row is its
+  housing's mounting and may name a bearings row, whose bore must equal its shaft. A bearing seated in a bored plate
+  stays the bearing feature.
+- **Binding:** the `mount` command cuts ordinary features into a flat ±X/±Y/±Z face (bolt holes, the pilot through or as
+  a recess with the shaft's hole, a flange's shaft hole, a servo's body cut through as sketch, extrude, difference); the
+  last remembers the command (`made`, now allowed on hole and difference nodes), so a used row stays. The pilot's
+  cylinder is a named face: a concentric mate on it puts the joint on the motor's axis (tested). The result reports the
+  axis — out of the face, or a pillow block's along it at its height, square to its bolts — for a mate or set_frames;
+  no frame is written automatically. Re-opening a mount as one command waits for the UI (its build needs the face).
+- **Refusals:** [MOUNT_ROW] (none loaded, no such row — choice fields gained an `unknown` text for it — a bearing row not
+  loaded), [MOUNT_RANGE], [MOUNT_FACE]. run_command now returns a build's thrown refusal as the tool's error,
+  "<Label>: <refusal>", the part unchanged, for every command.
+- **Agent:** no new action (features.run mount, load_rows mounts); gated as adding features. Per turn 23,556.
+- **Sample** samples/rows/mounts.json, read only from public HTML pages (no file downloaded), numbers only, each with its
+  URL and the date read (2026-10-24): UCP204 and UCFL204 from NSK's product pages (sourced rows). NEMA 17 and NEMA 23
+  are **estimates**, every field in `unchecked`: NEMA 17's spacing, M3 and shaft are on Bondtech's product page but
+  its pilot only in the maker's PDF drawing; NEMA 23's maker drawings are PDFs, and the one distributor listing found
+  refused the request. The PDFs wait for the owner's permission (the coordinator's list). No NEMA standard text is
+  used. Plate clearance holes from ISO 273 medium as the fastener-sizes sample gives it; the clearances round pilot and
+  shaft are the example's choice, said so. **No servo row:** no maker's dimensioned mounting drawing was found; the
+  servo type is tested with a test-only estimate row (test/o14-fixtures).
+- **Fingerprint:** every existing document identical; the six mount fixtures (test/o14-fixtures) are new entries.
+- The UI (Library load entry, the command in the rail, the axis shown) waits for G12b.
