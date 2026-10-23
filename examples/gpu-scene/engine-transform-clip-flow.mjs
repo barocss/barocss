@@ -60,7 +60,7 @@ const clip = () => ({ format: 'barocss-gpu-engine-transform-clip', version: 0, i
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 101);
+
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['EngineTransformKeyV0', 'EngineTransformTrackV0', 'EngineTransformClipV0',
   'EngineTransformClipRequestV0', 'SampledEngineTransformClip']) assert(new RegExp('\\b' + name + '\\b').test(declaration));

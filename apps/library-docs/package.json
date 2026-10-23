@@ -7,7 +7,8 @@
     "dev": "vitepress dev docs",
     "build": "vitepress build docs",
     "preview": "vitepress preview docs",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "capture": "node scripts/capture.mjs"
   },
   "devDependencies": {
     "vitepress": "^1.6.4"

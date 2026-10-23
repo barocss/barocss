@@ -1,0 +1,67 @@
+{
+ "shots": [
+  {
+   "file": "guide/getting-started/box-hud.jpg",
+   "page": "guide/getting-started",
+   "step": "getting started: a box",
+   "renderer": "webgpu",
+   "bytes": 94835
+  },
+  {
+   "file": "guide/getting-started/drawing.jpg",
+   "page": "guide/getting-started",
+   "step": "getting started: chat off, the drawing",
+   "renderer": "webgpu",
+   "bytes": 84995
+  },
+  {
+   "file": "guide/getting-started/hole-preview.jpg",
+   "page": "guide/getting-started",
+   "step": "getting started: a hole",
+   "renderer": "webgpu",
+   "bytes": 68826
+  },
+  {
+   "file": "guide/getting-started/library-rows.jpg",
+   "page": "guide/getting-started",
+   "step": "getting started: the tapped hole refused, rows loaded",
+   "renderer": "webgpu",
+   "bytes": 97976
+  },
+  {
+   "file": "guide/getting-started/tapped-hole.png",
+   "page": "guide/getting-started",
+   "step": "getting started: the tapped hole",
+   "renderer": "webgpu",
+   "bytes": 21943
+  },
+  {
+   "file": "guide/getting-started/tapped-refused.png",
+   "page": "guide/getting-started",
+   "step": "getting started: the tapped hole refused, rows loaded",
+   "renderer": "webgpu",
+   "bytes": 32783
+  },
+  {
+   "file": "home/studio.jpg",
+   "page": "home",
+   "step": "home: the starter plate",
+   "renderer": "webgpu",
+   "bytes": 93315
+  },
+  {
+   "file": "studio/tour/layout.jpg",
+   "page": "studio/tour",
+   "step": "tour: the layout and the palette",
+   "renderer": "webgpu",
+   "bytes": 93315
+  },
+  {
+   "file": "studio/tour/palette.png",
+   "page": "studio/tour",
+   "step": "tour: the layout and the palette",
+   "renderer": "webgpu",
+   "bytes": 7281
+  }
+ ]
+}

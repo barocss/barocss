@@ -30,7 +30,7 @@ isn't closed and clean goes through the **mesh repair** dialog before it opens:
 - the repair steps are **Fill holes**, **Orient**, **Drop degenerate triangles**, **Drop fins** and **Drop tiny pieces**,
   all on to start, each of which you can turn off;
 - **Check the repair** runs it and reports the triangles and area it adds and what is still open;
-- **Apply the repair** keeps it as a step on the mesh, which the badge in the outliner lets you change later.
+- **Apply the repair** keeps it as a step on the mesh, which the badge in the **Browser** lets you change later.
 
 **Insert part** places another `.bcad` part in this one as an instance; see [Assemblies](/studio/assemblies).
 **Templates** starts a part from **Empty part**, **Plate with a hole** or a template you saved. Your templates are kept

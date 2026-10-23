@@ -7,7 +7,7 @@ own bodies are the **base part**.
 
 - **Insert part** in the top bar places another `.bcad` as an instance.
 - **Library** inserts catalogue parts and snaps them by their interfaces.
-- Pick an instance in the outliner to open its panel: its definition, its bodies and volume, **Duplicate** and
+- Pick an instance in the **Browser** to open its panel: its definition, its bodies and volume, **Duplicate** and
   **Remove**.
 - Drag an instance with its gizmo along an axis or round one, or type its position. Undo puts it back.
 

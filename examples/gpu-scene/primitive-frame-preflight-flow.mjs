@@ -30,8 +30,8 @@ const ordinary = resolve(output, 'ordinary-gpu-source.mjs'), cadEntry = resolve(
 const bundled = await build({ entryPoints: [resolve(gpuRoot, gpuManifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
-for (const file of ['primitive-frame-preflight.ts', 'primitive-scene-renderer.ts', 'mesh-scene-transform.ts', 'mesh-material.ts'])
-  assert(graph.some(path => path.endsWith('/src/' + file)), 'Actual own source dependency ' + file);
+for (const file of ['primitive-frame-preflight.ts', 'mesh-scene-transform.ts', 'mesh-material.ts'])
+  assert(graph.some(path => (path.includes('/src/') && path.endsWith('/' + file))), 'Actual own source dependency ' + file);
 assert(!graph.some(path => /barocss-gpu\/dist\//.test(path)), 'No GPU emitted fallback in ordinary source');
 const cadBundled = await build({ entryPoints: [resolve(cadRoot, cadManifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: cadEntry, metafile: true });

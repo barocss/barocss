@@ -35,7 +35,7 @@ where it came from, or saying it is an estimate.
 ## Loading rows in the studio
 
 **Library** lists each kind with what is loaded, for example **Fastener sizes loaded**. Load your own file there.
-Two kinds ship with samples you can load in one click: **Load sample fastener sizes** and the casting rules' sample.
+Two kinds ship with samples you can load in one click: **Load sample fastener sizes** and **Load sample casting rules**.
 
 The samples are in `@barocss/cad-model` at `samples/rows/`:
 

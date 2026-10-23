@@ -1,8 +1,8 @@
 # Part features
 
 Every command adds a feature to the part's history. Each feature is kept as data — its kind, its values and what it
-is built on — so the part can be edited and rebuilt. Start a command from its key, from the shapes strip or from the
-command palette (<kbd>Space</kbd>).
+is built on — so the part can be edited and rebuilt. Start a command from its key, from the shapes in the top bar,
+from the **Tools** rail or from the command palette (<kbd>Space</kbd>).
 
 ## Shapes
 

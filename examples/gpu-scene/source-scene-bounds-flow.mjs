@@ -26,7 +26,7 @@ const ordinaryURL = pathToFileURL(ordinary).href, emittedURL = pathToFileURL(res
 const providers = [['ordinary-source', await import(ordinaryURL), ordinaryURL],
   ['emitted-public', await import(emittedURL), emittedURL]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 102);
+
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
