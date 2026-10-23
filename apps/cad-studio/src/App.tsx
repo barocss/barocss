@@ -2608,7 +2608,7 @@ export function App() {
   );
   const hud = active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />;
   return (
-    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
+    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
       <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
