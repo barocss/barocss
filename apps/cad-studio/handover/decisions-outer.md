@@ -7434,4 +7434,4 @@ Their parts are `base:<body key>`; `targetOf` read that whole string as an insta
 **Verified (T1):**
 - cad-model suite at --test-concurrency=4: 964 of 964 (the 960 of R3a, plus volume-basis's 4), 291 s, at load 40 → 21;
 - studio volume-basis-merge 1/1; tsc of model and studio; eslint 0 errors on the changed files (App.tsx and sectionView.ts among them).
-- Flow (body panel and section steps): recorded below once run.
+- Flow at `d803fa40f`, FLOW_ONLY the body panel and section steps, from a detached scratch worktree on port 52391, at load 39 → 37: 73 section view, 91 mass, 262 G19.2, 263 G19.3, 264 G19.4 and 266 G20.2, all ok (each on either renderer where it says so).
