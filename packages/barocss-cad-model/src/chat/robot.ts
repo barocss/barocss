@@ -7,6 +7,7 @@ import type { ToolDefinition } from './api';
 import { BASE } from '../assembly/mates';
 import { eulerOf, rotationMatrix } from '../engine/placement';
 import { composeInto, forwardKinematics, gearPairAt } from '../robot/fk';
+import { framePoses, type FrameSettings } from '../robot/frames';
 import { treeInertia, type LinkInertia } from '../robot/inertia';
 import { exportUrdf, type UrdfResult } from '../robot/urdf';
 import { readUrdf } from '../robot/urdfCheck';
@@ -27,7 +28,7 @@ import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotS
 import { r6 } from '../util/round';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators']);
+export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'set_frames', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators']);
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
 
 export const ROBOT_TOOLS: ToolDefinition[] = [
@@ -75,6 +76,11 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
     name: 'size_actuators',
     description: 'Chooses a motor and a reducer for each turning joint from what a move asks of it: the move from "from" to "to" and back (as motion_torques takes it: profile and limits, none assumed), with "dwell_s" held at each end, repeated. Every motor × reducer pair is checked over that cycle — the motor\'s RMS torque against its nominal (continuous) torque, its torque at every instant against its torque–speed line at the nominal voltage, its speed, the load\'s inertia over the drive\'s (at most "inertia_ratio_max", 10); the reducer\'s peak against its repeated peak torque, its input speed, the speed-weighted cube-mean torque and the average input speed against their limits, its L10 life (against "life_h" when given) — and the lightest that passes is taken. The motor torque is τ/(N η) + (J_m + J_in) N q̈ + friction. Each check says whether its limit is from a product page, an estimate or a rule; every value has its source (the page\'s URL, the date read and its label there, or why it is estimated). Built in: maxon and Harmonic Drive values read from their product pages; "motors" and "reducers" add entries ({id, name, maker, and each field as {v, unit, src}}; "only_given" uses those alone). Rigid; an actuator\'s own mass is added to the links only with "coupled" (each chosen pair a point mass at its joint on the parent link, sized again until the choices settle). "estop_rad_s2": a stop event (every moving joint decelerating at it from the fastest instant), checked against the reducer\'s momentary peak torque. Changes nothing.',
     input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } }, profile: { type: 'string', enum: ['trapezoid', 's-curve'] }, limits: { type: 'object', properties: { velocity: { type: 'number' }, acceleration: { type: 'number' }, jerk: { type: 'number' } } }, joint_limits: { type: 'object', additionalProperties: { type: 'object' } }, dwell_s: { type: 'number' }, life_h: { type: 'number' }, inertia_ratio_max: { type: 'number' }, estop_rad_s2: { type: 'number' }, coupled: { type: 'boolean' }, motors: { type: 'array', items: { type: 'object' } }, reducers: { type: 'array', items: { type: 'object' } }, only_given: { type: 'boolean' } }, required: ['to', 'profile'], additionalProperties: false },
+  },
+  {
+    name: 'set_frames',
+    description: 'Adds, replaces (by name) or removes (null) the robot\'s tool and sensor frames — a TCP, a camera: each on a link (the part it is on, "base" or a part id), its pose in that part\'s own coordinates (position mm, rotation degrees about X, then Y, then Z; default 0) and kind tool or sensor. The name is its name in URDF, SDF, MJCF (a site) and USD, where it is a fixed child of its link; forward_kinematics reports where each is. A frame on a part not in the assembly, or not joined to the base link, is refused. The assembly\'s, so it is proposed (propose) for the user to accept.',
+    input_schema: { type: 'object', properties: { frames: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, required: ['frames'], additionalProperties: false },
   },
   {
     name: 'set_joints',
@@ -164,9 +170,12 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
       return [{ link: l.id, name: l.name, position: [...pose.t].map(r6), rotation: eulerOf([...pose.R] as never).map(r6) }];
     });
     const gears = t.couplings.map(c => { const at = gearPairAt(c, fk.values), home = gearPairAt(c, {}); return { leader: c.leader, follower: c.follower, phase_deg: r6(at.phaseDeg), home_phase_deg: r6(home.phaseDeg), held: Math.abs(at.phaseDeg - home.phaseDeg) < 1e-6, backlash_mm: r6(at.backlashMM) }; });
-    return { doc, content: { values: fk.values, links, gears, out_of_limits: fk.outOfLimits }, changed: false, summary: `${links.length} links placed${fk.outOfLimits.length ? `, ${fk.outOfLimits.length} outside their limits` : ''}` };
+    // (O12: each tool and sensor frame where its link puts it.)
+    const frames = [...framePoses(t, fk.motions)].map(([frame, p]) => ({ frame, link: t.frames!.find(f => f.name === frame)!.link, position: p.o.map(r6), rotation: eulerOf(p.R).map(r6) }));
+    return { doc, content: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits }, changed: false, summary: `${links.length} links placed${fk.outOfLimits.length ? `, ${fk.outOfLimits.length} outside their limits` : ''}` };
   }
-  const was = readRobot(doc.robot), next: RobotSettings = { version: 1, ...(was.base ? { base: was.base } : {}), joints: { ...(was.joints ?? {}) } };
+  if (name === 'set_frames') return setFrames(doc, bodies, args, evaluate);
+  const was = readRobot(doc.robot), next: RobotSettings = { version: 1, ...(was.base ? { base: was.base } : {}), joints: { ...(was.joints ?? {}) }, ...(was.frames ? { frames: was.frames } : {}) };
   const parts = [BASE, ...(doc.instances ?? []).map(i => i.id)];
   if (args.base !== undefined) {
     if (typeof args.base !== 'string' || !parts.includes(args.base)) return { error: `The base link is one of ${parts.join(', ')}.` };
@@ -191,11 +200,36 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   const unknown = Object.keys(args.joints && typeof args.joints === 'object' ? args.joints : {}).filter(k => (args.joints as Record<string, unknown>)[k] !== null && !keys.has(k));
   if (unknown.length) return { error: `No joint ${unknown.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
   if (!Object.keys(next.joints!).length) delete next.joints;
-  const robot = next.base || next.joints ? next : undefined, out = { ...doc };
+  const robot = next.base || next.joints || next.frames ? next : undefined, out = { ...doc };
   if (robot) out.robot = robot; else delete out.robot;
   const changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(robot ?? null);
   return { doc: out, content: { ok: true, did: changed ? 'set the robot settings' : 'no change', base: tree.base, joints: tree.joints.map(j => ({ key: j.key, type: j.type, ...(j.limit ? { limit: j.limit } : {}) })), problems: tree.problems }, changed, summary: changed ? `robot settings set (${tree.joints.length} joints)` : 'no change' };
 }
+
+/** O12: tool and sensor frames added, replaced (by name) or removed (null); each one named is checked on the tree, typed. */
+async function setFrames(doc: StudioDoc, bodies: readonly BodyResult[], args: Record<string, unknown>, evaluate: Evaluate): Promise<{ doc: StudioDoc; content: unknown; changed: boolean; summary: string } | { error: string }> {
+  if (!args.frames || typeof args.frames !== 'object' || Array.isArray(args.frames) || !Object.keys(args.frames).length) return { error: '"frames" is {name: {link, position?, rotation?, kind?} | null}: a frame added or replaced by its name, null removes it.' };
+  const was = readRobot(doc.robot), frames: Record<string, FrameSettings> = { ...(was.frames ?? {}) }, did: string[] = [];
+  for (const [name, f] of Object.entries(args.frames as Record<string, unknown>)) {
+    if (f === null) { if (!frames[name]) return { error: `[FRAME_NAME] no frame ${name} to remove (frames: ${Object.keys(frames).join(', ') || 'none'})` }; delete frames[name]; did.push(`removed ${name}`); continue; }
+    if (!f || typeof f !== 'object' || Array.isArray(f)) return { error: `[FRAME_POSE] frame ${name}: {link, position?, rotation?, kind?}` };
+    const extra = Object.keys(f).filter(k => !FRAME_FIELDS.includes(k));
+    if (extra.length) return { error: `[FRAME_POSE] frame ${name}: no field ${extra.join(', ')}; a frame is ${FRAME_FIELDS.join(', ')}` };
+    const g = f as Record<string, unknown>;
+    if (typeof g.link !== 'string') return { error: `[FRAME_LINK_MISSING] frame ${name}: "link" is the part it is on ("base" or a part id)` };
+    if (g.kind !== undefined && g.kind !== 'tool' && g.kind !== 'sensor') return { error: `[FRAME_POSE] frame ${name}: "kind" is tool or sensor` };
+    did.push(`${frames[name] ? 'replaced' : 'added'} ${name} on ${g.link}`);
+    frames[name] = { link: g.link, ...(g.position !== undefined ? { position: g.position as number[] } : {}), ...(g.rotation !== undefined ? { rotation: g.rotation as number[] } : {}), ...(g.kind ? { kind: g.kind as 'tool' | 'sensor' } : {}) };
+  }
+  const { frames: _f, ...rest } = was; void _f;
+  const next: RobotSettings = { ...rest, ...(Object.keys(frames).length ? { frames } : {}) }, tree = await treeOfDoc({ ...doc, robot: next }, bodies, evaluate);
+  const named = new Set(Object.keys(args.frames)), bad = tree.problems.find(p => p.frame !== undefined && named.has(p.frame));
+  if (bad) return { error: bad.message };
+  const robot = next.base || next.joints || next.frames ? next : undefined, out = { ...doc };
+  if (robot) out.robot = robot; else delete out.robot;
+  return { doc: out, content: { ok: true, did: did.join(', '), frames: (tree.frames ?? []).map(f => ({ frame: f.name, link: f.link, ...(f.kind ? { kind: f.kind } : {}), position: f.o.map(r6), rotation: eulerOf(f.R).map(r6) })) }, changed: true, summary: `frames: ${did.join(', ')}` };
+}
+const FRAME_FIELDS = ['link', 'position', 'rotation', 'kind'];
 
 const sig = (v: number) => Number(v.toPrecision(10)) + 0;
 /** A link's inertia as the tool returns it (10 significant figures). */
