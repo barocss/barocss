@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { Icon } from '../ui/atoms';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { CHAT_STRIP } from './useLayout';
 
 /**
@@ -12,7 +11,8 @@ import { CHAT_STRIP } from './useLayout';
 export function Dock({ width, docked, sheet, onSheet, children }: {
   width: number; docked: boolean; sheet: boolean; onSheet(open: boolean): void; children: ReactNode;
 }) {
-  const body = <ScrollArea className="dock-scroll"><div className="dock-body">{children}</div></ScrollArea>;
+  // (A plain scroll column: Radix's ScrollArea lets wide content grow past it, and the panels are as wide as they are.)
+  const body = <div className="dock-scroll"><div className="dock-body">{children}</div></div>;
   if (docked) return <aside className="dock" style={{ width }} aria-label="Dock">{body}</aside>;
   return <>
     <div className="dock-strip" style={{ width: CHAT_STRIP }}>

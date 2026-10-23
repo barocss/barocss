@@ -26,11 +26,11 @@ button { font: inherit; color: inherit; }
 .chat-col:not(.open) { position: absolute; left: 0; top: 0; z-index: 6; }
 /* (G12b: the right dock — docked beside the centre, or a strip at the stage's right edge whose button opens it as a sheet
    over the viewport. Its panels sit flat in one scrolling column: no shadows, a divider between them.) */
-.dock { order: 1; position: relative; flex: none; box-sizing: border-box; height: 100vh; display: flex; flex-direction: column; background: var(--panel-solid); border-left: 1px solid var(--line); z-index: 4; }
-.dock.sheet { position: absolute; top: 0; z-index: 7; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35); }
-.dock-scroll { flex: 1; min-height: 0; }
+.dock { order: 1; position: relative; flex: none; box-sizing: border-box; height: calc(100vh - 36px); margin-top: 36px; display: flex; flex-direction: column; background: var(--panel-solid); border-left: 1px solid var(--line); z-index: 4; }
+.dock.sheet { position: absolute; top: 0; margin-top: 36px; z-index: 7; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35); }
+.dock-scroll { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; }
 .dock-body { display: flex; flex-direction: column; }
-.dock-strip { position: absolute; right: 0; top: 0; box-sizing: border-box; height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 8px 0; background: var(--panel-solid); border-left: 1px solid var(--line); z-index: 6; }
+.dock-strip { position: absolute; right: 0; top: 36px; box-sizing: border-box; height: calc(100vh - 36px); display: flex; flex-direction: column; align-items: center; padding: 8px 0; background: var(--panel-solid); border-left: 1px solid var(--line); z-index: 6; }
 .dock .outliner, .dock .right-col, .dock .hud { position: static; width: auto; max-height: none; }
 .dock .right-col { display: flex; flex-direction: column; gap: 0; }
 .dock-body > .outliner, .dock-body > .hud, .dock .right-col > * { background: transparent; border: 0; border-bottom: 1px solid var(--line-soft); border-radius: 0; box-shadow: none; backdrop-filter: none; }
@@ -111,7 +111,7 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .kv select { font: 500 11px var(--mono); color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 1px 2px; max-width: 60%; }
 .measure-item + .measure-item { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
 
-.topbar { position: absolute; top: 0; left: var(--strip-w, 0px); right: var(--dock-strip-w, 0px); height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 6; }
+.topbar { position: absolute; top: 0; left: var(--chat-col-w, 0px); right: 0; z-index: 5; height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 6; }
 /* (Above the panels under it, z 2–5: its menus — More shapes, More tools, Templates — drop over them; the palette's backdrop, z 10, still covers it.) */
 .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 /* (The file name gives way first when the bar is tight: the centre column is the window less the chat column, G12a.) */
