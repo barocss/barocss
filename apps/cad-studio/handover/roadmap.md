@@ -109,8 +109,9 @@ Moved out of Phase 0:
 | O11 | outer | **Assembly-level variability** (from #2188 M1): a few named top-level inputs (name, type, unit, range, default) bound explicitly to dimensions, feature suppression, component choice and mates; variants regenerated from the one master and still editable; full regeneration the correctness oracle. Grows today's part-level `configurations`. After R4 |
 | K12 | kernel | Later: the near-degenerate refusals (fuzz s1 25, 51, 74, 85, 110, 119) triaged — a correct typed refusal or a fix — and 170 with a pole-safe domain map beside the closed-form sphere∩sphere (it broke s2#171 alone). After R5 |
 | O12 | outer | **Tool and sensor frames** (#2189 M1): named frames on a link with a local pose (a TCP, a camera), kept apart from the joints; FK, IK, the workspace map and the sliders report the tool frame; URDF, MJCF, SDF and USD write each as a fixed child link; a frame on a missing or stale link is refused, typed. After O11 |
-| O13 | outer | **External read-back of the robot exports** (#2189 M4; RM4's and RM5's open external oracle): the URDF through urdfdom's `check_urdf`, the MJCF through MuJoCo's loader, the FK of the 2R and 6R arms at fixed poses compared with RM2 at a stated tolerance, the assets' relative paths and scale checked after moving the folder. **waits on the owner** (the downloads) |
+| O13 | coordinator | **done** (2026-10-23, owner's go-ahead for the downloads): MuJoCo 3.3.0 already closed RM4's and RM5's external read (O38, worst 1.1e-16 and 2.2e-16); now urdfdom 6.0.2 (`brew install urdfdom`) `check_urdf` parses urdf-2r, urdf-gears and arm-6r (cad-cli urdf) with the expected link trees, and MuJoCo's urdf-oracle on urdf-2r copied to another folder still passes (1.1e-16: the mesh paths are relative). **External read-back of the robot exports** (#2189 M4) |
 | O14 | outer | **Mounts from datasheet rows** (#2189 M3): servo, motor and bearing mount profiles whose hole spacing, pilot, shaft height and clearance come from a person-supplied datasheet rows file (rows rule b, each value with its source); bound to the link through O11's named inputs. After O12 |
+| O15 | outer | **RD10's L3 run** (owner's go-ahead 2026-10-23): the protocol of O46's S0 — a live model (the studio chat's default, claude-opus-5-5, through `claude -p` and cad-mcp) given the arm-3r sizing brief with a `robot_check` chat tool added for that run only (the per-turn budget kept); at least 3 runs; success only by a fresh harness run, never the model's word; rounds and margins compared with the scripted sizer's trace. Budget: at most US$25 of reported usage in all, a run stopped past US$8 or the turn cap. Next after O7 |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | **done** D197–D210, D206 (fuzz s1 refusals 31 → 16, s2 29 → 14; INVALID 0, WRONG 0 on both; touching lumps are separate bodies). the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | **done** D211 (turningOf 8.1 → 4.4 s; D1 calls 4.22 M → 1.40 M). F5's remainder (the turning report's first-derivative evaluations) |
@@ -183,6 +184,7 @@ evidence files.
 - **O11** — Assembly-level variability · ko: 조립품 수준 변형 (최상위 입력으로 제품군)
 - **O12** — Robot tool and sensor frames · ko: 로봇 공구·센서 좌표계 (TCP, 카메라)
 - **O13** — External read-back of the robot exports · ko: 로봇 내보내기를 외부 도구로 다시 읽어 확인 (urdfdom, MuJoCo)
+- **O15** — RD10 L3: a live model sizes the 3-DoF arm · ko: RD10 실제 모델 실행: AI가 3자유도 팔 크기 정하기
 - **O14** — Robot mounts from datasheet rows · ko: 데이터시트 행으로 만드는 서보·모터·베어링 마운트
 - **G1** — A9-7 UI port · ko: A9-7 UI 이식
 - **G2** — G23: CNC preview · ko: G23: CNC 가공 미리보기
@@ -216,8 +218,6 @@ evidence files.
 - Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle. · ko: 비스듬한 끝 용접 비드는 독립 오라클이 생길 때까지 거부
 - A v3 decision, if S3 finds a breaking v2 change. · ko: S3에서 v2 호환이 깨지면 v3 결정
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
-- urdfdom and MuJoCo for O13's external read-back (downloads). · ko: O13 외부 확인용 urdfdom·MuJoCo 설치 (다운로드 허락)
-- A live model run for RD10's L3 evidence (an agent sizing a 3-DoF arm). · ko: RD10 실제 모델 실행 (에이전트가 3자유도 팔 크기 정하기)
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
 
 ## Off the roadmap (owner decisions)
