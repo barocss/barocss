@@ -102,6 +102,7 @@ Moved out of Phase 0:
 ### Next items (2026-10-23)
 | # | Lane | Item |
 |---|---|---|
+| O7 | outer | **Owner decision 2026-10-23 (option 3): built-in tables → sample rows.** `FASTENER_SIZES` (app/fasteners.ts), the casting allowances and die-casting thresholds in `library/builtin/materials.json`, and the M2–M3 boss/insert variants in `enclosure.json` leave the code and ship as example rows files, each row with its source. A table is used only once the person loads its file (rows rule (b)). Drawn shape follows the document's rows; a size with no row is a typed refusal. Saved documents that used the built-in values get them frozen into the document as legacy rows and open identically (a versioned change). Other `STANDARD_TABLES` entries are reported before conversion; formulas (ISO 68-1 minor diameter) stay. Order: after O179 and R3, before R4 |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | F5's remainder (the turning report's first-derivative evaluations) |
@@ -148,7 +149,6 @@ evidence files.
 
 ## Waiting on the owner
 
-- Built-in standards-like tables in cad-model (R0): `FASTENER_SIZES` (ISO M3–M12, drives tapped holes, drill sizes, threads, drawing tolerance, machining holes; person rows cover only what is bought), the NPTEL/efunda casting tables in `library/builtin/materials.json`, the M2–M3 boss/insert variants in `enclosure.json`. Keep, or move to person-supplied rows (a versioned change, saved documents keep resolving).
 - A person-supplied row/fit file for A9-7/A9's acceptance (O4, O5).
 - Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle.
 - A v3 decision, if S3 finds a breaking v2 change.
