@@ -107,9 +107,10 @@ Moved out of Phase 0:
 | O9 | outer | **Results tied to their revision** (from #2188 M2): every worker reply (a command's preview, placed-part bodies, drawing views, CAM/print/clearance) is checked against the document revision it was computed from before it is shown; a late reply never overwrites a newer state; drawings and exports carry their source revision. Includes REVIEW-A1 (recovery reports success before the mesh blob is stored). After O7 |
 | O10 | outer + GPU | **Rebuild-cost diagnostics, read-only** (from #2188 M3): per feature, the time and the kernel calls of the last evaluation; dependency cycles and mate problems listed with their source revision; a studio panel and a v2 query action for the agent (the per-turn budget kept). The GPU lane adds per-body frame cost by display mode. Diagnostics never change geometry or history. The baseline R4's caching is measured against. After O9 |
 | O11 | outer | **Assembly-level variability** (from #2188 M1): a few named top-level inputs (name, type, unit, range, default) bound explicitly to dimensions, feature suppression, component choice and mates; variants regenerated from the one master and still editable; full regeneration the correctness oracle. Grows today's part-level `configurations`. After R4 |
+| K12 | kernel | Later: the near-degenerate refusals (fuzz s1 25, 51, 74, 85, 110, 119) triaged — a correct typed refusal or a fix — and 170 with a pole-safe domain map beside the closed-form sphere∩sphere (it broke s2#171 alone). After R5 |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
-| K10b | kernel | the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
-| K11 | kernel | F5's remainder (the turning report's first-derivative evaluations) |
+| K10b | kernel | **done** D197–D210, D206 (fuzz s1 refusals 31 → 16, s2 29 → 14; INVALID 0, WRONG 0 on both; touching lumps are separate bodies). the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
+| K11 | kernel | **done** D211 (turningOf 8.1 → 4.4 s; D1 calls 4.22 M → 1.40 M). F5's remainder (the turning report's first-derivative evaluations) |
 | O5b | outer | A9 findings: F8 drawings (**done** O170–O174), F9 fasteners as bought lines, F10 base members in the BOM (**done** O169), F6/F7 (**done** O167/O168) |
 | G8 | GPU | **done** G-R21: GPU contour for curved silhouettes, dirty-run block writes, clip flags kept; the two App findings moved to R1 |
 | G9 | GPU | **done** G-R22: r16uint triangle key, 15.8 MiB at 1080p, 63.3 at 4K (key collision ~1/65 535 per pair, measured) |
@@ -162,6 +163,7 @@ evidence files.
 - **K9** — Graze cases (1 nm, 10 µm, 1 µm) · ko: 스치는 경우들 (1 nm, 10 µm, 1 µm)
 - **K10** — Fuzz harness and its first findings · ko: fuzz 도구와 첫 발견들
 - **K10b** — Fuzz refusals: robust, near-degenerate, touching lumps · ko: fuzz 거부 줄이기: 안정성, 거의 퇴화, 맞닿은 덩어리
+- **K12** — Near-degenerate refusals and the pole-safe map (fuzz 170) · ko: 거의 퇴화한 입력의 거부 정리와 극점 안전 매핑 (fuzz 170)
 - **K11** — F5 remainder: the turning report's derivatives · ko: F5 나머지: 선반 보고서의 미분 계산
 - **O1** — Verify the A9 items in the full suites · ko: A9 항목을 전체 테스트에서 확인
 - **O2** — A9-11: Studio download flow · ko: A9-11: 스튜디오 다운로드 흐름
