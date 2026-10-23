@@ -96,8 +96,9 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
   // (Autonomy L2, the owner's option b: the turn's changes so far apply directly only when they edit values of one
   // feature or of parameters and keep every hard requirement passing; anything else is a proposal, D41. The owner's
   // exception: a turn that starts on an empty part — no features yet — builds it directly, the first build.)
-  if (!out.isError && out.changed && autonomy() === 2 && state.turnBase?.nodes.length && changesPart(name, input) && name !== 'propose') {
-    const why = await proposalNeededAtL2(state.turnBase, out.state, evaluate);
+  // (O11: the assembly's inputs are its structure, as features are: at L2 they are proposed, even on an empty part.)
+  if (!out.isError && out.changed && autonomy() === 2 && ((state.turnBase?.nodes.length && changesPart(name, input)) || name === 'set_inputs') && name !== 'propose') {
+    const why = name === 'set_inputs' ? 'this changes the assembly\'s inputs (its structure)' : await proposalNeededAtL2(state.turnBase!, out.state, evaluate);
     if (why) return { ...fail(state, `At autonomy L2 ${why}: propose it (propose) instead, and the user accepts it. Value edits of one feature or of parameters that keep every hard requirement passing apply directly.`, { code: 'needs_proposal', kept: 'the part is unchanged' }), state };
   }
   // (A refused call leaves the state as it was: the very same object, uncounted.)

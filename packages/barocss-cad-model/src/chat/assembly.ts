@@ -20,6 +20,7 @@ import { r3Signed as r3 } from '../util/round';
 import { isObj, isVec3 } from '../util/guards';
 import { nextFreeId } from '../util/ids';
 import { boundsOf } from '../engine/bounds';
+import { runVariabilityTool, VARIABILITY_TOOLS } from './variability';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
@@ -99,7 +100,7 @@ async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: Body
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -260,6 +261,8 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       if ('error' in r) return fail(doc, r.error);
       return changed(doc, r.doc, `snapped ${b.part}.${b.interface} onto ${a.part}.${a.interface}`, state.bodies, evaluate, { mates: r.mates.map(m => ({ id: m.id, kind: m.kind, a: m.a, b: m.b })) });
     }
+    // (O11: the inputs and variants, written to the master's variability only.)
+    case 'set_inputs': case 'set_variants': return runVariabilityTool(doc, name, args);
     case 'delete_mate': {
       if (!mates.some(m => m.id === args.id)) return fail(doc, `No mate "${String(args.id)}"; mates: ${mates.map(m => m.id).join(', ') || 'none'}.`);
       return changed(doc, { ...doc, mates: mates.filter(m => m.id !== args.id) }, `deleted mate ${String(args.id)} (its part stays where it is)`, state.bodies, evaluate);
@@ -273,6 +276,7 @@ const end = { type: 'object', properties: { part: { type: 'string' }, interface:
 const xyz = { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 };
 
 export const ASSEMBLY_TOOLS: ToolDefinition[] = [
+  ...VARIABILITY_TOOLS,
   {
     name: 'get_assembly',
     description: 'The assembly: the base part (the document\'s own part, fixed at the origin) and every placed part (instance id, name, placement, grounded, volume, bounds in the assembly), the mates and any that cannot be met. With faces_of, also that part\'s mateable faces (flat: normal; round: axis, radius, inner hole or outer shaft) in its own coordinates.',
