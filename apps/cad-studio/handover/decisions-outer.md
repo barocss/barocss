@@ -7403,3 +7403,35 @@ Their parts are `base:<body key>`; `targetOf` read that whole string as an insta
 - the cad-model suite at --test-concurrency=4: 960 of 960 pass, in 378 s. LOADED: it started at load 36 and the kernel lane's suite took the load to 105 during it.
 - tsc of model and studio; eslint 0 errors on the changed files.
 - Not run: the flow (no studio change).
+
+## O179 — a volume found from the mesh says so: volume_basis, the BOM's and the quote's estimate (2026-10-23)
+
+**The finding (the kernel lane's, relayed by the coordinator; the kernel's D200, `69122b44b`).** When the quadrature cannot integrate a curved body, the kernel's mass falls back to the mesh. D200 gives that result `method: 'tessellated'` and `volumeBoundMM3`: the volume's change from a mesh of half the segments, about three times the error. cad-model dropped both, and its mass_properties, BOM and quote showed such a volume and mass as exact. Area already carried `area_basis`.
+
+**What is new:**
+- **The body:** `BodyResult.volumeBasis` (`{ method: 'tessellated', boundMM3 }`), set by `bodyOf` from the kernel's result through `volumeBasisOf` (engine/evaluate). An exact method (quadrature, planar, closed form) leaves it out, so every exact body is as before.
+- **mass_properties:** `volume_basis: { method, bound_mm3, mass_bound_g, note }` beside volume and mass, the way `area_basis` stands beside area. The mass's bound is the volume's times the body's density. `massBoundOf(doc, bodies)` sums it (null when a tessellated body has no bound).
+- **The BOM:**
+  - a placed part, a base member row or a base body whose mass is partly from the mesh has `massBoundG` and its line is an estimate (merged copies add their bounds; null stays unknown);
+  - the BOM gains `totalMassBoundG` when any of its total is from the mesh;
+  - a part with no placed parts (its own line) too.
+  - All of it is additive: a BOM with no tessellated body is byte for byte as before, so approved baselines stay valid.
+- **The quote request** (mould/quote): its part gains an additive `volumeBasis` (volume and mass bounds), and the page's part line says "an estimate from the mesh: ± … mm³, ± … g".
+
+**Two studio edits (the coordinator approved both, in O179):**
+- **App.tsx, the body panel** (one additive JSX line at 2581–2582, right after the Volume line at 2580): a volume from the mesh shows "From the mesh ± … mm³", in the warning colour, with a title saying the volume, mass and centre of mass are from the display mesh. The R1 split of App.tsx should keep it beside Volume.
+- **viewport/sectionView.ts `mergeBodies`** (the GPU lane's file; the coordinator told them):
+  - The coordinator asked for `volumeBasis` to be dropped there, as areaBasis is. I changed that, and say so: the merged volume is the pieces' sum and stays on the body, so dropping the basis would show a partly-mesh volume as exact.
+  - The first piece's own basis is dropped. The merged body gets `{ method: 'tessellated', boundMM3: Σ }` when any piece's is from the mesh (null if one's bound is unknown), and none when all are exact.
+  - Studio test volume-basis-merge, new: none / one / two / unknown.
+
+**Tests** (volume-basis, new; built on the kernel's own tessellated result, `brepMassProperties(…, { quadratureSegments: 0 })` on a ball r 4, and on that ball's body as the fallback gives it):
+- the method and bound kept, the exact 4/3 π r³ within the bound; the ball as evaluated (quadrature) carries none;
+- mass_properties: volume_basis with the volume's and the mass's bound (aluminium 2.7); nothing for an exact body;
+- the BOM: the ball's line an estimate with its bound, the plate's line as before, the total's bound; none when nothing is from the mesh;
+- the quote: quote.json's `volumeBasis` and the page's estimate text; none when exact.
+
+**Verified (T1):**
+- cad-model suite at --test-concurrency=4: 964 of 964 (the 960 of R3a, plus volume-basis's 4), 291 s, at load 40 → 21;
+- studio volume-basis-merge 1/1; tsc of model and studio; eslint 0 errors on the changed files (App.tsx and sectionView.ts among them).
+- Flow at `d803fa40f`, FLOW_ONLY the body panel and section steps, from a detached scratch worktree on port 52391, at load 39 → 37: 73 section view, 91 mass, 262 G19.2, 263 G19.3, 264 G19.4 and 266 G20.2, all ok (each on either renderer where it says so).

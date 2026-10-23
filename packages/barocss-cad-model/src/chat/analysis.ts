@@ -29,9 +29,26 @@ export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): R
     // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density.)
     const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / 2.7).toPrecision(6))));
     return { body: b.key, ...mat, volume_mm3: b.volumeMM3 === null ? null : r3(b.volumeMM3), area_mm2: r3(b.areaMM2 ?? b.mesh.faces.reduce((a, f) => a + f.areaMM2, 0)), ...(b.areaBasis === 'exact' ? {} : { area_basis: 'the display mesh\'s triangles (the kernel could not integrate it): a little low on curved faces' }),
-      mass_g: b.volumeMM3 === null ? null : r3(b.volumeMM3 * rho / 1000), centroid: b.centroid ? v3(b.centroid) : null,
+      mass_g: b.volumeMM3 === null ? null : r3(b.volumeMM3 * rho / 1000),
+      // (O179: a volume from the mesh is said so, with its bound and the mass's — never shown as exact.)
+      ...(b.volumeBasis ? { volume_basis: { method: b.volumeBasis.method, bound_mm3: b.volumeBasis.boundMM3 === null ? null : r3(b.volumeBasis.boundMM3), mass_bound_g: b.volumeBasis.boundMM3 === null ? null : r3(b.volumeBasis.boundMM3 * rho / 1000), note: 'the display mesh\'s volume (the kernel could not integrate it): within the bound of the exact, an estimate' } } : {}),
+      centroid: b.centroid ? v3(b.centroid) : null,
       ...(inertia ? { inertia_kg_m2_about_centroid: inertia } : {}), bbox: { min: v3(b.mesh.bounds.min), max: v3(b.mesh.bounds.max) } };
   });
+}
+
+/**
+ * O179: how far the bodies' mass may be off, in grams — the sum of each tessellated body's volume bound times its
+ * material's density; 0 when every volume is exact; null when a tessellated body has no bound.
+ */
+export function massBoundOf(doc: StudioDoc, bodies: readonly BodyResult[]): number | null {
+  let g = 0;
+  for (const b of bodies) {
+    if (!b.volumeBasis) continue;
+    if (b.volumeBasis.boundMM3 === null) return null;
+    g += b.volumeBasis.boundMM3 * materialOf(materialIdOf(doc, b)).gPerCm3 / 1000;
+  }
+  return g;
 }
 
 // ---- mesh geometry (module level: the loops below run per triangle) ----------------------------------------

@@ -19,6 +19,12 @@ function keyed(outputId: string, nodes: readonly ModelNode[]): { key: string; re
   return at ? { key, ref: { node: at.node, side: at.side as Side } } : { key };
 }
 
+/** A volume found from the mesh, and how far it may be off (O179). */
+export interface VolumeBasis { method: 'tessellated'; boundMM3: number | null }
+/** The volume basis of the kernel's mass properties: a tessellated one's, with its bound; none for an exact method. */
+export function volumeBasisOf(m: { readonly method?: string; readonly volumeBoundMM3?: number }): VolumeBasis | undefined {
+  return m.method === 'tessellated' ? { method: 'tessellated', boundMM3: m.volumeBoundMM3 ?? null } : undefined;
+}
 export interface BodyResult {
   /** `b<k>` by the stable id of the feature that made it (engine/ids.ts); `ref`: that feature's node and side now. */
   key: string;
@@ -33,6 +39,12 @@ export interface BodyResult {
    * 'exact'); the display mesh's triangles only where the kernel cannot (labelled 'display mesh', a little low on curves).
    */
   areaMM2?: number; areaBasis?: 'exact' | 'display mesh';
+  /**
+   * O179 (the kernel's D200): how its volume was found when not exactly — 'tessellated', a curved body the quadrature
+   * could not integrate, from the mesh; `boundMM3` the volume's change from a mesh of half the segments (about three
+   * times the error). Absent: exact (quadrature, planar or closed form). Its mass and centroid are as good.
+   */
+  volumeBasis?: VolumeBasis;
   /** Centre of mass (mm), with the volume (uniform density). */
   centroid?: [number, number, number];
   /** Inertia about the centre of mass (kg·m², aluminium at 2700 kg/m³; scale by density for another material). */
@@ -101,7 +113,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
   let A = areas.get(o.brep);
   if (A === undefined) { try { A = brepSurfaceArea(o.brep); if (!Number.isFinite(A)) A = null; } catch { A = null; } areas.set(o.brep, A); }
-  const mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]) } : { volumeMM3: null, massG: null };
+  const basis = m ? volumeBasisOf(m) : undefined, mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volumeMM3: null, massG: null };
   const at = keyed(o.id, doc.nodes), lib = at.ref ? doc.nodes[at.ref.node] : undefined;
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
