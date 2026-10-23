@@ -42,6 +42,15 @@ While a part is unsaved, a recovery copy is written in this browser a moment aft
 crash, **Unsaved work** offers it back: **Restore** or **Discard**. The copy is cleared when you save or replace the
 part. It is kept only in this browser, so it is no substitute for saving.
 
+- **Mesh data first.** A part's mesh data is stored before the copy that names it. So a copy is offered only when its
+  meshes were kept too. If they are gone by the time you restore, for example because the browser's data was cleared,
+  **Could not restore** asks you to open the mesh file again.
+- **When no copy can be kept,** the studio says so once:
+  - **No recovery copy:** the browser doesn't keep one, in private browsing or with full storage.
+  - **Crash recovery is off for this document:** the part is too large for the browser's storage.
+
+  In both cases, save to keep your work.
+
 ## Exports
 
 | Export | What it writes |
@@ -60,6 +69,15 @@ part. It is kept only in this browser, so it is no substitute for saving.
 - **Not up to date.** A part that is still evaluating, or that failed to evaluate, isn't exported. Fix it, or wait,
   and export again.
 
+**Sources.** Each export names the document revision it was made from:
+
+- STEP writes it in its `FILE_DESCRIPTION`;
+- 3MF writes it as `barocss:SourceRevision` metadata;
+- a drawing writes it as an **SRC** line in the title block.
+
+STL and USD get a `<name>.source.json` record beside them, and the URDF, MJCF and SDF zips hold a
+`robot.source.json`. See [Revisions and sources](/guide/concepts#revisions-and-sources).
+
 From the **Drawing** tab, **Export SVG**, **Export PDF** and **Export DXF** write the sheet, with DXF as 2000 or R12;
 see [Drawings](/studio/drawings). **Quote package** writes STEP, the manufacturability report and the request in one
 zip; see [BOM and quotes](/studio/bom).
@@ -70,7 +88,7 @@ The **Joints** card exports the robot; see [Robots](/studio/robots).
 
 | Export | File |
 |---|---|
-| **Export URDF** | A zip of `robot.urdf` and its meshes |
-| **Export MJCF** | A zip of `robot.xml` and its meshes |
-| **Export SDF** | A zip of `robot.sdf` and its meshes |
-| **Export USD** | One `.usda` file |
+| **Export URDF** | A zip of `robot.urdf`, its meshes and `robot.source.json` |
+| **Export MJCF** | A zip of `robot.xml`, its meshes and `robot.source.json` |
+| **Export SDF** | A zip of `robot.sdf`, its meshes and `robot.source.json` |
+| **Export USD** | A `.usda` file, and its `.source.json` beside it |
