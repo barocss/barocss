@@ -12185,3 +12185,23 @@ How (the same for every R5.3 step):
 and the R5 fingerprint, byte-identical (see the batch line below).
 
 **Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D223 — R5.3c: the edge finishes leave part-model.ts's operation() for `part-finish.ts` (2026-10-23)
+
+**What.** The operation() cases for fillet and chamfer are now `finishOperation` in `src/part-finish.ts`, as they were, and the dispatcher's case for
+those kinds is one line. Helpers: `finishEdges` (the shells use it too, so it stays), `CadPartLimits`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
