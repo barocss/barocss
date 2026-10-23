@@ -7503,3 +7503,46 @@ It imports nothing from tools.ts. tools.ts (623 lines) imports back the six it u
 - the cad-model suite through the lanes guard's gate (go at load 15): 964 of 964, in 338 s;
 - tsc and eslint clean.
 - Not run: the flow.
+
+## R3e — chat/tools.ts by action group: history and proposals; the dispatcher's own repetitions (2026-10-23)
+
+**Moved:**
+- **chat/part/history.ts** (the v2 `model` and `history` groups): apply_ops, run_script, checkpoint, restore, diff and restore_best, with the ops runner they share: OpsRun, runOps, idsOf, the script host, runScriptOn, moveOps, errorOf.
+- **chat/part/proposals.ts** (the v2 `proposals` group): propose, accept_proposal and list_proposals. With them, the machinery:
+  - the autonomy gate: autonomy, changesPart and ASSEMBLY_CHANGES, valuesOnly, proposalNeededAtL2, agentMayNotAccept;
+  - proposalOf, acceptProposal, rebaseProposal;
+  - the parts: proposalParts, leaveOutClosure, toggledLeaveOut, partialDoc, previewProposal.
+- **The runner comes in, no module imports chat/tools.** Each function that called the dispatcher takes it first as `dispatch`. The handlers get it as their fourth argument; it is not called `run`, since apply_ops has a local of that name. The script host takes it in its constructor. Otherwise the code is verbatim.
+- **The public functions keep their signatures in chat/tools** as thin wrappers that pass the dispatcher in: proposalOf, acceptProposal, rebaseProposal, moveOps, previewProposal. They hold no module state. The rest are re-exported as they are: agentMayNotAccept, autonomy, leaveOutClosure, partialDoc, proposalParts, toggledLeaveOut, Decider, ProposalPart.
+- **runPartTool's switch is gone:** every part tool is in PART_HANDLERS.
+
+**The survey's items 1–3, behaviour-preserving:**
+- **1, the sub-tool result adapter.** The references, brief, robot and drawing tools each built the same outcome: the document kept when it changed, the content as JSON. That is now one `subToolResult(state, out)` in toolKit, with the same fields in the same order.
+- **2, the placed-part dispatch.** The part-scoped tools' path (check_printability, orient_for_print and the brief, A9-2) and the part tools' path (FRf2) built the same context, now written once in `placedPart(state, inst, evaluate)`. The same `partReply` adds the reply's part and shopRows prefix. The context is:
+  - the part's shop rows resolved from the assembly's;
+  - an evaluation that restores the part's own rows first;
+  - its bodies.
+  Each path keeps its own steps (the select refusal, the following frames' check and refresh, the mates solved), in their order.
+- **3, the v2 translation once.** runTool translates a v2 call and now says so to the dispatcher (`v1 = true`), which no longer translates it a second time. dispatchTool, the batch and the script still translate what they are given. The second translation of an already-v1 call was the identity, so every outcome is the same.
+- **Not done: item 6** (carry the per-call flags in a call context instead of export let and setCall). It stays for later, as recorded at R3a.
+
+**tools.ts** is 236 lines: the facade (runTool, dispatchTool and the dispatcher), the handler map, the wrappers and the re-exports.
+
+**The byte check** gained three sets of probes:
+- **The history and proposal tools, in sequence on a plate (22 calls)**, with each call's content, flags, document, transactions and policy, times normalized: batches (refused, dry, applied), checkpoints, diff, restore, best, scripts, proposals proposed, listed and accepted.
+- **The proposal functions called directly:** previewProposal, rebaseProposal and acceptProposal (P1 and an unknown id).
+- **For items 2 and 3:** a placed part's calls through both paths (five each, a bad part id among them), and runTool's own entry.
+Its baseline was taken at the commit before R3e (1dcaa8692) in a detached scratch worktree, identical across two runs; it is identical after the move and after items 1–3.
+
+**Verified (R3e):**
+- the byte check: identical after the move, and after items 1–3, against the pre-R3e baseline;
+- the cad-model suite: 964 of 964, in 244 s, gate go at load 10;
+- toolset and tool-contract within it;
+- tsc of model and studio; eslint clean.
+- Not run: the flow. R3e changes no studio file; FRd2's step below is a flow file, to run in the next flow slot.
+
+## FRd2's flow step — all 16 weld symbols shown, tied to O173 (2026-10-23)
+
+The GPU lane's G10 found the step `FRd2 the welded table's weld symbols…` failing on both renderers: 16 placed, none unshown, where it expected 11 placed with W8 and W13–W16 unshown.
+- **The cause is O173 (`35cb1bb82`).** A trimmed end face in pieces is now its face, and an edge lying on visible ink is visible, so those five seams are found. O173 changed the model's frame-weld-symbols expectation by that reasoning; the flow step was not updated with it.
+- **16 is the right answer** by O173's account. The step now expects 16 placed, none unshown, and no WELD_NOT_SHOWN, and its title says so. Not a regression; nothing else changed.

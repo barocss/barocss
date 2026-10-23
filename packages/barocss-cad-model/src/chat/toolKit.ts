@@ -126,6 +126,10 @@ export function checkValues(fields: Field[], values: Values): string | null {
 
 export const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 export const strings = (v: unknown) => Array.isArray(v) ? v.map(String) : [];
+/** A sub-tool's result as a tool outcome (R3e): its document kept when it changed, its content as JSON, never an error. */
+export function subToolResult(state: ChatState, out: { doc: StudioDoc; content: unknown; changed: boolean; summary: string }): ToolOutcome {
+  return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
+}
 /** A finite number from `lo` (or above it, `loOpen`) to below `hi` — the ranged arguments' check (R3b). */
 export const inRange = (v: unknown, lo: number, hi: number, loOpen = false): v is number => typeof v === 'number' && Number.isFinite(v) && (loOpen ? v > lo : v >= lo) && v < hi;
 /** Three finite numbers — a point or a direction argument's check (R3b). */
