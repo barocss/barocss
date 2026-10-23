@@ -8,7 +8,7 @@ A document uses rows only after a person loads them. In the studio that is Libra
 |------|------|---------------|
 | `fastener-sizes.json` | `fastener-sizes` | metric coarse M3–M12: pitch, heads, nut, washer, the lengths offered, ISO 273 clearance holes and the tap drill. Fields not cross-checked are listed in `unchecked`. |
 | `casting-rules.json` | `casting-rules` | die and sand casting limits by alloy family (least wall and draft, tolerance, section-change ratio), and sand casting's pattern allowances (shrinkage, machining), each with the page it was read from |
-| `mounts.json` | `mounts` | a NEMA 17 and a NEMA 23 stepper flange, a UCP204 pillow block and a UCFL204 flange unit: bolt pattern and clearance holes, pilot, shaft and its height, each with the page it was read from. No servo row: no maker's dimensioned mounting drawing was found to cite. |
+| `mounts.json` | `mounts` | a UCP204 pillow block and a UCFL204 flange unit from NSK's product pages (bolt pattern, holes, shaft and its height), and NEMA 17 and NEMA 23 stepper flanges as estimates, every field unchecked, until their makers' PDF drawings may be read. No servo row: no maker's dimensioned mounting drawing was found to cite. |
 
 Without mount rows, the mount command refuses with `[MOUNT_ROW]`. A row's values are checked when it is loaded, and a mount that does not fit its face is refused with `[MOUNT_RANGE]`.
 

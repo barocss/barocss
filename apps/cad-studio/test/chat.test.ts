@@ -23,6 +23,8 @@ import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { loadPersonRows } from '@barocss/cad-model/chat/rows';
 import SAMPLE_FASTENER_SIZES from '@barocss/cad-model/samples/rows/fastener-sizes.json';
+import SAMPLE_MOUNTS_JSON from '@barocss/cad-model/samples/rows/mounts.json';
+const SAMPLE_MOUNTS = SAMPLE_MOUNTS_JSON as unknown as { rows: import('@barocss/cad-model/engine/mountRows').StudioMountRow[] };
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -110,6 +112,13 @@ test('tool schemas: every buildable command is exposed and documented with the H
     if (id === 'connector') {
       // (An opening takes one flat face and the user's connector rows: R12c.7, D162.)
       const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
+    if (id === 'mount') {
+      // (A mount takes one flat face and the person's mount rows: the sample, as they load it, O14.)
+      const ctx: Ctx = { doc: { ...s.doc, mounts: { version: 1, rows: SAMPLE_MOUNTS.rows } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;

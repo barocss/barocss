@@ -34,7 +34,8 @@ const at = <T>(level: number, f: () => Promise<T>) => { const was = process.env.
 test('O14: the sample rows check; the validator refuses what is outside its limits, typed and named', () => {
   for (const r of [...SAMPLE.rows, SERVO]) assert.equal(mountRowProblem(r), null, r.id);
   assert.deepEqual(SAMPLE.rows.map(r => r.id), ['nema17', 'nema23', 'ucp204', 'ucfl204']);
-  for (const r of SAMPLE.rows) assert.ok(r.source && /https:\/\//.test(r.source), `${r.id} cites a page`);
+  // (A row with a source cites its maker's page; an estimate lists every field unchecked, and says where each number is from.)
+  for (const r of SAMPLE.rows) assert.ok(r.source ? /https:\/\/.*read 2026-10-24/.test(r.source) : r.estimate && r.unchecked!.length === 6 && Object.keys(r.fieldSources!).length >= 4, r.id);
   const n17 = row('nema17'), bad: [Record<string, unknown>, RegExp][] = [
     [{ ...n17, holes: { ...n17.holes, diameterMM: 0.5 } }, /holes\.diameterMM is 1–30 mm/],
     [{ ...n17, holes: { pattern: 'square', spacingMM: 3, diameterMM: 3.4 } }, /closer than their diameter/],
@@ -43,7 +44,7 @@ test('O14: the sample rows check; the validator refuses what is outside its limi
     [{ ...n17, pilotMM: 4 }, /must be wider than the shaft/],
     [{ ...SERVO, bodyMM: [50, 20] }, /body's cut-out .* runs into the holes/],
     [{ ...SERVO, bodyMM: undefined }, /a servo row gives its body/],
-    [{ ...n17, source: undefined }, /cite its source or say estimate: true/],
+    [{ ...n17, estimate: undefined }, /cite its source or say estimate: true/],
     [{ ...n17, torque: 1 }, /unknown field torque/],
     [{ ...n17, holes: { pattern: 'circle', pcdMM: 40, count: 20, diameterMM: 3 } }, /count \(2–12\)/],
   ];
@@ -66,7 +67,7 @@ test('O14: a NEMA 17 on a plate — four Ø3.4 holes 31 apart and the Ø23 pilot
   const { s, r, out } = await mounted(plate(), { row: 'nema17', x: 80, y: 50 });
   assert.ok(!r.isError, r.content);
   assert.deepEqual(out.mount.axis, { position: [80, 50, 10], direction: [0, 0, 1] });
-  assert.match(out.mount.source, /hallikainen/); assert.deepEqual(out.mount.unchecked, ['pilotDepthMM']);
+  assert.equal(out.mount.estimate, true); assert.equal(out.mount.unchecked.length, 6);
   const e = await evaluate(r.state.doc); assert.ok(e.ok);
   const cyl = cylinders(e.bodies[0]), at = (rr: number) => cyl.filter(c => c.r === rr).map(c => c.c.slice(0, 2).join(',')).sort();
   assert.deepEqual(at(1.7), ['64.5,34.5', '64.5,65.5', '95.5,34.5', '95.5,65.5']);

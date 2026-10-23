@@ -1,10 +1,10 @@
 {
- "about": "Example mount rows (O14): how a stepper motor's flange and two bearing units fix to a flat face — bolt pattern, clearance holes, pilot, shaft and where its axis stands — each taken from the page it names. They are examples, not a standard: check each value against your part's own datasheet before manufacture (fields not cross-checked against a second source are listed in `unchecked`). No servo row is given: no maker's dimensioned mounting drawing was found to cite. Load the file yourself (attach it in chat, or the Library once it lists mounts); the agent cannot load rows of its own.",
+ "about": "Example mount rows (O14): how a stepper motor's flange and two bearing units fix to a flat face — bolt pattern, clearance holes, pilot, shaft and where its axis stands. The bearing units' numbers are from their maker's product pages, named with the date read. The motor rows are estimates: their makers' dimension drawings are PDFs, pending the owner's permission to read them, so every field is listed in `unchecked`. They are examples, not a standard: check each value against your part's own datasheet before manufacture. No servo row: no maker's dimensioned mounting drawing was found to cite. Load the file yourself (attach it in chat, or the Library once it lists mounts); the agent cannot load rows of its own.",
  "rows": [
   {
    "id": "nema17",
    "type": "motor",
-   "designation": "NEMA 17 (42 mm) stepper flange, metric M3 tapped holes",
+   "designation": "NEMA 17 (42 mm) stepper flange, M3 tapped holes",
    "holes": {
     "pattern": "square",
     "spacingMM": 31,
@@ -15,15 +15,21 @@
    "shaftMM": 5,
    "shaftHeightMM": 0,
    "clearanceMM": 0.5,
-   "source": "NEMA 17 mounting dimensions: https://pic.hallikainen.org/techref/io/stepper/nemasizes.htm (bolt hole distance 1.220 in / 31 mm, pilot Ø0.866 in / 22 mm, pilot depth max 0.079 in / 2 mm, shaft Ø0.197 in / 5 mm)",
+   "estimate": true,
    "fieldSources": {
-    "pilotMM": "NEMA ICS 16-2001 nominal pilot Ø0.8661 in, as quoted at https://us.aspina-group.com/en/learning-zone/columns/what-is/034/",
-    "shaftMM": "NEMA ICS 16-2001 nominal shaft Ø0.1969 in, as quoted at https://us.aspina-group.com/en/learning-zone/columns/what-is/034/",
-    "holes": "spacing: https://pic.hallikainen.org/techref/io/stepper/nemasizes.htm; Ø: ISO 273 medium clearance (samples/rows/fastener-sizes.json) for the motor's M3 tapped holes",
-    "clearanceMM": "a choice for this example (0.5 mm all round the pilot), not a datasheet value"
+    "holes": "spacing 31 mm and 4 × M3: Bondtech's NEMA17 product page https://www.bondtech.se/en/product/nema17-pancake-stepper-22mm/, read 2026-10-24; plate hole Ø3.4: ISO 273 medium for M3, as samples/rows/fastener-sizes.json gives it",
+    "shaftMM": "5.0 mm: https://www.bondtech.se/en/product/nema17-pancake-stepper-22mm/, read 2026-10-24",
+    "pilotMM": "an estimate: not on the product page; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "pilotDepthMM": "an estimate: not on the product page; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "clearanceMM": "this example's choice (0.5 mm round the pilot), not a datasheet value"
    },
    "unchecked": [
-    "pilotDepthMM"
+    "holes",
+    "pilotMM",
+    "pilotDepthMM",
+    "shaftMM",
+    "shaftHeightMM",
+    "clearanceMM"
    ]
   },
   {
@@ -40,16 +46,21 @@
    "shaftMM": 6.35,
    "shaftHeightMM": 0,
    "clearanceMM": 0.5,
-   "source": "NEMA 23 mounting dimensions: https://pic.hallikainen.org/techref/io/stepper/nemasizes.htm (bolt hole distance 1.854 in / 47.14 mm, bolt hole 0.195 in / 5 mm, pilot Ø1.500 in / 38.1 mm, pilot depth max 0.062 in / 1.6 mm, shaft Ø0.250 in / 6.35 mm)",
+   "estimate": true,
    "fieldSources": {
-    "holes": "spacing: https://pic.hallikainen.org/techref/io/stepper/nemasizes.htm; Ø: ISO 273 medium clearance (samples/rows/fastener-sizes.json) for M5 bolts through the flange's Ø5 holes",
-    "clearanceMM": "a choice for this example (0.5 mm all round the pilot), not a datasheet value"
+    "holes": "an estimate: no maker's product page that could be read states it (one distributor's listing refused the request, 2026-10-24); the maker's dimension drawing is a PDF, pending the owner's permission to read it; plate hole Ø5.5: ISO 273 medium for M5, as samples/rows/fastener-sizes.json gives it",
+    "pilotMM": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "pilotDepthMM": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "shaftMM": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "clearanceMM": "this example's choice (0.5 mm round the pilot), not a datasheet value"
    },
    "unchecked": [
     "holes",
     "pilotMM",
     "pilotDepthMM",
-    "shaftMM"
+    "shaftMM",
+    "shaftHeightMM",
+    "clearanceMM"
    ]
   },
   {
@@ -65,9 +76,9 @@
    "shaftMM": 20,
    "shaftHeightMM": 33.3,
    "clearanceMM": 0,
-   "source": "NSK UCP204D1 dimensions: https://www.nsk.com/ph-en/engineering/ucp204d1-x-as3s.html (d 20 mm, H 33.3 mm, J 95 mm, N 13 mm, bolt M10)",
+   "source": "NSK UCP204D1 product page https://www.nsk.com/ph-en/engineering/ucp204d1-x-as3s.html, read 2026-10-24: d 20, H 33.3, J 95, N 13, N1 16 (mm), M10",
    "fieldSources": {
-    "holes": "J 95 mm between the two bolts, N 13 mm; the hole is a 13 × 16 mm slot there (N1 16 mm): cut here as Ø13 at its nominal centre"
+    "holes": "J 95 and N 13 (mm); the hole is a 13 × 16 slot (N1 16): cut here as Ø13 at its nominal centre"
    }
   },
   {
@@ -83,9 +94,9 @@
    "shaftMM": 20,
    "shaftHeightMM": 0,
    "clearanceMM": 1,
-   "source": "NSK UCFL204D1 dimensions: https://www.nsk.com/ph-en/engineering/ucfl204d1-x-as3s.html (d 20 mm, J 90 mm, N 12 mm, bolt M10)",
+   "source": "NSK UCFL204D1 product page https://www.nsk.com/ph-en/engineering/ucfl204d1-x-as3s.html, read 2026-10-24: d 20, J 90, N 12 (mm), M10",
    "fieldSources": {
-    "clearanceMM": "a choice for this example (1 mm all round the shaft through the mounting plate), not a datasheet value"
+    "clearanceMM": "this example's choice (1 mm round the shaft through the mounting plate), not a datasheet value"
    }
   }
  ]
