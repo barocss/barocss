@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, evaluatePlaced, type BodyResult } from '../src/engine/evaluate';
-import { emptyDoc, placedBase, placedDoc, placementOf, rectanglePart, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { emptyDoc, placedBase, placedDoc, rectanglePart, type PartInstance, type StudioDoc } from '../src/engine/doc';
+import { placementOf } from '../src/engine/placement';
 import { assemblyPlacedBodies } from '../src/team/clearanceMap';
 import { placedBodies } from '../src/team/parts';
 import { withLook, lookOf } from '../src/app/bodies';

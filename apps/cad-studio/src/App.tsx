@@ -3,7 +3,8 @@ import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, us
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
-import { placedDoc, placementOf, type PartInstance } from '@barocss/cad-model/engine/doc';
+import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
+import { placementOf } from '@barocss/cad-model/engine/placement';
 import { instanceEvaluationCurrent, instanceEvaluationSources } from './viewport/instanceEvaluation';
 import { contentKey } from '@barocss/cad-model/engine/evalMemo';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';

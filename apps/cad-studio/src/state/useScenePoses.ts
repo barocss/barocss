@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { placementOf, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { placementOf } from '@barocss/cad-model/engine/placement';
 import { previewMatrix, type InstanceDrag } from '@barocss/cad-model/assembly/drag';
 import { multiply } from '@barocss/gpu/viewer';
 import { instancePoses, poseMatrix } from '../viewport/instancePose';

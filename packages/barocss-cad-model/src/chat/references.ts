@@ -13,7 +13,7 @@ import type { StudioDoc, DocPlane, ModelNode } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
 import { partBreps, placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
 import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '../engine/mesh';
-import { rotationMatrix } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import type { Mat3 } from '../robot/inertia';
 import { refOf } from '../app/bodyRef';
 import { bodyKeyFor } from '../engine/ids';

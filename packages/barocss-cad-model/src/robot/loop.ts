@@ -8,7 +8,7 @@ import type { StudioDoc } from '../engine/doc';
 import { forwardKinematics } from './fk';
 import { pathTo } from './ik';
 import type { Joint, JointTree, Loop } from './joints';
-import { rotationMatrix } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import { tablesFor } from '../assembly/faces';
 import { solveDoc } from '../chat/assembly';
 

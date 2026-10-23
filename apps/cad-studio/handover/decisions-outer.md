@@ -8072,3 +8072,79 @@ revision. The kernel half is the kernel lane's (D228, 250e59ef7): `evaluateCadPa
   at step B but the new from-scratch test.
 - Not run: the full flow (the coordinator's, per merge window); a live chat turn calling query.rebuild (the contract
   test calls the handler).
+
+## R4 batches A–C — cad-model duplicates gathered, the engine's placement math, evaluate.ts and two caches (2026-10-24)
+
+**Why.** The roadmap's R4 (plan approved): the R0 survey's cad-model duplicates, layering and evaluate.ts, behaviour
+unchanged; every cache checked against a full re-evaluation (#2188 M1). Batch D (folders, no shims) follows.
+
+**The oracle (R4.0, fe800e32c).** `scripts/r4-fingerprint.mjs` (its output never committed) records 133 documents —
+every .bcad and conformance document, the 14 agent-call fixtures replayed, each RB9 rung at its four corner trials —
+evaluated whole, their rebuild states, STEP without its time stamp, STL per body, B-reps with and without made parts,
+the BOM, an assembly's clearance map, the drawing's dimensions and issues; and the tool list and prompt. Two wall-time
+values are left out (the clearance map's `timing`, the gear-contact note's "checked in N ms"). Base `5da366d6…`, the
+same run twice; byte-identical at each batch's end, kernel R5.4 batches merged in between.
+
+**Batch A — leaf utilities.**
+- A1 util/round.ts: r3/r6/r9 (+0, never −0) and r3Signed/r6Signed (−0 kept) from 30 files; one-off forms stay
+  (`|| 0`, toPrecision, isFinite-guarded, the SAME grid, r1/r2/r4).
+- A2 util/guards.ts (isObj ×8, isVec3 and its seven written-out copies); util/units.ts (MM_PER_INCH, MM_PER_FOOT).
+- A3 util/ids.ts `nextFreeId` (13 loops, each prefix and start kept; drawing/types' lettered ids and engine/ids'
+  serials are other schemes).
+
+**Batch B — shared helpers.**
+- B1 engine/bounds.ts `boundsOf` (17 loops; chat/observe's stays, it sums in the same pass).
+- B2 app/mass.ts `massGOf` (V · ρ / 1000) and `KERNEL_DENSITY` (2.7), the byte-identical copies only. Kept apart, each
+  commented: team/bomCore's V · ρ · 1e-3; robot/inertia's bodyMass in kg; app/mass's v · (ρ / 2.7) · 1e6 against
+  analysis's (x · ρ) / 2.7; engine/evaluate's ALUMINIUM 2700 (kg/m³, the kernel's argument).
+- B3 one material registry (library/materials; app/materials gone, importers updated incl. App.tsx:14) and
+  app/bodies `partMaterial` → `{ id, mixed }`, so the "different materials" messages stay.
+- B4 engine/rowEdits.ts `editRows` for seven row editors; frames/sections stays (normalised rows, coded refusals).
+- B5 off, B5' instead: the kernel's `symmetricEigen3` is a Jacobi sweep; on 1,000 random SPD inertia tensors it gave
+  other values than urdfCheck's closed form in 999, worst relative 5.7e-15 — a last-bit change, so not taken. The two
+  closed forms (urdfCheck, mjcfCheck), identical in operations and order, are robot/eigen.ts's one.
+
+**Batch C — engine structure.**
+- C1 engine/placement.ts: Mat3, matMul, axisAngle, DEG, rotationMatrix, rotationSteps, clean, eulerOf (from
+  assembly/mates) and placementOf (from engine/doc); doc.ts and part.ts no longer import rotation math from the
+  solver. Importers updated, no shims (App.tsx:6 became two lines; useScenePoses.ts:3; three studio tests).
+  robot/dynamics' mul3 stays (it sums from 0: −0 becomes +0). Left for batch D: doc.ts's flattenAssembly,
+  evaluate's face table, references' frameFace/tablesFor.
+- C2 assembly/instances.ts `evaluateTree`: the BOM panel's and the BOM agent's identical walk.
+- C3 evaluate.ts: the body notes to engine/bodyNotes.ts (917 → ~480 lines); evaluateDoc and evaluatePart share
+  `partResult`; one `failed` for five catches.
+- **skeletonsNow (the coordinator's decision, pinned).** A probe on sketch3d-params' bound skeleton (W 600 → 800, not
+  re-solved): partBreps, stlFor, brepsFor (and made), baseBodyFaces and the STEP's geometry are identical with and
+  without solving first, because partSnapshot's read resolves skeletons itself; only the STEP's source differs, and it
+  is the authored document's revision — the one a saved file has. Left as is: a comment at partSnapshot's
+  resolveSkeletons, and test/r4-skeletons.
+- C4 two caches, each checked against a full re-evaluation (test/r4-caches):
+  - placedOutputs keeps each copy's last snapshots (placed; at the origin for beads) by instance id, rebuilt through
+    the kernel's withDocument. With them kept, STEP's body and brepsFor (plain and made) equal the export from
+    nothing — the clearance fixture, a 6R arm, fasteners as parts, a placed weldment with beads — again, after a copy
+    is moved and turned, moved back, and after a copy's part is edited.
+  - A frame's geometry once per leafBodies call, and its member count once per evaluation (a Map partResult makes).
+    Not cached across calls: node arrays are changed in place in a few places, so identity is no safe key.
+  - Timings (stepFor first/again/again; brepsFor plain/again/made), before → after: the 6R arm 140/129/131 →
+    140/3/3 ms and 81/76/73 → 1/1/1 ms; fasteners 49/40/40 → 46/3/3 and 19/19/20 → 1/0/1; the clearance fixture
+    23/15/13 → 22/10/8 and 6/5/6 → 1/1/2. The O10 cold rebuild (kernel features) unchanged.
+
+**Wording corrections folded in** (the coordinator's and the docs lane's): cad-cli `pattern` ("from your casting
+rules"); machining/report's tapped-hole rule ("no row in your loaded fastener sizes"); App.tsx:2627's thread line
+("nominal sizes from your fastener rows"); the README's `frames/` and `casting/` rows; the fastener sample's `about`
+("Load sample fastener sizes").
+
+**A flow finding.** Step 80 ("fastener at a Ø6.6 through hole") failed under batch B's FLOW_ONLY selection — at batch
+A's commit too — and passed alone: its hover points came from the camera an earlier step left. It now resets the
+view (iso()) first (58acf5e9e, test only).
+
+**Verified.** (T2 at each batch end; per step tsc for model and studio, eslint and the step's named tests)
+- Batch A (0dd1e12ff): fingerprint identical; model 990/990, studio 274/274; FLOW_ONLY 15/15 on WebGPU and WebGL2.
+- Batch B (36ab45ad4): fingerprint identical; model 990/990, studio 274/274, test names as A's; FLOW_ONLY 26/27 on
+  both, the one step 80 above (alone: ok on both).
+- Batch C (e29f7dcba, after the kernel's next R5.4 folder batch, the kernel rebuilt from clean): fingerprint
+  identical; model 993/993 (r4-skeletons, r4-caches ×2 new), studio 274/274, names as B's but those; FLOW_ONLY 32/32
+  on WebGPU and WebGL2 (flow exit 0) — STEP, 3MF, draw a plate, place and mate a copy, the fastener steps (step 80 after
+  the camera-moving ones), O7e, FR1, FR4b, FRb, FRk, the BOM panel and table, RM1, RM4, RM5, IM5, IM6, CNC1, CNC2,
+  IM8a, IM8b, G22, O10 Rebuild panel.
+- Not run: the full flow (the coordinator's window).

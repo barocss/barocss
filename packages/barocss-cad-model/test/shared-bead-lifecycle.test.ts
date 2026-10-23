@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { table, policy } from './helpers/shared-bead-scene';
-import { emptyDoc, placementOf, type StudioDoc, type PartInstance } from '../src/engine/doc';
+import { emptyDoc, type StudioDoc, type PartInstance } from '../src/engine/doc';
+import { placementOf } from '../src/engine/placement';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { evaluateDoc, brepsFor, stepFor, shareMeshes } from '../src/engine/evaluate';
 import { WireSender, WireReceiver } from '../src/engine/wireDoc';

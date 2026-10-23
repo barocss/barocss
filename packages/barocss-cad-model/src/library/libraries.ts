@@ -8,7 +8,8 @@ import { emptyDoc, withNode, type BodyRef, type ModelNode, type PartInstance, ty
 import { evaluateDoc } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
 import { pointInBody } from '../app/measure';
-import { BASE, eulerOf, rotationMatrix, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
+import { BASE, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
+import { eulerOf, rotationMatrix } from '../engine/placement';
 import tslot20 from './builtin/tslot-20.json';
 import enclosure from './builtin/enclosure.json';
 import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';

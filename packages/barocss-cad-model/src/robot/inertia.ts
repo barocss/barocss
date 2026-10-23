@@ -11,7 +11,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
 import { materialOf } from '../library/materials';
-import { rotationMatrix } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import type { JointTree } from './joints';
 import { KERNEL_DENSITY } from '../app/mass';
 

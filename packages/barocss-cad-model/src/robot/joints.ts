@@ -13,7 +13,8 @@
 // (export, RM4, writes metres); joint values are 0 at the pose the mates solve to.
 import { checkPlacedSpurGears, spurGearDimensions, type GearPlacement } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
-import { BASE, rotationMatrix, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
+import { BASE, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
 
 export const ROBOT_VERSION = 1;

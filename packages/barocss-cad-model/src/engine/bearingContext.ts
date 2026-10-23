@@ -1,5 +1,6 @@
 // Explicit read-only assembly input for A9-7. Symbols survive derived spreads, never JSON Save/Open.
-import { placementOf, type ModelNode, type StudioDoc } from './doc';
+import { type ModelNode, type StudioDoc } from './doc';
+import { placementOf } from './placement';
 import type { HousingPose } from './bearingHousing';
 import { bodyNodeOf } from './ids';
 
