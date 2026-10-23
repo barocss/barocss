@@ -4,7 +4,8 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
-import { materialData, processProfile } from '../library/materials';
+import { materialData } from '../library/materials';
+import { castingProfileOf, hasCastingRules, noCastingRules } from '../engine/castingRuleRows';
 import { dispatchTool, type ChatState } from '../chat/tools';
 import { machinedFaces, machiningOf, machiningView, partExtent, shrinkByDimension, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
 
@@ -24,7 +25,8 @@ const failed = (code: PatternCode, message: string): PatternResult => ({ ok: fal
 
 /** The pattern of a one-body cast part: its machining allowance on the marked flat faces, then its shrinkage. */
 export async function patternOf(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate): Promise<PatternResult> {
-  const profile = processProfile(doc.process);
+  const profile = castingProfileOf(doc, doc.process);
+  if (profile?.id === 'sand-casting' && !hasCastingRules(doc, profile.id)) return failed('PATTERN_NOT_CASTING', noCastingRules(profile.id));
   if (!profile?.allowances) return failed('PATTERN_NOT_CASTING', `${profile ? profile.label : 'no process'}: a pattern needs a casting process with allowance tables (sand casting)`);
   if (bodies.length !== 1) return failed('PATTERN_ONE_BODY', `a pattern is of one body; the part has ${bodies.length}`);
   const id = materialIdOf(doc, bodies[0]) ?? null, m = id ? materialData(id) : undefined;

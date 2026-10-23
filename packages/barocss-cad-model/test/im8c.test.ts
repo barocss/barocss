@@ -5,8 +5,9 @@ import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { withLook } from '../src/app/bodies';
 import { printability } from '../src/print/rules';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { processProfile } from '../src/library/materials';
 import { solidification } from '../src/casting/solidification';
+import { withSampleRows } from './person-file';
+import { castingProfileOf } from '../src/engine/castingRuleRows';
 
 // IM8c (O109): hot spots and feeding, against closed forms — a plate's one hot spot on its mid-plane, r = t/2; IM8 S0's
 // L junction (walls t = 4), one hot spot of r = t(2 − √2) on the corner's bisector, isolated from a gate at a leg's end
@@ -23,7 +24,8 @@ async function build(calls: [string, Record<string, unknown>][]): Promise<Studio
   return s.doc;
 }
 const cast = (doc: StudioDoc, gate?: [number, number, number], process = 'sand-casting', material = 'a356'): StudioDoc => {
-  const d: StudioDoc = { ...doc, process, mould: { version: 1, pull: [0, 0, 1] }, ...(gate ? { casting: { version: 1, gate } } : {}) };
+  // (O7c: the casting rules are the sample rows, loaded as the person loads them.)
+  const d: StudioDoc = withSampleRows({ ...doc, process, mould: { version: 1, pull: [0, 0, 1] }, ...(gate ? { casting: { version: 1, gate } } : {}) }, 'casting-rules');
   return withLook(d, bodiesOf(d)[0], { material });
 };
 const rules = async (d: StudioDoc) => { const r = await printability(d, bodiesOf(d), evaluate); return Object.fromEntries(r.rules.map(x => [x.id, x])); };
@@ -65,7 +67,7 @@ test('IM8c a 20 mm block on a 4 mm plate: one hot spot in the block (r ≈ 10) �
   assert.equal(on.feeding.status, 'pass');
   assert.equal(far['section-change'].status, 'warn'); assert.ok(far['section-change'].value! >= 4, String(far['section-change'].value));
   assert.equal(far['section-change'].limit, 2); assert.match(far['section-change'].source!, /engineersedge\.com\/sand_cast\.htm/);
-  assert.equal(processProfile('sand-casting')!.thresholds.sectionRatioMax.page!.label, 'If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections.');
+  assert.equal(castingProfileOf(withSampleRows(emptyDoc(), 'casting-rules'), 'sand-casting')!.thresholds.sectionRatioMax.page!.label, 'If a section change of over 2:1 thickness ratio is unavoidable … use a wedge form between the unequal sections.');
 });
 
 test('IM8c the unknowns, said: no gate — feeding unknown; die casting — no section-change ratio read; set_casting\'s gate refused unless a point, set through the v2 action', async () => {

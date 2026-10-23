@@ -12,9 +12,10 @@ import { BASE, eulerOf, rotationMatrix, type Mate, type MateKind, type Vec3 } fr
 import tslot20 from './builtin/tslot-20.json';
 import enclosure from './builtin/enclosure.json';
 import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
-import { materialContext, materialData, processProfile } from './materials';
+import { materialContext, materialData } from './materials';
 import { materialIdOf } from '../app/bodies';
 import { tslotInterfaces } from '../frames/interfaces';
+import { castingProfileOf } from '../engine/castingRuleRows';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -254,7 +255,7 @@ export function addLibraryPartToBody(doc: StudioDoc, libraryId: string, part: st
   // (Material and process values: the body's material — its own, else the brief's stated one (O72: as its mass reads it),
   // never an assumed one — and the document's process.)
   const unresolved: string[] = [];
-  const material = materialData(materialIdOf(doc, target)), profile = processProfile(doc.process);
+  const material = materialData(materialIdOf(doc, target)), profile = castingProfileOf(doc, doc.process);
   for (const [k, c] of Object.entries(declared)) {
     if (context[k] !== undefined) continue;
     const paths = (c.from ?? []).filter(f => f.startsWith('material.') || f.startsWith('profile.') || f.startsWith('print.'));

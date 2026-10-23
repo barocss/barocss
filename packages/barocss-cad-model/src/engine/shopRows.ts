@@ -3,7 +3,7 @@ import { inheritRowSources, rowEntries, rowKey, validRowSupplies, type RowKind, 
 import type { StudioDoc } from './doc';
 import { bearingAssemblyView, bearingPartView, withoutBearingContext } from './bearingContext';
 
-export type ShopRowKind = 'machining-stock' | 'frame-stock' | 'section' | 'fit' | 'bearing' | 'oring' | 'ring' | 'drive' | 'connector' | 'fastener-size';
+export type ShopRowKind = 'machining-stock' | 'frame-stock' | 'section' | 'fit' | 'bearing' | 'oring' | 'ring' | 'drive' | 'connector' | 'fastener-size' | 'casting-rule';
 export interface ShopRowProvenance { kind: ShopRowKind; id: string; origin: 'local' | 'inherited' | 'override'; fileSourceStatus?: 'matched' | 'changed' | 'not-recorded'; fileSources?: readonly RowSupply[] }
 export interface ShopTreeProvenance { part: string; rows: readonly ShopRowProvenance[] }
 const receivedOrigins = new WeakMap<StudioDoc, readonly ShopTreeProvenance[]>();
@@ -36,7 +36,8 @@ export function resolveShopRows(child: StudioDoc, parent?: StudioDoc): ShopRowVi
   const drives = rows('drive', child.drives?.rows, parent?.drives?.rows);
   const connectors = rows('connector', child.connectors?.rows, parent?.connectors?.rows);
   const fastenerSizes = rows('fastener-size', child.fastenerSizes?.rows, parent?.fastenerSizes?.rows);
-  const changed = stock !== child.machining?.stock || frameStock !== child.frames?.stock || sections !== child.frames?.sections || tables !== child.fits?.tables || bearings !== child.bearings?.rows || orings !== child.orings?.rows || rings !== child.rings?.rows || drives !== child.drives?.rows || connectors !== child.connectors?.rows || fastenerSizes !== child.fastenerSizes?.rows;
+  const castingRules = rows('casting-rule', child.castingRules?.rows, parent?.castingRules?.rows);
+  const changed = stock !== child.machining?.stock || frameStock !== child.frames?.stock || sections !== child.frames?.sections || tables !== child.fits?.tables || bearings !== child.bearings?.rows || orings !== child.orings?.rows || rings !== child.rings?.rows || drives !== child.drives?.rows || connectors !== child.connectors?.rows || fastenerSizes !== child.fastenerSizes?.rows || castingRules !== child.castingRules?.rows;
   const contextual = !!parent && provenance.some(r => r.origin !== 'local');
   let doc: StudioDoc = changed || contextual ? { ...child,
     ...(stock ? { machining: { ...child.machining, version: 1, stock } } : {}),
@@ -48,9 +49,10 @@ export function resolveShopRows(child: StudioDoc, parent?: StudioDoc): ShopRowVi
     ...(drives ? { drives: { version: 1, rows: drives } } : {}),
     ...(connectors ? { connectors: { version: 1, rows: connectors } } : {}),
     ...(fastenerSizes ? { fastenerSizes: { version: 1, rows: fastenerSizes } } : {}),
+    ...(castingRules ? { castingRules: { version: 1, rows: castingRules } } : {}),
   } : child;
   doc = inheritRowSources(doc, child, parent);
-  const kinds: Record<ShopRowKind, RowKind> = { 'machining-stock': 'stock', 'frame-stock': 'frame-stock', section: 'sections', fit: 'fits', bearing: 'bearings', oring: 'orings', ring: 'rings', drive: 'drives', connector: 'connectors', 'fastener-size': 'fastener-sizes' };
+  const kinds: Record<ShopRowKind, RowKind> = { 'machining-stock': 'stock', 'frame-stock': 'frame-stock', section: 'sections', fit: 'fits', bearing: 'bearings', oring: 'orings', ring: 'rings', drive: 'drives', connector: 'connectors', 'fastener-size': 'fastener-sizes', 'casting-rule': 'casting-rules' };
   const receipts = validRowSupplies(doc);
   for (const origin of provenance) {
     const kind = kinds[origin.kind], entry = rowEntries(doc).find(e => e.kind === kind && e.value.id === origin.id);
@@ -148,7 +150,7 @@ export function restoreAuthoredShopRows(edited: StudioDoc, view: StudioDoc): { d
   if (edited === view) return { doc: original };
   const paths = [
     ['machining', 'stock'], ['frames', 'stock'], ['frames', 'sections'], ['fits', 'tables'],
-    ['bearings', 'rows'], ['orings', 'rows'], ['rings', 'rows'], ['drives', 'rows'], ['connectors', 'rows'], ['fastenerSizes', 'rows'],
+    ['bearings', 'rows'], ['orings', 'rows'], ['rings', 'rows'], ['drives', 'rows'], ['connectors', 'rows'], ['fastenerSizes', 'rows'], ['castingRules', 'rows'],
   ] as const;
   const result = withoutBearingContext(edited);
   if (edited.rowSources === view.rowSources) { if (original.rowSources) result.rowSources = original.rowSources; else delete result.rowSources; }

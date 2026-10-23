@@ -8,6 +8,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
 import { materialData, type CastFamily, type ProcessProfile, type ProcessThreshold } from '../library/materials';
+import { castingProfileOf, hasCastingRules, noCastingRules } from '../engine/castingRuleRows';
 import { wallsOf } from '../mould/walls';
 import { draftField, type DraftFace } from '../mould/draft';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
@@ -43,6 +44,7 @@ const faceNames = (fs: readonly DraftFace[]) => fs.map(f => f.face).slice(0, 40)
  * known (the report then says why). One material for the part, as the report takes it.
  */
 export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): { minDeg: number; recDeg: number | null; source: string } | null {
+  profile = castingProfileOf(doc, profile.id) ?? profile; // (O7c: the limits are the document's rows.)
   const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, family = id ? materialData(id)?.castFamily ?? null : null;
   const dMin = family ? limitOf(profile, family, 'DraftMinDeg') : undefined, dRec = family ? limitOf(profile, family, 'DraftRecDeg') : undefined;
   return dMin ? { minDeg: dMin.value, recDeg: dRec?.value ?? null, source: pageOf(dMin) } : null;
@@ -50,7 +52,9 @@ export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[]
 
 /** The casting report for a die- or sand-casting profile; `direction` overrides the mould's pull. */
 export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile, options: { direction?: readonly number[] } = {}): PrintabilityReport {
-  const rules: PrintRule[] = [];
+  // (O7c: the limits and allowances are the document's rows; with none, each rule reading them is unknown, and says why.)
+  profile = castingProfileOf(doc, profile.id) ?? profile;
+  const rules: PrintRule[] = hasCastingRules(doc, profile.id) ? [] : [{ id: 'casting-rules', level: 'feasible', status: 'unknown', message: noCastingRules(profile.id), why: 'none is built in: the person loads their foundry\'s rules' }];
   // The material: one for the part, its casting family the library's.
   const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, m = id ? materialData(id) : undefined;
   const family = m?.castFamily ?? null;

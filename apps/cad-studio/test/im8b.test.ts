@@ -10,9 +10,11 @@ import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/do
 import { withLook } from '@barocss/cad-model/app/bodies';
 import { printability } from '@barocss/cad-model/print/rules';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { checkMaterials, MATERIALS_DATA, materialData, processProfile } from '@barocss/cad-model/library/materials';
+import { checkMaterials, MATERIALS_DATA, materialData } from '@barocss/cad-model/library/materials';
 import { machiningOf, shrinkOf } from '@barocss/cad-model/casting/allowances';
 import { patternOf } from '@barocss/cad-model/casting/pattern';
+import { castingProfileOf } from '@barocss/cad-model/engine/castingRuleRows';
+import { loadShopFile, sampleFile } from '../src/app/sizesFile';
 
 // IM8b (O108): a casting pattern's allowances against closed forms — NPTEL's shrinkage (inches per foot by the pattern
 // dimension's band in feet) and machining allowance (inches by the dimension's band in inches), as printed; each band's
@@ -23,10 +25,17 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; };
 const block = (w: number, d: number, h: number) => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [w, d] }), { kind: 'extrude', sketch: 0, height: h });
 const cast = (doc: StudioDoc, material: string, casting?: StudioDoc['casting'], process = 'sand-casting'): StudioDoc => {
-  const d: StudioDoc = { ...doc, process, mould: { version: 1, pull: [0, 0, 1] }, ...(casting ? { casting } : {}) };
+  // (O7c: the casting rules are the sample rows, loaded as the person loads them.)
+  const d: StudioDoc = withCastingSample({ ...doc, process, mould: { version: 1, pull: [0, 0, 1] }, ...(casting ? { casting } : {}) });
   return withLook(d, bodiesOf(d)[0], { material });
 };
-const SAND = processProfile('sand-casting')!, AL = 0.155 / 12;
+/** The document with the casting rules sample loaded, as the person loads it in the Library panel. */
+function withCastingSample(doc: StudioDoc): StudioDoc {
+  const r = loadShopFile(doc, 'casting-rules', sampleFile('casting-rules'), readFileSync(join(process.cwd(), '../../packages/barocss-cad-model/samples/rows/casting-rules.json'), 'utf8'));
+  if ('error' in r) throw new Error(r.error);
+  return r.doc;
+}
+const SAND = castingProfileOf(withCastingSample(emptyDoc()), 'sand-casting')!, AL = 0.155 / 12;
 const rule = async (d: StudioDoc, id: string) => (await printability(d, bodiesOf(d), evaluate)).rules.find(r => r.id === id)!;
 const near = (a: number, b: number, tol: number) => Math.abs(a - b) <= tol;
 
@@ -37,7 +46,7 @@ test('IM8b the data as NPTEL prints it: Table 1 in inch/ft (grey iron 0.125/0.10
   assert.deepEqual([mc('iron'), mc('steel'), mc('nonferrous')], [[[12, 0.12], [20, 0.2], [40, 0.25]], [[6, 0.12], [20, 0.25], [40, 0.3]], [[8, 0.09], [12, 0.12], [40, 0.16]]]);
   for (const t of [...a.shrink, ...a.machining]) assert.ok(/^https:\/\/archive\.nptel\.ac\.in\//.test(t.page.url) && t.page.read === '2026-10-21' && /as printed/.test(t.page.note ?? ''), t.page.label);
   assert.equal(materialData('grey-iron')!.castFamily, 'iron');
-  assert.equal(processProfile('die-casting')!.allowances, undefined, 'no die-casting allowance read');
+  assert.equal(castingProfileOf(withCastingSample(emptyDoc()), 'die-casting')!.allowances, undefined, 'no die-casting allowance read');
 });
 
 test('IM8b shrinkage by band, the band\'s top in it: aluminium 100 mm and exactly 4 ft 0.155/12, 1500 mm 0.143/12, 2000 mm 0.125/12; steel 700 mm 0.191/12; magnesium 1300 mm 0.155/12; zinc none (said); yours over the table', () => {
