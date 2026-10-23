@@ -1534,6 +1534,7 @@ try {
     await page.waitForFunction(t => { const [a, b] = window.__studioDoc.instances; return Math.abs(((b.rotation[2] - a.rotation[2]) % 360 + 540) % 360 - 180 - t) < 1e-9; }, turn(br, copy));
     // What each part can still do: the bracket is fixed; flush and at an angle, the copy only slides.
     assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /fixed in place/);
+    await page.locator('[aria-label="Instance"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-instance.png`) });
     await page.locator('.ol.instance').nth(1).click();
     assert.match(await page.locator('[aria-label="Freedom"]').innerText(), /free: 2 slides$/);
     // With the instance still selected, a History chip opens the feature editor.
@@ -1631,6 +1632,7 @@ try {
     // The studio's own solver keeps it where the mates put it, and the mate panel lists them.
     await page.locator('.ol.instance', { hasText: 'Pin' }).click();
     assert.match(await page.locator('[aria-label="Mates"]').innerText(), /Concentric 1[\s\S]*Coincident 2/);
+    await page.locator('[aria-label="Mates"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-mates.png`) });
     await page.evaluate(() => document.activeElement?.blur());
     await press('Meta+z'); await page.waitForFunction(() => !(window.__studioDoc.instances?.length));
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.instances?.length === 1);
@@ -5654,6 +5656,8 @@ try {
     await page.waitForFunction(() => window.__studioDoc.robot?.base === 'arm', null, { timeout: 10000 });
     assert.match(await page.locator('[aria-label="Joint base~arm"]').innerText(), /arm → Base part/);
     await snap('rm1-joints');
+    // (O16: the panel at 1440 in the dock.)
+    await page.locator('[aria-label="Joints"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-joints.png`) });
   });
 
   // ---- RM2 (O15): forward kinematics and the joint sliders ----------------------------------------------------------
