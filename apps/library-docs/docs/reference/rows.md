@@ -1,9 +1,154 @@
 # Rows file formats
 
-::: warning Being written
-This page is part of the documentation rewrite (W1). Its sections are listed below; the outer lane writes them from the code as it is now.
-:::
+Rows are JSON files a person supplies: in the studio's **Library**, or attached in the chat. [Shop rows](/studio/rows)
+explains why, and what uses each kind.
 
-## Each row kind, its fields and units, its source field
+## The file
+
+- **Its shape.** A rows file is one of:
+  - an array of rows;
+  - an object with a `rows` array (not for fits or bend tables);
+  - for fits, an object with a `tables` array.
+
+  It holds 1 to 4,096 rows.
+- **Limits.** A file must be named `.json` and is at most 256 KiB. A conversation takes at most 32 files and 1 MiB in
+  all.
+- **Sources.** Every row names its `source`, or is marked `"estimate": true`. Where a kind requires a source, an
+  estimate isn't enough.
+- **Units.** Most fields name their unit: `MM` is millimetres, `UM` micrometres, `Deg` degrees. Fastener sizes are in
+  millimetres.
+- **Validation.** A row is checked when it is loaded. A row with a missing or out-of-range value is refused, and the
+  refusal says which row and why.
+- **Provenance.** Each loaded row keeps a receipt naming its file, its turn in the conversation and the file's SHA-256.
+
+## Row kinds
+
+### `fastener-sizes`
+
+One row per metric thread size. It says how that size is drawn and holed.
+
+| Field | Meaning (mm unless noted) |
+|---|---|
+| `id` | The size, as `M6` |
+| `d`, `pitch` | Nominal diameter (must match the id), coarse pitch |
+| `s` | Hex across flats, for bolt heads and nuts |
+| `k`, `m` | Hex bolt head height, nut height |
+| `dk`, `ks`, `socket` | Socket head diameter and height, hex key size |
+| `wd1`, `wd2`, `wh` | Washer inside and outside diameters, thickness |
+| `cdk`, `ck`, `csocket` | Countersunk head diameter, height, socket size |
+| `lengths`, `capLengths`, `cskLengths` | Lengths offered, shortest first: hex bolts, cap screws, countersunk screws (overall) |
+| `clearance` | Clearance holes: fine, medium, coarse |
+| `tap` | Tap drill for the internal thread |
+| `source` or `estimate` | Where the row comes from |
+| `fieldSources` | Where a field comes from, when not the row's source |
+| `unchecked` | Fields not cross-checked against a second source |
+
+### `fasteners`
+
+Bought screws, bolts, nuts and washers, as your supplier lists them:
+
+- `id`;
+- `kind`: `hex-bolt`, `socket-screw`, `csk-screw`, `hex-nut` or `washer`;
+- `size`, such as `M6`;
+- `lengthMM`, for screws and bolts;
+- optional `designation`, `partNumber` and `supplier`;
+- `source` or `estimate`.
+
+### `casting-rules`
+
+Two shapes, each for `die-casting` or `sand-casting`:
+
+- **A limit:** `id`, `process`, `key`, `value`, `unit`, `description`, `source`, and optional `page`.
+- **A pattern allowance table:**
+  - `allowance`: `shrink` (by alloy family, in inches per foot by size band) or `machining` (by class, in inches by
+    size band);
+  - with its `label`, `bands` and `page`.
+
+A `page` is `{ url, read, label }`: the address, the date read, and the page's own label for the value.
+
+### `fits`
+
+Fit tables. Each table has an `id`, optional `sources` (`{ id, label, url?, read?, note? }`) and `rows`. Each row is:
+
+- `class`: an ISO 286 class such as `H7` or `g6`;
+- `overMM` and `upToMM`: the size range, over < size ≤ up to;
+- `upperUM` and `lowerUM`: the deviations;
+- and `source` or `estimate`.
+
+### `bearings`
+
+- `id`, optional `designation`;
+- `boreMM`, `outsideMM`, `widthMM`, optional `chamferMM`;
+- the shoulder limits `daMinMM`, `daMaxMM`, `DaMaxMM`, `raMaxMM`;
+- the deviations `boreDeviationUM` and `outsideDeviationUM`, each `[upper, lower]`;
+- `source` or `estimate`.
+
+### `orings`
+
+`id`, optional `dash`, `insideDiameterMM`, `crossSectionMM`, and `source` or `estimate`.
+
+### `rings`
+
+Retaining rings: `id`, optional `designation`, `shaftDiameterMM`, `grooveDiameterMM`, `grooveWidthMM`, and `source` or
+`estimate`.
+
+### `drives`
+
+Belts, chains and couplings, by `kind`:
+
+| `kind` | Required | Optional |
+|---|---|---|
+| `chain` | `pitchMM`, `rollerDiameterMM` | `innerWidthMM`, `plateHeightMM` |
+| `timing-belt` | `pitchMM`, `pitchLineOffsetMM`, `groove` | `thicknessMM` |
+| `v-belt` | `angleDeg`, `datumWidthMM`, `aboveDatumMM`, `belowDatumMM`, `spacingMM`, `edgeMM` | `thicknessMM` |
+| `flat-belt` | `widthMM`, `thicknessMM` | — |
+| `coupling` | `boreMM`, `outsideMM`, `lengthMM` | `type`, `boreStepMM`, `partNumber`, `supplier` |
+
+Each also has an `id`, and `source` or `estimate`.
+
+### `connectors`
+
+- `id`, optional `name`;
+- `opening`: `{ shape, widthMM, heightMM, cornerRadiusMM?, depthMM }`, where `shape` is `stadium`, `rect` or `round`;
+- an optional mating `body` (the same section, with `lengthMM`);
+- an optional `keepOut`: `{ marginMM, depthMM }`;
+- `source` or `estimate`.
+
+### `sections`
+
+Your frame section library: `id`, optional `name`, `section`, and `source` or `estimate`. The `section` is one of the
+typed sections that [Frames and weldments](/studio/frames) lists (a rectangular or round tube, an angle, a channel, an
+I/H beam or a T-slot), by its dimensions.
+
+### `stock`
+
+Stock for machining, each with a `source`:
+
+- a block: `{ id, kind: "block", size: [x, y, z] }`;
+- a bar: `{ id, kind: "bar", diameter, maxLength? }`.
+
+### `frame-stock`
+
+Stock lengths for frame members: `id`, `lengthMM`, optional `count` and `section`, and `source`.
+
+### `bend`
+
+A sheet-metal bend table. It has an `id`, optional `material` and `sources`, and `rows`. Each row is:
+
+- `thicknessMM` and `radiusMM`, with optional `angleDegrees`;
+- one of `kFactor`, `allowanceMM` or `deductionMM`;
+- `source` or `estimate`.
 
 ## The shipped samples
+
+`@barocss/cad-model` ships two samples, at `samples/rows/`:
+
+- `fastener-sizes.json`: M3 to M12;
+- `casting-rules.json`: die and sand casting.
+
+Each file has an `about` note and its `rows`. They are examples taken from the sources each row names, not a
+standard.
+
+<<< @/../samples/rows.test.mjs#samples
+
+<<< @/../samples/rows.test.mjs#refused
