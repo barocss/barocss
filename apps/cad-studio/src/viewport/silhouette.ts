@@ -56,3 +56,24 @@ export function silhouetteLines(mesh: DisplayMesh, model: ArrayLike<number>, eye
   }
   return new Float32Array(lines);
 }
+
+/**
+ * The triangles silhouetteLines looks at (G8): a curved, unfaceted face's, its three vertices on that face, not degenerate.
+ * The GPU's contour of the mesh is drawn from them (GeometryInput.contour), the same segments for any eye and transform.
+ */
+export function contourTriangles(mesh: DisplayMesh): Uint32Array {
+  const curved = new Set(mesh.faces.filter(f => f.kind === 'curved' && !f.facet).map(f => f.index));
+  const P = mesh.positions, F = mesh.faceOfVertex, I = mesh.indices, count = Math.floor(P.length / 3), out: number[] = [];
+  if (!curved.size) return new Uint32Array(0);
+  for (let t = 0; t + 2 < I.length; t += 3) {
+    const a = I[t], b = I[t + 1], c = I[t + 2], face = F[a];
+    if (!curved.has(face) || a >= count || b >= count || c >= count || F[b] !== face || F[c] !== face) continue;
+    const ux = P[3 * b] - P[3 * a], uy = P[3 * b + 1] - P[3 * a + 1], uz = P[3 * b + 2] - P[3 * a + 2];
+    const vx = P[3 * c] - P[3 * a], vy = P[3 * c + 1] - P[3 * a + 1], vz = P[3 * c + 2] - P[3 * a + 2];
+    const wx = P[3 * c] - P[3 * b], wy = P[3 * c + 1] - P[3 * b + 1], wz = P[3 * c + 2] - P[3 * b + 2];
+    const scale = Math.max(Math.hypot(ux, uy, uz), Math.hypot(vx, vy, vz), Math.hypot(wx, wy, wz));
+    if (!(Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) > scale * scale * 1e-12)) continue;
+    out.push(a, b, c);
+  }
+  return new Uint32Array(out);
+}
