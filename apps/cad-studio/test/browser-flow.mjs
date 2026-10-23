@@ -5790,7 +5790,7 @@ try {
     fs.writeFileSync(file, JSON.stringify(d));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc?.instances?.length === 6 && window.__studioDoc.robot?.frames?.tcp, null, { timeout: 20000 }); await idle();
-    const frame = n => page.locator(`[aria-label="Frame ${n}"] b`).innerText();
+    const frame = n => page.locator(`[aria-label="Frame ${n}"] b`).evaluate(e => e.textContent);
     await page.waitForSelector('[aria-label="Frame tcp"]', { timeout: 30000 });
     const zero = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/frames/expect.json'), 'utf8')).samples[0];
     assert.ok(Object.values(zero.q).every(v => v === 0));
