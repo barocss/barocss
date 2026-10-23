@@ -7465,3 +7465,19 @@ Their parts are `base:<body key>`; `targetOf` read that whole string as an insta
 - the cad-model suite, `TEST_CONCURRENCY=4 node scripts/test.mjs`: 964 of 964 pass, in 299 s, at load 38 → 29;
 - tsc of model and studio; eslint 0 errors on the changed files.
 - Not run: the flow (no studio change).
+
+## R3c — chat/tools.ts by action group: requirements and views (2026-10-23)
+
+**Moved, verbatim** (as R3a and R3b):
+- chat/part/requirements.ts: set_requirements and check_spec;
+- chat/part/views.ts: render_views, inspect and select. chat/views.ts keeps its rendering helpers.
+tools.ts is 967 lines.
+
+**The byte check** also probes the requirements and view tools, on an empty part and on a plate: 11 calls, with each call's content, error flag, changed flag, selection and requirements. The baseline was taken before the edit and was identical across two runs; it is identical after.
+
+**Verified (R3c):**
+- the byte check, identical;
+- toolset 9/9 and tool-contract 3/3;
+- the cad-model suite: 964 of 964, in 299 s, at load 20 → 22;
+- tsc and eslint clean.
+- Not run: the flow.
