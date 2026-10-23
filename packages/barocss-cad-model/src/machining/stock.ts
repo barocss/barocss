@@ -9,6 +9,7 @@ import { emptyDoc, withNode } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Turning } from './turning';
 import { r6 } from '../util/round';
+import { boundsOf } from '../engine/bounds';
 
 export const ALLOWANCE_ESTIMATE_MM = 1;
 /** What a fit allows (mm): the part's size is read off its mesh, its vertices on the exact surfaces to rounding. */
@@ -28,9 +29,7 @@ export type StockResult = { ok: true; choice: StockChoice } | { ok: false; code:
 
 /** The part's box, from its bodies' bounds. */
 export function partBox(bodies: readonly BodyResult[]): { min: number[]; max: number[] } {
-  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
-  return { min, max };
+  return boundsOf(bodies);
 }
 
 /** The stock for the part: a block for milling, a bar for turning (its axis from CNC6). */

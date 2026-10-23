@@ -21,6 +21,7 @@ There is no curated entry and no internal/public split. `src/index.ts` exports n
 | `engine/` | The studio document (`doc`), its evaluation into bodies and meshes, ids, blobs, the `.bcad` container, migrations, STL and STEP units |
 | `sketch/` | Sketch profiles, constraints and rules, trim, offset, corners, splines, DXF read and underlay |
 | `app/` | The modelling commands as data: primitives, edits, holes, fasteners and threads, frames, sheet metal, mass, measure, materials |
+| `frames/` | Frames and weldments: shared skeletons and the 3D skeleton sketch, the section library and section tables, weld joints and bead ownership, T-slot interfaces, stock nesting |
 | `assembly/` | Parts placed and mated: mate solving, faces, drag, exploded views, flattening |
 | `subd/` | Editing a SubD cage |
 | `chat/` | The agent tool layer: the handlers, the 13 v2 tools (`toolset`, `groups`), their contract, the script language, briefs, questions, proposals, references |
@@ -28,7 +29,7 @@ There is no curated entry and no internal/public split. `src/index.ts` exports n
 | `print/` | The manufacturability report and the printing rules: walls, holes, overhang, warp, orientation, hollowing |
 | `mould/` | Injection moulding: draft, undercuts, walls, the parting line, the quote package |
 | `machining/` | CNC milling and turning: holes, cavities, access and setups, features, stock, the drawing check, a 2.5D CAM preview (not for production) |
-| `casting/` | Die and sand casting: limits by the alloy's casting family |
+| `casting/` | Die and sand casting: the castability report and the pattern, by the limits and allowances in the person's casting rules (rows they load; `samples/rows/casting-rules.json` is an example) |
 | `robot/` | The mate graph as a robot: joints, FK and IK, inertia, dynamics, actuator sizing, URDF, MJCF and USD |
 | `library/` | Materials and process profiles, and standard and team part libraries, as data (`builtin/*.json`) |
 | `standards/` | Standards-derived values with their provenance and licences |

@@ -8,6 +8,7 @@ import type { BodyResult } from '../engine/evaluate';
 import { machiningClassOf, type CastFamily, type ProcessProfile } from '../library/materials';
 import { r6 } from '../util/round';
 import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
+import { boundsOf } from '../engine/bounds';
 
 export type Allowance<T> = ({ ok: true } & T) | { ok: false; why: string };
 export interface ShrinkAllowance { readonly ratio: number; readonly basis: 'table' | 'set'; readonly band: string; readonly label: string; readonly page: string | null }
@@ -19,8 +20,7 @@ export const shrinkView = ({ ok: _, ...s }: { ok: true } & ShrinkAllowance): Shr
 export const machiningView = ({ ok: _, ...m }: { ok: true } & MachiningAllowance): MachiningAllowance => m;
 /** The part's box and its largest extent (mm). */
 export function partExtent(bodies: readonly BodyResult[]): { min: number[]; max: number[]; largestMM: number } {
-  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
+  const { min, max } = boundsOf(bodies);
   return { min, max, largestMM: Math.max(...[0, 1, 2].map(k => max[k] - min[k])) };
 }
 /** A band's words as the page has them: "up to 4 ft", "2 ft to 4 ft", "over 6 ft". */

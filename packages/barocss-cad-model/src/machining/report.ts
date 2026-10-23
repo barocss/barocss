@@ -22,6 +22,7 @@ import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type Tapp
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 import { madeBodies } from '../engine/elements';
 import { r3 } from '../util/round';
+import { boundsOf } from '../engine/bounds';
 
 export type Family = 'metal' | 'plastic';
 
@@ -44,8 +45,7 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
       message: `the thinnest wall, ${r3(w)} mm, against a ${family}'s ${min.value} mm feasible and ${rec.value} mm recommended`, value: r3(w), limit: w < min.value - 1e-9 ? min.value : rec.value, unit: 'mm', source: min.source, entities: [thin.body] });
   }
   // Size: the part's sides, sorted, against the envelope (milling); turning's along its axis (CNC6).
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  const { min: lo, max: hi } = boundsOf(bodies);
   const e = [0, 1, 2].map(k => hi[k] - lo[k]).sort((a, b) => b - a);
   if (profile.id === 'cnc-milling') {
     const lim = [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value], fits = e.every((v, k) => v <= lim[k] + 1e-9);

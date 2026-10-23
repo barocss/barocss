@@ -27,6 +27,7 @@ import { machinability } from '../machining/report';
 import { madeBodies } from '../engine/elements';
 import { lumpMesh, lumpName, lumpTriangles } from '../engine/lumps';
 import { r3, r6 } from '../util/round';
+import { boundsOf } from '../engine/bounds';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -246,8 +247,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     rules.push({ id: 'sink', level: 'recommended', status: thick.length ? 'warn' : 'pass', message: thick.length ? `thick sections past the nominal over ${ratio.value} (${thick.map(x => `${x.body}: ${r3(x.areaMM2)} mm², up to ${r3(x.maxMM)} mm`).join('; ')}): sink marks and voids — core them out` : 'no section thicker than the nominal wall over the adjacent-wall ratio', ...(thick.length ? { value: r3(Math.max(...thick.map(x => x.maxMM))) } : {}), limit: r3(nominal / ratio.value), unit: 'mm', source: ratio.source, entities: thick.flatMap(x => x.faces).slice(0, 40) });
   }
   // Size: the part's extents — its depth along the pull, the two across it either way round — within the largest part.
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const x of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], x.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], x.mesh.bounds.max[k]); }
+  const { min: lo, max: hi } = boundsOf(bodies);
   const L = t('maxPartLongMM'), W = t('maxPartWideMM'), D = t('maxPartDepthMM');
   if (!bodies.length || !L || !W || !D) rules.push({ id: 'size', level: 'feasible', status: 'unknown', message: 'the part within the largest moulded part', why: bodies.length ? 'the profile has no size limit' : 'no body' });
   else if (!pull) {
