@@ -2125,7 +2125,8 @@ export function App() {
     bodies.forEach((body, index) => { const matrix = dragTransforms?.get(index), offset = animatedOffsets?.get(shownBodies.findIndex(b => b.key === body.key)); if (matrix) motions.set(body.key, matrix); else if (offset) motions.set(body.key, poseMatrix(undefined, offset)); });
     return [...motions];
   }, [instancePoseMap, instDrag, bodies, dragTransforms, animatedOffsets, shownBodies]);
-  const clearanceVisibleKeys = useMemo(() => bodies.filter(b => !lookOf(doc, b).hidden).map(b => b.key), [bodies, doc]);
+  // (O10: the root's shown bodies and every placed copy's, by the one key every producer gives a body — the worker matches them exactly.)
+  const clearanceVisibleKeys = useMemo(() => [...bodies.filter(b => !lookOf(doc, b).hidden).map(b => b.key), ...instancesPlaced.flatMap(i => i.bodies.map(b => `${i.id}/${b.key}`))], [bodies, doc, instancesPlaced]);
   const clearanceVisibleInstances = useMemo(() => instancesPlaced.map(i => i.id), [instancesPlaced]);
   const clearanceLabels = useMemo(() => new Map([...bodies.map(b => [b.key, bodyName(doc, b)] as const), ...(doc.instances ?? []).map(i => [i.id + '/', i.name ?? i.id] as const)]), [bodies, doc]);
   const clearanceReady = (doc.instances ?? []).filter(i => !i.hidden).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));

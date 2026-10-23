@@ -27,7 +27,7 @@ export async function assemblyBodies(doc: StudioDoc, evaluate: Evaluate): Promis
   doc = resolveShopTree(doc);
   const out = new Map<string, BodyResult[]>(), base = await evaluate(doc);
   if (base?.ok && base.bodies.length) out.set('base', base.bodies);
-  for (const inst of doc.instances ?? []) if (!inst.hidden) { const b = await placedBodies(inst, evaluate); if (b.length) out.set(inst.id, b); }
+  for (const inst of doc.instances ?? []) if (!inst.hidden) { const b = await placedBodies(inst, evaluate, doc); if (b.length) out.set(inst.id, b); }
   return out;
 }
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0);

@@ -10,7 +10,7 @@ import { lumpTouches } from './lumps';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
 import { frameSegmentCount, frameSegmentEnds, placedBase, placedDoc, placementOf, type PartInstance, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
-import { bodyNodeOf } from './ids';
+import { bodyKeyFor, bodyNodeOf } from './ids';
 import { fastenerLinkNotes } from '../library/fastenerLinks';
 import { fastenerSizesOf } from './fastenerSizeRows';
 import { revisionOf } from '../team/revision';
@@ -359,7 +359,7 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
   try {
     const snapshot = partSnapshot(placed, part => lastPlaced ? lastPlaced.withDocument(part) : evaluateCadPart(part)); lastPlaced = snapshot;
     const origin = partSnapshot(base, part => lastBase ? lastBase.withDocument(part) : evaluateCadPart(part)); lastBase = origin;
-    const bodies = snapshot.outputs.map((o, i) => {
+    const bodies = snapshot.outputs.map(o => {
       // Weld records make derived bodies after placedDoc's authored transform nodes. They still need the
       // instance placement; use the exact origin output by id, rather than treating it as a moved member.
       if (o.bead) {
@@ -367,9 +367,11 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
         if (!bead) throw new Error(`placed bead ${o.id} has no origin body`);
         return placeBody(bodyOf(bead, base, revision, quality), place.m, place.t);
       }
-      const at = origin.outputs[i];
-      if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return bodyOf(o, placed, revision, quality);
-      return { ...placeBody(bodyOf(at, base, revision, quality), place.m, place.t), ...keyed(o.id, placed.nodes) };
+      // (O10: a copy's body is keyed by its origin output — the instance's own document, unplaced — never by the
+      // transform nodes placedDoc appends, so the key is the same for every producer and whatever the placement.)
+      const at = originOutput(o.id, origin, placed, base);
+      if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return { ...bodyOf(o, placed, revision, quality), ...(at ? keyed(at.id, base.nodes) : {}) };
+      return placeBody(bodyOf(at, base, revision, quality), place.m, place.t);
     });
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
@@ -377,6 +379,20 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
   }
 }
 let lastBase: CadPartSnapshot | null = null, lastPlaced: CadPartSnapshot | null = null;
+/**
+ * The origin output a placed output is (O10): the one its chain of placement transforms (the nodes placedDoc appends past
+ * the base's) leads back to — none appended, its own node; none when it leads to no origin output.
+ */
+function originOutput(id: string, origin: CadPartSnapshot, placed: StudioDoc, base: StudioDoc): CadPartSnapshot['outputs'][number] | undefined {
+  const at = originNode(id, placed, base);
+  return at === undefined ? undefined : origin.outputs.find(x => bodyNodeOf(base.nodes, bodyKeyOf(x.id, base.nodes))?.node === at);
+}
+/** The base node a placed output comes from: its top node, walked back through the placement transforms past the base's. */
+function originNode(id: string, placed: StudioDoc, base: StudioDoc): number | undefined {
+  let at = bodyNodeOf(placed.nodes, bodyKeyOf(id, placed.nodes))?.node;
+  while (at !== undefined && at >= base.nodes.length) { const n = placed.nodes[at] as { parent?: { node: number } }; at = n.parent?.node; }
+  return at;
+}
 /**
  * Whether a placed body is the part's body at the origin moved by the placement: the same faces and edges
  * by name, in order — but for the numbers of repeated names (`x#2`), which an upright body's turn about Z
@@ -458,7 +474,14 @@ export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessell
       for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
     };
     take(doc, snapshotOf(doc).outputs, '');
-    for (const inst of doc.instances ?? []) if (!inst.hidden) { const placed = placedDoc(inst, doc); take(placed, placedOutputs(inst, placed, doc), `${inst.id}/`); }
+    // (O10: a copy's body by its origin node — its role and key the instance's own, not a placement transform's.)
+    for (const inst of doc.instances ?? []) if (!inst.hidden) {
+      const placed = placedDoc(inst, doc), base = placedBase(inst, doc);
+      for (const o of placedOutputs(inst, placed, doc)) {
+        const at = originNode(o.id, placed, base);
+        if (at !== undefined && roleOf(base.nodes[at])) left.push(`${inst.id}/${bodyKeyFor(base.nodes, at)}`); else breps.push(o.brep);
+      }
+    }
     if (!breps.length) return { error: left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.' };
     // (O9: the header names the source revision the file was made from.)
     const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}) });

@@ -40,18 +40,17 @@ test('G22 source prep uses the actual parent-row context and child override with
   assert.equal(snapshot(parent), before); assert.equal(child.machining, undefined);
 });
 
-test('visible instance owners survive placed/display body-key changes while root keys match exactly', () => {
+test('visible clearance bodies are matched by their exact key, root and placed copies alike (O10)', () => {
   const bodies = ['b1', 'b2', 'b1/child', 'arm/b1', 'arm/b2', 'armature/b1', 'arm/hand/b9', 'hidden/b1', 'base/body', 'base/body-extra'].map(key => body(key));
-  const before = snapshot(bodies), rootKeys = ['b1', 'base/body'], instanceIds = ['arm'];
-  const visible = api.visibleClearanceBodies(bodies, rootKeys, instanceIds);
-  assert.deepEqual(visible.map(b => b.key), ['b1', 'arm/b1', 'arm/b2', 'arm/hand/b9', 'base/body']);
-  assert.ok(visible.includes(bodies[3]) && visible.includes(bodies[4]), 'local arm/b1 remains visible even if its placed display body was renamed arm/b2');
+  const before = snapshot(bodies), keys = ['b1', 'base/body', 'arm/b1', 'arm/hand/b9'];
+  const visible = api.visibleClearanceBodies(bodies, keys);
+  assert.deepEqual(visible.map(b => b.key), ['b1', 'arm/b1', 'arm/hand/b9', 'base/body']);
+  assert.ok(!visible.includes(bodies[4]) && !visible.includes(bodies[5]), 'a key is never matched by its owner prefix: arm/b2 and armature/b1 stay out');
   assert.ok(visible.every(b => bodies.includes(b)), 'filtering preserves original body identity and local geometry');
-  assert.deepEqual(api.visibleClearanceBodies(bodies, [], ['arm/hand', 'arm']).map(b => b.key), ['arm/b1', 'arm/b2', 'arm/hand/b9']);
-  assert.deepEqual(api.visibleClearanceBodies(bodies, [], ['arm/hand']).map(b => b.key), ['arm/hand/b9']);
-  assert.deepEqual(api.visibleClearanceBodies(bodies, ['b2'], []).map(b => b.key), ['b2']);
-  assert.deepEqual(api.visibleClearanceBodies(bodies, [], []), []);
-  assert.equal(snapshot(bodies), before); assert.deepEqual(rootKeys, ['b1', 'base/body']); assert.deepEqual(instanceIds, ['arm']);
+  assert.deepEqual(api.visibleClearanceBodies(bodies, ['arm']).map(b => b.key), []);
+  assert.deepEqual(api.visibleClearanceBodies(bodies, ['b2']).map(b => b.key), ['b2']);
+  assert.deepEqual(api.visibleClearanceBodies(bodies, []), []);
+  assert.equal(snapshot(bodies), before); assert.deepEqual(keys, ['b1', 'base/body', 'arm/b1', 'arm/hand/b9']);
 });
 
 test('hidden invalid parent-row parts are omitted before origin preparation', () => {

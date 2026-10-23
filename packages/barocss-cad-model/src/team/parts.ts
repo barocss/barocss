@@ -5,7 +5,7 @@
 // Part agent's patch is ops on its part only, checked: its lease (NO_LEASE, LEASE_EXPIRED), the contract it was made on
 // (CONTRACT_MOVED), its scope (OUT_OF_PART); then A7's validity and the part's contract — inside its envelope, its holes
 // on its patterns (the exact cylinder's axis through each position, at the diameter), within its mass budget.
-import type { PartInstance, StudioDoc } from '../engine/doc';
+import { placedBase, type PartInstance, type StudioDoc } from '../engine/doc';
 import { placeBody, type BodyResult } from '../engine/evaluate';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
 import type { Op } from '../chat/proposals';
@@ -27,9 +27,10 @@ export interface PartTrace { seq: number; patch: PartPatch; decision: Decision; 
 
 /** The tools that change the assembly itself, not a part: a Part agent may not use them. */
 const ASSEMBLY_OPS = new Set(['add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'set_joints']);
-/** A part's bodies where the assembly places it. */
-export async function placedBodies(inst: PartInstance, evaluate: Evaluate): Promise<BodyResult[]> {
-  const r = await evaluate(inst.doc);
+/** A part's bodies where the assembly places it — its own document unplaced and flattened (placedBase, O10: the keys every
+ *  producer gives them, a sub-assembly's nested bodies among them), moved by the placement. */
+export async function placedBodies(inst: PartInstance, evaluate: Evaluate, parent?: StudioDoc): Promise<BodyResult[]> {
+  const r = await evaluate(placedBase(inst, parent));
   if (!r?.ok) return [];
   const m = rotationMatrix(inst.rotation) as unknown as number[];
   return r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, m, inst.position));
@@ -66,7 +67,7 @@ export async function integratePart(state: ChatState, patch: PartPatch, leases: 
   const r = await dispatchTool(state, 'apply_ops', { ops: patch.ops.map(op => ({ ...op, args: { ...(op.args ?? {}), part: patch.part } })) }, evaluate);
   if (r.isError) { let m = r.content; try { m = JSON.parse(r.content).error; } catch { /* plain */ } return stop('validity', 'OP_REFUSED', m); }
   const inst = r.state.doc.instances?.find(i => i.id === patch.part);
-  const bodies = inst ? await placedBodies(inst, evaluate) : [];
+  const bodies = inst ? await placedBodies(inst, evaluate, r.state.doc) : [];
   if (!inst || !bodies.length) return stop('validity', 'NOT_EVALUATED', `${patch.part} has no solid`);
   gates.push({ gate: 'validity', verdict: 'pass', findings: [] });
   // (The part's contract: its envelope, its hole patterns, its mass budget.)
