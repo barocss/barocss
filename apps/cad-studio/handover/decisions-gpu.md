@@ -2221,3 +2221,26 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     R12c.4, the narrow top bar, the shapes strip, the palette.
   - 50, 57, 60 and G3 failed when the sketch step 24 ran before them. Run as G-R24's set (49, 56–60) and G3 alone
     (load 20–22), all pass, so the cause is the FLOW_ONLY order.
+
+## G-R27 — R1c (2a): the rail's and the shapes strip's button lists memoised by their availability (roadmap R1, 2026-10-23)
+
+- **Why**: memoised buttons alone (G-R26) still left the App making each button's element again in every render, about
+  70 of them. That is 376 ms of jsxDEV in the pose row: the App renders in every frame of a joint played, an explode or
+  a section drag.
+- **What** (`ui/ToolButton.tsx`):
+  - `commandStates(list, ctx)` is each command's availability in this render, with a signature.
+  - `CommandButtons` (each rail group) and `CommandStrip` (the shapes strip's buttons inside ShapesStrip) are memoised.
+    They are made again only when the commands, that signature, the active command or a handler changes.
+  - The rail's groups and the place commands are module constants. The DOM is unchanged.
+- **Bench** (load 39 → 37, LOADED; before is G-R26's run at load 13):
+  - pose 31.2 → 23.4 ms of task a frame (budget 22);
+  - explode 27.8 → 19.7;
+  - section drag 30.8 → 23.3;
+  - pick 57.6 → 48.0;
+  - pattern 26.4 → 21.6.
+  - The toolbar's stack is gone from the profile. What is left of the App's per-frame render is its own JSX: 894 ms over
+    138 renders in the pose row. That is the next split.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 23–37), all pass: constraints, tool keys, a hole by dimensions, a box's arrows, an
+    instance placed, Bearing R12c.4, the narrow top bar, the shapes strip, the palette.
