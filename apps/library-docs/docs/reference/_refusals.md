@@ -41,7 +41,7 @@
 | `[NOT_A_SHEET]` | `part` | the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not) |
 | `[OBSTRUCTED_ABOVE]` | `part` | material … mm above … over the hole at (…, …): a blind hole from that face would cut it |
 | `[OFFSET_FOLDS]` | `blend`, `mesh` | face … curves more tightly than the wall at (…, …): its radius there … mm, the wall … mm — the offset turns over |
-| `[OPENING_AT_A_VERTEX]` | `blend` | the … /** * Refused where an offset point (each fitted cell's interpolation points) comes nearer than the wall to another part of * the body — a wall thinner … |
+| `[OPENING_AT_A_VERTEX]` | `blend` | the … … times round the vertex at (…): the wall's ends would touch there; … |
 | `[RADIUS_EXCEEDS_FACE]` | `part` | edge …: chamfer … mm is too large for walls of … and … mm |
 | `[RELIEF_REQUIRED]` | `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
 | `[SECTION_DIMENSIONS]` | `frame-sheet` | … |
