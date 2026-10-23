@@ -380,8 +380,23 @@ export function wormWheelNotes(w: NonNullable<CadPartSnapshot['outputs'][number]
 }
 /** A worm meshing with its wheel: the pair's check in verdict mode (R12b.5, D136) — the sections square to the wheel's axis. */
 export function wormMeshNotes(p: CadPartSnapshot['outputs'][number]['wormPlacement']): { text: string; warning?: boolean }[] {
-  if (p?.throatedWheel) return throatedMeshNotes(p);
-  if (!p?.wheel) return [];
+  if (!p?.wheel && !p?.throatedWheel) return [];
+  // (D240: the pair's check is ~0.5 s and depends only on the pair as placed — its notes, exactly as first computed
+  // (the time they took included), are kept by that input, so an evaluation that leaves the pair alone does not redo it.)
+  const key = pairKey(p), kept = meshNotesKept.get(key);
+  if (kept) { meshNotesKept.delete(key); meshNotesKept.set(key, kept); return kept.map(n => ({ ...n })); }
+  const notes = p.throatedWheel ? throatedMeshNotes(p) : spurWheelMeshNotes(p);
+  meshNotesKept.set(key, notes.map(n => ({ ...n })));
+  if (meshNotesKept.size > MESH_NOTES_KEPT) meshNotesKept.delete(meshNotesKept.keys().next().value!);
+  return notes;
+}
+const MESH_NOTES_KEPT = 32, meshNotesKept = new Map<string, { text: string; warning?: boolean }[]>();
+/** The pair as placed, as a key (typed arrays as their numbers). */
+const pairKey = (p: NonNullable<CadPartSnapshot['outputs'][number]['wormPlacement']>) => JSON.stringify(p, (_k, v: unknown) => ArrayBuffer.isView(v) ? Array.from(v as unknown as ArrayLike<number>) : v);
+/** Test-only: forget the kept notes (a check from nothing). */
+export function forgetMeshNotes(): void { meshNotesKept.clear(); }
+function spurWheelMeshNotes(p: NonNullable<CadPartSnapshot['outputs'][number]['wormPlacement']>): { text: string; warning?: boolean }[] {
+  if (!p.wheel) return [];
   const t0 = performance.now();
   let c: ReturnType<typeof checkPlacedWormPair>;
   try { c = checkPlacedWormPair(p.wheel, p, { mode: 'verdict' }); }
