@@ -68,7 +68,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
     {!data && blocked && <div className="row-actions"><Button variant="ghost" aria-label="Export purchase list" disabled>Export purchase list</Button></div>}
     {data && <>
       <Table className="bom-table" aria-label="BOM lines">
-        <colgroup><col className="w-5" /><col /><col className="w-7" /><col className="w-[18%]" /><col className="w-[20%]" /><col className="w-[4.5rem]" /></colgroup>
+        <colgroup><col className="w-6" /><col /><col className="w-8" /><col className="w-[16%]" /><col className="w-[19%]" /><col className="w-[5.5rem]" /></colgroup>
         <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead>Row</TableHead><TableHead>Source</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>{data.bom.lines.map((l, k) => {
           // (A plate — a gusset, an end cap — may be set bought too: a laser-cut plate ordered in, FRk1.)
@@ -89,15 +89,15 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
       {!!data.made.length && <>
         <div className="card-title" style={{ marginTop: 8 }}>MADE ELEMENTS</div>
         <Table className="bom-table" aria-label="Made elements">
-          <colgroup><col /><col className="w-7" /><col className="w-[25%]" /><col className="w-[4.5rem]" /></colgroup>
+          <colgroup><col /><col className="w-8" /><col className="w-[22%]" /><col className="w-[5.5rem]" /></colgroup>
           <TableBody>{data.made.map((m, k) => <TableRow key={k} aria-label={`Made element ${m.item}`}>
             <TableCell title={m.item}>{m.item}</TableCell><TableCell className="mono">{m.qty}</TableCell><TableCell title={m.row ?? ''}>{m.row ?? '—'}</TableCell>
             <TableCell>{toggle(m.parts, m.override ? 'made' : 'default', m.item)}</TableCell></TableRow>)}</TableBody>
         </Table>
       </>}
       <div className="muted small" aria-label="BOM totals">{data.bom.totalQty} part{data.bom.totalQty === 1 ? '' : 's'} · {data.bom.elementQty ?? 0} bought element{data.bom.elementQty === 1 ? '' : 's'} · {fmt(data.bom.totalMassG)} g (the parts')</div>
-      <div className="row-actions">
-        <label className="field"><span>With made parts</span><input type="checkbox" className="check" aria-label="Purchase list with made parts" checked={withMade} onChange={e => setWithMade(e.currentTarget.checked)} /></label>
+      <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+        <label className="flex items-center gap-1.5 whitespace-nowrap"><input type="checkbox" className="size-3.5 accent-[var(--accent)]" aria-label="Purchase list with made parts" checked={withMade} onChange={e => setWithMade(e.currentTarget.checked)} /><span>With made parts</span></label>
         <Button variant="ghost" aria-label="Export purchase list" onClick={csv}>Export purchase list</Button>
       </div>
     </>}
