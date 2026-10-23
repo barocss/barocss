@@ -8,6 +8,7 @@ import type { ModelNode, StudioDoc } from '../engine/doc';
 import { commitDrag, emptyCageSel, runOp, selectedVertices, startSession, validationOf, type CageOp, type CageSelection, type CageSession, type StudioCage } from '../subd/cageEdit';
 import type { ToolDefinition } from './api';
 import { r6Signed as r6 } from '../util/round';
+import { isObj, isVec3 } from '../util/guards';
 
 type SubdNode = Extract<ModelNode, { kind: 'subd' }>;
 type V3 = [number, number, number];
@@ -19,7 +20,6 @@ export const CAGE_MUTATORS = new Set(['subd_move', 'subd_extrude', 'subd_insert_
 /** A tool's answer: the next document and what it did, a read-only result, or why not. */
 export type CageToolResult = { doc: StudioDoc; did: string; extra: Record<string, unknown> } | { read: Record<string, unknown> } | { error: string };
 
-const isObj = (x: unknown): x is Args => !!x && typeof x === 'object' && !Array.isArray(x);
 
 /** The subd node at `index`, or why not. */
 function nodeAt(doc: StudioDoc, index: unknown): { node: SubdNode; index: number } | { error: string } {
@@ -43,7 +43,7 @@ function edgeList(x: unknown, c: StudioCage): [number, number][] | string {
   if (missing.length) return `Not edges of the cage: ${missing.slice(0, 5).map(e => `[${e.join(', ')}]`).join(', ')}${missing.length > 5 ? ' …' : ''}.`;
   return out;
 }
-const vec = (x: unknown): V3 | null => Array.isArray(x) && x.length === 3 && x.every(v => typeof v === 'number' && Number.isFinite(v)) ? [x[0], x[1], x[2]] : null;
+const vec = (x: unknown): V3 | null => isVec3(x) ? [x[0], x[1], x[2]] : null;
 
 /** A face's centre and unit normal (Newell). */
 function faceFrame(c: StudioCage, f: number): { centre: V3; normal: V3 } {

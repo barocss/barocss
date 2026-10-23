@@ -15,7 +15,8 @@ import { verifyReferences } from '../../engine/references';
 import { rememberedEvaluate } from '../../engine/evalMemo';
 import { BATCHABLE, takesArgument } from '../toolDefinitions';
 import { CHAT_COMMANDS } from './features';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, because, json, CHECKPOINTS, accept, fail, isObj } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, because, json, CHECKPOINTS, accept, fail } from '../toolKit';
+import { isObj } from '../../util/guards';
 
 /** Ops run in order on a copy, each on what the one before left: the result, or the first refusal (nothing applied). */
 export interface OpsRun { cur: ChatState; results: Record<string, unknown>[]; ops: Op[]; /** The feature ids in order before each op kept (O133: what its indices name). */ orders: string[][]; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }

@@ -11,7 +11,8 @@ import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, riskOf, riskRank, w
 import { checkSpec, modelHash } from '../spec';
 import { MUTATORS } from '../toolDefinitions';
 import { errorOf, moveOpsWith, runOps, type OpsRun } from './history';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, json, fail, isObj, strings } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartRun, type PartHandler, json, fail, strings } from '../toolKit';
+import { isObj } from '../../util/guards';
 
 /**
  * How far an agent may go on its own (D41), set per turn by the studio (`CAD_AUTONOMY`):

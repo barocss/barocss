@@ -18,6 +18,7 @@ import type { Mat3 } from '../robot/inertia';
 import { refOf } from '../app/bodyRef';
 import { bodyKeyFor } from '../engine/ids';
 import { stepLengthUnit } from '../engine/stepUnits';
+import { isVec3 as isV3 } from '../util/guards';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export interface Placement { position: Vec3; rotation: Vec3 }
@@ -376,7 +377,6 @@ export const REFERENCE_TOOLS = [
     input_schema: { type: 'object', properties: { keepout: { type: 'string' }, body: { type: 'string' } }, additionalProperties: false },
   },
 ];
-const isV3 = (v: unknown): v is Vec3 => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x));
 const isUnit = (v: unknown): v is Vec3 => isV3(v) && Math.abs(Math.hypot(...v) - 1) < 1e-6;
 const r9 = (v: number) => Number(v.toPrecision(12)) + 0;
 const v9 = (v: readonly number[]) => v.map(r9);

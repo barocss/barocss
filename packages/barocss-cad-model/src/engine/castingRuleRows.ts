@@ -6,6 +6,7 @@
 // ([CASTING_RULE_ROW]).
 import type { StudioDoc } from './doc';
 import { CAST_FAMILIES, MATERIALS_DATA, processProfile, type CastFamily, type CastingAllowances, type MachiningClass, type ProcessProfile, type ProcessThreshold, type WebSource } from '../library/materials';
+import { isObj } from '../util/guards';
 
 type CastingProcess = 'die-casting' | 'sand-casting';
 const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'sand-casting'];
@@ -20,7 +21,6 @@ export const hasCastingRules = (doc: Pick<StudioDoc, 'castingRules'>, process: s
 /** Where rules are needed and the process has none loaded. */
 export const noCastingRules = (process: string) => `[CASTING_RULE_ROW] no ${process} rules loaded — load your casting rules (samples/rows/casting-rules.json is an example)`;
 
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const pageOk = (w: unknown): w is WebSource => isObj(w) && typeof w.url === 'string' && /^https:\/\/[^\s]+$/.test(w.url) && typeof w.read === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(w.read) && typeof w.label === 'string' && w.label.trim().length > 0 && (w.note === undefined || typeof w.note === 'string');
 const MACHINING: readonly string[] = ['iron', 'steel', 'nonferrous'];
 const FIELDS = {

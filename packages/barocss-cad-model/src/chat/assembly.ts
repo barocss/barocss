@@ -16,12 +16,12 @@ import { orientPart, type OrientationScore } from '../print/orient';
 import { processProfile } from '../library/materials';
 import { UNLICENSED } from '../library/sharing';
 import { r3Signed as r3 } from '../util/round';
+import { isObj, isVec3 } from '../util/guards';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
 export interface AssemblyOutcome { doc: StudioDoc; content: string; isError: boolean; changed: boolean; summary: string }
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const json = (v: unknown) => JSON.stringify(v);
 const fail = (doc: StudioDoc, error: string, extra: Record<string, unknown> = {}): AssemblyOutcome => ({ doc, content: json({ ok: false, error, ...extra }), isError: true, changed: false, summary: error });
 
@@ -86,7 +86,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
 }
 
 const nextId = (used: Set<string>, prefix: string) => { let n = 1; while (used.has(`${prefix}${n}`)) n++; return `${prefix}${n}`; };
-const vec3 = (v: unknown): [number, number, number] | null => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? v as [number, number, number] : null;
+const vec3 = (v: unknown): [number, number, number] | null => isVec3(v) ? v : null;
 
 async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: BodyResult[], evaluate: Evaluate, extra: Record<string, unknown> = {}): Promise<AssemblyOutcome> {
   const s = solveDoc(next, doc.instances);
