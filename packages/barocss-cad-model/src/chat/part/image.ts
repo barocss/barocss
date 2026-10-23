@@ -81,7 +81,6 @@ const centroidOf = (p: Pt[]): Pt => {
   return a ? [x / (3 * a), y / (3 * a)] : p[0];
 };
 const areaOf = (p: Pt[]) => { let a = 0; for (let i = 0; i < p.length; i++) { const q = p[(i + 1) % p.length]; a += p[i][0] * q[1] - q[0] * p[i][1]; } return a / 2; };
-const insidePoly = (pt: Pt, poly: Pt[]) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > pt[1]) !== (yj > pt[1]) && pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi) c = !c; } return c; };
 
 /** Section scales of an inflated body (pebble-like: round at the rim, full in the middle). */
 export const INFLATE = [-1, -0.5, 0, 0.5, 1].map(t => ({ t, z: Math.sin(t * Math.PI / 2) / 2, s: Math.max(0.18, Math.cos(t * Math.PI / 2)) }));
@@ -90,7 +89,7 @@ const BUMP = [0, 0.4, 0.75, 1].map(t => ({ z: t, s: Math.max(0.2, Math.cos(t * M
 /** The front surface height (above the mid plane) of an inflated outline at a point, or null outside it. */
 export function surfaceAt(outline: Pt[], centre: Pt, depth: number, p: Pt): number | null {
   // The smallest section scale that still holds the point; the sections follow z = depth/2 · √(1 − s²).
-  const holds = (s: number) => insidePoly([centre[0] + (p[0] - centre[0]) / s, centre[1] + (p[1] - centre[1]) / s], outline);
+  const holds = (s: number) => inside([centre[0] + (p[0] - centre[0]) / s, centre[1] + (p[1] - centre[1]) / s], outline);
   if (!holds(1)) return null;
   let lo = INFLATE[INFLATE.length - 1].s, hi = 1;
   if (holds(lo)) return depth / 2 * Math.sqrt(1 - lo * lo);

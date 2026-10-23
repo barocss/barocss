@@ -7435,3 +7435,33 @@ Their parts are `base:<body key>`; `targetOf` read that whole string as an insta
 - cad-model suite at --test-concurrency=4: 964 of 964 (the 960 of R3a, plus volume-basis's 4), 291 s, at load 40 → 21;
 - studio volume-basis-merge 1/1; tsc of model and studio; eslint 0 errors on the changed files (App.tsx and sectionView.ts among them).
 - Flow at `d803fa40f`, FLOW_ONLY the body panel and section steps, from a detached scratch worktree on port 52391, at load 39 → 37: 73 section view, 91 mass, 262 G19.2, 263 G19.3, 264 G19.4 and 266 G20.2, all ok (each on either renderer where it says so).
+
+## R3b — chat/tools.ts by action group: the features group, the person-row steps, ranged and point checks (2026-10-23)
+
+**Moved, verbatim** (as R3a): chat/part/features.ts holds the features group's handlers and their data.
+- The handlers: run_command, add_features, edit_feature, delete_feature, set_material, load_rows, set_stock, set_casting, set_frame_stock, set_frame_sections, set_welds.
+- Their data: CHAT_COMMANDS, COMMAND_DOCS, removeRows.
+- tools.ts is 1,021 lines (1,309 after R3a, 1,699 before R3). It imports CHAT_COMMANDS and COMMAND_DOCS back for describe and re-exports them.
+
+**The survey's items in this checkpoint:**
+- **4, the person-row actions' steps.** set_stock, set_frame_stock and set_frame_sections repeated the same four steps; they now call `rowsAsked(args, other)` and `fileRows(state, args, kind)` in features.ts. The four steps:
+  - rows from the agent refused (ROWS_NOT_FROM_PERSON);
+  - the ids to remove;
+  - "Give file, remove, … or any of them." / "Give file, remove or both.", built from the action's own setting;
+  - the person's file loaded when given.
+  Each action's own check still runs between the two, in the same order, and every refusal text is the same (the byte check probes each).
+- **5, ranged numbers and points.** `inRange(v, lo, hi, loOpen?)` and `isVec3(v)` in toolKit replace six inline checks and one plane check:
+  - the stock allowance, the kerf, the casting allowance and shrink, a weld's size;
+  - the casting gate, and the sketch plane's origin, normal and xAxis (tools.ts).
+  The casting allowance and shrink lacked `Number.isFinite`; their range comparisons already refused NaN and ±Infinity, so the outcome is the same for every input.
+- **7, the duplicate point-in-polygon.** image.ts's `insidePoly` was the same even–odd test as engine/geom2's `insideRing`, which the module already imports as `inside`: the same comparisons in the same order, so the same result for every input. It is gone; `surfaceAt` uses `inside`.
+- **The runner** (the coordinator approved it): scripts/test.mjs passes `--test-concurrency=$TEST_CONCURRENCY` when the variable is set. The R checkpoints run `TEST_CONCURRENCY=4 node scripts/test.mjs`; the scratch copy is retired.
+
+**The byte check** now also probes the features group, on an empty part and on a plate: 37 refusals and plain answers, and four completed changes with their documents (stock allowance, kerf, casting, material). The baseline was taken before any edit and was identical across two runs. It is identical after the move and after items 4, 5 and 7.
+
+**Verified (R3b):**
+- the byte check, identical (with the features group's probes);
+- toolset 9/9 (23,198 of 25,000, unchanged) and tool-contract 3/3;
+- the cad-model suite, `TEST_CONCURRENCY=4 node scripts/test.mjs`: 964 of 964 pass, in 299 s, at load 38 → 29;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (no studio change).
