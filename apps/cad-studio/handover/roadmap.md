@@ -51,7 +51,7 @@ moved to Later.
 | S4 | **done** O151, O152. Failures still left after S1 and S2 | outer | Each fixed or assigned with a cause |
 | S5 | Kernel failures from the window: frk-3's dropped oracle, stale S0 expectations, sweep dropping holes | kernel | **done**: D176 `b0e22e572`. The V notch moves to K1 |
 | S6 | Studio lint | GPU | **done**: `59582a911` |
-| S9 | Window and full browser flow at one commit | coordinator | The new "last fully verified" commit |
+| S9 | Window and full browser flow at one commit | coordinator | The new "last fully verified" commit. Window at 218c5604a: builds, types, lint, model 964, studio 250, gpu 189, kernel 1640/1647 (the Node pin), RB no NEW, properties pass; flow 269/272 (144, 166 fixed after it in cf8ce8fd9; 258 on WebGPU with the GPU lane). Next window after O7b and D206 |
 
 Moved out of Phase 0:
 - the V notch precision regression goes to K1 (same quadrature file as FRk6);
