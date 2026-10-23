@@ -48,7 +48,7 @@ export type DrawingFix =
   | { kind: 'remove-datum'; datum: string }
   | { kind: 'remove-frame'; frame: string }
   /** O148 X3: a section the dimension needs (DIM_ON_HIDDEN): its letter, its view and its place along that view's depth. */
-  | { kind: 'add-section'; id: string; view: SectionViewId; at: number };
+  | { kind: 'add-section'; id: string; view: SectionViewId; at: number; /** O178: an aligned section's plane normal. */ dir?: [number, number, number] };
 export interface DrawingIssue {
   code: DrawingIssueCode;
   severity: 'error' | 'warning';
@@ -337,7 +337,7 @@ export function sectionFor(ctx: IssueContext, dim: Extract<DrawingDimension, { k
   }
   if (!point || !axis) return null;
   const n = Math.hypot(axis[0], axis[1], axis[2]), u = axis.map(x => x / n), k = u.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9);
-  if (k < 0) return { text: 'its axis runs along none of X, Y and Z, so no principal section shows it (an aligned section is not drawn yet).' };
+  if (k < 0) return alignedSectionFor(ctx, point, u, own);
   // (Its middle along the axis: half way between the ends of its edges, in every standard view.)
   let lo = Infinity, hi = -Infinity;
   for (const id of ['front', 'top', 'right'] as const) for (const e of ctx.views[id].edges) if (e.ends && e.name.split('|').some(f => f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, '') === own)) for (const p of e.ends) { const t = (p[0] - point[0]) * u[0] + (p[1] - point[1]) * u[1] + (p[2] - point[2]) * u[2]; lo = Math.min(lo, t); hi = Math.max(hi, t); }
@@ -349,6 +349,26 @@ export function sectionFor(ctx: IssueContext, dim: Extract<DrawingDimension, { k
   const id = view === 'front' && !list.some(x => x.id === 'A') ? 'A' : nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...list]);
   return { text: `section ${id}–${id}, square to its axis (${axisName}) through its middle (${axisName} ${fmtMM(mid)}), would show it — the fix adds it.`, fix: { kind: 'add-section', id, view, at } };
 }
+/**
+ * O178: a feature whose axis runs along none of X, Y and Z — a keyway in a tilted bore — is shown by an aligned section,
+ * the plane square to its axis through its middle: laid out as the principal view's whose depth is nearest the axis,
+ * its normal the axis turned to that depth's side. A section already there (the same plane): Auto-dimension.
+ */
+function alignedSectionFor(ctx: IssueContext, point: readonly number[], u: readonly number[], own: string): { text: string; fix?: DrawingFix } | null {
+  let lo = Infinity, hi = -Infinity;
+  for (const id of ['front', 'top', 'right'] as const) for (const e of ctx.views[id].edges) if (e.ends && e.name.split('|').some(f => f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, '') === own)) for (const p of e.ends) { const t = (p[0] - point[0]) * u[0] + (p[1] - point[1]) * u[1] + (p[2] - point[2]) * u[2]; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+  if (!(lo <= hi)) return null;
+  // (The view: the principal one whose depth lies nearest the axis; the normal on that depth's side, so it is seen as that view is.)
+  const view = SECTION_VIEWS.reduce((best, v) => Math.abs(dotOf(sectionDepth(v, ctx.settings.orientation).d, u)) > Math.abs(dotOf(sectionDepth(best, ctx.settings.orientation).d, u)) ? v : best, SECTION_VIEWS[0]);
+  const side = dotOf(sectionDepth(view, ctx.settings.orientation).d, u) < 0 ? -1 : 1, r6 = (x: number) => Math.round(x * 1e6) / 1e6 + 0;
+  const dir: [number, number, number] = [r6(side * u[0]), r6(side * u[1]), r6(side * u[2])], mid = (lo + hi) / 2;
+  const n = Math.hypot(dir[0], dir[1], dir[2]), at = r6(((point[0] + u[0] * mid) * dir[0] + (point[1] + u[1] * mid) * dir[1] + (point[2] + u[2] * mid) * dir[2]) / n);
+  const list = sectionsOf(ctx.settings), there = list.find(x => x.dir && Math.abs(dotOf(x.dir, dir) / (Math.hypot(...x.dir) * n) - 1) < 1e-9 && Math.abs(x.at - at) < 1e-6);
+  if (there) return { text: `aligned section ${there.id}–${there.id} through it shows it: Auto-dimension puts it there.`, fix: { kind: 'auto-dimension' } };
+  const id = nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...list]);
+  return { text: `its axis runs along none of X, Y and Z: an aligned section ${id}–${id}, square to its axis through its middle, would show it — the fix adds it.`, fix: { kind: 'add-section', id, view, at, dir } };
+}
+const dotOf = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 /** A round edge of a face in the standard views (its circle's centre and normal: a shaft step's axis). */
 function roundEdgeOf(views: DrawingViews, face: string): { center: readonly number[]; normal: readonly number[] } | null {
   for (const id of ['front', 'top', 'right'] as const) for (const e of views[id].edges) if (e.circle && e.name.split('|').some(f => { const g = f.replace(/~sil\d*$/, '').replace(/(#\d+)+$/, ''); return g === face || g.startsWith(`${face}.`); })) return { center: e.circle.center, normal: e.circle.normal };
@@ -629,7 +649,7 @@ export function applyFix(ctx: IssueContext, fix: DrawingFix): DrawingSettings {
   switch (fix.kind) {
     case 'remove': return { ...s, dimensions: s.dimensions.filter(d => d.id !== fix.dim), ...(s.frames?.some(f => f.dim === fix.dim) ? { frames: s.frames.filter(f => f.dim !== fix.dim) } : {}) };
     case 'remove-datum': return { ...s, datums: (s.datums ?? []).filter(d => d.id !== fix.datum) };
-    case 'add-section': return sectionsOf(s).some(x => x.id === fix.id) ? s : withSections(s, [...sectionsOf(s), { id: fix.id, view: fix.view, at: fix.at }]);
+    case 'add-section': return sectionsOf(s).some(x => x.id === fix.id) ? s : withSections(s, [...sectionsOf(s), { id: fix.id, view: fix.view, at: fix.at, ...(fix.dir ? { dir: fix.dir } : {}) }]);
     case 'remove-frame': return { ...s, frames: (s.frames ?? []).filter(f => f.id !== fix.frame) };
     case 'move': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? { ...d, place: fix.place } : d) };
     case 'move-note': return { ...s, notes: (s.notes ?? []).map(n => n.id === fix.note ? { ...n, at: fix.at } : n) };

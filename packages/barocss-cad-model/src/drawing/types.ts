@@ -134,8 +134,18 @@ export interface DrawingSettings {
   datums?: DrawingDatum[];
   frames?: DrawingFrame[];
 }
-/** O148 X1: a section — its letter, the view whose depth its plane is square to, and where along that depth (mm). */
-export interface DrawingSection { id: string; view: SectionViewId; at: number }
+/**
+ * O148 X1: a section — its letter, the view whose depth its plane is square to, and where along that depth (mm).
+ * O178, an aligned section: `dir`, the plane's own normal (model axes, any length; the section's depth, away from its
+ * viewer) — square to an off-axis feature's axis — with `at` along it (the plane dot(p, dir/|dir|) = at). It is laid out
+ * as `view`'s sections are and drawn with `view`'s up (made square to `dir`); its cutting plane shows edge-on in a view
+ * whose depth is square to `dir`.
+ */
+export interface DrawingSection { id: string; view: SectionViewId; at: number; dir?: [number, number, number] }
+/** Whether two sections are the same cut: letter, view, place and (an aligned one's) direction. */
+export const sameSection = (a: DrawingSection, b: DrawingSection): boolean => a.id === b.id && a.view === b.view && a.at === b.at && JSON.stringify(a.dir ?? null) === JSON.stringify(b.dir ?? null);
+/** A direction an aligned section may have: three finite numbers, not all zero. */
+export const sectionDirOk = (d: unknown): d is [number, number, number] => Array.isArray(d) && d.length === 3 && d.every(x => typeof x === 'number' && Number.isFinite(x)) && Math.hypot(d[0], d[1], d[2]) > 1e-9;
 export type SectionViewId = 'front' | 'top' | 'right';
 export const SECTION_VIEWS: readonly SectionViewId[] = ['front', 'top', 'right'];
 /** The drawing's sections: its list, or the one `section` older files have (A on the front view). */
@@ -144,7 +154,7 @@ export const sectionsOf = (s: Pick<DrawingSettings, 'section' | 'sections'>): Dr
 export function withSections(s: DrawingSettings, list: readonly DrawingSection[]): DrawingSettings {
   const rest = { ...s }; delete rest.section; delete rest.sections;
   if (!list.length) return rest;
-  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front') return { ...rest, section: { y: list[0].at } };
+  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir) return { ...rest, section: { y: list[0].at } };
   return { ...rest, sections: list.map(x => ({ ...x })) };
 }
 /** The next free section letter (A, B, … Z; then AA, AB, …). */
@@ -162,7 +172,7 @@ export const defaultDrawing = (): DrawingSettings => ({ sheet: 'A4', projection:
 function readSections(raw: unknown): DrawingSection[] | null {
   if (!Array.isArray(raw)) return null;
   const out: DrawingSection[] = [];
-  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id)) out.push({ id: x.id, view: x.view, at: x.at });
+  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id) && (x.dir === undefined || sectionDirOk(x.dir))) out.push({ id: x.id, view: x.view, at: x.at, ...(x.dir ? { dir: [x.dir[0], x.dir[1], x.dir[2]] as [number, number, number] } : {}) });
   return out.length ? out : null;
 }
 /** Reads drawing settings from a saved file, keeping what is valid. */

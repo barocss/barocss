@@ -10,10 +10,10 @@ import { centreMarks } from './centres';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
 import { fitText, textCorners, textWidth } from './text';
-import { VIEWS, scaleLabel, sectionDepth, toSheet, type Orientation, type SectionExtent, type SectionPlacement, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
+import { VIEWS, scaleLabel, sectionDepth, sectionFrame, toSheet, type Orientation, type SectionExtent, type SectionPlacement, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSection, DrawingSettings, DrawingTable, DrawingViews, SectionViewId, Tolerance, ViewId, XY } from './types';
 import { tableLayout, tableSize, type TableContent, type TableLayout } from './table';
-import { VIEW_IDS, isSectionRef, sectionLetter, sectionsOf, type DimView, type SectionRef } from './types';
+import { VIEW_IDS, isSectionRef, sameSection, sectionLetter, sectionsOf, type DimView, type SectionRef } from './types';
 
 /** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
 export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'frame';
@@ -52,7 +52,7 @@ export function hatchGroups(rings: readonly XY[][], bodies?: readonly number[]):
 }
 /** The sections that cut (O148 X1), as the sheet draws them; one that failed is left out (its error is the caller's to say). */
 export const sheetSections = (cuts: readonly (DrawingSection & { result: { ok: true; projection: BrepProjection; rings: XY[][]; ringBodies?: number[] } | { ok: false; error: string } })[]): SheetSection[] =>
-  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, projection: c.result.projection, rings: c.result.rings, ...(c.result.ringBodies ? { ringBodies: c.result.ringBodies } : {}) }] : []);
+  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, ...(c.dir ? { dir: c.dir } : {}), projection: c.result.projection, rings: c.result.rings, ...(c.result.ringBodies ? { ringBodies: c.result.ringBodies } : {}) }] : []);
 /** The middle of the part along a section view's depth (O148 X1: where a new section is cut), from a view that sees that depth edge-on; null if none is shown. */
 export function sectionMiddle(views: DrawingViews, view: SectionViewId, orientation?: Orientation): number | null {
   const { k, sign } = sectionDepth(view, orientation);
@@ -79,7 +79,7 @@ export function projectionOf(views: DrawingViews, sheet: Pick<Sheet, 'sections'>
 /** O148 X1: the extents of the sections the settings list and the caller cut (for the layout). */
 export function sectionExtents(settings: DrawingSettings, sections?: readonly SheetSection[]): SectionExtent[] {
   const out: SectionExtent[] = [];
-  for (const x of sectionsOf(settings)) { const c = sections?.find(y => y.id === x.id && y.view === x.view && y.at === x.at); if (c) out.push({ id: x.id, view: x.view, min: c.projection.min, max: c.projection.max }); }
+  for (const x of sectionsOf(settings)) { const c = sections?.find(y => sameSection(y, x)); if (c) out.push({ id: x.id, view: x.view, min: c.projection.min, max: c.projection.max }); }
   return out;
 }
 export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon'; id?: string; view?: DimView; marks: Mark[] }
@@ -488,6 +488,7 @@ function sectionMarks(v: SectionPlacement, section: SheetSection): Mark[] {
 }
 /** A section's cutting plane, in the first shown view that sees it edge-on (none shown: none). */
 function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation?: Orientation): MarkGroup | null {
+  if (section.dir) return alignedCuttingPlane(layout, views, section, orientation);
   const marks: Mark[] = [];
   const { k, sign, d } = sectionDepth(section.view, orientation), plane = sign * section.at;
   const showing = (CUT_SHOWN[section.view] as readonly ViewId[]).find(id => !layout.views[id].hidden);
@@ -506,6 +507,41 @@ function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSe
     marks.push(across
       ? { kind: 'text', at: [tip[0] - inward * 2.5, tip[1] + 2], text: section.id, size: TEXT, anchor: inward > 0 ? 'end' : 'start', bold: true }
       : { kind: 'text', at: [tip[0] + 2.5 * seen[0], tip[1] - inward * 2.5 + 1.2], text: section.id, size: TEXT, anchor: seen[0] > 0 ? 'start' : 'end', bold: true });
+  }
+  return { role: 'section', id: section.id, view: showing, marks };
+}
+/**
+ * An aligned section's cutting plane (O178): in the first shown view whose depth is square to the plane's normal, the
+ * line dot(p, d) = at across the view (u·(right·d) + v·(up·d) = at), padded past the part; its ends' arrows point along
+ * the normal as seen in that view, the section's letter by each. None shown that sees it edge-on: none.
+ */
+function alignedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation?: Orientation): MarkGroup | null {
+  const { d } = sectionFrame(section, orientation);
+  const showing = (['front', 'top', 'right'] as const).find(id => { if (layout.views[id].hidden) return false; const t = views[id].toward; return Math.abs(t[0] * d[0] + t[1] * d[1] + t[2] * d[2]) < 1e-6; });
+  if (!showing) return null;
+  const w = layout.views[showing], pr = views[showing], pad = 6 / w.scale;
+  const a = pr.right[0] * d[0] + pr.right[1] * d[1] + pr.right[2] * d[2], b = pr.up[0] * d[0] + pr.up[1] * d[1] + pr.up[2] * d[2];
+  // (The line's points in view coordinates: its foot nearest the origin, along its direction; clipped to the padded box.)
+  const n2 = a * a + b * b, foot: XY = [a * section.at / n2, b * section.at / n2], along: XY = [-b / Math.sqrt(n2), a / Math.sqrt(n2)];
+  const box = [pr.min[0] - pad, pr.min[1] - pad, pr.max[0] + pad, pr.max[1] + pad];
+  let t0 = -Infinity, t1 = Infinity;
+  for (const k of [0, 1] as const) {
+    const lo = box[k], hi = box[k + 2];
+    if (Math.abs(along[k]) < 1e-12) { if (foot[k] < lo || foot[k] > hi) return null; continue; }
+    const p = (lo - foot[k]) / along[k], q = (hi - foot[k]) / along[k];
+    t0 = Math.max(t0, Math.min(p, q)); t1 = Math.min(t1, Math.max(p, q));
+  }
+  if (!(t0 < t1)) return null;
+  const A = toSheet(w, [foot[0] + t0 * along[0], foot[1] + t0 * along[1]]), B = toSheet(w, [foot[0] + t1 * along[0], foot[1] + t1 * along[1]]);
+  const len = Math.hypot(B[0] - A[0], B[1] - A[1]), t: XY = [(B[0] - A[0]) / len, (B[1] - A[1]) / len];
+  // (Seen: the normal in sheet coordinates — the sheet's y down — the way the arrows point.)
+  const sl = Math.hypot(a, b), seen: XY = [a / sl, -b / sl];
+  const marks: Mark[] = [{ kind: 'line', a: A, b: B, pen: 'center' }];
+  for (const [end, inward] of [[A, 1], [B, -1]] as const) {
+    marks.push({ kind: 'line', a: end, b: [end[0] + inward * 5 * t[0], end[1] + inward * 5 * t[1]], pen: 'frame' });
+    const f: XY = [end[0] + inward * 2 * t[0], end[1] + inward * 2 * t[1]], tip: XY = [f[0] + 7 * seen[0], f[1] + 7 * seen[1]];
+    marks.push({ kind: 'line', a: f, b: [tip[0] - ARROW * seen[0], tip[1] - ARROW * seen[1]], pen: 'thin' }, arrow(tip, seen));
+    marks.push({ kind: 'text', at: [tip[0] + 2.5 * seen[0] - inward * 2.5 * t[0], tip[1] + 2.5 * seen[1] - inward * 2.5 * t[1] + 1.2], text: section.id, size: TEXT, anchor: 'middle', bold: true });
   }
   return { role: 'section', id: section.id, view: showing, marks };
 }

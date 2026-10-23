@@ -5,7 +5,7 @@
 // column share their horizontal (model X) mapping, the views in one row their vertical (model Z), so
 // they stay in projection with each other.
 import type { HiddenLineView } from '@barocss/cad';
-import type { DrawingSettings, DrawingViews, SectionViewId, ViewId, XY } from './types';
+import type { DrawingSection, DrawingSettings, DrawingViews, SectionViewId, ViewId, XY } from './types';
 
 /**
  * Which side of the part the front view looks from (R14.3b, O7): `y-` (from −Y, the default and every drawing saved
@@ -34,6 +34,23 @@ export function sectionDepth(view: SectionViewId, orientation: Orientation = 'y-
   const t = viewsFor(orientation)[view].toward, d: [number, number, number] = [-t[0] || 0, -t[1] || 0, -t[2] || 0];
   const k = (d[0] ? 0 : d[1] ? 1 : 2) as 0 | 1 | 2;
   return { k, sign: d[k] > 0 ? 1 : -1, d };
+}
+
+/**
+ * A section's frame: its depth `d` (a unit vector away from its viewer), the principal axis it is square to (null for
+ * an aligned one, O178), and the view it is seen in. A principal section is seen as its view is; an aligned one looks
+ * along its own `dir`, with its view's up made square to it (or, that up along `dir`, the view's depth).
+ */
+export function sectionFrame(s: Pick<DrawingSection, 'view' | 'dir'>, o: Orientation = 'y-'): { d: [number, number, number]; principal: { k: 0 | 1 | 2; sign: 1 | -1 } | null; view: HiddenLineView } {
+  const base = viewsFor(o)[s.view];
+  if (!s.dir) { const { k, sign, d } = sectionDepth(s.view, o); return { d, principal: { k, sign }, view: base }; }
+  const n = Math.hypot(s.dir[0], s.dir[1], s.dir[2]), d: [number, number, number] = [s.dir[0] / n, s.dir[1] / n, s.dir[2] / n];
+  const square = (v: readonly number[]): [number, number, number] | null => {
+    const t = v[0] * d[0] + v[1] * d[1] + v[2] * d[2], w = [v[0] - t * d[0], v[1] - t * d[1], v[2] - t * d[2]], l = Math.hypot(w[0], w[1], w[2]);
+    return l > 1e-6 ? [w[0] / l, w[1] / l, w[2] / l] : null;
+  };
+  const back = base.toward, up = square(base.up) ?? square([-back[0], -back[1], -back[2]])!;
+  return { d, principal: null, view: { toward: [-d[0] || 0, -d[1] || 0, -d[2] || 0], up } };
 }
 
 /** Sheet sizes (landscape, mm). */

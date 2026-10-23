@@ -1,10 +1,10 @@
 // Strict source-table and section inputs for drawing.set. Saved-file readers remain permissive.
-import { sectionsOf, withSections, type DrawingSection, type DrawingSettings, type DrawingTable } from './types';
+import { sameSection, sectionDirOk, sectionsOf, withSections, type DrawingSection, type DrawingSettings, type DrawingTable } from './types';
 
 export const manufacturingDrawingProperties = {
   weldSymbols: { type: 'boolean', description: 'true enables weld symbols; false removes the flag; omitted keeps it.' },
   balloons: { type: 'boolean', description: 'true enables BOM item balloons; false removes the flag; omitted keeps it. Does not change scope.' },
-  sections: { type: 'array', description: 'Replaces all sections; [] clears them. Omitted keeps them. Referenced section changes are refused.', items: { type: 'object', properties: { id: { type: 'string', pattern: '^[A-Z]{1,2}$' }, view: { type: 'string', enum: ['front', 'top', 'right'] }, at: { type: 'number', description: 'Position along the view depth, model mm.' } }, required: ['id', 'view', 'at'], additionalProperties: false } },
+  sections: { type: 'array', description: 'Replaces all sections; [] clears them. Omitted keeps them. Referenced section changes are refused.', items: { type: 'object', properties: { id: { type: 'string', pattern: '^[A-Z]{1,2}$' }, view: { type: 'string', enum: ['front', 'top', 'right'] }, at: { type: 'number', description: 'Position along the view depth, model mm.' }, dir: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3, description: 'Aligned section: plane normal (model axes); at is along it.' } }, required: ['id', 'view', 'at'], additionalProperties: false } },
   tables: { type: 'array', description: 'Replaces all tables with model-derived source tables; [] clears them. Omitted keeps every existing table.', items: { type: 'object', properties: { id: { type: 'string', minLength: 1 }, from: { type: 'string', enum: ['bom', 'cut-list', 'weld-list'] }, title: { type: 'string' }, at: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2 }, corner: { type: 'string', enum: ['top-left', 'top-right', 'bottom-left', 'bottom-right'] }, whole: { type: 'boolean' } }, required: ['id', 'from'], additionalProperties: false } },
 };
 
@@ -19,7 +19,7 @@ export function manufacturingDrawingProblem(args: Record<string, unknown>): stri
     if (!Array.isArray(args.sections)) return '[DRAWING_OPTIONS] sections must be an array.';
     const ids = new Set<string>();
     for (const [index, s] of args.sections.entries()) {
-      if (!record(s) || !keys(s, ['id', 'view', 'at']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at)) return `[DRAWING_OPTIONS] sections[${index}] needs a unique letter id, front/top/right view and finite at, with no other keys.`;
+      if (!record(s) || !keys(s, ['id', 'view', 'at', 'dir']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at) || (s.dir !== undefined && !sectionDirOk(s.dir))) return `[DRAWING_OPTIONS] sections[${index}] needs a unique letter id, front/top/right view and finite at (an aligned section: dir, its plane's normal [x, y, z]), with no other keys.`;
       ids.add(s.id);
     }
   }
@@ -43,7 +43,7 @@ export function withManufacturingDrawing(s: DrawingSettings, args: Record<string
   }
   if ('sections' in args) {
     const list = args.sections as DrawingSection[];
-    const changed = sectionsOf(s).filter(old => !list.some(n => n.id === old.id && n.view === old.view && n.at === old.at));
+    const changed = sectionsOf(s).filter(old => !list.some(n => sameSection(n, old)));
     if (s.dimensions.some(d => changed.some(c => d.view === `section:${c.id}`))) return '[DRAWING_SECTION_REFERENCES] A changed or removed section has dimensions. Keep its definition or remove those dimensions explicitly first.';
     next = withSections(next, list);
   }

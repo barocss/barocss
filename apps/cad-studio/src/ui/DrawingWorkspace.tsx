@@ -32,7 +32,7 @@ import { writeDxf, type DxfVersion } from '@barocss/cad';
 
 import { ORIENTATIONS, SCALES, VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, withSections, type SectionViewId, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sameSection, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, withSections, type SectionViewId, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { today, useDrawingSheet } from './useDrawingSheet';
 import { Icon, Kbd } from './atoms';
@@ -139,7 +139,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (JSON.stringify(settings) !== f.want) { fixing.current = null; return; }
     if (error) { fixStep(fixRoundsOutcome(f.state)); return; }
     // (Settled: every section the settings list cut for them, the views projected.)
-    if (busy || !views || !layout || !sheet || !sectionList.every(x => cutsMade?.some(c => c.id === x.id && c.view === x.view && c.at === x.at))) return;
+    if (busy || !views || !layout || !sheet || !sectionList.every(x => cutsMade?.some(c => sameSection(c, x)))) return;
     const i = fixInputs(); if (i) fixStep(fixRound(f.state, i, fixOnly));
   }, [settings, busy, views, layout, sheet, cutsMade, error]);
   const sheetMarkup = useMemo(() => sheet ? sheetGroupsSvg(sheet, selected) : '', [sheet, selected]);
@@ -519,7 +519,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         {sectionA && cutA && !cutA.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {cutA.result.error}</div>}
         {/* (O148 X1: more sections, each square to the front, top or right view's depth; letters in order.) */}
         {sectionList.filter(x => x !== sectionA).map(x => {
-          const made = cutsMade?.find(c => c.id === x.id && c.view === x.view && c.at === x.at);
+          const made = cutsMade?.find(c => sameSection(c, x));
           return <div key={x.id} className="field" aria-label={`Section ${x.id}`}>
             <span>Section {x.id}–{x.id}</span>
             <select aria-label={`Section ${x.id} view`} value={x.view} onChange={e => { const view = e.target.value as SectionViewId, at = views ? sectionMiddle(views, view, settings.orientation) : null; if (at !== null) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, view, at } : y))); }}>

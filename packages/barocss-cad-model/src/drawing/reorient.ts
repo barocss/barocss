@@ -40,6 +40,8 @@ const readOf = (r: Resolved) => r.ok ? `${r.text} (${r.value})` : `lost: ${r.rea
 export function turnSections(settings: DrawingSettings, next: Orientation): DrawingSection[] | { across: DrawingSection } {
   const was = orientationOf(settings), kept: DrawingSection[] = [];
   for (const x of sectionsOf(settings)) {
+    // (O178: an aligned section's plane is the model's own — its normal and place in model axes — whatever the front.)
+    if (x.dir) { kept.push({ ...x }); continue; }
     const along = dot(sectionDepth(x.view, was).d, sectionDepth(x.view, next).d);
     if (Math.abs(along) < 0.5) return { across: x };
     kept.push({ ...x, at: along * x.at });
