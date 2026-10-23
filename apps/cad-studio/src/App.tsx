@@ -30,7 +30,7 @@ import { CamPanel } from './viewport/CamPanel';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
-import { ToolButton } from './ui/ToolButton';
+import { CommandButtons, CommandStrip, commandStates } from './ui/ToolButton';
 import { useDrawingSheet } from './ui/useDrawingSheet';
 import { pmiSelection } from './viewport/pmiGeometry';
 import { useCamPreview } from './viewport/camPreview';
@@ -47,7 +47,6 @@ import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
-import { ShapesStrip } from './ui/ShapesStrip';
 import { ContextMenu } from './ui/ContextMenu';
 import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
@@ -193,6 +192,10 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
 const NO_INSTANCES: PartInstance[] = [];
+// (The rail's groups and the shapes strip's commands, made once: the button lists compare them by identity.)
+const TOOL_GROUPS = ['create', 'modify', 'pattern', 'combine', 'inspect'] as const;
+const GROUP_COMMANDS = TOOL_GROUPS.map(g => commands.filter(c => c.group === g && !c.place));
+const PLACE_COMMANDS = commands.filter(c => c.place);
 /** What a command is about to add, in its preview. */
 const PREVIEW_TINT = '#7fb2f0';
 /** A history entry's time, local and short (as stored, if not a time). */
@@ -1806,10 +1809,8 @@ export function App() {
   const toolDragEnd = useCallback((c: Command, e: React.DragEvent) => {
     if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); }
   }, []);
-  const toolButton = (c: Command) => {
-    const a = c.available(ctx);
-    return <ToolButton key={c.id} c={c} ok={a.ok} reason={a.ok ? '' : a.reason} on={active?.cmd.id === c.id} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />;
-  };
+  // (The commands' availability in this render: the button lists are made again only when it, or the active command, changes.)
+  const placeStates = commandStates(PLACE_COMMANDS, ctx), groupStates = GROUP_COMMANDS.map(list => commandStates(list, ctx));
   activeRef.current = active;
   /** The viewport selection by name, for the chat's context chips (A4.3). */
   const chatContext = useMemo(() => [
@@ -2223,7 +2224,7 @@ export function App() {
           <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
         {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
-        {!sketch && !rendering && !drawing && <ShapesStrip buttons={commands.filter(c => c.place).map(toolButton)} />}
+        {!sketch && !rendering && !drawing && <CommandStrip list={PLACE_COMMANDS} {...placeStates} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />}
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
           <button className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</button>
@@ -2278,10 +2279,10 @@ export function App() {
           {(sketch.done ?? []).some(d => d.construction) && <button className={'tool' + (sketch.hideConstruction ? ' on' : '')} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
             onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></button>}
           <button className="tool" data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
-        </>) : (['create', 'modify', 'pattern', 'combine', 'inspect'] as const).map((g, gi) => (
+        </>) : TOOL_GROUPS.map((g, gi) => (
           <div key={g} className="tool-group">
             {gi > 0 && <div className="sep" />}
-            {commands.filter(c => c.group === g && !c.place).map(toolButton)}
+            <CommandButtons list={GROUP_COMMANDS[gi]} {...groupStates[gi]} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
             {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
             {g === 'inspect' && <button className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></button>}
           </div>))}
