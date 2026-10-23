@@ -62,6 +62,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 56 and the pinned prismatic crescents: a prismatic body touching itself along a tangent line is KNOWN in RB and the fuzz, not INVALID (option b; DFM walls flag it: 0.013 / 0 mm) | D195 | done |
 | A prismatic crescent built exactly (a non-manifold edge, or a split at the tangency) | — | later (c) |
 | The fuzz's 31 refusals: triage — 6 exact contacts of separate lumps (non-manifold as one solid; over-refusals by prismatic's separate-bodies convention, a decision), 8 near-degenerate and 17 robust refusals of valid inputs (kernel weaknesses) | D196 | done |
+| Fuzz 73, 117, 139, 71 (robust refusals): a point on a sparsely sampled curve maps onto its own branch (paramOf) | D197 | done (T2) |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 

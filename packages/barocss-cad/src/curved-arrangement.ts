@@ -110,7 +110,22 @@ export function paramOf(s: CurveSegment2, p: XY): number {
     let best = 0, bd = Infinity; for (let k = 0; k <= CURVE_SAMPLES; k++) { const q = ps[k], v = (q[0] - p[0]) ** 2 + (q[1] - p[1]) ** 2; if (v < bd) { bd = v; best = k; } }
     let lo = Math.max(0, (best - 1) / CURVE_SAMPLES), hi = Math.min(1, (best + 1) / CURVE_SAMPLES);
     for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d2(m1) < d2(m2)) hi = m2; else lo = m1; }
-    return (lo + hi) / 2;
+    // (A point on a curve sampled sparsely against its turn — a plane's ellipse on a cylinder nearly along its axis, 25 mm
+    // a sample — can lie nearer a sample of another of its branches, and the search beside that sample ends far off: a
+    // crossing found exactly was taken for 6.7 mm off the curve. Then the spans of the chords nearer p than that are
+    // searched, nearest first, and the first point where p lies on the curve (within 1e-6 of its size) is kept. A point
+    // off the curve keeps the search beside its nearest sample, and so does a point by a closed curve's ends: there the
+    // chord across from its nearest end is not searched — the arrangement takes such a point at the end it is nearest.
+    // L4 fuzz 73, D197.)
+    const u0 = (lo + hi) / 2, d0 = d2(u0), on = 1e-6 * (1 + Math.abs(p[0]) + Math.abs(p[1])), N = CURVE_SAMPLES;
+    const closed = Math.hypot(ps[0][0] - ps[N][0], ps[0][1] - ps[N][1]) <= on;
+    if (d0 > on * on) for (const k of nearerChords(ps, p, d0)) {
+      if (closed && ((best === N && k === 0) || (best === 0 && k === N - 1))) continue;
+      lo = Math.max(0, (k - 0.5) / CURVE_SAMPLES); hi = Math.min(1, (k + 1.5) / CURVE_SAMPLES);
+      for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d2(m1) < d2(m2)) hi = m2; else lo = m1; }
+      if (d2((lo + hi) / 2) <= on * on) return (lo + hi) / 2;
+    }
+    return u0;
   }
   if (s.kind === 'line') { const d = [s.b[0] - s.a[0], s.b[1] - s.a[1]], l2 = d[0] * d[0] + d[1] * d[1]; return ((p[0] - s.a[0]) * d[0] + (p[1] - s.a[1]) * d[1]) / l2; }
   // Angle from the start along the sweep direction in [0, 2π); past the end it is the nearer of the
@@ -120,6 +135,16 @@ export function paramOf(s: CurveSegment2, p: XY): number {
   dt = ((dt % TWO_PI) + TWO_PI) % TWO_PI;
   if (dt > w && TWO_PI - dt < dt - w) dt -= TWO_PI;
   return dt / w;
+}
+/** The chords k (samples k to k + 1) of a polyline whose squared distance from p is below d2, nearest first. */
+function nearerChords(ps: readonly XY[], p: XY, d2: number): number[] {
+  const out: { k: number; d: number }[] = [];
+  for (let k = 0; k + 1 < ps.length; k++) {
+    const a = ps[k], b = ps[k + 1], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+    const t = l2 > 0 ? Math.min(1, Math.max(0, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2)) : 0, ex = a[0] + t * dx - p[0], ey = a[1] + t * dy - p[1], d = ex * ex + ey * ey;
+    if (d < d2) out.push({ k, d });
+  }
+  return out.sort((x, y) => x.d - y.d).map(x => x.k);
 }
 /** Distance from p to the segment. */
 export function segDistance(s: CurveSegment2, p: XY): number {
