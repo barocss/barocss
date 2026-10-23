@@ -109,7 +109,7 @@ function holeRules(doc: StudioDoc, bodies: readonly BodyResult[], profile: Proce
       const status: PrintRule['status'] = off === 'off' || x.sizeMM < t('threadMinMM') - 1e-9 ? 'fail' : off === 'none' || off === 'unknown' ? 'unknown'
         : x.sizeMM < t('threadRecMM') - 1e-9 || (x.lengthMM !== null && x.lengthMM > t('threadLengthRatio') * x.sizeMM + 1e-9) ? 'warn' : 'pass';
       const why = off === 'off' ? `drilled Ø${r3(x.boreMM!)}, not its tap drill Ø${x.tapMM} (d − P)` : x.sizeMM < t('threadMinMM') - 1e-9 ? `under M${t('threadMinMM')}, the least feasible`
-        : off === 'none' ? 'its bore is not in the part' : off === 'unknown' ? `M${x.sizeMM} is not in the fastener table (M3–M12): its tap drill unknown`
+        : off === 'none' ? 'its bore is not in the part' : off === 'unknown' ? `M${x.sizeMM} has no row in your loaded fastener sizes: its tap drill unknown`
         : x.sizeMM < t('threadRecMM') - 1e-9 ? `under M${t('threadRecMM')}, the recommended` : x.lengthMM !== null && x.lengthMM > t('threadLengthRatio') * x.sizeMM + 1e-9 ? `${r3(x.lengthMM)} mm long, over ${t('threadLengthRatio')} × d (${r3(t('threadLengthRatio') * x.sizeMM)} mm): no stronger for it` : '';
       return { x, status, why };
     });
