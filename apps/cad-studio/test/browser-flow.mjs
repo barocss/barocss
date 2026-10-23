@@ -6611,7 +6611,7 @@ try {
       assert.ok(seen[0][1] > seen[2][1] && seen.every(([, a], k) => k === 0 || a <= seen[k - 1][1]), `no more shown as the window narrows: ${JSON.stringify(seen)}`);
       // A shape from the menu starts its command.
       await page.click('[aria-label="More shapes"]');
-      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool').last(), label = await last.getAttribute('aria-label');
+      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
       await last.click();
       assert.equal(await page.locator('[role="menu"][aria-label="More shapes"]').count(), 0, 'the menu closes on a pick');
       // (Its command is the active one: its button lit when the menu opens again.)
@@ -7550,6 +7550,8 @@ try {
     // (A point of the plate's top away from its centre, where the feature's handle stands: the world point (16, 16, 8) on
     // screen, so the pick holds however wide the centre column is — G12b's dock narrows it.)
     const box = await page.locator('canvas.vp-canvas').boundingBox(), [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
+    // (Off the parts, as a world point too: the canvas's corner is the chat strip's button since G12a.)
+    const off = await page.evaluate(() => window.__studioScreenOf([-30, -30, 0]));
     const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
     assert.ok(modes.length >= 5, modes.join(','));
     const picks = [];
@@ -7561,7 +7563,7 @@ try {
       assert.ok(share > 0.005, `${mode} on ${renderer}: nothing drawn (${(100 * share).toFixed(2)} %)`);
       await snap(`g3-${mode}`);
       // (A click off the parts clears the selection; then the canvas centre: the plate's top, in every mode.)
-      await page.mouse.click(box.x + 12, box.y + 12); await page.waitForTimeout(150);
+      await page.mouse.click(...off); await page.waitForTimeout(150);
       await page.mouse.click(cx, cy); await page.waitForTimeout(250);
       picks.push(JSON.stringify(await page.evaluate(() => window.__studioSelection.selection.faces)));
     }
@@ -7571,7 +7573,7 @@ try {
     await page.selectOption('select[aria-label="CAD display mode"]', 'shaded-with-edges');
     // (Isolate: a pin selected, the plate fades; Restore view brings it back as it was.)
     // (The pin selected first: the shot to come back to is the selected view.)
-    await page.mouse.click(box.x + 12, box.y + 12);
+    await page.mouse.click(...off);
     await page.locator('.ol.instance').first().click(); await page.waitForTimeout(300);
     const before = await shot();
     await page.click('[aria-label="Isolate selection"]');
