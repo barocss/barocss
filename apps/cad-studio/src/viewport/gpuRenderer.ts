@@ -691,7 +691,8 @@ export class GpuRenderer implements ViewRenderer {
 
   /** Curved-face screen silhouettes are display lines, with no native pick identity. */
   private updateSilhouettes(): void {
-    const cache = this.silhouettes ??= new Map(), seen = new Set<Mesh>();
+    // (R2: the frame's seen set kept and cleared, not made a frame.)
+    const cache = this.silhouettes ??= new Map(), seen = this.silhouettesSeen ??= new Set<Mesh>(); seen.clear();
     for (let bi = 0; bi < this.bodies.length; bi++) {
       const b = this.bodies[bi];
       this.updateSilhouette(cache, seen, b.surface, b.result.mesh, b.edges?.material.opacity ?? (b.surface.pickable ? 0.9 : 0.15), !this.view?.hiddenBodies?.has(bi));
@@ -723,6 +724,7 @@ export class GpuRenderer implements ViewRenderer {
     return g;
   }
   private contours?: Map<DisplayMesh, Geometry | null>;
+  private silhouettesSeen?: Set<Mesh>;
   private contoursStale?: boolean;
   /** One surface's silhouette: its mesh's contour through its transform; restyled when the mode or look did. */
   private updateSilhouette(cache: NonNullable<GpuRenderer['silhouettes']>, seen: Set<Mesh>, surface: Mesh, source: DisplayMesh, opacity: number, shown: boolean): void {

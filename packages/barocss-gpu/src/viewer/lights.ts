@@ -128,13 +128,16 @@ export interface OcclusionFrame { inverseProjection: Mat4; radius: number; pixel
 
 /** The output block (see Output in shaders.ts): outline colours are sRGB, the width in device pixels. */
 /** `outlineRect`: where outlines can be (pixels x0, y0, x1, y1), or null for anywhere. */
-export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2, background: Background = null, ao: OcclusionFrame | null = null, outlineRect: readonly number[] | null = null): ArrayBuffer {
-  const b = new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
+export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2, background: Background = null, ao: OcclusionFrame | null = null, outlineRect: readonly number[] | null = null,
+  // (`into`: a block kept for it, cleared and written again — R2.)
+  into: ArrayBuffer | null = null): ArrayBuffer {
+  const b = into ?? new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
+  if (into) f.fill(0);
   f[0] = env.exposure ?? 1;
   u[1] = env.toneMapping === 'aces' ? 1 : 0;
   f[2] = outlineWidth;
   u[3] = Math.min(outlines.length, MAX_OUTLINES);
-  outlines.slice(0, MAX_OUTLINES).forEach((c, i) => f.set([...c, 1], 4 + i * 4));
+  for (let i = 0; i < outlines.length && i < MAX_OUTLINES; i++) { const c = outlines[i], k = 4 + i * 4; f[k] = c[0]; f[k + 1] = c[1]; f[k + 2] = c[2]; f[k + 3] = 1; }
   const o = 4 + MAX_OUTLINES * 4;
   if (background) { f.set([...background.top, 1], o); f.set([...background.bottom, 1], o + 4); }
   if (ao && env.ambientOcclusion) {
