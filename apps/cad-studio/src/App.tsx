@@ -53,6 +53,7 @@ import { CutListDialog } from './ui/CutListDialog';
 import { ToolsTray } from './ui/ToolsTray';
 import { BomPanel, bomHasLinkedHousing } from './ui/BomPanel';
 import { RebuildPanel, rebuildStoreOf } from './ui/RebuildPanel';
+import { useVariants } from './state/useVariants';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
@@ -574,13 +575,16 @@ export function App() {
   // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
   // (FRc, O117: the section library is model input too — a frame on a row is built from it.)
   // (FRf2, O125: and the placed parts, when a frame follows a part's sketch — not otherwise, so moving parts does not re-evaluate the base.)
-  const followsParts = doc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
+  // (O11: what is evaluated and shown is the shown variant — the master itself unless a variant or edited values are
+  // shown — regenerated from the master, which is never written by it.)
+  const variants = useVariants(doc), shownDoc = variants.shown;
+  const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
-    try { return contentKey(doc); }
+    try { return contentKey(shownDoc); }
     // A missing/hidden housing must reach the evaluator's refusal, not throw from React render.
-    catch { return doc; }
-  }, [doc]);
-  const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, doc.frames?.sections, rootContextKey, followsParts ? doc.instances : null, marker]);
+    catch { return shownDoc; }
+  }, [shownDoc]);
+  const evaluated = useMemo(() => prefixDoc(shownDoc, marker ?? shownDoc.nodes.length), [shownDoc.nodes, shownDoc.parameters, shownDoc.frames?.sections, rootContextKey, followsParts ? shownDoc.instances : null, marker]);
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
@@ -723,21 +727,21 @@ export function App() {
     setInstanceEdit(null);
   };
   // Evaluate each instance whose placed part changed (in the worker, beside the main part).
-  const instanceSources = useMemo(() => instanceEvaluationSources(doc), [doc]);
+  const instanceSources = useMemo(() => instanceEvaluationSources(shownDoc), [shownDoc]);
   useEffect(() => {
     // (R4b: each placed part on its own O9 lane, `placed:<id>`; this run's lanes cancelled by its cleanup, so a reply from
     // a document since replaced comes back stale and the run stops, setting nothing.)
-    const asked = (doc.instances ?? []).map(i => `placed:${i.id}`);
+    const asked = (shownDoc.instances ?? []).map(i => `placed:${i.id}`);
     (async () => {
       const next = new Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>();
-      for (const inst of doc.instances ?? []) {
+      for (const inst of shownDoc.instances ?? []) {
         const source = instanceSources.get(inst.id);
         if (!source?.ok) { setToast({ title: 'The placed part could not be evaluated', hint: source && !source.ok ? source.error : 'Missing part context.', detail: '' }); continue; }
         // The same placement of the same part (objects are replaced on edit, so by reference first; a new
         // object only when its content changed, compared then).
         const have = instanceBodies.get(inst.id);
         if (have && have.sourceKey === source.key && samePlacement(have.inst, inst)) { next.set(inst.id, have.inst === inst ? have : { ...have, inst }); continue; }
-        const at = revision.current++, reply = await lanes.run(`placed:${inst.id}`, { revision: at, source: source.key }, () => engine.placed(placedDoc(inst, doc), source.base, placementOf(inst), at));
+        const at = revision.current++, reply = await lanes.run(`placed:${inst.id}`, { revision: at, source: source.key }, () => engine.placed(placedDoc(inst, shownDoc), source.base, placementOf(inst), at));
         if (reply.stale) return;
         const r = reply.result;
         if (r.ok) next.set(inst.id, { key: `${inst.id}#${++instanceRun.current}`, sourceKey: source.key, inst, bodies: r.bodies });
@@ -746,7 +750,7 @@ export function App() {
       setInstanceBodies(next);
     })();
     return () => { for (const lane of asked) lanes.cancel(lane); };
-  }, [doc.instances, instanceSources]);
+  }, [shownDoc.instances, instanceSources]);
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
   const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
@@ -951,6 +955,7 @@ export function App() {
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
+    if (variants.showing) { setToast({ title: `${cmd.label} can’t run here`, hint: `Showing ${variants.showing}: show the master to edit.`, detail: '' }); return; }
     if (cmd.id === SKETCH3D_COMMAND.id) { cancel(); skel.begin(null); setSelection(emptySel); setEditNode(null); return; }
     if (cmd.action === 'sketch') {
       // On a selected flat face (horizontal or vertical), joined to its body by default; else on XY.
@@ -990,7 +995,7 @@ export function App() {
     // the current authored targets when it builds its candidate, as well as when it lists choices.
     const startCtx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } } : ctx;
     setActive({ cmd, values: cmd.defaults?.(startCtx) ?? {}, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, selection, bodies, engine, commit, evaluated.nodes]);
+  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, variants.showing]);
 
   // Shift-Enter: once the part has its new bodies (and the selection followed them), the command again.
   useEffect(() => { if (restart && !active) { setRestart(null); start(commands.find(c => c.id === restart.id) ?? restart); } }, [restart, active, start]);
