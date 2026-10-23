@@ -725,7 +725,9 @@ export function App() {
   // Evaluate each instance whose placed part changed (in the worker, beside the main part).
   const instanceSources = useMemo(() => instanceEvaluationSources(doc), [doc]);
   useEffect(() => {
-    let live = true;
+    // (R4b: each placed part on its own O9 lane, `placed:<id>`; this run's lanes cancelled by its cleanup, so a reply from
+    // a document since replaced comes back stale and the run stops, setting nothing.)
+    const asked = (doc.instances ?? []).map(i => `placed:${i.id}`);
     (async () => {
       const next = new Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>();
       for (const inst of doc.instances ?? []) {
@@ -735,14 +737,15 @@ export function App() {
         // object only when its content changed, compared then).
         const have = instanceBodies.get(inst.id);
         if (have && have.sourceKey === source.key && samePlacement(have.inst, inst)) { next.set(inst.id, have.inst === inst ? have : { ...have, inst }); continue; }
-        const r = await engine.placed(placedDoc(inst, doc), source.base, placementOf(inst), revision.current++);
-        if (!live) return;
+        const at = revision.current++, reply = await lanes.run(`placed:${inst.id}`, { revision: at, source: source.key }, () => engine.placed(placedDoc(inst, doc), source.base, placementOf(inst), at));
+        if (reply.stale) return;
+        const r = reply.result;
         if (r.ok) next.set(inst.id, { key: `${inst.id}#${++instanceRun.current}`, sourceKey: source.key, inst, bodies: r.bodies });
         else setToast(r.error);
       }
-      if (live) setInstanceBodies(next);
+      setInstanceBodies(next);
     })();
-    return () => { live = false; };
+    return () => { for (const lane of asked) lanes.cancel(lane); };
   }, [doc.instances, instanceSources]);
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
