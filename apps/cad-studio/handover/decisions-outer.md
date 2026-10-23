@@ -7977,3 +7977,98 @@ part's, so the studio's evaluation keyed a copy's first body `i1/b2` while inter
 - Not run: a flow step with a turned copy under the clearance map (the unit test covers the turn); the full flow (the
   coordinator's, per merge window).
 - tsc (model, studio) and eslint on the changed files clean.
+
+## O10 step B — the rebuild report: each feature built or reused, its time and kernel calls; mates and their loops (2026-10-23)
+
+**Why.** O10's plan, step B: before R4's caches, a read-only baseline of what an evaluation costs and why, tied to the
+revision. The kernel half is the kernel lane's (D228, 250e59ef7): `evaluateCadPart(…, { profile: true })` gives
+`snapshot.profile`, each feature's own wall time and its kernel calls.
+
+**What.**
+- **The main evaluation is profiled** (engine/evaluate.ts). evaluateDoc's snapshot is made with `{ profile: true }` (a
+  reused snapshot keeps the option), and its result carries `rebuild: { evaluated, reused, profile }`. Only evaluateDoc:
+  previews, sections, other parts and placed copies are not profiled.
+- **`rebuildReport(doc, result)`** (team/rebuild.ts, new), read only:
+  - **features**, in the kernel's order: id, node and label (featureLabel), state, ms, calls (booleans, planar
+    Booleans, tessellations, sweeps, shells, finishes). The state is `built`, `reused`, or `input`: a sketch is in the
+    profile but in neither of the kernel's lists, having no body of its own.
+  - **built** (how many and their time together), the **slowest** built one, and how many were **reused**;
+  - **mates** that cannot be met, from the studio's own solver (`solveAssembly`, as solveDoc runs it);
+  - **loops**: the mates refused as closing a loop, grouped by the parts they join;
+  - the document's **revision** (team/revision) and the **evaluation** number the times are from;
+  - **limits**: wall time, a reused feature's is its lookup; display meshes and B-reps worked out afterwards, placed
+    copies and other parts' evaluations are not counted.
+- **Cycles.** A search found one place a dependency loop can arise and is detected today: mates (mates.ts, "It closes
+  a loop"). The feature tree refers only to earlier features by index, so it cannot loop; a sketch on a face refers to
+  an earlier body; a frame on a sibling part is refused (FRf2). The report says so instead of inventing other checks.
+  The refusal's text became a shared constant (`LOOP_REASON`), unchanged, which the report groups by.
+- **Not yet:** the join with the GPU tally (frameCosts per body by the step-A key) is the panel's, step C.
+
+**Tests.** o10-rebuild 3/3 (new):
+- a first evaluation builds every body feature and marks the sketch an input; the same document again builds nothing
+  and reuses all; the hole's radius edited builds the hole again (a Boolean counted) and reuses the plate; the
+  revision changes with it;
+- a failed evaluation has no report;
+- two parts placed by each other: both mates listed, one loop [a, b] of m1 and m3; a mate on the base that can be met
+  is not listed; the loop broken, none.
+- mates 17/17 unchanged.
+
+**Verified (O10 step B, c2faf9cdf).** T2 (evaluate.ts is core):
+- model 989/989, studio 274/274; the test names as at step A but o10-rebuild's three and the sub-assembly test renamed.
+- FLOW_ONLY at c2faf9cdf, WebGPU and WebGL2: place / mate a copy, chat commits an assembly, interference and G22
+  clearance ok. "delete a feature from its editor" failed alone on both for want of its prerequisite (step 39, the
+  plate with its Ø12 hole); with it, ok on both at 38f21239f (step C's run).
+- tsc and eslint clean.
+
+## O10 step C — the Rebuild panel and query.rebuild (2026-10-23)
+
+**Why.** O10's plan, step C: show step B's report to the person and to the agent; R4's caches get measured against it.
+
+**Studio** (App.tsx lines approved; the coordinator's change: a store, not App state, as R1 asked).
+- **The last evaluation** goes into a value store (state/valueStore's pattern): App's main evaluation sets
+  `rebuildStore.set({ doc, result })` beside its bodies (App.tsx:597), so an evaluation renders only the open panel, not
+  App. `rebuildOpen` is App state (438), changed only by a click.
+- **The button:** "Rebuild" in the toolbar's inspect group after the BOM (2310), a new `cad-rebuild` icon (a block in
+  a turning arrow, drawn to the icon set; checked on the icon sheet). It closes the BOM; the panel mounts beside it under
+  the same guard (2418).
+- **ui/RebuildPanel.tsx** (new):
+  - totals: the evaluation and its basis, the revision, how many built and their time, how many reused, the whole time;
+  - the feature table: label, state (built, reused, input), ms, kernel calls; the slowest marked;
+  - the mates that cannot be met (the studio's own solve, `assembly.problems`, not solved again) and their loops;
+  - the frame costs of the display mode shown, per body by its key: polled every 500 ms while the panel is open and
+    shown again only when the counts change (never per frame); tracking on at open, off at close; this renderer only,
+    never compared across; wireframe's surface triangles "for depth only";
+  - the limits line.
+- **Wording correction (the coordinator's, from the docs lane's tour shot):** the part panel is the Browser, its title.
+  The Boolean hint said "Shift-click a second body in the Outliner" and its accessible name was "Outliner"; both say
+  Browser now. No agent-facing string named the panel.
+
+**Chat.** `query.rebuild` (handler `rebuild_report`, chat/part/query.ts), approved cold:
+- `rebuildFromScratch(doc, revision)` (engine/evaluate.ts) builds the part from nothing with the profile on and leaves
+  the main snapshot as it is, so the next evaluation still reuses what it built. It works out no bodies.
+- The report says `basis: 'from scratch'` (the panel's is `'last evaluation'`) and `evaluationMs`, the whole build's
+  time: a big part from nothing can take seconds.
+- The contract's output schema, the groups entry and tools-v2.json gain it (additive: the frozen file's one line,
+  `rebuild`). Per turn 23,198 → 23,276 of 25,000.
+- **A list gained the name:** studio chat.test.ts's handler names gain `rebuild_report`, the new action.
+
+**Also:** apps/cad-studio/scripts/test.mjs honours `TEST_CONCURRENCY` as cad-model's runner does (the coordinator's ask).
+
+**Tests.**
+- o10-rebuild 4/4: the new one, from scratch right after a warm evaluation — every body feature built, none reused,
+  the whole time at least the features'; the main evaluation after it still reuses all.
+- tool-contract: rebuild_report's result matches its schema and changes nothing. toolset, shop-context-tools 16/16.
+- A flow step, "O10 Rebuild panel": a box, then a hole drilled in it; the panel lists the hole built, the box reused,
+  the sketch an input, each timed; no mates; the clearance fixture opened, its frame costs list the eight copies
+  `i1/b1`…`i8/b1`; closed, gone.
+
+**Verified (O10 step C, 5655f09ff + deb69dc69).** T2 (evaluate.ts, App):
+- After the integration merge past D229 (R5.4 batch 1): the kernel rebuilt with build:library from clean, tsc (model,
+  studio) and eslint clean.
+- FLOW_ONLY at 38f21239f, WebGPU and WebGL2, 9 steps ok each (flow exit 0): draw a plate, delete a feature from its
+  editor, place / mate a copy, history roll back, G22 clearance, O10 frame costs, **O10 Rebuild panel** (n0 input
+  0 ms, n1 reused 0 ms, n2 built 0.4 ms on both).
+- model 990/990; studio 273/274 at 38f21239f, the one the handler-names list above; with it, chat 18/18. Test names as
+  at step B but the new from-scratch test.
+- Not run: the full flow (the coordinator's, per merge window); a live chat turn calling query.rebuild (the contract
+  test calls the handler).
