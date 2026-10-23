@@ -76,6 +76,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 137, 125 (robust refusals): a curved piece pinched at a vertex (a hole touching its boundary there) is measured | D209 | done (T2) |
 | Fuzz 15 (robust refusal): a planar piece whose middle lies where a surface only touches it is re-judged too (two bodies) | D210 | done (T2) |
 | K11: F5's remainder — a foot on a patch edge is solved along it, the iteration stops at the rounding floor (turningOf 8.1 → 4.4 s, first derivatives 4.2 M → 1.4 M) | D211 | done (T2) |
+| Fuzz 151, 46 (robust refusals): a cross-section past a cylinder face's seam is probed on the domain's other side; X2's d + t2 22.8 moves to section:B (outer lane's ruling) | D206 | done (T2) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

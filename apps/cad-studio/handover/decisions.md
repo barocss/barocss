@@ -11924,3 +11924,43 @@ Accuracy:
 
 **Test:** `test/k11-closest-edge.test.mjs`, failing before: torus edge feet within 1e-9 of a dense-scan oracle, and at
 most 1 in 20 at the step cap.
+
+## D206 — A cross-section past a cylinder face's seam goes on from the domain's other side (2026-10-23)
+
+**Finding.** L4 fuzz 151, shrunk: a box less (a cylinder ∪ a ball). Refused as "not a manifold solid (edge … has 1
+uses)". The box's bottom plane cuts the cylinder, whose face spans 270°. The plane's circle is probed in the cylinder's
+domain as two half turns, from a quarter turn before the face's seam. The second half ran past the domain's window,
+u up to s·r·(ref + π). The face's boundary beyond the seam lies at the window's other end, so the half never met it.
+The plane's interval on the wall came out wrong, the bottom face got no cut and the stitch refused. L4 fuzz 46 (three
+(a cylinder ∪ a box) in a row) was the same.
+
+**Fix (`src/analytic-boolean.ts`, `wrappedPast`).** On a cylinder, the part of a probe half that runs past the
+window is moved by one turn to the window's other side and probed there too. The halves themselves stay as they
+are. Only crossings the halves did not find (more than 10 tolerances from theirs) are added: on a face round the
+whole turn, the seam's crossing is found by both.
+
+A first version cut each half at the window's end instead. It changed the rounding of crossings on faces that were
+never wrong, and so the frozen robot MJCF/USD exports' last digits. The version above leaves them bit for bit.
+
+**What else it changes: X2 (the outer lane's ruling, 2026-10-23).** The hub bore's B–B section circle used to be cut by
+an arc running 0° → 342.5°, into the keyway gap and off the face. The section plane's own interval clipped it, so the
+section looked right but its edge was split at 171.3°, that arc's middle. Now the arc runs 17.5° → 342.5° and splits
+at 180°, the bore's extreme point.
+
+X2's d + t2 22.8 moves from top to section:B. From the top, its bore end lies under the shaft's Ø25 step, so the top
+cannot show both ends visible. The old 'top' rested on the misjudged arc's split at 171.3°. DIMENSION_LOST's count on removing B–B goes 2 → 3 with it.
+
+In `packages/barocss-cad-model/test/section-dimensions.test.ts` (the outer lane's values):
+- the hub's view is section:B;
+- 22.8 is among the section's values;
+- dropping the section loses three dimensions, not two;
+- the comments say why.
+
+**Results:**
+- 151 is valid and watertight, 60.488911 mm³ against the oracle's 60.488757 ± 1.2e-3 (0.1 e);
+- 46 is valid and watertight, 601.815458 mm³ against 601.816864 ± 4.8e-2 (−0.0 e).
+
+Both are in `robustness/corpus/fuzz/` with the oracle's volume, centroid and body count.
+
+**Tests:** `test/boolean-seam-wrap.test.mjs`, failing before: both trees strictly valid, watertight and within 3 e of
+the ray oracle.

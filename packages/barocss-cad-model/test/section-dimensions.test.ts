@@ -19,7 +19,7 @@ import { join } from 'node:path';
 
 // O148 X2: dimensions on sections — the shaft-and-hub scene of O146 (its keyseat under the hub, hidden in every standard
 // view) with B–B square to the top view's depth through the keyseat's middle (z 15): Auto-dimension finds b 6 and d − t1
-// 16.5 on the section with visible ends, so DIM_ON_HIDDEN no longer fires (the hub's d + t2 22.8 stays where it is seen); drawn and checked
+// 16.5 on the section with visible ends, so DIM_ON_HIDDEN no longer fires (the hub's d + t2 22.8 too, its bore end hidden from the top by the Ø25 step); drawn and checked
 // as a view's; a dimension on a section the sheet lacks is lost, said; turning the front with one is refused, typed.
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
@@ -42,17 +42,17 @@ const madeKey = (doc: StudioDoc): StudioDoc => ({ ...doc, nodes: doc.nodes.map(n
 const inputs = (doc: StudioDoc, extra: Partial<DrawingSettings> = {}) => { const i = drawingInputs(doc, { ...readDrawing(doc.drawing), sheet: 'A3', ...extra }); assert.ok(typeof i !== 'string', String(i)); return { ...i, meta: { ...i.meta, date: '2026-10-22' } }; };
 const keyDims = (ctx: ReturnType<typeof issueContext>) => ctx.sheet.dimensions.filter(r => r.ok && r.dim.auto && r.dim.kind === 'linear' && /keyseat|keyway/.test(JSON.stringify(r.dim)));
 
-test('X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 stays on the top view, seen there whole); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF', () => {
+test('X2: with B–B through the keyseat, Auto-dimension puts b 6 and d − t1 16.5 on the section, every end visible (d + t2 22.8 there too: from the top its bore end is under the Ø25 step); DIM_ON_HIDDEN gone; drawn there, clean; in the SVG and DXF', () => {
   const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] });
   const { settings, report } = autoLayout(i);
   assert.equal(report.dimensions.keys, 4, JSON.stringify(report.dimensions.skipped));
   const ctx = issueContext({ ...i, settings }), keys = keyDims(ctx);
   const on = keys.filter(r => r.dim.view === 'section:B').map(r => r.ok ? +r.value.toFixed(6) : NaN).sort((a, b) => a - b);
-  for (const want of [6, 16.5]) assert.ok(on.includes(want), `${want} on the section: ${on}`);
-  // (The hub's keyway is seen whole from the top as well: d + t2 22.8 stays in that view, every end visible — a section is
-  // taken only where it shows more.)
+  for (const want of [6, 16.5, 22.8]) assert.ok(on.includes(want), `${want} on the section: ${on}`);
+  // (The hub's d + t2 22.8 on the section too, D206: from the top its bore end lies under the shaft's Ø25 step (r 12.5 over
+  // the bore's r 10), hidden; B–B shows both ends visible — a section is taken only where it shows more ends visible.)
   const hub = keys.find(r => r.ok && Math.abs(r.value - 22.8) < 1e-6)!;
-  assert.equal(hub.dim.view, 'top');
+  assert.equal(hub.dim.view, 'section:B');
   // (Every end of those on visible edges of the section.)
   const pr = ctx.sheet.sections!.find(x => x.id === 'B')!.projection;
   for (const r of keys.filter(x => x.dim.view === 'section:B')) if (r.dim.kind === 'linear') for (const p of [r.dim.a, r.dim.b]) assert.ok(pr.edges.find(e => e.name === p.edge)?.pieces.some(x => x.visible), `${p.edge} visible`);
@@ -76,7 +76,7 @@ test('X2: a dimension on a section the sheet lacks is lost (DIMENSION_LOST, name
   const doc = scene(), i = inputs(doc, { sections: [{ id: 'B', view: 'top', at: -15 }] }), { settings } = autoLayout(i);
   const dropped: DrawingSettings = { ...settings, sections: undefined }; delete dropped.sections;
   const ctx = issueContext({ ...i, settings: dropped }), lost = drawingIssues(ctx).filter(x => x.code === 'DIMENSION_LOST');
-  assert.ok(lost.length === 2 && lost.every(x => /in section B–B is lost: Its section \(B–B\) is not on the sheet\.$/.test(x.message)), lost.map(x => x.message).join(' | '));
+  assert.ok(lost.length === 3 && lost.every(x => /in section B–B is lost: Its section \(B–B\) is not on the sheet\.$/.test(x.message)), lost.map(x => x.message).join(' | '));
 });
 
 test('queue 3: a section\'s dimensions carried through a reorient — B–B (square to Z) turned to a front from +X and from +Y: its dimensions stay on it and read 6 and 16.5 again; a section across the new front still refused', () => {
