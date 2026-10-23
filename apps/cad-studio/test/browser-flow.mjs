@@ -2170,7 +2170,9 @@ try {
     await snap('hole-countersink'); await press('Shift+Enter');
     // One history step, a hole of its own with the countersink (the kernel cuts the cone).
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioDoc.nodes.at(-1)?.kind === 'hole' && window.__studioDoc.nodes.at(-1)?.countersink > 0, null, { timeout: 15000 });
-    await page.waitForFunction(() => /Countersunk Ø/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    // (The step's label in the Browser: the history bar is hidden again at once, the command running on — Shift+Enter —
+    // and a wait for it caught it only while the restart was late.)
+    await page.waitForFunction(() => /Countersunk Ø/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     await page.waitForFunction(() => /Hole/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
     await field('Type').selectOption('tapped'); await field('Centre X').fill('23'); await hudReady(); await page.waitForTimeout(300);
     // (A bolt circle of the tapped holes: four round the top's middle.)
