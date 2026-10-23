@@ -54,6 +54,7 @@ import { ToolsTray } from './ui/ToolsTray';
 import { BomPanel, bomHasLinkedHousing } from './ui/BomPanel';
 import { RebuildPanel, rebuildStoreOf } from './ui/RebuildPanel';
 import { useVariants } from './state/useVariants';
+import { VariantsPanel } from './ui/VariantsPanel';
 import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
@@ -471,6 +472,7 @@ export function App() {
   const [bomOpen, setBomOpen] = useState(false);
   /** O10: the Rebuild panel, and the last evaluation it reads (a store: an evaluation renders only the open panel). */
   const [rebuildOpen, setRebuildOpen] = useState(false);
+  const [variantsOpen, setVariantsOpen] = useState(false);
   const rebuildStore = useMemo(rebuildStoreOf, []);
   // (AM2: the overhang map along +Z for the part's printing process, the bed at the bodies' lowest point.)
   const printing = processProfile(doc.process)?.additive ? processProfile(doc.process)! : null;
@@ -2367,6 +2369,7 @@ export function App() {
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
+      {variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VariantsPanel doc={doc} variants={variants} onCommit={next => commit(next, false)} onError={hint => setToast({ title: 'Variants: refused', hint, detail: '' })} onClose={() => setVariantsOpen(false)} />}
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => {
@@ -2714,6 +2717,7 @@ export function App() {
             {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
             {g === 'inspect' && <button className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></button>}
             {g === 'inspect' && <button className={'tool' + (rebuildOpen ? ' on' : '')} aria-label="Rebuild" data-tip="Rebuild" data-tip-desc="What the last rebuild cost: each feature built or reused, its time and kernel calls" onClick={() => { setBomOpen(false); setRebuildOpen(v => !v); }}><Icon name="cad-rebuild" /></button>}
+            {g === 'inspect' && <button className={'tool' + (variantsOpen ? ' on' : '')} aria-label="Variants" data-tip="Variants" data-tip-desc="The assembly's variants: its inputs and named sets of their values, one shown regenerated from the master" onClick={() => setVariantsOpen(v => !v)}><Icon name="tune" /></button>}
           </div>))}
       </nav></Profiler>
 
