@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const bundle = path.resolve(here, '../dist/index.js'), cadDist = path.resolve(here, '../../barocss-cad/dist');
-const snippets = path.resolve(here, '../../../apps/library-docs/scripts/snippets');
+const snippets = path.resolve(here, 'fixtures/shader-demos');
 const DEMOS = ['advanced-shader', 'caustics-shader', 'weave-shader', 'contour-shader', 'halftone-shader', 'reusable-shader'];
 const page = `<!doctype html><meta charset="utf-8"><script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><style>body{margin:0}canvas{display:block;width:96px;height:96px}</style><canvas id="gl" width="96" height="96"></canvas><canvas id="gpu" width="96" height="96"></canvas><canvas id="view" width="96" height="96"></canvas>`;
 

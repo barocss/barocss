@@ -1,7 +1,0 @@
-@model audit {
-  version:3; length-unit:mm;
-  @function #scaleLength(value:length,factor:scalar = 2):length { return:$value*$factor; }
-  @parameter #width { type:length; value:10 cm; }
-  @curve #profile { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[0,0,0],[$width,0,0]]; weights:[1,1]; }
-  @extrude #wall { curve:#profile; vector:[0,0,scaleLength(value:$width)]; }
-}

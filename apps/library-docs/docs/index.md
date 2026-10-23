@@ -1,46 +1,23 @@
 ---
 layout: home
 hero:
-  name: BaroCSS Libraries
-  text: Build a model. Show a scene. Keep control.
-  tagline: Choose a library, follow a task, and check its public API and support boundary.
+  name: BaroCSS CAD
+  text: Design manufacturable products with an AI agent
+  tagline: A B-rep CAD kernel, a document model and a GPU studio — all in TypeScript, no WASM.
   actions:
     - theme: brand
-      text: Choose a library
-      link: /packages/
+      text: Get started
+      link: /guide/getting-started
     - theme: alt
-      text: Browse examples
-      link: /examples/
-    - theme: alt
-      text: Read shared concepts
-      link: /concepts/coordinates
+      text: Concepts
+      link: /guide/concepts
 features:
-  - title: Create native geometry
-    details: CAD owns the model. Interop prepares copied display data and format adapters.
-    link: /packages/cad/
-  - title: Draw and inspect
-    details: GPU and Viewer provide distinct rendering and interaction contracts.
-    link: /packages/gpu/
-  - title: View a scene
-    details: Viewer loads a native model into an interactive display with its own camera and picking.
-    link: /packages/viewer/
-  - title: Render data as UI
-    details: Render converts a supported UI document to React. CSS tools retain their existing guides.
-    link: /packages/render/
+  - title: The studio
+    details: Sketch, model, assemble, draw and check a part for manufacturing in the browser, on WebGPU with a WebGL2 fallback.
+  - title: The agent
+    details: Describe what you need; the agent builds it with the same tools you use, and every change it makes is a proposal you accept.
+  - title: Manufacturing first
+    details: Drawings, BOM, CNC, 3D printing, casting, sheet metal, frames and robots — with sizes from your own shop rows, never invented.
+  - title: Correct or refused
+    details: The kernel returns an exact, valid body or a typed refusal that says why. It never guesses.
 ---
-
-## See an actual result
-
-[Browse the example catalog](/examples/) by library, source language or integrated workflow. Edit a complete input, inspect its actual result and follow the selected guide. Use [language practice](/examples/language) for CAD declarations, GPU scene styles and material expressions, or [the integrated CAD-to-GPU example](/examples/integration) for the native-to-display handoff.
-
-## Pick your first task
-
-- [Create and inspect a CAD model](/packages/cad/quickstart).
-- [Prepare native model data for a renderer](/packages/cad-interop/quickstart).
-- [Draw a GPU scene](/packages/gpu/quickstart).
-- [Load a model into Viewer](/packages/viewer/quickstart).
-- [Run a bounded Physics step](/packages/physics/quickstart).
-
-## Check availability before you start
-
-This manual describes a fixed local source snapshot. Experimental package configuration does not prove an npm release. Read [versions and availability](/concepts/versions) and the package limits before choosing a host. Existing [CSS documentation](https://barocss.com/guide/) keeps its own release pins.

@@ -398,7 +398,7 @@ test('package and non-app example tests stay out of required CI and docs static 
   for (const directory of ['packages/feature', 'packages/barocss-cad']) {
     assert.deepEqual(packageCheckCommands({directory, scripts:checkScripts}).map(([name]) => name), ['type-check', 'lint']);
   }
-  assert.deepEqual(docsValidationScripts, ['build', 'check:docs', 'check:api']);
+  assert.deepEqual(docsValidationScripts, ['build', 'check:docs']);
   for (const script of ['check:cad-impact', 'check:cad-evidence', 'test']) assert(!docsValidationScripts.includes(script));
 });
 

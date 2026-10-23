@@ -1,38 +1,13 @@
-# GPU
+# @barocss/gpu
 
-[Run and edit an actual example](/playground#gpu-scene). Read the [language reference](./language) and [material language](./material-language). Compare the input with [captured result images](./examples).
+::: warning Being written
+This page is part of the documentation rewrite (W1). Its sections are listed below; the GPU lane writes them from the code as it is now.
+:::
 
-`@barocss/gpu` compiles a bounded scene language, prepares display geometry, and draws with one WebGPU viewer (`createViewer`, also at `@barocss/gpu/viewer`). Its manifest version is `0.0.0`.
+## The viewer: scenes, geometry, materials
 
-Use `showScene(viewer, source)` for a small scene of spheres, boxes and the explicit source1 primitives. Use `viewer.add` for a CAD PreviewPacket or any other triangle or line geometry, and `materialShader`/`bindingShader` to colour it with an authored material. Use the general Engine APIs for CPU geometry, hierarchy, rays, clips and binding preparation. These paths have different inputs and limits, and share one viewer.
+## WebGPU and the WebGL2 fallback
 
-| Task | Start here |
-| --- | --- |
-| Compile and display a small source scene | [Quickstart](./quickstart) |
-| Convert a native Surface packet into scene units | [CAD mesh guide](./guides#display-a-cad-surface) |
-| Handle edits and resource cleanup | [Update guide](./guides#replace-a-scene-safely) |
-| Choose an exported function or data type | [API](./api) |
-| Find a runnable repository host | [Examples](./examples) |
-| Diagnose refusal or device loss | [Limits and errors](./limits) |
+## Compute analyses
 
-## Typed generated source
-
-Use [Generated scene](./generated-scene) to compile the separate Source2 typed-parameter, finite-repeat and conditional-object profile. Its live example shows transformed diagnostic boxes from selected coefficients. `showScene` shows Source0/1 only; this newer compiler does not add Source2 drawing or a general Engine graphics runtime.
-
-## Source, mesh and image
-
-A native CAD model retains authored geometry. A packet contains an approximate sampled mesh. A pose changes display placement. A rendered image contains pixels. Keep these records separate. A visible mesh does not certify a native Solid, and pixels cannot recover editable source.
-
-The package's workspace root and `/source` entries both select `src/index.ts`. Use a TypeScript-capable transformer with normal package resolution. The complete `publishConfig` map selects emitted JavaScript and declarations for a separate built-package checkpoint. Local public configuration does not establish an npm release.
-
-## Current Engine boundary
-
-The package exposes CPU Engine preparation and query APIs. It does **not** export the general Engine renderer from [#1183](https://github.com/barocss/barocss/issues/1183) or its textured renderer from [#1184](https://github.com/barocss/barocss/issues/1184); draw prepared Engine geometry by adding it to the viewer. The earlier WebGL2 renderers (`mountScene`, `mountMesh` and the other `mount*` scenes and viewports) are removed.
-
-Read the shared [coordinate](../../concepts/coordinates), [ownership](../../concepts/ownership) and [version](../../concepts/versions) contracts before combining packages.
-
----
-
-Source snapshot: local Git `c79d752cb3463a34e6c93cb64e3693bc493c271f` (the WebGPU viewer; the earlier renderers were removed after `5f5ad866205a21510ac69552e704cc162fa253b5`). `packages/barocss-gpu/package.json` (Manifest; local source), `packages/barocss-gpu/src/index.ts` (public root; local source), `packages/barocss-gpu/README.md` (package README; local source). Source paths identify that fixed local snapshot. Local source is the authority for this manual.
-
-[Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)
+## Frame costs

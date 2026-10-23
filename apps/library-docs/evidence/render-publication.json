@@ -1,9 +1,0 @@
-{
-  "package": "@barocss/render",
-  "version": "0.12.0",
-  "registryMetadataRead": "2026-10-10",
-  "command": "npm view @barocss/render@0.12.0 version dist.integrity --json",
-  "integrity": "sha512-Pxydlj43va6L08Pcy1JrlVwH3ARJ7zpfla2FgbDgo9QbMcUhWg0D16cQp2WwnXcDGY+gBNnp8wtILcXkmE9Deg==",
-  "historicalConsumerReceipt": "https://github.com/barocss/barocss/issues/478#issuecomment-5912779993",
-  "limits": "Metadata read only in this task. Historical consumer evidence is not a new install, byte comparison or verification of all later local source changes."
-}

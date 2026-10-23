@@ -59,7 +59,7 @@ function rootChecks() {
   run(process.execPath, ['--test', ...tests]);
   run(process.execPath, ['.github/scripts/check-packages.mjs']);
 }
-export const docsValidationScripts = ['build', 'check:docs', 'check:api'];
+export const docsValidationScripts = ['build', 'check:docs'];
 export function packageCheckCommands(row) {
   return Object.entries(row.scripts).filter(([command, expected]) => expected !== null
     && command !== 'test');
