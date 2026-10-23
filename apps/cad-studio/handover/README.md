@@ -103,6 +103,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 | K12: fuzz 110's family (Viviani's curve through a ball's pole) — the traced curve cut at the pole (the R5 session's patch), and chainCurve's refining points kept on both patches; 110 as fuzzed (a tangent point at the equator) still open | D235 | done (T1, fingerprint identical) |
 | K12: fuzz 119 — the march's closing and running-back tests used half the step taken, so a closed curve could be traced twice (8 of 40 steps on two balls); they use the step taken | D236 | done (T1, fingerprint: 119 refused → valid, nothing else) |
+| K12: fuzz 74 and 170 — a cut's loose end within 10 tolerances of a vertex or a segment ends there (cuts meeting at a triple point, each clipped against another face's map of one edge, ended 1–3e-6 apart); 170 needed no pole-safe map, 171's pole cap unchanged | D237 | done (T1, fingerprint: 74, 170 refused → built; 112 refused at the root instead) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

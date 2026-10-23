@@ -320,7 +320,44 @@ export function curveTolerance(rings: readonly (readonly CurveSegment2[])[]): nu
   return linearToleranceMM(scale);
 }
 
-function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2[] }[], tolerance?: number) {
+/**
+ * A cut's end that meets nothing (one edge there) ends at the nearest vertex within 10 tolerances, or else at the nearest
+ * point within 10 tolerances of another segment, which is split there; not a stub within 10 tolerances of its own edge's
+ * other end, nor onto a vertex or segment at that other end. Two cuts meeting where three surfaces meet are
+ * each clipped against a different face's map of the same edge, and their ends, or an end and that edge, can land a few
+ * tolerances apart: the face was then not divided. 10 tolerances is half the stitch's vertex merge radius, so no feature
+ * the stitch keeps is joined away. (L4 fuzz 74, D237.)
+ */
+function joinLooseEnds(points: readonly XY[], edges: Edge[], eps: number): void {
+  const degree = new Int32Array(points.length);
+  for (const e of edges) { degree[e.u]++; degree[e.v]++; }
+  for (let v = 0; v < points.length; v++) {
+    if (degree[v] !== 1) continue;
+    let e = 0; while (edges[e].u !== v && edges[e].v !== v) e++;
+    const other = edges[e].u === v ? edges[e].v : edges[e].u;
+    // (A stub: a cut's tail a hair past a crossing it already has. Joined to the ring beside it, it made a sliver.)
+    if (Math.hypot(points[other][0] - points[v][0], points[other][1] - points[v][1]) <= 10 * eps) continue;
+    let best = -1, bd = 10 * eps;
+    for (let w = 0; w < points.length; w++) {
+      if (w === v || w === other || degree[w] === 0) continue;
+      const d = Math.hypot(points[w][0] - points[v][0], points[w][1] - points[v][1]);
+      if (d <= bd) { bd = d; best = w; }
+    }
+    if (best >= 0) { if (edges[e].u === v) edges[e].u = best; else edges[e].v = best; degree[v] = 0; degree[best]++; continue; }
+    const p = points[v];
+    let split = -1, at = 0, sd = 10 * eps;
+    for (let f = 0; f < edges.length; f++) {
+      const g = edges[f]; if (f === e || g.u === v || g.v === v || g.u === other || g.v === other || surelyOff(g.seg, p, sd)) continue;
+      const d = segDistance(g.seg, p); if (d > sd) continue;
+      const u = paramOf(g.seg, p); if (u > 0 && u < 1) { sd = d; split = f; at = u; }
+    }
+    if (split < 0) continue;
+    const g = edges[split];
+    edges.push({ u: v, v: g.v, seg: segPart(g.seg, at, 1, p, points[g.v]), count: new Map(g.count) });
+    g.seg = segPart(g.seg, 0, at, points[g.u], p); g.v = v; degree[v] += 2;
+  }
+}
+function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2[] }[], tolerance?: number, joinEnds = false) {
   const pieces: Piece[] = [];
   for (const { polygon, ring } of rings) for (const seg of ring) for (const h of halves(seg)) pieces.push({ seg: h, polygon });
   const eps = tolerance ?? curveTolerance(rings.map(r => r.ring));
@@ -357,6 +394,7 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
       if (pc.polygon >= 0) { const c = edges[e].count; c.set(pc.polygon, (c.get(pc.polygon) ?? 0) + (forward ? 1 : -1)); }
     }
   });
+  if (joinEnds) joinLooseEnds(points, edges, eps);
   // Half-edges ordered by leaving tangent, then curvature (the more leftward-curving one later).
   const half: Half[] = [];
   edges.forEach((_, i) => { half.push({ from: edges[i].u, to: edges[i].v, edge: i, twin: 2 * i + 1, next: -1, face: -1 }, { from: edges[i].v, to: edges[i].u, edge: i, twin: 2 * i, next: -1, face: -1 }); });
@@ -527,7 +565,7 @@ export function regionMoments(region: CurveRegion2): [number, number, number, nu
  * (no winding) that lie inside it, each as outer ring + holes. Cuts outside the region are ignored.
  */
 export function curveFaceRegions(rings: readonly (readonly CurveSegment2[])[], cuts: readonly CurveSegment2[], tolerance?: number): CurveRegion2[] {
-  const arr = arrange([...rings.map(ring => ({ polygon: 0, ring })), ...cuts.map(c => ({ polygon: -1, ring: [c] }))], tolerance);
+  const arr = arrange([...rings.map(ring => ({ polygon: 0, ring })), ...cuts.map(c => ({ polygon: -1, ring: [c] }))], tolerance, true);
   const { winding, faceOfCycle, areas } = regions(arr, 1), { cycles, segOfHalf } = arr, out = new Map<number, CurveRegion2 & { holes: CurveSegment2[][] }>();
   cycles.forEach((c, i) => {
     const f = faceOfCycle[i]; if (f < 0 || !(winding.get(f)?.[0])) return;

@@ -12600,3 +12600,72 @@ refused → valid, F/E/V 18/82/82, 215.9517814 mm³, method quadrature.
 **Tests:** `test/boolean-march-close.test.mjs`, both failing before:
 - the 40 steps, each one closed chain of one lap;
 - 119 shrunk: valid, watertight, two bodies, within 3 e of the oracle.
+
+## D237 — A cut's loose end a few tolerances from a vertex or a segment ends there (2026-10-24)
+
+**Findings.** Two K12 cases, one cause.
+- **L4 fuzz seed 20261023 #74**, shrunk: a box ∩ (a cylinder ∪ a cone), their bottoms coplanar. Refused as "not a
+  manifold solid": the box's bottom edge on its side x = 1, from y 3.873 (where the cone's base rim crosses it) to the
+  corner at y 4, used once.
+- **#170** (queue item 2), shrunk: three balls r 3 in a circular pattern. Refused the same way: the first ball's seam from
+  its pole, used once.
+
+**Cause.** Where three surfaces meet, two cuts on one face, or a cut and that face's own edge, should meet at a point.
+Each is clipped against a different face's map of the same traced edge, and the ends landed a few tolerances apart: 1e-6
+is the arrangement's merge radius.
+- **74, the side x = 1:** the cone's hyperbola ended 3e-6 from the cylinder's ruling. The ruling's end was exact; the
+  traced cylinder–cone edge passes within 1.0e-7 of the true triple point. The hyperbola's end came from crossing two
+  tabulated maps on the cone's domain. The cuts did not join, the side stayed one piece (area 6, the whole face), and
+  its corner below the cone's rim stayed with it.
+- **74, the cone face:** the same hyperbola end lay 3e-6 off the middle of the cone face's edge with the cylinder.
+- **170:** on the lower half of the first ball, the third ball's circle ended 1.3e-6 beside the first two balls'
+  circle, between two of its vertices. The half kept its piece inside the third ball (7.42 mm²) and lost the piece
+  outside it (38.01 mm²), which holds the pole.
+
+Refining every crossing in 3D would move the rounding of crossings that were never wrong, as D206 found on the frozen
+robot exports. So the fix is in the arrangement, and it acts only on an end that would otherwise be left loose.
+
+**Fix (`src/brep/curved-arrangement.ts`, `joinLooseEnds`, used by `curveFaceRegions` only).** A cut's end that meets
+nothing (one edge there):
+- ends at the nearest other vertex within 10 tolerances;
+- else at the nearest point within 10 tolerances of another segment, which is split there.
+
+It does not act on a stub, an end within 10 tolerances of its own edge's other end (a cut's tail a hair past a crossing it
+already has), and it does not join onto a vertex or segment at that other end. A first version without that rule joined
+such stubs onto the ring beside them. The slivers it made broke L4 fuzz seed 20261023 #176 and seed 20261024 #171, both
+valid before; with the rule both are as before.
+
+10 tolerances is half the stitch's vertex merge radius (20), so no feature the stitch keeps is joined away. Far beyond
+it, an end stays loose (tested at 2e-5).
+
+**Results** (the ray oracle at 256² × 6):
+
+| Case | Before | After |
+|---|---|---|
+| 74 shrunk (3 leaves) | refused | 4.217298 mm³ against 4.220178 ± 1.2e-2 (−0.2 e), one body |
+| 74 as fuzzed (7 leaves) | refused | empty, as the oracle is (0) and all nudges are |
+| 170 shrunk (1 leaf, a pattern of 3) | refused | 271.769824 against 271.770355 ± 5.5e-3 (−0.1 e), one body, quadrature; all four nudges build within 0.1 e |
+| 170 as fuzzed (4 leaves) | refused | 12.566371 against 12.567062 ± 1.7e-2 (−0.0 e), one body |
+
+**Case 170 and the pole-safe map (the brief's item 2).** The brief guessed 170 needed a pole-safe domain map beside a
+closed-form sphere∩sphere, and that 171's pole cap must stay. Neither is needed. 170's cut does end on the seam 0.28 mm
+from the pole, but what lost the piece was the loose end at the triple point. With this fix:
+- seed 20261024 #171 keeps 363.2931458, method quadrature;
+- `test/mass-pole-cap.test.mjs` passes unchanged.
+
+No closed form or map change is made.
+
+**Fingerprint:** 855 cases, sha256 `ca7c13d3…` (from D236's `d9e60f0b…`). Three lines changed:
+- `fuzz:20261023:74`: refused → an empty output (the oracle's 0);
+- `fuzz:20261023:170`: refused → valid, F/E/V 4/7/5, 12.5663706 mm³, quadrature;
+- `fuzz:20261024:112`: refused → refused. Its subtrees now build, and the root refuses with "an arc does not lie in
+  its plane" instead of n5 with an edge used three times. Recorded, not fixed.
+
+**Open from it:** nudge 3 of 74 shrunk (the bottoms 1e-3 apart, no longer coplanar) is refused: an edge on the bottom
+used once.
+
+**Tests:** `test/boolean-loose-cut-ends.test.mjs`, all three failing before:
+- the arrangement: cuts 3e-6 apart, and a cut 3e-6 short of a side, divide a face (areas as the exact cuts give); an
+  end 2e-5 off stays loose;
+- 74 shrunk: valid, watertight, one body, against the oracle;
+- 170 shrunk: valid, one body, quadrature, against the oracle.
