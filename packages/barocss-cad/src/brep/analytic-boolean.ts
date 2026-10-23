@@ -271,9 +271,13 @@ function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: n
     if (k < inner.length && Math.abs(inner[k] - u) <= 1e-9) { F.push(inner[k]); isBreak.push(true); k++; continue; }
     F.push(u); isBreak.push(false);
   }
-  let table: { p: XY[]; dl: XY[]; dr: XY[] } | null | false = null;
+  let table: { p: XY[]; dl: XY[]; dr: XY[] } | null | false = null, n = F.length - 1;
   const build = () => {
-    const p: XY[] = [], dl: (XY | null)[] = [], dr: (XY | null)[] = [], n = F.length - 1;
+    // (Beside a pole the map turns fast — much of a turn of u where a curve passes a ball's pole 0.02 mm off, between two
+    // of the 128 samples — and the Hermite pieces overshoot there, a loop in the domain. Samples are added where the curve
+    // passes nearer a pole than twice their spacing. L4 fuzz 20261024 #138, D250.)
+    if (s.poles.length) { nearPoles(F, isBreak, s.poles, at3, t0, span, s.size); n = F.length - 1; }
+    const p: XY[] = [], dl: (XY | null)[] = [], dr: (XY | null)[] = [];
     const lo = Math.min(t0, t1), hi = Math.max(t0, t1);
     /**
      * The domain rate of the curve for its tangent dP at the domain point q (null where the Jacobian is singular). `toward`:
@@ -323,7 +327,6 @@ function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: n
     const L = fill(dl), R = fill(dr);
     return L && R ? { p, dl: L, dr: R } : false;
   };
-  const n = F.length - 1;
   return x => {
     if (table === null) table = build();
     if (table === false || !(span !== 0)) return exact(x);
@@ -338,6 +341,26 @@ function tabulated(s: Nurbs, g: (x: number) => XY, at3: (x: number) => P3, t0: n
     const h00 = 2 * u3 - 3 * u2 + 1, h10 = (u3 - 2 * u2 + u) * H, h01 = -2 * u3 + 3 * u2, h11 = (u3 - u2) * H;
     return [P0[0] * h00 + D0[0] * h10 + P1[0] * h01 + D1[0] * h11, P0[1] * h00 + D0[1] * h10 + P1[1] * h01 + D1[1] * h11];
   };
+}
+/**
+ * The sample fractions F (with `isBreak` alongside), each interval where the curve passes nearer a pole than twice its
+ * length cut in up to 64, so the pieces there are a quarter of the way to the pole at most. Not where it reaches the pole
+ * (within 1e-6 of the surface's size): the pole's parameter is the free one's limit there (D235), and samples beside it
+ * would each take whatever u the projection settles on.
+ */
+function nearPoles(F: number[], isBreak: boolean[], poles: readonly { point: P3 }[], at3: (x: number) => P3, t0: number, span: number, size: number): void {
+  const out: number[] = [], brk: boolean[] = [];
+  let P0 = at3(t0 + span * F[0]);
+  for (let i = 0; i + 1 < F.length; i++) {
+    out.push(F[i]); brk.push(isBreak[i]);
+    const P1 = at3(t0 + span * F[i + 1]), Pm = at3(t0 + span * (F[i] + F[i + 1]) / 2), seg = len(sub(P1, P0));
+    let d = Infinity;
+    for (const o of poles) d = Math.min(d, len(sub(P0, o.point)), len(sub(P1, o.point)), len(sub(Pm, o.point)));
+    if (d < 2 * seg && d > 1e-6 * (size + 1)) { const m = Math.min(64, Math.ceil(4 * seg / d)); for (let j = 1; j < m; j++) { out.push(F[i] + (F[i + 1] - F[i]) * j / m); brk.push(false); } }
+    P0 = P1;
+  }
+  out.push(F[F.length - 1]); brk.push(isBreak[isBreak.length - 1]);
+  F.length = 0; F.push(...out); isBreak.length = 0; isBreak.push(...brk);
 }
 /** A curve's domain map, remembered per parameter (each one costs a surface projection on a general surface). */
 function memo(g: (x: number) => XY): (x: number) => XY {
@@ -1699,7 +1722,10 @@ function mergePieces(pieces: Piece[], tol: number): Piece[] {
     // Rings in the host domain, made counter-clockwise (material left) for the union.
     const flipped = first.out < 0, orient = (r: CurveSegment2[]) => flipped ? [...r].reverse().map(segReverse) : r;
     const rings = group.flatMap(p => [p.region.outer, ...p.region.holes].map(r => orient(r.map(g => curve2(host, curve3Of(p.face, g), tol)))));
-    const joined = booleanCurveRegions(rings, [], 'union', tol);
+    // (The pieces' rings as `curveFaceRegions` made them: where it joined a cut's loose end, a few tolerances short of a
+    // segment, a ring is closed to within that. The union closes them so, or drops the piece: L4 fuzz 20261026 #112, D252,
+    // a wall's piece inside the other copy's cavity, its ring 6.7e-6 open.)
+    const joined = booleanCurveRegions(rings, [], 'union', tol, true);
     return joined.map(region => {
       const back = flipped ? { outer: [...region.outer].reverse().map(segReverse), holes: region.holes.map(h => [...h].reverse().map(segReverse)) } : region;
       const p2 = regionInteriorPoint(region) ?? [0, 0];

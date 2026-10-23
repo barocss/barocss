@@ -116,6 +116,10 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K14: 120 — a loop's spur edge (an edge out and back, two equal balls meeting in a wall's plane) left out of the rings | D247 | done (T2) |
 | K14: 126 shrunk — a cylinder tangent inside a skew one at a point gave a strict-invalid body unchecked; touch points now check the result strictly, refused when it touches itself | D248 | done (T2 at checkpoint 1: kernel 1660/1667, names +4 only, RB no NEW, cad-model 1017, studio 285; fingerprint 861 cases 01ad424b, two centroids by one bit) |
 | K14 step 2: the 33 new refusals by D196's method — 8 exact contacts, 10 near-degenerate, 15 robust (10 still refusing every nudge when shrunk, smallest: 20261025 #190 and #170, a patterned ball) | D249 | done |
+| K14 step 3: a curve's domain map sampled finely beside a pole (20261024 #138 builds); 20261025 #190's march beside a pole stays open (two remedies built it but broke 154 / D238's 25) | D250 | done (T2) |
+| K14 step 3: a long cut a tolerance short of one segment at both ends ends on it at both (20261025 #170 shrunk) | D251 | done (T2) |
+| K14 step 3: coplanar pieces joined with their rings closed as their face's arrangement closed them (20261026 #112, #34 shrunk, #194) | D252 | done (T2) |
+| K14 checkpoint 2: counts and the robust refusals' state; checkpoint 1's two centroid bits came from D246 | D253 | done (T2: kernel 1663/1670, names +3, RB no NEW, fingerprint cf100676 (138 refused → valid; 27 lines ≤ 7e-10 relative), cad-model 1017, studio 285) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 
