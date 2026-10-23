@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 // shadcn/ui's ToggleGroup, its item's look kept here (no separate Toggle): a segmented choice, one on at a time with
 // type="single".
 const toggleVariants = cva(
-  'inline-flex items-center justify-center gap-1 rounded-md px-2 h-6 text-[11px] font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+  'inline-flex items-center justify-center gap-1 rounded-md border-0 bg-transparent cursor-pointer px-2 h-6 text-[11px] font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
 );
 
 function ToggleGroup({ className, ...props }: ComponentProps<typeof ToggleGroupPrimitive.Root>) {

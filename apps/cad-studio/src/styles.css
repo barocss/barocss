@@ -229,7 +229,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 /* (The history bar between the browser panel's edge and the view bar, centred there: --corner-w is the view bar's
    measured width (ui/useBottomRow.ts). With under 280 px of room it stacks above the view bar, and what the view bar
    stacks above itself rises past it.) */
-.history { position: absolute; left: calc(270px + var(--strip-w, 0px)); right: calc(var(--corner-w, 600px) + 24px); bottom: 16px; width: fit-content; margin-inline: auto; max-width: calc(100% - 294px - var(--strip-w, 0px) - var(--corner-w, 600px)); min-width: 0; box-sizing: border-box; padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
+.history { position: absolute; left: calc(270px + var(--strip-w, 0px)); right: calc(var(--corner-w, 600px) + 24px + var(--dock-strip-w, 0px)); bottom: 16px; width: fit-content; margin-inline: auto; max-width: calc(100% - 294px - var(--strip-w, 0px) - var(--dock-strip-w, 0px) - var(--corner-w, 600px)); min-width: 0; box-sizing: border-box; padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
 .hs { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
 .hs:hover { background: #393b40; }
 .hs.edit { outline: 1px dashed var(--accent); background: var(--accent-soft); color: #f3d98f; }
@@ -241,7 +241,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .corner-left { position: absolute; left: calc(66px + var(--strip-w, 0px)); bottom: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 10px; z-index: 1; pointer-events: none; }
 /* (A narrow centre wraps the view bar onto a second row rather than past the stage's left edge; the history bar, measuring
    it, stacks above.) */
-.corner-right { position: absolute; right: calc(12px + var(--dock-strip-w, 0px)); bottom: 16px; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px; z-index: 2; max-width: calc(100% - 24px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)); }
+.corner-right { position: absolute; right: calc(12px + var(--dock-strip-w, 0px)); bottom: 16px; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px; z-index: 2; max-width: calc(100% - 76px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)); }
 .corner-right .card.views { flex-wrap: wrap; }
 .corner-right .corner-stack { position: absolute; right: 0; bottom: calc(100% + 6px); display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-height: calc(100vh - 160px); overflow-y: auto; pointer-events: none; z-index: 3; }
 .corner-right .corner-stack > * { pointer-events: auto; }

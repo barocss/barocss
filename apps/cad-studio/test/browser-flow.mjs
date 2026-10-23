@@ -7769,7 +7769,9 @@ try {
     await page.waitForTimeout(400);
     const changed = await canvasDiffers(before, await canvasShot());
     console.log(`  G22 (${renderer}): ${shown.pairs.map(p => p[2]).join(', ')}; ${(100 * changed).toFixed(2)} % of the canvas changed`);
-    assert.ok(changed > 0.002, `${renderer}: the clearance map changed ${(100 * changed).toFixed(3)} % of the canvas`);
+    // (The overlays alone: 0.09 % here. Before G12c the panel grew over the canvas in the Display popover and the shot, taken
+    // of the screen's region, counted it — the 2 % then was mostly the panel.)
+    assert.ok(changed > 0.0005, `${renderer}: the clearance map changed ${(100 * changed).toFixed(3)} % of the canvas`);
     await snap('g22-clearance');
     // (One preview at a time, G12c: Print layers chosen, the clearance map closes — and the assembly is refused there;
     // clearance chosen again, the same pairs.)
