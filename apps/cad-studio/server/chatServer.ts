@@ -263,6 +263,9 @@ export function createChatServer(options: ChatServerOptions) {
     catch (e) { emit({ type: 'done', end: 'error', error: e instanceof Error ? e.message : String(e) }); res.end(); rmSync(dir, { recursive: true, force: true }); return; }
     let aborted = false, session: string | undefined = typeof body.session === 'string' ? body.session : undefined, failure: string | undefined, stderr = '';
     res.on('close', () => { if (!res.writableFinished) { aborted = true; child.kill('SIGTERM'); } });
+    // (O15: a client gone before the CLI started — its 'close' already past — stops it now; else it runs on, unbilled to
+    // no one's view and holding the turn.)
+    if ((res.destroyed || res.socket?.destroyed) && !res.writableFinished) { aborted = true; child.kill('SIGTERM'); }
     child.stderr?.on('data', d => { stderr = (stderr + d).slice(-2000); });
     const calls = new Map<string, { name: string; input: unknown }>();
     let sent = 0, sentOps = 0, usage: TurnUsage | undefined;

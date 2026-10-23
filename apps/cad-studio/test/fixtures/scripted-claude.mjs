@@ -19,6 +19,11 @@ const text = JSON.parse(input).message.content.filter(b => b.type === 'text').ma
 const fileId = name => new RegExp(`(rows-[0-9a-f]+): ${JSON.stringify(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).exec(text)?.[1];
 const withFiles = v => typeof v === 'string' && v.startsWith('$file:') ? fileId(v.slice(6)) ?? v : Array.isArray(v) ? v.map(withFiles) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, withFiles(x)])) : v;
 const calls = withFiles(JSON.parse(/script (\{[\s\S]*\})/.exec(text)?.[1] ?? '{"calls":[]}').calls);
+// (O15's wall-clock check: a model that hangs, and a mark it leaves only if it was not killed.)
+if (process.env.CAD_SCRIPTED_SLEEP_MS) {
+  await new Promise(res => setTimeout(res, Number(process.env.CAD_SCRIPTED_SLEEP_MS)));
+  if (process.env.CAD_SCRIPTED_MARK) (await import('node:fs')).writeFileSync(process.env.CAD_SCRIPTED_MARK, 'not killed');
+}
 
 const server = spawn(cad.command, cad.args, { env: { ...process.env, ...cad.env }, stdio: ['pipe', 'pipe', 'inherit'] });
 const waiting = new Map();

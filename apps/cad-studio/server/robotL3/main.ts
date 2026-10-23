@@ -23,7 +23,8 @@ import { createChatServer } from '../chatServer';
 import { withRatings } from './tool';
 
 export const MODEL = 'claude-opus-5-5';
-const RUN_BUDGET_USD = 8, TOTAL_BUDGET_USD = 25, WALL_MS = 30 * 60 * 1000, ORIGIN = 'http://robot-l3.localhost';
+// (CAD_ROBOT_L3_WALL_MS: the wall clock's test-only override, for the dry run's hang check.)
+const RUN_BUDGET_USD = 8, TOTAL_BUDGET_USD = 25, WALL_MS = Number(process.env.CAD_ROBOT_L3_WALL_MS) || 30 * 60 * 1000, ORIGIN = 'http://robot-l3.localhost';
 const P1 = { 'base~l1': 1, 'l1~l2': 0.9, 'l2~l3': 0.6 }, P2 = { 'base~l1': -0.8, 'l1~l2': -1, 'l2~l3': -0.7 };
 /** O48's brief: arm-3r between two poses, 0.5 s dwells, 20 000 h, at 6 rad/s and 60 rad/s². */
 const BRIEF: Duty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }], life_h: 20000 };
