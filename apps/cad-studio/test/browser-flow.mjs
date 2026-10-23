@@ -5316,7 +5316,9 @@ try {
       const texts = async () => (await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text).sort();
       // One placed by hand first: the overall width.
       const clickView = async (view, u, v) => { const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]); await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y); };
-      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -30);
+      // (Placed 18 mm off the front view: at 30 the click fell on the top view's label once the centre column narrowed, G12b,
+      // and a click on a label does not place a dimension.)
+      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -18);
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 1, null, { timeout: 5000 }); await press('Escape');
       await page.click('[aria-label="Auto-dimension"]');
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 6, null, { timeout: 5000 });
@@ -7545,8 +7547,9 @@ try {
     await page.waitForFunction(() => !document.querySelector('select[aria-label="CAD display mode"]')?.disabled, null, { timeout: 5000 }).catch(() => {});
     const display = page.locator('[aria-label="Display and previews"]');
     if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
-    // (A point of the plate's top away from its centre, where the feature's handle stands.)
-    const box = await page.locator('canvas.vp-canvas').boundingBox(), cx = box.x + box.width / 2 - 120, cy = box.y + box.height / 2 + 50;
+    // (A point of the plate's top away from its centre, where the feature's handle stands: the world point (16, 16, 8) on
+    // screen, so the pick holds however wide the centre column is — G12b's dock narrows it.)
+    const box = await page.locator('canvas.vp-canvas').boundingBox(), [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
     const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
     assert.ok(modes.length >= 5, modes.join(','));
     const picks = [];
