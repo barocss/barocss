@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
 import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
-import { revisionOf } from '@barocss/cad-model/team/revision';
+import { revisionOf } from '@barocss/cad-model/util/revision';
 // #endregion import
 
 test('a document: built, evaluated, written as STEP, saved and read back', async () => {

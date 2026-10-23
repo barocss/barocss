@@ -400,7 +400,7 @@ Package pages need runnable samples. So the first packages commit adds `apps/lib
 - **Must explain:** each of the 13 row kinds: its fields, units and source field, the `unchecked` list, and the
   shipped samples.
 - **Example:** the shipped `samples/rows/fastener-sizes.json`, validated by `samples/rows.test.mjs`.
-- **Sources:** `chat/rowDefinitions.ts`, `chat/rowFiles.ts`, `chat/rowSources.ts`; `test/shop-rows.test.ts`.
+- **Sources:** `engine/rowDefinitions.ts`, `engine/rowFiles.ts`, `engine/rowSources.ts`; `test/shop-rows.test.ts`.
 
 #### Limits (`/reference/limits`): to write, about 90 lines
 
