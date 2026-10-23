@@ -11,6 +11,7 @@ import { bomViewOf, deriveBom, lumpsField, massBoundField, type Bom, type BomLin
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
 import { r6 } from '../util/round';
+import { evaluateTree } from '../assembly/instances';
 
 /** A made element's line (merged as the bought ones are): what the panel offers to mark bought. */
 export interface MadeLine { item: string; parts: string[]; qty: number; kind: string; size: string; row: string | null; override: boolean }
@@ -20,14 +21,7 @@ export interface BomPanelData { view: BomView; bom: Bom; made: MadeLine[]; /** A
 /** The panel's data: the BOM, and the made elements by line (each document evaluated once, then `bomPanelDataOf`). */
 export async function bomPanelData(doc: StudioDoc, evaluate: Evaluate, name = 'this part'): Promise<BomPanelData> {
   doc = resolveShopTree(doc);
-  const results = new Map<StudioDoc, EvalResult | null>();
-  const take = async (d: StudioDoc): Promise<void> => {
-    if (results.has(d)) return;
-    const result = await evaluate(d);
-    if (!result?.ok && d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) throw new Error(`[BEARING_HOUSING_EVALUATION] ${result ? JSON.stringify(result.error) : 'no evaluation result'}`);
-    results.set(d, result); for (const i of d.instances ?? []) await take(i.doc);
-  };
-  await take(doc);
+  const results = await evaluateTree(doc, evaluate);
   return bomPanelDataOf(doc, d => results.get(d) ?? null, name);
 }
 /** The panel's data from evaluations given at once (the chat's drawings: synchronous). */

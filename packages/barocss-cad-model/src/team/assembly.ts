@@ -1,5 +1,4 @@
 import { resolveShopTree } from '../engine/shopRows';
-import { bearingHousingRef } from '../engine/bearingContext';
 // The Assembly integrator and the BOM agent (A8.4, O36). After a part's own gates (A8.2), the whole assembly is checked
 // with the part as it would be: no two parts' bodies meet (exact on the meshes; within their chord tolerance of
 // touching, undecided), every hole pattern still on every built part that shares it (a part moved since is caught),
@@ -8,7 +7,7 @@ import { bearingHousingRef } from '../engine/bearingContext';
 // checked against the assembly (every instance counted once, the totals), with a library part's source named.
 import { meshClearance } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
-import type { BodyResult, EvalResult } from '../engine/evaluate';
+import type { BodyResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
 import { massProperties } from '../chat/analysis';
 import { meshesMeet } from '../robot/sweep';
@@ -18,6 +17,7 @@ import type { RoleReport } from './team';
 import { bomViewOf, type Bom, type BomView } from './bomCore';
 import { beadAccounting, combineBeadAccounting, incompleteBeadReason, type BeadAccounting } from '../frames/beadAccounting';
 import { r6 } from '../util/round';
+import { evaluateTree } from '../assembly/instances';
 
 export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
@@ -84,14 +84,7 @@ export interface BomRole { model: string; bom(view: BomView): Promise<Bom & Role
 export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomView> {
   doc = resolveShopTree(doc);
   // (Each document evaluated once, then the view built from the results: the same as bomViewOf with a synchronous evaluation.)
-  const results = new Map<StudioDoc, EvalResult | null>();
-  const inspect = async (d: StudioDoc): Promise<void> => {
-    if (results.has(d)) return;
-    const result = await evaluate(d);
-    if (!result?.ok && d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) throw new Error(`[BEARING_HOUSING_EVALUATION] ${result ? JSON.stringify(result.error) : 'no evaluation result'}`);
-    results.set(d, result); for (const i of d.instances ?? []) await inspect(i.doc);
-  };
-  await inspect(doc);
+  const results = await evaluateTree(doc, evaluate);
   return bomViewOf(doc, d => results.get(d) ?? null);
 }
 /** The BOM checked against the assembly: every instance on one line once, each line's quantity its parts, the totals. */
