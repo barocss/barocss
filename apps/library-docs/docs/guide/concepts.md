@@ -1,15 +1,52 @@
 # Concepts
 
-::: warning Being written
-This page is part of the documentation rewrite (W1). Its sections are listed below; the coordinator lane writes them from the code as it is now.
-:::
+A few rules run through every part of BaroCSS CAD. Knowing them makes the rest of these pages, and the studio's
+messages, easier to read.
 
-## Units and coordinates (mm, degrees; right-handed, Z up)
+## Units and coordinates
 
-## Refusals over wrong results: typed refusals, never a silent guess
+- **Lengths are millimetres.** A document records `units: 'mm'`, and every length field and readout in the studio
+  is in millimetres.
+- **Angles are degrees** in the studio's fields. A few machine-facing outputs convert, for example robot exports,
+  which write metres and radians as their formats expect.
+- **Z is up.** The XY plane is the ground, and the camera orbits about Z. **Top** looks down Z, and a box's
+  **Height Z** grows upward.
 
-## Shop rows and provenance: sizes come from a person-supplied file, each value with its source
+## Correct or refused
 
-## Revisions and sources: every result and export names the document revision it came from
+When the kernel or the document model can't produce a result it can stand behind, it refuses with a reason. It
+doesn't return an approximate body or quietly skip a step.
 
-## What is built in and what is not (no standards tables)
+- **Kernel refusals.** These are a `CadPartError` with a code: `FORMAT`, `INPUT`, `PARAMETER`, `REFERENCE`,
+  `SELECTION`, `CAPABILITY` or `GEOMETRY`. They name the feature they come from, and their message says what went
+  wrong, for example that two inputs graze within the merge radius.
+- **Typed refusals** from the document model and the agent's tools begin with a code in brackets, so people and
+  agents can both act on them. For example, `[FASTENER_SIZE_ROW] no row for M6 — load your fastener sizes …`.
+- **Unknown, not passed.** A check that lacks what it needs reports `unknown`, never `pass`. For example, a casting
+  check with no casting rules loaded.
+
+[Refusal codes](/reference/refusals) lists them, and [How it is verified](/reference/verification) describes how
+results are checked against independent answers.
+
+## Sizes come from your rows
+
+Nothing standard-like is built in: no thread table, no fastener catalogue, no casting allowances. Sizes come from
+**shop rows**, JSON files a person supplies, with each value naming its source.
+
+- In the studio, you load rows in **Library**, from your own file or from the samples that ship with
+  `@barocss/cad-model` (`samples/rows/`).
+- In the chat, you attach the file.
+- The agent can suggest a file, but it can't load rows no person supplied. It is refused with
+  `[ROWS_NOT_FROM_PERSON]`.
+- Each loaded row keeps a receipt naming its file. A placed part uses the rows of the document it is placed in.
+- Without the row a command needs, it is refused. A reading that has no row says so: no thread is drawn, no tap
+  drill is given, and the position tolerance is an estimate.
+
+The samples are examples taken from the sources each row names, not a standard. Check them against your supplier
+before you use a part for manufacture. [Shop rows](/studio/rows) covers every row kind.
+
+## The library's own values
+
+Library parts, such as an extrusion profile, a slot nut or an enclosure boss, carry their own dimensions, marked as
+the library's own estimates. They are not read from your rows. The T-slot parts' holes equal common M5 sizes; when
+your loaded fastener sizes give a different M5 value, the part's notes say so and name both.
