@@ -8328,3 +8328,21 @@ values. Part-level configurations stay as they are (folding them into variants l
   sliders' readout and drawn in the viewport; O14 — the Library's rows loader (FastenerSizes.tsx, which lists only
   fastener sizes and casting rules) gains "Load sample mounts" and a load-a-file entry for mounts, in its own pattern,
   and the mount's axis shown. Done before G12b, it stays in that one component.
+
+## D240 findings — A9's p2 and the worm pair's check (2026-10-24)
+
+- **A9's p2** ([BEARING_HOUSING_REFERENCE] … needs its current assembly and owner occurrence): not a studio failure. On
+  the GPU lane's a9.bcad, the studio's path — instanceEvaluationSources, placedDoc, the worker's wire, evaluatePlaced —
+  evaluates all seven instances. The profile bundle that refused it held two copies of engine/bearingContext.ts (its
+  checkout's node_modules linked @barocss/cad-model to another worktree), each with its own context Symbol. No change;
+  `Symbol.for` hardening left undone (it would also hide skew between copies).
+- **The worm pair** (8fa7a6ca2): wormMeshNotes keeps the kernel check's notes by the pair as placed, exactly as first
+  computed; re-evaluation 543 → 47 ms, the first open unchanged (the kernel's check, the kernel lane's code).
+- **Proposal, not built:** the spring's mass quadrature (2.05 s at open) could be computed only when the inspector, the
+  BOM or mass properties ask — a studio-side saving to weigh when the O11 UI is designed.
+- **D241 (lazy mass), stopped at measurement:** the worker's reply forces it. MeshSender.pack (engine/meshWire.ts) takes
+  each body apart with a rest spread, which reads every property, so a lazy getter would run in the worker on every
+  evaluation reply, at open included. Every other reader is on request (the inspector, InstancePanel, MapLegend,
+  sectionView, the preview ghost; in the model only cutPiece for members; factsOf and the fingerprint when called).
+  Laziness needs mass left off the wire and fetched per body, with its readers awaiting it (src/engine, App.tsx,
+  src/ui): for the post-G12b UI list, not built.
