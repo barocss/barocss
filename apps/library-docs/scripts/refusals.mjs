@@ -25,25 +25,38 @@ function sources(dir) {
   }
   return out;
 }
+/** The index just past the string or template literal opening at `i`: escapes skipped, a template's `${…}` skipped whole. */
+function pastString(text, i) {
+  const q = text[i];
+  for (i++; i < text.length && text[i] !== q; i++) {
+    if (text[i] === '\\') i++;
+    else if (q === '`' && text[i] === '$' && text[i + 1] === '{') i = pastBraces(text, i + 1) - 1;
+  }
+  return i + 1;
+}
+/** The index just past the `{…}` opening at `i`: strings, templates and comments inside it skipped. */
+function pastBraces(text, i) {
+  let depth = 0;
+  for (; i < text.length; i++) {
+    const c = text[i];
+    if (c === "'" || c === '"' || c === '`') i = pastString(text, i) - 1;
+    else if (c === '/' && text[i + 1] === '/') i = text.indexOf('\n', i) < 0 ? text.length : text.indexOf('\n', i);
+    else if (c === '/' && text[i + 1] === '*') i = text.indexOf('*/', i + 2) < 0 ? text.length : text.indexOf('*/', i + 2) + 1;
+    else if (c === '{') depth++;
+    else if (c === '}' && --depth === 0) return i + 1;
+  }
+  return text.length;
+}
 /**
  * The string literal opening at `at` (its quote), read to its closing quote: escapes kept as the character, a template's
- * `${…}` (balanced braces, strings inside it skipped) as one …. Returns the text after `skip` characters.
+ * `${…}` as one …. Returns the text after `skip` characters.
  */
 function literal(text, at, skip) {
   const q = text[at];
   let out = '', i = at + 1;
   while (i < text.length && text[i] !== q) {
     if (text[i] === '\\') { out += text[i + 1] === 'n' ? ' ' : text[i + 1]; i += 2; continue; }
-    if (q === '`' && text[i] === '$' && text[i + 1] === '{') {
-      let depth = 0;
-      for (; i < text.length; i++) {
-        const c = text[i];
-        if (c === '{') depth++;
-        else if (c === '}' && --depth === 0) { i++; break; }
-        else if (c === "'" || c === '"' || c === '`') { const close = text.indexOf(c, i + 1); if (close > i) i = close; }
-      }
-      out += '…'; continue;
-    }
+    if (q === '`' && text[i] === '$' && text[i + 1] === '{') { i = pastBraces(text, i + 1); out += '…'; continue; }
     out += text[i++];
   }
   return out.slice(skip);
@@ -57,7 +70,9 @@ function message(text) {
 /** The folder a file is in, under its area (`chat/part`, or `.` at the top). */
 const folderOf = (root, file) => relative(root, file).split('/').slice(0, -1).join('/') || '.';
 /** The example a code is shown with: its first message of 20 characters or more, else its first. */
-const example = list => (list.find(m => m.length >= 20) ?? list[0] ?? '');
+/** (A message that holds comment markers was read wrong, never shown: the scanner's guard.) */
+const readable = m => !/\/\*|\*\/|(^|\s)\/\/\s/.test(m);
+const example = list => { const ok = list.filter(readable); return ok.find(m => m.length >= 20) ?? ok[0] ?? ''; };
 
 const BRACKETED = /[`'"]\[([A-Z][A-Z0-9_]{3,})\]/g;
 
