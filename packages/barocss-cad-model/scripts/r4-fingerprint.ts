@@ -1,7 +1,7 @@
 // The documents and what is recorded of each (scripts/r4-fingerprint.mjs runs it). Documents: every .bcad in the
 // package's and the studio's test fixtures and the kernel's conformance folders; every cad-model document inside the
 // conformance JSON; each agent-call fixture (test/fixtures/*.calls.json) replayed; each RB9 rung's scripted calls at
-// its four corner trials. Recorded: the evaluation (bodies whole, meshes included; or its refusal), the rebuild's
+// its four corner trials; O11's variability fixtures, each master and its variants. Recorded: the evaluation (bodies whole, meshes included; or its refusal), the rebuild's
 // states, STEP (its time stamp left out), STL per body, B-reps (with and without made parts), the BOM, the clearance
 // map of an assembly, the drawing's dimensions and issues; and once, the tool list and prompt a model reads.
 import { createHash } from 'node:crypto';
@@ -18,6 +18,8 @@ import { drawingIssues, issueContext } from '../src/drawing/issues';
 import { RUNGS } from '../src/rb9/rungs';
 import { build, sample } from '../src/rb9/core';
 import { TOOLSET } from '../src/chat/toolset';
+import { variantNamed } from '../src/assembly/variability';
+import { o11Masters } from '../test/o11-fixtures';
 
 const repo = resolve(import.meta.dirname, '../../..');
 const ROOTS = ['packages/barocss-cad-model/test/fixtures', 'apps/cad-studio/test/fixtures', 'packages/barocss-cad/conformance'];
@@ -72,6 +74,11 @@ for (const root of ROOTS) for (const p of files(join(repo, root))) {
   if (p.endsWith('.bcad')) docs.push([name, async () => { const r = await readStudioFile(new Uint8Array(readFileSync(p))); if (!('doc' in r)) throw new Error(`${name}: ${json(r)}`); return r.doc; }]);
   else if (p.endsWith('.calls.json')) docs.push([name, async () => (await build((JSON.parse(readFileSync(p, 'utf8')) as { calls: { tool: string; args: Record<string, unknown> }[] }).calls)).doc]);
   else if (p.endsWith('.json')) { const found: [string, StudioDoc][] = []; try { docsIn(JSON.parse(readFileSync(p, 'utf8')), '', found); } catch { /* not JSON */ } for (const [at, d] of found) docs.push([`${name}#${at}`, d]); }
+}
+// (O11: each variability fixture's master and its variants, regenerated from it.)
+for (const [name, master] of await o11Masters(repo)) {
+  docs.push([`o11/${name}/master`, master]);
+  for (const v of master.variability?.variants ?? []) docs.push([`o11/${name}/${v.name}`, async () => { const r = variantNamed(master, v.name); if ('error' in r) throw new Error(r.error); return r.doc; }]);
 }
 for (const rung of RUNGS) for (let k = 0; k < 4; k++) { const p = sample(rung.space, 1, k); docs.push([`rb9/${rung.id}/${k}`, async () => (await build(rung.scripted(p), rung.prompt(p))).doc]); }
 

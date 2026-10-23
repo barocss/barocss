@@ -477,6 +477,8 @@ export function brepsFor(doc: StudioDoc, options: { made?: boolean } = {}): { br
 const placedKept = new Map<string, { placed: CadPartSnapshot; origin?: CadPartSnapshot }>();
 /** Forget the placed parts' snapshots (tests: an export from nothing to compare the reused one with). */
 export function forgetPlacedOutputs(): void { placedKept.clear(); }
+/** Forget every kept snapshot — the main part's, the previews', the other parts', the placed parts' (tests: an evaluation from nothing, O11's oracle). */
+export function forgetSnapshots(): void { last = null; lastPreview.preview = null; lastPreview.section = null; lastParts.clear(); lastBase = null; lastPlaced = null; placedKept.clear(); }
 /** Exact derived bead B-reps receive the same instance placement as the display path. No partition is recomputed. */
 function placedOutputs(inst: PartInstance, placed = placedDoc(inst), parent?: StudioDoc): CadPartSnapshot['outputs'] {
   const kept = placedKept.get(inst.id);
