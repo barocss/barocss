@@ -11578,3 +11578,26 @@ ellipses (semi-axes 0.5–1 against 300): recorded, not fixed.
 
 All four are strictly valid, watertight and one body. Over the seed's 31 refusals, 71, 73, 117 and 139 now build; the
 other 27 are as they were.
+
+## D198 — Which chords beside a pole take no strip is the same at every step (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 65, shrunk: a cone (apex) ∪ a turned cylinder. The quadrature volume was
+131.7537735 against the ray oracle's 131.7733069 ± 8.1e-6 at 1024² × 8, which is 2400 e off.
+
+**Cause.** By step, the pole part was:
+
+| Segments a quarter | 4 | 8 | 16 | 32 |
+|---|---|---|---|---|
+| Pole part | 11.1532258 | 11.1532194 | 11.0946130 | 11.0946122 |
+
+It did not fall with the step: it jumped between 8 and 16. D192 gave a chord its strip where it lay farther than
+four of its lengths from the pole. A long trim near the apex was beside it at 8 and not at 16, so its strip came in
+at 16 only. The extrapolation took the jump for the square of the step's error. Before D192 this case was off too
+(+1433 e): no strip at all.
+
+**Fix (`src/brep-mass-quadrature.ts`).** Beside a pole now means passing within a thousandth of the face's size of it,
+a distance that does not depend on the step. Each chord is measured as a segment, not by its ends.
+
+**Result:** 131.7733090, 0.26 e. 93 (D192) is unchanged at 147.9216303.
+
+**Test:** `test/mass-pole-steps.test.mjs`, the case against the ray oracle at 256² × 6, within 3 e.
