@@ -4,7 +4,7 @@
 
 | Code | Raised in | For example |
 |---|---|---|
-| `[APPROX_TOLERANCE_NOT_MET]` | `.` | a slab's two sheets do not settle on one grid of cells |
+| `[APPROX_TOLERANCE_NOT_MET]` | `blend` | a slab's two sheets do not settle on one grid of cells |
 | `[ARC_MEMBER]` | `part` | a curved end corner requires a two-member mitre |
 | `[BEAD_ANGLE]` | `part` | … meets its face at …° from square: fillets on oblique ends are not modelled yet |
 | `[BEAD_KIND]` | `part` | a cap sits flush with its member's outline: it is welded by a corner weld, not a fillet (its seam is in its endCap report) |
@@ -40,32 +40,32 @@
 | `[NOT_A_MEMBER]` | `frame-sheet` | … is not a frame member |
 | `[NOT_A_SHEET]` | `part` | the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not) |
 | `[OBSTRUCTED_ABOVE]` | `part` | material … mm above … over the hole at (…, …): a blind hole from that face would cut it |
-| `[OFFSET_FOLDS]` | `.`, `mesh` | the mesh's offset turns over at its triangle … near (…): the wall … mm is deeper than the mesh curves there, or than half its thickness |
-| `[OPENING_AT_A_VERTEX]` | `.` | the … /** * Refused where an offset point (each fitted cell's interpolation points) comes nearer than the wall to another part of * the body — a wall thinner … |
+| `[OFFSET_FOLDS]` | `blend`, `mesh` | face … curves more tightly than the wall at (…, …): its radius there … mm, the wall … mm — the offset turns over |
+| `[OPENING_AT_A_VERTEX]` | `blend` | the … /** * Refused where an offset point (each fitted cell's interpolation points) comes nearer than the wall to another part of * the body — a wall thinner … |
 | `[RADIUS_EXCEEDS_FACE]` | `part` | edge …: chamfer … mm is too large for walls of … and … mm |
 | `[RELIEF_REQUIRED]` | `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
 | `[SECTION_DIMENSIONS]` | `frame-sheet` | … |
-| `[SECTION_TABLE]` | `.`, `part` | … |
-| `[SECTION_TABLE_MISS]` | `.`, `part` | …: … |
+| `[SECTION_TABLE]` | `features`, `part` | … |
+| `[SECTION_TABLE_MISS]` | `features`, `part` | …: … |
 | `[SEGMENT_ZERO_LENGTH]` | `part` | a member runs from its start to its end: they are … mm apart |
 | `[SHEET_CROSSES_ITSELF]` | `frame-sheet` | the sheet's section meets itself: … and … near (…, …) |
 | `[SHEET_IN_PIECES]` | `part` | the flange on … and its reliefs leave the sheet in … pieces: move it, or its neighbour, further from the corner |
-| `[SHELL_FACE_KIND]` | `.` | face … is not an untrimmed patch, a plane or a cylinder beside a sharp edge: shelling it is not supported yet |
+| `[SHELL_FACE_KIND]` | `blend` | face … is not an untrimmed patch, a plane or a cylinder beside a sharp edge: shelling it is not supported yet |
 | `[SHELL_MESH_NOT_CLOSED]` | `mesh` | the mesh is not closed and wound one way at its edge (…) to (…): repair it first |
-| `[SHELL_NOT_CLOSED]` | `.` | a wall of … mm cannot be closed on this body: … |
-| `[SHELL_OPENING_NOT_PLANAR]` | `.` | the opened face … lies beside a smooth region and is not a plane: opening there is not supported yet |
-| `[SHELL_PLANE_NOT_BOUNDING]` | `.` | face … is a plane the body crosses (a step, a pocket, a boss's base), at a sharp edge beside a smooth region: not supported yet |
-| `[SHELL_REGIONS_SHARP]` | `.` | faces … and … of two smooth regions meet at a sharp edge (at …): shelling there is not supported yet |
+| `[SHELL_NOT_CLOSED]` | `blend` | a wall of … mm cannot be closed on this body: … |
+| `[SHELL_OPENING_NOT_PLANAR]` | `blend` | the opened face … lies beside a smooth region and is not a plane: opening there is not supported yet |
+| `[SHELL_PLANE_NOT_BOUNDING]` | `blend` | face … is a plane the body crosses (a step, a pocket, a boss's base), at a sharp edge beside a smooth region: not supported yet |
+| `[SHELL_REGIONS_SHARP]` | `blend` | faces … and … of two smooth regions meet at a sharp edge (at …): shelling there is not supported yet |
 | `[SHELL_VARIABLE_RADIUS]` | `part` | … varies its radius along a curved edge (…): its hollow's radius along the chain is not the outer one's less the wall; not supported yet |
-| `[SHELL_WALL_UNION]` | `.` | the wall's … slabs do not join in any order tried: … |
+| `[SHELL_WALL_UNION]` | `blend` | the wall's … slabs do not join in any order tried: … |
 | `[SKELETON_OVERLAP]` | `part` | segments … and … lie on one line and share … mm of it |
 | `[TRIM_EMPTY]` | `part` | member …: the plane lies at or past its other end |
 | `[TRIM_LEAVES_PIECES]` | `part` | cut at its corners, member … is in … pieces |
 | `[TRIM_MISSES]` | `part` | member … does not reach the body it is trimmed to |
 | `[TRIM_PARALLEL]` | `part` | member … runs along the plane it is trimmed to |
-| `[VERTEX_BLEND_UNSUPPORTED]` | `.` | … finished edges meet at (…), the two ways round; blending more than three there is not supported yet |
-| `[WALL_NEAR_RADIUS]` | `.` | a wall of … mm on … (radius … mm) leaves a core … mm across its offset: make the wall the radius or more (all wall) or at least 0.01 mm less |
-| `[WALL_TOO_THIN]` | `.`, `mesh` | the wall's inner surface meets itself or the mesh's surface at (…) (… crossings): the body is thinner than twice the wall there |
+| `[VERTEX_BLEND_UNSUPPORTED]` | `blend` | … finished edges meet at (…), the two ways round; blending more than three there is not supported yet |
+| `[WALL_NEAR_RADIUS]` | `blend` | a wall of … mm on … (radius … mm) leaves a core … mm across its offset: make the wall the radius or more (all wall) or at least 0.01 mm less |
+| `[WALL_TOO_THIN]` | `blend`, `mesh` | the wall of … mm inside face … comes … mm from face …: the body is thinner than twice the wall there |
 
 ### The document model (`@barocss/cad-model`)
 
