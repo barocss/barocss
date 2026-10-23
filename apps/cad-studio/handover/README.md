@@ -108,6 +108,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K12 queue closed: 25, 74, 110, 119, 170 build; 51 built already; 85 a correct refusal (a lump touching itself, D205); the nudge findings left open | D239 | done |
 | K12 step 3: opening time measured (report only) — frames: 120 analytic Booleans (10 of 13 s in Node; intervals' unboxed segment tests 2.5 s); spring and worm: the body's mass quadrature and mesh, not the kernel features; A9: the O-ring overlap's quadrature 1.3 s, instance p2 fails BEARING_HOUSING_REFERENCE | D240 | done (measured) |
 | K13 step 1: the Boolean's intervals skip segment pairs whose boxes lie 4 eps apart (`segmentsApart`), and `intersectSegments` tests each end against the other segment first — frames 13 219 → 11 500 ms, others unchanged | D242 | done (T1, fingerprint identical, scene digests identical) |
+| K13 step 2: the NURBS basis (`basisInto`) clears no buffers and reads each knot once, the same arithmetic in the same order (bench: 62 394 cases identical, 2.2× alone) — spring 4 184 → 3 543, worm 2 678 → 2 172, A9 5 437 → 4 524, frames 11 500 → 10 832 ms | D243 | done (T1, fingerprint identical, scene digests identical) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

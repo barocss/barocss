@@ -12858,3 +12858,47 @@ BEARING_HOUSING_REFERENCE to two copies of cad-model in the profile bundle.
 - fingerprint `b6e18fab…` (855 cases), byte-identical.
 
 Not run: the kernel suite, RB, and the cad-model and studio suites. They run at the checkpoint after step 2.
+
+## D243 — K13 step 2: the NURBS basis (`basisInto`) clears nothing and reads each knot once (2026-10-24)
+
+**Change (pure speed), `core/math.ts`'s `basisInto`.** It is the hottest single function in every scene (D240), under
+`surfaceEvaluator`/`curveEvaluator`, so under tessellation and mass quadrature.
+- It no longer clears its three buffers on every call (`fill(0)` ×3). Every entry it reads is written first:
+  - `values[0]` at the start;
+  - each distance at its level;
+  - `values[index]` at an earlier level.
+- Each level reads its two knots once into locals. The inner loop reads its two distances once.
+- The span search halves with `>> 1` instead of `Math.floor(/ 2)`. That is the same integer for the small non-negative
+  indices here.
+- The finiteness check throws through the same `requireValue` message, now only on failure.
+- The arithmetic is unchanged and in the same order:
+  - the same expressions, the zero-denominator branches included;
+  - no reciprocal for the two divisions, which would change the last bit.
+- It already had no allocation and no closure. Its callers keep their own buffers.
+
+**Bit-identity check** (scratchpad bench, not committed):
+- the old and new functions on 62 394 parameters over degrees 1–5 and 2–12 poles;
+- knot vectors at scales 1e-3 … 3e300, offset by −1e9, and with repeated knots;
+- the domain's ends, every knot, `nextUp` neighbours, −0, and out-of-domain, NaN and ∞ parameters;
+- buffers pre-filled with 7, not 0.
+
+Result: identical values (`Object.is`) and the same start or the same refusal message in every case (3 723 refusals).
+The function alone runs 2.2× faster: 2.75 M degree-3 calls, 290 → 130 ms.
+
+**Measured.** D240's harness, Node 22, median of 3, ms. Before is step 1, 7ebcd511e. Each scene's body digest is
+identical.
+
+| Scene | Before | After | |
+|---|---|---|---|
+| 5 box frames | 11 500 | 10 832 | −6 % |
+| the spring | 4 184 | 3 543 | −15 % |
+| the worm pair | 2 678 | 2 172 | −19 % |
+| A9 | 5 437 | 4 524 | −17 % (instances 4 938 → 4 004) |
+
+**Checks (T1).**
+- build:library, type-check, lint (cad);
+- math, derivatives, face, curve-adaptive-sampling-cancellation, boolean-curve-box, frk-8b, gear-helical and gear-bevel
+  tests: 47 of 47 pass;
+- fingerprint `b6e18fab…`, byte-identical.
+
+The checkpoint suites follow at this commit.
