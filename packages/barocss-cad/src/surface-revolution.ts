@@ -30,6 +30,19 @@ export function onPatch(R: Revolution, x: Point, margin = 1e-9): boolean {
   return wrap(s - lo + margin) <= hi - lo + 2 * margin;
 }
 
+/**
+ * How far a point lies inside the patch (> 0) or outside it (< 0): the nearer of its angle's distance from the patch's
+ * ends and its profile coordinate's (each in its own units; the sign is what counts, and it is continuous across them).
+ */
+export function patchMargin(R: Revolution, x: Point): number {
+  if (!R.patch) return Infinity;
+  const [th, s] = revolutionCoords(R, x), P = R.patch, a = wrap(th - P.th0);
+  const angle = a <= P.span ? Math.min(a, P.span - a) : -Math.min(a - P.span, TAU - a);
+  if (R.profile.kind === 'line') return Math.min(angle, Math.min(s - P.s0, P.s1 - s));
+  const lo = Math.min(P.s0, P.s1), hi = Math.max(P.s0, P.s1), w = wrap(s - lo);
+  return Math.min(angle, w <= hi - lo ? Math.min(w, hi - lo - w) : -Math.min(w - (hi - lo), TAU - w));
+}
+
 export function revolutionOf(S: Surface, size: number): Revolution | null {
   for (const along of [0, 1] as const) {
     const rows = along === 0 ? S.controlPoints[0].map((_, j) => S.controlPoints.map(r => r[j])) : S.controlPoints;

@@ -11683,3 +11683,25 @@ parameters, as a traced curve's are. A cross-section still maps to a line.
 | 101 | 56.159035 | +0.1 e |
 
 **Test:** `test/boolean-arc-on-wall.test.mjs`, 176 against the ray oracle. It fails before the fix.
+
+## D203 — A curve that dips onto a surface-of-revolution patch between two samples is found there (2026-10-23)
+
+**Finding.** D196's robust refusal 2: a rounded box ∩ a pattern of two frustums. Refused as "not a manifold solid": an
+edge along the box's side x = 0.5 with one use.
+
+**Cause.** That side was not divided: its two cuts, one from each frustum, ended 0.035 mm apart. Between them the
+side's conic runs across a third patch: the first frustum's, 0.0046 rad inside its end.
+
+`onPatches` finds where a curve lies on the patches of revolution by 256 samples of their turn (0.0123 rad each).
+That piece, 0.012 rad long, lay between two samples outside, so the pair made no cut at all.
+
+**Fix (`src/analytic-boolean.ts`, `onPatches`; `src/surface-revolution.ts`, `patchMargin`).** A patch's margin, how far
+a point lies inside it (> 0) or outside it (< 0), is continuous along the curve. After the scan, wherever the margin
+peaks among its neighbours at a sample outside (at an end, beside its one neighbour), its maximum is sought between
+them. Where that is inside, the two crossings are bisected and the interval added. The scan's own intervals are as
+before.
+
+**Result:** 2 is strictly valid, watertight and one body, 12.282189 mm³ against the oracle's 12.280757 ± 1.2e-3
+(1.1 e).
+
+**Test:** `test/boolean-conic-patch.test.mjs`. It fails before the fix.

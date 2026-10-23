@@ -17,7 +17,7 @@
 // of the other solid, or inside / outside by ray parity, retried on a degenerate ray), kept by the
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
-import { revolutionOf, profileCrossings, onPatch, type Revolution } from './surface-revolution.js';
+import { revolutionOf, profileCrossings, onPatch, patchMargin, type Revolution } from './surface-revolution.js';
 import { curvePiece, curveReversed } from './curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from './facet-patch.js';
@@ -410,6 +410,27 @@ function facesOf(brep: Brep, solid: 0 | 1, tol: number): GFace[] {
   });
 }
 
+/**
+ * The intervals of [lo, hi] (sampled at N + 1 points) where `margin` > 0 that lie between samples outside (margin < 0) and
+ * inside no interval of `found`: at each sample outside where the margin peaks among its neighbours (one, at an end), its
+ * maximum between them (golden section) and, when that is inside, the two crossings (bisection).
+ */
+function betweenSamples(margin: (t: number) => number, lo: number, hi: number, N: number, found: readonly [number, number][]): [number, number][] {
+  const out: [number, number][] = [], at = (i: number) => lo + (hi - lo) * i / N, m = Array.from({ length: N + 1 }, (_, i) => margin(at(i)));
+  for (let i = 0; i <= N; i++) {
+    // (At an end the bracket is the one chord beside it.)
+    const p = Math.max(0, i - 1), q = Math.min(N, i + 1);
+    if (!(m[i] < 0 && m[p] < 0 && m[q] < 0 && m[i] >= m[p] && m[i] >= m[q])) continue;
+    let a = at(p), b = at(q);
+    if (found.some(([x, y]) => x < b && y > a)) continue;
+    for (let k = 0; k < 80; k++) { const c = b - (b - a) * 0.6180339887, d = a + (b - a) * 0.6180339887; if (margin(c) > margin(d)) b = d; else a = c; }
+    const top = (a + b) / 2; if (!(margin(top) > 0)) continue;
+    let l0 = at(p), l1 = top, r0 = top, r1 = at(q);
+    for (let k = 0; k < 60; k++) { const x = (l0 + l1) / 2; if (margin(x) > 0) l1 = x; else l0 = x; const y = (r0 + r1) / 2; if (margin(y) > 0) r0 = y; else r1 = y; }
+    out.push([(l0 + l1) / 2, (r0 + r1) / 2]);
+  }
+  return out;
+}
 /** One root of a crossing-cylinder quadratic as a curve in the smaller cylinder's angle. */
 const branchOf = (point: (th: number, sign: number) => P3, sign: number) => (th: number) => point(th, sign);
 
@@ -625,6 +646,10 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
         prev = now;
       }
       if (start !== null) out.push([start, hi]);
+      // (A curve that dips onto a patch between two samples — a plane's conic across a patch's corner, 0.035 mm of it, under
+      // a 256th of the turn: L4 fuzz 2, D203 — is found where the patch's margin peaks between samples outside it.)
+      out.push(...betweenSamples(t => Math.min(...revs.map(R => patchMargin(R, at(t)))), lo, hi, N, out));
+      out.sort((x, y) => x[0] - y[0]);
       return out.filter(([a, b]) => b - a > 1e-9 * Math.max(1, hi - lo));
     };
     const piece = (at: (t: number) => P3, lo: number, hi: number, make: (a: number, b: number) => Curve3) => {
