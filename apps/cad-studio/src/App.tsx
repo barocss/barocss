@@ -93,6 +93,7 @@ import { exportMjcf, type MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 import { sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { sweepTimed, type JointLimits } from '@barocss/cad-model/robot/ccd';
 import { workspaceMap } from '@barocss/cad-model/robot/workspace';
+import { Lanes } from './engine/lanes';
 import { exportSdf } from '@barocss/cad-model/robot/sdf';
 import { exportUsd } from '@barocss/cad-model/robot/usd';
 import { closureOfDoc } from '@barocss/cad-model/robot/loop';
@@ -578,19 +579,22 @@ export function App() {
     catch { return doc; }
   }, [doc]);
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, doc.frames?.sections, rootContextKey, followsParts ? doc.instances : null, marker]);
+  /** The O9 lanes App's worker requests go on (R4b): a reply overtaken on its lane comes back stale. */
+  const lanes = useMemo(() => new Lanes(), []);
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
     if (!section) { setSectionExact(null); return; }
     if (sectionDragFrom) return;
-    let live = true; const key = JSON.stringify(section);
+    const key = JSON.stringify(section);
     // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
     const { doc, kept, from } = sectionSplits(evaluated, bodies, section);
-    // Latest wins: while one section is worked out, only the newest plane waits behind it.
+    // Latest wins: while one section is worked out, only the newest plane waits behind it. (R4b: on the section's O9 lane —
+    // a reply overtaken by a newer plane, or by the effect's cleanup, comes back stale.)
     const run = sectionRun.current;
-    run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) { const x = exactBodies(r.bodies, kept, from); setSectionExact({ key, source: evaluated, sourceBodies: bodies, bodies: x.bodies, from: x.from }); } };
+    run.next = async () => { const at = revision.current++, reply = await lanes.run('section', { revision: at, source: key }, () => engine.section(doc, at)), r = reply.stale ? null : reply.result; if (r?.ok) { const x = exactBodies(r.bodies, kept, from); setSectionExact({ key, source: evaluated, sourceBodies: bodies, bodies: x.bodies, from: x.from }); } };
     if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
-    return () => { live = false; };
+    return () => lanes.cancel('section');
   }, [section, bodies, evaluated, engine, sectionDragFrom]);
   // At once (while the plane is dragged, until the exact section arrives): on WebGPU the bodies whole, cut and capped by
   // the viewer's clip plane (G2); on WebGL2 the meshes clipped and capped on the CPU.
