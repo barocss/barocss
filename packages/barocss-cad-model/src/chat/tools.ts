@@ -22,7 +22,7 @@ import { resolveNames, type NameSelection } from './names';
 import { approvalOf, type Op } from './proposals';
 import { newPolicy } from './spec';
 import { partEditRefusal, refreshFollowed } from '../frames/skeleton';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, setCall, json, accept, fail, isObj, isVec3, subToolResult } from './toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, setCall, json, accept, fail, subToolResult } from './toolKit';
 import { QUERY_HANDLERS } from './part/query';
 import { IMAGE_HANDLERS } from './part/image';
 import { FEATURE_HANDLERS } from './part/features';
@@ -31,6 +31,7 @@ import { VIEW_HANDLERS } from './part/views';
 import { HISTORY_HANDLERS, moveOpsWith } from './part/history';
 import { ASSEMBLY_CHANGES, PROPOSAL_HANDLERS, acceptProposalWith, autonomy, changesPart, previewProposalWith, proposalNeededAtL2, proposalOfWith, rebaseProposalWith, type Decider } from './part/proposals';
 import { BATCHABLE, MUTATORS, PART_SCOPED, describe, unknownArguments } from './toolDefinitions';
+import { isObj, isVec3 } from '../util/guards';
 // ./outputs is loaded on first use: it reaches team/bundle → baseline → assembly → parts, which import this
 // module, so a static import closes a cycle that leaves `commands` undefined here at load.
 let outputsModule: Promise<typeof import('./outputs')> | undefined;

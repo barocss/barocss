@@ -1,10 +1,11 @@
 // The length unit a STEP file declares (its LENGTH_UNIT: an SI unit with a prefix, or a conversion-based
 // one such as INCH), so a file in other units opens at its true size in millimetres. The kernel reads the
 // numbers as they are; the studio scales them.
+import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
 export interface StepUnit { name: string; toMM: number; declared: boolean }
 
 const SI: Record<string, number> = { '': 1000, MILLI: 1, CENTI: 10, DECI: 100, KILO: 1e6, MICRO: 1e-3 };
-const NAMED: Record<string, number> = { INCH: 25.4, FOOT: 304.8, MM: 1, MILLIMETRE: 1, CM: 10, METRE: 1000 };
+const NAMED: Record<string, number> = { INCH: MM_PER_INCH, FOOT: MM_PER_FOOT, MM: 1, MILLIMETRE: 1, CM: 10, METRE: 1000 };
 const LABEL: Record<string, string> = { '': 'metres', MILLI: 'millimetres', CENTI: 'centimetres', DECI: 'decimetres', KILO: 'kilometres', MICRO: 'micrometres' };
 
 export function stepLengthUnit(text: string): StepUnit {

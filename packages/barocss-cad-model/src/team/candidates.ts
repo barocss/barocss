@@ -21,6 +21,7 @@ import type { Op } from '../chat/proposals';
 import { checkSpec } from '../chat/spec';
 import { factsOf } from '../chat/observe';
 import { integrate, revisionOf, runGates, type GateResult } from './team';
+import { r9 } from '../util/round';
 
 export type BoardCode = 'DUPLICATE' | 'CANCELLED' | 'TIMED_OUT' | 'BUDGET_EXCEEDED' | 'STALE_BASE' | 'UNSUPPORTED_OP' | 'WRONG_UNIT' | 'WRONG_TARGET'
   | 'MISSING_DEPENDENCY' | 'NOT_BUILT' | 'UNKNOWN_CANDIDATE' | 'GATE_FAILED' | 'REPLAY_UNREADABLE' | 'REPLAY_FACTS_DIFFER' | 'REPLAY_VERDICT_DIFFERS'
@@ -46,7 +47,6 @@ export interface Outcome { seq: number; op: string; operationId: string; candida
 /** A document read back by a fresh reader: its evidence, or why it could not be read. */
 export type Reopen = (bytes: Uint8Array) => Promise<Evidence | { error: string }>;
 
-const r9 = (v: number) => Math.round(v * 1e9) / 1e9 + 0;
 const clone = <T>(v: T): T => structuredClone(v);
 
 /** The evidence of a state: facts and the requirements' verdicts (their measures where numeric). */

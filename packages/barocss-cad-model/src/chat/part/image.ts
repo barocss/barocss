@@ -4,7 +4,8 @@ import { featureLabel, withNode, type ModelNode } from '../../engine/doc';
 import { withImageDraft } from '../drafts';
 import type { ImageTrace, Pt } from '../trace';
 import { insideRing as inside } from '../../engine/geom2';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, r3, json, accept, fail } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, accept, fail } from '../toolKit';
+import { r3Signed as r3 } from '../../util/round';
 
 function traceOf(state: ChatState, image: unknown): ImageTrace | string {
   const list = state.images ?? [];

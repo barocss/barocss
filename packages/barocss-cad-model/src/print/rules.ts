@@ -26,6 +26,7 @@ import type { StockResult } from '../machining/stock';
 import { machinability } from '../machining/report';
 import { madeBodies } from '../engine/elements';
 import { lumpMesh, lumpName, lumpTriangles } from '../engine/lumps';
+import { r3, r6 } from '../util/round';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -306,7 +307,6 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min_deg: r6(f.minDeg), max_deg: r6(f.maxDeg), steepest_deg: r6(f.steepestDeg), side: f.side, below_mm2: r6(f.belowMM2), area_mm2: r6(f.areaMM2), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
 }
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0, r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
 function rule(id: string, level: 'feasible' | 'recommended', met: boolean, message: string, value: number, limit: number, unitName: string, source: string, entities?: string[]): PrintRule {
   return { id, level, status: met ? 'pass' : level === 'feasible' ? 'fail' : 'warn', message, value, limit, unit: unitName, source, ...(entities ? { entities } : {}) };
 }

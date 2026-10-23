@@ -1,3 +1,4 @@
+import { r6Signed as r6 } from '../util/round';
 // Splines in a sketch: a smooth curve through the clicked points, kept as the outline the kernel builds
 // on — tangent arcs (biarcs): between each two points two arcs meet tangentially, the first leaving the
 // point along the curve's tangent there and the second arriving along the next. Tangents are the chords
@@ -50,7 +51,6 @@ export function splineOutline(points: readonly P2[], closed: boolean): { points:
   if (closed && pts.length > 2 && Math.hypot(pts[0][0] - pts[pts.length - 1][0], pts[0][1] - pts[pts.length - 1][1]) < 1e-9) pts.pop();
   if (pts.length < 2) return { points: [...pts], bulges: pts.map(() => 0) };
   const T = splineTangents(pts, closed), out: P2[] = [], bulges: number[] = [], spans = closed ? pts.length : pts.length - 1;
-  const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
   for (let i = 0; i < spans; i++) {
     const a = pts[i], b = pts[(i + 1) % pts.length], ba = biarc(a, T[i], b, T[(i + 1) % pts.length]);
     out.push(a);

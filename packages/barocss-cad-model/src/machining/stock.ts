@@ -8,6 +8,7 @@ import type { DocPlane, StockRow, StudioDoc } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Turning } from './turning';
+import { r6 } from '../util/round';
 
 export const ALLOWANCE_ESTIMATE_MM = 1;
 /** What a fit allows (mm): the part's size is read off its mesh, its vertices on the exact surfaces to rounding. */
@@ -25,7 +26,6 @@ export interface StockChoice {
 }
 export type StockResult = { ok: true; choice: StockChoice } | { ok: false; code: StockCode; message: string; allowance: { mm: number; basis: 'set' | 'estimate' }; part: readonly number[] };
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The part's box, from its bodies' bounds. */
 export function partBox(bodies: readonly BodyResult[]): { min: number[]; max: number[] } {
   const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];

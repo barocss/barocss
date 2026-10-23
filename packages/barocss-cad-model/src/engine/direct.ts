@@ -6,6 +6,7 @@
 import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
+import { nextFreeId } from '../util/ids';
 
 export interface DirectObject {
   id: string; name: string; source: string; geometry: string; hidden?: boolean;
@@ -46,7 +47,7 @@ function usedIds(d: DirectGeometry): Set<string> {
   for (const o of d.objects) ids.add(o.id);
   return ids;
 }
-const fresh = (used: Set<string>, stem: string) => { for (let i = 1; ; i++) { const id = `${stem}_${i}`; if (!used.has(id)) { used.add(id); return id; } } };
+const fresh = (used: Set<string>, stem: string) => { const id = nextFreeId(`${stem}_`, used); used.add(id); return id; };
 
 /** Add a CAD source's curves and surfaces as objects. */
 export function importSource(d: DirectGeometry, text: string, label: string): DirectGeometry {

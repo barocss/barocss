@@ -6,14 +6,14 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { machiningClassOf, type CastFamily, type ProcessProfile } from '../library/materials';
+import { r6 } from '../util/round';
+import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
 
-export const FT_MM = 304.8, IN_MM = 25.4;
 export type Allowance<T> = ({ ok: true } & T) | { ok: false; why: string };
 export interface ShrinkAllowance { readonly ratio: number; readonly basis: 'table' | 'set'; readonly band: string; readonly label: string; readonly page: string | null }
 export interface MachiningAllowance { readonly mm: number; readonly basis: 'table' | 'set'; readonly band: string; readonly label: string; readonly page: string | null }
 export interface MachinedFace { readonly name: string; readonly body: string; readonly flat: boolean }
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** An allowance found, without its `ok`. */
 export const shrinkView = ({ ok: _, ...s }: { ok: true } & ShrinkAllowance): ShrinkAllowance => s;
 export const machiningView = ({ ok: _, ...m }: { ok: true } & MachiningAllowance): MachiningAllowance => m;
@@ -34,7 +34,7 @@ export function shrinkOf(doc: StudioDoc, profile: ProcessProfile, family: CastFa
   if (typeof set === 'number') return { ok: true, ratio: set, basis: 'set', band: 'yours', label: 'your shrinkage', page: null };
   const row = profile.allowances?.shrink.find(s => s.family === family);
   if (!row) return { ok: false, why: `no ${profile.label.toLowerCase()} shrinkage for a ${family} alloy was read from a public page: set yours (set_casting shrink)` };
-  const ft = sizeMM / FT_MM, k = row.bands.findIndex(b => b.upToFt === null || ft <= b.upToFt + 1e-12), b = row.bands[k];
+  const ft = sizeMM / MM_PER_FOOT, k = row.bands.findIndex(b => b.upToFt === null || ft <= b.upToFt + 1e-12), b = row.bands[k];
   return { ok: true, ratio: b.inPerFt / 12, basis: 'table', band: bandWords(k ? row.bands[k - 1].upToFt : null, b.upToFt, 'ft'), label: row.label, page: row.page.url };
 }
 /** Each dimension's own band (X, Y, Z extents): what the table gives a pattern maker who scales each dimension by its own band. */
@@ -50,10 +50,10 @@ export function machiningOf(doc: StudioDoc, profile: ProcessProfile, family: Cas
   if (typeof set === 'number') return { ok: true, mm: set, basis: 'set', band: 'yours', label: 'your allowance', page: null };
   const cls = machiningClassOf(family), row = profile.allowances?.machining.find(m => m.class === cls);
   if (!row) return { ok: false, why: `no ${profile.label.toLowerCase()} machining allowance for ${cls === 'nonferrous' ? 'a non-ferrous metal' : `cast ${cls}`} was read from a public page: set yours (set_casting allowance)` };
-  const inch = sizeMM / IN_MM, k = row.bands.findIndex(b => inch <= b.upToIn + 1e-12);
+  const inch = sizeMM / MM_PER_INCH, k = row.bands.findIndex(b => inch <= b.upToIn + 1e-12);
   if (k < 0) return { ok: false, why: `the part's ${r6(sizeMM)} mm is past the table's last band (${row.bands.at(-1)!.upToIn} in): set yours (set_casting allowance)` };
   const b = row.bands[k];
-  return { ok: true, mm: r6(b.in * IN_MM), basis: 'table', band: bandWords(k ? row.bands[k - 1].upToIn : null, b.upToIn, 'in'), label: row.label, page: row.page.url };
+  return { ok: true, mm: r6(b.in * MM_PER_INCH), basis: 'table', band: bandWords(k ? row.bands[k - 1].upToIn : null, b.upToIn, 'in'), label: row.label, page: row.page.url };
 }
 /** The faces marked machined, each found on a body or not, and whether it is flat (the ones an allowance goes on). */
 export function machinedFaces(doc: StudioDoc, bodies: readonly BodyResult[]): { found: MachinedFace[]; missing: string[] } {

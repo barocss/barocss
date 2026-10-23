@@ -33,6 +33,7 @@ import { nextProposalId, PLAN_CHARS, withHistory, type HistoryEntry, type Op, ty
 import { moveOp, renameIds } from './remap';
 import { modelHash } from './spec';
 import { moveOps, proposalOf, type ChatState, type Evaluate } from './tools';
+import { isObj } from '../util/guards';
 
 /** The fields a turn's op may write besides features, parameters, body outputs and looks, proposals and history. */
 const OWN = new Set<string>(['format', 'schema', 'units', 'nextId', 'nodes', 'outputs', 'parameters', 'bodies', 'proposals', 'history']);
@@ -67,7 +68,6 @@ export interface TurnOp { tool: string; args: Record<string, unknown>; order: st
 /** A turn's patch (A7's on a base): the base's revision (`revisionOf`) and next serial, the ops in order. */
 export interface TurnPatch { id: string; by: { agent: string; model?: string }; base: string; nextId: number; ops: TurnOp[] }
 
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const idsOf = (nodes: readonly ModelNode[]) => nodes.map((_, i) => featureId(nodes, i));
 /** A node with its index references as serials. */
 const idForm = (nodes: readonly ModelNode[], node: ModelNode): ModelNode => renumber(node, i => serialOf(featureId(nodes, i)));

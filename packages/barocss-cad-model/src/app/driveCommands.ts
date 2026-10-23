@@ -5,10 +5,10 @@
 import { sprocketLimits, chainLinks, sprocketPitchDiameter, type ChainRow, type DriveRow } from '@barocss/cad';
 import { withNode, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { Command, Ctx, Field, Values } from './commands';
+import { r3Signed as r3 } from '../util/round';
 
 const ok = { ok: true as const };
 const no = (reason: string) => ({ ok: false as const, reason });
-const r3 = (x: number) => Math.round(x * 1000) / 1000;
 const rowsOf = (doc: StudioDoc, kinds: readonly DriveRow['kind'][]) => (doc.drives?.rows ?? []).filter(r => kinds.includes(r.kind));
 const label = (r: DriveRow) => `${r.id}${r.estimate ? ' (estimate)' : ''}`;
 const at: Field[] = [{ key: 'x', label: 'Centre X', kind: 'mm' }, { key: 'y', label: 'Centre Y', kind: 'mm' }, { key: 'z', label: 'At Z', kind: 'mm' }];

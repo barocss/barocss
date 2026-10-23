@@ -14,6 +14,7 @@ import { draftField, type DraftFace } from '../mould/draft';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 import { solidification, type Solidification } from './solidification';
 import { machinedFaces, machiningOf, machiningView, partExtent, shrinkByDimension, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
+import { r3, r6 } from '../util/round';
 
 export type CastingProcess = 'die-casting' | 'sand-casting';
 export const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'sand-casting'];
@@ -31,7 +32,6 @@ export interface CastingSummary {
 
 /** O108's simplification said: one factor by the largest extent; each dimension's own band, where they differ. */
 const bandNote = (by: readonly { axis: string; factor: number; band: string }[]) => `; a simplification: one factor by the largest extent — a pattern maker may scale each dimension by its own band${new Set(by.map(d => d.factor)).size > 1 ? ` (${by.map(d => `${d.axis} ${d.factor}, ${d.band}`).join('; ')})` : ''}`;
-const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0, r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const unit = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
 /** A family's threshold, or the process's own for every family (sand casting's draft). */
 const limitOf = (profile: ProcessProfile, family: CastFamily, key: string): ProcessThreshold | undefined => profile.thresholds[`${family}${key}`] ?? profile.thresholds[key[0].toLowerCase() + key.slice(1)];

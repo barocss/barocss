@@ -3,7 +3,8 @@
 import { resolveNames, resolveSelectors, type NameSelection } from '../names';
 import { edgeDetail, faceDetail } from '../observe';
 import { renderViews } from '../views';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, fail, isObj, strings, list } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, fail, strings, list } from '../toolKit';
+import { isObj } from '../../util/guards';
 
 async function renderViewsTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const highlight = strings(args.highlight), sec = isObj(args.section) ? args.section : undefined;

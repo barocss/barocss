@@ -11,8 +11,8 @@ import { materialIdOf } from '../app/bodies';
 import { draftField } from '../mould/draft';
 import { refOf } from '../app/bodyRef';
 import { materialOf } from '../app/materials';
+import { r3Signed as r3 } from '../util/round';
 
-const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 

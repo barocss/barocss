@@ -10,6 +10,7 @@ import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
 import { bearingHousingRefProblem } from '../engine/bearingContext';
+import { isObj, isVec3 } from '../util/guards';
 
 type Spec = Record<string, string>;
 /** `?` marks an optional field. */
@@ -73,7 +74,6 @@ const PROFILE: Record<string, Spec> = {
 };
 const ON_PLANE: Spec = { 'plane?': 'plane', 'regions?': 'loops', 'holes?': 'loops', 'sideTags?': 'any' };
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 /** A body reference as the agent writes it (`node` an index), with the body's key (by its stable id). */
 const refText = (r: BodyRef, nodes: readonly ModelNode[]) => `{node ${r.node}, side ${r.side}} (body ${bodyKeyFor(nodes, r.node, r.side)})`;
 
@@ -187,8 +187,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
     case 'loop': return loop(v);
     case 'loops': { if (!Array.isArray(v)) return 'a list of loops'; for (const l of v) { const w = loop(l); if (w) return w; } return null; }
     case 'plane': {
-      const v3 = (x: unknown) => Array.isArray(x) && x.length === 3 && x.every(n => typeof n === 'number' && Number.isFinite(n));
-      return isObj(v) && v3(v.origin) && v3(v.normal) && v3(v.xAxis) ? null : 'a plane {origin, normal, xAxis}, each [x, y, z]';
+      return isObj(v) && isVec3(v.origin) && isVec3(v.normal) && isVec3(v.xAxis) ? null : 'a plane {origin, normal, xAxis}, each [x, y, z]';
     }
     case 'radii': return Array.isArray(v) && v.length >= 2 && v.length <= 16 && v.every(p => isObj(p) && Array.isArray(p.at) && p.at.length === 3 && p.at.every(x => typeof x === 'number' && Number.isFinite(x)) && dim(p.radius)) ? null : '2 to 16 points {"at": [x, y, z] on the edges, "radius": r}';
     case 'section': {
@@ -197,7 +196,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       if (isObj(v) && v.kind === 'g2' && (v.tension === undefined || frac(v.tension)) && Object.keys(v).every(k => k === 'kind' || k === 'tension')) return null;
       return '{"kind": "conic", "rho": 0–1 exclusive} or {"kind": "g2", "tension"?: 0–1 exclusive}';
     }
-    case 'vec3': return Array.isArray(v) && v.length === 3 && v.every(n => typeof n === 'number' && Number.isFinite(n)) && v.some(n => n !== 0) ? null : 'three numbers [x, y, z], not all 0';
+    case 'vec3': return isVec3(v) && v.some(n => n !== 0) ? null : 'three numbers [x, y, z], not all 0';
     case 'points3': return Array.isArray(v) && v.length >= 2 && v.length <= 1024 && v.every(p => Array.isArray(p) && p.length === 3 && p.every(dim)) ? null : '2 to 1024 [x, y, z] points';
     case 'frame-segments': {
       const index = (x: unknown) => Number.isInteger(x) && (x as number) >= 0;
@@ -276,8 +275,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       return null;
     }
     case 'trim-plane': {
-      const v3 = (x: unknown) => Array.isArray(x) && x.length === 3 && x.every(n => typeof n === 'number' && Number.isFinite(n));
-      return isObj(v) && v3(v.origin) && v3(v.normal) && Object.keys(v).every(k => k === 'origin' || k === 'normal') ? null : 'a trim plane {"origin": [x, y, z], "normal": [x, y, z]}';
+      return isObj(v) && isVec3(v.origin) && isVec3(v.normal) && Object.keys(v).every(k => k === 'origin' || k === 'normal') ? null : 'a trim plane {"origin": [x, y, z], "normal": [x, y, z]}';
     }
     case 'member-section': {
       // (Each kind's dimensions, every one given: the kernel takes no default size or radius, D122.)

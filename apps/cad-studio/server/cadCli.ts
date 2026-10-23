@@ -97,7 +97,7 @@ cad-cli stock part.bcad -o folder [--list stock.json] [--allowance mm]
   stock.step. Exit 1 when none is loaded or none fits.
 cad-cli pattern part.bcad -o folder
   A sand-cast part's pattern (IM8b): the machining allowance on the faces marked machined (set_casting) and the
-  shrinkage, both from NPTEL's tables by the alloy and the part's size, or yours; writes pattern.step and pattern.json
+  shrinkage, both from your casting rules by the alloy and the part's size; writes pattern.step and pattern.json
   (the factors, their bands and pages). Exit 1 when it cannot be made, and why.
 cad-cli mould part.bcad -o folder [--margin mm]
   A moulded part's two halves (IM7 S0) where no face needs a split: a block about the part (10 mm a side, an

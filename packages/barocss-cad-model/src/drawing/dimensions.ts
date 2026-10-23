@@ -4,6 +4,7 @@
 import type { BrepProjection, ProjectedCurve, ProjectedEdge } from '@barocss/cad';
 import type { CentreRef, DimPoint, DimView, DrawingDimension, EdgeRef, Vec3, XY } from './types';
 import { dot } from '../engine/vec3';
+import { nextFreeId } from '../util/ids';
 
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dist3 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
@@ -194,4 +195,4 @@ export function orientFor(a: XY, b: XY, place: XY): 'horizontal' | 'vertical' | 
   return 'aligned';
 }
 
-export const newDimensionId = (dims: readonly DrawingDimension[]) => { const used = new Set(dims.map(d => d.id)); let n = 1; while (used.has(`d${n}`)) n++; return `d${n}`; };
+export const newDimensionId = (dims: readonly DrawingDimension[]) => nextFreeId('d', new Set(dims.map(d => d.id)));
