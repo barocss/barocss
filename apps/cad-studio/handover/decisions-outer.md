@@ -7546,3 +7546,19 @@ Its baseline was taken at the commit before R3e (1dcaa8692) in a detached scratc
 The GPU lane's G10 found the step `FRd2 the welded table's weld symbols…` failing on both renderers: 16 placed, none unshown, where it expected 11 placed with W8 and W13–W16 unshown.
 - **The cause is O173 (`35cb1bb82`).** A trimmed end face in pieces is now its face, and an edge lying on visible ink is visible, so those five seams are found. O173 changed the model's frame-weld-symbols expectation by that reasoning; the flow step was not updated with it.
 - **16 is the right answer** by O173's account. The step now expects 16 placed, none unshown, and no WELD_NOT_SHOWN, and its title says so. Not a regression; nothing else changed.
+
+## FR3b's flow step — measured on a box frame, its 2000 ms premise kept (2026-10-23)
+
+**The finding (the GPU lane's G10).** The step measures the page's responsiveness while a frame's trims compute in the worker; its premise is a preview of more than 2 s. The default round-tube table now takes 1,293–1,435 ms there (1.4–1.6 s in node), so the case was no longer the one measured. Responsiveness itself held: the slowest answer 1 ms, the longest gap 73 ms.
+
+**The fix: the premise stays, the case changes** (`605208857`, the coordinator's approval; not the threshold):
+- The step now builds the box skeleton (12 members, eight three-way corners): 2.7–2.8 s in node.
+- It opens the palette's frame as before, lets the table's preview finish, then installs the main-thread probe and switches the skeleton to box. The timing starts there, after the HUD has left the table's preview.
+- Bodies: 12. The post's volume is checked against A · 740, through both rails: node gives exactly 740.0000 · A for each of the four posts, as the table's legs are 720.0000 · A.
+- In the flow it measured: the preview after 2,302 ms, the slowest answer 1 ms, the bodies after 3,709 ms, the longest main-thread gap 54 ms.
+- **The margin is small:** 2,302 against 2,000. If the trims get faster again, the premise goes stale again. A later fix would make the case heavier, such as a box with more members, or state the premise relative to the probe's resolution, without lowering the 2,000.
+
+**The flow** (FLOW_ONLY FRd1, FRd2 and FR3b, at `605208857`, a detached scratch worktree, load 24 → 19):
+- 144 FR3b, 165 FRd1 and 166 FRd2 ok; FRd2 expects O173's 16.
+- The run started without the lanes guard's gate: flow-run.sh is a script, which the guard cannot see into. The script now takes the gate at its top.
+- An edit to the script during the run broke its last line (the scratch worktree was then removed by hand).
