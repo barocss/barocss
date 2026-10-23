@@ -7598,7 +7598,7 @@ try {
     if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
     // (A point of the plate's top away from its centre, where the feature's handle stands: the world point (16, 16, 8) on
     // screen, so the pick holds however wide the centre column is — G12b's dock narrows it.)
-    const box = await page.locator('canvas.vp-canvas').boundingBox(), [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
+    const [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
     // (Off the parts, as a world point too: the canvas's corner is the chat strip's button since G12a.)
     const off = await page.evaluate(() => window.__studioScreenOf([-30, -30, 0]));
     const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
