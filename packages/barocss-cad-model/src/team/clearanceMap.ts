@@ -15,7 +15,7 @@ import { bearingHousingRef } from '../engine/bearingContext';
 // (a bearing on its shaft and in its housing, a key in its seat and its hub, an O-ring in its gland, a ring in its
 // groove, a bead on its joint) or a declared fit pair joins is `designed`, its source named, whatever its volume.
 import { booleanAnalytic, brepMassProperties, meshClearance, nearestDistance2, transformBrep, triangleBvh, type Brep, type TriangleBvh } from '@barocss/cad';
-import type { PartInstance, StudioDoc } from '../engine/doc';
+import { placedBase, type PartInstance, type StudioDoc } from '../engine/doc';
 import { featureId } from '../engine/ids';
 import { rotationMatrix } from '../assembly/mates';
 import { partBreps, type BodyResult } from '../engine/evaluate';
@@ -96,9 +96,12 @@ export async function assemblyPlacedBodies(doc: StudioDoc, evaluate: Evaluate): 
     }
   };
   const base = await evaluate(doc); if (base?.ok) take(doc, base.bodies, '', IDENTITY);
-  for (const inst of doc.instances ?? []) if (!inst.hidden) { const r = await evaluate(inst.doc); if (r?.ok) take(inst.doc, r.bodies, `${inst.id}/`, poseOf(inst)); }
+  // (O10: each placed part as its own document unplaced and flattened — placedBase — so its bodies' keys are the ones every
+  // producer gives them, a sub-assembly's nested bodies among them.)
+  const sources = new Map<string, StudioDoc>();
+  for (const inst of doc.instances ?? []) if (!inst.hidden) { const d = placedBase(inst, doc); sources.set(inst.id, d); const r = await evaluate(d); if (r?.ok) take(d, r.bodies, `${inst.id}/`, poseOf(inst)); }
   // Cross-part targets use final assembly keys, never the owner's local prefix.
-  for (const [owner, source] of [['base', doc], ...(doc.instances ?? []).filter(i => !i.hidden).map(i => [i.id, i.doc])] as [string, StudioDoc][]) {
+  for (const [owner, source] of [['base', doc], ...[...sources]] as [string, StudioDoc][]) {
     for (const [i, node] of source.nodes.entries()) {
       const ref = bearingHousingRef(node); if (!ref || node.kind !== 'bearing' || node.suppressed) continue;
       const prefix = owner === 'base' ? '' : `${owner}/`, own = bodyOfFeature(source, results.get(prefix) ?? [], i);
