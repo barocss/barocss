@@ -11,7 +11,7 @@ import { BrepError, buildBrep, isFacetFace, lineCurve, nurbsOf, type Brep, type 
 import { faceGeometry } from './analytic-boolean.js';
 import { curveDomain, curveEvaluator, evaluateCurve, surfaceDomain, surfaceEvaluator } from './math.js';
 import { tessellateBrepWithParameters } from './brep-tessellate.js';
-import { evaluateSurfaceCurvature } from './local-curvature.js';
+import { evaluateSurfaceCurvature } from './nurbs/surfaces/local-curvature.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import type { Curve, Point, Surface } from './types.js';
 

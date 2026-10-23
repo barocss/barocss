@@ -291,11 +291,11 @@ const typeNames = ['WeightedCurveInterpolationPoint', 'WeightedCurveInterpolatio
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.WeightedCurveInterpolationDiagnosticCode, WeightedCurveInterpolationDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./weighted-curve-interpolation.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/weighted-curve-interpolation.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/weighted-curve-interpolation.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const oldRuntimeNames = ['buildInterpolatingCurve', 'validateInterpolatingCurve', 'CurveInterpolationError', 'CurveInterpolationDiagnosticCode'];
 const oldTypeNames = ['CurveInterpolationPoint', 'CurveInterpolationOptions', 'CurveInterpolationReport', 'CurveInterpolationResult'];
-const oldDeclarationPath = resolve(packageRoot, 'dist/curve-interpolation.d.ts'), oldDeclaration = readFileSync(oldDeclarationPath, 'utf8');
+const oldDeclarationPath = resolve(packageRoot, 'dist/nurbs/curves/curve-interpolation.d.ts'), oldDeclaration = readFileSync(oldDeclarationPath, 'utf8');
 for (const name of oldRuntimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 for (const name of [...oldRuntimeNames, ...oldTypeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(oldDeclaration), name);
 assert.deepEqual(publicAPI.buildInterpolatingCurve(polynomial.points, polynomial.options), polynomial);

@@ -1,7 +1,7 @@
 import { buildXYArc } from './xy-arc.js';
 import type { XYArcRequest, XYArcResult } from './xy-arc.js';
 import { curveDomain } from './math.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Point } from './types.js';

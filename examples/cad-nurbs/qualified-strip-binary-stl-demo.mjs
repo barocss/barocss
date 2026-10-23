@@ -185,7 +185,7 @@ const collapsePacket=structuredClone(mainMesh.packet);for(const index of collaps
 const privateCollapse=privateProbe('exact-quantized-collapse',collapsePacket,'COLLAPSE');
 
 const packageRoot=resolve(repo,'packages/barocss-cad'),manifest=JSON.parse(readFileSync(resolve(packageRoot,'package.json'),'utf8')),declared=manifest.publishConfig?.exports?.['.']??manifest.exports['.'];
-const runtimePath=resolve(packageRoot,declared.import),declarationPath=resolve(packageRoot,declared.types),leafDeclarationPath=resolve(packageRoot,'dist/qualified-strip-binary-stl.d.ts');
+const runtimePath=resolve(packageRoot,declared.import),declarationPath=resolve(packageRoot,declared.types),leafDeclarationPath=resolve(packageRoot,'dist/translated-strip/qualified-strip-binary-stl.d.ts');
 const publicAPI=await import(pathToFileURL(runtimePath).href);
 for(const name of runtimeNames)assert.equal(typeof publicAPI[name],name.endsWith('Code')?'object':'function');
 assert.deepEqual(publicAPI.QualifiedTranslatedStripBodyBinaryStlDiagnosticCode,api.QualifiedTranslatedStripBodyBinaryStlDiagnosticCode);

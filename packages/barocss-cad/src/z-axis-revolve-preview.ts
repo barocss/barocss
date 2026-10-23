@@ -1,5 +1,5 @@
-import { buildZAxisRevolvedSurface } from './z-axis-revolved-surface.js';
-import type { ZAxisRevolvedSurfaceResult, ZAxisRevolvedSurfaceReport } from './z-axis-revolved-surface.js';
+import { buildZAxisRevolvedSurface } from './nurbs/surfaces/z-axis-revolved-surface.js';
+import type { ZAxisRevolvedSurfaceResult, ZAxisRevolvedSurfaceReport } from './nurbs/surfaces/z-axis-revolved-surface.js';
 import { evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateSurfaceD1 } from './derivatives.js';
 import { validatePreviewPacket } from './packet.js';

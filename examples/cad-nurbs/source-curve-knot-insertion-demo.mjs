@@ -1609,7 +1609,7 @@ declared.import),
 declarationPath=resolve(packageRoot,
 declared.types),
 leafDeclarationPath=resolve(packageRoot,
-'dist/source-curve-knot-insertion.d.ts');
+'dist/nurbs/source-wide/source-curve-knot-insertion.d.ts');
 const publicAPI=await import(pathToFileURL(runtimePath).href);
 for(const name of runtimeNames)assert.equal(typeof publicAPI[name],
 name.endsWith('Code')?'object':'function');

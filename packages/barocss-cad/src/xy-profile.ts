@@ -1,4 +1,4 @@
-import { requireCurveValue as requireValue, snapshotCurveRequest as snapshot, compileCurveSource } from './curve-source.js';
+import { requireCurveValue as requireValue, snapshotCurveRequest as snapshot, compileCurveSource } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
 

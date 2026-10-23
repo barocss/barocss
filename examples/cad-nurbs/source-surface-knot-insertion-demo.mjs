@@ -1961,7 +1961,7 @@ declared.import),
 declarationPath=resolve(packageRoot,
 declared.types),
 leafDeclarationPath=resolve(packageRoot,
-'dist/source-surface-knot-insertion.d.ts'),
+'dist/nurbs/source-wide/source-surface-knot-insertion.d.ts'),
 publicAPI=await import(pathToFileURL(runtimePath).href);
 for(const name of runtimeNames)assert.equal(typeof publicAPI[name],
 name.endsWith('Code')?'object':'function');

@@ -5,7 +5,7 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import { validateCurve } from './math.js';
 import type { Curve, Surface, Model, Point } from './types.js';
-import type { CompatibleRuledSurfaceResult } from './compatible-ruled-surface.js';
+import type { CompatibleRuledSurfaceResult } from './nurbs/surfaces/compatible-ruled-surface.js';
 import { buildCoplanarExtrusionGeometry } from './coplanar-face-boolean-extrusion-geometry.js';
 import { same } from './structural-equality.js';
 

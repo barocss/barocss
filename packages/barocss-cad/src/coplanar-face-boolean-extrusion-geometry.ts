@@ -1,6 +1,6 @@
-import { buildCompatibleRuledSurface } from './compatible-ruled-surface.js';
-import type { CompatibleRuledSurfaceResult } from './compatible-ruled-surface.js';
-import { adopt } from './own-plane-cylinder-intersection-internal.js';
+import { buildCompatibleRuledSurface } from './nurbs/surfaces/compatible-ruled-surface.js';
+import type { CompatibleRuledSurfaceResult } from './nurbs/surfaces/compatible-ruled-surface.js';
+import { adopt } from './intersect/own-plane-cylinder-intersection-internal.js';
 import { validateCurve, validateSurface } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';

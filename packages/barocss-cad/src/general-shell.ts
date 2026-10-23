@@ -24,7 +24,7 @@ import { brepFromPrismatic, prismaticExtrude } from './prismatic-solid.js';
 import { growSection } from './section-offset.js';
 import { transformBrep } from './brep-transform.js';
 import { revolveProfile } from './revolve.js';
-import { revolutionOf, type Revolution } from './surface-revolution.js';
+import { revolutionOf, type Revolution } from './nurbs/surfaces/surface-revolution.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
 import { booleanCurveRegions, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import type { Curve, Point } from './types.js';

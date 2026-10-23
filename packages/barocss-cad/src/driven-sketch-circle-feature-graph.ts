@@ -5,7 +5,7 @@ import type { SketchCircleLengthParameter, SketchCircleGraphFeature, SketchCircl
 import type { XYArcSketchProfileIntent, XYArcSketchBindings } from './xy-arc-sketch-document.js';
 import type { XYPoint } from './xy-profile.js';
 import { copyCadData } from './data-copy.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 
 export type DrivenCircleRadiusDefinition = { kind: 'literal'; valueMM: number } | { kind: 'parameter'; parameterId: string };
 export type DrivenXYArcProfileIntent = Omit<Extract<XYArcSketchProfileIntent, { kind: 'circle' }>, 'radius'> & { radius: { id: string; definition: DrivenCircleRadiusDefinition } }

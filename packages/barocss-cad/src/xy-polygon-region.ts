@@ -1,4 +1,4 @@
-import { compileCurveSource } from './curve-source.js';
+import { compileCurveSource } from './nurbs/curves/curve-source.js';
 import { validateCurve } from './math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';

@@ -1,4 +1,4 @@
-import { compileCurveSource } from './curve-source.js';
+import { compileCurveSource } from './nurbs/curves/curve-source.js';
 import { evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { CurveD1Result } from './derivatives.js';

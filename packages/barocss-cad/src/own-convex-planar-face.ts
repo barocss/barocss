@@ -2,10 +2,10 @@ import { CadNumericPolicy } from './numeric-policy.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
 import { curveDomain, validateCurve } from './math.js';
-import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop, directedUVDeterminant } from './own-affine-plane-loop-internal.js';
-import { ExactAffinePlane } from './exact-affine-plane-internal.js';
+import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop, directedUVDeterminant } from './intersect/own-affine-plane-loop-internal.js';
+import { ExactAffinePlane } from './exact-proof/exact-affine-plane-internal.js';
 import { compileCadModel } from './model-compiler.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 

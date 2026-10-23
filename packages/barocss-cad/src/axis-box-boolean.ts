@@ -4,7 +4,7 @@ import type { AxisBoxSolidValidationReport } from './box-solid.js';
 import type { AxisBoxShell } from './box-shell.js';
 import { buildParametricFace } from './face.js';
 import type { FaceBundle } from './face.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';

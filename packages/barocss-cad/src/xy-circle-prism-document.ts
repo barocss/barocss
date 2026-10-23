@@ -2,7 +2,7 @@ import { evaluateXYArcSketchDocument, updateXYArcSketchDocument } from './xy-arc
 import type { XYArcSketchDocumentV0, XYArcSketchDocumentResult } from './xy-arc-sketch-document.js';
 import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
 import type { XYCirclePrismShellResult, XYCirclePrismShellReport } from './xy-circle-prism-shell.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Point } from './types.js';

@@ -1,13 +1,13 @@
 import { CadNumericPolicy } from './numeric-policy.js';
 import { validateConvexPlanarFace } from './own-convex-planar-face.js';
 import type { ConvexPlanarFaceResult } from './own-convex-planar-face.js';
-import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop } from './own-affine-plane-loop-internal.js';
+import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop } from './intersect/own-affine-plane-loop-internal.js';
 import { evaluateCurve, evaluateSurface, validateCurve, curveDomain } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { extractCurveInterval } from './curve-interval-extraction.js';
-import type { ExtractedCurveIntervalResult } from './curve-interval-extraction.js';
-import { adopt } from './own-plane-cylinder-intersection-internal.js';
+import { extractCurveInterval } from './nurbs/curves/curve-interval-extraction.js';
+import type { ExtractedCurveIntervalResult } from './nurbs/curves/curve-interval-extraction.js';
+import { adopt } from './intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { buildCoplanarArrangement } from './coplanar-face-boolean-arrangement.js';

@@ -12360,3 +12360,42 @@ and the R5 fingerprint; cad-model and studio (through index.ts); the moved demo 
 `--write-current` records the new source paths.
 
 **Checks run:** build, tsc, lint; 75 tests of the moved modules and the 20 trap tests (1021 tests); the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 983/983, studio 274/274; iges-import-demo passes with the new path.
+
+## D230 — R5.4 batch 2: the NURBS, exact-proof, intersection, paired and translated-strip modules move into folders (2026-10-23)
+
+**What.** 139 kernel src files move, unchanged but for their import specifiers:
+
+| Folder | Files | Modules |
+|---|---|---|
+| `src/nurbs/curves/` | 22 | bezier-curve-degree-elevation, cad-curve-arc-length, curve-adaptive-sampling, curve-bezier-spans, curve-bezier-subdivision-internal, curve-c0-degree-elevation-internal, … |
+| `src/nurbs/surfaces/` | 18 | cad-surface-area, compatible-ruled-surface, degree-matched-bezier-ruled, local-curvature, rational-ruled-surface, surface-axis-reversal, … |
+| `src/nurbs/source-wide/` | 20 | curve-wide-adaptive-sampling, curve-wide-control-polygon, curve-wide-cubic-plane-intersection, curve-wide-plane-intersection, curve-wide-refinement, curve-wide-reversal, … |
+| `src/exact-proof/` | 23 | exact-affine-plane-internal, exact-binary64-orientation-v1, exact-boundary-face-adjacency, exact-collinear-segment-overlap-v1, exact-paired-vlinear-polynomial-internal, exact-paired-vlinear-surface-intersection, … |
+| `src/intersect/` | 25 | multispan-vlinear-plane-section, multispan-vlinear-plane-trim, multispan-vlinear-plane-trim-classification, own-affine-plane-loop-internal, own-coincident-plane-clip, own-convex-loop-clip, … |
+| `src/paired/` | 19 | paired-roof-body-split, paired-roof-body-split-proof-internal, paired-roof-difference-body, paired-roof-difference-body-construction-internal, paired-roof-difference-body-proof-internal, paired-roof-difference-body-world-points, … |
+| `src/translated-strip/` | 12 | qualified-strip-binary-stl, qualified-translated-strip-body, qualified-translated-strip-body-mesh, qualified-translated-strip-body-mesh-domain-internal, qualified-translated-strip-material-internal, translated-strip-interval-boolean, … |
+
+**How references keep resolving.** The same script as D229 rewrote the relative specifiers of 179 src files. The same
+commit updates the deep `dist/` and `src/` paths of 102 files outside src: tests, scripts (the `*-test.mjs` esbuild
+entries and native-split-reference-replay) and 58 cad-nurbs demos. robust-orientation-v1.test's hard-coded src path is
+among them.
+
+**Left at the root on purpose:** the modeling closure and its trap-pinned siblings:
+- the facade providers and pure modules;
+- the internal-leaf allowlists;
+- the legacy harnesses' `./` imports: convex-planar-solid, section-rational-internal, convex-planar-solid-proof-internal,
+  own-convex-planar-face, modeling-translation-internal, types;
+- own-plate-circular-hole, which is a provider;
+- numeric-policy;
+- qualified-strip-binary-stl-encoding-internal, which modeling-stl.test resolves beside `modeling.js`.
+
+These are batch 4's.
+
+**Scripts that load an esbuild `outdir` by module name.** `split-persistent-reference-chain-test.mjs` and
+`native-split-reference-replay.mjs` bundle entries from more than one folder, so esbuild keeps the folders under its
+common base. They now import `exact-proof/persistent-face-reference-v1.mjs` from it.
+
+**Checks:** a full build, tsc, lint; the moved modules' tests and the traps; the kernel suite, RB, the R5 fingerprint;
+cad-model and studio; the changed demos that do not pin Node 22.23.3.
+
+**Checks run:** build, tsc, lint; 41 tests of the moved modules and the 20 trap tests; the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 986/986, studio 274/274. The 58 changed cad-nurbs demos: one passes; 57 fail the same way before the move and after it. They import `src/types.js` through Node, which resolves no `.ts`. That is not this change, and the move adds no failure.

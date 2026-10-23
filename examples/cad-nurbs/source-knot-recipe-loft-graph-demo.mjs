@@ -446,7 +446,7 @@ reject('atomic-replacement-retains-previous', () => { previous = update(revision
 assert.strictEqual(previous, revision6.result); jsonFile('atomic-retention', { callerObjectsPreviousGeometryAndFilesRetained: true, getterCalls, noPartialGraph: true });
 const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), 'utf8'));
 const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'];
-const runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types), leafDeclarationPath = resolve(packageRoot, 'dist/source-knot-recipe-loft-graph.d.ts');
+const runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types), leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/source-knot-recipe-loft-graph.d.ts');
 const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SourceKnotRecipeLoftGraphDiagnosticCode, codes);

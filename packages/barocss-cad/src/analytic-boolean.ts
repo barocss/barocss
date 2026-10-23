@@ -17,8 +17,8 @@
 // of the other solid, or inside / outside by ray parity, retried on a degenerate ray), kept by the
 // operation's rule, split at shared vertices and stitched into shells; negative shells are cavities.
 // Works in binary64 with the numeric policy's tolerance at the inputs' scale.
-import { revolutionOf, profileCrossings, onPatch, patchMargin, type Revolution } from './surface-revolution.js';
-import { curvePiece, curveReversed } from './curve-segment.js';
+import { revolutionOf, profileCrossings, onPatch, patchMargin, type Revolution } from './nurbs/surfaces/surface-revolution.js';
+import { curvePiece, curveReversed } from './nurbs/curves/curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from './mesh/facet-patch.js';
 import { circleOf, polesOf, tessellateBrep } from './brep-tessellate.js';
@@ -26,8 +26,8 @@ import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segA
 import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
 import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, validateCurve } from './math.js';
-import { catmullRom, chainNeighbours, surfaceIsoclines } from './surface-isocline.js';
-import { chainCurve, intersectPatches, SurfaceIntersectionError, type IntersectionChain } from './surface-intersection.js';
+import { catmullRom, chainNeighbours, surfaceIsoclines } from './nurbs/surfaces/surface-isocline.js';
+import { chainCurve, intersectPatches, SurfaceIntersectionError, type IntersectionChain } from './intersect/surface-intersection.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { linearToleranceMM } from './numeric-policy.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';

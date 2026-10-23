@@ -2,7 +2,7 @@ import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCur
 import { evaluateSurfaceD1 } from './derivatives.js';
 import type { SurfaceD1Result } from './derivatives.js';
 import { compileCadModel } from './model-compiler.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same } from './structural-equality.js';
 

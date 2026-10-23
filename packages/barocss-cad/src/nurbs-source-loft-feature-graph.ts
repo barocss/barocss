@@ -1,6 +1,6 @@
-import { editSourceCurveControlPolygon, SourceCurveControlPolygonError } from './source-curve-control-polygon.js';
-import type { SourceCurveControlPolygonResult } from './source-curve-control-polygon.js';
-import type { CurveControlPolygonEdits } from './curve-control-polygon.js';
+import { editSourceCurveControlPolygon, SourceCurveControlPolygonError } from './nurbs/source-wide/source-curve-control-polygon.js';
+import type { SourceCurveControlPolygonResult } from './nurbs/source-wide/source-curve-control-polygon.js';
+import type { CurveControlPolygonEdits } from './nurbs/curves/curve-control-polygon.js';
 import { buildPiecewiseRationalLoftSurface, PiecewiseRationalLoftError } from './piecewise-rational-loft.js';
 import type { PiecewiseRationalLoftOptions, PiecewiseRationalLoftResult } from './piecewise-rational-loft.js';
 import { compileCadModel } from './model-compiler.js';

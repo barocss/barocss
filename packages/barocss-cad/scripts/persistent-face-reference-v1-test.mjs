@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 const dir = mkdtempSync(join(tmpdir(), 'barocss-face-ref-'));
 try {
   const bundle = await build({
-    entryPoints: [resolve('packages/barocss-cad/src/persistent-face-reference-v1.ts')],
+    entryPoints: [resolve('packages/barocss-cad/src/exact-proof/persistent-face-reference-v1.ts')],
     bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false,
   });
   const filename = join(dir, 'face-ref.mjs');

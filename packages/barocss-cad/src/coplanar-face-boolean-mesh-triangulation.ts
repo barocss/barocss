@@ -1,4 +1,4 @@
-import { createNativeUVGraphPredicates } from './own-convex-planar-face-holes-preview.js';
+import { createNativeUVGraphPredicates } from './intersect/own-convex-planar-face-holes-preview.js';
 import type { Point } from './types.js';
 import type { CoplanarFaceBooleanResult } from './coplanar-face-boolean.js';
 import type { CoplanarFaceBooleanMeshOptions, CoplanarFaceBooleanMeshVertex, CoplanarFaceBooleanMeshTriangulation,

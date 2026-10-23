@@ -1,8 +1,8 @@
 import { evaluateCurve, evaluateSurface, validateCurve } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { validateMultiSpanVLinearSurfacePlaneSection } from './multispan-vlinear-plane-section.js';
-import type { MultiSpanVLinearSurfacePlaneSectionResult } from './multispan-vlinear-plane-section.js';
+import { validateMultiSpanVLinearSurfacePlaneSection } from './intersect/multispan-vlinear-plane-section.js';
+import type { MultiSpanVLinearSurfacePlaneSectionResult } from './intersect/multispan-vlinear-plane-section.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 import type { Curve, Point } from './types.js';

@@ -1,6 +1,6 @@
 import { compileCadModel } from './model-compiler.js';
 import type { CadModelIR1 } from './model-compiler.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model } from './types.js';
 import type { XYPoint } from './xy-profile.js';

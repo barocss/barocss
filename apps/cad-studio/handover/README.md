@@ -94,6 +94,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | R5.3f: the sheet-metal features leave operation() for part-sheet.ts (verbatim; helpers frozen record) | D226 | done (batched checks, fingerprint identical) |
 | R5.3g: the frame and weldment features leave operation() for part-frame.ts (verbatim; helpers frozen record) | D227 | done (batched checks, fingerprint identical) |
 | R5.4 batch 1: part, machine, io, mesh, frame-sheet, language into src folders (53 files) | D229 | done (batched checks, fingerprint identical) |
+| R5.4 batch 2: nurbs/{curves,surfaces,source-wide}, exact-proof, intersect, paired, translated-strip (139 files) | D230 | done (batched checks, fingerprint identical) |
 | O10 (kernel part): evaluateCadPart(…, { profile: true }) — per-feature wall time and kernel calls; off by default | D228 | done (fingerprint identical off and on) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 

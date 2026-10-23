@@ -1,4 +1,4 @@
-import { requireCurveValue, snapshotCurveRequest, compileCurveSource } from './curve-source.js';
+import { requireCurveValue, snapshotCurveRequest, compileCurveSource } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point } from './types.js';
 import type { XYPoint } from './xy-profile.js';

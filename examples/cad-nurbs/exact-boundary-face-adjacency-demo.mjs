@@ -270,7 +270,7 @@ const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.']
 assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function'); assert.deepEqual(publicAPI.ExactBoundaryFaceAdjacencyDiagnosticCode, ExactBoundaryFaceAdjacencyDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./exact-boundary-face-adjacency.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/exact-boundary-face-adjacency.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/exact-proof/exact-boundary-face-adjacency.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 for (const row of cases) {
   const authored = JSON.parse(readFileSync(row.authoredFile, 'utf8')), saved = JSON.parse(readFileSync(row.resultFile, 'utf8'));

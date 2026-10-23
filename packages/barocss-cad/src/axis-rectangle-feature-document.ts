@@ -1,6 +1,6 @@
 import { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
 import type { AxisRectangleExtrusionResult } from './axis-rectangle-extrusion.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 
 type ParameterId = '_rect_ox' | '_rect_oy' | '_rect_w' | '_rect_h' | '_rect_d';

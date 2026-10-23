@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { classifyExactSegmentCrossingV1 as classify } from '../dist/exact-segment-crossing-v1.js';
+import { classifyExactSegmentCrossingV1 as classify } from '../dist/exact-proof/exact-segment-crossing-v1.js';
 const p = (x, y) => ({ x, y });
 const relation = (a,b,c,d) => classify(a,b,c,d).relation;
 test('exact proper crossing and disjoint classification are symmetric under reversals', () => {

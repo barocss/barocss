@@ -1,6 +1,6 @@
 import { buildXYArc } from './xy-arc.js';
 import { compileCadModel } from './model-compiler.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import type { Curve } from './types.js';
 import { check, exact } from './xy-circular-numerical-sketch-admission-internal.js';
 import type { XYCircularNumericalSketchDocumentV0, XYCircularNumericalSketchPoint, XYCircularNumericalSketchRadius, XYCircularNumericalSketchSuccess, XYCircularNumericalSketchBinding } from './xy-circular-numerical-sketch.js';
