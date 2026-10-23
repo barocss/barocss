@@ -6487,6 +6487,14 @@ try {
       await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(300);
       if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
       assert.equal(Math.round((await rect('.chat-col')).width), 44, 'collapsed to the strip');
+      // (The strip takes the pointer only on its buttons: a click on its empty part reaches the viewport — here, off the
+      // part, it clears a selection; 92a33dcb2.)
+      await page.locator('.outliner .ol').first().click(); await page.waitForTimeout(200);
+      const picked = () => page.evaluate(() => { const s = window.__studioSelection.selection; return Object.values(s).reduce((n, v) => n + (Array.isArray(v) ? v.length : 0), 0); });
+      assert.ok(await picked() > 0, 'a body selected first');
+      const strip = await rect('.chat-col');
+      await page.mouse.click(strip.left + strip.width / 2, strip.bottom - 120); await page.waitForTimeout(300);
+      assert.equal(await picked(), 0, 'a click on the strip beside its buttons reached the viewport and cleared the selection');
       { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
       await page.click('[aria-label="Open chat"]'); await page.waitForSelector('.chat-col.open .chat', { timeout: 5000 }); await page.waitForTimeout(300);
       const open = await rect('.chat-col');
@@ -6545,7 +6553,8 @@ try {
         await display.click();
       }
       console.log(`  bottom row: ${seen.join(', ')}`);
-      assert.ok(!seen[0].endsWith('stacked') && seen.at(-1).endsWith('stacked'), seen.join(', '));
+      // (Beside or stacked follows the stage's room — with the dock docked, 1440 has none either; at 800 it always stacks.)
+      assert.ok(seen.at(-1).endsWith('stacked'), seen.join(', '));
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
   });
 

@@ -224,7 +224,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .corner-left { position: absolute; left: calc(66px + var(--strip-w, 0px)); bottom: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 10px; z-index: 1; pointer-events: none; }
 /* (A narrow centre wraps the view bar onto a second row rather than past the stage's left edge; the history bar, measuring
    it, stacks above.) */
-.corner-right { position: absolute; right: calc(12px + var(--dock-strip-w, 0px)); bottom: 16px; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px; z-index: 2; max-width: calc(100% - 24px); }
+.corner-right { position: absolute; right: calc(12px + var(--dock-strip-w, 0px)); bottom: 16px; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 4px; z-index: 2; max-width: calc(100% - 24px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)); }
 .corner-right .card.views { flex-wrap: wrap; }
 .corner-right .corner-stack { position: absolute; right: 0; bottom: calc(100% + 6px); display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-height: calc(100vh - 160px); overflow-y: auto; pointer-events: none; z-index: 3; }
 .corner-right .corner-stack > * { pointer-events: auto; }
