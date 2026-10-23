@@ -122,7 +122,7 @@ Moved out of Phase 0:
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | **done** D197–D210, D206 (fuzz s1 refusals 31 → 16, s2 29 → 14; INVALID 0, WRONG 0 on both; touching lumps are separate bodies). the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | **done** D211 (turningOf 8.1 → 4.4 s; D1 calls 4.22 M → 1.40 M). F5's remainder (the turning report's first-derivative evaluations) |
-| O5b | outer | A9 findings: F8 drawings (**done** O170–O174), F9 fasteners as bought lines, F10 base members in the BOM (**done** O169), F6/F7 (**done** O167/O168) |
+| O5b | outer | **done** — A9 findings: F8 drawings (**done** O170–O174), F9 fasteners as bought lines (**done** O176), F10 base members in the BOM (**done** O169), F6/F7 (**done** O167/O168) |
 | G8 | GPU | **done** G-R21: GPU contour for curved silhouettes, dirty-run block writes, clip flags kept; the two App findings moved to R1 |
 | G9 | GPU | **done** G-R22: r16uint triangle key, 15.8 MiB at 1080p, 63.3 at 4K (key collision ~1/65 535 per pair, measured) |
 | G10 | GPU | **done** G-R23: the full flow on WebGL2; analysis maps (thickness, draft, 3-axis access) and the mould's parting line and halves are WebGPU only, and WebGL2 says so |
