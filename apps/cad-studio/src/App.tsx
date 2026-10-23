@@ -1,5 +1,5 @@
 import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
-import { Fragment, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
@@ -28,7 +28,7 @@ import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
 import { CamPanel } from './viewport/CamPanel';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
-import { countRender } from './devRenders';
+import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { CommandButtons, CommandStrip, commandStates } from './ui/ToolButton';
 import { useDrawingSheet } from './ui/useDrawingSheet';
@@ -2218,7 +2218,7 @@ export function App() {
           setMenu({ at, selection: next, title });
         }} />
 
-      <header className="topbar">
+      <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
         <label className="doc-tab"><span className="sr">File name</span>
           <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
@@ -2265,10 +2265,10 @@ export function App() {
         ].filter(Boolean)} />
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
-      </header>
+      </header></Profiler>
 
       <TooltipLayer />
-      <nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
+      <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
         {sketch ? (<>
           {TOOLS.map(t => (
             <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} data-tip={t.label} data-tip-key={t.key} aria-label={t.label}
@@ -2286,9 +2286,9 @@ export function App() {
             {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
             {g === 'inspect' && <button className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></button>}
           </div>))}
-      </nav>
+      </nav></Profiler>
 
-      <aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Outliner">
+      <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Outliner">
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>{fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
           <button className="tool tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></button></div>
         {browserOpen && <>
@@ -2386,8 +2386,8 @@ export function App() {
           <span className="muted"> · {h.by.agent}{h.by.model ? ` (${h.by.model})` : ''} · {whenOf(h.at)}</span></div>)}</>}
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
         </>}
-      </aside>
-      <div className="right-col">
+      </aside></Profiler>
+      <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onToCurves={sketchToCurves} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
         ? (asRefs: boolean) => setSketch(s => s && { ...s, shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), ...(s.anchor?.face?.outline ?? []).map(x => asRefs ? { ...x, construction: true as const } : x)] }) : undefined} />}
@@ -2633,7 +2633,7 @@ export function App() {
           engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast(r.error); });
         }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
       </aside>}
-      </div>
+      </div></Profiler>
 
       {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} /></Suspense>}
 
@@ -2659,7 +2659,7 @@ export function App() {
         {refProblems.map(p => <div key={'p' + p.index} className="ref"><span className="what">{p.where}: <b>{p.name}</b> {p.candidates.length ? 'could be any of these' : 'is gone; pick it again on the feature'}{p.node !== null ? ' (held until then)' : ''}</span>
           {p.candidates.map(n => <button key={n} className="ghost small" aria-label={`Use ${n}`} onClick={() => void settleRef(p.index, n)}>{n}</button>)}</div>)}
       </aside>}
-      {!sketch && !active && !rendering && <div className="card history" aria-label="History">
+      <Profiler id="history" onRender={onBlockRender}>{!sketch && !active && !rendering && <div className="card history" aria-label="History">
         <span className="card-title inline">HISTORY</span>
         {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
           // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
@@ -2673,7 +2673,7 @@ export function App() {
             <Icon name={iconFor(n)} small />{featureLabel(n, i, doc.nodes)}</button>))}
         <button className="marker" aria-label="Roll forward to the end" title="Rollback marker · click to roll forward" onClick={() => setMarker(null)} />
         {marker !== null && <span className="muted">rolled back · {totalNodes - markerAt} hidden</span>}
-      </div>}
+      </div>}</Profiler>
 
       {stage !== null ? <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working… {stage}</span>
         <button className="ghost small" aria-label="Cancel the computation" title="Stop it: nothing changes" onClick={stopStage}>Cancel</button></div>
@@ -2683,7 +2683,7 @@ export function App() {
         <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
       </div>
 
-      <div className="corner-right">
+      <Profiler id="corner-right" onRender={onBlockRender}><div className="corner-right">
         {/* (What stands above the row, stacked so nothing overlaps: the maps' legends, the previews and display
             toggles, then the section bar nearest the row. None of it covers the history bar or the timeline.) */}
         <div className="corner-stack">
@@ -2746,7 +2746,7 @@ export function App() {
           onClick={() => setSnapStep(s => { const steps = [1, 0.5, 0.1, 5, 10, 0], n = steps[(steps.indexOf(s) + 1) % steps.length]; try { localStorage.setItem('studio.snap', String(n)); } catch { /* private mode */ } return n; })}>
           <Icon name="adjust" small />{snapStep ? `Snap ${fmt(snapStep)} mm` : 'Snap off'}</button>
         <span className="chip mono">mm</span>
-      </div>
+      </div></Profiler>
 
       {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
