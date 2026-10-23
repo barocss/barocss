@@ -32,10 +32,13 @@
   - 스크린샷 예산 이내;
   - getting-started를 두 렌더러에서 확인.
 - **최신 유지 방법.**
-  - 페이지마다 근거 소스 파일 목록(`sources:`)을 둡니다.
-  - 그 파일이 페이지보다 나중에 바뀌면 check-docs가 "stale"로 보고합니다.
-  - 거부 코드 표는 코드와 다르면 실패합니다.
-- **승인이 필요한 결정.** 아래 "Decisions for the owner"에 세 가지가 있습니다.
+  - 거부 코드 표와 도구 표는 코드와 다르면 실패합니다.
+  - 예제는 테스트로 돌아가므로, 코드가 바뀌어 깨지면 실패합니다.
+  - 레인이 코드를 바꾸면 코디네이터의 병합 알림을 받아 문서 레인이 고칩니다.
+- **오너 결정 (2026-10-23).**
+  1. "Parameters and configurations" 페이지를 추가합니다.
+  2. 페이지마다 근거 소스 목록은 달지 않습니다.
+  3. Render 탭은 답을 기다립니다. Render 탭은 studio 자체의 렌더링 작업 공간이며 범위 안입니다. 짧은 페이지를 권합니다.
 
 ## Readers
 
@@ -103,8 +106,7 @@ Markdown.
 
 - **Sources:** `App.tsx`; `ui/ShortcutHelp.tsx`; the command definitions in `cad-model/src/app/*.ts`.
 - **Shots:** an annotated layout shot, and the command palette.
-- **Gaps:** the **Render** tab appears only by name. It stays a one-line pointer, since the render package is out of
-  scope (decision 3).
+- **Gaps:** the **Render** tab appears only by name. It links to the Rendering page, if decision 3 adds one.
 
 #### Sketches (`/studio/sketches`): done
 
@@ -122,7 +124,7 @@ Markdown.
 - **Sources:** `cad-model/src/app/*.ts`; `chat/cageTools.ts`; the sheet modules.
 - **Shots:** the hole dialog's Copies; a SubD cage.
 
-#### Parameters and configurations: missing (decision 1)
+#### Parameters and configurations: to write (added by the owner, decision 1)
 
 - **Purpose:**
   - named sizes;
@@ -173,6 +175,25 @@ Markdown.
   - a section box;
   - zebra.
 - **Gaps:** none.
+
+#### Rendering: proposed (decision 3)
+
+- **Purpose:** the **Render** tab, the studio's own rendering workspace. It doesn't use the `@barocss/render`
+  package. It draws with `@barocss/gpu` and keeps its settings in the document (`doc.render`). It never changes the
+  model.
+- **Must explain:**
+  - **Appearance** per body, or the default: preset, colour, metallic, roughness, opacity, a texture with its repeat,
+    an authored `@shader` material.
+  - **Lights:** sun, point and spot. **Environment:** gradient or image. Tone mapping (**Filmic (ACES)**).
+  - **Camera:** **Save this view** and **Go to saved view**, and the field of view.
+  - **Props:** extra scene objects written in the GPU package's CSS-shaped scene language (**PROPS · CSS SCENE**,
+    **Apply props**).
+  - **Timeline:** keys per body, **Turntable**, play and scrub.
+  - **Export image**, which writes a PNG.
+  - The limit: rendering needs WebGPU.
+- **Sources:** `apps/cad-studio/src/ui/RenderPanel.tsx`, `ui/Timeline.tsx`; `cad-model/src/engine/render.ts`.
+- **Shots:** the Render panel with a lit part; the timeline.
+- **Size:** about 70 lines.
 
 #### Shop rows (`/studio/rows`): done
 
@@ -334,7 +355,8 @@ Package pages need runnable samples. So the first packages commit adds `apps/lib
 - **Example:** the README's `createViewer` sample, checked by a browser-free test where possible. If it can't be
   checked that way, the page says it needs a browser.
 - **Sources:** `packages/barocss-gpu/README.md`; `src/viewer/`; `tests/*.test.mjs`.
-- **Not covered:** the package's CSS-shaped scene language, which the studio doesn't use (see Not documented).
+- **Scene language:** the CSS-shaped scene language, as far as the studio uses it (the Render tab's props and
+  `@shader` materials), with the package README as its full description.
 
 ### Reference
 
@@ -403,8 +425,8 @@ Package pages need runnable samples. So the first packages commit adds `apps/lib
 
 | Not documented | Why |
 |---|---|
-| physics, render, ui-*, server, browser, kit, cad-interop packages | Outside the CAD stack this site covers. The studio's Render tab gets a one-line pointer. |
-| `@barocss/gpu`'s CSS-shaped scene language | The studio doesn't use it. The package README covers it. |
+| physics, render, ui-*, server, browser, kit, cad-interop packages | Outside the CAD stack this site covers. (The studio's Render tab doesn't use the render package; see Rendering.) |
+| A full reference of `@barocss/gpu`'s scene language | The package README is its reference. The site covers only what the studio uses. |
 | A per-function API reference for cad-model | The package is public by module path at 0.x and changes often. The page gives a module map; a generated reference can follow the first release. |
 | v1 tool names | Removed. v2 is the only list a model reads. |
 | Work not merged into integration | It may still change. It is added when it merges. |
@@ -427,40 +449,34 @@ and its SHA is reported to the coordinator.
 | Agent | index, tools, cli, proposals, each with its shots; `samples/` begins with agent-tools, cli, proposals | 4 commits, about 450 lines |
 | Packages | samples harness and `test:samples`; cad index, modeling, robustness, formats; cad-model; gpu | 7 commits, about 700 lines |
 | Reference | refusals and its generator; document; rows; limits; verification | 5 commits, about 700 lines |
-| Studio gaps | features (SubD, sheet flat pattern, image tracing); Parameters and configurations (if decision 1 is yes) | 1–2 commits, about 120 lines |
-| Currency | `sources:` front matter on every page, and the stale report in check-docs | 1 commit |
-
-The currency step can move earlier, right after R0, if the owner prefers. It touches every page once.
+| Studio gaps | features (SubD, sheet flat pattern, image tracing); Parameters and configurations; Rendering (if decision 3 adds it) | 2–3 commits, about 190 lines |
 
 ## Definition of done
 
 1. All pages in the sidebar exist, and none carries "Being written". Each page is done only with its text and its
    shots.
-2. Every page has a `sources:` list, and check-docs reports no stale page.
-3. Every code sample is included from `samples/`, and `pnpm test:samples` passes.
-4. The refusal table matches the codes in the code.
-5. check-docs and `pnpm build` pass.
-6. The shots are within budget. Getting started has been walked on WebGPU and WebGL2 with no differing label.
-7. Each page states its limits. Limits gathers them.
-8. Nothing in `apps/library-docs` is evidence, a log or a receipt.
+2. Every code sample is included from `samples/`, and `pnpm test:samples` passes.
+3. The refusal table matches the codes in the code.
+4. check-docs and `pnpm build` pass.
+5. The shots are within budget. Getting started has been walked on WebGPU and WebGL2 with no differing label.
+6. Each page states its limits. Limits gathers them.
+7. Nothing in `apps/library-docs` is evidence, a log or a receipt.
 
 ## Keeping pages current
 
-- **Sources per page.** Each page's front matter lists the files it was written from. Since the last commit of the
-  page, check-docs lists every page whose sources have changed (`git log`) as **stale**. It runs at each docs
-  checkpoint, and the coordinator can run it after a merge window.
 - **Generated where it can be.** The refusal table, and the tools table checked against `GROUPS`, fail when the code
   and the page differ.
 - **Running samples.** A sample that stops running fails `test:samples`.
 - **Labels.** A warning-only check looks for each bold UI label on the studio pages in the studio's and cad-model's
   sources, and reports the labels it doesn't find.
-- **Ownership.** Lanes don't edit the docs. A lane's change that touches a page's sources reaches the docs lane
-  through the coordinator's merge notice, and the docs lane updates the page.
+- **Ownership.** Lanes don't edit the docs. A lane's change that a page describes reaches the docs lane through the
+  coordinator's merge notice, and the docs lane updates the page. Pages don't carry source lists (decision 2); the
+  sources named in this roadmap are for writing them.
 
 ## Decisions for the owner
 
-1. **A Parameters and configurations page.** Add it under Studio, after Part features? This changes the sidebar,
-   which the coordinator owns.
-2. **When the currency step runs.** Right after this roadmap, or at the end as planned?
-3. **The Render tab.** Keep it to a one-line pointer, as the render package is out of scope, or give it a short
-   page?
+1. **A Parameters and configurations page:** yes, under Studio after Part features (owner, 2026-10-23).
+2. **Source lists on pages:** none (owner, 2026-10-23). The stale check is dropped. Currency rests on the generated
+   tables, the running samples, the label check and the merge notices.
+3. **The Render tab:** open. It is the studio's own rendering workspace, in scope, not the render package. The
+   recommendation is the short Rendering page planned above.
