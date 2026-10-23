@@ -131,7 +131,7 @@ import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
 import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
-import { downloadBytes, meshToStl } from './ui/files';
+import { downloadBytes, lumpStls, meshToStl } from './ui/files';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
@@ -1707,13 +1707,17 @@ export function App() {
   const exportStl = async () => {
     if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
     const fallback: string[] = [];
+    let split = 0, files = 0;
     for (const body of bodies) {
+      // (O8: a body whose pieces only touch along an edge or a point, one STL a piece — a reader welds them otherwise.)
+      const lumps = body.lumpTouch?.length ? lumpStls(body.mesh, body.key) : null;
+      if (lumps) { split++; files += lumps.length; for (const f of lumps) downloadBytes(f.bytes, `${fileName}-${body.key}-lump${f.lump + 1}.stl`, 'model/stl'); continue; }
       const kernel = await engine.stl(evaluated, body.key);
       if (!kernel) fallback.push(bodyName(doc, body));
-      downloadBytes(kernel ?? meshToStl(body.mesh, body.key), `${fileName}-${body.key}.stl`, 'model/stl');
+      files++; downloadBytes(kernel ?? meshToStl(body.mesh, body.key), `${fileName}-${body.key}.stl`, 'model/stl');
     }
     // (STL is facets only: no units, colours or exact curves; say when the display mesh had to stand in.)
-    setToast({ title: `STL written: ${bodies.length} file${bodies.length === 1 ? '' : 's'}`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}`, detail: '' });
+    setToast({ title: `STL written: ${files} file${files === 1 ? '' : 's'}`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}${split ? ' A body whose pieces only touch along an edge or a point is written as one STL a piece; 3MF keeps them in one file as separate objects.' : ''}`, detail: '' });
   };
 
   /** The quote package (IM6, O82): the part as STEP, its moulding report and the request, one zip; what is open said. */
