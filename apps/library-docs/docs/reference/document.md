@@ -52,6 +52,7 @@ Only `format`, `schema`, `units`, `parameters`, `nodes` and `outputs` are always
 |---|---|
 | `instances` | Parts placed beside this one, each with its own document, position and rotation |
 | `pendingParts` | New revisions of placed parts, waiting to be accepted |
+| `variability` | The assembly's inputs, what each drives, and its named variants. See [Variants](/studio/assemblies#variants) |
 | `mates` | Mates placing instances by their faces |
 | `robot` | The assembly as a robot: its base link, joint limits and ratings |
 | `drawing` | The 2D drawing's settings and annotations |

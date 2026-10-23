@@ -60,3 +60,33 @@ The freedom that mates leave is also what makes a mechanism move. [Robots](/stud
 
 **Explode** spreads the parts apart for display; each click steps the factor (`×0.5`, …), and the last turns it off.
 The placements don't change, so mates and exports are unaffected.
+
+## Variants
+
+An assembly can have **inputs**, each driving a few things explicitly, and **variants**, named sets of input values.
+
+::: info Not in the studio yet
+There is no studio interface or agent action for variants yet. The inputs are written in the document
+(`variability`), and the document model's `assembly/variability` module regenerates a variant from them.
+:::
+
+- **Inputs.** An input has a name, a type (`number`, `boolean` or `choice`), an optional unit (`mm` or `deg`) and
+  range, and a default. It drives one or more targets:
+  - a part's **parameter**, as `scale · value + offset`;
+  - a feature's **suppression**, when the value is the one given;
+  - **which part** a placed instance uses, per choice: like another instance's part, or a part from a shipped library;
+  - a **mate's** distance or angle.
+- **The master is the default.** The document as saved is the variant where every input is at its default.
+  - A variant is made from the master by setting what its values drive, then solving the mates again.
+  - It is never stored as a model of its own, and the master is never changed.
+  - With every value at its default, the master itself comes back.
+- **What is refused.** The inputs are checked against the document, each refusal with its code:
+  - two inputs with one name, or a variant naming an input that isn't there (`[INPUT_NAME]`);
+  - a value outside its type or range (`[INPUT_RANGE]`), or a choice that isn't offered (`[INPUT_CHOICE]`);
+  - an input that can't drive its target (`[INPUT_TYPE]`), or a target that isn't there (`[INPUT_TARGET]`);
+  - two inputs driving one target (`[INPUT_CONFLICT]`);
+  - a master that isn't what the defaults give (`[INPUT_DEFAULT]`);
+  - a variant name that isn't there (`[VARIANT_UNKNOWN]`).
+
+  See [Refusal codes](/reference/refusals).
+
