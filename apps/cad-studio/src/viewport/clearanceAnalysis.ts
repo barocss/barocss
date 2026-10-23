@@ -8,10 +8,11 @@ import type { ClearanceDisplay, ClearanceOverlay } from './clearanceDisplay';
 export function clearanceSourceDocument(doc: StudioDoc): StudioDoc {
   return { ...doc, instances: doc.instances?.filter(inst => !inst.hidden).map(inst => ({ ...inst, doc: placedBase(inst, doc) })) };
 }
-/** Placed display keys can change after transforms. Instance visibility uses its stable owner ID. */
-export function visibleClearanceBodies(bodies: readonly PlacedBody[], rootKeys: readonly string[], instanceIds: readonly string[]): PlacedBody[] {
-  const roots = new Set(rootKeys), ids = [...instanceIds].sort((a, b) => b.length - a.length);
-  return bodies.filter(body => ids.some(id => body.key.startsWith(id + '/')) || roots.has(body.key));
+/** The bodies shown, by key exactly (O10: a placed copy's body has one key whatever produces it — the studio and this
+ *  worker agree, so a disagreement shows as a missing overlay rather than being matched by its owner's prefix). */
+export function visibleClearanceBodies(bodies: readonly PlacedBody[], visibleKeys: readonly string[]): PlacedBody[] {
+  const shown = new Set(visibleKeys);
+  return bodies.filter(body => shown.has(body.key));
 }
 
 /** Display transforms follow placement, then the current joint/explode/drag motion. Local Model data stays local. */

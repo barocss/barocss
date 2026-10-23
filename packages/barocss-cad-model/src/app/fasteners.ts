@@ -212,7 +212,7 @@ const ok = { ok: true as const };
 const JOINTS = [{ value: 'free', label: 'On its own' }, { value: 'nut', label: 'Through, washer + nut' }, { value: 'tapped', label: 'Into a tapped hole' }];
 export const fastenerCommand: Command = {
   id: 'fastener', label: 'Fastener', icon: 'cad-fastener', group: 'create', keywords: 'bolt screw nut washer iso metric m3 m4 m5 m6 m8 m10 m12 standard part hardware joint tapped clearance',
-  hint: 'A standard bolt, cap screw, nut or washer (ISO, M3–M12) — click a hole’s rim to fit one to it (size, nut or tapped, length); the thread is cosmetic',
+  hint: 'A bolt, cap screw, nut or washer from your loaded fastener sizes — click a hole’s rim to fit one to it (size, nut or tapped, length); the thread is cosmetic',
   available: ctx => Object.keys(fastenerSizesOf(ctx.doc)).length ? ok : { ok: false as const, reason: NO_SIZES },
   fields: (ctx, v) => [
     { key: 'kind', label: 'Part', kind: 'choice', options: FASTENER_KINDS.map(k => ({ value: k.value, label: `${k.label} (${k.standard})` })) },
