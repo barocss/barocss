@@ -1,0 +1,306 @@
+{
+  "id": "fuzz-20261023-173",
+  "about": "L4 fuzz case (seed 20261023, case 173), shrunk: (a cylinder ∪ a cone) ∩ an open box — refused before D207 (a wall plane's cut ending on the traced cylinder–cone curve between its samples was never crossed).",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 4
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2b",
+          "axis": "y",
+          "angleDegrees": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2r1",
+          "kind": "rotate",
+          "target": "n2r0",
+          "axis": "y",
+          "angleDegrees": 270,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r1",
+          "offset": [
+            -2,
+            -2,
+            0
+          ]
+        },
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                4,
+                0
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                1,
+                2
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                0,
+                2
+              ]
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n3b",
+          "kind": "revolve",
+          "sketch": "n3s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angleDegrees": 360
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3b",
+          "offset": [
+            1,
+            1,
+            -2
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "union",
+          "target": "n2",
+          "tool": "n3"
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            6,
+            6
+          ]
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 2
+        },
+        {
+          "id": "n4f",
+          "kind": "shell",
+          "target": "n4b",
+          "thickness": 0.5,
+          "open": [
+            "n4b.top"
+          ]
+        },
+        {
+          "id": "n4r0",
+          "kind": "rotate",
+          "target": "n4f",
+          "axis": "z",
+          "angleDegrees": 90,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n4r1",
+          "kind": "rotate",
+          "target": "n4r0",
+          "axis": "z",
+          "angleDegrees": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4r1",
+          "offset": [
+            1,
+            0,
+            -3
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "intersect",
+          "target": "n1",
+          "tool": "n4"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 2.886569836627857,
+          "relTol": 0.00024024229273286035,
+          "absTol": 0.0006934761556849945
+        },
+        "centroidMM": {
+          "value": [
+            1.9144027964912216,
+            -1.0478795447815703,
+            -1.5087585402186785
+          ],
+          "absTol": 0.0011
+        },
+        "bodies": 1
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 3.47e-4 mm³, centroid e 1.28e-4 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 173,
+    "status": "REFUSED",
+    "tree": {
+      "op": "intersect",
+      "a": {
+        "op": "union",
+        "a": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 2,
+            "h": 4,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 180
+              },
+              {
+                "axis": "y",
+                "deg": 270
+              }
+            ],
+            "move": [
+              -2,
+              -2,
+              0
+            ]
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "cone",
+            "r1": 4,
+            "r2": 1,
+            "h": 2,
+            "rot": [],
+            "move": [
+              1,
+              1,
+              -2
+            ]
+          }
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "hbox",
+          "w": 6,
+          "d": 6,
+          "h": 2,
+          "t": 0.5,
+          "open": true,
+          "rot": [
+            {
+              "axis": "z",
+              "deg": 90
+            },
+            {
+              "axis": "z",
+              "deg": 180
+            }
+          ],
+          "move": [
+            1,
+            0,
+            -3
+          ]
+        }
+      }
+    }
+  }
+}

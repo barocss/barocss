@@ -11809,3 +11809,19 @@ made two lumps that only touch there unbuildable, against D204's contract.
 - 56b and the two cavities: refused, typed;
 - the box and tangent cylinder, both ways round: two bodies, the tool's lump first, the exact volume.
 part-model.test's pinned refusal passes unchanged: the message keeps "touch along an edge or at a vertex".
+
+## D207 — A traced curve's box in the arrangement allows for its bulge between samples (2026-10-23)
+
+**Finding.** L4 fuzz 173, shrunk: (a cylinder ∪ a cone) ∩ an open box. Refused as "not a manifold solid (edge … has 1
+uses)". The union's cylinder face is bounded by the traced cylinder–cone curve. The box's wall planes cut it along
+v = 3 and v = 3.5, and each cut ends on that curve. The arrangement looks for crossings only between pieces whose boxes
+meet, and a traced curve's box was its 64 samples' own. At v = 3 the curve bulges 3 µm past its samples, so the cut's
+end lay outside the box. The crossing was never looked for, the face was not divided and the stitch refused.
+
+**Fix (`src/curved-arrangement.ts`, `arrange`).** A general curve's box there is the samples' box padded by the
+longest chord, as `surelyOff` already uses.
+
+**Result:** 173 is valid and watertight, 2.886668 mm³ against the oracle's 2.886570 ± 3.5e-4 (0.3 e). It is in
+`robustness/corpus/fuzz/`.
+
+**Test:** `test/boolean-curve-box.test.mjs`, failing before.

@@ -332,7 +332,10 @@ function arrange(rings: readonly { polygon: number; ring: readonly CurveSegment2
     const v = points.length; points.push(p); const k = gx + ',' + gy; grid.set(k, [...(grid.get(k) ?? []), v]); return v;
   };
   const cuts = pieces.map(p => [segStart(p.seg), segEnd(p.seg)]);
-  const box = (s: CurveSegment2) => { const pts = s.kind === 'line' ? [s.a, s.b] : s.kind === 'curve' ? polyline(s, CURVE_SAMPLES) : [segStart(s), segEnd(s), [s.c[0] - s.r, s.c[1] - s.r] as XY, [s.c[0] + s.r, s.c[1] + s.r] as XY]; return [Math.min(...pts.map(p => p[0])) - eps, Math.min(...pts.map(p => p[1])) - eps, Math.max(...pts.map(p => p[0])) + eps, Math.max(...pts.map(p => p[1])) + eps]; };
+  // (A general curve's box is its samples' padded by its longest chord: the samples' own box missed a cut that ends on
+  // the curve where it bulges between two samples, 3 µm past them, and the crossing was never looked for. L4 fuzz 173,
+  // D207.)
+  const box = (s: CurveSegment2) => { if (s.kind === 'curve') { const { lo, hi } = samples(s); return [lo[0] - eps, lo[1] - eps, hi[0] + eps, hi[1] + eps]; } const pts = s.kind === 'line' ? [s.a, s.b] : [segStart(s), segEnd(s), [s.c[0] - s.r, s.c[1] - s.r] as XY, [s.c[0] + s.r, s.c[1] + s.r] as XY]; return [Math.min(...pts.map(p => p[0])) - eps, Math.min(...pts.map(p => p[1])) - eps, Math.max(...pts.map(p => p[0])) + eps, Math.max(...pts.map(p => p[1])) + eps]; };
   const boxes = pieces.map(p => box(p.seg));
   for (let i = 0; i < pieces.length; i++) for (let j = i + 1; j < pieces.length; j++) {
     const a = boxes[i], b = boxes[j]; if (a[2] < b[0] || b[2] < a[0] || a[3] < b[1] || b[3] < a[1]) continue;
