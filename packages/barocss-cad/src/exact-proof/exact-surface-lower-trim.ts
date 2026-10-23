@@ -1,15 +1,15 @@
-import { validateSectionExactSurfaceBinding } from '../section-exact-surface-binding.js';
-import type { SectionExactSurfaceBindingResult } from '../section-exact-surface-binding.js';
-import { extractSurfaceBoundary } from '../boundary.js';
+import { validateSectionExactSurfaceBinding } from '../features/section-exact-surface-binding.js';
+import type { SectionExactSurfaceBindingResult } from '../features/section-exact-surface-binding.js';
+import { extractSurfaceBoundary } from '../core/boundary.js';
 import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
-import { evaluateCurve, evaluateSurface, validateCurve } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import { evaluateCurve, evaluateSurface, validateCurve } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Model, Point } from '../types.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export const ExactSurfaceLowerTrimDiagnosticCode=Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',BUDGET:'BUDGET',BINDING:'BINDING',PARENT:'PARENT',SUPPORT:'SUPPORT',EMBEDDING:'EMBEDDING',REPRESENTABILITY:'REPRESENTABILITY',NATIVE:'NATIVE',OWNED:'OWNED'} as const);
 export type ExactSurfaceLowerTrimDiagnosticCode=typeof ExactSurfaceLowerTrimDiagnosticCode[keyof typeof ExactSurfaceLowerTrimDiagnosticCode];

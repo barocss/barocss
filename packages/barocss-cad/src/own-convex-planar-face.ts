@@ -1,7 +1,7 @@
 import { CadNumericPolicy } from './numeric-policy.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { curveDomain, validateCurve } from './math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
+import { curveDomain, validateCurve } from './core/math.js';
 import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop, directedUVDeterminant } from './intersect/own-affine-plane-loop-internal.js';
 import { ExactAffinePlane } from './exact-proof/exact-affine-plane-internal.js';
 import { compileCadModel } from './model-compiler.js';

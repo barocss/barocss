@@ -1,4 +1,4 @@
-import { validateCurve, validateSurface, curveDomain } from '../math.js';
+import { validateCurve, validateSurface, curveDomain } from '../core/math.js';
 import { prepareCurvePlaneAxesTrusted, curvePlaneCoefficientsTrusted, bindCurvePlaneRootsTrusted, classifyCurvePlaneSupportTrusted } from './own-curve-plane-intersection.js';
 import type { BezierCurvePlanePointEvent, BezierCurveAffinePlaneIntersectionResult, CurveAffinePlaneAxes } from './own-curve-plane-intersection.js';
 import { solveCubicBernsteinRoots, CubicBernsteinRootError } from './own-cubic-bernstein-roots.js';
@@ -7,7 +7,7 @@ import { adopt } from './own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from '../data-copy.js';
 import { linearToleranceMM, geometryScaleMM } from '../numeric-policy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export const CubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', REPRESENTABILITY: 'REPRESENTABILITY', BUDGET: 'BUDGET',

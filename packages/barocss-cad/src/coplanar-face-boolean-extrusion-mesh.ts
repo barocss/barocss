@@ -3,11 +3,11 @@ import { validateCoplanarFaceBooleanExtrusion } from './coplanar-face-boolean-ex
 import type { CoplanarFaceBooleanExtrusionResult } from './coplanar-face-boolean-extrusion.js';
 import { tessellateCoplanarFaceBoolean } from './coplanar-face-boolean-mesh.js';
 import type { CoplanarFaceBooleanMeshResult } from './coplanar-face-boolean-mesh.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { curveDomain, surfaceDomain } from './math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
+import { curveDomain, surfaceDomain } from './core/math.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const CoplanarFaceBooleanExtrusionMeshDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET',
   NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', INCIDENCE: 'INCIDENCE', COVERAGE: 'COVERAGE', OWNED: 'OWNED' } as const);

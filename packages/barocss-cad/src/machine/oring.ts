@@ -13,10 +13,10 @@
 // nominal and stretched; fill πCS'²/4 over w·h; at the fit's extremes when the seal and the groove have classes (R12c.2),
 // the depth's range and so the squeeze's. Errors GLAND_DIMENSIONS: no depth, squeeze ≤ 0, fill ≥ 100 %, the groove through
 // the part's wall or off its face. Warnings SQUEEZE_RANGE, FILL_RANGE, STRETCH_RANGE against the ranges.
-import type { Brep } from '../brep-core.js';
-import { booleanAnalytic, faceGeometry } from '../analytic-boolean.js';
-import { brepMassProperties } from '../solid-mass.js';
-import { transformBrep, type BrepAffine } from '../brep-transform.js';
+import type { Brep } from '../brep/brep-core.js';
+import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
+import { brepMassProperties } from '../brep/solid-mass.js';
+import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { lookupFit, FitError, type FitTable } from './fits.js';
 import type { Point } from '../types.js';

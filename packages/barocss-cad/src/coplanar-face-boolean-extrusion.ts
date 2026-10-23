@@ -1,13 +1,13 @@
 import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCoplanarFaceBoolean } from './coplanar-face-boolean.js';
 import type { CoplanarFaceBooleanResult, CoplanarFaceBooleanContributor } from './coplanar-face-boolean.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { validateCurve } from './math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
+import { validateCurve } from './core/math.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import type { CompatibleRuledSurfaceResult } from './nurbs/surfaces/compatible-ruled-surface.js';
 import { buildCoplanarExtrusionGeometry } from './coplanar-face-boolean-extrusion-geometry.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const CoplanarFaceBooleanExtrusionDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET',
   NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', INCIDENCE: 'INCIDENCE', OWNED: 'OWNED' } as const);

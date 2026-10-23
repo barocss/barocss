@@ -2,20 +2,20 @@ import { validateExactPairedVLinearSurfaceIntersection } from '../exact-proof/ex
 import { extractSurfaceIsoCurve } from '../nurbs/surfaces/surface-isocurve.js';
 import { extractSourceCurveInterval } from '../nurbs/source-wide/source-curve-interval-extraction.js';
 import { adopt as adoptSourceModel } from '../intersect/own-plane-cylinder-intersection-internal.js';
-import { validateCurve, evaluateCurve, evaluateSurface } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
+import { validateCurve, evaluateCurve, evaluateSurface } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import { provePairedSurfaceBUVSplitFacesTrusted, PairedSurfaceBUVSplitFacesProofError } from './paired-surface-b-uv-split-faces-proof-internal.js';
 import type { PairedSurfaceBUVSplitFacesProof, PairedSurfaceBUVSplitVertex, PairedSurfaceBUVSplitEdge,
   PairedSurfaceBUVSplitLoop, PairedSurfaceBUVSplitFace, PairedSurfaceBUVSplitWorld } from './paired-surface-b-uv-split-faces-proof-internal.js';
 
 import type { Curve, Model, Point } from '../types.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { ExactPairedVLinearSurfaceIntersectionResult } from '../exact-proof/exact-paired-vlinear-surface-intersection.js';
 import type { SurfaceIsoCurveResult } from '../nurbs/surfaces/surface-isocurve.js';
 import type { SourceCurveIntervalExtractionResult } from '../nurbs/source-wide/source-curve-interval-extraction.js';
 import type { SectionFraction } from '../section-rational-internal.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 type F = SectionFraction;
 type Role = 'bottom'|'rightLow'|'rightHigh'|'top'|'leftLow'|'leftHigh'|'sharedCut';
 type VertexRole = 'bottomLeft'|'bottomRight'|'topRight'|'topLeft'|'cutLeft'|'cutRight';

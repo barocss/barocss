@@ -1,7 +1,7 @@
 import { CadNumericPolicy } from '../numeric-policy.js';
 import { admitConvexNativeLineLoop } from './own-affine-plane-loop-internal.js';
-import { validateCurve, curveDomain, evaluateCurve, evaluateSurface } from '../math.js';
-import { evaluateCurveD1 } from '../derivatives.js';
+import { validateCurve, curveDomain, evaluateCurve, evaluateSurface } from '../core/math.js';
+import { evaluateCurveD1 } from '../core/derivatives.js';
 import { splitCurveAtParameter } from '../nurbs/curves/curve-parameter-split.js';
 import type { CurveParameterSplitProvenance } from '../nurbs/curves/curve-parameter-split.js';
 import { intersectCoplanarCurveWithLineSegment } from './own-curve-line-intersection.js';

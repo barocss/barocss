@@ -8,13 +8,13 @@
 //
 // The opening's frame on a flat face: z the face's outward normal, x its width — the face's own x, world X projected
 // on the face (world Y when the face is square to X), turned `rotation` degrees about z — and y = z × x.
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import type { Point } from '../types.js';
-import { booleanAnalytic, faceGeometry } from '../analytic-boolean.js';
-import { brepMassProperties } from '../solid-mass.js';
-import { transformBrep, type BrepAffine } from '../brep-transform.js';
+import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
+import { brepMassProperties } from '../brep/solid-mass.js';
+import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
-import { cross } from '../vec3.js';
+import { cross } from '../core/vec3.js';
 
 export type ConnectorCode = 'INVALID_INPUT' | 'CONNECTOR_PLACEMENT' | 'CONNECTOR_FIT';
 export class ConnectorError extends Error {

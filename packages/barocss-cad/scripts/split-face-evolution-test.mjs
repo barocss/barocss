@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 const dir = mkdtempSync(join(tmpdir(), 'cad-split-lineage-'));
 try {
   const output = await build({
-    entryPoints: [resolve(import.meta.dirname, '../src/split-face-evolution.ts')],
+    entryPoints: [resolve(import.meta.dirname, '../src/features/split-face-evolution.ts')],
     bundle: true, platform: 'node', format: 'esm', target: 'es2022',
     write: false,
   });

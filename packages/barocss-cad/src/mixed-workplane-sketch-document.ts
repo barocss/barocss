@@ -5,11 +5,11 @@ import { evaluateXYSketchDocument, updateXYSketchDocument } from './xy-sketch-do
 import type { XYSketchProfileIntent, XYSketchDocumentV0, XYSketchDocumentEdit, XYSketchDocumentResult, XYSketchEvaluatedProfile } from './xy-sketch-document.js';
 import { buildXYAngleArc, validateXYAngleArc } from './xy-angle-arc.js';
 import type { XYAngleArcResult } from './xy-angle-arc.js';
-import { transformNativeGeometryAffine, validateAffineGeometryTransform, mapPoint } from './affine-geometry-transform.js';
-import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from './affine-geometry-transform.js';
+import { transformNativeGeometryAffine, validateAffineGeometryTransform, mapPoint } from './features/affine-geometry-transform.js';
+import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from './features/affine-geometry-transform.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Curve, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const MixedWorkplaneSketchDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', FRAME: 'FRAME', BINDING: 'BINDING', BUDGET: 'BUDGET', LOCAL: 'LOCAL', ARC: 'ARC', AFFINE: 'AFFINE', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type MixedWorkplaneSketchDocumentDiagnosticCode = typeof MixedWorkplaneSketchDocumentDiagnosticCode[keyof typeof MixedWorkplaneSketchDocumentDiagnosticCode];

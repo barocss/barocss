@@ -6,7 +6,7 @@ import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Point } from './types.js';
-import { same as sameData } from './structural-equality.js';
+import { same as sameData } from './core/structural-equality.js';
 
 export interface XYCirclePrismDocumentV0 {
   format: 'barocss-xy-circle-prism-feature'; version: 0; id: string; lengthUnit: 'mm'; sketch: XYArcSketchDocumentV0;

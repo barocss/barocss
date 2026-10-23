@@ -1,13 +1,13 @@
 import { CadNumericPolicy } from '../numeric-policy.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
-import { curveDomain, validateCurve } from '../math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
+import { curveDomain, validateCurve } from '../core/math.js';
 import { buildAffinePlaneAxes, mapAffinePlanePointToUV, admitConvexNativeLineLoop, directedUVDeterminant } from './own-affine-plane-loop-internal.js';
 import type { ConvexPlanarFaceLoop, ConvexPlanarFaceOptions, ConvexPlanarFaceVertex, ConvexPlanarFaceEdge, ConvexPlanarFaceUse, ConvexPlanarFacePcurve, ConvexPlanarFaceBinding, ConvexPlanarFaceBoundaryClassification } from '../own-convex-planar-face.js';
 import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
-import type { SurfaceD1Result } from '../derivatives.js';
+import type { SurfaceD1Result } from '../core/derivatives.js';
 
 export type ConvexPlanarFaceWithHolesLoop=ConvexPlanarFaceLoop;
 export type ConvexPlanarFaceWithHolesOptions=ConvexPlanarFaceOptions;

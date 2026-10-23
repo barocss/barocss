@@ -1,13 +1,13 @@
-import { validateSurface, surfaceDomain, evaluateSurface } from '../../math.js';
-import { evaluateSurfaceD1 } from '../../derivatives.js';
-import type { SurfaceD1Result } from '../../derivatives.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math.js';
+import { evaluateSurfaceD1 } from '../../core/derivatives.js';
+import type { SurfaceD1Result } from '../../core/derivatives.js';
 import { elevateBezierCurveDegree } from '../curves/bezier-curve-degree-elevation.js';
 import type { BezierCurveDegreeElevationProvenance, BezierCurveDegreeElevationReport, BezierCurveElevationKnot } from '../curves/bezier-curve-degree-elevation.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal, requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Curve, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export interface SurfaceBezierAxisDegreeElevationOptions { axis: 'u' | 'v'; targetDegree: 2 | 3 }
 export interface SurfaceBezierAxisEndpointMapping { originalUIndex: number; originalVIndex: number; elevatedUIndex: number; elevatedVIndex: number }

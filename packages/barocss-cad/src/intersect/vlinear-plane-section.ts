@@ -1,13 +1,13 @@
 import { compileCadModel } from '../model-compiler.js';
 import { compileCurveSource } from '../nurbs/curves/curve-source.js';
-import { evaluateCurve, evaluateSurface, validateCurve } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import { evaluateCurve, evaluateSurface, validateCurve } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { prepareCurvePlaneAxesTrusted } from './own-curve-plane-intersection.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
 import type { Curve, Surface, Point, Model } from '../types.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export const VLinearSurfacePlaneSectionDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', SUPPORT: 'SUPPORT', CROSSING: 'CROSSING', CHART: 'CHART', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type VLinearSurfacePlaneSectionDiagnosticCode = typeof VLinearSurfacePlaneSectionDiagnosticCode[keyof typeof VLinearSurfacePlaneSectionDiagnosticCode];

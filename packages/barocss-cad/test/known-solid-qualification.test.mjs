@@ -4,7 +4,7 @@ import {
   buildAxisRectangleExtrusion, cad, parseStoredPlateHoleSolid,
   serializeStoredPlateHoleSolid, tessellateOwnPlateCircularHole,
 } from '../dist/index.js';
-import { qualifyKnownSolid } from '../dist/known-solid-qualification.js';
+import { qualifyKnownSolid } from '../dist/features/known-solid-qualification.js';
 import { mountingPlate } from './modeling-hole-fixture.mjs';
 
 const request = { bodyId: 'qualified_body', profile: { kind: 'rectangle', id: 'qualified_profile', origin: [4, -3], width: 7, height: 5 }, distance: 6 };

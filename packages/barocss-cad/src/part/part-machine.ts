@@ -2,7 +2,7 @@
 // keyways, shafts, springs, drives, cams and threads — moved out of part-model.ts's operation() as they were there. The
 // dispatcher calls `machineOperation` for those kinds.
 import { type BearingCode, BearingError, type BearingFitClasses, type BearingRow, bearingRowProblem, seatedBearing } from '../machine/bearing.js';
-import { type Brep } from '../brep-core.js';
+import { type Brep } from '../brep/brep-core.js';
 import { type CamCode, CamError, type CamLaw, type CamReport, type CamSpec, discCam } from '../machine/cam.js';
 import { type ConnectorCode, ConnectorError, type ConnectorRow, connectorBody, connectorOpening } from '../machine/connector.js';
 import { type DriveCode, DriveError, type DriveRow, beltBand, couplingEnvelope, pulley, sprocket } from '../machine/drive.js';
@@ -12,9 +12,9 @@ import { type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCo
 import { type KeyFitClasses, type KeywayReport, type ShaftPartCode, ShaftPartError, keySolid, keywayCut, pinSolid, ringSolid } from '../machine/shaft-parts.js';
 import { MeshBrepError } from '../mesh/mesh-brep.js';
 import { type ShaftDiagnosticCode, ShaftError, type ShaftSpec, shaftSolid } from '../machine/shaft.js';
-import { type XY } from '../curved-arrangement.js';
+import { type XY } from '../brep/curved-arrangement.js';
 import { threadSolid } from '../machine/thread-solid.js';
-import { transformBrep } from '../brep-transform.js';
+import { transformBrep } from '../brep/brep-transform.js';
 import type { CadPartDim, CadPartErrorCode, CadPartPoint2, CadPartPoint3, Part, Result, Solid, CadPartFeature, Tools, PartHelpers } from './part-model.js';
 
 /** Shaft diagnostics as the part model's codes (the shaft's own code kept in the message). */

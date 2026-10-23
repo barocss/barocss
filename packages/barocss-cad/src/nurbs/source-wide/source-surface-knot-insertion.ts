@@ -4,11 +4,11 @@ import type { CadAstDeclaration, CadAstValue } from '../../language/source-ast.j
 import { insertCurveKnotCoefficientsTrusted } from '../curves/curve-knot-insertion.js';
 import type { CurveKnotCoefficientResult } from '../curves/curve-knot-insertion.js';
 import { curveDecimal } from '../curves/curve-source.js';
-import { validateSurface, surfaceDomain, evaluateSurface } from '../../math.js';
-import { evaluateSurfaceD1 } from '../../derivatives.js';
-import type { SurfaceD1Result } from '../../derivatives.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math.js';
+import { evaluateSurfaceD1 } from '../../core/derivatives.js';
+import type { SurfaceD1Result } from '../../core/derivatives.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceSurfaceKnotInsertionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE',

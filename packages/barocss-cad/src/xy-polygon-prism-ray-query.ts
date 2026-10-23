@@ -1,11 +1,11 @@
 import { CadNumericPolicy } from './numeric-policy.js';
 import { validateXYPolygonPrismShell } from './xy-polygon-prism-shell.js';
 import type { XYPolygonPrismShell, XYPolygonPrismShellReport, XYPolygonPrismCapFace } from './xy-polygon-prism-shell.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { evaluateCurve, curveDomain, surfaceDomain } from './math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { evaluateCurve, curveDomain, surfaceDomain } from './core/math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
-import { dot, sub as subtract } from './vec3.js';
+import { dot, sub as subtract } from './core/vec3.js';
 
 export interface XYPolygonPrismShellRayQueryOptions { originMM: Point; direction: Point; maxDistanceMM: number }
 export interface XYPolygonPrismShellRayHit {

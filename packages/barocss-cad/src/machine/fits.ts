@@ -17,9 +17,9 @@
 //   axes over that overlap and intersected by the analytic Boolean (D139 S0's construction). A clearance fit whose
 //   bodies overlap at MMC — the shaft off the hole's axis by more than the clearance — is contradicted by the geometry:
 //   an error (FIT_PAIR), with the overlap.
-import type { Brep } from '../brep-core.js';
-import { booleanAnalytic, faceGeometry } from '../analytic-boolean.js';
-import { brepMassProperties } from '../solid-mass.js';
+import type { Brep } from '../brep/brep-core.js';
+import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
+import { brepMassProperties } from '../brep/solid-mass.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import type { Point } from '../types.js';
 

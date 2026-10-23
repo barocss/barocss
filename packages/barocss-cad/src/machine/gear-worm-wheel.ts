@@ -11,7 +11,7 @@
 // the root, the hob crest's R_h = r1 + 1.25 m_x): rational, exact. The flanks and fillets are fitted bicubic Hermite
 // patches over (the section's parameter, z), their distance from the exact section measured in each plane (z is exact
 // along them); past the budget — never a looser tolerance — the wheel is refused, the measured deviation said.
-import { buildBrep, type Brep, type BrepFaceInput } from '../brep-core.js';
+import { buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { GearError, safeId, bezierKnots, arcCurve, pointSegment, type GearDiagnostic } from './gear.js';
 import { wormDimensions, wormOutline, wormSection, planeClearance, type WormSpec, type WormDimensions, type PlacedWorm } from './gear-worm.js';

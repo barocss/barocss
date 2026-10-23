@@ -1,6 +1,6 @@
 import { CadNumericPolicy } from '../numeric-policy.js';
-import { evaluateSurfaceD1 } from '../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import { evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { validateConvexPlanarFaceWithHoles } from './own-convex-planar-face-holes.js';
 import type { ConvexPlanarFaceWithHolesResult } from './own-convex-planar-face-holes.js';
 import { buildAffinePlaneAxes, mapAffinePlanePointToUV, directedUVDeterminant } from './own-affine-plane-loop-internal.js';

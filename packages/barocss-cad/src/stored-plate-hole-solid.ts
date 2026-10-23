@@ -4,7 +4,7 @@ import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
 import { chartRoundingBoundMM } from './numeric-policy.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const StoredPlateHoleSolidDiagnosticCode = { INPUT: 'INPUT', NATIVE: 'NATIVE', GEOMETRY: 'GEOMETRY', TOPOLOGY: 'TOPOLOGY', BUDGET: 'BUDGET', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const;
 type Code = typeof StoredPlateHoleSolidDiagnosticCode[keyof typeof StoredPlateHoleSolidDiagnosticCode];

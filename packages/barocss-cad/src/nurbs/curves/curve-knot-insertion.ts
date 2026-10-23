@@ -1,9 +1,9 @@
 import { CadNumericPolicy, linearToleranceMM, geometryScaleMM } from '../../numeric-policy.js';
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
 import { compileCurveSource, requireCurveValue } from './curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 import { guardKnots } from './knot-guard.js';
 
 export interface CurveKnotInsertionOptions { knot: number; insertions: number }

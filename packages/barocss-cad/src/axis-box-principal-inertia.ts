@@ -2,7 +2,7 @@ import { validateAxisBoxSolidBooleanMass } from './axis-box-solid-mass.js';
 import type { AxisBoxSolidMassResult, AxisBoxSolidMassMeasure } from './axis-box-solid-mass.js';
 import { copyCadData } from './data-copy.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const AxisBoxSolidPrincipalInertiaDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidPrincipalInertiaDiagnosticCode = typeof AxisBoxSolidPrincipalInertiaDiagnosticCode[keyof typeof AxisBoxSolidPrincipalInertiaDiagnosticCode];

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, curveEvaluator, curveDomain } from '../dist/index.js';
-import { intersectSegments } from '../dist/curved-arrangement.js';
+import { intersectSegments } from '../dist/brep/curved-arrangement.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

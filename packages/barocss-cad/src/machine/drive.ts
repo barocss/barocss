@@ -22,12 +22,12 @@
 //   offsets of the path at ±t/2, whose area between is L·t (each offset's length differs from L by πt).
 // - A coupling: the row's envelope, a sleeve of its outside Ø and length with its two bores (stepped at the row's depth),
 //   revolved; a bought item, its report carrying `bought` with the row's part number and supplier.
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import type { Curve, Point } from '../types.js';
 import { arcCurve, extrudedProfile, lineCurve, reversed } from './gear.js';
-import { evaluateCurve } from '../math.js';
+import { evaluateCurve } from '../core/math.js';
 import { evaluateCadPart } from '../part/part-model.js';
-import { transformBrep } from '../brep-transform.js';
+import { transformBrep } from '../brep/brep-transform.js';
 
 export type DriveCode = 'INVALID_INPUT' | 'UNSUPPORTED_TOOTH_FORM' | 'TOOTH_FORM' | 'BELT_GEOMETRY';
 export class DriveError extends Error {

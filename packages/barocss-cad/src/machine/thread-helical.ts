@@ -7,11 +7,11 @@
 // faces are trimmed by curves that lie exactly on them (degree 4: the surface along a line of its
 // parameters) and in the end planes; the ends, the head's underside and the nut's faces are planes bounded
 // by those curves and the hex.
-import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } from '../brep-core.js';
-import { evaluateCurve, curveDomain } from '../math.js';
+import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
+import { evaluateCurve, curveDomain } from '../core/math.js';
 import { isoThreadRadius, type ThreadSolidRequest } from './thread-solid.js';
 import type { Curve, Surface } from '../types.js';
-import { lerp as lerp3 } from '../vec3.js';
+import { lerp as lerp3 } from '../core/vec3.js';
 
 type P3 = [number, number, number];
 /** A polygon corner in (θ, φ), and the kind of the side that leaves it. */

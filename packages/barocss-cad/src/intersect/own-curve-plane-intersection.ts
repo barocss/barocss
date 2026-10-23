@@ -1,9 +1,9 @@
 import { linearToleranceMM, geometryScaleMM } from '../numeric-policy.js';
 import { createHomogeneousBernsteinEquation, solveHomogeneousBernsteinEquation } from './own-homogeneous-bernstein-roots.js';
 import type { HomogeneousBernsteinEquation, HomogeneousBernsteinRoot } from './own-homogeneous-bernstein-roots.js';
-import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../math.js';
-import { evaluateCurveD1 } from '../derivatives.js';
-import type { CurveD1Result } from '../derivatives.js';
+import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../core/math.js';
+import { evaluateCurveD1 } from '../core/derivatives.js';
+import type { CurveD1Result } from '../core/derivatives.js';
 import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import { copyCadData } from '../data-copy.js';

@@ -1,14 +1,14 @@
 import { compileCadModel } from '../../model-compiler.js';
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
-import { evaluateCurveD1 } from '../../derivatives.js';
-import type { CurveD1Result } from '../../derivatives.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
+import type { CurveD1Result } from '../../core/derivatives.js';
 import { extractCurveBezierSpanTrusted } from './curve-wide-adaptive-sampling.js';
 import type { WideAdaptiveCurveSpan } from './curve-wide-adaptive-sampling.js';
 import { finiteSegmentDistance } from '../curves/curve-adaptive-sampling.js';
 import { splitBezierCurveTrusted } from '../curves/curve-bezier-subdivision-internal.js';
 import type { BezierSubdivisionResult } from '../curves/curve-bezier-subdivision-internal.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceCurveAdaptiveSamplingDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', SOURCE: 'SOURCE', REFERENCE: 'REFERENCE', IDENTITY: 'IDENTITY',

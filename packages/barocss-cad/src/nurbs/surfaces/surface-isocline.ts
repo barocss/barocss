@@ -5,10 +5,10 @@
 // where the Catmull–Rom curve through them in the domain leaves the isocline by more than the tolerance (each new point
 // Newton-corrected onto n·d = 0). n·d ≥ 0 counts as the + side, so an isocline along the domain's edge is not traced twice.
 // Where du × dv vanishes (a pole) the normal is taken just inside the domain.
-import { surfaceDomain, surfaceEvaluator, validateSurface } from '../../math.js';
+import { surfaceDomain, surfaceEvaluator, validateSurface } from '../../core/math.js';
 import { surfaceD1Near } from './surface-closest.js';
 import type { Point, Surface } from '../../types.js';
-import { cross, dot, len, sub } from '../../vec3.js';
+import { cross, dot, len, sub } from '../../core/vec3.js';
 
 /** One isocline in the surface's domain: points on n·d = 0 in order, `closed` when it returns to its start. */
 export interface SurfaceIsocline { readonly closed: boolean; readonly uv: readonly (readonly [number, number])[] }

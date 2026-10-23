@@ -5,14 +5,14 @@
 // as the faces' names. importStep (step-import.ts) reads these files back exactly, and the analytic
 // entities other systems write.
 import { facetedCopy } from '../mesh/facet-boolean.js';
-import { BrepError, type Brep } from '../brep-core.js';
-import { faceGeometry } from '../analytic-boolean.js';
-import { brepMassProperties, brepSurfaceArea } from '../solid-mass.js';
-import { brepBounds } from '../brep-bounds.js';
-import { dot, len, scale, sub, unit } from '../vec3.js';
+import { BrepError, type Brep } from '../brep/brep-core.js';
+import { faceGeometry } from '../brep/analytic-boolean.js';
+import { brepMassProperties, brepSurfaceArea } from '../brep/solid-mass.js';
+import { brepBounds } from '../brep/brep-bounds.js';
+import { dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { brepFromTriangles } from '../mesh/mesh-brep.js';
-import { withCavities } from '../brep-glue.js';
+import { withCavities } from '../brep/brep-glue.js';
 import { weldVertices } from '../mesh/facet-brep.js';
 
 // ---- export ------------------------------------------------------------------------------------------

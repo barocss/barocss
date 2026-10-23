@@ -2,15 +2,15 @@ import { validateExactSurfaceLowerTrim } from '../exact-proof/exact-surface-lowe
 import type { ExactSurfaceLowerTrimResult } from '../exact-proof/exact-surface-lower-trim.js';
 import { validatePairedSectionPlaneCap } from '../paired/paired-section-plane-cap.js';
 import type { PairedSectionPlaneCapResult } from '../paired/paired-section-plane-cap.js';
-import { evaluateCurve, evaluateSurface, validateCurve, validateSurface } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import { evaluateCurve, evaluateSurface, validateCurve, validateSurface } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export const TranslatedSurfaceEndFacesDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', PARENT:'PARENT', PAIR:'PAIR', SUPPORT:'SUPPORT', TRANSLATION:'TRANSLATION', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type TranslatedSurfaceEndFacesDiagnosticCode = typeof TranslatedSurfaceEndFacesDiagnosticCode[keyof typeof TranslatedSurfaceEndFacesDiagnosticCode];

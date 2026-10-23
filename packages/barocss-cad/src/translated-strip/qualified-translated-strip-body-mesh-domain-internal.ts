@@ -1,6 +1,6 @@
 import type { QualifiedTranslatedStripBodyResult } from './qualified-translated-strip-body.js';
 import type { QualifiedTranslatedStripBodyMeshError, QualifiedTranslatedStripBodyMeshResult } from './qualified-translated-strip-body-mesh.js';
-import type { SurfaceD1Result } from '../derivatives.js';
+import type { SurfaceD1Result } from '../core/derivatives.js';
 import type { Point, Surface } from '../types.js';
 
 type Face=QualifiedTranslatedStripBodyResult['faces'][number];

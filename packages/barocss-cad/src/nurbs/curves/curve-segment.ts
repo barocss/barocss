@@ -2,7 +2,7 @@
 // coordinates) to full multiplicity at both ends and the poles between kept — the same curve, no refit. A Boolean's
 // boundary that is a piece of an input edge (a fillet tool's contact) stays that edge's own curve, one edge, rather than
 // a chain of fitted Hermite pieces that cannot follow its interior knots.
-import { curveDomain } from '../../math.js';
+import { curveDomain } from '../../core/math.js';
 import type { Curve, Point } from '../../types.js';
 
 type H = [number, number, number, number];

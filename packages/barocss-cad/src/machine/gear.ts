@@ -17,7 +17,7 @@
 // as it rolls on the pitch circle: its flat tip gives the root circle, its tip round (radius ρ, 0.38 m by default) the
 // fillet, the envelope of the round in closed form (D129), up to where it meets the involute — tangentially at the form
 // circle, or, when the gear is undercut, where it crosses it (the involute below is cut away).
-import { buildBrep, type Brep, type BrepFaceInput } from '../brep-core.js';
+import { buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
 
 export type GearDiagnosticCode = 'INVALID_INPUT' | 'UNSUPPORTED_PROFILE_SHIFT' | 'UNSUPPORTED_GEAR_KIND' | 'PROFILE_BUDGET_EXCEEDED' | 'SELF_INTERSECTION' | 'ROOT_TRANSITION_UNVALIDATED' | 'BORE_INTERSECTION' | 'MATE_INCOMPATIBLE' | 'UNDERCUT' | 'INVOLUTE_INTERFERENCE' | 'TROCHOID_INTERFERENCE' | 'TRIMMING_INTERFERENCE' | 'RIM_INTERSECTION' | 'IDEAL_MODEL';

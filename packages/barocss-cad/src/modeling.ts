@@ -4,7 +4,7 @@ import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
 import { qualifyStoredCirclePrismSolid } from './stored-circle-prism-solid.js';
 import type { StoredCirclePrismSolidResult } from './stored-circle-prism-solid.js';
 import { runModelingProfile } from './modeling-profile-internal.js';
-import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './extruded-profile-solid.js';
+import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './features/extruded-profile-solid.js';
 import { buildXYAffineSketch } from './xy-affine-sketch.js';
 import type { XYAffineSketchSuccess, XYAffineSketchConstraint, XYAffineSketchReferenceLine } from './xy-affine-sketch.js';
 import { buildXYAffineSketchPrism } from './xy-affine-sketch-prism.js';

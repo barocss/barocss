@@ -1,15 +1,15 @@
 // R5.3 (D224): the mesh and import features of the part model — STEP import, SubD, sew, mesh, decimate and separate —
 // moved out of part-model.ts's operation() as they were there. The dispatcher calls `meshOperation` for those kinds.
-import { type Brep, BrepError, isFacetFace } from '../brep-core.js';
+import { type Brep, BrepError, isFacetFace } from '../brep/brep-core.js';
 import { type FacetPatch, type Point } from '../types.js';
 import { MeshBrepError, brepFromTriangles } from '../mesh/mesh-brep.js';
-import { SewError, sewSolid } from '../sew-solid.js';
-import { SubdError, buildSubd, subdSummary } from '../subd.js';
+import { SewError, sewSolid } from '../brep/sew-solid.js';
+import { SubdError, buildSubd, subdSummary } from '../features/subd.js';
 import { decimateMesh } from '../mesh/mesh-decimate.js';
 import { facetBrepFromTriangles, facetBrepsFromTriangles } from '../mesh/facet-brep.js';
 import { importStep } from '../io/step.js';
-import { transformBrep } from '../brep-transform.js';
-import { validateSurface } from '../math.js';
+import { transformBrep } from '../brep/brep-transform.js';
+import { validateSurface } from '../core/math.js';
 import type { CadPartDim, Solid, CadPartFeature, Result, Tools, PartHelpers } from './part-model.js';
 
 /** An import or mesh feature's evaluation (part-model.ts's operation() for these kinds). */

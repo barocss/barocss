@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
-import { finishBrepEdges } from '../dist/edge-finish.js';
+import { finishBrepEdges } from '../dist/blend/edge-finish.js';
 
 // R10.2b (D90): the rolling-ball fillet of an open chain. Its tool is capped at its ends: where the body ends past a
 // convex end it runs on, a step at a time, until its section clears the end face (the Boolean trims it); a concave end

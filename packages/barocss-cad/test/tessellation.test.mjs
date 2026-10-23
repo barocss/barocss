@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { compileCadModel } from '../dist/index.js';
 import { tessellateSurface } from '../dist/preview.js';
-import { validatePreviewPacket, copyPreviewPacket } from '../dist/packet.js';
+import { validatePreviewPacket, copyPreviewPacket } from '../dist/core/packet.js';
 
 const cylinder = {
   kind: 'surface', id: 'quarter-cylinder', degreeU: 2, degreeV: 1,

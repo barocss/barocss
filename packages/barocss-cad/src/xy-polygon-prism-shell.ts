@@ -1,10 +1,10 @@
 import { validateXYPolygonRegion } from './xy-polygon-region.js';
 import { buildXYPolygonPlanarFace, validateXYPolygonPlanarFaceBundle } from './xy-polygon-planar-face.js';
 import type { XYPolygonPlanarFaceBundle } from './xy-polygon-planar-face.js';
-import { buildParametricFace, validateFaceBundle } from './face.js';
-import type { FaceBundle, FaceIds } from './face.js';
-import { validateModel } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
+import { buildParametricFace, validateFaceBundle } from './core/face.js';
+import type { FaceBundle, FaceIds } from './core/face.js';
+import { validateModel } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point, Surface } from './types.js';
 

@@ -3,10 +3,10 @@
 // triangles), each face bounded by the mesh edges round it (outer loop and holes). The mesh must close:
 // every edge between exactly two triangles, running opposite ways in them; it is turned outward when it
 // faces in. Nothing is repaired or smoothed — a curved surface stays as its facets.
-import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } from '../brep-core.js';
+import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import type { Point, Surface } from '../types.js';
-import { binary64Dyadic } from '../dyadic.js';
-import { add, cross, dot, sub } from '../vec3.js';
+import { binary64Dyadic } from '../core/dyadic.js';
+import { add, cross, dot, sub } from '../core/vec3.js';
 
 export class MeshBrepError extends Error {
   constructor(message: string) { super(message); this.name = 'MeshBrepError'; }

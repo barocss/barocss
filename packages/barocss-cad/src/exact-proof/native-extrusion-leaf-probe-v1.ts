@@ -1,7 +1,7 @@
-import { validateBooleanExtrusionFeatureGraph } from '../boolean-extrusion-feature-graph.js';
-import type { BooleanExtrusionFeatureGraphResult } from '../boolean-extrusion-feature-graph.js';
+import { validateBooleanExtrusionFeatureGraph } from '../features/boolean-extrusion-feature-graph.js';
+import type { BooleanExtrusionFeatureGraphResult } from '../features/boolean-extrusion-feature-graph.js';
 import { extrudeCoplanarFaceBoolean } from '../coplanar-face-boolean-extrusion.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 /**
  * Experimental single-leaf native re-execution witness.

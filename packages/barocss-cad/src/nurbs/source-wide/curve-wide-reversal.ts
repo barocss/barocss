@@ -2,7 +2,7 @@ import { reverseCurveGeometryTrusted, CurveReversalError } from '../curves/curve
 import type { CurveReversalOptions, CurveReversalProvenance, CurveReversalObservation, CurveReversalGuardObservation } from '../curves/curve-reversal.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const WideCurveReversalDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', DOMAIN: 'DOMAIN', REPRESENTABILITY: 'REPRESENTABILITY',

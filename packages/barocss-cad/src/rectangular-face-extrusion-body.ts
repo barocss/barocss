@@ -4,8 +4,8 @@ import { buildCompatibleRuledSurface } from './nurbs/surfaces/compatible-ruled-s
 import type { CompatibleRuledSurfaceResult } from './nurbs/surfaces/compatible-ruled-surface.js';
 import { buildMultiSpanVLinearSurfacePlaneSection } from './intersect/multispan-vlinear-plane-section.js';
 import type { MultiSpanVLinearSurfacePlaneSectionOptions, MultiSpanVLinearSurfacePlaneSectionAsset } from './intersect/multispan-vlinear-plane-section.js';
-import { buildSectionExactSurfaceBinding } from './section-exact-surface-binding.js';
-import type { SectionExactSurfaceBindingOptions } from './section-exact-surface-binding.js';
+import { buildSectionExactSurfaceBinding } from './features/section-exact-surface-binding.js';
+import type { SectionExactSurfaceBindingOptions } from './features/section-exact-surface-binding.js';
 import { buildExactSurfaceLowerTrim } from './exact-proof/exact-surface-lower-trim.js';
 import type { ExactSurfaceLowerTrimOptions } from './exact-proof/exact-surface-lower-trim.js';
 import { buildPairedSectionPlaneCap } from './paired/paired-section-plane-cap.js';
@@ -23,7 +23,7 @@ import type { RectangularExtrusionCubeProof } from './rectangular-extrusion-cube
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction } from './section-rational-internal.js';
 import type { Curve, Surface, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const RectangularFaceExtrusionBodyDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', PROFILE: 'PROFILE', DISTANCE: 'DISTANCE',

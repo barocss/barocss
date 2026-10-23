@@ -1,5 +1,5 @@
 import { ExactAffinePlane } from '../exact-proof/exact-affine-plane-internal.js';
-import { validateCurve, validateSurface, surfaceDomain } from '../math.js';
+import { validateCurve, validateSurface, surfaceDomain } from '../core/math.js';
 import type { CurveAffinePlaneAxes } from './own-curve-plane-intersection.js';
 import type { Curve, Surface, Point } from '../types.js';
 

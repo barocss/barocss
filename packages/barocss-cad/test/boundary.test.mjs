@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { extractSurfaceBoundary } from '../dist/boundary.js';
-import { evaluateCurve, evaluateSurface, validateCurve, validateModel } from '../dist/math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/derivatives.js';
+import { extractSurfaceBoundary } from '../dist/core/boundary.js';
+import { evaluateCurve, evaluateSurface, validateCurve, validateModel } from '../dist/core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 import { compileCadModel } from '../dist/index.js';
 
 const edges = ['v-min', 'u-max', 'v-max', 'u-min'];

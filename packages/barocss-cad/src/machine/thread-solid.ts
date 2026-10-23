@@ -5,7 +5,7 @@
 // with a threaded bore. The helix is sampled every 7.5° round and every P/12 along; each facet is flat,
 // so the solid is exact as a polyhedron and its mass, drawing and export follow from it.
 import { brepFromTriangles } from '../mesh/mesh-brep.js';
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import { helicalThreadSolid } from './thread-helical.js';
 
 export interface ThreadSolidRequest {

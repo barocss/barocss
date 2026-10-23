@@ -1,10 +1,10 @@
 import { CadNumericPolicy } from '../numeric-policy.js';
 import type { Surface, Model, Point } from '../types.js';
 import { compileCadModel } from '../model-compiler.js';
-import { validateSurface, surfaceDomain, evaluateSurface } from '../math.js';
-import { evaluateSurfaceD1 } from '../derivatives.js';
-import type { SurfaceD1Result } from '../derivatives.js';
-import { same } from '../structural-equality.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../core/math.js';
+import { evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { SurfaceD1Result } from '../core/derivatives.js';
+import { same } from '../core/structural-equality.js';
 
 type Two<T> = [T,T];
 type Three<T> = [T,T,T];

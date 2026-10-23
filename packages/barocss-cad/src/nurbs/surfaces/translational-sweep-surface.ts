@@ -1,11 +1,11 @@
 import { CadNumericPolicy } from '../../numeric-policy.js';
-import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../../derivatives.js';
+import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../../core/derivatives.js';
 import { adopt } from '../../intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const TranslationalSweepDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', OWNED: 'OWNED' } as const);

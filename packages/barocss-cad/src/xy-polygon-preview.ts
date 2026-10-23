@@ -1,7 +1,7 @@
 import { validateXYPolygonRegion } from './xy-polygon-region.js';
 import type { XYPolygonRegionReport } from './xy-polygon-region.js';
-import { validatePreviewPacket } from './packet.js';
-import type { PreviewPacket } from './packet.js';
+import { validatePreviewPacket } from './core/packet.js';
+import type { PreviewPacket } from './core/packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
 

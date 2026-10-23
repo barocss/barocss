@@ -22,12 +22,12 @@
 // disc is halved by that cut and the ground face runs about half a turn. A left-hand spring is the right-hand one
 // mirrored in the XZ plane. The rate needs the shear modulus G (an input: no default here; the studio prefills steel's
 // as a flagged estimate, the owner's decision). Faces `<id>.wire#k`, `.end0`, `.end1` (the discs), `.ground0/1`.
-import { buildBrep, type Brep, type BrepFaceInput } from '../brep-core.js';
-import { booleanAnalytic } from '../analytic-boolean.js';
-import { transformBrep } from '../brep-transform.js';
-import { glueAtSharedFace } from '../brep-glue.js';
+import { buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
+import { booleanAnalytic } from '../brep/analytic-boolean.js';
+import { transformBrep } from '../brep/brep-transform.js';
+import { glueAtSharedFace } from '../brep/brep-glue.js';
 import type { Curve, Point, Surface } from '../types.js';
-import { add as vAdd, cross as vCross, dot as vDot, scale as vScl, sub as vSub } from '../vec3.js';
+import { add as vAdd, cross as vCross, dot as vDot, scale as vScl, sub as vSub } from '../core/vec3.js';
 
 export type SpringDiagnosticCode = 'INVALID_INPUT' | 'SELF_INTERSECTION' | 'COILS_OVERLAP' | 'PROFILE_BUDGET_EXCEEDED' | 'UNSUPPORTED_SPRING_KIND' | 'LEG_OVERLAP';
 export interface SpringDiagnostic { readonly code: SpringDiagnosticCode; readonly severity: 'error' | 'warning'; readonly message: string }

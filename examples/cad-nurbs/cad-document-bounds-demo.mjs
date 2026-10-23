@@ -33,7 +33,7 @@ assert.equal(built.outputFiles.length, 1);
 const sourceInputs = Object.keys(built.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
 assert.ok(cadInputs.includes(entry));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/cad-document-bounds.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/document/cad-document-bounds.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' +
@@ -326,7 +326,7 @@ const runtimeExports = ['queryCadDocumentBounds', 'validateCadDocumentBounds', '
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CadDocumentBoundsDiagnosticCode, CadDocumentBoundsDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-document-bounds.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/cad-document-bounds.d.ts');
+const leafDeclarationPath = resolve(packageRoot, 'dist/document/cad-document-bounds.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CadDocumentBoundsReport', 'CadDocumentBoundsResult'];
 for (const name of declarationExports) {

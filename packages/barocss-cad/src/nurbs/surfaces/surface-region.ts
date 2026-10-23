@@ -1,14 +1,14 @@
 import { CadNumericPolicy } from '../../numeric-policy.js';
-import { validateSurface, surfaceDomain, evaluateSurface } from '../../math.js';
-import { evaluateSurfaceD1 } from '../../derivatives.js';
-import type { SurfaceD1Result } from '../../derivatives.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math.js';
+import { evaluateSurfaceD1 } from '../../core/derivatives.js';
+import type { SurfaceD1Result } from '../../core/derivatives.js';
 import { splitSurfaceAtParameter } from './surface-parameter-split.js';
 import type { SurfaceParameterSplitResult } from './surface-parameter-split.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SurfaceRegionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', INTERVAL: 'INTERVAL', IDENTITY: 'IDENTITY', REPRESENTABILITY: 'REPRESENTABILITY',

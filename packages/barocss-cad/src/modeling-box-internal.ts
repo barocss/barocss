@@ -1,8 +1,8 @@
 import { compileCadModel } from './model-compiler.js';
-import { buildParametricFace } from './face.js';
-import type { FaceBundle, Four } from './face.js';
-import { buildAxisBoxShell } from './box-shell.js';
-import type { AxisBoxShellIds } from './box-shell.js';
+import { buildParametricFace } from './core/face.js';
+import type { FaceBundle, Four } from './core/face.js';
+import { buildAxisBoxShell } from './core/box-shell.js';
+import type { AxisBoxShellIds } from './core/box-shell.js';
 import type { AxisBoxSolidBooleanAsset } from './axis-box-boolean.js';
 import type { Point, Surface } from './types.js';
 import { signedJson } from './xy-affine-prism-feature-document-internal.js';

@@ -3,10 +3,10 @@ import type { XYPolygonPrismShell, XYPolygonPrismShellReport, XYPolygonPrismCapF
 import { tessellateXYPolygonRegion } from './xy-polygon-preview.js';
 import type { XYPolygonPreviewVertexSource } from './xy-polygon-preview.js';
 import { tessellateSurface } from './preview.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { evaluateCurve, surfaceDomain } from './math.js';
-import { validatePreviewPacket } from './packet.js';
-import type { PreviewPacket } from './packet.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { evaluateCurve, surfaceDomain } from './core/math.js';
+import { validatePreviewPacket } from './core/packet.js';
+import type { PreviewPacket } from './core/packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Point } from './types.js';
 

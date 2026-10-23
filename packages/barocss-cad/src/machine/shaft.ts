@@ -20,9 +20,9 @@
 //   at each end along the cutter's circle (radius R_c > t1, its centre R − t1 + R_c from the axis), the seat at the
 //   surface longer by 2√(R_c² − (R_c − t1)²).
 // - A cross hole { diameter, at (z), angle (degrees about the axis from +X, default 90) } runs through the shaft.
-import type { Brep } from '../brep-core.js';
-import { booleanAnalytic } from '../analytic-boolean.js';
-import { transformBrep } from '../brep-transform.js';
+import type { Brep } from '../brep/brep-core.js';
+import { booleanAnalytic } from '../brep/analytic-boolean.js';
+import { transformBrep } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
 
 export type ShaftDiagnosticCode = 'INVALID_INPUT' | 'SHAFT_STEPS' | 'KEYSEAT_DIMENSIONS' | 'GROOVE_DIMENSIONS' | 'HOLE_DIMENSIONS';

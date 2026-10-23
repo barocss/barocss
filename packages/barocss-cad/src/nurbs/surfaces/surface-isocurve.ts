@@ -1,8 +1,8 @@
-import { basis, validateSurface, validateCurve, surfaceDomain, curveDomain, evaluateSurface, evaluateCurve } from '../../math.js';
+import { basis, validateSurface, validateCurve, surfaceDomain, curveDomain, evaluateSurface, evaluateCurve } from '../../core/math.js';
 import { compileCurveSource, requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Curve, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export interface SurfaceIsoCurveOptions { fixedAxis: 'u' | 'v'; parameter: number; curveId: string }
 export interface SurfaceIsoCurveBasis { start: number; poleIndices: number[]; values: number[] }

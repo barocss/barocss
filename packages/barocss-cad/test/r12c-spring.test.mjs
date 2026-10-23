@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { compressionSpring, springDimensions, springSolidPitch, helicalSweep, SpringError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
-import { brepBounds } from '../dist/brep-bounds.js';
+import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1a (D153): the helical sweep of the exact normal-plane circle, and compression springs (D139's stage), against
 // oracles written here, none of them the kernel's:

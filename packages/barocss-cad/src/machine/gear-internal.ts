@@ -8,7 +8,7 @@
 // depth 2.25 m), its spaces the space gear's teeth exactly. The space gear's profile, turned by −π/z so the ring's tooth
 // 1 stands on +X, is the ring's hole, clockwise, inside a plain rim; a helical ring's hole turns along its helix (the
 // same hand as its space gear; an internal pair is of one hand).
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import type { Curve } from '../types.js';
 import {
   GearError, inv, spurGearDimensions, spurGearProfile, extrudedProfile, helixTwist, arcCurve, reversed, safeId, exactProfile, segmentsCross, pointSegment, orient,

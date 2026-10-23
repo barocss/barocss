@@ -1,7 +1,7 @@
 // R5.3 (D223): the edge finishes of the part model — fillet and chamfer — moved out of part-model.ts's operation() as
 // they were there. `finishEdges` stays in part-model.ts (the shells use it too) and comes in the helpers. The dispatcher
 // calls `finishOperation` for those kinds.
-import { type FilletReport } from '../rolling-ball.js';
+import { type FilletReport } from '../blend/rolling-ball.js';
 import type { CadPartDim, CadPartPoint3, CadPartFeature, Result, Tools, PartHelpers } from './part-model.js';
 
 /** A fillet or chamfer feature's evaluation (part-model.ts's operation() for these kinds). */

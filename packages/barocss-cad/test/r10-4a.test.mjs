@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
-import { finishBrepEdges } from '../dist/edge-finish.js';
+import { finishBrepEdges } from '../dist/blend/edge-finish.js';
 
 // R10.4a (D95): overflow over smooth edges. Where the ball's contact runs off a face across an edge onto a face tangent
 // to it — a round already made — it rolls on over that face: the rolling ball takes the sides beyond (`growSides`). A

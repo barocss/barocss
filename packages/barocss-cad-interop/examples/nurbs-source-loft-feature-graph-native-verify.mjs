@@ -149,7 +149,7 @@ const bundle = await build({ absWorkingDir: root, bundle: true, write: false, fo
   stdin: { contents: consumer, resolveDir: resolve(root, 'packages/barocss-cad-interop'), sourcefile: 'nurbs-source-loft-public-consumer.mjs' },
   ...(mode === 'compiled' ? { plugins: [plugin] } : {}),
 });
-const wrapperSource = await readFile(resolve(packages.get('@barocss/cad-interop').directory, 'src/nurbs-source-loft-feature-graph.ts'), 'utf8');
+const wrapperSource = await readFile(resolve(packages.get('@barocss/cad-interop').directory, 'src/features/nurbs-source-loft-feature-graph.ts'), 'utf8');
 const nativeCallsiteEvidence = { source: 'packages/barocss-cad-interop/src/nurbs-source-loft-feature-graph.ts', graphCallsites: [...wrapperSource.matchAll(/validateNurbsSourceLoftFeatureGraph\s*\(/g)].length, updateCallsites: [...wrapperSource.matchAll(/validateNurbsSourceLoftFeatureGraphUpdate\s*\(/g)].length, kind: 'static source callsites, not runtime telemetry' };
 assert.equal(nativeCallsiteEvidence.graphCallsites,1);assert.equal(nativeCallsiteEvidence.updateCallsites,1);
 const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(root, path));
@@ -179,8 +179,8 @@ if(mode==='compiled') {
   assert.deepEqual(Object.keys(development).sort(),[...Object.keys(baseline.exports),'./nurbs-source-loft-feature-graph'].sort());
   assert.deepEqual(Object.keys(development).sort(),Object.keys(publishedMap).sort());
   for(const key of Object.keys(baseline.exports)){assert.deepEqual(development[key],baseline.exports[key]);assert.deepEqual(publishedMap[key],baseline.publishConfig.exports[key]);}
-  assert.deepEqual(development['./nurbs-source-loft-feature-graph'],{types:'./src/nurbs-source-loft-feature-graph.ts',import:'./src/nurbs-source-loft-feature-graph.ts'});
-  assert.deepEqual(publishedMap['./nurbs-source-loft-feature-graph'],{types:'./dist/nurbs-source-loft-feature-graph.d.ts',import:'./dist/nurbs-source-loft-feature-graph.js'});
+  assert.deepEqual(development['./nurbs-source-loft-feature-graph'],{types:'./src/features/nurbs-source-loft-feature-graph.ts',import:'./src/features/nurbs-source-loft-feature-graph.ts'});
+  assert.deepEqual(publishedMap['./nurbs-source-loft-feature-graph'],{types:'./dist/features/nurbs-source-loft-feature-graph.d.ts',import:'./dist/features/nurbs-source-loft-feature-graph.js'});
   for(const entry of Object.values(publishedMap)){await access(resolve(interop.directory,entry.import));await access(resolve(interop.directory,entry.types));}
   const typeSource=await readFile(resolve(examples,'nurbs-source-loft-feature-graph-native-contract.ts'),'utf8');
   const virtual=resolve(interop.directory,'examples/nurbs-source-loft-private-published-type-consumer.mts');

@@ -1,10 +1,10 @@
 import { buildXYPolygonPlanarFaceWithHole, validateXYPolygonPlanarFaceWithHoleBundle } from './xy-polygon-planar-face-hole.js';
 import type { XYPolygonPlanarFaceWithHoleBundle } from './xy-polygon-planar-face-hole.js';
-import { buildParametricFace, validateFaceBundle } from './face.js';
-import type { FaceBundle, FaceIds } from './face.js';
+import { buildParametricFace, validateFaceBundle } from './core/face.js';
+import type { FaceBundle, FaceIds } from './core/face.js';
 import type { XYPolygonPrismQualifiedUse } from './xy-polygon-prism-shell.js';
-import { validateModel, evaluateCurve, evaluateSurface, curveDomain } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
+import { validateModel, evaluateCurve, evaluateSurface, curveDomain } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point, Surface } from './types.js';
 

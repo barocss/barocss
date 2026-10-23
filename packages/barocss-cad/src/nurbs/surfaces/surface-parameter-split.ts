@@ -1,11 +1,11 @@
-import { validateSurface, surfaceDomain, evaluateSurface } from '../../math.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math.js';
 import { insertSurfaceKnot } from './surface-knot-insertion.js';
 import type { SurfaceKnotInsertionProvenance, SurfaceKnotUnchangedPole, SurfaceKnotGridCount } from './surface-knot-insertion.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal, requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export interface SurfaceParameterSplitOptions { axis: 'u' | 'v'; parameter: number; lowerSurfaceId: string; upperSurfaceId: string }
 export interface SurfaceSplitPoleMapping { refinedUIndex: number; refinedVIndex: number; childUIndex: number; childVIndex: number }

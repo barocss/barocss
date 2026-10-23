@@ -1,8 +1,8 @@
 import { buildInterpolatingCurve, CurveInterpolationError } from './curve-interpolation.js';
 import type { CurveInterpolationResult } from './curve-interpolation.js';
-import { curveDomain } from '../../math.js';
+import { curveDomain } from '../../core/math.js';
 import type { Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const CurveParameterizationDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const);

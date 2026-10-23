@@ -1,15 +1,15 @@
 import { compileCadModel } from './model-compiler.js';
-import { validateAxisBoxSolid } from './box-solid.js';
-import type { AxisBoxSolidValidationReport } from './box-solid.js';
+import { validateAxisBoxSolid } from './core/box-solid.js';
+import type { AxisBoxSolidValidationReport } from './core/box-solid.js';
 import type { AxisBoxSolidBooleanAsset, AxisBoxSolidBooleanOptions, AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
-import { buildParametricFace } from './face.js';
-import type { FaceBundle } from './face.js';
+import { buildParametricFace } from './core/face.js';
+import type { FaceBundle } from './core/face.js';
 import { curveDecimal } from './nurbs/curves/curve-source.js';
-import { evaluateCurve, evaluateSurface } from './math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
+import { evaluateCurve, evaluateSurface } from './core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
 import type { Curve, Surface, Model, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const OrthogonalSolidBooleanDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', CONTACT: 'CONTACT', TOPOLOGY: 'TOPOLOGY', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type OrthogonalSolidBooleanDiagnosticCode = typeof OrthogonalSolidBooleanDiagnosticCode[keyof typeof OrthogonalSolidBooleanDiagnosticCode];

@@ -2,9 +2,9 @@ import { validateExactSurfaceLowerTrim } from '../exact-proof/exact-surface-lowe
 import type { ExactSurfaceLowerTrimResult } from '../exact-proof/exact-surface-lower-trim.js';
 import { validatePairedSectionPlaneCap } from '../paired/paired-section-plane-cap.js';
 import type { PairedSectionPlaneCapResult } from '../paired/paired-section-plane-cap.js';
-import { evaluateCurve, evaluateSurface } from '../math.js';
-import { evaluateSurfaceD1 } from '../derivatives.js';
-import type { SurfaceD1Result } from '../derivatives.js';
+import { evaluateCurve, evaluateSurface } from '../core/math.js';
+import { evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { SurfaceD1Result } from '../core/derivatives.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Point } from '../types.js';

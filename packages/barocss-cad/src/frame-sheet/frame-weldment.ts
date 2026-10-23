@@ -1,4 +1,4 @@
-import type { ProfileSegmentInput } from '../extruded-profile-solid.js';
+import type { ProfileSegmentInput } from '../features/extruded-profile-solid.js';
 
 // FRk1 (D164, D165): a frame's weldment plates — gussets in the corner of two members, caps over (or plugs in) a member's
 // square end. Each is a prism of the user's thickness placed by the members' own lines, frames and section boxes, its

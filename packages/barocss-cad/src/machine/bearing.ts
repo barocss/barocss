@@ -17,16 +17,16 @@
 //   when there is none at the shaft's located side.
 // - Fits (R12c.2): the shaft's class at d and the housing's at D from the user's fit tables (a class they lack is
 //   SEAT_FIT), against the rings' deviations from the row when it gives them: the clearance (bore − shaft, housing − OD).
-import type { Brep } from '../brep-core.js';
-import { booleanAnalytic, faceGeometry } from '../analytic-boolean.js';
-import { brepMassProperties } from '../solid-mass.js';
-import { transformBrep, type BrepAffine } from '../brep-transform.js';
+import type { Brep } from '../brep/brep-core.js';
+import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
+import { brepMassProperties } from '../brep/solid-mass.js';
+import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
-import { evaluateCurve, curveDomain } from '../math.js';
+import { evaluateCurve, curveDomain } from '../core/math.js';
 import { lookupFit, FitError, type FitLimit, type FitTable } from './fits.js';
 import type { PlacedShaft } from './shaft-parts.js';
 import type { Point } from '../types.js';
-import { dot } from '../vec3.js';
+import { dot } from '../core/vec3.js';
 
 export type BearingCode = 'INVALID_INPUT' | 'SEAT_ABUTMENT' | 'SEAT_FIT';
 export class BearingError extends Error {

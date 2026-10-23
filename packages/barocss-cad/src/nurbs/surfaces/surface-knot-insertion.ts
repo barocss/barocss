@@ -1,11 +1,11 @@
-import { validateSurface, surfaceDomain, evaluateSurface } from '../../math.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math.js';
 import { insertCurveKnot } from '../curves/curve-knot-insertion.js';
 import type { CurveKnotInsertionProvenance } from '../curves/curve-knot-insertion.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal, requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Curve, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export interface SurfaceKnotInsertionOptions { axis: 'u' | 'v'; knot: number; insertions: number }
 export interface SurfaceKnotUnchangedPole {

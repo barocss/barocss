@@ -12399,3 +12399,30 @@ common base. They now import `exact-proof/persistent-face-reference-v1.mjs` from
 cad-model and studio; the changed demos that do not pin Node 22.23.3.
 
 **Checks run:** build, tsc, lint; 41 tests of the moved modules and the 20 trap tests; the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 986/986, studio 274/274. The 58 changed cad-nurbs demos: one passes; 57 fail the same way before the move and after it. They import `src/types.js` through Node, which resolves no `.ts`. That is not this change, and the move adds no failure.
+
+## D231 — R5.4 batch 3: the B-rep core, core numerics, document, blend and feature modules move into folders (2026-10-23)
+
+**What.** 87 kernel src files move, unchanged but for their import specifiers. Among them is the B-rep core: brep-core,
+the analytic Boolean, the arrangement, tessellation and mass quadrature.
+
+| Folder | Files | Modules |
+|---|---|---|
+| `src/brep/` | 22 | brep-adapters, brep-bounds, brep-check-geometry, brep-core, brep-euler, brep-glue, brep-hidden-line, … |
+| `src/core/` | 15 | math, derivatives, second-derivatives, vec3, quadrature, dyadic, structural-equality, … |
+| `src/document/` | 12 | cad-document-bounds, cad-document-compatibility, cad-document-export, cad-document-reference, cad-assembly, cad-assembly-instance-point, cad-assembly-members, … |
+| `src/blend/` | 6 | rolling-ball, edge-finish, fillet-section, general-shell, region-shell, offset-cavity |
+| `src/features/` | 32 | boolean-extrusion-feature-graph, boolean-extrusion-feature-graph-serde, boolean-extrusion-feature-lifecycle, boolean-extrusion-parameter-lifecycle, extruded-profile-solid, drafted-extrusion, extrusion-validation, … |
+
+**How references keep resolving.**
+- The D229 script rewrote 293 src files' specifiers and 67 outside files' deep paths. `packages/barocss-cad/README.md`'s
+  `dist/{adjacency,boundary,box-shell,box-solid,derivatives,face,math,orthogonal-adjacency}.js` paths are among them;
+  they are now under `dist/core/`.
+- The two outdir-by-name scripts now also take `features/split-face-evolution.mjs`.
+
+**Left at the root:** types, numeric-policy, data-copy, cad-document, the modeling closure and the trap-pinned planar
+solids. These are batch 4's, as you ruled.
+
+**Checks:** a full build, tsc, lint; the moved modules' tests and the traps; the kernel suite, RB, the R5 fingerprint;
+cad-model and studio; the changed demos, against their run before the move.
+
+**Checks run:** build, tsc, lint; 124 tests of the moved modules and the 20 trap tests (1231 tests); the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 990/990, studio 274/274; the 23 changed demos fail as they did before the move (`src/types.js` through Node, D230).

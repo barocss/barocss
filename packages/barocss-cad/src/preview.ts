@@ -1,7 +1,7 @@
 import type { Point, Surface } from './types.js';
-import { evaluateSurface, sampleSurface, validateSurface } from './math.js';
-import { validatePreviewPacket, type PreviewPacket } from './packet.js';
-import { cross, dot, sub as subtract } from './vec3.js';
+import { evaluateSurface, sampleSurface, validateSurface } from './core/math.js';
+import { validatePreviewPacket, type PreviewPacket } from './core/packet.js';
+import { cross, dot, sub as subtract } from './core/vec3.js';
 
 export interface TessellationOptions { countU: number; countV: number; revision: number }
 export interface ApproximationReport {

@@ -1,4 +1,4 @@
-import { validateCurve, validateSurface, curveDomain } from '../../math.js';
+import { validateCurve, validateSurface, curveDomain } from '../../core/math.js';
 import { extractCurveBezierSpans, CurveBezierSpanExtractionError } from '../curves/curve-bezier-spans.js';
 import type { CurveBezierSpanExtractionResult } from '../curves/curve-bezier-spans.js';
 import { intersectCubicBezierCurveWithAffinePlaneSurface, CubicCurveAffinePlaneIntersectionError } from '../../intersect/own-cubic-curve-plane-intersection.js';
@@ -9,7 +9,7 @@ import type { CurveAffinePlaneAxes } from '../../intersect/own-curve-plane-inter
 import { adopt } from '../../intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const WideCubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', SPAN: 'SPAN', REPRESENTABILITY: 'REPRESENTABILITY',

@@ -1,9 +1,9 @@
 import { compileCurveSource } from './curve-source.js';
-import { evaluateCurveD2 } from '../../second-derivatives.js';
-import type { CurveD2Result } from '../../second-derivatives.js';
+import { evaluateCurveD2 } from '../../core/second-derivatives.js';
+import type { CurveD2Result } from '../../core/second-derivatives.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const QuinticHermiteDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', REPRESENTABILITY: 'REPRESENTABILITY', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',

@@ -1,16 +1,16 @@
 import { compileCadModel } from '../model-compiler.js';
-import { validateFaceBundle } from '../face.js';
-import type { FaceBundle, FaceUse, UV } from '../face.js';
-import { extractSurfaceBoundary } from '../boundary.js';
-import type { SurfaceBoundary } from '../boundary.js';
+import { validateFaceBundle } from '../core/face.js';
+import type { FaceBundle, FaceUse, UV } from '../core/face.js';
+import { extractSurfaceBoundary } from '../core/boundary.js';
+import type { SurfaceBoundary } from '../core/boundary.js';
 import { reverseCurve } from '../nurbs/curves/curve-reversal.js';
 import type { ReversedCurveResult, CurveReversalProvenance } from '../nurbs/curves/curve-reversal.js';
-import { evaluateCurve, curveDomain } from '../math.js';
-import { evaluateCurveD1 } from '../derivatives.js';
-import type { CurveD1Result } from '../derivatives.js';
+import { evaluateCurve, curveDomain } from '../core/math.js';
+import { evaluateCurveD1 } from '../core/derivatives.js';
+import type { CurveD1Result } from '../core/derivatives.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Point } from '../types.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export const ExactBoundaryFaceAdjacencyDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', IDENTITY: 'IDENTITY', BASIS: 'BASIS', ORIENTATION: 'ORIENTATION', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED',

@@ -1,5 +1,5 @@
 import type { Point } from '../types.js';
-import type { ProfileSegmentInput, XY } from '../extruded-profile-solid.js';
+import type { ProfileSegmentInput, XY } from '../features/extruded-profile-solid.js';
 
 // R12 sheet metal (D115, D116). A sheet is T thick; a bend is a piece of a cylinder of inner radius R turned θ, its
 // neutral layer at R + K·T (K the K-factor, defined by the bend allowance below). These are the closed forms; real K

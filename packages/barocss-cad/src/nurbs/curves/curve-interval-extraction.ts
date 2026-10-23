@@ -1,14 +1,14 @@
 import { CadNumericPolicy } from '../../numeric-policy.js';
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
-import { evaluateCurveD1 } from '../../derivatives.js';
-import type { CurveD1Result } from '../../derivatives.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
+import type { CurveD1Result } from '../../core/derivatives.js';
 import { splitCurveAtParameter } from './curve-parameter-split.js';
 import type { CurveParameterSplitResult } from './curve-parameter-split.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const CurveIntervalExtractionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', INTERVAL: 'INTERVAL', IDENTITY: 'IDENTITY',

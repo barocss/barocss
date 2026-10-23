@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/derivatives.js';
-import { evaluateCurve, evaluateSurface } from '../dist/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/core/derivatives.js';
+import { evaluateCurve, evaluateSurface } from '../dist/core/math.js';
 import { compileCadModel } from '../dist/index.js';
-import { extrudeCurve } from '../dist/extrusion.js';
+import { extrudeCurve } from '../dist/core/extrusion.js';
 
 const subtract = (a, b) => a.map((value, axis) => value - b[axis]);
 function vectorClose(actual, expected, relative = 1e-9) {

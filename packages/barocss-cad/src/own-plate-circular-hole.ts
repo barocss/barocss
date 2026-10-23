@@ -1,12 +1,12 @@
 import { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
 import { buildXYCirclePrismShell } from './xy-circle-prism-shell.js';
-import { evaluateCurve, evaluateSurface, curveDomain, validateCurve, validateSurface } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
+import { evaluateCurve, evaluateSurface, curveDomain, validateCurve, validateSurface } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
 import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export interface OwnPlateCircularHoleRequest {
   bodyId: string; featureId: string;

@@ -3,7 +3,7 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational } from '../section-rational-internal.js';
 import { validateQualifiedTranslatedStripBody, buildQualifiedTranslatedStripBody } from './qualified-translated-strip-body.js';
 import { buildMultiSpanVLinearSurfacePlaneSection } from '../intersect/multispan-vlinear-plane-section.js';
-import { buildSectionExactSurfaceBinding } from '../section-exact-surface-binding.js';
+import { buildSectionExactSurfaceBinding } from '../features/section-exact-surface-binding.js';
 import { buildExactSurfaceLowerTrim } from '../exact-proof/exact-surface-lower-trim.js';
 import { buildPairedSectionPlaneCap } from '../paired/paired-section-plane-cap.js';
 import { buildTranslatedSurfaceBaseFace } from './translated-surface-base-face.js';
@@ -17,13 +17,13 @@ import type { QualifiedTranslatedStripBodyResult,QualifiedTranslatedStripBodyOpt
   from './qualified-translated-strip-body.js';
 import type { MultiSpanVLinearSurfacePlaneSectionAsset,MultiSpanVLinearSurfacePlaneSectionOptions }
   from '../intersect/multispan-vlinear-plane-section.js';
-import type { SectionExactSurfaceBindingOptions } from '../section-exact-surface-binding.js';
+import type { SectionExactSurfaceBindingOptions } from '../features/section-exact-surface-binding.js';
 import type { ExactSurfaceLowerTrimOptions } from '../exact-proof/exact-surface-lower-trim.js';
 import type { PairedSectionPlaneCapOptions } from '../paired/paired-section-plane-cap.js';
 import type { TranslatedSurfaceBaseFaceOptions } from './translated-surface-base-face.js';
 import type { TranslatedSurfaceEndFacesOptions } from './translated-surface-end-faces.js';
 import type { TranslatedSurfaceStripVolumeOptions } from './translated-surface-strip-volume.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 type Two<T> = [T,T];
 type Size = {utf16:number;utf8:number};

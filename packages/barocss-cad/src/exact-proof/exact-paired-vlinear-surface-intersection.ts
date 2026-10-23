@@ -1,14 +1,14 @@
 import { compileCadModel } from '../model-compiler.js';
 import { compileCurveSource } from '../nurbs/curves/curve-source.js';
-import { validateSurface, surfaceDomain, validateCurve, evaluateCurve, evaluateSurface } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
+import { validateSurface, surfaceDomain, validateCurve, evaluateCurve, evaluateSurface } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import { deriveExactPairedVLinearPolynomialsTrusted, ExactPairedVLinearPolynomialError } from './exact-paired-vlinear-polynomial-internal.js';
 import type { ExactPairedVLinearProof, ExactPairedVLinearDerived } from './exact-paired-vlinear-polynomial-internal.js';
 
 import type { Curve, Surface, Model, Point } from '../types.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
-import { same } from '../structural-equality.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
+import { same } from '../core/structural-equality.js';
 
 type Asset = { sourceId: string; source: string; surface: Surface };
 export interface ExactPairedVLinearSurfaceIntersectionOptions {

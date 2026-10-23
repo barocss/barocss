@@ -1,4 +1,4 @@
-import type { SplitEvolutionReceipt, SplitFaceIdentity } from '../split-face-evolution.js';
+import type { SplitEvolutionReceipt, SplitFaceIdentity } from '../features/split-face-evolution.js';
 
 /** Authored reference, never a volatile Face array index or nearest-face heuristic. */
 export interface AuthoredFaceReferenceV1 {

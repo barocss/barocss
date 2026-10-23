@@ -5,9 +5,9 @@
 // the surface (a display mesh's vertex, a curve lying on it) and linearly off it, at a rate of about the distance times
 // the curvature; a step that would take the surface farther is halved (beyond the radius of curvature the whole step
 // overshoots). Exactly on a C0 knot (a circle's quadrant joins, G1 in space) the derivatives are taken just off it.
-import { evaluateSurface, surfaceDomain } from '../../math.js';
-import { surfaceD1Evaluator, type SurfaceD1Result } from '../../derivatives.js';
-import { surfaceD2Evaluator, type SurfaceD2Result } from '../../second-derivatives.js';
+import { evaluateSurface, surfaceDomain } from '../../core/math.js';
+import { surfaceD1Evaluator, type SurfaceD1Result } from '../../core/derivatives.js';
+import { surfaceD2Evaluator, type SurfaceD2Result } from '../../core/second-derivatives.js';
 import type { Point, Surface } from '../../types.js';
 
 /** A surface's points on an (n + 1) × (n + 1) grid of its domain, for seeds: build once per surface, pass to every query. */

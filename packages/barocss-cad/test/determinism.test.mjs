@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { evaluateCadPart } from '../dist/index.js';
-import { setRingStations } from '../dist/rolling-ball.js';
+import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // D101: no state outlives an evaluation. Each model, evaluated alone, after the others and again, gives the same
 // B-rep to the bit (its vertices and its face count) and the same volume — the rolling ball's variable radius at fixed
