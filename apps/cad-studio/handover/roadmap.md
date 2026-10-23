@@ -106,9 +106,33 @@ Moved out of Phase 0:
 | K10b | kernel | the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | F5's remainder (the turning report's first-derivative evaluations) |
 | O5b | outer | A9 findings: F8 drawings (**done** O170–O174), F9 fasteners as bought lines, F10 base members in the BOM (**done** O169), F6/F7 (**done** O167/O168) |
-| G8 | GPU | performance regression check against G4's budgets |
+| G8 | GPU | **done** G-R21: GPU contour for curved silhouettes, dirty-run block writes, clip flags kept; the two App findings moved to R1 |
 | G9 | GPU | capFrontSamples memory (63 MiB at 1080p) |
 | G10 | GPU | the full browser flow on WebGL2 |
+
+## Phase R: refactoring, once the current items close (owner, 2026-10-23)
+
+The owner asked for one refactoring pass when the features are reasonably complete: code that is only laid out flat is
+hard to find later, similar logic is likely duplicated, and UI code concentrated in one component hurts rendering.
+It starts per lane when that lane's current items close (K10b/K11, O6, G8–G10) and after a green coordinator window.
+
+Measured at 64df1c081 (lines): `App.tsx` 2905 with 110 `useState` and 252 hooks in one component; `Viewport.tsx` 1382;
+`renderer.ts` 1172; `gpuRenderer.ts` 1081; cad-model `chat/tools.ts` 1698; gpu `viewer/viewer.ts` 2272; kernel
+`part-model.ts` 4480.
+
+| # | Lane | Item |
+|---|---|---|
+| R0 | coordinator | Read-only survey: per file, what lives there, duplicated logic across packages, and for the studio the re-render map (which state changes re-render which panels; React Profiler counts on the A9 and gallery flows). Output: one plan in this file, a checkpoint list per lane |
+| R1 | GPU | Split `App.tsx`: state into domain hooks/contexts (document, selection, view/display, chat, drawing), panels subscribe only to their slice; memoise panel props; move viewport call sites into `viewport/`. Measure renders before and after on the same flow. First targets from G8 (G-R21): pick 121–151 ms against a 90 ms budget (the whole App re-renders on selection; 63 ms in the outliner's 120 instance rows, 20 ms in toolButton), and the ghosted orbit after a pick (the App re-renders every orbit step, a second frame each; the state setter is still unknown) |
+| R2 | GPU | `Viewport.tsx` and the two renderers: shared code between `renderer.ts` and `gpuRenderer.ts` into one module; per-frame paths keep no closures |
+| R3 | outer | cad-model `chat/tools.ts`: one module per v2 action group, a shared argument/refusal helper; the ≤ 25,000-character guard unchanged |
+| R4 | outer | `src/ui`: shared panel pieces (field rows, refusal banners, lists) into one place; DrawingWorkspace split by sheet/view/table |
+| R5 | kernel | `part-model.ts` by feature family; duplicated curve/surface helpers in the source-* and boolean files gathered; no behaviour change |
+
+Rules: each R step is behaviour-preserving and its own checkpoint; no public export renamed without a re-export (saved
+documents and package paths keep resolving); the touched package suites, lint and types per step, and the full window
+plus the full flow at the end of the phase. Render counts and frame times are recorded in the decision logs, not as
+evidence files.
 
 ## Later (on the roadmap, not started)
 

@@ -8,7 +8,7 @@ import { clipBox, createViewer, invert, multiply, rotation, translation, type Ge
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 import { movedCopy, topologyKey } from './instanceGeometry';
-import { silhouetteLines } from './silhouette';
+import { contourTriangles } from './silhouette';
 import { clipClearanceGeometry, type ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
 import { PrintOverlayGeometry } from './printOverlayGeometry';
@@ -128,7 +128,7 @@ export class GpuRenderer implements ViewRenderer {
   private instancePainted = new WeakMap<Mesh, { mesh: DisplayMesh; key: string }>();
   /** The effective mode last applied to instance materials (render may resolve a mode before setState). */
   private instanceIsolationKey: string | undefined;
-  private silhouettes?: Map<Mesh, { source: DisplayMesh; key: string; style: string; line: Mesh | null }>;
+  private silhouettes?: Map<Mesh, { source: DisplayMesh; style: string; line: Mesh | null }>;
   private fadedInstance(id: string): boolean { const ids = this.view?.isolatedInstances; return !!ids?.length && !ids.includes(id); }
   private instanceDisplayMode: DisplayModeStatus['effective'] = 'shaded-with-edges';
   private threads: Mesh | null = null;
@@ -493,6 +493,8 @@ export class GpuRenderer implements ViewRenderer {
       for (const m of [...it.surfaces, ...it.edges, ...(it.threads ? [it.threads] : [])]) { m.clipped = true; cut.add(m); }
       for (const m of it.surfaces) { m.cap = true; m.capHatch = spacing > 0 ? { angle: hatchAngle(turn), spacing } : null; turn++; }
     }
+    // (A curved face's silhouette cut as its surface is — G8: left out here, it was set false and back each frame.)
+    if (this.silhouettes) for (const [surface, entry] of this.silhouettes) if (entry.line) { entry.line.clipped = surface.clipped; cut.add(entry.line); }
     for (const m of this.viewer.meshList) if (!cut.has(m)) m.clipped = false;
   }
 
@@ -682,37 +684,59 @@ export class GpuRenderer implements ViewRenderer {
     const groundVisible = !lineOnly && (r ? r.environment.ground : true);
     if (this.ground && this.ground.visible !== groundVisible) this.ground.visible = groundVisible;
     // The display's pixel ratio as it is now (it changes with the browser zoom, or on another screen).
-    this.updateSilhouettes(camera);
+    this.updateSilhouettes();
     v.resize(pixelRatio());
     v.render();
   }
 
   /** Curved-face screen silhouettes are display lines, with no native pick identity. */
-  private updateSilhouettes(camera: OrbitCamera): void {
+  private updateSilhouettes(): void {
     const cache = this.silhouettes ??= new Map(), seen = new Set<Mesh>();
     for (let bi = 0; bi < this.bodies.length; bi++) {
       const b = this.bodies[bi];
-      this.updateSilhouette(cache, seen, camera, b.surface, b.result.mesh, b.edges?.material.opacity ?? (b.surface.pickable ? 0.9 : 0.15), !this.view?.hiddenBodies?.has(bi));
+      this.updateSilhouette(cache, seen, b.surface, b.result.mesh, b.edges?.material.opacity ?? (b.surface.pickable ? 0.9 : 0.15), !this.view?.hiddenBodies?.has(bi));
     }
     for (const it of this.instances) {
       const opacity = this.fadedInstance(it.id) ? 0.15 : 1;
-      for (let bi = 0; bi < it.surfaces.length; bi++) this.updateSilhouette(cache, seen, camera, it.surfaces[bi], it.sharing[bi] ? it.shapes[bi]!.ref : it.bodies[bi].mesh, opacity, true);
+      for (let bi = 0; bi < it.surfaces.length; bi++) this.updateSilhouette(cache, seen, it.surfaces[bi], it.sharing[bi] ? it.shapes[bi]!.ref : it.bodies[bi].mesh, opacity, true);
     }
-    for (const [surface, entry] of cache) if (!seen.has(surface)) { if (entry.line) { entry.line.remove(); entry.line.geometry.dispose(); } cache.delete(surface); }
+    let dropped = false;
+    for (const [surface, entry] of cache) if (!seen.has(surface)) { entry.line?.remove(); cache.delete(surface); dropped = true; }
+    // (A contour no surface draws any more: its geometry released.)
+    if (this.contours && (dropped || this.contoursStale)) {
+      this.contoursStale = false;
+      const live = new Set<DisplayMesh>(), contours = this.contours;
+      for (const entry of cache.values()) live.add(entry.source);
+      for (const [source, g] of contours) if (!live.has(source)) { g?.dispose(); contours.delete(source); }
+    }
   }
-  /** One surface's silhouette: recomputed when its mesh, the eye or its placement moved; restyled when the mode or look did. */
-  private updateSilhouette(cache: NonNullable<GpuRenderer['silhouettes']>, seen: Set<Mesh>, camera: OrbitCamera, surface: Mesh, source: DisplayMesh, opacity: number, shown: boolean): void {
+  /**
+   * A mesh's contour geometry (G8): its curved faces' triangles, drawn as the contour the GPU finds for the eye and the
+   * surface's transform of each frame — one for every copy of that mesh, made once; null: no curved face.
+   */
+  private contourOf(source: DisplayMesh): Geometry | null {
+    const contours = this.contours ??= new Map();
+    if (contours.has(source)) return contours.get(source)!;
+    const triangles = contourTriangles(source);
+    const g = triangles.length ? this.viewer.createGeometry({ positions: source.positions, normals: source.normals, indices: triangles, topology: 'lines', contour: true }) : null;
+    contours.set(source, g);
+    return g;
+  }
+  private contours?: Map<DisplayMesh, Geometry | null>;
+  private contoursStale?: boolean;
+  /** One surface's silhouette: its mesh's contour through its transform; restyled when the mode or look did. */
+  private updateSilhouette(cache: NonNullable<GpuRenderer['silhouettes']>, seen: Set<Mesh>, surface: Mesh, source: DisplayMesh, opacity: number, shown: boolean): void {
     if (!shown || this.settings || this.analysis || this.mould || !source.faces?.some(f => f.kind === 'curved' && !f.facet)) return;
     seen.add(surface);
-    const mode = this.displayMode.effective, key = JSON.stringify([camera.eye(), camera.target, camera.ortho, Array.from(surface.transform)]);
+    const mode = this.displayMode.effective;
     let entry = cache.get(surface);
-    if (!entry || entry.source !== source || entry.key !== key) {
-      if (entry?.line) { entry.line.remove(); entry.line.geometry.dispose(); }
-      const segments = silhouetteLines(source, surface.transform, camera.eye(), camera.target, camera.ortho);
-      const line = segments.length ? this.viewer.add({ positions: segments, topology: 'lines' }, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }) : null;
-      if (line) line.transform = surface.transform;
-      entry = { source, key, style: '', line }; cache.set(surface, entry);
+    if (!entry || entry.source !== source) {
+      if (entry) { entry.line?.remove(); this.contoursStale = true; }
+      const g = this.contourOf(source);
+      const line = g ? this.viewer.add(g, { material: { color: this.theme.edge, unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }) : null;
+      entry = { source, style: '', line }; cache.set(surface, entry);
     }
+    if (entry.line) place(entry.line, surface.transform);
     const style = JSON.stringify([mode, opacity, this.theme.edge, surface.clipped]);
     if (entry.line && entry.style !== style) {
       entry.line.material = { color: this.theme.edge, opacity, lineOver: mode === 'wireframe', lineHidden: mode === 'hidden-lines-dashed' ? 0.55 : 0, lineHiddenDash: mode === 'hidden-lines-dashed' ? [6, 4] : null };

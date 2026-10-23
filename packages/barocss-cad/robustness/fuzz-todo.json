@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "case": "20261023:149",
+    "note": "D194 fixed its shrunk case (corpus/fuzz/fuzz-20261023-149.json); the full tree still has a strict loop touch of another form (face f0, segments 1 and 5): open."
+  },
+  {
+    "case": "20261024:41",
+    "note": "second seed (D197): a face's loops cross (strict L0), shrunk to 2 leaves: open."
+  }
+]

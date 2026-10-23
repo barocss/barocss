@@ -11537,3 +11537,44 @@ The 31 refusals: 27 non-manifold (one an empty loop), 2 arc-on-cylinder, 2 plana
 
 **None of the 31 is a wrong body.** The refusals are typed: the kernel fails safe. Building them is the next robustness
 work; its order is the coordinator's.
+
+## D197 — A point on a sparsely sampled curve maps onto its own branch (2026-10-23)
+
+**Findings.** Four of D196's robust refusals of valid inputs were refused as "not a manifold solid", an edge used once:
+- 73: a box ∩ a cylinder turned 188.8° about X;
+- 117: two rounded boxes ∪;
+- 139: a cylinder ∪ a box, both slightly turned;
+- 71: a cylinder ∪ an open shell.
+
+**Cause (73).** The box's side y = −1.5 lies 0.65° off the cylinder's axis (n·a = 0.011). Their curve is an ellipse
+whose long axis is about 300 mm, against a face 2.5 mm high. In the domain the curve's 64 samples are 25 mm apart along
+it, and it passes the face's height twice, once on each side.
+
+`intersectSegments` found its crossings with the face's edges exactly (to 1e-14). It then dropped them as off the
+curve: `paramOf` started from the nearest sample, which was on the other side, and its search ended 6.7 mm away. A cut
+ended inside the cylinder's face, and its piece was classified whole.
+
+**Fix (`src/curved-arrangement.ts`, `paramOf`).** Where the search beside the nearest sample ends off the curve, the
+spans of the chords nearer the point than that are searched as well, nearest first. The first point where it lies on
+the curve, within 1e-6 of its size, is kept.
+
+A point off the curve keeps the search as before, and so does a point by a closed curve's ends. There the chord
+across from the nearest end is not searched: the arrangement takes such a point at the end it is nearest. Searching it
+broke a union of two spheres, so that path stays as it was. The search can still end up to 0.08 mm off on very thin
+ellipses (semi-axes 0.5–1 against 300): recorded, not fixed.
+
+**Tests:** `test/boolean-steep-ellipse.test.mjs`, both failing before:
+- `paramOf` on two such ellipses, at points nearer a sample of the other side (7.1 and 4.1 mm off before);
+- 73 and 139: valid, watertight, within 3 e of the ray oracle at 256² × 6.
+
+**Results** (the oracle at 512² × 8):
+
+| Case | Result |
+|---|---|
+| 73 | 5.186989 mm³, −0.3 e |
+| 117 | 357.583818, −0.3 e |
+| 139 | 23.583834, 0.0 e |
+| 71 | 294.730561, 0.9 e |
+
+All four are strictly valid, watertight and one body. Over the seed's 31 refusals, 71, 73, 117 and 139 now build; the
+other 27 are as they were.
