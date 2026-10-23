@@ -52,3 +52,25 @@ test('the copy offered at start is set aside until answered: the new session\'s 
   settleRecovery();
   assert.deepEqual(readRecovery()?.doc, since);
 });
+
+test('O9 (REVIEW-A1): the blobs are kept before the copy that names them; blobs refused, no copy (the older one removed); an overtaken call writes nothing', async () => {
+  const { keepRecovery } = await import('../src/app/recovery');
+  storage.map.clear(); storage.quota = Infinity;
+  const order: string[] = [];
+  const saved = async () => { order.push(`blobs (copy there: ${readRecovery() ? 'yes' : 'no'})`); return true; };
+  assert.equal(await keepRecovery('Part', small, saved), 'ok');
+  assert.deepEqual(order, ['blobs (copy there: no)'], 'the blobs first, while no copy names them');
+  assert.deepEqual(readRecovery()?.doc, small);
+  // (The blob store refuses: the copy is not written, and the one before is removed — never offered without its meshes.)
+  assert.equal(await keepRecovery('Part', small, async () => false), 'refused');
+  assert.equal(readRecovery(), null);
+  assert.equal(await keepRecovery('Part', small, async () => { throw new Error('IndexedDB gone'); }), 'refused');
+  // (Two calls, the first slower to store its blobs: only the newer writes.)
+  const older = doc([{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1, 1] }]), newer = doc([{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, 2] }]);
+  let release!: (v: boolean) => void;
+  const slow = keepRecovery('Part', older, () => new Promise<boolean>(res => { release = res; }));
+  assert.equal(await keepRecovery('Part', newer, async () => true), 'ok');
+  release(true);
+  assert.equal(await slow, 'overtaken');
+  assert.deepEqual(readRecovery()?.doc, newer, 'the newer copy stays');
+});
