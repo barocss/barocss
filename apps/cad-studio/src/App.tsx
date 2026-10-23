@@ -29,6 +29,8 @@ import { PrintPanel } from './viewport/PrintPanel';
 import { CamPanel } from './viewport/CamPanel';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender } from './devRenders';
+import { OutlinerInstances } from './ui/OutlinerInstances';
+import { ToolButton } from './ui/ToolButton';
 import { useDrawingSheet } from './ui/useDrawingSheet';
 import { pmiSelection } from './viewport/pmiGeometry';
 import { useCamPreview } from './viewport/camPreview';
@@ -190,6 +192,7 @@ const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
 };
 
 const emptySel: Selection = { faces: [], edges: [], bodies: [] };
+const NO_INSTANCES: PartInstance[] = [];
 /** What a command is about to add, in its preview. */
 const PREVIEW_TINT = '#7fb2f0';
 /** A history entry's time, local and short (as stored, if not a time). */
@@ -959,6 +962,11 @@ export function App() {
   // Placing a new shape: it follows the pointer over the ground and upward faces; a click or a drop sets
   // it there. Dragging a shape's button from the rail onto the viewport starts it as the drag comes in.
   const dragCmd = useRef<string | null>(null);
+  // (R1c: the outliner's placed parts — a part picked, or one of its bearings opened to edit; setters only, so stable.)
+  const pickInstanceRow = useCallback((id: string) => { setSelection(emptySel); setDirectSel([]); setInstanceSel([id]); setInstanceEdit(null); }, []);
+  const editInstanceRow = useCallback((id: string, index: number) => {
+    setBomOpen(false); setLibraryOpen(false); setParamsOpen(false); setSelection(emptySel); setDirectSel([]); setEditNode(null); setInstanceSel([id]); setInstanceEdit({ owner: id, index });
+  }, []);
   const onSpot = useCallback((spot: Spot | null, done: boolean) => {
     const dragged = dragCmd.current ? commands.find(c => c.id === dragCmd.current) : undefined;
     if (done) dragCmd.current = null;
@@ -1791,12 +1799,16 @@ export function App() {
   }
 
   /** A command's button (the rail, the shapes bar): its tooltip says what it does or why it cannot run; shapes drag onto the model. */
+  // (R1c: the buttons memoised, their handlers stable — `start` through a ref to the latest.)
+  const startRef = useRef(start); startRef.current = start;
+  const startTool = useCallback((c: Command) => startRef.current(c), []);
+  const toolDragStart = useCallback((c: Command, e: React.DragEvent) => { e.dataTransfer.setData(DRAG_TYPE, c.id); e.dataTransfer.effectAllowed = 'copy'; dragCmd.current = c.id; }, []);
+  const toolDragEnd = useCallback((c: Command, e: React.DragEvent) => {
+    if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); }
+  }, []);
   const toolButton = (c: Command) => {
     const a = c.available(ctx);
-    return <button key={c.id} className={'tool' + (active?.cmd.id === c.id ? ' on' : '') + (a.ok ? '' : ' off')} aria-label={c.label}
-      data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={a.ok ? '' : a.reason} onClick={() => start(c)}
-      {...(c.place && a.ok ? { draggable: true, onDragStart: (e: React.DragEvent) => { e.dataTransfer.setData(DRAG_TYPE, c.id); e.dataTransfer.effectAllowed = 'copy'; dragCmd.current = c.id; },
-        onDragEnd: (e: React.DragEvent) => { if (dragCmd.current && e.dataTransfer.dropEffect === 'none') { dragCmd.current = null; setActive(x => x?.placing && x.cmd.id === c.id ? null : x); setPreviewBodies(null); } } } : {})}><Icon name={c.icon} /></button>;
+    return <ToolButton key={c.id} c={c} ok={a.ok} reason={a.ok ? '' : a.reason} on={active?.cmd.id === c.id} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />;
   };
   activeRef.current = active;
   /** The viewport selection by name, for the chat's context chips (A4.3). */
@@ -2310,13 +2322,8 @@ export function App() {
           <span className="ol-eye"><Icon name="cad-sketch" small /></span>
           <button className={'ol' + (selection.sketches?.includes(k) ? ' sel' : '')} onClick={e => pickProfile(k, e.shiftKey)}>Sketch {k + 1}</button></div>)}
         {!!doc.instances?.length && <div className="ol-head">Parts placed</div>}
-        {(doc.instances ?? []).map(inst => <Fragment key={inst.id}><button className={'ol instance' + (instanceSel.includes(inst.id) ? ' sel' : '') + (inst.hidden ? ' hidden-obj' : '')}
-          onClick={() => { setSelection(emptySel); setDirectSel([]); setInstanceSel([inst.id]); setInstanceEdit(null); }}><Icon name={inst.hidden ? 'visibility_off' : 'widgets'} small />{inst.name}</button>
-          {instanceSel.length === 1 && instanceSel[0] === inst.id && inst.doc.nodes.map((node, index) => node.kind === 'bearing' && <button key={index} className={'ol ol-step' + (instanceEdit?.owner === inst.id && instanceEdit.index === index ? ' sel' : '')}
-            aria-label={`Edit ${inst.name}: ${featureLabel(node, index, inst.doc.nodes)}`} disabled={!!active || !!sketch || rendering || drawing}
-            onClick={() => { setBomOpen(false); setLibraryOpen(false); setParamsOpen(false); setSelection(emptySel); setDirectSel([]); setEditNode(null); setInstanceSel([inst.id]); setInstanceEdit({ owner: inst.id, index }); }}>
-            <Icon name={iconFor(node)} small />{featureLabel(node, index, inst.doc.nodes)}</button>)}
-        </Fragment>)}
+        <OutlinerInstances instances={doc.instances ?? NO_INSTANCES} selection={instanceSel} edit={instanceEdit} locked={!!active || !!sketch || rendering || drawing}
+          onPick={pickInstanceRow} onEdit={editInstanceRow} iconFor={iconFor} />
         {!!doc.direct?.objects.length && <div className="ol-head">Curves and surfaces</div>}
         {(doc.direct?.objects ?? []).map(o => <button key={o.id} className={'ol direct' + (directSel.includes(o.id) ? ' sel' : '') + (o.hidden ? ' hidden-obj' : '')}
           title={o.hidden ? 'Hidden: click to show' : o.name}

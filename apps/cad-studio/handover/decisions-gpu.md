@@ -2195,3 +2195,29 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     G23 (Print layers inside).
   - 49 and 50 fail when run straight after 47 (measure), at R1a's f63c349f2 too, so the cause is the FLOW_ONLY order,
     not R1b. In the full flow, 48 comes between them, and they passed (G-R23).
+
+## G-R26 — R1c (1): the outliner's placed parts and the toolbar's buttons memoised; the camera cache's test (roadmap R1, 2026-10-23)
+
+- **What**:
+  - `ui/OutlinerInstances.tsx`: the list of placed parts, and each row, as memoised components. Each row gets its
+    selected flag, its bearings when it alone is selected, the bearing being edited, and whether editing is locked. The
+    pick and edit handlers are stable (setters only).
+  - `ui/ToolButton.tsx`: a command's button, memoised. Its availability (ok, reason) and its on flag are worked out by
+    the App as before. `start` goes through a ref to the latest, and the drag handlers are stable.
+  - The DOM is unchanged: the same classes, attributes, labels and order.
+- **The camera cache's test** (the coordinator's request), `test/camera-projector.test.ts`: each value project depends
+  on is changed in place after a projection, each of target's three, then target replaced, distance, yaw, pitch, fovY,
+  ortho and aspect, and orbit, pan, zoom, fit and setView. Each time the projection is bit-identical to a fresh camera's
+  with the same values, and again from the kept matrix. Also: the same matrix as viewProjection. 16/16.
+- **Bench** (BENCH_TRACE, load 38 → 24, LOADED):
+  - **pick: a bracket clicked**: task 129 → 57.6 ms (budget 90). Now within budget. The profile's jsxDEV self time is
+    118 → 36 ms.
+  - the pattern opened: 64.8 → 26.4 ms of task.
+  - the other rows within budget, except pose (28.6 ms of task, budget 22). Its App renders every frame for the joint's
+    value: R1c (2).
+- **Checks**:
+  - studio tsc 0, eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 12–24), passing: tool keys, the instance chain, chat commits an assembly, Bearing
+    R12c.4, the narrow top bar, the shapes strip, the palette.
+  - 50, 57, 60 and G3 failed when the sketch step 24 ran before them. Run as G-R24's set (49, 56–60) and G3 alone
+    (load 20–22), all pass, so the cause is the FLOW_ONLY order.
