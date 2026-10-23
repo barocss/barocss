@@ -1,7 +1,8 @@
 // The docs check (W0): every sidebar page exists, every page is in the sidebar, and every internal link resolves.
 // A link to a file (a shot) resolves under docs/public. The shots keep to the budget (250 KB each, 10 MB in all), and
 // every shot is shown on a page. Files named `_*.md` are parts a page includes, not pages. The generated parts match
-// the code they come from (scripts/agent-tools.mjs --check).
+// the code they come from (scripts/agent-tools.mjs and scripts/refusals.mjs, --check); the .bcad page names every
+// document field, and the cad-model page every module folder.
 // Run: pnpm --filter @barocss/library-docs check:docs
 import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -59,10 +60,19 @@ for (const f of shots) {
   if (bytes > SHOT_MAX) problems.push(`${link}: ${Math.round(bytes / 1024)} KB, over the 250 KB a shot`);
   if (!shown.has(link)) problems.push(`${link}: no page shows it`);
 }
-for (const script of ['agent-tools.mjs']) {
+for (const script of ['agent-tools.mjs', 'refusals.mjs']) {
   const r = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), script), '--check'], { encoding: 'utf8' });
   if (r.status !== 0) problems.push((r.stderr || r.stdout || `${script} --check failed`).trim());
 }
+// (The .bcad page names every field the document model lists: engine/doc.ts's STUDIO_DOC_FIELDS.)
+const docSource = readFileSync(resolve(docs, '../../../packages/barocss-cad-model/src/engine/doc.ts'), 'utf8');
+const fields = /export const STUDIO_DOC_FIELDS = \[([^\]]*)\]/.exec(docSource)?.[1].match(/'[^']+'/g)?.map(f => f.slice(1, -1)) ?? [];
+if (!fields.length) problems.push('engine/doc.ts: STUDIO_DOC_FIELDS not found');
+const documentPage = readFileSync(join(docs, 'reference/document.md'), 'utf8');
+for (const f of fields) if (!documentPage.includes(`\`${f}\``)) problems.push(`reference/document.md: the field \`${f}\` is not named`);
+// (The cad-model page's module map names every top-level folder of the package's src.)
+const modelSrc = resolve(docs, '../../../packages/barocss-cad-model/src'), modelPage = readFileSync(join(docs, 'packages/cad-model/index.md'), 'utf8');
+for (const name of readdirSync(modelSrc)) if (statSync(join(modelSrc, name)).isDirectory() && !modelPage.includes(`\`${name}/\``)) problems.push(`packages/cad-model/index.md: the module \`${name}/\` is not in the map`);
 if (shotBytes > TOTAL_MAX) problems.push(`shots: ${Math.round(shotBytes / 1024)} KB in all, over the 10 MB`);
 const writing = [...listed].filter(p => readFileSync(p, 'utf8').includes('::: warning Being written')).length;
 if (problems.length) { console.error(problems.join('\n')); process.exit(1); }

@@ -41,6 +41,7 @@ The package is public module by module. Import each module by its path; the pack
 | `standards/` | Values derived from standards, with their sources and licences |
 | `team/` | Revisions and sources, several agents on one part, baselines, freshness, change requests, bundles |
 | `io/` | A zip writer with no dependencies |
+| `util/` | Small shared helpers: unit factors, guards, ids, rounding |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
 ## The studio document
