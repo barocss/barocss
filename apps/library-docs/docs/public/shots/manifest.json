@@ -75,7 +75,7 @@
    "page": "home",
    "step": "home: the starter plate",
    "renderer": "webgpu",
-   "bytes": 93934
+   "bytes": 93937
   },
   {
    "file": "studio/assemblies/interference.jpg",
