@@ -229,6 +229,7 @@ evidence files.
 
 ## Waiting on the owner
 
+- One live chat turn to check whether the CLI emits thinking deltas for O17c's reasoning display (O17c is built to tolerate their absence and marked unverified until then). · ko: O17c 생각 과정 표시 확인용 실제 채팅 1턴 (허락 필요)
 - A person-supplied row/fit file for A9-7/A9's acceptance (O4, O5). · ko: A9-7·A9 인수 검사용 사람이 준 행·끼워맞춤 파일 (O4, O5)
 - Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle. · ko: 비스듬한 끝 용접 비드는 독립 오라클이 생길 때까지 거부
 - A v3 decision, if S3 finds a breaking v2 change. · ko: S3에서 v2 호환이 깨지면 v3 결정
