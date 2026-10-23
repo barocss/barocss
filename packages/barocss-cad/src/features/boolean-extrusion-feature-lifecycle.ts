@@ -1,7 +1,7 @@
 import { evaluateBooleanExtrusionFeatureGraph, validateBooleanExtrusionFeatureGraph,
   BooleanExtrusionFeatureGraphError, BooleanExtrusionFeatureGraphDiagnosticCode } from './boolean-extrusion-feature-graph.js';
 import type { BooleanExtrusionFeatureGraphResult, BooleanExtrusionFeatureGraphV0 } from './boolean-extrusion-feature-graph.js';
-import { definition } from '../circle-graph-internal.js';
+import { definition } from '../sketch/circle-graph-internal.js';
 import { copyCadData } from '../data-copy.js';
 import { same } from '../core/structural-equality.js';
 

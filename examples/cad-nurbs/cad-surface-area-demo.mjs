@@ -472,7 +472,7 @@ const publicAPI = await import(pathToFileURL(runtimePath).href);
 const runtimeExports = ['queryCadDocumentSurfaceArea', 'validateCadDocumentSurfaceArea', 'CadSurfaceAreaError', 'CadSurfaceAreaDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CadSurfaceAreaDiagnosticCode, CadSurfaceAreaDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-surface-area.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/surfaces/cad-surface-area.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/surfaces/cad-surface-area.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CadSurfaceAreaOptions', 'CadSurfaceAreaCell', 'CadSurfaceAreaReport', 'CadSurfaceAreaResult'];

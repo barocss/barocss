@@ -279,7 +279,7 @@ const runtimeNames = ['buildInterpolatingSurface', 'validateInterpolatingSurface
 const typeNames = ['SurfaceInterpolationOptions', 'SurfaceInterpolationObservation', 'SurfaceInterpolationReport', 'SurfaceInterpolationResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SurfaceInterpolationDiagnosticCode, SurfaceInterpolationDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./surface-interpolation.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/surfaces/surface-interpolation.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/surfaces/surface-interpolation.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'known_bicubic_nonunit').authoredFile, 'utf8'));

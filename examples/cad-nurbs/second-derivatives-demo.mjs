@@ -16,7 +16,7 @@ const bundled = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundled.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundled.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['index.ts', 'second-derivatives.ts', 'derivatives.ts', 'math.ts']) {
+for (const leaf of ['index.ts', 'core/second-derivatives.ts', 'core/derivatives.ts', 'core/math.ts']) {
   assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 }
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
@@ -377,7 +377,7 @@ assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath));
 const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.NativeSecondDerivativeDiagnosticCode, NativeSecondDerivativeDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./second-derivatives.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./core/second-derivatives.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/core/second-derivatives.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) {
   assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);

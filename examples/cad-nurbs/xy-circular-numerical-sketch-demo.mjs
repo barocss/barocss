@@ -33,7 +33,7 @@ const doc = () => ({ format: 'barocss-xy-circular-numerical-sketch', version: 0,
     { id: 'tangent_AD', kind: 'line-circle-tangent', segmentId: 'AD', circleId: 'round', side: 'right' }], branchGuards: [] });
 
 if (mode === '--controls') {
-  const { evaluate } = await import(await bundle('packages/barocss-cad/src/xy-circular-numerical-sketch-solver-internal.ts', 'controls'));
+  const { evaluate } = await import(await bundle('packages/barocss-cad/src/sketch/xy-circular-numerical-sketch-solver-internal.ts', 'controls'));
   const d = doc();
   // Both tangent sides, all moving endpoint columns, shared A/C identities, and every old residual kind.
   d.circles.push(circle('second', 'C', 4.9));

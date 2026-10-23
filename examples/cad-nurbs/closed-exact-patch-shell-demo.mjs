@@ -12,7 +12,7 @@ const entry = resolve(repo, 'packages/barocss-cad/src/index.ts');
 const bundle = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true});
 assert.equal(bundle.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path)), cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const leaf of ['index.ts', 'closed-exact-patch-shell.ts', 'exact-boundary-face-adjacency.ts', 'face.ts', 'curve-reversal.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
+for (const leaf of ['index.ts', 'brep/closed-exact-patch-shell.ts', 'exact-proof/exact-boundary-face-adjacency.ts', 'core/face.ts', 'nurbs/curves/curve-reversal.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', leaf)), leaf);
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -228,7 +228,7 @@ const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse
 const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'], runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types);
 assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function'); assert.deepEqual(publicAPI.ClosedExactPatchShellDiagnosticCode, ClosedExactPatchShellDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./closed-exact-patch-shell.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./brep/closed-exact-patch-shell.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/brep/closed-exact-patch-shell.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 for (const row of cases) {

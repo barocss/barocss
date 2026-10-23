@@ -15,7 +15,7 @@ const bundled = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundled.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundled.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-for (const file of ['index.ts', 'multi-section-loft.ts', 'curve-interpolation.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', file)));
+for (const file of ['index.ts', 'features/multi-section-loft.ts', 'nurbs/curves/curve-interpolation.ts']) assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src', file)));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0].text).toString('base64'));
@@ -367,7 +367,7 @@ const runtimeNames = ['buildMultiSectionLoftSurface', 'validateMultiSectionLoftS
 const typeNames = ['MultiSectionLoftOptions', 'MultiSectionLoftProvenance', 'MultiSectionLoftObservation', 'MultiSectionLoftReport', 'MultiSectionLoftResult'];
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.MultiSectionLoftDiagnosticCode, MultiSectionLoftDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./multi-section-loft.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./features/multi-section-loft.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/features/multi-section-loft.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'five_rational_quarter_sections').authoredFile, 'utf8'));

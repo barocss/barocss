@@ -4,8 +4,8 @@ import type {
   BooleanExtrusionFeatureGraphOptions,
   BooleanExtrusionFeatureGraphResult,
 } from '../features/boolean-extrusion-feature-graph.js';
-import { extrudeCoplanarFaceBoolean } from '../coplanar-face-boolean-extrusion.js';
-import type { CoplanarFaceBooleanExtrusionResult } from '../coplanar-face-boolean-extrusion.js';
+import { extrudeCoplanarFaceBoolean } from '../planar-solids/coplanar-face-boolean-extrusion.js';
+import type { CoplanarFaceBooleanExtrusionResult } from '../planar-solids/coplanar-face-boolean-extrusion.js';
 import { copyCadData } from '../data-copy.js';
 import { same } from '../core/structural-equality.js';
 

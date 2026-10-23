@@ -343,7 +343,7 @@ const runtimeExports = ['inspectCadDocumentCompatibility', 'migrateCadDocument',
   'CadDocumentCompatibilityError', 'CadDocumentCompatibilityDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CadDocumentCompatibilityDiagnosticCode, CadDocumentCompatibilityDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-document-compatibility.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./document/cad-document-compatibility.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/document/cad-document-compatibility.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'CadDocumentCompatibilityInput', 'CadDocumentMigrationOptions',

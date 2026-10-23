@@ -3,10 +3,10 @@ import type { CadModelIR1 } from './model-compiler.js';
 import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model } from './types.js';
-import type { XYPoint } from './xy-profile.js';
-import { admit, check, exact, isAffineError, snapshot, solve, XYAffineSketchError } from './xy-affine-sketch-internal.js';
-export { XYAffineSketchError, XYAffineSketchDiagnosticCode } from './xy-affine-sketch-internal.js';
-import type { XYAffineSketchDiagnosticCode } from './xy-affine-sketch-internal.js';
+import type { XYPoint } from './sketch/xy-profile.js';
+import { admit, check, exact, isAffineError, snapshot, solve, XYAffineSketchError } from './sketch/xy-affine-sketch-internal.js';
+export { XYAffineSketchError, XYAffineSketchDiagnosticCode } from './sketch/xy-affine-sketch-internal.js';
+import type { XYAffineSketchDiagnosticCode } from './sketch/xy-affine-sketch-internal.js';
 
 export interface XYAffineSketchPoint { id: string; position: XYPoint }
 export interface XYAffineSketchSegment { id: string; startPointId: string; endPointId: string }

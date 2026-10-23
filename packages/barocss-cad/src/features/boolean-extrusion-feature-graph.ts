@@ -1,11 +1,11 @@
-import { admitParameter, definition, resolve, length } from '../circle-graph-internal.js';
-import type { SketchCircleLengthDefinition, SketchCircleLengthParameter, SketchCircleResolvedParameter } from '../sketch-circle-feature-graph.js';
+import { admitParameter, definition, resolve, length } from '../sketch/circle-graph-internal.js';
+import type { SketchCircleLengthDefinition, SketchCircleLengthParameter, SketchCircleResolvedParameter } from '../sketch/sketch-circle-feature-graph.js';
 import { buildConvexPlanarFace } from '../own-convex-planar-face.js';
 import type { ConvexPlanarFaceLoop, ConvexPlanarFaceOptions, ConvexPlanarFaceResult } from '../own-convex-planar-face.js';
-import { booleanCoplanarFaces } from '../coplanar-face-boolean.js';
-import type { CoplanarFaceBooleanOptions, CoplanarFaceBooleanResult } from '../coplanar-face-boolean.js';
-import { extrudeCoplanarFaceBoolean } from '../coplanar-face-boolean-extrusion.js';
-import type { CoplanarFaceBooleanExtrusionOptions, CoplanarFaceBooleanExtrusionResult } from '../coplanar-face-boolean-extrusion.js';
+import { booleanCoplanarFaces } from '../planar-solids/coplanar-face-boolean.js';
+import type { CoplanarFaceBooleanOptions, CoplanarFaceBooleanResult } from '../planar-solids/coplanar-face-boolean.js';
+import { extrudeCoplanarFaceBoolean } from '../planar-solids/coplanar-face-boolean-extrusion.js';
+import type { CoplanarFaceBooleanExtrusionOptions, CoplanarFaceBooleanExtrusionResult } from '../planar-solids/coplanar-face-boolean-extrusion.js';
 import { validateCurve, validateSurface } from '../core/math.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface } from '../types.js';

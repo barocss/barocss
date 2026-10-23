@@ -415,7 +415,7 @@ const runtimeExports = ['intersectCurveWideWithAffinePlaneSurface', 'validateWid
   'WideCurveAffinePlaneIntersectionError', 'WideCurveAffinePlaneIntersectionDiagnosticCode'];
 for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.WideCurveAffinePlaneIntersectionDiagnosticCode, WideCurveAffinePlaneIntersectionDiagnosticCode);
-assert.ok(readFileSync(declarationPath, 'utf8').includes('./curve-wide-plane-intersection.js'));
+assert.ok(readFileSync(declarationPath, 'utf8').includes('./nurbs/source-wide/curve-wide-plane-intersection.js'));
 const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/curve-wide-plane-intersection.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 const declarationExports = [...runtimeExports, 'WideCurveAffinePlaneIntersectionOptions',

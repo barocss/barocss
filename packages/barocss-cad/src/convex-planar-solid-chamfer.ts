@@ -4,9 +4,9 @@ import type { ConvexPlanarSolidResult, ConvexPlanarSolidGraph } from './convex-p
 import type { Point, Surface } from './types.js';
 import type { ExactPoint, ExactPointData } from './convex-planar-solid-proof-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
-import { SolidProof, ChamferLedger, CHAMFER_LIMITS, demand, fields, identity, same, at } from './convex-planar-solid-chamfer-internal.js';
-export { ConvexPlanarSolidChamferError } from './convex-planar-solid-chamfer-internal.js';
-export type { ChamferCode as ConvexPlanarSolidChamferDiagnosticCode } from './convex-planar-solid-chamfer-internal.js';
+import { SolidProof, ChamferLedger, CHAMFER_LIMITS, demand, fields, identity, same, at } from './planar-solids/convex-planar-solid-chamfer-internal.js';
+export { ConvexPlanarSolidChamferError } from './planar-solids/convex-planar-solid-chamfer-internal.js';
+export type { ChamferCode as ConvexPlanarSolidChamferDiagnosticCode } from './planar-solids/convex-planar-solid-chamfer-internal.js';
 
 export interface ConvexPlanarChamferUseReference { sourceId: string; faceId: string; surfaceId: string; loopId: string; useId: string; curveId: string; pcurveId: string }
 export interface ConvexPlanarChamferSelection { parentSolidId: string; a: ConvexPlanarChamferUseReference; b: ConvexPlanarChamferUseReference }

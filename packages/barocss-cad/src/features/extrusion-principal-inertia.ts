@@ -1,5 +1,5 @@
-import { validateCoplanarFaceBooleanExtrusionMass } from '../coplanar-face-boolean-extrusion-mass.js';
-import type { CoplanarFaceBooleanExtrusionMassResult } from '../coplanar-face-boolean-extrusion-mass.js';
+import { validateCoplanarFaceBooleanExtrusionMass } from '../planar-solids/coplanar-face-boolean-extrusion-mass.js';
+import type { CoplanarFaceBooleanExtrusionMassResult } from '../planar-solids/coplanar-face-boolean-extrusion-mass.js';
 import { copyCadData } from '../data-copy.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
