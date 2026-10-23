@@ -1,6 +1,34 @@
 {
  "shots": [
   {
+   "file": "agent/proposals/card.png",
+   "page": "agent/proposals",
+   "step": "agent: a turn applied, a proposal",
+   "renderer": "webgpu",
+   "bytes": 15100
+  },
+  {
+   "file": "agent/proposals/preview.jpg",
+   "page": "agent/proposals",
+   "step": "agent: a turn applied, a proposal",
+   "renderer": "webgpu",
+   "bytes": 110366
+  },
+  {
+   "file": "agent/proposals/refused-then-proposed.png",
+   "page": "agent/proposals",
+   "step": "agent: a turn applied, a proposal",
+   "renderer": "webgpu",
+   "bytes": 73603
+  },
+  {
+   "file": "agent/turn-applied.jpg",
+   "page": "agent",
+   "step": "agent: a turn applied, a proposal",
+   "renderer": "webgpu",
+   "bytes": 113172
+  },
+  {
    "file": "guide/getting-started/box-hud.jpg",
    "page": "guide/getting-started",
    "step": "getting started: a box",
@@ -47,7 +75,7 @@
    "page": "home",
    "step": "home: the starter plate",
    "renderer": "webgpu",
-   "bytes": 93937
+   "bytes": 93934
   },
   {
    "file": "studio/assemblies/interference.jpg",
