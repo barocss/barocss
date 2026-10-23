@@ -418,9 +418,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 /* On the active tool's yellow: one ink. */
 .tool.on .cad-icon { --icon-ac: currentColor; }
 .tool .cad-icon { width: 20px; height: 20px; }
-.tooltip { position: fixed; z-index: 50; max-width: 260px; padding: 7px 10px; pointer-events: none; display: flex; flex-direction: column; gap: 3px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
-.tooltip.right { transform: translateY(-50%); }
-.tooltip.below { transform: translateX(-50%); }
+/* (G12f: the tooltip is shadcn's — its box and placement from components/ui/tooltip; its inner rows here.) */
+.tooltip { display: flex; flex-direction: column; gap: 3px; }
+.tooltip-anchor { position: fixed; pointer-events: none; }
 .tooltip-head { display: flex; align-items: center; gap: 8px; }
 .tooltip-head b { font-weight: 600; }
 .tooltip-desc { color: var(--text-2); line-height: 1.4; }
