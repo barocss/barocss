@@ -22,7 +22,7 @@ import { curvePiece, curveReversed } from '../nurbs/curves/curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from '../mesh/facet-patch.js';
 import { circleOf, polesOf, tessellateBrep } from './brep-tessellate.js';
-import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
+import { booleanCurveRegions, curveFaceRegions, intersectSegments, segmentsApart, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from '../features/prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
 import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, validateCurve } from '../core/math.js';
@@ -452,7 +452,7 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
     // (Against a plane face's straight edges a shallow graze inside a chord is looked for too, by bisection: RB K9, D187.
     // Not on a cylinder's domain lines: a cut running along a rounded tube's ruling would cross it at its rounding noise.)
     const graze = f.surf.kind === 'plane';
-    for (const pr of pieces) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol, graze && g.kind === 'line')) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
+    for (const pr of pieces) for (const ring of rings) for (const g of ring) if (!segmentsApart(pr, g, tol)) for (const x of intersectSegments(pr, g, tol, graze && g.kind === 'line')) params.push(pr.t0 + (pr.t1 - pr.t0) * paramOfCurve(pr, x));
     return insideIntervals(f, params, at, tol, strict);
   }
   if (k.kind === 'line') {
@@ -479,9 +479,9 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
     params.push(k.lo, norm(s0), norm(s0 + Math.PI), k.lo + TWO_PI);
   }
   const rings = [f.region.outer, ...f.region.holes], found: P3[] = [];
-  for (const pr of probe) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) { const y = to3(f, x); found.push(y); params.push(param(y)); }
+  for (const pr of probe) for (const ring of rings) for (const g of ring) if (!segmentsApart(pr, g, tol)) for (const x of intersectSegments(pr, g, tol)) { const y = to3(f, x); found.push(y); params.push(param(y)); }
   // (Only crossings the halves did not find: on a face round the whole turn the seam's is found by both.)
-  for (const pr of past) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) { const y = to3(f, x); if (!found.some(q => len(sub(q, y)) <= 10 * tol)) params.push(param(y)); }
+  for (const pr of past) for (const ring of rings) for (const g of ring) if (!segmentsApart(pr, g, tol)) for (const x of intersectSegments(pr, g, tol)) { const y = to3(f, x); if (!found.some(q => len(sub(q, y)) <= 10 * tol)) params.push(param(y)); }
   return insideIntervals(f, params, at, tol);
 }
 /** The parts of a line along U in a cylinder's domain that run past its window's ends, each moved by a turn into the window. */
@@ -1446,7 +1446,7 @@ function isoclineCuts(f: GFace, d: P3, tol: number, span: number): SourcedCut[] 
     const at3 = (t: number): P3 => { const q = uvAt(t); return s.ev(q[0], q[1]); };
     const seg = { kind: 'curve' as const, f: (t: number): XY => { const q = uvAt(t); return [q[0] * s.ku, q[1] * s.kv]; }, t0: 0, t1: M, src: at3, exact: true } as CurveSegment2 & { kind: 'curve' };
     const params = [0, M];
-    for (const ring of [f.region.outer, ...f.region.holes]) for (const g of ring) for (const x of intersectSegments(seg, g, tol)) params.push(M * paramOfCurve(seg, x));
+    for (const ring of [f.region.outer, ...f.region.holes]) for (const g of ring) if (!segmentsApart(seg, g, tol)) for (const x of intersectSegments(seg, g, tol)) params.push(M * paramOfCurve(seg, x));
     for (const [a, b] of insideIntervals(f, params, at3, tol, true)) out.push({ source, seg: { ...seg, t0: a, t1: b } });
   });
   if (!out.length) throw splitError('GEOMETRY', 'NO_ISOCLINE', 'n·d keeps one sign over the face: it lies wholly on one side');

@@ -116,7 +116,11 @@ export function basis(knots: number[], degree: number, count: number, parameter:
   return { start, values };
 }
 
-/** basis() into caller-owned buffers (length degree + 1); returns the first pole index. */
+/**
+ * basis() into caller-owned buffers (length degree + 1); returns the first pole index. (The hottest function under
+ * tessellation and mass quadrature, K13/D243: nothing cleared — every entry read is written first, values[0] here, the
+ * distances at their level and values[index] at an earlier one — and the same arithmetic in the same order.)
+ */
 function basisInto(knots: number[], degree: number, count: number, parameter: number, values: number[], distancesLeft: number[], distancesRight: number[]): number {
   const left = knots[degree];
   const right = knots[count];
@@ -126,31 +130,28 @@ function basisInto(knots: number[], degree: number, count: number, parameter: nu
     let low = degree;
     let high = count;
     while (high - low > 1) {
-      const mid = Math.floor((low + high) / 2);
+      const mid = (low + high) >> 1;
       if (knots[mid] <= parameter) low = mid;
       else high = mid;
     }
     span = low;
   }
-  values.fill(0); distancesLeft.fill(0); distancesRight.fill(0);
   values[0] = 1;
   const scale = Math.max(1, Math.abs(left), Math.abs(right));
   for (let level = 1; level <= degree; level++) {
-    const a = parameter - knots[span + 1 - level], b = knots[span + level] - parameter;
-    distancesLeft[level] = Number.isFinite(a) ? a / scale : parameter / scale - knots[span + 1 - level] / scale;
-    distancesRight[level] = Number.isFinite(b) ? b / scale : knots[span + level] / scale - parameter / scale;
+    const kl = knots[span + 1 - level], kr = knots[span + level], a = parameter - kl, b = kr - parameter;
+    distancesLeft[level] = Number.isFinite(a) ? a / scale : parameter / scale - kl / scale;
+    distancesRight[level] = Number.isFinite(b) ? b / scale : kr / scale - parameter / scale;
     let saved = 0;
     for (let index = 0; index < level; index++) {
-      const denominator = distancesRight[index + 1] + distancesLeft[level - index];
-      const previousValue = values[index];
-      const rightFraction = denominator === 0 ? 0 : distancesRight[index + 1] / denominator;
-      const leftFraction = denominator === 0 ? 0 : distancesLeft[level - index] / denominator;
+      const r = distancesRight[index + 1], l = distancesLeft[level - index], denominator = r + l, previousValue = values[index];
+      const rightFraction = denominator === 0 ? 0 : r / denominator, leftFraction = denominator === 0 ? 0 : l / denominator;
       values[index] = saved + rightFraction * previousValue;
       saved = leftFraction * previousValue;
     }
     values[level] = saved;
   }
-  for (let i = 0; i <= degree; i++) requireValue(Number.isFinite(values[i]), 'Knot arithmetic exceeded the finite range');
+  for (let i = 0; i <= degree; i++) if (!Number.isFinite(values[i])) requireValue(false, 'Knot arithmetic exceeded the finite range');
   return span - degree;
 }
 

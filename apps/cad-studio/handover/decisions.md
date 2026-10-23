@@ -12800,3 +12800,105 @@ tessellator and the mass quadrature.
 - **A9** is mostly elsewhere. Its kernel share is the O-ring's overlap volume, a quadrature of an exact torus overlap
   (D159). Instance p2's BEARING_HOUSING_REFERENCE is a finding for the outer lane: the studio's instance path cannot
   evaluate it.
+
+## D242 — K13 step 1: the Boolean's intervals test segment boxes before `intersectSegments` (2026-10-24)
+
+**Change (pure speed).** Two changes in `brep/curved-arrangement.ts`, used by `brep/analytic-boolean.ts`:
+- `segmentsApart(s, t, eps)`: true when the two segments' boxes lie more than 4 eps apart.
+  - The boxes: a line's two ends; an arc's whole circle; a general curve's samples padded by its longest chord, the box
+    `surelyOff` already tests against.
+  - The analytic Boolean's four `intersectSegments` loops skip such a pair: the three in `intervals` (param probes,
+    line and circle probes, the part past a cylinder's seam) and the isocline split's.
+- `intersectSegments`'s end tests: each of s's two ends is tested against t first, then against s.
+  - A segment's own end lies on it nearly always. The other test, a general curve's nearest-point search, mostly fails
+    at once.
+  - t's ends were already tested against s first.
+
+**Why the output is unchanged.**
+- Every point `intersectSegments` keeps passes `on` for both segments:
+  - within eps of a point measured on the segment;
+  - for a general curve, also inside its padded box widened by eps.
+- So a kept point lies within eps of each box (plus rounding). Two boxes more than 2 eps apart have nothing to keep.
+  The test asks for 4 eps, which leaves room for that rounding.
+- Swapping the order of two `&&` tests of pure predicates keeps the same points in the same order.
+- One caveat, recorded:
+  - A NURBS-domain curve whose tabulation fails (`tabulated`'s table `false`) evaluates its exact map, and that map's
+    projection warm-starts from the surface's last point (`nurbsParam`).
+  - Calls skipped there change that warm start for later projections.
+  - The arrangement's own box test (D207) has always had the same property. The fingerprint shows no case of it.
+
+**Measured.** D240's harness (scratchpad, not committed), Node 22, median of 3, ms. A digest of each scene's evaluated
+bodies (numbers as float64 bytes) is identical before and after. The worm pair's digest masks its note "checked in N ms",
+which is a wall time.
+
+| Scene | Before (77d3b675c) | After | |
+|---|---|---|---|
+| 5 box frames | 13 219 | 11 500 | −13 % (kernel features 11 359 → 9 325) |
+| the spring | 4 098 | 4 184 | noise |
+| the worm pair | 2 662 | 2 678 | noise |
+| A9 | 5 405 | 5 437 | noise |
+
+In the frames' CPU profile, `intersectSegments` fell from about 5.0 s to 2.8 s, over the profiler's two evaluations.
+What stays is spread over the Boolean's other stages, outside step 1:
+- garbage collection 2.7 s;
+- `regionInteriorPoint` and `crossingsAt`;
+- the arrangement;
+- `mergePieces`.
+
+What is left inside `intersectSegments` is the `on` tests of crossing candidates, a golden-section `paramOf` per curve.
+The candidates lie near both curves, so a box doesn't settle them.
+
+**Also seen.** A9's p2 now evaluates in the harness: 7 instances, none failed. The outer lane's 8fa7a6ca2 traced its
+BEARING_HOUSING_REFERENCE to two copies of cad-model in the profile bundle.
+
+**Checks (T1).**
+- build:library, type-check, lint (cad);
+- `boolean-*`, analytic-boolean, d152-overlapping-cuts, prismatic-solid, frk-4-revolve and math tests:
+  54 tests, 53 pass, 1 skipped, 0 fail;
+- fingerprint `b6e18fab…` (855 cases), byte-identical.
+
+Not run: the kernel suite, RB, and the cad-model and studio suites. They run at the checkpoint after step 2.
+
+## D243 — K13 step 2: the NURBS basis (`basisInto`) clears nothing and reads each knot once (2026-10-24)
+
+**Change (pure speed), `core/math.ts`'s `basisInto`.** It is the hottest single function in every scene (D240), under
+`surfaceEvaluator`/`curveEvaluator`, so under tessellation and mass quadrature.
+- It no longer clears its three buffers on every call (`fill(0)` ×3). Every entry it reads is written first:
+  - `values[0]` at the start;
+  - each distance at its level;
+  - `values[index]` at an earlier level.
+- Each level reads its two knots once into locals. The inner loop reads its two distances once.
+- The span search halves with `>> 1` instead of `Math.floor(/ 2)`. That is the same integer for the small non-negative
+  indices here.
+- The finiteness check throws through the same `requireValue` message, now only on failure.
+- The arithmetic is unchanged and in the same order:
+  - the same expressions, the zero-denominator branches included;
+  - no reciprocal for the two divisions, which would change the last bit.
+- It already had no allocation and no closure. Its callers keep their own buffers.
+
+**Bit-identity check** (scratchpad bench, not committed):
+- the old and new functions on 62 394 parameters over degrees 1–5 and 2–12 poles;
+- knot vectors at scales 1e-3 … 3e300, offset by −1e9, and with repeated knots;
+- the domain's ends, every knot, `nextUp` neighbours, −0, and out-of-domain, NaN and ∞ parameters;
+- buffers pre-filled with 7, not 0.
+
+Result: identical values (`Object.is`) and the same start or the same refusal message in every case (3 723 refusals).
+The function alone runs 2.2× faster: 2.75 M degree-3 calls, 290 → 130 ms.
+
+**Measured.** D240's harness, Node 22, median of 3, ms. Before is step 1, 7ebcd511e. Each scene's body digest is
+identical.
+
+| Scene | Before | After | |
+|---|---|---|---|
+| 5 box frames | 11 500 | 10 832 | −6 % |
+| the spring | 4 184 | 3 543 | −15 % |
+| the worm pair | 2 678 | 2 172 | −19 % |
+| A9 | 5 437 | 4 524 | −17 % (instances 4 938 → 4 004) |
+
+**Checks (T1).**
+- build:library, type-check, lint (cad);
+- math, derivatives, face, curve-adaptive-sampling-cancellation, boolean-curve-box, frk-8b, gear-helical and gear-bevel
+  tests: 47 of 47 pass;
+- fingerprint `b6e18fab…`, byte-identical.
+
+The checkpoint suites follow at this commit.
