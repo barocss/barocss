@@ -5,6 +5,7 @@ import { editRingRows } from '@barocss/cad-model/engine/rings';
 import { Icon } from './atoms';
 import { ROW } from './panelStyles';
 import { Button } from '@/components/ui/button';
+import { RowsEmpty } from './RowsEmpty';
 
 export function RingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.rings?.rows ?? [];
@@ -15,7 +16,7 @@ export function RingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(
   };
   return <section aria-label="Ring rows">
     <div className="card-title" style={{ marginTop: 8 }}>RINGS</div>
-    {!rows.length && <div className="empty">No ring rows: load your own (JSON: shaftDiameterMM, grooveDiameterMM, grooveWidthMM; each citing its source or marked an estimate). None is built in.</div>}
+    {!rows.length && <RowsEmpty none="No ring rows" holds="JSON: shaftDiameterMM, grooveDiameterMM, grooveWidthMM; each citing its source or marked an estimate." />}
     {rows.map(r => <div key={r.id} className={ROW} aria-label={`Ring row ${r.id}`}>
       <span title={r.source ?? 'an estimate'}><b>{r.designation ?? r.id}</b> <span className="muted small">Ø{r.shaftDiameterMM} shaft · groove Ø{r.grooveDiameterMM} × {r.grooveWidthMM} · {r.source ?? 'estimate'}</span></span>
       <Button variant="ghost" aria-label={`Remove ring row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>

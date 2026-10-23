@@ -6,6 +6,7 @@ import { editFitTables } from '@barocss/cad-model/engine/fits';
 import { Icon } from './atoms';
 import { ROW } from './panelStyles';
 import { Button } from '@/components/ui/button';
+import { RowsEmpty } from './RowsEmpty';
 
 export function FitTables({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const tables = doc.fits?.tables ?? [], faces = doc.fits?.faces ?? [], pairs = doc.fits?.pairs ?? [];
@@ -16,7 +17,7 @@ export function FitTables({ doc, onCommit, onError }: { doc: StudioDoc; onCommit
   };
   return <section aria-label="Fit tables">
     <div className="card-title" style={{ marginTop: 8 }}>FITS</div>
-    {!tables.length && <div className="empty">No fit tables: load your own (JSON: rows of class, size range and limits, each citing a source or marked an estimate). None is built in, and limits are never computed.</div>}
+    {!tables.length && <RowsEmpty none="No fit tables" holds="JSON: rows of class, size range and limits, each citing a source or marked an estimate." after="None is built in, and limits are never computed." />}
     {tables.map(t => {
       const classes = [...new Set(t.rows.map(r => r.class))], estimates = t.rows.filter(r => r.estimate).length;
       return <div key={t.id} className={ROW} aria-label={`Fit table ${t.id}`}>

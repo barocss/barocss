@@ -5,6 +5,7 @@ import { editConnectorRows } from '@barocss/cad-model/engine/connectors';
 import { Icon } from './atoms';
 import { ROW } from './panelStyles';
 import { Button } from '@/components/ui/button';
+import { RowsEmpty } from './RowsEmpty';
 
 export function ConnectorRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.connectors?.rows ?? [];
@@ -15,7 +16,7 @@ export function ConnectorRows({ doc, onCommit, onError }: { doc: StudioDoc; onCo
   };
   return <section aria-label="Connector rows">
     <div className="card-title" style={{ marginTop: 8 }}>CONNECTORS</div>
-    {!rows.length && <div className="empty">No connector rows: load your own (JSON: the opening, the mating body, a keep-out; each citing its source or marked an estimate). None is built in.</div>}
+    {!rows.length && <RowsEmpty none="No connector rows" holds="JSON: the opening, the mating body, a keep-out; each citing its source or marked an estimate." />}
     {rows.map(r => <div key={r.id} className={ROW} aria-label={`Connector row ${r.id}`}>
       <span title={r.source ?? 'an estimate'}><b>{r.name ?? r.id}</b> <span className="muted small">{r.opening.shape} {r.opening.widthMM} × {r.opening.heightMM}, {r.opening.depthMM} deep · {r.source ?? 'estimate'}</span></span>
       <Button variant="ghost" aria-label={`Remove connector row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>

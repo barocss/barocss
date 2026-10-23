@@ -5,6 +5,7 @@ import { editORingRows } from '@barocss/cad-model/engine/orings';
 import { Icon } from './atoms';
 import { ROW } from './panelStyles';
 import { Button } from '@/components/ui/button';
+import { RowsEmpty } from './RowsEmpty';
 
 export function ORingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.orings?.rows ?? [];
@@ -15,7 +16,7 @@ export function ORingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit
   };
   return <section aria-label="O-ring rows">
     <div className="card-title" style={{ marginTop: 8 }}>O-RINGS</div>
-    {!rows.length && <div className="empty">No O-ring rows: load your own (JSON: dash, inside diameter, cross-section; each citing its source or marked an estimate). None is built in.</div>}
+    {!rows.length && <RowsEmpty none="No O-ring rows" holds="JSON: dash, inside diameter, cross-section; each citing its source or marked an estimate." />}
     {rows.map(r => <div key={r.id} className={ROW} aria-label={`O-ring row ${r.id}`}>
       <span title={r.source ?? 'an estimate'}><b>{r.dash ?? r.id}</b> <span className="muted small">ID {r.insideDiameterMM} × CS {r.crossSectionMM} · {r.source ?? 'estimate'}</span></span>
       <Button variant="ghost" aria-label={`Remove O-ring row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>

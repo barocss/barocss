@@ -5,6 +5,7 @@ import { editBearingRows } from '@barocss/cad-model/engine/bearings';
 import { Icon } from './atoms';
 import { ROW } from './panelStyles';
 import { Button } from '@/components/ui/button';
+import { RowsEmpty } from './RowsEmpty';
 
 export function BearingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.bearings?.rows ?? [];
@@ -15,7 +16,7 @@ export function BearingRows({ doc, onCommit, onError }: { doc: StudioDoc; onComm
   };
   return <section aria-label="Bearing rows">
     <div className="card-title" style={{ marginTop: 8 }}>BEARINGS</div>
-    {!rows.length && <div className="empty">No bearing rows: load your own (JSON: bore, outside, width, corner r, the abutment values; each citing its source or marked an estimate). None is built in.</div>}
+    {!rows.length && <RowsEmpty none="No bearing rows" holds="JSON: bore, outside, width, corner r, the abutment values; each citing its source or marked an estimate." />}
     {rows.map(r => <div key={r.id} className={ROW} aria-label={`Bearing row ${r.id}`}>
       <span title={r.source ?? 'an estimate'}><b>{r.designation ?? r.id}</b> <span className="muted small">Ø{r.boreMM} × Ø{r.outsideMM} × {r.widthMM} · {r.source ?? 'estimate'}</span></span>
       <Button variant="ghost" aria-label={`Remove bearing row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>
