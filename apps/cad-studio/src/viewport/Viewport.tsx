@@ -335,15 +335,25 @@ function sameInstanceFaces(a: readonly InstanceFace[], b: readonly InstanceFace[
   return true;
 }
 
-function printViewportProps(source: Props, projection: ReturnType<typeof projectPrintBodies>): Props {
+// (R1b: the print views' empty lists, one each — new ones in every App render ran the effects keyed on them again.)
+const NO_BODIES: BodyResult[] = [], NO_HANDLES: FeatureHandle[] = [], NO_PROFILES: NonNullable<Props['profiles']> = [];
+const NO_SELECTION: Props['selection'] = { faces: [], edges: [], bodies: [] };
+/** The selection as the print view's bodies number their faces and edges. */
+function printSelection(selection: Props['selection'], projection: ReturnType<typeof projectPrintBodies>): Props['selection'] {
+  const faces = selection.faces.flatMap(ref => { const index = projection.faceSources[ref.body]?.indexOf(ref.face) ?? -1; return index >= 0 ? [{ body: ref.body, face: index }] : []; });
+  const edges = selection.edges.flatMap(ref => { const index = projection.edgeSources[ref.body]?.indexOf(ref.edge) ?? -1; return index >= 0 ? [{ body: ref.body, edge: index }] : []; });
+  return { ...selection, faces, edges };
+}
+/** The face colours as the print view's bodies number their faces. */
+function printFaceColors(faceColors: Props['faceColors'], projection: ReturnType<typeof projectPrintBodies>): Props['faceColors'] {
+  return faceColors && new Map([...faceColors].map(([body, colors]) => [body, new Map((projection.faceSources[body] ?? []).flatMap((native, shown) => colors.has(native) ? [[shown, colors.get(native)!] as const] : []))]));
+}
+function printViewportProps(source: Props, projection: ReturnType<typeof projectPrintBodies>, selection: Props['selection'], faceColors: Props['faceColors']): Props {
   const face = (ref: FaceRef | null): FaceRef | null => { const index = ref && projection.faceSources[ref.body]?.[ref.face]; return ref && index !== undefined && index !== null && index >= 0 ? { body: ref.body, face: index } : null; };
   const edge = (ref: EdgeRef | null): EdgeRef | null => { const index = ref && projection.edgeSources[ref.body]?.[ref.edge]; return ref && index !== undefined && index !== null && index >= 0 ? { body: ref.body, edge: index } : null; };
   const point = (p: Vec3 | null) => p ? printPointToModel(p, source.printDisplay!.summary.modelToBed) : null;
-  const faces = source.selection.faces.flatMap(ref => { const index = projection.faceSources[ref.body]?.indexOf(ref.face) ?? -1; return index >= 0 ? [{ body: ref.body, face: index }] : []; });
-  const edges = source.selection.edges.flatMap(ref => { const index = projection.edgeSources[ref.body]?.indexOf(ref.edge) ?? -1; return index >= 0 ? [{ body: ref.body, edge: index }] : []; });
-  const faceColors = source.faceColors && new Map([...source.faceColors].map(([body, colors]) => [body, new Map((projection.faceSources[body] ?? []).flatMap((native, shown) => colors.has(native) ? [[shown, colors.get(native)!] as const] : []))]));
-  return { ...source, bodies: projection.bodies, selection: { ...source.selection, faces, edges }, faceColors,
-    gizmo: null, handles: [], offsets: undefined, transforms: null, pickedVertices: undefined, measureLine: null, boundsBox: null, profiles: [],
+  return { ...source, bodies: projection.bodies, selection, faceColors,
+    gizmo: null, handles: NO_HANDLES, offsets: undefined, transforms: null, pickedVertices: undefined, measureLine: null, boundsBox: null, profiles: NO_PROFILES,
     clip: null, sectionHatch: null, clearance: null, threads: undefined, underlays: undefined, cloud: null, poles: undefined,
     onPick: (hit, additive) => {
       const nativeFace = face(hit.face), nativeEdge = edge(hit.edge);
@@ -361,7 +371,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   countRender('Viewport');
   const projection = useMemo(() => sourceProps.printDisplay ? projectPrintBodies(sourceProps.bodies, sourceProps.printDisplay) : null,
     [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.topMM, sourceProps.printDisplay?.printed]);
-  const props = useMemo(() => projection ? printViewportProps(sourceProps, projection) : sourceProps.printActive ? { ...sourceProps, bodies: [], selection: { faces: [], edges: [], bodies: [] }, gizmo: null, handles: [], profiles: [], threads: undefined, underlays: undefined, cloud: null, poles: undefined } : sourceProps, [sourceProps, projection]);
+  const printSel = useMemo(() => projection ? printSelection(sourceProps.selection, projection) : null, [sourceProps.selection, projection]);
+  const printColors = useMemo(() => projection ? printFaceColors(sourceProps.faceColors, projection) : undefined, [sourceProps.faceColors, projection]);
+  const props = useMemo(() => projection ? printViewportProps(sourceProps, projection, printSel!, printColors) : sourceProps.printActive ? { ...sourceProps, bodies: NO_BODIES, selection: NO_SELECTION, gizmo: null, handles: NO_HANDLES, profiles: NO_PROFILES, threads: undefined, underlays: undefined, cloud: null, poles: undefined } : sourceProps, [sourceProps, projection, printSel, printColors]);
   const canvas = useRef<HTMLCanvasElement>(null);
   const renderer = useRef<ViewRenderer | null>(null);
   const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
@@ -432,6 +444,15 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const emit = (shape: SketchShape | null, fresh = false) => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh); };
   const fitted = useRef(false);
 
+  // (R1b: the bodies' offsets made once for the transforms or offsets they come from — viewState runs in each frame and hover.)
+  const offsetsMemo = useRef<{ from: unknown; map: ViewState['offsets'] } | null>(null);
+  const offsetsOf = (p: Props): ViewState['offsets'] => {
+    const from = p.transforms ?? p.offsets, had = offsetsMemo.current;
+    if (had && had.from === from) return had.map;
+    const map = p.transforms ? new Map([...p.transforms].map(([k, m]) => [k, [m[12], m[13], m[14]] as Vec3])) : p.offsets ?? new Map();
+    offsetsMemo.current = { from, map };
+    return map;
+  };
   const viewState = (): ViewState => ({
     displayMode: propsRef.current.displayMode,
     displayModeUnsupported: displayModeScope(propsRef.current),
@@ -439,7 +460,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     hoverFace: hover.current.face, hoverEdge: hover.current.edge,
     selectedFaces: propsRef.current.selection.faces, selectedEdges: propsRef.current.selection.edges, selectedBodies: propsRef.current.selection.bodies,
     // (Both renderers draw a dragged body by its matrix, its turn too — G16 for WebGL2; the offsets keep its move.)
-    offsets: propsRef.current.transforms ? new Map([...propsRef.current.transforms].map(([k, m]) => [k, [m[12], m[13], m[14]] as Vec3])) : propsRef.current.offsets ?? new Map(),
+    offsets: offsetsOf(propsRef.current),
     transforms: propsRef.current.transforms ?? undefined, ghostBodies: propsRef.current.ghost, bodyColors: propsRef.current.bodyColors, faceColors: propsRef.current.faceColors, hiddenBodies: propsRef.current.hiddenBodies, hoverBody: propsRef.current.hoverBody ?? undefined,
   });
 
