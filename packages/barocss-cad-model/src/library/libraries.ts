@@ -12,7 +12,7 @@ import { BASE, eulerOf, rotationMatrix, type Mate, type MateKind, type Vec3 } fr
 import tslot20 from './builtin/tslot-20.json';
 import enclosure from './builtin/enclosure.json';
 import { checkLibraryForSharing, estimateCount, licenseOf, sharingRefusal, type LibraryCheck } from './sharing';
-import { materialContext, materialData, processProfile } from './materials';
+import { materialContext, materialData } from './materials';
 import { materialIdOf } from '../app/bodies';
 import { tslotInterfaces } from '../frames/interfaces';
 import { castingProfileOf } from '../engine/castingRuleRows';

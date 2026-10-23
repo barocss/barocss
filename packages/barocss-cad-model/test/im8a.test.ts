@@ -5,7 +5,7 @@ import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { withLook } from '../src/app/bodies';
 import { printability } from '../src/print/rules';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { checkMaterials, MATERIALS_DATA, materialData, processProfile } from '../src/library/materials';
+import { checkMaterials, MATERIALS_DATA, materialData } from '../src/library/materials';
 import { withSampleRows } from './person-file';
 import { castingProfileOf } from '../src/engine/castingRuleRows';
 

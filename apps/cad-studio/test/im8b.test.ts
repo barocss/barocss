@@ -10,7 +10,7 @@ import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/do
 import { withLook } from '@barocss/cad-model/app/bodies';
 import { printability } from '@barocss/cad-model/print/rules';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { checkMaterials, MATERIALS_DATA, materialData, processProfile } from '@barocss/cad-model/library/materials';
+import { checkMaterials, MATERIALS_DATA, materialData } from '@barocss/cad-model/library/materials';
 import { machiningOf, shrinkOf } from '@barocss/cad-model/casting/allowances';
 import { patternOf } from '@barocss/cad-model/casting/pattern';
 import { castingProfileOf } from '@barocss/cad-model/engine/castingRuleRows';
