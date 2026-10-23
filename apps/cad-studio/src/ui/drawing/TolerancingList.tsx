@@ -18,7 +18,9 @@ export function TolerancingList({ suggestions, settings, views, onChange, accept
           <option value="plus-minus">± dimensions</option><option value="geometric">Geometric (datums, position)</option></NativeSelect></label>
         <div className="dw-issues" aria-label="Tolerance suggestions">
           {suggestions.map(x => <div key={x.id} className="dw-issue" title={x.basis}>
-            <Icon name={x.estimate ? 'help' : 'lightbulb'} small /><span>{x.message}<br /><span className="muted">{x.estimate ? 'Estimate — ' : ''}{x.basis}</span></span>
+            <Icon name={x.estimate ? 'help' : 'lightbulb'} small /><span className="min-w-0">{x.message}
+              {/* (O16: the basis — often long — behind Details; an estimate says so in its summary.) */}
+              <details className="muted"><summary className="cursor-pointer select-none">{x.estimate ? 'Estimate' : 'Basis'}</summary>{x.basis}</details></span>
             <Button variant="ghost" size="xs" aria-label={`Accept: ${x.message}`} onClick={() => onChange(applySuggestion(settings, x))}>Accept</Button>
           </div>)}
           {!suggestions.length && views && <div className="empty">Nothing to suggest: {settings.tolerancing === 'geometric' ? 'datums, positions and the general note are there' : 'the general note and hole positions are toleranced'}.</div>}
