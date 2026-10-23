@@ -3717,13 +3717,19 @@ try {
     await snap('fr3b-ordered-table');
   });
 
-  await check('FR3b a round-cornered table from the palette (the default tube, seconds of trims): computed off the main thread — the preview, then the bodies; the page\'s longest frame gap stays short and it answers meanwhile (D126)', async () => {
+  await check('FR3b a round-cornered box frame from the palette (the default tube, 12 members, seconds of trims): computed off the main thread — the preview, then the bodies; the page\'s longest frame gap stays short and it answers meanwhile (D126)', async () => {
     await page.click('[aria-label="New part"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+    // (The G10 finding, 2026-10-23: the default table's trims got faster — 1.3–1.4 s now — so it no longer is a case of
+    // seconds. The box skeleton's 12 members and 8 three-way corners take 2.7–2.8 s in node: the case measured. The
+    // 2000 ms premise stays.)
+    await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter'); await hudReady();
     // A probe of the main thread: the longest gap between 10 ms ticks from here on.
     await page.evaluate(() => { const w = window; w.__gap = 0; w.__last = performance.now(); w.__tick = setInterval(() => { const t = performance.now(); w.__gap = Math.max(w.__gap, t - w.__last); w.__last = t; }, 10); });
+    await field('Skeleton').selectOption('box');
     const t0 = Date.now();
-    await press(' '); await page.locator('.palette input').fill('skeleton'); await press('Enter');
+    // (The box's preview starts: the HUD leaves the table's preview first.)
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent !== 'preview', null, { timeout: 10000 });
     // While the preview computes (the table's trims, in the worker): the page answers a round trip at once, over and over.
     let slowest = 0, polls = 0; const seen = new Set();
     while (await page.evaluate(() => document.querySelector('.hud .status')?.textContent !== 'preview')) {
@@ -3734,17 +3740,18 @@ try {
     }
     const preview = Date.now() - t0;
     await page.waitForTimeout(300); await press('Enter');
-    await page.waitForFunction(() => /8 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
+    await page.waitForFunction(() => /12 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 120000 }); await idle();
     const built = Date.now() - t0, gap = await page.evaluate(() => { clearInterval(window.__tick); return window.__gap; });
     // eslint-disable-next-line no-console -- the measurement itself, recorded in D126
-    console.log(`FR3b round table: preview after ${preview} ms (${polls} polls, the slowest answered in ${slowest} ms); bodies after ${built} ms; longest main-thread gap ${Math.round(gap)} ms; shown meanwhile: ${[...seen].join(' / ')}`);
+    console.log(`FR3b round box frame: preview after ${preview} ms (${polls} polls, the slowest answered in ${slowest} ms); bodies after ${built} ms; longest main-thread gap ${Math.round(gap)} ms; shown meanwhile: ${[...seen].join(' / ')}`);
     // (Meanwhile the HUD says so: "evaluating…".)
     assert.ok([...seen].some(x => /^evaluating…/.test(x)), [...seen].join(' / '));
     assert.ok(preview > 2000, `the preview took ${preview} ms: not the case being measured`);
     assert.ok(slowest < 500, `the page took ${slowest} ms to answer while computing`);
     assert.ok(gap < 500, `the main thread was blocked ${Math.round(gap)} ms`);
     const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9), leg = await bodyVolume();
-    assert.ok(Math.abs(leg - A * 720) <= 1, `leg ${leg}`);
+    // (A post of the box: through both rails, 700 + 2 · 20 — A · 740, as the table's legs are A · 720.)
+    assert.ok(Math.abs(leg - A * 740) <= 1, `post ${leg}`);
   });
 
   await check('FR4a the cut list of a mitred rectangle from the palette: two rows of two (600 and 400, mitre 45° both ends, mass in aluminium — an estimate), and its CSV (new in D127)', async () => {
