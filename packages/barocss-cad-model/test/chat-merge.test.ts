@@ -5,7 +5,7 @@ import { rectanglePart, type ModelNode, type StudioDoc } from '../src/engine/doc
 import { nextSerial, withIds } from '../src/engine/ids';
 import { acceptProposal, runTool, type ChatState } from '../src/chat/tools';
 import { captureOp, changedDuring, mergeTurn, type TurnPatch } from '../src/chat/merge';
-import { revisionOf } from '../src/team/revision';
+import { revisionOf } from '../src/util/revision';
 import { withHistory } from '../src/chat/proposals';
 
 // O133 (item 0, the owner's decision): a chat turn merged onto the part as the person left it — the agent's ops applied

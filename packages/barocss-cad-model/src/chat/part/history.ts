@@ -7,7 +7,7 @@ import { v1Call } from '../groups';
 import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from '../script';
 import { changeOf, factsOf } from '../observe';
 import { newTransactions, OP_IDS, treeDiff, type TreeDiff } from '../transactions';
-import { canonical } from '../../team/revision';
+import { canonical } from '../../util/revision';
 import { moveOp } from '../remap';
 import type { Op } from '../proposals';
 import { modelHash } from '../spec';

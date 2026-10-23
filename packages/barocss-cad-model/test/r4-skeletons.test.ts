@@ -4,7 +4,7 @@ import { dispatchTool } from '../src/chat/tools';
 import { brepsFor, evaluatePart, partBreps, stepFor, stlFor, baseBodyFaces } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { resolveSkeletons } from '../src/frames/skeleton';
-import { revisionOf } from '../src/team/revision';
+import { revisionOf } from '../src/util/revision';
 
 // R4's finding, pinned (the coordinator's decision): every export path builds geometry from the solved skeletons
 // (partSnapshot's own resolveSkeletons), with or without evaluateDoc's skeletonsNow before it; the STEP's source is

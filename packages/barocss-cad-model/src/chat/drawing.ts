@@ -19,7 +19,7 @@ import { sectionsCut } from '../drawing/section';
 import { sheetSections } from '../drawing/sheet';
 import { threadsOf } from '../app/threads';
 import { fastenerSizesOf } from '../engine/fastenerSizeRows';
-import { revisionOf } from '../team/revision';
+import { revisionOf } from '../util/revision';
 import { autoDimensions } from '../drawing/auto';
 import { autoLayout, frontByInformation } from '../drawing/layout';
 import { reorient } from '../drawing/reorient';

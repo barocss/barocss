@@ -32,7 +32,7 @@ import { camPreview, camSvg } from '@barocss/cad-model/machining/cam';
 import { turningOf } from '@barocss/cad-model/machining/turning';
 import { holesOf } from '@barocss/cad-model/machining/holes';
 import { receivePersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
-import { sha256Text } from '@barocss/cad-model/team/digest';
+import { sha256Text } from '@barocss/cad-model/util/digest';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

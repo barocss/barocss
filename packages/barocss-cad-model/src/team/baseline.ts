@@ -6,7 +6,7 @@
 // whose parent is the old one, and the old still verifies as what was approved then.
 import type { StudioDoc } from '../engine/doc';
 import { checkBom, type Bom, type BomView } from './assembly';
-import { digestOf, partDigests } from './digest';
+import { digestOf, partDigests } from '../util/digest';
 import { isUserToken, type UserToken } from './ecr';
 import { readInterfaces, type Interfaces } from './interfaces';
 import { freshnessOf, type Result } from './freshness';

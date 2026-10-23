@@ -8,7 +8,7 @@ import { resolveShopRows, resolveShopTree, provenanceOfTree } from '../engine/sh
 import { bomPanelData, purchaseCsv } from '../bom/bom';
 import { assemblyPlacedBodies, clearanceMap } from '../team/clearanceMap';
 import { documentRevision, verifyBundle, writeBundle } from '../team/bundle';
-import { sha256Hex } from '../team/digest';
+import { sha256Hex } from '../util/digest';
 import { camPackage } from '../machining/camPackage';
 import { printLayers } from '../print/layers';
 import { madeBodies } from '../engine/elements';

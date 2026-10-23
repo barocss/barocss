@@ -15,7 +15,7 @@ import { modelHash } from '@barocss/cad-model/chat/spec';
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { nextSerial } from '@barocss/cad-model/engine/ids';
 import { changedDuring, mergeTurn, type Merged, type TurnOp } from '@barocss/cad-model/chat/merge';
-import { revisionOf } from '@barocss/cad-model/team/revision';
+import { revisionOf } from '@barocss/cad-model/util/revision';
 import { holdSweeps } from '@barocss/cad-model/engine/blobs';
 import { Icon } from './atoms';
 import './chat.css';

@@ -8,7 +8,7 @@ import { materialData, printerProfile } from '../library/materials';
 import type { ThreeMfModel, ThreeMfObject } from './threemf';
 import type { DisplayMesh } from '../engine/mesh';
 import { compactLump, lumpName, lumpTriangles } from '../engine/lumps';
-import { revisionOf } from '../team/revision';
+import { revisionOf } from '../util/revision';
 
 /** The rotation (row-major) turning the unit direction `d` onto +Z: the shortest turn (half a turn about X for −Z). */
 export function rotationToUp(d: readonly number[]): number[] {

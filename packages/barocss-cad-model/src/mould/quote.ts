@@ -11,7 +11,7 @@ import { massBoundOf, massProperties } from '../analysis/analysis';
 import { materialData, processProfile } from '../library/materials';
 import { printability, type PrintabilityReport } from '../print/rules';
 import { documentRevision } from '../team/bundle';
-import { sha256Hex } from '../team/digest';
+import { sha256Hex } from '../util/digest';
 import { writeZip } from '../io/zip';
 import type { Half } from './parting';
 import { boundsOf } from '../engine/bounds';

@@ -8,7 +8,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { interfacesRevision, readInterfaces, type Interfaces } from './interfaces';
 import type { Lease, PartPatch } from './parts';
-import { digestOf, partDigests } from './digest';
+import { digestOf, partDigests } from '../util/digest';
 
 export interface EcrChange { item: string; kind: 'added' | 'removed' | 'changed'; parts: string[] }
 export interface EcrImpact { parts: string[]; requirements: string[]; openPatches: string[]; leases: string[] }

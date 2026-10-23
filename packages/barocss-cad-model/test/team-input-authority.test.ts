@@ -8,10 +8,10 @@ import { withLook } from '../src/app/bodies';
 import { weldList } from '../src/frames/welds';
 import { bomView, deriveBom } from '../src/team/assembly';
 import { draftBaseline, moveBaseline, verifyBaseline } from '../src/team/baseline';
-import { partDigests } from '../src/team/digest';
+import { partDigests } from '../src/util/digest';
 import { userToken } from '../src/team/ecr';
 import { freshnessOf, inertiaResult, massResult, modelInput, stamp, type Result } from '../src/team/freshness';
-import { canonicalOf, revisionOf } from '../src/team/revision';
+import { canonicalOf, revisionOf } from '../src/util/revision';
 
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const copy = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;

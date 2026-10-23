@@ -20,9 +20,9 @@ import { printability } from '../print/rules';
 import { fromSig, markedReferences, toSig, verifyReferences, type Sig } from '../engine/references';
 import { matchSignature, signaturesOf, type Signature } from '../engine/rematch';
 import { bomView, checkBom, deriveBom } from './assembly';
-import { digestOf } from './digest';
+import { digestOf } from '../util/digest';
 import { readInterfaces } from './interfaces';
-import { modelContent } from './revision';
+import { modelContent } from '../util/revision';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
 
 export type ResultKind = 'requirement' | 'check_spec' | 'keepout' | 'mass' | 'inertia' | 'dfm' | 'bom' | 'drawing';

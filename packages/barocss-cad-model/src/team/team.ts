@@ -20,8 +20,8 @@ import { processProfile } from '../library/materials';
 import { readBrief, isStated } from '../chat/brief';
 
 // ——— revisions and patches
-// (The canonical JSON and A7's revision live in team/revision.ts — no imports — so frames/ can pin a part's revision, FRf2.)
-import { canonical, canonicalOf, revisionContent, revisionOf } from './revision';
+// (The canonical JSON and A7's revision live in util/revision.ts — no imports — so frames/ can pin a part's revision, FRf2.)
+import { canonical, canonicalOf, revisionContent, revisionOf } from '../util/revision';
 export { canonical, canonicalOf, revisionContent, revisionOf };
 export interface Patch { id: string; by: string; base: string; ops: Op[]; rationale?: string; /** The base it was made on, when rebased. */ rebasedFrom?: string; /** The Designer's answer to soft findings: kept as it is, because… (A8.1: held for the user with this reason, not rejected again). */ keep?: string }
 /** The patch made again on another revision (explicit: never automatic); its trace names the old base. */

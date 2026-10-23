@@ -4,7 +4,7 @@
 // model (model-annotations-v1). `active` false: nothing is asked of the engine and nothing is built.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { drawingDocument, drawingSource, drawingScopeOf, drawsMadeOnly, type DrawingScope } from '@barocss/cad-model/drawing/scope';
-import { canonicalOf } from '@barocss/cad-model/team/revision';
+import { canonicalOf } from '@barocss/cad-model/util/revision';
 import { followedStale, staleText } from '@barocss/cad-model/frames/skeleton';
 import { elementsOfBodies, withElements } from '@barocss/cad-model/drawing/elementCallouts';
 import { fitMiss, withFit } from '@barocss/cad-model/drawing/fits';
@@ -20,7 +20,7 @@ import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
 import { holeCallout } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
-import { revisionOf } from '@barocss/cad-model/team/revision';
+import { revisionOf } from '@barocss/cad-model/util/revision';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { sameSection, sectionsOf, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
