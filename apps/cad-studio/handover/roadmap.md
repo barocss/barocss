@@ -110,7 +110,7 @@ Moved out of Phase 0:
 | O5b | outer | A9 findings: F8 drawings (**done** O170–O174), F9 fasteners as bought lines, F10 base members in the BOM (**done** O169), F6/F7 (**done** O167/O168) |
 | G8 | GPU | **done** G-R21: GPU contour for curved silhouettes, dirty-run block writes, clip flags kept; the two App findings moved to R1 |
 | G9 | GPU | **done** G-R22: r16uint triangle key, 15.8 MiB at 1080p, 63.3 at 4K (key collision ~1/65 535 per pair, measured) |
-| G10 | GPU | the full browser flow on WebGL2 |
+| G10 | GPU | **done** G-R23: the full flow on WebGL2; analysis maps (thickness, draft, 3-axis access) and the mould's parting line and halves are WebGPU only, and WebGL2 says so |
 
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
 
