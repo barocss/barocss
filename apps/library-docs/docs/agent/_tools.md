@@ -108,6 +108,8 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.add_mate` | `add_mate` | kind, a, b, distance?, angle?, flip? |
 | `assembly.edit_mate` | `edit_mate` | id, distance?, angle?, flip? |
 | `assembly.delete_mate` | `delete_mate` | id |
+| `assembly.inputs` | `set_inputs` | inputs: {name: {type, default, bindings, unit?, min?, max?, choices?} \| null} |
+| `assembly.variants` | `set_variants` | variants?: {name: {input: value} \| null}, active? |
 | `assembly.insert` | `insert_part` | library, part, variant?, params?, name?, position?, rotation? |
 | `assembly.snap` | `snap_part` | a, b, offset? |
 | `assembly.joints` | `get_joints` | — the assembly as links and joints from its base link |
