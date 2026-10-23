@@ -44,13 +44,19 @@ button { font: inherit; color: inherit; }
 /* (G12c: a dock section — a header that folds it, its summary chip — and the Preview & analysis section's switch and panels,
    flat like the rest of the dock.) */
 .dock-section { border-bottom: 1px solid var(--line-soft); }
-.dock-section-head { display: flex; align-items: center; gap: 6px; width: 100%; padding: 8px 10px; border: 0; background: transparent; color: var(--text-2); cursor: pointer; text-align: left; }
+.dock-section-bar { display: flex; align-items: center; }
+.dock-section-actions { display: flex; align-items: center; gap: 6px; padding-right: 10px; font-size: 11px; color: var(--text-2); }
+.dock-section-head { display: flex; flex: 1; min-width: 0; align-items: center; gap: 6px; padding: 8px 10px; border: 0; background: transparent; color: var(--text-2); cursor: pointer; text-align: left; }
 .dock-section-head:hover { background: var(--ui-hover); }
 .dock-section-head .card-title { margin: 0; }
 .dock-section-body { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 8px; }
 .preview-modes { align-self: flex-start; }
-.preview-panels, .preview-overlays { display: flex; flex-direction: column; gap: 6px; }
-.dock .preview-panels > .card, .dock .preview-overlays > .card { max-width: none !important; background: transparent; border: 1px solid var(--line-soft); box-shadow: none; backdrop-filter: none; }
+/* (G12e: the chosen preview's settings flat under the switch — the switch its enable; the others not shown.) */
+.dock-section-body > .card { max-width: none !important; padding: 0 !important; background: transparent; border: 0; box-shadow: none; backdrop-filter: none; display: flex; flex-direction: column; gap: 4px; }
+.preview-hint, .overlay-status { font-size: 11px; }
+.overlay-toggle { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; cursor: pointer; }
+.analysis-row { display: flex; align-items: center; gap: 8px; }
+.analysis-row > .muted { width: 48px; font-size: 11px; }
 /* (Compact panel text: a one-line status and colour chips; the full legend, limits and notes behind Details.) */
 .legend-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
 .legend-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-2); }
@@ -235,8 +241,11 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
    measured width (ui/useBottomRow.ts). With under 280 px of room it stacks above the view bar, and what the view bar
    stacks above itself rises past it.) */
 .history { position: absolute; left: calc(var(--history-left, 270px) + var(--strip-w, 0px)); right: calc(var(--corner-w, 600px) + 24px + var(--dock-strip-w, 0px)); bottom: 16px; width: fit-content; margin-inline: auto; max-width: calc(100% - var(--history-left, 270px) - 24px - var(--strip-w, 0px) - var(--dock-strip-w, 0px) - var(--corner-w, 600px)); min-width: 0; box-sizing: border-box; padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
-.hs { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
-.hs:hover { background: #393b40; }
+.hs, .hs-more { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
+.hs:hover, .hs-more:hover { background: #393b40; }
+/* (G12e: whole chips only — those past the room hidden, a "+n" chip that opens the bar on more rows, its chips all shown.) */
+.hs-more { flex: none; color: var(--accent); }
+.history.expanded { flex-wrap: wrap; overflow: visible; }
 .hs.edit { outline: 1px dashed var(--accent); background: var(--accent-soft); color: #f3d98f; }
 .hs.rolled { opacity: 0.35; }
 .marker { width: 4px; height: 26px; border: 0; border-radius: 2px; background: var(--accent); margin: 0 4px; cursor: pointer; }
@@ -280,9 +289,10 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 
 /* (At the stage's top left, under the hint bar — where the Browser was before it moved into the dock, G12b: clear of the
    bottom row and of the section bar stacked over it, as wide as that is in a narrow centre.) */
-/* (G12d: within the stage's room, clear of the dock's strip or open sheet at its right — 220 px at least: on a cramped
+/* (G12d: within the stage's room, clear of the dock's strip or open sheet at its right, and below the view cube (G12e: the
+   recovery card met it at 1024 with the chat open) — 220 px at least: on a cramped
    stage, an open sheet over a narrow centre, the toast runs under the sheet, below the top bar's menus.) */
-.toast { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 92px; bottom: auto; max-width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); box-sizing: border-box; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
+.toast { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 144px; bottom: auto; max-width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); box-sizing: border-box; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
 .toast-title { font-weight: 600; margin-bottom: 2px; }
 .toast-hint { color: var(--text-2); line-height: 1.45; }
 .edge-hover { fill: none; stroke: #f0cf73; stroke-width: 2.5; stroke-linecap: round; opacity: 0.85; }
