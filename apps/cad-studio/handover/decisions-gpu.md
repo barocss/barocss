@@ -2385,3 +2385,39 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **Not yet done**: the GPU section row still renders the App at each step (60 App renders, 32 submits; task 25.7 ms
   under load 33, LOADED). Something still sets App state per step and has to be found with the bench's setter trace.
   Until then the perf goal of (3c) is open.
+
+## G-R34 — R1c (3c), part 2: the section drag no longer renders the App (roadmap R1, 2026-10-23; R1 done)
+
+- **What still rendered the App** (after G-R33: 59–61 App renders over the 60 steps): a minimal DevTools hook in the
+  bench (BENCH_TRACE: "app hooks changed", the App fiber's hook states compared at each commit) showed two causes.
+  - **Hook 106, 33 times**: `useStoreValue`'s useSyncExternalStore, even when not subscribed. After each commit React
+    checks the snapshot again, and it renders again when the store has moved meanwhile.
+  - **Hook 114, 23 times**: the exact section's results. Each App render took the live plane, started an engine job for
+    it, and its result rendered the App again.
+- **Fixes**:
+  - `useStoreValue(store, false)` reads `store.get()` outside useSyncExternalStore: no snapshot to check, so no forced
+    render.
+  - On WebGPU the App takes the plane as the drag started (`sectionDragFrom`), not the live one. The exact section waits
+    for the release: no engine job while dragging, and none shown, since its cut would be the old plane's. The live
+    plane's clip and handles are SceneViewport's (G-R33). The release commits, and the exact section then follows.
+  - On WebGL2 (or with the CPU path forced) the App follows the live plane as before: its CPU copies are cut in each
+    frame.
+  - **The one behaviour change**: during a drag paused without letting go, the exact section no longer comes in. It
+    comes after the release.
+- **Bench** (BENCH_TRACE, load 30 → 15, LOADED):
+  - **section drag, GPU**: App 59 → 5; task 25.7 → **5.9 ms** a frame (budget 33). The GPU time a submit was 7.55 ms
+    (budget 6; 5.0–6.6 in earlier loaded runs), so the row still reads SLOW on GPU time alone. The same frames' GPU
+    work was not changed here.
+  - section drag, CPU (WebGL2's path): App renders each step, as designed.
+  - pose (App 3, 4.0 ms), explode (App 1, 8.7 ms) and pick (47 ms) as before.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 267/267.
+  - FLOW_ONLY on both renderers (load 11–16), all pass: 73 (its G-R33 checks: no undo entry, the document unchanged,
+    the handle following and committed), G19.2–G19.5, G20.2, RM2, K2 notches and G3.
+- **R1 done.** Its rows against where they started (all LOADED, so compare only):
+  - pick 129 → 47 ms;
+  - ghosted orbits 19.6 → 2.7 ms;
+  - pose 23.4 → 4.0 ms;
+  - explode 27.8 → 8.7 ms;
+  - section drag 30.8 → 5.9 ms;
+  - one Viewport render per orbit, not one a frame.
