@@ -11,8 +11,11 @@ import type { TransformGizmo } from '../viewport/gizmo';
 import type { CageOverlay } from '../viewport/Viewport';
 import { commitDrag, dragged, fullCage, previewTriangles, redoSession, runOp, select, selectionCentre, startSession, undoSession, validationOf, type CageHit, type CageMode, type CageOp, type CageSession } from '@barocss/cad-model/subd/cageEdit';
 import { mirrorCage } from '@barocss/cad';
+import { Lanes } from '../engine/lanes';
 
 type SubdNode = Extract<ModelNode, { kind: 'subd' }>;
+/** The cage's exact build: one lane, each step's build replacing the last. */
+const CAGE_LANE = 'cage';
 export interface CageEditor {
   readonly session: CageSession | null;
   begin(node: number): boolean;
@@ -41,12 +44,13 @@ export function useCageEditor(doc: StudioDoc, preview: (d: StudioDoc) => Promise
   }, []);
   const withCage = useCallback((s: CageSession): StudioDoc => ({ ...doc, nodes: doc.nodes.map((n, i) => i === s.node ? (() => { const node: Partial<SubdNode> = { ...(n as SubdNode) }; delete node.mirror; return { ...node, cage: s.cage, ...(s.mirror ? { mirror: s.mirror } : {}) } as ModelNode; })() : n) }), [doc]);
   // The exact body after each step (not while dragged): the kernel's build of the document with the session's cage.
+  // (R4b: on its O9 lane — a newer step's build, or the session gone, makes an older reply stale, never shown.)
+  const lanes = useMemo(() => new Lanes(), []);
   useEffect(() => {
     if (!session || drag) return;
-    let live = true;
-    void preview(withCage(session)).then(r => { if (live && r.ok) setExact({ of: session, bodies: r.bodies }); });
-    return () => { live = false; };
-  }, [session, drag, withCage, preview]);
+    void lanes.run(CAGE_LANE, { revision: session.undo.length, source: `n${session.node}` }, () => preview(withCage(session))).then(r => { if (!r.stale && r.result.ok) setExact({ of: session, bodies: r.result.bodies }); });
+    return () => lanes.cancel(CAGE_LANE);
+  }, [session, drag, withCage, preview, lanes]);
 
   // The node the session began on. The part changed under it (a new part, a file opened, the agent's edit): the
   // session ends with nothing written, and says so — Done would write over the change (D84).

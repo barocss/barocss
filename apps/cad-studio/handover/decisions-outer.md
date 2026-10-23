@@ -8187,3 +8187,40 @@ identical to the base `5da366d6…`; model 993/993, studio 274/274, test names a
 WebGL2 (flow exit 0) on G12a's shell — batch C's set plus R14.1–R14.5, R11b, sections (O148 X1–X3), chat commits an
 assembly, A6.1, A6.3 and the brief steps. The wording commit (c921923f4) after it: tolerance, drawing, r14 76/76.
 Not run: the full flow (the coordinator's window).
+
+## O17a and O17c (server side) — the chat turn as an AI SDK transport; the thinking as a reasoning event (2026-10-24)
+
+**Why.** O17 (owner, via the coordinator; plan approved): the chat column on the AI SDK's `useChat` with shadcn's AI
+components. Built first without new dependencies or UI (G12b sets up shadcn): the transport, then O17c's event.
+
+**O17a (6c706a4ff).** src/chat/transport.ts: `StudioTransport` POSTs /api/chat/turn through runServerTurn as before
+(the server's protocol unchanged), and `TurnChunker` writes its events as the UI message stream's chunks — a text run
+one text part, each tool call a dynamic tool part with its input and output (or error) at once (the server reports a
+call when its result is back; ids are the turn's own counter), the states and the done as transient data, the end as
+finish, error or abort. The chunk types are the AI SDK's UIMessageChunk kinds, declared locally until the install.
+- Tested on turns the real chat server streamed (scripts/chat-server.mjs, the scripted CLI, the real tool server,
+  recorded with an origin of its own): ok, error, aborted (test/fixtures/o17). Same chunks with the response cut in
+  pieces of 1, 7, 64 bytes or whole; the request as before.
+
+**O17c, server and transport (2b328f4f3).** The CLI's top-level `thinking_delta` is emitted as `{ type: 'reasoning',
+delta }` (additive); the transport writes a reasoning run as one reasoning part, closed before text. server/turnEvents.ts
+is the A/B harness's and the robot L3 run's one SSE reader (their copies were identical); both take events by type, and a
+test shows their tools and done unchanged with a reasoning event before every event. **Unverified against the live
+CLI:** no live turn was run (the owner's call, asked separately); tested on a synthetic recording (thinking-claude.mjs).
+The rendering (one collapsed "Thinking…" line) comes with the UI after G12b.
+
+**Pins chosen for the install after G12b** (each at least two weeks old, approved): `ai` 7.0.137, `@ai-sdk/react`
+4.0.140 (depends on ai 7.0.137 exactly), `@shadcn/helpers` 0.2.0 (0.3.0 is from 2026-10-16), `zod` 4.6.5 — ai's
+required peer, pinned because `auto-install-peers=true` would otherwise pull a younger one.
+
+## R4b.1 — the cage editor's exact build on an O9 lane; useAssembly's readFaces left as it is (2026-10-24)
+
+- **subd/useCageEditor (a14dc6375):** its effect's live flag became the 'cage' lane: a newer step's build makes an
+  older reply stale, and the effect's cleanup cancels the lane (engine/lanes.ts gains `cancel`), as the flag did.
+  `of: session` stays. No App.tsx change. o9-lanes 4/4; FLOW_ONLY on WebGPU and WebGL2: the nine SubD steps (SD1, SD2,
+  R8.2, R8.3, both D84, R11.2a, R11.2b) ok, flow exit 0.
+- **assembly/useAssembly readFaces: not moved.** Its guard is render-time — `currentSource` is set during render, so
+  a reply arriving between a render and its effect is already stale — and it also skips starting a read once stale. A
+  lane orders requests, not renders: it would take that reply, a behaviour change. Kept as it is.
+- The App and src/ui callers (section, bearing, placed, preview, proposalDiff, mould; useDrawingSheet,
+  DrawingWorkspace) wait for G12b.
