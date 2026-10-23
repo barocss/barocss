@@ -14,6 +14,7 @@ import { booleanAnalytic, faceGeometry } from './analytic-boolean.js';
 import { brepMassProperties } from './solid-mass.js';
 import { transformBrep, type BrepAffine } from './brep-transform.js';
 import { evaluateCadPart } from './part-model.js';
+import { cross } from './vec3.js';
 
 export type ConnectorCode = 'INVALID_INPUT' | 'CONNECTOR_PLACEMENT' | 'CONNECTOR_FIT';
 export class ConnectorError extends Error {
@@ -87,7 +88,6 @@ function prism(id: string, s: ConnectorSection, z0: number, height: number, tag:
 }
 const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volumeMM3;
 const unit = (v: readonly number[]): Point => { const n = Math.hypot(v[0], v[1], v[2]); return [v[0] / n, v[1] / n, v[2] / n]; };
-const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 /** The opening's frame on a face of outward normal n at `origin`: x the face's width direction turned `rotationDeg` about n. */
 export function connectorFrame(origin: readonly number[], normal: readonly number[], rotationDeg = 0): { readonly origin: Point; readonly x: Point; readonly y: Point; readonly z: Point } {
   const z = unit(normal), ref: Point = Math.abs(z[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], d = ref[0] * z[0] + ref[1] * z[1] + ref[2] * z[2];

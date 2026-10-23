@@ -15,6 +15,7 @@ import type { Brep, BrepFace } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
 import { facetIntegrals } from './facet-patch.js';
 import type { FacetPatch } from './types.js';
+import { cross, dot, sub } from './vec3.js';
 
 type XY = readonly [number, number];
 /** Dunavant's degree-8 rule on the unit triangle (16 points): barycentric (a, b, c) and weight (sum 1). */
@@ -41,9 +42,6 @@ function accumulate(I: number[], p: Point, n: Point, w: number) {
   I[4] += x * x * x / 3 * nx; I[5] += y * y * y / 3 * ny; I[6] += z * z * z / 3 * nz;
   I[7] += x * x * y / 2 * nx; I[8] += x * x * z / 2 * nx; I[9] += y * y * z / 2 * ny;
 }
-const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const normal: Point = [0, 0, 0];
 
 /** Newton's closest point on a surface, from the nearest of a coarse grid or a hint (null when off the surface). */

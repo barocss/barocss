@@ -18,6 +18,7 @@ import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { weldVertices } from './facet-brep.js';
 import { MeshBrepError } from './mesh-brep.js';
 import type { Point } from './types.js';
+import { cross as crossP, unit as normalize } from './vec3.js';
 
 export interface MeshRepairSteps {
   readonly weld?: boolean; readonly degenerate?: boolean; readonly fins?: boolean; readonly orient?: boolean;
@@ -523,5 +524,3 @@ function angle(P: number[], v: number, a: number, b: number): number {
   const d = (ux * wx + uy * wy + uz * wz) / (Math.hypot(ux, uy, uz) * Math.hypot(wx, wy, wz) || 1);
   return Math.acos(Math.max(-1, Math.min(1, d)));
 }
-const crossP = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const normalize = (a: Point): Point => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };

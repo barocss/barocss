@@ -17,7 +17,7 @@
 import { BrepError, type Brep, type BrepCoedge, type BrepEdge } from './brep-core.js';
 import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from './math.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
-import { cross, dot, sub, unit } from './vec3.js';
+import { add as add3, cross, dot, scale as scale3, sub, unit } from './vec3.js';
 
 export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed' | 'facet'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
 export interface BrepMeshEdge { readonly edgeId: string; readonly pointsMM: Float64Array }
@@ -517,7 +517,6 @@ function flat(S: Surface): boolean {
   return l > 0 && P.every(p => Math.abs(dot(sub(p, o), n)) / l <= 1e-9 * size);
 }
 
-const add3 = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 /**
  * A surface's four boundary iso-lines (v = v0, v = v1, u = u0, u = u1), points projected onto them, and
  * for rails on opposite ones (a ruled patch's) each rail point's share of the way along them, with the
@@ -886,7 +885,7 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   // One-sided differences stepping inward, signed so the normal is always along Su × Sv.
   const normalAt = (q: XY): Point => { const h = 1e-6, p = at(q[0], q[1]), a = inward(q[0], U, h), b = inward(q[1], V, h); return scale3(cross(sub(at(a, q[1]), p), sub(at(q[0], b), p)), Math.sign(a - q[0]) * Math.sign(b - q[1])); };
   // At a pole the normal is the limit from inside the domain.
-  const normal = (q: XY): Point => { const n = normalAt(q); if (Math.hypot(...n) > 1e-20 * (Lu + Lv + 1) ** 2) return unit3(n); return unit3(normalAt([inward(q[0], U, 1e-5), inward(q[1], V, 1e-5)])); };
+  const normal = (q: XY): Point => { const n = normalAt(q); if (Math.hypot(...n) > 1e-20 * (Lu + Lv + 1) ** 2) return unit(n); return unit(normalAt([inward(q[0], U, 1e-5), inward(q[1], V, 1e-5)])); };
   const nrm: Point[] = uv.map(normal), cosStep = Math.cos(1.5 * step);
   const key = (a: number, b: number) => a < b ? a * 1e7 + b : b * 1e7 + a, around = new Map<number, Set<number>>();
   const link = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) { const k = key(x, y); if (!around.has(k)) around.set(k, new Set()); around.get(k)!.add(t); } };
@@ -1064,8 +1063,6 @@ function facetAgreement(pts: readonly Point[], nrm: readonly Point[], sgn: numbe
   const mx = nrm[a][0] + nrm[b][0] + nrm[c][0], my = nrm[a][1] + nrm[b][1] + nrm[c][1], mz = nrm[a][2] + nrm[b][2] + nrm[c][2], m = Math.hypot(mx, my, mz);
   return l > 0 && m > 0 ? sgn * (nx * mx + ny * my + nz * mz) / (l * m) : -1;
 }
-const scale3 = (a: Point, k: number): Point => [a[0] * k, a[1] * k, a[2] * k];
-const unit3 = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
 /** x + h·(span) inside [lo, hi], or x − h·(span) at the upper end. */
 /** A triangle's corner that is neither x nor y. */
 const third = (tri: readonly number[], x: number, y: number) => tri[0] !== x && tri[0] !== y ? tri[0] : tri[1] !== x && tri[1] !== y ? tri[1] : tri[2];

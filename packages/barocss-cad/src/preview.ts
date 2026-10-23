@@ -1,7 +1,7 @@
 import type { Point, Surface } from './types.js';
 import { evaluateSurface, sampleSurface, validateSurface } from './math.js';
 import { validatePreviewPacket, type PreviewPacket } from './packet.js';
-import { cross, dot } from './vec3.js';
+import { cross, dot, sub as subtract } from './vec3.js';
 
 export interface TessellationOptions { countU: number; countV: number; revision: number }
 export interface ApproximationReport {
@@ -18,7 +18,6 @@ export interface ApproximationReport {
 function requireValue(condition: boolean, message: string): asserts condition {
   if (!condition) throw new RangeError(message);
 }
-const subtract = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const scaled = (a: Point, scale: number): Point => [a[0] / scale, a[1] / scale, a[2] / scale];
 const positionAt = (positions: number[], index: number): Point => [positions[index * 3], positions[index * 3 + 1], positions[index * 3 + 2]];
 

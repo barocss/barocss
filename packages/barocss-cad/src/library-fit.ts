@@ -8,12 +8,12 @@ import { transformBrep } from './brep-transform.js';
 import type { Brep } from './brep-core.js';
 import { evaluateCadPart } from './part-model.js';
 import { CadLibraryError, evaluateLibraryExpression, instantiateLibraryPart, parseLibraryExpression, type CadLibrary, type CadLibraryFit, type CadLibraryFitEnd, type CadLibraryInterface } from './library.js';
+import { cross as crossOf } from './vec3.js';
 
 /** A rigid placement: p ↦ R p + t (R row-major 3 × 3). */
 export interface LibraryPlacement { readonly rotation: readonly number[]; readonly translation: readonly [number, number, number] }
 type V = [number, number, number];
 const unitOf = (v: readonly unknown[]): V => { const a = v as number[], n = Math.hypot(a[0], a[1], a[2]); return [a[0] / n, a[1] / n, a[2] / n]; };
-const crossOf = (a: V, b: V): V => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
 /**
  * Where b goes so that its interface meets a's: R takes b's frame (x, y, z) to (x_a, −y_a, −z_a) — facing — and t puts

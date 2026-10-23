@@ -8,6 +8,7 @@ import { curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import type { Brep } from './brep-core.js';
 import type { Curve, Point } from './types.js';
+import { cross, dot, sub } from './vec3.js';
 
 type XY = [number, number];
 export interface SweepSolidRequest {
@@ -22,9 +23,6 @@ export interface SweepSolidRequest {
   readonly samples?: number;
 }
 
-const sub = (a: readonly number[], b: readonly number[]): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: readonly number[], b: readonly number[]): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const unit = (a: readonly number[]): Point => { const l = Math.hypot(a[0], a[1], a[2]); if (!(l > 0)) throw new RangeError('the path stops (a zero tangent)'); return [a[0] / l, a[1] / l, a[2] / l]; };
 const along = (a: readonly number[], k: number, b: readonly number[]): Point => [a[0] + k * b[0], a[1] + k * b[1], a[2] + k * b[2]];
 const area = (r: readonly XY[]) => r.reduce((s, p, i) => { const q = r[(i + 1) % r.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;

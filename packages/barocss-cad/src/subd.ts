@@ -14,6 +14,7 @@
 import { buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
 import { buildCaps, capKnots, polyMesh, refine, SubdError, type Cap, type PolyMesh } from './subd-sd2.js';
+import { dot as dot3 } from './vec3.js';
 
 export { SubdError } from './subd-sd2.js';
 
@@ -182,7 +183,6 @@ function quadNormal(t: Topo, face: number): P3 {
   const ux = P[3 * c] - P[3 * a], uy = P[3 * c + 1] - P[3 * a + 1], uz = P[3 * c + 2] - P[3 * a + 2], vx = P[3 * d] - P[3 * b], vy = P[3 * d + 1] - P[3 * b + 1], vz = P[3 * d + 2] - P[3 * b + 2];
   return [uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx];
 }
-const dot3 = (a: P3, b: P3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 /** Whether each quad's neighbours that are in the grid sit next to it there, turned the same way. */
 function gridHolds(t: Topo, grid: Placed[][]): boolean {
   const where = new Map<number, [number, number, number]>();

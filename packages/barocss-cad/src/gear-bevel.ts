@@ -30,6 +30,7 @@
 import { buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Curve, Point, Surface } from './types.js';
 import { GearError, arcCurve, reversed, safeId, segmentsCross, orient, pointSegment, bezierKnots, type GearDiagnostic } from './gear.js';
+import { cross as cross3, dot as dot3 } from './vec3.js';
 
 /** Version 0 of the straight bevel gear's inputs (lengths in mm, at the heel). */
 export interface BevelGearSpec {
@@ -722,8 +723,6 @@ function thrustWords(a1: BevelGearDimensions, a2: BevelGearDimensions): string {
 export interface PlacedBevelGear { readonly spec: BevelGearSpec; readonly apex: Point; readonly axis: Point; readonly xAxis: Point; readonly rotation: number }
 export interface PlacedBevelGearPairCheck extends BevelGearPairCheck { readonly relativePhaseDeg: number }
 
-const cross3 = (a: readonly number[], b: readonly number[]): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
-const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const unit3 = (a: readonly number[]): Point => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; };
 
 /** The placed gear's map from its own frame (apex origin, axis +Z, tooth 1 on +X) into the part: row-major 3 × 3 and the offset. */

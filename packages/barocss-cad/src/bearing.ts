@@ -26,6 +26,7 @@ import { evaluateCurve, curveDomain } from './math.js';
 import { lookupFit, FitError, type FitLimit, type FitTable } from './fits.js';
 import type { PlacedShaft } from './shaft-parts.js';
 import type { Point } from './types.js';
+import { dot } from './vec3.js';
 
 export type BearingCode = 'INVALID_INPUT' | 'SEAT_ABUTMENT' | 'SEAT_FIT';
 export class BearingError extends Error {
@@ -110,7 +111,6 @@ function overlapOf(body: Brep, tool: Brep): number {
 }
 const apply = (m: BrepAffine, p: Point): Point => { const a = m.matrix, t = m.offset ?? [0, 0, 0]; return [a[0] * p[0] + a[1] * p[1] + a[2] * p[2] + t[0], a[3] * p[0] + a[4] * p[1] + a[5] * p[2] + t[1], a[6] * p[0] + a[7] * p[1] + a[8] * p[2] + t[2]]; };
 const dirOf = (m: BrepAffine, v: Point): Point => { const a = m.matrix; return [a[0] * v[0] + a[1] * v[1] + a[2] * v[2], a[3] * v[0] + a[4] * v[1] + a[5] * v[2], a[6] * v[0] + a[7] * v[1] + a[8] * v[2]]; };
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /** A ring's fit: the seat's class at its size against the ring's deviation (µm), as clearance = hole − shaft. */
 function ringFit(tables: readonly FitTable[], cls: string, size: number, ring: readonly [number, number] | undefined, seatIsShaft: boolean): BearingRingFit {

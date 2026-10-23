@@ -14,7 +14,7 @@ import { faceGeometry } from './analytic-boolean.js';
 import type { Brep } from './brep-core.js';
 import { circleOf, tessellateBrep } from './brep-tessellate.js';
 import type { Point } from './types.js';
-import { cross, dot, len, sub, unit } from './vec3.js';
+import { cross, dot, len, lerp as lerp3, sub, unit } from './vec3.js';
 
 export type ProjectedXY = readonly [number, number];
 /** `toward`: from the model to the viewer; `up`: the direction shown upwards (need not be orthogonal). */
@@ -73,7 +73,6 @@ interface Candidate {
 
 const dist2 = (a: XY, b: XY) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 type Own = { face: number; eps: number; rho: number };
-const lerp3 = (a: Point, b: Point, t: number): Point => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 // Each face's plane or cylinder (or neither), read once per face object: every view asks for it.
 const faceGeometries = new WeakMap<object, ReturnType<typeof faceGeometry>>();

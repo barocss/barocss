@@ -11,6 +11,7 @@ import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
 import { MeshBrepError } from './mesh-brep.js';
 import type { FacetPatch, Point } from './types.js';
+import { cross as crossOf } from './vec3.js';
 
 type XY = [number, number];
 export interface FacetSplitOptions {
@@ -236,7 +237,6 @@ function inside(r: XY[], p: XY): boolean {
   for (let i = 0, j = r.length - 1; i < r.length; j = i++) if ((r[i][1] > p[1]) !== (r[j][1] > p[1]) && p[0] < (r[j][0] - r[i][0]) * (p[1] - r[i][1]) / (r[j][1] - r[i][1]) + r[i][0]) c = !c;
   return c;
 }
-const crossOf = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const unitOf = (a: Point): Point => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; };
 
 /** One side's triangles as a facet B-rep: its pieces (each closed by its cap, or a sheet when the body was one), names kept. */

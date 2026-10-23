@@ -6,6 +6,7 @@
 import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } from './brep-core.js';
 import type { Point, Surface } from './types.js';
 import { binary64Dyadic } from './dyadic.js';
+import { add, cross, dot, sub } from './vec3.js';
 
 export class MeshBrepError extends Error {
   constructor(message: string) { super(message); this.name = 'MeshBrepError'; }
@@ -121,10 +122,6 @@ function coplanar(a: Point, b: Point, c: Point, d: Point): boolean {
   const u = [0, 1, 2].map(i => B[i] - A[i]), v = [0, 1, 2].map(i => C[i] - A[i]), w = [0, 1, 2].map(i => D[i] - A[i]);
   return u[0] * (v[1] * w[2] - v[2] * w[1]) - u[1] * (v[0] * w[2] - v[2] * w[0]) + u[2] * (v[0] * w[1] - v[1] * w[0]) === 0n;
 }
-const sub = (a: Point, b: Point): Point => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-const add = (a: Point, b: Point): Point => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
 /** A planar patch round the points whose ∂S/∂u × ∂S/∂v points along the unit `normal`. */
 function planeSurface(id: string, normal: Point, pts: Point[]): Surface {
