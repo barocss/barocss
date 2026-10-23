@@ -2,8 +2,26 @@
 
 ## The layout
 
-![The studio with the starter plate: the top bar, the Tools rail on the left, the Browser and the properties panel, the history and the view bar along the bottom](/shots/studio/tour/layout.jpg)
+![The studio with the starter plate](/shots/studio/tour/layout.jpg)
 
+The studio has three columns: the chat at the left, the stage in the centre (the top bar, the viewport and its bars),
+and the dock at the right.
+
+- **The chat column** runs the window's full height:
+  - the agent's open proposals sit over the conversation, and the message box is at the bottom;
+  - drag its right edge to set its width, from 320 to 520 px; the studio remembers the width in this browser;
+  - closed, it is a strip of icons; **Open chat** opens it again;
+  - while a proposal is open, the column shows it, whether the chat is open or not;
+  - the chat opens in the Model workspace, not in Render or Drawing.
+
+  See [Designing with the agent](/agent/).
+- **The dock** holds the **Browser**, then the inspector, then the BOM and the other panels you open, one under
+  another in one scrolling column. Nothing floats over another panel.
+- **Narrow windows.**
+  - When the window narrows past what fits (the chat, the dock and a centre at least 560 px wide), the chat folds to
+    its strip once. You can open it again.
+  - When there is no room for the dock beside the centre, it becomes a strip at the right edge. **Open the dock** opens
+    it as a sheet over the viewport, and **Close the dock** puts it back.
 - **The top bar** holds the shapes, the mode, the document's commands and the tools that open panels:
   - **The shapes**: buttons for the shapes you place with the pointer or drag onto the model. **More shapes** (`···`)
     opens the rest.
@@ -12,18 +30,24 @@
     - Sketch starts a sketch, and shows its plane while you draw.
     - Render sets the look and camera for images without changing the model; see [Rendering](/studio/rendering).
     - Drawing is the sheet workspace.
-  - **Chat** opens the agent's panel, and **Undo** and **Redo** step through the history.
+  - **Chat** opens and closes the chat column, and **Undo** and **Redo** step through the history.
   - **New part**, **Templates**, **Open**, **Save** and **Insert part**, which places another `.bcad` as an instance.
   - **Library** (catalogue parts and shop rows), **Parameters** (named sizes and saved configurations) and **BOM**.
   - **Export STL**, **Export 3MF**, **Export STEP** and **Export IGES**.
-- **The Tools rail** on the left holds the commands by group. While you sketch, it holds the sketch tools instead.
-- **The Browser** lists the bodies, the placed parts and their features, the drafts and the reference bodies. Its title
-  counts the bodies, for example `1 body`.
-- **The properties panel** shows what is picked, such as `SELECTION · FACE`, with its measurements and the actions
-  that apply to it. With nothing picked, it shows the part's mass, centre of mass and bounds.
-- **The heads-up display (HUD)** appears while a command runs. It shows the command's fields and a status: `preview`
-  while the result is shown, or `refused` with the reason.
-- **The history**, along the bottom, lists the features in the order they were made. Click one to edit it.
+- **The Tools rail**, at the viewport's left edge, holds the commands by group. While you sketch, it holds the sketch
+  tools instead.
+- **The Browser**, at the top of the dock:
+  - It lists the bodies, the placed parts and their features, the drafts, the reference bodies and the design
+    history.
+  - Its title counts the bodies, for example `1 body`.
+- **The inspector**, under the Browser:
+  - It shows what is picked, such as `SELECTION · FACE`, with its measurements and the actions that apply to it.
+  - With nothing picked, it shows the part's mass, centre of mass and bounds.
+  - It also holds the command that is running, and the panels for measuring, joints and mates.
+- **The heads-up display (HUD)** shows a running command's fields and a status: `preview` while the result is shown,
+  or `refused` with the reason.
+- **The history**, along the bottom of the viewport, lists the features in the order they were made. Click one to edit
+  it.
 - **The view bar** carries:
   - **Display**, the popover for display modes, sections and previews;
   - the view buttons: **Iso**, **Top**, **Front**, **Right** and the others;
