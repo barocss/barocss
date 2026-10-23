@@ -168,9 +168,11 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         if (len(c) < 1e-4) break;
         // (Along the march's own direction: through a point where the surfaces touch — a cylinder inside a ball, tangent
         // to it where their curve crosses itself — n₁ × n₂ passes through zero and turns its sign, and the march turned
-        // back there, to and fro across the point. L4 fuzz 110, D238.)
-        let t = scale(unit(c), dir);
-        if (tans.length && dot(t, tans[tans.length - 1]) < 0) t = scale(t, -1);
+        // back there, to and fro across the point. Turned back means its step lands by the point before; round the tight
+        // end of a slender loop — a spring's ground plane along its wire — the tangent turns as far between two steps and
+        // goes on. L4 fuzz 110, D238.)
+        let sign = dir, t = scale(unit(c), sign);
+        if (pts.length > 1 && dot(t, tans[tans.length - 1]) < 0 && len(sub(add(x, scale(t, h)), pts[pts.length - 2])) < 0.5 * h) { sign = -sign as 1 | -1; t = scale(t, -1); }
         tans.push(t);
         // Predictor, then corrector on both surfaces and the plane through the prediction normal to t.
         // (`taken`: the step that found the point. The loop's update halves `step` once more after it, and the tests below
@@ -192,8 +194,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
             if (r && inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
           }
           // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one.
-          let endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), dir);
-          if (dot(endTan, t) < 0) endTan = scale(endTan, -1);
+          const endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), sign);
           if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(endTan); }
           else if (last.x !== x) { pts[pts.length - 1] = last.x; uvA[uvA.length - 1] = last.pa; uvB[uvB.length - 1] = last.pb; tans[tans.length - 1] = endTan; }
           break;

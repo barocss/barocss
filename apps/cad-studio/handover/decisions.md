@@ -12715,6 +12715,20 @@ The rest are among the nudge findings in D239.
 - a march over a cylinder inside a ball, tangent at a point: no chain turns back;
 - 110 and 25 shrunk: valid, watertight, one body, against the oracle.
 
+**Correction (checkpoint 2, a new commit after a85661e8f).** The first version flipped a step's tangent whenever it
+pointed back against the step before. That broke `test/r12c-spring.test.mjs` "a long fine spring, ground (20 turns;
+D 40 d 1)": its ground plane cuts the wire in a slender loop, and round the loop's tight ends the tangent turns more
+than 90° between two steps, legitimately. The march was turned the wrong way there, and the Boolean refused (an edge
+used once at z 51.8466).
+
+Now the tangent is flipped only where the unflipped step would land within half a step of the chain's point before,
+which is the march running back. Through a touching point that is what happens; round a tight end it is not. The end
+tangent at a box edge takes the step's sign.
+
+Results with the correction:
+- the spring test passes, and so do 110, 25 and the other K12 tests;
+- the fingerprint is unchanged, `b6e18fab…` (it holds no long ground spring, which is why it did not show the break).
+
 ## D239 — K12's near-degenerate refusals: all six closed, and the nudges' findings (2026-10-24)
 
 **The queue** (fuzz seed 20261023; each case shrunk, nudged four ways by up to 1e-3 mm, against the ray oracle, D196's
@@ -12740,3 +12754,49 @@ still refused:
 - **110:** 2 of 4 as fuzzed. One shrunk nudge builds 7.9 e off on the tessellated mass. It states `volumeBoundMM3`
   0.100 against a true error of 0.033, so it is not silent, but the quadrature gives up on that body.
 - **s2#112:** still refused; since D237 at its root ("an arc does not lie in its plane").
+
+## D240 — K12 step 3: where opening time goes (measured, report only) (2026-10-24)
+
+**What was measured.** G-R42 (G11) found opening slow on four scenes, with evaluation, not drawing, the cause:
+
+| Scene | Open in the browser (G11) |
+|---|---|
+| 5 box frames | 25–28 s |
+| A9 | 16 s |
+| the spring | 10 s |
+| the worm pair | 6–7 s |
+
+The GPU lane's own scene files (its G11 scratch: `frames.bcad`, `a9.bcad`, `part-spring.bcad`, `part-worm.bcad`) were run
+through the studio's open path in Node 22, outside the browser, on a85661e8f:
+- `readStudioFile`;
+- `evaluateDoc`, whose kernel evaluation is profiled (O10, D228);
+- for an assembly, `evaluatePlaced` per instance from `instanceEvaluationSources`, as App.tsx does.
+
+Two measurements:
+- per kernel feature, `{ profile: true }`, its kind from the kernel document;
+- the whole run under `node --cpu-prof`, inclusive time per function.
+
+The scripts are in the session's scratchpad, not committed. Node is about half the browser's time on the same work
+(13 s against 25–28 for the frames).
+
+**Results** (Node, ms):
+
+| Scene | Open | Kernel features | Bodies (`bodyOf`: mesh, mass, notes) | Where the time goes |
+|---|---|---|---|---|
+| 5 box frames | 12 970–14 090 | 10 990 (`frame` ×5: 120 analytic Booleans, ~85 ms each) | 2 200 (mass quadrature 1 580, mesh 310, area 180) | in the Booleans (CPU profile, per evaluation, of 10 000): `cutPair` 3 500 (`intervals` → `intersectSegments` 2 500, most of it the four end tests `ends()` against every ring segment of the face, with no box test first), the arrangement 1 600, `stitch` 1 500, `regionInteriorPoint` 1 400, `mergePieces` 1 300 |
+| A9 (38 bodies) | 4 270 | part 360 (weld beads 265 ×12, frame 87); instances 1 790 (`oringInGland` 1 290: its overlap volume by quadrature; the bearing's `overlapOf` 360; the shaft 100) | instances 310 (mesh 260) | the Node run is a quarter of the browser's 16 s. What else the browser does on open (other workers, the main thread) is outside this measurement. Instance p2 fails here with `[BEARING_HOUSING_REFERENCE] the housing link needs its current assembly and owner occurrence`, through the studio's own `placedBase` → `evaluatePlaced` path, so its cost is missing |
+| the spring (114 k triangles) | 4 130–4 420 | 680–750 (`compressionSpring`: its ground ends' analytic Boolean 650) | 3 440 (mass quadrature 2 050, tessellation 1 340) | the mass and the mesh of one swept body |
+| the worm pair | 2 640–2 780 | 15–18 (the worm 8, the gear 6) | 2 630 (tessellation 1 370, mass quadrature 610, cad-model's `checkWormPair` 510) | almost nothing in the kernel's features |
+
+The hottest single function in every scene is the NURBS basis (`basisInto`, 0.8–1.2 s of self time), under the
+tessellator and the mass quadrature.
+
+**Reading (for the coordinator's choice; nothing changed).**
+- **The frames** are the kernel's analytic Boolean, 120 of them. The cheapest candidate is a box test before
+  `intersectSegments` in `intervals`, which today tests every probe piece against every ring segment of the face. The
+  others are spread across the Boolean's stages.
+- **The spring and the worm** are the body's mass and mesh after the kernel, not its features. The mass quadrature
+  alone is 2.05 s on the spring.
+- **A9** is mostly elsewhere. Its kernel share is the O-ring's overlap volume, a quadrature of an exact torus overlap
+  (D159). Instance p2's BEARING_HOUSING_REFERENCE is a finding for the outer lane: the studio's instance path cannot
+  evaluate it.
