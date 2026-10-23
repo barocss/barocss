@@ -10,6 +10,7 @@ import { userToken } from '../src/team/ecr';
 import { boxCage } from '../src/app/primitives';
 import { dispatchTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { annotationsOf, breakingChanges, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '../src/chat/contract';
+import { withSampleRows } from './person-file';
 
 // A5.1 (O9): the tool layer's contract. Every handler classified; the breaking-change rules (the v2 list is frozen by
 // them in tools-v2.json, toolset.test.ts); every read handler's result matching its output schema; the MCP server
@@ -41,7 +42,8 @@ test('the breaking-change rules: removals and narrowing break, additions do not'
 });
 
 test('every read tool’s result matches its output schema and changes nothing', async () => {
-  let doc: StudioDoc = { ...starterDoc(), requirements: [{ id: 'R1', source: '64 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 64, tol: 0.1 } }] } as StudioDoc;
+  // (O7: standards_lookup's fastener table is the loaded sizes: the sample rows, loaded as the person loads them.)
+  let doc: StudioDoc = withSampleRows({ ...starterDoc(), requirements: [{ id: 'R1', source: '64 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 64, tol: 0.1 } }] } as StudioDoc);
   const r = await evaluate(doc); assert.ok(r.ok);
   let s: ChatState = { doc, bodies: r.bodies };
   const calls: [string, object][] = [['get_part_summary', {}], ['measure', { a: 'n1.top' }], ['measure', { a: 'n1.top', b: 'n1.bottom' }], ['mass_properties', {}], ['interference', {}], ['section', { axis: 'z', at: 4 }], ['wall_thickness', {}], ['draft', {}], ['check_spec', {}], ['diff', {}], ['list_proposals', {}], ['inspect', { faces: ['n1.top'] }], ['select', { faces: ['n1.top'] }], ['checkpoint', { name: 'a' }], ['drawing_issues', {}], ['tolerance_suggestions', {}], ['get_assembly', {}], ['list_library', {}], ['check_printability', {}], ['render_views', {}], ['get_joints', {}], ['forward_kinematics', {}], ['link_inertia', {}], ['export_urdf', {}], ['export_mjcf', {}], ['sweep_path', { to: {} }], ['gravity_torques', {}], ['motion_torques', { to: {}, profile: 'trapezoid' }], ['size_actuators', { to: {}, profile: 'trapezoid' }], ['get_brief', {}], ['get_references', {}], ['get_drafts', {}], ['standards_lookup', {}], ['standards_lookup', { table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' }]];
@@ -93,3 +95,17 @@ test('every read tool’s result matches its output schema and changes nothing',
   assert.deepEqual(TOOLS.filter(t => outputSchemaOf(t.name) && !seen.has(t.name)).map(t => t.name), []);
 });
 
+
+test('O7 refusals, typed: [FASTENER_SIZE_ROW] for a tapped hole or a fastener with no size row loaded', async () => {
+  const plate = rectanglePart(40, 30, 10), pe = evaluateDoc(plate, 1); assert.ok(pe.ok);
+  const s: ChatState = { doc: plate, bodies: pe.bodies };
+  const tapped = { command: 'hole', values: { type: 'tapped', thread: 'M6', tend: 'blind', depth: 8, x: 20, y: 15 }, faces: ['n1.top'] };
+  const fastener = { command: 'fastener', values: { kind: 'hex-bolt', size: 'M6', length: '20', x: 0, y: 0, z: 10 } };
+  for (const args of [tapped, fastener]) {
+    const r = await dispatchTool(s, 'run_command', args, evaluate);
+    assert.ok(r.isError && !r.changed, `${args.command}: ${r.content}`); assert.match(JSON.parse(r.content).error, /\[FASTENER_SIZE_ROW\] /, args.command);
+  }
+  // (With the sizes loaded by the person, both are made.)
+  const sized = withSampleRows(plate);
+  for (const args of [tapped, fastener]) { const r = await dispatchTool({ doc: sized, bodies: pe.bodies }, 'run_command', args, evaluate); assert.ok(!r.isError, `${args.command}: ${r.content}`); }
+});

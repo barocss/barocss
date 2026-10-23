@@ -8,6 +8,7 @@ import { defaultDrawing, type DrawingSettings } from '../src/drawing/types';
 import { processProfile } from '../src/library/materials';
 import { machinability } from '../src/machining/report';
 import { DRAWING_PAGES, drawingCheck } from '../src/machining/drawing';
+import { withSampleRows } from './person-file';
 
 // CNC5 (O88): the drawing a machined part goes with, on the studio's own (R14): needed (threads go on a drawing; with
 // neither threads nor tolerances the standard ±0.125 holds), and on it each item a shop needs — every item's oracle the
@@ -16,7 +17,9 @@ import { DRAWING_PAGES, drawingCheck } from '../src/machining/drawing';
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const cmd = (command: string, values: Record<string, unknown>, sel: Record<string, unknown> = {}): [string, Record<string, unknown>] => ['run_command', { command, values, ...sel }];
 async function build(calls: [string, Record<string, unknown>][]): Promise<ChatState> {
-  let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as ChatState;
+  // (O7: the fastener sizes are the sample rows, loaded as the person loads them.)
+  const start = withSampleRows(emptyDoc());
+  let s = { doc: start, bodies: [], turnBase: start } as never as ChatState;
   for (const [tool, args] of [...calls, ['set_material', { material: 'al6061' }] as [string, Record<string, unknown>]]) { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, `${tool}: ${r.content}`); s = r.state; }
   return s;
 }

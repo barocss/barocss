@@ -6,6 +6,7 @@ import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/ch
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { canonical } from '../src/team/revision';
 import { receivePersonRowFiles } from '../src/chat/rowFiles';
+import { withSampleRows } from './person-file';
 
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 async function stateOf(doc = emptyDoc()): Promise<ChatState> {
@@ -42,7 +43,8 @@ test('batch approval equals direct approval for assembly and drawing changes at 
 });
 
 test('script and nested script assembly changes need approval even with an empty feature diff', async () => {
-  const s = await stateOf();
+  // (O7: the fastener sizes are the sample rows, loaded as the person loads them.)
+  const s = await stateOf(withSampleRows(emptyDoc()));
   const source = 'fastener({kind: "hex-bolt", size: "M6", length: "20", insert: "instance"})';
   const direct = await runTool(s, 'run_command', { command: 'fastener', values: { kind: 'hex-bolt', size: 'M6', length: '20', insert: 'instance' } }, evaluate);
   assert.equal(JSON.parse(direct.content).code, 'needs_approval', direct.content);

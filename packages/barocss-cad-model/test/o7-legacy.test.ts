@@ -6,6 +6,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
 import { readStudioFile } from '../src/engine/container';
 import { threadsOf } from '../src/app/threads';
+import { fastenerSizesOf } from '../src/engine/fastenerSizeRows';
 import { fastenerFit } from '../src/app/fasteners';
 import { drawingInputs } from '../src/chat/drawing';
 import { readDrawing } from '../src/drawing/types';
@@ -16,13 +17,15 @@ import { machinability } from '../src/machining/report';
 import { processProfile } from '../src/library/materials';
 import { printability } from '../src/print/rules';
 import { bomView, deriveBom } from '../src/team/assembly';
+import { withSampleRows } from './person-file';
 
-// O7a: documents saved before O7 open as they did. Each built-in use (fasteners made in a part and placed as parts,
-// tapped holes, a drawing's fastener-sized tolerances, die and sand casting, the enclosure library's variants) is a
-// .bcad in fixtures/o7-legacy, saved once by the pre-O7 code (2026-10-23, over integration e4ba3c579) and never
-// rewritten. What it opens to — bodies, threads, the fastener edit steps, the drawing's suggestions and issues, the
-// tapped holes, CAM and DFM rules, the BOM — is expected.json, taken at that same code. O7's migration must keep it
-// identical; UPDATE_O7_EXPECTED=1 rewrites it, which only a decision record may do.
+// O7: the built-in fastener sizes, casting rules and enclosure variants became the person's rows (owner, 2026-10-23: the
+// studio is unreleased, so the schema tracks the latest and nothing is migrated). These fixtures are the equivalence
+// oracle. Each .bcad in fixtures/o7-legacy was saved once by the pre-O7 code (2026-10-23, over integration e4ba3c579), one
+// per built-in use, and expected.json is what it opened to then. With the sample rows loaded as the person loads them
+// (samples/rows), each must open to exactly that: the sample rows give what the built-in values gave. Without rows, each
+// gives the readings of no data: no fastener thread, no tap drill, the position estimate. UPDATE_O7_EXPECTED=1 rewrites
+// expected.json, which only a decision record may do.
 
 const dir = resolve(import.meta.dirname, 'fixtures/o7-legacy');
 const expectedFile = resolve(dir, 'expected.json');
@@ -37,16 +40,17 @@ const madeFasteners = (doc: StudioDoc) => doc.nodes.flatMap(n => 'made' in n && 
 async function opened(doc: StudioDoc) {
   const ev = evaluateDoc(doc, 1);
   if (!ev.ok) return { error: ev.error.title };
-  const bodies = ev.bodies;
+  const bodies = ev.bodies, sizes = fastenerSizesOf(doc);
   const drawing = drawingInputs(doc);
   const ctx = typeof drawing === 'string' ? null : issueContext(drawing);
   // (The same sheet with its accepted tolerances taken off: what the fastener data suggests on it at open.)
   const settings = readDrawing(doc.drawing), bare = drawingInputs(doc, { ...settings, dimensions: settings.dimensions.map(({ tol: _tol, ...d }) => d) });
   return plain({
     bodies: bodies.map(b => ({ key: b.key, volume: b.volumeMM3 == null ? null : +b.volumeMM3.toFixed(6), faces: b.mesh.faces.length })),
-    threads: [...threadsOf(doc.nodes)],
-    fastenerSteps: madeFasteners(doc).map(v => fastenerFit(v)),
-    instances: (doc.instances ?? []).map(i => ({ id: i.id, name: i.name, threads: [...threadsOf(i.doc.nodes)], fastenerSteps: madeFasteners(i.doc).map(v => fastenerFit(v)) })),
+    threads: [...threadsOf(doc.nodes, sizes)],
+    fastenerSteps: madeFasteners(doc).map(v => fastenerFit(v, sizes)),
+    // (A placed part's sizes: the assembly's rows it inherits, its own over them.)
+    instances: (doc.instances ?? []).map(i => { const own = { ...sizes, ...fastenerSizesOf(i.doc) }; return { id: i.id, name: i.name, threads: [...threadsOf(i.doc.nodes, own)], fastenerSteps: madeFasteners(i.doc).map(v => fastenerFit(v, own)) }; }),
     drawing: ctx ? {
       suggestions: toleranceSuggestions(ctx).map(s => ({ kind: s.kind, message: s.message, estimate: s.estimate })),
       issues: drawingIssues(ctx).map(x => `${x.code}: ${x.message}`),
@@ -76,7 +80,23 @@ test('O7a: the legacy fixtures are all there, each with its expectation', () => 
   assert.deepEqual(Object.keys(JSON.parse(readFileSync(expectedFile, 'utf8'))).sort(), names);
 });
 
-for (const name of names) test(`O7a: ${name} opens as the pre-O7 studio opened it (Save/Open)`, async () => {
+for (const name of names) test(`O7: ${name} with the sample rows loaded by the person opens as the pre-O7 studio opened it`, async () => {
   const want = JSON.parse(readFileSync(expectedFile, 'utf8'))[name];
-  assert.deepEqual(await opened(await read(name)), want);
+  assert.deepEqual(await opened(withSampleRows(await read(name))), want);
+});
+
+test('O7: without rows, the fixtures read as having no data — no fastener thread or edit steps, no tap drill, each position tolerance an estimate', async () => {
+  const want = JSON.parse(readFileSync(expectedFile, 'utf8'));
+  for (const name of names) {
+    const got = await opened(await read(name)) as Record<string, never>, was = want[name];
+    assert.deepEqual(got.bodies, was.bodies, `${name}: the same bodies (the shapes are the document's own nodes)`);
+    assert.ok((got.fastenerSteps as unknown[][]).every(x => !x.length), `${name}: no fastener steps`);
+    assert.ok((got.instances as { threads: unknown[]; fastenerSteps: unknown[][] }[]).every(i => !i.threads.length && i.fastenerSteps.every(x => !x.length)), `${name}: placed fasteners unsized`);
+    assert.ok((got.tapped as { tapMM: number | null }[]).every(t => t.tapMM === null), `${name}: no tap drill`);
+    const d = got.drawing as unknown as { suggestedUntoleranced: { kind: string; estimate: boolean; message: string }[] } | string;
+    if (typeof d !== 'string') assert.ok(d.suggestedUntoleranced.filter(x => x.kind.startsWith('hole') || x.kind === 'position').every(x => x.estimate), `${name}: ${JSON.stringify(d.suggestedUntoleranced)}`);
+  }
+  // (The made fasteners' threads gone, the tapped holes' kept: fasteners-in-part has none left, tapped-holes-milled its three.)
+  const threads = async (n: string) => ((await opened(await read(n))) as unknown as { threads: unknown[] }).threads.length;
+  assert.deepEqual([await threads('fasteners-in-part.bcad'), await threads('tapped-holes-milled.bcad')], [0, 3]);
 });

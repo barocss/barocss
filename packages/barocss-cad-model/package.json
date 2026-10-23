@@ -15,11 +15,13 @@
     "url": "https://github.com/barocss/barocss/issues"
   },
   "exports": {
+    "./samples/*": "./samples/*",
     "./*.json": "./src/*.json",
     "./*": "./src/*.ts"
   },
   "files": [
     "src",
+    "samples",
     "README.md",
     "LICENSE"
   ],

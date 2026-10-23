@@ -19,6 +19,7 @@ import { buildSheet, sectionExtents, sheetSections } from '@barocss/cad-model/dr
 import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
 import { holeCallout } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
+import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { sameSection, sectionsOf, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
@@ -92,7 +93,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);
-  const threads = useMemo(() => threadsOf(doc.nodes), [doc.nodes]);
+  const threads = useMemo(() => threadsOf(doc.nodes, fastenerSizesOf(doc)), [doc.nodes, doc.fastenerSizes]);
   // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
   const wantsBom = !!settings.balloons || !!settings.tables?.some(x => x.from === 'bom');
   const [bomRead, setBomRead] = useState<{ doc: StudioDoc; bom: Bom } | null>(null);

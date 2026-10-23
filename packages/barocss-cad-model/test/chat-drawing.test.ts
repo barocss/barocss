@@ -5,6 +5,7 @@ import { emptyDoc, rectanglePart, starterDoc, withNode, type StudioDoc } from '.
 import { acceptProposal, dispatchTool, runTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { DRAWING_TOOL_NAMES } from '../src/chat/drawing';
 import { readDrawing } from '../src/drawing/types';
+import { withSampleRows } from './person-file';
 
 // R14.5 (O6): the agent's drawing tools — the issue list and tolerance suggestions to read, Auto layout and dimensions,
 // fixes and accepted suggestions as proposals only (a drawing change always needs the user, D41).
@@ -37,7 +38,8 @@ test('drawing_issues and tolerance_suggestions read the drawing and change nothi
 });
 
 test('a drawing change is the user’s: refused made directly, made as a proposal, accepted only by the user', async () => {
-  const s = await stateOf(withNode(rectanglePart(100, 40, 10), hole(1, [20, 12], 3.3, { pattern: { count: 4, step: [20, 0] } })));
+  // (O7: the fastener sizes are the sample rows, loaded as the person loads them.)
+  const s = await stateOf(withSampleRows(withNode(rectanglePart(100, 40, 10), hole(1, [20, 12], 3.3, { pattern: { count: 4, step: [20, 0] } }))));
   for (const [name, args] of [['auto_dimension', {}], ['set_drawing', { sheet: 'A3' }], ['fix_drawing', {}], ['accept_tolerances', {}]] as const) {
     const r = await runTool(s, name, args, evaluate);
     assert.ok(r.isError && /propose it/.test(r.content) && parse(r.content).code === 'needs_approval', `${name}: ${r.content}`);

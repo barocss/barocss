@@ -98,6 +98,7 @@ import { pickedSketches, planeOf, profileRings, unusedSketches } from '@barocss/
 import { fastenerName, fastenerThread } from '@barocss/cad-model/app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
+import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import type { Analysis } from './viewport/analysis';
 import { poseMatrix } from './viewport/instancePose';
 import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, type AxisSection, type Section } from './viewport/sectionView';
@@ -1950,8 +1951,8 @@ export function App() {
     if (active || sketch || rendering || drawing || measure || assembly.draft || instanceSel.length) return null;
     // The feature open in the editor, else the one the picked face or edge comes from, else the body's last.
     const one = selectedBodies(selection), index = editNode ?? featureOfPick(selection, bodies, evaluated.nodes) ?? (one.length === 1 && bodies[one[0]] ? refOf(bodies[one[0]]).node : null);
-    return index === null || (marker !== null && index >= marker) ? null : editCommand(index, evaluated.nodes);
-  }, [active, sketch, rendering, drawing, measure, assembly.draft, instanceSel.length, selection, editNode, bodies, evaluated.nodes, marker]);
+    return index === null || (marker !== null && index >= marker) ? null : editCommand(index, evaluated.nodes, doc);
+  }, [active, sketch, rendering, drawing, measure, assembly.draft, instanceSel.length, selection, editNode, bodies, evaluated.nodes, doc.fastenerSizes, marker]);
   const handleCmd = active?.cmd ?? idleEdit, handleValues = active ? active.values : idleEdit?.defaults?.(ctx) ?? {}, handleCtx = active?.ctx ?? ctx;
   // (None while a new shape is still being placed: the click that places it must not grab one.)
   const handles: FeatureHandle[] = handleCmd?.handles && !sketch && !active?.placing ? handleCmd.handles(handleCtx, handleValues).flatMap(h => {
@@ -2025,10 +2026,10 @@ export function App() {
   // (not on a preview, a section or a render).
   const threads = useMemo(() => {
     if (rendering || section || previewBodies) return new Float32Array();
-    const out: number[] = [], own = threadsOf(evaluated.nodes);
+    const out: number[] = [], own = threadsOf(evaluated.nodes, fastenerSizesOf(doc));
     for (const b of bodies) out.push(...threadLines(own, b.mesh));
     return new Float32Array(out);
-  }, [bodies, evaluated.nodes, rendering, section, previewBodies]);
+  }, [bodies, evaluated.nodes, doc.fastenerSizes, rendering, section, previewBodies]);
   // (The placed parts' rings go with their meshes, G1: posed and exploded by the same matrix.)
   const instancesDrawn = useMemo(() => {
     if (section) return cpuInstanceSection && sectionHatchOn
@@ -2036,7 +2037,7 @@ export function App() {
       : instancesShown;
     if (rendering || previewBodies) return instancesShown;
     return instancesShown.map(it => {
-      const inst = doc.instances?.find(i => i.id === it.id), t = inst ? threadsOf(flattenAssembly(inst.doc).nodes) : null, out: number[] = [];
+      const inst = doc.instances?.find(i => i.id === it.id), t = inst ? threadsOf(flattenAssembly(inst.doc).nodes, { ...fastenerSizesOf(doc), ...fastenerSizesOf(inst.doc) }) : null, out: number[] = [];
       if (t) for (const b of it.bodies) out.push(...threadLines(t, b.mesh));
       return out.length ? { ...it, threads: new Float32Array(out) } : it;
     });
@@ -2575,8 +2576,8 @@ export function App() {
               <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === (briefMaterial(doc) ?? material) ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
               {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
             </>; })()}
-            {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, t = made?.command === 'fastener' ? fastenerThread(made.values) : null;
-              return t ? <><div className="kv">Part <b>{fastenerName(made!.values)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal ISO sizes — check the standard before manufacture.</div></> : null; })()}
+            {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, sizes = fastenerSizesOf(doc), t = made?.command === 'fastener' ? fastenerThread(made.values, sizes) : null;
+              return t ? <><div className="kv">Part <b>{fastenerName(made!.values, sizes)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal ISO sizes — check the standard before manufacture.</div></> : null; })()}
             {b.centroid && <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>}
             {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.gPerCm3); if (!mp) return null;
               const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.massG, mp.centroid, [0, 0, 0]) : mp.inertia;

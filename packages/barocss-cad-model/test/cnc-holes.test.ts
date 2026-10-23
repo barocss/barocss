@@ -6,6 +6,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { processProfile, type ProcessProfile } from '../src/library/materials';
 import { machinability } from '../src/machining/report';
 import { holesOf, onDrillTable, tappedHoles } from '../src/machining/holes';
+import { withSampleRows } from './person-file';
 
 // CNC2 (O85): holes and threads against closed forms — depths and diameters as built (the oracle is the construction,
 // not the geometry read back), an enumerated drill table against the step rule, tapped holes against the fastener
@@ -14,7 +15,9 @@ import { holesOf, onDrillTable, tappedHoles } from '../src/machining/holes';
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const cmd = (command: string, values: Record<string, unknown>, sel: Record<string, unknown> = {}): [string, Record<string, unknown>] => ['run_command', { command, values, ...sel }];
 async function build(calls: [string, Record<string, unknown>][], material = 'al6061'): Promise<ChatState> {
-  let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as ChatState;
+  // (O7: the fastener sizes are the sample rows, loaded as the person loads them.)
+  const start = withSampleRows(emptyDoc());
+  let s = { doc: start, bodies: [], turnBase: start } as never as ChatState;
   for (const [tool, args] of [...calls, ['set_material', { material }] as [string, Record<string, unknown>]]) { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, `${tool}: ${r.content}`); s = r.state; }
   return { ...s, doc: { ...s.doc, process: 'cnc-milling' } };
 }

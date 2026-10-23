@@ -114,7 +114,7 @@ export function checkValues(fields: Field[], values: Values): string | null {
   for (const f of shownFields(fields, values)) {
     const v = values[f.key];
     if (v === undefined || v === '') return `"${f.key}" (${f.label}) is required.`;
-    if (f.kind === 'choice') { if (!f.options.some(o => o.value === String(v))) return `"${f.key}" is one of ${f.options.map(o => o.value).join(', ')}.`; continue; }
+    if (f.kind === 'choice') { if (!f.options.length && f.empty) return f.empty; if (!f.options.some(o => o.value === String(v))) return `"${f.key}" is one of ${f.options.map(o => o.value).join(', ')}.`; continue; }
     const n = Number(v);
     if (!Number.isFinite(n)) return `"${f.key}" (${f.label}) must be a number.`;
     if (f.kind === 'count' && !Number.isInteger(n)) return `"${f.key}" must be a whole number.`;

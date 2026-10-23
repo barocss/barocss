@@ -20,4 +20,8 @@ Documents saved by the pre-O7 code: integration e4ba3c579 plus the outer lane's 
 - machining and manufacturing rules;
 - the BOM.
 
-Rewriting it (`UPDATE_O7_EXPECTED=1`) needs a decision record.
+**Since O7 these files are the equivalence oracle.** That is the owner's decision of 2026-10-23: the studio is unreleased, so the schema tracks the latest and nothing is migrated.
+- With the sample rows loaded as the person loads them (`samples/rows`, through `withSampleRows`), each file must open to exactly `expected.json`. The sample rows give what the built-in values gave.
+- Without rows, each file reads as having no data: no fastener thread or edit steps, no tap drill, and every position tolerance an estimate.
+
+Rewriting `expected.json` (`UPDATE_O7_EXPECTED=1`) needs a decision record.

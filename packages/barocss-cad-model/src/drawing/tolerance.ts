@@ -15,7 +15,7 @@
 // assumption, said so). A ± tolerance with the same effect on each of two axes is T / (2√2) (the square inside the
 // round zone). Values are rounded down to 0.01 mm (tighter, never looser). Holes the data does not place: an estimate.
 import { holesOf } from './auto';
-import { FASTENER_SIZES, sizeForHole } from '../app/fasteners';
+import { sizeForHole, type FastenerSizes } from '../app/fasteners';
 import { datumMarks, projectionOf } from './sheet';
 import { fixAll, issueContext, marksClear, type IssueContext, type SheetInputs } from './issues';
 import { inView, resolveLine, type Resolved } from './dimensions';
@@ -45,21 +45,22 @@ type Change =
   | { kind: 'frame'; frame: DrawingFrame; basic: string[] };
 
 const SAME = 1e-6;
+const NO_SIZES: FastenerSizes = {};
 const floor2 = (v: number) => Math.floor(v * 100 + 1e-9) / 100;
 
 /** The position tolerance of a kind of hole: its value, why, and whether it is an estimate. */
-export function holePosition(callout: string | null, diameter: number): { value: number; basis: string; estimate: boolean } {
+export function holePosition(callout: string | null, diameter: number, sizes: FastenerSizes): { value: number; basis: string; estimate: boolean } {
   const thread = callout?.match(/\bM(\d+(?:\.\d+)?)/);
   if (thread) {
-    const size = FASTENER_SIZES[`M${thread[1]}`];
+    const size = sizes[`M${thread[1]}`];
     if (size) {
       const H = size.clearance[1], T = floor2((H - size.d) / 2);
       if (T > 0) return { value: T, basis: `a tapped M${thread[1]} hole, its screw fixed: T = (H − F)/2 = (${H} − ${size.d})/2, H the screw's ISO 273 medium clearance hole assumed in the mating part (studio fastener data)`, estimate: false };
     }
   }
-  const s = sizeForHole(diameter);
+  const s = sizeForHole(diameter, sizes);
   if (s && s.fit.fit === 'clearance') {
-    const size = FASTENER_SIZES[s.size], F = size.d, T = floor2(diameter - F), series = s.fit.series, H = size.clearance[['fine', 'medium', 'coarse'].indexOf(series)];
+    const size = sizes[s.size], F = size.d, T = floor2(diameter - F), series = s.fit.series, H = size.clearance[['fine', 'medium', 'coarse'].indexOf(series)];
     // An ISO 273 hole: the data says which screw. Near one only: the screw is assumed (an estimate, said so).
     if (T > 0 && Math.abs(H - diameter) <= 1e-6) return { value: T, basis: `a Ø${diameter} clearance hole for ${s.size} (ISO 273 ${series}, studio fastener data), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: false };
     if (T > 0) return { value: T, basis: `an estimate: Ø${diameter} is no ISO 273 hole; ${s.size} assumed (its ${series} hole is Ø${H}), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: true };
@@ -151,7 +152,7 @@ export function toleranceSuggestions(ctx: IssueContext): ToleranceSuggestion[] {
     for (const k of kinds) {
       // Its location dimensions without a tolerance, or with a looser ± one (a dimension shared with other holes gets the
       // tightest); none that is basic (a frame holds its tolerance).
-      const p = holePosition(k.callout, k.diameter), pm = floor2(p.value / (2 * Math.SQRT2)), dims = locating(ctx, k.centres).filter(id => { const d = s.dimensions.find(x => x.id === id)!, t = d.tol; return !d.basic && (!t || (t.kind === 'symmetric' && t.value > pm + 1e-9)); });
+      const p = holePosition(k.callout, k.diameter, ctx.fastenerSizes ?? NO_SIZES), pm = floor2(p.value / (2 * Math.SQRT2)), dims = locating(ctx, k.centres).filter(id => { const d = s.dimensions.find(x => x.id === id)!, t = d.tol; return !d.basic && (!t || (t.kind === 'symmetric' && t.value > pm + 1e-9)); });
       if (!dims.length || pm <= 0) continue;
       out.push({ id: `hole-pm-${k.dim.dim.id}`, kind: 'hole-plus-minus', message: `${k.dim.text}: ±${pm} on ${dims.length} location dimension${dims.length > 1 ? 's' : ''}.`, basis: `${p.basis}; on each axis T/(2√2) = ${p.value}/(2√2)`, estimate: p.estimate, change: { kind: 'tolerances', dims, value: pm } });
     }
@@ -177,7 +178,7 @@ export function toleranceSuggestions(ctx: IssueContext): ToleranceSuggestion[] {
   const datums = letters.filter(l => named.includes(l) || have.has(l));
   for (const k of kinds) {
     if ((s.frames ?? []).some(f => f.dim === k.dim.dim.id)) continue;
-    const p = holePosition(k.callout, k.diameter), basic = locating(ctx, k.centres);
+    const p = holePosition(k.callout, k.diameter, ctx.fastenerSizes ?? NO_SIZES), basic = locating(ctx, k.centres);
     out.push({ id: `position-${k.dim.dim.id}`, kind: 'position', message: `${k.dim.text}: position Ø${p.value} to ${datums.join(', ') || 'no datum'}; its ${basic.length} location dimension${basic.length === 1 ? '' : 's'} basic.`, basis: p.basis, estimate: p.estimate,
       change: { kind: 'frame', frame: { id: `frame-${k.dim.dim.id}`, dim: k.dim.dim.id, characteristic: 'position', value: p.value, datums }, basic } });
   }

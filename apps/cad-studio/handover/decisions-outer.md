@@ -7643,3 +7643,81 @@ The GPU lane's G10 found the step `FRd2 the welded table's weld symbols…` fail
 - o7-legacy 8/8, run twice with the same result.
 - tsc and eslint clean.
 - Only tests and fixtures changed, so no suite ran (T1).
+
+## O7b — fastener sizes are the person's rows: the kind, the readers, the refusals, the sample; no migration (2026-10-23)
+
+**Why.** O7, the approved plan: the built-in standards-like tables become person-loaded sample rows. The shape follows the rows. O7b covers the fastener sizes (a); casting rules are O7c, enclosure variants O7d, the Library panel O7e.
+
+**Owner decision (2026-10-23, via the coordinator):** "We haven't released, so the document schema always tracks the latest version." This overrides the plan's schema 3 → 4 bump and its legacy freeze:
+- The schema stays 3; migrate.test.ts and browser-flow.mjs:2263 are unchanged.
+- Nothing is migrated: no freeze, no `legacy` row, no migration receipt, no note. The recovery, chat-server, cad-mcp and team-start paths stay as they were, and App.tsx around 2848 is untouched.
+- A document without fastener-size rows has none.
+- The O7a fixtures are repurposed as the equivalence oracle (below).
+- I had built the freeze before this decision arrived. It is dropped, not committed, and kept in my scratchpad only.
+
+**The kind** (`engine/fastenerSizeRows.ts`, new):
+- **Row and storage.** `fastener-sizes` is one row per thread size, stored in `doc.fastenerSizes { version: 1, rows }`. Each row holds:
+  - `id` (M6), with `d` equal to its number;
+  - pitch, the heads, nut and washer;
+  - `lengths` / `capLengths` / `cskLengths` (rising);
+  - `clearance` [fine, medium, coarse] and `tap`;
+  - `source` or `estimate: true`, never both or neither, plus optional `fieldSources` and `unchecked` (fields not cross-checked). `unchecked` replaces `checked4017`.
+- **Where it plugs in.**
+  - It is loaded only by `load_rows` from a person's file (rows rule b): ROW_KINDS, the rows.ts case, rowEntries.
+  - Placed parts inherit it through shopRows ('fastener-size'), with restoreAuthoredShopRows and the flatten-scope check covering it.
+  - `STUDIO_DOC_FIELDS` gains `fastenerSizes`.
+- **`fastenerSizesOf(doc)`** gives the sizes by id, memoised on the rows array.
+
+**The readers**, each now taking the document's sizes:
+- **Fasteners** (app/fasteners): `sizeForHole`, `jointLength`, `fastenerName`, `fastenerThread`, `fastenerFit`, `fastenerNodes`/build and `withFastenerInstance`. A placed fastener part keeps no rows of its own and inherits the assembly's.
+- **The fastener command:**
+  - It is unavailable with no rows, its reason `[FASTENER_SIZE_ROW] no fastener sizes loaded — …`.
+  - Its size and length choices are the rows'.
+  - Sizing to a picked hole moved from `place` (which has no context) to `derive` on `holeD`. Every caller already derives after placing: App's patchValues and the tests. The values come out identical.
+  - A size with no row is refused: `[FASTENER_SIZE_ROW] no row for M6 — load your fastener sizes (samples/rows/fastener-sizes.json is an example)`.
+- **The hole command:** the tapped list, derive and steps come from the rows. A tapped hole whose size has no row is refused. It used to be drilled silently as a plain hole.
+- **Choice fields:** a choice field can say why it is empty (`empty`), so run_command gives the typed refusal and not `"thread" is one of .`.
+- **Readings without a row** draw no fastener thread (`threadsOf(nodes, sizes)`), report no tap drill (`tappedHoles`), and give the position estimate (`holePosition`). The drawing's sizes go in through `SheetInputs`/`IssueContext.fastenerSizes`.
+- **standards_lookup:** 'fasteners-metric-coarse' is the view of the loaded rows (`tablesOf(doc)`). A field whose source text is a STANDARD_SOURCES entry is that source; any other is the row's own, kind `row`.
+- **editCommand** takes the document's rows, so a fastener's edit rebuilds from its size's row.
+- **The built-in catalogue is gone from src.** Its values are in the sample file.
+
+**The sample** (`samples/rows/fastener-sizes.json`, with a README): M3–M12, each field's source text from STANDARD_SOURCES, and `unchecked` from their unverified flags.
+- The package now ships it: `files` gains `samples` and exports gain `"./samples/*"` (the coordinator's decision; additive public surface, no lockfile change). It is named again in O7e.
+- **Correction:** the tap source said "d − P" for every size. M8's 6.8 (d − P = 6.75) and M12's 10.2 (10.25) aren't d − P. Those two rows now say so. No value changed.
+
+**tslot-20 (the coordinator's option C):**
+- The profile's `bore` and the Slot nut's `drill` (4.2), and the end cap's and angle bracket's `hole` (5.5), stay the parts' own values. Their source now reads "the library's own estimate, equal to a common M5 tap drill / the M5 medium clearance hole, not read from your fastener sizes".
+- `library/fastenerLinks.ts` maps these parameters to the size value they equal. When a loaded row differs, the part's notes warn and name both values. The shape doesn't change.
+
+**Studio:**
+- App.tsx: the thread rings and the instance rings (2054, 2065); the inspector's fastener name and thread (2604–2605); the editCommand call (1980). All were approved.
+- ui/useDrawingSheet.ts:95.
+- ui/DrawingWorkspace.tsx:109 (the suggestions' context) and `acceptAll`'s inputs.
+
+**Tests.**
+- **The equivalence oracle** (o7-legacy, 9/9). For each of the seven pre-O7 fixtures, with the sample rows loaded as the person (`withSampleRows`), opening gives exactly expected.json: bodies, threads, fastener steps, drawing, tapped holes, CAM and DFM, BOM. Without rows: the same bodies, no fastener thread or steps, no tap drill, every position suggestion an estimate. fasteners-in-part keeps 0 threads and tapped-holes-milled keeps its 3 callout threads.
+- **New tests:** o7-tslot (C); tool-contract's O7 refusals ([FASTENER_SIZE_ROW] for a tapped hole and a fastener with no rows; both made once the person loads them).
+- **The setup helper:** `test/person-file.ts`'s `withSampleRows(doc)` loads the sample through `receivePersonRowFiles` + `loadPersonRows`, keeping the receipt. `SAMPLE_SIZES` is its sizes.
+- Studio chat.test: the command-schema test's context loads the sample from `@barocss/cad-model/samples/rows/fastener-sizes.json`, as the person loads it.
+- **Setups that changed.** No assertion's expected value changed. Each change loads the sample rows, passes the sizes the readers now take, or both.
+  - fasteners: the command context's document, the sizes arguments, and editCommand's rows.
+  - bom-fasteners: the plate.
+  - threads and drawing: the fastener context, and threadsOf's sizes.
+  - tolerance: the sheet inputs' sizes, and holePosition's.
+  - standards: the tables of a sample-loaded document. The values snapshot now compares the sample's sizes, which hold the same values.
+  - fields: the full document gains a fastener-size row.
+  - a9-acceptance, cnc-drawing, cnc-features, cnc-holes: the start document. One test each in batch-changes, bodies and chat-drawing.
+  - hole-types: the plate.
+  - tool-contract: the read tools' document.
+  - o7-legacy: the samples loaded, plus the no-rows test.
+- **Flow steps that need the person's rows,** and so wait for O7e's Library panel button: fastener ×2, fastener as an instance, the fastener's threads, the modelled thread, hole types (tapped M6), standards lookup (M6), CNC2, CNC5.
+
+**Also fixed:** with the size not chosen yet, the fastener's length field was empty. It now offers M6's lengths, else the first row's, as the built-in table did.
+
+**Verified (O7b).** Run at integration c4656738a plus this change, tier T2 (core files, and the coordinator asked for the full suites).
+- cad-model suite 979/979: O8's 968, plus O7a's 8, plus the no-rows oracle, o7-tslot and tool-contract's O7 refusals.
+- Studio suite 266/266 after the chat.test setup. The first run was 265/266; the failure was that test's context, which had no rows.
+- tsc (cad-model, studio) and eslint clean. The one warning, chat-drawing.test.ts:15, was already there.
+- No expected value changed.
+- Not run: the flow. Its steps that place fasteners or tapped holes need O7e's Library panel load, listed above.

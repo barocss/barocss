@@ -13,6 +13,7 @@ import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, tol
 import { sheetDxfDocument } from '../src/drawing/dxf';
 import { sheetPdf, pdfMissing } from '../src/drawing/pdf';
 import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { SAMPLE_SIZES } from './person-file';
 
 // R14.4 (O5): tolerance and GD&T suggestions. Conformance cases packages/barocss-cad/conformance/r14/tol-<name>/case.json:
 // a studio document and its laid-out drawing in a mode; the suggestions offered (kind, message, estimate) and, after
@@ -21,7 +22,8 @@ import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } 
 const root = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/r14');
 const hole = (node: number, center: [number, number], radius: number, extra: object = {}) => ({ kind: 'hole' as const, parent: { node, side: 'solid' as const }, center, radius, ...extra });
 const viewsOf = (doc: StudioDoc): DrawingViews => { const b = brepsFor(doc); assert.ok('breps' in b); const r = projectViews(b.breps, b.prefixes); assert.ok(r.ok); return r.views; };
-const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ views: viewsOf(doc), settings, callout: e => holeCallout(doc.nodes, e), meta: { title: 't', date: 'd' } });
+// (O7: the fastener sizes are the sample rows, loaded as the person loads them.)
+const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ views: viewsOf(doc), settings, fastenerSizes: SAMPLE_SIZES, callout: e => holeCallout(doc.nodes, e), meta: { title: 't', date: 'd' } });
 const holeRow = () => withNode(withNode(rectanglePart(100, 40, 10), hole(1, [20, 12], 3.3, { pattern: { count: 4, step: [20, 0] } })), hole(2, [20, 30], 2.5, { thread: 'M6×1', depth: 12 }));
 const laidOut = (doc: StudioDoc, mode?: 'geometric') => { const s = autoLayout(inputsOf(doc, defaultDrawing())).settings; return mode ? { ...s, tolerancing: mode } : s; };
 
@@ -73,14 +75,14 @@ test('the tolerance cases cover the parts (UPDATE_R14_FIXTURES=1 writes them)', 
 });
 
 test('position values from the fastener data, by the floating and fixed fastener relations; else an estimate', () => {
-  assert.deepEqual([holePosition('4× Ø6.6 THRU', 6.6).value, holePosition('4× Ø6.6 THRU', 6.6).estimate], [0.6, false]);
-  assert.match(holePosition('Ø6.6 THRU', 6.6).basis, /M6.*medium.*6\.6 − 6/);
-  assert.deepEqual([holePosition('Ø5.5 THRU', 5.5).value, holePosition('Ø9 THRU', 9).value, holePosition('Ø3.4 THRU', 3.4).value], [0.5, 1, 0.4]);
+  assert.deepEqual([holePosition('4× Ø6.6 THRU', 6.6, SAMPLE_SIZES).value, holePosition('4× Ø6.6 THRU', 6.6, SAMPLE_SIZES).estimate], [0.6, false]);
+  assert.match(holePosition('Ø6.6 THRU', 6.6, SAMPLE_SIZES).basis, /M6.*medium.*6\.6 − 6/);
+  assert.deepEqual([holePosition('Ø5.5 THRU', 5.5, SAMPLE_SIZES).value, holePosition('Ø9 THRU', 9, SAMPLE_SIZES).value, holePosition('Ø3.4 THRU', 3.4, SAMPLE_SIZES).value], [0.5, 1, 0.4]);
   // Near an ISO 273 hole only: the screw assumed, an estimate (Ø6 is M5's nearest, its coarse hole Ø5.8).
-  const near = holePosition('Ø6 THRU', 6); assert.equal(near.estimate, true); assert.equal(near.value, 1); assert.match(near.basis, /no ISO 273 hole; M5 assumed \(its coarse hole is Ø5\.8\)/);
+  const near = holePosition('Ø6 THRU', 6, SAMPLE_SIZES); assert.equal(near.estimate, true); assert.equal(near.value, 1); assert.match(near.basis, /no ISO 273 hole; M5 assumed \(its coarse hole is Ø5\.8\)/);
   // Tapped: (medium clearance − d) / 2 — M6 (6.6 − 6)/2, M8 (9 − 8)/2, M4 (4.5 − 4)/2.
-  assert.deepEqual(['M6×1 × 12 DEEP', 'M8×1.25 THRU', 'M4×0.7 × 8 DEEP'].map(c => holePosition(c, 5).value), [0.3, 0.5, 0.25]);
-  assert.deepEqual(holePosition('Ø8 THRU', 8), { value: POSITION_ESTIMATE_MM, basis: 'an estimate: no fastener in the studio data fits this hole', estimate: true });
+  assert.deepEqual(['M6×1 × 12 DEEP', 'M8×1.25 THRU', 'M4×0.7 × 8 DEEP'].map(c => holePosition(c, 5, SAMPLE_SIZES).value), [0.3, 0.5, 0.25]);
+  assert.deepEqual(holePosition('Ø8 THRU', 8, SAMPLE_SIZES), { value: POSITION_ESTIMATE_MM, basis: 'an estimate: no fastener in the studio data fits this hole', estimate: true });
 });
 
 test('suggestions are never applied by themselves; a mode switch only changes what is offered', () => {

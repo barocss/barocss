@@ -1,7 +1,7 @@
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
-import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode } from '../engine/doc';
+import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
 import { planeOf, profileMiddle } from './profiles';
@@ -112,22 +112,23 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
  * those values, rebuilding its sketch and solid in place — with all its arrows and its puck. Null when the
  * nodes were changed since (by the feature editor), so its values no longer describe them.
  */
-function shapeEdit(index: number, nodes: readonly ModelNode[]): Command | null {
+function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'>): Command | null {
   const node = nodes[index], solid = node && (node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union' || node.kind === 'rotate') ? node : null, made = solid?.made;
   const cmd = made && commands.find(c => c.id === made.command), n = made?.nodes ?? 2, start = index - n + 1;
   if (!solid || !made || !cmd?.build || start < 0) return null;
   if (n === 2 && (solid.kind === 'union' || solid.kind === 'rotate' || solid.sketch !== index - 1 || nodes[index - 1]?.kind !== 'sketch')) return null;
   // (Rebuilt in place; a different number of steps — a bolt made a nut — renumbers what follows.)
   const rebuild = (ctx: Ctx, v: Values) => replaceRange(ctx.doc, start, n, cmd.build!({ ...ctx, doc: { ...ctx.doc, nodes: ctx.doc.nodes.slice(0, start) } }, v).nodes.slice(start));
-  const probe: Ctx = { doc: { nodes: [...nodes] } as Ctx['doc'], bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+  // (The probe has the document's fastener sizes, O7: a fastener rebuilds from its size's row.)
+  const probe: Ctx = { doc: { nodes: [...nodes], ...(rows.fastenerSizes ? { fastenerSizes: rows.fastenerSizes } : {}) } as Ctx['doc'], bodies: [], selection: { faces: [], edges: [], bodies: [] } };
   try { if (JSON.stringify(rebuild(probe, made.values).nodes.slice(start, index + 1)) !== JSON.stringify(nodes.slice(start, index + 1))) return null; } catch { return null; }
   return { ...cmd, id: 'edit', label: `Edit ${cmd.label}`, group: 'modify', available: () => ok, defaults: () => ({ ...made.values }), build: rebuild, place: undefined };
 }
 
-/** The edit of feature `index`, or null when it has no dimension to drag. */
-export function editCommand(index: number, nodes: readonly ModelNode[]): Command | null {
+/** The edit of feature `index`, or null when it has no dimension to drag; `rows`: the document's (a fastener's sizes, O7). */
+export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> = {}): Command | null {
   const node = nodes[index]; if (!node) return null;
-  const shape = shapeEdit(index, nodes); if (shape) return shape;
+  const shape = shapeEdit(index, nodes, rows); if (shape) return shape;
   const fields = editFields(nodes, index).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));
   if (!fields.length) return null;
   return {

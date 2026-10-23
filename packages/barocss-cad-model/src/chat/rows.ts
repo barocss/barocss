@@ -6,6 +6,7 @@ import { editBearingRows } from '../engine/bearings';
 import { editORingRows } from '../engine/orings';
 import { editRingRows } from '../engine/rings';
 import { editFastenerRows } from '../engine/fastenerRows';
+import { editFastenerSizeRows } from '../engine/fastenerSizeRows';
 import { editDriveRows } from '../engine/drives';
 import { editConnectorRows } from '../engine/connectors';
 import { editSections } from '../frames/sections';
@@ -41,6 +42,7 @@ export function loadPersonRows(doc: StudioDoc, kind: unknown, fileId: unknown, f
     case 'drives': result = editDriveRows(doc, raw); break;
     case 'connectors': result = editConnectorRows(doc, raw); break;
     case 'fasteners': result = editFastenerRows(doc, raw); break;
+    case 'fastener-sizes': result = editFastenerSizeRows(doc, raw); break;
     case 'sections': {
       const converted = isSectionTable(parsed) ? sectionTableRows(parsed) : { rows: raw };
       if (!('error' in converted)) selectedIds = new Set(converted.rows.map(r => (r as { id: string }).id));

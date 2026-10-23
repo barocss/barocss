@@ -16,6 +16,7 @@ import { DriveRows } from './DriveRows';
 import { ConnectorRows } from './ConnectorRows';
 import { FitTables } from './FitTables';
 import { FrameSections } from './FrameSections';
+import { FastenerSizes } from './FastenerSizes';
 
 const SOURCES: { source: LibrarySource; title: string }[] = [{ source: 'built-in', title: 'BUILT-IN' }, { source: 'team', title: 'TEAM' }, { source: 'user', title: 'YOURS' }];
 
@@ -82,6 +83,8 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
         <option value="">Not set</option>{processProfile(doc.process)!.finishes!.map(f => <option key={f.id} value={f.id}>{f.label} · ≥ {f.draftMinDeg}°</option>)}</select></label>
       {onQuote && <div className="row-actions"><button className="ghost" aria-label="Quote package" title="The part as STEP, the manufacturability report and the request (material, finish, pull, quantity) in one zip: no price, what is open said" onClick={onQuote}>Quote package</button></div>}
     </>}
+    {/* (O7e: the person's fastener sizes — their file or the shipped sample; fasteners and tapped holes need them.) */}
+    <FastenerSizes doc={doc} onCommit={onCommit} onError={onError} />
     {/* (FRc, O117: the person's own frame sections.) */}
     <FrameSections doc={doc} onCommit={onCommit} onError={onError} />
     {/* (R12c.2, D155: the person's own fit tables.) */}

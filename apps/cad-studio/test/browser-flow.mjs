@@ -99,6 +99,12 @@ async function openModel(file, nodes, timeout = 30000) {
 }
 const history = () => page.locator('.history').innerText().catch(() => '');
 const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? ''), null, { timeout: 30000 });
+// (O7e: the person's fastener sizes, the shipped sample loaded in the Library panel — none is built in; a new part has none.)
+const loadSampleSizes = async () => {
+  await page.click('[aria-label="Library"]');
+  try { await page.click('[aria-label="Load sample fastener sizes"]'); await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7, null, { timeout: 10000 }); }
+  finally { await page.click('[aria-label="Close library"]'); }
+};
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
 const field = (label) => page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
 const press = (k) => page.keyboard.press(k);
@@ -1957,7 +1963,7 @@ try {
 
   await check('fastener: an M8 bolt dropped into the starter plate’s hole, its thread cosmetic', async () => {
     // A 64 × 32 × 8 plate with a Ø8 hole at (32, 16).
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await field('At X').fill('0'); await field('At Y').fill('0');
     await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
@@ -1977,7 +1983,7 @@ try {
   });
 
   await check('fastener at a Ø6.6 through hole: fitted M6, washer and nut under the plate, fit shown', async () => {
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await field('At X').fill('0'); await field('At Y').fill('0');
     await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
@@ -2138,7 +2144,7 @@ try {
   });
 
   await check('hole types: a countersunk hole and a tapped M6 on a box top', async () => {
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady(); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
     await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
@@ -2155,6 +2161,23 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.thread === 'M6×1' && window.__studioDoc.nodes.at(-1)?.pattern?.count === 4, null, { timeout: 15000 }); await idle();
     await snap('hole-types');
+  });
+
+  await check('O7e: no fastener sizes loaded — a tapped hole is refused in the HUD with [FASTENER_SIZE_ROW], the Library says none; loading the sample (the person’s click, its receipt kept) gives the seven sizes', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.fastenerSizes, null, { timeout: 15000 }); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await page.waitForFunction(() => /SELECTION · FACE/i.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 5000 });
+    await press('h'); await hudReady(); await field('Type').selectOption('tapped'); await page.waitForTimeout(400);
+    await page.waitForFunction(() => /\[FASTENER_SIZE_ROW\] no row for M6/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 10000 });
+    await snap('o7e-tapped-refused'); await press('Escape'); await press('Escape');
+    await page.click('[aria-label="Library"]');
+    try {
+      assert.match(await page.textContent('[aria-label="Fastener sizes loaded"]'), /none — fasteners and tapped holes need them/);
+      await page.click('[aria-label="Load sample fastener sizes"]');
+      await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7 && window.__studioDoc.rowSources?.rows?.some(r => r.kind === 'fastener-sizes' && r.file.filename === 'cad-model sample fastener-sizes.json' && r.file.suppliedBy === 'person'), null, { timeout: 10000 });
+      assert.match(await page.textContent('[aria-label="Fastener sizes loaded"]'), /M3, M4, M5, M6, M8, M10, M12/);
+    } finally { await page.click('[aria-label="Close library"]'); }
   });
 
   await check('a cross hole whose side touches a vertical hole’s wall from inside goes in', async () => {
@@ -5892,6 +5915,7 @@ try {
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
+      await loadSampleSizes();
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
       const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'library', args: { action: 'standards', table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' } }];
@@ -6228,7 +6252,8 @@ try {
   await check('CNC2: a milled aluminium plate with a counterbored Ø6.6 and an M6 tapped through 20 — hole depth and size pass, the thread warned (20 over 3 × d), its holes in the report', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await idle();
-    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Load sample fastener sizes"]'); await page.click('[aria-label="Close library"]');
+    await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7, null, { timeout: 10000 });
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
@@ -6314,7 +6339,8 @@ try {
   await check('CNC5: a milled plate with an M6 tapped hole and no drawing — the drawing failed (threads go on one); Auto-dimension in the Drawing workspace — warned now (no general note, title or material), the thread called out', async () => {
     const { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await idle();
-    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Close library"]');
+    await page.click('[aria-label="Library"]'); await page.selectOption('[aria-label="Process"]', 'cnc-milling'); await page.click('[aria-label="Load sample fastener sizes"]'); await page.click('[aria-label="Close library"]');
+    await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7, null, { timeout: 10000 });
     const chat = spawn(process.execPath, [join(root, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CLAUDE: join(root, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
     try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });

@@ -8,7 +8,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
 import { rayHit, triangleBvh } from '@barocss/cad';
-import { FASTENER_SIZES } from '../app/fasteners';
+import { fastenerSizesOf } from '../engine/fastenerSizeRows';
 
 type Vec3 = readonly [number, number, number] | readonly number[];
 export interface HoleStep { readonly faces: readonly string[]; readonly diameterMM: number; readonly fromMM: number; readonly toMM: number; readonly reachMM: number | null }
@@ -105,11 +105,11 @@ export function holesOf(bodies: readonly BodyResult[]): Hole[] {
 
 /** The document's tapped holes, each matched to its bore by face name (`n4.side0` is node n4's). */
 export function tappedHoles(doc: StudioDoc, holes: readonly Hole[]): TappedHole[] {
-  const out: TappedHole[] = [];
+  const out: TappedHole[] = [], sizes = fastenerSizesOf(doc);
   for (const n of doc.nodes) {
     if (n.kind !== 'hole' || !n.thread) continue;
     const id = (n as { id?: string }).id, t = /^M([\d.]+)×([\d.]+)/.exec(n.thread); if (!id || !t) continue;
-    const d = Number(t[1]), size = FASTENER_SIZES[`M${t[1]}`], mine = holes.flatMap(h => h.steps.filter(s => s.faces.some(f => f.split('.')[0] === id)));
+    const d = Number(t[1]), size = sizes[`M${t[1]}`], mine = holes.flatMap(h => h.steps.filter(s => s.faces.some(f => f.split('.')[0] === id)));
     // (Patterned copies are several bores of one node: each its own, the worst read.)
     const bore = mine.length ? mine.reduce((w, s) => (size && Math.abs(s.diameterMM - size.tap) > Math.abs(w.diameterMM - size.tap)) ? s : w) : null;
     out.push({ node: id, thread: n.thread, sizeMM: d, pitchMM: Number(t[2]), tapMM: size ? size.tap : null, boreMM: bore ? bore.diameterMM : null, lengthMM: mine.length ? Math.max(...mine.map(s => s.toMM - s.fromMM)) : null, faces: [...new Set(mine.flatMap(s => s.faces))] });

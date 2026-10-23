@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, type BodyResult } from '../src/engine/evaluate';
 import { featureLabel, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { commandById, patchValues, type Ctx } from '../src/app/commands';
+import { withSampleRows } from './person-file';
 
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title + ' ' + r.error.hint); return r.bodies; };
-const plate = rectanglePart(32, 32, 8), pb = bodiesOf(plate);
+// (O7: the tapped holes' sizes are the sample rows, loaded as the person loads them.)
+const plate = withSampleRows(rectanglePart(32, 32, 8)), pb = bodiesOf(plate);
 const faceCtx = (name: string): Ctx => ({ doc: plate, bodies: pb, selection: { faces: [{ body: 0, face: pb[0].mesh.faces.find(f => f.name === name)!.index }], edges: [], bodies: [] } });
 const hole = commandById('hole')!;
 
