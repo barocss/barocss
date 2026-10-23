@@ -61,6 +61,25 @@ that they only touch, and exports keep them as separate pieces.
 **Dowel pin**, **Retaining ring**, **Bearing**, **Coupling**, **O-ring gland** and **Connector opening**.
 
 **Pulley**, **Sprocket** and **Belt or chain** work from your own belt and chain rows; none are built in.
+
+**Mount** fixes a motor, a servo or a bearing unit to a flat face facing ±X, ±Y or ±Z, as one of your `mounts` rows
+says (see [Shop rows](/studio/rows)):
+
+- **Where.** Pick the row, then place its output axis with the two **Axis at** values, and **Turn** it a quarter at a
+  time. **Pilot** is **Through**, or a recess of its depth.
+- **What it cuts.** Ordinary features: the bolt holes, the pilot and the shaft's clearance hole, or a servo's body cut
+  through the face. The row the mount came from stays loaded while it is used.
+- **What is refused, never clipped.**
+  - A mount that goes off the face, a recess as deep as the plate, or a bearing that isn't loaded or has another bore
+    is refused with `[MOUNT_RANGE]`.
+  - A face that isn't flat and square to an axis is refused with `[MOUNT_FACE]`.
+  - A row that isn't loaded is refused with `[MOUNT_ROW]`.
+- **The axis.**
+  - The result reports the output axis, for a mate or a tool frame.
+  - A concentric mate on the pilot puts a revolute joint on the motor's axis.
+  - No frame is made automatically.
+- **Loading the rows.** The Library can't load mount rows yet. Attach the file in the chat and ask the agent to load it,
+  then run **Mount** from the command palette.
 **Fit class** and **Fit pair** (under Inspect) declare tolerance classes and fits, with clearances from your tables.
 
 ## Sheet metal, frames and smooth shapes

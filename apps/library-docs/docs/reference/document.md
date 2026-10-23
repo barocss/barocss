@@ -81,6 +81,7 @@ Each holds rows a person loaded, with their sources. See [Rows file formats](/re
 | `castingRules` | Casting limits and allowance tables |
 | `fits` | Fit tables, and the classes set on faces |
 | `bearings`, `orings`, `rings`, `drives`, `connectors` | Bearings, O-rings, retaining rings, belts and chains, connectors |
+| `mounts` | How motors, servos and bearing units fix to a face, from datasheets. See [`mounts`](/reference/rows#mounts) |
 | `rowSources` | Which file of the conversation each loaded row came from |
 | `libraries` | Libraries written for this document, by an agent or a person. An agent's stays marked until a person confirms it |
 

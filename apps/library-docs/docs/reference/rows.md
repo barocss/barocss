@@ -120,6 +120,32 @@ Your frame section library: `id`, optional `name`, `section`, and `source` or `e
 typed sections that [Frames and weldments](/studio/frames) lists (a rectangular or round tube, an angle, a channel, an
 I/H beam or a T-slot), by its dimensions.
 
+### `mounts`
+
+How a motor, a servo or a bearing unit fixes to a flat face, one row per model from its datasheet.
+
+| Field | Meaning (mm) |
+|---|---|
+| `id`, `type`, `designation?` | The row; `type` is `motor`, `servo` or `bearing-unit` |
+| `holes` | The bolt pattern, with each hole's `diameterMM`: `{ pattern: "square", spacingMM }`, `{ pattern: "rect", spacingMM: [along, across] }`, or `{ pattern: "circle", pcdMM, count, startDeg? }` |
+| `pilotMM`, `pilotDepthMM` | The register on the mounting face, and how far it stands out |
+| `shaftMM`, `shaftOffsetMM`, `shaftHeightMM` | The shaft's diameter; where it stands from the pattern's centre, `[along, across]`; its axis above the face |
+| `bodyMM` | A servo's body, `[along, across]`, cut through the face. A servo requires it; other types may not have it |
+| `clearanceMM` | Added all round to the pilot, shaft and body cut-outs |
+| `bearing` | For a bearing unit, a `bearings` row id. Its bore must equal `shaftMM` |
+| `source` or `estimate`, `fieldSources`, `unchecked` | As for fastener sizes |
+
+The limits:
+
+- **Sizes.** A hole's diameter is 1 to 30 mm, `clearanceMM` is 0 to 5 mm, a circle has 2 to 12 holes, and lengths are
+  at most 2,000 mm.
+- **Holes.** They must be further apart than their diameter.
+- **Pilot and shaft.** A pilot must be wider than the shaft, and `pilotDepthMM` needs a `pilotMM`.
+- **Clearance.** The pilot's or shaft's cut, with its clearance, must stay clear of the holes.
+
+Each refusal is `[MOUNT_RANGE]`, and names the row and the field. A placed part uses the mount rows of the document it
+is placed in.
+
 ### `stock`
 
 Stock for machining, each with a `source`:
@@ -141,10 +167,11 @@ A sheet-metal bend table. It has an `id`, optional `material` and `sources`, and
 
 ## The shipped samples
 
-`@barocss/cad-model` ships two samples, at `samples/rows/`:
+`@barocss/cad-model` ships three samples, at `samples/rows/`:
 
 - `fastener-sizes.json`: M3 to M12;
-- `casting-rules.json`: die and sand casting.
+- `casting-rules.json`: die and sand casting;
+- `mounts.json`: mounts, described in [Shop rows](/studio/rows#loading-rows-in-the-studio).
 
 Each file has an `about` note and its `rows`. They are examples taken from the sources each row names, not a
 standard.

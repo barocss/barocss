@@ -31,6 +31,7 @@ where it came from, or saying it is an estimate.
 | `drives` | Belts, chains and their wheels | **Pulley**, **Sprocket**, **Belt or chain** |
 | `connectors` | Connector openings | **Connector opening** |
 | `bend` | A sheet-metal bend table | A sheet part's bends |
+| `mounts` | How motors, servos and bearing units fix to a face: bolt pattern, pilot, shaft and its height | **Mount** |
 
 ## Loading rows in the studio
 
@@ -38,11 +39,17 @@ where it came from, or saying it is an estimate.
 
 **Library** lists each kind with what is loaded, for example **Fastener sizes** with the sizes it holds. Load your own file there.
 Two kinds ship with samples you can load in one click: **Load sample fastener sizes** and **Load sample casting rules**.
+Mount rows can't be loaded in the Library yet: attach them in the chat.
 
 The samples are in `@barocss/cad-model` at `samples/rows/`:
 
 - `fastener-sizes.json`: metric coarse M3 to M12, with the fields not cross-checked listed in `unchecked`;
 - `casting-rules.json`: die and sand casting rules, each with the page it was read from.
+- `mounts.json`: mounts.
+  - NSK's UCP204 pillow block and UCFL204 flange unit, from the maker's product pages.
+  - NEMA 17 and NEMA 23 stepper flanges, as estimates with every field `unchecked`: their makers' dimension drawings
+    are PDFs that haven't been read yet.
+  - There's no servo row, since no maker's dimensioned mounting drawing was found to cite.
 
 They are examples taken from the sources each row names, not a standard. Check them against your supplier before you
 use a part for manufacture.
