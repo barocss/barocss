@@ -1,7 +1,9 @@
 // The docs check (W0): every sidebar page exists, every page is in the sidebar, and every internal link resolves.
 // A link to a file (a shot) resolves under docs/public. The shots keep to the budget (250 KB each, 10 MB in all), and
-// every shot is shown on a page.
+// every shot is shown on a page. Files named `_*.md` are parts a page includes, not pages. The generated parts match
+// the code they come from (scripts/agent-tools.mjs --check).
 // Run: pnpm --filter @barocss/library-docs check:docs
+import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, relative, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +33,7 @@ function filesUnder(dir, keep) {
   }
   return out;
 }
-const pagesUnder = dir => filesUnder(dir, name => name.endsWith('.md'));
+const pagesUnder = dir => filesUnder(dir, name => name.endsWith('.md') && !name.startsWith('_'));
 
 const listed = new Set(), shown = new Set();
 for (const group of sidebar) for (const item of group.items) {
@@ -56,6 +58,10 @@ for (const f of shots) {
   shotBytes += bytes;
   if (bytes > SHOT_MAX) problems.push(`${link}: ${Math.round(bytes / 1024)} KB, over the 250 KB a shot`);
   if (!shown.has(link)) problems.push(`${link}: no page shows it`);
+}
+for (const script of ['agent-tools.mjs']) {
+  const r = spawnSync(process.execPath, [join(dirname(fileURLToPath(import.meta.url)), script), '--check'], { encoding: 'utf8' });
+  if (r.status !== 0) problems.push((r.stderr || r.stdout || `${script} --check failed`).trim());
 }
 if (shotBytes > TOTAL_MAX) problems.push(`shots: ${Math.round(shotBytes / 1024)} KB in all, over the 10 MB`);
 const writing = [...listed].filter(p => readFileSync(p, 'utf8').includes('::: warning Being written')).length;
