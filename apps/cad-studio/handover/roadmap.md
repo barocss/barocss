@@ -24,7 +24,7 @@ Done, per area (see the logs):
 - **Kernel core:** R1–R12c, track K and PKG.
 - **Frames:** FR1–FR4, FRa–FRg, FRk1, FRk2, FRk3 (I/H, tapered channels, D172), FRk4 (curved and bent members, D173/D174) and FRk5 (weld gaps and notches, D175). FRk5 has open items below.
 - **Shared weld seams:** D170.
-- **Robots:** RM1–RM9, RD1–RD3, RD9.
+- **Robots:** RM1–RM9 (joint tree from the mates by their free twists, FK and sliders, link inertia, URDF, MJCF, SDF, USD, collision sweep and continuous collision, workspace map, IK, the four-bar loop), RD1–RD3, RD9 (robot-check), RD10's deterministic part (robot-size). Compared with #2189 (robot CAD research), the open parts are O12–O14 below.
 - **Manufacturing:** AM1–AM7, IM1–IM8, CNC1–CNC8.
 - **Drawings and exchange:** R11b DXF and R14 drawings.
 - **AI collaboration:** A1–A8.
@@ -104,10 +104,13 @@ Moved out of Phase 0:
 |---|---|---|
 | O7 | outer | **in progress** — O7a, O7b, O7e done on the outer branch; O7c, O7d next. **Owner decision 2026-10-23 (option 3): built-in tables → sample rows.** `FASTENER_SIZES` (app/fasteners.ts), the casting allowances and die-casting thresholds in `library/builtin/materials.json`, and the M2–M3 boss/insert variants in `enclosure.json` leave the code and ship as example rows files, each row with its source. A table is used only once the person loads its file (rows rule (b)). Drawn shape follows the document's rows; a size with no row is a typed refusal. No schema bump and no legacy migration (owner, 2026-10-23: unreleased, so documents track the latest schema); O7a's fixtures are the equivalence oracle — with the sample rows loaded they give today's results. Other `STANDARD_TABLES` entries are reported before conversion; formulas (ISO 68-1 minor diameter) stay. Order: after O179 and R3, before R4 |
 | O8 | outer | **done** O8 5bca3663a (merged a19a54ae2). After the kernel's separate-bodies checkpoint (K10b: lumps touching along a line or at a point become separate solids of one output, as a disjoint union already does): STL/3MF exports and print checks per lump (a position-welded mesh would read a line touch as non-manifold), a "lumps touch along a line or at a point" DFM flag (it brings back, as a warning on the result, the words of the old union refusal "The bodies only touch along an edge or a point", which D204 retires), and the lump count on the BOM row |
-| O9 | outer | **Results tied to their revision** (from #2188 M2): every worker reply (a command's preview, placed-part bodies, drawing views, CAM/print/clearance) is checked against the document revision it was computed from before it is shown; a late reply never overwrites a newer state; drawings and exports carry their source revision. Includes REVIEW-A1 (recovery reports success before the mesh blob is stored). After O7 |
+| O9 | outer | **Results tied to their revision** (from #2188 M2): every worker reply (a command's preview, placed-part bodies, drawing views, CAM/print/clearance) is checked against the document revision it was computed from before it is shown; a late reply never overwrites a newer state; drawings and exports carry their source revision. Includes REVIEW-A1 (recovery reports success before the mesh blob is stored) and the robot bundles (URDF, MJCF, SDF, USD: their source revision, input digest and the hand-set values, #2189 M4). After O7 |
 | O10 | outer + GPU | **Rebuild-cost diagnostics, read-only** (from #2188 M3): per feature, the time and the kernel calls of the last evaluation; dependency cycles and mate problems listed with their source revision; a studio panel and a v2 query action for the agent (the per-turn budget kept). The GPU lane adds per-body frame cost by display mode. Diagnostics never change geometry or history. The baseline R4's caching is measured against. After O9 |
 | O11 | outer | **Assembly-level variability** (from #2188 M1): a few named top-level inputs (name, type, unit, range, default) bound explicitly to dimensions, feature suppression, component choice and mates; variants regenerated from the one master and still editable; full regeneration the correctness oracle. Grows today's part-level `configurations`. After R4 |
 | K12 | kernel | Later: the near-degenerate refusals (fuzz s1 25, 51, 74, 85, 110, 119) triaged — a correct typed refusal or a fix — and 170 with a pole-safe domain map beside the closed-form sphere∩sphere (it broke s2#171 alone). After R5 |
+| O12 | outer | **Tool and sensor frames** (#2189 M1): named frames on a link with a local pose (a TCP, a camera), kept apart from the joints; FK, IK, the workspace map and the sliders report the tool frame; URDF, MJCF, SDF and USD write each as a fixed child link; a frame on a missing or stale link is refused, typed. After O11 |
+| O13 | outer | **External read-back of the robot exports** (#2189 M4; RM4's and RM5's open external oracle): the URDF through urdfdom's `check_urdf`, the MJCF through MuJoCo's loader, the FK of the 2R and 6R arms at fixed poses compared with RM2 at a stated tolerance, the assets' relative paths and scale checked after moving the folder. **waits on the owner** (the downloads) |
+| O14 | outer | **Mounts from datasheet rows** (#2189 M3): servo, motor and bearing mount profiles whose hole spacing, pilot, shaft height and clearance come from a person-supplied datasheet rows file (rows rule b, each value with its source); bound to the link through O11's named inputs. After O12 |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | **done** D197–D210, D206 (fuzz s1 refusals 31 → 16, s2 29 → 14; INVALID 0, WRONG 0 on both; touching lumps are separate bodies). the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | **done** D211 (turningOf 8.1 → 4.4 s; D1 calls 4.22 M → 1.40 M). F5's remainder (the turning report's first-derivative evaluations) |
@@ -178,6 +181,9 @@ evidence files.
 - **O9** — Results tied to their revision; REVIEW-A1 · ko: 결과를 계산한 리비전에 묶기; 복구 결함 REVIEW-A1
 - **O10** — Rebuild-cost diagnostics, read-only · ko: 재계산 비용 진단 (읽기 전용)
 - **O11** — Assembly-level variability · ko: 조립품 수준 변형 (최상위 입력으로 제품군)
+- **O12** — Robot tool and sensor frames · ko: 로봇 공구·센서 좌표계 (TCP, 카메라)
+- **O13** — External read-back of the robot exports · ko: 로봇 내보내기를 외부 도구로 다시 읽어 확인 (urdfdom, MuJoCo)
+- **O14** — Robot mounts from datasheet rows · ko: 데이터시트 행으로 만드는 서보·모터·베어링 마운트
 - **G1** — A9-7 UI port · ko: A9-7 UI 이식
 - **G2** — G23: CNC preview · ko: G23: CNC 가공 미리보기
 - **G3** — G21: display modes, silhouettes, isolate and hide · ko: G21: 표시 모드, 실루엣, 격리와 숨기기
@@ -210,6 +216,8 @@ evidence files.
 - Oblique-end weld beads stay refused (BEAD_ANGLE) until there is an independent oracle. · ko: 비스듬한 끝 용접 비드는 독립 오라클이 생길 때까지 거부
 - A v3 decision, if S3 finds a breaking v2 change. · ko: S3에서 v2 호환이 깨지면 v3 결정
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
+- urdfdom and MuJoCo for O13's external read-back (downloads). · ko: O13 외부 확인용 urdfdom·MuJoCo 설치 (다운로드 허락)
+- A live model run for RD10's L3 evidence (an agent sizing a 3-DoF arm). · ko: RD10 실제 모델 실행 (에이전트가 3자유도 팔 크기 정하기)
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
 
 ## Off the roadmap (owner decisions)
