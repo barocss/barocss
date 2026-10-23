@@ -76,7 +76,7 @@
 | `[BEAD_ACCOUNTING_INCOMPLETE]` | `frames` | no complete welded-part quantity: … |
 | `[BEAD_SHARED_CONTEXT]` | `chat/part`, `frames` | frames.beadOwnership: expected {version:1, policy:"equal-length"} or null to remove it |
 | `[BEARING_HOUSING_CYCLE]` | `engine` | … |
-| `[BEARING_HOUSING_EVALUATION]` | `team` | … |
+| `[BEARING_HOUSING_EVALUATION]` | `assembly`, `team` | … |
 | `[BEARING_HOUSING_POSE]` | `engine` | … must be a finite rigid pose |
 | `[BEARING_HOUSING_REFERENCE]` | `app`, `chat`, `engine` | invalid Housing choice |
 | `[BEARING_HOUSING_SCOPE]` | `engine` | no immediate owner occurrence … |
