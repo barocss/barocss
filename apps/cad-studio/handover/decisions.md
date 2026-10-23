@@ -12971,3 +12971,11 @@ The outer lane's 8fa7a6ca2, between steps 2 and 3, is inside the last two rows.
 - build:library, type-check, lint (cad);
 - the 148 kernel test files that use mass properties, tessellation or the surface evaluator: 1 037 tests, 1 036 pass, 1 skipped, 0 fail, no passing name gone since a7c7879f8;
 - fingerprint `b6e18fab…`, byte-identical.
+
+**Checkpoint at 80db65fd8 (T2, K13's last).**
+- The kernel suite at concurrency 4: 1663 tests, 1656 pass, 1 fail, 6 skipped.
+  - The failure is the native-split demo's Node-version assertion, failing since before K13.
+  - The passing names are identical to a7c7879f8's, which are identical to 3e6283382's.
+- RB: no NEW, the same 3 TODOs.
+- cad-model 1017/1017, studio 281/281.
+- No browser flow: nothing studio-visible changed.
