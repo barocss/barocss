@@ -52,3 +52,26 @@ test('tessellation: an edge run into a face and straight back (a spur) bounds no
   check('120: a ball less an open shell less a cylinder, twice 4 apart', { pattern: { kind: 'linear', axis: 'x', spacing: -4, count: 2 },
     child: { op: 'difference', a: { op: 'difference', a: leaf('sphere', { r: 4 }, [], [2, 0, 3]), b: leaf('hbox', { w: 7, d: 7, h: 3, t: 0.5, open: true }, [], [0, -2, -1]) }, b: leaf('cyl', { r: 3, h: 5 }, [], [-2, 1, -1]) } });
 });
+
+test('analytic Boolean: a curve passing 0.02 mm from a ball\'s pole is mapped into its domain there (L4 fuzz 20261024 #138, D250)', () => {
+  // (The curve's domain map, 128 samples and Hermite pieces, overshot in u beside the pole, where u turns fast, and
+  // looped there: refused before, an edge used once by the pole.)
+  const tree = { op: 'union', a: { op: 'union', a: leaf('cyl', { r: 3.809, h: 2.265 }, [['y', 307.579], ['y', 104.626]], [-1.73, -1.993, -1.374]), b: leaf('hbox', { w: 6, d: 3.5, h: 6.5, t: 0.5, open: true }, [['z', 351.163]], [-1.5, 0.5, -1]) }, b: leaf('sphere', { r: 3.253 }, [], [-0.354, -2.217, -2.675]) };
+  check('a tilted cylinder ∪ an open shell ∪ a ball', tree, 'quadrature');
+});
+
+test('curves: a long cut ending a tolerance short of one segment at both ends ends on it at both (L4 fuzz 20261025 #170, D251)', () => {
+  // (A ball turned 90° about its own axis twice, then that twice about another: the two balls' circle crosses each one's
+  // patch seam at points both seams pass through, and the cut stopped 9.5e-6 short of the seam at both. The first end's
+  // join split the seam there, and the second end was kept from the seam's part beside the first: the face was not
+  // divided, an edge used once.)
+  const tree = { pattern: { kind: 'circular', axis: 'z', deg: 90, count: 2, pivot: [-1, -1, 0] }, child: { pattern: { kind: 'circular', axis: 'z', deg: 90, count: 2, pivot: [-3, -1, 0] }, child: leaf('sphere', { r: 4 }, [], [-3, -1, 0]) } };
+  check('two balls a quarter turn apart, each its own copy turned', tree, 'quadrature');
+});
+
+test('analytic Boolean: coplanar pieces joined keep a piece whose ring its face\'s arrangement closed to a few tolerances (L4 fuzz 20261026 #112, D252)', () => {
+  // (A closed shelled box ∪ a ball, twice 42.55° apart: the first box's wall keeps a piece inside the second copy's
+  // cavity, its ring closed to 6.7e-6 where a cut's loose end was joined. Uniting the wall's pieces dropped it.)
+  const tree = { pattern: { kind: 'circular', axis: 'z', deg: 42.553, count: 2, pivot: [-1.676, 0.052, 0] }, child: { op: 'union', a: leaf('hbox', { w: 4.068, d: 4.757, h: 4.846, t: 0.979, open: false }, [], [-1.18, -0.846, -1.263]), b: leaf('sphere', { r: 3.382 }, [['y', 230.956]], [1.486, -1.115, -0.023]) } };
+  check('a closed shelled box ∪ a ball, twice', tree, 'quadrature');
+});

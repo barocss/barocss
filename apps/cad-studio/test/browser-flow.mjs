@@ -81,6 +81,9 @@ async function check(name, fn) {
   await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}-${name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`) });
 }
 const outliner = () => page.locator('.outliner').innerText();
+// (G12e: a preview chosen in the dock's Preview & analysis switch — its enable; clicked only when not already on, since
+// the switch's item clicked again turns it off.)
+const preview = async mode => { const b = page.locator(`[aria-label="Preview: ${mode}"]`); if (await b.getAttribute('data-state') !== 'on') await b.click(); };
 /** The first body's volume from its properties (a click on its row selects it, or takes it out of the selection: until the body's panel shows). */
 async function bodyVolume() {
   for (let k = 0; k < 3; k++) {
@@ -6795,6 +6798,17 @@ try {
         if (a.e.contains(b.e) || b.e.contains(a.e)) continue;
         if (meets(a.b, b.b)) bad.push(`${label}: ${a.s} meets ${b.s}`);
       }
+      // (G12e: the history bar's chips whole — each one shown entirely inside the bar's box, none under the view bar.)
+      const bar = document.querySelector('.history'), corner = document.querySelector('.corner-right');
+      if (bar && getComputedStyle(bar).display !== 'none') {
+        const r = bar.getBoundingClientRect(), c = corner?.getBoundingClientRect();
+        for (const chip of bar.querySelectorAll('.hs, .hs-more')) {
+          const b = chip.getBoundingClientRect();
+          if (!b.width || getComputedStyle(chip).display === 'none') continue;
+          if (b.left < r.left - 0.5 || b.right > r.right + 0.5 || b.top < r.top - 0.5 || b.bottom > r.bottom + 0.5) bad.push(`${label}: the history chip "${chip.textContent}" is cut by the bar's edge`);
+          if (c && meets(b, c)) bad.push(`${label}: the history chip "${chip.textContent}" meets the view bar`);
+        }
+      }
       return bad;
     }, label);
     const leftBorders = () => page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
@@ -6818,6 +6832,19 @@ try {
         }
         await page.click('[aria-label="Preview: None"]');
         const lb = await leftBorders(); if (lb.length) bad.push(`${width}: left border alone with a radius: ${lb.join(', ')}`);
+        // (G12e: where chips are hidden, "+n" opens the bar on more rows — every step shown, whole — and Less closes it. At
+        // 1440 the part's steps all fit, stacked above the view bar if not beside it: no "+n".)
+        const more = page.locator('.history .hs-more');
+        if (width === 1440 && !chat && await more.count()) bad.push(`1440: the history bar hides steps with room for them: ${await more.innerText()}`);
+        if (await more.count()) {
+          const n = Number((await more.innerText()).replace('+', ''));
+          await more.click(); await page.waitForTimeout(200);
+          const open = await page.evaluate(() => { const bar = document.querySelector('.history'), r = bar.getBoundingClientRect();
+            return [...bar.querySelectorAll('.hs')].map(c => ({ shown: getComputedStyle(c).display !== 'none', inside: (b => b.left >= r.left - 0.5 && b.right <= r.right + 0.5 && b.top >= r.top - 0.5 && b.bottom <= r.bottom + 0.5)(c.getBoundingClientRect()) })); });
+          if (!open.every(c => c.shown && c.inside)) bad.push(`${width}${chat ? ' chat' : ''}: +${n} opened, not every step shown whole: ${JSON.stringify(open)}`);
+          await page.click('.history .hs-more'); await page.waitForTimeout(200);
+          if (await page.locator('.history .hs-more').innerText() !== '+' + n) bad.push(`${width}${chat ? ' chat' : ''}: Less did not come back to +${n}`);
+        }
       }
       assert.deepEqual(bad.slice(0, 12), [], bad.slice(0, 12).join('\n'));
     } finally { await page.evaluate(() => window.__studioLayoutReset?.()); await page.setViewportSize({ width: 1440, height: 900 }); }
@@ -7945,7 +7972,7 @@ try {
     // (The previews' toggles are in the Display popover over the Views row.)
     const display = page.locator('[aria-label="Display and previews"]');
     if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
-    await page.check('input[aria-label="CNC preview"]');
+    await preview('CNC');
     const start = await at(0);
     assert.equal(start.removed, 0, JSON.stringify(start)); assert.equal(start.overcut, 0); assert.match(start.banner, /NOT FOR PRODUCTION/);
     assert.match(await page.locator('.card[aria-label="CNC preview"]').innerText(), /NOT FOR PRODUCTION/);
@@ -7960,11 +7987,11 @@ try {
     assert.ok(half.removed > 0 && half.removed < end.removed, JSON.stringify({ half, end }));
     assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
     await iso(); await snap('g23-cnc-middle');
-    // (One preview at a time, G12c: Print layers chosen, the CNC preview closes — its toggle off, nothing shown; chosen
+    // (One preview at a time, G12c: Print layers chosen, the CNC preview closes — its panel gone, nothing shown; chosen
     // again, the same end.)
-    await page.check('input[aria-label="Print layers"]');
-    await page.waitForFunction(() => !window.__studioCam?.().display && !document.querySelector('input[aria-label="CNC preview"]')?.checked, null, { timeout: 15000 });
-    await page.check('input[aria-label="CNC preview"]');
+    await preview('Print');
+    await page.waitForFunction(() => !window.__studioCam?.().display && !document.querySelector('.card[aria-label="CNC preview"]'), null, { timeout: 15000 });
+    await preview('CNC');
     await page.click('[aria-label="CNC progress to the end"]');
     assert.equal((await at('end')).removed, end.removed, 'the same end after the preview closed and came back');
     // (Reopened from the file: the same program and the same removal — nothing of the preview is stored.)
@@ -7972,7 +7999,7 @@ try {
     await page.click('[aria-label="CNC progress to the end"]');
     assert.equal((await at('end')).removed, end.removed, 'reopened: the same removal');
     await snap('g23-cnc-end');
-    await page.uncheck('input[aria-label="CNC preview"]');
+    await preview('None');
     await page.waitForFunction(() => !window.__studioCam?.().display, null, { timeout: 15000 });
     await display.click();
   });
@@ -8006,7 +8033,7 @@ try {
     const want = [['b0', 'b1', 'designed', 'key n1 in its keyseat'], ['i1/b1', 'i2/b1', 'touching', ''], ['i3/b1', 'i4/b1', 'overlap', ''], ['i5/b1', 'i6/b1', 'near', ''], ['i7/b1', 'i8/b1', 'clear', '']];
     const before = await canvasShot();
     await page.evaluate(() => { window.__studioClearanceLog = []; });
-    await page.check('input[aria-label="Assembly clearance"]');
+    await preview('Clearance');
     const shown = await ready();
     assert.equal(shown.error, undefined, shown.error);
     assert.deepEqual(shown.pairs, want);
@@ -8025,24 +8052,24 @@ try {
     await snap('g22-clearance');
     // (One preview at a time, G12c: Print layers chosen, the clearance map closes — and the assembly is refused there;
     // clearance chosen again, the same pairs.)
-    await page.check('input[aria-label="Print layers"]');
+    await preview('Print');
     await page.waitForFunction(() => /Placed assemblies are not supported/.test(window.__studioPrint?.().reason ?? '') && !window.__studioClearance?.(), null, { timeout: 15000 });
-    assert.equal(await page.locator('input[aria-label="Assembly clearance"]').isChecked(), false);
-    await page.check('input[aria-label="Assembly clearance"]');
+    assert.equal(await page.locator('.card[aria-label="Assembly clearance"]').count(), 0);
+    await preview('Clearance');
     const back = await ready(shown.request);
     assert.deepEqual(back.pairs, want);
     // (Closed: the model as it was.)
-    await page.uncheck('input[aria-label="Assembly clearance"]');
+    await preview('None');
     await page.waitForFunction(() => !window.__studioClearance?.(), null, { timeout: 15000 }); await page.waitForTimeout(400);
     const gone = await canvasDiffers(before, await canvasShot());
     assert.ok(gone < 0.002, `${renderer}: closed, ${(100 * gone).toFixed(3)} % still changed`);
     // (Saved, a new part, the download opened: the same pairs — nothing of the map is stored, the instances are.)
-    await page.check('input[aria-label="Assembly clearance"]');
+    await preview('Clearance');
     const last = (await ready(back.request)).request;
     await saveAndReopen('saved-g22-clearance.bcad', 2);
     const reopened = await ready(last);
     assert.deepEqual([reopened.pairs, reopened.overlays], [want, shown.overlays]);
-    await page.uncheck('input[aria-label="Assembly clearance"]'); await display.click();
+    await preview('None'); await display.click();
   });
 
   await check('G23 print layers: CNC8\'s plate sliced — its layers drawn, the height set and the layer moved changing the view, printed-up-to off; the settings saved, the same layer after Save, New and Open', async () => {
@@ -8054,7 +8081,7 @@ try {
     const at = (q) => page.waitForFunction(([k, n]) => { const p = window.__studioPrint?.(), d = p?.display; return !p?.reason && p?.stage === 'ready' && d?.layer.k === k && (n === null || d.summary.count === n); }, q, { timeout: 60000 }).then(print);
     const rangeTo = (v) => page.locator('[aria-label="Print layer"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
     const before = await canvasShot();
-    await page.check('input[aria-label="Print layers"]');
+    await preview('Print');
     const first = await at([0, null]);
     assert.ok(first.count > 1 && first.printed && first.supports, JSON.stringify(first));
     await page.waitForTimeout(400);
@@ -8080,7 +8107,7 @@ try {
     assert.deepEqual([saved.printPreview?.layer, saved.printPreview?.layerMM, saved.printPreview?.printed], [mid, 0.5, false], JSON.stringify(saved.printPreview));
     const reopened = await at([mid, coarse.count]);
     assert.deepEqual([reopened.z, reopened.top, reopened.printed], [middle.z, middle.top, false]);
-    await page.uncheck('input[aria-label="Print layers"]');
+    await preview('None');
     await page.waitForFunction(() => !window.__studioPrint?.()?.display, null, { timeout: 15000 });
     await display.click();
   });

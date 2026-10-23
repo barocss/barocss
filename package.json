@@ -29,7 +29,8 @@
   },
   "pnpm": {
     "overrides": {
-      "undici": "7.30.0"
+      "undici": "7.30.0",
+      "cmdk>@radix-ui/react-primitive": "2.1.11"
     }
   }
 }
