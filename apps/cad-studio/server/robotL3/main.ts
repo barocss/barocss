@@ -9,7 +9,7 @@
 //   node scripts/robot-l3.mjs --scripted [--runs 3] --out dir          the dry run (scripted-claude follows the sizer's answer)
 //   CAD_ROBOT_L3_LIVE=1 node scripts/robot-l3.mjs --live --out dir      the live run (billed; the owner's go-ahead, O15)
 import { createServer, type Server } from 'node:http';
-import { spawnSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -100,7 +100,8 @@ async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: st
   const doc: StudioDoc = withRatings(done?.doc ?? s.doc, ratings), part = join(o.dir, 'sized.bcad'); writeFileSync(part, encodeStudioFile(doc));
   writeFileSync(join(o.dir, 'transcript.txt'), raw);
   const saved = JSON.parse(readFileSync(dutyPath, 'utf8')) as Duty, changedBrief = keepsBrief(saved, BRIEF);
-  const fresh = spawnSync(process.execPath, [o.cli, 'robot-check', part, dutyPath], { encoding: 'utf8' });
+  // (Asynchronous: a blocking spawn here held the event loop, and with it the chat server's kill of a timed-out CLI.)
+  const fresh = await new Promise<{ status: number | null; stdout: string }>(res => execFile(process.execPath, [o.cli, 'robot-check', part, dutyPath], { encoding: 'utf8', maxBuffer: 64 << 20 }, (e, stdout) => res({ status: e ? (typeof e.code === 'number' ? e.code : null) : 0, stdout })));
   let report: { ok?: boolean; least?: unknown; margins?: { ok: boolean }[] } = {};
   try { report = JSON.parse(fresh.stdout); } catch { /* none */ }
   const pass = !changedBrief && fresh.status === 0 && report.ok === true;
