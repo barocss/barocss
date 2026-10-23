@@ -2093,3 +2093,41 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     G19.4 ghost caps), viewer, scene-viewer, uv-repeating, contour.
   - FLOW_ONLY on WebGPU, every step that sections, plus G3 display modes: 20 passed, 0 failed. The load started at 37
     and reached 60 at the end, with other lanes' runs beside it.
+
+## G-R23 — G10: the full browser flow on WebGL2, the parity statement (roadmap G10, 2026-10-23)
+
+- **Full flow, WebGL2**: from a detached scratch worktree at 6db68a8ef, chat port 52691, load 1m 15–19 at start and end.
+  - 255 passed and 17 failed.
+  - 9 of the 17 were my setup: the kernel's `dist` was not built in the scratch worktree ("Cannot find module …
+    barocss-cad/dist/index.js"). Built, they pass (42, 44, 45, 46, 83, 120, 121, 142, 264, 265).
+- **Reruns** (FLOW_ONLY, each failing step with its prerequisites), at b836b7efd with both dists fully built:
+  - load 8–10: 1, FRd1 (165), 255, 258, 269, 271 and 272 pass;
+  - 144 and 166 fail on WebGL2 and on WebGPU alike (see below).
+- **Real WebGL2 gaps, and what was done**:
+  - **G6 analysis maps and the mould's view (255)**: renderer.ts has no `setScalarMaps`, `scalarAt` or `setMould`. On
+    WebGL2 the Thickness button turned on and nothing was drawn. That was silent, and it cascaded: the maps were left on,
+    so display modes were refused in 269, and 271 and 272 waited.
+    - **Stated limit** (accepted by the coordinator): on WebGL2 the "Analysis map" button is disabled, with its reason:
+      "… are drawn with WebGPU; this browser draws with WebGL2".
+    - App.tsx learns the renderer through Viewport's new `onBackend`; the legend follows the same state.
+    - Step 255 on WebGL2 checks the disabled button, its reason and that no legend is shown.
+    - **Roadmap limits line**: analysis maps (thickness, draft, 3-axis access) and the mould's parting line and halves are
+      WebGPU only; WebGL2 says so.
+  - **G10 shared copies (258)**: WebGL2 shares a copy's tessellation too (renderer.ts' `instanceShapes`). The step read
+    the WebGPU viewer's DEV hook. Now:
+    - renderer.ts has a `shareCopies` toggle (every instance made again) and `instanceGeometries()`, with the DEV hooks
+      `__studioShareCopies` and `__studioInstanceGeometries`.
+    - Step 258's WebGL2 branch uses the renderer-neutral probes. Result (`G10 oracle (webgl2)`):
+      - 24 copies on 1 geometry, 24 when each has its own;
+      - the 96 × 96 frame the same: 0 of 9 216 samples differ by more than 96, max 2;
+      - 400 picks on the copies' tops: 366 hits, 0 differ;
+      - the edited copy on its own geometry (2 in all), the other 23 kept.
+- **Not WebGL2 (the same on WebGPU at b836b7efd, load 8)**, findings for their lanes:
+  - **144 FR3b** (D126): the round-cornered table's preview now arrives after 1 293–1 435 ms, and the step requires more
+    than 2 000 ms to be "the case being measured". The kernel's trims got faster; the step's premise is stale. What it
+    measures holds: the slowest answer was 1 ms, and the longest main-thread gap 73 ms.
+  - **166 FRd2** (O119): all 16 welds are now placed on A3, and none is said unshown. The step expects 11 placed and W8
+    and W13–W16 unshown. A drawing-model change since O119 (O174–O178) places the five.
+- **Bench**: `BENCH_TRACE` also prints the callers of React's `dispatchSetState`, for R1's ghosted-orbit question.
+- **Checks**: studio tsc 0, eslint 0, unit 250/250; the flow's syntax checked. The full flow runs at the end of Phase R,
+  as the survey's rules say.
