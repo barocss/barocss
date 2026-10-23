@@ -2874,6 +2874,7 @@ try {
     await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 1 && window.__studioDoc.nodes[0]?.kind === 'spring'; }, null, { timeout: 60000 });
     const replied = Date.now() - t0, at = await page.evaluate(() => { const b = window.__studioBodies(); return { massReady: b.massReady, bodies: b.bodies }; });
     console.log(`  O18 spring at its reply (${renderer}): ${JSON.stringify(at)}`);
+    if (at.massReady) { await page.waitForTimeout(4000); console.log(`  O18 spring 4 s later (${renderer}): ${JSON.stringify(await page.evaluate(() => window.__studioBodies()))}`); }
     assert.ok(!at.massReady, `the reply came before the mass: ${JSON.stringify(at)}`);
     // An undo at once: its reply (an empty part) does not wait for the spring's quadrature, which it drops.
     const t1 = Date.now(); await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
