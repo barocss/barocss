@@ -1,7 +1,8 @@
 // The Rebuild panel (O10 step C): what the last evaluation of the part cost — each feature built again, reused or an
 // input (a sketch), its own wall time and kernel calls, the slowest marked; the mates that cannot be met and their
 // loops; and each body's draws in the frames now shown, by its key (the GPU lane's tally, this renderer's only).
-// Read only: it changes neither geometry nor history.
+// Read only: it changes neither geometry nor history. O16: its contents on shadcn's Table and Button, the columns fixed
+// at the dock's width (cells truncate, their full text in the title).
 import { useEffect, useMemo, useState, type RefObject } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
@@ -12,6 +13,8 @@ import type { FrameCost } from '../viewport/frameCost';
 import type { ViewportHandle } from '../viewport/Viewport';
 import { createValueStore, useStoreValue, type ValueStore } from '../state/valueStore';
 import { Icon } from './atoms';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 /** The last evaluation of the part, as App sets it (a store, so an evaluation renders only this panel). */
 export type RebuildStore = ValueStore<{ doc: StudioDoc; result: EvalResult } | null>;
@@ -50,27 +53,29 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
       <div className="muted small" aria-label="Rebuild totals">
         Evaluation {report.evaluation} ({report.basis}), revision <span className="mono">{report.revision}</span> · {report.built} built in {ms(report.builtMs)} ms · {report.reused} reused · {ms(report.evaluationMs)} ms in all
       </div>
-      <table className="bom-table" aria-label="Rebuild features">
-        <thead><tr><th>Feature</th><th>State</th><th>ms</th><th>Kernel calls</th></tr></thead>
-        <tbody>{report.features.map(f => <tr key={f.id} aria-label={`Rebuild ${f.id}`} data-rebuild-state={f.state} data-slowest={f.id === report.slowest || undefined}>
-          <td title={f.id}>{f.label}{f.id === report.slowest ? <span className="warn small"> · slowest</span> : null}</td>
-          <td>{f.state}</td><td className="mono">{ms(f.ms)}</td><td className="small">{callsText(f.calls)}</td>
-        </tr>)}</tbody>
-      </table>
+      <Table className="bom-table" aria-label="Rebuild features">
+        <colgroup><col /><col className="w-14" /><col className="w-10" /><col className="w-[38%]" /></colgroup>
+        <TableHeader><TableRow><TableHead>Feature</TableHead><TableHead>State</TableHead><TableHead>ms</TableHead><TableHead>Kernel calls</TableHead></TableRow></TableHeader>
+        <TableBody>{report.features.map(f => <TableRow key={f.id} aria-label={`Rebuild ${f.id}`} data-rebuild-state={f.state} data-slowest={f.id === report.slowest || undefined}>
+          <TableCell title={f.id}>{f.label}{f.id === report.slowest ? <span className="warn small"> · slowest</span> : null}</TableCell>
+          <TableCell>{f.state}</TableCell><TableCell className="mono">{ms(f.ms)}</TableCell><TableCell title={callsText(f.calls)}>{callsText(f.calls)}</TableCell>
+        </TableRow>)}</TableBody>
+      </Table>
       <div className="card-title" style={{ marginTop: 8 }}>MATES</div>
       {!report.mates.length && <div className="muted small" aria-label="Rebuild mates">{doc?.mates?.length ? 'Every mate is met.' : 'No mates.'}</div>}
       {!!report.mates.length && <ul className="small" aria-label="Rebuild mates">{report.mates.map(p => <li key={p.mate}><span className="mono">{p.mate}</span>: {p.reason}</li>)}</ul>}
       {report.loops.map((l, k) => <div key={k} className="warn small" aria-label={`Rebuild loop ${k + 1}`}>Loop: {l.parts.join(' → ')} ({l.mates.join(', ')})</div>)}
-      <div className="card-title" style={{ marginTop: 8 }}>FRAME COSTS <button className="tool tiny" aria-label="Refresh frame costs" onClick={() => setCost(viewport.current?.frameCosts()[mode] ?? null)}><Icon name="refresh" small /></button></div>
+      <div className="card-title" style={{ marginTop: 8 }}>FRAME COSTS <Button variant="ghost" size="xs" aria-label="Refresh frame costs" onClick={() => setCost(viewport.current?.frameCosts()[mode] ?? null)}><Icon name="refresh" small /></Button></div>
       {!cost && <div className="muted small" role="status">No frame counted yet in {mode}.</div>}
       {cost && <>
         <div className="muted small" aria-label="Frame cost totals">{cost.renderer}, {cost.mode}: frame {cost.frame}, {ms(cost.cpuMs)} ms CPU to record and submit{cost.mode === 'wireframe' ? '; surface triangles are drawn for depth only' : ''}</div>
-        <table className="bom-table" aria-label="Frame costs">
-          <thead><tr><th>Body</th><th>Draws</th><th>Triangles</th><th>Lines</th><th>Share</th></tr></thead>
-          <tbody>{cost.bodies.map(b => <tr key={b.key} aria-label={`Frame cost ${b.key}`}>
-            <td className="mono">{b.key}</td><td className="mono">{b.draws}</td><td className="mono">{b.triangles}</td><td className="mono">{b.lines}</td><td className="mono">{(100 * b.share).toFixed(1)} %</td>
-          </tr>)}</tbody>
-        </table>
+        <Table className="bom-table" aria-label="Frame costs">
+          <colgroup><col /><col className="w-11" /><col className="w-16" /><col className="w-12" /><col className="w-14" /></colgroup>
+          <TableHeader><TableRow><TableHead>Body</TableHead><TableHead>Draws</TableHead><TableHead>Triangles</TableHead><TableHead>Lines</TableHead><TableHead>Share</TableHead></TableRow></TableHeader>
+          <TableBody>{cost.bodies.map(b => <TableRow key={b.key} aria-label={`Frame cost ${b.key}`}>
+            <TableCell className="mono" title={b.key}>{b.key}</TableCell><TableCell className="mono">{b.draws}</TableCell><TableCell className="mono">{b.triangles}</TableCell><TableCell className="mono">{b.lines}</TableCell><TableCell className="mono">{(100 * b.share).toFixed(1)} %</TableCell>
+          </TableRow>)}</TableBody>
+        </Table>
       </>}
       <div className="muted small" aria-label="Rebuild limits">{report.limits} Frame costs are work counts on this renderer, not GPU time; they are not compared across renderers.</div>
     </>}
