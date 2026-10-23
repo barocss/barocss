@@ -30,8 +30,7 @@ import { splitFacetBrep, type FacetSplitResult } from './facet-split.js';
 import { facetBoolean, FacetBooleanError, splitMixedBrep } from './facet-boolean.js';
 import { selfIntersections } from './mesh-repair.js';
 import { sweepSolid } from './sweep-solid.js';
-import { validateCurve, validateSurface } from './math.js';
-import { thickenSolid } from './thicken-solid.js';
+import { validateCurve } from './math.js';
 import { type SubdSummary } from './subd.js';
 import { type DecimateReport } from './mesh-decimate.js';
 import type { FilletReport } from './rolling-ball.js';
@@ -76,6 +75,7 @@ import { gearOperation } from './part-gears.js';
 import { machineOperation } from './part-machine.js';
 import { finishOperation } from './part-finish.js';
 import { meshOperation } from './part-mesh.js';
+import { shellOperation } from './part-shell.js';
 
 export type CadPartDim = number | { readonly parameter: string };
 export type CadPartAxis = 'x' | 'y' | 'z';
@@ -1778,22 +1778,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         }
       };
     }
-    case 'thicken': {
-      const g = f.surface as Record<string, unknown>, t = dim(f.thickness as CadPartDim, 'thickness', true), side = f.side ?? 'normal';
-      if (!isRecord(g)) fail('INPUT', 'surface must be a NURBS surface { degreeU, degreeV, knotsU, knotsV, controlPoints, weights }');
-      if (side !== 'normal' && side !== 'reverse' && side !== 'both') fail('INPUT', 'side must be normal, reverse or both');
-      const surface = { kind: 'surface' as const, id: 'surface', degreeU: g.degreeU as number, degreeV: g.degreeV as number, knotsU: g.knotsU as number[], knotsV: g.knotsV as number[], controlPoints: g.controlPoints as Point[][], weights: g.weights as number[][] };
-      try { validateSurface(surface); } catch (cause) { fail('INPUT', `surface: ${cause instanceof Error ? cause.message : String(cause)}`); }
-      return () => {
-        try { return one({ kind: 'brep', brep: thickenSolid({ id: at, surface, thickness: t, side: side as 'normal' }) }); }
-        catch (cause) {
-          const m = cause instanceof BrepError ? /CAPABILITY: shell: (.*)$/s.exec(cause.message) : null;
-          if (m) fail('CAPABILITY', m[1]);
-          if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message);
-          throw cause;
-        }
-      };
-    }
+    case 'shell': case 'thicken': return shellOperation(f, t, HELPERS);
     case 'sweep-curve': {
       const sketch = ref(f.sketch, 'sketch').result;
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
@@ -1811,13 +1796,6 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'spur-gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spur-rack': return gearOperation(f, t, HELPERS);
     case 'connector-opening': case 'connector-body': case 'oring-gland': case 'oring': case 'bearing': case 'key': case 'retaining-ring': case 'pin': case 'keyway': case 'shaft': case 'spring': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'cam': case 'thread': return machineOperation(f, t, HELPERS);
-    case 'shell': {
-      const target = solids(f.target, 'target'), t = dim(f.thickness as CadPartDim, 'thickness', true);
-      const open = f.open === undefined ? [] : f.open as unknown;
-      if (!Array.isArray(open) || open.length > CadPartLimits.edges || !open.every(x => typeof x === 'string')) fail('INPUT', 'open must list up to 64 face names');
-      if (target.length !== 1) fail('REFERENCE', 'shell one part at a time (name it as id/k)');
-      return () => ({ kind: 'solid', parts: [shellOf(target[0], t, open as string[], at, fail)] });
-    }
     case 'split': {
       const target = solids(f.target, 'target'), level = dim(f.at as CadPartDim, 'at');
       if (target.length !== 1) fail('REFERENCE', 'split one part at a time (name it as id/k)');
@@ -3860,5 +3838,5 @@ function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
  * The part model's own helpers a feature family's module uses: passed in, never imported (they share this module's state,
  * the facet limit; `boolean` stays here). Frozen, so no family can swap one (R5.3, D221).
  */
-const HELPERS = Object.freeze({ isRecord, brepOf, finishEdges, CadPartLimits, stepSizeProblem, splitBodies, meshArrayOk, facetBody, facetTriangles, brepBodies });
+const HELPERS = Object.freeze({ isRecord, brepOf, finishEdges, CadPartLimits, stepSizeProblem, splitBodies, meshArrayOk, facetBody, facetTriangles, brepBodies, shellOf });
 export type PartHelpers = typeof HELPERS;
