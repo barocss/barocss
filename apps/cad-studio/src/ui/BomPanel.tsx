@@ -68,7 +68,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
     {!data && blocked && <div className="row-actions"><Button variant="ghost" aria-label="Export purchase list" disabled>Export purchase list</Button></div>}
     {data && <>
       <Table className="bom-table" aria-label="BOM lines">
-        <colgroup><col className="w-6" /><col /><col className="w-10" /><col className="w-[12%]" /><col className="w-[18%]" /><col className="w-[5.25rem]" /></colgroup>
+        <colgroup><col className="w-6" /><col /><col className="w-10" /><col className="w-[11%]" /><col className="w-[22%]" /><col className="w-[5.25rem]" /></colgroup>
         <TableHeader><TableRow><TableHead>#</TableHead><TableHead>Item</TableHead><TableHead>Qty</TableHead><TableHead>Row</TableHead><TableHead>Source</TableHead><TableHead /></TableRow></TableHeader>
         <TableBody>{data.bom.lines.map((l, k) => {
           // (A plate — a gusset, an end cap — may be set bought too: a laser-cut plate ordered in, FRk1.)

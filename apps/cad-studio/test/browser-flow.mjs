@@ -2242,6 +2242,7 @@ try {
       assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /my-motor/);
       // (O16: the panel at 1440 in the dock, for the checkpoint.)
       await page.locator('[aria-label="Shop rows"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-shop-rows.png`) });
+      await page.locator('[aria-label="Library panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-o16-library.png`) });
     } finally { await page.click('[aria-label="Close library"]'); }
   });
 
@@ -5402,6 +5403,8 @@ try {
       await page.click('[aria-label="Auto-dimension"]'); await page.waitForTimeout(300);
       assert.deepEqual(await texts(), ['16', '32', '32', '64', '8', 'Ø8 THRU']);
       await snap('r14-auto-dimension');
+      // (O16: the drawing's settings at 1440, beside the sheet.)
+      await page.locator('[aria-label="Drawing settings"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-drawing-settings.png`) });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
