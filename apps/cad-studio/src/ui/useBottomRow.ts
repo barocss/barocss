@@ -20,8 +20,9 @@ export interface BottomRow { stacked: boolean; cramped: boolean }
  * variables (--corner-w, --corner-h) here, outside React: a label in the bar that changes as it is dragged (Explode ×0.03 …)
  * resizes it each frame, and the App renders only when the stacking changes (G12d, R1). The App sets the classes.
  */
-/** `strip`: the strips and the dock's open sheet over the stage's edges (G12a/b); `left`: where the bar starts. */
-export function useBottomRow(corner: RefObject<HTMLElement | null>, strip = 0, left = HISTORY_LEFT): BottomRow {
+/** `strip`: the strips and the dock's open sheet over the stage's edges (G12a/b); `left`: where the bar starts; `natural`:
+ * the history bar's width with every step shown — it stacks when that does not fit beside the view bar (G12e). */
+export function useBottomRow(corner: RefObject<HTMLElement | null>, strip = 0, left = HISTORY_LEFT, natural = 0): BottomRow {
   const [row, setRow] = useState<BottomRow>({ stacked: false, cramped: false });
   useEffect(() => {
     const el = corner.current;
@@ -32,12 +33,12 @@ export function useBottomRow(corner: RefObject<HTMLElement | null>, strip = 0, l
       studio?.style.setProperty('--corner-w', cornerWidth + 'px'); studio?.style.setProperty('--corner-h', cornerHeight + 'px');
       // (The stage's width — the centre column's, G12a — not the window's.)
       const stage = (el.offsetParent as HTMLElement | null)?.clientWidth ?? window.innerWidth;
-      const stacked = stage - strip - left - cornerWidth - GAPS < HISTORY_MIN, cramped = stage - strip - left - 12 < HISTORY_LEAST;
+      const stacked = stage - strip - left - cornerWidth - GAPS < Math.max(HISTORY_MIN, natural), cramped = stage - strip - left - 12 < HISTORY_LEAST;
       setRow(b => b.stacked === stacked && b.cramped === cramped ? b : { stacked, cramped });
     };
     const observer = new ResizeObserver(update);
     observer.observe(el); if (el.offsetParent) observer.observe(el.offsetParent); window.addEventListener('resize', update); update();
     return () => { observer.disconnect(); window.removeEventListener('resize', update); };
-  }, [corner, strip, left]);
+  }, [corner, strip, left, natural]);
   return row;
 }
