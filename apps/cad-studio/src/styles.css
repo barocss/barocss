@@ -114,7 +114,7 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .kv select { font: 500 11px var(--mono); color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 1px 2px; max-width: 60%; }
 .measure-item + .measure-item { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
 
-.topbar { position: absolute; top: 0; left: var(--chat-col-w, 0px); right: 0; z-index: 8; height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 6; }
+.topbar { position: absolute; top: 0; left: var(--chat-col-w, 0px); right: 0; height: 36px; overflow-x: clip; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: rgba(22, 23, 25, 0.92); border-bottom: 1px solid var(--line-soft); z-index: 8; }
 /* (Above the panels under it, z 2–5: its menus — More shapes, More tools, Templates — drop over them; the palette's backdrop, z 10, still covers it.) */
 .brand { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 /* (The file name gives way first when the bar is tight: the centre column is the window less the chat column, G12a.) */
