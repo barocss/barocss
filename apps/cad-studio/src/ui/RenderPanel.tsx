@@ -47,7 +47,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
     <label className={FIELD} key={label}><span>{label}</span>
       <span className={SLIDER}><input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={e => set(Number(e.target.value))} /><em>{Math.round(value * 100) / 100}</em></span></label>);
   const color = (label: string, value: Hex, set: (v: Hex) => void) => (
-    <label className={FIELD} key={label}><span>{label}</span><input type="color" className="w-[62%]!" aria-label={label} value={full(value)} onChange={e => set(e.target.value as Hex)} /></label>);
+    <label className={FIELD} key={label}><span>{label}</span><input type="color" className="w-[62%]" aria-label={label} value={full(value)} onChange={e => set(e.target.value as Hex)} /></label>);
   const check = (label: string, value: boolean, set: (v: boolean) => void) => (
     <label className={FIELD} key={label}><span>{label}</span><input type="checkbox" className={TICK} aria-label={label} checked={value} onChange={e => set(e.target.checked)} /></label>);
 
