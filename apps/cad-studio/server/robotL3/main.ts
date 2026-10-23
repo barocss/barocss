@@ -143,6 +143,9 @@ export async function robotL3Main(argv: readonly string[], paths: { mcpScript: s
     records.push(r);
     writeFileSync(join(out, 'records.json'), JSON.stringify({ records, total, stopped }, null, 1) + '\n');
     process.stdout.write(`run ${k}: ${r.result.pass ? 'PASS' : 'FAIL'} — ${r.result.why}; end ${r.end}; cost ${r.usage?.total_cost_usd ?? 'none reported'}; ${r.checks.length} checks, ${r.tools.length} calls, ${Math.round(r.wallMs / 1000)} s\n`);
+    // (The model never ran — the CLI refused at once, as at an account's usage limit: not a model's failure, and no run is
+    // spent on the next.)
+    if (r.end === 'error' && !(r.usage?.output_tokens)) { stopped = `run ${k}: the CLI did not run the model (${r.error ?? 'no reason given'}): the series stops`; break; }
     const cost = r.usage?.total_cost_usd;
     if (typeof cost !== 'number') { stopped = `run ${k} reported no total_cost_usd: treated as over budget, the series stops`; break; }
     total += cost;
