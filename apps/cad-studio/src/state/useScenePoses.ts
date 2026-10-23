@@ -1,9 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { placementOf, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { previewMatrix, type InstanceDrag } from '@barocss/cad-model/assembly/drag';
 import { multiply } from '@barocss/gpu/viewer';
-import { boundsUnder, instancePoses, poseMatrix } from '../viewport/instancePose';
+import { instancePoses, poseMatrix } from '../viewport/instancePose';
 import { sectionedInstances, type Section } from '../viewport/sectionView';
 import type { SketchState } from '@barocss/cad-model/sketch/types';
 
@@ -27,8 +27,7 @@ export function useScenePoses(doc: StudioDoc, instanceBodies: ReadonlyMap<string
     poses.set(instDrag.id, pose ? multiply(drag, pose) : drag);
     return poses;
   }, [cpuInstanceSection, instDrag, instancePoseMap]);
-  // (The flow's view of what is shown, RM2: each instance's bounds as placed, posed or exploded.)
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioInstanceBounds: () => unknown }).__studioInstanceBounds = () => instancesPlaced.map(i => { const b = i.bodies[0]?.mesh, M = instancePoseMap.get(i.id), box = b && M ? boundsUnder(b.positions, M) : b?.bounds; return { id: i.id, min: box?.min, max: box?.max }; }); }, [instancesPlaced, instancePoseMap]);
+  // (The flow's bounds hook, __studioInstanceBounds, is SceneViewport's: it follows the pose in each frame, R1c (3b).)
   // The section view cuts the placed parts too: on WebGPU by the clip plane where their matrices put them (G2), on WebGL2
   // as moved copies clipped and capped.
   const instancesShown = useMemo(() => !section || sketch ? instancesPlaced : sectionedInstances(instancesPlaced, instanceSectionPoses, section, gpuSection), [instancesPlaced, instanceSectionPoses, section, sketch, gpuSection]);

@@ -1405,26 +1405,33 @@ try {
       if (el.tagName === 'line') { const g = n => Number(el.getAttribute(n)); return [g('x1') + (g('x2') - g('x1')) * at, g('y1') + (g('y2') - g('y1')) * at]; }
       const ps = el.getAttribute('points').trim().split(' ').map(q => q.split(',').map(Number)); return ps[Math.round((ps.length - 1) * at)];
     }, [sel, at]);
+    // (G-R32: the gizmo as drawn — its origin the same over two frames — before its handles are read; under load a fixed
+    // pause read them where the gizmo had been, and the drag missed. Each wait a condition, under a 30 s ceiling.)
+    const settled = () => page.waitForFunction(() => new Promise(done => {
+      const at = () => { const c = document.querySelector('.gizmo-origin'); return c ? `${c.getAttribute('cx')},${c.getAttribute('cy')}` : ''; };
+      const a = at(); requestAnimationFrame(() => requestAnimationFrame(() => done(a !== '' && a === at())));
+    }), null, { timeout: 30000 });
     const drag = async (from, to, steps = 8) => { await page.mouse.move(svg.x + from[0], svg.y + from[1]); await page.mouse.down(); await page.mouse.move(svg.x + to[0], svg.y + to[1], { steps }); await page.mouse.up(); };
     // Along X: as far again as the arrow is long on screen moves it the arrow's length in mm.
+    await settled();
     const a0 = await pointOf('[data-gizmo=moveX] line:nth-of-type(2)', 0.5), a1 = await pointOf('[data-gizmo=moveX] line:nth-of-type(2)', 1);
     await drag(a0, [a0[0] + (a1[0] - a0[0]) * 2, a0[1] + (a1[1] - a0[1]) * 2]);
-    await page.waitForFunction(x => window.__studioDoc.instances[1].position[0] > x + 1, before.position[0], { timeout: 5000 });
+    await page.waitForFunction(x => window.__studioDoc.instances[1].position[0] > x + 1, before.position[0], { timeout: 30000 });
     const moved = await page.evaluate(() => window.__studioDoc.instances[1]);
     assert.deepEqual([moved.position[1], moved.position[2], moved.rotation], [before.position[1], before.position[2], before.rotation]);
     // A quarter sweep round the Z arc: the copy turns about world Z in 15° steps.
-    await page.waitForTimeout(400);
+    await settled();
     const o = await page.evaluate(() => { const c = document.querySelector('.gizmo-origin'); return [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]; });
     const m = await pointOf('[data-gizmo=turnZ] polyline:nth-of-type(2)', 0.5), r = Math.hypot(m[0] - o[0], m[1] - o[1]), a = Math.atan2(m[1] - o[1], m[0] - o[0]);
     await page.mouse.move(svg.x + m[0], svg.y + m[1]); await page.mouse.down();
     for (let k = 1; k <= 10; k++) await page.mouse.move(svg.x + o[0] + r * Math.cos(a - k * Math.PI / 40), svg.y + o[1] + r * Math.sin(a - k * Math.PI / 40));
     await page.mouse.up();
-    await page.waitForFunction(z => Math.abs(window.__studioDoc.instances[1].rotation[2] - z) >= 15, before.rotation[2], { timeout: 5000 });
+    await page.waitForFunction(z => Math.abs(window.__studioDoc.instances[1].rotation[2] - z) >= 15, before.rotation[2], { timeout: 30000 });
     const turned = await page.evaluate(() => window.__studioDoc.instances[1]);
     assert.equal(Math.abs(turned.rotation[2] - before.rotation[2]) % 15, 0, `a 15° step: ${turned.rotation[2]}`);
     await snap('instance-gizmo');
     await press('Meta+z'); await press('Meta+z');
-    await page.waitForFunction(b => JSON.stringify(window.__studioDoc.instances[1].position) === JSON.stringify(b), before.position, { timeout: 5000 });
+    await page.waitForFunction(b => JSON.stringify(window.__studioDoc.instances[1].position) === JSON.stringify(b), before.position, { timeout: 30000 });
   });
 
   await check('shared part definition: a new revision waits, then both copies take it where they are; a copy made independent keeps its own', async () => {
@@ -5540,6 +5547,10 @@ try {
     await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 20000 });
     const before = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
     const placed = JSON.stringify((await doc()).instances);
+    // (R1c (3b): the pose lives outside React state — what a slider or a joint played does is still a preview, the history
+    // as it was: the Undo button's state is checked around each.)
+    const undoState = () => page.evaluate(() => { const b = document.querySelector('[aria-label="Undo"]'); return { tip: b?.getAttribute('data-tip'), off: !!b?.disabled }; });
+    const undo0 = await undoState();
     // (A half turn of b about a's far hole at x = 60: its box, x 50…110, swings to 10…70.)
     // (A range input set as a person's drag sets it: the native value, then an input event React hears.)
     await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint a~b value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI);
@@ -5547,6 +5558,7 @@ try {
     assert.ok(Math.abs(before.min[0] - 50) < 1e-3, JSON.stringify(before));
     assert.equal(JSON.stringify((await doc()).instances), placed, 'a preview: the placements are not changed');
     assert.match(await page.locator('[aria-label="Joint a~b"]').innerText(), /180\.0 °/);
+    assert.deepEqual(await undoState(), undo0, 'a slider pose adds no undo entry');
     await snap('rm2-posed');
     // (G2: the posed arm sectioned — the plane in world space through the swung link, as the CPU's moved copies cut.)
     await page.click('[aria-label="Section view"]'); await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
@@ -5557,9 +5569,22 @@ try {
     await page.click('[aria-label="Joints home"]');
     await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
     // Played: the first arm swings by itself, then stopped.
+    const undo1 = await undoState();
     await page.click('[aria-label="Play joint base~a"]');
     await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'a').min[0] - 10) > 1, null, { timeout: 10000 });
     await page.click('[aria-label="Play joint base~a"]');
+    assert.deepEqual(await undoState(), undo1, 'a joint played adds no undo entry');
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'nor changes the placements');
+    // Saved while posed and opened again: the pose is not saved, as before (a preview) — the arm opens at home.
+    const posed = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
+    assert.ok(Math.abs(posed.min[0] - 50) > 1, `posed when saved: ${JSON.stringify(posed)}`);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-rm2-posed.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'the placements as saved');
     await page.click('[aria-label="Joints home"]');
   });
 

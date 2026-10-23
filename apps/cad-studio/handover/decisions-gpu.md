@@ -2312,3 +2312,56 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     G3. All pass on WebGPU. On WebGL2 all pass except 58, once.
   - 58 on WebGL2 is load-sensitive, a 5 s wait. Run twice here it passed once (load 19) and failed once (load 26 → 41).
     At R2a's cb8d10856, before this move, it also failed once and passed once (load 32–40). So it is not this move.
+
+## G-R31 — R1c (3b): what a frame changes is kept outside React state; SceneViewport and the Joints card subscribe (roadmap R1, 2026-10-23)
+
+- **Why** (the owner's concern, and the coordinator's call): a joint played set App state in each frame, so the whole
+  App rendered every frame. An explode dragged did the same.
+- **What**:
+  - `state/valueStore.ts`: a value outside React state, with `get`, `set` (a value or an updater, telling the
+    subscribers only when it changes) and `subscribe`. `useStoreValue(store, subscribed)` reads it through
+    useSyncExternalStore. With `subscribed` false it is the value as it is when the component renders for another
+    reason.
+  - The pose (`useJoints`' `poseStore`) and the explode factor (`explodeStore`) live there. The play loop, the sliders,
+    Home, the pruning of gone joints and `__studioSetExplode` set them as their state setters did.
+  - **Subscribers**:
+    - `viewport/SceneViewport.tsx` wraps Viewport. It makes the placed parts' matrices from the pose and the factor, as
+      useScenePoses does (`poseKinematics`, then `instancePoses`), and it holds the flow's `__studioInstanceBounds`.
+    - `ui/JointsPanelLive.tsx` is the Joints card's readout: the values after forward kinematics, the gear pairs
+      (`gearLinesAt`) and the gravity torques.
+    - `ui/ExplodeButton.tsx` is the explode button, its label and its steps.
+  - **The App** subscribes to them only while it uses them itself: the clearance check is on, or the placed parts are
+    sectioned on the CPU. Its copies of the pose then follow each frame, as before. Otherwise it reads them when it
+    renders anyway. It always follows whether the parts are exploded (the instance gizmo is not offered then). The Add
+    waypoint and Check path buttons read the pose from the store when clicked.
+  - A path checked is cleared when the pose changes, through the store's subscription, as the effect on the pose did.
+- **History and files, unchanged and tested**: the pose is a preview, as RM2 says ("shown moved and not saved"). RM2
+  now checks, on both renderers:
+  - a slider pose, and a joint played then stopped, leave the Undo button as it was (its tip and its disabled state),
+    and leave the placements unchanged;
+  - the arm saved while posed, then New and Open: the placements as saved, the arm at home (the pose is not in the file,
+    as before).
+- **Bench** (BENCH_TRACE, load 39 → 36, LOADED), renders a row:
+  - **pose**: App 109 → 3; SceneViewport and JointsPanelLive 95 each; task 23.4 → **4.1 ms** a frame (budget 22). Now
+    within budget. 94 frames drawn in the row, 69 before: the frames got cheaper.
+  - **explode**: App 60 → 1; SceneViewport 60; task 14.3 → 9.1 ms.
+  - The section drag still renders the App each frame. The section plane is App state with its exact section and
+    hatch, and was not in this step's scope.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 20–45), all pass: RM1–RM6 and RM9a–RM9c (RM2 with the new checks), R12b.7 the
+    gears, the instance chain 57 and 58 (explode inside 57), 73 and G19.2 sections, 258 and G3.
+
+## G-R32 — step 58's waits made conditions, not a pause (the coordinator's request, 2026-10-23)
+
+- **The defect**: after the X drag the step paused a fixed 400 ms and then read the turn handle where the gizmo was
+  drawn. Under load, the overlay had not yet followed the moved copy, so the turn drag started off the handle. The next
+  wait, 5 s for the 15° step, then failed: about 1 run in 2 at load 30–40 on WebGL2 (G-R30). The step's three waits had
+  5 s ceilings.
+- **Now**:
+  - Before each drag, `settled()` waits for the gizmo as drawn: its origin present and the same over two animation
+    frames.
+  - The three condition waits (moved along X, turned 15°, undone) have 30 s ceilings.
+  - The assertions are unchanged.
+- **Runs**: WebGL2 three times in a row (load 24 → 87, other lanes' work beside it), 3/3 pass; WebGPU once (load
+  87 → 81), pass.
