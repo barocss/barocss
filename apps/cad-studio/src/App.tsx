@@ -140,6 +140,9 @@ import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from '@barocss/cad-mode
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { downloadBytes, lumpStls, meshToStl } from './ui/files';
 import { useBottomRow } from './ui/useBottomRow';
+import { useLayout } from './layout/useLayout';
+import { ChatColumn, columnShown } from './layout/ChatColumn';
+import { CHAT_STRIP } from './layout/useLayout';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
@@ -251,7 +254,7 @@ export function App() {
   const engine = useMemo(() => new EngineClient(), []);
   const viewport = useRef<ViewportHandle>(null);
   // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
-  const cornerRight = useRef<HTMLDivElement>(null), bottomRow = useBottomRow(cornerRight);
+  const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), bottomRow = useBottomRow(cornerRight, stripWidth);
   const [doc, setDoc] = useState<StudioDoc>(starterDoc);
   const [marker, setMarker] = useState<number | null>(null);
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
@@ -312,7 +315,8 @@ export function App() {
   }, []);
   useEffect(() => { if (!sketch) { setSketchError(null); sketchHistory.current.clear(); } }, [sketch]);
   const [palette, setPalette] = useState(false);
-  const [chat, setChat] = useState(false);
+  // (G12a: the chat column's open state and width, kept per viewer; collapsed when the window narrows past what fits.)
+  const layout = useLayout(), chat = layout.chatOpen, setChat = layout.setChatOpen;
   // Closing chat keeps pending approvals usable; a new conversation explicitly clears/revokes this ref.
   const chatRowFiles = useRef<PersonRowFiles | undefined>(undefined);
   // (The references' bodies in their own coordinates, the keep-outs' solids, and the keep-outs' verdicts, A6.3.)
@@ -2212,8 +2216,13 @@ export function App() {
   const isolationReason = displayScopeReason ? 'Isolate selection is available with ordinary solids in Model view.'
     : !isolationSelection ? 'Select a visible placed instance to isolate.' : undefined;
 
+  // (G12a: proposals are in the chat column; while one is open the column shows it, the chat open or not.)
+  const openProposals = doc.proposals?.filter(p => p.status === 'open').length ?? 0, decidedProposals = (doc.proposals?.length ?? 0) - openProposals;
+  const chatColumnShown = columnShown(chat && !rendering && !drawing, openProposals, decidedProposals, decidedShown);
+  useEffect(() => setStripWidth(chatColumnShown ? 0 : CHAT_STRIP), [chatColumnShown]);
   return (
-    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px' } as CSSProperties}>
+    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px' } as CSSProperties}>
+      <div className="stage">
       <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
@@ -2380,28 +2389,6 @@ export function App() {
               <input aria-label={`${q.id} value`} type="number" step="any" defaultValue={q.check.value ?? q.check.max ?? q.check.min}
                 onKeyDown={e => { if (e.key === 'Enter') setRequirement(q.id, Number(e.currentTarget.value)); e.stopPropagation(); }} />
               <button className="ghost small" aria-label={`Confirm ${q.id}`} onClick={e => { const v = (e.currentTarget.previousSibling as HTMLInputElement).value; setRequirement(q.id, Number(v)); }}>Confirm</button></span>}
-          </div>;
-        })}</>}
-        {!!doc.proposals?.length && <><div className="ol-head req-head">Proposals <span className="muted">{doc.proposals.filter(p => p.status === 'open').length} open</span>
-          <button className={'tool tiny' + (decidedShown ? ' on' : '')} aria-label="Show decided proposals" data-tip={decidedShown ? 'Open only' : 'Show accepted and rejected'} onClick={() => setDecidedShown(f => !f)}><Icon name="history" small /></button></div>
-        {doc.proposals.filter(p => decidedShown || p.status === 'open').map(p => {
-          const shown = ghost?.id === p.id, stale = p.status === 'open' && p.base !== hashNow, dv = shown ? volumeOf(ghost.bodies) - volumeOf(bodies) : 0, base = volumeOf(bodies);
-          return <div key={p.id} className={'proposal ' + p.status + ' risk-' + p.risk.level} role="listitem" aria-label={`Proposal ${p.id}`}>
-            <div className="proposal-title"><b>{p.id}</b> {p.title} <span className={'risk-badge ' + p.risk.level} title={`${p.risk.features_touched} features touched · ${p.risk.references_broken} references broken${p.risk.hard_requirements_changed.length ? ` · hard requirements ${p.risk.hard_requirements_changed.join(', ')}` : ''}${p.risk.approval.length ? ` · always needs approval: ${p.risk.approval.join(', ')}` : ''}`}>{p.risk.level} risk</span></div>
-            <div className="muted">{stale ? <b className="stale">stale · </b> : p.rebased ? 'rebased · ' : ''}{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''}{p.risk.approval.length ? ` · needs you (${p.risk.approval.join(', ')})` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
-            {p.plan && <div className="proposal-plan">{p.plan}</div>}
-            {shown && fresh && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
-            {shown && ghost.parts.length > 1 && <div className="proposal-parts" role="group" aria-label={`${p.id} features`}>{ghost.parts.map(q => <label key={q.id} className={'proposal-part ' + q.kind}>
-              <input type="checkbox" aria-label={`Keep ${q.id}`} disabled={q.kind === 'deleted' || proposalBusy} checked={!ghost.leaveOut.includes(q.id)} onChange={e => void tickPart(q.id, e.currentTarget.checked)} />
-              <span className="mono">{q.id}</span> {q.kind === 'added' ? '+' : q.kind === 'changed' ? '~' : '−'} {q.label}</label>)}</div>}
-            {p.status === 'open' ? <div className="proposal-actions">
-              <button className={'ghost small' + (shown ? ' on' : '')} disabled={proposalBusy || stale} onClick={() => void showProposal(p)}>{shown ? 'Hide' : 'Preview'}</button>
-              {shown && <button className="ghost small" aria-label="Before or after" onClick={flipGhost}>{ghost.after ? 'After' : 'Before'}</button>}
-              <span className="grow" />
-              <button className="ghost small" disabled={proposalBusy} onClick={() => rejectIt(p)}>Reject</button>
-              {stale ? <button className="primary small" disabled={proposalBusy} title="The part changed since this was proposed: make it again on the part as it is, and look before accepting" onClick={() => void rebaseIt(p)}>Rebase &amp; preview</button>
-                : <button className="primary small" disabled={proposalBusy} onClick={() => void acceptIt(p)}>{shown && ghost.leaveOut.length ? `Accept ${ghost.parts.length - ghost.leaveOut.length} of ${ghost.parts.length}` : 'Accept'}</button>}
-            </div> : <div className="muted">{p.status} by {p.decided?.by}{p.decided?.note ? ` · ${p.decided.note}` : ''}</div>}
           </div>;
         })}</>}
         {!!doc.history?.length && <><div className="ol-head req-head">Design history <span className="muted">{doc.history.length}</span>
@@ -2776,23 +2763,6 @@ export function App() {
         <span className="chip mono">mm</span>
       </div></Profiler>
 
-      {chat && !rendering && !drawing && <Suspense fallback={null}><ChatPanel onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
-        blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
-        onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
-          chatSelection.current = sel ?? null;
-          // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)
-          if (merged) {
-            commit(next, true, true);
-            const n = merged.applied.length + merged.deferred.length, why = merged.deferred[0]?.reason;
-            setToast({ title: 'Chat turn merged with your edits', hint: `${merged.applied.length} of ${n} change${n > 1 ? 's' : ''} applied${merged.proposal ? `; ${merged.deferred.length} wait${merged.deferred.length > 1 ? '' : 's'} as ${merged.proposal}${why ? ` (${why})` : ''}` : ''}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
-            return;
-          }
-          // (Applied directly by the agent — at L2 only value edits — said so with an undo, D41.)
-          const direct = JSON.stringify(next.nodes) !== JSON.stringify(doc.nodes) || JSON.stringify(next.parameters) !== JSON.stringify(doc.parameters), what = direct ? describeChange(doc, next) : '';
-          commit(next);
-          if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
-        }}
-        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))} /></Suspense>}
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} extra={PALETTE_EXTRA} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
       {historyMenu && doc.nodes[historyMenu.index] && (() => {
@@ -2893,6 +2863,50 @@ export function App() {
           {toast.action && <div className="row-actions"><button className="ghost" onClick={toast.action.run}>{toast.action.label}</button></div>}</div>
         <button className="tool" aria-label="Dismiss" onClick={() => setToast(null)}><Icon name="close" small /></button>
       </div>}
+      </div>
+      {/* (G12a: the chat column, shown at the left (order: -1) and full height; after the stage in the document, so the top bar's
+          Chat button stays the first [aria-label="Chat"]. The centre — top bar, viewport and its bars — is the stage.) */}
+      <ChatColumn open={chat} width={layout.chatShown} onOpen={setChat} onWidth={layout.setChatWidth} openProposals={openProposals}
+        decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
+        proposals={!!doc.proposals?.length && <div className="chat-proposals" role="list" aria-label="Proposals"><div className="ol-head req-head">Proposals <span className="muted">{doc.proposals.filter(p => p.status === 'open').length} open</span>
+          <button className={'tool tiny' + (decidedShown ? ' on' : '')} aria-label="Show decided proposals" data-tip={decidedShown ? 'Open only' : 'Show accepted and rejected'} onClick={() => setDecidedShown(f => !f)}><Icon name="history" small /></button></div>
+        {doc.proposals.filter(p => decidedShown || p.status === 'open').map(p => {
+          const shown = ghost?.id === p.id, stale = p.status === 'open' && p.base !== hashNow, dv = shown ? volumeOf(ghost.bodies) - volumeOf(bodies) : 0, base = volumeOf(bodies);
+          return <div key={p.id} className={'proposal ' + p.status + ' risk-' + p.risk.level} role="listitem" aria-label={`Proposal ${p.id}`}>
+            <div className="proposal-title"><b>{p.id}</b> {p.title} <span className={'risk-badge ' + p.risk.level} title={`${p.risk.features_touched} features touched · ${p.risk.references_broken} references broken${p.risk.hard_requirements_changed.length ? ` · hard requirements ${p.risk.hard_requirements_changed.join(', ')}` : ''}${p.risk.approval.length ? ` · always needs approval: ${p.risk.approval.join(', ')}` : ''}`}>{p.risk.level} risk</span></div>
+            <div className="muted">{stale ? <b className="stale">stale · </b> : p.rebased ? 'rebased · ' : ''}{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''}{p.risk.approval.length ? ` · needs you (${p.risk.approval.join(', ')})` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
+            {p.plan && <div className="proposal-plan">{p.plan}</div>}
+            {shown && fresh && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
+            {shown && ghost.parts.length > 1 && <div className="proposal-parts" role="group" aria-label={`${p.id} features`}>{ghost.parts.map(q => <label key={q.id} className={'proposal-part ' + q.kind}>
+              <input type="checkbox" aria-label={`Keep ${q.id}`} disabled={q.kind === 'deleted' || proposalBusy} checked={!ghost.leaveOut.includes(q.id)} onChange={e => void tickPart(q.id, e.currentTarget.checked)} />
+              <span className="mono">{q.id}</span> {q.kind === 'added' ? '+' : q.kind === 'changed' ? '~' : '−'} {q.label}</label>)}</div>}
+            {p.status === 'open' ? <div className="proposal-actions">
+              <button className={'ghost small' + (shown ? ' on' : '')} disabled={proposalBusy || stale} onClick={() => void showProposal(p)}>{shown ? 'Hide' : 'Preview'}</button>
+              {shown && <button className="ghost small" aria-label="Before or after" onClick={flipGhost}>{ghost.after ? 'After' : 'Before'}</button>}
+              <span className="grow" />
+              <button className="ghost small" disabled={proposalBusy} onClick={() => rejectIt(p)}>Reject</button>
+              {stale ? <button className="primary small" disabled={proposalBusy} title="The part changed since this was proposed: make it again on the part as it is, and look before accepting" onClick={() => void rebaseIt(p)}>Rebase &amp; preview</button>
+                : <button className="primary small" disabled={proposalBusy} onClick={() => void acceptIt(p)}>{shown && ghost.leaveOut.length ? `Accept ${ghost.parts.length - ghost.leaveOut.length} of ${ghost.parts.length}` : 'Accept'}</button>}
+            </div> : <div className="muted">{p.status} by {p.decided?.by}{p.decided?.note ? ` · ${p.decided.note}` : ''}</div>}
+          </div>;
+        })}</div>}
+        content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
+        blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
+        onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
+          chatSelection.current = sel ?? null;
+          // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)
+          if (merged) {
+            commit(next, true, true);
+            const n = merged.applied.length + merged.deferred.length, why = merged.deferred[0]?.reason;
+            setToast({ title: 'Chat turn merged with your edits', hint: `${merged.applied.length} of ${n} change${n > 1 ? 's' : ''} applied${merged.proposal ? `; ${merged.deferred.length} wait${merged.deferred.length > 1 ? '' : 's'} as ${merged.proposal}${why ? ` (${why})` : ''}` : ''}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
+            return;
+          }
+          // (Applied directly by the agent — at L2 only value edits — said so with an undo, D41.)
+          const direct = JSON.stringify(next.nodes) !== JSON.stringify(doc.nodes) || JSON.stringify(next.parameters) !== JSON.stringify(doc.parameters), what = direct ? describeChange(doc, next) : '';
+          commit(next);
+          if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
+        }}
+        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))} /></Suspense>} />
     </div>
   );
 }

@@ -6464,7 +6464,61 @@ try {
   });
 
   // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------
+  await check('three columns (G12a): the chat column full height at the left — opened 360 px, dragged to 480, collapsed to its 44 px strip, collapsed by itself at 1024; nothing in the centre over it; no box with a left border alone and a radius', async () => {
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    const rect = sel => page.evaluate(s => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, width: b.width }; }, sel);
+    // (Everything placed in the stage stays right of the column and inside the window.)
+    const centreClear = () => page.evaluate(() => {
+      const col = document.querySelector('.chat-col').getBoundingClientRect(), bad = [];
+      for (const s of ['.topbar', '.toolbar', '.outliner', '.right-col', '.history', '.corner-right', '.corner-left']) {
+        const e = document.querySelector(s); if (!e) continue; const b = e.getBoundingClientRect(); if (!b.width) continue;
+        if (b.left < col.right - 0.5 || b.right > innerWidth + 0.5) bad.push([s, Math.round(b.left), Math.round(b.right), Math.round(col.right)]);
+      }
+      return bad;
+    });
+    // (The owner's rule: no box with a left border alone and a border-radius — a separator without a radius is fine.)
+    const leftBorders = () => page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+      const c = getComputedStyle(e), w = k => parseFloat(c[k]) || 0;
+      return w('borderLeftWidth') > 0 && !w('borderTopWidth') && !w('borderRightWidth') && !w('borderBottomWidth') && ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'].some(k => w(k) > 0);
+    }).map(e => e.className || e.tagName).slice(0, 5));
+    try {
+      await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(300);
+      if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
+      assert.equal(Math.round((await rect('.chat-col')).width), 44, 'collapsed to the strip');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      await page.click('[aria-label="Open chat"]'); await page.waitForSelector('.chat-col.open .chat', { timeout: 5000 }); await page.waitForTimeout(300);
+      const open = await rect('.chat-col');
+      assert.ok(Math.abs(open.width - 360) <= 1 && open.top === 0 && Math.abs(open.bottom - 900) <= 1, JSON.stringify(open));
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      assert.ok(Math.abs((await rect('.topbar')).left - open.right) <= 1, 'the top bar starts at the column');
+      await snap('three-columns-1440');
+      // (Dragged at its right edge: 480 px, kept within 320–520.)
+      const h = await rect('.chat-resize');
+      await page.mouse.move(h.left + 3, 400); await page.mouse.down(); await page.mouse.move(h.left + 123, 400, { steps: 6 }); await page.mouse.up(); await page.waitForTimeout(300);
+      assert.ok(Math.abs((await rect('.chat-col')).width - 480) <= 2, JSON.stringify(await rect('.chat-col')));
+      await page.mouse.move(h.left + 123, 400); await page.mouse.down(); await page.mouse.move(h.left + 400, 400, { steps: 6 }); await page.mouse.up(); await page.waitForTimeout(300);
+      assert.ok(Math.abs((await rect('.chat-col')).width - 520) <= 2, 'at most 520');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      { const bad = await leftBorders(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      // (1024: chat and dock no longer both fit — the column collapses by itself; opened again, it holds.)
+      await page.setViewportSize({ width: 1024, height: 800 }); await page.waitForTimeout(400);
+      assert.equal(Math.round((await rect('.chat-col')).width), 44, 'collapsed by itself at 1024');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      await snap('three-columns-1024');
+      await page.click('[aria-label="Open chat"]'); await page.waitForSelector('.chat-col.open', { timeout: 5000 }); await page.waitForTimeout(300);
+      assert.ok((await rect('.chat-col')).width > 300, 'opened again at 1024');
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      await page.setViewportSize({ width: 800, height: 800 }); await page.waitForTimeout(400);
+      { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
+      // (Back to the default width, collapsed: as the other steps expect.)
+      await page.evaluate(() => { localStorage.removeItem('studio.chatWidth'); });
+      if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('bottom row: the history bar and the view bar never overlap at 1440 × 900, 1280 × 800, 1024 and 800 — beside each other with room, else the history stacked above; the Display popover over neither', async () => {
+    // (The chat column collapsed: the bar's room is the stage's, beside the column.)
+    if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
     // (A part with five history steps: CNC8's plate and pocket.)
     await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
     const meets = (a, b) => a && b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;

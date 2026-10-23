@@ -1,4 +1,6 @@
-.chat { position: absolute; left: 66px; top: 50px; width: 340px; max-height: calc(100vh - 140px); padding: 8px; display: flex; flex-direction: column; z-index: 3; }
+/* (G12a: in the chat column, full height: no longer placed over the viewport.) */
+.chat { padding: 8px; display: flex; flex-direction: column; min-height: 0; }
+.chat-col .chat.card { border: 0; border-radius: 0; box-shadow: none; background: transparent; backdrop-filter: none; }
 .chat .card-title .tool.small { width: 22px; height: 22px; }
 .chat-log { flex: 1; min-height: 60px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 2px; font-size: 12px; line-height: 1.45; }
 .chat-msg { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -29,5 +31,3 @@
 .chat-thumb { position: relative; }
 .chat-thumb button { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-solid); color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
 .chat-input .tool { flex: none; }
-/* Beside the browser when it is open (both sit at the left). */
-body:has(.outliner:not(.closed)) .chat { left: 284px; }

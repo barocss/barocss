@@ -2691,3 +2691,39 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   2 000 000-triangle cap.
 - **Unit difference (O10's note 2)**: WebGPU's line counts are 5–20× WebGL2's on curved parts. The GPU contour draws
   one instance per curved-face triangle.
+
+## G-R43 — G12a: the three-column shell, the chat column, the proposal cards in it (roadmap G12, 2026-10-24)
+
+- **Commit**: it landed as one commit, 85625038e ("wip … to be split"). The split into an App.tsx commit and the rest was
+  refused here as history rewriting (hard reset, then revert). The later G12 steps keep App.tsx in their own commits.
+- **Shell**: `.studio` is a flex row of the chat column and `.stage`.
+  - `.stage` (the centre) holds the top bar, the viewport and everything placed over it, positioned as before but
+    within the centre.
+  - `100vw`-based widths became `100%`.
+  - The column comes after the stage in the document, shown at the left by `order: -1`. The top bar's Chat button
+    stays the first `[aria-label="Chat"]`, because the chat panel has that label too.
+- **Chat column** (`layout/ChatColumn.tsx`, `layout/useLayout.ts`):
+  - Full height. 360 px by default, dragged at its right edge within 320–520 px and kept per viewer.
+  - The width shown leaves the centre at least 560 px.
+  - Collapsed, it is a 44 px strip laid over the stage's left edge, so the canvas keeps the window's width. Pixel-based
+    sketch and drawing steps (18, 204) depend on that; `--strip-w` moves the stage's left-anchored parts past the strip.
+  - Collapsed by itself when the window narrows past chat + dock + 560 px. That happens at 1024; an open made after it
+    holds.
+- **Proposals** moved from the Browser into the column, over the chat.
+  - While one is open, the column shows it with the chat open or not.
+  - The decided ones are reached from the strip's "Show decided proposals".
+  - The cards drop the left-border-and-radius style (the owner's rule) for an even 1 px border and a tinted risk chip.
+- **Also**:
+  - The view bar wraps onto a second row in a narrow centre instead of running under the column.
+  - The bottom row measures the stage less the strip.
+  - The file-name chip gives way first in a tight top bar.
+- **Checks**:
+  - New flow step "three columns (G12a)": open 360, drag to 480 and 520, collapse to 44, collapsed by itself at 1024,
+    nothing in the centre over the column at 1440/1024/800, and no box with a left border alone and a radius. It passes
+    on WebGPU and WebGL2.
+  - The chat, proposal, bottom-row, narrow-top-bar, concentric-arcs and R14.1 steps pass on WebGPU; the layout ones also
+    on WebGL2.
+  - Studio unit 274/274, tsc and eslint clean, check:docs clean.
+  - A full WebGPU flow run before the strip became an overlay showed 18 and 204 shifting; both pass now.
+  - "shapes strip" and "R14.4" fail before G12a as well, at 09ef149d4 in the scratch worktree: pre-existing, not from
+    this step.
