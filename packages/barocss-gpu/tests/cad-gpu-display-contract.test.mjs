@@ -45,7 +45,7 @@ function fixture() {
     raycast: () => null,
   };
   const renderer = Object.create(GpuRenderer.prototype);
-  Object.assign(renderer, {
+  Object.assign(renderer, { tally: { tracking: false },
     viewer, canvas: { clientWidth: 320, clientHeight: 200 }, displayMode: { requested: 'shaded-with-edges', effective: 'shaded-with-edges', supported: true },
     theme: { base: [0.74, 0.75, 0.78], edge: [0.05, 0.05, 0.06], ao: 0.9, shadow: 0.45 }, aoEnabled: true, interacting: false,
     settings: null, analysis: null, scalarMaps: null, instances: [], direct: [], proposalMeshes: [], mould: null, controls: [], regions: [], poses: null, instancePreview: null,

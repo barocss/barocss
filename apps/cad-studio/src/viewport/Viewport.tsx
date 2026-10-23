@@ -10,6 +10,7 @@ import { printPointToModel, printSceneBounds, projectPrintBodies } from './print
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
+import type { FrameCost } from './frameCost';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
@@ -58,6 +59,10 @@ export interface ViewportHandle {
   overlayTexts(): Record<string, string[]>;
   /** G25: the GPU device for the analyses' compute passes (WebGPU only), else null. */
   computeDevice(): object | null;
+  /** O10: count each body's draws in the frames drawn (off by default; read-only — nothing drawn changes). */
+  trackFrameCost(on: boolean): void;
+  /** O10: the last frame tracked in each display mode, for the bodies shown now (work counts, not time; empty before a renderer). */
+  frameCosts(): Partial<Record<DisplayMode, FrameCost>>;
 }
 
 /** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
@@ -376,6 +381,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const props = useMemo(() => projection ? printViewportProps(sourceProps, projection, printSel!, printColors) : sourceProps.printActive ? { ...sourceProps, bodies: NO_BODIES, selection: NO_SELECTION, gizmo: null, handles: NO_HANDLES, profiles: NO_PROFILES, threads: undefined, underlays: undefined, cloud: null, poles: undefined } : sourceProps, [sourceProps, projection, printSel, printColors]);
   const canvas = useRef<HTMLCanvasElement>(null);
   const renderer = useRef<ViewRenderer | null>(null);
+  // (O10: tracking asked for before the renderer is made applies to it once it is.)
+  const frameCostOn = useRef(false);
   const [backend, setBackend] = useState<'webgpu' | 'webgl2' | null>(null);
   const [displayStatus, setDisplayStatus] = useState<DisplayModeStatus | null>(null);
   const theme = useRef<ThemeName>('dark'), ao = useRef(true);
@@ -498,7 +505,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     let live = true, observer: ResizeObserver | null = null;
     const start = (r: ViewRenderer, name: 'webgpu' | 'webgl2') => {
       if (!live) { r.dispose?.(); return; }
-      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current; r.setRequestHost?.(() => requestRef.current());
+      renderer.current = r; r.setTheme(theme.current); r.aoEnabled = ao.current; r.trackFrameCost(frameCostOn.current); r.setRequestHost?.(() => requestRef.current());
       observer = new ResizeObserver(request); observer.observe(canvas.current!);
       setBackend(name);
     };
@@ -654,6 +661,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       return { ...hit, segments: segs };
     };
     w.__studioEye = () => camera.current.eye();
+    // (O10, for the flow: tracking on or off, and the last frame tracked in each display mode.)
+    w.__studioFrameCost = (on?: boolean) => { if (on !== undefined) { frameCostOn.current = on; renderer.current?.trackFrameCost(on); requestRef.current(); } return renderer.current?.frameCosts() ?? {}; };
     w.__studioDirectAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickDirect?.(q[0], q[1], camera.current) ?? null; };
     w.__studioInstanceAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceFace?.(q[0], q[1], camera.current) ?? null; };
     w.__studioInstanceEdgeAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceEdge?.(q[0], q[1], camera.current) ?? null; };
@@ -743,6 +752,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     overlayLines() { return renderer.current?.overlayLines?.() ?? {}; },
     overlayTexts() { return renderer.current?.overlayTexts?.() ?? {}; },
     computeDevice() { return renderer.current?.computeDevice?.() ?? null; },
+    trackFrameCost(on) { frameCostOn.current = on; renderer.current?.trackFrameCost(on); request(); },
+    frameCosts() { return renderer.current?.frameCosts() ?? {}; },
   }));
 
   const local = (e: { clientX: number; clientY: number }) => {

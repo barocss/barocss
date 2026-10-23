@@ -2545,3 +2545,58 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - WebGPU: 2.03 % of the canvas changed for the map; print 11.73 % shown, 5.60 % moved.
   - WebGL2: 2.12 %; print 12.39 % shown, 5.65 % moved.
   - studio tsc 0, eslint 0 on the changed source.
+
+## G-R39 — O10's GPU part: each body's frame cost by display mode, read-only (O10, 2026-10-23)
+
+- **Shape**: as approved by the coordinator. Off by default; while off, one branch per draw. Read-only: the tally only
+  counts what a frame already draws.
+- **Viewer (packages/barocss-gpu)**:
+  - `viewer.costs` turns the counting on and off.
+  - `viewer.meshCosts(): ReadonlyMap<Mesh, MeshCost>` gives `{ draws, triangles, lines, points, passes }`.
+  - `FramePass` is one of shadow, surface, transparent, oit, hiddenLines, caps, outlineMask; `FRAME_PASSES` is
+    exported.
+- **Viewer records**:
+  - Kept between frames on the mesh (`Mesh.cost`, internal) and in the map.
+  - Made when a mesh is first drawn counting; dropped by `remove`/`clear`.
+  - Zeroed as each counted frame begins.
+  - No per-frame Map, object or closure in the draw loop: the tally is in drawTriangles, drawMesh, drawHiddenLines and
+    drawMapped behind `if (this.counting)`.
+  - The pass is a field set where each pass begins. Caps count with their probes; the mask's caps count as
+    outlineMask; the light probe counts as shadow.
+- **Studio (`viewport/frameCost.ts`)**, the same shape on both renderers:
+  - `trackFrameCost(on)`.
+  - `frameCosts(): Partial<Record<DisplayMode, FrameCost>>`: the last frame tracked in each mode, for the bodies shown
+    now.
+  - `FrameCost` is `{ renderer, mode, frame, cpuMs, bodies: BodyCost[], scene }`; `BodyCost` adds `key` and `share`.
+- **How each renderer fills it**:
+  - gpuRenderer maps the viewer's per-mesh counts after each frame. A root body counts its surface, edges, highlight
+    and silhouette. A copy counts its own surface, silhouette, edges and threads under `${instanceId}/${bodyKey}`,
+    through shared geometry or not (G10). The scene is everything else.
+  - renderer.ts (WebGL2) counts its own draws through a `T` that is null when off. Its scene counts the draws its render
+    makes itself (background, grid, ground shadow, direct geometry, proposals, the AO composite). Overlay helpers are not
+    counted, as the doc comment says.
+- **Handle**: ViewportHandle forwards `trackFrameCost`/`frameCosts`; tracking asked for before a renderer is made applies
+  once it is. The DEV hook is `__studioFrameCost(on?)`.
+- **Stated limit**: work counts plus the frame's CPU time only. There is no per-body GPU time. A whole-frame gpuMs is
+  left for later.
+- **What the counts showed** on the clearance fixture (10 bodies, 8 placed copies):
+  - Wireframe draws the surfaces' triangles on both renderers, for the depth the edges are classified against. My
+    proposal's "wireframe: 0 surface triangles" was wrong; the step checks lines > 0 there instead.
+  - WebGPU counts 11378 lines against WebGL2's 1220. The GPU contour (G8) draws one instance per curved-face triangle,
+    and WebGL2's CPU silhouette draws its segments.
+  - On WebGPU in shaded mode, the edges and silhouettes are see-through lines, so the transparent pass has draws there
+    too. The x-ray check compares x-ray's see-through draws with shaded's.
+  - A copy's key is the studio's instance evaluation key (`i1/b2` here). The clearance worker names the same body
+    `i1/b1`, because it evaluates the source document its own way. The outer lane's panel and the agent query should
+    know which key they join on.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189.
+  - Browser specs: viewer-costs 1/1 (new), viewer 1/1, pose-clip 18/18.
+  - The three adapter tests that build a GpuRenderer from a field list gained `tally: { tracking: false }`;
+    cad-gpu-display-contract, cad-clearance-gpu and cad-print-overlay pass 23/23.
+  - studio: tsc 0, eslint 0, unit 268/268.
+- **Flow** (FLOW_ONLY):
+  - O10 (step 275) passes on WebGPU and WebGL2. It covers the five modes, each copy's own draws, x-ray see-through,
+    dashed hidden lines, shares, and that nothing is counted once off.
+  - G3 display modes (270) passes on both.
+  - On WebGL2, step 1 failed once (`/Hole Ø8/`) and passed on the rerun.

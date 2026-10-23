@@ -7664,6 +7664,56 @@ try {
     await display.click();
   });
 
+  // ---- O10 (GPU part): each body's frame cost by display mode, read from the renderer — the same shape on either ----------
+  await check('O10 frame costs: the clearance fixture\'s 10 bodies (8 placed copies) in each display mode — each copy its own draws, x-ray see-through, dashed hidden lines, shares of the primitives; off, nothing more counted', async () => {
+    const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
+    await openModel(join(root, 'test/fixtures/clearance-states.bcad'), 2, 60000); await idle(); await iso();
+    await page.waitForFunction(() => !document.querySelector('select[aria-label="CAD display mode"]')?.disabled, null, { timeout: 5000 }).catch(() => {});
+    const display = page.locator('[aria-label="Display and previews"]');
+    if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+    const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
+    await page.evaluate(() => window.__studioFrameCost(true));
+    const costs = {};
+    for (const mode of modes) {
+      await page.selectOption('select[aria-label="CAD display mode"]', mode);
+      await page.waitForFunction(m => document.querySelector('select[aria-label="CAD display mode"]')?.dataset.displayModeEffective === m, mode, { timeout: 10000 });
+      await page.waitForFunction(m => (window.__studioFrameCost()[m]?.bodies.length ?? 0) >= 10, mode, { timeout: 15000 });
+      await page.waitForTimeout(300);
+      costs[mode] = await page.evaluate(m => window.__studioFrameCost()[m], mode);
+    }
+    const by = (mode, key) => costs[mode].bodies.find(b => b.key === key);
+    const sum = (b, ...ps) => ps.reduce((n, p) => n + b.passes[p], 0);
+    for (const mode of modes) {
+      const c = costs[mode], keys = c.bodies.map(b => b.key).sort();
+      console.log(`  O10 (${renderer}) ${mode}: ${c.bodies.length} bodies, ${c.bodies.reduce((n, b) => n + b.draws, 0)} body draws, ${c.bodies.reduce((n, b) => n + b.triangles, 0)} triangles, ${c.bodies.reduce((n, b) => n + b.lines, 0)} lines; scene ${c.scene.draws} draws; ${c.cpuMs.toFixed(2)} ms CPU; b0 ${JSON.stringify(by(mode, 'b0').passes)}`);
+      assert.deepEqual([c.renderer, c.mode], [renderer, mode], JSON.stringify([c.renderer, c.mode]));
+      // (A copy's key is its instance's id and its body's key as the studio evaluates the instance's part.)
+      assert.deepEqual(keys.map(k => k.split('/')[0]), ['b0', 'b1', ...[1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}`)], keys.join(','));
+      assert.equal(new Set(keys.filter(k => k.includes('/')).map(k => k.split('/')[1])).size, 1, keys.join(','));
+      // (Each copy counts its own draw and primitives, through one shared geometry or not: the eight boxes the same.)
+      const copies = c.bodies.filter(b => b.key.startsWith('i'));
+      assert.ok(copies.every(b => b.draws > 0 && b.triangles === copies[0].triangles && b.lines === copies[0].lines), `${mode}: ${JSON.stringify(copies.map(b => [b.key, b.draws, b.triangles, b.lines]))}`);
+      const shares = c.bodies.reduce((n, b) => n + b.share, 0);
+      assert.ok(shares > 0 && shares <= 1 + 1e-9 && c.bodies.every(b => b.share > 0), `${mode}: shares ${shares}`);
+    }
+    // (X-ray: the surfaces see-through too — more see-through draws than shaded, whose faint lines are already so on
+    // WebGPU. Dashed: the hidden lines drawn again; shaded: not.)
+    const copy1 = costs[modes[0]].bodies.find(b => b.key.startsWith('i1/')).key;
+    for (const key of ['b0', copy1]) {
+      assert.ok(sum(by('x-ray', key), 'transparent', 'oit') > sum(by('shaded-with-edges', key), 'transparent', 'oit'), `x-ray ${key}: ${JSON.stringify([by('x-ray', key), by('shaded-with-edges', key)])}`);
+      assert.equal(by('shaded-with-edges', key).passes.hiddenLines, 0);
+      assert.ok(by('hidden-lines-dashed', key).passes.hiddenLines > 0, `dashed ${key}: ${JSON.stringify(by('hidden-lines-dashed', key))}`);
+      assert.ok(by('wireframe', key).lines > 0);
+    }
+    // (Off: frames drawn after it are not counted.)
+    const last = costs[modes[modes.length - 1]].frame;
+    await page.evaluate(() => window.__studioFrameCost(false));
+    await page.selectOption('select[aria-label="CAD display mode"]', 'shaded-with-edges'); await page.waitForTimeout(400);
+    const after = await page.evaluate(() => window.__studioFrameCost());
+    assert.ok(Object.values(after).every(c => c.frame <= last), JSON.stringify(Object.values(after).map(c => [c.mode, c.frame, last])));
+    await display.click();
+  });
+
   await check('command palette and light theme', async () => {
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('[aria-label="Measurement"]'));
     await press(' '); await page.locator('.palette input').fill('draft');
