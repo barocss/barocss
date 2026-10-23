@@ -2244,3 +2244,49 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - studio tsc 0 (after the merge), eslint 0, unit 266/266.
   - FLOW_ONLY on both renderers (load 23–37), all pass: constraints, tool keys, a hole by dimensions, a box's arrows, an
     instance placed, Bearing R12c.4, the narrow top bar, the shapes strip, the palette.
+
+## G-R28 — step 258's WebGPU count after G8's contours (G10, 2026-10-23)
+
+- **The failure** (the coordinator's full window at 218c5604a, WebGPU): "each its own: 46 more geometries". The scene's
+  geometries went 4 → 73 when each copy got its own mesh. Pixels and picks were the same (strong 0, max 1; 255 hits,
+  0 differ).
+- **Why**: G8 (G-R21) draws a curved face's silhouette as a contour geometry, one for each mesh source, shared by
+  copies of it. A copy with its own mesh has its own contour too: 23 more, beside the 46 surfaces and edges. The code
+  is right; the step's count predates G8. My G10 reruns were on WebGL2 only, so they did not see it.
+- **The step now** counts the contours apart: 1 shared, then 24, one a copy. The other geometries are still 46 more.
+- **FLOW_ONLY 258** (load 26–28), passing on both renderers:
+  - WebGPU: contours 1 → 24, geometries 4 → 73;
+  - WebGL2: as G-R23.
+
+## G-R29 — R2a: per-frame allocations in the viewer and both studio renderers (roadmap R2, 2026-10-23)
+
+- **gpu viewer** (`viewer.ts`, `lights.ts`):
+  - The shadow pass's two per-caster dynamic-offset arrays and the grid's `[0]` now go through the module's
+    `dynamicOffset`, as every other draw does.
+  - The four `for (const list of [opaque, transparent])` loops no longer make an array a call. One test inside them
+    (`list === transparent`) is now `l === 1`.
+  - `opaque.some(m => …)` / `casters.some(m => …)`, closures a frame, are now `anyCapped` / `anyGhostCapped` loops.
+  - `packOutput` writes into a kept block (`into`, zeroed first) instead of a new ArrayBuffer a frame. Its outline
+    colours are written without the `slice`/`forEach`/spread arrays.
+  - The shadow frame's `packFrame` call writes into a kept block. Its light list and viewport are constants (`[1, 1, 1]`,
+    as before).
+  - The same values are written in the same order.
+- **studio WebGL2 renderer** (`renderer.ts`): the instances' and the bodies' draw loops are index loops, in place of
+  `forEach` closures and `entries()` pairs, with `return` → `continue`. The edge colour is passed without a spread. The
+  bounds' corners are taken without a `.map` array a corner.
+- **studio WebGPU renderer**: the silhouettes' seen set is kept and cleared, made on first use for the contract test's
+  field-less fixture.
+- **Left as they are, with the reason**:
+  - `pipelineKey`: a per-mesh cache would have to follow `geometry.data.scalars`, which changes without touching the
+    mesh, `colorMap` and the shader pipelines' lazy compiles. That is a wrong-pipeline risk for a few short strings.
+  - `gridFrame`, made twice a frame: one small object. A cache would have to follow the grid's fields and the distance.
+  - The WebGPU renderer's camera, lights and environment objects a frame: the viewer's change checks lean on them
+    (`target` is copied so the studio's array is never aliased). Reusing them risks those checks for little.
+- **Bench** (load 21 → 17, LOADED): explode 14.3 ms of task a frame (19.7 at G-R27); pick 39.0 (48.0); ghosted orbits
+  2.5; section drag 21.8. The pose row, App state each frame, waits for R1c (3).
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189. Browser specs, one file each, all pass: viewer, scene-viewer, pose-clip 18/18,
+    cap-aa 3/3, contour, uv-repeating.
+  - studio: tsc 0, eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers, all pass: instance place and drag, the section steps (73, G19.2, G19.4, G20.2), K2 L
+    gap, G3 and G24. On WebGPU 258 failed until G-R28, then passed.

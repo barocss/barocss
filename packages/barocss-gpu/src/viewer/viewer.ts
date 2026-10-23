@@ -1478,7 +1478,7 @@ export class Viewer {
     const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
     this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, shadow, vpt, this.gridFrame(), this.clip, frameBlock));
     if (shadow) {
-      const f = packFrame(shadow.viewProjection, this.camera, [], this.environment, null, [1, 1, 1], null, this.clip);
+      const f = packFrame(shadow.viewProjection, this.camera, NO_LIGHTS, this.environment, null, SHADOW_VIEWPORT, null, this.clip, shadowFrameBlock);
       // (Seen from the light — orthographic, along its direction: the caps' entry into the kept region along its rays, G19.4.)
       if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
       this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, f);
@@ -1579,6 +1579,9 @@ export class Viewer {
 
   /** Whether a mesh's cut is capped this frame: a clip plane, an opaque closed triangle mesh it clips. */
   private capped(m: Mesh): boolean { return !!this.clip && m.cap && m.clipped && m.geometry.topology === 'triangles' && !m.transparent; }
+  /** Whether any of a list is capped this frame (R2: a loop, not a closure a frame). */
+  private anyCapped(list: readonly Mesh[]): boolean { for (const m of list) if (this.capped(m)) return true; return false; }
+  private anyGhostCapped(list: readonly Mesh[]): boolean { for (const m of list) if (this.ghostCapped(m)) return true; return false; }
   /** A see-through mesh capped (G19.4, a ghost): its caps in the order-independent pass (none in the sorted one). */
   private ghostCapped(m: Mesh): boolean { return !!this.clip && this.orderIndependent && m.cap && m.clipped && oitSurface(m); }
   /** In the caps' probe: the opaque capped meshes and the see-through ones (whose entry it is inside decides either's cap). */
@@ -1590,7 +1593,7 @@ export class Viewer {
    * pick's pixel.
    */
   private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null): void {
-    if (!this.clip || (!opaque.some(m => this.capped(m)) && !transparent.some(m => this.ghostCapped(m)))) return;
+    if (!this.clip || (!this.anyCapped(opaque) && !this.anyGhostCapped(transparent))) return;
     const t = this.ensureTargets();
     if (!scissor) this.ensureCapSamples(t);
     // Keep the single-sample probe for picks and outline masks. Scene caps additionally read their
@@ -1604,7 +1607,7 @@ export class Viewer {
       if (scissor) pass.setScissorRect(scissor[0], scissor[1], 1, 1);
       pass.setBindGroup(0, this.frameGroupBare);
       pass.setPipeline(this.pipelines.get(samples ? 'capFrontSamples' : 'capFront')!);
-      for (const list of [opaque, transparent]) for (const m of list) {
+      for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) {
         if (!this.probed(m) || !this.upload(m.geometry)) continue;
         { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
         this.drawTriangles(pass, m, false);
@@ -1654,7 +1657,7 @@ export class Viewer {
 
   /** The grid, drawn in the main pass after the opaque surfaces. */
   private drawGrid(pass: RenderPass, current: { pipeline?: Pipeline }): void {
-    pass.setPipeline(this.pipelines.get('grid')!); pass.setBindGroup(1, this.objectGroup, [0]); current.pipeline = undefined; pass.draw(3);
+    pass.setPipeline(this.pipelines.get('grid')!); { dynamicOffset[0] = 0; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } current.pipeline = undefined; pass.draw(3);
   }
   /** Whether the shadow map must be drawn again: the light's view or a caster changed since it was (recorded when so). */
   private shadowChanged(viewProjection: ArrayLike<number>, casters: readonly Mesh[]): boolean {
@@ -1723,7 +1726,8 @@ export class Viewer {
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
     this.writeUniforms(vp, shadow);
-    this.device.queue.writeBuffer(this.outputBuffer, 0, new Uint8Array(packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea)));
+    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock);
+    this.device.queue.writeBuffer(this.outputBuffer, 0, outputBytes);
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
     // (The shadow map is drawn again only when the light's view or a caster changed.)
@@ -1731,7 +1735,7 @@ export class Viewer {
     if (shadow) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
     if (shadow && this.shadowMap && this.shadowChanged(shadow.viewProjection, casters)) {
       // (G19.4: the capped casters' caps too — first the probe from the light, into the shadow map's own depth.)
-      const capping = this.clip ? casters.some(m => this.capped(m)) : false;
+      const capping = this.clip ? this.anyCapped(casters) : false;
       if (capping) this.drawLightProbe(enc, casters);
       // Every shadow caster, in view or not.
       const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
@@ -1739,14 +1743,14 @@ export class Viewer {
       sp.setPipeline(this.pipelines.get('shadow')!);
       for (const m of casters) {
         if (!this.upload(m.geometry)) continue;
-        sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+        { dynamicOffset[0] = m.slot * OBJECT_STRIDE; sp.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
         this.drawTriangles(sp, m, false);
       }
       if (capping && this.shadowCapGroup) {
         sp.setPipeline(this.pipelines.get('shadowCap')!);
         for (const m of casters) {
           if (!this.capped(m) || !m.geometry.gpu) continue;
-          sp.setBindGroup(1, this.objectGroup, [m.slot * OBJECT_STRIDE]);
+          { dynamicOffset[0] = m.slot * OBJECT_STRIDE; sp.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
           this.drawTriangles(sp, m, false);
         }
       }
@@ -1768,9 +1772,9 @@ export class Viewer {
     let tris = 0, lines = 0, points = 0;
     // Opaque surfaces and their caps, the grid (tested against them), then lines and transparent meshes over it.
     let opaqueDone = false, caps = 0;
-    for (const list of [opaque, transparent]) for (const m of list) {
+    for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) {
       // (In the order-independent frame the transparent list waits for its passes, but for shadow catchers: they darken the ground.)
-      if (oit && list === transparent && !m.material.shadowOnly) continue;
+      if (oit && l === 1 && !m.material.shadowOnly) continue;
       if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
@@ -1831,7 +1835,7 @@ export class Viewer {
         if (x1 > x0 && y1 > y0) mask.setScissorRect(x0, y0, x1 - x0, y1 - y0);
       }
       const cur: { pipeline?: Pipeline } = {};
-      for (const list of [opaque, transparent]) for (const m of list) {
+      for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) {
         if (m.geometry.topology !== 'triangles' || (m.transparent && !m.outlineSlot)) continue;
         if (a && !m.outlineSlot && m.bounds && boxMissesRect(vp, m.bounds, a, W, H)) continue;
         this.drawMesh(mask, m, cur, 'mask');
@@ -1925,7 +1929,7 @@ export class Viewer {
     pass.setScissorRect(px, py, 1, 1);
     pass.setBindGroup(0, this.frameGroup);
     const current: { pipeline?: Pipeline } = {};
-    for (const list of [opaque, transparent]) for (const m of list) if (m.pickable && m.geometry.topology === 'triangles') this.drawMesh(pass, m, current, true);
+    for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) if (m.pickable && m.geometry.topology === 'triangles') this.drawMesh(pass, m, current, true);
     this.drawCaps(pass, opaque, current, 'capPick');
     this.drawCaps(pass, transparent, current, 'capPick');
     pass.end();
@@ -2281,6 +2285,10 @@ function boxMissesRect(m: ArrayLike<number>, b: Box3, r: readonly number[], w: n
 }
 // (G13: scratch kept across frames — the object block's normal matrix, its 32-bit words, a draw's dynamic offset.)
 const packNormal = new Float64Array(16), dynamicOffset = new Uint32Array(1), frameBlock = new Float32Array(FRAME_BYTES / 4), frameViewport = [1, 1, 1, 0];
+// (R2: the shadow pass's frame block and the output block, kept from frame to frame like frameBlock; the shadow frame's
+// arguments as constants.)
+const shadowFrameBlock = new Float32Array(FRAME_BYTES / 4), outputBlock = new ArrayBuffer(OUTPUT_BYTES), outputBytes = new Uint8Array(outputBlock);
+const NO_LIGHTS: readonly Light[] = [], SHADOW_VIEWPORT: readonly number[] = [1, 1, 1];
 const packViews = new WeakMap<ArrayBuffer, Uint32Array>();
 const packWords = (f: Float32Array): Uint32Array => { let u = packViews.get(f.buffer as ArrayBuffer); if (!u) { u = new Uint32Array(f.buffer); packViews.set(f.buffer as ArrayBuffer, u); } return u; };
 // (The scene trees' candidates, reused a pick: leaves, where a ray enters them, their order by entry; G9.)

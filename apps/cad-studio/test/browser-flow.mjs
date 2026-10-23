@@ -6771,9 +6771,11 @@ try {
       const at = Array.from({ length: 400 }, (_, k) => { const b = boxes[k % boxes.length]; return [b[0] + rand() * (b[2] - b[0]), b[1] + rand() * (b[3] - b[1])]; });
       const settle = () => new Promise(done => setTimeout(done, 400));
       const picks = () => at.map(([x, y]) => { const h = v.raycast(x, y); return h && { name: h.mesh.name, tri: h.triangle, p: h.point }; });
-      await v.frame(); const a = await v.capture(), pa = picks(), geoA = new Set(v.meshList.map(m => m.geometry)).size;
+      // (G8: a curved face's silhouette is a contour geometry, one for each mesh source — counted apart.)
+      const contours = () => new Set(v.meshList.filter(m => m.geometry.data.contour).map(m => m.geometry)).size;
+      await v.frame(); const a = await v.capture(), pa = picks(), geoA = new Set(v.meshList.map(m => m.geometry)).size, contourA = contours();
       window.__studioShareCopies(false); await settle(); await v.frame();
-      const b = await v.capture(), pb = picks(), geoB = new Set(v.meshList.map(m => m.geometry)).size;
+      const b = await v.capture(), pb = picks(), geoB = new Set(v.meshList.map(m => m.geometry)).size, contourB = contours();
       window.__studioShareCopies(true); await settle();
       let strong = 0, max = 0;
       for (let i = 0; i < a.data.length; i += 4) { const d = Math.abs(a.data[i] - b.data[i]) + Math.abs(a.data[i + 1] - b.data[i + 1]) + Math.abs(a.data[i + 2] - b.data[i + 2]); if (d > 96) strong++; if (d > max) max = d; }
@@ -6784,12 +6786,13 @@ try {
         if (!x !== !y || (x && (x.name !== y.name || x.tri !== y.tri))) { differ++; continue; }
         if (x) gap = Math.max(gap, Math.hypot(x.p[0] - y.p[0], x.p[1] - y.p[1], x.p[2] - y.p[2]));
       }
-      return { pixels: a.data.length / 4, strong, max, hits, differ, gap, geoA, geoB };
+      return { pixels: a.data.length / 4, strong, max, hits, differ, gap, geoA, geoB, contourA, contourB };
     });
     console.log(`  G10 oracle: ${JSON.stringify(r)}`);
     assert.ok(r.strong <= r.pixels * 0.001, `the same frame: ${r.strong} of ${r.pixels} pixels differ by more than 96 (max ${r.max})`);
     assert.ok(r.hits > 100 && r.differ === 0 && r.gap < 1e-3, `the same picks ${JSON.stringify(r)}`);
-    assert.ok(r.geoB - r.geoA === 46, `each its own: 46 more geometries ${JSON.stringify(r)}`);
+    assert.deepEqual([r.contourA, r.contourB], [1, 24], `a silhouette contour for the shared mesh, then one a copy ${JSON.stringify(r)}`);
+    assert.ok(r.geoB - r.geoA - (r.contourB - r.contourA) === 46, `each its own: 46 more surface and edge geometries ${JSON.stringify(r)}`);
     await snap('g10-copies');
     // Copy 5 edited (its second hole moved): its own geometries; the other 23 kept as they were.
     fs.writeFileSync(file, JSON.stringify(ring(true)));

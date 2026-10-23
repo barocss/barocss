@@ -736,9 +736,10 @@ export class Renderer implements ViewRenderer {
       this.instanceMatrix(it, bi, false);
       const box = it.bodies[bi].gpu.result.mesh.bounds;
       for (let corner = 0; corner < 8; corner++) {
-        const p = [0, 1, 2].map(k => corner & (1 << k) ? box.max[k] : box.min[k]);
+        // (R2: the corner's coordinates, not an array a corner.)
+        const p0 = corner & 1 ? box.max[0] : box.min[0], p1 = corner & 2 ? box.max[1] : box.min[1], p2 = corner & 4 ? box.max[2] : box.min[2];
         for (let k = 0; k < 3; k++) {
-          const x = this.model[k] * p[0] + this.model[4 + k] * p[1] + this.model[8 + k] * p[2] + this.model[12 + k];
+          const x = this.model[k] * p0 + this.model[4 + k] * p1 + this.model[8 + k] * p2 + this.model[12 + k];
           min[k] = Math.min(min[k], x); max[k] = Math.max(max[k], x);
         }
       }
@@ -837,12 +838,14 @@ export class Renderer implements ViewRenderer {
       if (this.instances.length) {
         gl.useProgram(this.mesh); gl.depthMask(pass === 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0); gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? 0.25 : 1) * (pass === 1 ? 0.15 : 1));
         gl.uniform3fv(this.u(this.mesh, 'uBase'), t.base);
-        for (const it of this.instances) it.bodies.forEach(({ gpu }, bi) => {
-          if (this.fadedInstance(it.item.id) !== (pass === 1)) return;
+        // (R2: index loops, not a closure for each copy in each frame.)
+        for (const it of this.instances) for (let bi = 0; bi < it.bodies.length; bi++) {
+          const gpu = it.bodies[bi].gpu;
+          if (this.fadedInstance(it.item.id) !== (pass === 1)) continue;
           this.placeInstance(this.mesh, it, bi);
           gl.uniform1f(this.u(this.mesh, 'uBodySel'), this.instanceSelection.includes(it.item.id) ? 1 : 0);
           gl.bindVertexArray(gpu.vao); gl.drawElements(gl.TRIANGLES, gpu.count, gl.UNSIGNED_INT, 0);
-        });
+        }
       }
     }
     gl.colorMask(true, true, true, true);
@@ -860,7 +863,8 @@ export class Renderer implements ViewRenderer {
     // Appearance passes never replace the nearest surface depth used to classify the next edge.
     if (mode !== 'shaded-with-edges' || view.isolatedInstances?.length) gl.depthMask(false);
     if (mode === 'wireframe') gl.disable(gl.DEPTH_TEST);
-    for (const [bi, b] of this.bodies.entries()) {
+    for (let bi = 0; bi < this.bodies.length; bi++) {
+      const b = this.bodies[bi];
       if (view.hiddenBodies?.has(bi)) continue;
       this.place(this.line, view, bi, false);
       gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], (view.ghostBodies.has(bi) ? 0.35 : 0.9) * (view.isolatedInstances?.length ? 0.15 : 1));
@@ -874,8 +878,9 @@ export class Renderer implements ViewRenderer {
       }
     }
     for (const it of this.instances) {
-      gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], 0.9 * (this.fadedInstance(it.item.id) ? 0.15 : 1));
-      it.bodies.forEach(({ gpu }, bi) => {
+      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], 0.9 * (this.fadedInstance(it.item.id) ? 0.15 : 1));
+      for (let bi = 0; bi < it.bodies.length; bi++) {
+        const gpu = it.bodies[bi].gpu;
         this.placeInstance(this.line, it, bi, false);
         gl.bindVertexArray(gpu.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
         this.drawSilhouette(gpu, camera, mode, dpr);
@@ -885,7 +890,7 @@ export class Renderer implements ViewRenderer {
           gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
           gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
         }
-      });
+      }
       if (it.bodies.length && !lineOnly) {
         this.placeInstance(this.line, it, 0, false, false);
         gl.uniform1f(this.u(this.line, 'uWidth'), 0.5 * dpr);
