@@ -40,7 +40,7 @@ async function receipt(path) { const b = await readFile(path); return { path, by
 const providers = [{ label: 'ordinary-source', path: ordinary, internalPath: internalOrdinary }, { label: 'emitted-public', path: emitted, internalPath: internalEmitted }];
 for (const p of providers) { p.gpu = await import(pathToFileURL(p.path).href); p.internal = await import(pathToFileURL(p.internalPath).href); }
 const namespace = Object.keys(providers[0].gpu).sort(), newNames = ['compileNativeSurfaceUV01Material', 'validateNativeSurfaceUV01MaterialIR', 'lowerNativeSurfaceUV01Material'];
-assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace); assert.equal(namespace.length, 122);
+assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 for (const name of newNames) assert.ok(namespace.includes(name));
 const declarationPath = resolve(pkg, manifest.publishConfig.exports['.'].types), declaration = await readFile(declarationPath, 'utf8');
 const leafDeclarationPath = resolve(pkg, 'dist/mesh-material.d.ts'), leafDeclaration = await readFile(leafDeclarationPath, 'utf8');

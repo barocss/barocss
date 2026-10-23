@@ -3,6 +3,7 @@ import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
+import { build } from 'esbuild';
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const index = process.argv.indexOf('--output');
@@ -11,11 +12,13 @@ const output = resolve(process.argv[index + 1]);
 await mkdir(output, {recursive: true});
 const root = resolve(repo, 'packages/barocss-gpu');
 const manifest = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
-const entry = resolve(root, manifest.exports['.'].import);
+// (R6: the package's TypeScript sources bundled, as the other flows do: Node does not load them as they are.)
+const bundle = async (from, name) => { const outfile = resolve(output, name); await build({ entryPoints: [from], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile, logLevel: 'warning' }); return outfile; };
+const entry = await bundle(resolve(root, manifest.exports['.'].import), 'gpu-source.mjs');
 const entrySha256 = createHash('sha256').update(await readFile(entry)).digest('hex');
 const gpu = await import(pathToFileURL(entry).href);
 // The binding validator is compiled internal code, not a public package export.
-const bindingEntry = resolve(dirname(entry), 'mesh-material.js');
+const bindingEntry = await bundle(resolve(root, 'src/material/mesh-material.ts'), 'mesh-material-source.mjs');
 const bindingEntrySha256 = createHash('sha256').update(await readFile(bindingEntry)).digest('hex');
 const {validateMeshMaterialBinding} = await import(pathToFileURL(bindingEntry).href);
 const source = color => `/* original source */ @shader #abc { @fragment { color: ${color}; } }`;

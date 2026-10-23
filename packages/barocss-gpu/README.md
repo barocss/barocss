@@ -670,12 +670,8 @@ regions return empty arrays and null bounds. Unsafe Float32 geometry refuses.
 This is a CPU backend preparation API, not a PreviewPacket0. GPU upload, materials,
 depth, pixels and resource lifetime belong to the consumer that draws it.
 
-Run the affected build and the actual saved-file API flow:
-
-```sh
-pnpm --filter @barocss/gpu build:library
-node examples/gpu-scene/boolean-buffers-flow.mjs --meshes /path/to/887/meshes --output /tmp/boolean-buffers
-```
+Its saved-file flow (`boolean-buffers-flow.mjs`) read CAD #887's research meshes, which are not in the
+repository; it was retired in R6. `axis-box-boolean-buffers-flow.mjs` still runs the API on its own fixtures.
 
 ## Native filled Shell CPU buffers
 
@@ -695,10 +691,8 @@ entries}`, each entry `{ref,native,color,edges}` with a qualified
 `{graphId,graphRevision,featureId,outputSlotId}` ref) remains the exported shape
 `@barocss/viewer` uses for selected Shell graphs.
 
-```sh
-pnpm --filter @barocss/gpu build:library
-node examples/gpu-scene/shell-buffers-flow.mjs --meshes /path/to/896/meshes --planar /path/to/887/cross_union.owned-mesh.json --output /tmp/shell-buffers
-```
+Its saved-file flow (`shell-buffers-flow.mjs`) read CAD #896's research meshes, which are not in the
+repository; it was retired in R6.
 
 ## Bounded scalar material functions (abs, min, max)
 
@@ -2008,8 +2002,7 @@ copy/work budgets, original signed data and all public declarations are unchange
 This correction is native-only; legacy MeshMaterial and generic/repeating EngineUV
 reflection behavior remains compatible.
 
-One bounded source/emitted/file/cold flow:
-`node examples/gpu-scene/native-reflection-cause-flow.mjs --output /absolute/fresh-directory`.
+Its flow (`native-reflection-cause-flow.mjs`) read another research checkout's build and was retired in R6.
 
 ## Authored pure float material functions
 

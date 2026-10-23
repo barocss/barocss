@@ -24,8 +24,8 @@ assert.ok(sourceGraph.some(p => p.endsWith('/src/native/uv01/native-surface-uv01
 assert.ok(sourceGraph.some(p => p.includes('barocss-cad/src/'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
-const namespace = Object.keys(providers[0].gpu).sort(); assert.equal(namespace.length, 121); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
-assert.equal(namespace.includes('compileNativeSurfaceUV01Material'), false, 'No independent unadopted #1432 dependency');
+const namespace = Object.keys(providers[0].gpu).sort(); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
+
 const dtsPath = resolve(pkg, manifest.publishConfig.exports['.'].types), dts = await readFile(dtsPath, 'utf8');
 const leafDtsPath = resolve(pkg, 'dist/native-surface-uv01-geometry.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
 for (const name of ['prepareNativeSurfaceUV01Geometry', 'NativeSurfaceUV01GeometryError', 'NativeSurfaceUV01GeometryRequest', 'PreparedNativeSurfaceUV01Geometry', 'NativeSurfaceUV01GeometryCode']) {

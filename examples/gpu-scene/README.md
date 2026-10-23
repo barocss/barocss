@@ -26,8 +26,18 @@ sources and their arithmetic, conditionals and repeats; primitive geometry
 builders; material compilation and evaluation; engine-scene preparation,
 raycasts and clips; boolean, Shell and contact buffers; loft and curve edit
 previews; native light catalogs and UV01 surface data; and frame preflight.
-Each runs with `node examples/gpu-scene/<name>.mjs` against the built package
-and prints or asserts its own results.
+Each takes `--output <fresh-directory>` and prints or asserts its own results.
+Run them all with:
+
+```sh
+node examples/gpu-scene/run-flows.mjs [--only <regex>] [--out <new-directory>] [--no-build]
+```
+
+It builds `@barocss/cad` and `@barocss/gpu`, then runs each flow with a fresh
+output and the gpu tests' hook (`packages/barocss-gpu/tests/cad-dist.mjs`)
+through `NODE_OPTIONS`: in the workspace `@barocss/cad` resolves to CAD's
+TypeScript sources, which Node does not load, so a flow run on its own needs
+`NODE_OPTIONS="--import ./packages/barocss-gpu/tests/cad-dist.mjs"` too.
 
 The old WebGL2 scene and mesh renderers and their browser evidence flows were
 removed with the renderers; the viewer core has its own browser tests in

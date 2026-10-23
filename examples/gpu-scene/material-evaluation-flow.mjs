@@ -30,7 +30,7 @@ assert(!graph.some(path => /barocss-(gpu|cad)\/dist\//.test(path)), 'No own emit
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 102);
+
 const declarationsPath = resolve(pkg, published.types);
 const declarations = await readFile(declarationsPath, 'utf8');
 for (const name of ['evaluateAuthoredMaterial', 'AuthoredMaterialEvaluationError', 'AuthoredMaterialEvaluationDiagnosticCode', 'AuthoredMaterialRequest', 'AuthoredMaterialSample'])

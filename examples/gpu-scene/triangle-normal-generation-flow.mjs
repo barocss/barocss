@@ -85,7 +85,7 @@ function scene(geometry) {
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 99);
+
 const declarationPath = resolve(pkg, published.types);
 const declarations = await readFile(declarationPath, 'utf8');
 for (const name of ['TriangleNormalSourceV0', 'PreparedTriangleGeometryWithNormals', 'prepareTriangleGeometryWithNormals']) {

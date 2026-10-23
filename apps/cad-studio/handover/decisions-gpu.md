@@ -2600,3 +2600,49 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     dashed hidden lines, shares, and that nothing is counted once off.
   - G3 display modes (270) passes on both.
   - On WebGL2, step 1 failed once (`/Hole Ø8/`) and passed on the rerun.
+
+## G-R40 — R6: the examples/gpu-scene flows triaged, 65 kept and green, 13 retired (roadmap R6, 2026-10-23)
+
+- **Starting point**: all 78 flows failed as checked in.
+  - The cause common to all: in the workspace `@barocss/cad` resolves to CAD's TypeScript sources, which Node does
+    not load.
+  - The rest pinned the repository's state on each milestone day: exact public-namespace sizes, the parent commit's
+    barrel, bytes, declarations and manifest, git deltas, and dependencies then pending.
+  - Two causes were mine, from R2d. It missed the `'/src/' + name` source-graph checks, and it rewrote paths read from
+    pinned parent commits (`parentFile('src/material/…')`), where the parent has the old path.
+- **Coordinator verdicts, as approved**:
+  - (a): fix the 65 that still check shipped behaviour.
+  - (b): delete the 13 that need research inputs not in the repository, with one record line each naming the missing
+    input.
+- **Runner** `examples/gpu-scene/run-flows.mjs`: builds cad and gpu, then runs each flow with a fresh `--output` and the
+  gpu tests' hook `tests/cad-dist.mjs` through `NODE_OPTIONS` (child processes included). The README says so.
+- **(a), in three commits**:
+  - 1/3: the runner, plus 15 flows whose namespace-size checks became "includes the names this flow adds". The 18
+    flows that needed only the hook are unchanged.
+  - 2/3, 17 flows: R2d's source-graph paths; the removed primitive-scene-renderer.ts dropped from preflight's graph;
+    the parent-commit checks dropped.
+  - 3/3, 15 flows:
+    - R2d's parentFile paths undone.
+    - The parent-commit checks dropped.
+    - Two real behaviour changes since the milestones, followed:
+      - An f32 underflow literal is refused at compile time (RANGE) since acbf60deb (G5), not later at lowering. Five
+        flows now check that, and uv01-frame's frame case became a compile check.
+      - `validateMeshMaterialBinding` has been public since 59c1eff09.
+    - material-locals and material-shorthand bundle the sources with esbuild instead of importing src/index.ts with
+      plain Node.
+  - Every check of actual output stays: WGSL, programs, buffers and values.
+- **Rule correction, before anything was committed**: my first generic "exact length" rule also matched output checks
+  (panel, body, draw and diagnostic counts). It was reverted and narrowed to namespace sizes only. The scratch run that
+  had shown "50 green" with those checks removed was redone with them kept.
+- **(b), one commit**:
+  - The 13 flows.
+  - Five helpers used only by them: knot-*-internal.mjs ×3, source-surface-elevation-frame-internal.mjs,
+    split-body-engine-scene.ts.
+  - The gpu README's three command blocks for retired flows now say so.
+  - The physics examples' base-tracked-ledger.json entries stay as historical text, untouched.
+- **Record**: every changed assertion, before → after with its reason, and each retired flow's missing input are in
+  `handover/notes/r6-gpu-scene-flows.md`. Pinned evidence is untouched, as are the outer lane's two clearance files.
+- **Final run**: `node examples/gpu-scene/run-flows.mjs` passes 65/65 on the kept set, with a full cad+gpu build first, at
+  integration 8ddf53eea merged.
+- **Next**: D229 folders the kernel's dist. After the merge past it, the runner's full `build:library` clears the stale
+  flat files; rerun it then.
