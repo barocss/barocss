@@ -17,7 +17,7 @@ const parent = 'b1ee4444fe7dd674956ac063d408be820e170af2', pkg = resolve(repo, '
 const manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8')), hash = v => createHash('sha256').update(v).digest('hex');
 const ordinary = resolve(output, 'ordinary-public.mjs');
 const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
-const sourceGraph = Object.keys(bundled.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/mesh-material.ts')));
+const sourceGraph = Object.keys(bundled.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/material/mesh-material.ts')));
 assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
@@ -25,7 +25,7 @@ const namespace = Object.keys(providers[0].gpu).sort(); assert.equal(namespace.l
 const parentFile = name => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + name], { cwd: repo, encoding: 'utf8' });
 assert.equal(await readFile(resolve(pkg, 'src/index.ts'), 'utf8'), parentFile('src/index.ts')); assert.deepEqual(manifest, JSON.parse(parentFile('package.json')));
 const parentFolder = resolve(output, 'fixed-parent-declarations'); await mkdir(parentFolder);
-const parentLeaf = resolve(parentFolder, 'mesh-material.ts'); await writeFile(parentLeaf, parentFile('src/mesh-material.ts'), { flag: 'wx' });
+const parentLeaf = resolve(parentFolder, 'mesh-material.ts'); await writeFile(parentLeaf, parentFile('src/material/mesh-material.ts'), { flag: 'wx' });
 const program = ts.createProgram([parentLeaf], { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext,
   lib: ['lib.es2022.d.ts', 'lib.dom.d.ts'], strict: true, skipLibCheck: true, declaration: true, emitDeclarationOnly: true, outDir: parentFolder });
 const diagnostics = ts.getPreEmitDiagnostics(program); assert.equal(diagnostics.length, 0, ts.formatDiagnosticsWithColorAndContext(diagnostics,

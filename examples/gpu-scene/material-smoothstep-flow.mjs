@@ -10,7 +10,7 @@ assert(at>=0&&process.argv[at+1],'--output <fresh directory> required');const ou
 const pkg=resolve(repo,'packages/barocss-gpu'),manifest=JSON.parse(await readFile(resolve(pkg,'package.json'),'utf8')),map=manifest.publishConfig.exports['.'];
 assert.equal(map.import,'./dist/index.js');assert.equal(map.types,'./dist/index.d.ts');
 const src=resolve(output,'ordinary-source.mjs'),built=await build({entryPoints:[resolve(pkg,manifest.exports['.'].import)],bundle:true,format:'esm',platform:'node',target:'node22',outfile:src,metafile:true});
-const graph=Object.keys(built.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/mesh-material.ts')));assert(!graph.some(p=>p.includes('barocss-gpu/dist/')||p.includes('barocss-cad/dist/')));
+const graph=Object.keys(built.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/material/mesh-material.ts')));assert(!graph.some(p=>p.includes('barocss-gpu/dist/')||p.includes('barocss-cad/dist/')));
 const hash=x=>createHash('sha256').update(x).digest('hex');async function receipt(path){const x=await readFile(path);return{path,bytes:x.length,sha256:hash(x)};}
 const header='@uniform amount:float(-1,2,.5);';
 const shader=(x,decl=header)=>`// Original π🙂 eased material amount\n@shader #ramp {${decl}@fragment {color:mix(#123,#ABC,${x});}}`;
@@ -62,5 +62,5 @@ for(const[name,path]of [['ordinary-source',src],['emitted-public',resolve(pkg,ma
  results.push({provider:name,entry:await receipt(path),exports:Object.keys(gpu).sort(),accepted,refusals,getters});
 }
 assert.deepEqual(results[0].exports,results[1].exports);assert.equal(results[0].exports.length,54);
-const result={ok:true,issue:1146,results,sourceGraph:graph,source:await receipt(resolve(pkg,'src/mesh-material.ts')),declarations:await receipt(resolve(pkg,map.types)),actualGL:false,support:'Actual source/emitted CPU compiler, original source/IR files and exact trusted lowering. No runtime smoothstep call, pixels, consumer adoption or publication.'};
+const result={ok:true,issue:1146,results,sourceGraph:graph,source:await receipt(resolve(pkg,'src/material/mesh-material.ts')),declarations:await receipt(resolve(pkg,map.types)),actualGL:false,support:'Actual source/emitted CPU compiler, original source/IR files and exact trusted lowering. No runtime smoothstep call, pixels, consumer adoption or publication.'};
 await writeFile(resolve(output,'actual-result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({ok:true,accepted:results.reduce((n,r)=>n+r.accepted.length,0),refusals:results.reduce((n,r)=>n+r.refusals.length,0),getters:0,exports:54,actualGL:false}));

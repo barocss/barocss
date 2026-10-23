@@ -111,7 +111,7 @@ const sourceCode=['cad','gpu'].map(name=>`import * as ${name} from ${JSON.string
 const built=await build({stdin:{contents:sourceCode,resolveDir:repo,sourcefile:'surface-edit-mesh-source.mjs'},bundle:true,platform:'node',format:'esm',target:'node22',outfile:ordinary,metafile:true});
 const graph=Object.keys(built.metafile.inputs);
 assert(graph.some(p=>p.endsWith('/src/source-surface-control-net-wide.ts')));
-assert(graph.some(p=>p.endsWith('/src/mesh-packet.ts')));
+assert(graph.some(p=>p.endsWith('/src/mesh/mesh-packet.ts')));
 assert(!graph.some(p=>p.includes('barocss-cad/dist/')||p.includes('barocss-gpu/dist/')));
 const providers=[{name:'ordinary-source',...await import(pathToFileURL(ordinary).href),files:[await receipt(ordinary)]}];
 const emitted={name:'emitted-public',files:[]};

@@ -15,14 +15,14 @@ const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..'), output =
 const parent = 'c052fcd0714a6396e34a49b0328f6446051d9118', pkg = resolve(repo, 'packages/barocss-gpu'), manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
 const hash = v => createHash('sha256').update(v).digest('hex'), parentFile = n => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + n], { cwd: repo, encoding: 'utf8' });
 const ordinary = resolve(output, 'ordinary-public.mjs'), bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
-const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene-arithmetic-source.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
+const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene/scene-arithmetic-source.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.equal(namespace.length, 132); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 assert.equal(namespace.filter(n => n !== 'compileArithmeticAffineSceneSource').length, 131); assert.ok(namespace.includes('compileArithmeticAffineSceneSource'));
 for (const name of ['compileSceneParameterData', 'finishSceneParameterSource', 'lowerAffineSceneAst']) assert.ok(!namespace.includes(name));
 assert.ok((await readFile(resolve(pkg, 'src/index.ts'), 'utf8')).startsWith(parentFile('src/index.ts'))); assert.deepEqual(manifest, JSON.parse(parentFile('package.json')));
-assert.equal(await readFile(resolve(pkg, 'src/scene-product-source.ts'), 'utf8'), parentFile('src/scene-product-source.ts'));
+assert.equal(await readFile(resolve(pkg, 'src/scene/scene-product-source.ts'), 'utf8'), parentFile('src/scene/scene-product-source.ts'));
 const printer = ts.createPrinter({ removeComments: true });
 function types(text, names) { const file = ts.createSourceFile('types.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS); return Object.fromEntries(file.statements
   .filter(n => (ts.isInterfaceDeclaration(n) || ts.isTypeAliasDeclaration(n)) && names.includes(n.name.text)).map(n => [n.name.text, printer.printNode(ts.EmitHint.Unspecified, n, file)])); }

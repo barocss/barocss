@@ -26,7 +26,7 @@ function independent(left, right) { const other = refs(right); for (const value 
 const gitFile = path => execFileSync('git', ['show', parent + ':' + path], { cwd: repo, encoding: 'utf8' });
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
 async function save(name, text) { const path = resolve(output, name); await writeFile(path, text, { flag: 'wx' }); return receipt(path); }
-const owned = ['packages/barocss-gpu/src/native-surface-uv01-program-wgsl.ts', 'packages/barocss-gpu/src/index.ts', 'packages/barocss-gpu/README.md', 'examples/gpu-scene/native-surface-uv01-program-flow.mjs'];
+const owned = ['packages/barocss-gpu/src/native/uv01/native-surface-uv01-program-wgsl.ts', 'packages/barocss-gpu/src/index.ts', 'packages/barocss-gpu/README.md', 'examples/gpu-scene/native-surface-uv01-program-flow.mjs'];
 const tracked = execFileSync('git', ['diff', '--name-only', parent], { cwd: repo, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
 const untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard'], { cwd: repo, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
 const delta = [...new Set([...tracked, ...untracked])].sort(); assert.deepEqual(delta, [...owned].sort());

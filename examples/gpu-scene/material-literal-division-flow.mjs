@@ -11,7 +11,7 @@ const root=resolve(repo,'packages/barocss-gpu'),manifestPath=resolve(root,'packa
 const compiledExport=manifest.publishConfig?.exports?.['.']??manifest.exports['.'];
 assert.equal(compiledExport.import,'./dist/index.js','Explicit compiled GPU entry required; no source fallback');
 assert.equal(compiledExport.types,'./dist/index.d.ts','Explicit compiled GPU declarations required');
-const entry=resolve(root,compiledExport.import),sourcePath=resolve(root,'src/mesh-material.ts'),gpu=await import(pathToFileURL(entry).href);
+const entry=resolve(root,compiledExport.import),sourcePath=resolve(root,'src/material/mesh-material.ts'),gpu=await import(pathToFileURL(entry).href);
 for(const operation of['compileMeshMaterial','validateMeshMaterialIR','lowerMeshMaterial'])assert.equal(typeof gpu[operation],'function',operation);
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function fileReceipt(path){const bytes=await readFile(path);return{path,bytes:bytes.length,sha256:sha(bytes)};}

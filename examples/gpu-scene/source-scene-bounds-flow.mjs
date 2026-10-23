@@ -20,7 +20,7 @@ const ordinary = resolve(output, 'ordinary-source.mjs');
 const built = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(built.metafile.inputs);
-assert(graph.some(p => p.endsWith('/src/source-scene-bounds.ts')));
+assert(graph.some(p => p.endsWith('/src/scene/source-scene-bounds.ts')));
 assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const ordinaryURL = pathToFileURL(ordinary).href, emittedURL = pathToFileURL(resolve(pkg, published.import)).href;
 const providers = [['ordinary-source', await import(ordinaryURL), ordinaryURL],
@@ -194,7 +194,7 @@ for (const [provider, gpu, entryURL] of providers) {
 assert.equal(results[0].finalResultSHA256, results[1].finalResultSHA256);
 const report = { issue: 1320, stage: 'CPU-original-source-binary64-box-corners', accepted, refused,
   getterCalls, reflectionTraps, oversizeOwnKeys, actualGL: false, sourceGraph: graph,
-  source: await receipt(resolve(pkg, 'src/source-scene-bounds.ts')), controls: await receipt(resolve(repo, 'examples/gpu-scene/source-scene-bounds-controls.mjs')),
+  source: await receipt(resolve(pkg, 'src/scene/source-scene-bounds.ts')), controls: await receipt(resolve(repo, 'examples/gpu-scene/source-scene-bounds-controls.mjs')),
   ordinary: await receipt(ordinary), emitted: await receipt(resolve(pkg, published.import)), declarations: await receipt(declarationPath), results,
   support: 'Actual Source1/2 full original reconstruction, Number local-box bounds and eight transformed corners, source-order selections and frozen copied results/files. Independent closed-form controls from the separate control module; source-provider causes and first failures preserved. No Float32/padding/certified rounding enclosure, ideal exact native extrema, camera framing, pixels, culling, animation, overflow fabrication, performance or publication proof.' };
 const resultPath = resolve(output, 'actual-result.json'); await writeFile(resultPath, JSON.stringify(report, null, 2) + '\n');

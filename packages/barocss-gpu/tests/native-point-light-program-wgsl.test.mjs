@@ -5,7 +5,7 @@ import { build } from 'esbuild';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
-const built = await build({ stdin: { contents: `export * from './src/native-point-lights.ts'; export * from './src/native-point-light-program-wgsl.ts'; export * from './src/mesh-material.ts'; export * from './src/mesh-material-wgsl.ts';`, resolveDir: root }, bundle: true, write: false, platform: 'node', format: 'esm' });
+const built = await build({ stdin: { contents: `export * from './src/native/lights/native-point-lights.ts'; export * from './src/native/lights/native-point-light-program-wgsl.ts'; export * from './src/material/mesh-material.ts'; export * from './src/material/mesh-material-wgsl.ts';`, resolveDir: root }, bundle: true, write: false, platform: 'node', format: 'esm' });
 const api = await import('data:text/javascript;base64,' + Buffer.from(built.outputFiles[0].text).toString('base64'));
 const point = (nodeId = 'red', extra = {}) => ({ nodeId, label: 'Light é', enabled: true, positionScene: [-0, 0, 2], colorLinearRGB: [1, 0, 0], intensity: 1, rangeScene: 4, ...extra });
 const catalog = (lights = [point()]) => ({ format: 'barocss-gpu-native-point-lights', version: 0, profile: 'native-world-point-linear-v0', sourceId: 'scene', revision: 2, ambientStrength: .125, lights });

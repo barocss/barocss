@@ -10,7 +10,7 @@ const output=resolve(process.argv[at+1]);await mkdir(output,{recursive:false});
 const pkg=resolve(repo,'packages/barocss-gpu'),manifest=JSON.parse(await readFile(resolve(pkg,'package.json'),'utf8')),published=manifest.publishConfig.exports['.'];
 const ordinary=resolve(output,'ordinary-source.mjs');
 const bundle=await build({entryPoints:[resolve(pkg,manifest.exports['.'].import)],bundle:true,platform:'node',format:'esm',target:'node22',outfile:ordinary,metafile:true});
-const graph=Object.keys(bundle.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/triangle-geometry.ts')));assert(!graph.some(p=>/barocss-(gpu|cad)\/dist\//.test(p)));
+const graph=Object.keys(bundle.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/geometry/triangle-geometry.ts')));assert(!graph.some(p=>/barocss-(gpu|cad)\/dist\//.test(p)));
 const hash=x=>createHash('sha256').update(x).digest('hex');async function receipt(path){const b=await readFile(path);return{path,bytes:b.length,sha256:hash(b)};}
 function json(v){if(typeof v==='number'){assert(Number.isFinite(v));return Object.is(v,-0)?'-0':JSON.stringify(v);}if(v===null||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return '['+v.map(json).join(',')+']';return '{'+Object.entries(v).map(([k,n])=>JSON.stringify(k)+':'+json(n)).join(',')+'}';}
 const clone=v=>JSON.parse(json(v));
@@ -55,5 +55,5 @@ for(const[name,gpu]of providers){
  for(const[label,value,code]of cases)await reject(label,value,code);assert.equal(getters,0);
  results.push({provider:name,accepted:acceptedRecords,refusals,exports:Object.keys(gpu).sort()});
 }
-const report={issue:1181,accepted,refused,getters,actualGL:false,sourceGraph:graph,source:await receipt(resolve(pkg,'src/triangle-geometry.ts')),declarations:await receipt(resolve(pkg,published.types)),ordinary:await receipt(ordinary),emitted:await receipt(resolve(pkg,published.import)),results,support:'Own generic indexed triangle geometry0/scene/RH-Yup; original Number arrays and derived F32/Uint16/Uint32. CPU/API/file proof only. Index threshold witnesses are not maximum memory/performance or rendering/scene/material/texture/native CAD validity/Three.js parity/publication proof.'};
+const report={issue:1181,accepted,refused,getters,actualGL:false,sourceGraph:graph,source:await receipt(resolve(pkg,'src/geometry/triangle-geometry.ts')),declarations:await receipt(resolve(pkg,published.types)),ordinary:await receipt(ordinary),emitted:await receipt(resolve(pkg,published.import)),results,support:'Own generic indexed triangle geometry0/scene/RH-Yup; original Number arrays and derived F32/Uint16/Uint32. CPU/API/file proof only. Index threshold witnesses are not maximum memory/performance or rendering/scene/material/texture/native CAD validity/Three.js parity/publication proof.'};
 await writeFile(resolve(output,'actual-result.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({issue:1181,accepted,refused,getters,exports:results[0].exports.length,actualGL:false}));
