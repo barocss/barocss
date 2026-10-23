@@ -100,7 +100,8 @@ async function openModel(file, nodes, timeout = 30000) {
   await page.waitForFunction(n => window.__studioDoc !== window.__flowLastDoc && window.__studioDoc.nodes.length === n && window.__studioFresh === true, nodes, { timeout });
 }
 const history = () => page.locator('.history').innerText().catch(() => '');
-const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? ''), null, { timeout: 30000 });
+// (O18: and the bodies' masses, which the worker posts after its reply — every step that reads a volume waits here.)
+const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && window.__studioBodies?.().massReady !== false, null, { timeout: 30000 });
 // (O7e: the person's fastener sizes, the shipped sample loaded in the Library panel — none is built in; a new part has none.
 // Idempotent: a step that goes on from the one before loads them only when they are not there, so it passes alone too.)
 const loadSampleSizes = async () => {
@@ -2467,6 +2468,11 @@ try {
     await page.waitForSelector('[aria-label="Proposal P1"] [aria-label="Volume change"]', { timeout: 15000 });
     assert.match(await page.textContent('[aria-label="Proposal P1"] [aria-label="Volume change"]'), /^−226(\.\d+)? mm³ \(−3\.53%\)$/);
     assert.match(await page.textContent('[aria-label="Proposal P1"]'), /rebased/);
+    // (O18: the ghost tints the body the proposal changes — told by its key and mesh, not its volume — unless the
+    // engine draws the two-colour overlay.)
+    const ghostShown = await page.evaluate(() => ({ method: window.__studioProposalOverlay?.()?.method ?? null, colored: window.__studioBodies().colored }));
+    console.log(`  O18 ghost (${renderer}): overlay ${ghostShown.method}, tinted ${ghostShown.colored.join(',') || 'none'}`);
+    if (ghostShown.method !== 'boolean') assert.equal(ghostShown.colored.length, 1, JSON.stringify(ghostShown));
     await snap('proposal-ghost');
     await page.click('[aria-label="Proposal P1"] [aria-label="Before or after"]');
     assert.equal(await page.textContent('[aria-label="Proposal P1"] [aria-label="Before or after"]'), 'Before');
@@ -2850,6 +2856,37 @@ try {
     await snap('spring-ground');
   });
 
+
+  // ---- O18: mass on request -----------------------------------------------------------------------------------------
+  await check('O18: a spring\'s reply comes without its mass, which follows; the inspector reads "…" until then; an undo right after the reply does not wait for the old mass', async () => {
+    await page.click('[aria-label="New part"]'); await idle();
+    await press(' '); await page.locator('.palette input').fill('spring'); await press('Enter'); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    const t0 = Date.now(); await press('Enter');
+    // The reply: one body shown, its mass not yet there.
+    await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 1 && window.__studioDoc.nodes[0]?.kind === 'spring'; }, null, { timeout: 60000 });
+    const replied = Date.now() - t0, pending = await page.evaluate(() => !window.__studioBodies().massReady);
+    assert.ok(pending, 'the reply came before the mass');
+    // An undo at once: its reply (an empty part) does not wait for the spring's quadrature, which it drops.
+    const t1 = Date.now(); await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
+    await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 0 && window.__studioDoc.nodes.length === 0; }, null, { timeout: 10000 });
+    const undone = Date.now() - t1;
+    assert.ok(undone < 1500, `the undo's reply took ${undone} ms`);
+    // Redo: the spring again, its mass "…" in the inspector, then its value.
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 1; }, null, { timeout: 60000 });
+    await page.locator('.outliner .ol').first().click();
+    const early = await page.locator('.props').innerText();
+    await idle();
+    const late = await page.locator('.props').innerText(), mass = await page.evaluate(() => window.__studioBodies().bodies[0].volumeMM3);
+    assert.ok(mass > 0, String(mass));
+    assert.match(late, /Volume [\d,.]+ mm³/);
+    if (/Volume …/.test(early)) console.log('  O18: the inspector read "…" before the mass');
+    else console.log('  O18: the mass came before the inspector was read');
+    assert.ok(!/Volume 0 mm³/.test(early), 'never 0 while pending');
+    console.log(`  O18 spring (${renderer}): reply ${replied} ms after Apply, the undo's reply ${undone} ms`);
+    await press('Escape');
+  });
   await check('Spring (R12c.1b, D154): an extension spring with machine loops and a torsion spring with legs from the palette — close-wound, their notes (length inside the hooks, the legs\' angle, the rates flagged)', async () => {
     for (const [type, kind, label, note] of [['extension', 'extension', /Extension spring d2 × Ø20, 6 coils \(machine loops\)/, /^Length inside the hooks 34\.3779 mm/], ['torsion', 'torsion', /Torsion spring d2 × Ø20, 6 coils/, /^Legs 20 and 20 mm along the coil's tangent, 0° apart/]]) {
       await page.click('[aria-label="New part"]'); await idle();
