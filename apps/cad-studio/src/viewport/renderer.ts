@@ -3,6 +3,7 @@
 // edges) → resolve colour + depth → screen-space ambient occlusion composite to the canvas.
 // An ID pass serves face picking. Resources persist: camera moves only write uniforms and
 // selection changes only rewrite small state buffers.
+import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, PALETTE, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
@@ -204,8 +205,8 @@ export interface ViewRenderer {
 
 interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }
 const THEMES: Record<ThemeName, Theme> = {
-  dark: { amb: 0.18, bgTop: [0.180, 0.188, 0.208], bgBottom: [0.094, 0.098, 0.106], grid: [0.55, 0.55, 0.57], gridAlpha: [0.12, 0.26], base: [0.74, 0.75, 0.78], edge: [0.05, 0.05, 0.06], shadow: 0.55, ao: 0.85 },
-  light: { amb: 0.34, bgTop: [0.965, 0.972, 0.980], bgBottom: [0.780, 0.812, 0.851], grid: [0.30, 0.34, 0.40], gridAlpha: [0.10, 0.22], base: [0.70, 0.74, 0.80], edge: [0.11, 0.14, 0.19], shadow: 0.32, ao: 0.75 },
+  dark: { ...PALETTE.dark, amb: 0.18, gridAlpha: [0.12, 0.26], shadow: 0.55, ao: 0.85 },
+  light: { ...PALETTE.light, amb: 0.34, gridAlpha: [0.10, 0.22], shadow: 0.32, ao: 0.75 },
 };
 
 const MESH_VS = `#version 300 es
@@ -641,13 +642,9 @@ export class Renderer implements ViewRenderer {
     this.resolveDisplayMode(view);
     this.bodies.forEach((b, bi) => {
       const m = b.result.mesh; b.stateData.fill(0); b.lineStateData.fill(0);
-      const faceState = new Map<number, number>();
-      if (view.hoverFace?.body === bi) faceState.set(view.hoverFace.face, 1);
-      for (const f of view.selectedFaces) if (f.body === bi) faceState.set(f.face, 2);
+      const faceState = faceStateOf(view, bi);
       if (faceState.size) for (let v = 0; v < b.stateData.length; v++) b.stateData[v] = faceState.get(m.faceOfVertex[v]) ?? 0;
-      const edgeState = new Map<number, number>();
-      if (view.hoverEdge?.body === bi) edgeState.set(view.hoverEdge.edge, 1);
-      for (const e of view.selectedEdges) if (e.body === bi) edgeState.set(e.edge, 2);
+      const edgeState = edgeStateOf(view, bi);
       if (edgeState.size) for (let s = 0; s < b.lineStateData.length; s++) b.lineStateData[s] = edgeState.get(m.edgeOfSegment[s * 2]) ?? 0;
       gl.bindBuffer(gl.ARRAY_BUFFER, b.state); gl.bufferSubData(gl.ARRAY_BUFFER, 0, b.stateData);
       gl.bindBuffer(gl.ARRAY_BUFFER, b.lineState); gl.bufferSubData(gl.ARRAY_BUFFER, 0, b.lineStateData);
@@ -772,7 +769,7 @@ export class Renderer implements ViewRenderer {
     if (!cached.line) return;
     const gl = this.gl; gl.bindVertexArray(cached.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, cached.line.count);
     if (mode === 'hidden-lines-dashed') {
-      gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), 6 * dpr, 4 * dpr);
+      gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), HIDDEN_DASH[0] * dpr, HIDDEN_DASH[1] * dpr);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, cached.line.count);
       gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
     }
@@ -822,7 +819,7 @@ export class Renderer implements ViewRenderer {
         this.place(this.mesh, view, bi);
         gl.uniform1f(this.u(this.mesh, 'uBodySel'), view.selectedBodies.includes(bi) ? 1 : view.hoverBody === bi ? 0.55 : 0);
         gl.uniform1f(this.u(this.mesh, 'uGhost'), view.ghostBodies.has(bi) ? 1 : 0);
-        gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? 0.25 : 1) * (view.isolatedInstances?.length ? 0.15 : 1));
+        gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? XRAY_OPACITY : 1) * (view.isolatedInstances?.length ? FADED : 1));
         gl.uniform3fv(this.u(this.mesh, 'uBase'), view.bodyColors?.get(bi) ?? t.base);
         gl.bindVertexArray(b.vao); gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_INT, 0);
       }
@@ -836,7 +833,7 @@ export class Renderer implements ViewRenderer {
       }
       // Instance surfaces retain nearest depth in every appearance mode, including line-only modes.
       if (this.instances.length) {
-        gl.useProgram(this.mesh); gl.depthMask(pass === 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0); gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? 0.25 : 1) * (pass === 1 ? 0.15 : 1));
+        gl.useProgram(this.mesh); gl.depthMask(pass === 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0); gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? XRAY_OPACITY : 1) * (pass === 1 ? FADED : 1));
         gl.uniform3fv(this.u(this.mesh, 'uBase'), t.base);
         // (R2: index loops, not a closure for each copy in each frame.)
         for (const it of this.instances) for (let bi = 0; bi < it.bodies.length; bi++) {
@@ -867,18 +864,18 @@ export class Renderer implements ViewRenderer {
       const b = this.bodies[bi];
       if (view.hiddenBodies?.has(bi)) continue;
       this.place(this.line, view, bi, false);
-      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], (view.ghostBodies.has(bi) ? 0.35 : 0.9) * (view.isolatedInstances?.length ? 0.15 : 1));
+      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], (view.ghostBodies.has(bi) ? GHOST_OPACITY : EDGE_OPACITY) * (view.isolatedInstances?.length ? FADED : 1));
       gl.bindVertexArray(b.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
       this.drawSilhouette(b, camera, mode, dpr);
       gl.bindVertexArray(b.lineVao);
       if (mode === 'hidden-lines-dashed') {
-        gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), 6 * dpr, 4 * dpr);
+        gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), HIDDEN_DASH[0] * dpr, HIDDEN_DASH[1] * dpr);
         gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
         gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
       }
     }
     for (const it of this.instances) {
-      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], 0.9 * (this.fadedInstance(it.item.id) ? 0.15 : 1));
+      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], EDGE_OPACITY * (this.fadedInstance(it.item.id) ? FADED : 1));
       for (let bi = 0; bi < it.bodies.length; bi++) {
         const gpu = it.bodies[bi].gpu;
         this.placeInstance(this.line, it, bi, false);
@@ -886,7 +883,7 @@ export class Renderer implements ViewRenderer {
         this.drawSilhouette(gpu, camera, mode, dpr);
         gl.bindVertexArray(gpu.lineVao);
         if (mode === 'hidden-lines-dashed') {
-          gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), 6 * dpr, 4 * dpr);
+          gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), HIDDEN_DASH[0] * dpr, HIDDEN_DASH[1] * dpr);
           gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
           gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
         }
@@ -894,8 +891,8 @@ export class Renderer implements ViewRenderer {
       if (it.bodies.length && !lineOnly) {
         this.placeInstance(this.line, it, 0, false, false);
         gl.uniform1f(this.u(this.line, 'uWidth'), 0.5 * dpr);
-        if (it.threads) { gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], this.fadedInstance(it.item.id) ? 0.55 * 0.15 : 0.55); gl.bindVertexArray(it.threads.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, it.threads.count); }
-        for (const hatch of it.hatch) { gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, this.fadedInstance(it.item.id) ? 0.55 * 0.15 : 0.55); gl.bindVertexArray(hatch.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, hatch.line.count); }
+        if (it.threads) { gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], this.fadedInstance(it.item.id) ? THREAD_OPACITY * FADED : THREAD_OPACITY); gl.bindVertexArray(it.threads.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, it.threads.count); }
+        for (const hatch of it.hatch) { gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, this.fadedInstance(it.item.id) ? HATCH_OPACITY * FADED : HATCH_OPACITY); gl.bindVertexArray(hatch.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, hatch.line.count); }
         gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
       }
     }
@@ -907,7 +904,7 @@ export class Renderer implements ViewRenderer {
       for (const h of this.hatch) {
         if (h.body >= this.bodies.length || view.hiddenBodies?.has(h.body)) continue;
         this.place(this.line, view, h.body, false);
-        gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, 0.55 * (view.ghostBodies.has(h.body) ? 0.35 : 1) * (view.isolatedInstances?.length ? 0.15 : 1));
+        gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, HATCH_OPACITY * (view.ghostBodies.has(h.body) ? GHOST_OPACITY : 1) * (view.isolatedInstances?.length ? FADED : 1));
         gl.bindVertexArray(h.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, h.line.count);
       }
       gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);

@@ -2421,3 +2421,30 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - explode 27.8 → 8.7 ms;
   - section drag 30.8 → 5.9 ms;
   - one Viewport render per orbit, not one a frame.
+
+## G-R35 — R2b: one display-policy module for both studio renderers (roadmap R2, 2026-10-23)
+
+- **A user-visible change named (from G-R34)**: on WebGPU, while a section plane is dragged, the GPU's clip follows
+  the plane live, and the exact section comes in after the release (before G-R34 it could also come in during a pause
+  in the drag). The coordinator accepted it.
+- **What** (`viewport/displayPolicy.ts`), what both renderers had as their own copies, with the same values:
+  - the display modes' factors: x-ray 0.25, faded 0.15, ghost 0.35, edges 0.9, hidden lines dashed at 0.55 with a
+    [6, 4] dash, the hatch at 0.55, threads at 0.55;
+  - the accent and a selection's share of it (0.42);
+  - the themes' shared colours (`PALETTE`: background, grid, base, edge). Each renderer keeps what is tuned for it:
+    its ambient, grid opacity, shadow and AO.
+  - `faceStateOf` / `edgeStateOf`: a body's hovered (1) and selected (2) faces and edges from the view state. These
+    were line-for-line the same in both.
+- **Left as they are**: numbers that only look the same.
+  - The proposal overlay's 0.35 is its hidden share, not a ghost.
+  - WebGL2's shader mixes 0.22 for a hovered body and 0.55 for its uBodySel hover; WebGPU's hover face is 0.2.
+  - The ground's 0.55 under a render setting.
+  - The lights' directions.
+- **Checks**:
+  - gpu unit 189/189 (cad-gpu-display-contract bundles gpuRenderer); studio tsc 0 (after the merge), eslint 0, unit
+    268/268.
+  - FLOW_ONLY on both renderers (load 19–40), passing: G3 display modes, the G19.3 hatch, section 73, proposals (ghost
+    and before/after), hole types, the selection filter, an instance placed, 258 and K2 L gap.
+  - Not passing: **81** (a countersunk screw inserted as its own part) fails on both renderers, and the same way at
+    f18177709 before this change, so it is not this change. Handed to the coordinator. It may follow the built-in
+    tables becoming person-loaded sample rows.
