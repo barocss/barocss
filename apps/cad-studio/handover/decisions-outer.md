@@ -8148,3 +8148,42 @@ view (iso()) first (58acf5e9e, test only).
   the camera-moving ones), O7e, FR1, FR4b, FRb, FRk, the BOM panel and table, RM1, RM4, RM5, IM5, IM6, CNC1, CNC2,
   IM8a, IM8b, G22, O10 Rebuild panel.
 - Not run: the full flow (the coordinator's window).
+
+## R4 batch D — folders, no shims; two flow fixes and a wording correction (2026-10-24)
+
+**Why.** R4's last batch (plan approved, the coordinator's change: no `export *` shims — nothing is released, so every
+importer is updated in the same commit). Done before G12b and O16 rewrite the panels (option a): import lines only.
+
+**Moves** (each its own commit; importers updated across cad-model, the studio and the GPU lane's one file):
+
+| old | new |
+|---|---|
+| chat/analysis | analysis/analysis |
+| library/alignment | analysis/alignment |
+| team/bom, team/bomCore | bom/bom, bom/core |
+| team/sha256, team/digest, team/revision | util/sha256, util/digest, util/revision |
+| chat/{brief,questions,references,drafts,spec,proposals}: their types | engine/schema/<name> (plus brief's BRIEF_VERSION, PROCESSES, BRIEF_FIELDS) |
+| chat/rowSources, chat/rowDefinitions, chat/rowFiles | engine/rowSources, engine/rowDefinitions, engine/rowFiles |
+| assembly/flatten | engine/flatten |
+| drawing/dxf, drawing/pdf, drawing/svg | io/dxf, io/pdf, io/svg |
+
+- engine/ now imports nothing from chat/, and from assembly/ only types and the face-table helpers evaluate and
+  references use. engine/container stays in engine/ (the document format; the coordinator's call).
+- Two studio tests mock modules by path (bom-linked-ui, assembly-linked-faces): their filters follow the moves.
+- The docs refusal table (refusals.mjs) regenerated: two codes' modules (team → bom, chat → engine), no text.
+- Left for the docs lane: apps/library-docs/samples/cad-model.test.mjs imports team/revision (now util/revision);
+  the module map gains analysis/, bom/, engine/schema/, util/.
+
+**Two flow fixes (test only).** Step 80 frames the iso view before hovering (an order artefact, R4 batch B).
+Step 207 (R14.4) loads the sample fastener sizes first: since O7b the hole's position tolerance is the person's
+sizes', and the step had been failing alone too (not an order artefact) — R14.1–R14.5 pass on both renderers.
+
+**Wording correction.** holePosition's bases named "studio fastener data" and "no fastener in the studio data";
+they now name "your fastener sizes" (tolerance.test.ts:85's expected text with it). A search of user-facing strings for
+"studio data", "built-in", "the table (M" and "ISO sizes" found nothing else from before O7.
+
+**Verified (T2).** At df3ab8baf (after the kernel's next R5.4 folder batch, rebuilt from clean): the fingerprint
+identical to the base `5da366d6…`; model 993/993, studio 274/274, test names as batch C's; FLOW_ONLY 45/45 on WebGPU and
+WebGL2 (flow exit 0) on G12a's shell — batch C's set plus R14.1–R14.5, R11b, sections (O148 X1–X3), chat commits an
+assembly, A6.1, A6.3 and the brief steps. The wording commit (c921923f4) after it: tolerance, drawing, r14 76/76.
+Not run: the full flow (the coordinator's window).
