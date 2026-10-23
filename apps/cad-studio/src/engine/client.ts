@@ -15,8 +15,8 @@ import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
-import { Lanes, type Stale } from './lanes';
-export { isStale, type Stale } from './lanes';
+import { Lanes, type LaneReply } from './lanes';
+export type { LaneReply } from './lanes';
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
 function remembered(doc: StudioDoc, r: EvalResult): void { if (r.ok && r.faceTable) rememberFaceTable(doc, r.faceTable); }
@@ -71,11 +71,11 @@ export class EngineClient {
   }
 
   /**
-   * O9: a request on a lane — `engine.latest('preview', () => engine.preview(doc, rev))` — its reply, or Stale when a newer
-   * request went on the same lane first (a late reply never overwrites what overtook it). One lane for what one view
-   * shows: 'preview', 'section', 'mould', 'drawing', `placed:<instance>` …
+   * O9: a request on a lane — `engine.latest('preview', { revision, source }, () => engine.preview(doc, revision))` — its
+   * reply, stale when a newer request went on the same lane first (a late reply never overwrites what overtook it). One lane
+   * per thing a result replaces: 'preview', `section:<view>`, `drawing:<part>`, `placed:<instance>` …
    */
-  latest<T>(lane: string, request: () => Promise<T>): Promise<T | Stale> { return this.lanes.run(lane, request); }
+  latest<T>(lane: string, asked: { revision: number; source: string }, request: () => Promise<T>): Promise<LaneReply<T>> { return this.lanes.run(lane, asked, request); }
 
   evaluate(doc: StudioDoc, revision: number): Promise<EvalResult | null> {
     const id = this.next++; this.latestEval = id;
