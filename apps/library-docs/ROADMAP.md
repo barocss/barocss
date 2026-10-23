@@ -20,10 +20,11 @@
   - getting-started를 실제 studio에서 따라 해 보는 확인이 아직 남았습니다.
 - **순서.** 각 단계는 작은 커밋 하나이고, 커밋마다 SHA를 코디네이터에게 보고합니다.
   1. O9 빈 곳 채우기
-  2. agent 4쪽
-  3. packages 6쪽, 실행되는 예제 묶음 포함
-  4. reference 5쪽, 거부 코드 표는 코드에서 생성
-  5. 스크린샷
+  2. 캡처 스크립트와 tour 스크린샷, getting-started를 실제 studio에서 확인, 이미 쓴 페이지의 스크린샷 보충
+  3. agent 4쪽
+  4. packages 6쪽, 실행되는 예제 묶음 포함
+  5. reference 5쪽, 거부 코드 표는 코드에서 생성
+  - 2단계 이후로는 페이지마다 글과 스크린샷이 함께 있어야 완료로 칩니다.
 - **완료 기준.**
   - "Being written" 0쪽;
   - 모든 예제 테스트 통과;
@@ -91,8 +92,10 @@ Markdown.
 - **Gap, now unblocked:** a **Revisions and sources** section (O9, merged at 2f3fcb414). It must explain:
   - the document's source revision (`revisionOf`);
   - which fields it hashes, now including fastener sizes and casting rules;
-  - that every export names the revision it was made from.
-- **Sources for the gap:** `team/source.ts`; `o9-source.test.ts`.
+  - that every export names the revision it was made from;
+  - that a newer request to the engine makes an older reply on the same lane come back stale, so an out-of-date
+    preview, section or drawing never replaces a newer one (for example, a section plane dragged fast).
+- **Sources for the gap:** `team/source.ts`; `engine/lanes.ts`; `o9-source.test.ts`; `o9-lanes.test.ts`.
 
 ### Studio
 
@@ -384,8 +387,11 @@ Package pages need runnable samples. So the first packages commit adds `apps/lib
 ## Screenshots
 
 - **Capture script:** `apps/library-docs/scripts/capture.mjs`. It uses Playwright from `~/.cache/barocss-playwright`
-  and drives the studio on its own ports, 52820 and 52891, which need the coordinator's OK. It runs through the
-  barocss-lanes-guard gate, in the background.
+  and drives the studio on its own ports, 52820 (studio) and 52891 (chat), which the coordinator has cleared. It runs
+  through the barocss-lanes-guard gate, in the background.
+- **Per page, not at the end:** the script is built with the tour's shots, in the same checkpoint as the
+  getting-started walk. From then on, a page counts as done only with its text and its shots, so the owner sees real
+  pages early. The 15 written pages get their shots in one backfill pass right after the script.
 - **Steps:** every shot is a named step in the script, so a reshoot is one command.
 - **Output:** shots go to `docs/public/shots/<page>/`, with a `manifest.json` that lists each shot, its step and its
   size.
@@ -417,18 +423,19 @@ and its SHA is reported to the coordinator.
 |---|---|---|
 | R0 | This roadmap; owner approval | — |
 | O9 gaps | Concepts (Revisions and sources); Files (sources on exports, recovery); Drawings (SRC) | 1–2 commits, about 60 lines |
-| Agent | index, tools, cli, proposals; `samples/` begins with agent-tools, cli, proposals | 4 commits, about 450 lines |
+| Capture script | the script, its manifest and the tour's shots; the getting-started walk; then the backfill of shots for the other written pages | 2–3 commits |
+| Agent | index, tools, cli, proposals, each with its shots; `samples/` begins with agent-tools, cli, proposals | 4 commits, about 450 lines |
 | Packages | samples harness and `test:samples`; cad index, modeling, robustness, formats; cad-model; gpu | 7 commits, about 700 lines |
 | Reference | refusals and its generator; document; rows; limits; verification | 5 commits, about 700 lines |
 | Studio gaps | features (SubD, sheet flat pattern, image tracing); Parameters and configurations (if decision 1 is yes) | 1–2 commits, about 120 lines |
-| Screenshots | capture script and manifest; shots per section; the getting-started walk | 3–4 commits |
 | Currency | `sources:` front matter on every page, and the stale report in check-docs | 1 commit |
 
 The currency step can move earlier, right after R0, if the owner prefers. It touches every page once.
 
 ## Definition of done
 
-1. All pages in the sidebar exist, and none carries "Being written".
+1. All pages in the sidebar exist, and none carries "Being written". Each page is done only with its text and its
+   shots.
 2. Every page has a `sources:` list, and check-docs reports no stale page.
 3. Every code sample is included from `samples/`, and `pnpm test:samples` passes.
 4. The refusal table matches the codes in the code.
