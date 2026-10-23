@@ -4,7 +4,8 @@
 // nearest parallel hole axis: the distance between the two axes is its offset.
 import type { ModelNode, StudioDoc } from '../engine/doc';
 import { faceTableOf } from '../assembly/faces';
-import { BASE, rotationMatrix, type Vec3 } from '../assembly/mates';
+import { BASE, type Vec3 } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import { featureId } from '../engine/ids';
 
 type LibraryNode = Extract<ModelNode, { kind: 'library' }>;

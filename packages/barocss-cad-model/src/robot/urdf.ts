@@ -12,7 +12,7 @@
 import { convexHull, encodeBinaryStl, HullError } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { rotationMatrix } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import type { Joint, JointTree } from './joints';
 import { linkInertia, linkFrames, type Frame, type LinkInertia, type Mat3, type V3 } from './inertia';
 

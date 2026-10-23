@@ -14,7 +14,7 @@ import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, type BodyRef, type 
 import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
-import { rotationSteps } from '../assembly/mates';
+import { rotationSteps } from './placement';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../team/revision';
 import { resolveSkeletons } from '../frames/skeleton';

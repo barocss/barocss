@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { gizmoAxes, movedInstance, previewMatrix, turnedInstance } from '@barocss/cad-model/assembly/drag';
-import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
+import { rotationMatrix } from '@barocss/cad-model/engine/placement';
 import { rectanglePart, type PartInstance } from '@barocss/cad-model/engine/doc';
 
 type V = [number, number, number];

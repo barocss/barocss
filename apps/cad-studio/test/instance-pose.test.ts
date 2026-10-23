@@ -6,7 +6,7 @@ import { evaluatePart, placeBody, type BodyResult } from '@barocss/cad-model/eng
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { tablesFor } from '@barocss/cad-model/assembly/faces';
 import { solveDoc } from '@barocss/cad-model/chat/assembly';
-import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
+import { rotationMatrix } from '@barocss/cad-model/engine/placement';
 import { explodeOffsets, movedBody } from '@barocss/cad-model/assembly/explode';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
 import { forwardKinematics } from '@barocss/cad-model/robot/fk';

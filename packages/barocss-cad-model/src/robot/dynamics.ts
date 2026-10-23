@@ -8,7 +8,7 @@
 // 9.80665 m/s² (the CGPM's defined value) on −Z unless given; SI throughout (lengths in m).
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { rotationMatrix } from '../assembly/mates';
+import { rotationMatrix } from '../engine/placement';
 import type { JointTree } from './joints';
 import { applyTo, forwardKinematics } from './fk';
 import { linkFrames, linkInertia, type Mat3, type V3 } from './inertia';
@@ -97,6 +97,7 @@ export function linkBodies(tree: JointTree, partOf: Parameters<typeof linkMasses
   }
   return out;
 }
+// (Not engine/placement's product: this sums each entry from 0, which makes a −0 entry +0.)
 const mul3 = (a: Mat3, b: Mat3): Mat3 => { const r = new Array(9).fill(0) as Mat3; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) for (let k = 0; k < 3; k++) r[i * 3 + j] += a[i * 3 + k] * b[k * 3 + j]; return r; };
 const tr3 = (m: Mat3): Mat3 => [m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]];
 const mv = (m: ArrayLike<number>, v: readonly number[]): V3 => [m[0] * v[0] + m[1] * v[1] + m[2] * v[2], m[3] * v[0] + m[4] * v[1] + m[5] * v[2], m[6] * v[0] + m[7] * v[1] + m[8] * v[2]];

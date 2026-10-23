@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { evaluatePart, placeBody, type BodyResult } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
-import { rotationMatrix } from '../src/assembly/mates';
+import { rotationMatrix } from '../src/engine/placement';
 import { solveDoc } from '../src/chat/assembly';
 import { treeOfDoc } from '../src/chat/robot';
 import { applyTo, forwardKinematics } from '../src/robot/fk';

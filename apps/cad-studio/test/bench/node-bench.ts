@@ -37,7 +37,7 @@ import { exportMjcf } from '@barocss/cad-model/robot/mjcf';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { sweepLinks, sweepPath } from '@barocss/cad-model/robot/sweep';
 import { placeBody } from '@barocss/cad-model/engine/evaluate';
-import { rotationMatrix } from '@barocss/cad-model/assembly/mates';
+import { rotationMatrix } from '@barocss/cad-model/engine/placement';
 import { solveDoc } from '@barocss/cad-model/chat/assembly';
 import { tablesFor } from '@barocss/cad-model/assembly/faces';
 import { dispatchTool } from '@barocss/cad-model/chat/tools';

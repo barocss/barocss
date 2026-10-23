@@ -408,7 +408,8 @@ import type { RenderSettings } from './render';
 import type { SketchRule } from '../sketch/terms';
 import type { DirectGeometry } from './direct';
 import type { DrawingSettings } from '../drawing/types';
-import { rotationMatrix, rotationSteps, type Mate } from '../assembly/mates';
+import { type Mate } from '../assembly/mates';
+import { rotationMatrix, rotationSteps } from './placement';
 import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
@@ -564,30 +565,6 @@ export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   const resolved = resolveShopTree(inst.doc, parent, parent ? inst.id : undefined);
   const flat = flattenAssembly(flattenShopView(resolved));
   return prefixDoc(flat, flat.nodes.length);
-}
-/**
- * An instance's placement as the kernel applies it to every body: the turns of `rotationSteps` in order
- * (quarter turns exactly), then the move — x' = m·x + t, m row-major.
- */
-export function placementOf(inst: PartInstance): { m: number[]; t: [number, number, number] } {
-  let m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-  for (const { axis, angleDegrees } of rotationSteps(inst.rotation)) m = mul3(turnMatrix(axis, angleDegrees), m);
-  return { m, t: [inst.position[0], inst.position[1], inst.position[2]] };
-}
-/** A turn about an axis through the origin, as the kernel's rotate feature makes it. */
-function turnMatrix(axis: 'x' | 'y' | 'z', deg: number): number[] {
-  const k = Math.round(deg / 90);
-  if (k * 90 === deg) {
-    const turns = ((k % 4) + 4) % 4, c = [1, 0, -1, 0][turns], s = [0, 1, 0, -1][turns];
-    return axis === 'x' ? [1, 0, 0, 0, c, -s, 0, s, c] : axis === 'y' ? [c, 0, s, 0, 1, 0, -s, 0, c] : [c, -s, 0, s, c, 0, 0, 0, 1];
-  }
-  const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
-  return axis === 'z' ? [c, -sn, 0, sn, c, 0, 0, 0, 1] : axis === 'x' ? [1, 0, 0, 0, c, -sn, 0, sn, c] : [c, 0, sn, 0, 1, 0, -sn, 0, c];
-}
-function mul3(a: readonly number[], b: readonly number[]): number[] {
-  const out = Array<number>(9);
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) out[3 * i + j] = a[3 * i] * b[j] + a[3 * i + 1] * b[3 + j] + a[3 * i + 2] * b[6 + j];
-  return out;
 }
 
 export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
