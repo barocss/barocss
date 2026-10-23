@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 import {compileGpu,parseScene,compileScene,prepareMesh} from '../dist/index.js';
-import {SceneError} from '../dist/scene-types.js';
-import {parseSceneAst,analyzeSceneAst,SCENE_PARSE_LIMITS} from '../dist/scene-front.js';
+import {SceneError} from '../dist/scene/scene-types.js';
+import {parseSceneAst,analyzeSceneAst,SCENE_PARSE_LIMITS} from '../dist/scene/scene-front.js';
 const baseline=JSON.parse(await readFile(new URL('./fixtures/original-compiler.json',import.meta.url),'utf8'));
 const options=baseline.mesh.options,packet=baseline.mesh.packet;
 test('original current corpus preserves Scene and fixed shader bytes through own AST/IR',()=>{

@@ -38,7 +38,7 @@ function refs(value, seen = new Set()) {
 function independent(a, b) { const right = refs(b); for (const object of refs(a)) assert.ok(!right.has(object), 'No caller/cross-call graph or buffer aliases'); }
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
 async function save(name, text) { const path = resolve(output, name); await writeFile(path, text, { flag: 'wx' }); return receipt(path); }
-const owned = ['packages/barocss-gpu/src/native-surface-uv01-frame.ts', 'packages/barocss-gpu/src/native-surface-uv01-frame-pack.ts', 'packages/barocss-gpu/src/index.ts', 'packages/barocss-gpu/README.md', 'examples/gpu-scene/native-surface-uv01-frame-flow.mjs'];
+const owned = ['packages/barocss-gpu/src/native/uv01/native-surface-uv01-frame.ts', 'packages/barocss-gpu/src/native/uv01/native-surface-uv01-frame-pack.ts', 'packages/barocss-gpu/src/index.ts', 'packages/barocss-gpu/README.md', 'examples/gpu-scene/native-surface-uv01-frame-flow.mjs'];
 const delta = [...new Set([...git('diff', '--name-only', parent).split('\n'), ...git('ls-files', '--others', '--exclude-standard').split('\n')].filter(Boolean))].sort();
 assert.deepEqual(delta, [...owned].sort());
 const manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8')); assert.deepEqual(manifest, JSON.parse(gitFile('packages/barocss-gpu/package.json')));

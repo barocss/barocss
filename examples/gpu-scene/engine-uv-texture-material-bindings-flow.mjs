@@ -22,7 +22,7 @@ function independent(left, right) { const others = refs(right); for (const value
 const gitFile = path => execFileSync('git', ['show', parent + ':' + path], { cwd: repo, encoding: 'utf8' });
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
 async function save(name, content) { const path = resolve(output, name); await writeFile(path, content, { flag: 'wx' }); return receipt(path); }
-const owned = ['packages/barocss-gpu/src/engine-uv-texture-material-bindings.ts', 'packages/barocss-gpu/src/index.ts', 'packages/barocss-gpu/README.md', 'examples/gpu-scene/engine-uv-texture-material-bindings-flow.mjs'];
+const owned = ['packages/barocss-gpu/src/material/engine-uv-texture-material-bindings.ts', 'packages/barocss-gpu/src/index.ts', 'packages/barocss-gpu/README.md', 'examples/gpu-scene/engine-uv-texture-material-bindings-flow.mjs'];
 const changed = execFileSync('git', ['diff', '--name-only', parent], { cwd: repo, encoding: 'utf8' }).trim().split('\n').filter(Boolean), untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard'], { cwd: repo, encoding: 'utf8' }).trim().split('\n').filter(Boolean);
 const delta = [...new Set([...changed, ...untracked])].sort(); assert.deepEqual(delta, [...owned].sort(), 'Exactly four claimed delta paths');
 const manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8')); assert.deepEqual(manifest, JSON.parse(gitFile('packages/barocss-gpu/package.json')));

@@ -14,7 +14,7 @@ assert.equal(process.argv.length, 4); assert.equal(process.argv[2], '--output');
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..'), output = resolve(process.argv[3]); await mkdir(output, { recursive: false });
 const parent = '771ba2e1b7eef80bcb6dd31e8b075c91ce1ff989', pkg = resolve(repo, 'packages/barocss-gpu'), manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
 const ordinary = resolve(output, 'ordinary-public.mjs'), built = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
-const sourceGraph = Object.keys(built.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/mesh-material.ts'))); assert.ok(sourceGraph.some(p => p.endsWith('/src/native-surface-uv01-geometry.ts')));
+const sourceGraph = Object.keys(built.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/material/mesh-material.ts'))); assert.ok(sourceGraph.some(p => p.endsWith('/src/native/uv01/native-surface-uv01-geometry.ts')));
 assert.ok(sourceGraph.some(p => p.includes('barocss-cad/src/'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const hash = v => createHash('sha256').update(v).digest('hex');
 function signed(v) { if (typeof v === 'number') { assert.ok(Number.isFinite(v)); return Object.is(v, -0) ? '-0' : JSON.stringify(v); }

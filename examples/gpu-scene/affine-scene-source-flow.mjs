@@ -19,7 +19,7 @@ const ordinaryPath = resolve(output, 'ordinary-source.mjs');
 const bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinaryPath, metafile: true });
 const graph = Object.keys(bundle.metafile.inputs);
-assert(graph.some(p => p.endsWith('/src/affine-scene-source.ts')));
+assert(graph.some(p => p.endsWith('/src/scene/affine-scene-source.ts')));
 assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [['ordinary-source', await import(pathToFileURL(ordinaryPath).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, emitted.import)).href)]];
@@ -210,7 +210,7 @@ for (const [provider, gpu] of providers) {
 }
 assert.equal(results[0].compiledSHA256, results[1].compiledSHA256);
 const report = { issue: 1286, accepted, refused, actualGL: false, actualShaderEvaluation: false, sourceGraph: graph,
-  source: await receipt(resolve(pkg, 'src/affine-scene-source.ts')), fixture: await receipt(fixturePath),
+  source: await receipt(resolve(pkg, 'src/scene/affine-scene-source.ts')), fixture: await receipt(fixturePath),
   ordinary: await receipt(ordinaryPath), emitted: await receipt(resolve(pkg, emitted.import)), declarations: await receipt(declarationPath),
   results, originalFiles, support: 'Original Source2 parsing and semantics, trusted inverse rotation/component scale/min-F32-step shader text, all six unchanged distance helpers. Independent ideal transform/zero-set/normal arithmetic is example arithmetic only. No hardware field evaluation, marching convergence, finite-difference normal precision, renderer/profile adoption, pixels, visibility, exact world distance, performance or publication claim.' };
 const reportPath = resolve(output, 'actual-result.json'); await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');

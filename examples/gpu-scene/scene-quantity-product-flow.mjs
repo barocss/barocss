@@ -16,7 +16,7 @@ const parent = '82344b023c9cea3e4857b454170c78682ef047b6', pkg = resolve(repo, '
 const hash = v => createHash('sha256').update(v).digest('hex'), parentFile = name => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + name], { cwd: repo, encoding: 'utf8' });
 const ordinary = resolve(output, 'ordinary-public.mjs'), bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
-const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene-product-source.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
+const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene/scene-product-source.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.equal(namespace.length, 131); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
@@ -28,10 +28,10 @@ function shape(text, names) { const file = ts.createSourceFile('types.ts', text,
   return Object.fromEntries(file.statements.filter(n => (ts.isInterfaceDeclaration(n) || ts.isTypeAliasDeclaration(n)) && names.includes(n.name.text)).map(n => [n.name.text, printer.printNode(ts.EmitHint.Unspecified, n, file)])); }
 const oldTypes = ['SceneParameterCode', 'SceneParameterDiagnostic', 'SceneParameterDeclaration', 'ParameterizedAffineSceneAst', 'SceneParameter', 'CompiledParameterizedAffineSceneSource'];
 const parameterDTS = await readFile(resolve(pkg, 'dist/scene-parameter-source.d.ts'), 'utf8');
-const beforeTypes = shape(parentFile('src/scene-parameter-source.ts'), oldTypes); assert.equal(Object.keys(beforeTypes).length, 6); assert.deepEqual(shape(parameterDTS, oldTypes), beforeTypes);
+const beforeTypes = shape(parentFile('src/scene/scene-parameter-source.ts'), oldTypes); assert.equal(Object.keys(beforeTypes).length, 6); assert.deepEqual(shape(parameterDTS, oldTypes), beforeTypes);
 function literalSignature(text) { const file = ts.createSourceFile('literal-signature.ts', text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS), fn = file.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === 'compileParameterizedAffineSceneSource');
   assert.ok(fn); return { name: fn.name.text, parameters: fn.parameters.map(p => printer.printNode(ts.EmitHint.Unspecified, p, file)), result: printer.printNode(ts.EmitHint.Unspecified, fn.type, file) }; }
-assert.deepEqual(literalSignature(parameterDTS), literalSignature(parentFile('src/scene-parameter-source.ts')));
+assert.deepEqual(literalSignature(parameterDTS), literalSignature(parentFile('src/scene/scene-parameter-source.ts')));
 const indexDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), productDTS = await readFile(resolve(pkg, 'dist/scene-product-source.d.ts'), 'utf8');
 const newTypes = ['MultiplicativeAffineSceneAst', 'CompiledMultiplicativeAffineSceneSource'];
 for (const name of ['compileMultiplicativeAffineSceneSource', ...newTypes]) { assert.ok(new RegExp('\\b' + name + '\\b').test(indexDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(productDTS)); }

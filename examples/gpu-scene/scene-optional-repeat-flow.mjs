@@ -25,7 +25,7 @@ assert.equal(new Set(parentRuntime).size, parentRuntime.length); assert.equal(pa
 const ordinary = resolve(output, 'ordinary-public.mjs');
 const bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const sourceGraph = Object.keys(bundle.metafile.inputs);
-assert.ok(sourceGraph.some(path => path.endsWith('/src/scene-optional-repeat-source.ts')));
+assert.ok(sourceGraph.some(path => path.endsWith('/src/scene/scene-optional-repeat-source.ts')));
 assert.ok(!sourceGraph.some(path => /barocss-(gpu|cad)\/dist\//.test(path)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const provider of providers) provider.gpu = await import(pathToFileURL(provider.path).href);

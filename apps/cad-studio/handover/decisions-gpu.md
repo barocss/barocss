@@ -2472,3 +2472,40 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     pose-clip 18/18, cap-aa 3/3, contour, uv-repeating, compute-thickness, compute-access.
   - studio: tsc 0, unit 268/268.
   - FLOW_ONLY on WebGPU, all pass: 73, G19.4, G3, G24, 258, RM2, K2 L gap, the palette.
+
+## G-R37 — R2d: the gpu package's top-level files into folders (roadmap R2, 2026-10-23; R2 done)
+
+- **What**: 96 files moved with `git mv`, their basenames unchanged and unique; `index.ts`, `viewer/` and `compute/` as
+  they were.
+  - scene 15, boolean 4, geometry 21, mesh 17, native/lights 8, native/uv01 7, engine 13, material 9 (the
+    engine-uv-* and mesh-material files among them), core 2 (gpu-error, rotation).
+  - Every relative import in src was rewritten from the file's new place to its target's.
+- **What else followed, in the same commit**:
+  - The gpu tests' deep dist imports (gpu-compiler, material-colour-f32, mesh-packet) and the esbuild entries in
+    native-point-light-program-wgsl.
+  - 52 examples/gpu-scene flows: their deep imports, the `src/<file>.ts` receipts and the bundle-graph assertions
+    (`endsWith('/src/<file>.ts')`). Lines reading a pinned commit (`gitFile(…)`, `commit:`) were left on their old
+    paths.
+- **Not edited** (the coordinator's rule): any profile, evidence or ledger JSON, and the physics examples' evidence
+  bundle (`native-freeze/source-bundle.js`).
+  - The library-docs builders read gpu sources through git at each profile's pinned sourceCommit, so they keep
+    resolving. **The docs profiles pick up the new paths only when the docs owner next re-pins them.**
+- **Nothing live left on the old paths**: outside packages/barocss-gpu, apart from index and viewer/index, JSON and
+  evidence, the only `barocss-gpu/(src|dist)/` paths left are:
+  - prose in the handover notes;
+  - the studio tests' imports of `src/viewer/*` (not moved);
+  - `.github/scripts/affected-ci.test.mjs`' template `src/${name}.ts` (a synthetic path);
+  - pinned reads (`engine-uv-texture-material-flow`'s `gitFile`);
+  - the negative assertions that the graph does not include dist.
+- **Checks**:
+  - gpu: build, tsc 0, eslint 0, unit 189/189. Browser specs, one file each (load 19–27), all pass: viewer,
+    scene-viewer, pose-clip 18/18, cap-aa 3/3, contour, uv-repeating, compute-thickness, compute-access.
+  - The library-docs scripts without a pin: cad-impact-map.test.mjs 7/7; check-viewer-authored-directional-lights
+    passes.
+  - studio: tsc 0, unit 268/268. FLOW_ONLY on WebGPU: 73 and G3 pass.
+  - The examples/gpu-scene flows tried (material-scalar-abs, engine-scene, native-surface-uv01-frame,
+    triangle-geometry, scene-generated, material-smoothstep, engine-uv-texture-material-wgsl) fail, and fail the same
+    way at d50c2fe82, before the move. Some cannot find the kernel's `src/types.js`; others assert a git-diff file list
+    against an old base. Not this move: noted for the kernel lane and the examples' owner.
+- **R2 done**: per-frame allocations (R2a), the display-policy module (R2b), the viewer/shaders split (R2c) and these
+  folders.

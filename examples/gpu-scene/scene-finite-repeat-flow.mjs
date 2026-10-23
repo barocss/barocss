@@ -18,7 +18,7 @@ const oldBarrel = parentFile('src/index.ts'), oldFile = ts.createSourceFile('par
 const parentRuntime = oldFile.statements.filter(n => ts.isExportDeclaration(n) && !n.isTypeOnly && n.exportClause && ts.isNamedExports(n.exportClause))
   .flatMap(n => n.exportClause.elements.filter(e => !e.isTypeOnly).map(e => e.name.text)).sort(); assert.equal(new Set(parentRuntime).size, parentRuntime.length); assert.equal(parentRuntime.length, 135);
 const ordinary = resolve(output, 'ordinary-public.mjs'), bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
-const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene-finite-repeat-source.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
+const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene/scene-finite-repeat-source.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }]; for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.deepEqual(namespace, [...parentRuntime, 'compileFiniteRepeatAffineSceneSource'].sort()); assert.equal(namespace.length, 136); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 assert.ok((await readFile(resolve(pkg, 'src/index.ts'), 'utf8')).startsWith(oldBarrel)); assert.deepEqual(manifest, JSON.parse(parentFile('package.json')));

@@ -18,8 +18,8 @@ const manifest=JSON.parse(await readFile(resolve(pkg,'package.json'),'utf8'));
 const published=manifest.publishConfig.exports['.'],ordinary=resolve(output,'ordinary-source.mjs');
 const bundled=await build({entryPoints:[resolve(pkg,manifest.exports['.'].import)],bundle:true,platform:'node',format:'esm',target:'node22',outfile:ordinary,metafile:true});
 const graph=Object.keys(bundled.metafile.inputs);
-assert(graph.some(p=>p.endsWith('/src/engine-lighting-bindings.ts')));
-assert(graph.some(p=>p.endsWith('/src/mesh-lighting.ts')),'Actual unchanged native lighting validator');
+assert(graph.some(p=>p.endsWith('/src/engine/engine-lighting-bindings.ts')));
+assert(graph.some(p=>p.endsWith('/src/mesh/mesh-lighting.ts')),'Actual unchanged native lighting validator');
 assert(!graph.some(p=>/barocss-(gpu|cad)\/dist\//.test(p)));
 const hash=value=>createHash('sha256').update(value).digest('hex');
 async function receipt(path){const bytes=await readFile(path);return{path,bytes:bytes.length,sha256:hash(bytes)};}
@@ -97,5 +97,5 @@ for(const[name,gpu]of providers){
  results.push({provider:name,exports:Object.keys(gpu).sort(),acceptance,refusals,retainedFile:await receipt(file),finalPreparedSHA256:hash(bits)});
 }
 assert.equal(results[0].finalPreparedSHA256,results[1].finalPreparedSHA256);
-const report={issue:1243,stage:'CPU-original-lighting-companion-unit-direction-file',accepted,refused,getters,proxyReflections,bindingArrayEnumerations,directionArrayEnumerations,actualGL:false,sourceGraph:graph,source:await receipt(resolve(pkg,'src/engine-lighting-bindings.ts')),nativeValidator:await receipt(resolve(pkg,'src/mesh-lighting.ts')),declarations:await receipt(declarationPath),ordinary:await receipt(ordinary),emitted:await receipt(resolve(pkg,published.import)),results,support:'Original full scene0 and lighting companion0, actual unchanged MeshLighting validator and robust Number unit light direction. Independent world-normal/ray/UV and consumer Lambert factor, subnormal/1000/sign coefficients, bounded hidden/unused/material reference order, complete cold originals/sign paths and execution-buffer ownership. No pixels, gamma, shader/native lighting, GL, resource lifetime, performance, editor adoption or publication claim.'};
+const report={issue:1243,stage:'CPU-original-lighting-companion-unit-direction-file',accepted,refused,getters,proxyReflections,bindingArrayEnumerations,directionArrayEnumerations,actualGL:false,sourceGraph:graph,source:await receipt(resolve(pkg,'src/engine/engine-lighting-bindings.ts')),nativeValidator:await receipt(resolve(pkg,'src/mesh/mesh-lighting.ts')),declarations:await receipt(declarationPath),ordinary:await receipt(ordinary),emitted:await receipt(resolve(pkg,published.import)),results,support:'Original full scene0 and lighting companion0, actual unchanged MeshLighting validator and robust Number unit light direction. Independent world-normal/ray/UV and consumer Lambert factor, subnormal/1000/sign coefficients, bounded hidden/unused/material reference order, complete cold originals/sign paths and execution-buffer ownership. No pixels, gamma, shader/native lighting, GL, resource lifetime, performance, editor adoption or publication claim.'};
 const resultFile=resolve(output,'actual-result.json');await writeFile(resultFile,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({issue:1243,accepted,refused,getters,proxyReflections,bindingArrayEnumerations,directionArrayEnumerations,exports:results[0].exports.length,resultSHA256:(await receipt(resultFile)).sha256,actualGL:false}));

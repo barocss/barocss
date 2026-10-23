@@ -17,7 +17,7 @@ const parent = '8c451be321d5a4da6fd1adf853f89b78d9fb6351', pkg = resolve(repo, '
 const hash = v => createHash('sha256').update(v).digest('hex'), parentFile = name => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + name], { cwd: repo, encoding: 'utf8' });
 const ordinary = resolve(output, 'ordinary-public.mjs'), built = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
-const sourceGraph = Object.keys(built.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene-parameter-source.ts')));
+const sourceGraph = Object.keys(built.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene/scene-parameter-source.ts')));
 assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);

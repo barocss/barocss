@@ -12,7 +12,7 @@ const pkg=resolve(repo,'packages/barocss-gpu'),manifest=JSON.parse(await readFil
 const map=manifest.publishConfig.exports['.'];assert.equal(map.import,'./dist/index.js');assert.equal(map.types,'./dist/index.d.ts');
 const sourceBundle=resolve(output,'ordinary-source.mjs');
 const built=await build({entryPoints:[resolve(pkg,manifest.exports['.'].import)],bundle:true,format:'esm',platform:'node',target:'node22',outfile:sourceBundle,metafile:true});
-const graph=Object.keys(built.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/mesh-material.ts')));assert(!graph.some(p=>p.includes('barocss-gpu/dist/')||p.includes('barocss-cad/dist/')),'Ordinary source used a dist fallback');
+const graph=Object.keys(built.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/material/mesh-material.ts')));assert(!graph.some(p=>p.includes('barocss-gpu/dist/')||p.includes('barocss-cad/dist/')),'Ordinary source used a dist fallback');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function receipt(path){const bytes=await readFile(path);return{path,bytes:bytes.length,sha256:sha(bytes)};}
 const providers=[['ordinary-source',sourceBundle],['emitted-public',resolve(pkg,map.import)]];
@@ -73,6 +73,6 @@ for(const[name,path]of providers){
  results.push({provider:name,entry:await receipt(path),exports,accepted,refusals,getters});
 }
 assert.deepEqual(results[0].exports,results[1].exports);assert.equal(results[0].exports.length,54);
-const result={ok:true,issue:1124,results,sourceGraph:graph,source:await receipt(resolve(pkg,'src/mesh-material.ts')),declarations:await receipt(resolve(pkg,map.types)),actualGL:false,support:'Actual public source/emitted compiler and cold source/IR files; existing IR/lowering equality and bounded CPU fixture observations. No renderer, pixels, consumer adoption or publication.'};
+const result={ok:true,issue:1124,results,sourceGraph:graph,source:await receipt(resolve(pkg,'src/material/mesh-material.ts')),declarations:await receipt(resolve(pkg,map.types)),actualGL:false,support:'Actual public source/emitted compiler and cold source/IR files; existing IR/lowering equality and bounded CPU fixture observations. No renderer, pixels, consumer adoption or publication.'};
 await writeFile(resolve(output,'actual-result.json'),JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify({ok:true,accepted:results.reduce((n,r)=>n+r.accepted.length,0),refusals:results.reduce((n,r)=>n+r.refusals.length,0),getters:0,exports:54,actualGL:false}));

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validatePreviewPacket, validateMeshOptions, prepareMesh } from '../dist/mesh-packet.js';
+import { validatePreviewPacket, validateMeshOptions, prepareMesh } from '../dist/mesh/mesh-packet.js';
 
 const options = () => ({ mmToSceneUnit: 0.1, translate: [0, 0, 0], color: [1, 0.5, 0], background: [0.1, 0.2, 0.3] });
 const patch = () => ({

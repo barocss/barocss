@@ -21,8 +21,8 @@ const ordinary = resolve(output, 'ordinary-source.mjs');
 const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)],
   bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
-assert(graph.some(p => p.endsWith('/src/triangle-normal-generation.ts')));
-assert(graph.some(p => p.endsWith('/src/triangle-geometry.ts')));
+assert(graph.some(p => p.endsWith('/src/geometry/triangle-normal-generation.ts')));
+assert(graph.some(p => p.endsWith('/src/geometry/triangle-geometry.ts')));
 assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const hash = value => createHash('sha256').update(value).digest('hex');
 async function receipt(path) {
@@ -306,7 +306,7 @@ for (const [name, gpu] of providers) {
   results.push({ provider: name, accepted: acceptance, refusals, controls, exports: Object.keys(gpu).sort() });
 }
 const report = { issue: 1272, accepted, refused, getters, proxyReflections, oversizeEnumerations,
-  actualGL: false, sourceGraph: graph, source: await receipt(resolve(pkg, 'src/triangle-normal-generation.ts')),
+  actualGL: false, sourceGraph: graph, source: await receipt(resolve(pkg, 'src/geometry/triangle-normal-generation.ts')),
   declarations: await receipt(declarationPath), ordinary: await receipt(ordinary),
   emitted: await receipt(resolve(pkg, published.import)), results,
   support: 'Bounded original indexed Number area-weighted normals by source vertex identity; all vertices referenced. Actual existing geometry and scene0 providers, independent frozen originals/generated Number normals and mutable F32 buffers. CPU/source/emitted/file/cold proof only; no native CAD, browser/GL/pixel, old U32/max-geometry campaign, performance, whole engine/Three.js parity or publication.' };

@@ -24,8 +24,8 @@ const ordinary = resolve(output, 'ordinary-source.mjs');
 const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
   platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
-assert(graph.some(path => path.endsWith('/src/material-evaluation.ts')));
-assert(graph.some(path => path.endsWith('/src/mesh-material.ts')));
+assert(graph.some(path => path.endsWith('/src/material/material-evaluation.ts')));
+assert(graph.some(path => path.endsWith('/src/material/mesh-material.ts')));
 assert(!graph.some(path => /barocss-(gpu|cad)\/dist\//.test(path)), 'No own emitted source fallback');
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];

@@ -18,7 +18,7 @@ const manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8')
 const ordinary = resolve(output, 'ordinary-public.mjs');
 const bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const sourceGraph = Object.keys(bundle.metafile.inputs);
-assert.ok(sourceGraph.some(p => p.endsWith('/src/native-surface-uv01-binding.ts')));
+assert.ok(sourceGraph.some(p => p.endsWith('/src/native/uv01/native-surface-uv01-binding.ts')));
 assert.ok(sourceGraph.some(p => p.includes('barocss-cad/src/'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
