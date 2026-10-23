@@ -143,7 +143,7 @@ import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/te
 import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { downloadBytes, lumpStls, meshToStl } from './ui/files';
-import { useBottomRow } from './ui/useBottomRow';
+import { useBottomRow, HISTORY_LEFT, HISTORY_LEFT_RAIL } from './ui/useBottomRow';
 import { useLayout } from './layout/useLayout';
 import { ChatColumn, columnShown } from './layout/ChatColumn';
 import { Dock } from './layout/Dock';
@@ -167,6 +167,8 @@ const DrawingWorkspace = lazy(() => import('./ui/DrawingWorkspace').then(m => ({
 const RenderPanel = lazy(() => import('./ui/RenderPanel').then(m => ({ default: m.RenderPanel })));
 const DirectPanel = lazy(() => import('./ui/DirectPanel').then(m => ({ default: m.DirectPanel })));
 const emptyDirect = (): DirectGeometry => ({ sources: {}, objects: [] });
+/** Where the Browser mounts (G12b): the dock's top section, or the stage's left as before. */
+const BROWSER_PLACEMENT = 'dock' as 'dock' | 'left';
 
 const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
   { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'cad-sk-rect', hint: 'Click two corners' },
@@ -260,7 +262,7 @@ export function App() {
   const engine = useMemo(() => new EngineClient(), []);
   const viewport = useRef<ViewportHandle>(null);
   // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
-  const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), bottomRow = useBottomRow(cornerRight, stripWidth);
+  const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), bottomRow = useBottomRow(cornerRight, stripWidth, BROWSER_PLACEMENT === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT);
   const [doc, setDoc] = useState<StudioDoc>(starterDoc);
   const [marker, setMarker] = useState<number | null>(null);
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
@@ -2254,7 +2256,7 @@ export function App() {
   );
   // (G12b: the right dock — the Browser (its mount movable: browserPlacement), the running command's HUD and the inspector;
   // the HUD floats at the stage's right as before when the dock is a strip.)
-  const browserPlacement = 'dock' as 'dock' | 'left';
+  const browserPlacement = BROWSER_PLACEMENT;
   const dockDocked = layout.dockDocked(chatColumnShown ? layout.chatShown : 0);
   // (The strips over the stage's edges, left and right: the bottom row's room is the stage less them.)
   // (What the dock takes at the stage's right edge when it is not docked: its strip, and its sheet while open — the view bar,
@@ -2595,7 +2597,7 @@ export function App() {
   );
   const hud = active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />;
   return (
-    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
+    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
       <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
