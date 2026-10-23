@@ -6,7 +6,7 @@
 // for the process is unknown and said so.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { materialIdOf } from '../app/bodies';
+import { partMaterial } from '../app/bodies';
 import { materialData, type CastFamily, type ProcessProfile, type ProcessThreshold } from '../library/materials';
 import { castingProfileOf, hasCastingRules, noCastingRules } from '../engine/castingRuleRows';
 import { wallsOf } from '../mould/walls';
@@ -45,7 +45,7 @@ const faceNames = (fs: readonly DraftFace[]) => fs.map(f => f.face).slice(0, 40)
  */
 export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): { minDeg: number; recDeg: number | null; source: string } | null {
   profile = castingProfileOf(doc, profile.id) ?? profile; // (O7c: the limits are the document's rows.)
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, family = id ? materialData(id)?.castFamily ?? null : null;
+  const { id } = partMaterial(doc, bodies), family = id ? materialData(id)?.castFamily ?? null : null;
   const dMin = family ? limitOf(profile, family, 'DraftMinDeg') : undefined, dRec = family ? limitOf(profile, family, 'DraftRecDeg') : undefined;
   return dMin ? { minDeg: dMin.value, recDeg: dRec?.value ?? null, source: pageOf(dMin) } : null;
 }
@@ -56,10 +56,10 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   profile = castingProfileOf(doc, profile.id) ?? profile;
   const rules: PrintRule[] = hasCastingRules(doc, profile.id) ? [] : [{ id: 'casting-rules', level: 'feasible', status: 'unknown', message: noCastingRules(profile.id), why: 'none is built in: the person loads their foundry\'s rules' }];
   // The material: one for the part, its casting family the library's.
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, m = id ? materialData(id) : undefined;
+  const { id, mixed } = partMaterial(doc, bodies), m = id ? materialData(id) : undefined;
   const family = m?.castFamily ?? null;
   const has = (k: string) => !!family && !!limitOf(profile, family, k);
-  if (!m) rules.push({ id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its casting family sets the limits)', why: ids.length > 1 ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
+  if (!m) rules.push({ id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its casting family sets the limits)', why: mixed ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
   else if (!family) rules.push({ id: 'material', level: 'feasible', status: 'fail', message: `${m.label} is not a casting alloy here (no casting family): choose a casting alloy for ${profile.label.toLowerCase()}`, entities: bodies.map(b => b.key) });
   else if (!has('WallMinMM') && !has('DraftMinDeg')) rules.push({ id: 'material', level: 'feasible', status: 'unknown', message: `${m.label}: a ${family} alloy`, why: `no ${profile.label.toLowerCase()} limit for a ${family} alloy was read from a public page: set yours, or ask your caster` });
   else rules.push({ id: 'material', level: 'feasible', status: 'pass', message: `${m.label}: a ${family} alloy, cast to its ${profile.label.toLowerCase()} limits` });

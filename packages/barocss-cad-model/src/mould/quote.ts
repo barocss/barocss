@@ -6,7 +6,7 @@
 // called complete while anything is.
 import type { StudioDoc } from '../engine/doc';
 import { stepFor, type BodyResult } from '../engine/evaluate';
-import { lookOf, materialIdOf } from '../app/bodies';
+import { lookOf, partMaterial } from '../app/bodies';
 import { massBoundOf, massProperties } from '../chat/analysis';
 import { materialData, processProfile } from '../library/materials';
 import { printability, type PrintabilityReport } from '../print/rules';
@@ -70,7 +70,7 @@ export async function quotePackage(doc: StudioDoc, bodies: readonly BodyResult[]
   const rep = await printability(doc, bodies, evaluate, { ...(o.direction ? { direction: o.direction } : {}), ...(o.finish ? { finish: o.finish } : {}), ...(o.sides ? { sides: o.sides } : {}) });
   const step = stepFor(doc, name);
   // The request: what was asked and what the part is, every limit with its source.
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, m = id ? materialData(id) : undefined;
+  const { id, mixed } = partMaterial(doc, bodies), m = id ? materialData(id) : undefined;
   const own = !!id && bodies.every(b => lookOf(doc, b).material === id);
   const briefQty = doc.brief?.quantity?.basis === 'stated' && Number.isInteger(Number(doc.brief.quantity.value)) ? Number(doc.brief.quantity.value) : null;
   const { min: lo, max: hi } = boundsOf(bodies);
@@ -89,7 +89,7 @@ export async function quotePackage(doc: StudioDoc, bodies: readonly BodyResult[]
   };
   // What is still open: the request's gaps, the failing rules, the unknown ones.
   const open: string[] = [];
-  if (!request.material) open.push(ids.length > 1 ? 'the bodies are of different materials: one material for the part' : 'the material is not set (set_material, or the brief\'s stated material)');
+  if (!request.material) open.push(mixed ? 'the bodies are of different materials: one material for the part' : 'the material is not set (set_material, or the brief\'s stated material)');
   if (request.quantity === null) open.push('the quantity is not stated (the brief\'s quantity, or "quantity")');
   if (!request.pull) open.push('the pull direction is not set');
   if (!request.finish) open.push('the surface finish is not set');

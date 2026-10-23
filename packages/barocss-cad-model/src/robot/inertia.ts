@@ -10,7 +10,7 @@ import { symmetricEigen3 } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { materialIdOf } from '../app/bodies';
-import { materialOf } from '../app/materials';
+import { materialOf } from '../library/materials';
 import { rotationMatrix } from '../assembly/mates';
 import type { JointTree } from './joints';
 import { KERNEL_DENSITY } from '../app/mass';

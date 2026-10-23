@@ -4,7 +4,7 @@
 // drawing page, read 2026-10-21). The STEP carries no semantic PMI (AP242): that is the kernel's STEP writer, queued
 // for the kernel lane, and not judged here — the drawing is the document a shop quotes and machines from.
 import type { StudioDoc } from '../engine/doc';
-import { materialIdOf } from '../app/bodies';
+import { partMaterial } from '../app/bodies';
 import type { BodyResult } from '../engine/evaluate';
 import { materialData, type WebSource } from '../library/materials';
 import { drawingInputs } from '../chat/drawing';
@@ -61,8 +61,8 @@ export function drawingCheck(doc: StudioDoc, bodies: readonly BodyResult[]): Dra
   items.push(general ? item('tolerance', 'pass', `the general tolerance note: "${general.split('\n')[0]}"`) : item('tolerance', 'warn', 'no general tolerance note: the sizes not given a tolerance are held to what (accept the tolerance suggestions\' general note)'));
   // The part's name, its material and its finish.
   items.push(settings.title && settings.title.trim() && settings.title !== 'part' ? item('title', 'pass', `titled "${settings.title}"`) : item('title', 'warn', 'the title block names no part (set_drawing title)'));
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], m = ids.length === 1 && ids[0] ? materialData(ids[0]) : undefined;
-  if (!m) items.push(item('material', 'unknown', ids.length > 1 ? 'the bodies are of different materials' : 'the part\'s material is not set: the drawing cannot be checked for it'));
+  const { id, mixed } = partMaterial(doc, bodies), m = id ? materialData(id) : undefined;
+  if (!m) items.push(item('material', 'unknown', mixed ? 'the bodies are of different materials' : 'the part\'s material is not set: the drawing cannot be checked for it'));
   else items.push(notes.some(t => t.toUpperCase().includes(m.label.toUpperCase()) || t.toUpperCase().includes(m.id.toUpperCase())) ? item('material', 'pass', `the material named (${m.label})`) : item('material', 'warn', `the material (${m.label}) not named on the drawing: a note "MATERIAL: ${m.label.toUpperCase()}"`));
   const finish = doc.brief?.finish?.value;
   items.push(!finish ? item('finish', 'pass', 'no finish stated: as machined, Ra 3.2 μm the standard')

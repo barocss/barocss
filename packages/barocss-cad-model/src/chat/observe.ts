@@ -5,7 +5,7 @@ import { featureLabel, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
-import { materialOf } from '../app/materials';
+import { materialOf } from '../library/materials';
 import { materialFact } from './analysis';
 import { roundFaceAxis } from '../app/measure';
 import type { Vec3 } from '../engine/mesh';

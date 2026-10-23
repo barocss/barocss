@@ -9,7 +9,7 @@
 // axes, points.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { materialIdOf } from '../app/bodies';
+import { partMaterial } from '../app/bodies';
 import { materialData, type ProcessProfile } from '../library/materials';
 import { wallsOf } from '../mould/walls';
 import { accessOf, type Access } from './access';
@@ -31,10 +31,10 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
   const bodies = madeBodies(doc.nodes, all); // (O160: a bought element is not machined.)
   const t = (k: string) => profile.thresholds[k], rules: PrintRule[] = [];
   // The material: one for the part, its family the library's (metal or polymer).
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, m = id ? materialData(id) : undefined;
+  const { id, mixed } = partMaterial(doc, bodies), m = id ? materialData(id) : undefined;
   const family: Family | null = m ? (m.family === 'metal' ? 'metal' : 'plastic') : null;
   rules.push(family ? { id: 'material', level: 'feasible', status: 'pass', message: `${m!.label}: a ${family}, machined to ${family === 'metal' ? 'metal' : 'plastic'} limits` }
-    : { id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its family sets the limits)', why: ids.length > 1 ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
+    : { id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its family sets the limits)', why: mixed ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
   // Walls: the thinnest (the inward ray, IM4's walls) against the family's feasible and recommended least.
   const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnestMM !== null).sort((a, b) => a.thinnestMM! - b.thinnestMM!)[0];
   if (!thin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });

@@ -6,7 +6,7 @@ import type { StudioDoc } from '../engine/doc';
 import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import type { TableContent } from '../drawing/table';
 import { bodyName, materialIdOf } from './bodies';
-import { MATERIALS } from './materials';
+import { MATERIALS } from '../library/materials';
 
 export interface PartCutList extends CutList {
   /** Each piece's body key and its name, as the rows list them. */

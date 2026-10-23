@@ -10,7 +10,7 @@ import { massBoundOf, massProperties } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
 import { elementLines, madeBodies } from '../engine/elements';
 import { partCutList } from '../app/cutList';
-import { MATERIALS } from '../app/materials';
+import { MATERIALS } from '../library/materials';
 import { beadAccounting, combineBeadAccounting, type BeadAccounting } from '../frames/beadAccounting';
 import { fastenerRowFor } from '../engine/fastenerRows';
 import { r6 } from '../util/round';

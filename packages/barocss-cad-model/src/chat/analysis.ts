@@ -10,7 +10,7 @@ import { bodyKeyFor } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
 import { draftField } from '../mould/draft';
 import { refOf } from '../app/bodyRef';
-import { materialOf } from '../app/materials';
+import { materialOf } from '../library/materials';
 import { r3Signed as r3 } from '../util/round';
 import { KERNEL_DENSITY, massGOf } from '../app/mass';
 

@@ -10,7 +10,7 @@ import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import type { Mate } from '@barocss/cad-model/assembly/mates';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { materialIdOf, withLook } from '@barocss/cad-model/app/bodies';
-import { materialOf } from '@barocss/cad-model/app/materials';
+import { materialOf } from '@barocss/cad-model/library/materials';
 import { solveDoc } from '@barocss/cad-model/chat/assembly';
 import { readDuty, robotCheckOfDoc, robotOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { linkBodies } from '@barocss/cad-model/robot/dynamics';
