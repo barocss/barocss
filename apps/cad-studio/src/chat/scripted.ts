@@ -10,7 +10,7 @@ import type { StudioMessage, TurnDone, TurnInputs } from './transport';
 /** The scripted conversation: its turns' events, in order (one turn a user message), and what each turn sent. */
 /** A scripted event: one of the server's, or a pause (`sleep`, ms) — a slow turn, to stop. */
 export type ScriptedEvent = TurnEvent | { type: 'sleep'; ms: number };
-interface Scripted { turns: readonly (readonly ScriptedEvent[])[]; sent: TurnInputs[] }
+interface Scripted { turns: readonly (readonly ScriptedEvent[])[]; sent: TurnInputs[]; transport?: ChatTransport<StudioMessage> }
 let scripted: Scripted | null = null;
 export const scriptedChat = () => scripted;
 
@@ -31,10 +31,12 @@ function write(w: Writer, events: readonly ScriptedEvent[]) {
   }
 }
 
-/** The scripted turns as a transport: the n-th user message answered by the n-th turn. */
+/** The scripted turns as a transport: the n-th user message answered by the n-th turn. One for the conversation, so its
+ *  messages' ids run on (createChat numbers them; a chat per turn would give each turn the same). */
 export function scriptedTransport(s: Scripted): ChatTransport<StudioMessage> {
-  const chat = createChat();
-  return chat.transport({ delayMs: undefined, fallback: ({ writer, messages }) => {
+  if (s.transport) return s.transport;
+  const chat = createChat({ messageIdPrefix: `scripted-${Math.random().toString(36).slice(2, 8)}-` });
+  return s.transport = chat.transport({ delayMs: undefined, fallback: ({ writer, messages }) => {
     const n = messages.filter(m => m.role === 'user').length - 1;
     write(writer as unknown as Writer, s.turns[n] ?? [{ type: 'done', end: 'error', error: `no scripted turn ${n + 1}` }]);
   } }) as unknown as ChatTransport<StudioMessage>;
