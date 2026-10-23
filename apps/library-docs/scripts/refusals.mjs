@@ -1,13 +1,20 @@
 // The Refusal codes page's tables, generated from the sources: every bracketed refusal code (`[FASTENER_SIZE_ROW] …`) in
 // the kernel, the document model and the studio, with the folders it is raised in and one message as written (the
-// string literal read whole: escapes, and a template's `${…}` shown as …). Writes docs/reference/_refusals.md, which
-// reference/refusals.md includes. `--check` writes nothing and exits 1 when the file differs from the code.
+// string literal read whole: escapes, and a template's `${…}` shown as …). The sources are read with the TypeScript
+// parser and only string and template literals count, so comments are never read as messages. Writes
+// docs/reference/_refusals.md, which reference/refusals.md includes. `--check` writes nothing and exits 1 when the file
+// differs from the code.
+// (Codes kept only as a TypeScript union, their messages built as `[${code}] …` — the cad-model facade's FacadeCode —
+// can't be read from strings and are not listed. R7.3 moves every package to such unions; the table will then be
+// generated from the types.)
 //   node scripts/refusals.mjs [--check]
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join, relative, resolve } from 'node:path';
 
 const docs = resolve(import.meta.dirname, '..'), repo = resolve(docs, '../..');
 const target = join(docs, 'docs/reference/_refusals.md');
+const ts = createRequire(join(repo, 'package.json'))('typescript');
 const AREAS = [
   ['The kernel (`@barocss/cad`)', 'packages/barocss-cad/src'],
   ['The document model (`@barocss/cad-model`)', 'packages/barocss-cad-model/src'],
@@ -25,41 +32,16 @@ function sources(dir) {
   }
   return out;
 }
-/** The index just past the string or template literal opening at `i`: escapes skipped, a template's `${…}` skipped whole. */
-function pastString(text, i) {
-  const q = text[i];
-  for (i++; i < text.length && text[i] !== q; i++) {
-    if (text[i] === '\\') i++;
-    else if (q === '`' && text[i] === '$' && text[i + 1] === '{') i = pastBraces(text, i + 1) - 1;
-  }
-  return i + 1;
-}
-/** The index just past the `{…}` opening at `i`: strings, templates and comments inside it skipped. */
-function pastBraces(text, i) {
-  let depth = 0;
-  for (; i < text.length; i++) {
-    const c = text[i];
-    if (c === "'" || c === '"' || c === '`') i = pastString(text, i) - 1;
-    else if (c === '/' && text[i + 1] === '/') i = text.indexOf('\n', i) < 0 ? text.length : text.indexOf('\n', i);
-    else if (c === '/' && text[i + 1] === '*') i = text.indexOf('*/', i + 2) < 0 ? text.length : text.indexOf('*/', i + 2) + 1;
-    else if (c === '{') depth++;
-    else if (c === '}' && --depth === 0) return i + 1;
-  }
-  return text.length;
-}
-/**
- * The string literal opening at `at` (its quote), read to its closing quote: escapes kept as the character, a template's
- * `${…}` as one …. Returns the text after `skip` characters.
- */
-function literal(text, at, skip) {
-  const q = text[at];
-  let out = '', i = at + 1;
-  while (i < text.length && text[i] !== q) {
-    if (text[i] === '\\') { out += text[i + 1] === 'n' ? ' ' : text[i + 1]; i += 2; continue; }
-    if (q === '`' && text[i] === '$' && text[i + 1] === '{') { i = pastBraces(text, i + 1); out += '…'; continue; }
-    out += text[i++];
-  }
-  return out.slice(skip);
+/** Every string and template literal in a source file, as its text with a template's `${…}` shown as …. */
+function literals(file, text) {
+  const out = [], sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, false, file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+  const visit = node => {
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) out.push(node.text);
+    else if (ts.isTemplateExpression(node)) out.push(node.head.text + node.templateSpans.map(span => `…${span.literal.text}`).join(''));
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return out;
 }
 /** A message as a reader reads it: whitespace folded, cut at a word near 160 characters, pipes escaped. */
 function message(text) {
@@ -74,14 +56,16 @@ const folderOf = (root, file) => relative(root, file).split('/').slice(0, -1).jo
 const readable = m => !/\/\*|\*\/|(^|\s)\/\/\s/.test(m);
 const example = list => { const ok = list.filter(readable); return ok.find(m => m.length >= 20) ?? ok[0] ?? ''; };
 
-const BRACKETED = /[`'"]\[([A-Z][A-Z0-9_]{3,})\]/g;
+/** A literal that is a refusal: its code in brackets at its start, then the message. */
+const BRACKETED = /^\[([A-Z][A-Z0-9_]{3,})\]\s*([\s\S]*)$/;
 
 const codes = AREAS.map(([title, dir]) => {
   const root = join(repo, dir), found = new Map();
   for (const file of sources(root)) {
     const text = readFileSync(file, 'utf8');
-    for (const m of text.matchAll(BRACKETED)) {
-      const code = m[1], said = message(literal(text, m.index, code.length + 2));
+    for (const literal of literals(file, text)) {
+      const m = BRACKETED.exec(literal); if (!m) continue;
+      const code = m[1], said = message(m[2].replace(/\n/g, ' '));
       const c = found.get(code) ?? { folders: new Set(), messages: [] };
       c.folders.add(folderOf(root, file)); if (said) c.messages.push(said); found.set(code, c);
     }
