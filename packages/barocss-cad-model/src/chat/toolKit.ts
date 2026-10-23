@@ -11,6 +11,8 @@ import type { Transactions } from './transactions';
 import { expectedOf, runCheck, type Policy } from './spec';
 import { captureSignatures, refreshSignatures } from '../engine/references';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
+import { r3Signed as r3 } from '../util/round';
+import { isObj } from '../util/guards';
 
 /**
  * How much a result lists (A2.4): 'concise' facts and what changed without the bodies' faces and edges,
@@ -41,7 +43,6 @@ export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
 
-export const r3 = (v: number) => Math.round(v * 1000) / 1000;
 export const v3 = (v: readonly number[]) => v.map(r3);
 export const json = (v: unknown) => JSON.stringify(v);
 
@@ -124,7 +125,6 @@ export function checkValues(fields: Field[], values: Values): string | null {
   return null;
 }
 
-export const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 export const strings = (v: unknown) => Array.isArray(v) ? v.map(String) : [];
 /** A sub-tool's result as a tool outcome (R3e): its document kept when it changed, its content as JSON, never an error. */
 export function subToolResult(state: ChatState, out: { doc: StudioDoc; content: unknown; changed: boolean; summary: string }): ToolOutcome {
@@ -133,6 +133,5 @@ export function subToolResult(state: ChatState, out: { doc: StudioDoc; content: 
 /** A finite number from `lo` (or above it, `loOpen`) to below `hi` — the ranged arguments' check (R3b). */
 export const inRange = (v: unknown, lo: number, hi: number, loOpen = false): v is number => typeof v === 'number' && Number.isFinite(v) && (loOpen ? v > lo : v >= lo) && v < hi;
 /** Three finite numbers — a point or a direction argument's check (R3b). */
-export const isVec3 = (v: unknown): v is [number, number, number] => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x));
 /** A list of names or selectors (objects kept as they are). */
 export const list = (v: unknown): unknown[] => Array.isArray(v) ? v.map(x => isObj(x) ? x : String(x)) : [];

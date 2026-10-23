@@ -1,6 +1,7 @@
 // How a part is rendered (the Render workspace), kept in the document beside the model: an appearance
 // per body, lights, the environment and a saved camera. Colours are sRGB hex; directions point the way
 // light travels (world, Z up).
+import { isVec3 } from '../util/guards';
 
 export type Hex = `#${string}`;
 export interface Appearance {
@@ -118,7 +119,7 @@ const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 const num = (v: unknown, lo: number, hi: number, fallback: number) => typeof v === 'number' && Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : fallback;
 const hex = (v: unknown, fallback: Hex): Hex => typeof v === 'string' && HEX.test(v) ? v as Hex : fallback;
 const vec = (v: unknown, fallback: [number, number, number]): [number, number, number] =>
-  Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? [v[0], v[1], v[2]] : fallback;
+  isVec3(v) ? [v[0], v[1], v[2]] : fallback;
 const obj = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 
 export function readAppearance(v: unknown, fallback: Appearance): Appearance {

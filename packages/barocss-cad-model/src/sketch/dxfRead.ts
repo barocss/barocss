@@ -8,6 +8,7 @@
 // What it gives is a draft: its dimensions read from the drawing are the user's to confirm (drafts.ts).
 import type { LoopSegment } from '../engine/doc';
 import { readUnderlay, UNDERLAY_TOP, type Underlay } from './dxfUnderlay';
+import { MM_PER_FOOT, MM_PER_INCH } from '../util/units';
 
 export type DxfReadCode = 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY' | 'DWG_NOT_READ';
 /** AutoCAD's DWG version tags (the file's first six bytes) and their releases. */
@@ -38,7 +39,7 @@ export interface DxfSketch {
   entities: number;
 }
 
-const UNITS: Record<number, [string, number]> = { 1: ['inches', 25.4], 2: ['feet', 304.8], 4: ['millimetres', 1], 5: ['centimetres', 10], 6: ['metres', 1000] };
+const UNITS: Record<number, [string, number]> = { 1: ['inches', MM_PER_INCH], 2: ['feet', MM_PER_FOOT], 4: ['millimetres', 1], 5: ['centimetres', 10], 6: ['metres', 1000] };
 // (TEXT and MTEXT are shown in the underlay, O68; the rest of the annotation is left out and listed.)
 const ANNOTATION = new Set(['DIMENSION', 'HATCH', 'POINT', 'LEADER', 'MLEADER', 'ATTDEF', 'ATTRIB', 'VIEWPORT', 'SOLID', 'WIPEOUT', 'IMAGE']);
 const GEOMETRY = new Set(['LINE', 'ARC', 'CIRCLE', 'LWPOLYLINE', 'POLYLINE']);

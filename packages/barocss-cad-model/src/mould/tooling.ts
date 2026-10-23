@@ -17,6 +17,7 @@ import { refOf } from '../app/bodyRef';
 import { pointTriangleDistance2, rayHit, triangleBvh } from '@barocss/cad';
 import { partingLine, type Half, type PartingReport } from './parting';
 import type { UndercutRegion } from './undercut';
+import { r6 } from '../util/round';
 
 export type ToolingCode = 'MOULD_NO_PULL' | 'MOULD_PULL_AXIS' | 'MOULD_ONE_BODY' | 'MOULD_STRADDLE' | 'MOULD_NO_PARTING' | 'MOULD_STEPPED' | 'MOULD_BUILD';
 /** What each waiting code waits for: the kernel's face split (D149), or the next stage (IM7b). */
@@ -41,7 +42,6 @@ export type ToolingResult = { ok: true; plan: ToolingPlan } | { ok: false; code:
 /** The margin a side, mm: an estimate (a mould base's wall is the toolmaker's). */
 export const MARGIN_ESTIMATE_MM = 10;
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const AXES: readonly Axis[] = ['x', 'y', 'z'];
 const refusal = (sideCores: readonly SideCore[], stuck: ToolingPlan['stuck']) => (code: ToolingCode, message: string): ToolingResult => ({ ok: false, code, message, waitsFor: WAITS_FOR[code] ?? null, sideCores, stuck });
 

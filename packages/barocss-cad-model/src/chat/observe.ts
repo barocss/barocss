@@ -10,8 +10,8 @@ import { materialFact } from './analysis';
 import { roundFaceAxis } from '../app/measure';
 import type { Vec3 } from '../engine/mesh';
 import { beadAccounting, type BeadAccounting } from '../frames/beadAccounting';
+import { r3Signed as r3 } from '../util/round';
 
-const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;
 
 export interface Facts {

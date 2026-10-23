@@ -17,6 +17,7 @@ import { holesOff, placedBodies, readInterfaces } from './parts';
 import type { RoleReport } from './team';
 import { bomViewOf, type Bom, type BomView } from './bomCore';
 import { beadAccounting, combineBeadAccounting, incompleteBeadReason, type BeadAccounting } from '../frames/beadAccounting';
+import { r6 } from '../util/round';
 
 export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
@@ -79,7 +80,6 @@ export function declaredContact(doc: StudioDoc, a: string, b: string): string | 
 // ——— the BOM agent: read-only, on a built view
 export { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from './bomCore';
 export interface BomRole { model: string; bom(view: BomView): Promise<Bom & RoleReport> }
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The BOM agent's view: each part's name, material, mass, its library origin and a fingerprint of its shape — nothing to change. */
 export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomView> {
   doc = resolveShopTree(doc);

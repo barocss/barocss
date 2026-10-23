@@ -23,6 +23,7 @@ import { placeBody } from '../engine/evaluate';
 import { tablesFor } from '../assembly/faces';
 import { solveDoc } from './assembly';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
+import { r6 } from '../util/round';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators']);
@@ -129,7 +130,6 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
       const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
     }
     const r = sweepPath(t, await sweepLinksOfDoc(doc, bodies, evaluate, t), from as Record<string, number>, to as Record<string, number>);
-    const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
     return { doc, content: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped }, changed: false, summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
   }
   if (name === 'export_mjcf') {

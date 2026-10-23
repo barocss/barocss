@@ -8,6 +8,7 @@ import type { FaceThread } from '../app/threads';
 import type { Mark } from './sheet';
 import { toSheet, type ViewPlacement } from './views';
 import type { XY } from './types';
+import { r6Signed as r6 } from '../util/round';
 
 /** ISO 68-1: the minor diameter of an external thread, d − 1.226869 P. */
 export const minorDiameter = (d: number, pitch: number) => Math.round((d - 1.226869 * pitch) * 1000) / 1000;
@@ -16,7 +17,6 @@ export function threadMarks(v: ViewPlacement, pr: BrepProjection, threads: Reado
   if (!threads.size) return [];
   const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const P = (p: readonly number[]): XY => [dot(p, pr.right), dot(p, pr.up)];
-  const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
   // The threaded faces' rims, by axis: the circles along it and whether any of their ink is visible.
   const axes = new Map<string, { t: FaceThread; dir: readonly number[]; centres: (readonly number[])[]; radius: number; visible: boolean }>();
   for (const e of pr.edges) {
