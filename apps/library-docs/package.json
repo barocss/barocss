@@ -9,7 +9,7 @@
     "preview": "vitepress preview docs",
     "check:docs": "node scripts/check-docs.mjs",
     "capture": "node scripts/capture.mjs",
-    "test:samples": "node --test samples/*.test.mjs"
+    "test:samples": "node samples/run.mjs"
   },
   "devDependencies": {
     "vitepress": "^1.6.4"
