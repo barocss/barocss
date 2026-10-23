@@ -166,7 +166,11 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         const pa = uvA[uvA.length - 1], pb = uvB[uvB.length - 1], x = pts[pts.length - 1], c = cross(normalOf(A, pa), normalOf(B, pb));
         // The surfaces turn tangent: the curve ends here (its direction is undefined).
         if (len(c) < 1e-4) break;
-        const t = scale(unit(c), dir);
+        // (Along the march's own direction: through a point where the surfaces touch — a cylinder inside a ball, tangent
+        // to it where their curve crosses itself — n₁ × n₂ passes through zero and turns its sign, and the march turned
+        // back there, to and fro across the point. L4 fuzz 110, D238.)
+        let t = scale(unit(c), dir);
+        if (tans.length && dot(t, tans[tans.length - 1]) < 0) t = scale(t, -1);
         tans.push(t);
         // Predictor, then corrector on both surfaces and the plane through the prediction normal to t.
         // (`taken`: the step that found the point. The loop's update halves `step` once more after it, and the tests below
@@ -188,7 +192,8 @@ export function intersectPatches(A: Patch, B: Patch, options: {
             if (r && inside(A, r.pa) && inside(B, r.pb)) { lo = m; last = r; } else hi = m;
           }
           // The end lies exactly on the edge: a point closer than the step tolerance replaces the last one.
-          const endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), dir);
+          let endTan = scale(unit(cross(normalOf(A, last.pa), normalOf(B, last.pb))), dir);
+          if (dot(endTan, t) < 0) endTan = scale(endTan, -1);
           if (len(sub(last.x, x)) > tol) { pts.push(last.x); uvA.push(last.pa); uvB.push(last.pb); tans.push(endTan); }
           else if (last.x !== x) { pts[pts.length - 1] = last.x; uvA[uvA.length - 1] = last.pa; uvB[uvB.length - 1] = last.pb; tans[tans.length - 1] = endTan; }
           break;

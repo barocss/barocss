@@ -103,7 +103,9 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 | K12: fuzz 110's family (Viviani's curve through a ball's pole) — the traced curve cut at the pole (the R5 session's patch), and chainCurve's refining points kept on both patches; 110 as fuzzed (a tangent point at the equator) still open | D235 | done (T1, fingerprint identical) |
 | K12: fuzz 119 — the march's closing and running-back tests used half the step taken, so a closed curve could be traced twice (8 of 40 steps on two balls); they use the step taken | D236 | done (T1, fingerprint: 119 refused → valid, nothing else) |
-| K12: fuzz 74 and 170 — a cut's loose end within 10 tolerances of a vertex or a segment ends there (cuts meeting at a triple point, each clipped against another face's map of one edge, ended 1–3e-6 apart); 170 needed no pole-safe map, 171's pole cap unchanged | D237 | done (T1, fingerprint: 74, 170 refused → built; 112 refused at the root instead) |
+| K12: fuzz 74 and 170 — a cut's loose end within 10 tolerances of a vertex or a segment ends there (cuts meeting at a triple point, each clipped against another face's map of one edge, ended 1–3e-6 apart); 170 needed no pole-safe map, 171's pole cap unchanged | D237 | done (T2 at 4d78043bd: kernel 1654/1661, RB no NEW, cad-model 1003, studio 281; fingerprint: 74, 170 refused → built; 112 refused at the root instead) |
+| K12: fuzz 110 as fuzzed and 25 — a march through a point where the surfaces touch kept turning back with n₁ × n₂'s sign; each step's tangent keeps the previous one's direction | D238 | done (T1, fingerprint: 25, 110 refused → valid) |
+| K12 queue closed: 25, 74, 110, 119, 170 build; 51 built already; 85 a correct refusal (a lump touching itself, D205); the nudge findings left open | D239 | done |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

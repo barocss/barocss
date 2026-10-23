@@ -12669,3 +12669,74 @@ used once.
   end 2e-5 off stays loose;
 - 74 shrunk: valid, watertight, one body, against the oracle;
 - 170 shrunk: valid, one body, quadrature, against the oracle.
+
+## D238 — A march through a point where the surfaces touch keeps its direction (2026-10-24)
+
+**Findings.** Two K12 cases, one cause.
+- **L4 fuzz seed 20261023 #110 as fuzzed**, shrunk: a cylinder r 1 ∪ a ball r 2. The cylinder's wall is tangent to
+  the ball at (−2, 1, 2), where its bottom rim meets the ball's equator, and their curve (Viviani's) crosses itself
+  there. Refused as "not a manifold solid", an edge used six times 0.055 mm from that point. D235 had left it open.
+- **#25**, shrunk: a rounded box ∪ a ball r 4. The ball is tangent to the box's side y = −5 at that side's corner
+  (0, −5, −1), where the fillet's curve with the ball ends. Refused with an edge used eight times beside it.
+
+**Cause (`src/intersect/surface-intersection.ts`, the march).**
+- The march steps along `dir · unit(n₁ × n₂)`. At a point where the two surfaces touch, n₁ × n₂ passes through zero,
+  and along the curve it turns its sign there.
+- The march passed the point, turned back with the sign, and ran to and fro across it. On 110 the cut on one branch
+  went past the point and back four times within 0.04 mm (its parameter 0.18 → 0.137 → 0.114 …), below the
+  cylinder's rim and up again.
+- Every pass became edges of the stitch: an edge used six times.
+
+**Fix.** Each step's tangent takes the sign that agrees with the step before it, and so does the end tangent where a
+march leaves its box. Through such a point the march goes on along its own branch, and here it leaves the cylinder's
+box at the rim, at the point itself. Where n₁ × n₂ does not change sign, nothing changes.
+
+**Results** (the ray oracle at 512² × 8):
+
+| Case | Before | After |
+|---|---|---|
+| 110 shrunk (2 leaves) | refused | 41.254666 mm³ against 41.253816 ± 2.9e-3 at 256² × 6 (0.3 e), one body |
+| 110 as fuzzed (5 leaves) | refused | 160.940299 against 160.940194 ± 4.5e-3 (0.0 e), 2 bodies |
+| 25 shrunk (2 leaves) | refused | 308.036142 against 308.035559 ± 6.7e-3 at 256² × 6 (0.1 e), one body |
+| 25 as fuzzed (5 leaves) | refused | 504.150485 against 504.151226 ± 3.8e-3 (−0.2 e), one body |
+
+Nudges (four each, by up to 1e-3 mm):
+- 110 as fuzzed: 2 of 4 build;
+- 25 as fuzzed: 3 of 4 build;
+- 25 shrunk: 3 of 4 build.
+
+The rest are among the nudge findings in D239.
+
+**Fingerprint:** 855 cases, sha256 `b6e18fab…` (from D237's `ca7c13d3…`). Two lines changed:
+- `fuzz:20261023:25`: refused → valid, F/E/V 24/68/47, 504.1504847 mm³, quadrature;
+- `fuzz:20261023:110`: refused → valid, F/E/V 24/64/46, 160.9402990 mm³, quadrature.
+
+**Tests:** `test/boolean-tangent-crossing.test.mjs`, both failing before:
+- a march over a cylinder inside a ball, tangent at a point: no chain turns back;
+- 110 and 25 shrunk: valid, watertight, one body, against the oracle.
+
+## D239 — K12's near-degenerate refusals: all six closed, and the nudges' findings (2026-10-24)
+
+**The queue** (fuzz seed 20261023; each case shrunk, nudged four ways by up to 1e-3 mm, against the ray oracle, D196's
+method):
+
+| Case | End | Record |
+|---|---|---|
+| 25 | builds (−0.2 e); a point contact (n₁ × n₂ = 0) the march turned back at | D238 |
+| 51 | built already at K12's start (−0.4 e), by D197–D211; no change in K12 | — |
+| 74 | builds (empty, as the oracle; shrunk −0.2 e); cuts meeting at a triple point, a few tolerances apart | D237 |
+| 85 | **refusal shown correct**: the cylinder (r 1 about (2, 0)) is tangent to the shell's outer face y = 1 and removes the wall inside it, so the material left touches itself along the line x = 2, y = 1. That is one lump touching itself, not a manifold solid, by D205's ruling. The message names the touch at (2, 1, 4.5), code GEOMETRY | — |
+| 110 | builds (2 bodies, 0.0 e); its family through the pole (D235) and the tangent point (D238) | D235, D238 |
+| 119 | builds (4 bodies, −0.1 e); a closed march traced twice | D236 |
+| 170 (item 2) | builds (−0.0 e); a loose cut end at a triple point. No pole-safe map was needed, and 171's pole cap is unchanged | D237 |
+
+**Nudge findings, open** (recorded at the coordinator's call; not fixed). Each is a nudged input, valid and generic,
+still refused:
+- **51:** 3 of 4 nudges, edges used 2, 3 or 4 times beside the cylinder's seam ruling tangent to the ball.
+- **85:** 2 of 4, "orientation: face … sense disagrees with its outer loop". The cylinder pokes 8e-4 mm through the outer
+  wall, leaving a slot 0.08 mm wide; its wall piece's ring crosses itself.
+- **74:** 1 of 4 shrunk. The bottoms are 1e-3 apart, no longer coplanar, and a bottom edge is used once.
+- **25:** 1 of 4, an edge on the box's face y = −2 used once.
+- **110:** 2 of 4 as fuzzed. One shrunk nudge builds 7.9 e off on the tessellated mass. It states `volumeBoundMM3`
+  0.100 against a true error of 0.033, so it is not silent, but the quadrature gives up on that body.
+- **s2#112:** still refused; since D237 at its root ("an arc does not lie in its plane").
