@@ -71,19 +71,19 @@ Moved out of Phase 0:
 | K5 | closed, not needed (D178 met the speed). **FRk8b's second half** (exact-trim integration), only if K1 still needs speed | — |
 | K6 | **done** D183. **FRk9** acceptance by the agent: a welded table with gussets, caps and beads; a tapered-I portal; a bent-tube rail | `conformance/frk/accept-*` pass through v2 tools |
 
-| K7 | The r6 sphere-intersect ȳ pin (D179's open item) against a closed form | Pin or kernel corrected, with a record |
-| K8 | Profile F5: the A9 shaft's cnc-turning manufacturability report takes about 50 s | The cause found; kernel fixes made in the kernel, cad-model causes routed to the outer lane |
-| K9 | The RB TODOs: the cylinder-box graze cases ("1 nm graze, wrong body"), then helical × helical | A correct body, or a typed refusal; never a wrong body |
+| K7 | **done** D184. The r6 sphere-intersect ȳ pin (D179's open item) against a closed form | Pin or kernel corrected, with a record |
+| K8 | **done** D185 (55 → 15 s). Profile F5: the A9 shaft's cnc-turning manufacturability report takes about 50 s | The cause found; kernel fixes made in the kernel, cad-model causes routed to the outer lane |
+| K9 | stopped by decision: D186, D187 built or typed; the rest recorded. The RB TODOs: the cylinder-box graze cases ("1 nm graze, wrong body"), then helical × helical | A correct body, or a typed refusal; never a wrong body |
 
 ### Outer lane: A9, brief → buyable, manufacturable product
 
 | # | Item | Exit |
 |---|---|---|
 | O1 | Verify A9-1, A9-2, A9-5/6 and A9-13, A9-4, A9-10/A9-8 in the full suites (Codex checked them only in focused runs) | Their tests pass in the Phase 0 window |
-| O2 | **A9-11** the Studio download flow (CSV and outputs with their sources) | The flow step downloads, reopens and matches |
+| O2 | **done** O175 flow step. **A9-11** the Studio download flow (CSV and outputs with their sources) | The flow step downloads, reopens and matches |
 | O3 | **done** O158. **The A9 brief** fixture: the default shaft's key clashes with the 6204 (115 mm³) | The key or the bearing moved; the clearance map shows no clash |
 | O4 | **A9-7** linked bearing housing in the app: the GPU lane ports the UI (G-lane item below); the outer lane owns the model side | Linked-bearing success flow. **Needs a real person-supplied row/fit file from the owner**; never a generated one |
-| O5 | **The A9 acceptance run** (`test/a9-acceptance.test.ts`, `conformance/a9`) | Brief → part, drawings, BOM, CSV, manufacturing outputs and purchase list, all through v2 tools; reopened identical |
+| O5 | **done** O159, O164, O165 (automated end to end; the owner's own acceptance with a real file still pending). **The A9 acceptance run** (`test/a9-acceptance.test.ts`, `conformance/a9`) | Brief → part, drawings, BOM, CSV, manufacturing outputs and purchase list, all through v2 tools; reopened identical |
 | O5a | A9 findings from O159: F1 madeBodies (**done** O160; GPU display G-R6), F2 each hole drilled once (**done** O161), F3 the Ø47 bore as a circular pocket or a typed refusal, F4 a clearance hole in the cover (owner-free choice (b)) | Each with an oracle |
 | O6 | Open items: aligned sections for off-axis features; a welded-fabrication DFM profile (A9-12, needs sourced rules) | Decide, then build or close |
 
@@ -93,11 +93,22 @@ Moved out of Phase 0:
 |---|---|---|
 | G1 | **done** G-R2. **A9-7 UI**, ported from Codex's `8789e468`: Housing path, linked BOM refusal CSV, useAssembly faceTable. Its tests move to `apps/cad-studio/test`. | The no-row flow as before; linked success with the owner's file (O4) |
 | G2 | **done** G-R3, G-R4, G-R5 (overcut; found and fixed the pocket offset, O157); flow step authored. **G23 CNC preview** from Codex's source `5c9f861f`: App, Viewport and renderer connections and tests | Material removal shown on both renderers; NOT FOR PRODUCTION kept |
-| G3 | **G21 rest**: silhouettes, isolate/hide in every display mode, the WebGL2 instance display | Each mode on both renderers, picks unchanged |
-| G4 | **G22** the clearance map on screen (states overlap/contact/touching/designed/near/clear) and **G23** print layers: dual-renderer and Save/Open acceptance | Flow steps on WebGPU and WebGL2 |
-| G5 | **G24** 3D PMI, using the outer lane's glyph builders | Annotations placed, picked and saved |
-| G6 | **G25** GPU analyses | Each analysis matches its CPU result within its stated tolerance |
-| G7 | Antialiased cap edges | — |
+| G3 | **done** G-R7, G-R13 (Display popover), G-R15 (both renderers). **G21 rest**: silhouettes, isolate/hide in every display mode, the WebGL2 instance display | Each mode on both renderers, picks unchanged |
+| G4 | partly done: made-bodies previews G-R6; G23 CNC and K2 on both renderers G-R14. **G22** the clearance map on screen (states overlap/contact/touching/designed/near/clear) and **G23** print layers: dual-renderer and Save/Open acceptance | Flow steps on WebGPU and WebGL2 |
+| G5 | **done** G-R8, G-R9, G-R16. **G24** 3D PMI, using the outer lane's glyph builders | Annotations placed, picked and saved |
+| G6 | **done** G-R10–G-R12, G-R17, G-R18 (access map on WebGPU as a GPU estimate; thickness stays on the CPU, owner rule: the CPU is authoritative; scan deviation G25c deferred). **G25** GPU analyses | Each analysis matches its CPU result within its stated tolerance |
+| G7 | **done** G-R19, G-R20. Antialiased cap edges | — |
+
+### Next items (2026-10-23)
+| # | Lane | Item |
+|---|---|---|
+| K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
+| K10b | kernel | the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
+| K11 | kernel | F5's remainder (the turning report's first-derivative evaluations) |
+| O5b | outer | A9 findings: F8 drawings (**done** O170–O174), F9 fasteners as bought lines, F10 base members in the BOM (**done** O169), F6/F7 (**done** O167/O168) |
+| G8 | GPU | performance regression check against G4's budgets |
+| G9 | GPU | capFrontSamples memory (63 MiB at 1080p) |
+| G10 | GPU | the full browser flow on WebGL2 |
 
 ## Later (on the roadmap, not started)
 

@@ -1896,3 +1896,94 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **`test:browser` as a whole**: it hung in `uv-repeating-browser` (G18.2, the docs' shaders) for over an hour, and only
   this lane's processes were stopped. That spec is to be run alone with a timeout to find why. The other browser specs
   (viewer, scene viewer, pose-clip) were not reached in that run.
+
+## G-R18 — the viewer no longer hangs at start without antialiasing; the access map on the GPU (roadmap G6/G7, 2026-10-23)
+
+- **The hang** (gpu `test:browser` stuck for over an hour; viewer-pose-clip's G2 and G19 timing out):
+  - It came with Codex's 22e129e36 (per-sample caps). Without antialiasing, the caps reuse the surface and pick shader
+    modules, and `createPipelines` called `getCompilationInfo()` on every entry, so twice on each of those two modules.
+    In Chrome a second call on one module never settles.
+  - So `createViewer({ antialias: false })` never returned. A cold probe confirmed it: antialias true started in 835
+    ms; antialias false had not started after 170 s, with no pipeline pending, waiting on the sixth compilation check.
+  - **Fix**: each module is checked once. A cold antialias-false viewer now starts in about 2 s.
+  - Every spec that makes an unantialiased viewer was affected. A test timeout left its browser open, so the process
+    never exited.
+- **gpu `test:browser`, one file each** (load 1m 10–14):
+
+  | Spec | Result |
+  |---|---|
+  | viewer | 1/1 |
+  | scene-viewer | 1/1 |
+  | uv-repeating | 1/1 (2.6 s; it had hung) |
+  | compute-thickness | 1/1 |
+  | compute-access | 1/1 |
+  | viewer-pose-clip | 17/18 |
+
+  - The one left is #6, "G20.2 no cap leaks over a front face's far edges". It finds 77 cap pixels where the CPU's ray
+    meets no cap; 10 are allowed for pixel-edge rounding. It is a real cap defect (G7's area), and is investigated
+    next. It could not run before this fix.
+- **G25b's access map on the GPU** (approved):
+  - Viewer `computeDevice` (a getter) passes through `GpuRenderer.computeDevice` and the Viewport handle to
+    `useGpuAccessMaps`.
+  - On WebGPU the access map is the compute pass's, the legend titled "Not reached by a 3-axis mill · GPU estimate".
+    With no device (WebGL2, or not ready) it is the CPU's, as before.
+  - `accessOf` stays the panels' number.
+  - `accessMapOf` and `accessStep` in scalarMaps share the map and the step with the CPU path.
+  - gpu-analyses checks the GPU map's step and length against cad-model's accessSamples.
+- **Thickness stays on the CPU** (the coordinator's decision): thicknessMap's legend range comes from `wallsOf`, which
+  runs the CPU rays itself. Seeding the samples from the GPU would make the panels' numbers the GPU's. The GPU
+  thickness pass stays built and tested for when the range can come from elsewhere.
+- **Checks**: gpu `test` 189/189; type-check 0 (gpu, studio); eslint 0; studio gpu-analyses and analysis-maps 8/8.
+
+## G-R19 — G20.2's cap-leak check made right for antialiased caps; viewer-pose-clip 18/18 (roadmap G7, 2026-10-23)
+
+- **The failure** (viewer-pose-clip #6, which could first run after G-R18): 77 cap pixels where the CPU's centre ray
+  meets no cap, against 10 allowed.
+- **What it was**: a probe on the test's own scene (a cut-out 40 × 20 × 10 plate with a shadow catcher), each cap pixel
+  classed by its colour and its neighbours:
+  - with antialiasing (Codex's per-sample caps), the 64 such pixels were all beside a CPU cap pixel, and none was the
+    pure cap colour. They are partly covered edge pixels: the cap on some of their samples. That is G7's antialiased
+    cap edge, not a leak.
+  - without antialiasing, 3, within the allowance.
+  - The leak G20.2 guarded against (660 pixels before its fix) covers whole pixels.
+- **The check now**:
+  - A leak is a pixel of the pure cap colour (every sample cap) where the CPU's ray meets no cap: 10 allowed, as before.
+  - Partly covered cap pixels must exist, so the cap edge is antialiased.
+  - Result: 11 050 cap pixels, 0 leaks, 77 partly covered (load 1m 11).
+- **viewer-pose-clip 18/18.** With G-R18, every gpu browser spec passes, one file each: viewer, scene-viewer,
+  pose-clip, uv-repeating, compute-thickness, compute-access.
+- **G7 so far**: antialiased cap edges are shown (the fringe), with no leaks and the caps' picks unchanged (pose-clip's
+  G2, G19 and G20 pick checks pass). Still open from its S0:
+  - AA on against off on a box at 0°, 30° and 45° and a cylinder (the interior unchanged, coverage at the edge);
+  - capFrontSamples' memory and the frame time.
+
+## G-R20 — G7 closed: antialiased caps against unantialiased, their cost; pose-clip #6 tightened (roadmap G7, 2026-10-23)
+
+- **pose-clip #6 tightened** (the coordinator's rule, so the G-R19 rule can't hide a real leak):
+  - A partly covered cap-coloured pixel counts as an edge pixel only when it is 8-adjacent to a CPU cap pixel.
+  - Any other cap-coloured pixel where the CPU's ray meets no cap is a leak, pure or not: 10 allowed, as before.
+  - Result: 11 050 cap pixels, 0 leaks, 77 edge pixels, all beside a CPU cap pixel (load 1m 14). viewer-pose-clip 18/18.
+- **viewer-cap-aa-browser** (new, in `test:browser`), WebGPU only. The scene:
+  - one viewer each with antialiasing on and off; 480 × 360 at pixel ratio 1; orthographic, seen along +Y; cut by y = 0;
+  - an unlit #404040 body with a #ff00ff cap on black;
+  - a box 8 × 8 × 8 turned 0°, 30° and 45° about Y (the cap a turned square), and a 64-sided Ø8 cylinder standing
+    along Y (the cap a disc).
+- **The interior unchanged**: pixels whose whole 3 × 3 neighbourhood is cap by the CPU's ray, AA on against off.
+  Worst |Δ| 0/255 in every case (10 000, 9 748, 9 660 and 7 676 pixels).
+- **The edge covered**: edge pixels are those with cap and not cap in their 3 × 3 neighbourhood. A partly covered pixel
+  is neither the pure cap colour nor grey, but a mix of magenta and what is beside it.
+  - Box 0°: 404 of 816 (50 %), where the square's edges fall mid-pixel.
+  - Box 30°: 648 of 1 104 (59 %).
+  - Box 45°: 564 of 1 136 (50 %).
+  - Cylinder: 436 of 816 (53 %).
+  - The spec requires ≥ 30 % on the turned boxes and the cylinder.
+- **An uncut frame unchanged**: the same scene uncut with the cap path on (`cap: true`) against off. 0 bytes differ in
+  every case.
+- **Cost**:
+  - capFrontSamples is rgba16float at 4 samples, 8 bytes a sample. That is W·H·32 bytes: 5.27 MiB at 480 × 360,
+    63.3 MiB at 1920 × 1080.
+  - It is allocated only when a capped frame is drawn with antialiasing (`ensureCapSamples`).
+  - Frame time, with capture and read-back (20 captures each, load 1m 10): 1.9–2.2 ms cut with AA, 1.8–2.1 ms cut
+    without, 1.4–1.6 ms uncut.
+- **Not covered**: WebGL2. Its caps aren't drawn per sample, so there is no AA path there to compare.
+- **G7 done.** With it, the roadmap list given to the GPU lane (G1–G7, K2) is done.
