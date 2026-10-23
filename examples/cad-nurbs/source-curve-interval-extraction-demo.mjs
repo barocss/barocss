@@ -616,7 +616,7 @@ assert.deepEqual(publicAPI.validateSourceCurveIntervalExtraction(currentResult),
 for (const [source, model] of [[currentRequest.source, currentResult.originalModel], [currentResult.source, currentResult.model]]) {
   const cold = publicAPI.compileCadModel(source, { sourceVersion: 0 }); assert.equal(cold.ok, true); assert.deepEqual(cold.model, model);
 }
-const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-curve-interval-extraction.js', 'source-curve-interval-extraction.d.ts'].map(name => {
+const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-curve-interval-extraction.js', 'nurbs/source-wide/source-curve-interval-extraction.d.ts'].map(name => {
   const path = resolve(packageRoot, 'dist', name); assert.ok(existsSync(path)); const bytes = readFileSync(path);
   return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
 });

@@ -776,7 +776,7 @@ assert.deepEqual(publicAPI.validateSourceKnotAlignedLoft(currentResult), current
 for (const context of [...currentResult.originalSources, ...currentResult.alignedSections, { source: currentResult.loft.source, model: currentResult.loft.model }]) {
   const cold = publicAPI.compileCadModel(context.source, { sourceVersion: 0 }); assert.equal(cold.ok, true); assert.deepEqual(cold.model, context.model);
 }
-const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-knot-aligned-loft.js', 'source-knot-aligned-loft.d.ts'].map(name => {
+const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-knot-aligned-loft.js', 'nurbs/source-wide/source-knot-aligned-loft.d.ts'].map(name => {
   const path = resolve(packageRoot, 'dist', name); assert.ok(existsSync(path)); const bytes = readFileSync(path);
   return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
 });

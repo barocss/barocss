@@ -459,7 +459,7 @@ assert.equal(publicAPI.serializeSourceKnotRecipeLoftGraph(revision3.result.docum
 assert.deepEqual(publicAPI.parseSourceKnotRecipeLoftGraph(authoredText, graphOptions), revision3.result);
 assert.deepEqual(publicAPI.updateSourceKnotRecipeLoftGraph(coldOpen, middleEdits), revision4);
 assert.deepEqual(publicAPI.validateSourceKnotRecipeLoftGraphUpdate(revision4), revision4.transaction.report);
-const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-knot-recipe-loft-graph.js', 'source-knot-recipe-loft-graph.d.ts'].map(name => {
+const emittedArtifacts = ['index.js', 'index.d.ts', 'nurbs/source-wide/source-knot-recipe-loft-graph.js', 'nurbs/source-wide/source-knot-recipe-loft-graph.d.ts'].map(name => {
   const path = resolve(packageRoot, 'dist', name); assert.ok(existsSync(path)); const bytes = readFileSync(path); return { path, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
 });
 const compiledConsumer = { runtimePath, declarationPath, leafDeclarationPath, runtimeNames, typeNames, publicNameCount: 16, currentMainEvaluateOwnedReplay: 1, realMiddleUpdateAndCodecReplay: true, emittedArtifacts };

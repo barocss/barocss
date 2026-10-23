@@ -1647,7 +1647,7 @@ currentResult.model]]){
 const emittedArtifacts=['index.js',
 'index.d.ts',
 'nurbs/source-wide/source-curve-knot-insertion.js',
-'source-curve-knot-insertion.d.ts'].map(name=>{
+'nurbs/source-wide/source-curve-knot-insertion.d.ts'].map(name=>{
   const path=resolve(packageRoot,
   'dist',
   name);

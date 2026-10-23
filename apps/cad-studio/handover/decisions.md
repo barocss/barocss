@@ -12494,3 +12494,26 @@ the kernel suite (the known Node-version demo test only), RB no new rows, the R5
 Before the demo-path fix, two of batch 4's 21 changed demos newly failed (coplanar-face-boolean, stored-plate-hole-point),
 and that is what found the two shapes. The comparison of all 119 R5.4 demos, after against before R5.4 (D228), follows
 in the next record.
+
+## D234 — R5.4's demo comparison: the `.d.ts` names of moved modules in 17 cad-nurbs demos (2026-10-24)
+
+**The comparison** (coordinator's request after D233):
+- **What was run:** all 119 cad-nurbs demos R5.4 changed, each with `--source <tmp>`, on D233's tree (fresh full build)
+  and on D228's, the last before R5.4.
+- **Result:** 49 pass after against 27 before.
+  - One demo failed after but not before: rectangular-face-extrusion-body.
+  - 23 passed after and failed before. The D228 run used a checkout whose dist was not rebuilt for it, so these are
+    no evidence either way. None of them is a regression.
+
+**The cause.** D233's rewrite of the demos' src-relative names took `name.ts` and `name.js` but not `name.d.ts`. Those
+demos list emitted artifacts under `dist/` (`'rectangular-face-extrusion-body.d.ts'`), so they still named the old flat
+paths.
+
+**Fix.** 18 such names in 17 demos are made folder-qualified, `planar-solids/rectangular-face-extrusion-body.d.ts` and
+the like. No kernel file changes.
+
+**Correction to D233:** the src root keeps 39 files, index.ts included, not 40.
+
+**Checks:** the 17 demos run on the D233 kernel (results below).
+
+**Result:** of the 17 demos, 14 pass, rectangular-face-extrusion-body among them. The other 3 (native-constant-coordinate, qualified-strip-binary-stl, source-line-width-material-body-graph) failed the same before R5.4 (D228). So the 119-demo comparison leaves no demo failing after R5.4 that passed before it.
