@@ -24,6 +24,9 @@ button { font: inherit; color: inherit; }
 .stage { position: relative; flex: 1 1 auto; min-width: 0; height: 100vh; overflow: hidden; }
 .chat-col { order: -1; box-sizing: border-box; position: relative; flex: none; height: 100vh; display: flex; flex-direction: column; background: var(--panel-solid); border-right: 1px solid var(--line); z-index: 4; }
 .chat-col:not(.open) { position: absolute; left: 0; top: 0; z-index: 6; }
+/* (A strip over the stage's edge takes the pointer only on its buttons: a click beside them reaches the viewport.) */
+.chat-col:not(.open), .dock-strip { pointer-events: none; }
+.chat-col:not(.open) button, .dock-strip button { pointer-events: auto; }
 /* (G12b: the right dock — docked beside the centre, or a strip at the stage's right edge whose button opens it as a sheet
    over the viewport. Its panels sit flat in one scrolling column: no shadows, a divider between them.) */
 .dock { order: 1; position: relative; flex: none; box-sizing: border-box; height: calc(100vh - 36px); margin-top: 36px; display: flex; flex-direction: column; background: var(--panel-solid); border-left: 1px solid var(--line); z-index: 4; }
