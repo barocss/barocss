@@ -14,6 +14,7 @@ import { checkSpec } from '@barocss/cad-model/chat/spec';
 import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { createChatServer, stateNote, type TurnUsage } from '../chatServer';
 import type { Arm, Brief, Call } from './briefs';
+import { turnEventsOf } from '../turnEvents';
 
 /** Characters a token, for the scripted estimate (an estimate: English and JSON run about 3.5–4.5). */
 export const CHARS_PER_TOKEN = 4;
@@ -43,9 +44,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, revision++);
 async function turn(url: string, body: object): Promise<{ events: { type: string; [k: string]: any }[] }> {
   const r = await fetch(`${url}/turn`, { method: 'POST', headers: { 'content-type': 'application/json', origin: ORIGIN }, body: JSON.stringify(body) });
   if (!r.ok) throw new Error(`the chat server answered ${r.status}: ${await r.text()}`);
-  const text = await r.text(), events: { type: string }[] = [];
-  for (const block of text.split('\n\n')) { const data = /^data: (.*)$/m.exec(block)?.[1]; if (data) events.push(JSON.parse(data)); }
-  return { events };
+  return { events: turnEventsOf(await r.text()) };
 }
 
 /** What a model reads and writes for the calls the scripted agent made (one call a model turn, then the answer). */

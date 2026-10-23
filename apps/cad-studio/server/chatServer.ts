@@ -66,6 +66,8 @@ export function fromStudio(req: IncomingMessage, origins: readonly string[]): bo
 
 export type ChatServerEvent =
   | { type: 'text'; delta: string }
+  /** O17c: the model's thinking as the CLI streams it (additive: readers that take events by type ignore it). */
+  | { type: 'reasoning'; delta: string }
   | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; usage?: TurnUsage; ops?: TurnOp[] };
@@ -277,6 +279,7 @@ export function createChatServer(options: ChatServerOptions) {
       try { m = JSON.parse(line); } catch { return; }
       if (m.session_id) session = m.session_id;
       if (m.type === 'stream_event' && m.event?.type === 'content_block_delta' && m.event.delta?.type === 'text_delta' && !m.parent_tool_use_id) emit({ type: 'text', delta: m.event.delta.text });
+      else if (m.type === 'stream_event' && m.event?.type === 'content_block_delta' && m.event.delta?.type === 'thinking_delta' && !m.parent_tool_use_id && typeof m.event.delta.thinking === 'string') emit({ type: 'reasoning', delta: m.event.delta.thinking });
       else if (m.type === 'assistant') {
         for (const b of m.message?.content ?? []) if (b.type === 'tool_use') calls.set(b.id, { name: String(b.name).replace(/^mcp__cad__/, ''), input: b.input });
       } else if (m.type === 'user') {

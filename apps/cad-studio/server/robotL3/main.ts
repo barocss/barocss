@@ -21,6 +21,7 @@ import { robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
 import type { Duty } from '@barocss/cad-model/robot/harness';
 import { createChatServer } from '../chatServer';
 import { withRatings } from './tool';
+import { turnEventsOf } from '../turnEvents';
 
 export const MODEL = 'claude-opus-5-5';
 // (CAD_ROBOT_L3_WALL_MS: the wall clock's test-only override, for the dry run's hang check.)
@@ -86,7 +87,7 @@ async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: st
     const body = { text: o.scripted ? `${text}\n\n${await o.scripted(s)}` : text, doc: s.doc, autonomy: 4 };
     const r = await fetch(`${url}/turn`, { method: 'POST', headers: { 'content-type': 'application/json', origin: ORIGIN }, body: JSON.stringify(body), signal: abort.signal });
     raw = await r.text();
-    for (const block of raw.split('\n\n')) { const data = /^data: (.*)$/m.exec(block)?.[1]; if (data) events.push(JSON.parse(data)); }
+    events.push(...turnEventsOf(raw));
     const done = events.find(e => e.type === 'done'); end = String(done?.end ?? 'error'); error = done?.error;
   } catch (e) { end = abort.signal.aborted ? 'wall-clock' : 'error'; error = e instanceof Error ? e.message : String(e); }
   finally {

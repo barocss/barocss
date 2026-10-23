@@ -9,6 +9,8 @@ import type { NameSelection } from '@barocss/cad-model/chat/tools';
 export interface ChatStatus { enabled: boolean; model?: string; via?: string; reason?: string }
 export type TurnEvent =
   | { type: 'text'; delta: string }
+  /** O17c: the model's thinking, when the CLI streams it. */
+  | { type: 'reasoning'; delta: string }
   | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
   | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; ops?: TurnOp[] };
