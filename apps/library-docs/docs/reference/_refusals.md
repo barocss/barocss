@@ -76,7 +76,7 @@
 | `[BEAD_ACCOUNTING_INCOMPLETE]` | `frames` | no complete welded-part quantity: … |
 | `[BEAD_SHARED_CONTEXT]` | `chat/part`, `frames` | frames.beadOwnership: expected {version:1, policy:"equal-length"} or null to remove it |
 | `[BEARING_HOUSING_CYCLE]` | `engine` | … |
-| `[BEARING_HOUSING_EVALUATION]` | `assembly`, `team` | … |
+| `[BEARING_HOUSING_EVALUATION]` | `assembly`, `bom` | … |
 | `[BEARING_HOUSING_POSE]` | `engine` | … must be a finite rigid pose |
 | `[BEARING_HOUSING_REFERENCE]` | `app`, `chat`, `engine` | invalid Housing choice |
 | `[BEARING_HOUSING_SCOPE]` | `engine` | no immediate owner occurrence … |
@@ -123,7 +123,7 @@
 | `[RING_ROW_UNKNOWN]` | `engine` | a retaining ring names the row "…", which the document's ring rows do not hold (rows: …) |
 | `[ROWS_INPUT]` | `chat` | feature is only for a bend table. |
 | `[ROWS_KIND]` | `chat` | Use a row kind from describe features.load_rows. |
-| `[ROWS_NOT_FROM_PERSON]` | `chat` | Load a JSON file attached or pasted by the person in this conversation. Agent-written rows and suppliedBy claims are not accepted. |
+| `[ROWS_NOT_FROM_PERSON]` | `engine` | Load a JSON file attached or pasted by the person in this conversation. Agent-written rows and suppliedBy claims are not accepted. |
 | `[SECTION_TABLE]` | `frames` | … |
 | `[SHOP_ROWS_FLATTEN_SCOPE]` | `engine` | nested part … references distinct … row …; flattening must retain its row context |
 | `[SHOP_ROW_INHERITED_REMOVE]` | `engine` | cannot remove inherited ….… rows … from this part; change the parent rows |
