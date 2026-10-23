@@ -6606,9 +6606,11 @@ try {
   await check('layout (G12d): at 1440, 1280, 1024 and 800, the chat open and collapsed, each preview mode — no two panels or bars meet, each inside the window; no box with a left border alone and a radius', async () => {
     await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
     // (The panels and bars as they show; the dock's sheet and the chat column among them. One inside another — the HUD in the
-    // dock — is not a meeting. A toast is transient and left out.)
+    // dock — is not a meeting. A toast — the recovery card here — counts except on a cramped stage (an open sheet over a
+    // narrow centre), where it runs under the sheet.)
     const problems = label => page.evaluate(label => {
-      const sel = ['.chat-col', '.dock', '.dock-strip', '.topbar', '.toolbar', '.history', '.corner-right', '.view-cube', '.hud', '.corner-stack > *'];
+      const sel = ['.chat-col', '.dock', '.dock-strip', '.topbar', '.toolbar', '.history', '.corner-right', '.view-cube', '.hud', '.corner-stack > *',
+        ...(document.querySelector('.studio.stage-cramped') ? [] : ['.toast'])];
       const els = [];
       for (const s of sel) for (const e of document.querySelectorAll(s)) {
         const b = e.getBoundingClientRect(), c = getComputedStyle(e);
