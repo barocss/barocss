@@ -2860,7 +2860,9 @@ try {
   // ---- O18: mass on request -----------------------------------------------------------------------------------------
   await check('O18: a spring\'s reply comes without its mass, which follows; the inspector reads "…" until then; an undo right after the reply does not wait for the old mass', async () => {
     await page.click('[aria-label="New part"]'); await idle();
+    // (Seven coils: not the spring the step before built, whose B-rep's mass the worker still holds.)
     await press(' '); await page.locator('.palette input').fill('spring'); await press('Enter'); await hudReady();
+    await field('Active coils').fill('7'); await hudReady();
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
     const t0 = Date.now(); await press('Enter');
     // The reply: one body shown, its mass not yet there.
@@ -5875,6 +5877,25 @@ try {
     await page.evaluate(() => document.activeElement?.blur?.()); await press('b');
     await page.waitForFunction(() => /Showing high: show the master to edit/.test(document.body.textContent ?? ''), null, { timeout: 5000 });
     assert.equal(await page.locator('.hud .status').count(), 0, 'no command started');
+    // Every other edit too — one guard where edits land (App's setDoc): the feature editor's Apply, a placed part moved
+    // (the Instance card's X, the commit a gizmo drag makes), a parameter added; each refused, the part as it was.
+    const model = () => page.evaluate(() => JSON.stringify({ nodes: window.__studioDoc.nodes, instances: window.__studioDoc.instances, parameters: window.__studioDoc.parameters }));
+    const refusedNow = async () => {
+      await page.waitForFunction(() => /Showing high: show the master to edit/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 5000 });
+      await page.click('.toast [aria-label="Dismiss"]');
+    };
+    const edits = {
+      feature: async v => { await page.locator('.history .hs', { hasText: 'Extrude' }).last().click(); const ed = page.locator('.node-editor .field input[type="number"]').first(); await ed.fill(''); await ed.fill(v); await page.locator('.node-editor button', { hasText: 'Apply' }).click(); },
+      instance: async v => { await page.locator('.ol.instance', { hasText: 'pin' }).first().click(); const x = page.locator('[aria-label="Instance"] input[aria-label="Instance X"]').first(); await x.fill(v); await x.press('Enter'); },
+      parameter: async v => { await page.click('[aria-label="Parameters"]'); await page.fill('[aria-label="New parameter name"]', 'T'); await page.fill('[aria-label="New parameter value"]', v); await page.click('[aria-label="Add parameter"]'); },
+    };
+    await page.click('.toast [aria-label="Dismiss"]');
+    const kept = await model();
+    await edits.feature('9'); await refusedNow(); await press('Escape');
+    await edits.instance('21'); await refusedNow();
+    await edits.parameter('3'); await refusedNow(); await page.click('[aria-label="Parameters"]');
+    assert.equal(await model(), kept, 'nothing of the master written while high is shown');
+    assert.equal(await page.evaluate(() => window.__studioDoc.variability.active), 'high');
     // A working value: the pin follows, unsaved; Reset puts high back; Update writes it into high.
     await card.locator('[aria-label="Value of offset"]').fill('15'); await pinAt(23);
     assert.match(await card.locator('[aria-label="Values edited"]').innerText(), /1 value differs from high/);
@@ -5897,6 +5918,10 @@ try {
     assert.equal(await page.evaluate(() => window.__studioDoc.variability.active), undefined);
     await page.evaluate(() => document.activeElement?.blur?.()); await press('b'); await hudReady();
     await press('Escape'); await page.waitForFunction(() => !document.querySelector('.hud .status'), null, { timeout: 5000 });
+    // The same three edits taken now.
+    await edits.feature('9'); await page.waitForFunction(() => JSON.stringify(window.__studioDoc.nodes).includes('9'), null, { timeout: 15000 }); await press('Escape'); await idle();
+    await edits.instance('21'); await page.waitForFunction(() => window.__studioDoc.instances.find(i => i.id === 'pin').position[0] === 21, null, { timeout: 15000 });
+    await edits.parameter('3'); await page.waitForFunction(() => window.__studioDoc.parameters.T === 3, null, { timeout: 15000 }); await page.click('[aria-label="Parameters"]'); await idle();
     // The agent's set_variants (a scripted turn, the chat's own end of it): its variant in the card.
     await page.route(u => u.pathname === '/api/chat/status', r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
     const done = await page.evaluate(() => { const d = window.__studioDoc; return { ...d, variability: { ...d.variability, variants: [...d.variability.variants, { name: 'agent wide', values: { offset: 40 } }] } }; });
