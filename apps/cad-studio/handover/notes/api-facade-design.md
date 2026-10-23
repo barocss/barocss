@@ -54,7 +54,7 @@ material, and two different ways of failing.
 
 **3. The facade:**
 ```ts
-import { part } from '@barocss/cad-model/api/index';   // `@barocss/cad-model/api` once src/api.ts exists, see below
+import { part } from '@barocss/cad-model/api';
 
 const bracket = part('bracket')
   .box(80, 40, 10)
@@ -152,13 +152,8 @@ These come later, in this order, each with the same oracle:
    time it reaches `evaluateDoc`'s `FriendlyError` the detail reads "edge n1.side0|n1.side3: fillet 8 mm is too large
    for walls of 10 and 2 mm", with no code, so the facade can only say `EVALUATION`. The fix: `FriendlyError` should
    carry the kernel's `code` and its bracketed detail code.
-2. **`@barocss/cad-model/api` doesn't resolve yet.** cad-model's exports map `./*` to `./src/*.ts`, so `/api` looks for
-   `src/api.ts`, and the facade lives in `src/api/index.ts`. One of these is needed:
-   - a one-line `src/api.ts` (`export * from './api/index'`), which is outside this lane's paths, so it needs the outer
-     lane or the coordinator's go-ahead;
-   - an exports entry `"./api": "./src/api/index.ts"` in package.json, which is a shared file.
-
-   Until then the import is `@barocss/cad-model/api/index`.
+2. **`@barocss/cad-model/api` resolves** through the one-line `src/api.ts` (`export * from './api/index'`), matching
+   cad-model's `./*` → `./src/*.ts` export. That was finding 2, now done in this lane.
 3. **STEP isn't deterministic.** `stepFor` (engine/evaluate.ts, outer lane) passes no `timestamp` to the kernel's
    `exportStep`, which supports one (io/step.ts). A pass-through option would let the facade and the docs' samples
    give byte-stable STEP.
@@ -207,6 +202,7 @@ without a recipe limit: any count, angle or factor the core allows instead of th
   - `src/api/select.ts`: `BodyQuery`, `EdgeQuery`, `FaceQuery`;
   - `src/api/core.ts`: the one adapter onto today's core;
   - `src/api/refusal.ts`: `BarocssError`, `FacadeCode`;
+  - `src/api.ts`: the `@barocss/cad-model/api` entry;
   - `src/api/index.ts`.
 - **The test**, test/api-part.test.ts, has five tests and all pass:
   - the document is byte-equal to the hand-written one;

@@ -2,7 +2,7 @@
 // equal the core functions' on that document byte for byte.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { part, BarocssError } from '../src/api/index';
+import { part, BarocssError } from '../src/api';
 import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc, stepFor } from '../src/engine/evaluate';
 import { bodyMass } from '../src/app/mass';
