@@ -5540,6 +5540,10 @@ try {
     await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 20000 });
     const before = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
     const placed = JSON.stringify((await doc()).instances);
+    // (R1c (3b): the pose lives outside React state — what a slider or a joint played does is still a preview, the history
+    // as it was: the Undo button's state is checked around each.)
+    const undoState = () => page.evaluate(() => { const b = document.querySelector('[aria-label="Undo"]'); return { tip: b?.getAttribute('data-tip'), off: !!b?.disabled }; });
+    const undo0 = await undoState();
     // (A half turn of b about a's far hole at x = 60: its box, x 50…110, swings to 10…70.)
     // (A range input set as a person's drag sets it: the native value, then an input event React hears.)
     await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint a~b value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI);
@@ -5547,6 +5551,7 @@ try {
     assert.ok(Math.abs(before.min[0] - 50) < 1e-3, JSON.stringify(before));
     assert.equal(JSON.stringify((await doc()).instances), placed, 'a preview: the placements are not changed');
     assert.match(await page.locator('[aria-label="Joint a~b"]').innerText(), /180\.0 °/);
+    assert.deepEqual(await undoState(), undo0, 'a slider pose adds no undo entry');
     await snap('rm2-posed');
     // (G2: the posed arm sectioned — the plane in world space through the swung link, as the CPU's moved copies cut.)
     await page.click('[aria-label="Section view"]'); await page.waitForSelector('[data-handle="section"]', { timeout: 10000 });
@@ -5557,9 +5562,22 @@ try {
     await page.click('[aria-label="Joints home"]');
     await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
     // Played: the first arm swings by itself, then stopped.
+    const undo1 = await undoState();
     await page.click('[aria-label="Play joint base~a"]');
     await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'a').min[0] - 10) > 1, null, { timeout: 10000 });
     await page.click('[aria-label="Play joint base~a"]');
+    assert.deepEqual(await undoState(), undo1, 'a joint played adds no undo entry');
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'nor changes the placements');
+    // Saved while posed and opened again: the pose is not saved, as before (a preview) — the arm opens at home.
+    const posed = await page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'b'));
+    assert.ok(Math.abs(posed.min[0] - 50) > 1, `posed when saved: ${JSON.stringify(posed)}`);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const again = join(out, 'saved-rm2-posed.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await page.setInputFiles('input[aria-label="Model file"]', again);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2, null, { timeout: 20000 }); await idle();
+    await page.waitForFunction(() => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'b').min[0] - 50) < 1e-3, null, { timeout: 10000 });
+    assert.equal(JSON.stringify((await doc()).instances), placed, 'the placements as saved');
     await page.click('[aria-label="Joints home"]');
   });
 
