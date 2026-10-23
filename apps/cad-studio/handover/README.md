@@ -120,6 +120,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K14 step 3: a long cut a tolerance short of one segment at both ends ends on it at both (20261025 #170 shrunk) | D251 | done (T2) |
 | K14 step 3: coplanar pieces joined with their rings closed as their face's arrangement closed them (20261026 #112, #34 shrunk, #194) | D252 | done (T2) |
 | K14 checkpoint 2: counts and the robust refusals' state; checkpoint 1's two centroid bits came from D246 | D253 | done (T2: kernel 1663/1670, names +3, RB no NEW, fingerprint cf100676 (138 refused → valid; 27 lines ≤ 7e-10 relative), cad-model 1017, studio 285) |
+| K14 stopped at the fix budget (7 causes): the next robust refusals diagnosed — 26#184 (rings meeting 0.07 mm apart at a tilted end plane), 25#62 (the face stitched over a 354° arc), 26#115, 25#49, 25#148, 25#190; D239's nudge findings and s2#112 not reached | D254 | done (diagnosis only) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

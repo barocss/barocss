@@ -13317,3 +13317,32 @@ through the quadrature's 16-a-quarter tessellation.
     7.1e-10 relative (20261023:112), the rest within 1.1e-10; validity and F/E/V are unchanged.
 - cad-model 1017/1017, studio 285/285.
 - No browser flow.
+
+## D254 — K14 stops at the fix budget: what the next robust refusals are (diagnosis only) (2026-10-24)
+
+K14 fixed 7 causes, D245–D248 and D250–D252, so it stops at the brief's "about 8". These are the next ones; none is
+fixed.
+
+- **20261026 #184.** Shrunk: an open shelled box ∩ a tilted cylinder, in a circular pattern of 2 at 50.87°. Each copy
+  builds, and the copies' union is refused with 13 edges used once.
+  - They form one loop in the first copy's cylinder end face (`n3b.bottom`, a plane tilted 82°): lines at the box's
+    bottom z = −2.5 and its floor z = −2.
+  - Its partners (the floor, the walls, the second copy's walls) each use their own edges between nearby but different
+    points, so the rings do not meet.
+  - Next: the vertices where the end plane meets the floor and the bottom, 0.07 mm apart (0.4096, 2.4117, −2.5) and
+    (0.4788, 2.4146, −2).
+- **20261025 #62.** Shrunk: (a tilted cylinder − a box) in a linear pattern of 3, then of 2. The ×3 builds, and the ×2
+  union is refused: "orientation: face … sense disagrees with its outer loop". The face is the second copy's cylinder
+  wall, two kept pieces (34.78 and 0.09 mm²) merged into one host domain.
+  - The big piece spans 354° about the axis.
+  - The merge's seam goes in the 0.10 rad gap left, and both regions come back as they went in.
+  - So the disagreement comes later, from the face the stitch builds over a 354° arc (its loop against that surface).
+    That is the place to look.
+- **20261026 #115** gives the same message on a 4-leaf tree (cylinders, a box, a cone). Not looked at; it may share #62's
+  cause.
+- **20261025 #49, #148.** Not looked at.
+- **20261025 #190.** The march beside a pole (D250).
+- **20261025 #170 and 20261026 #34 as fuzzed.** Each refused by a second cause after their shrunk trees built (D251,
+  D252).
+
+D239's open nudge findings and s2#112 (queue item 4) were not reached in K14.
