@@ -7496,3 +7496,10 @@ tools.ts is 967 lines.
 It imports nothing from tools.ts. tools.ts (623 lines) imports back the six it uses (BATCHABLE, MUTATORS, PART_SCOPED, describe, takesArgument, unknownArguments) and re-exports the seven public ones (BATCHABLE_TOOLS, isMutator, featureKinds, takesArgument, unknownArguments, TOOLS, SYSTEM_PROMPT).
 
 **The byte check** is identical: TOOLS JSON, SYSTEM_PROMPT, the v2 list and prompt, every describe, the argument tables and the groups' probes.
+
+**Verified (R3d):**
+- the byte check, identical;
+- toolset 9/9 and tool-contract 3/3, within the suite;
+- the cad-model suite through the lanes guard's gate (go at load 15): 964 of 964, in 338 s;
+- tsc and eslint clean.
+- Not run: the flow.
