@@ -31,7 +31,7 @@ the plane is edge-on, and the cut faces hatched.
 |---|---|---|
 | <kbd>V</kbd> | Select | Click a dimension to select it, drag to move it; <kbd>Delete</kbd> removes it |
 | <kbd>D</kbd> | Linear dimension | Click two points or one straight edge, then where the dimension goes |
-| <kbd>Ø</kbd> | Diameter | Click a circle, then where its diameter goes |
+| <kbd>O</kbd> | Diameter (Ø) | Click a circle, then where its diameter goes |
 | <kbd>R</kbd> | Radius | Click a circle or an arc, then where its radius goes |
 | <kbd>A</kbd> | Angle | Click two straight edges, then the side of their corner |
 | <kbd>N</kbd> | Note | Click the paper for a note, or a view for a leader |

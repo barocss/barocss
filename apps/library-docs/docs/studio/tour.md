@@ -2,27 +2,43 @@
 
 ## The layout
 
-- **The top bar** holds the mode, the document's commands and the tools that open panels:
-  - **Model**, **Render** and **Drawing** switch the workspace. Model is where you build. Render sets the look and
-    camera for images without changing the model. Drawing is the sheet workspace.
+![The studio with the starter plate: the top bar, the Tools rail on the left, the Browser and the properties panel, the history and the view bar along the bottom](/shots/studio/tour/layout.jpg)
+
+- **The top bar** holds the shapes, the mode, the document's commands and the tools that open panels:
+  - **The shapes**: buttons for the shapes you place with the pointer or drag onto the model. **More shapes** (`···`)
+    opens the rest.
+  - **Model**, **Sketch**, **Render** and **Drawing** switch the workspace:
+    - Model is where you build.
+    - Sketch starts a sketch, and shows its plane while you draw.
+    - Render sets the look and camera for images without changing the model; see [Rendering](/studio/rendering).
+    - Drawing is the sheet workspace.
   - **Chat** opens the agent's panel, and **Undo** and **Redo** step through the history.
-  - **New part**, **Templates**, **Open**, **Save** and **Insert part** (another `.bcad` placed as an instance).
+  - **New part**, **Templates**, **Open**, **Save** and **Insert part**, which places another `.bcad` as an instance.
   - **Library** (catalogue parts and shop rows), **Parameters** (named sizes and saved configurations) and **BOM**.
   - **Export STL**, **Export 3MF**, **Export STEP** and **Export IGES**.
-- **The outliner** lists the bodies, the placed parts and their features. Its summary line counts them, for example
-  `1 body`.
-- **The history** lists the features in the order they were made. Click one to edit it.
+- **The Tools rail** on the left holds the commands by group. While you sketch, it holds the sketch tools instead.
+- **The Browser** lists the bodies, the placed parts and their features, the drafts and the reference bodies. Its title
+  counts the bodies, for example `1 body`.
 - **The properties panel** shows what is picked, such as `SELECTION · FACE`, with its measurements and the actions
-  that apply to it.
+  that apply to it. With nothing picked, it shows the part's mass, centre of mass and bounds.
 - **The heads-up display (HUD)** appears while a command runs. It shows the command's fields and a status: `preview`
   while the result is shown, or `refused` with the reason.
-- **The viewport** carries the view buttons (**Top** and the others), the view cube, and **Display**, the popover for
-  display modes, sections and previews.
-- **The shapes strip** offers the shapes and features as buttons; **More shapes** opens the rest.
+- **The history**, along the bottom, lists the features in the order they were made. Click one to edit it.
+- **The view bar** carries:
+  - **Display**, the popover for display modes, sections and previews;
+  - the view buttons: **Iso**, **Top**, **Front**, **Right** and the others;
+  - **Ortho**, **AO**, **Analyse** and **Maps**;
+  - the selection filter and **Snap**.
+
+  The view cube sits in the viewport's top corner.
 
 ## Commands and keys
 
-Press <kbd>Space</kbd> to find any command by name, or <kbd>?</kbd> to see every key. A command's key starts it:
+Press <kbd>Space</kbd> to find any command by name, or <kbd>?</kbd> to see every key.
+
+![The command palette, searching for fillet](/shots/studio/tour/palette.png)
+
+A command's key starts it:
 
 | Key | Command | Key | Command |
 |---|---|---|---|

@@ -22,6 +22,8 @@ features:
     details: The kernel returns an exact, valid body or a typed refusal that says why. It never guesses.
 ---
 
+![The studio with the starter plate](/shots/home/studio.jpg)
+
 ## What's in it
 
 | | |
