@@ -16,13 +16,14 @@ import { directDisplay, emptyDirect, importSource, movePole } from '@barocss/cad
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { buildSheet } from '@barocss/cad-model/drawing/sheet';
-import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
+import { sheetDxf } from '@barocss/cad-model/io/dxf';
 import { autoDimensions } from '@barocss/cad-model/drawing/auto';
 import { drawingIssues } from '@barocss/cad-model/drawing/issues';
 import { autoLayout } from '@barocss/cad-model/drawing/layout';
 import { toleranceSuggestions } from '@barocss/cad-model/drawing/tolerance';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
-import { checkSpec, type Requirement } from '@barocss/cad-model/chat/spec';
+import { checkSpec } from '@barocss/cad-model/chat/spec';
+import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { parse as parseScript } from '@barocss/cad-model/chat/script';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';
 import { forwardKinematics } from '@barocss/cad-model/robot/fk';

@@ -10,8 +10,8 @@ import { layoutSheet } from '../src/drawing/views';
 import { snapPoints } from '../src/drawing/dimensions';
 import { buildSheet, hatch, type Mark } from '../src/drawing/sheet';
 import { sectionOf } from '../src/drawing/section';
-import { sheetSvg } from '../src/drawing/svg';
-import { arcEntity, sectionDxfDocument, sheetDxf, sheetDxfDocument } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { arcEntity, sectionDxfDocument, sheetDxf, sheetDxfDocument } from '../src/io/dxf';
 import { sketchDxfDocument } from '../src/sketch/dxf';
 import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 

@@ -5,9 +5,9 @@ import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/ch
 import { drawingInputs, runDrawingTool, DRAWING_TOOLS } from '../src/chat/drawing';
 import { issueContext } from '../src/drawing/issues';
 import { sectionsOf, readDrawing } from '../src/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { manufacturingDocument, manufacturingOptions } from './fixtures/drawing-manufacturing';
 const evaluate = async (doc: ChatState['doc']) => evaluatePart(doc, 1);

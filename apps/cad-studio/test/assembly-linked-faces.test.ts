@@ -27,7 +27,7 @@ try {
   const outfile = join(temporary, 'assembly.mjs');
   await build({ entryPoints: [resolve(studio, 'src/assembly/useAssembly.ts')], outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent', define: { 'import.meta.env.DEV': 'false' },
     plugins: [{ name: 'assembly-recorder', setup(builder) {
-      builder.onResolve({ filter: /^(react|\.\/faceClient|@barocss\/cad-model\/assembly\/(?:mates|flatten))$/ }, args => ({ path: args.path, namespace: 'recorder' }));
+      builder.onResolve({ filter: /^(react|\.\/faceClient|@barocss\/cad-model\/(?:assembly\/mates|engine\/flatten))$/ }, args => ({ path: args.path, namespace: 'recorder' }));
       builder.onLoad({ filter: /.*/, namespace: 'recorder' }, ({ path }) => ({ contents:
         path === 'react' ? 'export const useRef=(...a)=>globalThis.__facesHooks.useRef(...a),useState=(...a)=>globalThis.__facesHooks.useState(...a),useMemo=(...a)=>globalThis.__facesHooks.useMemo(...a),useCallback=(...a)=>globalThis.__facesHooks.useCallback(...a),useEffect=(...a)=>globalThis.__facesHooks.useEffect(...a);'
           : path === './faceClient' ? 'export class FaceClient { table(doc){return globalThis.__facesCalls.legacy(doc)} }'

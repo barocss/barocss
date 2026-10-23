@@ -1,11 +1,11 @@
 // O9: where an export came from, written beside a file whose bytes cannot carry it — an STL's fixed 80-byte header, the
 // robot exports that external readers' frozen oracles pin (URDF, MJCF, SDF, USD) — as `<name>.source.json`. It names
-// the document's revision (team/revision.ts: what a revision covers, 64-bit, for staleness), a SHA-256 of the same
+// the document's revision (util/revision.ts: what a revision covers, 64-bit, for staleness), a SHA-256 of the same
 // content (for integrity), and for a robot the hand-set values its export read: the base and the joints' limits and
 // ratings a person set. STEP, 3MF and the drawing carry the revision in the file itself.
 import type { StudioDoc } from '../engine/doc';
-import { canonicalOf, revisionOf } from './revision';
-import { sha256Hex } from './digest';
+import { canonicalOf, revisionOf } from '../util/revision';
+import { sha256Hex } from '../util/digest';
 import { readRobot, type RobotSettings } from '../robot/joints';
 
 export interface SourceRecord {

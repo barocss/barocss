@@ -4,7 +4,7 @@ import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { withLook } from '../src/app/bodies';
 import { runOutputTool, OUTPUT_TOOL_NAMES } from '../src/chat/outputs';
-import { sha256Hex } from '../src/team/digest';
+import { sha256Hex } from '../src/util/digest';
 import { bomView, deriveBom } from '../src/team/assembly';
 import { draftBaseline, moveBaseline } from '../src/team/baseline';
 import { userToken } from '../src/team/ecr';

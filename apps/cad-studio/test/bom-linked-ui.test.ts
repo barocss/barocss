@@ -26,11 +26,11 @@ try {
   const outfile = join(temporary, 'panel.mjs');
   await build({ entryPoints: [resolve(studio, 'src/ui/BomPanel.tsx')], outfile, bundle: true, platform: 'node', format: 'esm', jsx: 'automatic', logLevel: 'silent',
     plugins: [{ name: 'panel-recorder', setup(builder) {
-      builder.onResolve({ filter: /^(react(?:\/jsx-runtime)?|@barocss\/cad-model\/team\/bom|\.\/files|\.\/atoms)$/ }, args => ({ path: args.path, namespace: 'recorder' }));
+      builder.onResolve({ filter: /^(react(?:\/jsx-runtime)?|@barocss\/cad-model\/bom\/bom|\.\/files|\.\/atoms)$/ }, args => ({ path: args.path, namespace: 'recorder' }));
       builder.onLoad({ filter: /.*/, namespace: 'recorder' }, ({ path }) => ({ contents:
         path === 'react' ? 'export const useRef=(...a)=>globalThis.__bomHooks.useRef(...a),useState=(...a)=>globalThis.__bomHooks.useState(...a),useMemo=(...a)=>globalThis.__bomHooks.useMemo(...a),useEffect=(...a)=>globalThis.__bomHooks.useEffect(...a);'
           : path === 'react/jsx-runtime' ? 'export const jsx=(type,props,key)=>({type,props,key}),jsxs=jsx; export const Fragment="fragment";'
-          : path === '@barocss/cad-model/team/bom' ? 'export const bomPanelData=(...a)=>globalThis.__bomCalls.load(...a),purchaseCsv=(data,made)=>data.marker+":"+made,setBought=(doc)=>doc;'
+          : path === '@barocss/cad-model/bom/bom' ? 'export const bomPanelData=(...a)=>globalThis.__bomCalls.load(...a),purchaseCsv=(data,made)=>data.marker+":"+made,setBought=(doc)=>doc;'
           : path === './files' ? 'export const downloadBytes=(...a)=>globalThis.__bomCalls.downloads.push(a);'
           : 'export const Icon=()=>null;',
       }));

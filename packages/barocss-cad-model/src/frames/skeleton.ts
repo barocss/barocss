@@ -4,7 +4,7 @@
 // deleteFeature), and an edit taking away a segment of a followed skeleton or a point its segments used.
 import { featureLabel, followsIndex, frameGeometry, type ModelNode, type StudioDoc } from '../engine/doc';
 import { sketch3dRefusal, solveSketch3D, type BoundConstraint3D, type Constraint3D, type Solve3D, type V3 } from './sketch3d';
-import { revisionOf } from '../team/revision';
+import { revisionOf } from '../util/revision';
 
 /** The frames following feature `index` (by label). */
 export function followersOf(nodes: readonly ModelNode[], index: number): string[] {

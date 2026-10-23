@@ -3,7 +3,7 @@
 // importing parts.ts (which runs the chat tools) closed an import cycle chat/tools → chat/outputs → team/bundle →
 // team/baseline → team/parts → chat/tools that left CHAT_COMMANDS and ROBOT_TOOLS undefined at load.
 import type { StudioDoc } from '../engine/doc';
-import { revisionOf } from './revision';
+import { revisionOf } from '../util/revision';
 
 export interface HolePattern { id: string; positions: [number, number, number][]; diameter: number; /** The direction the holes run (the assembly's frame). */ axis: [number, number, number]; parts: string[] }
 export interface Envelope { id: string; part: string; min: [number, number, number]; max: [number, number, number] }

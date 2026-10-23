@@ -10,18 +10,20 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
-import { checkSpec, type Report } from '../chat/spec';
-import { interference, massProperties } from '../chat/analysis';
+import type { Op } from '../engine/schema/proposals';
+import { checkSpec } from '../chat/spec';
+import type { Report } from '../engine/schema/spec';
+import { interference, massProperties } from '../analysis/analysis';
 import { factsOf } from '../chat/observe';
-import { checkKeepouts, readReferences, type KeepoutResult } from '../chat/references';
+import { checkKeepouts, readReferences } from '../chat/references';
+import type { KeepoutResult } from '../engine/schema/references';
 import { printability, type PrintabilityReport } from '../print/rules';
 import { processProfile } from '../library/materials';
 import { readBrief, isStated } from '../chat/brief';
 
 // ——— revisions and patches
-// (The canonical JSON and A7's revision live in team/revision.ts — no imports — so frames/ can pin a part's revision, FRf2.)
-import { canonical, canonicalOf, revisionContent, revisionOf } from './revision';
+// (The canonical JSON and A7's revision live in util/revision.ts — no imports — so frames/ can pin a part's revision, FRf2.)
+import { canonical, canonicalOf, revisionContent, revisionOf } from '../util/revision';
 export { canonical, canonicalOf, revisionContent, revisionOf };
 export interface Patch { id: string; by: string; base: string; ops: Op[]; rationale?: string; /** The base it was made on, when rebased. */ rebasedFrom?: string; /** The Designer's answer to soft findings: kept as it is, because… (A8.1: held for the user with this reason, not rejected again). */ keep?: string }
 /** The patch made again on another revision (explicit: never automatic); its trace names the old base. */

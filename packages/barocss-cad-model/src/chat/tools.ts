@@ -9,7 +9,7 @@ import { DRAWING_TOOL_NAMES, runDrawingTool } from './drawing';
 import { OUTPUT_TOOL_NAMES } from './outputDefinitions';
 import { resolveShopRows, resolveShopTree, restoreAuthoredShopRows } from '../engine/shopRows';
 import { friendly } from '../engine/errors';
-import { personRowsRefusal, reconcileRowSources } from './rowSources';
+import { personRowsRefusal, reconcileRowSources } from '../engine/rowSources';
 import { v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, runRobotTool } from './robot';
 import { BRIEF_TOOL_NAMES, runBriefTool } from './brief';
@@ -19,7 +19,8 @@ import { runStandardsTool, STANDARDS_TOOL_NAMES } from '../standards/provenance'
 import { datumPlane, readReferences, REFERENCE_TOOL_NAMES, referenceNameIn, ReferenceError, runReferenceTool } from './references';
 import { ASSEMBLY_TOOL_NAMES, runAssemblyTool, solveDoc } from './assembly';
 import { resolveNames, type NameSelection } from './names';
-import { approvalOf, type Op } from './proposals';
+import { approvalOf } from './proposals';
+import type { Op } from '../engine/schema/proposals';
 import { newPolicy } from './spec';
 import { partEditRefusal, refreshFollowed } from '../frames/skeleton';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, setCall, json, accept, fail, subToolResult } from './toolKit';

@@ -4,16 +4,14 @@
 // refused, to be made an assumption. The user answers in the studio's Specify panel (or skips: nothing is blocked);
 // an answer is written into the brief or the requirement as the user's, confirmed, and sent to the chat as one message.
 import type { StudioDoc } from '../engine/doc';
-import { badValue, briefGaps, BRIEF_FIELDS, PROCESSES, readBrief, REQUIRED, type Brief, type BriefKey, type Field } from './brief';
-import type { Requirement } from './spec';
+import { badValue, briefGaps, readBrief, REQUIRED } from './brief';
+import { BRIEF_FIELDS, PROCESSES } from '../engine/schema/brief';
+import type { Brief, BriefKey, Field } from '../engine/schema/brief';
+import type { Requirement } from '../engine/schema/spec';
 import { confirmDimension, DraftError, unconfirmed } from './drafts';
+import type { Blocks, Question, Batch, QuestionLog, AskCode } from '../engine/schema/questions';
 
 export const MAX_QUESTIONS = 5, MAX_BATCHES = 2;
-export type Blocks = { field: BriefKey } | { requirement: string } | { dimension: string };
-export interface Question { id: string; text: string; kind: 'choice' | 'number' | 'text'; options?: string[]; unit?: string; blocks: Blocks }
-export interface Batch { n: number; questions: Question[]; status: 'open' | 'answered' | 'skipped'; /** Each question's answer as the user gave it, or null where skipped. */ answers?: Record<string, string | number | null>; at?: string }
-export interface QuestionLog { version: 1; batches: Batch[] }
-export type AskCode = 'TOO_MANY' | 'NOT_BLOCKING' | 'BATCHES_USED' | 'OPEN_BATCH' | 'BAD_QUESTION';
 
 export const readQuestions = (raw: unknown): QuestionLog => (raw && typeof raw === 'object' && (raw as QuestionLog).version === 1 && Array.isArray((raw as QuestionLog).batches) ? raw as QuestionLog : { version: 1, batches: [] });
 const blocksKey = (b: Blocks) => ('field' in b ? `field:${b.field}` : 'requirement' in b ? `requirement:${b.requirement}` : `dimension:${b.dimension}`);

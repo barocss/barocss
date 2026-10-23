@@ -27,9 +27,10 @@
 // the person previews, accepts or rejects it as any other.
 import { STUDIO_DOC_FIELDS, type BodyLook, type BodyRef, type ModelNode, type StudioDoc } from '../engine/doc';
 import { featureId, nextSerial, serialOf } from '../engine/ids';
-import { canonical } from '../team/revision';
+import { canonical } from '../util/revision';
 import { renumber } from './features';
-import { nextProposalId, PLAN_CHARS, withHistory, type HistoryEntry, type Op, type Proposal, type Risk, type TurnCode, type TurnConflict } from './proposals';
+import { nextProposalId, PLAN_CHARS, withHistory } from './proposals';
+import type { HistoryEntry, Op, Proposal, Risk, TurnCode, TurnConflict } from '../engine/schema/proposals';
 import { moveOp, renameIds } from './remap';
 import { modelHash } from './spec';
 import { moveOps, proposalOf, type ChatState, type Evaluate } from './tools';

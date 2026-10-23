@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateSurfaceD1, surfaceDomain, faceGeometry, rayHit, triangleBvh, type Brep } from '@barocss/cad';
 import { evaluatePart, partBreps, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
-import { wallThickness } from '../src/chat/analysis';
+import { wallThickness } from '../src/analysis/analysis';
 
 // IM S0 (O76): what the injection-moulding track can measure today, exactly, without a kernel-core change — each probe
 // against a closed form or a constructed case. The kernel's B-rep faces are NURBS (an exact cone, cylinder, torus …);

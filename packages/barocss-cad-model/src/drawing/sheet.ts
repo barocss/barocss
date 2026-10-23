@@ -2,7 +2,7 @@
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { weldSymbols, type WeldPlaced } from './welds';
 import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
-import type { Bom } from '../team/bomCore';
+import type { Bom } from '../bom/core';
 import type { WeldJoint } from '../frames/welds';
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
 import { fmtMM, resolveDimension, resolveLine, type Resolved } from './dimensions';

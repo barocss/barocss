@@ -56,17 +56,17 @@ export function holePosition(callout: string | null, diameter: number, sizes: Fa
     const size = sizes[`M${thread[1]}`];
     if (size) {
       const H = size.clearance[1], T = floor2((H - size.d) / 2);
-      if (T > 0) return { value: T, basis: `a tapped M${thread[1]} hole, its screw fixed: T = (H − F)/2 = (${H} − ${size.d})/2, H the screw's ISO 273 medium clearance hole assumed in the mating part (studio fastener data)`, estimate: false };
+      if (T > 0) return { value: T, basis: `a tapped M${thread[1]} hole, its screw fixed: T = (H − F)/2 = (${H} − ${size.d})/2, H the screw's ISO 273 medium clearance hole assumed in the mating part (your fastener sizes)`, estimate: false };
     }
   }
   const s = sizeForHole(diameter, sizes);
   if (s && s.fit.fit === 'clearance') {
     const size = sizes[s.size], F = size.d, T = floor2(diameter - F), series = s.fit.series, H = size.clearance[['fine', 'medium', 'coarse'].indexOf(series)];
     // An ISO 273 hole: the data says which screw. Near one only: the screw is assumed (an estimate, said so).
-    if (T > 0 && Math.abs(H - diameter) <= 1e-6) return { value: T, basis: `a Ø${diameter} clearance hole for ${s.size} (ISO 273 ${series}, studio fastener data), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: false };
+    if (T > 0 && Math.abs(H - diameter) <= 1e-6) return { value: T, basis: `a Ø${diameter} clearance hole for ${s.size} (ISO 273 ${series}, your fastener sizes), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: false };
     if (T > 0) return { value: T, basis: `an estimate: Ø${diameter} is no ISO 273 hole; ${s.size} assumed (its ${series} hole is Ø${H}), its screw floating: T = H − F = ${diameter} − ${F}`, estimate: true };
   }
-  return { value: POSITION_ESTIMATE_MM, basis: 'an estimate: no fastener in the studio data fits this hole', estimate: true };
+  return { value: POSITION_ESTIMATE_MM, basis: 'an estimate: none of your fastener sizes fits this hole', estimate: true };
 }
 
 interface HoleKind { dim: Extract<Resolved, { ok: true; kind: 'diameter' | 'radius' }>; callout: string | null; diameter: number; centres: Centre[] }

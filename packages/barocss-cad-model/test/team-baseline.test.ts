@@ -7,7 +7,7 @@ import { evaluatePart } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
 import { bomView, deriveBom } from '../src/team/assembly';
 import { draftBaseline, moveBaseline, readBaselines, verifyBaseline } from '../src/team/baseline';
-import { digestOf, partDigests, sha256Hex, sha256Text } from '../src/team/digest';
+import { digestOf, partDigests, sha256Hex, sha256Text } from '../src/util/digest';
 import { decideEcr, openEcr, readEcrs, userToken, verifyEcrPin } from '../src/team/ecr';
 import { readInterfaces } from '../src/team/parts';
 import { canonical } from '../src/team/team';

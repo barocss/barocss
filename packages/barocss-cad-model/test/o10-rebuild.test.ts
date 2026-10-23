@@ -5,7 +5,7 @@ import { featureLabel, rectanglePart, starterDoc, type PartInstance, type Studio
 import { featureId } from '../src/engine/ids';
 import { BASE, type Mate } from '../src/assembly/mates';
 import { REBUILD_LIMITS, rebuildReport, type RebuildFeature } from '../src/team/rebuild';
-import { revisionOf } from '../src/team/revision';
+import { revisionOf } from '../src/util/revision';
 
 // O10 step B: the rebuild report reads the main evaluation's profile (D228) — what was built again and what reused,
 // each feature's own time and kernel calls — and the mates that cannot be met, with the document's revision.

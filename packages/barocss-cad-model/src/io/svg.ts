@@ -1,6 +1,6 @@
 // The sheet as SVG: one user unit per millimetre, so the file prints at the drawing's scale. Arcs are
 // exact SVG elliptical arcs (a projected circle's principal axes from its conjugate semi-diameters).
-import { PENS, hatch, type Mark, type Sheet } from './sheet';
+import { PENS, hatch, type Mark, type Sheet } from '../drawing/sheet';
 
 const n = (v: number) => { const r = Math.round(v * 1e4) / 1e4; return Object.is(r, -0) ? '0' : String(r); };
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

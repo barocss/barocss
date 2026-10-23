@@ -10,7 +10,7 @@ import type { TableContent } from './table';
 import { cutListSource } from '../app/cutList';
 import { weldListSource } from '../frames/welds';
 import { elementsSource, glandsSource, springsSource } from './elementTables';
-import type { Bom } from '../team/bomCore';
+import type { Bom } from '../bom/core';
 
 /** `bom` (O147 B2): the BOM, worked out by the caller (the studio through its engine worker), for the 'bom' source. */
 export interface TableSourceContext { doc: StudioDoc; bodies?: readonly BodyResult[]; bom?: Bom }

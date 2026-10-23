@@ -11,7 +11,7 @@ import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { refOf } from '../app/bodyRef';
 import { marchingTetrahedra, nearestDistance2, rayHit, triangleBvh, voxelDepth, voxelInsideFlags, voxelNode, type TriangleBvh, type VoxelField } from '@barocss/cad';
-import { sha256Hex } from '../team/sha256';
+import { sha256Hex } from '../util/sha256';
 
 export type HollowCode = 'CURVED_BODY' | 'ONE_BODY' | 'DIRECTION_NOT_AXIS' | 'NOTHING_TO_HOLLOW' | 'GRID_TOO_FINE' | 'BAD_VALUES' | 'DRAIN_NO_ROOM' | 'BOOLEAN_REFUSED';
 export class HollowError extends Error { constructor(public code: HollowCode, message: string) { super(`[${code}] ${message}`); this.name = 'HollowError'; } }

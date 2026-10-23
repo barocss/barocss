@@ -4,7 +4,7 @@
 // steps (conformance/a7/candidates/).
 import { emptyDoc } from '../engine/doc';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
+import type { Op } from '../engine/schema/proposals';
 import { freshnessOf, massResult, type Result } from './freshness';
 import { CandidateBoard, type CandidateRequest, type Outcome, type Reopen } from './candidates';
 

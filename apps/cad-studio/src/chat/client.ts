@@ -1,6 +1,6 @@
 // The browser side of the chat server (server/chatServer.ts, reached through the dev server's
 // /api/chat proxy): whether chat is available, and one turn streamed as server-sent events.
-import type { RowFileInput } from '@barocss/cad-model/chat/rowFiles';
+import type { RowFileInput } from '@barocss/cad-model/engine/rowFiles';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { TurnOp } from '@barocss/cad-model/chat/merge';
 import { blobRefs, blobsAsBase64 } from '@barocss/cad-model/engine/blobs';

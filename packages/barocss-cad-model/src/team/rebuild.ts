@@ -7,7 +7,7 @@ import { featureLabel, type StudioDoc } from '../engine/doc';
 import { nodeIndexOf } from '../engine/ids';
 import { tablesFor } from '../assembly/faces';
 import { LOOP_REASON, solveAssembly, type Problem } from '../assembly/mates';
-import { revisionOf } from './revision';
+import { revisionOf } from '../util/revision';
 
 /** A feature's part in the evaluation: built again, reused, or an input with no body of its own (a sketch). */
 export type RebuildState = 'built' | 'reused' | 'input';
@@ -17,7 +17,7 @@ export interface RebuildLoop { parts: string[]; mates: string[] }
 /** Whether the times are the last evaluation's (features reused from the one before) or a build from nothing. */
 export type RebuildBasis = 'last evaluation' | 'from scratch';
 export interface RebuildReport {
-  /** The document's revision (team/revision) and the evaluation the times are from: the last one, or one from nothing. */
+  /** The document's revision (util/revision) and the evaluation the times are from: the last one, or one from nothing. */
   revision: string; evaluation: number; basis: RebuildBasis;
   /** The whole evaluation's time (ms): the features' and what came after them (a build from nothing can take seconds). */
   evaluationMs: number;

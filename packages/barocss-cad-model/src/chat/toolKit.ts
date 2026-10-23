@@ -3,12 +3,13 @@
 import { refOf, shownFields, type Field, type Values } from '../app/commands';
 import { featureLabel, type StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import type { PersonRowFiles } from './rowFiles';
+import type { PersonRowFiles } from '../engine/rowFiles';
 import type { ImageTrace } from './trace';
 import type { NameSelection } from './names';
 import { changeOf, factsOf } from './observe';
 import type { Transactions } from './transactions';
-import { expectedOf, runCheck, type Policy } from './spec';
+import { expectedOf, runCheck } from './spec';
+import type { Policy } from '../engine/schema/spec';
 import { captureSignatures, refreshSignatures } from '../engine/references';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { r3Signed as r3 } from '../util/round';

@@ -8,7 +8,7 @@
 // the destination's order; an id the sequence made is the one the destination handed out in its place.
 import type { ModelNode } from '../engine/doc';
 import { renumber } from './features';
-import type { Op } from './proposals';
+import type { Op } from '../engine/schema/proposals';
 import { CAGE_MUTATORS } from './cageTools';
 import { isObj } from '../util/guards';
 

@@ -1,8 +1,8 @@
 // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
 // they stand (their mates were solved when the file was saved), renumbered after them. Inserted into
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
-import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from '../engine/doc';
-import { nextSerial, renameFeatureIds, withIds } from '../engine/ids';
+import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from './doc';
+import { nextSerial, renameFeatureIds, withIds } from './ids';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
 export function flattenAssembly(doc: StudioDoc): StudioDoc {

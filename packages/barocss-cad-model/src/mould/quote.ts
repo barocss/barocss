@@ -7,11 +7,11 @@
 import type { StudioDoc } from '../engine/doc';
 import { stepFor, type BodyResult } from '../engine/evaluate';
 import { lookOf, partMaterial } from '../app/bodies';
-import { massBoundOf, massProperties } from '../chat/analysis';
+import { massBoundOf, massProperties } from '../analysis/analysis';
 import { materialData, processProfile } from '../library/materials';
 import { printability, type PrintabilityReport } from '../print/rules';
 import { documentRevision } from '../team/bundle';
-import { sha256Hex } from '../team/digest';
+import { sha256Hex } from '../util/digest';
 import { writeZip } from '../io/zip';
 import type { Half } from './parting';
 import { boundsOf } from '../engine/bounds';

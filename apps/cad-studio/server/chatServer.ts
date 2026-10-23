@@ -1,4 +1,4 @@
-import { receivePersonRowFiles, type RowFileInput } from '@barocss/cad-model/chat/rowFiles';
+import { receivePersonRowFiles, type RowFileInput } from '@barocss/cad-model/engine/rowFiles';
 // The chat's small local server: each turn runs the `claude` CLI (print mode, streaming JSON) with
 // the studio's tools as its only tools (an MCP server, server/cadMcp.ts, working on a state file), and
 // streams what happens back to the browser as server-sent events:

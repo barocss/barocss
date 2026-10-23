@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { EvalResult } from '@barocss/cad-model/engine/evaluate';
-import { bomPanelData, purchaseCsv, setBought, type BomPanelData } from '@barocss/cad-model/team/bom';
+import { bomPanelData, purchaseCsv, setBought, type BomPanelData } from '@barocss/cad-model/bom/bom';
 import { downloadBytes } from './files';
 import { Icon } from './atoms';
 

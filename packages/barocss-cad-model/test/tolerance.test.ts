@@ -10,8 +10,8 @@ import { holeCallout } from '../src/drawing/callout';
 import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
 import { autoLayout } from '../src/drawing/layout';
 import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, toleranceSuggestions } from '../src/drawing/tolerance';
-import { sheetDxfDocument } from '../src/drawing/dxf';
-import { sheetPdf, pdfMissing } from '../src/drawing/pdf';
+import { sheetDxfDocument } from '../src/io/dxf';
+import { sheetPdf, pdfMissing } from '../src/io/pdf';
 import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 import { SAMPLE_SIZES } from './person-file';
 
@@ -82,7 +82,7 @@ test('position values from the fastener data, by the floating and fixed fastener
   const near = holePosition('Ø6 THRU', 6, SAMPLE_SIZES); assert.equal(near.estimate, true); assert.equal(near.value, 1); assert.match(near.basis, /no ISO 273 hole; M5 assumed \(its coarse hole is Ø5\.8\)/);
   // Tapped: (medium clearance − d) / 2 — M6 (6.6 − 6)/2, M8 (9 − 8)/2, M4 (4.5 − 4)/2.
   assert.deepEqual(['M6×1 × 12 DEEP', 'M8×1.25 THRU', 'M4×0.7 × 8 DEEP'].map(c => holePosition(c, 5, SAMPLE_SIZES).value), [0.3, 0.5, 0.25]);
-  assert.deepEqual(holePosition('Ø8 THRU', 8, SAMPLE_SIZES), { value: POSITION_ESTIMATE_MM, basis: 'an estimate: no fastener in the studio data fits this hole', estimate: true });
+  assert.deepEqual(holePosition('Ø8 THRU', 8, SAMPLE_SIZES), { value: POSITION_ESTIMATE_MM, basis: 'an estimate: none of your fastener sizes fits this hole', estimate: true });
 });
 
 test('suggestions are never applied by themselves; a mode switch only changes what is offered', () => {

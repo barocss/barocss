@@ -7,7 +7,7 @@ import { rectanglePart, type ModelNode, type StudioDoc } from '../src/engine/doc
 import { readStudioDoc } from '../src/engine/migrate';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { withLook } from '../src/app/bodies';
-import type { Requirement } from '../src/chat/spec';
+import type { Requirement } from '../src/engine/schema/spec';
 import { bomView, deriveBom } from '../src/team/assembly';
 import { draftBaseline, moveBaseline } from '../src/team/baseline';
 import { userToken } from '../src/team/ecr';

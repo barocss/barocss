@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc, evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, featureLabel, usesOf, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
-import { flattenAssembly } from '../src/assembly/flatten';
+import { flattenAssembly } from '../src/engine/flatten';
 import { dispatchTool, runTool, type ChatState } from '../src/chat/tools';
 
 // FRk1 (D165) in the studio: the Gusset and End cap commands on a frame's picked members, their nodes, notes and labels,

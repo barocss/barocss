@@ -10,7 +10,7 @@ import { withLook } from '@barocss/cad-model/app/bodies';
 import { bomView, deriveBom } from '@barocss/cad-model/team/assembly';
 import { draftBaseline, moveBaseline } from '@barocss/cad-model/team/baseline';
 import { BUNDLE_FILES, verifyBundle, writeBundle, type Manifest } from '@barocss/cad-model/team/bundle';
-import { digestOf, sha256Hex } from '@barocss/cad-model/team/digest';
+import { digestOf, sha256Hex } from '@barocss/cad-model/util/digest';
 import { userToken } from '@barocss/cad-model/team/ecr';
 import { massResult } from '@barocss/cad-model/team/freshness';
 import { runPartsScenario, type PartsScenario } from '@barocss/cad-model/team/scripted';

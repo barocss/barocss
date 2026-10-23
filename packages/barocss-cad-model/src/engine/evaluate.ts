@@ -14,7 +14,7 @@ import { placementOf } from './placement';
 import { bodyKeyFor, bodyNodeOf } from './ids';
 import { fastenerLinkNotes } from '../library/fastenerLinks';
 import { fastenerSizesOf } from './fastenerSizeRows';
-import { revisionOf } from '../team/revision';
+import { revisionOf } from '../util/revision';
 import { beadNotes, bearingNotes, bevelGearNotes, bevelMeshNotes, camNotes, connectorNotes, decimateNotes, driveNotes, endCapNotes, gearNotes, glandNotes, gussetNotes, internalGearNotes, memberNotes, meshNotes, rackMeshNotes, rackNotes, shaftNotes, shaftPartNotes, sheetOf, springNotes, staleOf, subdNotes, wormMeshNotes, wormNotes, wormWheelNotes } from './bodyNotes';
 
 /** A kernel output's body key and the node and side it is now. */

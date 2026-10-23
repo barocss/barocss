@@ -11,7 +11,7 @@ import { draftBaseline, moveBaseline } from '../src/team/baseline';
 import { userToken } from '../src/team/ecr';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { applyFill, assemblyPlacedBodies, clearanceMap, fillOverlap } from '../src/team/clearanceMap';
-import { receivePersonRowFiles, type PersonRowFiles } from '../src/chat/rowFiles';
+import { receivePersonRowFiles, type PersonRowFiles } from '../src/engine/rowFiles';
 import { withSampleRows } from './person-file';
 
 // A9 (O5): the coordinator's acceptance — a written brief to what a shop needs, one scripted agent through the real v2

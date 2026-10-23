@@ -10,9 +10,9 @@ import { cellText, type TableContent } from '../src/drawing/table';
 import { drawingInputs } from '../src/chat/drawing';
 import { issueContext } from '../src/drawing/issues';
 import { readDrawing } from '../src/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { dxfText } from '@barocss/cad';
 
 // R12c on drawings, S2 (O144): the 'elements', 'springs' and 'glands' table sources. Oracles: the shaft-parts scene's

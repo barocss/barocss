@@ -7,11 +7,11 @@ import { dispatchTool } from '../src/chat/tools';
 import { changeDrawingScope, drawingDocument, drawingScopeOf } from '../src/drawing/scope';
 import { readDrawing, type DrawingSettings } from '../src/drawing/types';
 import { issueContext } from '../src/drawing/issues';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
-import { bomPanelDataOf } from '../src/team/bom';
+import { bomPanelDataOf } from '../src/bom/bom';
 const evaluate = async (d: StudioDoc) => evaluateDoc(d, 1);
 const base = () => withNode(emptyDoc(), { kind:'frame',points:[[0,0,0],[400,0,0],[400,300,0]],segments:[[0,1],[1,2]],section:{kind:'rect-tube',width:40,height:40,wall:3,outerRadius:0} });
 const assembly = (): StudioDoc => ({...base(), instances:[

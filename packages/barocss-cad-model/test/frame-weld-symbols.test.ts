@@ -10,9 +10,9 @@ import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
 import { readDrawing, type ViewId } from '../src/drawing/types';
 import { inView } from '../src/drawing/dimensions';
 import { fromSheet } from '../src/drawing/views';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { weldList } from '../src/frames/welds';
 
 // FRd2 (O119): weld symbols in the views, our own glyphs — on the welded table every joint shown once (O173: all 16),

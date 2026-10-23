@@ -1,5 +1,5 @@
 // Capabilities issued by the person's conversation input. Tool arguments cannot mint one.
-import { sha256Hex } from '../team/digest';
+import { sha256Hex } from '../util/digest';
 
 export interface RowFileInput { name: string; text: string; turn: number }
 export interface RowFileSource { filename: string; suppliedBy: 'person'; turn: number; sha256: string }

@@ -9,7 +9,7 @@ import { write3mf } from '../src/print/threemf';
 import { printability } from '../src/print/rules';
 import { bodyName } from '../src/app/bodies';
 import { bomView, deriveBom } from '../src/team/assembly';
-import { bomPanelData, purchaseCsv } from '../src/team/bom';
+import { bomPanelData, purchaseCsv } from '../src/bom/bom';
 
 // O8 (the kernel's D204, D205): pieces of one body that touch only along a line or at a point. The kernel now keeps
 // their union (it refused it: "The bodies only touch along an edge or a point"); a mesh welded by position reads the

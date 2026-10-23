@@ -13,10 +13,10 @@ import { lookOf } from '../app/bodies';
 import { briefMaterial } from '../chat/brief';
 import { MATERIALS_DATA, materialData } from '../library/materials';
 import { readBaselines, verifyBaseline, type Baseline } from './baseline';
-import { digestOf, sha256Hex } from './digest';
+import { digestOf, sha256Hex } from '../util/digest';
 import { readEcrs, verifyEcrPin, type Ecr } from './ecr';
 import { bomResult, freshnessOf, massResult, requirementResults, type Freshness, type Result } from './freshness';
-import { revisionContent } from './revision';
+import { revisionContent } from '../util/revision';
 
 export const BUNDLE_FILES = { document: 'document.bcad', baseline: 'baseline.json', materials: 'materials.json', results: 'results.json', ecrs: 'ecrs.json', manifest: 'manifest.json' } as const;
 export interface BundleFile { path: string; sha256: string; bytes: number }

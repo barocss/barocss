@@ -6,7 +6,7 @@ import { computeExperimental as C } from '@barocss/gpu';
 import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { accessSamples } from '@barocss/cad-model/machining/access';
-import { wallSamples } from '@barocss/cad-model/chat/analysis';
+import { wallSamples } from '@barocss/cad-model/analysis/analysis';
 import { accessMapOf, accessStep } from '../src/viewport/scalarMaps';
 
 // G25 (G-R12): the GPU analyses' inputs and folds, on the CPU mirror, against the studio's own CPU maps on real parts —

@@ -16,7 +16,7 @@ import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
 import { rotationSteps } from './placement';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
-import { canonical, modelContent } from '../team/revision';
+import { canonical, modelContent } from '../util/revision';
 import { resolveSkeletons } from '../frames/skeleton';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)

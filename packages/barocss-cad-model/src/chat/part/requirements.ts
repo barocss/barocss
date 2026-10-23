@@ -1,7 +1,8 @@
 // The v2 `requirements` group's handlers (R3, moved verbatim from chat/tools.ts's runPartTool): the part's
 // requirements, set from the brief, and the spec checked against them.
 import { saidIn } from '../brief';
-import { checkRequirement, checkSpec, expectedOf, newPolicy, updatePolicy, validateSuite, type Requirement } from '../spec';
+import { checkRequirement, checkSpec, expectedOf, newPolicy, updatePolicy, validateSuite } from '../spec';
+import type { Requirement } from '../../engine/schema/spec';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, fail } from '../toolKit';
 
 async function setRequirementsTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {

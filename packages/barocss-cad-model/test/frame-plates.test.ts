@@ -4,7 +4,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { elementLines } from '../src/engine/elements';
-import { bomPanelDataOf, purchaseCsv } from '../src/team/bom';
+import { bomPanelDataOf, purchaseCsv } from '../src/bom/bom';
 import { checkBom } from '../src/team/assembly';
 import { weldList, weldListTable } from '../src/frames/welds';
 

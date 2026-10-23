@@ -1,7 +1,7 @@
 // The sheet as a one-page vector PDF at true size: lines and polylines as paths, arcs as cubic Béziers
 // (a quarter turn or less each), text in the standard Helvetica fonts (WinAnsi, so Ø and ° print).
-import { PENS, hatch, type Mark, type Sheet } from './sheet';
-import { textWidth } from './text';
+import { PENS, hatch, type Mark, type Sheet } from '../drawing/sheet';
+import { textWidth } from '../drawing/text';
 import { MM_PER_INCH } from '../util/units';
 
 const PT = 72 / MM_PER_INCH;

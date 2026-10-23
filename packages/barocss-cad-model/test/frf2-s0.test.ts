@@ -4,7 +4,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, placedDoc, withNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import { rotationMatrix } from '../src/engine/placement';
 import { revisionOf } from '../src/team/team';
-import { partDigest } from '../src/team/digest';
+import { partDigest } from '../src/util/digest';
 import { modelInput } from '../src/team/freshness';
 import { evaluatedPart } from '../src/engine/wireDoc';
 import { dispatchTool } from '../src/chat/tools';

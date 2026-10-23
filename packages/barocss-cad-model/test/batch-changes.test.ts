@@ -4,8 +4,8 @@ import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { acceptProposal, dispatchTool, runTool, type ChatState } from '../src/chat/tools';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
-import { canonical } from '../src/team/revision';
-import { receivePersonRowFiles } from '../src/chat/rowFiles';
+import { canonical } from '../src/util/revision';
+import { receivePersonRowFiles } from '../src/engine/rowFiles';
 import { withSampleRows } from './person-file';
 
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);

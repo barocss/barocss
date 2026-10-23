@@ -6,7 +6,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { beadIdOf, beadsOf } from '../src/engine/part';
 import { weldList, weldListTable, type WeldRecord } from '../src/frames/welds';
-import { bomPanelDataOf } from '../src/team/bom';
+import { bomPanelDataOf } from '../src/bom/bom';
 
 // FRk2 (D166), the outer lane's side (queue 5b): the person's O118 weld records become the kernel's weld beads. The
 // kernel's frk/ scenes built from records, not from features: the 40 rail's bead on the 80 post 756 mm³, on the 40

@@ -1,6 +1,6 @@
 // Rows rule b in tests: a test's rows reach a loader only as a file the person supplied in the conversation.
 // The values are each test's own test rows, not a catalogue.
-import { receivePersonRowFiles, type PersonRowFiles } from '../src/chat/rowFiles';
+import { receivePersonRowFiles, type PersonRowFiles } from '../src/engine/rowFiles';
 
 /** One supplied file at turn 1: the context the chat state carries, and the reference a loader takes. */
 export function personFile(name: string, payload: unknown): { rowFiles: PersonRowFiles; file: string } {

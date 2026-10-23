@@ -5391,7 +5391,8 @@ try {
 
   // ---- R14.4 (O5): tolerance and GD&T suggestions ------------------------------------------------------------------
   await check('R14.4: geometric tolerancing suggested — datums A B C, the hole’s position frame, basic locations — and accepted all, cleanly', async () => {
-    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    // (O7b: the hole's position tolerance is worked out from the fastener sizes the person loaded — the sample here.)
+    await page.click('[aria-label="New part"]'); await loadSampleSizes(); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
     await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
