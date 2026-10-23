@@ -15,6 +15,7 @@ import { GROUPS, v1Call, v2Result } from '@barocss/cad-model/chat/groups';
 import { listed, TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { arrayOf, putKnownBlob, type BlobType } from '@barocss/cad-model/engine/blobs';
 import { captureOp, type TurnOp } from '@barocss/cad-model/chat/merge';
+import { ROBOT_CHECK, robotCheckCall, robotCheckListed, robotL3 } from './robotL3/tool';
 
 /** `images`: the traces of the conversation's attached images (read only). */
 /** `blobFiles`: the document's mesh blobs (M1, D45), files the chat server checked and kept for the conversation, read into the store before the first call. */
@@ -75,10 +76,12 @@ export async function serveMcp(source: string | McpStore, input: NodeJS.Readable
       // (The tool contract's version, A5.1: names, input and output schemas and annotations frozen in packages/barocss-cad-model/src/chat/tools-v2.json.)
       case 'initialize': return reply(msg.id, { protocolVersion: msg.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'barocss-cad', title: 'BaroCSS CAD', version: TOOLSET.version } });
       case 'ping': return reply(msg.id, {});
-      case 'tools/list': return reply(msg.id, { tools: TOOLS_LISTED });
+      // (O15: robot_check only in RD10's L3 run, CAD_ROBOT_L3=1.)
+      case 'tools/list': return reply(msg.id, { tools: robotL3() ? [...TOOLS_LISTED, robotCheckListed()] : TOOLS_LISTED });
       case 'tools/call': {
         // (Only the listed tools: a handler's own name (`run_command`) is not one, O105. Ops inside a batch or a proposal
         // name tools as before; saved proposals replay.)
+        if (robotL3() && msg.params?.name === ROBOT_CHECK) { const r = await robotCheckCall(state.doc, state.bodies, evaluate, msg.params?.arguments ?? {}); return reply(msg.id, { content: [{ type: 'text', text: r.text }], ...(r.isError ? { isError: true } : {}) }); }
         if (!(String(msg.params?.name) in GROUPS)) return error(msg.id, -32602, `Unknown tool: ${String(msg.params?.name)}. The tools are ${Object.keys(GROUPS).join(', ')}.`);
         const before = state.doc, out = await runTool(state, String(msg.params?.name), msg.params?.arguments ?? {}, evaluate);
         if (out.changed) { const v1 = v1Call(String(msg.params?.name), msg.params?.arguments ?? {}); ops.push(captureOp(before, out.state.doc, v1 && !('error' in v1) ? v1.name : String(msg.params?.name), v1 && !('error' in v1) ? v1.args : {})); }

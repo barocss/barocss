@@ -32,3 +32,11 @@ test('O7 tslot-20 (C): the M5 values are the parts\' own; a loaded fastener size
     assert.deepEqual([same.volume, other.volume], [none.volume, none.volume], `${part}: the shape is the library's`);
   }
 });
+
+test('O7: loading the shop rows changes the document\'s content key, so the studio\'s command context sees them without a geometry edit', async () => {
+  const { contentKey } = await import('../src/engine/evalMemo');
+  const { rectanglePart } = await import('../src/engine/doc');
+  const plate = rectanglePart(10, 10, 2);
+  assert.notEqual(contentKey(withSampleRows(plate)), contentKey(plate), 'fastener sizes');
+  assert.notEqual(contentKey(withSampleRows(plate, 'casting-rules')), contentKey(plate), 'casting rules');
+});

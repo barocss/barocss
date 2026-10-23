@@ -55,14 +55,15 @@ const nodeKeys = new WeakMap<ModelNode, string>();
 function nodeKey(n: ModelNode): string { let k = nodeKeys.get(n); if (k === undefined) { k = JSON.stringify(n, shortened); nodeKeys.set(n, k); } return k; }
 /**
  * A part's nodes and parameters as a key, without writing out its long texts and arrays again (face tables, PERF3 B12);
- * with its section library and weld records (a frame's geometry follows both).
+ * with its section library and weld records (a frame's geometry follows both), and the shop rows its commands and
+ * readings take (O7: the fastener sizes and casting rules among them — the studio's command context is rebuilt by it).
  */
 export function contentKey(doc: StudioDoc): string {
   doc = resolveShopTree(doc);
   const rows = doc.frames?.sections?.length ? `\u0002${JSON.stringify(doc.frames.sections)}` : '';
   const welds = doc.frames?.welds?.length ? `\u0003${JSON.stringify(doc.frames.welds)}` : '';
   const ownership = doc.frames?.beadOwnership !== undefined ? `\u0004${JSON.stringify(doc.frames.beadOwnership)}` : '';
-  return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify(doc.parameters ?? null)}${rows}${welds}${ownership}\u0005${JSON.stringify({ fits: doc.fits, bearings: doc.bearings, orings: doc.orings, rings: doc.rings, drives: doc.drives, connectors: doc.connectors })}${bearingDependencyKey(doc) ?? ''}`;
+  return `${doc.nodes.map(nodeKey).join('\u0001')}\u0002${JSON.stringify(doc.parameters ?? null)}${rows}${welds}${ownership}\u0005${JSON.stringify({ fits: doc.fits, bearings: doc.bearings, orings: doc.orings, rings: doc.rings, drives: doc.drives, connectors: doc.connectors, fastenerSizes: doc.fastenerSizes, castingRules: doc.castingRules })}${bearingDependencyKey(doc) ?? ''}`;
 }
 /** What an evaluation of the document reads, as a key. */
 export function evaluationKey(doc: StudioDoc): string {
