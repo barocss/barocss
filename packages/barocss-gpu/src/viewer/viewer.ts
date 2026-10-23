@@ -373,7 +373,7 @@ export class Mesh {
     else if (this.geometry.topology === 'labels') { f[o + 36] = 0; f[o + 37] = 0; f[o + 38] = 0; f[o + 39] = m.lineHidden; }
     else if (this.geometry.topology === 'points') { f[o + 36] = m.pointSize * pixelRatio; f[o + 37] = (m.pointBorder?.width ?? 0) * pixelRatio; f[o + 38] = m.pointShape === 'square' ? 0 : 1; f[o + 39] = m.lineHidden; }
     else { f[o + 36] = m.metallic; f[o + 37] = m.roughness; f[o + 38] = m.emissive; f[o + 39] = m.unlit ? 1 : 0; }
-    const u = packWords(f); u[o + 40] = this.id; u[o + 41] = this.outlineSlot; u[o + 42] = (this._receiveShadow ? 1 : 0) | (this._clipped ? 2 : 0); u[o + 43] = Math.round(m.alphaCutoff * 1000);
+    const u = packWords(f); u[o + 40] = this.id; u[o + 41] = this.outlineSlot; u[o + 42] = (this._receiveShadow ? 1 : 0) | (this._clipped ? 2 : 0) | (((this.slot % 65535) + 1) << 16); u[o + 43] = Math.round(m.alphaCutoff * 1000);
     // (A point's border colour where a surface's cap colour goes.)
     const capOrBorder = this.geometry.topology === 'points' ? m.pointBorder?.color ?? null : this._capColor;
     if (capOrBorder) { const c = linear(capOrBorder); f[o + 44] = c[0]; f[o + 45] = c[1]; f[o + 46] = c[2]; f[o + 47] = 1; } else f.fill(0, o + 44, o + 48);
@@ -507,6 +507,8 @@ type PipelineKey = string;
 const SCENE_FORMAT = 'rgba16float';
 
 const SAMPLES = 4;
+/** The caps' samples (G9): a triangle's key a sample, 2 bytes (was rgba16float's 8: its depth's bits and a flag). */
+const CAP_SAMPLES_FORMAT = 'r16uint';
 /** Clean object blocks a dirty run may span (writeUniforms). */
 const OBJECT_RUN_GAP = 4;
 /** G11's order-independent transparency: the accumulation (premultiplied colour × weight) and the revealage. */
@@ -701,7 +703,7 @@ export class Viewer {
     device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
     this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
     this.emptyFront = device.createTexture({ size: [1, 1], format: 'rg32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no caps probe' });
-    this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: SCENE_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
+    this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
     this.shadowMap = null;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
     this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
@@ -750,7 +752,7 @@ export class Viewer {
       { binding: 2, visibility: 2, sampler: { type: 'comparison' } },
       { binding: 3, visibility: 2, texture: { sampleType: 'float' } }, { binding: 4, visibility: 2, sampler: { type: 'filtering' } },
       { binding: 5, visibility: 2, texture: { sampleType: 'unfilterable-float' } },
-      { binding: 6, visibility: 2, texture: { sampleType: 'unfilterable-float', multisampled: true } },
+      { binding: 6, visibility: 2, texture: { sampleType: 'uint', multisampled: true } },
     ] });
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
@@ -917,7 +919,7 @@ export class Viewer {
     }));
     if (ms.count > 1) jobs.push(make('capFrontSamples', {
       vertex: positionOnly(capModules.probe),
-      fragment: { module: capModules.probe, entryPoint: 'fsCapProbe', targets: [{ format: SCENE_FORMAT }] },
+      fragment: { module: capModules.probe, entryPoint: 'fsCapProbe', targets: [{ format: CAP_SAMPLES_FORMAT }] },
       primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
       multisample: ms,
@@ -1292,7 +1294,7 @@ export class Viewer {
 
   private ensureCapSamples(t: NonNullable<Viewer['targets']>): void {
     if (this.options.antialias === false || t.capFrontSamples) return;
-    t.capFrontSamples = this.device.createTexture({ size: [t.width, t.height], format: SCENE_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe samples' });
+    t.capFrontSamples = this.device.createTexture({ size: [t.width, t.height], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe samples' });
     t.views.capFrontSamples = t.capFrontSamples.createView();
     this.bindFrames();
   }

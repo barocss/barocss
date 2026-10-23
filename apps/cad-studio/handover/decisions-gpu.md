@@ -2054,3 +2054,42 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     on a side face (85), G19.2 (262), G19.4 (264), K2 notches (267) and G3 display modes (269).
 - **Next**: G9 (capFrontSamples memory), then G10 (WebGL2 full flow); then R1, the App.tsx split, which takes both App
   findings.
+
+## G-R22 — G9: the caps' samples at 2 bytes a sample, 63.3 MiB at 4K (roadmap G9, 2026-10-23)
+
+- **Before**: capFrontSamples held each sample's probe winner as its depth's 32 bits in an rgba16float (11/11/10 bits and a
+  back flag): 8 bytes a sample, 32 a pixel. That is 28.1 → 112.5 MiB at 1440p and 253.1 MiB at 4K, allocated whenever a
+  capped frame is drawn with antialiasing.
+- **Now: r16uint, a triangle's key** (`probeKey`: the mesh's slot, its first vertex and its instance, hashed to 16 bits,
+  never 0; 0 is no cap or a front face).
+  - The probe writes its winner's key where the winner is a back face. The probe still chooses by the sample's own depth
+    (`capSampleDepth`), with the back face's lead as before.
+  - A cap draws where the key at its sample is its own triangle's: the triangle the probe found there. The probe and the
+    caps draw the same triangle at a sample (one index buffer, one rasterisation), so the key matches without a depth
+    tolerance.
+  - The slot key is object.pick.z's high half: `(slot % 65535) + 1`. The flags' bits 0–1 are unchanged.
+  - Why a triangle and not a mesh: with one key a mesh, every back face of the winning mesh on the ray would draw the cap.
+    In the order-independent pass, which writes no depth, a ghost's cap was then added again. The spec below shows 8/255
+    that way, against 0/255.
+  - Limit: two triangles on one ray share a key about 1 time in 65 535. The unit test measures under 4 in 65 535 over
+    260 000 pairs, neighbouring first vertices included. Then a sample of a cap could be drawn by the wrong triangle.
+  - r32uint is not multisampled in WebGPU; r16uint, r8uint, rg16uint and r32float are (Chrome, checked).
+- **Memory, 4 samples × 2 bytes = 8 bytes a pixel**: 1.32 MiB at 480 × 360; 15.8 MiB at 1080p; 28.1 MiB at 1440p;
+  63.3 MiB at 4K (budget 64). Still allocated only for a capped frame with antialiasing.
+- **viewer-cap-aa-browser**:
+  - G7's four cases unchanged: interior worst |Δ| 0/255; edge partly covered 404 / 648 / 564 / 436 pixels, as G-R20;
+    uncut frames byte-identical.
+  - New: at 2560 × 1440 and 3840 × 2160, 251 507 and 566 484 cap pixels. A frame with read-back takes 17.9 and 38.6 ms
+    cut, 19.3 and 36.4 ms uncut (load 13); the read-back of a 4K frame is most of that.
+  - New: one ghosted mesh of two boxes in line, the first cut: its cap's interior with antialiasing (the samples' keys)
+    against without (the pixel's probe), worst 0/255 over 3 364 pixels. With the key a mesh (tried, then put back),
+    8/255.
+- **viewer-cap-samples** (Codex's source contracts) now pin the new contract: r16uint, a uint binding, the key
+  interpolated flat in probe and caps, `capFirstSample` by key. The 11/11/10 depth-lane test is replaced by the key's
+  test.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189.
+  - Browser specs, one file each (load 12–37): cap-aa 3/3, pose-clip 18/18 (G20.2: 11 050 caps, 0 leaks, 77 edge;
+    G19.4 ghost caps), viewer, scene-viewer, uv-repeating, contour.
+  - FLOW_ONLY on WebGPU, every step that sections, plus G3 display modes: 20 passed, 0 failed. The load started at 37
+    and reached 60 at the end, with other lanes' runs beside it.
