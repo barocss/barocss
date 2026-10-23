@@ -13,7 +13,7 @@
 import { symmetricEigen3 } from '@barocss/cad';
 import type { JointTree } from './joints';
 import { type Mat3, type V3 } from './inertia';
-import { namer, num, robotParts, type UrdfPart, type UrdfRefusal } from './urdf';
+import { frameExportNames, namer, num, robotParts, type UrdfPart, type UrdfRefusal } from './urdf';
 import { quatOf, type MjcfClosure } from './mjcf';
 
 export const USD_EXPORT_VERSION = 'barocss-usd-v1';
@@ -47,6 +47,9 @@ export function exportUsd(tree: JointTree, partOf: (part: string) => UrdfPart | 
   const root = linkName(robotName.replace(/[^A-Za-z0-9_]/g, '_') || 'robot');
   for (const l of tree.links) names.links[l.id] = linkName(l.id);
   for (const j of tree.joints) names.joints[j.key] = jointName(j.key);
+  // (A frame's prim takes the links' namer after the root and the links; one that would be renamed is refused, typed.)
+  const frameNames = frameExportNames(parts.frames, linkName, jointName);
+  if (!(frameNames instanceof Map)) return { ok: false, refusals: [frameNames] };
   const out: string[] = ['#usda 1.0', '(', `    doc = "${USD_EXPORT_VERSION}: barocss CAD Studio. SI units; each link's frame at its joint, Z on the axis; joint values 0 at the pose the mates solve to."`,
     `    defaultPrim = "${root}"`, '    metersPerUnit = 1', '    kilogramsPerUnit = 1', '    upAxis = "Z"', ')', '',
     `def Xform "${root}" (`, '    prepend apiSchemas = ["PhysicsArticulationRootAPI"]', ')', '{'];
@@ -64,6 +67,13 @@ export function exportUsd(tree: JointTree, partOf: (part: string) => UrdfPart | 
       out.push('        def Mesh "visual"', '        {', ...meshLines('            ', m.visual.positions, m.visual.indices), '        }',
         '        def Mesh "collision" (', '            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]', '        )', '        {',
         '            uniform token physics:approximation = "convexHull"', '            uniform token purpose = "guide"', ...meshLines('            ', m.hull.positions, m.hull.indices), '        }');
+    }
+    // (O12: each frame on this link an Xform beneath it, at its pose in the link frame: it moves with the rigid body and
+    // adds no body, mass or joint — a fixed joint to a prim that is not a rigid body would tie the link to the world.)
+    for (const f of parts.frames) if (f.link === l.id) {
+      const Rf = f.R, t = f.t.map(v => v / 1000);
+      out.push(`        def Xform "${frameNames.get(f.name)!.link}"`, '        {', `            matrix4d xformOp:transform = ( ${tuple([Rf[0], Rf[3], Rf[6], 0])}, ${tuple([Rf[1], Rf[4], Rf[7], 0])}, ${tuple([Rf[2], Rf[5], Rf[8], 0])}, ${tuple([...t, 1])} )`,
+        '            uniform token[] xformOpOrder = ["xformOp:transform"]', '        }');
     }
     out.push('    }');
   }

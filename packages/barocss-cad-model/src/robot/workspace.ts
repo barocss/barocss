@@ -5,12 +5,14 @@
 // Ranges: a joint's limits where set; else a turn [−π, π]; a slide must have its limits.
 import type { JointTree } from './joints';
 import { forwardKinematics } from './fk';
-import { pathTo, probeAt, toolProbe, unknownsOf } from './ik';
+import { frameTool, pathTo, probeAt, toolProbe, unknownsOf } from './ik';
 import { convexDistance } from '@barocss/cad';
 import { meshesMeet, partParent, type SweepLink } from './sweep';
 
 export interface WorkspaceOptions {
-  link: string;
+  /** The link, or a frame on the tree (O12: its link, its origin the tool point; `tool` then left out). */
+  link?: string;
+  frame?: string;
   /** The tool point at the solved pose (world, mm); default the link's joint origin. */
   tool?: readonly number[];
   samples: number; h: number;
@@ -49,7 +51,9 @@ function inContact(tree: JointTree, links: readonly SweepLink[], q: Readonly<Rec
 /** The workspace map of a tool point. */
 export function workspaceMap(tree: JointTree, o: WorkspaceOptions): WorkspaceMap {
   if (!(o.samples >= 1 && o.h > 0)) throw new WorkspaceError('BAD_VALUES', `samples ≥ 1 and h > 0 (samples ${o.samples}, h ${o.h})`);
-  const path = pathTo(tree, o.link), keys = unknownsOf(path), ranges: Record<string, [number, number]> = {};
+  const at = o.frame !== undefined ? frameTool(tree, o.frame) : o.link !== undefined ? { link: o.link, tool: o.tool } : null;
+  if (!at) throw new WorkspaceError('BAD_VALUES', 'a link or a frame');
+  const path = pathTo(tree, at.link), keys = unknownsOf(path), ranges: Record<string, [number, number]> = {};
   for (const k of keys) {
     const j = tree.joints.find(x => x.key === k)!, l = j.limit;
     if (l?.lower !== undefined && l.upper !== undefined) ranges[k] = [l.lower, l.upper];
@@ -57,7 +61,7 @@ export function workspaceMap(tree: JointTree, o: WorkspaceOptions): WorkspaceMap
     else ranges[k] = [-Math.PI, Math.PI];
   }
   if (keys.length > PRIMES.length) throw new WorkspaceError('BAD_VALUES', `${keys.length} joints: at most ${PRIMES.length}`);
-  const probe = toolProbe(tree, o.link, o.tool), x = new Float64Array(3), cells = new Map<string, WorkspaceVoxel>(), q: Record<string, number> = {};
+  const probe = toolProbe(tree, at.link, at.tool), x = new Float64Array(3), cells = new Map<string, WorkspaceVoxel>(), q: Record<string, number> = {};
   const first = path.find(j => j.type !== 'fixed' && !j.mimic)!, c0 = first.origin;
   // (The links' pairs for the contact filter: every pair but parent and child.)
   const parentOf = new Map(tree.joints.map(j => [j.child, j.parent])), links = o.links ?? [], pairs: [number, number][] = [];

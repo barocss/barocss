@@ -100,7 +100,11 @@
 | `[FIT_FACE]` | `chat/part`, `engine` | … carries no tolerance class: give hole_class / shaft_class, or set the face's class first. |
 | `[FIT_TABLE]` | `engine` | … |
 | `[FRAME_KERF]` | `chat/part` | kerf is mm, 0 to 20. |
+| `[FRAME_LINK_MISSING]` | `chat`, `robot` | frame …: "link" is the part it is on ("base" or a part id) |
+| `[FRAME_LINK_STALE]` | `robot` | frame …: … is not a link of the robot as it stands (not joined to the base link). Mate it, put the frame on a link, or remove it (set_frames {"…": null}) |
+| `[FRAME_NAME]` | `chat`, `robot` | no frame … to remove (frames: …) |
 | `[FRAME_PART_IN_USE]` | `frames` | … holds the sketch… … that … follow…: give those frames their own points, or delete them, first. |
+| `[FRAME_POSE]` | `chat`, `robot` | frame …: {link, position?, rotation?, kind?} |
 | `[FRAME_SECTION_IN_USE]` | `frames` | …: give those another section first. |
 | `[FRAME_SECTION_ROW]` | `frames` | two rows with one id. |
 | `[FRAME_SECTION_UNKNOWN]` | `chat`, `engine`, `frames` | no row "…" in the section library (rows: …) |

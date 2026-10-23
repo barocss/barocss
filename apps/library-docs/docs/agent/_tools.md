@@ -113,6 +113,7 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.insert` | `insert_part` | library, part, variant?, params?, name?, position?, rotation? |
 | `assembly.snap` | `snap_part` | a, b, offset? |
 | `assembly.joints` | `get_joints` | — the assembly as links and joints from its base link |
+| `assembly.frames` | `set_frames` | frames: {name: {link, position?, rotation?, kind?} \| null} — tool and sensor frames |
 | `assembly.pose` | `forward_kinematics` | values: {joint key: radians \| mm} — where each part is |
 | `assembly.inertia` | `link_inertia` | — each link's mass, centre of mass and inertia (SI, link frame) |
 | `assembly.urdf` | `export_urdf` | name? — the robot as URDF, checked |

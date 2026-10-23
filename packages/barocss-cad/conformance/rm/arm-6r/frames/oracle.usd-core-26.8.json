@@ -1,0 +1,23 @@
+{
+ "bodies": 7,
+ "joints": 6,
+ "ok": true,
+ "oracle": "usd-core (0, 26, 8)",
+ "rows": [
+  {
+   "R": 6.123233995736766e-17,
+   "frame": "tcp",
+   "o": 5.551115123125783e-17,
+   "path": "/robot/l6/tcp",
+   "rigid_body": false
+  },
+  {
+   "R": 0.0,
+   "frame": "cam",
+   "o": 6.938893903907228e-18,
+   "path": "/robot/l3/cam",
+   "rigid_body": false
+  }
+ ],
+ "worst": 6.123233995736766e-17
+}

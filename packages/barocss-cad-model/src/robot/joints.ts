@@ -16,13 +16,15 @@ import type { PartInstance, StudioDoc } from '../engine/doc';
 import { BASE, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
+import { exportNames, frameProblem, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
 
 export const ROBOT_VERSION = 1;
 export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';
 /** A joint's limits and ratings, as the person sets them (radians or mm; N·m or N; rad/s or mm/s). */
 export interface JointSettings { lower?: number; upper?: number; effort?: number; velocity?: number }
 /** The robot settings a document keeps (`doc.robot`, versioned): the base link, and each joint's settings by its key. */
-export interface RobotSettings { version: 1; base?: string; joints?: Record<string, JointSettings> }
+/** `frames` (O12): named tool and sensor frames on links, kept beside the joints (robot/frames.ts). */
+export interface RobotSettings { version: 1; base?: string; joints?: Record<string, JointSettings>; frames?: Record<string, FrameSettings> }
 
 export interface Link { id: string; /** The part it is (base or an instance id); null for a dummy link in a joint chain. */ part: string | null; name: string }
 export interface Joint {
@@ -39,8 +41,8 @@ export interface Joint {
   /** Coupled to another joint (two meshing gears): this = multiplier × that + offset. */
   mimic?: { joint: string; multiplier: number; offset: number };
 }
-export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED';
-export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string }
+export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED' | FrameCode;
+export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string; frame?: string }
 export interface Loop { parts: [string, string]; mates: string[]; freedom: number; message: string }
 export interface Coupling {
   leader: string; follower: string; multiplier: number; centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; contactRatio: number;
@@ -54,6 +56,8 @@ export interface JointTree {
   couplings: Coupling[];
   /** What blocks a link or a joint (typed); `notes`: what an export will need (limits) or could not couple. */
   problems: RobotIssue[]; notes: RobotIssue[];
+  /** The tool and sensor frames on its links, at the solved pose (O12; absent: none set). */
+  frames?: ToolFrame[];
 }
 
 /** The settings as read from a document (absent: none; anything malformed dropped, the rest kept). */
@@ -66,7 +70,8 @@ export function readRobot(raw: unknown): RobotSettings {
     for (const f of ['lower', 'upper', 'effort', 'velocity'] as const) if (num((s as JointSettings)[f])) j[f] = (s as JointSettings)[f];
     if (Object.keys(j).length) joints[k] = j;
   }
-  return { version: 1, ...(typeof r.base === 'string' && r.base ? { base: r.base } : {}), ...(Object.keys(joints).length ? { joints } : {}) };
+  const frames = readFrames(r.frames);
+  return { version: 1, ...(typeof r.base === 'string' && r.base ? { base: r.base } : {}), ...(Object.keys(joints).length ? { joints } : {}), ...(frames ? { frames } : {}) };
 }
 
 // ── Free twists of a pair: constraint rows on X = [ω; v/L] (v the velocity at the world origin, L a length scale) ──
@@ -265,7 +270,13 @@ export function jointTree(input: TreeInput): JointTree {
     if ((j.type === 'prismatic' || j.type === 'revolute' || j.type === 'continuous') && (l?.effort === undefined || l.velocity === undefined)) notes.push({ code: 'LIMITS_MISSING', message: `${j.key}: no effort or velocity rating yet (export needs both).`, joint: j.key });
   }
   const couplings = input.gears ? gearCouplings(joints, placed, input.gears, notes) : [];
-  return { version: 1, base, links, joints, loops, couplings, problems, notes };
+  // (O12: each frame on its link, or its refusal among the problems.)
+  const frames: ToolFrame[] = [], partIds = new Set(parts), names = settings.frames ? exportNames({ links, joints }) : null;
+  for (const [name, f] of Object.entries(settings.frames ?? {})) {
+    const why = frameProblem(name, f, { links }, partIds, names!);
+    if (why) problems.push({ ...why, frame: name, parts: [f.link] }); else frames.push(resolveFrame(name, f, placed.get(f.link)!));
+  }
+  return { version: 1, base, links, joints, loops, couplings, problems, notes, ...(frames.length ? { frames } : {}) };
 }
 
 /** A pair's free motion from its mates' rows at the solved pose (b relative to a; the same freedom either way round). */

@@ -8254,3 +8254,36 @@ values. Part-level configurations stay as they are (folding them into variants l
 - `query.summary` gains `variability`: the inputs (with what each drives), the variants and the active one.
 - Per turn 23,276 → 23,446 of 25,000 (toolset guard).
 - The tools act on the master and its bodies; the studio showing the active variant comes with the UI after G12b.
+
+## O12 — tool and sensor frames on links: FK, IK, the workspace map, four exports (2026-10-24)
+
+- **Shape:** `robot.frames: {name: {link, position?, rotation?, kind?}}`, inside the robot settings beside `joints` (no
+  STUDIO_DOC_FIELDS change; readRobot reads it). The pose is in the link's part's own coordinates (mm; degrees about X,
+  then Y, then Z, as a placed part's rotation), not in the exported link frame, so a frame stays put when joints or
+  the base link change. The name is the export name (letters, digits, _).
+- **Tree:** jointTree resolves each frame to its world pose at the solved pose (`tree.frames`, present only when some
+  are set — get_joints and every export unchanged otherwise). framePoses gives them for FK's motions.
+- **IK:** `frameTarget(tree, name, pose, mode?)` reduces to the existing solver: the frame's link, the link motion
+  pose · M⁻¹ and the frame's origin as the tool point, so both errors are the frame's own. `frameTool` gives a frame as
+  a tool point; workspaceMap takes `frame`. NO_FRAME for an unknown one.
+- **Exports, each frame a fixed child of its link:** URDF a massless link (ROS-Industrial's tool0) on a fixed joint;
+  SDF a link with the dummy links' 1e-9 kg inertial (an SDF link without one weighs 1 kg) on a fixed joint; MJCF a
+  welded body without mass holding a `<site>` of the frame's name. **USD differs from the plan:** a child Xform
+  beneath its link's prim, no joint — a PhysicsFixedJoint to a prim that is not a rigid body ties the link to the world.
+- **Refusals:** FRAME_LINK_MISSING, FRAME_LINK_STALE (a part not joined to the base link), FRAME_NAME, FRAME_POSE.
+  FRAME_NAME checks the pattern, then the name after the exporters' own naming — the links' namer (sanitised, then made
+  unique in order) for the frame's link, the joints' for its `<name>_fixed` joint; each exporter also refuses a frame
+  it would rename (USD's root prim is named after the export, so a frame "robot" is refused there only). The namer moved
+  to robot/frames.ts (urdf.ts re-exports it). They sit in the tree's problems, refused by set_frames for the frames it names, and
+  by every export (never dropped).
+- **Agent:** `assembly.frames` (`set_frames`); it writes `robot`, so approvalOf proposes it at every level, as
+  set_joints. set_joints keeps the frames. forward_kinematics returns `frames`; get_joints shows them. No IK action
+  (none existed). Per turn 23,446 → 23,549.
+- **Read-back** (arm-6r, a TCP on l6, a camera on l3): our URDF, SDF and MJCF readers at 21 poses < 1e-9 mm; MuJoCo
+  3.3.0's sites at 21 poses, worst 6.7e-16 m, total mass as without frames; usd-core 26.8's world transforms of the
+  frame prims, worst 6.1e-17, 7 rigid bodies and 6 joints as without frames; check_urdf parses it, each frame a child of
+  its link. Committed under conformance/rm/arm-6r/frames/ (scripts/frames-oracle.py). **SDF: no external reader here**
+  (no gz/libsdformat installed), our own reader only.
+- **Diffs:** no frames → every export byte for byte as before (the committed arm-6r files) and the R4 fingerprint
+  unchanged; with frames, each export is the old one plus its frames' lines only (URDF 6, SDF 12, MJCF 3, USD 5 per frame).
+- Not done here: the sliders' readout and the frames in the viewport wait for G12b.

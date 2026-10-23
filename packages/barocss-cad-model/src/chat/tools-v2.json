@@ -27,6 +27,7 @@
        "insert",
        "snap",
        "joints",
+       "frames",
        "pose",
        "inertia",
        "urdf",

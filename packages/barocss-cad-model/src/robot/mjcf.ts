@@ -10,7 +10,7 @@
 import type { JointTree } from './joints';
 import type { Mat3, V3 } from './inertia';
 import { encodeBinaryStl } from '@barocss/cad';
-import { esc, namer, num, nums, robotParts, type UrdfFile, type UrdfPart, type UrdfRefusal } from './urdf';
+import { esc, frameExportNames, namer, num, nums, robotParts, type UrdfFile, type UrdfPart, type UrdfRefusal } from './urdf';
 
 export const MJCF_EXPORT_VERSION = 'barocss-mjcf-v1';
 export type MjcfResult =
@@ -42,6 +42,8 @@ export function exportMjcf(tree: JointTree, partOf: (part: string) => UrdfPart |
   const linkName = namer(), jointName = namer(), names = { links: {} as Record<string, string>, joints: {} as Record<string, string> };
   for (const l of tree.links) names.links[l.id] = linkName(l.id);
   for (const j of tree.joints) names.joints[j.key] = jointName(j.key);
+  const frameNames = frameExportNames(parts.frames, linkName, jointName);
+  if (!(frameNames instanceof Map)) return { ok: false, refusals: [frameNames] };
   const files: UrdfFile[] = [], assets: string[] = [];
   for (const l of tree.links) {
     const m = meshes.get(l.id); if (!m) continue;
@@ -63,6 +65,11 @@ export function exportMjcf(tree: JointTree, partOf: (part: string) => UrdfPart |
       body.push(`${pad}  <joint name="${names.joints[joint.key]}" type="${joint.type === 'prismatic' ? 'slide' : 'hinge'}" pos="0 0 0" axis="${nums(axis)}"${range}/>`);
     }
     if (m) body.push(`${pad}  <geom name="${n}_visual" type="mesh" mesh="${n}" contype="0" conaffinity="0" group="1"/>`, `${pad}  <geom name="${n}_collision" type="mesh" mesh="${n}_collision" group="3"/>`);
+    // (O12: a frame a body welded to its link — no joint, no mass — with a site of its name at its origin.)
+    for (const f of parts.frames) if (f.link === link) {
+      const fn = frameNames.get(f.name)!.link;
+      body.push(`${pad}  <body name="${fn}" pos="${nums(f.t.map(v => v / 1000))}" quat="${nums(quatOf(f.R))}">`, `${pad}    <site name="${fn}" pos="0 0 0"/>`, `${pad}  </body>`);
+    }
     for (const j of children.get(link) ?? []) {
       const P = world.get(link)!, C = world.get(j.child)!;
       write(j.child, depth + 1, ap(tr(P.R), [C.o[0] - P.o[0], C.o[1] - P.o[1], C.o[2] - P.o[2]]).map(v => v / 1000) as V3, mul(tr(P.R), C.R), j);
