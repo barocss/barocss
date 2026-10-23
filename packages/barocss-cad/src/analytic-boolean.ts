@@ -1710,6 +1710,26 @@ function regionLength(region: CurveRegion2): number {
 }
 
 /** `names`: per piece, its face's name as given (a face split keeps every other face's name exactly, D149). */
+/**
+ * Each edge used by four faces — two forward, two reversed — whose uses fall in two lumps (pieces joined through the
+ * edges used once each way), one forward and one reversed in each: the second lump's uses moved to a copy of the edge.
+ */
+function splitTouchingEdges(loops: { edge: string; sense: string; index: number }[][][], edges: { id: string }[], id: string, count: number): void {
+  const uses = new Map<number, { piece: number; use: { edge: string; sense: string; index: number } }[]>();
+  loops.forEach((ls, pi) => { for (const ring of ls) for (const u of ring) { const l = uses.get(u.index); if (l) l.push({ piece: pi, use: u }); else uses.set(u.index, [{ piece: pi, use: u }]); } });
+  const root = Array.from({ length: count }, (_, i) => i), find = (x: number): number => { while (root[x] !== x) x = root[x] = root[root[x]]; return x; };
+  for (const l of uses.values()) if (l.length === 2 && l[0].use.sense !== l[1].use.sense) root[find(l[0].piece)] = find(l[1].piece);
+  for (const [e, l] of uses) {
+    if (l.length !== 4 || l.filter(u => u.use.sense === 'forward').length !== 2) continue;
+    const lumps = [...new Set(l.map(u => find(u.piece)))];
+    if (lumps.length !== 2) continue;
+    const second = l.filter(u => find(u.piece) === lumps[1]);
+    if (second.length !== 2 || second[0].use.sense === second[1].use.sense) continue;
+    const copy = { ...edges[e], id: `${id}_e${edges.length}` }, k = edges.length;
+    edges.push(copy);
+    for (const u of second) { u.use.edge = copy.id; u.use.index = k; }
+  }
+}
 /** A loop's uses of one edge out and straight back (consecutive, either sense first, round its end) taken out, again until none (or `keep` uses are left). */
 function unspike(ring: { index: number; sense: string }[], keep: number): void {
   for (let again = true; again && ring.length >= Math.max(2, keep);) {
@@ -1785,6 +1805,11 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     ls.forEach((ring, k) => unspike(ring, k > 0 ? 0 : 3));
     for (let k = ls.length - 1; k > 0; k--) if (!ls[k].length) ls.splice(k, 1);
   });
+  // (Two lumps touching along a curve: one edge used by four faces, two of each lump. Its uses are paired by lump —
+  // the pieces joined through every edge used once each way — and the second lump's pair gets an edge of its own, so
+  // each lump is a body on its own, as lumps apart are. A lump touching itself there, all four uses in one, stays
+  // refused below. L4 fuzz 49, 50, 100, 131, D204.)
+  splitTouchingEdges(loops, edges, id, pieces.length);
   // Vertices: one per disc of faces around a point (two solids touching at a point keep two vertices).
   const vroot = new Map<string, string>(), vfind = (x: string): string => { let r = x; while (vroot.has(r) && vroot.get(r) !== r) r = vroot.get(r)!; return r; };
   const endsOf = (u: { index: number; sense: string }) => { const v = edges[u.index].v; return u.sense === 'forward' ? [v[0], v[1]] : [v[1], v[0]]; };

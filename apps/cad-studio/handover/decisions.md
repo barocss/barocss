@@ -11705,3 +11705,64 @@ before.
 (1.1 e).
 
 **Test:** `test/boolean-conic-patch.test.mjs`. It fails before the fix.
+
+## D204 — Lumps touching along a line or at a point are separate bodies, as lumps apart are (2026-10-23)
+
+**Contract (the coordinator's approval).** A Boolean or pattern whose result is lumps touching along a line or at a
+point returns what a disjoint result returns today.
+- **What comes back:** one output whose B-rep holds one solid body per lump. A lump is a connected component of the
+  result's interior. Each body is closed and manifold on its own and owns its edges and vertices; nothing is shared
+  across bodies, even where they coincide.
+- **Face touch is unchanged:** a union merges across the shared face, an intersection is empty, a difference is
+  unchanged.
+- **Body order and names are kept as they are:** `${feature}_body${k}` (the upright route's `_b${k}`), in the order a
+  disjoint union already has. That order is deterministic: the tool's lump first. Swapping the operands keeps the same
+  bodies.
+- **Still refused:** a lump touching itself, one body whose boundary meets itself along a line. The material left
+  around a line where two removed lumps touch is such a lump.
+- **No saved document changes,** since these inputs were all refused before.
+
+**Changes.**
+- **Analytic stitch (`src/analytic-boolean.ts`, `splitTouchingEdges`).** An edge used by four faces, two forward and two
+  reversed, has its uses paired by lump, and the second lump's pair moves to a copy of the edge. A lump is the pieces
+  joined through the edges used once each way. A vertex already stays one per disc of faces.
+  - **The pairing rule is connectivity, not radial order.** The four faces of a line touch belong to two lumps only
+    through their other edges, so the components settle it with no geometric test. Where all four uses fall in one lump
+    — a lump touching itself — nothing is split and the edge is refused as before.
+- **Upright route (`src/part-model.ts`).** `checkLumps`/`touchingLumps` are removed: brepFromPrismatic already emits
+  touching lumps as separate bodies (prismatic-solid.test's 'edge touch' and 'point touch'). The `check` parameter of
+  `boolean` goes with them.
+
+**Expected-value changes.**
+- **`analytic-boolean.test`:** "boxes in contact along a line" was a refusal. It is now two bodies, strictly valid,
+  500 + 500 mm³ (closed form).
+- **cad-model `test/union-touch.test.ts`** (the outer lane's file; the coordinator approved the change in this commit):
+  two 10 mm cubes touching at an edge, at a point, or along an edge at mid height were refused with the user-facing
+  title "The bodies only touch along an edge or a point". Each is now ok: one result, 1000 + 1000 = 2000 mm³, as the
+  same cubes 20 mm apart give.
+  - That title goes away as an error. The refusal was a limit of the kernel, not a product choice.
+  - The outer lane's O8 brings it back as a DFM warning on the result, so the person still learns the bodies only touch.
+- **Unchanged:** part-model.test's cavities meeting at a point (one lump touching itself) stay refused.
+
+**Results:** fuzz 4, 49, 50, 67, 92, 100 and 131, shrunk, each two bodies, strictly valid, watertight body by body.
+
+| Case | Kernel − oracle (e at 512² × 8) |
+|---|---|
+| 4 | +0.2 e |
+| 49 | −0.1 e |
+| 50 | 0.0 e |
+| 67 | −0.1 e |
+| 92 | 0.0 e |
+| 100 | +0.2 e |
+| 131 | −0.3 e |
+
+All seven are in `robustness/corpus/fuzz/` with `bodies` in their expect. Their full trees chain further Booleans onto
+the touching lumps, and the material left around the touch line touches itself, so those stay refused, rightly.
+
+**Tests:** `test/boolean-touching-lumps.test.mjs`, failing before:
+- fuzz 50 both ways round: the same two bodies, the tool's lump `_body0` both ways, the summed volume against the ray
+  oracle;
+- a pattern corner on the axis, a cylinder along a box's side and two boxes corner to corner, against closed forms.
+
+**For the outer lane (the coordinator's O-item):** mesh exports and print checks per lump; a "lumps touch along a line
+or at a point" DFM flag; the lump count on the BOM row.

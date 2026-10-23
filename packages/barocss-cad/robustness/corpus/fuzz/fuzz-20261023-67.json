@@ -1,0 +1,131 @@
+{
+  "id": "fuzz-20261023-67",
+  "about": "L4 fuzz case (seed 20261023, case 67), shrunk: lumps touching along a line — refused before D204, now separate bodies.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            5,
+            4
+          ]
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 2
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            -1,
+            -1,
+            1
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 4
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            -3,
+            -1,
+            -2
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 90.26626396179199,
+          "relTol": 0.00022132477571754853,
+          "absTol": 0.019978160626204645
+        },
+        "centroidMM": {
+          "value": [
+            -1.0058845340738558,
+            -0.11372467456703313,
+            0.8862646387459586
+          ],
+          "absTol": 0.0009000000000000001
+        },
+        "bodies": 2
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 9.99e-3 mm³, centroid e 2.64e-4 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 67,
+    "status": "REFUSED",
+    "tree": {
+      "op": "union",
+      "a": {
+        "leaf": {
+          "kind": "box",
+          "w": 5,
+          "d": 4,
+          "h": 2,
+          "rot": [],
+          "move": [
+            -1,
+            -1,
+            1
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 2,
+          "h": 4,
+          "rot": [],
+          "move": [
+            -3,
+            -1,
+            -2
+          ]
+        }
+      }
+    }
+  }
+}

@@ -2504,13 +2504,12 @@ function boxSolid(min: Point, max: Point, tag: string): Solid {
 }
 
 /** Upright Booleans stay upright; otherwise both bodies must be planar for the exact polyhedral Boolean. */
-function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, check = true, edgeFitToleranceMM?: number): Solid {
+function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, edgeFitToleranceMM?: number): Solid {
   if (empty(b)) return op === 'intersection' ? b : a;
   if (empty(a)) return op === 'union' ? b : a;
   if (a.kind === 'upright' && b.kind === 'upright') {
-    const solid = booleanPrismatic(a.solid, b.solid, op);
-    if (check) checkLumps({ kind: 'upright', solid }, at);
-    return { kind: 'upright', solid };
+    // (Lumps that touch along an edge or at a point stay separate bodies, as lumps apart are: D204.)
+    return { kind: 'upright', solid: booleanPrismatic(a.solid, b.solid, op) };
   }
   // F2 (R6, D52): a mesh body with an exact one — the mesh near the tool through the exact Boolean, any size; union
   // and intersection either way round. (Mesh with mesh, F3, still through F0's planar path, D3.)
@@ -2544,48 +2543,12 @@ function planarBoolean(a: Brep, b: Brep, op: 'union' | 'difference' | 'intersect
 }
 /**
  * Copies united in a balanced tree (neighbours first, so each Boolean joins two bodies of like size, not
- * one growing body and a copy); upright ones checked for lumps that only touch once, at the end.
+ * one growing body and a copy).
  */
 function unionAll(list: Solid[], at: string): Solid {
   let level = list;
-  while (level.length > 1) { const next: Solid[] = []; for (let i = 0; i < level.length; i += 2) next.push(i + 1 < level.length ? boolean(level[i], level[i + 1], 'union', at, false) : level[i]); level = next; }
-  return checkLumps(level[0], at);
-}
-/** Refuses an upright result whose lumps meet only along an edge or at a point. */
-function checkLumps(s: Solid, at: string): Solid {
-  if (s.kind === 'upright' && touchingLumps(s.solid)) throw new CadPartError('GEOMETRY', at, 'the bodies touch along an edge or at a vertex only; the result is not a manifold solid');
-  return s;
-}
-/**
- * Whether separate lumps of an upright solid meet only along an edge or at a point (the analytic and
- * polyhedral Booleans refuse such results; the upright section Boolean would keep them as one body).
- */
-function touchingLumps(solid: PrismaticSolid): boolean {
-  if (solid.slabs.length < 2 && solid.slabs.every(s => s.regions.length < 2)) return false;
-  const brep = brepFromPrismatic(solid, { id: 'touch' });
-  if (brep.bodies.length < 2) return false;
-  const shellBody = new Map(brep.shells.map(s => [s.id, s.body])), faceBody = new Map(brep.faces.map(f => [f.id, shellBody.get(f.shell)!]));
-  const loopBody = new Map(brep.loops.map(l => [l.id, faceBody.get(l.face)!])), edgeBody = new Map<string, string>();
-  for (const c of brep.coedges) edgeBody.set(c.edge, loopBody.get(c.loop)!);
-  const point = new Map(brep.vertices.map(v => [v.id, v.point])), vertexBody = new Map<string, string>();
-  for (const e of brep.edges) for (const v of e.vertices) vertexBody.set(v, edgeBody.get(e.id)!);
-  let size = 1; for (const v of brep.vertices) for (const x of v.point) size = Math.max(size, Math.abs(x));
-  const tol = 1e-9 * size;
-  // A vertex of one lump on a vertex or a straight edge of another.
-  const onSegment = (p: Point, a: Point, b: Point) => {
-    const ab = sub(b, a), t = Math.max(0, Math.min(1, dot(sub(p, a), ab) / Math.max(dot(ab, ab), 1e-300)));
-    return len(sub(p, add(a, scale(ab, t)))) <= tol;
-  };
-  // (Each lump's box: a vertex outside another lump's box meets none of its edges.)
-  const boxes = new Map<string, { lo: Point; hi: Point }>();
-  for (const v of brep.vertices) { const b = vertexBody.get(v.id)!, x = boxes.get(b) ?? { lo: [Infinity, Infinity, Infinity] as Point, hi: [-Infinity, -Infinity, -Infinity] as Point }; for (let k = 0; k < 3; k++) { x.lo[k] = Math.min(x.lo[k], v.point[k]); x.hi[k] = Math.max(x.hi[k], v.point[k]); } boxes.set(b, x); }
-  const near = (p: Point, b: string) => { const x = boxes.get(b); return !!x && [0, 1, 2].every(k => p[k] >= x.lo[k] - tol && p[k] <= x.hi[k] + tol); };
-  for (const v of brep.vertices) for (const e of brep.edges) {
-    if (edgeBody.get(e.id) === vertexBody.get(v.id) || !near(v.point, edgeBody.get(e.id)!)) continue;
-    const q = e.curve.controlPoints;
-    if (e.curve.degree === 1 && q.length === 2 ? onSegment(v.point, q[0], q[1]) : e.vertices.some(w => len(sub(point.get(w)!, v.point)) <= tol)) return true;
-  }
-  return false;
+  while (level.length > 1) { const next: Solid[] = []; for (let i = 0; i < level.length; i += 2) next.push(i + 1 < level.length ? boolean(level[i], level[i + 1], 'union', at) : level[i]); level = next; }
+  return level[0];
 }
 const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8, quadratureSegments: 0 }).volumeMM3 : 0;
 
@@ -3319,7 +3282,7 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   if (cut.kind === 'brep' && cut.brep.bodies.length !== 1) throw new CadPartError('GEOMETRY', o.at, `[TRIM_LEAVES_PIECES] cut at its corners, member ${o.frame?.member ?? ''} is in ${cut.brep.bodies.length} pieces`);
   // Then the solids taken from it (envelopes, bodies): of the pieces left, the one reaching farthest its own way is kept.
   for (const t of o.ends.subtract) {
-    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'), true, t.edgeFitToleranceMM);
+    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'), t.edgeFitToleranceMM);
     if (empty(next)) throw new CadPartError('PARAMETER', o.at, `[TRIM_EMPTY] member ${o.frame?.member ?? ''}: nothing is left of it`);
     const pieces = next.kind === 'brep' ? splitBodies(next.brep) : null;
     cut = pieces && pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, t.keepFrom, t.toward) } : next;
