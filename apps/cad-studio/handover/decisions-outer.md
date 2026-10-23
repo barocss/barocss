@@ -7481,3 +7481,25 @@ tools.ts is 967 lines.
 - the cad-model suite: 964 of 964, in 299 s, at load 20 → 22;
 - tsc and eslint clean.
 - Not run: the flow.
+
+## R3d — chat/tools.ts by action group: the definitions (2026-10-23)
+
+**The order changed (the coordinator approved it):** the definitions move before the history and proposal tools. That machinery (runOps, the script host, moveOps) calls takesArgument and unknownArguments, which lived in the definitions block; moving it first would have needed it to import tools.ts, a cycle.
+
+**Moved, verbatim and in today's order** to chat/toolDefinitions.ts (361 lines):
+- BATCHABLE/BATCHABLE_TOOLS and MUTATORS/isMutator;
+- the schema helpers, commandDoc, describe and featureKinds;
+- PART_TOOLS, with the pass that adds `because` to the tools that change the part, and PART_SCOPED/withPartArgument;
+- argumentsOf, takesArgument and unknownArguments;
+- TOOLS and SYSTEM_PROMPT.
+
+It imports nothing from tools.ts. tools.ts (623 lines) imports back the six it uses (BATCHABLE, MUTATORS, PART_SCOPED, describe, takesArgument, unknownArguments) and re-exports the seven public ones (BATCHABLE_TOOLS, isMutator, featureKinds, takesArgument, unknownArguments, TOOLS, SYSTEM_PROMPT).
+
+**The byte check** is identical: TOOLS JSON, SYSTEM_PROMPT, the v2 list and prompt, every describe, the argument tables and the groups' probes.
+
+**Verified (R3d):**
+- the byte check, identical;
+- toolset 9/9 and tool-contract 3/3, within the suite;
+- the cad-model suite through the lanes guard's gate (go at load 15): 964 of 964, in 338 s;
+- tsc and eslint clean.
+- Not run: the flow.
