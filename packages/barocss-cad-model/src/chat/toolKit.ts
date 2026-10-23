@@ -11,6 +11,7 @@ import type { Transactions } from './transactions';
 import { expectedOf, runCheck, type Policy } from './spec';
 import { captureSignatures, refreshSignatures } from '../engine/references';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
+import { r3Signed as r3 } from '../util/round';
 
 /**
  * How much a result lists (A2.4): 'concise' facts and what changed without the bodies' faces and edges,
@@ -41,7 +42,6 @@ export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }
 
-export const r3 = (v: number) => Math.round(v * 1000) / 1000;
 export const v3 = (v: readonly number[]) => v.map(r3);
 export const json = (v: unknown) => JSON.stringify(v);
 

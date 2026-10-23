@@ -13,7 +13,8 @@ import { nestCutList } from '../../frames/nesting';
 import { followedStale, staleText } from '../../frames/skeleton';
 import { weldList } from '../../frames/welds';
 import { beadAccounting } from '../../frames/beadAccounting';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, responseFormat, r3, v3, json, describeBodies, features, fail, isObj, strings } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, responseFormat, v3, json, describeBodies, features, fail, isObj, strings } from '../toolKit';
+import { r3Signed as r3 } from '../../util/round';
 
 /** D155: a fit's limits as a result shows them (each row's deviations, sizes, table and row, estimate and source). */
 export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMinUM: l.clearanceMinUM, clearanceMaxUM: l.clearanceMaxUM, estimate: l.estimate,

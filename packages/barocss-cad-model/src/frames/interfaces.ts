@@ -10,11 +10,11 @@
 import type { CadLibraryInterface } from '@barocss/cad';
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
+import { r9 } from '../util/round';
 
 type V = [number, number, number];
 const SLOTS = [['t1', 'slot-t1'], ['t2', 'slot-t2'], ['r', 'slot-r'], ['b2', 'slot-b2'], ['b1', 'slot-b1'], ['l', 'slot-l']] as const;
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const r9 = (v: number) => Math.round(v * 1e9) / 1e9 + 0;
 
 /** A planar face by its name: its exact plane (the kernel's, not the display mesh's single precision) — a point and its outward normal. */
 function plane(m: DisplayMesh, prefix: string, name: string): { name: string; n: V; p: V } | null {

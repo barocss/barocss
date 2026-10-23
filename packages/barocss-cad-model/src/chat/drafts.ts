@@ -10,6 +10,7 @@ import { withNode } from '../engine/doc';
 import { featureId, nodeIndexOf } from '../engine/ids';
 import { DxfReadError, readDxfSketch, type DxfLoop } from '../sketch/dxfRead';
 import type { Underlay } from '../sketch/dxfUnderlay';
+import { r6 } from '../util/round';
 
 export type Drive = { kind: 'scale'; nodes: string[]; about: [number, number] } | { kind: 'height'; nodes: string[] } | { kind: 'depth'; nodes: string[] } | { kind: 'hole'; node: string; hole: number; center: [number, number] };
 export interface DraftDim { name: string; label: string; value: number; basis: 'scaled' | 'from-drawing'; confirmed?: { by: 'user'; at: string }; drive: Drive }
@@ -40,7 +41,6 @@ export function withImageDraft(doc: StudioDoc, from: number, image: string, dims
 
 // ——— a drawing as a sketch draft
 const segs = (l: DxfLoop): LoopSegment[] => l.segments.map(s => (s.kind === 'arc' ? { ...s, start: [r6(s.start[0] as number), r6(s.start[1] as number)], center: [r6(s.center[0] as number), r6(s.center[1] as number)] } : { ...s, start: [r6(s.start[0] as number), r6(s.start[1] as number)] }));
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** A DXF drawing added to the part as a sketch draft (its regions and holes, in mm, at the sketch plane), with its dimensions from the drawing. */
 export function withDrawingDraft(doc: StudioDoc, text: string, name: string, plane?: DocPlane): { doc: StudioDoc; draft: Draft | null; ignored: Record<string, number>; unit: string; underlay: Underlay } {
   const s = readDxfSketch(text), [outer, ...more] = s.regions;

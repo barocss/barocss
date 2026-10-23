@@ -13,6 +13,7 @@ import { partCutList } from '../app/cutList';
 import { MATERIALS } from '../app/materials';
 import { beadAccounting, combineBeadAccounting, type BeadAccounting } from '../frames/beadAccounting';
 import { fastenerRowFor } from '../engine/fastenerRows';
+import { r6 } from '../util/round';
 
 // Equal feature text can resolve different local/parent rows. Compare the converted geometry for row-backed parts.
 function shapeOf(doc: StudioDoc, evaluated: boolean): string {
@@ -70,7 +71,6 @@ export interface BomLine {
   member?: { section: string; lengthMM: number };
 }
 export interface Bom { lines: BomLine[]; totalQty: number; /** Valid body subtotal when beadAccounting is incomplete; not an approvable total. */ totalMassG: number; /** O179: how far the total may be off (g; null: unknown), when any of it is from the mesh. */ totalMassBoundG?: number | null; beadAccounting?: BeadAccounting; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The BOM agent's view from evaluations given at once (O147: the chat's drawings build it synchronously). */
 export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null): BomView {
   doc = resolveShopTree(doc);

@@ -3,10 +3,10 @@
 // O2's ranges (estimates, said so in the labels); the user's own sizes take their place.
 import { withNode } from '../engine/doc';
 import type { Command, Ctx, Values } from './commands';
+import { r3Signed as r3 } from '../util/round';
 
 const ok = { ok: true as const };
 const no = (reason: string) => ({ ok: false as const, reason });
-const r3 = (x: number) => Math.round(x * 1000) / 1000;
 /** The one picked face: its body's ref, name, the kind of gland it takes, its Ø and its extent along its axis. */
 function pickedFace(ctx: Ctx) {
   if (ctx.selection.faces.length !== 1) return null;

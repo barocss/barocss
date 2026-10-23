@@ -4,10 +4,10 @@
 // lose their length locks; the arc gets the radius lock and tangent joints.
 import type { SketchShape } from './types';
 import type { SketchRule } from './terms';
+import { r6Signed as r6 } from '../util/round';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
 type P2 = [number, number];
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6;
 
 /** The outline with corner `i` rounded to radius `r`, or why it cannot be. */
 export function roundCorner(s: Polygon, i: number, r: number): { shape: Polygon } | { error: string } {

@@ -8,6 +8,7 @@
 // some node of it touches the gate); one whose region does not is isolated, a shrink-porosity risk, said with where.
 import { voxelDepth, voxelInsideFlags } from '@barocss/cad';
 import type { BodyResult } from '../engine/evaluate';
+import { r3 } from '../util/round';
 
 export interface HotSpot {
   /** The plateau's centre (mm) and the inscribed ball's radius there. */
@@ -30,7 +31,6 @@ export interface Solidification {
 
 /** The grid's nodes, at most (memory and time: the depth query is K2's per node). */
 export const SOLIDIFICATION_NODES = 400_000;
-const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
 // (The 26 neighbours' offsets, filled per grid: no closure per node.)
 const NB = new Int32Array(26);
 function neighbours(n: readonly number[]): void {

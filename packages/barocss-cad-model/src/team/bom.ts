@@ -10,12 +10,12 @@ import { massProperties } from '../chat/analysis';
 import { bomViewOf, deriveBom, lumpsField, massBoundField, type Bom, type BomLine, type BomView } from './bomCore';
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
+import { r6 } from '../util/round';
 
 /** A made element's line (merged as the bought ones are): what the panel offers to mark bought. */
 export interface MadeLine { item: string; parts: string[]; qty: number; kind: string; size: string; row: string | null; override: boolean }
 export interface BomPanelData { view: BomView; bom: Bom; made: MadeLine[]; /** A part with no placed parts: its own line. */ single: boolean; shopRows?: readonly { part: string; rows: readonly ShopRowProvenance[] }[] }
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 
 /** The panel's data: the BOM, and the made elements by line (each document evaluated once, then `bomPanelDataOf`). */
 export async function bomPanelData(doc: StudioDoc, evaluate: Evaluate, name = 'this part'): Promise<BomPanelData> {

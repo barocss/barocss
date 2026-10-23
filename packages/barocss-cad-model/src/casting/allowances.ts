@@ -6,6 +6,7 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { machiningClassOf, type CastFamily, type ProcessProfile } from '../library/materials';
+import { r6 } from '../util/round';
 
 export const FT_MM = 304.8, IN_MM = 25.4;
 export type Allowance<T> = ({ ok: true } & T) | { ok: false; why: string };
@@ -13,7 +14,6 @@ export interface ShrinkAllowance { readonly ratio: number; readonly basis: 'tabl
 export interface MachiningAllowance { readonly mm: number; readonly basis: 'table' | 'set'; readonly band: string; readonly label: string; readonly page: string | null }
 export interface MachinedFace { readonly name: string; readonly body: string; readonly flat: boolean }
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** An allowance found, without its `ok`. */
 export const shrinkView = ({ ok: _, ...s }: { ok: true } & ShrinkAllowance): ShrinkAllowance => s;
 export const machiningView = ({ ok: _, ...m }: { ok: true } & MachiningAllowance): MachiningAllowance => m;

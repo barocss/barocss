@@ -15,12 +15,12 @@ import { printability } from '../print/rules';
 import { orientPart, type OrientationScore } from '../print/orient';
 import { processProfile } from '../library/materials';
 import { UNLICENSED } from '../library/sharing';
+import { r3Signed as r3 } from '../util/round';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
 export interface AssemblyOutcome { doc: StudioDoc; content: string; isError: boolean; changed: boolean; summary: string }
 
-const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const json = (v: unknown) => JSON.stringify(v);
 const fail = (doc: StudioDoc, error: string, extra: Record<string, unknown> = {}): AssemblyOutcome => ({ doc, content: json({ ok: false, error, ...extra }), isError: true, changed: false, summary: error });

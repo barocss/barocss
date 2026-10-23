@@ -12,13 +12,13 @@ import { featuresOf, type Feature } from './features';
 import { holesOf } from './holes';
 import { DIRECTION_NAMES, DIRECTIONS } from './access';
 import { madeBodies } from '../engine/elements';
+import { r6 } from '../util/round';
 
 export const NOT_FOR_PRODUCTION = 'NOT FOR PRODUCTION — a 2.5D preview of outlines to look at, not a toolpath for a machine: no G-code, no feeds or speeds, no collision check';
 export const TOOL_ESTIMATE_MM = 6, STEPOVER_SHARE = 0.4, STEPDOWN_SHARE = 0.5;
 type P2 = [number, number];
 type V = readonly number[];
 const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 
 export interface PocketPass {
   readonly kind: 'pocket'; readonly feature: string; readonly setup: string;

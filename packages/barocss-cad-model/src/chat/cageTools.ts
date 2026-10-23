@@ -7,6 +7,7 @@ import { SubdError, type CageValidation } from '@barocss/cad';
 import type { ModelNode, StudioDoc } from '../engine/doc';
 import { commitDrag, emptyCageSel, runOp, selectedVertices, startSession, validationOf, type CageOp, type CageSelection, type CageSession, type StudioCage } from '../subd/cageEdit';
 import type { ToolDefinition } from './api';
+import { r6Signed as r6 } from '../util/round';
 
 type SubdNode = Extract<ModelNode, { kind: 'subd' }>;
 type V3 = [number, number, number];
@@ -19,7 +20,6 @@ export const CAGE_MUTATORS = new Set(['subd_move', 'subd_extrude', 'subd_insert_
 export type CageToolResult = { doc: StudioDoc; did: string; extra: Record<string, unknown> } | { read: Record<string, unknown> } | { error: string };
 
 const isObj = (x: unknown): x is Args => !!x && typeof x === 'object' && !Array.isArray(x);
-const r6 = (x: number) => Math.round(x * 1e6) / 1e6;
 
 /** The subd node at `index`, or why not. */
 function nodeAt(doc: StudioDoc, index: unknown): { node: SubdNode; index: number } | { error: string } {

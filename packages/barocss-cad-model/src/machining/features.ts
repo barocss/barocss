@@ -12,10 +12,10 @@ import { rayHit, triangleBvh } from '@barocss/cad';
 import { concaveSpan, extent, holesOf, tappedHoles, type Hole } from './holes';
 import { narrowest } from './cavities';
 import { DIRECTION_NAMES, DIRECTIONS } from './access';
+import { r6 } from '../util/round';
 
 type V = readonly number[];
 const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const AXES: readonly V[] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 
 export type FeatureKind = 'pocket' | 'slot' | 'step' | 'hole' | 'boss';

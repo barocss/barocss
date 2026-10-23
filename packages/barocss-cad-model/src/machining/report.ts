@@ -21,9 +21,9 @@ import { chooseStock, type StockResult } from './stock';
 import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type TappedHole } from './holes';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 import { madeBodies } from '../engine/elements';
+import { r3 } from '../util/round';
 
 export type Family = 'metal' | 'plastic';
-const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0;
 
 /** The machining report for a milling or turning profile. */
 export function machinability(doc: StudioDoc, all: readonly BodyResult[], profile: ProcessProfile): PrintabilityReport {
