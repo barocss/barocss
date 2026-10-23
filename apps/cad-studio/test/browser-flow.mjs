@@ -99,8 +99,10 @@ async function openModel(file, nodes, timeout = 30000) {
 }
 const history = () => page.locator('.history').innerText().catch(() => '');
 const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? ''), null, { timeout: 30000 });
-// (O7e: the person's fastener sizes, the shipped sample loaded in the Library panel — none is built in; a new part has none.)
+// (O7e: the person's fastener sizes, the shipped sample loaded in the Library panel — none is built in; a new part has none.
+// Idempotent: a step that goes on from the one before loads them only when they are not there, so it passes alone too.)
 const loadSampleSizes = async () => {
+  if (await page.evaluate(() => (window.__studioDoc.fastenerSizes?.rows?.length ?? 0) > 0)) return;
   await page.click('[aria-label="Library"]');
   try { await page.click('[aria-label="Load sample fastener sizes"]'); await page.waitForFunction(() => window.__studioDoc.fastenerSizes?.rows?.length === 7, null, { timeout: 10000 }); }
   finally { await page.click('[aria-label="Close library"]'); }
@@ -2022,6 +2024,7 @@ try {
   });
 
   await check('a countersunk screw inserted as a part of its own: an assembly instance, the part unchanged', async () => {
+    await loadSampleSizes();
     const before = await page.evaluate(() => window.__studioDoc.nodes.length);
     await shape('Fastener'); await hudReady();
     await field('Part').selectOption('csk-screw'); await field('Size').selectOption('M5'); await field('Length').selectOption('16');
