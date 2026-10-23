@@ -8,7 +8,7 @@
 import { placedBase, type PartInstance, type StudioDoc } from '../engine/doc';
 import { placeBody, type BodyResult } from '../engine/evaluate';
 import { dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
+import type { Op } from '../engine/schema/proposals';
 import { rotationMatrix } from '../engine/placement';
 import { massProperties } from '../analysis/analysis';
 import { revisionOf, type Decision, type GateResult, type RoleReport } from './team';

@@ -11,7 +11,7 @@
 import { meshClearance, symmetricEigen3 } from '@barocss/cad';
 import type { StudioDoc, DocPlane, ModelNode } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
-import { partBreps, placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
+import { partBreps, placeBody, type BodyResult } from '../engine/evaluate';
 import { measureChords, unmeasured, type DisplayMesh, type Vec3 } from '../engine/mesh';
 import { rotationMatrix } from '../engine/placement';
 import type { Mat3 } from '../robot/inertia';
@@ -21,32 +21,8 @@ import { stepLengthUnit } from '../engine/stepUnits';
 import { isVec3 as isV3 } from '../util/guards';
 import { nextFreeId } from '../util/ids';
 import { boundsOf } from '../engine/bounds';
+import type { Evaluate, Placement, Reference, Datum, KeepoutShape, Keepout, ReferenceSet, ReferenceCode, Verdict, KeepoutResult } from '../engine/schema/references';
 
-type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export interface Placement { position: Vec3; rotation: Vec3 }
-export type ReferenceSource = { step: string } | { mesh: { positions: number[]; indices: number[] } };
-export interface Reference { id: string; name: string; source: ReferenceSource; at: Placement; /** Solids in a STEP file that holds several. */ solids?: number }
-/** A datum in its reference's own coordinates (or the part's, given explicitly): moved with the reference. */
-export interface Datum {
-  id: string; name: string; kind: 'plane' | 'axis' | 'point';
-  /** The face (or vertex) it was taken from; absent: given. */
-  of?: { reference: string; face?: string; vertex?: Vec3 };
-  origin: Vec3; normal?: Vec3; xAxis?: Vec3; direction?: Vec3; radius?: number;
-  /** The largest distance of the face's vertices from the fitted plane or cylinder (mm). */
-  residualMM?: number;
-}
-export type KeepoutShape = { kind: 'box'; size: Vec3 } | { kind: 'cylinder'; radius: number; height: number };
-export interface Keepout {
-  id: string; name: string;
-  /** Its frame (the part's coordinates): a box from the origin along xAxis, normal × xAxis and normal; a cylinder about the normal. */
-  frame: DocPlane; shape: KeepoutShape;
-  /** Made from a reference's envelope grown by an offset (kept to say so). */
-  around?: { reference: string; offset: number };
-  /** The clearance the part must keep from it (mm, 0: not enter). */
-  clearance: number;
-}
-export interface ReferenceSet { version: 1; references: Reference[]; datums: Datum[]; keepouts: Keepout[] }
-export type ReferenceCode = 'REFERENCE_LOCKED' | 'BAD_REFERENCE' | 'NO_REFERENCE' | 'DATUM_FIT' | 'BAD_KEEPOUT' | 'NOT_READ';
 export class ReferenceError extends Error { constructor(public code: ReferenceCode, message: string) { super(`[${code}] ${message}`); this.name = 'ReferenceError'; } }
 
 export const readReferences = (raw: unknown): ReferenceSet => {
@@ -268,8 +244,6 @@ function trianglePatchDepth(p: number, q: number, r: number): number {
   }
   return best;
 }
-export type Verdict = 'clear' | 'violated' | 'undecided';
-export interface KeepoutResult { keepout: string; body: string; verdict: Verdict; overlapMM3: number; clearanceMM: number | null; requiredMM: number; chordMM: number; why: string }
 /** The verdict for one keep-out against one body: overlap (exact) violates; else the mesh distance d against the required c within the chord δ. */
 export function verdictOf(overlap: number, d: number, required: number, chord: number): { verdict: Verdict; why: string } {
   if (overlap > 1e-6) return { verdict: 'violated', why: `it enters the keep-out: ${overlap.toPrecision(4)} mm³ overlap (exact, the kernel's intersection)` };

@@ -12,11 +12,8 @@ import { DxfReadError, readDxfSketch, type DxfLoop } from '../sketch/dxfRead';
 import type { Underlay } from '../sketch/dxfUnderlay';
 import { r6 } from '../util/round';
 import { nextFreeId } from '../util/ids';
+import type { DraftDim, Draft, DraftSet } from '../engine/schema/drafts';
 
-export type Drive = { kind: 'scale'; nodes: string[]; about: [number, number] } | { kind: 'height'; nodes: string[] } | { kind: 'depth'; nodes: string[] } | { kind: 'hole'; node: string; hole: number; center: [number, number] };
-export interface DraftDim { name: string; label: string; value: number; basis: 'scaled' | 'from-drawing'; confirmed?: { by: 'user'; at: string }; drive: Drive }
-export interface Draft { id: string; from: { image: string } | { drawing: string }; nodes: string[]; dims: DraftDim[]; note?: string; /** A drawing that declares no unit, read as mm (every size ×25.4 off if it was inches): an assumption, shown beside the dimensions. */ unitAssumed?: true }
-export interface DraftSet { version: 1; drafts: Draft[] }
 export class DraftError extends Error { constructor(public code: 'NO_DRAFT' | 'BAD_VALUE' | 'BOUND' | 'GONE', message: string) { super(`[${code}] ${message}`); this.name = 'DraftError'; } }
 
 export const readDrafts = (raw: unknown): DraftSet => { const r = raw as DraftSet | undefined; return r && r.version === 1 && Array.isArray(r.drafts) ? r : { version: 1, drafts: [] }; };

@@ -4,7 +4,8 @@
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
-import { checkSpec, type Requirement } from '../chat/spec';
+import { checkSpec } from '../chat/spec';
+import type { Requirement } from '../engine/schema/spec';
 import type { Evaluate, Outcome } from './core';
 import { boundsOf } from '../engine/bounds';
 

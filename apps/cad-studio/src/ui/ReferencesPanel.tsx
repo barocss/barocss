@@ -3,7 +3,7 @@
 // their verdicts — clear, violated or undecided, the chord tolerance said.
 import { useState } from 'react';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import type { KeepoutResult, Placement, ReferenceSet } from '@barocss/cad-model/chat/references';
+import type { KeepoutResult, Placement, ReferenceSet } from '@barocss/cad-model/engine/schema/references';
 
 export interface ReferencesPanelProps {
   set: ReferenceSet;

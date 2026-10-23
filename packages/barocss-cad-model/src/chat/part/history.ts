@@ -9,7 +9,7 @@ import { changeOf, factsOf } from '../observe';
 import { newTransactions, OP_IDS, treeDiff, type TreeDiff } from '../transactions';
 import { canonical } from '../../util/revision';
 import { moveOp } from '../remap';
-import type { Op } from '../proposals';
+import type { Op } from '../../engine/schema/proposals';
 import { modelHash } from '../spec';
 import { verifyReferences } from '../../engine/references';
 import { rememberedEvaluate } from '../../engine/evalMemo';

@@ -1,7 +1,7 @@
 // The Drafts list in the Browser (A6.4, O28): features made from an image or a drawing, each dimension they were made at
 // with its basis; the user confirms one as it is, or at another value (Enter or Confirm), which re-drives the features.
 // "Add drawing" reads a DXF file as a sketch draft.
-import type { Draft } from '@barocss/cad-model/chat/drafts';
+import type { Draft } from '@barocss/cad-model/engine/schema/drafts';
 import type { DocUnderlay } from '@barocss/cad-model/engine/doc';
 
 export function DraftsPanel({ drafts, onAddDrawing, onConfirm, underlays = [], onUnderlay }: { drafts: readonly Draft[]; onAddDrawing(file: File): void; onConfirm(key: string, value: number | undefined): void;

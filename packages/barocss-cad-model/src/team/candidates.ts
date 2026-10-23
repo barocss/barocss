@@ -17,7 +17,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { encodeStudioFile, readStudioFile } from '../engine/container';
 import { BATCHABLE_TOOLS, dispatchTool, type ChatState, type Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
+import type { Op } from '../engine/schema/proposals';
 import { checkSpec } from '../chat/spec';
 import { factsOf } from '../chat/observe';
 import { integrate, revisionOf, runGates, type GateResult } from './team';

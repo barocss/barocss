@@ -8,7 +8,7 @@ import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { readBrief, saidIn } from '@barocss/cad-model/chat/brief';
 import { acceptAssumptions, answerBatch, assumptionsOf, readQuestions } from '@barocss/cad-model/chat/questions';
-import type { Requirement } from '@barocss/cad-model/chat/spec';
+import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 import { stateFileStore } from '../server/cadMcp';
 
 // A6.2 (O25): the clarifying policy and the user's say. A stated quote must be in what the user typed this conversation

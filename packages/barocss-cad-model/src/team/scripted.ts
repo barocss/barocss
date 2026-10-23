@@ -6,7 +6,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { emptyDoc } from '../engine/doc';
 import type { ChatState, Evaluate } from '../chat/tools';
-import type { Op } from '../chat/proposals';
+import type { Op } from '../engine/schema/proposals';
 import type { ArchitectRole, Interfaces, Lease, PartAgentRole, PartsRun } from './parts';
 import { runParts } from './parts';
 import { rebase, runTeam, type DesignerRole, type DrafterRole, type Patch, type RequirementsRole, type ReviewerName, type ReviewerRole, type ReviewView, type TeamRun, type VerifierRole, type VerifierView } from './team';

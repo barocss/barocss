@@ -5,10 +5,10 @@ import { flattenShopView, resolveShopTree } from './shopRows';
 import type { BoundConstraint3D } from '../frames/sketch3d';
 import type { RobotSettings } from '../robot/joints';
 import type { BendTable } from '@barocss/cad';
-import type { Brief } from '../chat/brief';
-import type { QuestionLog } from '../chat/questions';
-import type { ReferenceSet } from '../chat/references';
-import type { DraftSet } from '../chat/drafts';
+import type { Brief } from './schema/brief';
+import type { QuestionLog } from './schema/questions';
+import type { ReferenceSet } from './schema/references';
+import type { DraftSet } from './schema/drafts';
 import type { Interfaces } from '../team/parts';
 import type { EcrLog } from '../team/ecr';
 import type { BaselineLog } from '../team/baseline';
@@ -413,9 +413,9 @@ import { rotationMatrix, rotationSteps } from './placement';
 import { flattenAssembly } from '../assembly/flatten';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
-import type { Requirement } from '../chat/spec';
+import type { Requirement } from './schema/spec';
 import type { CadLibraryInterface, CadLibraryManifest, CadLibraryOrigin, CadPartFeature, MeshRepairReport, MeshRepairSteps } from '@barocss/cad';
-import type { HistoryEntry, Proposal } from '../chat/proposals';
+import type { HistoryEntry, Proposal } from './schema/proposals';
 
 /**
  * A mesh's repair as a recorded, reversible step (M3, D47): the steps asked, the arrays they gave (their own blobs:

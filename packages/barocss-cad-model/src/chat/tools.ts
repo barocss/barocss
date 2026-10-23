@@ -19,7 +19,8 @@ import { runStandardsTool, STANDARDS_TOOL_NAMES } from '../standards/provenance'
 import { datumPlane, readReferences, REFERENCE_TOOL_NAMES, referenceNameIn, ReferenceError, runReferenceTool } from './references';
 import { ASSEMBLY_TOOL_NAMES, runAssemblyTool, solveDoc } from './assembly';
 import { resolveNames, type NameSelection } from './names';
-import { approvalOf, type Op } from './proposals';
+import { approvalOf } from './proposals';
+import type { Op } from '../engine/schema/proposals';
 import { newPolicy } from './spec';
 import { partEditRefusal, refreshFollowed } from '../frames/skeleton';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, setCall, json, accept, fail, subToolResult } from './toolKit';

@@ -4,7 +4,7 @@
 // The `json` arm (v1 tools without the script) went with v1 (O105, the owner 2026-10-21: "우리는 릴리즈 한게 아니라서
 // toolset v1 은 없어도 돼"), and with it the v1/v2 live A/B. The scripted calls follow the system prompt's protocol:
 // requirements first, then the build, then the check. Dimensions are the brief's own, not taken from any standard.
-import type { Requirement } from '@barocss/cad-model/chat/spec';
+import type { Requirement } from '@barocss/cad-model/engine/schema/spec';
 
 export type Arm = 'hybrid';
 export interface Call { tool: string; args: Record<string, unknown> }

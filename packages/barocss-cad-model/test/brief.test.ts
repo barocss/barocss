@@ -5,7 +5,8 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { applyBrief, briefGaps, confirmField, patchBrief, readBrief, type Brief } from '../src/chat/brief';
+import { applyBrief, briefGaps, confirmField, patchBrief, readBrief } from '../src/chat/brief';
+import type { Brief } from '../src/engine/schema/brief';
 
 // A6.1 (O24): the brief. The conformance fixtures (hand-written: their expected gaps and what the studio does with the
 // process and material) through the tool; an assumption never replacing what the user stated; the studio's confirm;

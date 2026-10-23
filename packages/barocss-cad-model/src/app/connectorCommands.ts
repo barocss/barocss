@@ -3,7 +3,7 @@
 // keep-outs (A6.3), where the part's bodies are checked against it.
 import { connectorFrame, connectorKeepOut } from '@barocss/cad';
 import { withNode } from '../engine/doc';
-import type { Keepout, ReferenceSet } from '../chat/references';
+import type { Keepout, ReferenceSet } from '../engine/schema/references';
 import type { Command, Ctx } from './commands';
 
 const ok = { ok: true as const };
