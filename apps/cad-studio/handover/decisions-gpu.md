@@ -2351,3 +2351,17 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - studio tsc 0 (after the merge), eslint 0, unit 266/266.
   - FLOW_ONLY on both renderers (load 20–45), all pass: RM1–RM6 and RM9a–RM9c (RM2 with the new checks), R12b.7 the
     gears, the instance chain 57 and 58 (explode inside 57), 73 and G19.2 sections, 258 and G3.
+
+## G-R32 — step 58's waits made conditions, not a pause (the coordinator's request, 2026-10-23)
+
+- **The defect**: after the X drag the step paused a fixed 400 ms and then read the turn handle where the gizmo was
+  drawn. Under load, the overlay had not yet followed the moved copy, so the turn drag started off the handle. The next
+  wait, 5 s for the 15° step, then failed: about 1 run in 2 at load 30–40 on WebGL2 (G-R30). The step's three waits had
+  5 s ceilings.
+- **Now**:
+  - Before each drag, `settled()` waits for the gizmo as drawn: its origin present and the same over two animation
+    frames.
+  - The three condition waits (moved along X, turned 15°, undone) have 30 s ceilings.
+  - The assertions are unchanged.
+- **Runs**: WebGL2 three times in a row (load 24 → 87, other lanes' work beside it), 3/3 pass; WebGPU once (load
+  87 → 81), pass.
