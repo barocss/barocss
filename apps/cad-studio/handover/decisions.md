@@ -12801,6 +12801,26 @@ tessellator and the mass quadrature.
   (D159). Instance p2's BEARING_HOUSING_REFERENCE is a finding for the outer lane: the studio's instance path cannot
   evaluate it.
 
+
+**Correction (2026-10-24, after K13; found by the outer lane in 8fa7a6ca2).** The harness above bundled two copies of
+cad-model:
+- its own scratch tree's `src`, imported by path;
+- integration's, through a scratch `node_modules` linked to integration's.
+
+Each copy had its own `Symbol('bearingAssemblyContext')`, so A9's p2 failed with BEARING_HOUSING_REFERENCE. The studio,
+with one module graph, does not fail there.
+
+- **Affected:** A9's 4 270 ms above, which leaves p2 out.
+- **Unaffected:** the frames, spring and worm cross no such boundary. Their single-graph times at 77d3b675c are
+  13 219, 4 098 and 2 662 ms, within this record's ranges.
+- **Re-baselined A9, single graph, at 77d3b675c:** 5 405 ms, with p2 evaluated (7 instances, none failed). That is K13's
+  "before" (D242).
+
+K13's harness has one graph by construction:
+- each scratch tree has real `node_modules` folders with its own relative `@barocss` links;
+- every timed bundle has 276 kernel and cad-model sources, all from its own tree, and one context symbol;
+- the harness now checks both before it times, and stops otherwise.
+
 ## D242 — K13 step 1: the Boolean's intervals test segment boxes before `intersectSegments` (2026-10-24)
 
 **Change (pure speed).** Two changes in `brep/curved-arrangement.ts`, used by `brep/analytic-boolean.ts`:
