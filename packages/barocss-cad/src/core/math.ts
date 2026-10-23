@@ -237,9 +237,14 @@ export function surfaceEvaluator(surface: Surface): (u: number, v: number) => Po
   const P = surface.controlPoints, W = surface.weights, du = surface.degreeU, dv = surface.degreeV, nu = P.length, nv = P[0].length;
   const constant = [0, 1, 2].map(axis => P.every(row => row.every(pole => Object.is(pole[axis], P[0][0][axis]))));
   const bu = Array<number>(du + 1).fill(0), lu = bu.slice(), ru = bu.slice(), bv = Array<number>(dv + 1).fill(0), lv = bv.slice(), rv = bv.slice();
-  // The same arithmetic as evaluateSurface (bit-identical points), without its per-call allocation.
+  // The same arithmetic as evaluateSurface (bit-identical points), without its per-call allocation. A parameter equal to the
+  // last call's (Object.is) keeps its basis: a boundary side, an iso-curve or a difference stencil holds one fixed (K13,
+  // D244). A failed basis is never kept.
+  let keptU = false, lastU = 0, startU = 0, keptV = false, lastV = 0, startV = 0;
   return (u, v) => {
-    const su = basisInto(surface.knotsU, du, nu, u, bu, lu, ru), sv = basisInto(surface.knotsV, dv, nv, v, bv, lv, rv);
+    if (!keptU || !Object.is(u, lastU)) { keptU = false; startU = basisInto(surface.knotsU, du, nu, u, bu, lu, ru); lastU = u; keptU = true; }
+    if (!keptV || !Object.is(v, lastV)) { keptV = false; startV = basisInto(surface.knotsV, dv, nv, v, bv, lv, rv); lastV = v; keptV = true; }
+    const su = startU, sv = startV;
     const sum: Point = [0, 0, 0];
     let weight = 0;
     for (let i = 0; i <= du; i++) for (let j = 0; j <= dv; j++) {

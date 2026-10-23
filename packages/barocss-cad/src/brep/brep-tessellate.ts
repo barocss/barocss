@@ -892,7 +892,9 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const size = (a: XY, b: XY, c: XY) => Math.max(Math.hypot(a[0] - b[0], a[1] - b[1]), Math.hypot(b[0] - c[0], b[1] - c[1]), Math.hypot(c[0] - a[0], c[1] - a[1]));
   const tris = triangulatePolygonWithHoles(ringsUV[0], ringsUV.slice(1), size).map(t => [...t] as [number, number, number]);
   // One-sided differences stepping inward, signed so the normal is always along Su × Sv.
-  const normalAt = (q: XY): Point => { const h = 1e-6, p = at(q[0], q[1]), a = inward(q[0], U, h), b = inward(q[1], V, h); return scale3(cross(sub(at(a, q[1]), p), sub(at(q[0], b), p)), Math.sign(a - q[0]) * Math.sign(b - q[1])); };
+  // (The point between its two neighbours: each shares a parameter with the call before, whose basis the evaluator keeps.
+  // K13, D244.)
+  const normalAt = (q: XY): Point => { const h = 1e-6, a = inward(q[0], U, h), b = inward(q[1], V, h), pa = at(a, q[1]), p = at(q[0], q[1]), pb = at(q[0], b); return scale3(cross(sub(pa, p), sub(pb, p)), Math.sign(a - q[0]) * Math.sign(b - q[1])); };
   // At a pole the normal is the limit from inside the domain.
   const normal = (q: XY): Point => { const n = normalAt(q); if (Math.hypot(...n) > 1e-20 * (Lu + Lv + 1) ** 2) return unit(n); return unit(normalAt([inward(q[0], U, 1e-5), inward(q[1], V, 1e-5)])); };
   const nrm: Point[] = uv.map(normal), cosStep = Math.cos(1.5 * step);
