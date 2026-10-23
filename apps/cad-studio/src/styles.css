@@ -230,6 +230,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .corner-right .corner-stack > * { pointer-events: auto; }
 .history-stacked .history { right: calc(12px + var(--dock-strip-w, 0px)); bottom: calc(16px + var(--corner-h, 32px) + 8px); max-width: calc(100% - 282px - var(--strip-w, 0px)); }
 .history-stacked .corner-right .corner-stack { bottom: calc(100% + 6px + 56px); }
+.history-stacked .toast:not(.flat-pattern):not(.cut-list) { bottom: calc(24px + var(--corner-h, 32px) + 56px); }
 .corner-right .previews { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .corner-right .corner-stack .section-bar, .corner-right .corner-stack .map-legend { position: static; }
 .chip { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border-radius: 4px; background: #2e3034; font-size: 11px; color: var(--text-2); }
@@ -254,7 +255,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .palette-list li.off { opacity: 0.55; }
 .pl-reason { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.toast { position: absolute; left: calc(66px + var(--strip-w, 0px)); bottom: 44px; max-width: 380px; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
+/* (Above the bottom row — the view bar, and the history bar where it stacks — so a toast covers neither it nor the section
+   bar stacked over the view bar in a narrow centre, G12b.) */
+.toast { position: absolute; left: calc(66px + var(--strip-w, 0px)); bottom: calc(24px + var(--corner-h, 32px)); max-width: 380px; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
 .toast-title { font-weight: 600; margin-bottom: 2px; }
 .toast-hint { color: var(--text-2); line-height: 1.45; }
 .edge-hover { fill: none; stroke: #f0cf73; stroke-width: 2.5; stroke-linecap: round; opacity: 0.85; }
