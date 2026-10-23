@@ -7,6 +7,9 @@ A document uses rows only after a person loads them. In the studio that is Libra
 | file | kind | what it gives |
 |------|------|---------------|
 | `fastener-sizes.json` | `fastener-sizes` | metric coarse M3–M12: pitch, heads, nut, washer, the lengths offered, ISO 273 clearance holes and the tap drill. Fields not cross-checked are listed in `unchecked`. |
+| `casting-rules.json` | `casting-rules` | die and sand casting limits by alloy family (least wall and draft, tolerance, section-change ratio), and sand casting's pattern allowances (shrinkage, machining), each with the page it was read from |
+
+With no casting rules for its process, a cast part's report says `[CASTING_RULE_ROW]` and leaves every rule that reads a limit or an allowance unknown. A sand-casting pattern is refused.
 
 Without a row for a size, any command that needs that size refuses with `[FASTENER_SIZE_ROW]`. That covers a fastener, a tapped hole, and fitting a fastener to a hole. Readings without the row draw no thread, give no tap drill, and estimate the position tolerance, each said so.
 

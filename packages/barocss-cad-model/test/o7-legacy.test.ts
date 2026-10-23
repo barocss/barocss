@@ -80,9 +80,9 @@ test('O7a: the legacy fixtures are all there, each with its expectation', () => 
   assert.deepEqual(Object.keys(JSON.parse(readFileSync(expectedFile, 'utf8'))).sort(), names);
 });
 
-for (const name of names) test(`O7: ${name} with the sample rows loaded by the person opens as the pre-O7 studio opened it`, async () => {
+for (const name of names) test(`O7: ${name} with the sample rows (fastener sizes, casting rules) loaded by the person opens as the pre-O7 studio opened it`, async () => {
   const want = JSON.parse(readFileSync(expectedFile, 'utf8'))[name];
-  assert.deepEqual(await opened(withSampleRows(await read(name))), want);
+  assert.deepEqual(await opened(withSampleRows(withSampleRows(await read(name)), 'casting-rules')), want);
 });
 
 test('O7: without rows, the fixtures read as having no data — no fastener thread or edit steps, no tap drill, each position tolerance an estimate', async () => {
@@ -95,6 +95,13 @@ test('O7: without rows, the fixtures read as having no data — no fastener thre
     assert.ok((got.tapped as { tapMM: number | null }[]).every(t => t.tapMM === null), `${name}: no tap drill`);
     const d = got.drawing as unknown as { suggestedUntoleranced: { kind: string; estimate: boolean; message: string }[] } | string;
     if (typeof d !== 'string') assert.ok(d.suggestedUntoleranced.filter(x => x.kind.startsWith('hole') || x.kind === 'position').every(x => x.estimate), `${name}: ${JSON.stringify(d.suggestedUntoleranced)}`);
+  }
+  // (O7c: a cast part with no casting rules: the report says why, and every rule that reads a limit or an allowance is
+  // unknown — only the geometry's, the pull, hot spots and feeding, are judged.)
+  for (const n of ['die-casting-zinc.bcad', 'sand-casting-a356.bcad']) {
+    const m = ((await opened(await read(n))) as unknown as { manufacturing: { id: string; status: string; message: string }[] }).manufacturing;
+    assert.match(m.find(r => r.id === 'casting-rules')?.message ?? '', /^\[CASTING_RULE_ROW\] no (die|sand)-casting rules loaded/, n);
+    for (const id of ['material', 'wall', 'draft', 'shrink', 'section-change', 'tolerance']) assert.equal(m.find(r => r.id === id)?.status, 'unknown', `${n}: ${id}`);
   }
   // (The made fasteners' threads gone, the tapped holes' kept: fasteners-in-part has none left, tapped-holes-milled its three.)
   const threads = async (n: string) => ((await opened(await read(n))) as unknown as { threads: unknown[] }).threads.length;

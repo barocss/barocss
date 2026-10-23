@@ -9,6 +9,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { castability, castingDraftLimits } from '../src/casting/report';
 import { processProfile } from '../src/library/materials';
 import { withLook } from '../src/app/bodies';
+import { withSampleRows } from './person-file';
 
 // O-G6 (the GPU lane's analysis maps): per-vertex draft, per-triangle access and isocline polylines, new exports beside
 // the reports they sample — against closed forms and the reports themselves: a 3° cone's side 3° at every vertex; the
@@ -92,7 +93,8 @@ test('O-G6 castingDraftLimits: an A380 die casting\'s least and achievable draft
   const plain = extrude({ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, 10, 0.75), die = processProfile('die-casting')!;
   const [b0] = bodiesOf(plain);
   assert.equal(castingDraftLimits(plain, [b0], die), null);
-  const doc = { ...withLook(plain, b0, { material: 'a380' }), process: 'die-casting', mould: { version: 1 as const, pull: [0, 0, 1] as [number, number, number] } };
+  // (O7c: the casting rules are the sample rows, loaded as the person loads them.)
+  const doc = withSampleRows({ ...withLook(plain, b0, { material: 'a380' }), process: 'die-casting', mould: { version: 1 as const, pull: [0, 0, 1] as [number, number, number] } }, 'casting-rules');
   const bodies = bodiesOf(doc), lim = castingDraftLimits(doc, bodies, die);
   assert.ok(lim && lim.minDeg > 0 && (lim.recDeg === null || lim.recDeg >= lim.minDeg), JSON.stringify(lim));
   const rule = castability(doc, bodies, die).rules.find(r => r.id === 'draft')!;

@@ -22,3 +22,12 @@ test('O7e: the sample loads the seven sizes with the person\'s receipt naming it
   assert.ok('error' in bad); assert.match(bad.error, /fastener size row M6: pitch is a number of mm above 0/);
   assert.ok('error' in loadSizesFile(emptyDoc(), 'mine.json', 'not json'));
 });
+
+test('O7c: the casting rules sample loads both processes\' rows with the person\'s receipt', async () => {
+  const { loadShopFile, sampleFile } = await import('../src/app/sizesFile');
+  const text = readFileSync(join(process.cwd(), '../../packages/barocss-cad-model/samples/rows/casting-rules.json'), 'utf8');
+  const r = loadShopFile(emptyDoc(), 'casting-rules', sampleFile('casting-rules'), text);
+  assert.ok('doc' in r, 'error' in r ? r.error : '');
+  assert.deepEqual([...new Set(r.doc.castingRules!.rows.map(x => x.process))], ['die-casting', 'sand-casting']);
+  assert.ok(r.doc.rowSources!.rows.filter(x => x.kind === 'casting-rules').every(x => x.file.filename === 'cad-model sample casting-rules.json' && x.file.suppliedBy === 'person'));
+});

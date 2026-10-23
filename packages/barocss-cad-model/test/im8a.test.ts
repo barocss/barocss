@@ -6,6 +6,8 @@ import { withLook } from '../src/app/bodies';
 import { printability } from '../src/print/rules';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { checkMaterials, MATERIALS_DATA, materialData, processProfile } from '../src/library/materials';
+import { withSampleRows } from './person-file';
+import { castingProfileOf } from '../src/engine/castingRuleRows';
 
 // IM8a (O106): casting's presets, against closed forms — die casting's least wall and draft per alloy family read off
 // eFunda's table, its achievable draft and tolerance off Dynacast's guide (the tolerance the looser end, inches × 25.4),
@@ -16,7 +18,8 @@ import { checkMaterials, MATERIALS_DATA, materialData, processProfile } from '..
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const bodiesOf = (doc: StudioDoc): BodyResult[] => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return r.bodies; };
 const cast = (doc: StudioDoc, process: string, material: string | null, pull: [number, number, number] | null = [0, 0, 1]): StudioDoc => {
-  const d: StudioDoc = { ...doc, process, ...(pull ? { mould: { version: 1, pull } } : {}) };
+  // (O7c: the casting rules are the sample rows, loaded as the person loads them.)
+  const d: StudioDoc = withSampleRows({ ...doc, process, ...(pull ? { mould: { version: 1, pull } } : {}) }, 'casting-rules');
   return material ? withLook(d, bodiesOf(d)[0], { material }) : d;
 };
 /** A 40 × 30 × 20 block, its sides drafted θ. */
@@ -31,11 +34,12 @@ async function shelled(t: number): Promise<StudioDoc> {
 }
 const report = async (d: StudioDoc) => printability(d, bodiesOf(d), evaluate);
 const rule = async (d: StudioDoc, id: string) => (await report(d)).rules.find(r => r.id === id)!;
-const value = (process: string, key: string) => processProfile(process)!.thresholds[key];
+const SAMPLE_CAST = withSampleRows(emptyDoc(), 'casting-rules');
+const value = (process: string, key: string) => castingProfileOf(SAMPLE_CAST, process)!.thresholds[key];
 
 test('IM8a the data: every casting limit names its page (a derived one its rule); the values as read — zinc 0.6 mm and 0.25°/0.5°, aluminium 0.9 mm (2 typical) and 0.5°/1°, brass 1.25 mm and 0.7°; ±0.002 in and ±0.004 in as 0.0508 and 0.1016 mm; sand 0.10 and 0.13 in as 2.54 and 3.302 mm, draft 1° least, 2° standard', () => {
   assert.deepEqual(checkMaterials(MATERIALS_DATA), []);
-  for (const p of ['die-casting', 'sand-casting']) for (const [k, t] of Object.entries(processProfile(p)!.thresholds)) {
+  for (const p of ['die-casting', 'sand-casting']) for (const [k, t] of Object.entries(castingProfileOf(SAMPLE_CAST, p)!.thresholds)) {
     assert.ok(t.page && /^https:\/\//.test(t.page.url) && t.page.read === '2026-10-21', `${p}.${k}`);
     assert.ok(t.source === 'W-WEB' || (t.source === 'W-DERIVED' && /× 25\.4 mm\/in/.test(t.page.note ?? '')), `${p}.${k}: ${t.source}`);
   }
