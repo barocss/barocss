@@ -22,6 +22,8 @@ export interface ThreeMfModel {
   readonly uuid?: () => string;
   /** The archive's time stamp and the model's CreationDate (left out when not given). */
   readonly date?: Date;
+  /** O9: the source revision the model was made from, as metadata (left out when not given). */
+  readonly source?: string;
 }
 export interface ThreeMfStats {
   readonly objects: number; readonly items: number; readonly triangles: number; readonly vertices: number;
@@ -32,6 +34,8 @@ export interface ThreeMfStats {
   readonly modelXmlBytes: number; readonly bytes: number; readonly ms: number;
 }
 
+/** O9: BaroCSS's own metadata (the source revision), a namespace of its own as 3MF asks of a name not in its list. */
+const NS_BAROCSS = 'https://barocss.com/3mf/2026';
 const NS_CORE = 'http://schemas.microsoft.com/3dmanufacturing/core/2015/02';
 const NS_PROD = 'http://schemas.microsoft.com/3dmanufacturing/production/2015/06';
 const NS_MAT = 'http://schemas.microsoft.com/3dmanufacturing/material/2015/02';
@@ -135,9 +139,10 @@ export async function write3mf(model: ThreeMfModel): Promise<{ bytes: Uint8Array
   });
   const usesGroup = faceMode === 'colorgroup' && colors.length > 0, baseId = 1, groupId = 2, firstObject = 3;
   const x: string[] = [];
-  x.push(`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" xmlns="${NS_CORE}" xmlns:p="${NS_PROD}"${usesGroup ? ` xmlns:m="${NS_MAT}" requiredextensions="m"` : ''}>\n`);
+  x.push(`<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="en-US" xmlns="${NS_CORE}" xmlns:p="${NS_PROD}"${model.source ? ` xmlns:barocss="${NS_BAROCSS}"` : ''}${usesGroup ? ` xmlns:m="${NS_MAT}" requiredextensions="m"` : ''}>\n`);
   x.push(` <metadata name="Title">${esc(model.title)}</metadata>\n <metadata name="Application">BaroCSS Studio</metadata>\n`);
   if (model.date) x.push(` <metadata name="CreationDate">${model.date.toISOString().slice(0, 10)}</metadata>\n`);
+  if (model.source) x.push(` <metadata name="barocss:SourceRevision">${esc(model.source)}</metadata>\n`);
   x.push(' <resources>\n');
   x.push(`  <basematerials id="${baseId}">`); for (const b of bases) x.push(`<base name="${esc(b.name)}" displaycolor="${b.color}"/>`); x.push('</basematerials>\n');
   if (usesGroup) { x.push(`  <m:colorgroup id="${groupId}">`); for (const c of colors) x.push(`<m:color color="${c}"/>`); x.push('</m:colorgroup>\n'); }

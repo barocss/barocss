@@ -30,6 +30,9 @@ async function blockStep(): Promise<string> {
 /** The part: a 10 mm cube at the origin. */
 async function cube(): Promise<ChatState> { return (await ok({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } })).state; }
 
+// (The time stamp, and O9's source revision — a reference is in the document's revision, not in the geometry — aside.)
+const unstamped = (t: string) => t.replace(/\d{4}-\d\d-\d\dT[\d:]+/g, '').replace(/,'source revision [0-9a-f]+'/, '');
+
 test('datums from a STEP reference\'s faces against their closed forms (1e-9): the top plane, the hole\'s axis and radius, a vertex — placed and turned', async () => {
   const step = await blockStep();
   let s = await cube();
@@ -76,7 +79,7 @@ test('the reference is locked: no feature may use it (REFERENCE_LOCKED), it is n
   assert.equal(JSON.stringify(s.doc.nodes), before.nodes, 'not a node of the part');
   assert.deepEqual(JSON.parse((await ok(s, 'mass_properties', {})).content), before.mass, 'not in the mass');
   assert.equal(s.bodies.length, 1);
-  const after = stepFor(s.doc, 'p'); assert.ok('text' in after && 'text' in before.step && after.text.replace(/\d{4}-\d\d-\d\dT[\d:]+/g, '') === before.step.text.replace(/\d{4}-\d\d-\d\dT[\d:]+/g, ''), 'not in the STEP export');
+  const after = stepFor(s.doc, 'p'); assert.ok('text' in after && 'text' in before.step && unstamped(after.text) === unstamped(before.step.text), 'not in the STEP export');
   const g = JSON.parse((await ok(s, 'get_references', {})).content);
   assert.ok(g.references[0].id === 'ref1' && g.references[0].faces.length >= 7 && g.references[0].kind === 'step', JSON.stringify(g.references[0]).slice(0, 300));
 });

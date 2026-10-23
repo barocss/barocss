@@ -7056,6 +7056,22 @@ try {
     assert.equal(await page.evaluate(() => window.__studioDoc.nodes.length), 2, 'cancelled: nothing written');
   });
 
+  // ---- O9: a late reply never overwrites a newer one ---------------------------------------------------------------------
+  await check('O9: the section plane dragged fast across a plate — the exact section shown is the last plane\'s, and stays so (a late reply never overwrites it)', async () => {
+    const fs = await import('node:fs'), plate = join(out, 'o9-plate.bcad');
+    fs.writeFileSync(plate, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2, outputs: {}, nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }] }));
+    await openModel(plate, 2); await idle();
+    // (Forty planes a frame apart, x from 2.85 to 36: each asks for an exact section; only the last may be shown.)
+    await page.evaluate(() => new Promise(done => { let i = 0; const step = () => { ++i; window.__studioDragSection({ axis: 'x', at: 2 + 34 * i / 40, keep: 'positive' }, i >= 40); if (i < 40) requestAnimationFrame(step); else done(null); }; requestAnimationFrame(step); }));
+    // (The last plane at x = 36 keeps 4 × 20 × 10 or 36 × 20 × 10, as 'positive' means; any earlier plane keeps neither.)
+    const last = [4 * 20 * 10, 36 * 20 * 10], isLast = v => last.some(w => Math.abs(v - w) < 1e-3);
+    await page.waitForFunction(([a, b]) => { const s = window.__studioSection(); return s?.exact && [a, b].some(w => Math.abs(s.volume - w) < 1e-3); }, last, { timeout: 30000 });
+    await page.waitForTimeout(1500);
+    const s = await page.evaluate(() => window.__studioSection());
+    assert.ok(s.exact && isLast(s.volume), `still the last plane's section: ${JSON.stringify({ volume: s.volume, planes: s.planes })}`);
+    await page.evaluate(() => window.__studioSetSection(null));
+  });
+
   // ---- G19.2: section modes — a box, several planes, a plane from a face -------------------------------------------------
   await check('G19.2: section modes — a box section (six planes, a face dragged), two planes (a quarter), a plane from a face; the exact section\'s volumes; GPU against CPU — on either renderer', async () => {
     const fs = await import('node:fs'), renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);

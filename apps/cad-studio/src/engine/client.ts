@@ -15,6 +15,8 @@ import type { DrawingResult } from '@barocss/cad-model/drawing/project';
 import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
+import { Lanes, type LaneReply } from './lanes';
+export type { LaneReply } from './lanes';
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
 function remembered(doc: StudioDoc, r: EvalResult): void { if (r.ok && r.faceTable) rememberFaceTable(doc, r.faceTable); }
@@ -32,6 +34,8 @@ export class EngineClient {
   /** Replies' meshes by slot (the worker sends only those it has not sent there last time, PERF3 B12), and each evaluation's slot. */
   private meshesIn = new MeshReceiver();
   private slots = new Map<number, string>();
+  /** O9: the lanes requests go on (engine/lanes.ts): a newer request on a lane makes the older come back stale. */
+  private lanes = new Lanes();
 
   constructor() { this.start(); }
   private start() {
@@ -61,9 +65,17 @@ export class EngineClient {
     const cancelled = { result: { ok: false, revision: 0, error, ms: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped' };
     this.progress.clear();
     for (const resolve of this.pending.values()) resolve(cancelled);
+    // (The lanes are kept: a request waiting on one comes back as the refusal above, "Stopped", as before O9.)
     this.pending.clear(); this.latestEval = 0; this.wire = new WireSender(); this.meshesIn = new MeshReceiver(); this.slots.clear();
     this.start();
   }
+
+  /**
+   * O9: a request on a lane — `engine.latest('preview', { revision, source }, () => engine.preview(doc, revision))` — its
+   * reply, stale when a newer request went on the same lane first (a late reply never overwrites what overtook it). One lane
+   * per thing a result replaces: 'preview', `section:<view>`, `drawing:<part>`, `placed:<instance>` …
+   */
+  latest<T>(lane: string, asked: { revision: number; source: string }, request: () => Promise<T>): Promise<LaneReply<T>> { return this.lanes.run(lane, asked, request); }
 
   evaluate(doc: StudioDoc, revision: number): Promise<EvalResult | null> {
     const id = this.next++; this.latestEval = id;

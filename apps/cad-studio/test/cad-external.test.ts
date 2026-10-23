@@ -146,7 +146,9 @@ test('cad-cli run: a script to .bcad, STEP and STL; check; refusals write nothin
   assert.equal(dry.code, 0); assert.ok(dry.json.dryRun && !existsSync(join(d, 'dry.bcad')));
   // Several bodies: one STL each.
   const two = await cli(['run', '-', '--stl', join(d, 'two.stl')], 'box({w: 5, d: 5, h: 5})\nbox({w: 5, d: 5, h: 5, x: 20})');
-  assert.equal(two.code, 0, two.err); assert.equal(two.json.wrote.length, 2); assert.ok(two.json.wrote.every((p: string) => /two-b\d+\.stl$/.test(p)));
+  assert.equal(two.code, 0, two.err); assert.equal(two.json.wrote.length, 3); assert.ok(two.json.wrote.slice(0, 2).every((p: string) => /two-b\d+\.stl$/.test(p)));
+  // (O9: the STLs' source beside them, naming both.)
+  assert.match(two.json.wrote[2], /two\.source\.json$/);
   // Usage: exit 2.
   for (const args of [[], ['run'], ['run', script, '-o', join(d, 'x.step')], ['run', script, '--stl'], ['frobnicate'], ['check']]) assert.equal((await cli(args)).code, 2, JSON.stringify(args));
   assert.equal((await cli(['help'])).code, 0);

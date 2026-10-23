@@ -35,6 +35,8 @@ export interface StepExportOptions {
   readonly name?: string;
   /** ISO 8601 time stamp for the header (default: now). */
   readonly timestamp?: string;
+  /** The header's FILE_DESCRIPTION entries (default: 'BaroCSS CAD part'); the studio adds its source revision (O9). */
+  readonly description?: readonly string[];
   /**
    * CAx-IF geometric validation properties of the part (volume, surface area, centroid, and a bounding box):
    * written by default, so a reader can check what it imported; false leaves them out (no mass computed).
@@ -185,7 +187,8 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   if (options.validationProperties !== false) writeValidationProperties(given, add_, shape, context, mm, name);
 
   const stamp = options.timestamp ?? new Date().toISOString().slice(0, 19);
-  return ['ISO-10303-21;', 'HEADER;', `FILE_DESCRIPTION(('BaroCSS CAD part'),'2;1');`, `FILE_NAME(${text(name + '.step')},${text(stamp)},(''),(''),'BaroCSS CAD','BaroCSS CAD','');`,
+  const description = (options.description?.length ? options.description : ['BaroCSS CAD part']).map(text).join(',');
+  return ['ISO-10303-21;', 'HEADER;', `FILE_DESCRIPTION((${description}),'2;1');`, `FILE_NAME(${text(name + '.step')},${text(stamp)},(''),(''),'BaroCSS CAD','BaroCSS CAD','');`,
     `FILE_SCHEMA(('${meshRep ? AP242 : AP214}'));`, 'ENDSEC;', 'DATA;', ...lines, 'ENDSEC;', 'END-ISO-10303-21;', ''].join('\n');
 }
 

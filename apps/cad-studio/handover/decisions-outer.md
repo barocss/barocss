@@ -7852,3 +7852,81 @@ The coordinator asked the owner, who answered: "D2 로 해줘" (go with D2).
 - **Deferred by the owner** (via the coordinator, 2026-10-23 19:20 KST): "O15 는 다음에 하고 다른 것 부터 하자" (do O15 later, do other things first). The rerun after the reset is not made. The script and the tool stay as committed, inert without `CAD_ROBOT_L3=1`. O15 moves to the end of the outer lane's queue until the owner brings it back.
 
 **Tests.** o15-robot-check 2/2; tool-contract-mcp unchanged; tsc and eslint clean.
+
+## O9 — results tied to their revision: the engine's lanes, the callers' guards, exports' sources, REVIEW-A1 (2026-10-23)
+
+**Why.** From #2188 (M2), approved by the owner:
+- every worker reply is checked against what it was asked of before it is shown or stored, and a late reply never overwrites a newer state;
+- drawings and exports carry their source revision;
+- REVIEW-A1: recovery reported success before the mesh blob was stored.
+
+**Step 1: the engine client's lanes** (`apps/cad-studio/src/engine/lanes.ts`, `EngineClient.latest`).
+- **What a lane is.** A request goes on a lane, one per thing a result replaces (the coordinator's rule): 'preview', `section:<view>`, `drawing:<part>`, `placed:<instance>`. Never one per kind of request.
+- **What a reply is.** A discriminated union: `{ stale: true, lane, revision }` or `{ stale: false, lane, revision, source, result }`, so TypeScript forces a caller to look at `stale` before it reaches the result.
+- **Behaviour.**
+  - A newer request on a lane makes every older one there come back stale, whatever order the replies arrive in.
+  - Lanes apart don't supersede each other.
+  - A stopped worker's waiting requests still come back as its refusal ("Stopped").
+  - The existing methods are unchanged.
+- Test: o9-lanes 3/3.
+
+**Step 2 (narrowed, accepted).** The audit found every worker-reply caller already tied to what it asked for, in six ways:
+
+| caller | its guard |
+|---|---|
+| App: section | live flag; a latest-wins run |
+| App: bearing edit | run counter; scope check |
+| App: placed parts | live flag; source key and placement |
+| App: command preview | live flag; previewRun's queue |
+| App: proposalDiff | live flag |
+| App: mould | live flag |
+| subd/useCageEditor | live flag; `of: session` |
+| assembly/useAssembly readFaces | `current()`; source key |
+| ui/useDrawingSheet, DrawingWorkspace | `bodyRead.doc`, `projected.model`, `bomRead.doc`; live flag |
+| viewport usePrintLayers, useClearanceAnalysis, camPreview (the GPU lane's) | `id === request.current && value.request === id` |
+
+- No caller lets a late reply overwrite a newer state today, so none was rewritten.
+- The lanes are the one mechanism for new callers. Moving these six onto them is R4b's (the coordinator), one caller per checkpoint, with no behaviour change.
+- A flow step proves the guards: "O9: the section plane dragged fast across a plate". It makes forty planes a frame apart; the exact section shown is the last plane's, and it is still the last one's 1.5 s later.
+
+**Step 3: exports carry their source** (option C, the coordinator's). The source is `revisionOf(doc)`, the team revision: what a revision covers, 64-bit, for staleness.
+- **In the file:**
+  - STEP's FILE_DESCRIPTION is ('BaroCSS CAD part','source revision <rev>'). The kernel's step.ts gained an additive `description` option (cross-lane, approved), whose default stays byte for byte.
+  - 3MF has `<metadata name="barocss:SourceRevision">`, with `xmlns:barocss="https://barocss.com/3mf/2026"` declared, as 3MF asks of a name off its list.
+  - The drawing's title block has a "SRC <rev>" line at the top right, beside the person's own REV cell. drawingInputs, useDrawingSheet and DrawingWorkspace pass it.
+- **Beside the file**, for the bytes that can't carry it: STL's fixed 80-byte header, and the robot exports that external readers' frozen oracles pin. A `.source.json` record (team/source.ts) holds the revision, the SHA-256 of the revision's canonical content, the files, and for a robot the hand-set values (base, joint settings).
+  - cad-cli `--stl` writes `<name>.source.json`, and `urdf`/`mjcf` write `robot.source.json`.
+  - The studio's STL export downloads `<name>.source.json`. The URDF, MJCF and SDF zips get a `robot.source.json` entry, and the USD download a sidecar. The App.tsx lines were approved: 1716–1720, 2478, 2514, 2520 and 2526.
+  - Bundles already record the document's revision in their manifest.
+- **revisionOf's fields** gain O7's fastenerSizes and castingRules. A document without them hashes as before.
+- **Determinism** (o9-source 3/3):
+  - STEP exported twice gives the same bytes but for the header's time stamp; 3MF written twice is byte-identical;
+  - the drawing's SVG is the same twice, and names the source;
+  - the record is the same bytes twice;
+  - another part gives another source.
+- **Expected values changed.** Each is a provenance change, pre-approved:
+  1. **threemf.test.ts:81**, the `<model>` tag regex. Before it ended `xmlns:p="…/production/2015/06">`. After, it adds ` xmlns:barocss="https://barocss.com/3mf/2026"` before the `>`.
+  2. **conformance r14/tables/bends/expected.AC1015.dxf**, regenerated (UPDATE_DXF_FIXTURES=1): the title block's one SRC TEXT; the handles after it renumbered.
+     - Its ezdxf oracle (oracle.AC1015.json) was re-run with ezdxf 1.4.5 (`~/.cache/barocss-ezdxf`, already installed).
+     - The audit is clean (errors [], fixes []). TITLE_BLOCK added one TEXT ("SRC 0c6f828ede0d236f" at [285, 34], height 1.8) and removed nothing. The coordinator checked the same.
+  3. **reference-bodies.test.ts**, "not in the STEP export". The comparison sets aside the source line together with the time stamp: a locked reference is in the document's revision, not in its geometry.
+  4. **cad-external.test.ts**, `--stl` with two bodies. `wrote` goes from 2 files to 3, the third `two.source.json`.
+- **Unaffected.** O8's single-lump test: under (C) the STL bytes don't change.
+
+**Step 4: REVIEW-A1.** `keepRecovery(fileName, doc, saveBlobs, wanted)` (app/recovery.ts):
+- it stores the mesh blobs first, then writes the copy that names them;
+- blobs refused or failing: no copy, and the older copy is removed;
+- an overtaken call writes nothing, nor does one whose work was saved meanwhile (`wanted`: the effect's cleanup).
+- App.tsx's recovery effect (340–352, approved) is now that one call, with the toasts on their branches.
+- recovery 4/4.
+
+**Verified (O9).** At 56f9e321c, over integration 3ea5624e2, tier T2.
+- cad-model suite 983/983. Since O7c's 979: o9-source 3, and the content-key test in o7-tslot 1.
+- Studio suite 274/274. Since 268: o9-lanes 3, o15-robot-check 2, recovery +1.
+- tsc and eslint clean.
+- FLOW_ONLY on WebGPU and WebGL2 (exit 0 each, with each step's prerequisite steps):
+  - 3MF export, "drawing revision" (the title block), the container mesh's recovery, "unsaved work comes back after a reload" (after the surface steps that make its direct objects);
+  - RM4 URDF, RM5 MJCF, and RM9c SDF/USD (after RM9a and RM9b, which open its arm);
+  - CNC5;
+  - the new O9 section step.
+- On the first run, "unsaved work" and RM9c failed alone: their documents come from the steps before. Rerun with those steps, they pass. These were FLOW_ONLY prerequisites, not this change.
