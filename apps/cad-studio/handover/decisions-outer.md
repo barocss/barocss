@@ -8309,7 +8309,7 @@ values. Part-level configurations stay as they are (folding them into variants l
 - **Refusals:** [MOUNT_ROW] (none loaded, no such row — choice fields gained an `unknown` text for it — a bearing row not
   loaded), [MOUNT_RANGE], [MOUNT_FACE]. run_command now returns a build's thrown refusal as the tool's error,
   "<Label>: <refusal>", the part unchanged, for every command.
-- **Agent:** no new action (features.run mount, load_rows mounts); gated as adding features. Per turn 23,556.
+- **Agent:** no new action (features.command with command mount, features.load_rows with kind mounts); gated as adding features. Per turn 23,556.
 - **Sample** samples/rows/mounts.json, read only from public HTML pages (no file downloaded), numbers only, each with its
   URL and the date read (2026-10-24): UCP204 and UCFL204 from NSK's product pages (sourced rows). NEMA 17 and NEMA 23
   are **estimates**, every field in `unchecked`: NEMA 17's spacing, M3 and shaft are on Bondtech's product page but
@@ -8319,4 +8319,12 @@ values. Part-level configurations stay as they are (folding them into variants l
   shaft are the example's choice, said so. **No servo row:** no maker's dimensioned mounting drawing was found; the
   servo type is tested with a test-only estimate row (test/o14-fixtures).
 - **Fingerprint:** every existing document identical; the six mount fixtures (test/o14-fixtures) are new entries.
-- The UI (Library load entry, the command in the rail, the axis shown) waits for G12b.
+- **A change every command shows:** run_command (features.command) returns a build's thrown refusal as the tool's error,
+  "<Label>: <refusal>", the part unchanged. Before, the throw left the tool: through the MCP server a JSON-RPC error
+  (-32603), in the chat server the turn's error. No flow step or A/B brief relied on the throw; the A/B harness's
+  `refusals` count (tool results with isError) now includes these.
+- Mount already runs from the palette (app/commands.ts). **The post-G12b UI list** (O11, O12, O14), in one place:
+  O11 — the inputs and variants panel, the active variant shown (the studio evaluates it); O12 — each frame in the
+  sliders' readout and drawn in the viewport; O14 — the Library's rows loader (FastenerSizes.tsx, which lists only
+  fastener sizes and casting rules) gains "Load sample mounts" and a load-a-file entry for mounts, in its own pattern,
+  and the mount's axis shown. Done before G12b, it stays in that one component.
