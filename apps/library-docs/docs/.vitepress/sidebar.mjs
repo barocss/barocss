@@ -23,6 +23,7 @@ export const sidebar = [
       { text: 'Frames and weldments', link: '/studio/frames', lane: 'outer' },
       { text: 'Robots', link: '/studio/robots', lane: 'outer' },
       { text: 'Display, sections and analysis', link: '/studio/display', lane: 'GPU' },
+      { text: 'Rendering', link: '/studio/rendering', lane: 'outer' },
       { text: 'Shop rows', link: '/studio/rows', lane: 'outer' },
       { text: 'Files and exports', link: '/studio/files', lane: 'outer' },
     ],
