@@ -25,11 +25,20 @@ studio in a browser.
   trees against an independent ray-casting oracle. A finding is shrunk to its smallest case.
 - **Determinism.** A test evaluates each model alone, after the others and again, and requires the same B-rep to the
   bit.
-- **The fingerprint.** A refactor that should change nothing is checked with a fingerprint: a SHA-256 over the outputs
-  of 855 cases (every robustness corpus case, and two fuzz seeds of 200). The digests before and after must be
-  identical.
-  - The digests are recorded in the decision records (`apps/cad-studio/handover/decisions.md`).
-  - The script that computes them is kept outside the repository.
+- **The fingerprint.** A refactor that should change nothing is checked with a fingerprint.
+  - **The cases:** every robustness corpus case, and the fuzz cases of two seeds, 200 each.
+  - **What it records:** each output's validity, its face, edge and vertex counts, its area and mass properties to the
+    bit, and a SHA-256 of its tessellation. Refusals are recorded by name.
+  - **The check:** one SHA-256 over all of it, which must be identical before and after the refactor.
+  - **Running it:** `packages/barocss-cad/scripts/r5-fingerprint.mjs`, after `pnpm -s build:library`:
+
+    ```bash
+    node scripts/r5-fingerprint.mjs [out.jsonl] [jobs]
+    ```
+
+  - **Where the digests go:** the digest a refactor was checked against goes in its decision record
+    (`apps/cad-studio/handover/decisions.md`). The digest changes whenever behaviour changes on purpose, so there's no
+    fixed value to check against.
 
 ## Browser flows on both renderers
 
