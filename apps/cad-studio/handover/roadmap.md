@@ -237,7 +237,7 @@ evidence files.
 
 CAE (FEM, mesher, mould-fill; RD4–RD8 held), PCB/ECAD (deferred), DWG/SAT reading (deferred; DWG writing no-go),
 FRf2 sibling-part frames (refused). Standing:
-- no WASM and no new runtime dependencies;
+- no WASM and no new runtime dependencies in the packages (cad, cad-model, gpu); the studio app's UI may use UI libraries (owner, 2026-10-24);
 - no standards text or built-in tables;
 - rows rule (b);
 - v2 tools only;
