@@ -7368,3 +7368,38 @@ Their parts are `base:<body key>`; `targetOf` read that whole string as an insta
 - studio: section-cutout, section-hatch, section-planes, section-view and pmi, all passing;
 - tsc of model and studio; eslint 0 errors on the changed files.
 - Not run: the flow (no step makes an aligned section yet).
+
+## R3a — chat/tools.ts by action group, first step: the shared kit, query and image (2026-10-23)
+
+**Phase R, R3 (the coordinator's plan, approved).** chat/tools.ts was 1,699 lines; 540 of them one switch of 37 v1 handlers. It is split by v2 action group, behaviour-preserving only, in five checkpoints (R3a–R3e).
+- **The facade.** chat/tools.ts stays a file (the package exports `./*` → `./src/*.ts`).
+  - It keeps runTool, dispatchTool and the dispatch.
+  - It re-exports every name that moved, so `@barocss/cad-model/chat/tools` and every relative import resolve as before.
+- **Modules** go in `chat/part/`, one per v2 group. The shared kit is `chat/toolKit.ts`.
+- **No cycle:** a handler that calls tools again gets the runner as its `run` argument; no module imports tools.ts.
+
+**R3a moved, verbatim (code text unchanged; only indentation and the function around a case's body):**
+- **chat/toolKit.ts:**
+  - the ChatState, Evaluate and ToolOutcome types, and the new PartRun and PartHandler;
+  - the per-call flags, now `export let responseFormat` and `because`, set by `setCall(args)` as runPartTool starts. Importers read the live bindings unchanged;
+  - r3, v3, json, describeBodies, features, CHECKPOINTS, DETAIL_LIMIT, accept, fail, checkValues, isObj, strings, list.
+- **chat/part/query.ts:** get_part_summary, measure, weld_list, fit_clearance, mass_properties, interference, section, wall_thickness and draft, plus fitView.
+  - wall_thickness and draft shared one case that read `name`: it is one hoisted `wallThicknessOrDraft(name, …)` and two module-level handlers.
+- **chat/part/image.ts:** get_image_layers, extrude_image_layer, inflate_image_layer and the trace geometry (traceOf … surfaceAt, INFLATE, BUMP, layerSketches).
+- **tools.ts** is 1,309 lines.
+  - `PART_HANDLERS` is a module-level const of hoisted functions, built once.
+  - It is looked up with `Object.hasOwn` before the remaining switch, after the drawing tools, as the cases were.
+  - It re-exports describeBodies, ChatState, Evaluate, ToolOutcome, INFLATE, layerSketches and surfaceAt.
+
+**The byte check** (a scratch snapshot, never committed): TOOLS as JSON, SYSTEM_PROMPT, the v2 tools list and prompt, `describe` of every group, action, command and feature kind, the mutator and argument tables, and three refusals (468 KB). It reproduced identically twice before the move, and is identical after it.
+
+**Seams and proposals left by R3a:**
+- **The per-call flags.** `export let responseFormat/because` with `setCall(args)` keeps the flow identical and writes them in one place. They are still module state set on every call. This is the seam for the later step that carries them in the call context instead (the survey's item 6), when that step can keep the per-call flow the same.
+- **A proposal for the coordinator, not made here:** the package runner `scripts/test.mjs` passes no concurrency to `node --test`. The one-line change would be to pass `--test-concurrency=${process.env.TEST_CONCURRENCY}` when that variable is set. Until then, R checkpoints run the suite through an uncommitted scratch copy with `--test-concurrency=4`.
+
+**Verified (R3a):**
+- the byte check, identical;
+- toolset 9/9 (23,198 of 25,000, unchanged) and tool-contract 3/3;
+- the cad-model suite at --test-concurrency=4: 960 of 960 pass, in 378 s. LOADED: it started at load 36 and the kernel lane's suite took the load to 105 during it.
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (no studio change).
