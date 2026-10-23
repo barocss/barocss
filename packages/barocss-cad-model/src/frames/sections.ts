@@ -20,6 +20,8 @@ export function sectionUses(doc: StudioDoc): Map<string, string[]> {
 }
 
 /** The library with `rows` added (or replaced, by id) and `remove` taken out: each row checked, refused by name; a row in use stays. */
+// (Not engine/rowEdits' editRows: a section row is normalised as it is read, ids may not repeat among those added, and
+// its refusals carry their own codes and the row's index.)
 export function editSections(doc: StudioDoc, rows: readonly unknown[] = [], remove: readonly string[] = []): SectionEdit {
   const was = doc.frames?.sections ?? [], good: FrameSectionRow[] = [];
   for (const [k, r] of rows.entries()) {

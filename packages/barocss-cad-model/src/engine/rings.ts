@@ -3,6 +3,7 @@
 // none built in. A ring naming a row is checked against it by the kernel (ringSolid: the step's and the groove's sizes);
 // a ring with no row stays an estimate, said so. A row a ring uses stays (remove the ring first).
 import type { StudioDoc } from './doc';
+import { editRows } from './rowEdits';
 
 export interface StudioRingRow { id: string; designation?: string; shaftDiameterMM: number; grooveDiameterMM: number; grooveWidthMM: number; source?: string; estimate?: true }
 const FIELDS = new Set(['id', 'designation', 'shaftDiameterMM', 'grooveDiameterMM', 'grooveWidthMM', 'source', 'estimate']);
@@ -25,13 +26,9 @@ export function ringRowProblem(r: unknown): string | null {
 }
 /** Rows added (each checked; one with an id held already replaces it) and removed by id. */
 export function editRingRows(doc: StudioDoc, add: readonly unknown[], remove: readonly string[] = []): { doc: StudioDoc } | { error: string } {
-  for (const r of add) { const p = ringRowProblem(r); if (p) return { error: p }; }
-  const was = doc.rings?.rows ?? [], gone = remove.filter(id => !was.some(r => r.id === id));
-  if (gone.length) return { error: `no ring row ${gone.join(', ')} to remove (rows: ${was.map(r => r.id).join(', ') || 'none'})` };
-  const used = remove.filter(id => doc.nodes.some(n => n.kind === 'retaining-ring' && n.row === id));
-  if (used.length) return { error: `ring row ${used.join(', ')} is used by a retaining ring: remove the ring first` };
-  const incoming = add as StudioRingRow[], ids = new Set([...remove, ...incoming.map(r => r.id)]);
-  return { doc: { ...doc, rings: { version: 1, rows: [...was.filter(r => !ids.has(r.id)), ...incoming] } } };
+  const r = editRows<StudioRingRow>(doc.rings?.rows ?? [], add, remove, { problem: ringRowProblem, noun: 'ring row',
+    used: { by: id => doc.nodes.some(n => n.kind === 'retaining-ring' && n.row === id), text: 'is used by a retaining ring: remove the ring first' } });
+  return 'error' in r ? r : { doc: { ...doc, rings: { version: 1, rows: r.rows } } };
 }
 /** The rows for a groove: those of its shaft step's and groove's sizes, first (to 1e-6 mm). */
 export function ringRowsFor(doc: Pick<StudioDoc, 'rings'>, shaftDiameterMM: number, grooveDiameterMM: number): StudioRingRow[] {
