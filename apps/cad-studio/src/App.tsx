@@ -416,10 +416,12 @@ export function App() {
   const [instanceEdit, setInstanceEdit] = useState<{ owner: string; index: number } | null>(null);
   const [instanceEditPending, setInstanceEditPending] = useState(false);
   // A changed selection invalidates a pending edit even if the user selects the same occurrence again.
+  /** The O9 lanes App's worker requests go on (R4b): a reply overtaken on its lane comes back stale. */
+  const lanes = useMemo(() => new Lanes(), []);
   const bearingEditScope = useRef({ doc, instanceSel, instanceEdit, editNode });
   if (bearingEditScope.current.doc !== doc || bearingEditScope.current.instanceSel !== instanceSel || bearingEditScope.current.instanceEdit !== instanceEdit || bearingEditScope.current.editNode !== editNode) bearingEditScope.current = { doc, instanceSel, instanceEdit, editNode };
-  const instanceEditRun = useRef(0);
-  useEffect(() => { instanceEditRun.current++; setInstanceEditPending(false); }, [doc, instanceSel, instanceEdit]);
+  // (R4b: the bearing edit on its O9 lane — the document, the selection or the edit changing makes a reply on it stale.)
+  useEffect(() => { lanes.cancel('bearing-edit'); setInstanceEditPending(false); }, [doc, instanceSel, instanceEdit]);
   const selectedBearingEdit = useMemo(() => {
     if (!instanceEdit || instanceSel.length !== 1 || instanceSel[0] !== instanceEdit.owner) return null;
     try { return { session: captureBearingEditSession(doc, instanceEdit.owner, instanceEdit.index), error: null }; }
@@ -579,8 +581,6 @@ export function App() {
     catch { return doc; }
   }, [doc]);
   const evaluated = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc.nodes, doc.parameters, doc.frames?.sections, rootContextKey, followsParts ? doc.instances : null, marker]);
-  /** The O9 lanes App's worker requests go on (R4b): a reply overtaken on its lane comes back stale. */
-  const lanes = useMemo(() => new Lanes(), []);
   const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
   useEffect(() => {
@@ -707,19 +707,20 @@ export function App() {
   const applyInstanceBearing = async (session: BearingEditSession, nodes: ModelNode[]) => {
     const scope = bearingEditScope.current;
     if (!bearingEditCurrent(session, scope.doc, scope.instanceSel, scope.instanceEdit)) return;
-    const run = ++instanceEditRun.current;
     setInstanceEditPending(true);
-    try {
-      const prepared = prepareBearingEdit(session, nodes);
-      const result = await engine.part(prepared.view, revision.current++);
-      const current = bearingEditScope.current;
-      if (run !== instanceEditRun.current || current !== scope || !bearingEditCurrent(session, current.doc, current.instanceSel, current.instanceEdit)) return;
-      if (!result.ok) { setToast(result.error); return; }
-      commitInstances(prepared.root.instances!, [session.owner]);
-      setInstanceEdit(null);
-    } catch (error) {
-      if (run === instanceEditRun.current && bearingEditScope.current === scope) setToast({ title: 'Bearing not changed', hint: error instanceof Error ? error.message : String(error), detail: '' });
-    } finally { if (run === instanceEditRun.current) setInstanceEditPending(false); }
+    // (Its refusal, thrown, comes back on the lane as its result: a stale one, like a stale reply, says nothing.)
+    const at = revision.current++, reply = await lanes.run('bearing-edit', { revision: at, source: session.owner }, async () => {
+      try { const prepared = prepareBearingEdit(session, nodes); return { prepared, result: await engine.part(prepared.view, at) }; }
+      catch (error) { return { error }; }
+    });
+    if (reply.stale) return;
+    setInstanceEditPending(false);
+    const out = reply.result, current = bearingEditScope.current;
+    if ('error' in out) { if (current === scope) setToast({ title: 'Bearing not changed', hint: out.error instanceof Error ? out.error.message : String(out.error), detail: '' }); return; }
+    if (current !== scope || !bearingEditCurrent(session, current.doc, current.instanceSel, current.instanceEdit)) return;
+    if (!out.result.ok) { setToast(out.result.error); return; }
+    commitInstances(out.prepared.root.instances!, [session.owner]);
+    setInstanceEdit(null);
   };
   // Evaluate each instance whose placed part changed (in the worker, beside the main part).
   const instanceSources = useMemo(() => instanceEvaluationSources(doc), [doc]);
