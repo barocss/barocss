@@ -150,10 +150,13 @@ function deferredRef(o: { brep: Brep; massProperties(density: number): MassProps
  */
 export function massOfRef(ref: number, place: readonly { m: readonly number[]; t: readonly number[] }[] = []): Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> | undefined {
   const brep = massRefs.get(ref)?.deref(), o = brep && pendingOutputs.get(brep);
-  if (!o) return undefined;
-  let f = massFields(massOfBrep(o));
-  for (const p of place) f = { ...f, ...placedMass(f, p.m, p.t) };
-  return f;
+  return o ? placedMassFields(massFields(massOfBrep(o)), place) : undefined;
+}
+/** Mass fields worked out unplaced (massOfRef with no placements), moved by a deferred body's `massPlace` (the studio's patch). */
+export function placedMassFields<T extends Pick<BodyResult, 'centroid' | 'inertia'>>(f: T, place: readonly { m: readonly number[]; t: readonly number[] }[]): T {
+  let out = f;
+  for (const p of place) out = { ...out, ...placedMass(out, p.m, p.t) };
+  return out;
 }
 // (The surface area, once a B-rep: the kernel's over its exact surfaces, null where it cannot.)
 const areas = new WeakMap<Brep, number | null>();
