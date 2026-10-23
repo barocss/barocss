@@ -66,9 +66,19 @@ The placements don't change, so mates and exports are unaffected.
 An assembly can have **inputs**, each driving a few things explicitly, and **variants**, named sets of input values.
 
 ::: info Not in the studio yet
-There is no studio interface or agent action for variants yet. The inputs are written in the document
-(`variability`), and the document model's `assembly/variability` module regenerates a variant from them.
+The studio has no interface for variants yet, and doesn't show which variant is active. For now they come from the
+agent, or are written in the document (`variability`).
 :::
+
+- **The agent's actions:**
+  - `assembly.inputs` sets the inputs. It changes the assembly's structure, so at L1 and L2 the agent proposes it, and
+    from L3 it applies.
+  - `assembly.variants` sets the named variants and which one is active. It applies from L2, and is proposed at L1.
+  - The agent's summary of the part (`query.summary`) includes its variability.
+
+  See [Tools](/agent/tools) and [Proposals and autonomy](/agent/proposals).
+- **In code:** `@barocss/cad-model/assembly/variability` regenerates a variant from the inputs: `variantOf` takes its
+  values and `variantNamed` its name.
 
 - **Inputs.** An input has a name, a type (`number`, `boolean` or `choice`), an optional unit (`mm` or `deg`) and
   range, and a default. It drives one or more targets:
