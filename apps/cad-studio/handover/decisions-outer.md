@@ -8346,3 +8346,25 @@ values. Part-level configurations stay as they are (folding them into variants l
   sectionView, the preview ghost; in the model only cutPiece for members; factsOf and the fingerprint when called).
   Laziness needs mass left off the wire and fetched per body, with its readers awaiting it (src/engine, App.tsx,
   src/ui): for the post-G12b UI list, not built.
+
+## O17 — the chat on the AI SDK: rendering, scripted turns, O17c's line; R14.1's placement (2026-10-24)
+
+- **Install** (c25ecc976): `ai` 7.0.137, `@ai-sdk/react` 4.0.140, `@shadcn/helpers` 0.2.0, `zod` 4.6.5, exact; undici
+  held at 7.30.0 by the coordinator's root override (6dbdc9fca: 7.30.1 was younger than two weeks).
+- **Rendering** (4341340a4): chat/useStudioChat holds ChatPanel's turn logic on `useChat`, unchanged (session, quotes,
+  traces, rows, blobs; previews from data-state; the A7 merge, history and commit at the end). Notices are `data-notice`
+  parts of the turn's own message. After `stop()` useChat reads the stream no further, so a stopped turn's notice is
+  appended by the hook once the turn has settled. components/ai: Message, Tool (a failed call by its icon and `err`, no
+  left border), ProposalLink (a propose call's proposal from the document — title, risk and status chips, Reject and
+  Accept as the list; stale: rebased from the list; AI SDK approval not used). Every label and class kept. App.tsx: two
+  lines (the proposal props). All 51 chat steps on both renderers: 52/52 each.
+- **Scripted turns** (80a49b2e6, DEV): `window.__studioScriptChat(turns)` streams the chat server's own events through
+  shadcn's createChat, the n-th user message answered by the n-th turn; the studio's end runs on the scripted `done`,
+  and a turn stopped before it ends as aborted. `__studioChatSent()` keeps what each turn would have sent. Steps 61 and
+  62 moved to it (61 renamed "… through a scripted chat (createChat)"); step 63 is new, UI only. Everything that proves
+  tools and gates stays on the real servers.
+- **O17c** (c7e6644e8): a reasoning part is one collapsed "Thinking…" line; none when the CLI streams no thinking.
+  **Unverified against the live CLI** — the live turn is the owner's ask.
+- **R14.1's label click** (the GPU lane's report): not the label — the click landed on the paper further than 30 mm from
+  every view, and hoverAt, finding no view, dropped it. While a dimension is placed, its place is read in its own view
+  wherever the pointer is on the sheet (placingAt), for the click and its preview; the flow's placement is back at 30 mm.
