@@ -101,6 +101,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | R5.4's demo comparison (119 demos vs D228): the .d.ts names of moved modules in 17 demos folder-qualified; none fails that passed before | D234 | done |
 | O10 (kernel part): evaluateCadPart(…, { profile: true }) — per-feature wall time and kernel calls; off by default | D228 | done (fingerprint identical off and on) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
+| K12: fuzz 110's family (Viviani's curve through a ball's pole) — the traced curve cut at the pole (the R5 session's patch), and chainCurve's refining points kept on both patches; 110 as fuzzed (a tangent point at the equator) still open | D235 | done (T1, fingerprint identical) |
+| K12: fuzz 119 — the march's closing and running-back tests used half the step taken, so a closed curve could be traced twice (8 of 40 steps on two balls); they use the step taken | D236 | done (T1, fingerprint: 119 refused → valid, nothing else) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 
