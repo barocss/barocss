@@ -19,7 +19,8 @@ pnpm chat
 - **Up to 24 steps** a message.
 - **The server's address** is `127.0.0.1:52021`, or `CAD_STUDIO_CHAT_PORT`. The studio forwards `/api/chat` there.
 
-Click **Chat** to open the panel. Its header holds:
+Click **Chat** to open the chat, a full-height column at the studio's left (see [the layout](/studio/tour#the-layout)).
+Its header holds:
 
 - **Autonomy**, L1 to L4 (see [Proposals and autonomy](/agent/proposals));
 - **New conversation**;
