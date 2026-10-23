@@ -27,6 +27,8 @@ the plane is edge-on, and the cut faces hatched.
 
 ## Dimensions and notes
 
+![A sheet after Auto-dimension: overall sizes, the hole's position and its callout](/shots/studio/drawings/auto-dimension.jpg)
+
 | Key | Tool | How |
 |---|---|---|
 | <kbd>V</kbd> | Select | Click a dimension to select it, drag to move it; <kbd>Delete</kbd> removes it |
@@ -36,7 +38,7 @@ the plane is edge-on, and the cut faces hatched.
 | <kbd>A</kbd> | Angle | Click two straight edges, then the side of their corner |
 | <kbd>N</kbd> | Note | Click the paper for a note, or a view for a leader |
 
-**Auto-dimension** lays out the views with room, picks a scale and sheet that read cleanly, then adds the overall
+**Auto** under **Dimensions** (Auto-dimension) lays out the views with room, picks a scale and sheet that read cleanly, then adds the overall
 sizes, steps, hole positions and callouts. It replaces its own earlier dimensions and keeps yours. A dimension goes
 where both its ends are visible: in a section when the section shows more than the view.
 

@@ -15,6 +15,8 @@ Finish the sketch with <kbd>Enter</kbd> or **Finish sketch** in the top bar.
 
 ## Drawing tools
 
+![A rectangle drawn in a sketch on XY: its two dimensions, its constraints and "Fully defined" in the sketch panel](/shots/studio/sketches/rectangle.jpg)
+
 | Key | Tool | How |
 |---|---|---|
 | <kbd>R</kbd> | Rectangle | Click two corners |

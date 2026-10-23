@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -56,6 +56,50 @@ const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySe
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: WAIT })
   .catch(async () => assert.fail(`the HUD did not reach preview or refused; it shows ${JSON.stringify((await text('.hud .status')).slice(0, 80))}`)); };
 const settle = async () => { await idle(); await page.waitForTimeout(600); };
+const clickAt = async (x, y) => { await page.mouse.move(x - 4, y); await page.mouse.move(x, y); await page.mouse.click(x, y); };
+const iso = async () => { await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500); };
+const newPart = async () => { await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc?.nodes.length === 0, null, { timeout: WAIT }); };
+const fromPalette = async (words) => { await press(' '); await page.locator('.palette input').fill(words); await page.locator('.palette input').press('Enter'); await hudReady(); };
+const boxWithHole = async () => {
+  await newPart(); await press('b'); await hudReady(); await press('Enter'); await shows('.outliner', /1 body/, 'a box makes one body'); await idle();
+  assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')), 'the top face selects');
+  await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
+  await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: WAIT }); await idle();
+};
+/** A file the studio opens, written outside the repository. */
+const scratchFile = (name, bytes) => { const dir = join(tmpdir(), 'library-docs-capture'); mkdirSync(dir, { recursive: true }); const f = join(dir, name); writeFileSync(f, bytes); return f; };
+const openFile = async (file) => {
+  await page.evaluate(() => { window.__captureLastDoc = window.__studioDoc; });
+  await page.setInputFiles('input[aria-label="Model file"]', file);
+  await page.waitForFunction(() => window.__studioDoc !== window.__captureLastDoc, null, { timeout: WAIT }); await idle();
+};
+/** The studio loaded again, its unsaved-work offer discarded: a studio page's step starts from nothing left over. */
+const fresh = async () => {
+  await page.goto(url); await page.waitForSelector(`.viewport[data-renderer="${renderer}"]`, { timeout: WAIT });
+  const offer = page.locator('[aria-label="Recover unsaved work"] button:text-is("Discard")');
+  if (await offer.count()) await offer.click();
+  await idle();
+};
+/** The Browser's first body picked, its properties shown (a click can land as the list settles: tried again). */
+const pickFirstBody = async () => {
+  for (let k = 0; k < 3; k++) {
+    await page.locator('.outliner .ol').first().click();
+    if (await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: WAIT }).then(() => true, () => false)) return;
+  }
+  assert.fail('the first body in the Browser could not be picked');
+};
+const displayPopover = async () => { const d = page.locator('[aria-label="Display and previews"]'); if (await d.getAttribute('aria-expanded') !== 'true') await d.click(); };
+/** A binary STL of a sphere with its top cap off: one hole, for the repair dialog. */
+function cupStl() {
+  const n = 24, m = 12, P = [[0, 0, -10]], T = [];
+  for (let j = 1; j < m; j++) { const phi = -Math.PI / 2 + Math.PI * j / m; for (let i = 0; i < n; i++) { const th = 2 * Math.PI * i / n; P.push([10 * Math.cos(phi) * Math.cos(th), 10 * Math.cos(phi) * Math.sin(th), 10 * Math.sin(phi)]); } }
+  const at = (j, i) => 1 + (j - 1) * n + (i % n);
+  for (let i = 0; i < n; i++) T.push([0, at(1, i + 1), at(1, i)]);
+  for (let j = 1; j < m - 2; j++) for (let i = 0; i < n; i++) T.push([at(j, i), at(j, i + 1), at(j + 1, i + 1)], [at(j, i), at(j + 1, i + 1), at(j + 1, i)]);
+  const b = Buffer.alloc(84 + 50 * T.length); b.write('cup', 0); b.writeUInt32LE(T.length, 80);
+  T.forEach((t, k) => { const o = 84 + 50 * k; t.forEach((v, c) => P[v].forEach((x, d) => b.writeFloatLE(x, o + 12 + 12 * c + 4 * d))); });
+  return b;
+}
 const canvasCenter = async () => { const b = await page.locator('canvas.vp-canvas').boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 /** The label Getting started names, as the studio shows it. */
 const shows = async (sel, re, what) => {
@@ -143,15 +187,142 @@ const steps = [
     await shot('guide/getting-started', 'drawing', 'getting started: chat off, the drawing');
     await page.click('button:text-is("Model")');
   }],
+  // ——— the studio pages
+  ['studio/sketches: a rectangle', async () => {
+    await fresh();
+    await newPart(); await press('s'); await press('r');
+    const [cx, cy] = await canvasCenter();
+    await clickAt(cx - 160, cy - 90); await clickAt(cx + 160, cy + 90); await page.waitForTimeout(500);
+    await shot('studio/sketches', 'rectangle', 'studio/sketches: a rectangle');
+    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await shows('.outliner', /1 body/, 'an extruded sketch makes one body');
+  }],
+  ['studio/features: holes on a circle, a SubD box', async () => {
+    await fresh();
+    await newPart(); await press('b'); await hudReady();
+    await field('Width X').fill('80'); await field('Depth Y').fill('80'); await field('Height Z').fill('10'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')), 'the top face selects');
+    await press('h'); await hudReady(); await field('Copies').selectOption({ label: 'On a circle' }); await field('Centre X').fill('60'); await hudReady();
+    await shows('.hud .status', /^preview$/, 'holes on a circle preview'); await page.waitForTimeout(400);
+    await iso(); await shot('studio/features', 'holes-on-a-circle', 'studio/features: holes on a circle, a SubD box');
+    await press('Escape'); await press('Escape');
+    await newPart(); await fromPalette('subd box'); await shows('.hud .status', /^preview$/, 'SubD box previews'); await press('Enter');
+    await shows('.history', /SubD box/, 'the history lists the SubD box'); await idle(); await iso();
+    await shot('studio/features', 'subd-box', 'studio/features: holes on a circle, a SubD box');
+  }],
+  ['studio/display: the popover, a section, zebra', async () => {
+    await fresh();
+    await boxWithHole(); await press('Escape'); await iso(); await displayPopover(); await page.waitForTimeout(300);
+    await shot('studio/display', 'display-popover', 'studio/display: the popover, a section, zebra', { target: page.locator('[aria-label="Previews"]') });
+    await page.click('[aria-label="Display and previews"]');
+    await page.click('[aria-label="Section view"]'); await page.waitForSelector('[data-handle="section"]', { timeout: WAIT }); await page.waitForTimeout(800);
+    await shot('studio/display', 'section', 'studio/display: the popover, a section, zebra');
+    await page.click('[aria-label="Section view"]'); await page.waitForTimeout(300);
+    assert.ok(await page.evaluate(() => window.__studioPickEdge('n1.side0|n1.top')), 'an edge picks');
+    await fromPalette('fillet'); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: WAIT }); await idle(); await press('Escape');
+    await page.click('[aria-label="Surface analysis"]'); await page.waitForTimeout(800); await iso();
+    await shot('studio/display', 'zebra', 'studio/display: the popover, a section, zebra');
+    await page.click('[aria-label="Surface analysis"]'); await page.click('[aria-label="Surface analysis"]');
+  }],
+  ['studio/manufacturing: the thickness map, the CNC preview, print layers', async () => {
+    await fresh();
+    if (renderer === 'webgpu') {
+      const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'smooth' },
+        nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }, { kind: 'extrude', sketch: 0, height: 10 }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [30, 20], radius: 5 }],
+        outputs: { b2: { node: 2, side: 'solid' } } };
+      await openFile(scratchFile('moulded-plate.bcad', JSON.stringify(plate))); await iso();
+      await page.click('[aria-label="Analysis map"]'); await page.waitForSelector('[aria-label="Map legend"]', { timeout: WAIT }); await page.waitForTimeout(800);
+      await shot('studio/manufacturing', 'thickness-map', 'studio/manufacturing: the thickness map, the CNC preview, print layers', { caption: 'WebGPU only' });
+      await page.click('[aria-label="Analysis map"]').catch(() => {});
+    }
+    await openFile(join(studio, 'test/fixtures/cnc8-pocket.bcad')); await iso(); await displayPopover();
+    await page.check('input[aria-label="CNC preview"]');
+    await page.waitForFunction(() => window.__studioCam?.()?.stage === 'ready', null, { timeout: 4 * WAIT });
+    await page.click('[aria-label="CNC progress to the end"]'); await page.waitForTimeout(1200);
+    await shows('.card[aria-label="CNC preview"]', /NOT FOR PRODUCTION/, 'the CNC preview opens with `NOT FOR PRODUCTION`');
+    await shot('studio/manufacturing', 'cnc-preview', 'studio/manufacturing: the thickness map, the CNC preview, print layers');
+    // (The two previews take turns: the studio asks to close the CNC preview first.)
+    await page.uncheck('input[aria-label="CNC preview"]');
+    await page.check('input[aria-label="Print layers"]');
+    await page.waitForFunction(() => window.__studioPrint?.()?.stage === 'ready', null, { timeout: 4 * WAIT });
+    // (Part way up, where the pocket shows: the range set as a drag sets it, its value then the event React hears.)
+    await page.locator('[aria-label="Print layer"]').evaluate(el => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(Math.round(Number(el.max) * 0.7))); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioPrint?.()?.stage === 'ready' && window.__studioPrint().display.layer.k > 1, null, { timeout: 4 * WAIT }); await page.waitForTimeout(800);
+    await shot('studio/manufacturing', 'print-layers', 'studio/manufacturing: the thickness map, the CNC preview, print layers');
+    await page.uncheck('input[aria-label="Print layers"]');
+  }],
+  ['studio/assemblies: interference', async () => {
+    await fresh();
+    await newPart(); await press('b'); await hudReady(); await press('Enter'); await shows('.outliner', /1 body/, 'a box makes one body'); await idle();
+    await press('Escape'); await press('y'); await hudReady();
+    await field('Centre X').fill('16'); await field('Centre Y').fill('16'); await field('Radius').fill('4'); await field('Height').fill('30'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await shows('.outliner', /2 bodies/, 'a cylinder beside a box makes two bodies'); await idle();
+    await fromPalette('interference').catch(() => {});
+    await page.waitForFunction(() => /∩/.test(document.querySelector('aside[aria-label="Interference"]')?.textContent ?? ''), null, { timeout: WAIT });
+    await iso(); await shot('studio/assemblies', 'interference', 'studio/assemblies: interference');
+  }],
+  ['studio/frames: a table frame, the cut list', async () => {
+    await fresh();
+    await newPart(); await fromPalette('skeleton');
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 4 * WAIT }); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /8 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 8 * WAIT }); await idle(); await iso();
+    await shot('studio/frames', 'table-frame', 'studio/frames: a table frame, the cut list');
+    await pickFirstBody(); await page.click('[aria-label="Show the cut list"]'); await page.waitForSelector('[aria-label="Cut list"]', { timeout: WAIT });
+    await shot('studio/frames', 'cut-list', 'studio/frames: a table frame, the cut list', { target: page.locator('[aria-label="Cut list"]') });
+    await press('Escape');
+  }],
+  ['studio/bom: a shaft and its key', async () => {
+    await fresh();
+    await newPart();
+    for (const [label, pickShaft] of [['Shaft', false], ['Key', true]]) {
+      if (pickShaft) { await page.locator('.outliner .ol', { hasText: /^Shaft/ }).first().click(); await page.waitForTimeout(300); }
+      await fromPalette(label); await page.waitForTimeout(300); await press('Enter'); await idle();
+    }
+    await page.waitForFunction(() => window.__studioDoc.nodes.some(n => n.kind === 'key'), null, { timeout: 2 * WAIT });
+    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]'); await page.waitForSelector('[aria-label="BOM line 2"]', { timeout: 2 * WAIT }); await iso();
+    await shot('studio/bom', 'bom', 'studio/bom: a shaft and its key');
+    await page.click('nav[aria-label="Tools"] [aria-label="BOM"]');
+  }],
+  ['studio/drawings: auto-dimension', async () => {
+    await fresh();
+    await boxWithHole(); await press('Escape');
+    await page.click('.mode button:text-is("Drawing")'); await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 2 * WAIT });
+    await page.click('[aria-label="Auto-dimension"]'); await page.waitForFunction(() => window.__studioDrawing().dimensions.length > 2, null, { timeout: WAIT }); await page.waitForTimeout(600);
+    await shot('studio/drawings', 'auto-dimension', 'studio/drawings: auto-dimension');
+    await page.click('.mode button:text-is("Model")');
+  }],
+  ['studio/robots: the Joints card', async () => {
+    await fresh();
+    const c = JSON.parse(readFileSync(join(studio, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8'));
+    await openFile(scratchFile('chain-2r.bcad', JSON.stringify(c.input.document)));
+    await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 2 * WAIT }); await iso(); await page.waitForTimeout(500);
+    await shot('studio/robots', 'joints', 'studio/robots: the Joints card');
+  }],
+  ['studio/files: the mesh repair dialog', async () => {
+    await fresh();
+    await page.setInputFiles('input[aria-label="Model file"]', scratchFile('cup.stl', cupStl()));
+    await page.waitForSelector('[aria-label="Mesh units"]', { timeout: WAIT });
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")');
+    await page.waitForSelector('[aria-label="Mesh repair"]', { timeout: WAIT });
+    await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Check the repair' }).click();
+    await page.waitForSelector('[aria-label="Repair report"]', { timeout: WAIT }); await page.waitForTimeout(300);
+    await shot('studio/files', 'mesh-repair', 'studio/files: the mesh repair dialog', { target: page.locator('[aria-label="Mesh repair"]') });
+    await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Cancel' }).click().catch(() => press('Escape'));
+  }],
 ];
 
+// (A failed step is reported and the run goes on: the studio pages' steps each start from a new part or a file. A
+// Getting started step that fails leaves the ones after it to fail too, which the list shows.)
+const failures = [];
 let failed = null;
 try {
   for (const [name, run] of steps) {
     if (only && !only.test(name) && name !== steps[0][0]) continue;
     console.log(`step: ${name}`);
-    try { await run(); } catch (e) { failed = `${name}: ${e.message}`; break; }
+    try { await run(); } catch (e) { failures.push(`${name}: ${e.message.split('\n')[0]}`); console.log(`  FAILED ${failures.at(-1)}`); await press('Escape').catch(() => {}); await press('Escape').catch(() => {}); }
   }
+  if (failures.length) failed = `${failures.length} step(s):\n  ${failures.join('\n  ')}`;
 } finally {
   await browser.close(); await server.close();
   const shots = [...kept.values()].filter(s => existsSync(join(shotsDir, s.file))).sort((a, b) => a.file.localeCompare(b.file));

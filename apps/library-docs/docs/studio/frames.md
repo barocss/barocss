@@ -5,6 +5,8 @@ section, and their joints are cut to fit.
 
 ## A frame
 
+![A table frame of eight 40 × 40 × 3 tubes, each member its own body](/shots/studio/frames/table-frame.jpg)
+
 **Frame** builds members along a skeleton:
 
 - **Skeleton:** **Table (top and legs)**, **Box (12 edges)**, **Rectangle**, **L (two members)**,
@@ -53,6 +55,8 @@ A section is either typed or taken from your library:
   counted twice. Oblique-end beads are refused until there's an independent check for them.
 
 ## The cut list
+
+![The cut list of the table frame: rows of identical members with their lengths, end cuts and masses](/shots/studio/frames/cut-list.png)
 
 **Cut list** groups identical members into rows: quantity, section, material, axis length, long point, each end's cut
 and mass, with the totals and a CSV. The densities are the materials library's estimates. With your stock lengths

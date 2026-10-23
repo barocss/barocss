@@ -34,15 +34,32 @@ allowance is unknown, and a sand pattern is refused.
 
 ## Previews in the viewport
 
+![The CNC preview at the end of a pocket's program, NOT FOR PRODUCTION at its top](/shots/studio/manufacturing/cnc-preview.jpg)
+
 **Display** in the viewport holds the previews:
 
 - **Analysis map** (**Maps**) colours the model by wall thickness, draft or 3-axis access, with a legend. It draws only
   with WebGPU.
-- **CNC preview** steps through the milling program's moves for a pocket from its stock: **CNC setup**, **CNC
-  progress**, the tool's shape and size, and the grid pitch. It opens with `NOT FOR PRODUCTION`. It shows material
-  removal and overcut; it is not a post-processed program for a machine.
-- **Print layers** slices the part: **Print direction**, the layer height, and a **Print layer** slider with **Printed
-  up to layer**. The settings are saved with the document.
+
+  ![The wall-thickness map on a moulded plate, with its legend (WebGPU)](/shots/studio/manufacturing/thickness-map.jpg)
+- **CNC preview** steps through the milling program's moves for a pocket from its stock:
+  - **Setup**;
+  - a **Progress** slider with **End**;
+  - **Grid**, the pitch it removes material on;
+  - **Set tool**, the tool's shape and size.
+
+  It opens with `NOT FOR PRODUCTION` and shows material removal and overcut. It is a display estimate, with no G-code,
+  feeds, speeds or collision check.
+- **Print layers** slices the part:
+  - **Direction**;
+  - **Set height** for the layer height;
+  - a **Layer** slider;
+  - **Printed up to layer**;
+  - **Supports**.
+
+  The settings are saved with the document. Print layers and the CNC preview take turns: close one to see the other.
+
+  ![Print layers on the same plate: the layers drawn, with the Print layers panel](/shots/studio/manufacturing/print-layers.jpg)
 - **Assembly clearance**, **3D annotations** and the section view are here too; see
   [Display, sections and analysis](/studio/display).
 

@@ -2,6 +2,8 @@
 
 ## The bill of materials
 
+![The bill of materials for a shaft and its key: the part made, the key bought](/shots/studio/bom/bom.jpg)
+
 **BOM** in the top bar opens the bill of materials of the part or the assembly.
 
 - **Lines.** Each line has an **Item**, a **Qty**, the **Row** it came from and its **Source**.

@@ -34,6 +34,8 @@ where it came from, or saying it is an estimate.
 
 ## Loading rows in the studio
 
+![The library with the sample fastener sizes loaded](/shots/guide/getting-started/library-rows.jpg)
+
 **Library** lists each kind with what is loaded, for example **Fastener sizes loaded**. Load your own file there.
 Two kinds ship with samples you can load in one click: **Load sample fastener sizes** and **Load sample casting rules**.
 
