@@ -88,9 +88,10 @@ const preview = async mode => { const b = page.locator(`[aria-label="Preview: ${
 async function bodyVolume() {
   for (let k = 0; k < 3; k++) {
     await page.locator('.outliner .ol').first().click();
-    try { await page.waitForFunction(() => /Volume\s*[\d,]+ mm³/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 }); break; } catch { /* clicked off: again */ }
+    // (O18: read in the same check that sees it, the masses there — "Volume …" is a state of its own while they come.)
+    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec(document.querySelector('.props')?.textContent ?? ''); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
   }
-  return Number(/Volume\s*([\d,]+) mm³/.exec(await page.textContent('.props'))?.[1].replace(/,/g, ''));
+  return NaN;
 }
 /**
  * A model file opened: until the studio shows the bodies computed for this document — not the last one's. (Waiting only
@@ -2871,8 +2872,9 @@ try {
     const t0 = Date.now(); await press('Enter');
     // The reply: one body shown, its mass not yet there.
     await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 1 && window.__studioDoc.nodes[0]?.kind === 'spring'; }, null, { timeout: 60000 });
-    const replied = Date.now() - t0, pending = await page.evaluate(() => !window.__studioBodies().massReady);
-    assert.ok(pending, 'the reply came before the mass');
+    const replied = Date.now() - t0, at = await page.evaluate(() => { const b = window.__studioBodies(); return { massReady: b.massReady, volume: b.bodies[0]?.volumeMM3 ?? null }; });
+    console.log(`  O18 spring at its reply (${renderer}): ${JSON.stringify(at)}`);
+    assert.ok(!at.massReady, `the reply came before the mass: ${JSON.stringify(at)}`);
     // An undo at once: its reply (an empty part) does not wait for the spring's quadrature, which it drops.
     const t1 = Date.now(); await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
     await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 0 && window.__studioDoc.nodes.length === 0; }, null, { timeout: 10000 });
@@ -3030,9 +3032,7 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'subd' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     assert.match(await page.textContent('.history'), /SubD box \(54 quads\)/);
-    await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /Volume/.test(document.querySelector('.props')?.textContent ?? ''), null, { timeout: 15000 });
-    const props = await page.textContent('.props'), vol = Number(/Volume\s*([\d,]+) mm³/.exec(props)?.[1].replace(/,/g, ''));
+    const vol = await bodyVolume();
     assert.ok(vol > 0.6 * 30 * 20 * 16 && vol < 30 * 20 * 16, String(vol));
     await page.click('.views button:text-is("Iso")'); await press('f'); await page.waitForTimeout(500);
     await snap('subd-box');
