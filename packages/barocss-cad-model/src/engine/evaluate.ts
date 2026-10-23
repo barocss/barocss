@@ -461,6 +461,16 @@ export function boughtOutputIds(doc: StudioDoc): Set<string> {
   for (const o of snapshotOf(doc).outputs) { const at = keyed(o.id, doc.nodes), node = at.ref ? doc.nodes[at.ref.node] : undefined; if (node && boughtOf(node, elementOf(o, node)).bought) out.add(o.id); }
   return out;
 }
+/** The part's own bodies' face names by body key (O177), from their B-reps: a balloon of a `base:<body>` BOM line finds its edges. */
+export function baseBodyFaces(doc: StudioDoc): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const o of snapshotOf(doc).outputs) {
+    const names = new Set<string>();
+    for (const f of o.brep.faces) names.add((f.name ?? f.id).replace(/#\d+$/, ''));
+    out[keyed(o.id, doc.nodes).key] = [...names];
+  }
+  return out;
+}
 /**
  * The B-reps a drawing projects. `made` (O174, a part's drawing): what the part makes — its bought elements left out, as
  * DFM, print and CAM leave them (O160), so no line, hole or hidden edge of a bearing or a key is the part's; all of

@@ -16,6 +16,7 @@ import { bomPanelData } from '@barocss/cad-model/team/bom';
 import type { Bom } from '@barocss/cad-model/team/bomCore';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { buildSheet, sectionExtents, sheetSections } from '@barocss/cad-model/drawing/sheet';
+import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
 import { holeCallout } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
@@ -112,8 +113,10 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const kinds = new Set((bodies ?? []).flatMap(b => b.element ? [b.element.kind] : [])), hasBought = (bodies ?? []).some(b => b.ref && doc.nodes[b.ref.node]?.bought === true);
   // (FRd2, O119: the frame's weld joints for the symbols, when they are shown.)
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bom]);
+  // (O177: the base part's bodies' face names, for the balloons of its own BOM lines — members, made bodies.)
+  const bodyFaces = useMemo(() => settings.balloons && bodies ? bodyFacesOf(bodies) : undefined, [settings.balloons, bodies]);
+  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bodyFaces, bom]);
   const annotations = useMemo<ModelAnnotations | null>(() => active && wantAnnotations && sheet && layout && views ? modelAnnotations({ views, layout, settings, sheet, ...(weldJoints ? { welds: weldJoints } : {}) }) : null,
     [active, wantAnnotations, sheet, layout, views, settings, weldJoints]);
-  return { scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, wantsBom, bom, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, sheet, annotations };
+  return { scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, wantsBom, bom, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
 }
