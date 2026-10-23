@@ -146,7 +146,8 @@ import { downloadBytes, lumpStls, meshToStl } from './ui/files';
 import { useBottomRow } from './ui/useBottomRow';
 import { useLayout } from './layout/useLayout';
 import { ChatColumn, columnShown } from './layout/ChatColumn';
-import { CHAT_STRIP } from './layout/useLayout';
+import { Dock } from './layout/Dock';
+import { CHAT_DEFAULT, CHAT_STRIP } from './layout/useLayout';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
@@ -321,6 +322,12 @@ export function App() {
   const [palette, setPalette] = useState(false);
   // (G12a: the chat column's open state and width, kept per viewer; collapsed when the window narrows past what fits.)
   const layout = useLayout(), chat = layout.chatOpen, setChat = layout.setChatOpen;
+  // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
+  // one step's open or drag does not carry into the next.)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __studioLayoutReset: () => void }).__studioLayoutReset = () => { layout.setChatOpen(false); layout.setChatWidth(CHAT_DEFAULT); layout.setDockSheet(false); };
+  }, [layout.setChatOpen, layout.setChatWidth, layout.setDockSheet]);
   // Closing chat keeps pending approvals usable; a new conversation explicitly clears/revokes this ref.
   const chatRowFiles = useRef<PersonRowFiles | undefined>(undefined);
   // (The references' bodies in their own coordinates, the keep-outs' solids, and the keep-outs' verdicts, A6.3.)
@@ -2223,111 +2230,15 @@ export function App() {
   // (G12a: proposals are in the chat column; while one is open the column shows it, the chat open or not.)
   const openProposals = doc.proposals?.filter(p => p.status === 'open').length ?? 0, decidedProposals = (doc.proposals?.length ?? 0) - openProposals;
   const chatColumnShown = columnShown(chat && !rendering && !drawing, openProposals, decidedProposals, decidedShown);
-  useEffect(() => setStripWidth(chatColumnShown ? 0 : CHAT_STRIP), [chatColumnShown]);
-  return (
-    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px' } as CSSProperties}>
-      <div className="stage">
-      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
-        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
-        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
-        onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
-        onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
-        onPick={onPick} onCursor={onCursor} onSketchShape={updateShape}
-        onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
-          const base = additive ? selectedBodies(prev) : [];
-          return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
-        }); }}
-        boundsBox={showBox ? (() => { const box = boxOf(selBodies.length ? selBodies : bodies); return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null; })() : null}
-        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
-        onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
-        onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
-        onSketchTrim={trimSketch}
-        onDimEdit={editDim => setSketch(s => s && { ...s, editDim })}
-        onDimCommit={(key, value) => {
-          const shape = liveShape.current; setSketch(s => s && { ...s, editDim: null });
-          if (!isSettled(shape)) return;
-          const r = commitDimension(shape, key, value);
-          if (r.ok) updateShape(r.shape); else setSketchError(r.reason);
-        }}
-        onContextMenu={(at, hit) => {
-          if (active || sketch) return;
-          const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : hit.face ? { faces: [hit.face], edges: [], bodies: [] } : selection;
-          if (hit.edge || hit.face) setSelection(next);
-          const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : selectedBodies(next).length ? `${selectedBodies(next).length} BOD${selectedBodies(next).length > 1 ? 'IES' : 'Y'}` : 'VIEW';
-          setMenu({ at, selection: next, title });
-        }} />
-
-      <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
-        <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
-        <label className="doc-tab"><span className="sr">File name</span>
-          <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
-          {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
-        {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
-        {!sketch && !rendering && !drawing && <CommandStrip list={PLACE_COMMANDS} {...placeStates} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />}
-        <div className="grow" />
-        <div className="mode" role="group" aria-label="Mode">
-          <button className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</button>
-          <button className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</button>
-          <button className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setDrawing(false); setRendering(true); }}>Render</button>
-          <button className={drawing ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(false); setPlaying(false); setDrawing(true); }}>Drawing</button>
-        </div>
-        <div className="grow" />
-        {sketch && <button className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></button>}
-        {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
-        <ToolsTray items={[
-          <button key="tool0" className={'tool' + (chat ? ' on' : '')} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></button>,
-          <button key="tool1" className="tool" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>,
-          <button key="tool2" className="tool" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>,
-          <button key="tool3" className="tool" aria-label="New part" data-tip="New part" onClick={() => { replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>,
-          <span key="tool4" className="tpl-anchor"><button className={'tool' + (templatesOpen ? ' on' : '')} aria-label="New from a template" data-tip="Templates" data-tip-desc="Start a part from a template, or keep this one as a template" onClick={() => setTemplatesOpen(v => !v)}><Icon name="library_add" /></button>
-          {templatesOpen && <div className="card templates" role="menu" aria-label="Templates">
-            <div className="card-title">NEW FROM A TEMPLATE</div>
-            {[...BUILT_IN.map(t => ({ name: t.name, doc: t.doc(), own: false })), ...savedTemplates().map(t => ({ ...t, own: true }))].map(t => <div key={(t.own ? 'own:' : '') + t.name} className="tpl-row">
-              <button className="ghost" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { replaceDoc({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setFileName('Untitled'); setTemplatesOpen(false); setTimeout(() => viewport.current?.fit(), 300); }}>{t.name}</button>
-              {t.own && <button className="tool tiny" aria-label={`Remove template ${t.name}`} onClick={() => { removeTemplate(t.name); setTemplatesOpen(false); }}><Icon name="close" small /></button>}
-            </div>)}
-            <div className="tpl-row add"><input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
-              <button className="ghost small" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</button></div>
-          </div>}</span>,
-          <button key="tool5" className={'tool' + (libraryOpen ? ' on' : '')} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></button>,
-          <button key="tool6" className={'tool' + (paramsOpen ? ' on' : '')} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></button>,
-          <button key="tool7" className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>,
-          <button key="tool8" className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>,
-          <button key="tool9" className="tool" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></button>,
-          <button key="tool10" className="tool" aria-label="Export 3MF" data-tip="Export 3MF" data-tip-desc="For a slicer: bodies, materials, colours, the print orientation" onClick={() => void exportThreeMf()}><Icon name="print" /></button>,
-          <button key="tool11" className="tool" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={() => void exportStepFile()}><Icon name="deployed_code_update" /></button>,
-          !!doc.direct?.objects.some(o => !o.hidden) && <button key="tool12" className="tool" aria-label="Export IGES" data-tip="Export IGES" data-tip-desc="The visible curves and surfaces" onClick={async () => {
-          try { downloadBytes(new TextEncoder().encode((await loadDirect()).directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
-          catch (e) { setToast({ title: 'Could not write IGES', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
-        }}><Icon name="polyline" /></button>,
-          <button key="tool13" className="tool" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></button>,
-        ].filter(Boolean)} />
-        <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
-        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
-      </header></Profiler>
-
-      <TooltipLayer />
-      <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
-        {sketch ? (<>
-          {TOOLS.map(t => (
-            <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} data-tip={t.label} data-tip-key={t.key} aria-label={t.label}
-              onClick={() => setSketch(s => s && switchTool(s, t.tool))}><Icon name={t.icon} /></button>))}
-          <div className="sep" />
-          <button className={'tool' + (sketch.construct ? ' on' : '')} data-tip="Construction" data-tip-key="X" data-tip-desc="Draw references: dashed shapes to snap to, not part of the profile" aria-label="Construction"
-            onClick={() => setSketch(s => s && { ...s, construct: !s.construct })}><Icon name="cad-sk-construction" /></button>
-          {(sketch.done ?? []).some(d => d.construction) && <button className={'tool' + (sketch.hideConstruction ? ' on' : '')} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
-            onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></button>}
-          <button className="tool" data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
-        </>) : TOOL_GROUPS.map((g, gi) => (
-          <div key={g} className="tool-group">
-            {gi > 0 && <div className="sep" />}
-            <CommandButtons list={GROUP_COMMANDS[gi]} {...groupStates[gi]} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
-            {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
-            {g === 'inspect' && <button className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></button>}
-            {g === 'inspect' && <button className={'tool' + (rebuildOpen ? ' on' : '')} aria-label="Rebuild" data-tip="Rebuild" data-tip-desc="What the last rebuild cost: each feature built or reused, its time and kernel calls" onClick={() => { setBomOpen(false); setRebuildOpen(v => !v); }}><Icon name="cad-rebuild" /></button>}
-          </div>))}
-      </nav></Profiler>
-
+  // (G12b: the right dock — the Browser (its mount movable: browserPlacement), the running command's HUD and the inspector;
+  // the HUD floats at the stage's right as before when the dock is a strip.)
+  const browserPlacement = 'dock' as 'dock' | 'left';
+  const dockDocked = layout.dockDocked(chatColumnShown ? layout.chatShown : 0);
+  // (The strips over the stage's edges, left and right: the bottom row's room is the stage less them.)
+  useEffect(() => setStripWidth((chatColumnShown ? 0 : CHAT_STRIP) + (dockDocked ? 0 : CHAT_STRIP)), [chatColumnShown, dockDocked]);
+  // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
+  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, layout.setDockSheet]);
+  const browserPanel = (
       <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>{fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
           <button className="tool tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></button></div>
@@ -2405,6 +2316,8 @@ export function App() {
         {!bodies.length && !busy && <div className="empty">No bodies yet. Press <Kbd>S</Kbd> to sketch or <Kbd>B</Kbd> for a box.</div>}
         </>}
       </aside></Profiler>
+  );
+  const inspector = (
       <Profiler id="right-col" onRender={onBlockRender}><div className="right-col">
 
       {sketch && <SketchPanel sketch={sketch} error={sketchError} onShape={updateShape} onPlace={sketch.editNode === undefined ? placeSketch : undefined} onUi={patch => setSketch(s => s && { ...s, ...patch })} onOffset={offsetSketch} onToCurves={sketchToCurves} onUseOutline={sketch.anchor?.kind === 'face' && sketch.anchor.face?.outline?.length && !sketch.anchor.offset && !sketch.anchor.angle
@@ -2654,10 +2567,118 @@ export function App() {
         }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
       </aside>}
       </div></Profiler>
+  );
+  const hud = active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />;
+  return (
+    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockDocked ? '0px' : CHAT_STRIP + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
+      {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
+      <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
+        <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
+        <label className="doc-tab"><span className="sr">File name</span>
+          <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
+          {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
+        {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
+        {!sketch && !rendering && !drawing && <CommandStrip list={PLACE_COMMANDS} {...placeStates} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />}
+        <div className="grow" />
+        <div className="mode" role="group" aria-label="Mode">
+          <button className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</button>
+          <button className={sketch ? 'on sketching' : ''} onClick={() => start(commands.find(c => c.id === 'sketch')!)}>{sketch ? `Sketch · ${planeLabel(sketch.plane)}` : 'Sketch'}</button>
+          <button className={rendering ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setDrawing(false); setRendering(true); }}>Render</button>
+          <button className={drawing ? 'on' : ''} onClick={() => { setSketch(null); setActive(null); setMeasure(null); setRendering(false); setPlaying(false); setDrawing(true); }}>Drawing</button>
+        </div>
+        <div className="grow" />
+        {sketch && <button className="finish" onClick={finishSketch}><Icon name="check" />Finish sketch <Kbd>⏎</Kbd></button>}
+        {/* (The right-hand tools fold into More tools when the bar has no room for them: ui/ToolsTray.tsx.) */}
+        <ToolsTray items={[
+          <button key="tool0" className={'tool' + (chat ? ' on' : '')} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></button>,
+          <button key="tool1" className="tool" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></button>,
+          <button key="tool2" className="tool" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></button>,
+          <button key="tool3" className="tool" aria-label="New part" data-tip="New part" onClick={() => { replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></button>,
+          <span key="tool4" className="tpl-anchor"><button className={'tool' + (templatesOpen ? ' on' : '')} aria-label="New from a template" data-tip="Templates" data-tip-desc="Start a part from a template, or keep this one as a template" onClick={() => setTemplatesOpen(v => !v)}><Icon name="library_add" /></button>
+          {templatesOpen && <div className="card templates" role="menu" aria-label="Templates">
+            <div className="card-title">NEW FROM A TEMPLATE</div>
+            {[...BUILT_IN.map(t => ({ name: t.name, doc: t.doc(), own: false })), ...savedTemplates().map(t => ({ ...t, own: true }))].map(t => <div key={(t.own ? 'own:' : '') + t.name} className="tpl-row">
+              <button className="ghost" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { replaceDoc({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setFileName('Untitled'); setTemplatesOpen(false); setTimeout(() => viewport.current?.fit(), 300); }}>{t.name}</button>
+              {t.own && <button className="tool tiny" aria-label={`Remove template ${t.name}`} onClick={() => { removeTemplate(t.name); setTemplatesOpen(false); }}><Icon name="close" small /></button>}
+            </div>)}
+            <div className="tpl-row add"><input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
+              <button className="ghost small" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</button></div>
+          </div>}</span>,
+          <button key="tool5" className={'tool' + (libraryOpen ? ' on' : '')} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></button>,
+          <button key="tool6" className={'tool' + (paramsOpen ? ' on' : '')} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></button>,
+          <button key="tool7" className="tool" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></button>,
+          <button key="tool8" className="tool" aria-label="Save" data-tip="Save" data-tip-key="⌘S" onClick={save}><Icon name="save" /></button>,
+          <button key="tool9" className="tool" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={exportStl}><Icon name="download" /></button>,
+          <button key="tool10" className="tool" aria-label="Export 3MF" data-tip="Export 3MF" data-tip-desc="For a slicer: bodies, materials, colours, the print orientation" onClick={() => void exportThreeMf()}><Icon name="print" /></button>,
+          <button key="tool11" className="tool" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={() => void exportStepFile()}><Icon name="deployed_code_update" /></button>,
+          !!doc.direct?.objects.some(o => !o.hidden) && <button key="tool12" className="tool" aria-label="Export IGES" data-tip="Export IGES" data-tip-desc="The visible curves and surfaces" onClick={async () => {
+          try { downloadBytes(new TextEncoder().encode((await loadDirect()).directIGES(doc.direct!, fileName)), `${fileName}.igs`, 'model/iges'); }
+          catch (e) { setToast({ title: 'Could not write IGES', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
+        }}><Icon name="polyline" /></button>,
+          <button key="tool13" className="tool" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></button>,
+        ].filter(Boolean)} />
+        <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+      </header></Profiler>
+      <div className="stage">
+      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+        direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
+        onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
+        onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
+        onPick={onPick} onCursor={onCursor} onSketchShape={updateShape}
+        onBoxSelect={(picked, additive) => { if (active) return; setSelection(prev => {
+          const base = additive ? selectedBodies(prev) : [];
+          return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
+        }); }}
+        boundsBox={showBox ? (() => { const box = boxOf(selBodies.length ? selBodies : bodies); return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null; })() : null}
+        measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
+        onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
+        onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
+        onSketchTrim={trimSketch}
+        onDimEdit={editDim => setSketch(s => s && { ...s, editDim })}
+        onDimCommit={(key, value) => {
+          const shape = liveShape.current; setSketch(s => s && { ...s, editDim: null });
+          if (!isSettled(shape)) return;
+          const r = commitDimension(shape, key, value);
+          if (r.ok) updateShape(r.shape); else setSketchError(r.reason);
+        }}
+        onContextMenu={(at, hit) => {
+          if (active || sketch) return;
+          const next: Selection = hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : hit.face ? { faces: [hit.face], edges: [], bodies: [] } : selection;
+          if (hit.edge || hit.face) setSelection(next);
+          const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : selectedBodies(next).length ? `${selectedBodies(next).length} BOD${selectedBodies(next).length > 1 ? 'IES' : 'Y'}` : 'VIEW';
+          setMenu({ at, selection: next, title });
+        }} />
+
+
+      <TooltipLayer />
+      <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
+        {sketch ? (<>
+          {TOOLS.map(t => (
+            <button key={t.tool} className={'tool' + (sketch.tool === t.tool ? ' on' : '')} data-tip={t.label} data-tip-key={t.key} aria-label={t.label}
+              onClick={() => setSketch(s => s && switchTool(s, t.tool))}><Icon name={t.icon} /></button>))}
+          <div className="sep" />
+          <button className={'tool' + (sketch.construct ? ' on' : '')} data-tip="Construction" data-tip-key="X" data-tip-desc="Draw references: dashed shapes to snap to, not part of the profile" aria-label="Construction"
+            onClick={() => setSketch(s => s && { ...s, construct: !s.construct })}><Icon name="cad-sk-construction" /></button>
+          {(sketch.done ?? []).some(d => d.construction) && <button className={'tool' + (sketch.hideConstruction ? ' on' : '')} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
+            onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></button>}
+          <button className="tool" data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...s, shape: null, done: [] })}><Icon name="ink_eraser" /></button>
+        </>) : TOOL_GROUPS.map((g, gi) => (
+          <div key={g} className="tool-group">
+            {gi > 0 && <div className="sep" />}
+            <CommandButtons list={GROUP_COMMANDS[gi]} {...groupStates[gi]} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
+            {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
+            {g === 'inspect' && <button className={'tool' + (bomOpen ? ' on' : '')} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></button>}
+            {g === 'inspect' && <button className={'tool' + (rebuildOpen ? ' on' : '')} aria-label="Rebuild" data-tip="Rebuild" data-tip-desc="What the last rebuild cost: each feature built or reused, its time and kernel calls" onClick={() => { setBomOpen(false); setRebuildOpen(v => !v); }}><Icon name="cad-rebuild" /></button>}
+          </div>))}
+      </nav></Profiler>
+
+      {browserPlacement === 'left' && browserPanel}
 
       {drawing && <Suspense fallback={null}><DrawingWorkspace engine={engine} doc={{ ...evaluated, instances: doc.instances }} bodies={bodies} settings={doc.drawing ?? defaultDrawing()} fileName={fileName} onChange={commitDrawing} onToast={setToast} /></Suspense>}
 
-      {active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />}
+      {!dockDocked && hud}
 
       {sketch && !active && <div className="card hint-bar">
         {(() => { const t = TOOLS.find(x => x.tool === sketch.tool)!; return <><span className="hint-title"><Icon name={t.icon} small />{t.label}</span><span>{t.hint}</span></>; })()}
@@ -2868,6 +2889,11 @@ export function App() {
         <button className="tool" aria-label="Dismiss" onClick={() => setToast(null)}><Icon name="close" small /></button>
       </div>}
       </div>
+      <Dock width={layout.dockWidth} docked={dockDocked} sheet={layout.dockSheet} onSheet={layout.setDockSheet}>
+        {browserPlacement === 'dock' && browserPanel}
+        {dockDocked && hud}
+        {inspector}
+      </Dock>
       {/* (G12a: the chat column, shown at the left (order: -1) and full height; after the stage in the document, so the top bar's
           Chat button stays the first [aria-label="Chat"]. The centre — top bar, viewport and its bars — is the stage.) */}
       <ChatColumn open={chat} width={layout.chatShown} onOpen={setChat} onWidth={layout.setChatWidth} openProposals={openProposals}

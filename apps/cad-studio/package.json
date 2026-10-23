@@ -24,14 +24,25 @@
     "@barocss/cad": "workspace:*",
     "@barocss/cad-model": "workspace:*",
     "@barocss/gpu": "workspace:*",
+    "@radix-ui/react-collapsible": "1.2.1",
+    "@radix-ui/react-scroll-area": "1.4.0",
+    "@radix-ui/react-slot": "1.5.0",
+    "@radix-ui/react-toggle-group": "1.2.1",
+    "@radix-ui/react-tooltip": "1.4.1",
+    "@tailwindcss/vite": "4.1.13",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-resizable-panels": "4.14.8",
+    "tailwind-merge": "3.7.0",
+    "tailwindcss": "4.1.13"
   },
   "devDependencies": {
-    "typescript": "5.9.2",
-    "vite": "8.3.1",
+    "@types/node": "26.6.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@types/node": "26.6.4"
+    "typescript": "5.9.2",
+    "vite": "8.3.1"
   }
 }

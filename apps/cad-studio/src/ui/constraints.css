@@ -13,7 +13,7 @@
 .vp-overlay .cons-glyph .cons-text { font-size: 11px; }
 .dim-edit::-webkit-inner-spin-button, .dim-edit::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 /* (z 7: above the top bar, z 6, so a dimension near the window's top edge stays editable, O137; below the palette's backdrop, 10.) */
-.dim-edit { -moz-appearance: textfield; position: absolute; z-index: 7; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
+.dim-edit { -moz-appearance: textfield; position: absolute; z-index: 9; width: 84px; height: 26px; padding: 0 8px; border-radius: 5px; border: 1.5px solid #8fb8ff; background: #101826; color: #fff;
   font: 500 12px var(--mono); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); outline: none; }
 :root[data-theme='light'] .vp-overlay .dim-line, :root[data-theme='light'] .vp-overlay .dim-ext { stroke: #2f6fd6; }
 :root[data-theme='light'] .vp-overlay .dim-arrow { fill: #2f6fd6; }

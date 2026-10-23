@@ -71,6 +71,8 @@ async function check(name, fn) {
   step++;
   if (process.env.FLOW_ONLY && step > 1 && !new RegExp(process.env.FLOW_ONLY, 'i').test(name)) return;
   const before = sawLoad, files = changedFiles.length;
+  // (G12: each step starts with the columns as a fresh viewer has them — a chat opened or dragged in one step stays in it.)
+  await page.evaluate(() => window.__studioLayoutReset?.()).catch(() => {});
   try { await fn(); results.push({ step, name, ok: true }); }
   catch (e) {
     const reloaded = sawLoad > before ? ` [the page reloaded during this step, not by the flow${changedFiles.length > files ? `: ${changedFiles.slice(files).map(x => x[1]).slice(0, 3).join(', ')} changed` : ''}]` : '';
@@ -5314,7 +5316,9 @@ try {
       const texts = async () => (await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text).sort();
       // One placed by hand first: the overall width.
       const clickView = async (view, u, v) => { const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]); await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y); };
-      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -30);
+      // (Placed 18 mm off the front view: at 30 the click fell on the top view's label once the centre column narrowed, G12b,
+      // and a click on a label does not place a dimension.)
+      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -18);
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 1, null, { timeout: 5000 }); await press('Escape');
       await page.click('[aria-label="Auto-dimension"]');
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 6, null, { timeout: 5000 });
@@ -6486,6 +6490,14 @@ try {
       await page.setViewportSize({ width: 1440, height: 900 }); await page.waitForTimeout(300);
       if (await page.locator('.chat-col .chat').count()) await page.click('[aria-label="Chat"]');
       assert.equal(Math.round((await rect('.chat-col')).width), 44, 'collapsed to the strip');
+      // (The strip takes the pointer only on its buttons: a click on its empty part reaches the viewport — here, off the
+      // part, it clears a selection; 92a33dcb2.)
+      await page.locator('.outliner .ol').first().click(); await page.waitForTimeout(200);
+      const picked = () => page.evaluate(() => { const s = window.__studioSelection.selection; return Object.values(s).reduce((n, v) => n + (Array.isArray(v) ? v.length : 0), 0); });
+      assert.ok(await picked() > 0, 'a body selected first');
+      const strip = await rect('.chat-col');
+      await page.mouse.click(strip.left + strip.width / 2, strip.bottom - 120); await page.waitForTimeout(300);
+      assert.equal(await picked(), 0, 'a click on the strip beside its buttons reached the viewport and cleared the selection');
       { const bad = await centreClear(); assert.deepEqual(bad, [], JSON.stringify(bad)); }
       await page.click('[aria-label="Open chat"]'); await page.waitForSelector('.chat-col.open .chat', { timeout: 5000 }); await page.waitForTimeout(300);
       const open = await rect('.chat-col');
@@ -6544,7 +6556,8 @@ try {
         await display.click();
       }
       console.log(`  bottom row: ${seen.join(', ')}`);
-      assert.ok(!seen[0].endsWith('stacked') && seen.at(-1).endsWith('stacked'), seen.join(', '));
+      // (Beside or stacked follows the stage's room — with the dock docked, 1440 has none either; at 800 it always stacks.)
+      assert.ok(seen.at(-1).endsWith('stacked'), seen.join(', '));
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
   });
 
@@ -6599,7 +6612,7 @@ try {
       assert.ok(seen[0][1] > seen[2][1] && seen.every(([, a], k) => k === 0 || a <= seen[k - 1][1]), `no more shown as the window narrows: ${JSON.stringify(seen)}`);
       // A shape from the menu starts its command.
       await page.click('[aria-label="More shapes"]');
-      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool').last(), label = await last.getAttribute('aria-label');
+      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
       await last.click();
       assert.equal(await page.locator('[role="menu"][aria-label="More shapes"]').count(), 0, 'the menu closes on a pick');
       // (Its command is the active one: its button lit when the menu opens again.)
@@ -7535,8 +7548,11 @@ try {
     await page.waitForFunction(() => !document.querySelector('select[aria-label="CAD display mode"]')?.disabled, null, { timeout: 5000 }).catch(() => {});
     const display = page.locator('[aria-label="Display and previews"]');
     if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
-    // (A point of the plate's top away from its centre, where the feature's handle stands.)
-    const box = await page.locator('canvas.vp-canvas').boundingBox(), cx = box.x + box.width / 2 - 120, cy = box.y + box.height / 2 + 50;
+    // (A point of the plate's top away from its centre, where the feature's handle stands: the world point (16, 16, 8) on
+    // screen, so the pick holds however wide the centre column is — G12b's dock narrows it.)
+    const box = await page.locator('canvas.vp-canvas').boundingBox(), [cx, cy] = await page.evaluate(() => window.__studioScreenOf([16, 16, 8]));
+    // (Off the parts, as a world point too: the canvas's corner is the chat strip's button since G12a.)
+    const off = await page.evaluate(() => window.__studioScreenOf([-30, -30, 0]));
     const modes = await page.locator('select[aria-label="CAD display mode"] option').evaluateAll(os => os.map(o => o.value));
     assert.ok(modes.length >= 5, modes.join(','));
     const picks = [];
@@ -7548,7 +7564,7 @@ try {
       assert.ok(share > 0.005, `${mode} on ${renderer}: nothing drawn (${(100 * share).toFixed(2)} %)`);
       await snap(`g3-${mode}`);
       // (A click off the parts clears the selection; then the canvas centre: the plate's top, in every mode.)
-      await page.mouse.click(box.x + 12, box.y + 12); await page.waitForTimeout(150);
+      await page.mouse.click(...off); await page.waitForTimeout(150);
       await page.mouse.click(cx, cy); await page.waitForTimeout(250);
       picks.push(JSON.stringify(await page.evaluate(() => window.__studioSelection.selection.faces)));
     }
@@ -7558,7 +7574,7 @@ try {
     await page.selectOption('select[aria-label="CAD display mode"]', 'shaded-with-edges');
     // (Isolate: a pin selected, the plate fades; Restore view brings it back as it was.)
     // (The pin selected first: the shot to come back to is the selected view.)
-    await page.mouse.click(box.x + 12, box.y + 12);
+    await page.mouse.click(...off);
     await page.locator('.ol.instance').first().click(); await page.waitForTimeout(300);
     const before = await shot();
     await page.click('[aria-label="Isolate selection"]');
