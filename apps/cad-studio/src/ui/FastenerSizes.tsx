@@ -1,24 +1,9 @@
 // The fastener sizes (O7e): the person's own — none is built in — from their file or the shipped sample
 // (samples/rows/fastener-sizes.json, an example to check against the standard and the supplier), each load the person's
-// act in the studio: received as a person's file and loaded as chat's load_rows loads one, its receipt naming the file.
-// The agent cannot press it. Fasteners and tapped holes need a size's row.
+// act in the studio (app/sizesFile). The agent cannot press it. Fasteners and tapped holes need a size's row.
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { loadPersonRows } from '@barocss/cad-model/chat/rows';
-import { receivePersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { loadSizesFile, SAMPLE_SIZES_FILE } from '../app/sizesFile';
 import sample from '@barocss/cad-model/samples/rows/fastener-sizes.json';
-
-/** A file name the receipt keeps (no folders in it): the sample's says it is the package's sample. */
-export const SAMPLE_SIZES_FILE = 'cad-model sample fastener-sizes.json';
-const hex = () => Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join('');
-
-/** The person's file loaded into the document's fastener sizes, its receipt kept (a studio load is turn 0). */
-export function loadSizesFile(doc: StudioDoc, name: string, text: string): { doc: StudioDoc } | { error: string } {
-  try {
-    const files = receivePersonRowFiles(hex(), [{ name, text, turn: 0 }], 0);
-    const r = loadPersonRows(doc, 'fastener-sizes', files.files[0].id, undefined, files);
-    return 'error' in r ? { error: r.error } : { doc: r.doc };
-  } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
-}
 
 export function FastenerSizes({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.fastenerSizes?.rows ?? [];
