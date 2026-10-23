@@ -15,6 +15,7 @@ export const sidebar = [
       { text: 'Tour of the studio', link: '/studio/tour', lane: 'GPU' },
       { text: 'Sketches', link: '/studio/sketches', lane: 'outer' },
       { text: 'Part features', link: '/studio/features', lane: 'outer' },
+      { text: 'Parameters and configurations', link: '/studio/parameters', lane: 'outer' },
       { text: 'Assemblies and mates', link: '/studio/assemblies', lane: 'outer' },
       { text: 'Drawings', link: '/studio/drawings', lane: 'outer' },
       { text: 'BOM and quotes', link: '/studio/bom', lane: 'outer' },
