@@ -27,8 +27,9 @@ export function PrintPanel({ enabled, onEnabled, options, onOptions, onDirection
       {d && <div>Top {d.topMM.toFixed(3)} mm · {d.summary.supportColumns.length} support columns · {d.summary.supportVolumeMM3.toFixed(3)} mm³
         <details><summary>Model → bed (mm)</summary><code>{[0, 1, 2, 3].map(row => [0, 1, 2, 3].map(col => d.summary.modelToBed[col * 4 + row].toFixed(3)).join(' ')).join('\n')}</code></details>
       </div>}
-      <small className="muted">Display mesh estimate · {options.layerMM === undefined ? '0.2 mm layer height is estimated' : 'Layer height set'} · Not production-ready</small>
-      <div className="muted" style={{ fontSize: 11 }}>Cyan: contours · orange: overhang · green: support. Preview caps select bodies, not original faces. Layer settings are included when you save the document.</div>
+      {/* (G12c: compact — the colours as chips, NOT FOR PRODUCTION shown; the estimate's terms and notes behind Details.) */}
+      <div className="legend-chips"><span className="legend-chip"><i style={{ background: '#3cc8e0' }} />contours</span><span className="legend-chip"><i style={{ background: '#f0a030' }} />overhang</span><span className="legend-chip"><i style={{ background: '#4caf7d' }} />support</span><span className="nfp-chip">NOT FOR PRODUCTION</span></div>
+      <details className="panel-details"><summary>Details</summary>Display mesh estimate · {options.layerMM === undefined ? '0.2 mm layer height is estimated' : 'Layer height set'} · Not production-ready. Preview caps select bodies, not original faces. Layer settings are included when you save the document.</details>
     </>}
   </div>;
 }
