@@ -5783,6 +5783,96 @@ try {
     await snap('rm5-arm');
   });
 
+  // ---- O12: tool and sensor frames in the Joints card ---------------------------------------------------------------
+  await check('O12: the 6R arm with a TCP on l6 and a camera on l3 — the Joints card reads each frame out where MuJoCo puts it; l6 turned a quarter moves the TCP, not the camera', async () => {
+    const fs = await import('node:fs'), file = join(out, 'arm-6r-frames.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    // (The frames robot-frames.test.ts and conformance/rm/arm-6r/frames use; their zero pose from its expect.json, MuJoCo 3.3.0's sites.)
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' }, cam: { link: 'l3', position: [10, 20, 5], rotation: [30, -15, 60], kind: 'sensor' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 6 && window.__studioDoc.robot?.frames?.tcp, null, { timeout: 20000 }); await idle();
+    const frame = n => page.locator(`[aria-label="Frame ${n}"] b`).evaluate(e => e.textContent);
+    await page.waitForSelector('[aria-label="Frame tcp"]', { timeout: 30000 });
+    const zero = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/frames/expect.json'), 'utf8')).samples[0];
+    assert.ok(Object.values(zero.q).every(v => v === 0));
+    const text = f => `(${f.o.map(v => (v * 1000).toFixed(1)).join(', ')}) · Z (${[f.R[2], f.R[5], f.R[8]].map(v => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; }).join(', ')})`;
+    assert.equal(await frame('tcp'), text(zero.frames.tcp));
+    assert.equal(await frame('cam'), text(zero.frames.cam));
+    assert.match(await page.locator('[aria-label="Frame tcp"]').evaluate(e => e.textContent), /^tcp tool · \S/);
+    const cam = await frame('cam');
+    await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI / 2);
+    await page.waitForFunction(() => /^\(63\.0, 105\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.equal(await frame('tcp'), '(63.0, 105.0, 330.0) · Z (0.000, 1.000, 0.000)');
+    assert.equal(await frame('cam'), cam, 'the camera is on l3: l6 does not move it');
+    await page.locator('[aria-label="Joints"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o12-frames.png`) });
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => /^\(45\.0, 97\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
+  });
+
+  // ---- O11: the Variants card ---------------------------------------------------------------------------------------
+  await check('O11: the Variants card — a variant shown regenerated from the master (the pin moved, the loop\'s mates unmet), modelling waits; values edited, updated, reset and saved as a variant; the master shown edits again; the agent\'s set_variants in the card', async () => {
+    // (test/fixtures/o11/variants.bcad: o11-fixtures' plateMaster — "offset" drives the pin's distance above the plate,
+    // 5 in the master, high 25, low 1 — and a mate loop a~b whose "gap" input drives m2.)
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, 'test/fixtures/o11/variants.bcad'));
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    const pinZ = () => page.evaluate(() => window.__studioInstanceBounds().find(i => i.id === 'pin').min[2]);
+    const pinAt = z => page.waitForFunction(z => Math.abs(window.__studioInstanceBounds().find(i => i.id === 'pin').min[2] - z) < 1e-6, z, { timeout: 20000 });
+    const card = page.locator('[aria-label="Variants panel"]'), sets = () => card.locator('[aria-label^="Set "]').evaluateAll(ls => ls.map(l => `${l.getAttribute('aria-label').slice(4)}${l.dataset.active ? '*' : ''}`));
+    const variants = () => page.evaluate(() => window.__studioDoc.variability.variants.map(v => `${v.name}:${v.values.offset}`).join(' '));
+    assert.ok(Math.abs(await pinZ() - 13) < 1e-6, 'the master: the pin 5 above the 8 mm plate');
+    await page.click('[aria-label="Variants"]'); await card.waitFor({ timeout: 5000 });
+    assert.deepEqual(await sets(), ['Master*', 'high', 'low']);
+    assert.equal(await card.locator('[aria-label="Variant shown"]').count(), 0);
+    // Show high: the pin 25 above; the banner; the loop's two mates listed unmet; the document's own master untouched.
+    const master = await page.evaluate(() => JSON.stringify(window.__studioDoc.instances));
+    await card.locator('[aria-label="Show high"]').click(); await pinAt(33); await idle();
+    assert.deepEqual(await sets(), ['Master', 'high*', 'low']);
+    assert.match(await card.locator('[aria-label="Variant shown"]').innerText(), /Showing high, regenerated from the master/);
+    assert.deepEqual(await card.locator('[aria-label^="Unmet mate "]').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label'))), ['Unmet mate m2', 'Unmet mate m3']);
+    assert.equal(await page.evaluate(() => JSON.stringify(window.__studioDoc.instances)), master, 'showing writes nothing of the master');
+    assert.equal(await page.evaluate(() => window.__studioDoc.variability.active), 'high');
+    await page.locator('[aria-label="Variants panel"] .dock-section-head').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o11-head.png`) });
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o11-variants.png`) });
+    // Modelling waits while a variant is shown.
+    await page.evaluate(() => document.activeElement?.blur?.()); await press('b');
+    await page.waitForFunction(() => /Showing high: show the master to edit/.test(document.body.textContent ?? ''), null, { timeout: 5000 });
+    assert.equal(await page.locator('.hud .status').count(), 0, 'no command started');
+    // A working value: the pin follows, unsaved; Reset puts high back; Update writes it into high.
+    await card.locator('[aria-label="Value of offset"]').fill('15'); await pinAt(23);
+    assert.match(await card.locator('[aria-label="Values edited"]').innerText(), /1 value differs from high/);
+    assert.match(await card.locator('[aria-label="Variant shown"]').innerText(), /Showing high, edited/);
+    assert.equal(await variants(), 'high:25 low:1', 'not saved');
+    await card.locator('[aria-label="Reset to high"]').click(); await pinAt(33);
+    await card.locator('[aria-label="Value of offset"]').fill('15'); await pinAt(23);
+    await card.locator('[aria-label="Update high"]').click();
+    await page.waitForFunction(() => window.__studioDoc.variability.variants.find(v => v.name === 'high').values.offset === 15, null, { timeout: 5000 });
+    assert.equal(await card.locator('[aria-label="Values edited"]').count(), 0);
+    // Saved as a new variant, made active.
+    await card.locator('[aria-label="Value of offset"]').fill('7'); await pinAt(15);
+    await card.locator('[aria-label="Variant name"]').fill('mid'); await card.locator('[aria-label="Save variant"]').click();
+    await page.waitForFunction(() => window.__studioDoc.variability.active === 'mid', null, { timeout: 5000 });
+    assert.equal(await variants(), 'high:15 low:1 mid:7');
+    assert.deepEqual(await sets(), ['Master', 'high', 'low', 'mid*']);
+    // The master shown: the pin back, the banner gone, modelling again.
+    await card.locator('[aria-label="Show the master"]').click(); await pinAt(13); await idle();
+    assert.equal(await card.locator('[aria-label="Variant shown"]').count(), 0);
+    assert.equal(await page.evaluate(() => window.__studioDoc.variability.active), undefined);
+    await page.evaluate(() => document.activeElement?.blur?.()); await press('b'); await hudReady();
+    await press('Escape'); await page.waitForFunction(() => !document.querySelector('.hud .status'), null, { timeout: 5000 });
+    // The agent's set_variants (a scripted turn, the chat's own end of it): its variant in the card.
+    await page.route(u => u.pathname === '/api/chat/status', r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    const done = await page.evaluate(() => { const d = window.__studioDoc; return { ...d, variability: { ...d.variability, variants: [...d.variability.variants, { name: 'agent wide', values: { offset: 40 } }] } }; });
+    await page.click('[aria-label="Chat"]'); await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turn => window.__studioScriptChat([turn]), [{ type: 'tool', name: 'assembly', input: { action: 'variants', variants: { 'agent wide': { offset: 40 } } }, summary: 'variants: defined agent wide', isError: false }, { type: 'text', delta: 'Added agent wide.' }, { type: 'done', doc: done, session: 'cli-session-o11', end: 'done' }]);
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await page.locator('[aria-label="Chat message"]').fill('add a variant with the pin 40 above'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Added agent wide.")', { timeout: 30000 });
+    await page.waitForFunction(() => window.__studioDoc.variability.variants.some(v => v.name === 'agent wide'), null, { timeout: 10000 });
+    await page.waitForSelector('[aria-label="Variants panel"] [aria-label="Set agent wide"]', { timeout: 10000 });
+    await page.evaluate(() => window.__studioUnscriptChat?.()); await page.click('[aria-label="Close chat"]');
+  });
+
   // ---- RM6 (O19): the collision sweep -----------------------------------------------------------------------------
   await check('RM6: the 2R arm swung into a grounded post — Check path reports the contact with the post; a small move is clear', async () => {
     const fs = await import('node:fs');

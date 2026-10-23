@@ -1,0 +1,266 @@
+{
+ "format": "barocss-cad-model",
+ "schema": 3,
+ "units": "mm",
+ "parameters": {},
+ "nodes": [
+  {
+   "kind": "sketch",
+   "profile": "rectangle",
+   "min": [
+    0,
+    0
+   ],
+   "max": [
+    64,
+    32
+   ],
+   "id": "n0"
+  },
+  {
+   "kind": "extrude",
+   "sketch": 0,
+   "height": 8,
+   "id": "n1"
+  }
+ ],
+ "outputs": {
+  "b1": {
+   "node": 1,
+   "side": "solid"
+  }
+ },
+ "nextId": 2,
+ "instances": [
+  {
+   "id": "pin",
+   "name": "pin",
+   "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+     {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+       0,
+       0
+      ],
+      "radius": 3,
+      "id": "n0"
+     },
+     {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 20,
+      "id": "n1"
+     }
+    ],
+    "outputs": {
+     "b1": {
+      "node": 1,
+      "side": "solid"
+     }
+    },
+    "nextId": 2
+   },
+   "position": [
+    20,
+    10,
+    13
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "a",
+   "name": "a",
+   "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+     {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+       0,
+       0
+      ],
+      "max": [
+       20,
+       20
+      ],
+      "id": "n0"
+     },
+     {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 4,
+      "id": "n1"
+     }
+    ],
+    "outputs": {
+     "b1": {
+      "node": 1,
+      "side": "solid"
+     }
+    },
+    "nextId": 2
+   },
+   "position": [
+    -40,
+    0,
+    30
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "id": "b",
+   "name": "b",
+   "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+     {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+       0,
+       0
+      ],
+      "max": [
+       10,
+       10
+      ],
+      "id": "n0"
+     },
+     {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 4,
+      "id": "n1"
+     }
+    ],
+    "outputs": {
+     "b1": {
+      "node": 1,
+      "side": "solid"
+     }
+    },
+    "nextId": 2
+   },
+   "position": [
+    -40,
+    0,
+    60
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ]
+  }
+ ],
+ "mates": [
+  {
+   "id": "m1",
+   "kind": "distance",
+   "distance": 5,
+   "a": {
+    "part": "base",
+    "face": "n1.top"
+   },
+   "b": {
+    "part": "pin",
+    "face": "n1.bottom"
+   }
+  },
+  {
+   "id": "m2",
+   "kind": "distance",
+   "distance": 2,
+   "a": {
+    "part": "a",
+    "face": "n1.top"
+   },
+   "b": {
+    "part": "b",
+    "face": "n1.bottom"
+   }
+  },
+  {
+   "id": "m3",
+   "kind": "coincident",
+   "a": {
+    "part": "b",
+    "face": "n1.top"
+   },
+   "b": {
+    "part": "a",
+    "face": "n1.bottom"
+   }
+  }
+ ],
+ "variability": {
+  "version": 1,
+  "inputs": [
+   {
+    "name": "offset",
+    "type": "number",
+    "unit": "mm",
+    "min": 0,
+    "max": 50,
+    "default": 5,
+    "bindings": [
+     {
+      "to": "mate",
+      "mate": "m1",
+      "field": "distance"
+     }
+    ]
+   },
+   {
+    "name": "gap",
+    "type": "number",
+    "unit": "mm",
+    "min": 0,
+    "max": 20,
+    "default": 2,
+    "bindings": [
+     {
+      "to": "mate",
+      "mate": "m2",
+      "field": "distance"
+     }
+    ]
+   }
+  ],
+  "variants": [
+   {
+    "name": "high",
+    "values": {
+     "offset": 25
+    }
+   },
+   {
+    "name": "low",
+    "values": {
+     "offset": 1
+    }
+   }
+  ]
+ }
+}

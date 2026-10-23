@@ -41,6 +41,13 @@ export interface BodyResult {
   role?: 'infill';
   volumeMM3: number | null; massG: number | null;
   /**
+   * O18: the mass properties were deferred (deferMasses on): volumeMM3 and massG are null until they are worked out —
+   * `massOfRef(massRef)` gives the fields this body would have carried. Absent: they are here (or the body has no volume).
+   */
+  massRef?: number;
+  /** O18: the placements a deferred body was moved by (placeBody), applied to its mass fields when they are worked out. */
+  massPlace?: { m: number[]; t: number[] }[];
+  /**
    * Its surface area (mm²): the kernel's, over the exact surfaces as mass properties integrate them (`areaBasis`
    * 'exact'); the display mesh's triangles only where the kernel cannot (labelled 'display mesh', a little low on curves).
    */
@@ -108,6 +115,46 @@ let sharing = false;
 /** The kept meshes handed out as they are (the worker's MeshSender copies what it sends); off: a copy each time. */
 export function shareMeshes(on: boolean): void { sharing = on; }
 const masses = new WeakMap<Brep, ReturnType<CadPartSnapshot['outputs'][number]['massProperties']> | null>();
+// O18: deferred mass. With deferMasses on (the studio's worker) a body whose mass is not yet known carries a `massRef`
+// in place of its mass fields; massOfRef works them out on request, from the same cache, so they are the eager ones
+// byte for byte. A ref names its B-rep weakly: once nothing holds the B-rep (a later evaluation replaced it) it is gone.
+let deferring = false;
+/** Mass properties left out of each body until asked for (massOfRef); off: worked out with the body, as before. */
+export function deferMasses(on: boolean): void { deferring = on; }
+const massRefs = new Map<number, WeakRef<Brep>>(), refOfBrep = new WeakMap<Brep, number>();
+let nextMassRef = 1;
+type MassProps = NonNullable<ReturnType<CadPartSnapshot['outputs'][number]['massProperties']>>;
+/** The body's mass fields from its mass properties (null: no positive volume). */
+function massFields(m: MassProps | null): Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> {
+  const basis = m ? volumeBasisOf(m) : undefined;
+  return m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volumeMM3: null, massG: null };
+}
+/** A B-rep's mass properties, once (null: no positive volume). */
+function massOfBrep(o: { brep: Brep; massProperties(density: number): MassProps }): MassProps | null {
+  let m = masses.get(o.brep);
+  if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
+  return m;
+}
+/** The pending kernel outputs by B-rep (their massProperties is the output's own). */
+const pendingOutputs = new WeakMap<Brep, { brep: Brep; massProperties(density: number): MassProps }>();
+function deferredRef(o: { brep: Brep; massProperties(density: number): MassProps }): number {
+  let r = refOfBrep.get(o.brep);
+  if (r === undefined) { r = nextMassRef++; refOfBrep.set(o.brep, r); massRefs.set(r, new WeakRef(o.brep)); pendingOutputs.set(o.brep, o); }
+  // (Refs whose B-rep is gone are dropped now and then, not on every body.)
+  if ((r & 255) === 0) for (const [k, w] of massRefs) if (!w.deref()) massRefs.delete(k);
+  return r;
+}
+/**
+ * A deferred body's mass fields, as the evaluation would have given them (its placements applied, `massPlace`), or
+ * undefined when its B-rep is gone.
+ */
+export function massOfRef(ref: number, place: readonly { m: readonly number[]; t: readonly number[] }[] = []): Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> | undefined {
+  const brep = massRefs.get(ref)?.deref(), o = brep && pendingOutputs.get(brep);
+  if (!o) return undefined;
+  let f = massFields(massOfBrep(o));
+  for (const p of place) f = { ...f, ...placedMass(f, p.m, p.t) };
+  return f;
+}
 // (The surface area, once a B-rep: the kernel's over its exact surfaces, null where it cannot.)
 const areas = new WeakMap<Brep, number | null>();
 function meshOf(brep: Brep, revision: number, quality: number): DisplayMesh {
@@ -132,11 +179,12 @@ function touchField(brep: Brep, mesh: DisplayMesh): { lumpTouch?: [number, numbe
 }
 /** A body's evaluated result: its mesh, and its volume, mass, centroid and inertia when it has a volume. */
 function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision: number, quality: number, counts?: Map<ModelNode, number>): BodyResult {
-  let m = masses.get(o.brep);
-  if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
+  // (O18: a member's cut piece needs its volume, so a member's mass is never deferred.)
+  const known = masses.get(o.brep), defer = deferring && known === undefined && !o.member;
+  const m = defer ? null : massOfBrep(o);
   let A = areas.get(o.brep);
   if (A === undefined) { try { A = brepSurfaceArea(o.brep); if (!Number.isFinite(A)) A = null; } catch { A = null; } areas.set(o.brep, A); }
-  const basis = m ? volumeBasisOf(m) : undefined, mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volumeMM3: null, massG: null };
+  const mass = defer ? { volumeMM3: null, massG: null, massRef: deferredRef(o) } : massFields(m);
   const at = keyed(o.id, doc.nodes), lib = at.ref ? doc.nodes[at.ref.node] : undefined;
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true })), ...fastenerLinkNotes(lib.library, fastenerSizesOf(doc)).map(text => ({ text, warning: true }))] : null;
@@ -380,11 +428,15 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
     return { ...e, a, b: z, axis };
   });
   const mesh = { ...src, positions, normals, edgeLines, faces, edges, bounds: { min, max } };
-  const R = [[m[0], m[1], m[2]], [m[3], m[4], m[5]], [m[6], m[7], m[8]]];
-  const inertia = b.inertia ? R.map((_, i) => R.map((__, j) => { let v = 0; for (let k = 0; k < 3; k++) for (let l = 0; l < 3; l++) v += R[i][k] * b.inertia![k][l] * R[j][l]; return v; })) : undefined;
   const element = b.element?.kind === 'weld-bead' ? { ...b.element, report: { ...b.element.report,
     sharedSeams: b.element.report.sharedSeams.map(s => ({ ...s, pathMM: [move(m, t, s.pathMM[0]), move(m, t, s.pathMM[1])] as const })) } } : b.element;
-  return { ...b, mesh, ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}), ...(element ? { element } : {}) };
+  return { ...b, mesh, ...placedMass(b, m, t), ...(b.massRef !== undefined ? { massPlace: [...(b.massPlace ?? []), { m: [...m], t: [...t] }] } : {}), ...(element ? { element } : {}) };
+}
+/** A body's centre of mass moved and its inertia turned by a placement (what it has of them). */
+function placedMass(b: Pick<BodyResult, 'centroid' | 'inertia'>, m: readonly number[], t: readonly number[]): Pick<BodyResult, 'centroid' | 'inertia'> {
+  const R = [[m[0], m[1], m[2]], [m[3], m[4], m[5]], [m[6], m[7], m[8]]];
+  const inertia = b.inertia ? R.map((_, i) => R.map((__, j) => { let v = 0; for (let k = 0; k < 3; k++) for (let l = 0; l < 3; l++) v += R[i][k] * b.inertia![k][l] * R[j][l]; return v; })) : undefined;
+  return { ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}) };
 }
 
 /** The part's bodies as B-reps, keyed as the studio keys them (for exact views: chat/views.ts). */

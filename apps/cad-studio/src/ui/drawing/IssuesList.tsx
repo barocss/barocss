@@ -14,7 +14,7 @@ export function IssuesList({ issues, scope, views, fixIssue, fixEvery, onSelectD
         <div className="dw-issues" aria-label="Drawing issues">
           {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}
             onClick={() => { const d = x.dims?.[0]; if (d) onSelectDimension(d); }}>
-            <Icon name={x.severity === 'error' ? 'error' : 'warning'} small /><span>{x.message}</span>
+            <Icon name={x.severity === 'error' ? 'error' : 'warning'} small className="flex-none" /><span className="min-w-0 flex-1">{x.message}</span>
             {x.fix && <Button variant="ghost" size="xs" disabled={scope.kind === 'assembly' && x.fix.kind === 'auto-dimension'} aria-label={`Fix: ${x.message}`} onClick={e => { e.stopPropagation(); fixIssue(x); }}>{x.fix.kind === 'auto-dimension' ? 'Auto' : x.fix.kind === 'add-section' ? `Add ${x.fix.id}–${x.fix.id}` : x.fix.kind === 'remove' ? 'Remove' : x.fix.kind === 'accept' ? 'Accept' : x.fix.kind === 'scale' ? (x.fix.sheet ? 'A3' : x.fix.scale !== undefined ? (x.fix.scale >= 1 ? `${x.fix.scale}:1` : `1:${Math.round(1 / x.fix.scale)}`) : 'Auto scale') : 'Move'}</Button>}
           </div>)}
           {!issues.length && views && <div className="empty">No issues: nothing overlaps or is lost, and every hole, step and overall size is given.</div>}
