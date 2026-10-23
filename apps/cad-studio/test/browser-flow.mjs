@@ -2338,7 +2338,10 @@ try {
     await page.click('[aria-label="Apply small"]');
     await page.waitForFunction(() => window.__studioDoc.parameters.C === 3, null, { timeout: 5000 });
     assert.match(await page.locator('aside[aria-label="Parameters panel"]').innerText(), /small · now/);
-    await snap('parameters'); await page.click('[aria-label="Close parameters"]');
+    await snap('parameters');
+    // (O16: the panel at 1440 in the dock.)
+    await page.locator('aside[aria-label="Parameters panel"]').screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-parameters.png`) });
+    await page.click('[aria-label="Close parameters"]');
   });
 
   await check('a cut right through a box leaves two pieces; Separate makes them two bodies', async () => {
