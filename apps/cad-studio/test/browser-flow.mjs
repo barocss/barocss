@@ -6604,6 +6604,14 @@ try {
       outputs: { b2: { node: 2, side: 'solid' } } };
     fs.writeFileSync(file, JSON.stringify(plate));
     await openModel(file, 3); await idle(); await iso();
+    // (G10: on WebGL2 the maps and the mould's view are not drawn — the button says so, disabled, and nothing is turned on.)
+    if (renderer === 'webgl2') {
+      const b = page.locator('[aria-label="Analysis map"]');
+      assert.equal(await b.isDisabled(), true, 'the analysis map is not offered on WebGL2');
+      assert.match(await b.getAttribute('data-tip-desc') ?? '', /drawn with WebGPU; this browser draws with WebGL2/);
+      assert.equal(await page.locator('[aria-label="Map legend"]').count(), 0);
+      return;
+    }
     await page.click('[aria-label="Analysis map"]');
     await page.waitForSelector('[aria-label="Map legend"]', { timeout: 10000 });
     assert.match(await page.locator('[aria-label="Map legend"]').innerText(), /Wall thickness/);
@@ -6703,6 +6711,41 @@ try {
     fs.writeFileSync(file, JSON.stringify(ring(false)));
     await openModel(file, 0);
     await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+    // (G10 on WebGL2: the same claims through the renderer-neutral probes — its geometries, the frame on a 96 × 96 grid, the
+    // copies picked at 400 points on their tops — against each copy its own.)
+    if (renderer === 'webgl2') {
+      const geo = () => page.evaluate(() => window.__studioInstanceGeometries());
+      const shared = await geo();
+      assert.deepEqual([shared.copies, shared.geometries], [24, 1], `24 copies on one geometry ${JSON.stringify([shared.copies, shared.geometries])}`);
+      const r = await page.evaluate(async () => {
+        const bounds = window.__studioInstanceBounds(); let seed = 7; const rand = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+        const at = Array.from({ length: 400 }, (_, k) => { const b = bounds[k % bounds.length]; return [(b.min[0] + b.max[0]) / 2 + (rand() - 0.5) * 0.6 * (b.max[0] - b.min[0]), (b.min[1] + b.max[1]) / 2 + (rand() - 0.5) * 0.6 * (b.max[1] - b.min[1]), b.max[2]]; });
+        const settle = () => new Promise(done => setTimeout(done, 400)), picks = () => at.map(p => JSON.stringify(window.__studioInstanceAt(p)));
+        const a = await window.__studioFrame(96), pa = picks();
+        window.__studioShareCopies(false); await settle();
+        const b = await window.__studioFrame(96), pb = picks(), own = window.__studioInstanceGeometries().geometries;
+        window.__studioShareCopies(true); await settle();
+        let strong = 0, max = 0;
+        for (let i = 0; i < a.length; i += 3) { const d = Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]); if (d > 96) strong++; if (d > max) max = d; }
+        let hits = 0, differ = 0; for (let i = 0; i < at.length; i++) { if (pa[i] !== 'null') hits++; if (pa[i] !== pb[i]) differ++; }
+        return { samples: a.length / 3, strong, max, hits, differ, own };
+      });
+      console.log(`  G10 oracle (webgl2): ${JSON.stringify(r)}`);
+      assert.ok(r.strong <= r.samples * 0.001, `the same frame: ${r.strong} of ${r.samples} samples differ by more than 96 (max ${r.max})`);
+      assert.ok(r.hits > 100 && r.differ === 0, `the same picks ${JSON.stringify(r)}`);
+      assert.equal(r.own, 24, 'each its own: a geometry a copy');
+      await snap('g10-copies');
+      fs.writeFileSync(file, JSON.stringify(ring(true)));
+      const before = (await geo()).ids;
+      await openModel(file, 0);
+      await page.waitForFunction(() => window.__studioInstanceBounds?.().length === 24, null, { timeout: 60000 }); await idle(); await page.waitForTimeout(800);
+      const after = await geo();
+      assert.deepEqual([after.copies, after.geometries], [24, 2], 'the edited copy on its own');
+      assert.notDeepEqual(after.ids.r5, after.ids.r0, 'its surface not shared');
+      const kept = Object.keys(before).filter(k => k !== 'r5' && JSON.stringify(before[k]) === JSON.stringify(after.ids[k])).length;
+      assert.equal(kept, 23, 'the other copies kept their geometry');
+      return;
+    }
     const geos = () => page.evaluate(() => { const ms = window.__studioViewer.meshList.filter(m => m.name?.startsWith('inst:')); return { meshes: ms.length, geometries: new Set(ms.map(m => m.geometry)).size, ids: Object.fromEntries(ms.filter(m => m.geometry.topology === 'triangles').map(m => [m.name, m.id])), own: ms.filter(m => m.name === 'inst:r5' && m.geometry.topology === 'triangles').map(m => ms.some(o => o !== m && o.geometry === m.geometry)) }; });
     const shared = await geos();
     assert.deepEqual([shared.meshes, shared.geometries], [48, 2], 'a surface and its edges each, on two geometries');

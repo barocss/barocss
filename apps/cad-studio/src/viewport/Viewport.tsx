@@ -84,6 +84,8 @@ interface Props {
   clearance?: ClearanceDisplay | null;
   /** Reports backend capability failures to the existing application controls. */
   onDisplayModeStatus?(status: DisplayModeStatus): void;
+  /** Which renderer draws, once one has started (G10: what WebGL2 does not draw is said in the app). */
+  onBackend?(backend: 'webgpu' | 'webgl2'): void;
   bodies: BodyResult[];
   selection: { faces: FaceRef[]; edges: EdgeRef[]; bodies: number[] };
   ghost: Set<number>;
@@ -515,6 +517,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   }, [props.camActive, camKey, backend]);
 
   const displayScope = displayModeScope(props), hasInstances = !!props.instances?.length;
+  useEffect(() => { if (backend) props.onBackend?.(backend); }, [backend, props.onBackend]);
   useEffect(() => { renderer.current?.setState(viewState()); request(); }, [props.selection, props.ghost, props.offsets, props.transforms, props.bodyColors, props.faceColors, props.hiddenBodies, props.hoverBody, props.displayMode, props.isolatedInstances, displayScope, hasInstances, backend]);
   // (Handles and gizmos are new objects on every render of the app: drawn again only when they move.)
   const shapeOf = (v: unknown) => JSON.stringify(v, (_k, x) => typeof x === 'function' ? undefined : x);

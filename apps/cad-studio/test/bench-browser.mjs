@@ -246,6 +246,15 @@ const measure = async (name, budget, act) => {
     const up = new Map();
     for (const n of profile.nodes) { const ms = dt.get(n.id); if (!ms || ms < 1) continue; const chain = []; let id = parent.get(n.id); while (id !== undefined && chain.length < 4) { chain.push(label(byId.get(id))); id = parent.get(id); } const k = label(n) + ' < ' + chain.join(' < '); up.set(k, (up.get(k) ?? 0) + ms); }
     for (const [k, ms] of [...up].sort((x, y) => y[1] - x[1]).slice(0, 4)) console.log(`  [${name}] stack ${ms.toFixed(1)} ms ${k}`);
+    // (Who schedules React's updates: each dispatchSetState sample's callers, six frames up — R1.)
+    const setters = new Map();
+    for (const n of profile.nodes) {
+      if (!/^dispatch(SetState|ReducerAction)/.test(n.callFrame.functionName)) continue;
+      const chain = []; let id = parent.get(n.id);
+      while (id !== undefined && chain.length < 6) { const f = byId.get(id).callFrame; if (!/react-dom|react_jsx/.test(f.url)) chain.push(label(byId.get(id))); id = parent.get(id); }
+      const k = chain.slice(0, 3).join(' < '); setters.set(k, (setters.get(k) ?? 0) + (n.hitCount || 1));
+    }
+    for (const [k, hits] of [...setters].sort((x, y) => y[1] - x[1]).slice(0, 6)) console.log(`  [${name}] setter ${hits} × ${k}`);
   }
   await page.evaluate(() => window.__benchDrain());
   const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0, task = await taskTime() - task0;
