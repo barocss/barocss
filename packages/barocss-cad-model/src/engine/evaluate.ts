@@ -6,6 +6,7 @@ import { boughtOf, elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
 import { brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, checkPlacedSpurGears, checkPlacedSpurRack, checkPlacedInternalGears, checkPlacedBevelGears, checkPlacedWormPair, checkPlacedThroatedPair, spurGearDimensions, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
+import { lumpTouches } from './lumps';
 import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
 import { frameSegmentCount, frameSegmentEnds, placedBase, placedDoc, placementOf, type PartInstance, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
@@ -51,6 +52,12 @@ export interface BodyResult {
   inertia?: number[][];
   /** A body in several separate pieces (a cut right through it): how many. */
   pieces?: number;
+  /**
+   * O8 (the kernel's D204): the pieces that touch only along a line or at a point, as pairs of lump numbers (0 first,
+   * the kernel's order) — one body to the model, a lump at a time to the exports and the print checks, and a warning on
+   * the manufacturability result. Absent when no two touch (pieces apart, or one piece).
+   */
+  lumpTouch?: [number, number][];
   /** What a generator says of the body (a gear: its dimensions, its flank fit, its root). */
   notes?: { text: string; warning?: boolean }[];
   /** A machine element's kernel report as plain data, with the user's row it was checked against (O142; a stable shape). */
@@ -107,6 +114,13 @@ function areaOf(A: number | null, brep: Brep, revision: number, quality: number)
 }
 /** A sheet body's fields but its notes (those go in the body's one list). */
 function sheetFields(s: ReturnType<typeof sheetOf>): Omit<ReturnType<typeof sheetOf>, 'notes'> { const out = { ...s }; delete out.notes; return out; }
+/** The lumps that touch, once a B-rep (O8), found on its display mesh: the field, or nothing when none do. */
+const touches = new WeakMap<Brep, { lumpTouch?: [number, number][] }>();
+function touchField(brep: Brep, mesh: DisplayMesh): { lumpTouch?: [number, number][] } {
+  let t = touches.get(brep);
+  if (!t) { const pairs = lumpTouches(mesh); t = pairs.length ? { lumpTouch: pairs } : {}; touches.set(brep, t); }
+  return t;
+}
 /** A body's evaluated result: its mesh, and its volume, mass, centroid and inertia when it has a volume. */
 function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision: number, quality: number): BodyResult {
   let m = masses.get(o.brep);
@@ -148,7 +162,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.member ? memberNotes(o.member, lib ?? node, doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined) : []),
   ];
   const element = elementOf(o, node);
-  return { ...at, ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount } : {}),
+  return { ...at, ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
     ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.bevelGear?.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}),
     ...(o.subd && o.subd.caps ? { subd: o.subd } : {}), ...(sheet ? sheetFields(sheet) : {}), ...(o.member && m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}), ...(element ? { element } : {}) };
 }

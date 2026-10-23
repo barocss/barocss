@@ -5,3 +5,5 @@ export function downloadBytes(bytes: Uint8Array, name: string, type: string) {
 }
 
 export { meshToStl } from '@barocss/cad-model/engine/stl';
+// (O8: a body whose lumps touch, one STL per lump.)
+export { lumpStls } from '@barocss/cad-model/engine/stl';
