@@ -12426,3 +12426,23 @@ solids. These are batch 4's, as you ruled.
 cad-model and studio; the changed demos, against their run before the move.
 
 **Checks run:** build, tsc, lint; 124 tests of the moved modules and the 20 trap tests (1231 tests); the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 990/990, studio 274/274; the 23 changed demos fail as they did before the move (`src/types.js` through Node, D230).
+
+## D232 — The R5 fingerprint is committed: `packages/barocss-cad/scripts/r5-fingerprint.mjs` (2026-10-24)
+
+**What.** The oracle behind D212–D231's "fingerprint identical" was a scratch script until now. It is committed, without
+its output.
+
+- **What it covers:** every RB corpus case (conformance/ and robustness/corpus/) and the L4 fuzz cases of seeds
+  20261023 and 20261024, 200 each: 855 in all.
+- **What it records per output:** validity and issues, F/E/V, surface area, mass properties as float64 hex, and a
+  sha256 of the tessellation.
+- **What it records per refusal:** its name, code and full message.
+- **Determinism:** cases go to the workers by index, so each worker sees the same cases in the same order.
+- **Rerun:** `pnpm -s build:library && node scripts/r5-fingerprint.mjs [out.jsonl] [jobs]`. Compare the printed sha256,
+  or `cmp` two outputs.
+- **Options:** `FP_PROFILE=1` evaluates with `{ profile: true }` (D228); `FP_LIMIT=n` takes every n-th case.
+
+**Check:** run at D231 (e5fcfa38a) with 4 jobs, it gives the same 855 lines, sha256
+`ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to the scratch script's at D206.
+
+**Refusal texts.** R5 changed none: the fingerprint holds every refusal message in full, identical at every step.
