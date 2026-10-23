@@ -2232,6 +2232,8 @@ export function App() {
   const dockDocked = layout.dockDocked(chatColumnShown ? layout.chatShown : 0);
   // (The strips over the stage's edges, left and right: the bottom row's room is the stage less them.)
   useEffect(() => setStripWidth((chatColumnShown ? 0 : CHAT_STRIP) + (dockDocked ? 0 : CHAT_STRIP)), [chatColumnShown, dockDocked]);
+  // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
+  useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, layout.setDockSheet]);
   const browserPanel = (
       <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>{fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
