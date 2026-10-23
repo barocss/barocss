@@ -2244,3 +2244,16 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - studio tsc 0 (after the merge), eslint 0, unit 266/266.
   - FLOW_ONLY on both renderers (load 23–37), all pass: constraints, tool keys, a hole by dimensions, a box's arrows, an
     instance placed, Bearing R12c.4, the narrow top bar, the shapes strip, the palette.
+
+## G-R28 — step 258's WebGPU count after G8's contours (G10, 2026-10-23)
+
+- **The failure** (the coordinator's full window at 218c5604a, WebGPU): "each its own: 46 more geometries". The scene's
+  geometries went 4 → 73 when each copy got its own mesh. Pixels and picks were the same (strong 0, max 1; 255 hits,
+  0 differ).
+- **Why**: G8 (G-R21) draws a curved face's silhouette as a contour geometry, one for each mesh source, shared by
+  copies of it. A copy with its own mesh has its own contour too: 23 more, beside the 46 surfaces and edges. The code
+  is right; the step's count predates G8. My G10 reruns were on WebGL2 only, so they did not see it.
+- **The step now** counts the contours apart: 1 shared, then 24, one a copy. The other geometries are still 46 more.
+- **FLOW_ONLY 258** (load 26–28), passing on both renderers:
+  - WebGPU: contours 1 → 24, geometries 4 → 73;
+  - WebGL2: as G-R23.
