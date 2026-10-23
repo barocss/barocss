@@ -20,7 +20,7 @@ function run({ document, root }) {
     if (open) { if (crescent && crescentMesh(o.brep, mesh, crescent)) known ??= `KNOWN-CRESCENT (D195): ${open} mesh edges used four times along the tangent line`; else return { status: 'INVALID', detail: `tessellation: ${open} edges not used exactly twice`, ms: performance.now() - t0 }; }
     const m = o.massProperties(1);
     if (![m.volumeMM3, ...m.centroidMM].every(Number.isFinite)) return { status: 'CRASH', detail: 'non-finite mass', ms: performance.now() - t0 };
-    return { status: 'OK', ...(known ? { known } : {}), volumeMM3: m.volumeMM3, centroidMM: m.centroidMM, method: m.method, bodies: o.bodyCount, ms: performance.now() - t0 };
+    return { status: 'OK', ...(known ? { known } : {}), volumeMM3: m.volumeMM3, centroidMM: m.centroidMM, method: m.method, ...(m.volumeBoundMM3 !== undefined ? { volumeBoundMM3: m.volumeBoundMM3 } : {}), bodies: o.bodyCount, ms: performance.now() - t0 };
   } catch (cause) { return { status: classifyError(cause), detail: errorDetail(cause), code: cause?.code, ms: performance.now() - t0 }; }
 }
 process.on('message', m => { let r; try { r = run(m); } catch (cause) { r = { status: 'CRASH', detail: String(cause?.stack ?? cause).slice(0, 300) }; } process.send({ id: m.id, result: r }); });

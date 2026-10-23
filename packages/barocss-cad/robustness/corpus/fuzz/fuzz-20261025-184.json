@@ -1,0 +1,180 @@
+{
+  "id": "fuzz-20261025-184",
+  "about": "L4 fuzz finding (seed 20261025, case 184): INVALID — tessellation: 1 edges not used exactly twice",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.162
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 7.523
+        },
+        {
+          "id": "n1r0",
+          "kind": "rotate",
+          "target": "n1b",
+          "axis": "x",
+          "angleDegrees": 305.592,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1r0",
+          "offset": [
+            1.583,
+            -2.754,
+            -1.788
+          ]
+        },
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            3.434,
+            6.061
+          ]
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 7.049
+        },
+        {
+          "id": "n2r0",
+          "kind": "rotate",
+          "target": "n2b",
+          "axis": "y",
+          "angleDegrees": 12.116,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2r1",
+          "kind": "rotate",
+          "target": "n2r0",
+          "axis": "x",
+          "angleDegrees": 317.818,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2r1",
+          "offset": [
+            0.527,
+            -1.787,
+            2.356
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 160.51748158202986,
+          "relTol": 0.0001,
+          "absTol": 0.016051748158202987
+        },
+        "centroidMM": {
+          "value": [
+            1.1299757395260406,
+            -0.2778460791723885,
+            -0.11779814115638099
+          ],
+          "absTol": 0.001192649073507828
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 1.05e-3 mm³, centroid e 1.81e-5 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 184,
+    "status": "INVALID",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 3.162,
+          "h": 7.523,
+          "rot": [
+            {
+              "axis": "x",
+              "deg": 305.592
+            }
+          ],
+          "move": [
+            1.583,
+            -2.754,
+            -1.788
+          ]
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "box",
+          "w": 3.434,
+          "d": 6.061,
+          "h": 7.049,
+          "rot": [
+            {
+              "axis": "y",
+              "deg": 12.116
+            },
+            {
+              "axis": "x",
+              "deg": 317.818
+            }
+          ],
+          "move": [
+            0.527,
+            -1.787,
+            2.356
+          ]
+        }
+      }
+    }
+  }
+}

@@ -18,6 +18,7 @@ import { BrepError, type Brep, type BrepCoedge, type BrepEdge } from './brep-cor
 import { evaluateCurve, curveDomain, evaluateSurface, surfaceDomain, surfaceEvaluator } from '../core/math.js';
 import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { add as add3, cross, dot, scale as scale3, sub, unit } from '../core/vec3.js';
+import { evaluateSurfaceD1 } from '../core/derivatives.js';
 
 export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed' | 'facet'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
 export interface BrepMeshEdge { readonly edgeId: string; readonly pointsMM: Float64Array }
@@ -365,12 +366,15 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
   // Each face's mesh, kept from round to round (local indices), joined in the faces' order at the end.
   interface FaceMesh { positions: number[]; normals: number[]; indices: number[]; faces: BrepMeshFace[] }
   const meshes = new Map<string, FaceMesh>();
+  // (The curved faces' diagonals between boundary points, for `splitTakenDiagonals`, by face: kept over the rounds, a face
+  // tessellated again dropping its own.)
+  const diagonals = new Map<string, string>();
   let dirty: Set<string> | null = null;
   for (let round = 0; ; round++) {
     const splits = new Map<string, Set<number>>();
     const along = (c: BrepCoedge) => { const s = samples.get(c.edge)!; return c.sense === 'forward' ? s : [...s].reverse(); };
     /** A loop as one ring of points (each coedge without its last point). */
-    const ring = (loopId: string) => loops.get(loopId)!.coedges.flatMap(id => along(coedges.get(id)!).slice(0, -1));
+    const ring = (loopId: string) => withoutSpurs(loops.get(loopId)!.coedges, coedges).flatMap(id => along(coedges.get(id)!).slice(0, -1));
 
     let positions: number[] = [], normals: number[] = [], indices: number[] = [], faces: BrepMeshFace[] = [];
     // (`exact`: the surface's own normal at each point (along Su × Sv), where known: the shading then matches across
@@ -417,10 +421,12 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
       const frame = trimmed.get(face.id);
       if (frame) {
         // Per coedge, so a full-turn wall's seam (an edge used twice) can be told apart.
-        const ids = [outerId, ...innerIds], used = ids.flatMap(l => loops.get(l)!.coedges.map(c => coedges.get(c)!.edge));
+        const ids = [outerId, ...innerIds], kept = ids.map(l => withoutSpurs(loops.get(l)!.coedges, coedges)), used = kept.flatMap(cs => cs.map(c => coedges.get(c)!.edge));
         const seam = new Set(used.filter((e, i) => used.indexOf(e) !== i));
-        const parts = ids.map(l => loops.get(l)!.coedges.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
-        const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter); emit(face.id, 'trimmed', pts, tris, null);
+        const parts = kept.map(cs => cs.map(c => { const co = coedges.get(c)!; return { points: along(co).slice(0, -1), seam: seam.has(co.edge) }; }));
+        const { pts, tris, uv } = cylinderTriangles(face, frame, parts, Math.PI / 2 / perQuarter);
+        splitTakenDiagonals(face.id, pts, uv, tris, null, parts.reduce((n, r) => n + r.reduce((m, c) => m + c.points.length, 0), 0), frame.at, segIndex, diagonals);
+        emit(face.id, 'trimmed', pts, tris, null);
         parameters?.set(face.id, { uv, at: frame.at, analytic: cylinderDifferential(frame) }); continue;
       }
       const sides = loops.get(outerId)!.coedges.map(id => coedges.get(id)!), count = sides.length;
@@ -430,7 +436,15 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
         if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
         // (Its edges' own tolerance: a fitted offset's edges lie within theirs of its cells, D112.)
         const near = Math.max(0, ...[outerId, ...innerIds].flatMap(l => loops.get(l)!.coedges.map(c => edges.get(coedges.get(c)!.edge)!.toleranceMM)));
-        const { pts, tris, uv, domain, normals: exact } = surfaceTriangles(face, [ring(outerId), ...innerIds.map(ring)], Math.PI / 2 / perQuarter, near); emit(face.id, 'trimmed', pts, tris, null, exact, sign);
+        const rings = [ring(outerId), ...innerIds.map(ring)], { pts, tris, uv, domain, normals: exact } = surfaceTriangles(face, rings, Math.PI / 2 / perQuarter, near);
+        // (A boundary point at a pole stands twice, its normal null at both: the boundary's points come before the interior's.)
+        const poleTwice = exact.reduce((n, x) => x ? n : n + 1, 0) / 2, boundary = rings.reduce((n, r) => n + r.length, 0) + poleTwice;
+        // (A point added there takes the surface's own normal, along Su × Sv, as the others have.)
+        for (let i = exact.length, n = splitTakenDiagonals(face.id, pts, uv, tris, domain, boundary, surfaceEvaluator(face.surface), segIndex, diagonals); n && i < pts.length; i++) {
+          const d = evaluateSurfaceD1(face.surface, uv[i][0], uv[i][1]), c = cross(d.du, d.dv);
+          exact.push(Math.hypot(c[0], c[1], c[2]) > 0 ? unit(c) : null);
+        }
+        emit(face.id, 'trimmed', pts, tris, null, exact, sign);
         // (Its triangles on a boundary chord, tilted from the surface's normals at their corners by more than 1.5 steps.)
         const cosTilt = Math.cos(Math.PI / 2 / perQuarter);
         for (const [a, b, c] of tris) {
@@ -491,6 +505,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
       index(id, false); samples.set(id, sampled(edges.get(id)!)); index(id, true);
     }
     for (const [face, ids] of edgesOf) for (const id of splits.keys()) if (ids.has(id)) { dirty.add(face); break; }
+    for (const [key, face] of diagonals) if (dirty.has(face)) diagonals.delete(key);
   }
 }
 /** The faces' meshes as one (each face's local indices offset by the vertices before it). */
@@ -765,6 +780,62 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   return { pts, uv, tris: tris.map(([a, b, c]) => (outward !== flip) ? [a, b, c] : [a, c, b]) };
 }
 
+/**
+ * A loop's coedges without its spurs: an edge run out into the face and straight back (a coedge followed by the same edge
+ * the other way, its ends too) bounds nothing, and in the ring its points stack triangles of no area there, each chord
+ * used once. A Boolean leaves one where an edge's two sides came to lie on one surface (L4 fuzz 20261025 case 120: two
+ * equal balls meeting in a wall's plane, D247). A loop that is spurs alone stays as it is.
+ */
+function withoutSpurs(ids: readonly string[], coedges: ReadonlyMap<string, BrepCoedge>): readonly string[] {
+  const out: string[] = [];
+  for (const id of ids) {
+    const c = coedges.get(id)!, l = out.length ? coedges.get(out[out.length - 1])! : null;
+    if (l && l.edge === c.edge && l.sense !== c.sense) out.pop(); else out.push(id);
+  }
+  let i = 0, j = out.length - 1;
+  for (; i < j; i++, j--) { const a = coedges.get(out[i])!, b = coedges.get(out[j])!; if (a.edge !== b.edge || a.sense === b.sense) break; }
+  return j - i + 1 >= 2 ? (i === 0 ? out : out.slice(i, j + 1)) : ids;
+}
+/**
+ * A curved face's diagonals between two boundary points (of the first `boundary` points) that another face's mesh has too
+ * — an edge's chord (a box's edge inside a cylinder, between two points where it leaves the wall: L4 fuzz 20261025 case
+ * 184), or another face's diagonal (a lens two faces bound between the same trims: cases 99 and 126; D246) — bisected on the
+ * surface at their (u, v) middle, with the triangles beside them (in `tris`, and in `domain` when given): the mesh would
+ * use such a chord four times. `taken`: the edges' chords by key; `diagonals`: the other faces' so far (key → face),
+ * this one's added. How many were bisected (their points appended to `pts` and `uv`).
+ */
+function splitTakenDiagonals(faceId: string, pts: Point[], uv: XY[], tris: [number, number, number][], domain: [number, number, number][] | null, boundary: number, at: (u: number, v: number) => Point, taken: ReadonlyMap<string, unknown>, diagonals: Map<string, string>): number {
+  const uses = new Map<number, number>();
+  for (const t of tris) for (let e = 0; e < 3; e++) {
+    const a = t[e], b = t[(e + 1) % 3]; if (a >= boundary || b >= boundary) continue;
+    const k = a < b ? a * 1e7 + b : b * 1e7 + a; uses.set(k, (uses.get(k) ?? 0) + 1);
+  }
+  const mine: string[] = [];
+  let split = 0;
+  for (const [k, n] of uses) {
+    if (n !== 2) continue;
+    const a = Math.floor(k / 1e7), b = k - a * 1e7, A = pts[a], B = pts[b];
+    if (A[0] === B[0] && A[1] === B[1] && A[2] === B[2]) continue;
+    const key = segmentKey(A, B);
+    const owner = diagonals.get(key);
+    if (!taken.has(key) && (owner === undefined || owner === faceId)) { mine.push(key); continue; }
+    const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
+    pts.push(at(mid[0], mid[1])); uv.push(mid);
+    bisectAt(tris, a, b, m);
+    if (domain) bisectAt(domain, a, b, m);
+    split++;
+  }
+  for (const key of mine) diagonals.set(key, faceId);
+  return split;
+}
+/** Each triangle of `tris` with the edge a–b split at point m, its winding kept. */
+function bisectAt(tris: [number, number, number][], a: number, b: number, m: number): void {
+  for (let t = 0, n = tris.length; t < n; t++) {
+    const tri = tris[t], i = tri.indexOf(a), j = tri.indexOf(b); if (i < 0 || j < 0) continue;
+    const c = tri[3 - i - j], [x, y] = j === (i + 1) % 3 ? [a, b] : [b, a];
+    tris[t] = [x, m, c]; tris.push([m, y, c]);
+  }
+}
 /** Sides of a patch's domain that collapse to one point (poles): `along` is the coordinate that varies. */
 export function polesOf(S: Surface): { along: 0 | 1; at: number; point: Point }[] {
   const { u, v } = surfaceDomain(S), at = surfaceEvaluator(S), out: { along: 0 | 1; at: number; point: Point }[] = [];

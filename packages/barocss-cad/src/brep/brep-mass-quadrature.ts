@@ -205,7 +205,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     if (!sigma) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
     // (The hottest loop of a curved body's mass: no callbacks or temporary vectors per point.)
     const off = face.vertexOffset;
-    sink.at = at; sink.hu = hu; sink.hv = hv; sink.sigma = sigma; sink.curved = curved; sink.vec = curvedVec; sink.area = 0; sink.dropped = 0;
+    sink.at = at; sink.hu = hu; sink.hv = hv; sink.sigma = sigma; sink.curved = curved; sink.vec = curvedVec; sink.area = 0; sink.signed = 0; sink.dropped = 0;
     // (Each domain triangle cut along the surface's knot lines first, so the rule never spans a knot: FRk8b, D167.)
     const S = surfaces.get(face.faceId)!, us = own ? interiorKnots(S.knotsU, dom.u) : [], vs = own ? interiorKnots(S.knotsV, dom.v) : [];
     for (const t of domain) cellTriangles(sink, uv[t[0] - off], uv[t[1] - off], uv[t[2] - off], us, vs);
@@ -215,9 +215,14 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // (Where a domain triangle spans a wide turn — a cap about a sphere's pole, its trim round the whole turn of u in a few
     // samples — the surface over it bends from the flat triangle by more than a step's sag: the flat triangles of the same
     // domain cut in sixteen are the measure then. Coverage gone wrong still shows. L4 fuzz 171, D199.)
+    // (Where the trims bow far from their chords in (u, v) — a plane cutting a ball a few hundredths from its pole, its
+    // trim steep there in v — the domain itself covers much more than the face, and the strips take that off. Such a face
+    // is held instead to its area with the strips, signed as the domain's own, against the flat triangles'. L4 fuzz
+    // 20261025 case 24, D245.)
+    let bowed = 0;
     if (!(Math.abs(sink.area - areaSum) <= 5e-2 * areaSum)) {
       const fine = finerFlatArea(at, uv, domain, off);
-      if (!(Math.abs(sink.area - fine) <= 5e-2 * fine)) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
+      if (!(Math.abs(sink.area - fine) <= 5e-2 * fine)) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } bowed = Math.sign(sink.signed); }
     }
     // The curved strips between the domain's boundary chords and the edges, each integrated at once (`strip`).
     // (Not beside a surface's pole: there the parameters crowd and inversions are not to be trusted; such a face
@@ -271,6 +276,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     // silently. Over the conformance cases, 8 faces drop strips, all within 7e-11).
     const exact = boundaryVectorArea(faces.get(face.faceId)!, maps, moments), vecOff = Math.hypot(curvedVec[0] - exact[0], curvedVec[1] - exact[1], curvedVec[2] - exact[2]);
     if (!(vecOff <= (sink.dropped ? 1e-9 : 5e-2) * areaSum)) { if (areaSum <= tinyArea) { flatInto(cubed, flat, areaSum); continue; } return null; }
+    if (bowed && !(Math.abs(bowed * sink.signed - areaSum) <= 5e-2 * areaSum)) return null;
     // (A face whose surface has a pole keeps an error falling with the square of the step beside it; the
     // others, their trims' strips integrated, with its cube: their parts are extrapolated apart.)
     dropped += sink.dropped;
@@ -354,7 +360,7 @@ function curveMoment(curve: Curve, moments: Map<Curve, Point>): Point {
  * its derivatives, the orientation `sigma`, the integrals, its vector area and area; for its trims' strips the
  * edge's evaluators `ev` (points) and `d1` (with derivatives).
  */
-const sink = { at: null as unknown as (u: number, v: number) => Point, analytic: undefined as FaceParameters['analytic'], hu: 0, hv: 0, u0: 0, u1: 1, v0: 0, v1: 1, lu0: 0, lu1: 1, lv0: 0, lv1: 1, dropped: 0, sigma: 1, curved: [] as number[], vec: [0, 0, 0] as Point, area: 0,
+const sink = { at: null as unknown as (u: number, v: number) => Point, analytic: undefined as FaceParameters['analytic'], hu: 0, hv: 0, u0: 0, u1: 1, v0: 0, v1: 1, lu0: 0, lu1: 1, lv0: 0, lv1: 1, dropped: 0, sigma: 1, curved: [] as number[], vec: [0, 0, 0] as Point, area: 0, signed: 0,
   ev: null as unknown as (t: number) => Point, d1: null as unknown as (t: number) => CurveD1Result };
 /**
  * Where a derivative's central difference about u is taken: u itself, else (u within a step of its domain's edge — a
@@ -428,15 +434,16 @@ function triangle(s: typeof sink, qa: XY, qb: XY, qc: XY): void {
 }
 /**
  * The surface at (u, v) with weight k (its (u, v) area times the rule's weight, signed outward by sigma) into the
- * integrals I and vector area vec, and its share of the area. (The hottest loop of a curved body's mass: no
- * callbacks or temporary vectors per point.)
+ * integrals I and vector area vec, and its share of the area (`area` unsigned; `signed` by k, so that a strip inside its
+ * chord takes off). (The hottest loop of a curved body's mass: no callbacks or temporary vectors per point.)
  */
 function surfacePoint(s: typeof sink, u: number, v: number, k: number, I: number[], vec: Point): void {
   const at = s.at, hu = s.hu, hv = s.hv;
   if (s.analytic) {
     const [du, dv] = s.analytic.partials(u, v), n = cross(du, dv);
     accumulate(I, at(u, v), n, k);
-    vec[0] += n[0] * k; vec[1] += n[1] * k; vec[2] += n[2] * k; s.area += Math.hypot(...n) * Math.abs(k);
+    const a = Math.hypot(...n);
+    vec[0] += n[0] * k; vec[1] += n[1] * k; vec[2] += n[2] * k; s.area += a * Math.abs(k); s.signed += a * k;
     return;
   }
   // (The point itself between the two stencils: each of its parameters then repeats the call before, and the evaluator
@@ -446,7 +453,8 @@ function surfacePoint(s: typeof sink, u: number, v: number, k: number, I: number
   // The mesh is wound outward throughout: sigma times the signed (u, v) area is outward.
   normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
   accumulate(I, p, normal, k);
-  vec[0] += normal[0] * k; vec[1] += normal[1] * k; vec[2] += normal[2] * k; s.area += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(k);
+  const a = Math.hypot(normal[0], normal[1], normal[2]);
+  vec[0] += normal[0] * k; vec[1] += normal[1] * k; vec[2] += normal[2] * k; s.area += a * Math.abs(k); s.signed += a * k;
 }
 // (A strip's edge parameters and their derivatives at the t nodes, and its integrals before they are kept.)
 const ST = gauss(8), SS = gauss(4), PROBES = [0.5, 0.25, 0.75], stripC = new Float64Array(16), stripD = new Float64Array(16), stripI = Array(10).fill(0) as number[], stripVec: Point = [0, 0, 0];
@@ -506,7 +514,7 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
     stripT[3 * i] = Su[0] * d0 + Sv[0] * d1; stripT[3 * i + 1] = Su[1] * d0 + Sv[1] * d1; stripT[3 * i + 2] = Su[2] * d0 + Sv[2] * d1;
   }
   stripI.fill(0); stripVec[0] = stripVec[1] = stripVec[2] = 0;
-  const area = s.area;
+  const area = s.area, signed = s.signed;
   try {
     for (let i = 0; i < 8; i++) {
       const t = ST.x[i], l0 = p[0] + ex * t, l1 = p[1] + ey * t, c0 = stripC[2 * i], c1 = stripC[2 * i + 1], d0 = stripD[2 * i], d1 = stripD[2 * i + 1];
@@ -526,7 +534,7 @@ function strip(s: typeof sink, p: XY, q: XY, tp: number, tq: number): void {
       accumulate(stripI, ribbonM, ribbonN, w);
       stripVec[0] += ribbonN[0] * w; stripVec[1] += ribbonN[1] * w; stripVec[2] += ribbonN[2] * w; s.area += Math.hypot(ribbonN[0], ribbonN[1], ribbonN[2]) * Math.abs(w);
     }
-  } catch { s.area = area; s.dropped++; return; }
+  } catch { s.area = area; s.signed = signed; s.dropped++; return; }
   for (let k = 0; k < 10; k++) s.curved[k] += stripI[k];
   s.vec[0] += stripVec[0]; s.vec[1] += stripVec[1]; s.vec[2] += stripVec[2];
 }

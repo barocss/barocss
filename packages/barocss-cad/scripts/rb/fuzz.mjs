@@ -2,7 +2,9 @@
 //   node scripts/rb/fuzz.mjs [--runs N] [--seed S|random] [--jobs N] [--timeout S] [--save] [--record]
 // (RB_FUZZ_RUNS, RB_FUZZ_SEED likewise; defaults 200 cases, seed 20261023.) Each case is OK (valid, watertight, its
 // volume and centroid within the oracle's bounds, or empty where the oracle is), KNOWN (so, a prismatic crescent's
-// touch, D195), REFUSED (a typed error: counted by code), or a finding: WRONG, INVALID, CRASH, TIMEOUT. A finding is shrunk to its smallest tree keeping its status;
+// touch, D195), REFUSED (a typed error: counted by code), APPROX (the tessellated mass, off by more than the bound but
+// within the volumeBoundMM3 it states, with the oracle's e: honest, but the quadrature gave up; counted, not a finding;
+// D249), or a finding: WRONG (a stated bound exceeded too), INVALID, CRASH, TIMEOUT. A finding is shrunk to its smallest tree keeping its status;
 // with --save it is written to robustness/corpus/fuzz/ as a replayable case with the oracle's values (RB runs it).
 // Known findings: robustness/fuzz-todo.json ([{ case: "seed:k", note }]) mark TODO; any other exits 1.
 import { fork, execSync } from 'node:child_process';
@@ -50,7 +52,12 @@ function verdict(r, o, document, root) {
   if (r.status !== 'OK') return { ...base, status: r.status, detail: r.detail, code: r.code };
   if (r.empty) return o.volumeMM3 <= tolV ? { ...base, status: 'OK', empty: true } : { ...base, status: 'WRONG', detail: `empty, the oracle ${o.volumeMM3.toPrecision(6)} mm³ (e ${o.e.toExponential(1)})` };
   const dV = r.volumeMM3 - o.volumeMM3;
-  if (Math.abs(dV) > tolV) return { ...base, status: 'WRONG', kernel: r, detail: `volume ${r.volumeMM3.toPrecision(9)} vs the oracle ${o.volumeMM3.toPrecision(9)} (off ${dV.toExponential(2)}, bound ${tolV.toExponential(1)}, e ${o.e.toExponential(1)} at ${o.n}²×${o.K}; ${r.method})` };
+  if (Math.abs(dV) > tolV) {
+    const off = `volume ${r.volumeMM3.toPrecision(9)} vs the oracle ${o.volumeMM3.toPrecision(9)} (off ${dV.toExponential(2)}, bound ${tolV.toExponential(1)}, e ${o.e.toExponential(1)} at ${o.n}²×${o.K}; ${r.method}`;
+    const stated = r.method === 'tessellated' && Number.isFinite(r.volumeBoundMM3) ? r.volumeBoundMM3 : undefined;
+    if (stated !== undefined && Math.abs(dV) <= stated + o.e) return { ...base, status: 'APPROX', kernel: r, detail: `${off}, within its stated bound ${stated.toExponential(2)})` };
+    return { ...base, status: 'WRONG', kernel: r, detail: `${off}${stated !== undefined ? `, past its stated bound ${stated.toExponential(2)}` : ''})` };
+  }
   if (o.volumeMM3 > 1e-6 * size ** 3) {
     const dC = Math.max(...r.centroidMM.map((x, k) => Math.abs(x - o.centroidMM[k])));
     if (dC > tolC) return { ...base, status: 'WRONG', kernel: r, detail: `centroid ${r.centroidMM.map(x => +x.toFixed(6))} vs the oracle ${o.centroidMM.map(x => +x.toFixed(6))} (off ${dC.toExponential(2)}, bound ${tolC.toExponential(1)} at ${o.n}²×${o.K})` };
@@ -64,9 +71,9 @@ function verdict(r, o, document, root) {
 async function judge(tree) {
   // (The oracle in this process while the worker evaluates the next lane's case: `jobs` lanes at a time.)
   const { document, root } = documentOf(tree), r = await evaluate(document, root), first = verdict(r, oracle(tree), document, root);
-  if (first.status !== 'WRONG') return first;
+  if (first.status !== 'WRONG' && first.status !== 'APPROX') return first;
   const fine = verdict(r, oracle(tree, 512, 8), document, root);
-  return fine.status === 'WRONG' ? fine : { ...fine, confirmedAway: first.detail };
+  return fine.status === first.status ? fine : { ...fine, confirmedAway: first.detail };
 }
 /** The smallest tree whose case keeps `status` (at most 80 steps). */
 async function shrink(tree, status) {
@@ -103,11 +110,12 @@ const by = s => results.filter(r => r.status === s).length, codes = {}, away = r
 for (const r of results) if (r.status === 'REFUSED') { const key = `${r.code ?? '?'}: ${String(r.detail ?? '').replace(/^.*?: /, '').replace(/[-\d.]+/g, '#').slice(0, 70)}`; codes[key] = (codes[key] ?? 0) + 1; }
 const ms = results.map(r => r.ms ?? 0).sort((a, b) => a - b), pct = q => ms[Math.min(ms.length - 1, Math.floor(q * ms.length))] ?? 0;
 console.log(`seed ${seed}, ${runs} cases (${results.filter(r => r.snap).length} snapped), jobs ${jobs}, load ${load.toFixed(1)}, ${((performance.now() - t0) / 1000).toFixed(0)} s; kernel p50 ${pct(0.5).toFixed(0)} ms, p95 ${pct(0.95).toFixed(0)} ms`);
-console.log(`OK ${by('OK')} (${results.filter(r => r.empty).length} empty; ${away} first judged WRONG, cleared by the finer oracle), KNOWN ${by('KNOWN')}, REFUSED ${by('REFUSED')}, WRONG ${by('WRONG')}, INVALID ${by('INVALID')}, CRASH ${by('CRASH')}, TIMEOUT ${by('TIMEOUT')}`);
+console.log(`OK ${by('OK')} (${results.filter(r => r.empty).length} empty; ${away} first judged WRONG or APPROX, judged again by the finer oracle), KNOWN ${by('KNOWN')}, APPROX ${by('APPROX')}, REFUSED ${by('REFUSED')}, WRONG ${by('WRONG')}, INVALID ${by('INVALID')}, CRASH ${by('CRASH')}, TIMEOUT ${by('TIMEOUT')}`);
 for (const [k, n] of Object.entries(codes).sort((a, b) => b[1] - a[1])) console.log(`  refused ×${n}  ${k}`);
+for (const r of results) if (r.status === 'APPROX') console.log(`APPROX case ${r.k}${r.snap ? ' (snapped)' : ''}: ${String(r.detail).slice(0, 220)}`);
 for (const f of findings) console.log(`${f.mark} case ${f.k} ${f.status}${f.snap ? ' (snapped)' : ''}: ${String(f.detail).slice(0, 200)}\n     smallest (${leavesOf(f.smallest)} leaves): ${f.small.status} — ${String(f.small.detail ?? '').slice(0, 200)}\n     ${JSON.stringify(f.smallest).slice(0, 600)}`);
 if (record) {
   let commit = 'unknown'; try { commit = execSync('git rev-parse --short HEAD', { cwd: pkg }).toString().trim(); } catch { /* not a checkout */ }
-  appendFileSync(join(pkg, 'robustness/fuzz.jsonl'), JSON.stringify({ commit, date: new Date().toISOString().slice(0, 10), seed, runs, load: +load.toFixed(1), totals: Object.fromEntries(['OK', 'KNOWN', 'REFUSED', 'WRONG', 'INVALID', 'CRASH', 'TIMEOUT'].map(s => [s, by(s)])), refusals: codes, findings: findings.map(f => ({ k: f.k, status: f.status, mark: f.mark })) }) + '\n');
+  appendFileSync(join(pkg, 'robustness/fuzz.jsonl'), JSON.stringify({ commit, date: new Date().toISOString().slice(0, 10), seed, runs, load: +load.toFixed(1), totals: Object.fromEntries(['OK', 'KNOWN', 'APPROX', 'REFUSED', 'WRONG', 'INVALID', 'CRASH', 'TIMEOUT'].map(s => [s, by(s)])), refusals: codes, findings: findings.map(f => ({ k: f.k, status: f.status, mark: f.mark })) }) + '\n');
 }
 process.exit(findings.some(f => f.mark === 'NEW') ? 1 : 0);

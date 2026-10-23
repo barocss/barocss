@@ -12999,3 +12999,183 @@ The outer lane's 8fa7a6ca2, between steps 2 and 3, is inside the last two rows.
 - RB: no NEW, the same 3 TODOs.
 - cad-model 1017/1017, studio 281/281.
 - No browser flow: nothing studio-visible changed.
+
+## D245 — K14: a face whose trims bow far from their chords in (u, v) is integrated with its strips (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025, case 24, WRONG. Shrunk, it is a ball r 3.5 less a closed shelled box (t 0.284).
+- The mass came by the tessellated route: 165.306470 mm³ against the ray oracle's 165.478395 ± 1.2e-3 at 512² × 8,
+  that is 148 e off.
+- Its stated bound held. `volumeBoundMM3` was 0.508 against a true error of 0.172.
+- The fuzz judged the volume against its own tolerance (0.017) alone. D249 changes that judgement.
+
+**Cause (`src/brep/brep-mass-quadrature.ts`).** The ball's face `f0` beside its pole is the strip 0.454 ≤ y ≤ 0.5
+between two box walls, x = −2.668 and x = −0.021. The pole is one of its corners. The wall y = 0.454 passes 0.046 mm
+from the pole, so in (u, v) its trim rises steeply from v ≈ 0.015 to 0.25 over the face's turn of u. Sampled at a few
+points, its chords lie far above it:
+- the surface over the domain triangles alone came to 0.407 mm², and to 0.377 cut in sixteen (D199's measure);
+- the face's flat triangles and its true area are both 0.135;
+- the pre-strip coverage check (within 5 %) gave up, and the whole B-rep took the tessellated mass.
+The strips, which run from each chord to its trim, take that difference off. That check runs before them.
+
+**Fix.** A face that fails that check (coarse and fine, and not tiny) goes on to its strips. Afterwards it must hold
+two checks:
+- the existing vector-area check;
+- its area with the strips, signed by the domain's own sign (`sink.signed`: a strip inside its chord takes off),
+  against the flat triangles' area, within 5 %.
+Faces that pass the first check are unchanged.
+
+**Results.**
+
+| Case | Before | After |
+|---|---|---|
+| 24, shrunk | tessellated, −148 e | quadrature, 165.478871 (0.4 e at 512² × 8) |
+| 24, as fuzzed (5 leaves) | WRONG | quadrature, 0.04 e at 256² × 6 |
+
+The face: domain 0.4067, with the strips −0.1331 (as signed by the domain), against its flat triangles' 0.1355.
+
+**Test:** `test/fuzz-k14-findings.test.mjs` "mass: a ball's face cut by two planes …", failing before.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261025-24.json`.
+
+## D246 — K14: a curved face's diagonal that another face's mesh has too is bisected on the surface (2026-10-24)
+
+**Findings.** L4 fuzz seed 20261025, cases 99, 126 and 184, INVALID: the tessellation used a chord four times.
+- **184**, shrunk: a tilted cylinder less a tilted box. One of the box's edges runs inside the cylinder between two
+  points where it leaves the wall (V1 on the wall's outer loop, V2 on its hole, 0.14 mm apart). The ear clipping
+  joined V1 and V2 across the wall's face, so the wall's two triangles there and the box's two faces all used V1–V2.
+  The surface lies 7.7e-4 mm off that chord.
+- **99** (a ball ∩ a tilted cylinder, shrunk) and **126** (as fuzzed): a thin lens. Two faces lie between the same
+  two trims, with no point inside either, so they were triangulated alike. Each diagonal was used twice by each face.
+
+**Fix (`src/brep/brep-tessellate.ts`, `splitTakenDiagonals`).** Applies to a curved face triangulated in a parameter
+domain: a trimmed cylinder or a general patch. A diagonal between two of its boundary points whose chord is already
+taken is bisected at its (u, v) middle on the surface, with both triangles beside it. Taken means:
+- an edge's sample chord (`segIndex`); or
+- a diagonal of a face already meshed (`diagonals`, kept over the rounds).
+On a general patch the domain triangles are split too, so the mass quadrature's domain stays the mesh's. Only diagonals
+between boundary points are keyed, and nothing else in the mesh changes.
+
+**Results:** 99, 126 and 184, shrunk and as fuzzed, are watertight. As fuzzed they are within 0.05, 0.49 and 0.46 e
+of the oracle at 256² × 6, by quadrature.
+**Test:** `test/fuzz-k14-findings.test.mjs` "tessellation: a curved face's diagonal …", failing before.
+**Corpus:** `fuzz-20261025-99.json`, `fuzz-20261025-184.json`, and `fuzz-20261025-126b.json` (126 as fuzzed; its
+shrunk tree is D248's).
+
+## D247 — K14: a loop's spur edge bounds nothing in the tessellation (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025, case 120 (snapped), INVALID: a mesh chord of no length was used once.
+- Shrunk: a ball r 4 less an open shelled box less a cylinder, linear-patterned twice 4 apart.
+- The two equal balls meet in the plane x = 0, which is also the box's outer wall.
+- The union left an edge on the ball's face with that face on both sides. Its loop runs out along the edge and
+  straight back (`e70` forward, then `e70` reversed).
+- The strict check accepts such a spur, since the edge is used twice. In the ring, though, its points stacked
+  triangles of no area.
+
+**Fix (`withoutSpurs`).** Each face's rings, on a plane, a trimmed cylinder or a general patch, are built without
+spurs: a coedge followed by the same edge the other way cancels with it, the loop's two ends included. A loop that is
+spurs alone stays as it is. On a cylinder the seam test counts only the coedges kept. The B-rep itself is unchanged:
+the mass's planar integrals and the vector areas cancel a spur's two uses anyway.
+
+**Results:** 120 shrunk and as fuzzed are watertight; as fuzzed, 0.31 e at 256² × 6.
+**Test:** "tessellation: an edge run into a face and straight back …", failing before.
+**Corpus:** `fuzz-20261025-120.json`.
+
+## D248 — K14: a cylinder tangent inside a skew one at a point: the result is checked strictly, and refused when it touches itself (2026-10-24)
+
+**Finding.** 126's shrunk tree, a cylinder r 3.5 tilted 316.862° about Y less an upright cylinder r 3. The axes are
+0.5 apart, which equals the difference of the radii, so the smaller cylinder touches the larger one's wall from inside
+at one point, (−2, 5, 2.0336).
+- The crossing-cylinder closed form takes that case on purpose. It cuts the curve's two loops at the touch, so that the
+  pieces meet there.
+- The result came back strictly invalid: the tilted wall's loop touches itself at that point. It was returned
+  unchecked, because the analytic Boolean checks strictly only after a re-judged touch (D205) or a collapsed sliver
+  (D186).
+- At the point, a step either side along the normal is empty: outside the wall, inside the hole. By D205's ruling,
+  that is one lump touching itself.
+
+**Fix (`src/brep/analytic-boolean.ts`, `touchChecked`).** A result whose intersection curve crosses itself where the
+surfaces touch is checked strictly before it is returned. Two sources record such points:
+- that closed-form branch (its double zeros inside both faces);
+- a march that flipped its direction through such a point (D238: `IntersectionChain.touches`).
+An invalid result is refused, GEOMETRY "analytic Boolean: the inputs touch at (…), where their curve crosses itself,
+and the result there is not a manifold solid: <the first issue>". A valid one is returned as before. Other Booleans pay
+nothing. The message is unbracketed, so the docs refusal table is unchanged (`refusals.mjs --check` passes).
+
+**Test:** "analytic Boolean: a cylinder tangent inside a skew one …", failing before (a body was returned).
+**Corpus:** `fuzz-20261025-126.json`, an expected refusal, as 56b is.
+
+## D249 — K14 steps 1–2: robustness at the tip, and the new refusals by D196's method (2026-10-24)
+
+**Counts** (`scripts/rb/fuzz.mjs`, 200 cases a seed, jobs 4, load 5–17, through the gate):
+
+| Seed | Kernel | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 (new) | tip 155bf40d3, the old judgement | 177 (36) | — | 18 | 1 | 4 | 0 | 0 |
+| 20261025 | tip, the new judgement | 177 (36) | 1 (case 24) | 18 | 0 | 4 | 0 | 0 |
+| 20261025 | D245–D248 | 182 (36) | 0 | 18 | 0 | 0 | 0 | 0 |
+| 20261026 (new) | tip, and D245–D248 | 185 (26) | 0 | 15 | 0 | 0 | 0 | 0 |
+| 20261023 (rerun) | tip, and D245–D248 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 |
+| 20261024 (rerun) | tip, and D245–D248 | 186 (31) | 0 | 14 | 0 | 0 | 0 | 0 |
+
+KNOWN is 0 throughout. With D245–D248, 126's refusal is counted under its shrunk tree only: as fuzzed, 126 builds
+(D246).
+
+**The judgement (`fuzz.mjs`, `fuzz-worker.mjs`; at the coordinator's request).** A tessellated mass states
+`volumeBoundMM3` (D200). One off by more than the fuzz's tolerance is now judged against that stated bound:
+- **APPROX:** the error plus the oracle's e is within the stated bound. It is honest, but the quadrature gave up.
+  It is counted and reported, not a finding. Each one is worth a look.
+- **WRONG:** the error is past the stated bound plus e, so the bound is dishonest. This is a finding, as is a volume
+  off with no bound stated.
+Both are judged again against the finer oracle (512² × 8), as WRONG was before.
+
+**Refusals by D196's method** (scratch scripts, not committed):
+- each case was shrunk to its smallest tree refused alike, at tip 155bf40d3;
+- the original and the shrunk tree were each nudged four ways, every leaf moved by up to 1e-3 mm;
+- each nudge was built and checked against the ray oracle at 128² × 6.
+
+The class follows the original's nudges, the shrunk tree's are in brackets. Where they differ, the shrink went to
+another cause.
+
+| Class | Seed 20261025 | Seed 20261026 |
+|---|---|---|
+| **Exact contact** (every nudge of the original builds, its body counts beside) | 21 (2 bodies), 37 (2), 199 (3) | 56 (empty), 76 (2), 126 (2), 136 (2), 191 (6–7) |
+| **Near-degenerate** (1–3 of 4 build) | 26 (3/4; [4/4, empty]), 29 (3/4; [3/4]), 67 (2/4; [1/4]), 85 (1/4; [0/4]), 144 (1/4; [2/4]), 155 (1/4; [3/4]), 191 (1/4; [4/4]) | 47 (3/4; [4/4]), 58 (2/4; [3/4]), 170 (3/4; [4/4]) |
+| **Robust: valid generic input refused** (no nudge builds) | 38 [4/4], 49 [0/4], 62 [0/4], 137 [4/4], 148 [0/4], 157 [2/4], 170 [0/4], 190 [0/4] | 34 [0/4], 79 [2/4], 112 [0/4], 115 [0/4], 145 [1/4], 184 [0/4], 194 [0/4] |
+
+Where nudges built, every nudge was within 2 e of the oracle. The triage ran partly beside a diagnostic build of the
+quadrature (D245's check skipped). That moves only a mass's method, never whether a case builds. None was invalid, apart from one nudge of 20261026 #145's
+shrunk tree (polyhedral, "1b 0.1e INVALID").
+
+The refusals by message:
+- 33 GEOMETRY in all;
+- 26 "not a manifold solid": 23 analytic (2 of them orientation), 3 polyhedral (20261026's 145, 170, 191);
+- 4 "the result's boundary touches itself" (D205): 20261025's 21 and 37, 20261026's 126 and 136, all exact contacts;
+- 2 "every test ray was degenerate" (20261025's 29, 20261026's 56);
+- 1 "a straight edge on a cylinder runs across its axis direction" (20261025's 26).
+
+**Robust refusals whose shrunk tree still refuses every nudge**, smallest first, the order for step 3:
+- 20261025 #190 (1 leaf): a ball r 2.05, turned, in a circular pattern of 2 at 154.2°.
+- 20261025 #170 (1 leaf): a ball r 4, twice in a circular pattern of 90° and twice again.
+- 20261026 #34, #112, #184 (2 leaves);
+- 20261025 #49, #148, 20261026 #194 (3 leaves);
+- 20261025 #62 (2 leaves, two patterns), 20261026 #115 (4 leaves).
+The rest are robust only as fuzzed. Their shrink found an exact contact instead (38, 137) or a near-degenerate one
+(157, 79, 145). Each needs its own shrink that keeps "no nudge builds".
+
+**Checkpoint 1 checks** (T2, in a scratch worktree at 155bf40d3 with D245–D249; the integration branch's kernel is
+unchanged since):
+- Kernel: lint clean, type-check clean, full build.
+- Kernel suite at concurrency 4: 1660/1667, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion, as before. Against 80db65fd8's names, the passing names are the same plus this record's four tests;
+  none is gone. A first run had three SubD display tests failing (D79, D84, D180):
+  - points added on SubD patches had no exact normal;
+  - a face tessellated again matched its own diagonals from the round before.
+  Both were fixed before the run counted here: the points take the surface's normal, and the diagonals are kept by face.
+- RB: no NEW, the same 3 TODOs. The six new corpus cases pass.
+- Fingerprint (`scripts/r5-fingerprint.mjs`): 855 cases `b6e18fab…` before. Now 861 cases `01ad424b…`, the six
+  new cases added (one an expected refusal). Two lines changed, both a centroid's last bit, their volumes and meshes
+  identical:
+  - `fuzz:20261023:106`: x by 8.9e-16;
+  - `fuzz:20261024:124`: y by 1.1e-16.
+- cad-model 1017/1017; studio 285/285.
+- `apps/library-docs/scripts/refusals.mjs --check`: unchanged.
+- No browser flow: nothing studio-visible changed.

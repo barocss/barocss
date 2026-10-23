@@ -15,6 +15,8 @@ export interface IntersectionChain {
   readonly points: readonly Point[]; readonly tangents: readonly Point[]; readonly closed: boolean;
   /** Each point's coordinates on the two patches. */
   readonly uvA: readonly XY[]; readonly uvB: readonly XY[];
+  /** Points the march went through where the surfaces touch (n₁ × n₂ turned its sign, D238): the curve crosses itself there. */
+  readonly touches?: readonly Point[];
 }
 export class SurfaceIntersectionError extends Error { constructor(detail: string) { super('Surface intersection: ' + detail); this.name = 'SurfaceIntersectionError'; } }
 
@@ -159,7 +161,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
     // Tangent contact (normals within about 0.006°, above the differencing noise at a domain edge): not traced.
     if (len(cross(normalOf(A, seed.pa), normalOf(B, seed.pb))) < 1e-4) continue;
     const march = (dir: 1 | -1) => {
-      const pts: Point[] = [seed.x], tans: Point[] = [], uvA: XY[] = [seed.pa], uvB: XY[] = [seed.pb];
+      const pts: Point[] = [seed.x], tans: Point[] = [], uvA: XY[] = [seed.pa], uvB: XY[] = [seed.pb], touched: Point[] = [];
       let closed = false;
       for (let k = 0; k < maxSteps; k++) {
         spend();
@@ -172,7 +174,7 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         // end of a slender loop — a spring's ground plane along its wire — the tangent turns as far between two steps and
         // goes on. L4 fuzz 110, D238.)
         let sign = dir, t = scale(unit(c), sign);
-        if (pts.length > 1 && dot(t, tans[tans.length - 1]) < 0 && len(sub(add(x, scale(t, h)), pts[pts.length - 2])) < 0.5 * h) { sign = -sign as 1 | -1; t = scale(t, -1); }
+        if (pts.length > 1 && dot(t, tans[tans.length - 1]) < 0 && len(sub(add(x, scale(t, h)), pts[pts.length - 2])) < 0.5 * h) { sign = -sign as 1 | -1; t = scale(t, -1); touched.push(x); }
         tans.push(t);
         // Predictor, then corrector on both surfaces and the plane through the prediction normal to t.
         // (`taken`: the step that found the point. The loop's update halves `step` once more after it, and the tests below
@@ -206,13 +208,13 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         pts.push(next.x); uvA.push(next.pa); uvB.push(next.pb);
       }
       if (tans.length < pts.length) tans.push(tans[tans.length - 1] ?? [1, 0, 0]);
-      return { pts, tans, closed, uvA, uvB };
+      return { pts, tans, closed, uvA, uvB, touched };
     };
     const fwd = march(1);
-    if (fwd.closed) { chains.push({ points: fwd.pts, tangents: fwd.tans, closed: true, uvA: fwd.uvA, uvB: fwd.uvB }); continue; }
-    const back = march(-1);
+    if (fwd.closed) { chains.push({ points: fwd.pts, tangents: fwd.tans, closed: true, uvA: fwd.uvA, uvB: fwd.uvB, ...(fwd.touched.length ? { touches: fwd.touched } : {}) }); continue; }
+    const back = march(-1), touches = [...back.touched, ...fwd.touched];
     const points = [...back.pts.slice(1).reverse(), ...fwd.pts], tangents = [...back.tans.slice(1).reverse().map(t => scale(t, -1)), ...fwd.tans];
-    if (points.length >= 2) chains.push({ points, tangents, closed: false, uvA: [...back.uvA.slice(1).reverse(), ...fwd.uvA], uvB: [...back.uvB.slice(1).reverse(), ...fwd.uvB] });
+    if (points.length >= 2) chains.push({ points, tangents, closed: false, uvA: [...back.uvA.slice(1).reverse(), ...fwd.uvA], uvB: [...back.uvB.slice(1).reverse(), ...fwd.uvB], ...(touches.length ? { touches } : {}) });
   }
   return chains;
 }

@@ -1,0 +1,511 @@
+{
+  "id": "fuzz-20261025-126b",
+  "about": "L4 fuzz finding (seed 20261025, case 126) as fuzzed: INVALID — tessellation: 10 edges not used exactly twice, a lens two cylinder faces bound between the same two trims triangulated alike, its chords used four times. Since D246 each face's diagonal another face's mesh has is bisected on the surface: watertight.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            3.685,
+            3.02
+          ]
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 7.38
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "z",
+          "angleDegrees": 193.677,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r0",
+          "offset": [
+            1.591,
+            -0.999,
+            -2.665
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                -2.572
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                2.572
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "cw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n4b",
+          "kind": "revolve",
+          "sketch": "n4s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angleDegrees": 360
+        },
+        {
+          "id": "n4r0",
+          "kind": "rotate",
+          "target": "n4b",
+          "axis": "y",
+          "angleDegrees": 27.948,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4r0",
+          "offset": [
+            1.344,
+            1.89,
+            -2.881
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "union",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n5s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 2.701
+        },
+        {
+          "id": "n5b",
+          "kind": "extrude",
+          "sketch": "n5s",
+          "height": 3.458
+        },
+        {
+          "id": "n5r0",
+          "kind": "rotate",
+          "target": "n5b",
+          "axis": "y",
+          "angleDegrees": 202.882,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n5r1",
+          "kind": "rotate",
+          "target": "n5r0",
+          "axis": "z",
+          "angleDegrees": 243.416,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n5",
+          "kind": "translate",
+          "target": "n5r1",
+          "offset": [
+            -0.992,
+            -1.185,
+            0.815
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "difference",
+          "target": "n2",
+          "tool": "n5"
+        },
+        {
+          "id": "n7s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.272
+        },
+        {
+          "id": "n7b",
+          "kind": "extrude",
+          "sketch": "n7s",
+          "height": 6.528
+        },
+        {
+          "id": "n7r0",
+          "kind": "rotate",
+          "target": "n7b",
+          "axis": "y",
+          "angleDegrees": 316.862,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n7",
+          "kind": "translate",
+          "target": "n7r0",
+          "offset": [
+            -1.425,
+            1.624,
+            1.65
+          ]
+        },
+        {
+          "id": "n9s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.075
+        },
+        {
+          "id": "n9b",
+          "kind": "extrude",
+          "sketch": "n9s",
+          "height": 4.454
+        },
+        {
+          "id": "n9r0",
+          "kind": "rotate",
+          "target": "n9b",
+          "axis": "z",
+          "angleDegrees": 73.076,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n9r1",
+          "kind": "rotate",
+          "target": "n9r0",
+          "axis": "z",
+          "angleDegrees": 181.357,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n9",
+          "kind": "translate",
+          "target": "n9r1",
+          "offset": [
+            0.773,
+            -0.676,
+            -0.66
+          ]
+        },
+        {
+          "id": "n10s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.097
+        },
+        {
+          "id": "n10b",
+          "kind": "extrude",
+          "sketch": "n10s",
+          "height": 3.008
+        },
+        {
+          "id": "n10r0",
+          "kind": "rotate",
+          "target": "n10b",
+          "axis": "z",
+          "angleDegrees": 6.248,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n10r1",
+          "kind": "rotate",
+          "target": "n10r0",
+          "axis": "x",
+          "angleDegrees": 60.812,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n10",
+          "kind": "translate",
+          "target": "n10r1",
+          "offset": [
+            -1.853,
+            2.007,
+            -0.285
+          ]
+        },
+        {
+          "id": "n8",
+          "kind": "union",
+          "target": "n9",
+          "tool": "n10"
+        },
+        {
+          "id": "n6",
+          "kind": "difference",
+          "target": "n7",
+          "tool": "n8"
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n6"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 311.5749904854765,
+          "relTol": 0.0001,
+          "absTol": 0.031157499048547654
+        },
+        "centroidMM": {
+          "value": [
+            -1.9427381596856363,
+            0.8078435012635967,
+            2.27985569893804
+          ],
+          "absTol": 0.0015009251307645359
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 512² lattice at 8 shifts, e 4.94e-3 mm³, centroid e 5.56e-5 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 126,
+    "status": "INVALID",
+    "tree": {
+      "op": "union",
+      "a": {
+        "op": "difference",
+        "a": {
+          "op": "union",
+          "a": {
+            "leaf": {
+              "kind": "box",
+              "w": 3.685,
+              "d": 3.02,
+              "h": 7.38,
+              "rot": [
+                {
+                  "axis": "z",
+                  "deg": 193.677
+                }
+              ],
+              "move": [
+                1.591,
+                -0.999,
+                -2.665
+              ]
+            }
+          },
+          "b": {
+            "leaf": {
+              "kind": "sphere",
+              "r": 2.572,
+              "rot": [
+                {
+                  "axis": "y",
+                  "deg": 27.948
+                }
+              ],
+              "move": [
+                1.344,
+                1.89,
+                -2.881
+              ]
+            }
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 2.701,
+            "h": 3.458,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 202.882
+              },
+              {
+                "axis": "z",
+                "deg": 243.416
+              }
+            ],
+            "move": [
+              -0.992,
+              -1.185,
+              0.815
+            ]
+          }
+        }
+      },
+      "b": {
+        "op": "difference",
+        "a": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 3.272,
+            "h": 6.528,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 316.862
+              }
+            ],
+            "move": [
+              -1.425,
+              1.624,
+              1.65
+            ]
+          }
+        },
+        "b": {
+          "op": "union",
+          "a": {
+            "leaf": {
+              "kind": "cyl",
+              "r": 3.075,
+              "h": 4.454,
+              "rot": [
+                {
+                  "axis": "z",
+                  "deg": 73.076
+                },
+                {
+                  "axis": "z",
+                  "deg": 181.357
+                }
+              ],
+              "move": [
+                0.773,
+                -0.676,
+                -0.66
+              ]
+            }
+          },
+          "b": {
+            "leaf": {
+              "kind": "cyl",
+              "r": 3.097,
+              "h": 3.008,
+              "rot": [
+                {
+                  "axis": "z",
+                  "deg": 6.248
+                },
+                {
+                  "axis": "x",
+                  "deg": 60.812
+                }
+              ],
+              "move": [
+                -1.853,
+                2.007,
+                -0.285
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

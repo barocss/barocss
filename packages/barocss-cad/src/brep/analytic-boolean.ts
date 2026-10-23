@@ -612,7 +612,7 @@ function edgeOnSurface(f: GFace, g: GFace, tol: number): boolean {
   }
   return false;
 }
-function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = false): void {
+function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = false, touched: P3[] | null = null): void {
   // (Faces the caller says meet only along edges of one lying on the other — a fillet tool's contacts with the faces it
   // rounds, D89 — are cut there, and nothing is computed: their contact is tangent or along a face's own boundary.)
   if (touching) {
@@ -713,6 +713,7 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     for (const chain of chains) {
       // A chain running along such an edge is that edge again.
       if (along.length && chain.points.every(onAlong)) continue;
+      if (touched && chain.touches) touched.push(...chain.touches);
       paramCuts(chainCurve(toPoles(chain, fa, fb, PA.box, PB.box, reach, tol), { A: PA, B: PB }), 0, 1, true);
     }
   };
@@ -910,6 +911,8 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
           }
           if (inside) {
             doubles.sort((a, b) => a - b);
+            // (The result's boundary can touch itself there: checked strictly at the end, `touchChecked`.)
+            if (touched) for (const th of doubles) touched.push(point(th, 1));
             for (const sign of [-1, 1]) for (let k = 0; k < doubles.length; k++)
               paramCuts(branchOf(point, sign), doubles[k], k + 1 < doubles.length ? doubles[k + 1] : doubles[0] + TWO_PI);
             return;
@@ -1282,7 +1285,8 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   const A = facesOf(a, 0, tol), B = facesOf(b, 1, tol);
   // 1. Cuts.
   const contact = new Set(options.contactFaces ?? []), rounded = new Set((options.contactWith ?? []).map(baseName));
-  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span, contact.has(fb.id) && (!options.contactWith || rounded.has(fa.name ?? '')) && edgeOnSurface(fb, fa, tol));
+  const touchedAt: P3[] = [];
+  for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span, contact.has(fb.id) && (!options.contactWith || rounded.has(fa.name ?? '')) && edgeOnSurface(fb, fa, tol), touchedAt);
   // A cut running along a face's own boundary (two finished edges meeting in a mitre already edged
   // there) adds nothing but slivers.
   for (const f of [...A, ...B]) f.cuts = f.cuts.filter(g => ![0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary'));
@@ -1320,7 +1324,7 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
   const result = stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
-  if (!touches.length) return result;
+  if (!touches.length) return touchChecked(result, touchedAt);
   // (A piece re-judged where a surface only touches it leaves the result's boundary touching there. Two lumps meeting
   // there are two bodies, as D204 has them; one lump touching itself — empty on both sides of the touch, or the same
   // body on both — is not a manifold solid: refused as such, even with no vertex there. A result that is not valid or
@@ -1330,6 +1334,19 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
     if (self) throw new Refused(`the result's boundary touches itself at (${t.x.map(v => +v.toFixed(4)).join(', ')}), where one surface only touches another: not a manifold solid (the inputs touch along an edge or at a vertex)`);
   }
   if (!checkBrep(result, { strict: true }).valid || openByBody(result)) return analyticBoolean(a, b, operation, options, false);
+  return touchChecked(result, touchedAt);
+}
+/**
+ * A result whose intersection curve crosses itself where the surfaces touch — a cylinder tangent inside a skew one (their
+ * curve's loops cut at the touch, above), or a march through such a point (D238) — checked strictly: its boundary can
+ * touch itself at that point alone (L4 fuzz 20261025 case 126, shrunk: a wall's loop touching itself, D248). One lump
+ * touching itself is not a manifold solid (D205's ruling): refused, typed. A valid one (lumps meeting there, or no contact
+ * left) is returned. (`touchedAt`: the touch points; none, no check.)
+ */
+function touchChecked(result: Brep, touchedAt: readonly P3[]): Brep {
+  if (!touchedAt.length) return result;
+  const strict = checkBrep(result, { strict: true });
+  if (!strict.valid) throw new Refused(`the inputs touch at (${touchedAt[0].map(v => +v.toFixed(4)).join(', ')}), where their curve crosses itself, and the result there is not a manifold solid: ${strict.issues[0]}`);
   return result;
 }
 
