@@ -20,13 +20,16 @@ const DEG = 180 / Math.PI;
 /** A torque or force to 4 significant figures, a rounding of zero as 0. */
 const fmtTorque = (v: number) => (Math.abs(v) < 1e-12 ? '0' : Number(v.toPrecision(4)).toString());
 const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0' : t; };
+const fix3 = (v: number) => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; };
+/** A frame as the card reads it out (O12). */
+export interface FrameReadout { name: string; link: string; kind?: 'tool' | 'sensor'; o: readonly number[]; z: readonly number[] }
 
 /**
  * The assembly as a robot (RM1): the base link, the joints the mates make, loops, gear couplings and what blocks a link;
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, frames, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
   /** Each link's mass properties (RM3), in its link frame. */
@@ -48,6 +51,8 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   ready?: boolean;
   /** Each joint's static gravity torque (N·m) or force (N) at the pose shown (RD1). */
   holding?: Record<string, number>;
+  /** The tool and sensor frames (O12) at the pose shown: each one's origin (mm) and its Z axis, in the assembly's coordinates. */
+  frames?: FrameReadout[];
 }) {
   const [wsN, setWsN] = useState(20000), [wsH, setWsH] = useState(10), [wsFree, setWsFree] = useState(false), [massesOpen, setMassesOpen] = useState(false);
   const massLinks = links?.filter(l => l.part !== null) ?? [];
@@ -77,6 +82,9 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
           </div>
         );
       })}
+      {/* (O12: each frame where the pose puts it — its origin and the way its Z axis points, the approach of a tool.) */}
+      {frames?.map(f => <div key={f.name} className="kv" aria-label={`Frame ${f.name}`} title={`${f.kind ?? 'frame'} on ${name(f.link)}: origin in mm, its Z axis as a unit vector`}>
+        {f.name} <span className="muted">{f.kind ?? 'frame'} · {name(f.link)}</span> <b className="mono">({f.o.map(mm1).join(', ')}) · Z ({f.z.map(v => fix3(v)).join(', ')})</b></div>)}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
       {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
       {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px] [&>label]:inline-flex [&>label]:items-center [&>label]:gap-1 [&>label]:whitespace-nowrap" aria-label="Workspace">

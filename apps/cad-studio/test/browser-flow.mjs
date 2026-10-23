@@ -5781,6 +5781,33 @@ try {
     await snap('rm5-arm');
   });
 
+  // ---- O12: tool and sensor frames in the Joints card ---------------------------------------------------------------
+  await check('O12: the 6R arm with a TCP on l6 and a camera on l3 — the Joints card reads each frame out where MuJoCo puts it; l6 turned a quarter moves the TCP, not the camera', async () => {
+    const fs = await import('node:fs'), file = join(out, 'arm-6r-frames.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    // (The frames robot-frames.test.ts and conformance/rm/arm-6r/frames use; their zero pose from its expect.json, MuJoCo 3.3.0's sites.)
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' }, cam: { link: 'l3', position: [10, 20, 5], rotation: [30, -15, 60], kind: 'sensor' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 6 && window.__studioDoc.robot?.frames?.tcp, null, { timeout: 20000 }); await idle();
+    const frame = n => page.locator(`[aria-label="Frame ${n}"] b`).innerText();
+    await page.waitForSelector('[aria-label="Frame tcp"]', { timeout: 30000 });
+    const zero = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/frames/expect.json'), 'utf8')).samples[0];
+    assert.ok(Object.values(zero.q).every(v => v === 0));
+    const text = f => `(${f.o.map(v => (v * 1000).toFixed(1)).join(', ')}) · Z (${[f.R[2], f.R[5], f.R[8]].map(v => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; }).join(', ')})`;
+    assert.equal(await frame('tcp'), text(zero.frames.tcp));
+    assert.equal(await frame('cam'), text(zero.frames.cam));
+    assert.match(await page.locator('[aria-label="Frame tcp"]').innerText(), /^tcp tool · /);
+    const cam = await frame('cam');
+    await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI / 2);
+    await page.waitForFunction(() => /^\(63\.0, 105\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
+    assert.equal(await frame('tcp'), '(63.0, 105.0, 330.0) · Z (0.000, 1.000, 0.000)');
+    assert.equal(await frame('cam'), cam, 'the camera is on l3: l6 does not move it');
+    await page.locator('[aria-label="Joints"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o12-frames.png`) });
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => /^\(45\.0, 97\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
+  });
+
   // ---- RM6 (O19): the collision sweep -----------------------------------------------------------------------------
   await check('RM6: the 2R arm swung into a grounded post — Check path reports the contact with the post; a small move is clear', async () => {
     const fs = await import('node:fs');
