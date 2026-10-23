@@ -149,7 +149,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
     if (ref) return fail(state, `[REFERENCE_LOCKED] ${ref} belongs to a locked reference: no feature may use it. Take a datum from it (add_datum) and build on that, or keep the part clear of it (add_keepout).`);
   }
   // (Standards-derived values with their sources, A6.5.)
-  if (STANDARDS_TOOL_NAMES.has(name)) { const r = runStandardsTool(args); return 'error' in r ? fail(state, r.error) : { state, content: json(r.content), isError: false, changed: false, summary: r.summary }; }
+  if (STANDARDS_TOOL_NAMES.has(name)) { const r = runStandardsTool(args, state.doc); return 'error' in r ? fail(state, r.error) : { state, content: json(r.content), isError: false, changed: false, summary: r.summary }; }
   if (DRAFT_TOOL_NAMES.has(name)) {
     // (A drawing on a datum plane or a given plane, A6.4.)
     let plane: DocPlane | undefined;

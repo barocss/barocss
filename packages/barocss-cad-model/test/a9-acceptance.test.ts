@@ -12,6 +12,7 @@ import { userToken } from '../src/team/ecr';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { applyFill, assemblyPlacedBodies, clearanceMap, fillOverlap } from '../src/team/clearanceMap';
 import { receivePersonRowFiles, type PersonRowFiles } from '../src/chat/rowFiles';
+import { withSampleRows } from './person-file';
 
 // A9 (O5): the coordinator's acceptance — a written brief to what a shop needs, one scripted agent through the real v2
 // tools (dispatchTool, no live model), the brief as decisions-outer.md's A9 S0 froze it and O158 corrected it.
@@ -50,7 +51,9 @@ const SHAFT_END_MM = 20, COVER_CLEARANCE_MM = 1;
 
 test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and the frame, plate, shaft and cover by their oracles', async () => {
   const files = personFiles();
-  s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc(), rowFiles: files.rowFiles } as never as ChatState;
+  // (O7: the fastener sizes are the sample rows, loaded as the person loads them.)
+  const start = withSampleRows(emptyDoc());
+  s = { doc: start, bodies: [], turnBase: start, rowFiles: files.rowFiles } as never as ChatState;
 
   // 1. Rows. The frame's section and stock lengths, then the parts' stock; the fit, bearing and O-ring rows on the base,
   // which the parts inherit (A9-8). Agent-written rows refused; each loaded row keeps the person's file as its source.

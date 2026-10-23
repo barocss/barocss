@@ -11,6 +11,8 @@ import { friendly, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
 import { frameSegmentCount, frameSegmentEnds, placedBase, placedDoc, placementOf, type PartInstance, type BodyRef, type FrameSectionRow, type ModelNode, type Side, type StudioDoc } from './doc';
 import { bodyNodeOf } from './ids';
+import { fastenerLinkNotes } from '../library/fastenerLinks';
+import { fastenerSizesOf } from './fastenerSizeRows';
 
 /** A kernel output's body key and the node and side it is now. */
 /** A body's role, from the node that made it (O60: 'infill' on a print infill's mesh node). */
@@ -130,7 +132,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   const basis = m ? volumeBasisOf(m) : undefined, mass = m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volumeMM3: null, massG: null };
   const at = keyed(o.id, doc.nodes), lib = at.ref ? doc.nodes[at.ref.node] : undefined;
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
-  const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true }))] : null;
+  const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true })), ...fastenerLinkNotes(lib.library, fastenerSizesOf(doc)).map(text => ({ text, warning: true }))] : null;
   const inner = o.brep.bodies.reduce((n, body) => n + (body.kind === 'solid' ? Math.max(0, body.shells.length - 1) : 0), 0);
   // (Every source's notes, in one list: a library part's and a member's, a gear's and its mesh's … — O142: before, a later
   // source's replaced an earlier one's.)

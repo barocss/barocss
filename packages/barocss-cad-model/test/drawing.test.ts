@@ -14,6 +14,7 @@ import type { PartInstance } from '../src/engine/doc';
 import { arcPath, sheetSvg } from '../src/drawing/svg';
 import { sheetPdf } from '../src/drawing/pdf';
 import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
+import { SAMPLE_SIZES, withSampleRows } from './person-file';
 
 const viewsOf = (doc: StudioDoc): DrawingViews => {
   const b = brepsFor(doc); assert.ok('breps' in b, JSON.stringify(b));
@@ -354,7 +355,7 @@ test('cosmetic threads on the drawing (ISO 6410): a tapped hole’s crest hidden
   const { commands } = await import('../src/app/commands');
   // The starter plate's hole made a tapped M10 (its tap drill Ø8.5).
   const d0 = starterDoc(), tapped = { ...d0, nodes: d0.nodes.map(n => n.kind === 'hole' ? { ...n, radius: 4.25, thread: 'M10×1.5' } : n) };
-  const v = viewsOf(tapped), settings = { ...defaultDrawing(), hidden: true }, layout = layoutSheet(v, settings), t = threadsOf(tapped.nodes);
+  const v = viewsOf(tapped), settings = { ...defaultDrawing(), hidden: true }, layout = layoutSheet(v, settings), t = threadsOf(tapped.nodes, SAMPLE_SIZES);
   const top = threadMarks(layout.views.top, v.top, t, true), front = threadMarks(layout.views.front, v.front, t, true);
   assert.equal(top.length, 1); const arc = top[0] as Extract<Mark, { kind: 'arc' }>;
   assert.ok(arc.kind === 'arc' && near(arc.t1 - arc.t0, 1.5 * Math.PI) && near(arc.u[0], 5 * layout.views.top.scale), 'a ¾ circle at the major Ø10');
@@ -365,9 +366,9 @@ test('cosmetic threads on the drawing (ISO 6410): a tapped hole’s crest hidden
   assert.equal(threadMarks(layout.views.front, v.front, t, false).length, 0, 'hidden lines off: none');
   assert.ok(buildSheet(v, layout, settings, { title: 't', date: 'd', threads: t }).groups.find(g => g.view === 'top')!.marks.some(m => m.kind === 'arc' && m.t1 - m.t0 > 4));
   // A bolt on its own: its root (minor diameter) thin and visible from the side.
-  const f = commands.find(c => c.id === 'fastener')!, ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
+  const f = commands.find(c => c.id === 'fastener')!, ctx = { doc: withSampleRows(emptyDoc()), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
   const bolt = f.build!(ctx, { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', x: 0, y: 0, z: 0 });
-  const bv = viewsOf(bolt), bl = layoutSheet(bv, defaultDrawing()), side = threadMarks(bl.views.front, bv.front, threadsOf(bolt.nodes), false) as Extract<Mark, { kind: 'line' }>[];
+  const bv = viewsOf(bolt), bl = layoutSheet(bv, defaultDrawing()), side = threadMarks(bl.views.front, bv.front, threadsOf(bolt.nodes, SAMPLE_SIZES), false) as Extract<Mark, { kind: 'line' }>[];
   assert.equal(side.length, 2); assert.ok(side.every(m => m.pen === 'thin'));
   assert.ok(near(Math.abs(side[0].a[0] - side[1].a[0]), minorDiameter(8, 1.25) * bl.views.front.scale, 1e-6), 'Ø6.466 apart');
 });

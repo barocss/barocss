@@ -4,7 +4,7 @@
 // thread noted, "M6×1"), and the faces at the nominal diameter of a fastener's own features.
 import type { ModelNode } from '../engine/doc';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
-import { FASTENER_SIZES } from './fasteners';
+import type { FastenerSizes } from './fasteners';
 import { roundFaceAxis } from './measure';
 import { featureId } from '../engine/ids';
 
@@ -13,8 +13,8 @@ const MOST = 40;
 
 /** A thread: nominal diameter and pitch, the radius of the face it is on, and whether it is a bore's. */
 export interface FaceThread { d: number; pitch: number; radius?: number; internal: boolean }
-/** The threads features carry, by the feature ids (engine/ids.ts) whose faces they are on. */
-export function threadsOf(nodes: readonly ModelNode[]): Map<string, FaceThread> {
+/** The threads features carry, by the feature ids (engine/ids.ts) whose faces they are on; a fastener's by its size's row (O7: none, no thread). */
+export function threadsOf(nodes: readonly ModelNode[], sizes: FastenerSizes): Map<string, FaceThread> {
   const out = new Map<string, FaceThread>();
   nodes.forEach((n, i) => {
     if (n.kind === 'hole' && n.thread) {
@@ -22,7 +22,7 @@ export function threadsOf(nodes: readonly ModelNode[]): Map<string, FaceThread> 
     }
     const made = 'made' in n ? n.made : undefined;
     if (made?.command === 'fastener' && made.values.kind !== 'washer') {
-      const size = FASTENER_SIZES[String(made.values.size)]; if (!size) return;
+      const size = sizes[String(made.values.size)]; if (!size) return;
       // (A nut's bore is a hole in its sketch; a shank's circle has none.)
       for (let k = i - (made.nodes ?? 2) + 1; k <= i; k++) {
         const e = nodes[k], sk = e?.kind === 'extrude' ? nodes[e.sketch] : undefined;

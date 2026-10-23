@@ -35,6 +35,7 @@ import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, r
 import { SECTION_VIEWS, VIEW_IDS, isSectionRef, sameSection, sectionLetter, type DimView, modelPrint, nextRevision, nextSectionId, withSections, type SectionViewId, type DimPoint, type DrawingNote, type EdgeRef, type Tolerance, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { today, useDrawingSheet } from './useDrawingSheet';
+import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { Icon, Kbd } from './atoms';
 import '../drawing/drawing.css';
 
@@ -106,10 +107,10 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   // The drawing's issue list (R14.2, O3): what is wrong on the sheet, then what is missing; fixes where safe.
   const issues = useMemo<DrawingIssue[]>(() => views && layout && sheet ? drawingIssues({ views, layout, settings, sheet, callout, fitMiss: fitMissOf, followedChanged, elements, ...(cuts.length ? { sections: cuts } : {}) }) : [], [views, layout, settings, sheet, callout, fitMissOf, followedChanged, elements, cuts]);
   // Tolerance and GD&T suggestions (R14.4, O5): offered with their basis, applied only when accepted.
-  const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
+  const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout, fastenerSizes: fastenerSizesOf(doc) }) : [], [views, layout, settings, sheet, callout, doc.fastenerSizes]);
   const acceptEvery = () => {
     if (!views) return;
-    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
+    const r = acceptAll({ views, settings, fastenerSizes: fastenerSizesOf(doc), callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
     onChange(r.settings);
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });

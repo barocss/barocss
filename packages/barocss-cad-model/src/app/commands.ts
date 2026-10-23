@@ -11,7 +11,8 @@ import { driveCommands } from './driveCommands';
 import { connectorCommands } from './connectorCommands';
 import { weldmentCommands } from './weldmentCommands';
 import { alignCommand } from './alignCommand';
-import { FASTENER_SIZES, fastenerCommand } from './fasteners';
+import { fastenerCommand } from './fasteners';
+import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows';
 import { duplicateBody } from '../chat/features';
 import { leafBodies, planeText, withNode, type Axis, type FilletSection, type HolePattern, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
@@ -36,7 +37,7 @@ export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
 export type Field = (
   | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio' | 'number'; min?: number; max?: number; step?: number }
-  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[] }
+  | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[]; /** Why there is nothing to choose, when the options are none (O7: no rows loaded). */ empty?: string }
 ) & { when?: (values: Values) => boolean };
 export const shownFields = (fields: Field[], values: Values) => fields.filter(f => !f.when || f.when(values));
 
@@ -368,7 +369,7 @@ const allCommands: Command[] = [
       const f = ctx.selection.faces[0], { axis } = holeAxis(ctx.bodies[f.body].mesh.faces[f.face].normal)!, [a, b] = HOLE_PLANE[axis];
       return [{ key: 'type', label: 'Type', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }, { value: 'counterbore', label: 'Counterbored' }, { value: 'countersink', label: 'Countersunk' }, { value: 'tapped', label: 'Tapped' }] },
         { key: 'd', label: 'Diameter', kind: 'mm', min: 0.5 },
-        { key: 'thread', label: 'Thread', kind: 'choice', options: Object.entries(FASTENER_SIZES).map(([m, s]) => ({ value: m, label: `${m} × ${s.pitch} (drill Ø${s.tap})` })), when: v => v.type === 'tapped' },
+        { key: 'thread', label: 'Thread', kind: 'choice', options: Object.entries(fastenerSizesOf(ctx.doc)).map(([m, s]) => ({ value: m, label: `${m} × ${s.pitch} (drill Ø${s.tap})` })), empty: NO_SIZES, when: v => v.type === 'tapped' },
         { key: 'tend', label: 'Ends', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'blind', label: 'To a depth' }], when: v => v.type === 'tapped' },
         { key: 'depth', label: 'Depth', kind: 'mm', min: 0.5, when: v => v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind') },
         { key: 'csd', label: 'Countersink Ø', kind: 'mm', min: 1, when: v => v.type === 'countersink' },
@@ -386,9 +387,9 @@ const allCommands: Command[] = [
       return { type: 'through', d: 8, depth: 6, cd: 14, ch: 4, csd: 16, thread: 'M6', tend: 'through', x: r1(p[a]), y: r1(p[b]), pat: 'one', pn: 4, pa: 10, pb: 0, qa: r1(face.centroid[a]), qb: r1(face.centroid[b]) };
     },
     // Tapped: the diameter is the thread's tap drill.
-    derive: (_ctx, v, changed) => v.type === 'tapped' && (changed.includes('thread') || changed.includes('type')) && FASTENER_SIZES[String(v.thread)] ? { ...v, d: FASTENER_SIZES[String(v.thread)].tap } : v,
-    steps: (_ctx, v) => v.type === 'tapped' && FASTENER_SIZES[String(v.thread)] ? [{ label: 'Thread', text: `${v.thread}×${FASTENER_SIZES[String(v.thread)].pitch} right-hand, internal, cosmetic — drilled Ø${v.d}${Number(v.d) !== FASTENER_SIZES[String(v.thread)].tap ? ` (the tap drill is Ø${FASTENER_SIZES[String(v.thread)].tap})` : ''}`, done: Number(v.d) === FASTENER_SIZES[String(v.thread)].tap }]
-      : v.type === 'countersink' ? [{ label: 'Countersink', text: `Ø${v.csd} × 90° on a Ø${v.d} hole`, done: Number(v.csd) > Number(v.d) }] : [],
+    derive: (ctx, v, changed) => { const size = fastenerSizesOf(ctx.doc)[String(v.thread)]; return v.type === 'tapped' && (changed.includes('thread') || changed.includes('type')) && size ? { ...v, d: size.tap } : v; },
+    steps: (ctx, v) => { const size = fastenerSizesOf(ctx.doc)[String(v.thread)]; return v.type === 'tapped' && !size ? [{ label: 'Thread', text: noSizeRow(String(v.thread)), done: false }] : v.type === 'tapped' && size ? [{ label: 'Thread', text: `${v.thread}×${size.pitch} right-hand, internal, cosmetic — drilled Ø${v.d}${Number(v.d) !== size.tap ? ` (the tap drill is Ø${size.tap})` : ''}`, done: Number(v.d) === size.tap }]
+      : v.type === 'countersink' ? [{ label: 'Countersink', text: `Ø${v.csd} × 90° on a Ø${v.d} hole`, done: Number(v.csd) > Number(v.d) }] : []; },
     // The centre (a puck that slides it on the face) and the diameter, at the rim along the face's first axis.
     handles: (ctx, v) => {
       const f = ctx.selection.faces[0], face = ctx.bodies[f.body].mesh.faces[f.face], h = holeAxis(face.normal); if (!h) return [];
@@ -415,7 +416,8 @@ const allCommands: Command[] = [
       const at = { center: [Number(v.x), Number(v.y)] as [number, number], ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}), face: picked.name.split('+')[0] };
       if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw new Error('The counterbore must be wider than the hole.');
       if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw new Error('The countersink must be wider than the hole.');
-      const tapped = v.type === 'tapped' && FASTENER_SIZES[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');
+      if (v.type === 'tapped' && !fastenerSizesOf(ctx.doc)[String(v.thread)]) throw new Error(noSizeRow(String(v.thread)));
+      const tapped = v.type === 'tapped' && fastenerSizesOf(ctx.doc)[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');
       // Copies on the face: a row or a bolt circle (each a hole of the kernel's, one step in the history).
       const count = Math.round(Number(v.pn));
       if (v.pat !== 'one' && v.pat !== undefined && !(count >= 2 && count <= 64)) throw new Error('A hole pattern has 2 to 64 holes.');

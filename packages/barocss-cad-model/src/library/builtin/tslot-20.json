@@ -75,7 +75,7 @@
      "value": 4.2,
      "unit": "mm",
      "estimate": true,
-     "source": "the core bore sized for tapping M5 (a common tap drill); written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture"
+     "source": "the library's own estimate, equal to a common M5 tap drill, not read from your fastener sizes; written for this library as a typical 20-series B-type slot-6 profile; verify against the supplier's datasheet before manufacture"
     },
     "ho": {
      "value": {
@@ -1201,7 +1201,7 @@
      "value": 4.2,
      "unit": "mm",
      "estimate": true,
-     "source": "the hole sized for tapping M5 (a common tap drill)"
+     "source": "the library's own estimate, equal to a common M5 tap drill, not read from your fastener sizes"
     },
     "ho": {
      "value": {
@@ -1383,7 +1383,7 @@
      "value": 5.5,
      "unit": "mm",
      "estimate": true,
-     "source": "a clearance hole for an M5 screw into the core bore (written for this library)"
+     "source": "the library's own estimate, equal to the M5 medium clearance hole, not read from your fastener sizes (for an M5 screw into the core bore, written for this library)"
     }
    },
    "recipe": [
@@ -1491,7 +1491,7 @@
      "value": 5.5,
      "unit": "mm",
      "estimate": true,
-     "source": "a clearance hole for M5 (written for this library)"
+     "source": "the library's own estimate, equal to the M5 medium clearance hole, not read from your fastener sizes (written for this library)"
     }
    },
    "recipe": [

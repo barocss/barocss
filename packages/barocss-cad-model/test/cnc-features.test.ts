@@ -6,6 +6,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { processProfile } from '../src/library/materials';
 import { machinability } from '../src/machining/report';
 import { featuresOf, type Feature } from '../src/machining/features';
+import { withSampleRows } from './person-file';
 
 // CNC7a (O101): machining features recognised, against the construction — O100's plate (a pocket, a through slot, an
 // edge step the slot runs through, a through and a blind hole, a boss), a counterbored and a tapped hole, a pocket cut
@@ -16,7 +17,9 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const cmd = (command: string, values: Record<string, unknown>, sel: Record<string, unknown> = {}): [string, Record<string, unknown>] => ['run_command', { command, values, ...sel }];
 const diff = (a: string, b: string): [string, Record<string, unknown>] => ['run_command', { command: 'difference', values: {}, bodies: [a, b] }];
 async function build(calls: [string, Record<string, unknown>][]): Promise<ChatState> {
-  let s = { doc: emptyDoc(), bodies: [], turnBase: emptyDoc() } as never as ChatState;
+  // (O7: the fastener sizes are the sample rows, loaded as the person loads them.)
+  const start = withSampleRows(emptyDoc());
+  let s = { doc: start, bodies: [], turnBase: start } as never as ChatState;
   for (const [tool, args] of calls) { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, `${tool}: ${r.content}`); s = r.state; }
   return s;
 }

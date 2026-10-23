@@ -8,7 +8,7 @@ import { bomView, checkBom, deriveBom } from '../src/team/assembly';
 import { withFastenerInstance } from '../src/app/fasteners';
 import { fastenerRowProblem } from '../src/engine/fastenerRows';
 import { ROWS_NOT_FROM_PERSON } from '../src/chat/rowFiles';
-import { personFile } from './person-file';
+import { personFile, withSampleRows } from './person-file';
 import { drawingInputs } from '../src/chat/drawing';
 import { issueContext } from '../src/drawing/issues';
 import { readDrawing } from '../src/drawing/types';
@@ -20,7 +20,8 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const ROW = { id: 'F-M6x20', kind: 'socket-screw', size: 'M6', lengthMM: 20, designation: 'cap screw M6 × 20, A2', partNumber: 'SCS-M6-20', supplier: 'the shop', source: 'a test row' };
 /** A plate with four M6 × 20 cap screws placed in the assembly, each a part of its own. */
 function plateWithScrews(): StudioDoc {
-  let doc: StudioDoc = rectanglePart(100, 80, 10);
+  // (O7: the sizes the screws are drawn by, the sample rows loaded as the person loads them.)
+  let doc: StudioDoc = withSampleRows(rectanglePart(100, 80, 10));
   for (const [x, y] of [[10, 10], [90, 10], [10, 70], [90, 70]]) doc = withFastenerInstance(doc, { kind: 'socket-screw', size: 'M6', length: '20', joint: 'free', grip: 10, holeD: 0, holeDepth: 0, through: '0', insert: 'instance', model: 'cosmetic', x, y, z: 10, up: '+z' });
   return doc;
 }

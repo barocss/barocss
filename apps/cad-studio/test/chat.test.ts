@@ -20,6 +20,9 @@ import { planHollow } from '@barocss/cad-model/print/hollow';
 import { simplify, traceImage, traceLoops } from '@barocss/cad-model/chat/trace';
 import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
+import { receivePersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
+import { loadPersonRows } from '@barocss/cad-model/chat/rows';
+import SAMPLE_FASTENER_SIZES from '@barocss/cad-model/samples/rows/fastener-sizes.json';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 async function stateOf(doc: StudioDoc): Promise<ChatState> {
@@ -50,8 +53,12 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const run = TOOLS.find(t => t.name === 'run_command')!;
   assert.deepEqual((run.input_schema.properties as any).command.enum, CHAT_COMMANDS);
   assert.deepEqual(new Set(Object.keys(COMMAND_DOCS)), new Set(CHAT_COMMANDS));
-  // Fields from a context each command accepts: the documented keys are exactly the HUD's.
-  let doc = rectanglePart(64, 32, 8);
+  // Fields from a context each command accepts: the documented keys are exactly the HUD's. (O7: the fastener and the
+  // tapped hole take the sizes the person loaded — the sample rows, as the person loads them.)
+  const rowFiles = receivePersonRowFiles('0123456789abcdef01234567', [{ name: 'fastener-sizes.json', text: JSON.stringify(SAMPLE_FASTENER_SIZES), turn: 1 }], 1);
+  const sized = loadPersonRows(rectanglePart(64, 32, 8), 'fastener-sizes', rowFiles.files[0].id, undefined, rowFiles);
+  assert.ok('doc' in sized, 'error' in sized ? sized.error : '');
+  let doc = sized.doc;
   doc = withNode(withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [80, 0], max: [96, 16] }), { kind: 'extrude', sketch: 2, height: 16 });
   const s = await stateOf(doc), top = s.bodies[0].mesh.faces.find(f => f.name === 'n1.top')!;
   const sel = (p: Partial<Selection>): Selection => ({ faces: [], edges: [], bodies: [], ...p });
