@@ -8368,3 +8368,23 @@ values. Part-level configurations stay as they are (folding them into variants l
 - **R14.1's label click** (the GPU lane's report): not the label — the click landed on the paper further than 30 mm from
   every view, and hoverAt, finding no view, dropped it. While a dimension is placed, its place is read in its own view
   wherever the pointer is on the sheet (placingAt), for the click and its preview; the flow's placement is back at 30 mm.
+
+## R4b.3–R4b.8 — the remaining stale-reply guards on the O9 lanes (2026-10-24)
+
+One caller a commit, each guard's own behaviour kept; App.tsx edits on the guard lines only.
+- **R4b.3 App section** (a8a5c38af): its live flag → the 'section' lane (cancelled by the effect's cleanup); the
+  latest-wins queue stays (it keeps 40 dragged planes from being 40 requests).
+- **R4b.4 App bearing edit** (d1e372ec4): the run counter → the 'bearing-edit' lane, cancelled when the document,
+  selection or edit changes. The request never throws on the lane (its refusal is its result), so a stale one says
+  nothing, like a stale reply; the scope check (bearingEditCurrent) stays.
+- **R4b.5 App placed parts** (a5e294f3c): one lane a part, `placed:<id>`; the cleanup cancels the lanes it asked on.
+- **R4b.6, R4b.7 App proposal diff and mould view** (f583df59e): 'proposal-diff' and 'mould' (the effects only; the
+  mould's map and panel untouched).
+- **R4b.8 useDrawingSheet** (be38231a7): 'drawing-bodies', 'drawing', 'drawing-bom'; a refused read is its result
+  (null), as the flags' rejection handlers had it. DrawingWorkspace keeps no guard of its own.
+- **Kept as they are** (behaviour a lane would change): App's command preview — its guard shows an overtaken result
+  while a newer one is queued, so a drag keeps its feedback; useAssembly's readFaces (R4b.2, render-time).
+- **Verified:** studio tsc and eslint; bearing, drawing, o9, instance, section, mould and proposal tests 41/41; the
+  batch FLOW_ONLY at be38231a7 on WebGPU and WebGL2, 20 steps each, exit 0 (the section steps with O9's fast drag,
+  placing / dragging / mating instances, the real-chat proposals, Bearing, IM2 and IM5's mould views, drawing revision,
+  R14.1–R14.3b, sections O148 X1/X2, BOM table and balloons).
