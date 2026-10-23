@@ -592,7 +592,7 @@ export function App() {
   // Dev/test hook: the flow test reads the accepted document.
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioDoc: StudioDoc }).__studioDoc = doc; }, [doc]);
   // (Dev/test: the bodies as evaluated for the document shown — exact volumes and centroids, for checks to their tolerance.)
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioBodies: () => unknown }).__studioBodies = () => ({ fresh: bodiesFor === evaluated, bodies: bodies.map(b => ({ key: b.key, volumeMM3: b.volumeMM3, centroid: b.centroid ?? null })), massReady, colored: shownBodies.flatMap((b, i) => bodyColors.has(i) ? [b.key] : []) }); });
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioBodies: () => unknown }).__studioBodies = () => ({ fresh: bodiesFor === evaluated, bodies: bodies.map(b => ({ key: b.key, volumeMM3: b.volumeMM3, centroid: b.centroid ?? null, massRef: b.massRef ?? null })), massReady, colored: shownBodies.flatMap((b, i) => bodyColors.has(i) ? [b.key] : []) }); });
   // (Dev/test: what is picked, as the commands see it.)
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSelection: unknown }).__studioSelection = { selection, bodies: bodies.length, active: active?.cmd.id ?? null, sketch: !!sketch, measure: !!measure }; });
   // Dev/test hooks: select an edge or a face by its persistent name (canvas picks are not reproducible).

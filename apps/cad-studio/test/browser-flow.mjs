@@ -2872,7 +2872,7 @@ try {
     const t0 = Date.now(); await press('Enter');
     // The reply: one body shown, its mass not yet there.
     await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 1 && window.__studioDoc.nodes[0]?.kind === 'spring'; }, null, { timeout: 60000 });
-    const replied = Date.now() - t0, at = await page.evaluate(() => { const b = window.__studioBodies(); return { massReady: b.massReady, volume: b.bodies[0]?.volumeMM3 ?? null }; });
+    const replied = Date.now() - t0, at = await page.evaluate(() => { const b = window.__studioBodies(); return { massReady: b.massReady, bodies: b.bodies }; });
     console.log(`  O18 spring at its reply (${renderer}): ${JSON.stringify(at)}`);
     assert.ok(!at.massReady, `the reply came before the mass: ${JSON.stringify(at)}`);
     // An undo at once: its reply (an empty part) does not wait for the spring's quadrature, which it drops.
@@ -6265,6 +6265,7 @@ try {
     assert.deepEqual(kinds.slice(-2), ['shell', 'hole']);
     // (abc − (a−4)(b−4)(c−4) − π·2²·2 = 24000 − 36·26·16 − 8π = 9000.87: exact; the panel rounds to 1 mm³.)
     const vol = await bodyVolume();
+    if (!Number.isFinite(vol)) console.log(`  O18 AM7a (${renderer}): ${JSON.stringify(await page.evaluate(() => ({ b: window.__studioBodies(), props: document.querySelector('.props')?.textContent?.slice(0, 300) })))}`);
     assert.ok(Math.abs(vol - (24000 - 36 * 26 * 16 - 8 * Math.PI)) <= 1, String(vol));
     await snap('am7a-hollow');
   });
