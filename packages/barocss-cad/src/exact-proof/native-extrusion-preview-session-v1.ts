@@ -1,5 +1,5 @@
-import { evaluateBooleanExtrusionFeatureGraph } from '../boolean-extrusion-feature-graph.js';
-import type { BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureGraphOptions } from '../boolean-extrusion-feature-graph.js';
+import { evaluateBooleanExtrusionFeatureGraph } from '../features/boolean-extrusion-feature-graph.js';
+import type { BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureGraphOptions } from '../features/boolean-extrusion-feature-graph.js';
 import { extrudeCoplanarFaceBoolean } from '../coplanar-face-boolean-extrusion.js';
 import type { CoplanarFaceBooleanExtrusionResult } from '../coplanar-face-boolean-extrusion.js';
 import { copyCadData } from '../data-copy.js';

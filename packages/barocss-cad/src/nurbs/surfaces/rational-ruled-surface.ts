@@ -1,11 +1,11 @@
-import { basis, validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../../derivatives.js';
+import { basis, validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../../core/derivatives.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal, requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export interface RationalRuledSurfaceOptions { surfaceId: string }
 export interface RationalRuledSurfaceConstruction {

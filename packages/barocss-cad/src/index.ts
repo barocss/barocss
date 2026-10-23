@@ -1,20 +1,20 @@
 export * from './types.js';
-export { MAX_SAMPLES, validateCurve, validateSurface, validateModel, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface, curveEvaluator, surfaceEvaluator, sampleCurve, sampleSurface } from './math.js';
+export { MAX_SAMPLES, validateCurve, validateSurface, validateModel, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface, curveEvaluator, surfaceEvaluator, sampleCurve, sampleSurface } from './core/math.js';
 export * from './io/iges.js';
-export * from './packet.js';
+export * from './core/packet.js';
 export * from './preview.js';
-export * from './extrusion.js';
-export * from './derivatives.js';
-export * from './boundary.js';
-export * from './face.js';
-export * from './adjacency.js';
-export * from './orthogonal-adjacency.js';
-export * from './box-shell.js';
-export * from './box-solid.js';
+export * from './core/extrusion.js';
+export * from './core/derivatives.js';
+export * from './core/boundary.js';
+export * from './core/face.js';
+export * from './core/adjacency.js';
+export * from './core/orthogonal-adjacency.js';
+export * from './core/box-shell.js';
+export * from './core/box-solid.js';
 
 export { compileCadModel } from './model-compiler.js';
 export type { CadCompileOptions, CadCompileResult, CadDiagnostic, CadModelIR, CadModelAst, CadSourceRange } from './model-compiler.js';
-export type { SourceSpan, ExtrusionConstruction } from './construction-types.js';
+export type { SourceSpan, ExtrusionConstruction } from './document/construction-types.js';
 export type { CadModelIR1, CadModelIR2, CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './model-compiler.js';
 export type { CadExpression } from './model-compiler.js';
 export { buildXYProfile } from './xy-profile.js';
@@ -163,13 +163,13 @@ export { extractCurveBezierSpans, validateCurveBezierSpans, CurveBezierSpanExtra
 export type { CurveBezierSpanExtractionOptions, CurveBezierSpan, CurveBezierSpanD1State, CurveBezierSpanObservation, CurveBezierSpanEndpoint, CurveBezierSpanExtractionReport, CurveBezierSpanExtractionResult } from './nurbs/curves/curve-bezier-spans.js';
 export { createCadDocument, serializeCadDocument, parseCadDocument, validateCadDocumentResult, CadDocumentError, CadDocumentDiagnosticCode } from './cad-document.js';
 export type { CadDocumentUnits, CadDocumentSourceAsset, CadDocumentBody, CadDocumentV1, CadDocumentCompiledAsset, CadDocumentBodyBinding, CadDocumentReport, CadDocumentResult } from './cad-document.js';
-export { createCadGeometryReference, resolveCadGeometryReference, rebindCadGeometryReference, queryCadDocumentPoint, convertCadDocumentPoint, validateCadDocumentPoint, validateCadFrameConversion, CadReferenceError, CadReferenceDiagnosticCode } from './cad-document-reference.js';
-export type { CadGeometryReferenceInput, CadGeometryReferenceV0, CadGeometryReferenceResult, CadGeometryRebindResult, CadDocumentPointQuery, CadDocumentPointResult, CadFrameConversionOptions, CadFrameConversionResult, CadReferenceReport, CadFrameConversionReport } from './cad-document-reference.js';
-export { inspectCadDocumentCompatibility, migrateCadDocument, validateCadDocumentMigration, CadDocumentCompatibilityError, CadDocumentCompatibilityDiagnosticCode } from './cad-document-compatibility.js';
-export type { CadDocumentCompatibilityInput, CadDocumentMigrationOptions, CadDocumentCompatibilityEntry, CadDocumentCompatibilityReport, CadDocumentMigrationMapping, CadDocumentMigrationResult } from './cad-document-compatibility.js';
+export { createCadGeometryReference, resolveCadGeometryReference, rebindCadGeometryReference, queryCadDocumentPoint, convertCadDocumentPoint, validateCadDocumentPoint, validateCadFrameConversion, CadReferenceError, CadReferenceDiagnosticCode } from './document/cad-document-reference.js';
+export type { CadGeometryReferenceInput, CadGeometryReferenceV0, CadGeometryReferenceResult, CadGeometryRebindResult, CadDocumentPointQuery, CadDocumentPointResult, CadFrameConversionOptions, CadFrameConversionResult, CadReferenceReport, CadFrameConversionReport } from './document/cad-document-reference.js';
+export { inspectCadDocumentCompatibility, migrateCadDocument, validateCadDocumentMigration, CadDocumentCompatibilityError, CadDocumentCompatibilityDiagnosticCode } from './document/cad-document-compatibility.js';
+export type { CadDocumentCompatibilityInput, CadDocumentMigrationOptions, CadDocumentCompatibilityEntry, CadDocumentCompatibilityReport, CadDocumentMigrationMapping, CadDocumentMigrationResult } from './document/cad-document-compatibility.js';
 
-export { getCadDocumentExportCapabilities, inspectCadDocumentExport, exportCadDocument, validateCadDocumentExport, CadDocumentExportError, CadDocumentExportDiagnosticCode } from './cad-document-export.js';
-export type { CadDocumentExportCapability, CadDocumentExportSelection, CadDocumentExportOptions, CadDocumentExportMapping, CadDocumentExportReport, CadDocumentExportResult } from './cad-document-export.js';
+export { getCadDocumentExportCapabilities, inspectCadDocumentExport, exportCadDocument, validateCadDocumentExport, CadDocumentExportError, CadDocumentExportDiagnosticCode } from './document/cad-document-export.js';
+export type { CadDocumentExportCapability, CadDocumentExportSelection, CadDocumentExportOptions, CadDocumentExportMapping, CadDocumentExportReport, CadDocumentExportResult } from './document/cad-document-export.js';
 
 export { intersectCubicBezierCurveWithAffinePlaneSurface, validateCubicBezierCurveAffinePlaneIntersection, CubicCurveAffinePlaneIntersectionError, CubicCurveAffinePlaneIntersectionDiagnosticCode } from './intersect/own-cubic-curve-plane-intersection.js';
 export type { CubicCurveAffinePlaneIntersectionOptions, CubicCurveAffinePlaneIntersectionReport, CubicCurveAffinePlaneIntersectionResult, CubicCurvePlaneRootEvidence } from './intersect/own-cubic-curve-plane-intersection.js';
@@ -183,11 +183,11 @@ export type { WideCurveControlPolygonEditReport, WideCurveControlPolygonEditResu
 export { reverseCurveWide, validateWideReversedCurveResult, WideCurveReversalError, WideCurveReversalDiagnosticCode } from './nurbs/source-wide/curve-wide-reversal.js';
 export type { WideReversedCurveReport, WideReversedCurveResult } from './nurbs/source-wide/curve-wide-reversal.js';
 
-export { buildThreeSectionLoftSurface, validateThreeSectionLoftSurface, ThreeSectionLoftError, ThreeSectionLoftDiagnosticCode } from './three-section-loft.js';
-export type { ThreeSectionLoftOptions, ThreeSectionLoftObservation, ThreeSectionLoftD1Observation, ThreeSectionLoftProvenance, ThreeSectionLoftReport, ThreeSectionLoftResult } from './three-section-loft.js';
+export { buildThreeSectionLoftSurface, validateThreeSectionLoftSurface, ThreeSectionLoftError, ThreeSectionLoftDiagnosticCode } from './features/three-section-loft.js';
+export type { ThreeSectionLoftOptions, ThreeSectionLoftObservation, ThreeSectionLoftD1Observation, ThreeSectionLoftProvenance, ThreeSectionLoftReport, ThreeSectionLoftResult } from './features/three-section-loft.js';
 
-export { queryCadDocumentBounds, validateCadDocumentBounds, CadDocumentBoundsError, CadDocumentBoundsDiagnosticCode } from './cad-document-bounds.js';
-export type { CadDocumentBoundsReport, CadDocumentBoundsResult } from './cad-document-bounds.js';
+export { queryCadDocumentBounds, validateCadDocumentBounds, CadDocumentBoundsError, CadDocumentBoundsDiagnosticCode } from './document/cad-document-bounds.js';
+export type { CadDocumentBoundsReport, CadDocumentBoundsResult } from './document/cad-document-bounds.js';
 
 export { queryCadDocumentCurveArcLength, validateCadDocumentCurveArcLength, CadCurveArcLengthError, CadCurveArcLengthDiagnosticCode } from './nurbs/curves/cad-curve-arc-length.js';
 export type { CadCurveArcLengthOptions, CadCurveArcLengthPanel, CadCurveArcLengthReport, CadCurveArcLengthResult } from './nurbs/curves/cad-curve-arc-length.js';
@@ -195,16 +195,16 @@ export type { CadCurveArcLengthOptions, CadCurveArcLengthPanel, CadCurveArcLengt
 export { queryCadDocumentSurfaceArea, validateCadDocumentSurfaceArea, CadSurfaceAreaError, CadSurfaceAreaDiagnosticCode } from './nurbs/surfaces/cad-surface-area.js';
 export type { CadSurfaceAreaOptions, CadSurfaceAreaCell, CadSurfaceAreaReport, CadSurfaceAreaResult } from './nurbs/surfaces/cad-surface-area.js';
 
-export { evaluateCadAssembly, serializeCadAssembly, parseCadAssembly, updateCadAssembly, validateCadAssemblyResult, CadAssemblyError, CadAssemblyDiagnosticCode } from './cad-assembly.js';
-export type { CadAssemblyMatrix, CadAssemblyPlacement, CadAssemblyInstance, CadAssemblyV0, CadAssemblyEvaluatedInstance, CadAssemblyEdits, CadAssemblyReport, CadAssemblyResult } from './cad-assembly.js';
-export { queryCadAssemblyInstancePoint, validateCadAssemblyInstancePoint } from './cad-assembly-instance-point.js';
-export type { CadAssemblyInstancePointQuery, CadAssemblyInstancePointReport, CadAssemblyInstancePointResult } from './cad-assembly-instance-point.js';
+export { evaluateCadAssembly, serializeCadAssembly, parseCadAssembly, updateCadAssembly, validateCadAssemblyResult, CadAssemblyError, CadAssemblyDiagnosticCode } from './document/cad-assembly.js';
+export type { CadAssemblyMatrix, CadAssemblyPlacement, CadAssemblyInstance, CadAssemblyV0, CadAssemblyEvaluatedInstance, CadAssemblyEdits, CadAssemblyReport, CadAssemblyResult } from './document/cad-assembly.js';
+export { queryCadAssemblyInstancePoint, validateCadAssemblyInstancePoint } from './document/cad-assembly-instance-point.js';
+export type { CadAssemblyInstancePointQuery, CadAssemblyInstancePointReport, CadAssemblyInstancePointResult } from './document/cad-assembly-instance-point.js';
 
-export { transactCadAssemblyMembers, validateCadAssemblyMemberTransaction } from './cad-assembly-members.js';
-export type { CadAssemblyMemberTransaction, CadAssemblyMemberReport, CadAssemblyMemberResult } from './cad-assembly-members.js';
+export { transactCadAssemblyMembers, validateCadAssemblyMemberTransaction } from './document/cad-assembly-members.js';
+export type { CadAssemblyMemberTransaction, CadAssemblyMemberReport, CadAssemblyMemberResult } from './document/cad-assembly-members.js';
 
-export { replaceCadAssemblyPart, validateCadAssemblyPartReplacement } from './cad-assembly-part-replacement.js';
-export type { CadAssemblyPartReplacement, CadAssemblyPartReplacementReport, CadAssemblyPartReplacementResult } from './cad-assembly-part-replacement.js';
+export { replaceCadAssemblyPart, validateCadAssemblyPartReplacement } from './document/cad-assembly-part-replacement.js';
+export type { CadAssemblyPartReplacement, CadAssemblyPartReplacementReport, CadAssemblyPartReplacementResult } from './document/cad-assembly-part-replacement.js';
 
 export { booleanCoplanarFaces, validateCoplanarFaceBoolean, CoplanarFaceBooleanError, CoplanarFaceBooleanDiagnosticCode } from './coplanar-face-boolean.js';
 export type { CoplanarFaceBooleanOptions, CoplanarFaceBooleanContributor, CoplanarFaceBooleanEvent, CoplanarFaceBooleanFragment, CoplanarFaceBooleanLoop, CoplanarFaceBooleanComponent, CoplanarFaceBooleanReport, CoplanarFaceBooleanResult } from './coplanar-face-boolean.js';
@@ -218,15 +218,15 @@ export type { CoplanarFaceBooleanExtrusionOptions, CoplanarFaceBooleanExtrusionV
 export { tessellateCoplanarFaceBooleanExtrusion, validateCoplanarFaceBooleanExtrusionMesh, CoplanarFaceBooleanExtrusionMeshError, CoplanarFaceBooleanExtrusionMeshDiagnosticCode } from './coplanar-face-boolean-extrusion-mesh.js';
 export type { CoplanarFaceBooleanExtrusionMeshOptions, CoplanarFaceBooleanExtrusionMeshVertex, CoplanarFaceBooleanExtrusionMeshFaceRange, CoplanarFaceBooleanExtrusionMeshEdgePath, CoplanarFaceBooleanExtrusionMeshShellRange, CoplanarFaceBooleanExtrusionMeshReport, CoplanarFaceBooleanExtrusionMeshResult } from './coplanar-face-boolean-extrusion-mesh.js';
 
-export { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph, validateBooleanExtrusionFeatureGraph, BooleanExtrusionFeatureGraphError, BooleanExtrusionFeatureGraphDiagnosticCode } from './boolean-extrusion-feature-graph.js';
-export { serializeBooleanExtrusionFeatureGraph, parseBooleanExtrusionFeatureGraph } from './boolean-extrusion-feature-graph-serde.js';
-export type { BooleanExtrusionLengthDefinition, BooleanExtrusionLengthParameter, BooleanExtrusionFaceFeature, BooleanExtrusionBooleanFeature, BooleanExtrusionExtrusionFeature, BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureGraphOptions, BooleanExtrusionFeatureGraphEdits, BooleanExtrusionFeatureGraphResolvedParameter, BooleanExtrusionFeatureGraphEvaluatedFeature, BooleanExtrusionFeatureGraphReport, BooleanExtrusionFeatureGraphResult } from './boolean-extrusion-feature-graph.js';
+export { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph, validateBooleanExtrusionFeatureGraph, BooleanExtrusionFeatureGraphError, BooleanExtrusionFeatureGraphDiagnosticCode } from './features/boolean-extrusion-feature-graph.js';
+export { serializeBooleanExtrusionFeatureGraph, parseBooleanExtrusionFeatureGraph } from './features/boolean-extrusion-feature-graph-serde.js';
+export type { BooleanExtrusionLengthDefinition, BooleanExtrusionLengthParameter, BooleanExtrusionFaceFeature, BooleanExtrusionBooleanFeature, BooleanExtrusionExtrusionFeature, BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureGraphOptions, BooleanExtrusionFeatureGraphEdits, BooleanExtrusionFeatureGraphResolvedParameter, BooleanExtrusionFeatureGraphEvaluatedFeature, BooleanExtrusionFeatureGraphReport, BooleanExtrusionFeatureGraphResult } from './features/boolean-extrusion-feature-graph.js';
 
-export { transactBooleanExtrusionFeatureGraphParameters } from './boolean-extrusion-parameter-lifecycle.js';
-export type { BooleanExtrusionParameterOperation, BooleanExtrusionParameterTransaction } from './boolean-extrusion-parameter-lifecycle.js';
+export { transactBooleanExtrusionFeatureGraphParameters } from './features/boolean-extrusion-parameter-lifecycle.js';
+export type { BooleanExtrusionParameterOperation, BooleanExtrusionParameterTransaction } from './features/boolean-extrusion-parameter-lifecycle.js';
 
-export { transactBooleanExtrusionFeatureGraphFeatures } from './boolean-extrusion-feature-lifecycle.js';
-export type { BooleanExtrusionFeatureOperation, BooleanExtrusionFeatureTransaction } from './boolean-extrusion-feature-lifecycle.js';
+export { transactBooleanExtrusionFeatureGraphFeatures } from './features/boolean-extrusion-feature-lifecycle.js';
+export type { BooleanExtrusionFeatureOperation, BooleanExtrusionFeatureTransaction } from './features/boolean-extrusion-feature-lifecycle.js';
 
 export { createNativeExtrusionPreviewAcceptanceV1 } from './exact-proof/native-extrusion-preview-acceptance-v1.js';
 export type { NativeExtrusionPreviewTicketV1, NativeExtrusionPreparedV1, NativeExtrusionAcceptedV1, NativeExtrusionPreviewAcceptanceSessionV1 } from './exact-proof/native-extrusion-preview-acceptance-v1.js';
@@ -249,20 +249,20 @@ export type { CurveParameterizationMethod, CurveParameterizationOptions, CurvePa
 export { buildWeightedInterpolatingCurve, validateWeightedInterpolatingCurve, WeightedCurveInterpolationError, WeightedCurveInterpolationDiagnosticCode } from './nurbs/curves/weighted-curve-interpolation.js';
 export type { WeightedCurveInterpolationPoint, WeightedCurveInterpolationOptions, WeightedCurveInterpolationReport, WeightedCurveInterpolationResult } from './nurbs/curves/weighted-curve-interpolation.js';
 
-export { buildMultiSectionLoftSurface, validateMultiSectionLoftSurface, MultiSectionLoftError, MultiSectionLoftDiagnosticCode } from './multi-section-loft.js';
-export type { MultiSectionLoftOptions, MultiSectionLoftProvenance, MultiSectionLoftObservation, MultiSectionLoftReport, MultiSectionLoftResult } from './multi-section-loft.js';
+export { buildMultiSectionLoftSurface, validateMultiSectionLoftSurface, MultiSectionLoftError, MultiSectionLoftDiagnosticCode } from './features/multi-section-loft.js';
+export type { MultiSectionLoftOptions, MultiSectionLoftProvenance, MultiSectionLoftObservation, MultiSectionLoftReport, MultiSectionLoftResult } from './features/multi-section-loft.js';
 
-export { transformNativeGeometryAffine, validateAffineGeometryTransform, AffineGeometryTransformError, AffineGeometryTransformDiagnosticCode } from './affine-geometry-transform.js';
-export type { CadAffineMatrix3x4, AffineGeometryTransformOptions, AffineGeometryTransformObservation, AffineGeometryTransformReport, AffineGeometryTransformResult } from './affine-geometry-transform.js';
+export { transformNativeGeometryAffine, validateAffineGeometryTransform, AffineGeometryTransformError, AffineGeometryTransformDiagnosticCode } from './features/affine-geometry-transform.js';
+export type { CadAffineMatrix3x4, AffineGeometryTransformOptions, AffineGeometryTransformObservation, AffineGeometryTransformReport, AffineGeometryTransformResult } from './features/affine-geometry-transform.js';
 
-export { buildLinearGeometryPattern, validateLinearGeometryPattern, LinearGeometryPatternError, LinearGeometryPatternDiagnosticCode } from './linear-geometry-pattern.js';
-export type { LinearGeometryPatternOptions, LinearGeometryPatternInstance, LinearGeometryPatternReport, LinearGeometryPatternResult } from './linear-geometry-pattern.js';
+export { buildLinearGeometryPattern, validateLinearGeometryPattern, LinearGeometryPatternError, LinearGeometryPatternDiagnosticCode } from './features/linear-geometry-pattern.js';
+export type { LinearGeometryPatternOptions, LinearGeometryPatternInstance, LinearGeometryPatternReport, LinearGeometryPatternResult } from './features/linear-geometry-pattern.js';
 
-export { buildCircularGeometryPattern, validateCircularGeometryPattern, CircularGeometryPatternError, CircularGeometryPatternDiagnosticCode } from './circular-geometry-pattern.js';
-export type { CircularGeometryPatternOptions, CircularGeometryPatternInstance, CircularGeometryPatternReport, CircularGeometryPatternResult } from './circular-geometry-pattern.js';
+export { buildCircularGeometryPattern, validateCircularGeometryPattern, CircularGeometryPatternError, CircularGeometryPatternDiagnosticCode } from './features/circular-geometry-pattern.js';
+export type { CircularGeometryPatternOptions, CircularGeometryPatternInstance, CircularGeometryPatternReport, CircularGeometryPatternResult } from './features/circular-geometry-pattern.js';
 
-export { evaluateCurveD2, evaluateSurfaceD2, NativeSecondDerivativeError, NativeSecondDerivativeDiagnosticCode } from './second-derivatives.js';
-export type { CurveD2Result, SurfaceD2Result } from './second-derivatives.js';
+export { evaluateCurveD2, evaluateSurfaceD2, NativeSecondDerivativeError, NativeSecondDerivativeDiagnosticCode } from './core/second-derivatives.js';
+export type { CurveD2Result, SurfaceD2Result } from './core/second-derivatives.js';
 
 export { evaluateCurveCurvature, evaluateSurfaceCurvature, NativeCurvatureError, NativeCurvatureDiagnosticCode } from './nurbs/surfaces/local-curvature.js';
 export type { CurveCurvatureResult, SurfaceCurvatureResult } from './nurbs/surfaces/local-curvature.js';
@@ -273,11 +273,11 @@ export type { CurvePlanarFaceMaterialOptions, CurvePlanarFaceMaterialEvent, Curv
 export { estimateCoplanarFaceBooleanExtrusionMass, validateCoplanarFaceBooleanExtrusionMass, CoplanarFaceBooleanExtrusionMassError, CoplanarFaceBooleanExtrusionMassDiagnosticCode } from './coplanar-face-boolean-extrusion-mass.js';
 export type { CoplanarFaceBooleanExtrusionMassOptions, CoplanarFaceBooleanExtrusionMassComponent, CoplanarFaceBooleanExtrusionMassReport, CoplanarFaceBooleanExtrusionMassResult } from './coplanar-face-boolean-extrusion-mass.js';
 
-export { analyzeExtrusionConstructionPrincipalInertia, validateExtrusionConstructionPrincipalInertia, ExtrusionPrincipalInertiaError, ExtrusionPrincipalInertiaDiagnosticCode } from './extrusion-principal-inertia.js';
-export type { ExtrusionPrincipalInertiaOptions, ExtrusionPrincipalInertiaAxis, ExtrusionPrincipalInertiaReport, ExtrusionPrincipalInertiaResult } from './extrusion-principal-inertia.js';
+export { analyzeExtrusionConstructionPrincipalInertia, validateExtrusionConstructionPrincipalInertia, ExtrusionPrincipalInertiaError, ExtrusionPrincipalInertiaDiagnosticCode } from './features/extrusion-principal-inertia.js';
+export type { ExtrusionPrincipalInertiaOptions, ExtrusionPrincipalInertiaAxis, ExtrusionPrincipalInertiaReport, ExtrusionPrincipalInertiaResult } from './features/extrusion-principal-inertia.js';
 
-export { buildAlignedRationalRuledSurface, validateAlignedRationalRuledSurface, SectionKnotAlignmentError, SectionKnotAlignmentDiagnosticCode } from './section-knot-alignment.js';
-export type { SectionKnotAlignmentOptions, SectionKnotAlignmentSection, SectionKnotAlignmentReport, SectionKnotAlignmentResult } from './section-knot-alignment.js';
+export { buildAlignedRationalRuledSurface, validateAlignedRationalRuledSurface, SectionKnotAlignmentError, SectionKnotAlignmentDiagnosticCode } from './features/section-knot-alignment.js';
+export type { SectionKnotAlignmentOptions, SectionKnotAlignmentSection, SectionKnotAlignmentReport, SectionKnotAlignmentResult } from './features/section-knot-alignment.js';
 
 export { buildExactBoundaryFaceAdjacency, validateExactBoundaryFaceAdjacency, ExactBoundaryFaceAdjacencyError, ExactBoundaryFaceAdjacencyDiagnosticCode } from './exact-proof/exact-boundary-face-adjacency.js';
 export type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, ExactBoundaryFaceAdjacencyOptions, ExactBoundaryFaceAdjacencyEdge, ExactBoundaryFaceAdjacencyReport, ExactBoundaryFaceAdjacencyResult } from './exact-proof/exact-boundary-face-adjacency.js';
@@ -288,8 +288,8 @@ export type { QuinticHermiteEndpoint, QuinticHermiteOptions, QuinticHermiteRepor
 export { inspectCurveEndpointContinuity, validateCurveEndpointContinuity, CurveEndpointContinuityError, CurveEndpointContinuityDiagnosticCode } from './nurbs/curves/curve-endpoint-continuity.js';
 export type { CurveEndpointContinuityInput, CurveEndpointContinuityOptions, CurveEndpointContinuityReport, CurveEndpointContinuityResult } from './nurbs/curves/curve-endpoint-continuity.js';
 
-export { buildClosedExactPatchShell, validateClosedExactPatchShell, ClosedExactPatchShellError, ClosedExactPatchShellDiagnosticCode } from './closed-exact-patch-shell.js';
-export type { ClosedExactPatchShellOptions, ClosedExactPatchShellGraph, ClosedExactPatchShellReport, ClosedExactPatchShellResult } from './closed-exact-patch-shell.js';
+export { buildClosedExactPatchShell, validateClosedExactPatchShell, ClosedExactPatchShellError, ClosedExactPatchShellDiagnosticCode } from './brep/closed-exact-patch-shell.js';
+export type { ClosedExactPatchShellOptions, ClosedExactPatchShellGraph, ClosedExactPatchShellReport, ClosedExactPatchShellResult } from './brep/closed-exact-patch-shell.js';
 
 export { buildVLinearSurfacePlaneSection, validateVLinearSurfacePlaneSection, VLinearSurfacePlaneSectionError, VLinearSurfacePlaneSectionDiagnosticCode } from './intersect/vlinear-plane-section.js';
 export type { VLinearSurfacePlaneSectionAsset, VLinearSurfacePlaneSectionOptions, VLinearSurfacePlaneSectionReport, VLinearSurfacePlaneSectionResult } from './intersect/vlinear-plane-section.js';
@@ -303,8 +303,8 @@ export type { SourceSurfaceControlNetWideRequest, SourceSurfaceControlNetWidePat
 export { editSourceCurveControlPolygon, validateSourceCurveControlPolygonEdit, SourceCurveControlPolygonError, SourceCurveControlPolygonDiagnosticCode } from './nurbs/source-wide/source-curve-control-polygon.js';
 export type { SourceCurveControlPolygonRequest, SourceCurveControlPolygonPatch, SourceCurveControlPolygonReport, SourceCurveControlPolygonResult } from './nurbs/source-wide/source-curve-control-polygon.js';
 
-export { buildPiecewiseRationalLoftSurface, validatePiecewiseRationalLoftSurface, PiecewiseRationalLoftError, PiecewiseRationalLoftDiagnosticCode } from './piecewise-rational-loft.js';
-export type { PiecewiseRationalLoftOptions, PiecewiseRationalLoftProvenance, PiecewiseRationalLoftReport, PiecewiseRationalLoftResult } from './piecewise-rational-loft.js';
+export { buildPiecewiseRationalLoftSurface, validatePiecewiseRationalLoftSurface, PiecewiseRationalLoftError, PiecewiseRationalLoftDiagnosticCode } from './features/piecewise-rational-loft.js';
+export type { PiecewiseRationalLoftOptions, PiecewiseRationalLoftProvenance, PiecewiseRationalLoftReport, PiecewiseRationalLoftResult } from './features/piecewise-rational-loft.js';
 
 export { buildVLinearSurfacePlaneTrimCandidates, validateVLinearSurfacePlaneTrimCandidates, VLinearSurfacePlaneTrimError, VLinearSurfacePlaneTrimDiagnosticCode } from './intersect/vlinear-plane-trim.js';
 export type { VLinearSurfacePlaneTrimOptions, VLinearSurfacePlaneTrimEdge, VLinearSurfacePlaneTrimReport, VLinearSurfacePlaneTrimResult } from './intersect/vlinear-plane-trim.js';
@@ -341,8 +341,8 @@ export type { DrivenMixedSketchLinesSegmentBinding, DrivenMixedSketchLinesDocume
 
 export { qualifyStoredPlateHoleSolid, validateStoredPlateHoleSolid, serializeStoredPlateHoleSolid, parseStoredPlateHoleSolid, StoredPlateHoleSolidError, StoredPlateHoleSolidDiagnosticCode } from './stored-plate-hole-solid.js';
 export type { StoredPlateHoleSolidGerm, StoredPlateHoleSolidCorner, StoredPlateHoleSolidVertexLink, StoredPlateHoleSolidCertificate, StoredPlateHoleSolidResult } from './stored-plate-hole-solid.js';
-export { qualifyKnownSolid } from './known-solid-qualification.js';
-export type { KnownSolidFamily, KnownSolidRequest, KnownSolidQualification, KnownTopologyKind, KnownTopologyCheck, KnownSolidRefusalReason } from './known-solid-qualification.js';
+export { qualifyKnownSolid } from './features/known-solid-qualification.js';
+export type { KnownSolidFamily, KnownSolidRequest, KnownSolidQualification, KnownTopologyKind, KnownTopologyCheck, KnownSolidRefusalReason } from './features/known-solid-qualification.js';
 
 export { verifyXYAngleArcArtifact, validateXYAngleArcArtifactVerification, serializeXYAngleArcArtifact, parseXYAngleArcArtifact, XYAngleArcArtifactError, XYAngleArcArtifactDiagnosticCode } from './xy-angle-arc-artifact.js';
 export type { XYAngleArcArtifactFieldRule, XYAngleArcArtifactReport, XYAngleArcArtifactVerification } from './xy-angle-arc-artifact.js';
@@ -362,8 +362,8 @@ export type { MultiSpanVLinearSurfacePlaneTrimUVQuery, MultiSpanVLinearSurfacePl
 export { buildPairedSectionPlaneCap, validatePairedSectionPlaneCap, PairedSectionPlaneCapError, PairedSectionPlaneCapDiagnosticCode } from './paired/paired-section-plane-cap.js';
 export type { PairedSectionPlaneCapOptions, PairedSectionPlaneCapEdge, PairedSectionPlaneCapReport, PairedSectionPlaneCapResult } from './paired/paired-section-plane-cap.js';
 
-export { buildSectionExactSurfaceBinding, validateSectionExactSurfaceBinding, SectionExactSurfaceBindingError, SectionExactSurfaceBindingDiagnosticCode } from './section-exact-surface-binding.js';
-export type { SectionExactSurfaceBindingOptions, SectionExactSurfaceBindingSpanProof, SectionExactSurfaceBindingReport, SectionExactSurfaceBindingResult } from './section-exact-surface-binding.js';
+export { buildSectionExactSurfaceBinding, validateSectionExactSurfaceBinding, SectionExactSurfaceBindingError, SectionExactSurfaceBindingDiagnosticCode } from './features/section-exact-surface-binding.js';
+export type { SectionExactSurfaceBindingOptions, SectionExactSurfaceBindingSpanProof, SectionExactSurfaceBindingReport, SectionExactSurfaceBindingResult } from './features/section-exact-surface-binding.js';
 
 export { buildExactSurfaceLowerTrim, validateExactSurfaceLowerTrim, ExactSurfaceLowerTrimError, ExactSurfaceLowerTrimDiagnosticCode } from './exact-proof/exact-surface-lower-trim.js';
 export type { ExactSurfaceLowerTrimOptions, ExactSurfaceLowerTrimEdge, ExactSurfaceLowerTrimReport, ExactSurfaceLowerTrimResult } from './exact-proof/exact-surface-lower-trim.js';
@@ -383,8 +383,8 @@ export type { QualifiedTranslatedStripBodyOptions, QualifiedTranslatedStripBodyE
 export { classifyTranslatedSurfaceStripWorldPoints, validateTranslatedSurfaceStripWorldPointClassification, TranslatedSurfaceStripWorldPointError, TranslatedSurfaceStripWorldPointDiagnosticCode } from './translated-strip/translated-surface-strip-world-points.js';
 export type { TranslatedSurfaceStripWorldPointQuery, TranslatedSurfaceStripWorldPointOptions, TranslatedSurfaceStripWorldPointReport, TranslatedSurfaceStripWorldPointResult } from './translated-strip/translated-surface-strip-world-points.js';
 
-export { evaluateNurbsSourceLoftFeatureGraph, updateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraphUpdate, serializeNurbsSourceLoftFeatureGraph, parseNurbsSourceLoftFeatureGraph, NurbsSourceLoftFeatureGraphError, NurbsSourceLoftFeatureGraphDiagnosticCode } from './nurbs-source-loft-feature-graph.js';
-export type { NurbsSourceLoftFeatureGraphV0, NurbsSourceLoftFeatureGraphOptions, NurbsSourceLoftFeatureGraphEdits, NurbsSourceLoftFeatureGraphResult, NurbsSourceLoftFeatureGraphReport, NurbsSourceLoftFeatureGraphTransaction, NurbsSourceLoftFeatureGraphTransactionReport, NurbsSourceLoftFeatureGraphUpdateResult } from './nurbs-source-loft-feature-graph.js';
+export { evaluateNurbsSourceLoftFeatureGraph, updateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraphUpdate, serializeNurbsSourceLoftFeatureGraph, parseNurbsSourceLoftFeatureGraph, NurbsSourceLoftFeatureGraphError, NurbsSourceLoftFeatureGraphDiagnosticCode } from './features/nurbs-source-loft-feature-graph.js';
+export type { NurbsSourceLoftFeatureGraphV0, NurbsSourceLoftFeatureGraphOptions, NurbsSourceLoftFeatureGraphEdits, NurbsSourceLoftFeatureGraphResult, NurbsSourceLoftFeatureGraphReport, NurbsSourceLoftFeatureGraphTransaction, NurbsSourceLoftFeatureGraphTransactionReport, NurbsSourceLoftFeatureGraphUpdateResult } from './features/nurbs-source-loft-feature-graph.js';
 
 export { buildExactSurfaceBandTrim, validateExactSurfaceBandTrim, ExactSurfaceBandTrimError, ExactSurfaceBandTrimDiagnosticCode } from './exact-proof/exact-surface-band-trim.js';
 export type { ExactSurfaceBandTrimOptions, ExactSurfaceBandTrimEdge, ExactSurfaceBandTrimReport, ExactSurfaceBandTrimResult } from './exact-proof/exact-surface-band-trim.js';
@@ -448,7 +448,7 @@ export type { SourceLineWidthExtrusionGraphV0, SourceLineWidthExtrusionGraphOpti
 export type { CadCallArgument, CadCallExpression } from './language/expression-parser.js';
 export type { CadFormalArgument, CadFunctionAst } from './language/source-ast.js';
 export type { CadModelIR3 } from './language/semantic-model.js';
-export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from './function-quantity-semantics.js';
+export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from './document/function-quantity-semantics.js';
 
 
 export { sampleSourceCurveAdaptive, validateSourceCurveAdaptive, SourceCurveAdaptiveSamplingError, SourceCurveAdaptiveSamplingDiagnosticCode } from './nurbs/source-wide/source-curve-adaptive-sampling.js';
@@ -561,7 +561,7 @@ export type { XYAffinePrismNodeV2, XYAffinePrismChamferNodeV2, XYAffinePrismCham
 
 export { CadModelError, CadModelLimits } from './modeling.js';
 export type { CadModel, CadModelSnapshot, CadStlExport, CadMassPropertiesOptions, CadMassProperties, CadModelFeature, CadModelEvidence, CadBody, CadModelErrorCode, CadParameter, CadDimensionExpression, CadDimension, CadPoint2, CadAxis, CadEdgeQuery, CadEdgeSelection, CadEdgeQueryHandle, CadShape, CadCut, CadSplit, CadSketch, CadSketchPoint, CadConstrainedPolygonBuilder, CadRectangle, CadLoopSegment } from './modeling.js';
-export * from './extruded-profile-solid.js';
+export * from './features/extruded-profile-solid.js';
 export { encodeBinaryStl } from './io/stl.js';
 export { brepFromTriangles, readObj, readStl, MeshBrepError, type MeshBrepOptions } from './mesh/mesh-brep.js';
 export { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, type FacetBrepOptions } from './mesh/facet-brep.js';
@@ -577,17 +577,17 @@ export { meshClearance, type MeshClearance, type MeshClearanceOptions } from './
 // K4 (D143): the nearest point of a NURBS surface.
 export { closestPointOnSurface, surfaceSeedGrid, surfaceD1Near, type SurfaceClosestPoint, type SurfaceClosestOptions, type SurfaceSeedGrid } from './nurbs/surfaces/surface-closest.js';
 // K5 (D144): section properties of polygons, a symmetric 3 × 3 eigen solver, a mesh's volume.
-export { polygonSectionProperties, symmetricEigen3, symmetricEigen3InPlace, meshVolume, type SectionProperties, type Matrix3, type Vector3 } from './section-properties.js';
+export { polygonSectionProperties, symmetricEigen3, symmetricEigen3InPlace, meshVolume, type SectionProperties, type Matrix3, type Vector3 } from './features/section-properties.js';
 // K6 (D145): a mesh on a voxel grid (inside flags, capped depth) and marching tetrahedra.
 export { voxelInsideFlags, voxelDepth, marchingTetrahedra, voxelNode, VOXEL_CORNERS, VOXEL_TETRAHEDRA, type VoxelField, type VoxelPoint } from './mesh/voxel-field.js';
 // K7b (D147): plain (uncertified) B-spline fitting — interpolation, least squares, the surface tensor, knot removal.
-export { interpolateCurvePlain, approximateCurvePlain, interpolateSurfacePlain, removeCurveKnotPlain, chordParameters, averagedKnots, plainBasis, plainFindSpan, type PlainFitCurve, type PlainFitSurface, type PlainPoint } from './fit-plain.js';
+export { interpolateCurvePlain, approximateCurvePlain, interpolateSurfacePlain, removeCurveKnotPlain, chordParameters, averagedKnots, plainBasis, plainFindSpan, type PlainFitCurve, type PlainFitSurface, type PlainPoint } from './features/fit-plain.js';
 // K1 (D140): generic convex geometry moved down from the studio's robot track.
-export { convexHull, HullError, type ConvexHull, type HullErrorCode } from './convex-hull.js';
-export { convexDistance } from './convex-distance.js';
-export { subdBrep, SubdError, subdSummary, type SubdCage, type SubdOptions, type SubdSummary } from './subd.js';
-export { subdReport, type SubdReport, type SubdReportOptions } from './subd-report.js';
-export { cageTopology, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, compact, boundaryLoop, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, halfCage, keepOnPlane, subdPreviewMesh, type Cage, type CageTopology, type CageValidation, type MirrorAxis } from './subd-cage.js';
+export { convexHull, HullError, type ConvexHull, type HullErrorCode } from './brep/convex-hull.js';
+export { convexDistance } from './brep/convex-distance.js';
+export { subdBrep, SubdError, subdSummary, type SubdCage, type SubdOptions, type SubdSummary } from './features/subd.js';
+export { subdReport, type SubdReport, type SubdReportOptions } from './features/subd-report.js';
+export { cageTopology, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, compact, boundaryLoop, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, halfCage, keepOnPlane, subdPreviewMesh, type Cage, type CageTopology, type CageValidation, type MirrorAxis } from './features/subd-cage.js';
 export { facetBoolean, FacetBooleanError, type FacetBooleanOptions } from './mesh/facet-boolean.js';
 export { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkPlacedSpurGears, GearError, type PlacedSpurGear, type PlacedSpurGearPairCheck, type SpurGearPairCheck, type SpurGearPairOptions, type SpurGearSpec, type SpurGearReport, type SpurGearDimensions, type GearDiagnostic, type GearDiagnosticCode } from './machine/gear.js';
 export { spurRack, spurRackDimensions, checkSpurGearRack, checkPlacedSpurRack, type PlacedSpurRack, type PlacedSpurRackCheck, type SpurRackSpec, type SpurRackReport, type SpurRackPairOptions, type SpurRackPairCheck } from './machine/gear-rack.js';
@@ -597,7 +597,7 @@ export { worm, wormDimensions, wormWheelSpec, checkWormPair, wormPlacement, worm
 export { throatedWormWheel, throatedWheelGeom, checkThroatedWormPair, throatedWormPlacement, checkPlacedThroatedPair, throatedWheelWorm, type ThroatedWheelSpec, type ThroatedWheelReport, type ThroatedPairCheck, type PlacedThroatedWheel } from './machine/gear-worm-wheel.js';
 export { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, GlandError, type GlandCode, type ORingRow, type GlandRanges, type GlandSpec, type GlandReport, type GlandPlace } from './machine/oring.js';
 export { connectorRowProblem, connectorSectionArea, connectorFrame, connectorKeepOut, connectorOpening, connectorBody, ConnectorError, type ConnectorCode, type ConnectorRow, type ConnectorSection, type ConnectorReport, type ConnectorSpec } from './machine/connector.js';
-export { sectionTableProblem, lookupSection, type SectionTable, type SectionTableRow, type SectionTableKind } from './section-table.js';
+export { sectionTableProblem, lookupSection, type SectionTable, type SectionTableRow, type SectionTableKind } from './features/section-table.js';
 export { sprocket, sprocketProfile, sprocketPitchDiameter, sprocketLimits, timingPitchDiameter, pulley, openBeltLength, chainLinks, beltBand, couplingEnvelope, driveRowProblem, DriveError, type DriveCode, type DriveRow, type ChainRow, type TimingBeltRow, type VBeltRow, type FlatBeltRow, type CouplingRow, type BeltRow, type SprocketSpec, type SprocketReport, type PulleySpec, type PulleyReport, type BeltSpec, type BeltReport, type CouplingReport } from './machine/drive.js';
 export { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, CamError, type CamLaw, type CamCode, type CamWarningCode, type CamSegment, type CamSpec, type CamReport, type CamSegmentReport } from './machine/cam.js';
 export { seatedBearing, bearingEnvelope, bearingRowProblem, BearingError, type BearingCode, type BearingRow, type BearingReport, type BearingFitClasses, type BearingRingFit } from './machine/bearing.js';
@@ -607,65 +607,65 @@ export { fitTableProblem, lookupFit, fitLimits, checkFit, isHoleClass, FitError,
 export { helicalSweep, compressionSpring, hookedSpring, springDimensions, springSolidPitch, SpringError, type HookedSpringSpec, type HookedSpringDimensions, type HookedSpringReport, type HelicalRun, type HelicalSweepSpec, type HelicalSweepResult, type SpringSpec, type SpringDimensions, type SpringReport, type SpringDiagnostic, type SpringDiagnosticCode } from './machine/spring.js';
 export { DEFAULT_REPAIR, diagnoseMesh, repairMesh, selfIntersections, type MeshDiagnosis, type MeshHole, type MeshRepairReport, type MeshRepairResult, type MeshRepairSteps } from './mesh/mesh-repair.js';
 export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './machine/thread-solid.js';
-export { sweepSolid, type SweepSolidRequest } from './sweep-solid.js';
-export { thickenSolid, type ThickenSolidRequest } from './thicken-solid.js';
-export { sewSolid, SewError, type SewSolidRequest } from './sew-solid.js';
+export { sweepSolid, type SweepSolidRequest } from './brep/sweep-solid.js';
+export { thickenSolid, type ThickenSolidRequest } from './brep/thicken-solid.js';
+export { sewSolid, SewError, type SewSolidRequest } from './brep/sew-solid.js';
 export { CadNumericPolicy, chartRoundingBoundMM } from './numeric-policy.js';
-export { checkBrep, assertValidBrep, buildBrep, coedgeVertices, isFacetFace, lineCurve, mergeBreps, nurbsOf, BrepError } from './brep-core.js';
-export type { BrepErrorReason } from './brep-core.js';
-export type { Brep, BrepBody, BrepShell, BrepFace, BrepLoop, BrepCoedge, BrepEdge, BrepVertex, BrepCheckReport, BrepBodyTopology, BrepBuildInput, BrepFaceInput, BrepLoopInput, BrepShellInput } from './brep-core.js';
-export { brepFromBody, brepFromConvexPlanar, brepFromExtrudedProfile, brepFromPlateHole, brepFromCirclePrism, brepFromOrthogonalCells } from './brep-adapters.js';
-export type { BrepInputBody } from './brep-adapters.js';
-export { BrepEditor, BrepEulerError } from './brep-euler.js';
-export { extrudeProfileWithHoles, extrudePolygonBoolean } from './brep-sweep.js';
-export type { ProfileWithHolesInput } from './brep-sweep.js';
-export { tessellateBrep, triangulatePolygonWithHoles } from './brep-tessellate.js';
-export type { BrepMesh, BrepMeshFace, BrepMeshEdge, BrepTessellationOptions } from './brep-tessellate.js';
-export { projectBrepHiddenLines } from './brep-hidden-line.js';
-export type { BrepProjection, HiddenLineOptions, HiddenLineView, ProjectedCurve, ProjectedEdge, ProjectedPiece, ProjectedXY } from './brep-hidden-line.js';
-export { booleanPolygons, planarArrangementCounts, PlanarArrangementError } from './planar-arrangement.js';
-export type { PolygonWithHoles, PlanarBooleanOperation } from './planar-arrangement.js';
-export { booleanPolyhedra } from './polyhedral-boolean.js';
-export type { PolyhedralBooleanOperation } from './polyhedral-boolean.js';
-export { booleanCurveRegions, curveArrangementVertices, CurvedArrangementError, regionArea as curveRegionArea } from './curved-arrangement.js';
-export type { CurveSegment2, CurveRegion2, CurveBooleanOperation } from './curved-arrangement.js';
-export { prismaticExtrude, prismaticFromProfile, booleanPrismatic, prismaticVolume, prismaticContains, brepFromPrismatic, PrismaticSolidError } from './prismatic-solid.js';
-export type { PrismaticSolid, PrismaticSlab, PrismaticBooleanOperation } from './prismatic-solid.js';
-export { regionMoments } from './curved-arrangement.js';
-export { transformPrismatic } from './prismatic-solid.js';
-export type { PrismaticCapSource } from './prismatic-solid.js';
-export { transformBrep, quarterTurn } from './brep-transform.js';
-export type { BrepAffine } from './brep-transform.js';
-export { prismaticMassProperties, brepMassProperties, brepSurfaceArea, combineMassProperties, solidMassFromIntegrals, SolidMassError } from './solid-mass.js';
-export { loftSolid, type LoftInput, type LoftSectionInput } from './loft.js';
-export { generalShell } from './general-shell.js';
+export { checkBrep, assertValidBrep, buildBrep, coedgeVertices, isFacetFace, lineCurve, mergeBreps, nurbsOf, BrepError } from './brep/brep-core.js';
+export type { BrepErrorReason } from './brep/brep-core.js';
+export type { Brep, BrepBody, BrepShell, BrepFace, BrepLoop, BrepCoedge, BrepEdge, BrepVertex, BrepCheckReport, BrepBodyTopology, BrepBuildInput, BrepFaceInput, BrepLoopInput, BrepShellInput } from './brep/brep-core.js';
+export { brepFromBody, brepFromConvexPlanar, brepFromExtrudedProfile, brepFromPlateHole, brepFromCirclePrism, brepFromOrthogonalCells } from './brep/brep-adapters.js';
+export type { BrepInputBody } from './brep/brep-adapters.js';
+export { BrepEditor, BrepEulerError } from './brep/brep-euler.js';
+export { extrudeProfileWithHoles, extrudePolygonBoolean } from './brep/brep-sweep.js';
+export type { ProfileWithHolesInput } from './brep/brep-sweep.js';
+export { tessellateBrep, triangulatePolygonWithHoles } from './brep/brep-tessellate.js';
+export type { BrepMesh, BrepMeshFace, BrepMeshEdge, BrepTessellationOptions } from './brep/brep-tessellate.js';
+export { projectBrepHiddenLines } from './brep/brep-hidden-line.js';
+export type { BrepProjection, HiddenLineOptions, HiddenLineView, ProjectedCurve, ProjectedEdge, ProjectedPiece, ProjectedXY } from './brep/brep-hidden-line.js';
+export { booleanPolygons, planarArrangementCounts, PlanarArrangementError } from './brep/planar-arrangement.js';
+export type { PolygonWithHoles, PlanarBooleanOperation } from './brep/planar-arrangement.js';
+export { booleanPolyhedra } from './brep/polyhedral-boolean.js';
+export type { PolyhedralBooleanOperation } from './brep/polyhedral-boolean.js';
+export { booleanCurveRegions, curveArrangementVertices, CurvedArrangementError, regionArea as curveRegionArea } from './brep/curved-arrangement.js';
+export type { CurveSegment2, CurveRegion2, CurveBooleanOperation } from './brep/curved-arrangement.js';
+export { prismaticExtrude, prismaticFromProfile, booleanPrismatic, prismaticVolume, prismaticContains, brepFromPrismatic, PrismaticSolidError } from './features/prismatic-solid.js';
+export type { PrismaticSolid, PrismaticSlab, PrismaticBooleanOperation } from './features/prismatic-solid.js';
+export { regionMoments } from './brep/curved-arrangement.js';
+export { transformPrismatic } from './features/prismatic-solid.js';
+export type { PrismaticCapSource } from './features/prismatic-solid.js';
+export { transformBrep, quarterTurn } from './brep/brep-transform.js';
+export type { BrepAffine } from './brep/brep-transform.js';
+export { prismaticMassProperties, brepMassProperties, brepSurfaceArea, combineMassProperties, solidMassFromIntegrals, SolidMassError } from './brep/solid-mass.js';
+export { loftSolid, type LoftInput, type LoftSectionInput } from './features/loft.js';
+export { generalShell } from './blend/general-shell.js';
 export { revolutionOf, type Revolution } from './nurbs/surfaces/surface-revolution.js';
-export type { SolidMassProperties } from './solid-mass.js';
+export type { SolidMassProperties } from './brep/solid-mass.js';
 export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits, stepSizeProblem, type GearPlacement, type RackPlacement, FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from './part/part-model.js';
 export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartBeadSharing, CadPartLoftSection, CadPartSweepStep, CadPartSketchPlane, CadPartEvaluationOptions, CadPartProfileCalls, CadPartFeatureProfile, CadPartSection, CadPartFrameOverride, CadPartFrameSegment, CadPartFrameCorners, CadPartFrameNotch, CadPartFrameTrim } from './part/part-model.js';
-export { booleanAnalytic } from './analytic-boolean.js';
-export type { AnalyticBooleanOperation } from './analytic-boolean.js';
-export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './curved-arrangement.js';
-export { revolveProfile, revolveMassProperties } from './revolve.js';
-export type { RevolveInput } from './revolve.js';
-export { finishBrepEdges } from './edge-finish.js';
-export { draftedExtrusion } from './drafted-extrusion.js';
+export { booleanAnalytic } from './brep/analytic-boolean.js';
+export type { AnalyticBooleanOperation } from './brep/analytic-boolean.js';
+export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './brep/curved-arrangement.js';
+export { revolveProfile, revolveMassProperties } from './features/revolve.js';
+export type { RevolveInput } from './features/revolve.js';
+export { finishBrepEdges } from './blend/edge-finish.js';
+export { draftedExtrusion } from './features/drafted-extrusion.js';
 export { exportStep, importStep, MESH_PLANAR_LIMIT, MESH_PLANAR_TRIANGLES, stepMeshes, stepTessellatedChars, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './io/step.js';
 export type { StepExportOptions } from './io/step.js';
-export type { DraftedExtrusionInput } from './drafted-extrusion.js';
-export type { EdgeFinishKind } from './edge-finish.js';
-export { faceGeometry } from './analytic-boolean.js';
-export { splitFaceAlongCurve, splitFaceAlongIsocline } from './analytic-boolean.js';
-export type { FaceSplit, FaceSplitPiece, FaceSplitOptions } from './analytic-boolean.js';
+export type { DraftedExtrusionInput } from './features/drafted-extrusion.js';
+export type { EdgeFinishKind } from './blend/edge-finish.js';
+export { faceGeometry } from './brep/analytic-boolean.js';
+export { splitFaceAlongCurve, splitFaceAlongIsocline } from './brep/analytic-boolean.js';
+export type { FaceSplit, FaceSplitPiece, FaceSplitOptions } from './brep/analytic-boolean.js';
 export { surfaceIsoclines } from './nurbs/surfaces/surface-isocline.js';
 export type { SurfaceIsocline, SurfaceIsoclineOptions } from './nurbs/surfaces/surface-isocline.js';
-export type { FaceGeometry } from './analytic-boolean.js';
+export type { FaceGeometry } from './brep/analytic-boolean.js';
 /** General marching intersection of two parametric patches (used inside the analytic Booleans). */
 export { intersectPatches, chainCurve, SurfaceIntersectionError } from './intersect/surface-intersection.js';
 export type { Patch, IntersectionChain } from './intersect/surface-intersection.js';
-export { CAD_KERNEL_VERSION, LIBRARY_REFUSED_KINDS, loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, expressionNames, CadLibraryError, CadLibraryLimits, type CadLibrary, type CadLibraryManifest, type CadLibraryPart, type CadLibraryParameter, type CadLibraryVariant, type CadLibraryRecipeFeature, type CadLibraryInterface, type CadLibraryInstance, type CadLibraryOrigin, type CadLibraryErrorCode } from './library.js';
-export { placeByInterfaces, checkLibraryFit, type LibraryPlacement, type LibraryFitReport } from './library-fit.js';
-export type { FilletReport } from './rolling-ball.js';
+export { CAD_KERNEL_VERSION, LIBRARY_REFUSED_KINDS, loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, expressionNames, CadLibraryError, CadLibraryLimits, type CadLibrary, type CadLibraryManifest, type CadLibraryPart, type CadLibraryParameter, type CadLibraryVariant, type CadLibraryRecipeFeature, type CadLibraryInterface, type CadLibraryInstance, type CadLibraryOrigin, type CadLibraryErrorCode } from './features/library.js';
+export { placeByInterfaces, checkLibraryFit, type LibraryPlacement, type LibraryFitReport } from './features/library-fit.js';
+export type { FilletReport } from './blend/rolling-ball.js';
 /** R11b (O1): an ASCII DXF writer (AC1015, with an R12 option) for drawings, sketches and sections. */
 export { writeDxf, dxfNumber, dxfText, dxfHatchLines, DxfWriteError, DXF_WRITER_VERSION } from './io/dxf-writer.js';
 export type { DxfDocument, DxfEntity, DxfLayer, DxfLinetype, DxfTextStyle, DxfBlock, DxfHatchLoop, DxfHatchFill, DxfDimensionGeometry, DxfVersion, DxfUnits, DxfXY, DxfWriteOptions, DxfWriteReport, DxfWriteResult, DxfWriteErrorCode } from './io/dxf-writer.js';

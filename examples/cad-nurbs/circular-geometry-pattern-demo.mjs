@@ -284,7 +284,7 @@ const typeNames = ['CircularGeometryPatternOptions', 'CircularGeometryPatternIns
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.CircularGeometryPatternDiagnosticCode, CircularGeometryPatternDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./circular-geometry-pattern.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/circular-geometry-pattern.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/features/circular-geometry-pattern.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'offset_positive90').authoredFile, 'utf8'));
 const compiled = publicAPI.buildCircularGeometryPattern(cold.original, cold.options); assert.deepEqual(compiled, positive);

@@ -9,10 +9,10 @@ import type { ExtractedCurveIntervalResult } from './curve-interval-extraction.j
 import { buildAffinePlaneAxes, mapAffinePlanePointToUV, directedUVDeterminant } from '../../intersect/own-affine-plane-loop-internal.js';
 import type { CurveAffinePlaneAxes } from '../../intersect/own-curve-plane-intersection.js';
 import type { CurvePlanePointEvent } from '../../intersect/own-multispan-curve-plane.js';
-import { evaluateCurve } from '../../math.js';
+import { evaluateCurve } from '../../core/math.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const CurvePlanarFaceMaterialDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', UNSUPPORTED: 'UNSUPPORTED', NATIVE: 'NATIVE',

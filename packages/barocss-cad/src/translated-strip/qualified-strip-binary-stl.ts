@@ -4,7 +4,7 @@ import type { SectionFraction as F } from '../section-rational-internal.js';
 import { validateQualifiedTranslatedStripBodyMesh } from './qualified-translated-strip-body-mesh.js';
 import { encodeQualifiedStripBinaryStlTrusted } from '../qualified-strip-binary-stl-encoding-internal.js';
 import type {Point} from '../types.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 export interface QualifiedTranslatedStripBodyBinaryStlOptions {
  evaluationId:string;maximumVertices:290;maximumTriangles:576;maximumBytes:28884;
 }

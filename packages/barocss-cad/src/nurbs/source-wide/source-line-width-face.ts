@@ -3,11 +3,11 @@ import { buildCompatibleRuledSurface } from '../surfaces/compatible-ruled-surfac
 import type { CompatibleRuledSurfaceResult } from '../surfaces/compatible-ruled-surface.js';
 import { buildConvexPlanarFace } from '../../own-convex-planar-face.js';
 import type { ConvexPlanarFaceOptions, ConvexPlanarFaceResult } from '../../own-convex-planar-face.js';
-import { extractSurfaceBoundary } from '../../boundary.js';
-import type { SurfaceBoundary } from '../../boundary.js';
+import { extractSurfaceBoundary } from '../../core/boundary.js';
+import type { SurfaceBoundary } from '../../core/boundary.js';
 import { compileCadModel } from '../../model-compiler.js';
 import type { CadCompileResult } from '../../model-compiler.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceLineWidthFaceDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET',

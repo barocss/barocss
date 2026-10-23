@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { shaftSolid, keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
-import { brepBounds } from '../dist/brep-bounds.js';
+import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.3b (D157): a key in its keyseat and the hub's keyway, a retaining ring in its groove, a pin in its cross hole.
 // Oracles written here: the parts' volumes in closed form; the keyway's removal L·∫_{|v|≤b/2}((r + t2) − √(r² − v²))dv in

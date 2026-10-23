@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, brepMassProperties, evaluateSurface, surfaceDomain } from '../dist/index.js';
-import { tessellateBrepWithParameters } from '../dist/brep-tessellate.js';
+import { tessellateBrepWithParameters } from '../dist/brep/brep-tessellate.js';
 
 // A tilted plane cuts a hollow cylinder. Symmetry gives V = annulus area * (L-h),
 // independently of the tessellation, knot coordinates, or the FRk5 notch oracles.

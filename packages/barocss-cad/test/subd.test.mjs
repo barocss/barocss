@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { subdBrep, subdReport, tessellateBrep, evaluateSurfaceD1, SubdError, checkBrep, brepMassProperties, brepSurfaceArea, evaluateCadPart, exportStep, importStep, evaluateSurface } from '../dist/index.js';
 import { openEdges } from '../scripts/rb/stages.mjs';
-import { tessellateBrepWithParameters } from '../dist/brep-tessellate.js';
+import { tessellateBrepWithParameters } from '../dist/brep/brep-tessellate.js';
 
 // SD1 (R5, D51): a regular SubD cage as its exact limit surface, bicubic B-spline faces built from the cage's topology.
 // The check that does not trust the construction: one Catmull–Clark step (written here, apart from it) gives a cage
@@ -300,7 +300,7 @@ test('D79 display of a SubD box: vertex normals are the surface\'s own (they wer
 });
 
 test('PERF3 A4 (D82): caps kept by their vertex\'s 2-ring — the same cage again has the same caps; a vertex moved outside every irregular vertex\'s 2-ring leaves them all, one inside a corner\'s changes that corner\'s only', async () => {
-  const { buildSubd } = await import('../dist/subd.js');
+  const { buildSubd } = await import('../dist/features/subd.js');
   const capsOf = b => new Map([...b.caps].map(([f, c]) => [f, JSON.stringify([c.vertex, c.poles, c.deviationMM])]));
   // (A shift no other test uses: built cold.)
   const cage = boxCage(30, 20, 16, 6), shifted = { ...cage, positions: cage.positions.map((x, i) => i % 3 === 1 ? x + 0.0123 : x) };
@@ -320,7 +320,7 @@ test('PERF3 A4 (D82): caps kept by their vertex\'s 2-ring — the same cage agai
 });
 
 test('PERF3 C16 (D82): the caps are kept whatever the cage\'s extent — the top\'s centre raised above the rest (a new extent) reuses every cap: the build far under a cold one, the caps the same', async () => {
-  const { buildSubd } = await import('../dist/subd.js');
+  const { buildSubd } = await import('../dist/features/subd.js');
   const capsOf = b => new Map([...b.caps].map(([f, c]) => [f, JSON.stringify([c.vertex, c.poles, c.deviationMM])]));
   const cage = boxCage(30, 20, 16, 6), shifted = { ...cage, positions: cage.positions.map((x, i) => i % 3 === 0 ? x + 0.0456 : x) };
   let t0 = performance.now(); const first = buildSubd(shifted); const cold = performance.now() - t0;

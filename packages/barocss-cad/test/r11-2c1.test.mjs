@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
-import { evaluateSurfaceD1 } from '../dist/derivatives.js';
-import { evaluateCurve } from '../dist/math.js';
-import { tessellateBrep } from '../dist/brep-tessellate.js';
+import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
+import { evaluateCurve } from '../dist/core/math.js';
+import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
 
 // R11.2c-1 (D112): the offset route (R11.2a/b) takes kept faces that are planes or circular cylinders however trimmed —
 // offset exactly (a plane moved, a cylinder scaled about its axis: affine maps of the face's own NURBS and edges) — beside

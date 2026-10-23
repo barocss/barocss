@@ -1,11 +1,11 @@
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
-import { evaluateCurveD1 } from '../../derivatives.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
 import { applyCurvePoleEditsTrusted } from '../curves/curve-control-polygon.js';
 import type { CurveControlPolygonEdits, CurvePoleEditProvenance, CurvePoleField, CurveControlPolygonD1Evaluation, CurveControlPolygonD1Observation } from '../curves/curve-control-polygon.js';
 import { compileCurveSource } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const WideCurveControlPolygonEditDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',

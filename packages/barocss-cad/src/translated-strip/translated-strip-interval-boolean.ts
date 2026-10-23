@@ -2,7 +2,7 @@ import { validateQualifiedTranslatedStripBody } from './qualified-translated-str
 import type { QualifiedTranslatedStripBodyResult, QualifiedTranslatedStripBodyOptions } from './qualified-translated-strip-body.js';
 import { reconstructTranslatedStripIntervalBodyTrusted } from './translated-strip-interval-boolean-construction-internal.js';
 import type { MultiSpanVLinearSurfacePlaneSectionOptions } from '../intersect/multispan-vlinear-plane-section.js';
-import type { SectionExactSurfaceBindingOptions } from '../section-exact-surface-binding.js';
+import type { SectionExactSurfaceBindingOptions } from '../features/section-exact-surface-binding.js';
 import type { ExactSurfaceLowerTrimOptions } from '../exact-proof/exact-surface-lower-trim.js';
 import type { PairedSectionPlaneCapOptions } from '../paired/paired-section-plane-cap.js';
 import type { TranslatedSurfaceBaseFaceOptions } from './translated-surface-base-face.js';

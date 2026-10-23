@@ -2669,3 +2669,25 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - It also checks beside at the widest and stacked at the narrowest.
 - **Runs**: passes on WebGPU (the layout is the renderer's frame, not the renderer's). "Narrow window top bar" (O127)
   still passes; studio tsc and eslint clean.
+
+## G-R42 — G11: the heaviest scenes measured; no budget missed, so G11 closes (2026-10-23)
+
+- **Read-only**: no product change. The tables are in `handover/notes/g11-scene-profile.md`.
+- **What was measured**: 11 scenes on both renderers, a 60-step orbit in three display modes (shaded with edges, hidden
+  lines dashed, x-ray), at loads of 10–17.
+  - The A9 assembly (38 bodies), the 120-bracket pattern, five box frames (60 members), the 6R arm and the welded table.
+  - The heaviest generated parts: a spring (114 k triangles), a worm pair (17 k) and a spur gear.
+  - The heaviest studio fixtures: clearance-states and lid, plus the starter template.
+- **Result**: every scene holds 60 Hz on both renderers, with frame-interval p95 16.7–16.8 ms. On the worst rows:
+  - Main-thread task 2.2–3.9 ms a frame.
+  - WebGPU 0.5–5.0 ms of GPU a submit. The highest are the lid fixture at 5.0 (its outline mask) and the frames in
+    x-ray at 4.7.
+  - The frames' single 50 ms frame and A9's 33 ms frame are one-offs at the drag's start, on both renderers.
+  - The 16.7 ms frame budget is met with at least 3× headroom everywhere. Occlusion culling, LOD or more instancing
+    would buy nothing measurable on these scenes.
+- **Outside the GPU's budget, for the kernel lane**: opening is the slow part (evaluation). The frames take 25–28 s,
+  A9 16 s, the spring 10 s and the worm pair 6–7 s.
+- **Refused, not measured**: "Fill with a lattice" (after Hollow) on an 80 × 60 × 40 box, at the kernel's
+  2 000 000-triangle cap.
+- **Unit difference (O10's note 2)**: WebGPU's line counts are 5–20× WebGL2's on curved parts. The GPU contour draws
+  one instance per curved-face triangle.

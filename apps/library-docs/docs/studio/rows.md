@@ -36,7 +36,7 @@ where it came from, or saying it is an estimate.
 
 ![The library with the sample fastener sizes loaded](/shots/guide/getting-started/library-rows.jpg)
 
-**Library** lists each kind with what is loaded, for example **Fastener sizes loaded**. Load your own file there.
+**Library** lists each kind with what is loaded, for example **Fastener sizes** with the sizes it holds. Load your own file there.
 Two kinds ship with samples you can load in one click: **Load sample fastener sizes** and **Load sample casting rules**.
 
 The samples are in `@barocss/cad-model` at `samples/rows/`:

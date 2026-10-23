@@ -1,11 +1,11 @@
 import { CadNumericPolicy } from '../numeric-policy.js';
 import { validateOwnPlateCircularHoleBundle } from '../own-plate-circular-hole.js';
 import type { OwnPlateCircularHoleBundle } from '../own-plate-circular-hole.js';
-import { evaluateCurve, evaluateSurface, surfaceDomain } from '../math.js';
-import { evaluateSurfaceD1 } from '../derivatives.js';
+import { evaluateCurve, evaluateSurface, surfaceDomain } from '../core/math.js';
+import { evaluateSurfaceD1 } from '../core/derivatives.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Point } from '../types.js';
-import { cross, dot } from '../vec3.js';
+import { cross, dot } from '../core/vec3.js';
 
 export interface OwnPlateHolePreviewContext {
   documentId: string; bodyId: string; documentRevision: string; kernelResultRevision: string; topologyRevision: string; taskToken: string;

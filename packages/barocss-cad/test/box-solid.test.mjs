@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateAxisBoxSolid } from '../dist/box-solid.js';
-import { buildAxisBoxShell, validateAxisBoxShell } from '../dist/box-shell.js';
-import { buildParametricFace, validateFaceBundle } from '../dist/face.js';
-import { evaluateSurfaceD1 } from '../dist/derivatives.js';
+import { validateAxisBoxSolid } from '../dist/core/box-solid.js';
+import { buildAxisBoxShell, validateAxisBoxShell } from '../dist/core/box-shell.js';
+import { buildParametricFace, validateFaceBundle } from '../dist/core/face.js';
+import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 
 const table = [[0, 4, 6, 2], [1, 3, 7, 5], [0, 1, 5, 4], [2, 6, 7, 3], [0, 2, 3, 1], [4, 5, 7, 6]];
 const pinned = [[[0, 0, 0], [1, 1, 1], 1, 6], [[0, 0, 0], [2, 3, 5], 30, 62], [[-7, 11, -13], [4, 6, 9], 216, 228], [[9998, -10000, 0], [2, 3, 1], 6, 22]];

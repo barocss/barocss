@@ -1,5 +1,5 @@
 import type { WorkplaneSketchFrame } from './workplane-sketch-document.js';
-import type { CadAffineMatrix3x4 } from './affine-geometry-transform.js';
+import type { CadAffineMatrix3x4 } from './features/affine-geometry-transform.js';
 import type { Point } from './types.js';
 export type WorkplaneSketchFrameReport = { norms: { u: number; v: number; normal: number }; unitNormErrors: { u: number; v: number; normal: number }; dotProducts: { uv: number; un: number; vn: number }; determinant: number; determinantError: number; maximumNormError: number; maximumOrthogonalityError: number; tolerance: 0.000000001; accepted: true };
 /** Shared original numerical frame gate; wrappers own the data and supply their unchanged error family. */

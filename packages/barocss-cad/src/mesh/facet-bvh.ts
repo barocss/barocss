@@ -3,7 +3,7 @@
 // that grazes an edge or a vertex, or runs in a triangle's plane, says nothing: the next of a fixed set of directions is
 // tried, and three clean rays vote. A point within the tolerance of a triangle is on the body. No allocation per
 // triangle or per ray.
-import { BrepError, type Brep } from '../brep-core.js';
+import { BrepError, type Brep } from '../brep/brep-core.js';
 import type { FacetPatch, Point } from '../types.js';
 import { triangleBvh, type TriangleBvh } from './triangle-bvh.js';
 

@@ -3,7 +3,7 @@
 // refined onto both surfaces and traced both ways along n₁ × n₂ (predictor step, corrector: Newton on
 // the two surfaces and the plane normal to the curve through the predicted point) until it leaves a
 // box or closes on itself. The result is a list of point chains (with tangents) on both surfaces.
-import { add, cross, dot, len, scale, sub, unit } from '../vec3.js';
+import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Point } from '../types.js';
 
 type XY = [number, number];

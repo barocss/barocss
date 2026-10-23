@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildAxisBoxShell, validateAxisBoxShell } from '../dist/box-shell.js';
-import { buildParametricFace, validateFaceBundle } from '../dist/face.js';
-import { buildRectangleAdjacency, validateRectangleAdjacency } from '../dist/adjacency.js';
-import { buildOrthogonalRectangleAdjacency } from '../dist/orthogonal-adjacency.js';
-import { validateSurface, evaluateSurface } from '../dist/math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/derivatives.js';
+import { buildAxisBoxShell, validateAxisBoxShell } from '../dist/core/box-shell.js';
+import { buildParametricFace, validateFaceBundle } from '../dist/core/face.js';
+import { buildRectangleAdjacency, validateRectangleAdjacency } from '../dist/core/adjacency.js';
+import { buildOrthogonalRectangleAdjacency } from '../dist/core/orthogonal-adjacency.js';
+import { validateSurface, evaluateSurface } from '../dist/core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 
 const table = [[0, 4, 6, 2], [1, 3, 7, 5], [0, 1, 5, 4], [2, 6, 7, 3], [0, 2, 3, 1], [4, 5, 7, 6]];
 const segments = [[0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3], [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7]];

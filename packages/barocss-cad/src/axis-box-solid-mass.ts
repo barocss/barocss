@@ -3,7 +3,7 @@ import type { AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const AxisBoxSolidMassDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', BOOLEAN: 'BOOLEAN', BINDING: 'BINDING', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidMassDiagnosticCode = typeof AxisBoxSolidMassDiagnosticCode[keyof typeof AxisBoxSolidMassDiagnosticCode];

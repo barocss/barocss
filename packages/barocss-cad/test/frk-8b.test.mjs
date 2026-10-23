@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { brepMassProperties, evaluateCadPart, surfaceDomain, evaluateSurface, curveD1Evaluator, curveEvaluator, curveDomain } from '../dist/index.js';
-import { brepQuadratureIntegrals } from '../dist/brep-mass-quadrature.js';
+import { brepQuadratureIntegrals } from '../dist/brep/brep-mass-quadrature.js';
 import { faceIntegrals } from './d149-oracle.mjs';
 
 // FRk8b (D167): the trimmed-face quadrature's wrong mass on the 16/20 bevel pair at 4° (D152: 39.109 against D149's Green

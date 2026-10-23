@@ -1,7 +1,7 @@
 import { buildXYArc } from './xy-arc.js';
 import type { XYArcRequest, XYArcResult } from './xy-arc.js';
-import { validateModel, validateCurve, validateSurface, evaluateCurve, curveDomain, surfaceDomain } from './math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
+import { validateModel, validateCurve, validateSurface, evaluateCurve, curveDomain, surfaceDomain } from './core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point, Surface } from './types.js';
 import type { XYPoint } from './xy-profile.js';

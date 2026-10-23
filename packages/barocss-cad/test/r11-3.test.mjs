@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep, exportStep, importStep } from '../dist/index.js';
-import { brepMassProperties } from '../dist/solid-mass.js';
-import { tessellateBrep } from '../dist/brep-tessellate.js';
+import { brepMassProperties } from '../dist/brep/solid-mass.js';
+import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
 
 // R11.3 (D114): a mesh body's shell — its cavity the mesh's own triangles, each vertex moved in to the least-squares point
 // of its triangles' planes moved in by the wall (where up to three planes meet, their sharp join exactly), the wall it

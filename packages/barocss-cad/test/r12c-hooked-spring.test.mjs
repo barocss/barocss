@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { hookedSpring, springSolidPitch, SpringError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
-import { brepBounds } from '../dist/brep-bounds.js';
+import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1b (D154): extension springs (machine-loop and crossover hooks) and torsion springs (tangent legs), against
 // oracles written here, none of them the kernel's:

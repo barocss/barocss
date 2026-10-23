@@ -8,7 +8,7 @@ import { proveQualifiedTranslatedStripMaterialTrusted } from './qualified-transl
 import type { QualifiedTranslatedStripMaterialBindings, QualifiedTranslatedStripMaterialProof } from './qualified-translated-strip-material-internal.js';
 import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
-import { evaluateCurve } from '../math.js';
+import { evaluateCurve } from '../core/math.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction } from '../section-rational-internal.js';
 import type { Curve, Surface, Model, Point } from '../types.js';

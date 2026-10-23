@@ -1,5 +1,21 @@
 # Documentation roadmap (W1)
 
+## 진행 상황 (Progress, 2026-10-24)
+
+- **페이지.** 32쪽을 모두 썼습니다. "Being written" 표시는 0입니다. 추가하기로 한 Parameters와 Rendering, 그리고
+  features의 빈 곳(판금 전개, SubD 케이지 편집, 그림에서 만들기)도 채웠습니다.
+- **예제.** 16개의 예제 테스트가 통과합니다(`pnpm test:samples`). 패키지 소스, 실제 `cad-mcp`와 `cad-cli`로 돌아갑니다.
+- **코드와 맞추는 확인.** check-docs가 다음이 코드와 다르면 실패합니다.
+  - 도구 표와 거부 코드 표(코드에서 생성);
+  - .bcad의 모든 필드;
+  - cad-model의 모든 모듈 폴더.
+- **스크린샷.** 29장, 2.5 MB입니다. Getting started는 WebGPU와 WebGL2 모두에서 실제 studio로 따라 해 확인했습니다.
+- **남은 일.**
+  - G12(레이아웃 정리)가 들어오면 레이아웃이 보이는 스크린샷을 다시 찍습니다. Parameters와 Rendering의 스크린샷도
+    그때 넣습니다.
+  - kernel 레인이 R5 fingerprint 스크립트를 커밋하면 Verification 페이지가 그것을 가리키게 합니다.
+  - 다른 레인 파일에서 찾은 문구 문제(cad-cli usage, cad-model README, 예제 rows의 about)는 코디네이터에게 넘겼습니다.
+
 ## 요약 (Korean summary for the owner)
 
 - **대상.** BaroCSS CAD 문서 사이트(`apps/library-docs`)의 범위는 CAD 스택입니다: studio, agent,

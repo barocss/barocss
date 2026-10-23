@@ -1,15 +1,15 @@
 import { validateXYCirclePrismShellBundle } from '../xy-circle-prism-shell.js';
 import type { XYCirclePrismShellBundle } from '../xy-circle-prism-shell.js';
-import { validateCurve, validateSurface, evaluateCurve, evaluateSurface, curveDomain } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import { validateCurve, validateSurface, evaluateCurve, evaluateSurface, curveDomain } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 
 import type { XYCirclePrismPlaneIntersectionOptions, XYCirclePrismPlaneBindings, PlaneCylinderHomogeneousSpan, PlaneCylinderIntersectionObservation } from './own-plane-cylinder-intersection.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export interface OwnPlaneCylinderCandidate {
   shell: XYCirclePrismShellBundle; options: XYCirclePrismPlaneIntersectionOptions; sourceCircle: Curve;

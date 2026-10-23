@@ -27,10 +27,10 @@
 // no crowning, no machine settings — not a face-milled or face-hobbed tooth. The faces are the sections swept by
 // R e^{iφ(R)}, a cubic Hermite fit along the cone distance (exact at its knots, its deviation measured), as a helical
 // gear's twist.
-import { buildBrep, type Brep, type BrepFaceInput } from '../brep-core.js';
+import { buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { GearError, arcCurve, reversed, safeId, segmentsCross, orient, pointSegment, bezierKnots, type GearDiagnostic } from './gear.js';
-import { cross as cross3, dot as dot3 } from '../vec3.js';
+import { cross as cross3, dot as dot3 } from '../core/vec3.js';
 
 /** Version 0 of the straight bevel gear's inputs (lengths in mm, at the heel). */
 export interface BevelGearSpec {

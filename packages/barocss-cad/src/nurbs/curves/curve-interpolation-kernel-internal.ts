@@ -1,5 +1,5 @@
 import { CadNumericPolicy } from '../../numeric-policy.js';
-import { validateCurve, evaluateCurve, curveDomain } from '../../math.js';
+import { validateCurve, evaluateCurve, curveDomain } from '../../core/math.js';
 import { adopt } from '../../intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from '../../data-copy.js';
 import { CurveInterpolationError } from './curve-interpolation.js';

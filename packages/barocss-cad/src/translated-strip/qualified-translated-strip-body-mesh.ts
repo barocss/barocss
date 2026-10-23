@@ -1,8 +1,8 @@
 import { validateQualifiedTranslatedStripBody } from './qualified-translated-strip-body.js';
 import type { QualifiedTranslatedStripBodyResult } from './qualified-translated-strip-body.js';
 import { buildQualifiedStripMeshFaceSamplesTrusted } from './qualified-translated-strip-body-mesh-domain-internal.js';
-import { curveDomain, evaluateCurve, evaluateSurface } from '../math.js';
-import { evaluateSurfaceD1 } from '../derivatives.js';
+import { curveDomain, evaluateCurve, evaluateSurface } from '../core/math.js';
+import { evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { Point, Surface } from '../types.js';
 
 export const QualifiedTranslatedStripBodyMeshDiagnosticCode = Object.freeze({ INPUT:'INPUT', BUDGET:'BUDGET', BODY:'BODY', SOURCE:'SOURCE', TOPOLOGY:'TOPOLOGY', UV:'UV', NATIVE:'NATIVE', ORIENTATION:'ORIENTATION', REPRESENTABILITY:'REPRESENTABILITY', FILE:'FILE', OWNED:'OWNED' } as const);

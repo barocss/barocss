@@ -1,9 +1,9 @@
 import { buildXYCirclePlanarFace } from './xy-circle-planar-face.js';
 import type { XYCircleFaceProfile, XYCirclePlanarFaceResult, XYCirclePlanarFaceReport } from './xy-circle-planar-face.js';
 import type { XYArcResult } from './xy-arc.js';
-import { extrudeCurve } from './extrusion.js';
-import { validateModel, validateCurve, validateSurface, evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
+import { extrudeCurve } from './core/extrusion.js';
+import { validateModel, validateCurve, validateSurface, evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import type { XYPoint } from './xy-profile.js';

@@ -1,9 +1,9 @@
-import { validateSurface, surfaceDomain, evaluateSurface } from '../../math.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal, requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export type SurfacePoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export interface SurfacePoleEdit { uIndex: number; vIndex: number; xMM?: number; yMM?: number; zMM?: number; weight?: number }

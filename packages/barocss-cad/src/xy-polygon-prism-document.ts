@@ -6,7 +6,7 @@ import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Model } from './types.js';
-import type { PreviewPacket } from './packet.js';
+import type { PreviewPacket } from './core/packet.js';
 
 export interface XYPolygonPrismDocumentV0 {
   format: 'barocss-xy-polygon-prism-feature'; version: 0; id: string; lengthUnit: 'mm';

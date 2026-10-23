@@ -6,7 +6,7 @@ import type { SurfaceControlNetEdits, SurfaceControlNetResult, SurfacePoleField 
 import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Model, Surface } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceSurfaceControlNetDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type SourceSurfaceControlNetDiagnosticCode = typeof SourceSurfaceControlNetDiagnosticCode[keyof typeof SourceSurfaceControlNetDiagnosticCode];

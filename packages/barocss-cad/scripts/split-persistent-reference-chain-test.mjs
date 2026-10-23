@@ -11,7 +11,7 @@ const dir = mkdtempSync(join(tmpdir(), 'barocss-lineage-chain-'));
 try {
   const bundled = await build({
     entryPoints: [
-      resolve('packages/barocss-cad/src/split-face-evolution.ts'),
+      resolve('packages/barocss-cad/src/features/split-face-evolution.ts'),
       resolve('packages/barocss-cad/src/exact-proof/persistent-face-reference-v1.ts'),
     ],
     bundle:true, platform:'node', format:'esm', target:'es2022',
@@ -19,7 +19,7 @@ try {
   });
   assert.ok(bundled.errors.length===0);
   const { projectConvexPlanarSplitFaceEvolution:project } =
-    await import(pathToFileURL(join(dir,'split-face-evolution.mjs')));
+    await import(pathToFileURL(join(dir,'features','split-face-evolution.mjs')));
   const { resolveAuthoredFaceAfterSplitV1:resolveRef } =
     await import(pathToFileURL(join(dir,'exact-proof','persistent-face-reference-v1.mjs')));
   const original = {sourceId:'source',faceId:'top',surfaceId:'plane',loopId:'outer'};

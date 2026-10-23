@@ -1,10 +1,10 @@
 import { validateAxisBoxSolidBooleanMass } from './axis-box-solid-mass.js';
 import type { AxisBoxSolidMassResult, AxisBoxSolidMassMeasure } from './axis-box-solid-mass.js';
-import type { CadAssemblyMatrix } from './cad-assembly.js';
+import type { CadAssemblyMatrix } from './document/cad-assembly.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const AxisBoxSolidMassFrameDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', POSE: 'POSE', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidMassFrameDiagnosticCode = typeof AxisBoxSolidMassFrameDiagnosticCode[keyof typeof AxisBoxSolidMassFrameDiagnosticCode];

@@ -8,7 +8,7 @@
 // least two regions, so every face has a boundary. Faces are named `<id>.region<k>`, k in the order of each
 // region's first triangle in the file: the same file gives the same names. An open mesh is taken only when asked
 // (`open`: a sheet body, its open edges its boundary, M3); a repair's fill patches keep to faces of their own (`groups`).
-import { assertValidBrep, buildBrep, type Brep, type BrepFaceInput } from '../brep-core.js';
+import { assertValidBrep, buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import { MeshBrepError, type MeshBrepOptions } from './mesh-brep.js';
 import type { Curve, FacetPatch, Point } from '../types.js';
 import { boundsOf, triangleArea2 } from './facet-patch.js';

@@ -1,16 +1,16 @@
 import { compileCadModel } from './model-compiler.js';
-import { buildParametricFace } from './face.js';
-import type { FaceIds, FaceBundle } from './face.js';
-import { buildAxisBoxShell } from './box-shell.js';
-import type { AxisBoxShellIds } from './box-shell.js';
-import { validateAxisBoxSolid } from './box-solid.js';
+import { buildParametricFace } from './core/face.js';
+import type { FaceIds, FaceBundle } from './core/face.js';
+import { buildAxisBoxShell } from './core/box-shell.js';
+import type { AxisBoxShellIds } from './core/box-shell.js';
+import { validateAxisBoxSolid } from './core/box-solid.js';
 import { buildAxisBoxSolidBoolean } from './axis-box-boolean.js';
 import type { AxisBoxSolidBooleanAsset, AxisBoxSolidBooleanOptions, AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
 import { editSourceSurfaceControlNet } from './nurbs/source-wide/source-surface-control-net.js';
 import type { SourceSurfaceControlNetResult } from './nurbs/source-wide/source-surface-control-net.js';
 import type { SurfacePoleEdit } from './nurbs/surfaces/surface-control-net.js';
 import type { Model, Point, Surface } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const AxisBoxSolidFeatureDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', REVISION: 'REVISION', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', NATIVE: 'NATIVE', BOOLEAN: 'BOOLEAN', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidFeatureDocumentDiagnosticCode = typeof AxisBoxSolidFeatureDocumentDiagnosticCode[keyof typeof AxisBoxSolidFeatureDocumentDiagnosticCode];

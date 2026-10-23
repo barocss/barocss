@@ -1,9 +1,9 @@
 import { validateXYCirclePlanarFaceBundle } from './xy-circle-planar-face.js';
 import type { XYCirclePlanarFaceBundle, XYCirclePlanarFaceReport } from './xy-circle-planar-face.js';
-import { evaluateCurve, surfaceDomain } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { validatePreviewPacket } from './packet.js';
-import type { PreviewPacket } from './packet.js';
+import { evaluateCurve, surfaceDomain } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { validatePreviewPacket } from './core/packet.js';
+import type { PreviewPacket } from './core/packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point, Surface } from './types.js';
 

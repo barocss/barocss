@@ -14,11 +14,11 @@
 //
 // Self-intersections (two triangles of the mesh crossing, not sharing a corner) are found through a BVH and
 // reported with where they are; repair does not fix them (D46).
-import { triangulatePolygonWithHoles } from '../brep-tessellate.js';
+import { triangulatePolygonWithHoles } from '../brep/brep-tessellate.js';
 import { weldVertices } from './facet-brep.js';
 import { MeshBrepError } from './mesh-brep.js';
 import type { Point } from '../types.js';
-import { cross as crossP, unit as normalize } from '../vec3.js';
+import { cross as crossP, unit as normalize } from '../core/vec3.js';
 
 export interface MeshRepairSteps {
   readonly weld?: boolean; readonly degenerate?: boolean; readonly fins?: boolean; readonly orient?: boolean;

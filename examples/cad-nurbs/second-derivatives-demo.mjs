@@ -378,7 +378,7 @@ const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.NativeSecondDerivativeDiagnosticCode, NativeSecondDerivativeDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./second-derivatives.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/second-derivatives.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/core/second-derivatives.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) {
   assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 }

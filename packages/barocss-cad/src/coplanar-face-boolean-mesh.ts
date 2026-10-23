@@ -1,11 +1,11 @@
 import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCoplanarFaceBoolean } from './coplanar-face-boolean.js';
 import type { CoplanarFaceBooleanResult, CoplanarFaceBooleanContributor } from './coplanar-face-boolean.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
 import type { Point } from './types.js';
 import { triangulateCoplanarMaterial } from './coplanar-face-boolean-mesh-triangulation.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const CoplanarFaceBooleanMeshDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY',

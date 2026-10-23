@@ -1,4 +1,4 @@
-import { validateCurve, validateSurface } from '../math.js'
+import { validateCurve, validateSurface } from '../core/math.js'
 import type { Curve, Model, Surface } from '../types.js'
 
 export interface IGESObjectReport {

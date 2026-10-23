@@ -1,4 +1,4 @@
-import type { ProfileSegmentInput, XY } from '../extruded-profile-solid.js';
+import type { ProfileSegmentInput, XY } from '../features/extruded-profile-solid.js';
 
 // FR1 structural sections (D122, D123). A section is a closed profile with holes in its own XY: its loops, a name for
 // each segment, its area and centroid in closed form and its box. Every dimension is given (no section sizes and no

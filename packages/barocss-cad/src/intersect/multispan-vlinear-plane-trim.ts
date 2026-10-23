@@ -1,18 +1,18 @@
 import { validateMultiSpanVLinearSurfacePlaneSection } from './multispan-vlinear-plane-section.js';
 import type { MultiSpanVLinearSurfacePlaneSectionResult } from './multispan-vlinear-plane-section.js';
-import { extractSurfaceBoundary } from '../boundary.js';
-import type { SurfaceBoundary } from '../boundary.js';
+import { extractSurfaceBoundary } from '../core/boundary.js';
+import type { SurfaceBoundary } from '../core/boundary.js';
 import { extractCurveInterval } from '../nurbs/curves/curve-interval-extraction.js';
 import type { ExtractedCurveIntervalResult } from '../nurbs/curves/curve-interval-extraction.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
-import { evaluateCurve, evaluateSurface, validateCurve } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import { evaluateCurve, evaluateSurface, validateCurve } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { Curve, Model, Point, Surface } from '../types.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export const MultiSpanVLinearSurfacePlaneTrimDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SECTION: 'SECTION', UV: 'UV', INTERVAL: 'INTERVAL', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type MultiSpanVLinearSurfacePlaneTrimDiagnosticCode = typeof MultiSpanVLinearSurfacePlaneTrimDiagnosticCode[keyof typeof MultiSpanVLinearSurfacePlaneTrimDiagnosticCode];

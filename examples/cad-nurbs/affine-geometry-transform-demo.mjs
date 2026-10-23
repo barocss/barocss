@@ -303,7 +303,7 @@ const typeNames = ['CadAffineMatrix3x4', 'AffineGeometryTransformOptions', 'Affi
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.AffineGeometryTransformDiagnosticCode, AffineGeometryTransformDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./affine-geometry-transform.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/affine-geometry-transform.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/features/affine-geometry-transform.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'identity_rational_curve').authoredFile, 'utf8'));
 const compiled = publicAPI.transformNativeGeometryAffine(cold.original, cold.matrix, cold.options);

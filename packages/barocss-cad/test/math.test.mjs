@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   curveDomain, evaluateCurve, evaluateSurface, sampleCurve, sampleSurface,
   surfaceDomain, validateCurve, validateModel, validateSurface,
-} from '../dist/math.js';
+} from '../dist/core/math.js';
 
 const circle = {
   kind: 'curve', id: 'circle', degree: 2, knots: [0, 0, 0, 1, 1, 1],

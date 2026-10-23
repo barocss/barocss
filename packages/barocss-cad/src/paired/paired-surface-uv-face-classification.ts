@@ -5,7 +5,7 @@ import {classifyPairedSurfaceUVQueriesTrusted} from './paired-surface-uv-face-cl
 import type {PairedSurfaceUVSplitFacesResult} from './paired-surface-uv-split-faces.js';
 import type {PairedSurfaceBUVSplitFacesResult} from './paired-surface-b-uv-split-faces.js';
 import type {SectionFraction} from '../section-rational-internal.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 type F=SectionFraction;
 type Asset=0|1;
 type Region='below-cut'|'above-cut';

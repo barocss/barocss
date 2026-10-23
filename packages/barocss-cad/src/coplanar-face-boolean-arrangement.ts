@@ -1,6 +1,6 @@
 import { directedUVDeterminant } from './intersect/own-affine-plane-loop-internal.js';
 import type { AffineConvexLineLoopAdmission } from './intersect/own-affine-plane-loop-internal.js';
-import { curveDomain, evaluateCurve, evaluateSurface } from './math.js';
+import { curveDomain, evaluateCurve, evaluateSurface } from './core/math.js';
 import type { ConvexPlanarFaceResult } from './own-convex-planar-face.js';
 import type { Curve, Surface, Point } from './types.js';
 import type { CoplanarFaceBooleanOptions, CoplanarFaceBooleanContributor, CoplanarFaceBooleanEvent,

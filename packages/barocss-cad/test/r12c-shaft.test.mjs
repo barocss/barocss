@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { shaftSolid, ShaftError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
-import { brepBounds } from '../dist/brep-bounds.js';
+import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.3a (D156): shafts. Oracles written here, none of them the kernel's:
 // - Pappus: V = π∫ r(z)² dz over the half-section, r(z) the test's own (steps, chamfers, grooves, undercuts; a fillet

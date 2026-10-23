@@ -1,5 +1,5 @@
 import type { Point, Curve, Surface, Model } from '../types.js';
-import type { FaceBundle, FaceIds } from '../face.js';
+import type { FaceBundle, FaceIds } from '../core/face.js';
 import type { CompatibleRuledSurfaceResult } from '../nurbs/surfaces/compatible-ruled-surface.js';
 import type { PairedSurfaceMaterialBodyRequest } from './paired-surface-material-body.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';

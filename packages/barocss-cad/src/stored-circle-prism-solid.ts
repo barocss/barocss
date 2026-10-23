@@ -5,7 +5,7 @@ import type { SectionFraction, SectionRational } from './section-rational-intern
 import { compileCadModel } from './model-compiler.js';
 import { curveDecimal } from './nurbs/curves/curve-source.js';
 import type { Curve, Surface, Model, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const StoredCirclePrismSolidDiagnosticCode = { INPUT: 'INPUT', OWNED: 'OWNED', GEOMETRY: 'GEOMETRY', BUDGET: 'BUDGET', NATIVE: 'NATIVE' } as const;
 type Code = typeof StoredCirclePrismSolidDiagnosticCode[keyof typeof StoredCirclePrismSolidDiagnosticCode];

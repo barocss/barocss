@@ -284,7 +284,7 @@ const typeNames = ['LinearGeometryPatternOptions', 'LinearGeometryPatternInstanc
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.LinearGeometryPatternDiagnosticCode, LinearGeometryPatternDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./linear-geometry-pattern.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/linear-geometry-pattern.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/features/linear-geometry-pattern.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'five_quarter_x_copies').authoredFile, 'utf8'));
 const compiled = publicAPI.buildLinearGeometryPattern(cold.original, cold.options);

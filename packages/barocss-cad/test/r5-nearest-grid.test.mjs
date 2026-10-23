@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { nearestGridPoints } from '../dist/brep-mass-quadrature.js';
+import { nearestGridPoints } from '../dist/brep/brep-mass-quadrature.js';
 
 // R5.2 (D216): the inverter's pick of the four grid points nearest p replaced a stable sort of all 625 by squared
 // distance. The oracle here is that sort, written as it was; equal distances must come out the same four, in the same

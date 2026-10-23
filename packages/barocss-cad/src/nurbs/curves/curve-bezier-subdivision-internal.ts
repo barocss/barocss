@@ -1,11 +1,11 @@
 import { insertCurveKnotCoefficientsTrusted } from './curve-knot-insertion.js';
 import type { CurveKnotCoefficientResult } from './curve-knot-insertion.js';
 import { compileCadModel } from '../../model-compiler.js';
-import { curveDomain, validateCurve } from '../../math.js';
+import { curveDomain, validateCurve } from '../../core/math.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 type PoleMap = { refinedPoleIndex: number; childPoleIndex: number };
 type KnotMap = { childKnotIndex: number; refinedKnotIndex: number | null; value: number;

@@ -1,5 +1,5 @@
 import { CadNumericPolicy, linearToleranceMM, geometryScaleMM } from '../../numeric-policy.js';
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
 import { splitCurveAtParameter } from './curve-parameter-split.js';
 import type { CurveSplitSharedCoefficient, CurveParameterSplitReport } from './curve-parameter-split.js';
 import { compileCadModel } from '../../model-compiler.js';

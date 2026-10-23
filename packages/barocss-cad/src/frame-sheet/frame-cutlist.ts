@@ -1,7 +1,7 @@
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import type { FrameEndReport, FrameMemberReport } from './frame-section.js';
-import { curveDomain, evaluateCurve } from '../math.js';
-import { dot } from '../vec3.js';
+import { curveDomain, evaluateCurve } from '../core/math.js';
+import { dot } from '../core/vec3.js';
 
 // FR4a (D127): a frame's cut list. Each member as a piece to cut — its axis length (the centroidal line between its two
 // end planes, in closed form where both ends are planes; else its volume over its section's area), its long point (its

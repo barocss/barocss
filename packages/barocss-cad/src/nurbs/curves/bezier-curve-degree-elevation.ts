@@ -1,10 +1,10 @@
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
-import { evaluateCurveD1 } from '../../derivatives.js';
-import type { CurveD1Result } from '../../derivatives.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
+import type { CurveD1Result } from '../../core/derivatives.js';
 import { compileCurveSource, requireCurveValue } from './curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export interface BezierCurveDegreeElevationOptions { targetDegree: 2 | 3 }
 export interface BezierCurveElevatedInteriorPole {

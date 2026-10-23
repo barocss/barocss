@@ -4,11 +4,11 @@ import type { CadAstDeclaration, CadAstValue } from '../../language/source-ast.j
 import { elevateC0BezierChainCoefficientsTrusted } from '../curves/curve-c0-degree-elevation-internal.js';
 import type { C0ElevationKnotBlock, C0ElevationCoefficientResult } from '../curves/curve-c0-degree-elevation-internal.js';
 import { curveDecimal } from '../curves/curve-source.js';
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
-import { evaluateCurveD1 } from '../../derivatives.js';
-import type { CurveD1Result } from '../../derivatives.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
+import type { CurveD1Result } from '../../core/derivatives.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceCurveDegreeElevationDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET',

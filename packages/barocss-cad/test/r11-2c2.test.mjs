@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
-import { evaluateSurfaceD1 } from '../dist/derivatives.js';
-import { evaluateCurve } from '../dist/math.js';
-import { tessellateBrep } from '../dist/brep-tessellate.js';
+import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
+import { evaluateCurve } from '../dist/core/math.js';
+import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
 
 // R11.2c-2 (D113): shells of bodies whose smooth regions (freeform or trimmed faces) meet planes that bound the body at
 // sharp edges — the wall the union of a band per bounding plane (from the wall inside to 1.37 walls out, unbounded along

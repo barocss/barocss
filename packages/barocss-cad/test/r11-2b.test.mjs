@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
-import { evaluateSurfaceD1 } from '../dist/derivatives.js';
-import { evaluateSurface } from '../dist/math.js';
+import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
+import { evaluateSurface } from '../dist/core/math.js';
 
 // R11.2b (D111): a smooth closed freeform body (a SubD body) shelled with faces opened. The wall is the union of the kept
 // faces' normal bands, so the shell is the kept faces, their offset (R11.2a's cells, turned inside out) and, along each

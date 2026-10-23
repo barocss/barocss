@@ -1,6 +1,6 @@
 import { buildAxisBoxSolidBoolean } from './axis-box-boolean.js';
 import type { AxisBoxSolidBooleanAsset, AxisBoxSolidBooleanOptions, AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
-import type { AxisBoxSolidValidationReport } from './box-solid.js';
+import type { AxisBoxSolidValidationReport } from './core/box-solid.js';
 import type { Model } from './types.js';
 import { OrthogonalSolidBooleanError, OrthogonalSolidBooleanDiagnosticCode, admitAsset, check, id, planOrthogonalSolid, record, same, snapshot } from './orthogonal-solid-boolean-internal.js';
 import type { Core, PlannedSolid } from './orthogonal-solid-boolean-internal.js';

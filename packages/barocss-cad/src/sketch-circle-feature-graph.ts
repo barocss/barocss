@@ -6,7 +6,7 @@ import type { XYCirclePrismDocumentV0, XYCirclePrismDocumentResult, XYCirclePris
 import type { XYCirclePrismShellReport } from './xy-circle-prism-shell.js';
 import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
-import { same as sameData } from './structural-equality.js';
+import { same as sameData } from './core/structural-equality.js';
 
 export type SketchCircleLengthDefinition = { kind: 'literal'; valueMM: number } | { kind: 'offset'; parameterId: string; offsetMM: number };
 export interface SketchCircleLengthParameter { id: string; type: 'length'; definition: SketchCircleLengthDefinition }

@@ -3,10 +3,10 @@ import type { XYPolygonPrismShellWithHole, XYPolygonPrismShellWithHoleReport, XY
 import { tessellateXYPolygonPlanarFaceWithHole } from './xy-polygon-planar-face-hole-preview.js';
 import type { XYPolygonHolePreviewSlab, XYPolygonHolePreviewCorner } from './xy-polygon-planar-face-hole-preview.js';
 import { tessellateSurface } from './preview.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { evaluateCurve, curveDomain, surfaceDomain } from './math.js';
-import { validatePreviewPacket } from './packet.js';
-import type { PreviewPacket } from './packet.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { evaluateCurve, curveDomain, surfaceDomain } from './core/math.js';
+import { validatePreviewPacket } from './core/packet.js';
+import type { PreviewPacket } from './core/packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Point } from './types.js';
 

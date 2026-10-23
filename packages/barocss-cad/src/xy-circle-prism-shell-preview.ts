@@ -1,9 +1,9 @@
 import { validateXYCirclePrismShellBundle } from './xy-circle-prism-shell.js';
 import type { XYCirclePrismShellBundle, XYCirclePrismShellReport, XYCirclePrismShellUse } from './xy-circle-prism-shell.js';
-import { evaluateCurve, evaluateSurface, surfaceDomain } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { validatePreviewPacket } from './packet.js';
-import type { PreviewPacket } from './packet.js';
+import { evaluateCurve, evaluateSurface, surfaceDomain } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { validatePreviewPacket } from './core/packet.js';
+import type { PreviewPacket } from './core/packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Point } from './types.js';
 

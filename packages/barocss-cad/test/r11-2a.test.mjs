@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
-import { evaluateSurfaceD1 } from '../dist/derivatives.js';
-import { derivativesForTest } from '../dist/offset-cavity.js';
-import { evaluateSurfaceD2 } from '../dist/second-derivatives.js';
+import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
+import { derivativesForTest } from '../dist/blend/offset-cavity.js';
+import { evaluateSurfaceD2 } from '../dist/core/second-derivatives.js';
 
 // R11.2a (D110): a closed body whose faces all meet smoothly (a SubD body) shelled as its cavity — every face offset by
 // the wall and fitted (cubic, the face's knots each once more, refined; cells where the 16-pole cap or the target needs

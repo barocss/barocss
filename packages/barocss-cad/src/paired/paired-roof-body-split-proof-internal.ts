@@ -2,7 +2,7 @@ import type { Curve, Surface } from '../types.js';
 import type { PairedRoofDifferenceBodyResult } from './paired-roof-difference-body.js';
 import type { PairedSurfaceMaterialBodyResult } from './paired-surface-material-body.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 type F = SectionFraction;
 type R = SectionRational;
