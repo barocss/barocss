@@ -30,6 +30,7 @@ import { ClearancePanel } from './viewport/ClearancePanel';
 import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
 import { CamPanel } from './viewport/CamPanel';
+import { AnalysisPanel } from './viewport/AnalysisPanel';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
@@ -145,6 +146,7 @@ import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from '@barocss/cad-mode
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { downloadBytes, lumpStls, meshToStl } from './ui/files';
 import { useBottomRow, HISTORY_LEFT, HISTORY_LEFT_RAIL } from './ui/useBottomRow';
+import { useFitChips } from './ui/useFitChips';
 import { useLayout } from './layout/useLayout';
 import { ChatColumn, columnShown } from './layout/ChatColumn';
 import { Dock } from './layout/Dock';
@@ -263,7 +265,8 @@ export function App() {
   const engine = useMemo(() => new EngineClient(), []);
   const viewport = useRef<ViewportHandle>(null);
   // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
-  const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), bottomRow = useBottomRow(cornerRight, stripWidth, BROWSER_PLACEMENT === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT);
+  const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), [historyNatural, setHistoryNatural] = useState(0);
+  const bottomRow = useBottomRow(cornerRight, stripWidth, BROWSER_PLACEMENT === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT, historyNatural);
   const [doc, setDoc] = useState<StudioDoc>(starterDoc);
   const [marker, setMarker] = useState<number | null>(null);
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
@@ -384,13 +387,13 @@ export function App() {
   // Session appearance only: no document, history, recovery or analysis input changes.
   const [displayMode, setDisplayMode] = useState<DisplayMode>('shaded-with-edges');
   // (G12c: the previews one at a time — CNC, print layers, clearance or the analysis maps — a choice, not toggles that
-  // refuse each other. Each panel's own toggle sets or clears its mode.)
+  // refuse each other. The dock's switch chooses it, G12e.)
   const [previewMode, setPreviewMode] = useState<PreviewMode>('none');
-  const clearanceEnabled = previewMode === 'clearance', setClearanceEnabled = useCallback((on: boolean) => setPreviewMode(m => on ? 'clearance' : m === 'clearance' ? 'none' : m), []);
+  const clearanceEnabled = previewMode === 'clearance';
   const [clearanceNearMM, setClearanceNearMM] = useState(1);
-  const printEnabled = previewMode === 'print', setPrintEnabled = useCallback((on: boolean) => setPreviewMode(m => on ? 'print' : m === 'print' ? 'none' : m), []);
+  const printEnabled = previewMode === 'print';
   // (G23 CNC: the material-removal preview, session only.)
-  const camEnabled = previewMode === 'cnc', setCamEnabled = useCallback((on: boolean) => setPreviewMode(m => on ? 'cnc' : m === 'cnc' ? 'none' : m), []);
+  const camEnabled = previewMode === 'cnc';
   const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellMM: 0.5 });
   // (G24: the drawing's annotations on the model, session only, and the one picked.)
   const [pmiEnabled, setPmiEnabled] = useState(false);
@@ -2156,6 +2159,10 @@ export function App() {
   } : null;
 
   const totalNodes = doc.nodes.length; const markerAt = marker ?? totalNodes;
+  // (G12e: the history bar's whole chips — those past its room hidden, a "+n" chip opening the rest.)
+  const historyBar = useRef<HTMLDivElement>(null), [historyRows, setHistoryRows] = useState(false);
+  const { hidden: historyHidden, natural: historyNaturalNow } = useFitChips(historyBar, historyRows, [doc.nodes, markerAt, !!sketch, !!active, rendering, bottomRow.stacked, bottomRow.cramped]);
+  useEffect(() => setHistoryNatural(historyNaturalNow), [historyNaturalNow]);
   const sel1 = selection.faces[0] ? { kind: 'face' as const, body: bodies[selection.faces[0].body], face: bodies[selection.faces[0].body]?.mesh.faces[selection.faces[0].face] }
     : selection.edges[0] ? { kind: 'edge' as const, body: bodies[selection.edges[0].body], edge: bodies[selection.edges[0].body]?.mesh.edges[selection.edges[0].edge] } : null;
   const selBodies = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
@@ -2251,20 +2258,18 @@ export function App() {
   // (G12a: proposals are in the chat column; while one is open the column shows it, the chat open or not.)
   const openProposals = doc.proposals?.filter(p => p.status === 'open').length ?? 0, decidedProposals = (doc.proposals?.length ?? 0) - openProposals;
   const chatColumnShown = columnShown(chat && !rendering && !drawing, openProposals, decidedProposals, decidedShown);
-  // (G12c: the previews' panels in the dock's Preview & analysis section; the 3D annotations an overlay beside them.)
-  const previewPanels = (<>
-        <PrintPanel enabled={printEnabled} onEnabled={setPrintEnabled} options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
-        <CamPanel enabled={camEnabled} onEnabled={setCamEnabled} options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
-        <ClearancePanel enabled={clearanceEnabled} onEnabled={setClearanceEnabled} nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
-  </>);
-  const previewOverlays = (
-        <div className="card" aria-label="3D annotations" style={{ padding: '6px 10px', maxWidth: 420 }}>
-          <label><input type="checkbox" checked={pmiEnabled} aria-label="3D annotations" onChange={e => setPmiEnabled(e.target.checked)} /> 3D annotations</label>
-          {pmiEnabled && <div role="status">{pmiReason ?? pmiSheet.error ?? (pmiSheet.busy || !pmiSheet.annotations ? 'Pending · building the drawing\'s sheet'
+  // (G12e: the chosen preview's settings in the dock's Preview & analysis section, the switch its enable; the 3D annotations
+  // an overlay toggle at the section's header, their status under the panel.)
+  const previewPanel = previewMode === 'print' ? <PrintPanel options={printOptions} onOptions={commitPrintPreview} onDirection={commitPrintDirection} state={printState} reason={printReason} />
+    : previewMode === 'cnc' ? <CamPanel options={camOptions} onOptions={patchCam} state={camState} reason={camReason} />
+    : previewMode === 'clearance' ? <ClearancePanel nearMM={clearanceNearMM} onNear={setClearanceNearMM} display={clearanceDisplay} reason={clearanceReason} labels={clearanceLabels} />
+    : previewMode === 'analysis' ? <AnalysisPanel analysis={analysis} onAnalysis={setAnalysis} map={mapKind} onMap={k => { setMapHover(null); setMouldSpread(0); setMapKind(k); }}
+      printing={!!printing} pull={!!doc.mould?.pull} mapsReason={viewBackend === 'webgl2' ? 'The analysis maps are drawn with WebGPU; this browser draws with WebGL2.' : undefined} />
+    : null;
+  const previewOverlay = <label className="overlay-toggle" title="The drawing's annotations on the model, with any preview"><input type="checkbox" checked={pmiEnabled} aria-label="3D annotations" onChange={e => setPmiEnabled(e.target.checked)} /> 3D annotations</label>;
+  const previewOverlayStatus = pmiEnabled && <div role="status" className="overlay-status">{pmiReason ?? pmiSheet.error ?? (pmiSheet.busy || !pmiSheet.annotations ? 'Pending · building the drawing\'s sheet'
             : !pmiItems?.length ? 'No annotations on the model yet: dimension the part in the Drawing workspace.'
-            : `${pmiItems.length} annotation${pmiItems.length === 1 ? '' : 's'} from the drawing${pmiSheet.annotations.left.length ? ` · ${pmiSheet.annotations.left.length} only on the sheet` : ''}${pmiSelected ? ` · ${pmiItems.find(a => a.id === pmiSelected)?.text.join(' ') ?? ''}` : ''}`)}</div>}
-        </div>
-  );
+            : `${pmiItems.length} annotation${pmiItems.length === 1 ? '' : 's'} from the drawing${pmiSheet.annotations.left.length ? ` · ${pmiSheet.annotations.left.length} only on the sheet` : ''}${pmiSelected ? ` · ${pmiItems.find(a => a.id === pmiSelected)?.text.join(' ') ?? ''}` : ''}`)}</div>;
   // (G12b: the right dock — the Browser (its mount movable: browserPlacement), the running command's HUD and the inspector;
   // the HUD floats at the stage's right as before when the dock is a strip.)
   const browserPlacement = BROWSER_PLACEMENT;
@@ -2738,7 +2743,7 @@ export function App() {
         {refProblems.map(p => <div key={'p' + p.index} className="ref"><span className="what">{p.where}: <b>{p.name}</b> {p.candidates.length ? 'could be any of these' : 'is gone; pick it again on the feature'}{p.node !== null ? ' (held until then)' : ''}</span>
           {p.candidates.map(n => <button key={n} className="ghost small" aria-label={`Use ${n}`} onClick={() => void settleRef(p.index, n)}>{n}</button>)}</div>)}
       </aside>}
-      <Profiler id="history" onRender={onBlockRender}>{!sketch && !active && !rendering && <div className="card history" aria-label="History">
+      <Profiler id="history" onRender={onBlockRender}>{!sketch && !active && !rendering && <div className={'card history' + (historyRows ? ' expanded' : '')} aria-label="History" ref={historyBar}>
         <span className="card-title inline">HISTORY</span>
         {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
           // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
@@ -2750,6 +2755,8 @@ export function App() {
             onClick={() => { setEditNode(i); setInstanceSel([]); setDirectSel([]); assembly.cancel(); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
             onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
             <Icon name={iconFor(n)} small />{featureLabel(n, i, doc.nodes)}</button>))}
+        {(historyHidden > 0 || historyRows) && <button className="hs-more" aria-label={historyRows ? 'Fewer history steps' : `${historyHidden} more history steps`} aria-expanded={historyRows}
+          title={historyRows ? 'Back to one row' : 'Show every step'} onClick={() => setHistoryRows(o => !o)}>{historyRows ? 'Less' : '+' + historyHidden}</button>}
         <button className="marker" aria-label="Roll forward to the end" title="Rollback marker · click to roll forward" onClick={() => setMarker(null)} />
         {marker !== null && <span className="muted">rolled back · {totalNodes - markerAt} hidden</span>}
       </div>}</Profiler>
@@ -2922,7 +2929,7 @@ export function App() {
         {browserPlacement === 'dock' && browserPanel}
         {dockDocked && hud}
         {inspector}
-        <PreviewSection mode={previewMode} onMode={choosePreview} panels={previewPanels} overlays={previewOverlays} />
+        <PreviewSection mode={previewMode} onMode={choosePreview} panel={previewPanel} overlay={previewOverlay} overlayStatus={previewOverlayStatus} />
       </Dock>
       {/* (G12a: the chat column, shown at the left (order: -1) and full height; after the stage in the document, so the top bar's
           Chat button stays the first [aria-label="Chat"]. The centre — top bar, viewport and its bars — is the stage.) */}
