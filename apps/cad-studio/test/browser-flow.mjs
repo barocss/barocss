@@ -7664,10 +7664,11 @@ try {
     assert.ok(half.removed > 0 && half.removed < end.removed, JSON.stringify({ half, end }));
     assert.equal(await page.locator('.vp-error').count(), 0, await page.locator('.vp-error').allInnerTexts().then(x => x.join(' | ')));
     await iso(); await snap('g23-cnc-middle');
-    // (Print layers takes the viewport: the CNC preview says why it stops, and shows nothing.)
+    // (One preview at a time, G12c: Print layers chosen, the CNC preview closes — its toggle off, nothing shown; chosen
+    // again, the same end.)
     await page.check('input[aria-label="Print layers"]');
-    await page.waitForFunction(() => /Close Print layers/.test(window.__studioCam?.().reason ?? '') && !window.__studioCam?.().display, null, { timeout: 15000 });
-    await page.uncheck('input[aria-label="Print layers"]');
+    await page.waitForFunction(() => !window.__studioCam?.().display && !document.querySelector('input[aria-label="CNC preview"]')?.checked, null, { timeout: 15000 });
+    await page.check('input[aria-label="CNC preview"]');
     await page.click('[aria-label="CNC progress to the end"]');
     assert.equal((await at('end')).removed, end.removed, 'the same end after the preview closed and came back');
     // (Reopened from the file: the same program and the same removal — nothing of the preview is stored.)
@@ -7724,11 +7725,12 @@ try {
     console.log(`  G22 (${renderer}): ${shown.pairs.map(p => p[2]).join(', ')}; ${(100 * changed).toFixed(2)} % of the canvas changed`);
     assert.ok(changed > 0.002, `${renderer}: the clearance map changed ${(100 * changed).toFixed(3)} % of the canvas`);
     await snap('g22-clearance');
-    // (Print layers and the clearance map exclude each other: the assembly is refused by Print layers, and the clearance map waits.)
+    // (One preview at a time, G12c: Print layers chosen, the clearance map closes — and the assembly is refused there;
+    // clearance chosen again, the same pairs.)
     await page.check('input[aria-label="Print layers"]');
     await page.waitForFunction(() => /Placed assemblies are not supported/.test(window.__studioPrint?.().reason ?? '') && !window.__studioClearance?.(), null, { timeout: 15000 });
-    assert.match(await page.locator('.card[aria-label="Assembly clearance"] [role="status"]').innerText(), /Close Print layers/);
-    await page.uncheck('input[aria-label="Print layers"]');
+    assert.equal(await page.locator('input[aria-label="Assembly clearance"]').isChecked(), false);
+    await page.check('input[aria-label="Assembly clearance"]');
     const back = await ready(shown.request);
     assert.deepEqual(back.pairs, want);
     // (Closed: the model as it was.)
