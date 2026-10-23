@@ -75,7 +75,7 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
             {made && !made.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>{made.result.error}</div>}
           </div>;
         })}
-        <Button variant="ghost" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
+        <Button variant="ghost" className="self-start" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
           const view: SectionViewId = sectionList.some(x => x.view === 'top') ? 'right' : 'top', at = views ? sectionMiddle(views, view, settings.orientation) : null;
           // (A is the front's, by its checkbox above: added sections take B on.)
           if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList]), view, at }]));

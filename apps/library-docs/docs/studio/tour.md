@@ -15,8 +15,8 @@ and the dock at the right.
   - the chat opens in the Model workspace, not in Render or Drawing.
 
   See [Designing with the agent](/agent/).
-- **The dock** holds the **Browser**, then the inspector, then the BOM and the other panels you open, one under
-  another in one scrolling column. Nothing floats over another panel.
+- **The dock** holds the **Browser**, then the inspector, then **Preview & analysis**, the BOM and the other panels
+  you open, one under another in one scrolling column. Nothing floats over another panel.
 - **Narrow windows.**
   - When the window narrows past what fits (the chat, the dock and a centre at least 560 px wide), the chat folds to
     its strip once. You can open it again.
@@ -47,9 +47,9 @@ and the dock at the right.
 - **The heads-up display (HUD)** shows a running command's fields and a status: `preview` while the result is shown,
   or `refused` with the reason.
 - **The history**, along the bottom of the viewport, lists the features in the order they were made. Click one to edit
-  it.
+  it. When the features don't fit in one row, a `+n` chip shows the rest, and **Less** folds them again.
 - **The view bar** carries:
-  - **Display**, the popover for display modes, sections and previews;
+  - **Display**, the popover for the display mode and isolating parts;
   - the view buttons: **Iso**, **Top**, **Front**, **Right** and the others;
   - **Ortho**, **AO**, **Analyse** and **Maps**;
   - the selection filter and **Snap**.

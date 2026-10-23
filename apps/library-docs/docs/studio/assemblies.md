@@ -46,7 +46,7 @@ The freedom that mates leave is also what makes a mechanism move. [Robots](/stud
 
 - **Interference** finds where bodies overlap and by how much. For example, a cylinder through a box gives
   `Box ∩ Cylinder` and its overlap volume.
-- **Assembly clearance**, in **Display**, classes every pair of bodies and draws it on the model:
+- **Clearance**, in the dock's **Preview & analysis**, classes every pair of bodies and draws it on the model:
 
   | State | Meaning |
   |---|---|
@@ -65,10 +65,24 @@ The placements don't change, so mates and exports are unaffected.
 
 An assembly can have **inputs**, each driving a few things explicitly, and **variants**, named sets of input values.
 
-::: info Not in the studio yet
-The studio has no interface for variants yet, and doesn't show which variant is active. For now they come from the
-agent, or are written in the document (`variability`).
-:::
+**Variants**, among the inspect tools, opens the **Variants** card in the dock:
+
+- **The list.** **Master** and each variant, the active one marked. **Show** shows one; **×** deletes a variant.
+- **Showing a variant.**
+  - It is regenerated from the master, and the master isn't changed.
+  - While it is shown, modelling commands are refused with `Showing <name>: show the master to edit`. **Show the master**
+    goes back.
+- **The inputs.** Each input's value, with what it drives under it. Editing values doesn't write anything yet: the card
+  counts the values that differ.
+  - **Save these values as…** and **Save** keep them as a new variant.
+  - **Update** writes them into the variant shown.
+  - **Reset to** drops the edits.
+- **Unmet mates.** A mate the shown variant leaves unmet is listed, its reason behind a click.
+- **Undo.** Saving, updating, deleting and switching each go through the same action the agent uses, and are one
+  undoable step.
+
+With no inputs yet, the card says so. Inputs are added by the agent's `assembly.inputs`, or written in the document.
+A part's own configurations stay in **Parameters** (see [Parameters and configurations](/studio/parameters)).
 
 - **The agent's actions:**
   - `assembly.inputs` sets the inputs. It changes the assembly's structure, so at L1 and L2 the agent proposes it, and

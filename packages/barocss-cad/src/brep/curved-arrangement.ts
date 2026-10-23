@@ -346,7 +346,7 @@ export function curveTolerance(rings: readonly (readonly CurveSegment2[])[]): nu
 /**
  * A cut's end that meets nothing (one edge there) ends at the nearest vertex within 10 tolerances, or else at the nearest
  * point within 10 tolerances of another segment, which is split there; not a stub within 10 tolerances of its own edge's
- * other end, nor onto a vertex or segment at that other end. Two cuts meeting where three surfaces meet are
+ * other end, nor onto a vertex at that other end, nor, for a cut within 100 tolerances, onto a segment there (D251). Two cuts meeting where three surfaces meet are
  * each clipped against a different face's map of the same edge, and their ends, or an end and that edge, can land a few
  * tolerances apart: the face was then not divided. 10 tolerances is half the stitch's vertex merge radius, so no feature
  * the stitch keeps is joined away. (L4 fuzz 74, D237.)
@@ -368,9 +368,13 @@ function joinLooseEnds(points: readonly XY[], edges: Edge[], eps: number): void 
     }
     if (best >= 0) { if (edges[e].u === v) edges[e].u = best; else edges[e].v = best; degree[v] = 0; degree[best]++; continue; }
     const p = points[v];
+    // (A segment at the other end is left out only for a short cut, its other end within 100 tolerances: a long cut whose
+    // two ends both stop short of one segment — a ball's circle ending a tolerance short of its patch's seam at both
+    // crossings, the first end's join splitting the seam there — ends on it at both. L4 fuzz 20261025 #170, D251.)
+    const short = Math.hypot(points[other][0] - p[0], points[other][1] - p[1]) <= 100 * eps;
     let split = -1, at = 0, sd = 10 * eps;
     for (let f = 0; f < edges.length; f++) {
-      const g = edges[f]; if (f === e || g.u === v || g.v === v || g.u === other || g.v === other || surelyOff(g.seg, p, sd)) continue;
+      const g = edges[f]; if (f === e || g.u === v || g.v === v || (short && (g.u === other || g.v === other)) || surelyOff(g.seg, p, sd)) continue;
       const d = segDistance(g.seg, p); if (d > sd) continue;
       const u = paramOf(g.seg, p); if (u > 0 && u < 1) { sd = d; split = f; at = u; }
     }
@@ -535,11 +539,15 @@ function simplify(ring: CurveSegment2[], eps: number): CurveSegment2[] {
   return out;
 }
 
-/** Boolean of two sets of closed rings (material left). Regions come back as outer + holes. */
-export function booleanCurveRegions(a: readonly (readonly CurveSegment2[])[], b: readonly (readonly CurveSegment2[])[], operation: CurveBooleanOperation, tolerance?: number): CurveRegion2[] {
+/**
+ * Boolean of two sets of closed rings (material left). Regions come back as outer + holes. `joinEnds`: rings closed to
+ * within 10 tolerances, as `curveFaceRegions` leaves them where it joined a cut's loose end (`joinLooseEnds`), are
+ * closed there.
+ */
+export function booleanCurveRegions(a: readonly (readonly CurveSegment2[])[], b: readonly (readonly CurveSegment2[])[], operation: CurveBooleanOperation, tolerance?: number, joinEnds = false): CurveRegion2[] {
   const rings = [...a.map(ring => ({ polygon: 0, ring })), ...b.map(ring => ({ polygon: 1, ring }))];
   if (!rings.length) return [];
-  const arr = arrange(rings, tolerance), { faceOfHalf, winding } = regions(arr, 2), { half, segOfHalf, eps } = arr;
+  const arr = arrange(rings, tolerance, joinEnds), { faceOfHalf, winding } = regions(arr, 2), { half, segOfHalf, eps } = arr;
   const pick = (w: number[]) => { const x = w[0] !== 0, y = w[1] !== 0; return operation === 'union' ? x || y : operation === 'intersection' ? x && y : operation === 'difference' ? x && !y : x !== y; };
   const selected = new Map<number, boolean>(); for (const [f, w] of winding) selected.set(f, f !== -1 && pick(w));
   const boundary = (h: number) => !!selected.get(faceOfHalf[h]) && !selected.get(faceOfHalf[half[h].twin]);

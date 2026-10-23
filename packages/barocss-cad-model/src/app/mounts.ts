@@ -106,6 +106,12 @@ export function mountAxis(row: StudioMountRow, face: { normal: readonly number[]
   return { position: p, direction: d };
 }
 
+/** A direction as ±X, ±Y or ±Z when it is one, else its components. */
+function directionText(d: readonly number[]): string {
+  const k = d.findIndex(c => Math.abs(Math.abs(c) - 1) < 1e-9);
+  return k >= 0 && d.every((c, i) => i === k || Math.abs(c) < 1e-9) ? `${d[k] > 0 ? '+' : '−'}${'XYZ'[k]}` : `(${d.map(r6).join(', ')})`;
+}
+
 export const mountCommand: Command = {
   id: 'mount', label: 'Mount', icon: 'cad-hole', group: 'create',
   hint: 'Cut a motor\'s, servo\'s or bearing unit\'s mounting holes into a flat face, from your datasheet\'s mount rows',
@@ -129,7 +135,12 @@ export const mountCommand: Command = {
     const rows = mountRowsOf(ctx.doc), row = rows.get(String(v.row));
     if (!rows.size) return [{ label: 'Rows', text: NO_MOUNTS, done: false }];
     if (!row) return [{ label: 'Mount', text: noMountRow(String(v.row), [...rows.keys()]), done: false }];
-    return [{ label: 'Mount', text: `${row.designation ?? row.id}: ${row.source ?? 'an estimate'}${row.unchecked?.length ? ` (not cross-checked: ${row.unchecked.join(', ')})` : ''}`, done: true }];
+    const mount = { label: 'Mount', text: `${row.designation ?? row.id}: ${row.source ?? 'an estimate'}${row.unchecked?.length ? ` (not cross-checked: ${row.unchecked.join(', ')})` : ''}`, done: true };
+    // (O14: the output axis the mount gives, for a mate or a frame — where it is and which way it points.)
+    const f = ctx.selection.faces[0], face = f && ctx.bodies[f.body]?.mesh.faces[f.face], fa = face && faceAxis(face.normal), x = Number(v.x), y = Number(v.y);
+    if (!face || !fa || !Number.isFinite(x) || !Number.isFinite(y)) return [mount];
+    const ax = mountAxis(row, face, face.centroid[fa.k], x, y, Number(v.turn ?? 0));
+    return [mount, { label: 'Axis', text: `at (${ax.position.map(r6).join(', ')}) mm, along ${directionText(ax.direction)}`, done: true }];
   },
   build: mountNodes,
 };

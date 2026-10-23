@@ -13179,3 +13179,170 @@ unchanged since):
 - cad-model 1017/1017; studio 285/285.
 - `apps/library-docs/scripts/refusals.mjs --check`: unchanged.
 - No browser flow: nothing studio-visible changed.
+
+## D250 — K14 step 3: a curve's domain map is sampled finely beside a pole (2026-10-24)
+
+**Findings.**
+- **L4 fuzz seed 20261024 #138**, refused at the tip. Shrunk to 3 leaves: a tilted cylinder ∪ an open shell ∪ a ball
+  r 3.253. One intersection curve passes 0.02 mm from the ball's north pole. Refused as "not a manifold solid", an edge
+  used once there.
+- **Seed 20261025 #190** (robust). Shrunk: two equal balls r 2.05, a circular pattern of 2 at 154.2°, their circle
+  4.9e-3 mm from one ball's pole. Same message.
+
+**Cause, common to both (`tabulated`, `src/brep/analytic-boolean.ts`).** A traced curve's map into a NURBS face's domain
+is 128 samples with Hermite pieces whose tangents grow as 1/distance to the pole. Beside a pole u turns fast, much of a
+half-turn between two samples. The pieces overshot there: 190's went u 0 → −0.98 → −0.73. The face's arrangement split
+the cut at that turn and lost its first piece, leaving a gap in the face's ring.
+
+**Fix (`nearPoles`).** An interval where the curve passes nearer a pole than twice the interval's length is cut in up to
+64, so the pieces there reach a quarter of the way to the pole at most.
+- The samples are added when the table is first built, so curves on faces without poles pay nothing.
+- An interval where the curve reaches the pole (within 1e-6 of the surface's size) is left alone. There the pole's
+  parameter is the free one's limit (D235). A first version densified it too, and the samples beside the pole each took
+  whatever u the projection settled on, which broke D235's own test.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| 20261024 #138, shrunk | refused | valid, one body, 0.01 e at 256² × 6, by quadrature |
+| 20261024 #138, as fuzzed | refused | valid |
+| 20261025 #190 | refused | still refused, at the march |
+
+**#190, open: the march beside the pole** (`src/intersect/surface-intersection.ts`).
+- Projected from the point before, a 0.05 mm step lands past the pole's side of the domain, on the surface's extension.
+  The box test takes that as the curve leaving the face, and the chain stops 0.005 mm short of the patch's seam.
+- Two remedies built 190, but each broke another case, so neither is kept:
+  - re-projecting such a point from the grid samples nearest it, off the poles, at the step and in the box-edge
+    bisection (190 valid; 20261024 #154, valid before, refused with an edge used 3 times);
+  - a march step scaled to a quarter of the distance to the nearest pole (190 valid; D238's 25 failed with "Planar face
+    could not be triangulated").
+- A third, retrying only a step that crossed a pole's side, at that quarter distance, kept 154 and 25 but left 190
+  refused at the seam.
+- With either of the first two, 190's mass also fell to the tessellated route, honestly bound, APPROX. A strip by the
+  pole is dropped, its edge more than half a chord off its chord in (u, v).
+- What remains is a march that follows u's turn beside a pole without changing any march elsewhere. Not done.
+
+**Test:** `test/fuzz-k14-findings.test.mjs` "analytic Boolean: a curve passing 0.02 mm from a ball's pole …", failing
+before.
+
+## D251 — K14 step 3: a long cut that stops a tolerance short of one segment at both ends ends on it at both (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #170, robust. Shrunk to one leaf: a ball r 4 turned 90° about its own axis and united
+with itself, then that twice again about another axis, 90° apart (two balls). Their circle lies in the plane x = y. It
+crosses each ball's patch seam at points that both seams pass through, (−3, −3, ±3.4641). On two faces the cut stopped
+9.5e-6 short of the seam at both ends: each face clips it against the other face's map of the same edge.
+
+**Cause (`joinLooseEnds`, `src/brep/curved-arrangement.ts`, D237).** The first loose end joined the seam and split it
+there. The second end's nearest segment was then the seam's part beside the first end. D237's rule skips any segment
+at the cut's other end, so the face was not divided, and the result had an edge used once.
+
+**Fix.** That rule now applies only to a short cut, its other end within 100 tolerances. Its purpose was the stub, a
+cut's tail a hair past a crossing. A long cut ends on the segment at both ends. D237's own cases still build: seed
+20261023 #176 (2 bodies, 0.0 e) and seed 20261024 #171 (5 bodies, −0.3 e).
+
+**Results:** 170 shrunk is valid, one body, 0.04 e at 256² × 6, by quadrature. As fuzzed (2 leaves) it is still
+refused, by another cause: shrunk again, a pattern of a ball ∪ a rounded box, an edge used once at (−6, 0.73, 2). That
+case is not done.
+**Test:** "curves: a long cut ending a tolerance short of one segment at both ends …", failing before.
+
+## D252 — K14 step 3: coplanar pieces are joined with their rings closed as their faces' arrangement closed them (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261026 #112, robust. Shrunk: a closed shelled box ∪ a ball, in a circular pattern of 2 at
+42.55°. Each copy builds alone; their union was refused, with an edge used once on the first box's corner (−1.18,
+3.911) between the cavity's floor and ceiling heights.
+
+**Cause (`mergePieces`, `src/brep/analytic-boolean.ts`).** The first box's wall x = −1.18 keeps a piece of 3.13 mm²
+inside the second copy's cavity. That piece's ring is closed to 6.7e-6, the gap `joinLooseEnds` closed in the face's
+arrangement. Merging the wall's coplanar pieces unites their rings with `booleanCurveRegions`, which does not join ends.
+The open ring bounded nothing, the piece vanished, and every edge around it was used once.
+
+**Fix.** `booleanCurveRegions` takes `joinEnds` and passes it to the arrangement. `mergePieces` sets it, so it closes
+rings as `curveFaceRegions` did. Other callers are unchanged.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| 20261026 #112 shrunk | refused | valid, one body, 0.1 e |
+| 20261026 #112 as fuzzed | refused | builds empty, as the oracle |
+| 20261026 #34 shrunk (an open shell ∪ a ball, linear-patterned) | refused | valid, one body, 0.1 e |
+| 20261026 #194 as fuzzed | refused | valid, 2 bodies, 0.0 e |
+
+#34 as fuzzed is still refused, by another cause (an edge used once at y = 2.972).
+
+**Test:** "analytic Boolean: coplanar pieces joined keep a piece …", failing before.
+
+## D253 — K14 checkpoint 2: step 3's first fixes, where the robust refusals stand (2026-10-24)
+
+**From checkpoint 1.** The two centroids that moved by one bit (`fuzz:20261023:106`, `fuzz:20261024:124`) came from
+D246. With D245's mass alone or D247's spurs alone they stay identical. With D246's bisected diagonals they change,
+through the quadrature's 16-a-quarter tessellation.
+
+**Fuzz counts** (200 cases a seed, the D249 judgement, no WRONG, INVALID, CRASH, TIMEOUT or APPROX anywhere):
+
+| Seed | Checkpoint 1: OK (empty) / REFUSED | Checkpoint 2: OK (empty) / REFUSED | Refusals that now build |
+|---|---|---|---|
+| 20261025 | 182 (36) / 18 | 182 (36) / 18 | — (170 and 190 still refused as fuzzed) |
+| 20261026 | 185 (26) / 15 | 187 (27) / 13 | 112 (empty, as the oracle), 194 |
+| 20261023 | 189 (31) / 11 | 189 (31) / 11 | — (158 refused later, by another Boolean) |
+| 20261024 | 186 (31) / 14 | 187 (31) / 13 | 138 |
+
+**The robust refusals (D249's ten whose shrunk tree refused every nudge):**
+
+| Case | Now |
+|---|---|
+| 20261025 #190 | shrunk and as fuzzed still refused, by the march beside a pole (D250, open) |
+| 20261025 #170 | shrunk builds (D251). As fuzzed it is refused by another cause: shrunk again, a ball ∪ a rounded box, twice patterned |
+| 20261026 #112 | builds, shrunk and as fuzzed (D252) |
+| 20261026 #34 | shrunk builds (D252); as fuzzed refused elsewhere, an edge used once at y = 2.972 |
+| 20261026 #184 | refused: an open shell ∩ a tilted cylinder, patterned; not looked at |
+| 20261025 #49, #148 | refused; not looked at |
+| 20261026 #194 | builds as fuzzed (D252) |
+| 20261025 #62, 20261026 #115 | refused ("orientation: face … sense disagrees with its outer loop"); not looked at |
+
+**Checks** (T2, in the scratch worktree at cbe1ce6ec with D250–D252):
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1663/1670, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 1's names, three are new (D250–D252's tests) and none is gone.
+  - Two earlier runs caught regressions, fixed before the counted run:
+    - D235's through-pole test, broken by densifying intervals that reach the pole;
+    - with the march changes D250 tried, 20261024 #154 refused and D238's 25 failed.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint: 861 cases, `cf100676…` (from `01ad424b…`). 29 lines changed:
+  - `fuzz:20261024:138` refused → valid;
+  - `fuzz:20261023:158` still refused, now at a later Boolean ("every test ray was degenerate") instead of an edge
+    used once;
+  - 27 lines with mesh, area and mass changed: the denser domain maps beside poles move trim samples. Volumes are within
+    7.1e-10 relative (20261023:112), the rest within 1.1e-10; validity and F/E/V are unchanged.
+- cad-model 1017/1017, studio 285/285.
+- No browser flow.
+
+## D254 — K14 stops at the fix budget: what the next robust refusals are (diagnosis only) (2026-10-24)
+
+K14 fixed 7 causes, D245–D248 and D250–D252, so it stops at the brief's "about 8". These are the next ones; none is
+fixed.
+
+- **20261026 #184.** Shrunk: an open shelled box ∩ a tilted cylinder, in a circular pattern of 2 at 50.87°. Each copy
+  builds, and the copies' union is refused with 13 edges used once.
+  - They form one loop in the first copy's cylinder end face (`n3b.bottom`, a plane tilted 82°): lines at the box's
+    bottom z = −2.5 and its floor z = −2.
+  - Its partners (the floor, the walls, the second copy's walls) each use their own edges between nearby but different
+    points, so the rings do not meet.
+  - Next: the vertices where the end plane meets the floor and the bottom, 0.07 mm apart (0.4096, 2.4117, −2.5) and
+    (0.4788, 2.4146, −2).
+- **20261025 #62.** Shrunk: (a tilted cylinder − a box) in a linear pattern of 3, then of 2. The ×3 builds, and the ×2
+  union is refused: "orientation: face … sense disagrees with its outer loop". The face is the second copy's cylinder
+  wall, two kept pieces (34.78 and 0.09 mm²) merged into one host domain.
+  - The big piece spans 354° about the axis.
+  - The merge's seam goes in the 0.10 rad gap left, and both regions come back as they went in.
+  - So the disagreement comes later, from the face the stitch builds over a 354° arc (its loop against that surface).
+    That is the place to look.
+- **20261026 #115** gives the same message on a 4-leaf tree (cylinders, a box, a cone). Not looked at; it may share #62's
+  cause.
+- **20261025 #49, #148.** Not looked at.
+- **20261025 #190.** The march beside a pole (D250).
+- **20261025 #170 and 20261026 #34 as fuzzed.** Each refused by a second cause after their shrunk trees built (D251,
+  D252).
+
+D239's open nudge findings and s2#112 (queue item 4) were not reached in K14.
