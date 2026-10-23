@@ -11825,3 +11825,22 @@ longest chord, as `surelyOff` already uses.
 `robustness/corpus/fuzz/`.
 
 **Test:** `test/boolean-curve-box.test.mjs`, failing before.
+
+## D208 — A traced curve through a pole of one surface on the other goes on to the pole (2026-10-23)
+
+**Finding.** L4 fuzz 158, shrunk: a cylinder less a cone whose apex lies on the cylinder's wall. Refused as "not a
+manifold solid (edge … has 1 uses)". The intersection passes through the apex, where the cone's normal is undefined,
+and the march stopped 1e-4 short of it. The cut ended short of the domain's side at the apex, so the cone's face inside
+the cylinder was not divided. That face was judged out and dropped.
+
+**Fix (`src/analytic-boolean.ts`, `toPoles`).** An open chain whose end lies within a marching step of a pole of one
+face's surface goes on to that pole when:
+- the pole lies on the other surface (to the tolerance), and
+- the pole lies inside both faces' domain boxes.
+
+On the pole's own surface, the added point keeps the free coordinate of the end it continues.
+
+**Result:** 158 is valid and watertight, 70.884043 mm³ against the oracle's 70.884004 ± 6.2e-4 (0.1 e). It is in
+`robustness/corpus/fuzz/`.
+
+**Test:** `test/boolean-apex-on-wall.test.mjs`, failing before.

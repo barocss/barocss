@@ -72,6 +72,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 4, 49, 50, 67, 92, 100, 131 (exact contacts): lumps touching along a line or at a point are separate bodies, as lumps apart are (cad-model union-touch flipped; its refusal title retires, O8's DFM warning returns it) | D204 | done (T2) |
 | Fuzz 56 and tangent contacts: a piece misjudged where a surface only touches it is re-judged; a lump touching itself is refused, typed; two lumps touching are two bodies | D205 | done (T2) |
 | Fuzz 173 (robust refusal): a traced curve's box in the arrangement allows for its bulge between samples | D207 | done (T2) |
+| Fuzz 158 (robust refusal): a traced curve through a pole of one surface on the other goes on to the pole | D208 | done (T2) |
 | K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 

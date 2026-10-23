@@ -27,7 +27,7 @@ import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
 import { evaluateCurve, evaluateSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, validateCurve } from './math.js';
 import { catmullRom, chainNeighbours, surfaceIsoclines } from './surface-isocline.js';
-import { chainCurve, intersectPatches, SurfaceIntersectionError } from './surface-intersection.js';
+import { chainCurve, intersectPatches, SurfaceIntersectionError, type IntersectionChain } from './surface-intersection.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { linearToleranceMM } from './numeric-policy.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';
@@ -478,6 +478,32 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
   for (const pr of probe) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(param(to3(f, x)));
   return insideIntervals(f, params, at, tol);
 }
+/**
+ * An open chain whose end stops short of a pole on both surfaces — a cone's apex on the other face — goes on to it.
+ * (There one surface's normal is undefined, so the march stops a step's fraction away. The cut then ended 1e-4 short of
+ * the domain's side at the pole and did not divide the face. L4 fuzz 158, D208.)
+ */
+function toPoles(chain: IntersectionChain, fa: GFace, fb: GFace, boxA: readonly [XY, XY], boxB: readonly [XY, XY], reach: number, tol: number): IntersectionChain {
+  if (chain.closed || chain.points.length < 2) return chain;
+  let { points, tangents, uvA, uvB } = chain;
+  for (const end of [0, 1] as const) {
+    const i = end ? points.length - 1 : 0, x = points[i];
+    for (const [f, g] of [[fa, fb], [fb, fa]] as const) {
+      if (f.surf.kind !== 'nurbs') continue;
+      const pole = f.surf.poles.find(o => len(sub(o.point, x)) > tol && len(sub(o.point, x)) <= reach && offSurface(g, o.point, 10 * tol) <= tol);
+      if (!pole) continue;
+      const own = (end ? (f === fa ? uvA : uvB)[i] : (f === fa ? uvA : uvB)[0]), at: XY = pole.along === 0 ? [own[0], pole.at] : [pole.at, own[1]], other = to2(g, pole.point);
+      const [pa, pb] = f === fa ? [at, other] : [other, at];
+      if (!inBox(pa, boxA, tol) || !inBox(pb, boxB, tol)) continue;
+      const t = unit(end ? sub(pole.point, x) : sub(x, pole.point));
+      if (end) { points = [...points, pole.point]; tangents = [...tangents, t]; uvA = [...uvA, pa]; uvB = [...uvB, pb]; }
+      else { points = [pole.point, ...points]; tangents = [t, ...tangents]; uvA = [pa, ...uvA]; uvB = [pb, ...uvB]; }
+      break;
+    }
+  }
+  return points === chain.points ? chain : { points, tangents, closed: false, uvA, uvB };
+}
+const inBox = (p: XY, box: readonly [XY, XY], tol: number) => p[0] >= box[0][0] - tol && p[0] <= box[1][0] + tol && p[1] >= box[0][1] - tol && p[1] <= box[1][1] + tol;
 /** A curve's parameter range cut where it crosses a cylinder face's domain seam (θ = ref ± π), so each piece maps continuously. */
 function seamRanges(f: GFace, at: (t: number) => P3, lo: number, hi: number): [number, number][] {
   if (f.surf.kind !== 'cylinder') return [[lo, hi]];
@@ -616,10 +642,11 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
     const given = [fa, fb].flatMap(f => f.cuts.flatMap(g => [0, 1].map(u => to3(f, segAtAny(g, u))))).filter(x => offSurface(fa, x, 100 * tol) <= 100 * tol && offSurface(fb, x, 100 * tol) <= 100 * tol);
     try { chains = intersectPatches(PA, PB, { step: Math.max(diag / 80, 50 * tol), tolerance: 100 * tol, ...(along.length ? { skip: onAlong, skipNear: alongWithin } : {}), ...(given.length ? { seeds: given } : {}) }); }
     catch (e) { if (e instanceof SurfaceIntersectionError) throw new Refused(`the surfaces of ${fa.name ?? 'a face'} and ${fb.name ?? 'a face'} meet along a curve that cannot be traced (${e.message.replace(/^Surface intersection: /, '')})`); throw e; }
+    const reach = Math.max(diag / 80, 50 * tol);
     for (const chain of chains) {
       // A chain running along such an edge is that edge again.
       if (along.length && chain.points.every(onAlong)) continue;
-      paramCuts(chainCurve(chain, { A: PA, B: PB }), 0, 1, true);
+      paramCuts(chainCurve(toPoles(chain, fa, fb, PA.box, PB.box, reach, tol), { A: PA, B: PB }), 0, 1, true);
     }
   };
   // Surfaces of revolution (cones, spheres, tori) meeting a plane square to their axis or through it,
