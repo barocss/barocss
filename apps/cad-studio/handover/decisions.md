@@ -12041,3 +12041,35 @@ function and stays.
 **Checks:** type-check, lint, T2, the test names identical, the R5 fingerprint identical.
 
 **Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D214's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; test names identical.
+
+## D216 — R5.2a: the mass quadrature's inverter picks its four nearest grid points without sorting all 625 (2026-10-23)
+
+**What (`src/brep-mass-quadrature.ts`).** When a hint misses, the inverter used to map all 625 grid points to
+`{ g, d }` objects, sort them and slice off four. `nearestGridPoints` now keeps the four nearest in one pass, into a
+reused array:
+- the squared distance is the same expression, `dx·dx + dy·dy + dz·dz` in that order, as `dot(sub, sub)`;
+- a point joins only when strictly nearer than the fourth;
+- it goes in after every kept point at the same or a smaller distance, so ties keep the grid's order, as the stable
+  sort did;
+- a distance that is not a number takes the old sort's path.
+
+Newton's step also builds its two partials and the final distance without the `.map` closures and the spread; the
+values are the same.
+
+**Tie-breaking, proved on constructed ties** (`test/r5-nearest-grid.test.mjs`, against the stable sort written as it
+was):
+- a 25 × 25 integer lattice with p on a lattice point, at a cell centre, on an edge midpoint and off the grid, so the
+  fourth place falls inside a tie of 4 or 8;
+- a grid with one point repeated 25 times (a pole's row);
+- 300 random grids on a coarse step, many of them tied, some with fewer than four points;
+- a NaN distance.
+
+Both mutations fail it: `>=` for `>` in the shift, and `<=` for `<` at the fourth.
+
+**Measured:** massProperties over the 400 fuzz documents' outputs went from 58.3 s to 51.5 s, best of 3 (load 25,
+indicative).
+
+**Checks:** type-check, lint, T2 (brep-mass-quadrature is brep core), the test names identical plus the new test, the
+R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; RB no new rows; the passing test names identical to the previous step.
