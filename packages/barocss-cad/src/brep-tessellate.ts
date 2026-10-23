@@ -715,8 +715,10 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   unfoldRunTriangles(tris, ringsUV.flat(), runs);
   const key = (a: number, b: number) => a < b ? a * 1e7 + b : b * 1e7 + a;
   const around = new Map<number, Set<number>>();
-  const link = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) { const k = key(x, y); if (!around.has(k)) around.set(k, new Set()); around.get(k)!.add(t); } };
-  const unlink = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) around.get(key(x, y))?.delete(t); };
+  // (Edges in the order a–b, b–c, c–a, as before: the sets' order decides which neighbour `across` and `bisect` meet first.)
+  const linkEdge = (k: number, t: number) => { let set = around.get(k); if (!set) { set = new Set(); around.set(k, set); } set.add(t); };
+  const link = (t: number) => { const tri = tris[t], a = tri[0], b = tri[1], c = tri[2]; linkEdge(key(a, b), t); linkEdge(key(b, c), t); linkEdge(key(c, a), t); };
+  const unlink = (t: number) => { const tri = tris[t], a = tri[0], b = tri[1], c = tri[2]; around.get(key(a, b))?.delete(t); around.get(key(b, c))?.delete(t); around.get(key(c, a))?.delete(t); };
   tris.forEach((_, t) => link(t));
   // Rivara's longest-edge bisection (LEPP): to refine a triangle wider (in U) than one angular step,
   // follow neighbours across widest edges until two triangles share their widest edge, bisect it in
@@ -724,7 +726,14 @@ function cylinderTriangles(face: Brep['faces'][number], frame0: CylinderFrame, p
   // Lengths in (U, V/20): the surface is straight along V, so triangles may be long that way (an
   // affine metric keeps Rivara's termination); ties are broken by index.
   const span = frame.r * step, width = (a: number, b: number) => Math.hypot(uv[a][0] - uv[b][0], (uv[a][1] - uv[b][1]) / 20) + 1e-15 * (a + b) / (a * b + 1);
-  const widest = (t: number): [number, number] => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).reduce((m, e) => width(e[0], e[1]) > width(m[0], m[1]) ? e : m); };
+  // (The first of the longest, a–b, b–c, c–a in turn, as the reduce had it.)
+  const widest = (t: number): [number, number] => {
+    const tri = tris[t], a = tri[0], b = tri[1], c = tri[2];
+    let x = a, y = b;
+    if (width(b, c) > width(x, y)) { x = b; y = c; }
+    if (width(c, a) > width(x, y)) { x = c; y = a; }
+    return [x, y];
+  };
   const across = (t: number, a: number, b: number) => { const set = around.get(key(a, b)); if (set) for (const x of set) if (x !== t) return x; return undefined; };
   const bisect = (a: number, b: number) => {
     const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];
@@ -888,18 +897,28 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
   const normal = (q: XY): Point => { const n = normalAt(q); if (Math.hypot(...n) > 1e-20 * (Lu + Lv + 1) ** 2) return unit(n); return unit(normalAt([inward(q[0], U, 1e-5), inward(q[1], V, 1e-5)])); };
   const nrm: Point[] = uv.map(normal), cosStep = Math.cos(1.5 * step);
   const key = (a: number, b: number) => a < b ? a * 1e7 + b : b * 1e7 + a, around = new Map<number, Set<number>>();
-  const link = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) { const k = key(x, y); if (!around.has(k)) around.set(k, new Set()); around.get(k)!.add(t); } };
-  const unlink = (t: number) => { const [a, b, c] = tris[t]; for (const [x, y] of [[a, b], [b, c], [c, a]]) around.get(key(x, y))?.delete(t); };
+  // (Edges in the order a–b, b–c, c–a, as before: the sets' order decides which neighbour `across` and `bisect` meet first.)
+  const linkEdge = (k: number, t: number) => { let set = around.get(k); if (!set) { set = new Set(); around.set(k, set); } set.add(t); };
+  const link = (t: number) => { const tri = tris[t], a = tri[0], b = tri[1], c = tri[2]; linkEdge(key(a, b), t); linkEdge(key(b, c), t); linkEdge(key(c, a), t); };
+  const unlink = (t: number) => { const tri = tris[t], a = tri[0], b = tri[1], c = tri[2]; around.get(key(a, b))?.delete(t); around.get(key(b, c))?.delete(t); around.get(key(c, a))?.delete(t); };
   tris.forEach((_, t) => link(t));
   const len2 = (a: number, b: number) => Math.hypot((uv[a][0] - uv[b][0]) * ku, (uv[a][1] - uv[b][1]) * kv) + 1e-15 * (a + b) / (a * b + 1);
-  const widest = (t: number): [number, number] => { const [a, b, c] = tris[t]; return ([[a, b], [b, c], [c, a]] as [number, number][]).reduce((m, e) => len2(e[0], e[1]) > len2(m[0], m[1]) ? e : m); };
+  // (The first of the longest, a–b, b–c, c–a in turn, as the reduce had it.)
+  const widest = (t: number): [number, number] => {
+    const tri = tris[t], a = tri[0], b = tri[1], c = tri[2];
+    let x = a, y = b;
+    if (len2(b, c) > len2(x, y)) { x = b; y = c; }
+    if (len2(c, a) > len2(x, y)) { x = c; y = a; }
+    return [x, y];
+  };
   // Bent: an interior edge across which the normal turns by more than 1.5 steps (boundary chords are
   // already one step long and cannot be split).
   const interior = (x: number, y: number) => (around.get(key(x, y))?.size ?? 0) === 2;
   // Edges at a pole are left out: its normal depends on the direction it is approached from (a cone tip).
   const atPoleIdx = (i: number) => polar3.has(pts[i]);
   // (A flat triangle is left too: bisecting it only makes flat triangles.)
-  const bent = (t: number) => { const [a, b, c] = tris[t]; return !flat3(t) && ([[a, b], [b, c], [c, a]] as [number, number][]).some(([x, y]) => interior(x, y) && !atPoleIdx(x) && !atPoleIdx(y) && dot(nrm[x], nrm[y]) < cosStep); };
+  const bentEdge = (x: number, y: number) => interior(x, y) && !atPoleIdx(x) && !atPoleIdx(y) && dot(nrm[x], nrm[y]) < cosStep;
+  const bent = (t: number) => { const tri = tris[t], a = tri[0], b = tri[1], c = tri[2]; return !flat3(t) && (bentEdge(a, b) || bentEdge(b, c) || bentEdge(c, a)); };
   const across = (t: number, a: number, b: number) => { const set = around.get(key(a, b)); if (set) for (const x of set) if (x !== t) return x; return undefined; };
   const bisect = (a: number, b: number) => {
     const m = pts.length, mid: XY = [(uv[a][0] + uv[b][0]) / 2, (uv[a][1] + uv[b][1]) / 2];

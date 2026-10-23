@@ -12092,3 +12092,24 @@ stays −0. `hs` is a literal.
 and the R5 fingerprint, byte-identical (see the batch line below).
 
 **Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D218 — R5.2c: brep-tessellate's triangle adjacency and refinement tests build no edge arrays per call (2026-10-23)
+
+**What (`src/brep-tessellate.ts`, both the LEPP path and the freeform path).** `link`, `unlink`, `widest` and `bent`
+ran on every triangle touched by refinement, flips and insertions. Each built a `[[a, b], [b, c], [c, a]]` array, and
+`widest`/`bent` added a `reduce`/`some` closure.
+
+They now take the three edges in that order by name:
+- the adjacency sets receive their triangles in the same order, which decides `across`'s and `bisect`'s neighbour
+  order;
+- `widest` keeps the first of the longest, as the reduce did;
+- `bent` short-circuits in the same order.
+
+**Measured:** tessellating the 400 fuzz documents' outputs took 5.56 s before and 5.40 s after, best of 3 at load
+about 16. Most fuzz bodies take the analytic fast paths.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+hashes every tessellation) identical.
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
