@@ -26,7 +26,7 @@ const label = (p: SectionPlane) => { const a = planeAxis(p); return a ? `${'XYZ'
  * The section's drag handles (G19): an arrow on each plane across it toward the side cut away, through the middle of
  * what is kept (a box's on each face); an axis plane's value its coordinate (as G2's handle), another's its offset.
  */
-export function sectionHandles(section: Section, box: Box, set: (f: (s: Section | null) => Section | null) => void): FeatureHandle[] {
+export function sectionHandles(section: Section, box: Box, set: (f: (s: Section | null) => Section | null, done: boolean) => void): FeatureHandle[] {
   // (The middle of what the axis planes keep of the box — of a cut-out, of the corner it takes out: the arrows on the
   // notch's faces.)
   const lo = [...box.min] as Vec3, hi = [...box.max] as Vec3, notch = section.mode === 'cutout';
@@ -35,17 +35,18 @@ export function sectionHandles(section: Section, box: Box, set: (f: (s: Section 
   return section.planes.map((p, i) => {
     const a = planeAxis(p), dir = p.normal.map(v => -v || 0) as Vec3;
     const at = centre.map((c, k) => c - p.normal[k] * (dot(p.normal, centre) - p.offset)) as Vec3;
-    const replace = (q: SectionPlane) => set(s => s && s.planes[i] && (s.planes[i].offset !== q.offset) ? { ...s, planes: s.planes.map((x, j) => j === i ? q : x) } : s);
+    // (`done`: the drag released — R1c (3c): the plane is committed then, the steps before it only shown.)
+    const replace = (q: SectionPlane, done: boolean) => set(s => s && s.planes[i] && (s.planes[i].offset !== q.offset) ? { ...s, planes: s.planes.map((x, j) => j === i ? q : x) } : s, done);
     if (a) {
       const k = a.k, sg = a.keep === 'positive' ? 1 : -1;
       return { id: i ? `section${i}` : 'section', at, dir, label: section.mode === 'box' ? `Section box ${a.keep === 'positive' ? '−' : '+'}${'XYZ'[k]}` : `Section ${'XYZ'[k]}`, value: a.at,
         toValue: (start: number, mm: number) => Math.min(box.max[k] - 0.5, Math.max(box.min[k] + 0.5, Math.round((start + mm * dir[k]) * 2) / 2)),
-        format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number) => replace({ ...p, offset: sg * v }) };
+        format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number, done: boolean) => replace({ ...p, offset: sg * v }, done) };
     }
     const [dlo, dhi] = span(p, box);
     return { id: i ? `section${i}` : 'section', at, dir, label: `Section ${p.face ? `face ${p.face}` : `plane ${i + 1}`}`, value: p.offset,
       toValue: (start: number, mm: number) => Math.min(dhi - 0.5, Math.max(dlo + 0.5, Math.round((start - mm) * 2) / 2)),
-      format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number) => replace({ ...p, offset: v }) };
+      format: (v: number) => `${fmt(v)} mm`, onDrag: (v: number, done: boolean) => replace({ ...p, offset: v }, done) };
   });
 }
 

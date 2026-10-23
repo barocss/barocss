@@ -2365,3 +2365,23 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - The assertions are unchanged.
 - **Runs**: WebGL2 three times in a row (load 24 → 87, other lanes' work beside it), 3/3 pass; WebGPU once (load
   87 → 81), pass.
+
+## G-R33 — R1c (3c), part 1: a dragged section plane outside React state, committed on release (roadmap R1, 2026-10-23; not finished)
+
+- **What**:
+  - The section is split into the committed state and `sectionLive`, a value store holding a dragged plane. App code
+    reads `section = live ?? committed`, so its 64 readers are unchanged.
+  - Handles drag through `dragSection(f, done)`; `sectionHandles` passes `done`. Each step goes into the store, the App
+    is told once as the drag starts, and the release commits.
+  - On WebGPU, SceneViewport draws the dragged plane's clip and handles (`liveSection`). On WebGL2 the App subscribes:
+    its CPU copies are cut again in each frame, as before.
+  - DEV `__studioDragSection(s, done)` follows the same path; the bench's section rows use it.
+  - The section is a view setting, as before. Step 73 now checks that a drag adds no undo entry and leaves the document
+    unchanged, that the handle follows the drag, and that the handle stays where it was let go.
+- **Checks**:
+  - studio tsc 0, eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 16–54), all pass: 73, G19.2–G19.5, G20.2, RM1, RM2, K2 notches, G3 and the
+    instance place step.
+- **Not yet done**: the GPU section row still renders the App at each step (60 App renders, 32 submits; task 25.7 ms
+  under load 33, LOADED). Something still sets App state per step and has to be found with the bench's setter trace.
+  Until then the perf goal of (3c) is open.
