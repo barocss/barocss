@@ -1682,6 +1682,18 @@ function regionLength(region: CurveRegion2): number {
 }
 
 /** `names`: per piece, its face's name as given (a face split keeps every other face's name exactly, D149). */
+/** A loop's uses of one edge out and straight back (consecutive, either sense first, round its end) taken out, again until none (or `keep` uses are left). */
+function unspike(ring: { index: number; sense: string }[], keep: number): void {
+  for (let again = true; again && ring.length >= Math.max(2, keep);) {
+    again = false;
+    for (let i = 0; i < ring.length && ring.length >= Math.max(2, keep); i++) {
+      const j = (i + 1) % ring.length;
+      if (ring[i].index !== ring[j].index || ring[i].sense === ring[j].sense) continue;
+      if (j > i) ring.splice(i, 2); else { ring.splice(i, 1); ring.splice(0, 1); }
+      again = true; break;
+    }
+  }
+}
 function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, inputTol = 0, names?: readonly (string | undefined)[], edgeFitToleranceMM?: number): Brep {
   // Vertices merge a little more loosely than curves are fitted: an edge meeting a surface it touches
   // (a double root, as where a fillet meets a sloping side) lands within √ε of its true point.
@@ -1736,6 +1748,15 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     for (let i = 0; i + 1 < stops.length; i++) if (stops[i].v !== stops[i + 1].v) out.push(edgeOf(part(k, stops[i].t, stops[i + 1].t, P[stops[i].v], P[stops[i + 1].v]), stops[i].v, stops[i + 1].v));
     return out;
   })));
+  // (A planar piece's loop that runs out along an edge and straight back along it — a cut ending inside the face, the tip
+  // it cut off too small to keep — bounds nothing there: both uses go, and the edge with them; a hole that is nothing
+  // else — a slit where a body touches the face along a line — goes whole. Planes only: a seam of a periodic face is met
+  // both ways, a cone's even one after the other at its apex. L4 fuzz seed 20261024 #41, 20261023 #149, D201.)
+  loops.forEach((ls, pi) => {
+    if (pieces[pi].face.surf.kind !== 'plane') return;
+    ls.forEach((ring, k) => unspike(ring, k > 0 ? 0 : 3));
+    for (let k = ls.length - 1; k > 0; k--) if (!ls[k].length) ls.splice(k, 1);
+  });
   // Vertices: one per disc of faces around a point (two solids touching at a point keep two vertices).
   const vroot = new Map<string, string>(), vfind = (x: string): string => { let r = x; while (vroot.has(r) && vroot.get(r) !== r) r = vroot.get(r)!; return r; };
   const endsOf = (u: { index: number; sense: string }) => { const v = edges[u.index].v; return u.sense === 'forward' ? [v[0], v[1]] : [v[1], v[0]]; };
@@ -1837,8 +1858,9 @@ function stitch(pieces: Piece[], id: string, tol: number, exactEdges = false, in
     return { surface: { kind: 'surface', id: `${id}_s${pi}`, degreeU: curve.degree, degreeV: 1, knotsU: [...curve.knots], knotsV: [0, 0, 1, 1],
       controlPoints: curve.controlPoints.map(q => [q, add(q, scale(s.a, v1 - v0))]), weights: curve.weights.map(w => [w, w]) }, sense: s.s * p.out > 0 ? 'forward' : 'reversed' };
   };
+  const usedVertices = new Set(edgeList.filter((_, i) => uses.has(i)).flatMap(e => e.vertices));
   const result = buildBrep({ source: { family: 'analytic-boolean', id },
-    vertices: vertexList,
+    vertices: vertexList.filter(v => usedVertices.has(v.id)),
     edges: edgeList.filter((_, i) => uses.has(i)),
     bodies: bodies.map((bd, k) => ({ id: `${id}_body${k}`, kind: 'solid' as const, shells: [bd.outer, ...bd.cavities].map((g, si) => ({ id: 's' + si, closed: true,
       faces: g.members.map(pi => ({ id: 'f' + pi, name: faceNames[pi], ...surface(pi), loops: loops[pi].map((uses2, li) => ({ kind: li === 0 ? 'outer' as const : 'inner' as const, uses: uses2.map(u => ({ edge: u.edge, sense: u.sense })) })) })) })) })),

@@ -11640,3 +11640,22 @@ segments: each states a bound, and the true error (closed forms) is within it.
 `bodyOf` report `volume_mm3` and `mass_g` with no basis. The area has `area_basis`; the volume has nothing. A tessellated
 volume is shown as if exact. Sent to the coordinator as a finding: a `volume_basis` with the bound, as `area_basis` is
 given.
+
+## D201 — A cut ending inside a planar face leaves no slit (2026-10-23)
+
+**Finding.** L4 fuzz seed 20261024, case 41, shrunk: two copies, 24.47° apart about Z, of a ball less a turned box.
+Strict L0 reported a face's loops touching. The face was a cut face of the box, a plane.
+
+**Cause.** Its loop ran out from a corner vertex along a 1.4e-4 mm arc, an edge of the other copy's ball, and straight
+back along it. The other ball passes within 1.4e-4 mm of that corner. The tip the arc cuts off is far below the
+pieces' area threshold, so it was not kept, and its arc stayed in the neighbour's loop as a slit: used twice, both
+ways, by one face.
+
+**Fix (`src/analytic-boolean.ts`, `stitch`).** In a planar piece's loop, uses of one edge out and straight back
+(consecutive, opposite senses) are taken out, again until none. The edge goes with them when nothing else uses it, and
+so does a vertex left with no edge. Planes only: a seam of a periodic face is met both ways, a cone's even one after
+the other at its apex.
+
+**Result:** strictly valid, watertight, 114.5005021 mm³ against the oracle's 114.5004538 ± 2.4e-4 (0.2 e).
+
+**Test:** `test/boolean-spike-cut.test.mjs`. It fails before the fix.
