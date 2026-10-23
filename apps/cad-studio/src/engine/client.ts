@@ -16,6 +16,7 @@ import type { DrawingSection } from '@barocss/cad-model/drawing/types';
 import { WireSender } from '@barocss/cad-model/engine/wireDoc';
 import type { MeshDiagnosis, MeshRepairResult, MeshRepairSteps } from '@barocss/cad';
 import { Lanes, type LaneReply } from './lanes';
+import type { MassReply } from './engine.worker';
 export type { LaneReply } from './lanes';
 
 /** An evaluation's face table kept on this side (by the part's content), so face reads here do not evaluate it again (PERF3 A1). */
@@ -36,11 +37,14 @@ export class EngineClient {
   private slots = new Map<number, string>();
   /** O9: the lanes requests go on (engine/lanes.ts): a newer request on a lane makes the older come back stale. */
   private lanes = new Lanes();
+  /** O18: who hears the masses the worker posts after an evaluation's reply (by mass ref, unplaced). */
+  private massListeners = new Set<(masses: MassReply['masses']) => void>();
 
   constructor() { this.start(); }
   private start() {
     this.worker = new Worker(new URL('./engine.worker.ts', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string; result?: WireResult }>) => {
+    this.worker.onmessage = (event: MessageEvent<{ id: number; progress?: string; result?: WireResult } | MassReply>) => {
+      if ('masses' in event.data) { for (const listen of this.massListeners) listen(event.data.masses); return; }
       if (event.data.progress !== undefined) { this.progress.get(event.data.id)?.(event.data.progress); return; }
       this.progress.delete(event.data.id);
       // (Every evaluation reply, stale ones too, in the order posted: the held meshes follow the worker's.)
@@ -75,6 +79,9 @@ export class EngineClient {
    * reply, stale when a newer request went on the same lane first (a late reply never overwrites what overtook it). One lane
    * per thing a result replaces: 'preview', `section:<view>`, `drawing:<part>`, `placed:<instance>` …
    */
+  /** O18: the deferred masses as the worker works them out (each a body's, by its `massRef`); the returned function stops listening. */
+  onMasses(listen: (masses: MassReply['masses']) => void): () => void { this.massListeners.add(listen); return () => { this.massListeners.delete(listen); }; }
+
   latest<T>(lane: string, asked: { revision: number; source: string }, request: () => Promise<T>): Promise<LaneReply<T>> { return this.lanes.run(lane, asked, request); }
 
   evaluate(doc: StudioDoc, revision: number): Promise<EvalResult | null> {
