@@ -7721,3 +7721,87 @@ The GPU lane's G10 found the step `FRd2 the welded table's weld symbols…` fail
 - tsc (cad-model, studio) and eslint clean. The one warning, chat-drawing.test.ts:15, was already there.
 - No expected value changed.
 - Not run: the flow. Its steps that place fasteners or tapped holes need O7e's Library panel load, listed above.
+
+## O7e — the Library panel's shop rows: the person loads the sample or their own file (2026-10-23)
+
+**Why.** O7b made the fastener sizes the person's rows. A person in the studio needs a way to load them: the shipped sample or their own file. The coordinator took O7b and O7e together, so integration never had the flow's fastener steps broken. Merged as fe2bb2d3b.
+
+**What:**
+- `ui/LibraryPanel.tsx` (the cross-lane file, named and approved) gains a "Shop rows" section (`ui/FastenerSizes.tsx`):
+  - a line with the sizes loaded, or "none — fasteners and tapped holes need them";
+  - "Load sample fastener sizes", which loads `@barocss/cad-model/samples/rows/fastener-sizes.json`;
+  - "Add a fastener sizes file…", a file input for the person's own file.
+  - No App.tsx change.
+- **The load is the person's act** (`app/sizesFile.ts`, no React).
+  - The click receives the file as a person's file and loads it the way chat's load_rows does, through the same validator.
+  - Its receipt names the file. The sample's file name in the receipt is `cad-model sample fastener-sizes.json`, because receipt file names hold no folders.
+  - Each load is a one-turn receipt of its own. The first build passed turn 0, which `receivePersonRowFiles` refuses, so every flow step that loaded the sample failed. 1720e4c2b fixed it and added the unit test that would have caught it.
+  - The agent cannot press it: it is no tool.
+- **The public surface:** the samples ship with the package (`files` gains `samples`; exports gain `"./samples/*": "./samples/*"`). It is additive, the coordinator's decision. There is no lockfile change and no publish.
+- **The flow:**
+  - The steps that build fasteners or tapped holes load the sample in their setup, as the person: fastener M8, fastener at Ø6.6, the csk screw as an instance, hole types, A6.5's standards_lookup, CNC2 and CNC5.
+  - A new step, "O7e: no fastener sizes loaded", checks four things: [FASTENER_SIZE_ROW] in the HUD for a tapped hole, "none" in the Library, the sample loaded with the person's receipt, and the seven sizes listed.
+
+**Verified (O7e).**
+- FLOW_ONLY at 1720e4c2b passed those eight steps on WebGPU and on WebGL2 (flow exit 0 each).
+- The studio unit test o7e-sizes passed: the sample's 7 sizes with the receipt; a bad row and a non-JSON file refused.
+- tsc and eslint clean.
+
+## O7c — casting rules are the person's rows (2026-10-23)
+
+**Why.** O7's approved plan, item (b): die casting's and sand casting's limits by alloy family, and sand casting's pattern allowances, were built into materials.json. They are values read from public pages. Like the fastener sizes, they become rows the person loads (rows rule b). Per the owner decision, nothing is migrated.
+
+**The kind** (`engine/castingRuleRows.ts`, new):
+- **Row shapes.** `casting-rules` rows are stored in `doc.castingRules { version: 1, rows }` and take three shapes:
+  - a limit `{ id, process, key, value, unit, description, source, page? }` (`die-casting.zincWallMinMM`);
+  - a shrinkage table `{ …, allowance: 'shrink', family, label, bands, page }` (`sand-casting.shrink.iron`);
+  - a machining-allowance table `{ …, allowance: 'machining', class, label, bands, page }`.
+- **Checks.** The checker carries over materials.json's own checks:
+  - a page is https with a read date and its label;
+  - an allowance table's page has a note on its units;
+  - shrink bands rise and end open; machining bands rise; values are above 0.
+- **Plumbing.** The kind is in ROW_KINDS, rows.ts, rowEntries, shopRows (placed parts inherit it) and STUDIO_DOC_FIELDS.
+- **`castingProfileOf(doc, id)`** builds a casting process from the document's rows; any other process is the material data's, as it is.
+  - A limit's source is kept as the text it cites. The reports name a source by its id, so a text that is one of the material data's sources maps back to that id; the sample's do. That keeps the reports identical.
+- **materials.json** keeps the two casting profiles' id and label only. Its thresholds and allowances moved to the sample.
+
+**The readers.**
+- **Report and draft limits.** `castability` and `castingDraftLimits` (casting/report.ts) take the document's profile at their entry. Their callers are unchanged, so viewport/scalarMaps.ts (the GPU lane's) is untouched.
+- **No rules loaded.** With no rules for the process, the report adds `casting-rules: unknown, [CASTING_RULE_ROW] no die-casting rules loaded — load your casting rules (samples/rows/casting-rules.json is an example)`. Every rule that reads a limit or an allowance comes out unknown: material, wall, draft, shrink, section-change, tolerance. Only the geometry's rules are judged: pull, hot spots, feeding.
+- **The pattern.** `patternOf` refuses a sand-casting pattern with no rules (`PATTERN_NOT_CASTING`, the [CASTING_RULE_ROW] text).
+- **Library checks.** Their `profile.<threshold>` context reads `castingProfileOf` too.
+
+**The sample** (`samples/rows/casting-rules.json`): 24 rows. Die casting has 11 limits. Sand casting has 6 limits, 4 shrinkage tables and 3 machining tables. Each carries its page, and the values are the former built-in ones, unchanged. The samples README has its row.
+
+**Studio.** The Library's shop rows gain the casting rules: a loaded line (each process with its row count, or "none — a cast part's limits need them"), "Load sample casting rules", and a file input. The flow's IM8a, IM8b and IM8c steps load the sample in their setup.
+
+**Tests.**
+- **The oracle (o7-legacy).** The die- and sand-casting fixtures, with both samples loaded, equal expected.json unchanged. Without rows they give the [CASTING_RULE_ROW] rule, and the six limit rules come out unknown.
+- **Setups changed, no expected value changed:**
+  - im8a: the cast documents, and the data test's profile from the sample;
+  - im8c: the cast documents, and the section ratio's page from the sample;
+  - g6-samples: the die-cast document;
+  - studio im8b: the cast documents, and SAND and the die-casting allowances from the sample;
+  - fields: a casting rule row in the full document;
+  - person-file: `withSampleRows` takes 'casting-rules'.
+- **New:** studio o7e-sizes' casting test (both processes, the person's receipt).
+
+**Verified (O7c).** Run at 404195b98, over integration 529aa630f, tier T2.
+- cad-model suite 979/979 and studio suite 268/268. The studio count is O7b's 266 plus o7e-sizes' 2.
+- FLOW_ONLY IM8a, IM8b and IM8c passed on WebGPU and WebGL2 (flow exit 0 each).
+- tsc and eslint clean, after removing the processProfile imports nothing used any more.
+- No expected value changed.
+
+## O7d — enclosure.json's variants stay the library's own (owner: "D2 로 해줘") (2026-10-23)
+
+**Why.** O7's plan item (c) would have made the screw boss's, the insert hole's and the PCB standoff's M2–M5 variants person-loaded rows. A closer look showed they are the library's own estimates. The pilot holes are "a BaroCSS rule of thumb for plastic bosses" and the heat-set insert holes "a typical brass insert … use your insert's own datasheet". Each is flagged `estimate`, and none is a value from a standard's table or a page. That is tslot-20's case, for which the coordinator chose (C). Two options went to the coordinator:
+- (D1) as planned: the variants become rows, and a boss with no row is refused;
+- (D2) as (C): the variants stay the library's.
+
+The coordinator asked the owner, who answered: "D2 로 해줘" (go with D2).
+
+**What.**
+- The three variant-bearing sources (screw-boss `dp`/`rt`, insert-hole `dh`/`Lh`/`De`, pcb-standoff `dp`) now begin "the library's own estimate:" and say "not read from your fastener sizes". The values and the library version are unchanged.
+- **No notes comparison.** The coordinator's rule is a comparison only where a loaded fastener-size row carries the same quantity, and none does. The screw boss's and the standoff's `dp` for M3, M4 and M5 (2.5, 3.3, 4.2) are numerically the sample's tap drills. But they are a different quantity: a pilot hole for a thread-forming screw in plastic, against a tap drill for a 6H internal thread in metal. Comparing them would warn about a difference that isn't one. The insert hole's values are the insert's, not the screw's.
+
+**Verified (O7d).** enclosure, library, rb9 and o7-legacy 31/31; no test reads those texts. T1.
