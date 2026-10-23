@@ -2767,3 +2767,60 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - Studio unit 274/274, tsc and eslint clean, check:docs clean (533 labels).
 - **For the outer lane**: a click on a drawing view's label does not place a dimension. R14.1's placement fell on one in
   the narrower centre.
+
+## G-R45 — G12c/G12d: Preview & analysis one mode at a time, compact panel text, the layout check, the CSS in a layer (roadmap G12, 2026-10-24)
+
+- **G12c, the dock's Preview & analysis section** (94ce0e006, c397ed363 App.tsx):
+  - `previewMode` (none, CNC, print, clearance, analysis) replaces the three toggles. Each panel's own checkbox sets or
+    clears its mode, so one preview shows at a time. Choosing Analysis starts zebra; the analysis maps are that mode.
+    The mutual-exclusion notices are gone.
+  - The section is a folding `DockSection` (its open state kept per viewer) with a one-at-a-time ToggleGroup.
+  - The panels are compact: colour chips, NOT FOR PRODUCTION as a chip (Print, and since a12e158b6 CNC, the package's
+    whole banner behind Details and as the chip's tip), the rest behind Details. CNC's overcut line stays shown.
+  - The Display popover holds the display mode and isolate only. 3D annotations are an overlay toggle beside the modes.
+- **G12d, the layout step** (25899f359): 1440, 1280, 1024 and 800, the chat open and collapsed, each preview mode, the
+  dock's sheet opened where the dock is a strip.
+  - No two of the chat column, dock, dock strip, top bar, tools rail, history bar, view bar, view cube, HUD, view-bar
+    popovers and toasts meet; each stays inside the window; no box with a left border alone and a radius.
+  - **What it found, fixed**:
+    - The view bar's room ran under the tools rail.
+    - The history bar met the dock's strip and sheet.
+    - The preview switch's items had the browser's button border (preflight is off).
+    - The history bar still reserved 270 px at the left for the browser panel, which is in the dock now. It starts past
+      the tools rail (72 px) when `BROWSER_PLACEMENT` is the dock.
+    - A stage too cramped even for the stacked bar (800 px, the chat open, the sheet open: 72 px left) hides the
+      history bar and the view cube until the sheet closes (`stage-cramped`).
+    - The recovery card ran under the sheet at 1024 with the chat open. Toasts now keep to the stage's room, 220 px at
+      least. On a cramped stage a toast runs under the sheet: raising it would put it over the top bar's menus.
+- **The studio's CSS in `@layer legacy`** (950dab2e3, approved by the coordinator):
+  - styles.css, ui/chat.css, ui/constraints.css and drawing/drawing.css are wrapped, with no rule changed. The layer is
+    ordered first (`legacy, theme, base, components, utilities`), so within it the rules settle as before.
+  - Tailwind's utilities, the shadcn components', now win over its element rules (`button { font: inherit }`, the
+    panels' inputs). O16's components can drop their `!`.
+  - No third-party stylesheet that the old rules beat is pulled in:
+    - Google Fonts' sheet declares only the icon font and `.material-symbols-outlined`; the studio uses its own `.ms`.
+    - Radix ScrollArea injects a scrollbar rule and react-resizable-panels a drag cursor, but neither is mounted.
+- **The R1 bench rerun found a regression from G-R41** (db502eb7a):
+  - The explode button's label (`Explode ×0.03…`) resizes the view bar every frame of a drag. useBottomRow kept its
+    size in React state, so the App rendered each frame: explode App 43 renders, task 19.2 ms.
+  - The size now goes onto the studio element as CSS variables, outside React. The App renders only when the stacking
+    changes: explode App 2, task 10.1 ms.
+  - The other rows are as at G-R34. The run was LOADED, so compare only: orbit App 1, 3.1 ms; pose App 3, 3.9 ms;
+    section (GPU) App 5, 6.8 ms; pick 55 ms.
+- **Flow**:
+  - Step 89 (hole types) waits for the countersunk hole's label in the Browser. The history bar hides again at once
+    while the command runs on (Shift+Enter), so a wait for it caught it only when the restart was late. The earlier
+    bisect toward 94ce0e006 was this flake.
+  - G22 and G23 check one preview at a time. G22's canvas threshold is for the overlays alone.
+- **Runs** (scratch worktree):
+  - Full flow at e770d5c8e. WebGL2: 282/283. WebGPU: 260/283 in the full run. Its first failure was the dev server's
+    dependency re-bundling after the O16 merge (a cold cache: "the page reloaded during this step") at step 61, and the
+    run was loaded beside the kernel's T2. The 22 steps rerun alone all pass. On both renderers the one failure left is
+    FR3b (147), the known "not the case being measured" flake.
+  - After a12e158b6: the layout, bottom-row, three-columns and G23 steps pass on both renderers.
+  - Studio tsc and eslint 0 errors. check:docs clean (558 labels).
+  - Studio unit 281/282: `bom-linked-ui.test` fails, from O16, not G12. It bundles BomPanel against a React stub
+    without `forwardRef`, and the shadcn Button's Radix Slot calls it.
+- **New labels**: Preview & analysis; Preview mode; Preview: None / CNC / Print / Clearance / Analysis; Collapse /
+  Expand Preview & analysis. Renamed: none. The Display button's tip is now "The display mode and isolate (the
+  previews are in the dock)".

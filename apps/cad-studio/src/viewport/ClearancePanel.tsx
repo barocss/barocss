@@ -30,8 +30,9 @@ export function ClearancePanel({ enabled, onEnabled, nearMM, onNear, display, re
         {pair.designed && <div>Source: {pair.designed}</div>}
         {pair.overlap && 'refused' in pair.overlap && <div>{pair.overlap.refused}</div>}
       </li>)}</ul>}
-      <small className="muted">Model geometry results · display analysis</small>
-      <div className="muted" style={{ fontSize: 11 }}>Orange: near or pending · red: overlap · blue: touching · teal: designed · red hatch: refused</div>
+      {/* (G12c: compact — the states' colours as chips; what the results are behind Details.) */}
+      <div className="legend-chips"><span className="legend-chip"><i style={{ background: '#fa8a1f' }} />near or pending</span><span className="legend-chip"><i style={{ background: '#f02120' }} />overlap</span><span className="legend-chip"><i style={{ background: '#42a8f0' }} />touching</span><span className="legend-chip"><i style={{ background: '#21b88a' }} />designed</span><span className="legend-chip"><i style={{ background: 'repeating-linear-gradient(45deg, #ff2020 0 2px, transparent 2px 4px)' }} />refused</span></div>
+      <details className="panel-details"><summary>Details</summary>Model geometry results · display analysis. Orange: near or pending · red: overlap · blue: touching · teal: designed · red hatch: refused.</details>
     </>}
   </div>;
 }

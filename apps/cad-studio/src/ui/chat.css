@@ -1,3 +1,5 @@
+/* (In the studio's legacy layer, below Tailwind's: styles.css orders the layers.) */
+@layer legacy {
 /* (G12a: in the chat column, full height: no longer placed over the viewport.) */
 .chat { padding: 8px; display: flex; flex-direction: column; min-height: 0; }
 .chat-col .chat.card { border: 0; border-radius: 0; box-shadow: none; background: transparent; backdrop-filter: none; }
@@ -31,3 +33,4 @@
 .chat-thumb { position: relative; }
 .chat-thumb button { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--panel-solid); color: var(--text-2); display: grid; place-items: center; cursor: pointer; }
 .chat-input .tool { flex: none; }
+}
