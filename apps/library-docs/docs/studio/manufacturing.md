@@ -27,7 +27,7 @@ Ask the agent to check the part. Its manufacturability query gives the report fo
 | CNC turning | Every surface turned; a milled feature on a turned part warned for live tools |
 | Injection moulding | Draft on every side face, from the exact surface; undercuts and the side actions that free them; ribs and walls; sharp inside corners; the parting line, with the mould's two halves and shut-offs |
 | Die and sand casting | Wall, draft, tolerance and section changes against your casting rules; hot spots for the gate you choose; for sand casting, the pattern's shrinkage scale and machining allowances |
-| 3D printing | Printability on the printer you chose: overhangs, walls, the bed |
+| 3D printing | On the printer you chose: fit on the bed, overhangs, walls, holes (horizontal ones too), gaps, bosses, tips, warping, enclosed cavities, and pieces that only touch |
 
 Casting needs your casting rules (see [Shop rows](/studio/rows)). Without them, every rule that reads a limit or an
 allowance is unknown, and a sand pattern is refused.
