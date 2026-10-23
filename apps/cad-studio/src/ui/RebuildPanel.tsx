@@ -54,7 +54,7 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
         Evaluation {report.evaluation} ({report.basis}), revision <span className="mono">{report.revision}</span> · {report.built} built in {ms(report.builtMs)} ms · {report.reused} reused · {ms(report.evaluationMs)} ms in all
       </div>
       <Table className="bom-table" aria-label="Rebuild features">
-        <colgroup><col /><col className="w-14" /><col className="w-10" /><col className="w-[38%]" /></colgroup>
+        <colgroup><col /><col className="w-12" /><col className="w-12" /><col className="w-[28%]" /></colgroup>
         <TableHeader><TableRow><TableHead>Feature</TableHead><TableHead>State</TableHead><TableHead>ms</TableHead><TableHead>Kernel calls</TableHead></TableRow></TableHeader>
         <TableBody>{report.features.map(f => <TableRow key={f.id} aria-label={`Rebuild ${f.id}`} data-rebuild-state={f.state} data-slowest={f.id === report.slowest || undefined}>
           <TableCell title={f.id}>{f.label}{f.id === report.slowest ? <span className="warn small"> · slowest</span> : null}</TableCell>
@@ -70,7 +70,7 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
       {cost && <>
         <div className="muted small" aria-label="Frame cost totals">{cost.renderer}, {cost.mode}: frame {cost.frame}, {ms(cost.cpuMs)} ms CPU to record and submit{cost.mode === 'wireframe' ? '; surface triangles are drawn for depth only' : ''}</div>
         <Table className="bom-table" aria-label="Frame costs">
-          <colgroup><col /><col className="w-11" /><col className="w-16" /><col className="w-12" /><col className="w-14" /></colgroup>
+          <colgroup><col /><col className="w-12" /><col className="w-[4.5rem]" /><col className="w-14" /><col className="w-14" /></colgroup>
           <TableHeader><TableRow><TableHead>Body</TableHead><TableHead>Draws</TableHead><TableHead>Triangles</TableHead><TableHead>Lines</TableHead><TableHead>Share</TableHead></TableRow></TableHeader>
           <TableBody>{cost.bodies.map(b => <TableRow key={b.key} aria-label={`Frame cost ${b.key}`}>
             <TableCell className="mono" title={b.key}>{b.key}</TableCell><TableCell className="mono">{b.draws}</TableCell><TableCell className="mono">{b.triangles}</TableCell><TableCell className="mono">{b.lines}</TableCell><TableCell className="mono">{(100 * b.share).toFixed(1)} %</TableCell>

@@ -2,10 +2,16 @@ import { useEffect, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
 import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
+import { CONTROL, FIELD, NUM, SLIDER, TICK } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { NativeSelect } from '@/components/ui/native-select';
 
 /**
  * The Render workspace's panel: the appearance of the selected bodies (or of every body without one),
- * the lights, the environment and the saved camera. Every change is one undoable edit of the settings.
+ * the lights, the environment and the saved camera. Every change is one undoable edit of the settings. O16: the
+ * contents on shadcn (Button, Input, NativeSelect, FIELD / NUM / SLIDER rows); the shell (its title and Export image),
+ * the tabs, the colour and range inputs and the source editors are the studio's.
  */
 export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onError }: {
   render: RenderSettings;
@@ -38,12 +44,12 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   const preset = APPEARANCES.find(p => JSON.stringify(p.appearance) === JSON.stringify(current))?.id ?? '';
 
   const slider = (label: string, value: number, set: (v: number) => void, min = 0, max = 1, step = 0.01) => (
-    <label className="field" key={label}><span>{label}</span>
-      <span className="slider"><input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={e => set(Number(e.target.value))} /><em>{Math.round(value * 100) / 100}</em></span></label>);
+    <label className={FIELD} key={label}><span>{label}</span>
+      <span className={SLIDER}><input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={e => set(Number(e.target.value))} /><em>{Math.round(value * 100) / 100}</em></span></label>);
   const color = (label: string, value: Hex, set: (v: Hex) => void) => (
-    <label className="field" key={label}><span>{label}</span><input type="color" aria-label={label} value={full(value)} onChange={e => set(e.target.value as Hex)} /></label>);
+    <label className={FIELD} key={label}><span>{label}</span><input type="color" className="w-[62%]!" aria-label={label} value={full(value)} onChange={e => set(e.target.value as Hex)} /></label>);
   const check = (label: string, value: boolean, set: (v: boolean) => void) => (
-    <label className="field check-row" key={label}><span>{label}</span><input type="checkbox" aria-label={label} checked={value} onChange={e => set(e.target.checked)} /></label>);
+    <label className={FIELD} key={label}><span>{label}</span><input type="checkbox" className={TICK} aria-label={label} checked={value} onChange={e => set(e.target.checked)} /></label>);
 
   return (
     <aside className="card props render-panel" aria-label="Render">
@@ -56,36 +62,36 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
 
       {tab === 'look' && <div className="render-section">
         <div className="muted small">{selectedKeys.length ? `${selectedKeys.length} selected bod${selectedKeys.length > 1 ? 'ies' : 'y'}` : 'Every body without its own appearance'}</div>
-        <label className="field"><span>Preset</span>
-          <select aria-label="Appearance preset" value={preset} onChange={e => { const p = APPEARANCES.find(x => x.id === e.target.value); if (p) setLook(p.appearance); }}>
+        <label className={FIELD}><span>Preset</span>
+          <NativeSelect className={CONTROL} aria-label="Appearance preset" value={preset} onChange={e => { const p = APPEARANCES.find(x => x.id === e.target.value); if (p) setLook(p.appearance); }}>
             <option value="">Custom</option>
             {APPEARANCES.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
-          </select></label>
+          </NativeSelect></label>
         {color('Colour', current.color, v => setLook({ color: v }))}
         {slider('Metallic', current.metallic, v => setLook({ metallic: v }))}
         {slider('Roughness', current.roughness, v => setLook({ roughness: v }))}
         {slider('Opacity', current.opacity, v => setLook({ opacity: v }), 0.05)}
         {check('Two-sided', !!current.twoSided, v => setLook({ twoSided: v || undefined }))}
-        <div className="field"><span>Texture</span>
+        <div className={FIELD}><span>Texture</span>
           <span className="texture-row">
             {current.texture && <img className="texture-thumb" src={current.texture.image} alt="" />}
-            <label className="ghost small file-button">{current.texture ? 'Replace…' : 'Image…'}
+            <Button variant="ghost" asChild><label className="file-button">{current.texture ? 'Replace…' : 'Image…'}
               <input type="file" accept="image/*" aria-label="Texture image" hidden onChange={async e => {
                 const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
                 try { setLook({ texture: { image: await textureImage(file), scale: current.texture?.scale ?? 20 } }); }
                 catch { onError?.('That file is not an image the browser can read.'); }
-              }} /></label>
-            {current.texture && <button className="tool tiny" aria-label="Remove texture" onClick={() => setLook({ texture: undefined })}><Icon name="close" small /></button>}
+              }} /></label></Button>
+            {current.texture && <Button variant="ghost" size="xs" aria-label="Remove texture" onClick={() => setLook({ texture: undefined })}><Icon name="close" small /></Button>}
           </span></div>
         {current.texture && slider('Cut out below', current.cutout ?? 0, v => setLook({ cutout: v > 0 ? v : undefined }))}
-        {current.texture && <label className="field"><span>Repeat every</span><span className="num"><input type="number" aria-label="Texture repeat" min={0.1} step="any" value={current.texture.scale}
+        {current.texture && <label className={FIELD}><span>Repeat every</span><span className={NUM}><Input type="number" aria-label="Texture repeat" min={0.1} step="any" value={current.texture.scale}
           onChange={e => { const v = Number(e.target.value); if (v > 0) setLook({ texture: { ...current.texture!, scale: v } }); }} onKeyDown={e => e.stopPropagation()} /><em>mm</em></span></label>}
-        <label className="field"><span>Shader</span>
-          <select aria-label="Shader material" value={current.shader ?? ''} onChange={e => setLook({ shader: e.target.value || undefined })}>
+        <label className={FIELD}><span>Shader</span>
+          <NativeSelect className={CONTROL} aria-label="Shader material" value={current.shader ?? ''} onChange={e => setLook({ shader: e.target.value || undefined })}>
             <option value="">None</option>
             {Object.keys(render.materials).map(n => <option key={n} value={n}>{n}</option>)}
-          </select></label>
-        {selectedKeys.some(k => render.appearances[k]) && <button className="ghost" onClick={clearLook}>Use the default appearance</button>}
+          </NativeSelect></label>
+        {selectedKeys.some(k => render.appearances[k]) && <Button variant="ghost" onClick={clearLook}>Use the default appearance</Button>}
       </div>}
 
       {tab === 'lights' && <div className="render-section">
@@ -93,13 +99,13 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
           const [az, el] = anglesOf(l.kind === 'point' ? [0, 0, -1] : l.direction);
           return <div className="light" key={i}>
             <div className="card-title">{l.kind === 'directional' ? 'SUN' : l.kind === 'point' ? 'POINT' : 'SPOT'} {i + 1}
-              <button className="tool tiny" aria-label={`Remove light ${i + 1}`} onClick={() => onChange({ ...render, lights: render.lights.filter((_, k) => k !== i) })}><Icon name="close" small /></button></div>
+              <Button variant="ghost" size="xs" aria-label={`Remove light ${i + 1}`} onClick={() => onChange({ ...render, lights: render.lights.filter((_, k) => k !== i) })}><Icon name="close" small /></Button></div>
             {l.kind !== 'point' && <>
               {slider('Azimuth', az, v => setLight(i, { ...l, direction: directionFrom(v, el) }), -180, 180, 1)}
               {slider('Elevation', el, v => setLight(i, { ...l, direction: directionFrom(az, v) }), -89, 89, 1)}
             </>}
             {l.kind !== 'directional' && ['X', 'Y', 'Z'].map((a, k) => (
-              <label className="field" key={a}><span>{a}</span><span className="num"><input type="number" step="any" aria-label={`Light ${i + 1} ${a}`} value={l.position[k]}
+              <label className={FIELD} key={a}><span>{a}</span><span className={NUM}><Input type="number" step="any" aria-label={`Light ${i + 1} ${a}`} value={l.position[k]}
                 onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) { const p = [...l.position] as [number, number, number]; p[k] = v; setLight(i, { ...l, position: p }); } }} /><em>mm</em></span></label>))}
             {l.kind === 'spot' && slider('Cone', l.angle, v => setLight(i, { ...l, angle: v }), 5, 80, 1)}
             {l.kind !== 'directional' && <>{slider('Range', l.range, v => setLight(i, { ...l, range: v }), 0, 1000, 5)}<div className="muted small">{l.range ? `Fades out over ${l.range} mm` : 'Range 0: no fall-off with distance'}</div></>}
@@ -108,10 +114,10 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
             {l.kind === 'directional' && check('Shadow', l.castShadow, v => onChange({ ...render, lights: render.lights.map((x, k) => x.kind === 'directional' ? { ...x, castShadow: k === i ? v : v ? false : x.castShadow } : x) }))}
           </div>;
         })}
-        <div className="row-actions">
-          <button className="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'directional', direction: directionFrom(45, 45), color: '#ffffff', intensity: 1, castShadow: false }] })}>Add sun</button>
-          <button className="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'point', position: [0, 0, 80], color: '#ffffff', intensity: 1, range: 0 }] })}>Add point</button>
-          <button className="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'spot', position: [0, -80, 80], direction: [0, 0.7, -0.7], color: '#ffffff', intensity: 1.5, range: 0, angle: 30, penumbra: 0.3 }] })}>Add spot</button>
+        <div className="flex flex-wrap gap-1">
+          <Button variant="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'directional', direction: directionFrom(45, 45), color: '#ffffff', intensity: 1, castShadow: false }] })}>Add sun</Button>
+          <Button variant="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'point', position: [0, 0, 80], color: '#ffffff', intensity: 1, range: 0 }] })}>Add point</Button>
+          <Button variant="ghost" onClick={() => onChange({ ...render, lights: [...render.lights, { kind: 'spot', position: [0, -80, 80], direction: [0, 0.7, -0.7], color: '#ffffff', intensity: 1.5, range: 0, angle: 30, penumbra: 0.3 }] })}>Add spot</Button>
         </div>
       </div>}
 
@@ -121,31 +127,31 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {color('Top', env.top, v => setEnv({ top: v }))}
         {color('Bottom', env.bottom, v => setEnv({ bottom: v }))}
         {slider('Ambient', env.ambient, v => setEnv({ ambient: v }), 0, 2)}
-        <div className="field"><span>Environment</span>
+        <div className={FIELD}><span>Environment</span>
           <span className="texture-row">
             {env.map && <img className="texture-thumb" src={env.map.image} alt="" />}
-            <label className="ghost small file-button" title="An equirectangular image (its top row overhead) that lights the part in place of the sky and ground">{env.map ? 'Replace…' : 'Image…'}
+            <Button variant="ghost" asChild><label className="file-button" title="An equirectangular image (its top row overhead) that lights the part in place of the sky and ground">{env.map ? 'Replace…' : 'Image…'}
               <input type="file" accept="image/*" aria-label="Environment image" hidden onChange={async e => {
                 const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
                 try { setEnv({ map: { image: await textureImage(file, 2048), intensity: env.map?.intensity ?? 1 } }); }
                 catch { onError?.('That file is not an image the browser can read.'); }
-              }} /></label>
-            {env.map && <button className="tool tiny" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></button>}
+              }} /></label></Button>
+            {env.map && <Button variant="ghost" size="xs" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></Button>}
           </span></div>
         {env.map && slider('Environment strength', env.map.intensity, v => setEnv({ map: { ...env.map!, intensity: v } }), 0, 4)}
         {slider('Exposure', env.exposure, v => setEnv({ exposure: v }), 0.1, 4)}
-        <label className="field"><span>Tone map</span>
-          <select aria-label="Tone mapping" value={env.toneMapping} onChange={e => setEnv({ toneMapping: e.target.value as 'none' | 'aces' })}>
-            <option value="aces">Filmic (ACES)</option><option value="none">None</option></select></label>
+        <label className={FIELD}><span>Tone map</span>
+          <NativeSelect className={CONTROL} aria-label="Tone mapping" value={env.toneMapping} onChange={e => setEnv({ toneMapping: e.target.value as 'none' | 'aces' })}>
+            <option value="aces">Filmic (ACES)</option><option value="none">None</option></NativeSelect></label>
         {check('Occlusion', env.occlusion, v => setEnv({ occlusion: v }))}
         {check('Ground', env.ground, v => setEnv({ ground: v }))}
         {check('Grid', env.grid, v => setEnv({ grid: v }))}
         {check('Edges', env.edges, v => setEnv({ edges: v }))}
         <div className="card-title" style={{ marginTop: 10 }}>CAMERA</div>
         {slider('Field of view', fov, onFov, 10, 90, 1)}
-        <div className="row-actions">
-          <button className="ghost" onClick={onSaveCamera}>Save this view</button>
-          <button className="ghost" disabled={!render.camera} onClick={onUseCamera}>Go to saved view</button>
+        <div className="flex flex-wrap gap-1">
+          <Button variant="ghost" onClick={onSaveCamera}>Save this view</Button>
+          <Button variant="ghost" disabled={!render.camera} onClick={onUseCamera}>Go to saved view</Button>
         </div>
       </div>}
     </aside>
@@ -188,20 +194,20 @@ function SourceTab({ render, onChange }: { render: RenderSettings; onChange(next
     <div className="card-title">PROPS · CSS SCENE</div>
     <textarea className="code" aria-label="Props source" spellCheck={false} rows={7} value={scene} placeholder="@scene props { version: 0; box #plinth; }" onChange={e => setScene(e.target.value)} />
     {sceneError && <div className="diag" role="alert">{sceneError}</div>}
-    <label className="field"><span>Unit</span><span className="num"><input type="number" step="any" min={0.001} aria-label="Props scale" value={render.sceneScale}
+    <label className={FIELD}><span>Unit</span><span className={NUM}><Input type="number" step="any" min={0.001} aria-label="Props scale" value={render.sceneScale}
       onChange={e => { const v = Number(e.target.value); if (v > 0) onChange({ ...render, sceneScale: v }); }} /><em>mm</em></span></label>
-    <div className="row-actions">
-      <button className="primary" disabled={scene === render.scene} onClick={applyScene}>Apply props</button>
-      {!scene && <button className="ghost" onClick={() => setScene(SCENE_TEMPLATE)}>Example</button>}
+    <div className="flex flex-wrap gap-1">
+      <Button variant="default" disabled={scene === render.scene} onClick={applyScene}>Apply props</Button>
+      {!scene && <Button variant="ghost" onClick={() => setScene(SCENE_TEMPLATE)}>Example</Button>}
     </div>
     <div className="card-title" style={{ marginTop: 10 }}>MATERIALS · @SHADER</div>
     {Object.keys(render.materials).map(name => <div className="light" key={name}>
-      <div className="card-title">{name}<button className="tool tiny" aria-label={`Remove material ${name}`} onClick={() => removeMaterial(name)}>×</button></div>
+      <div className="card-title">{name}<Button variant="ghost" size="xs" aria-label={`Remove material ${name}`} onClick={() => removeMaterial(name)}>×</Button></div>
       <textarea className="code" aria-label={`Material ${name} source`} spellCheck={false} rows={5} value={drafts[name] ?? ''} onChange={e => setDrafts(d => ({ ...d, [name]: e.target.value }))} />
       {errors[name] && <div className="diag" role="alert">{errors[name]}</div>}
-      <button className="ghost" disabled={drafts[name] === render.materials[name]} onClick={() => applyMaterial(name)}>Apply {name}</button>
+      <Button variant="ghost" disabled={drafts[name] === render.materials[name]} onClick={() => applyMaterial(name)}>Apply {name}</Button>
     </div>)}
-    <button className="ghost" onClick={addMaterial}>Add material</button>
+    <Button variant="ghost" onClick={addMaterial}>Add material</Button>
   </div>;
 }
 

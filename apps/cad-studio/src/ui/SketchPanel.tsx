@@ -5,14 +5,12 @@ import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewpor
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '@barocss/cad-model/sketch/profile';
 import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { ConstraintTools } from './ConstraintTools';
-import { CONTROL, FIELD } from './panelStyles';
+import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 
 type Polygon = Extract<SketchShape, { kind: 'polygon' }>;
-/** A number field's box with its unit inside it, at the right (O16: on shadcn's Input; was styles.css `.field .num`). */
-const NUM = 'relative block w-28 [&>input]:w-full [&>input]:pr-7! [&>em]:absolute [&>em]:right-1.5 [&>em]:top-1/2 [&>em]:-translate-y-1/2 [&>em]:text-[10px] [&>em]:not-italic [&>em]:font-mono [&>em]:text-muted-foreground [&>em]:pointer-events-none';
 const NONE: SketchPick[] = [];
 
 /**
