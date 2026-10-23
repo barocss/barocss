@@ -84,6 +84,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | R5.2a: the mass inverter picks its 4 nearest grid points in one pass (ties in grid order, proved on constructed ties) | D216 | done (T2, fingerprint identical) |
 | R5.2b: rolling-ball Newton solvers build their arrays without per-iteration closures | D217 | done (batched checks, fingerprint identical) |
 | R5.2c: brep-tessellate adjacency and refinement tests build no edge arrays per call | D218 | done (batched checks, fingerprint identical) |
+| R5.2d: analytic-boolean nearestOn has no distance closure per call | D219 | done (batched checks, fingerprint identical) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

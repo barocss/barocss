@@ -12113,3 +12113,14 @@ and the R5 fingerprint, byte-identical (see the batch line below).
 hashes every tessellation) identical.
 
 **Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D219 — R5.2d: analytic-boolean's `nearestOn` has no distance closure per call (2026-10-23)
+
+**What (`src/analytic-boolean.ts`).** `nearestOn(k, x)` made a closure `d(u) = |k(u) − x|` on each call and called it
+about 185 times: 65 samples and 60 golden-section steps, two calls each. It is now the module-level
+`distanceOn(k, x, u)`. The expressions and the search are unchanged.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.

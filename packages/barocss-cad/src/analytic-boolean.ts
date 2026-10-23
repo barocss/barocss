@@ -1512,13 +1512,14 @@ function checkCuts(f: GFace, cuts: readonly SourcedCut[], tol: number, what: str
 }
 /** The fraction along k of the point nearest x, and its distance (64 samples, then a golden-section search). */
 function nearestOn(k: Curve3, x: P3): { t: number; d: number } {
-  const d = (u: number) => len(sub(pointOf(k, u), x));
-  let best = 0, bd = Infinity; for (let i = 0; i <= 64; i++) { const v = d(i / 64); if (v < bd) { bd = v; best = i / 64; } }
+  let best = 0, bd = Infinity; for (let i = 0; i <= 64; i++) { const v = distanceOn(k, x, i / 64); if (v < bd) { bd = v; best = i / 64; } }
   let lo = Math.max(0, best - 1 / 64), hi = Math.min(1, best + 1 / 64);
-  for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (d(m1) < d(m2)) hi = m2; else lo = m1; }
-  const t = (lo + hi) / 2, dt = d(t);
+  for (let i = 0; i < 60; i++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (distanceOn(k, x, m1) < distanceOn(k, x, m2)) hi = m2; else lo = m1; }
+  const t = (lo + hi) / 2, dt = distanceOn(k, x, t);
   return dt < bd ? { t, d: dt } : { t: best, d: bd };
 }
+/** |k(u) − x| (module level, not a closure per call: R5.2, D219). */
+const distanceOn = (k: Curve3, x: P3, u: number) => len(sub(pointOf(k, u), x));
 /** Domain pieces grouped by meeting across the face's seam (an edge its loops use twice): each group one piece of the face. */
 function seamGroups(brep: Brep, target: BrepFace, pieces: readonly Piece[], tol: number): Piece[][] {
   const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c])), edges = new Map(brep.edges.map(e => [e.id, e]));
