@@ -5,7 +5,8 @@
 // does not (λ × 4). Restarts from a deterministic sequence of seeds; the best kept. A result says whether it reached
 // the target (both errors within the acceptance, never claimed otherwise) and whether the arm is singular there
 // (σmin / σmax of J below 1e-4). Per iteration: typed arrays reused, no closures.
-import { forwardKinematics, type Motion } from './fk';
+import { composeInto, forwardKinematics, invert, type Motion } from './fk';
+import { frameOf } from './frames';
 import type { Joint, JointTree } from './joints';
 
 export const IK_POSITION_TOL_M = 1e-4;
@@ -25,7 +26,7 @@ export interface IkResult {
   q: Record<string, number>; reached: boolean; iterations: number; restarts: number;
   errorM: number; errorRad: number; singular: boolean; sigmaMin: number; sigmaMax: number;
 }
-export type IkCode = 'NO_LINK' | 'NO_JOINTS';
+export type IkCode = 'NO_LINK' | 'NO_JOINTS' | 'NO_FRAME';
 export class IkError extends Error { constructor(public code: IkCode, message: string) { super(`[${code}] ${message}`); this.name = 'IkError'; } }
 
 /** The joints from the base to a link, base first. */
@@ -153,6 +154,24 @@ function randomSeed(p: Problem): Record<string, number> {
     q[key] = l?.lower !== undefined && l.upper !== undefined ? l.lower + nextRandom() * (l.upper - l.lower) : j.type === 'prismatic' ? (nextRandom() - 0.5) * 100 : (nextRandom() * 2 - 1) * Math.PI;
   }
   return q;
+}
+
+/**
+ * A frame's pose as an IK target (O12): its link, the link's motion that puts the frame at `pose` (pose · M⁻¹, M the
+ * frame at the solved pose) and the frame's origin as the tool point — so the solve's position and turn errors are the
+ * frame's own.
+ */
+export function frameTarget(tree: JointTree, name: string, pose: Motion, mode?: 'pose' | 'position'): IkTarget {
+  const f = frameOf(tree, name);
+  if (!f) throw new IkError('NO_FRAME', `no frame ${name} on the tree (frames: ${(tree.frames ?? []).map(x => x.name).join(', ') || 'none'})`);
+  const M: Motion = { R: Float64Array.from(f.R), t: Float64Array.from(f.o) };
+  return { link: f.link, motion: composeInto({ R: new Float64Array(9), t: new Float64Array(3) }, pose, invert(M)), tool: f.o, ...(mode ? { mode } : {}) };
+}
+/** A frame's link and origin as a tool point (the workspace map's, a probe's), or NO_FRAME. */
+export function frameTool(tree: JointTree, name: string): { link: string; tool: readonly number[] } {
+  const f = frameOf(tree, name);
+  if (!f) throw new IkError('NO_FRAME', `no frame ${name} on the tree (frames: ${(tree.frames ?? []).map(x => x.name).join(', ') || 'none'})`);
+  return { link: f.link, tool: f.o };
 }
 
 /** The joint values that bring `target.link` to `target.motion` at its tool point, from `start` (absent: 0) and up to 15 seeds. */

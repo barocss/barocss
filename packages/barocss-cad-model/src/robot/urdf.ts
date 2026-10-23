@@ -15,11 +15,12 @@ import type { BodyResult } from '../engine/evaluate';
 import { rotationMatrix } from '../engine/placement';
 import type { Joint, JointTree } from './joints';
 import { linkInertia, linkFrames, type Frame, type LinkInertia, type Mat3, type V3 } from './inertia';
+import { namer, type FrameCode } from './frames';
 
 export const URDF_EXPORT_VERSION = 'barocss-urdf-v1';
 /** A dummy link's mass (kg) and inertia (kg·m²): small enough to change nothing, not zero (a static link in PyBullet). */
 export const DUMMY_MASS = 1e-9, DUMMY_INERTIA = 1e-15;
-export type UrdfRefusal = 'MOTION_UNSUPPORTED' | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'INERTIA' | 'NO_HULL' | 'EMPTY';
+export type UrdfRefusal = 'MOTION_UNSUPPORTED' | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'INERTIA' | 'NO_HULL' | 'EMPTY' | FrameCode;
 export interface UrdfPart { doc: StudioDoc; bodies: readonly BodyResult[]; position: readonly number[]; rotation: readonly number[] }
 export interface UrdfFile { path: string; data: Uint8Array }
 export type UrdfResult =
@@ -41,11 +42,8 @@ export function rpyOf(R: Mat3): V3 {
 export const num = (v: number) => (Math.abs(v) < 1e-15 ? '0' : String(v));
 export const nums = (v: readonly number[]) => v.map(num).join(' ');
 export const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-/** A name URDF tools take everywhere: letters, digits and _, unique. */
-export function namer() {
-  const used = new Set<string>();
-  return (raw: string) => { let n = raw.replace(/~/g, '_to_').replace(/[^A-Za-z0-9_]/g, '_').replace(/^(?=\d)/, 'n_'), k = 2; const base = n; while (used.has(n)) n = `${base}_${k++}`; used.add(n); return n; };
-}
+/** The exports' namer (robot/frames.ts, where the frames' names are checked against it). */
+export { namer };
 
 /** A dummy link's frame (world): at its joint's point, Z on the joint's axis, X the world's X square to it (else Y). */
 function frameOnAxis(j: Joint): { R: Mat3; o: V3 } {
@@ -59,12 +57,16 @@ export interface RobotParts {
   world: Map<string, { R: Mat3; o: V3 }>; inertias: Map<string, LinkInertia>;
   meshes: Map<string, { visual: { positions: Float32Array; indices: Uint32Array }; hull: { positions: Float64Array; indices: Uint32Array } }>;
   notes: string[];
+  /** The tool and sensor frames (O12), each a fixed child of its link: its pose in the link frame (t mm) and in the world. */
+  frames: { name: string; link: string; R: Mat3; t: V3; world: { R: Mat3; o: V3 } }[];
 }
 export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart | null): RobotParts | { refusals: { code: UrdfRefusal; message: string }[] } {
   const refusals: { code: UrdfRefusal; message: string }[] = [], notes: string[] = [];
   for (const p of tree.problems) {
     if (p.code === 'MOTION_UNSUPPORTED') refusals.push({ code: 'MOTION_UNSUPPORTED', message: p.message });
     else if (p.code === 'LIMITS_BAD') refusals.push({ code: 'LIMITS_BAD', message: p.message });
+    // (O12: a frame on a part that is not there, or not a link, is refused — never written elsewhere or dropped.)
+    else if (p.code.startsWith('FRAME_')) refusals.push({ code: p.code as FrameCode, message: p.message });
     else notes.push(p.message);
   }
   for (const j of tree.joints) {
@@ -92,7 +94,12 @@ export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart |
       try { meshes.set(l.id, { visual, hull: convexHull(visual.positions) }); } catch (e) { if (e instanceof HullError) refusals.push({ code: 'NO_HULL', message: `${l.name}: ${e.message}` }); else throw e; }
     }
   }
-  return refusals.length ? { refusals } : { world, inertias, meshes, notes };
+  const frames: RobotParts['frames'] = [];
+  for (const f of tree.frames ?? []) {
+    const L = world.get(f.link)!, Lt = tr(L.R);
+    frames.push({ name: f.name, link: f.link, R: mul(Lt, f.R), t: ap(Lt, [f.o[0] - L.o[0], f.o[1] - L.o[1], f.o[2] - L.o[2]]), world: { R: f.R, o: f.o } });
+  }
+  return refusals.length ? { refusals } : { world, inertias, meshes, notes, frames };
 }
 
 /** The robot as a URDF document and its mesh files, or what refuses it. `partOf(part)`: a part's document, bodies (own coordinates) and placement. */
@@ -103,6 +110,8 @@ export function exportUrdf(tree: JointTree, partOf: (part: string) => UrdfPart |
   const linkName = namer(), jointName = namer(), names = { links: {} as Record<string, string>, joints: {} as Record<string, string> };
   for (const l of tree.links) names.links[l.id] = linkName(l.id);
   for (const j of tree.joints) names.joints[j.key] = jointName(j.key);
+  const frameNames = frameExportNames(parts.frames, linkName, jointName);
+  if (!(frameNames instanceof Map)) return { ok: false, refusals: [frameNames] };
   const files: UrdfFile[] = [], out: string[] = [];
   out.push('<?xml version="1.0"?>', `<!-- ${URDF_EXPORT_VERSION}: barocss CAD Studio. SI units; each link's frame at its joint, Z on the axis; joint values 0 at the pose the mates solve to. -->`, `<robot name="${esc(robotName.replace(/[^A-Za-z0-9_-]/g, '_') || 'robot')}">`);
   for (const l of tree.links) {
@@ -134,10 +143,28 @@ export function exportUrdf(tree: JointTree, partOf: (part: string) => UrdfPart |
     if (j.mimic) out.push(`    <mimic joint="${names.joints[j.mimic.joint]}" multiplier="${num(j.mimic.multiplier)}" offset="${num(j.mimic.offset)}"/>`);
     out.push(`  </joint>`);
   }
+  // (O12: each frame a massless link — the ROS-Industrial tool0 convention — on a fixed joint at its pose in its link's frame.)
+  for (const f of parts.frames) {
+    const n = frameNames.get(f.name)!;
+    out.push(`  <link name="${n.link}"/>`, `  <joint name="${n.joint}" type="fixed">`, `    <parent link="${names.links[f.link]}"/>`, `    <child link="${n.link}"/>`, `    <origin xyz="${nums(f.t.map(v => v / 1000))}" rpy="${nums(rpyOf(f.R))}"/>`, `  </joint>`);
+  }
   out.push('</robot>', '');
   return { ok: true, urdf: out.join('\n'), files, names, notes, frames: world };
 }
 
+/**
+ * Each frame's link and fixed-joint names in an export (the links' and joints' namers, after the links and joints), or the
+ * refusal when one does not come out as the frame's own name — a clash the tree's check cannot see (USD's root prim).
+ */
+export function frameExportNames(frames: RobotParts['frames'], linkName: (raw: string) => string, jointName: (raw: string) => string): Map<string, { link: string; joint: string }> | { code: 'FRAME_NAME'; message: string } {
+  const out = new Map<string, { link: string; joint: string }>();
+  for (const f of frames) {
+    const link = linkName(f.name), joint = jointName(`${f.name}_fixed`);
+    if (link !== f.name || joint !== `${f.name}_fixed`) return { code: 'FRAME_NAME', message: `[FRAME_NAME] "${f.name}" is taken in this export (it would be written ${link === f.name ? `with joint ${joint}` : `as ${link}`}): name the frame differently` };
+    out.set(f.name, { link, joint });
+  }
+  return out;
+}
 /** A part's bodies merged into one mesh in a link frame, metres. */
 function linkMesh(bodies: readonly BodyResult[], F: Frame): { positions: Float32Array; indices: Uint32Array } {
   let nv = 0, ni = 0;
