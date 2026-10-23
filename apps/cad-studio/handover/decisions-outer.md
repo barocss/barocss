@@ -7805,3 +7805,50 @@ The coordinator asked the owner, who answered: "D2 로 해줘" (go with D2).
 - **No notes comparison.** The coordinator's rule is a comparison only where a loaded fastener-size row carries the same quantity, and none does. The screw boss's and the standoff's `dp` for M3, M4 and M5 (2.5, 3.3, 4.2) are numerically the sample's tap drills. But they are a different quantity: a pilot hole for a thread-forming screw in plastic, against a tap drill for a 6H internal thread in metal. Comparing them would warn about a difference that isn't one. The insert hole's values are the insert's, not the screw's.
 
 **Verified (O7d).** enclosure, library, rb9 and o7-legacy 31/31; no test reads those texts. T1.
+
+## O15 — RD10's L3 run: the tool, the run script and its guards; the live runs not yet made (2026-10-23)
+
+**Why.** O46's protocol: a live model sizes O48's undersized arm-3r with RD9's harness as its tool. The owner approved the live run, US$25 at most in all. The coordinator approved the plan and its notes: a per-run wall clock, independent runs, no coaching, the gate, and usage as the CLI reports it.
+
+**The tool** (`apps/cad-studio/server/robotL3/tool.ts`): `robot_check`.
+- **Scope.** It is listed, allowed and callable only with `CAD_ROBOT_L3=1`. The MCP server lists it, the chat server's `--allowedTools` adds it, and the chat server passes its variables in the MCP config's env. Every other turn's tools, the toolset guard and the per-turn budget are as they were.
+- **What it checks.** The robot with the joints' ratings (`joints`) and the duty (`duty`) passed, each falling back to the last passed, on a copy of the part. It returns RD9's report: every margin, the least, the unknowns. It keeps the last design checked (`duty.json`, `duty.joints.json`) and logs each call: ok, least, failing count, actuators, ratings.
+- **The deviation, accepted by the coordinator.** `assembly.set_joints` is a robot change, and a robot change is always a proposal for the user ("always needs the user's approval"). The run has no user, so the ratings are robot_check's arguments, and the harness applies the last checked design to the saved .bcad. That stands in for the person's accept: the run measures whether a model can size the arm, not the approval flow. Production keeps set_joints' gate unchanged.
+
+**The run** (`apps/cad-studio/server/robotL3/main.ts`, `node scripts/robot-l3.mjs --scripted | --live`):
+- **Independent runs.** Each run gets a fresh folder, O48's start, and the byte-identical prompt (sha256 `921e82c0edc38209…`), with no session resumed. The prompt names what may change (ratings, actuators, the motion profile) and what may not (geometry, poses, dwells, life). It gives no hints of the sizer's rules.
+- **Success** is decided only by a fresh `cad-cli robot-check` on the saved part and duty: exit 0 and every margin above 0. A run whose duty changed the life, a pose or a dwell is no pass.
+- **Guards:**
+  - the CLI's own `--max-budget-usd 8` (passed by claudeArgs when `CAD_MAX_BUDGET_USD` is set);
+  - a 30-minute wall clock (a test-only override: `CAD_ROBOT_L3_WALL_MS`);
+  - the chat's turn cap;
+  - a result without `total_cost_usd` counts as over budget and stops the series;
+  - a run whose CLI never ran the model (an error with no output tokens) stops the series;
+  - no run starts that could take the total past US$25;
+  - live needs `--live` and `CAD_ROBOT_L3_LIVE=1`.
+- **No coaching.** A failed run is recorded as it is, and the brief is never edited and run again.
+
+**The dry run**, with the scripted model following the sizer's answer:
+- **The first try failed 3/3** on the approval gate above. That is how the deviation was found.
+- **Then 3/3 pass.**
+  - The scripted model made two robot_check calls; the first showed O48's 16 failing margins.
+  - The fresh check's least margin is joint range l1~l2 at 0.25, the same as O48.
+  - The prompt hash was identical across runs.
+- **The guards, each exercised:**
+  - a fake cost of US$9 stops the series after run 1;
+  - no cost reported stops it;
+  - `--live` without the flag is refused;
+  - the budget flag reaches the CLI (o15-robot-check test);
+  - a run that changes the brief's terms is no pass (test).
+- **The wall clock**, exercised with a 2 s ceiling and a scripted model sleeping 6 s (it writes a mark if it lives). The run was recorded as `end: wall-clock`, and the series stopped (no cost reported). It found two bugs:
+  - **chatServer (a04ccdee9).** A client gone during the turn's setup, before the spawn, left the CLI running: its 'close' had fired before the listener existed. It now checks right after the spawn. That is a production fix.
+  - **The run script (80f527d4b).** Its blocking spawnSync of cad-cli held the event loop, and with it the kill. The check is asynchronous now.
+  - After both fixes, the model was killed: its mark was never written.
+
+**The live runs: not yet made.**
+- The first attempt (19:17 KST) met the CLI account's weekly usage limit: "You've hit your weekly limit · resets 7am (Asia/Seoul)".
+- All three ended in 2–3 s with 0 tokens, US$0 and 1 turn, and no tool call was made. They are not model results.
+- c40c77013 now stops the series on such a run.
+- Waiting for the coordinator's word to rerun after the reset, unchanged.
+
+**Tests.** o15-robot-check 2/2; tool-contract-mcp unchanged; tsc and eslint clean.
