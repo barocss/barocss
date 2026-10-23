@@ -13,6 +13,7 @@ import { contourTriangles } from './silhouette';
 import { clipClearanceGeometry, type ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
 import { PrintOverlayGeometry } from './printOverlayGeometry';
+import { FrameCostTally, type CostRecord, type FrameCost } from './frameCost';
 import type { CamDisplay } from './camDisplay';
 import { CamOverlayGeometry } from './camOverlayGeometry';
 import { overlayTriangles, type OverlayDrawing } from './overlayDrawing';
@@ -683,6 +684,37 @@ export class GpuRenderer implements ViewRenderer {
     this.updateSilhouettes();
     v.resize(pixelRatio());
     v.render();
+    if (this.tally.tracking) this.countFrame();
+  }
+
+  // ---- O10: frame costs — the viewer's per-mesh counts, each body's meshes under its key ----
+  private tally = new FrameCostTally();
+  trackFrameCost(on: boolean): void { this.tally.tracking = on; this.viewer.costs = on; }
+  frameCosts(): Partial<Record<DisplayModeStatus['effective'], FrameCost>> {
+    const shown: (CostRecord | null)[] = this.bodies.map(b => this.tally.recordOf(b));
+    for (const it of this.instances) for (const m of it.surfaces) shown.push(this.tally.recordOf(m));
+    return this.tally.report('webgpu', shown);
+  }
+  /** A body's surface with its silhouette, edges and highlight counted under its record. */
+  private countMeshes(r: CostRecord, surface: Mesh, other: Mesh | null, highlight: Mesh | null): void {
+    const T = this.tally, costs = this.viewer.meshCosts();
+    T.addMesh(r, costs.get(surface)); if (other) T.addMesh(r, costs.get(other)); if (highlight) T.addMesh(r, costs.get(highlight));
+    const line = this.silhouettes?.get(surface)?.line; if (line) T.addMesh(r, costs.get(line));
+  }
+  /** After a tracked frame: every mesh into the scene, then each body's taken off it into its own record. */
+  private countFrame(): void {
+    const T = this.tally, costs = this.viewer.meshCosts(), meshes = this.viewer.meshList;
+    T.begin(this.displayMode.effective);
+    for (let i = 0; i < meshes.length; i++) T.addMesh(null, costs.get(meshes[i]));
+    for (const b of this.bodies) this.countMeshes(T.recordOf(b) ?? T.recordNew(b, b.result.key), b.surface, b.edges, b.highlight);
+    for (const it of this.instances) {
+      for (let bi = 0; bi < it.surfaces.length; bi++) this.countMeshes(T.recordOf(it.surfaces[bi]) ?? T.recordNew(it.surfaces[bi], it.id + '/' + it.bodies[bi].key), it.surfaces[bi], null, null);
+      for (let e = 0; e < it.edges.length; e++) { const r = T.recordOf(it.surfaces[it.edgeBody[e]]); if (r) T.addMesh(r, costs.get(it.edges[e])); }
+      if (it.threads && it.surfaces.length) { const r = T.recordOf(it.surfaces[0]); if (r) T.addMesh(r, costs.get(it.threads)); }
+    }
+    for (const b of this.bodies) { const r = T.recordOf(b); if (r) T.subtractFromScene(r); }
+    for (const it of this.instances) for (const m of it.surfaces) { const r = T.recordOf(m); if (r) T.subtractFromScene(r); }
+    T.end(this.viewer.stats.cpuMs);
   }
 
   /** Curved-face screen silhouettes are display lines, with no native pick identity. */

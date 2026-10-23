@@ -115,6 +115,17 @@ export interface TextLabel {
 /** A point picked (G8): its mesh, its index (the geometry's element: its vertex, or its entry in indices), where it is, and its distance on screen (CSS pixels). */
 export interface PointHit { mesh: Mesh; index: number; point: Vec3; distance: number }
 
+/** The passes a frame draws meshes in (O10): where a mesh's draws went. Caps include their probes. */
+export type FramePass = 'shadow' | 'surface' | 'transparent' | 'oit' | 'hiddenLines' | 'caps' | 'outlineMask';
+export const FRAME_PASSES: readonly FramePass[] = ['shadow', 'surface', 'transparent', 'oit', 'hiddenLines', 'caps', 'outlineMask'];
+/**
+ * What a mesh cost the last frame drawn while Viewer.costs is on (O10): its draw calls, the primitives they drew, and
+ * its draws by pass. Work counts, not time: a frame's time is FrameStats.cpuMs.
+ */
+export interface MeshCost { draws: number; triangles: number; lines: number; points: number; passes: Record<FramePass, number> }
+const zeroCost = (c: MeshCost): void => { c.draws = 0; c.triangles = 0; c.lines = 0; c.points = 0; const p = c.passes; p.shadow = 0; p.surface = 0; p.transparent = 0; p.oit = 0; p.hiddenLines = 0; p.caps = 0; p.outlineMask = 0; };
+const newCost = (): MeshCost => ({ draws: 0, triangles: 0, lines: 0, points: 0, passes: { shadow: 0, surface: 0, transparent: 0, oit: 0, hiddenLines: 0, caps: 0, outlineMask: 0 } });
+
 export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; points: number; deviceLosses: number; cpuMs: number }
 
 /** Built-in pipelines by name; a shader material's are `shader<id>:<variant>`. */
@@ -143,6 +154,15 @@ export class Viewer {
   lights: Light[];
   environment: Environment;
   readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, points: 0, deviceLosses: 0, cpuMs: 0 };
+  /**
+   * Count each mesh's draws and primitives in the frames drawn (O10; off by default). Read-only: nothing drawn changes,
+   * and off, a draw costs one branch.
+   */
+  costs = false;
+  private costRecords = new Map<Mesh, MeshCost>();
+  /** Counting this frame (costs, as the frame began), and the pass its draws go to. */
+  private counting = false;
+  private costPass: FramePass = 'surface';
   /** Selection outline width in CSS pixels. */
   outlineWidth = 2;
   /** The ground grid (change its fields, then requestRender). */
@@ -664,6 +684,18 @@ export class Viewer {
     return { leaves: candLeaves, ts: candTs, order: candOrder };
   }
 
+  /**
+   * Each mesh's cost in the last frame drawn while `costs` was on (O10): the records are kept between frames — made when a
+   * mesh is first drawn counting, dropped with it — and zeroed as each counted frame begins (a mesh not drawn: zeros).
+   */
+  meshCosts(): ReadonlyMap<Mesh, MeshCost> { return this.costRecords; }
+  /** One draw of a mesh counted (O10). */
+  private tally(m: Mesh, pass: FramePass, triangles: number, lines: number, points: number): void {
+    let c = m.cost;
+    if (!c) { c = m.cost = newCost(); this.costRecords.set(m, c); }
+    c.draws++; c.triangles += triangles; c.lines += lines; c.points += points; c.passes[pass]++;
+  }
+
   remove(mesh: Mesh): void {
     const i = this.meshes.indexOf(mesh);
     if (i < 0) return;
@@ -671,6 +703,7 @@ export class Viewer {
     this.scene = null;
     this.freeSlots.push(mesh.slot);
     mesh.slot = -1;
+    if (mesh.cost) { this.costRecords.delete(mesh); mesh.cost = null; }
     // Its own GPU buffers go with it (made again should it be drawn again).
     if (mesh.instances?.buffer) { mesh.instances.buffer.destroy(); mesh.instances.buffer = null; mesh.instances.device = null; }
     mesh.materialState?.params.destroy(); mesh.materialState = null;
@@ -683,7 +716,8 @@ export class Viewer {
 
   /** Remove every mesh and release every geometry. */
   clear(): void {
-    for (const m of this.meshes) m.slot = -1;
+    for (const m of this.meshes) { m.slot = -1; m.cost = null; }
+    this.costRecords.clear();
     this.meshes = []; this.freeSlots = []; this.nextSlot = 0; this.scene = null;
     for (const g of this.geometries) g.release();
     this.geometries.clear();
@@ -1143,15 +1177,16 @@ export class Viewer {
     else pass.setVertexBuffer(1, this.instanceBuffer(m));
     if (g.indices) { pass.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
     else pass.draw(data.elementCount, n);
+    if (this.counting) this.tally(m, this.costPass, (data.elementCount / 3) * n, 0, 0);
   }
 
   private drawMesh(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }, pick: boolean | 'mask'): void {
     const p = this.pipelines.get(this.pipelineKey(m, pick))!, g = m.geometry.gpu!, data = m.geometry.data;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
-    if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, lineCount(data)); return; }
-    if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); return; }
-    if (data.topology === 'labels') { pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, g.positions); pass.draw(6, g.labels!.count); return; }
+    if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, lineCount(data)); if (this.counting) this.tally(m, this.costPass, 0, lineCount(data), 0); return; }
+    if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); if (this.counting) this.tally(m, this.costPass, 0, 0, data.elementCount); return; }
+    if (data.topology === 'labels') { pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, g.positions); pass.draw(6, g.labels!.count); if (this.counting) this.tally(m, this.costPass, 0, 0, 0); return; }
     if (!pick && m.mapped && m.material.colorWrite) { this.drawMapped(pass, m); return; }
     this.drawTriangles(pass, m, !pick);
   }
@@ -1160,9 +1195,11 @@ export class Viewer {
   private drawHiddenLines(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }): void {
     const t = m.geometry.topology, points = t === 'points', p = this.pipelines.get(t === 'labels' ? 'labelHidden' : points ? 'pointHidden' : m.geometry.data.contour ? 'contourHidden' : 'lineHidden')!;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
-    if (t === 'labels') { { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, m.geometry.gpu!.labels!.count); return; }
+    if (t === 'labels') { { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, m.geometry.gpu!.labels!.count); if (this.counting) this.tally(m, 'hiddenLines', 0, 0, 0); return; }
     { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
-    pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, points ? m.geometry.data.elementCount : lineCount(m.geometry.data));
+    const n = points ? m.geometry.data.elementCount : lineCount(m.geometry.data);
+    pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, n);
+    if (this.counting) this.tally(m, 'hiddenLines', 0, points ? 0 : n, points ? n : 0);
   }
 
   /** A colour-mapped mesh (G6): its field's buffers (a per-triangle field's own positions and normals, drawn unindexed) and its map's bind group. */
@@ -1178,6 +1215,7 @@ export class Viewer {
     if (f.per === 'triangle') pass.draw(data.elementCount, n);
     else if (base.indices) { pass.setIndexBuffer(base.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
     else pass.draw(data.elementCount, n);
+    if (this.counting) this.tally(m, this.costPass, (data.elementCount / 3) * n, 0, 0);
   }
   /** A mesh's colour-map bind group: its ramp (sRGB texels, filtered) and its parameters, made when the map or device changes. */
   private mapGroup2(m: Mesh): BindGroup {
@@ -1210,6 +1248,7 @@ export class Viewer {
    */
   private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null): void {
     if (!this.clip || (!this.anyCapped(opaque) && !this.anyGhostCapped(transparent))) return;
+    this.costPass = 'caps';
     const t = this.ensureTargets();
     if (!scissor) this.ensureCapSamples(t);
     // Keep the single-sample probe for picks and outline masks. Scene caps additionally read their
@@ -1260,6 +1299,7 @@ export class Viewer {
   private drawCaps(pass: RenderPass, list: readonly Mesh[], current: { pipeline?: Pipeline }, key: 'litCap' | 'capMask' | 'capPick'): number {
     if (!this.clip) return 0;
     let n = 0;
+    const was = this.costPass; this.costPass = key === 'capMask' ? 'outlineMask' : 'caps';
     for (const m of list) {
       if (key === 'capPick' ? (!this.probed(m) || (m.pickTransparent ?? m.transparent) || !m.pickable) : !this.capped(m)) continue;
       const p = this.pipelines.get(key === 'litCap' && !m.material.colorWrite ? 'depthCap' : key)!;
@@ -1268,6 +1308,7 @@ export class Viewer {
       this.drawTriangles(pass, m, key === 'litCap');
       n++;
     }
+    this.costPass = was;
     return n;
   }
 
@@ -1325,7 +1366,10 @@ export class Viewer {
   }
   private draw(capture: Buffer | null): void {
     this.frameBox = null; this.frameBox = { box: this.sceneBounds() };
-    try { this.drawFrame(capture); } finally { this.frameBox = null; }
+    // (O10: the records kept, zeroed as a counted frame begins.)
+    this.counting = this.costs;
+    if (this.counting) for (const c of this.costRecords.values()) zeroCost(c);
+    try { this.drawFrame(capture); } finally { this.frameBox = null; this.counting = false; }
   }
   private drawFrame(capture: Buffer | null): void {
     const vp = this.prepareCamera();
@@ -1352,6 +1396,7 @@ export class Viewer {
     if (shadow && this.shadowMap && this.shadowChanged(shadow.viewProjection, casters)) {
       // (G19.4: the capped casters' caps too — first the probe from the light, into the shadow map's own depth.)
       const capping = this.clip ? this.anyCapped(casters) : false;
+      this.costPass = 'shadow';
       if (capping) this.drawLightProbe(enc, casters);
       // Every shadow caster, in view or not.
       const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
@@ -1392,6 +1437,7 @@ export class Viewer {
       // (In the order-independent frame the transparent list waits for its passes, but for shadow catchers: they darken the ground.)
       if (oit && l === 1 && !m.material.shadowOnly) continue;
       if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
+      this.costPass = l ? 'transparent' : 'surface';
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
       if (m.geometry.topology === 'lines') lines += lineCount(m.geometry.data); else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount; else if (m.geometry.topology === 'triangles') tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
@@ -1409,7 +1455,7 @@ export class Viewer {
       });
       op.setBindGroup(0, this.frameGroup);
       const cur: { pipeline?: Pipeline } = {};
-      this.oitDrawing = true;
+      this.oitDrawing = true; this.costPass = 'oit';
       try { for (const m of transparent) if (oitSurface(m)) { this.drawMesh(op, m, cur, false); tris += (m.geometry.data.elementCount / 3) * m.instanceCount; } } finally { this.oitDrawing = false; }
       // (G19.4: the see-through meshes' caps, weighted in with their surfaces.)
       if (this.clip) for (const m of transparent) {
@@ -1428,6 +1474,7 @@ export class Viewer {
       cp.setPipeline(this.pipelines.get('oitComposite')!); cp.setBindGroup(0, o.group); cp.draw(3);
       cp.setBindGroup(0, this.frameGroup);
       const cc: { pipeline?: Pipeline } = {};
+      this.costPass = 'transparent';
       for (const m of transparent) {
         if (m.geometry.topology === 'triangles') continue;
         this.drawMesh(cp, m, cc, false);
@@ -1451,6 +1498,7 @@ export class Viewer {
         if (x1 > x0 && y1 > y0) mask.setScissorRect(x0, y0, x1 - x0, y1 - y0);
       }
       const cur: { pipeline?: Pipeline } = {};
+      this.costPass = 'outlineMask';
       for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) {
         if (m.geometry.topology !== 'triangles' || (m.transparent && !m.outlineSlot)) continue;
         if (a && !m.outlineSlot && m.bounds && boxMissesRect(vp, m.bounds, a, W, H)) continue;

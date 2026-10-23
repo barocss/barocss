@@ -1,5 +1,6 @@
 // The viewer's scene objects (R2c: moved out of viewer.ts as they were, viewer.ts the facade): materials and their
 // options, image textures, geometry kept on the CPU and its GPU buffers, meshes and their object blocks.
+import type { MeshCost } from './viewer.js';
 import { transformBox, unionBox, type Box3 } from './bounds.js';
 import { prepareScalars, segmentInstances, vertexColors, fillVertexColors, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, type BindGroup, type Buffer, type Device, type Texture } from './gpu.js';
@@ -253,6 +254,8 @@ export class Mesh {
   outlineSlot = 0;
   /** @internal A shader material's bind group (its map and its own parameters), for the device and inputs it was made for. */
   materialState: { device: Device; map: ImageTexture | null; params: Buffer; group: BindGroup; data: Float32Array } | null = null;
+  /** @internal Its frame cost record while the viewer counts (Viewer.costs, O10), made when first drawn counting. */
+  cost: MeshCost | null = null;
   /** Pick id (1-based; 0 is empty space). */
   readonly id: number;
 

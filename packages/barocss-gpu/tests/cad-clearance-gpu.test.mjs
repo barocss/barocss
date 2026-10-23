@@ -42,7 +42,7 @@ function fixture() {
   const native = viewer.add({ positions: source.positions, normals: source.normals, indices: source.indices }, { name: 'native' });
   const edge = viewer.add({ positions: [0, 0, 0, 1, 0, 0], topology: 'lines' }, { material: { lineWidth: 1.2 } });
   const mesh = { ...source, faceOfVertex: new Float32Array([0, 0, 0]), faces: [{ index: 0, id: 'native-plane', kind: 'plane' }], edgeLines: new Float32Array([0, 0, 0, 1, 0, 0]), edgeOfSegment: new Float32Array([7, 7]), bounds: { min: [-2, -2, 0], max: [2, 2, 0] } };
-  Object.assign(renderer, {
+  Object.assign(renderer, { tally: { tracking: false },
     viewer, canvas: { clientWidth: 320, clientHeight: 200 }, displayMode: { requested: 'shaded-with-edges', effective: 'shaded-with-edges', supported: true },
     theme: { base: [0.7, 0.7, 0.8], edge: [0.1, 0.1, 0.1], ao: 0.9, shadow: 0.45 }, aoEnabled: true, settings: null, analysis: null, scalarMaps: null, direct: [], proposalMeshes: [], mould: null,
     bodies: [{ result: { key: 'native', mesh }, surface: native, edges: edge, highlight: null, state: '', painted: null, runs: { vertexCount: 3, byFace: new Map([[0, [0, 3]]]) } }],

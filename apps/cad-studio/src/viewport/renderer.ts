@@ -11,6 +11,7 @@ import { invert, multiply } from '@barocss/gpu/viewer';
 import { topologyKey, movedCopy } from './instanceGeometry';
 import { silhouetteLines } from './silhouette';
 import { ClearanceOverlayGL } from './clearanceOverlayGL';
+import { FrameCostTally, type CostRecord, type FrameCost } from './frameCost';
 import type { ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
 import { PrintOverlayGL } from './printOverlayGL';
@@ -135,6 +136,10 @@ export interface ViewRenderer {
   computeDevice?(): object | null;
   getDisplayModeStatus?(): DisplayModeStatus;
   render(camera: OrbitCamera, view: ViewState): void;
+  /** O10: count each body's draws and primitives in the frames drawn (off by default; read-only — nothing drawn changes). */
+  trackFrameCost(on: boolean): void;
+  /** O10: the last frame tracked in each display mode, for the bodies shown now (work counts, not time). */
+  frameCosts(): Partial<Record<DisplayMode, FrameCost>>;
   pickFace(x: number, y: number, camera: OrbitCamera, view: ViewState): FaceRef | null;
   pickEdge(x: number, y: number, camera: OrbitCamera, view: ViewState, radius?: number): EdgeRef | null;
   bounds(): { min: Vec3; max: Vec3 } | null;
@@ -756,7 +761,7 @@ export class Renderer implements ViewRenderer {
   }
 
   /** View-dependent display lines only: they never enter native edge/face picking. */
-  private drawSilhouette(body: GpuBody, camera: OrbitCamera, mode: DisplayMode, dpr: number): void {
+  private drawSilhouette(body: GpuBody, camera: OrbitCamera, mode: DisplayMode, dpr: number, cost: CostRecord | null): void {
     const mesh = body.geometry.mesh;
     if (!mesh.faces.some(face => face.kind === 'curved' && !face.facet)) return;
     const key = JSON.stringify([camera.eye(), camera.target, camera.ortho, Array.from(this.model)]);
@@ -768,11 +773,26 @@ export class Renderer implements ViewRenderer {
     }
     if (!cached.line) return;
     const gl = this.gl; gl.bindVertexArray(cached.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, cached.line.count);
+    if (cost) this.tally.add(cost, 'surface', 0, cached.line.count, 0);
     if (mode === 'hidden-lines-dashed') {
       gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), HIDDEN_DASH[0] * dpr, HIDDEN_DASH[1] * dpr);
       gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, cached.line.count);
+      if (cost) this.tally.add(cost, 'hiddenLines', 0, cached.line.count, 0);
       gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
     }
+  }
+
+  // ---- O10: frame costs ----
+  private tally = new FrameCostTally();
+  trackFrameCost(on: boolean): void { this.tally.tracking = on; }
+  frameCosts(): Partial<Record<DisplayMode, FrameCost>> {
+    const shown: (CostRecord | null)[] = this.bodies.map(b => this.tally.recordOf(b));
+    for (const it of this.instances) for (const b of it.bodies) shown.push(this.tally.recordOf(b));
+    return this.tally.report('webgl2', shown);
+  }
+  /** A body's record (made the first time it is counted; its key made then). */
+  private costOf(owner: object, key: string, id?: string): CostRecord {
+    return this.tally.recordOf(owner) ?? this.tally.recordNew(owner, id === undefined ? key : id + '/' + key);
   }
 
   render(camera: OrbitCamera, view: ViewState) {
@@ -781,6 +801,9 @@ export class Renderer implements ViewRenderer {
     const lineOnly = mode === 'hidden-lines-removed' || mode === 'hidden-lines-dashed' || mode === 'wireframe';
     this.view = view; this.lastCamera = camera; this.serial++;
     camera.aspect = w / h;
+    // (O10: counted only while tracked — T null otherwise, one branch a draw.)
+    const T = this.tally.tracking ? this.tally : null, t0 = T ? performance.now() : 0;
+    if (T) T.begin(mode);
     this.ensureTargets(w, h);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.msFbo); gl.viewport(0, 0, w, h);
     gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -788,12 +811,14 @@ export class Renderer implements ViewRenderer {
     gl.disable(gl.DEPTH_TEST); gl.useProgram(this.bg);
     gl.uniform3fv(this.u(this.bg, 'uTop'), t.bgTop); gl.uniform3fv(this.u(this.bg, 'uBottom'), t.bgBottom);
     gl.bindVertexArray(this.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    if (T) T.add(null, 'surface', 1, 0, 0);
     gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.DEPTH_TEST); gl.depthMask(false);
     gl.useProgram(this.grid); gl.uniformMatrix4fv(this.u(this.grid, 'uVP'), false, vp);
     gl.uniform3fv(this.u(this.grid, 'uCenter'), camera.target); gl.uniform1f(this.u(this.grid, 'uFade'), Math.max(120, camera.distance * 1.6));
     gl.uniform3fv(this.u(this.grid, 'uGrid'), t.grid); gl.uniform2fv(this.u(this.grid, 'uGridAlpha'), t.gridAlpha);
     gl.bindVertexArray(this.gridVao); gl.drawArrays(gl.LINES, 0, this.gridCount);
+    if (T) T.add(null, 'surface', 0, this.gridCount / 2, 0);
     const bounds = this.sceneBounds();
     if (bounds && !lineOnly) {
       const cx = (bounds.min[0] + bounds.max[0]) / 2, cy = (bounds.min[1] + bounds.max[1]) / 2;
@@ -801,6 +826,7 @@ export class Renderer implements ViewRenderer {
       gl.useProgram(this.shadow); gl.uniformMatrix4fv(this.u(this.shadow, 'uVP'), false, vp); gl.uniform1f(this.u(this.shadow, 'uAlpha'), t.shadow);
       gl.uniform4f(this.u(this.shadow, 'uRect'), cx - rx, cy - ry, cx + rx, cy + ry); gl.uniform1f(this.u(this.shadow, 'uZ'), bounds.min[2] - 0.05);
       gl.bindVertexArray(this.quadVao); gl.drawArrays(gl.TRIANGLES, 0, 6);
+      if (T) T.add(null, 'shadow', 2, 0, 0);
     }
     gl.depthMask(true);
     // Keep the same front surface/cap depth, even when the appearance contains only native CAD edges.
@@ -822,6 +848,7 @@ export class Renderer implements ViewRenderer {
         gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? XRAY_OPACITY : 1) * (view.isolatedInstances?.length ? FADED : 1));
         gl.uniform3fv(this.u(this.mesh, 'uBase'), view.bodyColors?.get(bi) ?? t.base);
         gl.bindVertexArray(b.vao); gl.drawElements(gl.TRIANGLES, b.count, gl.UNSIGNED_INT, 0);
+        if (T) T.add(this.costOf(b, b.result.key), pass === 1 || mode === 'x-ray' ? 'transparent' : 'surface', b.count / 3, 0, 0);
       }
       if (pass === 0 && this.direct.length) {
         this.unplaced(this.mesh); gl.uniform1f(this.u(this.mesh, 'uBodySel'), 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0);
@@ -829,6 +856,7 @@ export class Renderer implements ViewRenderer {
           if (!d.tri) continue;
           gl.uniform3fv(this.u(this.mesh, 'uBase'), d.on ? DIRECT_LOOK.surfaceOn : DIRECT_LOOK.surface);
           gl.bindVertexArray(d.tri.vao); gl.drawElements(gl.TRIANGLES, d.tri.count, gl.UNSIGNED_INT, 0);
+          if (T) T.add(null, 'surface', d.tri.count / 3, 0, 0);
         }
       }
       // Instance surfaces retain nearest depth in every appearance mode, including line-only modes.
@@ -842,6 +870,7 @@ export class Renderer implements ViewRenderer {
           this.placeInstance(this.mesh, it, bi);
           gl.uniform1f(this.u(this.mesh, 'uBodySel'), this.instanceSelection.includes(it.item.id) ? 1 : 0);
           gl.bindVertexArray(gpu.vao); gl.drawElements(gl.TRIANGLES, gpu.count, gl.UNSIGNED_INT, 0);
+          if (T) T.add(this.costOf(it.bodies[bi], gpu.result.key, it.item.id), pass === 1 || mode === 'x-ray' ? 'transparent' : 'surface', gpu.count / 3, 0, 0);
         }
       }
     }
@@ -850,7 +879,7 @@ export class Renderer implements ViewRenderer {
       // (In front of the faces they lie on: pulled toward the eye past the bodies' own offset.)
       gl.depthMask(false); gl.polygonOffset(-1, -1);
       this.unplaced(this.mesh); gl.uniform1f(this.u(this.mesh, 'uBodySel'), 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0); gl.uniform1f(this.u(this.mesh, 'uOpacity'), 0.5);
-      for (const p of this.proposal) { gl.uniform3fv(this.u(this.mesh, 'uBase'), p.color); gl.bindVertexArray(p.tri.vao); gl.drawElements(gl.TRIANGLES, p.tri.count, gl.UNSIGNED_INT, 0); }
+      for (const p of this.proposal) { gl.uniform3fv(this.u(this.mesh, 'uBase'), p.color); gl.bindVertexArray(p.tri.vao); gl.drawElements(gl.TRIANGLES, p.tri.count, gl.UNSIGNED_INT, 0); if (T) T.add(null, 'transparent', p.tri.count / 3, 0, 0); }
     }
     gl.depthMask(true); gl.disable(gl.POLYGON_OFFSET_FILL);
     const dpr = w / Math.max(1, this.canvas.clientWidth);
@@ -866,11 +895,14 @@ export class Renderer implements ViewRenderer {
       this.place(this.line, view, bi, false);
       gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], (view.ghostBodies.has(bi) ? GHOST_OPACITY : EDGE_OPACITY) * (view.isolatedInstances?.length ? FADED : 1));
       gl.bindVertexArray(b.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
-      this.drawSilhouette(b, camera, mode, dpr);
+      const cost = T && this.costOf(b, b.result.key);
+      if (cost) T!.add(cost, 'surface', 0, b.segments, 0);
+      this.drawSilhouette(b, camera, mode, dpr, cost);
       gl.bindVertexArray(b.lineVao);
       if (mode === 'hidden-lines-dashed') {
         gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), HIDDEN_DASH[0] * dpr, HIDDEN_DASH[1] * dpr);
         gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
+        if (cost) T!.add(cost, 'hiddenLines', 0, b.segments, 0);
         gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
       }
     }
@@ -880,19 +912,22 @@ export class Renderer implements ViewRenderer {
         const gpu = it.bodies[bi].gpu;
         this.placeInstance(this.line, it, bi, false);
         gl.bindVertexArray(gpu.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
-        this.drawSilhouette(gpu, camera, mode, dpr);
+        const cost = T && this.costOf(it.bodies[bi], gpu.result.key, it.item.id);
+        if (cost) T!.add(cost, 'surface', 0, gpu.segments, 0);
+        this.drawSilhouette(gpu, camera, mode, dpr, cost);
         gl.bindVertexArray(gpu.lineVao);
         if (mode === 'hidden-lines-dashed') {
           gl.depthFunc(gl.GREATER); gl.uniform2f(this.u(this.line, 'uDash'), HIDDEN_DASH[0] * dpr, HIDDEN_DASH[1] * dpr);
           gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
+          if (cost) T!.add(cost, 'hiddenLines', 0, gpu.segments, 0);
           gl.depthFunc(gl.LESS); gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
         }
       }
       if (it.bodies.length && !lineOnly) {
         this.placeInstance(this.line, it, 0, false, false);
         gl.uniform1f(this.u(this.line, 'uWidth'), 0.5 * dpr);
-        if (it.threads) { gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], this.fadedInstance(it.item.id) ? THREAD_OPACITY * FADED : THREAD_OPACITY); gl.bindVertexArray(it.threads.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, it.threads.count); }
-        for (const hatch of it.hatch) { gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, this.fadedInstance(it.item.id) ? HATCH_OPACITY * FADED : HATCH_OPACITY); gl.bindVertexArray(hatch.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, hatch.line.count); }
+        if (it.threads) { gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], this.fadedInstance(it.item.id) ? THREAD_OPACITY * FADED : THREAD_OPACITY); gl.bindVertexArray(it.threads.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, it.threads.count); if (T) T.add(this.costOf(it.bodies[0], it.bodies[0].gpu.result.key, it.item.id), 'surface', 0, it.threads.count, 0); }
+        for (const hatch of it.hatch) { gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, this.fadedInstance(it.item.id) ? HATCH_OPACITY * FADED : HATCH_OPACITY); gl.bindVertexArray(hatch.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, hatch.line.count); if (T) { const o = it.bodies[hatch.body] ?? it.bodies[0]; T.add(this.costOf(o, o.gpu.result.key, it.item.id), 'caps', 0, hatch.line.count, 0); } }
         gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
       }
     }
@@ -906,6 +941,7 @@ export class Renderer implements ViewRenderer {
         this.place(this.line, view, h.body, false);
         gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, HATCH_OPACITY * (view.ghostBodies.has(h.body) ? GHOST_OPACITY : 1) * (view.isolatedInstances?.length ? FADED : 1));
         gl.bindVertexArray(h.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, h.line.count);
+        if (T) T.add(this.costOf(this.bodies[h.body], this.bodies[h.body].result.key), 'caps', 0, h.line.count, 0);
       }
       gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
     }
@@ -916,10 +952,12 @@ export class Renderer implements ViewRenderer {
         if (!d.line) continue;
         gl.uniform1f(this.u(this.line, 'uWidth'), (d.on ? 1.5 : 1) * dpr); gl.uniform4fv(this.u(this.line, 'uColor'), d.on ? DIRECT_LOOK.curveOn : DIRECT_LOOK.curve);
         gl.bindVertexArray(d.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, d.line.count);
+        if (T) T.add(null, 'surface', 0, d.line.count, 0);
       }
       for (const x of this.directExtras) {
         gl.uniform1f(this.u(this.line, 'uWidth'), x.width * dpr); gl.uniform4fv(this.u(this.line, 'uColor'), x.color);
         gl.bindVertexArray(x.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, x.line.count);
+        if (T) T.add(null, 'surface', 0, x.line.count, 0);
       }
       gl.uniform1f(this.u(this.line, 'uWidth'), 0.8 * dpr);
       for (const p of this.proposal) {
@@ -929,6 +967,7 @@ export class Renderer implements ViewRenderer {
         gl.uniform4f(this.u(this.line, 'uColor'), p.color[0], p.color[1], p.color[2], 0.9); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, p.line.count);
         gl.depthFunc(gl.GREATER); gl.depthMask(false);
         gl.uniform4f(this.u(this.line, 'uColor'), p.color[0], p.color[1], p.color[2], 0.9 * 0.35); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, p.line.count);
+        if (T) { T.add(null, 'surface', 0, p.line.count, 0); T.add(null, 'hiddenLines', 0, p.line.count, 0); }
         gl.depthFunc(gl.LESS); gl.depthMask(true);
       }
     }
@@ -953,6 +992,7 @@ export class Renderer implements ViewRenderer {
     gl.uniform1f(this.u(this.ao, 'uStrength'), this.aoEnabled && !this.interacting && !lineOnly ? t.ao : 0);
     gl.bindVertexArray(this.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.bindVertexArray(null); gl.activeTexture(gl.TEXTURE0);
+    if (T) { T.add(null, 'surface', 1, 0, 0); T.end(performance.now() - t0); }
   }
 
   /** The frame as drawn, as a PNG (G16: drawn again and read in the same task, as the canvas keeps no frame). */
