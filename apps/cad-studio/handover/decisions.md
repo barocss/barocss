@@ -12145,3 +12145,23 @@ and the R5 fingerprint, byte-identical (see the batch line below).
 through every Boolean of curved faces.
 
 **Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D221 — R5.3a: the gear features leave part-model.ts's operation() for `part-gears.ts` (2026-10-23)
+
+**What.** The operation() cases for spur-gear, internal-gear, bevel-gear, worm, worm-wheel and spur-rack are now `gearOperation` in `src/part-gears.ts`, as they were, and the dispatcher's case for
+those kinds is one line. GEAR_CODES moves with them (only they use it). Helpers: `isRecord`.
+
+How (the same for every R5.3 step):
+- A script took the cases' text verbatim, checked line for line against the previous part-model.ts.
+- The module imports only types from part-model, so no new import cycle exists.
+- Part-model values the cases use come in `HELPERS`, a frozen record built once at the end of part-model.ts. They stay
+  there because they share its state (the facet limit) or sit on its `boolean`, which `frk-6-ordered-trim.test`'s
+  coverage trap pins to `part-model.js`.
+- `Result`, `Tools`, `Solid`, `Part` and the like are now exported as types. index.ts re-exports part-model by name, so
+  the public surface is unchanged.
+- part-model.ts's imports only these cases used are removed.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch B (R5.3a–g)'s end: the kernel suite, RB, cad-model and studio
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
