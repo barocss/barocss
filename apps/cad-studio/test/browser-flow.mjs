@@ -1008,6 +1008,7 @@ try {
     // (The floater is a finding: the repair gate offers to drop it; opened as it is, both pieces come in.)
     await page.waitForSelector('[aria-label="Mesh repair"]', { timeout: 15000 });
     assert.match(await page.textContent('[aria-label="Mesh repair"]'), /2 pieces[\s\S]*1 tiny piece/);
+    await page.locator('[aria-label="Mesh repair"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-mesh-repair.png`) });
     await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Open as it is' }).click();
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     assert.equal((await doc()).nodes[0].pieces, 2);
@@ -3602,6 +3603,7 @@ try {
     await page.waitForSelector('[aria-label="Flat pattern"]');
     assert.equal(await page.locator('[aria-label="Flat pattern drawing"] [aria-label="Bend down"]').count(), 2);
     assert.match(await page.locator('[aria-label="Flat pattern"]').innerText(), /94\.357 × 25 mm · 2 bends · T 1\.5 mm, K 0\.44/);
+    await page.locator('[aria-label="Flat pattern"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-flat-pattern.png`) });
     await snap('r12-2-flat-pattern');
     // (Handled at once: a failed click must fail this step, not leave a waiting promise to end the whole flow.)
     const download = page.waitForEvent('download'); download.catch(() => {});
@@ -3937,6 +3939,7 @@ try {
     assert.match(rows[0], /^1\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+600\s+640\s+mitre 45°\s+mitre 45°\s+0\.719 kg$/);
     assert.match(rows[1], /^2\s+2\s+rect-tube 40 × 40 × 3\s+Aluminium 6061\s+400\s+440\s+mitre 45°\s+mitre 45°\s+0\.48 kg$/);
     assert.match(await page.textContent('[aria-label="Cut list"]'), /4 pieces in 2 rows · 2000 mm · 2\.398 kg[\s\S]*estimates — not your stock's/);
+    await page.locator('[aria-label="Cut list"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-cut-list.png`) });
     await snap('fr4a-cut-list');
     const download = page.waitForEvent('download'); download.catch(() => {});
     await page.click('[aria-label="Export cut list CSV"]');
@@ -6036,6 +6039,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc?.brief?.process?.basis === 'assumed', null, { timeout: 15000 });
     assert.equal(await page.evaluate(() => window.__studioDoc.process ?? null), null, 'an assumed process is not applied');
     assert.match(await page.locator('[aria-label="Brief gaps"]').innerText(), /^1 to settle$/i);
+    await page.locator('[aria-label="Brief gaps"]').locator('xpath=../..').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-brief.png`) });
     assert.match(await page.locator('[aria-label="Brief process"]').innerText(), /fdm[\s\S]*assumed/);
     await snap('a6-1-brief');
     await page.click('[aria-label="Confirm brief process"]');
@@ -6070,6 +6074,7 @@ try {
       await page.waitForFunction(() => window.__studioDoc?.questions?.batches?.[0]?.status === 'open', null, { timeout: 15000 });
       assert.equal(await page.evaluate(() => window.__studioDoc.brief.purpose.said), 'verified');
       assert.match(await page.locator('[aria-label="Specify counts"]').innerText(), /^2 to answer · 1 to check$/i);
+      await page.locator('[aria-label="Specify"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-specify.png`) });
       await page.selectOption('[aria-label="Answer q1"]', 'fdm'); await page.fill('[aria-label="Answer q2"]', 'petg');
       await snap('a6-2-specify');
       await page.click('[aria-label="Send answers"]');
@@ -6148,6 +6153,7 @@ try {
     await page.setInputFiles('input[aria-label="Add drawing"]', join(dir, 'by-hand-inches.dxf'));
     await page.waitForFunction(() => window.__studioDoc?.drafts?.drafts?.length === 1 && window.__studioDoc.nodes.length === 1, null, { timeout: 15000 });
     assert.match(await page.locator('[aria-label="Drafts summary"]').innerText(), /^3 to confirm$/i);
+    await page.locator('[aria-label="Drafts"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-drafts.png`) });
     assert.ok(Math.abs(Number(await page.inputValue('[aria-label="F1.width value"]')) - 101.6) < 1e-9);
     // (The width confirmed as it is; the hole set to 15 mm: re-driven, confirmed.)
     await page.click('[aria-label="Confirm F1.width"]');
@@ -7081,6 +7087,7 @@ try {
     }
     await page.click('[aria-label="Analysis map"]');
     await page.waitForSelector('[aria-label="Map legend"]', { timeout: 10000 });
+    await page.locator('[aria-label="Map legend"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-map-legend.png`) });
     assert.match(await page.locator('[aria-label="Map legend"]').innerText(), /Wall thickness/);
     // The value under the pointer: over the plate's top, its 10 mm wall (the inscribed sphere at a top triangle).
     const box = await page.locator('canvas.vp-canvas').boundingBox();

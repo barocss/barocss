@@ -1,8 +1,10 @@
 // The Drafts list in the Browser (A6.4, O28): features made from an image or a drawing, each dimension they were made at
 // with its basis; the user confirms one as it is, or at another value (Enter or Confirm), which re-drives the features.
-// "Add drawing" reads a DXF file as a sketch draft.
+// "Add drawing" reads a DXF file as a sketch draft. O16: its values and actions on shadcn's Input and Button.
 import type { Draft } from '@barocss/cad-model/engine/schema/drafts';
 import type { DocUnderlay } from '@barocss/cad-model/engine/doc';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export function DraftsPanel({ drafts, onAddDrawing, onConfirm, underlays = [], onUnderlay }: { drafts: readonly Draft[]; onAddDrawing(file: File): void; onConfirm(key: string, value: number | undefined): void;
   /** The drawings' underlays (O68), each shown or hidden. */ underlays?: readonly DocUnderlay[]; onUnderlay?(id: string, hidden: boolean): void }) {
@@ -15,13 +17,13 @@ export function DraftsPanel({ drafts, onAddDrawing, onConfirm, underlays = [], o
       {d.unitAssumed && d.dims.some(x => !x.confirmed) && <span className="req-edit" aria-label={`${d.id} unit assumed`}><span className="muted">⚠ units assumed mm: the drawing declares none</span></span>}
       {d.dims.map(x => { const key = `${d.id}.${x.name}`; return <span key={key} className="req-edit" aria-label={`Dimension ${key}`}>
         <span className="muted ref-at-label">{x.name}</span>
-        <input aria-label={`${key} value`} type="number" step="any" defaultValue={x.value} key={`${key}:${x.value}`} onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') onConfirm(key, Number(e.currentTarget.value)); }} />
-        {x.confirmed ? <span className="muted">✓ confirmed</span> : <button className="ghost small" aria-label={`Confirm ${key}`} onClick={e => onConfirm(key, Number((e.currentTarget.previousSibling as HTMLInputElement).value))}>Confirm</button>}
+        <Input aria-label={`${key} value`} type="number" step="any" defaultValue={x.value} key={`${key}:${x.value}`} onKeyDown={e => { e.stopPropagation(); if (e.key === 'Enter') onConfirm(key, Number(e.currentTarget.value)); }} />
+        {x.confirmed ? <span className="muted">✓ confirmed</span> : <Button variant="ghost" aria-label={`Confirm ${key}`} onClick={e => onConfirm(key, Number((e.currentTarget.previousSibling as HTMLInputElement).value))}>Confirm</Button>}
       </span>; })}
     </div>)}
     {underlays.map(u => <div key={u.id} className="req" role="listitem" aria-label={`Underlay ${u.id}`}>
       <span className="req-row"><span className="req-mark">▱</span><b>{u.id}</b> {u.name} <span className="muted">· underlay{u.draft ? ` of ${u.draft}` : ''} · {Object.entries(u.counts).map(([t, n]) => `${n} ${t}`).join(', ')}</span>
-        {onUnderlay && <button className="ghost small" aria-label={`${u.hidden ? 'Show' : 'Hide'} underlay ${u.id}`} onClick={() => onUnderlay(u.id, !u.hidden)}>{u.hidden ? 'Show' : 'Hide'}</button>}</span>
+        {onUnderlay && <Button variant="ghost" aria-label={`${u.hidden ? 'Show' : 'Hide'} underlay ${u.id}`} onClick={() => onUnderlay(u.id, !u.hidden)}>{u.hidden ? 'Show' : 'Hide'}</Button>}</span>
     </div>)}
   </div>;
 }

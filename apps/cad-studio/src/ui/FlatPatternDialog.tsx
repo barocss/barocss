@@ -1,9 +1,13 @@
 // A sheet-metal body's flat pattern (R12.2, D117): drawn to scale — its outline, each bend's centre line dashed (up and
 // down in two colours) with its note — and exported as DXF (2000 or R12) through the kernel's flat document and writer.
+// O16: its actions on shadcn's Button and NativeSelect; the box is the studio's.
 import { useState } from 'react';
 import { evaluateCurve, flatPatternDxf, writeDxf, type DxfVersion, type FlatPattern, type FlatSegment } from '@barocss/cad';
 import { downloadBytes } from './files';
 import { Icon } from './atoms';
+import { CONTROL } from './panelStyles';
+import { Button } from '@/components/ui/button';
+import { NativeSelect } from '@/components/ui/native-select';
 
 const f2 = (v: number) => String(Math.round(v * 1000) / 1000);
 /** A loop as SVG path data, y flipped (the flat's y goes up) within a box `h` high. */
@@ -48,12 +52,12 @@ export function FlatPatternDialog({ flat, name, onClose }: { flat: FlatPattern; 
           </g>;
         })}
       </svg>
-      <div className="row-actions">
-        <button className="primary" aria-label="Export flat DXF" onClick={exportDxf} title="The flat at true size in mm: OUTLINE, BEND_UP, BEND_DOWN (dashed) and BEND_NOTES layers">DXF</button>
-        <select aria-label="Flat DXF version" value={version} onChange={e => setVersion(e.target.value as DxfVersion)} title="DXF 2000, or R12 for older programs">
+      <div className="flex flex-wrap gap-1">
+        <Button variant="default" aria-label="Export flat DXF" onClick={exportDxf} title="The flat at true size in mm: OUTLINE, BEND_UP, BEND_DOWN (dashed) and BEND_NOTES layers">DXF</Button>
+        <NativeSelect className={CONTROL} aria-label="Flat DXF version" value={version} onChange={e => setVersion(e.target.value as DxfVersion)} title="DXF 2000, or R12 for older programs">
           <option value="AC1015">2000</option><option value="AC1009">R12</option>
-        </select>
-        <button className="ghost" aria-label="Close the flat pattern" onClick={onClose}>Close</button>
+        </NativeSelect>
+        <Button variant="ghost" aria-label="Close the flat pattern" onClick={onClose}>Close</Button>
       </div>
     </div>
   </div>;
