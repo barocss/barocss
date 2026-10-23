@@ -1,7 +1,7 @@
 import { evaluateBooleanExtrusionFeatureGraph, BooleanExtrusionFeatureGraphError, BooleanExtrusionFeatureGraphDiagnosticCode } from './boolean-extrusion-feature-graph.js';
 import type { BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureGraphOptions, BooleanExtrusionFeatureGraphResult } from './boolean-extrusion-feature-graph.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from './cad-document.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 
 const CODE = BooleanExtrusionFeatureGraphDiagnosticCode, FILE_LIMIT = 1048576;
 function envelope(text: unknown): asserts text is string {

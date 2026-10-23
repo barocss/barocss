@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { constructNativeCrossingIncidenceGraphV1 as graph } from '../dist/native-crossing-incidence-graph-v1.js';
-import { constructNativeHalfEdgeTwinsV1 as twins } from '../dist/native-half-edge-twins-v1.js';
+import { constructNativeCrossingIncidenceGraphV1 as graph } from '../dist/exact-proof/native-crossing-incidence-graph-v1.js';
+import { constructNativeHalfEdgeTwinsV1 as twins } from '../dist/exact-proof/native-half-edge-twins-v1.js';
 const p=(x,y)=>({x,y});
 test('four exact crossing edges produce eight symmetric directed half-edge twins',()=>{
  const g=graph('edgeA',p(0,0),p(4,4),'edgeB',p(0,4),p(4,0));

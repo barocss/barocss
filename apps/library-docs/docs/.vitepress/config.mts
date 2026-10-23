@@ -7,6 +7,8 @@ export default defineConfig({
   title: 'BaroCSS CAD',
   description: 'Design manufacturable products with an AI agent: a B-rep CAD kernel, a document model and a GPU studio, in TypeScript.',
   cleanUrls: true,
+  // (`_*.md` are parts a page includes, such as the generated tool tables: not pages of their own.)
+  srcExclude: ['**/_*.md'],
   lastUpdated: true,
   themeConfig: {
     nav: [

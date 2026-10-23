@@ -2,7 +2,7 @@ import { buildXYPolygonRegion } from './xy-polygon-region.js';
 import type { XYPolygonRegionResult, XYPolygonRegionReport } from './xy-polygon-region.js';
 import { buildXYPolygonPrismPreview } from './xy-polygon-prism-preview.js';
 import type { XYPolygonPrismPreviewResult } from './xy-polygon-prism-preview.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Model } from './types.js';

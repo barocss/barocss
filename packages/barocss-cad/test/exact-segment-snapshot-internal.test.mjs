@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { classifyExactSegmentCrossingV1 as crossing } from '../dist/exact-segment-crossing-v1.js';
-import { classifyCollinearSegmentOverlapV1 as overlap } from '../dist/exact-collinear-segment-overlap-v1.js';
-import { intersectProperSegmentsExactBinary64V1 as intersection } from '../dist/exact-segment-intersection-point-v1.js';
+import { classifyExactSegmentCrossingV1 as crossing } from '../dist/exact-proof/exact-segment-crossing-v1.js';
+import { classifyCollinearSegmentOverlapV1 as overlap } from '../dist/exact-proof/exact-collinear-segment-overlap-v1.js';
+import { intersectProperSegmentsExactBinary64V1 as intersection } from '../dist/exact-proof/exact-segment-intersection-point-v1.js';
 
 const p = (x, y) => ({ x, y });
 const guard = (point, onGet) => new Proxy(point, { get() { onGet(); throw new Error('caller get forbidden'); } });

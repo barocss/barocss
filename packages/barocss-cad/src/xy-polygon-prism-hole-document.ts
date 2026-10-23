@@ -6,7 +6,7 @@ import { buildXYPolygonPrismShellWithHole } from './xy-polygon-prism-shell-hole.
 import type { XYPolygonPrismShellWithHoleResult, XYPolygonPrismShellWithHoleReport } from './xy-polygon-prism-shell-hole.js';
 import { tessellateXYPolygonPrismShellWithHole } from './xy-polygon-prism-shell-hole-preview.js';
 import type { XYPolygonPrismHoleShellPreviewResult, XYPolygonPrismHoleShellPreviewReport } from './xy-polygon-prism-shell-hole-preview.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { XYPoint } from './xy-profile.js';
 

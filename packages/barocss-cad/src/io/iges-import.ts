@@ -1,7 +1,7 @@
 import { compileCadModel } from '../model-compiler.js';
 import type { CadCompileResult } from '../model-compiler.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain } from '../math.js';
-import { curveDecimal } from '../curve-source.js';
+import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../structural-equality.js';
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { intersectProperSegmentsExactBinary64V1 as intersect } from '../dist/exact-segment-intersection-point-v1.js';
+import { intersectProperSegmentsExactBinary64V1 as intersect } from '../dist/exact-proof/exact-segment-intersection-point-v1.js';
 const p=(x,y)=>({x,y});
 const rat=(numerator,denominator='1')=>({numerator,denominator});
 test('exact point and parameters for proper crossing including segment reversal',()=>{

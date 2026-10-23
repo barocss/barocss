@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { classifyCollinearSegmentOverlapV1 as overlap } from '../dist/exact-collinear-segment-overlap-v1.js';
+import { classifyCollinearSegmentOverlapV1 as overlap } from '../dist/exact-proof/exact-collinear-segment-overlap-v1.js';
 const p=(x,y)=>({x,y});
 const kind=(a,b,c,d)=>overlap(a,b,c,d).relation;
 test('collinear segments classify overlap, containment and reversal',()=>{

@@ -2,7 +2,7 @@ import { CadNumericPolicy } from './numeric-policy.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { adopt } from './own-plane-cylinder-intersection-internal.js';
+import { adopt } from './intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same } from './structural-equality.js';

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { constructNativePlanarFaceBoundaryV1 as construct } from '../dist/native-planar-face-boundary-v1.js';
+import { constructNativePlanarFaceBoundaryV1 as construct } from '../dist/exact-proof/native-planar-face-boundary-v1.js';
 const p=(x,y)=>({x,y});
 test('immutable face boundary has cyclic next/previous connectivity and no sewn twins',()=>{
  const input=[p(0,0),p(4,0),p(4,4),p(0,4)];

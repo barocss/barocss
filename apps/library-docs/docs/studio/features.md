@@ -21,9 +21,12 @@ their sizes. The HUD shows the fields, and the viewport shows handles you can dr
 
 ## Holes
 
+![Hole with Copies set to On a circle: four holes previewed round the plate's centre](/shots/studio/features/holes-on-a-circle.jpg)
+
 **Hole** (<kbd>H</kbd>) cuts a round hole into a flat face: through, to a depth, counterbored, countersunk or tapped.
 Place it by its centre, or by dimensions from an outline's corner, an edge or another hole. **Copies** makes them
-**In a row** or **On a circle**, with a **Count**.
+**In a row** or **On a circle**, with a **Count**. On a circle, the first hole must sit away from the circle's centre,
+since the copies turn round it.
 
 A tapped hole and a **Fastener** (a bolt, cap screw, nut or washer fitted to a hole's rim) take their sizes from the
 fastener sizes you have loaded; without them they are refused with `[FASTENER_SIZE_ROW]`. See
@@ -61,6 +64,8 @@ that they only touch, and exports keep them as separate pieces.
 **Fit class** and **Fit pair** (under Inspect) declare tolerance classes and fits, with clearances from your tables.
 
 ## Sheet metal, frames and smooth shapes
+
+![A SubD box: one smooth body from a box cage](/shots/studio/features/subd-box.jpg)
 
 - **Sheet plate**, **Sheet profile**, **Flange** and **Corner relief** build sheet-metal parts that carry the sheet's
   thickness, bend radius and K-factor.

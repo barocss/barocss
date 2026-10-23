@@ -6462,6 +6462,35 @@ try {
   });
 
   // ---- the shapes strip's overflow: a More menu, never a sideways page --------------------------------------------
+  await check('bottom row: the history bar and the view bar never overlap at 1440 × 900, 1280 × 800, 1024 and 800 — beside each other with room, else the history stacked above; the Display popover over neither', async () => {
+    // (A part with five history steps: CNC8's plate and pocket.)
+    await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
+    const meets = (a, b) => a && b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+    const rects = () => page.evaluate(() => { const r = s => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { left: b.left, right: b.right, top: b.top, bottom: b.bottom }; };
+      return { history: r('.history'), views: r('.corner-right'), stack: r('.corner-right .corner-stack'), width: innerWidth, stacked: document.querySelector('.studio')?.classList.contains('history-stacked') }; });
+    const display = page.locator('[aria-label="Display and previews"]');
+    try {
+      const seen = [];
+      for (const [width, height] of [[1440, 900], [1280, 800], [1024, 800], [800, 800]]) {
+        await page.setViewportSize({ width, height }); await page.waitForTimeout(400);
+        const r = await rects();
+        assert.ok(r.history && r.views, `${width}: ${JSON.stringify(r)}`);
+        seen.push(`${width}: ${r.stacked ? 'stacked' : 'beside'}`);
+        assert.ok(!meets(r.history, r.views), `${width} × ${height}: the history bar meets the view bar: ${JSON.stringify(r)}`);
+        assert.ok(r.history.left >= 0 && r.history.right <= r.width + 0.5, `${width}: the history bar leaves the window: ${JSON.stringify(r)}`);
+        if (width === 1280) await snap('bottom-row-1280');
+        // (The Display popover stacks above the view bar, clear of the history bar.)
+        if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
+        await page.waitForTimeout(200);
+        const o = await rects();
+        assert.ok(!meets(o.history, o.stack), `${width}: the Display popover covers the history bar: ${JSON.stringify(o)}`);
+        await display.click();
+      }
+      console.log(`  bottom row: ${seen.join(', ')}`);
+      assert.ok(!seen[0].endsWith('stacked') && seen.at(-1).endsWith('stacked'), seen.join(', '));
+    } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
+  });
+
   await check('narrow window top bar: at 1024 and 800 the whole bar fits — no sideways page, every mode button in the window, every tool on the bar or under More tools (O127)', async () => {
     await page.click('[aria-label="New part"]'); await idle();
     const TOOLS = ['Chat', 'Undo', 'Redo', 'New part', 'New from a template', 'Library', 'Parameters', 'Open', 'Save', 'Export STL', 'Export 3MF', 'Export STEP', 'Insert part'];

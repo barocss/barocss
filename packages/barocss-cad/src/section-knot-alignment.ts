@@ -1,9 +1,9 @@
 import { validateCurve, curveDomain } from './math.js';
-import { refineCurveWide } from './curve-wide-refinement.js';
-import type { WideCurveInsertionRequest, WideCurveRefinementResult, WideCurveRefinementReport } from './curve-wide-refinement.js';
-import { buildRationalRuledSurface } from './rational-ruled-surface.js';
-import type { RationalRuledSurfaceResult, RationalRuledSurfaceReport } from './rational-ruled-surface.js';
-import { adopt } from './own-plane-cylinder-intersection-internal.js';
+import { refineCurveWide } from './nurbs/source-wide/curve-wide-refinement.js';
+import type { WideCurveInsertionRequest, WideCurveRefinementResult, WideCurveRefinementReport } from './nurbs/source-wide/curve-wide-refinement.js';
+import { buildRationalRuledSurface } from './nurbs/surfaces/rational-ruled-surface.js';
+import type { RationalRuledSurfaceResult, RationalRuledSurfaceReport } from './nurbs/surfaces/rational-ruled-surface.js';
+import { adopt } from './intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model } from './types.js';
 import { same } from './structural-equality.js';

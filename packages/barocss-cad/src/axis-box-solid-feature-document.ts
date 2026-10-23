@@ -6,9 +6,9 @@ import type { AxisBoxShellIds } from './box-shell.js';
 import { validateAxisBoxSolid } from './box-solid.js';
 import { buildAxisBoxSolidBoolean } from './axis-box-boolean.js';
 import type { AxisBoxSolidBooleanAsset, AxisBoxSolidBooleanOptions, AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
-import { editSourceSurfaceControlNet } from './source-surface-control-net.js';
-import type { SourceSurfaceControlNetResult } from './source-surface-control-net.js';
-import type { SurfacePoleEdit } from './surface-control-net.js';
+import { editSourceSurfaceControlNet } from './nurbs/source-wide/source-surface-control-net.js';
+import type { SourceSurfaceControlNetResult } from './nurbs/source-wide/source-surface-control-net.js';
+import type { SurfacePoleEdit } from './nurbs/surfaces/surface-control-net.js';
 import type { Model, Point, Surface } from './types.js';
 import { same } from './structural-equality.js';
 

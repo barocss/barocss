@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { planExactStraightEdgeCrossingSplitV1 as plan } from '../dist/exact-straight-edge-split-plan-v1.js';
+import { planExactStraightEdgeCrossingSplitV1 as plan } from '../dist/exact-proof/exact-straight-edge-split-plan-v1.js';
 const p=(x,y)=>({x,y});
 const rat=(numerator,denominator='1')=>({numerator,denominator});
 test('exact split plan keeps four parent segments and rational crossing without rounding',()=>{

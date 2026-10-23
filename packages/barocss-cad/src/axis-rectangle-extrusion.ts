@@ -1,4 +1,4 @@
-import { snapshotCurveRequest, requireCurveValue, curveDecimal } from './curve-source.js';
+import { snapshotCurveRequest, requireCurveValue, curveDecimal } from './nurbs/curves/curve-source.js';
 import { buildXYProfile } from './xy-profile.js';
 import type { XYProfileRequest, XYProfileResult } from './xy-profile.js';
 import { compileCadModel } from './model-compiler.js';

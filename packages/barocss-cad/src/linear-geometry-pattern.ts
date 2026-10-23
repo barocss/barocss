@@ -1,7 +1,7 @@
 import { transformNativeGeometryAffine, AffineGeometryTransformError } from './affine-geometry-transform.js';
 import type { AffineGeometryTransformResult, CadAffineMatrix3x4 } from './affine-geometry-transform.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain } from './math.js';
-import { adopt } from './own-plane-cylinder-intersection-internal.js';
+import { adopt } from './intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same } from './structural-equality.js';

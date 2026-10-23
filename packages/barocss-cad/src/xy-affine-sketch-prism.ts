@@ -1,4 +1,4 @@
-import { ExactAffinePlane } from './exact-affine-plane-internal.js';
+import { ExactAffinePlane } from './exact-proof/exact-affine-plane-internal.js';
 import { validateXYAffineSketch } from './xy-affine-sketch.js';
 import type { XYAffineSketchSuccess } from './xy-affine-sketch.js';
 import { buildConvexPlanarFace } from './own-convex-planar-face.js';

@@ -1,10 +1,10 @@
 import { CadNumericPolicy } from './numeric-policy.js';
-import { buildInterpolatingCurve, CurveInterpolationError } from './curve-interpolation.js';
-import type { CurveInterpolationResult } from './curve-interpolation.js';
+import { buildInterpolatingCurve, CurveInterpolationError } from './nurbs/curves/curve-interpolation.js';
+import type { CurveInterpolationResult } from './nurbs/curves/curve-interpolation.js';
 import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from './derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './derivatives.js';
-import { adopt } from './own-plane-cylinder-intersection-internal.js';
+import { adopt } from './intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same } from './structural-equality.js';

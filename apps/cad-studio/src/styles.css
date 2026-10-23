@@ -181,7 +181,10 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hud-actions { display: flex; align-items: center; gap: 6px; font-size: 10px; }
 
 /* (Centred in the room between the status line, bottom left, and the view bar, bottom right.) */
-.history { position: absolute; left: calc(270px + (100vw - 870px) / 2); bottom: 16px; transform: translateX(-50%); max-width: max(280px, calc(100vw - 900px)); padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
+/* (The history bar between the browser panel's edge and the view bar, centred there: --corner-w is the view bar's
+   measured width (ui/useBottomRow.ts). With under 280 px of room it stacks above the view bar, and what the view bar
+   stacks above itself rises past it.) */
+.history { position: absolute; left: 270px; right: calc(var(--corner-w, 600px) + 24px); bottom: 16px; width: fit-content; margin-inline: auto; max-width: calc(100vw - 294px - var(--corner-w, 600px)); min-width: 0; box-sizing: border-box; padding: 6px; display: flex; align-items: center; gap: 4px; overflow-x: auto; z-index: 2; }
 .hs { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
 .hs:hover { background: #393b40; }
 .hs.edit { outline: 1px dashed var(--accent); background: var(--accent-soft); color: #f3d98f; }
@@ -194,6 +197,8 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .corner-right { position: absolute; right: 12px; bottom: 16px; display: flex; align-items: center; gap: 4px; z-index: 2; }
 .corner-right .corner-stack { position: absolute; right: 0; bottom: calc(100% + 6px); display: flex; flex-direction: column; align-items: flex-end; gap: 4px; max-height: calc(100vh - 160px); overflow-y: auto; pointer-events: none; z-index: 3; }
 .corner-right .corner-stack > * { pointer-events: auto; }
+.history-stacked .history { right: 12px; bottom: calc(16px + var(--corner-h, 32px) + 8px); max-width: calc(100vw - 282px); }
+.history-stacked .corner-right .corner-stack { bottom: calc(100% + 6px + 56px); }
 .corner-right .previews { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .corner-right .corner-stack .section-bar, .corner-right .corner-stack .map-legend { position: static; }
 .chip { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border-radius: 4px; background: #2e3034; font-size: 11px; color: var(--text-2); }

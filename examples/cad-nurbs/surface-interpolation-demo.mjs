@@ -16,8 +16,8 @@ const bundled = await esbuild.build({absWorkingDir: repo, entryPoints: [entry], 
 assert.equal(bundled.outputFiles.length, 1);
 const sourceInputs = Object.keys(bundled.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
-assert.ok(cadInputs.includes(entry)); assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/surface-interpolation.ts')));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/curve-interpolation.ts')));
+assert.ok(cadInputs.includes(entry)); assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/nurbs/surfaces/surface-interpolation.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/nurbs/curves/curve-interpolation.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundled.outputFiles[0].text).toString('base64'));
@@ -280,7 +280,7 @@ const typeNames = ['SurfaceInterpolationOptions', 'SurfaceInterpolationObservati
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SurfaceInterpolationDiagnosticCode, SurfaceInterpolationDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./surface-interpolation.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/surface-interpolation.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/surfaces/surface-interpolation.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'known_bicubic_nonunit').authoredFile, 'utf8'));
 const compiled = publicAPI.buildInterpolatingSurface(cold.parametersU, cold.parametersV, cold.points, cold.options);

@@ -2,7 +2,7 @@ import { evaluateXYSketchDocument, updateXYSketchDocument } from './xy-sketch-do
 import type { XYSketchDocumentV0, XYSketchDocumentEdit, XYSketchDocumentResult, XYSketchPointBinding } from './xy-sketch-document.js';
 import { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
 import type { AxisRectangleExtrusionResult, AxisRectangleExtrusionConstruction } from './axis-rectangle-extrusion.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import { same as sameData } from './structural-equality.js';
 

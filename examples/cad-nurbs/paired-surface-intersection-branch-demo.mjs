@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 assert.equal(args.length, 2, 'Usage: node paired-surface-intersection-branch-demo.mjs --source <output-directory>'); assert.equal(args[0], '--source');
 const repo = resolve(fileURLToPath(new URL('../../', import.meta.url))), output = resolve(args[1]); mkdirSync(output, { recursive: true });
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? repo, 'package.json')), esbuild = require('esbuild');
-const entry = resolve(repo, 'packages/barocss-cad/src/index.ts'), parserModule = resolve(repo, 'packages/barocss-cad/src/cad-document.ts'), decimalModule = resolve(repo, 'packages/barocss-cad/src/curve-source.ts');
+const entry = resolve(repo, 'packages/barocss-cad/src/index.ts'), parserModule = resolve(repo, 'packages/barocss-cad/src/cad-document.ts'), decimalModule = resolve(repo, 'packages/barocss-cad/src/nurbs/curves/curve-source.ts');
 const bridge = 'export * from ' + JSON.stringify(entry) + ';\nexport {parseCadDocumentOwnJson as demoParseOwnRequest} from ' + JSON.stringify(parserModule) + ';\nexport {curveDecimal as demoDecimal} from ' + JSON.stringify(decimalModule) + ';\n';
 const bundle = await esbuild.build({ absWorkingDir: repo, stdin: { contents: bridge, resolveDir: repo, sourcefile: 'paired-surface-demo-source-bridge.mjs', loader: 'js' }, bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
 assert.equal(bundle.outputFiles.length, 1);

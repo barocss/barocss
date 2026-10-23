@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 const repo = resolve(fileURLToPath(new URL('../../', import.meta.url))), output = resolve(process.argv[2]);
 mkdirSync(output, { recursive: true });
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? repo, 'package.json'));
-const bundle = await require('esbuild').build({ entryPoints: [resolve(repo, 'packages/barocss-cad/src/exact-affine-plane-internal.ts')], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false });
+const bundle = await require('esbuild').build({ entryPoints: [resolve(repo, 'packages/barocss-cad/src/exact-proof/exact-affine-plane-internal.ts')], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false });
 const { ExactAffinePlane } = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const plane = { kind: 'surface', id: 'plane', degreeU: 1, degreeV: 1, knotsU: [-2, -2, 18, 18], knotsV: [4, 4, 10, 10], controlPoints: [[[7, 9, 0], [7, 9, 6]], [[27, 9, 0], [27, 9, 6]]], weights: [[1, 1], [1, 1]] };
 const exact = new ExactAffinePlane(plane, 'test');

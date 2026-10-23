@@ -6,7 +6,7 @@
 // tolerance). Surfaces trimmed inside their domain, and gaps wider than the tolerance, do not sew.
 import { assertValidBrep, buildBrep, type Brep, type BrepFaceInput } from './brep-core.js';
 import { evaluateCurve, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator } from './math.js';
-import { extractSurfaceIsoCurve } from './surface-isocurve.js';
+import { extractSurfaceIsoCurve } from './nurbs/surfaces/surface-isocurve.js';
 import type { Curve, Point, Surface } from './types.js';
 import { dist } from './vec3.js';
 

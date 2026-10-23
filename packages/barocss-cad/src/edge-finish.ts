@@ -27,7 +27,7 @@ import { revolveProfile } from './revolve.js';
 import { transformBrep } from './brep-transform.js';
 import { circleOf } from './brep-tessellate.js';
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from './math.js';
-import { revolutionOf, type Revolution } from './surface-revolution.js';
+import { revolutionOf, type Revolution } from './nurbs/surfaces/surface-revolution.js';
 import { acrossOf, filletSection, refuseFillet, type SectionSide } from './fillet-section.js';
 import { contactFacesOf, invertOn, normalOn, ringFillet, sheetOf, type CornerInput, type EndPlane, type FilletReport, type RadiusAt, type SectionShape } from './rolling-ball.js';
 import { add, cross, dot, len, scale, sub, unit } from './vec3.js';

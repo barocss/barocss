@@ -3,7 +3,7 @@ import type { XYCirclePrismShellResult, XYCirclePrismShellBundle } from './xy-ci
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 import { compileCadModel } from './model-compiler.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same } from './structural-equality.js';
 

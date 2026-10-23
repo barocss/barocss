@@ -331,7 +331,7 @@ assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); cons
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.NativeCurvatureDiagnosticCode, NativeCurvatureDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./local-curvature.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/local-curvature.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/surfaces/local-curvature.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 for (const item of cases) {
   const authored = JSON.parse(readFileSync(item.authoredFile, 'utf8')), saved = JSON.parse(readFileSync(item.resultFile, 'utf8'));

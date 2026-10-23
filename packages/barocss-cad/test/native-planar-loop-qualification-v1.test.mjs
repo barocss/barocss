@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { qualifyNativePlanarLoopV1 as qualify } from '../dist/native-planar-loop-qualification-v1.js';
+import { qualifyNativePlanarLoopV1 as qualify } from '../dist/exact-proof/native-planar-loop-qualification-v1.js';
 const p=(x,y)=>({x,y});
 test('counterclockwise and clockwise square loops qualify',()=>{
  const pts=[p(0,0),p(4,0),p(4,4),p(0,4)];

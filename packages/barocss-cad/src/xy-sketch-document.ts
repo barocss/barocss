@@ -1,6 +1,6 @@
 import { buildXYProfile } from './xy-profile.js';
 import type { XYPoint, XYProfileRequest, XYProfileResult } from './xy-profile.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 
 export interface XYSketchAuthoredPoint { id: string; xy: XYPoint }

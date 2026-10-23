@@ -4,7 +4,7 @@ import type { XYArcSketchDocumentV0, XYArcSketchDocumentEdit, XYArcSketchDocumen
 import { evaluateXYCirclePrismDocument } from './xy-circle-prism-document.js';
 import type { XYCirclePrismDocumentV0, XYCirclePrismDocumentResult, XYCirclePrismDocumentReport } from './xy-circle-prism-document.js';
 import type { XYCirclePrismShellReport } from './xy-circle-prism-shell.js';
-import { curveDecimal } from './curve-source.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import { same as sameData } from './structural-equality.js';
 

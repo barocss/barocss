@@ -541,7 +541,7 @@ reject('atomic-prior-object', () => { previous = elevate(requestFor(overSource, 
 jsonFile('atomic-retention', { callerAndPreviousResultsAndFilesRetained: true, getterCalls, noPartialResultPublished: true });
 const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), 'utf8'));
 const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'];
-const runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types), leafDeclarationPath = resolve(packageRoot, 'dist/source-curve-degree-elevation.d.ts');
+const runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types), leafDeclarationPath = resolve(packageRoot, 'dist/nurbs/source-wide/source-curve-degree-elevation.d.ts');
 const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.SourceCurveDegreeElevationDiagnosticCode, codes);

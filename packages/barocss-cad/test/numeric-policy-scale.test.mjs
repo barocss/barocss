@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CadNumericPolicy, linearToleranceMM, geometryScaleMM } from '../dist/numeric-policy.js';
-import { intersectBezierCurveWithAffinePlaneSurface } from '../dist/own-curve-plane-intersection.js';
-import { intersectCoplanarCurveWithLineSegment } from '../dist/own-curve-line-intersection.js';
+import { intersectBezierCurveWithAffinePlaneSurface } from '../dist/intersect/own-curve-plane-intersection.js';
+import { intersectCoplanarCurveWithLineSegment } from '../dist/intersect/own-curve-line-intersection.js';
 
 const plane = (S, z = 0) => ({ kind: 'surface', id: 'p', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
   controlPoints: [[[-S, -S, z], [-S, S, z]], [[S, -S, z], [S, S, z]]], weights: [[1, 1], [1, 1]] });

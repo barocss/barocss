@@ -11,7 +11,7 @@ test('qualified orient2d exact, bounded, and refusal behavior', { timeout: 12000
   const dir = mkdtempSync(join(tmpdir(), 'barocss-orient2d-'));
   try {
     const output = await build({
-      entryPoints:[resolve(root,'packages/barocss-cad/src/robust-orientation-v1.ts')],
+      entryPoints:[resolve(root,'packages/barocss-cad/src/exact-proof/robust-orientation-v1.ts')],
       bundle:true, platform:'node', format:'esm', target:'es2022', write:false,
     });
     const file = join(dir,'orientation.mjs');

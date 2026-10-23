@@ -1,6 +1,6 @@
-import { buildZAxisRevolvedSurface } from './z-axis-revolved-surface.js';
-import type { ZAxisRevolvedSurfaceResult, ZAxisRevolvedSurfaceReport } from './z-axis-revolved-surface.js';
-import { curveDecimal } from './curve-source.js';
+import { buildZAxisRevolvedSurface } from './nurbs/surfaces/z-axis-revolved-surface.js';
+import type { ZAxisRevolvedSurfaceResult, ZAxisRevolvedSurfaceReport } from './nurbs/surfaces/z-axis-revolved-surface.js';
+import { curveDecimal } from './nurbs/curves/curve-source.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve } from './types.js';
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHomogeneousBernsteinEquation, solveHomogeneousBernsteinEquation } from '../dist/own-homogeneous-bernstein-roots.js';
+import { createHomogeneousBernsteinEquation, solveHomogeneousBernsteinEquation } from '../dist/intersect/own-homogeneous-bernstein-roots.js';
 
 const value = ([a, b, c], t) => a * (1 - t) ** 2 + 2 * b * t * (1 - t) + c * t * t;
 const solve = v => solveHomogeneousBernsteinEquation(createHomogeneousBernsteinEquation(v));

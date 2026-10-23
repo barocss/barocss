@@ -1,5 +1,5 @@
-import { buildExactBoundaryFaceAdjacency } from './exact-boundary-face-adjacency.js';
-import type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, ExactBoundaryFaceAdjacencyResult } from './exact-boundary-face-adjacency.js';
+import { buildExactBoundaryFaceAdjacency } from './exact-proof/exact-boundary-face-adjacency.js';
+import type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, ExactBoundaryFaceAdjacencyResult } from './exact-proof/exact-boundary-face-adjacency.js';
 import type { SurfaceBoundary } from './boundary.js';
 import { copyCadData } from './data-copy.js';
 import { same } from './structural-equality.js';
