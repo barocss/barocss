@@ -1,5 +1,6 @@
 import type { ClearanceDisplay } from './clearanceDisplay';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from 'react';
+import { countRender } from '../devRenders';
 import type { PrintDisplay } from './printDisplay';
 import type { CamDisplay } from './camDisplay';
 import { camStockBounds } from './camOverlayGeometry';
@@ -343,6 +344,7 @@ function printViewportProps(source: Props, projection: ReturnType<typeof project
 }
 
 export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sourceProps, ref) {
+  countRender('Viewport');
   const projection = useMemo(() => sourceProps.printDisplay ? projectPrintBodies(sourceProps.bodies, sourceProps.printDisplay) : null,
     [sourceProps.bodies, sourceProps.printDisplay?.summaryKey, sourceProps.printDisplay?.topMM, sourceProps.printDisplay?.printed]);
   const props = useMemo(() => projection ? printViewportProps(sourceProps, projection) : sourceProps.printActive ? { ...sourceProps, bodies: [], selection: { faces: [], edges: [], bodies: [] }, gizmo: null, handles: [], profiles: [], threads: undefined, underlays: undefined, cloud: null, poles: undefined } : sourceProps, [sourceProps, projection]);

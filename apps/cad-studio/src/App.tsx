@@ -28,6 +28,7 @@ import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
 import { CamPanel } from './viewport/CamPanel';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
+import { countRender } from './devRenders';
 import { useDrawingSheet } from './ui/useDrawingSheet';
 import { pmiSelection } from './viewport/pmiGeometry';
 import { useCamPreview } from './viewport/camPreview';
@@ -231,6 +232,7 @@ const CAD_DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
 ];
 
 export function App() {
+  countRender('App');
   const engine = useMemo(() => new EngineClient(), []);
   const viewport = useRef<ViewportHandle>(null);
   const [doc, setDoc] = useState<StudioDoc>(starterDoc);
