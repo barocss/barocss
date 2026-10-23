@@ -7,7 +7,7 @@ import type { ModelNode, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
 import { massProperties } from '../analysis/analysis';
-import { bomViewOf, deriveBom, lumpsField, massBoundField, type Bom, type BomLine, type BomView } from './bomCore';
+import { bomViewOf, deriveBom, lumpsField, massBoundField, type Bom, type BomLine, type BomView } from './core';
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
 import { r6 } from '../util/round';

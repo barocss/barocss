@@ -14,7 +14,7 @@ import { meshesMeet } from '../robot/sweep';
 import { chordOf, measureBody } from '../chat/references';
 import { holesOff, placedBodies, readInterfaces } from './parts';
 import type { RoleReport } from './team';
-import { bomViewOf, type Bom, type BomView } from './bomCore';
+import { bomViewOf, type Bom, type BomView } from '../bom/core';
 import { beadAccounting, combineBeadAccounting, incompleteBeadReason, type BeadAccounting } from '../frames/beadAccounting';
 import { r6 } from '../util/round';
 import { evaluateTree } from '../assembly/instances';
@@ -78,7 +78,7 @@ export function declaredContact(doc: StudioDoc, a: string, b: string): string | 
 }
 
 // ——— the BOM agent: read-only, on a built view
-export { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from './bomCore';
+export { bomViewOf, deriveBom, type Bom, type BomLine, type BomView } from '../bom/core';
 export interface BomRole { model: string; bom(view: BomView): Promise<Bom & RoleReport> }
 /** The BOM agent's view: each part's name, material, mass, its library origin and a fingerprint of its shape — nothing to change. */
 export async function bomView(doc: StudioDoc, evaluate: Evaluate): Promise<BomView> {

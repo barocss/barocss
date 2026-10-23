@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { bomPanelData } from '../src/team/bom';
+import { bomPanelData } from '../src/bom/bom';
 import { bomView, checkBom, deriveBom } from '../src/team/assembly';
 import { personFile } from './person-file';
 

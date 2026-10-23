@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { bomPanelData, isBoughtLine, purchaseCsv } from '../src/team/bom';
+import { bomPanelData, isBoughtLine, purchaseCsv } from '../src/bom/bom';
 import { bomView, checkBom, deriveBom } from '../src/team/assembly';
 import { withFastenerInstance } from '../src/app/fasteners';
 import { fastenerRowProblem } from '../src/engine/fastenerRows';

@@ -11,7 +11,7 @@ import { readStudioDoc } from '../src/engine/migrate';
 import { readStudioFile, encodeStudioFile } from '../src/engine/container';
 import { resolveShopTree, restoreAuthoredShopRows } from '../src/engine/shopRows';
 import { WireReceiver, WireSender } from '../src/engine/wireDoc';
-import { bomPanelData, purchaseCsv } from '../src/team/bom';
+import { bomPanelData, purchaseCsv } from '../src/bom/bom';
 import { modelInput } from '../src/team/freshness';
 import { dispatchTool } from '../src/chat/tools';
 

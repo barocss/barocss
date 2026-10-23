@@ -8,7 +8,7 @@
 // none clear, at its nearest place, and the issue list says so. A line none of whose items shows an edge in the view
 // has no balloon, and is said.
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
-import type { Bom } from '../team/bomCore';
+import type { Bom } from '../bom/core';
 import type { Mark, MarkGroup } from './sheet';
 import { toSheet, type SheetLayout, type ViewPlacement } from './views';
 import type { DrawingViews, ViewId, XY } from './types';

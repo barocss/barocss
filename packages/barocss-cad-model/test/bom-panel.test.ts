@@ -9,7 +9,7 @@ import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { runOutputTool } from '../src/chat/outputs';
 import { v2Result } from '../src/chat/groups';
 import { sha256Hex } from '../src/team/digest';
-import { bomPanelData, purchaseCsv, setBought } from '../src/team/bom';
+import { bomPanelData, purchaseCsv, setBought } from '../src/bom/bom';
 
 // O147 B1: the BOM panel's data (S1's BOM, a part alone as its own line, the made elements), the bought/made choice on
 // every node a line merges (one change), and the purchase list as CSV.

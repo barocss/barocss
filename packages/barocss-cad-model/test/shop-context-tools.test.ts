@@ -8,7 +8,7 @@ import { drawingDocument } from '../src/drawing/scope';
 import { readDrawing } from '../src/drawing/types';
 import { drawingInputs } from '../src/chat/drawing';
 import { massResult, freshnessOf } from '../src/team/freshness';
-import { bomPanelData } from '../src/team/bom';
+import { bomPanelData } from '../src/bom/bom';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { listed, SYSTEM_PROMPT_V2, TOOLS_V2 } from '../src/chat/toolset';
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);

@@ -5,7 +5,7 @@ import type { Evaluate } from './tools';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { resolveShopRows, resolveShopTree, provenanceOfTree } from '../engine/shopRows';
-import { bomPanelData, purchaseCsv } from '../team/bom';
+import { bomPanelData, purchaseCsv } from '../bom/bom';
 import { assemblyPlacedBodies, clearanceMap } from '../team/clearanceMap';
 import { documentRevision, verifyBundle, writeBundle } from '../team/bundle';
 import { sha256Hex } from '../team/digest';
