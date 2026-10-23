@@ -115,6 +115,8 @@ Moved out of Phase 0:
 | W0 | coordinator | **done** 736851196: the old documentation site removed; a new VitePress skeleton for the CAD stack (sidebar.mjs, page outlines, check:docs). Owner, 2026-10-23: "전부다 지우고 문서사이트를 다시 시작해도 좋아" |
 | W1 | docs | **in progress** — the docs lane (its own session, branch claude/fervent-hopper-d9c6b2, worktree fervent-hopper-d9c6b2) writes every page from the code as it is: introduction and concepts → studio guide → AI agent → packages → reference → screenshots; code samples from running tests; "Being written" count to 0 |
 | G11 | GPU | **Measure, then decide** (the Later list's "after G25, when need is measured"): with O10's frame costs and the bench, profile the heaviest real scenes (the A9 assembly, the 120-bracket pattern, the large gallery parts) on both renderers; report where frame time goes; propose occlusion culling, LOD or other work only where a measured budget is missed |
+| G12 | GPU | **Studio layout, owner 2026-10-23** ("이 방향으로 해줘"; the floating previews overlapped the BOM panel, text-heavy, not tidy): one right-hand dock holding the inspector, BOM, Rebuild and the previews/analysis as tabs or collapsible sections, nothing floating over another panel, long content scrolling inside the dock; the previews (CNC, print layers, clearance, analysis maps) as one mode chosen at a time with only its settings shown; a one-line status and colour-chip legend by default, the long notes behind "Details" or an (i); a flow check that no two panels intersect at 1440/1280/1024/800. Before G11's follow-ups |
+| O16 | outer | The dock's panel contents (with G12): the BOM table's columns at the dock's width (no wrapped item names), the panels' long texts moved into "Details", one text style for status, limits and legends across src/ui |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | **done** D197–D210, D206 (fuzz s1 refusals 31 → 16, s2 29 → 14; INVALID 0, WRONG 0 on both; touching lumps are separate bodies). the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | **done** D211 (turningOf 8.1 → 4.4 s; D1 calls 4.22 M → 1.40 M). F5's remainder (the turning report's first-derivative evaluations) |
@@ -194,6 +196,8 @@ evidence files.
 - **W0** — Documentation site cleared and its skeleton set up · ko: 문서 사이트 비우고 새 뼈대 만들기
 - **W1** — Documentation written from the current code · ko: 지금 코드 기준으로 문서 전부 새로 쓰기
 - **G11** — Measure the heaviest scenes, then decide on culling or LOD · ko: 가장 무거운 장면을 재고 나서 컬링·LOD 필요 여부 판단
+- **G12** — Studio layout: one dock, one preview mode, compact legends, no overlaps · ko: 스튜디오 화면 정리: 오른쪽 도킹 하나, 미리보기는 하나씩, 짧은 범례, 겹침 없음
+- **O16** — Panel contents tidied for the dock · ko: 도킹 안 패널 내용 정리 (BOM 표 폭, 긴 설명 접기, 문구 스타일 통일)
 - **G1** — A9-7 UI port · ko: A9-7 UI 이식
 - **G2** — G23: CNC preview · ko: G23: CNC 가공 미리보기
 - **G3** — G21: display modes, silhouettes, isolate and hide · ko: G21: 표시 모드, 실루엣, 격리와 숨기기
