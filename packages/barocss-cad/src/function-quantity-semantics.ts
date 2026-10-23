@@ -1,5 +1,5 @@
-import { CadAstError } from './source-ast.js';
-import type { CadExpression, CadModelAst, CadAstValue, CadFunctionAst, CadOrdinaryAstDeclaration, CadSourceRange } from './source-ast.js';
+import { CadAstError } from './language/source-ast.js';
+import type { CadExpression, CadModelAst, CadAstValue, CadFunctionAst, CadOrdinaryAstDeclaration, CadSourceRange } from './language/source-ast.js';
 import type { CadQuantityKind, CadResolvedParameter, CadFieldBinding, CadParameterDependency } from './parameter-semantics.js';
 import { copyCadData } from './data-copy.js';
 

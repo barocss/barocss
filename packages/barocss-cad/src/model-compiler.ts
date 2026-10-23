@@ -1,14 +1,14 @@
-import { parseCadAst, CadAstError } from './source-ast.js';
-import type { CadModelAst, CadSourceRange } from './source-ast.js';
-import { analyzeCadAst, copyCadData } from './semantic-model.js';
-import type { CadModelIR } from './semantic-model.js';
-import { lowerCadIR } from './lower-model.js';
+import { parseCadAst, CadAstError } from './language/source-ast.js';
+import type { CadModelAst, CadSourceRange } from './language/source-ast.js';
+import { analyzeCadAst, copyCadData } from './language/semantic-model.js';
+import type { CadModelIR } from './language/semantic-model.js';
+import { lowerCadIR } from './language/lower-model.js';
 import type { Model } from './types.js';
 import type { ExtrusionConstruction } from './construction-types.js';
 
 export type { CadModelAst, CadSourceRange, CadModelIR };
-export type { CadExpression } from './source-ast.js';
-export type { CadModelIR1, CadModelIR2, CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './semantic-model.js';
+export type { CadExpression } from './language/source-ast.js';
+export type { CadModelIR1, CadModelIR2, CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './language/semantic-model.js';
 export interface CadCompileOptions { sourceVersion: 0 | 1 | 2 | 3 }
 export interface CadDiagnostic { code: string; severity: 'error'; message: string; range: CadSourceRange; objectId?: string }
 export type CadCompileResult = { ok: true; ast: CadModelAst; ir: CadModelIR; model: Model; constructions: ExtrusionConstruction[]; diagnostics: [] }

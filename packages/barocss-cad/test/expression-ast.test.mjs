@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseCadAst, CAD_AST_LIMITS, CAD_EXPRESSION_LIMITS } from '../dist/source-ast.js';
+import { parseCadAst, CAD_AST_LIMITS, CAD_EXPRESSION_LIMITS } from '../dist/language/source-ast.js';
 
 const wrap = (expression) => `@model x{version:2;length-unit:mm;@parameter #p{type:scalar;value:${expression};}}`;
 const get = (source) => parseCadAst(source, 2).declarations[0].fields.find((field) => field.name === 'value').value;

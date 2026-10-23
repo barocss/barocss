@@ -6,7 +6,7 @@
 import { regionMoments } from './curved-arrangement.js';
 import { planar, tessellateBrep } from './brep-tessellate.js';
 import { brepQuadratureIntegrals } from './brep-mass-quadrature.js';
-import { facetIntegrals } from './facet-patch.js';
+import { facetIntegrals } from './mesh/facet-patch.js';
 import type { Brep } from './brep-core.js';
 import type { PrismaticSolid } from './prismatic-solid.js';
 import type { Point } from './types.js';

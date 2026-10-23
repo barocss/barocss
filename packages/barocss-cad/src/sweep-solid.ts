@@ -2,7 +2,7 @@
 // path's start, square to it, and is carried along with a rotation-minimising frame (double reflection),
 // so it does not twist about the path; the ends are capped flat. Holes in the profile run through as
 // bores (a tube). Built as one closed mesh, sampled every so often along the path and round each loop.
-import { brepFromTriangles } from './mesh-brep.js';
+import { brepFromTriangles } from './mesh/mesh-brep.js';
 import { triangulatePolygonWithHoles } from './brep-tessellate.js';
 import { curveDomain, evaluateCurve } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';

@@ -1,6 +1,6 @@
 export * from './types.js';
 export { MAX_SAMPLES, validateCurve, validateSurface, validateModel, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface, curveEvaluator, surfaceEvaluator, sampleCurve, sampleSurface } from './math.js';
-export * from './iges.js';
+export * from './io/iges.js';
 export * from './packet.js';
 export * from './preview.js';
 export * from './extrusion.js';
@@ -421,8 +421,8 @@ export { elevateSourceSurfaceAxisDegree, validateSourceSurfaceAxisDegreeElevatio
 export type { SourceSurfaceDegreeElevationRequest, SourceSurfaceDegreeElevationPatch, SourceSurfaceDegreeElevationReport, SourceSurfaceDegreeElevationResult } from './source-surface-degree-elevation.js';
 
 
-export { importIGES, validateIGESImport, IGESImportError, IGESImportDiagnosticCode } from './iges-import.js';
-export type { IGESImportOptions, IGESImportEntity, IGESImportReport, IGESImportResult } from './iges-import.js';
+export { importIGES, validateIGESImport, IGESImportError, IGESImportDiagnosticCode } from './io/iges-import.js';
+export type { IGESImportOptions, IGESImportEntity, IGESImportReport, IGESImportResult } from './io/iges-import.js';
 
 
 export { buildSourceLineWidthFace, validateSourceLineWidthFace, SourceLineWidthFaceError, SourceLineWidthFaceDiagnosticCode } from './source-line-width-face.js';
@@ -445,9 +445,9 @@ export { evaluateSourceLineWidthExtrusionGraph, updateSourceLineWidthExtrusionGr
 export type { SourceLineWidthExtrusionGraphV0, SourceLineWidthExtrusionGraphOptions, SourceLineWidthExtrusionGraphEdits, SourceLineWidthExtrusionGraphReport, SourceLineWidthExtrusionGraphResult, SourceLineWidthExtrusionGraphTransactionReport, SourceLineWidthExtrusionGraphTransaction, SourceLineWidthExtrusionGraphUpdateResult } from './source-line-width-extrusion-graph.js';
 
 
-export type { CadCallArgument, CadCallExpression } from './expression-parser.js';
-export type { CadFormalArgument, CadFunctionAst } from './source-ast.js';
-export type { CadModelIR3 } from './semantic-model.js';
+export type { CadCallArgument, CadCallExpression } from './language/expression-parser.js';
+export type { CadFormalArgument, CadFunctionAst } from './language/source-ast.js';
+export type { CadModelIR3 } from './language/semantic-model.js';
 export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from './function-quantity-semantics.js';
 
 
@@ -562,24 +562,24 @@ export type { XYAffinePrismNodeV2, XYAffinePrismChamferNodeV2, XYAffinePrismCham
 export { CadModelError, CadModelLimits } from './modeling.js';
 export type { CadModel, CadModelSnapshot, CadStlExport, CadMassPropertiesOptions, CadMassProperties, CadModelFeature, CadModelEvidence, CadBody, CadModelErrorCode, CadParameter, CadDimensionExpression, CadDimension, CadPoint2, CadAxis, CadEdgeQuery, CadEdgeSelection, CadEdgeQueryHandle, CadShape, CadCut, CadSplit, CadSketch, CadSketchPoint, CadConstrainedPolygonBuilder, CadRectangle, CadLoopSegment } from './modeling.js';
 export * from './extruded-profile-solid.js';
-export { encodeBinaryStl } from './stl.js';
-export { brepFromTriangles, readObj, readStl, MeshBrepError, type MeshBrepOptions } from './mesh-brep.js';
-export { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, type FacetBrepOptions } from './facet-brep.js';
-export { facetArea, facetPlane, facetVectorArea } from './facet-patch.js';
-export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } from './facet-bvh.js';
-export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './facet-split.js';
-export { decimateMesh, type DecimateOptions, type DecimateReport, type DecimateResult } from './mesh-decimate.js';
-export { meshDistance, type MeshDistance } from './mesh-distance.js';
+export { encodeBinaryStl } from './io/stl.js';
+export { brepFromTriangles, readObj, readStl, MeshBrepError, type MeshBrepOptions } from './mesh/mesh-brep.js';
+export { facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, type FacetBrepOptions } from './mesh/facet-brep.js';
+export { facetArea, facetPlane, facetVectorArea } from './mesh/facet-patch.js';
+export { classifyPointInFacets, facetBvh, type FacetBvh, type FacetPointClass } from './mesh/facet-bvh.js';
+export { splitFacetBrep, type FacetSplitOptions, type FacetSplitResult } from './mesh/facet-split.js';
+export { decimateMesh, type DecimateOptions, type DecimateReport, type DecimateResult } from './mesh/mesh-decimate.js';
+export { meshDistance, type MeshDistance } from './mesh/mesh-distance.js';
 // K2 (D141): the one triangle hierarchy, its ray and nearest-point queries.
-export { triangleBvh, rayHit, nearestDistance2, pointTriangleDistance2, closestPointOnTriangle, type TriangleBvh, type TriangleBvhOptions } from './triangle-bvh.js';
+export { triangleBvh, rayHit, nearestDistance2, pointTriangleDistance2, closestPointOnTriangle, type TriangleBvh, type TriangleBvhOptions } from './mesh/triangle-bvh.js';
 // K3 (D142): the least distance between two meshes' surfaces, exactly, with the closest points.
-export { meshClearance, type MeshClearance, type MeshClearanceOptions } from './mesh-clearance.js';
+export { meshClearance, type MeshClearance, type MeshClearanceOptions } from './mesh/mesh-clearance.js';
 // K4 (D143): the nearest point of a NURBS surface.
 export { closestPointOnSurface, surfaceSeedGrid, surfaceD1Near, type SurfaceClosestPoint, type SurfaceClosestOptions, type SurfaceSeedGrid } from './surface-closest.js';
 // K5 (D144): section properties of polygons, a symmetric 3 × 3 eigen solver, a mesh's volume.
 export { polygonSectionProperties, symmetricEigen3, symmetricEigen3InPlace, meshVolume, type SectionProperties, type Matrix3, type Vector3 } from './section-properties.js';
 // K6 (D145): a mesh on a voxel grid (inside flags, capped depth) and marching tetrahedra.
-export { voxelInsideFlags, voxelDepth, marchingTetrahedra, voxelNode, VOXEL_CORNERS, VOXEL_TETRAHEDRA, type VoxelField, type VoxelPoint } from './voxel-field.js';
+export { voxelInsideFlags, voxelDepth, marchingTetrahedra, voxelNode, VOXEL_CORNERS, VOXEL_TETRAHEDRA, type VoxelField, type VoxelPoint } from './mesh/voxel-field.js';
 // K7b (D147): plain (uncertified) B-spline fitting — interpolation, least squares, the surface tensor, knot removal.
 export { interpolateCurvePlain, approximateCurvePlain, interpolateSurfacePlain, removeCurveKnotPlain, chordParameters, averagedKnots, plainBasis, plainFindSpan, type PlainFitCurve, type PlainFitSurface, type PlainPoint } from './fit-plain.js';
 // K1 (D140): generic convex geometry moved down from the studio's robot track.
@@ -588,25 +588,25 @@ export { convexDistance } from './convex-distance.js';
 export { subdBrep, SubdError, subdSummary, type SubdCage, type SubdOptions, type SubdSummary } from './subd.js';
 export { subdReport, type SubdReport, type SubdReportOptions } from './subd-report.js';
 export { cageTopology, validateCage, edgeLoop, edgeRing, moveVertices, selectionVertices, extrudeFaces, extrudeEdges, insertEdgeLoop, deleteFaces, compact, boundaryLoop, fillHole, bridge, weldVertices, weldWithin, setCreases, mirrorCage, halfCage, keepOnPlane, subdPreviewMesh, type Cage, type CageTopology, type CageValidation, type MirrorAxis } from './subd-cage.js';
-export { facetBoolean, FacetBooleanError, type FacetBooleanOptions } from './facet-boolean.js';
-export { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkPlacedSpurGears, GearError, type PlacedSpurGear, type PlacedSpurGearPairCheck, type SpurGearPairCheck, type SpurGearPairOptions, type SpurGearSpec, type SpurGearReport, type SpurGearDimensions, type GearDiagnostic, type GearDiagnosticCode } from './gear.js';
-export { spurRack, spurRackDimensions, checkSpurGearRack, checkPlacedSpurRack, type PlacedSpurRack, type PlacedSpurRackCheck, type SpurRackSpec, type SpurRackReport, type SpurRackPairOptions, type SpurRackPairCheck } from './gear-rack.js';
-export { internalGear, internalGearDimensions, internalGearCenterDistance, checkInternalGearPair, checkPlacedInternalGears, pinionTurnInside, type InternalGearSpec, type InternalGearReport, type InternalGearPairOptions, type InternalGearPairCheck, type PlacedInternalGear, type PlacedInternalGearPairCheck } from './gear-internal.js';
-export { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, bevelMatePlacement, bevelGearMatrix, type BevelGearSpec, type BevelGearReport, type BevelGearPairOptions, type BevelGearPairCheck, type PlacedBevelGear, type PlacedBevelGearPairCheck } from './gear-bevel.js';
-export { worm, wormDimensions, wormWheelSpec, checkWormPair, wormPlacement, wormMatrix, checkPlacedWormPair, type WormSpec, type WormReport, type WormPairOptions, type WormPairCheck, type PlacedWorm, type PlacedWormWheel, type PlacedWormPairCheck } from './gear-worm.js';
-export { throatedWormWheel, throatedWheelGeom, checkThroatedWormPair, throatedWormPlacement, checkPlacedThroatedPair, throatedWheelWorm, type ThroatedWheelSpec, type ThroatedWheelReport, type ThroatedPairCheck, type PlacedThroatedWheel } from './gear-worm-wheel.js';
-export { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, GlandError, type GlandCode, type ORingRow, type GlandRanges, type GlandSpec, type GlandReport, type GlandPlace } from './oring.js';
-export { connectorRowProblem, connectorSectionArea, connectorFrame, connectorKeepOut, connectorOpening, connectorBody, ConnectorError, type ConnectorCode, type ConnectorRow, type ConnectorSection, type ConnectorReport, type ConnectorSpec } from './connector.js';
+export { facetBoolean, FacetBooleanError, type FacetBooleanOptions } from './mesh/facet-boolean.js';
+export { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkPlacedSpurGears, GearError, type PlacedSpurGear, type PlacedSpurGearPairCheck, type SpurGearPairCheck, type SpurGearPairOptions, type SpurGearSpec, type SpurGearReport, type SpurGearDimensions, type GearDiagnostic, type GearDiagnosticCode } from './machine/gear.js';
+export { spurRack, spurRackDimensions, checkSpurGearRack, checkPlacedSpurRack, type PlacedSpurRack, type PlacedSpurRackCheck, type SpurRackSpec, type SpurRackReport, type SpurRackPairOptions, type SpurRackPairCheck } from './machine/gear-rack.js';
+export { internalGear, internalGearDimensions, internalGearCenterDistance, checkInternalGearPair, checkPlacedInternalGears, pinionTurnInside, type InternalGearSpec, type InternalGearReport, type InternalGearPairOptions, type InternalGearPairCheck, type PlacedInternalGear, type PlacedInternalGearPairCheck } from './machine/gear-internal.js';
+export { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, bevelMatePlacement, bevelGearMatrix, type BevelGearSpec, type BevelGearReport, type BevelGearPairOptions, type BevelGearPairCheck, type PlacedBevelGear, type PlacedBevelGearPairCheck } from './machine/gear-bevel.js';
+export { worm, wormDimensions, wormWheelSpec, checkWormPair, wormPlacement, wormMatrix, checkPlacedWormPair, type WormSpec, type WormReport, type WormPairOptions, type WormPairCheck, type PlacedWorm, type PlacedWormWheel, type PlacedWormPairCheck } from './machine/gear-worm.js';
+export { throatedWormWheel, throatedWheelGeom, checkThroatedWormPair, throatedWormPlacement, checkPlacedThroatedPair, throatedWheelWorm, type ThroatedWheelSpec, type ThroatedWheelReport, type ThroatedPairCheck, type PlacedThroatedWheel } from './machine/gear-worm-wheel.js';
+export { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, GlandError, type GlandCode, type ORingRow, type GlandRanges, type GlandSpec, type GlandReport, type GlandPlace } from './machine/oring.js';
+export { connectorRowProblem, connectorSectionArea, connectorFrame, connectorKeepOut, connectorOpening, connectorBody, ConnectorError, type ConnectorCode, type ConnectorRow, type ConnectorSection, type ConnectorReport, type ConnectorSpec } from './machine/connector.js';
 export { sectionTableProblem, lookupSection, type SectionTable, type SectionTableRow, type SectionTableKind } from './section-table.js';
-export { sprocket, sprocketProfile, sprocketPitchDiameter, sprocketLimits, timingPitchDiameter, pulley, openBeltLength, chainLinks, beltBand, couplingEnvelope, driveRowProblem, DriveError, type DriveCode, type DriveRow, type ChainRow, type TimingBeltRow, type VBeltRow, type FlatBeltRow, type CouplingRow, type BeltRow, type SprocketSpec, type SprocketReport, type PulleySpec, type PulleyReport, type BeltSpec, type BeltReport, type CouplingReport } from './drive.js';
-export { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, CamError, type CamLaw, type CamCode, type CamWarningCode, type CamSegment, type CamSpec, type CamReport, type CamSegmentReport } from './cam.js';
-export { seatedBearing, bearingEnvelope, bearingRowProblem, BearingError, type BearingCode, type BearingRow, type BearingReport, type BearingFitClasses, type BearingRingFit } from './bearing.js';
-export { keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, type ShaftPartCode, type PlacedShaft, type KeywayReport, type KeyReport, type KeyFitClasses, type RingRow, type RingReport, type PinReport } from './shaft-parts.js';
-export { shaftSolid, ShaftError, type ShaftSpec, type ShaftStep, type ShaftGroove, type ShaftKeyseat, type ShaftHole, type ShaftReport, type ShaftKeyseatReport, type ShaftDiagnosticCode } from './shaft.js';
-export { fitTableProblem, lookupFit, fitLimits, checkFit, isHoleClass, FitError, type FitErrorCode, type FitSource, type FitRow, type FitTable, type FitLimit, type FitLimits, type FitFace, type FitCondition, type FitCheck } from './fits.js';
-export { helicalSweep, compressionSpring, hookedSpring, springDimensions, springSolidPitch, SpringError, type HookedSpringSpec, type HookedSpringDimensions, type HookedSpringReport, type HelicalRun, type HelicalSweepSpec, type HelicalSweepResult, type SpringSpec, type SpringDimensions, type SpringReport, type SpringDiagnostic, type SpringDiagnosticCode } from './spring.js';
-export { DEFAULT_REPAIR, diagnoseMesh, repairMesh, selfIntersections, type MeshDiagnosis, type MeshHole, type MeshRepairReport, type MeshRepairResult, type MeshRepairSteps } from './mesh-repair.js';
-export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './thread-solid.js';
+export { sprocket, sprocketProfile, sprocketPitchDiameter, sprocketLimits, timingPitchDiameter, pulley, openBeltLength, chainLinks, beltBand, couplingEnvelope, driveRowProblem, DriveError, type DriveCode, type DriveRow, type ChainRow, type TimingBeltRow, type VBeltRow, type FlatBeltRow, type CouplingRow, type BeltRow, type SprocketSpec, type SprocketReport, type PulleySpec, type PulleyReport, type BeltSpec, type BeltReport, type CouplingReport } from './machine/drive.js';
+export { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, CamError, type CamLaw, type CamCode, type CamWarningCode, type CamSegment, type CamSpec, type CamReport, type CamSegmentReport } from './machine/cam.js';
+export { seatedBearing, bearingEnvelope, bearingRowProblem, BearingError, type BearingCode, type BearingRow, type BearingReport, type BearingFitClasses, type BearingRingFit } from './machine/bearing.js';
+export { keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, type ShaftPartCode, type PlacedShaft, type KeywayReport, type KeyReport, type KeyFitClasses, type RingRow, type RingReport, type PinReport } from './machine/shaft-parts.js';
+export { shaftSolid, ShaftError, type ShaftSpec, type ShaftStep, type ShaftGroove, type ShaftKeyseat, type ShaftHole, type ShaftReport, type ShaftKeyseatReport, type ShaftDiagnosticCode } from './machine/shaft.js';
+export { fitTableProblem, lookupFit, fitLimits, checkFit, isHoleClass, FitError, type FitErrorCode, type FitSource, type FitRow, type FitTable, type FitLimit, type FitLimits, type FitFace, type FitCondition, type FitCheck } from './machine/fits.js';
+export { helicalSweep, compressionSpring, hookedSpring, springDimensions, springSolidPitch, SpringError, type HookedSpringSpec, type HookedSpringDimensions, type HookedSpringReport, type HelicalRun, type HelicalSweepSpec, type HelicalSweepResult, type SpringSpec, type SpringDimensions, type SpringReport, type SpringDiagnostic, type SpringDiagnosticCode } from './machine/spring.js';
+export { DEFAULT_REPAIR, diagnoseMesh, repairMesh, selfIntersections, type MeshDiagnosis, type MeshHole, type MeshRepairReport, type MeshRepairResult, type MeshRepairSteps } from './mesh/mesh-repair.js';
+export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './machine/thread-solid.js';
 export { sweepSolid, type SweepSolidRequest } from './sweep-solid.js';
 export { thickenSolid, type ThickenSolidRequest } from './thicken-solid.js';
 export { sewSolid, SewError, type SewSolidRequest } from './sew-solid.js';
@@ -641,8 +641,8 @@ export { loftSolid, type LoftInput, type LoftSectionInput } from './loft.js';
 export { generalShell } from './general-shell.js';
 export { revolutionOf, type Revolution } from './surface-revolution.js';
 export type { SolidMassProperties } from './solid-mass.js';
-export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits, stepSizeProblem, type GearPlacement, type RackPlacement, FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from './part-model.js';
-export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartBeadSharing, CadPartLoftSection, CadPartSweepStep, CadPartSketchPlane, CadPartEvaluationOptions, CadPartSection, CadPartFrameOverride, CadPartFrameSegment, CadPartFrameCorners, CadPartFrameNotch, CadPartFrameTrim } from './part-model.js';
+export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits, stepSizeProblem, type GearPlacement, type RackPlacement, FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from './part/part-model.js';
+export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartBeadSharing, CadPartLoftSection, CadPartSweepStep, CadPartSketchPlane, CadPartEvaluationOptions, CadPartProfileCalls, CadPartFeatureProfile, CadPartSection, CadPartFrameOverride, CadPartFrameSegment, CadPartFrameCorners, CadPartFrameNotch, CadPartFrameTrim } from './part/part-model.js';
 export { booleanAnalytic } from './analytic-boolean.js';
 export type { AnalyticBooleanOperation } from './analytic-boolean.js';
 export { curveFaceRegions, locateInRegion, regionInteriorPoint } from './curved-arrangement.js';
@@ -650,8 +650,8 @@ export { revolveProfile, revolveMassProperties } from './revolve.js';
 export type { RevolveInput } from './revolve.js';
 export { finishBrepEdges } from './edge-finish.js';
 export { draftedExtrusion } from './drafted-extrusion.js';
-export { exportStep, importStep, MESH_PLANAR_LIMIT, MESH_PLANAR_TRIANGLES, stepMeshes, stepTessellatedChars, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './step.js';
-export type { StepExportOptions } from './step.js';
+export { exportStep, importStep, MESH_PLANAR_LIMIT, MESH_PLANAR_TRIANGLES, stepMeshes, stepTessellatedChars, stepValidationProperties, compareValidationProperties, type StepValidationProperties, type ValidationCheck } from './io/step.js';
+export type { StepExportOptions } from './io/step.js';
 export type { DraftedExtrusionInput } from './drafted-extrusion.js';
 export type { EdgeFinishKind } from './edge-finish.js';
 export { faceGeometry } from './analytic-boolean.js';
@@ -667,17 +667,17 @@ export { CAD_KERNEL_VERSION, LIBRARY_REFUSED_KINDS, loadCadLibrary, instantiateL
 export { placeByInterfaces, checkLibraryFit, type LibraryPlacement, type LibraryFitReport } from './library-fit.js';
 export type { FilletReport } from './rolling-ball.js';
 /** R11b (O1): an ASCII DXF writer (AC1015, with an R12 option) for drawings, sketches and sections. */
-export { writeDxf, dxfNumber, dxfText, dxfHatchLines, DxfWriteError, DXF_WRITER_VERSION } from './dxf-writer.js';
-export type { DxfDocument, DxfEntity, DxfLayer, DxfLinetype, DxfTextStyle, DxfBlock, DxfHatchLoop, DxfHatchFill, DxfDimensionGeometry, DxfVersion, DxfUnits, DxfXY, DxfWriteOptions, DxfWriteReport, DxfWriteResult, DxfWriteErrorCode } from './dxf-writer.js';
-export { bendAllowance, outsideSetback, bendDeduction, contourFlangeSection, SheetMetalError } from './sheet-metal.js';
-export type { SheetReport, SheetBendReport, ContourSection, ContourBend } from './sheet-metal.js';
-export { flatPattern, flatPatternDxf, FlatPatternError } from './sheet-flat.js';
-export type { FlatPattern, FlatLoop, FlatSegment, FlatBend, FlatPatternOptions, FlatPatternErrorCode } from './sheet-flat.js';
-export { bendTableProblem, lookupBend, rowKFactor } from './sheet-metal.js';
-export type { BendTable, BendTableRow, BendTableSource, BendTableUse } from './sheet-metal.js';
-export { frameSection, anchorPoint, loopBox, FrameSectionError, FRAME_ANCHORS } from './frame-section.js';
-export type { FrameSection, FrameSectionSpec, FrameAnchor, FrameMemberReport, FrameEndReport, FrameNotchReport } from './frame-section.js';
-export { cutPiece, cutList, cutListCsv, CutListError } from './frame-cutlist.js';
-export type { CutPiece, CutRow, CutList, CutEnd } from './frame-cutlist.js';
-export { loopArea, loopPerimeter } from './frame-weldment.js';
-export type { GussetReport, EndCapReport, WeldmentSeam, BeadReport, BeadJointRef, BeadSharedComponent, BeadSharedSeam } from './frame-weldment.js';
+export { writeDxf, dxfNumber, dxfText, dxfHatchLines, DxfWriteError, DXF_WRITER_VERSION } from './io/dxf-writer.js';
+export type { DxfDocument, DxfEntity, DxfLayer, DxfLinetype, DxfTextStyle, DxfBlock, DxfHatchLoop, DxfHatchFill, DxfDimensionGeometry, DxfVersion, DxfUnits, DxfXY, DxfWriteOptions, DxfWriteReport, DxfWriteResult, DxfWriteErrorCode } from './io/dxf-writer.js';
+export { bendAllowance, outsideSetback, bendDeduction, contourFlangeSection, SheetMetalError } from './frame-sheet/sheet-metal.js';
+export type { SheetReport, SheetBendReport, ContourSection, ContourBend } from './frame-sheet/sheet-metal.js';
+export { flatPattern, flatPatternDxf, FlatPatternError } from './frame-sheet/sheet-flat.js';
+export type { FlatPattern, FlatLoop, FlatSegment, FlatBend, FlatPatternOptions, FlatPatternErrorCode } from './frame-sheet/sheet-flat.js';
+export { bendTableProblem, lookupBend, rowKFactor } from './frame-sheet/sheet-metal.js';
+export type { BendTable, BendTableRow, BendTableSource, BendTableUse } from './frame-sheet/sheet-metal.js';
+export { frameSection, anchorPoint, loopBox, FrameSectionError, FRAME_ANCHORS } from './frame-sheet/frame-section.js';
+export type { FrameSection, FrameSectionSpec, FrameAnchor, FrameMemberReport, FrameEndReport, FrameNotchReport } from './frame-sheet/frame-section.js';
+export { cutPiece, cutList, cutListCsv, CutListError } from './frame-sheet/frame-cutlist.js';
+export type { CutPiece, CutRow, CutList, CutEnd } from './frame-sheet/frame-cutlist.js';
+export { loopArea, loopPerimeter } from './frame-sheet/frame-weldment.js';
+export type { GussetReport, EndCapReport, WeldmentSeam, BeadReport, BeadJointRef, BeadSharedComponent, BeadSharedSeam } from './frame-sheet/frame-weldment.js';

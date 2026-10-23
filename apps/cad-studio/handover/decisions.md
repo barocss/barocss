@@ -12285,3 +12285,78 @@ How (the same for every R5.3 step):
 and the R5 fingerprint, byte-identical (see the batch line below).
 
 **Batch bB:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D228 — O10: `evaluateCadPart(…, { profile: true })` gives each feature its wall time and kernel calls (2026-10-23)
+
+**What (additive public option).**
+- `CadPartEvaluationOptions.profile?: boolean`.
+- With it, `snapshot.profile` maps each feature id to `{ ms, calls }`:
+  - `ms` is the feature's own **wall time**, by `performance.now()` (the clock the package already uses, in
+    mesh-decimate);
+  - `calls` is `{ booleans, planarBooleans, tessellations, sweeps, shells, finishes }`.
+- New exported types: `CadPartProfileCalls` and `CadPartFeatureProfile`.
+- `withParameters`/`withDocument` keep the option; a reused feature's entry is its lookup.
+
+**Where the calls are counted** (the part model's own entry points, in `src/part-model.ts`):
+
+| Counter | Entry point |
+|---|---|
+| `booleans` | the Boolean dispatcher `boolean` |
+| `planarBooleans` | `planarBoolean` |
+| `tessellations` | `clearanceAbove`'s tessellation (the holes' obstruction test) |
+| `sweeps` | `sweepBrep` (stepped paths) and the curved path's `sweepSolid` |
+| `shells` | `shellOf`, each call including nested ones |
+| `finishes` | `finishEdges` (fillets and chamfers) |
+
+Calls made by a machine element's own sub-evaluation count for the feature that made it. A body's B-rep or mesh built
+lazily, after the evaluation, is not counted.
+
+**Off (the default).**
+- Each feature takes the `if (profile)` test twice. Each counted call takes one `if (profiling)` test on a
+  module-level variable that is null.
+- There is no allocation and no closure, and `snapshot.profile` is absent.
+
+**Test:** `test/o10-profile.test.mjs`:
+- every feature has an entry, frozen, with a finite `ms` and integer calls;
+- unions and differences count Booleans, fillets count finishes, and sketches count nothing;
+- the body's volume and centroid are bit-identical with and without the option;
+- the profile is kept through `withDocument`.
+
+**Checks:** build, tsc, lint; the new test, the Boolean tests and the trap tests (80 files); the kernel suite (the known Node-version demo test only) and RB; the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical with the option off and with it on.
+
+## D229 — R5.4 batch 1: the part, machine, io, mesh, frame-sheet and language modules move into folders (2026-10-23)
+
+**What.** 53 files of `packages/barocss-cad/src` move into folders, unchanged but for their import specifiers:
+
+| Folder | Modules |
+|---|---|
+| `src/part/` | part-model and the seven part-* family modules |
+| `src/machine/` | bearing, cam, connector, drive, fits, the six gear modules, oring, shaft, shaft-parts, spring, thread-helical, thread-solid |
+| `src/io/` | dxf-writer, iges, iges-import, step, step-import, stl |
+| `src/mesh/` | the mesh-*, facet-* modules, triangle-bvh, voxel-field |
+| `src/frame-sheet/` | frame-cutlist, frame-section, frame-weldment, sheet-flat, sheet-metal |
+| `src/language/` | expression-parser, source-ast, semantic-model, lower-model |
+
+**How references keep resolving.**
+- A script (`git mv`, then every relative specifier recomputed) rewrote the imports of 69 src files, `index.ts` among
+  them. Basenames stay unique.
+- The kernel exports only `.`, so there are no shims: importers point at the new paths.
+- Outside src, the same commit updates every `dist/<name>.js` and `src/<name>.ts` path to a moved module: the tests
+  expression-ast, model-compiler, r12b-s0, r12c-s0 and source-ast, and `examples/cad-nurbs/iges-import-demo.mjs`.
+- The frozen ledgers under `examples/physics-*/` (source-freeze, base-tracked-ledger, precode-provider-hashes) are
+  records their scripts write, and no check reads them back. They stay as written.
+
+**Left at the root on purpose.** `model-compiler` stays: modeling.ts imports it as `./model-compiler.js`, the shape the
+opt-in `modeling-offset` admission trap keys on. It moves with the modeling closure, or stays, in batch 4.
+
+**Traps.**
+- `frk-6-ordered-trim`'s coverage trap finds the script ending `/part-model.js`, still true at `dist/part/`.
+- The modeling facade traps key by basename. `model-compiler`, their one provider in reach, did not move.
+- source-ast.test reads `../src/language/source-ast.ts`; its one import is still `./expression-parser.js`, a sibling.
+
+**Checks:** a full build (dist cleared), tsc, lint; the moved modules' tests and the trap tests; the kernel suite, RB
+and the R5 fingerprint; cad-model and studio (through index.ts); the moved demo run once.
+`apps/library-docs/evidence/current-public-api.json` stays at its pinned sourceCommit. The docs owner's next
+`--write-current` records the new source paths.
+
+**Checks run:** build, tsc, lint; 75 tests of the moved modules and the 20 trap tests (1021 tests); the kernel suite (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`) byte-identical; cad-model 983/983, studio 274/274; iges-import-demo passes with the new path.
