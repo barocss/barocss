@@ -2290,3 +2290,25 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - studio: tsc 0, eslint 0, unit 266/266.
   - FLOW_ONLY on both renderers, all pass: instance place and drag, the section steps (73, G19.2, G19.4, G20.2), K2 L
     gap, G3 and G24. On WebGPU 258 failed until G-R28, then passed.
+
+## G-R30 — R1c (3a): the joints and the placed parts' poses as domain hooks, a pure move (roadmap R1, 2026-10-23)
+
+- **What moved**, line for line (each moved line was checked to be in its hook unchanged):
+  - `state/useJoints.ts`: the joint-slider pose, the joint played (its frame loop), the path checked, the waypoints and
+    the workspace map, with their effects (a moved joint clears the path; a new tree drops the waypoints, the map and
+    gone joints' values), and `jointFk` and `gearLines`.
+  - `state/useScenePoses.ts`: `instancesPlaced`, `instancePoseMap` (posed and exploded), `cpuInstanceSection`,
+    `instanceSectionPoses` (a live drag under a CPU section), `instancesShown` (sectioned), `instanceTransforms`, and the
+    DEV `__studioInstanceBounds` hook.
+  - The App keeps the state set from many places, the explode factor and the instance drag, and calls the two hooks
+    where the code was.
+  - The effects run in the same order: no other effect stood between the moved ones.
+- **Not changed**: the values, when they are made, and what renders. This is the structure step; (3b) takes the
+  per-frame values out of React state.
+- **Checks**:
+  - studio tsc 0 (after the merge), eslint 0, unit 266/266.
+  - FLOW_ONLY on both renderers (load 23–27): RM1–RM6 and RM9a–RM9c (the arm posed, played, Home, Check path,
+    waypoints, the workspace map, the exports), R12b.7 the gears, an instance placed, 73 and G19.2 sections, 258 and
+    G3. All pass on WebGPU. On WebGL2 all pass except 58, once.
+  - 58 on WebGL2 is load-sensitive, a 5 s wait. Run twice here it passed once (load 19) and failed once (load 26 → 41).
+    At R2a's cb8d10856, before this move, it also failed once and passed once (load 32–40). So it is not this move.
