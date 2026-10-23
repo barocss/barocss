@@ -25,6 +25,7 @@ import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { sameSection, sectionsOf, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
 import type { EngineClient } from '../engine/client';
+import { Lanes } from '../engine/lanes';
 
 export const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
@@ -45,14 +46,17 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   }, [sourceKey, scopeKey]);
   const doc = scoped.doc, model = doc;
   const currentModel = useRef(model); currentModel.current = model;
+  /** The sheet's reads on O9 lanes (R4b): its bodies, its views, its BOM — each a reply overtaken comes back stale. */
+  const lanes = useMemo(() => new Lanes(), []);
   const [bodyRead, setBodyRead] = useState<{ doc: StudioDoc; bodies: readonly BodyResult[] } | null>(null);
   const bodyRevision = useRef(1);
   const bodies = scope.kind === 'assembly' ? sourceBodies : bodyRead && bodyRead.doc === doc ? bodyRead.bodies : undefined;
   useEffect(() => {
     if (!active || scope.kind !== 'part' || scoped.error) return;
-    let live = true;
-    engine.part(doc, bodyRevision.current++, 'read').then(r => { if (live) setBodyRead(r.ok ? { doc, bodies: r.bodies } : null); }, () => { if (live) setBodyRead(null); });
-    return () => { live = false; };
+    // (R4b: the drawing's reads on their O9 lanes — a reply for a document since replaced comes back stale.)
+    const at = bodyRevision.current++;
+    void lanes.run('drawing-bodies', { revision: at, source: '' }, () => engine.part(doc, at, 'read').then(r => r, () => null)).then(reply => { if (!reply.stale) setBodyRead(reply.result?.ok ? { doc, bodies: reply.result.bodies } : null); });
+    return () => lanes.cancel('drawing-bodies');
   }, [active, engine, doc, scoped.error, scope.kind]);
   // The views as projected, with the front side they were projected for (R14.3b): only those of the drawing's side are used.
   const [projected, setProjected] = useState<{ views: DrawingViews; side: string; model: StudioDoc } | null>(null);
@@ -69,16 +73,17 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   useEffect(() => {
     if (!active) return;
     if (scoped.error) { setBusy(false); setEmpty(false); setError(scoped.error); setProjected(null); setCutsMade(null); return; }
-    let live = true; setBusy(true);
+    setBusy(true);
     const side = settings.orientation ?? 'y-';
     // (O174: a part's drawing documents what the part makes — its bought elements left out of the views and sections.)
-    engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}), made: madeOnly }).then(r => {
-      if (!live) return;
+    void lanes.run('drawing', { revision: 0, source: side }, () => engine.drawing(model, { tangentEdges: !!settings.tangent, ...(sectionList.length ? { sections: sectionList } : {}), ...(settings.orientation ? { orientation: settings.orientation } : {}), made: madeOnly })).then(reply => {
+      if (reply.stale) return;
+      const r = reply.result;
       setBusy(false);
       setEmpty(!r.ok && !!r.empty);
       if (r.ok) { setProjected({ views: r.views, side, model }); setCutsMade(r.sections ?? null); setError(null); } else { setProjected(null); setCutsMade(null); setError(r.error); }
     });
-    return () => { live = false; };
+    return () => lanes.cancel('drawing');
   }, [active, engine, model, scoped.error, settings.tangent, sectionKey, settings.orientation, madeOnly]);
 
   const title = settings.title ?? fileName;
@@ -104,9 +109,8 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const bomRevision = useRef(1);
   useEffect(() => {
     if (!active || !wantsBom || scoped.error) { setBomRead(null); return; }
-    let live = true;
-    const t = setTimeout(() => { bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => { if (live) setBomRead({ doc, bom: d.bom }); }, () => { if (live) setBomRead(null); }); }, 200);
-    return () => { live = false; clearTimeout(t); };
+    const t = setTimeout(() => { void lanes.run('drawing-bom', { revision: 0, source: title }, () => bomPanelData(doc, d => engine.part(d, bomRevision.current++, 'read'), title).then(d => d.bom, () => null)).then(reply => { if (!reply.stale) setBomRead(reply.result ? { doc, bom: reply.result } : null); }); }, 200);
+    return () => { lanes.cancel('drawing-bom'); clearTimeout(t); };
   }, [active, wantsBom, doc, title, scoped.error]);
   // (Each sourced table's content once a document (O49): the bend table from the bodies' flat patterns.)
   const sourced = useMemo(() => new Map((settings.tables ?? []).filter(x => x.from).map(x => [x.id, tableContent(x, { doc, ...(bodies ? { bodies } : {}), ...(bom ? { bom } : {}) })])), [settings.tables, doc, bodies, bom]);
