@@ -8,6 +8,8 @@ import { dispatchTool, runTool, type ChatState } from '../src/chat/tools';
 import { loadPersonRows } from '../src/chat/rows';
 import { receivePersonRowFiles } from '../src/engine/rowFiles';
 import { validRowSupplies } from '../src/engine/rowSources';
+import { mountCommand } from '../src/app/mounts';
+import type { Ctx } from '../src/app/commands';
 import { editMountRows, mountRowProblem, MOUNT_LIMITS, type StudioMountRow } from '../src/engine/mountRows';
 
 // O14: mounts from the person's datasheet rows. The sample rows check; the validator's limits refuse, typed; rows load
@@ -142,4 +144,13 @@ test('O14: the gates — a mount adds features: proposed at L1 and L2, applied a
   const s = await stateOf(plate()), call = { command: 'mount', faces: ['n1.top'], values: { row: 'nema17', x: 80, y: 50 } };
   for (const level of [1, 2]) { const r = await at(level, () => runTool(s, 'run_command', call, evaluate)); assert.ok(r.isError, `L${level}`); assert.equal(r.state, s); }
   const r3 = await at(3, () => runTool(s, 'run_command', call, evaluate)); assert.ok(!r3.isError, r3.content);
+});
+
+test('O14: the Mount command\'s steps show the output axis the run reports (a flange\'s out of the face, a pillow block\'s along it)', async () => {
+  const doc = plate(), e = await evaluate(doc); assert.ok(e.ok); const bodies = e.bodies, top = bodies[0].mesh.faces.findIndex(f => f.name === 'n1.top');
+  const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face: top }], edges: [], bodies: [] } };
+  const axis = (v: Record<string, string | number>) => mountCommand.steps!(ctx, v).find(s => s.label === 'Axis')?.text;
+  assert.equal(axis({ row: 'nema17', x: 80, y: 50, turn: '0' }), 'at (80, 50, 10) mm, along +Z');
+  assert.equal(axis({ row: 'ucp204', x: 80, y: 50, turn: '0' }), 'at (80, 50, 43.3) mm, along +Y');
+  assert.equal(axis({ row: 'nema17', x: Number.NaN, y: 50 }), undefined, 'no axis until it is placed');
 });
