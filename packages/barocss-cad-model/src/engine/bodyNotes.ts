@@ -15,14 +15,20 @@ const direction = (v: readonly number[]): string => AXES.find(([, a]) => a.every
  * A structural member's section, length and frame as lines for its panel (FR1, D123); the section fields still at the
  * palette's first-try values flagged as estimates (D122: no section data is built in).
  */
-export function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']>, node: ModelNode | undefined, rows: readonly FrameSectionRow[] = [], nodesNow: readonly ModelNode[] = [], stale?: string): { text: string; warning?: boolean }[] {
+/** A frame's output member count, once an evaluation when `counts` is its record (R4 C4: else per member body). */
+function segmentCount(nodes: readonly ModelNode[], node: Extract<ModelNode, { kind: 'frame' }>, counts?: Map<ModelNode, number>): number {
+  if (!counts) return frameSegmentCount(nodes, node);
+  let n = counts.get(node); if (n === undefined) { n = frameSegmentCount(nodes, node); counts.set(node, n); }
+  return n;
+}
+export function memberNotes(m: NonNullable<CadPartSnapshot['outputs'][number]['member']>, node: ModelNode | undefined, rows: readonly FrameSectionRow[] = [], nodesNow: readonly ModelNode[] = [], stale?: string, counts?: Map<ModelNode, number>): { text: string; warning?: boolean }[] {
   const mm = (x: number) => `${+x.toFixed(3)} mm`;
   // (A frame's member: its own section when an override gives one — no estimates then — else the frame's, FR2.)
   const own = node?.kind === 'frame' && m.frame ? node.overrides?.find(o => o.member === m.frame!.member)?.section : undefined;
   const section = own ?? (node?.kind === 'frame-member' || node?.kind === 'frame' ? node.section : undefined);
   const est = own ? [] : node?.kind === 'frame-member' || node?.kind === 'frame' ? node.estimates ?? [] : [], sec = (section ?? {}) as unknown as Record<string, unknown>;
   return [
-    ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1}${node.bends?.length ? ` (${frameSegmentCount(nodesNow, node)} output members)` : ` of ${frameSegmentCount(nodesNow, node)}`}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
+    ...(m.frame && node?.kind === 'frame' ? [{ text: `Frame member ${m.frame.member + 1}${node.bends?.length ? ` (${segmentCount(nodesNow, node, counts)} output members)` : ` of ${segmentCount(nodesNow, node, counts)}`}: point ${m.frame.from + 1} → point ${m.frame.to + 1}${m.mirrored ? ', mirrored' : ''}` }] : []),
     { text: `Member: ${m.section} · section ${+m.areaMM2.toFixed(3)} mm² · length ${mm(m.lengthMM)}` },
     { text: `Line through its ${m.anchor}${m.offset[0] || m.offset[1] ? `, moved (${m.offset.map(x => +x.toFixed(3)).join(', ')})` : ''}; section x ${direction(m.xAxis)}, y ${direction(m.yAxis)}${m.rollDegrees ? ` (rolled ${+m.rollDegrees.toFixed(3)}°)` : ''}${m.upFallback ? `; the line runs along up, so y follows ${direction(m.upFallback)}` : ''}` },
     // (FRf2, O125: a frame following a placed part's sketch — which; changed since linked, said until relinked.)

@@ -131,7 +131,7 @@ function touchField(brep: Brep, mesh: DisplayMesh): { lumpTouch?: [number, numbe
   return t;
 }
 /** A body's evaluated result: its mesh, and its volume, mass, centroid and inertia when it has a volume. */
-function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision: number, quality: number): BodyResult {
+function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision: number, quality: number, counts?: Map<ModelNode, number>): BodyResult {
   let m = masses.get(o.brep);
   if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
   let A = areas.get(o.brep);
@@ -168,7 +168,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.subd && o.subd.caps ? subdNotes(o.subd) : []),
     ...(o.decimate ? decimateNotes(o.decimate) : []),
     ...(sheet?.notes ?? []),
-    ...(o.member ? memberNotes(o.member, lib ?? node, doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined) : []),
+    ...(o.member ? memberNotes(o.member, lib ?? node, doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined, counts) : []),
   ];
   const element = elementOf(o, node);
   return { ...at, ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
@@ -189,7 +189,8 @@ function failed(revision: number, cause: unknown, t0: number): EvalResult {
 }
 /** A part's bodies from its snapshot, its face table remembered (evaluateDoc's and evaluatePart's one path; R4 C3). */
 function partResult(doc: StudioDoc, snapshot: CadPartSnapshot, revision: number, quality: number, shopRows: readonly ShopTreeProvenance[], t0: number): Extract<EvalResult, { ok: true }> {
-  const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality)), doc, snapshot.outputs);
+  const counts = new Map<ModelNode, number>(); // (each frame's member count once this evaluation)
+  const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality, counts)), doc, snapshot.outputs);
   const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
   return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows };
 }
@@ -468,11 +469,21 @@ export function brepsFor(doc: StudioDoc, options: { made?: boolean } = {}): { br
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 
+/**
+ * Each placed part's last snapshots (as placed, and at the origin for its beads), by instance id (R4 C4): stepFor and
+ * brepsFor build a copy again through the kernel's withDocument, which reuses only the features whose inputs are
+ * unchanged — as the main evaluation does — so an unchanged copy is not evaluated from nothing on every export.
+ */
+const placedKept = new Map<string, { placed: CadPartSnapshot; origin?: CadPartSnapshot }>();
+/** Forget the placed parts' snapshots (tests: an export from nothing to compare the reused one with). */
+export function forgetPlacedOutputs(): void { placedKept.clear(); }
 /** Exact derived bead B-reps receive the same instance placement as the display path. No partition is recomputed. */
 function placedOutputs(inst: PartInstance, placed = placedDoc(inst), parent?: StudioDoc): CadPartSnapshot['outputs'] {
-  const outputs = partSnapshot(placed, part => evaluateCadPart(part)).outputs;
-  if (!outputs.some(o => o.bead)) return outputs;
-  const base = placedBase(inst, parent), origin = partSnapshot(base, part => evaluateCadPart(part)), { m, t } = placementOf(inst);
+  const kept = placedKept.get(inst.id);
+  const snapshot = partSnapshot(placed, part => kept ? kept.placed.withDocument(part) : evaluateCadPart(part)), outputs = snapshot.outputs;
+  if (!outputs.some(o => o.bead)) { placedKept.set(inst.id, { placed: snapshot }); return outputs; }
+  const base = placedBase(inst, parent), origin = partSnapshot(base, part => kept?.origin ? kept.origin.withDocument(part) : evaluateCadPart(part)), { m, t } = placementOf(inst);
+  placedKept.set(inst.id, { placed: snapshot, origin });
   return outputs.map(o => {
     if (!o.bead) return o;
     const bead = origin.outputs.find(x => x.id === o.id && x.bead);

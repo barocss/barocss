@@ -659,9 +659,11 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
     if (!isSolidNode(node) || consumed.has(String(index))) return;
     if (node.kind === 'split') (['negative', 'positive'] as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else if (node.kind === 'import' && (node.solids ?? 1) > 1) Array.from({ length: node.solids! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
-    else if (node.kind === 'frame' && (node.bends !== undefined || frameSegmentCount(nodes, node) > 1)) {
-      const geometry = frameGeometry(nodes, node), indices = frameMemberIndices(node, 'segments' in geometry ? geometry.segments : node.segments);
-      indices.forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+    else if (node.kind === 'frame') {
+      // (Its members, from the frame's geometry worked out once here — R4 C4: frameSegmentCount and this each worked it out.)
+      const indices = frameIndices(nodes, node);
+      if (node.bends !== undefined || indices.length > 1) indices.forEach(k => { const side = `part${k}` as const; if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
+      else refs.push({ node: index, side: 'solid' });
     }
     else if (node.kind === 'mesh' && (node.pieces ?? 1) > 1) Array.from({ length: node.pieces! }, (_, k) => `part${k}` as const).forEach(side => { if (!consumed.has(`${index}_${side}`)) refs.push({ node: index, side }); });
     else refs.push({ node: index, side: 'solid' });
@@ -963,4 +965,6 @@ export function frameMemberIndices(node: FrameNode, segments: readonly ModelFram
   }
   return [...retained].sort((a, b) => a - b);
 }
-export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { const g = frameGeometry(nodes, node); return frameMemberIndices(node, 'segments' in g ? g.segments : node.segments).length; }
+/** A frame's member indices, from its geometry as followed now (default parameters, no placed parts). */
+function frameIndices(nodes: readonly ModelNode[], node: FrameNode): number[] { const g = frameGeometry(nodes, node); return frameMemberIndices(node, 'segments' in g ? g.segments : node.segments); }
+export function frameSegmentCount(nodes: readonly ModelNode[], node: FrameNode): number { return frameIndices(nodes, node).length; }
