@@ -70,7 +70,7 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
       {cost && <>
         <div className="muted small" aria-label="Frame cost totals">{cost.renderer}, {cost.mode}: frame {cost.frame}, {ms(cost.cpuMs)} ms CPU to record and submit{cost.mode === 'wireframe' ? '; surface triangles are drawn for depth only' : ''}</div>
         <Table className="bom-table" aria-label="Frame costs">
-          <colgroup><col /><col className="w-12" /><col className="w-[4.5rem]" /><col className="w-14" /><col className="w-14" /></colgroup>
+          <colgroup><col /><col className="w-14" /><col className="w-[4.5rem]" /><col className="w-12" /><col className="w-14" /></colgroup>
           <TableHeader><TableRow><TableHead>Body</TableHead><TableHead>Draws</TableHead><TableHead>Triangles</TableHead><TableHead>Lines</TableHead><TableHead>Share</TableHead></TableRow></TableHeader>
           <TableBody>{cost.bodies.map(b => <TableRow key={b.key} aria-label={`Frame cost ${b.key}`}>
             <TableCell className="mono" title={b.key}>{b.key}</TableCell><TableCell className="mono">{b.draws}</TableCell><TableCell className="mono">{b.triangles}</TableCell><TableCell className="mono">{b.lines}</TableCell><TableCell className="mono">{(100 * b.share).toFixed(1)} %</TableCell>

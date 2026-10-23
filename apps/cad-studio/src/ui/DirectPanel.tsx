@@ -44,7 +44,7 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide, onThi
         onStretch={k => run(() => directOps.stretch(direct, selected, k))} onShear={(a, b, k) => run(() => directOps.shear(direct, selected, a, b, k))} />
       {one && g?.kind === 'curve' && <CurveTools id={one.id} direct={direct} run={run} added={added} />}
       {one && g?.kind === 'surface' && <SurfaceTools id={one.id} direct={direct} run={run} added={added} onThicken={onThicken} />}
-      {objs.length >= 3 && curves && <div className="render-section">
+      {objs.length >= 3 && curves && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="card-title" style={{ marginTop: 8 }}>{objs.length} CURVES</div>
         <div className="flex flex-wrap gap-1">
           <Button variant="ghost" title="A surface through the curves in the order they were picked" onClick={() => run(() => directOps.loft(direct, selected), added)}>Loft</Button>
@@ -53,23 +53,23 @@ export function DirectPanel({ direct, selected, onChange, onError, onHide, onThi
       </div>}
       {objs.length === 2 && geoms.some(x => x?.kind === 'surface') && geoms.some(x => x?.kind === 'curve') && (() => {
         const s = selected[geoms.findIndex(x => x?.kind === 'surface')], c = selected[geoms.findIndex(x => x?.kind === 'curve')];
-        return <div className="render-section">
+        return <div className="render-section [&>[data-slot=button]]:self-start">
           <div className="card-title" style={{ marginTop: 8 }}>TRIM</div>
           <label className={FIELD}><span>Keep</span><NativeSelect className={CONTROL} aria-label="Trim keeps" value={keep} onChange={e => setKeep(e.target.value as typeof keep)}>
             <option value="outside">Outside the loop (a hole)</option><option value="inside">Inside the loop</option></NativeSelect></label>
           <Button variant="ghost" aria-label="Trim by the curve" title="Project the closed curve onto the surface and cut along it; the surface itself stays whole underneath" onClick={() => run(() => directOps.trimByCurve(direct, s, c, keep), () => [s])}>Trim by the curve</Button>
         </div>;
       })()}
-      {objs.length >= 2 && onSew && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
+      {objs.length >= 2 && onSew && geoms.every(x => x?.kind === 'surface') && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="card-title" style={{ marginTop: 8 }}>SEW</div>
         <NumberField label="Gap" value={gap} onChange={setGap} />
         <Button variant="ghost" aria-label="Sew into a body" title="Join the surfaces along their edges into one closed solid (edges closer than the gap meet; 0 keeps it tight)" onClick={() => onSew(selected, gap)}>Sew into a body</Button>
       </div>}
-      {objs.length === 2 && geoms.every(x => x?.kind === 'surface') && <div className="render-section">
+      {objs.length === 2 && geoms.every(x => x?.kind === 'surface') && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="card-title" style={{ marginTop: 8 }}>TWO SURFACES</div>
         <Button variant="ghost" aria-label="Intersect the surfaces" title="The curves where the two surfaces meet" onClick={() => run(() => surfaceIntersection(direct, selected[0], selected[1]).direct, added)}>Intersection curves</Button>
       </div>}
-      {objs.length === 2 && curves && <div className="render-section">
+      {objs.length === 2 && curves && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="card-title" style={{ marginTop: 8 }}>TWO CURVES</div>
         <div className="flex flex-wrap gap-1">
           <Button variant="ghost" onClick={() => run(() => directOps.joinCurves(direct, selected[0], selected[1]), added)}>Join</Button>
@@ -100,7 +100,7 @@ function CurveTools({ id, direct, run, added }: { id: string; direct: DirectGeom
   const [at, setAt] = useState(mid), [from, setFrom] = useState(t[0]), [to, setTo] = useState(t[1]), [tol, setTol] = useState(0.01), [poles, setPoles] = useState(6);
   useEffect(() => { setAt(mid); setFrom(t[0]); setTo(t[1]); }, [id, t[0], t[1]]);
   const g = geometryOf(direct, direct.objects.find(o => o.id === id)!);
-  return <div className="render-section">
+  return <div className="render-section [&>[data-slot=button]]:self-start">
     <div className="kv">Degree <b>{g.kind === 'curve' ? g.degree : ''}</b></div>
     <div className="kv">Domain <b>{t.map(v => Math.round(v * 1e4) / 1e4).join(' … ')}</b></div>
     <div className="kv">Length <b>{fmtNum(curveLength(direct, id), 4)} mm</b></div>
@@ -153,7 +153,7 @@ function SurfaceTools({ id, direct, run, added, onThicken }: { id: string; direc
   useEffect(() => { setAt(mid); }, [id, axis, mid]);
   useEffect(() => { setBox([u[0], u[1], v[0], v[1]]); }, [id, u[0], u[1], v[0], v[1]]);
   const g = geometryOf(direct, direct.objects.find(o => o.id === id)!), trims = direct.objects.find(o => o.id === id)?.trims?.length ?? 0;
-  return <div className="render-section">
+  return <div className="render-section [&>[data-slot=button]]:self-start">
     {g.kind === 'surface' && <div className="kv">Degree <b>{g.degreeU} × {g.degreeV}</b></div>}
     {!!trims && <div className="kv">Trimmed <b>{trims} loop{trims > 1 ? 's' : ''}</b> <Button variant="ghost" size="xs" aria-label="Untrim" title="Take the trims off: the whole surface again" onClick={() => run(() => directOps.untrim(direct, id))}>Untrim</Button></div>}
     <div className="kv">Domain <b>u {u.map(x => Math.round(x * 1e4) / 1e4).join('…')} · v {v.map(x => Math.round(x * 1e4) / 1e4).join('…')}</b></div>
@@ -234,7 +234,7 @@ function Transform({ onMove, onRotate, onScale, onDuplicate, onStretch, onShear 
   const axisPick = (label: string, v: Ax, set: (a: Ax) => void) => <label className={FIELD}><span>{label}</span><NativeSelect className={CONTROL} aria-label={label} value={v} onChange={e => set(e.target.value as Ax)}><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></NativeSelect></label>;
   const [by, setBy] = useState<[number, number, number]>([0, 0, 10]);
   const [axis, setAxis] = useState<'x' | 'y' | 'z'>('z'), [deg, setDeg] = useState(90), [k, setK] = useState(2);
-  return <div className="render-section">
+  return <div className="render-section [&>[data-slot=button]]:self-start">
     <div className="card-title" style={{ marginTop: 8 }}>TRANSFORM</div>
     {(['ΔX', 'ΔY', 'ΔZ'] as const).map((l, i) => <NumberField key={l} label={l} value={by[i]} onChange={x => setBy(b => b.map((y, j) => j === i ? x : y) as typeof b)} />)}
     <Button variant="ghost" onClick={() => onMove(by)}>Move</Button>

@@ -60,7 +60,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {(['look', 'lights', 'scene', 'source'] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t === 'look' ? 'Appearance' : t === 'lights' ? 'Lights' : t === 'scene' ? 'Scene' : 'Source'}</button>)}
       </div>
 
-      {tab === 'look' && <div className="render-section">
+      {tab === 'look' && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="muted small">{selectedKeys.length ? `${selectedKeys.length} selected bod${selectedKeys.length > 1 ? 'ies' : 'y'}` : 'Every body without its own appearance'}</div>
         <label className={FIELD}><span>Preset</span>
           <NativeSelect className={CONTROL} aria-label="Appearance preset" value={preset} onChange={e => { const p = APPEARANCES.find(x => x.id === e.target.value); if (p) setLook(p.appearance); }}>
@@ -94,7 +94,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {selectedKeys.some(k => render.appearances[k]) && <Button variant="ghost" onClick={clearLook}>Use the default appearance</Button>}
       </div>}
 
-      {tab === 'lights' && <div className="render-section">
+      {tab === 'lights' && <div className="render-section [&>[data-slot=button]]:self-start">
         {render.lights.map((l, i) => {
           const [az, el] = anglesOf(l.kind === 'point' ? [0, 0, -1] : l.direction);
           return <div className="light" key={i}>
@@ -123,7 +123,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
 
       {tab === 'source' && <SourceTab render={render} onChange={onChange} />}
 
-      {tab === 'scene' && <div className="render-section">
+      {tab === 'scene' && <div className="render-section [&>[data-slot=button]]:self-start">
         {color('Top', env.top, v => setEnv({ top: v }))}
         {color('Bottom', env.bottom, v => setEnv({ bottom: v }))}
         {slider('Ambient', env.ambient, v => setEnv({ ambient: v }), 0, 2)}
@@ -190,7 +190,7 @@ function SourceTab({ render, onChange }: { render: RenderSettings; onChange(next
     const strip = (a: Appearance) => a.shader === name ? { ...a, shader: undefined } : a;
     onChange({ ...render, materials, defaultAppearance: strip(render.defaultAppearance), appearances: Object.fromEntries(Object.entries(render.appearances).map(([k, a]) => [k, strip(a)])) });
   };
-  return <div className="render-section">
+  return <div className="render-section [&>[data-slot=button]]:self-start">
     <div className="card-title">PROPS · CSS SCENE</div>
     <textarea className="code" aria-label="Props source" spellCheck={false} rows={7} value={scene} placeholder="@scene props { version: 0; box #plinth; }" onChange={e => setScene(e.target.value)} />
     {sceneError && <div className="diag" role="alert">{sceneError}</div>}
