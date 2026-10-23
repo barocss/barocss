@@ -131,7 +131,8 @@ const steps = [
   ['home: the starter plate', async () => {
     await page.goto(url); await page.waitForSelector(`.viewport[data-renderer="${renderer}"]`, { timeout: WAIT });
     await shows('.outliner', /Hole Ø8/, 'the studio opens on a starter plate with one Ø8 hole');
-    await settle(); await shot('home', 'studio', 'home: the starter plate');
+    // (The first step always runs, to load the studio; its shot only when it was asked for.)
+    await settle(); if (!only || only.test('home: the starter plate')) await shot('home', 'studio', 'home: the starter plate');
   }],
   ['tour: the layout and the palette', async () => {
     await shot('studio/tour', 'layout', 'tour: the layout and the palette');
