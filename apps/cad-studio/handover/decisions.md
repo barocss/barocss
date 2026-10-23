@@ -12073,3 +12073,22 @@ indicative).
 R5 fingerprint identical.
 
 **Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; RB no new rows; the passing test names identical to the previous step.
+
+## D217 — R5.2b: the rolling-ball Newton solvers build their arrays without per-iteration closures (2026-10-23)
+
+**What (`src/rolling-ball.ts`).** `solveStation`, `solveCorner` and `solveCliff` built, on every Newton iteration:
+- the Jacobian rows by `[0, 1, 2, 3].map(() => …)`;
+- each finite-difference point by `q.map((x, i) => i === k ? x ± h : x)`;
+- the right-hand side by `f.map(x => -x)` (and `[-x]` / `x[0]` for the dense solve);
+- the damped step's point by `q.map((x, i) => x + λ·step[i])`.
+
+They are now array literals with the same expressions. An unchanged coordinate is copied, not given `+ 0`, so a −0
+stays −0. `hs` is a literal.
+
+**Measured:** evaluating the 194 fuzz documents with fillets took 103.6 s before and 100.2 s after, best of 3 at load
+8–18. The difference is within the noise; the change removes the allocations and changes no value.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.

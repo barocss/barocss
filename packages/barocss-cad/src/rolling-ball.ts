@@ -94,21 +94,22 @@ const norm = (f: readonly number[]) => Math.hypot(...f);
  */
 export function solveStation(A: Sheet, sA: number, B: Sheet, sB: number, r: number, X: Point, t: Point, seedA: XY, seedB: XY, size: number): Station | null {
   let q = clampQ(A, B, [seedA[0], seedA[1], seedB[0], seedB[1]]), f = residual(A, sA, B, sB, r, X, t, q);
-  const hs = [A.hu, A.hv, B.hu, B.hv].map(h => 10 * h), tol = 1e-12 * size;
+  const hs = [10 * A.hu, 10 * A.hv, 10 * B.hu, 10 * B.hv], tol = 1e-12 * size;
   for (let it = 0; it < 40 && norm(f) > tol; it++) {
-    const J = [0, 1, 2, 3].map(() => [0, 0, 0, 0]);
+    const J = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
     for (let k = 0; k < 4; k++) {
       // (Clamped to the domains: at an edge the difference is one-sided, over the step actually taken.)
-      const qp = clampQ(A, B, q.map((x, i) => i === k ? x + hs[k] : x)), qm = clampQ(A, B, q.map((x, i) => i === k ? x - hs[k] : x));
+      const qp = clampQ(A, B, [k === 0 ? q[0] + hs[0] : q[0], k === 1 ? q[1] + hs[1] : q[1], k === 2 ? q[2] + hs[2] : q[2], k === 3 ? q[3] + hs[3] : q[3]]);
+      const qm = clampQ(A, B, [k === 0 ? q[0] - hs[0] : q[0], k === 1 ? q[1] - hs[1] : q[1], k === 2 ? q[2] - hs[2] : q[2], k === 3 ? q[3] - hs[3] : q[3]]);
       const fp = residual(A, sA, B, sB, r, X, t, qp), fm = residual(A, sA, B, sB, r, X, t, qm);
       for (let i = 0; i < 4; i++) J[i][k] = (fp[i] - fm[i]) / (qp[k] - qm[k]);
     }
-    const step = solve4(J, f.map(x => -x));
+    const step = solve4(J, [-f[0], -f[1], -f[2], -f[3]]);
     if (!step) return null;
     // Damped: halve the step until the residual falls.
     let lambda = 1, next = q, fn = f;
     for (let k = 0; k < 20; k++) {
-      next = clampQ(A, B, q.map((x, i) => x + lambda * step[i]));
+      next = clampQ(A, B, [q[0] + lambda * step[0], q[1] + lambda * step[1], q[2] + lambda * step[2], q[3] + lambda * step[3]]);
       fn = residual(A, sA, B, sB, r, X, t, next);
       if (norm(fn) < norm(f)) break;
       lambda /= 2;
@@ -937,15 +938,15 @@ export function solveCorner(S: Sheet, sigma: number, r: number, C: Curve, before
   for (let outer = 0; outer < 4; outer++) {
     let f = cornerResidual(S, sigma, r, C, frame.n1, frame.n2, theta, q);
     for (let it = 0; it < 40 && norm(f) > tol; it++) {
-      const J = [0, 1, 2].map(() => [0, 0, 0]);
+      const J = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
       for (let k = 0; k < 3; k++) {
-        const qp = q.map((x, i) => i === k ? x + hs[k] : x), qm = q.map((x, i) => i === k ? x - hs[k] : x);
+        const qp = [k === 0 ? q[0] + hs[0] : q[0], k === 1 ? q[1] + hs[1] : q[1], k === 2 ? q[2] + hs[2] : q[2]], qm = [k === 0 ? q[0] - hs[0] : q[0], k === 1 ? q[1] - hs[1] : q[1], k === 2 ? q[2] - hs[2] : q[2]];
         qp[0] = clampU(S, qp[0]); qp[1] = clampV(S, qp[1]); qp[2] = clampT(qp[2]); qm[0] = clampU(S, qm[0]); qm[1] = clampV(S, qm[1]); qm[2] = clampT(qm[2]);
         const fp = cornerResidual(S, sigma, r, C, frame.n1, frame.n2, theta, qp), fm = cornerResidual(S, sigma, r, C, frame.n1, frame.n2, theta, qm);
         for (let i = 0; i < 3; i++) J[i][k] = (fp[i] - fm[i]) / (qp[k] - qm[k]);
       }
       let step: number[];
-      try { step = solveDense(J, f.map(x => [-x])).map(x => x[0]); } catch { return null; }
+      try { const x = solveDense(J, [[-f[0]], [-f[1]], [-f[2]]]); step = [x[0][0], x[1][0], x[2][0]]; } catch { return null; }
       if (!step.every(Number.isFinite)) return null;
       let lambda = 1, nextQ = q, fn = f;
       for (let k = 0; k < 20; k++) {
@@ -982,15 +983,15 @@ export function solveCliff(S: Sheet, sigma: number, r: number, C: Curve, X: Poin
   const [t0, t1] = curveDomain(C), clampT = (t: number) => Math.min(t1, Math.max(t0, t)), tol = 1e-12 * size, hs = [10 * S.hu, 10 * S.hv, 1e-7 * (t1 - t0)];
   let q = [clampU(S, seedS[0]), clampV(S, seedS[1]), clampT(seedT)], f = cliffResidual(S, sigma, r, C, X, tn, q);
   for (let it = 0; it < 40 && norm(f) > tol; it++) {
-    const J = [0, 1, 2].map(() => [0, 0, 0]);
+    const J = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
     for (let k = 0; k < 3; k++) {
-      const qp = q.map((x, i) => i === k ? x + hs[k] : x), qm = q.map((x, i) => i === k ? x - hs[k] : x);
+      const qp = [k === 0 ? q[0] + hs[0] : q[0], k === 1 ? q[1] + hs[1] : q[1], k === 2 ? q[2] + hs[2] : q[2]], qm = [k === 0 ? q[0] - hs[0] : q[0], k === 1 ? q[1] - hs[1] : q[1], k === 2 ? q[2] - hs[2] : q[2]];
       qp[0] = clampU(S, qp[0]); qp[1] = clampV(S, qp[1]); qp[2] = clampT(qp[2]); qm[0] = clampU(S, qm[0]); qm[1] = clampV(S, qm[1]); qm[2] = clampT(qm[2]);
       const fp = cliffResidual(S, sigma, r, C, X, tn, qp), fm = cliffResidual(S, sigma, r, C, X, tn, qm);
       for (let i = 0; i < 3; i++) J[i][k] = (fp[i] - fm[i]) / (qp[k] - qm[k]);
     }
     let step: number[];
-    try { step = solveDense(J, f.map(x => [-x])).map(x => x[0]); } catch { return null; }
+    try { const x = solveDense(J, [[-f[0]], [-f[1]], [-f[2]]]); step = [x[0][0], x[1][0], x[2][0]]; } catch { return null; }
     if (!step.every(Number.isFinite)) return null;
     let lambda = 1, nextQ = q, fn = f;
     for (let k = 0; k < 20; k++) {
