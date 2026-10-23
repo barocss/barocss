@@ -106,6 +106,13 @@
 | `[FRAME_SECTION_UNKNOWN]` | `chat`, `engine`, `frames` | no row "…" in the section library (rows: …) |
 | `[FRAME_SKELETON_IN_USE]` | `chat`, `frames` | feature … (a …) is followed by …: give those frames their own points, or delete them, first. |
 | `[FRAME_STOCK_ROW]` | `chat` | row …: an id and a source (where the length comes from: your shop, a page) are needed. |
+| `[INPUT_CHOICE]` | `assembly` | …: … is not one of its choices |
+| `[INPUT_CONFLICT]` | `assembly` | … is driven by … and …: one input a target |
+| `[INPUT_DEFAULT]` | `assembly` | …: the master is the default variant |
+| `[INPUT_NAME]` | `assembly` | variant …: no input … |
+| `[INPUT_RANGE]` | `assembly` | … = …: true or false |
+| `[INPUT_TARGET]` | `assembly` | …: … has no parameter … |
+| `[INPUT_TYPE]` | `assembly` | … (…) cannot drive … |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[NO_REFERENCE]` | `chat` | no reference …; references: …. |
 | `[NO_ROW]` | `standards` | … … has no field …; fields: … |
@@ -136,6 +143,7 @@
 | `[STOCK_ALLOWANCE]` | `chat/part` | allowance is mm a face, 0 to 100. |
 | `[STOCK_ROW]` | `chat` | row …: an id and a source (where the size comes from: your shop, a page) are needed. |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
+| `[VARIANT_UNKNOWN]` | `assembly` | no variant … (variants: …) |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |
 | `[WELD_NO_JOINTS]` | `chat/part` | the part has no weld joints: frame members meeting at a corner, a butt or a face. |

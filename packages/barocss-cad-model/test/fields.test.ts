@@ -26,7 +26,7 @@ function full(): StudioDoc {
     format: 'barocss-cad-model', schema: 3, nextId: base.nextId!, units: 'mm', parameters: { w: 40 },
     rowSources: { version: 1, rows: [] },
     printPreview: { version: 1, layer: 0, layerMM: 0.15, supports: false, printed: true },
-    configurations: { big: { w: 60 } }, pendingParts: { p: { doc: rectanglePart(5, 5, 5), rev: 'A', name: 'P' } },
+    configurations: { big: { w: 60 } }, variability: { version: 1, inputs: [{ name: 'width', type: 'number', unit: 'mm', default: 40, bindings: [{ to: 'parameter', part: 'base', parameter: 'w' }] }], variants: [{ name: 'wide', values: { width: 60 } }] }, pendingParts: { p: { doc: rectanglePart(5, 5, 5), rev: 'A', name: 'P' } },
     nodes, outputs: base.outputs, render: { ...defaultRender(), appearances: { b2: { ...defaultRender().defaultAppearance, roughness: 0.3 } } },
     direct: { sources: { s: 'cube' }, objects: [] }, instances: [{ id: 'i1', name: 'pin', doc: rectanglePart(4, 4, 10), position: [0, 0, 20], rotation: [0, 0, 0] }],
     drawing: defaultDrawing(), bodies: { b2: { color: '#ff0000', faceSigs: {}, facesWas: {} } },
