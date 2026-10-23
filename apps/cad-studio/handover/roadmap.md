@@ -12,7 +12,7 @@ coordinator, verification tiers) is in `notes/claude-resume-2026-10-23/`.
 
 ## Where we are
 
-Integration is `review/cad-gpu-engine-2026-10-14` at `6bfd0ad97`, local only.
+Integration is `review/cad-gpu-engine-2026-10-14`, local only (tip in `git log`; last window 9b4e90f3e, see S9).
 
 | | |
 |---|---|
@@ -51,7 +51,7 @@ moved to Later.
 | S4 | **done** O151, O152. Failures still left after S1 and S2 | outer | Each fixed or assigned with a cause |
 | S5 | Kernel failures from the window: frk-3's dropped oracle, stale S0 expectations, sweep dropping holes | kernel | **done**: D176 `b0e22e572`. The V notch moves to K1 |
 | S6 | Studio lint | GPU | **done**: `59582a911` |
-| S9 | Window and full browser flow at one commit | coordinator | The new "last fully verified" commit. Window at 218c5604a: builds, types, lint, model 964, studio 250, gpu 189, kernel 1640/1647 (the Node pin), RB no NEW, properties pass; flow 269/272 (144, 166 fixed after it in cf8ce8fd9; 258 on WebGPU with the GPU lane). Next window after O7b and D206 |
+| S9 | Window and full browser flow at one commit | coordinator | The new "last fully verified" commit. **Window at 9b4e90f3e (2026-10-24, after R5 and G12a):** builds, types, lint, model 993/993, studio 274/274, gpu 189/189, kernel 1648/1655 (only the native-split test, as before), RB and props pass; flow 276/280, failing 72 and 273 (G12a, with the GPU lane), 207 (test fixed in d2d62a94e, outer) and 252 (GPU, G12). S9 closes when a rerun of those four passes. Earlier, window at 218c5604a: builds, types, lint, model 964, studio 250, gpu 189, kernel 1640/1647 (the Node pin), RB no NEW, properties pass; flow 269/272 (144, 166 fixed after it in cf8ce8fd9; 258 on WebGPU with the GPU lane). Next window after O7b and D206 |
 
 Moved out of Phase 0:
 - the V notch precision regression goes to K1 (same quadrature file as FRk6);
