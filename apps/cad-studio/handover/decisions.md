@@ -12517,3 +12517,86 @@ the like. No kernel file changes.
 **Checks:** the 17 demos run on the D233 kernel (results below).
 
 **Result:** of the 17 demos, 14 pass, rectangular-face-extrusion-body among them. The other 3 (native-constant-coordinate, qualified-strip-binary-stl, source-line-width-material-body-graph) failed the same before R5.4 (D228). So the 119-demo comparison leaves no demo failing after R5.4 that passed before it.
+
+## D235 — A traced curve through a pole is cut there, and the points that refine it stay on both patches (2026-10-24)
+
+**Finding.** K12, L4 fuzz seed 20261023 #110, shrunk: a cylinder r 1 ∪ a ball r 2 whose poles lie on the cylinder's
+wall (the cylinder's axis 1 from the ball's centre). Their curve is Viviani's, and it runs through the ball's north
+pole. With the cylinder from z 2.5 (union and difference) it was refused as "not a manifold solid", an edge used once:
+the ball's meridian seam. The fuzzed case itself (the cylinder from z 2, the ball's equator) is a different cause, open
+below.
+
+**Causes.** Two, the second hidden behind the first.
+- **On the ball, one cut across the pole.** On the pole's surface the curve's two halves arrive at the pole's side of
+  the domain at two values of u. One cut across it gave `curveFaceRegions` no region at all: the face vanished.
+- **A subdivision point off the ball.** `chainCurve` refines each marched step with three points corrected onto both
+  surfaces. Beside the pole the third one's hint came from the chain point across it, Newton's u ran to −21091, and the
+  point found lay on the surface's extension, 1.2e-5 mm off the ball. Its edge's fit followed it: once the cut was split
+  at the pole, the strict check found the edge 1.1e-5 mm off the ball's face (INVALID).
+
+**Fix.**
+- `src/brep/analytic-boolean.ts`, `addCut` / `throughPole`: a traced curve passing within 10 tolerances of a nurbs face's
+  pole strictly inside it (64 samples, then a golden-section search) is cut there. Its ends stay with D208's `toPoles`.
+  This is the R5 kernel session's candidate patch (`k12-start/pole-split.patch`), ported as it was.
+- `src/intersect/surface-intersection.ts`, `chainCurve`: a refining point is kept only where both patches' parameters
+  lie within a hundredth of their box's sides.
+
+Each part alone leaves the case refused: the split alone gives the INVALID above, and the point check alone the face
+with no region.
+
+**Results** (the ray oracle at 256² × 6):
+
+| Case | Before | After |
+|---|---|---|
+| 110's pair, the cylinder from z 2.5, union | refused | 42.820232 mm³ against 42.819286 ± 3.2e-3 (0.3 e), one body |
+| the same, difference | refused | 9.309912 against 9.309016 ± 2.8e-3 (0.3 e), one body |
+| fuzz 110 as fuzzed (5 leaves, and shrunk) | refused | refused, as before (see below) |
+
+**What is still open on 110.** As fuzzed, the cylinder starts at z 2, the ball's equator. There it touches the ball at
+(−2, 1, 2): its wall is tangent to the ball, Viviani's curve crosses itself there, and the cylinder's bottom circle is
+tangent to the equator at the same point. The exact union is a manifold solid (a vertex where the curve's two branches
+meet). Of four nudges of the shrunk tree by up to 1e-3 mm, one builds within e, two are refused, and one builds 7.9 e
+off on the tessellated mass. That nudge would be a WRONG in the fuzz; it is recorded here and taken up with 110.
+
+**Fingerprint:** unchanged, 855 cases, sha256 `ef3868df…`.
+
+**Test:** `test/boolean-through-pole.test.mjs`, both operations against the oracle, failing before.
+
+## D236 — A closed curve closes on its first lap: the march's step tests use the step it took (2026-10-24)
+
+**Finding.** K12, L4 fuzz seed 20261023 #119: two balls in a circular pattern, ∪ a third ball. It was refused as "not a
+manifold solid", an edge used six times. Shrunk, it is the same two leaves. All four nudges built, two bodies each, so
+the refusal was of the exact input.
+
+**Cause (`src/intersect/surface-intersection.ts`, the march).** The circle where the second copy meets the third ball
+was marched as one closed chain, but it went round twice: its points lie at 0°, 19°, … −11°, 8°, … −22°.
+- The step loop is `for (…; tries++, step /= 2)`. Its update halves `step` once more after the try that succeeds, so
+  the tests after it compared with half the step taken.
+- "Closing on the start" needed the next point within 0.75 × h/2 = 0.375 h of the start. At −11° → 8° the next point
+  was 0.41 h past it, so the march went on.
+- "Running back over itself" needed 0.5 × h/2 = 0.25 h. The second lap's points lie 0.41 h from the first lap's, so it
+  went on too, and closed at the end of the second lap.
+
+On a closed curve traced twice, the face's two halves of the hole each ran the whole circle. They were the same edges
+both ways: a slit, used six times.
+
+How often: two unit balls 1.5 apart, marched at 40 steps from 0.080 to 0.158 mm. Before the fix, 8 of the 40 traced
+the circle twice. After it, all 40 trace it once.
+
+**Fix.** The loop records the step that found the point (`taken`). Both tests use it: closing within 0.75 of it, running
+back within 0.5. Those were the factors as written. The running-back scan is a plain loop (`runsBack`) instead of a
+slice and a closure per step.
+
+**Results** (the ray oracle at 256² × 6):
+
+| Case | Before | After |
+|---|---|---|
+| 119 shrunk | refused | 72.550342 mm³ against 72.550358 ± 3.3e-3 (−0.0 e), 2 bodies (the first copy is apart) |
+| 119 as fuzzed | refused | 215.951781 against 215.952491 ± 5.2e-3 (−0.1 e), 4 bodies, as all nudges give |
+
+**Fingerprint:** 855 cases, sha256 `d9e60f0b…` (from D235's `ef3868df…`). One line changed: `fuzz:20261023:119`,
+refused → valid, F/E/V 18/82/82, 215.9517814 mm³, method quadrature.
+
+**Tests:** `test/boolean-march-close.test.mjs`, both failing before:
+- the 40 steps, each one closed chain of one lap;
+- 119 shrunk: valid, watertight, two bodies, within 3 e of the oracle.

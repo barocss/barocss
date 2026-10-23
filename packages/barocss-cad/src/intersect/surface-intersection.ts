@@ -24,6 +24,13 @@ function derivatives(P: Patch, p: XY): { x: Point; du: Point; dv: Point } {
   return { x, du: scale(sub(a, b), 1 / (2 * hu)), dv: scale(sub(c, d), 1 / (2 * hv)) };
 }
 const inside = (P: Patch, p: XY, slack = 0) => p[0] >= P.box[0][0] - slack && p[0] <= P.box[1][0] + slack && p[1] >= P.box[0][1] - slack && p[1] <= P.box[1][1] + slack;
+/** Within a hundredth of each side's length of the patch's box. */
+const nearBox = (P: Patch, p: XY) => { const [[u0, v0], [u1, v1]] = P.box, su = 0.01 * (u1 - u0), sv = 0.01 * (v1 - v0); return p[0] >= u0 - su && p[0] <= u1 + su && p[1] >= v0 - sv && p[1] <= v1 + sv; };
+/** Whether x lies within r of a chain point other than its first and last eight (a march running back over itself). */
+function runsBack(pts: readonly Point[], x: Point, r: number): boolean {
+  for (let i = 1; i < pts.length - 8; i++) if (len(sub(x, pts[i])) < r) return true;
+  return false;
+}
 /** Nearest point of a patch to x by Newton (from a start), unclamped (callers test the box). */
 function project(P: Patch, x: Point, start: XY): XY {
   let p: XY = [start[0], start[1]];
@@ -162,11 +169,14 @@ export function intersectPatches(A: Patch, B: Patch, options: {
         const t = scale(unit(c), dir);
         tans.push(t);
         // Predictor, then corrector on both surfaces and the plane through the prediction normal to t.
-        let step = h, next: ReturnType<typeof onBoth> = null;
+        // (`taken`: the step that found the point. The loop's update halves `step` once more after it, and the tests below
+        // compared with that half: a closed curve passing its start between 0.375 and 0.75 of a step away went round
+        // again, traced twice. L4 fuzz 119, D236.)
+        let step = h, taken = h, next: ReturnType<typeof onBoth> = null;
         for (let tries = 0; tries < 6 && !next; tries++, step /= 2) {
           const guess = add(x, scale(t, step));
           const r = onBoth(A, B, project(A, guess, pa), project(B, guess, pb), { o: guess, n: t });
-          if (r && len(sub(r.x, guess)) < step && len(sub(A.at(r.pa), B.at(r.pb))) <= tol) next = r;
+          if (r && len(sub(r.x, guess)) < step && len(sub(A.at(r.pa), B.at(r.pb))) <= tol) { next = r; taken = step; }
         }
         if (!next) break;
         // Leaving a box: cut the step at the box edge (bisection on the fraction of the step).
@@ -184,9 +194,9 @@ export function intersectPatches(A: Patch, B: Patch, options: {
           break;
         }
         // Closing on the start.
-        if (k > 3 && len(sub(next.x, pts[0])) < step * 0.75 && dot(sub(pts[0], x), t) > 0) { closed = true; break; }
+        if (k > 3 && len(sub(next.x, pts[0])) < taken * 0.75 && dot(sub(pts[0], x), t) > 0) { closed = true; break; }
         // Running back over itself (circling a tangency): the curve ends there.
-        if (k > 8 && pts.slice(1, -8).some(p => len(sub(next.x, p)) < step * 0.5)) break;
+        if (k > 8 && runsBack(pts, next.x, taken * 0.5)) break;
         pts.push(next.x); uvA.push(next.pa); uvB.push(next.pb);
       }
       if (tans.length < pts.length) tans.push(tans[tans.length - 1] ?? [1, 0, 0]);
@@ -224,7 +234,9 @@ export function chainCurve(chain: IntersectionChain, on?: { readonly A: Patch; r
       for (let j = 1; j < 4; j++) {
         const { x, dx } = hermite(pts, tans, i, d, j / 4), k = j < 2 ? i : i + 1, dir = unit(dx);
         const r = onBoth(on.A, on.B, project(on.A, x, uvA[k]), project(on.B, x, uvB[k]), { o: x, n: dir });
-        if (r && len(sub(r.x, x)) < d / 4) {
+        // (Not a point Newton took off either patch: beside a ball's pole, from a hint across it, the ball's u ran to
+        // −21091 and the point found lay on the surface's extension, 1.2e-5 mm off the ball. L4 fuzz 110, D235.)
+        if (r && len(sub(r.x, x)) < d / 4 && nearBox(on.A, r.pa) && nearBox(on.B, r.pb)) {
           const t = unit(cross(normalOf(on.A, r.pa), normalOf(on.B, r.pb)));
           P.push(r.x); T.push(dot(t, dir) < 0 ? scale(t, -1) : t);
         }
