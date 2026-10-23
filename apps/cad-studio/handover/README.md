@@ -139,7 +139,7 @@ The owner moved the work to another account mid-track. The kernel lane stops cle
 
 **How to resume**
 1. Read this block, then D164 (FRk's S0) and D165–D167 in `decisions.md`, then the coordinator's brief.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. A flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>` in `apps/cad-studio`, on its own, with short titles.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`. The rows record the commit they ran on: run them on the committed code, or set the row's `commit` to the code's commit (as at 75647da69).
 5. Start FRk3 with D168.
@@ -204,7 +204,7 @@ block is kept as history.
 
 **How to resume**
 1. Read this block, then the FR records (D122–D128) and the FR hand-over block below, then the coordinator's brief.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own. Keep titles short: the step's screenshot is named by its title.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.
 5. Each step needs:
@@ -268,7 +268,7 @@ track K → queue block below, the **kernel-lane queue** is done: five items, D1
 
 **How to resume**
 1. Read this block, then D139 (R12c) and D148–D152 in `decisions.md`.
-2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests.
+2. Node 22 (`export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH`). Run `pnpm build:library` in `packages/barocss-cad` before kernel tests (while iterating on a test, `node scripts/tool.mjs build:fast` there: esbuild, 0.4 s, no type check, the declarations of the last full build kept; a full build and `type-check` stay the gates).
 3. For a flow step: `CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright CAD_STUDIO_CHAT_PORT=52491 FLOW_ONLY=<regex> node test/browser-flow.mjs <out>`, in `apps/cad-studio`, on its own.
    - A step that builds on the step before it (step 45 needs step 44's mesh) needs both in the regex.
 4. RB: `node <abs>/packages/barocss-cad/scripts/rb/run.mjs --record`, then `scripts/rb/props.mjs --record`.
