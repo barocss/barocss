@@ -87,6 +87,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | R5.2d: analytic-boolean nearestOn has no distance closure per call | D219 | done (batched checks, fingerprint identical) |
 | R5.2e: surface-intersection onBoth builds its least-squares system in loops | D220 | done (batched checks, fingerprint identical) |
 | R5.3a: the gears leave operation() for part-gears.ts (verbatim; helpers frozen record) | D221 | done (batched checks, fingerprint identical) |
+| R5.3b: the machine elements leave operation() for part-machine.ts (verbatim; helpers frozen record) | D222 | done (batched checks, fingerprint identical) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
