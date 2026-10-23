@@ -2257,7 +2257,10 @@ export function App() {
   const browserPlacement = 'dock' as 'dock' | 'left';
   const dockDocked = layout.dockDocked(chatColumnShown ? layout.chatShown : 0);
   // (The strips over the stage's edges, left and right: the bottom row's room is the stage less them.)
-  useEffect(() => setStripWidth((chatColumnShown ? 0 : CHAT_STRIP) + (dockDocked ? 0 : CHAT_STRIP)), [chatColumnShown, dockDocked]);
+  // (What the dock takes at the stage's right edge when it is not docked: its strip, and its sheet while open — the view bar,
+  // the view cube and the HUD stand clear of both.)
+  const dockEdge = dockDocked ? 0 : CHAT_STRIP + (layout.dockSheet ? layout.dockWidth : 0);
+  useEffect(() => setStripWidth((chatColumnShown ? 0 : CHAT_STRIP) + dockEdge), [chatColumnShown, dockEdge]);
   // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
   useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, layout.setDockSheet]);
   const browserPanel = (
@@ -2592,7 +2595,7 @@ export function App() {
   );
   const hud = active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />;
   return (
-    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockDocked ? '0px' : CHAT_STRIP + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
+    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
       <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
