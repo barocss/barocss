@@ -5939,6 +5939,8 @@ try {
     await page.waitForFunction(() => window.__studioDoc.variability.variants.some(v => v.name === 'agent wide'), null, { timeout: 10000 });
     await page.waitForSelector('[aria-label="Variants panel"] [aria-label="Set agent wide"]', { timeout: 10000 });
     await page.evaluate(() => window.__studioUnscriptChat?.()); await page.click('[aria-label="Close chat"]');
+    // (Closed again: the card is a .props card, and later steps read the inspector by that class.)
+    await card.locator('[aria-label="Close Variants"]').click(); await card.waitFor({ state: 'detached', timeout: 5000 });
   });
 
   // ---- RM6 (O19): the collision sweep -----------------------------------------------------------------------------
