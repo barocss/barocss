@@ -83,8 +83,9 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         );
       })}
       {/* (O12: each frame where the pose puts it — its origin and the way its Z axis points, the approach of a tool.) */}
-      {frames?.map(f => <div key={f.name} className="kv" aria-label={`Frame ${f.name}`} title={`${f.kind ?? 'frame'} on ${name(f.link)}: origin in mm, its Z axis as a unit vector`}>
-        {f.name} <span className="muted">{f.kind ?? 'frame'} · {name(f.link)}</span> <b className="mono">({f.o.map(mm1).join(', ')}) · Z ({f.z.map(v => fix3(v)).join(', ')})</b></div>)}
+      {frames?.map(f => <div key={f.name} className="py-0.5 text-[11px]" aria-label={`Frame ${f.name}`} title={`${f.kind ?? 'frame'} on ${name(f.link)}: origin in mm, its Z axis as a unit vector`}>
+        <div className="truncate">{f.name} <span className="muted">{f.kind ?? 'frame'} · {name(f.link)}</span></div>
+        <b className="mono block text-right whitespace-nowrap">({f.o.map(mm1).join(', ')}) · Z ({f.z.map(v => fix3(v)).join(', ')})</b></div>)}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
       {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
       {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px] [&>label]:inline-flex [&>label]:items-center [&>label]:gap-1 [&>label]:whitespace-nowrap" aria-label="Workspace">
