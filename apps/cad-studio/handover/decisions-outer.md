@@ -7601,3 +7601,45 @@ The GPU lane's G10 found the step `FRd2 the welded table's weld symbols…` fail
   - The first run had one failure: PKG-b expects ui/files.ts to re-export `meshToStl` alone, on its own line. `lumpStls` is now on a line of its own, so the test's pattern and meaning are unchanged; pkg-boundary is 3/3.
 - tsc (cad-model, studio) and eslint clean. No expected value changed.
 - Not run: the flow, and the studio files that don't import the changed modules.
+
+## O7a — the legacy fixtures and the open-as-before harness, before any conversion (2026-10-23)
+
+**Why.** The coordinator approved O7, the built-in fastener sizes, casting rules and enclosure variants as person-loaded sample rows, with saved documents opening identically (point 4). This first checkpoint freezes what "identically" means, before any reader changes.
+
+**What:**
+- **The fixtures.** Seven `.bcad` files in `packages/barocss-cad-model/test/fixtures/o7-legacy/`, saved by today's code. They are listed with their use in that folder's README and are never re-saved:
+  - fasteners made in a part, and fasteners placed as parts;
+  - tapped holes, milled;
+  - a drawing whose ± tolerances the fastener data set and stored;
+  - die and sand casting;
+  - enclosure library parts.
+- **`expected.json`** holds what each opened to: bodies, threads, fastener edit steps, the drawing, tapped holes, CAM and DFM rules, the BOM. For the drawing that means its suggestions, issues, dimensions, stored tolerances, and the suggestions with those tolerances taken off; the last are the `holePosition` reads at open.
+  - Numbers are rounded to 9 decimals: a bore read as 5.000000000000001 is 5.
+  - Run twice, the result is the same.
+- **`test/o7-legacy.test.ts`** checks every fixture through Save/Open (`readStudioFile`).
+
+**Plan check (the coordinator's point 3), reported before O7b:**
+- The starter document has a plain hole, r 4, with no tap, so O7 doesn't affect it. Its drawing reads "fits no fastener" from the data, and with no rows loaded it reads the same.
+- enclosure.json and materials.json profiles 7–8 are the tables O7d and O7c convert.
+- tslot-20.json carries four literals equal to the catalogue's M5 values: `bore` 4.2, the Slot nut's `drill` 4.2, and the end cap's and angle bracket's `hole` 5.5. They are not read from FASTENER_SIZES. Options (A), (B) and (C) went to the coordinator; I recommended (C): the library's own values, the source text saying so, and a warning when loaded rows differ. Waiting for the coordinator's choice.
+
+**Load paths for O7b's migration.** A read-only survey found these. Point 4 needs each one covered.
+- **Through `readStudioFile`/`readStudioDoc`:**
+  - Open, Insert part and a placed part's new revision (App.tsx 1499, 780, 2454);
+  - templates (app/templates.ts:14);
+  - cad-mcp and cad-cli `--doc` (server/cadDoc.ts:31);
+  - `cad-cli replay` and CandidateBoard (team/candidates.ts:62, 194);
+  - bundle verify (team/bundle.ts:132).
+- **Not through it (a cast `JSON.parse`):**
+  - crash recovery (app/recovery.ts:12, 61; restored at App.tsx:2848);
+  - the chat server's client → state.json (server/chatServer.ts:205, 242) and its cad-mcp state file (server/cadMcp.ts:44);
+  - team scenario `start` docs (cadCli.ts:164, 175; team/scripted.ts:90, 115).
+  - O7b puts the migration on each of these. For the chat round trip the right point is where the client's document enters the server.
+- **Nested documents:** `instances[].doc` (recursively) and `pendingParts[id].doc`.
+  - `readStudioDoc` migrates only the top level today: its validators recurse, its migration steps don't. O7's legacy-row freeze has to recurse.
+  - `modelContent` recurses into instance docs. Freezing rows into a placed part therefore changes its revision digest; O7b will check that before choosing where the rows go.
+
+**Verified (O7a).**
+- o7-legacy 8/8, run twice with the same result.
+- tsc and eslint clean.
+- Only tests and fixtures changed, so no suite ran (T1).

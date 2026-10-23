@@ -1,0 +1,449 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        120,
+        50
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 10,
+      "id": "n1"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 1,
+        "side": "solid"
+      },
+      "center": [
+        20,
+        12
+      ],
+      "radius": 3.3,
+      "pattern": {
+        "count": 4,
+        "step": [
+          20,
+          0
+        ]
+      },
+      "id": "n2"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 2,
+        "side": "solid"
+      },
+      "center": [
+        20,
+        34
+      ],
+      "radius": 2.5,
+      "thread": "M6×1",
+      "depth": 12,
+      "id": "n3"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 3,
+        "side": "solid"
+      },
+      "center": [
+        60,
+        34
+      ],
+      "radius": 2.75,
+      "id": "n4"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 4,
+        "side": "solid"
+      },
+      "center": [
+        90,
+        34
+      ],
+      "radius": 4.5,
+      "id": "n5"
+    }
+  ],
+  "outputs": {
+    "b5": {
+      "node": 5,
+      "side": "solid"
+    }
+  },
+  "nextId": 6,
+  "drawing": {
+    "sheet": "A4",
+    "scope": {
+      "kind": "part"
+    },
+    "projection": "third",
+    "hidden": true,
+    "dimensions": [
+      {
+        "view": "top",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n2_p0.side0#2",
+          "at": "center",
+          "near": [
+            20.000000000000004,
+            12,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.bottom|n2_p1.side0#2",
+          "at": "center",
+          "near": [
+            40,
+            12,
+            0
+          ]
+        },
+        "orient": "horizontal",
+        "place": [
+          30,
+          -228
+        ],
+        "id": "d1",
+        "count": 3,
+        "auto": true,
+        "tol": {
+          "kind": "symmetric",
+          "value": 0.17
+        }
+      },
+      {
+        "view": "top",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.bottom|n2_p0.side0#2",
+          "at": "center",
+          "near": [
+            20.000000000000004,
+            12,
+            0
+          ]
+        },
+        "orient": "horizontal",
+        "place": [
+          10.000000000000002,
+          102
+        ],
+        "id": "d2",
+        "auto": true,
+        "tol": {
+          "kind": "symmetric",
+          "value": 0.1
+        }
+      },
+      {
+        "view": "top",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.bottom|n5.side0#2",
+          "at": "center",
+          "near": [
+            90,
+            34,
+            0
+          ]
+        },
+        "orient": "horizontal",
+        "place": [
+          45,
+          86
+        ],
+        "id": "d3",
+        "auto": true,
+        "tol": {
+          "kind": "symmetric",
+          "value": 0.35
+        }
+      },
+      {
+        "view": "top",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.bottom|n2_p0.side0#2",
+          "at": "center",
+          "near": [
+            20.000000000000004,
+            12,
+            0
+          ]
+        },
+        "orient": "vertical",
+        "place": [
+          -132,
+          6
+        ],
+        "id": "d4",
+        "auto": true,
+        "tol": {
+          "kind": "symmetric",
+          "value": 0.21
+        }
+      },
+      {
+        "view": "top",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.bottom|n3.side0#2",
+          "at": "center",
+          "near": [
+            20,
+            34,
+            0
+          ]
+        },
+        "orient": "vertical",
+        "place": [
+          140,
+          17
+        ],
+        "id": "d5",
+        "auto": true,
+        "tol": {
+          "kind": "symmetric",
+          "value": 0.1
+        }
+      },
+      {
+        "view": "top",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.bottom|n1.side2",
+          "at": "end",
+          "near": [
+            0,
+            50,
+            0
+          ]
+        },
+        "orient": "vertical",
+        "place": [
+          -52,
+          25
+        ],
+        "id": "d6",
+        "auto": true
+      },
+      {
+        "view": "top",
+        "kind": "diameter",
+        "edge": "n1.bottom|n3.side0#2",
+        "near": [
+          20,
+          34,
+          0
+        ],
+        "place": [
+          5.610205468751813,
+          79.3012050057813
+        ],
+        "id": "d7",
+        "auto": true
+      },
+      {
+        "view": "top",
+        "kind": "diameter",
+        "edge": "n1.bottom|n2_p0.side0#2",
+        "near": [
+          20.000000000000004,
+          12,
+          0
+        ],
+        "place": [
+          -37.48778131046632,
+          -23.850313806157956
+        ],
+        "id": "d8",
+        "count": 4,
+        "auto": true
+      },
+      {
+        "view": "top",
+        "kind": "diameter",
+        "edge": "n1.bottom|n4.side0#2",
+        "near": [
+          60,
+          34,
+          0
+        ],
+        "place": [
+          7.143768106305565,
+          2.003418151308704
+        ],
+        "id": "d9",
+        "auto": true
+      },
+      {
+        "view": "top",
+        "kind": "diameter",
+        "edge": "n1.bottom|n5.side0#2",
+        "near": [
+          90,
+          34,
+          0
+        ],
+        "place": [
+          106.5,
+          110
+        ],
+        "id": "d10",
+        "auto": true
+      },
+      {
+        "view": "front",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            120,
+            0,
+            0
+          ]
+        },
+        "orient": "horizontal",
+        "place": [
+          60,
+          -20
+        ],
+        "id": "d11",
+        "auto": true
+      },
+      {
+        "view": "front",
+        "kind": "linear",
+        "a": {
+          "edge": "n1.bottom|n1.side0",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            0
+          ]
+        },
+        "b": {
+          "edge": "n1.side0|n1.top",
+          "at": "end",
+          "near": [
+            0,
+            0,
+            10
+          ]
+        },
+        "orient": "vertical",
+        "place": [
+          140,
+          5
+        ],
+        "id": "d12",
+        "auto": true
+      }
+    ],
+    "views": [
+      "front",
+      "top",
+      "iso"
+    ],
+    "room": {
+      "front": {
+        "below": 14,
+        "right": 14
+      },
+      "top": {
+        "above": 30,
+        "below": 34,
+        "left": 30
+      }
+    },
+    "notes": [
+      {
+        "id": "n1",
+        "text": "UNLESS OTHERWISE STATED:\nLINEAR ±0.2 · ANGULAR ±0.5°",
+        "at": [
+          167,
+          154
+        ]
+      }
+    ]
+  }
+}
