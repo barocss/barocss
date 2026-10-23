@@ -7300,3 +7300,32 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - Two steps failed there:
   - **The new O175 step:** Auto-dimension's turned projection and Turn the drawing (DrawingWorkspace's two other `engine.drawing` calls) had no `made`, so the bought key got a leader note. Fixed in `d89a1cd75`; the step passes.
   - **FRb's cut-list step:** alone under FLOW_ONLY, it found no member selected, so "Show the cut list" never appeared. It now selects one (`b679cff88`) and passes.
+
+## O177 — the base part's own BOM lines get their balloons (2026-10-23)
+
+**The defect (found in O176, the coordinator's order to fix).** On an assembly's sheet with balloons, the base part's own BOM lines (O169) had no balloon:
+- a frame member's cut-list row;
+- a made body of the base's own (a plain plate as the base).
+Their parts are `base:<body key>`; `targetOf` read that whole string as an instance id, which no edge has, and the line went to BALLOON_NO_EDGE.
+
+**The fix.**
+- A body key is not a face name: `b0_part3` is a member whose faces are `n0.m3.…`, and a holed plate `b2` has faces of n1 and n2. So the balloon now gets the base part's face names by body key, `bodyFaces`, on the sheet's meta.
+  - In the chat, `baseBodyFaces(doc)` (engine/evaluate) reads them from the snapshot's B-reps.
+  - In the studio, `bodyFacesOf(bodies)` (drawing/balloons) reads them from the bodies' display meshes.
+  - Either is computed only for a sheet with balloons.
+- A `base:<key>` line's target is an edge whose faces are all that body's (piece suffixes `#n` stripped). It takes the longest visible piece, as before. Each body's face set is built once a sheet, and the check is a module-level function (no closure per edge).
+- useDrawingSheet gains one output, `bodyFaces`; nothing else in the hook changed (named to the coordinator). DrawingWorkspace passes it in its five sheet metas: accept all, Fix all, Auto-dimension, and the two drag previews.
+
+**Tests:**
+- balloons-base, new: a frame (members 320 ×4, 360 ×2, 260 ×2), a block of the base's own and a placed plate, on an assembly sheet with balloons:
+  - each member row's balloon on one of its own pieces' edges (`n0.m<k>.`);
+  - the block's on its own faces;
+  - the plate's on `p1/`;
+  - none without an edge, a balloon per line.
+- bom-fasteners: the base plate's line now has its balloon too (noEdge was [2]).
+
+**Verified (T1):**
+- model: balloons-base 1/1, bom-fasteners 4/4, and bom-balloons, bom-base, weldment-drawing, drawing-made-views, drawing, drawing-issues, drawing-table, drawing-scope, chat-drawing, frame-weld-symbols, all passing;
+- a9-acceptance 3/3, though the run took far longer than its usual 3 minutes: the machine's load was 48 from other runs, and its process was stopped by hand after its summary. A timed rerun is pending.
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow.

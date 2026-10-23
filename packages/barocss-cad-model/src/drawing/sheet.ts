@@ -1,7 +1,7 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { weldSymbols, type WeldPlaced } from './welds';
-import { balloonMarks, type BalloonPlaced } from './balloons';
+import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
 import type { Bom } from '../team/bomCore';
 import type { WeldJoint } from '../frames/welds';
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
@@ -92,7 +92,7 @@ const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 /** `sections` (O148 X1): each section's projection and cut-face rings (view coordinates), drawn where the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom }, sections?: readonly SheetSection[]): Sheet {
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -174,7 +174,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
   // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
   const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent).content, t.at!, t.corner ?? 'top-left').box as Rect);
-  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups), ...pinned]) : null;
+  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups), ...pinned], meta.bodyFaces) : null;
   if (balloons) groups.push(...balloons.groups);
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent);

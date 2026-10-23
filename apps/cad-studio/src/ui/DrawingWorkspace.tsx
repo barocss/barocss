@@ -71,7 +71,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   onChange(next: DrawingSettings): void; onToast(e: FriendlyError): void;
 }) {
   // (The sheet's pipeline, shared with the viewport's 3D annotations, G24: views, layout, sheet and what they are built from.)
-  const { scopeRead, scope, scopeKey, doc, model, currentModel, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
+  const { scopeRead, scope, scopeKey, doc, model, currentModel, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
   const onChange = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
     sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
@@ -109,7 +109,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const suggestions = useMemo<ToleranceSuggestion[]>(() => views && layout && sheet ? toleranceSuggestions({ views, layout, settings, sheet, callout }) : [], [views, layout, settings, sheet, callout]);
   const acceptEvery = () => {
     if (!views) return;
-    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
+    const r = acceptAll({ views, settings, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) });
     onChange(r.settings);
     const est = r.accepted.filter(x => x.estimate).length;
     onToast({ title: `${r.accepted.length} suggestion${r.accepted.length === 1 ? '' : 's'} accepted`, hint: est ? `${est} of them ${est === 1 ? 'is an estimate' : 'are estimates'}: check ${est === 1 ? 'it' : 'them'} against your process.` : 'Each from the studio’s data.', detail: r.accepted.map(x => `${x.message} — ${x.basis}`).join('\n') });
@@ -119,7 +119,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   // next round runs on the sheet with its view — one Fix, as the chat's fix_drawing, not a second click. The rounds stop
   // when the settings change from elsewhere. Each round is its own undo step.)
   const fixing = useRef<{ state: FixRounds; want: string } | null>(null);
-  const fixInputs = (): SheetInputs | null => views ? { views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) } : null;
+  const fixInputs = (): SheetInputs | null => views ? { views, settings, callout, elements, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(cuts.length ? { sections: cuts } : {}) } : null;
   const fixOnly = (fix: DrawingFix) => scope.kind !== 'assembly' || fix.kind !== 'auto-dimension';
   const fixStep = (step: FixRoundStep) => {
     if (step.next) {
@@ -372,7 +372,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       const turned = r.ok ? reorient(views, r.views, settings, pick.orientation) : null;
       if (r.ok && turned?.ok) base = { views: r.views, settings: turned.settings, sections: sheetSections(r.sections ?? []) };
     }
-    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
+    const { settings: next, report } = autoLayout({ views: base.views, settings: base.settings, elements, callout, fitMiss: fitMissOf, meta: { title, date: today(), threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, ...(base.sections.length ? { sections: base.sections } : {}) });
     onChange(next);
     const a = report.dimensions.added, n = a.overall + a.levels + a.holePositions + a.pitches + a.callouts + report.dimensions.keys;
     const side = base.views !== views && pick ? `, the front seen from ${SIDE_NAMES[pick.orientation]} (${pick.why})` : '';
@@ -451,9 +451,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
-    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
+    if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.a), pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.b), drag.place) } : { ...d, place: drag.place }) : d);
-    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, ...(bom ? { bom } : {}) }, cuts), selected);
+    return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints, bom]);
 
   const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);

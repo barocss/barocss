@@ -70,8 +70,8 @@ test('F9: on the assembly\'s sheet with balloons, the screws\' line has its ball
   assert.ok(line > 0);
   const p = b.placed.find(x => x.no === line);
   assert.ok(p && /^inst[1-4]\//.test(p.edge), JSON.stringify(b));
-  // (The base plate's own line, `base:b1` (O169), finds no edge yet: a separate finding, not this step's.)
-  assert.ok(!b.noEdge.includes(line), JSON.stringify(b.noEdge));
+  // (And the base plate's own line, `base:b1`, its balloon on the plate's edge: O177.)
+  assert.deepEqual(b.noEdge, [], JSON.stringify(b.noEdge));
   const table = i.meta.tableContent!({ id: 'bom', from: 'bom' });
   assert.ok(!('error' in table));
   assert.equal(table.rows[line - 1][6], 'bought');

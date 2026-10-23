@@ -8,7 +8,7 @@ import { followedStale, staleText } from '../frames/skeleton';
 import { fitMiss, withFit } from '../drawing/fits';
 import { weldList, type WeldJoint } from '../frames/welds';
 import { evaluatePart } from '../engine/evaluate';
-import { brepsFor } from '../engine/evaluate';
+import { baseBodyFaces, brepsFor } from '../engine/evaluate';
 import type { StudioDoc } from '../engine/doc';
 import { projectViews } from '../drawing/project';
 import { tableContent } from '../drawing/tables';
@@ -75,7 +75,7 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
   const sections = sheetSections(sectionsCut(doc, sectionsOf(settings), settings.orientation, made)), elements = partElements(doc), bom = bomOf(doc, settings);
-  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}) }, ...(sections.length ? { sections } : {}) };
+  return { views: r.views, settings, elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), threads: threadsOf(doc.nodes), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
 /** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */
