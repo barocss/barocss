@@ -80,6 +80,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | R5.1a: bit-identical vec3 copies (56 in 23 files) import vec3.ts; variants (no fallback, reciprocal, throwing) stay | D212 | done (T2, fingerprint identical) |
 | R5.1b: |a − b| is vec3.dist (5 identical copies) | D213 | done (T2, fingerprint identical) |
 | R5.1c: one Gauss–Legendre gauss(n) (quadrature.ts); curved-arrangement's duplicate GL8 table gone | D214 | done (T2, fingerprint identical) |
+| R5.1d: guardKnots once (knot-guard.ts), 5 identical copies | D215 | done (T2, fingerprint identical) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first

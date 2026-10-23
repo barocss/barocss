@@ -12030,3 +12030,14 @@ vec3 is not exported from index, so the public surface is unchanged.
 **Checks:** type-check, lint, T2 (brep-mass-quadrature), the test names identical, the R5 fingerprint identical.
 
 **Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D213's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; kernel test names identical (cad-model/studio differ only by the outer lane's O7 tests merged meanwhile).
+
+## D215 — R5.1d: `guardKnots` once, in `knot-guard.ts` (2026-10-23)
+
+**What.** compatible-ruled-surface, curve-control-polygon, curve-knot-insertion, curve-parameter-split and
+z-axis-revolved-surface each defined the same three-line `guardKnots(knots, degree, min, max)`. It now lives in
+`src/knot-guard.ts`, text unchanged, and they import it. surface-knot-insertion's `guardKnots(surface)` is another
+function and stays.
+
+**Checks:** type-check, lint, T2, the test names identical, the R5 fingerprint identical.
+
+**Fingerprint:** 855 cases, sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D214's. T2 clean (the known Node-version demo test only); fuzz INVALID 0, WRONG 0; cad-model 979/979, studio 267/267; test names identical.
