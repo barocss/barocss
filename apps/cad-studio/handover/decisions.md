@@ -12124,3 +12124,24 @@ about 185 times: 65 samples and 60 golden-section steps, two calls each. It is n
 and the R5 fingerprint, byte-identical (see the batch line below).
 
 **Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.
+
+## D220 — R5.2e: surface-intersection's `onBoth` builds its least-squares system in loops (2026-10-23)
+
+**What (`src/surface-intersection.ts`).** Every Newton iteration of `onBoth` (40 at most, on every marching step and
+every seed) built:
+- the 3 rows by `[0, 1, 2].map`;
+- J Jᵀ by nested `rows.map`;
+- the right-hand side by `rows.map`;
+- copies of both for the solve;
+- the step by `[0, 1, 2, 3].map(j => rows.reduce(…, 0))`.
+
+These are now literal rows and loops:
+- J Jᵀ's entries are the same four-term sums in the same order;
+- the step sums from 0, as the reduce did;
+- the solve gets the fresh arrays directly. It mutates them, and nothing else reads them.
+
+**Checks (batched):** this step's build, tsc, lint, its tests and the trap tests; batch A (R5.2b–e)'s end: the kernel suite, RB
+and the R5 fingerprint, byte-identical (see the batch line below).
+through every Boolean of curved faces.
+
+**Batch bA:** the kernel suite clean (the known Node-version demo test only), RB no new rows, the R5 fingerprint (855 cases) sha256 `ef3868df5cb990343f21a8bfe6b3b119f7404e19c6cbce76a7ca0946864fd44b`, byte-identical to D216's.

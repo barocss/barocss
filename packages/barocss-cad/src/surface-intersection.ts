@@ -45,12 +45,15 @@ function onBoth(A: Patch, B: Patch, pa: XY, pb: XY, plane?: { o: Point; n: Point
   for (let it = 0; it < 40; it++) {
     const da = derivatives(A, pa), db = derivatives(B, pb), F = sub(da.x, db.x);
     // Rows: F (3) and optionally n·(PA − o) (1); columns: a0, a1, b0, b1.
-    const rows: number[][] = [0, 1, 2].map(k => [da.du[k], da.dv[k], -db.du[k], -db.dv[k], -F[k]]);
+    const rows: number[][] = [[da.du[0], da.dv[0], -db.du[0], -db.dv[0], -F[0]], [da.du[1], da.dv[1], -db.du[1], -db.dv[1], -F[1]], [da.du[2], da.dv[2], -db.du[2], -db.dv[2], -F[2]]];
     if (plane) rows.push([dot(plane.n, da.du), dot(plane.n, da.dv), 0, 0, -dot(plane.n, sub(da.x, plane.o))]);
-    // Minimum-norm least squares: solve (J Jᵀ) y = rhs, step = Jᵀ y.
-    const m = rows.length, JJ = rows.map(r => rows.map(s => r[0] * s[0] + r[1] * s[1] + r[2] * s[2] + r[3] * s[3])), rhs = rows.map(r => r[4]);
-    const y = solve(JJ.map(r => [...r]), [...rhs], m); if (!y) return null;
-    const step = [0, 1, 2, 3].map(j => rows.reduce((acc, r, i) => acc + r[j] * y[i], 0));
+    // Minimum-norm least squares: solve (J Jᵀ) y = rhs, step = Jᵀ y. (Loops, not closures per iteration: R5.2, D220;
+    // the same sums in the same order, the step's from 0 as the reduce had it.)
+    const m = rows.length, JJ: number[][] = [], rhs: number[] = [];
+    for (let i = 0; i < m; i++) { const r = rows[i], row: number[] = []; for (let k = 0; k < m; k++) { const q = rows[k]; row.push(r[0] * q[0] + r[1] * q[1] + r[2] * q[2] + r[3] * q[3]); } JJ.push(row); rhs.push(r[4]); }
+    const y = solve(JJ, rhs, m); if (!y) return null;
+    const step = [0, 0, 0, 0];
+    for (let j = 0; j < 4; j++) { let acc = 0; for (let i = 0; i < m; i++) acc = acc + rows[i][j] * y[i]; step[j] = acc; }
     pa = [pa[0] + step[0], pa[1] + step[1]]; pb = [pb[0] + step[2], pb[1] + step[3]];
     if (Math.abs(step[0]) + Math.abs(step[1]) + Math.abs(step[2]) + Math.abs(step[3]) < 1e-14 * (1 + Math.abs(pa[0]) + Math.abs(pa[1]) + Math.abs(pb[0]) + Math.abs(pb[1]))) break;
   }
