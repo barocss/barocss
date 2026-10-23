@@ -2870,12 +2870,10 @@ try {
     await field('Active coils').fill('7'); await hudReady();
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
     const t0 = Date.now(); await press('Enter');
-    // The reply: one body shown, its mass not yet there.
-    await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 1 && window.__studioDoc.nodes[0]?.kind === 'spring'; }, null, { timeout: 60000 });
+    // The reply: its body with a mass ref and no mass yet (the preview's bodies, shown on Apply, carry neither).
+    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return window.__studioDoc.nodes[0]?.kind === 'spring' && b?.length === 1 && (b[0].massRef !== null || b[0].volumeMM3 !== null); }, null, { timeout: 60000 });
     const replied = Date.now() - t0, at = await page.evaluate(() => { const b = window.__studioBodies(); return { massReady: b.massReady, bodies: b.bodies }; });
-    console.log(`  O18 spring at its reply (${renderer}): ${JSON.stringify(at)}`);
-    if (at.massReady) { await page.waitForTimeout(4000); console.log(`  O18 spring 4 s later (${renderer}): ${JSON.stringify(await page.evaluate(() => window.__studioBodies()))}`); }
-    assert.ok(!at.massReady, `the reply came before the mass: ${JSON.stringify(at)}`);
+    assert.ok(!at.massReady && at.bodies[0].massRef !== null && at.bodies[0].volumeMM3 === null, `the reply came before the mass: ${JSON.stringify(at)}`);
     // An undo at once: its reply (an empty part) does not wait for the spring's quadrature, which it drops.
     const t1 = Date.now(); await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
     await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 0 && window.__studioDoc.nodes.length === 0; }, null, { timeout: 10000 });
@@ -2883,7 +2881,7 @@ try {
     assert.ok(undone < 1500, `the undo's reply took ${undone} ms`);
     // Redo: the spring again, its mass "…" in the inspector, then its value.
     await press('Meta+Shift+z');
-    await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 1; }, null, { timeout: 60000 });
+    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return b?.length === 1 && (b[0].massRef !== null || b[0].volumeMM3 !== null); }, null, { timeout: 60000 });
     await page.locator('.outliner .ol').first().click();
     const early = await page.locator('.props').innerText();
     await idle();
