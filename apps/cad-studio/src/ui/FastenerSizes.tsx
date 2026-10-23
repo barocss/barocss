@@ -24,7 +24,7 @@ function ShopRows({ doc, onCommit, onError }: Props) {
   return <section aria-label="Shop rows">
     <div className="card-title" style={{ marginTop: 8 }}>SHOP ROWS</div>
     {KINDS.map(k => <div key={k.kind} className="mb-1.5">
-      <div className="kv" aria-label={`${k.label} loaded`}><span>{k.label}</span><b className="min-w-0 truncate" title={k.loaded(doc) || k.none}>{k.loaded(doc) || k.none}</b></div>
+      <div className="flex items-baseline gap-2 py-0.5" aria-label={`${k.label} loaded`}><span className="shrink-0">{k.label}</span><b className="min-w-0 flex-1 truncate text-right" title={k.loaded(doc) || k.none}>{k.loaded(doc) || k.none}</b></div>
       <div className="flex flex-wrap gap-1">
         <Button variant="ghost" aria-label={`Load sample ${k.what}`} title={`samples/rows/${k.kind}.json: an example taken from the sources it names — check it before manufacture`} onClick={() => load(k.kind, k.what, sampleFile(k.kind), JSON.stringify(k.sample))}>Load sample {k.what}</Button>
         <Button variant="ghost" asChild><label className="file-button">Add a {k.what} file…<input type="file" accept="application/json,.json" aria-label={`${k.label} file`} hidden onChange={ev => { const f = ev.currentTarget.files?.[0]; if (f) void addFile(k.kind, k.what, f); ev.currentTarget.value = ''; }} /></label></Button>
