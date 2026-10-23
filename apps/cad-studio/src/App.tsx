@@ -1630,9 +1630,10 @@ export function App() {
   // (G12: the diff of the part as it is and the proposal as shown, again when what is shown changes; none without one.)
   useEffect(() => {
     if (!ghost) { setProposalOverlay(null); return; }
-    let live = true;
-    void engine.proposalDiff(doc, ghost.shown, revision.current++, { revision: modelHash(doc), proposal: `${ghost.id}|${ghost.leaveOut.join(',')}` }).then(r => { if (live) setProposalOverlay('error' in r ? null : r); });
-    return () => { live = false; };
+    // (R4b: on the O9 'proposal-diff' lane — a reply for a proposal no longer shown comes back stale.)
+    const at = revision.current++, key = `${ghost.id}|${ghost.leaveOut.join(',')}`;
+    void lanes.run('proposal-diff', { revision: at, source: key }, () => engine.proposalDiff(doc, ghost.shown, at, { revision: modelHash(doc), proposal: key })).then(reply => { if (!reply.stale) setProposalOverlay('error' in reply.result ? null : reply.result); });
+    return () => lanes.cancel('proposal-diff');
   }, [ghost?.id, ghost?.shown]);
   const flipGhost = () => setGhost(g => { if (!g) return g; setPreviewBodies(g.after ? null : g.bodies); return { ...g, after: !g.after }; });
   const acceptIt = async (p: Proposal) => {
@@ -1910,9 +1911,11 @@ export function App() {
   const mouldWanted = (mapKind === 'parting' || mapKind === 'halves') && !rendering && !sketch && !previewBodies && !!doc.mould?.pull;
   useEffect(() => {
     if (!mouldWanted) { setMouldResult(null); return; }
-    let live = true; setMouldResult('working');
-    void engine.mould(doc, revision.current++, mapKind === 'halves').then(r => { if (live) setMouldResult(r); });
-    return () => { live = false; };
+    setMouldResult('working');
+    // (R4b: on the O9 'mould' lane — a reply for a part, pull or map since changed comes back stale.)
+    const at = revision.current++;
+    void lanes.run('mould', { revision: at, source: mapKind }, () => engine.mould(doc, at, mapKind === 'halves')).then(reply => { if (!reply.stale) setMouldResult(reply.result); });
+    return () => lanes.cancel('mould');
   }, [mouldWanted, mapKind, evaluated, doc.mould, engine]);
   const mouldShown = useMemo(() => mouldResult && mouldResult !== 'working' && !('error' in mouldResult)
     ? { pull: mouldResult.pull, loops: mouldResult.loops, plus: mapKind === 'halves' ? mouldResult.plus : [], minus: mapKind === 'halves' ? mouldResult.minus : [], spread: mouldSpread } : null, [mouldResult, mapKind, mouldSpread]);
