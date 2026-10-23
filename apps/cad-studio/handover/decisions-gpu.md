@@ -2824,3 +2824,49 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **New labels**: Preview & analysis; Preview mode; Preview: None / CNC / Print / Clearance / Analysis; Collapse /
   Expand Preview & analysis. Renamed: none. The Display button's tip is now "The display mode and isolate (the
   previews are in the dock)".
+
+## G-R46 — G12e: the switch is the previews' enable; history chips whole (roadmap G12, 2026-10-24)
+
+- **One mode, its settings alone** (23724e10f, 828764fa7 App.tsx):
+  - Print, CNC and Clearance lose their own on/off boxes. The dock's switch enables them, and under it only the chosen
+    preview's settings show, flat. None shows a one-line hint.
+  - Analysis gets a panel (`viewport/AnalysisPanel.tsx`): the surface analysis (Zebra, Curvature, Overhang for a
+    printing process) and the map (Thickness, Draft and the mould's Parting and Halves with a pull, Access). These are
+    the choices the view bar's Analyse and Maps buttons step through, and those buttons stay. On WebGL2 the maps are
+    disabled with their reason.
+  - 3D annotations, the one overlay (the owner's choice), is a toggle at the section's header (`DockSection` actions).
+    Its status line shows under the panel.
+- **History chips never cut mid-text** (23780cd69):
+  - The bar stacks above the view bar when its steps don't fit beside it. The bottom row uses the bar's natural width;
+    a fixed 280 px used to decide.
+  - Where even the stacked row is short (a narrow centre), the chips past its room hide behind a "+n" chip. It opens
+    the bar on more rows with every step whole; Less closes it.
+  - `useFitChips` hides them by style, outside React, measured again when the bar, the stage, the view bar or the
+    stacking changes. The App renders when the count changes.
+- **Toasts** sit below the view cube (top 144 px). The recovery card met the cube at 1024 with the chat open.
+- **Flow** (b548fe1f2):
+  - Previews are chosen with the switch through a `preview(mode)` helper. It clicks only when the mode is not on,
+    since clicking the item again turns it off.
+  - The layout step checks:
+    - every history chip whole inside the bar and clear of the view bar;
+    - "+n" opening every step whole, and Less closing it;
+    - no "+n" at 1440 with the chat collapsed.
+- **Runs**:
+  - Full flow at b548fe1f2 (scratch): WebGPU 282/283, WebGL2 282/283. The one failure is FR3b (147), the known
+    "not the case being measured" flake.
+  - R1 bench rows (loaded, compare only):
+    - orbit App 1, 3.1 ms; pose App 3, 4.5 ms; explode App 2, 9.8 ms; pick 55 ms;
+    - section on GPU App 5, 6.7 ms. Its GPU time of 8.1 ms a submit is over the budget of 6, as before.
+  - Studio tsc and eslint 0 errors. check:docs clean (558 labels). Unit 281/282, the O16 `bom-linked-ui` stub as in
+    G-R45.
+- **Labels**:
+  - Removed (old → nothing), the checkboxes:
+    - `Print layers`, `CNC preview`, `Assembly clearance`. The panels keep these names as their aria-labels.
+    - Their enable is now `Preview: Print`, `Preview: CNC`, `Preview: Clearance`.
+  - New:
+    - `Analysis` (the panel);
+    - `Surface analysis kind`, `Surface: Zebra / Curvature / Overhang`;
+    - `Analysis map kind`, `Map: Thickness / Draft / Access / Parting / Halves`;
+    - `n more history steps` / `Fewer history steps` (the "+n" / Less chip).
+  - For the docs lane: display.md, assemblies.md and manufacturing.md say these previews are in **Display**, and that
+    Print layers and the CNC preview "take turns". They are now chosen in the dock's Preview & analysis switch.
