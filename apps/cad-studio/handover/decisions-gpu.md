@@ -2131,3 +2131,41 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **Bench**: `BENCH_TRACE` also prints the callers of React's `dispatchSetState`, for R1's ghosted-orbit question.
 - **Checks**: studio tsc 0, eslint 0, unit 250/250; the flow's syntax checked. The full flow runs at the end of Phase R,
   as the survey's rules say.
+
+## G-R24 — R1a: the viewport's per-frame render moved into its overlay; Escape clears a part's selection (roadmap R1, 2026-10-23)
+
+- **How it is measured**: `countRender(name)` (DEV only, `src/devRenders.ts`) in App, Viewport and the new
+  ViewportOverlay. `bench:browser` under `BENCH_TRACE=1` prints each row's renders, the same rows before and after.
+  Numbers below are renders per row: App / Viewport (/ overlay).
+- **Before**, at de06d57b7 (load 9):
+  - every frame rendered the whole Viewport: orbit 60 frames → 60 Viewport renders; cloud orbits 60; underlay 61;
+  - ghosted orbits: 66 App and 128–129 Viewport renders, 124 submits, task 19.6 ms a frame.
+- **The ghosted orbit's cause** (G8's open question): the bench's `dispatchSetState` callers show `place` (App.tsx) ←
+  `onTurn` ← `gizmoDrag` (Viewport).
+  - After a bracket was picked, the bench pressed Escape. Escape cleared only the faces' selection.
+  - The bracket stayed selected, with its gizmo, and the orbit drag that followed turned it.
+  - **Fix (a behaviour fix, its own commit 53e0cb4cf)**: Escape clears the placed parts' and the direct objects'
+    selections too.
+- **R1a, the per-frame render**: `request()` set a state each frame (`setTick`), so the whole Viewport rendered again:
+  its handlers, its JSON keys, the camera basis and the PMI key, ViewCube's props.
+  - Now a frame bumps a ticker. Only `FrameOverlay`, which draws the SVG overlay, ViewCube and WebGL2's PMI texts,
+    subscribes to it (`useSyncExternalStore`).
+  - Which PMI texts face the eye was computed in each render; it is now checked in the frame, before it is drawn. The
+    texts are set again only when that changes, as before.
+- **After**, at the same rows (load 23 → 12):
+  - orbit: 1 Viewport render, 60 overlay renders (60 Viewport before);
+  - the cloud and underlay orbits likewise, 1 Viewport render each;
+  - hover over the plate: 0 Viewport (11 before), 11 overlay;
+  - ghosted orbits: 1 App, 1 Viewport, 60 overlay renders; 59 submits; task 3.3 ms a frame (19.6). Both rows are now
+    within budget.
+  - Rows the App renders every frame are unchanged, and are R1's next targets:
+    - pose: 100 App renders over 51 frames (the joint's value is App state);
+    - explode: 60;
+    - section drag: 154.
+  - pick is unchanged at 129 ms: the App's selection render, R1's App split.
+- **Checks**:
+  - studio tsc 0, eslint 0.
+  - FLOW_ONLY on both renderers, the steps that draw the overlay (load 7–13), all pass: constraints and typed dimensions,
+    a box's dimension arrows, measure, a dimension handle and the Rotate gizmo, the view cube, the section plane's drag,
+    K2 L gap, G3, G24 and G23.
+  - The instance steps 50, 57, 58 and 60 need their prerequisites. With 49, 56, 57 and 59, all pass on WebGPU (load 9).
