@@ -74,7 +74,9 @@ export function VariantsPanel({ doc, variants, onCommit, onError, onClose }: {
         <Button variant="ghost" aria-label={`Reset to ${active}`} onClick={() => setWorking({})}>Reset to {active}</Button>
       </div>}
       {error && <div className="hud-error" role="alert">{error}</div>}
-      {problems.map(p => <div key={p.mate} className="warn small" role="status" aria-label={`Unmet mate ${p.mate}`}>Mate {p.mate} unmet in this variant: {p.reason}</div>)}
+      {/* (One line a mate, its reason — often long — behind Details.) */}
+      {problems.map(p => <details key={p.mate} className="text-[11px]" role="status" aria-label={`Unmet mate ${p.mate}`}>
+        <summary className="warn cursor-pointer select-none">Mate {p.mate} unmet in this variant</summary><div className="text-muted-foreground">{p.reason}</div></details>)}
     </>}
     <div className="flex justify-end pt-1"><Button variant="ghost" size="xs" aria-label="Close Variants" onClick={onClose}>Close</Button></div>
   </DockSection></aside>;
