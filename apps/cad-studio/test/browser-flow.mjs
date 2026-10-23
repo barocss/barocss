@@ -4421,7 +4421,7 @@ try {
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
 
-  await check('FRd2 the welded table\'s weld symbols on A3 by their checkbox: 11 shown, 5 said unshown; W-numbers and sizes in the SVG (O119)', async () => {
+  await check('FRd2 the welded table\'s weld symbols on A3 by their checkbox: all 16 shown (O173: a pieced end face is its face, an edge on visible ink is visible), none said unshown; W-numbers and sizes in the SVG (O119)', async () => {
     const fs = await import('node:fs');
     if (!/12 bodies/.test(await page.textContent('.outliner') ?? '')) throw new Error('FRd1 left no welded table');
     await page.click('.mode button:text-is("Drawing")');
@@ -4431,9 +4431,11 @@ try {
       await page.check('[aria-label="Weld symbols"]');
       await page.waitForFunction(() => window.__studioDrawing?.()?.welds?.placed?.length > 0, null, { timeout: 30000 });
       const w = await page.evaluate(() => window.__studioDrawing().welds);
-      assert.equal(w.placed.length, 11, JSON.stringify(w)); assert.deepEqual(w.unshown, ['W8', 'W13', 'W14', 'W15', 'W16']);
+      // (O173, 35cb1bb82: W8 and W13–W16 had been read as unseen — their seams' end faces come in pieces, or lie on another
+      // member's visible outline — and are shown; the model's frame-weld-symbols test changed with it.)
+      assert.equal(w.placed.length, 16, JSON.stringify(w)); assert.deepEqual(w.unshown, []);
       const issues = await page.evaluate(() => window.__studioDrawing().issues);
-      assert.ok(issues.some(i => i.code === 'WELD_NOT_SHOWN' && i.severity === 'warning'), JSON.stringify(issues));
+      assert.ok(!issues.some(i => i.code === 'WELD_NOT_SHOWN'), JSON.stringify(issues));
       await snap('frd2-weld-symbols');
       const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
       const svg = fs.readFileSync(await svgFile.path(), 'utf8');

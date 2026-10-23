@@ -2,16 +2,14 @@
 // the HUD and built by the same `build`), raw feature nodes for what has no command (sketched profiles,
 // revolves, sweeps, lofts), the feature editor's fields, delete, measure, select and a part summary.
 // Each change is evaluated by the engine before it is kept; the result is what the model reads back.
-import { prefixDoc, type DocPlane, type ModelNode, type StudioDoc } from '../engine/doc';
+import { type DocPlane, type PartInstance } from '../engine/doc';
 type Vec3T = [number, number, number];
-import { type BodyResult } from '../engine/evaluate';
 import { CAGE_TOOL_NAMES, runCageTool } from './cageTools';
 import { DRAWING_TOOL_NAMES, runDrawingTool } from './drawing';
 import { OUTPUT_TOOL_NAMES } from './outputDefinitions';
 import { resolveShopRows, resolveShopTree, restoreAuthoredShopRows } from '../engine/shopRows';
 import { friendly } from '../engine/errors';
 import { personRowsRefusal, reconcileRowSources } from './rowSources';
-import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { v1Call, viaV2 } from './groups';
 import { ROBOT_TOOL_NAMES, runRobotTool } from './robot';
 import { BRIEF_TOOL_NAMES, runBriefTool } from './brief';
@@ -19,26 +17,20 @@ import { QUESTION_TOOL_NAMES, runQuestionTool } from './questions';
 import { DRAFT_TOOL_NAMES, runDraftTool } from './drafts';
 import { runStandardsTool, STANDARDS_TOOL_NAMES } from '../standards/provenance';
 import { datumPlane, readReferences, REFERENCE_TOOL_NAMES, referenceNameIn, ReferenceError, runReferenceTool } from './references';
-import { parse, runScript, SCRIPT_VERSION, ScriptError, type ScriptHost, type ScriptRun } from './script';
-import { deleteFeatures, featureDependents, renumber } from './features';
 import { ASSEMBLY_TOOL_NAMES, runAssemblyTool, solveDoc } from './assembly';
 import { resolveNames, type NameSelection } from './names';
-import { changeOf, factsOf } from './observe';
-import { newTransactions, OP_IDS, treeDiff, type TreeDiff } from './transactions';
-import { canonical } from '../team/revision';
-import { moveOp } from './remap';
-import { diffLine, nextProposalId, PLAN_CHARS, PROMPT_CHARS, approvalOf, riskOf, riskRank, withHistory, type ChecksDelta, type Op, type Proposal, type Risk } from './proposals';
-import { checkSpec, modelHash, newPolicy } from './spec';
-import { verifyReferences } from '../engine/references';
-import { rememberedEvaluate } from '../engine/evalMemo';
+import { approvalOf, type Op } from './proposals';
+import { newPolicy } from './spec';
 import { partEditRefusal, refreshFollowed } from '../frames/skeleton';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, because, setCall, json, CHECKPOINTS, accept, fail, isObj, strings, isVec3 } from './toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, setCall, json, accept, fail, isObj, isVec3, subToolResult } from './toolKit';
 import { QUERY_HANDLERS } from './part/query';
 import { IMAGE_HANDLERS } from './part/image';
-import { CHAT_COMMANDS, FEATURE_HANDLERS } from './part/features';
+import { FEATURE_HANDLERS } from './part/features';
 import { REQUIREMENT_HANDLERS } from './part/requirements';
 import { VIEW_HANDLERS } from './part/views';
-import { BATCHABLE, MUTATORS, PART_SCOPED, describe, takesArgument, unknownArguments } from './toolDefinitions';
+import { HISTORY_HANDLERS, moveOpsWith } from './part/history';
+import { ASSEMBLY_CHANGES, PROPOSAL_HANDLERS, acceptProposalWith, autonomy, changesPart, previewProposalWith, proposalNeededAtL2, proposalOfWith, rebaseProposalWith, type Decider } from './part/proposals';
+import { BATCHABLE, MUTATORS, PART_SCOPED, describe, unknownArguments } from './toolDefinitions';
 // ./outputs is loaded on first use: it reaches team/bundle → baseline → assembly → parts, which import this
 // module, so a static import closes a cycle that leaves `commands` undefined here at load.
 let outputsModule: Promise<typeof import('./outputs')> | undefined;
@@ -48,8 +40,36 @@ export { describeBodies, type ChatState, type Evaluate, type ToolOutcome } from 
 export { INFLATE, layerSketches, surfaceAt } from './part/image';
 export { CHAT_COMMANDS, COMMAND_DOCS } from './part/features';
 export { BATCHABLE_TOOLS, isMutator, featureKinds, takesArgument, unknownArguments, TOOLS, SYSTEM_PROMPT } from './toolDefinitions';
+export { agentMayNotAccept, autonomy, leaveOutClosure, partialDoc, proposalParts, toggledLeaveOut, type Decider, type ProposalPart } from './part/proposals';
 /** Every moved handler, by v1 tool name (R3): built once, at load. */
-const PART_HANDLERS: Readonly<Record<string, PartHandler>> = { ...QUERY_HANDLERS, ...IMAGE_HANDLERS, ...FEATURE_HANDLERS, ...REQUIREMENT_HANDLERS, ...VIEW_HANDLERS };
+const PART_HANDLERS: Readonly<Record<string, PartHandler>> = { ...QUERY_HANDLERS, ...IMAGE_HANDLERS, ...FEATURE_HANDLERS, ...REQUIREMENT_HANDLERS, ...VIEW_HANDLERS, ...HISTORY_HANDLERS, ...PROPOSAL_HANDLERS };
+
+// (R3e: the proposal functions the studio and the team code call, with their signatures as they were; the work is in
+// chat/part/proposals.ts and chat/part/history.ts, this module's runner passed in.)
+/** A proposal's change worked out on a copy (A4.2): see proposalOfWith. */
+export function proposalOf(state: ChatState, ops: unknown, evaluate: Evaluate) { return proposalOfWith(runToolCounted, state, ops, evaluate); }
+/** A proposal accepted (A4.2, A4.3): see acceptProposalWith. */
+export function acceptProposal(state: ChatState, id: string, evaluate: Evaluate, o: { by?: Decider; leaveOut?: readonly string[] } = {}) { return acceptProposalWith(runToolCounted, state, id, evaluate, o); }
+/** A stale proposal made again on the part as it is now (D41): see rebaseProposalWith. */
+export function rebaseProposal(state: ChatState, id: string, evaluate: Evaluate, by: Decider = { agent: 'user' }) { return rebaseProposalWith(runToolCounted, state, id, evaluate, by); }
+/** Ops made on one state replayed one at a time on another (O133): see moveOpsWith. */
+export function moveOps(state: ChatState, ops: readonly Op[], orders: readonly (readonly string[])[], evaluate: Evaluate, ids: Map<string, string> = new Map(), made?: readonly (readonly string[])[]) { return moveOpsWith(runToolCounted, state, ops, orders, evaluate, ids, made); }
+/** The bodies a proposal would leave (its ghost preview), or its refusal: see previewProposalWith. */
+export function previewProposal(state: ChatState, id: string, evaluate: Evaluate) { return previewProposalWith(runToolCounted, state, id, evaluate); }
+
+/** A placed part as a part tool runs on it (A9-2, FRf2): its shop rows resolved from the assembly's, an evaluation that
+ *  restores the part's own rows first, and its bodies (R3e: written once for both of the dispatcher's paths). */
+async function placedPart(state: ChatState, inst: PartInstance, evaluate: Evaluate) {
+  const shop = { ...resolveShopRows(inst.doc, state.doc), doc: resolveShopTree(inst.doc, state.doc, inst.id) };
+  const partEvaluate: Evaluate = async d => {
+    const authored = restoreAuthoredShopRows(d, shop.doc);
+    return 'error' in authored ? { ok: false, revision: 0, error: friendly(authored.error), ms: 0 } : evaluate(resolveShopTree(authored.doc, state.doc, inst.id));
+  };
+  const r = await partEvaluate(shop.doc);
+  return { shop, partEvaluate, bodies: r?.ok ? r.bodies : [] };
+}
+/** A placed part's reply: the part's id and the shop rows it was given, before the tool's own. */
+const partReply = (content: string, inst: PartInstance, shop: { provenance: unknown }) => content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},"shopRows":${JSON.stringify(shop.provenance)},`);
 
 /**
  * Runs one tool call against the turn's state. Assembly tools act on the instances and mates; a part
@@ -65,7 +85,7 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
   if (autonomy() === 1 && changesPart(name, input)) return fail(state, 'At autonomy L1 the agent only proposes: make this change with propose, and the user accepts it in the studio.');
   // (Every call counted; the policy rides on the state the call leaves.)
   const policy = { ...(state.policy ?? newPolicy()) }; policy.calls++;
-  const out = await runToolCounted({ ...state, policy }, name, input, evaluate);
+  const out = await runToolCounted({ ...state, policy }, name, input, evaluate, true);
   // (Assemblies, mates, drawings and locked parts always need the user: an agent proposes such a change, D41.)
   if (!out.isError && out.changed && name !== 'propose' && name !== 'accept_proposal') {
     const needs = approvalOf(state.doc, out.state.doc);
@@ -84,17 +104,20 @@ export async function runTool(state: ChatState, name: string, input: unknown, ev
 }
 /** The dispatcher without the session's gates (autonomy, approval): what proposals replay, and the tools' own tests. */
 export const dispatchTool = (state: ChatState, name: string, input: unknown, evaluate: Evaluate) => runToolCounted(state, name, input, evaluate);
-async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
-  const out = await runToolUnchecked(state, name, input, evaluate);
+/** `v1`: the name and input are a v1 call already (runTool translated them; R3e: translated once). */
+async function runToolCounted(state: ChatState, name: string, input: unknown, evaluate: Evaluate, v1 = false): Promise<ToolOutcome> {
+  const out = await runToolUnchecked(state, name, input, evaluate, v1);
   if (out.isError || !out.changed) return out;
   const context = state.rowFiles, refused = personRowsRefusal(state.doc, out.state.doc, context);
   if (refused) return fail(state, refused);
   return { ...out, state: { ...out.state, doc: reconcileRowSources(state.doc, out.state.doc, context) } };
 }
-async function runToolUnchecked(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
-  [name, input] = viaV2(name, input);
-  const v1 = v1Call(name, input);
-  if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
+async function runToolUnchecked(state: ChatState, name: string, input: unknown, evaluate: Evaluate, translated = false): Promise<ToolOutcome> {
+  if (!translated) {
+    [name, input] = viaV2(name, input);
+    const v1 = v1Call(name, input);
+    if (v1) { if ('error' in v1) return fail(state, v1.error); name = v1.name; input = v1.args; }
+  }
   if (name === 'describe') { const d = describe(isObj(input) ? input : {}); return 'error' in d ? fail(state, String(d.error)) : { state, content: json(d), isError: false, changed: false, summary: 'described' }; }
   const args = isObj(input) ? input : {};
   // (A9-3: an argument the tool does not take is refused, named — never dropped, so a call never says it did what it ignored.)
@@ -111,14 +134,9 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
     if (part === 'base') return runToolCounted(state, name, rest, evaluate);
     const inst = state.doc.instances?.find(i => i.id === part);
     if (!inst) return fail(state, `No part "${String(part)}"; parts: base${(state.doc.instances ?? []).map(i => `, ${i.id}`).join('')}.`);
-    const shop = { ...resolveShopRows(inst.doc, state.doc), doc: resolveShopTree(inst.doc, state.doc, inst.id) };
-    const partEvaluate: Evaluate = async d => {
-      const authored = restoreAuthoredShopRows(d, shop.doc);
-      return 'error' in authored ? { ok: false, revision: 0, error: friendly(authored.error), ms: 0 } : evaluate(resolveShopTree(authored.doc, state.doc, inst.id));
-    };
-    const r = await partEvaluate(shop.doc);
-    const out = await runToolCounted({ doc: shop.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, rowFiles: state.rowFiles, ...(state.turns ? { turns: state.turns } : {}) }, name, rest, partEvaluate);
-    const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},"shopRows":${JSON.stringify(shop.provenance)},`);
+    const { shop, partEvaluate, bodies } = await placedPart(state, inst, evaluate);
+    const out = await runToolCounted({ doc: shop.doc, bodies, partOf: inst.id, rowFiles: state.rowFiles, ...(state.turns ? { turns: state.turns } : {}) }, name, rest, partEvaluate);
+    const content = partReply(out.content, inst, shop);
     if (out.isError || !out.changed) return { ...out, state, content };
     const authored = restoreAuthoredShopRows(out.state.doc, shop.doc);
     if ('error' in authored) return fail(state, authored.error);
@@ -149,18 +167,18 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   if (REFERENCE_TOOL_NAMES.has(name)) {
     const out = await runReferenceTool(state.doc, state.bodies, name, args, evaluate);
     if ('error' in out) return fail(state, out.error);
-    return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
+    return subToolResult(state, out);
   }
   // (The brief, A6.1: the part's intent, its required fields and gaps.)
   if (BRIEF_TOOL_NAMES.has(name) || QUESTION_TOOL_NAMES.has(name)) {
     const out = QUESTION_TOOL_NAMES.has(name) ? runQuestionTool(state.doc, args) : runBriefTool(state.doc, name, args, state.turns);
     if ('error' in out) return fail(state, out.error);
-    return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
+    return subToolResult(state, out);
   }
   if (ROBOT_TOOL_NAMES.has(name)) {
     const out = await runRobotTool(state.doc, state.bodies, name, args, evaluate);
     if ('error' in out) return fail(state, out.error);
-    return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
+    return subToolResult(state, out);
   }
   if (ASSEMBLY_TOOL_NAMES.has(name)) {
     const out = await runAssemblyTool(state, name, args, evaluate);
@@ -180,15 +198,10 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   const inst = state.doc.instances?.find(i => i.id === part);
   if (!inst) return fail(state, `No part "${String(part)}"; parts: base${(state.doc.instances ?? []).map(i => `, ${i.id}`).join('')}.`);
   if (name === 'select') return fail(state, 'The viewport selection shows the base part\'s faces only; select without "part".');
-  const shop = { ...resolveShopRows(inst.doc, state.doc), doc: resolveShopTree(inst.doc, state.doc, inst.id) };
-  const partEvaluate: Evaluate = async d => {
-    const authored = restoreAuthoredShopRows(d, shop.doc);
-    return 'error' in authored ? { ok: false, revision: 0, error: friendly(authored.error), ms: 0 } : evaluate(resolveShopTree(authored.doc, state.doc, inst.id));
-  };
-  const r = await partEvaluate(shop.doc);
-  const sub: ChatState = { doc: shop.doc, bodies: r?.ok ? r.bodies : [], partOf: inst.id, rowFiles: state.rowFiles, ...(state.images ? { images: state.images } : {}) };
+  const { shop, partEvaluate, bodies } = await placedPart(state, inst, evaluate);
+  const sub: ChatState = { doc: shop.doc, bodies, partOf: inst.id, rowFiles: state.rowFiles, ...(state.images ? { images: state.images } : {}) };
   const out = await runPartTool(sub, name, rest, partEvaluate);
-  const content = out.content.replace(/^\{/, `{"part":${JSON.stringify(inst.id)},"shopRows":${JSON.stringify(shop.provenance)},`);
+  const content = partReply(out.content, inst, shop);
   if (out.isError || !out.changed) return { ...out, state, content };
   const authored = restoreAuthoredShopRows(out.state.doc, shop.doc);
   if ('error' in authored) return fail(state, authored.error);
@@ -200,321 +213,6 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   return { ...out, state: { ...state, doc: solved.doc }, content: solved.problems.length ? content.replace(/}$/, `,"unmet_mates":${JSON.stringify(solved.problems)}}`) : content, summary: `${inst.id}: ${out.summary}` };
 }
 
-/**
- * How far an agent may go on its own (D41), set per turn by the studio (`CAD_AUTONOMY`):
- * L1 proposes only; L2 (default; the owner's option b) applies value edits of one feature or of parameters that keep
- * every hard requirement passing, and proposes anything else (more features, adding, deleting or moving features,
- * what a feature is built on), the user accepting proposals — except a turn starting on an empty part, which builds
- * it directly (the first build); L3 also changes the part and accepts its own
- * proposals of low or medium risk changing no hard requirement; L4 any that breaks no hard requirement.
- * A proposal with approval reasons (an assembly, mates, a drawing, a locked part) is always the user's.
- */
-export function autonomy(): 1 | 2 | 3 | 4 {
-  const n = typeof process !== 'undefined' ? Number(process.env?.CAD_AUTONOMY) : NaN;
-  return n === 1 || n === 3 || n === 4 ? n : 2;
-}
-// (add_library changes no model: it adds data to the document, marked as the agent's until a person confirms it.)
-const ASSEMBLY_CHANGES = new Set(['set_joints', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part']);
-/** Whether a call changes the part (requirements are the brief, not the part; a dry run changes nothing). */
-function changesPart(name: string, input: unknown): boolean {
-  if (name === 'set_requirements' || name === 'accept_proposal') return false;
-  if ((name === 'apply_ops' || name === 'run_script') && isObj(input) && input.dryRun === true) return false;
-  return MUTATORS.has(name) || ASSEMBLY_CHANGES.has(name);
-}
-/** Fields that say what a feature is built on or how it is made (references, choices, counts), not its values. */
-const STRUCTURAL = new Set(['sideTags', 'kind', 'parent', 'left', 'right', 'tool', 'sketch', 'node', 'side', 'edges', 'faces', 'open', 'made', 'blob', 'positions', 'indices', 'repair', 'pieces', 'solids', 'count', 'suppressed', 'representation', 'op', 'axis', 'plane', 'toward']);
-const dimLike = (x: unknown) => typeof x === 'number' || (isObj(x) && Object.keys(x).length === 1 && typeof x.parameter === 'string');
-/** Whether `b` differs from `a` only in values (numbers, or a value bound to a parameter) outside the structural fields. */
-function valuesOnly(a: unknown, b: unknown, key = ''): boolean {
-  if (a === b) return true;
-  // (A SubD cage with the same faces and creases — its vertices moved — is the feature's values, D83: what it is built
-  // of, the topology, is its structure.)
-  if (key === 'cage' && isObj(a) && isObj(b)) return JSON.stringify(a.faces) === JSON.stringify(b.faces) && JSON.stringify(a.creases ?? []) === JSON.stringify(b.creases ?? []) && Array.isArray(a.positions) && Array.isArray(b.positions) && a.positions.length === b.positions.length;
-  if (STRUCTURAL.has(key)) return JSON.stringify(a) === JSON.stringify(b);
-  if (dimLike(a) && dimLike(b)) return true;
-  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => valuesOnly(x, b[i], key));
-  if (isObj(a) && isObj(b)) {
-    const ka = Object.keys(a).filter(k => !NODE_MARKS.has(k)), kb = Object.keys(b).filter(k => !NODE_MARKS.has(k));
-    return ka.length === kb.length && ka.every(k => k in b && valuesOnly(a[k], b[k], k));
-  }
-  return false;
-}
-/** What the studio keeps on a node about its references (not the feature). */
-const NODE_MARKS = new Set(['sigs', 'rematched', 'held']);
-/** The hard requirements passing on each turn's base, worked out once. */
-const basePassing = new WeakMap<StudioDoc, Promise<Set<string>>>();
-/**
- * Why the turn's changes (from `base` to `cur`) need a proposal at L2, or null when they apply directly: values of
- * one feature, or parameter values, with every hard requirement that passed at the turn's start still passing.
- */
-async function proposalNeededAtL2(base: StudioDoc, cur: ChatState, evaluate: Evaluate): Promise<string | null> {
-  const d = treeDiff(base, cur.doc), what = [d.added.length ? `adds ${d.added.length}` : '', d.deleted.length ? `deletes ${d.deleted.length}` : '', d.moved.length ? `moves ${d.moved.length}` : ''].filter(Boolean);
-  if (what.length) return `this turn ${what.join(', ')} feature${d.added.length + d.deleted.length + d.moved.length > 1 ? 's' : ''}`;
-  // (A sketch is part of the feature built from it: a box's width and height are one feature's values.)
-  const nodes = cur.doc.nodes, index = new Map(nodes.map((_, i) => [featureId(nodes, i), i])), consumer = new Map<number, number>();
-  nodes.forEach((n, j) => { const r = n as { sketch?: unknown; sections?: { sketch?: unknown }[] }; for (const k of [r.sketch, ...(r.sections ?? []).map(x => x.sketch)]) if (typeof k === 'number' && !consumer.has(k)) consumer.set(k, j); });
-  const owners = new Set(d.changed.map(c => { const i = index.get(c.id)!; return nodes[i]?.kind === 'sketch' && consumer.has(i) ? consumer.get(i)! : i; }));
-  if (owners.size > 1) return `this turn changes ${owners.size} features (${d.changed.map(c => c.label).join(', ')})`;
-  if (d.parameters && Object.values(d.parameters).some(p => p.before === undefined || p.after === undefined)) return 'this turn adds or removes parameters';
-  const before = new Map(base.nodes.map((n, i) => [featureId(base.nodes, i), n]));
-  for (const c of d.changed) if (!valuesOnly(before.get(c.id), nodes[index.get(c.id)!])) return `this changes ${c.label} beyond its values (what it is built on, its kind or options)`;
-  const hard = (cur.doc.requirements ?? []).filter(r => r.hard);
-  if (!hard.length) return null;
-  let passing = basePassing.get(base);
-  if (!passing) {
-    passing = (async () => { const r = await evaluate(base); const c = await checkSpec(base, r?.ok ? r.bodies : [], evaluate); return new Set([...c.outcomes].filter(([, o]) => o.status === 'pass').map(([id]) => id)); })();
-    basePassing.set(base, passing);
-  }
-  const was = await passing, now = await checkSpec(cur.doc, cur.bodies, evaluate);
-  const broken = hard.filter(r => was.has(r.id) && now.outcomes.get(r.id)?.status !== 'pass').map(r => r.id);
-  return broken.length ? `this leaves hard requirement${broken.length > 1 ? 's' : ''} ${broken.join(', ')} failing` : null;
-}
-/** Why an agent may not accept this proposal at this autonomy, or null (D41). */
-export function agentMayNotAccept(p: Proposal, level: number): string | null {
-  if (level < 3) return `At autonomy L${level} the user accepts proposals in the studio: tell them ${p.id} is ready.`;
-  if (p.risk.approval.length) return `${p.id} always needs the user's approval (${p.risk.approval.join(', ')}).`;
-  const hard = new Set(p.risk.hard_requirements_changed), breaks = (p.checks?.newly_failing ?? []).filter(x => hard.has(x));
-  if (p.rebased && (riskRank(p.risk.level) > riskRank(p.rebased.risk_was.level) || hard.size)) return `${p.id} was rebased and its risk rose or a hard requirement changes: the user decides.`;
-  if (level === 3 && (p.risk.level === 'high' || hard.size)) return `At autonomy L3 an agent accepts only low or medium risk changing no hard requirement; ${p.id} is ${p.risk.level}${hard.size ? `, changing ${[...hard].join(', ')}` : ''}: the user decides.`;
-  if (breaks.length) return `${p.id} breaks hard requirement${breaks.length > 1 ? 's' : ''} ${breaks.join(', ')}: the user decides.`;
-  return null;
-}
-
-/** Ops run in order on a copy, each on what the one before left: the result, or the first refusal (nothing applied). */
-interface OpsRun { cur: ChatState; results: Record<string, unknown>[]; ops: Op[]; /** The feature ids in order before each op kept (O133: what its indices name). */ orders: string[][]; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }
-async function runOps(state: ChatState, input: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | OpsRun> {
-  // (The same ops on the same part again — a proposal accepted or rebased — are the evaluations already made, PERF3 A3.)
-  evaluate = rememberedEvaluate(evaluate);
-  const ops = Array.isArray(input) ? input : null;
-  if (!ops?.length) return { fail: fail(state, 'Pass "ops": a list of {tool, args, opId?}.') };
-  const tx = state.tx ?? newTransactions(), results: Record<string, unknown>[] = [], kept: Op[] = [], orders: string[][] = [];
-  let cur: ChatState = state;
-  for (let k = 0; k < ops.length; k++) {
-    let op = ops[k] as Record<string, unknown>;
-    // (An op may name a consolidated tool, A5.3: it is kept as the v1 call, so a proposal replays the same.)
-    if (isObj(op) && typeof op.tool === 'string') { const v1 = v1Call(op.tool, op.args); if (v1 && !('error' in v1)) op = { ...op, tool: v1.name, args: v1.args }; }
-    if (!isObj(op) || typeof op.tool !== 'string' || !BATCHABLE.has(op.tool)) return { fail: fail(state, `op ${k}: tool is one of ${[...BATCHABLE].join(', ')}.`, { kept: 'nothing was applied' }) };
-    const opId = typeof op.opId === 'string' ? op.opId : undefined, opArgs = isObj(op.args) ? op.args : {};
-    if (opId && tx.applied.includes(opId)) { results.push({ op: k, opId, skipped: 'already applied' }); continue; }
-    // (Through the dispatcher: a part tool may name an instance with "part", assembly tools are batchable too.)
-    const r = await runToolCounted(cur, op.tool, opArgs, evaluate);
-    if (r.isError) { let why: unknown = r.content; try { why = JSON.parse(r.content).error; } catch { /* plain text */ } return { fail: fail(state, `op ${k} (${op.tool}${opId ? ` ${opId}` : ''}) was refused: ${String(why)} Nothing was applied.`, { failed_op: k, kept: 'nothing was applied' }) }; }
-    orders.push(idsOf(cur.doc.nodes)); cur = r.state; let did: unknown = r.summary; try { did = JSON.parse(r.content).did ?? r.summary; } catch { /* plain text */ }
-    results.push({ op: k, ...(opId ? { opId } : {}), did }); kept.push({ tool: op.tool, args: opArgs, ...(opId ? { opId } : {}) });
-  }
-  const diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
-  const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
-  return { cur, results, ops: kept, orders, diff, change, broken };
-}
-/** A document's feature ids in order. */
-const idsOf = (nodes: readonly ModelNode[]) => nodes.map((_, i) => featureId(nodes, i));
-/** The studio side of a script (A5.2): each call through the dispatcher on the working part, a concise result. */
-class ScriptOn implements ScriptHost {
-  readonly commands = CHAT_COMMANDS;
-  constructor(public cur: ChatState, private readonly evaluate: Evaluate, private readonly because: string) {}
-  indexOf(id: string): number { return nodeIndexOf(this.cur.doc.nodes, id); }
-  idAt(index: number): string | null { return Number.isInteger(index) && this.cur.doc.nodes[index] ? featureId(this.cur.doc.nodes, index) : null; }
-  /**
-   * The body a feature is part of now: the one holding its faces (after holes, a union or a cut, the body it went into),
-   * else the body it made (A5.5: `difference([plate, tool])` after the plate's holes; unions in a loop onto one body).
-   */
-  bodyOf(id: string): string {
-    const i = this.indexOf(id), made = i >= 0 ? bodyKeyFor(this.cur.doc.nodes, i) : id, prefix = `${id}.`;
-    const holding = this.cur.bodies.filter(b => b.mesh.faces.some(f => f.name.split('+').some(n => n.startsWith(prefix))));
-    return holding.length === 1 ? holding[0].key : holding.find(b => b.key === made)?.key ?? holding[0]?.key ?? made;
-  }
-  async call(tool: string, args: Record<string, unknown>): Promise<{ ok: true; added: string[]; did: string } | { ok: false; why: string }> {
-    const was = this.cur.doc.nodes, before = new Set<string>();
-    for (let i = 0; i < was.length; i++) before.add(featureId(was, i));
-    // (Concise results and the script's reason, on the tools that take them: A9-3 refuses an argument a tool does not.)
-    const v1 = v1Call(tool, args), named = v1 && !('error' in v1) ? v1.name : tool;
-    const r = await runToolCounted(this.cur, tool, { ...args, ...(takesArgument(named, 'response_format') ? { response_format: 'concise' } : {}), ...(this.because && takesArgument(named, 'because') ? { because: this.because } : {}) }, this.evaluate);
-    let out: Record<string, unknown> = {}; try { out = JSON.parse(r.content); } catch { /* plain text */ }
-    if (r.isError) return { ok: false, why: String(out.error ?? r.content) };
-    this.cur = r.state;
-    const now = r.state.doc.nodes, added: string[] = [];
-    for (let i = 0; i < now.length; i++) if (!before.has(featureId(now, i))) added.push(featureId(now, i));
-    return { ok: true, added, did: String(out.did ?? r.summary) };
-  }
-}
-/** A script run on a copy (A5.2): the part it leaves, its calls by line, the names it set; or the first problem, typed with its line (nothing applied). */
-async function runScriptOn(state: ChatState, source: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | { cur: ChatState; calls: ScriptRun['calls']; names: Record<string, string>; diff: TreeDiff; change: Record<string, unknown>; broken: Record<string, unknown>[] }> {
-  if (typeof source !== 'string' || !source.trim()) return { fail: fail(state, 'Pass "source": the script (its language is in the tool description).') };
-  const host = new ScriptOn(state, rememberedEvaluate(evaluate), because);
-  let run: ScriptRun;
-  try { run = await runScript(parse(source), host); } catch (e) {
-    if (!(e instanceof ScriptError)) throw e;
-    return { fail: fail(state, `${e.message}${e.code === 'REFUSED' ? '' : '.'} Nothing was applied.`, { code: `script_${e.code.toLowerCase()}`, line: e.line, col: e.col, kept: 'nothing was applied' }) };
-  }
-  const cur = host.cur, diff = treeDiff(state.doc, cur.doc), change = changeOf(factsOf(state.doc, state.bodies), factsOf(cur.doc, cur.bodies));
-  const refs = await verifyReferences(cur.doc, cur.bodies, evaluate), broken = [...refs.problems.map(p => ({ where: p.where, name: p.name, ...(p.candidates.length ? { could_be: p.candidates } : { gone: true }) })), ...refs.changes.map(c => ({ where: c.where, name: c.was, now: c.now }))];
-  return { cur, calls: run.calls, names: run.names, diff, change, broken };
-}
-/**
- * A proposal's change worked out on a copy (A4.2): the ops run as a person would apply them (no regression
- * guard: the checks' delta and the risk say what it does), the requirements checked before and after.
- */
-export async function proposalOf(state: ChatState, ops: unknown, evaluate: Evaluate): Promise<{ fail: ToolOutcome } | OpsRun & { checks?: ChecksDelta; risk: Risk; summary: string }> {
-  const run = await runOps({ ...state, policy: undefined }, ops, evaluate);
-  if ('fail' in run) return run;
-  const { cur, diff, broken } = run;
-  let checks: ChecksDelta | undefined;
-  const hardChanged = new Set<string>();
-  if (state.doc.requirements?.length || cur.doc.requirements?.length) {
-    const a = await checkSpec(state.doc, state.bodies, evaluate), b = await checkSpec(cur.doc, cur.bodies, evaluate);
-    const flipped = [...b.outcomes].filter(([id, o]) => (a.outcomes.get(id)?.status ?? 'unknown') !== o.status);
-    checks = { before: countsOf(a.summary), after: countsOf(b.summary), newly_failing: flipped.filter(([, o]) => o.status === 'fail').map(([id]) => id), newly_passing: flipped.filter(([, o]) => o.status === 'pass').map(([id]) => id) };
-    const hard = new Set([...(state.doc.requirements ?? []), ...(cur.doc.requirements ?? [])].filter(r => r.hard).map(r => r.id));
-    for (const [id] of flipped) if (hard.has(id)) hardChanged.add(id);
-    for (const id of [...(diff.requirements?.added ?? []), ...(diff.requirements?.changed ?? []), ...(diff.requirements?.deleted ?? [])]) if (hard.has(id)) hardChanged.add(id);
-  }
-  const risk = riskOf(state.doc, cur.doc, diff, broken.length, [...hardChanged]);
-  const summary = [diffLine(diff), ...(checks ? [`checks ${checks.before.pass}/${checks.before.fail}/${checks.before.unknown} → ${checks.after.pass}/${checks.after.fail}/${checks.after.unknown}`] : [])].filter(Boolean).join(', ') || 'no change';
-  return { ...run, checks, risk, summary };
-}
-const countsOf = (s: { pass: number; fail: number; unknown: number }) => ({ pass: s.pass, fail: s.fail, unknown: s.unknown });
-
-/** Who decides: a person in the studio, or an agent (its model). */
-export interface Decider { agent: string; model?: string }
-/**
- * A proposal accepted (A4.2, A4.3): its ops replayed on the part as it is now, less the parts left out (`leaveOut`,
- * feature ids, with what depends on them), the proposal marked, the decision in the history with who proposed it,
- * the prompt, plan and requirements, and the model it made. A proposal made on a part changed since is refused as
- * stale: rebase it first and look again (D41). The replay's refusal, if any, is returned and nothing changes.
- */
-export async function acceptProposal(state: ChatState, id: string, evaluate: Evaluate, o: { by?: Decider; leaveOut?: readonly string[] } = {}): Promise<{ state: ChatState; leftOut: string[] } | { error: string; stale?: true }> {
-  const p = state.doc.proposals?.find(q => q.id === id), by = o.by ?? { agent: 'user' };
-  if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
-  if (p.base !== modelHash(state.doc)) return { error: `${id} was made on a part that has changed since: rebase it and look at the result before accepting.`, stale: true };
-  const run = await runOps({ ...state, policy: undefined }, p.ops, evaluate);
-  if ('fail' in run) return { error: errorOf(run.fail) };
-  let cur = run.cur, leftOut: string[] = [];
-  if (o.leaveOut?.length) {
-    const parts = proposalParts(state.doc, cur.doc), wrong = o.leaveOut.filter(x => !parts.some(q => q.id === x && q.kind !== 'deleted'));
-    if (wrong.length) return { error: `${wrong.join(', ')}: not an added or changed feature of ${id} (${parts.filter(q => q.kind !== 'deleted').map(q => q.id).join(', ') || 'none'}).` };
-    leftOut = leaveOutClosure(parts, o.leaveOut);
-    const partial = partialDoc(state.doc, cur.doc, parts, leftOut);
-    if ('error' in partial) return partial;
-    const r = await evaluate(partial.doc);
-    if (!r) return { error: 'The evaluation was superseded; try again.' };
-    if (!r.ok) return { error: `Without ${leftOut.join(', ')} the part does not build: ${r.error.title}. ${r.error.hint}` };
-    cur = { ...cur, doc: partial.doc, bodies: r.bodies };
-  }
-  const at = new Date().toISOString(), hash = modelHash(cur.doc);
-  const decided = { by: by.agent, at, model_hash: hash, ...(leftOut.length ? { left_out: leftOut } : {}), ...(p.rebased ? { note: 'rebased before it was accepted' } : {}) };
-  let doc: StudioDoc = { ...cur.doc, proposals: (state.doc.proposals ?? []).map(q => q.id === id ? { ...q, status: 'accepted' as const, decided } : q) };
-  doc = withHistory(doc, { kind: 'accept', by, proposed_by: p.by, proposal: id, model_hash: hash, summary: `${id} ${p.title}${leftOut.length ? ` (without ${leftOut.join(', ')})` : ''}`,
-    ...(p.prompt ? { prompt: p.prompt } : {}), ...(p.plan ? { plan: p.plan } : {}), ...(p.requirements ? { requirements: p.requirements } : {}), ...(p.rebased ? { base_was: p.rebased.original } : {}), risk: p.risk });
-  return { state: { ...cur, doc }, leftOut };
-}
-/**
- * A stale proposal made again on the part as it is now (D41): its ops replayed as a fresh proposal — diff, facts'
- * change, broken references, the checks' delta and risk all recomputed — kept with the base it was made on first
- * and the risk it had then, and recorded in the history. It stays open, to be looked at before it is accepted.
- */
-export async function rebaseProposal(state: ChatState, id: string, evaluate: Evaluate, by: Decider = { agent: 'user' }): Promise<{ state: ChatState; made: OpsRun & { checks?: ChecksDelta; risk: Risk; summary: string } } | { error: string }> {
-  const p = state.doc.proposals?.find(q => q.id === id);
-  if (!p || p.status !== 'open') return { error: p ? `${id} is ${p.status} already.` : `No proposal ${id}.` };
-  const now = modelHash(state.doc);
-  if (p.base === now) return { error: `${id} was made on the part as it is: nothing to rebase.` };
-  // (O133: its ops' feature indices and the ids it made itself moved to the part as it is, when it says what they named.)
-  let ops = p.ops;
-  if (p.orders?.length === p.ops.length) {
-    const moved = await moveOps(state, p.ops, p.orders, evaluate);
-    if ('error' in moved) return { error: `${id} no longer applies: ${moved.error}` };
-    ops = moved.ops;
-  }
-  const made = await proposalOf(state, ops, evaluate);
-  if ('fail' in made) return { error: `${id} no longer applies: ${errorOf(made.fail)}` };
-  const rebased = { original: p.rebased?.original ?? p.base, from: p.base, at: new Date().toISOString(), risk_was: p.rebased?.risk_was ?? p.risk };
-  const q: Proposal = { ...p, base: now, ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, rebased, ...(made.checks ? { checks: made.checks } : {}) };
-  if (!made.checks) delete q.checks;
-  const doc = withHistory({ ...state.doc, proposals: state.doc.proposals!.map(x => x.id === id ? q : x) }, { kind: 'rebase', by, proposal: id, base_was: p.base, model_hash: now, summary: `${id} rebased: ${made.summary}`, risk: made.risk });
-  return { state: { ...state, doc }, made };
-}
-/**
- * Ops made on one state replayed one at a time on another (O133): each moved first (`moveOp`: the indices it names by
- * the ids they had — `orders`, the ids in order before each op — and the ids the ops made themselves as the ones the
- * replay hands out), then run. The ops as moved, or the first that names a feature gone or is refused.
- */
-export async function moveOps(state: ChatState, ops: readonly Op[], orders: readonly (readonly string[])[], evaluate: Evaluate, ids: Map<string, string> = new Map(), made?: readonly (readonly string[])[]): Promise<{ ops: Op[]; state: ChatState } | { error: string; op: number; ops: Op[] }> {
-  let cur: ChatState = { ...state, policy: undefined };
-  const out: Op[] = [];
-  for (let k = 0; k < ops.length; k++) {
-    const before = idsOf(cur.doc.nodes), { op, missing } = moveOp(ops[k], { from: orders[k] ?? before, to: before, ids });
-    // (Stopped at the first that does not apply: the rest moved as far as known, not run.)
-    const rest = () => [...out, op, ...ops.slice(k + 1).map((o, j) => moveOp(o, { from: orders[k + 1 + j] ?? before, to: before, ids }).op)];
-    if (missing.length) return { error: `op ${k} (${op.tool}) names ${[...new Set(missing)].join(', ')}, which the part no longer has`, op: k, ops: rest() };
-    const r = await runToolCounted(cur, op.tool, op.args ?? {}, evaluate);
-    if (r.isError) return { error: `op ${k} (${op.tool}) was refused: ${errorOf(r)}`, op: k, ops: rest() };
-    // (The ids it made, in the order made, are the ones it made where it was made: what later ops name.)
-    const now = idsOf(r.state.doc.nodes), had = new Set(before), madeHere = now.filter(x => !had.has(x));
-    const was = new Set(orders[k] ?? []), madeThere = made?.[k] ?? (orders[k + 1] ?? []).filter(x => !was.has(x));
-    madeThere.forEach((x, i) => { if (madeHere[i] && madeHere[i] !== x) ids.set(x, madeHere[i]); });
-    out.push(op); cur = r.state;
-  }
-  return { ops: out, state: cur };
-}
-const errorOf = (o: ToolOutcome) => { try { return String(JSON.parse(o.content).error); } catch { return o.content; } };
-
-/** A feature a proposal adds, changes or deletes, and the ones (of the proposal's) that go when it is left out. */
-export interface ProposalPart { id: string; label: string; kind: 'added' | 'changed' | 'deleted'; children: string[] }
-/** The proposal's parts from the part `base` to what it leaves, `after` (sketches go with their features). */
-export function proposalParts(base: StudioDoc, after: StudioDoc): ProposalPart[] {
-  const diff = treeDiff(base, after), out: ProposalPart[] = [];
-  const index = new Map(after.nodes.map((_, i) => [featureId(after.nodes, i), i]));
-  const own = new Set([...diff.added, ...diff.changed].map(x => x.id).filter(x => after.nodes[index.get(x)!]?.kind !== 'sketch'));
-  for (const kind of ['added', 'changed'] as const) for (const x of diff[kind]) {
-    if (!own.has(x.id)) continue;
-    // (A change put back leaves what is built on it standing, as it stood before: only an added feature has children.)
-    const children = kind === 'added' ? featureDependents(after, index.get(x.id)!).map(i => featureId(after.nodes, i)).filter(c => own.has(c)) : [];
-    out.push({ id: x.id, label: x.label, kind, children });
-  }
-  const baseIndex = new Map(base.nodes.map((_, i) => [featureId(base.nodes, i), i]));
-  for (const x of diff.deleted) if (base.nodes[baseIndex.get(x.id)!]?.kind !== 'sketch') out.push({ id: x.id, label: x.label, kind: 'deleted', children: [] });
-  return out;
-}
-/** The parts left out with everything that depends on them (unticking a parent unticks its children). */
-export function leaveOutClosure(parts: readonly ProposalPart[], ids: readonly string[]): string[] {
-  const out = new Set(ids), byId = new Map(parts.map(q => [q.id, q]));
-  for (const x of out) for (const c of byId.get(x)?.children ?? []) out.add(c);
-  return parts.filter(q => out.has(q.id)).map(q => q.id);
-}
-/** The parts left out after ticking (`on`) or unticking a part: unticked, its children go too; ticked, its parents come back. */
-export function toggledLeaveOut(parts: readonly ProposalPart[], leaveOut: readonly string[], id: string, on: boolean): string[] {
-  if (!on) return leaveOutClosure(parts, [...leaveOut, id]);
-  const back = new Set([id]);
-  for (let grew = true; grew;) { grew = false; for (const q of parts) if (!back.has(q.id) && q.children.some(c => back.has(c))) { back.add(q.id); grew = true; } }
-  return leaveOut.filter(x => !back.has(x));
-}
-/**
- * What a proposal leaves without some of its parts: changed features put back as they were (their references
- * renumbered to where those features are now), added ones deleted with the sketches only they use.
- */
-export function partialDoc(base: StudioDoc, after: StudioDoc, parts: readonly ProposalPart[], leaveOut: readonly string[]): { doc: StudioDoc } | { error: string } {
-  const out = new Set(leaveOut), nodes = [...after.nodes];
-  const index = new Map(after.nodes.map((_, i) => [featureId(after.nodes, i), i])), baseIndex = new Map(base.nodes.map((_, i) => [featureId(base.nodes, i), i]));
-  for (const q of parts) {
-    if (!out.has(q.id) || q.kind !== 'changed') continue;
-    const was = base.nodes[baseIndex.get(q.id)!];
-    let missing: string | null = null;
-    const back = renumber(was, i => { const at = index.get(featureId(base.nodes, i)); if (at === undefined) missing = featureId(base.nodes, i); return at ?? i; });
-    if (missing) return { error: `${q.id} cannot be put back as it was: it was built on ${missing}, which the proposal deletes.` };
-    nodes[index.get(q.id)!] = { ...back, id: q.id } as ModelNode;
-  }
-  const added = parts.filter(q => out.has(q.id) && q.kind === 'added').map(q => index.get(q.id)!);
-  if (!added.length) return { doc: prefixDoc({ ...after, nodes }, nodes.length) };
-  const r = deleteFeatures({ ...after, nodes }, added);
-  return 'error' in r ? { error: `Leaving out ${leaveOut.join(', ')}: ${r.error}` } : { doc: r.doc };
-}
-/** The bodies a proposal would leave (its ghost preview), or its refusal. */
-export async function previewProposal(state: ChatState, id: string, evaluate: Evaluate): Promise<{ doc: StudioDoc; bodies: BodyResult[] } | { error: string }> {
-  const p = state.doc.proposals?.find(q => q.id === id);
-  if (!p) return { error: `No proposal ${id}.` };
-  const run = await runOps({ ...state, policy: undefined }, p.ops, evaluate);
-  if ('fail' in run) { let why = run.fail.content; try { why = JSON.parse(why).error; } catch { /* plain text */ } return { error: why }; }
-  return { doc: run.cur.doc, bodies: run.cur.bodies };
-}
 async function runPartTool(state: ChatState, name: string, input: unknown, evaluate: Evaluate): Promise<ToolOutcome> {
   const args = isObj(input) ? input : {};
   setCall(args);
@@ -523,95 +221,10 @@ async function runPartTool(state: ChatState, name: string, input: unknown, evalu
     // The drawing (R14.5): reading tools, and changes that only a proposal makes (the approval gate, D41).
     const out = runDrawingTool(state.doc, name, args);
     if ('error' in out) return fail(state, out.error);
-    return { state: out.changed ? { ...state, doc: out.doc } : state, content: json(out.content), isError: false, changed: out.changed, summary: out.summary };
+    return subToolResult(state, out);
   }
-  // (R3: the handlers moved to a module per v2 action group, found by name first.)
+  // (R3: every part tool's handler, in a module per v2 action group, by name.)
   if (Object.hasOwn(PART_HANDLERS, name)) return PART_HANDLERS[name](state, args, evaluate, runToolCounted);
-  switch (name) {
-    case 'apply_ops': {
-      // All or nothing: each op runs on what the one before left; one refusal and nothing is applied.
-      const tx = state.tx ?? newTransactions(), dry = args.dryRun === true, run = await runOps(state, args.ops, evaluate);
-      if ('fail' in run) return run.fail;
-      const { cur, results, diff, change, broken } = run;
-      const body = { ...(dry ? { dryRun: true, would_apply: results } : { ok: true, applied: results }), diff, change, ...(broken.length ? { broken_references: broken } : {}) };
-      if (dry) return { state, content: json(body), isError: false, changed: false, summary: `dry run: ${results.length} ops` };
-      const applied = [...tx.applied, ...results.flatMap(r => typeof r.opId === 'string' && !r.skipped ? [r.opId] : [])].slice(-OP_IDS);
-      // The feature diff is for display; approval and saving must cover the whole document.
-      return { state: { ...cur, tx: { ...tx, applied } }, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: canonical(state.doc) !== canonical(cur.doc), summary: `${results.length} ops applied` };
-    }
-    case 'run_script': {
-      // (A5.2, O10: a script's commands and features as one change, all or nothing, as apply_ops.)
-      const dry = args.dryRun === true, run = await runScriptOn(state, args.source, evaluate);
-      if ('fail' in run) return run.fail;
-      const { cur, calls, names, diff, change, broken } = run;
-      const body = { ...(dry ? { dryRun: true } : { ok: true }), script: SCRIPT_VERSION, calls, names, diff, change, ...(broken.length ? { broken_references: broken } : {}) };
-      if (dry) return { state, content: json(body), isError: false, changed: false, summary: `dry run: a script of ${calls.length} calls` };
-      return { state: cur, content: json({ ...body, facts: factsOf(cur.doc, cur.bodies) }), isError: false, changed: canonical(state.doc) !== canonical(cur.doc), summary: `a script of ${calls.length} calls` };
-    }
-    case 'propose': {
-      // (A4.2: the change worked out and kept on the side, the part as it was; the user accepts or rejects it.)
-      const title = typeof args.title === 'string' ? args.title.trim() : '';
-      if (!title) return fail(state, 'A proposal takes a title.');
-      const reqs = strings(args.requirements), known = new Set((state.doc.requirements ?? []).map(r => r.id)), unknown = reqs.filter(r => !known.has(r));
-      if (unknown.length) return fail(state, `No requirement ${unknown.join(', ')}; requirements: ${[...known].join(', ') || 'none'}.`);
-      const made = await proposalOf(state, args.ops, evaluate);
-      if ('fail' in made) return made.fail;
-      const env = typeof process !== 'undefined' ? process.env : undefined;
-      const by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
-      const plan = typeof args.plan === 'string' ? args.plan : undefined;
-      const p: Proposal = { id: nextProposalId(state.doc), title: title.slice(0, 120), status: 'open', by, at: new Date().toISOString(), ...(plan ? { plan: plan.slice(0, PLAN_CHARS) } : {}),
-        ...(reqs.length ? { requirements: reqs } : {}), ...(env?.CAD_PROMPT ? { prompt: env.CAD_PROMPT.slice(0, PROMPT_CHARS) } : {}), base: modelHash(state.doc), ops: made.ops, orders: made.orders, risk: made.risk, summary: made.summary, ...(made.checks ? { checks: made.checks } : {}) };
-      const doc = withHistory({ ...state.doc, proposals: [...(state.doc.proposals ?? []), p] }, { kind: 'proposal', by, proposal: p.id, summary: `${p.id} ${p.title}: ${p.summary}`, ...(plan ? { plan } : {}), ...(reqs.length ? { requirements: reqs } : {}), risk: p.risk });
-      return { state: { ...state, doc }, content: json({ ok: true, proposal: p.id, applied: false, note: 'The part is unchanged: the user accepts or rejects the proposal in the studio.', diff: made.diff, change: made.change, ...(made.broken.length ? { broken_references: made.broken } : {}), ...(made.checks ? { checks: made.checks } : {}), risk: p.risk }), isError: false, changed: true, summary: `proposed ${p.id}: ${p.summary}` };
-    }
-    case 'accept_proposal': {
-      const id = String(args.id ?? ''), p = state.doc.proposals?.find(q => q.id === id);
-      if (!p || p.status !== 'open') return fail(state, p ? `${id} is ${p.status} already.` : `No proposal "${id}"; open: ${(state.doc.proposals ?? []).filter(q => q.status === 'open').map(q => q.id).join(', ') || 'none'}.`);
-      const env = typeof process !== 'undefined' ? process.env : undefined, by = { agent: 'chat', ...(env?.CAD_MODEL ? { model: env.CAD_MODEL } : {}) };
-      const level = autonomy();
-      const early = level < 3 || p.risk.approval.length ? agentMayNotAccept(p, level) : null;
-      if (early) return fail(state, early);
-      // (Stale: made again on the part as it is, and shown; accepting it is a second call, D41.)
-      if (p.base !== modelHash(state.doc)) {
-        const r = await rebaseProposal(state, id, evaluate, by);
-        if ('error' in r) return fail(state, r.error, { kept: `${id} stays open` });
-        const q = r.state.doc.proposals!.find(x => x.id === id)!;
-        return { state: r.state, content: json({ ok: true, rebased: id, accepted: false, note: 'The part changed since this was proposed: it was made again on the part as it is. Read what it does now; call accept_proposal again to accept it.', diff: r.made.diff, change: r.made.change, ...(r.made.broken.length ? { broken_references: r.made.broken } : {}), ...(q.checks ? { checks: q.checks } : {}), risk: q.risk, risk_was: q.rebased!.risk_was, may_accept: agentMayNotAccept(q, level) ?? true }), isError: false, changed: true, summary: `rebased ${id}: ${q.summary}` };
-      }
-      const why = agentMayNotAccept(p, level);
-      if (why) return fail(state, why);
-      const r = await acceptProposal(state, id, evaluate, { by, leaveOut: strings(args.leave_out) });
-      if ('error' in r) return fail(state, r.error, { kept: `${id} stays open` });
-      return { state: r.state, content: json({ ok: true, accepted: id, ...(r.leftOut.length ? { left_out: r.leftOut } : {}), feature_count: r.state.doc.nodes.length, facts: factsOf(r.state.doc, r.state.bodies) }), isError: false, changed: true, summary: `accepted ${id}` };
-    }
-    case 'list_proposals': {
-      const list = (state.doc.proposals ?? []).filter(p => args.all === true || p.status === 'open');
-      return { state, content: json({ proposals: list.map(({ ops, ...p }) => ({ ...p, ops: ops.length, stale: p.status === 'open' && p.base !== modelHash(state.doc) })) }), isError: false, changed: false, summary: `${list.length} proposal${list.length === 1 ? '' : 's'}` };
-    }
-    case 'checkpoint': {
-      const label = String(args.name ?? ''); if (!label) return fail(state, 'A checkpoint takes a name.');
-      const tx = state.tx ?? newTransactions(), names = Object.keys(tx.checkpoints).filter(n => n !== label);
-      const checkpoints = Object.fromEntries([...names.slice(-(CHECKPOINTS - 1)).map(n => [n, tx.checkpoints[n]] as const), [label, state.doc] as const]);
-      return { state: { ...state, tx: { ...tx, checkpoints } }, content: json({ ok: true, checkpoint: label, model_hash: modelHash(state.doc), checkpoints: Object.keys(checkpoints) }), isError: false, changed: false, summary: `checkpoint ${label}` };
-    }
-    case 'restore': {
-      const doc = state.tx?.checkpoints[String(args.name ?? '')];
-      if (!doc) return fail(state, `No checkpoint "${String(args.name)}"; checkpoints: ${Object.keys(state.tx?.checkpoints ?? {}).join(', ') || 'none'}.`);
-      return accept(state, doc, evaluate, `restored checkpoint ${String(args.name)}`, { diff: treeDiff(state.doc, doc) });
-    }
-    case 'diff': {
-      const pick = (n: unknown) => n === undefined || n === 'current' ? state.doc : n === 'best' ? state.policy?.best?.doc : state.tx?.checkpoints[String(n)];
-      const a = pick(args.from), b = pick(args.to);
-      if (!a || !b) return fail(state, `from and to are checkpoint names, "best" or "current" (checkpoints: ${Object.keys(state.tx?.checkpoints ?? {}).join(', ') || 'none'}).`);
-      return { state, content: json({ from: args.from ?? 'current', to: args.to ?? 'current', diff: treeDiff(a, b) }), isError: false, changed: false, summary: 'diff' };
-    }
-    case 'restore_best': {
-      const best = state.policy?.best;
-      if (!best) return fail(state, 'No checked snapshot yet: run check_spec first.');
-      if (best.hash === modelHash(state.doc)) return fail(state, 'The part is the best snapshot already.');
-      return accept(state, best.doc, evaluate, `restored the best snapshot ${best.hash} (${best.pass} passing)`);
-    }
-  }
   // (R8.2: the SubD cage tools, D83.)
   if (CAGE_TOOL_NAMES.has(name)) {
     const r = runCageTool(state.doc, name, args);
