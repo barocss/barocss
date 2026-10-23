@@ -2509,3 +2509,39 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     against an old base. Not this move: noted for the kernel lane and the examples' owner.
 - **R2 done**: per-frame allocations (R2a), the display-policy module (R2b), the viewer/shaders split (R2c) and these
   folders.
+
+## G-R38 — G4: the clearance map and print layers as flow steps on both renderers (roadmap G4, 2026-10-23)
+
+- **No WebGL2 limit here.** Both studio renderers already draw the clearance overlays (`setClearanceDisplay`) and the
+  print layers (`setPrintDisplay`), so neither needs a disabled button with a reason, unlike G6.
+- **Fixture** `test/fixtures/clearance-states.bcad` (generated once from the model's own commands, not agent rows):
+  - At the root: the default shaft and a key in its keyseat, a designed pair ("key n1 in its keyseat").
+  - Placed 20 × 20 × 10 boxes:
+    - side by side: touching;
+    - 10 mm into each other: an overlap of 2000 mm³;
+    - 0.5 mm apart: near;
+    - 0.8 mm off in both x and y: clear, at a gap of 1.13 mm against near = 1 mm.
+- **DEV hook** `__studioClearanceLog`: records each display the worker sends, with its stage and the raw and shown pair
+  states. It lives in useClearanceAnalysis's onmessage, not in a render, because a render can batch two messages. The
+  flow reads the `map` stage from it to see the contact state, before the overlaps are worked out. The log is capped at
+  200 entries and is DEV only.
+- **Flow step 273, G22 clearance** checks:
+  - The pairs at `ready`: designed, touching, overlap, near, clear.
+  - The `map` stage before them: designed, contact, contact, near, clear.
+  - The panel's `li[data-clearance-state]`.
+  - Overlays for designed, near, overlap and touching, and none for clear.
+  - The canvas changes, then returns once closed (< 0.2 %).
+  - With Print layers checked, the assembly is refused there and the clearance panel says "Close Print layers"; after
+    it closes, the same pairs.
+  - Save → New → Open gives the same pairs and overlays.
+- **Flow step 274, G23 print layers**, on CNC8's plate:
+  - 100 layers at the estimated 0.2 mm.
+  - Height set to 0.5 mm: 40 layers.
+  - Layer moved to 21, at bed Z 10.25 mm: the view changes.
+  - "Printed up to layer" turned off.
+  - The saved file holds `printPreview` { layer 20, layerMM 0.5, printed false }. Reopened: the same layer, the same Z,
+    the same top.
+- **Runs** (FLOW_ONLY `^G22 clearance|^G23 print layers`): both steps pass on both renderers, first run.
+  - WebGPU: 2.03 % of the canvas changed for the map; print 11.73 % shown, 5.60 % moved.
+  - WebGL2: 2.12 %; print 12.39 % shown, 5.65 % moved.
+  - studio tsc 0, eslint 0 on the changed source.
