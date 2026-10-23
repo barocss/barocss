@@ -10,8 +10,8 @@ import { holeCallout } from '../src/drawing/callout';
 import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
 import { autoLayout } from '../src/drawing/layout';
 import { GENERAL_NOTE_PREFIX, POSITION_ESTIMATE_MM, acceptAll, holePosition, toleranceSuggestions } from '../src/drawing/tolerance';
-import { sheetDxfDocument } from '../src/drawing/dxf';
-import { sheetPdf, pdfMissing } from '../src/drawing/pdf';
+import { sheetDxfDocument } from '../src/io/dxf';
+import { sheetPdf, pdfMissing } from '../src/io/pdf';
 import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 import { SAMPLE_SIZES } from './person-file';
 

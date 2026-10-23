@@ -11,8 +11,8 @@ import { sectionOf } from '../src/drawing/section';
 import { hatch, noteMarks, TITLE_ROOM, toleranceText, valueMarks } from '../src/drawing/sheet';
 import { fitText, textWidth } from '../src/drawing/text';
 import type { PartInstance } from '../src/engine/doc';
-import { arcPath, sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
+import { arcPath, sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
 import { defaultDrawing, readDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 import { SAMPLE_SIZES, withSampleRows } from './person-file';
 

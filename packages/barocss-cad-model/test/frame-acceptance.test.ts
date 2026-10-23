@@ -10,9 +10,9 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { drawingInputs } from '../src/chat/drawing';
 import { drawingIssues, fixAll, issueContext } from '../src/drawing/issues';
 import { readDrawing } from '../src/drawing/types';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import { cutListSource } from '../src/app/cutList';
 
 // FR4b (D128): the frames' acceptance — a welded table frame and a 2020-class T-slot frame, each built by the agent's

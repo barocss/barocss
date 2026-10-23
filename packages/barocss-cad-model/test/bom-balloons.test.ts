@@ -9,9 +9,9 @@ import { drawingIssues, issueContext } from '../src/drawing/issues';
 import { readDrawing, type DrawingSettings, type ViewId, type XY } from '../src/drawing/types';
 import { fromSheet } from '../src/drawing/views';
 import { balloonMarks } from '../src/drawing/balloons';
-import { sheetSvg } from '../src/drawing/svg';
-import { sheetPdf } from '../src/drawing/pdf';
-import { sheetDxf } from '../src/drawing/dxf';
+import { sheetSvg } from '../src/io/svg';
+import { sheetPdf } from '../src/io/pdf';
+import { sheetDxf } from '../src/io/dxf';
 import type { ProjectedCurve } from '@barocss/cad';
 
 // O147 B2: the BOM on the drawing — the 'bom' table numbered as the BOM panel and the purchase list number it, and one

@@ -7,7 +7,7 @@ import { write3mf } from '../src/print/threemf';
 import { drawingInputs } from '../src/chat/drawing';
 import { issueContext } from '../src/drawing/issues';
 import { autoLayout } from '../src/drawing/layout';
-import { sheetSvg } from '../src/drawing/svg';
+import { sheetSvg } from '../src/io/svg';
 import { defaultDrawing } from '../src/drawing/types';
 import { revisionOf } from '../src/util/revision';
 import { sourceBytes, sourceName, sourceRecord } from '../src/team/source';

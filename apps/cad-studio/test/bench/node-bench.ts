@@ -16,7 +16,7 @@ import { directDisplay, emptyDirect, importSource, movePole } from '@barocss/cad
 import { projectViews } from '@barocss/cad-model/drawing/project';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { buildSheet } from '@barocss/cad-model/drawing/sheet';
-import { sheetDxf } from '@barocss/cad-model/drawing/dxf';
+import { sheetDxf } from '@barocss/cad-model/io/dxf';
 import { autoDimensions } from '@barocss/cad-model/drawing/auto';
 import { drawingIssues } from '@barocss/cad-model/drawing/issues';
 import { autoLayout } from '@barocss/cad-model/drawing/layout';
