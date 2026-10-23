@@ -49,12 +49,18 @@ The list a model reads each turn stays short, and `describe` gives the detail on
 New commands and feature kinds need no change to the list. The `features` tool names them, and `describe` gives their
 detail.
 
+For example, the agent mounts a motor with `features.command` and the command `mount`, on a picked face, after
+loading the person's mount rows with `features.load_rows` and the kind `mounts`. A mount adds features, so at L1 and L2
+it is proposed. See [Part features](/studio/features#machine-elements).
+
 ## Results and refusals
 
 - **Data back.** A call returns JSON. A read gives what it read; a change says what it changed.
 - **Refusals.** A refused call leaves the part exactly as it was and says why, often with a code the agent can act on.
   For example, `needs_proposal` at L2, or `needs_approval` for a change to the assembly, mates, the drawing, the robot
   or a locked part.
+- **A command's refusal.** When the build behind `features.command` refuses, the call returns that refusal as its
+  error, as `<Label>: <refusal>`, and the part is left unchanged.
 - **Rows.** Rows the agent wrote itself are refused with `[ROWS_NOT_FROM_PERSON]`.
 - **All or nothing.** `features.batch` runs several calls all or nothing, and `dryRun` tries them without keeping
   them. `model.run` runs a whole script the same way.
