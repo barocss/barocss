@@ -1,6 +1,6 @@
 import { compileCadModel } from './model-compiler.js';
 import type { CadCompileResult } from './model-compiler.js';
-import type { CadAstValue, CadAstDeclaration } from './source-ast.js';
+import type { CadAstValue, CadAstDeclaration } from './language/source-ast.js';
 import { editSurfaceControlNet } from './surface-control-net.js';
 import type { SurfaceControlNetEdits, SurfaceControlNetResult, SurfacePoleField } from './surface-control-net.js';
 import { curveDecimal } from './curve-source.js';

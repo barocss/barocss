@@ -6,7 +6,7 @@ import { booleanAnalytic } from './analytic-boolean.js';
 import { brepMassProperties } from './solid-mass.js';
 import { transformBrep } from './brep-transform.js';
 import type { Brep } from './brep-core.js';
-import { evaluateCadPart } from './part-model.js';
+import { evaluateCadPart } from './part/part-model.js';
 import { CadLibraryError, evaluateLibraryExpression, instantiateLibraryPart, parseLibraryExpression, type CadLibrary, type CadLibraryFit, type CadLibraryFitEnd, type CadLibraryInterface } from './library.js';
 import { cross as crossOf } from './vec3.js';
 

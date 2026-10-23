@@ -16,7 +16,7 @@ const esbuild = require('esbuild');
 const bundle = await esbuild.build({ absWorkingDir: repo, entryPoints: [resolve(repo, 'packages/barocss-cad/src/index.ts')], bundle: true, platform: 'node', format: 'esm', target: 'es2022', write: false, metafile: true });
 assert.equal(bundle.outputFiles.length, 1);
 const inputs = Object.keys(bundle.metafile.inputs).map(path => resolve(repo, path));
-assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src/iges-import.ts')));
+assert.ok(inputs.includes(resolve(repo, 'packages/barocss-cad/src/io/iges-import.ts')));
 assert.ok(!inputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 assert.ok(inputs.filter(path => path.includes('/packages/barocss-cad/')).every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 const api = await import('data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64'));

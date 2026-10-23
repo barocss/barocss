@@ -20,7 +20,7 @@
 import { revolutionOf, profileCrossings, onPatch, patchMargin, type Revolution } from './surface-revolution.js';
 import { curvePiece, curveReversed } from './curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
-import { facetPlane } from './facet-patch.js';
+import { facetPlane } from './mesh/facet-patch.js';
 import { circleOf, polesOf, tessellateBrep } from './brep-tessellate.js';
 import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';

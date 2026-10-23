@@ -2,7 +2,7 @@
 // citing its source or flagged an estimate (its own, or the table's), as the bend tables (D120). A member names a table
 // and a size; the table is checked whole (`[SECTION_TABLE]`), a size it lacks refused with the sizes it has
 // (`[SECTION_TABLE_MISS]`), and the size built by the section's own closed forms (FR1).
-import { frameSection, FrameSectionError, type FrameSectionSpec } from './frame-section.js';
+import { frameSection, FrameSectionError, type FrameSectionSpec } from './frame-sheet/frame-section.js';
 
 export type SectionTableKind = 'rect-tube' | 'round-tube' | 'angle' | 'channel' | 'i-beam' | 'tslot';
 export interface SectionTableRow { readonly size: string; readonly source?: string; readonly estimate?: boolean; readonly [dimension: string]: unknown }

@@ -1,6 +1,6 @@
 import type { Curve, Point, Surface } from './types.js';
 import { evaluateCurve, evaluateSurface } from './math.js';
-import { encodeBinaryStl } from './stl.js';
+import { encodeBinaryStl } from './io/stl.js';
 import { dist as d3 } from './vec3.js';
 
 // Extruded profile solids: a closed XY loop of lines and circular arcs, swept straight along +Z.

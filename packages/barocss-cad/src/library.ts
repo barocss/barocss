@@ -4,7 +4,7 @@
 // arithmetic, comparisons, a conditional and a few functions over the parameters. Libraries are checked on load,
 // refused with typed errors; a part is instantiated to ordinary part-model features (its ids prefixed) carrying where
 // they came from.
-import type { CadPartFeature } from './part-model.js';
+import type { CadPartFeature } from './part/part-model.js';
 
 export type CadLibraryErrorCode = 'FORMAT' | 'PARAMETER' | 'EXPRESSION' | 'REFERENCE' | 'RECIPE' | 'VERSION';
 export class CadLibraryError extends Error {

@@ -3,7 +3,7 @@
 // reverses every loop and face sense, so faces still point out of the solid.
 import { BrepError, type Brep, type BrepCoedge, type BrepFace, type BrepLoop } from './brep-core.js';
 import type { Curve, FacetPatch, Point, Surface } from './types.js';
-import { transformFacetPatch } from './facet-patch.js';
+import { transformFacetPatch } from './mesh/facet-patch.js';
 
 /** x' = M·x + t with M row-major 3×3. */
 export interface BrepAffine { readonly matrix: readonly [number, number, number, number, number, number, number, number, number]; readonly offset?: readonly [number, number, number] }
