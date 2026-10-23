@@ -7,7 +7,7 @@ import type { FaceTable } from '../assembly/mates';
 import { brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { lumpTouches } from './lumps';
-import { friendly, type FriendlyError } from './errors';
+import { friendlyCause, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
 import { placedBase, placedDoc, type PartInstance, type BodyRef, type ModelNode, type Side, type StudioDoc } from './doc';
 import { placementOf } from './placement';
@@ -236,7 +236,7 @@ const rebuildOf = (s: CadPartSnapshot): RebuildData | undefined => s.profile && 
 
 /** A failed evaluation: its refusal in words, and the time it took (every evaluation's catch). */
 function failed(revision: number, cause: unknown, t0: number): EvalResult {
-  return { ok: false, revision, error: friendly(cause instanceof Error ? cause.message : String(cause)), ms: performance.now() - t0 };
+  return { ok: false, revision, error: friendlyCause(cause), ms: performance.now() - t0 };
 }
 /** A part's bodies from its snapshot, its face table remembered (evaluateDoc's and evaluatePart's one path; R4 C3). */
 function partResult(doc: StudioDoc, snapshot: CadPartSnapshot, revision: number, quality: number, shopRows: readonly ShopTreeProvenance[], t0: number): Extract<EvalResult, { ok: true }> {
@@ -326,7 +326,7 @@ export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok:
       if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; } masses.set(o.brep, m); }
       return { key: bodyKeyOf(o.id, doc.nodes), volumeMM3: m ? m.volumeMM3 : null };
     }) };
-  } catch (cause) { return { ok: false, error: friendly(cause instanceof Error ? cause.message : String(cause)) }; }
+  } catch (cause) { return { ok: false, error: friendlyCause(cause) }; }
 }
 
 /**
@@ -451,9 +451,10 @@ export function partBreps(doc: StudioDoc): { key: string; brep: Brep }[] {
 /** `meshes`: how mesh bodies are written (STEP export option, R3.5: auto, tessellated or planar). */
 /**
  * The part (and its shown instances) as one STEP file. Bodies with the `infill` role (O60: a print lattice) are left out —
- * STEP stays the exact part — and `omitted` says so; 3MF and the mass keep them.
+ * STEP stays the exact part — and `omitted` says so; 3MF and the mass keep them. `options.timestamp` (R7 finding): the
+ * file's time (ISO 8601, seconds), so a test or a doc writes the same bytes each time; the studio leaves it out (now).
  */
-export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): { text: string; source: string; omitted?: string[] } | { error: string } {
+export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar', options: { timestamp?: string } = {}): { text: string; source: string; omitted?: string[] } | { error: string } {
   try {
     const breps: Brep[] = [], left: string[] = [];
     const take = (d: StudioDoc, outputs: CadPartSnapshot['outputs'], prefix: string) => {
@@ -470,7 +471,7 @@ export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessell
     }
     if (!breps.length) return { error: left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.' };
     // (O9: the header names the source revision the file was made from.)
-    const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}) });
+    const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
     return left.length ? { text, source, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text, source };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
