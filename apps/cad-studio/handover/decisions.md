@@ -13346,3 +13346,88 @@ fixed.
   D252).
 
 D239's open nudge findings and s2#112 (queue item 4) were not reached in K14.
+
+## D255 — K14 step 3: loose ends a traced curve's tolerance apart, or from a traced segment, join there (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #148, robust. Shrunk: a box turned 253.3° about X, less (a cylinder ∩ a ball).
+Refused as "not a manifold solid", an edge used once: the box's edge on its face x = 2.391.
+
+**Cause (`joinLooseEnds`, `src/brep/curved-arrangement.ts`).** Where the cylinder, the ball and the box's face x = 2.391
+meet, the cuts arrive from two sources:
+- the cylinder's rulings in that face, clipped against the cylinder's traced trim with the ball;
+- the ball's circle in that face, an exact arc.
+
+The traced trim lies within its tracing tolerance, 100 tolerances, of the true curve. So:
+- on the box's face, the ruling ended 1e-4 short of the ball's arc that goes on from there, two loose ends;
+- on the ball's lower patch, the arc ended 1e-4 short of the traced trim.
+
+D237 joins only within 10 tolerances, so neither face was divided.
+
+**Fix.**
+- Two loose ends, each meeting nothing, join within 100 tolerances.
+- An exact cut's loose end joins a traced curve's segment (a domain curve not marked exact) within 100 tolerances.
+- Otherwise D237's 10 tolerances stand.
+
+A first version let any loose end join a traced segment within 100. It broke seed 20261024 #55, valid before: a short
+traced cut (7.9e-3 mm), 43 tolerances from a trim, joined it and made an edge used three times. Narrowed to exact cuts'
+ends, #55 is as before.
+
+100 tolerances is the stitch's own reach for the consecutive pieces of a ring, so the arrangement now joins no more
+than the stitch already merges. Each rule alone left 148 refused.
+
+**Results:** 148 shrunk is valid, one body, 0.07 e at 256² × 6; as fuzzed, 2 bodies, −0.2 e; both by quadrature.
+**Test:** `test/fuzz-k14-findings.test.mjs` "curves: loose ends a traced curve's tolerance apart …", failing before.
+
+## D256 — K14's closing record: the fuzz at its end, the open cases, the fingerprint chain (2026-10-24)
+
+**Final fuzz** (`scripts/rb/fuzz.mjs`, 200 cases a seed, the D249 judgement; at D255):
+
+| Seed | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT | At K14's start (155bf40d3) |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 | 183 (36) | 0 | 17 | 0 | 0 | 0 | 0 | OK 177, REFUSED 18, WRONG 1, INVALID 4 |
+| 20261026 | 187 (27) | 0 | 13 | 0 | 0 | 0 | 0 | OK 185, REFUSED 15 |
+| 20261023 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 | OK 189, REFUSED 11 |
+| 20261024 | 187 (31) | 0 | 13 | 0 | 0 | 0 | 0 | OK 186, REFUSED 14 |
+
+KNOWN is 0 throughout. 54 refusals remain over the four seeds, against 58 and 5 findings at the start.
+
+**What K14 fixed, one cause each:**
+- D245: the quadrature giving up on a ball's face whose trims bow far from their chords.
+- D246: a curved face's diagonal duplicating another face's mesh edge.
+- D247: spur edges in loops.
+- D248: a missed self-touch at a point tangency, now refused, typed.
+- D250: the domain map beside a pole.
+- D251: a long cut's two loose ends on one segment.
+- D252: coplanar merges dropping a ring closed to a few tolerances.
+- D255: loose ends a traced curve's tolerance apart.
+- Also D249, the fuzz's APPROX status.
+
+**Open robust refusals, with what is known of their causes:**
+
+| Case | Cause, as far as found | Record |
+|---|---|---|
+| 20261025 #190 | the march beside a pole: a step lands past the pole's side of the domain and the chain stops short of the seam. Two remedies built it but broke 20261024 #154 and D238's 25 | D250 |
+| 20261025 #62, 20261026 #115 | "orientation: face … sense disagrees with its outer loop". In #62, a cylinder wall merged from pieces spanning 354°; the merge is sound, and the face the stitch builds over that arc is where to look. #115 is not looked at | D254 |
+| 20261026 #184 | the patterned copies' coplanar floors and bottoms (z −2, −2.5), and copy 1's tilted cylinder end face across them. Its ring and its partners' meet at points 0.07 mm apart | D254 |
+| 20261025 #49 | a run of micro edges (3e-5 mm each) up one ruling of a cylinder, used 4 times: a near-tangency of the tilted third cylinder. Not fixed | this record |
+| 20261025 #170, 20261026 #34, as fuzzed | each refused by a second cause after its shrunk tree built (D251, D252) | D251, D252 |
+
+The near-degenerate and exact-contact classes (D249) were not worked. D239's open nudge findings and s2#112 were not
+reached.
+
+**The fingerprint chain** (`scripts/r5-fingerprint.mjs`):
+
+| Point | Cases | sha256 | Change |
+|---|---|---|---|
+| K14's start | 855 | `b6e18fab…` | — |
+| Checkpoint 1 (D245–D249) | 861 | `01ad424b…` | six corpus cases added; two centroids by one bit (D246) |
+| Checkpoint 2 (D250–D252) | 861 | `cf100676…` | 20261024:138 refused → valid; 20261023:158 refused at a later Boolean; 27 lines' meshes, areas and masses within 7.1e-10 relative |
+| D255 | 861 | `cf100676…` | identical. A first version of D255 changed one line, 20261024:55 valid → refused; it was narrowed before the counted run |
+
+**Checks at D255** (T2, in a scratch worktree at 00089f872 with D255):
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1664/1671, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 2's names, one is new (D255's test) and none is gone.
+- RB: no NEW, the same 3 TODOs.
+- cad-model 1020/1020, studio 286/286.
+- No browser flow.

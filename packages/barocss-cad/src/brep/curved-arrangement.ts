@@ -346,7 +346,8 @@ export function curveTolerance(rings: readonly (readonly CurveSegment2[])[]): nu
 /**
  * A cut's end that meets nothing (one edge there) ends at the nearest vertex within 10 tolerances, or else at the nearest
  * point within 10 tolerances of another segment, which is split there; not a stub within 10 tolerances of its own edge's
- * other end, nor onto a vertex at that other end, nor, for a cut within 100 tolerances, onto a segment there (D251). Two cuts meeting where three surfaces meet are
+ * other end, nor onto a vertex at that other end, nor, for a cut within 100 tolerances, onto a segment there (D251). Two
+ * loose ends join within 100 tolerances, and an exact cut's loose end a traced curve's segment within 100 (D255). Two cuts meeting where three surfaces meet are
  * each clipped against a different face's map of the same edge, and their ends, or an end and that edge, can land a few
  * tolerances apart: the face was then not divided. 10 tolerances is half the stitch's vertex merge radius, so no feature
  * the stitch keeps is joined away. (L4 fuzz 74, D237.)
@@ -366,16 +367,30 @@ function joinLooseEnds(points: readonly XY[], edges: Edge[], eps: number): void 
       const d = Math.hypot(points[w][0] - points[v][0], points[w][1] - points[v][1]);
       if (d <= bd) { bd = d; best = w; }
     }
+    // (Two loose ends, each meeting nothing, join within 100 tolerances: the traced curves' own tolerance, within which the
+    // stitch takes a ring's consecutive pieces to meet. A ruling clipped against a cylinder's traced trim ended 1e-4 short
+    // of the ball's arc that goes on from there, and the box's face was not divided. L4 fuzz 20261025 #148, D255.)
+    if (best < 0) for (let w = 0, d0 = 100 * eps; w < points.length; w++) {
+      if (w === v || w === other || degree[w] !== 1) continue;
+      const d = Math.hypot(points[w][0] - points[v][0], points[w][1] - points[v][1]);
+      if (d <= d0) { d0 = d; best = w; }
+    }
     if (best >= 0) { if (edges[e].u === v) edges[e].u = best; else edges[e].v = best; degree[v] = 0; degree[best]++; continue; }
     const p = points[v];
     // (A segment at the other end is left out only for a short cut, its other end within 100 tolerances: a long cut whose
     // two ends both stop short of one segment — a ball's circle ending a tolerance short of its patch's seam at both
     // crossings, the first end's join splitting the seam there — ends on it at both. L4 fuzz 20261025 #170, D251.)
     const short = Math.hypot(points[other][0] - p[0], points[other][1] - p[1]) <= 100 * eps;
+    // (An exact cut's loose end onto a traced curve's segment within 100 tolerances, the traced curve's own tolerance: a
+    // ball's arc ending where a cylinder's traced trim lies 1e-4 off it left the ball's face undivided. L4 fuzz 20261025
+    // #148, D255. A traced cut's end keeps 10: joined so, a short traced cut 43 tolerances from a trim made an edge used
+    // three times, 20261024 #55.)
+    const exactEnd = edges[e].seg.kind !== 'curve' || !!(edges[e].seg as { exact?: boolean }).exact;
     let split = -1, at = 0, sd = 10 * eps;
     for (let f = 0; f < edges.length; f++) {
-      const g = edges[f]; if (f === e || g.u === v || g.v === v || (short && (g.u === other || g.v === other)) || surelyOff(g.seg, p, sd)) continue;
-      const d = segDistance(g.seg, p); if (d > sd) continue;
+      const g = edges[f], reach = exactEnd && g.seg.kind === 'curve' && !(g.seg as { exact?: boolean }).exact ? 100 * eps : 10 * eps;
+      if (f === e || g.u === v || g.v === v || (short && (g.u === other || g.v === other)) || surelyOff(g.seg, p, Math.max(sd, reach))) continue;
+      const d = segDistance(g.seg, p); if (d > reach || (split >= 0 && d > sd)) continue;
       const u = paramOf(g.seg, p); if (u > 0 && u < 1) { sd = d; split = f; at = u; }
     }
     if (split < 0) continue;
