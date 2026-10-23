@@ -1,0 +1,45 @@
+diff --git a/packages/barocss-cad/src/brep/analytic-boolean.ts b/packages/barocss-cad/src/brep/analytic-boolean.ts
+index 2dadd2172..827cbf19b 100644
+--- a/packages/barocss-cad/src/brep/analytic-boolean.ts
++++ b/packages/barocss-cad/src/brep/analytic-boolean.ts
+@@ -493,6 +493,26 @@ function wrappedPast(g: CurveSegment2, c: Cylinder): CurveSegment2[] {
+   if (lo < w0) { const a = Math.max(w0, lo + turn); if (w1 > a) out.push({ ...g, a: [a, v], b: [w1, v] }); }
+   return out;
+ }
++/**
++ * A parameter strictly inside a traced curve where it passes within 10 tolerances of a pole of either face's surface
++ * (nearest of 64 samples, then a golden-section search), or null; the curve's own ends are left to `toPoles` (D208).
++ */
++function throughPole(k: Extract<Curve3, { kind: 'param' }>, fa: GFace, fb: GFace, tol: number): number | null {
++  const span = k.t1 - k.t0;
++  for (const f of [fa, fb]) {
++    if (f.surf.kind !== 'nurbs') continue;
++    for (const pole of f.surf.poles) {
++      let best = 0, bd = Infinity;
++      for (let i = 0; i <= 64; i++) { const d = len(sub(k.at(k.t0 + span * i / 64), pole.point)); if (d < bd) { bd = d; best = i; } }
++      if (best === 0 || best === 64) continue;
++      let lo = k.t0 + span * (best - 1) / 64, hi = k.t0 + span * (best + 1) / 64;
++      for (let it = 0; it < 60; it++) { const m1 = hi - (hi - lo) * 0.6180339887, m2 = lo + (hi - lo) * 0.6180339887; if (len(sub(k.at(m1), pole.point)) < len(sub(k.at(m2), pole.point))) hi = m2; else lo = m1; }
++      const t = (lo + hi) / 2;
++      if (len(sub(k.at(t), pole.point)) <= 10 * tol && len(sub(k.at(t), k.at(k.t0))) > 10 * tol && len(sub(k.at(t), k.at(k.t1))) > 10 * tol) return t;
++    }
++  }
++  return null;
++}
+ /**
+  * An open chain whose end stops short of a pole on both surfaces — a cone's apex on the other face — goes on to it.
+  * (There one surface's normal is undefined, so the march stops a step's fraction away. The cut then ended 1e-4 short of
+@@ -611,7 +631,12 @@ function cutPair(fa: GFace, fb: GFace, tol: number, span: number, touching = fal
+     }
+     return;
+   }
+-  const addCut = (k: Curve3) => { fa.cuts.push(curve2(fa, k, tol)); fb.cuts.push(curve2(fb, k, tol)); };
++  const addCut = (k: Curve3): void => {
++    // (A traced curve through a pole of either face — Viviani's curve through a ball's poles — is cut there: on the pole's
++    // surface its two halves arrive at the pole's side of the domain at two places, and one curve across it left the face
++    // with no region at all. L4 fuzz 110, D234.)
++    if (k.kind === 'param') { const tp = throughPole(k, fa, fb, tol); if (tp !== null) { addCut({ ...k, t1: tp }); addCut({ ...k, t0: tp }); return; } }
++    fa.cuts.push(curve2(fa, k, tol)); fb.cuts.push(curve2(fb, k, tol)); };
+   // (Each probe on fa first: where it misses fa, fb's search — on a cylinder, its seam scan — is skipped; the overlap is empty either way.)
+   const lineCuts = (p: P3, d: P3) => {
+     const ia = intervals(fa, { kind: 'line', p, d, lo: -span, hi: span }, tol); if (!ia.length) return;

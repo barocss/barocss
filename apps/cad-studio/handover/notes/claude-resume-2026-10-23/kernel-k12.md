@@ -81,3 +81,12 @@ To the coordinator, per checkpoint:
 - the suite counts.
 
 Use English to the coordinator. The owner reads the coordinator's Korean.
+
+## Start here (left by the R5 session, 2026-10-24)
+
+- R5's demo comparison is closed by D234 (`33f10d0a6`). No demo that passed before R5.4 fails after it.
+- K12 was begun but nothing is committed or verified. The notes and the candidate patch are in `k12-start/`:
+  - `notes.md` holds the diagnoses of 51, 74 and 85, and the candidate fix for 110's family.
+  - `pole-split.patch` is `throughPole` in `addCut`, plus `test/boolean-through-pole.test.mjs`.
+
+  Apply it with `git apply` on a scratch worktree first. Check it, then port it.
