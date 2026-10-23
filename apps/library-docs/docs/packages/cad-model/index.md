@@ -24,14 +24,15 @@ The package is public module by module. Import each module by its path; the pack
 
 | Module | What it holds |
 |---|---|
-| `engine/` | The studio document (`doc`), its evaluation into bodies and meshes, ids, mesh blobs, the `.bcad` container, shop rows |
+| `engine/` | The studio document (`doc`), its evaluation into bodies and meshes, ids, mesh blobs, the `.bcad` container, shop rows and their sources, flattening an assembly |
+| `engine/schema/` | The types of the brief, questions, references, drafts, requirements and proposals; their functions are in `chat/` |
 | `sketch/` | Sketch profiles, constraints, trim, offset, corners, splines, reading a DXF and its underlay |
 | `app/` | The modelling commands as data: shapes, edits, holes, fasteners and threads, sheet metal, mass, measure, materials |
 | `assembly/` | Placed parts and mates: solving, shared definitions and revisions, drag, exploded views |
 | `subd/` | Editing a SubD cage |
 | `frames/` | Frames and weldments: sections, skeletons and 3D sketches, welds, nesting into stock lengths |
-| `chat/` | The agent's tool layer: the handlers, the 13 tools (`toolset`, `groups`), the contract, the script language, the brief, questions, proposals |
-| `drawing/` | The 2D drawing: views, sections, dimensions, tolerances, tables, issues, and SVG, PDF and DXF output |
+| `chat/` | The agent's tool layer: the handlers, the 13 tools (`toolset`, `groups`), the contract, the script language, and the brief's, questions' and proposals' functions |
+| `drawing/` | The 2D drawing: views, sections, dimensions, tolerances, tables, issues |
 | `print/` | The manufacturability report, 3D printing's rules and preparation, and 3MF |
 | `mould/` | Injection moulding: draft, undercuts, walls, the parting line, the quote package |
 | `machining/` | CNC milling and turning: holes, pockets, access and setups, stock, a 2.5D preview (not for production) |
@@ -39,9 +40,11 @@ The package is public module by module. Import each module by its path; the pack
 | `robot/` | The mates as a robot: joints, kinematics, inertia, dynamics, actuator sizing, URDF, MJCF, SDF and USD |
 | `library/` | Materials, process profiles, and standard and team part libraries, as data |
 | `standards/` | Values derived from standards, with their sources and licences |
-| `team/` | Revisions and sources, several agents on one part, baselines, freshness, change requests, bundles |
-| `io/` | A zip writer with no dependencies |
-| `util/` | Small shared helpers: unit factors, guards, ids, rounding |
+| `team/` | Export sources, several agents on one part, baselines, freshness, change requests, bundles |
+| `analysis/` | The analyses the agent asks for (mass properties, interference and clearance, sections, wall thickness, draft), and alignment against a reference part |
+| `bom/` | The bill of materials |
+| `io/` | Output formats: the drawing's SVG, PDF and DXF, and a zip writer with no dependencies |
+| `util/` | Small shared helpers: unit factors, guards, ids, rounding, SHA-256 digests, the document revision |
 | `rb9/` | The AI scenario ladder: its rungs, a scripted agent, its measures and report |
 
 ## The studio document
