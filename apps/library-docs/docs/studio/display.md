@@ -1,11 +1,14 @@
 # Display, sections and analysis
 
-Everything on this page changes how the model is shown, never the model itself. Its controls sit in **Display** above
-the viewport's view buttons.
+Everything on this page changes how the model is shown, never the model itself. Its controls are:
+
+- **Display**, the popover on the view bar;
+- the view bar's other buttons;
+- the dock's **Preview & analysis** section.
 
 ## Display modes
 
-![The Display popover: the CAD display mode, Isolate selection and the previews](/shots/studio/display/display-popover.png)
+![The Display popover: the CAD display mode and Isolate selection](/shots/studio/display/display-popover.png)
 
 **CAD display mode** sets how bodies are drawn:
 
@@ -43,26 +46,46 @@ Other view settings:
 - **Sketch the section** starts a sketch on the section plane with the cut's outlines in it, ready to extrude,
   revolve or dimension. It needs one plane, since a sketch lies on one plane.
 
-## Surface and analysis maps
+## Preview & analysis
+
+The dock's **Preview & analysis** section shows one preview on the model at a time. Its switch is **None**, **CNC**,
+**Print**, **Clearance** or **Analysis**:
+
+- **The switch turns the preview on.** Only the chosen preview's settings show under it.
+- **None** shows a one-line hint.
+
+The previews are:
+
+- **CNC** and **Print**: see [Manufacturing](/studio/manufacturing).
+- **Clearance**: see [Assemblies](/studio/assemblies).
+- **Analysis**: below.
+
+### Analysis
 
 ![Zebra stripes on a filleted box](/shots/studio/display/zebra.jpg)
 
-- **Surface analysis** shows zebra stripes or a curvature map, for judging how smoothly faces meet.
-- **Analysis map** (**Maps**) cycles through coloured maps, each with a legend that reads the value under the pointer.
-  It draws only with WebGPU; on WebGL2 the button is disabled and says why.
+- **Surface:** **Zebra** stripes or a **Curvature** map, for judging how smoothly faces meet. **Overhang** appears for
+  a part with a printing process.
+- **Map:** a coloured map with a legend that reads the value under the pointer.
+  - The maps are **Thickness**, **Draft**, **Access**, **Parting** and **Halves**.
+  - **Draft**, **Parting** and **Halves** appear for a part with a pull direction.
+  - The maps draw only with WebGPU. On WebGL2 they are disabled, with the reason.
+- **The view bar.** **Analyse** and **Maps** step through the same choices.
+- **Turning it off.** With no surface analysis and no map, the Analysis preview turns off.
 
 | Map | Colours |
 |---|---|
 | Thickness | Wall thickness: thin red, nominal green, thick orange, past the thick-section limit purple |
-| Draft | For a part with a pull direction: under the least draft red, positive green, negative blue, isoclines white |
+| Draft | Under the least draft red, positive green, negative blue, isoclines white |
 | Access | The share a 3-axis mill doesn't reach, in red |
-| Parting, Halves | For a part with a pull direction: the mould's parting line, then its two halves spread apart |
+| Parting, Halves | The mould's parting line, then its two halves spread apart |
 
-## Annotations and previews
+### 3D annotations
 
-- **3D annotations** shows the drawing's dimensions and notes on the model. Clicking one picks what it dimensions.
-- **Assembly clearance**, **CNC preview** and **Print layers** are here as well. See
-  [Assemblies](/studio/assemblies) and [Manufacturing](/studio/manufacturing).
+**3D annotations**, a toggle at the right of the section's header, shows the drawing's dimensions and notes on the
+model, over any preview but the print and CNC previews. Clicking one picks what it dimensions.
+
+They show only in the Model workspace, and not while an edit is under way, such as a sketch or a running command.
 
 ## Frame cost
 
