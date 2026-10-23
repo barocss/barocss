@@ -139,53 +139,53 @@ documents and package paths keep resolving); the touched package suites, lint an
 plus the full flow at the end of the phase. Render counts and frame times are recorded in the decision logs, not as
 evidence files.
 
-## Item index (one line each; the /lanes pane shows these titles)
+## Item index (one line each; the /lanes pane shows the owner's Korean title after " · ko: ")
 
-- **S1** — Import cycle in cad-model
-- **S2** — Rows rule (b) test fixtures and CLI paths
-- **S3** — Frozen v2 tool-contract test
-- **S4** — Remaining failures after S1–S2
-- **S5** — Kernel failures from the first window
-- **S6** — Studio lint error
-- **S9** — Full window and browser flow at one commit (the "last fully verified" commit)
-- **K1** — FRk6: ordered-trim speed (5.7 → 1.1 s)
-- **K2** — FRk5 leftovers: notch cases on a tee
-- **K3** — FRk7: SubD display folds
-- **K4** — FRk8a: bearing housing shoulder against Da max
-- **K5** — FRk8b second half (not needed)
-- **K6** — FRk9: weldment acceptance by the agent
-- **K7** — r6 sphere-intersect pin against a closed form
-- **K8** — F5: cnc-turning report speed (55 → 15 s)
-- **K9** — Graze cases (1 nm, 10 µm, 1 µm)
-- **K10** — Fuzz harness and its first findings
-- **K10b** — Fuzz refusals: robust, near-degenerate, touching lumps
-- **K11** — F5 remainder: the turning report's derivatives
-- **O1** — Verify the A9 items in the full suites
-- **O2** — A9-11: Studio download flow
-- **O3** — A9 brief fixture: key against bearing clash
-- **O4** — A9-7: linked bearing housing in the app (needs a person's rows file)
-- **O5** — A9 acceptance run, end to end
-- **O5a** — A9 findings F1–F5: made bodies, holes, bore, tool size, housing
-- **O5b** — A9 findings F6–F10: drawings, fasteners, BOM base members
-- **O6** — Aligned sections; welded DFM profile (waits on the owner)
-- **O7** — Built-in tables → person-loaded sample rows
-- **O8** — Touching lumps: per-lump exports, DFM warning, BOM count
-- **G1** — A9-7 UI port
-- **G2** — G23: CNC preview
-- **G3** — G21: display modes, silhouettes, isolate and hide
-- **G4** — G22: clearance map on screen
-- **G5** — G24: 3D PMI
-- **G6** — G25: GPU analyses (thickness, draft, access)
-- **G7** — Antialiased cap edges
-- **G8** — Performance regression check
-- **G9** — Cap sample memory
-- **G10** — Full browser flow on WebGL2
-- **R1** — Studio re-renders: Viewport and the App split
-- **R2** — Viewer per-frame allocations, shared renderer code, viewer.ts split, gpu folders
-- **R3** — chat/tools.ts split by action group
-- **R4** — cad-model duplicates, layering and folders
-- **R4b** — src/ui shared panel pieces; DrawingWorkspace split
-- **R5** — Kernel duplicates, hot paths, part-model split, folders
+- **S1** — Import cycle in cad-model · ko: cad-model import 순환 해결
+- **S2** — Rows rule (b) test fixtures and CLI paths · ko: 행 규칙 (b) 테스트 픽스처와 CLI 경로
+- **S3** — Frozen v2 tool-contract test · ko: 고정된 v2 도구 계약 테스트
+- **S4** — Remaining failures after S1–S2 · ko: S1–S2 뒤 남은 실패 정리
+- **S5** — Kernel failures from the first window · ko: 첫 검증에서 나온 커널 실패
+- **S6** — Studio lint error · ko: 스튜디오 린트 오류
+- **S9** — Full window and browser flow at one commit (the "last fully verified" commit) · ko: 한 커밋에서 전체 검증과 브라우저 흐름 전체 (마지막 전부 검증된 커밋)
+- **K1** — FRk6: ordered-trim speed (5.7 → 1.1 s) · ko: FRk6: 순서 있는 트림 속도 (5.7 → 1.1초)
+- **K2** — FRk5 leftovers: notch cases on a tee · ko: FRk5 남은 것: T자 이음의 노치 경우
+- **K3** — FRk7: SubD display folds · ko: FRk7: SubD 표시 접힘
+- **K4** — FRk8a: bearing housing shoulder against Da max · ko: FRk8a: 베어링 하우징 턱을 Da max와 비교
+- **K5** — FRk8b second half (not needed) · ko: FRk8b 후반 (필요 없음)
+- **K6** — FRk9: weldment acceptance by the agent · ko: FRk9: 에이전트가 용접 구조물 인수 검사
+- **K7** — r6 sphere-intersect pin against a closed form · ko: r6 구 교차 고정값을 닫힌 해와 비교
+- **K8** — F5: cnc-turning report speed (55 → 15 s) · ko: F5: CNC 선반 보고서 속도 (55 → 15초)
+- **K9** — Graze cases (1 nm, 10 µm, 1 µm) · ko: 스치는 경우들 (1 nm, 10 µm, 1 µm)
+- **K10** — Fuzz harness and its first findings · ko: fuzz 도구와 첫 발견들
+- **K10b** — Fuzz refusals: robust, near-degenerate, touching lumps · ko: fuzz 거부 줄이기: 안정성, 거의 퇴화, 맞닿은 덩어리
+- **K11** — F5 remainder: the turning report's derivatives · ko: F5 나머지: 선반 보고서의 미분 계산
+- **O1** — Verify the A9 items in the full suites · ko: A9 항목을 전체 테스트에서 확인
+- **O2** — A9-11: Studio download flow · ko: A9-11: 스튜디오 다운로드 흐름
+- **O3** — A9 brief fixture: key against bearing clash · ko: A9 브리프 픽스처: 키와 베어링 간섭
+- **O4** — A9-7: linked bearing housing in the app (needs a person's rows file) · ko: A9-7: 앱의 연결된 베어링 하우징 (사람이 준 행 파일 필요)
+- **O5** — A9 acceptance run, end to end · ko: A9 인수 실행, 처음부터 끝까지
+- **O5a** — A9 findings F1–F5: made bodies, holes, bore, tool size, housing · ko: A9 발견 F1–F5: 만든 바디, 구멍, 보어, 공구 크기, 하우징
+- **O5b** — A9 findings F6–F10: drawings, fasteners, BOM base members · ko: A9 발견 F6–F10: 도면, 체결구, BOM 기본 부재
+- **O6** — Aligned sections; welded DFM profile (waits on the owner) · ko: 기울어진 단면; 용접 DFM 프로필 (오너 대기)
+- **O7** — Built-in tables → person-loaded sample rows · ko: 내장 규격표 → 사람이 불러오는 예시 행 파일
+- **O8** — Touching lumps: per-lump exports, DFM warning, BOM count · ko: 맞닿은 덩어리: 덩어리별 내보내기, DFM 경고, BOM 개수
+- **G1** — A9-7 UI port · ko: A9-7 UI 이식
+- **G2** — G23: CNC preview · ko: G23: CNC 가공 미리보기
+- **G3** — G21: display modes, silhouettes, isolate and hide · ko: G21: 표시 모드, 실루엣, 격리와 숨기기
+- **G4** — G22: clearance map on screen · ko: G22: 화면의 간극 지도
+- **G5** — G24: 3D PMI · ko: G24: 3D PMI
+- **G6** — G25: GPU analyses (thickness, draft, access) · ko: G25: GPU 분석 (두께, 구배, 접근성)
+- **G7** — Antialiased cap edges · ko: 단면 뚜껑 가장자리 안티앨리어싱
+- **G8** — Performance regression check · ko: 성능 회귀 점검
+- **G9** — Cap sample memory · ko: 단면 뚜껑 샘플 메모리
+- **G10** — Full browser flow on WebGL2 · ko: WebGL2로 브라우저 흐름 전체
+- **R1** — Studio re-renders: Viewport and the App split · ko: 스튜디오 다시 그리기: 뷰포트와 App 나누기
+- **R2** — Viewer per-frame allocations, shared renderer code, viewer.ts split, gpu folders · ko: 뷰어 매 프레임 할당, 렌더러 공통 코드, viewer.ts 나누기, gpu 폴더
+- **R3** — chat/tools.ts split by action group · ko: chat/tools.ts를 동작 그룹별로 나누기
+- **R4** — cad-model duplicates, layering and folders · ko: cad-model 중복, 계층, 폴더 정리
+- **R4b** — src/ui shared panel pieces; DrawingWorkspace split · ko: src/ui 공통 패널 조각; DrawingWorkspace 나누기
+- **R5** — Kernel duplicates, hot paths, part-model split, folders · ko: 커널 중복, 핫패스, part-model 나누기, 폴더
 
 ## Later (on the roadmap, not started)
 
