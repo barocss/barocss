@@ -1987,3 +1987,70 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     without, 1.4–1.6 ms uncut.
 - **Not covered**: WebGL2. Its caps aren't drawn per sample, so there is no AA path there to compare.
 - **G7 done.** With it, the roadmap list given to the GPU lane (G1–G7, K2) is done.
+
+## G-R21 — G8 performance regression check: three causes fixed, two App findings (roadmap G8, 2026-10-23)
+
+- **What ran**: `bench:browser`, `bench:assembly` and `bench-mesh-browser`, alone, against the budgets G13 set (two
+  times G4's, re-measured).
+  - First run at load 1m 10–12, on integration 3e573ec71:
+    - over budget: pose (138 buffers, budget 4); explode (6 758 buffers); section on the GPU (70.7 KiB uploaded a frame,
+      budget 5; 12 ms of GPU, budget 6); pick (126 ms of task, budget 90); hover over 120 brackets (0 frames); both
+      ghosted orbits (125 submits, budget 64);
+    - bench:assembly: 258 buffers, budget 60;
+    - the meshes: within every budget.
+- **Tracing**: `BENCH_TRACE=1` (new, opt-in) prints under each row:
+  - the buffers made and the bytes written, by label and caller;
+  - the meshes dirty at each frame's object write, and who touched them;
+  - a CPU profile's self time and stacks.
+- **Cause 1, curved-face silhouettes on the CPU** (Codex's G3 display modes, 99da385a1). `updateSilhouette` recomputed
+  each surface's contour whenever the eye or its transform moved, into a new line geometry and buffer. That was every
+  frame for every moved body in pose and explode, and for every curved body in an orbit.
+  - **Fix: the contour on the GPU.** `GeometryInput.contour` (gpu): line geometry made from triangles with normals.
+    - Each triangle is one instance (72 bytes).
+    - The line shader's `vsContour` finds the segment silhouetteLines finds: the facing at the vertices, linear across
+      the triangle, at zero. Zero vertices and degenerate triangles are handled the same way.
+    - It is drawn by the line pipelines' contour variants (plain, see-through, over, hidden), and never picked.
+  - The studio makes one contour geometry per mesh (`contourTriangles`: the curved, unfaceted faces' non-degenerate
+    triangles). Its copies share it, and it moves with its surface's transform.
+  - silhouetteLines stays for WebGL2.
+  - **viewer-contour-browser** (new, in `test:browser`): a torus drawn with the CPU's segments and with the contour.
+    - Perspective, orthographic, and turned and moved: 819, 776 and 983 pixels each way.
+    - 0 pixels of either more than a pixel from the other.
+    - Moved 10 times: 0 buffers made.
+- **Cause 2, object blocks written from the lowest dirty slot to the highest.** Two dirty meshes far apart (the ground,
+  a late silhouette) sent every block between them again: 70 KiB a frame.
+  - Fix: each run of dirty slots written on its own; a gap of up to 4 clean blocks is kept in its run.
+- **Cause 3, silhouette lines flipping `clipped`.** applyClip set them false (they were not in its cut set) and
+  updateSilhouette set them back each frame, dirtying about 116 lines a frame in the section drag.
+  - Fix: applyClip gives each silhouette line its surface's `clipped`.
+- **Bench rules (measurement only)**:
+  - A reversed timestamp pair leaves its submit unstamped: out of the GPU average, and allowed for 5 % of the submits
+    (at least 1). Seen on Chrome/Metal: one section frame's first pass with its begin stamp unwritten (6.1e18).
+  - The hover over 120 brackets is `drawless`: the brackets are not highlighted under the pointer, so 0 frames is
+    right, and its task is what is judged.
+- **After**, the full run (load 22–35, LOADED; the outer lane's run beside it):
+  - pose: 0 buffers, 4.3 KiB a frame.
+  - explode: 0 buffers; frame callback 2.5 → 0.33 ms; task 28.6 → 24.4 ms; 116 → 90 KiB a frame.
+  - section on the GPU: 2.6 KiB a frame; GPU 5.0–5.6 ms in three runs (7.5 once at load 25; budget 6).
+  - bench:assembly: 27 buffers.
+  - Every other row within budget, except the two App findings below.
+- **Findings for the App** (not fixed here; App.tsx is shared, and the owner has asked for its refactor):
+  - **pick: a bracket clicked**: 121–151 ms of task (budget 90; 47.7 at G9). A CPU profile puts it in React's DEV
+    element creation as the whole App renders again on the selection:
+    - 63 ms in the outliner's 120 instance rows (App.tsx 2309);
+    - 20 ms in the toolbar's `toolButton` (App.tsx 1790).
+  - **ghosted orbits after a pick**: once the pattern is open and a bracket has been clicked, the App renders again on
+    every orbit step (2 s of `jsxDEV` over 60 steps), and each step draws a second frame (124 submits). Alone, or
+    without the pick, 59.
+    - What sets the App's state on a camera move is not yet found: a refactor's first question.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, unit 189/189 (cad-gpu-display-contract #24's fixture has no field initialisers: the contour
+    map is made on first use).
+  - studio: tsc 0; eslint 0 errors (the bench's existing no-console warnings only).
+  - gpu browser specs, one file each (load 18–22): viewer, scene-viewer, pose-clip 18/18, uv-repeating, compute-thickness,
+    compute-access, cap-aa, contour.
+  - studio suite: 249/249.
+  - FLOW_ONLY on WebGPU, the steps that draw silhouettes or sections (load 13–16), all pass: section view (73), cylinder
+    on a side face (85), G19.2 (262), G19.4 (264), K2 notches (267) and G3 display modes (269).
+- **Next**: G9 (capFrontSamples memory), then G10 (WebGL2 full flow); then R1, the App.tsx split, which takes both App
+  findings.

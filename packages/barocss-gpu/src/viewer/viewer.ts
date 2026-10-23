@@ -6,7 +6,7 @@ import { ATLAS_CELLS, ATLAS_SIZE, GLYPH_CELL, GlyphAtlas, layoutLabels, type Lab
 import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, unionBox, type Box3 } from './bounds.js';
 import { Camera } from './camera.js';
 import { OrbitControls, type OrbitOptions } from './controls.js';
-import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, prepareScalars, scalarAt, segmentInstances, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
+import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, prepareScalars, scalarAt, segmentInstances, contourInstances, lineCount, vertexColors, fillVertexColors, nearestSegment, type ClippedHit, type GeometryInput, type PreparedGeometry } from './geometry.js';
 import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
 type View = ReturnType<Texture['createView']>;
 import { defaultLights, directionalLights, linear, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
@@ -175,6 +175,7 @@ export class Geometry {
   get bounds(): Box3 | null { return this.data.bounds; }
   /** Replace the vertex colours (sRGB, three or four per vertex): per-face highlights, say. */
   setColors(colors: ArrayLike<number> | null): void {
+    if (this.data.contour) throw new RangeError('A contour has no vertex colours');
     this.data.colors = vertexColors(colors ?? undefined, this.data.vertexCount);
     if (this.gpu?.colors) this.gpu.device.queue.writeBuffer(this.gpu.colors, 0, this.data.colors);
     else if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.positions, 0, new Uint8Array(segmentInstances(this.data)));
@@ -506,6 +507,8 @@ type PipelineKey = string;
 const SCENE_FORMAT = 'rgba16float';
 
 const SAMPLES = 4;
+/** Clean object blocks a dirty run may span (writeUniforms). */
+const OBJECT_RUN_GAP = 4;
 /** G11's order-independent transparency: the accumulation (premultiplied colour × weight) and the revealage. */
 const OIT_ACCUM = 'rgba16float', OIT_REVEAL = 'r16float';
 /** Whether a mesh goes through the order-independent pass (G11): a see-through surface (a shadow catcher darkens, it stays). */
@@ -628,6 +631,8 @@ export class Viewer {
   private outputBuffer!: Buffer;
   private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer; views: { id: View; z: View; instance: View; depth: View } } | null = null;
   private meshes: Mesh[] = [];
+  /** The dirty meshes' slots of a frame (writeUniforms), kept from frame to frame. */
+  private dirtySlots = new Int32Array(64);
   private freeSlots: number[] = [];
   private nextSlot = 0;
   private nextId = 1;
@@ -824,6 +829,17 @@ export class Viewer {
       primitive: { topology: 'triangle-list' },
       // Lines test depth but do not write it: no occlusion halos around them. (Over the scene: not tested; their hidden
       // parts: only behind a surface.)
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: t === 'over' ? 'always' : t === 'hidden' ? 'less' : 'greater-equal' },
+      multisample: ms,
+    }));
+    // A curved surface's contour (G8): its triangles an instance each, the segment found in the vertex shader; as lines.
+    for (const t of [false, true, 'over' as const, 'hidden' as const]) jobs.push(make(t === 'over' ? 'contourOver' : t === 'hidden' ? 'contourHidden' : t ? 'contourT' : 'contour', {
+      vertex: {
+        module: modules.line, entryPoint: 'vsContour',
+        buffers: [{ arrayStride: 72, stepMode: 'instance', attributes: [0, 1, 2, 3, 4, 5].map(k => ({ shaderLocation: k, offset: 12 * k, format: 'float32x3' })) }],
+      },
+      fragment: { module: modules.line, entryPoint: t === 'hidden' ? 'fsHidden' : 'fs', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
+      primitive: { topology: 'triangle-list' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: t === 'over' ? 'always' : t === 'hidden' ? 'less' : 'greater-equal' },
       multisample: ms,
     }));
@@ -1371,7 +1387,7 @@ export class Viewer {
       return b;
     };
     g.gpu = data.topology !== 'triangles'
-      ? { device: d, positions: buffer(new Uint8Array(data.topology === 'lines' ? segmentInstances(data) : pointInstances(data)), BufferUsage.VERTEX, data.topology), normals: null, colors: null, uvs: null, indices: null }
+      ? { device: d, positions: buffer(new Uint8Array(data.topology === 'lines' ? (data.contour ? contourInstances(data) : segmentInstances(data)) : pointInstances(data)), BufferUsage.VERTEX, data.topology), normals: null, colors: null, uvs: null, indices: null }
       : {
         device: d,
         positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
@@ -1418,7 +1434,7 @@ export class Viewer {
     const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? (this.oitDrawing ? 'O' : 'T') : '';
     if (pick === 'mask') return (two ? 'mask2' : 'mask');
     if (pick) return (two ? 'pick2' : 'pick');
-    if (m.geometry.topology === 'lines') return mat.lineOver ? 'lineOver' : (t ? 'lineT' : 'line');
+    if (m.geometry.topology === 'lines') return (m.geometry.data.contour ? 'contour' : 'line') + (mat.lineOver ? 'Over' : t ? 'T' : '');
     if (m.geometry.topology === 'points') return mat.lineOver ? 'pointOver' : 'point';
     if (m.geometry.topology === 'labels') return mat.lineOver ? 'labelOver' : 'label';
     if (!mat.colorWrite) return two ? 'depthOnly2' : 'depthOnly';
@@ -1465,12 +1481,25 @@ export class Viewer {
       if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
       this.device.queue.writeBuffer(this.shadowFrameBuffer, 0, f);
     }
-    let lo = Infinity, hi = -1;
+    // (Each run of dirty slots written on its own, G8: one write from the lowest dirty slot to the highest sent every block
+    // between them again — 70 KiB a frame while a section was dragged, two meshes far apart dirty.)
+    let n = 0;
     for (const m of this.meshes) if (m.dirty) {
       m.pack(this.objectData, m.slot * OBJECT_STRIDE, this.pixelRatio);
-      m.dirty = false; lo = Math.min(lo, m.slot); hi = Math.max(hi, m.slot);
+      m.dirty = false;
+      if (n === this.dirtySlots.length) { const grown = new Int32Array(n * 2); grown.set(this.dirtySlots); this.dirtySlots = grown; }
+      this.dirtySlots[n++] = m.slot;
     }
-    if (hi >= 0) this.device.queue.writeBuffer(this.objectBuffer, lo * OBJECT_STRIDE, this.objectData, (lo * OBJECT_STRIDE) / 4, ((hi - lo) * OBJECT_STRIDE + OBJECT_BYTES) / 4);
+    if (!n) return;
+    const slots = this.dirtySlots.subarray(0, n).sort();
+    let lo = slots[0], hi = lo;
+    for (let i = 1; i <= n; i++) {
+      const slot = i < n ? slots[i] : Infinity;
+      // (A gap of a few clean blocks sent with its run: cheaper than another write.)
+      if (slot - hi <= OBJECT_RUN_GAP) { hi = slot; continue; }
+      this.device.queue.writeBuffer(this.objectBuffer, lo * OBJECT_STRIDE, this.objectData, (lo * OBJECT_STRIDE) / 4, ((hi - lo) * OBJECT_STRIDE + OBJECT_BYTES) / 4);
+      lo = hi = slot;
+    }
   }
 
   /** A mesh's instance buffer (uploaded on first use and after a device loss), or the identity instance. */
@@ -1502,7 +1531,7 @@ export class Viewer {
     const p = this.pipelines.get(this.pipelineKey(m, pick))!, g = m.geometry.gpu!, data = m.geometry.data;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
-    if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount / 2); return; }
+    if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, lineCount(data)); return; }
     if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); return; }
     if (data.topology === 'labels') { pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, g.positions); pass.draw(6, g.labels!.count); return; }
     if (!pick && m.mapped && m.material.colorWrite) { this.drawMapped(pass, m); return; }
@@ -1511,11 +1540,11 @@ export class Viewer {
 
   /** A line or point mesh's parts behind the surfaces, faint (Material.lineHidden; G7, G8). */
   private drawHiddenLines(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }): void {
-    const t = m.geometry.topology, points = t === 'points', p = this.pipelines.get(t === 'labels' ? 'labelHidden' : points ? 'pointHidden' : 'lineHidden')!;
+    const t = m.geometry.topology, points = t === 'points', p = this.pipelines.get(t === 'labels' ? 'labelHidden' : points ? 'pointHidden' : m.geometry.data.contour ? 'contourHidden' : 'lineHidden')!;
     if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
     if (t === 'labels') { { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, m.geometry.gpu!.labels!.count); return; }
     { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
-    pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, points ? m.geometry.data.elementCount : m.geometry.data.elementCount / 2);
+    pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, points ? m.geometry.data.elementCount : lineCount(m.geometry.data));
   }
 
   /** A colour-mapped mesh (G6): its field's buffers (a per-triangle field's own positions and normals, drawn unindexed) and its map's bind group. */
@@ -1743,7 +1772,7 @@ export class Viewer {
       if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
       this.drawMesh(pass, m, current, false);
       if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
-      if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount; else if (m.geometry.topology === 'triangles') tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
+      if (m.geometry.topology === 'lines') lines += lineCount(m.geometry.data); else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount; else if (m.geometry.topology === 'triangles') tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
     }
     if (!opaqueDone) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); }
     pass.end();
@@ -1781,7 +1810,7 @@ export class Viewer {
         if (m.geometry.topology === 'triangles') continue;
         this.drawMesh(cp, m, cc, false);
         if ((m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(cp, m, cc);
-        if (m.geometry.topology === 'lines') lines += m.geometry.data.elementCount / 2; else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount;
+        if (m.geometry.topology === 'lines') lines += lineCount(m.geometry.data); else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount;
       }
       cp.end();
     }
@@ -2028,7 +2057,7 @@ export class Viewer {
     const vp = this.camera.viewProjection(this.aspect);
     let best: LineHit | null = null;
     for (const m of this.markCandidates(vp, x, y, cw, ch, radius, 'lines')) {
-      if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.disposed) continue;
+      if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.data.contour || m.geometry.disposed) continue;
       const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices;
       // A mesh wholly in front of the eye whose box lands farther than the radius from the point: none of its segments can be nearer.
       if (g.bounds && screenBoxMisses(M, g.bounds, x, y, cw, ch, radius)) continue;

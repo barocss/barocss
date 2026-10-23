@@ -68,28 +68,38 @@ function benchGpuTiming(b) {
   const counts = ['submits', 'gpuExpected', 'gpuCompleted', 'gpuQueries', 'gpuReadQueries'];
   const valid = counts.every(k => Number.isSafeInteger(b[k]) && b[k] > 0) &&
     b.gpuExpected >= b.submits && b.gpuCompleted === b.gpuExpected && b.gpuReadQueries === b.gpuQueries &&
-    Array.isArray(b.timingErrors) && b.timingErrors.length === 0 && Number.isFinite(b.gpuMS) && b.gpuMS >= 0;
-  return { valid, msPerSubmit: valid ? b.gpuMS / b.submits : null, expectedBuffers: b.gpuExpected,
+    Array.isArray(b.timingErrors) && b.timingErrors.length === 0 && Number.isFinite(b.gpuMS) && b.gpuMS >= 0 &&
+    (b.unstamped ?? 0) <= Math.max(1, 0.05 * b.submits) && b.submits > (b.unstamped ?? 0);
+  return { valid, msPerSubmit: valid ? b.gpuMS / (b.submits - (b.unstamped ?? 0)) : null, unstamped: b.unstamped ?? 0, expectedBuffers: b.gpuExpected,
     completedBuffers: b.gpuCompleted, resolvedQueries: b.gpuQueries, readQueries: b.gpuReadQueries,
     errors: b.timingErrors ?? ['missing-timing-state'] };
 }
 
 function benchCounters() {
-  return { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, perFrame: {}, t: -1, batch: 0, sameStamp: 0, bytes: 0, buffers: 0,
-    gpuExpected: 0, gpuCompleted: 0, gpuQueries: 0, gpuReadQueries: 0, timingErrors: [], queryBatches: [] };
+  return { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, perFrame: {}, t: -1, batch: 0, sameStamp: 0, bytes: 0, buffers: 0, made: {}, wrote: {},
+    gpuExpected: 0, gpuCompleted: 0, gpuQueries: 0, gpuReadQueries: 0, unstamped: 0, timingErrors: [], queryBatches: [] };
 }
 
 function installBenchInstrumentation(timestampSample, benchCounters) {
   const w = window, batches = new WeakMap(), pending = new Set();
+  // (A trace's callers: the first frames below the hook, without the dev server's origin and query.)
+  w.__benchCallers = stack => (stack ?? '').split('\n').slice(2, 9).map(l => l.trim().replace(/^at /, '').replace(/https?:\/\/[^/]+\/(@fs\/)?/, '').replace(/\?[^:)]*/, '').replace(/^.*\/(packages|apps)\//, '$1/')).join(' < ');
   w.__bench = benchCounters(); w.__benchReset = () => { w.__bench = benchCounters(); };
   w.__benchDrain = async () => { while (pending.size) await Promise.all([...pending]); };
   const track = promise => { pending.add(promise); promise.finally(() => pending.delete(promise)); };
   if (w.GPUQueue) { const write = GPUQueue.prototype.writeBuffer; GPUQueue.prototype.writeBuffer = function (buffer, offset, data, dataOffset, size) {
-    w.__bench.bytes += size !== undefined ? size * (data.BYTES_PER_ELEMENT ?? 1) : data.byteLength - (dataOffset ?? 0) * (data.BYTES_PER_ELEMENT ?? 1);
+    const n = size !== undefined ? size * (data.BYTES_PER_ELEMENT ?? 1) : data.byteLength - (dataOffset ?? 0) * (data.BYTES_PER_ELEMENT ?? 1);
+    w.__bench.bytes += n;
+    if (w.__benchTrace) { const k = `${buffer.label || '-'} @ ${w.__benchCallers(new Error().stack)}`; w.__bench.wrote[k] = (w.__bench.wrote[k] ?? 0) + n; }
     return write.apply(this, arguments);
   }; }
   const make = w.GPUDevice ? GPUDevice.prototype.createBuffer : null;
-  if (w.GPUDevice) GPUDevice.prototype.createBuffer = function (d) { w.__bench.buffers++; return make.call(this, d); };
+  // (BENCH_TRACE: each buffer made counted by its label and its callers, printed under its row — G8.)
+  if (w.GPUDevice) GPUDevice.prototype.createBuffer = function (d) {
+    w.__bench.buffers++;
+    if (w.__benchTrace) { const k = `${d.label ?? '-'} @ ${w.__benchCallers(new Error().stack)}`; w.__bench.made[k] = (w.__bench.made[k] ?? 0) + 1; }
+    return make.call(this, d);
+  };
   if (w.GPUAdapter) { const rd = GPUAdapter.prototype.requestDevice; GPUAdapter.prototype.requestDevice = function (d = {}) {
     return rd.call(this, this.features.has('timestamp-query') ? { ...d, requiredFeatures: [...(d.requiredFeatures ?? []), 'timestamp-query'] } : d);
   }; }
@@ -139,7 +149,10 @@ function installBenchInstrumentation(timestampSample, benchCounters) {
         const values = new BigUint64Array(q.read.getMappedRange(0, q.n * 8)), result = timestampSample(values, q.n, q.passes);
         sample.gpuReadQueries += values.length;
         sample.queryBatches.push({ used: q.n, resolved: q.n, read: values.length, passes: q.passes, valid: result.valid && q.errors.length === 0 });
-        if (!result.valid || q.errors.length) sample.timingErrors.push({ ...result, valid: false,
+        // (G8: a reversed pair — a pass's begin stamp left unwritten, seen on Chrome/Metal in a section frame's first pass —
+        // leaves that submit unstamped: out of the GPU average, counted and allowed for 5 % of the submits.)
+        if (result.reason === 'invalid-or-reversed-timestamp-pair' && !q.errors.length) sample.unstamped++;
+        else if (!result.valid || q.errors.length) sample.timingErrors.push({ ...result, valid: false,
           reason: result.reason ?? 'render-pass-not-instrumented', encoderErrors: q.errors, values: Array.from(values, String) });
         else sample.gpuMS += result.ms;
       }).catch(e => { sample.timingErrors.push({ reason: 'timestamp-readback-failed', message: String(e) }); }).finally(() => {
@@ -169,7 +182,7 @@ await server.listen();
 const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: ['--enable-unsafe-webgpu'] });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: Number(process.env.DPR ?? 1) });
 // Install these same checked functions in the page; each sample owns its asynchronous completions.
-await page.addInitScript({ content: `(${installBenchInstrumentation})(${timestampSample}, ${benchCounters});` });
+await page.addInitScript({ content: `window.__benchTrace = ${!!process.env.BENCH_TRACE}; (${installBenchInstrumentation})(${timestampSample}, ${benchCounters});` });
 // The budgets (G4: one table): submits and their most in one frame, the animation frames' average CPU (a 2 ms floor), the
 // main thread's task time and the GPU's time a submit (from it until the queue reports it done: wall time, so it holds
 // the queue's wait too) a frame, the upload a frame and the buffers made. About twice what was measured alone (G4,
@@ -196,7 +209,8 @@ const BUDGET = {
   // quads half a pixel smaller; the budget about twice.)
   cloud100k: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 10 },
   // (G9: the pointer's picks over 120 brackets — a frame only when the hovered thing changes; the task is the App's.)
-  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 140 },
+  // (G8: the brackets are not highlighted under the pointer, so nothing is drawn — `drawless`: 0 frames is right, the task is judged.)
+  hoverMany: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 140, drawless: true },
   pickMany: { submits: 4, avgFrameMS: 2, perFrame: 1, taskMS: 90, gpuMS: 5 },
   // (G10: a patterned assembly opened.)
   pattern: { submits: 8, avgFrameMS: 2, perFrame: 1 },
@@ -211,24 +225,61 @@ let voxels = 0;
 const cdp = await page.context().newCDPSession(page); await cdp.send('Performance.enable');
 const taskTime = async () => (await cdp.send('Performance.getMetrics')).metrics.find(m => m.name === 'TaskDuration').value * 1000;
 // (BENCH_ONLY: a pattern — only the rows whose names match it are measured; the others' setup still runs, G19.)
-const only = process.env.BENCH_ONLY ? new RegExp(process.env.BENCH_ONLY, 'i') : null;
+const only = process.env.BENCH_ONLY ? new RegExp(process.env.BENCH_ONLY, 'i') : null, trace = !!process.env.BENCH_TRACE;
 const measure = async (name, budget, act) => {
   if (only && !only.test(name)) return;
   await page.waitForTimeout(500);
   await page.evaluate(() => window.__benchDrain());
   await page.evaluate(() => window.__benchReset());
+  if (trace) await cdp.send('Profiler.enable').then(() => cdp.send('Profiler.setSamplingInterval', { interval: 200 })).then(() => cdp.send('Profiler.start'));
   const task0 = await taskTime(), t0 = Date.now(); await act(); await page.waitForTimeout(400);
+  // (BENCH_TRACE: the main thread's self time by function over the row, from a CPU profile.)
+  if (trace) {
+    const { profile } = await cdp.send('Profiler.stop'), self = new Map(), dt = new Map();
+    for (let i = 0; i < profile.samples.length; i++) dt.set(profile.samples[i], (dt.get(profile.samples[i]) ?? 0) + (profile.timeDeltas[i] ?? 0) / 1000);
+    for (const n of profile.nodes) { const f = n.callFrame, k = `${f.functionName || '(anon)'} ${f.url.replace(/^.*\/(packages|apps|node_modules)\//, '$1/').replace(/\?.*$/, '')}:${f.lineNumber + 1}`; if (dt.get(n.id)) self.set(k, (self.get(k) ?? 0) + dt.get(n.id)); }
+    for (const [k, ms] of [...self].filter(([k]) => !/^\((idle|program|garbage collector)\)/.test(k)).sort((x, y) => y[1] - x[1]).slice(0, 12)) console.log(`  [${name}] self ${ms.toFixed(1)} ms ${k}`);
+    // (And the callers of the heaviest: each sample's stack, two frames up.)
+    const parent = new Map(), byId = new Map(profile.nodes.map(n => [n.id, n]));
+    for (const n of profile.nodes) for (const c of n.children ?? []) parent.set(c, n.id);
+    const label = n => `${n.callFrame.functionName || '(anon)'} ${n.callFrame.url.replace(/^.*\/(packages|apps|src|node_modules)\//, '$1/').replace(/\?.*$/, '')}:${n.callFrame.lineNumber + 1}`;
+    const up = new Map();
+    for (const n of profile.nodes) { const ms = dt.get(n.id); if (!ms || ms < 1) continue; const chain = []; let id = parent.get(n.id); while (id !== undefined && chain.length < 4) { chain.push(label(byId.get(id))); id = parent.get(id); } const k = label(n) + ' < ' + chain.join(' < '); up.set(k, (up.get(k) ?? 0) + ms); }
+    for (const [k, ms] of [...up].sort((x, y) => y[1] - x[1]).slice(0, 4)) console.log(`  [${name}] stack ${ms.toFixed(1)} ms ${k}`);
+  }
   await page.evaluate(() => window.__benchDrain());
   const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0, task = await taskTime() - task0;
+  if (trace) {
+    console.log(`  [${name}] dirty ${JSON.stringify(Object.entries(b.dirty ?? {}).sort((x, y) => y[1] - x[1]).slice(0, 8))}`);
+    for (const [k, n] of Object.entries(b.touched ?? {}).sort((x, y) => y[1] - x[1]).slice(0, 4)) console.log(`  [${name}] touched ${n} × ${k}`);
+    console.log(`  [${name}] calls ${JSON.stringify(await page.evaluate(() => { const c = globalThis.__cnt; globalThis.__cnt = {}; return c; }))}`);
+    for (const [k, n] of Object.entries(b.made).sort((x, y) => y[1] - x[1]).slice(0, 6)) console.log(`  [${name}] made ${n} × ${k}`);
+    for (const [k, n] of Object.entries(b.wrote).sort((x, y) => y[1] - x[1]).slice(0, 6)) console.log(`  [${name}] wrote ${(n / 1024).toFixed(1)} KiB to ${k}`);
+  }
   const avg = b.frames ? b.frameMS / b.frames : 0, most = Math.max(0, ...Object.values(b.perFrame)), drawn = Math.max(1, Object.keys(b.perFrame).length);
   const timing = benchGpuTiming(b), taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn, gpu = timing.msPerSubmit;
-  const validMetrics = [b.submits, b.frames, avg, most, taskPerFrame, kbPerFrame, b.buffers, b.queueMS, wall].every(v => Number.isFinite(v) && v >= 0) && b.submits > 0 && b.frames > 0;
+  const drawless = !!budget.drawless && b.submits === 0;
+  const validMetrics = [b.submits, b.frames, avg, most, taskPerFrame, kbPerFrame, b.buffers, b.queueMS, wall].every(v => Number.isFinite(v) && v >= 0) && (drawless || (b.submits > 0 && b.frames > 0));
   rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: timing.valid ? +gpu.toFixed(2) : null, queueMS: +(b.submits ? b.queueMS / b.submits : 0).toFixed(2), timed: timing.valid, timing, queryBatches: b.queryBatches, sameStamp: b.sameStamp, wallMS: wall, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
-    ok: validMetrics && timing.valid && b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && gpu <= (budget.gpuMS ?? Infinity), budget });
+    ok: validMetrics && (timing.valid || drawless) && b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (drawless || gpu <= (budget.gpuMS ?? Infinity)), budget });
 };
 try {
   await page.goto(server.resolvedUrls.local[0]);
   await page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 });
+  // (BENCH_TRACE: the meshes dirty when a frame writes its object blocks, by name or topology and what was set on them.)
+  if (trace) await page.evaluate(() => {
+    const v = window.__studioViewer, proto = Object.getPrototypeOf(v), write = proto.writeUniforms;
+    proto.writeUniforms = function (...args) {
+      const d = window.__bench.dirty ??= {};
+      for (const m of this.meshes) if (m.dirty) { const k = m.name ?? m.geometry.topology; d[k] = (d[k] ?? 0) + 1; }
+      return write.apply(this, args);
+    };
+    const mp = Object.getPrototypeOf(v.meshList[0]), touch = mp.touch;
+    mp.touch = function () {
+      if (!this.dirty) { const t = window.__bench.touched ??= {}, k = `${this.name ?? this.geometry.topology} @ ${window.__benchCallers(new Error().stack)}`; t[k] = (t[k] ?? 0) + 1; }
+      return touch.call(this);
+    };
+  });
   const box = await page.locator('canvas.vp-canvas').boundingBox(), cx = box.x + box.width / 2, cy = box.y + box.height / 2;
   // 60 pointer moves across the plate (faces, edges, the hole): a submit only when what is hovered changes.
   await measure('hover: 60 moves across the plate', BUDGET.hover, async () => {
@@ -328,6 +379,12 @@ try {
     await measure('hover: 60 moves across 120 brackets', BUDGET.hoverMany, async () => {
       for (let i = 0; i < 60; i++) { await page.mouse.move(ax - 300 + 10 * i, ay - 40 + (i % 7) * 12); await page.waitForTimeout(16); }
     });
+    // (BENCH_TRACE: what the hover's path is over — the viewer's ray at each of its points, by mesh name.)
+    if (trace) console.log('  [hover path] ' + JSON.stringify(await page.evaluate(([ax, ay, bx, by]) => {
+      const v = window.__studioViewer, out = {};
+      for (let i = 0; i < 60; i++) { const h = v.raycast(ax - 300 + 10 * i - bx, ay - 40 + (i % 7) * 12 - by), k = h ? `${h.mesh.name ?? h.mesh.geometry.topology}${h.instance !== undefined ? '#' : ''}` : 'none'; out[k] = (out[k] ?? 0) + 1; }
+      return out;
+    }, [ax, ay, ab.x, ab.y])));
     await measure('pick: a bracket clicked from idle', BUDGET.pickMany, async () => { await page.mouse.click(ax + 13, ay + 7); });
     await page.keyboard.press('Escape');
     picks = await page.evaluate(() => {
@@ -382,7 +439,7 @@ try {
 } finally { await browser.close(); await server.close(); }
 // (The machine's load average: a budget is not set from numbers measured under load.)
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
-for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${r.timed ? String(r.gpuMS).padStart(5) + ' ms/submit' : 'UNAVAILABLE (invalid or missing timestamps)'}${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}  queue ${r.queueMS} ms${r.sameStamp ? ` (${r.sameStamp} frames stamped as the last)` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${r.timed ? String(r.gpuMS).padStart(5) + ' ms/submit' : 'UNAVAILABLE (invalid or missing timestamps)'}${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}${r.timing.unstamped ? ` (${r.timing.unstamped} unstamped)` : ''}  queue ${r.queueMS} ms${r.sameStamp ? ` (${r.sameStamp} frames stamped as the last)` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
 if (picks) console.log(`picks over 120 brackets, ${picks.pointers} pointers (${picks.hits} on a bracket), ${picks.differ} answers different: raycast ${picks.linear.ray.toFixed(1)} → ${picks.trees.ray.toFixed(1)} ms, pickLine ${picks.linear.line.toFixed(1)} → ${picks.trees.line.toFixed(1)} ms (linear walk → scene trees)`);
 console.log(`bench results: ${JSON.stringify(rows)}`);
 const expectedNames = benchCaseNames(voxels).filter(name => !only || only.test(name));

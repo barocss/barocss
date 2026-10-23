@@ -23,6 +23,12 @@ export interface GeometryInput {
   faces?: ArrayLike<number>;
   /** An id per line segment (a CAD edge, say), reported by line picking. */
   edges?: ArrayLike<number>;
+  /**
+   * Lines only (G8): the positions, normals and indices are triangles of a smooth surface, and the lines drawn are its
+   * contour — where the normal turns from the eye, interpolated across each triangle — found on the GPU for the eye and
+   * the mesh's transform of each frame. Not picked.
+   */
+  contour?: boolean;
 }
 
 export interface PreparedGeometry {
@@ -34,6 +40,8 @@ export interface PreparedGeometry {
   indices: Uint32Array | Uint16Array | null;
   faces: Uint32Array | null;
   edges: Uint32Array | null;
+  /** Lines drawn as a contour of these triangles (GeometryInput.contour). */
+  contour: boolean;
   vertexCount: number; elementCount: number;
   bounds: Box3 | null;
   /** A scalar field on it for a colour map (G6), or null. */
@@ -105,7 +113,9 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
     indices = vertexCount <= 0xffff ? Uint16Array.from(input.indices) : Uint32Array.from(input.indices);
     for (let i = 0; i < indices.length; i++) if (input.indices[i] >= vertexCount || input.indices[i] < 0 || !Number.isInteger(input.indices[i])) throw new RangeError(`indices[${i}] = ${input.indices[i]} is not a vertex`);
   }
-  const elementCount = indices ? indices.length : vertexCount, per = topology === 'lines' ? 2 : topology === 'points' ? 1 : 3;
+  const contour = !!input.contour;
+  if (contour && (topology !== 'lines' || !input.normals || input.edges)) throw new RangeError('A contour is line geometry from triangles with normals, without edge ids');
+  const elementCount = indices ? indices.length : vertexCount, per = topology === 'lines' && !contour ? 2 : topology === 'points' ? 1 : 3;
   if (elementCount % per) throw new RangeError(`${topology} need a multiple of ${per} ${indices ? 'indices' : 'vertices'}`);
   let normals: Float32Array;
   if (input.normals) {
@@ -124,13 +134,13 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
   }
   const uvs = input.uvs ? Float32Array.from(input.uvs) : null;
   if (uvs && uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
-  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null, labels: null };
+  return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, contour, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null, labels: null };
 }
 /** Labels (G15): their anchors as the positions — for the bounds, the frustum and the scene tree — one element each. */
 function prepareLabels(input: GeometryInput): PreparedGeometry {
   const labels = input.labels ?? [], positions = new Float32Array(labels.length * 3);
   labels.forEach((l, i) => { for (let k = 0; k < 3; k++) { const v = Number(l.at[k]); if (!Number.isFinite(v)) throw new RangeError(`labels[${i}].at is not finite`); positions[3 * i + k] = v; } });
-  return { topology: 'labels', positions, normals: new Float32Array(positions.length), colors: vertexColors(undefined, labels.length), uvs: null, indices: null, faces: null, edges: null, vertexCount: labels.length, elementCount: labels.length, bounds: boxOfPositions(positions), scalars: null, labels: labels.map(l => ({ ...l })) };
+  return { topology: 'labels', positions, normals: new Float32Array(positions.length), colors: vertexColors(undefined, labels.length), uvs: null, indices: null, faces: null, edges: null, contour: false, vertexCount: labels.length, elementCount: labels.length, bounds: boxOfPositions(positions), scalars: null, labels: labels.map(l => ({ ...l })) };
 }
 
 /** sRGB colours (three or four per vertex, 0–1) as linear RGBA8; white when left out. */
@@ -481,7 +491,7 @@ const segClip = { planes: null as ArrayLike<number> | null, skip: null as Readon
  * corners all land in front of the eye and their screen rectangle is farther than the best so far.
  */
 export function nearestSegment(g: PreparedGeometry, M: ArrayLike<number>, x: number, y: number, cw: number, ch: number, radius: number, earlier = Infinity, plane: ArrayLike<number> | null = null, skip: ReadonlySet<number> | null = null): SegmentHit | null {
-  if (g.topology !== 'lines') return null;
+  if (g.topology !== 'lines' || g.contour) return null;
   near.segment = -1; near.distance = Infinity; near.s = 0;
   // (Segments to leave out: those a line pick found hidden.)
   segClip.skip = skip && skip.size ? skip : null;
@@ -624,6 +634,18 @@ function testPoint(g: PreparedGeometry, M: ArrayLike<number>, s: number): void {
 }
 
 /** Segments as the line shader reads them, one instance each: a, b (3 floats each), colours of a and b (RGBA8). */
+/** The line instances a line geometry draws: its segments, or the triangles of its contour (lineInstances, G8). */
+export function lineCount(g: PreparedGeometry): number { return g.contour ? g.elementCount / 3 : g.elementCount / 2; }
+/** A contour's triangles as the GPU reads them (G8): three positions, then their three normals, 72 bytes each. */
+export function contourInstances(g: PreparedGeometry): ArrayBuffer {
+  const n = g.elementCount / 3, out = new ArrayBuffer(n * 72), f = new Float32Array(out), P = g.positions, N = g.normals, I = g.indices;
+  for (let t = 0; t < n; t++) for (let k = 0; k < 3; k++) {
+    const v = I ? I[3 * t + k] : 3 * t + k, o = t * 18 + 3 * k;
+    f[o] = P[3 * v]; f[o + 1] = P[3 * v + 1]; f[o + 2] = P[3 * v + 2];
+    f[o + 9] = N[3 * v]; f[o + 10] = N[3 * v + 1]; f[o + 11] = N[3 * v + 2];
+  }
+  return out;
+}
 export function segmentInstances(g: PreparedGeometry): ArrayBuffer {
   const n = g.elementCount / 2, out = new ArrayBuffer(n * 32), f = new Float32Array(out), u = new Uint32Array(out);
   const P = g.positions, I = g.indices, C = new Uint32Array(g.colors.buffer, g.colors.byteOffset, g.vertexCount);
