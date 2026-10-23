@@ -5,7 +5,7 @@
    "page": "guide/getting-started",
    "step": "getting started: a box",
    "renderer": "webgpu",
-   "bytes": 94835
+   "bytes": 94838
   },
   {
    "file": "guide/getting-started/drawing.jpg",
@@ -19,14 +19,14 @@
    "page": "guide/getting-started",
    "step": "getting started: a hole",
    "renderer": "webgpu",
-   "bytes": 68826
+   "bytes": 68775
   },
   {
    "file": "guide/getting-started/library-rows.jpg",
    "page": "guide/getting-started",
    "step": "getting started: the tapped hole refused, rows loaded",
    "renderer": "webgpu",
-   "bytes": 97976
+   "bytes": 98567
   },
   {
    "file": "guide/getting-started/tapped-hole.png",
@@ -47,14 +47,127 @@
    "page": "home",
    "step": "home: the starter plate",
    "renderer": "webgpu",
-   "bytes": 93315
+   "bytes": 93937
+  },
+  {
+   "file": "studio/assemblies/interference.jpg",
+   "page": "studio/assemblies",
+   "step": "studio/assemblies: interference",
+   "renderer": "webgpu",
+   "bytes": 92934
+  },
+  {
+   "file": "studio/bom/bom.jpg",
+   "page": "studio/bom",
+   "step": "studio/bom: a shaft and its key",
+   "renderer": "webgpu",
+   "bytes": 142116
+  },
+  {
+   "file": "studio/display/display-popover.png",
+   "page": "studio/display",
+   "step": "studio/display: the popover, a section, zebra",
+   "renderer": "webgpu",
+   "bytes": 15360
+  },
+  {
+   "file": "studio/display/section.jpg",
+   "page": "studio/display",
+   "step": "studio/display: the popover, a section, zebra",
+   "renderer": "webgpu",
+   "bytes": 106738
+  },
+  {
+   "file": "studio/display/zebra.jpg",
+   "page": "studio/display",
+   "step": "studio/display: the popover, a section, zebra",
+   "renderer": "webgpu",
+   "bytes": 102661
+  },
+  {
+   "file": "studio/drawings/auto-dimension.jpg",
+   "page": "studio/drawings",
+   "step": "studio/drawings: auto-dimension",
+   "renderer": "webgpu",
+   "bytes": 93649
+  },
+  {
+   "file": "studio/features/holes-on-a-circle.jpg",
+   "page": "studio/features",
+   "step": "studio/features: holes on a circle, a SubD box",
+   "renderer": "webgpu",
+   "bytes": 103430
+  },
+  {
+   "file": "studio/features/subd-box.jpg",
+   "page": "studio/features",
+   "step": "studio/features: holes on a circle, a SubD box",
+   "renderer": "webgpu",
+   "bytes": 83884
+  },
+  {
+   "file": "studio/files/mesh-repair.png",
+   "page": "studio/files",
+   "step": "studio/files: the mesh repair dialog",
+   "renderer": "webgpu",
+   "bytes": 40595
+  },
+  {
+   "file": "studio/frames/cut-list.png",
+   "page": "studio/frames",
+   "step": "studio/frames: a table frame, the cut list",
+   "renderer": "webgpu",
+   "bytes": 85818
+  },
+  {
+   "file": "studio/frames/table-frame.jpg",
+   "page": "studio/frames",
+   "step": "studio/frames: a table frame, the cut list",
+   "renderer": "webgpu",
+   "bytes": 184342
+  },
+  {
+   "file": "studio/manufacturing/cnc-preview.jpg",
+   "page": "studio/manufacturing",
+   "step": "studio/manufacturing: the thickness map, the CNC preview, print layers",
+   "renderer": "webgpu",
+   "bytes": 175866
+  },
+  {
+   "file": "studio/manufacturing/print-layers.jpg",
+   "page": "studio/manufacturing",
+   "step": "studio/manufacturing: the thickness map, the CNC preview, print layers",
+   "renderer": "webgpu",
+   "bytes": 142011
+  },
+  {
+   "file": "studio/manufacturing/thickness-map.jpg",
+   "page": "studio/manufacturing",
+   "step": "studio/manufacturing: the thickness map, the CNC preview, print layers",
+   "renderer": "webgpu",
+   "bytes": 98186,
+   "caption": "WebGPU only"
+  },
+  {
+   "file": "studio/robots/joints.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: the Joints card",
+   "renderer": "webgpu",
+   "bytes": 135899
+  },
+  {
+   "file": "studio/sketches/rectangle.jpg",
+   "page": "studio/sketches",
+   "step": "studio/sketches: a rectangle",
+   "renderer": "webgpu",
+   "bytes": 88367
   },
   {
    "file": "studio/tour/layout.jpg",
    "page": "studio/tour",
    "step": "tour: the layout and the palette",
    "renderer": "webgpu",
-   "bytes": 93315
+   "bytes": 93941
   },
   {
    "file": "studio/tour/palette.png",

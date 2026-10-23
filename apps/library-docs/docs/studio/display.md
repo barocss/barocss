@@ -5,6 +5,8 @@ the viewport's view buttons.
 
 ## Display modes
 
+![The Display popover: the CAD display mode, Isolate selection and the previews](/shots/studio/display/display-popover.png)
+
 **CAD display mode** sets how bodies are drawn:
 
 | Mode | What you see |
@@ -27,10 +29,12 @@ Other view settings:
 
 ## Sections
 
+![A box with a hole cut open by one section plane, its cut faces hatched, the Section bar below](/shots/studio/display/section.jpg)
+
 **Section view** cuts the part open to see inside. The model isn't changed.
 
-- **Section mode** is one plane (along X, Y or Z, or from a flat face you click), a box of six planes with a handle
-  on each face, or two or three planes.
+- **Section mode** is **Plane**, one plane along X, Y or Z, or from a flat face you click; **Box**, six planes with a
+  handle on each face; **Planes**, two or three planes; or **Cut-out**, a corner taken out.
 - **Add a section plane** adds one. Each plane's offset can be typed, or dragged by its handle.
 - The kept region is where every plane's kept side meets. With two or three planes it can be a cut-out instead: the
   corner where their cut-away sides meet is removed.
@@ -40,6 +44,8 @@ Other view settings:
   revolve or dimension. It needs one plane, since a sketch lies on one plane.
 
 ## Surface and analysis maps
+
+![Zebra stripes on a filleted box](/shots/studio/display/zebra.jpg)
 
 - **Surface analysis** shows zebra stripes or a curvature map, for judging how smoothly faces meet.
 - **Analysis map** (**Maps**) cycles through coloured maps, each with a legend that reads the value under the pointer.

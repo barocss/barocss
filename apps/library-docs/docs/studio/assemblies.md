@@ -42,6 +42,8 @@ The freedom that mates leave is also what makes a mechanism move. [Robots](/stud
 
 ## Interference and clearance
 
+![Interference: a cylinder through a box, with the overlap's volume](/shots/studio/assemblies/interference.jpg)
+
 - **Interference** finds where bodies overlap and by how much. For example, a cylinder through a box gives
   `Box ∩ Cylinder` and its overlap volume.
 - **Assembly clearance**, in **Display**, classes every pair of bodies and draws it on the model:

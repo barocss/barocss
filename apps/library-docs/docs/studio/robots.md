@@ -24,6 +24,8 @@ write metres and radians.
 
 ## Moving it
 
+![The Joints card of a two-link arm: each joint with its slider](/shots/studio/robots/joints.jpg)
+
 - **Sliders.** Each joint's slider poses the robot, within its limits. **Home** returns every joint to zero, the pose
   the mates solve to.
 - **A pose is a preview.** It isn't saved, and it doesn't add undo steps.
@@ -31,7 +33,7 @@ write metres and radians.
   shows the gravity torques at the current pose.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
-- **Workspace.** **Map workspace** samples the reachable space and draws it as voxels, with a summary and the samples.
+- **Workspace.** **Workspace** (Map workspace) samples the reachable space and draws it as voxels, with a summary and the samples.
   **Download workspace** saves it.
 
 ## Limits and sizing
