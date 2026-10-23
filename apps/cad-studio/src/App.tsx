@@ -1,5 +1,5 @@
 import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/chat/rowFiles';
-import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
@@ -137,6 +137,7 @@ import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/te
 import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { downloadBytes, lumpStls, meshToStl } from './ui/files';
+import { useBottomRow } from './ui/useBottomRow';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
@@ -247,6 +248,8 @@ export function App() {
   countRender('App');
   const engine = useMemo(() => new EngineClient(), []);
   const viewport = useRef<ViewportHandle>(null);
+  // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
+  const cornerRight = useRef<HTMLDivElement>(null), bottomRow = useBottomRow(cornerRight);
   const [doc, setDoc] = useState<StudioDoc>(starterDoc);
   const [marker, setMarker] = useState<number | null>(null);
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
@@ -2205,7 +2208,7 @@ export function App() {
     : !isolationSelection ? 'Select a visible placed instance to isolate.' : undefined;
 
   return (
-    <div className="studio">
+    <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '')} style={{ '--corner-w': bottomRow.cornerWidth + 'px', '--corner-h': bottomRow.cornerHeight + 'px' } as CSSProperties}>
       <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
@@ -2702,7 +2705,7 @@ export function App() {
         <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
       </div>
 
-      <Profiler id="corner-right" onRender={onBlockRender}><div className="corner-right">
+      <Profiler id="corner-right" onRender={onBlockRender}><div className="corner-right" ref={cornerRight}>
         {/* (What stands above the row, stacked so nothing overlaps: the maps' legends, the previews and display
             toggles, then the section bar nearest the row. None of it covers the history bar or the timeline.) */}
         <div className="corner-stack">

@@ -2646,3 +2646,26 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   integration 8ddf53eea merged.
 - **Next**: D229 folders the kernel's dist. After the merge past it, the runner's full `build:library` clears the stale
   flat files; rerun it then.
+
+## G-R41 — the history bar no longer runs under the view bar (2026-10-23)
+
+- **The defect** (the docs tour shot at 1280 × 800, and G-R38's 1440 × 900 shots with longer history):
+  - `.history` was centred on the assumption that the view bar (`.corner-right`: Display, the views, Pick all, Snap,
+    units) is 600 px wide.
+  - It has grown to about 700 px with Analyse and Maps, so the bar's second chip ran under it.
+- **The fix**:
+  - `ui/useBottomRow.ts` measures the view bar (a ResizeObserver plus the window's resize) and sets `--corner-w` and
+    `--corner-h` on `.studio`.
+  - `.history` fills the room between the browser panel's edge (270 px) and the view bar, centred there, scrolling its
+    chips when they don't fit.
+  - With less than 280 px of room, `.studio.history-stacked` lifts it above the view bar (left 270 px to right 12 px).
+    The view bar's own stack (previews, legends, section bar) rises above it there.
+  - Measured: beside at 1440; stacked at 1280, 1024 and 800.
+- **Check**: the new flow step "bottom row", at 1440 × 900, 1280 × 800, 1024 × 800 and 800 × 800, with five history
+  chips. In each size it checks that:
+  - the history bar's and the view bar's rects don't intersect;
+  - the history bar stays in the window;
+  - the open Display popover's stack doesn't meet the history bar.
+  - It also checks beside at the widest and stacked at the narrowest.
+- **Runs**: passes on WebGPU (the layout is the renderer's frame, not the renderer's). "Narrow window top bar" (O127)
+  still passes; studio tsc and eslint clean.
