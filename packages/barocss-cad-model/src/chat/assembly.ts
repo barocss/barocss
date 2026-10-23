@@ -17,6 +17,7 @@ import { processProfile } from '../library/materials';
 import { UNLICENSED } from '../library/sharing';
 import { r3Signed as r3 } from '../util/round';
 import { isObj, isVec3 } from '../util/guards';
+import { nextFreeId } from '../util/ids';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
@@ -85,7 +86,6 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
   };
 }
 
-const nextId = (used: Set<string>, prefix: string) => { let n = 1; while (used.has(`${prefix}${n}`)) n++; return `${prefix}${n}`; };
 const vec3 = (v: unknown): [number, number, number] | null => isVec3(v) ? v : null;
 
 async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: BodyResult[], evaluate: Evaluate, extra: Record<string, unknown> = {}): Promise<AssemblyOutcome> {
@@ -113,7 +113,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
     case 'add_part': {
       const label = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : null;
       if (!label) return fail(doc, '"name" is required (e.g. "Shaft").');
-      const id = nextId(new Set(instances.map(i => i.id)), 'p');
+      const id = nextFreeId('p', new Set(instances.map(i => i.id)));
       let partDocument = emptyDoc();
       if (args.copy_of !== undefined) {
         const src = partDoc(doc, String(args.copy_of));
@@ -160,7 +160,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         // b moves; when it is fixed and a is not, they swap (as when picking in the studio).
         const fixed = (p: string) => p === BASE || !!byId(p)?.grounded;
         if (fixed(b.part)) { if (fixed(a.part)) return fail(doc, 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
-        mate = { id: nextId(new Set(mates.map(m => m.id)), 'm'), kind, a, b,
+        mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a, b,
           ...(kind === 'distance' ? { distance: Number(args.distance) } : {}), ...(kind === 'angle' ? { angle: Number(args.angle) } : {}), ...(kind !== 'concentric' && args.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof args.flip === 'boolean' ? { flip: args.flip } : {}) };
         list = [...mates, mate];
       } else {

@@ -4,12 +4,12 @@
 // accepted (each instance keeps its place, its mates re-solve) or dismissed.
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import { nextRevision } from '../drawing/types';
+import { nextFreeId } from '../util/ids';
 
 /** A definition id not yet used by any instance or pending revision. */
 export function freshPartId(doc: StudioDoc): string {
   const used = new Set([...(doc.instances ?? []).flatMap(i => i.part ? [i.part.id] : []), ...Object.keys(doc.pendingParts ?? {})]);
-  let n = 1; while (used.has(`part${n}`)) n++;
-  return `part${n}`;
+  return nextFreeId('part', used);
 }
 /** A part file's revision: its drawing's, or A. */
 export const revisionOf = (part: StudioDoc) => { const r = part.drawing?.revision?.trim(); return r && r !== '-' ? r : 'A'; };

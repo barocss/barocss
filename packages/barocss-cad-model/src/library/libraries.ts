@@ -16,6 +16,7 @@ import { materialContext, materialData } from './materials';
 import { materialIdOf } from '../app/bodies';
 import { tslotInterfaces } from '../frames/interfaces';
 import { castingProfileOf } from '../engine/castingRuleRows';
+import { nextFreeId } from '../util/ids';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -120,8 +121,7 @@ export function confirmDocLibrary(doc: StudioDoc, id: string): StudioDoc {
 /** A prefix for a new library node's features, unused in the document. */
 function freshPrefix(doc: StudioDoc): string {
   const used = new Set(doc.nodes.flatMap(n => n.kind === 'library' ? [n.prefix] : []));
-  let k = 1; while (used.has(`lib${k}`)) k++;
-  return `lib${k}`;
+  return nextFreeId('lib', used);
 }
 /** The library node for a part with these values (its features made now, with `prefix`). */
 export function libraryNode(lib: CadLibrary, part: string, options: { variant?: string; params?: Record<string, number>; context?: Record<string, number> }, prefix: string): LibraryNode {
@@ -140,8 +140,7 @@ export function insertLibraryPart(doc: StudioDoc, libraryId: string, part: strin
 export function libraryInstance(doc: StudioDoc, libraryId: string, part: string, options: { variant?: string; params?: Record<string, number>; name?: string; position?: Vec3; rotation?: Vec3 } = {}): { doc: StudioDoc; id: string } {
   registerDocLibraries(doc);
   const instances = doc.instances ?? [];
-  let n = 1; while (instances.some(i => i.id === `p${n}`)) n++;
-  const id = `p${n}`, partDoc = insertLibraryPart(emptyDoc(), libraryId, part, options);
+  const id = nextFreeId('p', new Set(instances.map(i => i.id))), partDoc = insertLibraryPart(emptyDoc(), libraryId, part, options);
   const node = partDoc.nodes[partDoc.nodes.length - 1] as LibraryNode;
   const inst: PartInstance = { id, name: options.name ?? node.name, doc: partDoc, position: options.position ?? [0, 0, 0], rotation: options.rotation ?? [0, 0, 0] };
   return { doc: { ...doc, instances: [...instances, inst] }, id };
@@ -211,8 +210,8 @@ export function snapByInterfaces(doc: StudioDoc, a: { part: string; interface: s
   for (const [key, kind] of Object.entries(MATE_OF)) {
     const fa = A.itf.faces?.[key], fb = B.itf.faces?.[key];
     if (!fa || !fb) continue;
-    let n = 1; while (used.has(`m${n}`)) n++; used.add(`m${n}`);
-    mates.push({ id: `m${n}`, kind, a: { part: a.part, face: fa }, b: { part: b.part, face: fb } });
+    const id = nextFreeId('m', used); used.add(id);
+    mates.push({ id, kind, a: { part: a.part, face: fa }, b: { part: b.part, face: fb } });
   }
   if (!mates.length) return { error: `${a.interface} and ${b.interface} name no faces in common to mate (plane, axis)` };
   const instances = doc.instances!.map(i => i.id === b.part ? { ...i, position, rotation } : i);

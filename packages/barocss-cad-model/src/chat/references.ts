@@ -19,6 +19,7 @@ import { refOf } from '../app/bodyRef';
 import { bodyKeyFor } from '../engine/ids';
 import { stepLengthUnit } from '../engine/stepUnits';
 import { isVec3 as isV3 } from '../util/guards';
+import { nextFreeId } from '../util/ids';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export interface Placement { position: Vec3; rotation: Vec3 }
@@ -55,7 +56,7 @@ export const readReferences = (raw: unknown): ReferenceSet => {
 export const REFERENCE_PREFIX = /^ref\d+[._]/;
 /** Whether a name is a reference's face, edge or body: no feature may use it (REFERENCE_LOCKED). */
 export const isReferenceName = (name: unknown) => typeof name === 'string' && (REFERENCE_PREFIX.test(name) || /^ref\d+$/.test(name));
-const nextId = (prefix: string, taken: readonly { id: string }[]) => { let k = 1; while (taken.some(x => x.id === `${prefix}${k}`)) k++; return `${prefix}${k}`; };
+const nextId = (prefix: string, taken: readonly { id: string }[]) => nextFreeId(prefix, new Set(taken.map(x => x.id)));
 
 // ——— evaluation
 /** The reference as a document of its own: one import (scaled to mm when the file says another unit) or one mesh node. */

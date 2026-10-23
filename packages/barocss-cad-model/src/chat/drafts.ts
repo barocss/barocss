@@ -11,6 +11,7 @@ import { featureId, nodeIndexOf } from '../engine/ids';
 import { DxfReadError, readDxfSketch, type DxfLoop } from '../sketch/dxfRead';
 import type { Underlay } from '../sketch/dxfUnderlay';
 import { r6 } from '../util/round';
+import { nextFreeId } from '../util/ids';
 
 export type Drive = { kind: 'scale'; nodes: string[]; about: [number, number] } | { kind: 'height'; nodes: string[] } | { kind: 'depth'; nodes: string[] } | { kind: 'hole'; node: string; hole: number; center: [number, number] };
 export interface DraftDim { name: string; label: string; value: number; basis: 'scaled' | 'from-drawing'; confirmed?: { by: 'user'; at: string }; drive: Drive }
@@ -19,7 +20,7 @@ export interface DraftSet { version: 1; drafts: Draft[] }
 export class DraftError extends Error { constructor(public code: 'NO_DRAFT' | 'BAD_VALUE' | 'BOUND' | 'GONE', message: string) { super(`[${code}] ${message}`); this.name = 'DraftError'; } }
 
 export const readDrafts = (raw: unknown): DraftSet => { const r = raw as DraftSet | undefined; return r && r.version === 1 && Array.isArray(r.drafts) ? r : { version: 1, drafts: [] }; };
-const nextDraftId = (set: DraftSet) => { let k = 1; while (set.drafts.some(d => d.id === `F${k}`)) k++; return `F${k}`; };
+const nextDraftId = (set: DraftSet) => nextFreeId('F', new Set(set.drafts.map(d => d.id)));
 /** The drafts whose features are all still in the part (a deleted feature takes its draft with it). */
 export function liveDrafts(doc: StudioDoc): Draft[] {
   return readDrafts(doc.drafts).drafts.filter(d => d.nodes.every(id => nodeIndexOf(doc.nodes, id) >= 0));
@@ -61,8 +62,7 @@ export function withDrawingDraft(doc: StudioDoc, text: string, name: string, pla
 function withUnderlay(doc: StudioDoc, u: Underlay, name: string, plane: DocPlane | undefined, draft: string | undefined): StudioDoc {
   if (!u.polylines.length && !u.texts.length) return doc;
   const have = doc.underlays ?? [];
-  let k = have.length + 1; while (have.some(x => x.id === `U${k}`)) k++;
-  const entry: DocUnderlay = { id: `U${k}`, name, ...(plane ? { plane } : {}), ...(draft ? { draft } : {}), polylines: u.polylines.map(l => l.map(p => [r6(p[0]), r6(p[1])] as [number, number])), texts: u.texts.map(t => ({ ...t, at: [r6(t.at[0]), r6(t.at[1])] as [number, number] })), counts: u.counts };
+  const entry: DocUnderlay = { id: nextFreeId('U', new Set(have.map(x => x.id)), have.length + 1), name, ...(plane ? { plane } : {}), ...(draft ? { draft } : {}), polylines: u.polylines.map(l => l.map(p => [r6(p[0]), r6(p[1])] as [number, number])), texts: u.texts.map(t => ({ ...t, at: [r6(t.at[0]), r6(t.at[1])] as [number, number] })), counts: u.counts };
   return { ...doc, underlays: [...have, entry] };
 }
 /** A draft's underlays scaled by k about o with its sketch (O68: the drawing traced over stays the drawing). */
