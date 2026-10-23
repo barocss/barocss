@@ -5,12 +5,13 @@ import { featureLabel, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { nodeIndexOf } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
-import { materialOf } from '../app/materials';
+import { materialOf } from '../library/materials';
 import { materialFact } from './analysis';
 import { roundFaceAxis } from '../app/measure';
 import type { Vec3 } from '../engine/mesh';
 import { beadAccounting, type BeadAccounting } from '../frames/beadAccounting';
 import { r3Signed as r3 } from '../util/round';
+import { massGOf } from '../app/mass';
 
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;
 
@@ -39,7 +40,7 @@ export function factsOf(doc: StudioDoc, bodies: readonly BodyResult[]): Facts {
   const c: Vec3 = [0, 0, 0], lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const b of bodies) {
     const v = b.volumeMM3 ?? 0;
-    volume += v; mass += v * materialOf(materialIdOf(doc, b)).gPerCm3 / 1000;
+    volume += v; mass += massGOf(v, materialOf(materialIdOf(doc, b)).gPerCm3);
     if (b.centroid) for (let k = 0; k < 3; k++) c[k] += b.centroid[k] * v;
     for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
     faces += b.mesh.faces.length; edges += b.mesh.edges.length; vertices += vertexCount(b);

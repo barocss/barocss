@@ -20,6 +20,7 @@ import { bodyKeyFor } from '../engine/ids';
 import { stepLengthUnit } from '../engine/stepUnits';
 import { isVec3 as isV3 } from '../util/guards';
 import { nextFreeId } from '../util/ids';
+import { boundsOf } from '../engine/bounds';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export interface Placement { position: Vec3; rotation: Vec3 }
@@ -199,8 +200,7 @@ export function withKeepout(doc: StudioDoc, k: Keepout): { doc: StudioDoc; node:
 }
 /** A reference's envelope (its local bounds, placed) grown by an offset: a box on the reference's frame, or a cylinder about its local Z. */
 export function envelopeOf(ref: Reference, local: readonly BodyResult[], offset: number, shape: 'box' | 'cylinder'): { frame: DocPlane; shape: KeepoutShape } {
-  const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-  for (const b of local) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
+  const { min, max } = boundsOf(local);
   const m = matrixOf(ref.at), x = turn(m, [1, 0, 0]), z = turn(m, [0, 0, 1]);
   if (shape === 'box') {
     const corner = add(turn(m, [min[0] - offset, min[1] - offset, min[2] - offset]), ref.at.position);

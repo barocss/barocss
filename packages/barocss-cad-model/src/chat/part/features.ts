@@ -9,7 +9,7 @@ import type { RowKind } from '../rowDefinitions';
 import { datumPlane, readReferences, ReferenceError } from '../references';
 import { checkNode, deleteFeature } from '../features';
 import { withLook } from '../../app/bodies';
-import { MATERIALS } from '../../app/materials';
+import { MATERIALS } from '../../library/materials';
 import { resolveNames, resolveSelectors } from '../names';
 import { rematchNames } from '../../engine/rematch';
 import { editSections } from '../../frames/sections';

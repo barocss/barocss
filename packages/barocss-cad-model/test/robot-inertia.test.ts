@@ -9,7 +9,7 @@ import { tablesFor } from '../src/assembly/faces';
 import { rotationMatrix } from '../src/assembly/mates';
 import { solveDoc } from '../src/chat/assembly';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
-import { MATERIALS } from '../src/app/materials';
+import { MATERIALS } from '../src/library/materials';
 import { jointTreeOf } from '../src/robot/joints';
 import { linkFrames, linkInertia, rotateInertia, type Frame, type Mat3 } from '../src/robot/inertia';
 

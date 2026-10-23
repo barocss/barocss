@@ -5,6 +5,7 @@
 // kind of face, or a clearance fit the geometry contradicts at MMC ([FIT_PAIR]) refuses the evaluation.
 import { checkFit, faceGeometry, fitTableProblem, isHoleClass, lookupFit, FitError, type Brep, type FitCheck, type FitTable } from '@barocss/cad';
 import type { StudioDoc } from './doc';
+import { editRows } from './rowEdits';
 
 /** The document's fits: the tables loaded, the faces' classes (by face name) and the pairs declared. */
 export interface StudioFits { version: 1; tables?: FitTable[]; faces?: { face: string; class: string }[]; pairs?: { hole: string; shaft: string }[] }
@@ -13,12 +14,8 @@ type Output = { readonly id: string; readonly brep: Brep };
 
 /** Tables added (each checked; one with an id held already replaces it) and removed by id. */
 export function editFitTables(doc: StudioDoc, add: readonly unknown[], remove: readonly string[] = []): { doc: StudioDoc } | { error: string } {
-  for (const t of add) { const p = fitTableProblem(t); if (p) return { error: `[FIT_TABLE] ${p}` }; }
-  const was = doc.fits?.tables ?? [], gone = remove.filter(id => !was.some(t => t.id === id));
-  if (gone.length) return { error: `no fit table ${gone.join(', ')} to remove (tables: ${was.map(t => t.id).join(', ') || 'none'})` };
-  const incoming = add as FitTable[], ids = new Set([...remove, ...incoming.map(t => t.id)]);
-  const tables = [...was.filter(t => !ids.has(t.id)), ...incoming];
-  return { doc: { ...doc, fits: { ...(doc.fits ?? { version: 1 }), version: 1, tables } } };
+  const r = editRows<FitTable>(doc.fits?.tables ?? [], add, remove, { problem: t => { const p = fitTableProblem(t); return p ? `[FIT_TABLE] ${p}` : null; }, noun: 'fit table', list: 'tables' });
+  return 'error' in r ? r : { doc: { ...doc, fits: { ...(doc.fits ?? { version: 1 }), version: 1, tables: r.rows } } };
 }
 /** A face's class set (or cleared with null); its pairs go with it when cleared. */
 export function setFaceClass(doc: StudioDoc, face: string, cls: string | null): StudioDoc {

@@ -3,6 +3,7 @@
 // body's pos and quat in its parent, then its joint's motion about its own axis at its own place — checked against
 // RM2's. The gravity run (a 6R arm hanging stably) needs MuJoCo itself: scripts/mjcf-oracle.py, pending.
 import { parseXml, type XmlNode } from './urdfCheck';
+import { symmetricEigenvalues3 } from './eigen';
 
 type V3 = [number, number, number];
 export interface MjcfBody { name: string; parent: string | null; pos: V3; quat: [number, number, number, number]; joint?: { name: string; type: string; axis: V3; pos: V3; range?: [number, number] }; inertial?: { pos: V3; mass: number; I: number[] }; meshes: string[] }
@@ -58,7 +59,7 @@ export function readMjcf(text: string, files?: ReadonlySet<string>): { model: Mj
         if (!I) issues.push(`${name}: <inertial> has neither fullinertia nor diaginertia`);
         else {
           // (fullinertia: ixx iyy izz ixy ixz iyz.) Positive definite and a triangle, as MuJoCo's compiler checks.
-          const ev = eigenSym([I[0], I[3], I[4], I[3], I[1], I[5], I[4], I[5], I[2]]);
+          const ev = symmetricEigenvalues3([I[0], I[3], I[4], I[3], I[1], I[5], I[4], I[5], I[2]]);
           if (!(ev[0] > 0)) issues.push(`${name}: its inertia is not positive definite`);
           if (ev[2] > ev[0] + ev[1] + 1e-9 * ev[2]) issues.push(`${name}: its principal moments break the triangle inequality`);
           inertial = { pos: vec(inn.attrs.pos, 3, `${name} inertial pos`, [0, 0, 0]) as V3, mass, I };
@@ -78,15 +79,6 @@ export function readMjcf(text: string, files?: ReadonlySet<string>): { model: Mj
   const connects = (child(root, 'equality')?.children.filter(c => c.name === 'connect') ?? []).map(e => ({ name: e.attrs.name ?? '', body1: e.attrs.body1 ?? '', body2: e.attrs.body2 ?? '', anchor: vec(e.attrs.anchor, 3, 'connect anchor', [0, 0, 0]) }));
   for (const c of connects) { for (const b of [c.body1, c.body2]) if (!bodyNames.has(b)) issues.push(`connect ${c.name}: no body ${b}`); if (c.body1 === c.body2) issues.push(`connect ${c.name}: a body to itself`); }
   return { model: { name: root.attrs.model ?? '', bodies, meshes, equality, connects, angle }, issues };
-}
-/** A symmetric 3 × 3's eigenvalues, ascending (closed form). */
-function eigenSym(a: number[]): V3 {
-  const p1 = a[1] * a[1] + a[2] * a[2] + a[5] * a[5];
-  if (p1 === 0) return [a[0], a[4], a[8]].sort((x, y) => x - y) as V3;
-  const q = (a[0] + a[4] + a[8]) / 3, p = Math.sqrt(((a[0] - q) ** 2 + (a[4] - q) ** 2 + (a[8] - q) ** 2 + 2 * p1) / 6);
-  const b = a.map((x, i) => (x - (i % 4 === 0 ? q : 0)) / p), r = (b[0] * (b[4] * b[8] - b[5] * b[7]) - b[1] * (b[3] * b[8] - b[5] * b[6]) + b[2] * (b[3] * b[7] - b[4] * b[6])) / 2;
-  const phi = r <= -1 ? Math.PI / 3 : r >= 1 ? 0 : Math.acos(r) / 3, e1 = q + 2 * p * Math.cos(phi), e3 = q + 2 * p * Math.cos(phi + 2 * Math.PI / 3);
-  return [e3, 3 * q - e1 - e3, e1];
 }
 
 type Pose = { R: number[]; t: V3 };

@@ -4,6 +4,7 @@
 // is a bought line too, its item an estimate, said so. The fastener's shape still comes from the command's own sizes
 // (app/fasteners' FASTENER_SIZES, the owner's open item): a row names what is bought, not how it is drawn.
 import type { StudioDoc } from './doc';
+import { editRows } from './rowEdits';
 
 export type FastenerRowKind = 'hex-bolt' | 'socket-screw' | 'csk-screw' | 'hex-nut' | 'washer';
 export interface StudioFastenerRow {
@@ -38,11 +39,8 @@ export function fastenerRowProblem(r: unknown): string | null {
 }
 /** Rows added (each checked; one with an id held already replaces it) and removed by id. */
 export function editFastenerRows(doc: StudioDoc, add: readonly unknown[], remove: readonly string[] = []): { doc: StudioDoc } | { error: string } {
-  for (const r of add) { const p = fastenerRowProblem(r); if (p) return { error: p }; }
-  const was = doc.fasteners?.rows ?? [], gone = remove.filter(id => !was.some(r => r.id === id));
-  if (gone.length) return { error: `no fastener row ${gone.join(', ')} to remove (rows: ${was.map(r => r.id).join(', ') || 'none'})` };
-  const incoming = add as StudioFastenerRow[], ids = new Set([...remove, ...incoming.map(r => r.id)]);
-  return { doc: { ...doc, fasteners: { version: 1, rows: [...was.filter(r => !ids.has(r.id)), ...incoming] } } };
+  const r = editRows<StudioFastenerRow>(doc.fasteners?.rows ?? [], add, remove, { problem: fastenerRowProblem, noun: 'fastener row' });
+  return 'error' in r ? r : { doc: { ...doc, fasteners: { version: 1, rows: r.rows } } };
 }
 /** The row a placed fastener is (its kind, size and length to 1e-6 mm), or null; two rows matching: the first. */
 export function fastenerRowFor(doc: Pick<StudioDoc, 'fasteners'>, kind: string, size: string, lengthMM?: number): StudioFastenerRow | null {

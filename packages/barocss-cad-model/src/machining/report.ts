@@ -9,7 +9,7 @@
 // axes, points.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { materialIdOf } from '../app/bodies';
+import { partMaterial } from '../app/bodies';
 import { materialData, type ProcessProfile } from '../library/materials';
 import { wallsOf } from '../mould/walls';
 import { accessOf, type Access } from './access';
@@ -22,6 +22,7 @@ import { holesOf, nearestDrills, onDrillTable, tappedHoles, type Hole, type Tapp
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 import { madeBodies } from '../engine/elements';
 import { r3 } from '../util/round';
+import { boundsOf } from '../engine/bounds';
 
 export type Family = 'metal' | 'plastic';
 
@@ -30,10 +31,10 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
   const bodies = madeBodies(doc.nodes, all); // (O160: a bought element is not machined.)
   const t = (k: string) => profile.thresholds[k], rules: PrintRule[] = [];
   // The material: one for the part, its family the library's (metal or polymer).
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, m = id ? materialData(id) : undefined;
+  const { id, mixed } = partMaterial(doc, bodies), m = id ? materialData(id) : undefined;
   const family: Family | null = m ? (m.family === 'metal' ? 'metal' : 'plastic') : null;
   rules.push(family ? { id: 'material', level: 'feasible', status: 'pass', message: `${m!.label}: a ${family}, machined to ${family === 'metal' ? 'metal' : 'plastic'} limits` }
-    : { id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its family sets the limits)', why: ids.length > 1 ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
+    : { id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its family sets the limits)', why: mixed ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
   // Walls: the thinnest (the inward ray, IM4's walls) against the family's feasible and recommended least.
   const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnestMM !== null).sort((a, b) => a.thinnestMM! - b.thinnestMM!)[0];
   if (!thin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });
@@ -44,8 +45,7 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
       message: `the thinnest wall, ${r3(w)} mm, against a ${family}'s ${min.value} mm feasible and ${rec.value} mm recommended`, value: r3(w), limit: w < min.value - 1e-9 ? min.value : rec.value, unit: 'mm', source: min.source, entities: [thin.body] });
   }
   // Size: the part's sides, sorted, against the envelope (milling); turning's along its axis (CNC6).
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  const { min: lo, max: hi } = boundsOf(bodies);
   const e = [0, 1, 2].map(k => hi[k] - lo[k]).sort((a, b) => b - a);
   if (profile.id === 'cnc-milling') {
     const lim = [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value], fits = e.every((v, k) => v <= lim[k] + 1e-9);

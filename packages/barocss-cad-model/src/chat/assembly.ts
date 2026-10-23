@@ -18,6 +18,7 @@ import { UNLICENSED } from '../library/sharing';
 import { r3Signed as r3 } from '../util/round';
 import { isObj, isVec3 } from '../util/guards';
 import { nextFreeId } from '../util/ids';
+import { boundsOf } from '../engine/bounds';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
@@ -65,7 +66,7 @@ function memberInterfaceList(bodies: readonly BodyResult[]): { member_interfaces
 async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, detail: string | null) {
   const instances = await Promise.all((doc.instances ?? []).map(async inst => {
     const r = await evaluate(inst.doc), bodies = r?.ok ? r.bodies : [];
-    const min = [0, 1, 2].map(k => Math.min(...bodies.map(b => b.mesh.bounds.min[k]))) as Vec3, max = [0, 1, 2].map(k => Math.max(...bodies.map(b => b.mesh.bounds.max[k]))) as Vec3;
+    const { min, max } = boundsOf(bodies);
     return {
       id: inst.id, name: inst.name, position: inst.position.map(r3), rotation_deg: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}),
       feature_count: inst.doc.nodes.length, bodies: bodies.length, volume_mm3: r3(bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)),

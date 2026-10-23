@@ -6,14 +6,13 @@ import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
 import { checkSpec, type Requirement } from '../chat/spec';
 import type { Evaluate, Outcome } from './core';
+import { boundsOf } from '../engine/bounds';
 
 export const volumeOf = (bodies: readonly BodyResult[]) => bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0);
 /** The parts' box (the display meshes', to their single precision: 1e-4 mm on these sizes). */
 export function boxOf(bodies: readonly BodyResult[]): { min: Vec3; max: Vec3 } | null {
   if (!bodies.length) return null;
-  const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], b.mesh.bounds.min[k]); max[k] = Math.max(max[k], b.mesh.bounds.max[k]); }
-  return { min, max };
+  return boundsOf(bodies);
 }
 export interface Cylinder { c: Vec3; a: Vec3; r: number; zMin: number; zMax: number; body: number; face: number }
 /** Every exact cylindrical face (the B-rep's own, A6.3), with its extent along its axis from its mesh. */

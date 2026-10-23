@@ -11,7 +11,7 @@ import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepar
 import { resolveSkeletons } from '@barocss/cad-model/frames/skeleton';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
-import { MATERIALS } from '@barocss/cad-model/app/materials';
+import { MATERIALS } from '@barocss/cad-model/library/materials';
 import { checkSpec, expectedOf, modelHash, type Outcome } from '@barocss/cad-model/chat/spec';
 import { rejectProposal, stripHistory, type Proposal } from '@barocss/cad-model/chat/proposals';
 import type { ProposalPart } from '@barocss/cad-model/chat/tools';

@@ -2,15 +2,20 @@
 // works them out for aluminium; both scale with density), inertia about its centre of mass or another
 // point (the parallel-axis rule), and several bodies' combined mass and centre of mass.
 import type { BodyResult } from '../engine/evaluate';
+import { boundsOf } from '../engine/bounds';
 
 type V3 = [number, number, number];
-const AL = 2.7; // g/cm³, the density the kernel's figures are for
+/** g/cm³: the density the kernel's mass and inertia are for (aluminium); a material's figures scale by its own over this. */
+export const KERNEL_DENSITY = 2.7;
+/** A volume's mass (g) at a density (g/cm³). */
+export const massGOf = (volumeMM3: number, gPerCm3: number) => volumeMM3 * gPerCm3 / 1000;
 
 /** A body's mass (g) and inertia about its centre of mass (kg·mm²) in a material of `gPerCm3`. */
 export function bodyMass(b: BodyResult, gPerCm3: number): { massG: number; centroid: V3; inertia: number[][] } | null {
   if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
-  const k = gPerCm3 / AL;
-  return { massG: b.volumeMM3 * gPerCm3 / 1000, centroid: b.centroid, inertia: b.inertia.map(r => r.map(v => v * k * 1e6)) };
+  // (The inertia as v · (ρ / 2.7) · 1e6, in that order; chat/analysis's (v · ρ) / 2.7 rounds differently, so they stay apart.)
+  const k = gPerCm3 / KERNEL_DENSITY;
+  return { massG: massGOf(b.volumeMM3, gPerCm3), centroid: b.centroid, inertia: b.inertia.map(r => r.map(v => v * k * 1e6)) };
 }
 /** Inertia (kg·mm²) moved from the centre of mass to `about`: I + m (|d|² E − d dᵀ), d from `about` to the centre. */
 export function inertiaAbout(inertia: number[][], massG: number, centroid: V3, about: V3): number[][] {
@@ -24,7 +29,7 @@ export function combined(parts: { massG: number; centroid: V3 }[]): { massG: num
 }
 export function boxOf(bodies: readonly BodyResult[]): { min: V3; max: V3 } | null {
   if (!bodies.length) return null;
-  return { min: [0, 1, 2].map(k => Math.min(...bodies.map(b => b.mesh.bounds.min[k]))) as V3, max: [0, 1, 2].map(k => Math.max(...bodies.map(b => b.mesh.bounds.max[k]))) as V3 };
+  return boundsOf(bodies);
 }
 /** A figure to three significant digits (no exponent below a million). */
 export const sig3 = (v: number, scale = 0) => { if (v === 0 || Math.abs(v) < 1e-6 * scale) return '0'; const p = Math.pow(10, Math.max(0, 2 - Math.floor(Math.log10(Math.abs(v))))); return String(Math.round(v * p) / p); };

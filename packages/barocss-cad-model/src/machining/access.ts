@@ -6,6 +6,7 @@
 // samples' areas kept by their 6-bit mask (64 bins), so the count is exact for the samples and cheap.
 import type { BodyResult } from '../engine/evaluate';
 import { rayHit, triangleBvh } from '@barocss/cad';
+import { boundsOf } from '../engine/bounds';
 
 export const DIRECTIONS: readonly (readonly [number, number, number])[] = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
 export const DIRECTION_NAMES: readonly string[] = ['+X', '−X', '+Y', '−Y', '+Z', '−Z'];
@@ -22,8 +23,7 @@ const OFF = 0.01, MAX_N = 48, o = [0, 0, 0];
 
 /** The access of the part's bodies from the six directions; `stepMM` the sampling step (default the diagonal over 200, at least 0.1 mm). */
 export function accessOf(bodies: readonly BodyResult[], stepMM?: number): Access {
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  const { min: lo, max: hi } = boundsOf(bodies);
   const h = stepMM ?? Math.max(0.1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 200);
   const byMask = new Array<number>(64).fill(0), unreached = new Map<string, Unreached & { areaMM2: number }>();
   const total = { area: 0, samples: 0 };
@@ -81,8 +81,7 @@ function sampleTriangle(P: Float32Array | readonly number[], I: Uint32Array | re
  * `stepMM` as accessOf's (its default from all the bodies' box). The area-weighted sum of the shares is accessOf's unreachedMM2.
  */
 export function accessSamples(bodies: readonly BodyResult[], stepMM?: number): { body: string; unreachedShare: Float32Array; mask: Uint8Array }[] {
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  const { min: lo, max: hi } = boundsOf(bodies);
   const h = stepMM ?? Math.max(0.1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 200), scratch = new Array<number>(64).fill(0), total = { area: 0, samples: 0 };
   return bodies.map(body => {
     const m = body.mesh, T = m.indices.length / 3, bvh = triangleBvh(m.positions, m.indices), share = new Float32Array(T), mask = new Uint8Array(T);
