@@ -1,3 +1,8 @@
+/* (The studio's own CSS in one layer below Tailwind's (G12d): within it the rules settle as before; Tailwind's utilities —
+   the shadcn/ui components' — win over its element rules, preflight off. main.tsx imports this file first, so this line
+   orders the layers. ui/chat.css, ui/constraints.css and drawing/drawing.css are in the same layer.) */
+@layer legacy, theme, base, components, utilities;
+@layer legacy {
 :root, :root[data-theme='dark'] {
   --bg: #1d1e21; --panel: rgba(36, 37, 41, 0.94); --panel-solid: #242529; --line: #3a3c41; --line-soft: #2f3135;
   --text: #e2e4e8; --text-2: #c9ccd1; --muted: #8a8e96; --accent: #e8c25a; --accent-ink: #1d1e21; --accent-soft: #3b3420;
@@ -581,3 +586,4 @@ button.chip.snap:hover { background: #3a3c41; }
 .skeleton-constraints li.bad button { color: #f08a84; }
 .skeleton-constraints li.over button { color: #f0c070; }
 .skeleton-constraints input { width: 80px; }
+}

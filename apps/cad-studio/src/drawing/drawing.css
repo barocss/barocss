@@ -1,3 +1,5 @@
+/* (In the studio's legacy layer, below Tailwind's: styles.css orders the layers.) */
+@layer legacy {
 /* The Drawing workspace: the sheet as paper over the viewport, its tools and its panel. */
 .dw { position: absolute; inset: 36px 0 0 0; z-index: 3; background: var(--bg); }
 .dw-paper { position: absolute; left: 68px; right: 272px; top: 14px; bottom: 44px; display: flex; align-items: center; justify-content: center; }
@@ -41,3 +43,4 @@
 .dw-issue > span { flex: 1; }
 .dw-issue.error > .ms { color: var(--warn); }
 .dw-issue:hover { background: var(--accent-soft); }
+}
