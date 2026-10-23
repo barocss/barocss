@@ -6,7 +6,7 @@ import type {PairedRoofDifferenceBodyResult, PairedRoofDifferenceBodyOptions, Pa
 import type {PairedSurfaceMaterialBodyResult, PairedSurfaceMaterialBodyReport} from './paired-surface-material-body.js';
 import type {SectionFraction} from '../section-rational-internal.js';
 import type {PairedRoofBodySplitProof} from './paired-roof-body-split-proof-internal.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 type F = SectionFraction;
 type Size = {utf16:number; utf8:number};

@@ -5,7 +5,7 @@ import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../../cad-docu
 
 import type { SourceLineWidthFaceOptions,SourceLineWidthFaceResult } from './source-line-width-face.js';
 import type { ConvexPlanarFaceExtrusionResult } from '../../convex-planar-face-extrusion.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 type Size={utf16:number;utf8:number};
 type Pair<T>=[T,T];
 type Asset={sourceId:string;sourceVersion:0;source:string;curveId:string};

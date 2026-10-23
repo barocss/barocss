@@ -3,14 +3,14 @@ import { validateConvexPlanarFace } from './own-convex-planar-face.js';
 import type { ConvexPlanarFaceResult } from './own-convex-planar-face.js';
 import { buildCompatibleRuledSurface } from './nurbs/surfaces/compatible-ruled-surface.js';
 import type { CompatibleRuledSurfaceResult } from './nurbs/surfaces/compatible-ruled-surface.js';
-import { buildClosedExactPatchShell } from './closed-exact-patch-shell.js';
-import type { ClosedExactPatchShellResult } from './closed-exact-patch-shell.js';
-import { buildParametricFace } from './face.js';
-import type { FaceIds, FaceBundle } from './face.js';
+import { buildClosedExactPatchShell } from './brep/closed-exact-patch-shell.js';
+import type { ClosedExactPatchShellResult } from './brep/closed-exact-patch-shell.js';
+import { buildParametricFace } from './core/face.js';
+import type { FaceIds, FaceBundle } from './core/face.js';
 import type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair } from './exact-proof/exact-boundary-face-adjacency.js';
-import type { SurfaceBoundary } from './boundary.js';
+import type { SurfaceBoundary } from './core/boundary.js';
 import { adopt as adoptSourceModel } from './intersect/own-plane-cylinder-intersection-internal.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const ConvexPlanarFaceExtrusionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', PROFILE: 'PROFILE', DISTANCE: 'DISTANCE',

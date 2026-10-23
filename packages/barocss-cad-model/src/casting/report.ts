@@ -6,7 +6,7 @@
 // for the process is unknown and said so.
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
-import { materialIdOf } from '../app/bodies';
+import { partMaterial } from '../app/bodies';
 import { materialData, type CastFamily, type ProcessProfile, type ProcessThreshold } from '../library/materials';
 import { castingProfileOf, hasCastingRules, noCastingRules } from '../engine/castingRuleRows';
 import { wallsOf } from '../mould/walls';
@@ -14,6 +14,7 @@ import { draftField, type DraftFace } from '../mould/draft';
 import type { PrintabilityReport, PrintRule } from '../print/rules';
 import { solidification, type Solidification } from './solidification';
 import { machinedFaces, machiningOf, machiningView, partExtent, shrinkByDimension, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
+import { r3, r6 } from '../util/round';
 
 export type CastingProcess = 'die-casting' | 'sand-casting';
 export const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'sand-casting'];
@@ -31,7 +32,6 @@ export interface CastingSummary {
 
 /** O108's simplification said: one factor by the largest extent; each dimension's own band, where they differ. */
 const bandNote = (by: readonly { axis: string; factor: number; band: string }[]) => `; a simplification: one factor by the largest extent — a pattern maker may scale each dimension by its own band${new Set(by.map(d => d.factor)).size > 1 ? ` (${by.map(d => `${d.axis} ${d.factor}, ${d.band}`).join('; ')})` : ''}`;
-const r3 = (v: number) => Math.round(v * 1e3) / 1e3 + 0, r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const unit = (v: readonly number[]): [number, number, number] => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
 /** A family's threshold, or the process's own for every family (sand casting's draft). */
 const limitOf = (profile: ProcessProfile, family: CastFamily, key: string): ProcessThreshold | undefined => profile.thresholds[`${family}${key}`] ?? profile.thresholds[key[0].toLowerCase() + key.slice(1)];
@@ -45,7 +45,7 @@ const faceNames = (fs: readonly DraftFace[]) => fs.map(f => f.face).slice(0, 40)
  */
 export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): { minDeg: number; recDeg: number | null; source: string } | null {
   profile = castingProfileOf(doc, profile.id) ?? profile; // (O7c: the limits are the document's rows.)
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, family = id ? materialData(id)?.castFamily ?? null : null;
+  const { id } = partMaterial(doc, bodies), family = id ? materialData(id)?.castFamily ?? null : null;
   const dMin = family ? limitOf(profile, family, 'DraftMinDeg') : undefined, dRec = family ? limitOf(profile, family, 'DraftRecDeg') : undefined;
   return dMin ? { minDeg: dMin.value, recDeg: dRec?.value ?? null, source: pageOf(dMin) } : null;
 }
@@ -56,10 +56,10 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   profile = castingProfileOf(doc, profile.id) ?? profile;
   const rules: PrintRule[] = hasCastingRules(doc, profile.id) ? [] : [{ id: 'casting-rules', level: 'feasible', status: 'unknown', message: noCastingRules(profile.id), why: 'none is built in: the person loads their foundry\'s rules' }];
   // The material: one for the part, its casting family the library's.
-  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))], id = ids.length === 1 ? ids[0] : null, m = id ? materialData(id) : undefined;
+  const { id, mixed } = partMaterial(doc, bodies), m = id ? materialData(id) : undefined;
   const family = m?.castFamily ?? null;
   const has = (k: string) => !!family && !!limitOf(profile, family, k);
-  if (!m) rules.push({ id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its casting family sets the limits)', why: ids.length > 1 ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
+  if (!m) rules.push({ id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its casting family sets the limits)', why: mixed ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
   else if (!family) rules.push({ id: 'material', level: 'feasible', status: 'fail', message: `${m.label} is not a casting alloy here (no casting family): choose a casting alloy for ${profile.label.toLowerCase()}`, entities: bodies.map(b => b.key) });
   else if (!has('WallMinMM') && !has('DraftMinDeg')) rules.push({ id: 'material', level: 'feasible', status: 'unknown', message: `${m.label}: a ${family} alloy`, why: `no ${profile.label.toLowerCase()} limit for a ${family} alloy was read from a public page: set yours, or ask your caster` });
   else rules.push({ id: 'material', level: 'feasible', status: 'pass', message: `${m.label}: a ${family} alloy, cast to its ${profile.label.toLowerCase()} limits` });

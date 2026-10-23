@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, BearingError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
-import { brepBounds } from '../dist/brep-bounds.js';
+import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.4 (D158): bearing envelopes from the user's rows, on a shaft's seat and in a housing. The row is D139's B1 (the
 // NSK 6204 page: d 20, D 47, B 14, r 1; da 25–26.5, Da max 42, ra max 1), a test row citing it; the rings' deviations

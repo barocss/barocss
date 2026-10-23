@@ -30,6 +30,11 @@ export function lookKey(nodes: readonly ModelNode[], body: BodyResult): string {
 export const lookOf = (doc: StudioDoc, body: BodyResult): BodyLook => doc.bodies?.[lookKey(doc.nodes, body)] ?? {};
 /** A body's material id: its own, else the brief's stated library material (A6.1), else none (the default, assumed). */
 export const materialIdOf = (doc: StudioDoc, body: BodyResult): string | undefined => lookOf(doc, body).material ?? briefMaterial(doc);
+/** The part's one material: the id every body has (null when they differ, or none is set); `mixed` when they differ. */
+export function partMaterial(doc: StudioDoc, bodies: readonly BodyResult[]): { id: string | null; mixed: boolean } {
+  const ids = [...new Set(bodies.map(b => materialIdOf(doc, b) ?? null))];
+  return { id: ids.length === 1 ? ids[0] : null, mixed: ids.length > 1 };
+}
 /** The document with a body's look changed (empty fields dropped). */
 export function withLook(doc: StudioDoc, body: BodyResult, patch: BodyLook): StudioDoc {
   const key = lookKey(doc.nodes, body), next: BodyLook = { ...doc.bodies?.[key], ...patch };

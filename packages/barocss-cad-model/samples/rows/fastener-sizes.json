@@ -1,5 +1,5 @@
 {
- "about": "Example fastener sizes (O7): metric coarse M3–M12, taken from the sources each field names. They are examples, not a standard: check them against the standard and your supplier before manufacture. Load the file yourself (Library → Load sample rows, or attach it in chat); the agent cannot load rows of its own.",
+ "about": "Example fastener sizes (O7): metric coarse M3–M12, taken from the sources each field names. They are examples, not a standard: check them against the standard and your supplier before manufacture. Load the file yourself (Library → Load sample fastener sizes, or attach it in chat); the agent cannot load rows of its own.",
  "rows": [
   {
    "id": "M3",

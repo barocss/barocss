@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildParametricFace, validateFaceBundle } from '../dist/face.js';
-import { evaluateCurve, evaluateSurface } from '../dist/math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/derivatives.js';
+import { buildParametricFace, validateFaceBundle } from '../dist/core/face.js';
+import { evaluateCurve, evaluateSurface } from '../dist/core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 
 const boundaries = ['v-min', 'u-max', 'v-max', 'u-min'];
 const fractions = [0, ...Array.from({ length: 17 }, (_, i) => ((i + 1) / 18) ** 1.37), 1];

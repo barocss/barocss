@@ -1,13 +1,13 @@
 import { compileCadModel } from '../../model-compiler.js';
 import type { CadCompileResult } from '../../model-compiler.js';
 import type { CadAstDeclaration, CadAstValue } from '../../language/source-ast.js';
-import { validateCurve, curveDomain } from '../../math.js';
+import { validateCurve, curveDomain } from '../../core/math.js';
 import { insertSourceCurveKnot } from './source-curve-knot-insertion.js';
 import type { SourceCurveKnotInsertionResult } from './source-curve-knot-insertion.js';
-import { buildPiecewiseRationalLoftSurface } from '../../piecewise-rational-loft.js';
-import type { PiecewiseRationalLoftResult, PiecewiseRationalLoftReport } from '../../piecewise-rational-loft.js';
+import { buildPiecewiseRationalLoftSurface } from '../../features/piecewise-rational-loft.js';
+import type { PiecewiseRationalLoftResult, PiecewiseRationalLoftReport } from '../../features/piecewise-rational-loft.js';
 import type { Curve, Model } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceKnotAlignedLoftDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET',

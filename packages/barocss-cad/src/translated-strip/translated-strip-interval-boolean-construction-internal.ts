@@ -1,6 +1,6 @@
 import { buildMultiSpanVLinearSurfacePlaneSection } from '../intersect/multispan-vlinear-plane-section.js';
 import type { MultiSpanVLinearSurfacePlaneSectionAsset } from '../intersect/multispan-vlinear-plane-section.js';
-import { buildSectionExactSurfaceBinding } from '../section-exact-surface-binding.js';
+import { buildSectionExactSurfaceBinding } from '../features/section-exact-surface-binding.js';
 import { buildExactSurfaceLowerTrim } from '../exact-proof/exact-surface-lower-trim.js';
 import { buildPairedSectionPlaneCap } from '../paired/paired-section-plane-cap.js';
 import { buildTranslatedSurfaceBaseFace } from './translated-surface-base-face.js';

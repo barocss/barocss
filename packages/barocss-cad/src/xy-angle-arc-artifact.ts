@@ -1,10 +1,10 @@
 import { buildXYAngleArc } from './xy-angle-arc.js';
 import type { XYAngleArcResult } from './xy-angle-arc.js';
 import { compileCadModel } from './model-compiler.js';
-import { evaluateCurve } from './math.js';
-import { evaluateCurveD1 } from './derivatives.js';
+import { evaluateCurve } from './core/math.js';
+import { evaluateCurveD1 } from './core/derivatives.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const XYAngleArcArtifactDiagnosticCode = Object.freeze({ INPUT: 'INPUT', REQUEST: 'REQUEST', SOURCE: 'SOURCE', BINDING: 'BINDING', STRUCTURE: 'STRUCTURE', ASSOCIATION: 'ASSOCIATION', OBSERVATION: 'OBSERVATION', BUDGET: 'BUDGET', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const);
 type Code = typeof XYAngleArcArtifactDiagnosticCode[keyof typeof XYAngleArcArtifactDiagnosticCode];

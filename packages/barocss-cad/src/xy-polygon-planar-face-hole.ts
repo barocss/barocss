@@ -1,5 +1,5 @@
 import { validateXYPolygonRegion } from './xy-polygon-region.js';
-import { validateModel, evaluateCurve, evaluateSurface } from './math.js';
+import { validateModel, evaluateCurve, evaluateSurface } from './core/math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Model, Point, Surface } from './types.js';
 

@@ -25,8 +25,8 @@ assert.equal(built.outputFiles.length, 1);
 const sourceInputs = Object.keys(built.metafile.inputs).map(path => resolve(repo, path));
 const cadInputs = sourceInputs.filter(path => path.includes('/packages/barocss-cad/'));
 assert.ok(cadInputs.includes(entry));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/cad-assembly.ts')));
-assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/cad-assembly-instance-point.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/document/cad-assembly.ts')));
+assert.ok(cadInputs.includes(resolve(repo, 'packages/barocss-cad/src/document/cad-assembly-instance-point.ts')));
 assert.ok(cadInputs.every(path => path.startsWith(resolve(repo, 'packages/barocss-cad/src') + '/')));
 assert.ok(!sourceInputs.some(path => path.includes('/packages/barocss-cad/dist/')));
 const api = await import('data:text/javascript;base64,' +

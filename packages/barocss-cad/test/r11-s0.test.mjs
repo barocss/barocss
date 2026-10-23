@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, evaluateSurface, evaluateCurve, curveDomain, surfaceDomain, evaluateSurfaceCurvature, buildBrep, checkBrep, brepMassProperties, nurbsOf } from '../dist/index.js';
-import { evaluateSurfaceD1 } from '../dist/derivatives.js';
+import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 
 // R11 S0 (D105): the feasibility checkpoint before general shell and offset. The research note's R11.1–R11.3
 // (handover/notes/research-r10-r11-fillet-shell-2026-10-18.md) extend today's method — the wall as the union of a slab

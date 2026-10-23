@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep, brepMassProperties } from '../dist/index.js';
-import { generalShell } from '../dist/general-shell.js';
+import { generalShell } from '../dist/blend/general-shell.js';
 
 // R11.1b (D107): a plane's slab grows across a concave edge between two planes as far as the two offsets reach before
 // they meet — t·tan(θ/2) for normals θ ≤ 90° apart, mitred where two such sides meet (a vertex of concave edges); a

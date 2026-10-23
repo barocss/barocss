@@ -1,8 +1,8 @@
 // Recognising a NURBS patch as a surface of revolution: rows in one direction are circles about one
 // axis (or poles), and the boundary across them is a line or an arc in a plane through the axis — the
 // patches revolve, STEP import and drafted or rounded features make (cones, spheres, tori).
-import { circleOf } from '../../brep-tessellate.js';
-import { cross, dot, len, scale, sub, unit } from '../../vec3.js';
+import { circleOf } from '../../brep/brep-tessellate.js';
+import { cross, dot, len, scale, sub, unit } from '../../core/vec3.js';
 import type { Point, Surface } from '../../types.js';
 
 type XY = [number, number];

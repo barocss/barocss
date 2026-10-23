@@ -1,17 +1,17 @@
 import {validatePairedSurfaceMaterialBody} from './paired-surface-material-body.js';
 import {buildCompatibleRuledSurface} from '../nurbs/surfaces/compatible-ruled-surface.js';
-import {buildParametricFace} from '../face.js';
+import {buildParametricFace} from '../core/face.js';
 import {adopt as adoptSourceModel} from '../intersect/own-plane-cylinder-intersection-internal.js';
-import {validateCurve,evaluateCurve} from '../math.js';
+import {validateCurve,evaluateCurve} from '../core/math.js';
 import {SectionRationalContext} from '../section-rational-internal.js';
 import {constructPairedRoofDifferenceGeometryTrusted,PairedRoofDifferenceConstructionError} from './paired-roof-difference-body-construction-internal.js';
 import {provePairedRoofDifferenceBodyTrusted,PairedRoofDifferenceProofError} from './paired-roof-difference-body-proof-internal.js';
 import type {Point,Curve,Surface,Model} from '../types.js';
-import type {FaceIds,FaceBundle} from '../face.js';
+import type {FaceIds,FaceBundle} from '../core/face.js';
 import type {CompatibleRuledSurfaceResult} from '../nurbs/surfaces/compatible-ruled-surface.js';
 import type {PairedSurfaceMaterialBodyResult} from './paired-surface-material-body.js';
 import type {SectionFraction,SectionRational} from '../section-rational-internal.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 type F=SectionFraction; type Sense='forward'|'reverse'; type Size={utf16:number;utf8:number};
 type Operand=PairedSurfaceMaterialBodyResult;

@@ -17,14 +17,14 @@
 //   the shaft's step and groove (RING_FIT, naming both).
 // - A pin: { hole (its index), diameter (default the hole's), length (default the step's diameter) }, centred on the
 //   shaft's axis along the hole. A pin larger than its hole needs fit classes (PIN_FIT otherwise).
-import type { Brep } from '../brep-core.js';
-import { booleanAnalytic, faceGeometry } from '../analytic-boolean.js';
-import { transformBrep, type BrepAffine } from '../brep-transform.js';
+import type { Brep } from '../brep/brep-core.js';
+import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
+import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { fitLimits, type FitLimits, type FitTable } from './fits.js';
 import type { ShaftReport } from './shaft.js';
 import type { Point } from '../types.js';
-import { add, cross, dot, scale as scl, sub } from '../vec3.js';
+import { add, cross, dot, scale as scl, sub } from '../core/vec3.js';
 
 export type ShaftPartCode = 'INVALID_INPUT' | 'KEY_FIT' | 'RING_FIT' | 'PIN_FIT';
 export class ShaftPartError extends Error {

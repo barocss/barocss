@@ -3,7 +3,7 @@ import type { StoredPlateHoleSolidResult } from './stored-plate-hole-solid.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const StoredPlateHolePointDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOLID: 'SOLID', ARITHMETIC: 'ARITHMETIC', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const);
 type Code = typeof StoredPlateHolePointDiagnosticCode[keyof typeof StoredPlateHolePointDiagnosticCode];

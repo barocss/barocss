@@ -2,13 +2,13 @@ import { compileCadModel } from '../../model-compiler.js';
 import type { CadCompileResult } from '../../model-compiler.js';
 import type { CadAstValue, CadAstDeclaration } from '../../language/source-ast.js';
 import type { SurfaceControlNetEdits, SurfacePoleField, SurfacePoleEditProvenance } from '../surfaces/surface-control-net.js';
-import { validateSurface, surfaceDomain, evaluateSurface } from '../../math.js';
-import { evaluateSurfaceD1 } from '../../derivatives.js';
-import type { SurfaceD1Result } from '../../derivatives.js';
+import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math.js';
+import { evaluateSurfaceD1 } from '../../core/derivatives.js';
+import type { SurfaceD1Result } from '../../core/derivatives.js';
 import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceSurfaceControlNetWideDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type SourceSurfaceControlNetWideDiagnosticCode = typeof SourceSurfaceControlNetWideDiagnosticCode[keyof typeof SourceSurfaceControlNetWideDiagnosticCode];

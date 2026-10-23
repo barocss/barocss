@@ -9,7 +9,7 @@ import type { RowKind } from '../rowDefinitions';
 import { datumPlane, readReferences, ReferenceError } from '../references';
 import { checkNode, deleteFeature } from '../features';
 import { withLook } from '../../app/bodies';
-import { MATERIALS } from '../../app/materials';
+import { MATERIALS } from '../../library/materials';
 import { resolveNames, resolveSelectors } from '../names';
 import { rematchNames } from '../../engine/rematch';
 import { editSections } from '../../frames/sections';
@@ -17,7 +17,8 @@ import { skeletonEditRefusal, solvedSkeleton, withFollowed } from '../../frames/
 import { weldList, type WeldRecord } from '../../frames/welds';
 import { beadOwnershipError, type BeadOwnership } from '../../frames/beadOwnership';
 import { bearingContextOf } from '../../engine/bearingContext';
-import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, accept, fail, checkValues, isObj, strings, list, inRange, isVec3 } from '../toolKit';
+import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json, accept, fail, checkValues, strings, list, inRange } from '../toolKit';
+import { isObj, isVec3 } from '../../util/guards';
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
 // (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with

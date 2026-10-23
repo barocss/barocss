@@ -105,6 +105,10 @@ export function checkMaterials(d: MaterialsData): string[] {
   return problems;
 }
 export const MATERIALS_DATA = materialsJson as unknown as MaterialsData;
+/** The materials a body can be made of (a body's look names one; the part has a default), by density for mass. */
+export const MATERIALS = MATERIALS_DATA.materials.map(m => ({ id: m.id, label: m.label, gPerCm3: m.densityGPerCm3 }));
+/** A material by id (the first, aluminium, for none or an unknown one). */
+export const materialOf = (id: string | undefined) => MATERIALS.find(m => m.id === id) ?? MATERIALS[0];
 export const materialData = (id: string | undefined): MaterialData | undefined => MATERIALS_DATA.materials.find(m => m.id === id);
 export const processProfile = (id: string | undefined): ProcessProfile | undefined => MATERIALS_DATA.profiles.find(p => p.id === id);
 export const printerProfile = (id: string | undefined): PrinterProfile | undefined => MATERIALS_DATA.printers.find(p => p.id === id);

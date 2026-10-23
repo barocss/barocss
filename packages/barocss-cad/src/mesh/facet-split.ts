@@ -6,12 +6,12 @@
 // plane chained into loops and triangulated from those very points, holes by containment. Faces keep their names;
 // a face cut in two is a face on each side; the cap is `<at>.cut.top` below and `<at>.cut.bottom` above (as the
 // analytic split names it).
-import { BrepError, isFacetFace, mergeBreps, type Brep } from '../brep-core.js';
-import { triangulatePolygonWithHoles } from '../brep-tessellate.js';
+import { BrepError, isFacetFace, mergeBreps, type Brep } from '../brep/brep-core.js';
+import { triangulatePolygonWithHoles } from '../brep/brep-tessellate.js';
 import { facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
 import { MeshBrepError } from './mesh-brep.js';
 import type { FacetPatch, Point } from '../types.js';
-import { cross as crossOf } from '../vec3.js';
+import { cross as crossOf } from '../core/vec3.js';
 
 type XY = [number, number];
 export interface FacetSplitOptions {

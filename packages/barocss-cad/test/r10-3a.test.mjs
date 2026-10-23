@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart } from '../dist/index.js';
-import { setRingStations } from '../dist/rolling-ball.js';
+import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // R10.3a (D92): the rolling ball round an edge at a corner. Where two finished edges meet at an inside corner of the face
 // they share, and the edge between their other faces (not finished) turns the other way to the fillet — a box boss's

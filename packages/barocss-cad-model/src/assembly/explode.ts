@@ -3,14 +3,16 @@
 // distance — for display only: the parts, their placements and their mates stay as they are.
 import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { boundsOf } from '../engine/bounds';
 
-const centre = (bs: readonly BodyResult[]): Vec3 => { const lo = [0, 1, 2].map(k => Math.min(...bs.map(b => b.mesh.bounds.min[k]))), hi = [0, 1, 2].map(k => Math.max(...bs.map(b => b.mesh.bounds.max[k]))); return [0, 1, 2].map(k => (lo[k] + hi[k]) / 2) as Vec3; };
+/** The middle of the bodies' box. */
+function centre(bs: readonly BodyResult[]): Vec3 { const { min, max } = boundsOf(bs); return [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2]; }
 
 /** Each instance's display offset (mm). */
 export function explodeOffsets(part: readonly BodyResult[], instances: readonly { id: string; bodies: readonly BodyResult[] }[], k: number): Map<string, Vec3> {
   const all = [...part, ...instances.flatMap(i => i.bodies)], out = new Map<string, Vec3>();
   if (!all.length || !(k > 0)) return out;
-  const C = centre(all), size = Math.max(1, ...[0, 1, 2].map(a => Math.max(...all.map(b => b.mesh.bounds.max[a])) - Math.min(...all.map(b => b.mesh.bounds.min[a]))));
+  const { min: lo, max: hi } = boundsOf(all), C: Vec3 = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2], size = Math.max(1, hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
   for (const inst of instances) {
     if (!inst.bodies.length) continue;
     const c = centre(inst.bodies), d = [c[0] - C[0], c[1] - C[1], c[2] - C[2]], l = Math.hypot(d[0], d[1], d[2]);

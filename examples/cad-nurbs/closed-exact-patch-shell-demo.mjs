@@ -229,7 +229,7 @@ const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.']
 assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function'); assert.deepEqual(publicAPI.ClosedExactPatchShellDiagnosticCode, ClosedExactPatchShellDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./closed-exact-patch-shell.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/closed-exact-patch-shell.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/brep/closed-exact-patch-shell.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 for (const row of cases) {
   const request = JSON.parse(readFileSync(row.requestFile, 'utf8')), stored = JSON.parse(readFileSync(row.resultFile, 'utf8'));

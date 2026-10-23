@@ -95,6 +95,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | R5.3g: the frame and weldment features leave operation() for part-frame.ts (verbatim; helpers frozen record) | D227 | done (batched checks, fingerprint identical) |
 | R5.4 batch 1: part, machine, io, mesh, frame-sheet, language into src folders (53 files) | D229 | done (batched checks, fingerprint identical) |
 | R5.4 batch 2: nurbs/{curves,surfaces,source-wide}, exact-proof, intersect, paired, translated-strip (139 files) | D230 | done (batched checks, fingerprint identical) |
+| R5.4 batch 3: brep, core, document, blend, features (87 files) | D231 | done (batched checks, fingerprint identical) |
+| R5's fingerprint committed: packages/barocss-cad/scripts/r5-fingerprint.mjs (855 cases; sha256 ef3868df…) | D232 | done |
 | O10 (kernel part): evaluateCadPart(…, { profile: true }) — per-feature wall time and kernel calls; off by default | D228 | done (fingerprint identical off and on) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 

@@ -6,7 +6,7 @@ import { type InternalGearSpec, type PlacedInternalGear, internalGear, internalG
 import { type PlacedThroatedWheel, type ThroatedWheelSpec, throatedWormPlacement, throatedWormWheel } from '../machine/gear-worm-wheel.js';
 import { type SpurRackSpec, spurRack } from '../machine/gear-rack.js';
 import { type WormSpec, wormMatrix, wormPlacement, worm as wormSolid } from '../machine/gear-worm.js';
-import { transformBrep } from '../brep-transform.js';
+import { transformBrep } from '../brep/brep-transform.js';
 import type { BevelGearPlacement, CadPartDim, CadPartErrorCode, CadPartPoint2, GearPlacement, RackPlacement, WormPlacement, CadPartFeature, Result, Tools, PartHelpers } from './part-model.js';
 
 /** Gear diagnostics as the part model's codes (the gear's own code kept in the message). */

@@ -1,5 +1,5 @@
-import { updateBooleanExtrusionFeatureGraph } from '../boolean-extrusion-feature-graph.js';
-import type { BooleanExtrusionFeatureGraphResult, BooleanExtrusionFeatureGraphEdits } from '../boolean-extrusion-feature-graph.js';
+import { updateBooleanExtrusionFeatureGraph } from '../features/boolean-extrusion-feature-graph.js';
+import type { BooleanExtrusionFeatureGraphResult, BooleanExtrusionFeatureGraphEdits } from '../features/boolean-extrusion-feature-graph.js';
 import { planBooleanExtrusionImpactV1 } from './feature-impact-plan-v1.js';
 import type { FeatureImpactPlanV1 } from './feature-impact-plan-v1.js';
 

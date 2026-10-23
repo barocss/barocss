@@ -368,7 +368,7 @@ const typeNames = ['MultiSectionLoftOptions', 'MultiSectionLoftProvenance', 'Mul
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.MultiSectionLoftDiagnosticCode, MultiSectionLoftDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./multi-section-loft.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/multi-section-loft.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/features/multi-section-loft.d.ts'), leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(leafDeclaration), name);
 const cold = JSON.parse(readFileSync(summaries.find(row => row.name === 'five_rational_quarter_sections').authoredFile, 'utf8'));
 const compiled = publicAPI.buildMultiSectionLoftSurface(cold.sections, cold.parametersV, cold.options);

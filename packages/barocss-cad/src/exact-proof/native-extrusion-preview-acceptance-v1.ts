@@ -1,13 +1,13 @@
-import { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } from '../boolean-extrusion-feature-graph.js';
+import { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph } from '../features/boolean-extrusion-feature-graph.js';
 import type {
   BooleanExtrusionFeatureGraphV0,
   BooleanExtrusionFeatureGraphOptions,
   BooleanExtrusionFeatureGraphResult,
-} from '../boolean-extrusion-feature-graph.js';
+} from '../features/boolean-extrusion-feature-graph.js';
 import { extrudeCoplanarFaceBoolean } from '../coplanar-face-boolean-extrusion.js';
 import type { CoplanarFaceBooleanExtrusionResult } from '../coplanar-face-boolean-extrusion.js';
 import { copyCadData } from '../data-copy.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 /**
  * A ticket is an unforgeable in-memory identity, NOT a persisted authorization.

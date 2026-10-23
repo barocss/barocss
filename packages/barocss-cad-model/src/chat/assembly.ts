@@ -15,13 +15,15 @@ import { printability } from '../print/rules';
 import { orientPart, type OrientationScore } from '../print/orient';
 import { processProfile } from '../library/materials';
 import { UNLICENSED } from '../library/sharing';
+import { r3Signed as r3 } from '../util/round';
+import { isObj, isVec3 } from '../util/guards';
+import { nextFreeId } from '../util/ids';
+import { boundsOf } from '../engine/bounds';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
 export interface AssemblyOutcome { doc: StudioDoc; content: string; isError: boolean; changed: boolean; summary: string }
 
-const r3 = (v: number) => Math.round(v * 1000) / 1000;
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const json = (v: unknown) => JSON.stringify(v);
 const fail = (doc: StudioDoc, error: string, extra: Record<string, unknown> = {}): AssemblyOutcome => ({ doc, content: json({ ok: false, error, ...extra }), isError: true, changed: false, summary: error });
 
@@ -64,7 +66,7 @@ function memberInterfaceList(bodies: readonly BodyResult[]): { member_interfaces
 async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, detail: string | null) {
   const instances = await Promise.all((doc.instances ?? []).map(async inst => {
     const r = await evaluate(inst.doc), bodies = r?.ok ? r.bodies : [];
-    const min = [0, 1, 2].map(k => Math.min(...bodies.map(b => b.mesh.bounds.min[k]))) as Vec3, max = [0, 1, 2].map(k => Math.max(...bodies.map(b => b.mesh.bounds.max[k]))) as Vec3;
+    const { min, max } = boundsOf(bodies);
     return {
       id: inst.id, name: inst.name, position: inst.position.map(r3), rotation_deg: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}),
       feature_count: inst.doc.nodes.length, bodies: bodies.length, volume_mm3: r3(bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)),
@@ -85,8 +87,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
   };
 }
 
-const nextId = (used: Set<string>, prefix: string) => { let n = 1; while (used.has(`${prefix}${n}`)) n++; return `${prefix}${n}`; };
-const vec3 = (v: unknown): [number, number, number] | null => Array.isArray(v) && v.length === 3 && v.every(x => typeof x === 'number' && Number.isFinite(x)) ? v as [number, number, number] : null;
+const vec3 = (v: unknown): [number, number, number] | null => isVec3(v) ? v : null;
 
 async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: BodyResult[], evaluate: Evaluate, extra: Record<string, unknown> = {}): Promise<AssemblyOutcome> {
   const s = solveDoc(next, doc.instances);
@@ -113,7 +114,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
     case 'add_part': {
       const label = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : null;
       if (!label) return fail(doc, '"name" is required (e.g. "Shaft").');
-      const id = nextId(new Set(instances.map(i => i.id)), 'p');
+      const id = nextFreeId('p', new Set(instances.map(i => i.id)));
       let partDocument = emptyDoc();
       if (args.copy_of !== undefined) {
         const src = partDoc(doc, String(args.copy_of));
@@ -160,7 +161,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         // b moves; when it is fixed and a is not, they swap (as when picking in the studio).
         const fixed = (p: string) => p === BASE || !!byId(p)?.grounded;
         if (fixed(b.part)) { if (fixed(a.part)) return fail(doc, 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
-        mate = { id: nextId(new Set(mates.map(m => m.id)), 'm'), kind, a, b,
+        mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a, b,
           ...(kind === 'distance' ? { distance: Number(args.distance) } : {}), ...(kind === 'angle' ? { angle: Number(args.angle) } : {}), ...(kind !== 'concentric' && args.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof args.flip === 'boolean' ? { flip: args.flip } : {}) };
         list = [...mates, mate];
       } else {

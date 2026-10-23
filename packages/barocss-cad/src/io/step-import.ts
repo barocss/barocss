@@ -15,14 +15,14 @@
 //
 // A face once round with holes is cut where no hole is. Other entities (offset surfaces, vertex loops,
 // holes across a seam) are refused by name.
-import { BrepError, buildBrep, mergeBreps, type Brep } from '../brep-core.js';
+import { BrepError, buildBrep, mergeBreps, type Brep } from '../brep/brep-core.js';
 import { facetBrepFromTriangles, facetBrepsFromTriangles } from '../mesh/facet-brep.js';
-import { withCavities } from '../brep-glue.js';
-import { brepMassProperties } from '../solid-mass.js';
+import { withCavities } from '../brep/brep-glue.js';
+import { brepMassProperties } from '../brep/solid-mass.js';
 import { classifyPointInFacets } from '../mesh/facet-bvh.js';
 import { MeshBrepError } from '../mesh/mesh-brep.js';
-import { curveDomain, evaluateCurve } from '../math.js';
-import { add, cross, dot, len, scale, sub, unit } from '../vec3.js';
+import { curveDomain, evaluateCurve } from '../core/math.js';
+import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
 
 // ---- Part 21 -----------------------------------------------------------------------------------------

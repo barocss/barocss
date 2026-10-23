@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart } from '../dist/index.js';
-import { evaluateSurface } from '../dist/math.js';
-import { setRingStations } from '../dist/rolling-ball.js';
+import { evaluateSurface } from '../dist/core/math.js';
+import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // R10.5b (D103): conic and G2 sections. Between the rolling ball's contacts (as for the circle), the section is a conic
 // tangent there to both faces — rational quadratic with its middle pole at the faces' corner Q, weight ρ/(1 − ρ) — or a

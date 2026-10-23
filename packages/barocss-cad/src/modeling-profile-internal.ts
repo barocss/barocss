@@ -1,5 +1,5 @@
-import { buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, exportExtrudedProfileSolidStl } from './extruded-profile-solid.js';
-import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './extruded-profile-solid.js';
+import { buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, exportExtrudedProfileSolidStl } from './features/extruded-profile-solid.js';
+import type { ProfileLoop, ProfileSegmentInput, ExtrudedProfileSolidResult, ExtrudedProfileMass } from './features/extruded-profile-solid.js';
 
 export type ModelingProfileRequest =
   | { readonly operation: 'loop'; readonly segments: readonly ProfileSegmentInput[] }

@@ -10,12 +10,12 @@ import type { ModelNode } from '../engine/doc';
 import { renumber } from './features';
 import type { Op } from './proposals';
 import { CAGE_MUTATORS } from './cageTools';
+import { isObj } from '../util/guards';
 
 /** The tools whose `index` argument names a feature by its place. */
 const INDEXED = new Set(['edit_feature', 'delete_feature', ...CAGE_MUTATORS]);
 /** A feature id or body key in a string: `n12`, `n12.top`, `n12_p1`, `b12`, `b12_cut`. */
 const TOKEN = /(?<![\w])([nb])(\d+)(?!\d)/g;
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 
 /** A value with every id the map moves renamed (in strings and in object keys): `n5` → `n7`, `n5.top` → `n7.top`, `b5` → `b7`. */
 export function renameIds<T>(v: T, ids: ReadonlyMap<string, string>): T {

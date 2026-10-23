@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, checkBrep } from '../dist/index.js';
-import { setRingStations } from '../dist/rolling-ball.js';
+import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // R10.5 (D100): the variable-radius fillet. `radii` gives the radius at points of the edges; between them it varies by
 // arc length along the chain (shape-preserving cubic Hermite; two points: linear), carried on at its end slopes past

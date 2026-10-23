@@ -1,5 +1,5 @@
 import type { Curve, Surface, Model, Point } from '../types.js';
-import type { FaceIds, FaceBundle } from '../face.js';
+import type { FaceIds, FaceBundle } from '../core/face.js';
 import type { CompatibleRuledSurfaceResult } from '../nurbs/surfaces/compatible-ruled-surface.js';
 import type { PairedRoofDifferenceBodyRequest } from './paired-roof-difference-body.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';

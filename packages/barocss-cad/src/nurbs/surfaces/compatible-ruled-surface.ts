@@ -1,9 +1,9 @@
-import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../../math.js';
+import { validateCurve, validateSurface, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface } from '../../core/math.js';
 import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal, requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 import { guardKnots } from '../curves/knot-guard.js';
 
 export interface CompatibleRuledSurfaceOptions { surfaceId: string }

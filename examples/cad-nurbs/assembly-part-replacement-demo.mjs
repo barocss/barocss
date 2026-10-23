@@ -252,7 +252,7 @@ const declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.']
 assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], 'function'); assert.equal(typeof publicAPI.CadAssemblyError, 'function');
 assert.deepEqual(publicAPI.CadAssemblyDiagnosticCode, api.CadAssemblyDiagnosticCode); assert.ok(readFileSync(declarationPath, 'utf8').includes('./cad-assembly-part-replacement.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/cad-assembly-part-replacement.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/document/cad-assembly-part-replacement.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 for (const row of cases) {
   const request = JSON.parse(readFileSync(row.requestFile, 'utf8')), stored = JSON.parse(readFileSync(row.resultFile, 'utf8'));

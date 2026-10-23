@@ -2,12 +2,12 @@ import { compileCadModel } from '../../model-compiler.js';
 import type { CadCompileResult } from '../../model-compiler.js';
 import type { CadAstValue, CadAstDeclaration } from '../../language/source-ast.js';
 import type { CurveControlPolygonEdits, CurvePoleField, CurvePoleEditProvenance, CurveControlPolygonD1Evaluation, CurveControlPolygonD1Observation } from '../curves/curve-control-polygon.js';
-import { validateCurve, curveDomain, evaluateCurve } from '../../math.js';
-import { evaluateCurveD1 } from '../../derivatives.js';
+import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
 import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SourceCurveControlPolygonDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type SourceCurveControlPolygonDiagnosticCode = typeof SourceCurveControlPolygonDiagnosticCode[keyof typeof SourceCurveControlPolygonDiagnosticCode];

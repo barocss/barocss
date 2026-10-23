@@ -1,6 +1,6 @@
 import type { XYCirclePrismShellBundle } from '../xy-circle-prism-shell.js';
-import { curveDomain, evaluateCurve } from '../math.js';
-import type { CurveD1Result, SurfaceD1Result } from '../derivatives.js';
+import { curveDomain, evaluateCurve } from '../core/math.js';
+import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { constructPlaneCylinderCandidate, constructPlaneCylinderBindings, adopt, observe, snapshot, check, same } from './own-plane-cylinder-intersection-internal.js';

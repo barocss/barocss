@@ -1,5 +1,5 @@
-import { evaluateCurveD2, evaluateSurfaceD2 } from '../../second-derivatives.js';
-import type { CurveD2Result, SurfaceD2Result } from '../../second-derivatives.js';
+import { evaluateCurveD2, evaluateSurfaceD2 } from '../../core/second-derivatives.js';
+import type { CurveD2Result, SurfaceD2Result } from '../../core/second-derivatives.js';
 import type { Curve, Surface, Point } from '../../types.js';
 
 export const NativeCurvatureDiagnosticCode = Object.freeze({

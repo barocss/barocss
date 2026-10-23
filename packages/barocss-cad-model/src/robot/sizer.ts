@@ -10,6 +10,7 @@ import type { LinkBody } from './dynamics';
 import type { SweepLink } from './sweep';
 import { checkPair, MOTORS, REDUCERS, si, type Motor, type Reducer } from './actuators';
 import { checkDesign, type Duty, type HarnessReport, type Margin, type Unknown } from './harness';
+import { r6 } from '../util/round';
 
 export type SizerCode = 'BRIEF_INFEASIBLE' | 'NOT_CONVERGED';
 export interface Round { round: number; check: string; joint?: string; move?: number; margin: number | null; change: string }
@@ -28,7 +29,6 @@ function lightestPair(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>, du
 }
 const withRating = (tree: JointTree, key: string, patch: { velocity?: number; effort?: number }): JointTree => ({ ...tree, joints: tree.joints.map(j => (j.key === key ? { ...j, limit: { ...j.limit, ...patch } } : j)) });
 const slowed = (duty: Duty): Duty => ({ ...duty, moves: duty.moves.map(m => ({ ...m, ...(m.limits ? { limits: { ...m.limits, velocity: m.limits.velocity * 0.8, acceleration: m.limits.acceleration * 0.8, ...(m.limits.jerk ? { jerk: m.limits.jerk * 0.8 } : {}) } } : {}), ...(m.joint_limits ? { joint_limits: Object.fromEntries(Object.entries(m.joint_limits).map(([k, l]) => [k, { ...l, velocity: l.velocity * 0.8, acceleration: l.acceleration * 0.8, ...(l.jerk ? { jerk: l.jerk * 0.8 } : {}) }])) } : {}) })) });
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** A pair's capability at the joint: velocity min(motor max speed, reducer max input speed) / N (rad/s); effort the reducer's repeated peak torque (N·m). */
 export const capability = (m: Motor, r: Reducer) => ({ velocity: r6(Math.min(si(m.maxSpeed), si(r.maxInputSpeed)) / si(r.ratio) / RPM), effort: si(r.repeatedPeakTorque) });
 function holdRatings(tree: JointTree, key: string, m: Motor, r: Reducer): { tree: JointTree; note: string } {

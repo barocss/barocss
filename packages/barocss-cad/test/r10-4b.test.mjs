@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
-import { finishBrepEdges } from '../dist/edge-finish.js';
-import { setRingStations } from '../dist/rolling-ball.js';
+import { finishBrepEdges } from '../dist/blend/edge-finish.js';
+import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // R10.4b (D96): overflow onto a sharp edge — a cliff. Where a rolling-ball fillet's contact would run off its face across
 // a sharp edge of it, the ball rolls on touching the other face and that edge (the fillet meets the edge along a curve on

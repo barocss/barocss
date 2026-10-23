@@ -4,7 +4,7 @@ import { analyzeCadAst, copyCadData } from './language/semantic-model.js';
 import type { CadModelIR } from './language/semantic-model.js';
 import { lowerCadIR } from './language/lower-model.js';
 import type { Model } from './types.js';
-import type { ExtrusionConstruction } from './construction-types.js';
+import type { ExtrusionConstruction } from './document/construction-types.js';
 
 export type { CadModelAst, CadSourceRange, CadModelIR };
 export type { CadExpression } from './language/source-ast.js';

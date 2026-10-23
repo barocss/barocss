@@ -403,7 +403,7 @@ for (const name of runtimeExports) assert.equal(typeof publicAPI[name], name.end
 assert.deepEqual(publicAPI.ThreeSectionLoftDiagnosticCode, ThreeSectionLoftDiagnosticCode);
 const declarationExports = [...runtimeExports, 'ThreeSectionLoftOptions', 'ThreeSectionLoftObservation', 'ThreeSectionLoftD1Observation',
   'ThreeSectionLoftProvenance', 'ThreeSectionLoftReport', 'ThreeSectionLoftResult'];
-const leafDeclarationPath = resolve(packageRoot, 'dist/three-section-loft.d.ts');
+const leafDeclarationPath = resolve(packageRoot, 'dist/features/three-section-loft.d.ts');
 const leafDeclaration = readFileSync(leafDeclarationPath, 'utf8');
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./three-section-loft.js'));
 for (const name of declarationExports) {

@@ -2,7 +2,7 @@ import { validateMultiSpanVLinearSurfacePlaneTrimCandidates } from './multispan-
 import type { MultiSpanVLinearSurfacePlaneTrimResult } from './multispan-vlinear-plane-trim.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 
 export const MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', TRIM: 'TRIM', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode = typeof MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode[keyof typeof MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode];

@@ -255,7 +255,7 @@ assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); cons
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function');
 assert.deepEqual(publicAPI.ExtrusionPrincipalInertiaDiagnosticCode, ExtrusionPrincipalInertiaDiagnosticCode);
 assert.ok(readFileSync(declarationPath, 'utf8').includes('./extrusion-principal-inertia.js'));
-const leafDeclarationPath = resolve(packageRoot, 'dist/extrusion-principal-inertia.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(packageRoot, 'dist/features/extrusion-principal-inertia.d.ts'), declaration = readFileSync(leafDeclarationPath, 'utf8');
 for (const name of [...runtimeNames, ...typeNames]) assert.ok(new RegExp('export (?:declare )?(?:function|class|const|interface|type) ' + name + '\\b').test(declaration), name);
 for (const row of cases) {
   const authored = JSON.parse(readFileSync(row.authoredFile, 'utf8')), saved = JSON.parse(readFileSync(row.resultFile, 'utf8'));

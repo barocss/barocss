@@ -6,7 +6,7 @@ import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../../cad-docu
 import type { SourceLineWidthFaceOptions, SourceLineWidthFaceResult } from './source-line-width-face.js';
 import type { ConvexPlanarFaceExtrusionResult } from '../../convex-planar-face-extrusion.js';
 import type { RectangularFaceExtrusionBodyOptions, RectangularFaceExtrusionBodyResult } from '../../rectangular-face-extrusion-body.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 type Size = { utf16: number; utf8: number };
 type Parameter = { id: string; kind: 'length'; unit: 'mm'; valueMM: number };

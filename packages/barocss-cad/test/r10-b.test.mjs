@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
-import { finishBrepEdges } from '../dist/edge-finish.js';
+import { finishBrepEdges } from '../dist/blend/edge-finish.js';
 
 // R10.B (D99): the analytic Boolean where tool faces coincide with body faces or lie along them. Each case here was
 // refused or failed before (HEAD f2015c295-aef81b898): the rolling ball's tool capped in an end face's plane (D97), a

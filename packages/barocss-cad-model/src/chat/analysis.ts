@@ -10,9 +10,10 @@ import { bodyKeyFor } from '../engine/ids';
 import { materialIdOf } from '../app/bodies';
 import { draftField } from '../mould/draft';
 import { refOf } from '../app/bodyRef';
-import { materialOf } from '../app/materials';
+import { materialOf } from '../library/materials';
+import { r3Signed as r3 } from '../util/round';
+import { KERNEL_DENSITY, massGOf } from '../app/mass';
 
-const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const v3 = (v: readonly number[]) => v.map(r3) as Vec3;
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 
@@ -26,12 +27,13 @@ export function materialFact(doc: StudioDoc, b: BodyResult): { material: string;
 export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): Record<string, unknown>[] {
   return bodies.map(b => {
     const mat = materialFact(doc, b), rho = materialOf(materialIdOf(doc, b)).gPerCm3;
-    // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density.)
-    const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / 2.7).toPrecision(6))));
+    // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density — as (x · ρ) / 2.7, an order kept
+    // apart from app/mass's x · (ρ / 2.7), which rounds differently.)
+    const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / KERNEL_DENSITY).toPrecision(6))));
     return { body: b.key, ...mat, volume_mm3: b.volumeMM3 === null ? null : r3(b.volumeMM3), area_mm2: r3(b.areaMM2 ?? b.mesh.faces.reduce((a, f) => a + f.areaMM2, 0)), ...(b.areaBasis === 'exact' ? {} : { area_basis: 'the display mesh\'s triangles (the kernel could not integrate it): a little low on curved faces' }),
-      mass_g: b.volumeMM3 === null ? null : r3(b.volumeMM3 * rho / 1000),
+      mass_g: b.volumeMM3 === null ? null : r3(massGOf(b.volumeMM3, rho)),
       // (O179: a volume from the mesh is said so, with its bound and the mass's — never shown as exact.)
-      ...(b.volumeBasis ? { volume_basis: { method: b.volumeBasis.method, bound_mm3: b.volumeBasis.boundMM3 === null ? null : r3(b.volumeBasis.boundMM3), mass_bound_g: b.volumeBasis.boundMM3 === null ? null : r3(b.volumeBasis.boundMM3 * rho / 1000), note: 'the display mesh\'s volume (the kernel could not integrate it): within the bound of the exact, an estimate' } } : {}),
+      ...(b.volumeBasis ? { volume_basis: { method: b.volumeBasis.method, bound_mm3: b.volumeBasis.boundMM3 === null ? null : r3(b.volumeBasis.boundMM3), mass_bound_g: b.volumeBasis.boundMM3 === null ? null : r3(massGOf(b.volumeBasis.boundMM3, rho)), note: 'the display mesh\'s volume (the kernel could not integrate it): within the bound of the exact, an estimate' } } : {}),
       centroid: b.centroid ? v3(b.centroid) : null,
       ...(inertia ? { inertia_kg_m2_about_centroid: inertia } : {}), bbox: { min: v3(b.mesh.bounds.min), max: v3(b.mesh.bounds.max) } };
   });
@@ -46,7 +48,7 @@ export function massBoundOf(doc: StudioDoc, bodies: readonly BodyResult[]): numb
   for (const b of bodies) {
     if (!b.volumeBasis) continue;
     if (b.volumeBasis.boundMM3 === null) return null;
-    g += b.volumeBasis.boundMM3 * materialOf(materialIdOf(doc, b)).gPerCm3 / 1000;
+    g += massGOf(b.volumeBasis.boundMM3, materialOf(materialIdOf(doc, b)).gPerCm3);
   }
   return g;
 }

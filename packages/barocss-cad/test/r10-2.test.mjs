@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
-import { finishBrepEdges } from '../dist/edge-finish.js';
-import { setRingStations } from '../dist/rolling-ball.js';
+import { finishBrepEdges } from '../dist/blend/edge-finish.js';
+import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // R10.2a (D89): the rolling-ball fillet of a closed chain between any two faces — stations solved where the ball touches
 // both, the tool lofted through their sections (C² cubic, its patches breaking where the contacts cross the faces' seams)

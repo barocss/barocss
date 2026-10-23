@@ -1,7 +1,7 @@
 // R5.3 (D227): the part model's frame and weldment features — members, frames, gussets, end caps and weld beads —
 // moved out of part-model.ts's operation() as they were there. The frame helpers stay in part-model.ts (they build on
 // its Boolean, which the coverage trap pins there) and come in the helpers. The dispatcher calls `frameOperation`.
-import { add, cross, dot, len, scale, sub, unit } from '../vec3.js';
+import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { CadPartPoint3, Part, Result, CadPartFeature, Tools, PartHelpers } from './part-model.js';
 
 /** A frame or weldment feature's evaluation (part-model.ts's operation() for these kinds). */

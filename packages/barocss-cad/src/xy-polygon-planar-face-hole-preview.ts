@@ -1,9 +1,9 @@
 import { validateXYPolygonPlanarFaceWithHoleBundle } from './xy-polygon-planar-face-hole.js';
 import type { XYPolygonPlanarFaceWithHoleBundle, XYPolygonPlanarFaceWithHoleReport } from './xy-polygon-planar-face-hole.js';
-import { evaluateCurve, curveDomain, surfaceDomain } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { validatePreviewPacket } from './packet.js';
-import type { PreviewPacket } from './packet.js';
+import { evaluateCurve, curveDomain, surfaceDomain } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { validatePreviewPacket } from './core/packet.js';
+import type { PreviewPacket } from './core/packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
 

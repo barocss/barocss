@@ -1,6 +1,6 @@
-import { curveDomain, evaluateCurve, validateCurve } from '../../math.js';
-import { evaluateCurveD1 } from '../../derivatives.js';
-import type { CurveD1Result } from '../../derivatives.js';
+import { curveDomain, evaluateCurve, validateCurve } from '../../core/math.js';
+import { evaluateCurveD1 } from '../../core/derivatives.js';
+import type { CurveD1Result } from '../../core/derivatives.js';
 import { elevateBezierCurveDegree } from '../curves/bezier-curve-degree-elevation.js';
 import type { BezierCurveDegreeElevationResult, BezierCurveDegreeElevationProvenance } from '../curves/bezier-curve-degree-elevation.js';
 import { buildRationalRuledSurface } from './rational-ruled-surface.js';
@@ -8,7 +8,7 @@ import type { RationalRuledSurfaceResult, RationalRuledSurfaceReport } from './r
 import { requireCurveValue } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
-import { same as sameData } from '../../structural-equality.js';
+import { same as sameData } from '../../core/structural-equality.js';
 
 export interface DegreeMatchedBezierRuledOptions { surfaceId: string; targetDegree: 2 | 3 }
 export interface DegreeMatchedBezierSectionProvenance {

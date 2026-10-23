@@ -21,6 +21,7 @@ import type { SheetLayout } from './views';
 import { isSectionRef, sectionLetter, type DimPoint, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type SectionRef, type ViewId, type XY } from './types';
 import { placementOf, type SheetSection } from './sheet';
 import type { PartElement } from './elementCallouts';
+import { nextFreeId } from '../util/ids';
 
 export const AUTO_DIMENSIONS_VERSION = 'cad-studio-auto-dimensions-v1';
 
@@ -318,7 +319,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
   // Placement: rows outward from the view on its freer side, inner rows the shorter.
   const out: DrawingDimension[] = [...manual], used = new Set(manual.map(d => d.id));
   const manualSpans = new Set(manual.map(m => spanKey(dimViews, m, base)).filter((k): k is string => !!k));
-  const nextId = () => { let n = 1; while (used.has(`d${n}`)) n++; used.add(`d${n}`); return `d${n}`; };
+  const nextId = () => { const id = nextFreeId('d', used); used.add(id); return id; };
   const onSections = sections.filter(x => layout.sections?.some(p => p.section === x.id)).map(x => `section:${x.id}` as SectionRef);
   for (const id of [...ORTHO.filter(o => !layout.views[o].hidden), ...onSections] as DimView[]) {
     if (!planned[id]?.length && isSectionRef(id)) continue;

@@ -1,11 +1,11 @@
 import { CadNumericPolicy } from '../../numeric-policy.js';
 import { buildInterpolatingCurve, CurveInterpolationError } from '../curves/curve-interpolation.js';
 import type { CurveInterpolationResult } from '../curves/curve-interpolation.js';
-import { validateSurface, evaluateSurface, surfaceDomain } from '../../math.js';
+import { validateSurface, evaluateSurface, surfaceDomain } from '../../core/math.js';
 import { adopt } from '../../intersect/own-plane-cylinder-intersection-internal.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const SurfaceInterpolationDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const);

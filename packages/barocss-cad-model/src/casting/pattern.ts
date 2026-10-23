@@ -8,6 +8,7 @@ import { materialData } from '../library/materials';
 import { castingProfileOf, hasCastingRules, noCastingRules } from '../engine/castingRuleRows';
 import { dispatchTool, type ChatState } from '../chat/tools';
 import { machinedFaces, machiningOf, machiningView, partExtent, shrinkByDimension, shrinkOf, shrinkView, type MachiningAllowance, type ShrinkAllowance } from './allowances';
+import { r6 } from '../util/round';
 
 type Evaluate = Parameters<typeof dispatchTool>[3];
 export type PatternCode = 'PATTERN_NOT_CASTING' | 'PATTERN_ONE_BODY' | 'PATTERN_MATERIAL' | 'PATTERN_SHRINK' | 'PATTERN_ALLOWANCE' | 'PATTERN_FACE' | 'PATTERN_BUILD';
@@ -20,7 +21,6 @@ export interface PatternFile {
 }
 export type PatternResult = { ok: true; doc: StudioDoc; bodies: BodyResult[]; file: PatternFile } | { ok: false; code: PatternCode; message: string };
 
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 const failed = (code: PatternCode, message: string): PatternResult => ({ ok: false, code, message });
 
 /** The pattern of a one-body cast part: its machining allowance on the marked flat faces, then its shrinkage. */

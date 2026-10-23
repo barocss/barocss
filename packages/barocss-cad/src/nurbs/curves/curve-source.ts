@@ -1,5 +1,5 @@
 import { compileCadModel } from '../../model-compiler.js';
-import { validateCurve } from '../../math.js';
+import { validateCurve } from '../../core/math.js';
 import type { Curve, Model, Point } from '../../types.js';
 
 export function requireCurveValue(condition: boolean, detail: string, label = 'XY profile'): asserts condition {

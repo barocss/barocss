@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { extrudeCurve } from '../dist/extrusion.js';
-import { evaluateCurve, evaluateSurface, validateSurface } from '../dist/math.js';
+import { extrudeCurve } from '../dist/core/extrusion.js';
+import { evaluateCurve, evaluateSurface, validateSurface } from '../dist/core/math.js';
 
 const arc = {
   kind: 'curve', id: 'arc', degree: 2, knots: [0, 0, 0, 1, 1, 1],

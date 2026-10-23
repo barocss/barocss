@@ -30,7 +30,7 @@
 // lines' envelope, K = h m + h_β Jm (m = (cos β, sin β)), its radius of curvature ρ = h + h_ββ; translating, h = r_b + s
 // and ρ = r_b + s + s'' (Norton's eq.); an undercut where ρ ≤ 0. Oscillating: n = (sin ψ, cos ψ), h = a sin ψ − c (the
 // face c from the pivot toward the cam), sin ψ0 = (r_b + c)/a.
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import type { Curve, Point } from '../types.js';
 import { arcCurve, extrudedProfile } from './gear.js';
 

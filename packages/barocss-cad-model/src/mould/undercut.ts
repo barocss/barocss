@@ -11,6 +11,7 @@
 import type { BodyResult } from '../engine/evaluate';
 import type { Vec3 } from '../engine/mesh';
 import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
+import { boundsOf } from '../engine/bounds';
 
 export interface UndercutRegion {
   body: string; faces: string[]; areaMM2: number; centroid: Vec3; triangles: number;
@@ -42,8 +43,7 @@ function root(parent: Int32Array, x: number): number { while (parent[x] !== x) {
  */
 export function undercuts(bodies: readonly BodyResult[], pull: readonly number[], stepMM?: number): UndercutReport {
   const d = unit(pull), back: Vec3 = [-d[0], -d[1], -d[2]], [u, v] = across(d), sides: Vec3[] = [u, [-u[0], -u[1], -u[2]], v, [-v[0], -v[1], -v[2]]];
-  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-  for (const b of bodies) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
+  const { min: lo, max: hi } = boundsOf(bodies);
   const h = stepMM ?? Math.max(0.05, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 400);
   const regions: UndercutRegion[] = [];
   let samples = 0, coarsest = 0;

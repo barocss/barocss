@@ -19,7 +19,7 @@
 // crossed helical pair at 90° with a ZI worm (point contact), conjugate to a ZA worm in the mid-plane only. The pair is
 // checked by sections square to the wheel's axis: the wheel's transverse profile there, the worm's thread cut by the
 // same plane (each section point of the worm's transverse outline carried to where its helix crosses the plane).
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import type { Curve, Point } from '../types.js';
 import {
   GearError, inv, arcCurve, reversed, lineCurve, safeId, bezierKnots, flankPoles, flankDeviation, extrudedProfile, twistDeviation, exactProfile, spurGearDimensions, segmentsCross, pointSegment,

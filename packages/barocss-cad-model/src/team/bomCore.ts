@@ -10,16 +10,20 @@ import { massBoundOf, massProperties } from '../chat/analysis';
 import { materialIdOf } from '../app/bodies';
 import { elementLines, madeBodies } from '../engine/elements';
 import { partCutList } from '../app/cutList';
-import { MATERIALS } from '../app/materials';
+import { MATERIALS } from '../library/materials';
 import { beadAccounting, combineBeadAccounting, type BeadAccounting } from '../frames/beadAccounting';
 import { fastenerRowFor } from '../engine/fastenerRows';
+import { r6 } from '../util/round';
 
 // Equal feature text can resolve different local/parent rows. Compare the converted geometry for row-backed parts.
 function shapeOf(doc: StudioDoc, evaluated: boolean): string {
   const backed = doc.nodes.some(n => ['bearing', 'oring-gland', 'oring', 'retaining-ring', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening'].includes(n.kind) || ((n.kind === 'frame' || n.kind === 'frame-member') && (n.section.kind === 'library' || (n.kind === 'frame' && n.overrides?.some(o => o.section?.kind === 'library')))));
   return JSON.stringify(backed && evaluated ? toPartDocument(doc) : doc.nodes);
 }
-/** A body's mass from its exact volume and its material's density (O169): its own massG is the default material's. */
+/**
+ * A body's mass from its exact volume and its material's density (O169): its own massG is the default material's.
+ * (V · ρ · 1e-3, not app/mass's massGOf V · ρ / 1000: the two round differently, and the BOM keeps its own.)
+ */
 const exactMass = (doc: StudioDoc, b: BodyResult): number | null => { const m = MATERIALS.find(x => x.id === materialIdOf(doc, b)); return b.volumeMM3 === null || !m ? b.massG : r6(b.volumeMM3 * m.gPerCm3 * 1e-3); };
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0);
 /** O179: a mass found partly from the mesh — its bound (g; null when a tessellated body has none) — or nothing when exact. */
@@ -70,7 +74,6 @@ export interface BomLine {
   member?: { section: string; lengthMM: number };
 }
 export interface Bom { lines: BomLine[]; totalQty: number; /** Valid body subtotal when beadAccounting is incomplete; not an approvable total. */ totalMassG: number; /** O179: how far the total may be off (g; null: unknown), when any of it is from the mesh. */ totalMassBoundG?: number | null; beadAccounting?: BeadAccounting; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
-const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The BOM agent's view from evaluations given at once (O147: the chat's drawings build it synchronously). */
 export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null): BomView {
   doc = resolveShopTree(doc);

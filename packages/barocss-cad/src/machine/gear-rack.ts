@@ -12,7 +12,7 @@
 // R12b.1b (D131): the rack's root fillet (`rootPolicy: 'filleted'`, generator spur-rack@1) — the basic rack's own,
 // radius ρ (0.38 m by default), tangent to the flank and the root line; in a helical rack's transverse section the
 // ellipse a = ρ / cos β along the rack, b = ρ across (the normal section's circle, cut at β), exact as a rational arc.
-import type { Brep } from '../brep-core.js';
+import type { Brep } from '../brep/brep-core.js';
 import type { Curve } from '../types.js';
 import {
   GearError, inv, spurGearDimensions, extrudedProfile, safeId, lineCurve, exactProfile, teethNear, nearSegments, segmentsCross, segmentDistance, pointSegment, orient,

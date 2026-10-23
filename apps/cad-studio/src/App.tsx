@@ -11,7 +11,7 @@ import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepar
 import { resolveSkeletons } from '@barocss/cad-model/frames/skeleton';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
-import { MATERIALS } from '@barocss/cad-model/app/materials';
+import { MATERIALS } from '@barocss/cad-model/library/materials';
 import { checkSpec, expectedOf, modelHash, type Outcome } from '@barocss/cad-model/chat/spec';
 import { rejectProposal, stripHistory, type Proposal } from '@barocss/cad-model/chat/proposals';
 import type { ProposalPart } from '@barocss/cad-model/chat/tools';
@@ -2614,7 +2614,7 @@ export function App() {
               {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
             </>; })()}
             {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, sizes = fastenerSizesOf(doc), t = made?.command === 'fastener' ? fastenerThread(made.values, sizes) : null;
-              return t ? <><div className="kv">Part <b>{fastenerName(made!.values, sizes)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal ISO sizes — check the standard before manufacture.</div></> : null; })()}
+              return t ? <><div className="kv">Part <b>{fastenerName(made!.values, sizes)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal sizes from your fastener rows — check the standard before manufacture.</div></> : null; })()}
             {b.centroid && <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>}
             {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.gPerCm3); if (!mp) return null;
               const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.massG, mp.centroid, [0, 0, 0]) : mp.inertia;

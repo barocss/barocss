@@ -2,8 +2,9 @@
 // (a quarter turn or less each), text in the standard Helvetica fonts (WinAnsi, so Ø and ° print).
 import { PENS, hatch, type Mark, type Sheet } from './sheet';
 import { textWidth } from './text';
+import { MM_PER_INCH } from '../util/units';
 
-const PT = 72 / 25.4;
+const PT = 72 / MM_PER_INCH;
 const n = (v: number) => { const r = Math.round(v * 1e4) / 1e4; return Object.is(r, -0) ? '0' : String(r); };
 
 /** The characters of the sheet's text a PDF in its standard fonts cannot show (they print as ?). */

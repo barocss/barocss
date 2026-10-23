@@ -2,10 +2,10 @@ import { admitWorkplaneSketchFrame } from './workplane-sketch-frame-internal.js'
 import type { WorkplaneSketchFrameReport } from './workplane-sketch-frame-internal.js';
 import { evaluateXYSketchDocument, updateXYSketchDocument } from './xy-sketch-document.js';
 import type { XYSketchDocumentV0, XYSketchDocumentEdit, XYSketchDocumentResult, XYSketchEvaluatedProfile } from './xy-sketch-document.js';
-import { transformNativeGeometryAffine, validateAffineGeometryTransform } from './affine-geometry-transform.js';
-import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from './affine-geometry-transform.js';
+import { transformNativeGeometryAffine, validateAffineGeometryTransform } from './features/affine-geometry-transform.js';
+import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from './features/affine-geometry-transform.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const WorkplaneSketchDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', FRAME: 'FRAME', BINDING: 'BINDING', BUDGET: 'BUDGET', LOCAL: 'LOCAL', AFFINE: 'AFFINE', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type WorkplaneSketchDocumentDiagnosticCode = typeof WorkplaneSketchDocumentDiagnosticCode[keyof typeof WorkplaneSketchDocumentDiagnosticCode];

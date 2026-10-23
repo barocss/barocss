@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildRectangleAdjacency, validateRectangleAdjacency } from '../dist/adjacency.js';
-import { buildParametricFace, validateFaceBundle } from '../dist/face.js';
-import { evaluateCurve, evaluateSurface, validateSurface } from '../dist/math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/derivatives.js';
+import { buildRectangleAdjacency, validateRectangleAdjacency } from '../dist/core/adjacency.js';
+import { buildParametricFace, validateFaceBundle } from '../dist/core/face.js';
+import { evaluateCurve, evaluateSurface, validateSurface } from '../dist/core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 
 const report = { incidenceValid: true, geometryFamily: 'exact-axis-rectangles-v0', sharedEdges: 1, closed: false, solid: false };
 const fractions = [0, ...Array.from({ length: 17 }, (_, i) => ((i + 1) / 18) ** 1.37), 1];

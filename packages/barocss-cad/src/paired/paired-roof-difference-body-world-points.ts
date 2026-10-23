@@ -4,7 +4,7 @@ import { classifyPairedRoofDifferenceBodyWorldQueriesTrusted } from './paired-ro
 import type {Point} from '../types.js';
 import type {PairedRoofDifferenceBodyResult} from './paired-roof-difference-body.js';
 import type {SectionFraction} from '../section-rational-internal.js';
-import { same } from '../structural-equality.js';
+import { same } from '../core/structural-equality.js';
 type F=SectionFraction;
 type Size={utf16:number;utf8:number};
 type Status='inside'|'outside'|'boundary';

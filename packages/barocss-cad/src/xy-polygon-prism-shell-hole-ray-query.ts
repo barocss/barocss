@@ -1,11 +1,11 @@
 import { CadNumericPolicy } from './numeric-policy.js';
 import { validateXYPolygonPrismShellWithHole } from './xy-polygon-prism-shell-hole.js';
 import type { XYPolygonPrismShellWithHole, XYPolygonPrismShellWithHoleReport, XYPolygonPrismHoleCapFace } from './xy-polygon-prism-shell-hole.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { evaluateCurve, curveDomain, surfaceDomain } from './math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { evaluateCurve, curveDomain, surfaceDomain } from './core/math.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
-import { dot, sub as subtract } from './vec3.js';
+import { dot, sub as subtract } from './core/vec3.js';
 
 export interface XYPolygonPrismHoleShellRayQueryOptions { originMM: Point; direction: Point; maxDistanceMM: number }
 export type XYPolygonPrismHoleShellRayFaceRole = 'bottom-cap' | 'top-cap' | 'outer-wall' | 'hole-wall';

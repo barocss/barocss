@@ -65,13 +65,63 @@ that they only touch, and exports keep them as separate pieces.
 
 ## Sheet metal, frames and smooth shapes
 
+### Sheet metal
+
+- **Sheet plate** and **Sheet profile** start a sheet-metal part. **Flange** adds a bend along a straight edge, and
+  **Corner relief** cuts a corner free.
+- **The sheet's rules.** Each part carries its thickness, its bends' inner radius and its K-factor.
+  - The prefilled rules (1.5 mm, R = T, K 0.5) are estimates, not material data, and their labels say so.
+  - A bend table you load (the `bend` rows; see [Shop rows](/studio/rows)) gives each bend's K instead.
+- **The flat pattern.** A sheet body's properties show its **Flat pattern** size. **Show the flat pattern** draws it
+  to scale: the outline, and each bend's centre line dashed, up and down in two colours, with its note. **Export flat
+  DXF** writes it as DXF 2000 or R12.
+
+### Frames
+
+**Frame**, **Structural member**, **Gusset** and **End cap** build welded frames. See
+[Frames and weldments](/studio/frames).
+
+### SubD and the cage editor
+
+**SubD box**, **SubD tube** and **SubD torus** make smooth bodies from a subdivision cage, with exact B-spline faces.
+
 ![A SubD box: one smooth body from a box cage](/shots/studio/features/subd-box.jpg)
 
-- **Sheet plate**, **Sheet profile**, **Flange** and **Corner relief** build sheet-metal parts that carry the sheet's
-  thickness, bend radius and K-factor.
-- **Frame**, **Structural member**, **Gusset** and **End cap** build welded frames. See
-  [Frames and weldments](/studio/frames).
-- **SubD box**, **SubD tube** and **SubD torus** make smooth bodies from a subdivision cage, with exact B-spline faces.
+**Edit cage**, from the command palette, opens the **Cage editor** on a SubD feature:
+
+- **Pick** vertices, edges or faces with <kbd>1</kbd>, <kbd>2</kbd> and <kbd>3</kbd>. Double-click an edge for its
+  loop, and Alt-double-click for its ring.
+- **Move** what is picked with the gizmo. Holding <kbd>Shift</kbd> as a drag starts extrudes instead.
+- **Show** the cage as **Box** or **Smooth** (<kbd>Tab</kbd>).
+- **Operations** on the picked items:
+
+  | Operation | Key | What it does |
+  |---|---|---|
+  | **Extrude** | <kbd>E</kbd> | The picked faces, or boundary edges, out as a new region |
+  | **Insert loop** | <kbd>L</kbd> | An edge loop across the ring through the picked edge |
+  | **Bridge** | <kbd>B</kbd> | Quads between two boundary loops of as many edges |
+  | **Fill** | <kbd>F</kbd> | One face over a hole |
+  | **Weld** | <kbd>W</kbd> | The picked vertices merged at their middle; **Weld near** merges those within 0.01 mm |
+  | **Crease** | <kbd>C</kbd> | The picked edges made sharp; **Smooth edges** takes creases off |
+  | **Delete** | <kbd>⌫</kbd> | The picked faces removed, leaving a hole |
+
+- **Mirror** the cage **Across X**, **Y** or **Z**, or **None**.
+- **Checks.** The panel says what the cage's checks flag.
+- **Undo, Done and Cancel.** <kbd>⌘</kbd> <kbd>Z</kbd> steps back within the session. **Done** (<kbd>Enter</kbd>)
+  writes the cage as one step of the part's history; **Cancel** (<kbd>Esc</kbd>) leaves it as it was.
+
+Moving vertices is a value edit of the feature; changing its faces or creases changes its structure. This matters
+for what the agent may change directly (see [Proposals and autonomy](/agent/proposals)).
+
+### From a picture
+
+Attach an image in the chat, such as a logo, a character or an icon, and ask the agent to build it:
+
+- **Tracing.** The studio traces the image into outlines: the background is found, and the foreground is split into a
+  few flat colours, each with its holes.
+- **Building.** The agent extrudes or inflates a traced layer, at the width you ask for.
+- **A draft.** Features made from a picture are a draft. Their dimensions stay unconfirmed until you confirm them,
+  and an export says the part is a draft. See [Designing with the agent](/agent/).
 
 ## Inspect
 

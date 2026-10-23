@@ -1,10 +1,10 @@
 import { compileCadModel } from '../../model-compiler.js';
-import { curveDomain } from '../../math.js';
+import { curveDomain } from '../../core/math.js';
 import { evaluateCurveCurvature, NativeCurvatureError } from '../surfaces/local-curvature.js';
 import type { CurveCurvatureResult } from '../surfaces/local-curvature.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
-import { same } from '../../structural-equality.js';
+import { same } from '../../core/structural-equality.js';
 
 export const CurveEndpointContinuityDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', NATIVE: 'NATIVE',

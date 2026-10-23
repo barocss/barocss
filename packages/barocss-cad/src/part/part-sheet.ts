@@ -3,7 +3,7 @@
 // The dispatcher calls `sheetOperation` for those kinds.
 import { type BendTable, SheetMetalError, type SheetReport, bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, outsideSetback } from '../frame-sheet/sheet-metal.js';
 import { type Point } from '../types.js';
-import { prismaticFromProfile } from '../prismatic-solid.js';
+import { prismaticFromProfile } from '../features/prismatic-solid.js';
 import type { CadPartDim, CadPartPoint2, CadPartSketchPlane, Result, Solid, CadPartFeature, Tools, PartHelpers } from './part-model.js';
 
 /** A sheet-metal feature's evaluation (part-model.ts's operation() for these kinds). */

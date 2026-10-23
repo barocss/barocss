@@ -1,4 +1,4 @@
-import type { BooleanExtrusionFeatureGraphReport } from '../boolean-extrusion-feature-graph.js';
+import type { BooleanExtrusionFeatureGraphReport } from '../features/boolean-extrusion-feature-graph.js';
 
 /**
  * Read-only dependency impact analysis for the existing bounded Boolean/extrusion

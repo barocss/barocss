@@ -1,9 +1,9 @@
 import { validateCoplanarFaceBooleanExtrusion } from './coplanar-face-boolean-extrusion.js';
 import type { CoplanarFaceBooleanExtrusionResult } from './coplanar-face-boolean-extrusion.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import type { SurfaceD1Result } from './derivatives.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import type { SurfaceD1Result } from './core/derivatives.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);

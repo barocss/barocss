@@ -1,10 +1,10 @@
 import { compileCurveSource } from './nurbs/curves/curve-source.js';
-import { evaluateCurve } from './math.js';
-import { evaluateCurveD1 } from './derivatives.js';
-import type { CurveD1Result } from './derivatives.js';
+import { evaluateCurve } from './core/math.js';
+import { evaluateCurveD1 } from './core/derivatives.js';
+import type { CurveD1Result } from './core/derivatives.js';
 import type { Curve, Model, Point } from './types.js';
 import type { XYPoint } from './xy-profile.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const XYAngleArcDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', UNIT: 'UNIT', RANGE: 'RANGE', ARITHMETIC: 'ARITHMETIC', NATIVE: 'NATIVE', SOURCE: 'SOURCE', BUDGET: 'BUDGET', OWNED: 'OWNED' } as const);
 export type XYAngleArcDiagnosticCode = typeof XYAngleArcDiagnosticCode[keyof typeof XYAngleArcDiagnosticCode];

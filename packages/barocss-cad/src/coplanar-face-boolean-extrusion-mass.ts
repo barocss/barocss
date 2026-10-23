@@ -1,10 +1,10 @@
 import { measureCoplanarFaceBooleanExtrusion } from './coplanar-face-boolean-extrusion-properties.js';
 import type { CoplanarFaceBooleanExtrusionPropertiesResult, CoplanarFaceBooleanExtrusionPropertiesComponent } from './coplanar-face-boolean-extrusion-properties.js';
 import type { CoplanarFaceBooleanExtrusionResult } from './coplanar-face-boolean-extrusion.js';
-import { evaluateSurface } from './math.js';
+import { evaluateSurface } from './core/math.js';
 import { copyCadData } from './data-copy.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const CoplanarFaceBooleanExtrusionMassDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED',

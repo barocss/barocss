@@ -1,10 +1,10 @@
 import type { ConvexPlanarFaceExtrusionResult } from './convex-planar-face-extrusion.js';
 import type { CompatibleRuledSurfaceResult } from './nurbs/surfaces/compatible-ruled-surface.js';
 import type { QualifiedTranslatedStripBodyResult, QualifiedTranslatedStripBodyReport } from './translated-strip/qualified-translated-strip-body.js';
-import type { ClosedExactPatchShellResult } from './closed-exact-patch-shell.js';
+import type { ClosedExactPatchShellResult } from './brep/closed-exact-patch-shell.js';
 import type { SectionRationalContext, SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { Curve, Surface, Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 type Fraction = SectionFraction;
 type Role = 'lower' | 'upper' | 'base' | 'cap' | 'uMin' | 'uMax';

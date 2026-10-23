@@ -1,8 +1,8 @@
 import type { Model, Curve } from '../types.js';
-import type { ExtrusionConstruction } from '../construction-types.js';
+import type { ExtrusionConstruction } from '../document/construction-types.js';
 import type { CadModelIR } from './semantic-model.js';
 import { copyCadData } from './semantic-model.js';
-import { extrudeCurve } from '../extrusion.js';
+import { extrudeCurve } from '../core/extrusion.js';
 
 /** Internal lowering consumes the resolved compiler-owned IR only. */
 export function lowerCadIR(ir: CadModelIR): { model: Model; constructions: ExtrusionConstruction[] } {

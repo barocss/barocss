@@ -4,7 +4,7 @@ import { solveXYLinearSketch } from './xy-linear-sketch.js';
 import type { XYLinearSketchConstraintV1, XYLinearSketchDocumentV1, XYLinearSketchResultV1, XYLinearSketchDiagnostic, XYLinearSketchDimensionReport } from './xy-linear-sketch.js';
 import type { XYPoint } from './xy-profile.js';
 import type { Point } from './types.js';
-import { same } from './structural-equality.js';
+import { same } from './core/structural-equality.js';
 
 export const DrivenMixedSketchLinesDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SELECTION: 'SELECTION', BINDING: 'BINDING', BUDGET: 'BUDGET', SOLVER: 'SOLVER', NATIVE: 'NATIVE', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type DrivenMixedSketchLinesDiagnosticCode = typeof DrivenMixedSketchLinesDiagnosticCode[keyof typeof DrivenMixedSketchLinesDiagnosticCode];

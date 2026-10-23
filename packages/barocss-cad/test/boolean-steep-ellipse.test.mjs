@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
-import { paramOf, segAt } from '../dist/curved-arrangement.js';
+import { paramOf, segAt } from '../dist/brep/curved-arrangement.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 

@@ -11,12 +11,12 @@
 //
 // A body that already holds exact faces (an earlier F2) takes part the same way: those faces are tessellated into
 // the soup with their surfaces noted, and given back at the end.
-import { booleanAnalytic, type AnalyticBooleanOperation } from '../analytic-boolean.js';
-import { BrepError, checkBrep, isFacetFace, mergeBreps, type Brep, type BrepFace } from '../brep-core.js';
-import { tessellateBrep } from '../brep-tessellate.js';
+import { booleanAnalytic, type AnalyticBooleanOperation } from '../brep/analytic-boolean.js';
+import { BrepError, checkBrep, isFacetFace, mergeBreps, type Brep, type BrepFace } from '../brep/brep-core.js';
+import { tessellateBrep } from '../brep/brep-tessellate.js';
 import { facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
 import { facetSoup, splitSoup } from './facet-split.js';
-import { surfaceDomain, surfaceEvaluator } from '../math.js';
+import { surfaceDomain, surfaceEvaluator } from '../core/math.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { selfIntersections } from './mesh-repair.js';
 import type { FacetPatch, Point, Surface } from '../types.js';

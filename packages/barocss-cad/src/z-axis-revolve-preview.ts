@@ -1,12 +1,12 @@
 import { buildZAxisRevolvedSurface } from './nurbs/surfaces/z-axis-revolved-surface.js';
 import type { ZAxisRevolvedSurfaceResult, ZAxisRevolvedSurfaceReport } from './nurbs/surfaces/z-axis-revolved-surface.js';
-import { evaluateCurve, evaluateSurface } from './math.js';
-import { evaluateSurfaceD1 } from './derivatives.js';
-import { validatePreviewPacket } from './packet.js';
-import type { PreviewPacket } from './packet.js';
+import { evaluateCurve, evaluateSurface } from './core/math.js';
+import { evaluateSurfaceD1 } from './core/derivatives.js';
+import { validatePreviewPacket } from './core/packet.js';
+import type { PreviewPacket } from './core/packet.js';
 import { copyCadData } from './data-copy.js';
 import type { Curve, Point } from './types.js';
-import { cross } from './vec3.js';
+import { cross } from './core/vec3.js';
 
 export interface ZAxisRevolvePreviewOptions {
   surfaceId: string; meshId: string; revision: number; segmentsPerMeridianSpan: number; segmentsPerQuarter: number; orientation: 'forward' | 'reverse';

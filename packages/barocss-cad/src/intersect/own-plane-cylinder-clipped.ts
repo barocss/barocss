@@ -6,8 +6,8 @@ import type { OwnPlaneCylinderCandidate } from './own-plane-cylinder-intersectio
 import type { XYCirclePrismShellBundle } from '../xy-circle-prism-shell.js';
 import type { XYCirclePrismPlaneIntersectionOptions, XYCirclePrismPlaneBindings, PlaneCylinderHomogeneousSpan, PlaneCylinderIntersectionObservation, PlaneCylinderCurveD1State, PlaneCylinderSurfaceD1State } from './own-plane-cylinder-intersection.js';
 import { splitCurveAtParameter } from '../nurbs/curves/curve-parameter-split.js';
-import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
+import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 

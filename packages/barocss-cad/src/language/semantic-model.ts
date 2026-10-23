@@ -1,16 +1,16 @@
 import { CadAstError } from './source-ast.js';
 import type { CadModelAst, CadAstDeclaration, CadAstValue, CadSourceRange } from './source-ast.js';
 import type { Curve, Surface, Point } from '../types.js';
-import { validateCurve, validateSurface } from '../math.js';
-import { preflightExtrusion } from '../extrusion-validation.js';
+import { validateCurve, validateSurface } from '../core/math.js';
+import { preflightExtrusion } from '../features/extrusion-validation.js';
 import { copyCadData } from '../data-copy.js';
-import { resolveCadParameters } from '../parameter-semantics.js';
-import { resolveCadFunctionParameters } from '../function-quantity-semantics.js';
-import type { CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from '../function-quantity-semantics.js';
-import type { CadResolvedParameter, CadFieldBinding, CadParameterDependency } from '../parameter-semantics.js';
+import { resolveCadParameters } from '../document/parameter-semantics.js';
+import { resolveCadFunctionParameters } from '../document/function-quantity-semantics.js';
+import type { CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from '../document/function-quantity-semantics.js';
+import type { CadResolvedParameter, CadFieldBinding, CadParameterDependency } from '../document/parameter-semantics.js';
 export { copyCadData } from '../data-copy.js';
-export type { CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from '../parameter-semantics.js';
-export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from '../function-quantity-semantics.js';
+export type { CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from '../document/parameter-semantics.js';
+export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from '../document/function-quantity-semantics.js';
 
 export type CadLiteralIRNode = { id: string; span: CadSourceRange; fieldTypes: Record<string, string> } &
   ({ kind: 'curve'; geometry: Curve } | { kind: 'surface'; geometry: Surface });

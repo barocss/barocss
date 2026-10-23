@@ -6,10 +6,10 @@
 // centres) to the mesh's surface. Refused by name: a triangle the offset turns over (`OFFSET_FOLDS`), an inner surface that
 // meets itself or the mesh (`WALL_TOO_THIN`, through mesh repair's grid), a wall more than 1 % thinner than asked
 // (`MESH_WALL_THIN`), a mesh that is not closed (`SHELL_MESH_NOT_CLOSED`).
-import { BrepError } from '../brep-core.js';
+import { BrepError } from '../brep/brep-core.js';
 import { selfIntersections } from './mesh-repair.js';
 import { meshDistanceRange } from './mesh-distance.js';
-import { symmetricEigen3InPlace } from '../section-properties.js';
+import { symmetricEigen3InPlace } from '../features/section-properties.js';
 
 const refuse = (detail: string): never => { throw new BrepError('GEOMETRY', `CAPABILITY: shell: ${detail}`); };
 const at = (p: readonly number[]) => p.map(x => +x.toFixed(4)).join(', ');

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { revolveProfile, revolveMassProperties } from '../dist/revolve.js';
-import { assertValidBrep } from '../dist/brep-core.js';
-import { brepMassProperties } from '../dist/solid-mass.js';
+import { revolveProfile, revolveMassProperties } from '../dist/features/revolve.js';
+import { assertValidBrep } from '../dist/brep/brep-core.js';
+import { brepMassProperties } from '../dist/brep/solid-mass.js';
 
 const rect = (x,y,w,h) => [[x-w/2,y-h/2],[x+w/2,y-h/2],[x+w/2,y+h/2],[x-w/2,y+h/2]].map(start=>({kind:'line',start}));
 const circle = (x,y,r) => [{kind:'arc',start:[x+r,y],center:[x,y],direction:'ccw'}];

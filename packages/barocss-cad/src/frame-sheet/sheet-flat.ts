@@ -1,13 +1,13 @@
-import type { Brep, BrepCoedge, BrepEdge, BrepFace } from '../brep-core.js';
+import type { Brep, BrepCoedge, BrepEdge, BrepFace } from '../brep/brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
-import { curveDomain, evaluateCurve, surfaceDomain } from '../math.js';
-import { evaluateCurveD1, evaluateSurfaceD1 } from '../derivatives.js';
-import { faceGeometry, type FaceGeometry } from '../analytic-boolean.js';
-import { tessellateBrep } from '../brep-tessellate.js';
-import { brepMassProperties } from '../solid-mass.js';
+import { curveDomain, evaluateCurve, surfaceDomain } from '../core/math.js';
+import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
+import { faceGeometry, type FaceGeometry } from '../brep/analytic-boolean.js';
+import { tessellateBrep } from '../brep/brep-tessellate.js';
+import { brepMassProperties } from '../brep/solid-mass.js';
 import type { DxfDocument, DxfEntity } from '../io/dxf-writer.js';
 import { lookupBend, type BendTable, type BendTableUse } from './sheet-metal.js';
-import { add, cross, dot, len, scale as scl, sub } from '../vec3.js';
+import { add, cross, dot, len, scale as scl, sub } from '../core/vec3.js';
 
 // R12.2 (D117): a sheet-metal body's flat pattern, from its B-rep and the sheet's thickness T and K-factor alone (D115).
 // The skin — the faces joined to a fixed planar face across smooth edges — is developed onto that face's plane: planes

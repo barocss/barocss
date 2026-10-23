@@ -10,6 +10,7 @@ import { commands, type Command, type Ctx, type Field, type HandleSpec, type Sel
 import type { BodyResult } from '../engine/evaluate';
 import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { refOf } from './bodyRef';
+import { boundsOf } from '../engine/bounds';
 
 type V3 = [number, number, number];
 const ok = { ok: true as const };
@@ -54,8 +55,7 @@ function extrudeHandles(nodes: readonly ModelNode[], index: number): HandleSpec[
 function madeBounds(ctx: Ctx, index: number): { min: V3; max: V3 } | null {
   const key = bodyKeyFor(ctx.doc.nodes, index), own = ctx.bodies.filter(b => b.key === key || b.key.startsWith(`${key}_`));
   if (!own.length) return null;
-  const min = [0, 1, 2].map(k => Math.min(...own.map(b => b.mesh.bounds.min[k]))) as V3, max = [0, 1, 2].map(k => Math.max(...own.map(b => b.mesh.bounds.max[k]))) as V3;
-  return { min, max };
+  return boundsOf(own);
 }
 /** A split's plane (an arrow along its normal, kept inside the body) and a row's spacing and count. */
 function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): HandleSpec[] {
