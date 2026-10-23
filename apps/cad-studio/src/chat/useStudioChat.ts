@@ -19,6 +19,7 @@ import { holdSweeps } from '@barocss/cad-model/engine/blobs';
 import { chatStatus, newChatBlobs, type ChatStatus } from './client';
 import { imageUrl, type ChatImage } from './images';
 import { StudioTransport, type StudioMessage, type TurnDone, type TurnInputs } from './transport';
+import { scriptedChat, scriptedTransport, withTurnEnd } from './scripted';
 import type { ChatPanelProps } from '../ui/ChatPanel';
 
 /** What each autonomy level lets the agent do (D41). */
@@ -102,7 +103,18 @@ export function useStudioChat(props: ChatPanelProps) {
     return done.end === 'aborted' ? [] : notices;
   };
   const afterRef = useRef(after); afterRef.current = after;
-  const transport = useMemo(() => new StudioTransport({ inputs: () => turn.current!.inputs, after: done => afterRef.current(done) }) as unknown as ChatTransport<StudioMessage>, []);
+  // (The server's turns, or — in DEV, when the flow has scripted the conversation — createChat's, with the same end, O17.)
+  const transport = useMemo((): ChatTransport<StudioMessage> => {
+    const server = new StudioTransport({ inputs: () => turn.current!.inputs, after: done => afterRef.current(done) }) as unknown as ChatTransport<StudioMessage>;
+    return {
+      sendMessages: async options => {
+        const s = scriptedChat(); if (!s) return server.sendMessages(options);
+        s.sent.push(turn.current!.inputs);
+        return withTurnEnd(await scriptedTransport(s).sendMessages(options), done => afterRef.current(done), options.abortSignal);
+      },
+      reconnectToStream: async () => null,
+    };
+  }, []);
   const chat = useChat<StudioMessage>({
     transport,
     // (Each state the turn has built: the previews, one evaluation at a time; its calls that changed the part, O133.)

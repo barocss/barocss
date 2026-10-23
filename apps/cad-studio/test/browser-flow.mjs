@@ -1543,9 +1543,9 @@ try {
     await page.evaluate(() => document.activeElement?.blur());
   });
 
-  await check('chat builds a plate through a mocked chat server', async () => {
-    // The chat server's replies are scripted (it runs the claude CLI with the studio's tools for real).
-    const sse = events => events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+  await check('chat builds a plate through a scripted chat (createChat)', async () => {
+    // The chat's turns are scripted in the browser (O17: shadcn's createChat, no server); the studio's end of each turn —
+    // its commit, the design history — runs on them as on the chat server's.
     const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
     const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
@@ -1558,16 +1558,14 @@ try {
     const expected = Math.round(64 * 32 * 8 - 4 * Math.PI * 16 * 8 - 4 * (4 - Math.PI) * 8);
     events.push({ type: 'tool', name: 'features', input: { action: 'command', command: 'fillet' }, summary: `Fillet {"radius":2,"endRadius":0,"shape":"circular"} → 1 body, ${expected} mm³`, isError: false }, { type: 'state', doc: docOf(nodes) },
       { type: 'text', delta: 'Done: a 64 × 32 × 8 plate with four Ø8 holes and R2 vertical edges.' }, { type: 'done', doc: docOf(nodes), session: 'cli-session-1', end: 'done' });
-    const requests = [];
-    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    const statusUrl = u => u.pathname === '/api/chat/status';
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
-    await page.route(turnUrl, r => {
-      const body = r.request().postDataJSON(); requests.push(body);
-      const reply = requests.length === 1 ? events : [{ type: 'text', delta: requests.length === 2 ? 'You’re welcome.' : 'That drawing shows the same plate.' }, { type: 'done', session: body.session, end: 'done' }];
-      return r.fulfill({ status: 200, contentType: 'text/event-stream', body: sse(reply) });
-    });
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turns => window.__studioScriptChat(turns), [events, ...['You’re welcome.', 'That drawing shows the same plate.'].map(delta => [{ type: 'text', delta }, { type: 'done', session: 'cli-session-1', end: 'done' }])]);
+    /** What each turn sent, as the chat server would have received it. */
+    const requests = { get: async k => page.evaluate(k => window.__studioChatSent()[k], k), count: async () => page.evaluate(() => window.__studioChatSent().length) };
     const input = page.locator('[aria-label="Chat message"]');
     await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
     await input.fill('a 64×32×8 plate with four Ø8 holes 6 mm from the corners and R2 vertical edges'); await press('Enter');
@@ -1576,11 +1574,11 @@ try {
     assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude', 'hole', 'hole', 'hole', 'hole', 'fillet']);
     assert.equal(await page.locator('.chat-tool').count(), 6);
     assert.match(await page.locator('.chat-tool').last().innerText(), new RegExp(`Fillet .*${expected} mm³`));
-    assert.equal(requests[0].doc.nodes.length, 0); assert.equal(requests[0].session, undefined);
+    { const r0 = await requests.get(0); assert.equal(r0.doc.nodes.length, 0); assert.equal(r0.session, undefined); }
     // The next message resumes the same CLI conversation and leaves the part as it is.
     await input.fill('thanks'); await press('Enter');
     await page.waitForSelector('.chat-msg.assistant:has-text("welcome")');
-    assert.equal(requests[1].session, 'cli-session-1'); assert.equal(requests[1].doc.nodes.length, 7);
+    { const r1 = await requests.get(1); assert.equal(r1.session, 'cli-session-1'); assert.equal(r1.doc.nodes.length, 7); }
     // An attached drawing goes with the next message, scaled and as base64, shown as a thumbnail.
     const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAEklEQVR4nGP4z8CAFWEXHbQSACj/P8Fu7N9hAAAAAElFTkSuQmCC', 'base64');
     await page.setInputFiles('[aria-label="Chat image file"]', { name: 'plate.png', mimeType: 'image/png', buffer: png });
@@ -1590,18 +1588,19 @@ try {
     await page.waitForSelector('[aria-label="Attached images"] img');
     await page.click('.chat-input button:text-is("Send")');
     await page.waitForFunction(() => document.querySelectorAll('.chat-msg.assistant').length >= 3);
-    assert.equal(requests.length, 3); assert.equal(requests[2].images.length, 1);
-    assert.equal(requests[2].images[0].media_type, 'image/png'); assert.ok(requests[2].images[0].data.length > 40);
-    assert.match(requests[2].text, /image 1 \(plate\.png, traced into \d+ layers/);
+    const r2 = await requests.get(2);
+    assert.equal(await requests.count(), 3); assert.equal(r2.images.length, 1);
+    assert.equal(r2.images[0].media_type, 'image/png'); assert.ok(r2.images[0].data.length > 40);
+    assert.match(r2.text, /image 1 \(plate\.png, traced into \d+ layers/);
     // The traced outlines go with every later turn, for the image tools on the server.
-    assert.equal(requests[2].traces.length, 1); assert.ok(Array.isArray(requests[2].traces[0].layers));
+    assert.equal(r2.traces.length, 1); assert.ok(Array.isArray(r2.traces[0].layers));
     assert.equal(await page.locator('.chat-msg.user .chat-thumbs img').count(), 1);
     // One undo takes the whole first turn back.
     await page.evaluate(() => document.activeElement?.blur());
     await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 7);
     await page.click('[aria-label="Close chat"]');
-    await page.unroute(statusUrl); await page.unroute(turnUrl);
+    await page.evaluate(() => window.__studioUnscriptChat()); await page.unroute(statusUrl);
   });
 
   await check('chat commits an assembly: a pin part mated into a plate', async () => {
@@ -1617,11 +1616,12 @@ try {
       { type: 'tool', name: 'assembly', input: { action: 'add_mate', kind: 'coincident' }, summary: 'added Coincident 2 (m2)', isError: false },
       { type: 'state', doc }, { type: 'text', delta: 'Pin mated into the plate.' }, { type: 'done', doc, session: 's-asm', end: 'done' },
     ];
-    const statusUrl = u => u.pathname === '/api/chat/status', turnUrl = u => u.pathname === '/api/chat/turn';
+    const statusUrl = u => u.pathname === '/api/chat/status';
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
-    await page.route(turnUrl, r => r.fulfill({ status: 200, contentType: 'text/event-stream', body: events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('') }));
     await page.click('[aria-label="New part"]'); await idle();
     await page.click('[aria-label="Chat"]');
+    // (Scripted in the browser, O17: createChat.)
+    await page.waitForFunction(() => !!window.__studioScriptChat); await page.evaluate(turns => window.__studioScriptChat(turns), [events]);
     await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
     await page.fill('[aria-label="Chat message"]', 'a plate with a pin in its hole, as two parts'); await press('Enter');
     await page.waitForSelector('.chat-msg.assistant:has-text("Pin mated")');
@@ -1635,7 +1635,50 @@ try {
     await press('Meta+z'); await page.waitForFunction(() => !(window.__studioDoc.instances?.length));
     await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.instances?.length === 1);
     await page.click('[aria-label="Close chat"]');
-    await page.unroute(statusUrl); await page.unroute(turnUrl);
+    await page.evaluate(() => window.__studioUnscriptChat()); await page.unroute(statusUrl);
+  });
+
+  await check('chat renders a scripted conversation (O17): text runs, a tool ok and one failed, an error notice, Stop, a proposal linked to its card, New conversation', async () => {
+    const statusUrl = u => u.pathname === '/api/chat/status';
+    await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
+    await page.click('[aria-label="New part"]'); await idle();
+    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const box = { ...empty, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { kind: 'extrude', sketch: 0, height: 10 }], outputs: { b1: { node: 1, side: 'solid' } } };
+    const risk = level => ({ level, features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] });
+    const proposal = (id, title, status, level) => ({ id, title, status, by: { agent: 'chat' }, at: '2026-10-24T00:00:00Z', base: 'not-this-part', ops: [], risk: risk(level), summary: title, ...(status === 'open' ? {} : { decided: { by: 'user', at: '2026-10-24T00:00:00Z' } }) });
+    const proposed = { ...box, proposals: [proposal('P1', 'Lighter: a Ø6 hole', 'open', 'low'), proposal('P2', 'Thinner walls', 'rejected', 'high')] };
+    await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turns => window.__studioScriptChat(turns), [
+      [{ type: 'text', delta: 'A box first.' }, { type: 'tool', name: 'features', input: { action: 'command', command: 'box' }, summary: 'Box → 1 body, 8000 mm³', isError: false }, { type: 'state', doc: box },
+        { type: 'tool', name: 'features', input: { action: 'command', command: 'no-such-command' }, summary: 'Unknown command "no-such-command".', isError: true }, { type: 'text', delta: 'Done: a 40 × 20 × 10 box.' }, { type: 'done', doc: box, end: 'done' }],
+      [{ type: 'done', end: 'error', error: 'claude exited with 1' }],
+      [{ type: 'tool', name: 'features', input: { action: 'command', command: 'hole' }, summary: 'Hole', isError: false }, { type: 'sleep', ms: 20000 }, { type: 'done', end: 'done' }],
+      [{ type: 'tool', name: 'proposals', input: { action: 'propose', title: 'Lighter: a Ø6 hole' }, summary: 'proposed P1 Lighter: a Ø6 hole (low risk)', isError: false }, { type: 'text', delta: 'P1 is ready.' }, { type: 'done', doc: proposed, end: 'done' }],
+    ]);
+    const say = async text => { await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled); await page.fill('[aria-label="Chat message"]', text); await press('Enter'); };
+    await say('a box');
+    await page.waitForSelector('.chat-msg.assistant:has-text("Done: a 40")');
+    assert.equal(await page.locator('.chat-msg.assistant').count(), 2, 'two text runs, either side of the calls');
+    assert.equal(await page.locator('.chat-tool').count(), 2); assert.equal(await page.locator('.chat-tool.err').count(), 1);
+    assert.match(await page.locator('.chat-tool').first().innerText(), /features\.command\s+Box → 1 body/);
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2);
+    await say('again');
+    await page.waitForSelector('.chat-msg.notice:has-text("claude exited with 1")');
+    await say('a hole, slowly');
+    await page.waitForFunction(() => document.querySelectorAll('.chat-tool').length === 3);
+    await page.click('.chat-input button:text-is("Stop")');
+    await page.waitForSelector('.chat-msg.notice:has-text("Stopped.")', { timeout: 10000 });
+    await say('make it lighter');
+    await page.waitForSelector('[aria-label="Proposal P1 from the chat"]');
+    const card = await page.locator('[aria-label="Proposal P1 from the chat"]').innerText();
+    assert.match(card, /P1[\s\S]*Lighter: a Ø6 hole[\s\S]*low risk/); assert.match(card, /rebase it in Proposals/, 'made on another part: stale, rebased from the list');
+    assert.equal(await page.locator('[aria-label="Proposal P2 from the chat"]').count(), 0, 'only the proposal its call made');
+    await snap('o17-chat-scripted');
+    await page.click('[aria-label="New conversation"]');
+    await page.waitForFunction(() => !document.querySelector('.chat-msg') && !document.querySelector('.chat-tool'));
+    await page.click('[aria-label="Close chat"]');
+    await page.evaluate(() => window.__studioUnscriptChat()); await page.unroute(statusUrl);
   });
 
   await check('drag a dimension handle (box width), and turn a body 45° about X with the Rotate gizmo', async () => {
@@ -5316,9 +5359,9 @@ try {
       const texts = async () => (await page.evaluate(() => window.__studioDrawing())).dimensions.map(d => d.text).sort();
       // One placed by hand first: the overall width.
       const clickView = async (view, u, v) => { const p = await page.evaluate(([view, u, v]) => window.__studioDrawingAt(view, u, v), [view, u, v]); await page.mouse.move(p.x - 3, p.y); await page.mouse.move(p.x, p.y); await page.mouse.click(p.x, p.y); };
-      // (Placed 18 mm off the front view: at 30 the click fell on the top view's label once the centre column narrowed, G12b,
-      // and a click on a label does not place a dimension.)
-      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -18);
+      // (Placed 30 mm off the front view: once the centre column narrowed, G12b, that is out on the paper, further than 30 mm
+      // from any view, where a dimension being placed is still placed — read in its own view, wherever the pointer is.)
+      await press('d'); await clickView('front', 0, 0); await clickView('front', 64, 0); await clickView('front', 32, -30);
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 1, null, { timeout: 5000 }); await press('Escape');
       await page.click('[aria-label="Auto-dimension"]');
       await page.waitForFunction(() => window.__studioDrawing().dimensions.length === 6, null, { timeout: 5000 });
