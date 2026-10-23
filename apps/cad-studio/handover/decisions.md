@@ -12801,6 +12801,26 @@ tessellator and the mass quadrature.
   (D159). Instance p2's BEARING_HOUSING_REFERENCE is a finding for the outer lane: the studio's instance path cannot
   evaluate it.
 
+
+**Correction (2026-10-24, after K13; found by the outer lane in 8fa7a6ca2).** The harness above bundled two copies of
+cad-model:
+- its own scratch tree's `src`, imported by path;
+- integration's, through a scratch `node_modules` linked to integration's.
+
+Each copy had its own `Symbol('bearingAssemblyContext')`, so A9's p2 failed with BEARING_HOUSING_REFERENCE. The studio,
+with one module graph, does not fail there.
+
+- **Affected:** A9's 4 270 ms above, which leaves p2 out.
+- **Unaffected:** the frames, spring and worm cross no such boundary. Their single-graph times at 77d3b675c are
+  13 219, 4 098 and 2 662 ms, within this record's ranges.
+- **Re-baselined A9, single graph, at 77d3b675c:** 5 405 ms, with p2 evaluated (7 instances, none failed). That is K13's
+  "before" (D242).
+
+K13's harness has one graph by construction:
+- each scratch tree has real `node_modules` folders with its own relative `@barocss` links;
+- every timed bundle has 276 kernel and cad-model sources, all from its own tree, and one context symbol;
+- the harness now checks both before it times, and stops otherwise.
+
 ## D242 — K13 step 1: the Boolean's intervals test segment boxes before `intersectSegments` (2026-10-24)
 
 **Change (pure speed).** Two changes in `brep/curved-arrangement.ts`, used by `brep/analytic-boolean.ts`:
@@ -12902,3 +12922,80 @@ identical.
 - fingerprint `b6e18fab…`, byte-identical.
 
 The checkpoint suites follow at this commit.
+
+## D244 — K13 step 3: the mass quadrature's and tessellation's own cost on the spring and the worm pair (2026-10-24)
+
+**Profiled first** (D240's harness under `--cpu-prof`, at a7c7879f8).
+- The spring's mass: `brepQuadratureIntegrals` 1.61 s.
+  - Its own tessellation of the curved faces, at q and 2q (Richardson), 0.72 s.
+  - The 16-point rule over the domain triangles (`cellTriangles` → `surfacePoint`) 0.41 s.
+  - `wholePatch`'s boundary test 0.24 s.
+- The spring's mesh: `tessellateBrep` 1.21 s.
+  - In `surfaceTriangles`: Lawson flips 0.34 s, bisection refinement 0.29 s, the normals.
+- The worm pair: the quadrature 0.46 s, 0.40 s of it in `wholePatch`; tessellation 1.13 s.
+  - cad-model's `checkWormPair` 0.53 s belongs to the outer lane.
+- Under all of them: the surface evaluator's basis, about 0.8 s on the spring, called twice per point for U and V.
+
+**Changes (pure speed, the same values).**
+1. **`surfaceEvaluator` keeps the last U and the last V basis** (`core/math.ts`).
+   - A parameter equal to the last call's (`Object.is`, so −0 is not +0) reuses that basis and its first pole.
+   - A basis that throws is never kept: the flag is cleared before each computation and set after it.
+   - The point's arithmetic is unchanged: the same buffers, the same sums.
+   - It pays off where one parameter is held: a boundary side or an iso-curve, and the difference stencils below.
+2. **The quadrature's `surfacePoint` evaluates the point between its stencils**:
+   - (u + h, v), (u − h, v), then (u, v), then (u, v + h), (u, v − h);
+   - each call shares a parameter with the one before, so it keeps 4 of its 10 bases (3 in the old order);
+   - `at` is a pure evaluator here (`surfaceEvaluator` or the cylinder frame's closed form).
+   - The tessellator's `normalAt` likewise takes (a, v), then (u, v), then (u, b).
+3. **`wholePatch`'s boundary test stops at a cached sample within `near`** (`boundaryDistance` → `nearBoundary`, which
+   returns the boolean it was only ever compared for).
+   - The golden-section search only lowers the distance from the nearest sample, so a sample within `near` already
+     answers true.
+   - Its points lie between that side's samples, evaluated without fault, so skipping it skips no refusal.
+   - Its distance closure is hoisted to `sideDistance` (the owner rule on hot paths).
+
+Not changed: the flips' and refinement's order. A different order gives a different triangulation, and its `hypot` is
+not bit-equal to `sqrt`.
+
+**Measured.** D240's harness, Node 22, median of 3, ms. Before is a7c7879f8, which includes the outer lane's
+8fa7a6ca2. Each scene's body digest is identical.
+
+| Scene | Before | After | |
+|---|---|---|---|
+| the spring | 3 398 | 3 179 | −6 % (quadrature 1.61 → 1.37 s in the profile; `wholePatch` 0.24 → 0.12 s) |
+| the worm pair | 2 128 | 1 850 | −13 % (quadrature 0.46 → 0.24 s; `wholePatch` 0.40 → 0.17 s) |
+| A9 | 4 407 | 4 181 | −5 % |
+| 5 box frames | 10 589 | 10 397 | noise |
+
+**K13 in all** (77d3b675c → this commit, the same harness):
+
+| Scene | Before K13 | After K13 | |
+|---|---|---|---|
+| 5 box frames | 13 219 | 10 397 | −21 % |
+| the spring | 4 098 | 3 179 | −22 % |
+| the worm pair | 2 662 | 1 850 | −31 % |
+| A9 | 5 405 | 4 181 | −23 % |
+
+The outer lane's 8fa7a6ca2, between steps 2 and 3, is inside the last two rows.
+
+**What stays.**
+- On the spring: the quadrature's own tessellation at q and 2q (0.70 s) and the mesh's (1.2 s), mostly Lawson flips
+  and refinement.
+  - Sharing a tessellation between the mesh and the mass would need one cache across the two option sets and face
+    subsets. Not done.
+  - O18 (the outer lane's mass on request) removes the quadrature from opening altogether.
+- On the worm: `checkWormPair`, the outer lane's.
+- On the frames: the Boolean's other stages (D242).
+
+**Checks (T1).**
+- build:library, type-check, lint (cad);
+- the 148 kernel test files that use mass properties, tessellation or the surface evaluator: 1 037 tests, 1 036 pass, 1 skipped, 0 fail, no passing name gone since a7c7879f8;
+- fingerprint `b6e18fab…`, byte-identical.
+
+**Checkpoint at 80db65fd8 (T2, K13's last).**
+- The kernel suite at concurrency 4: 1663 tests, 1656 pass, 1 fail, 6 skipped.
+  - The failure is the native-split demo's Node-version assertion, failing since before K13.
+  - The passing names are identical to a7c7879f8's, which are identical to 3e6283382's.
+- RB: no NEW, the same 3 TODOs.
+- cad-model 1017/1017, studio 281/281.
+- No browser flow: nothing studio-visible changed.

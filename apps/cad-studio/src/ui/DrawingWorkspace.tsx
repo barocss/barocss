@@ -178,6 +178,14 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     return { q, view, at, snap, edge: snap ? null : edgeAt(pr, at, 6 * mmPerPx() / v.scale) };
   }, [sheetPoint, layout, views, snaps, viewAt, sheet]);
 
+  /** Placing a dimension (its points picked): where it goes, read in its own view wherever the pointer is on the sheet —
+   *  beyond the views' reach too (hoverAt finds a view only within 30 mm), so a click out on the paper places it. */
+  const placingAt = (clientX: number, clientY: number): Hover | null => {
+    if (!pending || pending.kind === 'note' || ((pending.kind === 'linear' || pending.kind === 'angle') && !pending.b)) return null;
+    const q = sheetPoint(clientX, clientY), v = q && placementAt(pending.view);
+    return q && v ? { q, view: pending.view, at: fromSheet(v, q), snap: null, edge: null } : null;
+  };
+
   const commitDims = (dimensions: DrawingDimension[]) => onChange({ ...settings, dimensions });
   const cancel = () => { setPending(null); setMessage(null); };
 
@@ -267,7 +275,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       (e.currentTarget as Element).setPointerCapture(e.pointerId);
       return;
     }
-    const h = hoverAt(e.clientX, e.clientY); if (h) click(h);
+    const h = hoverAt(e.clientX, e.clientY) ?? placingAt(e.clientX, e.clientY); if (h) click(h);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (drag && 'pan' in drag) {
@@ -284,7 +292,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       if (q && d && at) setDrag({ id: drag.id, place: fromSheet(at, q) });
       return;
     }
-    setHover(hoverAt(e.clientX, e.clientY));
+    setHover(hoverAt(e.clientX, e.clientY) ?? placingAt(e.clientX, e.clientY));
   };
   const onPointerUp = () => {
     if (drag && 'note' in drag) {

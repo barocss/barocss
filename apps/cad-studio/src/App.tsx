@@ -93,6 +93,7 @@ import { exportMjcf, type MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 import { sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { sweepTimed, type JointLimits } from '@barocss/cad-model/robot/ccd';
 import { workspaceMap } from '@barocss/cad-model/robot/workspace';
+import { Lanes } from './engine/lanes';
 import { exportSdf } from '@barocss/cad-model/robot/sdf';
 import { exportUsd } from '@barocss/cad-model/robot/usd';
 import { closureOfDoc } from '@barocss/cad-model/robot/loop';
@@ -426,10 +427,12 @@ export function App() {
   const [instanceEdit, setInstanceEdit] = useState<{ owner: string; index: number } | null>(null);
   const [instanceEditPending, setInstanceEditPending] = useState(false);
   // A changed selection invalidates a pending edit even if the user selects the same occurrence again.
+  /** The O9 lanes App's worker requests go on (R4b): a reply overtaken on its lane comes back stale. */
+  const lanes = useMemo(() => new Lanes(), []);
   const bearingEditScope = useRef({ doc, instanceSel, instanceEdit, editNode });
   if (bearingEditScope.current.doc !== doc || bearingEditScope.current.instanceSel !== instanceSel || bearingEditScope.current.instanceEdit !== instanceEdit || bearingEditScope.current.editNode !== editNode) bearingEditScope.current = { doc, instanceSel, instanceEdit, editNode };
-  const instanceEditRun = useRef(0);
-  useEffect(() => { instanceEditRun.current++; setInstanceEditPending(false); }, [doc, instanceSel, instanceEdit]);
+  // (R4b: the bearing edit on its O9 lane — the document, the selection or the edit changing makes a reply on it stale.)
+  useEffect(() => { lanes.cancel('bearing-edit'); setInstanceEditPending(false); }, [doc, instanceSel, instanceEdit]);
   const selectedBearingEdit = useMemo(() => {
     if (!instanceEdit || instanceSel.length !== 1 || instanceSel[0] !== instanceEdit.owner) return null;
     try { return { session: captureBearingEditSession(doc, instanceEdit.owner, instanceEdit.index), error: null }; }
@@ -594,14 +597,15 @@ export function App() {
   useEffect(() => {
     if (!section) { setSectionExact(null); return; }
     if (sectionDragFrom) return;
-    let live = true; const key = JSON.stringify(section);
+    const key = JSON.stringify(section);
     // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
     const { doc, kept, from } = sectionSplits(evaluated, bodies, section);
-    // Latest wins: while one section is worked out, only the newest plane waits behind it.
+    // Latest wins: while one section is worked out, only the newest plane waits behind it. (R4b: on the section's O9 lane —
+    // a reply overtaken by a newer plane, or by the effect's cleanup, comes back stale.)
     const run = sectionRun.current;
-    run.next = async () => { const r = await engine.section(doc, revision.current++); if (live && r.ok) { const x = exactBodies(r.bodies, kept, from); setSectionExact({ key, source: evaluated, sourceBodies: bodies, bodies: x.bodies, from: x.from }); } };
+    run.next = async () => { const at = revision.current++, reply = await lanes.run('section', { revision: at, source: key }, () => engine.section(doc, at)), r = reply.stale ? null : reply.result; if (r?.ok) { const x = exactBodies(r.bodies, kept, from); setSectionExact({ key, source: evaluated, sourceBodies: bodies, bodies: x.bodies, from: x.from }); } };
     if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
-    return () => { live = false; };
+    return () => lanes.cancel('section');
   }, [section, bodies, evaluated, engine, sectionDragFrom]);
   // At once (while the plane is dragged, until the exact section arrives): on WebGPU the bodies whole, cut and capped by
   // the viewer's clip plane (G2); on WebGL2 the meshes clipped and capped on the CPU.
@@ -714,24 +718,27 @@ export function App() {
   const applyInstanceBearing = async (session: BearingEditSession, nodes: ModelNode[]) => {
     const scope = bearingEditScope.current;
     if (!bearingEditCurrent(session, scope.doc, scope.instanceSel, scope.instanceEdit)) return;
-    const run = ++instanceEditRun.current;
     setInstanceEditPending(true);
-    try {
-      const prepared = prepareBearingEdit(session, nodes);
-      const result = await engine.part(prepared.view, revision.current++);
-      const current = bearingEditScope.current;
-      if (run !== instanceEditRun.current || current !== scope || !bearingEditCurrent(session, current.doc, current.instanceSel, current.instanceEdit)) return;
-      if (!result.ok) { setToast(result.error); return; }
-      commitInstances(prepared.root.instances!, [session.owner]);
-      setInstanceEdit(null);
-    } catch (error) {
-      if (run === instanceEditRun.current && bearingEditScope.current === scope) setToast({ title: 'Bearing not changed', hint: error instanceof Error ? error.message : String(error), detail: '' });
-    } finally { if (run === instanceEditRun.current) setInstanceEditPending(false); }
+    // (Its refusal, thrown, comes back on the lane as its result: a stale one, like a stale reply, says nothing.)
+    const at = revision.current++, reply = await lanes.run('bearing-edit', { revision: at, source: session.owner }, async () => {
+      try { const prepared = prepareBearingEdit(session, nodes); return { prepared, result: await engine.part(prepared.view, at) }; }
+      catch (error) { return { error }; }
+    });
+    if (reply.stale) return;
+    setInstanceEditPending(false);
+    const out = reply.result, current = bearingEditScope.current;
+    if ('error' in out) { if (current === scope) setToast({ title: 'Bearing not changed', hint: out.error instanceof Error ? out.error.message : String(out.error), detail: '' }); return; }
+    if (current !== scope || !bearingEditCurrent(session, current.doc, current.instanceSel, current.instanceEdit)) return;
+    if (!out.result.ok) { setToast(out.result.error); return; }
+    commitInstances(out.prepared.root.instances!, [session.owner]);
+    setInstanceEdit(null);
   };
   // Evaluate each instance whose placed part changed (in the worker, beside the main part).
   const instanceSources = useMemo(() => instanceEvaluationSources(doc), [doc]);
   useEffect(() => {
-    let live = true;
+    // (R4b: each placed part on its own O9 lane, `placed:<id>`; this run's lanes cancelled by its cleanup, so a reply from
+    // a document since replaced comes back stale and the run stops, setting nothing.)
+    const asked = (doc.instances ?? []).map(i => `placed:${i.id}`);
     (async () => {
       const next = new Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>();
       for (const inst of doc.instances ?? []) {
@@ -741,14 +748,15 @@ export function App() {
         // object only when its content changed, compared then).
         const have = instanceBodies.get(inst.id);
         if (have && have.sourceKey === source.key && samePlacement(have.inst, inst)) { next.set(inst.id, have.inst === inst ? have : { ...have, inst }); continue; }
-        const r = await engine.placed(placedDoc(inst, doc), source.base, placementOf(inst), revision.current++);
-        if (!live) return;
+        const at = revision.current++, reply = await lanes.run(`placed:${inst.id}`, { revision: at, source: source.key }, () => engine.placed(placedDoc(inst, doc), source.base, placementOf(inst), at));
+        if (reply.stale) return;
+        const r = reply.result;
         if (r.ok) next.set(inst.id, { key: `${inst.id}#${++instanceRun.current}`, sourceKey: source.key, inst, bodies: r.bodies });
         else setToast(r.error);
       }
-      if (live) setInstanceBodies(next);
+      setInstanceBodies(next);
     })();
-    return () => { live = false; };
+    return () => { for (const lane of asked) lanes.cancel(lane); };
   }, [doc.instances, instanceSources]);
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
@@ -1633,9 +1641,10 @@ export function App() {
   // (G12: the diff of the part as it is and the proposal as shown, again when what is shown changes; none without one.)
   useEffect(() => {
     if (!ghost) { setProposalOverlay(null); return; }
-    let live = true;
-    void engine.proposalDiff(doc, ghost.shown, revision.current++, { revision: modelHash(doc), proposal: `${ghost.id}|${ghost.leaveOut.join(',')}` }).then(r => { if (live) setProposalOverlay('error' in r ? null : r); });
-    return () => { live = false; };
+    // (R4b: on the O9 'proposal-diff' lane — a reply for a proposal no longer shown comes back stale.)
+    const at = revision.current++, key = `${ghost.id}|${ghost.leaveOut.join(',')}`;
+    void lanes.run('proposal-diff', { revision: at, source: key }, () => engine.proposalDiff(doc, ghost.shown, at, { revision: modelHash(doc), proposal: key })).then(reply => { if (!reply.stale) setProposalOverlay('error' in reply.result ? null : reply.result); });
+    return () => lanes.cancel('proposal-diff');
   }, [ghost?.id, ghost?.shown]);
   const flipGhost = () => setGhost(g => { if (!g) return g; setPreviewBodies(g.after ? null : g.bodies); return { ...g, after: !g.after }; });
   const acceptIt = async (p: Proposal) => {
@@ -1913,9 +1922,11 @@ export function App() {
   const mouldWanted = (mapKind === 'parting' || mapKind === 'halves') && !rendering && !sketch && !previewBodies && !!doc.mould?.pull;
   useEffect(() => {
     if (!mouldWanted) { setMouldResult(null); return; }
-    let live = true; setMouldResult('working');
-    void engine.mould(doc, revision.current++, mapKind === 'halves').then(r => { if (live) setMouldResult(r); });
-    return () => { live = false; };
+    setMouldResult('working');
+    // (R4b: on the O9 'mould' lane — a reply for a part, pull or map since changed comes back stale.)
+    const at = revision.current++;
+    void lanes.run('mould', { revision: at, source: mapKind }, () => engine.mould(doc, at, mapKind === 'halves')).then(reply => { if (!reply.stale) setMouldResult(reply.result); });
+    return () => lanes.cancel('mould');
   }, [mouldWanted, mapKind, evaluated, doc.mould, engine]);
   const mouldShown = useMemo(() => mouldResult && mouldResult !== 'working' && !('error' in mouldResult)
     ? { pull: mouldResult.pull, loops: mouldResult.loops, plus: mapKind === 'halves' ? mouldResult.plus : [], minus: mapKind === 'halves' ? mouldResult.minus : [], spread: mouldSpread } : null, [mouldResult, mapKind, mouldSpread]);
@@ -2955,7 +2966,8 @@ export function App() {
           commit(next);
           if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
         }}
-        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))} /></Suspense>} />
+        onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))}
+        proposals={doc.proposals} proposalStale={p => p.status === 'open' && p.base !== hashNow} proposalBusy={proposalBusy} onAcceptProposal={p => void acceptIt(p)} onRejectProposal={rejectIt} /></Suspense>} />
     </div>
   );
 }
