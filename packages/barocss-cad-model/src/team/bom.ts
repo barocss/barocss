@@ -7,7 +7,7 @@ import type { ModelNode, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
 import { massProperties } from '../chat/analysis';
-import { bomViewOf, deriveBom, massBoundField, type Bom, type BomLine, type BomView } from './bomCore';
+import { bomViewOf, deriveBom, lumpsField, massBoundField, type Bom, type BomLine, type BomView } from './bomCore';
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
 
@@ -42,11 +42,11 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
   const view = bomViewOf(doc, evaluate), single = !(doc.instances ?? []).length;
   const docs: [string, StudioDoc][] = [['base', doc], ...(doc.instances ?? []).map(i => [i.id, i.doc] as [string, StudioDoc])];
   const made: MadeLine[] = [];
-  let baseMass = 0, baseBound: ReturnType<typeof massBoundField> = {};
+  let baseMass = 0, baseBound: ReturnType<typeof massBoundField> = {}, baseLumps: ReturnType<typeof lumpsField> = {};
   for (const [part, d] of docs) {
     const e = evaluate(d); if (!e?.ok) continue;
     // (O169: by the document's materials, as a placed part's mass is — a body's own massG is the default material's.)
-    if (part === 'base') { baseMass = (massProperties(d, e.bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0); baseBound = massBoundField(d, e.bodies); }
+    if (part === 'base') { baseMass = (massProperties(d, e.bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0); baseBound = massBoundField(d, e.bodies); baseLumps = lumpsField(e.bodies); }
     for (const l of elementLines(d, e.bodies)) {
       if (l.bought || l.kind === 'gusset' || l.kind === 'end-cap') continue; // (plates: their own BOM lines, FRk1)
       const id = `${part}:${l.item}`, row = l.row?.id ?? null, m = made.find(x => x.kind === l.kind && x.size === l.size && x.row === row);
@@ -55,7 +55,7 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
     }
   }
   // (A part with no placed parts: itself, one, as a line.)
-  if (single) view.parts.unshift({ id: 'base', name, material: null, massG: r6(baseMass), ...baseBound, library: null, shape: '' });
+  if (single) view.parts.unshift({ id: 'base', name, material: null, massG: r6(baseMass), ...baseBound, ...baseLumps, library: null, shape: '' });
   return { view, bom: deriveBom(view), made, single, ...(shopRows.some(p => p.rows.length) ? { shopRows } : {}) };
 }
 
@@ -77,6 +77,8 @@ export function setBought(doc: StudioDoc, parts: readonly string[], value: boole
 const cell = (v: string | number | null | undefined) => v === null || v === undefined ? '' : typeof v === 'number' ? String(v) : /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 /** Whether a BOM line is bought: an element marked so, or a library part (a catalogue part). */
 export const isBoughtLine = (l: BomLine) => l.kind !== undefined || l.source !== null;
+/** A line's size cell: its size, and (O8) the solids it comes as when several — the column as before when one. */
+const sizeCell = (l: BomLine) => l.lumps ? `${l.size ? `${l.size}; ` : ''}${l.lumps} lumps` : l.size ?? '';
 /**
  * The purchase list as CSV: item no., item, qty, kind, size, row, catalogue, source, estimate — the bought lines (the
  * bought elements, the library parts); with `withMade`, the made parts and the made elements after them.
@@ -84,9 +86,9 @@ export const isBoughtLine = (l: BomLine) => l.kind !== undefined || l.source !==
 export function purchaseCsv(p: BomPanelData, withMade = false): string {
   const rows: (string | number | null)[][] = [['item no.', 'item', 'qty', 'kind', 'size', 'row', 'catalogue', 'source', 'estimate']];
   const lines = p.bom.lines.map((l, k) => ({ l, no: k + 1 }));
-  for (const { l, no } of lines) if (isBoughtLine(l)) rows.push([no, l.item, l.qty, l.kind ?? 'part', l.size ?? '', l.row ?? '', l.catalogue ?? '', l.source ?? '', l.estimate ? 'estimate' : '']);
+  for (const { l, no } of lines) if (isBoughtLine(l)) rows.push([no, l.item, l.qty, l.kind ?? 'part', sizeCell(l), l.row ?? '', l.catalogue ?? '', l.source ?? '', l.estimate ? 'estimate' : '']);
   if (withMade) {
-    for (const { l, no } of lines) if (!isBoughtLine(l)) rows.push(l.plate ? [no, l.item, l.qty, l.plate.kind, l.size ?? '', '', '', '', ''] : [no, l.item, l.qty, 'part', '', '', '', '', '']);
+    for (const { l, no } of lines) if (!isBoughtLine(l)) rows.push(l.plate ? [no, l.item, l.qty, l.plate.kind, sizeCell(l), '', '', '', ''] : [no, l.item, l.qty, 'part', sizeCell(l), '', '', '', '']);
     p.made.forEach((m, k) => rows.push([lines.length + k + 1, m.item, m.qty, m.kind, m.size, m.row ?? '', '', '', '']));
   }
   return rows.map(r => r.map(cell).join(',')).join('\n') + '\n';

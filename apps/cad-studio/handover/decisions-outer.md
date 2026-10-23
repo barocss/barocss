@@ -7562,3 +7562,84 @@ The GPU lane's G10 found the step `FRd2 the welded table's weld symbols…` fail
 - 144 FR3b, 165 FRd1 and 166 FRd2 ok; FRd2 expects O173's 16.
 - The run started without the lanes guard's gate: flow-run.sh is a script, which the guard cannot see into. The script now takes the gate at its top.
 - An edit to the script during the run broke its last line (the scratch worktree was then removed by hand).
+
+## O8 — pieces touching along a line or at a point: exports and print checks a lump at a time, a warning, the BOM's count (2026-10-23)
+
+**Why (the kernel's D204, D205).** Pieces touching only along an edge or at a point are no longer refused. The union keeps them as one result with one solid body per lump, numbered as a disjoint result is: two cubes on an edge, at a point or a corner on an edge, and a box with a cylinder tangent to its side, either way round. The old refusal, "The bodies only touch along an edge or a point", retired as an error. The model is to bring it back as a warning and keep the outputs sound: a mesh welded by position reads such a touch as an edge of four faces.
+
+**The lumps** (engine/lumps.ts, new):
+- **On the display mesh.** It is the B-rep's own tessellation face by face, so each display face carries `lump`: its B-rep body's number, 0 first, the kernel's order. That is set only on a body of two or more lumps, so every other mesh is as before. A face group never spans two lumps: after D204 their edges are their own.
+- **`lumpTouches(mesh)`** gives the touching pairs: a vertex of one lump within the kernel's tolerance (1e-6 of the body's size, the mesh's own `near`) of a triangle of the other, boxes first. The kernel imprints the touch on both lumps (a split face, an edge), so the test holds in all five cases. The point-to-triangle distance and the box tests are module-level functions; no closure per vertex or triangle.
+- **`BodyResult.lumpTouch`** holds the touching pairs, found once per B-rep, only when the result is in several pieces and two touch. Pieces apart (a cut right through) keep `pieces` alone.
+- **`lumpName(body, k)`** is "<body> / lump k" (k from 1): the 3MF objects', the STL files' and the warning's name, so they match.
+
+**What uses it:**
+- **3MF** (print/export3mf): a body with `lumpTouch` is one object per lump, each with its own vertices, its triangles' colours kept. Welded, it then has no edge of four faces; the whole body as one object has one. Pieces apart, and one lump, stay one object: the body's own mesh, as before.
+- **STL** (the coordinator's decision: files, not a refusal):
+  - `lumpStls(mesh, name)` writes one binary STL per lump, as `<name>-lump1.stl`, `-lump2.stl`, …;
+  - the studio's Export STL does so for a body with `lumpTouch`. App.tsx changed at 132 (the import) and 1699–1712 (`exportStl`): named to the coordinator before the edit, for R1. Its toast says so in one line;
+  - cad-cli's `--stl` does the same;
+  - one lump, or pieces apart, keep the one STL, the kernel's.
+- **The print checks** (print/rules): the thinnest wall of a body with `lumpTouch` is measured a lump at a time. Across the touch the other lump is no wall of this one's: measured whole, the touch reads as a wall of zero.
+- **The warning:** the manufacturability result, for every process including none chosen, gets rule `lump-touch`:
+  - status `warn`, message "The bodies only touch along an edge or a point: <lump names>", the lumps as its entities;
+  - the reason: they print, cast or cut as separate pieces, and a welded mesh reads the touch as non-manifold.
+  - It appears only for such a body, so every existing report is as it was.
+- **The BOM:** a line whose part has a body in several pieces says how many solids it comes as (`lumps`), only when a body has two or more. The studio's BOM panel shows "· n lumps" after the item. The purchase CSV adds "n lumps" to the line's size cell, only then: every other row is byte for byte as before.
+
+**Tests** (lumps, new):
+- the five touching cases found (`lumpTouch` [[0, 1]]), case (b) being the kernel's own D205 case (a box and a cylinder r 2 tangent to its face y = 0, both turned 30° about X, either way round, volume 192 + 16π); pieces apart, two pieces and no touch; face to face, one solid;
+- the 3MF has two objects named "<body> / lump 1" and "/ lump 2", with 0 open and 0 repeated edges; the body as one object has repeated edges;
+- two STLs whose triangles are all the body's;
+- one lump: no `lump` fields, no split, the body's own mesh as its 3MF object (the export path as before); pieces apart, one object;
+- the warning, in those words and names, on cubes and on the cylinder case: the thinnest wall a lump's own (a cube's 10, the box's 3), not the touch's zero; also with no process; none for pieces apart or one lump;
+- the BOM: "Pair" 2 lumps, "Plate" none; the CSV's size cell "2 lumps", the plate's empty.
+
+**Verified (O8).** The run was at integration e4ba3c579 plus this change, tier T2: the core files mesh and evaluate changed.
+- cad-model suite 968/968. Earlier it was 964; the 4 new tests are lumps'.
+- 18 studio files, 87/87: bom-linked-ui, cad-external, cnc-cam, candidates, clarify, cnc-stock, frame-nest-cli, im7, im8b, mould-quote, robot-sizer, robot-harness, pkg-boundary, robot-urdf, robot-mjcf, team-metrics, team-bundle, team.
+  - The first run had one failure: PKG-b expects ui/files.ts to re-export `meshToStl` alone, on its own line. `lumpStls` is now on a line of its own, so the test's pattern and meaning are unchanged; pkg-boundary is 3/3.
+- tsc (cad-model, studio) and eslint clean. No expected value changed.
+- Not run: the flow, and the studio files that don't import the changed modules.
+
+## O7a — the legacy fixtures and the open-as-before harness, before any conversion (2026-10-23)
+
+**Why.** The coordinator approved O7, the built-in fastener sizes, casting rules and enclosure variants as person-loaded sample rows, with saved documents opening identically (point 4). This first checkpoint freezes what "identically" means, before any reader changes.
+
+**What:**
+- **The fixtures.** Seven `.bcad` files in `packages/barocss-cad-model/test/fixtures/o7-legacy/`, saved by today's code. They are listed with their use in that folder's README and are never re-saved:
+  - fasteners made in a part, and fasteners placed as parts;
+  - tapped holes, milled;
+  - a drawing whose ± tolerances the fastener data set and stored;
+  - die and sand casting;
+  - enclosure library parts.
+- **`expected.json`** holds what each opened to: bodies, threads, fastener edit steps, the drawing, tapped holes, CAM and DFM rules, the BOM. For the drawing that means its suggestions, issues, dimensions, stored tolerances, and the suggestions with those tolerances taken off; the last are the `holePosition` reads at open.
+  - Numbers are rounded to 9 decimals: a bore read as 5.000000000000001 is 5.
+  - Run twice, the result is the same.
+- **`test/o7-legacy.test.ts`** checks every fixture through Save/Open (`readStudioFile`).
+
+**Plan check (the coordinator's point 3), reported before O7b:**
+- The starter document has a plain hole, r 4, with no tap, so O7 doesn't affect it. Its drawing reads "fits no fastener" from the data, and with no rows loaded it reads the same.
+- enclosure.json and materials.json profiles 7–8 are the tables O7d and O7c convert.
+- tslot-20.json carries four literals equal to the catalogue's M5 values: `bore` 4.2, the Slot nut's `drill` 4.2, and the end cap's and angle bracket's `hole` 5.5. They are not read from FASTENER_SIZES. Options (A), (B) and (C) went to the coordinator; I recommended (C): the library's own values, the source text saying so, and a warning when loaded rows differ. Waiting for the coordinator's choice.
+
+**Load paths for O7b's migration.** A read-only survey found these. Point 4 needs each one covered.
+- **Through `readStudioFile`/`readStudioDoc`:**
+  - Open, Insert part and a placed part's new revision (App.tsx 1499, 780, 2454);
+  - templates (app/templates.ts:14);
+  - cad-mcp and cad-cli `--doc` (server/cadDoc.ts:31);
+  - `cad-cli replay` and CandidateBoard (team/candidates.ts:62, 194);
+  - bundle verify (team/bundle.ts:132).
+- **Not through it (a cast `JSON.parse`):**
+  - crash recovery (app/recovery.ts:12, 61; restored at App.tsx:2848);
+  - the chat server's client → state.json (server/chatServer.ts:205, 242) and its cad-mcp state file (server/cadMcp.ts:44);
+  - team scenario `start` docs (cadCli.ts:164, 175; team/scripted.ts:90, 115).
+  - O7b puts the migration on each of these. For the chat round trip the right point is where the client's document enters the server.
+- **Nested documents:** `instances[].doc` (recursively) and `pendingParts[id].doc`.
+  - `readStudioDoc` migrates only the top level today: its validators recurse, its migration steps don't. O7's legacy-row freeze has to recurse.
+  - `modelContent` recurses into instance docs. Freezing rows into a placed part therefore changes its revision digest; O7b will check that before choosing where the rows go.
+
+**Verified (O7a).**
+- o7-legacy 8/8, run twice with the same result.
+- tsc and eslint clean.
+- Only tests and fixtures changed, so no suite ran (T1).

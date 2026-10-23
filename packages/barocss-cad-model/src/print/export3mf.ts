@@ -6,6 +6,8 @@ import type { BodyResult } from '../engine/evaluate';
 import { bodyName, lookOf } from '../app/bodies';
 import { materialData, printerProfile } from '../library/materials';
 import type { ThreeMfModel, ThreeMfObject } from './threemf';
+import type { DisplayMesh } from '../engine/mesh';
+import { compactLump, lumpName, lumpTriangles } from '../engine/lumps';
 
 /** The rotation (row-major) turning the unit direction `d` onto +Z: the shortest turn (half a turn about X for −Z). */
 export function rotationToUp(d: readonly number[]): number[] {
@@ -19,6 +21,15 @@ export function rotationToUp(d: readonly number[]): number[] {
 export const toThreeMfTransform = (R: readonly number[], t: readonly number[]): number[] => [R[0], R[3], R[6], R[1], R[4], R[7], R[2], R[5], R[8], t[0], t[1], t[2]];
 
 export interface PartBodies { readonly doc: StudioDoc; readonly bodies: readonly BodyResult[]; /** An instance's name, before its bodies'. */ readonly name?: string }
+/** A body's 3MF object split a lump at a time (O8): each lump's own vertices and triangles, its triangles' colours kept. */
+function lumpObjects(whole: ThreeMfObject, mesh: DisplayMesh, triangleColors: (string | null)[] | undefined): ThreeMfObject[] {
+  const lumps = lumpTriangles(mesh); if (!lumps) return [whole];
+  return lumps.map((t, k) => {
+    const c = compactLump(mesh, t);
+    const { triangleColors: _all, ...rest } = whole; void _all;
+    return { ...rest, name: lumpName(whole.name, k), positions: c.positions, indices: c.indices, ...(triangleColors ? { triangleColors: t.map(i => triangleColors[i]) } : {}) };
+  });
+}
 /** The 3MF model of the parts' visible bodies (meshes as shown: placed instances' already in place). */
 export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], title: string): ThreeMfModel | string {
   const objects: ThreeMfObject[] = [];
@@ -33,6 +44,9 @@ export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], tit
     }
     const name = bodyName(part.doc, b);
     objects.push({ name: part.name ? `${part.name} / ${name}` : name, positions: m.positions, indices: m.indices, material: materialData(look.material)?.label ?? look.material ?? '', color: look.color ?? '', ...(triangleColors ? { triangleColors } : {}) });
+    // (O8: a body whose lumps touch only along a line or at a point, an object a lump — welded by position, one object of
+    // both has an edge of four faces. Named as the manufacturability warning names them. Lumps apart, one object as before.)
+    if (b.lumpTouch?.length) objects.splice(objects.length - 1, 1, ...lumpObjects(objects[objects.length - 1], m, triangleColors));
   }
   if (!objects.length) return 'there is no visible body to write';
   if (!doc.print) return { title, objects, items: objects.map((o, k) => ({ object: k, name: o.name })) };

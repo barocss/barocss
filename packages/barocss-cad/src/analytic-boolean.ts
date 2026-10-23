@@ -439,7 +439,7 @@ const branchOf = (point: (th: number, sign: number) => P3, sign: number) => (th:
 type Probe = { kind: 'line'; p: P3; d: P3; lo: number; hi: number } | { kind: 'circle'; c: P3; n: P3; e1: P3; r: number; lo: number } | { kind: 'param'; at: (t: number) => P3; lo: number; hi: number };
 function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, number][] {
   const params: number[] = [];
-  let probe: CurveSegment2[], param: (x: P3) => number, at: (t: number) => P3;
+  let probe: CurveSegment2[], past: CurveSegment2[] = [], param: (x: P3) => number, at: (t: number) => P3;
   if (k.kind === 'param') {
     at = k.at;
     // In a cylinder domain the curve is cut where it crosses the domain's seam (θ = ref ± π), so each
@@ -472,11 +472,26 @@ function intervals(f: GFace, k: Probe, tol: number, strict = false): [number, nu
     const arc: Curve3 = { kind: 'arc', c: k.c, n: k.n, r: k.r, u: unit(sub(at(s0), k.c)), sweep: Math.PI };
     const arc2: Curve3 = { ...arc, u: unit(sub(at(s0 + Math.PI), k.c)) };
     probe = [curve2(f, arc, tol), curve2(f, arc2, tol)];
+    // (A cross-section's half that runs past the domain's seam — a line in (U, V) beyond the window — goes on from the
+    // window's other side: a face over most of a turn has its edges there too, and the line past the window met none of
+    // them. The part past the window is probed there too; the halves stay as they are. L4 fuzz 151, D206.)
+    if (f.surf.kind === 'cylinder') { const c = f.surf; past = probe.flatMap(g => wrappedPast(g, c)); }
     params.push(k.lo, norm(s0), norm(s0 + Math.PI), k.lo + TWO_PI);
   }
-  const rings = [f.region.outer, ...f.region.holes];
-  for (const pr of probe) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) params.push(param(to3(f, x)));
+  const rings = [f.region.outer, ...f.region.holes], found: P3[] = [];
+  for (const pr of probe) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) { const y = to3(f, x); found.push(y); params.push(param(y)); }
+  // (Only crossings the halves did not find: on a face round the whole turn the seam's is found by both.)
+  for (const pr of past) for (const ring of rings) for (const g of ring) for (const x of intersectSegments(pr, g, tol)) { const y = to3(f, x); if (!found.some(q => len(sub(q, y)) <= 10 * tol)) params.push(param(y)); }
   return insideIntervals(f, params, at, tol);
+}
+/** The parts of a line along U in a cylinder's domain that run past its window's ends, each moved by a turn into the window. */
+function wrappedPast(g: CurveSegment2, c: Cylinder): CurveSegment2[] {
+  if (g.kind !== 'line' || g.a[1] !== g.b[1]) return [];
+  const w0 = Math.min(c.s * c.r * (c.ref - Math.PI), c.s * c.r * (c.ref + Math.PI)), w1 = Math.max(c.s * c.r * (c.ref - Math.PI), c.s * c.r * (c.ref + Math.PI)), turn = w1 - w0;
+  const lo = Math.min(g.a[0], g.b[0]), hi = Math.max(g.a[0], g.b[0]), v = g.a[1], out: CurveSegment2[] = [];
+  if (hi > w1) { const b = Math.min(w1, hi - turn); if (b > w0) out.push({ ...g, a: [w0, v], b: [b, v] }); }
+  if (lo < w0) { const a = Math.max(w0, lo + turn); if (w1 > a) out.push({ ...g, a: [a, v], b: [w1, v] }); }
+  return out;
 }
 /**
  * An open chain whose end stops short of a pole on both surfaces — a cone's apex on the other face — goes on to it.

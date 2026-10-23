@@ -1,0 +1,60 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        40,
+        30
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 20,
+      "draft": 2.5,
+      "id": "n1"
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2,
+  "process": "sand-casting",
+  "mould": {
+    "version": 1,
+    "pull": [
+      0,
+      0,
+      1
+    ]
+  },
+  "bodies": {
+    "b1": {
+      "material": "a356"
+    }
+  },
+  "casting": {
+    "version": 1,
+    "machined": [
+      "n1.top"
+    ],
+    "gate": [
+      20,
+      15,
+      20
+    ]
+  }
+}

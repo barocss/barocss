@@ -71,7 +71,7 @@ export function BomPanel({ doc, name, evaluate, onCommit, onError, onClose }: {
           const w = fastener ? (data.view.parts.find(p => p.id === l.parts[0])?.fastener?.why ?? []).join('; ') : l.kind !== undefined ? why(l.parts) : '';
           return <tr key={k} aria-label={`BOM line ${k + 1}`}>
             <td className="mono">{k + 1}</td>
-            <td title={l.size ?? ''}>{l.item}</td>
+            <td title={l.size ?? ''}>{l.item}{l.lumps ? <span className="muted small" aria-label="Lumps"> · {l.lumps} lumps</span> : null}</td>
             <td className="mono">{l.qty}</td>
             <td>{[l.row, l.catalogue].filter(Boolean).join(' · ') || '—'}</td>
             <td title={w}>{l.source}{l.source && l.estimate ? ' · ' : ''}{l.estimate ? <span className="warn">estimate</span> : (!l.source ? '—' : null)}</td>

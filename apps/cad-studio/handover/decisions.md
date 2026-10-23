@@ -11879,3 +11879,88 @@ in `robustness/corpus/fuzz/` with `bodies: 2`.
 
 **Test:** `test/boolean-tangent-plane-piece.test.mjs`, failing before: two bodies, strictly valid, the exact volume,
 both orders.
+
+## D211 — K11 (F5's remainder): a foot on a patch's edge is solved along that edge, and the iteration stops at the rounding floor (2026-10-23)
+
+**Finding.** A9's turning report (cad-model's `exactNormals`) makes 72 914 foot queries, with 4 220 974 first-derivative
+and 887 602 second-derivative calls. 33 988 of the queries (47 %) ran all 30 steps. Those are points 3–12 mm off a
+patch, because a display face's exact normal is taken from the nearest of its B-rep pieces, so each point is also
+queried against the pieces it does not lie on. In 400 sampled queries every foot lay on a patch edge (none at a corner).
+Two things kept the iteration from stopping:
+- **On the edge**, the step solved in both parameters and then clamped kept pointing out, and its free part, coupled to
+  the clamped one, crawled.
+- **At the rounding floor**, where distance × curvature exceeds 1, Gauss–Newton's step grew about sixfold each time
+  from the rounding noise. The halving test accepts a step that does not increase the distance beyond 1e-12, so the
+  step test never held.
+
+On a torus patch, from points 4–16 mm off its tube, 197 of 604 feet on an edge ran all 30 steps, up to 5e-4 mm short
+of the nearest point.
+
+**Fix (`src/surface-closest.ts`).**
+- On a domain edge with the step pointing out of it, only the other parameter is solved for: Gauss–Newton along the
+  edge's curve, and in the slow case Newton with that parameter's second derivative.
+- When a small step (below 1e-8 of the domain) is larger than the last one and the distance did not fall, the iteration
+  stops at the point before.
+
+A first version that stopped when the distance no longer fell measurably stopped too early: on the K4 cylinder, feet
+were up to 2.6e-7 mm off.
+
+**Results:**
+
+| Measure (A9, `--cpu-prof`) | Before | After |
+|---|---|---|
+| `turningOf` | 8.1 s | 4.4 s |
+| `closestPointOnSurface` | 8.0 s | 4.2 s |
+| First-derivative calls | 4 220 974 | 1 396 442 |
+| Second-derivative calls | 887 602 | 76 652 |
+| Queries at the 30-step cap | 33 988 | 148 |
+
+Accuracy:
+- **400 sampled capped queries:** every foot is at least as near as the old code's after 2000 steps, up to 2.4e-10 mm
+  nearer; the feet moved by up to 1.9e-5 mm.
+- **K4's cylinder:** worst foot error 1.6e-11 mm (2.6e-11 before).
+- **The torus edge feet:** within 9e-15 of the scan oracle.
+- A9 passes.
+
+**Test:** `test/k11-closest-edge.test.mjs`, failing before: torus edge feet within 1e-9 of a dense-scan oracle, and at
+most 1 in 20 at the step cap.
+
+## D206 — A cross-section past a cylinder face's seam goes on from the domain's other side (2026-10-23)
+
+**Finding.** L4 fuzz 151, shrunk: a box less (a cylinder ∪ a ball). Refused as "not a manifold solid (edge … has 1
+uses)". The box's bottom plane cuts the cylinder, whose face spans 270°. The plane's circle is probed in the cylinder's
+domain as two half turns, from a quarter turn before the face's seam. The second half ran past the domain's window,
+u up to s·r·(ref + π). The face's boundary beyond the seam lies at the window's other end, so the half never met it.
+The plane's interval on the wall came out wrong, the bottom face got no cut and the stitch refused. L4 fuzz 46 (three
+(a cylinder ∪ a box) in a row) was the same.
+
+**Fix (`src/analytic-boolean.ts`, `wrappedPast`).** On a cylinder, the part of a probe half that runs past the
+window is moved by one turn to the window's other side and probed there too. The halves themselves stay as they
+are. Only crossings the halves did not find (more than 10 tolerances from theirs) are added: on a face round the
+whole turn, the seam's crossing is found by both.
+
+A first version cut each half at the window's end instead. It changed the rounding of crossings on faces that were
+never wrong, and so the frozen robot MJCF/USD exports' last digits. The version above leaves them bit for bit.
+
+**What else it changes: X2 (the outer lane's ruling, 2026-10-23).** The hub bore's B–B section circle used to be cut by
+an arc running 0° → 342.5°, into the keyway gap and off the face. The section plane's own interval clipped it, so the
+section looked right but its edge was split at 171.3°, that arc's middle. Now the arc runs 17.5° → 342.5° and splits
+at 180°, the bore's extreme point.
+
+X2's d + t2 22.8 moves from top to section:B. From the top, its bore end lies under the shaft's Ø25 step, so the top
+cannot show both ends visible. The old 'top' rested on the misjudged arc's split at 171.3°. DIMENSION_LOST's count on removing B–B goes 2 → 3 with it.
+
+In `packages/barocss-cad-model/test/section-dimensions.test.ts` (the outer lane's values):
+- the hub's view is section:B;
+- 22.8 is among the section's values;
+- dropping the section loses three dimensions, not two;
+- the comments say why.
+
+**Results:**
+- 151 is valid and watertight, 60.488911 mm³ against the oracle's 60.488757 ± 1.2e-3 (0.1 e);
+- 46 is valid and watertight, 601.815458 mm³ against 601.816864 ± 4.8e-2 (−0.0 e).
+
+Both are in `robustness/corpus/fuzz/` with the oracle's volume, centroid and body count.
+
+**Tests:** `test/boolean-seam-wrap.test.mjs`, failing before: both trees strictly valid, watertight and within 3 e of
+the ray oracle.

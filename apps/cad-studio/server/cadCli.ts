@@ -13,7 +13,7 @@ import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
-import { meshToStl } from '@barocss/cad-model/engine/stl';
+import { lumpStls, meshToStl } from '@barocss/cad-model/engine/stl';
 import { notLocalModel, openModel, writeAtomic } from './cadDoc';
 import { runPartsScenario, runScenario, runSummary, type PartsScenario, type Scenario } from '@barocss/cad-model/team/scripted';
 import { metricsOf, type Labelled } from '@barocss/cad-model/team/metrics';
@@ -426,6 +426,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
         if (!s.bodies.length) return failed('STL: there is no body to write');
         for (const b of s.bodies) {
           const path = s.bodies.length === 1 ? o.stl : o.stl.replace(/\.stl$/i, `-${b.key}.stl`);
+          // (O8: a body whose pieces only touch along an edge or a point, one STL a piece: <name>-lump1.stl, …)
+          const lumps = b.lumpTouch?.length ? lumpStls(b.mesh, b.key) : null;
+          if (lumps) { for (const f of lumps) { const at = path.replace(/\.stl$/i, `-lump${f.lump + 1}.stl`); writeAtomic(at, f.bytes); wrote.push(at); } continue; }
           writeAtomic(path, stlFor(s.doc, b.key) ?? meshToStl(b.mesh, b.key)); wrote.push(path);
         }
       }

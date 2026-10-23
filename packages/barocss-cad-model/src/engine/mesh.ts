@@ -10,7 +10,7 @@ import { sub, cross, dot, len, unit as norm } from './vec3';
 export type Vec3 = [number, number, number];
 
 /** `radius`: a cylinder's or a sphere's. */
-export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true;
+export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
   exact?: { kind: 'plane'; o: Vec3; n: Vec3 } | { kind: 'cylinder'; c: Vec3; a: Vec3; r: number };
   /** A curved face of constant curvature along its circles — a cylinder, sphere, cone or torus (A6.3: the edge-sag bound holds, O55). */
@@ -81,6 +81,9 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   for (const f of brep.faces) { const r = find(f.id), l = groups.get(r); if (l) l.push(f.id); else groups.set(r, [f.id]); }
   const faceById = new Map(brep.faces.map(f => [f.id, f]));
 
+  // (O8: a body of two or more lumps — the kernel's D204, lumps touching along a line or at a point as lumps apart — each
+  // display face on its lump; a face group never spans two, their edges are their own.)
+  const shellBody = new Map(brep.shells.map(sh => [sh.id, sh.body])), lumpOf = new Map(brep.bodies.map((bd, k) => [bd.id, k])), lumps = brep.bodies.length > 1;
   const b = newBuilder(), displayOf = new Map<string, number>();
   for (const [root, members] of groups) {
     const pos: number[] = [], nor: number[] = [], idx: number[] = [];
@@ -94,6 +97,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     // (A mesh region that is flat shows as a plane: sketches and mates take it; a curved one as curved, no radius.)
     const rootKind = meshFace.get(root)!.kind, flatRegion = rootKind === 'facet' && faceGeometry(faceById.get(root)!).kind === 'plane';
     addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), rootKind === 'planar' || flatRegion ? 'plane' : 'curved', pos, nor, idx);
+    if (lumps) b.faces[b.faces.length - 1].lump = lumpOf.get(shellBody.get(faceById.get(root)!.shell)!)!;
     if (rootKind === 'facet') b.faces[b.faces.length - 1].facet = true;
     else if (rootKind === 'planar') {
       // (The exact plane, A6.3, from the face's own control points — cheap, no surface recognition: a point, and the

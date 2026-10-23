@@ -75,7 +75,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | Fuzz 158 (robust refusal): a traced curve through a pole of one surface on the other goes on to the pole | D208 | done (T2) |
 | Fuzz 137, 125 (robust refusals): a curved piece pinched at a vertex (a hole touching its boundary there) is measured | D209 | done (T2) |
 | Fuzz 15 (robust refusal): a planar piece whose middle lies where a surface only touches it is re-judged too (two bodies) | D210 | done (T2) |
-| K11: F5's remainder — the turning report's 4.2 M first derivatives (foot queries seeded from neighbours) | — | after K10's first findings |
+| K11: F5's remainder — a foot on a patch edge is solved along it, the iteration stops at the rounding floor (turningOf 8.1 → 4.4 s, first derivatives 4.2 M → 1.4 M) | D211 | done (T2) |
+| Fuzz 151, 46 (robust refusals): a cross-section past a cylinder face's seam is probed on the domain's other side; X2's d + t2 22.8 moves to section:B (outer lane's ruling) | D206 | done (T2) |
 | Open: K2's flow and the WebGPU black canvas (GPU lane) | — | open |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
@@ -892,7 +893,10 @@ Scope and acceptance per track: §4 below ("Mesh bodies and SubD roadmap", "Stan
 | `53f98c1ff` R3b | chat/part/features.ts (the features group, verbatim); the person-row actions' steps (rowsAsked, fileRows); inRange/isVec3; insidePoly → insideRing; TEST_CONCURRENCY in scripts/test.mjs; tools.ts 1,021 lines | byte check identical (37 more probes), toolset 9/9, tool-contract 3/3, cad-model suite 964/964, tsc, eslint |
 | `92cb2e912` R3c | chat/part/requirements.ts and chat/part/views.ts, verbatim; tools.ts 967 lines | byte check identical (11 more probes), toolset 9/9, tool-contract 3/3, cad-model suite 964/964, tsc, eslint |
 | `eda95ce10` R3d | chat/toolDefinitions.ts: the definitions block, verbatim in order (batch/mutator sets, schemas, describe, PART_TOOLS, argument check, TOOLS, SYSTEM_PROMPT); tools.ts 623 lines | byte check identical, toolset 9/9, tool-contract 3/3, cad-model suite 964/964, tsc, eslint |
-| R3e | chat/part/history.ts and chat/part/proposals.ts (the runner passed in as `dispatch`; the public proposal functions as same-signature wrappers in chat/tools); the survey's items 1–3 (subToolResult, placedPart/partReply, the v2 translation once); tools.ts 236 lines. FRd2's flow step expects O173's 16 welds | byte check identical against the pre-R3e baseline (with placed-part, runTool and proposal probes), cad-model suite 964/964, tsc, eslint; flow not run |
+| `127574318` R3e | chat/part/history.ts and chat/part/proposals.ts (the runner passed in as `dispatch`; the public proposal functions as same-signature wrappers in chat/tools); the survey's items 1–3 (subToolResult, placedPart/partReply, the v2 translation once); tools.ts 236 lines. FRd2's flow step expects O173's 16 welds | byte check identical against the pre-R3e baseline (with placed-part, runTool and proposal probes), cad-model suite 964/964, tsc, eslint; flow not run |
+| `605208857`, `5d305d6eb` FR3b | the flow's responsiveness step on a box frame (2.7–2.8 s), its 2000 ms premise kept; FRd2's 16 welds | flow FRd1, FRd2, FR3b ok |
+| `5bca3663a` O8 | pieces touching along a line or at a point (the kernel's D204, D205): `lumpTouch`, 3MF objects and STL files a lump at a time, per-lump walls, the `lump-touch` warning in the old refusal's words, the BOM's `lumps`; App.tsx 132 and 1699–1712 (named) | lumps 4/4 (the kernel's 30° case both ways), cad-model suite 968/968, 18 studio files 87/87, tsc, eslint; flow not run |
+| `68466234b` O7a | the pre-O7 fixtures (seven .bcad, one per built-in use) and `expected.json`, what each opens to; the load paths and nested docs O7b's migration must cover; tslot-20's M5 literals, options to the coordinator | o7-legacy 8/8 (twice, same), tsc, eslint |
 
 **Next:** the frozen v2 contract test (toolset), waiting on the coordinator's choice: move load_rows to `features` (recommended), or v3. Then the studio suite's failures (the rows (b) fixtures in the cad-cli paths). 
 

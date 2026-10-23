@@ -1,0 +1,49 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        40,
+        30
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 20,
+      "draft": 0.75,
+      "id": "n1"
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2,
+  "process": "die-casting",
+  "mould": {
+    "version": 1,
+    "pull": [
+      0,
+      0,
+      1
+    ]
+  },
+  "bodies": {
+    "b1": {
+      "material": "zamak3"
+    }
+  }
+}

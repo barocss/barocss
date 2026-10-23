@@ -7,7 +7,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { DisplayMesh } from '../engine/mesh';
 import { faceTableOf } from '../assembly/faces';
 import { interference, wallThickness } from '../chat/analysis';
-import { materialIdOf } from '../app/bodies';
+import { bodyName, materialIdOf } from '../app/bodies';
 import { materialData, printerProfile, processProfile, type MouldFinish, type ProcessProfile } from '../library/materials';
 import { overhangOf, type Vec3 } from './overhang';
 import { draftField, type DraftFace } from '../mould/draft';
@@ -25,6 +25,7 @@ import type { Feature } from '../machining/features';
 import type { StockResult } from '../machining/stock';
 import { machinability } from '../machining/report';
 import { madeBodies } from '../engine/elements';
+import { lumpMesh, lumpName, lumpTriangles } from '../engine/lumps';
 
 export type RuleStatus = 'pass' | 'warn' | 'fail' | 'unknown' | 'n/a';
 export interface PrintRule {
@@ -100,7 +101,33 @@ export function cavitiesOf(m: DisplayMesh): number {
 }
 
 /** The part's printability against its process, printer and orientation (given, else the document's chosen one). */
+/** A body's thinnest wall (mm), or null; a body whose lumps touch, the thinnest of its lumps' (O8). */
+function thinnestWall(x: BodyResult): number | null {
+  const lumps = x.lumpTouch?.length ? lumpTriangles(x.mesh) : null;
+  if (!lumps) return (wallThickness(x) as { thinnest_mm: number | null }).thinnest_mm;
+  let w: number | null = null;
+  for (const t of lumps) { const v = (wallThickness({ ...x, mesh: lumpMesh(x.mesh, t) }) as { thinnest_mm: number | null }).thinnest_mm; if (v !== null && (w === null || v < w)) w = v; }
+  return w;
+}
+/**
+ * The manufacturability report (see printabilityOf) — and, whatever the process, O8's warning on a body whose lumps touch
+ * only along a line or at a point (the kernel's D204: one body, the union asked for; its old refusal, in its words).
+ */
 export async function printability(doc: StudioDoc, all: readonly BodyResult[], evaluate: Evaluate, options: { direction?: readonly number[]; finish?: string; sides?: Readonly<Record<string, Half>> } = {}): Promise<PrintabilityReport> {
+  const report = await printabilityOf(doc, all, evaluate, options), touching = lumpTouchNames(doc, madeBodies(doc.nodes, all));
+  return touching.length ? { ...report, rules: [...report.rules, { id: 'lump-touch', level: 'feasible', status: 'warn', message: `The bodies only touch along an edge or a point: ${touching.join(', ')}`, entities: touching, why: 'one body of pieces touching only along a line or at a point: they print, cast or cut as separate pieces, and a mesh welded by position reads the touch as non-manifold (the exports write a lump at a time)' }] } : report;
+}
+/** The lumps that touch, by name (the 3MF objects' names): each touching pair's two, once each, in order. */
+function lumpTouchNames(doc: StudioDoc, bodies: readonly BodyResult[]): string[] {
+  const out: string[] = [];
+  for (const b of bodies) if (b.lumpTouch?.length) {
+    const name = bodyName(doc, b), seen = new Set<number>();
+    for (const [i, j] of b.lumpTouch) { seen.add(i); seen.add(j); }
+    for (const k of [...seen].sort((x, y) => x - y)) out.push(lumpName(name, k));
+  }
+  return out;
+}
+async function printabilityOf(doc: StudioDoc, all: readonly BodyResult[], evaluate: Evaluate, options: { direction?: readonly number[]; finish?: string; sides?: Readonly<Record<string, Half>> } = {}): Promise<PrintabilityReport> {
   // (O160: the process judges what it makes — a bought element is not printed, moulded, cast or machined.)
   const bodies = madeBodies(doc.nodes, all);
   const profile = processProfile(doc.process), printer = printerProfile(doc.printer), dir = options.direction ?? doc.print?.direction;
@@ -120,7 +147,8 @@ export async function printability(doc: StudioDoc, all: readonly BodyResult[], e
   }
   const t = (k: string) => profile.thresholds[k], noOrientation = 'no orientation is chosen or given (AM4)';
   // Wall: the thinnest wall of any body.
-  const walls = bodies.map(x => ({ key: x.key, w: (wallThickness(x) as { thinnest_mm: number | null }).thinnest_mm })).filter(x => x.w !== null) as { key: string; w: number }[];
+  // (O8: a body whose lumps touch, measured a lump at a time — across the touch, the other lump is no wall of this one's.)
+  const walls = bodies.map(x => ({ key: x.key, w: thinnestWall(x) })).filter(x => x.w !== null) as { key: string; w: number }[];
   const thin = walls.sort((a, c) => a.w - c.w)[0];
   rules.push(thin ? rule('wall', 'feasible', thin.w >= t('minWall').value, 'the thinnest wall, against the thinnest the process makes', thin.w, t('minWall').value, 'mm', t('minWall').source, [thin.key])
     : { id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });

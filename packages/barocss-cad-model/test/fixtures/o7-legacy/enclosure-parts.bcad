@@ -1,0 +1,517 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        80,
+        60
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 2.5,
+      "id": "n1"
+    },
+    {
+      "kind": "library",
+      "name": "Screw boss M3",
+      "library": {
+        "library": "enclosure",
+        "version": "0.7.0",
+        "part": "screw-boss",
+        "variant": "M3",
+        "params": {},
+        "values": {
+          "d": 3,
+          "dp": 2.5,
+          "h": 8,
+          "ribs": 4,
+          "rt": 1
+        }
+      },
+      "prefix": "lib1",
+      "features": [
+        {
+          "id": "lib1_s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.2
+        },
+        {
+          "id": "lib1_b",
+          "kind": "extrude",
+          "sketch": "lib1_s",
+          "height": 8
+        },
+        {
+          "id": "lib1_bh",
+          "kind": "hole",
+          "target": "lib1_b",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 1.25,
+          "depth": 7.4
+        },
+        {
+          "id": "lib1_g0s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              3,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0.5,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "lib1_g0x",
+          "kind": "extrude",
+          "sketch": "lib1_g0s",
+          "height": 1
+        },
+        {
+          "id": "lib1_g0u",
+          "kind": "union",
+          "target": "lib1_bh",
+          "tool": "lib1_g0x"
+        },
+        {
+          "id": "lib1_g1s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              3,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "plane": {
+            "origin": [
+              -0.5,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "lib1_g1x",
+          "kind": "extrude",
+          "sketch": "lib1_g1s",
+          "height": 1
+        },
+        {
+          "id": "lib1_g1u",
+          "kind": "union",
+          "target": "lib1_g0u",
+          "tool": "lib1_g1x"
+        },
+        {
+          "id": "lib1_g2s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              3,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0,
+              -0.5,
+              0
+            ],
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "xAxis": [
+              -1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "lib1_g2x",
+          "kind": "extrude",
+          "sketch": "lib1_g2s",
+          "height": 1
+        },
+        {
+          "id": "lib1_g2u",
+          "kind": "union",
+          "target": "lib1_g1u",
+          "tool": "lib1_g2x"
+        },
+        {
+          "id": "lib1_g3s",
+          "kind": "sketch",
+          "profile": "polygon",
+          "points": [
+            [
+              3,
+              0
+            ],
+            [
+              7,
+              0
+            ],
+            [
+              3,
+              6
+            ]
+          ],
+          "plane": {
+            "origin": [
+              0.5,
+              0,
+              0
+            ],
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              -1,
+              0
+            ]
+          }
+        },
+        {
+          "id": "lib1_g3x",
+          "kind": "extrude",
+          "sketch": "lib1_g3s",
+          "height": 1
+        },
+        {
+          "id": "lib1_g3u",
+          "kind": "union",
+          "target": "lib1_g2u",
+          "tool": "lib1_g3x"
+        }
+      ],
+      "outputs": [
+        "lib1_g3u"
+      ],
+      "interfaces": [
+        {
+          "id": "base",
+          "role": "boss-base",
+          "accepts": [
+            "body-face"
+          ],
+          "frame": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "z": [
+              0,
+              0,
+              -1
+            ],
+            "x": [
+              1,
+              0,
+              0
+            ]
+          },
+          "faces": {
+            "plane": "lib1_b.bottom"
+          },
+          "description": "its foot, on the face it is added to"
+        },
+        {
+          "id": "screw",
+          "role": "screw-hole",
+          "accepts": [
+            "screw"
+          ],
+          "frame": {
+            "origin": [
+              0,
+              0,
+              8
+            ],
+            "z": [
+              0,
+              0,
+              1
+            ],
+            "x": [
+              1,
+              0,
+              0
+            ]
+          },
+          "faces": {
+            "axis": "lib1_bh.side0"
+          }
+        }
+      ],
+      "warnings": [
+        "dp = 2.5 mm is an estimate (pilot hole for a thread-forming screw)",
+        "rt = 1 mm is an estimate (gusset thickness)",
+        "boss-wall-thin: unknown — needs bossWallMin (the process's least boss-wall-to-wall ratio)",
+        "boss-wall-thick: unknown — needs bossWallMax (the process's largest boss-wall-to-wall ratio)",
+        "rib-sink: unknown — needs ribRec (the process's recommended rib-to-wall ratio)",
+        "rib-wall: unknown — needs ribMax (the process's largest rib-to-wall ratio)",
+        "Screw boss: simplified internals — not for structural calculation",
+        "context ribRec: no process is chosen",
+        "context ribMax: no process is chosen",
+        "context bossWallMin: no process is chosen",
+        "context bossWallMax: no process is chosen"
+      ],
+      "context": {
+        "wall": 2.5
+      },
+      "placement": {
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          20,
+          20,
+          2.5
+        ]
+      },
+      "addTo": {
+        "node": 1,
+        "side": "solid"
+      },
+      "on": {
+        "face": "n1.top",
+        "point": [
+          20,
+          20,
+          2.5
+        ]
+      },
+      "id": "n2"
+    },
+    {
+      "kind": "library",
+      "name": "PCB standoff M2.5",
+      "library": {
+        "library": "enclosure",
+        "version": "0.7.0",
+        "part": "pcb-standoff",
+        "variant": "M2.5",
+        "params": {},
+        "values": {
+          "d": 2.5,
+          "dp": 2,
+          "h": 6
+        }
+      },
+      "prefix": "lib2",
+      "features": [
+        {
+          "id": "lib2_s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.1
+        },
+        {
+          "id": "lib2_b",
+          "kind": "extrude",
+          "sketch": "lib2_s",
+          "height": 6
+        },
+        {
+          "id": "lib2_bh",
+          "kind": "hole",
+          "target": "lib2_b",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 1,
+          "depth": 5.4
+        }
+      ],
+      "outputs": [
+        "lib2_bh"
+      ],
+      "interfaces": [
+        {
+          "id": "base",
+          "role": "boss-base",
+          "accepts": [
+            "body-face"
+          ],
+          "frame": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "z": [
+              0,
+              0,
+              -1
+            ],
+            "x": [
+              1,
+              0,
+              0
+            ]
+          },
+          "faces": {
+            "plane": "lib2_b.bottom"
+          }
+        },
+        {
+          "id": "screw",
+          "role": "pcb-mount",
+          "accepts": [
+            "pcb-hole",
+            "screw"
+          ],
+          "frame": {
+            "origin": [
+              0,
+              0,
+              6
+            ],
+            "z": [
+              0,
+              0,
+              1
+            ],
+            "x": [
+              1,
+              0,
+              0
+            ]
+          },
+          "faces": {
+            "plane": "lib2_b.top",
+            "axis": "lib2_bh.side0"
+          },
+          "description": "the board's seat and the screw's axis"
+        }
+      ],
+      "warnings": [
+        "dp = 2 mm is an estimate (pilot hole for a thread-forming screw)",
+        "standoff-wall: unknown — needs bossWallMax (the process's largest boss-wall-to-wall ratio)",
+        "PCB standoff: simplified internals — not for structural calculation",
+        "context bossWallMax: no process is chosen"
+      ],
+      "context": {
+        "wall": 2.5
+      },
+      "placement": {
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          60,
+          40,
+          2.5
+        ]
+      },
+      "addTo": {
+        "node": 2,
+        "side": "solid"
+      },
+      "on": {
+        "face": "n1.top",
+        "point": [
+          60,
+          40,
+          2.5
+        ]
+      },
+      "id": "n3"
+    }
+  ],
+  "outputs": {
+    "b3": {
+      "node": 3,
+      "side": "solid"
+    }
+  },
+  "nextId": 4
+}
