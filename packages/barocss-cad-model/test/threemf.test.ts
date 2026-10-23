@@ -78,7 +78,7 @@ test('AM5 a box as 3MF: the package\'s parts (content types, relationships, mode
   assert.match(new TextDecoder().decode(z.get('[Content_Types].xml')!), /Extension="model" ContentType="application\/vnd\.ms-package\.3dmanufacturing-3dmodel\+xml"/);
   assert.match(new TextDecoder().decode(z.get('_rels/.rels')!), /Target="\/3D\/3dmodel\.model"[^>]*Type="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/2013\/01\/3dmodel"/);
   const m = readModel(z);
-  assert.match(m.xml, /<model unit="millimeter" xml:lang="en-US" xmlns="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/core\/2015\/02" xmlns:p="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/production\/2015\/06">/);
+  assert.match(m.xml, /<model unit="millimeter" xml:lang="en-US" xmlns="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/core\/2015\/02" xmlns:p="http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/production\/2015\/06" xmlns:barocss="https:\/\/barocss\.com\/3mf\/2026">/);
   assert.match(m.xml, /<metadata name="CreationDate">2026-10-18<\/metadata>/); assert.doesNotMatch(m.xml, /requiredextensions/);
   assert.deepEqual(m.bases, [{ name: 'ABS', color: '#CC3333' }]);
   assert.equal(m.objects.length, 1); assert.deepEqual([m.objects[0].pid, m.objects[0].pindex], ['1', '0']);

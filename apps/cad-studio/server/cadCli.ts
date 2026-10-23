@@ -38,6 +38,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
 import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { sourceBytes, sourceName, sourceRecord } from '@barocss/cad-model/team/source';
 
 /** A mould plan as mould.json shows it: without the loops' points (the lumps' classifier's). */
 /** A row list named on the person's own command line (rows rule b): the file they supplied, received as the chat receives
@@ -401,6 +402,8 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     mkdirSync(join(dir, 'meshes'), { recursive: true });
     writeAtomic(main, text);
     for (const f of r.files) writeAtomic(join(dir, f.path), f.data);
+    // (O9: the export as external readers pin it, its source beside it: the revision, the input digest, the hand-set values.)
+    writeAtomic(join(dir, sourceName(main.replace(/^.*[\\/]/, ''))), sourceBytes(sourceRecord(opened.doc, [main.replace(/^.*[\\/]/, ''), ...r.files.map(f => f.path)], { robot: true })));
     const files = new Set(r.files.map(f => f.path)), check = cmd === 'urdf' ? readUrdf(text, files) : readMjcf(text, files);
     say(io.stdout, { ok: !check.issues.length, ...('links' in check.model ? { links: check.model.links.length, joints: check.model.joints.length } : { bodies: check.model.bodies.length }), wrote: [main, ...r.files.map(f => join(dir, f.path))], notes: r.notes, check: check.issues });
     return check.issues.length ? 1 : 0;
@@ -431,6 +434,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
           if (lumps) { for (const f of lumps) { const at = path.replace(/\.stl$/i, `-lump${f.lump + 1}.stl`); writeAtomic(at, f.bytes); wrote.push(at); } continue; }
           writeAtomic(path, stlFor(s.doc, b.key) ?? meshToStl(b.mesh, b.key)); wrote.push(path);
         }
+        // (O9: an STL's header cannot carry its source; the record beside it does, for every STL this run wrote.)
+        const stls = wrote.filter(w => /\.stl$/i.test(w)), at = sourceName(o.stl);
+        writeAtomic(at, sourceBytes(sourceRecord(s.doc, stls.map(w => w.replace(/^.*[\\/]/, ''))))); wrote.push(at);
       }
     } catch (e) { return failed(`writing: ${e instanceof Error ? e.message : String(e)}`); }
   }

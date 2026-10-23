@@ -92,7 +92,7 @@ const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 /** `sections` (O148 X1): each section's projection and cut-face rings (view coordinates), drawn where the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -314,7 +314,7 @@ const rect = ([x0, y0, x1, y1]: readonly number[], pen: Pen): Mark[] => [
 /** The title's room: from 2 mm in to 2 mm short of the projection symbol (its left edge at 59 mm from the right). */
 export const TITLE_ROOM = TITLE_BLOCK.width - 2 - 59 - 2;
 
-function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string }): Mark[] {
+function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string }): Mark[] {
   const [x0, y0, x1, y1] = layout.title, marks: Mark[] = rect(layout.title, 'frame');
   const mid = y0 + 14, cols = [x0, x0 + 24, x0 + 42, x0 + 72, x0 + 90, x1];
   marks.push({ kind: 'line', a: [x0, mid], b: [x1, mid], pen: 'thin' });
@@ -323,6 +323,8 @@ function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { titl
   // Each field fits its cell: shrunk to a floor, then cut with an ellipsis. The title runs up to the projection symbol.
   marks.push({ kind: 'text', at: [x0 + 2, y0 + 11], ...fitText(meta.title, 5, true, TITLE_ROOM, 3), anchor: 'start', bold: true });
   marks.push({ kind: 'text', at: [x1 - 2, y0 + 4], text: 'barocss cad-studio', size: 1.8, anchor: 'end' });
+  // (O9: the source revision the sheet was drawn from, when given — beside the drawing's own REV, which a person sets.)
+  if (meta.source) marks.push({ kind: 'text', at: [x1 - 2, y0 + 8], text: `SRC ${meta.source}`, size: 1.8, anchor: 'end' });
   const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', 'mm'], ['DATE', meta.date], ['REV', settings.revision ?? '-'], ['SHEET', settings.sheet]];
   cells.forEach(([k, val], i) => {
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 4], text: k, size: 1.8, anchor: 'start' });

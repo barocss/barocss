@@ -99,6 +99,7 @@ import { fastenerName, fastenerThread } from '@barocss/cad-model/app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
+import { sourceBytes, sourceRecord } from '@barocss/cad-model/team/source';
 import type { Analysis } from './viewport/analysis';
 import { poseMatrix } from './viewport/instancePose';
 import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, type AxisSection, type Section } from './viewport/sectionView';
@@ -1711,14 +1712,17 @@ export function App() {
     if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
     const fallback: string[] = [];
     let split = 0, files = 0;
+    const names: string[] = [];
     for (const body of bodies) {
       // (O8: a body whose pieces only touch along an edge or a point, one STL a piece — a reader welds them otherwise.)
       const lumps = body.lumpTouch?.length ? lumpStls(body.mesh, body.key) : null;
-      if (lumps) { split++; files += lumps.length; for (const f of lumps) downloadBytes(f.bytes, `${fileName}-${body.key}-lump${f.lump + 1}.stl`, 'model/stl'); continue; }
+      if (lumps) { split++; files += lumps.length; for (const f of lumps) { const name = `${fileName}-${body.key}-lump${f.lump + 1}.stl`; names.push(name); downloadBytes(f.bytes, name, 'model/stl'); } continue; }
       const kernel = await engine.stl(evaluated, body.key);
       if (!kernel) fallback.push(bodyName(doc, body));
-      files++; downloadBytes(kernel ?? meshToStl(body.mesh, body.key), `${fileName}-${body.key}.stl`, 'model/stl');
+      files++; names.push(`${fileName}-${body.key}.stl`); downloadBytes(kernel ?? meshToStl(body.mesh, body.key), `${fileName}-${body.key}.stl`, 'model/stl');
     }
+    // (O9: an STL's header cannot carry its source; the record beside them does.)
+    if (names.length) downloadBytes(sourceBytes(sourceRecord(doc, names)), `${fileName}.source.json`, 'application/json');
     // (STL is facets only: no units, colours or exact curves; say when the display mesh had to stand in.)
     setToast({ title: `STL written: ${files} file${files === 1 ? '' : 's'}`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}${split ? ' A body whose pieces only touch along an edge or a point is written as one STL a piece; 3MF keeps them in one file as separate objects.' : ''}`, detail: '' });
   };
@@ -2475,7 +2479,7 @@ export function App() {
           // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
           const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
           if (!r.ok) { setToast({ title: 'URDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
-          void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
+          void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.urdf', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
           if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
         }}
         waypoints={jointWaypoints.length} onAddWaypoint={() => { const v = poseStore.get(), fk = poseKinematics(jointTree, v); setJointWaypoints(w => [...w, { ...(fk?.values ?? v) }]); }} onClearWaypoints={() => { setJointWaypoints([]); setPathCheck(null); }}
@@ -2511,19 +2515,20 @@ export function App() {
           // (RM5: as the URDF, the same parts; robot.xml and its meshes.)
           const r = exportMjcf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
           if (!r.ok) { setToast({ title: 'MJCF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
-          void writeZip([{ name: 'robot.xml', data: new TextEncoder().encode(r.xml), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-mjcf.zip`, 'application/zip'));
+          void writeZip([{ name: 'robot.xml', data: new TextEncoder().encode(r.xml), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.xml', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-mjcf.zip`, 'application/zip'));
         }}
         onExportSdf={() => {
           // (RM9c: as the URDF and MJCF, the same parts; each planar loop closed at its pin, RM8.)
           const r = exportSdf(jointTree, robotPartOf, fileName, robotClosures());
           if (!r.ok) { setToast({ title: 'SDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
-          void writeZip([{ name: 'robot.sdf', data: new TextEncoder().encode(r.sdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true }))]).then(z => downloadBytes(z, `${fileName}-sdf.zip`, 'application/zip'));
+          void writeZip([{ name: 'robot.sdf', data: new TextEncoder().encode(r.sdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.sdf', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-sdf.zip`, 'application/zip'));
           if (r.notes.length) setToast({ title: 'SDF written', hint: r.notes.join(' '), detail: '' });
         }}
         onExportUsd={() => {
           const r = exportUsd(jointTree, robotPartOf, fileName, robotClosures());
           if (!r.ok) { setToast({ title: 'USD refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
           downloadBytes(new TextEncoder().encode(r.usda), `${fileName}.usda`, 'model/vnd.usda');
+          downloadBytes(sourceBytes(sourceRecord(doc, [`${fileName}.usda`], { robot: true })), `${fileName}.source.json`, 'application/json');
           if (r.notes.length) setToast({ title: 'USD written', hint: r.notes.join(' '), detail: '' });
         }}
         onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}

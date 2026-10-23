@@ -13,6 +13,7 @@ import { frameSegmentCount, frameSegmentEnds, placedBase, placedDoc, placementOf
 import { bodyNodeOf } from './ids';
 import { fastenerLinkNotes } from '../library/fastenerLinks';
 import { fastenerSizesOf } from './fastenerSizeRows';
+import { revisionOf } from '../team/revision';
 
 /** A kernel output's body key and the node and side it is now. */
 /** A body's role, from the node that made it (O60: 'infill' on a print infill's mesh node). */
@@ -450,7 +451,7 @@ export function partBreps(doc: StudioDoc): { key: string; brep: Brep }[] {
  * The part (and its shown instances) as one STEP file. Bodies with the `infill` role (O60: a print lattice) are left out —
  * STEP stays the exact part — and `omitted` says so; 3MF and the mass keep them.
  */
-export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): { text: string; omitted?: string[] } | { error: string } {
+export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar'): { text: string; source: string; omitted?: string[] } | { error: string } {
   try {
     const breps: Brep[] = [], left: string[] = [];
     const take = (d: StudioDoc, outputs: CadPartSnapshot['outputs'], prefix: string) => {
@@ -459,8 +460,9 @@ export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessell
     take(doc, snapshotOf(doc).outputs, '');
     for (const inst of doc.instances ?? []) if (!inst.hidden) { const placed = placedDoc(inst, doc); take(placed, placedOutputs(inst, placed, doc), `${inst.id}/`); }
     if (!breps.length) return { error: left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.' };
-    const text = exportStep(breps, { name, ...(meshes ? { meshes } : {}) });
-    return left.length ? { text, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text };
+    // (O9: the header names the source revision the file was made from.)
+    const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}) });
+    return left.length ? { text, source, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text, source };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 

@@ -8,6 +8,7 @@ import { materialData, printerProfile } from '../library/materials';
 import type { ThreeMfModel, ThreeMfObject } from './threemf';
 import type { DisplayMesh } from '../engine/mesh';
 import { compactLump, lumpName, lumpTriangles } from '../engine/lumps';
+import { revisionOf } from '../team/revision';
 
 /** The rotation (row-major) turning the unit direction `d` onto +Z: the shortest turn (half a turn about X for −Z). */
 export function rotationToUp(d: readonly number[]): number[] {
@@ -49,7 +50,9 @@ export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], tit
     if (b.lumpTouch?.length) objects.splice(objects.length - 1, 1, ...lumpObjects(objects[objects.length - 1], m, triangleColors));
   }
   if (!objects.length) return 'there is no visible body to write';
-  if (!doc.print) return { title, objects, items: objects.map((o, k) => ({ object: k, name: o.name })) };
+  // (O9: the source revision the model was made from, in its metadata.)
+  const source = revisionOf(doc);
+  if (!doc.print) return { title, objects, items: objects.map((o, k) => ({ object: k, name: o.name })), source };
   // Turned so the print direction is up, its lowest point on the bed, centred on the printer's bed when chosen.
   const R = rotationToUp(doc.print.direction), lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const o of objects) {
@@ -59,5 +62,5 @@ export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], tit
   const bed = printerProfile(doc.printer)?.buildMM;
   const t = bed ? [bed[0] / 2 - (lo[0] + hi[0]) / 2, bed[1] / 2 - (lo[1] + hi[1]) / 2, -lo[2]] : [0, 0, -lo[2]];
   const transform = toThreeMfTransform(R, t);
-  return { title, objects, items: objects.map((o, k) => ({ object: k, transform, name: o.name })) };
+  return { title, objects, items: objects.map((o, k) => ({ object: k, transform, name: o.name })), source };
 }

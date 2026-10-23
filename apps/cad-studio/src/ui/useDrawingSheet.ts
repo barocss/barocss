@@ -20,6 +20,7 @@ import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
 import { holeCallout } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
+import { revisionOf } from '@barocss/cad-model/team/revision';
 import { layoutSheet } from '@barocss/cad-model/drawing/views';
 import { sameSection, sectionsOf, type DrawingSettings, type DrawingTable, type DrawingViews } from '@barocss/cad-model/drawing/types';
 import type { SectionCut } from '@barocss/cad-model/drawing/section';
@@ -94,6 +95,8 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);
   const threads = useMemo(() => threadsOf(doc.nodes, fastenerSizesOf(doc)), [doc.nodes, doc.fastenerSizes]);
+  // (O9: the source revision the sheet is drawn from, in its title block.)
+  const source = useMemo(() => revisionOf(doc), [doc]);
   // (O147 B2: the BOM, when the BOM table or the balloons read it — every document evaluated in the engine worker.)
   const wantsBom = !!settings.balloons || !!settings.tables?.some(x => x.from === 'bom');
   const [bomRead, setBomRead] = useState<{ doc: StudioDoc; bom: Bom } | null>(null);
@@ -116,8 +119,8 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const weldJoints = useMemo(() => settings.weldSymbols && bodies ? weldList(doc, bodies).joints : undefined, [settings.weldSymbols, doc, bodies]);
   // (O177: the base part's bodies' face names, for the balloons of its own BOM lines — members, made bodies.)
   const bodyFaces = useMemo(() => settings.balloons && bodies ? bodyFacesOf(bodies) : undefined, [settings.balloons, bodies]);
-  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bodyFaces, bom]);
+  const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bodyFaces, bom]);
   const annotations = useMemo<ModelAnnotations | null>(() => active && wantAnnotations && sheet && layout && views ? modelAnnotations({ views, layout, settings, sheet, ...(weldJoints ? { welds: weldJoints } : {}) }) : null,
     [active, wantAnnotations, sheet, layout, views, settings, weldJoints]);
-  return { scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, wantsBom, bom, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
+  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, wantsBom, bom, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
 }
