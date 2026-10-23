@@ -11621,3 +11621,22 @@ domain's own triangles. The bound is unchanged.
 
 **Test:** `test/mass-pole-cap.test.mjs`, the case against the ray oracle at 256² × 6, within 3 e. Before the fix the
 body's mass was tessellated and 43 e off at that resolution.
+
+## D200 — A curved body's tessellated mass states its volume's error (2026-10-23)
+
+**Coordinator's ask (from 171).** When the quadrature cannot integrate a curved body, its mass falls back to the mesh,
+and that must not be a quiet 0.09 % error.
+
+**Change (`src/solid-mass.ts`).** The value is unchanged: the same mesh, so every tessellated result stays bit for bit.
+With method `tessellated` it now carries `volumeBoundMM3`, the volume's change from a mesh of half the segments. The
+chord error falls with the square of the step, so that change is some three times the error itself. A part output's
+fallback mesh is 32 segments a quarter, its bound from 16. Other methods carry none. Only a body that falls back pays
+the second mesh.
+
+**Test:** `test/mass-tessellated-bound.test.mjs`. A ball and a cylinder with the quadrature turned off, at 8 and 16
+segments: each states a bound, and the true error (closed forms) is within it.
+
+**cad-model (outer lane, not changed here).** `chat/analysis.ts`'s `massProperties` and `engine/evaluate.ts`'s
+`bodyOf` report `volume_mm3` and `mass_g` with no basis. The area has `area_basis`; the volume has nothing. A tessellated
+volume is shown as if exact. Sent to the coordinator as a finding: a `volume_basis` with the bound, as `area_basis` is
+given.
