@@ -71,6 +71,8 @@ async function check(name, fn) {
   step++;
   if (process.env.FLOW_ONLY && step > 1 && !new RegExp(process.env.FLOW_ONLY, 'i').test(name)) return;
   const before = sawLoad, files = changedFiles.length;
+  // (G12: each step starts with the columns as a fresh viewer has them — a chat opened or dragged in one step stays in it.)
+  await page.evaluate(() => window.__studioLayoutReset?.()).catch(() => {});
   try { await fn(); results.push({ step, name, ok: true }); }
   catch (e) {
     const reloaded = sawLoad > before ? ` [the page reloaded during this step, not by the flow${changedFiles.length > files ? `: ${changedFiles.slice(files).map(x => x[1]).slice(0, 3).join(', ')} changed` : ''}]` : '';

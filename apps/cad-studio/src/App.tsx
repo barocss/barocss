@@ -143,7 +143,7 @@ import { useBottomRow } from './ui/useBottomRow';
 import { useLayout } from './layout/useLayout';
 import { ChatColumn, columnShown } from './layout/ChatColumn';
 import { Dock } from './layout/Dock';
-import { CHAT_STRIP } from './layout/useLayout';
+import { CHAT_DEFAULT, CHAT_STRIP } from './layout/useLayout';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
@@ -318,6 +318,12 @@ export function App() {
   const [palette, setPalette] = useState(false);
   // (G12a: the chat column's open state and width, kept per viewer; collapsed when the window narrows past what fits.)
   const layout = useLayout(), chat = layout.chatOpen, setChat = layout.setChatOpen;
+  // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
+  // one step's open or drag does not carry into the next.)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __studioLayoutReset: () => void }).__studioLayoutReset = () => { layout.setChatOpen(false); layout.setChatWidth(CHAT_DEFAULT); layout.setDockSheet(false); };
+  }, [layout.setChatOpen, layout.setChatWidth, layout.setDockSheet]);
   // Closing chat keeps pending approvals usable; a new conversation explicitly clears/revokes this ref.
   const chatRowFiles = useRef<PersonRowFiles | undefined>(undefined);
   // (The references' bodies in their own coordinates, the keep-outs' solids, and the keep-outs' verdicts, A6.3.)
