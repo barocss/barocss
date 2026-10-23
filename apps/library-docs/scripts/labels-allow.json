@@ -1,0 +1,19 @@
+{
+  "about": "Bold text on the studio, agent and Getting started pages that is not a UI label as written in the sources. check-docs requires every other bold span there to appear in the studio's or the document model's sources (case aside). Each entry says why it is allowed.",
+  "emphasis": {
+    "Its id and title": "a list item's lead words",
+    "The Tools rail": "the rail's name with an article; the rail is Tools",
+    "The heads-up display (HUD)": "a list item's lead words",
+    "The properties panel": "a list item's lead words",
+    "The server's address": "a list item's lead words",
+    "Up to 24 steps": "a list item's lead words (MAX_TURNS = 24)",
+    "When no copy can be kept,": "a list item's lead words"
+  },
+  "composed": {
+    "Accept 2 of 3": "App.tsx: `Accept ${…} of ${…}` while some features are left out",
+    "Accept Rev B": "ui/InstancePanel.tsx: `Accept Rev ${pending.rev}`",
+    "Keep Rev A": "ui/InstancePanel.tsx: `Keep Rev ${inst.part.rev}`",
+    "Load sample casting rules": "ui/FastenerSizes.tsx: `Load sample ${k.what}`",
+    "Load sample fastener sizes": "ui/FastenerSizes.tsx: `Load sample ${k.what}`"
+  }
+}

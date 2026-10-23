@@ -2,7 +2,8 @@
 // A link to a file (a shot) resolves under docs/public. The shots keep to the budget (250 KB each, 10 MB in all), and
 // every shot is shown on a page. Files named `_*.md` are parts a page includes, not pages. The generated parts match
 // the code they come from (scripts/agent-tools.mjs and scripts/refusals.mjs, --check); the .bcad page names every
-// document field, and the cad-model page every module folder.
+// document field, and the cad-model page every module folder; every bold UI label on the studio and agent pages is in
+// the studio's sources (scripts/labels-allow.json for what is not a label as written).
 // Run: pnpm --filter @barocss/library-docs check:docs
 import { spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
@@ -73,7 +74,22 @@ for (const f of fields) if (!documentPage.includes(`\`${f}\``)) problems.push(`r
 // (The cad-model page's module map names every top-level folder of the package's src.)
 const modelSrc = resolve(docs, '../../../packages/barocss-cad-model/src'), modelPage = readFileSync(join(docs, 'packages/cad-model/index.md'), 'utf8');
 for (const name of readdirSync(modelSrc)) if (statSync(join(modelSrc, name)).isDirectory() && !modelPage.includes(`\`${name}/\``)) problems.push(`packages/cad-model/index.md: the module \`${name}/\` is not in the map`);
+// (UI labels: every bold span on the studio, agent and Getting started pages names something the studio shows, so it is
+// found in the studio's or the document model's sources, case aside and &amp; read as &. A span ending in . : or , is a
+// lead phrase, and a code span is code; scripts/labels-allow.json lists the rest that are not labels as written, and why.)
+const sourceText = ['apps/cad-studio/src', 'apps/cad-studio/server', 'packages/barocss-cad-model/src'].flatMap(d => filesUnder(resolve(docs, '../../..', d), n => /\.tsx?$/.test(n)))
+  .map(f => readFileSync(f, 'utf8')).join('\n').replace(/&amp;/g, '&').replace(/\\u2019/g, '’').toLowerCase();
+const allowed = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'labels-allow.json'), 'utf8'));
+const allow = new Set([...Object.keys(allowed.emphasis), ...Object.keys(allowed.composed)]);
+const labelPages = [...pagesUnder(join(docs, 'studio')), ...pagesUnder(join(docs, 'agent')), join(docs, 'guide/getting-started.md')];
+let labels = 0;
+for (const page of labelPages) for (const [, label] of readFileSync(page, 'utf8').matchAll(/\*\*([^*\n]+?)\*\*/g)) {
+  if (/[.:,]$/.test(label.trim()) || /^`.*`$/.test(label) || allow.has(label)) continue;
+  labels++;
+  if (![label, label.replace(/'/g, '’')].some(l => sourceText.includes(l.toLowerCase()))) problems.push(`${relative(docs, page)}: the label **${label}** is not in the studio's sources`);
+}
+for (const label of allow) if (!labelPages.some(p => readFileSync(p, 'utf8').includes(`**${label}**`))) problems.push(`scripts/labels-allow.json: ${label} is no longer used on a page`);
 if (shotBytes > TOTAL_MAX) problems.push(`shots: ${Math.round(shotBytes / 1024)} KB in all, over the 10 MB`);
 const writing = [...listed].filter(p => readFileSync(p, 'utf8').includes('::: warning Being written')).length;
 if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
-console.log(JSON.stringify({ pages: listed.size, beingWritten: writing, shots: shots.length, shotKB: Math.round(shotBytes / 1024) }));
+console.log(JSON.stringify({ pages: listed.size, beingWritten: writing, shots: shots.length, shotKB: Math.round(shotBytes / 1024), labels }));

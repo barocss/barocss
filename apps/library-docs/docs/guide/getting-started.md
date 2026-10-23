@@ -54,7 +54,7 @@ A tapped hole needs thread sizes, and the studio has none built in: sizes come f
    `[FASTENER_SIZE_ROW] no row for M6 …`.
 
    ![The HUD refusing the tapped hole: no row for M6](/shots/guide/getting-started/tapped-refused.png)
-2. Press <kbd>Escape</kbd>, open **Library**, and click **Load sample fastener sizes**. **Fastener sizes loaded**
+2. Press <kbd>Escape</kbd>, open **Library**, and click **Load sample fastener sizes**. **Fastener sizes**
    now reads `M3, M4, M5, M6, M8, M10, M12`. These are example rows that ship with `@barocss/cad-model`, each value
    with its source. Check them against your own supplier before you rely on them.
 
