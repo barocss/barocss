@@ -3,6 +3,7 @@
 // forward kinematics in URDF's own terms — each joint's origin, then its motion about its axis in the child frame —
 // a different composition from RM2's product of exponentials, so the two checked against each other test the export.
 // External checkers (check_urdf, MuJoCo, PyBullet) are test oracles outside the product (scripts/urdf-oracle.py).
+import { symmetricEigenvalues3 } from './eigen';
 
 export class XmlError extends Error { constructor(message: string, readonly at: number) { super(`XML at ${at}: ${message}`); this.name = 'XmlError'; } }
 export interface XmlNode { name: string; attrs: Record<string, string>; children: XmlNode[]; /** Its text, trimmed (with `{ text: true }`: SDF keeps its values there). */ text?: string }
@@ -114,21 +115,12 @@ export function readUrdf(text: string, files?: ReadonlySet<string>): { model: Ur
   for (const l of links) if (l.inertial) {
     const { mass, I } = l.inertial;
     if (!(mass > 0)) issues.push(`${l.name}: mass ${mass} is not above 0`);
-    const ev = eigen3([I[0], I[1], I[2], I[1], I[3], I[4], I[2], I[4], I[5]]), tol = 1e-9 * Math.abs(ev[2]);
+    const ev = symmetricEigenvalues3([I[0], I[1], I[2], I[1], I[3], I[4], I[2], I[4], I[5]]), tol = 1e-9 * Math.abs(ev[2]);
     if (!(ev[0] > 0)) issues.push(`${l.name}: its inertia is not positive definite`);
     if (ev[2] > ev[0] + ev[1] + tol) issues.push(`${l.name}: its principal moments break the triangle inequality`);
   }
   if (files) for (const l of links) for (const m of l.meshes) if (!files.has(m)) issues.push(`${l.name}: no file ${m}`);
   return { model: { name: root.attrs.name ?? '', links, joints }, issues };
-}
-/** A symmetric 3 × 3's eigenvalues, ascending (the closed form for real symmetric matrices). */
-function eigen3(a: number[]): V3 {
-  const p1 = a[1] * a[1] + a[2] * a[2] + a[5] * a[5];
-  if (p1 === 0) return [a[0], a[4], a[8]].sort((x, y) => x - y) as V3;
-  const q = (a[0] + a[4] + a[8]) / 3, p2 = (a[0] - q) ** 2 + (a[4] - q) ** 2 + (a[8] - q) ** 2 + 2 * p1, p = Math.sqrt(p2 / 6);
-  const b = a.map((x, i) => (x - (i % 4 === 0 ? q : 0)) / p), r = (b[0] * (b[4] * b[8] - b[5] * b[7]) - b[1] * (b[3] * b[8] - b[5] * b[6]) + b[2] * (b[3] * b[7] - b[4] * b[6])) / 2;
-  const phi = r <= -1 ? Math.PI / 3 : r >= 1 ? 0 : Math.acos(r) / 3, e1 = q + 2 * p * Math.cos(phi), e3 = q + 2 * p * Math.cos(phi + 2 * Math.PI / 3);
-  return [e3, 3 * q - e1 - e3, e1];
 }
 
 type M4 = { R: number[]; t: V3 };
