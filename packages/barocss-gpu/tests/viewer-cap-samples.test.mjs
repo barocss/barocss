@@ -35,9 +35,11 @@ for (const antialias of [true, false]) test(`AA ${antialias}: scene cap pipeline
   assert.equal(descriptions.has('viewer capFrontSamples'), antialias);
   if (antialias) {
     const p = descriptions.get('viewer capFrontSamples');
-    assert.equal(p.fragment.targets[0].format, 'rgba16float', 'rg32float is not used for MSAA');
+    assert.equal(p.fragment.targets[0].format, 'r16uint', 'G9: a triangle key a sample, 2 bytes');
     assert.equal(p.multisample.count, 4);
     assert.match(p.fragment.module.code, /@location\(1\) @interpolate\(perspective, sample\) world/);
+    assert.match(p.fragment.module.code, /@location\(2\) @interpolate\(flat\) key: u32/);
+    assert.equal(p.layout.bindGroupLayouts[0].entries.find(e => e.binding === 6).texture.sampleType, 'uint');
   }
   for (const key of ['capFront', 'capPick', 'capMask', 'shadowProbe', 'shadowCap']) {
     const p = descriptions.get('viewer ' + key);
@@ -48,30 +50,42 @@ for (const antialias of [true, false]) test(`AA ${antialias}: scene cap pipeline
   assert.equal(descriptions.get('viewer shadowProbe').fragment.targets[0].format, 'rg32float');
 });
 
-test('sampled scene shaders preserve the exact depth threshold and interpolate the same world point in probe/cap', () => {
+test('sampled scene shaders find the probe\'s triangle by its key at the sample, and interpolate the same world point in probe/cap', () => {
   const scene = surfaceWGSL(undefined, true);
   assert.match(scene, /@location\(0\) @interpolate\(perspective, sample\) world/);
-  assert.match(scene, /capFirstSample\(in\.clip, in\.world, sample\)/);
-  assert.match(scene, /textureLoad\(capFrontSamples, vec2i\(pos\.xy\), i32\(sample\)\)/);
-  assert.match(scene, /abs\(z - capSampleDepth\(world\)\) <= 1e-6/);
+  assert.match(scene, /@location\(5\) @interpolate\(flat\) key: u32/);
+  assert.match(scene, /o\.key = probeKey\(vi, ii\)/);
+  assert.match(scene, /capFirstSample\(in\.clip, in\.key, sample\)/);
+  assert.match(scene, /textureLoad\(capFrontSamples, vec2i\(pos\.xy\), i32\(sample\)\)\.x == key/);
+  assert.match(capProbeSamplesWGSL, /o\.key = probeKey\(vi, ii\)/);
   assert.match(capProbeSamplesWGSL, /let z = capSampleDepth\(in\.world\)/);
-  assert.match(capProbeSamplesWGSL, /o\.v = capProbeBits\(z, !front\)/);
+  assert.match(capProbeSamplesWGSL, /o\.v = select\(in\.key, 0u, front\)/);
   assert.match(pickWGSL, /o\.v = vec2f\(z, select\(1\.0, 0\.0, front\)\)/);
   assert.match(surfaceWGSL(), /if \(!capFirst\(in\.clip\)\)/);
 });
 
-test('11/11/10-bit half-float lanes retain every tested float32 depth bit, unlike direct half-float depth', () => {
-  const f = new Float32Array(1), u = new Uint32Array(f.buffer);
-  // Independent binary16 spacing, including subnormals. The encoded lanes are nonnegative integers.
-  const half = x => x === 0 ? 0 : Math.round(x / 2 ** Math.max(-24, Math.floor(Math.log2(x)) - 10)) * 2 ** Math.max(-24, Math.floor(Math.log2(x)) - 10);
-  for (let lane = 0; lane <= 2047; lane++) assert.equal(half(lane), lane);
-  let seed = 0x3f123456;
-  for (const depth of [0, 1, 0.5, 1e-12, 0.003900123, ...Array.from({ length: 4096 }, () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 0xffffffff; })]) {
-    f[0] = depth; const bits = u[0], lanes = [bits & 2047, (bits >>> 11) & 2047, bits >>> 22].map(half);
-    const decoded = (lanes[0] | (lanes[1] << 11) | (lanes[2] << 22)) >>> 0;
-    assert.equal(decoded, bits);
+// (G9: probeKey, as the WGSL computes it — u32 products wrap — for the slot key in object.pick.z's high half.)
+const probeKey = (slot, vi, ii) => {
+  let h = (Math.imul(slot, 0x9E3779B1) ^ Math.imul(vi, 0x85EBCA77) ^ Math.imul(ii, 0xC2B2AE3D)) >>> 0;
+  h = Math.imul(h ^ (h >>> 15), 0x2C1B3C6D) >>> 0;
+  h = Math.imul(h ^ (h >>> 12), 0x297A2D39) >>> 0;
+  const k = (h ^ (h >>> 15)) & 0xffff;
+  return k === 0 ? 1 : k;
+};
+test('G9 the triangle key: 16 bits, never 0 (0 is no cap); two triangles share one about 1 time in 65 535', () => {
+  assert.match(surfaceWGSL(undefined, true), /0x9E3779B1u[\s\S]*0x85EBCA77u[\s\S]*0xC2B2AE3Du[\s\S]*0x2C1B3C6Du[\s\S]*0x297A2D39u/);
+  let seed = 7, same = 0, pairs = 0;
+  const rand = n => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed % n; };
+  for (let k = 0; k < 200000; k++) {
+    const a = [1 + rand(500), rand(100000), rand(4)], b = [1 + rand(500), rand(100000), rand(4)];
+    const ka = probeKey(...a), kb = probeKey(...b);
+    assert.ok(ka >= 1 && ka <= 0xffff);
+    if (a.join() === b.join()) continue;
+    pairs++; if (ka === kb) same++;
   }
-  assert.ok(Math.abs(half(0.503123) - Math.fround(0.503123)) > 1e-6, 'direct rgba16float depth would not preserve capFirst tolerance');
+  // (Neighbours too: the triangles beside one another in a mesh, its first vertices a few apart.)
+  for (let vi = 0; vi < 60000; vi++) { pairs++; if (probeKey(3, vi, 0) === probeKey(3, vi + 1, 0)) same++; }
+  assert.ok(same / pairs < 4 / 65535, `${same} of ${pairs} pairs share a key`);
 });
 
 for (const withSamples of [true, false]) test(`AA ${withSamples}: cap samples are lazy, use the supported format, and release on resize`, () => {
@@ -83,7 +97,7 @@ for (const withSamples of [true, false]) test(`AA ${withSamples}: cap samples ar
   const first = viewer.ensureTargets();
   assert.equal(first.capFrontSamples, null, 'unsectioned frames do not allocate a full-size MSAA cap probe');
   viewer.ensureCapSamples(first);
-  assert.equal(first.capFrontSamples?.format ?? null, withSamples ? 'rgba16float' : null);
+  assert.equal(first.capFrontSamples?.format ?? null, withSamples ? 'r16uint' : null);
   assert.equal(first.capFrontSamples?.sampleCount ?? null, withSamples ? 4 : null);
   assert.equal(first.depth.sampleCount, withSamples ? 4 : 1);
   assert.equal(first.capFront.format, 'rg32float');
