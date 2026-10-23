@@ -21,7 +21,7 @@ import { revolutionOf, profileCrossings, onPatch, patchMargin, type Revolution }
 import { curvePiece, curveReversed } from './curve-segment.js';
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, nurbsOf as surfaceOfFace, type Brep, type BrepFace } from './brep-core.js';
 import { facetPlane } from './facet-patch.js';
-import { circleOf, polesOf } from './brep-tessellate.js';
+import { circleOf, polesOf, tessellateBrep } from './brep-tessellate.js';
 import { booleanCurveRegions, curveFaceRegions, intersectSegments, segAt as segAtAny, locateInRegion, paramOf as paramOfCurve, regionArea, regionInteriorPoint, segDistance, segIntegral, segReverse, type CurveRegion2, type CurveSegment2, type XY } from './curved-arrangement.js';
 import { nameEdges } from './prismatic-solid.js';
 import { baseName } from './polyhedral-boolean.js';
@@ -1013,6 +1013,39 @@ function offSurface(g: { surf: Surf }, x: P3, limit: number): number {
 
 // ---- classification --------------------------------------------------------------------------------
 type Where = 'in' | 'out' | 'same' | 'opposite';
+/**
+ * Whether a result's boundary touches itself at x (normal n of a surface there): the points a step either side along n
+ * both outside it, or both inside one body of it.
+ */
+function selfTouch(result: Brep, x: P3, n: P3, tol: number): boolean {
+  const faces = facesOf(result, 0, tol), body = new Map(result.shells.map(s => [s.id, s.body])), step = 1e3 * tol;
+  const of = result.faces.map(f => body.get(f.shell)), bodies = [...new Set(of)];
+  const sideIn = (p: P3) => bodies.filter(bd => classify(p, null, faces.filter((_, k) => of[k] === bd), tol) === 'in');
+  const a = sideIn(add(x, scale(n, step))), b = sideIn(sub(x, scale(n, step)));
+  return (!a.length && !b.length) || a.some(bd => b.includes(bd));
+}
+/** Mesh edges (by position) not used exactly twice within one body's triangles, at 8 segments a quarter: how many. */
+function openByBody(brep: Brep): number {
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, shellBody = new Map(brep.shells.map(s => [s.id, s.body])), faceBody = new Map(brep.faces.map(f => [f.id, shellBody.get(f.shell)])), uses = new Map<string, number>();
+  for (const f of mesh.faces) for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t += 3) for (let k = 0; k < 3; k++) {
+    const i = mesh.indices[t + k], j = mesh.indices[t + (k + 1) % 3], a = `${P[3 * i]},${P[3 * i + 1]},${P[3 * i + 2]}`, b = `${P[3 * j]},${P[3 * j + 1]},${P[3 * j + 2]}`, key = `${faceBody.get(f.faceId)}|${a < b ? a + '|' + b : b + '|' + a}`;
+    uses.set(key, (uses.get(key) ?? 0) + 1);
+  }
+  let open = 0; for (const u of uses.values()) if (u !== 2) open++;
+  return open;
+}
+/** A piece's class at points of a 6 × 6 grid over its domain box that lie in it: the first in or out, or null. */
+function clearWhere(f: GFace, region: CurveRegion2, faces: readonly GFace[], tol: number): Where | null {
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  for (const ring of [region.outer, ...region.holes]) for (const g of ring) for (let i = 0; i <= 8; i++) { const q = segAtAny(g, i / 8); u0 = Math.min(u0, q[0]); u1 = Math.max(u1, q[0]); v0 = Math.min(v0, q[1]); v1 = Math.max(v1, q[1]); }
+  for (let i = 1; i <= 6; i++) for (let j = 1; j <= 6; j++) {
+    const q: XY = [u0 + (u1 - u0) * (i - 0.5) / 6, v0 + (v1 - v0) * (j - 0.5) / 6];
+    if (locateInRegion(q, region, 10 * tol) !== 'in') continue;
+    const x = to3(f, q), w = classify(x, normalOut(f, x), faces, tol);
+    if (w === 'in' || w === 'out') return w;
+  }
+  return null;
+}
 const RAYS: P3[] = [[0.5377, 0.3138, 0.7832], [-0.2961, 0.8573, 0.4213], [0.6993, -0.5126, 0.4982], [-0.4436, -0.3714, 0.8155], [0.1172, 0.9563, -0.2677], [0.8811, 0.2219, -0.4175]].map(v => unit(v as P3));
 function classify(x: P3, normal: P3 | null, faces: readonly GFace[], tol: number): Where {
   if (normal) for (const g of faces) {
@@ -1140,6 +1173,10 @@ export function faceGeometry(face: BrepFace, scaleMM = 1): FaceGeometry {
 let booleanTrace: ((pieces: { face: string; solid: number; where: string; at: P3; area: number; cuts: number; ends: P3[][]; ring: P3[][]; raw: unknown }[]) => void) | null = null;
 export function setBooleanTrace(f: typeof booleanTrace): void { booleanTrace = f; }
 export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitToleranceMM?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] } = {}): Brep {
+  return analyticBoolean(a, b, operation, options, true);
+}
+type AnalyticOptions = { readonly id?: string; readonly exactEdges?: boolean; /** A tighter fit for newly created parametric boundary edges only; topology tolerances stay unchanged. */ readonly edgeFitToleranceMM?: number; /** b's faces (ids) that meet a's faces named in `contactWith` (base names) only along their own edges lying on them (a fillet tool's contact faces and the faces it rounds, D89). */ readonly contactFaces?: readonly string[]; readonly contactWith?: readonly string[] };
+function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, options: AnalyticOptions, rejudge: boolean): Brep {
   // (An operation not named exactly is refused: it would otherwise fall through to another one's selection.)
   if (operation !== 'union' && operation !== 'intersection' && operation !== 'difference') throw new BrepError('INPUT', `analytic Boolean: operation must be union, intersection or difference, not ${String(operation)}`);
   const id = options.id ?? `analytic-${operation}`;
@@ -1159,12 +1196,17 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
   // the exact copy (a line or an arc) over a fitted one.
   for (const f of [...A, ...B]) f.cuts = dedupeCuts(f.cuts, tol, f.surf.kind === 'plane');
   // 2–3. Pieces and their classes.
-  const pieces: (Piece & { where: Where })[] = [];
+  const pieces: (Piece & { where: Where })[] = [], touches: { x: P3; n: P3 }[] = [];
   for (const f of [...A, ...B]) {
     const regions = f.cuts.length ? curveFaceRegions([f.region.outer, ...f.region.holes], f.cuts, tol) : [f.region];
     for (const region of regions) {
       const p2 = regionInteriorPoint(region); if (!p2 || Math.abs(regionArea(region)) <= tol * tol) continue;
-      const x = to3(f, p2), where = classify(x, normalOut(f, x), f.solid === 0 ? B : A, tol);
+      const x = to3(f, p2), other = f.solid === 0 ? B : A;
+      let where = classify(x, normalOut(f, x), other, tol);
+      // (A curved piece whose point lies on the other solid's surface where that surface only touches it — a plane
+      // tangent to a cylinder along a ruling, the domain's middle on that line — is judged at other points of it, the
+      // first clear one deciding; a piece on a coincident surface stays on it. L4 fuzz 56, D205.)
+      if (rejudge && (where === 'same' || where === 'opposite') && f.surf.kind !== 'plane') { const w = clearWhere(f, region, other, tol); if (w) { where = w; touches.push({ x, n: normalOut(f, x) }); } }
       pieces.push({ face: f, region, out: 1, key: x, where });
     }
   }
@@ -1182,7 +1224,18 @@ export function booleanAnalytic(a: Brep, b: Brep, operation: AnalyticBooleanOper
     return [{ face: p.face, out: k === 'flip' ? -1 : 1, key: p.key, region: k === 'flip' ? { outer: reverse(p.region.outer), holes: p.region.holes.map(reverse) } : p.region }]; });
   // (A tolerant input's — a fitted offset's, D110, D113 — pieces keep its tolerance: the result is tolerant as its worst.)
   const inputTol = Math.max(0, ...[a, b].flatMap(x => [...x.edges.map(e => e.toleranceMM), ...x.vertices.map(v => v.toleranceMM)]));
-  return stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
+  const result = stitch(mergePieces(kept, tol), id, tol, options.exactEdges !== false, inputTol, undefined, edgeFit);
+  if (!touches.length) return result;
+  // (A piece re-judged where a surface only touches it leaves the result's boundary touching there. Two lumps meeting
+  // there are two bodies, as D204 has them; one lump touching itself — empty on both sides of the touch, or the same
+  // body on both — is not a manifold solid: refused as such, even with no vertex there. A result that is not valid or
+  // watertight body by body is not trusted: the Boolean as it was without the re-judging decides. L4 fuzz 56, D205.)
+  for (const t of touches) {
+    const self = selfTouch(result, t.x, t.n, tol);
+    if (self) throw new Refused(`the result's boundary touches itself at (${t.x.map(v => +v.toFixed(4)).join(', ')}), where one surface only touches another: not a manifold solid (the inputs touch along an edge or at a vertex)`);
+  }
+  if (!checkBrep(result, { strict: true }).valid || openByBody(result)) return analyticBoolean(a, b, operation, options, false);
+  return result;
 }
 
 // ---- a face split along curves (D149) ---------------------------------------------------------------

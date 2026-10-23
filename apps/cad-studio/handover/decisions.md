@@ -11766,3 +11766,46 @@ the touching lumps, and the material left around the touch line touches itself, 
 
 **For the outer lane (the coordinator's O-item):** mesh exports and print checks per lump; a "lumps touch along a line
 or at a point" DFM flag; the lump count on the BOM row.
+
+## D205 — A piece misjudged where a surface only touches it is judged again; a lump touching itself there is refused, typed (2026-10-23)
+
+**Finding.** L4 fuzz 56, shrunk: a box less (a cylinder r 2 tangent inside two of its sides ∪ a box). Refused as "not a
+manifold solid (edge … has 1 uses)": a wrong message for a right answer. One half of the cylinder's wall classified
+**same**, as on the other solid's surface: its interior point, its domain's middle, lies on the line where the box's
+side y = 0 only touches the wall. The difference keeps no such piece, so the half was dropped. The same misjudgement
+made two lumps that only touch there unbuildable, against D204's contract.
+
+**Fix (`src/analytic-boolean.ts`).**
+- **Re-judge.** A non-planar piece classified same or opposite is judged again at the points of a 6 × 6 grid over its
+  domain box that lie in it (`clearWhere`). The first clear one, in or out, decides, and the touch point is kept. A
+  piece on a truly coincident surface has no clear point and stays as it was.
+- **Then, at each such touch** (`selfTouch`), the result is classified body by body a step either side along that
+  surface's normal (10³ tolerances):
+  - **empty on both sides** (a zero wall, two cavities meeting) or **one body on both sides:** one lump touching itself.
+    Refused, typed: "the result's boundary touches itself at (x, y, z), where one surface only touches another: not a
+    manifold solid", even with no vertex or edge there;
+  - **two different bodies:** two lumps that only touch, so two bodies, as D204 has them.
+- **A result that is not strictly valid or not watertight body by body is not trusted.** The Boolean runs again
+  without the re-judging and gives today's answer.
+
+**Coordinator's rulings (2026-10-23).**
+- A lump whose boundary touches itself, geometrically, at a point or along a line is not a manifold solid.
+  part-model.test's two cavities tangent at a point stay refused. Were it a solid, the exact body is
+  8000 − 4π·20 − 9π·20 = 7183.1859 mm³; the kernel's re-judged pieces gave 7183.185910, but it is refused.
+- **56b, shrunk:** its hole's wall touches the outer face along a line, so it is refused. It is in
+  `robustness/corpus/fuzz/fuzz-20261023-56b.json` as an expected refusal.
+- **One inconsistency stays.** On the prismatic route, a crescent is the same geometry: a wall tangent inside a hole,
+  touching along a line. It is still accepted (KNOWN-CRESCENT, D195), by its convention and the call to keep saved
+  documents resolving. On the analytic route the same geometry (56b) is refused. In the crescent case, D195's DFM
+  zero-wall flag is what tells the person.
+
+**Results:**
+- L4 fuzz seed 20261024 #165 and seed 20261023 #56 are refusals, never INVALID: #56 as a self-touch, #165 by today's
+  path, its re-judged result not valid.
+- A box and a cylinder tangent to its face from outside (both turned 30° about X) are two bodies, either way round:
+  8 · 3 · 8 + π · 4 · 4 mm³, exact. With D204 alone they are refused.
+
+**Tests:** `test/boolean-tangent-piece.test.mjs`, both failing before:
+- 56b and the two cavities: refused, typed;
+- the box and tangent cylinder, both ways round: two bodies, the tool's lump first, the exact volume.
+part-model.test's pinned refusal passes unchanged: the message keeps "touch along an edge or at a vertex".
