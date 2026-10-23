@@ -57,7 +57,7 @@ import { ContextMenu } from './ui/ContextMenu';
 import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
-import { clearRecovery, offerRecovery, settleRecovery, writeRecovery, type Recovery } from './app/recovery';
+import { clearRecovery, keepRecovery, offerRecovery, settleRecovery, type Recovery } from './app/recovery';
 import { blobStats, collectRecoveryBlobs, evictBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
 import { indexedDbBlobStore } from './ui/blobStore';
 // (The recovery copy's blobs kept in this browser's IndexedDB: the store set before the studio reads or writes one — PKG-g2.)
@@ -337,16 +337,18 @@ export function App() {
   useEffect(() => {
     if (!dirty) return;
     // (A mesh's blobs to IndexedDB beside it: the localStorage copy names them, M1.)
-    const t = setTimeout(() => {
-      const kept = writeRecovery(fileName, doc);
-      if (kept === 'ok') { recoveryOff.current = null; void saveRecoveryBlobs(doc); return; }
+    // (O9, REVIEW-A1: the blobs stored before the copy that names them, keepRecovery; none written once overtaken or saved.)
+    let live = true;
+    const t = setTimeout(() => void keepRecovery(fileName, doc, saveRecoveryBlobs, () => live).then(kept => {
+      if (kept === 'overtaken') return;
+      if (kept === 'ok') { recoveryOff.current = null; return; }
       if (recoveryOff.current === fileName) return;
       recoveryOff.current = fileName;
       setToast(kept === 'too-large'
         ? { title: 'Crash recovery is off for this document', hint: 'It is too large for this browser\'s storage, so no recovery copy is kept. Save to keep your work.', detail: '' }
         : { title: 'No recovery copy', hint: 'This browser does not keep one (private browsing, or its storage is full). Save to keep your work.', detail: '' });
-    }, 800);
-    return () => clearTimeout(t);
+    }), 800);
+    return () => { live = false; clearTimeout(t); };
   }, [doc, fileName, dirty]);
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (dirty) e.preventDefault(); };

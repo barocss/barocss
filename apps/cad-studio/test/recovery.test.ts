@@ -73,4 +73,9 @@ test('O9 (REVIEW-A1): the blobs are kept before the copy that names them; blobs 
   release(true);
   assert.equal(await slow, 'overtaken');
   assert.deepEqual(readRecovery()?.doc, newer, 'the newer copy stays');
+  // (The work saved while its blobs were stored: no copy written after it.)
+  storage.map.clear();
+  let savedMeanwhile = false;
+  assert.equal(await keepRecovery('Part', newer, async () => { savedMeanwhile = true; return true; }, () => !savedMeanwhile), 'overtaken');
+  assert.equal(readRecovery(), null);
 });
