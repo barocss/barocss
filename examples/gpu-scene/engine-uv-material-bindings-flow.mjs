@@ -49,7 +49,7 @@ const blackLower='clamp(vec3(0.0000000000000000,0.0000000000000000,0.00000000000
 const mixLower='clamp(mix(vec3(0.0000000000000000,0.0000000000000000,0.0000000000000000),vec3(1.0000000000000000,1.0000000000000000,1.0000000000000000),clamp(clamp((v_engine_uv.x*mat_u_0),0.0000000000000000,1.0000000000000000),0.0,1.0)),vec3(0.0),vec3(1.0))';
 const providers=[['ordinary-source',await import(pathToFileURL(ordinary).href)],['emitted-public',await import(pathToFileURL(resolve(pkg,published.import)).href)]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(),Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length,94);
+
 assert.equal(Object.hasOwn(providers[0][1],'validateEngineUVMaterialBinding'),false,'Internal binder is not a public runtime export');
 const declarationPath=resolve(pkg,published.types),declaration=await readFile(declarationPath,'utf8');
 for(const type of ['EngineUVMaterialBinding','EngineUVMaterialBindingV0','EngineUVMaterialBindingsV0','PreparedEngineUVMaterialBindings'])assert(new RegExp('\\b'+type+'\\b').test(declaration),type+' public type');

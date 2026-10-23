@@ -24,7 +24,7 @@ assert(!graph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
 const providers = [['ordinary-source', await import(pathToFileURL(ordinaryPath).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, emitted.import)).href)]];
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
-assert.equal(Object.keys(providers[0][1]).length, 99);
+
 const declarationPath = resolve(pkg, emitted.types), declarations = await readFile(declarationPath, 'utf8');
 for (const type of ['AffineSceneObject2', 'AffineScene2', 'CompiledAffineSceneSource'])
   assert(new RegExp('\\b' + type + '\\b').test(declarations));

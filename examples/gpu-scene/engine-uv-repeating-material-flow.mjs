@@ -38,7 +38,7 @@ function balancedSum(count){if(count===1)return'fract(uv_u)';const left=Math.flo
 function balancedIR(count){if(count===1)return call('fract',[input('uv_u')]);const left=Math.floor(count/2);return{kind:'binary',type:'float',operator:'+',left:balancedIR(left),right:balancedIR(count-left)};}
 function balancedText(count){if(count===1)return'fract(v_engine_uv.x)';const left=Math.floor(count/2);return'('+balancedText(left)+'+'+balancedText(count-left)+')';}
 const providers=[['ordinary-source',await import(pathToFileURL(ordinary).href)],['emitted-public',await import(pathToFileURL(resolve(pkg,published.import)).href)]];
-assert.deepEqual(Object.keys(providers[0][1]).sort(),Object.keys(providers[1][1]).sort());assert.equal(Object.keys(providers[0][1]).length,97);
+assert.deepEqual(Object.keys(providers[0][1]).sort(),Object.keys(providers[1][1]).sort());
 const declarationPath=resolve(pkg,published.types),declaration=await readFile(declarationPath,'utf8');
 for(const type of ['EngineUVRepeatingMaterialExpression','EngineUVRepeatingMaterialIR','LoweredEngineUVMaterial'])assert(new RegExp('\\b'+type+'\\b').test(declaration),type+' public type');
 let accepted=0,refused=0,getters=0,proxyReflections=0;

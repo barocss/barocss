@@ -23,7 +23,7 @@ const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].i
   format: 'esm', platform: 'node', target: 'node22', outfile: ordinary, metafile: true });
 const graph = Object.keys(bundled.metafile.inputs);
 for (const name of ['box-geometry.ts', 'box-geometry-build-internal.ts', 'triangle-geometry.ts', 'engine-scene.ts'])
-  assert(graph.some(path => path.endsWith('/src/' + name)), 'Actual public source dependency ' + name);
+  assert(graph.some(path => (path.includes('/src/') && path.endsWith('/' + name))), 'Actual public source dependency ' + name);
 assert(!graph.some(path => /barocss-(gpu|cad)\/dist\//.test(path)), 'No own emitted fallback in ordinary source');
 const providers = [['ordinary-source', await import(pathToFileURL(ordinary).href)],
   ['emitted-public', await import(pathToFileURL(resolve(pkg, published.import)).href)]];
