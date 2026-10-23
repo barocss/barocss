@@ -2448,3 +2448,27 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - Not passing: **81** (a countersunk screw inserted as its own part) fails on both renderers, and the same way at
     f18177709 before this change, so it is not this change. Handed to the coordinator. It may follow the built-in
     tables becoming person-loaded sample rows.
+
+## G-R36 — R2c: viewer.ts and shaders.ts split behind their facades (roadmap R2, 2026-10-23)
+
+- **shaders.ts** (918 lines) is now `viewer/shaders/` by program: common (the uniform blocks' sizes and the WGSL every
+  program starts with), surface, line, point, label, oit, grid, pick, output and mip. `shaders.ts` is the facade with
+  its exports as they were; `common` itself stays internal, as it was.
+  - **Checked**: the old and the new module, each bundled, export the same 19 names. All 29 values are identical,
+    strings byte for byte, the program functions called with each kind of argument: custom surface shaders, the
+    capSamples and multisampled variants.
+- **viewer.ts** (2 311 lines → 1 921) gives `viewer/scene.ts` (410) its scene objects as they were: ViewerError, the
+  material, texture, mesh, clip-plane, colour-map and instances options, ImageTexture, packColorMap, the instances'
+  packing, Geometry, Mesh, the cap hatch and the material normaliser.
+  - Mesh's scratch moved with it: the object block's normal matrix and its words.
+  - `viewer.ts` imports them and exports the same public names as before. The viewer's own internal helpers
+    (`packInstances`, `INSTANCE_STRIDE`, `hatchOf`, `materialOf`) are exported from scene.ts as @internal only, not
+    from the facade.
+  - The two classes reached each other only through public members, so nothing about access changed.
+- **Tests' file servers**: four browser specs served `dist/viewer/*.js` from the top folder only, and
+  `dist/viewer/shaders/*` was refused. They now walk subfolders. The examples read the kernel's dist or walk already.
+- **Checks**:
+  - gpu: tsc 0, eslint 0, build, unit 189/189. Browser specs, one file each, all pass: viewer, scene-viewer,
+    pose-clip 18/18, cap-aa 3/3, contour, uv-repeating, compute-thickness, compute-access.
+  - studio: tsc 0, unit 268/268.
+  - FLOW_ONLY on WebGPU, all pass: 73, G19.4, G3, G24, 258, RM2, K2 L gap, the palette.
