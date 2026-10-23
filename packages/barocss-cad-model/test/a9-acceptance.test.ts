@@ -249,12 +249,17 @@ test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; th
 
   // 10. The BOM and the purchase CSV through v2. The CSV holds exactly the bought lines — the key (no row, no source, an
   // estimate: A9-11), the 6204 and the 214 with their rows and sources; the BOM's made parts their materials' masses
-  // (the plate's: its exact volume · 2.7 g/cm³). (The four M6 screws are not BOM lines yet: F9.)
+  // (the plate's: its exact volume · 2.7 g/cm³). F9: the four M6 cap screws through the plate's Ø6.6 holes (the plate
+  // at [100, 0, 320], its top at 334), each placed as a part of its own, bought by the person's fastener row.
+  const fastenerFile = s.rowFiles!.files.find(f => f.source.filename === 'fasteners.json')!.id;
+  await call('features', { action: 'load_rows', kind: 'fasteners', file: fastenerFile });
+  for (const [x, y] of [[120, 10], [280, 10], [120, 290], [280, 290]]) await call('features', { action: 'command', command: 'fastener', values: { kind: 'socket-screw', size: 'M6', length: '20', joint: 'free', insert: 'instance', x, y, z: 334 } });
+  assert.equal(s.doc.instances?.length, 7, 'the plate, the shaft, the cover and four screws');
   const bomOut = await call('query', { action: 'bom' }) as { files: { text: string }[] };
   const bom = JSON.parse(bomOut.files[0].text).bom as { lines: { item: string; qty: number; kind?: string; row?: string | null; source?: string | null; estimate?: boolean; massG: number; material: string | null; member?: { section: string; lengthMM: number }; plate?: unknown }[] };
   const plateLine = bom.lines.find(l => l.item === 'Plate')!;
   assert.ok(Math.abs(plateLine.massG - 801794.9075 * 2.7e-3) < 1e-2, String(plateLine.massG));
-  assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row ?? null, l.estimate]), [['key', 1, null, true], ['bearing', 1, '6204', false], ['oring', 1, '214', false]]);
+  assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row ?? null, l.estimate]), [['fastener', 4, 'SCS-M6x20', false], ['key', 1, null, true], ['bearing', 1, '6204', false], ['oring', 1, '214', false]]);
   // (O169, F10: the frame's members, a made line a cut-list row — legs 320 × 4, rails 360 × 2 and 260 × 2, steel — each
   // A · L · ρ (A = 40² − 34², the library's mild steel); the total mass the parts' and the base part's, nothing assumed.)
   const steel = 7.85e-3, members = bom.lines.filter(l => l.member).map(l => [l.item, l.qty, l.material, +l.massG.toFixed(3)]);
@@ -264,7 +269,9 @@ test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; th
   const total = (JSON.parse(bomOut.files[0].text).bom as { totalMassG: number }).totalMassG, partsMass = bom.lines.filter(l => ['Plate', 'Shaft', 'Cover'].includes(l.item)).reduce((a, l) => a + l.massG, 0);
   assert.ok(total > partsMass + members.reduce((a, m) => a + (m[3] as number), 0), `${total}: the parts, the members, and the plates and beads too`);
   const csvOut = await call('query', { action: 'purchase_csv' }) as { files: { text: string }[] }, csv = csvOut.files[0].text.trim().split('\n');
-  assert.equal(csv.length, 4); assert.equal(csv[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
+  assert.equal(csv.length, 5); assert.equal(csv[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');
+  assert.match(csv[1], /^\d+,Socket head cap screw [^,]*,4,fastener,socket head cap screw M6 × 20,SCS-M6x20,,"conformance\/a9: an illustrative shop row for the A9 run, not a real supplier's",$/);
+  csv.splice(1, 1);
   assert.match(csv[1], /^\d+,key 6 × 6 × 18,1,key,6 × 6 × 18,,,,estimate$/);
   assert.match(csv[2], /^\d+,bearing 20 × 47 × 14,1,bearing,20 × 47 × 14,6204,,"B1 \(D139\): NSK, ""6204 Series"", https:\/\/www\.oss\.nsk\.com\/6204-dgbb-sr\.html",$/);
   assert.match(csv[3], /^\d+,oring 24\.99 × 3\.53,1,oring,24\.99 × 3\.53,214,,"O1 \(D139\): Global O-Ring,/);

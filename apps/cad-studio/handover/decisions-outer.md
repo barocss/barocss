@@ -7249,3 +7249,54 @@ No studio expectation relied on an overcut drill: cnc-cam tests the preview.
 - model: the drawing test files listed in the commit, a9-acceptance 3/3 among them, all passing;
 - tsc of model and studio; eslint 0 errors on the changed files.
 - Not run: the flow (its slot is pending with the rows-file steps and these).
+
+## O176 — F9: a placed fastener is a bought BOM line, named by the person's fastener row (2026-10-23)
+
+**The gap (O165's F9).** A9's four M6 screws could not be BOM lines. The fastener command builds plain extrudes and unions from its own catalogue (FASTENER_SIZES), and no element kind or row made a fastener bought.
+
+**What is new (cad-model only, no kernel change):**
+- **A row kind `fasteners`** (engine/fastenerRows), loaded only from a file the person supplied (`features.load_rows`, rows rule b; an agent-written row is ROWS_NOT_FROM_PERSON). A row has:
+  - `id`, `kind` (hex-bolt, socket-screw, csk-screw, hex-nut, washer), `size` ("M6");
+  - `lengthMM` for a screw or bolt and none for a nut or washer;
+  - optional `designation`, `partNumber`, `supplier`;
+  - `source` or `estimate: true`, never both, never neither; unknown fields refused.
+  - It is stored as `doc.fasteners`, a new document field (additive: saved documents keep resolving). It is carried by the wire form and the receipts (`rowEntries`), and checked in fields.test's full document.
+- **A fastener placed as a part of its own** (the command's `insert: 'instance'`, whose last node is `made` by the fastener command) is a bought BOM line (bomCore `fastenerOfPart`):
+  - merged over its copies by shape and material, as parts are: 4 equal screws, one line ×4;
+  - named by the row of its kind, size and length (1e-6 mm): its designation, row id, source, and catalogue (part number, supplier);
+  - with no such row, the line is an estimate and says what is missing ("no fastener row for socket-screw M6 × 20: what is bought is an estimate"), so the person knows which file to supply; an estimate row says so too;
+  - in the purchase list (kind `fastener`), its mass in the parts' as before;
+  - checkBom checks each fastener line's parts are placed fasteners with the line's size and row, an estimate said.
+- **Balloons and the BOM table** treat a fastener line as a part line (its parts are placed parts, not `part:feature`): its balloon goes on a screw's edge, and the table says bought.
+- **The studio's BOM panel** shows a fastener line as "bought part", with no bought/made choice: the choice sets `bought` on a part's feature, and a placed fastener is a part.
+
+**Not in this step, said:**
+- A fastener built into a part (`insert: 'part'`) stays the part's bodies, not a bought line.
+- The screws' shape still comes from FASTENER_SIZES. That table is a built-in catalogue, the owner's open item: untouched, a row names what is bought, not how it is drawn.
+- The rails under A9's plate have no tapped holes: the screws' shanks enter the rails' walls (the clearance map's step 8 runs before they are placed).
+
+**Found, not fixed here:** on an assembly sheet with balloons, a base part's own made-body line (O169's `base:<body>`, e.g. a plain plate as the base) has no edge: `targetOf` reads `base:b1` as an instance id. Members' lines take the same path. A follow-up: a body key is not a face name, so the target needs the body's node.
+
+**The v2 contract:** no action was added or changed, so tools-v2.json is unchanged. `load_rows`' kind enum takes ROW_KINDS, and its description names `fasteners` in one clause. Per turn: 23,198 of 25,000 characters.
+
+**A9:** conformance/a9/rows/fasteners.json (SCS-M6x20, a fixture standing in for the person's file, its source naming the fixture) is loaded in step 10. Four socket-screw M6 × 20 are then placed through the plate's Ø6.6 holes (z 334). The BOM's bought lines are fastener ×4 (SCS-M6x20, not an estimate), key, 6204 and 214. The CSV has 4 bought lines, the screws first. The S0's "4 M6 screws" is met.
+
+**Tests:**
+- bom-fasteners, new:
+  - four placed screws with no row: one line ×4, an estimate with its reason, in the CSV, checkBom clean;
+  - the person's row: the line named by it, no estimate; an agent's rows refused; a row of another length not this screw's;
+  - the row checks.
+- bom-fasteners also: on the assembly's sheet with balloons, the screws' balloon is on an `instN/` edge, and the BOM table says bought.
+- a9-acceptance's step 10 as above.
+
+**Verified (T1):**
+- model: bom-fasteners 4/4, a9-acceptance 3/3, and bom-balloons, bom-base, bom-panel, editFields, fields, migrate, person-rows, ring-rows, shop-rows, team-assembly, team-baseline, wire-doc, toolset, tool-contract, fasteners, drawing-table, chat-drawing and standards, all passing;
+- studio: bom-linked-ui 5/5;
+- tsc of model and studio; eslint 0 errors on the changed files.
+- Not run: the flow (the BOM panel's fastener line is in no flow step yet).
+
+**O175's flow (the coordinator's slot, before this step).** The runs were from detached scratch worktrees on port 52391, load 1m 9–16.
+- At `5eb851d3e`, the rows-file steps, A9-11, the BOM panel, BOM table and balloons, element notes, CNC7b and IM8a passed.
+- Two steps failed there:
+  - **The new O175 step:** Auto-dimension's turned projection and Turn the drawing (DrawingWorkspace's two other `engine.drawing` calls) had no `made`, so the bought key got a leader note. Fixed in `d89a1cd75`; the step passes.
+  - **FRb's cut-list step:** alone under FLOW_ONLY, it found no member selected, so "Show the cut list" never appeared. It now selects one (`b679cff88`) and passes.

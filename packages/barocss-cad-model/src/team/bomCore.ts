@@ -12,6 +12,7 @@ import { elementLines, madeBodies } from '../engine/elements';
 import { partCutList } from '../app/cutList';
 import { MATERIALS } from '../app/materials';
 import { beadAccounting, combineBeadAccounting, type BeadAccounting } from '../frames/beadAccounting';
+import { fastenerRowFor } from '../engine/fastenerRows';
 
 // Equal feature text can resolve different local/parent rows. Compare the converted geometry for row-backed parts.
 function shapeOf(doc: StudioDoc, evaluated: boolean): string {
@@ -21,9 +22,21 @@ function shapeOf(doc: StudioDoc, evaluated: boolean): string {
 /** A body's mass from its exact volume and its material's density (O169): its own massG is the default material's. */
 const exactMass = (doc: StudioDoc, b: BodyResult): number | null => { const m = MATERIALS.find(x => x.id === materialIdOf(doc, b)); return b.volumeMM3 === null || !m ? b.massG : r6(b.volumeMM3 * m.gPerCm3 * 1e-3); };
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0);
+/** A placed fastener's bought line (F9): its kind, size and length as placed, and the person's row it is, if one is. */
+export interface BomFastener { kind: string; size: string; row: string | null; source: string | null; estimate: boolean; why: string[]; catalogue?: string }
+/** The fastener a placed part is (the fastener command's part of its own, its last node made by it), or null. */
+function fastenerOfPart(doc: StudioDoc, inst: StudioDoc): BomFastener | null {
+  const top = inst.nodes[inst.nodes.length - 1], made = top && 'made' in top ? top.made : undefined;
+  if (!made || made.command !== 'fastener') return null;
+  const kind = String(made.values.kind), size = String(made.values.size), threaded = kind !== 'hex-nut' && kind !== 'washer', lengthMM = threaded ? Number(made.values.length) : undefined;
+  const row = fastenerRowFor(doc, kind, size, lengthMM), label = `${kind} ${size}${threaded ? ` × ${lengthMM}` : ''}`;
+  const why = !row ? [`no fastener row for ${label}: what is bought is an estimate`] : row.estimate ? [`its row ${row.id} is an estimate`] : [];
+  const catalogue = row && (row.partNumber || row.supplier) ? [row.partNumber, row.supplier].filter(Boolean).join(', ') : undefined;
+  return { kind, size: row?.designation ?? label, row: row?.id ?? null, source: row?.source ?? null, estimate: why.length > 0, why, ...(catalogue ? { catalogue } : {}) };
+}
 export interface BomView {
   beadAccounting?: BeadAccounting;
-  parts: { id: string; name: string; material: string | null; massG: number; library: string | null; shape: string }[];
+  parts: { id: string; name: string; material: string | null; massG: number; library: string | null; shape: string; fastener?: BomFastener }[];
   /** The bought machine elements (O142): in the base part (`part: 'base'`) and in each placed part, one a body. */
   /** FRk1 (D165): the frame's plates made — gussets and end caps — one a body: their thickness, area, volume and material. */
   plates?: { part: string; item: string; kind: 'gusset' | 'end-cap'; thicknessMM: number; areaMM2: number; volumeMM3: number; material: string | null; massG: number | null }[];
@@ -59,7 +72,9 @@ export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResu
   for (const inst of doc.instances ?? []) {
     const e = evaluate(inst.doc), bodies = e?.ok ? e.bodies : [];
     const lib = inst.doc.nodes.find(n => n.kind === 'library') as { library?: { library?: string; version?: string; part?: string; variant?: string } } | undefined, o = lib?.library;
-    parts.push({ id: inst.id, name: inst.name, material: bodies.length ? materialIdOf(inst.doc, bodies[0]) ?? null : null, massG: r6(massOf(inst.doc, bodies)), library: o ? `${o.library}@${o.version}/${o.part}${o.variant ? `:${o.variant}` : ''}` : null, shape: shapeOf(inst.doc, !!e?.ok) });
+    // (F9: a fastener placed as its own part is bought, its row the person's.)
+    const fastener = fastenerOfPart(doc, inst.doc);
+    parts.push({ id: inst.id, name: inst.name, material: bodies.length ? materialIdOf(inst.doc, bodies[0]) ?? null : null, massG: r6(massOf(inst.doc, bodies)), library: o ? `${o.library}@${o.version}/${o.part}${o.variant ? `:${o.variant}` : ''}` : null, shape: shapeOf(inst.doc, !!e?.ok), ...(fastener ? { fastener } : {}) });
   }
   // (O169, F10: an assembly's base part makes things too — a welded frame's members: its made bodies as lines, its mass
   // in the total. A part with no placed parts is its own one line (bom.ts), so this is only for an assembly.)
@@ -93,7 +108,9 @@ export function deriveBom(view: BomView): Bom {
   const lines: BomLine[] = [];
   for (const p of view.parts) {
     const l = lines.find(x => { const q = view.parts.find(v => v.id === x.parts[0])!; return q.shape === p.shape && q.material === p.material; });
-    if (l) { l.parts.push(p.id); l.qty++; l.massG = r6(l.massG + p.massG); } else lines.push({ item: p.name, parts: [p.id], qty: 1, material: p.material, massG: p.massG, source: p.library });
+    if (l) { l.parts.push(p.id); l.qty++; l.massG = r6(l.massG + p.massG); }
+    else if (p.fastener) { const f = p.fastener; lines.push({ item: p.name, parts: [p.id], qty: 1, material: p.material, massG: p.massG, source: f.source, kind: 'fastener', size: f.size, row: f.row, estimate: f.estimate, ...(f.catalogue ? { catalogue: f.catalogue } : {}) }); }
+    else lines.push({ item: p.name, parts: [p.id], qty: 1, material: p.material, massG: p.massG, source: p.library });
   }
   // (O169, F10: the base part's frame members, a line a cut-list row — section, length, material — then its other made
   // bodies, one line each, before the plates.)
