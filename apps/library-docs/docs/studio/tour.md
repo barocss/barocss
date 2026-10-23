@@ -32,7 +32,7 @@ Press <kbd>Space</kbd> to find any command by name, or <kbd>?</kbd> to see every
 | <kbd>Shift</kbd> <kbd>F</kbd> | Fillet | <kbd>P</kbd> | Linear pattern |
 | <kbd>M</kbd> | Mirror | <kbd>A</kbd> | Align |
 | <kbd>G</kbd> | Move | <kbd>R</kbd> | Rotate |
-| <kbd>U</kbd> / <kbd>D</kbd> / <kbd>I</kbd> | Union / difference / intersection | <kbd>Shift</kbd> <kbd>M</kbd> | Measure |
+| <kbd>U</kbd> / <kbd>D</kbd> / <kbd>I</kbd> | Union / Subtract / Intersect | <kbd>Shift</kbd> <kbd>M</kbd> | Measure |
 
 While a command runs:
 
