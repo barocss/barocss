@@ -354,6 +354,7 @@ try {
     const W = Math.round(Number(await page.inputValue('#sk-len0'))) + 6, Hh = Math.round(Number(await page.inputValue('#sk-len1'))) + 3;
     await page.fill('#sk-len0', String(W)); assert.match(await status(), /1 DOF/);
     await page.fill('#sk-len1', String(Hh)); assert.match(await status(), /Fully defined/);
+    await page.locator('aside[aria-label="Sketch"]').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-sketch.png`) });
     assert.equal(await page.inputValue('#sk-len2'), String(W)); assert.equal(await page.inputValue('#sk-len3'), String(Hh));
     await page.fill('#sk-len1', ''); assert.match(await status(), /1 DOF/);
     await page.focus('#sk-len1'); await press('Enter'); assert.match(await status(), /Fully defined/); await snap('fully-defined');
@@ -1251,6 +1252,7 @@ try {
     // Where the arc crosses X = 10: once, at its top.
     await page.selectOption('[aria-label="Crossing plane"]', 'x'); await page.fill('.direct-panel [aria-label="At"]', '10'); await page.click('[aria-label="Find crossings"]');
     assert.match(await page.locator('[aria-label="Crossing"]').innerText(), /10, 5, 0/);
+    await page.locator('.direct-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-o16-direct.png`) });
     await page.click('.direct-panel button:text-is("Split")');
     await page.waitForSelector('.direct-panel .card-title:has-text("2 OBJECTS")');
     await page.locator('.ol.direct', { hasText: 'top' }).click();
