@@ -36,9 +36,28 @@ export async function verifyCompilerConsumer(context) {
       readFileSync(join(root,'examples/cad-nurbs/compiler-curve-v0.css'),'utf8'),
       readFileSync(join(root,'examples/cad-nurbs/compiler-extrusion-v1.css'),'utf8'),
     ];
+    // Existing source3 fixture from pure-quantity-functions-demo.mjs; literals unchanged.
+    const functionSource = [
+      '/* 설계 π: preserve complete original Source, CRLF and odd literals. */',
+      '@model quantity_functions {',
+      'version: 3; length-unit: mm;',
+      '@function #scaleLength(value: length, factor: scalar = 2): length { return: $value * $factor; }',
+      '@function #half(value: length): length { return: scaleLength(value: $value, factor: .5); }',
+      '@parameter #width { type: length; value: 10 cm; }',
+      '@parameter #height { type: length; value: scaleLength(value: half(value: $width)); }',
+      '@parameter #depth { type: length; value: scaleLength(factor: .25, value: $width); }',
+      '@curve #untouched_curve { type:nurbs; degree:2; knots:[-2.000,-2,-2,3,3.0,3]; control-points:[[-0,2,1],[3,4,2],[6,2,1]]; weights:[1,2,1]; }',
+      '@curve #profile { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[0,0,0],[$width,0,0]]; weights:[1,1]; }',
+      '@extrude #wall { curve:#profile; vector:[0,$depth,$height]; }',
+      '@surface #untouched_surface { type:nurbs; degree-u:1; degree-v:1; knots-u:[0.000,0,1,1.00]; knots-v:[-1,-1,2,2]; control-points:[[[2,3,-0],[2,5,1]],[[4,3,2],[4,5,4]]]; weights:[[1,2],[3,4]]; }',
+      '/* Keep Ω and every unrelated original coefficient. */', '}', ''
+    ].join('\r\n');
     const runtime = `import assert from 'node:assert/strict';
 import {compileCadModel,evaluateSurface,exportIGES} from '@barocss/cad';
 const sources=${JSON.stringify(sources)};
+const functionSource=${JSON.stringify(functionSource)};
+const three=compileCadModel(functionSource,{sourceVersion:3});assert.equal(three.ok,true,JSON.stringify(three.diagnostics));assert.equal(three.ir.schemaVersion,3);assert.equal(three.ir.sourceVersion,3);assert.equal(three.model.version,0);
+const unsupported=compileCadModel(functionSource,{sourceVersion:4});assert.equal(unsupported.ok,false);assert.equal(unsupported.diagnostics[0].code,'OPTIONS');
 const driven=${JSON.stringify(readFileSync(join(root,'examples/cad-nurbs/parameter-line-v2.css'),'utf8'))};
 const two=compileCadModel(driven,{sourceVersion:2});assert.equal(two.ok,true);assert.equal(two.ir.schemaVersion,2);assert.equal(two.ir.parameters[0].value,100);assert.equal(two.model.objects[1].controlPoints[1][1][2],100);
 assert.equal(compileCadModel(driven.replace('10 cm','12cm'),{sourceVersion:2}).model.objects[0].controlPoints[1][0],120);
@@ -65,8 +84,10 @@ if(result.ok){const ast:CadModelAst=result.ast;const ir:CadModelIR=result.ir;con
 else {const first:CadDiagnostic=result.diagnostics[0];const severity:'error'=first.severity;const line:number=first.range.line;void[severity,line];}
 const source2:CadCompileResult=compileCadModel('',{sourceVersion:2});
 if(source2.ok&&source2.ir.schemaVersion===2){const version:2=source2.ir.sourceVersion;const parameters=source2.ir.parameters;const bindings=source2.ir.bindings;void[version,parameters,bindings];}
-// @ts-expect-error Source version3 is not an implemented language.
-compileCadModel('',{sourceVersion:3});
+const source3:CadCompileResult=compileCadModel(${JSON.stringify(functionSource)},{sourceVersion:3});
+if(source3.ok&&source3.ir.schemaVersion===3){const version:3=source3.ir.sourceVersion;void version;}
+// @ts-expect-error Source version4 is not an implemented language.
+compileCadModel('',{sourceVersion:4});
 // @ts-expect-error Exchange formats belong to native adapters.
 compileCadModel('',{sourceVersion:0,target:'iges'});
 `);
