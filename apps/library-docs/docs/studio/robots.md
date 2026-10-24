@@ -62,9 +62,11 @@ external tools — urdfdom's `check_urdf` and MuJoCo — and their kinematics ma
 A frame is a named pose on a link: a tool's centre point, or a camera. It is kept with the robot's settings, beside
 the joints.
 
-::: info Not in the studio yet
-The Joints card's sliders and the viewport don't show frames yet. For now the agent sets them.
-:::
+- **In the viewport.** Each frame is drawn where the pose puts it, as an axis triad (X red, Y green, Z blue) with its
+  name on a chip: a tool's in the accent colour, a sensor's in cyan. It moves with the joint sliders, and keeps its
+  size as the arm moves.
+- **In the Joints card.** Each frame's origin (mm) and its Z axis at the pose shown, in the assembly's coordinates.
+- **Setting them.** The agent sets frames; the studio has no editor for them yet.
 
 - **Where a frame sits.** On a link, posed in that link's part's own coordinates: a position in mm, and a rotation in
   degrees about X, then Y, then Z, as a placed part's rotation. A frame may be a `tool` or a `sensor`.
