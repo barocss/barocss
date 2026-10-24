@@ -32,7 +32,7 @@ assert.deepEqual(namespace, Object.keys(providers[1][1]).sort());
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareSphereGeometry', 'SphereGeometrySourceV0', 'PreparedSphereGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public declaration ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/sphere-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/sphere-geometry.d.ts'), 'utf8');
 assert(/prepareSphereGeometry\(input:\s*unknown\):\s*PreparedSphereGeometry/.test(leafDeclaration));
 for (const field of ['radius', 'longitudeSegments', 'latitudeSegments'])
   assert(new RegExp(field + ':\\s*number').test(leafDeclaration));

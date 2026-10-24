@@ -45,7 +45,7 @@ const additions = ['prepareEngineUVTextureMaterialBindings', 'EngineUVTextureMat
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }]; for (const provider of providers) provider.gpu = await import(pathToFileURL(provider.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.ok([...additions].sort().every(x => namespace.includes(x))); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 const publicTypes = ['EngineUVTextureMaterialBindingsDiagnosticCode', 'EngineUVTextureMaterialBindingV0', 'EngineUVTextureMaterialBindingsV0', 'EngineUVTextureMaterialSamplerBinding', 'PreparedEngineUVTextureMaterialBindings'];
-const declarations = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/engine-uv-texture-material-bindings.d.ts'), 'utf8');
+const declarations = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/material/engine-uv-texture-material-bindings.d.ts'), 'utf8');
 for (const name of [...additions, ...publicTypes]) assert.ok(new RegExp('\\b' + name + '\\b').test(declarations)); for (const name of publicTypes) assert.ok(new RegExp('\\b' + name + '\\b').test(leafDTS));
 
 function scene() { const node = (id, materialId, x) => ({ id, type: 'mesh', parentId: null, translation: [x, -0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true, geometryId: 'original_quad', materialId }); return {

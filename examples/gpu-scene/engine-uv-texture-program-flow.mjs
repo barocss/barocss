@@ -36,7 +36,7 @@ const parentRuntime = ast.statements.filter(node => ts.isExportDeclaration(node)
 assert.equal(parentRuntime.length, 157); assert.equal(manifest.publishConfig.exports['.'].import, './dist/index.js');
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }]; for (const provider of providers) provider.gpu = await import(pathToFileURL(provider.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.ok(['lowerEngineUVTextureProgramWGSL'].sort().every(x => namespace.includes(x))); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
-const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/engine-uv-texture-program-wgsl.d.ts'), 'utf8');
+const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/material/engine-uv-texture-program-wgsl.d.ts'), 'utf8');
 for (const name of ['lowerEngineUVTextureProgramWGSL', 'LoweredEngineUVTextureProgramWGSL']) { assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDTS)); }
 
 const scene = { format: 'barocss-gpu-engine-scene', version: 0, id: 'program_source_context', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', background: [-0, .1, .2], camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .01, far: 100 },

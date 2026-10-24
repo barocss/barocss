@@ -28,6 +28,12 @@ assert.equal(typeof createViewer, 'function');
 assert.equal(typeof showScene, 'function');
 assert.deepEqual(compileScene(parseScene(source)), shader);
 assert.throws(() => parseScene('@scene broken { version: 0; sphere #orb; } #orb { radius: -1; }'));
+// (One copy of each class across the entries: a refusal from one is an instance of another's class.)
+const main = await import('@barocss/gpu'), viewerEntry = await import('@barocss/gpu/viewer'), apiEntry = await import('@barocss/gpu/api');
+assert.equal(viewerEntry.ViewerError, main.ViewerError);
+assert.equal(viewerEntry.Viewer, main.Viewer);
+assert.equal(apiEntry.BarocssError, main.BarocssError);
+assert.ok(new viewerEntry.ViewerError('DISPOSED', 'gone') instanceof main.BarocssError);
 console.log('Packed ESM consumer passed');
 `);
     const run = await exec(process.execPath, ['consumer.mjs'], { cwd: scratch, timeout: 30_000 });

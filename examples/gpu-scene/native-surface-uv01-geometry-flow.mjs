@@ -27,7 +27,7 @@ for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 
 const dtsPath = resolve(pkg, manifest.publishConfig.exports['.'].types), dts = await readFile(dtsPath, 'utf8');
-const leafDtsPath = resolve(pkg, 'dist/native-surface-uv01-geometry.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
+const leafDtsPath = resolve(pkg, 'dist/native/uv01/native-surface-uv01-geometry.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
 for (const name of ['prepareNativeSurfaceUV01Geometry', 'NativeSurfaceUV01GeometryError', 'NativeSurfaceUV01GeometryRequest', 'PreparedNativeSurfaceUV01Geometry', 'NativeSurfaceUV01GeometryCode']) {
   assert.ok(new RegExp('\\b' + name + '\\b').test(dts), 'Actual public DTS ' + name); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDts));
 }

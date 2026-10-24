@@ -29,7 +29,7 @@ const providers = [['ordinary-source', ordinary, await import(pathToFileURL(ordi
 assert.deepEqual(Object.keys(providers[0][2]).sort(), Object.keys(providers[1][2]).sort());
 const declarationsPath = resolve(pkg, published.types), declarations = await readFile(declarationsPath, 'utf8');
 for (const name of ['preparePlaneGeometry', 'PlaneGeometrySourceV0', 'PreparedPlaneGeometry']) assert(new RegExp('\\b' + name + '\\b').test(declarations));
-const leafDeclarations = await readFile(resolve(pkg, 'dist/plane-geometry.d.ts'), 'utf8');
+const leafDeclarations = await readFile(resolve(pkg, 'dist/geometry/plane-geometry.d.ts'), 'utf8');
 assert(/preparePlaneGeometry\(input:\s*unknown\):\s*PreparedPlaneGeometry/.test(leafDeclarations));
 assert(/sizeXY:\s*\[number, number\]/.test(leafDeclarations));
 assert(/segmentsXY:\s*\[number, number\]/.test(leafDeclarations));

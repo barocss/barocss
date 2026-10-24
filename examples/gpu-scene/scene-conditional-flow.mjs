@@ -4,6 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
 import { resolve, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -16,6 +17,8 @@ assert.equal(process.argv.length, 4); assert.equal(process.argv[2], '--output');
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..'), output = resolve(process.argv[3]);
 await mkdir(output, { recursive: false });
 const parent = 'f86ed2adaf3df25443549ae35a0123258d47ad93', pkg = resolve(repo, 'packages/barocss-gpu');
+// (The package's built files live in folders since R2d: a leaf's declaration found by its name under dist/.)
+const builtDeclaration = leaf => { const name = leaf + '.d.ts', hit = readdirSync(resolve(pkg, 'dist'), { recursive: true }).find(p => p === name || p.endsWith('/' + name)); assert.ok(hit, 'built ' + name); return resolve(pkg, 'dist', hit); };
 const manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
 const hash = value => createHash('sha256').update(value).digest('hex');
 const parentFile = name => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + name], { cwd: repo, encoding: 'utf8' });
@@ -54,13 +57,13 @@ const oldDeclarations = [
   ['scene-finite-repeat-source', ['FiniteRepeatAffineSceneAst', 'CompiledFiniteRepeatAffineSceneSource'], 'compileFiniteRepeatAffineSceneSource'],
 ];
 for (const [leaf, names, runtime] of oldDeclarations) {
-  const before = parentFile('src/' + leaf + '.ts'), after = await readFile(resolve(pkg, 'dist/' + leaf + '.d.ts'), 'utf8');
+  const before = parentFile('src/' + leaf + '.ts'), after = await readFile(builtDeclaration(leaf), 'utf8');
   assert.equal(Object.keys(types(before, names)).length, names.length); assert.deepEqual(types(after, names), types(before, names));
   assert.deepEqual(signature(after, runtime), signature(before, runtime));
 }
 const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8');
-const leafDTS = await readFile(resolve(pkg, 'dist/scene-conditional-source.d.ts'), 'utf8');
-const parameterDTS = await readFile(resolve(pkg, 'dist/scene-parameter-source.d.ts'), 'utf8');
+const leafDTS = await readFile(resolve(pkg, 'dist/scene/scene-conditional-source.d.ts'), 'utf8');
+const parameterDTS = await readFile(resolve(pkg, 'dist/scene/scene-parameter-source.d.ts'), 'utf8');
 const newTypes = ['SceneConditionalDeclaration', 'SceneConditionalDecision', 'ConditionalAffineSceneAst', 'CompiledConditionalAffineSceneSource'];
 for (const name of newTypes) { assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDTS + parameterDTS)); }
 assert.deepEqual(signature(leafDTS, 'compileConditionalAffineSceneSource').parameters, ['input: unknown']);

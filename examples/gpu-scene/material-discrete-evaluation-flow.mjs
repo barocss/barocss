@@ -29,7 +29,7 @@ const namespace = Object.keys(providers[0].gpu).sort(); assert.ok(['evaluateDisc
 const printer = ts.createPrinter({ removeComments: true });
 function declarations(text, names) { const file = ts.createSourceFile('eval.ts', text, ts.ScriptTarget.Latest, true); return Object.fromEntries(file.statements.filter(node => node.name && names.includes(node.name.text)).map(node => [node.name.text, printer.printNode(ts.EmitHint.Unspecified, node, file)])); }
 function signature(text, name) { const file = ts.createSourceFile('eval.ts', text, ts.ScriptTarget.Latest, true), fn = file.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === name); assert.ok(fn); return { args: fn.parameters.map(node => printer.printNode(ts.EmitHint.Unspecified, node, file)), result: printer.printNode(ts.EmitHint.Unspecified, fn.type, file) }; }
-const oldSource = parentFile('src/material-evaluation.ts'), dts = await readFile(resolve(pkg, 'dist/material-evaluation.d.ts'), 'utf8');
+const oldSource = parentFile('src/material-evaluation.ts'), dts = await readFile(resolve(pkg, 'dist/material/material-evaluation.d.ts'), 'utf8');
 const oldTypes = ['AuthoredMaterialEvaluationDiagnosticCode', 'AuthoredMaterialRequest', 'AuthoredMaterialSample'];
 assert.equal(Object.keys(declarations(oldSource, oldTypes)).length, oldTypes.length); assert.deepEqual(declarations(dts, oldTypes), declarations(oldSource, oldTypes)); assert.deepEqual(signature(dts, 'evaluateAuthoredMaterial'), signature(oldSource, 'evaluateAuthoredMaterial'));
 const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), newTypes = ['DiscreteAuthoredMaterialRequest', 'DiscreteAuthoredMaterialSample'];

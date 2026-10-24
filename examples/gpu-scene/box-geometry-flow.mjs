@@ -31,7 +31,7 @@ assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareBoxGeometry', 'BoxGeometrySourceV0', 'PreparedBoxGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public declaration ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/box-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/box-geometry.d.ts'), 'utf8');
 assert(/prepareBoxGeometry\(input:\s*unknown\):\s*PreparedBoxGeometry/.test(leafDeclaration));
 assert(/sizeXYZ:\s*\[number, number, number\]/.test(leafDeclaration));
 

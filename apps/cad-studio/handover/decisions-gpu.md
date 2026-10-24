@@ -3458,3 +3458,36 @@ is untouched as history. The coordinator settled the scope:
 - **Runs**: tsc 0 in gpu, studio, barocss-viewer and cad-interop; eslint 0 (gpu; the studio's three files); gpu unit
   204/204, consumer 3/3, gpu-scene flows 65/65, test:browser 29/29 on hardware; studio unit 286/286; FLOW_ONLY
   `^O10 (frame costs|Rebuild)` on WebGPU passes (the frame costs' "ms CPU" read through cpuTime).
+
+## G-R61 — One copy of each class across gpu's entries: dist/index.js is tsc's output, not a bundle (pre-publication, 2026-10-24)
+
+- **The finding** (G-R57): `build:library` ran tsc, which emits every module, and then esbuild overwrote dist/index.js
+  with a bundle of src/index.ts. So `@barocss/gpu` had its own copies of Viewer, ViewerError, BarocssError and every
+  other class, while `@barocss/gpu/viewer` and `@barocss/gpu/api` used tsc's modules. `instanceof` across the entries
+  failed for a consumer.
+- **The fix**: `build:library` is `tsc -p tsconfig.build.json` alone. dist/index.js is tsc's index, importing the same
+  modules as the viewer and api entries. The exports map's paths are unchanged (`.`, `./source`, `./viewer`, `./api`,
+  types beside them). `@barocss/cad` stays an external import, as it was. No package, dependency or lockfile change:
+  esbuild came from the workspace root.
+- **Checks of the fix**:
+  - test:consumer, against `pnpm pack`'s tarball with publishConfig applied: the consumer now also imports the three
+    entries and checks `viewer.ViewerError === main.ViewerError`, `viewer.Viewer === main.Viewer`,
+    `api.BarocssError === main.BarocssError`, and that a viewer entry's ViewerError is the main entry's BarocssError.
+  - barocss-error.test asserts the same within the workspace.
+- **The browser harnesses**: scene-viewer, compute-thickness, compute-access and uv-repeating served the bundle as
+  `/gpu.js`. They now serve gpu's dist as built under `/gpu/…` and import `/gpu/index.js`, as api-show already did. That
+  file is the API lane's; I changed only its route and comment, and the coordinator saw the change.
+- **Found by building into a clean dist** (`rm -rf dist` first): 33 gpu-scene flows read files that no build makes any
+  more. That was hidden by stale leftovers in this worktree's dist.
+  - 32 flows read flat `dist/<leaf>.d.ts|js` paths from before R2d's folders, written either as a literal or as
+    `'dist/' + leaf + '.d.ts'`. Each now names the file where it is built: the literals rewritten where the name is
+    unique under dist (all were), and `builtDeclaration(leaf)` finds a leaf by name.
+  - material-discrete-selection compared the parent commit's declarations with a stale mesh-material.d.ts from before
+    R7.3a. Its pin now takes the one intended change, `MeshMaterialError extends BarocssError` (G-R51). Every other byte
+    stays equal.
+  - source-scene-bounds wanted a cold, separate instance by re-importing the entry with a query. That reloads only the
+    entry of an unbundled graph. For the emitted package its cold copy is now the emitted graph bundled into one file,
+    with every module fresh. The check that the two are different instances stays.
+  - The coordinator's window may also have passed on stale files, if its dist was never cleaned.
+- **Runs** (clean dist): gpu tsc 0, eslint 0, unit 204/204, test:consumer 3/3 (the packed tarball), gpu-scene flows
+  65/65, test:browser 29/29 on hardware and 29/29 on SwiftShader.

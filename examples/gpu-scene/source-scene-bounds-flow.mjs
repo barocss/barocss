@@ -28,6 +28,16 @@ const providers = [['ordinary-source', await import(ordinaryURL), ordinaryURL],
 assert.deepEqual(Object.keys(providers[0][1]).sort(), Object.keys(providers[1][1]).sort());
 
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+// A cold, separate instance of a provider. The ordinary source is one bundled file, so a query on it loads it afresh. The
+// emitted package is unbundled (one module graph for its entries), so a query on its entry alone would reuse every module
+// under it: its cold copy is that emitted graph bundled into one file, every module fresh (@barocss/cad left to Node).
+async function coldOf(provider, entryURL) {
+  if (provider !== 'emitted-public') { const url = new URL(entryURL); url.searchParams.set('source_scene_bounds_cold', '1'); return { module: await import(url.href), entry: url.href }; }
+  const outfile = resolve(output, 'emitted-cold.mjs');
+  await build({ entryPoints: [fileURLToPath(entryURL)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile, external: ['@barocss/cad'] });
+  const entry = pathToFileURL(outfile).href;
+  return { module: await import(entry), entry };
+}
 async function receipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['SourceSceneBoundsRequest', 'SourceSceneBoundsBox', 'SourceSceneObjectBounds',
@@ -56,8 +66,7 @@ function expectedBox(actual, expected, tolerance) {
 let accepted = 0, refused = 0, getterCalls = 0, reflectionTraps = 0, oversizeOwnKeys = 0;
 const results = [];
 for (const [provider, gpu, entryURL] of providers) {
-  const coldURL = new URL(entryURL); coldURL.searchParams.set('source_scene_bounds_cold', '1');
-  const coldGpu = await import(coldURL.href);
+  const { module: coldGpu, entry: coldEntry } = await coldOf(provider, entryURL);
   assert.notStrictEqual(coldGpu, gpu);
   assert.notStrictEqual(coldGpu.prepareSourceSceneBounds, gpu.prepareSourceSceneBounds);
   assert.deepEqual(Object.keys(coldGpu).sort(), Object.keys(gpu).sort());
@@ -188,7 +197,7 @@ for (const [provider, gpu, entryURL] of providers) {
       actualCauseRetained: !!error.cause, previousResultAndSourceFileRetained: true });
   }
   results.push({ provider, exports: Object.keys(gpu).sort(), acceptance, refusals,
-    coldModuleEntry: coldURL.href, independentColdPublicModule: true, coldModuleReentry: true,
+    coldModuleEntry: coldEntry, independentColdPublicModule: true, coldModuleReentry: true,
     nullPrototypeRequestAccepted: true, retainedFile: await receipt(file), finalResultSHA256: hash(retained) });
 }
 assert.equal(results[0].finalResultSHA256, results[1].finalResultSHA256);

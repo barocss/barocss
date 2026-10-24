@@ -27,7 +27,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareTorusGeometry', 'TorusGeometrySourceV0', 'PreparedTorusGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/torus-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/torus-geometry.d.ts'), 'utf8');
 assert(/prepareTorusGeometry\(input:\s*unknown\):\s*PreparedTorusGeometry/.test(leafDeclaration));
 for (const field of ['majorRadius', 'minorRadius', 'majorSegments', 'minorSegments'])
   assert(new RegExp(field + ':\\s*number').test(leafDeclaration));

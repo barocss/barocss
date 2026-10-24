@@ -28,7 +28,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareCylinderGeometry', 'CylinderGeometrySourceV0', 'PreparedCylinderGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/cylinder-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/cylinder-geometry.d.ts'), 'utf8');
 assert(/prepareCylinderGeometry\(input:\s*unknown\):\s*PreparedCylinderGeometry/.test(leafDeclaration));
 for (const field of ['radius', 'height', 'radialSegments', 'heightSegments']) assert(new RegExp(field + ':\\s*number').test(leafDeclaration));
 const hash = value => createHash('sha256').update(value).digest('hex');

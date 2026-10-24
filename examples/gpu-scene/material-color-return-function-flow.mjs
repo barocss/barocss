@@ -30,7 +30,7 @@ const program = ts.createProgram([parentLeaf], { target: ts.ScriptTarget.ES2022,
   lib: ['lib.es2022.d.ts', 'lib.dom.d.ts'], strict: true, skipLibCheck: true, declaration: true, emitDeclarationOnly: true, outDir: parentFolder });
 const diagnostics = ts.getPreEmitDiagnostics(program); assert.equal(diagnostics.length, 0, ts.formatDiagnosticsWithColorAndContext(diagnostics,
   { getCurrentDirectory: () => repo, getCanonicalFileName: x => x, getNewLine: () => '\n' })); assert.equal(program.emit().emitSkipped, false);
-const parentDTS = await readFile(resolve(parentFolder, 'mesh-material.d.ts'), 'utf8'), currentDTS = await readFile(resolve(pkg, 'dist/mesh-material.d.ts'), 'utf8');
+const parentDTS = await readFile(resolve(parentFolder, 'mesh-material.d.ts'), 'utf8'), currentDTS = await readFile(resolve(pkg, 'dist/material/mesh-material.d.ts'), 'utf8');
 function signed(v) { if (typeof v === 'number') { assert.ok(Number.isFinite(v)); return Object.is(v, -0) ? '-0' : JSON.stringify(v); } if (v === null || typeof v !== 'object') return JSON.stringify(v);
   assert.ok(!ArrayBuffer.isView(v)); return Array.isArray(v) ? '[' + v.map(signed).join(',') + ']' : '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + signed(v[k])).join(',') + '}'; }
 const clone = v => JSON.parse(signed(v));
