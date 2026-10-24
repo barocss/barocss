@@ -18,6 +18,7 @@ const page = `<!doctype html><meta charset="utf-8"><style>body{margin:0;backgrou
 async function serve() {
   // (R2c: the viewer's modules in subfolders too — shaders/.)
   const files = new Map((await readdir(dist, { recursive: true })).filter(f => f.endsWith('.js')).map(f => [`/viewer/${f.split(path.sep).join('/')}`, path.join(dist, f)]));
+  files.set('/core/barocss-error.js', path.join(dist, '../core/barocss-error.js')); // (R7.3a: the viewer refuses with the package's one BarocssError.)
   const server = createServer(async (req, res) => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
