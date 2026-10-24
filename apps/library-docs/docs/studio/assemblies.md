@@ -70,8 +70,9 @@ An assembly can have **inputs**, each driving a few things explicitly, and **var
 - **The list.** **Master** and each variant, the active one marked. **Show** shows one; **×** deletes a variant.
 - **Showing a variant.**
   - It is regenerated from the master, and the master isn't changed.
-  - While it is shown, modelling commands are refused with `Showing <name>: show the master to edit`. **Show the master**
-    goes back.
+  - While it is shown, every modelling edit is refused: commands, the feature editor's **Apply**, moving placed parts,
+    and **Parameters** edits. The message is **Can't change the part now**, with
+    `Showing <name>: show the master to edit.` **Show the master** goes back.
 - **The inputs.** Each input's value, with what it drives under it. Editing values doesn't write anything yet: the card
   counts the values that differ.
   - **Save these values as…** and **Save** keep them as a new variant.
