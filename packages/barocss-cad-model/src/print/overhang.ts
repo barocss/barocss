@@ -9,15 +9,15 @@ import type { FaceTable } from '../assembly/mates';
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
-export interface OverhangFace { readonly name: string; readonly area: number; readonly worstDeg: number; readonly exact: boolean }
+export interface OverhangFace { readonly name: string; readonly area: number; readonly worstAngle: number; readonly exact: boolean }
 export interface OverhangReport {
   readonly direction: Vec3; readonly limit: number;
   /** The overhanging area in all, by face (planar faces whole, exactly; curved faces their overhanging triangles). */
-  readonly totalMM2: number; readonly faces: readonly OverhangFace[];
+  readonly overhangArea: number; readonly faces: readonly OverhangFace[];
   /** Whether a curved face counted: then the total is as accurate as the display mesh's chords. */
   readonly approximate: boolean;
   /** The area resting on the bed, left out. */
-  readonly bedMM2: number;
+  readonly contactArea: number;
 }
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 const unit = (v: readonly number[]): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]); return [v[0] / l, v[1] / l, v[2] / l]; };
@@ -40,7 +40,7 @@ export function overhangOf(mesh: DisplayMesh, table: FaceTable, limit: number, d
     const exact = table[f.name.replace(/#\d+$/, '')], n = exact && exact.kind === 'plane' ? exact.normal : f.normal, nb = dot(n, b);
     // On the bed: facing straight down and at the lowest point.
     if (nb < -1 + 1e-9 && Math.abs(dot(exact && exact.kind === 'plane' ? exact.point : f.centroid, b) - low) <= tol) { bed += f.area; continue; }
-    if (-nb > s + 1e-12) { faces.push({ name: f.name, area: f.area, worstDeg: fromVertical(nb), exact: !!exact }); total += f.area; }
+    if (-nb > s + 1e-12) { faces.push({ name: f.name, area: f.area, worstAngle: fromVertical(nb), exact: !!exact }); total += f.area; }
   }
   // Curved faces: triangle by triangle.
   for (let k = 0; k < I.length; k += 3) {
@@ -55,6 +55,6 @@ export function overhangOf(mesh: DisplayMesh, table: FaceTable, limit: number, d
     const kept = byFace.get(fi) ?? { area: 0, worst: 0 };
     kept.area += twice / 2; kept.worst = Math.max(kept.worst, fromVertical(nb)); byFace.set(fi, kept);
   }
-  for (const [fi, v] of byFace) { faces.push({ name: mesh.faces[fi].name, area: v.area, worstDeg: v.worst, exact: false }); total += v.area; approximate = true; }
-  return { direction: b, limit, totalMM2: total, faces, approximate, bedMM2: bed };
+  for (const [fi, v] of byFace) { faces.push({ name: mesh.faces[fi].name, area: v.area, worstAngle: v.worst, exact: false }); total += v.area; approximate = true; }
+  return { direction: b, limit, overhangArea: total, faces, approximate, contactArea: bed };
 }

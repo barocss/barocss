@@ -138,7 +138,7 @@ export class CamOverlayGeometry {
       this.active = { name: 'active:' + move.kind, positions: camToWorld([...move.a, ...move.b], this.world), topology: 'lines', color: [1, 0.95, 0.68], opacity: 1, width: 3 };
       this.activeIndex = index;
     }
-    const t = display.package.tool, toolKey = `${t.kind}|${t.diameter}|${t.cornerMM}|${t.fluteMM}|${t.shankMM}`;
+    const t = display.package.tool, toolKey = `${t.kind}|${t.diameter}|${t.cornerRadius}|${t.fluteLength}|${t.shankDiameter}`;
     if (this.toolKey !== toolKey) { this.toolLocal = camToolGeometry(t); this.toolKey = toolKey; this.pose = ''; }
     // (The tool's tip at the program's position, its axis the machine +Z: its local mesh moved there, then to world.)
     const p = display.position, pose = `${key}|${p[0]}|${p[1]}|${p[2]}`;

@@ -1,8 +1,10 @@
 // Public projections of internal SI calculations. Convert before applying the established reply precision.
+import { r6 } from '../util/round';
 import { refusal } from '../engine/refusal';
-import type { Sized } from './sizer';
+import type { NativeSized } from './native/sizer';
 import type { LinkInertia, V3 } from './inertia';
-import { marginQuantitiesOf, type HarnessReport, type Margin, type Consistency, type Duty, type DutyMove } from './harness';
+import { marginQuantitiesOf, type HarnessReport, type Margin, type Consistency } from './native/harness';
+import type { NativeDuty, NativeDutyMove } from './native/duty';
 import { jointTreeOut, jointValuesOut } from './units';
 import type { JointTree } from './joints';
 import { STANDARD_GRAVITY, type GravityResult, type MoveTorques } from './dynamics';
@@ -76,15 +78,15 @@ function sourcesJson(list: readonly { field: string; src: Source }[]) {
 
 
 export interface PublicDutyMove {
-  from: Record<string, number>; to: Record<string, number>; profile: DutyMove['profile'];
+  from: Record<string, number>; to: Record<string, number>; profile: NativeDutyMove['profile'];
   joint_limits: Record<string, import('./dynamics').MoveLimits>; dwell?: number;
 }
 export interface PublicDuty {
   moves: PublicDutyMove[]; serviceLife?: number; inertia_ratio_max?: number; clearance?: number; g?: V3;
-  actuators?: Duty['actuators'];
+  actuators?: NativeDuty['actuators'];
 }
 /** Public duty files use degrees/mm and seconds; mixed joint types always have explicit per-joint limits. */
-export function dutyJson(tree: JointTree, duty: Duty): PublicDuty {
+export function dutyJson(tree: JointTree, duty: NativeDuty): PublicDuty {
   return { moves: duty.moves.map(m => {
     const active = Object.keys({ ...m.from, ...m.to }).filter(k => (m.from[k] ?? 0) !== (m.to[k] ?? 0));
     const keys = [...new Set([...Object.keys(m.joint_limits ?? {}), ...active])];
@@ -127,6 +129,18 @@ export function harnessJson(tree: JointTree, report: HarnessReport): PublicHarne
 }
 
 /** The public sized result uses the same duty, tree and harness boundaries; trace text keeps its explicit original units. */
-export function sizedJson(sized: Sized) {
+export function sizedJson(sized: NativeSized) {
   return { ...sized, tree: jointTreeOut(sized.tree), duty: dutyJson(sized.tree, sized.duty), report: harnessJson(sized.tree, sized.report) };
+}
+
+
+export interface PublicPathClearance { value: number; fraction: number; links: [string, string] }
+export interface PublicTimedClearance { value: number; time: number; links: [string, string] }
+/** The path coordinate is dimensionless; it is not elapsed time. */
+export function pathClearanceJson(c: { mm: number; s: number; links: readonly [string, string] } | null | undefined): PublicPathClearance | null {
+  return c ? { value: r6(c.mm), fraction: r6(c.s), links: [c.links[0], c.links[1]] } : null;
+}
+/** Timed motion clearance uses seconds, preserving the core's original six-decimal reply precision. */
+export function timedClearanceJson(c: { mm: number; t: number; links: readonly [string, string] } | null | undefined): PublicTimedClearance | null {
+  return c ? { value: r6(c.mm), time: r6(c.t), links: [c.links[0], c.links[1]] } : null;
 }

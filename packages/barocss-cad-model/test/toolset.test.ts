@@ -89,6 +89,11 @@ test('describe: the tools, a tool\'s actions, an action\'s handler schema, a com
   assert.deepEqual(Object.keys(all.tools).sort(), Object.keys(GROUPS).filter(n => n !== 'describe').sort());
   assert.equal(all.changed, false);
   assert.equal((await d({ tool: 'subd' })).actions.insert_loop, 'index, edge, t?');
+  assert.equal((await d({ tool: 'subd' })).actions.select, 'index, what, normal?, withinAngle?, box?, edge?, limit?');
+  const select = await d({ tool: 'subd', action: 'select' });
+  assert.deepEqual(select.input.properties.withinAngle, { type: 'number' });
+  assert.ok(!('within_deg' in select.input.properties));
+  assert.match(select.description, /withinAngle.*default 30/);
   const m = await d({ tool: 'query', action: 'measure' });
   assert.deepEqual([m.description, m.input], [TOOLS.find(t => t.name === 'measure')!.description, TOOLS.find(t => t.name === 'measure')!.input_schema]);
   const hole = await d({ command: 'hole' });

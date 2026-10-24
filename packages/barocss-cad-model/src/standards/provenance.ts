@@ -83,9 +83,9 @@ export const STANDARD_TABLES: readonly StdTable[] = [
   { id: 'tolerance-general', title: 'General tolerances suggested on drawings', unit: 'mm, degrees', standards: [], rows: { default: { linear: GENERAL_TOLERANCE.linear, angular: GENERAL_TOLERANCE.angular, position: POSITION_ESTIMATE_MM } }, fieldSources: { linear: 'TOL-GENERAL', angular: 'TOL-GENERAL', position: 'TOL-POSITION' } },
   {
     id: 'materials', title: 'Material families (typical values)', unit: 'g/cm³', standards: [],
-    rows: Object.fromEntries(MATERIALS_DATA.materials.map(m => [m.id, { density: m.densityGPerCm3 }])),
+    rows: Object.fromEntries(MATERIALS_DATA.materials.map(m => [m.id, { density: m.density }])),
     fieldSources: { density: 'MAT-S-DENS' },
-    rowSources: Object.fromEntries(MATERIALS_DATA.materials.flatMap(m => { const s = (m as unknown as { sources?: Record<string, string> }).sources?.densityGPerCm3; return s ? [[m.id, { density: `MAT-${s}` }]] : []; })),
+    rowSources: Object.fromEntries(MATERIALS_DATA.materials.flatMap(m => { const s = (m as unknown as { sources?: Record<string, string> }).sources?.density; return s ? [[m.id, { density: `MAT-${s}` }]] : []; })),
   },
 ];
 

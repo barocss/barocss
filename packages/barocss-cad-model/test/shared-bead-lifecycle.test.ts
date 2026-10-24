@@ -49,7 +49,7 @@ test('actual shared geometry Save/fresh Open/re-edit and incremental wire preser
   const reopen = await readStudioFile(encodeStudioFile(out.state.doc)); assert.ok('doc' in reopen);
   assert.equal(beadAccounting(reopen.doc, ok(reopen.doc).bodies)!.complete, false);
   const fixed = await dispatchTool({ doc: reopen.doc, bodies: ok(reopen.doc).bodies }, 'set_welds', { welds: [{ joint: 'b0_part4.start', size: 3 }] }, evaluate);
-  assert.equal(fixed.isError, false, fixed.content); assert.equal(beadAccounting(fixed.state.doc, fixed.state.bodies)!.ownedVolumeMM3, 2160);
+  assert.equal(fixed.isError, false, fixed.content); assert.equal(beadAccounting(fixed.state.doc, fixed.state.bodies)!.ownedVolume, 2160);
 });
 
 test('incomplete beads block whole mass/inertia/BOM/requirements/approval; selected body facts and valid subtotals survive', async () => {
@@ -67,7 +67,7 @@ test('incomplete beads block whole mass/inertia/BOM/requirements/approval; selec
   const tool = await dispatchTool({ doc, bodies: e.bodies }, 'mass_properties', {}, evaluate), data = JSON.parse(tool.content);
   assert.equal(data.beadAccounting.complete, false); assert.ok(data.bodies.length > 0, tool.content);
   const view = await bomView(doc, evaluate), bom = deriveBom(view);
-  assert.equal(view.beadAccounting!.complete, false); assert.equal(bom.beadAccounting!.ownedVolumeMM3, 1620);
+  assert.equal(view.beadAccounting!.complete, false); assert.equal(bom.beadAccounting!.ownedVolume, 1620);
   assert.deepEqual(checkBom(view, bom), []);
   assert.ok(checkBom(view, { ...bom, beadAccounting: undefined }).length);
   assert.equal(bom.lines.filter(l => l.kind === 'weld-bead').length, 0);
@@ -123,6 +123,6 @@ test('placed shared metadata transforms once, exact drawing/STEP geometry agrees
   }
   assert.match(exportStudioStep(assembly, { name: 'Shared table' }).text, /^ISO-10303-21;/);
   const bom = deriveBom(await bomView(assembly, evaluate));
-  assert.equal(bom.beadAccounting!.sharedSeamCount, 8); assert.equal(bom.beadAccounting!.ownedVolumeMM3, 4320); assert.equal(bom.totalQty, 2);
+  assert.equal(bom.beadAccounting!.sharedSeamCount, 8); assert.equal(bom.beadAccounting!.ownedVolume, 4320); assert.equal(bom.totalQty, 2);
   assert.equal(bom.lines.some(l => l.kind === 'weld-bead'), false);
 });

@@ -1,8 +1,14 @@
+import { BarocssError } from '../src/engine/refusal';
+import { checkDesign as canonicalCheckDesign } from '../src/robot/harness';
+import { sizeDesign as canonicalSizeDesign } from '../src/robot/sizer';
+import { sizeDesign as nativeSizeDesign } from '../src/robot/native/sizer';
+import { readDuty } from '../src/robot/native/duty';
+import type { NativeDuty } from '../src/robot/native/duty';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { JointTree } from '../src/robot/joints';
 import type { LinkBody } from '../src/robot/dynamics';
-import { checkDesign, marginQuantitiesOf, type Consistency, type Duty } from '../src/robot/harness';
+import { checkDesign, marginQuantitiesOf, type Consistency } from '../src/robot/native/harness';
 import { harnessJson, sizedJson } from '../src/robot/reports';
 import { MOTORS, REDUCERS } from '../src/robot/actuators';
 import type { SweepLink } from '../src/robot/sweep';
@@ -14,7 +20,7 @@ const tree: JointTree = { version: 1, base: 'base', links: [{ id: 'base', name: 
 const bodies = new Map<string, LinkBody>([['arm', { massKg: .07, com: [0, 0, 0], I: [1e-6, 0, 0, 0, 1e-6, 0, 0, 0, 1e-6] }]]);
 const motor = MOTORS[0], reducer = { ...REDUCERS[0], repeatedPeakTorque: { ...REDUCERS[0].repeatedPeakTorque, v: torque, unit: 'N·m' } };
 const catalogue = { motors: [motor], reducers: [reducer] };
-const duty: Duty = { moves: [{ from: { turn: q }, to: { turn: 1 }, profile: 'trapezoid', limits: { velocity: q, acceleration: 1 }, dwell_s: .5 }], actuators: { turn: { motor: motor.id, reducer: reducer.id } }, g: [0, 0, 0] };
+const duty: NativeDuty = { moves: [{ from: { turn: q }, to: { turn: 1 }, profile: 'trapezoid', limits: { velocity: q, acceleration: 1 }, dwell_s: .5 }], actuators: { turn: { motor: motor.id, reducer: reducer.id } }, g: [0, 0, 0] };
 const r9 = (x: number) => Math.round(x * 1e9) / 1e9 + 0;
 const report = () => checkDesign(tree, bodies, null, duty, catalogue);
 
@@ -61,4 +67,34 @@ test('cloned, serialized or edited margins refuse with a typed provenance bounda
   const changed = report(); changed.margins[0].value += 1; assert.throws(() => harnessJson(tree, changed), { code: 'HARNESS_RAW_PROVENANCE_UNAVAILABLE' });
   const sized = { ok: core.ok, rounds: 0, trace: [], tree, duty, report: core }, before = JSON.stringify(sized);
   const out = sizedJson(sized); assert.deepEqual(out.report, harnessJson(tree, core)); assert.ok('joint_limits' in out.duty.moves[0]); assert.equal(out.tree.joints[0].limit!.effort, 1000); assert.equal(JSON.stringify(sized), before);
+});
+
+
+test('default core check and size accept only canonical Duty and project native results once', () => {
+  const input = { moves: [{ from: { turn: 30 }, to: { turn: 60 }, profile: 'trapezoid' as const,
+    joint_limits: { turn: { velocity: 60, acceleration: 120 } }, dwell: .5000000000000001 }],
+    serviceLife: .10000000000000002, clearance: .25, g: [0, 0, -9810] as [number, number, number], actuators: duty.actuators };
+  const before = structuredClone(input), native = readDuty(tree, input); assert.ok(!('error' in native));
+  const original = checkDesign(tree, bodies, null, native, catalogue);
+  const actual = canonicalCheckDesign(tree, bodies, null, input, catalogue); assert.ok(!('error' in actual));
+  assert.deepEqual(actual, harnessJson(tree, original));
+  const range = actual.margins.find(m => m.check === 'joint range' && m.detail === 'from')!;
+  assert.equal(range.value, 30); assert.equal(range.unit, 'degree');
+  const sized = canonicalSizeDesign(tree, bodies, null, input, { maxRounds: 0, ...catalogue }); assert.ok(!('error' in sized));
+  assert.deepEqual(sized, sizedJson(nativeSizeDesign(tree, bodies, null, native, { maxRounds: 0, ...catalogue })));
+  const invalid = [
+    [{ ...input, life_h: 2 }, 'No duty field life_h.'],
+    [{ ...input, clearance_mm: .25 }, 'No duty field clearance_mm.'],
+    [{ ...input, serviceLife: Infinity }, '"serviceLife" is a number above 0'],
+    [{ ...input, moves: [{ ...input.moves[0], dwell_s: .5 }] }, 'move 0: no field dwell_s.'],
+  ] satisfies [unknown, string][];
+  for (const [bad, text] of invalid) {
+    const beforeBad = structuredClone(bad);
+    assert.deepEqual(readDuty(tree, bad), { error: text }, 'native decoder result stays unchanged');
+    const typed = (error: unknown) => { assert.ok(error instanceof BarocssError); assert.equal(error.code, 'BAD_VALUES'); assert.equal(error.message, `[BAD_VALUES] ${text}`); return true; };
+    assert.throws(() => canonicalCheckDesign(tree, bodies, null, bad, catalogue), typed);
+    assert.throws(() => canonicalSizeDesign(tree, bodies, null, bad, { maxRounds: 0, ...catalogue }), typed);
+    assert.deepEqual(bad, beforeBad);
+  }
+  assert.deepEqual(input, before);
 });

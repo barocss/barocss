@@ -42,12 +42,12 @@ test('CNC7b a block: O100\'s plate (120 × 80 × 28 with its boss) — 122 × 82
   let s = await build([...PLATE, stockList(BLOCKS)]);
   let r = chooseStock(s.doc, s.bodies, 'cnc-milling');
   assert.ok(r.ok, JSON.stringify(r));
-  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance], ['B30', [122, 82, 30], { mm: 1, basis: 'estimate' }]);
+  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance], ['B30', [122, 82, 30], { value: 1, basis: 'estimate' }]);
   assert.deepEqual(r.choice.placement, { min: [-1, -1, -1], max: [121, 81, 29] });
   assert.equal(rule(s).status, 'pass'); assert.match(rule(s).message, /stock B30: 122 × 82 × 30 mm \(the shop\), 1 mm a face \(an estimate: set yours\)/);
   s = await build([['set_stock', { allowance: 2 }]], s.doc);
   r = chooseStock(s.doc, s.bodies, 'cnc-milling'); assert.ok(r.ok);
-  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance.basis], ['B32', [125, 85, 32], 'set']);
+  assert.deepEqual([r.choice.row.id, r.choice.size, r.choice.allowance], ['B32', [125, 85, 32], { value: 2, basis: 'set' }]);
 });
 
 test('CNC7b none loaded — unknown, STOCK_NONE_LOADED (none built in); none fits — warned, STOCK_NONE_FITS, the size needed said', async () => {
@@ -104,6 +104,6 @@ test('CNC7b cad-cli stock: the saved plate with a list given — exit 0, stock.j
   let r = cli(part, '-o', join(dir, 'out'), '--list', list);
   assert.equal(r.status, 0, r.stderr + r.stdout);
   const sj = JSON.parse(readFileSync(join(dir, 'out/stock.json'), 'utf8'));
-  assert.deepEqual([sj.row.id, sj.size, sj.allowance.basis], ['B30', [122, 82, 30], 'estimate']); assert.ok(existsSync(join(dir, 'out/stock.step')));
+  assert.deepEqual([sj.row.id, sj.size, sj.allowance], ['B30', [122, 82, 30], { value: 1, basis: 'estimate' }]); assert.ok(existsSync(join(dir, 'out/stock.step')));
   r = cli(part, '-o', join(dir, 'none')); assert.equal(r.status, 1); assert.match(r.stdout, /STOCK_NONE_LOADED/);
 });

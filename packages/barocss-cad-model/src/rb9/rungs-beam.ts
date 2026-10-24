@@ -16,7 +16,7 @@ const PLATE = 100, ZC = 50;
 const mat = (p: Params) => materialData(p.m as string)!;
 /** The depth the brief needs: safety factor 2 on yield and the tip deflection, on the 0.5 mm grid (a rectangle, b wide). */
 export function depthFor(p: Params, only?: 'stress'): number {
-  const L = num(p, 'L'), b = num(p, 'b'), F = num(p, 'F'), { yieldMPa: sy, elasticModulusMPa: E } = mat(p);
+  const L = num(p, 'L'), b = num(p, 'b'), F = num(p, 'F'), { yieldStress: sy, elasticModulus: E } = mat(p);
   const hs = Math.sqrt(12 * F * L / (b * sy)), hd = Math.cbrt(4 * F * L ** 3 / (E * b * num(p, 'dmax')));
   return Math.ceil(2 * (only ? hs : Math.max(hs, hd))) / 2;
 }
@@ -35,8 +35,8 @@ export const RUNG6: Rung = {
   n: 6, id: 'load-bracket', title: 'load bracket (beam)',
   space: [{ key: 'L', lo: 40, hi: 150, step: 5 }, { key: 'b', lo: 10, hi: 30, step: 1 }, { key: 'm', choice: ['al6061', 'steel'] },
     // (Feasible as a slender beam: the stress depth under 0.16 L, so L/h ≥ 5 with the 0.5 mm grid.)
-    { key: 'F', lo: 20, hi: p => Math.min(500, Math.floor(num(p, 'b') * mat(p).yieldMPa * 0.0256 * num(p, 'L') / 12)), step: 1 },
-    { key: 'dmax', lo: p => Math.ceil(100 * 4 * num(p, 'F') / (mat(p).elasticModulusMPa * num(p, 'b') * 0.004096)) / 100, hi: p => Math.ceil(100 * 3 * 4 * num(p, 'F') / (mat(p).elasticModulusMPa * num(p, 'b') * 0.004096)) / 100, step: 0.01 }],
+    { key: 'F', lo: 20, hi: p => Math.min(500, Math.floor(num(p, 'b') * mat(p).yieldStress * 0.0256 * num(p, 'L') / 12)), step: 1 },
+    { key: 'dmax', lo: p => Math.ceil(100 * 4 * num(p, 'F') / (mat(p).elasticModulus * num(p, 'b') * 0.004096)) / 100, hi: p => Math.ceil(100 * 3 * 4 * num(p, 'F') / (mat(p).elasticModulus * num(p, 'b') * 0.004096)) / 100, step: 0.01 }],
   prompt: p => `A wall bracket, machined in ${LABEL[p.m as string]}: a wall plate ${PLATE} × ${PLATE} × 10 mm, its face at x = 0 and centred on y = 0, z = ${ZC}, and a straight cantilever arm from it along +x, a rectangle ${p.b} mm wide, ${p.L} mm long from the plate's face, centred on it. It carries ${p.F} N down at its tip. Size its depth for a safety factor of 2 on yield and at most ${p.dmax} mm deflection at the tip, slender enough for beam theory (L/h ≥ 5), and round its root's top and bottom edges by at least a quarter of the depth.`,
   scripted: p => bracket(p),
   async check({ doc, bodies }, p, evaluate) {
@@ -49,7 +49,7 @@ export const RUNG6: Rung = {
     const cuts = await Promise.all(at.map(x => beamSection(doc, body, evaluate, x)));
     const [root, mid, tip] = cuts, ok = cuts.every(s => typeof s !== 'string'), S = root as BeamSection;
     const same = (a: BeamSection, b: BeamSection) => Math.abs(a.Iy - b.Iy) <= 1e-9 * Math.abs(a.Iy) && Math.abs(a.area - b.area) <= 1e-9 * a.area;
-    const sigma = ok ? F * L * S.c / S.Iy : null, delta = ok ? F * L ** 3 / (3 * m.elasticModulusMPa * S.Iy) : null;
+    const sigma = ok ? F * L * S.c / S.Iy : null, delta = ok ? F * L ** 3 / (3 * m.elasticModulus * S.Iy) : null;
     const top = fillets.filter(c => ok && c.c[2] > S.cz), bottom = fillets.filter(c => ok && c.c[2] < S.cz), rMin = ok ? 0.25 * S.depth : Infinity;
     return [
       holds('body', true, 1, 'one body: the plate and its arm'),
@@ -57,7 +57,7 @@ export const RUNG6: Rung = {
       holds('prismatic', ok && same(S, mid as BeamSection) && same(S, tip as BeamSection), cuts.map(s => typeof s === 'string' ? s : [s.area, s.Iy]), 'root, middle and tip sections equal (I to 1e-9)'),
       holds('slender', ok && L / S.depth >= 5, ok ? L / S.depth : null, 'L/h ≥ 5 (Euler–Bernoulli)'),
       holds('fillet', top.some(c => c.r >= rMin - 1e-9) && bottom.some(c => c.r >= rMin - 1e-9), fillets.map(c => [c.r, c.c[2]]), `root fillets top and bottom ≥ ${rMin} mm (0.25 h)`),
-      holds('stress', sigma !== null && sigma <= m.yieldMPa / 2, sigma, `σ = F L c / I ≤ σy / 2 = ${m.yieldMPa / 2} MPa`),
+      holds('stress', sigma !== null && sigma <= m.yieldStress / 2, sigma, `σ = F L c / I ≤ σy / 2 = ${m.yieldStress / 2} MPa`),
       holds('deflection', delta !== null && delta <= num(p, 'dmax'), delta, `δ = F L³ / (3 E I) ≤ ${p.dmax} mm`),
     ] as Outcome[];
   },

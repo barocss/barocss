@@ -23,6 +23,13 @@ const ok = async (s: ChatState, tool: string, args: object) => { const r = await
 const code = (content: string) => (/^\[([A-Z_]+)\]/.exec(JSON.parse(content).error ?? '') ?? [])[1];
 const near = (a: number, b: number, rel = 1e-6) => Math.abs(a - b) <= rel * Math.max(1, Math.abs(b));
 const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
+function assertPublicDims(dims: { key: string; value: number }[], expected: readonly (readonly [string, number])[]) {
+  assert.deepEqual(dims.map(d => d.key), expected.map(([key]) => key));
+  for (const [i, d] of dims.entries()) {
+    assert.ok(Object.hasOwn(d, 'value') && !Object.hasOwn(d, 'value_mm'), JSON.stringify(d));
+    assert.ok(near(d.value, expected[i][1], 1e-9), JSON.stringify(d));
+  }
+}
 /** A drawing's sketch extruded 5 mm: the draft's profile as a solid. */
 async function extruded(s: ChatState) { return (await ok(s, 'add_features', { features: [{ kind: 'extrude', sketch: s.doc.nodes.length - 1, height: 5 }] })).state; }
 
@@ -53,6 +60,11 @@ test('a hand-written DXF in inches (LINE, ARC, CIRCLE, with a dimension left out
   assert.deepEqual(d.ignored, { DIMENSION: 1 }); assert.deepEqual(d.underlay.counts, { TEXT: 1 });
   const r = await ok({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: text, name: 'bracket' }), c = JSON.parse(r.content);
   assert.deepEqual(c.left_out, { DIMENSION: 1 });
+  assert.equal(c.unit, 'inches');
+  const expected = [['F1.width', 4 * 25.4], ['F1.height', 2 * 25.4], ['F1.d1', 0.5 * 25.4]] as const;
+  assertPublicDims(c.dims, expected);
+  const report = JSON.parse((await ok(r.state, 'get_drafts', {})).content);
+  assertPublicDims(report.drafts[0].dims, expected);
   const s = await extruded(r.state), area = (3 * 2 + Math.PI / 2 - Math.PI * 0.25 ** 2) * 25.4 ** 2;
   assert.ok(near(volume(s), area * 5), `${volume(s)} vs ${area * 5}`);
   const dims = Object.fromEntries(readDrafts(s.doc.drafts).drafts[0].dims.map(x => [x.name, x.value]));
@@ -61,10 +73,13 @@ test('a hand-written DXF in inches (LINE, ARC, CIRCLE, with a dimension left out
 
 test('a drawing that declares no unit: read as mm, said as an assumption beside its dimensions (get_drafts, check_spec) until they are confirmed', async () => {
   const text = readFileSync(join(CASES, 'by-hand-inches.dxf'), 'utf8').replace(/9\n\$INSUNITS\n70\n1\n/, '');
-  let s = (await ok({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: text, name: 'no unit' })).state;
+  const imported = await ok({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: text, name: 'no unit' });
+  assertPublicDims(JSON.parse(imported.content).dims, [['F1.width', 4], ['F1.height', 2], ['F1.d1', 0.5]]);
+  let s = imported.state;
   const g = JSON.parse((await ok(s, 'get_drafts', {})).content);
   assert.equal(g.assumptions.length, 1); assert.match(g.assumptions[0], /^F1: units assumed mm/);
-  assert.ok(Math.abs(g.drafts[0].dims[0].value_mm - 4) < 1e-9, 'read as mm: 4, not 101.6');
+  assertPublicDims(g.drafts[0].dims, [['F1.width', 4], ['F1.height', 2], ['F1.d1', 0.5]]);
+  assert.ok(Math.abs(g.drafts[0].dims[0].value - 4) < 1e-9, 'read as mm: 4, not 101.6');
   s = (await ok(s, 'set_requirements', { requirements: [{ id: 'R1', source: 'x', hard: false, basis: 'assumed', check: { op: '>=', query: { fn: 'count_solids' }, value: 0 } }] })).state;
   assert.ok(JSON.parse((await ok(s, 'check_spec', {})).content).unknowns.some((u: { req_id: string; why: string }) => u.req_id === 'draft:F1.units' && /25\.4/.test(u.why)));
   // (Every dimension confirmed: the assumption is the user's, no longer listed. A declared unit is no assumption.)
@@ -122,7 +137,7 @@ test('an image draft: its width and thickness re-drive the relief (volume by clo
   const W = 40, H = 40, px = new Uint8ClampedArray(W * H * 4).fill(255);
   for (let y = 10; y < 30; y++) for (let x = 10; x < 30; x++) px.set([0, 0, 0, 255], (y * W + x) * 4);
   let s: ChatState = { doc: emptyDoc(), bodies: [], images: [traceImage(px, W, H)] };
-  s = (await ok(s, 'extrude_image_layer', { layer: 'silhouette', width_mm: 20, height: 3 })).state;
+  s = (await ok(s, 'extrude_image_layer', { layer: 'silhouette', width: 20, height: 3 })).state;
   // (The traced outline is the square as simplified: its area A, whatever it is; the closed forms are the ratios.)
   const A = volume(s) / 3; assert.ok(A > 0.9 * 400 && A <= 400 + 1e-6, String(A));
   assert.deepEqual(unconfirmed(s.doc).map(u => u.key), ['F1.width', 'F1.thickness']);

@@ -13,8 +13,8 @@ import { overhangOf, type Vec3 } from './overhang';
 export interface OrientationTerms { readonly support: number; readonly overhang: number; readonly height: number; readonly contact: number }
 export interface OrientationWeights { readonly support: number; readonly overhang: number; readonly height: number; readonly contact: number }
 export const DEFAULT_WEIGHTS: OrientationWeights = { support: 2, overhang: 1, height: 0.5, contact: 0.5 };
-export interface OrientationScore { readonly index: number; readonly direction: Vec3; readonly score: number; readonly terms: OrientationTerms; readonly overhangMM2: number; readonly height: number; readonly contactMM2: number; readonly supportMM3?: number }
-export interface OrientationResult { readonly best: OrientationScore; readonly top: readonly OrientationScore[]; readonly candidates: number; readonly weights: OrientationWeights; readonly ms: number }
+export interface OrientationScore { readonly index: number; readonly direction: Vec3; readonly score: number; readonly terms: OrientationTerms; readonly overhangArea: number; readonly height: number; readonly contactArea: number; readonly supportVolume?: number }
+export interface OrientationResult { readonly best: OrientationScore; readonly top: readonly OrientationScore[]; readonly candidates: number; readonly weights: OrientationWeights; readonly wallTime: number }
 
 /** 64 directions spread over the sphere (the golden-angle spiral), always the same. */
 export function fibonacciDirections(n = 64): Vec3[] {
@@ -50,8 +50,8 @@ export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limit: nu
     const o = overhangOf(mesh, table, limit, b);
     let top = -Infinity, bottom = Infinity; for (let i = 0; i < P.length; i += 3) { const t = P[i] * b[0] + P[i + 1] * b[1] + P[i + 2] * b[2]; if (t > top) top = t; if (t < bottom) bottom = t; }
     const height = top - bottom;
-    const terms = { support: 0, overhang: o.totalMM2 / area, height: height / diag, contact: o.bedMM2 / area };
-    return { index, direction: b, overhangMM2: o.totalMM2, height: height, contactMM2: o.bedMM2, terms, score: weights.overhang * terms.overhang + weights.height * terms.height - weights.contact * terms.contact, bottom };
+    const terms = { support: 0, overhang: o.overhangArea / area, height: height / diag, contact: o.contactArea / area };
+    return { index, direction: b, overhangArea: o.overhangArea, height: height, contactArea: o.contactArea, terms, score: weights.overhang * terms.overhang + weights.height * terms.height - weights.contact * terms.contact, bottom };
   });
   const short = [...cheap].sort(order).slice(0, 8);
   const bvh = triangleBvh(mesh.positions, mesh.indices), Ix = mesh.indices;
@@ -72,10 +72,10 @@ export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limit: nu
       support += (twice / 2) * -nb * Math.min(hit, toBed);
     }
     const terms = { ...c.terms, support: support / (area * diag) };
-    return { index: c.index, direction: b, overhangMM2: c.overhangMM2, height: c.height, contactMM2: c.contactMM2, supportMM3: support, terms, score: c.score + weights.support * terms.support };
+    return { index: c.index, direction: b, overhangArea: c.overhangArea, height: c.height, contactArea: c.contactArea, supportVolume: support, terms, score: c.score + weights.support * terms.support };
   });
   scored.sort(order);
-  return { best: scored[0], top: scored.slice(0, 3), candidates: cands.length, weights, ms: performance.now() - t0 };
+  return { best: scored[0], top: scored.slice(0, 3), candidates: cands.length, weights, wallTime: (performance.now() - t0) / 1000 };
 }
 
 /** The part's orientation: its largest body's search, with its printing process's limit and weights; why not, else. */

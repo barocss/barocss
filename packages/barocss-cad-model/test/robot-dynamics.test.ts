@@ -1,3 +1,5 @@
+import { gravityOf, robotViewOf } from '../src/robot/verbs';
+import { BarocssError } from '../src/engine/refusal';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -130,4 +132,42 @@ test('gravityTorques with a link the base does not reach yet (a part added, not 
   assert.equal('j2' in r.torques, false); assert.equal('j2' in r.generalized, false);
   assert.deepEqual([r.notReady?.code, r.notReady?.links, r.notReady?.joints], ['ROBOT_NOT_READY', ['L2'], ['j2']]);
   assert.equal(gravityTorques(tree as never, new Map([['L1', masses.get('L1')!]]), {}).notReady?.links.length, 0, 'a massless unreached link: only its joint said');
+});
+
+test('direct canonical gravity reply uses degree inputs and the planar 3R closed form in Nmm', async () => {
+  const doc = await planarArm(3), { tree, bodies } = await robotOf(doc), view = await robotViewOf(doc, bodies, evaluate);
+  const values = { 'base~l1': 0.4 * 180 / Math.PI, 'l1~l2': -0.9 * 180 / Math.PI, 'l2~l3': 1.3 * 180 / Math.PI };
+  const args = { values }, before = structuredClone(args), docBefore = JSON.stringify(doc);
+  const th = [0.4, -0.5, 0.8], xJ = [0, 40 * Math.sin(th[0]), 40 * Math.sin(th[0]) + 40 * Math.sin(th[1])], xc = th.map((t, i) => xJ[i] + 20 * Math.sin(t));
+  for (const [given, acceleration] of [[args, 9.80665], [{ ...args, g: [0, 0, -9810] }, 9.81]] as const) {
+    const reply = gravityOf(view, given, tree);
+    const closed = [0, 1, 2].map(i => -acceleration * xc.slice(i).reduce((s, x) => s + BLOCK_KG * (x - xJ[i]) / 1000, 0));
+    tree.joints.forEach((joint, i) => {
+      assert.ok(Math.abs(reply.torques[joint.key] / 1000 - closed[i]) < 1e-9 * Math.abs(closed[i]) + 1e-12);
+      assert.equal(reply.units[joint.key], 'N·mm');
+      assert.equal(reply.generalized[joint.key], reply.torques[joint.key]);
+    });
+    assert.equal(reply.gravity, acceleration === 9.81 ? 9810 : 9806.65);
+    assert.equal('gravity_m_s2' in reply, false);
+  }
+  const tool = await dispatchTool({ doc, bodies }, 'gravity_torques', args, evaluate); assert.ok(!tool.isError, tool.content);
+  assert.deepEqual(gravityOf(view, args, tree), JSON.parse(tool.content));
+  assert.deepEqual(args, before); assert.equal(JSON.stringify(doc), docBefore);
+});
+
+test('direct canonical gravity reply throws BAD_VALUES with the existing full values, joint and gravity messages', async () => {
+  const doc = await planarArm(3), { tree, bodies } = await robotOf(doc), view = await robotViewOf(doc, bodies, evaluate);
+  const cases: [Record<string, unknown>, string][] = [
+    [{ values: [] }, '"values" is {joint key: number}.'],
+    [{ values: { 'base~l1': NaN } }, '"values" is {joint key: number}.'],
+    [{ values: { absent: 1 } }, 'No joint absent; joints: base~l1, l1~l2, l2~l3.'],
+    ...[null, [0, 0], [0, 0, Infinity], [0, 0, 'bad'], { x: 0, y: 0, z: -9810 }].map(g => [{ g }, '"g" is [x, y, z] in mm/s².'] satisfies [Record<string, unknown>, string]),
+  ];
+  const docBefore = JSON.stringify(doc);
+  for (const [args, message] of cases) {
+    const before = structuredClone(args);
+    assert.throws(() => gravityOf(view, args, tree), e => e instanceof BarocssError && e.code === 'BAD_VALUES' && e.message === `[BAD_VALUES] ${message}`);
+    assert.deepEqual(args, before);
+  }
+  assert.equal(JSON.stringify(doc), docBefore);
 });

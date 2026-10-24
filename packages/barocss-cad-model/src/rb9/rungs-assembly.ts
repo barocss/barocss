@@ -1,12 +1,13 @@
 // RB9 rungs 12 and 14 (O70): assemblies placed by mates. The checker reads the assembly as the studio solves it: each
 // part's box where the mates put it, the joint tree (RM1) for every part's freedoms, the assembly gate (A8.4) for parts
 // meeting or touching undeclared, the mass against its closed form, the BOM view's rows.
-import { robotCheckOfDoc, robotOfDoc, treeOfDoc, urdfOfDoc } from '../chat/robot';
+import { nativeRobotCheckOfDoc, robotOfDoc, treeOfDoc, urdfOfDoc } from '../chat/robot';
 import { forwardKinematics } from '../robot/fk';
 import { treeInertia } from '../robot/inertia';
+import { jointSettingsOut } from '../robot/units';
 import { readUrdf, urdfFk } from '../robot/urdfCheck';
 import { workspaceMap } from '../robot/workspace';
-import type { Duty } from '../robot/harness';
+import type { NativeDuty } from '../robot/native/duty';
 import { materialData } from '../library/materials';
 import { assemblyBodies, bomView, checkAssembly } from '../team/assembly';
 import { prng, type Call, type Evaluate, type Outcome, type Params, type Rung } from './core';
@@ -61,7 +62,7 @@ export const RUNG12: Rung = {
     const moving = tree.joints.filter(j => j.type !== 'fixed'), sj = moving[0];
     const onAxis = !!sj && Math.abs(Math.abs(sj.axis[0]) - 1) <= 1e-9 && Math.abs(sj.origin[1] - Q / 2) <= 1e-6 && Math.abs(sj.origin[2] - z) <= 1e-6;
     const gate = await checkAssembly(doc, evaluate), bom = await bomView(doc, evaluate);
-    const rho = materialData('al6061')!.densityGPerCm3 / 1000, steel = materialData('steel')!.densityGPerCm3 / 1000, bore = Math.PI * (num(p, 'ds') / 2 + FC) ** 2, [bw, bd, bh, c, ct] = ['bw', 'bd', 'bh', 'c', 'ct'].map(k => num(p, k));
+    const rho = materialData('al6061')!.density / 1000, steel = materialData('steel')!.density / 1000, bore = Math.PI * (num(p, 'ds') / 2 + FC) ** 2, [bw, bd, bh, c, ct] = ['bw', 'bd', 'bh', 'c', 'ct'].map(k => num(p, k));
     const mass = rho * (num(p, 'P') * Q * num(p, 'tb') + 2 * (bw * bd * bh - bore * bw) + ct * c * c) + steel * Math.PI * (num(p, 'ds') / 2) ** 2 * (num(p, 'xb') + bw - 1 - num(p, 'xa'));
     const out: Outcome[] = [
       holds('parts', insts.length === 5 && bom.parts.length === 5 && bom.parts.every(x => x.mass > 0), [insts.length, bom.parts.length], 'five parts, five BOM rows with their masses'),
@@ -86,9 +87,9 @@ export const RUNG12: Rung = {
 // ——— 14. the 2-axis arm (the owner's rung): two turns about vertical axes, a payload at the tip, sized for a duty
 // (Bars on a base plate, as RM's chain-2r: each turns on a bore over the one below; the payload a steel block 40 × 40 on
 // the forearm's tip bore, as tall as its mass needs — its material set with set_material, O73.)
-const LP = (m: number) => m * 1e6 / (materialData('steel')!.densityGPerCm3 * 1600);
+const LP = (m: number) => m * 1e6 / (materialData('steel')!.density * 1600);
 const J1 = 'base~p1', J2 = 'p1~p2';
-const dutyOf = (p: Params): Duty => ({ moves: [{ from: {}, to: { [J1]: num(p, 'q1'), [J2]: num(p, 'q2') }, profile: 'trapezoid', limits: { velocity: num(p, 'v'), acceleration: num(p, 'acc') }, dwell_s: 0.5 }], life_h: 20000 });
+const dutyOf = (p: Params): NativeDuty => ({ moves: [{ from: {}, to: { [J1]: num(p, 'q1'), [J2]: num(p, 'q2') }, profile: 'trapezoid', limits: { velocity: num(p, 'v'), acceleration: num(p, 'acc') }, dwell_s: 0.5 }], life_h: 20000 });
 const arm2 = (p: Params, o: { l2?: number; effort?: number; elbowFixed?: boolean; payload?: boolean; rated?: boolean; steel?: boolean } = {}): Call[] => {
   const l1 = num(p, 'l1'), l2 = o.l2 ?? num(p, 'l2'), e = o.effort ?? 20, top = (part: string | null, x: number) => cmd(part as string, 'hole', { d: 10, x, y: 0 }, { faces: ['n1.top'] });
   const bar = (part: string, name: string, l: number): Call[] => [{ tool: 'add_part', args: { name } }, cmd(part, 'box', { w: l + 20, d: 20, h: 5, x: -10, y: -10, z: 0 }), top(part, 0), top(part, l)];
@@ -100,7 +101,8 @@ const arm2 = (p: Params, o: { l2?: number; effort?: number; elbowFixed?: boolean
   if (o.steel !== false) c.push({ tool: 'set_material', args: { part: 'p3', material: 'steel' } });
   if (o.payload !== false) c.push(mate('coincident', ['p2', 'n1.top'], ['p3', 'n1.bottom']), mate('distance', ['p2', 'origin:yz'], ['p3', 'origin:yz'], { distance: l2 }), mate('distance', ['p2', 'origin:xz'], ['p3', 'origin:xz'], { distance: 0 }));
   const rating = o.rated === false ? { lower: -2.5, upper: 2.5 } : { lower: -2.5, upper: 2.5, effort: e, velocity: 5 };
-  c.push({ tool: 'set_joints', args: { joints: { [J1]: rating, [J2]: rating } } });
+  const publicRating = jointSettingsOut('revolute', rating);
+  c.push({ tool: 'set_joints', args: { joints: { [J1]: publicRating, [J2]: publicRating } } });
   if (o.elbowFixed) c.push(mate('angle', ['p1', 'n1.side0'], ['p2', 'n1.side0'], { angle: 0 }));
   return c;
 };
@@ -154,7 +156,7 @@ export const RUNG14: Rung = {
     // (The payload's mass as RM3 reads it: the link fixed to the end link, its material the part's own.)
     const rm3 = treeInertia(tree, (await robotOfDoc(doc, bodies, evaluate)).partOf), fixedOn = tree.joints.find(j => j.type === 'fixed' && el && j.parent === el.child);
     const payload = fixedOn ? rm3.find(l => l.link === fixedOn.child)?.massKg ?? null : null;
-    const harness = await robotCheckOfDoc(doc, bodies, evaluate, dutyOf(p));
+    const harness = await nativeRobotCheckOfDoc(doc, bodies, evaluate, dutyOf(p));
     const u = await urdfOfDoc(doc, bodies, evaluate, 'arm');
     let fk = Infinity, inertia = Infinity, issues: string[] = ['not exported'];
     if (u.ok) { const rd = readUrdf(u.urdf, new Set(u.files.map(f => f.path))); issues = rd.issues; fk = urdfFkGap(tree, u, 20, 14); inertia = urdfInertiaGap(rd.model, u, rm3); }

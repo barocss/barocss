@@ -14,10 +14,10 @@ export interface Unreached { readonly body: string; readonly face: string; reado
 export interface Access {
   /** The surface area by the directions that reach it (bit k: DIRECTIONS[k]); `byMask[0]` reached by none. */
   readonly byMask: readonly number[];
-  readonly area: number; readonly unreachedMM2: number; readonly unreached: readonly Unreached[];
+  readonly area: number; readonly unreachedArea: number; readonly unreached: readonly Unreached[];
   /** The greedy setups: directions in order, each with the area it adds. */
-  readonly setups: readonly { readonly direction: string; readonly addsMM2: number }[];
-  readonly samples: number; readonly stepMM: number; readonly method: string;
+  readonly setups: readonly { readonly direction: string; readonly addedArea: number }[];
+  readonly samples: number; readonly sampleStep: number; readonly method: string;
 }
 const OFF = 0.01, MAX_N = 48, o = [0, 0, 0];
 
@@ -38,15 +38,15 @@ export function accessOf(bodies: readonly BodyResult[], stepMM?: number): Access
     }
   }
   // Greedy setups over the mask bins.
-  const left = byMask.map((x, k) => (k ? x : 0)), setups: { direction: string; addsMM2: number }[] = [];
+  const left = byMask.map((x, k) => (k ? x : 0)), setups: { direction: string; addedArea: number }[] = [];
   for (;;) {
     let best = -1, bestA = 0;
     for (let k = 0; k < 6; k++) { let A = 0; for (let q = 1; q < 64; q++) if (q & (1 << k)) A += left[q]; if (A > bestA + 1e-12) { bestA = A; best = k; } }
     if (best < 0) break;
-    setups.push({ direction: DIRECTION_NAMES[best], addsMM2: bestA });
+    setups.push({ direction: DIRECTION_NAMES[best], addedArea: bestA });
     for (let q = 1; q < 64; q++) if (q & (1 << best)) left[q] = 0;
   }
-  return { byMask, area: total.area, unreachedMM2: byMask[0], unreached: [...unreached.values()].sort((x, y) => y.area - x.area), setups, samples: total.samples, stepMM: h,
+  return { byMask, area: total.area, unreachedArea: byMask[0], unreached: [...unreached.values()].sort((x, y) => y.area - x.area), setups, samples: total.samples, sampleStep: h,
     method: `each display triangle split into n² equal parts (n from its longest edge over a ${+h.toFixed(4)} mm step, at most ${MAX_N}); each part's centre ${OFF} mm off it along its normal; a ray along each of ±X, ±Y, ±Z on the face's side (n · d ≥ 0) through the triangle BVH; setups chosen greedily by the area each direction adds` };
 }
 
@@ -78,7 +78,7 @@ function sampleTriangle(P: Float32Array | readonly number[], I: Uint32Array | re
 /**
  * O-G6 (the GPU lane's access map): per body, per display triangle, the share of its area no 3-axis direction reaches
  * (0..1) and the OR of its samples' 6-bit direction masks (bit k: DIRECTIONS[k]) — accessOf's samples, kept by triangle;
- * `stepMM` as accessOf's (its default from all the bodies' box). The area-weighted sum of the shares is accessOf's unreachedMM2.
+ * `stepMM` as accessOf's (its default from all the bodies' box). The area-weighted sum of the shares is accessOf's unreachedArea.
  */
 export function accessSamples(bodies: readonly BodyResult[], stepMM?: number): { body: string; unreachedShare: Float32Array; mask: Uint8Array }[] {
   const { min: lo, max: hi } = boundsOf(bodies);

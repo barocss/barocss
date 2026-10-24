@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prng, sample } from '../src/rb9/core';
+import { prng, runTrial, sample, summarize } from '../src/rb9/core';
 import { RUNGS } from '../src/rb9/rungs';
 import { reportRb9, runRb9 } from '../src/rb9/report';
 
@@ -27,4 +27,24 @@ test('the ladder (scripted): every built rung 5/5, RS 1; every mutant killed; no
   console.log(`RB9.1: ${run.summaries.map(s => `${s.n} ${s.passed}/${s.trials} (${s.killed}/${s.mutants} mutants)`).join(' · ')}`);
   const md = reportRb9(run);
   for (const t of run.trials) assert.ok(md.includes(`| ${t.rung} | ${t.trial} | 2026 | ${Object.entries(t.params).map(([k, v]) => `${k} ${v}`).join(', ')} |`), `${t.rung} #${t.trial}: its seed and values in the report`);
+});
+
+
+test('trial timing: public seconds and JSON keep the original rounded interval; Markdown keeps integer ms and metrics', async t => {
+  let reads = 0;
+  const clock = t.mock.method(performance, 'now', () => ++reads === 1 ? 0 : 250.4);
+  let trial;
+  try { trial = await runTrial(RUNGS[0], 2026, 0); } finally { clock.mock.restore(); }
+  const json = JSON.parse(JSON.stringify(trial));
+  assert.equal(json.wallTime, 0.250);
+  assert.ok(!('wallMs' in json));
+  assert.deepEqual(json.params, { w: 30, d: 30, h: 8, dh: 3 });
+  assert.deepEqual([trial.pass, trial.rs, trial.calls, trial.refused], [true, 1, 2, []]);
+  const predicates = ['box', 'volume', 'solids', 'bore', 'through'];
+  const summary = summarize(RUNGS[0], [trial], []);
+  assert.deepEqual(summary, { rung: 'block-hole', n: 1, title: 'block with hole', trials: 1, passed: 1, pass1: 1, passAtK: true, passPowK: true, rs: 1, mutants: 0, killed: 0, predicates, unkilled: predicates });
+  const report = reportRb9({ seed: 2026, trials: [trial], mutants: [], summaries: [summary] });
+  assert.ok(report.includes('| calls | ms |'));
+  assert.ok(report.includes('| block-hole | 0 | 2026 | w 30, d 30, h 8, dh 3 | yes | 1.000 | — | 2 | 250 |'));
+  assert.ok(report.includes('Overall: 1/1 trials pass (100 %); mutants killed 0/0.'));
 });

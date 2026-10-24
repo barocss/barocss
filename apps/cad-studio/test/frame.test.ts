@@ -239,7 +239,7 @@ test('D126 the palette\'s table frame trims its corners in order (legs through, 
 test('D127 the cut list: the palette\'s mitred rectangle of sharp tubes — two rows of two, 600 and 400, 45° both ends, masses by the body\'s material (aluminium, an estimate); a body in steel is its own row; the agent\'s cut_list with its CSV', async () => {
   const cmd = commands.find(c => c.id === 'frame')!, ctx = { doc: emptyDoc(), bodies: [], selection: none } as never, d = cmd.defaults!(ctx);
   const A = 1600 - 34 * 34, doc = cmd.build!(ctx, { ...d, skeleton: 'rectangle', ro: 0 }), bodies = bodiesOf(doc);
-  const list = partCutList(doc, bodies, 'al6061')!, al = MATERIALS.find(m => m.id === 'al6061')!.gPerCm3;
+  const list = partCutList(doc, bodies, 'al6061')!, al = MATERIALS.find(m => m.id === 'al6061')!.density;
   assert.deepEqual(list.rows.map(r => [r.quantity, Math.round(r.axisLength * 1e9) / 1e9, r.ends.map(e => e.kind)]), [[2, 600, ['mitre', 'mitre']], [2, 400, ['mitre', 'mitre']]]);
   assert.ok(Math.abs(list.rows[0].mass / (al * A * 600e-3) - 1) < 1e-12);
   assert.equal(list.densityEstimate, true); assert.equal(list.rows[0].material, MATERIALS.find(m => m.id === 'al6061')!.label);
@@ -248,7 +248,7 @@ test('D127 the cut list: the palette\'s mitred rectangle of sharp tubes — two 
   const steel = MATERIALS.find(m => m.id === 'steel')!, mixed = withLook(doc, bodies[0], { material: 'steel' }), ml = partCutList(mixed, bodiesOf(mixed), 'al6061')!;
   // (In first-seen order: member 1 in steel, members 2 and 4 the 400s, member 3 the other 600.)
   assert.deepEqual(ml.rows.map(r => [r.quantity, r.material, r.pieces.length]), [[1, steel.label, 1], [2, MATERIALS.find(m => m.id === 'al6061')!.label, 2], [1, MATERIALS.find(m => m.id === 'al6061')!.label, 1]]);
-  assert.ok(Math.abs(ml.rows[0].mass / (steel.gPerCm3 * A * 600e-3) - 1) < 1e-12);
+  assert.ok(Math.abs(ml.rows[0].mass / (steel.density * A * 600e-3) - 1) < 1e-12);
   // The agent: read only, rows and totals, the CSV on asking; a part without members says so.
   const evaluate = async (x: StudioDoc) => evaluatePart(x, 1), r0 = await evaluate(doc); assert.ok(r0.ok);
   const r = await dispatchTool({ doc, bodies: r0.bodies }, 'cut_list', { csv: true }, evaluate);

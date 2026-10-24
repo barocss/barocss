@@ -93,8 +93,24 @@ test('public nested gear placements use degrees once; phase and backlash metadat
   assert.deepEqual([jointTreeOut(turned).couplings[0].g1.rotation, jointTreeOut(turned).couplings[0].g2.rotation], [90, -45]);
   const core = poseOf(view, { [coupling.leader]: .123456789 }, tree), phase = core.reply.gears[0], raw = gearPairAt(coupling, core.reply.values), home = gearPairAt(coupling, {});
   const r6 = (x: number) => Math.round(x * 1e6) / 1e6 + 0;
-  assert.deepEqual([phase.phase, phase.homePhase, phase.backlash], [r6(raw.phaseDeg), r6(home.phaseDeg), r6(raw.backlash)]);
+  assert.deepEqual([phase.phase, phase.homePhase, phase.backlash], [r6(raw.phase), r6(home.phase), r6(raw.backlash)]);
   for (const old of ['phase_deg', 'home_phase_deg', 'backlash_mm']) assert.equal(old in phase, false);
   const publicReply = await runRobotTool(doc, r.bodies, 'get_joints', {}, evaluate); assert.ok(!('error' in publicReply)); assert.deepEqual(publicReply.content, projected);
   assert.equal(JSON.stringify(tree), before);
+});
+
+test('direct gear phase keeps the analytic 3 degree phase in the 12 degree follower period', () => {
+  // +Z axes, +X centre line (phi = 0), neutral helix and the same axial start.
+  // raw = rot2 - (pi - pi/30) + rot1*20/30 = pi/60; pi/60 radians = 3 degrees.
+  const pair: Parameters<typeof gearPairAt>[0] = {
+    leader: 'leader', follower: 'follower', s1: 1, s2: 1,
+    g1: { spec: { module: 2, teeth: 20, faceWidth: 8 }, center: [0, 0], from: 0, rotation: 0 },
+    g2: { spec: { module: 2, teeth: 30, faceWidth: 8 }, center: [50, 0], from: 0, rotation: Math.PI - Math.PI / 30 + Math.PI / 60 },
+  };
+  const before = JSON.stringify(pair), at = gearPairAt(pair, {});
+  assert.ok(Math.abs(at.phase - 3) <= 1e-9, `${at.phase} vs 3 degrees`);
+  assert.ok(at.phase >= 0 && at.phase < 12);
+  assert.ok(Math.abs(at.centerDistance - 50) <= 1e-9);
+  assert.equal('phaseDeg' in at, false);
+  assert.equal(JSON.stringify(pair), before);
 });

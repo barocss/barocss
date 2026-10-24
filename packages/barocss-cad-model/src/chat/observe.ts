@@ -40,7 +40,7 @@ export function factsOf(doc: StudioDoc, bodies: readonly BodyResult[]): Facts {
   const c: Vec3 = [0, 0, 0], lo: Vec3 = [Infinity, Infinity, Infinity], hi: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const b of bodies) {
     const v = b.volume ?? 0;
-    volume += v; mass += massGOf(v, materialOf(materialIdOf(doc, b)).gPerCm3);
+    volume += v; mass += massGOf(v, materialOf(materialIdOf(doc, b)).density);
     if (b.centroid) for (let k = 0; k < 3; k++) c[k] += b.centroid[k] * v;
     for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.mesh.bounds.min[k]); hi[k] = Math.max(hi[k], b.mesh.bounds.max[k]); }
     faces += b.mesh.faces.length; edges += b.mesh.edges.length; vertices += vertexCount(b);
@@ -85,7 +85,7 @@ export function faceDetail(doc: StudioDoc, bodies: readonly BodyResult[], name: 
 export function edgeDetail(doc: StudioDoc, bodies: readonly BodyResult[], name: string): Record<string, unknown> | null {
   for (const b of bodies) {
     const e = b.mesh.edges.find(x => x.names.includes(name)); if (!e) continue;
-    return { name, body: b.key, from: v3(e.a), to: v3(e.b), chord_mm: r3(Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2])),
+    return { name, body: b.key, from: v3(e.a), to: v3(e.b), chordLength: r3(Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1], e.b[2] - e.a[2])),
       line: e.straight ? (e.axis ? `along ${e.axis}` : 'oblique') : 'curve', faces: e.faces.map(i => b.mesh.faces[i]?.name.split('+')[0]), made_by: madeBy(doc, name) };
   }
   return null;

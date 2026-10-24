@@ -18,7 +18,7 @@ export function useCamPreview(active: boolean, doc: StudioDoc, bodies: BodyResul
   const toolKey = JSON.stringify(options.tool ?? null);
   const scope = useMemo(() => ({}), [active, doc, bodies, toolKey]);
   const rangeScope = useMemo(() => ({}), [scope, options.setup]);
-  const key = useMemo(() => ({}), [rangeScope, options.progress, options.cellMM]);
+  const key = useMemo(() => ({}), [rangeScope, options.progress, options.cellPitch]);
   const metadata = useRef<{ scope: object; packageKey: number; package: CamPackage } | null>(null);
   const range = useRef<{ scope: object; count: number } | null>(null);
   const [result, setResult] = useState<{ key: object; state: CamState } | null>(null);

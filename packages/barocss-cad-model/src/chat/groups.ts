@@ -47,7 +47,7 @@ export const GROUPS: Record<string, Group> = {
       interference: ['interference', 'bodies? — overlap and clearance'],
       section: ['section', 'axis, at'],
       wall: ['wall_thickness', 'body?, below?'],
-      draft: ['draft', 'body?, pull?, min_deg?'],
+      draft: ['draft', 'body?, pull?, draftMin?'],
       fit_clearance: ['fit_clearance', 'hole?, shaft?, hole_class?, shaft_class?, size? — a hole–shaft fit\u2019s limits and clearance from your fit tables (D155)'],
       rebuild: ['rebuild_report', '— each feature\'s build time and kernel calls; mate loops'],
       welds: ['weld_list', '— the frame\'s weld joints, seams from the geometry, sizes yours or estimated (FRd1)'],
@@ -102,7 +102,7 @@ export const GROUPS: Record<string, Group> = {
     title: 'SubD',
     about: 'A SubD cage (features.command subd-box, subd-torus or subd-tube makes one), by its feature index.',
     actions: {
-      cage: ['subd_cage', 'index'], select: ['subd_select', 'index, what, normal?, within_deg?, box?, edge?, limit?'], move: ['subd_move', 'index, delta, vertices?, edges?, faces?'],
+      cage: ['subd_cage', 'index'], select: ['subd_select', 'index, what, normal?, withinAngle?, box?, edge?, limit?'], move: ['subd_move', 'index, delta, vertices?, edges?, faces?'],
       extrude: ['subd_extrude', 'index, faces? | edges?, offset? | distance?'], insert_loop: ['subd_insert_loop', 'index, edge, t?'], bridge: ['subd_bridge', 'index, edges'],
       fill: ['subd_fill', 'index, edges'], weld: ['subd_weld', 'index, vertices, tolerance?'], crease: ['subd_crease', 'index, edges? | faces?, on?'], delete: ['subd_delete', 'index, faces'],
     },
@@ -110,7 +110,7 @@ export const GROUPS: Record<string, Group> = {
   image: {
     title: 'Image',
     about: 'A traced picture (a character, logo, icon) as solids.',
-    actions: { layers: ['get_image_layers', 'image?'], extrude: ['extrude_image_layer', 'width_mm, height, image?, layer?, base?, orientation?, at?, y?'], inflate: ['inflate_image_layer', 'width_mm, depth, image?, layer?, mode?, body_depth?, orientation?, at?, y?'] },
+    actions: { layers: ['get_image_layers', 'image?'], extrude: ['extrude_image_layer', 'width, height, image?, layer?, base?, orientation?, at?, y?'], inflate: ['inflate_image_layer', 'width, depth, image?, layer?, mode?, body_depth?, orientation?, at?, y?'] },
   },
   describe: { title: 'Describe', about: '', actions: {} },
 };

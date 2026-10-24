@@ -62,12 +62,12 @@ export async function build(calls: readonly Call[], prompt = ''): Promise<Built 
   return { doc: state.doc, bodies: e.ok ? e.bodies : [], refused, calls: calls.length };
 }
 
-export interface Trial { rung: string; trial: number; seed: number; params: Params; pass: boolean; rs: number; outcomes: Outcome[]; refused: string[]; calls: number; wallMs: number }
+export interface Trial { rung: string; trial: number; seed: number; params: Params; pass: boolean; rs: number; outcomes: Outcome[]; refused: string[]; calls: number; wallTime: number }
 /** One trial: sampled, built by the scripted agent, checked. */
 export async function runTrial(rung: Rung, seed: number, k: number): Promise<Trial> {
   const params = sample(rung.space, seed, k), t0 = performance.now(), b = await build(rung.scripted(params), rung.prompt(params));
   const outcomes = await rung.check(b, params, evaluate), hard = outcomes.filter(o => o.hard);
-  return { rung: rung.id, trial: k, seed, params, pass: !b.refused.length && hard.every(o => o.pass), rs: hard.length ? hard.filter(o => o.pass).length / hard.length : 0, outcomes, refused: b.refused, calls: b.calls, wallMs: Math.round(performance.now() - t0) };
+  return { rung: rung.id, trial: k, seed, params, pass: !b.refused.length && hard.every(o => o.pass), rs: hard.length ? hard.filter(o => o.pass).length / hard.length : 0, outcomes, refused: b.refused, calls: b.calls, wallTime: Math.round(performance.now() - t0) / 1000 };
 }
 export interface MutantResult { rung: string; mutant: string; target: string; why: string; killed: boolean; failed: string[]; params: Params }
 /** Each mutant on trial 0's and trial 1's parameters (both range ends): killed when its targeted predicate fails. */

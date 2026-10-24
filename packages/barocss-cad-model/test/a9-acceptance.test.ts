@@ -220,7 +220,7 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   assert.deepEqual(designed, ['O-ring n3 in its gland n2 (its squeeze)', 'bearing n2 (6204) in p1/b9, seat H7', 'bearing n2 (6204) on its shaft, seat k5', 'key n1 in its keyseat']);
   const near = map.pairs.filter(p => p.state === 'near');
   assert.deepEqual(near.map(p => [p.a, p.b]), [['p2/b0', 'p3/b4']]);
-  assert.ok(near[0].minGapMM <= COVER_CLEARANCE_MM && near[0].minGapMM >= COVER_CLEARANCE_MM - 0.02, String(near[0].minGapMM));
+  assert.ok(near[0].minGap <= COVER_CLEARANCE_MM && near[0].minGap >= COVER_CLEARANCE_MM - 0.02, String(near[0].minGap));
 });
 
 test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; the bundle on the person\'s approval; reopened, the same files', async () => {
@@ -269,7 +269,10 @@ test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; th
   assert.deepEqual(members, [[320, 4], [360, 2], [260, 2]].map(([L, n]) => [`rect-tube 40 × 40 × 3 × ${L}`, n, 'steel', +(n * (40 ** 2 - 34 ** 2) * L * steel).toFixed(3)]));
   // (The plates too by their material: 4 steel gussets of 8750 mm³, 4 caps of 4624 — no longer the default's density.)
   assert.deepEqual(bom.lines.filter(l => l.plate).map(l => [l.qty, l.material, +l.mass.toFixed(3)]), [[4, 'steel', +(4 * 8750 * steel).toFixed(3)], [4, 'steel', +(4 * 4624 * steel).toFixed(3)]]);
-  const total = (JSON.parse(bomOut.files[0].text).bom as { totalMassG: number }).totalMassG, partsMass = bom.lines.filter(l => ['Plate', 'Shaft', 'Cover'].includes(l.item)).reduce((a, l) => a + l.mass, 0);
+  const serializedBom = JSON.parse(bomOut.files[0].text).bom as { totalMass: number };
+  assert.equal(Object.hasOwn(serializedBom, 'totalMass'), true);
+  assert.equal(Object.hasOwn(serializedBom, 'totalMassG'), false);
+  const total = serializedBom.totalMass, partsMass = bom.lines.filter(l => ['Plate', 'Shaft', 'Cover'].includes(l.item)).reduce((a, l) => a + l.mass, 0);
   assert.ok(total > partsMass + members.reduce((a, m) => a + (m[3] as number), 0), `${total}: the parts, the members, and the plates and beads too`);
   const csvOut = await call('query', { action: 'purchase_csv' }) as { files: { text: string }[] }, csv = csvOut.files[0].text.trim().split('\n');
   assert.equal(csv.length, 5); assert.equal(csv[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');

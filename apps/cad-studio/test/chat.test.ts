@@ -14,6 +14,7 @@ import { checkNode, deleteFeature } from '@barocss/cad-model/chat/features';
 import { eventParser, type TurnEvent } from '../src/chat/client';
 import { serveMcp } from '../server/cadMcp';
 import { TOOLS_V2 } from '@barocss/cad-model/chat/toolset';
+import { validate, type JsonSchema } from '@barocss/cad-model/chat/contract';
 import { checkImages, claudeArgs, createChatServer, DEFAULT_ORIGINS, fromStudio, stateNote, summarize, userMessage } from '../server/chatServer';
 import { fitSize } from '../src/chat/images';
 import { planHollow } from '@barocss/cad-model/print/hollow';
@@ -295,7 +296,7 @@ test('edit_feature uses the feature editor’s fields; delete_feature renumbers 
 test('measure, select and the part summary read the evaluated part by name', async () => {
   const s = await stateOf(rectanglePart(64, 32, 8));
   let r = await runTool(s, 'measure', { a: 'n1.top', b: 'n1.bottom' }, evaluate);
-  assert.equal(parse(r.content).normal_distance, 8);
+  assert.equal(parse(r.content).normalDistance, 8);
   r = await runTool(s, 'measure', { a: 'n1.side0|n1.side1' }, evaluate);
   assert.equal(parse(r.content).length, 8);
   r = await runTool(s, 'select', { faces: ['n1.top'], bodies: ['b1'] }, evaluate);
@@ -499,6 +500,29 @@ test('the tracer splits a character bitmap into a silhouette and its colour regi
   assert.deepEqual(simplify(sq[0], 0.5).length, 4);
 });
 
+test('image width input: schema and describe use mm width; old keys and nonpositive widths are refused without changing the part', async () => {
+  const { px, W, H } = smiley(false), s: ChatState = { ...(await stateOf(emptyDoc())), images: [traceImage(px, W, H)] };
+  const image = TOOLS_V2.find(t => t.name === 'image')!;
+  assert.match(image.description, /extrude \(width, height/); assert.match(image.description, /inflate \(width, depth/);
+  for (const [action, name, other] of [['extrude', 'extrude_image_layer', { height: 4 }], ['inflate', 'inflate_image_layer', { depth: 24 }]] as const) {
+    const schema = TOOLS.find(t => t.name === name)!.input_schema as JsonSchema;
+    assert.ok(Object.hasOwn(schema.properties!, 'width') && !Object.hasOwn(schema.properties!, 'width_mm'));
+    assert.ok(schema.required!.includes('width') && !schema.required!.includes('width_mm'));
+    assert.deepEqual(validate(schema, { width: 60, ...other }), []);
+    assert.deepEqual(validate(schema, { width_mm: 60, ...other }), ['$.width: missing', '$.width_mm: not allowed']);
+    const described = await runTool(s, 'describe', { tool: 'image', action }, evaluate);
+    assert.ok(!described.isError, described.content); assert.deepEqual(parse(described.content).input, schema);
+    const legacy = await runTool(s, name, { width_mm: 60, ...other }, evaluate);
+    assert.ok(legacy.isError, legacy.content); assert.match(parse(legacy.content).error, /^\[UNKNOWN_ARGUMENT\].*"width_mm"/);
+    assert.equal(legacy.changed, false); assert.deepEqual(legacy.state.doc, s.doc);
+    for (const width of [undefined, 0, -1]) {
+      const refused = await runTool(s, name, { ...other, ...(width === undefined ? {} : { width }) }, evaluate);
+      assert.ok(refused.isError, refused.content); assert.match(parse(refused.content).error, /^"width" \(the silhouette's width\) must be positive\.$/);
+      assert.equal(refused.changed, false); assert.deepEqual(refused.state.doc, s.doc);
+    }
+  }
+});
+
 test('extrude_image_layer builds a relief: the silhouette base and colour layers stacked at one scale', async () => {
   const { px, W, H } = smiley(false);
   const images = [traceImage(px, W, H)];
@@ -507,12 +531,12 @@ test('extrude_image_layer builds a relief: the silhouette base and colour layers
   assert.equal(layers.silhouette_aspect, 1);
   const eyes = layers.layers.find((l: any) => l.color === '#141414');
   assert.equal(eyes.regions, 2); assert.ok(eyes.box.y[0] > 0.5, JSON.stringify(eyes.box));
-  let r = await runTool(s, 'extrude_image_layer', { layer: 'silhouette', width_mm: 60, height: 4 }, evaluate);
+  let r = await runTool(s, 'extrude_image_layer', { layer: 'silhouette', width: 60, height: 4 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const base = parse(r.content).bodies[0];
   assert.ok(Math.abs(base.volume - Math.PI * 30 ** 2 * 4) / (Math.PI * 30 ** 2 * 4) < 0.03, String(base.volume));
   assert.deepEqual(base.bounds.min.map(Math.round), [0, 0, 0]); assert.deepEqual(base.bounds.max.map(Math.round), [60, 60, 4]);
-  r = await runTool(s, 'extrude_image_layer', { layer: eyes.id, width_mm: 60, height: 1.5, base: 4 }, evaluate);
+  r = await runTool(s, 'extrude_image_layer', { layer: eyes.id, width: 60, height: 1.5, base: 4 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const eyeBody = parse(r.content).bodies.find((b: any) => b.key === 'b3');
   // Two eyes Ø6 (10 px of 140 px across 60 mm → r ≈ 4.3 mm), 1.5 thick, in the upper half, on top of the base.
@@ -521,11 +545,11 @@ test('extrude_image_layer builds a relief: the silhouette base and colour layers
   r = await runTool(s, 'run_command', { command: 'union', bodies: ['b1', 'b3'] }, evaluate);
   assert.ok(!r.isError, r.content); assert.equal(r.state.bodies.length, 1);
   // Standing: upright on XZ, thickness towards −Y.
-  r = await runTool({ ...(await stateOf(emptyDoc())), images }, 'extrude_image_layer', { width_mm: 40, height: 3, orientation: 'standing' }, evaluate);
+  r = await runTool({ ...(await stateOf(emptyDoc())), images }, 'extrude_image_layer', { width: 40, height: 3, orientation: 'standing' }, evaluate);
   assert.ok(!r.isError, r.content);
   const up = parse(r.content).bodies[0].bounds;
   assert.deepEqual([up.min[1], up.max[1], Math.round(up.max[2])], [-3, 0, 40]);
-  assert.match(parse((await runTool(s, 'extrude_image_layer', { layer: 'nope', width_mm: 60, height: 1 }, evaluate)).content).error, /No layer "nope"/);
+  assert.match(parse((await runTool(s, 'extrude_image_layer', { layer: 'nope', width: 60, height: 1 }, evaluate)).content).error, /No layer "nope"/);
   assert.match(parse((await runTool({ ...s, images: [] }, 'get_image_layers', {}, evaluate)).content).error, /No image is attached/);
 });
 
@@ -534,7 +558,7 @@ test('inflate_image_layer rounds the silhouette into a 3D body and sets features
   const images = [traceImage(px, W, H)];
   let s: ChatState = { ...(await stateOf(emptyDoc())), images };
   const id = (c: string) => images[0].layers.find(l => l.color === c)!.id;
-  let r = await runTool(s, 'inflate_image_layer', { layer: 'silhouette', mode: 'body', width_mm: 60, depth: 24 }, evaluate);
+  let r = await runTool(s, 'inflate_image_layer', { layer: 'silhouette', mode: 'body', width: 60, depth: 24 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const body = parse(r.content).bodies[0];
   assert.deepEqual([body.bounds.min[2], body.bounds.max[2]], [-12, 12]);
@@ -542,15 +566,15 @@ test('inflate_image_layer rounds the silhouette into a 3D body and sets features
   // Rounder than a slab of the same outline, fuller than a cone.
   const slab = Math.PI * 30 ** 2 * 24;
   assert.ok(body.volume > slab * 0.55 && body.volume < slab * 0.85, String(body.volume / slab));
-  assert.match(parse((await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2 }, evaluate)).content).error, /body_depth/);
-  r = await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2, body_depth: 24 }, evaluate);
+  assert.match(parse((await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width: 60, depth: 2 }, evaluate)).content).error, /body_depth/);
+  r = await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width: 60, depth: 2, body_depth: 24 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const eyes = parse(r.content).bodies.slice(1);
   assert.equal(eyes.length, 2);
   // Each eye sits in the upper half and reaches 2 mm above where it is sunk into the front surface.
   for (const e of eyes) { assert.ok(e.bounds.min[1] > 30); assert.ok(e.bounds.min[2] > 9 && e.bounds.max[2] <= 12.5, JSON.stringify(e.bounds)); assert.ok(Math.abs(e.bounds.max[2] - e.bounds.min[2] - 2) < 1e-6); }
   // The face colour is one region with three holes (eyes and mouth): a filled area, inflated whole.
-  r = await runTool(s, 'inflate_image_layer', { layer: id('#fad228'), mode: 'bump', width_mm: 60, depth: 1, body_depth: 24 }, evaluate);
+  r = await runTool(s, 'inflate_image_layer', { layer: id('#fad228'), mode: 'bump', width: 60, depth: 1, body_depth: 24 }, evaluate);
   assert.ok(!r.isError, r.content);
   // A ring stroke is skipped as an outline.
   const ringPx = new Uint8ClampedArray(120 * 120 * 4).fill(255);
@@ -566,7 +590,7 @@ test('inflate_image_layer rounds the silhouette into a 3D body and sets features
   const one = parse((await runTool(cyl.state, 'get_part_summary', { body: made.key }, evaluate)).content);
   assert.equal(one.bodies.find((b: any) => b.key === made.key).faces.length, 3);
   assert.equal(big.features[0].node.points, undefined);
-  const stroke = await runTool(rs, 'inflate_image_layer', { layer: 'color2', mode: 'bump', width_mm: 40, depth: 1, body_depth: 10 }, evaluate);
+  const stroke = await runTool(rs, 'inflate_image_layer', { layer: 'color2', mode: 'bump', width: 40, depth: 1, body_depth: 10 }, evaluate);
   assert.match(parse(stroke.content).error, /outline stroke/);
 });
 

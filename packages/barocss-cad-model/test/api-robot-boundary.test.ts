@@ -6,7 +6,8 @@ import { join } from 'node:path';
 import { Robot, part } from '../src/api';
 import type { StudioDoc } from '../src/engine/doc';
 import type { JointTree } from '../src/robot/joints';
-import { treeOf } from '../src/api/robotCore';
+import { treeOf, viewOf } from '../src/api/robotCore';
+import { solveDoc } from '../src/assembly/edit';
 import { jointTreeOut } from '../src/robot/units';
 
 const docOf = (name: string): StudioDoc => JSON.parse(readFileSync(join(import.meta.dirname, `../samples/robots/${name}.bcad`), 'utf8'));
@@ -50,9 +51,41 @@ test('the shared public tree scales mixed mimic multipliers and offsets in both 
 });
 
 test('a coupled gear facade keeps its dimensionless ratio and degree pose values', () => {
-  const r = new Robot(docOf('gear-joint')), publicTree = r.joints(), follower = publicTree.joints.find(j => j.key === 'base~g2')!;
+  const doc = docOf('gear-joint');
+  // Local gear angles are +45/-30 degrees. Couplings use a common plane, not these local axes.
+  for (const [id, angle] of [['g1', 45], ['g2', -30]] as const) {
+    const gear = doc.instances!.find(i => i.id === id)!.doc.nodes.find(n => n.kind === 'gear');
+    assert.ok(gear?.kind === 'gear');
+    gear.rotation = angle;
+  }
+  const view = viewOf(doc), localG1 = view.parts.get('g1')![0].gear!, localG2 = view.parts.get('g2')![0].gear!;
+  const beforeLocal = JSON.stringify([localG1, localG2]);
+  close(localG1.rotation, Math.PI / 4); close(localG2.rotation, -Math.PI / 6);
+  assert.deepEqual(solveDoc(doc).doc.instances!.map(i => i.rotation), [[0, 0, 0], [0, 0, 0]]);
+  // For +Z, across(z) chooses x=+Y, y=-X. The solved gears' local +X is world +X.
+  // worldX·x=0 and worldX·y=-1, so atan2(-1,0)=-pi/2: a -90 degree basis offset.
+  const worldX = [1, 0, 0], x = [0, 1, 0], y = [-1, 0, 0];
+  const dx = worldX.reduce((s, v, i) => s + v * x[i], 0), dy = worldX.reduce((s, v, i) => s + v * y[i], 0);
+  assert.equal(dx, 0); assert.equal(dy, -1); close(Math.atan2(dy, dx), -Math.PI / 2);
+  const raw = treeOf(doc), beforeRaw = JSON.stringify(raw), beforeDoc = JSON.stringify(doc);
+  const projected = jointTreeOut(raw), r = new Robot(doc), publicTree = r.joints();
+  assert.equal(publicTree.couplings.length, 1);
+  assert.deepEqual(raw.couplings[0].g1.center, [0, 0]);
+  assert.deepEqual(raw.couplings[0].g2.center, [0, -50]);
+  // +45-90=-45; -30-90=-120. These literals follow the basis, not observed output.
+  close(raw.couplings[0].g1.rotation, -Math.PI / 4);
+  close(raw.couplings[0].g2.rotation, -2 * Math.PI / 3);
+  close(publicTree.couplings[0].g1.rotation, -45);
+  close(publicTree.couplings[0].g2.rotation, -120);
+  assert.equal(JSON.stringify(raw), beforeRaw);
+  assert.equal(JSON.stringify(doc), beforeDoc);
+  assert.deepEqual(projected, publicTree);
+  const follower = publicTree.joints.find(j => j.key === 'base~g2')!;
   close(follower.mimic!.multiplier, -2 / 3); close(follower.mimic!.offset, 0);
   close(r.pose({ 'base~g1': 30 }).values['base~g2'], -20);
+  assert.equal(JSON.stringify(raw), beforeRaw);
+  assert.equal(JSON.stringify(doc), beforeDoc);
+  assert.equal(JSON.stringify([localG1, localG2]), beforeLocal);
 });
 
 test('sweep contact at the initial mixed pose returns exact degrees and mm before rounding', () => {

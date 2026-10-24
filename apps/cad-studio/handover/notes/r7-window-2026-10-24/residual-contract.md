@@ -184,3 +184,124 @@ consumers in their actual scratch context; do not import unrelated repository am
 an archive under an obsolete name or alter package metadata to satisfy a stale test. Only the explicitly leased
 consumer driver and its matching metadata/archive/context helpers may change. Keep each original failure.
 These are implementation and verification assignments, not completed gates or product adoption.
+
+## Public clearance and viewport follow-up (2026-10-25)
+
+The same public quantity contract applies to structured worker and viewport DTOs. A transient value is not an
+exception merely because it is not saved in a document. The following mechanical projections preserve numeric
+values, original rounding, geometry, decisions, cache dependencies and human display units:
+
+| Boundary | Canonical field | Meaning / owner |
+|---|---|---|
+| sweep_path.min_clearance | minClearance | {value,fraction,links}: mm clearance and dimensionless path coordinate; Outer shared projector. |
+| check_path.min_clearance | minClearance | {value,time,links}: mm clearance and time in seconds; do not substitute fraction for time. |
+| reference residual_mm | residual | mm unchanged, original twelve-significant-digit formatter; stored datum and fitting unchanged. |
+| public keepout overlap_mm3 / clearance_mm | overlap / clearance | mm³ / mm unchanged; core KeepoutResult and App raw use stay unchanged. |
+| public keepout required_mm / chord_tolerance_mm | requiredClearance / chordTolerance | mm unchanged; keep historical conformance oracle names and verdict thresholds. |
+| PrintDisplay.topMM | top | mm unchanged; GPU owns the display, worker, panel, projection, overlay and Viewport consumers plus matching tests. Root owns the browser-flow probe. |
+
+The PrintDisplay change is distinct from the Model PrintLayers producer but must be reconciled in this R7
+window. It does not authorize a new clipping formula, cache algorithm, shader optimization or threshold. Retain
+support geometry and the original displayed mm values. GPU consumes the exact Model producer on a branch
+without G14/DoF/G15c feature ancestry. Root reconciles its shared browser getter after those exact producers.
+
+The API L3 temporary five-file lease covers server robotL3 tool/main and three matching tests. Project the original
+harness before serialization, validate canonical duty with readDuty, and preserve validated canonical numbers
+rather than repeatedly converting and rounding them. keepsBrief retains strict life, poses and dwell comparisons
+and its existing limits allowance. Preserve the original initial physical ratings of1rad/s and1Nm through the
+shared settings adapter. No live model or new budget campaign is required for this contract migration.
+
+The packaged numerical-v0 XYArc consumer still uses its actual centerMM/radiusMM report. That explicitly leased
+legacy consumer correction is not closure of R7.3d retirement or a permanent exception for active public DTOs.
+Final qualification remains on one immutable assembled SHA with Node22.23.3. Focused results below that boundary
+remain scoped evidence, and P2 remains held.
+
+
+## Additional active quantity families (2026-10-25)
+
+These contracts consolidate the coordinator's explicit follow-up leases. They do not certify that every family is
+implemented or qualified. The external receipt records each immutable producer, consumer, ownership and proof
+boundary. A public field does not become exempt because it is a viewport DTO or a source-backed catalogue scalar.
+Preserve all physical values, existing rounding, provenance, refusal conditions, numerical tolerances and native pins.
+
+| Family | Canonical public names | Units and constraints |
+|---|---|---|
+| Material properties | density, elasticModulus, yieldStress | g/cm³ and MPa unchanged. Scalar source keys follow these names; explicit unit/source/page/URL metadata and lookup identities remain unchanged. |
+| PrinterProfile and MouldFinish | buildVolume, layerHeight, nozzleDiameter; draftMin, draftRecommended | buildVolume is the same three-dimensional mm size vector, not a scalar volume. Lengths are mm; draft thresholds are degrees. Preserve optional omission and unknown/null semantics. |
+| PrintLayers and overhang | layerHeight:{value,basis}, overhangLimit:{value,basis}, supportVolume; overhangArea, contactArea, worstAngle | Height mm, support mm³, area mm², angle degrees. worstAngle is zero for a vertical wall and ninety for a ceiling. Keep classification, lazy layers, geometry and cache dependencies. |
+| CAM Model and viewport | safeZ:{value,basis}, stepover, stepdown; cornerRadius, fluteLength, shankDiameter, rampAngle; cellPitch, removedVolume, overcutVolume, sampleSpacing, lateralUncertainty | Absolute safeZ and lengths mm, volumes mm³, ramp angle degrees. Requested and effective cellPitch remain distinct values on their original DTOs. angularChordError, noseChordError and shankExtension retain their original displayed mm meanings. No sampling or clipping change. |
+| Mechanical access, turning and machining | unreachedArea, addedArea, sampleStep, turnedArea, minOuterDiameter, includedAngle; tolerance.value and feasibleLimit | Areas mm², lengths mm, angle degrees. Preserve samples, classification, feasible-limit meaning and source. |
+| Mould fields and analysis | DraftField.draftMin; DraftFace.min, steepest, belowArea; WallReport.thinnest, thick95; PartingReport.pullRange, isoclineLength; analysis wall thinnest/thick95/faces_below[].thickness; analysis draft draft/min/max | Angles degrees, lengths mm, belowArea mm². Threshold draftMin is distinct from observed min. Keep raw quantiles, sampling, geometry, r3/r6 and independent physical oracles. Public draft tool input is draftMin. |
+| Viewport thresholds and casting | ThicknessLimits.minWall/materialMin/ratio; DraftLimits and CastingDraftLimits draftMin/draftRecommended; CastingSummary.tolerance.value | Wall lengths and tolerance mm, draft degrees, ratio dimensionless. Keep source, null, original threshold comparisons and catalogue lookup IDs. |
+| Measure and section | angle, normalDistance, cutArea | Degrees, mm and mm² respectively. Preserve existing measurement precision and geometry. |
+| Quote | tolerance:{value,perLength,source}, limits.largestPartSize, part.volumeBasis.massBound | Tolerance mm, perLength mm/mm, largestPartSize the same three-dimensional mm vector, massBound g. Preserve unknown/null/omitted fields, exact geometry behavior and formatter labels. |
+| BOM | massBound, totalMassBound, totalMass | All are g. Preserve estimate flags, positive zero, null versus omitted, original r6 and addition order. totalMassBound uses view.parts plus base, not a second sum over derived lines. totalMass retains the existing incomplete-bead-accounting subtotal limitation. |
+| Interference and keepout consumers | interference overlap/clearance; check_keepouts clearance/chordTolerance | mm³ and mm. Preserve the original overlap threshold, gap oracle and verdict. Historical conformance oracle identifiers remain separate; update actual getters and their matching tests. |
+
+Old aliases, schema versions and migrations are not added for these unreleased active DTOs. Explicit source unit
+records, catalogue threshold lookup IDs and labelled human strings are not renamed through a broad substitution.
+The native and named legacy boundaries above remain separate. A test-only reader/writer for frozen native data
+must state its boundary explicitly and must not regenerate fixture bytes or native pins.
+
+Exported solver Duty is still an open boundary: wildcard package access means it cannot be declared private merely
+because tools already project it. Public serviceLife is seconds. A new public life-in-hours exception is not approved.
+The API Work must reconcile this with unchanged internal solver numerics, native fixture bytes, conversion order
+and strict canonical file comparisons before an implementation lease is issued. This open item blocks final R7
+qualification; it does not authorize conversion of unrelated internal radians or SI dynamics.
+
+
+## Solver Duty boundary decision (2026-10-25)
+
+The API Work's option B is the implementation direction. Default checkDesign/sizeDesign and document-level
+check/size entries consume the existing canonical PublicDuty contract and return the existing public MMGS
+projections. Public serviceLife is seconds, moves use degrees for turning joints and mm for sliding joints, dwell
+is seconds, clearance mm and g mm/s². Do not accept an untagged raw-hours alternative or add a permissive overload.
+Use the single PublicDuty definition; do not add compatibility type or field aliases.
+
+The original solver bodies and their raw-duty parser move to explicit robot/native/duty, robot/native/harness and
+robot/native/sizer modules. These are intentionally importable native calculation contracts, not automatically
+private: their documentation must state raw radians, existing SI dynamics, service life in hours and the unchanged
+native field names. Native algorithms, catalogue comparisons, margins, refusal text, rounding and sizer loop
+remain single implementations. Native sizer rounds call the native harness directly without serialize/reparse.
+Do not create a public life-in-hours field or retain the old default raw Duty export as a hidden compatibility path.
+This explicit native calculation boundary does not change frozen native formats or close R7.3d retirement.
+
+Preserve the existing input division by3600 and output multiplication by3600 at their native/canonical boundaries,
+with the same operation order and optional-field semantics. Do not infer arbitrary Float64 roundtrip equivalence
+from integer examples. Keep original unrounded margin provenance in one shared implementation and project it
+before cloning. Canonical CLI/L3 paths must not project a public result twice. Preserve the L3 validated original
+JSON, strict life/pose/dwell checks and established one-ULP storage guard. Native conformance readers and writers
+use the explicit native entry; do not run UPDATE_RM_FIXTURES or change fixture bytes, digests or pins.
+
+The temporary API implementation lease has seventeen candidate files from the reviewed source plan, including
+three new native modules and one explicitly delegated Docs sample. A dependency or ownership expansion requires
+an exact file/reason report. Implementation must demonstrate module dependency safety, direct canonical and
+explicit-native calls, unchanged native solver operands/results and unchanged actual CLI/L3/fixture boundaries.
+It is preparation work, not a qualified checkpoint; final same-SHA whole checks remain required.
+
+## Remaining solver and mesh metadata boundaries (coordinator, 2026-10-25)
+
+The existing FK and solver calculations keep their coordinate conventions and acceptance thresholds. These specific solver-level entries remain intentionally importable:
+
+- `robot/loop.closeLoop`, `closeLoops` and their `Closed.q` retain the existing joint-coordinate inputs and outputs. Rename the result `residualMM` and the exported `closedValues.residual_mm` to `residual`, with the same number. A pin closer measures pin distance in mm. The general closer retains its original row norm combining distance and orientation rows; its scalar must be described as the solver residual, without assigning it a new pure-length unit. Keep every solver equation, weight, iteration, constant, threshold, refusal and joint conversion unchanged. The existing façade/tool `loops.residual` stays unchanged.
+- `robot/ik.solveIk` / `IkResult` retain the existing solver contract: FK target/tool coordinates as documented by the source, native joint coordinates, `errorM` in metres and `errorRad` in radians. The source comments, current types and the focused boundary map establish this narrow preservation. Wildcard importability remains explicit. The traced production façade/tool paths have no current solveIk projection; this observation is limited to the mapped paths. Existing public projections keep degrees/MMGS, and any future public IK projection needs an explicit paired error/q conversion contract. No IK source or test change is required by this naming window.
+
+Display metadata and Team views follow the public names below. Values, optionality, existing clone behaviour, buffers and precision remain unchanged.
+
+| Producer/result | Canonical field | Preserved meaning |
+|---|---|---|
+| `DisplayFace.chordMM` | `chordDepth` | Sampled freeform chord depth in mm, with the existing safety factor; retain unmeasured/Infinity behaviour and the existing sampling and WeakMap cache. |
+| Team `verifierView.keepouts[].chordMM` | `chordTolerance` | Existing finite mm value before the existing JSON clone; preserve that clone's non-finite-to-null behaviour and precision. |
+
+`KeepoutResult.chordMM`, private edge-sag helpers, positional tolerance arguments and native Kernel quantities keep their established raw calculation contracts. The existing references formatter retains its twelve significant digits. The metadata worker transfer and public view projection need their actual matching tests; these decisions do not establish runtime or aggregate qualification.
+
+## Remaining inertia and gear entry quantities (coordinator, 2026-10-25)
+
+- The generic public `team/freshness.inertiaResult` success egress uses the existing `inertiaJson` projection once. Its `number` remains the mass scalar, now in g. Its `value` is `{ mass, centroid, inertia, issues }`, with mass in g, centroid in mm, the original flat nine tensor entries in g·mm², and the original issue-code strings. Flatten the projected three-row tensor without changing its entries. Preserve failure/unsupported/stale conditions, stamping and native calculations.
+- The specifically mapped inertia/dynamics calculations `linkInertia`, `treeInertia`, `linkMasses`, `linkBodies`, `withPointMass`, `sizeActuators` and `sizeCoupled` retain their source-documented native calculation contracts. Their raw `LinkInertia`/`LinkMass`/`LinkBody`/`Sizing`/`CoupledSizing` quantities and the exact forwarding entries `robot/verbs.inertiaOf` and `sizeOf` remain intentionally importable for native calculations. Existing default façades and tools still use the shared public projections. This scope is function-specific; no entire module or generic public Result is excluded.
+- Direct `gearPairAt.phaseDeg` becomes `phase`, preserving its existing degree value. The Kernel already returns degrees modulo the follower pitch; perform no new angular conversion. Preserve the native FK joint coordinates, placement rotations, gear calculation and all tolerances.
+- The direct `movesOf` public-input/result contract and the neighbouring `gravityOf` formatter remain open until the exact canonical argument and refusal boundary is fixed. Their current exportability or generic formatter comment does not complete that boundary.
+
+### Direct gravity and motion replies
+
+`robot/verbs.gravityOf` and `movesOf` are canonical reply entries. They take `(view, args, tree)` with the existing public degree/mm joint maps and mm/s² optional gravity. Existing default gravity remains9806.65mm/s², or9.80665m/s² internally. Each entry uses the existing ingress and unrounded producer followed by the shared report projector once. The exact existing values/joint/g predicates and parser text are preserved; operation failures throw existing BAD_VALUES BarocssError. `moveArgs` retains its current acceptance conditions; no stricter envelope, limits, or finite validation is added. Existing tool/facade projections are already canonical and are not rewired. Raw Move callbacks, native dynamics and frozen native fixtures retain their explicit native contracts. No permissive raw overload or duplicate unit helper is introduced.

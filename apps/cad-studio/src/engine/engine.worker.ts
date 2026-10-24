@@ -119,7 +119,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     let view: ReturnType<typeof mouldView> = null, why: string | null = null;
     // (The wire carries what evaluation reads: the mould's settings come with the request.)
     try { view = part.ok ? mouldView({ ...request.doc, mould: request.mould }, part.bodies, request.halves) : null; } catch (e) { why = e instanceof Error ? e.message : String(e); }
-    const halves = view?.halves, out = meshesOut.pack('mould', { ok: true, revision: request.revision, ms: 0, bodies: halves ? [...halves.plus, ...halves.minus] : [] });
+    const halves = view?.halves, out = meshesOut.pack('mould', { ok: true, revision: request.revision, wallTime: 0, bodies: halves ? [...halves.plus, ...halves.minus] : [] });
     (self as unknown as Worker).postMessage({ id: request.id, result: out.result, mould: view && { pull: view.pull, loops: view.loops, why: view.why, plus: halves?.plus.length ?? 0, halves: !!halves }, why: why ?? (part.ok ? null : 'the part does not evaluate') }, out.transfer);
   } else if (request.type === 'proposalDiff') {
     // (G12: both sides evaluated in part slots of their own — the base in 'read', the proposal in 'agent', where its
@@ -129,7 +129,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     let d: ReturnType<typeof proposalDiffFor> | null = null, why: string | null = null;
     try { d = proposalDiffFor(request.key, { doc: request.doc, bodies: a.bodies }, { doc: proposed!, bodies: b.bodies }); } catch (e) { why = e instanceof Error ? e.message : String(e); }
     const sides = d ? [d.added, d.removed] : [], bodies = sides.flatMap((m, i) => m ? [{ ...a.bodies[0], key: i ? 'removed' : 'added', mesh: m.mesh }] : []);
-    const out = meshesOut.pack('proposalDiff', { ok: true, revision: request.revision, ms: 0, bodies });
+    const out = meshesOut.pack('proposalDiff', { ok: true, revision: request.revision, wallTime: 0, bodies });
     (self as unknown as Worker).postMessage({ id: request.id, result: out.result, diff: d && { added: d.added ? d.added.volume : null, removed: d.removed ? d.removed.volume : null, changedFaces: d.changedFaces, method: d.method, why: d.why ?? null }, why }, out.transfer);
   } else if (request.type === 'volumes') {
     (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });

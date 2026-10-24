@@ -17,6 +17,7 @@ import { checkSpec, runCheck } from '../chat/spec';
 import type { Outcome, Query } from '../engine/schema/spec';
 import { runDrawingTool } from '../chat/drawing';
 import { linkInertia } from '../robot/inertia';
+import { inertiaJson } from '../robot/reports';
 import { printability } from '../print/rules';
 import { fromSig, markedReferences, toSig, verifyReferences, type Sig } from '../engine/references';
 import { matchSignature, signaturesOf, type Signature } from '../engine/rematch';
@@ -231,7 +232,7 @@ export async function massResult(doc: StudioDoc, evaluate: Evaluate, run: string
   return stamp(doc, b.bodies, { ...base, status: 'ok', number: per.reduce((s, x) => s + x.mass!, 0), value: per.map(x => ({ body: x.body, mass: x.mass, assumed: x.assumed })) });
 }
 const IDENTITY = { origin: [0, 0, 0] as [number, number, number], R: [1, 0, 0, 0, 1, 0, 0, 0, 1] as [number, number, number, number, number, number, number, number, number] };
-/** A part's inertia about its centre (kg·m²); no body or no volume, failed. */
+/** A part's mass (g), centroid (mm) and flat inertia about its centre (g·mm²); no body or no volume, failed. */
 export async function inertiaResult(doc: StudioDoc, evaluate: Evaluate, run: string, part?: string): Promise<Result> {
   const d = partDoc(doc, part)!, b = await bodiesOf(d, evaluate), base = { id: resultId('inertia', part ?? 'base', run, part), kind: 'inertia' as const, subject: part ?? 'base', run, ...(part ? { part } : {}) };
   if (!b.ok) return stamp(doc, [], { ...base, status: 'failed', why: b.why });
@@ -239,7 +240,8 @@ export async function inertiaResult(doc: StudioDoc, evaluate: Evaluate, run: str
   if (incomplete) return stamp(doc, b.bodies, { ...base, status: 'unsupported', why: incomplete });
   const li = linkInertia(part ?? 'base', part ?? null, d, b.bodies, IDENTITY), bad = li.issues.filter(i => i.code === 'NO_BODY' || i.code === 'NO_VOLUME');
   if (bad.length) return stamp(doc, b.bodies, { ...base, status: 'failed', why: bad.map(i => i.message).join('; ') });
-  return stamp(doc, b.bodies, { ...base, status: 'ok', number: li.massKg, value: { massKg: li.massKg, comM: li.comM, inertia: li.inertia, issues: li.issues.map(i => i.code) } });
+  const projection = inertiaJson(li);
+  return stamp(doc, b.bodies, { ...base, status: 'ok', number: projection.mass, value: { mass: projection.mass, centroid: projection.centroid, inertia: projection.inertia.flat(), issues: li.issues.map(i => i.code) } });
 }
 /** Printability under the document's process: unsupported without a printing process; fail, unknown or pass by its rules. */
 export async function dfmResult(doc: StudioDoc, evaluate: Evaluate, run: string, part?: string): Promise<Result> {
@@ -266,7 +268,7 @@ export async function bomResult(doc: StudioDoc, evaluate: Evaluate, run: string)
   const incomplete = await inspect(resolveShopTree(doc), '');
   if (incomplete) return stamp(doc, [], { ...base, status: /BEAD_ACCOUNTING_INCOMPLETE/.test(incomplete) ? 'unsupported' : 'failed', why: incomplete });
   const view = await bomView(doc, evaluate), bom = deriveBom(view), problems = checkBom(view, bom);
-  return stamp(doc, [], { ...base, status: 'ok', verdict: problems.length ? 'fail' : 'pass', number: bom.totalMassG, value: problems.length ? { bom, problems } : bom });
+  return stamp(doc, [], { ...base, status: 'ok', verdict: problems.length ? 'fail' : 'pass', number: bom.totalMass, value: problems.length ? { bom, problems } : bom });
 }
 /** The drawing's issues: errors fail it; a drawing that cannot be built failed. */
 export function drawingResult(doc: StudioDoc, run: string): Result {

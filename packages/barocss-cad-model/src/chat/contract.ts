@@ -21,6 +21,7 @@ const num: JsonSchema = { type: 'number' }, str: JsonSchema = { type: 'string' }
  * its result's shape where it is fixed. (`checkpoint` keeps a snapshot for the session and `select` sets the viewport
  * selection: neither changes the document.)
  */
+const clearanceSchema = (coordinate: 'fraction' | 'time'): JsonSchema => ({ type: ['object', 'null'], properties: { value: num, [coordinate]: num, links: { type: 'array', items: str } }, required: ['value', coordinate, 'links'], additionalProperties: false });
 const READ: Record<string, JsonSchema | null> = {
   output_bom: o({ revision: str, files: arr }, ['revision', 'files']),
   output_purchase_csv: o({ revision: str, files: arr }, ['revision', 'files']),
@@ -30,11 +31,11 @@ const READ: Record<string, JsonSchema | null> = {
   output_bundle: o({ revision: str, files: arr }, ['revision', 'files']),
   get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr, note: str, followed_changed: arr, variability: obj }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
   get_image_layers: null,
-  measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle_deg: num, normal_distance: num, resolved: arr }),
+  measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle: num, normalDistance: num, resolved: arr }),
   mass_properties: o({ bodies: arr, note: str }, ['bodies']),
   interference: o({ pairs: arr, note: str }, ['pairs']),
   section: o({ axis: str, at: num, cut: arr }, ['axis', 'at', 'cut']),
-  wall_thickness: o({ body: str, thinnest_mm: num, at: arr, face: str, note: str }, ['body']),
+  wall_thickness: o({ body: str, thinnest: num, at: arr, face: str, note: str }, ['body']),
   draft: o({ body: str, pull: arr, walls: arr, under_min: arr, note: str }, ['body', 'walls']),
   check_spec: o({ model_hash: str, summary: obj, failures: arr, unknowns: arr, policy: obj, validation: obj }, ['model_hash', 'summary']),
   // (FR4a, D127: a frame's cut list.)
@@ -71,11 +72,11 @@ const READ: Record<string, JsonSchema | null> = {
   get_drafts: o({ drafts: arr, unconfirmed: arr, assumptions: arr, note: str }, ['drafts', 'unconfirmed', 'assumptions', 'note']),
   check_keepouts: o({ results: arr, clear: num, violated: num, undecided: num }, ['results', 'clear', 'violated', 'undecided']),
   gravity_torques: o({ torques: obj, generalized: obj, units: obj, gravity: num, notReady: obj }, ['torques', 'generalized', 'units', 'gravity']),
-  sweep_path: o({ clear: bool, contact: obj, min_clearance: { type: ['object', 'null'] }, samples: num, pairs: num, skipped: arr, designed: arr }, ['clear', 'samples', 'pairs', 'skipped', 'designed']),
+  sweep_path: o({ clear: bool, contact: obj, minClearance: clearanceSchema('fraction'), samples: num, pairs: num, skipped: arr, designed: arr }, ['clear', 'samples', 'pairs', 'skipped', 'designed']),
   export_mjcf: o({ mjcf: str, files: arr, notes: arr, check: arr }, ['mjcf', 'files', 'notes', 'check']),
   export_urdf: o({ urdf: str, files: arr, notes: arr, check: arr }, ['urdf', 'files', 'notes', 'check']),
   set_pose: o({ values: obj, links: arr, frames: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
-  check_path: o({ motion: str, duration: num, clear: bool, contact: obj, min_clearance: objOrNull, samples: num, skipped: arr, designed: arr }, ['motion', 'duration', 'clear', 'min_clearance', 'samples', 'skipped', 'designed']),
+  check_path: o({ motion: str, duration: num, clear: bool, contact: obj, minClearance: clearanceSchema('time'), samples: num, skipped: arr, designed: arr }, ['motion', 'duration', 'clear', 'minClearance', 'samples', 'skipped', 'designed']),
   play_motion: o({ motion: str, duration: num, samples: arr }, ['motion', 'duration', 'samples']),
   forward_kinematics: o({ values: obj, links: arr, frames: arr, gears: arr, out_of_limits: arr }, ['values', 'links', 'gears', 'out_of_limits']),
   get_joints: o({ version: num, base: str, links: arr, joints: arr, loops: arr, couplings: arr, problems: arr, notes: arr, frames: arr }, ['version', 'base', 'links', 'joints', 'loops', 'couplings', 'problems', 'notes']),
