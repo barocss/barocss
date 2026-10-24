@@ -43,6 +43,9 @@ const THEMES: Record<ThemeName, Theme> = {
   light: { ...PALETTE.light, gridOpacity: 0.14, ao: 0.8, shadow: 0.28 },
 };
 const HOVER: Vec3 = [0.62, 0.55, 0.36];
+/** G15b: the Render workspace's sun, its angular size in degrees (a soft shadow; the sun itself is half a degree, a studio's
+ *  key light a few). */
+const RENDER_SUN_SIZE = 3;
 /** RS2: a link in contact as a motion plays, the error colour. */
 const CONTACT: Vec3 = [0.92, 0.27, 0.24];
 /** A direction in the camera's frame (x right, y up, z toward the eye) as the world's, negated: where a light shines (PERF3 C17: module level). */
@@ -681,7 +684,7 @@ export class GpuRenderer implements ViewRenderer {
           : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
       const e = r.environment;
       const envMap = e.map ? this.imageTexture(e.map.image) : e.studio ? this.studioTexture(e.studio.kind) : null;
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map?.intensity ?? e.studio?.intensity ?? 1 } : {}) };
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), softShadows: RENDER_SUN_SIZE, contactShadows: { strength: 0.5 }, ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map?.intensity ?? e.studio?.intensity ?? 1 } : {}) };
     } else {
       v.lights = this.lights(camera);
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled && !this.interacting && !lineOnly ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
