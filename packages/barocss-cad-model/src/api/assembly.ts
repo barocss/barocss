@@ -3,7 +3,7 @@
 // (O12). Its verbs carry the agent's v2 assembly actions' names (api-conventions §12): addPart, place, addMate, inputs,
 // variants, frames. `.doc` is the StudioDoc the agent's tools, the studio and save/open use; every change is the one the
 // tool writes (./assemblyCore), the assembly solved again after it. Results are plain data.
-import { Location, refuse, type BodyQuery, type FaceQuery } from '@barocss/cad/api';
+import { Location, refuse, type BodyQuery, type FaceQuery, type Vec3 } from '@barocss/cad/api';
 import type { StudioDoc } from '../engine/doc';
 import type { MateKind } from '../assembly/mates';
 import type { FrameSettings } from '../robot/frames';
@@ -13,7 +13,8 @@ import { bodiesOf } from './core';
 import { addMateDoc, addPartDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 
-type Vec3 = [number, number, number];
+// (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
+type XYZ = [number, number, number];
 
 /** A face a mate holds: on the base part (`'base'`) or a placed part (by the name it was added with), by a selector or its name. */
 export interface MateEnd { part: string; face: string | ((body: BodyQuery) => FaceQuery); body?: string }
@@ -22,7 +23,7 @@ export interface MateOptions { distanceMM?: number; angleDeg?: number; flip?: bo
 /** A tool or sensor frame (O12) on a link — the base part or a placed part, by name — at a Location in that part's own coordinates. */
 export interface FrameOptions { link: string; at?: Location; kind?: 'tool' | 'sensor' }
 
-const toVec = (v: readonly number[]): Vec3 => [v[0], v[1], v[2]];
+const toVec = (v: readonly number[]): XYZ => [v[0], v[1], v[2]];
 
 export class Assembly {
   readonly name: string;
