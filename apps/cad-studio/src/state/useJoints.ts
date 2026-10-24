@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createValueStore, useStoreValue } from './valueStore';
 import { forwardKinematics, gearPairAt, sliderRange } from '@barocss/cad-model/robot/fk';
 import type { JointTree } from '@barocss/cad-model/robot/joints';
 import type { WorkspaceMap } from '@barocss/cad-model/robot/workspace';
+import { draftPath, motionPose, timedMotion, type Motion } from './motion';
 
 /**
  * The robot's joints as the studio shows them (R1c (3a), moved out of App as it was): the joint-slider pose (RM2, a
@@ -36,7 +37,55 @@ export function useJoints(jointTree: JointTree | null, subscribed: boolean) {
     let frame = requestAnimationFrame(function step(now) { setJointValues(v => ({ ...v, [j.key]: mid + amp * Math.sin(2 * Math.PI * (now - t0) / 4000) })); frame = requestAnimationFrame(step); });
     return () => cancelAnimationFrame(frame);
   }, [jointPlaying, jointTree]);
-  return { poseStore, jointValues, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk };
+  // (RS2: the motion played — the draft path, home through the waypoints to the pose shown, frozen as Play starts or the
+  // scrubber moves — its time in a store of its own, so a frame renders the Joints card's live part and the viewport,
+  // never the App. A slider moved, Home, or the waypoints changed stop it; nothing is saved.)
+  const motionTime = useMemo(() => createValueStore(0), []);
+  const [motion, setMotion] = useState<Motion | null>(null);
+  const [motionPlaying, setMotionPlaying] = useState(false), [motionLoop, setMotionLoop] = useState(false), [motionSpeed, setMotionSpeed] = useState(1);
+  // (Its first contact — the time of impact and the two links, swept by the App, which has the bodies — and whether the
+  // time shown is past it: set as t crosses it, so the App renders at the crossing, not in each frame.)
+  const [motionContact, setMotionContact] = useState<{ toi: number; links: [string, string] } | null>(null);
+  const [contactShown, setContactShown] = useState(false);
+  useEffect(() => {
+    const c = motionContact; let shown = false; setContactShown(false);
+    if (!c) return;
+    const check = () => { const v = motionTime.get() >= c.toi; if (v !== shown) { shown = v; setContactShown(v); } };
+    check(); return motionTime.subscribe(check);
+  }, [motionContact, motionTime]);
+  const stopMotion = useCallback(() => { setMotionPlaying(false); setMotion(null); setMotionContact(null); motionTime.set(0); }, [motionTime]);
+  useEffect(stopMotion, [jointTree, jointWaypoints, stopMotion]);
+  /** The motion to play: the one frozen, or the draft path frozen now (null when it can't be timed). */
+  const frozenMotion = useCallback((): Motion | null => {
+    if (motion) return motion;
+    if (!jointTree) return null;
+    try { const m = timedMotion(jointTree, draftPath(jointTree, jointWaypoints, poseStore.get())); setMotion(m); return m; } catch { return null; }
+  }, [motion, jointTree, jointWaypoints, poseStore]);
+  const playMotion = useCallback(() => {
+    const m = frozenMotion(); if (!m || !(m.duration > 0)) return;
+    if (motionTime.get() >= m.duration) motionTime.set(0);
+    setJointPlaying(null); setMotionPlaying(true);
+  }, [frozenMotion, motionTime]);
+  const scrubMotion = useCallback((t: number) => {
+    const m = frozenMotion(); if (!m) return;
+    setMotionPlaying(false); setJointPlaying(null);
+    const at = Math.min(m.duration, Math.max(0, t)); motionTime.set(at); setJointValues(motionPose(m, at));
+  }, [frozenMotion, motionTime, setJointValues]);
+  useEffect(() => {
+    if (!motionPlaying || !motion) return;
+    const T = motion.duration;
+    let last = performance.now();
+    let frame = requestAnimationFrame(function step(now) {
+      let t = motionTime.get() + (now - last) / 1000 * motionSpeed, more = true; last = now;
+      if (t >= T) { if (motionLoop && T > 0) t %= T; else { t = T; more = false; setMotionPlaying(false); } }
+      motionTime.set(t); setJointValues(motionPose(motion, t));
+      if (more) frame = requestAnimationFrame(step);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [motionPlaying, motion, motionLoop, motionSpeed, motionTime, setJointValues]);
+  return { poseStore, jointValues, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
+    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion,
+    motionContact, setMotionContact, contactShown };
 }
 
 /** The pose's forward kinematics, as the App's was (null at home): for the subscribers that follow the pose each frame. */

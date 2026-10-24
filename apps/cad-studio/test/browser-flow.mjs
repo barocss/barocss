@@ -8288,6 +8288,74 @@ try {
     assert.equal(JSON.stringify(await doc()), before, 'the part is unchanged');
     await page.click('.toast [aria-label="Dismiss"]');
   });
+
+  // ---- RS2 (owner 2026-10-24, "관절 움직임"): the motion through the waypoints played in the Joints card ----------------
+  await check('RS2: a motion played — the 6R arm\'s TCP at 0, T/2 and T; pause, 2×, loop; the 2R arm into the post marked from the time of impact — either renderer', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-arm-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => (window.__studioFrameTriads?.() ?? []).length === 1, null, { timeout: 30000 }); await idle();
+    const slide = (label, v) => page.evaluate(([l, x]) => { const el = document.querySelector(`[aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]);
+    const tcp = () => page.evaluate(() => window.__studioFrameTriads().find(f => f.name === 'tcp').o);
+    const clock = async () => { const m = /^t ([\d.]+) \/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText()); return m && { t: +m[1], T: +m[2] }; };
+    const near = (a, b, tol) => a.every((v, k) => Math.abs(v - b[k]) < tol), dist = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));
+    await slide('Joint l5~l6 value', Math.PI / 2);
+    await page.waitForFunction(() => Math.abs(window.__studioFrameTriads().find(x => x.name === 'tcp').o[0] - 63) < 0.05, null, { timeout: 10000 });
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+    const { T } = await clock();
+    assert.ok(T > 0.5 && T < 10, `the motion's length ${T} s`);
+    // (Played to its end: the pose shown, the TCP at G13's quarter-turn point.)
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(() => document.querySelector('[aria-label="Motion"] [aria-label="Play motion"]') && /^t ([\d.]+) \/ \1 s$/.test(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''), null, { timeout: 20000 });
+    assert.ok(near(await tcp(), [63, 105, 330], 0.05), `at T the TCP is G13's quarter-turn point: ${JSON.stringify(await tcp())}`);
+    // (Scrubbed: at 0 home, G13's zero-pose point; at T/2 halfway round l6 — a symmetric trapezoid's middle — as far from both.)
+    await slide('Motion time', 0); await page.waitForTimeout(200);
+    assert.ok(near(await tcp(), [45, 97, 330], 0.05), `at 0 the TCP is G13's zero-pose point: ${JSON.stringify(await tcp())}`);
+    await slide('Motion time', T / 2); await page.waitForTimeout(200);
+    const mid = await tcp();
+    assert.ok(Math.abs(dist(mid, [45, 97, 330]) - dist(mid, [63, 105, 330])) < 0.05 && dist(mid, [45, 97, 330]) > 1, `at T/2 the TCP halfway round: ${JSON.stringify(mid)}`);
+    assert.ok(Math.abs(mid[2] - 330) < 0.05, 'turning about l6 keeps its height');
+    await snap('rs2-motion-mid');
+    // (Paused, it holds; at 2× the motion's time runs twice the wall clock's.)
+    await slide('Motion time', 0); await page.selectOption('[aria-label="Motion speed"]', '2');
+    const rate = async () => { const a = await clock(), w0 = await page.evaluate(() => performance.now()); await page.waitForTimeout(250); const b = await clock(), w1 = await page.evaluate(() => performance.now()); return (b.t - a.t) / ((w1 - w0) / 1000); };
+    await page.click('[aria-label="Play motion"]'); await page.waitForTimeout(100);
+    const fast = await rate();
+    await page.click('[aria-label="Pause motion"]');
+    const held = (await clock()).t; await page.waitForTimeout(300);
+    assert.equal((await clock()).t, held, 'paused, the time holds');
+    assert.ok(fast > 1.4 && fast < 2.6, `at 2× the motion runs about twice as fast: ${fast.toFixed(2)}`);
+    // (Looped, past T it wraps to the start.)
+    await page.check('[aria-label="Loop motion"]'); await slide('Motion time', T * 0.9); await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(T => { const m = /^t ([\d.]+)/.exec(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''); return m && +m[1] < T * 0.5; }, T, { timeout: 10000 });
+    await page.click('[aria-label="Pause motion"]'); await page.uncheck('[aria-label="Loop motion"]');
+    await page.click('[aria-label="Joints home"]');
+    // (The 2R arm swung into the post, RM6's case: the two links marked from the time of impact on, not before.)
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/sweep-post/case.json'), 'utf8')), post = join(out, 'rs2-sweep-post.bcad');
+    fs.writeFileSync(post, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', post);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint base~a value"]', { timeout: 20000 });
+    await slide('Joint base~a value', 2);
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+    const reds = async () => { const px = await page.evaluate(() => window.__studioFrame(160)); let n = 0; for (let i = 0; i < px.length; i += 3) if (px[i] > 170 && px[i + 1] < 120 && px[i + 2] < 120) n++; return n; };
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForSelector('[aria-label="Motion contact"]', { timeout: 20000 });
+    assert.match(await page.locator('[aria-label="Motion contact"]').innerText(), /^Contact .*post.* at t \d+\.\d{2} s$/);
+    const toi = +/at t ([\d.]+) s/.exec(await page.locator('[aria-label="Motion contact"]').innerText())[1];
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Pause motion"]'), null, { timeout: 20000 });
+    await page.waitForTimeout(300);
+    assert.equal((await page.evaluate(() => window.__studioContactLinks())).length, 2, 'two links marked after the time of impact');
+    const after = await reds(); await snap('rs2-contact');
+    await slide('Motion time', toi * 0.5); await page.waitForTimeout(400);
+    assert.equal(await page.locator('[aria-label="Motion contact"]').count(), 0, 'before the time of impact, no contact said');
+    assert.deepEqual(await page.evaluate(() => window.__studioContactLinks()), [], 'nor marked');
+    const before = await reds();
+    assert.ok(after > before + 20, `the links marked in the error colour after the time of impact: ${after} red samples, ${before} before`);
+    await page.click('[aria-label="Joints home"]');
+  });
 } finally {
   await browser.close(); await server.close();
 }

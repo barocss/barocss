@@ -21,6 +21,10 @@ const DEG = 180 / Math.PI;
 const fmtTorque = (v: number) => (Math.abs(v) < 1e-12 ? '0' : Number(v.toPrecision(4)).toString());
 const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0' : t; };
 const fix3 = (v: number) => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; };
+/** The motion played (RS2): the time shown and the motion's length (s), play state, loop, speed, and a contact reached. */
+export interface MotionReadout { t: number; duration: number; playing: boolean; loop: boolean; speed: number; contact: string | null }
+export interface MotionControls { onPlay(): void; onPause(): void; onTime(t: number): void; onLoop(on: boolean): void; onSpeed(speed: number): void }
+const SPEEDS = [0.25, 0.5, 1, 2];
 /** A frame as the card reads it out (O12). */
 export interface FrameReadout { name: string; link: string; kind?: 'tool' | 'sensor'; o: readonly number[]; z: readonly number[] }
 
@@ -29,7 +33,7 @@ export interface FrameReadout { name: string; link: string; kind?: 'tool' | 'sen
  * and (RM2) a slider a moving joint to pose it — degrees for a turn, mm for a slide — Home, and one joint played back
  * and forth. A follower moves with its leader (no slider of its own). The pose is a preview: nothing is saved.
  */
-export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, frames, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd }: {
+export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, playing, onPlay, gears, frames, links, onExportUrdf, onExportMjcf, onCheckPath, path, ready = true, holding, waypoints = 0, onAddWaypoint, onClearWaypoints, onWorkspace, workspace, onWorkspaceDownload, onWorkspaceHide, onExportSdf, onExportUsd, motion, motionControls }: {
   tree: JointTree; instances: PartInstance[]; onBase(base: string): void;
   values: Record<string, number>; onValue(key: string, v: number): void; onHome(): void; playing: string | null; onPlay(key: string | null): void; gears: GearLine[];
   /** Each link's mass properties (RM3), in its link frame. */
@@ -53,6 +57,8 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   holding?: Record<string, number>;
   /** The tool and sensor frames (O12) at the pose shown: each one's origin (mm) and its Z axis, in the assembly's coordinates. */
   frames?: FrameReadout[];
+  /** The motion through the waypoints (RS2), when there is one to play, and its controls. */
+  motion?: MotionReadout | null; motionControls?: MotionControls;
 }) {
   const [wsN, setWsN] = useState(20000), [wsH, setWsH] = useState(10), [wsFree, setWsFree] = useState(false), [massesOpen, setMassesOpen] = useState(false);
   const massLinks = links?.filter(l => l.part !== null) ?? [];
@@ -87,6 +93,19 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         <div className="truncate">{f.name} <span className="muted">{f.kind ?? 'frame'} · {name(f.link)}</span></div>
         <b className="mono flex flex-wrap justify-end gap-x-1 [&>span]:whitespace-nowrap"><span>({f.o.map(mm1).join(', ')})</span>{' '}<span>· Z ({f.z.map(v => fix3(v)).join(', ')})</span></b></div>)}
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
+      {/* (RS2: the motion from home through the waypoints to the pose shown, played over time; a preview, nothing saved.) */}
+      {motion && motionControls && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px]" aria-label="Motion">
+        <Button variant="ghost" aria-label={motion.playing ? 'Pause motion' : 'Play motion'} disabled={!ready || !(motion.duration > 0)}
+          title="Play the motion: from home through the waypoints to the pose shown, each move within the joints' velocity limits" onClick={motion.playing ? motionControls.onPause : motionControls.onPlay}>{motion.playing ? '⏸' : '▶'}</Button>
+        <input type="range" aria-label="Motion time" min={0} max={motion.duration || 1} step="any" value={Math.min(motion.t, motion.duration)} disabled={!(motion.duration > 0)}
+          style={{ flex: 1, minWidth: 80 }} onChange={e => motionControls.onTime(Number(e.target.value))} />
+        <span className="muted" aria-label="Motion time readout" style={{ minWidth: 92, textAlign: 'right' }}>t {motion.t.toFixed(2)} / {motion.duration.toFixed(2)} s</span>
+        <label className="inline-flex items-center gap-1"><input type="checkbox" className={TICK} aria-label="Loop motion" checked={motion.loop} onChange={e => motionControls.onLoop(e.target.checked)} /> loop</label>
+        <NativeSelect className={CONTROL} aria-label="Motion speed" value={String(motion.speed)} onChange={e => motionControls.onSpeed(Number(e.target.value))} style={{ width: 64 }}>
+          {SPEEDS.map(v => <option key={v} value={String(v)}>{v}×</option>)}
+        </NativeSelect>
+        {motion.contact && <div className="hud-error basis-full" role="status" aria-label="Motion contact">{motion.contact}</div>}
+      </div>}
       {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
       {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px] [&>label]:inline-flex [&>label]:items-center [&>label]:gap-1 [&>label]:whitespace-nowrap" aria-label="Workspace">
         <label>N <Input type="number" aria-label="Workspace samples" min={100} max={200000} step={1000} value={wsN} onChange={e => setWsN(Number(e.target.value))} style={{ width: 70 }} /></label>

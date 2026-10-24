@@ -5,6 +5,7 @@
 // selection changes only rewrite small state buffers.
 import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, PALETTE, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { BASE } from '@barocss/cad-model/assembly/mates';
 import type { ProposalOverlay } from '../engine/client';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
@@ -175,6 +176,8 @@ export interface ViewRenderer {
   pickDirect?(x: number, y: number, camera: OrbitCamera): string | null;
   /** Placed instances of other parts, and the one under a point. */
   setInstances?(items: InstanceItem[], selected: readonly string[]): void;
+  /** RS2: the links in contact as a motion plays (instance ids; BASE, the part's own bodies), marked in the error colour. */
+  setContactLinks?(links: readonly string[]): void;
   /** Instances shown moved by a matrix each (column-major 4 × 4; posed, exploded), the rest as placed (G1). */
   setInstanceTransforms?(transforms: ReadonlyMap<string, Float64Array> | null): void;
   /** The section's clip plane (WebGPU only, G2): the placed parts cut and capped, the part's bodies too when `bodies`. */
@@ -239,7 +242,7 @@ void main(){ vVN=mat3(uView)*(uNormal*aNor); vState=aState; vFace=aFace; gl_Posi
 const MESH_FS = `#version 300 es
 precision highp float;
 in vec3 vVN; in float vState; flat in float vFace;
-uniform vec3 uBase; uniform float uAmb; uniform float uBodySel; uniform float uGhost; uniform float uOpacity;
+uniform vec3 uBase; uniform float uAmb; uniform float uBodySel; uniform float uContact; uniform float uGhost; uniform float uOpacity;
 out vec4 o;
 void main(){
   vec3 n=normalize(vVN); if(!gl_FrontFacing) n=-n;
@@ -251,6 +254,7 @@ void main(){
   vec3 c=uBase*(uAmb+0.26*hemi+0.58*k+0.10*f)+vec3(0.08)*rim+vec3(0.10)*spec;
   vec3 accent=vec3(0.910,0.761,0.353);
   c=mix(c, accent, max(uBodySel*0.22, step(1.5,vState)*0.42));
+  c=mix(c, vec3(0.92,0.27,0.24), uContact*0.55);
   c=mix(c, accent, step(0.5,vState)*(1.0-step(1.5,vState))*0.20);
   o=vec4(c, uOpacity*(1.0-uGhost*0.65));
 }`;
@@ -387,6 +391,8 @@ export class Renderer implements ViewRenderer {
   /** The last instances set, to make them again when shareCopies changes. */
   private lastInstances: { items: InstanceItem[]; selected: readonly string[] } | null = null;
   private instanceSelection: readonly string[] = [];
+  /** RS2: the links in contact as a motion plays (instance ids; BASE, the part's own bodies), tinted the error colour. */
+  private contactLinks: ReadonlySet<string> = new Set();
   private silhouettes = new WeakMap<GpuBody, { key: string; line: Plain | null }>();
   private fadedInstance(id: string): boolean { const ids = this.view?.isolatedInstances; return !!ids?.length && !ids.includes(id); }
   private instanceFaces: readonly { id: string; body: number; face: number }[] = [];
@@ -630,6 +636,7 @@ export class Renderer implements ViewRenderer {
     if (this.view) this.resolveDisplayMode(this.view);
   }
   setInstanceTransforms(transforms: ReadonlyMap<string, Float64Array> | null): void { this.instanceTransforms = transforms; this.serial++; }
+  setContactLinks(links: readonly string[]): void { this.contactLinks = new Set(links); this.serial++; }
   setInstancePreview(preview: { id: string; matrix: Float64Array } | null): void { this.instancePreview = preview; this.serial++; }
   setInstanceFaces(faces: readonly { id: string; body: number; face: number }[]): void { this.instanceFaces = faces; this.paintInstanceFaces(); }
 
@@ -860,6 +867,7 @@ export class Renderer implements ViewRenderer {
         gl.depthMask(view.isolatedInstances?.length ? false : lineOnly || !ghost);
         this.place(this.mesh, view, bi);
         gl.uniform1f(this.u(this.mesh, 'uBodySel'), view.selectedBodies.includes(bi) ? 1 : view.hoverBody === bi ? 0.55 : 0);
+        gl.uniform1f(this.u(this.mesh, 'uContact'), this.contactLinks.has(BASE) ? 1 : 0);
         gl.uniform1f(this.u(this.mesh, 'uGhost'), view.ghostBodies.has(bi) ? 1 : 0);
         gl.uniform1f(this.u(this.mesh, 'uOpacity'), (mode === 'x-ray' ? XRAY_OPACITY : 1) * (view.isolatedInstances?.length ? FADED : 1));
         gl.uniform3fv(this.u(this.mesh, 'uBase'), view.bodyColors?.get(bi) ?? t.base);
@@ -867,7 +875,7 @@ export class Renderer implements ViewRenderer {
         if (T) T.add(this.costOf(b, b.result.key), pass === 1 || mode === 'x-ray' ? 'transparent' : 'surface', b.count / 3, 0, 0);
       }
       if (pass === 0 && this.direct.length) {
-        this.unplaced(this.mesh); gl.uniform1f(this.u(this.mesh, 'uBodySel'), 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0);
+        this.unplaced(this.mesh); gl.uniform1f(this.u(this.mesh, 'uBodySel'), 0); gl.uniform1f(this.u(this.mesh, 'uContact'), 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0);
         for (const d of this.direct) {
           if (!d.tri) continue;
           gl.uniform3fv(this.u(this.mesh, 'uBase'), d.on ? DIRECT_LOOK.surfaceOn : DIRECT_LOOK.surface);
@@ -885,6 +893,7 @@ export class Renderer implements ViewRenderer {
           if (this.fadedInstance(it.item.id) !== (pass === 1)) continue;
           this.placeInstance(this.mesh, it, bi);
           gl.uniform1f(this.u(this.mesh, 'uBodySel'), this.instanceSelection.includes(it.item.id) ? 1 : 0);
+          gl.uniform1f(this.u(this.mesh, 'uContact'), this.contactLinks.has(it.item.id) ? 1 : 0);
           gl.bindVertexArray(gpu.vao); gl.drawElements(gl.TRIANGLES, gpu.count, gl.UNSIGNED_INT, 0);
           if (T) T.add(this.costOf(it.bodies[bi], gpu.result.key, it.item.id), pass === 1 || mode === 'x-ray' ? 'transparent' : 'surface', gpu.count / 3, 0, 0);
         }
@@ -894,7 +903,7 @@ export class Renderer implements ViewRenderer {
     if (this.proposal.length) {
       // (In front of the faces they lie on: pulled toward the eye past the bodies' own offset.)
       gl.depthMask(false); gl.polygonOffset(-1, -1);
-      this.unplaced(this.mesh); gl.uniform1f(this.u(this.mesh, 'uBodySel'), 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0); gl.uniform1f(this.u(this.mesh, 'uOpacity'), 0.5);
+      this.unplaced(this.mesh); gl.uniform1f(this.u(this.mesh, 'uBodySel'), 0); gl.uniform1f(this.u(this.mesh, 'uContact'), 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0); gl.uniform1f(this.u(this.mesh, 'uOpacity'), 0.5);
       for (const p of this.proposal) { gl.uniform3fv(this.u(this.mesh, 'uBase'), p.color); gl.bindVertexArray(p.tri.vao); gl.drawElements(gl.TRIANGLES, p.tri.count, gl.UNSIGNED_INT, 0); if (T) T.add(null, 'transparent', p.tri.count / 3, 0, 0); }
     }
     gl.depthMask(true); gl.disable(gl.POLYGON_OFFSET_FILL);
