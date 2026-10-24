@@ -1,4 +1,5 @@
 // Public projections of internal SI calculations. Convert before applying the established reply precision.
+import { r6 } from '../util/round';
 import { refusal } from '../engine/refusal';
 import type { Sized } from './sizer';
 import type { LinkInertia, V3 } from './inertia';
@@ -129,4 +130,16 @@ export function harnessJson(tree: JointTree, report: HarnessReport): PublicHarne
 /** The public sized result uses the same duty, tree and harness boundaries; trace text keeps its explicit original units. */
 export function sizedJson(sized: Sized) {
   return { ...sized, tree: jointTreeOut(sized.tree), duty: dutyJson(sized.tree, sized.duty), report: harnessJson(sized.tree, sized.report) };
+}
+
+
+export interface PublicPathClearance { value: number; fraction: number; links: [string, string] }
+export interface PublicTimedClearance { value: number; time: number; links: [string, string] }
+/** The path coordinate is dimensionless; it is not elapsed time. */
+export function pathClearanceJson(c: { mm: number; s: number; links: readonly [string, string] } | null | undefined): PublicPathClearance | null {
+  return c ? { value: r6(c.mm), fraction: r6(c.s), links: [c.links[0], c.links[1]] } : null;
+}
+/** Timed motion clearance uses seconds, preserving the core's original six-decimal reply precision. */
+export function timedClearanceJson(c: { mm: number; t: number; links: readonly [string, string] } | null | undefined): PublicTimedClearance | null {
+  return c ? { value: r6(c.mm), time: r6(c.t), links: [c.links[0], c.links[1]] } : null;
 }
