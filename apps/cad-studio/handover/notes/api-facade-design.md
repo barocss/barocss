@@ -761,7 +761,7 @@ functions, its results byte-equal to what the agent's robot tools return. It fee
 
 **The oracle:**
 - For each verb, the reply is byte-equal to `runRobotTool`'s content (through `dispatchTool`) on the same document.
-  The documents are RS1's sample robots once they land; until then, the arm-6r fixture under conformance/rm.
+  The documents are RS1's sample robots once they land; until then, the arm-6r fixture (packages/barocss-cad/conformance/rm/arm-6r).
 - SDF and USD equal the core export on the same tree, parts and closures.
 - `path(…).check()` equals one sweep_path call per segment.
 
