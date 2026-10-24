@@ -239,7 +239,13 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
   const start = arcAt(k, 0);
   if (s.kind === 'plane') {
     const c2 = to2(f, k.c), a = to2(f, start), turn = dot(k.n, s.n);
-    if (Math.abs(Math.abs(turn) - 1) > 1e-9) throw new BrepError('GEOMETRY', 'analytic Boolean: an arc does not lie in its plane');
+    // (A short arc tilted off its face's plane, its points within the stitch's merge radius of it — rebuilt through end
+    // vertices the stitch moved — maps into the plane as a curve, as one on a cylinder's wall does (D202). One farther
+    // off is refused. L4 fuzz 20261024 #112, D262.)
+    if (Math.abs(Math.abs(turn) - 1) > 1e-9) {
+      if (!arcNearPlane(k, s, 20 * tol)) throw new BrepError('GEOMETRY', 'analytic Boolean: an arc does not lie in its plane');
+      const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: memo(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2;
+    }
     return { kind: 'arc', c: c2, r: k.r, t0: Math.atan2(a[1] - c2[1], a[0] - c2[0]), sweep: k.sweep * Math.sign(turn), ...t };
   }
   const along = dot(k.n, s.a);
@@ -249,6 +255,11 @@ function curve2(f: { surf: Surf }, k: Curve3, tol: number, tag?: string): CurveS
   if (Math.abs(Math.abs(along) - 1) > 1e-9) { const at = (x: number) => arcAt(k, x); return { kind: 'curve', f: memo(x => to2(f, at(x))), t0: 0, t1: k.sweep, src: at, ...t } as CurveSegment2; }
   const a = to2(f, start);
   return { kind: 'line', a, b: [a[0] + s.s * s.r * k.sweep * Math.sign(along), a[1]], ...t };
+}
+/** Whether an arc's points (17 along it) all lie within `reach` of a plane. */
+function arcNearPlane(k: Extract<Curve3, { kind: 'arc' }>, P: Plane, reach: number): boolean {
+  for (let i = 0; i <= 16; i++) if (Math.abs(dot(sub(arcAt(k, k.sweep * i / 16), P.o), P.n)) > reach) return false;
+  return true;
 }
 /**
  * A curve's map into a general patch's domain, tabulated once at 129 exact projections with exact

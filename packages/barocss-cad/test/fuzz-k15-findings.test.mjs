@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { checkBrep, evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { assertValidBrep, checkBrep, evaluateCadPart, tessellateBrep } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 import { intersectSegments } from '../dist/brep/curved-arrangement.js';
@@ -30,15 +30,27 @@ test('checker: a face wrapping most of its full-turn surface, its gap beside the
   // points away from the gap, came out against it.)
   const piece = { op: 'difference', a: leaf('cyl', { r: 2.5, h: 6.5 }, [['x', 222.022], ['y', 71.768]], [2, -1.5, -1.5]), b: leaf('box', { w: 3.5, d: 6.5, h: 3.5 }, [], [0.5, -2, 0]) };
   const o = check('(a tilted cylinder less a box) in a linear pattern of 3, then of 2', { pattern: { kind: 'linear', axis: 'y', spacing: 8.505, count: 2 }, child: { pattern: { kind: 'linear', axis: 'y', spacing: 3.859, count: 3 }, child: piece } }, 'quadrature');
-  // A loop that does run the wrong way is still found: each face turned over is refused, apart from the wrapping one,
-  // whose vector area agrees with its normal at the domain's middle only when it is wrong (open: D257).
+  // A loop that does run the wrong way is still found: each face turned over is refused, the wrapping one too, whose
+  // vector area agrees with its normal at the domain's middle only when it is wrong (D263).
   const passed = [];
   for (const f of o.brep.faces) {
     const flipped = { ...o.brep, faces: o.brep.faces.map(g => g === f ? { ...g, sense: g.sense === 'forward' ? 'reversed' : 'forward' } : g) };
     if (!checkBrep(flipped).issues.some(i => i.startsWith(`orientation: face ${f.id} `))) passed.push(f.id);
   }
   assert.equal(o.brep.faces.length, 37);
-  assert.deepEqual(passed, ['n0_body0/s0/f23']);
+  assert.deepEqual(passed, []);
+});
+
+test('checker: a face wrapping most of its full-turn surface, turned over, is refused, typed (L4 fuzz 20261025 #62, D263)', () => {
+  // (Its vector area points away from its gap, and the normal at the domain's middle lies 68° from the gap: turned over,
+  // the two agreed, and the wrong face passed. On a surface that closes on itself without a pole the loop's winding in the
+  // face's domain decides either way.)
+  const piece = { op: 'difference', a: leaf('cyl', { r: 2.5, h: 6.5 }, [['x', 222.022], ['y', 71.768]], [2, -1.5, -1.5]), b: leaf('box', { w: 3.5, d: 6.5, h: 3.5 }, [], [0.5, -2, 0]) };
+  const { document, root } = documentOf({ pattern: { kind: 'linear', axis: 'y', spacing: 8.505, count: 2 }, child: { pattern: { kind: 'linear', axis: 'y', spacing: 3.859, count: 3 }, child: piece } });
+  const brep = evaluateCadPart(document).outputs.find(x => x.id === root).brep, id = 'n0_body0/s0/f23';
+  assert.equal(checkBrep(brep).valid, true);
+  const turned = { ...brep, faces: brep.faces.map(g => g.id === id ? { ...g, sense: g.sense === 'forward' ? 'reversed' : 'forward' } : g) };
+  assert.throws(() => assertValidBrep(turned), e => e.name === 'BrepError' && e.code === 'TOPOLOGY' && e.message.includes(`orientation: face ${id} sense disagrees with its outer loop`));
 });
 
 test('analytic Boolean: a cut running along a face\'s edge for most of its length keeps its part across the face (L4 fuzz 20261026 #184, D258)', () => {
@@ -62,4 +74,20 @@ test('curves: a crossing just inside a curve\'s end, where the chords meet past 
     assert.ok(Math.hypot(found[0][0] - x[0], found[0][1] - x[1]) <= 1e-6, `crossing at ${at}`);
     assert.equal(intersectSegments(line, circle, 1e-6).length, 1, `crossing at ${at}, the other way round`);
   }
+});
+
+test('curves: a traced cut\'s loose end a traced curve\'s tolerance from an exact segment ends on it (L4 fuzz 20261025 #170, D261)', () => {
+  // (Two balls r 4, the second turned 90° about a pivot, meet in a circle traced in the plane x = y. On the first ball it
+  // ended 10.1 tolerances short of the ball's exact seam, past the 10 a traced end was allowed, so the ball's face was not
+  // divided: a slit, an edge used three times. As fuzzed the same tree.)
+  const inner = { pattern: { kind: 'circular', axis: 'z', deg: 90, count: 2, pivot: [-3, -1, 0] }, child: { op: 'union', a: leaf('sphere', { r: 4 }, [['z', 90]], [-3, -1, 0]), b: leaf('rbox', { w: 6, d: 6, h: 2, r: 1 }, [], [-1, -2, 0]) } };
+  check('(a ball ∪ a rounded box) in two circular patterns of 90°', { pattern: { kind: 'circular', axis: 'z', deg: 90, count: 2, pivot: [-1, -1, 0] }, child: inner }, 'quadrature');
+});
+
+test('analytic Boolean: a short arc a few tolerances off its face\'s plane maps into it as a curve (L4 fuzz 20261024 #112, D262)', () => {
+  // (The ball's equator arc on the plane z = 3, 0.35 mm long, came back from the inner Boolean tilted 1e-4 rad: rebuilt
+  // through end vertices the stitch had merged, it lay up to 2.6e-6 off the plane, and was refused as not lying in it.)
+  const tree = { op: 'difference', a: leaf('rbox', { w: 8, d: 3, h: 3, r: 0.5 }, [], [-1, 3, 1]),
+    b: { op: 'difference', a: leaf('cyl', { r: 4, h: 3 }, [], [2, -1, 0]), b: { op: 'difference', a: leaf('sphere', { r: 2 }, [], [-1, 0, 3]), b: leaf('cyl', { r: 2, h: 6 }, [], [-2, 3, 3]) } } };
+  check('a rounded box less (a cylinder less (a ball less a cylinder))', tree, 'quadrature');
 });

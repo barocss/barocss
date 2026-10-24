@@ -1,0 +1,251 @@
+{
+  "id": "fuzz-20261025-170",
+  "about": "L4 fuzz robust refusal (seed 20261025, case 170) as fuzzed, shrunk again: (a ball ∪ a rounded box) in two circular patterns of 90°. The balls' traced circle in the plane x = y ended 10.1 tolerances short of a ball's exact seam and left its face undivided before D261. Now one body.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                -4
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                4
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "cw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n3b",
+          "kind": "revolve",
+          "sketch": "n3s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angleDegrees": 360
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "z",
+          "angleDegrees": 90,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r0",
+          "offset": [
+            -3,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            0,
+            0
+          ],
+          "max": [
+            6,
+            6
+          ]
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 2
+        },
+        {
+          "id": "n4f",
+          "kind": "fillet",
+          "target": "n4b",
+          "edges": [
+            "n4b.side0|n4b.side1",
+            "n4b.side1|n4b.side2",
+            "n4b.side2|n4b.side3",
+            "n4b.side0|n4b.side3"
+          ],
+          "radius": 1
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4f",
+          "offset": [
+            -1,
+            -2,
+            0
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "union",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n1",
+          "kind": "circular-pattern",
+          "target": "n2",
+          "axis": "z",
+          "angleDegrees": 90,
+          "count": 2,
+          "pivot": [
+            -3,
+            -1,
+            0
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "circular-pattern",
+          "target": "n1",
+          "axis": "z",
+          "angleDegrees": 90,
+          "count": 2,
+          "pivot": [
+            -1,
+            -1,
+            0
+          ]
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 575.3288023529423,
+          "relTol": 0.00020625476727256732,
+          "absTol": 0.11866430823451099
+        },
+        "centroidMM": {
+          "value": [
+            -2.320592171736338,
+            -1.2722234332904638,
+            0.30254107358549864
+          ],
+          "absTol": 0.0015194799394155805
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 5.93e-2 mm³, centroid e 7.60e-4 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 170,
+    "status": "REFUSED",
+    "tree": {
+      "pattern": {
+        "kind": "circular",
+        "axis": "z",
+        "deg": 90,
+        "count": 2,
+        "pivot": [
+          -1,
+          -1,
+          0
+        ]
+      },
+      "child": {
+        "pattern": {
+          "kind": "circular",
+          "axis": "z",
+          "deg": 90,
+          "count": 2,
+          "pivot": [
+            -3,
+            -1,
+            0
+          ]
+        },
+        "child": {
+          "op": "union",
+          "a": {
+            "leaf": {
+              "kind": "sphere",
+              "r": 4,
+              "rot": [
+                {
+                  "axis": "z",
+                  "deg": 90
+                }
+              ],
+              "move": [
+                -3,
+                -1,
+                0
+              ]
+            }
+          },
+          "b": {
+            "leaf": {
+              "kind": "rbox",
+              "w": 6,
+              "d": 6,
+              "h": 2,
+              "r": 1,
+              "rot": [],
+              "move": [
+                -1,
+                -2,
+                0
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

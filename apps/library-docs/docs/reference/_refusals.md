@@ -41,7 +41,7 @@
 | `[OBSTRUCTED_ABOVE]` | `part` | material … mm above … over the hole at (…, …): a blind hole from that face would cut it |
 | `[OFFSET_FOLDS]` | `blend`, `mesh` | face … curves more tightly than the wall at (…, …): its radius there … mm, the wall … mm — the offset turns over |
 | `[OPENING_AT_A_VERTEX]` | `blend` | the … … times round the vertex at (…): the wall's ends would touch there; … |
-| `[RADIUS_EXCEEDS_FACE]` | `part` | edge …: chamfer … mm is too large for walls of … and … mm |
+| `[RADIUS_EXCEEDS_FACE]` | `part` | edge …: … … mm is too large for walls of … and … mm |
 | `[RELIEF_REQUIRED]` | `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
 | `[SECTION_DIMENSIONS]` | `frame-sheet` | … |
 | `[SECTION_TABLE]` | `part` | … |

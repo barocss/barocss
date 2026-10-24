@@ -3509,7 +3509,7 @@ function cornerFinish(solid: PrismaticSolid, corners: { x: number; y: number; z0
         const cross = u[0] * v[1] - u[1] * v[0], dot = u[0] * v[0] + u[1] * v[1];
         if (Math.abs(cross) < 1e-9) fail('SELECTION', `edge ${c.name} joins two walls in line; there is no corner to finish`);
         const turn = Math.atan2(cross, dot), back = kind === 'chamfer' ? size : size * Math.tan(Math.abs(turn) / 2);
-        if (back >= L1 - tol || back >= L2 - tol) fail('PARAMETER', `edge ${c.name}: ${kind} ${size} mm is too large for walls of ${+L1.toFixed(6)} and ${+L2.toFixed(6)} mm`);
+        if (back >= L1 - tol || back >= L2 - tol) fail('PARAMETER', `[RADIUS_EXCEEDS_FACE] edge ${c.name}: ${kind} ${size} mm is too large for walls of ${+L1.toFixed(6)} and ${+L2.toFixed(6)} mm`);
         const p = l1.b, A: XY = [p[0] - u[0] * back, p[1] - u[1] * back], B: XY = [p[0] + v[0] * back, p[1] + v[1] * back];
         let corner: CurveSegment2;
         if (kind === 'chamfer') corner = { kind: 'line', a: A, b: B, tag: `${at}.face` };

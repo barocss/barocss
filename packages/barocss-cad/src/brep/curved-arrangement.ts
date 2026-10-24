@@ -365,11 +365,14 @@ export function curveTolerance(rings: readonly (readonly CurveSegment2[])[]): nu
   return linearToleranceMM(scale);
 }
 
+/** Whether a segment is a traced curve's (a general curve not marked exact). */
+const traced = (x: CurveSegment2) => x.kind === 'curve' && !(x as { exact?: boolean }).exact;
 /**
  * A cut's end that meets nothing (one edge there) ends at the nearest vertex within 10 tolerances, or else at the nearest
  * point within 10 tolerances of another segment, which is split there; not a stub within 10 tolerances of its own edge's
  * other end, nor onto a vertex at that other end, nor, for a cut within 100 tolerances, onto a segment there (D251). Two
- * loose ends join within 100 tolerances, and an exact cut's loose end a traced curve's segment within 100 (D255). Two cuts meeting where three surfaces meet are
+ * loose ends join within 100 tolerances, an exact cut's loose end a traced curve's segment within 100 (D255), and a traced
+ * cut's end an exact segment within 20 (D261). Two cuts meeting where three surfaces meet are
  * each clipped against a different face's map of the same edge, and their ends, or an end and that edge, can land a few
  * tolerances apart: the face was then not divided. 10 tolerances is half the stitch's vertex merge radius, so no feature
  * the stitch keeps is joined away. (L4 fuzz 74, D237.)
@@ -405,12 +408,14 @@ function joinLooseEnds(points: readonly XY[], edges: Edge[], eps: number): void 
     const short = Math.hypot(points[other][0] - p[0], points[other][1] - p[1]) <= 100 * eps;
     // (An exact cut's loose end onto a traced curve's segment within 100 tolerances, the traced curve's own tolerance: a
     // ball's arc ending where a cylinder's traced trim lies 1e-4 off it left the ball's face undivided. L4 fuzz 20261025
-    // #148, D255. A traced cut's end keeps 10: joined so, a short traced cut 43 tolerances from a trim made an edge used
-    // three times, 20261024 #55.)
-    const exactEnd = edges[e].seg.kind !== 'curve' || !!(edges[e].seg as { exact?: boolean }).exact;
+    // #148, D255. A traced cut's end onto an exact segment within 20, the stitch's vertex merge radius: two balls' traced
+    // circle ended 10.1 tolerances short of a ball's seam, 20261025 #170, D261; joined at 100, 20261026 #76's end (99.75
+    // off) left an edge 1.2e-5 off its face. Traced onto traced keeps 10: joined so, a short traced cut 43 tolerances from
+    // a traced trim made an edge used three times, 20261024 #55.)
+    const tracedEnd = traced(edges[e].seg);
     let split = -1, at = 0, sd = 10 * eps;
     for (let f = 0; f < edges.length; f++) {
-      const g = edges[f], reach = exactEnd && g.seg.kind === 'curve' && !(g.seg as { exact?: boolean }).exact ? 100 * eps : 10 * eps;
+      const g = edges[f], tracedSeg = traced(g.seg), reach = (tracedEnd ? (tracedSeg ? 10 : 20) : (tracedSeg ? 100 : 10)) * eps;
       if (f === e || g.u === v || g.v === v || (short && (g.u === other || g.v === other)) || surelyOff(g.seg, p, Math.max(sd, reach))) continue;
       const d = segDistance(g.seg, p); if (d > reach || (split >= 0 && d > sd)) continue;
       const u = paramOf(g.seg, p); if (u > 0 && u < 1) { sd = d; split = f; at = u; }

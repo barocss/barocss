@@ -13582,3 +13582,200 @@ Failing before (no crossing found).
 - Two earlier runs of this checkpoint were stopped, each on a regression these records describe (D258's cost, D259's
   first two versions); no other run counted.
 - No browser flow: nothing studio-visible changed.
+
+## D260 — K15: Boolean features unite their first tool part with itself; the fix is held back (finding, a decision) (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #49, robust (D249, D256). Shrunk: a cylinder ∪ (a cylinder ∪ a tilted cylinder).
+Refused as "not a manifold solid", six micro edges (3e-5 mm) up one ruling used 4 times. D256 put it down to a
+near-tangency of the tilted cylinder.
+
+**Cause (`part-model.ts`, the union / difference / intersect feature).** The tool's parts are joined as
+`tool.reduce((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid)`: the reduce starts from the first part and
+visits it again, so every such feature begins with tool[0] ∪ tool[0]. (The empty-operand branch beside it reduces over
+`slice(1)`.) It has been so since the B-rep part model (a306e499d).
+- In #49 the outer union's tool is the inner union, whose traced curve with the tilted cylinder runs up the upright
+  cylinder's ruling, fitted in edges halving toward that point, down to 3e-5 mm. That body builds and is valid.
+- United with itself, every piece is "same", and the stitch folded those micro edges into a spur: refused.
+- Boolean traces: three analytic Booleans for the tree (c ∪ c, b ∪ c, then (b ∪ c) ∪ (b ∪ c), which failed).
+
+**The fix, `tool.slice(1).reduce(…)`, measured but not landed:**
+- #49 builds, shrunk (+0.12 e at 256² × 6) and as fuzzed (−0.17 e), by quadrature; its test fails before.
+- **Which documents:** only the generic `union`, `difference` and `intersect` features (not patterns, holes, frames,
+  welds or the machine features). In the corpus, 197 of 462 documents have one (216 features): r10 27, r11 10, r12 8,
+  r12c 5, rb4-oracle 7, bp 1, r2 2, r6 2, the oracle corpus 94, fuzz 29, parts 11, mesh 1; and every fuzz case.
+- **Time saved** (those 197 documents, best of 3 each, one process, at 7e5f38c28 against + the fix, two passes):
+  Booleans 443 → 241; 66 971 / 66 230 ms → 53 473 / 56 209 ms (−15 to −20 %; the second pass beside a checkpoint run):
+  the oracle corpus 9 253 / 9 675 → 2 358 / 2 769, fuzz 5 544 / 5 583 → 3 151 / 3 542, bp 5 140 / 5 198 → 2 447 /
+  2 494; r10, r11 and parts within their spread. The four D240 scenes use none of these features: their totals stay within the
+  runs' spread (frames 10 875 / 11 048 against 11 144 / 11 252 ms, A9's p2 instances ±600 ms), digests identical.
+- **Why it is held back:** the self-union rebuilds the tool through the Boolean, and three suites rely on what it
+  rebuilds. With the fix (K15's checkpoint-3 run with D260, at 7e5f38c28 + D260–D264):
+  - `r12c-fits` (3 tests, 2 conformance cases): checkFit's ring less a Ø50 bore refuses FIT_TABLE_MISS "no row for H8
+    at Ø50 mm" though the row is "over 30 up to 50": the nominal size, from the bore face's radius, is evidently a few
+    ulps past 50 when the bore is the tool's own cylinder, exactly 50 after the self-union's rebuild;
+  - `r12-2` flat DXF: the writer's output for a case has 49 entities where the file has 52;
+  - `r10-b`: the general fillet whose one foot at r 2 "the Boolean still cannot close" builds, where its test pins the
+    refusal; whether the body is right needs the R10.1 section oracle.
+  Each needs its own look, and one is an expected value; so the fix is a step of its own, not K15's. The fingerprint
+  run with it changed broadly (the tool bodies every such feature sees).
+
+**Open (with or without the fix):** an explicit self-union of #49's inner body (`B ∪ B`, two features) is refused, an
+edge used 5 times: the analytic Boolean's degenerate case, every surface "same".
+
+## D261 — K15: a traced cut's loose end ends on an exact segment within the stitch's merge radius (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261025 #170 as fuzzed: its second cause, after D251 built its first shrink. Shrunk again:
+(a ball r 4 ∪ a rounded box) in two circular patterns of 90°. The inner pattern turns the ball about its own centre (the
+two copies coincide); the outer one turns it about (−1, −1, 0). Refused with an edge used 3 times.
+
+**Cause (`joinLooseEnds`, `src/brep/curved-arrangement.ts`).** The two balls meet in a circle in the plane x = y,
+traced. On the first ball's face it runs from the rounded box's bottom (z = 0) to the ball's exact seam, at
+(−1, −1, −3.4641), where the second ball's seam crosses it too.
+- In the face's domain the traced cut's end stopped 1.01e-5 short of the seam: 10.1 tolerances. D237 joins an end within
+  10; D255 joins an exact cut's end onto a traced segment within 100, not the converse.
+- The face was not divided: the cut stayed a slit, and the piece kept outside the second ball was the whole face.
+
+**Fix.** A traced cut's loose end onto an exact segment within 20 tolerances, the stitch's vertex merge radius (D237's
+10 is half of it). Traced onto traced keeps 10, where D255's first version broke 20261024 #55 (still valid); an exact
+end onto a traced segment keeps D255's 100.
+- A first version used 100, as D255 has it the other way round. The checkpoint run with it had a NEW INVALID, 20261026
+  #76 (snapped): its traced end joined at 99.75 tolerances, and the body came back with an edge 1.22e-5 mm off its face
+  (non-strict invalid), where it had been refused. At 20, #76 is refused as before; #170 joins at 10.05.
+
+**Results:** #170 as fuzzed and shrunk: one body, −0.3 e at 256² × 6, by quadrature. The fix does not need D260.
+**Open:** the shrunk tree's nudges are still refused, 0/4. They are another case: a nudge moves the ball off the inner
+pattern's pivot, so its two copies become balls 1e-3 mm apart instead of one ball twice.
+**Test:** "curves: a traced cut's loose end … from an exact segment ends on it", failing before.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261025-170.json`.
+
+## D262 — K15: a short arc a few tolerances off its face's plane maps into it as a curve (2026-10-24)
+
+**Finding.** s2#112 (L4 fuzz seed 20261024 #112), D239's last open item, refused at its root since D237: "an arc does not
+lie in its plane". Shrunk: a rounded box less (a cylinder r 4 less (a ball r 2 less a cylinder r 2)), snapped. The
+ball's centre, the small cylinder's bottom and the big cylinder's top all lie at z = 3. Nudged 4 ways: shrunk 2/4 build,
+as fuzzed 1/4; the rest refused alike.
+
+**Cause (`curve2`, `src/brep/analytic-boolean.ts`).** The inner Boolean leaves a face on the plane z = 3 bounded by the
+ball's equator. In the outer one, a 0.35 mm piece of that equator (r 2, a sweep of 0.174 rad) came back tilted 1e-4 rad,
+its points up to 2.6e-6 off the plane: 2.6 tolerances. A short rational arc rebuilt through end vertices the stitch has
+merged (within 20 tolerances) tilts like that. Mapping an arc onto a plane required its normal to be the plane's within
+1e-9, and refused it otherwise.
+
+**Fix.** An arc whose normal is not the plane's, but whose points (17 along it) all lie within the stitch's merge radius
+(20 tolerances) of the plane, maps into the plane as a curve, as an arc on a cylinder's wall that is no cross-section
+does (D202). One farther off is still refused with the same message (unbracketed; the docs table is unchanged).
+
+**Results:** s2#112 shrunk, one body, −0.16 e at 256² × 6; as fuzzed, 2 bodies, −0.72 e; both by quadrature. Nudged:
+shrunk 4/4 build (0.1 e), as fuzzed 4/4 (0.6–1.5 e).
+**Test:** "analytic Boolean: a short arc a few tolerances off its face's plane …", failing before.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261024-112.json`.
+
+## D263 — K15: a face on a surface turning more than a half turn is judged by its winding either way (2026-10-24)
+
+**Finding (D257's open item; queued by the coordinator: a validator passing a wrong face is a silent wrong).** D257
+let a face's domain winding clear a flag the vector area raised, but not raise one. In 25#62's body, the wrapping
+cylinder face `f23` turned over passed `checkBrep`: its vector area points away from its gap, and turned over it agrees
+with the normal at the domain's middle, which lies 68° from the gap.
+
+**Cause.** The vector-area test is exact only for a face whose normals all lie within 90° of the middle's normal. Its
+surface here is not closed: the Boolean spans it from the piece's smallest to its largest θ, 354°, its ends 0.26 mm
+apart. So "closed" is the wrong trigger; the turn is.
+
+**Fix (`brep-core.ts`, `wrapsWithoutPoles`).** A surface whose normal at either end of u, or of v, along the domain's
+middle line, lies more than 90° from the middle's (it turns by more than a half turn) and has no domain side collapsed
+to a point is one where a face's normals can lie more than 90° from the middle's. On such a surface the outer loop's
+winding in the face's domain judges the face either way, when it can be told (D257's conditions); otherwise, and on
+every other surface, the vector area does, as before.
+- Poles are left out: a ball's or a cone's loop through its pole projects there to any u. Their faces keep the vector
+  area, as before D257.
+- `loopWindsInDomain` projects each sample from the one before, and builds the 24² seed grid only when that misses (the
+  first sample, or one past a seam): it runs on every face of a wrapping surface now.
+
+**Results:**
+- `f23` turned over: refused, `BrepError` TOPOLOGY "orientation: face … sense disagrees with its outer loop". Every face
+  of the body turned over is refused now (D257's test, which pinned `f23` as the exception, pins none).
+- The cost, D240's open harness, single graph (`open/run.mjs`), 3 runs a scene twice alternating, A at 2fbff69e9 with
+  D257 against B with D257 + D263, under the other lanes' load (14–21):
+  - the 5 box frames: A 11 115 / 10 788 ms, B 11 062 / 11 740; the spring: A 3 309 / 4 227, B 3 204 / 3 460: within
+    the runs' own spread, digests identical;
+  - under `--cpu-prof` (B): `wrapsWithoutPoles` 69 ms of the frames' 24 191 (0.3 %), 4 of the spring's 4 821;
+    `loopWindsInDomain` 0 in both, no surface there turning more than a half turn.
+**Test:** "checker: a face wrapping most of its full-turn surface, turned over, is refused, typed", failing before (it
+passed). Also D257's test, now with no face passing turned over.
+
+## D264 — K15: the part model's too-large corner finish carries `[RADIUS_EXCEEDS_FACE]` (2026-10-24)
+
+At the coordinator's request (the outer lane's R7: FriendlyError now carries the kernel's bracketed code).
+
+**Change (`part-model.ts`).** A fillet or chamfer on an upright solid's corner too large for its walls was refused as
+`PARAMETER` "edge …: fillet … mm is too large for walls of … and … mm", with no code. Its B-rep siblings (the chamfer in
+`part-model.ts` and `edge-finish.ts`) already open with `[RADIUS_EXCEEDS_FACE]`. It now does too; the text after the
+prefix is unchanged, and so is the code PARAMETER.
+- No kernel test pins the unprefixed text (part-model's match `/too large/`); cad-model's mapping takes either form
+  (`/too large for walls|RADIUS_EXCEEDS_FACE/`).
+- The docs refusal table is regenerated (`refusals.mjs`).
+
+**Checks for D261–D264 (K15 checkpoint 3, T2, in a scratch worktree at 7e5f38c28 with D261–D264, without D260):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1675/1682, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 2's names: three new (D261–D263's tests), five new from the API lane's
+  `api-part.test.mjs` (in integration since checkpoint 2's base), none gone.
+- RB: no NEW, the same 3 TODOs. The two new corpus cases pass.
+- Fingerprint: 866 cases, `6fe8417d…` (from `722d0431…`, 864). Four lines changed: `fuzz:20261024:112` and
+  `fuzz:20261024:97` refused → valid, and the two new corpus cases. D263 and D264 change no line.
+- Fuzz (200 cases a seed): 20261025 OK 185 (36) / REFUSED 15; 20261026 191 (27) / 9; 20261023 189 (31) / 11; 20261024
+  190 (31) / 10. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- cad-model 1027/1027, studio 286/286. `refusals.mjs` regenerated (D264).
+- The run before this one had D260 and D261's first version: it is the one D260 and D261 describe (three suites
+  failing with D260; 20261026 #76 INVALID with D261 at 100). Not counted.
+- No browser flow: nothing studio-visible changed.
+
+## D265 — K15's closing record: the fuzz at its end, what is open, the fingerprint chain (2026-10-24)
+
+**Final fuzz** (`scripts/rb/fuzz.mjs`, 200 cases a seed, the D249 judgement; at checkpoint 3, D257–D259, D261–D264):
+
+| Seed | OK (empty) | APPROX | REFUSED | WRONG | INVALID | CRASH | TIMEOUT | At K15's start (D256) |
+|---|---|---|---|---|---|---|---|---|
+| 20261025 | 185 (36) | 0 | 15 | 0 | 0 | 0 | 0 | OK 183, REFUSED 17 |
+| 20261026 | 191 (27) | 0 | 9 | 0 | 0 | 0 | 0 | OK 187, REFUSED 13 |
+| 20261023 | 189 (31) | 0 | 11 | 0 | 0 | 0 | 0 | OK 189, REFUSED 11 |
+| 20261024 | 190 (31) | 0 | 10 | 0 | 0 | 0 | 0 | OK 187, REFUSED 13 |
+
+KNOWN is 0 throughout. 45 refusals remain over the four seeds, against 54 at K15's start.
+
+**What K15 fixed, one cause each:**
+- D257: the validator's sense check refused a face wrapping most of its surface (its gap beside the domain's middle);
+  25#62, 26#115, 24#185.
+- D258: a cut along a face's edge for most of its length was dropped whole; 26#184 (with D259).
+- D259: a crossing just inside a curve's end was lost to Newton's collapsed difference; 26#184, 26#47, 26#79.
+- D261: a traced cut's loose end 10 tolerances short of an exact segment; 25#170 as fuzzed.
+- D262: a short arc a few tolerances off its plane was refused; s2#112 (24#112), 24#97.
+- D263: the validator passed a wrapping face turned over (a silent wrong; the coordinator's addition).
+- D264: the too-large corner finish carries `[RADIUS_EXCEEDS_FACE]` (the coordinator's addition).
+- D239's nudge findings: 51, 85 and 74 now build in every nudge (85's were D257's message).
+
+**Found and held for a decision:** D260, the Boolean features' self-union of their first tool part. Its fix builds
+25#49 and saves 15–20 % on the corpus documents with such features, but three suites (r12c-fits, r12-2's flat DXF,
+r10-b) depend on what the self-union rebuilds. It is a step of its own.
+
+**Open:**
+
+| Case | What is known | Record |
+|---|---|---|
+| 25#49 | builds with D260's fix; its self-union refuses | D260 |
+| 26#34 (as fuzzed) | a box's face 0.028 mm off a ball's seam meridian plane: a sliver beside the seam and the bottom pole, spur pieces there | this record |
+| 25#190 | the march beside a pole (two remedies failed) | D250 |
+| 25#170's nudges | the inner pattern's pivot moved: two balls 1e-3 mm apart, nearly coincident | D261 |
+| D239's 25 and 110 nudges | unchanged from K14's end (25: 0/4 here, a point contact's neighbourhood; 110: 2/4) | D239 |
+| a body united with itself | `B ∪ B` of 25#49's inner body refused, an edge used 5 times | D260 |
+
+The near-degenerate and exact-contact classes (D249) were not worked.
+
+**The fingerprint chain** (`scripts/r5-fingerprint.mjs`):
+
+| Point | Cases | sha256 | Change |
+|---|---|---|---|
+| K15's start | 861 | `cf100676…` | — |
+| Checkpoint 1 (D257) | 863 | `1cd931ee…` | two corpus cases added; 24:185 refused → valid |
+| Checkpoint 2 (D258–D259) | 864 | `722d0431…` | one added; 24:18's message; three with more edges; 166 areas ≤ 5.3e-5, volumes ≤ 3e-10 relative |
+| Checkpoint 3 (D261–D264) | 866 | `6fe8417d…` | two corpus cases added; 24:112 and 24:97 refused → valid |

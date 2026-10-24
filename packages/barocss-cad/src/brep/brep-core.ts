@@ -12,7 +12,7 @@ import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { cross, dist as distance, dot, sub } from '../core/vec3.js';
 import { strictGeometry } from './brep-check-geometry.js';
 import { facetPatchProblem, facetVectorArea } from '../mesh/facet-patch.js';
-import { closestPointOnSurface, surfaceSeedGrid } from '../nurbs/surfaces/surface-closest.js';
+import { closestPointOnSurface, surfaceSeedGrid, type SurfaceSeedGrid } from '../nurbs/surfaces/surface-closest.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
@@ -97,13 +97,16 @@ export function loopVectorArea(uses: readonly { readonly curve: Curve; readonly 
  */
 export function loopWindsInDomain(surface: Surface, uses: readonly { readonly curve: Curve; readonly sense: 'forward' | 'reversed' }[], reach: number): boolean | undefined {
   const { u: U, v: V } = surfaceDomain(surface), W = U[1] - U[0], H = V[1] - V[0];
-  const closedU = closesAlong(surface, U, V, 0, reach), closedV = closesAlong(surface, U, V, 1, reach), grid = surfaceSeedGrid(surface, 24);
+  const closedU = closesAlong(surface, U, V, 0, reach), closedV = closesAlong(surface, U, V, 1, reach);
   let area = 0, u0 = 0, v0 = 0, pu = 0, pv = 0, n = 0, uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+  let grid: SurfaceSeedGrid | undefined;
   for (const use of uses) {
     const c = use.curve, [t0, t1] = curveDomain(c), corners = c.degree === 1, m = corners ? c.controlPoints.length - 1 : 16;
     for (let k = 0; k < m; k++) {
       const x = corners ? c.controlPoints[use.sense === 'forward' ? k : m - k] : evaluateCurve(c, use.sense === 'forward' ? t0 + (t1 - t0) * k / m : t1 - (t1 - t0) * k / m);
-      const q = closestPointOnSurface(surface, x, { grid });
+      // (Each sample from the one before; past a seam, or at the first, from the seed grid, made once.)
+      let q = n > 0 ? closestPointOnSurface(surface, x, { seed: [pu - (closedU ? W * Math.floor((pu - U[0]) / W) : 0), pv - (closedV ? H * Math.floor((pv - V[0]) / H) : 0)] }) : undefined;
+      if (!q || !(q.distance <= reach)) q = closestPointOnSurface(surface, x, { grid: grid ??= surfaceSeedGrid(surface, 24) });
       if (!(q.distance <= reach)) return undefined;
       let u = q.u, v = q.v;
       if (n > 0) {
@@ -122,6 +125,29 @@ export function loopWindsInDomain(surface: Surface, uses: readonly { readonly cu
   if (!(Math.abs(area) > 1e-6 * (uMax - uMin) * (vMax - vMin))) return undefined;
   return area > 0;
 }
+/**
+ * Whether `surface` turns by more than a half turn along u or v (its normal at a domain end more than 90° from the
+ * middle's, along the domain's middle line), with no domain side collapsed to a point (no pole: a ball's and a cone's
+ * sense stay with the vector area). Only there can a face's normals lie more than 90° from the middle's: a face over most
+ * of a turn — a cylinder's 354°, its gap anywhere in the domain — is judged by its outer loop's vector area neither way,
+ * and its winding in the domain does (D257, D263).
+ */
+export function wrapsWithoutPoles(surface: Surface, reach: number): boolean {
+  const { u: U, v: V } = surfaceDomain(surface), um = (U[0] + U[1]) / 2, vm = (V[0] + V[1]) / 2, c = normalAt(surface, U, V, um, vm);
+  if (!(dot(c, normalAt(surface, U, V, U[0], vm)) < 0 || dot(c, normalAt(surface, U, V, U[1], vm)) < 0 || dot(c, normalAt(surface, U, V, um, V[0])) < 0 || dot(c, normalAt(surface, U, V, um, V[1])) < 0)) return false;
+  for (let side = 0; side < 4; side++) {
+    const along = side < 2 ? 0 : 1, at = side === 0 ? V[0] : side === 1 ? V[1] : side === 2 ? U[0] : U[1];
+    const a = along === 0 ? evaluateSurface(surface, U[0], at) : evaluateSurface(surface, at, V[0]), b = along === 0 ? evaluateSurface(surface, um, at) : evaluateSurface(surface, at, vm);
+    const e = along === 0 ? evaluateSurface(surface, U[1], at) : evaluateSurface(surface, at, V[1]);
+    if (distance(a, b) <= reach && distance(a, e) <= reach) return false;
+  }
+  return true;
+}
+/** ∂S/∂u × ∂S/∂v at (u, v) by differences taken inside the domain (unnormalized). */
+function normalAt(surface: Surface, U: readonly [number, number], V: readonly [number, number], u: number, v: number): Point {
+  const hu = (U[1] - U[0]) * 1e-4, hv = (V[1] - V[0]) * 1e-4, u0 = Math.max(U[0], u - hu), u1 = Math.min(U[1], u + hu), v0 = Math.max(V[0], v - hv), v1 = Math.min(V[1], v + hv);
+  return cross(sub(evaluateSurface(surface, u1, v), evaluateSurface(surface, u0, v)), sub(evaluateSurface(surface, u, v1), evaluateSurface(surface, u, v0)));
+}
 /** Whether `surface` closes on itself along u (`along` 0) or v (1): its two opposite domain edges meet at three points. */
 function closesAlong(surface: Surface, U: readonly [number, number], V: readonly [number, number], along: 0 | 1, reach: number): boolean {
   for (let k = 0; k <= 2; k++) {
@@ -131,6 +157,8 @@ function closesAlong(surface: Surface, U: readonly [number, number], V: readonly
   }
   return true;
 }
+/** A bilinear patch with straight rows: a plane's (it cannot close on itself). */
+const planarSurface = (s: Surface) => s.degreeU === 1 && s.degreeV === 1 && s.controlPoints.length === 2 && s.controlPoints[0].length === 2;
 const index = <T extends { id: string }>(items: readonly T[], kind: string, issues: string[]) => {
   const map = new Map<string, T>();
   for (const item of items) { if (map.has(item.id)) issues.push(`${kind}: duplicate id ${item.id}`); map.set(item.id, item); }
@@ -276,13 +304,14 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
     if (size <= 1e-6 * Math.max(1, extent) ** 2 || Math.hypot(...normal) === 0) continue;
     // (The normal at the domain's middle judges a face whose normals all lie within 90° of it. A face wrapping most of a
     // closed surface — a cylinder's 354°, its gap beside the domain's middle — has its vector area against that normal
-    // even when right: where they disagree, the loop's winding in the face's own domain decides, when it can be told.
-    // K15, D257.)
-    if (dot(area, normal) * (f.sense === 'forward' ? 1 : -1) < 0) {
-      let reach = 0; for (const c of outer.coedges) reach = Math.max(reach, edges.get(coedges.get(c)!.edge)!.toleranceMM);
-      const winds = loopWindsInDomain(f.surface as Surface, uses, Math.max(100 * reach, 1e-6 * Math.max(1, extent)));
-      if (winds !== (f.sense === 'forward')) add('orientation', `face ${f.id} sense disagrees with its outer loop`);
-    }
+    // even when right (K15, D257), and with it when turned over (D263). Where they disagree, and on any surface turning
+    // more than a half turn without a pole, the loop's winding in the face's own domain decides, when it can be told; else
+    // the vector area does.)
+    const disagree = dot(area, normal) * (f.sense === 'forward' ? 1 : -1) < 0;
+    let reach = 0;
+    if (disagree || !planarSurface(f.surface as Surface)) { for (const c of outer.coedges) reach = Math.max(reach, edges.get(coedges.get(c)!.edge)!.toleranceMM); reach = Math.max(100 * reach, 1e-6 * Math.max(1, extent)); }
+    const winds = disagree || (!planarSurface(f.surface as Surface) && wrapsWithoutPoles(f.surface as Surface, reach)) ? loopWindsInDomain(f.surface as Surface, uses, reach) : undefined;
+    if (winds === undefined ? disagree : winds !== (f.sense === 'forward')) add('orientation', `face ${f.id} sense disagrees with its outer loop`);
   }
 
   // Euler–Poincaré per body.
