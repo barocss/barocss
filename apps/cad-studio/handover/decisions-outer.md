@@ -8851,3 +8851,35 @@ the coordinator before code.
   - through set_parameters: add, bind and set give a 40 × 20 × 8 volume; a refusal anywhere applies nothing; T = 0
     is refused by the evaluation.
 - **Verified (T1):** o21 3/3, toolset 9/9, tool-contract; tsc (model, studio); eslint 0 errors.
+
+## RS2 (core) — a robot's motions: poseAt and duration on Check path's timing; robot.motions saved in degrees (2026-10-24)
+
+The owner asked for more robot samples and joint motion ("로봇 관련해서 좀 더 다양한 샘플, 예제를 만들어봐야하지 않아? 관절 움직임
+같은거라던가?"). The contract was settled by the coordinator with the GPU lane.
+- **robot/motion.ts:**
+  - `poseAt(tree, path, t)` → joint values by key at t (s, clamped). It interpolates in joint space between waypoints
+    on ccd's timePath: one profile per segment on the tightest joint, so every joint starts and stops together within
+    its limits. It is the same timing sweepTimed checks, so what plays is what Check path certified. Gear followers
+    aren't in the values; FK resolves them.
+  - `duration(path)` → s, timed over the keys the waypoints name. It needs no tree, because a joint no waypoint names
+    never moves; ccd's `timeSegments(keys, path)` is split out of timePath for it.
+  - `checkPath(tree, path)` → Problem[]:
+    - JOINT_UNKNOWN;
+    - JOINT_MIMIC (a gear follower: give its leader);
+    - JOINT_LIMIT (a waypoint past lower or upper; straight segments between waypoints inside the limits stay inside);
+    - LIMITS_MISSING or LIMITS_BAD, PATH_TOO_SHORT.
+  - `timedPathOf(tree, motion)` and `motionOf(tree, path)` convert a saved motion's degrees to the radians path poseAt
+    and sweepTimed take, and back ("Save as motion").
+- **The stored field:** `robot.motions: [{ name, path: { waypoints, profile?, limits? } }]`.
+  - It is in the document's units (conventions §2): degrees for a turning joint and mm for a slide; limits as
+    `{ velocity, acceleration, jerk? }` per key or `default`.
+  - readRobot reads it and drops anything malformed. `motionNamed` refuses MOTION_UNKNOWN.
+  - set_joints and withFrames keep motions when they rewrite the robot settings. Before the fix, an emptied frames
+    list would have dropped the settings whole.
+- **Test:** test/rs2-motion.test.ts, 4 tests:
+  - the 2R chain's trapezoid against its closed form (v 1, a 2 over 1 rad: 1.5 s; s = t² at 0.25 s, 0.5 at 0.75 s;
+    clamped at both ends);
+  - three waypoints, each met at its segment's end;
+  - checkPath's refusals;
+  - degrees ⇄ radians and robot.motions read back.
+- **Verified (T1):** rs2 4/4; tsc; eslint 0 errors.

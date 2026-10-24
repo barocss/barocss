@@ -17,6 +17,7 @@ import { BASE, type FaceTable, type Mate, type MateFace, type Vec3 } from '../as
 import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
 import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
+import { readMotions, type Motion } from './motion';
 
 export const ROBOT_VERSION = 1;
 export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';
@@ -24,7 +25,8 @@ export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';
 export interface JointSettings { lower?: number; upper?: number; effort?: number; velocity?: number }
 /** The robot settings a document keeps (`doc.robot`, versioned): the base link, and each joint's settings by its key. */
 /** `frames` (O12): named tool and sensor frames on links, kept beside the joints (robot/frames.ts). */
-export interface RobotSettings { version: 1; base?: string; joints?: Record<string, JointSettings>; frames?: Record<string, FrameSettings> }
+/** `motions` (RS2): named paths through joint-space waypoints (robot/motion.ts), in degrees or mm. */
+export interface RobotSettings { version: 1; base?: string; joints?: Record<string, JointSettings>; frames?: Record<string, FrameSettings>; motions?: Motion[] }
 
 export interface Link { id: string; /** The part it is (base or an instance id); null for a dummy link in a joint chain. */ part: string | null; name: string }
 export interface Joint {
@@ -70,8 +72,8 @@ export function readRobot(raw: unknown): RobotSettings {
     for (const f of ['lower', 'upper', 'effort', 'velocity'] as const) if (num((s as JointSettings)[f])) j[f] = (s as JointSettings)[f];
     if (Object.keys(j).length) joints[k] = j;
   }
-  const frames = readFrames(r.frames);
-  return { version: 1, ...(typeof r.base === 'string' && r.base ? { base: r.base } : {}), ...(Object.keys(joints).length ? { joints } : {}), ...(frames ? { frames } : {}) };
+  const frames = readFrames(r.frames), motions = readMotions(r.motions);
+  return { version: 1, ...(typeof r.base === 'string' && r.base ? { base: r.base } : {}), ...(Object.keys(joints).length ? { joints } : {}), ...(frames ? { frames } : {}), ...(motions ? { motions } : {}) };
 }
 
 // ── Free twists of a pair: constraint rows on X = [ω; v/L] (v the velocity at the world origin, L a length scale) ──
