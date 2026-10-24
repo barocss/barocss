@@ -31,7 +31,7 @@ export interface ThreeMfStats {
   readonly verticesIn: number; readonly droppedTriangles: number;
   /** Directed edges with no opposite (open) or repeated (more than two faces): 0 and 0 for a closed manifold mesh. */
   readonly openEdges: number; readonly repeatedEdges: number;
-  readonly modelXmlBytes: number; readonly bytes: number; readonly ms: number;
+  readonly modelXmlBytes: number; readonly bytes: number; readonly duration: number;
 }
 
 /** O9: BaroCSS's own metadata (the source revision), a namespace of its own as 3MF asks of a name not in its list. */
@@ -174,7 +174,7 @@ export async function write3mf(model: ThreeMfModel): Promise<{ bytes: Uint8Array
     { name: '_rels/.rels', data: enc.encode(RELS) },
     { name: '3D/3dmodel.model', data: xml, deflate: true },
   ], model.date ?? new Date());
-  return { bytes, stats: { objects: model.objects.length, items: model.items.length, triangles, vertices, verticesIn, droppedTriangles: dropped, openEdges: open, repeatedEdges: repeated, modelXmlBytes: xml.length, bytes: bytes.length, ms: performance.now() - t0 } };
+  return { bytes, stats: { objects: model.objects.length, items: model.items.length, triangles, vertices, verticesIn, droppedTriangles: dropped, openEdges: open, repeatedEdges: repeated, modelXmlBytes: xml.length, bytes: bytes.length, duration: (performance.now() - t0) / 1000 } };
 }
 const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
 const isIdentity = (m: readonly number[]) => m.every((v, i) => Math.abs(v - IDENTITY[i]) < 1e-12);
