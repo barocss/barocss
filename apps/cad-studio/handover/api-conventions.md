@@ -36,7 +36,8 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
   - **The facades' input options** carry no unit suffix (owner, 2026-10-24): they use the agent's value names from
     COMMAND_DOCS (`w`, `d`, `h`, `r`, `deg` …; `density` where no command names it), because every quantity is in
     the units above: lengths mm, angles degrees, density g/cm³. So `box({ w, d, h })`, not `box({ wMM, dMM, hMM })`.
-  - **Documents** keep their stored field names (`positionMM`, `rotationDeg` …); this rule renames no saved field.
+  - **Documents** keep their stored field names; this rule renames no saved field (instances and frames already store
+    `position` and `rotation`).
   - Today cad's mass properties are in kg and kg/m³ (`massKG`, `inertiaCentroidKgM2`, density in kg/m³), while
     cad-model's are in g and g/cm³. R7.3 moves cad's public results to MMGS.
 - **Ids and names** follow the document's existing rules. A face or edge reference that the core resolves stays
@@ -151,7 +152,7 @@ tests either move to `evaluateCadPart` fixtures or go with them.
    - `Vec3 = readonly [x, y, z]`;
    - `Mat3`: 9 numbers, row-major, whose columns are the frame's axes, so Z = [R[2], R[5], R[8]];
    - `Mat4`: a column-major `Float64Array(16)`, used only inside computation;
-   - `Pose` in documents: `{ positionMM: Vec3, rotationDeg: Vec3 }`, rotated about X, then Y, then Z, as instances
+   - `Pose` in documents: `{ position: Vec3, rotation: Vec3 }` (mm and degrees), rotated about X, then Y, then Z, as instances
      and frames already are.
 
    New code uses these. The 13 `Vec3`/`V3`/`Vector3` declarations converge in R7.3c, where they cross a package.
