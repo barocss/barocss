@@ -4,7 +4,9 @@
 // are this ladder's own, for what RB9 does not reach: standard sizes from the person's files (the shipped sample rows,
 // rule (b)), gears, a SCARA, a saved motion, drawings, CAM, casting, STEP/3MF and the A9 product. Closed forms are
 // written out beside each check; dimensions are the brief's, not a standard's.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -12,14 +14,15 @@ import { RUNGS } from '@barocss/cad-model/rb9/rungs';
 import { sample, type Rung } from '@barocss/cad-model/rb9/core';
 import { clearanceMap, applyFill, fillOverlap } from '@barocss/cad-model/team/clearanceMap';
 import type { CallRecord } from './codex';
-import { allNodes, check, evaluates, hasKind, oneSolid, reads, size, sizeOf, solids, sorted, volume, volumeOf, type Check, type Judged } from './oracle';
+import { LONG_BRIEFS } from './long';
+import { type Element, allNodes, check, evaluates, hasKind, oneSolid, reads, size, sizeOf, solids, sorted, volume, volumeOf, type Check, type Judged } from './oracle';
 
 // (The bundle runs from a temporary folder: ai-eval.mjs passes the repository's path.)
 export const REPO = process.env.AI_EVAL_REPO ?? resolve(import.meta.dirname, '../../../..');
 const MODEL = join(REPO, 'packages/barocss-cad-model');
 const SAMPLE_ROWS = join(MODEL, 'samples/rows'), A9_ROWS = join(MODEL, 'conformance/a9/rows'), ROBOTS = join(MODEL, 'samples/robots');
 
-export type Ladder = 'single part' | 'standard sizes' | 'assembly' | 'mechanism' | 'outputs' | 'product';
+export type Ladder = 'single part' | 'standard sizes' | 'assembly' | 'mechanism' | 'outputs' | 'product' | 'long prompt';
 export interface Brief {
   id: string; ladder: Ladder; title: string; prompt: string;
   /** A document the person opened first (a .bcad path); else an empty part. */
@@ -29,6 +32,10 @@ export interface Brief {
   /** Where RB9's rung comes from, when it is one. */
   rb9?: string;
   oracle(j: Judged, calls: CallRecord[]): Promise<Check[]>;
+  /** A long descriptive brief's elements, each scored done / approximated / missing / refused (oracle.ts). */
+  elements?: Element[];
+  /** This brief's own run caps, where the defaults are too small for it. */
+  caps?: { maxCalls?: number; maxTurns?: number; wallMin?: number };
   /** A known build through the same tools (`validate`): the oracle must pass it. */
   reference?: { tool: string; args: Record<string, unknown> }[];
 }
@@ -69,7 +76,7 @@ const near = (a: number | undefined, b: number, tol: number) => typeof a === 'nu
 /** The horizontal distance between two vertical axes through their points. */
 const axisGap = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 /** A placed part that is a fastener (the fastener command's instance). */
-const fastenerPart = (doc: StudioDoc, key: string) => { const id = key.split('/')[0], inst = (doc.instances ?? []).find(i => i.id === id); return !!inst && inst.doc.nodes.some(n => n.kind === 'fastener' || /fastener|screw|bolt/i.test(JSON.stringify(n).slice(0, 200))); };
+const fastenerPart = (doc: StudioDoc, key: string) => { const id = key.split('/')[0], inst = (doc.instances ?? []).find(i => i.id === id); return !!inst && inst.doc.nodes.some(n => /fastener|screw|bolt/i.test(JSON.stringify(n).slice(0, 200))); };
 /**
  * The assembly's placed bodies with no overlap (every contact's overlap worked out). `screws`: a fastener part's overlap
  * is its thread's engagement, not counted — the clearance map does not yet call a screw in its tapped hole designed (a
@@ -368,7 +375,8 @@ const STEP_3MF: Brief = {
     const text = calls.filter(c => c.ok).map(c => c.text).join('\n');
     return [evaluates('builds', j.base), size('size', j.base, [40, 40, 20]), volume('volume', j.base, PI * (20 ** 2 - 4 ** 2) * 20, 0.002),
       check('step', 'a STEP file from a tool (ISO-10303-21)', /ISO-10303-21/.test(text), /ISO-10303-21/.test(text)),
-      check('3mf', 'a 3MF file from a tool', /3mf|3dmanufacturing/i.test(text), /3mf/i.test(text))];
+      // (A file a tool returned: a .3mf path or the 3MF core namespace — not the word in a description.)
+      check('3mf', 'a 3MF file from a tool', /\.3mf"|3dmanufacturing/i.test(text), /\.3mf"|3dmanufacturing/i.test(text))];
   },
 };
 
@@ -415,7 +423,7 @@ const A9: Brief = {
     const pb = plate ? j.parts[plate.id] : null, sb = shaft ? j.parts[shaft.id] : null, cb = cover ? j.parts[cover.id] : null;
     const frameNodes = j.doc.nodes.filter(n => n.kind === 'frame' || n.kind === 'frame-member');
     const members = solids(j.base).length, fsize = sorted(sizeOf(j.base));
-    const screws = allNodes(j.doc).filter(n => n.kind === 'fastener' || /"fastener"/.test(JSON.stringify(n))).length + insts.filter(i => /screw|M6/i.test(i.name ?? '')).length;
+    const screws = allNodes(j.doc).filter(n => /"fastener"|socket-screw/.test(JSON.stringify(n))).length + insts.filter(i => /screw|M6/i.test(i.name ?? '')).length;
     const bom = await j.read('query', { action: 'bom' }), csv = await j.read('query', { action: 'purchase_csv' });
     const bomText = JSON.stringify(bom), csvText = String(csv.files?.[0]?.text ?? '');
     const drawn = [plate, shaft, cover].filter(p => p && (p.doc.drawing as { sheet?: string } | undefined)?.sheet === 'A3').length;
@@ -448,6 +456,29 @@ const A9: Brief = {
   },
 };
 
+/**
+ * P1 (P1-L3): the single-cylinder engine, the API lane's brief (brief.md, its words as the person's message) judged by
+ * its own checks (check.ts through its run.mjs --check, a process of its own: parts, solves, cycle, timing, sweep,
+ * masses, balance). The fastener sizes it names are attached as the person's file. Listed only when the folder has
+ * them: AI_EVAL_P1_DIR, else examples/products/engine-1cyl.
+ */
+const P1_DIR = process.env.AI_EVAL_P1_DIR ?? join(REPO, 'examples/products/engine-1cyl');
+const P1: Brief | null = existsSync(join(P1_DIR, 'brief.md')) && existsSync(join(P1_DIR, 'check.ts')) ? {
+  id: 'p1-engine', ladder: 'product', title: 'P1 single-cylinder four-stroke engine (the API lane\'s brief and checks)',
+  prompt: readFileSync(join(P1_DIR, 'brief.md'), 'utf8').trim() + '\n\nI attached the fastener sizes file (fastener-sizes.json).',
+  files: [join(SAMPLE_ROWS, 'fastener-sizes.json')],
+  caps: { maxCalls: 400, maxTurns: 8, wallMin: 100 },
+  async oracle(j) {
+    const file = join(tmpdir(), `ai-eval-p1-${process.pid}-${Date.now()}.json`);
+    writeFileSync(file, JSON.stringify(j.doc));
+    const out = spawnSync(process.execPath, [join(P1_DIR, 'run.mjs'), '--check', file], { encoding: 'utf8', maxBuffer: 64 << 20, timeout: 20 * 60_000 });
+    rmSync(file, { force: true });
+    let r: { checks?: { id: string; ok: boolean; detail: string }[]; figures?: unknown } = {};
+    try { r = JSON.parse(out.stdout); } catch { return [check('p1', 'P1\'s check ran', false, (out.stderr || out.stdout || '').slice(0, 600))]; }
+    return [...(r.checks ?? []).map(c => check(c.id, `P1: ${c.id}`, c.ok, c.detail.slice(0, 400))), check('figures', 'P1\'s figures', true, r.figures, undefined, false)];
+  },
+} : null;
+
 export const BRIEFS: Brief[] = [
   // single parts
   rb9(1, 'single part'), rb9(4, 'single part'), FLANGED_SHAFT, rb9(5, 'single part'), rb9(3, 'single part'),
@@ -460,5 +491,7 @@ export const BRIEFS: Brief[] = [
   // manufacturing outputs
   DRAWING, CNC, CASTING, STEP_3MF, URDF, rb9(9, 'outputs'),
   // products
-  rb9(13, 'product'), A9,
+  rb9(13, 'product'), A9, ...(P1 ? [P1] : []),
+  // long, descriptive prompts, scored per element
+  ...LONG_BRIEFS,
 ];

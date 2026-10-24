@@ -86,3 +86,21 @@ export function scoreOf(checks: Check[]): Score {
   const hard = checks.filter(c => c.hard), passed = checks.filter(c => c.pass);
   return { pass: hard.every(c => c.pass), score: checks.length ? r3(passed.length / checks.length) : 0, hardPassed: hard.filter(c => c.pass).length, hard: hard.length, checks };
 }
+
+// The long briefs' elements (the owner, 2026-10-24): each element of a descriptive prompt scored per run as done,
+// approximated (and how), missing, or refused (the tool's refusal). Scripted where an oracle can read it from the
+// document; else judged by a reviewer from the run's stills (review.json), and said which.
+export type ElementStatus = 'done' | 'approximated' | 'missing' | 'refused';
+export interface ElementVerdict { status: ElementStatus; how?: string; evidence?: unknown }
+export interface Element { id: string; what: string; oracle?: (j: Judged, calls: { tool: string; args: unknown; ok: boolean; error?: string; text: string }[]) => Promise<ElementVerdict> | ElementVerdict }
+export interface ElementResult extends Partial<ElementVerdict> { id: string; what: string; by: 'oracle' | 'review' | 'pending' }
+export interface Review { schema: string; by: string; at: string; elements: Record<string, ElementVerdict>; notes?: string }
+export async function elementsOf(elements: readonly Element[], j: Judged, calls: Parameters<NonNullable<Element['oracle']>>[1], review: Review | null): Promise<ElementResult[]> {
+  const out: ElementResult[] = [];
+  for (const e of elements) {
+    if (e.oracle) { try { out.push({ id: e.id, what: e.what, by: 'oracle', ...(await e.oracle(j, calls)) }); } catch (x) { out.push({ id: e.id, what: e.what, by: 'oracle', status: 'missing', how: `the oracle failed: ${x instanceof Error ? x.message : String(x)}` }); } }
+    else if (review?.elements[e.id]) out.push({ id: e.id, what: e.what, by: 'review', ...review.elements[e.id] });
+    else out.push({ id: e.id, what: e.what, by: 'pending' });
+  }
+  return out;
+}
