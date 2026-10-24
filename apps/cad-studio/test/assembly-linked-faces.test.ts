@@ -32,7 +32,7 @@ try {
         path === 'react' ? 'export const useRef=(...a)=>globalThis.__facesHooks.useRef(...a),useState=(...a)=>globalThis.__facesHooks.useState(...a),useMemo=(...a)=>globalThis.__facesHooks.useMemo(...a),useCallback=(...a)=>globalThis.__facesHooks.useCallback(...a),useEffect=(...a)=>globalThis.__facesHooks.useEffect(...a);'
           : path === './faceClient' ? 'export class FaceClient { table(doc){return globalThis.__facesCalls.legacy(doc)} }'
           : path.endsWith('/flatten') ? 'export const flattenAssembly=doc=>{globalThis.__facesCalls.flattened.push(doc);return {...doc,flattened:true}};'
-          : 'export const BASE="base", kindsFor=()=>["coincident"],lockRel=()=>({}),mateRefusal=(...a)=>{globalThis.__facesCalls.refusals.push(a);return null},solveAssembly=(...a)=>globalThis.__facesCalls.solve(...a);',
+          : 'export const BASE="base", mateKindsOf=()=>["coincident"],lockRel=()=>({}),mateRefusal=(...a)=>{globalThis.__facesCalls.refusals.push(a);return null},solveAssembly=(...a)=>globalThis.__facesCalls.solve(...a);',
       }));
     } }],
   });
@@ -162,5 +162,19 @@ test('leaving linked mode hides old linked tables until fresh legacy tables arri
     assert.notEqual(ready.tables, old.tables); assert.ok([...f.solves.at(-1).observed.values()].every((face: Loose) => face.marker === 'legacy-current'));
     const solved = f.solves.length; f.args.readFaces = f.makeReader('linked-again'); const linkedPending = f.render();
     noAuthority(f, linkedPending, solved); noInvocation(f, ready, solved); await f.flush(); assert.equal(f.solves.length, solved);
+  } finally { f.cleanup(); }
+});
+
+
+test('O24 b: current linked picks keep connector options through the undoable assembly commit', async () => {
+  const f = fixture();
+  try {
+    const api = await seed(f); api.start();
+    const a = { part: 'base', face: 'face', at: { offset: [0, 0, 2], turn: 30 } };
+    const b = { part: 'a', face: 'face', at: { point: 'centre', flip: true } };
+    f.render().pickFace(a); f.render().pickFace(b);
+    assert.equal(f.commits.length, 1);
+    const added = (f.commits[0][1] as Loose[]).at(-1);
+    assert.deepEqual(added.a, a); assert.deepEqual(added.b, b);
   } finally { f.cleanup(); }
 });

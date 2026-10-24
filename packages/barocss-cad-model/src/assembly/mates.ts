@@ -5,6 +5,8 @@
 // stands, two by the frame they span — and the positions they demand are linear in the move, solved for the
 // smallest move from where it stands. A mate that disagrees with the ones before it is refused with the
 // reason; nothing is fitted or iterated, so a solved assembly stays put when it is solved again.
+import { connectorOf, type Connector } from './connectors';
+import { isRefusal, refusal } from '../engine/refusal';
 import type { PartInstance } from '../engine/doc';
 import type { Sig } from '../engine/references';
 import { dot, cross, add, sub, len } from '../engine/vec3';
@@ -16,7 +18,7 @@ export type { Vec3 };
 export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock' | 'cam';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
 /** `sig`: the face's geometry when it was picked; `was`: its name before a re-match (engine/references.ts). */
-export interface MateRef { part: string; face: string; sig?: Sig; was?: string }
+export interface MateRef { part: string; face: string; at?: Connector; sig?: Sig; was?: string }
 /**
  * `coincident`: flat faces flush, facing each other (flip: facing the same way). `distance`: the same,
  * `distance` mm apart along the fixed face's normal. `concentric`: two round faces on one axis, the axes
@@ -85,6 +87,30 @@ export function solvedFaces(kind: MateKind, a: MateFace, b: MateFace): { as: Mat
   return { as: kind, a, b };
 }
 
+/** Project connector frames to classic mate geometry; X is retained by connectorOf for O24(d). */
+export function mateFacesOf(mate: Mate, faces: { a: MateFace; b: MateFace }): ReturnType<typeof solvedFaces> {
+  if ((mate.a.at || mate.b.at) && (mate.kind === 'cam' || mate.kind === 'lock')) throw refusal('CONNECTOR_KIND', 'Connectors support coincident, distance, angle, concentric and tangent mates.');
+  return solvedFaces(mate.kind, referenceFace(mate.a, faces.a, mate.kind), referenceFace(mate.b, faces.b, mate.kind));
+}
+function referenceFace(ref: MateRef, face: MateFace, kind: MateKind): MateFace {
+  if (ref.at === undefined) return face;
+  const frame = connectorOf(face, { at: ref.at, name: ref.face });
+  return kind === 'concentric' || kind === 'tangent'
+    ? { kind: 'cylinder', point: frame.point, axis: frame.normal, radius: 0, outer: true }
+    : { kind: 'plane', point: frame.point, normal: frame.normal };
+}
+/** Admitted classic kinds for the selected reference options. Invalid connector data stays a typed refusal. */
+export function mateKindsOf(refs: { a: MateRef; b: MateRef }, faces: { a: MateFace; b: MateFace }): MateKind[] {
+  const { a, b } = refs, { a: fa, b: fb } = faces;
+  if (a.at === undefined && b.at === undefined) return kindsFor(fa, fb);
+  const out: MateKind[] = [];
+  for (const kind of ['coincident', 'distance', 'angle', 'concentric', 'tangent'] as const) {
+    const sf = mateFacesOf({ id: '', kind, a, b }, { a: fa, b: fb });
+    if (kindsFor(sf.a, sf.b).includes(sf.as)) out.push(kind);
+  }
+  return out;
+}
+
 // ── Small exact vector and rotation helpers (row-major 3 × 3) ──
 const mul = (a: Vec3, s: number): Vec3 => [a[0] * s, a[1] * s, a[2] * s];
 const unit = (a: Vec3): Vec3 => mul(a, 1 / len(a));
@@ -139,8 +165,10 @@ const degBetween = (c: number) => Math.acos(Math.max(-1, Math.min(1, c))) / DEG;
 /** Why a mate cannot be made from these two faces (or null). */
 export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace | undefined): string | null {
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
-  const kinds = kindsFor(fa, fb);
-  if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two round faces, cones or edges with an axis; or two spheres.'
+  let pair: ReturnType<typeof mateFacesOf>;
+  try { pair = mateFacesOf(mate, { a: fa, b: fb }); } catch (e) { if (isRefusal(e)) return e.message; throw e; }
+  const kinds = kindsFor(pair.a, pair.b);
+  if (!kinds.includes(pair.as)) return mate.kind === 'concentric' ? 'Concentric needs two round faces, cones or edges with an axis; or two spheres.'
     : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face; or a sphere and a flat face.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.'
     : mate.kind === 'coincident' ? 'Coincident needs two flat faces, a straight edge and a flat face, or two straight edges.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
   if (mate.kind === 'distance' && !Number.isFinite(mate.distance ?? NaN)) return 'Enter a distance.';
@@ -166,6 +194,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     if (m.a.part !== BASE && !byId.has(m.a.part) || !byId.has(m.b.part) && m.b.part !== BASE) { problems.push({ mate: m.id, reason: 'One of its parts was removed.' }); continue; }
     if (m.a.part === m.b.part) { problems.push({ mate: m.id, reason: 'Both faces are on the same part.' }); continue; }
     if (m.b.part === BASE || byId.get(m.b.part)?.grounded) { problems.push({ mate: m.id, reason: `${name(m.b.part)} is fixed, so this mate cannot move it.` }); continue; }
+    if ((m.a.at !== undefined || m.b.at !== undefined) && (m.kind === 'lock' || m.kind === 'cam')) { problems.push({ mate: m.id, reason: '[CONNECTOR_KIND] A cam or lock mate cannot carry connectors.' }); continue; }
     if (m.kind === 'lock') { if (m.rel) valid.push(m); else problems.push({ mate: m.id, reason: 'It has no placement to keep.' }); continue; }
     const ta = tables(m.a.part), tb = tables(m.b.part);
     if (!ta || !tb) return { instances: [...instances], problems: [], pending: true, freedom: {} };
@@ -173,7 +202,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     if (why) { problems.push({ mate: m.id, reason: why }); continue; }
     // (A cam mate holds nothing here: the follower's own mates place it; the joint tree couples it, robot/cam.ts.)
     if (m.kind === 'cam') continue;
-    const sf = solvedFaces(m.kind, ta[m.a.face], tb[m.b.face]);
+    const sf = mateFacesOf(m, { a: ta[m.a.face], b: tb[m.b.face] });
     faces.set(m.id, sf); valid.push(sf.as === m.kind ? m : { ...m, kind: sf.as });
   }
   const label = (m: Mate) => { const k = mates.findIndex(x => x.id === m.id); return mateLabel(mates[k], k); };

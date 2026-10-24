@@ -9419,3 +9419,51 @@ around it with a finer mesh and running-fit seats. Our core now takes the seat a
   focused tests were checked, not repeated as new development. The R7.7a steps 2/4 migration proposal names owned,
   shared and Drawings paths separately. It waits for the coordinator's exact kernel baseline and window; this lane
   did not adopt the breaking kernel branch. Coordinator owns roadmap updates and generated agent/refusal tables.
+
+## O24 (b) — mate connectors on persistent references (2026-10-24, Codex Outer)
+
+- Baseline: `55b83d55976e95fe157dd7cd26ddfcb54da76a34`, clean. Work stayed on the assigned existing Outer branch;
+  no integration or breaking kernel branch was merged or rebased.
+- `MateRef.at?: Connector` stores only point/offset/turn/flip. No top-level document field, alias or schema-version
+  change. A connector resolves in part coordinates: flip Z about X, turn in degrees about the resulting Z, then
+  apply offset in that final local frame. Face and edge names and their raw-geometry signatures remain unchanged.
+- `assembly/connectors.ts`: readConnector validates and copies JSON options; connectorOf(face, {at, name}) derives
+  a serialisable frame; withConnector sets/removes options without dropping a signature. Points:
+  - flat faces: computed area centre; origin/datum planes: their origin;
+  - cylinders/cones: span centre/start/end; cones: apex; datum axes: their origin for centre;
+  - spheres: centre; straight edges: start/mid/end; circular arcs: centre/start/mid/end (including major arcs).
+  - full circular edges support centre. Other point requests, absent centroids/spans and malformed data refuse
+    CONNECTOR_POINT, CONNECTOR_UNAVAILABLE or CONNECTOR_INVALID. Cam/lock connectors refuse CONNECTOR_KIND.
+- The classic mates keep their existing freedoms. mateFacesOf(mate, {a,b}) projects frames to planes for
+  coincident/distance/angle and zero-radius axes for concentric/tangent. This does not add O24(d)'s joint kinds or
+  fasten two connector frames. X determines local offsets and remains available for O24(d).
+- Core addMate preserves connector options when a fixed second part swaps the sides. editMate accepts
+  `connectors: {a?, b?}`; null removes one. Refused edits are atomic. v2 assembly.add_mate uses a/b.at;
+  assembly.edit_mate forwards connectors. Saved nested/pending documents validate connector syntax on read.
+- Robot rows and general loop terms use the resolved geometry. Concentric connectors do not imply physical
+  cylindrical running-fit seats. The legacy planar pin closer now resolves its connector anchor too.
+- Studio: the existing MatePanel has a persistent face/edge selector, point and local offset/turn/flip controls,
+  separate Stays/Moves connector editors and the existing undoable commit path. Direct viewport edge/vertex picking
+  remains with GPU. The existing linked-face test was extended to prove connector options reach the commit.
+- Verification:
+  - Initial broad affected suite 196/196; final focused suite 64/64 after the pin correction and option-shape
+    alignment; final Studio linked-face/chat 26/26. These counts are separate stages, not additive.
+  - O24(b) has 8 native tests: every supported point, major arcs, flip/turn/offset, owned copies, typed refusals,
+    edits/removal/swap, v2/signatures/Save/Open, offset-axis FK and physical-fit exclusion, and planar/general closure.
+  - Model types, Studio types/production build and changed-area eslint PASS. Final build retains dependency-module
+    directive/dynamic-import warnings in the external log; they are not build failures.
+  - v2 contract PASS: 13 tools, tools/list 16,203 + prompt 8,242 = 24,445 characters, below 25,000 (+35 from O24(c)).
+  - Actual Chromium/WebGPU: edge point options, UI-created distance mate at Z=10, edit to Z=12, stored 90-degree
+    turn, Undo/Redo, actual Save/Open and visible restored controls; no page errors. Screenshot inspected.
+- First product failure preserved: the new planar pin regression failed 7/8, returning Z=15 instead of 23.5 for the
+  selected connector anchor. After correction, connector/loop tests passed 19/19, then the final 64/64.
+- One final browser launch was NOT RUN: the heavy gate refused a slot after 61 seconds (exit 75). Its log is retained.
+  After the qualification job released its slot, the retry acquired normally and passed at entry load
+  9.30/8.41/8.73 (1/5/15 minutes). No gate or tolerance was bypassed or relaxed.
+- Logs, scripts, fixtures, screenshot and machine-readable receipt stay outside Git in
+  `/Users/user/.cache/barocss-preserved/2026-10-24-codex-outer-o24b/`. No generated evidence is committed.
+- Not run: full aggregate suites/browser flow, fresh unchanged CAD/GPU dependency builds, integration check:docs,
+  live model runs or release. The prior CAD/GPU build receipts remain separate; neither package changed here.
+- Coordinator proposal: mark O24(b) native/focused-browser verified, adopt serially, regenerate shared tool/refusal
+  tables and run check:docs. Next ready is O24(d), explicit connector joint kinds and limits, with FK and URDF/MJCF
+  unit checks; then O24(e). R7.7a steps 2/4 still require the coordinator's exact kernel baseline and window.

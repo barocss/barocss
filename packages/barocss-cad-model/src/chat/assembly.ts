@@ -1,3 +1,4 @@
+import { readConnector, type Connector } from '../assembly/connectors';
 // Chat tools for assemblies: parts as instances (each its own feature tree, built with the part tools
 // by passing `part`), their placement and grounding, and mates solved by the studio's own solver
 // (src/assembly/mates.ts) with its exact refusals. The assembly is re-solved after every change, as the
@@ -159,11 +160,11 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       let r: Mated;
       try {
         if (name === 'add_mate') {
-          const ref = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.face === 'string' ? { part: v.part, face: v.face } : null;
+          const ref = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.face === 'string' ? { part: v.part, face: v.face, ...(v.at !== undefined ? { at: readConnector(v.at) } : {}) } : null;
           const a = ref(args.a), b = ref(args.b);
           if (KIND_LABEL[String(args.kind) as MateKind] && (!a || !b)) return fail(doc, '"a" and "b" are {part, face}: part "base" or an instance id, face a persistent face name (or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
           r = addMate(doc, { kind: String(args.kind) as MateKind, a: a!, b: b!, ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : args.flip && String(args.kind) !== 'concentric' ? { flip: true } : {}) });
-        } else r = editMate(doc, { id: String(args.id), ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : {}) });
+        } else r = editMate(doc, { id: String(args.id), ...(args.connectors !== undefined ? { connectors: args.connectors as { a?: Connector | null; b?: Connector | null } } : {}), ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : {}) });
       } catch (e) {
         if (!isRefusal(e, ...ASSEMBLY_CODES)) throw e;
         // (The tool's own hints after the core's words: where the faces are listed; that nothing was kept.)
@@ -269,7 +270,8 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
   return fail(doc, `Unknown tool "${name}".`);
 }
 
-const ref = { type: 'object', properties: { part: { type: 'string' }, face: { type: 'string' } }, required: ['part', 'face'], additionalProperties: false };
+const connector = { type: 'object', properties: { point: { type: 'string', enum: ['centre', 'start', 'mid', 'end', 'apex'] }, offset: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 }, turn: { type: 'number' }, flip: { type: 'boolean' } }, additionalProperties: false };
+const ref = { type: 'object', properties: { part: { type: 'string' }, face: { type: 'string' }, at: connector }, required: ['part', 'face'], additionalProperties: false };
 const end = { type: 'object', properties: { part: { type: 'string' }, interface: { type: 'string' } }, required: ['part', 'interface'], additionalProperties: false };
 const xyz = { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3 };
 
@@ -297,7 +299,7 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'add_mate',
-    description: 'Places a part by its faces, solved exactly by the studio\'s mate solver; a mate that conflicts with the others is refused with the reason. "a" stays, "b" moves (swapped when b\'s part is fixed). Kinds: coincident (a straight edge on a flat face, two straight edges on one line, or two flat faces flush, facing each other; flip: facing the same way; with an origin plane the default is the same way and flip opposes them), distance (the same, `distance` mm apart), angle (two flat faces `angle` degrees apart), concentric (round faces, cones, straight or circular edges on one axis; two spheres at one centre; flip true/false sets the axis sense), tangent (a round face touching a flat or another round face, or a sphere touching a flat face), cam (a: a face of the cam part, b: its follower\'s flat face, seated on the lobe — no hold on b, whose own mates make it slide; get_joints couples its slide to the cam\'s turn by the lobe\'s lift, or to a sliding a\'s slide: a pushed valve). Faces are persistent names (from get_assembly faces_of, or part results), or a part\'s origin planes origin:xy / origin:xz / origin:yz, or the base part\'s datums datum:<id> (add_datum: a plane flat, an axis round). The result says what the moved part can still do (free turns and slides).',
+    description: 'Places a part by its faces, solved exactly by the studio\'s mate solver; a mate that conflicts with the others is refused with the reason. "a" stays, "b" moves (swapped when b\'s part is fixed). Kinds: coincident (a straight edge on a flat face, two straight edges on one line, or two flat faces flush, facing each other; flip: facing the same way; with an origin plane the default is the same way and flip opposes them), distance (the same, `distance` mm apart), angle (two flat faces `angle` degrees apart), concentric (round faces, cones, straight or circular edges on one axis; two spheres at one centre; flip true/false sets the axis sense), tangent (a round face touching a flat or another round face, or a sphere touching a flat face), cam (a: a face of the cam part, b: its follower\'s flat face, seated on the lobe — no hold on b, whose own mates make it slide; get_joints couples its slide to the cam\'s turn by the lobe\'s lift, or to a sliding a\'s slide: a pushed valve). Faces are persistent names (from get_assembly faces_of, or part results), or a part\'s origin planes origin:xy / origin:xz / origin:yz, or the base part\'s datums datum:<id> (add_datum: a plane flat, an axis round). A reference may carry at: {point?, offset?, turn?, flip?}: select centre/start/mid/end/apex, flip local Z, turn in degrees about that Z, then offset in the resulting frame (mm). Missing centres/spans and unsupported points are refused. Connectors act as planes for coincident/distance/angle and zero-radius axes for concentric/tangent; they keep those mates\' free motions. The result says what the moved part can still do (free turns and slides).',
     input_schema: { type: 'object', properties: { kind: { type: 'string', enum: Object.keys(KIND_LABEL) }, a: ref, b: ref, distance: { type: 'number' }, angle: { type: 'number' }, flip: { type: 'boolean' } }, required: ['kind', 'a', 'b'], additionalProperties: false },
   },
   {
@@ -307,8 +309,8 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'edit_mate',
-    description: 'Changes a mate\'s distance, angle or flip, re-solving; refused (unchanged) when it cannot be met.',
-    input_schema: { type: 'object', properties: { id: { type: 'string' }, distance: { type: 'number' }, angle: { type: 'number' }, flip: { type: 'boolean' } }, required: ['id'], additionalProperties: false },
+    description: 'Changes a mate\'s distance, angle, flip or connectors {a?, b?} (null removes one), re-solving; refused (unchanged) when it cannot be met.',
+    input_schema: { type: 'object', properties: { id: { type: 'string' }, connectors: { type: 'object', properties: { a: { anyOf: [connector, { type: 'null' }] }, b: { anyOf: [connector, { type: 'null' }] } }, additionalProperties: false }, distance: { type: 'number' }, angle: { type: 'number' }, flip: { type: 'boolean' } }, required: ['id'], additionalProperties: false },
   },
   {
     name: 'list_library',

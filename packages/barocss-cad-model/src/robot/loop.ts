@@ -10,7 +10,7 @@ import { pathTo } from './ik';
 import type { Joint, JointTree, Loop } from './joints';
 import { rotationMatrix } from '../engine/placement';
 import { tablesFor } from '../assembly/faces';
-import { solvedFaces } from '../assembly/mates';
+import { mateFacesOf } from '../assembly/mates';
 import { solveDoc } from '../assembly/edit';
 import { refusal } from '../engine/refusal';
 
@@ -53,7 +53,8 @@ export function closureOf(tree: JointTree, a: string, b: string, pin: readonly n
 export function closureOfDoc(doc: StudioDoc, tree: JointTree, loop: Loop): Closure {
   const solved = solveDoc(doc).doc, tables = tablesFor(solved), mates = (solved.mates ?? []).filter(m => loop.mates.includes(m.id)), conc = mates.find(m => m.kind === 'concentric');
   if (!conc) throw refusal('NO_PIN', `the loop ${loop.parts.join('–')} has no concentric mate to close on`);
-  const side = conc.a, f = tables(side.part)?.[side.face];
+  const side = conc.a, fa = tables(side.part)?.[side.face], fb = tables(conc.b.part)?.[conc.b.face];
+  const f = fa && fb ? mateFacesOf(conc, { a: fa, b: fb }).a : undefined;
   if (!f || f.kind !== 'cylinder') throw refusal('NO_PIN', `${side.part}.${side.face} is not a round face`);
   const inst = (solved.instances ?? []).find(i => i.id === side.part), R = inst ? rotationMatrix(inst.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1], t = inst ? inst.position : [0, 0, 0];
   const p = [0, 1, 2].map(i => R[i * 3] * f.point[0] + R[i * 3 + 1] * f.point[1] + R[i * 3 + 2] * f.point[2] + t[i]), n = [0, 1, 2].map(i => R[i * 3] * f.axis[0] + R[i * 3 + 1] * f.axis[1] + R[i * 3 + 2] * f.axis[2]);
@@ -131,7 +132,7 @@ export function loopTermsOf(doc: StudioDoc, tree: JointTree): LoopTerm[] {
       out.push({ ...base, kind: 'point', p: [o, worldP(m.b.part, [20, 0, 0]), worldP(m.b.part, [0, 20, 0])], o, d: [0, 0, 0] });
       continue;
     }
-    const fa0 = tables(m.a.part)?.[m.a.face], fb0 = tables(m.b.part)?.[m.b.face], sf = fa0 && fb0 ? solvedFaces(m.kind, fa0, fb0) : null;
+    const fa0 = tables(m.a.part)?.[m.a.face], fb0 = tables(m.b.part)?.[m.b.face], sf = fa0 && fb0 ? mateFacesOf(m, { a: fa0, b: fb0 }) : null;
     const fa = sf?.a, fb = sf?.b, kind = sf?.as ?? m.kind;
     if (fa?.kind === 'sphere' && fb?.kind === 'sphere' && kind === 'concentric') {
       // (O24 c: a ball closing a loop — b's centre where a carries it.)

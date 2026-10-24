@@ -1,3 +1,4 @@
+import { documentConnectorError } from '../assembly/connectors';
 // Reading a saved .bcad file: its format and schema checked, an older one brought up to the current
 // schema with what was filled in said, one from a newer studio or with unknown features refused — the
 // file itself is left as it is until it is saved again.
@@ -22,6 +23,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   const o = raw as Record<string, unknown>;
   if (!o || typeof o !== 'object' || o.format !== 'barocss-cad-model') return { error: 'This is not a BaroCSS model file (no barocss-cad-model format).' };
   if (!Array.isArray(o.nodes)) return { error: 'This model file has no features list.' };
+  const connectorError = documentConnectorError(o);
+  if (connectorError) return { error: connectorError };
   const previewProblem = firstProblem(checkDocumentPrintPreview(o));
   if (previewProblem) return { error: previewProblem };
   const housingProblem = firstProblem(checkDocumentBearingHousing(o));

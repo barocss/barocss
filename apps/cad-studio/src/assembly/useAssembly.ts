@@ -5,7 +5,7 @@ import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { FaceClient } from './faceClient';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
-import { BASE, kindsFor, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
+import { BASE, mateKindsOf, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
 
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */
 export interface MatePick { ref: MateRef; body?: number; face?: number }
@@ -126,7 +126,9 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     }
     const fa = faceOf(first.ref), fb = faceOf(second.ref);
     if (!fa || !fb) return { ...d, picks: [d.picks[0]], error: 'This part’s faces are still being read. Click the face again in a moment.' };
-    const kinds = kindsFor(fa, fb), kind = d.kind === 'auto' ? kinds[0] ?? 'coincident' : d.kind;
+    let kinds: MateKind[];
+    try { kinds = mateKindsOf({ a: first.ref, b: second.ref }, { a: fa, b: fb }); } catch (e) { return { ...d, picks: [d.picks[0]], error: String(e instanceof Error ? e.message : e) }; }
+    const kind = d.kind === 'auto' ? kinds[0] ?? 'coincident' : d.kind;
     const used = new Set(mates.map(m => m.id));
     let n = mates.length + 1; while (used.has(`m${n}`)) n++;
     const mate: Mate = { id: `m${n}`, kind, a: first.ref, b: second.ref, ...(kind === 'distance' ? { distance: d.distance } : {}), ...(kind === 'angle' ? { angle: d.angle } : {}), ...(kind !== 'concentric' && d.flip ? { flip: true } : {}) };
