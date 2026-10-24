@@ -295,17 +295,25 @@ export async function sweepLinksOfDoc(doc: StudioDoc, bodies: readonly BodyResul
 /** A duty as given (JSON), each move checked as motion_torques takes one; or why not. */
 export function readDuty(tree: JointTree, raw: unknown): Duty | { error: string } {
   const d = raw as Record<string, unknown> | null;
-  if (!d || typeof d !== 'object' || !Array.isArray(d.moves) || !d.moves.length) return { error: 'a duty has "moves": [{from, to, profile, limits | joint_limits, dwell_s?}, …]' };
+  if (!d || typeof d !== 'object' || Array.isArray(d) || !Array.isArray(d.moves) || !d.moves.length) return { error: 'a duty has "moves": [{from, to, profile, limits | joint_limits, dwell?}, …]' };
+  const extra = Object.keys(d).filter(k => !['moves', 'serviceLife', 'inertia_ratio_max', 'clearance', 'g', 'actuators'].includes(k));
+  if (extra.length) return { error: `No duty field ${extra.join(', ')}.` };
   const moves: Duty['moves'] = [];
   for (const [i, m] of (d.moves as Record<string, unknown>[]).entries()) {
+    if (!m || typeof m !== 'object' || Array.isArray(m)) return { error: `move ${i} is an object.` };
+    const extra = Object.keys(m).filter(k => !['from', 'to', 'profile', 'limits', 'joint_limits', 'dwell'].includes(k));
+    if (extra.length) return { error: `move ${i}: no field ${extra.join(', ')}.` };
     const a = moveArgs(tree, m); if ('error' in a) return { error: `move ${i}: ${a.error}` };
-    const dwell = m.dwell_s ?? 0; if (typeof dwell !== 'number' || !(dwell >= 0)) return { error: `move ${i}: "dwell_s" is a time of 0 s or more` };
+    const moving = Object.keys({ ...a.from, ...a.to }).filter(k => (a.from[k] ?? 0) !== (a.to[k] ?? 0));
+    for (const key of moving) if (Object.values(a.limits(key)).some(v => !Number.isFinite(v))) return { error: `move ${i}: ${key}: limits must be finite numbers.` };
+    const dwell = m.dwell ?? 0; if (typeof dwell !== 'number' || !Number.isFinite(dwell) || !(dwell >= 0)) return { error: `move ${i}: "dwell" is a time of 0 s or more` };
     moves.push({ from: a.from, to: a.to, profile: a.profile, joint_limits: Object.fromEntries(Object.keys({ ...a.from, ...a.to }).filter(k => (a.from[k] ?? 0) !== (a.to[k] ?? 0)).map(k => [k, a.limits(k)])), dwell_s: dwell });
   }
-  const num = (k: string) => { const v = d[k]; return v === undefined ? undefined : typeof v === 'number' && v > 0 ? v : NaN; };
-  for (const k of ['life_h', 'inertia_ratio_max']) if (Number.isNaN(num(k))) return { error: `"${k}" is a number above 0` };
-  if (d.clearance_mm !== undefined && !(typeof d.clearance_mm === 'number' && d.clearance_mm >= 0)) return { error: '"clearance_mm" is 0 or more' };
-  return { moves, ...(num('life_h') ? { life_h: num('life_h') } : {}), ...(num('inertia_ratio_max') ? { inertia_ratio_max: num('inertia_ratio_max') } : {}), ...(d.clearance_mm !== undefined ? { clearance_mm: d.clearance_mm as number } : {}), ...(d.actuators ? { actuators: d.actuators as Duty['actuators'] } : {}), ...(Array.isArray(d.g) ? { g: d.g as V3 } : {}) };
+  const num = (k: string) => { const v = d[k]; return v === undefined ? undefined : typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : NaN; };
+  for (const k of ['serviceLife', 'inertia_ratio_max']) if (Number.isNaN(num(k))) return { error: `"${k}" is a number above 0` };
+  if (d.clearance !== undefined && !(typeof d.clearance === 'number' && Number.isFinite(d.clearance) && d.clearance >= 0)) return { error: '"clearance" is 0 or more' };
+  if (d.g !== undefined && (!Array.isArray(d.g) || d.g.length !== 3 || d.g.some(x => typeof x !== 'number' || !Number.isFinite(x)))) return { error: '"g" is [x, y, z] in mm/s².' };
+  return { moves, ...(num('serviceLife') ? { life_h: num('serviceLife')! / 3600 } : {}), ...(num('inertia_ratio_max') ? { inertia_ratio_max: num('inertia_ratio_max') } : {}), ...(d.clearance !== undefined ? { clearance_mm: d.clearance as number } : {}), ...(d.actuators ? { actuators: d.actuators as Duty['actuators'] } : {}), g: gravityIn(d.g as V3 | undefined) };
 }
 /** RD9's harness on the document's robot: every margin against the duty (src/robot/harness.ts). */
 export async function robotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: Duty): Promise<HarnessReport> {

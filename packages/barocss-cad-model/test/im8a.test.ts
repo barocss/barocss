@@ -8,6 +8,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { checkMaterials, MATERIALS_DATA, materialData } from '../src/library/materials';
 import { withSampleRows } from './person-file';
 import { castingProfileOf } from '../src/engine/castingRuleRows';
+import { castingDraftLimits } from '../src/casting/report';
 
 // IM8a (O106): casting's presets, against closed forms — die casting's least wall and draft per alloy family read off
 // eFunda's table, its achievable draft and tolerance off Dynacast's guide (the tolerance the looser end, inches × 25.4),
@@ -53,7 +54,13 @@ test('IM8a the data: every casting limit names its page (a derived one its rule)
 
 test('IM8a die-casting draft: a block drafted θ — zinc passes 0.75° and 0.5°, warns 0.4° (under 0.5° achievable), fails 0.2° (under 0.25° least); aluminium passes 1.5°, warns 0.75°, fails 0.4°; the four sides named', async () => {
   for (const [material, draft, status] of [['zamak3', 0.75, 'pass'], ['zamak3', 0.5, 'pass'], ['zamak3', 0.4, 'warn'], ['zamak3', 0.2, 'fail'], ['a380', 1.5, 'pass'], ['a380', 0.75, 'warn'], ['a380', 0.4, 'fail']] as const) {
-    const r = await rule(cast(block(draft), 'die-casting', material), 'draft');
+    const doc = cast(block(draft), 'die-casting', material), profile = castingProfileOf(doc, 'die-casting')!;
+    const limits = castingDraftLimits(doc, bodiesOf(doc), profile);
+    assert.ok(limits);
+    assert.deepEqual([limits.draftMin, limits.draftRecommended], material === 'zamak3' ? [0.25, 0.5] : [0.5, 1]);
+    assert.equal(limits.source, value('die-casting', `${material === 'zamak3' ? 'zinc' : 'aluminium'}DraftMinDeg`).page!.url);
+    assert.ok(!('minDeg' in limits) && !('recDeg' in limits));
+    const r = await rule(doc, 'draft');
     assert.equal(r.status, status, `${material} ${draft}°: ${r.message}`);
     assert.ok(Math.abs(r.value! - draft) <= 1e-6, `${r.value}`);
     if (status !== 'pass') assert.deepEqual([...r.entities!].sort(), ['n1.side0', 'n1.side1', 'n1.side2', 'n1.side3']);
@@ -80,7 +87,10 @@ test('IM8a the unknowns, said: no material; a wrought alloy (6061) is not a cast
   const mg = await report(cast(block(1), 'die-casting', 'az91d'));
   assert.deepEqual(['material', 'wall', 'draft', 'tolerance'].map(id => mg.rules.find(r => r.id === id)!.status), ['unknown', 'unknown', 'unknown', 'unknown']);
   assert.match(mg.rules.find(r => r.id === 'wall')!.why!, /no least wall for a magnesium alloy in die casting was read/);
-  const brass = await report(cast(block(1), 'die-casting', 'brass'));
+  const brassDoc = cast(block(1), 'die-casting', 'brass'), brass = await report(brassDoc);
+  const brassLimits = castingDraftLimits(brassDoc, bodiesOf(brassDoc), castingProfileOf(brassDoc, 'die-casting')!);
+  assert.ok(brassLimits); assert.deepEqual([brassLimits.draftMin, brassLimits.draftRecommended], [0.7, null]);
+  assert.ok(!('minDeg' in brassLimits) && !('recDeg' in brassLimits));
   assert.deepEqual([brass.rules.find(r => r.id === 'draft')!.status, brass.rules.find(r => r.id === 'tolerance')!.status], ['pass', 'unknown']);
   assert.equal((await rule(cast(block(3), 'sand-casting', 'a356'), 'tolerance')).status, 'unknown');
   const noPull = await report(cast(block(1), 'die-casting', 'zamak3', null));
@@ -91,7 +101,7 @@ test('IM8a the report through the tool: die-cast zinc — its process, family an
   const doc = cast(block(1), 'die-casting', 'zamak3'), s = { doc, bodies: bodiesOf(doc) } as never as ChatState;
   const r = await dispatchTool(s, 'check_printability', {}, evaluate), j = JSON.parse(r.content);
   assert.ok(!r.isError, r.content);
-  assert.deepEqual([j.process, j.casting.family, j.casting.tolerance.mm, j.casting.tolerance.page], ['die-casting', 'zinc', 0.0508, 'https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design']);
+  assert.deepEqual([j.process, j.casting.family, j.casting.tolerance.value, j.casting.tolerance.page], ['die-casting', 'zinc', 0.0508, 'https://www.dynacast.com/resources/article/a-beginners-guide-to-die-cast-design']);
   // (IM8b's two rules between: die casting has no shrinkage read, and no face is marked machined; IM8c's three: no gate, no die-casting section ratio read.)
   assert.deepEqual(j.rules.map((x: { id: string; status: string }) => [x.id, x.status]), [['material', 'pass'], ['pull', 'pass'], ['wall', 'pass'], ['draft', 'pass'], ['shrink', 'unknown'], ['machining-allowance', 'n/a'], ['hot-spots', 'pass'], ['feeding', 'unknown'], ['section-change', 'unknown'], ['tolerance', 'pass']]);
   assert.equal((await dispatchTool(s, 'query', { action: 'manufacturability' }, evaluate)).content, r.content);

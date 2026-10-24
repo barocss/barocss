@@ -10,7 +10,7 @@ export interface PrintDisplay {
   layer: PrintLayer;
   /** Full summary columns extruded once, shared between lazy layer updates. Never a native CAD body. */
   supportMesh: DisplayMesh;
-  topMM: number;
+  top: number;
   supports: boolean;
   printed: boolean;
 }

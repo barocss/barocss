@@ -371,8 +371,8 @@ export async function referencesReport(doc: StudioDoc, evaluate: Evaluate) {
   const problems = await verifyDatums(set, evaluate);
   return {
     references: refs, ...(problems.length ? { problems } : {}),
-    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual_mm: r9(d.residual) } : {}) }; }),
-    keepouts: set.keepouts.map(k => ({ id: k.id, name: k.name, frame: k.frame, shape: k.shape, clearance_mm: k.clearance, ...(k.around ? { around: k.around } : {}) })),
+    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual: r9(d.residual) } : {}) }; }),
+    keepouts: set.keepouts.map(k => ({ id: k.id, name: k.name, frame: k.frame, shape: k.shape, clearance: k.clearance, ...(k.around ? { around: k.around } : {}) })),
   };
 }
 /** Runs a reference tool. */
@@ -385,7 +385,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
       const res = await checkKeepouts(doc, bodies, evaluate, { ...(typeof args.keepout === 'string' ? { keepout: args.keepout } : {}), ...(typeof args.body === 'string' ? { body: args.body } : {}) });
       const n = (v: number | null) => (v === null || !Number.isFinite(v) ? null : r9(v));
       const counts = { clear: res.filter(r => r.verdict === 'clear').length, violated: res.filter(r => r.verdict === 'violated').length, undecided: res.filter(r => r.verdict === 'undecided').length };
-      return { doc, content: { results: res.map(r => ({ keepout: r.keepout, body: r.body, verdict: r.verdict, overlap_mm3: n(r.overlap), clearance_mm: n(r.clearance), required_mm: r.requiredMM, chord_tolerance_mm: n(r.chordMM), why: r.why })), ...counts }, changed: false, summary: `${counts.clear} clear, ${counts.violated} violated, ${counts.undecided} undecided` };
+      return { doc, content: { results: res.map(r => ({ keepout: r.keepout, body: r.body, verdict: r.verdict, overlap: n(r.overlap), clearance: n(r.clearance), requiredClearance: r.requiredMM, chordTolerance: n(r.chordMM), why: r.why })), ...counts }, changed: false, summary: `${counts.clear} clear, ${counts.violated} violated, ${counts.undecided} undecided` };
     }
     if (name === 'add_reference') {
       if (typeof args.name !== 'string' || !args.name.trim()) return { error: '[BAD_REFERENCE] a reference has a name.' };
@@ -418,7 +418,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
         else return { error: '[BAD_REFERENCE] kind is plane, axis or point.' };
       }
       const w = datumWorld({ ...set, datums: [...set.datums, d] }, d);
-      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual_mm: r9(d.residual) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
+      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual: r9(d.residual) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
     }
     if (name === 'add_keepout') {
       const id = newKeepoutId(set), label = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : id, clearance = args.clearance === undefined ? 0 : args.clearance;
@@ -442,7 +442,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
         if (typeof c.radius !== 'number' || !(c.radius > 0) || typeof c.height !== 'number' || !(c.height > 0)) return { error: '[BAD_KEEPOUT] a cylinder has a radius and height above 0.' };
         k = { id, name: label, frame: f, shape: { kind: 'cylinder', radius: c.radius, height: c.height }, clearance };
       }
-      return { doc: put({ ...set, keepouts: [...set.keepouts, k] }), content: { ok: true, id, frame: k.frame, shape: k.shape, clearance_mm: k.clearance }, changed: true, summary: `keep-out ${id}` };
+      return { doc: put({ ...set, keepouts: [...set.keepouts, k] }), content: { ok: true, id, frame: k.frame, shape: k.shape, clearance: k.clearance }, changed: true, summary: `keep-out ${id}` };
     }
     // delete_reference_item
     const iid = args.id;

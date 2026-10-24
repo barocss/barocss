@@ -26,23 +26,23 @@ test('IM5 a box pulled along +Z: its walls along the pull go to the − half by 
   assert.deepEqual(p.faces.filter(f => f.basis === 'wall default').map(f => f.face).sort(), ['n1.side0', 'n1.side1', 'n1.side2', 'n1.side3']);
   assert.equal(p.loops.length, 1); assert.deepEqual(p.split, []);
   const [l] = p.loops;
-  assert.ok(l.closed && l.flat && Math.abs(l.length - 140) <= 1e-9 && Math.abs(l.rangeMM[0] - 10) <= 1e-6, JSON.stringify(l));
+  assert.ok(l.closed && l.flat && Math.abs(l.length - 140) <= 1e-9 && Math.abs(l.pullRange[0] - 10) <= 1e-6, JSON.stringify(l));
   const up = partingLine(doc, bodiesOf(doc), [0, 0, 1], { 'n1.side0': '+', 'n1.side1': '+', 'n1.side2': '+', 'n1.side3': '+' });
-  assert.ok(up.loops.length === 1 && up.loops[0].flat && Math.abs(up.loops[0].rangeMM[0]) <= 1e-6 && Math.abs(up.loops[0].length - 140) <= 1e-9, JSON.stringify(up.loops));
+  assert.ok(up.loops.length === 1 && up.loops[0].flat && Math.abs(up.loops[0].pullRange[0]) <= 1e-6 && Math.abs(up.loops[0].length - 140) <= 1e-9, JSON.stringify(up.loops));
 });
 
 test('IM5 a box drafted 2°: its walls in the + half by their draft — the loop round the bottom, the sketch\'s 140, at 0', () => {
   const doc = box(2), p = partingLine(doc, bodiesOf(doc), [0, 0, 1]);
   assert.ok(p.faces.filter(f => f.face.startsWith('n1.side')).every(f => f.half === '+' && f.basis === 'draft'), JSON.stringify(p.faces));
-  assert.ok(p.loops.length === 1 && p.loops[0].closed && p.loops[0].flat && Math.abs(p.loops[0].rangeMM[0]) <= 1e-6 && Math.abs(p.loops[0].length - 140) <= 1e-9, JSON.stringify(p.loops));
+  assert.ok(p.loops.length === 1 && p.loops[0].closed && p.loops[0].flat && Math.abs(p.loops[0].pullRange[0]) <= 1e-6 && Math.abs(p.loops[0].length - 140) <= 1e-9, JSON.stringify(p.loops));
 });
 
 test('IM5 a cylinder lying across the pull: straddling, its isocline z = 0 traced on the exact surface (80 long), the loop closed round it and the caps\' upper halves, stepped; to split — or put whole in one half: then two loops round the caps', () => {
   const doc = crossCylinder(), p = partingLine(doc, bodiesOf(doc), [0, 0, 1]);
-  assert.deepEqual(p.split.map(x => [x.face, +x.isoclineMM.toFixed(9)]), [['n1.side0', 80]]);
+  assert.deepEqual(p.split.map(x => [x.face, +x.isoclineLength.toFixed(9)]), [['n1.side0', 80]]);
   assert.equal(p.loops.length, 1);
   const [l] = p.loops;
-  assert.ok(l.closed && !l.flat && Math.abs(l.length - (80 + 2 * halfCircle)) <= 1e-4 && Math.abs(l.rangeMM[0]) <= 1e-6 && Math.abs(l.rangeMM[1] - 10) <= 1e-4, JSON.stringify(l));
+  assert.ok(l.closed && !l.flat && Math.abs(l.length - (80 + 2 * halfCircle)) <= 1e-4 && Math.abs(l.pullRange[0]) <= 1e-6 && Math.abs(l.pullRange[1] - 10) <= 1e-4, JSON.stringify(l));
   // (The isocline's points on z = 0 exactly: the bisection on the exact normal.)
   assert.ok(l.points.filter(q => Math.abs(q[2]) <= 1e-9).length >= 4);
   const whole = partingLine(doc, bodiesOf(doc), [0, 0, 1], { 'n1.side0': '+' });

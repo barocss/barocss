@@ -36,11 +36,11 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
   rules.push(family ? { id: 'material', level: 'feasible', status: 'pass', message: `${m!.label}: a ${family}, machined to ${family === 'metal' ? 'metal' : 'plastic'} limits` }
     : { id: 'material', level: 'feasible', status: 'unknown', message: 'the material (its family sets the limits)', why: mixed ? 'the bodies are of different materials' : 'the material is not set (set_material, or the brief\'s stated material): none is assumed' });
   // Walls: the thinnest (the inward ray, IM4's walls) against the family's feasible and recommended least.
-  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnestMM !== null).sort((a, b) => a.thinnestMM! - b.thinnestMM!)[0];
+  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnest !== null).sort((a, b) => a.thinnest! - b.thinnest!)[0];
   if (!thin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });
-  else if (!family) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnestMM!)} mm`, why: 'its limits are a metal\'s or a plastic\'s: the material is not set' });
+  else if (!family) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnest!)} mm`, why: 'its limits are a metal\'s or a plastic\'s: the material is not set' });
   else {
-    const min = t(family === 'metal' ? 'wallMetalMin' : 'wallPlasticMin'), rec = t(family === 'metal' ? 'wallMetalRec' : 'wallPlasticRec'), w = thin.thinnestMM!;
+    const min = t(family === 'metal' ? 'wallMetalMin' : 'wallPlasticMin'), rec = t(family === 'metal' ? 'wallMetalRec' : 'wallPlasticRec'), w = thin.thinnest!;
     rules.push({ id: 'wall', level: w < min.value - 1e-9 ? 'feasible' : 'recommended', status: w < min.value - 1e-9 ? 'fail' : w < rec.value - 1e-9 ? 'warn' : 'pass',
       message: `the thinnest wall, ${r3(w)} mm, against a ${family}'s ${min.value} mm feasible and ${rec.value} mm recommended`, value: r3(w), limit: w < min.value - 1e-9 ? min.value : rec.value, unit: 'mm', source: min.source, entities: [thin.body] });
   }
@@ -67,7 +67,7 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
   if (stock.ok) { const c = stock.choice; rules.push({ id: 'stock', level: 'recommended', status: 'pass', message: `stock ${c.row.id}: ${c.row.kind === 'block' ? c.size.join(' × ') : `Ø${c.size[0]} × ${c.size[1]}`} mm (${c.row.source}), ${c.allowance.mm} mm a face${c.allowance.basis === 'estimate' ? ' (an estimate: set yours)' : ''}`, value: c.row.kind === 'block' ? c.size.reduce((p, x) => p * x, 1) : c.size[0], unit: c.row.kind === 'block' ? 'mm³' : 'mm' }); }
   else rules.push({ id: 'stock', level: 'recommended', status: stock.code === 'STOCK_NONE_FITS' ? 'warn' : 'unknown', message: `${stock.code}: ${stock.message}`, ...(stock.code === 'STOCK_NONE_FITS' ? {} : { why: stock.message }) });
   const classes = profile.toleranceClasses;
-  return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { mm: t('tolMM').value, feasibleMM: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
+  return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { value: t('tolMM').value, feasibleLimit: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
     toleranceClass: classes && family ? { name: classes[family], note: 'the class named; its values are the standard\'s, not copied here', source: classes.page.url } : null, holes, tapped, ...(cavities ? { cavities } : {}), ...(access ? { access } : {}), ...(turning ? { turning } : {}), drawing, ...(features ? { features } : {}), stock } };
 }
 
@@ -170,7 +170,7 @@ function cavityRules(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pro
 /** CNC4's rules: access (area no axis direction reaches, warned: no sourced feasible limit) and setups (counted, greedy). */
 function accessRules(bodies: readonly BodyResult[], rules: PrintRule[]): Access {
   const a = accessOf(bodies), faces = a.unreached.slice(0, 4).map(u => u.face);
-  rules.push(a.unreachedMM2 > 0 ? { id: 'access', level: 'recommended', status: 'warn', message: `${r3(a.unreachedMM2)} mm² reached from none of ±X, ±Y, ±Z (${faces.join(', ')}${a.unreached.length > 4 ? ' …' : ''}): an undercut for a 3-axis mill — a 5-axis setup, an undercut cutter or a change`, value: r3(a.unreachedMM2), unit: 'mm²', entities: faces }
+  rules.push(a.unreachedArea > 0 ? { id: 'access', level: 'recommended', status: 'warn', message: `${r3(a.unreachedArea)} mm² reached from none of ±X, ±Y, ±Z (${faces.join(', ')}${a.unreached.length > 4 ? ' …' : ''}): an undercut for a 3-axis mill — a 5-axis setup, an undercut cutter or a change`, value: r3(a.unreachedArea), unit: 'mm²', entities: faces }
     : { id: 'access', level: 'recommended', status: 'pass', message: 'every surface reached from one of ±X, ±Y, ±Z (the tool from its side)' });
   rules.push({ id: 'setups', level: 'recommended', status: 'pass', message: `${a.setups.length} setup${a.setups.length === 1 ? '' : 's'} (${a.setups.map(x => x.direction).join(', ')}), counted greedily by the area each adds`, value: a.setups.length, unit: 'setups' });
   return a;
@@ -197,10 +197,10 @@ function turningRules(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   }
   const D = tu.diameter, L = tu.length, over = D > t('maxDiameterMM') + 1e-9 || L > t('maxLengthMM') + 1e-9, small = D < t('minPartDiameterMM') - 1e-9 || L < t('minPartLengthMM') - 1e-9;
   rules.push({ id: 'size', level: over ? 'feasible' : 'recommended', status: over ? 'fail' : small ? 'warn' : 'pass', message: `Ø${r3(D)} × ${r3(L)} mm along its axis, against a lathe's Ø${t('maxDiameterMM')} × ${t('maxLengthMM')}${small ? ` — under the least part, Ø${t('minPartDiameterMM')} × ${t('minPartLengthMM')}` : ''}`, value: r3(Math.max(D / t('maxDiameterMM'), L / t('maxLengthMM'))), limit: 1, unit: 'ratio', source: src(small && !over ? 'minPartDiameterMM' : 'maxDiameterMM') });
-  const offA = tu.area - tu.turnedMM2, offFaces = tu.offAxis.slice(0, 4).map(x => x.face);
+  const offA = tu.area - tu.turnedArea, offFaces = tu.offAxis.slice(0, 4).map(x => x.face);
   rules.push(tu.offAxis.length ? { id: 'turning', level: 'recommended', status: 'warn', message: `${r3(offA)} mm² not turned (${offFaces.join(', ')}${tu.offAxis.length > 4 ? ' …' : ''}): milled by live tools on a mill-turn (flats, slots and grooves), or a second setup`, value: r3(offA / tu.area), unit: 'share', source: src('holeMinRadialMM'), entities: offFaces }
     : { id: 'turning', level: 'feasible', status: 'pass', message: `every surface turned about the axis (its exact normals meet it), L/D ${r3(L / D)}` });
-  const dmin = tu.minOuterDiameterMM;
+  const dmin = tu.minOuterDiameter;
   rules.push(dmin === null ? { id: 'diameter', level: 'recommended', status: 'unknown', message: 'the least outside diameter', why: 'no outside cylinder on the axis' }
     : { id: 'diameter', level: 'recommended', status: dmin < t('minDiameterMM') - 1e-9 ? 'warn' : 'pass', message: `the least outside diameter Ø${r3(dmin)}, against Ø${t('minDiameterMM')} in any region`, value: r3(dmin), limit: t('minDiameterMM'), unit: 'mm', source: src('minDiameterMM') });
   const wMin = t(soft ? 'grooveWidthMinSoftMM' : 'grooveWidthMinMM'), narrow = tu.grooves.filter(g => g.width < wMin - 1e-9), deep = tu.grooves.filter(g => g.depth > t('grooveDepthMaxMM') + 1e-9);
@@ -211,8 +211,8 @@ function turningRules(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     : h.kind === 'radial' && h.diameter < rMin - 1e-9 ? [`a radial hole Ø${r3(h.diameter)} (under ${rMin}${soft ? ', aluminium and brass' : ''})`] : h.kind === 'angled' && !soft ? [`a hole at an angle to the axis (in ${material ?? 'an unset material'}: only aluminium and brass)`] : []);
   const kinds = ['on-axis', 'axial', 'radial', 'angled'].map(k => [k, tu.holes.filter(h => h.kind === k).length] as const).filter(([, n]) => n);
   rules.push({ id: 'holes', level: 'recommended', status: hBad.length ? 'warn' : 'pass', message: tu.holes.length ? `${kinds.map(([k, n]) => `${n} ${k}`).join(', ')}${hBad.length ? `; ${hBad.join('; ')}` : ''}${tu.holes.some(h => h.kind !== 'on-axis') ? '; off the axis: live tools' : ''}` : 'no holes', source: src('holeMinRadialMM') });
-  const sharp = tu.points.filter(p => p.includedDeg < t('pointAngleMinDeg') - 1e-9);
-  rules.push({ id: 'point', level: 'recommended', status: sharp.length ? 'warn' : 'pass', message: tu.points.length ? `${tu.points.length} point${tu.points.length === 1 ? '' : 's'}; ${sharp.length ? `${r3(sharp[0].includedDeg)}° included, under ${t('pointAngleMinDeg')}°` : `the sharpest ${r3(Math.min(...tu.points.map(p => p.includedDeg)))}°`}` : 'no points', source: src('pointAngleMinDeg'), ...(sharp.length ? { entities: [sharp[0].face] } : {}) });
+  const sharp = tu.points.filter(p => p.includedAngle < t('pointAngleMinDeg') - 1e-9);
+  rules.push({ id: 'point', level: 'recommended', status: sharp.length ? 'warn' : 'pass', message: tu.points.length ? `${tu.points.length} point${tu.points.length === 1 ? '' : 's'}; ${sharp.length ? `${r3(sharp[0].includedAngle)}° included, under ${t('pointAngleMinDeg')}°` : `the sharpest ${r3(Math.min(...tu.points.map(p => p.includedAngle)))}°`}` : 'no points', source: src('pointAngleMinDeg'), ...(sharp.length ? { entities: [sharp[0].face] } : {}) });
   rules.push({ id: 'corners', level: 'recommended', status: 'pass', message: 'turned: sharp inside corners come out radiused, outside corners typically chamfered', source: src('minDiameterMM') });
   return tu;
 }

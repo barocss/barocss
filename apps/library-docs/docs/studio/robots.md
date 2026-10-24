@@ -63,7 +63,8 @@ write metres and radians.
   - **Closed loops along a motion.** The agent's `play_motion` and `check_path` close a looped robot's loop at every
     pose: the motion names the driving joints, and the passive ones are solved. `check_path` cuts each segment into
     chords at most 1° (or 1 mm) of the drivers apart and certifies each one. A chord's middle isn't closed exactly, and
-    the reply says by how much, as `loops: {chords, chord_residual_mm}`. A waypoint that gives a passive joint is
+    the reply says by how much, as `loops: {chords, chordResidual}`, with `chordResidual` in mm. A waypoint that gives
+    a passive joint is
     refused, `LOOP_PASSIVE`. The studio's **Check path** and playback don't close the loop yet.
 - **Playing a motion.** **Play motion** plays the motion chosen in **Motion choice** in time. Its length shows before
   it plays.
@@ -92,6 +93,43 @@ and `cad-cli` can also run two checks:
   against their ratings. It lists every margin.
 - **robot-size** raises actuators and ratings, or slows the profile, round by round until every margin is above
   zero, or stops with a typed reason when no sizing can fix the brief.
+
+### Duty files and public reports
+
+A public duty file has `moves`. Each move supplies `from`, `to`, `profile` and limits. Turning values use degrees;
+sliding values use mm. Use `joint_limits` by joint key when a move mixes turns and slides. Velocity, acceleration
+and jerk use the corresponding units per second, second squared and second cubed. `dwell` and `serviceLife` use
+seconds, `clearance` uses mm, and `g` uses mm/s². `inertia_ratio_max` is dimensionless. The `actuators` map names
+catalogue motor and reducer ids by joint key. It does not supply new sourced hardware data.
+
+The CLI reads this public file with `readDuty`. Its shared `dutyJson` adapter writes public values back. The sample
+uses the shipped SCARA document, including its turn and slide:
+
+<<< @/../samples/robot-public-metadata.test.mjs#duty
+
+`robot-check` publishes the original harness result through `harnessJson`. A margin contains `value`, `limit`,
+`unit`, its dimensionless `margin`, its `source` and `ok`. Angles use `degree` or `degree/s`; turning effort uses
+N·mm and slide effort uses N. The adapter converts the original quantities before rounding. A non-finite
+quantity is `null`, not an invented finite measurement. Decisions, unknowns and sources keep their meaning.
+
+Project the original report before cloning or serializing it. A cloned margin has no raw quantity identity.
+Changing a margin's `value`, `limit` or `unit` also invalidates that identity. Projection then refuses with
+`HARNESS_RAW_PROVENANCE_UNAVAILABLE`:
+
+<<< @/../samples/robot-public-metadata.test.mjs#harness
+
+Consistency checks use dimensionless `errorRatio` and `limitRatio: 1`, and retain their original `ok` decision.
+Two zero quantities give an error ratio of 0. A positive error with a zero limit gives `null` and
+`reason: "zero-limit"`. Non-finite quantities or ratio overflow give `null` and `reason: "non-finite-ratio"`.
+The old mixed-unit `value` and `tol` fields are not public consistency fields.
+
+The scripted sizer's `sizedJson` result uses the same public boundaries for `tree`, `duty` and `report`. It retains
+`ok`, `rounds`, `trace` and any `stopped` reason. Trace text keeps its explicitly stated original units. The CLI
+writes the robot document and a public `.duty.json` file, and prints a summary. It does not print that whole result.
+These are the CLI's shared adapters, not new `Robot` facade methods. This sample limits sizing to zero rounds and
+checks the actual returned contract; it does not demonstrate a successful search for a hardware design:
+
+<<< @/../samples/robot-public-metadata.test.mjs#sized
 
 Gravity torques, the sweep and inverse kinematics follow a cam's coupling. A move's torques through a cam are
 refused, `CAM_UNSUPPORTED`: the lift's second derivative isn't worked out yet.
@@ -198,9 +236,9 @@ positions in mm and rotations in degrees.
 #### Robot unit boundaries
 
 ::: warning R7 contract preparation
-This section records the confirmed R7 public contract. The samples check the combined angular and B1 mass/gravity
-implementation. B2 duty/consistency reports and the remaining field changes are pending. The full R7 contract is not
-yet product-qualified.
+This section records the confirmed R7 public contract. Focused samples check angular metadata, B1 mass/gravity and
+the shared B2 duty/harness/sized boundaries. Further evaluation, orientation, print, CAM and material field changes
+and the final combined checks are pending. The full R7 contract is not yet product-qualified.
 :::
 
 Use degrees for turning joints and mm for sliding joints. Resolve the joint type before you convert a value.
@@ -225,6 +263,11 @@ uses the follower's unit divided by the leader's unit. It is dimensionless when 
 that drives a slide, a public multiplier of 0.1 mm/degree and an offset of 2 mm give 11 mm at 90 degrees. For the
 reverse relation, 10 degrees/mm and an offset of 5 degrees give 35 degrees at 3 mm. Convert both the multiplier and
 offset when you pass between public and internal units. Apply the same joint-type rule to cam and contact values.
+
+Nested gear placements `couplings[i].g1.rotation` and `g2.rotation` use degrees in the gear pair's common frame.
+The internal FK and `GearPlacement` keep radians. GearSpec pressure and helix angles already use degrees; do not
+convert them again. A pose's gear metadata uses `phase` and `homePhase` in degrees and `backlash` in mm. A closed
+pose reports `loops.residual` in mm, and a checked closed-loop motion reports `loops.chordResidual` in mm.
 
 **Public reports.** `Robot.inertia()` returns `{ links }`. Each link uses these fields, as does its agent report:
 
@@ -293,7 +336,8 @@ gravity. The holding moment is negative about +Y, in N·mm:
 
 The samples also check a real sweep's initial contact at 45 degrees and −12.5 mm. A separate unit projection
 fixture covers all four turn/slide mimic combinations. That fixture checks conversion; it does not demonstrate
-four physically assembled coupling mechanisms. B2 duty/consistency and remaining field changes need later checks.
+four physically assembled coupling mechanisms. The duty/metadata samples above exercise actual shared producers;
+the final combined checks after the remaining field changes are still pending.
 
 [Native export files](#exporting) retain their format-specific SI units. Their frozen bytes need a separate check
 from public JSON quantities. Explicit source catalogue records such as `{ v, unit, src }` retain their source units

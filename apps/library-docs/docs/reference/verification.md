@@ -22,8 +22,10 @@ studio in a browser.
 Compare physical quantities in the same units. Modeling mass results use MMGS. The confirmed R7 contract also uses
 MMGS for public robot inertia reports. The [physical robot examples](/studio/robots#physical-report-examples) compare
 the B1 facade's cube mass/inertia and actual joint holding forces to independent geometry and gravity values.
-Native robot export files retain their format-specific SI units. B2 duty/consistency and remaining field changes
-are pending. See [Robot unit boundaries](/studio/robots#robot-unit-boundaries).
+The [duty examples](/studio/robots#duty-files-and-public-reports) use actual robot documents and original harness/sizer
+results through the CLI's shared B2 adapters. These checks retain decisions and provenance; they do not establish
+hardware acceptance. Native robot export files retain their format-specific SI units. Further field changes and
+final combined checks are pending. See [Robot unit boundaries](/studio/robots#robot-unit-boundaries).
 
 | Quantity | MMGS to SI |
 |---|---|

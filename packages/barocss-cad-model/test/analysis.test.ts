@@ -30,18 +30,18 @@ test('interference: an overlap by its volume; apart, the clearance', async () =>
   const s = await stateOf(box(box(box(emptyDoc(), 0, 10, 5), 5, 10, 5), 30, 10, 5));
   const { pairs } = await call(s, 'interference', {});
   const p = (a: string, b: string) => pairs.find((x: { a: string; b: string }) => x.a === a && x.b === b);
-  assert.equal(p('b1', 'b3').overlap_mm3, 5 * 10 * 5);
-  assert.ok(Math.abs(p('b3', 'b5').clearance_mm - 15) < 1e-6);
-  assert.ok(Math.abs(p('b1', 'b5').clearance_mm - 20) < 1e-6);
+  assert.equal(p('b1', 'b3').overlap, 5 * 10 * 5);
+  assert.ok(Math.abs(p('b3', 'b5').clearance - 15) < 1e-6);
+  assert.ok(Math.abs(p('b1', 'b5').clearance - 20) < 1e-6);
 });
 
 test('section, wall thickness and draft of a plate', async () => {
   const s = await stateOf(rectanglePart(40, 20, 8));
   const sec = await call(s, 'section', { axis: 'x', at: 10 });
-  assert.deepEqual([sec.cut[0].body, sec.cut[0].cut_area_mm2, sec.cut[0].regions], ['b1', 160, 1]);
+  assert.deepEqual([sec.cut[0].body, sec.cut[0].cutArea, sec.cut[0].regions], ['b1', 160, 1]);
   assert.match(parse((await runTool(s, 'section', { axis: 'z', at: 50 }, evaluate)).content).error, /cuts no body/);
   const wall = await call(s, 'wall_thickness', {});
-  assert.equal(wall.thinnest_mm, 8);
+  assert.equal(wall.thinnest, 8);
   const draft = await call(s, 'draft', { body: 'b1' });
-  assert.deepEqual([draft.walls.length, draft.under_min.length, draft.walls.every((w: { draft_deg: number }) => w.draft_deg === 0)], [4, 4, true]);
+  assert.deepEqual([draft.walls.length, draft.under_min.length, draft.walls.every((w: { draft: number }) => w.draft === 0)], [4, 4, true]);
 });

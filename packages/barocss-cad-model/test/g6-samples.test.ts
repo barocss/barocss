@@ -33,7 +33,7 @@ test('O-G6 draftSamples: a cone drafted 3° — every vertex of its side 3 withi
   }
   // (The exact values before Float32: draftField's own minimum and maximum on the side, 3 to 1e-9.)
   const side = draftField(CONE, [b], [0, 0, 1], 1).faces.find(x => x.face === 'n1.side0')!;
-  assert.ok(Math.abs(side.minDeg - 3) <= 1e-9 && Math.abs(side.max - 3) <= 1e-9);
+  assert.ok(Math.abs(side.min - 3) <= 1e-9 && Math.abs(side.max - 3) <= 1e-9);
 });
 
 test('O-G6 draftSamples: its sign changes on exactly the faces draftField calls straddling — a cylinder across the pull, a drafted box, a cone, pulled along Z and X', () => {
@@ -56,7 +56,7 @@ async function build(calls: [string, Record<string, unknown>][]): Promise<ChatSt
 const cmd = (command: string, values: Record<string, unknown>, sel: Record<string, unknown> = {}): [string, Record<string, unknown>] => ['run_command', { command, values, ...sel }];
 const triArea = (b: BodyResult, t: number) => { const P = b.mesh.positions, I = b.mesh.indices, a = 3 * I[3 * t], c = 3 * I[3 * t + 1], d = 3 * I[3 * t + 2]; const u = [P[c] - P[a], P[c + 1] - P[a + 1], P[c + 2] - P[a + 2]], v = [P[d] - P[a], P[d + 1] - P[a + 1], P[d + 2] - P[a + 2]]; return Math.hypot(u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]) / 2; };
 
-test('O-G6 accessSamples: a block with a sealed void and one with a side slot sealed 1 mm short — the shares, area-weighted, are accessOf\'s unreachedMM2 (2 · 200 and 760); the void\'s triangles all hidden, mask 0; the block\'s top reached from +Z', async () => {
+test('O-G6 accessSamples: a block with a sealed void and one with a side slot sealed 1 mm short — the shares, area-weighted, are accessOf\'s unreachedArea (2 · 200 and 760); the void\'s triangles all hidden, mask 0; the block\'s top reached from +Z', async () => {
   const voided = await build([cmd('box', { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 }), cmd('box', { w: 10, d: 10, h: 5, x: 15, y: 10, z: 7.5 }), cmd('difference', {}, { bodies: ['b1', 'b3'] })]);
   const sealed = await build([cmd('box', { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 }), cmd('box', { w: 10, d: 20, h: 6, x: 29, y: 5, z: 7 }), cmd('difference', {}, { bodies: ['b1', 'b3'] })]);
   for (const [s, want] of [[voided, 400], [sealed, 760]] as const) {
@@ -65,8 +65,8 @@ test('O-G6 accessSamples: a block with a sealed void and one with a side slot se
     let sum = 0;
     per.forEach((p, k) => { const b = s.bodies[k]; assert.equal(p.unreachedShare.length, b.mesh.indices.length / 3); assert.equal(p.mask.length, b.mesh.indices.length / 3); for (let t = 0; t < p.unreachedShare.length; t++) sum += p.unreachedShare[t] * triArea(b, t); });
     // (Float32 shares: to their rounding, a part in 1e7 of the area.)
-    assert.ok(Math.abs(sum - a.unreachedMM2) <= 1e-6 * Math.max(1, a.unreachedMM2), `${sum} vs ${a.unreachedMM2}`);
-    assert.ok(Math.abs(a.unreachedMM2 - want) <= 1e-6, String(a.unreachedMM2));
+    assert.ok(Math.abs(sum - a.unreachedArea) <= 1e-6 * Math.max(1, a.unreachedArea), `${sum} vs ${a.unreachedArea}`);
+    assert.ok(Math.abs(a.unreachedArea - want) <= 1e-6, String(a.unreachedArea));
     const b = s.bodies[0], p = per[0];
     for (let t = 0; t < p.mask.length; t++) {
       const f = b.mesh.faces.find(x => x.index === b.mesh.faceOfVertex[b.mesh.indices[3 * t]])!.name;
@@ -96,7 +96,7 @@ test('O-G6 castingDraftLimits: an A380 die casting\'s least and achievable draft
   // (O7c: the casting rules are the sample rows, loaded as the person loads them.)
   const doc = withSampleRows({ ...withLook(plain, b0, { material: 'a380' }), process: 'die-casting', mould: { version: 1 as const, pull: [0, 0, 1] as [number, number, number] } }, 'casting-rules');
   const bodies = bodiesOf(doc), lim = castingDraftLimits(doc, bodies, die);
-  assert.ok(lim && lim.minDeg > 0 && (lim.recDeg === null || lim.recDeg >= lim.minDeg), JSON.stringify(lim));
+  assert.ok(lim && lim.draftMin > 0 && (lim.draftRecommended === null || lim.draftRecommended >= lim.draftMin), JSON.stringify(lim));
   const rule = castability(doc, bodies, die).rules.find(r => r.id === 'draft')!;
-  assert.ok(rule.limit === lim!.minDeg || rule.limit === lim!.recDeg, `${rule.limit} vs ${JSON.stringify(lim)}`);
+  assert.ok(rule.limit === lim!.draftMin || rule.limit === lim!.draftRecommended, `${rule.limit} vs ${JSON.stringify(lim)}`);
 });

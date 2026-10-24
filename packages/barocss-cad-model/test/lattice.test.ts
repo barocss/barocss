@@ -71,11 +71,11 @@ test('no overlap with the shell by the kernel\'s intersection, every piece touch
   console.log(`AM7b coarse: ${report.triangles} triangles, ${report.pieces} piece(s), ${report.dropped.count} dropped, ${report.drains.length} drain(s) added`);
   const e = await evaluate(out); assert.ok(e.ok, JSON.stringify(!e.ok && e).slice(0, 400));
   const shell = e.bodies.find(b => b.family !== 'faceted')!, pairs = await interference(out, e.bodies, evaluate);
-  assert.deepEqual(pairs.filter(p => 'overlap_mm3' in p), [], JSON.stringify(pairs));
+  assert.deepEqual(pairs.filter(p => 'overlap' in p), [], JSON.stringify(pairs));
   // (Each piece against the shell: touching — its wall vertices on the wall — and the pieces apart from one another.)
   const withShell = pairs.filter(p => p.a === shell.key || p.b === shell.key);
   assert.equal(withShell.length, report.pieces);
-  for (const p of withShell) assert.ok((p.clearance_mm as number) <= 1e-3, JSON.stringify(p));
+  for (const p of withShell) assert.ok((p.clearance as number) <= 1e-3, JSON.stringify(p));
   // (Refusals.)
   const plain = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'box', values: { w: 30, d: 30, h: 18, x: 0, y: 0, z: 0 } }, evaluate), pe = await evaluate(plain.state.doc); assert.ok(pe.ok);
   assert.equal(code(() => planLattice(plain.state.doc, pe.bodies, { cell: 6, k: 0.6 })), 'NOT_HOLLOW');

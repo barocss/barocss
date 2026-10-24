@@ -59,7 +59,7 @@ export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], tit
     const P = o.positions;
     for (let i = 0; i < P.length; i += 3) for (let a = 0; a < 3; a++) { const v = R[3 * a] * P[i] + R[3 * a + 1] * P[i + 1] + R[3 * a + 2] * P[i + 2]; if (v < lo[a]) lo[a] = v; if (v > hi[a]) hi[a] = v; }
   }
-  const bed = printerProfile(doc.printer)?.buildMM;
+  const bed = printerProfile(doc.printer)?.buildVolume;
   const t = bed ? [bed[0] / 2 - (lo[0] + hi[0]) / 2, bed[1] / 2 - (lo[1] + hi[1]) / 2, -lo[2]] : [0, 0, -lo[2]];
   const transform = toThreeMfTransform(R, t);
   return { title, objects, items: objects.map((o, k) => ({ object: k, transform, name: o.name })), source };

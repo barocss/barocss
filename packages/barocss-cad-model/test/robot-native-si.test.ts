@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readNativeSIInertia } from '@barocss/cad/internal/native-si-mass';
-import { evaluatePart, nativeMassPropertiesOfBody, placeBody } from '../src/engine/evaluate';
+import { evaluatePart, nativeMassPropertiesOfBody } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { partsOf, robotViewOf, treeOf } from '../src/robot/verbs';
 import { robotParts } from '../src/robot/urdf';
@@ -39,21 +39,20 @@ test('native lookup keeps the exact cached result through ordinary copies; mater
   assert.equal(nativeMassPropertiesOfBody(copy), props);
   const raw = readNativeSIInertia(props); assert.ok(raw.ok);
   assert.equal(readNativeSIInertia(props), raw, 'the Kernel lookup returns its cached result');
-  const steel = MATERIALS.find(m => Math.abs(m.gPerCm3 - 2.7) > 1)!;
+  const steel = MATERIALS.find(m => Math.abs(m.density - 2.7) > 1)!;
   const materialDoc = { ...doc, bodies: { [body.key]: { material: steel.id } } };
   const native = nativeLinkInertia('base', 'base', materialDoc, [copy], AT_PART);
   assert.deepEqual(native.basis, [{ link: 'base', body: body.key, mode: 'raw-native-si' }]);
-  const ratio = steel.gPerCm3 / raw.density;
+  const ratio = steel.density / raw.density;
   assert.deepEqual(native.inertia.inertia, raw.inertia.flat().map(x => x * ratio + 0), 'exact legacy SI coefficient order, then one material ratio');
-  const scale = 45 * steel.gPerCm3 / 2.7 * 1e-9;
+  const scale = 45 * steel.density / 2.7 * 1e-9;
   for (const i of [0, 4, 8]) assert.ok(Math.abs(native.inertia.inertia[i] - scale) <= scale * 1e-12);
 });
 
-test('worker clones and placed tensors keep existing export support and expose unavailable provenance without changing default inertia', () => {
+test('source-less worker clones keep existing export support and expose unavailable provenance without changing default inertia', () => {
   const doc = rectanglePart(10, 10, 10), result = evaluatePart(doc, 1); assert.ok(result.ok);
   const body = result.bodies[0], clone = structuredClone(body);
-  const placed = placeBody({ ...body, mesh: { ...body.mesh, positions: body.mesh.positions.slice(), normals: body.mesh.normals.slice(), edgeLines: body.mesh.edgeLines.slice() } }, [0, -1, 0, 1, 0, 0, 0, 0, 1], [10, 20, 30]);
-  for (const derived of [clone, placed]) {
+  for (const derived of [clone]) {
     assert.equal(nativeMassPropertiesOfBody(derived), undefined);
     const expected = linkInertia('base', 'base', doc, [derived], AT_PART), before = JSON.stringify(expected);
     const native = nativeLinkInertia('base', 'base', doc, [derived], AT_PART);

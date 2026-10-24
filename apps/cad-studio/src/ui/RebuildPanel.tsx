@@ -51,14 +51,14 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
     {!report && <div className="empty" role="status">{last ? 'The part did not evaluate, so there is no rebuild to show.' : 'Not evaluated yet.'}</div>}
     {report && <>
       <div className="muted small" aria-label="Rebuild totals">
-        Evaluation {report.evaluation} ({report.basis}), revision <span className="mono">{report.revision}</span> · {report.built} built in {ms(report.builtMs)} ms · {report.reused} reused · {ms(report.evaluationMs)} ms in all
+        Evaluation {report.evaluation} ({report.basis}), revision <span className="mono">{report.revision}</span> · {report.built} built in {ms(report.builtTime * 1000)} ms · {report.reused} reused · {ms(report.evaluationTime * 1000)} ms in all
       </div>
       <Table className="bom-table" aria-label="Rebuild features">
         <colgroup><col /><col className="w-12" /><col className="w-12" /><col className="w-[28%]" /></colgroup>
         <TableHeader><TableRow><TableHead>Feature</TableHead><TableHead>State</TableHead><TableHead>ms</TableHead><TableHead>Kernel calls</TableHead></TableRow></TableHeader>
         <TableBody>{report.features.map(f => <TableRow key={f.id} aria-label={`Rebuild ${f.id}`} data-rebuild-state={f.state} data-slowest={f.id === report.slowest || undefined}>
           <TableCell title={f.id}>{f.label}{f.id === report.slowest ? <span className="warn small"> · slowest</span> : null}</TableCell>
-          <TableCell>{f.state}</TableCell><TableCell className="mono">{ms(f.ms)}</TableCell><TableCell title={callsText(f.calls)}>{callsText(f.calls)}</TableCell>
+          <TableCell>{f.state}</TableCell><TableCell className="mono">{ms(f.wallTime * 1000)}</TableCell><TableCell title={callsText(f.calls)}>{callsText(f.calls)}</TableCell>
         </TableRow>)}</TableBody>
       </Table>
       <div className="card-title" style={{ marginTop: 8 }}>MATES</div>

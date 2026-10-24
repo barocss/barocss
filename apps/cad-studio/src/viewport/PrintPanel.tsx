@@ -22,7 +22,7 @@ export function PrintPanel({ options, onOptions, onDirection, state, reason }: {
     <div><label>Layer <input aria-label="Print layer" type="range" min={0} max={max} step={1} value={shown} disabled={!state.count || !!reason} onChange={e => onOptions({ layer: e.target.valueAsNumber })} /></label> {shown + 1}</div>
     <label><input type="checkbox" aria-label="Printed up to layer" checked={options.printed} onChange={e => onOptions({ printed: e.target.checked })} /> Printed up to layer</label>
     <label style={{ marginLeft: 8 }}><input type="checkbox" aria-label="Print supports" checked={options.supports} onChange={e => onOptions({ supports: e.target.checked })} /> Supports</label>
-    {d && <div>Top {d.topMM.toFixed(3)} mm · {d.summary.supportColumns.length} support columns · {d.summary.supportVolumeMM3.toFixed(3)} mm³
+    {d && <div>Top {d.top.toFixed(3)} mm · {d.summary.supportColumns.length} support columns · {d.summary.supportVolume.toFixed(3)} mm³
       <details><summary>Model → bed (mm)</summary><code>{[0, 1, 2, 3].map(row => [0, 1, 2, 3].map(col => d.summary.modelToBed[col * 4 + row].toFixed(3)).join(' ')).join('\n')}</code></details>
     </div>}
     {/* (G12c: compact — the colours as chips, NOT FOR PRODUCTION shown; the estimate's terms and notes behind Details.) */}

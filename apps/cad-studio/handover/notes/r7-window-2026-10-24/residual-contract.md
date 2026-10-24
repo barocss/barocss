@@ -145,10 +145,13 @@ These omissions were found after the354-row inventory; that inventory is not a c
 |---|---|---|
 | T-slot row sizeMM | cellSize | mm unchanged; row size remains its string name. Kernel producer then Outer table converter and fixtures. Remove the sizeMM whitelist; no alias. |
 | CadPartFeatureProfile.ms | wallTime | seconds, retain original measured elapsed milliseconds and divide1000; Kernel producer, Outer rebuild/worker/UI consumers. |
+| EvalResult.ms | wallTime | seconds, same evaluation interval divided1000 once, success and failure. This is a public engine subpath and worker result; API Work owns the explicit temporary producer/consumer lease. Rebuild evaluationTime then passes through wallTime, while human ms display multiplies1000. |
 | DecimateReport.ms | wallTime | seconds, divide1000; keep measurement sites, geometry and numeric bounds. |
 | ApproximationReport.maxSampledDeviationMM | maxSampledDeviation | mm unchanged; Kernel producer and exact GPU tessellation consumers. |
 | P1 Check/EngineCheck.ms | duration | seconds, existing rounded-ms resolution divided1000; API-owned P1 reports only. |
 | P1 treeMs | treeTime | seconds, divide1000; preserve P1 physical outputs and scope, no new sweep campaign. |
+| OrientResult.ms and orient_for_print.ms | wallTime | seconds for the existing elapsed interval; preserve the tool's millisecond rounding resolution before dividing1000. Separate Outer mechanical/print checkpoint, not the API EvalResult lease. |
+| orient_for_print support_mm3/overhang_mm2/height_mm/contact_mm2 | supportVolume/overhangArea/height/contactArea | same mm-based values and existing public rounding; preserve scoring, candidate choice and direction. |
 | Public coupling g1/g2.rotation | rotation | raw internal GearPlacement radians to detached public degrees. Outer shared projection; no independent API helper. |
 
 RevolveOptions.deg is a natural option name explicitly allowed by api-conventions section2; do not rename it through
@@ -159,3 +162,119 @@ one-time mm-to-µm formatting; this does not change the public fit JSON's mm con
 P1 timing verification uses the existing --check --no-sweep flow and existing regressions. Its full files:true build
 report runtime is NOT RUN here; do not add a sweep, new execution option or test seam to turn this rename into a
 product campaign. Existing manufacturing findings and person-row waits remain.
+
+## Follow-up ownership and qualification prerequisites (2026-10-25)
+
+The T-slot Model importer temporary Kernel lease is complete at1d832089f and returned to Outer.
+The API Work now has a temporary EvalResult time lease at944c49d1f90c4b656d265f1dab662573d58a0db0.
+Its submitted12-file plan covers the producer, mesh wire, client/worker synthesized failures, Rebuild projection,
+App display and matching tests. Outer excludes those time fields while implementing B2. The lease is returned
+after its immutable checkpoint. Other telemetry fields are not renamed through an unscoped substitution.
+
+B2 preserves the approved dimensionless names inertia_ratio_max and joint_limits. Its public harness projector
+converts unrounded margin values and limits before applying the established public rounding. A private WeakMap
+may retain those values at the existing atMost/range/actuator/sweep construction sites. Core JSON, arithmetic,
+rounding, decisions, normalized margins, source and tolerances stay unchanged. Untracked clones do not silently
+acquire unrounded provenance. Sized.trace.change remains explicitly labelled human text.
+
+Package-consumer qualification must use the actual archive produced from the current package metadata and
+strictly compare the packed name/version/private fields with that source. Retain no-runtime-dependencies,
+all runtime and external TypeScript assertions, and the existing compiler flags and DOM libraries. Run external
+consumers in their actual scratch context; do not import unrelated repository ambient types. Do not create
+an archive under an obsolete name or alter package metadata to satisfy a stale test. Only the explicitly leased
+consumer driver and its matching metadata/archive/context helpers may change. Keep each original failure.
+These are implementation and verification assignments, not completed gates or product adoption.
+
+## Public clearance and viewport follow-up (2026-10-25)
+
+The same public quantity contract applies to structured worker and viewport DTOs. A transient value is not an
+exception merely because it is not saved in a document. The following mechanical projections preserve numeric
+values, original rounding, geometry, decisions, cache dependencies and human display units:
+
+| Boundary | Canonical field | Meaning / owner |
+|---|---|---|
+| sweep_path.min_clearance | minClearance | {value,fraction,links}: mm clearance and dimensionless path coordinate; Outer shared projector. |
+| check_path.min_clearance | minClearance | {value,time,links}: mm clearance and time in seconds; do not substitute fraction for time. |
+| reference residual_mm | residual | mm unchanged, original twelve-significant-digit formatter; stored datum and fitting unchanged. |
+| public keepout overlap_mm3 / clearance_mm | overlap / clearance | mm³ / mm unchanged; core KeepoutResult and App raw use stay unchanged. |
+| public keepout required_mm / chord_tolerance_mm | requiredClearance / chordTolerance | mm unchanged; keep historical conformance oracle names and verdict thresholds. |
+| PrintDisplay.topMM | top | mm unchanged; GPU owns the display, worker, panel, projection, overlay and Viewport consumers plus matching tests. Root owns the browser-flow probe. |
+
+The PrintDisplay change is distinct from the Model PrintLayers producer but must be reconciled in this R7
+window. It does not authorize a new clipping formula, cache algorithm, shader optimization or threshold. Retain
+support geometry and the original displayed mm values. GPU consumes the exact Model producer on a branch
+without G14/DoF/G15c feature ancestry. Root reconciles its shared browser getter after those exact producers.
+
+The API L3 temporary five-file lease covers server robotL3 tool/main and three matching tests. Project the original
+harness before serialization, validate canonical duty with readDuty, and preserve validated canonical numbers
+rather than repeatedly converting and rounding them. keepsBrief retains strict life, poses and dwell comparisons
+and its existing limits allowance. Preserve the original initial physical ratings of1rad/s and1Nm through the
+shared settings adapter. No live model or new budget campaign is required for this contract migration.
+
+The packaged numerical-v0 XYArc consumer still uses its actual centerMM/radiusMM report. That explicitly leased
+legacy consumer correction is not closure of R7.3d retirement or a permanent exception for active public DTOs.
+Final qualification remains on one immutable assembled SHA with Node22.23.3. Focused results below that boundary
+remain scoped evidence, and P2 remains held.
+
+
+## Additional active quantity families (2026-10-25)
+
+These contracts consolidate the coordinator's explicit follow-up leases. They do not certify that every family is
+implemented or qualified. The external receipt records each immutable producer, consumer, ownership and proof
+boundary. A public field does not become exempt because it is a viewport DTO or a source-backed catalogue scalar.
+Preserve all physical values, existing rounding, provenance, refusal conditions, numerical tolerances and native pins.
+
+| Family | Canonical public names | Units and constraints |
+|---|---|---|
+| Material properties | density, elasticModulus, yieldStress | g/cm³ and MPa unchanged. Scalar source keys follow these names; explicit unit/source/page/URL metadata and lookup identities remain unchanged. |
+| PrinterProfile and MouldFinish | buildVolume, layerHeight, nozzleDiameter; draftMin, draftRecommended | buildVolume is the same three-dimensional mm size vector, not a scalar volume. Lengths are mm; draft thresholds are degrees. Preserve optional omission and unknown/null semantics. |
+| PrintLayers and overhang | layerHeight:{value,basis}, overhangLimit:{value,basis}, supportVolume; overhangArea, contactArea, worstAngle | Height mm, support mm³, area mm², angle degrees. worstAngle is zero for a vertical wall and ninety for a ceiling. Keep classification, lazy layers, geometry and cache dependencies. |
+| CAM Model and viewport | safeZ:{value,basis}, stepover, stepdown; cornerRadius, fluteLength, shankDiameter, rampAngle; cellPitch, removedVolume, overcutVolume, sampleSpacing, lateralUncertainty | Absolute safeZ and lengths mm, volumes mm³, ramp angle degrees. Requested and effective cellPitch remain distinct values on their original DTOs. angularChordError, noseChordError and shankExtension retain their original displayed mm meanings. No sampling or clipping change. |
+| Mechanical access, turning and machining | unreachedArea, addedArea, sampleStep, turnedArea, minOuterDiameter, includedAngle; tolerance.value and feasibleLimit | Areas mm², lengths mm, angle degrees. Preserve samples, classification, feasible-limit meaning and source. |
+| Mould fields and analysis | DraftField.draftMin; DraftFace.min, steepest, belowArea; WallReport.thinnest, thick95; PartingReport.pullRange, isoclineLength; analysis wall thinnest/thick95/faces_below[].thickness; analysis draft draft/min/max | Angles degrees, lengths mm, belowArea mm². Threshold draftMin is distinct from observed min. Keep raw quantiles, sampling, geometry, r3/r6 and independent physical oracles. Public draft tool input is draftMin. |
+| Viewport thresholds and casting | ThicknessLimits.minWall/materialMin/ratio; DraftLimits and CastingDraftLimits draftMin/draftRecommended; CastingSummary.tolerance.value | Wall lengths and tolerance mm, draft degrees, ratio dimensionless. Keep source, null, original threshold comparisons and catalogue lookup IDs. |
+| Measure and section | angle, normalDistance, cutArea | Degrees, mm and mm² respectively. Preserve existing measurement precision and geometry. |
+| Quote | tolerance:{value,perLength,source}, limits.largestPartSize, part.volumeBasis.massBound | Tolerance mm, perLength mm/mm, largestPartSize the same three-dimensional mm vector, massBound g. Preserve unknown/null/omitted fields, exact geometry behavior and formatter labels. |
+| BOM | massBound, totalMassBound, totalMass | All are g. Preserve estimate flags, positive zero, null versus omitted, original r6 and addition order. totalMassBound uses view.parts plus base, not a second sum over derived lines. totalMass retains the existing incomplete-bead-accounting subtotal limitation. |
+| Interference and keepout consumers | interference overlap/clearance; check_keepouts clearance/chordTolerance | mm³ and mm. Preserve the original overlap threshold, gap oracle and verdict. Historical conformance oracle identifiers remain separate; update actual getters and their matching tests. |
+
+Old aliases, schema versions and migrations are not added for these unreleased active DTOs. Explicit source unit
+records, catalogue threshold lookup IDs and labelled human strings are not renamed through a broad substitution.
+The native and named legacy boundaries above remain separate. A test-only reader/writer for frozen native data
+must state its boundary explicitly and must not regenerate fixture bytes or native pins.
+
+Exported solver Duty is still an open boundary: wildcard package access means it cannot be declared private merely
+because tools already project it. Public serviceLife is seconds. A new public life-in-hours exception is not approved.
+The API Work must reconcile this with unchanged internal solver numerics, native fixture bytes, conversion order
+and strict canonical file comparisons before an implementation lease is issued. This open item blocks final R7
+qualification; it does not authorize conversion of unrelated internal radians or SI dynamics.
+
+
+## Solver Duty boundary decision (2026-10-25)
+
+The API Work's option B is the implementation direction. Default checkDesign/sizeDesign and document-level
+check/size entries consume the existing canonical PublicDuty contract and return the existing public MMGS
+projections. Public serviceLife is seconds, moves use degrees for turning joints and mm for sliding joints, dwell
+is seconds, clearance mm and g mm/s². Do not accept an untagged raw-hours alternative or add a permissive overload.
+Use the single PublicDuty definition; do not add compatibility type or field aliases.
+
+The original solver bodies and their raw-duty parser move to explicit robot/native/duty, robot/native/harness and
+robot/native/sizer modules. These are intentionally importable native calculation contracts, not automatically
+private: their documentation must state raw radians, existing SI dynamics, service life in hours and the unchanged
+native field names. Native algorithms, catalogue comparisons, margins, refusal text, rounding and sizer loop
+remain single implementations. Native sizer rounds call the native harness directly without serialize/reparse.
+Do not create a public life-in-hours field or retain the old default raw Duty export as a hidden compatibility path.
+This explicit native calculation boundary does not change frozen native formats or close R7.3d retirement.
+
+Preserve the existing input division by3600 and output multiplication by3600 at their native/canonical boundaries,
+with the same operation order and optional-field semantics. Do not infer arbitrary Float64 roundtrip equivalence
+from integer examples. Keep original unrounded margin provenance in one shared implementation and project it
+before cloning. Canonical CLI/L3 paths must not project a public result twice. Preserve the L3 validated original
+JSON, strict life/pose/dwell checks and established one-ULP storage guard. Native conformance readers and writers
+use the explicit native entry; do not run UPDATE_RM_FIXTURES or change fixture bytes, digests or pins.
+
+The temporary API implementation lease has seventeen candidate files from the reviewed source plan, including
+three new native modules and one explicitly delegated Docs sample. A dependency or ownership expansion requires
+an exact file/reason report. Implementation must demonstrate module dependency safety, direct canonical and
+explicit-native calls, unchanged native solver operands/results and unchanged actual CLI/L3/fixture boundaries.
+It is preparation work, not a qualified checkpoint; final same-SHA whole checks remain required.

@@ -19,6 +19,7 @@ import { rejectProposal, stripHistory } from '@barocss/cad-model/chat/proposals'
 import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import type { ProposalPart } from '@barocss/cad-model/chat/tools';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
+import { matchesNativeMassPatch } from '@barocss/cad-model/engine/nativeMassWire';
 import { evaluateDoc, placedMassFields, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
@@ -204,7 +205,7 @@ function sameMeshes(a: readonly BodyResult[], b: readonly BodyResult[]): boolean
 function withMasses(bodies: BodyResult[], got: ReadonlyMap<number, MassFields>): BodyResult[] {
   let out: BodyResult[] | null = null;
   for (let i = 0; i < bodies.length; i++) {
-    const b = bodies[i], f = b.massRef !== undefined ? got.get(b.massRef) : undefined; if (!f) continue;
+    const b = bodies[i], f = b.massRef !== undefined ? got.get(b.massRef) : undefined; if (!f || !matchesNativeMassPatch(b, f)) continue;
     const { massRef: _ref, massPlace, ...rest } = b; void _ref;
     (out ??= bodies.slice())[i] = { ...rest, ...placedMassFields(f, massPlace ?? []) };
   }
@@ -489,7 +490,7 @@ export function App() {
   const printEnabled = previewMode === 'print';
   // (G23 CNC: the material-removal preview, session only.)
   const camEnabled = previewMode === 'cnc';
-  const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellMM: 0.5 });
+  const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellPitch: 0.5 });
   // (G24: the drawing's annotations on the model, session only, and the one picked.)
   const [pmiEnabled, setPmiEnabled] = useState(false);
   const [pmiSelected, setPmiSelected] = useState<string | null>(null);
@@ -726,7 +727,7 @@ export function App() {
     let live = true; setBusy(true);
     engine.evaluate(evaluated, revision.current++).then(result => {
       if (!live || !result) return;
-      setBusy(false); setLastMs(result.ms);
+      setBusy(false); setLastMs(result.wallTime * 1000);
       if (result.ok) {
         // What is selected stays selected where it still is: faces, edges and bodies by their persistent names.
         const prev = bodiesRef.current;
@@ -880,7 +881,7 @@ export function App() {
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
   // (Every placed part evaluated with its bodies: until then the robot's masses, exports and sweeps wait, RM6 — a part
   // not yet evaluated is not massless.)
-  const robotReady = massReady && (doc.instances ?? []).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
+  const robotReady = fresh && !busy && massReady && (doc.instances ?? []).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
   // Each link's mass properties (RM3): the bodies as placed (world), so each part's placement is the identity here.
   const linkInertias = useMemo(() => !jointTree || !robotReady ? undefined : treeInertia(jointTree, p => {
     if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
@@ -2772,7 +2773,7 @@ export function App() {
             {/* (O179: a volume the kernel found from the mesh, said so with its bound — its mass is as good.) */}
             {b.volume !== null && b.volumeBasis && <div className="kv warn" aria-label="Volume basis" title="The kernel could not integrate this body: its volume, mass and centre of mass are from the display mesh">From the mesh <b>± {b.volumeBasis.bound === null ? '?' : fmt(Math.round(b.volumeBasis.bound * 10) / 10)} mm³</b></div>}
             {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density; return <>
-              {b.volume !== null ? <div className="kv">Mass <b>{fmt(Math.round(b.volume * own.gPerCm3 / 100) / 10)} g</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
+              {b.volume !== null ? <div className="kv">Mass <b>{fmt(Math.round(b.volume * own.density / 100) / 10)} g</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
               {/* The body's own material (the default for new bodies stays the studio's). */}
               <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === (briefMaterial(doc) ?? material) ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
               {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
@@ -2780,7 +2781,7 @@ export function App() {
             {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, sizes = fastenerSizesOf(doc), t = made?.command === 'fastener' ? fastenerThread(made.values, sizes) : null;
               return t ? <><div className="kv">Part <b>{fastenerName(made!.values, sizes)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal sizes from your fastener rows — check the standard before manufacture.</div></> : null; })()}
             {b.centroid ? <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div> : b.massRef !== undefined ? <div className="kv">Centre of mass <b>…</b></div> : null}
-            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.gPerCm3); if (!mp) return null;
+            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.density); if (!mp) return null;
               const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.mass, mp.centroid, [0, 0, 0]) : mp.inertia;
               return <>
                 <label className="kv"><span>Inertia</span><select aria-label="Inertia about" value={inertiaAt} onChange={e => setInertiaAt(e.target.value as 'centre' | 'origin')}><option value="centre">about the centre of mass</option><option value="origin">about the origin</option></select></label>
@@ -2798,12 +2799,12 @@ export function App() {
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
           {selBodies.length > 1 && selBodies.some(b => b.massRef !== undefined) && <div className="kv">Together <b aria-label="Mass pending">…</b></div>}
-          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boundsOf(selBodies);
+          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(selBodies);
             return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.mass * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
               <div className="kv">Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></div></> : null; })()}
         </>}
         {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && !massReady && <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div><div className="kv">Mass <b aria-label="Mass pending">…</b></div></div>}
-        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boundsOf(bodies);
+        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(bodies);
           return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
             <div className="kv">Mass <b>{fmt(Math.round(c.mass * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}

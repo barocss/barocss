@@ -295,7 +295,7 @@ test('edit_feature uses the feature editor’s fields; delete_feature renumbers 
 test('measure, select and the part summary read the evaluated part by name', async () => {
   const s = await stateOf(rectanglePart(64, 32, 8));
   let r = await runTool(s, 'measure', { a: 'n1.top', b: 'n1.bottom' }, evaluate);
-  assert.equal(parse(r.content).normal_distance, 8);
+  assert.equal(parse(r.content).normalDistance, 8);
   r = await runTool(s, 'measure', { a: 'n1.side0|n1.side1' }, evaluate);
   assert.equal(parse(r.content).length, 8);
   r = await runTool(s, 'select', { faces: ['n1.top'], bodies: ['b1'] }, evaluate);

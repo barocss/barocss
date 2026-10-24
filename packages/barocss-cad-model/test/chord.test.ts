@@ -38,15 +38,15 @@ test('the sphere R 15: the new δ covers the mesh\'s true depth (the old was hal
   const origin = [0, 1, 2].map(q => c[q] + (R + g) * u[q] - 5 * x[q] - 5 * y[q]);
   const s: ChatState = { doc, bodies };
   const probe = await dispatchTool(s, 'add_keepout', { name: 'near', box: { frame: { origin, normal: u, xAxis: x }, size: [10, 10, 10] } }, evaluate); assert.ok(!probe.isError, probe.content);
-  const read = async (st: ChatState) => JSON.parse((await dispatchTool(st, 'check_keepouts', {}, evaluate)).content).results[0] as { verdict: string; clearance_mm: number; chord_tolerance_mm: number };
-  const d = (await read(probe.state)).clearance_mm, required = d - (old + next) / 2;
+  const read = async (st: ChatState) => JSON.parse((await dispatchTool(st, 'check_keepouts', {}, evaluate)).content).results[0] as { verdict: string; clearance: number; chordTolerance: number };
+  const d = (await read(probe.state)).clearance, required = d - (old + next) / 2;
   // (The mesh lies below the sphere by at most δ: its gap between the true gap and that plus δ, near the top of it here.)
   assert.ok(d >= g - 1e-9 && d <= g + next + 1e-9 && d - g > old, `the mesh's gap ${d}`);
   assert.equal(verdictOf(0, d, required, old).verdict, 'clear', 'the old δ: clear');
   assert.ok(g < required, `while the true sphere is ${g} mm from it, under the ${required} asked: violated`);
   const withReq = await dispatchTool(s, 'add_keepout', { name: 'near', box: { frame: { origin, normal: u, xAxis: x }, size: [10, 10, 10] }, clearance: required }, evaluate);
   const k = await read(withReq.state);
-  assert.equal(k.verdict, 'undecided', JSON.stringify(k)); assert.ok(Math.abs(k.chord_tolerance_mm - next) < 1e-3);
+  assert.equal(k.verdict, 'undecided', JSON.stringify(k)); assert.ok(Math.abs(k.chordTolerance - next) < 1e-3);
 });
 
 test('the torus (R 20, r 5): unbounded before, now a finite δ at least the true depth; a keep-out clearly clear is decided, one within δ undecided', async () => {
@@ -93,5 +93,5 @@ test('a freeform SubD face: the plain quadratic model undershoots the true depth
   const top = e.bodies[0].mesh.bounds.max[2], s: ChatState = { doc, bodies: e.bodies };
   const far = await dispatchTool(s, 'add_keepout', { name: 'above', box: { frame: { origin: [0, 0, top + 10], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [20, 20, 5] }, clearance: 1 }, evaluate);
   const kf = JSON.parse((await dispatchTool(far.state, 'check_keepouts', {}, evaluate)).content).results[0];
-  assert.equal(kf.verdict, 'clear', JSON.stringify(kf)); assert.ok(Number.isFinite(kf.chord_tolerance_mm) && kf.chord_tolerance_mm > 0, JSON.stringify(kf));
+  assert.equal(kf.verdict, 'clear', JSON.stringify(kf)); assert.ok(Number.isFinite(kf.chordTolerance) && kf.chordTolerance > 0, JSON.stringify(kf));
 });

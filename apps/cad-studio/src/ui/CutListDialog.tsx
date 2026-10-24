@@ -39,7 +39,7 @@ export function CutListDialog({ list, nesting, name, onClose }: { list: PartCutL
       </Table>
       <div className="hint warn"><Icon name="warning" small /> Masses use the materials library's densities, estimates — not your stock's.</div>
       {n ? <div className="toast-hint" aria-label="Nesting">
-        Nested: {n.totals.bars} bar{n.totals.bars === 1 ? '' : 's'} · {f3(n.totals.stock)} mm of stock · waste {f3(n.totals.waste)} mm · kerf {f3(n.kerf.mm)} mm{n.kerf.basis === 'estimate' ? ' (an estimate)' : ''}
+        Nested: {n.totals.bars} bar{n.totals.bars === 1 ? '' : 's'} · {f3(n.totals.stock)} mm of stock · waste {f3(n.totals.waste)} mm · kerf {f3(n.kerf.value)} mm{n.kerf.basis === 'estimate' ? ' (an estimate)' : ''}
         {n.sections.map(x => <div key={x.section}>{x.section}: {x.method === 'exact' ? 'exact' : 'first-fit-decreasing'}{x.optimal ? ', optimal' : `, at most ${f3(x.stock - x.lowerBound)} mm over the bound`}</div>)}
         {n.unplaced.length ? <div className="hint warn">Not placed: {n.unplaced.map(p => `${p.name} (${p.code === 'NEST_TOO_LONG' ? 'longer than every stock length' : 'stock counts spent'})`).join(', ')}</div> : null}
       </div> : nesting && !nesting.ok && nesting.code === 'NEST_NO_STOCK' ? <div className="toast-hint" aria-label="Nesting">No stock lengths loaded — none is built in: the agent's features.frame_stock, or cad-cli nest --list.</div> : null}

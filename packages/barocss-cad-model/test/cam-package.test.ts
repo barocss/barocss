@@ -23,7 +23,7 @@ const withStock = (doc: StudioDoc): StudioDoc => ({ ...doc, machining: { version
 /** The linking rule: a rapid only at the safe height; a retract straight up; below the safe height only cutting or entering moves. */
 function linkingHolds(s: SetupProgram) {
   for (const m of s.moves) {
-    if (m.kind === 'rapid') assert.ok(Math.abs(m.a[2] - s.safeZ.mm) < 1e-9 && Math.abs(m.b[2] - s.safeZ.mm) < 1e-9, `a rapid below the safe height: ${JSON.stringify(m)}`);
+    if (m.kind === 'rapid') assert.ok(Math.abs(m.a[2] - s.safeZ.value) < 1e-9 && Math.abs(m.b[2] - s.safeZ.value) < 1e-9, `a rapid below the safe height: ${JSON.stringify(m)}`);
     if (m.kind === 'retract') assert.ok(m.a[0] === m.b[0] && m.a[1] === m.b[1] && m.b[2] >= m.a[2], `a retract not straight up: ${JSON.stringify(m)}`);
   }
   // (The program is continuous: each move starts where the last ended.)
@@ -34,18 +34,18 @@ const segDist2 = (px: number, py: number, m: Move) => { const dx = m.b[0] - m.a[
 test('B: CNC8\'s 50 × 30 pocket — NOT FOR PRODUCTION first; the whole tool; one +Z setup, the identity frame; the linking rule; loops at z 17, 14, 12; the block stock as a box', async () => {
   const s = await build(POCKET), p = camPackage(withStock(s.doc), s.bodies);
   assert.deepEqual([Object.keys(p)[0], p.banner, p.notForProduction], ['banner', NOT_FOR_PRODUCTION, true]);
-  assert.deepEqual(p.tool, { kind: 'flat', diameter: 6, cornerMM: 0, fluteMM: 18, shankMM: 6, basis: { diameter: 'estimate', shape: 'estimate' } });
+  assert.deepEqual(p.tool, { kind: 'flat', diameter: 6, cornerRadius: 0, fluteLength: 18, shankDiameter: 6, basis: { diameter: 'estimate', shape: 'estimate' } });
   assert.equal(p.setups.length, 1);
   const s0 = p.setups[0];
   assert.deepEqual([s0.setup, s0.frame, s0.axis], ['+Z', [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], [0, 0, 1]]);
   assert.ok('kind' in p.stock && p.stock.kind === 'box', JSON.stringify(p.stock));
-  assert.ok(Math.abs(s0.safeZ.mm - (p.stock.max[2] + 5)) < 1e-9, `safe ${s0.safeZ.mm} over the stock's top ${p.stock.max[2]}`);
+  assert.ok(Math.abs(s0.safeZ.value - (p.stock.max[2] + 5)) < 1e-9, `safe ${s0.safeZ.value} over the stock's top ${p.stock.max[2]}`);
   linkingHolds(s0);
   const feedZ = [...new Set(s0.moves.filter(m => m.kind === 'feed').map(m => +m.a[2].toFixed(9)))].sort((a, b) => b - a);
   assert.deepEqual(feedZ, [17, 14, 12]);
   assert.ok(s0.moves.some(m => m.kind === 'ramp') || s0.moves.some(m => m.kind === 'plunge'), 'it enters the cut');
   assert.deepEqual(s0.passes.map(x => [x.level, x.loop]).slice(0, 6), [[3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [6, 0]]);
-  assert.equal(s0.moves.at(-1)!.b[2], s0.safeZ.mm, 'it ends up at the safe height');
+  assert.equal(s0.moves.at(-1)!.b[2], s0.safeZ.value, 'it ends up at the safe height');
   // (No stock loaded: the refusal, the safe height over the part's box.)
   const none = camPackage(s.doc, s.bodies);
   assert.ok('refused' in none.stock && none.stock.refused.code === 'STOCK_NONE_LOADED', JSON.stringify(none.stock));
@@ -81,7 +81,7 @@ test('B: CNC8\'s holes — each a plunge from the safe height to its bottom and 
     for (const d of x.passes.filter(q => q.kind === 'drill')) {
       const [plunge, retract] = x.moves.slice(d.to - 2, d.to);
       assert.deepEqual([plunge.kind, retract.kind], ['plunge', 'retract']);
-      assert.ok(plunge.b[2] < plunge.a[2] && retract.b[2] === x.safeZ.mm);
+      assert.ok(plunge.b[2] < plunge.a[2] && retract.b[2] === x.safeZ.value);
     }
   }
   // (Each hole exactly once over the whole package.)

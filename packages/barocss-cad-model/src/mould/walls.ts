@@ -18,7 +18,7 @@ export interface InsideCorner { face: string; radius: number }
 export interface SharpCorner { body: string; faces: [string, string]; length: number }
 export interface ThickSection { body: string; faces: string[]; area: number; max: number }
 export interface WallReport {
-  body: string; nominal: number | null; thinnestMM: number | null; thick95MM: number | null;
+  body: string; nominal: number | null; thinnest: number | null; thick95: number | null;
   ribs: Rib[]; bosses: Boss[]; fillets: InsideCorner[]; sharp: SharpCorner[]; thick: ThickSection | null;
 }
 
@@ -150,7 +150,7 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
       for (let t = 0; t < w.local.length; t++) if (w.area[t] > 0 && w.local[t] > limit + 1e-9) { A += w.area[t]; max = Math.max(max, w.local[t]); faces.add(name(m, w.face[t])); }
       if (A > 0) thick = { body: body.key, faces: [...faces].sort(), area: A, max: max };
     }
-    out.push({ body: body.key, nominal: nominal, thinnestMM: thinnest, thick95MM: quantile(w.local, w.area, 0.95), ribs, bosses: out.length ? [] : bosses, fillets, sharp, thick });
+    out.push({ body: body.key, nominal: nominal, thinnest: thinnest, thick95: quantile(w.local, w.area, 0.95), ribs, bosses: out.length ? [] : bosses, fillets, sharp, thick });
   }
   return out;
 }

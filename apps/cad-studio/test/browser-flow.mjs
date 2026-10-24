@@ -6706,11 +6706,11 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'query', args: { action: 'draft', pull: [0, 0, 1], min_deg: 1 } }, { tool: 'query', args: { action: 'manufacturability' } }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'query', args: { action: 'draft', pull: [0, 0, 1], draftMin: 1 } }, { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), draft = lines[lines.length - 2], report = lines[lines.length - 1];
-      assert.ok(draft.includes('"face":"n1.side0","draft_deg":3,"min_deg":3,"max_deg":3,"class":"drafted"'), draft);
+      assert.ok(draft.includes('"face":"n1.side0","draft":3,"min":3,"max":3,"class":"drafted"'), draft);
       assert.match(report, /query\.manufacturability\s*injection: pull pass, finish pass, wall pass, wall-material \w+, wall-uniform \w+, rib [\w/]+, boss [\w/]+, inside-radius \w+, sink \w+, size pass, draft pass, undercut pass/, report);
       await snap('im2-cone');
       await page.click('[aria-label="Close chat"]');
@@ -8299,7 +8299,7 @@ try {
   await check('G23 CNC: CNC8\'s pocket from its machining stock — NOT FOR PRODUCTION first; 0, the middle and the end of its program; no overcut, the floor reached; Print layers closes it; reopened, the same', async () => {
     // (The plate and pocket the Model's own commands make, with a stock row the fixture writes: not agent-loaded rows.)
     await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle();
-    const cam = () => page.evaluate(() => { const c = window.__studioCam?.(), d = c?.display; return c && { stage: c.stage, error: c.error, reason: c.reason, progress: d?.progress, moves: d?.setup.moves.length, removed: d?.removal.removedMM3, overcut: d?.removal.overcutCells, unc: d?.removal.lateralUncertaintyMM, top: d && 'max' in d.package.stock ? d.package.stock.max[2] : null, banner: d?.package.banner }; });
+    const cam = () => page.evaluate(() => { const c = window.__studioCam?.(), d = c?.display; return c && { stage: c.stage, error: c.error, reason: c.reason, progress: d?.progress, moves: d?.setup.moves.length, removed: d?.removal.removedVolume, overcut: d?.removal.overcutCells, unc: d?.removal.lateralUncertainty, top: d && 'max' in d.package.stock ? d.package.stock.max[2] : null, banner: d?.package.banner }; });
     const at = (p) => page.waitForFunction(q => { const c = window.__studioCam?.(); return c?.stage === 'ready' && (q === 'end' ? c.display.progress === c.display.setup.moves.length : Math.abs(c.display.progress - q) < 1e-9); }, p, { timeout: 60000 }).then(cam);
     const progressTo = (v) => page.locator('[aria-label="CNC progress"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
     // (The previews' toggles are in the Display popover over the Views row.)
@@ -8410,7 +8410,7 @@ try {
     await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle(); await iso();
     const display = page.locator('[aria-label="Display and previews"]');
     if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
-    const print = () => page.evaluate(() => { const p = window.__studioPrint?.(), d = p?.display; return p && { reason: p.reason, stage: p.stage, count: d?.summary.count, k: d?.layer.k, z: d?.layer.z, top: d?.topMM, printed: d?.printed, supports: d?.supports }; });
+    const print = () => page.evaluate(() => { const p = window.__studioPrint?.(), d = p?.display; return p && { reason: p.reason, stage: p.stage, count: d?.summary.count, k: d?.layer.k, z: d?.layer.z, top: d?.top, printed: d?.printed, supports: d?.supports }; });
     const at = (q) => page.waitForFunction(([k, n]) => { const p = window.__studioPrint?.(), d = p?.display; return !p?.reason && p?.stage === 'ready' && d?.layer.k === k && (n === null || d.summary.count === n); }, q, { timeout: 60000 }).then(print);
     const rangeTo = (v) => page.locator('[aria-label="Print layer"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
     const before = await canvasShot();

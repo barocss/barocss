@@ -7,9 +7,10 @@ import { evaluatePart } from '../src/engine/evaluate';
 import { readStudioDoc } from '../src/engine/migrate';
 import { runRobotTool } from '../src/chat/robot';
 import { readRobot, type Joint, type JointTree } from '../src/robot/joints';
-import { robotViewOf, setPose, sweepOf, treeOf, withJoints, withWaypoint } from '../src/robot/verbs';
+import { poseOf, robotViewOf, setPose, sweepOf, treeOf, withJoints, withWaypoint } from '../src/robot/verbs';
 import { jointTreeOut, jointValuesIn, jointValuesOut, moveLimitsIn } from '../src/robot/units';
 import { rectanglePart } from '../src/engine/doc';
+import { gearPairAt } from '../src/robot/fk';
 import { isRefusal } from '../src/engine/refusal';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -74,4 +75,26 @@ test('sweep keeps raw mixed-joint contact values until the public boundary: init
   assert.deepEqual(jointValuesOut(tree, result.rawContactValues!), { turn: 45, slide: 5 });
   assert.ok(Math.abs(result.reply.contact!.values.turn * 180 / Math.PI - 45) > 1e-9, 'the old rad-rounded reply loses the required degree precision');
   assert.equal('rawContactValues' in result.reply, false, 'internal data is not a public rad alias');
+});
+
+
+test('public nested gear placements use degrees once; phase and backlash metadata keep existing values with canonical names', async () => {
+  const doc = JSON.parse(readFileSync(resolve(import.meta.dirname, '../../barocss-cad/conformance/rm/gears/case.json'), 'utf8')).input.document as StudioDoc;
+  const r = await evaluate(doc); assert.ok(r.ok);
+  const view = await robotViewOf(doc, r.bodies, evaluate), tree = treeOf(view), coupling = tree.couplings[0]; assert.ok(coupling);
+  const before = JSON.stringify(tree), projected = jointTreeOut(tree), shown = projected.couplings[0];
+  for (const key of ['g1', 'g2'] as const) {
+    assert.deepEqual(Object.keys(shown[key]).sort(), ['center', 'from', 'rotation', 'spec']);
+    assert.equal(shown[key].rotation, coupling[key].rotation / (Math.PI / 180));
+    assert.deepEqual(shown[key].spec, coupling[key].spec, 'spec pressure and helix angles are already degrees');
+    assert.deepEqual(shown[key].center, coupling[key].center); assert.equal(shown[key].from, coupling[key].from);
+  }
+  const turned = { ...tree, couplings: [{ ...coupling, g1: { ...coupling.g1, rotation: Math.PI / 2 }, g2: { ...coupling.g2, rotation: -Math.PI / 4 } }] };
+  assert.deepEqual([jointTreeOut(turned).couplings[0].g1.rotation, jointTreeOut(turned).couplings[0].g2.rotation], [90, -45]);
+  const core = poseOf(view, { [coupling.leader]: .123456789 }, tree), phase = core.reply.gears[0], raw = gearPairAt(coupling, core.reply.values), home = gearPairAt(coupling, {});
+  const r6 = (x: number) => Math.round(x * 1e6) / 1e6 + 0;
+  assert.deepEqual([phase.phase, phase.homePhase, phase.backlash], [r6(raw.phaseDeg), r6(home.phaseDeg), r6(raw.backlash)]);
+  for (const old of ['phase_deg', 'home_phase_deg', 'backlash_mm']) assert.equal(old in phase, false);
+  const publicReply = await runRobotTool(doc, r.bodies, 'get_joints', {}, evaluate); assert.ok(!('error' in publicReply)); assert.deepEqual(publicReply.content, projected);
+  assert.equal(JSON.stringify(tree), before);
 });

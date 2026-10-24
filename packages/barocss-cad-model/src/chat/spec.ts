@@ -108,16 +108,16 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       return { x: q.fn === 'radius' ? f.radius : 2 * f.radius, entities: [a.name] };
     }
     case 'min_wall': {
-      const walls = bodiesOf(bodies, q.body).map(b => wallThickness(b)) as { thinnest_mm: number | null; face?: string }[];
-      const thin = walls.filter(w => w.thinnest_mm !== null).sort((x, y) => x.thinnest_mm! - y.thinnest_mm!)[0];
-      return thin ? { x: thin.thinnest_mm!, ...(thin.face ? { entities: [thin.face] } : {}), hint: 'the thinnest wall (display mesh)' } : { unknown: 'no wall measured' };
+      const walls = bodiesOf(bodies, q.body).map(b => wallThickness(b)) as { thinnest: number | null; face?: string }[];
+      const thin = walls.filter(w => w.thinnest !== null).sort((x, y) => x.thinnest! - y.thinnest!)[0];
+      return thin ? { x: thin.thinnest!, ...(thin.face ? { entities: [thin.face] } : {}), hint: 'the thinnest wall (display mesh)' } : { unknown: 'no wall measured' };
     }
     case 'draft_min': {
       // (IM2, O78: every wall's exact draft — flat and curved; a straddling face's least is 0.)
-      const walls = bodiesOf(bodies, q.body).flatMap(b => draftAnalysis(doc, b, q.pull ?? [0, 0, 1]).walls as { face: string; draft_deg: number }[]);
+      const walls = bodiesOf(bodies, q.body).flatMap(b => draftAnalysis(doc, b, q.pull ?? [0, 0, 1]).walls as { face: string; draft: number }[]);
       if (!walls.length) return { unknown: 'no walls along the pull to judge' };
-      const worst = [...walls].sort((x, y) => x.draft_deg - y.draft_deg)[0];
-      return { x: worst.draft_deg, entities: [worst.face], hint: 'the least drafted wall (exact normals)' };
+      const worst = [...walls].sort((x, y) => x.draft - y.draft)[0];
+      return { x: worst.draft, entities: [worst.face], hint: 'the least drafted wall (exact normals)' };
     }
     case 'keepout': {
       const res = await checkKeepouts(doc, bodiesOf(bodies, q.body), evaluate, { keepout: q.keepout });
@@ -138,9 +138,9 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       return { x: m.distance, entities: [names[0]], hint: `${m.what}${m.angle !== null ? `; at ${r4(m.angle)}°` : ''}` };
     }
     case 'clearance': {
-      const pairs = await interference(doc, bodies, evaluate, [q.a, q.b]) as { overlap_mm3?: number; clearance_mm?: number }[];
+      const pairs = await interference(doc, bodies, evaluate, [q.a, q.b]) as { overlap?: number; clearance?: number }[];
       if (!pairs.length) return { unknown: `bodies ${q.a} and ${q.b} are not both there` };
-      return pairs[0].overlap_mm3 ? { x: -pairs[0].overlap_mm3, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap_mm3} mm³ (measured as minus that)` } : { x: pairs[0].clearance_mm!, entities: [q.a, q.b] };
+      return pairs[0].overlap ? { x: -pairs[0].overlap, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap} mm³ (measured as minus that)` } : { x: pairs[0].clearance!, entities: [q.a, q.b] };
     }
     case 'gear_center_distance': case 'gear_backlash': case 'gear_contact_ratio': case 'gear_clearance': return gearPair(doc, bodies, q);
     case 'print_rule': {
@@ -162,7 +162,7 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       if (!profile?.additive) return { unknown: profile ? `${profile.label} is not printing: no overhang limit` : 'no printing process is chosen' };
       const limit = profile.thresholds.maxOverhangDeg.value, table = faceTableOf(doc);
       const reports = bodiesOf(bodies, q.body).map(b => overhangOf(b.mesh, table, limit, q.direction));
-      const total = reports.reduce((n, r) => n + r.totalMM2, 0), names = reports.flatMap(r => r.faces.map(f => f.name));
+      const total = reports.reduce((n, r) => n + r.overhangArea, 0), names = reports.flatMap(r => r.faces.map(f => f.name));
       return { x: total, entities: names.slice(0, 20), hint: `past ${limit}° from the vertical (${profile.label})${reports.some(r => r.approximate) ? '; curved faces by their display triangles: accurate to the chord error' : ''}` };
     }
     case 'hole_alignment': {

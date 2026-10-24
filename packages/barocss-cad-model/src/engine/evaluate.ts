@@ -17,6 +17,7 @@ import { fastenerSizesOf } from './fastenerSizeRows';
 import { revisionOf } from '../util/revision';
 import { beadNotes, bearingNotes, bevelGearNotes, bevelMeshNotes, camNotes, connectorNotes, decimateNotes, driveNotes, endCapNotes, gearNotes, glandNotes, gussetNotes, internalGearNotes, memberNotes, meshNotes, rackMeshNotes, rackNotes, shaftNotes, shaftPartNotes, sheetOf, springNotes, staleOf, subdNotes, wormMeshNotes, wormNotes, wormWheelNotes } from './bodyNotes';
 import { refusal } from './refusal';
+import { rememberNativeMass, placeNativeMass } from './nativeMassWire';
 
 /** A kernel output's body key and the node and side it is now. */
 /** A body's role, from the node that made it (O60: 'infill' on a print infill's mesh node). */
@@ -92,12 +93,13 @@ export interface BodyResult {
   /** A sheet-metal body's rules (R12.3, D119: the studio writes them into a flange's relief, the kernel defaulting none). */
   sheet?: { thickness: number; bendRadius: number; kFactor?: number; bendTable?: string };
 }
+/** Elapsed seconds for the evaluation's measured interval, before worker transfer. */
 export type EvalResult =
   // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
   // print rules and mates read, kept so they do not evaluate the part again; PERF3 A1.)
   // (`rebuild`: the part's own evaluation as the kernel profiled it — evaluateDoc only; O10.)
-  | { ok: true; revision: number; bodies: BodyResult[]; ms: number; faceTable?: FaceTable; shopRows?: readonly ShopTreeProvenance[]; rebuild?: RebuildData }
-  | { ok: false; revision: number; error: FriendlyError; ms: number };
+  | { ok: true; revision: number; bodies: BodyResult[]; wallTime: number; faceTable?: FaceTable; shopRows?: readonly ShopTreeProvenance[]; rebuild?: RebuildData }
+  | { ok: false; revision: number; error: FriendlyError; wallTime: number };
 
 /** The main evaluation's rebuild (O10): the features built again and those reused, and each one's own cost (D228). */
 export interface RebuildData { evaluated: readonly string[]; reused: readonly string[]; profile: Readonly<Record<string, CadPartFeatureProfile>> }
@@ -126,7 +128,7 @@ const massRefs = new Map<number, WeakRef<Brep>>(), refOfBrep = new WeakMap<Brep,
 let nextMassRef = 1;
 type MassProps = NonNullable<ReturnType<typeof massPropertiesOf>>;
 // Native file exports need the original Kernel result's private provenance. Body copies used for notes retain
-// their inertia-array identity; worker clones and placed tensors intentionally do not acquire this provenance.
+// their inertia-array identity; worker transfers and placements use the separate private nativeMassWire boundary.
 const nativeMasses = new WeakMap<object, MassProps>();
 /** Internal native-export lookup only: no evaluation, integration, public body field or inferred provenance. */
 export const nativeMassPropertiesOfBody = (body: Pick<BodyResult, 'inertia'>): MassProps | undefined => body.inertia ? nativeMasses.get(body.inertia) : undefined;
@@ -134,7 +136,7 @@ export const nativeMassPropertiesOfBody = (body: Pick<BodyResult, 'inertia'>): M
 function massFields(m: MassProps | null): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> {
   const basis = m ? volumeBasisOf(m) : undefined;
   const fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> = m ? { volume: m.volume, mass: m.mass, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]] as [number, number, number], inertia: m.inertia.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volume: null, mass: null };
-  if (m && fields.inertia) nativeMasses.set(fields.inertia, m);
+  if (m && fields.inertia) { nativeMasses.set(fields.inertia, m); rememberNativeMass(fields, m); }
   return fields;
 }
 /** A B-rep's mass properties, once (null: no positive volume). */
@@ -244,14 +246,14 @@ const rebuildOf = (s: CadPartSnapshot): RebuildData | undefined => s.profile && 
 
 /** A failed evaluation: its refusal in words, and the time it took (every evaluation's catch). */
 function failed(revision: number, cause: unknown, t0: number): EvalResult {
-  return { ok: false, revision, error: friendlyCause(cause), ms: performance.now() - t0 };
+  return { ok: false, revision, error: friendlyCause(cause), wallTime: (performance.now() - t0) / 1000 };
 }
 /** A part's bodies from its snapshot, its face table remembered (evaluateDoc's and evaluatePart's one path; R4 C3). */
 function partResult(doc: StudioDoc, snapshot: CadPartSnapshot, revision: number, quality: number, shopRows: readonly ShopTreeProvenance[], t0: number): Extract<EvalResult, { ok: true }> {
   const counts = new Map<ModelNode, number>(); // (each frame's member count once this evaluation)
   const bodies: BodyResult[] = withFitNotes(snapshot.outputs.map(o => bodyOf(o, doc, revision, quality, counts)), doc, snapshot.outputs);
   const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
-  return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows };
+  return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000, faceTable, shopRows };
 }
 /** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved); their refusal thrown. */
 function skeletonsNow(doc: StudioDoc): StudioDoc { return resolveSkeletons(doc).doc; }
@@ -274,7 +276,7 @@ export function rebuildFromScratch(doc: StudioDoc, revision: number): EvalResult
   const t0 = performance.now();
   try {
     const snapshot = partSnapshot(skeletonsNow(doc), part => evaluateCadPart(part, undefined, PROFILED));
-    return { ok: true, revision, bodies: [], ms: performance.now() - t0, rebuild: rebuildOf(snapshot) };
+    return { ok: true, revision, bodies: [], wallTime: (performance.now() - t0) / 1000, rebuild: rebuildOf(snapshot) };
   } catch (cause) {
     return failed(revision, cause, t0);
   }
@@ -299,7 +301,7 @@ export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, s
   try {
     const last = lastPreview[slot], snapshot = partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
     const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volume: null, mass: null }));
-    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+    return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000 };
   } catch (cause) {
     lastPreview[slot] = null;
     return failed(revision, cause, t0);
@@ -363,7 +365,7 @@ export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: n
       if (!at || origin.outputs.length !== snapshot.outputs.length || !samePlacedBody(o.brep, at.brep, place.m, place.t)) return { ...bodyOf(o, placed, revision, quality), ...(at ? keyed(at.id, base.nodes) : {}) };
       return placeBody(bodyOf(at, base, revision, quality), place.m, place.t);
     });
-    return { ok: true, revision, bodies, ms: performance.now() - t0 };
+    return { ok: true, revision, bodies, wallTime: (performance.now() - t0) / 1000 };
   } catch (cause) {
     return failed(revision, cause, t0);
   }
@@ -447,7 +449,9 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
 function placedMass(b: Pick<BodyResult, 'centroid' | 'inertia'>, m: readonly number[], t: readonly number[]): Pick<BodyResult, 'centroid' | 'inertia'> {
   const R = [[m[0], m[1], m[2]], [m[3], m[4], m[5]], [m[6], m[7], m[8]]];
   const inertia = b.inertia ? R.map((_, i) => R.map((__, j) => { let v = 0; for (let k = 0; k < 3; k++) for (let l = 0; l < 3; l++) v += R[i][k] * b.inertia![k][l] * R[j][l]; return v; })) : undefined;
-  return { ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}) };
+  const fields = { ...(b.centroid ? { centroid: move(m, t, b.centroid) } : {}), ...(inertia ? { inertia } : {}) };
+  placeNativeMass(b, fields, m);
+  return fields;
 }
 
 /** The part's bodies as B-reps, keyed as the studio keys them (for exact views: chat/views.ts). */

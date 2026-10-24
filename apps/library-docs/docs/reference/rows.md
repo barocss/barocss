@@ -15,8 +15,8 @@ explains why, and what uses each kind.
   all.
 - **Sources.** Every row names its `source`, or is marked `"estimate": true`. Where a kind requires a source, an
   estimate isn't enough.
-- **Units.** Lengths are in millimetres. Angles are in degrees. Fields ending in `UM` are in micrometres,
-  including fit and bearing deviations. The mount row fields are listed separately below.
+- **Units.** Public length fields use millimetres, including fit and bearing deviations. Angles use degrees.
+  Source labels keep the units printed by their source. The mount row fields are listed separately below.
 - **Validation.** A row is checked when it is loaded. A row with a missing or out-of-range value is refused, and the
   refusal says which row and why.
 - **Provenance.** Each loaded row keeps a receipt naming its file, its turn in the conversation and the file's SHA-256.
@@ -72,15 +72,17 @@ Fit tables. Each table has an `id`, optional `sources` (`{ id, label, url?, read
 
 - `class`: an ISO 286 class such as `H7` or `g6`;
 - `over` and `upTo`: the size range, over < size ≤ up to;
-- `upperUM` and `lowerUM`: the deviations;
+- `upper` and `lower`: the deviations in mm;
 - and `source` or `estimate`.
+
+If a source quotes a deviation in µm, divide it by 1000 before writing the row's mm value. Keep the source record.
 
 ### `bearings`
 
 - `id`, optional `designation`;
 - `bore`, `outside`, `width`, optional `chamfer`;
 - the shoulder limits `daMin`, `daMax`, `DaMax`, `raMax`;
-- the deviations `boreDeviationUM` and `outsideDeviationUM`, each `[upper, lower]`;
+- the deviations `boreDeviation` and `outsideDeviation`, each `[upper, lower]` in mm;
 - `source` or `estimate`.
 
 ### `orings`

@@ -29,9 +29,9 @@ function output(job, { count = 30, summaryKey = 1, supportMesh = mesh() } = {}) 
   const mm = job.layerHeight ?? 0.2;
   return { request: job.request, display: {
     request: job.request, summaryKey,
-    summary: { version: 'print-layers-v1', direction: job.direction ?? [0, 0, 1], directionSource: job.direction ? 'given' : 'default', modelToBed: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], layerMM: { mm, basis: job.layerHeight === undefined ? 'estimate' : 'set' }, limitDeg: { deg: job.overhangLimit ?? 45, basis: job.overhangLimit === undefined ? 'estimate' : 'set' }, count, heightMM: count * mm, supportColumns: [], supportVolumeMM3: 0, basis: 'display mesh' },
+    summary: { version: 'print-layers-v1', direction: job.direction ?? [0, 0, 1], directionSource: job.direction ? 'given' : 'default', modelToBed: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], layerHeight: { value: mm, basis: job.layerHeight === undefined ? 'estimate' : 'set' }, overhangLimit: { value: job.overhangLimit ?? 45, basis: job.overhangLimit === undefined ? 'estimate' : 'set' }, count, height: count * mm, supportColumns: [], supportVolume: 0, basis: 'display mesh' },
     layer: { k: job.layer, z: (job.layer + 0.5) * mm, contours: [], overhang: [], support: [] },
-    supportMesh, topMM: (job.layer + 1) * mm, supports: true, printed: true,
+    supportMesh, top: (job.layer + 1) * mm, supports: true, printed: true,
   } };
 }
 function fixture() {

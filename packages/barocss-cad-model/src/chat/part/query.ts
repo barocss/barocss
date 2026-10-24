@@ -50,7 +50,7 @@ async function measureTool(state: ChatState, args: Record<string, unknown>): Pro
     const f = resolveNames(state.bodies, { faces: [r[0]] }).selection.faces[0];
     if (!f) return fail(state, `No face ${r[0]} on the part.`);
     const m = datumToFace(datumWorld(set, d0), state.bodies[f.body].mesh, f.face);
-    return { state, content: json({ label: `${args.a} to ${r[0]}`, distance: Number(m.distance.toPrecision(12)), ...(m.angle !== null ? { angle_deg: Number(m.angle.toPrecision(9)) } : {}), what: m.what }), isError: false, changed: false, summary: `${args.a} to ${r[0]}` };
+    return { state, content: json({ label: `${args.a} to ${r[0]}`, distance: Number(m.distance.toPrecision(12)), ...(m.angle !== null ? { angle: Number(m.angle.toPrecision(9)) } : {}), what: m.what }), isError: false, changed: false, summary: `${args.a} to ${r[0]}` };
   }
   const names: string[] = [], resolved: Resolved[] = [];
   for (const s of [args.a ?? '', ...(args.b === undefined ? [] : [args.b])]) {
@@ -71,7 +71,7 @@ async function measureTool(state: ChatState, args: Record<string, unknown>): Pro
   const mesh = (i: number) => state.bodies[picks[i].body].mesh;
   const out = picks.length === 1 ? measureItem(mesh(0), picks[0].pick) : (() => {
     const m = measureBetween(mesh(0), picks[0].pick, mesh(1), picks[1].pick);
-    return { distance: r3(m.distance), from: v3(m.a), to: v3(m.b), ...(m.angle === undefined ? {} : { angle_deg: r3(m.angle) }), ...(m.normalDistance === undefined ? {} : { normal_distance: r3(m.normalDistance) }) };
+    return { distance: r3(m.distance), from: v3(m.a), to: v3(m.b), ...(m.angle === undefined ? {} : { angle: r3(m.angle) }), ...(m.normalDistance === undefined ? {} : { normalDistance: r3(m.normalDistance) }) };
   })();
   return { state, content: json(resolved.length ? { ...out, resolved } : out), isError: false, changed: false, summary: json(out) };
 }
@@ -114,7 +114,7 @@ async function massPropertiesTool(state: ChatState, args: Record<string, unknown
 async function rebuildReportTool(state: ChatState): Promise<ToolOutcome> {
   const report = rebuildReport(state.doc, rebuildFromScratch(state.doc, 0), { basis: 'from scratch' });
   if (!report) return fail(state, 'The part does not evaluate, so it has no rebuild to report.');
-  return { state, content: json(report), isError: false, changed: false, summary: `${report.built} features built in ${report.builtMs.toFixed(1)} ms (${report.evaluationMs.toFixed(0)} ms in all)${report.loops.length ? `; ${report.loops.length} mate loop${report.loops.length === 1 ? '' : 's'}` : ''}` };
+  return { state, content: json(report), isError: false, changed: false, summary: `${report.built} features built in ${(report.builtTime * 1000).toFixed(1)} ms (${(report.evaluationTime * 1000).toFixed(0)} ms in all)${report.loops.length ? `; ${report.loops.length} mate loop${report.loops.length === 1 ? '' : 's'}` : ''}` };
 }
 async function interferenceTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const out = await interference(state.doc, state.bodies, evaluate, strings(args.bodies));
@@ -135,7 +135,7 @@ async function wallThicknessOrDraft(name: string, state: ChatState, args: Record
     return { state, content: json({ ...out, note: 'on the display mesh: good to its chord error on curved walls' }), isError: false, changed: false, summary: `wall of ${b.key}` };
   }
   const pull = Array.isArray(args.pull) && args.pull.length === 3 ? args.pull.map(Number) as [number, number, number] : [0, 0, 1] as [number, number, number];
-  const out = draftAnalysis(state.doc, b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
+  const out = draftAnalysis(state.doc, b, pull, args.draftMin === undefined ? 1 : Number(args.draftMin));
   return { state, content: json(out), isError: false, changed: false, summary: `draft of ${b.key}` };
 }
 const wallThicknessTool = (state: ChatState, args: Record<string, unknown>) => wallThicknessOrDraft('wall_thickness', state, args);
