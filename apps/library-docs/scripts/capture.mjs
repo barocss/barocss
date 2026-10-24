@@ -6,8 +6,8 @@
 // A heavy run: it takes the barocss-lanes-guard gate itself (BAROCSS_GATE, or the mod's gate.sh) and gives it back.
 // The studio runs on 127.0.0.1:52820 and its chat port is 52891, where no chat server runs: the chat panel is off.
 // The walk steps check the labels Getting started names, and the run fails on the first one that differs.
-// The agent pages' step starts the real chat server on 52891 with the browser flow's scripted stand-in for the claude
-// CLI (no model runs: each message names the tool calls to make), and stops that one process when it is done.
+// The agent pages' step streams scripted turns in the browser (the studio's DEV hook __studioScriptChat: the chat
+// server's own events, no server and no model); its proposal is made by the real tool layer, through cad-mcp.
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
@@ -90,6 +90,21 @@ const pickFirstBody = async () => {
   }
   assert.fail('the first body in the Browser could not be picked');
 };
+/** The document cad-mcp leaves after one tool call on `doc` (the real tool layer, at autonomy L2; no model). */
+async function proposedDoc(doc, args) {
+  const file = scratchFile('agent-plate.bcad', JSON.stringify(doc));
+  const server = spawn(process.execPath, [join(studio, 'scripts/cad-mcp.mjs'), '--doc', file], { stdio: ['pipe', 'pipe', 'inherit'] });
+  try {
+    const waiting = new Map(); let id = 0, buffer = '';
+    server.stdout.on('data', d => { buffer += d; let k; while ((k = buffer.indexOf('\n')) >= 0) { const line = buffer.slice(0, k); buffer = buffer.slice(k + 1); const m = JSON.parse(line); waiting.get(m.id)?.(m); } });
+    const send = (method, params) => new Promise(done => { const n = ++id; waiting.set(n, done); server.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: n, method, params }) + '\n'); });
+    await send('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'docs-capture', version: '0' } });
+    server.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
+    const r = (await send('tools/call', { name: 'proposals', arguments: args })).result;
+    assert.equal(r.isError, false, r.content?.[0]?.text);
+    return JSON.parse(readFileSync(file, 'utf8'));
+  } finally { server.kill(); }
+}
 const displayPopover = async () => { const d = page.locator('[aria-label="Display and previews"]'); if (await d.getAttribute('aria-expanded') !== 'true') await d.click(); };
 /** A binary STL of a sphere with its top cap off: one hole, for the repair dialog. */
 function cupStl() {
@@ -226,6 +241,7 @@ const steps = [
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'fillet', null, { timeout: WAIT }); await idle(); await press('Escape');
     await page.click('[aria-label="Surface analysis"]'); await page.waitForTimeout(800); await iso();
     await shot('studio/display', 'zebra', 'studio/display: the popover, a section, zebra');
+    await shot('studio/display', 'preview-analysis', 'studio/display: the popover, a section, zebra', { target: page.locator('[aria-label="Preview & analysis"]') });
     await page.click('[aria-label="Surface analysis"]'); await page.click('[aria-label="Surface analysis"]');
   }],
   ['studio/manufacturing: the thickness map, the CNC preview, print layers', async () => {
@@ -239,21 +255,20 @@ const steps = [
       await shot('studio/manufacturing', 'thickness-map', 'studio/manufacturing: the thickness map, the CNC preview, print layers', { caption: 'WebGPU only' });
       await page.click('[aria-label="Analysis map"]').catch(() => {});
     }
-    await openFile(join(studio, 'test/fixtures/cnc8-pocket.bcad')); await iso(); await displayPopover();
-    await page.check('input[aria-label="CNC preview"]');
+    await openFile(join(studio, 'test/fixtures/cnc8-pocket.bcad')); await iso();
+    // (One preview at a time, chosen in the dock's Preview & analysis.)
+    await page.click('[aria-label="Preview: CNC"]');
     await page.waitForFunction(() => window.__studioCam?.()?.stage === 'ready', null, { timeout: 4 * WAIT });
     await page.click('[aria-label="CNC progress to the end"]'); await page.waitForTimeout(1200);
-    await shows('.card[aria-label="CNC preview"]', /NOT FOR PRODUCTION/, 'the CNC preview opens with `NOT FOR PRODUCTION`');
+    await shows('[aria-label="CNC preview"]', /NOT FOR PRODUCTION/, 'the CNC preview opens with `NOT FOR PRODUCTION`');
     await shot('studio/manufacturing', 'cnc-preview', 'studio/manufacturing: the thickness map, the CNC preview, print layers');
-    // (The two previews take turns: the studio asks to close the CNC preview first.)
-    await page.uncheck('input[aria-label="CNC preview"]');
-    await page.check('input[aria-label="Print layers"]');
+    await page.click('[aria-label="Preview: Print"]');
     await page.waitForFunction(() => window.__studioPrint?.()?.stage === 'ready', null, { timeout: 4 * WAIT });
     // (Part way up, where the pocket shows: the range set as a drag sets it, its value then the event React hears.)
     await page.locator('[aria-label="Print layer"]').evaluate(el => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(Math.round(Number(el.max) * 0.7))); el.dispatchEvent(new Event('input', { bubbles: true })); });
     await page.waitForFunction(() => window.__studioPrint?.()?.stage === 'ready' && window.__studioPrint().display.layer.k > 1, null, { timeout: 4 * WAIT }); await page.waitForTimeout(800);
     await shot('studio/manufacturing', 'print-layers', 'studio/manufacturing: the thickness map, the CNC preview, print layers');
-    await page.uncheck('input[aria-label="Print layers"]');
+    await page.click('[aria-label="Preview: None"]');
   }],
   ['studio/assemblies: interference', async () => {
     await fresh();
@@ -353,39 +368,44 @@ const steps = [
     } else await shows('aside[aria-label="Render"]', /Rendering needs a browser with WebGPU/, 'on WebGL2 the Render panel says it needs WebGPU');
     await page.click('.mode button:text-is("Model")');
   }],
-  // ——— the agent pages: the real chat and tool servers, the calls scripted
+  // ——— the agent pages: scripted turns streamed in the browser; the proposal made by the real tool layer
   ['agent: a turn applied, a proposal', async () => {
-    await fresh();
-    const origin = new URL(url).origin;
-    const chat = spawn(process.execPath, [join(studio, 'scripts/chat-server.mjs')], { env: { ...process.env, CAD_STUDIO_CHAT_PORT: String(CHAT_PORT), CAD_STUDIO_CLAUDE: join(studio, 'test/fixtures/scripted-claude.mjs'), CAD_STUDIO_CHAT_ORIGINS: [origin, origin.replace('localhost', '127.0.0.1')].join(',') }, stdio: ['ignore', 'pipe', 'inherit'] });
+    const plate = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2,
+      nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 8 }],
+      outputs: { b1: { node: 1, side: 'solid' } } };
+    const thicker = { tool: 'features', args: { action: 'edit', index: 1, values: { h: 10 } } };
+    const hole = { tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 30, y: 20 } } };
+    const proposed = await proposedDoc(plate, { action: 'propose', title: 'Thicker, with a hole', ops: [thicker, hole] });
+    const turns = [
+      [{ type: 'reasoning', delta: 'An empty part, so at L2 the first build applies directly.' },
+        { type: 'tool', name: 'features', input: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 8 } }, summary: 'Box → 1 body, 19200 mm³', isError: false },
+        { type: 'state', doc: plate }, { type: 'text', delta: 'A 60 × 40 × 8 plate.' }, { type: 'done', doc: plate, session: 'scripted', end: 'done' }],
+      [{ type: 'reasoning', delta: 'Two features in one change: at L2 that is a proposal.' },
+        { type: 'tool', name: 'features', input: { action: 'batch', ops: [thicker, hole] }, summary: 'At autonomy L2 this turn adds 1 feature: propose it (proposals.propose) instead, and the user accepts it.', isError: true },
+        { type: 'tool', name: 'proposals', input: { action: 'propose', title: 'Thicker, with a hole' }, summary: 'P1 proposed: Thicker, with a hole', isError: false },
+        { type: 'state', doc: proposed }, { type: 'text', delta: 'Proposed as P1. Preview it, then accept or reject it.' }, { type: 'done', doc: proposed, session: 'scripted', end: 'done' }],
+    ];
+    await page.route(u => u.pathname === '/api/chat/status', r => r.fulfill({ json: { enabled: true, model: 'scripted', via: 'scripted' } }));
     try {
-      await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', c => failed(new Error(`the chat server exited (${c})`))); });
-      await newPart(); await page.click('button[aria-label="Chat"]');
-      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 2 * WAIT });
-      const send = async (said, calls) => {
-        const n = await page.locator('.chat-msg.assistant').count();
-        await page.fill('[aria-label="Chat message"]', `${said}\nscript ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
-        await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 4 * WAIT });
-      };
-      // The first build of an empty part applies directly (L2), said so with an undo.
-      const box = { tool: 'features', args: { action: 'command', command: 'box', values: { w: 60, d: 40, h: 8, x: 0, y: 0, z: 0 } } };
-      await send('A 60 × 40 plate, 8 thick.', [box]);
-      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 2 * WAIT }); await idle();
-      await page.waitForSelector('.toast:has-text("Applied by the agent")', { timeout: WAIT }); await iso();
+      await fresh(); await newPart(); await page.click('button[aria-label="Chat"]');
+      await page.waitForFunction(() => !!window.__studioScriptChat, null, { timeout: WAIT });
+      await page.evaluate(t => window.__studioScriptChat(t), turns);
+      const input = page.locator('[aria-label="Chat message"]');
+      await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: WAIT });
+      await input.fill('A 60 × 40 plate, 8 thick.'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 2 * WAIT }); await idle(); await iso();
+      await page.waitForTimeout(600);
       await shot('agent', 'turn-applied', 'agent: a turn applied, a proposal');
-      // Two features in one change: refused at L2, then proposed; the part stays as it is until the person accepts.
-      const thicker = { tool: 'features', args: { action: 'edit', index: 1, values: { h: 10 } } };
-      const hole = { tool: 'features', args: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 30, y: 20 } } };
-      await send('Make it 10 thick, with an 8 mm hole in the middle.', [{ tool: 'features', args: { action: 'batch', ops: [thicker, hole] } }, { tool: 'proposals', args: { action: 'propose', title: 'Thicker, with a hole', ops: [thicker, hole] } }]);
-      await page.waitForSelector('[aria-label="Proposal P1"]', { timeout: 2 * WAIT });
+      await input.fill('Make it 10 thick, with an 8 mm hole in the middle.'); await press('Enter');
+      await page.waitForSelector('[aria-label="Proposal P1 from the chat"]', { timeout: 2 * WAIT });
       assert.deepEqual(await page.evaluate(() => window.__studioDoc.nodes.map(n => n.kind)), ['sketch', 'extrude'], 'the part is unchanged until the proposal is accepted');
-      await shot('agent/proposals', 'refused-then-proposed', 'agent: a turn applied, a proposal', { target: page.locator('aside.chat') });
-      await page.click('button[aria-label="Chat"]');
+      await page.waitForTimeout(400);
+      await shot('agent/proposals', 'refused-then-proposed', 'agent: a turn applied, a proposal', { target: page.locator('[aria-label="Chat column"]') });
       await page.locator('[aria-label="Proposal P1"] button:text-is("Preview")').click();
       await page.waitForSelector('[aria-label="P1 features"]', { timeout: 2 * WAIT }); await page.waitForTimeout(800);
       await shot('agent/proposals', 'preview', 'agent: a turn applied, a proposal');
       await shot('agent/proposals', 'card', 'agent: a turn applied, a proposal', { target: page.locator('[aria-label="Proposal P1"]') });
-    } finally { chat.kill(); }
+    } finally { await page.unroute(u => u.pathname === '/api/chat/status').catch(() => {}); await page.evaluate(() => window.__studioUnscriptChat?.()).catch(() => {}); }
   }],
 ];
 

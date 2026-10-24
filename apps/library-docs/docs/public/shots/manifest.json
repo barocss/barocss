@@ -5,204 +5,254 @@
    "page": "agent/proposals",
    "step": "agent: a turn applied, a proposal",
    "renderer": "webgpu",
-   "bytes": 15100
+   "bytes": 12191
   },
   {
    "file": "agent/proposals/preview.jpg",
    "page": "agent/proposals",
    "step": "agent: a turn applied, a proposal",
    "renderer": "webgpu",
-   "bytes": 110366
+   "bytes": 130526
   },
   {
    "file": "agent/proposals/refused-then-proposed.png",
    "page": "agent/proposals",
    "step": "agent: a turn applied, a proposal",
    "renderer": "webgpu",
-   "bytes": 73603
+   "bytes": 45006
   },
   {
    "file": "agent/turn-applied.jpg",
    "page": "agent",
    "step": "agent: a turn applied, a proposal",
    "renderer": "webgpu",
-   "bytes": 113172
+   "bytes": 98514
   },
   {
    "file": "guide/getting-started/box-hud.jpg",
    "page": "guide/getting-started",
    "step": "getting started: a box",
    "renderer": "webgpu",
-   "bytes": 94838
+   "bytes": 97308
   },
   {
    "file": "guide/getting-started/drawing.jpg",
    "page": "guide/getting-started",
    "step": "getting started: chat off, the drawing",
    "renderer": "webgpu",
-   "bytes": 84995
+   "bytes": 118655
   },
   {
    "file": "guide/getting-started/hole-preview.jpg",
    "page": "guide/getting-started",
    "step": "getting started: a hole",
    "renderer": "webgpu",
-   "bytes": 68775
+   "bytes": 72775
   },
   {
    "file": "guide/getting-started/library-rows.jpg",
    "page": "guide/getting-started",
    "step": "getting started: the tapped hole refused, rows loaded",
    "renderer": "webgpu",
-   "bytes": 98567
+   "bytes": 91362
   },
   {
    "file": "guide/getting-started/tapped-hole.png",
    "page": "guide/getting-started",
    "step": "getting started: the tapped hole",
    "renderer": "webgpu",
-   "bytes": 21943
+   "bytes": 19654
   },
   {
    "file": "guide/getting-started/tapped-refused.png",
    "page": "guide/getting-started",
    "step": "getting started: the tapped hole refused, rows loaded",
    "renderer": "webgpu",
-   "bytes": 32783
+   "bytes": 30624
   },
   {
    "file": "home/studio.jpg",
    "page": "home",
    "step": "home: the starter plate",
    "renderer": "webgpu",
-   "bytes": 93937
+   "bytes": 92616
   },
   {
    "file": "studio/assemblies/interference.jpg",
    "page": "studio/assemblies",
    "step": "studio/assemblies: interference",
    "renderer": "webgpu",
-   "bytes": 92934
+   "bytes": 94466
   },
   {
    "file": "studio/bom/bom.jpg",
    "page": "studio/bom",
    "step": "studio/bom: a shaft and its key",
    "renderer": "webgpu",
-   "bytes": 142116
+   "bytes": 137648
   },
   {
    "file": "studio/display/display-popover.png",
    "page": "studio/display",
    "step": "studio/display: the popover, a section, zebra",
    "renderer": "webgpu",
-   "bytes": 15360
+   "bytes": 3377
+  },
+  {
+   "file": "studio/display/preview-analysis.png",
+   "page": "studio/display",
+   "step": "studio/display: the popover, a section, zebra",
+   "renderer": "webgpu",
+   "bytes": 11125
   },
   {
    "file": "studio/display/section.jpg",
    "page": "studio/display",
    "step": "studio/display: the popover, a section, zebra",
    "renderer": "webgpu",
-   "bytes": 106738
+   "bytes": 106633
   },
   {
    "file": "studio/display/zebra.jpg",
    "page": "studio/display",
    "step": "studio/display: the popover, a section, zebra",
    "renderer": "webgpu",
-   "bytes": 102661
+   "bytes": 105368
   },
   {
    "file": "studio/drawings/auto-dimension.jpg",
    "page": "studio/drawings",
    "step": "studio/drawings: auto-dimension",
    "renderer": "webgpu",
-   "bytes": 93649
+   "bytes": 107752
   },
   {
    "file": "studio/features/holes-on-a-circle.jpg",
    "page": "studio/features",
    "step": "studio/features: holes on a circle, a SubD box",
    "renderer": "webgpu",
-   "bytes": 103430
+   "bytes": 105232
   },
   {
    "file": "studio/features/subd-box.jpg",
    "page": "studio/features",
    "step": "studio/features: holes on a circle, a SubD box",
    "renderer": "webgpu",
-   "bytes": 83884
+   "bytes": 84766
   },
   {
    "file": "studio/files/mesh-repair.png",
    "page": "studio/files",
    "step": "studio/files: the mesh repair dialog",
    "renderer": "webgpu",
-   "bytes": 40595
+   "bytes": 47876
   },
   {
    "file": "studio/frames/cut-list.png",
    "page": "studio/frames",
    "step": "studio/frames: a table frame, the cut list",
    "renderer": "webgpu",
-   "bytes": 85818
+   "bytes": 66306
   },
   {
    "file": "studio/frames/table-frame.jpg",
    "page": "studio/frames",
    "step": "studio/frames: a table frame, the cut list",
    "renderer": "webgpu",
-   "bytes": 184342
+   "bytes": 178122
   },
   {
    "file": "studio/manufacturing/cnc-preview.jpg",
    "page": "studio/manufacturing",
    "step": "studio/manufacturing: the thickness map, the CNC preview, print layers",
    "renderer": "webgpu",
-   "bytes": 175866
+   "bytes": 141092
   },
   {
    "file": "studio/manufacturing/print-layers.jpg",
    "page": "studio/manufacturing",
    "step": "studio/manufacturing: the thickness map, the CNC preview, print layers",
    "renderer": "webgpu",
-   "bytes": 142011
+   "bytes": 129094
   },
   {
    "file": "studio/manufacturing/thickness-map.jpg",
    "page": "studio/manufacturing",
    "step": "studio/manufacturing: the thickness map, the CNC preview, print layers",
    "renderer": "webgpu",
-   "bytes": 98186,
+   "bytes": 100584,
    "caption": "WebGPU only"
+  },
+  {
+   "file": "studio/parameters/bind.png",
+   "page": "studio/parameters",
+   "step": "studio/parameters: a chamfer bound to C, a configuration",
+   "renderer": "webgpu",
+   "bytes": 6423
+  },
+  {
+   "file": "studio/parameters/panel.jpg",
+   "page": "studio/parameters",
+   "step": "studio/parameters: a chamfer bound to C, a configuration",
+   "renderer": "webgpu",
+   "bytes": 109628
+  },
+  {
+   "file": "studio/rendering/appearance.jpg",
+   "page": "studio/rendering",
+   "step": "studio/rendering: the Render workspace",
+   "renderer": "webgpu",
+   "bytes": 75429,
+   "caption": "WebGPU only"
+  },
+  {
+   "file": "studio/rendering/lights.png",
+   "page": "studio/rendering",
+   "step": "studio/rendering: the Render workspace",
+   "renderer": "webgpu",
+   "bytes": 18055
+  },
+  {
+   "file": "studio/rendering/source.png",
+   "page": "studio/rendering",
+   "step": "studio/rendering: the Render workspace",
+   "renderer": "webgpu",
+   "bytes": 14409
+  },
+  {
+   "file": "studio/rendering/timeline.png",
+   "page": "studio/rendering",
+   "step": "studio/rendering: the Render workspace",
+   "renderer": "webgpu",
+   "bytes": 5499
   },
   {
    "file": "studio/robots/joints.jpg",
    "page": "studio/robots",
    "step": "studio/robots: the Joints card",
    "renderer": "webgpu",
-   "bytes": 135899
+   "bytes": 130670
   },
   {
    "file": "studio/sketches/rectangle.jpg",
    "page": "studio/sketches",
    "step": "studio/sketches: a rectangle",
    "renderer": "webgpu",
-   "bytes": 88367
+   "bytes": 94102
   },
   {
    "file": "studio/tour/layout.jpg",
    "page": "studio/tour",
    "step": "tour: the layout and the palette",
    "renderer": "webgpu",
-   "bytes": 93941
+   "bytes": 92616
   },
   {
    "file": "studio/tour/palette.png",
    "page": "studio/tour",
    "step": "tour: the layout and the palette",
    "renderer": "webgpu",
-   "bytes": 7281
+   "bytes": 7292
   }
  ]
 }

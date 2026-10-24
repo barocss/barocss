@@ -9,11 +9,9 @@
   - 도구 표와 거부 코드 표(코드에서 생성);
   - .bcad의 모든 필드;
   - cad-model의 모든 모듈 폴더.
-- **스크린샷.** 29장, 2.5 MB입니다. Getting started는 WebGPU와 WebGL2 모두에서 실제 studio로 따라 해 확인했습니다.
+- **스크린샷.** G12 최종 레이아웃으로 모두 다시 찍었습니다(36장, 2.7 MB). Parameters·Rendering 스크린샷도 들어갔고,
+  에이전트 화면은 브라우저에서 재생한 대본 대화입니다. Getting started는 WebGPU와 WebGL2 모두에서 확인했습니다.
 - **남은 일.**
-  - G12(레이아웃 정리)가 들어오면 레이아웃이 보이는 스크린샷을 다시 찍습니다. Parameters와 Rendering의 스크린샷도
-    그때 넣습니다.
-  - kernel 레인이 R5 fingerprint 스크립트를 커밋하면 Verification 페이지가 그것을 가리키게 합니다.
   - 다른 레인 파일에서 찾은 문구 문제(cad-cli usage, cad-model README, 예제 rows의 about)는 코디네이터에게 넘겼습니다.
 
 ## 요약 (Korean summary for the owner)
