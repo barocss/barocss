@@ -25,6 +25,25 @@ the plane is edge-on, and the cut faces hatched.
   feature's axis, and its cutting line is drawn inclined.
 - **Export section DXF** writes one section on its own.
 
+### Half and offset sections
+
+Each principal section's row has a **Kind**: **Full**, **Half** or **Offset (stepped)**. Both are put together from
+exact plain sections, so each part of them is exactly what a plain section or the uncut view shows there.
+
+- **Half.** The section on one side of a centreline and the uncut view on the other. Set the centreline's direction,
+  where it lies and which side is cut; by default it runs up the middle of the view, cut to the right. The cutting
+  line stays whole, and a centreline is drawn through the view, 3 mm past it.
+- **Offset (stepped).** The cut steps to other depths along the way, to pass through features that don't lie on one
+  plane. Each step has where it starts and its depth; **Add step** adds one, and the steps run across or up the view.
+  Each band is the plain section at its depth, and nothing is drawn where two bands meet. The cutting line steps with
+  it, square across at each step, thick at its ends and bends.
+- **The agent** gives a section `half` or `steps` (with `along`) in `set_drawing`'s `sections`. Not both on one
+  section, not on an aligned section, and steps must increase; otherwise the change is refused.
+- **Turning the drawing** to another front view is refused with `SECTION_KIND` while a half or offset section is on
+  it.
+- **Not yet:** a half section's cutting line drawn over the cut half only, steps not square to the view's axis, and
+  turning such sections with the drawing.
+
 ## Detail views
 
 A detail view enlarges a small region of a view or a section: the parent's exact projection, cut to a circle and drawn

@@ -212,6 +212,20 @@
    "bytes": 109628
   },
   {
+   "file": "studio/projects/compare.jpg",
+   "page": "studio/projects",
+   "step": "studio/projects: two versions compared",
+   "renderer": "webgpu",
+   "bytes": 111463
+  },
+  {
+   "file": "studio/projects/conflict.png",
+   "page": "studio/projects",
+   "step": "studio/projects: a merge conflict",
+   "renderer": "webgpu",
+   "bytes": 31460
+  },
+  {
    "file": "studio/rendering/appearance.jpg",
    "page": "studio/rendering",
    "step": "studio/rendering: the Render workspace",
