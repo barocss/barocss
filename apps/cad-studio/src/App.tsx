@@ -38,7 +38,8 @@ import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { poseKinematics, useJoints } from './state/useJoints';
-import { pathLimits } from './state/motion';
+import { draftPath, pathLimits, timedMotion } from './state/motion';
+import { motionOf, timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
 import { JointsPanelLive } from './ui/JointsPanelLive';
@@ -877,7 +878,10 @@ export function App() {
   // section's copies, the clearance check; elsewhere SceneViewport and the Joints card do, not the App.)
   const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
   const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
-    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown } = useJoints(jointTree, posesInApp);
+    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown,
+    motionChoice, setMotionChoice } = useJoints(jointTree, posesInApp, doc.robot?.motions);
+  // (RS2: the saved motion chosen, its length before it plays — timed once per choice.)
+  const chosenDuration = useMemo(() => { const m = motionChoice === null || !jointTree ? undefined : doc.robot?.motions?.find(x => x.name === motionChoice); try { return m && jointTree ? timedMotion(timedPathOf(jointTree, m.path)).duration : undefined; } catch { return undefined; } }, [motionChoice, jointTree, doc.robot?.motions]);
   // (RS2: a motion frozen is swept once, as Check path sweeps — the links as placed — for its first contact: the time of
   // impact and the two links, tinted from that time on as it plays.)
   useEffect(() => {
@@ -2570,7 +2574,16 @@ export function App() {
         onValue={(k, v) => { stopMotion(); setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { stopMotion(); setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={k => { stopMotion(); setJointPlaying(k); }} links={linkInertias}
         motionState={{ time: motionTime, motion, waypoints: jointWaypoints, playing: motionPlaying, loop: motionLoop, speed: motionSpeed,
           contact: contactShown && motionContact ? `Contact ${jointTree.links.find(x => x.id === motionContact.links[0])?.name ?? motionContact.links[0]} – ${jointTree.links.find(x => x.id === motionContact.links[1])?.name ?? motionContact.links[1]} at t ${motionContact.toi.toFixed(2)} s` : null,
-          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed } }}
+          chosenDuration,
+          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed,
+            saved: (doc.robot?.motions ?? []).map(m => m.name), choice: motionChoice, onChoose: setMotionChoice,
+            // (The draft kept in the document: replacing one of the same name; an undo step, the file dirty.)
+            onSave: name => {
+              let path; try { path = motionOf(jointTree, draftPath(jointTree, jointWaypoints, poseStore.get())); } catch (e) { setToast({ title: 'Could not save the motion', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+              pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) };
+              robot.motions = [...(robot.motions ?? []).filter(m => m.name !== name), { name, path }];
+              setDoc({ ...doc, robot }); setDirty(true); setMotionChoice(name);
+            } } }}
         onExportUrdf={() => {
           // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
           const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
