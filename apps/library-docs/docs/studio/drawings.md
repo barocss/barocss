@@ -37,10 +37,10 @@ exact plain sections, so each part of them is exactly what a plain section or th
   plane. Each step has where it starts and its depth; **Add step** adds one, and the steps run across or up the view.
   Each band is the plain section at its depth, and nothing is drawn where two bands meet. The cutting line steps with
   it, square across at each step, thick at its ends and bends.
-- **The agent** gives a section `half` or `steps` (with `along`) in `set_drawing`'s `sections`. Not both on one
+- **The agent.** It gives a section `half` or `steps` (with `along`) in `set_drawing`'s `sections`. Not both on one
   section, not on an aligned section, and steps must increase; otherwise the change is refused.
-- **Turning the drawing** to another front view is refused with `SECTION_KIND` while a half or offset section is on
-  it.
+- **Turning the drawing.** Choosing another front view is refused with `SECTION_KIND` while a half or offset section
+  is on it.
 - **Not yet:** a half section's cutting line drawn over the cut half only, steps not square to the view's axis, and
   turning such sections with the drawing.
 

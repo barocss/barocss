@@ -66,6 +66,17 @@ The folder can be copied or synced: a version's files never change once they're 
 
 ![A merge with one conflict: the parameter T is 3 on main and 5 on the branch thick, each side offered](/shots/studio/projects/conflict.png)
 
+## Placed parts linked to project files
+
+- **Insert**, beside a document in the card's list, places that document in the one you have open. The placed part's
+  panel then says `From ./`*file*: it is linked to that file.
+- **Newer files.** When the assembly is opened from the project, or on **Check** beside "*N* placed parts linked to
+  project files", each linked file is read. If one was saved with changes since, a toast says **Newer files for** *N*
+  placed parts, and the part's panel shows **Revision waiting**: accept the new revision, which every copy of the part
+  takes where it stands, or keep the one it has. Nothing changes until you accept.
+- **A missing file** the project no longer has is named: "Not in the project any more: …".
+- **It still opens anywhere.** The assembly keeps its own copy of each placed part, so its `.bcad` opens on its own.
+
 ## Refusals
 
 A project refuses rather than guess, each refusal with its code:
@@ -79,6 +90,6 @@ See [Refusal codes](/reference/refusals).
 
 ## Not yet
 
-- **Placed parts by their path in a project:** next, and described here when it lands.
+- Renaming a document doesn't update the links to it.
 - Sharing, comments and several people editing one project.
 - The agent has no version actions yet.
