@@ -80,7 +80,7 @@ export function poseOf(view: RobotView, given: Readonly<Record<string, number>>,
     const pose = composeInto({ R: new Float64Array(9), t: new Float64Array(3) }, m, M);
     return [{ link: l.id, name: l.name, position: [...pose.t].map(r), rotation: eulerOf([...pose.R] as never).map(r) }];
   });
-  const gears = t.couplings.map(c => { const at = gearPairAt(c, fk.values), home = gearPairAt(c, {}); return { leader: c.leader, follower: c.follower, phase: r(at.phaseDeg), homePhase: r(home.phaseDeg), held: Math.abs(at.phaseDeg - home.phaseDeg) < 1e-6, backlash: r(at.backlash) }; });
+  const gears = t.couplings.map(c => { const at = gearPairAt(c, fk.values), home = gearPairAt(c, {}); return { leader: c.leader, follower: c.follower, phase: r(at.phase), homePhase: r(home.phase), held: Math.abs(at.phase - home.phase) < 1e-6, backlash: r(at.backlash) }; });
   // (O12: each tool and sensor frame where its link puts it.)
   const frames = [...framePoses(t, fk.motions)].map(([frame, p]) => ({ frame, link: t.frames!.find(f => f.name === frame)!.link, position: p.o.map(r), rotation: eulerOf(p.R).map(r) }));
   return { unknown: fk.unknown, reply: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits, ...(closed ? { loops: { drivers: closed.drivers, solved: closed.solved, residual: closed.residual } } : {}) } };
