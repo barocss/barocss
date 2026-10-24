@@ -169,8 +169,8 @@ function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
   const order = Array.from(depth.keys()).filter(t => Number.isFinite(depth[t])).sort((x, y) => depth[x] - depth[y]), total = order.reduce((a, t) => a + area[t], 0);
   let acc = 0, p95 = NaN;
   for (const t of order) { acc += area[t]; if (acc >= 0.95 * total) { p95 = depth[t]; break; } }
-  return { body: b.key, ...(Number.isFinite(min) ? { thinnest_mm: r3(min), at: v3(at), face: name(face), thick95_mm: r3(p95) } : { thinnest_mm: null }),
-    ...(below !== undefined ? { faces_below: [...perFace].filter(([, d]) => d < below).map(([f, d]) => ({ face: name(f), thickness_mm: r3(d) })) } : {}) };
+  return { body: b.key, ...(Number.isFinite(min) ? { thinnest: r3(min), at: v3(at), face: name(face), thick95: r3(p95) } : { thinnest: null }),
+    ...(below !== undefined ? { faces_below: [...perFace].filter(([, d]) => d < below).map(([f, d]) => ({ face: name(f), thickness: r3(d) })) } : {}) };
 }
 
 /**
