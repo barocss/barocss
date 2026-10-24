@@ -215,3 +215,36 @@ The packaged numerical-v0 XYArc consumer still uses its actual centerMM/radiusMM
 legacy consumer correction is not closure of R7.3d retirement or a permanent exception for active public DTOs.
 Final qualification remains on one immutable assembled SHA with Node22.23.3. Focused results below that boundary
 remain scoped evidence, and P2 remains held.
+
+
+## Additional active quantity families (2026-10-25)
+
+These contracts consolidate the coordinator's explicit follow-up leases. They do not certify that every family is
+implemented or qualified. The external receipt records each immutable producer, consumer, ownership and proof
+boundary. A public field does not become exempt because it is a viewport DTO or a source-backed catalogue scalar.
+Preserve all physical values, existing rounding, provenance, refusal conditions, numerical tolerances and native pins.
+
+| Family | Canonical public names | Units and constraints |
+|---|---|---|
+| Material properties | density, elasticModulus, yieldStress | g/cm³ and MPa unchanged. Scalar source keys follow these names; explicit unit/source/page/URL metadata and lookup identities remain unchanged. |
+| PrinterProfile and MouldFinish | buildVolume, layerHeight, nozzleDiameter; draftMin, draftRecommended | buildVolume is the same three-dimensional mm size vector, not a scalar volume. Lengths are mm; draft thresholds are degrees. Preserve optional omission and unknown/null semantics. |
+| PrintLayers and overhang | layerHeight:{value,basis}, overhangLimit:{value,basis}, supportVolume; overhangArea, contactArea, worstAngle | Height mm, support mm³, area mm², angle degrees. worstAngle is zero for a vertical wall and ninety for a ceiling. Keep classification, lazy layers, geometry and cache dependencies. |
+| CAM Model and viewport | safeZ:{value,basis}, stepover, stepdown; cornerRadius, fluteLength, shankDiameter, rampAngle; cellPitch, removedVolume, overcutVolume, sampleSpacing, lateralUncertainty | Absolute safeZ and lengths mm, volumes mm³, ramp angle degrees. Requested and effective cellPitch remain distinct values on their original DTOs. angularChordError, noseChordError and shankExtension retain their original displayed mm meanings. No sampling or clipping change. |
+| Mechanical access, turning and machining | unreachedArea, addedArea, sampleStep, turnedArea, minOuterDiameter, includedAngle; tolerance.value and feasibleLimit | Areas mm², lengths mm, angle degrees. Preserve samples, classification, feasible-limit meaning and source. |
+| Mould fields and analysis | DraftField.draftMin; DraftFace.min, steepest, belowArea; WallReport.thinnest, thick95; PartingReport.pullRange, isoclineLength; analysis wall thinnest/thick95/faces_below[].thickness; analysis draft draft/min/max | Angles degrees, lengths mm, belowArea mm². Threshold draftMin is distinct from observed min. Keep raw quantiles, sampling, geometry, r3/r6 and independent physical oracles. Public draft tool input is draftMin. |
+| Viewport thresholds and casting | ThicknessLimits.minWall/materialMin/ratio; DraftLimits and CastingDraftLimits draftMin/draftRecommended; CastingSummary.tolerance.value | Wall lengths and tolerance mm, draft degrees, ratio dimensionless. Keep source, null, original threshold comparisons and catalogue lookup IDs. |
+| Measure and section | angle, normalDistance, cutArea | Degrees, mm and mm² respectively. Preserve existing measurement precision and geometry. |
+| Quote | tolerance:{value,perLength,source}, limits.largestPartSize, part.volumeBasis.massBound | Tolerance mm, perLength mm/mm, largestPartSize the same three-dimensional mm vector, massBound g. Preserve unknown/null/omitted fields, exact geometry behavior and formatter labels. |
+| BOM | massBound, totalMassBound, totalMass | All are g. Preserve estimate flags, positive zero, null versus omitted, original r6 and addition order. totalMassBound uses view.parts plus base, not a second sum over derived lines. totalMass retains the existing incomplete-bead-accounting subtotal limitation. |
+| Interference and keepout consumers | interference overlap/clearance; check_keepouts clearance/chordTolerance | mm³ and mm. Preserve the original overlap threshold, gap oracle and verdict. Historical conformance oracle identifiers remain separate; update actual getters and their matching tests. |
+
+Old aliases, schema versions and migrations are not added for these unreleased active DTOs. Explicit source unit
+records, catalogue threshold lookup IDs and labelled human strings are not renamed through a broad substitution.
+The native and named legacy boundaries above remain separate. A test-only reader/writer for frozen native data
+must state its boundary explicitly and must not regenerate fixture bytes or native pins.
+
+Exported solver Duty is still an open boundary: wildcard package access means it cannot be declared private merely
+because tools already project it. Public serviceLife is seconds. A new public life-in-hours exception is not approved.
+The API Work must reconcile this with unchanged internal solver numerics, native fixture bytes, conversion order
+and strict canonical file comparisons before an implementation lease is issued. This open item blocks final R7
+qualification; it does not authorize conversion of unrelated internal radians or SI dynamics.
