@@ -17,7 +17,7 @@ section current.
 
 | Lane | Now | Next | Then |
 |---|---|---|---|
-| Kernel | R7.3a batch 2 part 2, the fold (patch r73a-b2-part2-fold-wip.patch in the shared notes, checks to run, D279); part 1 done (`f1da68dc1`, D278) | R7.3b + R7.7b in one window with outer's R7.7a steps 2/4 and API's R7.7d; PG-3 (profile the engine head and spring) | R7.3d (284 of 401 files reachable only through exports), K17 |
+| Kernel | R7.3b + R7.7b (results as data in MMGS, names without suffixes; one window with outer's R7.7a steps 2/4 and API's R7.7d); R7.3a done for cad (D278 `f1da68dc1`; the fold D279: code in 44cb23283, record a152dee7e, noted e9ae27545) | R7.3b + R7.7b in one window with outer's R7.7a steps 2/4 and API's R7.7d; PG-3 (profile the engine head and spring) | R7.3d (284 of 401 files reachable only through exports), K17 |
 | Outer | RS3 (b): set_pose, waypoint, check_path, play (degrees, mm); RS3 (a) done (merge f11abe816) | R7.7a steps 2 (rows) and 4 (results, the robot tools' radians), with the kernel's window | follow-ups: signatures per kernel name (O19), a parallel-jaw gripper |
 | GPU | RS2 part 2 (outer's robot/motion, Save as motion; a79d3df3f to verify), RS1's Samples group, the motion video; RS2 part 1 done (merge 553edb8a8) | G15 in order: G15d.1 → G15a → G15b → G15d.2–3 → G15c → G15d.4, accepted on the P1 engine render | the quiet section run |
 | API | the facade on engine/parameters.ts and robot/verbs.ts; RS5's poseAt and motions; P1 milestone 2 (assembly, slider-crank, 2:1 train, cycle sweep, balance); P1 milestone 1 done (merge 6b8a42ba1) | P1 milestone 3 (outputs), then P2, P3, P4 | R7.7d after the cores' renames |
