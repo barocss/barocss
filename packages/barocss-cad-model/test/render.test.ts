@@ -41,6 +41,13 @@ test('appearance finishes (G15a): a known kind read with its scale and strength 
   for (const p of APPEARANCES) assert.deepEqual(readAppearance(p.appearance, base), p.appearance, p.id);
 });
 
+test('render studio environments (G15b): a known kind kept with its strength in range; else none', () => {
+  assert.deepEqual(readRender({ environment: { studio: { kind: 'cyclorama', intensity: 20 } } }).environment.studio, { kind: 'cyclorama', intensity: 8 });
+  assert.deepEqual(readRender({ environment: { studio: { kind: 'softbox' } } }).environment.studio, { kind: 'softbox', intensity: 1 });
+  assert.equal(readRender({ environment: { studio: { kind: 'garage' } } }).environment.studio, undefined);
+  assert.equal(readRender({ environment: {} }).environment.studio, undefined);
+});
+
 test('render settings: light angles round-trip through directions', () => {
   for (const [az, el] of [[0, 45], [-120, 30], [90, 80]] as const) {
     const d = directionFrom(az, el);

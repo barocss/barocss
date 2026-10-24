@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
-import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind } from '@barocss/cad-model/engine/render';
+import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind, type StudioKind } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
 import { CONTROL, FIELD, NUM, SLIDER, TICK } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -153,18 +153,29 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {color('Top', env.top, v => setEnv({ top: v }))}
         {color('Bottom', env.bottom, v => setEnv({ bottom: v }))}
         {slider('Ambient', env.ambient, v => setEnv({ ambient: v }), 0, 2)}
+        <label className={FIELD}><span>Studio</span>
+          <NativeSelect className={CONTROL} aria-label="Studio environment" value={env.map ? 'image' : env.studio?.kind ?? ''} onChange={e => {
+            const kind = e.target.value as StudioKind | '' | 'image';
+            if (kind === 'image') return;
+            const rest = { ...env }; delete rest.map; delete rest.studio;
+            onChange({ ...render, environment: kind ? { ...rest, studio: { kind, intensity: env.studio?.intensity ?? 1 } } : rest });
+          }}>
+            <option value="">Sky and ground</option><option value="softbox">Softboxes</option><option value="cyclorama">Cyclorama</option>
+            {env.map && <option value="image">Image</option>}
+          </NativeSelect></label>
         <div className={FIELD}><span>Environment</span>
           <span className="texture-row">
             {env.map && <img className="texture-thumb" src={env.map.image} alt="" />}
             <Button variant="ghost" asChild><label className="file-button" title="An equirectangular image (its top row overhead) that lights the part in place of the sky and ground">{env.map ? 'Replace…' : 'Image…'}
               <input type="file" accept="image/*" aria-label="Environment image" hidden onChange={async e => {
                 const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
-                try { setEnv({ map: { image: await textureImage(file, 2048), intensity: env.map?.intensity ?? 1 } }); }
+                try { const image = await textureImage(file, 2048), rest = { ...env }; delete rest.studio; onChange({ ...render, environment: { ...rest, map: { image, intensity: env.map?.intensity ?? env.studio?.intensity ?? 1 } } }); }
                 catch { onError?.('That file is not an image the browser can read.'); }
               }} /></label></Button>
             {env.map && <Button variant="ghost" size="xs" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></Button>}
           </span></div>
         {env.map && slider('Environment strength', env.map.intensity, v => setEnv({ map: { ...env.map!, intensity: v } }), 0, 4)}
+        {!env.map && env.studio && slider('Environment strength', env.studio.intensity, v => setEnv({ studio: { ...env.studio!, intensity: v } }), 0, 4)}
         {check('Occlusion', env.occlusion, v => setEnv({ occlusion: v }))}
         {check('Ground', env.ground, v => setEnv({ ground: v }))}
         {check('Grid', env.grid, v => setEnv({ grid: v }))}

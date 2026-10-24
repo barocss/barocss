@@ -8616,6 +8616,195 @@ try {
     await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
     await page.click('.mode button:text-is("Model")');
   });
+
+  // ---- CG6: a project folder, versions, restore, autosave (DA-4, DA-5) ---------------------------------------------
+  await check('CG6 project: open a folder, save into it, two versions, compare, restore the first; autosave kept in the project and offered back after a reload', async () => {
+    // (The folder picker is a native dialog a headless browser cannot drive: it hands back a real directory handle from
+    // the browser's private file system instead — the same handle calls a picked folder answers.)
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-flow-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const files = () => page.evaluate(async name => {
+      const out = [], walk = async (d, at) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') await walk(h, `${at}${n}/`); else out.push(`${at}${n}`); } };
+      await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle(name), ''); return out.filter(f => !f.endsWith('.crswap')).sort();
+    }, folder);
+    const card = page.locator('[aria-label="Versions panel"]');
+    const versions = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''));
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click();
+    await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Project"]').innerText(), new RegExp(`${folder}\\s*· folder`));
+    // A version saves the document into the folder and keeps it.
+    await card.locator('[aria-label="Version name"]').fill('First'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['First']);
+    const first = await files();
+    assert.ok(first.includes('Untitled.bcad') && first.includes('.barocss/versions/Untitled.bcad.json') && first.filter(f => f.startsWith('.barocss/snapshots/')).length === 1, first.join(', '));
+    // A second box; Save writes into the folder (no download); a second version.
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    let downloads = 0; const count = () => { downloads++; }; page.on('download', count);
+    await page.click('[aria-label="Save"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 });
+    page.off('download', count); assert.equal(downloads, 0, 'saved into the project, not downloaded');
+    await card.locator('[aria-label="Version name"]').fill('Second'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    // Compare the first with the working document: the second box's two features, added.
+    await card.locator('[aria-label="Compare First"]').click();
+    const compared = await card.locator('[aria-label="Compared changes"]').innerText();
+    assert.match(compared, /added sketch n2/); assert.match(compared, /added extrude n3/);
+    await page.waitForTimeout(1500); await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-compare.png`) });
+    await card.locator('[aria-label="Compare First"]').click();
+    // Restore the first: one box again, the history kept (both versions listed), the work unsaved.
+    await card.locator('[aria-label="Restore First"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    await page.waitForSelector('[aria-label="Unsaved changes"]');
+    // Autosave: kept in the project a moment after the change (the restored work: one box); after a reload, the folder
+    // reopened and the work offered back.
+    const autosaved = () => page.evaluate(async name => {
+      try {
+        const d = await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss')).getDirectoryHandle('autosave');
+        return JSON.parse(await (await (await d.getFileHandle('Untitled.bcad')).getFile()).text()).nodes.length;
+      } catch { return null; }
+    }, folder);
+    for (let k = 0; k < 40 && await autosaved() !== 2; k++) await page.waitForTimeout(250);
+    assert.equal(await autosaved(), 2, 'the autosave holds the restored work (one box)');
+    expectLoad(); await page.reload(); await idle();
+    if (await page.locator('[aria-label="Recover unsaved work"]').count()) await page.click('[aria-label="Recover unsaved work"] button:text-is("Discard")');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator(`[aria-label="Reopen ${folder}"]`).click();
+    await card.locator('[aria-label="Open Untitled.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    // (The log is read after the document opens.)
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First'], 'the versions read back from the folder');
+    assert.equal(await autosaved(), 2, 'the autosave still holds the restored work after the reopen');
+    await card.locator('[aria-label="Autosaved work"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Restore autosaved work"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-versions.png`) });
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 branches: a branch and the main line each add a box, merged clean; one parameter set two ways is a conflict, answered for the branch; a new part leaves the project file alone; a mesh compared by its faces', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-branch-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]'), rows = 'ul[aria-label="Versions"] > li';
+    const versions = () => card.locator(rows).evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    const bodies = n => page.waitForFunction(n => new RegExp(`${n} bod`).test(document.querySelector('.outliner')?.textContent ?? ''), n, { timeout: 15000 });
+    const version = async name => {
+      const n = await card.locator(rows).count();
+      await card.locator('[aria-label="Version name"]').fill(name); await card.locator('[aria-label="Make version"]').click();
+      await page.waitForFunction(([sel, n]) => document.querySelectorAll(`[aria-label="Versions panel"] ${sel}`).length > n, [rows, n], { timeout: 10000 });
+      assert.equal((await versions())[0], name);
+    };
+    const onBranch = async name => { await card.locator('[aria-label="Branch"]').selectOption(name); await page.waitForFunction(n => document.querySelector('[aria-label="Versions panel"] [aria-label="Branch"]')?.value === n, name, { timeout: 10000 }); };
+    const boxAt = async (axis, v) => { await press('b'); await hudReady(); await field(axis).fill(String(v)); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle(); };
+    const parameter = async (name, value) => {
+      await page.click('[aria-label="Parameters"]');
+      await page.fill('[aria-label="New parameter name"]', name); await page.fill('[aria-label="New parameter value"]', String(value)); await page.click('[aria-label="Add parameter"]');
+      await page.waitForFunction(([n, v]) => window.__studioDoc.parameters[n] === v, [name, value], { timeout: 5000 });
+      await page.click('[aria-label="Close parameters"]'); await card.waitFor({ timeout: 5000 });
+    };
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle(); await bodies(1);
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await version('Base');
+    // A branch "wide" with a box along X; the main line with a box along Y; merged: three boxes, a merge version.
+    await card.locator('[aria-label="Branch name"]').fill('wide'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'wide'), null, { timeout: 5000 });
+    await onBranch('wide'); await boxAt('At X', 48); await bodies(2); await version('Wide');
+    await onBranch('main'); await bodies(1);
+    assert.deepEqual(await versions(), ['Base'], "main's own history");
+    await boxAt('At Y', 48); await bodies(2); await version('Deep');
+    await card.locator('[aria-label="Merge"]').click();
+    await bodies(3);
+    const ids = await page.evaluate(() => window.__studioDoc.nodes.map(n => n.id));
+    assert.equal(new Set(ids).size, 6, `six features, ids unique: ${ids}`);
+    assert.match(await card.locator(rows).first().innerText(), /merged from wide/);
+    assert.deepEqual((await versions()).slice(1), ['Deep', 'Base']);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-merged.png`) });
+    // One parameter set two ways: a conflict, answered for the branch.
+    await card.locator('[aria-label="Branch name"]').fill('thick'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'thick'), null, { timeout: 5000 });
+    await onBranch('thick'); await parameter('T', 5); await version('T5');
+    await onBranch('main'); await parameter('T', 3); await version('T3');
+    await card.locator('[aria-label="Merge from"]').selectOption('thick'); await card.locator('[aria-label="Merge"]').click();
+    await card.locator('[aria-label="Conflict parameter:T"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Merge conflicts"]').innerText(), /1 conflict[\s\S]*main \(3\)[\s\S]*thick \(5\)/);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-conflict.png`) });
+    await card.locator('[aria-label="parameter:T theirs"]').check(); await card.locator('[aria-label="Merge with these answers"]').click();
+    await page.waitForFunction(() => window.__studioDoc.parameters.T === 5, null, { timeout: 10000 });
+    assert.equal(await card.locator('[aria-label="Merge conflicts"]').count(), 0);
+    // A new part leaves the project's document: its versions go from the card, and Save writes a new file.
+    const saved = await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder);
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 0, null, { timeout: 5000 });
+    // A mesh and a box: the kernel's Boolean refuses facet bodies, so compare tints the changed faces.
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]'); await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")'); await bodies(1); await idle();
+    await version('Mesh');
+    assert.equal(await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder), saved, 'Untitled.bcad untouched');
+    const files = await page.evaluate(async name => { const out = []; for await (const [n] of (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).entries()) out.push(n); return out.sort(); }, folder);
+    assert.ok(files.filter(f => f.endsWith('.bcad')).length === 2, files.join(', '));
+    await boxAt('At X', 80); await bodies(2);
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await page.waitForFunction(() => window.__studioCompareOverlay?.()?.faces > 0, null, { timeout: 20000 });
+    const o = await page.evaluate(() => window.__studioCompareOverlay());
+    assert.equal(o.method, 'faces', JSON.stringify(o)); assert.equal(o.tinted, true);
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}c-cg6-faces.png`) });
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('G15b studio light: Softboxes and the Cyclorama from the Render panel light the part (kept as the environment\'s studio, its strength), an image replaces them, Sky and ground again none', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-machined-steel');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const gpu = renderer === 'webgpu';
+    // (Step 48 left an image: Sky and ground first, the image gone.)
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    const mean = async () => { await idle(); await page.waitForTimeout(700); const f = await page.evaluate(() => window.__studioFrame(48)); return f.reduce((a, b) => a + b, 0) / f.length; };
+    const sky = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'softbox');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'softbox');
+    assert.deepEqual((await env()).studio, { kind: 'softbox', intensity: 1 });
+    const softbox = gpu ? await mean() : 0; if (gpu) await snap('g15b-softbox');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Environment strength"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '2'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.intensity === 2);
+    const brighter = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'cyclorama');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'cyclorama' && window.__studioDoc.render.environment.studio.intensity === 2);
+    if (gpu) await snap('g15b-cyclorama');
+    // An image replaces the studio (its strength kept); Sky and ground drops both.
+    await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
+    await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? '') && !window.__studioDoc.render.environment.studio, null, { timeout: 5000 });
+    assert.equal((await env()).map.intensity, 2);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Studio environment"]'), 'image');
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    if (gpu) {
+      console.log(`  G15b: frame mean sky ${sky.toFixed(1)}, softbox ${softbox.toFixed(1)}, ×2 ${brighter.toFixed(1)}`);
+      assert.ok(Math.abs(softbox - sky) > 1, 'the softbox room lights the part differently');
+      assert.ok(brighter > softbox + 0.5, `twice as strong, brighter: ${softbox.toFixed(1)} → ${brighter.toFixed(1)}`);
+    }
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.click('.mode button:text-is("Model")');
+  });
 } finally {
   await browser.close(); await server.close();
 }

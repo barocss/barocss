@@ -108,12 +108,13 @@ export interface TextureOptions {
 
 /** A texture the viewer keeps (with its source, to upload again after a device loss). */
 export class ImageTexture {
-  /** @internal */ gpu: { texture: Texture; group: BindGroup; device: Device; sampler: object } | null = null;
+  /** @internal (`lighting`: as an environment, its prefiltered reflections and diffuse light — G15b.) */
+  gpu: { texture: Texture; group: BindGroup; device: Device; sampler: object; lighting?: { specular: Texture; irradiance: Texture } } | null = null;
   disposed = false;
   constructor(readonly source: TextureSource, readonly options: Required<TextureOptions>, private readonly owner: Viewer) {}
   get width(): number { return this.source.width; }
   get height(): number { return this.source.height; }
-  dispose(): void { this.disposed = true; this.gpu?.texture.destroy(); this.gpu = null; this.owner.requestRender(); }
+  dispose(): void { this.disposed = true; this.gpu?.texture.destroy(); this.gpu?.lighting?.specular.destroy(); this.gpu?.lighting?.irradiance.destroy(); this.gpu = null; this.owner.requestRender(); }
 }
 export interface AddMeshOptions {
   material?: Material; transform?: ArrayLike<number>; visible?: boolean; pickable?: boolean; name?: string;
