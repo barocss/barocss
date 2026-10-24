@@ -5452,6 +5452,40 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.breaks && !window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('section kinds (CG5 DR-3): a block with holes at Y 10 and Y 30; B–B on the front made offset (both holes, 4 faces), half (1 face), full again', async () => {
+    const fs = await import('node:fs');
+    const block = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 10, id: 'n1' }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [15, 10], radius: 3, id: 'n2' }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [45, 30], radius: 4, id: 'n3' }], outputs: { b3: { node: 3, side: 'solid' } }, nextId: 4 };
+    const file = join(out, 'dr3-block.bcad'); fs.writeFileSync(file, JSON.stringify(block));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.sections?.some(x => x.id === 'B'), null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Section B view"]', 'front');
+      await page.waitForFunction(() => window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.view === 'front', null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '10'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === 10 && x.rings === 2), null, { timeout: 30000 });
+      // Offset: a step at X 30 (the middle) to depth 30.
+      await page.selectOption('[aria-label="Section B kind"]', 'offset');
+      await page.waitForFunction(() => !!window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.steps, null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B step 1 depth"]', '30'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 4), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').steps, [{ past: 30, at: 30 }]);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /OVERLAP|OVER_LINES|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code)), []);
+      await snap('offset-b');
+      // Half: cut right of X 30 — the face X 30–60 alone.
+      await page.selectOption('[aria-label="Section B kind"]', 'half');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 1), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').half, { line: 'vertical', at: 30, cut: 'after' });
+      await page.selectOption('[aria-label="Section B kind"]', 'full');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 2), null, { timeout: 30000 });
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();

@@ -21,11 +21,11 @@ export function BreaksList({ settings, views, onChange, onRefused }: { settings:
   const offer = views ? suggestBreak(views, list) : null;
   return <>
     <div className="card-title">BREAKS</div>
-    {list.map((b, k) => <div key={k} className={FIELD} aria-label={`Break ${k + 1}`}>
+    {list.map((b, k) => <div key={k} className={`${FIELD} flex-wrap justify-start`} aria-label={`Break ${k + 1}`}>
       <NativeSelect className={CONTROL} aria-label={`Break ${k + 1} axis`} value={b.axis} onChange={e => edit(k, { ...b, axis: e.target.value as DrawingBreak['axis'] })}>
         {BREAK_AXES.map(a => <option key={a} value={a}>{a.toUpperCase()}</option>)}
       </NativeSelect>
-      {(['from', 'to'] as const).map(end => <span key={end} className="num flex items-center gap-1"><Input type="number" className="w-20 text-right" step="any" aria-label={`Break ${k + 1} ${end}`} value={draft?.k === k && draft.end === end ? draft.text : b[end]}
+      {(['from', 'to'] as const).map(end => <span key={end} className="num flex items-center gap-1"><Input type="number" className="w-16 text-right" step="any" aria-label={`Break ${k + 1} ${end}`} value={draft?.k === k && draft.end === end ? draft.text : b[end]}
         onChange={e => setDraft({ k, end, text: e.target.value })}
         onBlur={() => { const v = Number(draft?.text); if (draft?.k === k && draft.end === end && draft.text.trim() !== '' && Number.isFinite(v)) edit(k, { ...b, [end]: v }); setDraft(null); }}
         onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /></span>)}

@@ -112,3 +112,44 @@ Newest last. Branch `claude/drawings-cg5`; the coordinator merges.
   without the isometric view 1:5 whole (500s + 20s + 22 ≤ 249) and 1:1 broken; a broken section's cut face in two
   parts in projection; BREAK_NO_VIEW and its fix; set_drawing; the DXF read back by ezdxf (the two edge pieces at
   their shifted places, no whole edge). Flow step "broken views (CG5 DR-2)".
+
+## DR-3 — half and offset (stepped) sections, composed at cut time from exact single-plane sections (2026-10-24)
+
+- **What**: `DrawingSection` gains `half?: { line: 'vertical' | 'horizontal'; at; cut: 'after' | 'before' }` and
+  `steps?: { past; at }[]` (with `along?: 'horizontal' | 'vertical'`), both in the section view's own coordinates (model
+  mm), only on a principal section, never together. `sameSection` compares them (so a changed one is cut again),
+  `withSections` keeps a half or stepped A–A as a section (not the plain `section: { y }`), `readSections` keeps them
+  when valid.
+  - **Offset** (`offsetSection`): one exact `sectionOf` per distinct depth; each kept over its band of the section
+    view's axis (before the first step, between steps, after the last), its cut rings clipped to the band by
+    half-planes, the projections put together (`composeSides`). Every plane is seen along the same depth, so each band
+    is exactly what its plane shows there; nothing is drawn at a step (the cut faces simply meet).
+  - **Half** (`halfSection`): the section's projection and cut faces on the cut side of the centreline, the part's
+    uncut view (same frame, same bodies) on the other; exact for the same reason. Hidden pieces stay in the projection
+    but sections draw visible lines only, as always.
+  - Both happen inside `sectionsCut` in the worker, so the result is an ordinary `SectionResult`: layout, sheet,
+    dimensions on the section (`section:B`), issues and exports need no change. The engine message is unchanged (the
+    section objects pass through).
+  - **Marks**: an offset section's cutting line (`steppedCuttingPlane`) in the view that sees its planes edge-on — a
+    chain polyline along the section view's axis at each depth, stepping square across at each `past`, thick at its
+    ends and bends, arrows and letters at its ends. A half section keeps the full cutting line and gets a centreline
+    (centre pen) through `at`, 3 mm past its box.
+  - **Turning the drawing** (R14.3b) with a half or offset section is refused, `SECTION_KIND` (their centreline and
+    steps are in the view's own coordinates; turning them is left for when it is needed).
+  - **Agent**: set_drawing's sections take `half`, `steps`, `along`; refused (`DRAWING_OPTIONS`) on an aligned
+    section, both together, or steps not increasing. The v2 hint: `sections?: [{id,view,at,half?,steps?}]`.
+  - **Studio**: each section row gets a kind (Full / Half / Offset (stepped)); Half: the centreline's direction, place
+    and cut side (default vertical through the middle of the view, cut right); Offset: the steps (from, depth), Add step,
+    along across or up the view.
+- **Why compose at cut time**: an offset or half section is, band by band, exactly a plain section or the plain view;
+  composing the exact pieces needs no new kernel cut (no multi-plane split) and leaves every consumer of a section as
+  it is.
+- **Not in DR-3**: the half section's cutting line drawn only over the cut half; steps that are not square to the
+  section view's axis (an aligned offset); reorienting half and offset sections.
+- **Evidence**: `test/drawing-section-kinds.test.ts`, 5 tests — a 60 × 40 × 10 block with Ø6 at (15, 10) and Ø8 at
+  (45, 30): the plain planes Y 10 and Y 30 (cut faces 0–12, 18–60 and 0–41, 49–60); stepped at X 30 the faces 0–12,
+  18–30, 30–41, 49–60, the walls at 0, 12, 18, 41, 49, 60 visible and nothing at 30; the cutting line's corners at
+  (30, 10) and (30, 30) in the top view; the starter plate halved at X 32: the face 36–64, the wall at 36 visible and
+  28 hidden, the top edge covered 0–64, cut left 0–28, the centreline at X 32 past the box; saved/refused inputs;
+  SECTION_KIND; set_drawing; the DXF's one HATCH with four loops spanning 0–12, 18–30, 30–41, 49–60 (ezdxf). Flow step
+  "section kinds (CG5 DR-3)".
