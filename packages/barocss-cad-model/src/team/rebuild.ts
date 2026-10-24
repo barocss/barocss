@@ -11,7 +11,7 @@ import { revisionOf } from '../util/revision';
 
 /** A feature's part in the evaluation: built again, reused, or an input with no body of its own (a sketch). */
 export type RebuildState = 'built' | 'reused' | 'input';
-export interface RebuildFeature { id: string; node: number | null; label: string; state: RebuildState; ms: number; calls: CadPartProfileCalls }
+export interface RebuildFeature { id: string; node: number | null; label: string; state: RebuildState; wallTime: number; calls: CadPartProfileCalls }
 /** Parts placed by mates in a loop (A by B by A): none of them can be solved. */
 export interface RebuildLoop { parts: string[]; mates: string[] }
 /** Whether the times are the last evaluation's (features reused from the one before) or a build from nothing. */
@@ -19,11 +19,11 @@ export type RebuildBasis = 'last evaluation' | 'from scratch';
 export interface RebuildReport {
   /** The document's revision (util/revision) and the evaluation the times are from: the last one, or one from nothing. */
   revision: string; evaluation: number; basis: RebuildBasis;
-  /** The whole evaluation's time (ms): the features' and what came after them (a build from nothing can take seconds). */
-  evaluationMs: number;
+  /** The whole evaluation's time (seconds): the features' and what came after them (a build from nothing can take seconds). */
+  evaluationTime: number;
   features: RebuildFeature[];
   /** The features built again: how many, their time together, the slowest's id; and how many were reused (inputs are neither). */
-  built: number; builtMs: number; slowest: string | null; reused: number;
+  built: number; builtTime: number; slowest: string | null; reused: number;
   mates: { mate: string; reason: string }[];
   loops: RebuildLoop[];
   /** What the times leave out. */
@@ -40,16 +40,16 @@ export function rebuildReport(doc: StudioDoc, result: EvalResult, options: { pro
   if (!result.ok || !result.rebuild) return null;
   const { profile, evaluated, reused } = result.rebuild, fresh = new Set(evaluated), kept = new Set(reused);
   const features: RebuildFeature[] = [];
-  let built = 0, builtMs = 0, slowest: RebuildFeature | null = null;
+  let built = 0, builtTime = 0, slowest: RebuildFeature | null = null;
   for (const id of Object.keys(profile)) {
-    const i = nodeIndexOf(doc.nodes, id), f: RebuildFeature = { id, node: i >= 0 ? i : null, label: i >= 0 ? featureLabel(doc.nodes[i], i, doc.nodes) : id, state: fresh.has(id) ? 'built' : kept.has(id) ? 'reused' : 'input', ms: profile[id].ms, calls: { ...profile[id].calls } };
+    const i = nodeIndexOf(doc.nodes, id), f: RebuildFeature = { id, node: i >= 0 ? i : null, label: i >= 0 ? featureLabel(doc.nodes[i], i, doc.nodes) : id, state: fresh.has(id) ? 'built' : kept.has(id) ? 'reused' : 'input', wallTime: profile[id].wallTime, calls: { ...profile[id].calls } };
     features.push(f);
     if (f.state !== 'built') continue;
-    built++; builtMs += f.ms;
-    if (!slowest || f.ms > slowest.ms) slowest = f;
+    built++; builtTime += f.wallTime;
+    if (!slowest || f.wallTime > slowest.wallTime) slowest = f;
   }
   const mates = options.problems ? options.problems.map(p => ({ mate: p.mate, reason: p.reason })) : mateProblems(doc);
-  return { revision: revisionOf(doc), evaluation: result.revision, basis: options.basis ?? 'last evaluation', evaluationMs: result.ms, features, built, builtMs, slowest: slowest?.id ?? null, reused: kept.size, mates, loops: loopsOf(doc, mates), limits: REBUILD_LIMITS };
+  return { revision: revisionOf(doc), evaluation: result.revision, basis: options.basis ?? 'last evaluation', evaluationTime: result.ms / 1000, features, built, builtTime, slowest: slowest?.id ?? null, reused: kept.size, mates, loops: loopsOf(doc, mates), limits: REBUILD_LIMITS };
 }
 
 /** The mates that cannot be met, as the studio's solver refuses them. */

@@ -43,7 +43,7 @@ const READ: Record<string, JsonSchema | null> = {
   fit_clearance: o({ kind: str, clearanceMin: num, clearanceMax: num, estimate: bool, hole: obj, shaft: obj, offset: num, length: num, margin: num, mmc: obj, lmc: obj, contradicted: bool, message: str }, ['kind', 'clearanceMin', 'clearanceMax', 'estimate', 'hole', 'shaft']),
   // (FRd1, O118: a frame's welds.)
   weld_list: o({ joints: arr, totals: obj, orphaned: arr, notes: arr }, ['joints', 'totals', 'orphaned', 'notes']),
-  rebuild_report: o({ revision: str, evaluation: num, basis: str, evaluationMs: num, features: arr, built: num, builtMs: num, slowest: { type: ['string', 'null'] }, reused: num, mates: arr, loops: arr, limits: str }, ['revision', 'basis', 'evaluationMs', 'features', 'built', 'builtMs', 'slowest', 'reused', 'mates', 'loops', 'limits']),
+  rebuild_report: o({ revision: str, evaluation: num, basis: str, evaluationTime: num, features: arr, built: num, builtTime: num, slowest: { type: ['string', 'null'] }, reused: num, mates: arr, loops: arr, limits: str }, ['revision', 'basis', 'evaluationTime', 'features', 'built', 'builtTime', 'slowest', 'reused', 'mates', 'loops', 'limits']),
   diff: o({ from: str, to: str, diff: obj }, ['diff']),
   list_proposals: o({ proposals: arr }, ['proposals']),
   render_views: o({ legend: obj, views: obj, layout: str, notes: arr }, ['views']),

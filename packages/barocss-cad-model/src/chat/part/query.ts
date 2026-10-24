@@ -114,7 +114,7 @@ async function massPropertiesTool(state: ChatState, args: Record<string, unknown
 async function rebuildReportTool(state: ChatState): Promise<ToolOutcome> {
   const report = rebuildReport(state.doc, rebuildFromScratch(state.doc, 0), { basis: 'from scratch' });
   if (!report) return fail(state, 'The part does not evaluate, so it has no rebuild to report.');
-  return { state, content: json(report), isError: false, changed: false, summary: `${report.built} features built in ${report.builtMs.toFixed(1)} ms (${report.evaluationMs.toFixed(0)} ms in all)${report.loops.length ? `; ${report.loops.length} mate loop${report.loops.length === 1 ? '' : 's'}` : ''}` };
+  return { state, content: json(report), isError: false, changed: false, summary: `${report.built} features built in ${(report.builtTime * 1000).toFixed(1)} ms (${(report.evaluationTime * 1000).toFixed(0)} ms in all)${report.loops.length ? `; ${report.loops.length} mate loop${report.loops.length === 1 ? '' : 's'}` : ''}` };
 }
 async function interferenceTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const out = await interference(state.doc, state.bodies, evaluate, strings(args.bodies));
