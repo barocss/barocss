@@ -21,7 +21,7 @@ section current.
 | Outer | R7.3c (one mass and bounds function, `stepFor` → `exportStudioStep`, rotate's pivot default, the assembly writes as core verbs, the row editors' and readStudioDoc's `{ error }`, vectors at the boundary); R7.3a done for cad-model (merge 9be3fe6bf) | O19 (stored edge names checked) | the R7.3b follow-up in cad-model (`bodyMass` in g·mm²), then the Later list |
 | GPU | R7.3d's gpu and interop side (the packet tag, landed with the kernel's packet.ts); R7.3c for gpu done (merge d0a27443b, G-R53) | R7.3a batch 3 (the 101 plain throws, classified first) | G14 (measure, then decide) |
 | API | R7.4c (option names without unit suffixes, owner); the Vec3 shape in cad/src/api (§10.2); cad-model tsc fixed (merge f82e0b135); R7.5b done (`a45717b72`, merge 2e79a11db) | R7.6 with the docs lane (supporting) | the facades' adapters after R7.3b/R7.3c |
-| Docs | R7.6 part 1 (samples and the Object API page on the facades; the API lane supports) and R7.3a's changed texts | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
+| Docs | the prose for R7.4c's renames once it merges; R7.6 part 1 done (merge 45c94eb09, samples 31/31) | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
 | Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
 
 ## Where we are
@@ -183,7 +183,7 @@ Order inside a lane is lowest risk first: duplicate copies, then hot-path alloca
 | R7.5 | API | **done** (`2e96fcdef`, merge 8571ceff3; cad-model api 25/25). Finding 7 (add_part, place_part, add_mate and set_frames write inline in async tool handlers; make them `verb(doc, options) → doc` core functions both the tools and the facade call) goes to the outer lane with R7.3c. **Assembly facade** (cad-model): placing parts, mates, inputs and variants (O11), frames (O12) |
 | R7.4c | API | **Option names without unit suffixes** (owner, 2026-10-24; conventions §2, §12 amended): the facades' inputs take the agent's value names (`box({ w, d, h })`, `cylinder({ r, h })`, `mass({ density })`), results keep unit names (`massG`, `volumeMM3`); documents' stored names unchanged; the docs samples follow |
 | R7.5b | API (GPU reviews) | **done** (`a45717b72`, merge 2e79a11db; show() 2/2 on hardware and SwiftShader; display lines are `lines`, §10.3 aligned). **gpu facade growth**: materials by id (§10.6), edges as lines, a camera view; `show()` browser check on both backends |
-| R7.6 | docs + API | **Docs on the facades**: samples rewritten on them, the Object API page out of experimental, the API inventory in check:docs as a drift check on §1–§12 |
+| R7.6 | docs + API | **Part 1 done** (`0b4848932`, merge 45c94eb09: the Object API page out of experimental, 7 new sample regions, the cad and cad-model pages lead with the facade; test:samples 31/31); part 2 (the inventory in check:docs) after R7.3. **Docs on the facades**: samples rewritten on them, the Object API page out of experimental, the API inventory in check:docs as a drift check on §1–§12 |
 
 Rules: each R step is behaviour-preserving and its own checkpoint; no public export renamed without a re-export (saved
 documents and package paths keep resolving); the touched package suites, lint and types per step, and the full window
