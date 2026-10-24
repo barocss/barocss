@@ -5,6 +5,8 @@ The studio's WebGPU viewer, and a small CSS-shaped scene and material language. 
 - **Version.** The package is `0.0.0`, experimental and unreleased.
 - **How the studio uses it.** The studio draws with this viewer when the browser has WebGPU. Its WebGL2 fallback is
   the studio's own renderer, not part of this package (see [WebGPU and WebGL2](#webgpu-and-webgl2)).
+- **In code.** `@barocss/gpu/api` describes a scene as an immutable object: a part's meshes, their materials, lights
+  and a camera view. `show(viewer, scene)` puts it in the viewer below. See [Object API](/packages/api#scenes).
 
 ## The viewer
 

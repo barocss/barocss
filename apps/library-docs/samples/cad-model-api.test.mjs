@@ -1,11 +1,11 @@
-// The object facade (`@barocss/cad-model/api`, experimental, R7): one bracket three ways — the StudioDoc written by
-// hand, the agent's run_command calls, and the facade — all one document byte for byte; its mass and STEP the core's,
-// a part never changed by a method, and the refusals typed. The Object API page includes the #region blocks.
-// Run: pnpm test:samples
+// The object facade (`@barocss/cad-model/api`): one bracket three ways — the StudioDoc written by hand, the agent's
+// run_command calls, and the facade — all one document byte for byte; its mass and STEP the core's, a part never changed
+// by a method, a body's material, an assembly placed, mated, varied and framed, and the refusals typed. The Object API
+// page includes the #region blocks. Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // #region import
-import { part, BarocssError } from '@barocss/cad-model/api';
+import { part, assembly, Location, BarocssError } from '@barocss/cad-model/api';
 // #endregion import
 import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';
 import { bodyMass } from '@barocss/cad-model/app/mass';
@@ -111,4 +111,37 @@ test('refusals: one error class, the facade\'s own codes and the core\'s passed 
   assert.throws(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).fillet(body => body.edges().along('z'), { radiusMM: 50 }).mass('al6061'),
     e => e instanceof BarocssError && e.code === 'RADIUS_EXCEEDS_FACE' && e.where === 'evaluate' && !!e.details?.friendly);
   // #endregion refusals
+});
+
+test('a material by its library id: set on the body, weighed in it, carried by its meshes', () => {
+  // #region material
+  const plate = part('plate').box({ wMM: 60, dMM: 40, hMM: 8 }).material('al6061');   // as set_material writes it
+  assert.equal(JSON.stringify(plate.mass()), JSON.stringify(plate.mass('al6061')));    // weighed in its own material
+  assert.equal(plate.meshes()[0].material, 'al6061');                                  // for a scene to look up
+  // #endregion material
+});
+
+test('an assembly: a pin placed, mated into a plate\'s bore, an input with a variant, a tool frame', () => {
+  // #region assembly
+  // A 60 × 40 × 8 plate with a Ø10 bore at (20, 20), and a Ø10 pin 30 long.
+  const plate = part('plate').box({ wMM: 60, dMM: 40, hMM: 8 }).hole(b => b.faces().facing('+z'), { dMM: 10, xMM: 20, yMM: 20 });
+  const pin = part('pin').cylinder({ rMM: 5, hMM: 30 });
+
+  const fixture = assembly('fixture', plate)                  // the base part, fixed at the origin
+    .addPart('pin', pin, { at: Location.at([100, 0, 0]) })     // placed off to the side
+    .addMate('concentric', { part: 'base', face: b => b.faces().curved() }, { part: 'pin', face: b => b.faces().curved() })
+    .addMate('distance', { part: 'base', face: b => b.faces().facing('-z') }, { part: 'pin', face: b => b.faces().facing('-z') },
+      { distanceMM: 0, flip: true })                           // the bottoms flush
+    .inputs({ depth: { type: 'number', unit: 'mm', default: 0, min: -10, max: 10,
+      bindings: [{ to: 'mate', mate: 'm2', field: 'distance' }] } })   // an input driving the second mate
+    .variants({ low: { depth: -5 } })
+    .frames({ tip: { link: 'pin', at: Location.at([0, 0, 30]), kind: 'tool' } });
+
+  assert.deepEqual(fixture.placements()[0].positionMM, [20, 20, 0]);                // solved: in the bore
+  assert.deepEqual(fixture.variant({ depth: -5 }).placements()[0].positionMM, [20, 20, 5]);
+  assert.deepEqual(fixture.framePoses()[0].positionMM, [20, 20, 30]);               // the tip, on the pin's top
+  assert.deepEqual(fixture.meshes().map(m => m.key), ['base/b2', 'p1/b2']);         // each part where it stands
+  // #endregion assembly
+  assert.deepEqual(fixture.problems(), []);
+  assert.throws(() => fixture.addPart('pin', pin), e => e instanceof BarocssError && e.code === 'NAME_TAKEN');
 });

@@ -24,7 +24,7 @@ The package is public module by module. Import each module by its path; the pack
 
 | Module | What it holds |
 |---|---|
-| `api/` | Experimental, R7 in progress: the object facade over the data-and-functions core. `part()` makes an immutable part, each method returning a new one, with typed edge and face selectors, `.doc`, `.mass()`, `.step()`, and one error class, `BarocssError`. Imported as `@barocss/cad-model/api`. See [Object API](/packages/api) |
+| `api/` | The object facade over the data-and-functions core, imported as `@barocss/cad-model/api`. `part()` makes an immutable studio part and `assembly()` an immutable assembly, each method returning a new one, with typed edge and face selectors, `.doc`, plain results and one error class, `BarocssError`. See [Object API](/packages/api) |
 | `engine/` | The studio document (`doc`), its evaluation into bodies and meshes, ids, mesh blobs, the `.bcad` container, shop rows and their sources, flattening an assembly |
 | `engine/schema/` | The types of the brief, questions, references, drafts, requirements and proposals; their functions are in `chat/` |
 | `sketch/` | Sketch profiles, constraints, trim, offset, corners, splines, reading a DXF and its underlay |
@@ -63,6 +63,9 @@ The document is a `barocss-cad-model` file, schema 3, in millimetres:
 
 [The .bcad document](/reference/document) lists the fields. The model converts to the kernel's part document to
 evaluate.
+
+In code, the [object facade](/packages/api) writes the document as the studio's own commands do, and the core
+evaluates it:
 
 <<< @/../samples/cad-model.test.mjs#doc
 
