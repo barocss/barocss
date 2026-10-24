@@ -26,6 +26,12 @@ The facades are for code. The agent keeps working through its JSON tools, and th
   reaches its core through one adapter.
 - **Results are the core's, as plain data, in millimetres and grams,** with the unit in the name: `volumeMM3`,
   `massG`, `centroidMM` and `inertiaGMM2`, the inertia about the centre of mass.
+- **The agent's words.** The modelling verbs are the agent's v2 command names (`box`, `hole`, `fillet`), and their
+  options are that command's values with the unit in the name: `{ wMM, dMM, hMM }`, `{ dMM, xMM, yMM }`,
+  `{ radiusMM }`.
+- **One part, two documents.** Both packages' parts are one implementation (cad's `Part`). Each verb is checked once,
+  and a backend writes it into its own document: cad's as kernel features, cad-model's through the studio's own command,
+  as the agent's `run_command` does.
 - **The same verbs** on both parts: `box`, `hole`, `fillet`, `select`, `mass`, `step` and `meshes`.
 - **The same selectors.** `edges()` and `faces()`, with typed filters and no string selectors:
   - the kernel fills them from the B-rep, and cad-model from its display mesh;
@@ -45,21 +51,25 @@ A kernel part is an immutable object over a `CadPartDocument`:
 <<< @/../samples/cad-api.test.mjs#bracket
 
 - **Its document.**
-  - `.box(widthMM, depthMM, heightMM)` adds a rectangle sketch and its extrude, and must be the first body.
-  - `.hole({ at, diameterMM, depthMM? })` and `.fillet(select, radiusMM)` each add a feature that targets the current
-    output.
+  - `.box({ wMM, dMM, hMM, xMM?, yMM?, zMM? })` adds a rectangle sketch and its extrude, its least corner at
+    (x, y, z).
+  - `.hole(face, { dMM, xMM, yMM, type?, depthMM? })` adds a hole into the one flat face the selector picks, at (x, y)
+    on that face's plane. It goes through unless it is `'blind'` with a `depthMM`. The feature keeps the face by name,
+    `face: 'extrude1.top'`, as the studio writes it.
+  - `.fillet(edges, { radiusMM })` rounds the edges the selector picks.
   - Feature ids are assigned in order: `sketch1`, `extrude1`, `hole1`…
 
 <<< @/../samples/cad-api.test.mjs#doc
 
 - **Its results.**
-  - `.mass(densityGPerCm3)` takes a density, since the kernel keeps no material library.
+  - `.mass({ densityGPerCm3 })` takes a density, since the kernel keeps no material library.
   - `.step(name?)` writes STEP AP214.
   - `.stl()` writes binary STL.
   - `.meshes()` gives each body's display triangles as `{ key, positions, normals, indices }`.
   - The sample checks each against the kernel's own result on the same document.
 - **Its errors.**
-  - The facade's codes: `NO_BODY`, `BODY_AMBIGUOUS`, `BOX_NOT_FIRST`, `SELECTION_EMPTY` and `DENSITY`.
+  - The facade's codes, checked before the kernel: `NO_BODY`, `BODY_AMBIGUOUS`, `SELECTION_EMPTY`, `SELECTION_ONE`
+    (a hole's selector picked more than one face), `FACE_NOT_FLAT`, `VALUE` (a value that is no length) and `DENSITY`.
   - A kernel refusal keeps the feature it came from in `details.feature`, and the kernel's error kind in
     `details.kernelCode`.
 
@@ -72,16 +82,28 @@ its tests use.
 
 <<< @/../samples/cad-model-api.test.mjs#import
 
-A part over the studio document:
+A part over the studio document. The same bracket can be written three ways, and all three give one document, byte for
+byte. The sample checks each against the others.
+
+1. **The document**, as the studio's commands write it. Besides the shape, it keeps:
+   - the box's values (`made`), so picking it in the studio edits them again;
+   - the face the hole went into (`face`);
+   - each filleted edge's geometry where it was picked (`sigs`), so the fillet can find its edges again after an edit.
+
+<<< @/../samples/cad-model-api.test.mjs#raw
+
+2. **The agent's commands.** `run_command`, the features tool's `command`, with the faces and edges by persistent
+   name. Written this way, each name has to be read from the result before it.
+
+<<< @/../samples/cad-model-api.test.mjs#commands
+
+3. **The facade.** The same command names, the same values with their units in the names, and selectors in place of
+   the names. It runs the studio's own command, as `run_command` does.
 
 <<< @/../samples/cad-model-api.test.mjs#bracket
 
-- **Its document.** The same bracket through the core functions, written by hand, is the same document byte for byte:
-
-<<< @/../samples/cad-model-api.test.mjs#core
-
-- **Its results.** `.mass(material)` takes a material id from the library, such as `al6061`. The sample checks the
-  mass and `.step()` against the core's. `.meshes()` gives each body's display mesh.
+- **Its results.** `.mass()` takes a material id from the library, such as `al6061`, or `{ densityGPerCm3 }`. The
+  sample checks the mass and `.step()` against the core's. `.meshes()` gives each body's display mesh.
 - **Immutability.**
 
 <<< @/../samples/cad-model-api.test.mjs#immutable
@@ -94,7 +116,10 @@ A part over the studio document:
 <<< @/../samples/cad-model-api.test.mjs#select
 
 - **Its errors.**
-  - The facade's codes, as the kernel facade's, plus `MATERIAL_UNKNOWN` and `MASS_UNKNOWN`.
+  - The shared part's codes: `NO_BODY`, `BODY_AMBIGUOUS`, `SELECTION_EMPTY`, `SELECTION_ONE`, `FACE_NOT_FLAT` and
+    `VALUE`.
+  - The studio backend's: `SELECTION_UNKNOWN` (a name not on the part), `UNAVAILABLE` (the studio's command can't run
+    here), `MATERIAL_UNKNOWN` and `MASS_UNKNOWN`.
   - A core refusal keeps the core's own words in `details.friendly`.
 
 <<< @/../samples/cad-model-api.test.mjs#refusals
