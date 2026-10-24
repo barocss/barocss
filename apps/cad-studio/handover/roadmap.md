@@ -293,6 +293,7 @@ evidence files.
 - A v3 decision, if S3 finds a breaking v2 change. · ko: S3에서 v2 호환이 깨지면 v3 결정
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
+- Unit suffixes on the facades' option names (`wMM`, `dMM` …): the API lane recommends the agent's value names on inputs (`w`, `d`, `h`, `radius`, all mm by §2) and unit names only on results (`massG`, `volumeMM3`); a wording change to conventions §2/§12. · ko: 겉 API 옵션 이름의 단위 접미사(wMM 등)를 뺄지 — 입력은 에이전트 이름(w, d, h), 결과만 단위 이름(massG)
 - A built-in display look per material id (al6061's colour, …) in gpu, or scenes keep registering their own looks (today: none; O75 keeps look ids apart from material ids; R7.5b finding 10). · ko: 재료 id마다 기본 표시 모양(색)을 gpu에 둘지, 장면이 직접 등록할지
 
 ## Off the roadmap (owner decisions)
