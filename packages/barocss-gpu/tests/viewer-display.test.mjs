@@ -32,6 +32,22 @@ for (const dpr of [1, 2]) test(`hidden dash has its own CSS-pixel packing at DPR
   assert.deepEqual([...f.slice(48, 50)], [0, 0]);
 });
 
+test('G15a: a surface finish, clear coat and oil film packed after the hatch; none, or on lines, zeros', () => {
+  const tri = material => new Mesh(new Geometry(prepareGeometry({ positions: [0, 0, 0, 1, 0, 0, 0, 1, 0] }), owner()), owner(), 2, { material });
+  const f = new Float32Array(64);
+  const m = tri({ finish: { kind: 'turned', scale: 0.4, strength: 2, axis: [0, 0, 3], origin: [1, 2, 3] }, clearcoat: 0.5, film: 0.25 });
+  m.pack(f, 0, 1);
+  assert.deepEqual([...f.slice(52, 64)], [4, Math.fround(0.4), 1, 0.5, 0, 0, 1, Math.fround(0.08), 1, 2, 3, 0.25]);
+  m.material = { finish: { kind: 'brushed' } }; m.pack(f, 0, 1);
+  assert.deepEqual([...f.slice(52, 60)], [5, 1, 0.5, 0.5, 0, 0, 1, Math.fround(0.08)], 'defaults: scale 1, strength 0.5, Z');
+  m.material = { finish: { kind: 'lacquer' }, clearcoat: 0, film: 0 }; m.pack(f, 0, 1);
+  assert.deepEqual([...f.slice(52, 64)], new Array(12).fill(0), 'an unknown kind and no coat: nothing');
+  m.material = { finish: null, clearcoat: 1 }; m.pack(f, 0, 1);
+  assert.equal(f[52], 0); assert.equal(f[55], 1);
+  const l = line({ finish: { kind: 'cast' } }); l.pack(f, 0, 1);
+  assert.deepEqual([...f.slice(52, 64)], new Array(12).fill(0), 'lines: no finish');
+});
+
 test('depth-only surface and cap pipelines retain depth with colour writes disabled; pick pipelines stay unchanged', async () => {
   const descriptions = new Map();
   const device = {

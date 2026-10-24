@@ -221,6 +221,8 @@ const BUDGET = {
   // warm grade, contrast, saturation and a vignette. The post's cost: the second row's GPU time less the first's.)
   renderOrbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
   renderOrbitPost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
+  // (G15a: the same with the part knurled and lacquered — the finish's relief, four noise lookups a pixel, and the coat.)
+  renderOrbitFinish: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
   pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
   // (RS2: as a joint played, and the App rendered only as it starts and stops — never in a frame of it.)
   motion: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3, app: 4 },
@@ -379,6 +381,11 @@ try {
   await page.evaluate(() => { for (const [l, x] of [['Contrast', 1.2], ['Saturation', 1.2], ['Vignette', 0.6]]) { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); } });
   await page.waitForTimeout(800);
   await measure('render: orbit 60, post on (AgX, warm grade, vignette)', BUDGET.renderOrbitPost, orbit60);
+  await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+  await page.selectOption('[aria-label="Appearance preset"]', 'look-knurled-steel');
+  await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Clear coat"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '0.6'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.waitForTimeout(800);
+  await measure('render: orbit 60, post on, knurled and lacquered (G15a)', BUDGET.renderOrbitFinish, orbit60);
   await page.click('.mode button:text-is("Model")'); await page.waitForTimeout(500);
   // ---- G1: posed and exploded assemblies -------------------------------------------------------------------------
   const fs = await import('node:fs'), os = await import('node:os');

@@ -36,7 +36,7 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'forward_kinematics',
-    description: 'Where every part of the robot is for joint values (by joint key, from get_joints; radians for a turning joint, mm for a sliding one; absent: 0, the pose the mates solve to): each link\'s placement (position mm, rotation degrees about X, Y, Z, as place_part takes them), the values used (a gear follower from its leader), joints outside their limits, and each coupled gear pair\'s tooth phase there against its home phase (held: the pair turns together). Changes nothing.',
+    description: 'Where every part of the robot is for joint values (by joint key, from get_joints; radians for a turning joint, mm for a sliding one; absent: 0, the pose the mates solve to): each link\'s placement (position mm, rotation degrees about X, Y, Z, as place_part takes them), the values used (a gear follower from its leader), joints outside their limits, and each coupled gear pair\'s tooth phase there against its home phase (held: the pair turns together). A closed loop (a slider-crank, a four-bar) is closed on its own mates: give its driver, and the other loop joints come back solved ("loops"); refused, typed: LOOP_PASSIVE (more given than the loop\'s freedom), NO_CLOSURE, DEAD_POINT. Changes nothing.',
     input_schema: { type: 'object', properties: { values: { type: 'object', additionalProperties: { type: 'number' } } }, additionalProperties: false },
   },
   {
@@ -86,7 +86,7 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'set_pose',
-    description: 'Shows the robot at joint values (by joint key, from get_joints; degrees for a turning joint, mm for a slide; absent: 0, the solved pose): each link\'s and frame\'s placement as forward_kinematics gives it, the values used (gear followers from their leaders) in degrees and mm. Refused past a joint\'s limits (JOINT_LIMIT), for a key no moving joint has (JOINT_UNKNOWN) or a gear follower given its own value (JOINT_MIMIC). A preview: nothing is stored.',
+    description: 'Shows the robot at joint values (by joint key, from get_joints; degrees for a turning joint, mm for a slide; absent: 0, the solved pose): each link\'s and frame\'s placement as forward_kinematics gives it, the values used (gear followers from their leaders) in degrees and mm. Refused past a joint\'s limits (JOINT_LIMIT), for a key no moving joint has (JOINT_UNKNOWN) or a gear follower given its own value (JOINT_MIMIC); a closed loop solved from its driver, as forward_kinematics closes it. A preview: nothing is stored.',
     input_schema: { type: 'object', properties: { values: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['values'], additionalProperties: false },
   },
   {
@@ -173,7 +173,8 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   if (name === 'forward_kinematics') {
     const t = treeOf(view), given = args.values ?? {};
     if (!given || typeof given !== 'object' || Array.isArray(given) || Object.values(given).some(v => typeof v !== 'number' || !Number.isFinite(v))) return { error: '"values" is {joint key: number}.' };
-    const p = poseOf(view, given as Record<string, number>, t);
+    let p: ReturnType<typeof poseOf>;
+    try { p = poseOf(view, given as Record<string, number>, t); } catch (e) { if (isRefusal(e)) return { error: (e as BarocssError).message }; throw e; }
     if (p.unknown.length) return { error: `No joint ${p.unknown.join(', ')}; joints: ${t.joints.map(j => j.key).join(', ') || 'none'}.` };
     return { doc, content: p.reply, changed: false, summary: `${p.reply.links.length} links placed${p.reply.out_of_limits.length ? `, ${p.reply.out_of_limits.length} outside their limits` : ''}` };
   }

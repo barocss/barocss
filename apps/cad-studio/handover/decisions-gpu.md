@@ -3687,3 +3687,65 @@ is untouched as history. The coordinator settled the scope:
   - DPR 1: 1.03 → 1.06 ms of GPU a submit (output 0.71 → 0.75).
   - DPR 2 (a 2880×1800 page, more than 1440p): 3.29 → 3.46 ms (output 2.37 → 2.46).
   - Both are far under the 16.7 ms Render orbit target. Modelling is unchanged (the post is off).
+
+## G-R68 — G15a: surface finishes, a clear coat and an oil film (roadmap G15a, 2026-10-24)
+
+- **The surface shader** (`packages/barocss-gpu`, `viewer/shaders/surface.ts`, `viewer/scene.ts`):
+  - `Material.finish` (`SurfaceFinish`: kind, scale, strength, axis, origin), `clearcoat` (+ `clearcoatRoughness`, 0.08 by
+    default) and `film`. They are packed in the object block's free 48 bytes (`OBJECT_BYTES` 208 → 256; the stride was
+    already 256). With none of them set, the slots are zeros and the shading takes the old path.
+  - The relief and roughness are made per pixel from the mesh's own coordinates (its transform's frame, so a pattern
+    stays on the part as it moves or explodes). The noise is our own value noise and fbm, not textures:
+    - cast and sand-cast: grain, the sand's coarser, with pits;
+    - machined: lines across the axis;
+    - turned: rings about the axis through the origin (the body's box centre in the studio), feed lines along it;
+    - brushed: streaks along the axis;
+    - knurled: two ±45° helical grooves round the axis, only on faces not square to it;
+    - blasted: fine pits.
+    The normal is perturbed by finite differences of the relief in the mesh frame.
+  - **Band-limited by the pixel's footprint** (`band`): each detail fades as it nears two to a pixel, and the lost relief
+    becomes roughness. Fine marks never sparkle; at a distance a turned face shows as its radial highlight.
+  - Machined, turned and brushed stretch the highlight across their marks. This uses anisotropic GGX (Burley: rougher
+    across than along) for the lights, and a bent reflection normal for the ambient and environment.
+  - **Clear coat**: a second, smooth dielectric lobe on the unperturbed normal, for the lights and the reflection. What
+    it reflects the base doesn't get. Shadows use the unperturbed normal.
+  - **Oil film**: a thin-film tint on the reflections. Colours cycle with the view angle and a varying thickness, strongest
+    at grazing angles. It is kept subtle (a sheen, not a paint).
+- **cad-model** (`engine/render.ts`, outer's file, its own commit; named to the coordinator before it was built):
+  - `Appearance.finish?` (`AppearanceFinish`: kind of `FINISH_KINDS`, scale 0.01–100 mm, strength 0–1, an optional
+    axis), `clearcoat?` and `film?` (0–1). They are read with clamps; absent means none; no schema bump.
+  - Ten new presets: cast aluminium, sand-cast iron, machined steel, turned steel, brushed aluminium, knurled steel,
+    bead-blasted aluminium, painted red (lacquered), chrome and oiled steel. The `look-` prefix is kept (O75's test
+    passes).
+- **The studio**:
+  - `viewport/finish.ts` maps a look to the viewer's finish, centring turned and knurled finishes on the body.
+  - The Render panel's Appearance tab gets Finish (None or a kind), Marks (mm), Depth, Along (X/Y/Z, for the
+    directional kinds), Clear coat and Oil film.
+  - A preset now matches on the look's material fields (colour, metal, roughness, opacity, finish, coat, film), so a
+    texture or shader on top leaves it chosen. Choosing one replaces those fields, so a finish never carries over to a
+    preset without one.
+- **The built-in look per material id is the owner's call**, so it is not built. The proposal:
+  - steel → machined steel; ss304 → brushed; al6061 and ti64 → machined in their own colour;
+  - brass → turned;
+  - a380, a356, zamak3 and az91d → cast;
+  - grey-iron → sand-cast;
+  - pa12 → blasted (SLS grain);
+  - abs, pc, pp, petg, pom, pla and resin → their plastic, no finish.
+- **Tests**:
+  - gpu unit 302/302, plus a packing test in viewer-display.
+  - `viewer-finish-browser` (new, in test:browser) passes on hardware and SwiftShader. It checks:
+    - every kind's marks are drawn;
+    - sand-cast is rougher than cast;
+    - brushed stretches the highlight 28 × 144 against a round 76 × 76;
+    - the clear coat's highlight peaks at 255 over a rough base at 38;
+    - the oil film adds chroma;
+    - marks a hundredth of a pixel wide become roughness;
+    - the finish moves with its mesh (difference 0).
+  - gpu test:browser 31/31.
+  - cad-model render 6/6 and material-look 3/3; studio unit 292/292 (finish.test.ts).
+  - Flow 294 (new) passes on WebGPU and WebGL2: turned steel, a knurl along Z, the painted and the oiled presets, then
+    None. Marks on the frame: plain 3.55, turned 4.54, knurled 4.60.
+- **Bench** (new row `render: orbit 60, post on, knurled and lacquered (G15a)`). The machine was heavily loaded (load 58 →
+  41), so this is for comparison only:
+  - DPR 1: the surface pass costs 1.41 → 2.21 ms with the knurl and coat; 4.92 ms a submit against the 8 ms budget.
+  - The quiet run for the 1440p check is still owed.
