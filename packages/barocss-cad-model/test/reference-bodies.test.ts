@@ -163,7 +163,10 @@ test('the requirement query keepout (undecided within the chord tolerance), datu
   assert.ok(near(node.plane.origin[2], 30) && near(node.plane.normal[2], -1), JSON.stringify(node.plane));
   assert.equal(code((await call(s, 'add_features', { features: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [5, 5], plane: { datum: 'D9' } }] })).content), 'NO_REFERENCE');
   const m = JSON.parse((await ok(s, 'measure', { a: 'D1', b: 'n1.top' })).content);
-  assert.ok(near(m.distance, 20) && m.angle_deg < 1e-6, JSON.stringify(m));
+  assert.ok(near(m.distance, 20) && m.angle < 1e-6, JSON.stringify(m));
+  assert.equal('angle_deg' in m, false);
+  const perpendicular = JSON.parse((await ok(s, 'measure', { a: 'D1', b: 'n1.side0' })).content);
+  assert.equal(perpendicular.angle, 90); assert.equal('angle_deg' in perpendicular, false);
   const dir = join(CASES, 'block-keepout');
   if (process.env.UPDATE_A6_FIXTURES) {
     mkdirSync(dir, { recursive: true }); writeFileSync(join(dir, 'block.step'), step);
