@@ -92,3 +92,5 @@ The checks allow for these.
   Everything else is certified between the 5° poses.
 - No stock list ships as sample rows, so a CAM package waits for a person's list (set_stock) and is refused with
   STOCK_NONE_LOADED. The check accepts that wait and names the parts waiting.
+
+The R7 checker reports MMGS values: displacement in mm³ (110000–135000), mass in g (3000–12000), lengths in mm and counterweight moment in g·mm. These are the same physical limits as the brief's cm³ and kg values. Robot calculations keep their internal radians; document and public angles use degrees. The saved fixture follows the latest stored field names. Runtime requalification requires the assembled R7 consumer checkpoint.

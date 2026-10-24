@@ -206,7 +206,7 @@ export function follower(name: string): StudioPart {
 }
 
 // The camshaft's axis: along Y, 45 (the gears' centres) from the crank's, down and back at 45°.
-export const GEAR_CENTRES_MM = 45, CAM_X = round(-GEAR_CENTRES_MM / Math.SQRT2), CAM_Z = round(-GEAR_CENTRES_MM / Math.SQRT2);
+export const EXPECTED_GEAR_CENTRES = 45, CAM_X = round(-EXPECTED_GEAR_CENTRES / Math.SQRT2), CAM_Z = round(-EXPECTED_GEAR_CENTRES / Math.SQRT2);
 
 // ── 8. the crankcase halves (the engine's frame: split on y = 0, the crank's axis along Y) ──
 // A box 120 × 55 × 130 each, hollow to 6 mm walls and open on the split face, a main bearing's boss round the axis in its
@@ -232,7 +232,7 @@ export function crankcaseHalf(name: string, side: 1 | -1): StudioPart {
 // ── 9. the timing gears (on the crankshaft's seat and the camshaft, bodies of their own): 20 teeth on the crank, 40 on
 // the camshaft — 2:1, module 1.5, their centres m (z1 + z2) / 2 = 45 apart ──
 export const GEAR_M = 1.5, CRANK_TEETH = 20, CAM_TEETH = 40, GEAR_CENTRES = GEAR_M * (CRANK_TEETH + CAM_TEETH) / 2;
-if (GEAR_CENTRES !== GEAR_CENTRES_MM) throw new Error('the gears\' centres and the camshaft\'s place disagree');
+if (GEAR_CENTRES !== EXPECTED_GEAR_CENTRES) throw new Error('the gears\' centres and the camshaft\'s place disagree');
 
 // ── 10. a valve spring (own frame: axis Z, standing on z 0) ──
 // (Bought, as a valve spring is: the BOM and the purchase list carry it as bought.)
@@ -303,13 +303,13 @@ export function engine(): Assembly {
 }
 
 /** A part's volume, mass and centre over all its bodies, each in its own material. */
-export function partMass(p: StudioPart): { volumeMM3: number; massG: number; centroidMM: [number, number, number] } {
+export function partMass(p: StudioPart): { volume: number; mass: number; centroid: [number, number, number] } {
   let v = 0, g = 0, c: [number, number, number] = [0, 0, 0];
   for (const key of p.bodies()) {
     const m = p.body(key).mass();
-    v += m.volumeMM3; g += m.massG; c = [c[0] + m.massG * m.centroidMM[0], c[1] + m.massG * m.centroidMM[1], c[2] + m.massG * m.centroidMM[2]];
+    v += m.volume; g += m.mass; c = [c[0] + m.mass * m.centroid[0], c[1] + m.mass * m.centroid[1], c[2] + m.mass * m.centroid[2]];
   }
-  return { volumeMM3: v, massG: g, centroidMM: [c[0] / g, c[1] / g, c[2] / g] };
+  return { volume: v, mass: g, centroid: [c[0] / g, c[1] / g, c[2] / g] };
 }
 
 /** The assembly's drawing: A3, its BOM table and balloons. */
@@ -328,7 +328,7 @@ async function main(out: string) {
     try {
       const p = make(), built = performance.now() - t0, m = partMass(p), r = (v: number) => Math.round(v * 1000) / 1000;
       writeFileSync(join(out, 'parts', `${name}.bcad`), JSON.stringify(p.doc));
-      report.push({ part: name, features: p.doc.nodes.length, bodies: p.bodies().length, volumeMM3: r(m.volumeMM3), massG: r(m.massG), centroidMM: m.centroidMM.map(r), ms: Math.round(built) });
+      report.push({ part: name, features: p.doc.nodes.length, bodies: p.bodies().length, volume: r(m.volume), mass: r(m.mass), centroid: m.centroid.map(r), ms: Math.round(built) });
     } catch (e) {
       report.push({ part: name, error: e instanceof Error ? e.message : String(e), ms: Math.round(performance.now() - t0) });
     }

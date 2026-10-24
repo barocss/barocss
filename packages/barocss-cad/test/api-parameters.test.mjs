@@ -21,7 +21,7 @@ const plateDoc = () => ({
     { id: 'fillet1', kind: 'fillet', target: 'hole1', edges: ['extrude1.side0|extrude1.side1', 'extrude1.side0|extrude1.side3', 'extrude1.side1|extrude1.side2', 'extrude1.side2|extrude1.side3'], radius: { parameter: 'R' } },
   ],
 });
-const look = p => { const m = p.mass({ density: 1 }); return { volume: m.volumeMM3, centroid: [...m.centroidMM] }; };
+const look = p => { const m = p.mass({ density: 1 }); return { volume: m.volume, centroid: [...m.centroid] }; };
 const near = (a, b) => {
   assert.ok(Math.abs(a.volume - b.volume) <= 1e-9 * b.volume, `volume ${a.volume} vs ${b.volume}`);
   a.centroid.forEach((v, k) => assert.ok(Math.abs(v - b.centroid[k]) <= 1e-9, `centroid ${a.centroid} vs ${b.centroid}`));

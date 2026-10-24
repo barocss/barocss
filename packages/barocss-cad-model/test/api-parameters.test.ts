@@ -30,7 +30,7 @@ function bound(doc: StudioDoc, node: number, field: string, name: string): Studi
   const f = editFields(doc.nodes, node, doc.parameters).find(x => x.key === field) as BindableField;
   return { ...doc, nodes: f.bind(doc.nodes, name)! };
 }
-const look = (p: StudioPart) => { const m = p.mass({ density: 1 }); return { volume: m.volumeMM3, centroid: m.centroidMM }; };
+const look = (p: StudioPart) => { const m = p.mass({ density: 1 }); return { volume: m.volume, centroid: m.centroid }; };
 const near = (a: ReturnType<typeof look>, b: ReturnType<typeof look>) => {
   assert.ok(Math.abs(a.volume - b.volume) <= 1e-9 * b.volume, `volume ${a.volume} vs ${b.volume}`);
   a.centroid.forEach((v, k) => assert.ok(Math.abs(v - b.centroid[k]) <= 1e-9, `centroid ${a.centroid} vs ${b.centroid}`));

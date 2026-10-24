@@ -19,7 +19,7 @@ export function meshSelection(mesh: DisplayMesh): BodyQuery {
   });
   const faces: FaceInfo[] = mesh.faces.map((f, k) => ({
     name: f.name, kind: f.kind, normal: [f.normal[0], f.normal[1], f.normal[2]], centroid: [f.centroid[0], f.centroid[1], f.centroid[2]],
-    areaMM2: f.areaMM2, edges: edgesOfFace[k],
+    area: f.area, edges: edgesOfFace[k],
   }));
   return new BodyQuery(edges, faces);
 }

@@ -63,7 +63,7 @@ test('a Boolean\'s tool callback takes several verbs: the body it makes is the o
   const finned = part('f').box({ w: 20, d: 20, h: 20, x: -10, y: -10 })
     .union(p => p.box({ w: 40, d: 40, h: 2, x: -20, y: -20, z: 4 }).linearPattern({ axis: 'z', spacing: 6, count: 3 }));
   assert.equal(finned.bodies().length, 1);
-  const v = finned.mass({ density: 1 }).volumeMM3, expected = 20 * 20 * 20 + 3 * (40 * 40 - 20 * 20) * 2;
+  const v = finned.mass({ density: 1 }).volume, expected = 20 * 20 * 20 + 3 * (40 * 40 - 20 * 20) * 2;
   assert.ok(Math.abs(v - expected) < 1e-6 * expected, `${v} vs ${expected}`);
   // (Before the tool makes a body, there is nothing for its verbs to act on.)
   assert.throws(() => part('f').box({ w: 1, d: 1, h: 1 }).union(p => p.fillet(b => b.edges(), { radius: 0.1 })), e => e instanceof BarocssError && e.code === 'NO_BODY');

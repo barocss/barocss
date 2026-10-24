@@ -1,5 +1,5 @@
 // R7, cad's facade: a part built through it equals the hand-written CadPartDocument byte for byte, and its results
-// equal evaluateCadPart's own outputs on that document byte for byte (mass in MMGS, from the kernel's kg units).
+// equal evaluateCadPart's own outputs on that document byte for byte (mass in MMGS, without conversion).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, BarocssError } from '../dist/api/index.js';
@@ -32,7 +32,7 @@ test('the facade writes the hand-written CadPartDocument, byte for byte', () => 
 test('its mass, STEP, STL and meshes are the kernel\'s own on that document, byte for byte', () => {
   const [output] = evaluateCadPart(handWritten()).outputs, m = massPropertiesOf(output, 2.7);
   // (The kernel's mass is MMGS since R7.3b: the facade's result shape over it, nothing converted.)
-  const expected = { volumeMM3: m.volume, massG: m.mass, centroidMM: [...m.centroid], inertiaGMM2: m.inertia.map(row => [...row]) };
+  const expected = { volume: m.volume, mass: m.mass, centroid: [...m.centroid], inertia: m.inertia.map(row => [...row]) };
   assert.equal(JSON.stringify(bracket().mass({ density: 2.7 })), JSON.stringify(expected));
   assert.equal(unstamped(bracket().step()), unstamped(exportStep(output, { name: 'bracket' })));
   assert.deepEqual(Buffer.from(bracket().stl()), Buffer.from(exportStl(output)));
