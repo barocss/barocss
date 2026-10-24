@@ -50,7 +50,24 @@ test('the shared public tree scales mixed mimic multipliers and offsets in both 
 });
 
 test('a coupled gear facade keeps its dimensionless ratio and degree pose values', () => {
-  const r = new Robot(docOf('gear-joint')), publicTree = r.joints(), follower = publicTree.joints.find(j => j.key === 'base~g2')!;
+  const doc = docOf('gear-joint');
+  // Non-zero physical placements keep the 20:30 pair's phase: 20 * 45 + 30 * -30 = 0.
+  for (const [id, angle] of [['g1', 45], ['g2', -30]] as const) {
+    const gear = doc.instances!.find(i => i.id === id)!.doc.nodes.find(n => n.kind === 'gear');
+    assert.ok(gear?.kind === 'gear');
+    gear.rotation = angle;
+  }
+  const raw = treeOf(doc), beforeRaw = JSON.stringify(raw), beforeDoc = JSON.stringify(doc);
+  const projected = jointTreeOut(raw), r = new Robot(doc), publicTree = r.joints();
+  assert.equal(publicTree.couplings.length, 1);
+  close(raw.couplings[0].g1.rotation, Math.PI / 4);
+  close(raw.couplings[0].g2.rotation, -Math.PI / 6);
+  close(publicTree.couplings[0].g1.rotation, 45);
+  close(publicTree.couplings[0].g2.rotation, -30);
+  assert.equal(JSON.stringify(raw), beforeRaw);
+  assert.equal(JSON.stringify(doc), beforeDoc);
+  assert.deepEqual(projected, publicTree);
+  const follower = publicTree.joints.find(j => j.key === 'base~g2')!;
   close(follower.mimic!.multiplier, -2 / 3); close(follower.mimic!.offset, 0);
   close(r.pose({ 'base~g1': 30 }).values['base~g2'], -20);
 });
