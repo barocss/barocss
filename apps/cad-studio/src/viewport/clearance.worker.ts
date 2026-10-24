@@ -19,7 +19,7 @@ async function compute(job: ClearanceRequest): Promise<void> {
     localBodies = result; documentKey = job.documentKey;
   }
   const bodies = posedClearanceBodies(visibleClearanceBodies(localBodies, job.visibleKeys), new Map(job.motions), (job.doc.instances ?? []).map(i => i.id));
-  const map = clearanceMap(bodies, { nearMM: job.nearMM }); send(clearanceDisplay(map, bodies, job.request, 'map'));
+  const map = clearanceMap(bodies, { near: job.nearMM }); send(clearanceDisplay(map, bodies, job.request, 'map'));
   for (const pair of bandPending(map)) {
     await yieldTurn(); if (job.request !== latest) return;
     bandFor(map, bodies, pair); send(clearanceDisplay(map, bodies, job.request, 'bands'));

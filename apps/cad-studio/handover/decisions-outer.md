@@ -8707,3 +8707,36 @@ put the plane at x = 10.
 - **Test:** test/o20-given-values.test.ts, 6 tests. With patchValues in place of givenValues, 4 fail (split, mirror,
   hole, fastener).
 - **Verified (T1):** o20 6/6; tsc (model, studio); eslint. The full suites run with the next checkpoint.
+
+## R7.7a step 1 — the agent's tool arguments without unit suffixes, and the core options they feed (2026-10-24)
+
+The owner's rule (conventions §2, amended 36dc8e1bc): no unit suffix. Where a bare name is ambiguous it gets a clearer
+word, and the coordinator approved those words (r7.7a-rename-proposal.md in the shared notes). Values are unchanged.
+
+| where | old | new |
+|---|---|---|
+| query.clearance (`output_clearance`) | `nearMM` | `near` |
+| query.cam (`output_cam_package`) | `toolMM` | `toolDiameter` |
+| print.layers (`output_print_layers`) | `layerMM` | `layerHeight` (`layers` holds the indices) |
+| print.layers (`output_print_layers`) | `limitDeg` | `overhangLimit` (degrees from the vertical) |
+| the pipe command's value (COMMAND_DOCS, the palette) | `bendDeg` | `bendAngle` |
+| the sweep's edit fields | `bendDeg<k>` | `bendAngle<k>` |
+| core option | `clearanceMap(bodies, { nearMM })` | `{ near }` |
+| core option | `camPreview` / `camPackage` `{ toolMM }` | `{ toolDiameter }` |
+| core option | `printLayers(meshes, { layerMM, limitDeg })` | `{ layerHeight, overhangLimit }` |
+
+- The tool descriptions now give each unit in words, for example "layerHeight (mm)".
+- The argument check's texts follow the new names: `overhangLimit must be greater than 0 and less than 90 degrees.`
+  and `… at most 10000 (mm).`
+- **tools-v2.json is unchanged:** it freezes the 13 tools and their action enums, and the per-action arguments sit
+  under them. The per-turn tools list plus prompt is within the budget (toolset 9/9).
+- The docs tool table is regenerated: `node apps/library-docs/scripts/agent-tools.mjs`.
+- The studio's call sites moved with it: cad-cli's `--tool`, clearance.worker and print.worker. Those are GPU-lane
+  viewport files, and only the option names at the calls changed; their own state names (`nearMM` props, `layerMM` in
+  PrintOptions) wait for step 3, where the stored printPreview `layerMM` moves.
+- **Left for the later steps:** the results' `layerMM: { mm, basis }` and `limitDeg: { deg, basis }` (print layers),
+  the cam result's `tool.diameterMM` and `stepoverMM`, and the stored printPreview `layerMM`.
+- **Verified (T1):**
+  - the affected model files 85/85 (toolset, tool-contract, chat-outputs, clearance, cam, print, a9, shop-context,
+    sheet, pipe, sweep, o20) and studio cnc-cam and robot 29/29;
+  - tsc (model, studio); eslint 0 errors.

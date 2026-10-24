@@ -140,7 +140,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
         if (st.kind === 'straight') number('run' + k, `Run ${k + 1}`, 'mm', n => num((step(n) as typeof st).length), (n, v) => put(n, { ...(step(n) as typeof st), length: v }));
         else {
           number('bend' + k, `Bend ${k + 1} radius`, 'mm', n => num((step(n) as typeof st).radius), (n, v) => put(n, { ...(step(n) as typeof st), radius: v }));
-          number('bendDeg' + k, `Bend ${k + 1} angle`, '°', n => (step(n) as typeof st).angleDegrees, (n, v) => put(n, { ...(step(n) as typeof st), angleDegrees: v }));
+          number('bendAngle' + k, `Bend ${k + 1} angle`, '°', n => (step(n) as typeof st).angleDegrees, (n, v) => put(n, { ...(step(n) as typeof st), angleDegrees: v }));
           out.push({ kind: 'choice', key: 'toward' + k, label: `Bend ${k + 1} toward`, options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }],
             get: n => (self<typeof node>(n).path[k] as typeof st).toward, set: (n, v) => replace(n, i, put(self(n), { ...(self<typeof node>(n).path[k] as typeof st), toward: v as typeof st.toward })) });
         }

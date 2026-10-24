@@ -74,7 +74,7 @@ test('B: CNC8\'s holes — each a plunge from the safe height to its bottom and 
   // (A through hole, a blind one from the top, and a blind one from the bottom: the bottom's needs the −Z setup.)
   // (Holes of the tool's Ø4, so each is a plunge (O161, F3: a wider one is milled, below).)
   const s = await build([cmd('box', { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('hole', { d: 4, x: 15, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 4, depth: 10, x: 45, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 4, depth: 6, x: 30, y: 10 }, { faces: ['n1.bottom'] })]);
-  const p = camPackage(s.doc, s.bodies, { toolMM: 4 });
+  const p = camPackage(s.doc, s.bodies, { toolDiameter: 4 });
   assert.deepEqual(p.setups.map(x => x.setup), ['+Z', '−Z']);
   for (const x of p.setups) {
     linkingHolds(x);
@@ -151,5 +151,5 @@ test('O166: a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE
   assert.deepEqual(top.notes, [`${r.feature}: [CAM_TOOL_TOO_LARGE] ${r.message}`]);
   linkingHolds(top);
   // (Without such a hole, no refusals key at all: cam-package-v1 readers see what they saw.)
-  assert.equal('refusals' in camPackage(s.doc, s.bodies, { toolMM: 5 }), false);
+  assert.equal('refusals' in camPackage(s.doc, s.bodies, { toolDiameter: 5 }), false);
 });

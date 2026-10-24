@@ -17,7 +17,7 @@ const meshOf = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.
 const area = (l: LayerLoop) => { let a = 0; const p = l.points, n = p.length / 2; for (let i = 0; i < n; i++) { const j = (i + 1) % n; a += p[2 * i] * p[2 * j + 1] - p[2 * j] * p[2 * i + 1]; } return a / 2; };
 
 test('A: a 20 mm cube at 0.2 mm — 100 layers, each one anticlockwise square of 400 mm²; no overhang, no support; the 4×4 is +Z\'s', () => {
-  const L = printLayers([meshOf(box(20, 20, 20)).bodies[0].mesh], { layerMM: 0.2 });
+  const L = printLayers([meshOf(box(20, 20, 20)).bodies[0].mesh], { layerHeight: 0.2 });
   assert.deepEqual([L.count, L.layerMM, L.directionSource, L.supportColumns.length], [100, { mm: 0.2, basis: 'set' }, 'default', 0]);
   assert.deepEqual(L.modelToBed, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
   for (const k of [0, 50, 99]) {
@@ -45,8 +45,8 @@ test('A: the starter plate\'s Ø8 hole — an outer loop and a clockwise hole, i
 
 test('A: the cube along (1, 0, 1) — its lower faces lean 45°: no overhang at 45°, all at 40° (one region a layer); every contour point back on the mesh', () => {
   const mesh = meshOf(box(20, 20, 20)).bodies[0].mesh, dir = [Math.SQRT1_2, 0, Math.SQRT1_2];
-  assert.equal(printLayers([mesh], { direction: dir, limitDeg: 45 }).supportColumns.length, 0);
-  const L = printLayers([mesh], { direction: dir, limitDeg: 40 }), mid = L.layer(Math.floor(L.count / 4));
+  assert.equal(printLayers([mesh], { direction: dir, overhangLimit: 45 }).supportColumns.length, 0);
+  const L = printLayers([mesh], { direction: dir, overhangLimit: 40 }), mid = L.layer(Math.floor(L.count / 4));
   assert.ok(L.supportColumns.length > 0 && L.supportVolumeMM3 > 0);
   assert.equal(mid.overhang.filter(r => !r.hole).length, 1, 'the two faces\' strips merged');
   // (Back through the 4×4: bed → model is its inverse — the turn's transpose, then the offset.)
@@ -66,7 +66,7 @@ test('A: a sphere along AM4\'s best direction — the support columns\' volume i
   const r = meshOf(sphere.build!(blank, { ...sphere.defaults!(blank), r: 10 })), mesh = r.bodies[0].mesh;
   const am4 = searchOrientation(mesh, r.faceTable!, 45).best, support = am4.supportMM3 ?? 0;
   assert.ok(support > 0, 'a ball needs support');
-  const L = printLayers([mesh], { direction: am4.direction, limitDeg: 45 });
+  const L = printLayers([mesh], { direction: am4.direction, overhangLimit: 45 });
   assert.ok(Math.abs(L.supportVolumeMM3 - support) <= 1e-9 * support, `${L.supportVolumeMM3} vs AM4 ${support}`);
   const sum = L.supportColumns.reduce((t, c) => { const f = c.footprint; return t + Math.abs((f[0] * (f[3] - f[5]) + f[2] * (f[5] - f[1]) + f[4] * (f[1] - f[3])) / 2) * (c.z1 - c.z0); }, 0);
   assert.ok(Math.abs(sum - L.supportVolumeMM3) <= 1e-9 * sum, `${sum}`);

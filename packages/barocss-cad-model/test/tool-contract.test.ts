@@ -87,7 +87,7 @@ test('every read tool’s result matches its output schema and changes nothing',
   const looked = withLook(plate, pe.bodies[0], { material: 'al6061' }), view = await bomView(looked, evalDoc), draft = draftBaseline(looked, deriveBom(view), view);
   const review = await moveBaseline(draft.doc, draft.baseline.id, 'review', userToken('test'));
   const approved = (await moveBaseline(review.doc, draft.baseline.id, 'approved', userToken('test'), evalDoc)).doc;
-  for (const [name, d, args] of [['output_bom', plate, {}], ['output_purchase_csv', plate, { withMade: true }], ['output_clearance', plate, {}], ['output_print_layers', plate, { layerMM: 1 }], ['output_cam_package', stocked, { part: 'p1' }], ['output_bundle', approved, {}]] as [string, StudioDoc, object][]) {
+  for (const [name, d, args] of [['output_bom', plate, {}], ['output_purchase_csv', plate, { withMade: true }], ['output_clearance', plate, {}], ['output_print_layers', plate, { layerHeight: 1 }], ['output_cam_package', stocked, { part: 'p1' }], ['output_bundle', approved, {}]] as [string, StudioDoc, object][]) {
     const out = await dispatchTool({ doc: d, bodies: [] }, name, args, evalDoc);
     assert.ok(!out.isError && !out.changed, `${name}: ${out.content.slice(0, 200)}`); assert.equal(out.state.doc, d, `${name}: the document as it was`);
     assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name); seen.add(name);

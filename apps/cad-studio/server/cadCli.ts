@@ -343,7 +343,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const opened = await openModel(resolve(file));
     if ('error' in opened) return failed(opened.error);
     const s0 = await stateOf(opened.doc); if ('error' in s0) return failed(s0.error);
-    const p = camPreview(s0.doc, s0.bodies, ti >= 0 ? { toolMM: Number(rest[ti + 1]) } : {}), dir = resolve(rest[oi + 1]);
+    const p = camPreview(s0.doc, s0.bodies, ti >= 0 ? { toolDiameter: Number(rest[ti + 1]) } : {}), dir = resolve(rest[oi + 1]);
     mkdirSync(dir, { recursive: true });
     const wrote = [join(dir, 'cam-preview.json')];
     writeAtomic(wrote[0], new TextEncoder().encode(JSON.stringify(p, null, 1) + '\n'));
