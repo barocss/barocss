@@ -138,6 +138,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K16: a march past a ball's pole cut back to it (24#154); a pinched face with holes, and a boundary point met twice ulps apart, triangulated (23#110) | D269, D270 | done (T2, with D268) |
 | K16: the Boolean's commutativity over the fuzz's trees, an RB check (`rb:commute`): 2 456 union/intersection nodes, SAME 2 412, both refused 37; 7 findings (1 one-sided, 6 with an intermediate body failing the strict check) kept as TODO | D271 | done (check in; findings reported) |
 | R7.3a batch 1 (kernel): BarocssError moved into src/core (api/refusal.ts re-exports it); all 171 kernel error classes on it via KernelError, names, codes and messages kept; 11 codeless classes get one | D272 | done (kernel 1698/1705, names +18, R5 4e3603b7 and R4 d1f8bb3c byte-identical, RB/props, cad-model 1047, studio 286) |
+| K16 checkpoint 3: the commutativity check's six — a slit up a cylinder wall taken out (D273, also builds the graze-x45 1 nm RB TODO), a cusp is a face's shape not a touch (D274, analytic + dense oracle), parts touching along a line from outside refused typed (D275) | D273–D275 | done (T2: kernel 1702/1709, names +4, RB IMPROVEMENT 1, commute BROKEN 0, fingerprint 869 dbc1ad33 (6 lines; 23:114 valid → refused), fuzz refusals 11/9/11/7 (39 → 38), cad-model 1048, studio 286) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

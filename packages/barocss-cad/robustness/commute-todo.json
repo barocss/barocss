@@ -1,9 +1,6 @@
 [
-  { "case": "20261023:114@r.a", "note": "a union's body fails the strict check in both orders (a face's loops cross), D271" },
-  { "case": "20261023:170@r.a.a", "note": "a union's body fails the strict check in both orders (a face's loops cross), D271" },
-  { "case": "20261024:51@r.c", "note": "a union under a pattern: its body fails the strict check in both orders (a face's loops cross), D271" },
-  { "case": "20261024:96@r.a.b", "note": "a union's body fails the strict check in both orders (a face's loops cross), D271" },
-  { "case": "20261024:125@r.b", "note": "one-sided: A ∪ B refuses (a planar face not triangulated), B ∪ A builds 140.71 mm³, D271" },
-  { "case": "20261024:165@r", "note": "A ∪ B refuses (not a manifold solid), B ∪ A builds a body failing the strict check, D271" },
-  { "case": "20261024:165@r.a", "note": "a union's body fails the strict check in both orders (a face's loops cross), D271" }
+  {
+    "case": "20261024:125@r.b",
+    "note": "one-sided: A ∪ B builds a strictly valid body whose planar face the tessellation cannot triangulate (a leftover ring backtracking along a line); B ∪ A builds 140.71 mm³, D271/D276"
+  }
 ]
