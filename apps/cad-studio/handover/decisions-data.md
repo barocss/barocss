@@ -138,3 +138,32 @@ merges.
 - **Not covered yet**: the folder picker itself (a native dialog a headless browser cannot drive; the same handle
   calls as the private file system). Large histories load every version's document when the log is read; lazy
   loading waits for a measured need.
+
+## DA-5 — the studio: a project open beside the document, versions in the dock (2026-10-24)
+
+- **What**: `src/storage/useProject.ts`, `src/storage/VersionsPanel.tsx`, and the wiring in `App.tsx` (coordinator-
+  approved; the top bar is the GPU lane's shell, told by the coordinator). App.tsx, after the change:
+  - 65–67: the two imports;
+  - 444–452: `useProject` (opened → `replaceDoc`, the file name from the path), the panel's open state, the version
+    compared and its overlay, Reopen's folder read once;
+  - 455: autosave into the project instead of the browser's recovery copy while the document has a path in an open
+    project (469: the effect's dependency); recovery.ts is unchanged and still used without a project;
+  - 1501–1505: Save writes into the open project (its tag expected), else downloads as before;
+  - 1802–1808: compare — the worker's `proposalDiff(version, working)` on the O9 'proposal-diff' lane, as a proposal's;
+  - 2544–2545: the Project & versions card in the right dock (beside Variants, not with it);
+  - 2854–2855: Save's tip names the project; a "Project & versions" button after Save;
+  - 2870: the viewport's `proposal` overlay is the compared version's when no proposal is shown.
+  - The card: Open folder… / Reopen <name> / Keep in this browser; the project's documents (Open); autosaved work
+    offered (Restore, Discard); Make version (a save with a name); the branch's versions newest first with Compare
+    (the change list and the overlay: material added green, removed red, with volumes) and Restore; branches (switch,
+    make from the latest); Merge with each conflict answered ours/theirs.
+  - Restoring, switching and merging go through `replaceDoc`: one undoable step, the document then unsaved.
+- **Oracle**: the flow step "CG6 project" (port 52891), on WebGPU: a box; Open folder (the picker handed a real
+  directory handle of the browser's private file system, since a native dialog cannot be driven headless); version
+  First (the folder then holds the document, the log and one snapshot); a second box; Save writes into the folder with
+  no download; version Second; Compare First lists exactly "added sketch n2, added extrude n3" and the overlay shows
+  +16,384 mm³ (the 32×32×16 box); Restore First gives one box with both versions still listed; the autosave file holds
+  the restored work; after a reload, Reopen and Open read both versions back and offer the autosaved work, which
+  restores one box.
+- **Not covered yet**: the face-tint fallback for a compare the Boolean refuses (proposals tint faces; compare shows
+  only the change list then); the flow on WebGL2; branches and merge in the flow (S3); parts by path (S4).
