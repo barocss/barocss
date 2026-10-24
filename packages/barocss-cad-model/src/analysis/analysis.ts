@@ -169,8 +169,8 @@ function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
   const order = Array.from(depth.keys()).filter(t => Number.isFinite(depth[t])).sort((x, y) => depth[x] - depth[y]), total = order.reduce((a, t) => a + area[t], 0);
   let acc = 0, p95 = NaN;
   for (const t of order) { acc += area[t]; if (acc >= 0.95 * total) { p95 = depth[t]; break; } }
-  return { body: b.key, ...(Number.isFinite(min) ? { thinnest_mm: r3(min), at: v3(at), face: name(face), thick95_mm: r3(p95) } : { thinnest_mm: null }),
-    ...(below !== undefined ? { faces_below: [...perFace].filter(([, d]) => d < below).map(([f, d]) => ({ face: name(f), thickness_mm: r3(d) })) } : {}) };
+  return { body: b.key, ...(Number.isFinite(min) ? { thinnest: r3(min), at: v3(at), face: name(face), thick95: r3(p95) } : { thinnest: null }),
+    ...(below !== undefined ? { faces_below: [...perFace].filter(([, d]) => d < below).map(([f, d]) => ({ face: name(f), thickness: r3(d) })) } : {}) };
 }
 
 /**
@@ -179,8 +179,8 @@ function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
  * 45° of the pull) with their least draft; those under `min`.
  */
 export function draftAnalysis(doc: StudioDoc, b: BodyResult, pull: Vec3, min = 1): Record<string, unknown> {
-  const f = draftField(doc, [b], pull, min), walls = f.faces.filter(x => Math.min(Math.abs(x.minDeg), Math.abs(x.max)) < 45 || x.cls === 'straddle');
+  const f = draftField(doc, [b], pull, min), walls = f.faces.filter(x => Math.min(Math.abs(x.min), Math.abs(x.max)) < 45 || x.cls === 'straddle');
   return { body: b.key, pull: v3(f.pull),
-    walls: walls.map(x => ({ face: x.face, draft_deg: r3(x.cls === 'straddle' ? 0 : Math.sign(x.max) * x.steepestDeg), min_deg: r3(x.minDeg), max_deg: r3(x.max), class: x.cls, ...(x.isocline ? { isocline_points: x.isocline.length } : {}) })),
+    walls: walls.map(x => ({ face: x.face, draft: r3(x.cls === 'straddle' ? 0 : Math.sign(x.max) * x.steepest), min: r3(x.min), max: r3(x.max), class: x.cls, ...(x.isocline ? { isocline_points: x.isocline.length } : {}) })),
     under_min: walls.filter(x => x.cls !== 'drafted').map(x => x.face), note: 'exact normals (planes, cylinders, curved faces from the B-rep); straddle: n·d takes both signs, a parting line crosses it' };
 }
