@@ -45,13 +45,22 @@ test('IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-
   assert.deepEqual(zipNames(q.zip), [QUOTE_FILES.step, QUOTE_FILES.report, QUOTE_FILES.page, QUOTE_FILES.request, QUOTE_FILES.manifest]);
   for (const f of q.manifest.files) { const bytes: Uint8Array = q.files.get(f.path)!; assert.equal(f.sha256, createHash('sha256').update(bytes).digest('hex'), f.path); assert.equal(f.bytes, bytes.length); }
   const r = q.request, d = 25 * Math.tan(3 * Math.PI / 180), volume = 25 * (2400 - 100 * d + 4 * d * d / 3);
-  assert.deepEqual([r.material, r.finish, r.pull, r.quantity], [{ id: 'abs', label: 'ABS', basis: 'body' }, { id: 'pm-t1', label: 'Light bead blast (PM-T1)', minDraftDeg: 3 }, [0, 0, 1], 1000]);
+  assert.deepEqual([r.material, r.finish, r.pull, r.quantity], [{ id: 'abs', label: 'ABS', basis: 'body' }, { id: 'pm-t1', label: 'Light bead blast (PM-T1)', draftMin: 3 }, [0, 0, 1], 1000]);
+  assert.ok(r.finish);
+  assert.equal(Object.hasOwn(r.finish, 'draftMin'), true);
+  assert.equal(Object.hasOwn(r.finish, 'minDraftDeg'), false);
+  const serializedRequest = JSON.parse(new TextDecoder().decode(q.files.get(QUOTE_FILES.request)!));
+  assert.deepEqual(serializedRequest, r);
+  assert.ok(serializedRequest.finish);
+  assert.equal(Object.hasOwn(serializedRequest.finish, 'draftMin'), true);
+  assert.equal(Object.hasOwn(serializedRequest.finish, 'minDraftDeg'), false);
   assert.deepEqual(r.part.size, [60, 40, 25]);
   assert.ok(Math.abs(r.part.volume - volume) <= 1e-6 * volume, `${r.part.volume} vs ${volume}`);
   assert.ok(Math.abs(r.part.mass! - volume * materialData('abs')!.density / 1000) <= 2e-3, String(r.part.mass));
   assert.deepEqual([r.tolerance, r.shrink, r.limits], [{ mm: 0.08, perMM: 0.002, source: 'https://www.protolabs.com/services/injection-molding/' }, 0.002, { largestPartMM: [751, 480, 203] }]);
   assert.match(new TextDecoder().decode(q.files.get(QUOTE_FILES.step)!), /^ISO-10303-21;/);
   const md = new TextDecoder().decode(q.files.get(QUOTE_FILES.page)!);
+  assert.ok(md.includes('| finish | Light bead blast (PM-T1): at least 3° draft |'));
   assert.match(md, /No price: prices are the moulder's\./); assert.match(md, /\| draft \| pass \|/); assert.match(md, /- nothing: the package is complete/);
 });
 

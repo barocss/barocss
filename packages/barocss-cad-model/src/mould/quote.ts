@@ -22,7 +22,7 @@ export interface QuoteRequest {
   format: 'barocss-quote-request'; version: 1;
   process: 'injection'; revision: string;
   material: { id: string; label: string; basis: 'body' | 'brief' } | null;
-  finish: { id: string; label: string; minDraftDeg: number } | null; pull: [number, number, number] | null; quantity: number | null;
+  finish: { id: string; label: string; draftMin: number } | null; pull: [number, number, number] | null; quantity: number | null;
   /** `volumeBasis` (O179): the volume is partly from the mesh — how far it and the mass may be off; an estimate. */
   part: { size: [number, number, number]; volume: number; mass: number | null; bodies: number; volumeBasis?: { method: 'tessellated'; bound: number | null; massBoundG: number | null } };
   tolerance: { mm: number; perMM: number; source: string } | null; shrink: number | null;
@@ -47,7 +47,7 @@ function page(name: string, req: QuoteRequest, rep: PrintabilityReport, open: re
     `Revision \`${req.revision}\`. No price: prices are the moulder's.`, '',
     '| | |', '|---|---|',
     `| material | ${req.material ? `${req.material.label} (${req.material.basis === 'brief' ? 'the brief\'s, stated' : 'set on the body'})` : '**not set**'} |`,
-    `| finish | ${req.finish ? `${req.finish.label}: at least ${req.finish.minDraftDeg}° draft` : '**not set**'} |`,
+    `| finish | ${req.finish ? `${req.finish.label}: at least ${req.finish.draftMin}° draft` : '**not set**'} |`,
     `| pull | ${req.pull ? req.pull.join(', ') : '**not set**'} |`,
     `| quantity | ${req.quantity ?? '**not stated**'} |`,
     `| part | ${req.part.size.join(' × ')} mm, ${req.part.volume} mm³${req.part.mass !== null ? `, ${req.part.mass} g` : ''}${req.part.volumeBasis ? ` (an estimate from the mesh: ± ${req.part.volumeBasis.bound ?? '?'} mm³${req.part.volumeBasis.massBoundG !== null && req.part.mass !== null ? `, ± ${req.part.volumeBasis.massBoundG} g` : ''})` : ''} |`,
@@ -80,7 +80,7 @@ export async function quotePackage(doc: StudioDoc, bodies: readonly BodyResult[]
   const request: QuoteRequest = {
     format: 'barocss-quote-request', version: 1, process: 'injection', revision: documentRevision(doc),
     material: id && m ? { id, label: m.label, basis: own ? 'body' : 'brief' } : null,
-    finish: finish ? { id: finish.id, label: finish.label, minDraftDeg: finish.draftMinDeg } : null,
+    finish: finish ? { id: finish.id, label: finish.label, draftMin: finish.draftMin } : null,
     pull: rep.direction ? rep.direction.map(r6) as [number, number, number] : null, quantity: o.quantity ?? briefQty,
     part: { size: [0, 1, 2].map(k => r6(hi[k] - lo[k])) as [number, number, number], volume: r6(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)), mass: id && m ? r6(mass.reduce((s, x) => s + (x.mass ?? 0), 0)) : null, bodies: bodies.length, ...volumeBasisOfBodies(doc, bodies) },
     tolerance: t('tolMM') && t('tolResinMMPerMM') ? { mm: t('tolMM').value, perMM: t('tolResinMMPerMM').value, source: t('tolMM').page?.url ?? t('tolMM').source } : null,
