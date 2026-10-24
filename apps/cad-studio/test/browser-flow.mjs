@@ -5855,6 +5855,51 @@ try {
     await page.waitForFunction(() => /^\(45\.0, 97\.0, 330\.0\)/.test(document.querySelector('[aria-label="Frame tcp"] b')?.textContent ?? ''), null, { timeout: 10000 });
   });
 
+  // ---- G13: tool and sensor frames in the viewport --------------------------------------------------------------------
+  await check('G13: the 6R arm\'s TCP and camera drawn as triads in the viewport — the TCP\'s at MuJoCo\'s point at the zero pose and after a quarter turn of l6, its Z along +Y then; the camera\'s where it was — on either renderer', async () => {
+    const fs = await import('node:fs'), file = join(out, 'g13-arm-6r-frames.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' }, cam: { link: 'l3', position: [10, 20, 5], rotation: [30, -15, 60], kind: 'sensor' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => (window.__studioFrameTriads?.() ?? []).length === 2, null, { timeout: 30000 }); await idle();
+    await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(600);
+    const webgpu = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer === 'webgpu');
+    const tri = () => page.evaluate(() => Object.fromEntries(window.__studioFrameTriads().map(f => [f.name, f])));
+    const near = (a, b, tol) => a.every((v, k) => Math.abs(v - b[k]) < tol);
+    const unit = (a, b) => { const v = b.map((x, k) => x - a[k]), n = Math.hypot(...v); return v.map(x => x / n); };
+    // (Drawn where it says: on WebGPU the Z axis's middle is the triad's blue on the canvas; on WebGL2 the overlay's Z line
+    // runs from the origin's screen point to the end's.)
+    const drawn = async f => {
+      if (webgpu) {
+        // (A quarter, the middle and three quarters along it: a 2 px line's samples, one of them its blue.)
+        const along = [0.25, 0.5, 0.75].map(u => f.o.map((v, k) => v + u * (f.z[k] - v)));
+        const px = await page.evaluate(p => window.__studioPixels(p), along);
+        return px.some(c => c[2] > c[0] + 40 && c[2] > c[1] + 10) ? null : `the ${f.name} Z axis is not blue along it: ${JSON.stringify(px)} at ${JSON.stringify(await page.evaluate(p => p.map(q => window.__studioScreenOf(q)), along))}`;
+      }
+      const [o, z] = await page.evaluate(f => [window.__studioScreenOf(f.o), window.__studioScreenOf(f.z)], f);
+      const line = await page.evaluate(n => { const l = document.querySelectorAll(`.vp-overlay [aria-label="Frame triad ${n}"] line`)[2]; return l && [+l.getAttribute('x1'), +l.getAttribute('y1'), +l.getAttribute('x2'), +l.getAttribute('y2')]; }, f.name);
+      return line && near(line, [...o, ...z], 1) ? null : `the ${f.name} Z line ${JSON.stringify(line)} is not from ${JSON.stringify(o)} to ${JSON.stringify(z)}`;
+    };
+    let t = await tri();
+    assert.ok(near(t.tcp.o, [45, 97, 330], 0.05), `the TCP at the zero pose ${JSON.stringify(t.tcp.o)}`);
+    assert.equal(t.tcp.kind, 'tool'); assert.equal(t.cam.kind, 'sensor');
+    assert.equal(await drawn(t.tcp), null); assert.equal(await drawn(t.cam), null);
+    await snap('g13-frames-zero');
+    const cam = t.cam.o;
+    await page.evaluate(v => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v)); el.dispatchEvent(new Event('input', { bubbles: true })); }, Math.PI / 2);
+    await page.waitForFunction(() => { const f = window.__studioFrameTriads().find(x => x.name === 'tcp'); return Math.abs(f.o[0] - 63) < 0.05 && Math.abs(f.o[1] - 105) < 0.05; }, null, { timeout: 10000 });
+    await page.waitForTimeout(400);
+    t = await tri();
+    assert.ok(near(t.tcp.o, [63, 105, 330], 0.05), `the TCP after a quarter turn ${JSON.stringify(t.tcp.o)}`);
+    assert.ok(near(unit(t.tcp.o, t.tcp.z), [0, 1, 0], 1e-6), `its Z along +Y ${JSON.stringify(unit(t.tcp.o, t.tcp.z))}`);
+    assert.ok(near(t.cam.o, cam, 1e-9), 'the camera is on l3: l6 does not move it');
+    await snap('g13-frames-turned');
+    assert.equal(await drawn(t.tcp), null);
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => Math.abs(window.__studioFrameTriads().find(x => x.name === 'tcp').o[0] - 45) < 0.05, null, { timeout: 10000 });
+  });
+
   // ---- O11: the Variants card ---------------------------------------------------------------------------------------
   await check('O11: the Variants card — a variant shown regenerated from the master (the pin moved, the loop\'s mates unmet), modelling waits; values edited, updated, reset and saved as a variant; the master shown edits again; the agent\'s set_variants in the card', async () => {
     // (test/fixtures/o11/variants.bcad: o11-fixtures' plateMaster — "offset" drives the pin's distance above the plate,
@@ -7340,6 +7385,12 @@ try {
       const names = await page.evaluate(() => window.__studioViewer.meshList.map(m => m.name).filter(n => n?.startsWith('proposal:')));
       assert.deepEqual(names.sort(), ['proposal:added', 'proposal:removed']);
     } else assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.vp-overlay [aria-label^="Material"]')].map(g => g.textContent).sort()), ['+500 mm³', '−101 mm³'], 'WebGL2: the chips in the overlay');
+    // (The two chips stacked, never meeting — they overlapped by the hole in the docs lane's shot. WebGPU draws them as engine
+    // labels at one anchor, a chip's step apart; WebGL2's are the overlay's.)
+    if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer !== 'webgpu')) {
+      const [r1, r2] = await page.evaluate(() => [...document.querySelectorAll('.vp-overlay [aria-label^="Material"] rect')].map(r => { const b = r.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom }; }));
+      assert.ok(r1.b <= r2.t + 0.5 || r2.b <= r1.t + 0.5 || r1.r <= r2.l + 0.5 || r2.r <= r1.l + 0.5, `the volume chips meet: ${JSON.stringify([r1, r2])}`);
+    }
     const [block, hole] = await page.evaluate(() => window.__studioPixels([[55, 5, 5], [30, 10, 8]]));
     assert.ok(block[1] > block[0] + 20 && block[1] > block[2] + 10, `green over the block ${JSON.stringify(block)}`);
     assert.ok(hole[0] > hole[1] + 20, `red at the hole ${JSON.stringify(hole)}`);

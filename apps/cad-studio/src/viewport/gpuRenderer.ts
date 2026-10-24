@@ -25,7 +25,7 @@ import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@b
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
-import { PROPOSAL_ADDED, PROPOSAL_REMOVED, displayModeStatus, lineDisplayMode } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, displayModeStatus, lineDisplayMode, proposalChips } from './renderer';
 import type { DisplayModeStatus, EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState } from './renderer';
 import { hatchAngle } from './sectionView';
 import type { ScalarMap } from './scalarMaps';
@@ -417,12 +417,14 @@ export class GpuRenderer implements ViewRenderer {
     this.proposalMeshes = [];
     if (view) for (const side of ['added', 'removed'] as const) {
       const s = view[side]; if (!s || !s.mesh.indices.length) continue;
-      const color = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED, m = s.mesh, b = m.bounds;
+      const color = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED, m = s.mesh;
       this.proposalMeshes.push(this.viewer.add({ positions: m.positions, normals: m.normals, indices: m.indices }, { name: 'proposal:' + side, material: { color, opacity: 0.5, doubleSided: true, decal: true, roughness: 0.6 }, castShadow: false, pickable: false }));
       if (m.edgeLines.length) this.proposalMeshes.push(this.viewer.add({ positions: m.edgeLines, topology: 'lines' }, { material: { color, unlit: true, lineWidth: 1.6, opacity: 0.9, lineHidden: 0.35 }, castShadow: false, pickable: false }));
-      // (Its volume over the scene at its box's top, as the readouts are drawn: G15-D2.)
-      const text = `${side === 'added' ? '+' : '−'}${Math.round(s.volumeMM3).toLocaleString('en-US')} mm³`;
-      this.proposalMeshes.push(this.viewer.addLabels([{ text, at: [(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, b.max[2]], size: 12, color: '#ffffff', align: [0.5, 1], offset: [0, -6], background: { color, padding: 4 } }], { bounded: false, clipped: false, material: { lineOver: true } }));
+    }
+    // (Their volumes over the scene as the readouts are drawn, G15-D2: stacked over the two boxes' top, so they never meet.)
+    if (view) for (const c of proposalChips(view)) {
+      const color = c.side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED;
+      this.proposalMeshes.push(this.viewer.addLabels([{ text: c.text, at: c.at, size: 12, color: '#ffffff', align: [0.5, 1], offset: [0, -6 - c.stack * PROPOSAL_CHIP_STEP], background: { color, padding: 4 } }], { bounded: false, clipped: false, material: { lineOver: true } }));
     }
     this.applyClip(); this.viewer.requestRender();
   }

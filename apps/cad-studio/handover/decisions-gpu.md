@@ -2997,3 +2997,31 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 - **Runs**:
   - Full flow at 7a62bda29 (scratch): **WebGPU 286/286, WebGL2 286/286**.
   - Studio unit 286/286, tsc and eslint 0 errors, check:docs clean (595 labels). gpu unit 193/193.
+
+## G-R50 — G13: the robot's frames drawn as triads; a proposal's volume chips stacked (roadmap G13, 2026-10-24)
+
+- **Frames** (6cf398188), the prop shape the coordinator settled with the outer lane:
+  `frames?: readonly { name, kind?: 'tool' | 'sensor', o: Vec3, R: Mat3 }[]`.
+  - `o` is in mm, in assembly coordinates. `R` is row-major with its columns the frame's axes.
+  - Each frame is drawn as a triad, X red, Y green, Z blue, over the scene, with its name on a chip: a tool's is the
+    accent, a sensor's cyan.
+  - WebGPU draws engine lines and labels, keyed by content. WebGL2 draws them in the overlay.
+  - The axes are drawn after the names, so an axis that turns under its name stays visible. The first run found the
+    TCP's chip covering its Z axis after the turn.
+  - SceneViewport builds the list from the pose store: FK's link motions while a slider moves, the solved pose's own
+    frames otherwise. So a joint played renders it, not the App.
+  - The axes' length is a fifth of the parts' own extent, so the triads keep their size as the arm moves.
+- **Flow** (4b4acd4cb), the 6R arm with O12's TCP on l6 and camera on l3:
+  - The TCP's triad is at MuJoCo's (45, 97, 330) at the zero pose, and at (63, 105, 330) after a quarter turn of l6,
+    its Z then along +Y.
+  - The camera's triad does not move.
+  - The triads are drawn where they say. On WebGPU the Z axis is blue on the canvas along it; on WebGL2 the overlay's Z
+    line runs between the origin's and the end's screen points.
+- **A proposal's volume chips** (b0d5619b4), from the docs lane's shot, where they overlapped by the hole:
+  - Both chips stand stacked over the top of the two boxes (`proposalChips`), on WebGPU's labels and WebGL2's overlay
+    alike, so they never meet however the view turns.
+  - G12's step checks that the WebGL2 chips' boxes are apart.
+- **Runs**:
+  - Full flow at 4b4acd4cb (scratch): **WebGPU 287/287, WebGL2 287/287**.
+  - The full bench: every row ok but section on GPU's GPU time (8.8 ms a submit against 6; the G14 item). Pose is App 3,
+    4.6 ms, as before: the frames don't render the App.
