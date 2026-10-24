@@ -14,7 +14,21 @@ export interface Appearance {
   texture?: { image: string; scale: number };
   /** Alpha cutout: where the texture's alpha is below this (0 – 1) nothing is drawn (holes, leaves, grilles). */
   cutout?: number;
+  /** G15a: a surface finish drawn on the part (its marks' relief and roughness); none by default. */
+  finish?: AppearanceFinish;
+  /** G15a: a clear lacquer over it (paint), 0 – 1. */
+  clearcoat?: number;
+  /** G15a: an oil film's tint on its reflections, 0 – 1. */
+  film?: number;
 }
+/** The finishes a part's surface can show (G15a). */
+export const FINISH_KINDS = ['cast', 'sand-cast', 'machined', 'turned', 'brushed', 'knurled', 'blasted'] as const;
+export type FinishKind = typeof FINISH_KINDS[number];
+/**
+ * A surface finish: its kind, its marks' size or pitch (mm), how deep they look (0 – 1) and, for machined, turned,
+ * brushed and knurled, the direction they follow (part frame; Z when none). Turned rings and a knurl centre on the body.
+ */
+export interface AppearanceFinish { kind: FinishKind; scale: number; strength: number; axis?: [number, number, number] }
 export type RenderLight =
   | { kind: 'directional'; direction: [number, number, number]; color: Hex; intensity: number; castShadow: boolean }
   | { kind: 'point'; position: [number, number, number]; color: Hex; intensity: number; range: number }
@@ -34,7 +48,12 @@ export interface RenderEnvironment {
   edges: boolean;
   /** Image-based lighting: an equirectangular environment image (a data URL; its top row overhead) lighting the part, and its brightness. */
   map?: { image: string; intensity: number };
+  /** G15b: a studio made by the viewer lighting the part instead (softboxes in a dark room, or a white cyclorama), and its
+   *  brightness; an image, when there is one, is used instead. */
+  studio?: { kind: StudioKind; intensity: number };
 }
+export const STUDIO_KINDS = ['softbox', 'cyclorama'] as const;
+export type StudioKind = typeof STUDIO_KINDS[number];
 export interface RenderPost { grade: 'neutral' | 'warm' | 'cool'; contrast: number; saturation: number; vignette: number }
 export interface RenderCamera { target: [number, number, number]; distance: number; yaw: number; pitch: number; fovY: number; ortho: boolean }
 export interface RenderSettings {
@@ -100,6 +119,17 @@ export const APPEARANCES: readonly { id: string; label: string; appearance: Appe
   { id: 'look-rubber', label: 'Rubber', appearance: { color: '#3a3b3d', metallic: 0, roughness: 0.9, opacity: 1 } },
   { id: 'look-glass', label: 'Glass', appearance: { color: '#cfe6ee', metallic: 0, roughness: 0.05, opacity: 0.35 } },
   { id: 'look-clay', label: 'Clay', appearance: { color: '#bfc2c8', metallic: 0, roughness: 0.7, opacity: 1 } },
+  // (G15a: the finishes — cast and machined metals, a lacquered paint, chrome, an oiled steel.)
+  { id: 'look-cast-aluminium', label: 'Cast aluminium', appearance: { color: '#b9bcc1', metallic: 1, roughness: 0.45, opacity: 1, finish: { kind: 'cast', scale: 0.6, strength: 0.7 } } },
+  { id: 'look-sand-cast-iron', label: 'Sand-cast iron', appearance: { color: '#6e6f71', metallic: 0.8, roughness: 0.6, opacity: 1, finish: { kind: 'sand-cast', scale: 1.2, strength: 0.8 } } },
+  { id: 'look-machined-steel', label: 'Machined steel', appearance: { color: '#b4b8be', metallic: 1, roughness: 0.28, opacity: 1, finish: { kind: 'machined', scale: 0.4, strength: 0.6, axis: [1, 0, 0] } } },
+  { id: 'look-turned-steel', label: 'Turned steel', appearance: { color: '#b4b8be', metallic: 1, roughness: 0.25, opacity: 1, finish: { kind: 'turned', scale: 0.3, strength: 0.6, axis: [0, 0, 1] } } },
+  { id: 'look-brushed-aluminium', label: 'Brushed aluminium', appearance: { color: '#cfd2d7', metallic: 1, roughness: 0.3, opacity: 1, finish: { kind: 'brushed', scale: 0.15, strength: 0.7, axis: [1, 0, 0] } } },
+  { id: 'look-knurled-steel', label: 'Knurled steel', appearance: { color: '#a8abb0', metallic: 1, roughness: 0.35, opacity: 1, finish: { kind: 'knurled', scale: 1.2, strength: 0.8, axis: [0, 0, 1] } } },
+  { id: 'look-blasted-aluminium', label: 'Bead-blasted aluminium', appearance: { color: '#c3c6ca', metallic: 1, roughness: 0.42, opacity: 1, finish: { kind: 'blasted', scale: 0.2, strength: 0.7 } } },
+  { id: 'look-painted-red', label: 'Painted (red, lacquered)', appearance: { color: '#a8161a', metallic: 0, roughness: 0.5, opacity: 1, clearcoat: 1 } },
+  { id: 'look-chrome', label: 'Chrome', appearance: { color: '#e6e8ea', metallic: 1, roughness: 0.04, opacity: 1 } },
+  { id: 'look-oiled-steel', label: 'Oiled steel', appearance: { color: '#8f9398', metallic: 1, roughness: 0.3, opacity: 1, film: 0.7, finish: { kind: 'machined', scale: 0.4, strength: 0.4, axis: [1, 0, 0] } } },
 ];
 
 export const defaultRender = (): RenderSettings => ({
@@ -130,7 +160,14 @@ export function readAppearance(v: unknown, fallback: Appearance): Appearance {
   return { color: hex(o.color, fallback.color), metallic: num(o.metallic, 0, 1, fallback.metallic), roughness: num(o.roughness, 0, 1, fallback.roughness), opacity: num(o.opacity, 0.05, 1, fallback.opacity),
     ...(typeof o.shader === 'string' && o.shader ? { shader: o.shader } : {}), ...(o.twoSided === true ? { twoSided: true } : {}),
     ...(typeof o.cutout === 'number' && o.cutout > 0 ? { cutout: num(o.cutout, 0, 1, 0) } : {}),
-    ...(typeof obj(o.texture).image === 'string' && /^data:image\//.test(obj(o.texture).image as string) ? { texture: { image: obj(o.texture).image as string, scale: num(obj(o.texture).scale, 0.1, 10000, 20) } } : {}) };
+    ...(typeof obj(o.texture).image === 'string' && /^data:image\//.test(obj(o.texture).image as string) ? { texture: { image: obj(o.texture).image as string, scale: num(obj(o.texture).scale, 0.1, 10000, 20) } } : {}),
+    ...(FINISH_KINDS.includes(obj(o.finish).kind as FinishKind) ? { finish: readFinish(obj(o.finish)) } : {}),
+    ...(typeof o.clearcoat === 'number' && o.clearcoat > 0 ? { clearcoat: num(o.clearcoat, 0, 1, 0) } : {}),
+    ...(typeof o.film === 'number' && o.film > 0 ? { film: num(o.film, 0, 1, 0) } : {}) };
+}
+function readFinish(f: Record<string, unknown>): AppearanceFinish {
+  const axis = isVec3(f.axis) && Math.hypot(f.axis[0], f.axis[1], f.axis[2]) > 1e-9 ? { axis: [f.axis[0], f.axis[1], f.axis[2]] as [number, number, number] } : {};
+  return { kind: f.kind as FinishKind, scale: num(f.scale, 0.01, 100, 0.5), strength: num(f.strength, 0, 1, 0.5), ...axis };
 }
 
 function readPost(v: unknown): RenderPost {
@@ -162,6 +199,7 @@ export function readRender(v: unknown): RenderSettings {
       ...(env.post && typeof env.post === 'object' ? { post: readPost(env.post) } : {}),
       occlusion: env.occlusion !== false, ground: env.ground !== false, grid: env.grid === true, edges: env.edges === true,
       ...(typeof obj(env.map).image === 'string' && /^data:image\//.test(obj(env.map).image as string) ? { map: { image: obj(env.map).image as string, intensity: num(obj(env.map).intensity, 0, 8, 1) } } : {}),
+      ...(STUDIO_KINDS.includes(obj(env.studio).kind as StudioKind) ? { studio: { kind: obj(env.studio).kind as StudioKind, intensity: num(obj(env.studio).intensity, 0, 8, 1) } } : {}),
     },
     materials: Object.fromEntries(Object.entries(obj(o.materials)).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].length <= 65536).slice(0, 32)),
     scene: typeof o.scene === 'string' && o.scene.length <= 65536 ? o.scene : '',

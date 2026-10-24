@@ -41,7 +41,7 @@ import { refusal } from '../engine/refusal';
 const OWN = new Set<string>(['format', 'schema', 'units', 'nextId', 'nodes', 'outputs', 'parameters', 'bodies', 'proposals', 'history']);
 const FIELDS: readonly string[] = STUDIO_DOC_FIELDS.filter(k => !OWN.has(k));
 /** The tools that bring back a whole earlier state. */
-const RESTORES = new Set(['restore', 'restore_best']);
+const RESTORES = new Set(['restore', 'restore_best', 'restore_version', 'switch_branch', 'merge_branch']);
 const TOKEN = /(?<![\w])[nb](\d+)(?!\d)/g;
 
 /** What an op did, explicit: features in id form (each index reference the referenced feature's serial). */

@@ -67,6 +67,8 @@ export function useStudioChat(props: ChatPanelProps) {
     const notices: string[] = [], { ops, base } = t;
     if (done.ops) ops.push(...done.ops);
     if (done.session) session.current = done.session;
+    // (CG6: the version log the turn moved, folded into the project's.)
+    if (done.versions) latest.current.versions?.back(done.versions, done.versionsWanted ?? []);
     // An aborted turn keeps what it had built when it stopped.
     let doc = done.doc ? reshareNodes(t.shared, done.doc) : done.end === 'aborted' ? t.built : null;
     // (Edited during the turn: its calls merged onto the part as it is now, the conflicting ones a proposal, O133. Edited
@@ -157,12 +159,12 @@ export function useStudioChat(props: ChatPanelProps) {
     traces.current = [...traces.current, ...attached.map(i => i.trace)];
     said.current = [...said.current, recorded || (incoming.length ? 'Use the attached row files.' : 'Model what the image shows.')];
     // (No blob sweep while the turn runs: its base, built and shared states and their meshes are held here, O135.)
-    const release = holdSweeps(), base = latest.current.base();
+    const release = holdSweeps(), base = latest.current.base(), versionLog = latest.current.versions?.turn() ?? null;
     const previews = latestPump((d: StudioDoc) => latest.current.evaluate(d), bodies => { if (turn.current?.previews === previews && bodies) latest.current.onPreview(bodies); });
     let end!: (stopped: string[]) => void;
     const ended = new Promise<string[]>(resolve => { end = resolve; });
     turn.current = { message, base, shared: base, built: null, ops: [], previews, ended, end,
-      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current } };
+      inputs: { text: message, turns: said.current, rowFiles: allRows, rowConversation: chatBlobs.current.session, images: attached, traces: traces.current, doc: base, autonomy, blobs: chatBlobs.current, session: session.current, ...(versionLog ? { versions: versionLog } : {}) } };
     // (The message as shown: what was typed — or the row files' names — its images as file parts, its row files named.)
     const shown = said0.trim() || (incoming.length ? incoming.map(f => f.name).join(', ') : '');
     try {

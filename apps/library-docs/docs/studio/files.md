@@ -9,6 +9,9 @@ read. Both kinds open.
 
 Documents follow the latest schema. The studio is unreleased, so there is no migration between its versions.
 
+With a project open, **Save** writes into the project's folder instead of downloading, and you can keep versions of
+the part. See [Projects and versions](/studio/projects).
+
 ## Opening files
 
 **Open** reads:
@@ -44,7 +47,8 @@ in this browser.
 
 While a part is unsaved, a recovery copy is written in this browser a moment after each change. After a reload or a
 crash, **Unsaved work** offers it back: **Restore** or **Discard**. The copy is cleared when you save or replace the
-part. It is kept only in this browser, so it is no substitute for saving.
+part. It is kept only in this browser, so it is no substitute for saving. In a project, the work since the last save
+is kept in the project instead.
 
 - **Mesh data first.** A part's mesh data is stored before the copy that names it. So a copy is offered only when its
   meshes were kept too. If they are gone by the time you restore, for example because the browser's data was cleared,

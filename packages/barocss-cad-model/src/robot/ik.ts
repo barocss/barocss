@@ -5,7 +5,7 @@
 // does not (λ × 4). Restarts from a deterministic sequence of seeds; the best kept. A result says whether it reached
 // the target (both errors within the acceptance, never claimed otherwise) and whether the arm is singular there
 // (σmin / σmax of J below 1e-4). Per iteration: typed arrays reused, no closures.
-import { composeInto, forwardKinematics, invert, type Motion } from './fk';
+import { composeInto, forwardKinematics, invert, rootOf, type Motion } from './fk';
 import { frameOf } from './frames';
 import type { Joint, JointTree } from './joints';
 import { refusal } from '../engine/refusal';
@@ -97,7 +97,8 @@ function evaluateAt(p: Problem, q: Readonly<Record<string, number>>, jac: boolea
     const n = p.keys.length; J.fill(0, 0, 6 * n);
     for (const j of p.path) {
       if (j.type === 'fixed') continue;
-      const col = j.mimic ? p.keys.indexOf(j.mimic.joint) : p.keys.indexOf(j.key), k = j.mimic ? j.mimic.multiplier : 1;
+      // (A follower's column into its root joint's, × its rate there: a gear's multiplier, a cam's lift rate, O24 a.)
+      const root = j.mimic ? rootOf(p.tree, j.key, fk.values) : null, col = p.keys.indexOf(root ? root.key : j.key), k = root ? root.rate : 1;
       if (col < 0) continue;
       const P = fk.motions.get(j.parent)!, R = P.R, a = j.axis, o = j.origin;
       const w0 = R[0] * a[0] + R[1] * a[1] + R[2] * a[2], w1 = R[3] * a[0] + R[4] * a[1] + R[5] * a[2], w2 = R[6] * a[0] + R[7] * a[1] + R[8] * a[2];

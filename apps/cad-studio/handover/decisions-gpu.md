@@ -3687,3 +3687,136 @@ is untouched as history. The coordinator settled the scope:
   - DPR 1: 1.03 → 1.06 ms of GPU a submit (output 0.71 → 0.75).
   - DPR 2 (a 2880×1800 page, more than 1440p): 3.29 → 3.46 ms (output 2.37 → 2.46).
   - Both are far under the 16.7 ms Render orbit target. Modelling is unchanged (the post is off).
+
+## G-R68 — G15a: surface finishes, a clear coat and an oil film (roadmap G15a, 2026-10-24)
+
+- **The surface shader** (`packages/barocss-gpu`, `viewer/shaders/surface.ts`, `viewer/scene.ts`):
+  - `Material.finish` (`SurfaceFinish`: kind, scale, strength, axis, origin), `clearcoat` (+ `clearcoatRoughness`, 0.08 by
+    default) and `film`. They are packed in the object block's free 48 bytes (`OBJECT_BYTES` 208 → 256; the stride was
+    already 256). With none of them set, the slots are zeros and the shading takes the old path.
+  - The relief and roughness are made per pixel from the mesh's own coordinates (its transform's frame, so a pattern
+    stays on the part as it moves or explodes). The noise is our own value noise and fbm, not textures:
+    - cast and sand-cast: grain, the sand's coarser, with pits;
+    - machined: lines across the axis;
+    - turned: rings about the axis through the origin (the body's box centre in the studio), feed lines along it;
+    - brushed: streaks along the axis;
+    - knurled: two ±45° helical grooves round the axis, only on faces not square to it;
+    - blasted: fine pits.
+    The normal is perturbed by finite differences of the relief in the mesh frame.
+  - **Band-limited by the pixel's footprint** (`band`): each detail fades as it nears two to a pixel, and the lost relief
+    becomes roughness. Fine marks never sparkle; at a distance a turned face shows as its radial highlight.
+  - Machined, turned and brushed stretch the highlight across their marks. This uses anisotropic GGX (Burley: rougher
+    across than along) for the lights, and a bent reflection normal for the ambient and environment.
+  - **Clear coat**: a second, smooth dielectric lobe on the unperturbed normal, for the lights and the reflection. What
+    it reflects the base doesn't get. Shadows use the unperturbed normal.
+  - **Oil film**: a thin-film tint on the reflections. Colours cycle with the view angle and a varying thickness, strongest
+    at grazing angles. It is kept subtle (a sheen, not a paint).
+- **cad-model** (`engine/render.ts`, outer's file, its own commit; named to the coordinator before it was built):
+  - `Appearance.finish?` (`AppearanceFinish`: kind of `FINISH_KINDS`, scale 0.01–100 mm, strength 0–1, an optional
+    axis), `clearcoat?` and `film?` (0–1). They are read with clamps; absent means none; no schema bump.
+  - Ten new presets: cast aluminium, sand-cast iron, machined steel, turned steel, brushed aluminium, knurled steel,
+    bead-blasted aluminium, painted red (lacquered), chrome and oiled steel. The `look-` prefix is kept (O75's test
+    passes).
+- **The studio**:
+  - `viewport/finish.ts` maps a look to the viewer's finish, centring turned and knurled finishes on the body.
+  - The Render panel's Appearance tab gets Finish (None or a kind), Marks (mm), Depth, Along (X/Y/Z, for the
+    directional kinds), Clear coat and Oil film.
+  - A preset now matches on the look's material fields (colour, metal, roughness, opacity, finish, coat, film), so a
+    texture or shader on top leaves it chosen. Choosing one replaces those fields, so a finish never carries over to a
+    preset without one.
+- **The built-in look per material id is the owner's call**, so it is not built. The proposal:
+  - steel → machined steel; ss304 → brushed; al6061 and ti64 → machined in their own colour;
+  - brass → turned;
+  - a380, a356, zamak3 and az91d → cast;
+  - grey-iron → sand-cast;
+  - pa12 → blasted (SLS grain);
+  - abs, pc, pp, petg, pom, pla and resin → their plastic, no finish.
+- **Tests**:
+  - gpu unit 302/302, plus a packing test in viewer-display.
+  - `viewer-finish-browser` (new, in test:browser) passes on hardware and SwiftShader. It checks:
+    - every kind's marks are drawn;
+    - sand-cast is rougher than cast;
+    - brushed stretches the highlight 28 × 144 against a round 76 × 76;
+    - the clear coat's highlight peaks at 255 over a rough base at 38;
+    - the oil film adds chroma;
+    - marks a hundredth of a pixel wide become roughness;
+    - the finish moves with its mesh (difference 0).
+  - gpu test:browser 31/31.
+  - cad-model render 6/6 and material-look 3/3; studio unit 292/292 (finish.test.ts).
+  - Flow 294 (new) passes on WebGPU and WebGL2: turned steel, a knurl along Z, the painted and the oiled presets, then
+    None. Marks on the frame: plain 3.55, turned 4.54, knurled 4.60.
+- **Bench** (new row `render: orbit 60, post on, knurled and lacquered (G15a)`). The machine was heavily loaded (load 58 →
+  41), so this is for comparison only:
+  - DPR 1: the surface pass costs 1.41 → 2.21 ms with the knurl and coat; 4.92 ms a submit against the 8 ms budget.
+  - The quiet run for the 1440p check is still owed.
+
+## G-R69 — G15b (1–2): the environment's lighting prefiltered, and studio environments (roadmap G15b, 2026-10-24)
+
+- **The environment's lighting** (`packages/barocss-gpu`, `viewer/shaders/env.ts`, `viewer.envLighting`):
+  - Made once per environment map, kept with it (`ImageTexture.gpu.lighting`) and destroyed with it.
+  - **Reflections**: prefiltered by GGX for each roughness, one mip level each, from 0 to 1 (`ENV_LEVELS` 7, at most
+    1024 across, rgba16float). Each level takes 128 importance samples with the split sum's normal = view = reflection.
+    Each sample is read from the source level whose texels match its share of the sphere (filtered importance sampling).
+  - **Diffuse light**: the cosine-weighted mean radiance round a normal (64 × 32, 512 samples). Before, this was the map's
+    most blurred mip level, a box average.
+  - **The split sum's BRDF table** (Karis; 64 × 64 rg16float, made once per device): scale and bias to f0 over n·v and
+    roughness.
+  - The surface shader (`envReflect`, `envDiffuse`, `brdfScaleBias` in common; frame bindings 7 and 8) uses them
+    **only under an environment map**. The sky-and-ground look, the modelling one, is unchanged; so are the coat's
+    reflection and the anisotropic bend. The old `envAt` (lod from the frame block) is gone; the levels now come from
+    `textureNumLevels`.
+- **Studio environments** (`viewer/studio-env.ts`, `studioEnvironment(kind, width)`): equirectangular sRGB bytes made in
+  our own code, no download.
+  - `softbox`: a dark room; a large key up in front on the left, a fill on the right, a strip behind.
+  - `cyclorama`: a white backdrop with a light bank above and the cove's soft horizon into the floor.
+  They are 8-bit (the light's range is the environment strength); HDR sources are not taken yet.
+- **cad-model** (`engine/render.ts`, outer's file, coordinator-approved pattern, its own commit):
+  - `RenderEnvironment.studio?: { kind: 'softbox' | 'cyclorama', intensity }` (`STUDIO_KINDS`). It is read with clamps;
+    absent means none. An image, when present, is used instead.
+- **The studio**:
+  - The Render panel's Scene tab gets "Studio" (Sky and ground, Softboxes, Cyclorama; Image when one is loaded).
+  - Environment strength covers either source.
+  - Choosing a studio drops the image; loading an image drops the studio and keeps its strength.
+  - `gpuRenderer.studioTexture` makes each studio once.
+- **Tests**:
+  - `viewer-env-browser` (new) passes on hardware and SwiftShader. A white diffuse sphere under a white sky over a black
+    ground reads 243 at the top, 188 at the equator (0.5 linear is 188) and 74 below. A mirror's horizon is 3 px wide; a
+    rough metal's (0.6) is 35 px.
+  - gpu test:browser 31/31 before the new test; gpu unit 303/303 (the studio environments' shape and brightness).
+  - cad-model render 7/7; studio unit 292/292.
+  - Flow 295 (new) passes on WebGPU and WebGL2: softboxes, strength ×2, cyclorama, an image replacing it, then Sky and
+    ground. The frame's mean on machined steel: sky 52.2, softbox 47.2, ×2 48.6.
+- **Next, G15b (3–4)**: soft shadows (PCSS for the casting light) and contact shadows in the output pass.
+
+## G-R70 — G15b (3–4): soft shadows (PCSS) and contact shadows (roadmap G15b, 2026-10-24)
+
+- **Soft shadows** (`Environment.softShadows`: the casting light's angular size in degrees; `ShadowFrame.softness`, frame
+  `shadow.w`):
+  - PCSS. A 16-tap Poisson blocker search finds the blockers' mean depth; the penumbra's width follows from how far behind
+    them the point lies (uv per unit of map depth = the depth range × tan(size) / the map's breadth); then a 16-tap
+    comparison filter of that width. The disc is turned per point, so its pattern becomes noise.
+  - The search is capped at 24 texels and the filter at 32.
+  - With 0 or none, the old 3×3 PCF runs, so the modelling look is unchanged.
+  - Only the one shadow-casting light is softened. "Every shadowing light" in the roadmap needs more shadow maps; that is
+    left for when a scene asks for it.
+- **Contact shadows** (`Environment.contactShadows: { length, strength }`; output block: the projection, the direction
+  toward the light in view space, length, strength, thickness):
+  - A 14-step screen-space ray from each pixel toward the casting light through the depth buffer. The light is blocked
+    where a surface lies in front of the ray's point by less than a blocker's thickness (twice the ray's length: a solid
+    seen from above shows only its top). The effect is weaker toward the ray's end.
+  - It darkens the creases and contacts the shadow map is too coarse for. The inverse projection is packed for it when
+    the occlusion is off.
+- **The studio**: the Render workspace sets `softShadows: 3` (a studio key light's size, `RENDER_SUN_SIZE`) and contact
+  shadows at strength 0.5. There is no control yet; the modelling look is untouched.
+- **Tests**:
+  - `viewer-shadow-soft-browser` (new) passes on hardware and SwiftShader:
+    - a tall post's shadow: hard, it is as dark along its length (73, 73); soft (6°), it is dark at the foot (73) and
+      lighter toward the tip (134), wider than hard;
+    - contact shadows: the crease beside a box with no shadow-map shadow goes 234 → 164, while the open ground stays 234.
+  - viewer-core packing test for the contact block. gpu unit and test:browser: see the checkpoint.
+  - Flow 294 now starts from a new box part (it ran on whatever the steps before left, the 6R robot after 292). Its
+    check compares whole frames against plain steel: turned 13.7, knurled 21.7.
+  - FLOW_ONLY `^(starter|render a part|G15|RS2 video)` passes on WebGPU and WebGL2.
+- **Bench** (loaded, 25–30, comparison only; the soft and contact shadows are on in every Render row):
+  - DPR 1: render orbit 2.86 ms a submit, with the post 4.42, knurled and lacquered 3.99.
+  - DPR 2: 9.96 ms. That is within the 16.7 ms Render target but the heaviest yet, at 2880×1800. A quiet run is owed.

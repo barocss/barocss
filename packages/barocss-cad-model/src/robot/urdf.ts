@@ -20,7 +20,7 @@ import { namer, type FrameCode } from './frames';
 export const URDF_EXPORT_VERSION = 'barocss-urdf-v1';
 /** A dummy link's mass (kg) and inertia (kg·m²): small enough to change nothing, not zero (a static link in PyBullet). */
 export const DUMMY_MASS = 1e-9, DUMMY_INERTIA = 1e-15;
-export type UrdfRefusal = 'MOTION_UNSUPPORTED' | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'INERTIA' | 'NO_HULL' | 'EMPTY' | FrameCode;
+export type UrdfRefusal = 'MOTION_UNSUPPORTED' | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'INERTIA' | 'NO_HULL' | 'EMPTY' | 'CAM_UNSUPPORTED' | FrameCode;
 export interface UrdfPart { doc: StudioDoc; bodies: readonly BodyResult[]; position: readonly number[]; rotation: readonly number[] }
 export interface UrdfFile { path: string; data: Uint8Array }
 export type UrdfResult =
@@ -60,6 +60,12 @@ export interface RobotParts {
   /** The tool and sensor frames (O12), each a fixed child of its link: its pose in the link frame (t mm) and in the world. */
   frames: { name: string; link: string; R: Mat3; t: V3; world: { R: Mat3; o: V3 } }[];
 }
+/** The tree with its cams left out (O24 a): each cam's follower a free joint, said so in the notes. */
+export function withoutCams(tree: JointTree): { tree: JointTree; notes: string[] } {
+  const cams = tree.joints.filter(j => j.cam);
+  if (!cams.length) return { tree, notes: [] };
+  return { tree: { ...tree, joints: tree.joints.map(j => (j.cam ? { ...j, mimic: undefined, cam: undefined } : j)) }, notes: cams.map(j => `${j.key} follows a cam (${j.cam!.mate}): left out — written as a free joint`) };
+}
 export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart | null): RobotParts | { refusals: { code: UrdfRefusal; message: string }[] } {
   const refusals: { code: UrdfRefusal; message: string }[] = [], notes: string[] = [];
   for (const p of tree.problems) {
@@ -75,6 +81,9 @@ export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart |
       refusals.push({ code: 'LIMITS_MISSING', message: `${j.key}: a ${j.type} joint needs lower, upper, effort and velocity (set_joints).` });
   }
   if (tree.links.length < 1) refusals.push({ code: 'EMPTY', message: 'the robot has no link' });
+  // (O24 a: URDF's mimic and MJCF's joint equality are linear and quartic — a cam's lift is neither: refused, unless the
+  // export leaves the cams out, withoutCams, each follower then a free joint and noted.)
+  for (const j of tree.joints) if (j.cam) refusals.push({ code: 'CAM_UNSUPPORTED', message: `${j.key} follows a cam (${j.cam.mate}): the format has no cam coupling; export with leave_out: ["cam"] to write its follower as a free joint` });
   for (const l of tree.loops) notes.push(`${l.message} A tree format: the closure (${l.mates.join(', ')}) is not written.`);
   // Link frames: a part's in its coordinates (RM3), then into the world through its placement; a dummy's on its joint.
   const local = linkFrames(tree, p => partOf(p)), world = new Map<string, { R: Mat3; o: V3 }>(), inertias = new Map<string, LinkInertia>(), meshes: RobotParts['meshes'] = new Map();

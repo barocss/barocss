@@ -5,7 +5,7 @@ export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
 export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16;
-export const OBJECT_BYTES = 208, OBJECT_STRIDE = 256;
+export const OBJECT_BYTES = 256, OBJECT_STRIDE = 256;
 
 /** The WGSL every program starts with (internal: its frame and object blocks, its helpers). */
 export const common = /* wgsl */ `
@@ -51,6 +51,11 @@ struct Object {
   // Its cap's hatch (G19.3): the lines' angle (cos, sin) in the cap plane's axes (hatchAcross), their spacing in world
   // units; w 1 when on.
   hatch: vec4f,
+  // G15a: the surface's finish — kind (0 none, from 1 as SURFACE_FINISHES), scale, strength, clearcoat; its axis (mesh
+  // frame) and the coat's roughness; its origin (mesh frame) and the oil film.
+  finish: vec4f,
+  finishAxis: vec4f,
+  finishOrigin: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
@@ -63,12 +68,15 @@ struct Object {
 // Scene caps use the same sample locations as the scene. Picks, masks and light probes retain binding 5. Each sample holds
 // the key of the triangle the probe found there when a back face (probeKey; 0: none or a front face) — G9: 2 bytes a sample.
 @group(0) @binding(6) var capFrontSamples: texture_multisampled_2d<u32>;
-/** The environment map (equirectangular, Z up) in a direction, at a mip level. */
-fn envAt(d: vec3f, lod: f32) -> vec3f {
-  let u = atan2(d.y, d.x) / 6.2831853 + 0.5;
-  let v = acos(clamp(d.z, -1.0, 1.0)) / 3.14159265;
-  return textureSampleLevel(envMap, envSampler, vec2f(u, v), lod).rgb;
-}
+// G15b: the environment's diffuse light (the cosine-weighted mean radiance round a normal; white without one) and the
+// split sum's BRDF table (n·v across, roughness down: the scale and bias to f0).
+@group(0) @binding(7) var envIrradiance: texture_2d<f32>;
+@group(0) @binding(8) var brdfLut: texture_2d<f32>;
+fn envUv(d: vec3f) -> vec2f { return vec2f(atan2(d.y, d.x) / 6.2831853 + 0.5, acos(clamp(d.z, -1.0, 1.0)) / 3.14159265); }
+/** The environment's reflection in a direction at a roughness (its prefiltered levels, 0 – 1 across them). */
+fn envReflect(d: vec3f, rough: f32) -> vec3f { return textureSampleLevel(envMap, envSampler, envUv(d), rough * f32(textureNumLevels(envMap) - 1u)).rgb; }
+fn envDiffuse(n: vec3f) -> vec3f { return textureSampleLevel(envIrradiance, envSampler, envUv(n), 0.0).rgb; }
+fn brdfScaleBias(nov: f32, rough: f32) -> vec2f { return textureSampleLevel(brdfLut, envSampler, clamp(vec2f(nov, rough), vec2f(1.0 / 128.0), vec2f(127.0 / 128.0)), 0.0).rg; }
 @group(1) @binding(0) var<uniform> object: Object;
 /** Every surface draw is instanced (a plain mesh: one identity instance): a transform and colour each. */
 struct Instance { @location(3) c0: vec4f, @location(4) c1: vec4f, @location(5) c2: vec4f, @location(6) c3: vec4f, @location(7) color: vec4f }

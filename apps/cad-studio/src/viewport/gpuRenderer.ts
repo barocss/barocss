@@ -5,13 +5,14 @@
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
 import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, PALETTE, SELECT_MIX, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
-import { clipBox, createViewer, invert, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
+import { clipBox, createViewer, invert, multiply, rotation, studioEnvironment, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 import { movedCopy, topologyKey } from './instanceGeometry';
 import { contourTriangles } from './silhouette';
 import { postOf } from './post';
+import { finishOf } from './finish';
 import { clipClearanceGeometry, type ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
 import { PrintOverlayGeometry } from './printOverlayGeometry';
@@ -23,7 +24,7 @@ import { overlayTriangles, type OverlayDrawing } from './overlayDrawing';
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@barocss/cad-model/engine/render';
+import { appearanceOf, tiledUVs, type Appearance, type RenderSettings, type StudioKind } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
@@ -42,6 +43,9 @@ const THEMES: Record<ThemeName, Theme> = {
   light: { ...PALETTE.light, gridOpacity: 0.14, ao: 0.8, shadow: 0.28 },
 };
 const HOVER: Vec3 = [0.62, 0.55, 0.36];
+/** G15b: the Render workspace's sun, its angular size in degrees (a soft shadow; the sun itself is half a degree, a studio's
+ *  key light a few). */
+const RENDER_SUN_SIZE = 3;
 /** RS2: a link in contact as a motion plays, the error colour. */
 const CONTACT: Vec3 = [0.92, 0.27, 0.24];
 /** A direction in the camera's frame (x right, y up, z toward the eye) as the world's, negated: where a light shines (PERF3 C17: module level). */
@@ -620,8 +624,8 @@ export class GpuRenderer implements ViewRenderer {
       const isolated = !!view.isolatedInstances?.length, ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
       b.surface.material = look
-        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(GHOST_OPACITY, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: this.mapFor(b.surface.geometry, b.result.mesh, look, b), alphaCutoff: look.cutout ?? 0 }
-        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? GHOST_OPACITY : 1, shader: this.analysis, unlit: !!this.analysis, map: this.mapFor(b.surface.geometry, b.result.mesh, null, b), alphaCutoff: 0 };
+        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(GHOST_OPACITY, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: this.mapFor(b.surface.geometry, b.result.mesh, look, b), alphaCutoff: look.cutout ?? 0, ...finishOf(look, b.result.mesh.positions) }
+        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? GHOST_OPACITY : 1, shader: this.analysis, unlit: !!this.analysis, map: this.mapFor(b.surface.geometry, b.result.mesh, null, b), alphaCutoff: 0, ...finishOf(null, null) };
       // Keep the original pick opacity while x-ray changes only its appearance.
       b.surface.pickTransparent = isolated || (b.surface.material.opacity ?? 1) < 1;
       b.surface.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(ghost ? XRAY_OPACITY * GHOST_OPACITY : XRAY_OPACITY, b.surface.material.opacity ?? 1) : b.surface.material.opacity ?? 1) * (isolated ? FADED : 1) };
@@ -679,8 +683,8 @@ export class GpuRenderer implements ViewRenderer {
         : l.kind === 'point' ? { kind: 'point', position: l.position, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range }
           : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
       const e = r.environment;
-      const envMap = e.map ? this.imageTexture(e.map.image) : null;
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
+      const envMap = e.map ? this.imageTexture(e.map.image) : e.studio ? this.studioTexture(e.studio.kind) : null;
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), softShadows: RENDER_SUN_SIZE, contactShadows: { strength: 0.5 }, ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map?.intensity ?? e.studio?.intensity ?? 1 } : {}) };
     } else {
       v.lights = this.lights(camera);
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled && !this.interacting && !lineOnly ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
@@ -842,6 +846,14 @@ export class GpuRenderer implements ViewRenderer {
     const t = look?.texture, tile = t ? t.scale : undefined;
     if (keep.tile !== tile) { g.setUVs(t ? tiledUVs(mesh.positions, mesh.normals, t.scale) : boxUVs(mesh.positions, mesh.normals, mesh.bounds)); keep.tile = tile; }
     return t ? this.imageTexture(t.image) : null;
+  }
+
+  /** G15b: a studio environment made by the viewer, once (kept with the images, by kind). */
+  private studioTexture(kind: StudioKind): ImageTexture {
+    const key = `studio:${kind}`;
+    let t = this.maps.get(key);
+    if (!t) { t = this.viewer.createTexture(studioEnvironment(kind, 1024)); this.maps.set(key, t); }
+    return t;
   }
 
   /** An image (a data URL) as a texture, loaded once (null while it loads: the bodies are painted again when it arrives). */
@@ -1038,8 +1050,8 @@ export class GpuRenderer implements ViewRenderer {
       it.surfaces.forEach((m, bi) => {
         const tiles = this.instanceTiles.get(m) ?? {}; this.instanceTiles.set(m, tiles);
         const dm = this.instanceMeshes.get(it.id)?.[bi], shared = it.sharing[bi];
-        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm && !shared ? this.mapFor(m.geometry, dm, look, tiles) : null, alphaCutoff: look.cutout ?? 0 }
-          : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: this.analysis, unlit: !!this.analysis, map: null, alphaCutoff: 0 };
+        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm && !shared ? this.mapFor(m.geometry, dm, look, tiles) : null, alphaCutoff: look.cutout ?? 0, ...finishOf(look, dm?.positions ?? null) }
+          : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: this.analysis, unlit: !!this.analysis, map: null, alphaCutoff: 0, ...finishOf(null, null) };
         // X-ray changes appearance only; picks retain the original material's transparency policy.
         m.pickTransparent = faded || (m.material.opacity ?? 1) < 1;
         m.pickable = !faded;

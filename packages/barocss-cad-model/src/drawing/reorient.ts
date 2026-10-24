@@ -8,7 +8,7 @@
 //   is kept (its position turned with it), its dimensions turned as that view's are; across it the change is refused
 //   (SECTION_ACROSS) — turn the section off first.
 import { resolveDimension, type Resolved } from './dimensions';
-import { isSectionRef, sectionLetter, sectionsOf, withSections, type SectionRef, type DrawingSection, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
+import { baseViewOf, detailLetter, isDetailRef, isSectionRef, isViewId, sectionLetter, sectionsOf, withSections, type DimView, type SectionRef, type DrawingSection, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 import { sectionDepth, type Orientation } from './views';
 
 export const REORIENT_VERSION = 'cad-studio-reorient-v1';
@@ -16,7 +16,9 @@ export const REORIENT_VERSION = 'cad-studio-reorient-v1';
 export type ReorientResult =
   | { ok: true; settings: DrawingSettings; moved: { from: ViewId; to: ViewId }[] }
   | { ok: false; code: 'ORIENTATION_REMAP_FAILED'; message: string; failed: { dim: string; was: string; now: string }[] }
-  | { ok: false; code: 'SECTION_ACROSS'; message: string };
+  | { ok: false; code: 'SECTION_ACROSS'; message: string }
+  /** DR-3: a half or offset section is not turned (its centreline and steps are in its view's own coordinates). */
+  | { ok: false; code: 'SECTION_KIND'; message: string };
 
 const ORTHO: readonly ViewId[] = ['front', 'top', 'right'];
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -56,6 +58,8 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   if (was === next) return { ok: true, settings, moved: [] };
   // Sections (A–A, and O148 X1's on any principal view): each kept where its view's new depth runs along the old (its
   // position along it turned), refused across it.
+  const kind = sectionsOf(settings).find(x => x.half || x.steps);
+  if (kind) return { ok: false, code: 'SECTION_KIND', message: `Section ${kind.id}–${kind.id} is a ${kind.half ? 'half' : 'offset'} section: make it a full one first, then turn the drawing.` };
   if (sectionsOf(settings).length) {
     const kept = turnSections(settings, next);
     if ('across' in kept) return { ok: false, code: 'SECTION_ACROSS', message: `Section ${kept.across.id}–${kept.across.id} is cut across the present ${kept.across.view} view: turn it off first, then turn the drawing.` };
@@ -71,7 +75,19 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
     if (all.every(v => shown.has(v))) delete turned.views; else turned.views = all.filter(v => shown.has(v));
   }
   const mapPlace = (view: ViewId, p: XY): [ViewId, XY] => { const m = map.get(view); return m ? [m.view, m.point(p)] : [view, p]; };
+  // (DR-1: a detail turns with its parent — on a view, to the view showing the same axes, its circle's centre carried
+  // through the model; on a section, as that section's view turns — and its dimensions with it.)
+  const baseOf = (v: DimView) => baseViewOf(v, sectionsOf(settings), settings.details);
+  if (settings.details) turned.details = settings.details.map(x => {
+    if (isViewId(x.view)) { const [view, center] = mapPlace(x.view, x.center); return { ...x, view: view as typeof x.view, center }; }
+    const m = map.get(baseOf(x.view)); return m ? { ...x, center: m.point(x.center) } : x;
+  });
   turned.dimensions = settings.dimensions.map(d => {
+    if (isDetailRef(d.view)) {
+      const m = map.get(baseOf(d.view)); if (!m) return d;
+      const place = m.point(d.place);
+      return d.kind === 'linear' && d.orient !== 'aligned' && m.swaps ? { ...d, place, orient: d.orient === 'horizontal' ? 'vertical' : 'horizontal' } : { ...d, place };
+    }
     // (Queue 3: a dimension on a section turns as its section's view does — the section is kept only where that view's
     // new depth runs along the old, so its view turns within its own plane or is seen from the other side, as R14.3b
     // maps the view's own annotations. It stays on its section.)
@@ -90,7 +106,10 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   // Every dimension reads as it did.
   const failed: { dim: string; was: string; now: string }[] = [];
   settings.dimensions.forEach((d, k) => {
-    const before = resolveDimension(from, d), after = resolveDimension(to, turned.dimensions[k]);
+    // (A detail's dimension on a view reads as its parent's would: the detail only clips what it shows.)
+    const own = isDetailRef(d.view) && settings.details?.find(x => x.id === detailLetter(d.view as `detail:${string}`));
+    const parentWas = own && isViewId(own.view) ? own.view : null, parentNow = parentWas ? map.get(parentWas)?.view ?? parentWas : null;
+    const before = resolveDimension(parentWas ? { [d.view]: from[parentWas] } : from, d), after = resolveDimension(parentNow ? { [d.view]: to[parentNow] } : to, turned.dimensions[k]);
     if (!before.ok) return;
     if (!after.ok || after.kind !== before.kind || Math.abs(after.value - before.value) > 1e-9 * Math.max(1, Math.abs(before.value))) failed.push({ dim: d.id, was: readOf(before), now: readOf(after) });
   });

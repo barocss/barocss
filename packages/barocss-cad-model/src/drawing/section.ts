@@ -3,7 +3,8 @@
 // drawings is the front's — Y = y for the default front from −Y; R14.3b: X = ±y or Y = −y for the others). The kernel's
 // split cuts each body the plane crosses (the far side is kept); a body wholly behind the plane stays whole, one wholly
 // in front goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
-import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature } from '@barocss/cad';
+import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature, type ProjectedEdge } from '@barocss/cad';
+import { clipProjectionOutside, clipRingsOutside, type ViewBreak } from './breaks';
 import { bodyKeyOf, toPartDocument, withBeadRetry } from '../engine/part';
 import { boughtOutputIds } from '../engine/evaluate';
 import type { StudioDoc } from '../engine/doc';
@@ -55,7 +56,71 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
 /** `made` (O174): a part's drawing — its bought elements neither cut nor drawn, as its views leave them. */
 export function sectionsCut(doc: StudioDoc, list: readonly DrawingSection[], orientation: Orientation = 'y-', made = false): SectionCut[] {
   const skip = made && list.length ? boughtOutputIds(doc) : undefined;
-  return list.map(x => ({ ...x, result: sectionOf(doc, x.at, orientation, x.view, skip, x.dir) }));
+  return list.map(x => ({ ...x, result: x.steps ? offsetSection(doc, x, orientation, skip) : x.half ? halfSection(doc, x, orientation, skip) : sectionOf(doc, x.at, orientation, x.view, skip, x.dir) }));
+}
+
+/**
+ * DR-3: an offset (stepped) section, composed of exact single-plane sections: each plane's section kept over its band of
+ * the section view's coordinate (the plane at `at` before the first step, at each step's `at` from its `past` on), its
+ * cut rings clipped to the band. Every plane is seen along the same depth, so each band is exactly what that plane shows
+ * there; no line is drawn at a step.
+ */
+export function offsetSection(doc: StudioDoc, s: DrawingSection, orientation: Orientation = 'y-', skip?: ReadonlySet<string>): SectionResult {
+  const steps = s.steps ?? [], axis: 0 | 1 = s.along === 'vertical' ? 1 : 0, depths = [s.at, ...steps.map(x => x.at)], bounds = [-Infinity, ...steps.map(x => x.past), Infinity];
+  const cut = new Map<number, SectionResult>(), parts: { pr: BrepProjection; rings: XY[][]; bodies: number[]; lo: number; hi: number }[] = [];
+  for (let i = 0; i < depths.length; i++) {
+    const r = cut.get(depths[i]) ?? sectionOf(doc, depths[i], orientation, s.view, skip);
+    cut.set(depths[i], r);
+    if (!r.ok) return { ok: false, error: `${r.error} (the plane at ${depths[i]})` };
+    parts.push({ pr: r.projection, rings: r.rings, bodies: r.ringBodies, lo: bounds[i], hi: bounds[i + 1] });
+  }
+  return composeSides(parts, axis);
+}
+
+/**
+ * DR-3: a half section, composed exactly: the section's own projection and cut faces on the cut side of the centreline,
+ * the part's uncut view on the other (both seen along the section's depth, so each half is exactly what it shows there).
+ */
+export function halfSection(doc: StudioDoc, s: DrawingSection, orientation: Orientation = 'y-', skip?: ReadonlySet<string>): SectionResult {
+  const h = s.half!, r = sectionOf(doc, s.at, orientation, s.view, skip);
+  if (!r.ok) return r;
+  let exterior: BrepProjection;
+  try {
+    const outputs = withBeadRetry(doc, q => evaluateCadPart(q)).outputs, breps: Brep[] = [];
+    for (const o of outputs) if (!skip?.has(o.id)) breps.push(o.brep);
+    exterior = projectBrepHiddenLines(breps, sectionFrame({ view: s.view }, orientation).view);
+  } catch (cause) { return { ok: false, error: cause instanceof Error ? cause.message : String(cause) }; }
+  const axis: 0 | 1 = h.line === 'vertical' ? 0 : 1, after = h.cut === 'after';
+  return composeSides([
+    { pr: r.projection, rings: r.rings, bodies: r.ringBodies, lo: after ? h.at : -Infinity, hi: after ? Infinity : h.at },
+    { pr: exterior, rings: [], bodies: [], lo: after ? -Infinity : h.at, hi: after ? h.at : Infinity },
+  ], axis);
+}
+
+/** Projections (and their rings) each kept over its band [lo, hi] of one view axis, put together: one projection and its rings. */
+function composeSides(parts: readonly { pr: BrepProjection; rings: XY[][]; bodies: number[]; lo: number; hi: number }[], axis: 0 | 1): SectionResult {
+  const edges: ProjectedEdge[] = [], rings: XY[][] = [], ringBodies: number[] = [], min: [number, number] = [Infinity, Infinity], max: [number, number] = [-Infinity, -Infinity];
+  for (const part of parts) {
+    // (Kept inside the band: outside (−∞, lo) and outside (hi, ∞); an infinite side needs no cut.)
+    const keep: ViewBreak[] = [];
+    if (Number.isFinite(part.lo)) keep.push({ axis, from: -Infinity, to: part.lo, gap: 0 });
+    if (Number.isFinite(part.hi)) keep.push({ axis, from: part.hi, to: Infinity, gap: 0 });
+    const clipped = clipProjectionOutside(part.pr, keep);
+    for (const e of clipped.edges) {
+      if (e.pieces.length) { edges.push(e); continue; }
+      // (An edge on visible ink, piece-less, kept with the band that holds one of its ends.)
+      const V = axis === 0 ? part.pr.right : part.pr.up;
+      for (const p of e.ends ?? []) { const w = p[0] * V[0] + p[1] * V[1] + p[2] * V[2]; if (w >= part.lo && w <= part.hi) { edges.push(e); break; } }
+    }
+    const r = keep.length ? clipRingsOutside(part.rings, keep) : { rings: part.rings, kept: part.rings.map((_, k) => k) };
+    for (let i = 0; i < r.rings.length; i++) { rings.push(r.rings[i]); ringBodies.push(part.bodies[r.kept[i]] ?? 0); }
+    for (const k of [0, 1] as const) {
+      const lo = k === axis ? Math.max(part.pr.min[k], part.lo) : part.pr.min[k], hi = k === axis ? Math.min(part.pr.max[k], part.hi) : part.pr.max[k];
+      if (lo <= hi) { min[k] = Math.min(min[k], lo); max[k] = Math.max(max[k], hi); }
+    }
+  }
+  const first = parts[0].pr;
+  return { ok: true, projection: { right: first.right, up: first.up, toward: first.toward, edges, min, max }, rings, ringBodies };
 }
 
 /** The loops of a B-rep's faces on the plane square to axis `k` (1: Y) at `y`, as rings in the projection's view coordinates. */

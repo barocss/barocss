@@ -32,7 +32,10 @@ import { writeDxf, type DxfVersion } from '@barocss/cad';
 
 import { VIEWS, fromSheet, scaleLabel, toSheet, type Orientation } from '@barocss/cad-model/drawing/views';
 import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, resolveDimension, roundIn, snapPoints, type SnapPoint } from '@barocss/cad-model/drawing/dimensions';
-import { VIEW_IDS, isSectionRef, sameSection, sectionLetter, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { DETAIL_PARENTS, type DetailParent } from '@barocss/cad-model/drawing/detail';
+import { DetailsList } from './drawing/DetailsList';
+import { BreaksList } from './drawing/BreaksList';
+import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, sameSection, sectionLetter, sectionsOf, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { today, useDrawingSheet } from './useDrawingSheet';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
@@ -47,7 +50,7 @@ import { NotesList } from './drawing/NotesList';
 import { ExportActions } from './drawing/ExportActions';
 import '../drawing/drawing.css';
 
-type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note';
+type Tool = 'select' | 'linear' | 'diameter' | 'radius' | 'angle' | 'note' | 'detail';
 const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: string }[] = [
   { tool: 'select', label: 'Select', icon: 'arrow_selector_tool', key: 'V', hint: 'Click a dimension to select it, drag to move it · Delete removes it · drag the paper to pan, scroll to zoom' },
   { tool: 'linear', label: 'Linear dimension', icon: 'straighten', key: 'D', hint: 'Click two points (edge ends, circle centres) or one straight edge, then where the dimension goes' },
@@ -55,12 +58,15 @@ const TOOLS: { tool: Tool; label: string; icon: string; key: string; hint: strin
   { tool: 'radius', label: 'Radius', icon: 'line_end_circle', key: 'R', hint: 'Click a circle or an arc, then where its radius goes' },
   { tool: 'angle', label: 'Angle', icon: 'architecture', key: 'A', hint: 'Click two straight edges, then the side of their corner the angle goes on' },
   { tool: 'note', label: 'Note', icon: 'sticky_note_2', key: 'N', hint: 'Click on the paper for a note, or on a view for a leader and then where its text goes' },
+  { tool: 'detail', label: 'Detail view', icon: 'zoom_in', key: 'E', hint: 'Click the centre of what to enlarge on a view or a section, then how far its circle reaches' },
 ];
 type Pending =
   | { kind: 'linear'; view: DimView; a: DimPoint; b?: DimPoint }
   | { kind: 'diameter' | 'radius'; view: DimView; edge: string; near: Vec3 }
   | { kind: 'angle'; view: DimView; a: EdgeRef; b?: EdgeRef }
-  | { kind: 'note'; leader: { view: ViewId; at: XY } };
+  | { kind: 'note'; leader: { view: ViewId; at: XY } }
+  /** DR-1: a detail's circle, its centre picked on its parent. */
+  | { kind: 'detail'; view: DetailParent; center: XY };
 /** `q`: the pointer on the sheet (mm); `at`: in the view under it (model mm). */
 /** `view` (O148 X2): a view, or a section the sheet placed (`section:B`). */
 interface Hover { q: XY; view: DimView; at: XY; snap: SnapPoint | null; edge: ProjectedEdge | null }
@@ -82,7 +88,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [hover, setHover] = useState<Hover | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [drag, setDrag] = useState<{ id: string; place: XY } | { note: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
+  const [drag, setDrag] = useState<{ id: string; place: XY } | { note: string; at: XY; grab: XY } | { detail: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
   /** The selected note's text while it is typed, and the selected dimension's tolerance fields. */
   const [noteDraft, setNoteDraft] = useState<string | null>(null);
   const [tolDraft, setTolDraft] = useState<Record<string, string>>({});
@@ -158,12 +164,14 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     for (const id of VIEW_IDS) if (!layout.views[id].hidden) near(id, layout.views[id].box);
     // (O148 X2: the sections as placed, dimensioned as views are.)
     for (const x of sheet?.sections ?? []) near(`section:${x.id}`, x.placement.box);
+    // (DR-1: the details as drawn, dimensioned as views are.)
+    for (const x of sheet?.details ?? []) near(`detail:${x.id}`, x.placement.box);
     return best;
   }, [layout, sheet]);
-  const snaps = useMemo(() => views ? { ...Object.fromEntries(VIEW_IDS.map(id => [id, snapPoints(views[id])])), ...Object.fromEntries((sheet?.sections ?? []).map(x => [`section:${x.id}`, snapPoints(x.projection)])) } as Partial<Record<DimView, SnapPoint[]>> : null, [views, sheet?.sections]);
+  const snaps = useMemo(() => views ? { ...Object.fromEntries(VIEW_IDS.map(id => [id, snapPoints(views[id])])), ...Object.fromEntries((sheet?.sections ?? []).map(x => [`section:${x.id}`, snapPoints(x.projection)])), ...Object.fromEntries((sheet?.details ?? []).map(x => [`detail:${x.id}`, snapPoints(x.projection)])) } as Partial<Record<DimView, SnapPoint[]>> : null, [views, sheet?.sections, sheet?.details]);
   const placementAt = (v: DimView) => layout ? placementOf(layout, sheet ?? undefined, v) : undefined;
   const projectionAt = (v: DimView) => views ? projectionOf(views, sheet ?? undefined, v) : undefined;
-  const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
+  const viewLabel = (v: DimView) => isSectionRef(v) ? `section ${sectionLetter(v)}–${sectionLetter(v)}` : isDetailRef(v) ? `detail ${detailLetter(v)}` : `${VIEWS[v].label.toLowerCase()} view`;
 
   const hoverAt = useCallback((clientX: number, clientY: number): Hover | null => {
     const q = sheetPoint(clientX, clientY); if (!q || !layout || !views || !snaps) return null;
@@ -190,6 +198,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     setMessage(null);
     // Where a dimension goes is read in its own view, wherever the pointer is.
     if (pending?.kind === 'note') { addNote(h.q, pending.leader); return; }
+    if (tool === 'detail') { pickDetail(h); return; }
     const placing = pending && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     const into = placing ? placementAt(pending.view) : null, place = placing && into ? fromSheet(into, h.q) : h.at;
     if (h.view === 'iso' && !placing) { setMessage('Dimensions go on the front, top and right views.'); return; }
@@ -240,6 +249,21 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     }
   };
 
+  /** DR-1: the detail tool — its centre on a view or a section, then a point its circle reaches; the next free letter, its scale and place automatic. */
+  const pickDetail = (h: Hover) => {
+    if (pending?.kind === 'detail') {
+      const into = placementAt(pending.view), at = into ? fromSheet(into, h.q) : h.at, radius = Math.round(Math.hypot(at[0] - pending.center[0], at[1] - pending.center[1]) * 100) / 100;
+      if (!(radius > 0)) { setMessage('Click away from the centre: that is how far the circle reaches.'); return; }
+      // (A stays the front section's, by its checkbox, as added sections leave it.)
+      const id = nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionsOf(settings)], (settings.details ?? []).map(d => d.id));
+      onChange({ ...settings, details: [...(settings.details ?? []), { id, view: pending.view, center: pending.center, radius }] });
+      setPending(null); return;
+    }
+    if (!(DETAIL_PARENTS as readonly string[]).includes(h.view) && !isSectionRef(h.view)) { setMessage('A detail enlarges part of the front, top or right view, or of a section.'); return; }
+    const c = h.snap?.at ?? h.at;
+    setPending({ kind: 'detail', view: h.view as DetailParent, center: [Math.round(c[0] * 100) / 100, Math.round(c[1] * 100) / 100] });
+  };
+
   /** A new note at a sheet point (with a leader to a view point), selected with its text ready to type. */
   const addNote = (at: XY, leader?: { view: ViewId; at: XY }) => {
     const used = new Set((settings.notes ?? []).map(n => n.id)); let k = 1; while (used.has(`n${k}`)) k++;
@@ -255,12 +279,20 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (tool === 'note' && !pending) {
       // On (or right by) a view: the leader's point first; elsewhere the note itself.
       const q = sheetPoint(e.clientX, e.clientY), h = hoverAt(e.clientX, e.clientY); if (!q || !layout) return;
-      const hv = h && !isSectionRef(h.view) ? h.view : null, [x0, y0, x1, y1] = hv ? layout.views[hv].box : [0, 0, 0, 0], on = hv && q[0] >= x0 - 3 && q[0] <= x1 + 3 && q[1] >= y0 - 3 && q[1] <= y1 + 3;
+      const hv = h && isViewId(h.view) ? h.view : null, [x0, y0, x1, y1] = hv ? layout.views[hv].box : [0, 0, 0, 0], on = hv && q[0] >= x0 - 3 && q[0] <= x1 + 3 && q[1] >= y0 - 3 && q[1] <= y1 + 3;
       if (h && hv && on) { setPending({ kind: 'note', leader: { view: hv, at: h.snap?.at ?? h.at } }); setMessage(null); } else addNote(q);
       return;
     }
     if (tool === 'note' && pending?.kind === 'note') { const q = sheetPoint(e.clientX, e.clientY); if (q) addNote(q, pending.leader); return; }
     if (tool === 'select') {
+      // (DR-1: a detail grabbed anywhere in its square — not on one of its dimensions — moves it on the sheet.)
+      const qd = sheetPoint(e.clientX, e.clientY), onDim = !!target && settings.dimensions.some(x => x.id === target.getAttribute('data-dim'));
+      const det = !onDim && qd ? sheet?.details?.find(x => qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
+      const sd = det && settings.details?.find(x => x.id === det.id);
+      if (det && sd && qd) {
+        const at = toSheet(det.placement, sd.center);
+        setSelected(null); setDrag({ detail: det.id, at, grab: [qd[0] - at[0], qd[1] - at[1]] }); (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
+      }
       const id = target?.getAttribute('data-dim') ?? null;
       setSelected(id); setNoteDraft(null); setTolDraft({});
       const d = id ? settings.dimensions.find(x => x.id === id) : undefined, n = id ? settings.notes?.find(x => x.id === id) : undefined, q = sheetPoint(e.clientX, e.clientY);
@@ -277,7 +309,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (drag && 'pan' in drag) {
       const k = mmPerPx(); setBox([drag.box[0] - (e.clientX - drag.pan[0]) * k, drag.box[1] - (e.clientY - drag.pan[1]) * k, drag.box[2], drag.box[3]]); return;
     }
-    if (drag && 'note' in drag) {
+    if (drag && ('note' in drag || 'detail' in drag)) {
       const q = sheetPoint(e.clientX, e.clientY);
       if (q) setDrag({ ...drag, at: [Math.round((q[0] - drag.grab[0]) * 10) / 10, Math.round((q[1] - drag.grab[1]) * 10) / 10] });
       return;
@@ -291,6 +323,11 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     setHover(hoverAt(e.clientX, e.clientY) ?? placingAt(e.clientX, e.clientY));
   };
   const onPointerUp = () => {
+    if (drag && 'detail' in drag) {
+      const d = settings.details?.find(x => x.id === drag.detail);
+      if (d && (d.at?.[0] !== drag.at[0] || d.at?.[1] !== drag.at[1])) onChange({ ...settings, details: settings.details!.map(x => x.id === d.id ? { ...x, at: drag.at } : x) });
+      setDrag(null); return;
+    }
     if (drag && 'note' in drag) {
       const n = settings.notes?.find(x => x.id === drag.note);
       if (n && (n.at[0] !== drag.at[0] || n.at[1] !== drag.at[1])) onChange({ ...settings, notes: settings.notes!.map(x => x.id === n.id ? { ...x, at: drag.at } : x) });
@@ -322,7 +359,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement || e.metaKey || e.ctrlKey) return;
       if (e.key === 'Escape') { if (pending) cancel(); else { setSelected(null); setTool('select'); } return; }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); remove(selected); return; }
-      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle', n: 'note' } as Record<string, Tool>)[e.key.toLowerCase()];
+      const t = ({ v: 'select', d: 'linear', o: 'diameter', r: 'radius', a: 'angle', n: 'note', e: 'detail' } as Record<string, Tool>)[e.key.toLowerCase()];
       if (t) { setTool(t); setPending(null); setMessage(null); }
     };
     window.addEventListener('keydown', onKey);
@@ -342,6 +379,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       section: cutA ? (cutA.result.ok ? { rings: cutA.result.rings.length, edges: cutA.result.projection.edges.length } : { error: cutA.result.error }) : null,
       sections: (cutsMade ?? []).map(c => ({ id: c.id, view: c.view, at: c.at, ...(c.result.ok ? { rings: c.result.rings.length, edges: c.result.projection.edges.length } : { error: c.result.error }) })),
       placedSections: (layout?.sections ?? []).map(p => ({ id: p.section, of: p.of, box: p.box })),
+      details: (sheet.details ?? []).map(d => ({ id: d.id, view: d.view, scale: d.scale, box: d.placement.box, edges: d.projection.edges.length })),
+      boxes: Object.fromEntries(VIEW_IDS.map(id => [id, layout!.views[id].box])), breaks: Object.fromEntries(VIEW_IDS.filter(id => layout!.views[id].breaks).map(id => [id, layout!.views[id].breaks])),
       issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}), ...(x.tables ? { tables: x.tables } : {}) })),
       tables: (sheet.tables ?? []).map(x => ({ id: x.id, box: x.box, ...(x.error ? { error: x.error } : {}) })),
       ...(sheet.welds ? { welds: { placed: sheet.welds.placed.map(p => ({ label: p.label, view: p.view })), unshown: sheet.welds.unshown } } : {}),
@@ -427,6 +466,12 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       parts.push(`<g class="dw-preview"><line x1="${t[0]}" y1="${t[1]}" x2="${hover.q[0]}" y2="${hover.q[1]}" stroke-width="0.25"/></g><circle class="dw-pick" cx="${t[0]}" cy="${t[1]}" r="0.9"/>`);
       return parts.join('');
     }
+    if (pending?.kind === 'detail') {
+      const c = toSheet(P(pending.view), pending.center), r = hover ? Math.hypot(hover.q[0] - c[0], hover.q[1] - c[1]) : 0;
+      parts.push(`<circle class="dw-pick" cx="${c[0]}" cy="${c[1]}" r="0.9"/>`);
+      if (r > 0) parts.push(`<g class="dw-preview"><circle cx="${c[0]}" cy="${c[1]}" r="${r}" fill="none" stroke-width="0.25"/></g>`);
+      return parts.join('');
+    }
     const placing = pending && hover && pending.kind !== 'note' && ((pending.kind !== 'linear' && pending.kind !== 'angle') || pending.b);
     if (pending?.kind === 'angle') for (const ref of [pending.a, ...(pending.b ? [pending.b] : [])]) {
       const l = resolveLine(R(pending.view), ref);
@@ -456,12 +501,13 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   // The dimension being dragged is drawn where it goes.
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
+    if ('detail' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, details: (settings.details ?? []).map(d => d.id === drag.detail ? { ...d, at: drag.at } : d) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
     if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.a), pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.b), drag.place) } : { ...d, place: drag.place }) : d);
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
   }, [drag, views, layout, sheet, sheetMarkup, settings, title, selected, weldJoints, bom]);
 
-  const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
+  const hint = message ?? (pending ? (pending.kind === 'note' ? 'Click where the note’s text goes · Esc cancels' : pending.kind === 'detail' ? 'Now how far the detail’s circle reaches · Esc cancels' : pending.kind === 'angle' && !pending.b ? 'Now the second edge · Esc cancels' : pending.kind === 'linear' && !pending.b ? 'Now the second point · Esc cancels' : 'Click where the dimension goes · Esc cancels') : TOOLS.find(t => t.tool === tool)!.hint);
   const selDim = selected ? settings.dimensions.find(d => d.id === selected) : undefined, selNote = selected ? settings.notes?.find(n => n.id === selected) : undefined;
 
   return (
@@ -488,6 +534,10 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         <SheetSettings sheet={{ scopeRead, scope, views, layout, sectionA, sectionList, cutA, cutsMade, hasSheet, hasFrame, kinds, hasBought, doc, title, busy }} settings={settings} sourceDoc={sourceDoc} fileName={fileName} onChange={onChange} onToast={onToast}
           onScopeChanged={() => { setPending(null); setSelected(null); setHover(null); setDrag(null); }} turnTo={turnTo} />
 
+        <DetailsList settings={settings} sheet={sheet} layout={layout} onChange={onChange} />
+
+        <BreaksList settings={settings} views={views} onChange={onChange} onRefused={why => onToast({ title: 'Break unchanged', hint: why, detail: '' })} />
+
         <IssuesList issues={issues} scope={scope} views={views} fixIssue={fixIssue} fixEvery={fixEvery} onSelectDimension={d => { setSelected(d); setTool('select'); }} />
 
         <TolerancingList suggestions={suggestions} settings={settings} views={views} onChange={onChange} acceptEvery={acceptEvery} />
@@ -504,7 +554,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       <div className={'card dw-hint' + (message ? ' warn' : '')} role="status">
         <span>{hint}</span>
         {selected && <span><Kbd>Del</Kbd> remove</span>}
-        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> tools</span>
+        <span><Kbd>V</Kbd> <Kbd>D</Kbd> <Kbd>O</Kbd> <Kbd>R</Kbd> <Kbd>A</Kbd> <Kbd>N</Kbd> <Kbd>E</Kbd> tools</span>
       </div>
     </div>
   );

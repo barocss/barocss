@@ -26,6 +26,28 @@ test('render post (G15d.1): AgX kept, the post read in range; absent, none', () 
   assert.deepEqual(readRender({ environment: { post: { grade: 'sepia' } } }).environment.post, { grade: 'neutral', contrast: 1, saturation: 1, vignette: 0 });
 });
 
+test('appearance finishes (G15a): a known kind read with its scale and strength in range and its axis; coat and film in range; else none', async () => {
+  const { readAppearance, APPEARANCES } = await import('../src/engine/render');
+  const base = defaultRender().defaultAppearance;
+  assert.deepEqual(readAppearance({ ...base, finish: { kind: 'turned', scale: 500, strength: -2, axis: [0, 0, 2] } }, base).finish, { kind: 'turned', scale: 100, strength: 0, axis: [0, 0, 2] });
+  assert.deepEqual(readAppearance({ ...base, finish: { kind: 'cast' } }, base).finish, { kind: 'cast', scale: 0.5, strength: 0.5 });
+  assert.deepEqual(readAppearance({ ...base, finish: { kind: 'brushed', axis: [0, 0, 0] } }, base).finish, { kind: 'brushed', scale: 0.5, strength: 0.5 }, 'a zero axis: none');
+  assert.equal(readAppearance({ ...base, finish: { kind: 'polished' } }, base).finish, undefined);
+  const coat = readAppearance({ ...base, clearcoat: 3, film: 0.4 }, base);
+  assert.equal(coat.clearcoat, 1); assert.equal(coat.film, 0.4);
+  const none = readAppearance({ ...base, clearcoat: 0, film: -1 }, base);
+  assert.ok(!('clearcoat' in none) && !('film' in none) && !('finish' in none));
+  // Every preset reads back as itself.
+  for (const p of APPEARANCES) assert.deepEqual(readAppearance(p.appearance, base), p.appearance, p.id);
+});
+
+test('render studio environments (G15b): a known kind kept with its strength in range; else none', () => {
+  assert.deepEqual(readRender({ environment: { studio: { kind: 'cyclorama', intensity: 20 } } }).environment.studio, { kind: 'cyclorama', intensity: 8 });
+  assert.deepEqual(readRender({ environment: { studio: { kind: 'softbox' } } }).environment.studio, { kind: 'softbox', intensity: 1 });
+  assert.equal(readRender({ environment: { studio: { kind: 'garage' } } }).environment.studio, undefined);
+  assert.equal(readRender({ environment: {} }).environment.studio, undefined);
+});
+
 test('render settings: light angles round-trip through directions', () => {
   for (const [az, el] of [[0, 45], [-120, 30], [90, 80]] as const) {
     const d = directionFrom(az, el);

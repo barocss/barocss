@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
-import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings } from '@barocss/cad-model/engine/render';
+import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings, FINISH_KINDS, type AppearanceFinish, type FinishKind, type StudioKind } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
 import { CONTROL, FIELD, NUM, SLIDER, TICK } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,9 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
     const rest = { ...env }; delete rest.post;
     onChange({ ...render, environment: neutral ? rest : { ...rest, post: next } });
   };
-  const preset = APPEARANCES.find(p => JSON.stringify(p.appearance) === JSON.stringify(current))?.id ?? '';
+  // (A preset is the look's material — colour, metal, roughness, opacity and G15a's finish, coat and film; a texture or
+  // a shader on top leaves it chosen. Choosing one replaces all of those, so a finish never carries over to one without.)
+  const preset = APPEARANCES.find(p => PRESET_KEYS.every(k => JSON.stringify(p.appearance[k]) === JSON.stringify(current[k])))?.id ?? '';
 
   const slider = (label: string, value: number, set: (v: number) => void, min = 0, max = 1, step = 0.01) => (
     <label className={FIELD} key={label}><span>{label}</span>
@@ -70,7 +72,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
       {tab === 'look' && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="muted small">{selectedKeys.length ? `${selectedKeys.length} selected bod${selectedKeys.length > 1 ? 'ies' : 'y'}` : 'Every body without its own appearance'}</div>
         <label className={FIELD}><span>Preset</span>
-          <NativeSelect className={CONTROL} aria-label="Appearance preset" value={preset} onChange={e => { const p = APPEARANCES.find(x => x.id === e.target.value); if (p) setLook(p.appearance); }}>
+          <NativeSelect className={CONTROL} aria-label="Appearance preset" value={preset} onChange={e => { const p = APPEARANCES.find(x => x.id === e.target.value); if (p) setLook({ finish: undefined, clearcoat: undefined, film: undefined, ...p.appearance }); }}>
             <option value="">Custom</option>
             {APPEARANCES.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
           </NativeSelect></label>
@@ -93,6 +95,23 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {current.texture && slider('Cut out below', current.cutout ?? 0, v => setLook({ cutout: v > 0 ? v : undefined }))}
         {current.texture && <label className={FIELD}><span>Repeat every</span><span className={NUM}><Input type="number" aria-label="Texture repeat" min={0.1} step="any" value={current.texture.scale}
           onChange={e => { const v = Number(e.target.value); if (v > 0) setLook({ texture: { ...current.texture!, scale: v } }); }} onKeyDown={e => e.stopPropagation()} /><em>mm</em></span></label>}
+        <label className={FIELD}><span>Finish</span>
+          <NativeSelect className={CONTROL} aria-label="Surface finish" value={current.finish?.kind ?? ''} onChange={e => {
+            const kind = e.target.value as FinishKind | '';
+            setLook({ finish: kind ? { ...(current.finish ?? FINISH_START), kind } : undefined });
+          }}>
+            <option value="">None</option>
+            {FINISH_KINDS.map(k => <option key={k} value={k}>{FINISH_LABEL[k]}</option>)}
+          </NativeSelect></label>
+        {current.finish && <>
+          {slider('Marks', current.finish.scale, v => setLook({ finish: { ...current.finish!, scale: v } }), 0.05, 3, 0.05)}
+          {slider('Depth', current.finish.strength, v => setLook({ finish: { ...current.finish!, strength: v } }))}
+          {current.finish.kind !== 'cast' && current.finish.kind !== 'sand-cast' && current.finish.kind !== 'blasted' && <label className={FIELD}><span>Along</span>
+            <NativeSelect className={CONTROL} aria-label="Finish direction" value={axisName(current.finish.axis)} onChange={e => setLook({ finish: { ...current.finish!, axis: AXES[e.target.value as keyof typeof AXES] } })}>
+              <option value="x">X</option><option value="y">Y</option><option value="z">Z</option></NativeSelect></label>}
+        </>}
+        {slider('Clear coat', current.clearcoat ?? 0, v => setLook({ clearcoat: v > 0 ? v : undefined }))}
+        {slider('Oil film', current.film ?? 0, v => setLook({ film: v > 0 ? v : undefined }))}
         <label className={FIELD}><span>Shader</span>
           <NativeSelect className={CONTROL} aria-label="Shader material" value={current.shader ?? ''} onChange={e => setLook({ shader: e.target.value || undefined })}>
             <option value="">None</option>
@@ -134,18 +153,29 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {color('Top', env.top, v => setEnv({ top: v }))}
         {color('Bottom', env.bottom, v => setEnv({ bottom: v }))}
         {slider('Ambient', env.ambient, v => setEnv({ ambient: v }), 0, 2)}
+        <label className={FIELD}><span>Studio</span>
+          <NativeSelect className={CONTROL} aria-label="Studio environment" value={env.map ? 'image' : env.studio?.kind ?? ''} onChange={e => {
+            const kind = e.target.value as StudioKind | '' | 'image';
+            if (kind === 'image') return;
+            const rest = { ...env }; delete rest.map; delete rest.studio;
+            onChange({ ...render, environment: kind ? { ...rest, studio: { kind, intensity: env.studio?.intensity ?? 1 } } : rest });
+          }}>
+            <option value="">Sky and ground</option><option value="softbox">Softboxes</option><option value="cyclorama">Cyclorama</option>
+            {env.map && <option value="image">Image</option>}
+          </NativeSelect></label>
         <div className={FIELD}><span>Environment</span>
           <span className="texture-row">
             {env.map && <img className="texture-thumb" src={env.map.image} alt="" />}
             <Button variant="ghost" asChild><label className="file-button" title="An equirectangular image (its top row overhead) that lights the part in place of the sky and ground">{env.map ? 'Replace…' : 'Image…'}
               <input type="file" accept="image/*" aria-label="Environment image" hidden onChange={async e => {
                 const file = e.target.files?.[0]; e.target.value = ''; if (!file) return;
-                try { setEnv({ map: { image: await textureImage(file, 2048), intensity: env.map?.intensity ?? 1 } }); }
+                try { const image = await textureImage(file, 2048), rest = { ...env }; delete rest.studio; onChange({ ...render, environment: { ...rest, map: { image, intensity: env.map?.intensity ?? env.studio?.intensity ?? 1 } } }); }
                 catch { onError?.('That file is not an image the browser can read.'); }
               }} /></label></Button>
             {env.map && <Button variant="ghost" size="xs" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></Button>}
           </span></div>
         {env.map && slider('Environment strength', env.map.intensity, v => setEnv({ map: { ...env.map!, intensity: v } }), 0, 4)}
+        {!env.map && env.studio && slider('Environment strength', env.studio.intensity, v => setEnv({ studio: { ...env.studio!, intensity: v } }), 0, 4)}
         {check('Occlusion', env.occlusion, v => setEnv({ occlusion: v }))}
         {check('Ground', env.ground, v => setEnv({ ground: v }))}
         {check('Grid', env.grid, v => setEnv({ grid: v }))}
@@ -171,6 +201,17 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
     </aside>
   );
 }
+
+const PRESET_KEYS = ['color', 'metallic', 'roughness', 'opacity', 'finish', 'clearcoat', 'film'] as const;
+/** G15a: the finishes' names, a new finish's start, and its direction by axis. */
+const FINISH_LABEL: Record<FinishKind, string> = { cast: 'Cast', 'sand-cast': 'Sand-cast', machined: 'Machined', turned: 'Turned', brushed: 'Brushed', knurled: 'Knurled', blasted: 'Bead-blasted' };
+const FINISH_START: AppearanceFinish = { kind: 'cast', scale: 0.5, strength: 0.6 };
+const AXES = { x: [1, 0, 0], y: [0, 1, 0], z: [0, 0, 1] } as const satisfies Record<string, [number, number, number]>;
+const axisName = (a: AppearanceFinish['axis']): keyof typeof AXES => {
+  if (!a) return 'z';
+  const m = [Math.abs(a[0]), Math.abs(a[1]), Math.abs(a[2])];
+  return m[0] >= m[1] && m[0] >= m[2] ? 'x' : m[1] >= m[2] ? 'y' : 'z';
+};
 
 const NO_POST: RenderPost = { grade: 'neutral', contrast: 1, saturation: 1, vignette: 0 };
 

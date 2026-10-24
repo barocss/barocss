@@ -5381,6 +5381,111 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.sections && !window.__studioDoc.drawing?.section && !(window.__studioDrawing?.()?.placedSections ?? []).length, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('detail views (CG5 DR-1): the Detail tool (E) on a box corner in the top view, auto scale, rescaled, dragged, in the SVG, removed', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Drawing sheet"]')?.getAttribute('viewBox')?.includes('420'), null, { timeout: 20000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      const sheetScale = await page.evaluate(() => window.__studioDrawing().scale), auto = [10, 5, 2, 1, 0.5, 0.2, 0.1].filter(x => x >= 2 * sheetScale * (1 - 1e-9)).at(-1) ?? 2 * sheetScale;
+      await press('e');
+      // (The top view's corner at X 64, Y 32 — snapped — then a point 6 mm along X: the circle's reach.)
+      const c = await page.evaluate(() => window.__studioDrawingAt('top', 64, 32)), r = await page.evaluate(() => window.__studioDrawingAt('top', 70, 32));
+      await page.mouse.move(c.x, c.y); await page.mouse.click(c.x, c.y);
+      await page.mouse.move(r.x, r.y); await page.mouse.click(r.x, r.y);
+      await page.waitForFunction(() => window.__studioDrawing?.()?.details?.length === 1, null, { timeout: 20000 });
+      const [det] = (await doc()).drawing.details;
+      assert.equal(det.id, 'B'); assert.equal(det.view, 'top'); assert.deepEqual(det.center, [64, 32]);
+      assert.ok(Math.abs(det.radius - 6) < 0.5, `radius ${det.radius}`);
+      let d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      // (Auto: the smallest standard scale at least twice the sheet's; the corner's two edges inside the circle.)
+      assert.equal(d.scale, auto, `sheet ${sheetScale}`); assert.ok(d.edges >= 2, `${d.edges} edges`);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * auto * det.radius) < 1e-9);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /DETAIL|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code)), []);
+      const set = [10, 5, 2, 1, 0.5, 0.2, 0.1].find(x => x < auto), label = set >= 1 ? `${set}:1` : `1:${1 / set}`;
+      await page.selectOption('[aria-label="Detail B scale"]', String(set));
+      await page.waitForFunction(s => window.__studioDrawing?.()?.details?.[0]?.scale === s, set, { timeout: 20000 });
+      d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * set * det.radius) < 1e-9 && Math.abs((d.box[3] - d.box[1]) - 2 * set * det.radius) < 1e-9);
+      await snap('detail-b');
+      // Dragged by its drawing 20 mm left: kept where it was put.
+      await press('v');
+      const mid = await page.evaluate(([x0, y0, x1]) => { const svg = document.querySelector('[aria-label="Drawing sheet"]'), m = svg.getScreenCTM(); const p = new DOMPoint((x0 + x1) / 2, y0 + 3).matrixTransform(m), q = new DOMPoint((x0 + x1) / 2 - 20, y0 + 3).matrixTransform(m); return [p.x, p.y, q.x, q.y]; }, d.box);
+      await page.mouse.move(mid[0], mid[1]); await page.mouse.down(); await page.mouse.move((mid[0] + mid[2]) / 2, mid[1], { steps: 4 }); await page.mouse.move(mid[2], mid[3], { steps: 4 }); await page.mouse.up();
+      await page.waitForFunction(() => !!window.__studioDoc.drawing?.details?.[0]?.at, null, { timeout: 20000 });
+      const moved = await page.evaluate(() => window.__studioDrawing().details[0].box);
+      assert.ok(Math.abs((moved[0] - d.box[0]) + 20) < 0.6, `moved ${moved[0] - d.box[0]}`);
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>DETAIL B (${label})</text>`), 'DETAIL B named in the SVG');
+      await page.click('[aria-label="Remove detail B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.details && !(window.__studioDrawing?.()?.details ?? []).length, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('broken views (CG5 DR-2): a 500 mm bar, Add break, its ends typed, the front and top views shortened in projection, removed', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('500'); await field('Depth Y').fill('20'); await field('Height Z').fill('20'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 500×20×20/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Add break"]');
+      // (The middle third of the longest axis: X 167 to 333.)
+      await page.waitForFunction(() => !!window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+      assert.deepEqual((await doc()).drawing.breaks, [{ axis: 'x', from: 167, to: 333 }]);
+      await page.fill('[aria-label="Break 1 from"]', '100'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.breaks?.[0]?.from === 100, null, { timeout: 20000 });
+      await page.fill('[aria-label="Break 1 to"]', '400'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.breaks?.front?.[0]?.to === 400, null, { timeout: 20000 });
+      const d = await page.evaluate(() => window.__studioDrawing());
+      // (Drawn 200 mm of the 500 at the sheet's scale, plus the 6 mm gap; the top view with it, the right view whole.)
+      const w = (id) => d.boxes[id][2] - d.boxes[id][0];
+      assert.ok(Math.abs(w('front') - (200 * d.scale + 6)) < 1e-9 && Math.abs(w('top') - w('front')) < 1e-9, `${w('front')} at ${d.scale}`);
+      assert.ok(!d.breaks.right && Math.abs(w('right') - 20 * d.scale) < 1e-9);
+      assert.deepEqual(d.issues.filter(x => /BREAK|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code), []);
+      await snap('broken-bar');
+      await page.click('[aria-label="Remove break 1"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.breaks && !window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('section kinds (CG5 DR-3): a block with holes at Y 10 and Y 30; B–B on the front made offset (both holes, 4 faces), half (1 face), full again', async () => {
+    const fs = await import('node:fs');
+    const block = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 10, id: 'n1' }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [15, 10], radius: 3, id: 'n2' }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [45, 30], radius: 4, id: 'n3' }], outputs: { b3: { node: 3, side: 'solid' } }, nextId: 4 };
+    const file = join(out, 'dr3-block.bcad'); fs.writeFileSync(file, JSON.stringify(block));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.sections?.some(x => x.id === 'B'), null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Section B view"]', 'front');
+      await page.waitForFunction(() => window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.view === 'front', null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '10'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === 10 && x.rings === 2), null, { timeout: 30000 });
+      // Offset: a step at X 30 (the middle) to depth 30.
+      await page.selectOption('[aria-label="Section B kind"]', 'offset');
+      await page.waitForFunction(() => !!window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.steps, null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B step 1 depth"]', '30'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 4), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').steps, [{ past: 30, at: 30 }]);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /OVERLAP|OVER_LINES|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code)), []);
+      await snap('offset-b');
+      // Half: cut right of X 30 — the face X 30–60 alone.
+      await page.selectOption('[aria-label="Section B kind"]', 'half');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 1), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').half, { line: 'vertical', at: 30, cut: 'after' });
+      await page.selectOption('[aria-label="Section B kind"]', 'full');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 2), null, { timeout: 30000 });
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
@@ -8492,6 +8597,338 @@ try {
       const back = await frame();
       assert.ok(corners(back).every((c, i) => Math.abs(c - corners(before)[i]) < 4), 'neutral: the frame as before');
     }
+    await page.click('.mode button:text-is("Model")');
+  });
+  await check('G15a finishes: Turned steel, a knurl along Z, a lacquered paint and an oil film from the Render panel — kept on the appearance, the part drawn with its marks; None again, plain', async () => {
+    // (A new part, a box: its one body takes the default appearance, whatever the steps before left open.)
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await press('Escape');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.waitForFunction(() => /Every body without/.test(document.querySelector('.render-panel .muted.small')?.textContent ?? ''));
+    const look = () => page.evaluate(() => window.__studioDoc.render.defaultAppearance);
+    const gpu = renderer === 'webgpu', N = 64;
+    // (The marks: how much a sample differs from its neighbours on a dense grid, the whole frame.)
+    // (A frame on a dense grid; how far two differ, sample by sample, over the samples either changes — the part's.)
+    const marks = async () => { await idle(); await page.waitForTimeout(600); return page.evaluate(n => window.__studioFrame(n), N); };
+    const apart = (a, b) => { let d = 0, n = 0; for (let k = 0; k < a.length; k++) { const e = Math.abs(a[k] - b[k]); if (e > 2) { d += e; n++; } } return n ? d / n : 0; };
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.color === '#a7abb1');
+    const plain = gpu ? await marks() : null;
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-turned-steel');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.finish?.kind === 'turned');
+    assert.deepEqual((await look()).finish, { kind: 'turned', scale: 0.3, strength: 0.6, axis: [0, 0, 1] });
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), 'look-turned-steel', 'the preset shown as chosen');
+    const turned = gpu ? await marks() : null; if (gpu) await snap('g15a-turned');
+    // A knurl, coarser, along Z; the preset becomes Custom.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', 'knurled');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Marks"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '1.5'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.finish?.kind === 'knurled' && window.__studioDoc.render.defaultAppearance.finish.scale === 1.5);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Finish direction"]'), 'z');
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), '');
+    const knurled = gpu ? await marks() : null; if (gpu) await snap('g15a-knurled');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15a-finish-panel.png`) });
+    // Paint under a clear coat; an oil film.
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-painted-red');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.clearcoat === 1 && !window.__studioDoc.render.defaultAppearance.finish);
+    if (gpu) await snap('g15a-painted');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-oiled-steel');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.film === 0.7);
+    if (gpu) await snap('g15a-oiled');
+    // None: the finish leaves the appearance.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.defaultAppearance.finish);
+    if (gpu) {
+      const t = apart(plain, turned), k = apart(plain, knurled);
+      console.log(`  G15a: frames apart from plain steel — turned ${t.toFixed(1)}, knurled ${k.toFixed(1)}`);
+      assert.ok(t > 8, `the turned face drawn (its radial highlight): ${t.toFixed(1)}`);
+      assert.ok(k > 8, `the knurl drawn: ${k.toFixed(1)}`);
+    }
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.click('.mode button:text-is("Model")');
+  });
+
+  // ---- CG6: a project folder, versions, restore, autosave (DA-4, DA-5) ---------------------------------------------
+  await check('CG6 project: open a folder, save into it, two versions, compare, restore the first; autosave kept in the project and offered back after a reload', async () => {
+    // (The folder picker is a native dialog a headless browser cannot drive: it hands back a real directory handle from
+    // the browser's private file system instead — the same handle calls a picked folder answers.)
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-flow-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const files = () => page.evaluate(async name => {
+      const out = [], walk = async (d, at) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') await walk(h, `${at}${n}/`); else out.push(`${at}${n}`); } };
+      await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle(name), ''); return out.filter(f => !f.endsWith('.crswap')).sort();
+    }, folder);
+    const card = page.locator('[aria-label="Versions panel"]');
+    const versions = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''));
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click();
+    await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Project"]').innerText(), new RegExp(`${folder}\\s*· folder`));
+    // A version saves the document into the folder and keeps it.
+    await card.locator('[aria-label="Version name"]').fill('First'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['First']);
+    const first = await files();
+    assert.ok(first.includes('Untitled.bcad') && first.includes('.barocss/versions/Untitled.bcad.json') && first.filter(f => f.startsWith('.barocss/snapshots/')).length === 1, first.join(', '));
+    // A second box; Save writes into the folder (no download); a second version.
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    let downloads = 0; const count = () => { downloads++; }; page.on('download', count);
+    await page.click('[aria-label="Save"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 });
+    page.off('download', count); assert.equal(downloads, 0, 'saved into the project, not downloaded');
+    await card.locator('[aria-label="Version name"]').fill('Second'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    // Compare the first with the working document: the second box's two features, added.
+    await card.locator('[aria-label="Compare First"]').click();
+    const compared = await card.locator('[aria-label="Compared changes"]').innerText();
+    assert.match(compared, /added sketch n2/); assert.match(compared, /added extrude n3/);
+    await page.waitForTimeout(1500); await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-compare.png`) });
+    await card.locator('[aria-label="Compare First"]').click();
+    // Restore the first: one box again, the history kept (both versions listed), the work unsaved.
+    await card.locator('[aria-label="Restore First"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    await page.waitForSelector('[aria-label="Unsaved changes"]');
+    // Autosave: kept in the project a moment after the change (the restored work: one box); after a reload, the folder
+    // reopened and the work offered back.
+    const autosaved = () => page.evaluate(async name => {
+      try {
+        const d = await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss')).getDirectoryHandle('autosave');
+        return JSON.parse(await (await (await d.getFileHandle('Untitled.bcad')).getFile()).text()).nodes.length;
+      } catch { return null; }
+    }, folder);
+    for (let k = 0; k < 40 && await autosaved() !== 2; k++) await page.waitForTimeout(250);
+    assert.equal(await autosaved(), 2, 'the autosave holds the restored work (one box)');
+    expectLoad(); await page.reload(); await idle();
+    if (await page.locator('[aria-label="Recover unsaved work"]').count()) await page.click('[aria-label="Recover unsaved work"] button:text-is("Discard")');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator(`[aria-label="Reopen ${folder}"]`).click();
+    await card.locator('[aria-label="Open Untitled.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    // (The log is read after the document opens.)
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First'], 'the versions read back from the folder');
+    assert.equal(await autosaved(), 2, 'the autosave still holds the restored work after the reopen');
+    await card.locator('[aria-label="Autosaved work"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Restore autosaved work"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-versions.png`) });
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 branches: a branch and the main line each add a box, merged clean; one parameter set two ways is a conflict, answered for the branch; a new part leaves the project file alone; a mesh compared by its faces', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-branch-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]'), rows = 'ul[aria-label="Versions"] > li';
+    const versions = () => card.locator(rows).evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    const bodies = n => page.waitForFunction(n => new RegExp(`${n} bod`).test(document.querySelector('.outliner')?.textContent ?? ''), n, { timeout: 15000 });
+    const version = async name => {
+      const n = await card.locator(rows).count();
+      await card.locator('[aria-label="Version name"]').fill(name); await card.locator('[aria-label="Make version"]').click();
+      await page.waitForFunction(([sel, n]) => document.querySelectorAll(`[aria-label="Versions panel"] ${sel}`).length > n, [rows, n], { timeout: 10000 });
+      assert.equal((await versions())[0], name);
+    };
+    const onBranch = async name => { await card.locator('[aria-label="Branch"]').selectOption(name); await page.waitForFunction(n => document.querySelector('[aria-label="Versions panel"] [aria-label="Branch"]')?.value === n, name, { timeout: 10000 }); };
+    const boxAt = async (axis, v) => { await press('b'); await hudReady(); await field(axis).fill(String(v)); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle(); };
+    const parameter = async (name, value) => {
+      await page.click('[aria-label="Parameters"]');
+      await page.fill('[aria-label="New parameter name"]', name); await page.fill('[aria-label="New parameter value"]', String(value)); await page.click('[aria-label="Add parameter"]');
+      await page.waitForFunction(([n, v]) => window.__studioDoc.parameters[n] === v, [name, value], { timeout: 5000 });
+      await page.click('[aria-label="Close parameters"]'); await card.waitFor({ timeout: 5000 });
+    };
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle(); await bodies(1);
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await version('Base');
+    // A branch "wide" with a box along X; the main line with a box along Y; merged: three boxes, a merge version.
+    await card.locator('[aria-label="Branch name"]').fill('wide'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'wide'), null, { timeout: 5000 });
+    await onBranch('wide'); await boxAt('At X', 48); await bodies(2); await version('Wide');
+    await onBranch('main'); await bodies(1);
+    assert.deepEqual(await versions(), ['Base'], "main's own history");
+    await boxAt('At Y', 48); await bodies(2); await version('Deep');
+    await card.locator('[aria-label="Merge"]').click();
+    await bodies(3);
+    const ids = await page.evaluate(() => window.__studioDoc.nodes.map(n => n.id));
+    assert.equal(new Set(ids).size, 6, `six features, ids unique: ${ids}`);
+    assert.match(await card.locator(rows).first().innerText(), /merged from wide/);
+    assert.deepEqual((await versions()).slice(1), ['Deep', 'Base']);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-merged.png`) });
+    // One parameter set two ways: a conflict, answered for the branch.
+    await card.locator('[aria-label="Branch name"]').fill('thick'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'thick'), null, { timeout: 5000 });
+    await onBranch('thick'); await parameter('T', 5); await version('T5');
+    await onBranch('main'); await parameter('T', 3); await version('T3');
+    await card.locator('[aria-label="Merge from"]').selectOption('thick'); await card.locator('[aria-label="Merge"]').click();
+    await card.locator('[aria-label="Conflict parameter:T"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Merge conflicts"]').innerText(), /1 conflict[\s\S]*main \(3\)[\s\S]*thick \(5\)/);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-conflict.png`) });
+    await card.locator('[aria-label="parameter:T theirs"]').check(); await card.locator('[aria-label="Merge with these answers"]').click();
+    await page.waitForFunction(() => window.__studioDoc.parameters.T === 5, null, { timeout: 10000 });
+    assert.equal(await card.locator('[aria-label="Merge conflicts"]').count(), 0);
+    // A new part leaves the project's document: its versions go from the card, and Save writes a new file.
+    const saved = await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder);
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 0, null, { timeout: 5000 });
+    // A mesh and a box: the kernel's Boolean refuses facet bodies, so compare tints the changed faces.
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]'); await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")'); await bodies(1); await idle();
+    await version('Mesh');
+    assert.equal(await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder), saved, 'Untitled.bcad untouched');
+    const files = await page.evaluate(async name => { const out = []; for await (const [n] of (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).entries()) out.push(n); return out.sort(); }, folder);
+    assert.ok(files.filter(f => f.endsWith('.bcad')).length === 2, files.join(', '));
+    await boxAt('At X', 80); await bodies(2);
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await page.waitForFunction(() => window.__studioCompareOverlay?.()?.faces > 0, null, { timeout: 20000 });
+    const o = await page.evaluate(() => window.__studioCompareOverlay());
+    assert.equal(o.method, 'faces', JSON.stringify(o)); assert.equal(o.tinted, true);
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}c-cg6-faces.png`) });
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 linked parts: a part inserted from the project names its file; saved again with a second box, the assembly opened offers it as Revision waiting, accepted the link stays', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-linked-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]');
+    const named = async name => { await page.fill('.doc-tab input', name); };
+    const saveIn = async () => { await page.click('[aria-label="Save"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 }); };
+    // The part, arm.bcad: one box.
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await named('arm');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await saveIn();
+    // The assembly: arm.bcad inserted from the project, saved as assembly.bcad.
+    await page.click('[aria-label="New part"]'); await named('assembly');
+    await card.locator('[aria-label="Insert arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad');
+    await saveIn();
+    assert.match(await card.locator('[aria-label="Project documents"]').innerText(), /arm\.bcad[\s\S]*assembly\.bcad/);
+    // The part opened, a second box added, saved.
+    await card.locator('[aria-label="Open arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    await saveIn();
+    // The assembly opened: the newer file waits, the placed part unchanged until accepted.
+    await card.locator('[aria-label="Open assembly.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1 && !!window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.match(await page.locator('.toast').innerText(), /Newer files for 1 placed part/);
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].doc.nodes.length), 2);
+    assert.equal(await page.evaluate(() => Object.values(window.__studioDoc.pendingParts)[0].name), './arm.bcad');
+    await page.locator('.ol.instance').first().click(); await page.waitForSelector('[aria-label="Revision waiting"]');
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-linked.png`) });
+    await page.click('[aria-label="Instance"] button:text-is("Accept Rev B")');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].doc.nodes.length === 4 && !window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad', 'the link stays');
+    // Checked again: the file is the part as placed, nothing more offered.
+    await page.keyboard.press('Escape');
+    await card.locator('[aria-label="Check placed parts"]').click(); await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.__studioDoc.pendingParts), undefined);
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 agent versions: a chat turn carries the project\'s version log (its index, the head\'s document); a version the agent made comes back into the project', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-agent-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]'), rows = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.route(u => u.pathname === '/api/chat/status', r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Version name"]').fill('Base'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    // The turn's answer, made from the project's files: the part with a parameter, and the log with the agent's version of it.
+    const back = await page.evaluate(async ([name, repo]) => {
+      const L = await import(`/@fs${repo}/packages/barocss-cad-model/src/versions/log.ts`);
+      const meta = await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss');
+      const text = async (d, f) => (await (await (await meta.getDirectoryHandle(d)).getFileHandle(f)).getFile()).text();
+      const index = JSON.parse(await text('versions', 'Untitled.bcad.json')), snapshots = {};
+      for (const v of index.versions) snapshots[v.snapshot] = JSON.parse(await text('snapshots', `${v.snapshot}.bcad`));
+      const doc = { ...window.__studioDoc, parameters: { ...window.__studioDoc.parameters, agent: 1 } };
+      return { doc, versions: L.makeVersion({ ...index, snapshots }, doc, { at: new Date().toISOString(), name: 'Agent', by: 'agent' }).log };
+    }, [folder, resolve(root, '../..')]);
+    await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turns => window.__studioScriptChat(turns), [[{ type: 'tool', name: 'history', input: { action: 'version', name: 'Agent' }, summary: 'version Agent', isError: false },
+      { type: 'text', delta: 'Kept the part as version Agent.' }, { type: 'done', doc: back.doc, versions: back.versions, session: 'cg6', end: 'done' }]]);
+    const input = page.locator('[aria-label="Chat message"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await input.fill('keep this as a version'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("version Agent")', { timeout: 30000 });
+    // What the turn sent: the index whole, only the head's document.
+    const sent = await page.evaluate(() => window.__studioChatSent()[0].versions);
+    assert.deepEqual([sent.versions.length, Object.keys(sent.snapshots).length, sent.current], [1, 1, 'main']);
+    // What came back: the agent's version in the card and in the folder's log, the part with its parameter.
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await rows(), ['Agent', 'Base']);
+    assert.equal(await page.evaluate(() => window.__studioDoc.parameters.agent), 1);
+    const kept = await page.evaluate(async name => {
+      const meta = await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss');
+      const file = await (await (await meta.getDirectoryHandle('versions')).getFileHandle('Untitled.bcad.json')).getFile();
+      return JSON.parse(await file.text()).versions.map(v => [v.name, v.by ?? null]);
+    }, folder);
+    assert.deepEqual(kept, [['Base', null], ['Agent', 'agent']]);
+    await page.click('[aria-label="Chat"]');
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.unroute(u => u.pathname === '/api/chat/status');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('G15b studio light: Softboxes and the Cyclorama from the Render panel light the part (kept as the environment\'s studio, its strength), an image replaces them, Sky and ground again none', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-machined-steel');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const gpu = renderer === 'webgpu';
+    // (Step 48 left an image: Sky and ground first, the image gone.)
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    const mean = async () => { await idle(); await page.waitForTimeout(700); const f = await page.evaluate(() => window.__studioFrame(48)); return f.reduce((a, b) => a + b, 0) / f.length; };
+    const sky = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'softbox');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'softbox');
+    assert.deepEqual((await env()).studio, { kind: 'softbox', intensity: 1 });
+    const softbox = gpu ? await mean() : 0; if (gpu) await snap('g15b-softbox');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Environment strength"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '2'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.intensity === 2);
+    const brighter = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'cyclorama');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'cyclorama' && window.__studioDoc.render.environment.studio.intensity === 2);
+    if (gpu) await snap('g15b-cyclorama');
+    // An image replaces the studio (its strength kept); Sky and ground drops both.
+    await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
+    await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? '') && !window.__studioDoc.render.environment.studio, null, { timeout: 5000 });
+    assert.equal((await env()).map.intensity, 2);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Studio environment"]'), 'image');
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    if (gpu) {
+      console.log(`  G15b: frame mean sky ${sky.toFixed(1)}, softbox ${softbox.toFixed(1)}, ×2 ${brighter.toFixed(1)}`);
+      assert.ok(Math.abs(softbox - sky) > 1, 'the softbox room lights the part differently');
+      assert.ok(brighter > softbox + 0.5, `twice as strong, brighter: ${softbox.toFixed(1)} → ${brighter.toFixed(1)}`);
+    }
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
     await page.click('.mode button:text-is("Model")');
   });
 } finally {

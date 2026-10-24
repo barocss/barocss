@@ -20,6 +20,15 @@ export interface Environment {
   grading?: ColorGrading | null;
   /** A vignette (G15d.1): the frame darkened towards its corners. */
   vignette?: Vignette | null;
+  /**
+   * Soft shadows (G15b): the shadow-casting light's angular size in degrees — its penumbra widening with the distance
+   * from what casts it (PCSS); 0 or none: the hard 3×3-filtered edge.
+   */
+  softShadows?: number;
+  /** Contact shadows (G15b): a short screen-space ray toward the shadow-casting light from each pixel, darkening where the
+   *  depth buffer blocks it — the creases and contacts the shadow map is too coarse for. `length` in world units
+   *  (default a fortieth of the scene's radius), `strength` 0–1 (default 0.6). */
+  contactShadows?: { length?: number; strength?: number } | false;
   /** Screen-space ambient occlusion: radius in world units (default a twelfth of the scene's), strength 0–2. */
   ambientOcclusion?: { radius?: number; strength?: number } | false;
   /**
@@ -93,7 +102,9 @@ export const defaultLights = (): Light[] => [
 
 /** The shadow of the casting light: its view-projection, normal offset (world), texel size (uv) and depth bias. */
 /** The shadow-casting light's view (`eye`, `direction`: where it looks from and along — the caps' probe from it, G19.4). */
-export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number; eye?: Vec3; direction?: Vec3 }
+export interface ShadowFrame { viewProjection: Mat4; normalOffset: number; texel: number; bias: number; eye?: Vec3; direction?: Vec3;
+  /** G15b: the penumbra's width in the map's uv per unit of its depth between a blocker and the shadowed point (0: hard). */
+  softness?: number }
 
 /** The directional lights the frame lights with (the shadow index refers to this list). */
 export const directionalLights = (lights: readonly Light[]): DirectionalLight[] => lights.filter((l): l is DirectionalLight => l.kind === 'directional').slice(0, MAX_DIRECTIONAL);
@@ -143,7 +154,7 @@ export function packFrame(viewProjection: Mat4, camera: Camera, lights: readonly
     put4(f, at + 8, c[0], c[1], c[2], l.intensity ?? 1); put4(f, at + 12, Math.max(Math.cos(inner), Math.cos(outer) + 1e-4), Math.cos(outer), 0, 0);
   }
   o += MAX_SPOT * 16;
-  if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); put4(f, o + 16, shadow.normalOffset, shadow.texel, shadow.bias, 0); }
+  if (shadow && caster >= 0) { f.set(shadow.viewProjection, o); put4(f, o + 16, shadow.normalOffset, shadow.texel, shadow.bias, shadow.softness ?? 0); }
   // (viewport.w: the scene's size, the see-through surfaces' depth weight's scale; G11.)
   put4(f, o + 20, viewport[0], viewport[1], viewport[2], viewport[3] ?? 0);
   if (grid) {
@@ -164,11 +175,14 @@ export type Background = { top: Vec3; bottom: Vec3 } | null;
 /** What the ambient occlusion needs of the camera: the inverse projection and pixels per world unit. */
 export interface OcclusionFrame { inverseProjection: Mat4; radius: number; pixelsPerUnit: number; perspective: boolean }
 
+/** G15b: the contact shadows' ray — the camera's projection, the direction toward the light in view space, its length and
+ *  the strength and the thickness a blocker is taken to have (world); the inverse projection to read view positions. */
+export interface ContactFrame { projection: Mat4; inverseProjection: Mat4; direction: Vec3; length: number; strength: number; thickness: number }
 /** The output block (see Output in shaders.ts): outline colours are sRGB, the width in device pixels. */
 /** `outlineRect`: where outlines can be (pixels x0, y0, x1, y1), or null for anywhere. */
 export function packOutput(env: Environment, outlines: readonly Vec3[] = [], outlineWidth = 2, background: Background = null, ao: OcclusionFrame | null = null, outlineRect: readonly number[] | null = null,
   // (`into`: a block kept for it, cleared and written again — R2.)
-  into: ArrayBuffer | null = null): ArrayBuffer {
+  into: ArrayBuffer | null = null, contact: ContactFrame | null = null): ArrayBuffer {
   const b = into ?? new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
   if (into) f.fill(0);
   f[0] = env.exposure ?? 1;
@@ -182,20 +196,28 @@ export function packOutput(env: Environment, outlines: readonly Vec3[] = [], out
     f.set(ao.inverseProjection, o + 8);
     f.set([ao.radius, env.ambientOcclusion.strength ?? 1, ao.pixelsPerUnit, ao.perspective ? 1 : -1], o + 24);
   }
+  // (G15b: the contact shadows' projection, direction and length, strength and thickness; none: zeros.)
+  if (contact && contact.strength > 0 && contact.length > 0) {
+    // (It reads view positions as the occlusion does: the inverse projection, set here when the occlusion is off.)
+    if (!(ao && env.ambientOcclusion)) f.set(contact.inverseProjection, o + 8);
+    f.set(contact.projection, o + 28);
+    f.set([contact.direction[0], contact.direction[1], contact.direction[2], contact.length], o + 44);
+    f.set([Math.min(1, contact.strength), contact.thickness, 0, 0], o + 48);
+  }
   // (G15d.1: balance and contrast, lift and saturation, gamma and on, gain; then the vignette. Off: zeros, and the
   // pass skips them.)
   const g = env.grading, v = env.vignette;
   if (g) {
     const wb = whiteBalance(g.temperature, g.tint), lift = g.lift ?? [0, 0, 0], gamma = g.gamma ?? [1, 1, 1], gain = g.gain ?? [1, 1, 1];
-    f.set([wb[0], wb[1], wb[2], Math.max(0, g.contrast ?? 1)], o + 28);
-    f.set([lift[0], lift[1], lift[2], Math.max(0, g.saturation ?? 1)], o + 32);
-    f.set([Math.max(1e-3, gamma[0]), Math.max(1e-3, gamma[1]), Math.max(1e-3, gamma[2]), 1], o + 36);
-    f.set([gain[0], gain[1], gain[2], 0], o + 40);
+    f.set([wb[0], wb[1], wb[2], Math.max(0, g.contrast ?? 1)], o + 52);
+    f.set([lift[0], lift[1], lift[2], Math.max(0, g.saturation ?? 1)], o + 56);
+    f.set([Math.max(1e-3, gamma[0]), Math.max(1e-3, gamma[1]), Math.max(1e-3, gamma[2]), 1], o + 60);
+    f.set([gain[0], gain[1], gain[2], 0], o + 64);
   }
   if (v && v.amount > 0) {
     const size = Math.max(0, Math.min(1, v.size ?? 0.5)), soft = Math.max(1e-3, v.softness ?? 0.5);
-    f.set([Math.min(1, v.amount), size, size + soft, 0], o + 44);
+    f.set([Math.min(1, v.amount), size, size + soft, 0], o + 68);
   }
-  f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 48);
+  f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 72);
   return b;
 }

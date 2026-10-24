@@ -56,7 +56,7 @@ Reads the part without changing it.
 
 ### `history`: History
 
-Snapshots of the part this session.
+Snapshots of the part this session; versions and branches.
 
 | Action | Handler | Arguments and notes |
 |---|---|---|
@@ -64,6 +64,13 @@ Snapshots of the part this session.
 | `history.restore` | `restore` | name |
 | `history.best` | `restore_best` | — the best snapshot by the checks |
 | `history.diff` | `diff` | from?, to? — checkpoint names, "best" or "current" |
+| `history.version` | `make_version` | name? |
+| `history.versions` | `list_versions` | — |
+| `history.restore_version` | `restore_version` | id |
+| `history.compare` | `compare_versions` | from?, to? |
+| `history.branch` | `make_branch` | name |
+| `history.switch` | `switch_branch` | branch |
+| `history.merge` | `merge_branch` | from, resolve? |
 
 ### `requirements`: Requirements
 
@@ -108,6 +115,7 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.delete_part` | `delete_part` | part |
 | `assembly.add_mate` | `add_mate` | kind, a, b, distance?, angle?, flip? |
 | `assembly.edit_mate` | `edit_mate` | id, distance?, angle?, flip? |
+| `assembly.lock` | `lock_part` | part, to — fixed to it where they stand |
 | `assembly.delete_mate` | `delete_mate` | id |
 | `assembly.inputs` | `set_inputs` | inputs: {name: {type, default, bindings, unit?, min?, max?, choices?} \| null} |
 | `assembly.variants` | `set_variants` | variants?: {name: {input: value} \| null}, active? |
@@ -161,7 +169,7 @@ The part's 2D drawing; a drawing change is always the user's, so make it as ops 
 | `drawing.auto` | `auto_dimension` | layout? |
 | `drawing.fix` | `fix_drawing` | codes? |
 | `drawing.accept` | `accept_tolerances` | ids?, mode? |
-| `drawing.set` | `set_drawing` | scope?: {kind: part, part?: instance id} \| {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at}], tables?: [{id,from: bom\|cut-list\|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval |
+| `drawing.set` | `set_drawing` | scope?: {kind: part, part?: instance id} \| {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at,half?,steps?}], details?: [{id,view,center,radius,scale?,at?}], breaks?: [{axis,from,to}], tables?: [{id,from: bom\|cut-list\|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval |
 
 ### `subd`: SubD
 

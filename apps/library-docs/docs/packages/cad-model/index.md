@@ -41,6 +41,7 @@ The package is public module by module. Import each module by its path; the pack
 | `robot/` | The mates as a robot: joints, kinematics, inertia, dynamics, actuator sizing, URDF, MJCF, SDF and USD |
 | `library/` | Materials, process profiles, and standard and team part libraries, as data |
 | `standards/` | Values derived from standards, with their sources and licences |
+| `versions/` | Named versions of a document and its branches: making, listing and restoring versions, compare (what changed, feature by feature) and a three-way merge with typed conflicts |
 | `team/` | Export sources, several agents on one part, baselines, freshness, change requests, bundles |
 | `analysis/` | The analyses the agent asks for (mass properties, interference and clearance, sections, wall thickness, draft), and alignment against a reference part |
 | `bom/` | The bill of materials |
