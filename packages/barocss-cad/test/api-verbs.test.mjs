@@ -73,7 +73,20 @@ const tabsDoc = () => doc([
   { id: 'revolve1', kind: 'revolve', sketch: 'sketch2', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 },
 ]);
 
-const CASES = [['plate', plate, plateDoc], ['cup', cup, cupDoc], ['ring', ring, ringDoc], ['pegged', pegged, peggedDoc], ['tabs', tabs, tabsDoc]];
+// A block mirrored across x = 12 (kept, joined), scaled ×2 about (1, 2, 3), and split across x = 20 into two bodies.
+const mirrored = () => part('mirrored').box({ w: 10, d: 10, h: 10 }).mirror({ plane: 'yz', at: 12 }).scale({ factor: 2, pivot: [1, 2, 3] }).split({ axis: 'x', at: 20 });
+const mirroredDoc = () => doc([
+  { id: 'sketch1', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] },
+  { id: 'extrude1', kind: 'extrude', sketch: 'sketch1', height: 10 },
+  // (The kernel mirrors across planes through the origin: a plane elsewhere is a move there, the mirror, the move back.)
+  { id: 'translate1', kind: 'translate', target: 'extrude1', offset: [-12, 0, 0] },
+  { id: 'mirror1', kind: 'mirror', target: 'translate1', plane: 'yz', keep: true },
+  { id: 'translate2', kind: 'translate', target: 'mirror1', offset: [12, 0, 0] },
+  { id: 'scale1', kind: 'scale', target: 'translate2', factor: 2, pivot: [1, 2, 3] },
+  { id: 'split1', kind: 'split', target: 'scale1', axis: 'x', at: 20 },
+]);
+
+const CASES = [['plate', plate, plateDoc], ['cup', cup, cupDoc], ['ring', ring, ringDoc], ['pegged', pegged, peggedDoc], ['tabs', tabs, tabsDoc], ['mirrored', mirrored, mirroredDoc]];
 // (exportStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = text => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
 // (MMGS, api-conventions.md §2, from the kernel's kg units: its density in kg/m³ is g/cm³ × 1000.)

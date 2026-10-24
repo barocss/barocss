@@ -42,7 +42,9 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
   const avail = cmd.available(ctx);
   if (!avail.ok) throw refuse('UNAVAILABLE', `${cmd.label} can't run: ${avail.reason}`);
-  const values: Values = patchValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, { ...spec.values });
+  // (The spec's own values win over what a command's derive works out from them: the studio's split moves `at` to the
+  // body's middle when its axis changes, right for a person picking the axis first, wrong for an `at` given with it.)
+  const values: Values = { ...patchValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, { ...spec.values }), ...spec.values };
   const why = checkValues(cmd.fields?.(ctx) ?? [], values);
   if (why) throw refuse('VALUE', `${cmd.label}: ${why}`);
   let next: StudioDoc;

@@ -8,9 +8,9 @@
 // body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
 // with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
 import {
-  booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearPatternSpec, moveSpec, revolveSpec, rotateSpec, shellSpec,
+  booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
   type BooleanCommand, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
-  type HoleOptions, type LinearPatternOptions, type RevolveOptions, type ShellOptions,
+  type HoleOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
 } from './spec.js';
 import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
 import { Location, type Sketch } from './sketch.js';
@@ -130,6 +130,13 @@ export class Part<D> {
   linearPattern(options: LinearPatternOptions): this { return this.#act(linearPatternSpec(options)); }
   /** `circular-pattern`: copies of the body round an axis, joined into one body. */
   circularPattern(options: CircularPatternOptions): this { return this.#act(circularPatternSpec(options)); }
+
+  /** `mirror`: the body joined with its mirror image across a coordinate plane (through `at` on its axis). */
+  mirror(options: MirrorOptions): this { return this.#act(mirrorSpec(options)); }
+  /** `scale`: the body scaled uniformly about a pivot, the origin unless given. */
+  scale(options: ScaleOptions): this { return this.#act(scaleSpec(options)); }
+  /** `split`: the body cut in two by a plane, each side a body of its own (choose one with body(name)). */
+  split(options: SplitOptions): this { return this.#act(splitSpec(options)); }
 
   /**
    * The body placed by a Location: `rotate` about X, then Y, then Z through the origin, then `move` — the two commands,
