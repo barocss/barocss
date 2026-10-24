@@ -1,6 +1,6 @@
 # barocss CAD roadmap
 
-Current as of 2026-10-24, after the Claude-to-Codex lane handover. This file is the one place for **what we do, in what order, and
+Current as of 2026-10-25, after the Claude-to-Codex lane handover. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
 `codex/cad-coordinator-handover-20261022`.
 
@@ -21,7 +21,7 @@ section current.
 | Outer | O24(b) mate connectors adopted (`67a5622cd`, merge `ec7e1ff9a`), after O24(c); focused native/file/browser proof qualified, aggregate verification pending | R7.7a steps 2/4 at fixed base `c9cd4a8ca` plus the explicit verified O24(b) supplement | O24(d)/(e) after R7 consumer qualification |
 | GPU | G15d.2 bloom adopted (`621c7dc6f`, merge `cba255347`). G14 quiet section samples give mixed results (5.89 ms PASS, 7.43 ms FAIL against 6 ms); an excluded run ended above load 10. No new code checkpoint | Keep G14: separate surface/cap/output contributions before choosing an optimization; then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
 | API | P2 qualification source preserved at `490d9ea6c` on its original branch; product remains NOT VERIFIED and unmerged (rows/manufacturing/interference gaps). R7 API branch starts at `c9cd4a8ca` without P2 | R7.7d facade fields/units and consumer qualification; then resume P2 qualification | P3/P4 only after their dependencies and P2 readiness |
-| Docs | Boolean algorithms and interactive code-native figures adopted (`5237df391`, merge `11f8bdbb2`), with DR-5/bloom/O24(c) coverage; lane samples 54/54, build and desktop/mobile checks pass. Figure comparisons use declared 0.001 mm³ display precision, not a kernel tolerance change | R7 docs migration at `c9cd4a8ca` plus explicit `5237df391` supplement; product adoption held | R7.6 part 2 after coordinated R7 qualification |
+| Docs | Boolean algorithms, interactive figures and native 3D construction stages adopted (`f1b1819e9`, merge `7b275de05`); lane samples 56/56, build and desktop/mobile checks pass. Fifteen native results and independent volume oracles are checked; reconstructed face stages are teaching illustrations, not execution traces | R7 docs migration at `c9cd4a8ca` plus explicit `5237df391` supplement; product adoption held | R7.6 part 2 after coordinated R7 qualification |
 | Drawings (CG5) | DR-6a control characteristics/modifiers adopted (`c31386e9a`, merge `c5f144e72`); DR-5 stays done. DR-6 as a whole remains incomplete; focused lane browser, native, contract and DXF checks pass | DR-6b face datum features; then targets and standalone/composite frames in bounded slices | DR-7 presets and inch display, DR-8 drawing sets |
 | Data (CG6) | idle: VA-1/VA-2 done (merge df8761f1e); what is left (sharing, comments, multi-user) waits on the owner | — | — |
 | Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3); the 2026-10-24 night merges (2fff42cb9, af4384170, df8761f1e, 816c2263b, 3e305ea01) checked by cad-model/studio tsc and the merged areas' tests only (cad-model 40/40, studio 21/21); gpu build:library in the integration worktree passes again after the untracked stale G18.2 draft src/engine-uv-material-wgsl.ts was moved aside to ~/.cache/barocss-preserved/2026-10-24-integration-untracked/ (GPU lane: superseded by material/engine-uv-repeating-material-wgsl.ts) | P1-L3 after P1's scripted build (owner-approved budget); route AI-eval's AE-1..AE-19 (notes/ai-eval-2026-10-24.md) | the owner's open decisions (below) |
@@ -57,26 +57,25 @@ Outer/API/Docs/Drawings were instructed to preserve the current direct task's so
 then use their existing worktrees with `codex/cad-r7-{outer,api,docs,drawings}-20261024` branches at that exact base.
 Do not carry P2 or unrelated feature WIP into those branches. Coordinator retains browser-flow; Outer receives
 explicit App/chat/node-bench/mesh-bench leases; Docs owns its candidate generators/text; Drawings owns its omitted
-consumers. GPU receives a read-only consumer-impact review under the owner's no-render-code-change instruction.
+consumers. GPU completed a read-only impact review. On 2026-10-25 the owner explicitly approved only the demonstrated R7 field-name compatibility patch and related checks in 19 assigned GPU consumer/test files. Rendering optimization, formulas and tolerances remain outside that approval.
 Final qualification occurs on an isolated assembled consumer aggregate; source-ready patches are not product
 acceptance. The later adopted O24(b) checkpoint `67a5622cd` is an explicit Outer supplement to the
 fixed base, not a base rewrite: Outer must reconcile it in its R7 branch and the aggregate must include it before
 promotion. No unverified connector WIP is authorized by this supplement. The later adopted Boolean figure checkpoint `5237df391` is an explicit Docs supplement under
 the same rule. Preserve any R7 WIP before merging it in the Docs branch, port its facade field reads, and qualify
-both supplements in the final aggregate. The immutable base itself does not move. No preparation branch is merged into product while any required consumer checkpoint is unqualified.
+both supplements in the final aggregate. The adopted 3D checkpoint `f1b1819e9` is another explicit Docs supplement; its generators and native scene checks must work with the R7 consumers too. The immutable base itself does not move. No preparation branch is merged into product while any required consumer checkpoint is unqualified.
 
 **R7.3b/R7.7b: HOLD.** Do not merge the kernel checkpoint alone. The window starts only when all five participants
 have immutable compatible checkpoints and their required checks are recorded:
 
-- Kernel: immutable source `a9d777a7e` is qualified with limits. The known Node-version assertion failure, six skips,
-  three strict-fingerprint refusal-name differences and two old RB TODOs remain explicit. Contract review is assigned.
-- Outer: R7.7a steps 2/4 are assigned at the fixed base after preserving O24(b). No verified migration receipt yet.
-- API: R7.7d is assigned at the fixed base after preserving P2. P2 product adoption stays held; no verified R7 receipt yet.
-- Docs: R7 sample/field/unit migration is assigned after preserving the owner's Boolean diagram work. Ordinary docs
-  passes do not establish R7 readiness; no verified R7 consumer receipt yet.
-- Drawings: its owned consumers still read the old spring report fields in `drawing/elementTables.ts` and
-  `drawing/auto.ts`, and `tessellateBrep(...).positionsMM` in `drawing/section.ts`. Outer's migration proposal excludes
-  these owned files. Drawings needs its own compatible R7 consumer checkpoint in the same window.
+- Kernel: source `a9d777a7e` plus minimal admission/fixture follow-up `8a43368c5`. The follow-up's 10 tests and build/types/lint pass; its 869-case fingerprint equals a9. The known full-suite Node assertion failure, six skips, three strict-fingerprint refusal-name differences and two old RB TODOs remain.
+- Outer: source-ready `bb521dc26` preserves O24(b); owned checks 88/88, exact-commit 34/34 and Studio 47/47 pass. Its standalone foreign type errors do not qualify the product.
+- API: source-ready `851673c6d` excludes P2. Follow-up on assembled `2a9f6649f` must fix the public robot pose-values degree boundary; two robot docs samples fail. P2 remains unqualified and unmerged.
+- Docs: source-ready `8e3f30472` and mount-text follow-up `d923e200b`; prepare adopted 3D supplement `f1b1819e9` for R7. Aggregate samples pass 56/58 before the API angle fix. Coordinator regenerated the refusal reference after preserving its first drift failure; docs check then passed.
+- Drawings: source-ready `950284666`; independent checks 4/4 pass. Assembled focused tests leave five owned fixture/reply failures. A separate follow-up preserves DR-6b WIP `46493cb61` outside R7.
+- GPU: apply only the approved 19-file field compatibility scope. Assembled Studio types have 49 diagnostics; no rendering optimization is authorized.
+
+The isolated qualification branch is `codex/cad-r7-qualification-20261025` in the preparation worktree. Immutable first assembly `2a9f6649f618142d1a3794837b9ce7f3d9103665` has model types PASS, P1 3/3 PASS, focused model 188 PASS / 5 FAIL of 193, Studio types FAIL (49 diagnostics), and docs samples 56 PASS / 2 FAIL of 58. These are preparation results, not product acceptance. Source-ready inputs and approved fixes stay out of the product branch until the final immutable assembled consumer checks pass.
 
 The coordinator must record the complete immutable set and shared field/unit map before the serial window. Verify
 all consumers together before describing the R7 aggregate as integrated. Keep qualified independent milestones
