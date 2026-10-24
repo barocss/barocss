@@ -8609,3 +8609,75 @@ regression can be pinned to one of them.
       anchor, so it holds with `[ROW_IN_USE]` in front.
     - The studio's row panels (RingRows) show the error as the toast's hint, code included, as coded row refusals
       already did. Stripping it there is the panels' call, a follow-up.
+
+## R7.3c — one function per concept in cad-model: bounds, STEP, the assembly's edits, Vec3; rotate's pivot recorded (2026-10-24)
+
+**Done (e3a9b6dd0).**
+- **Bounds.** `engine/bounds`' `boundsOf(bodies)` is the one function; no bodies gives the empty box (±∞), as its 16
+  callers expect. The two `boxOf(bodies) → box | null` wrappers, in app/mass (Vec3 tuple) and rb9/measure (mesh
+  Vec3), are gone. Their four callers check for no bodies themselves: App's box, rb9's boxIs, rungs-assembly and
+  rungs-plates. Values are unchanged.
+- **STEP.**
+  - `stepFor(doc, name, meshes?, { timestamp? })` is now `exportStudioStep(doc, { name, meshes?, timestamp? })`. It
+    returns `{ text, source, omitted? }` (`StudioStep`), and at the kernel level the one STEP function stays
+    `exportStep(breps, options)`.
+  - It throws:
+    - **NO_BODY** for no body to write;
+    - the evaluation's own refusals, passed through as they are (they were `{ error: message }`).
+  - **Texts moved:**
+    - `There is no body to export.` → `[NO_BODY] There is no body to export.`
+    - `Only infill bodies: STEP carries the exact part, and there is none to export.` → the same with `[NO_BODY] ` in
+      front.
+  - The worker's wire, cad-cli, the mould quote, the qa probes and the fingerprint keep `{ error: message }` reports.
+    Each catches the throw (`stepReply`, `stepOrError`, `stepOr`).
+  - The facade's stepOf passes the words to `fromExport`, so its code reads NO_BODY where it was EXPORT.
+- **The assembly's edits as core functions** (assembly/edit.ts, the coordinator's R7.5 finding 7):
+  - **The functions:**
+    - `addPart(doc, { name, doc?, position?, rotation?, grounded? })` → `{ doc, problems, id }`;
+    - `partCopy(doc, part)` (add_part's copy_of);
+    - `placePart(doc, { part, position?, rotation?, grounded?, name?, hidden? })` → `{ doc, problems }`;
+    - `addMate(doc, { kind, a, b, distance?, angle?, flip? })` and `editMate(doc, { id, … })` → `{ doc, problems, mate,
+      freedom }`;
+    - `withFrames(doc, frames)` (set_frames' write) and `checkFramesOn(tree, names)` (its check on the joint tree,
+      which the caller builds: the tool asynchronously, the facade at once).
+  - `solveDoc` moves to assembly/edit from chat/assembly, and its 19 importers follow.
+  - The tools call these. Each solves once, in the core, from the placements before the change, as `changed()` did, and
+    the tools report the result unchanged (`reported`).
+  - **Codes** (ASSEMBLY_CODES): NO_PART, PART_MATED, MATE_KIND, MATE_SAME_PART, MATE_BOTH_FIXED, MATE_FACE_UNKNOWN,
+    MATE_FACES, MATE_UNMET, NO_MATE, FRAME_NAME.
+  - **Texts moved:**
+    - after = `[CODE] ` + before;
+    - the tool keeps its own hints after the words: MATE_FACE_UNKNOWN's `. List mateable faces with get_assembly …`, and
+      MATE_UNMET's `kept`;
+    - set_frames' texts were coded already and don't move;
+    - the call-shape refusals stay in the tools, uncoded as before (`"name" is required`, `"a" and "b" are {part, face}`).
+  - api/assemblyCore.ts (the API lane's) still mirrors the tools. Only its `solveDoc` import moved. Switching it to
+    these functions is the API lane's, and its byte-for-byte test checks the switch.
+- **Vectors** (§10.2, where they cross a package):
+  - the exported `Vec3` and `V3` of engine/mesh, assembly/mates, drawing/types, drawing/annotations3d, print/overhang,
+    frames/sketch3d and robot/inertia are now engine/vec3's `Vec3`;
+  - robot/inertia's `Mat3` is now engine/placement's.
+
+  They are still mutable tuples. `readonly [x, y, z]` is the conventions' shape, but it reaches every writer of a vector
+  (hundreds of sites), so it's a later step of its own. Module-local `type V3 = […]` declarations don't cross
+  anything and stay.
+- **Rotate's default pivot.** It is recorded, and no code changes:
+  - **The verb's default is the body's box centre,** to 0.001 mm (`centreOf`), written into the node. That covers the
+    studio's rotate command, the gizmo and the agent's v2 `rotate` (COMMAND_DOCS: "default: the body's centre").
+  - **A `rotate` node without `pivot` means the origin,** the kernel's default. Saved and hand-written documents keep
+    resolving.
+  - The facades' rotate follows the verb: the centre, written as `pivot`, so `.doc` equals what the command writes. The
+    API lane builds it.
+- **Mass: not folded here,** as proposed to the coordinator. The four computations round in their own orders: Body
+  panel, tools/BOM/quote, BOM core and robot inertia. Folding them is a last-ulp value change that reaches the BOM lines
+  and the fingerprint. R7.3b's MMGS move changes the same values, so both go in one step with one oracle and one record.
+- **Verified (T2)** on e3a9b6dd0, in a scratch worktree:
+  - cad-model 1047/1047 (integration's new tests included), studio 286/286;
+  - docs samples 24/24;
+  - tsc (model, studio); eslint 0 errors;
+  - the affected model files 294/294 before the commit.
+- **The fingerprint is d1f8bb3c…, and R7.3c moved none of it.** Its 153 records equal those of the merge before it
+  (437125dab), one by one. The 17 documents that differ from batch 2's (7ccc22dd9) moved with integration's tip, the
+  kernel's K16: last-ulp volumes, B-reps, STEP and STL of the o7 enclosure and fasteners fixtures, and rb9's sheet and
+  enclosure and print-in-place rungs. No recorded document reaches NO_BODY.
+  - Not run: the flow, the kernel suite, RB.
