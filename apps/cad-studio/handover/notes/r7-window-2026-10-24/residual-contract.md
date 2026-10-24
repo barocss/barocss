@@ -248,3 +248,33 @@ because tools already project it. Public serviceLife is seconds. A new public li
 The API Work must reconcile this with unchanged internal solver numerics, native fixture bytes, conversion order
 and strict canonical file comparisons before an implementation lease is issued. This open item blocks final R7
 qualification; it does not authorize conversion of unrelated internal radians or SI dynamics.
+
+
+## Solver Duty boundary decision (2026-10-25)
+
+The API Work's option B is the implementation direction. Default checkDesign/sizeDesign and document-level
+check/size entries consume the existing canonical PublicDuty contract and return the existing public MMGS
+projections. Public serviceLife is seconds, moves use degrees for turning joints and mm for sliding joints, dwell
+is seconds, clearance mm and g mm/s². Do not accept an untagged raw-hours alternative or add a permissive overload.
+Use the single PublicDuty definition; do not add compatibility type or field aliases.
+
+The original solver bodies and their raw-duty parser move to explicit robot/native/duty, robot/native/harness and
+robot/native/sizer modules. These are intentionally importable native calculation contracts, not automatically
+private: their documentation must state raw radians, existing SI dynamics, service life in hours and the unchanged
+native field names. Native algorithms, catalogue comparisons, margins, refusal text, rounding and sizer loop
+remain single implementations. Native sizer rounds call the native harness directly without serialize/reparse.
+Do not create a public life-in-hours field or retain the old default raw Duty export as a hidden compatibility path.
+This explicit native calculation boundary does not change frozen native formats or close R7.3d retirement.
+
+Preserve the existing input division by3600 and output multiplication by3600 at their native/canonical boundaries,
+with the same operation order and optional-field semantics. Do not infer arbitrary Float64 roundtrip equivalence
+from integer examples. Keep original unrounded margin provenance in one shared implementation and project it
+before cloning. Canonical CLI/L3 paths must not project a public result twice. Preserve the L3 validated original
+JSON, strict life/pose/dwell checks and established one-ULP storage guard. Native conformance readers and writers
+use the explicit native entry; do not run UPDATE_RM_FIXTURES or change fixture bytes, digests or pins.
+
+The temporary API implementation lease has seventeen candidate files from the reviewed source plan, including
+three new native modules and one explicitly delegated Docs sample. A dependency or ownership expansion requires
+an exact file/reason report. Implementation must demonstrate module dependency safety, direct canonical and
+explicit-native calls, unchanged native solver operands/results and unchanged actual CLI/L3/fixture boundaries.
+It is preparation work, not a qualified checkpoint; final same-SHA whole checks remain required.
