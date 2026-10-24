@@ -17,7 +17,7 @@ import { readDrawing } from '../src/drawing/types';
 // shaft's own steps and a cover's bore and gland). After Auto-dimension and one Fix, the shaft and the cover say nothing.
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const ROW = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, source: 'a test row' };
-const FITS = { id: 'f', rows: [{ class: 'k5', over: 18, upTo: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
+const FITS = { id: 'f', rows: [{ class: 'k5', over: 18, upTo: 30, upper: 0.011, lower: 0.002, estimate: true }] };
 async function build(steps: (s: ChatState, call: (tool: string, args: Record<string, unknown>) => Promise<unknown>) => Promise<ChatState | void>): Promise<ChatState> {
   let s: ChatState = { doc: emptyDoc(), bodies: [] };
   const call = async (tool: string, args: Record<string, unknown>) => { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, r.content); s = r.state; return JSON.parse(r.content); };

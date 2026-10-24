@@ -39,7 +39,8 @@ export interface DecimateReport {
   readonly bound: number;
   /** Measured (when asked): from the original to the result, from the result to the original, the larger, and the RMS of both. */
   readonly distance?: { readonly toResultMax: number; readonly toOriginalMax: number; readonly hausdorff: number; readonly rms: number; readonly samples: number };
-  readonly ms: number;
+  /** Wall time in seconds, from the existing measurement interval. */
+  readonly wallTime: number;
 }
 export interface DecimateResult { readonly positions: Float64Array; readonly indices: Uint32Array; readonly groups: Int32Array | null; readonly report: DecimateReport }
 
@@ -134,7 +135,7 @@ export function decimateMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   })();
   return {
     positions: outP, indices: outT, groups: outG,
-    report: { trianglesBefore: nt, trianglesAfter: triangles, verticesBefore: nv, verticesAfter: m, collapses, refused: { flip: s.flips, topology: s.topology }, stoppedBy, bound: bound, ...(measured ? { distance: measured } : {}), ms: performance.now() - t0 },
+    report: { trianglesBefore: nt, trianglesAfter: triangles, verticesBefore: nv, verticesAfter: m, collapses, refused: { flip: s.flips, topology: s.topology }, stoppedBy, bound: bound, ...(measured ? { distance: measured } : {}), wallTime: (performance.now() - t0) / 1000 },
   };
 }
 

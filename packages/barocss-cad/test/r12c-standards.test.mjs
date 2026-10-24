@@ -88,3 +88,37 @@ test('R12c.7 refusals: a square-cornered body in a stadium opening overlaps the 
   assert.throws(() => outputOf(evaluateCadPart(D([...cyl, { id: 'o', kind: 'connector-opening', target: 'c', face: 'c.side0', row: U1, center: [10, 0, 10] }])), 'o'), e => /\[CONNECTOR_PLACEMENT\] c\.side0 is not flat/.test(e.message));
   assert.throws(() => outputOf(evaluateCadPart(D([...PANEL, { id: 'o', kind: 'connector-opening', target: 'p', face: 'p.top', row: { ...U1, source: undefined }, center: [20, 10, 10] }])), 'o'), e => (e.details?.category ?? e.code) === 'INPUT' && /\[INVALID_INPUT\]/.test(e.message));
 });
+
+const TSLOT_ROW = { size: 'T20-test', cellSize: 20, cells: 1, openSlots: 4, opening: 6.2, lip: 1.8, undercut: 11, depth: 6.1, bore: 4.2 };
+const TSLOT_TABLE = { id: 'tslot-test', kind: 'tslot', source: 'test geometry only; no standards claim', rows: [TSLOT_ROW] };
+
+test('R7 T-slot row cellSize preserves the string name, numeric section size, provenance and physical volume', () => {
+  for (const cells of [1, 2]) {
+    const row = { ...TSLOT_ROW, cells }, table = { ...TSLOT_TABLE, rows: [row] };
+    assert.equal(sectionTableProblem(table), null);
+    const found = lookupSection(table, 'T20-test');
+    assert.equal(found.spec.size, 20); assert.equal(found.source, TSLOT_TABLE.source); assert.equal(found.estimate, false);
+    assert.equal(table.rows[0].size, 'T20-test'); assert.equal(table.rows[0].cellSize, 20);
+    const feature = { id: 'm', kind: 'frame-member', section: { kind: 'table', table, size: 'T20-test' }, start: [0, 0, 0], end: [0, 0, 250] };
+    const built = outputOf(evaluateCadPart(D([feature])), 'm');
+    const slots = cells === 1 ? 4 : 6;
+    // Independent square envelope less rectangular/45-degree slot areas and circular bores.
+    const area = cells * 20 * 20 - slots * (6.2 * 6.1 + (11 - 6.2) ** 2 / 4) - cells * Math.PI * 4.2 ** 2 / 4;
+    near(vol(built.brep), area * 250, 1e-9 * area * 250, 'T-slot area times length');
+    assert.equal(checkBrep(built.brep).valid, true);
+    const estimate = lookupSection({ ...table, source: undefined, estimate: true }, 'T20-test');
+    assert.equal(estimate.estimate, true); assert.equal(estimate.source, undefined);
+    assert.deepEqual(estimate.spec, found.spec);
+    const saved = JSON.parse(JSON.stringify(D([feature])));
+    assert.equal(saved.features[0].section.table.rows[0].cellSize, 20);
+    assert.equal(Object.hasOwn(saved.features[0].section.table.rows[0], 'sizeMM'), false);
+  }
+});
+
+test('R7 T-slot old sizeMM is refused with cellSize guidance, without an alias', () => {
+  const { cellSize, ...rest } = TSLOT_ROW, legacy = { ...TSLOT_TABLE, rows: [{ ...rest, sizeMM: cellSize }] };
+  assert.match(String(sectionTableProblem(legacy)), /unknown field sizeMM.*cellSize/);
+  const feature = { id: 'm', kind: 'frame-member', section: { kind: 'table', table: legacy, size: 'T20-test' }, start: [0, 0, 0], end: [0, 0, 250] };
+  assert.throws(() => evaluateCadPart(D([feature])), e => (e.details?.category ?? e.code) === 'FORMAT' && /sizeMM is not a field.*it is cellSize/.test(e.message));
+  assert.match(String(sectionTableProblem({ ...TSLOT_TABLE, rows: [rest] })), /cellSize is missing/);
+});

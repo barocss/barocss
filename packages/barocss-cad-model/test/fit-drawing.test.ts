@@ -20,7 +20,7 @@ import { sheetSvg } from '../src/io/svg';
 // the callout Ø12 H7/g6 (+0.018/0, -0.006/-0.017) (est.); the clearance 0 − (−6) = 6 to 18 − (−17) = 35 µm; a pin
 // 0.01 off the bore's axis contradicted at MMC (3 µm of radial clearance); a class with no row a typed issue.
 
-const TABLE = { id: 'shop-fits', rows: [{ class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
+const TABLE = { id: 'shop-fits', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] };
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 function parts(dx = 0, cls: { hole: string; shaft: string } = { hole: 'H7', shaft: 'g6' }, pair = true): StudioDoc {
   const tube = commands.find(c => c.id === 'tube')!, cyl = commands.find(c => c.id === 'cylinder')!;
@@ -32,7 +32,7 @@ const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const state = (doc: StudioDoc): ChatState => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail); return { doc, bodies: r.bodies }; };
 
 test('D155 callouts: a face\'s class alone Ø12 H7 (+0.018/0) (est.); a declared pair Ø12 H7/g6 (+0.018/0, -0.006/-0.017) (est.); the deviations as drawings write them; a face with no class, none', () => {
-  assert.deepEqual([deviation(18), deviation(0), deviation(-6), deviation(-17), deviation(25)], ['+0.018', '0', '-0.006', '-0.017', '+0.025']);
+  assert.deepEqual([deviation(0.018), deviation(0), deviation(-0.006), deviation(-0.017), deviation(0.025)], ['+0.018', '0', '-0.006', '-0.017', '+0.025']);
   const lone = parts(0, undefined, false), paired = parts();
   assert.deepEqual(fitCallout(lone, 'n1.hole0.side0|n1.top', 12), { text: 'H7 (+0.018/0) (est.)' });
   assert.deepEqual(fitCallout(paired, 'n1.hole0.side0|n1.top', 12), { text: 'H7/g6 (+0.018/0, -0.006/-0.017) (est.)' });
@@ -63,11 +63,15 @@ test('D155 fit_clearance: the faces — clearance, 6 to 35 µm, both rows estima
   const s = state(parts());
   let r = await dispatchTool(s, 'fit_clearance', { hole: 'n1.hole0.side0', shaft: 'n3.side0' }, evaluate); assert.ok(!r.isError, r.content);
   const out = JSON.parse(r.content);
-  assert.deepEqual([out.kind, out.clearanceMinUM, out.clearanceMaxUM, out.estimate, out.contradicted], ['clearance', 6, 35, true, false]);
+  assert.deepEqual([out.kind, out.clearanceMin, out.clearanceMax, out.estimate, out.contradicted], ['clearance', 0.006, 0.035, true, false]);
   assert.deepEqual([out.hole.min, out.hole.max, out.shaft.min, out.shaft.max], [12, 12.018, 11.983, 11.994]);
+  assert.deepEqual([out.hole.upper, out.hole.lower, out.shaft.upper, out.shaft.lower], [0.018, 0, -0.006, -0.017]);
+  assert.ok(!('clearanceMinUM' in out) && !('clearanceMaxUM' in out), 'no legacy clearance aliases in public JSON');
+  for (const limit of [out.hole, out.shaft]) assert.ok(!('upperUM' in limit) && !('lowerUM' in limit), 'no legacy deviation aliases');
+  assert.match(out.message, /clearance \+6 to \+35 µm/, 'the explicitly labelled human message keeps micrometres');
   assert.equal(out.mmc.overlap, 0);
   r = await dispatchTool(s, 'fit_clearance', { hole_class: 'H7', shaft_class: 'g6', size: 12 }, evaluate); assert.ok(!r.isError, r.content);
-  assert.deepEqual([JSON.parse(r.content).clearanceMinUM, JSON.parse(r.content).clearanceMaxUM], [6, 35]);
+  assert.deepEqual([JSON.parse(r.content).clearanceMin, JSON.parse(r.content).clearanceMax], [0.006, 0.035]);
   r = await dispatchTool(s, 'fit_clearance', { hole_class: 'H7', shaft_class: 'g6', size: 30 }, evaluate);
   assert.ok(r.isError); assert.match(JSON.parse(r.content).error, /^\[FIT_TABLE_MISS\] no row for H7 at Ø30 mm/);
   // (A declared pair the geometry contradicts refuses the model's evaluation (FIT_PAIR); the query reads two faces not declared.)

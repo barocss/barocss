@@ -154,3 +154,15 @@ test('R9 the decimate feature: a gridded mesh box as far as it goes (its 12 tria
   refused([mesh, { id: 'd', kind: 'decimate', target: 'm' }], 'INPUT', /triangles, ratio or maxError/);
   refused([mesh, { id: 'd', kind: 'decimate', target: 'm', ratio: 1.5 }], 'INPUT', /ratio/);
 });
+
+test('R7 decimation wallTime is seconds and preserves a triangle when no collapse is requested', t => {
+  let next = 2000;
+  const clock = t.mock.method(performance, 'now', () => { const value = next; next += 500; return value; });
+  const positions = [0, 0, 0, 1, 0, 0, 0, 1, 0], indices = [0, 1, 2];
+  const result = decimateMesh(positions, indices, { targetTriangles: 1, measure: false });
+  assert.equal(clock.mock.callCount(), 2);
+  assert.equal(result.report.wallTime, 0.5);
+  assert.equal(Object.hasOwn(result.report, 'ms'), false);
+  assert.deepEqual(Array.from(result.positions), positions); assert.deepEqual(Array.from(result.indices), indices);
+  assert.equal(JSON.parse(JSON.stringify(result.report)).wallTime, 0.5);
+});
