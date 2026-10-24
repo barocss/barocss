@@ -56,7 +56,7 @@ Reads the part without changing it.
 
 ### `history`: History
 
-Snapshots of the part this session.
+Snapshots of the part this session; versions and branches.
 
 | Action | Handler | Arguments and notes |
 |---|---|---|
@@ -64,6 +64,13 @@ Snapshots of the part this session.
 | `history.restore` | `restore` | name |
 | `history.best` | `restore_best` | — the best snapshot by the checks |
 | `history.diff` | `diff` | from?, to? — checkpoint names, "best" or "current" |
+| `history.version` | `make_version` | name? |
+| `history.versions` | `list_versions` | — |
+| `history.restore_version` | `restore_version` | id |
+| `history.compare` | `compare_versions` | from?, to? |
+| `history.branch` | `make_branch` | name |
+| `history.switch` | `switch_branch` | branch |
+| `history.merge` | `merge_branch` | from, resolve? |
 
 ### `requirements`: Requirements
 

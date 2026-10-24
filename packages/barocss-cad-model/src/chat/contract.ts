@@ -50,6 +50,11 @@ const READ: Record<string, JsonSchema | null> = {
   inspect: o({ faces: arr, edges: arr }),
   select: o({ ok: bool, selected: obj }, ['ok']),
   checkpoint: o({ ok: bool, checkpoint: str, model_hash: str, checkpoints: arr }, ['ok', 'checkpoint']),
+  // (CG6, DA-8: a version and a branch change the version log, not the document, as a checkpoint keeps a snapshot.)
+  make_version: o({ ok: bool, version: obj, branch: str, count: num }, ['ok', 'version', 'branch', 'count']),
+  make_branch: o({ ok: bool, branch: str, from: str, current: str }, ['ok', 'branch', 'from', 'current']),
+  list_versions: o({ current: { type: ['string', 'null'] }, branches: arr, versions: arr, note: str }, ['current', 'branches', 'versions']),
+  compare_versions: o({ from: str, to: str, same: bool, features: arr, parameters: arr, configurations: arr, mates: arr, instances: arr, fields: arr }, ['from', 'to', 'same', 'features', 'parameters', 'configurations', 'mates', 'instances', 'fields']),
   subd_cage: o({ ok: bool, index: num, vertices: num, faces: num, creases: num, bounds: obj, validation: obj }, ['ok', 'index']),
   subd_select: o({ ok: bool, faces: arr, vertices: arr, edges: arr, count: num }, ['ok']),
   drawing_issues: o({ sheet: obj, issues: arr }, ['sheet', 'issues']),
@@ -82,6 +87,7 @@ const ALTERS: Record<string, boolean> = {
   load_rows: true, edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, set_frame_stock: true, set_parameters: false, set_frame_sections: true, set_welds: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
   place_part: true, delete_part: true, edit_mate: true, lock_part: false, delete_mate: true, snap_part: true, orient_for_print: true,
+  restore_version: true, switch_branch: true, merge_branch: true,
   auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true, set_inputs: true, set_variants: true, set_frames: true, set_waypoint: false,
 };
 

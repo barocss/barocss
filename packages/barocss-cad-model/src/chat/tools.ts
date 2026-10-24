@@ -31,6 +31,7 @@ import { FEATURE_HANDLERS } from './part/features';
 import { REQUIREMENT_HANDLERS } from './part/requirements';
 import { VIEW_HANDLERS } from './part/views';
 import { HISTORY_HANDLERS, moveOpsWith } from './part/history';
+import { VERSION_HANDLERS } from '../versions/tools';
 import { ASSEMBLY_CHANGES, PROPOSAL_HANDLERS, acceptProposalWith, autonomy, changesPart, previewProposalWith, proposalNeededAtL2, proposalOfWith, rebaseProposalWith, type Decider } from './part/proposals';
 import { BATCHABLE, MUTATORS, PART_SCOPED, describe, unknownArguments } from './toolDefinitions';
 import { isObj, isVec3 } from '../util/guards';
@@ -47,7 +48,7 @@ export { CHAT_COMMANDS, COMMAND_DOCS } from './part/features';
 export { BATCHABLE_TOOLS, isMutator, featureKinds, takesArgument, unknownArguments, TOOLS, SYSTEM_PROMPT } from './toolDefinitions';
 export { agentMayNotAccept, autonomy, leaveOutClosure, partialDoc, proposalParts, toggledLeaveOut, type Decider, type ProposalPart } from './part/proposals';
 /** Every moved handler, by v1 tool name (R3): built once, at load. */
-const PART_HANDLERS: Readonly<Record<string, PartHandler>> = { ...QUERY_HANDLERS, ...IMAGE_HANDLERS, ...FEATURE_HANDLERS, ...REQUIREMENT_HANDLERS, ...VIEW_HANDLERS, ...HISTORY_HANDLERS, ...PROPOSAL_HANDLERS };
+const PART_HANDLERS: Readonly<Record<string, PartHandler>> = { ...QUERY_HANDLERS, ...IMAGE_HANDLERS, ...FEATURE_HANDLERS, ...REQUIREMENT_HANDLERS, ...VIEW_HANDLERS, ...HISTORY_HANDLERS, ...VERSION_HANDLERS, ...PROPOSAL_HANDLERS };
 
 // (R3e: the proposal functions the studio and the team code call, with their signatures as they were; the work is in
 // chat/part/proposals.ts and chat/part/history.ts, this module's runner passed in.)

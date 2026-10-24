@@ -60,8 +60,9 @@ export const GROUPS: Record<string, Group> = {
   },
   history: {
     title: 'History',
-    about: 'Snapshots of the part this session.',
-    actions: { checkpoint: ['checkpoint', 'name'], restore: ['restore', 'name'], best: ['restore_best', '— the best snapshot by the checks'], diff: ['diff', 'from?, to? — checkpoint names, "best" or "current"'] },
+    about: 'Snapshots of the part this session; versions and branches.',
+    actions: { checkpoint: ['checkpoint', 'name'], restore: ['restore', 'name'], best: ['restore_best', '— the best snapshot by the checks'], diff: ['diff', 'from?, to? — checkpoint names, "best" or "current"'],
+      version: ['make_version', 'name?'], versions: ['list_versions', ''], restore_version: ['restore_version', 'id'], compare: ['compare_versions', 'from?, to?'], branch: ['make_branch', 'name'], switch: ['switch_branch', 'branch'], merge: ['merge_branch', 'from, resolve?'] },
   },
   requirements: {
     title: 'Requirements',

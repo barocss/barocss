@@ -43,6 +43,8 @@ export interface ChatPanelProps {
   onRowFiles?(files: PersonRowFiles | undefined): void;
   /** A message the studio sends as the user's (the Specify panel's answers, A6.2): sent once, when the chat is free. */
   outbox?: { id: number; text: string } | null;
+  /** CG6: the project's version log for a turn (storage/useProject: its index and the documents the turn needs), and the turn's brought back. */
+  versions?: { turn(): import('@barocss/cad-model/versions/log').VersionLog | null; back(log: import('@barocss/cad-model/versions/log').VersionLog, wanted: readonly string[]): void };
   onOutboxSent?(id: number): void;
   /** The document's proposals, for a `propose` call's linked card (O17), and how they are decided (as the Proposals list). */
   proposals?: readonly Proposal[];
