@@ -51,6 +51,7 @@ test('IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-
   assert.equal(Object.hasOwn(r.finish, 'minDraftDeg'), false);
   const serializedRequest = JSON.parse(new TextDecoder().decode(q.files.get(QUOTE_FILES.request)!));
   assert.deepEqual(serializedRequest, r);
+  assert.ok(serializedRequest.finish);
   assert.equal(Object.hasOwn(serializedRequest.finish, 'draftMin'), true);
   assert.equal(Object.hasOwn(serializedRequest.finish, 'minDraftDeg'), false);
   assert.deepEqual(r.part.size, [60, 40, 25]);
