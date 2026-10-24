@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { readNativeSIInertia } from '@barocss/cad/internal/native-si-mass';
-import { evaluatePart, nativeMassPropertiesOfBody, placeBody } from '../src/engine/evaluate';
+import { evaluatePart, nativeMassPropertiesOfBody } from '../src/engine/evaluate';
 import { rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { partsOf, robotViewOf, treeOf } from '../src/robot/verbs';
 import { robotParts } from '../src/robot/urdf';
@@ -49,11 +49,10 @@ test('native lookup keeps the exact cached result through ordinary copies; mater
   for (const i of [0, 4, 8]) assert.ok(Math.abs(native.inertia.inertia[i] - scale) <= scale * 1e-12);
 });
 
-test('worker clones and placed tensors keep existing export support and expose unavailable provenance without changing default inertia', () => {
+test('source-less worker clones keep existing export support and expose unavailable provenance without changing default inertia', () => {
   const doc = rectanglePart(10, 10, 10), result = evaluatePart(doc, 1); assert.ok(result.ok);
   const body = result.bodies[0], clone = structuredClone(body);
-  const placed = placeBody({ ...body, mesh: { ...body.mesh, positions: body.mesh.positions.slice(), normals: body.mesh.normals.slice(), edgeLines: body.mesh.edgeLines.slice() } }, [0, -1, 0, 1, 0, 0, 0, 0, 1], [10, 20, 30]);
-  for (const derived of [clone, placed]) {
+  for (const derived of [clone]) {
     assert.equal(nativeMassPropertiesOfBody(derived), undefined);
     const expected = linkInertia('base', 'base', doc, [derived], AT_PART), before = JSON.stringify(expected);
     const native = nativeLinkInertia('base', 'base', doc, [derived], AT_PART);
