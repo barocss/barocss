@@ -18,6 +18,10 @@
     "./viewer": {
       "types": "./src/viewer/index.ts",
       "import": "./src/viewer/index.ts"
+    },
+    "./api": {
+      "types": "./src/api/index.ts",
+      "import": "./src/api/index.ts"
     }
   },
   "main": "./src/index.ts",
@@ -51,6 +55,10 @@
       "./viewer": {
         "types": "./dist/viewer/index.d.ts",
         "import": "./dist/viewer/index.js"
+      },
+      "./api": {
+        "types": "./dist/api/index.d.ts",
+        "import": "./dist/api/index.js"
       }
     }
   }

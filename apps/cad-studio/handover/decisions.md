@@ -13491,3 +13491,94 @@ volume and centroid).
   20261024 188 (31) / 12. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
 - cad-model 1025/1025, studio 286/286.
 - No browser flow: nothing studio-visible changed.
+
+## D258 — K15: a cut lying along a face's edge for most of its length keeps its part across the face (2026-10-24)
+
+**Finding.** L4 fuzz seed 20261026 #184, robust (D249, D254). Shrunk: (an open shelled box ∩ a tilted cylinder) in a
+circular pattern of 2 at 50.872°. Each copy builds; the copies' union was refused with 13 edges used once, in two
+clusters. This record is the first cluster's cause; D259 is the second's.
+
+**Cause (`analyticBoolean`, `src/brep/analytic-boolean.ts`).** The first cluster is copy 1's tilted cylinder end cap
+(`n3b.bottom`), a U-shaped section of the box: the floor strip (z −2.5 … −2) and the two walls' ends above it. Copy 2's
+floor slab is coplanar with copy 1's, and it covers the strip, so the strip lies inside copy 2. The cap needs copy 2's
+floor line z = −2 as a cut across the right wall's foot, (0.4788, 2.4146) → (0.4079, 1.9111).
+- That cut came as one line, (0.4788, 2.4146, −2) → (0.0364, −0.7301, −2). It crosses the wall's foot for its first 13 %,
+  then runs along the cap's own floor edge.
+- The cuts are filtered before the arrangement: a cut whose points at 0.2, 0.5 and 0.8 all lie on the face's boundary
+  "adds nothing but slivers", and is dropped whole. This one's did (`bibbbbb` at 0, 0.1, 0.2, 0.5, 0.8, 0.9, 1).
+- Without it the strip stayed joined to the wall's end above it. That region, classified outside copy 2, was kept with
+  the strip, and the merged cap came back as the whole U. The floor, the bottom and copy 2's wall each had edges there
+  that it did not.
+
+**Fix.** A cut that the filter would drop is looked at six more times, at 0.05, 0.1, 0.35, 0.65, 0.9 and 0.95. If one
+of those points lies off the boundary, the cut goes through `offBoundary`, the isocline face split's (D149): its runs
+along the boundary longer than 100 tolerances are left out, and the parts off it are kept, their ends found on the
+boundary by bisection. Otherwise it is dropped as before; every cut the filter kept is unchanged.
+- A first version sent every such cut to `offBoundary` (257 samples, each against every segment of the face's rings).
+  Each of a coincident face's edges is such a cut: in the part model's self-unions (D260) of gear bodies, with hundreds
+  of segments a face, `gear-internal` went from 73 s to more than 600 s. The checkpoint run was stopped; with the six
+  points first, 72 s (alone, at 43f6a1bc7 + D257–D259).
+
+**Results:** with D259, 184 shrunk is one body, −0.05 e at 256² × 6; as fuzzed, 2 bodies, +0.23 e; both by
+quadrature. Nudged 4 ways each: 8/8 build, within 0.5 e. With D259 alone, 184 is still refused at the cap (an edge
+used once at (0.3799, 2.48, −1.839) as fuzzed).
+**Test:** "analytic Boolean: a cut running along a face's edge for most of its length …", failing before (with D259 in).
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261026-184.json` (its shrunk tree).
+
+## D259 — K15: a crossing just inside a curve's end, where the chords meet past it, is found (2026-10-24)
+
+**Finding.** 20261026 #184's second cluster (D258): where copy 2's walls cross copy 1's wall, under the two cylinders'
+tops. Copy 2's inner wall kept its strip inside copy 1's wall, down to z = −2 between the vertical lines where copy 1's
+walls cross it; copy 1's cylinder top kept its part inside copy 2's wall.
+
+**Cause (`intersectSegments`, `src/brep/curved-arrangement.ts`).** The cut between them, copy 1's cylinder ∩ copy 2's
+inner-wall plane (an ellipse), was clipped to nothing on the wall.
+- In the wall's domain, the probe ellipse enters through the bottom line, and leaves through the wall's top curve
+  0.027 mm before that curve's end at the face's corner. That crossing was missed. With one crossing the intervals'
+  parity broke: the stretch inside the face was judged by a midpoint outside it and dropped.
+- Two curves are intersected chord by chord, then refined by Newton. Here the chords' lines met past the top curve's
+  end (b = 1.198), so Newton started with v clamped to 1.
+- There the forward difference was `segAt(t, Math.min(1, v + h))`: v itself. The derivative came out zero, the
+  Jacobian singular, and Newton stopped before its first step. (`hv`'s `|| -h` turned the step's sign, but the point
+  was never taken at v − h.)
+
+**Fix.** At a segment's end the difference is taken back from it, at u − h or v − h. Inside both segments nothing
+changes.
+- A start at an end that already meets the other segment (within eps) stays there, as before: the end is the point.
+  The first version searched on from it too, and found points inside along near-tangent joins. R11.2c-2's conic-filleted
+  box shelled open at the bottom came out 7095.4920 mm³ against its closed form's 7095.5193 (RB NEW, two tests). That
+  checkpoint run was stopped; with the start kept, they pass.
+- A point found from a start at an end counts only where the two segments cross (`crossesAt`: one's points 1e-3 of its
+  parameter either side lie on opposite sides of the other's tangent, each more than eps off it). The second checkpoint
+  run, with the first narrowing, had `robustness/corpus/parts/box-fillet-all-r4_95` valid → refused (an edge used 3
+  times): from an end the search found a near-tangent touch along a fillet's section, a point it never reached before.
+  RB passed it (that corpus case has no expectation); the fingerprint showed it. With the crossing test it is valid again.
+- Newton also stops when the clamp holds it where it is (the step points past an end): from there it would only repeat
+  the same arithmetic, so no result changes, and such a start no longer runs its 30 steps for nothing. `gear-internal`
+  73 s before, 72 s after.
+
+**Results:** with D258, as above. The wall now gets the cut from (−2.065, 2.307, 0.989) to (−2.45, 1.79, 1.411).
+**Test:** "curves: a crossing just inside a curve's end, where the chords meet past it, is found": a circle r 4 as a
+general curve (64 chords) against a 1 mm line from outside at 30°, ending 2e-3 past the crossing, at four places.
+Failing before (no crossing found).
+
+**Checks for D258–D259 (K15 checkpoint 2, T2, in a scratch worktree at 43f6a1bc7 with D258–D259):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1667/1674, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against checkpoint 1's names, two are new (these records' tests) and none is gone.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint: 864 cases, `722d0431…` (from `1cd931ee…`, 863). 171 lines changed:
+  - added: `fuzz-20261026-184`;
+  - `fuzz:20261024:18` still refused, at another edge used once;
+  - F/E/V changed, validity unchanged, volumes within 7e-11 relative: `conformance/r11/shell-notched-corner-t3`
+    (18/42/28 → 18/45/31), `fuzz:20261024:79` (+2 edges, +2 faces), `corpus/parts/box-fillet-all-r4_95` (+2, +2):
+    crossings near segment ends now found split edges there;
+  - 166 lines with meshes and areas changed only: areas within 5.3e-5 relative (`fuzz:20261024:98`), volumes within
+    3e-10.
+- Fuzz (200 cases a seed): 20261025 OK 184 (36) / REFUSED 16; 20261026 191 (27) / 9; 20261023 189 (31) / 11; 20261024
+  188 (31) / 12. No WRONG, INVALID, CRASH, TIMEOUT or APPROX. Seed 20261026 builds 47, 79 and 184 now, besides 115
+  (D257).
+- cad-model 1025/1025, studio 286/286.
+- Two earlier runs of this checkpoint were stopped, each on a regression these records describe (D258's cost, D259's
+  first two versions); no other run counted.
+- No browser flow: nothing studio-visible changed.

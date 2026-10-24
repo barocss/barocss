@@ -26,13 +26,16 @@ test('the facade writes the hand-written document, byte for byte', () => {
   assert.equal(JSON.stringify(bracket().doc), JSON.stringify(handWritten()));
 });
 
-test('its mass and STEP are the core functions\' on that document, byte for byte', () => {
+test('its mass, meshes and STEP are the core functions\' on that document, byte for byte', () => {
   const doc = handWritten(), r = evaluateDoc(doc, 7);
   assert.ok(r.ok);
   const body = r.bodies[0], props = bodyMass(body, 2.7)!;
   // (MMGS: the core's inertia is in kg·mm² today, the facade's in g·mm², api-conventions.md §2.)
   const expected = { volumeMM3: body.volumeMM3, massG: props.massG, centroidMM: props.centroid, inertiaGMM2: props.inertia.map(row => row.map(v => v * 1000)) };
   assert.equal(JSON.stringify(bracket().mass('al6061')), JSON.stringify(expected));
+  const [mesh] = bracket().meshes();
+  assert.equal(mesh.key, body.key);
+  assert.deepEqual([Buffer.from(mesh.positions.buffer), Buffer.from(mesh.normals.buffer), Buffer.from(mesh.indices.buffer)], [Buffer.from(body.mesh.positions.buffer), Buffer.from(body.mesh.normals.buffer), Buffer.from(body.mesh.indices.buffer)]);
   const core = stepFor(doc, 'bracket');
   assert.ok('text' in core);
   assert.equal(unstamped(bracket().step()), unstamped(core.text));
