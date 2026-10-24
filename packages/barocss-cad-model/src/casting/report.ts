@@ -69,12 +69,12 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   rules.push(pull ? { id: 'pull', level: 'feasible', status: 'pass', message: `the pull direction (the mould opens along it): ${pull.map(v => +v.toFixed(6)).join(', ')}` }
     : { id: 'pull', level: 'feasible', status: 'unknown', message: 'the pull direction', why: 'no pull direction is given or set (the mould\'s opening): none is assumed' });
   // Walls: the thinnest against the family's least (fails) and typical (warns).
-  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnestMM !== null).sort((a, b) => a.thinnestMM! - b.thinnestMM!)[0];
+  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnest !== null).sort((a, b) => a.thinnest! - b.thinnest!)[0];
   const wMin = family ? limitOf(profile, family, 'WallMinMM') : undefined, wRec = family ? limitOf(profile, family, 'WallRecMM') : undefined;
   if (!thin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });
-  else if (!wMin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnestMM!)} mm`, why: noFamily ?? `no least wall for a ${family} alloy in ${profile.label.toLowerCase()} was read: set yours, or ask your caster` });
+  else if (!wMin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnest!)} mm`, why: noFamily ?? `no least wall for a ${family} alloy in ${profile.label.toLowerCase()} was read: set yours, or ask your caster` });
   else {
-    const w = thin.thinnestMM!, below = w < wMin.value - 1e-9, under = !below && !!wRec && w < wRec.value - 1e-9;
+    const w = thin.thinnest!, below = w < wMin.value - 1e-9, under = !below && !!wRec && w < wRec.value - 1e-9;
     rules.push({ id: 'wall', level: below ? 'feasible' : 'recommended', status: below ? 'fail' : under ? 'warn' : 'pass',
       message: `the thinnest wall, ${r3(w)} mm, against a ${family} alloy's least ${wMin.value} mm${wRec ? ` and typical ${wRec.value} mm` : ''}`, value: r3(w), limit: under ? wRec!.value : wMin.value, unit: 'mm', source: pageOf(under ? wRec! : wMin), entities: [thin.body] });
   }
