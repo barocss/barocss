@@ -25,8 +25,8 @@ export interface QuoteRequest {
   finish: { id: string; label: string; draftMin: number } | null; pull: [number, number, number] | null; quantity: number | null;
   /** `volumeBasis` (O179): the volume is partly from the mesh — how far it and the mass may be off; an estimate. */
   part: { size: [number, number, number]; volume: number; mass: number | null; bodies: number; volumeBasis?: { method: 'tessellated'; bound: number | null; massBoundG: number | null } };
-  tolerance: { mm: number; perMM: number; source: string } | null; shrink: number | null;
-  limits: { largestPartMM: [number, number, number] } | null;
+  tolerance: { value: number; perLength: number; source: string } | null; shrink: number | null;
+  limits: { largestPartSize: [number, number, number] } | null;
   note: string;
 }
 /** O179: the part's volume basis when any body's volume is from the mesh — the bodies' bounds summed (null: unknown). */
@@ -51,7 +51,7 @@ function page(name: string, req: QuoteRequest, rep: PrintabilityReport, open: re
     `| pull | ${req.pull ? req.pull.join(', ') : '**not set**'} |`,
     `| quantity | ${req.quantity ?? '**not stated**'} |`,
     `| part | ${req.part.size.join(' × ')} mm, ${req.part.volume} mm³${req.part.mass !== null ? `, ${req.part.mass} g` : ''}${req.part.volumeBasis ? ` (an estimate from the mesh: ± ${req.part.volumeBasis.bound ?? '?'} mm³${req.part.volumeBasis.massBoundG !== null && req.part.mass !== null ? `, ± ${req.part.volumeBasis.massBoundG} g` : ''})` : ''} |`,
-    `| tolerance | ${req.tolerance ? `±${req.tolerance.mm} mm + ${req.tolerance.perMM} mm/mm (${req.tolerance.source})` : '—'} |`,
+    `| tolerance | ${req.tolerance ? `±${req.tolerance.value} mm + ${req.tolerance.perLength} mm/mm (${req.tolerance.source})` : '—'} |`,
     `| shrink | ${req.shrink ?? 'no sourced value for this material'} |`, '',
     '## Manufacturability (IM1–IM5)', '', '| rule | status | |', '|---|---|---|', ...rep.rules.map(row), '',
     '## Open', '', ...(open.length ? open.map(o => `- ${o}`) : ['- nothing: the package is complete']), '',
@@ -83,9 +83,9 @@ export async function quotePackage(doc: StudioDoc, bodies: readonly BodyResult[]
     finish: finish ? { id: finish.id, label: finish.label, draftMin: finish.draftMin } : null,
     pull: rep.direction ? rep.direction.map(r6) as [number, number, number] : null, quantity: o.quantity ?? briefQty,
     part: { size: [0, 1, 2].map(k => r6(hi[k] - lo[k])) as [number, number, number], volume: r6(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)), mass: id && m ? r6(mass.reduce((s, x) => s + (x.mass ?? 0), 0)) : null, bodies: bodies.length, ...volumeBasisOfBodies(doc, bodies) },
-    tolerance: t('tolMM') && t('tolResinMMPerMM') ? { mm: t('tolMM').value, perMM: t('tolResinMMPerMM').value, source: t('tolMM').page?.url ?? t('tolMM').source } : null,
+    tolerance: t('tolMM') && t('tolResinMMPerMM') ? { value: t('tolMM').value, perLength: t('tolResinMMPerMM').value, source: t('tolMM').page?.url ?? t('tolMM').source } : null,
     shrink: m?.mouldShrink ?? null,
-    limits: t('maxPartLongMM') ? { largestPartMM: [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value] } : null,
+    limits: t('maxPartLongMM') ? { largestPartSize: [t('maxPartLongMM').value, t('maxPartWideMM').value, t('maxPartDepthMM').value] } : null,
     note: 'a request for quote, not a price; every value from the part or a sourced page (see dfm.json for each rule\'s source)',
   };
   // What is still open: the request's gaps, the failing rules, the unknown ones.
