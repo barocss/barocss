@@ -880,7 +880,7 @@ export function App() {
   const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
   const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
     motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown,
-    motionChoice, setMotionChoice } = useJoints(jointTree, posesInApp, doc.robot?.motions);
+    motionChoice, setMotionChoice, freezeMotion, showMotionAt } = useJoints(jointTree, posesInApp, doc.robot?.motions);
   // (RS2: the saved motion chosen, its length before it plays — timed once per choice.)
   const chosenDuration = useMemo(() => { const m = motionChoice === null || !jointTree ? undefined : doc.robot?.motions?.find(x => x.name === motionChoice); try { return m && jointTree ? timedMotion(timedPathOf(jointTree, m.path)).duration : undefined; } catch { return undefined; } }, [motionChoice, jointTree, doc.robot?.motions]);
   // (RS2: a motion frozen is swept once, as Check path sweeps — the links as placed — for its first contact: the time of
@@ -956,6 +956,18 @@ export function App() {
   // (By body key; put on the bodies shown — in a section the kept ones and the exact section's pieces, each moved as
   // its body is: G19.5 — further down.)
   const animatedAt = useMemo(() => !rendering || !Object.keys(render.animation.tracks).length ? null : offsetsAt(render.animation, time), [rendering, render.animation, time]);
+  // (RS2's recorder: a video of the motion at its own timing, or of the Render workspace's animation over its duration.)
+  const [videoBusy, setVideoBusy] = useState(false);
+  const recordVideo = async (seconds: number, draw: (t: number) => void, name: string) => {
+    if (!viewport.current || !(seconds > 0) || videoBusy) return;
+    setVideoBusy(true);
+    try {
+      const FPS = 30, n = Math.ceil(seconds * FPS) + 1;
+      const blob = await viewport.current.recordVideo(n, FPS, i => draw(Math.min(seconds, i / FPS)));
+      downloadBytes(new Uint8Array(await blob.arrayBuffer()), name, 'video/webm');
+    } catch (e) { setToast({ title: 'Could not record a video', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
+    finally { setVideoBusy(false); }
+  };
   const exportImage = async () => {
     const png = await viewport.current?.capture();
     if (png) downloadBytes(new Uint8Array(await png.arrayBuffer()), `${fileName}.png`, 'image/png');
@@ -2577,6 +2589,7 @@ export function App() {
           contact: contactShown && motionContact ? `Contact ${jointTree.links.find(x => x.id === motionContact.links[0])?.name ?? motionContact.links[0]} – ${jointTree.links.find(x => x.id === motionContact.links[1])?.name ?? motionContact.links[1]} at t ${motionContact.toi.toFixed(2)} s` : null,
           chosenDuration,
           controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed,
+            onExportVideo: () => { const m = freezeMotion(); if (!m) return; setMotionPlaying(false); void recordVideo(m.duration, t => showMotionAt(m, t), `${fileName}-${motionChoice ?? 'motion'}.webm`); }, exporting: videoBusy,
             saved: (doc.robot?.motions ?? []).map(m => m.name), choice: motionChoice, onChoose: setMotionChoice,
             // (The draft kept in the document: replacing one of the same name; an undo step, the file dirty.)
             onSave: name => {
@@ -2895,7 +2908,8 @@ export function App() {
         const i = selectedBodies(selection)[0], b = i !== undefined ? bodies[i] : undefined, ref = b ? refOf(b) : null, node = ref ? evaluated.nodes[ref.node] : null;
         return <Timeline animation={render.animation} time={time} playing={playing} bodyKey={b?.key ?? null}
           bodyLabel={node && ref ? featureLabel(node, ref.node, evaluated.nodes) : b?.key ?? ''}
-          onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })} />;
+          onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })}
+          exporting={videoBusy} onExportVideo={() => { setPlaying(false); turnFrom.current = viewport.current?.getCamera() ?? null; void recordVideo(render.animation.duration, setTime, `${fileName}-render.webm`); }} />;
       })()}
       {!sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) && <aside className="card refs" aria-label="References">
         <div className="card-title">REFERENCES <span className="muted">{[refMarks.length && `${refMarks.length} matched again`, refProblems.length && `${refProblems.length} need${refProblems.length === 1 ? 's' : ''} a choice`].filter(Boolean).join(', ')}</span></div>

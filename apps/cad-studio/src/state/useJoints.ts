@@ -81,6 +81,11 @@ export function useJoints(jointTree: JointTree | null, subscribed: boolean, save
     setMotionPlaying(false); setJointPlaying(null);
     const at = Math.min(m.duration, Math.max(0, t)); motionTime.set(at); if (jointTree) setJointValues(motionPose(jointTree, m, at));
   }, [frozenMotion, motionTime, setJointValues, jointTree]);
+  /** A motion's pose shown at t, and its time (the video export steps it frame by frame). */
+  const showMotionAt = useCallback((m: Motion, t: number) => {
+    if (!jointTree) return;
+    motionTime.set(t); setJointValues(motionPose(jointTree, m, t));
+  }, [jointTree, motionTime, setJointValues]);
   useEffect(() => {
     if (!motionPlaying || !motion || !jointTree) return;
     const T = motion.duration, tree = jointTree;
@@ -94,7 +99,7 @@ export function useJoints(jointTree: JointTree | null, subscribed: boolean, save
     return () => cancelAnimationFrame(frame);
   }, [motionPlaying, motion, motionLoop, motionSpeed, motionTime, setJointValues, jointTree]);
   return { poseStore, jointValues, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
-    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionChoice, setMotionChoice,
+    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionChoice, setMotionChoice, freezeMotion: frozenMotion, showMotionAt,
     motionContact, setMotionContact, contactShown };
 }
 

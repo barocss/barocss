@@ -178,6 +178,8 @@ export interface ViewRenderer {
   setInstances?(items: InstanceItem[], selected: readonly string[]): void;
   /** RS2: the links in contact as a motion plays (instance ids; BASE, the part's own bodies), marked in the error colour. */
   setContactLinks?(links: readonly string[]): void;
+  /** WebGL2: the frame drawn again in this task, before its canvas is read (the video recorder). */
+  drawNow?(): void;
   /** Instances shown moved by a matrix each (column-major 4 × 4; posed, exploded), the rest as placed (G1). */
   setInstanceTransforms?(transforms: ReadonlyMap<string, Float64Array> | null): void;
   /** The section's clip plane (WebGPU only, G2): the placed parts cut and capped, the part's bodies too when `bodies`. */
@@ -1021,8 +1023,10 @@ export class Renderer implements ViewRenderer {
   }
 
   /** The frame as drawn, as a PNG (G16: drawn again and read in the same task, as the canvas keeps no frame). */
+  /** The frame drawn again now, so the canvas holds it in this task (its buffer is not preserved past a frame). */
+  drawNow(): void { if (this.lastCamera && this.view) this.render(this.lastCamera, this.view); }
   capture(): Promise<Blob> {
-    if (this.lastCamera && this.view) this.render(this.lastCamera, this.view);
+    this.drawNow();
     return new Promise((resolve, reject) => this.canvas.toBlob(b => (b ? resolve(b) : reject(new Error('No frame to capture.'))), 'image/png'));
   }
 
