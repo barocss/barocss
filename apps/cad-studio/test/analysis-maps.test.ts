@@ -36,9 +36,9 @@ test('G6 the thickness map: one value a display triangle, the wall samples\' loc
   assert.ok(Math.abs(m.thresholds[1].value - nominal / 0.6) < 1e-12);
   // Moulded: the process's thinnest wall marked, and red under it.
   const moulded = { ...doc, process: 'injection' }, mm = thicknessMap(moulded, b), lim = thicknessLimits(moulded, b);
-  assert.ok(lim.minWallMM !== null && mm.thresholds.some(x => x.label === 'the process\'s thinnest' && x.value === lim.minWallMM), JSON.stringify(mm.thresholds));
+  assert.ok(lim.minWall !== null && mm.thresholds.some(x => x.label === 'the process\'s thinnest' && x.value === lim.minWall), JSON.stringify(mm.thresholds));
   assert.equal(lim.ratio, processProfile('injection')!.thresholds.adjacentWallRatio?.value ?? 0.6);
-  if (lim.minWallMM! < nominal) assert.deepEqual(mm.legend.stops.slice(0, 2).map(x => x[1]), ['#d7301f', '#d7301f']);
+  if (lim.minWall! < nominal) assert.deepEqual(mm.legend.stops.slice(0, 2).map(x => x[1]), ['#d7301f', '#d7301f']);
 });
 
 test('G6 the mould\'s view: IM7\'s plate with a Ø10 hole along +Z — one flat closed loop; its halves 48000 and the block less the part less that (as the tooling\'s, 1e-6); none without a pull', () => {
