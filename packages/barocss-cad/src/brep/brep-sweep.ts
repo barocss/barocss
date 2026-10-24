@@ -9,7 +9,7 @@
 import { BrepEditor } from './brep-euler.js';
 import { mergeBreps, type Brep } from './brep-core.js';
 import { booleanPolygons, type PlanarBooleanOperation, type PolygonWithHoles } from './planar-arrangement.js';
-import { buildProfileLoop, segmentCurve, extrudedSurface, capSurface, ExtrudedProfileError } from '../features/extruded-profile-solid.js';
+import { buildProfileLoop, segmentCurve, extrudedSurface, capSurface, extrudedProfileError } from '../features/extruded-profile-solid.js';
 import type { ProfileSegment, ProfileSegmentInput, XY } from '../features/extruded-profile-solid.js';
 import type { Curve, Point } from '../types.js';
 
@@ -23,7 +23,7 @@ export interface ProfileWithHolesInput {
   readonly fromMM?: number;
 }
 
-const fail = (detail: string): never => { throw new ExtrudedProfileError('GEOMETRY', detail); };
+const fail = (detail: string): never => { throw extrudedProfileError('GEOMETRY', detail); };
 
 /** A single full-circle segment is split into two half arcs (an Euler loop needs at least two edges). */
 function atLeastTwo(segments: readonly ProfileSegment[]): ProfileSegment[] {

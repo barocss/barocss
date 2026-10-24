@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurRack, checkPlacedSpurRack, spurGear, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkSpurGearRack, checkPlacedSpurGears, evaluateCadPart, evaluateSurface, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurRack, checkPlacedSpurRack, spurGear, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkSpurGearRack, checkPlacedSpurGears, evaluateCadPart, evaluateSurface, isGearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
 
 // R6a.5c (issue #2167, D59): helical gears — normal module and pressure angle, helix angle and hand; the transverse
 // involute turned along the helix.
@@ -89,7 +89,7 @@ test('the helical solid: valid; the flanks turned along the helix within the mea
 });
 
 test('helical refusals: a module with a helix angle (normalModuleMM named), no hand, β past 45°, undercut by the virtual tooth number, a twist past the axial budget; pairs of the same hand, of other angles, spur with helical; a helical gear with a straight rack', () => {
-  const code = (f, c, re) => assert.throws(f, e => e instanceof GearError && e.code === c && (!re || re.test(e.message)));
+  const code = (f, c, re) => assert.throws(f, e => isGearError(e) && e.code === c && (!re || re.test(e.message)));
   code(() => spurGearDimensions({ ...KHK1, moduleMM: 3 }), 'INVALID_INPUT', /takes normalModuleMM/);
   code(() => spurGearDimensions({ ...KHK1, hand: undefined }), 'INVALID_INPUT', /needs its hand/);
   code(() => spurGearDimensions({ ...KHK1, helixAngleDeg: 50 }), 'UNSUPPORTED_GEAR_KIND');
@@ -131,8 +131,8 @@ test('the helical rack (D60): the z → ∞ gear of the pair — the gear\'s β,
   const c = checkSpurGearRack(g, { ...k, teeth: 20 });
   close(c.backlashMM, 0, 1e-12, 'j'); assert.ok(Math.abs(c.sweep.minimumClearanceMM) < 1e-6 && !c.sweep.interference);
   close(c.axialContactRatio, 8 * Math.sin(Math.PI / 9) / (2 * Math.PI), 1e-12, 'εβ'); close(c.totalContactRatio, c.usableContactRatio + c.axialContactRatio, 1e-12, 'εγ');
-  assert.throws(() => checkSpurGearRack(g, { ...k, hand: 'right' }), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE' && /same hand as the gear/.test(e.message));
-  assert.throws(() => checkSpurGearRack({ moduleMM: 2, teeth: 18, faceWidthMM: 8 }, k), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
+  assert.throws(() => checkSpurGearRack(g, { ...k, hand: 'right' }), e => isGearError(e) && e.code === 'MATE_INCOMPATIBLE' && /same hand as the gear/.test(e.message));
+  assert.throws(() => checkSpurGearRack({ moduleMM: 2, teeth: 18, faceWidthMM: 8 }, k), e => isGearError(e) && e.code === 'MATE_INCOMPATIBLE');
   // In the part model: the hand derived, verified by the solids' sections.
   const gear = rot => ({ id: 'g', kind: 'spur-gear', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 18, faceWidth: 8, thicknessReduction: 0.05, rotation: rot, center: [5, 3] });
   const rack = mesh => ({ id: 'k', kind: 'spur-rack', teeth: 12, faceWidth: 8, height: 8, thicknessReduction: 0.05, mesh: { gear: 'g', ...mesh } });

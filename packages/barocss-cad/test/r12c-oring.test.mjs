@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, GlandError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, isGlandError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
 
 // R12c.5 (D159): O-ring glands. The ring row is D139's O1 (AS568-214: CS 3.53, ID 24.99 — the Global O-Ring chart), a
 // test row citing it; the gland is S0's (groove Ø25.5, bore Ø31.1, 4.7 wide); the other rings and the fit rows are test
@@ -14,7 +14,7 @@ import { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, GlandEr
 
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
-const code = c => e => e instanceof GlandError && e.code === c;
+const code = c => e => isGlandError(e) && e.code === c;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const O1 = { id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, source: 'O1 (D139): the Global O-Ring AS568 chart' };
 /** r' with r'²(Rb + r') = r²R, by bisection on [r/4, 4r] (a different solver from the kernel's iteration). */

@@ -1,6 +1,6 @@
 import type { Point } from '../types.js';
 import type { ProfileSegmentInput, XY } from '../features/extruded-profile-solid.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 // R12 sheet metal (D115, D116). A sheet is T thick; a bend is a piece of a cylinder of inner radius R turned θ, its
 // neutral layer at R + K·T (K the K-factor, defined by the bend allowance below). These are the closed forms; real K
@@ -37,9 +37,9 @@ export interface SheetReport {
 }
 
 /** A sheet-metal refusal: the part model's code, the message starting with its own `[CODE]`. */
-export class SheetMetalError extends KernelError {
-  constructor(readonly code: 'PARAMETER' | 'GEOMETRY', detail: string) { super(detail.slice(0, 1024)); this.name = 'SheetMetalError'; }
-}
+export const sheetMetalError = (code: 'PARAMETER' | 'GEOMETRY', detail: string) => kernelRefusal('sheet-metal', code, detail.slice(0, 1024)) as KernelError & { readonly code: 'PARAMETER' | 'GEOMETRY' };
+/** Whether something thrown is this module's refusal. */
+export const isSheetMetalError = (e: unknown): e is KernelError & { readonly code: 'PARAMETER' | 'GEOMETRY' } => isFrom<'PARAMETER' | 'GEOMETRY'>(e, 'sheet-metal');
 
 /** A bend of the section: its centre, signed turn (radians, + to the left) and its two faces' names. */
 export interface ContourBend { readonly vertex: number; readonly center: XY; readonly angle: number; readonly inner: string; readonly outer: string }
@@ -65,15 +65,15 @@ export function contourFlangeSection(path: readonly XY[], side: 'left' | 'right'
   const d: XY[] = [], L: number[] = [];
   for (let i = 0; i < n; i++) {
     const dx = path[i + 1][0] - path[i][0], dy = path[i + 1][1] - path[i][1], l = Math.hypot(dx, dy);
-    if (!(l > MIN_LEG_MM)) throw new SheetMetalError('PARAMETER', `[BEND_DOES_NOT_FIT] path points ${i} and ${i + 1} coincide`);
+    if (!(l > MIN_LEG_MM)) throw sheetMetalError('PARAMETER', `[BEND_DOES_NOT_FIT] path points ${i} and ${i + 1} coincide`);
     d.push([dx / l, dy / l]); L.push(l);
   }
   // Each corner k (1 … n − 1): its signed turn θ, the radius on the path's skin, its setback along both legs.
   const turn: number[] = [0], rPath: number[] = [0], back: number[] = [0];
   for (let k = 1; k < n; k++) {
     const a = d[k - 1], b = d[k], th = Math.atan2(a[0] * b[1] - a[1] * b[0], a[0] * b[0] + a[1] * b[1]);
-    if (Math.abs(th) < ANGLE_EPS) throw new SheetMetalError('PARAMETER', `[BEND_ANGLE] path point ${k} is in line with its neighbours: no bend there`);
-    if (Math.PI - Math.abs(th) < ANGLE_EPS) throw new SheetMetalError('PARAMETER', `[BEND_ANGLE] path point ${k} turns back 180°: a fold back (a hem) is not supported yet`);
+    if (Math.abs(th) < ANGLE_EPS) throw sheetMetalError('PARAMETER', `[BEND_ANGLE] path point ${k} is in line with its neighbours: no bend there`);
+    if (Math.PI - Math.abs(th) < ANGLE_EPS) throw sheetMetalError('PARAMETER', `[BEND_ANGLE] path point ${k} turns back 180°: a fold back (a hem) is not supported yet`);
     const r = Math.sign(th) === s ? radius + T : radius;
     turn.push(th); rPath.push(r); back.push(r * Math.tan(Math.abs(th) / 2));
   }
@@ -82,7 +82,7 @@ export function contourFlangeSection(path: readonly XY[], side: 'left' | 'right'
   const S: XY[] = [], E: XY[] = [], m: XY[] = [];
   for (let i = 0; i < n; i++) {
     const free = L[i] - back[i] - back[i + 1];
-    if (!(free > MIN_LEG_MM)) throw new SheetMetalError('PARAMETER', `[BEND_DOES_NOT_FIT] leg ${i} is ${fmt(L[i])} mm between its corners; its bends take ${fmt(back[i] + back[i + 1])} mm of it`);
+    if (!(free > MIN_LEG_MM)) throw sheetMetalError('PARAMETER', `[BEND_DOES_NOT_FIT] leg ${i} is ${fmt(L[i])} mm between its corners; its bends take ${fmt(back[i] + back[i + 1])} mm of it`);
     S.push([path[i][0] + back[i] * d[i][0], path[i][1] + back[i] * d[i][1]]);
     E.push([path[i + 1][0] - back[i + 1] * d[i][0], path[i + 1][1] - back[i + 1] * d[i][1]]);
     m.push([-s * d[i][1], s * d[i][0]]);
@@ -111,7 +111,7 @@ export function contourFlangeSection(path: readonly XY[], side: 'left' | 'right'
   }
   segments.push({ kind: 'line', start: offset(S[0], m[0], T) }); names.push(`${id}.start`);
   const crossing = selfContact(segments);
-  if (crossing) throw new SheetMetalError('GEOMETRY', `[SHEET_CROSSES_ITSELF] the sheet's section meets itself: ${names[crossing[0]].slice(id.length + 1)} and ${names[crossing[1]].slice(id.length + 1)} near (${fmt(crossing[2][0])}, ${fmt(crossing[2][1])})`);
+  if (crossing) throw sheetMetalError('GEOMETRY', `[SHEET_CROSSES_ITSELF] the sheet's section meets itself: ${names[crossing[0]].slice(id.length + 1)} and ${names[crossing[1]].slice(id.length + 1)} near (${fmt(crossing[2][0])}, ${fmt(crossing[2][1])})`);
   return { segments, names, bends };
 }
 

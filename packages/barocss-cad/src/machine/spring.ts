@@ -28,13 +28,14 @@ import { transformBrep } from '../brep/brep-transform.js';
 import { glueAtSharedFace } from '../brep/brep-glue.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { add as vAdd, cross as vCross, dot as vDot, scale as vScl, sub as vSub } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type SpringDiagnosticCode = 'INVALID_INPUT' | 'SELF_INTERSECTION' | 'COILS_OVERLAP' | 'PROFILE_BUDGET_EXCEEDED' | 'UNSUPPORTED_SPRING_KIND' | 'LEG_OVERLAP';
 export interface SpringDiagnostic { readonly code: SpringDiagnosticCode; readonly severity: 'error' | 'warning'; readonly message: string }
-export class SpringError extends KernelError {
-  constructor(readonly code: SpringDiagnosticCode, detail: string) { super(`spring: ${detail}`); this.name = 'SpringError'; }
-}
+/** This module's refusal (R7.3a batch 2: the SpringError class folded, D279): a BarocssError, `details.source` 'spring'. */
+export const springError = (code: SpringDiagnosticCode, detail: string) => kernelRefusal('spring', code, `spring: ${detail}`) as KernelError & { readonly code: SpringDiagnosticCode };
+/** Whether something thrown is this module's refusal. */
+export const isSpringError = (e: unknown): e is KernelError & { readonly code: SpringDiagnosticCode } => isFrom<SpringDiagnosticCode>(e, 'spring');
 
 // ---- the helical sweep -------------------------------------------------------------------------------------------------
 
@@ -141,17 +142,17 @@ function layout(r: Run, n: number): Segment[] {
 interface Prepared { readonly R: number; readonly a: number; readonly runs: readonly Run[]; readonly tol: number; readonly budget: number; readonly wireLength: number; readonly minRho: number; readonly endZ: number; readonly end: number; readonly poles: readonly [number, number][]; readonly s0: number }
 function prepare(spec: HelicalSweepSpec): Prepared {
   const R = spec.helixRadiusMM, a = spec.section?.radiusMM;
-  if (spec.section?.kind !== 'circle') throw new SpringError('UNSUPPORTED_SPRING_KIND', 'the helical sweep takes a circle section in this stage');
-  if (!(Number.isFinite(R) && R > 0 && Number.isFinite(a) && a > 0)) throw new SpringError('INVALID_INPUT', 'the helix radius and the section radius must be numbers of mm above 0');
-  if (!(a < R)) throw new SpringError('SELF_INTERSECTION', `a wire of radius ${a} mm on a helix of radius ${R} mm meets itself at the axis`);
-  if (!spec.runs?.length) throw new SpringError('INVALID_INPUT', 'a helical sweep needs at least one run');
+  if (spec.section?.kind !== 'circle') throw springError('UNSUPPORTED_SPRING_KIND', 'the helical sweep takes a circle section in this stage');
+  if (!(Number.isFinite(R) && R > 0 && Number.isFinite(a) && a > 0)) throw springError('INVALID_INPUT', 'the helix radius and the section radius must be numbers of mm above 0');
+  if (!(a < R)) throw springError('SELF_INTERSECTION', `a wire of radius ${a} mm on a helix of radius ${R} mm meets itself at the axis`);
+  if (!spec.runs?.length) throw springError('INVALID_INPUT', 'a helical sweep needs at least one run');
   const tol = spec.profileToleranceMM ?? 2e-4 * a, budget = spec.maxPieces ?? 1024;
-  if (!(Number.isFinite(tol) && tol > 0)) throw new SpringError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  if (!(Number.isFinite(tol) && tol > 0)) throw springError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
   const runs: Run[] = [];
   let phi = 0, z = spec.startZMM ?? 0;
   for (const r of spec.runs) {
     const p1 = r.toPitchMM ?? r.pitchMM;
-    if (!(Number.isFinite(r.turns) && r.turns > 0 && Number.isFinite(r.pitchMM) && r.pitchMM > 0 && Number.isFinite(p1) && p1 > 0)) throw new SpringError('INVALID_INPUT', 'each run needs turns and pitches above 0');
+    if (!(Number.isFinite(r.turns) && r.turns > 0 && Number.isFinite(r.pitchMM) && r.pitchMM > 0 && Number.isFinite(p1) && p1 > 0)) throw springError('INVALID_INPUT', 'each run needs turns and pitches above 0');
     const run: Run = { phi0: phi, phi1: phi + 2 * Math.PI * r.turns, p0: r.pitchMM, p1, z0: z };
     runs.push(run); phi = run.phi1; z = zAt(run, phi)[0];
   }
@@ -163,7 +164,7 @@ function prepare(spec: HelicalSweepSpec): Prepared {
     for (let i = 0; i < GL.x.length; i++) { const f = r.phi0 + D * (GL.x[i] + 1) / 2, [, zp, zpp] = zAt(r, f); wireLength += GL.w[i] * D / 2 * Math.hypot(R, zp); minRho = Math.min(minRho, curvatureRadius(R, zp, zpp)); }
     for (let i = 0; i <= 64; i++) { const [, zp, zpp] = zAt(r, r.phi0 + D * i / 64); minRho = Math.min(minRho, curvatureRadius(R, zp, zpp)); }
   }
-  if (!(a < minRho)) throw new SpringError('SELF_INTERSECTION', `the wire's radius ${a} mm reaches the centreline's least radius of curvature ${minRho.toFixed(6)} mm`);
+  if (!(a < minRho)) throw springError('SELF_INTERSECTION', `the wire's radius ${a} mm reaches the centreline's least radius of curvature ${minRho.toFixed(6)} mm`);
   // Pieces start from the rotation fit's error (≈ s⁴/384 per unit radius) at the outermost pole, then are measured.
   return { R, a, runs, tol, budget, wireLength, minRho, endZ: z, end: phi, poles: sectionPoles(a), s0: Math.pow(384 * tol / (R + a / W), 0.25) };
 }
@@ -193,7 +194,7 @@ function sweepRange(id: string, name: string, P: Prepared, from: number, to: num
       n = Math.ceil(n * Math.max(1.1, Math.pow(dev / tol, 0.25) * 1.05));
     }
     segments.push(...segs); worst = Math.max(worst, dev); pieces += segs.reduce((s, g) => s + g.k, 0);
-    if (pieces > budget || dev > tol) throw new SpringError('PROFILE_BUDGET_EXCEEDED', `a wire within ${tol} mm of its pipe needs more than ${budget} cubic pieces along the sweep (${pieces} so far, measured ${dev.toExponential(2)} mm)`);
+    if (pieces > budget || dev > tol) throw springError('PROFILE_BUDGET_EXCEEDED', `a wire within ${tol} mm of its pipe needs more than ${budget} cubic pieces along the sweep (${pieces} so far, measured ${dev.toExponential(2)} mm)`);
   }
   // Four vertices and four exact quarter arcs at every level, four side edges and faces per segment.
   const vertices: { id: string; point: Point }[] = [], edges: { id: string; curve: Curve; vertices: [string, string] }[] = [], faces: BrepFaceInput[] = [];
@@ -307,7 +308,7 @@ export function springSolidPitch(meanDiameterMM: number, wireDiameterMM: number)
   return hi;
 }
 
-const fail = (code: SpringDiagnosticCode, detail: string): never => { throw new SpringError(code, detail); };
+const fail = (code: SpringDiagnosticCode, detail: string): never => { throw springError(code, detail); };
 const positive = (v: number | undefined, what: string): number => (Number.isFinite(v) && (v as number) > 0 ? v as number : fail('INVALID_INPUT', `${what} must be a number above 0`));
 
 interface Resolved { readonly d: number; readonly D: number; readonly na: number; readonly ne: number; readonly tau: number; readonly ends: 'open' | 'closed' | 'closed-ground'; readonly hand: 'right' | 'left'; readonly p: number; readonly ps: number; readonly L0: number }
@@ -411,7 +412,7 @@ export function compressionSpring(spec: SpringSpec, options: { readonly id?: str
       const off = m0 + 4 * s1.segments, mark = `${id}.wire#`;
       const hi = transformBrep(booleanAnalytic(s2.brep, g1, 'difference', { id: `${id}_2` }), { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split(mark).map((x, i) => i === 0 ? x : x.replace(/^\d+/, k => String(+k + off))).join(mark));
       const source = { family: 'spring', id }, joined = glueAtSharedFace(lo, s1.brep, source), all = joined && glueAtSharedFace(joined, hi, source);
-      if (!all) throw new SpringError('PROFILE_BUDGET_EXCEEDED', 'the ground end pieces did not meet the body at their discs');
+      if (!all) throw springError('PROFILE_BUDGET_EXCEEDED', 'the ground end pieces did not meet the body at their discs');
       brep = all;
       sw = { wireLengthMM: P.wireLength, pieces: s0.pieces + s1.pieces + s2.pieces, segments: s0.segments + s1.segments + s2.segments, profileDeviationMM: Math.max(s0.deviation, s1.deviation, s2.deviation), profileToleranceMM: P.tol, minCurvatureRadiusMM: P.minRho };
     }

@@ -21,10 +21,7 @@
 // same plane (each section point of the worm's transverse outline carried to where its helix crosses the plane).
 import type { Brep } from '../brep/brep-core.js';
 import type { Curve, Point } from '../types.js';
-import {
-  GearError, inv, arcCurve, reversed, lineCurve, safeId, bezierKnots, flankPoles, flankDeviation, extrudedProfile, twistDeviation, exactProfile, spurGearDimensions, segmentsCross, pointSegment,
-  type GearDiagnostic, type SpurGearSpec, type ProfileTwist,
-} from './gear.js';
+import { gearError, inv, arcCurve, reversed, lineCurve, safeId, bezierKnots, flankPoles, flankDeviation, extrudedProfile, twistDeviation, exactProfile, spurGearDimensions, segmentsCross, pointSegment, type GearDiagnostic, type SpurGearSpec, type ProfileTwist } from './gear.js';
 
 /** Version 0 of a cylindrical worm's inputs (lengths in mm). */
 export interface WormSpec {
@@ -70,32 +67,32 @@ const ALPHA_N = 20 * Math.PI / 180, MAX_FLANK = 20, PER_FACE = 5, MAX_SEGMENTS =
 /** The worm's dimensions and the values the solid and the pair need; refusals typed. */
 export function wormDimensions(spec: WormSpec) {
   const m = spec.axialModuleMM, z1 = spec.starts, d1 = spec.diameterMM, L = spec.lengthMM, form = spec.form ?? 'ZI';
-  if (form === 'ZN' || form === 'ZK' || form === 'ZC') throw new GearError('UNSUPPORTED_GEAR_KIND', `a ${form} worm (${form === 'ZN' ? 'straight in the normal section' : form === 'ZK' ? 'cut by a disc' : 'concave, circular in the axial section'}): ZI and ZA only in this stage`);
-  if (form !== 'ZI' && form !== 'ZA') throw new GearError('INVALID_INPUT', `worm form ${String(form)}: 'ZI' or 'ZA'`);
-  if (spec.envelope !== undefined && spec.envelope !== 'cylindrical') throw new GearError('UNSUPPORTED_GEAR_KIND', 'a double-enveloping (globoid) worm: cylindrical worms only in this stage');
-  if ((spec.pressureAngleDeg ?? 20) !== 20) throw new GearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${spec.pressureAngleDeg}°: only 20° (normal, at the reference cylinder) in this stage`);
-  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw new GearError('INVALID_INPUT', 'axialModuleMM must be a number of mm above 0, at most 100');
-  if (!(Number.isInteger(z1) && z1 >= 1 && z1 <= 4)) throw new GearError('INVALID_INPUT', 'starts must be a whole number from 1 to 4');
-  if (spec.hand !== 'right' && spec.hand !== 'left') throw new GearError('INVALID_INPUT', "a worm needs its hand, 'right' or 'left'");
-  if (!(Number.isFinite(L) && L > 0 && L <= 10000)) throw new GearError('INVALID_INPUT', 'lengthMM must be a number of mm above 0');
+  if (form === 'ZN' || form === 'ZK' || form === 'ZC') throw gearError('UNSUPPORTED_GEAR_KIND', `a ${form} worm (${form === 'ZN' ? 'straight in the normal section' : form === 'ZK' ? 'cut by a disc' : 'concave, circular in the axial section'}): ZI and ZA only in this stage`);
+  if (form !== 'ZI' && form !== 'ZA') throw gearError('INVALID_INPUT', `worm form ${String(form)}: 'ZI' or 'ZA'`);
+  if (spec.envelope !== undefined && spec.envelope !== 'cylindrical') throw gearError('UNSUPPORTED_GEAR_KIND', 'a double-enveloping (globoid) worm: cylindrical worms only in this stage');
+  if ((spec.pressureAngleDeg ?? 20) !== 20) throw gearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${spec.pressureAngleDeg}°: only 20° (normal, at the reference cylinder) in this stage`);
+  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw gearError('INVALID_INPUT', 'axialModuleMM must be a number of mm above 0, at most 100');
+  if (!(Number.isInteger(z1) && z1 >= 1 && z1 <= 4)) throw gearError('INVALID_INPUT', 'starts must be a whole number from 1 to 4');
+  if (spec.hand !== 'right' && spec.hand !== 'left') throw gearError('INVALID_INPUT', "a worm needs its hand, 'right' or 'left'");
+  if (!(Number.isFinite(L) && L > 0 && L <= 10000)) throw gearError('INVALID_INPUT', 'lengthMM must be a number of mm above 0');
   const rf = d1 / 2 - 1.25 * m;
-  if (!(Number.isFinite(d1) && rf > 0)) throw new GearError('INVALID_INPUT', `diameterMM must leave a root: above ${(2.5 * m).toFixed(4)} mm (2.5 m_x)`);
+  if (!(Number.isFinite(d1) && rf > 0)) throw gearError('INVALID_INPUT', `diameterMM must leave a root: above ${(2.5 * m).toFixed(4)} mm (2.5 m_x)`);
   const r1 = d1 / 2, ra = r1 + m, gamma = Math.atan(z1 * m / d1), p = z1 * m / 2, h = spec.hand === 'right' ? 1 : -1, mn = m * Math.cos(gamma);
-  if (!(gamma <= Math.PI / 4)) throw new GearError('UNSUPPORTED_GEAR_KIND', `a lead angle of ${(gamma * 180 / Math.PI).toFixed(3)}° (q ${(d1 / m).toFixed(3)} for ${z1} starts): at most 45° in this stage`);
+  if (!(gamma <= Math.PI / 4)) throw gearError('UNSUPPORTED_GEAR_KIND', `a lead angle of ${(gamma * 180 / Math.PI).toFixed(3)}° (q ${(d1 / m).toFixed(3)} for ${z1} starts): at most 45° in this stage`);
   const red = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(red) && red >= 0)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
+  if (!(Number.isFinite(red) && red >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
   const sx = Math.PI * m / 2 - red;
-  if (!(sx > 0)) throw new GearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no thread (its axial thickness is ${(Math.PI * m / 2).toFixed(4)} mm)`);
+  if (!(sx > 0)) throw gearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no thread (its axial thickness is ${(Math.PI * m / 2).toFixed(4)} mm)`);
   // The thread's half-thickness angle at r1 in the section: the axial half-thickness over p.
   const psiRef = sx / (2 * p);
   const alphaT = Math.atan(Math.tan(ALPHA_N) / Math.sin(gamma)), rb = r1 * Math.cos(alphaT), alphaX = Math.atan(Math.tan(ALPHA_N) / Math.cos(gamma));
   const psiAt = (r: number) => form === 'ZI' ? psiRef + inv(alphaT) - inv(Math.acos(Math.min(1, rb / r))) : psiRef - (r - r1) * Math.tan(alphaX) / p;
   const r0 = form === 'ZI' ? Math.max(rb, rf) : rf;
-  if (!(psiAt(ra) > 0)) throw new GearError('SELF_INTERSECTION', 'the thread comes to a point below its tip');
-  if (!(Math.PI / z1 - psiAt(r0) > 1e-9)) throw new GearError('SELF_INTERSECTION', 'neighbouring threads meet at the root');
+  if (!(psiAt(ra) > 0)) throw gearError('SELF_INTERSECTION', 'the thread comes to a point below its tip');
+  if (!(Math.PI / z1 - psiAt(r0) > 1e-9)) throw gearError('SELF_INTERSECTION', 'neighbouring threads meet at the root');
   const bd = spec.boreDiameterMM ?? 0;
-  if (!(Number.isFinite(bd) && bd >= 0)) throw new GearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
-  if (bd > 0 && !(bd / 2 <= rf - m)) throw new GearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${m} mm rim below the root (Ø${(2 * rf).toFixed(3)} mm): at most Ø${Math.max(0, 2 * (rf - m)).toFixed(3)} (a geometric margin, not a strength check)`);
+  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
+  if (bd > 0 && !(bd / 2 <= rf - m)) throw gearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${m} mm rim below the root (Ø${(2 * rf).toFixed(3)} mm): at most Ø${Math.max(0, 2 * (rf - m)).toFixed(3)} (a geometric margin, not a strength check)`);
   return { m, z1, d1, r1, ra, rf, rb, r0, gamma, p, h, mn, L, form, red, sx, psiRef, alphaT, alphaX, psiAt, bore: bd / 2 };
 }
 export type WormDimensions = ReturnType<typeof wormDimensions>;
@@ -137,20 +134,20 @@ interface Side { readonly name: string; readonly curve: Curve }
  */
 export function worm(spec: WormSpec, options: { readonly id?: string } = {}): { brep: Brep; report: WormReport } {
   const id = safeId(options.id ?? 'worm'), g = wormDimensions(spec), tol = spec.profileToleranceMM ?? 1e-4 * g.mn;
-  if (!(Number.isFinite(tol) && tol > 0)) throw new GearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
   const secTol = 0.75 * tol, twistTol = tol - secTol;
   // The flank: ZI the involute's roll t0 → t1, ZA the spiral's radius; as few pieces as the section's share asks.
   const t0 = g.form === 'ZI' ? Math.sqrt(Math.max(0, (g.r0 / g.rb) ** 2 - 1)) : g.r0, t1 = g.form === 'ZI' ? Math.sqrt((g.ra / g.rb) ** 2 - 1) : g.ra;
   const devOf = (N: number) => g.form === 'ZI' ? flankDeviation(g.rb, t0, t1, N) : spiralDeviation(g, t0, t1, N);
   let N = 1, dev = devOf(1);
   while (dev > secTol && N < MAX_FLANK) dev = devOf(++N);
-  if (dev > secTol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a worm flank within ${secTol.toExponential(2)} mm needs more than ${MAX_FLANK} cubic pieces (${MAX_FLANK} come to ${dev.toExponential(2)} mm)`);
+  if (dev > secTol) throw gearError('PROFILE_BUDGET_EXCEEDED', `a worm flank within ${secTol.toExponential(2)} mm needs more than ${MAX_FLANK} cubic pieces (${MAX_FLANK} come to ${dev.toExponential(2)} mm)`);
   const F = Math.ceil(N / PER_FACE);
   // The twist: L / p radians (right-hand: counter-clockwise seen from +Z as it rises), as few cubic pieces as its share asks.
   const angle = g.h * g.L / g.p;
   let K = 1; while (twistDeviation(Math.abs(angle) / K) * g.ra > twistTol && K < MAX_SEGMENTS * PER_SEGMENT) K++;
   const S = Math.ceil(K / PER_SEGMENT), NP = Math.ceil(K / S), twistDev = twistDeviation(Math.abs(angle) / (S * NP)) * g.ra;
-  if (S > MAX_SEGMENTS || twistDev > twistTol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `the thread's twist of ${(angle / (2 * Math.PI)).toFixed(3)} turns within ${twistTol.toExponential(2)} mm needs more than ${MAX_SEGMENTS} axial segments`);
+  if (S > MAX_SEGMENTS || twistDev > twistTol) throw gearError('PROFILE_BUDGET_EXCEEDED', `the thread's twist of ${(angle / (2 * Math.PI)).toFixed(3)} turns within ${twistTol.toExponential(2)} mm needs more than ${MAX_SEGMENTS} axial segments`);
   const twist: ProfileTwist = { angle, segments: S, pieces: NP };
   // The section, counter-clockwise: per thread the root join (ZI under its base circle), the flanks, the tip, the root arc to the next.
   const step = 2 * Math.PI / g.z1, psi0 = g.psiAt(g.r0), psiTip = g.psiAt(g.ra), radial = g.form === 'ZI' && g.rf < g.rb, list: Side[] = [];
@@ -216,11 +213,11 @@ export interface WormPairCheck {
 
 function compatible(w: WormDimensions, wheel: SpurGearSpec, d2: ReturnType<typeof spurGearDimensions>): void {
   const beta = Math.abs(d2.beta), hand = d2.beta > 0 ? 'right' : d2.beta < 0 ? 'left' : null;
-  if (!hand) throw new GearError('MATE_INCOMPATIBLE', `a worm meshes with a helical wheel at its lead angle γ ${(w.gamma * 180 / Math.PI).toFixed(5)}°: this wheel is straight`);
-  if ((hand === 'right' ? 1 : -1) !== w.h) throw new GearError('MATE_INCOMPATIBLE', `the wheel is ${hand}-handed, the worm ${w.h > 0 ? 'right' : 'left'}-handed: a worm and its wheel at 90° are of one hand`);
-  if (Math.abs(beta - w.gamma) > 1e-9) throw new GearError('MATE_INCOMPATIBLE', `the wheel's helix angle ${(beta * 180 / Math.PI).toFixed(5)}° is not the worm's lead angle ${(w.gamma * 180 / Math.PI).toFixed(5)}°`);
-  if (Math.abs(d2.mn - w.mn) > 1e-9 * w.mn) throw new GearError('MATE_INCOMPATIBLE', `the wheel's normal module ${d2.mn} is not the worm's m_x cos γ = ${w.mn}`);
-  if ((wheel.pressureAngleDeg ?? 20) !== 20) throw new GearError('MATE_INCOMPATIBLE', 'the pressure angles differ');
+  if (!hand) throw gearError('MATE_INCOMPATIBLE', `a worm meshes with a helical wheel at its lead angle γ ${(w.gamma * 180 / Math.PI).toFixed(5)}°: this wheel is straight`);
+  if ((hand === 'right' ? 1 : -1) !== w.h) throw gearError('MATE_INCOMPATIBLE', `the wheel is ${hand}-handed, the worm ${w.h > 0 ? 'right' : 'left'}-handed: a worm and its wheel at 90° are of one hand`);
+  if (Math.abs(beta - w.gamma) > 1e-9) throw gearError('MATE_INCOMPATIBLE', `the wheel's helix angle ${(beta * 180 / Math.PI).toFixed(5)}° is not the worm's lead angle ${(w.gamma * 180 / Math.PI).toFixed(5)}°`);
+  if (Math.abs(d2.mn - w.mn) > 1e-9 * w.mn) throw gearError('MATE_INCOMPATIBLE', `the wheel's normal module ${d2.mn} is not the worm's m_x cos γ = ${w.mn}`);
+  if ((wheel.pressureAngleDeg ?? 20) !== 20) throw gearError('MATE_INCOMPATIBLE', 'the pressure angles differ');
 }
 
 /**
@@ -415,9 +412,9 @@ export function checkPlacedWormPair(wheel: PlacedWormWheel, wp: PlacedWorm, opti
   const g = wormDimensions(wp.spec), d2 = spurGearDimensions(wheel.spec);
   compatible(g, wheel.spec, d2);
   const Z = wp.axis, mid: Point = [wp.origin[0] + Z[0] * g.L / 2, wp.origin[1] + Z[1] * g.L / 2, wp.origin[2] + Z[2] * g.L / 2];
-  if (Math.abs(Z[2]) > 1e-12) throw new GearError('MATE_INCOMPATIBLE', 'the worm\'s axis is not square to the wheel\'s');
+  if (Math.abs(Z[2]) > 1e-12) throw gearError('MATE_INCOMPATIBLE', 'the worm\'s axis is not square to the wheel\'s');
   const dx = mid[0] - wheel.center[0], dy = mid[1] - wheel.center[1], phi = Math.atan2(dy, dx), a = g.r1 + d2.r + (wheel.spec.profileShiftCoefficient ?? 0) * d2.mn;
-  if (Math.abs(Math.hypot(dx, dy) - a) > 1e-9 * a || Math.abs(mid[2] - (wheel.from + wheel.spec.faceWidthMM / 2)) > 1e-9 * a || Math.abs(Z[0] * Math.cos(phi) + Z[1] * Math.sin(phi)) > 1e-12) throw new GearError('MATE_INCOMPATIBLE', `the worm is not at the centre distance ${a.toFixed(4)} mm in the wheel's mid-plane, its axis square to the line of centres`);
+  if (Math.abs(Math.hypot(dx, dy) - a) > 1e-9 * a || Math.abs(mid[2] - (wheel.from + wheel.spec.faceWidthMM / 2)) > 1e-9 * a || Math.abs(Z[0] * Math.cos(phi) + Z[1] * Math.sin(phi)) > 1e-12) throw gearError('MATE_INCOMPATIBLE', `the worm is not at the centre distance ${a.toFixed(4)} mm in the wheel's mid-plane, its axis square to the line of centres`);
   const pitch = 2 * Math.PI / g.z1, raw = wp.rotation - wormTurnFor(wheel, g, d2, phi);
   let phase = ((raw % pitch) + pitch) % pitch; if (phase < 1e-9 * pitch || pitch - phase < 1e-9 * pitch) phase = 0;
   const deg = phase * 180 / Math.PI;

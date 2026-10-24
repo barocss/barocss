@@ -16,18 +16,18 @@
 //                    survives parameter edits that keep the topology.
 //   references       `id` (all parts of a feature) or `id/k` (part k: the sides of a split)
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, mergeBreps, nurbsOf, type Brep, type BrepCheckReport } from '../brep/brep-core.js';
-import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, PrismaticSolidError, type PrismaticSolid } from '../features/prismatic-solid.js';
+import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, isPrismaticSolidError, type PrismaticSolid } from '../features/prismatic-solid.js';
 import { erodeSection } from '../features/section-offset.js';
-import { booleanCurveRegions, curveTolerance, regionMoments, locateInRegion, sampleRing, segEnd, segReverse, CurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from '../brep/curved-arrangement.js';
+import { booleanCurveRegions, curveTolerance, regionMoments, locateInRegion, sampleRing, segEnd, segReverse, isCurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from '../brep/curved-arrangement.js';
 import { booleanPolyhedra } from '../brep/polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline } from '../brep/analytic-boolean.js';
 import { faceReach, finishBrepEdges } from '../blend/edge-finish.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
 import { exportStep, stepTessellatedChars } from '../io/step.js';
-import { brepFromTriangles, MeshBrepError } from '../mesh/mesh-brep.js';
+import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
 import { facetBrepFromTriangles, weldVertices } from '../mesh/facet-brep.js';
 import { splitFacetBrep, type FacetSplitResult } from '../mesh/facet-split.js';
-import { facetBoolean, FacetBooleanError, splitMixedBrep } from '../mesh/facet-boolean.js';
+import { facetBoolean, isFacetBooleanError, splitMixedBrep } from '../mesh/facet-boolean.js';
 import { selfIntersections } from '../mesh/mesh-repair.js';
 import { sweepSolid } from '../brep/sweep-solid.js';
 import { validateCurve } from '../core/math.js';
@@ -56,7 +56,7 @@ import { transformBrep, quarterTurn, type BrepAffine } from '../brep/brep-transf
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { planar, tessellateBrep } from '../brep/brep-tessellate.js';
 import { rayHit, triangleBvh } from '../mesh/triangle-bvh.js';
-import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, SolidMassError, type SolidMassProperties } from '../brep/solid-mass.js';
+import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type SolidMassProperties } from '../brep/solid-mass.js';
 import { glueAtSharedFace, withCavities } from '../brep/brep-glue.js';
 import { loftSolid } from '../features/loft.js';
 import { generalShell } from '../blend/general-shell.js';
@@ -64,10 +64,10 @@ import { offsetCavity, offsetShell, smoothOffsetBody } from '../blend/offset-cav
 import { regionShell } from '../blend/region-shell.js';
 import { meshInnerOffset, type MeshShellReport } from '../mesh/mesh-offset.js';
 import { bendAllowance, bendDeduction, flangeSection, lookupBend, outsideSetback, type BendTable, type BendTableUse, type SheetReport } from '../frame-sheet/sheet-metal.js';
-import { flatPattern as flatPatternOf, FlatPatternError, type FlatPattern } from '../frame-sheet/sheet-flat.js';
-import { ExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from '../features/extruded-profile-solid.js';
+import { flatPattern as flatPatternOf, isFlatPatternError, type FlatPattern } from '../frame-sheet/sheet-flat.js';
+import { isExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from '../features/extruded-profile-solid.js';
 import { loopArea, loopPerimeter, type BeadReport, type EndCapReport, type GussetReport, type WeldmentSeam, type BeadJointRef, type BeadSharedComponent, type BeadSharedSeam } from '../frame-sheet/frame-weldment.js';
-import { FRAME_ANCHORS, FrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameNotchReport, type FrameSectionSpec } from '../frame-sheet/frame-section.js';
+import { FRAME_ANCHORS, isFrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameNotchReport, type FrameSectionSpec } from '../frame-sheet/frame-section.js';
 import type { Curve, FacetPatch, Point } from '../types.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import { encodeBinaryStl } from '../io/stl.js';
@@ -816,7 +816,7 @@ function explodeFacets(b: Brep, at: string, what: string): Brep {
   const crossing = selfIntersections(welded.P, wi);
   if (crossing.count) throw new CadPartError('GEOMETRY', at, `${what} need a mesh that does not cross itself: this one does in ${crossing.count} place${crossing.count > 1 ? 's' : ''} (near ${crossing.at[0].map(x => +x.toFixed(2)).join(', ')}); repair does not fix that yet`);
   try { return brepFromTriangles(positions, indices, { id: b.bodies[0]?.id ?? at, maximumTriangles: count }); }
-  catch (cause) { if (cause instanceof MeshBrepError) throw new CadPartError('GEOMETRY', at, cause.message); throw cause; }
+  catch (cause) { if (isMeshBrepError(cause)) throw new CadPartError('GEOMETRY', at, cause.message); throw cause; }
 }
 const brepOf = (part: Part, id: string): Brep => part.brep ??= part.solid.kind === 'upright' ? brepFromPrismatic(part.solid.solid, { id }) : part.solid.brep;
 /** A feature run after its stored names are checked on each target part (O19, D277). */
@@ -1031,7 +1031,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
     } catch (cause) {
       if (cause instanceof CadPartError) throw cause;
       // Kernel refusals keep their own reason; anything else is reported, never swallowed.
-      const known = cause instanceof BrepError || cause instanceof PrismaticSolidError || cause instanceof CurvedArrangementError || cause instanceof ExtrudedProfileError || cause instanceof SolidMassError;
+      const known = cause instanceof BrepError || isPrismaticSolidError(cause) || isCurvedArrangementError(cause) || isExtrudedProfileError(cause) || isSolidMassError(cause);
       throw new CadPartError('GEOMETRY', at, known ? (cause as Error).message : `unexpected kernel failure: ${cause instanceof Error ? cause.message : String(cause)}`);
     }
     results.set(at, result); features.push({ id: at, kind: f.kind, dependencies: [...new Set(deps)] });
@@ -1618,7 +1618,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         try {
           if (profiling) profiling.sweeps++;
           return one({ kind: 'brep', brep: sweepSolid({ id: at, outer: loopPoints(sk.outer), holes: (sk.holes ?? []).map(loopPoints), xAxis: [m[0], m[3], m[6]], yAxis: [m[1], m[4], m[7]], path: curve }) });
-        } catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+        } catch (cause) { if (cause instanceof RangeError || isMeshBrepError(cause)) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
     case 'spur-gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spur-rack': return gearOperation(f, t, HELPERS);
@@ -1680,7 +1680,7 @@ function obliqueHalf(o: Point, n: Point, x: Point, y: Point, R: number, below: b
 function facetWith(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string): Solid {
   const B = b.kind === 'upright' ? brepFromPrismatic(b.solid, { id: at + '_tool' }) : b.brep;
   try { return { kind: 'brep', brep: facetBoolean((a as Extract<Solid, { kind: 'brep' }>).brep, B, op, { id: at, nearTriangles: facetLimit }) }; }
-  catch (cause) { if (cause instanceof FacetBooleanError) throw new CadPartError(cause.code, at, cause.message); if (cause instanceof BrepError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
+  catch (cause) { if (isFacetBooleanError(cause)) throw new CadPartError(cause.code, at, cause.message); if (cause instanceof BrepError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
 }
 /** A body of mesh faces only (F0): split on its own triangles (F1), any size. */
 const facetBody = (s: Solid) => s.kind === 'brep' && s.brep.faces.length > 0 && s.brep.faces.some(isFacetFace);
@@ -1712,7 +1712,7 @@ function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
   let r: FacetSplitResult;
   const brep = (s as Extract<Solid, { kind: 'brep' }>).brep;
   try { r = brep.faces.every(isFacetFace) ? splitFacetBrep(brep, { normal: n, offset: d, at }) : { ...splitMixedBrep(brep, n, d, at), loops: [] }; }
-  catch (cause) { if (cause instanceof BrepError || cause instanceof FacetBooleanError) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
+  catch (cause) { if (cause instanceof BrepError || isFacetBooleanError(cause)) throw new CadPartError('GEOMETRY', at, cause.message.replace(/^B-rep: /, '')); throw cause; }
   if (!r.below || !r.above) throw new CadPartError('SELECTION', at, 'the split plane does not cross the target');
   return [{ kind: 'brep', brep: r.below }, { kind: 'brep', brep: r.above }];
 }
@@ -1836,7 +1836,7 @@ function memberShape(sec: unknown, what: string, t: Pick<Tools, 'ref' | 'dim' | 
   try {
     const b = frameSection(sectionSpec(section, t.dim, t.integer, t.fail));
     return { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
-  } catch (cause) { if (cause instanceof FrameSectionError) return t.fail('PARAMETER', cause.message); throw cause; }
+  } catch (cause) { if (isFrameSectionError(cause)) return t.fail('PARAMETER', cause.message); throw cause; }
 }
 /** A section mirrored across its own y axis (x ↦ −x): its loops turned about, arcs the other way, its centroid and box with it. */
 function mirroredShape(s: MemberShape): MemberShape {
@@ -3193,7 +3193,7 @@ function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools[
     } catch (cause) {
       const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
       if (m) fail('CAPABILITY', m[1]);
-      if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message);
+      if (isMeshBrepError(cause)) fail('GEOMETRY', cause.message);
       throw cause;
     }
   }
@@ -3655,7 +3655,7 @@ function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
         const flat = flatPatternOf(brep, { thicknessMM: s.thicknessMM, ...(k !== undefined ? { kFactor: k } : { bendTable: s.bendTable! }), fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
         flats.set(key, flat); return flat;
       } catch (cause) {
-        if (cause instanceof FlatPatternError) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);
+        if (isFlatPatternError(cause)) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);
         throw cause;
       }
     },

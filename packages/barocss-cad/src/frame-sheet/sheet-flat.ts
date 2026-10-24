@@ -8,7 +8,7 @@ import { brepMassProperties } from '../brep/solid-mass.js';
 import type { DxfDocument, DxfEntity } from '../io/dxf-writer.js';
 import { lookupBend, type BendTable, type BendTableUse } from './sheet-metal.js';
 import { add, cross, dot, len, scale as scl, sub } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 // R12.2 (D117): a sheet-metal body's flat pattern, from its B-rep and the sheet's thickness T and K-factor alone (D115).
 // The skin — the faces joined to a fixed planar face across smooth edges — is developed onto that face's plane: planes
@@ -48,9 +48,9 @@ export interface FlatPattern {
 }
 export type FlatPatternErrorCode = 'NOT_A_SHEET' | 'NON_NORMAL_CUT' | 'BEND_NOT_CYLINDRICAL' | 'FLAT_OVERLAPS' | 'CUT_ACROSS_BEND' | 'BEND_TABLE_MISS';
 /** A refusal: its message starts with its `[CODE]`. */
-export class FlatPatternError extends KernelError {
-  constructor(readonly code: FlatPatternErrorCode, detail: string) { super(`[${code}] ${detail}`.slice(0, 1024)); this.name = 'FlatPatternError'; }
-}
+export const flatPatternError = (code: FlatPatternErrorCode, detail: string) => kernelRefusal('flat-pattern', code, `[${code}] ${detail}`.slice(0, 1024)) as KernelError & { readonly code: FlatPatternErrorCode };
+/** Whether something thrown is this module's refusal. */
+export const isFlatPatternError = (e: unknown): e is KernelError & { readonly code: FlatPatternErrorCode } => isFrom<FlatPatternErrorCode>(e, 'flat-pattern');
 export interface FlatPatternOptions {
   /** One K-factor for every bend, or a bend table giving each bend's by its T, inner R and angle (R12.4): one of them. */
   readonly thicknessMM: number; readonly kFactor?: number; readonly bendTable?: BendTable;
@@ -132,11 +132,11 @@ interface Ctx {
 }
 const nameOf = (c: Ctx, f: string) => c.faces.get(f)!.name ?? f;
 
-/** The flat pattern of a sheet-metal body (see the top of this file); refusals as FlatPatternError. */
+/** The flat pattern of a sheet-metal body (see the top of this file); refusals typed (flatPatternError). */
 export function flatPattern(brep: Brep, options: FlatPatternOptions): FlatPattern {
   const T = options.thicknessMM, table = options.bendTable ?? null, K = options.kFactor ?? 0.5;
-  if ((options.kFactor === undefined) === (table === null)) throw new FlatPatternError('NOT_A_SHEET', 'a flat needs a K-factor or a bend table (one of them)');
-  if (!(T > 0) || !(K >= 0 && K <= 1)) throw new FlatPatternError('NOT_A_SHEET', 'a flat needs a thickness above 0 and a K-factor from 0 to 1');
+  if ((options.kFactor === undefined) === (table === null)) throw flatPatternError('NOT_A_SHEET', 'a flat needs a K-factor or a bend table (one of them)');
+  if (!(T > 0) || !(K >= 0 && K <= 1)) throw flatPatternError('NOT_A_SHEET', 'a flat needs a thickness above 0 and a K-factor from 0 to 1');
   let size = 1;
   for (const v of brep.vertices) size = Math.max(size, Math.abs(v.point[0]), Math.abs(v.point[1]), Math.abs(v.point[2]));
   const c: Ctx = {
@@ -146,11 +146,11 @@ export function flatPattern(brep: Brep, options: FlatPatternOptions): FlatPatter
   };
   const faceOfLoop = new Map(brep.loops.map(l => [l.id, l.face]));
   for (const f of brep.faces) {
-    if (f.surface.kind === 'facets') throw new FlatPatternError('NOT_A_SHEET', `${f.name ?? f.id} is a mesh face: a flat is made of exact faces`);
+    if (f.surface.kind === 'facets') throw flatPatternError('NOT_A_SHEET', `${f.name ?? f.id} is a mesh face: a flat is made of exact faces`);
     c.geo.set(f.id, faceGeometry(f));
   }
   for (const x of brep.coedges) { const f = faceOfLoop.get(x.loop)!; const l = c.usedBy.get(x.edge); if (l) l.push(f); else c.usedBy.set(x.edge, [f]); }
-  if (brep.bodies.length !== 1) throw new FlatPatternError('NOT_A_SHEET', `the body is in ${brep.bodies.length} pieces: a flat is one piece of sheet`);
+  if (brep.bodies.length !== 1) throw flatPatternError('NOT_A_SHEET', `the body is in ${brep.bodies.length} pieces: a flat is one piece of sheet`);
 
   const fixed = pickFixed(c, options.fixedFace);
   // (A table: each bend's angle and inner radius found first — they do not depend on K — then its K looked up.)
@@ -178,7 +178,7 @@ function pickFixed(c: Ctx, name: string | undefined): string {
     const m = planeMap(g.o, g.n), a = Math.abs(faceGreen(c, f.id, m));
     if (a > area + 1e-9 * Math.max(1, a) || (Math.abs(a - area) <= 1e-9 * Math.max(1, a) && best !== null && f.id < best)) { area = a; best = f.id; }
   }
-  if (best === null) throw new FlatPatternError('NOT_A_SHEET', name !== undefined ? `no planar face ${name} to lay the flat in` : 'no planar face to lay the flat in');
+  if (best === null) throw flatPatternError('NOT_A_SHEET', name !== undefined ? `no planar face ${name} to lay the flat in` : 'no planar face to lay the flat in');
   return best;
 }
 /** A plane's map onto itself: its first axis world X in the plane (else Y), the second n × first, so seen from outside. */
@@ -222,10 +222,10 @@ function kOfBends(c: Ctx, maps: Map<string, DevMap>, table: BendTable): KOf {
   }
   for (const g of groups) {
     const r = lookupBend(table, c.T, g.m.inner, g.theta);
-    if ('miss' in r) throw new FlatPatternError('BEND_TABLE_MISS', `a bend of R ${fmt(g.m.inner)} mm, ${fmt(g.theta * 180 / Math.PI)}°: ${r.miss}`);
+    if ('miss' in r) throw flatPatternError('BEND_TABLE_MISS', `a bend of R ${fmt(g.m.inner)} mm, ${fmt(g.theta * 180 / Math.PI)}°: ${r.miss}`);
     g.k = { k: r.kFactor, use: r.use };
   }
-  return gc => { const g = groups.find(x => sameCylinder(c, x.m, gc)); if (!g) throw new FlatPatternError('NOT_A_SHEET', 'a bend was not found again'); return g.k!; };
+  return gc => { const g = groups.find(x => sameCylinder(c, x.m, gc)); if (!g) throw flatPatternError('NOT_A_SHEET', 'a bend was not found again'); return g.k!; };
 }
 /** The skin from the fixed face across smooth edges, each face's development (each bend's K from `kOf`, else the flat's). */
 function developSkin(c: Ctx, fixed: string, kOf: KOf | null): Map<string, DevMap> {
@@ -236,12 +236,12 @@ function developSkin(c: Ctx, fixed: string, kOf: KOf | null): Map<string, DevMap
       const e = c.edges.get(c.co.get(cid)!.edge)!, other = c.usedBy.get(e.id)!.find(f => f !== fid);
       if (other === undefined || maps.has(other) || !smoothAcross(c, fid, other, e)) continue;
       const gO = c.geo.get(other)!;
-      if (gO.kind === 'other') throw new FlatPatternError('BEND_NOT_CYLINDRICAL', `${nameOf(c, other)} continues the sheet smoothly but is not a plane or a cylinder: only cylindrical bends unfold`);
+      if (gO.kind === 'other') throw flatPatternError('BEND_NOT_CYLINDRICAL', `${nameOf(c, other)} continues the sheet smoothly but is not a plane or a cylinder: only cylindrical bends unfold`);
       // Coplanar pieces and pieces of one cylinder share a development.
       if (gF.kind === 'plane' && gO.kind === 'plane') { maps.set(other, m); queue.push(other); continue; }
       if (gF.kind === 'cylinder' && gO.kind === 'cylinder' && Math.abs(gF.r - gO.r) <= c.tol && Math.abs(Math.abs(dot(gF.a, gO.a)) - 1) < 1e-12 && len(cross(sub(gO.c, gF.c), gF.a)) <= c.tol) { maps.set(other, m); queue.push(other); continue; }
       const line = straight(c, e);
-      if (!line) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} and ${nameOf(c, other)} meet smoothly along a curve: the skin's faces meet along straight tangent lines`);
+      if (!line) throw flatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} and ${nameOf(c, other)} meet smoothly along a curve: the skin's faces meet along straight tangent lines`);
       const [A, B] = line, u = unit(sub(B, A));
       // Into the face we come from, square to the edge, in its tangent plane: t_in; the next face goes on the other way.
       const n1 = normalAt(c.faces.get(fid)!, gF, A)!;
@@ -253,7 +253,7 @@ function developSkin(c: Ctx, fixed: string, kOf: KOf | null): Map<string, DevMap
         const a = dot(gO.a, u) > 0 ? gO.a : scl(gO.a, -1), d = sub(A, gO.c), d0 = unit(sub(d, scl(gO.a, dot(d, gO.a))));
         const inner = gO.out === 1 ? gO.r - c.T : gO.r, kk = kOf ? kOf(gO) : { k: c.K }, rn = inner + kk.k * c.T;
         const sgn = Math.sign(dot(cross(d0, tout), a)) || 1;
-        if (!(inner > 0)) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, other)}: a bend of radius ${fmt(gO.r)} is tighter than the sheet is thick`);
+        if (!(inner > 0)) throw flatPatternError('NOT_A_SHEET', `${nameOf(c, other)}: a bend of radius ${fmt(gO.r)} is tighter than the sheet is thick`);
         maps.set(other, { kind: 'cyl', c: gO.c, a, rho: gO.r, p3: A, d0, sgn, o2: a2, fa: u2, fx: x2, rn, inner, k: kk.k, ...(kk.use ? { use: kk.use } : {}) });
       }
       queue.push(other);
@@ -309,14 +309,14 @@ function checkThickness(c: Ctx, skin: Set<string>): void {
     // One in a skin face's own plane, not reached: a piece of the skin cut off from it (held at a point or along a thin).
     if (g.kind === 'plane') for (const a of skin) {
       const h = c.geo.get(a)!;
-      if (h.kind === 'plane' && dot(g.n, h.n) > 1 - 1e-12 && Math.abs(dot(sub(g.o, h.o), h.n)) <= c.tol) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} lies in the skin's plane but is cut off from it (held only at a point): a sliver left between cuts`);
+      if (h.kind === 'plane' && dot(g.n, h.n) > 1 - 1e-12 && Math.abs(dot(sub(g.o, h.o), h.n)) <= c.tol) throw flatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} lies in the skin's plane but is cut off from it (held only at a point): a sliver left between cuts`);
     }
     if (g.kind === 'plane') for (const a of skin) {
       const h = c.geo.get(a)!;
-      if (h.kind === 'plane' && dot(g.n, h.n) < -1 + 1e-12) throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} lies ${fmt(-dot(sub(g.o, h.o), h.n))} mm from the skin face ${nameOf(c, a)}, not the sheet's ${fmt(c.T)} mm`);
+      if (h.kind === 'plane' && dot(g.n, h.n) < -1 + 1e-12) throw flatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} lies ${fmt(-dot(sub(g.o, h.o), h.n))} mm from the skin face ${nameOf(c, a)}, not the sheet's ${fmt(c.T)} mm`);
     }
-    if (off) throw new FlatPatternError('NON_NORMAL_CUT', `${nameOf(c, fid)} meets the sheet's face ${nameOf(c, off.s)} ${Number.isFinite(off.deg) ? fmt(off.deg) + '° ' : ''}off square: only cuts square to the sheet unfold`);
-    throw new FlatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} is neither on the sheet's skins nor a cut through it`);
+    if (off) throw flatPatternError('NON_NORMAL_CUT', `${nameOf(c, fid)} meets the sheet's face ${nameOf(c, off.s)} ${Number.isFinite(off.deg) ? fmt(off.deg) + '° ' : ''}off square: only cuts square to the sheet unfold`);
+    throw flatPatternError('NOT_A_SHEET', `${nameOf(c, fid)} is neither on the sheet's skins nor a cut through it`);
   }
 }
 
@@ -329,7 +329,7 @@ function checkVolume(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, devAr
     else want += c.T * a * (m.inner + c.T / 2) / m.rn;
   }
   const V = brepMassProperties(c.brep, 1).volumeMM3;
-  if (!(Math.abs(V - want) <= 1e-7 * Math.max(Math.abs(V), 1))) throw new FlatPatternError('NOT_A_SHEET', `the body is not a sheet ${fmt(c.T)} mm thick: its volume ${fmt(V)} mm³ against ${fmt(want)} mm³ for its skin`);
+  if (!(Math.abs(V - want) <= 1e-7 * Math.max(Math.abs(V), 1))) throw flatPatternError('NOT_A_SHEET', `the body is not a sheet ${fmt(c.T)} mm thick: its volume ${fmt(V)} mm³ against ${fmt(want)} mm³ for its skin`);
 }
 
 // ---- the outline -------------------------------------------------------------------------------------------------------
@@ -355,14 +355,14 @@ function outline(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, devArea: 
       while (internal(c, skin, next)) next = c.co.get(c.co.get(next)!.twin!)!.next;
       cid = next;
       if (cid === start) break;
-      if (seen.has(cid)) throw new FlatPatternError('NOT_A_SHEET', 'the skin\'s boundary does not close into loops');
+      if (seen.has(cid)) throw flatPatternError('NOT_A_SHEET', 'the skin\'s boundary does not close into loops');
     }
     const merged = mergeRuns(segs, c.tol);
     loops.push({ outer: false, segments: merged, areaMM2: merged.reduce((s, x) => s + green(x), 0) });
   }
   let big = 0;
   loops.forEach((l, i) => { if (Math.abs(l.areaMM2) > Math.abs(loops[big].areaMM2)) big = i; });
-  if (!loops.length || !(loops[big].areaMM2 > 0)) throw new FlatPatternError('NOT_A_SHEET', 'the developed skin has no outer boundary');
+  if (!loops.length || !(loops[big].areaMM2 > 0)) throw flatPatternError('NOT_A_SHEET', 'the developed skin has no outer boundary');
   return loops.map((l, i) => ({ ...l, outer: i === big }));
 }
 /** Whether a coedge's edge lies between two skin faces (inside the flat, not on its outline). */
@@ -377,7 +377,7 @@ function imageOf(c: Ctx, fid: string, m: DevMap, e: BrepEdge, sense: 'forward' |
   const a = ps[0], b = ps[8], d: XY = [b[0] - a[0], b[1] - a[1]], l = Math.hypot(d[0], d[1]);
   const offLine = (p: XY) => Math.abs((p[0] - a[0]) * d[1] - (p[1] - a[1]) * d[0]) / l;
   if (l > c.tol && ps.every(p => offLine(p) <= c.tol)) return { kind: 'line', a, b };
-  if (m.kind === 'cyl') throw new FlatPatternError('CUT_ACROSS_BEND', `${nameOf(c, fid)}: a cut runs across the bend (its edge develops to a curve): not supported yet`);
+  if (m.kind === 'cyl') throw flatPatternError('CUT_ACROSS_BEND', `${nameOf(c, fid)}: a cut runs across the bend (its edge develops to a curve): not supported yet`);
   // A circle through the start, middle and end, all the samples on it: an arc (closed: a full circle).
   const mid = ps[4], closed = l <= c.tol, q = closed ? ps[2] : mid, r2 = closed ? ps[6] : b;
   const cen = circumcentre(a, q, r2);
@@ -536,7 +536,7 @@ function checkOverlaps(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, loo
     if (Math.round(w) >= 2) throw overlap(q);
   }
 }
-const overlap = (p: XY) => new FlatPatternError('FLAT_OVERLAPS', `the flat covers itself near (${fmt(p[0])}, ${fmt(p[1])}): the sheet cannot be cut in one piece and folded`);
+const overlap = (p: XY) => flatPatternError('FLAT_OVERLAPS', `the flat covers itself near (${fmt(p[0])}, ${fmt(p[1])}): the sheet cannot be cut in one piece and folded`);
 /** A loop as points (arcs and splines finely sampled), closed. */
 function polyline(segs: readonly FlatSegment[]): XY[] {
   const out: XY[] = [];

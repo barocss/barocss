@@ -1,5 +1,5 @@
 import type { ProfileSegmentInput, XY } from '../features/extruded-profile-solid.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 // FR1 structural sections (D122, D123). A section is a closed profile with holes in its own XY: its loops, a name for
 // each segment, its area and centroid in closed form and its box. Every dimension is given (no section sizes and no
@@ -29,16 +29,16 @@ export interface FrameSection {
 }
 
 /** A section's dimensions refused: the part model's PARAMETER code, the message starting `[SECTION_DIMENSIONS]`. */
-export class FrameSectionError extends KernelError {
-  constructor(detail: string) { super(`[SECTION_DIMENSIONS] ${detail}`.slice(0, 1024), { code: 'SECTION_DIMENSIONS' }); this.name = 'FrameSectionError'; }
-}
+export const frameSectionError = (detail: string) => kernelRefusal('frame-section', 'SECTION_DIMENSIONS', `[SECTION_DIMENSIONS] ${detail}`.slice(0, 1024)) as KernelError & { readonly code: 'SECTION_DIMENSIONS' };
+/** Whether something thrown is this module's refusal. */
+export const isFrameSectionError = (e: unknown): e is KernelError & { readonly code: 'SECTION_DIMENSIONS' } => isFrom<'SECTION_DIMENSIONS'>(e, 'frame-section');
 
 /** The spandrel of a quarter disk of radius r (the square r × r less the disk): its area and its centroid's distance from the square's corner, along each side. */
 const SPANDREL = 1 - Math.PI / 4;
 const spandrelArea = (r: number) => SPANDREL * r * r;
 const spandrelReach = (r: number) => r * (10 - 3 * Math.PI) / (3 * (4 - Math.PI));
 const fmt = (x: number) => String(+x.toFixed(4));
-const refuse = (detail: string): never => { throw new FrameSectionError(detail); };
+const refuse = (detail: string): never => { throw frameSectionError(detail); };
 
 /** A loop under construction: segments and their names; a line of no length is left out (its start merges). */
 interface LoopBuilder { readonly segments: ProfileSegmentInput[]; readonly names: string[] }

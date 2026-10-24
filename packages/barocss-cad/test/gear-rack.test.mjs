@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurRack, spurRackDimensions, checkSpurGearRack, checkPlacedSpurRack, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurRack, spurRackDimensions, checkSpurGearRack, checkPlacedSpurRack, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
 
 // R6a.5b (issue #2167, D58): the rack and its checks with a spur gear.
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b}`);
@@ -47,7 +47,7 @@ test('gear and rack checks: at r + x m no backlash, the teeth touching over the 
   const rb3 = 18 * C;
   close(sh.idealContactRatio, (Math.sqrt(22.8 ** 2 - rb3 ** 2) - 18 * S + (3 - 1.8) / S) / (3 * Math.PI * C), 1e-12, 'εα shifted');
   // Refusals.
-  const code = (f, c, re) => assert.throws(f, e => e instanceof GearError && e.code === c && (!re || re.test(e.message)));
+  const code = (f, c, re) => assert.throws(f, e => isGearError(e) && e.code === c && (!re || re.test(e.message)));
   code(() => spurRackDimensions({ ...k, heightMM: 4 }), 'INVALID_INPUT', /at least the dedendum and a rim/);
   code(() => spurRackDimensions({ ...k, teeth: 0 }), 'INVALID_INPUT'); code(() => spurRackDimensions({ ...k, pressureAngleDeg: 25 }), 'UNSUPPORTED_GEAR_KIND');
   code(() => checkSpurGearRack(g, { ...k, moduleMM: 3 }), 'MATE_INCOMPATIBLE');
@@ -69,7 +69,7 @@ test('a rack meshing with a gear in the part model (R6a.5b): under it at r + x m
   close(c.rackPhaseMM, 1, 1e-9, 'phase'); assert.ok(c.sweep.interference);
   // Turned half round about the pitch line's normal: the teeth face away.
   const away = { ...off.output('k').rackPlacement, angle: off.output('k').rackPlacement.angle + Math.PI };
-  assert.throws(() => checkPlacedSpurRack(off.output('g').gearPlacement, away), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE' && /face away/.test(e.message));
+  assert.throws(() => checkPlacedSpurRack(off.output('g').gearPlacement, away), e => isGearError(e) && e.code === 'MATE_INCOMPATIBLE' && /face away/.test(e.message));
   assert.throws(() => evaluateCadPart(D([g(0), { ...k(), module: 3 }])), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   // A rack on its own: along its angle from its origin.
   const free = evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 5, faceWidth: 4, height: 8, origin: [1, 2], angle: 90, from: 3 }])).output('k');

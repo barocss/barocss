@@ -13,7 +13,7 @@
 // along them); past the budget — never a looser tolerance — the wheel is refused, the measured deviation said.
 import { buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
-import { GearError, safeId, bezierKnots, arcCurve, pointSegment, type GearDiagnostic } from './gear.js';
+import { gearError, safeId, bezierKnots, arcCurve, pointSegment, type GearDiagnostic } from './gear.js';
 import { wormDimensions, wormOutline, wormSection, planeClearance, type WormSpec, type WormDimensions, type PlacedWorm } from './gear-worm.js';
 
 export interface ThroatedWheelSpec {
@@ -53,18 +53,18 @@ export interface WheelGeom {
 
 export function throatedWheelGeom(spec: ThroatedWheelSpec): WheelGeom {
   const w = wormDimensions({ ...spec.worm, toothThicknessReductionMM: 0 });
-  if (w.form !== 'ZA') throw new GearError('UNSUPPORTED_GEAR_KIND', `a throated wheel for a ${w.form} worm: only for ZA worms in this stage (its mid-plane is an involute only then)`);
+  if (w.form !== 'ZA') throw gearError('UNSUPPORTED_GEAR_KIND', `a throated wheel for a ${w.form} worm: only for ZA worms in this stage (its mid-plane is an involute only then)`);
   const z2 = spec.teeth, b = spec.faceWidthMM;
-  if (!(Number.isInteger(z2) && z2 >= 18 && z2 <= 200)) throw new GearError('INVALID_INPUT', 'teeth must be a whole number from 18 to 200');
+  if (!(Number.isInteger(z2) && z2 >= 18 && z2 <= 200)) throw gearError('INVALID_INPUT', 'teeth must be a whole number from 18 to 200');
   const r2 = z2 * w.m / 2, a = w.r1 + r2, Rt = a - r2 - w.m, Rh = w.r1 + 1.25 * w.m;
-  if (!(Number.isFinite(b) && b > 0 && b / 2 < 0.8 * Rt)) throw new GearError('INVALID_INPUT', `faceWidthMM must be above 0 and below 1.6 R_t = ${(1.6 * Rt).toFixed(3)} mm (the throat arc's reach)`);
+  if (!(Number.isFinite(b) && b > 0 && b / 2 < 0.8 * Rt)) throw gearError('INVALID_INPUT', `faceWidthMM must be above 0 and below 1.6 R_t = ${(1.6 * Rt).toFixed(3)} mm (the throat arc's reach)`);
   const j = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(j) && j >= 0 && j < w.sx)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more, below the thread\'s thickness');
+  if (!(Number.isFinite(j) && j >= 0 && j < w.sx)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more, below the thread\'s thickness');
   const sxH = w.sx + j, psiRefH = sxH / (2 * w.p);
   const psiH = (rho: number) => psiRefH - (rho - w.r1) * Math.tan(w.alphaX) / w.p;
   const bd = spec.boreDiameterMM ?? 0, rootMin = a - Rh;
-  if (!(Number.isFinite(bd) && bd >= 0)) throw new GearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
-  if (bd > 0 && !(bd / 2 <= rootMin - w.m)) throw new GearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${w.m} mm rim below the root (Ø${(2 * rootMin).toFixed(3)} mm): at most Ø${Math.max(0, 2 * (rootMin - w.m)).toFixed(3)}`);
+  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
+  if (bd > 0 && !(bd / 2 <= rootMin - w.m)) throw gearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${w.m} mm rim below the root (Ø${(2 * rootMin).toFixed(3)} mm): at most Ø${Math.max(0, 2 * (rootMin - w.m)).toFixed(3)}`);
   return { w, z2, r2, a, Rt, Rh, b, psiH, bore: bd / 2, step: 2 * Math.PI / z2 };
 }
 
@@ -112,7 +112,7 @@ export const rootRadius = (G: WheelGeom, c: number) => G.a - Math.sqrt(G.Rh * G.
 export function rhoAtTip(G: WheelGeom, sigma: number, c: number): number {
   const rt = tipRadius(G, c);
   let lo = Math.max(Math.abs(c) * 1.000001, G.w.rf * 0.5), hi = G.Rh;
-  if (!(flankRadius(G, sigma, c, lo) > rt)) throw new GearError('UNSUPPORTED_GEAR_KIND', `throated wheel: at ${c.toFixed(3)} mm from the mid-plane the hob's flank does not reach the wheel's tip`);
+  if (!(flankRadius(G, sigma, c, lo) > rt)) throw gearError('UNSUPPORTED_GEAR_KIND', `throated wheel: at ${c.toFixed(3)} mm from the mid-plane the hob's flank does not reach the wheel's tip`);
   for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; if (flankRadius(G, sigma, c, m) > rt) lo = m; else hi = m; }
   return (lo + hi) / 2;
 }
@@ -296,19 +296,19 @@ function fitKind(G: WheelGeom, kind: 'fillet' | 'flank', sigma: number, tol: num
  */
 export function throatedWormWheel(spec: ThroatedWheelSpec, options: { readonly id?: string } = {}): { brep: Brep; report: ThroatedWheelReport } {
   const id = safeId(options.id ?? 'wheel'), G = throatedWheelGeom(spec), tol = spec.profileToleranceMM ?? 1e-4 * G.w.mn;
-  if (!(Number.isFinite(tol) && tol > 0)) throw new GearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
   // Which side of the hob's thread cuts a space's upper (counter-clockwise) side: its corner's point at the greater angle.
   const o = [0, 0, 0]; flankPoint(G, 1, 0, G.Rh, o); const a1 = Math.atan2(o[1], o[0]); flankPoint(G, -1, 0, G.Rh, o); const a2 = Math.atan2(o[1], o[0]);
   const up = a1 > a2 ? 1 : -1, lo = -up;
   // The flank must climb from the corner to the tip (no undercut): its radius falls as ρ grows.
   for (const c of [-G.b / 2, 0, G.b / 2]) for (const s of [up, lo]) {
     const rt = rhoAtTip(G, s, c); let prev = Infinity;
-    for (let i = 0; i <= 64; i++) { const r = flankRadius(G, s, c, rt + (G.Rh - rt) * i / 64); if (!(r < prev + 1e-12)) throw new GearError('UNSUPPORTED_GEAR_KIND', `throated wheel: the generated flank turns back (undercut) ${c.toFixed(3)} mm from the mid-plane — more teeth`); prev = r; }
+    for (let i = 0; i <= 64; i++) { const r = flankRadius(G, s, c, rt + (G.Rh - rt) * i / 64); if (!(r < prev + 1e-12)) throw gearError('UNSUPPORTED_GEAR_KIND', `throated wheel: the generated flank turns back (undercut) ${c.toFixed(3)} mm from the mid-plane — more teeth`); prev = r; }
   }
   const fl = fitKind(G, 'flank', up, tol), fi = fitKind(G, 'fillet', up, tol);
   // Past the budget, or the surfaces' measured distance past the tolerance: refused, with what was measured (the owner's word, D129).
   for (const [what, f] of [['flank', fl], ['root fillet', fi]] as const)
-    if (!(f.dev <= tol)) throw new GearError('UNSUPPORTED_GEAR_KIND', `throated wheel: its generated ${what} fits within ${f.dev.toExponential(2)} mm at the budget (${f.nu} × ${f.nv} bicubic pieces; at most ${MAX_ACROSS} across and ${MAX_ALONG} along), not ${tol.toExponential(2)} mm — the cylindrical wheel stays`);
+    if (!(f.dev <= tol)) throw gearError('UNSUPPORTED_GEAR_KIND', `throated wheel: its generated ${what} fits within ${f.dev.toExponential(2)} mm at the budget (${f.nu} × ${f.nv} bicubic pieces; at most ${MAX_ACROSS} across and ${MAX_ALONG} along), not ${tol.toExponential(2)} mm — the cylindrical wheel stays`);
   // (One set of levels along the axis for the whole ring, and one count of pieces along it for fillets and flanks alike:
   // the edge they share is one curve.)
   const nvAll = Math.max(fl.nv, fi.nv), S = Math.ceil(nvAll / PER), nvs = Math.ceil(nvAll / S), Ff = Math.ceil(fl.nu / PER), Fi = Math.ceil(fi.nu / PER), nuf = Math.ceil(fl.nu / Ff), nui = Math.ceil(fi.nu / Fi), nvf = nvs, nvi = nvs;
@@ -341,7 +341,7 @@ export function throatedWormWheel(spec: ThroatedWheelSpec, options: { readonly i
     if (T[k].P.kind === 'flank') devFlank = Math.max(devFlank, d); else devFillet = Math.max(devFillet, d);
   }
   for (const [what, d] of [['flank', devFlank], ['root fillet', devFillet]] as const)
-    if (!(d <= tol)) throw new GearError('UNSUPPORTED_GEAR_KIND', `throated wheel: its generated ${what}'s faces as built come within ${d.toExponential(2)} mm, not ${tol.toExponential(2)} mm — the cylindrical wheel stays`);
+    if (!(d <= tol)) throw gearError('UNSUPPORTED_GEAR_KIND', `throated wheel: its generated ${what}'s faces as built come within ${d.toExponential(2)} mm, not ${tol.toExponential(2)} mm — the cylindrical wheel stays`);
   // The ring: z2 teeth of m pieces.
   const n = G.z2 * m, vertices: { id: string; point: Point; toleranceMM?: number }[] = [], edges: { id: string; curve: Curve; vertices: [string, string]; toleranceMM?: number }[] = [], faces: BrepFaceInput[] = [];
   const V = (i: number, j: number) => `${id}_v${i}_${j}`, EL = (i: number, j: number) => `${id}_l${i}_${j}`, ES = (i: number, j: number) => `${id}_s${i}_${j}`;
@@ -418,7 +418,7 @@ export interface ThroatedPairCheck {
 }
 function sameWorm(a: WormSpec, b: WormSpec): void {
   const A = wormDimensions({ ...a, lengthMM: 1 }), B = wormDimensions({ ...b, lengthMM: 1 });
-  if (B.form !== 'ZA' || A.m !== B.m || A.z1 !== B.z1 || Math.abs(A.d1 - B.d1) > 1e-9 * A.d1 || A.h !== B.h) throw new GearError('MATE_INCOMPATIBLE', `a throated wheel meshes with the ZA worm it was cut for (m_x ${A.m}, ${A.z1} starts, d1 ${A.d1}, ${A.h > 0 ? 'right' : 'left'} hand)`);
+  if (B.form !== 'ZA' || A.m !== B.m || A.z1 !== B.z1 || Math.abs(A.d1 - B.d1) > 1e-9 * A.d1 || A.h !== B.h) throw gearError('MATE_INCOMPATIBLE', `a throated wheel meshes with the ZA worm it was cut for (m_x ${A.m}, ${A.z1} starts, d1 ${A.d1}, ${A.h > 0 ? 'right' : 'left'} hand)`);
 }
 /** The wheel's exact sections near the mesh (the pair's frame, the wheel turned Δ from its cutting pose), segments x0 y0 x1 y1 within the band. */
 function wheelSections(G: WheelGeom, c: number, delta: number, yLo: number, yHi: number, reach: number): Float64Array {
@@ -490,7 +490,7 @@ export function checkPlacedThroatedPair(wheel: PlacedThroatedWheel, wp: PlacedWo
   sameWorm(wheel.spec.worm, wp.spec);
   const G = throatedWheelGeom(wheel.spec), w = wormDimensions(wp.spec), Z = wp.axis, mid: Point = [wp.origin[0] + Z[0] * w.L / 2, wp.origin[1] + Z[1] * w.L / 2, wp.origin[2] + Z[2] * w.L / 2];
   const dx = mid[0] - wheel.center[0], dy = mid[1] - wheel.center[1], phi = Math.atan2(dy, dx);
-  if (Math.abs(Z[2]) > 1e-12 || Math.abs(Math.hypot(dx, dy) - G.a) > 1e-9 * G.a || Math.abs(mid[2] - (wheel.from + G.b / 2)) > 1e-9 * G.a || Math.abs(Z[0] * Math.cos(phi) + Z[1] * Math.sin(phi)) > 1e-12) throw new GearError('MATE_INCOMPATIBLE', `the worm is not square to the throated wheel at ${G.a.toFixed(4)} mm in its mid-plane`);
+  if (Math.abs(Z[2]) > 1e-12 || Math.abs(Math.hypot(dx, dy) - G.a) > 1e-9 * G.a || Math.abs(mid[2] - (wheel.from + G.b / 2)) > 1e-9 * G.a || Math.abs(Z[0] * Math.cos(phi) + Z[1] * Math.sin(phi)) > 1e-12) throw gearError('MATE_INCOMPATIBLE', `the worm is not square to the throated wheel at ${G.a.toFixed(4)} mm in its mid-plane`);
   const pitch = 2 * Math.PI / w.z1, raw = wp.rotation - throatedTurnFor(wheel, G, w, phi);
   let phase = ((raw % pitch) + pitch) % pitch; if (phase < 1e-9 * pitch || pitch - phase < 1e-9 * pitch) phase = 0;
   const deg = phase * 180 / Math.PI;

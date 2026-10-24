@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, keySolid, keywayCut, ringSolid, pinSolid, ShaftPartError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { shaftSolid, keySolid, keywayCut, ringSolid, pinSolid, isShaftPartError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.3b (D157): a key in its keyseat and the hub's keyway, a retaining ring in its groove, a pin in its cross hole.
@@ -11,7 +11,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
-const code = c => e => e instanceof ShaftPartError && e.code === c;
+const code = c => e => isShaftPartError(e) && e.code === c;
 const I = { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const shaft = (ends = 'end-mill') => shaftSolid({ steps: [{ diameterMM: 20, lengthMM: 40, keyseats: [{ widthMM: 6, depthMM: 3.5, lengthMM: 18, offsetMM: 5, ends }], grooves: [{ diameterMM: 19, widthMM: 1.3, atMM: 30 }] }, { diameterMM: 25, lengthMM: 30 }], holes: [{ diameterMM: 4, atMM: 55 }] }, { id: 's' });

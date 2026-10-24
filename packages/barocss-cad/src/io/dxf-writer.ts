@@ -15,7 +15,7 @@
 //
 // The format was read from the public DXF reference and from files a test oracle (ezdxf, MIT, run outside the
 // product) writes; no code is taken from either.
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export const DXF_WRITER_VERSION = 'barocss-dxf-writer-v1';
 
@@ -91,9 +91,10 @@ export interface DxfWriteReport {
 export interface DxfWriteResult { text: string; bytes: Uint8Array; report: DxfWriteReport }
 
 export type DxfWriteErrorCode = 'NOT_FINITE' | 'BAD_ENTITY' | 'BAD_NAME' | 'DUPLICATE_NAME' | 'UNKNOWN_LAYER' | 'UNKNOWN_LINETYPE' | 'UNKNOWN_STYLE' | 'UNKNOWN_BLOCK' | 'BLOCK_CYCLE' | 'BAD_TEXT' | 'TEXT_TOO_LONG' | 'R12_UNSUPPORTED' | 'R12_NEEDS_TOLERANCE' | 'APPROX_TOLERANCE_NOT_MET';
-export class DxfWriteError extends KernelError {
-  constructor(readonly code: DxfWriteErrorCode, detail: string) { super(`DXF [${code}]: ${detail}`); this.name = 'DxfWriteError'; }
-}
+/** This module's refusal (R7.3a batch 2: the DxfWriteError class folded, D279): a BarocssError, `details.source` 'dxf-write'. */
+export const dxfWriteError = (code: DxfWriteErrorCode, detail: string) => kernelRefusal('dxf-write', code, `DXF [${code}]: ${detail}`) as KernelError & { readonly code: DxfWriteErrorCode };
+/** Whether something thrown is this module's refusal. */
+export const isDxfWriteError = (e: unknown): e is KernelError & { readonly code: DxfWriteErrorCode } => isFrom<DxfWriteErrorCode>(e, 'dxf-write');
 
 const INSUNITS: Record<DxfUnits, number> = { unitless: 0, in: 1, ft: 2, mm: 4, cm: 5, m: 6 };
 const BUILTIN_LTYPES = ['ByBlock', 'ByLayer', 'Continuous'];
@@ -108,8 +109,8 @@ const MAX_SIDES_PER_SPAN = 4096;
 
 /** A number as DXF text: the shortest form that reads back to the same binary64, never in exponent form. */
 export function dxfNumber(x: number): string {
-  if (!Number.isFinite(x)) throw new DxfWriteError('NOT_FINITE', `a value is ${x}`);
-  if (Math.abs(x) >= 1e15) throw new DxfWriteError('NOT_FINITE', `a value of ${x} is too large to write exactly`);
+  if (!Number.isFinite(x)) throw dxfWriteError('NOT_FINITE', `a value is ${x}`);
+  if (Math.abs(x) >= 1e15) throw dxfWriteError('NOT_FINITE', `a value of ${x} is too large to write exactly`);
   if (x === 0) return '0.0';
   let s = String(x);
   if (s.includes('e')) s = x.toFixed(20).replace(/0+$/, '');
@@ -132,7 +133,7 @@ function encode(text: string): Uint8Array {
   const out = new Uint8Array(text.length);
   for (let i = 0; i < text.length; i++) {
     const b = cp1252(text.charCodeAt(i));
-    if (b < 0) throw new DxfWriteError('BAD_NAME', `a name holds ${text[i]}, outside the DXF file's code page (Windows-1252)`);
+    if (b < 0) throw dxfWriteError('BAD_NAME', `a name holds ${text[i]}, outside the DXF file's code page (Windows-1252)`);
     out[i] = b;
   }
   return out;
@@ -147,8 +148,8 @@ export function dxfText(s: string, mtext: boolean): string {
   for (const ch of s) {
     const c = ch.codePointAt(0)!;
     if (c === 10 && mtext) { out += '\\P'; continue; }
-    if (c < 0x20 || c === 0x7f) throw new DxfWriteError('BAD_TEXT', `text holds control character ${c}${c === 10 ? ' (a line break: use mtext)' : ''}`);
-    if (c > 0xffff) throw new DxfWriteError('BAD_TEXT', `text holds ${ch}, outside the characters DXF text can escape`);
+    if (c < 0x20 || c === 0x7f) throw dxfWriteError('BAD_TEXT', `text holds control character ${c}${c === 10 ? ' (a line break: use mtext)' : ''}`);
+    if (c > 0xffff) throw dxfWriteError('BAD_TEXT', `text holds ${ch}, outside the characters DXF text can escape`);
     if (c === DIAMETER) out += '%%c';
     else if (c === DEGREE) out += '%%d';
     else if (c === PLUS_MINUS) out += '%%p';
@@ -184,12 +185,12 @@ class Handles {
 // Checks
 
 function finite(p: DxfXY, what: string): void {
-  if (!Array.isArray(p) || p.length !== 2 || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) throw new DxfWriteError('NOT_FINITE', `${what} is not a finite point`);
+  if (!Array.isArray(p) || p.length !== 2 || !Number.isFinite(p[0]) || !Number.isFinite(p[1])) throw dxfWriteError('NOT_FINITE', `${what} is not a finite point`);
 }
 function checkName(name: string, what: string, version: DxfVersion): void {
-  if (typeof name !== 'string' || !name || name.length > 255 || NAME_BAD.test(name) || name.trim() !== name) throw new DxfWriteError('BAD_NAME', `${what} name ${JSON.stringify(name)}`);
-  for (const ch of name) { const c = ch.codePointAt(0)!; if (c < 0x20 || c === 0x7f || (c >= 0x80 && c < 0xa0) || cp1252(c) < 0) throw new DxfWriteError('BAD_NAME', `${what} name ${JSON.stringify(name)}: ${ch} is outside the file's code page`); }
-  if (version === 'AC1009' && !name.startsWith('*') && !NAME_R12.test(name)) throw new DxfWriteError('BAD_NAME', `${what} name ${JSON.stringify(name)} is not an R12 name (A–Z, 0–9, $ _ -, at most 31)`);
+  if (typeof name !== 'string' || !name || name.length > 255 || NAME_BAD.test(name) || name.trim() !== name) throw dxfWriteError('BAD_NAME', `${what} name ${JSON.stringify(name)}`);
+  for (const ch of name) { const c = ch.codePointAt(0)!; if (c < 0x20 || c === 0x7f || (c >= 0x80 && c < 0xa0) || cp1252(c) < 0) throw dxfWriteError('BAD_NAME', `${what} name ${JSON.stringify(name)}: ${ch} is outside the file's code page`); }
+  if (version === 'AC1009' && !name.startsWith('*') && !NAME_R12.test(name)) throw dxfWriteError('BAD_NAME', `${what} name ${JSON.stringify(name)} is not an R12 name (A–Z, 0–9, $ _ -, at most 31)`);
 }
 
 interface Context {
@@ -204,75 +205,75 @@ interface Context {
 
 function checkEntity(e: DxfEntity, ctx: Context, inBlock: boolean): void {
   const layer = e.layer ?? '0';
-  if (!ctx.layers.has(layer)) throw new DxfWriteError('UNKNOWN_LAYER', `${e.type} on layer ${JSON.stringify(layer)}, which is not defined`);
-  if (e.linetype !== undefined && !ctx.linetypes.has(e.linetype)) throw new DxfWriteError('UNKNOWN_LINETYPE', `${e.type} with line type ${JSON.stringify(e.linetype)}`);
-  if (e.color !== undefined && !(Number.isInteger(e.color) && e.color >= 0 && e.color <= 256)) throw new DxfWriteError('BAD_ENTITY', `${e.type} colour ${e.color}`);
+  if (!ctx.layers.has(layer)) throw dxfWriteError('UNKNOWN_LAYER', `${e.type} on layer ${JSON.stringify(layer)}, which is not defined`);
+  if (e.linetype !== undefined && !ctx.linetypes.has(e.linetype)) throw dxfWriteError('UNKNOWN_LINETYPE', `${e.type} with line type ${JSON.stringify(e.linetype)}`);
+  if (e.color !== undefined && !(Number.isInteger(e.color) && e.color >= 0 && e.color <= 256)) throw dxfWriteError('BAD_ENTITY', `${e.type} colour ${e.color}`);
   switch (e.type) {
     case 'line': finite(e.a, 'line start'); finite(e.b, 'line end'); return;
     case 'circle': finite(e.center, 'circle centre'); positive(e.radius, 'circle radius'); return;
     case 'arc': finite(e.center, 'arc centre'); positive(e.radius, 'arc radius'); num(e.startDeg, 'arc start'); num(e.endDeg, 'arc end'); return;
     case 'ellipse':
       finite(e.center, 'ellipse centre'); finite(e.major, 'ellipse axis'); num(e.start, 'ellipse start'); num(e.end, 'ellipse end');
-      if (!(Math.hypot(e.major[0], e.major[1]) > 0) || !(e.ratio > 0 && e.ratio <= 1)) throw new DxfWriteError('BAD_ENTITY', `ellipse axis ${e.major} ratio ${e.ratio}`);
-      if (e.start === e.end) throw new DxfWriteError('BAD_ENTITY', 'an ellipse arc of no sweep (a whole ellipse runs from 0 to 2π)');
+      if (!(Math.hypot(e.major[0], e.major[1]) > 0) || !(e.ratio > 0 && e.ratio <= 1)) throw dxfWriteError('BAD_ENTITY', `ellipse axis ${e.major} ratio ${e.ratio}`);
+      if (e.start === e.end) throw dxfWriteError('BAD_ENTITY', 'an ellipse arc of no sweep (a whole ellipse runs from 0 to 2π)');
       return;
     case 'lwpolyline':
-      if (e.points.length < 2) throw new DxfWriteError('BAD_ENTITY', 'a polyline needs two points');
+      if (e.points.length < 2) throw dxfWriteError('BAD_ENTITY', 'a polyline needs two points');
       e.points.forEach((p, i) => finite(p, `polyline point ${i}`));
       bulges(e.bulges, e.points.length, 'polyline');
       return;
     case 'spline': {
       const n = e.control.length;
-      if (!Number.isInteger(e.degree) || e.degree < 1 || e.degree > 11 || n < e.degree + 1) throw new DxfWriteError('BAD_ENTITY', `spline of degree ${e.degree} with ${n} control points`);
-      if (e.knots.length !== n + e.degree + 1) throw new DxfWriteError('BAD_ENTITY', `spline with ${e.knots.length} knots (needs ${n + e.degree + 1})`);
-      for (let i = 0; i < e.knots.length; i++) { num(e.knots[i], 'spline knot'); if (i && e.knots[i] < e.knots[i - 1]) throw new DxfWriteError('BAD_ENTITY', 'spline knots decrease'); }
-      if (!(e.knots[n] > e.knots[e.degree])) throw new DxfWriteError('BAD_ENTITY', 'spline has an empty domain');
+      if (!Number.isInteger(e.degree) || e.degree < 1 || e.degree > 11 || n < e.degree + 1) throw dxfWriteError('BAD_ENTITY', `spline of degree ${e.degree} with ${n} control points`);
+      if (e.knots.length !== n + e.degree + 1) throw dxfWriteError('BAD_ENTITY', `spline with ${e.knots.length} knots (needs ${n + e.degree + 1})`);
+      for (let i = 0; i < e.knots.length; i++) { num(e.knots[i], 'spline knot'); if (i && e.knots[i] < e.knots[i - 1]) throw dxfWriteError('BAD_ENTITY', 'spline knots decrease'); }
+      if (!(e.knots[n] > e.knots[e.degree])) throw dxfWriteError('BAD_ENTITY', 'spline has an empty domain');
       e.control.forEach((p, i) => finite(p, `spline control point ${i}`));
-      if (e.weights && (e.weights.length !== n || e.weights.some(w => !(w > 0) || !Number.isFinite(w)))) throw new DxfWriteError('BAD_ENTITY', 'spline weights must be one positive value a control point');
+      if (e.weights && (e.weights.length !== n || e.weights.some(w => !(w > 0) || !Number.isFinite(w)))) throw dxfWriteError('BAD_ENTITY', 'spline weights must be one positive value a control point');
       return;
     }
     case 'text': case 'mtext':
       finite(e.at, `${e.type} point`); positive(e.height, `${e.type} height`); if (e.rotationDeg !== undefined) num(e.rotationDeg, `${e.type} rotation`);
-      if (e.style !== undefined && !ctx.styles.has(e.style)) throw new DxfWriteError('UNKNOWN_STYLE', `text style ${JSON.stringify(e.style)}`);
-      if (typeof e.text !== 'string') throw new DxfWriteError('BAD_TEXT', 'text is not a string');
-      if (e.type === 'text' && dxfText(e.text, false).length > TEXT_CHUNK) throw new DxfWriteError('TEXT_TOO_LONG', `a TEXT of ${e.text.length} characters (at most ${TEXT_CHUNK} written; use mtext)`);
+      if (e.style !== undefined && !ctx.styles.has(e.style)) throw dxfWriteError('UNKNOWN_STYLE', `text style ${JSON.stringify(e.style)}`);
+      if (typeof e.text !== 'string') throw dxfWriteError('BAD_TEXT', 'text is not a string');
+      if (e.type === 'text' && dxfText(e.text, false).length > TEXT_CHUNK) throw dxfWriteError('TEXT_TOO_LONG', `a TEXT of ${e.text.length} characters (at most ${TEXT_CHUNK} written; use mtext)`);
       dxfText(e.text, e.type === 'mtext');
       return;
     case 'solid':
-      if (e.points.length !== 3 && e.points.length !== 4) throw new DxfWriteError('BAD_ENTITY', `a solid of ${e.points.length} points (3 or 4)`);
+      if (e.points.length !== 3 && e.points.length !== 4) throw dxfWriteError('BAD_ENTITY', `a solid of ${e.points.length} points (3 or 4)`);
       e.points.forEach((p, i) => finite(p, `solid point ${i}`));
       return;
     case 'hatch':
-      if (!e.loops.length) throw new DxfWriteError('BAD_ENTITY', 'a hatch without loops');
-      for (const l of e.loops) { if (l.points.length < 3 && !(l.points.length === 2 && l.bulges?.some(b => b !== 0))) throw new DxfWriteError('BAD_ENTITY', 'a hatch loop needs three points (or two with a bulge)'); l.points.forEach((p, i) => finite(p, `hatch point ${i}`)); bulges(l.bulges, l.points.length, 'hatch loop'); }
+      if (!e.loops.length) throw dxfWriteError('BAD_ENTITY', 'a hatch without loops');
+      for (const l of e.loops) { if (l.points.length < 3 && !(l.points.length === 2 && l.bulges?.some(b => b !== 0))) throw dxfWriteError('BAD_ENTITY', 'a hatch loop needs three points (or two with a bulge)'); l.points.forEach((p, i) => finite(p, `hatch point ${i}`)); bulges(l.bulges, l.points.length, 'hatch loop'); }
       if (e.fill.kind === 'lines') { num(e.fill.angleDeg, 'hatch angle'); positive(e.fill.spacing, 'hatch spacing'); if (e.fill.origin) finite(e.fill.origin, 'hatch origin'); }
-      else if (e.fill.kind !== 'solid') throw new DxfWriteError('BAD_ENTITY', 'hatch fill');
+      else if (e.fill.kind !== 'solid') throw dxfWriteError('BAD_ENTITY', 'hatch fill');
       return;
     case 'insert':
-      if (!ctx.blocks.has(e.block)) throw new DxfWriteError('UNKNOWN_BLOCK', `insert of ${JSON.stringify(e.block)}`);
+      if (!ctx.blocks.has(e.block)) throw dxfWriteError('UNKNOWN_BLOCK', `insert of ${JSON.stringify(e.block)}`);
       finite(e.at, 'insert point'); if (e.scale !== undefined) positive(e.scale, 'insert scale'); if (e.rotationDeg !== undefined) num(e.rotationDeg, 'insert rotation');
       return;
     case 'dimension': {
-      if (inBlock) throw new DxfWriteError('BAD_ENTITY', 'a dimension inside a block');
+      if (inBlock) throw dxfWriteError('BAD_ENTITY', 'a dimension inside a block');
       const g = e.geometry;
       if (g.kind === 'linear' || g.kind === 'aligned') { finite(g.p1, 'dimension point'); finite(g.p2, 'dimension point'); finite(g.line, 'dimension line point'); if (g.kind === 'linear') num(g.angleDeg, 'dimension angle'); }
       else if (g.kind === 'angular') { for (const p of [...g.line1, ...g.line2, g.arc]) finite(p, 'angular dimension point'); }
       else if (g.kind === 'diameter') { finite(g.rim, 'diameter point'); finite(g.opposite, 'diameter point'); }
       else if (g.kind === 'radius') { finite(g.center, 'radius centre'); finite(g.rim, 'radius point'); }
-      else throw new DxfWriteError('BAD_ENTITY', 'dimension kind');
+      else throw dxfWriteError('BAD_ENTITY', 'dimension kind');
       finite(e.textAt, 'dimension text point'); if (e.measurement !== undefined) num(e.measurement, 'dimension measurement');
       dxfText(e.text, false);
-      for (const b of e.block) { if (b.type === 'dimension' || b.type === 'insert') throw new DxfWriteError('BAD_ENTITY', `a ${b.type} inside a dimension's block`); checkEntity(b, ctx, true); }
+      for (const b of e.block) { if (b.type === 'dimension' || b.type === 'insert') throw dxfWriteError('BAD_ENTITY', `a ${b.type} inside a dimension's block`); checkEntity(b, ctx, true); }
       return;
     }
-    default: throw new DxfWriteError('BAD_ENTITY', `entity type ${JSON.stringify((e as { type: unknown }).type)}`);
+    default: throw dxfWriteError('BAD_ENTITY', `entity type ${JSON.stringify((e as { type: unknown }).type)}`);
   }
 }
-function num(x: number, what: string): void { if (!Number.isFinite(x)) throw new DxfWriteError('NOT_FINITE', `${what} is ${x}`); }
-function positive(x: number, what: string): void { if (!(Number.isFinite(x) && x > 0)) throw new DxfWriteError('BAD_ENTITY', `${what} is ${x}`); }
+function num(x: number, what: string): void { if (!Number.isFinite(x)) throw dxfWriteError('NOT_FINITE', `${what} is ${x}`); }
+function positive(x: number, what: string): void { if (!(Number.isFinite(x) && x > 0)) throw dxfWriteError('BAD_ENTITY', `${what} is ${x}`); }
 function bulges(b: readonly number[] | undefined, n: number, what: string): void {
   if (!b) return;
-  if (b.length !== n) throw new DxfWriteError('BAD_ENTITY', `${what}: ${b.length} bulges for ${n} points`);
+  if (b.length !== n) throw dxfWriteError('BAD_ENTITY', `${what}: ${b.length} bulges for ${n} points`);
   for (const x of b) num(x, `${what} bulge`);
 }
 
@@ -281,7 +282,7 @@ function checkCycles(blocks: Map<string, DxfBlock>): void {
   const visit = (name: string, path: string[]): void => {
     const s = state.get(name);
     if (s === 2) return;
-    if (s === 1) throw new DxfWriteError('BLOCK_CYCLE', `blocks insert each other: ${[...path, name].join(' → ')}`);
+    if (s === 1) throw dxfWriteError('BLOCK_CYCLE', `blocks insert each other: ${[...path, name].join(' → ')}`);
     state.set(name, 1);
     for (const e of blocks.get(name)!.entities) if (e.type === 'insert') visit(e.block, [...path, name]);
     state.set(name, 2);
@@ -337,7 +338,7 @@ function polylineOf(c: Curve, t0: number, t1: number, tol: number, out: [number,
     }
     if (worst <= tol) { if (out.length) pts.shift(); out.push(...pts); return worst; }
   }
-  throw new DxfWriteError('APPROX_TOLERANCE_NOT_MET', `a ${c.kind} needs more than ${MAX_SIDES_PER_SPAN} sides a span for ${tol}`);
+  throw dxfWriteError('APPROX_TOLERANCE_NOT_MET', `a ${c.kind} needs more than ${MAX_SIDES_PER_SPAN} sides a span for ${tol}`);
 }
 
 /** An ellipse's sweep in (0, 2π]: the end taken past the start as DXF reads it (a whole turn when they differ by one). */
@@ -534,8 +535,8 @@ function writeEntity(w: Writer, e: DxfEntity): void {
     case 'solid': { head(w, 'SOLID', e, 'AcDbTrace'); const c = solidCorners(e.points); o.xyz(10, c[0]); o.xyz(11, c[1]); o.xyz(12, c[2]); o.xyz(13, c[3]); return; }
     case 'hatch': {
       if (r12) {
-        if (e.fill.kind === 'solid') throw new DxfWriteError('R12_UNSUPPORTED', 'a solid hatch (R12 has no HATCH; write AC1015 or give the fill as solids)');
-        if (e.loops.some(l => l.bulges?.some(b => b !== 0))) throw new DxfWriteError('R12_UNSUPPORTED', 'a hatch with arc sides (R12 has no HATCH)');
+        if (e.fill.kind === 'solid') throw dxfWriteError('R12_UNSUPPORTED', 'a solid hatch (R12 has no HATCH; write AC1015 or give the fill as solids)');
+        if (e.loops.some(l => l.bulges?.some(b => b !== 0))) throw dxfWriteError('R12_UNSUPPORTED', 'a hatch with arc sides (R12 has no HATCH)');
         w.ctx.r12.hatches++;
         for (const [a, b] of dxfHatchLines(e.loops, e.fill.angleDeg, e.fill.spacing, e.fill.origin)) writeEntity(w, { type: 'line', a, b, layer: e.layer, ...(e.linetype !== undefined ? { linetype: e.linetype } : {}), ...(e.color !== undefined ? { color: e.color } : {}) });
         return;
@@ -593,7 +594,7 @@ function writeEntity(w: Writer, e: DxfEntity): void {
 
 function r12Curve(w: Writer, e: DxfEntity, c: Curve): void {
   const tol = w.ctx.tolerance;
-  if (tol === undefined) throw new DxfWriteError('R12_NEEDS_TOLERANCE', `an ${c.kind} in R12 is written as a polyline: give r12ChordTolerance`);
+  if (tol === undefined) throw dxfWriteError('R12_NEEDS_TOLERANCE', `an ${c.kind} in R12 is written as a polyline: give r12ChordTolerance`);
   const { points, deviation } = curvePolyline(c, tol);
   if (deviation > w.ctx.r12.maxChordDeviation) w.ctx.r12.maxChordDeviation = deviation;
   const first = points[0], last = points[points.length - 1], closed = points.length > 2 && Math.hypot(first[0] - last[0], first[1] - last[1]) <= 1e-12 * (1 + Math.hypot(first[0], first[1]));
@@ -603,13 +604,13 @@ function r12Curve(w: Writer, e: DxfEntity, c: Curve): void {
 // ---------------------------------------------------------------------------------------------------------
 // The document
 
-/** Writes a DXF file of the document. Throws DxfWriteError (typed) for anything it cannot write as given. */
+/** Writes a DXF file of the document. Throws a typed refusal (dxfWriteError) for anything it cannot write as given. */
 export function writeDxf(doc: DxfDocument, options: DxfWriteOptions = {}): DxfWriteResult {
   const version: DxfVersion = options.version ?? 'AC1015';
-  if (version !== 'AC1015' && version !== 'AC1009') throw new DxfWriteError('BAD_ENTITY', `version ${String(version)}`);
-  if (!(doc.units in INSUNITS)) throw new DxfWriteError('BAD_ENTITY', `units ${String(doc.units)}`);
+  if (version !== 'AC1015' && version !== 'AC1009') throw dxfWriteError('BAD_ENTITY', `version ${String(version)}`);
+  if (!(doc.units in INSUNITS)) throw dxfWriteError('BAD_ENTITY', `units ${String(doc.units)}`);
   const tol = options.r12ChordTolerance;
-  if (tol !== undefined && !(tol > 0 && Number.isFinite(tol))) throw new DxfWriteError('BAD_ENTITY', `r12ChordTolerance ${tol}`);
+  if (tol !== undefined && !(tol > 0 && Number.isFinite(tol))) throw dxfWriteError('BAD_ENTITY', `r12ChordTolerance ${tol}`);
   const layers = doc.layers ?? [], linetypes = doc.linetypes ?? [], styles = doc.styles ?? [], userBlocks = doc.blocks ?? [];
   const ctx: Context = {
     version, layers: new Set(['0']), linetypes: new Set(BUILTIN_LTYPES), styles: new Set(['Standard']), blocks: new Map(), tolerance: tol,
@@ -618,28 +619,28 @@ export function writeDxf(doc: DxfDocument, options: DxfWriteOptions = {}): DxfWr
   const unique = (set: Set<string>, name: string, what: string) => {
     checkName(name, what, version);
     const key = name.toUpperCase();
-    if ([...set].some(x => x.toUpperCase() === key)) throw new DxfWriteError('DUPLICATE_NAME', `${what} ${JSON.stringify(name)}`);
+    if ([...set].some(x => x.toUpperCase() === key)) throw dxfWriteError('DUPLICATE_NAME', `${what} ${JSON.stringify(name)}`);
     set.add(name);
   };
   for (const t of linetypes) {
     unique(ctx.linetypes, t.name, 'line type');
-    if (!t.pattern.length || t.pattern.some(x => !Number.isFinite(x))) throw new DxfWriteError('BAD_ENTITY', `line type ${t.name} pattern`);
-    if (typeof t.description !== 'string') throw new DxfWriteError('BAD_ENTITY', `line type ${t.name} description`);
+    if (!t.pattern.length || t.pattern.some(x => !Number.isFinite(x))) throw dxfWriteError('BAD_ENTITY', `line type ${t.name} pattern`);
+    if (typeof t.description !== 'string') throw dxfWriteError('BAD_ENTITY', `line type ${t.name} description`);
     dxfText(t.description, false);
   }
   for (const l of layers) {
-    if (l.name === '0') throw new DxfWriteError('DUPLICATE_NAME', 'layer 0 is always defined');
+    if (l.name === '0') throw dxfWriteError('DUPLICATE_NAME', 'layer 0 is always defined');
     unique(ctx.layers, l.name, 'layer');
-    if (l.linetype !== undefined && !ctx.linetypes.has(l.linetype)) throw new DxfWriteError('UNKNOWN_LINETYPE', `layer ${l.name} line type ${JSON.stringify(l.linetype)}`);
-    if (l.color !== undefined && !(Number.isInteger(l.color) && l.color >= 1 && l.color <= 255)) throw new DxfWriteError('BAD_ENTITY', `layer ${l.name} colour ${l.color}`);
+    if (l.linetype !== undefined && !ctx.linetypes.has(l.linetype)) throw dxfWriteError('UNKNOWN_LINETYPE', `layer ${l.name} line type ${JSON.stringify(l.linetype)}`);
+    if (l.color !== undefined && !(Number.isInteger(l.color) && l.color >= 1 && l.color <= 255)) throw dxfWriteError('BAD_ENTITY', `layer ${l.name} colour ${l.color}`);
     if (l.lineweight !== undefined) {
-      if (!(Number.isInteger(l.lineweight) && l.lineweight >= 0 && l.lineweight <= 211)) throw new DxfWriteError('BAD_ENTITY', `layer ${l.name} line weight ${l.lineweight}`);
+      if (!(Number.isInteger(l.lineweight) && l.lineweight >= 0 && l.lineweight <= 211)) throw dxfWriteError('BAD_ENTITY', `layer ${l.name} line weight ${l.lineweight}`);
       if (version === 'AC1009') ctx.r12.lineweightsDropped = true;
     }
   }
-  for (const s of styles) { unique(ctx.styles, s.name, 'text style'); if (typeof s.font !== 'string' || !s.font) throw new DxfWriteError('BAD_ENTITY', `text style ${s.name} font`); }
+  for (const s of styles) { unique(ctx.styles, s.name, 'text style'); if (typeof s.font !== 'string' || !s.font) throw dxfWriteError('BAD_ENTITY', `text style ${s.name} font`); }
   for (const b of userBlocks) {
-    if (b.name.startsWith('*')) throw new DxfWriteError('BAD_NAME', `block ${JSON.stringify(b.name)}: names starting * are the writer's own`);
+    if (b.name.startsWith('*')) throw dxfWriteError('BAD_NAME', `block ${JSON.stringify(b.name)}: names starting * are the writer's own`);
     const names = new Set(ctx.blocks.keys()); unique(names, b.name, 'block'); ctx.blocks.set(b.name, b);
     if (b.base) finite(b.base, `block ${b.name} base`);
   }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, BearingError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, isBearingError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.4 (D158): bearing envelopes from the user's rows, on a shaft's seat and in a housing. The row is D139's B1 (the
@@ -11,7 +11,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
-const code = c => e => e instanceof BearingError && e.code === c;
+const code = c => e => isBearingError(e) && e.code === c;
 const I = { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
 const ROW = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'B1 (D139): the NSK 6204 page' };
 const FITS = [{ id: 'seat-fits', rows: [{ class: 'k5', overMM: 18, upToMM: 30, upperUM: 11, lowerUM: 2, estimate: true }, { class: 'H7', overMM: 30, upToMM: 50, upperUM: 25, lowerUM: 0, estimate: true }] }];

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurGearDimensions, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { spurGear, spurGearDimensions, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
 
 // R12b.1a (D130): the generated root — the root the basic rack cuts (its tip rounded by ρ, 0.38 m by default), generator
 // spur-gear@1. Every check here is against an oracle written in this file, apart from gear.ts: the tool's true signed
@@ -204,7 +204,7 @@ test('pairs: the sweep runs on the generated outlines — j cos α/2 with backla
 });
 
 test('refusals: a tip radius that leaves no flat, fewer than six teeth, a tip radius without a generated root; the part model\'s generator', () => {
-  const code = (spec, c, re) => assert.throws(() => spurGear(spec), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
+  const code = (spec, c, re) => assert.throws(() => spurGear(spec), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   const g = { moduleMM: 2, teeth: 20, faceWidthMM: 5, rootPolicy: 'generated' };
   // (The largest: where the two rounds meet, (πm/4 − 1.25m tan α)/(1/cos α − tan α) = 0.4719 m.)
   const rhoMax = (Math.PI / 2 - 2.5 * TAN) / (1 / COS - TAN);
