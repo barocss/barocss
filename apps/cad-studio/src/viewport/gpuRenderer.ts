@@ -7,6 +7,7 @@
 import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, PALETTE, SELECT_MIX, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import { clipBox, createViewer, invert, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
+import { BASE } from '@barocss/cad-model/assembly/mates';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 import { movedCopy, topologyKey } from './instanceGeometry';
 import { contourTriangles } from './silhouette';
@@ -40,6 +41,8 @@ const THEMES: Record<ThemeName, Theme> = {
   light: { ...PALETTE.light, gridOpacity: 0.14, ao: 0.8, shadow: 0.28 },
 };
 const HOVER: Vec3 = [0.62, 0.55, 0.36];
+/** RS2: a link in contact as a motion plays, the error colour. */
+const CONTACT: Vec3 = [0.92, 0.27, 0.24];
 /** A direction in the camera's frame (x right, y up, z toward the eye) as the world's, negated: where a light shines (PERF3 C17: module level). */
 const toward = (right: Vec3, up: Vec3, forward: Vec3, x: number, y: number, z: number): Vec3 => [-(x * right[0] + y * up[0] - z * forward[0]), -(x * right[1] + y * up[1] - z * forward[1]), -(x * right[2] + y * up[2] - z * forward[2])];
 /** The identity transform: a mesh as placed. */
@@ -153,6 +156,8 @@ export class GpuRenderer implements ViewRenderer {
   /** Faces of instances shown picked (mate faces). */
   private instanceFaces: readonly { id: string; body: number; face: number }[] = [];
   private view: ViewState | null = null;
+  /** RS2: the links in contact as a motion plays (instance ids; BASE, the part's own bodies). */
+  private contactLinks: ReadonlySet<string> = new Set();
 
   private host: { request: () => void } = { request: () => {} };
   private constructor(readonly canvas: HTMLCanvasElement, private readonly viewer: Viewer) {
@@ -623,7 +628,7 @@ export class GpuRenderer implements ViewRenderer {
       // (While the mould's halves show, picks reach only them, G6.)
       const halvesOn = !!this.mould?.halves.length;
       b.surface.pickable = !ghost && !isolated && !hidden && !halvesOn; b.surface.visible = !hidden && !(isolated && lineOnly);
-      b.surface.outline = lineOnly || isolated ? null : view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
+      b.surface.outline = lineOnly || isolated ? null : this.contactLinks.has(BASE) ? CONTACT : view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
       // (Its hatch on the exact section's cut, G19.3/4: moved with it, faint when it is.)
@@ -933,6 +938,15 @@ export class GpuRenderer implements ViewRenderer {
   }
   private lastItems: InstanceItem[] = [];
 
+  /** RS2: the links in contact, outlined in the error colour (set at the time of impact, cleared with the motion). */
+  setContactLinks(links: readonly string[]): void {
+    const next = new Set(links);
+    if (next.size === this.contactLinks.size && [...next].every(l => this.contactLinks.has(l))) return;
+    this.contactLinks = next;
+    if (this.view) this.setState(this.view);
+    this.paintInstances(); this.viewer.requestRender();
+  }
+
   setInstances(items: InstanceItem[], selected: readonly string[]): void {
     this.lastItems = items;
     const had = new Map(this.instances.map(it => [it.id, it]));
@@ -1031,7 +1045,7 @@ export class GpuRenderer implements ViewRenderer {
         // Faded line-only context contributes edges, not an occluder in front of the focus.
         m.visible = !(faded && lineOnly);
         m.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(XRAY_OPACITY, m.material.opacity ?? 1) : m.material.opacity ?? 1) * (faded ? FADED : 1) };
-        m.outline = !lineOnly && !faded && this.instanceSelection.includes(it.id) ? ACCENT : null;
+        m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : this.instanceSelection.includes(it.id) ? ACCENT : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;

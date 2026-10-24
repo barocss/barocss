@@ -25,6 +25,7 @@ function benchCaseNames(voxels) {
     'orbit: 60-step drag',
     'orbit: 60 steps, body outlined',
     'pose: a joint of the 2R arm played',
+    'motion: the 2R arm\'s motion played',
     `cloud: ${voxels} workspace voxels, orbit 60`,
     'cloud: 100 000 voxels, orbit 60',
     'explode: 120 brackets, 60-step drag',
@@ -41,7 +42,7 @@ function benchCaseNames(voxels) {
 
 function benchRowsPass(rows, expectedNames, picks, fullRun) {
   const names = rows.map(r => r.name);
-  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 19) &&
+  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 20) &&
     new Set(expectedNames).size === expectedNames.length &&
     names.length === expectedNames.length && new Set(names).size === names.length &&
     expectedNames.every(name => names.includes(name)) && rows.every(r => r.ok === true) &&
@@ -217,6 +218,8 @@ const BUDGET = {
   orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
   orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
   pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
+  // (RS2: as a joint played, and the App rendered only as it starts and stops — never in a frame of it.)
+  motion: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3, app: 4 },
   cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 3 },
   explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 128, buffers: 4, gpuMS: 4 },
   sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 33, kb: 5, buffers: 4, gpuMS: 6 },
@@ -369,6 +372,13 @@ try {
   await open('chain-2r.bcad', arm, () => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2 && !!document.querySelector('[aria-label="Play joint base~a"]'));
   await measure('pose: a joint of the 2R arm played', BUDGET.pose, async () => {
     await page.click('[aria-label="Play joint base~a"]'); await page.waitForTimeout(1500); await page.click('[aria-label="Play joint base~a"]');
+  });
+  // RS2: the motion from home to the first joint at 1.5 rad played for 1.5 s (a pose shown, then Play, then Pause).
+  await page.click('[aria-label="Joints home"]').catch(() => {});
+  await page.evaluate(() => { const el = document.querySelector('[aria-label="Joint base~a value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '1.5'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.waitForSelector('[aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+  await measure('motion: the 2R arm\'s motion played', BUDGET.motion, async () => {
+    await page.click('[aria-label="Play motion"]'); await page.waitForTimeout(1500); await page.click('[aria-label="Pause motion"]').catch(() => {});
   });
   // G4: the arm's workspace map shown (RM9b: 20 000 poses, its voxels drawn as an overlay), orbited 60 steps.
   await page.click('[aria-label="Joints home"]').catch(() => {});

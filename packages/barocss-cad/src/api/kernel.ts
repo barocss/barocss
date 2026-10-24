@@ -91,6 +91,8 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const v = spec.values;
       return [{ id: nextId(doc, 'split'), kind: 'split', target: target(), ...(v.axis === 'n' ? { normal: [v.nx, v.ny, v.nz] } : { axis: v.axis }), at: v.at }];
     }
+    case 'gear': case 'gear-mesh': case 'spring': case 'fastener':
+      throw refuse('UNAVAILABLE', `${spec.command} is a studio command: use @barocss/cad-model/api's part (the kernel's own gear and thread features take a set of their own)`);
     case 'move':
       return [{ id: nextId(doc, 'translate'), kind: 'translate', target: target(), offset: [spec.values.x, spec.values.y, spec.values.z] }];
     case 'rotate': {
