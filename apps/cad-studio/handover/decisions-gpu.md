@@ -2928,3 +2928,37 @@ state for exact WIP, process cleanup, blockers and first resume steps.
   - From O18: with a new bodies array of identical meshes, gpuRenderer's rebuild on WebGPU left the placed copies out
     of the drawn frames. The outer lane worked round it in App (sameMeshes, 2aae36ec3). Two questions: why the copies
     drop, and whether the renderer should key on mesh identity.
+
+## G-R48 — G12f, part 2: the top bar onto shadcn; the context menu inside the stage (roadmap G12, 2026-10-24)
+
+- **The top bar** (44a4a243c, App.tsx):
+  - Its tools and the panels' close buttons (about 30 `className="tool"` spots) are on ToolIconButton.
+  - The mode switch (Model, Sketch, Render, Drawing), Finish sketch and the Templates rows are on shadcn's Button; the
+    template's name is on Input.
+  - The labels and the `tool`, `on` and `sketching` classes are kept.
+- **The right-click menu inside the stage** (d28a8e1a1, from the coordinator's review of the 1440 screenshot: a face's
+  ~24-item menu had risen over the Model/Sketch tabs):
+  - Radix's collision boundary is the stage. It is padded below the top bar and clear of the dock's strip or sheet,
+    both measured as the menu opens.
+  - The menu's height is that room, with its own scroll. It opens at the click and flips up only where the stage has
+    more room above.
+  - The layout step checks it (a55096abe): at 1440 and 1024 a right-click on the plate opens the menu inside the stage,
+    clear of the top bar and the dock.
+- **Packages** (b5102a63b): `@radix-ui/react-context-menu` is removed, unused (the coordinator agreed). Only its entries
+  leave the lockfile.
+- **gpu** (the coordinator's ask from the API lane): `tests/api-scene.test.mjs` is in the package's test script.
+  - The facade's tests pass 4/4; gpu's whole test script passes 193/193.
+  - The script needs CAD's `build:library` first, as before.
+- **Runs**:
+  - Full flow at 5bac895fa (integration with O18 merged, scratch): **WebGPU 286/286, WebGL2 286/286**. AM7a/b and O10
+    pass in sequence with O18, and FR3b passed this time.
+  - R1 bench rows (loaded): orbit App 1, 3.4 ms; pose App 3, 4.3 ms; explode App 2, 10.2 ms; pick 56 ms; section on GPU
+    App 5, 6.8 ms. Section's GPU time is over its budget, as before; it is on the G14 list.
+- **G12 is done** with this, as the coordinator counts it, once the docs lane retakes its shots.
+- **Queued**:
+  - R1d next: the HUD values and the placing pointer in a store.
+  - G13 the frame triads, after R1d.
+  - G14: section's GPU time; O18's copies dropped on a rebuild with identical meshes; the step-48 order dependency
+    (render a part, then section view, parameters, surface analysis or RM2).
+  - R7.3: rename the packets' `right-handed-y-up` tag to what it means. Viewer is already Z-up and nothing converts
+    coordinates.
