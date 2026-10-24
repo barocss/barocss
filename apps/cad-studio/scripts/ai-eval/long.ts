@@ -32,7 +32,9 @@ function colourGroups(n: number, words: string): Element {
   return {
     id: 'colours', what: `${n} colour groups (${words})`,
     oracle(j, calls) {
-      const a = appearance(j.doc), refused = calls.filter(c => !c.ok && /colou?r|appearance|look/i.test(JSON.stringify(c.args))).map(c => c.error?.slice(0, 200));
+      // (A refusal of a call that asked for a colour or an appearance by name: its tool, action, command or feature kind.)
+      const asked = (c: { tool: string; args: unknown }) => { const a = (c.args ?? {}) as Record<string, unknown>; return /colou?r|appearance|look|paint/i.test([c.tool, a.action, a.command, a.feature, a.tool].filter(x => typeof x === 'string').join(' ')); };
+      const a = appearance(j.doc), refused = calls.filter(c => !c.ok && asked(c)).map(c => `${c.tool}.${String((c.args as { action?: string } | null)?.action ?? '')}: ${c.error?.slice(0, 200)}`);
       if (a.colours.length >= n) return { status: 'done', evidence: a };
       if (refused.length) return { status: 'refused', how: refused[0], evidence: a };
       if (a.materials.length >= n) return { status: 'approximated', how: `${a.materials.length} materials stand in for the colours (no tool sets a colour)`, evidence: a };
@@ -66,11 +68,15 @@ const CATHEDRAL: Brief = {
       oracle(j) {
         const bs = boxesOf(j), u = union(bs); if (!u) return { status: 'missing' };
         const H = u.hi[2], L = Math.max(u.hi[0] - u.lo[0], u.hi[1] - u.lo[1]);
-        // (Tall and slender: reaching the top quarter, narrow against the building; grouped by where they stand.)
+        // (Tall and slender: reaching the top quarter, narrow against the building; grouped by where they stand — a spire
+        // made of many bodies (an openwork lattice) is one group: bodies within a tenth of the building's length.)
         const tall = bs.filter(b => b.hi[2] >= u.lo[2] + 0.75 * (H - u.lo[2]) && Math.max(b.size[0], b.size[1]) <= 0.3 * L);
-        const groups: { x: number; y: number; r: number }[] = [];
-        for (const b of tall) { const x = (b.lo[0] + b.hi[0]) / 2, y = (b.lo[1] + b.hi[1]) / 2, r = Math.max(b.size[0], b.size[1]) / 2; if (!groups.some(g => Math.hypot(g.x - x, g.y - y) <= g.r + r)) groups.push({ x, y, r }); }
-        const ev = { towers: groups.length, at: groups.map(g => [r0(g.x), r0(g.y)]) };
+        const groups: { x: number; y: number; n: number }[] = [];
+        for (const b of tall) {
+          const x = (b.lo[0] + b.hi[0]) / 2, y = (b.lo[1] + b.hi[1]) / 2, g = groups.find(q => Math.hypot(q.x - x, q.y - y) <= 0.1 * L);
+          if (g) { g.x = (g.x * g.n + x) / (g.n + 1); g.y = (g.y * g.n + y) / (g.n + 1); g.n++; } else groups.push({ x, y, n: 1 });
+        }
+        const ev = { towers: groups.length, at: groups.map(g => [r0(g.x), r0(g.y)]), bodies: groups.map(g => g.n) };
         return groups.length === 2 ? { status: 'done', evidence: ev } : groups.length ? { status: 'approximated', how: `${groups.length} tall slender groups`, evidence: ev } : { status: 'missing', evidence: ev };
       },
     },
@@ -113,20 +119,10 @@ const GRINDER: Brief = {
     review('lid', 'a domed lid on top with a central drive shaft'),
     review('crank', 'a long crank arm from the shaft (folding)'),
     review('knob', 'a turned knob standing upright at the arm\'s end'),
-    {
-      id: 'burr', what: 'a conical burr inside the body, under the hopper',
-      oracle(j) { const c = allNodes(j.doc).filter(n => /cone|loft|revolve/.test(n.kind)).length; return c ? { status: 'approximated', how: 'a cone, loft or revolve exists: its place and shape reviewed', evidence: kinds(j.doc) } : { status: 'missing', evidence: kinds(j.doc) }; },
-    },
+    review('burr', 'a conical burr inside the body, under the hopper'),
     review('hopper', 'a bean hopper over the burr'),
     review('nut', 'a threaded adjustment nut with numbered click marks'),
-    {
-      id: 'cup', what: 'a removable catch cup on the bottom (its own part)',
-      oracle(j) {
-        const inst = (j.doc.instances ?? []).find(i => /cup|catch/i.test(i.name ?? ''));
-        if (inst) return { status: 'done', how: `part ${inst.id} "${inst.name}"`, evidence: { instances: (j.doc.instances ?? []).map(i => i.name) } };
-        return { status: 'approximated', how: 'no separate part named as the cup: reviewed in the stills', evidence: { instances: (j.doc.instances ?? []).map(i => i.name), bodies: solids(j.base).length } };
-      },
-    },
+    review('cup', 'a removable catch cup screwed onto the bottom'),
     colourGroups(3, 'silver steel, walnut brown knob and ring, black nut'),
   ],
   async oracle(j) { return evaluatesCheck(j); },
@@ -183,11 +179,20 @@ const ROOM: Brief = {
     {
       id: 'shell', what: 'two walls and the floor',
       oracle(j) {
-        const u = union(boxesOf(j)); if (!u) return { status: 'missing' };
-        // (A slab: one side under 5 % of the room's larger sides, the others most of the room.)
-        const slabs = boxesOf(j).filter(b => { const s = [...b.size].sort((a, c) => a - c); return s[0] <= 0.05 * s[2] && s[1] >= 0.5 * 2600; });
-        const floor = slabs.filter(b => b.size[2] === Math.min(...b.size)).length, walls = slabs.length - floor;
-        return floor >= 1 && walls >= 2 ? { status: 'done', evidence: { floor, walls } } : { status: 'approximated', how: `${floor} floor and ${walls} wall slabs`, evidence: { floor, walls } };
+        const bs = boxesOf(j), u = union(bs); if (!u) return { status: 'missing' };
+        const room = [u.hi[0] - u.lo[0], u.hi[1] - u.lo[1], u.hi[2] - u.lo[2]];
+        // (A floor: a slab thinner than 5 % of the room's plan, spanning half of it. A wall: thin slabs on one vertical
+        // plane — a wall cut by a door or a window is several bodies — together spanning half the room's side and height.)
+        const floor = bs.filter(b => b.size[2] <= 0.05 * Math.max(room[0], room[1]) && b.size[0] >= 0.5 * room[0] && b.size[1] >= 0.5 * room[1]).length;
+        const planes = new Map<string, { lo: number; hi: number; top: number }>();
+        for (const b of bs) for (const k of [0, 1]) {
+          const along = 1 - k;
+          if (b.size[k] > 0.05 * room[along] || b.size[k] >= b.size[along]) continue;
+          const key = `${k}:${Math.round((b.lo[k] + b.hi[k]) / 2 / 100)}`, p = planes.get(key) ?? { lo: Infinity, hi: -Infinity, top: 0 };
+          planes.set(key, { lo: Math.min(p.lo, b.lo[along]), hi: Math.max(p.hi, b.hi[along]), top: Math.max(p.top, b.size[2]) });
+        }
+        const walls = [...planes].filter(([key, p]) => p.hi - p.lo >= 0.5 * room[1 - Number(key[0])] && p.top >= 0.5 * room[2]).length;
+        return floor >= 1 && walls >= 2 ? { status: 'done', evidence: { floor, walls } } : { status: 'approximated', how: `${floor} floor and ${walls} wall planes`, evidence: { floor, walls } };
       },
     },
     review('planks', 'the floor as planks'),

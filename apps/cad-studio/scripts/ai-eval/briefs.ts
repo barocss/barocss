@@ -6,10 +6,12 @@
 // written out beside each check; dimensions are the brief's, not a standard's.
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { evaluatePart, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { RUNGS } from '@barocss/cad-model/rb9/rungs';
 import { sample, type Rung } from '@barocss/cad-model/rb9/core';
 import { clearanceMap, applyFill, fillOverlap } from '@barocss/cad-model/team/clearanceMap';
@@ -113,15 +115,20 @@ function baseAsInstance(doc: StudioDoc, solidsInBase: number): StudioDoc {
   const swap = (r: { part: string; face: string }) => r.part === 'base' ? { ...r, part: id } : r;
   return { ...doc, nodes: [], outputs: {}, bodies: undefined, instances: [{ id, name: 'Base', doc: { ...part, instances: [] } as StudioDoc, position: [0, 0, 0], rotation: [0, 0, 0], grounded: true }, ...(instances ?? [])], mates: (mates ?? []).map(m => ({ ...m, a: swap(m.a), b: swap(m.b) })) } as StudioDoc;
 }
-function rb9(n: number, ladder: Ladder, o: { baseAsInstance?: boolean } = {}): Brief {
+/**
+ * RB9.11 reads one part's two bodies (a print-in-place toy is one print), while the system prompt tells the agent to
+ * make a mechanism an assembly: a document with placed parts is shown to that checker flattened — each placed part's
+ * features folded into the base part where they stand (engine/flatten.ts, as a sub-assembly inserted elsewhere is).
+ */
+function rb9(n: number, ladder: Ladder, o: { baseAsInstance?: boolean; flatten?: boolean } = {}): Brief {
   const rung = RUNGS.find(r => r.n === n) as Rung, p = sample(rung.space, 1, 5);
   return {
     id: `rb9-${rung.id}`, ladder, title: `RB9.${n} ${rung.title}`, prompt: rung.prompt(p), rb9: `RB9.${n} ${rung.id} ${JSON.stringify(p)}`,
     async oracle(j) {
-      const shown = o.baseAsInstance ? baseAsInstance(j.doc, solids(j.base).length) : j.doc, e = await evaluatePart(shown, 1);
+      const shown = o.baseAsInstance ? baseAsInstance(j.doc, solids(j.base).length) : o.flatten && j.doc.instances?.length ? flattenAssembly(j.doc) : j.doc, e = await evaluatePart(shown, 1);
       const outcomes = await rung.check({ doc: shown, bodies: e.ok ? e.bodies : [] }, p, async d => evaluatePart(d, 1));
       return [...outcomes.map(x => check(x.id, `RB9: ${x.expected}`, x.pass, x.measured, x.expected, x.hard)),
-        ...(shown !== j.doc ? [check('base-shown', 'the base part shown to RB9 as a grounded instance (the system prompt builds the fixed part there)', true, undefined, undefined, false)] : [])];
+        ...(shown !== j.doc ? [check('shown', o.flatten ? 'the placed parts shown to RB9 folded into one part (the system prompt makes a mechanism an assembly)' : 'the base part shown to RB9 as a grounded instance (the system prompt builds the fixed part there)', true, undefined, undefined, false)] : [])];
     },
   };
 }
@@ -225,11 +232,12 @@ const GEAR_PAIR: Brief = {
       gap = Math.hypot(...[0, 1, 2].filter(k => k !== a).map(k => c1[k] - c2[k]));
     }
     const teeth = allNodes(j.doc).filter(n => /gear/.test(n.kind) || /"teeth"/.test(JSON.stringify(n))).map(n => JSON.stringify(n));
+    const jr = await j.read('assembly', { action: 'joints' }), couplings = (jr.couplings ?? []).length;
     return [check('g20', 'a 20-tooth module-2 gear 10 wide (tip Ø44)', !!g1, g1 ? sorted(g1.size).map(v => +v.toFixed(2)) : null, [10, 44, 44]),
       check('g40', 'a 40-tooth module-2 gear 10 wide (tip Ø84)', !!g2, g2 ? sorted(g2.size).map(v => +v.toFixed(2)) : null, [10, 84, 84]),
       check('parallel', 'parallel axes', parallel, parallel),
       check('centres', 'axes 60 mm apart (m(z1 + z2)/2)', gap !== null && Math.abs(gap - 60) <= 0.05, gap === null ? null : +gap.toFixed(3), 60),
-      check('meshed', 'the gears made as meshing gears (gear-mesh or a gear coupling)', teeth.some(t => /"gear":\s*\d|mesh/.test(t)) || allNodes(j.doc).some(n => n.kind === 'gear-mesh'), teeth.length, 'a meshing record', false),
+      check('meshed', 'the gears made as meshing gears (a gear-mesh feature, or a gear coupling the joint tree found)', teeth.some(t => /"mesh":\{/.test(t)) || couplings > 0, { gearNodes: teeth.length, couplings }, 'a meshing record', false),
       hasMaterial('material', j.doc, /steel/, 'steel', false)];
   },
 };
@@ -429,7 +437,9 @@ const A9: Brief = {
     const drawn = [plate, shaft, cover].filter(p => p && (p.doc.drawing as { sheet?: string } | undefined)?.sheet === 'A3').length;
     // (Placement, world boxes: the plate on the frame's top, the cover on the plate, the shaft through the plate's bore.)
     const bx = boxes(j), top = (key: RegExp) => bx.filter(b => key.test(b.key));
-    const plateBox = plate ? top(new RegExp(`^${plate.id}/`)) : [], coverBox = cover ? top(new RegExp(`^${cover.id}/`)) : [], frameBox = top(/^b|^base/), shaftBox = shaft ? top(new RegExp(`^${shaft.id}/`)) : [];
+    // (A part's own body is its largest: the cover's bought O-ring stands proud of its gland by the squeeze, into the plate.)
+    const own = (bs: typeof bx) => bs.length ? [bs.reduce((a, b) => a.size[0] * a.size[1] * a.size[2] >= b.size[0] * b.size[1] * b.size[2] ? a : b)] : [];
+    const plateBox = plate ? top(new RegExp(`^${plate.id}/`)) : [], coverBox = cover ? own(top(new RegExp(`^${cover.id}/`))) : [], frameBox = top(/^b|^base/), shaftBox = shaft ? top(new RegExp(`^${shaft.id}/`)) : [];
     const zmax = (bs: typeof bx) => bs.length ? Math.max(...bs.map(b => b.hi[2])) : NaN, zmin = (bs: typeof bx) => bs.length ? Math.min(...bs.map(b => b.lo[2])) : NaN;
     const centre = (bs: typeof bx) => bs.length ? [0, 1].map(k => (Math.min(...bs.map(b => b.lo[k])) + Math.max(...bs.map(b => b.hi[k]))) / 2) : [NaN, NaN];
     const pc = centre(plateBox), sc = centre(shaftBox.slice(0, 1));
@@ -475,7 +485,9 @@ const P1: Brief | null = existsSync(join(P1_DIR, 'brief.md')) && existsSync(join
     rmSync(file, { force: true });
     let r: { checks?: { id: string; ok: boolean; detail: string }[]; figures?: unknown } = {};
     try { r = JSON.parse(out.stdout); } catch { return [check('p1', 'P1\'s check ran', false, (out.stderr || out.stdout || '').slice(0, 600))]; }
-    return [...(r.checks ?? []).map(c => check(c.id, `P1: ${c.id}`, c.ok, c.detail.slice(0, 400))), check('figures', 'P1\'s figures', true, r.figures, undefined, false)];
+    // (check.ts is the API lane's and still changes: the version that judged is recorded by its hash.)
+    const checkSha = createHash('sha256').update(readFileSync(join(P1_DIR, 'check.ts'))).digest('hex').slice(0, 16);
+    return [...(r.checks ?? []).map(c => check(c.id, `P1: ${c.id}`, c.ok, c.detail.slice(0, 400))), check('figures', 'P1\'s figures and the check.ts that judged', true, { ...(r.figures as object), checkSha }, undefined, false)];
   },
 } : null;
 
@@ -487,7 +499,7 @@ export const BRIEFS: Brief[] = [
   // assemblies
   rb9(7, 'assembly', { baseAsInstance: true }), GEAR_PAIR, rb9(12, 'assembly', { baseAsInstance: true }),
   // mechanisms and robots
-  rb9(14, 'mechanism'), SCARA, MOTION, rb9(11, 'mechanism'),
+  rb9(14, 'mechanism'), SCARA, MOTION, rb9(11, 'mechanism', { flatten: true }),
   // manufacturing outputs
   DRAWING, CNC, CASTING, STEP_3MF, URDF, rb9(9, 'outputs'),
   // products
