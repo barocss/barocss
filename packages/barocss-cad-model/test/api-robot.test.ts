@@ -119,3 +119,16 @@ test('motions: saved under a name in the robot settings, read back, replaced by 
   assert.equal((refusal(() => saved.motion('nope')) as BarocssError).code, 'MOTION_UNKNOWN');
   assert.deepEqual(r.path([{ nope: 0 }, { nope: 1 }], { limits }).problems().map(p => p.code), ['JOINT_UNKNOWN', 'JOINT_UNKNOWN']);
 });
+
+// (O22's LOOP_OPEN, as check_path and play_motion refuse it: a looped robot's motion is not checked clear or posed open.)
+test('a looped robot\'s path is refused LOOP_OPEN: check, poseAt and duration throw it, problems lists it', () => {
+  const four = new Robot(JSON.parse(readFileSync(join(import.meta.dirname, '../samples/robots/four-bar.bcad'), 'utf8')) as StudioDoc);
+  const path = four.path([{ 'base~crank': 0 }, { 'base~crank': 90 }], { limits: { 'base~crank': { velocity: 90, acceleration: 180 } } });
+  const open = (e: unknown) => e instanceof BarocssError && e.code === 'LOOP_OPEN' && /closed loop/.test(e.message);
+  assert.throws(() => path.check(), open);
+  assert.throws(() => path.poseAt(0.5), open);
+  assert.throws(() => path.duration(), open);
+  assert.equal(path.problems()[0].code, 'LOOP_OPEN');
+  // (An open chain plays as before.)
+  assert.ok(!robot().path([{}, { [keys()[0]]: 10 }]).problems().some(p => p.code === 'LOOP_OPEN'));
+});
