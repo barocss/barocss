@@ -490,7 +490,7 @@ export function App() {
   const printEnabled = previewMode === 'print';
   // (G23 CNC: the material-removal preview, session only.)
   const camEnabled = previewMode === 'cnc';
-  const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellMM: 0.5 });
+  const [camOptions, setCamOptions] = useState<CamOptions>({ setup: 0, progress: 0, cellPitch: 0.5 });
   // (G24: the drawing's annotations on the model, session only, and the one picked.)
   const [pmiEnabled, setPmiEnabled] = useState(false);
   const [pmiSelected, setPmiSelected] = useState<string | null>(null);
