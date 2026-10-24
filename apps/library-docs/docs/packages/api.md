@@ -19,12 +19,14 @@ The facades are for code. The agent keeps working through its JSON tools, and th
   - Typed arrays appear only in mesh data.
 - **Each method adds to the document** and calls the core, and computes no geometry of its own. Each package's facade
   reaches its core through one adapter.
-- **Results are the core's, as plain data, in millimetres and grams,** with the unit in the name: `volumeMM3`,
-  `massG`, `centroidMM` and `inertiaGMM2`, the inertia about the centre of mass.
+- **One set of units.** Inputs are in millimetres, degrees and g/cm³, so no option names a unit. Results are in
+  millimetres and grams.
+- **Results are the core's, as plain data,** with the unit in the name: `volumeMM3`, `massG`, `centroidMM` and
+  `inertiaGMM2`, the inertia about the centre of mass.
 - **The agent's words.** The modelling verbs are the agent's v2 command names, and their options are that command's
-  values with the unit in the name: `box({ wMM, dMM, hMM })`, `hole(face, { dMM, xMM, yMM })`,
-  `fillet(edges, { radiusMM })`. Two verbs are named for their studio palette entry instead: `box`, which has no v2
-  command, and `subtract`, whose command is `difference`.
+  value names, with no unit in the name: `box({ w, d, h })`, `hole(face, { d, x, y })`, `fillet(edges, { radius })`.
+  Where no command names a value, the option is named for it: `mass({ density })`. Two verbs are named for their
+  studio palette entry instead: `box`, which has no v2 command, and `subtract`, whose command is `difference`.
 - **One part, two documents.** Both packages' parts are one implementation (cad's `Part`). Each verb is checked once,
   and a backend writes it into its own document: cad's as kernel features, cad-model's through the studio's own command,
   as the agent's `run_command` does.
@@ -60,17 +62,17 @@ Each verb makes a body of its own, or acts on the part's body.
 
 | Verb | v2 command | What it does |
 |---|---|---|
-| `box({ wMM, dMM, hMM, xMM?, yMM?, zMM? })` | (palette: Box) | A block, its least corner at (x, y, z) |
-| `cylinder({ rMM, hMM, xMM?, yMM?, zMM? })` | `cylinder` | A round bar standing on z about (x, y) |
-| `extrude(sketch, { hMM, draftDeg? })` | `extrude` | A finished sketch pulled along its plane's normal |
-| `revolve(sketch, { axis?, angleDeg? })` | `revolve` | A finished sketch turned about its plane's Y axis (or X), a full turn by default |
-| `hole(face, { dMM, xMM, yMM, type?, depthMM? })` | `hole` | A hole into the one flat face the selector picks, at (x, y) on that face's plane; through unless `'blind'` with a `depthMM` |
-| `fillet(edges, { radiusMM })` | `fillet` | Rounds the edges the selector picks |
-| `chamfer(edges, { distanceMM })` | `chamfer` | Cuts them back at 45° |
-| `shell(open?, { tMM })` | `shell` | Hollows the body to walls t thick, leaving the faces the selector picks open; with no selector, a closed hollow |
+| `box({ w, d, h, x?, y?, z? })` | (palette: Box) | A block, its least corner at (x, y, z) |
+| `cylinder({ r, h, x?, y?, z? })` | `cylinder` | A round bar standing on z about (x, y) |
+| `extrude(sketch, { h, draft? })` | `extrude` | A finished sketch pulled along its plane's normal |
+| `revolve(sketch, { axis?, deg? })` | `revolve` | A finished sketch turned about its plane's Y axis (or X), a full turn by default |
+| `hole(face, { d, x, y, type?, depth? })` | `hole` | A hole into the one flat face the selector picks, at (x, y) on that face's plane; through unless `'blind'` with a `depth` |
+| `fillet(edges, { radius })` | `fillet` | Rounds the edges the selector picks |
+| `chamfer(edges, { distance })` | `chamfer` | Cuts them back at 45° |
+| `shell(open?, { t })` | `shell` | Hollows the body to walls t thick, leaving the faces the selector picks open; with no selector, a closed hollow |
 | `union(tool)`, `subtract(tool)`, `intersect(tool)` | `union`, `difference`, `intersect` | Combines the body with a tool body |
-| `linearPattern({ axis, spacingMM, count })` | `linear-pattern` | Copies in a row, joined into one body |
-| `circularPattern({ axis?, count, spanDeg?, pxMM?, pyMM? })` | `circular-pattern` | Copies round an axis, joined into one body |
+| `linearPattern({ axis, spacing, count })` | `linear-pattern` | Copies in a row, joined into one body |
+| `circularPattern({ axis?, count, span?, px?, py? })` | `circular-pattern` | Copies round an axis, joined into one body |
 | `moved(location)` | `rotate`, then `move` | Turns the body about X, then Y, then Z through the origin, then moves it |
 
 - **Each verb evaluates its result.** A feature the core refuses is refused at its verb, with the core's code, and the
@@ -81,14 +83,14 @@ Each verb makes a body of its own, or acts on the part's body.
 
 ### Sketches, planes and locations
 
-`sketch(plane?)` starts a sketch on a `Plane`, XY by default. It gives `.rectangle({ wMM, dMM, xMM?, yMM? })`,
-`.circle({ rMM, xMM?, yMM? })`, `.polygon(points)`, or a chain `.moveTo(p).lineTo(p).arcTo(p, { center, direction? })`
+`sketch(plane?)` starts a sketch on a `Plane`, XY by default. It gives `.rectangle({ w, d, x?, y? })`,
+`.circle({ r, x?, y? })`, `.polygon(points)`, or a chain `.moveTo(p).lineTo(p).arcTo(p, { center, direction? })`
 ended by `.close()`.
 
-- **Planes.** `Plane.XY`, `Plane.XZ` (its normal −Y, so its Y is world Z), `Plane.YZ`, `.offset(dMM)`, and
+- **Planes.** `Plane.XY`, `Plane.XZ` (its normal −Y, so its Y is world Z), `Plane.YZ`, `.offset(distance)`, and
   `Plane.of({ origin, normal, xAxis })`, which refuses vectors that aren't unit length and square to each other.
-- **Locations.** `Location.of({ positionMM, rotationDeg })` and `Location.at(p)`: the documents' pose, turned about X,
-  then Y, then Z, through the origin, then moved.
+- **Locations.** `Location.of({ position, rotation })` and `Location.at(position)`: the documents' pose, turned about
+  X, then Y, then Z, through the origin, then moved.
 - **Plain data.** A sketch, a plane and a location are immutable, and each has `.data`, the shape the documents
   carry.
 - **Stable side names.** Every side of a facade sketch is tagged (`e1`, `e2` …), as the studio's sketcher tags the
@@ -115,7 +117,7 @@ Two separate parts aren't combined: merging two documents would renumber one's i
 
 ### Results
 
-- `.mass({ densityGPerCm3 })` gives the chosen body's mass properties. The kernel keeps no material library, so it
+- `.mass({ density })` gives the chosen body's mass properties. The kernel keeps no material library, so it
   takes a density; cad-model's part also takes a material id.
 - `.step(name?)` writes every body as one STEP AP214 file.
 - `.stl()` writes the body as binary STL. It's on the kernel part only.
@@ -156,8 +158,8 @@ ways, and all three give one document, byte for byte. The sample checks each aga
 
 <<< @/../samples/cad-model-api.test.mjs#commands
 
-3. **The facade.** The same command names, the same values with their units in the names, and selectors in place of
-   the names. It runs the studio's own command, as `run_command` does.
+3. **The facade.** The same command names, the same value names, and selectors in place of the names. It runs the
+   studio's own command, as `run_command` does.
 
 <<< @/../samples/cad-model-api.test.mjs#bracket
 
@@ -165,7 +167,7 @@ ways, and all three give one document, byte for byte. The sample checks each aga
 
 <<< @/../samples/cad-model-api.test.mjs#immutable
 
-- **Materials.** `.mass()` takes a material id from the library, such as `al6061`, or `{ densityGPerCm3 }`.
+- **Materials.** `.mass()` takes a material id from the library, such as `al6061`, or `{ density }`.
   `.material(id)` sets the chosen body's material, or every body's, as the agent's `set_material` writes it. `.mass()`
   with no argument then weighs the body in it, and `.meshes()` carries the id for a scene to look up.
 
@@ -182,7 +184,7 @@ Placed parts are instances, each with its own document, and mates relate their f
   solved again after it:
   - `addPart(name, part, { at?, grounded? })` is `add_part`, with the part's document as it is;
   - `place(name, { at?, grounded? })` is `place_part`;
-  - `addMate(kind, a, b, { distanceMM?, angleDeg?, flip? })` is `add_mate`. Each end is `{ part, face }`: the part is
+  - `addMate(kind, a, b, { distance?, angle?, flip? })` is `add_mate`. Each end is `{ part, face }`: the part is
     `'base'` or a placed part by its name, and the face is a selector picking one face, or a face name;
   - `inputs({ name: input | null })` and `variants({ name: values | null }, active?)` are `set_inputs` and
     `set_variants`. Bindings name parts and mates by id: `parts()` lists the parts' ids, and mates are `m1`, `m2` … in
@@ -191,10 +193,10 @@ Placed parts are instances, each with its own document, and mates relate their f
     in that part's own coordinates.
 - **Its results are plain data:**
   - `parts()`;
-  - `placements()`: each placed part's id, name, `positionMM`, `rotationDeg` and grounding;
+  - `placements()`: each placed part's id, name, `position` (mm), `rotation` (degrees) and grounding;
   - `problems()`: the mates left unmet;
   - `variant(values)`: an assembly with those input values, the master unchanged;
-  - `framePoses()`: each frame's world pose;
+  - `framePoses()`: each frame's world pose, as `position` and `rotation`;
   - `meshes()`: `base/<body>` and `<part>/<body>`, each part where it stands;
   - `part(name)`: a placed part as a studio part, in its own coordinates.
 - **Not yet in the facade:** editing a placed part in place; deleting or editing parts and mates; library parts;
@@ -235,7 +237,7 @@ A scene is an immutable description of meshes, each with its material, lights, a
     No look is built in for a material id.
   - `.light(light)` takes a directional, point or spot light, in the Viewer's own terms.
   - `.background(value)` takes a colour, a gradient or `'transparent'`.
-  - `.camera(view, { projection?, fovYDeg? })` takes `'iso'`, `'front'`, `'back'`, `'right'`, `'left'`, `'top'`,
+  - `.camera(view, { projection?, fovY? })` takes `'iso'`, `'front'`, `'back'`, `'right'`, `'left'`, `'top'`,
     `'bottom'`, or `{ direction, up? }`: the direction from the scene to the eye. The top and bottom views keep +Y up,
     the others +Z.
 - **`.data`** is the plain description, with `frame: 'z-up'`. Material ids stay ids in it, and the looks are under
