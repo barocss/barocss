@@ -76,9 +76,8 @@ have immutable compatible checkpoints and their required checks are recorded:
 - GPU: approved compatibility `1205fbe91` covers19 initial consumer/test files plus4 matching test/fixture leases. Lane Studio types49→0, related native103/103, WebGPU/WebGL2 flows6/6 each pass. Latest direct owner instruction keeps that checkpoint idle until aggregate results; no extra eb4 GPU run or rendering optimization is claimed.
 
 The isolated qualification branch is `codex/cad-r7-qualification-20261025` in the preparation worktree.
-Latest isolated preparation is `0632daabd60d02cbda42a5d3fde450d4ad9f4ad1` (actual later tip in git log).
-It assembles the residual contract77d5/interface86ea/gravity correction331947, Drawing baseline0f56,
-Docs preparation093a, Outer angular WIP552e, API consumer1d31099 and Kernel stored inputsb567/d788.
+Latest isolated preparation is `86e1cb1c9c0b697ee45e5a179b5673a5504d4902` (actual later tip in git log).
+It assembles the residual contracts, Drawing baseline0f56, Docs B1d38, Outer angular552e/public reports c327/native SI6b1, API B1d22, Kernel storedb567/d788/native SIdfb/fit19b and Split oraclef932. Shared browser-flow migration4b709 remains WIP NOT VERIFIED until its real flows run.
 It is **NOT QUALIFIED** and remains outside product. Current docs check FAIL is the generated tools reference drifting
 from the new public angular description; preserve the failure and regenerate once with the matching completed producer.
 
@@ -100,19 +99,19 @@ bounded next tasks at that exact base and preserve their previous checkpoints.
 
 | Work | Active scope | Dependency / completion condition |
 |---|---|---|
-| Kernel | Stored input checkpointsb567/d788 submitted; native SI16/16/build/lint passed with fingerprint review in progress, then fit/bearing deviations | Internal subpath interface fixed; preserve public MMGS output, no extra integration or fabricated density |
-| Outer | Angular/storage WIP552e assembled; phaseB1 raw-before-rounding/public force-time-MMGS reports active, then B2 duty/diagnostics and mechanical/row names | Angular fixture dependency resolved in6ced15/15; exact Kernel SI/fit producers follow separately |
-| API | Angular consumer1d31099:9/9 independent/previous units,61/61 API, types/lint pass; next phaseB shared reports | Exact Outer phaseB producer needed; preserve existing pose conversion and P1; exclude P2 |
-| Docs | Preparation093a static/build pass;3 new angular samples assigned at exact0632; runtime result pending | Full samples/scenes/build/reference generation after phaseB producer/API; preserve5173 preview |
+| Kernel | Storedb567/d788, native SIdfb(16/16 and869 fingerprint bytes same), fit19b(58/58), Split oraclef932(source/emitted/cold and original1/1) checked; contextual audit found further omissions | T-slot sizeMM→cellSize first; then profile/decimate wallTime seconds and approximation maxSampledDeviation with matching consumers |
+| Outer | B1c327(55/55 actual types/lint), native SI6b1(Model38/38,Studio15/15,8pins,target fallback0) checked; fit consumers active | Finish fit to open Drawings, then required worker-clone native export boundary; B2 duty/diagnostics/nested angles and mechanical names follow |
+| API | B1d22:14/14,65/65 API,P1 4/4 and actual types/lint pass; owned residual audit active | P1 duration/treeTime seconds migration at exactd22; consume remaining shared producer, no new facade/sweep/P2 |
+| Docs | B1d38:9focused/70whole samples,scene reproduction/build pass at that exact checkpoint; root reviewed6source/12log hashes | Contextual remaining-name file map; exact final producers before regeneration of tools/refusals and final same-SHA check; preserve5173 preview |
 | Drawings | Physical fit/DXF baseline0f56:4/4 pass,12mm and deviations unchanged at scales1/2 | Await exact Kernel fit/bearing plus Outer fitView/validator before11-row consumer migration; keep DR6b outside R7 |
-| GPU | Read-only exact consumer-impact map for confirmed CAM/print/material/public DTO fields | Keep1205 clean under direct source-edit/remeasurement hold; coordinator assigns any demonstrated compatibility patch separately |
+| GPU | Latest direct owner request resumes G14→G15d.3→G15c→G15d.4. G14 candidate7a272c741 is separate and performance NOT VERIFIED; depth-of-field work remains on a separate1205-based branch | Preserve R7 baseline1205 and unverified feature ancestry; exact CAM/print/approximation producer maps before mechanical compatibility changes |
 | Coordinator | Contract/roadmap, serial preparation adoption, shared browser-flow changes and final assembly | Freeze one SHA after all producers and consumers are ready; run required full suites and actual WebGPU/WebGL2 flows before product R7 window |
 
 Public and stored turning quantities use degrees, force N, turning moment N·mm, gravity mm/s², time seconds,
 mass g and inertia g·mm². Native robot files retain format SI; raw FK/dynamics remain internal radians/SI.
 Default gravity preserves9.80665m/s² as9806.65mm/s²; explicit9810 remains a separate input. No aliases, schema bump, tolerance loosening or frozen-native-pin regeneration is authorized. A7.5 test-only checkpoint
 `6b7e58d3b` is adopted in preparation `3795e938b`; focused5/5 passed, without a new whole Studio result. Kernel/Outer angular storage at6ced passes15/15; this is a focused result, not a whole suite or the later0632 result.
-Product R7 and P2 remain HOLD. Finish the residual contract instead of promoting the354-row kernel map as complete.
+Product R7 and P2 remain HOLD. The354-row kernel map was not complete: audits additionally found T-slot cellSize, profile/decimate wallTime, approximation maxSampledDeviation, P1 duration/treeTime, and public nested coupling rotation. Each has a bounded producer/consumer assignment. Natural option name deg remains explicitly allowed by conventions. Kernel fit human µm text stays correctly labelled and unchanged while JSON quantities use mm.
 
 The coordinator must record the complete immutable set and shared field/unit map before the serial window. Verify
 all consumers together before describing the R7 aggregate as integrated. Keep qualified independent milestones
