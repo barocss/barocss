@@ -87,6 +87,30 @@ Preserve the70g budget and rejected decision; actual fixture mass is about76.945
 byte assertions or refusal expectations. Keep first failures. The unfinished public robot units and field-name
 contract also block product R7 adoption even if focused compatibility checks pass. P2 stays held until product validation.
 
+### Active residual work assignments (2026-10-25)
+
+The owner explicitly requested continued lane instructions and a single fully checked R7 assembly. Contract checkpoint
+`77d5ac1bca0042c0a086f83f26ad602ad14e3af8` in isolated preparation adds
+`notes/r7-window-2026-10-24/residual-contract.md`; it applies the existing approved MMGS/degree/latest-schema rules.
+This is a contract checkpoint, not completed consumer code or product adoption. All six existing Works received their
+bounded next tasks at that exact base and preserve their previous checkpoints.
+
+| Work | Active scope | Dependency / completion condition |
+|---|---|---|
+| Kernel | Native SI moment/cache access and package-local internal subpath; then separate fit deviations | Publish exact internal function/type first; preserve public MMGS output, no extra integration or fabricated density |
+| Outer | Public robot angular/storage adapters first; then force/time/MMGS reports and residual mechanical/row names | Publish public projection signatures to API; consume exact Kernel SI checkpoint separately; preserve internal radians/SI |
+| API | Public joints/setJoints, mixed turning/sliding contact, then MMGS/gravity and owned names | Use the same Outer producer contract; preserve existing pose conversion and P1; exclude P2 |
+| Docs | Confirmed contract text and independent degree/MMGS examples | Execute samples/regenerate references on exact completed producer/API assembly; preserve5173 preview |
+| Drawings | Residual drawing-name and fit-deviation consumer map; bounded owned migrations | Consume exact Kernel/Outer producer; keep DR6b outside R7 |
+| GPU | Read-only exact consumer-impact map for confirmed CAM/print/material/public DTO fields | Keep1205 clean under direct source-edit/remeasurement hold; coordinator assigns any demonstrated compatibility patch separately |
+| Coordinator | Contract/roadmap, serial preparation adoption, shared browser-flow changes and final assembly | Freeze one SHA after all producers and consumers are ready; run required full suites and actual WebGPU/WebGL2 flows before product R7 window |
+
+Public and stored turning quantities use degrees, force N, turning moment N·mm, gravity mm/s², time seconds,
+mass g and inertia g·mm². Native robot files retain format SI; raw FK/dynamics remain internal radians/SI.
+No aliases, schema bump, tolerance loosening or frozen-native-pin regeneration is authorized. A7.5 test-only checkpoint
+`6b7e58d3b` is adopted in preparation `3795e938b`; focused5/5 and docs pass, without a new whole Studio result.
+Product R7 and P2 remain HOLD. Finish the residual contract instead of promoting the354-row kernel map as complete.
+
 The coordinator must record the complete immutable set and shared field/unit map before the serial window. Verify
 all consumers together before describing the R7 aggregate as integrated. Keep qualified independent milestones
 moving while the R7 window is held. Do not broaden focused proof into full browser, product or release acceptance.
