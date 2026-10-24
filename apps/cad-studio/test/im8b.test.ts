@@ -63,10 +63,12 @@ test('IM8b machining allowance by band (inches × 25.4): non-ferrous 100 mm 2.28
   const doc = emptyDoc();
   for (const [family, size, mm, band] of [['aluminium', 100, 2.286, 'up to 8 in'], ['aluminium', 250, 3.048, '8 in to 12 in'], ['steel', 700, 7.62, '20 in to 40 in'], ['iron', 400, 5.08, '12 in to 20 in'], ['magnesium', 8 * 25.4, 2.286, 'up to 8 in']] as const) {
     const m = machiningOf(doc, SAND, family, size); assert.ok(m.ok, `${family} ${size}`);
-    assert.ok(near(m.mm, mm, 1e-9) && m.band === band, `${family} ${size}: ${JSON.stringify(m)}`);
+    assert.equal(Object.hasOwn(m, 'value'), true); assert.equal(Object.hasOwn(m, 'mm'), false);
+    assert.ok(near(m.value, mm, 1e-9) && m.band === band, `${family} ${size}: ${JSON.stringify(m)}`);
   }
   const past = machiningOf(doc, SAND, 'aluminium', 1100); assert.ok(!past.ok && /past the table's last band \(40 in\)/.test(past.why));
-  const yours = machiningOf({ ...doc, casting: { version: 1, machiningAllowance: 1.5 } }, SAND, 'aluminium', 1100); assert.ok(yours.ok && yours.mm === 1.5 && yours.basis === 'set');
+  const yours = machiningOf({ ...doc, casting: { version: 1, machiningAllowance: 1.5 } }, SAND, 'aluminium', 1100); assert.ok(yours.ok && yours.value === 1.5 && yours.basis === 'set');
+  assert.equal(Object.hasOwn(yours, 'value'), true); assert.equal(Object.hasOwn(yours, 'mm'), false);
 });
 
 test('IM8b in the report: an A356 block 100 × 60 × 20, top machined — shrink 1.012917 and 2.286 mm on one face, each with its page; none marked n/a; a face not on the part fails; die casting\'s shrinkage unknown', async () => {
@@ -94,7 +96,10 @@ test('IM8b the pattern: the block with 2.286 mm on its top, scaled 1 + 0.155/12 
   for (const dimension of dimensions) { assert.equal(Object.hasOwn(dimension, 'extent'), true); assert.equal(Object.hasOwn(dimension, 'extentMM'), false); }
   const want = { min: [50 - 50 * f, 30 - 30 * f, 10 - 10 * f], max: [50 + 50 * f, 30 + 30 * f, 10 + 12.286 * f] };
   for (const k of [0, 1, 2]) assert.ok(near(p.file.pattern.min[k], want.min[k], 1e-5) && near(p.file.pattern.max[k], want.max[k], 1e-5), JSON.stringify(p.file.pattern));
-  assert.deepEqual([p.file.shrink.factor, p.file.shrink.band, p.file.machining!.mm, p.file.machining!.faces], [1.012917, 'up to 4 ft', 2.286, ['n1.top']]);
+  assert.deepEqual([p.file.shrink.factor, p.file.shrink.band, p.file.machining!.value, p.file.machining!.faces], [1.012917, 'up to 4 ft', 2.286, ['n1.top']]);
+  const allowanceJSON = (JSON.parse(JSON.stringify(p.file)) as typeof p.file).machining;
+  assert.ok(allowanceJSON); assert.equal(allowanceJSON.value, 2.286);
+  assert.equal(Object.hasOwn(allowanceJSON, 'value'), true); assert.equal(Object.hasOwn(allowanceJSON, 'mm'), false);
   const step = exportStudioStep(p.doc, { name: 'pattern' }); assert.match(step.text, /^ISO-10303-21;/);
   const back = evaluateDoc(withNode(emptyDoc(), { kind: 'import', name: 'pattern', step: step.text } as never), 1); assert.ok(back.ok);
   assert.ok(near(back.bodies[0].volume!, exact, 1e-6 * exact), `STEP read back: ${back.bodies[0].volume}`);
@@ -125,7 +130,8 @@ test('IM8b cad-cli pattern: the saved block — exit 0, pattern.json (factor 1.0
   let r = cli(part, '-o', join(dir, 'out'));
   assert.equal(r.status, 0, r.stderr + r.stdout);
   const j = JSON.parse(readFileSync(join(dir, 'out/pattern.json'), 'utf8'));
-  assert.deepEqual([j.format, j.shrink.factor, j.machining.mm, j.machining.faces, /lecture3/.test(j.shrink.page), /lecture4/.test(j.machining.page)], ['barocss-pattern', 1.012917, 2.286, ['n1.top'], true, true]);
+  assert.deepEqual([j.format, j.shrink.factor, j.machining.value, j.machining.faces, /lecture3/.test(j.shrink.page), /lecture4/.test(j.machining.page)], ['barocss-pattern', 1.012917, 2.286, ['n1.top'], true, true]);
+  assert.equal(Object.hasOwn(j.machining, 'value'), true); assert.equal(Object.hasOwn(j.machining, 'mm'), false);
   assert.ok(existsSync(join(dir, 'out/pattern.step')) && readFileSync(join(dir, 'out/pattern.step'), 'utf8').startsWith('ISO-10303-21;'));
   r = cli(die, '-o', join(dir, 'none')); assert.equal(r.status, 1); assert.match(r.stdout, /PATTERN_NOT_CASTING/);
 });

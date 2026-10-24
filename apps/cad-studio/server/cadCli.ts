@@ -305,7 +305,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in step) return failed(`the pattern's STEP: ${step.error}`);
     writeAtomic(join(dir, 'pattern.json'), new TextEncoder().encode(JSON.stringify(p.file, null, 1) + '\n'));
     writeAtomic(join(dir, 'pattern.step'), new TextEncoder().encode(step.text));
-    say(io.stdout, { ok: true, factor: p.file.shrink.factor, machining: p.file.machining?.mm ?? null, wrote: [join(dir, 'pattern.json'), join(dir, 'pattern.step')] });
+    say(io.stdout, { ok: true, factor: p.file.shrink.factor, machining: p.file.machining?.value ?? null, wrote: [join(dir, 'pattern.json'), join(dir, 'pattern.step')] });
     return 0;
   }
   if (cmd === 'mould') {

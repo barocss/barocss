@@ -47,7 +47,7 @@ export async function patternOf(doc: StudioDoc, bodies: readonly BodyResult[], e
     state = r.state; return null;
   };
   // (Each machined face out by the allowance, then the whole scaled about the part's box centre.)
-  if (machining?.ok) for (const f of marked.found) { const why = await run({ command: 'offset-face', faces: [f.name], values: { d: machining.mm } }); if (why) return failed('PATTERN_BUILD', `${f.name}: ${why}`); }
+  if (machining?.ok) for (const f of marked.found) { const why = await run({ command: 'offset-face', faces: [f.name], values: { d: machining.value } }); if (why) return failed('PATTERN_BUILD', `${f.name}: ${why}`); }
   if (state.bodies.length !== 1) return failed('PATTERN_BUILD', `the allowance left ${state.bodies.length} bodies`);
   const pivot = [0, 1, 2].map(k => r6((box.min[k] + box.max[k]) / 2)), factor = 1 + shrink.ratio;
   const why = await run({ command: 'scale', bodies: [state.bodies[0].key], values: { factor, px: pivot[0], py: pivot[1], pz: pivot[2] } });
@@ -58,7 +58,7 @@ export async function patternOf(doc: StudioDoc, bodies: readonly BodyResult[], e
     shrink: { ...sv, ratio: r6(sv.ratio), factor: r6(factor), simplification: 'one factor by the largest extent, for the whole pattern; a pattern maker may scale each dimension by its own band (byDimension)', byDimension: sv.basis === 'table' ? shrinkByDimension(doc, profile, family, bodies) : [] },
     machining: machining?.ok ? { ...machiningView(machining), faces: marked.found.map(f => f.name) } : null,
     pivot, part: { min: box.min.map(r6), max: box.max.map(r6) }, pattern: { min: after.min.map(r6), max: after.max.map(r6) },
-    note: `the pattern: ${machining?.ok ? `${machining.mm} mm on ${marked.found.length} machined face${marked.found.length === 1 ? '' : 's'}, then ` : ''}scaled ${r6(factor)} about the part's box centre; check the values with your foundry`,
+    note: `the pattern: ${machining?.ok ? `${machining.value} mm on ${marked.found.length} machined face${marked.found.length === 1 ? '' : 's'}, then ` : ''}scaled ${r6(factor)} about the part's box centre; check the values with your foundry`,
   };
   return { ok: true, doc: state.doc, bodies: state.bodies, file };
 }
