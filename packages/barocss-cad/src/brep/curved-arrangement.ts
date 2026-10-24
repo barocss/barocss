@@ -12,7 +12,7 @@
 // cylinder's domain, a quartic intersection): its crossings come from polylines refined by Newton's
 // method, its area and crossings with a horizontal line by Gauss–Legendre and bisection.
 import { linearToleranceMM } from '../numeric-policy.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type XY = [number, number];
 /**
@@ -27,7 +27,10 @@ export type CurveSegment2 =
 /** A region: closed rings (material on the left: outer counter-clockwise, holes clockwise). */
 export type CurveRegion2 = { readonly outer: readonly CurveSegment2[]; readonly holes: readonly (readonly CurveSegment2[])[] };
 export type CurveBooleanOperation = 'union' | 'intersection' | 'difference' | 'xor';
-export class CurvedArrangementError extends KernelError { constructor(detail: string) { super('Curved arrangement: ' + detail, { code: 'CURVED_ARRANGEMENT' }); this.name = 'CurvedArrangementError'; } }
+/** This module's refusal (R7.3a batch 2: the CurvedArrangementError class folded, D279): a BarocssError, `details.source` 'curved-arrangement'. */
+export const curvedArrangementError = (detail: string) => kernelRefusal('curved-arrangement', 'CURVED_ARRANGEMENT', 'Curved arrangement: ' + detail) as KernelError & { readonly code: 'CURVED_ARRANGEMENT' };
+/** Whether something thrown is this module's refusal. */
+export const isCurvedArrangementError = (e: unknown): e is KernelError & { readonly code: 'CURVED_ARRANGEMENT' } => isFrom<'CURVED_ARRANGEMENT'>(e, 'curved-arrangement');
 
 const TWO_PI = 2 * Math.PI;
 type ParamCurve = Extract<CurveSegment2, { kind: 'curve' }>;
@@ -606,7 +609,7 @@ export function booleanCurveRegions(a: readonly (readonly CurveSegment2[])[], b:
     const probe = sampleRing(hole);
     let best = -1, bestArea = Infinity;
     outers.forEach((o, k) => { const ar = ringArea(o.outer); if (ar < bestArea && probe.some(p => pointInPolygon(p, o.sample)) && pointInPolygon(segAt(hole[0], 0.5), o.sample)) { bestArea = ar; best = k; } });
-    if (best < 0) throw new CurvedArrangementError('a result hole has no enclosing ring');
+    if (best < 0) throw curvedArrangementError('a result hole has no enclosing ring');
     outers[best].holes.push(hole);
   }
   return outers.map(o => ({ outer: o.outer, holes: o.holes }));

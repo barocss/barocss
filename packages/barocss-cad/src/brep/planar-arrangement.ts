@@ -14,12 +14,15 @@
 // Points are homogeneous integers (x, y, w), w > 0. Every point is either an input binary64 point or
 // the intersection of two input segments, so bit sizes stay bounded and every predicate is exact.
 import { binary64Dyadic } from '../core/dyadic.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type XY = [number, number];
 export interface PolygonWithHoles { readonly outer: readonly XY[]; readonly holes: readonly (readonly XY[])[] }
 export type PlanarBooleanOperation = 'union' | 'intersection' | 'difference' | 'xor';
-export class PlanarArrangementError extends KernelError { constructor(detail: string) { super('Planar arrangement: ' + detail, { code: 'PLANAR_ARRANGEMENT' }); this.name = 'PlanarArrangementError'; } }
+/** This module's refusal (R7.3a batch 2: the PlanarArrangementError class folded, D279): a BarocssError, `details.source` 'planar-arrangement'. */
+export const planarArrangementError = (detail: string) => kernelRefusal('planar-arrangement', 'PLANAR_ARRANGEMENT', 'Planar arrangement: ' + detail) as KernelError & { readonly code: 'PLANAR_ARRANGEMENT' };
+/** Whether something thrown is this module's refusal. */
+export const isPlanarArrangementError = (e: unknown): e is KernelError & { readonly code: 'PLANAR_ARRANGEMENT' } => isFrom<'PLANAR_ARRANGEMENT'>(e, 'planar-arrangement');
 
 type H = { x: bigint; y: bigint; w: bigint };
 const abs = (a: bigint) => a < 0n ? -a : a;
@@ -27,7 +30,7 @@ const gcd = (a: bigint, b: bigint): bigint => { a = abs(a); b = abs(b); while (b
 function normal(p: H): H { if (p.w < 0n) p = { x: -p.x, y: -p.y, w: -p.w }; const g = gcd(gcd(p.x, p.y), p.w) || 1n; return { x: p.x / g, y: p.y / g, w: p.w / g }; }
 /** An exact binary64 as n / 2^k. */
 function dyadic(v: number): [bigint, number] {
-  if (!Number.isFinite(v)) throw new PlanarArrangementError('finite coordinates required');
+  if (!Number.isFinite(v)) throw planarArrangementError('finite coordinates required');
   const { m, k } = binary64Dyadic(v); return [m, k];
 }
 function fromXY([x, y]: XY): H { const [nx, kx] = dyadic(x), [ny, ky] = dyadic(y), k = Math.max(kx, ky); return normal({ x: nx << BigInt(k - kx), y: ny << BigInt(k - ky), w: 1n << BigInt(k) }); }
@@ -76,7 +79,7 @@ function arrange(polygons: readonly PolygonWithHoles[]) {
     // Normalise: outer counter-clockwise, holes clockwise, so the winding inside is exactly 1.
     const rings = [[...poly.outer], ...poly.holes.map(h => [...h])].map((ring, ri) => (ri === 0) === (signed(ring) > 0) ? ring : ring.reverse());
     for (const ring of rings) {
-      if (ring.length < 3) throw new PlanarArrangementError('rings need three points');
+      if (ring.length < 3) throw planarArrangementError('rings need three points');
       const hs = ring.map(fromXY);
       hs.forEach((a, i) => { const b = hs[(i + 1) % hs.length]; if (!same(a, b)) segs.push({ a, b, polygon: pi }); });
     }
@@ -226,7 +229,7 @@ export function booleanPolygons(a: readonly PolygonWithHoles[], b: readonly Poly
       const onRing = new Set(o.ring.map(h => half[h].from)), free = hr.map(h => half[h].from).find(v => !onRing.has(v));
       if (free === undefined) return;
       if (insideCycle(points, half, o.ring, points[free])) { const ar = Math.abs(o.ring.reduce((s, h) => { const u = toXY(points[half[h].from]), v = toXY(points[half[h].to]); return s + u[0] * v[1] - v[0] * u[1]; }, 0)); if (ar < bestArea) { bestArea = ar; best = i; } } });
-    if (best < 0) throw new PlanarArrangementError('a result hole has no enclosing ring');
+    if (best < 0) throw planarArrangementError('a result hole has no enclosing ring');
     result[best].holes.push(hr);
   }
   return result.map(o => ({ outer: simplify(o.ring).map(toXY), holes: o.holes.map(h => simplify(h).map(toXY)) }));

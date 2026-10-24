@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, brepMassProperties, spurGear, spurGearDimensions, GearError } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, brepMassProperties, spurGear, spurGearDimensions, isGearError } from '../dist/index.js';
 import { twistDeviation } from '../dist/machine/gear.js';
 
 // R12b S0 (D129): the feasibility checkpoint before internal, bevel and worm gears and the tool-generated root. No
@@ -459,7 +459,7 @@ test('R12b S0 probe: a ZI worm is a helical gear of z1 teeth at β = 90° − γ
   const rows = [];
   for (const [mx, q, z1, L] of [[2, 10, 1, 50], [2, 10, 2, 50], [2, 10, 4, 50], [1, 16, 1, 40], [4, 8, 2, 90]]) {
     const gamma = Math.atan(z1 / q), mn = mx * Math.cos(gamma), beta = Math.PI / 2 - gamma;
-    assert.throws(() => spurGearDimensions({ normalModuleMM: mn, helixAngleDeg: beta * 180 / Math.PI, hand: 'right', teeth: z1, faceWidthMM: L }), e => e instanceof GearError && e.code === 'UNSUPPORTED_GEAR_KIND');
+    assert.throws(() => spurGearDimensions({ normalModuleMM: mn, helixAngleDeg: beta * 180 / Math.PI, hand: 'right', teeth: z1, faceWidthMM: L }), e => isGearError(e) && e.code === 'UNSUPPORTED_GEAR_KIND');
     // Transverse values: m_t = m_n / cos β (= m_x z... d1 = z1 m_t = q m_x), tan α_t = tan α_n / cos β.
     const mt = mn / Math.cos(beta), r = z1 * mt / 2, at = Math.atan(TAN / Math.cos(beta)), rb = r * Math.cos(at), ra = r + mn, rf = r - 1.25 * mn;
     close(2 * r, q * mx, 1e-9, 'd1 = q m_x');

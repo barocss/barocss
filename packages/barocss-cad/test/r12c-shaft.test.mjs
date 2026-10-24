@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, ShaftError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
+import { shaftSolid, isShaftError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.3a (D156): shafts. Oracles written here, none of them the kernel's:
@@ -13,7 +13,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want} (off ${Math.abs(got - want)})`);
-const code = c => e => e instanceof ShaftError && e.code === c;
+const code = c => e => isShaftError(e) && e.code === c;
 const GL = (() => { const n = 24, x = [], w = []; for (let i = 0; i < n; i++) { let t = Math.cos(Math.PI * (i + 0.75) / (n + 0.5)), dp = 0; for (let it = 0; it < 100; it++) { let p0 = 1, p1 = t; for (let k = 2; k <= n; k++) { const p2 = ((2 * k - 1) * t * p1 - (k - 1) * p0) / k; p0 = p1; p1 = p2; } dp = n * (t * p1 - p0) / (t * t - 1); const s = p1 / dp; t -= s; if (Math.abs(s) < 1e-16) break; } x.push(t); w.push(2 / ((1 - t * t) * dp * dp)); } return { x, w }; })();
 /** ∫_a^b f by Gauss–Legendre on `m` equal pieces. */
 const quad = (f, a, b, m = 8) => { let s = 0; for (let j = 0; j < m; j++) { const lo = a + (b - a) * j / m, hi = a + (b - a) * (j + 1) / m; for (let i = 0; i < GL.x.length; i++) s += GL.w[i] * (hi - lo) / 2 * f(lo + (hi - lo) * (GL.x[i] + 1) / 2); } return s; };

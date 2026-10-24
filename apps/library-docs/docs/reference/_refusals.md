@@ -185,6 +185,7 @@
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
+| `[LOOP_OPEN]` | `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
 | `[MATE_FACES]` | `assembly` | …… |
@@ -276,7 +277,7 @@
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
-| `[VALUE]` | `api`, `chat/part`, `engine` | …: a joint's value is a number (degrees, or mm for a slide), not … |
+| `[VALUE]` | `api`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |

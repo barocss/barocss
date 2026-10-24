@@ -11,7 +11,9 @@ import { NativeSelect } from '@/components/ui/native-select';
 
 const TYPE_LABEL: Record<JointType, string> = { fixed: 'Fixed', revolute: 'Revolute', continuous: 'Continuous', prismatic: 'Prismatic' };
 const axisText = (a: readonly number[]) => { const k = a.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9); return k >= 0 ? `${a[k] < 0 ? '−' : '+'}${'XYZ'[k]}` : `[${a.map(x => x.toFixed(3)).join(', ')}]`; };
-const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => [l.lower !== undefined && l.upper !== undefined ? `${l.lower} … ${l.upper} ${type === 'prismatic' ? 'mm' : 'rad'}` : '', l.effort !== undefined ? `${l.effort} ${type === 'prismatic' ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${l.velocity} ${type === 'prismatic' ? 'mm/s' : 'rad/s'}` : ''].filter(Boolean).join(' · ');
+// (Conventions §2: a turning joint's range in degrees and its velocity in °/s, a slide's in mm and mm/s; each number to 4 significant figures.)
+const sig4 = (v: number) => { const t = Number(v.toPrecision(4)); return Object.is(t, -0) ? 0 : t; };
+const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => { const slide = type === 'prismatic', k = slide ? 1 : 180 / Math.PI; return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower * k)}° … ${sig4(l.upper * k)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${sig4(l.velocity * k)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · '); };
 
 /** A gear pair at the pose shown: its phase against home, its backlash (RM2). */
 export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlashMM: number }
@@ -23,7 +25,13 @@ const mm1 = (v: number) => { const t = v.toFixed(1); return t === '-0.0' ? '0.0'
 const fix3 = (v: number) => { const t = v.toFixed(3); return t === '-0.000' ? '0.000' : t; };
 /** The motion played (RS2): the time shown and the motion's length (s), play state, loop, speed, and a contact reached. */
 export interface MotionReadout { t: number; duration: number; playing: boolean; loop: boolean; speed: number; contact: string | null }
-export interface MotionControls { onPlay(): void; onPause(): void; onTime(t: number): void; onLoop(on: boolean): void; onSpeed(speed: number): void }
+export interface MotionControls {
+  onPlay(): void; onPause(): void; onTime(t: number): void; onLoop(on: boolean): void; onSpeed(speed: number): void;
+  /** The document's saved motions by name, the one chosen (null: the draft), and saving the draft under a name. */
+  saved: readonly string[]; choice: string | null; onChoose(name: string | null): void; onSave(name: string): void;
+  /** A WebM of the motion at its own timing (RS2), and whether one is being recorded. */
+  onExportVideo?(): void; exporting?: boolean;
+}
 const SPEEDS = [0.25, 0.5, 1, 2];
 /** A frame as the card reads it out (O12). */
 export interface FrameReadout { name: string; link: string; kind?: 'tool' | 'sensor'; o: readonly number[]; z: readonly number[] }
@@ -95,6 +103,10 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
       {/* (RS2: the motion from home through the waypoints to the pose shown, played over time; a preview, nothing saved.) */}
       {motion && motionControls && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px]" aria-label="Motion">
+        <NativeSelect className={CONTROL} aria-label="Motion choice" value={motionControls.choice ?? ''} onChange={e => motionControls.onChoose(e.target.value || null)} style={{ flexBasis: '100%' }}>
+          <option value="">Draft: home → waypoints → this pose</option>
+          {motionControls.saved.map(n => <option key={n} value={n}>{n}</option>)}
+        </NativeSelect>
         <Button variant="ghost" aria-label={motion.playing ? 'Pause motion' : 'Play motion'} disabled={!ready || !(motion.duration > 0)}
           title="Play the motion: from home through the waypoints to the pose shown, each move within the joints' velocity limits" onClick={motion.playing ? motionControls.onPause : motionControls.onPlay}>{motion.playing ? '⏸' : '▶'}</Button>
         <input type="range" aria-label="Motion time" min={0} max={motion.duration || 1} step="any" value={Math.min(motion.t, motion.duration)} disabled={!(motion.duration > 0)}
@@ -104,7 +116,10 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         <NativeSelect className={CONTROL} aria-label="Motion speed" value={String(motion.speed)} onChange={e => motionControls.onSpeed(Number(e.target.value))} style={{ width: 64 }}>
           {SPEEDS.map(v => <option key={v} value={String(v)}>{v}×</option>)}
         </NativeSelect>
+        {motionControls.onExportVideo && <Button variant="ghost" aria-label="Export motion video" disabled={!ready || !(motion.duration > 0) || motionControls.exporting}
+          title="A WebM video of the motion from its start to its end, at its own timing (30 frames a second)" onClick={motionControls.onExportVideo}>{motionControls.exporting ? 'Recording…' : 'Video'}</Button>}
         {motion.contact && <div className="hud-error basis-full" role="status" aria-label="Motion contact">{motion.contact}</div>}
+        {motionControls.choice === null && <MotionSave saved={motionControls.saved} disabled={!(motion.duration > 0)} onSave={motionControls.onSave} />}
       </div>}
       {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
       {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px] [&>label]:inline-flex [&>label]:items-center [&>label]:gap-1 [&>label]:whitespace-nowrap" aria-label="Workspace">
@@ -139,4 +154,14 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       {!tree.joints.length && !tree.problems.length && <div className="empty">Mate parts to the base part to make joints.</div>}
     </aside>
   );
+}
+
+/** The draft kept in the document under a name (RS2): a new name, or one saved before, which it replaces. */
+function MotionSave({ saved, disabled, onSave }: { saved: readonly string[]; disabled: boolean; onSave(name: string): void }) {
+  const [name, setName] = useState('');
+  const n = name.trim() || `Motion ${saved.length + 1}`;
+  return <div className="flex basis-full items-center gap-1">
+    <Input className="kv-input" aria-label="Motion name" placeholder={`Motion ${saved.length + 1}`} value={name} onChange={e => setName(e.target.value)} onKeyDown={e => e.stopPropagation()} style={{ flex: 1 }} />
+    <Button variant="ghost" aria-label="Save as motion" disabled={disabled} title={saved.includes(n) ? `Replace the saved motion “${n}”` : 'Keep this motion in the document, to play again'} onClick={() => { onSave(n); setName(''); }}>Save as motion</Button>
+  </div>;
 }

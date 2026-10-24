@@ -1,7 +1,7 @@
 // R5.3 (D221): the gear features of the part model — spur, internal, bevel, worm, worm wheel and rack — moved out of
 // part-model.ts's operation() as they were there. The dispatcher calls `gearOperation` for those kinds.
 import { type BevelGearSpec, type PlacedBevelGear, bevelGear, bevelGearMatrix, bevelMatePlacement } from '../machine/gear-bevel.js';
-import { type GearDiagnosticCode, GearError, type SpurGearSpec, spurGear, spurGearCenterDistance, spurGearDimensions } from '../machine/gear.js';
+import { type GearDiagnosticCode, isGearError, type SpurGearSpec, spurGear, spurGearCenterDistance, spurGearDimensions } from '../machine/gear.js';
 import { type InternalGearSpec, type PlacedInternalGear, internalGear, internalGearCenterDistance, pinionTurnInside } from '../machine/gear-internal.js';
 import { type PlacedThroatedWheel, type ThroatedWheelSpec, throatedWormPlacement, throatedWormWheel } from '../machine/gear-worm-wheel.js';
 import { type SpurRackSpec, spurRack } from '../machine/gear-rack.js';
@@ -47,14 +47,14 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
           // Inside a ring (R12b.2a): at the internal pair's distance along the direction from the ring's centre, a tooth in
           // the ring's space there, turning with the ring by z2/z1 the same way.
           let a = 0;
-          try { a = internalGearCenterDistance(spec, ringPlace.spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing inside ${String(mesh!.gear)})` : ''}`); throw cause; }
+          try { a = internalGearCenterDistance(spec, ringPlace.spec); } catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing inside ${String(mesh!.gear)})` : ''}`); throw cause; }
           if (mesh!.centerDistance !== undefined) a = dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
           const phi = (dirDeg as number) * Math.PI / 180;
           place = { spec, center: [ringPlace.center[0] + a * Math.cos(phi), ringPlace.center[1] + a * Math.sin(phi)], from: ringPlace.from, rotation: pinionTurnInside(ringPlace, f.teeth as number, phi, (phaseDeg as number) * Math.PI / 180), meshesWith: String(mesh!.gear), ring: ringPlace };
           return () => {
             let made: ReturnType<typeof spurGear>;
             try { made = spurGear(spec, { id: at }); }
-            catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+            catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
             const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
             const brep = transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] });
             return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
@@ -63,7 +63,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
         const z1 = driver!.spec.teeth, z2 = f.teeth as number;
         // (Whether they mesh at all — module, pressure angle, helix angle and hands — before where.)
         let a = 0;
-        try { a = spurGearCenterDistance(driver!.spec, spec); } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+        try { a = spurGearCenterDistance(driver!.spec, spec); } catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
         if (mesh!.centerDistance !== undefined) a = dim(mesh!.centerDistance as CadPartDim, 'mesh.centerDistance', true);
         const phi = (dirDeg as number) * Math.PI / 180;
         place = { spec, center: [driver!.center[0] + a * Math.cos(phi), driver!.center[1] + a * Math.sin(phi)], from: driver!.from,
@@ -74,7 +74,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       return () => {
         let made: ReturnType<typeof spurGear>;
         try { made = spurGear(spec, { id: at }); }
-        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
         const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
         const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, gear: made!.report, gearPlace: place }] };
@@ -99,7 +99,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       return () => {
         let made: ReturnType<typeof internalGear>;
         try { made = internalGear(spec, { id: at }); }
-        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
         const c = Math.cos(place.rotation), sn = Math.sin(place.rotation);
         const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, internalGear: made!.report, internalPlace: place }] };
@@ -128,7 +128,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
         if (!(typeof dirDeg === 'number' && Number.isFinite(dirDeg)) || !(typeof phaseDeg === 'number' && Number.isFinite(phaseDeg))) fail('INPUT', 'mesh.direction and mesh.phase must be numbers of degrees');
         let at2: PlacedBevelGear;
         try { at2 = bevelMatePlacement(driver!, spec, (dirDeg as number) * Math.PI / 180, (phaseDeg as number) * Math.PI / 180); }
-        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+        catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
         place = { ...at2!, meshesWith: String(mesh!.gear), driver: driver! };
       } else {
         const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
@@ -137,7 +137,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       return () => {
         let made: ReturnType<typeof bevelGear>;
         try { made = bevelGear(spec, { id: at }); }
-        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
         const T = bevelGearMatrix(place), moved = T.matrix.some((x, i) => x !== [1, 0, 0, 0, 1, 0, 0, 0, 1][i]) || T.offset.some(x => x !== 0);
         const brep = moved ? transformBrep(made!.brep, T) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, bevelGear: made!.report, bevelPlace: place }] };
@@ -173,11 +173,11 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
           const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center');
           place = { spec, origin: [c[0], c[1], f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from')], axis: [0, 0, 1], xAxis: [1, 0, 0], rotation: ((f.rotation as number | undefined) ?? 0) * Math.PI / 180 };
         }
-      } catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
+      } catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}${cause.code === 'MATE_INCOMPATIBLE' ? ` (meshing with ${String(mesh!.gear)})` : ''}`); throw cause; }
       return () => {
         let made: ReturnType<typeof wormSolid>;
         try { made = wormSolid(spec, { id: at }); }
-        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
         const T = wormMatrix(place!), moved = T.matrix.some((x, i) => x !== [1, 0, 0, 0, 1, 0, 0, 0, 1][i]) || T.offset.some(x => x !== 0);
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: moved ? transformBrep(made!.brep, T) : made!.brep }, worm: made!.report, wormPlace: place! }] };
       };
@@ -195,7 +195,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       return () => {
         let made: ReturnType<typeof throatedWormWheel>;
         try { made = throatedWormWheel(spec, { id: at }); }
-        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
         const cs = Math.cos(place.rotation), sn = Math.sin(place.rotation);
         const brep = place.rotation || place.center[0] || place.center[1] || place.from ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [place.center[0], place.center[1], place.from] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, wormWheel: made!.report, wormWheelPlace: place }] };
@@ -247,7 +247,7 @@ export function gearOperation(f: CadPartFeature & Record<string, unknown>, t: To
       return () => {
         let made: ReturnType<typeof spurRack>;
         try { made = spurRack(spec, { id: at }); }
-        catch (cause) { if (cause instanceof GearError) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
+        catch (cause) { if (isGearError(cause)) fail(GEAR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gear: /, '')}`); throw cause; }
         const c = Math.cos(place.angle), sn = Math.sin(place.angle);
         const brep = place.angle || place.origin[0] || place.origin[1] || place.from ? transformBrep(made!.brep, { matrix: [c, -sn, 0, sn, c, 0, 0, 0, 1], offset: [place.origin[0], place.origin[1], place.from] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, rack: made!.report, rackPlace: place }] };

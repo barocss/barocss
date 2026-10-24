@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
 
 // R12b.4 (D135): spiral bevel gears, the ideal conjugate — flagged as an ideal model. Oracles written here, apart from
 // gear-bevel.ts: the circular tooth trace built on the crown plane (the cutter's circle through the mean point at the
@@ -121,7 +121,7 @@ test('the spiral bevel gear (refused at the previous HEAD: no spiral), the ideal
 
 test('refusals: a face-hobbed trace, a hypoid offset, the spiral angle, the hand, a cutter radius the face cannot take; a pair of one hand, of other spirals or face widths, or spiral with straight', () => {
   const base = { moduleMM: 3, teeth: 20, mateTeeth: 40, faceWidthMM: 20 }, sp = { angleDeg: 35, hand: 'left', cutterRadiusMM: 60 };
-  const code = (spec, c, re) => assert.throws(() => bevelGear({ ...base, ...spec }), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
+  const code = (spec, c, re) => assert.throws(() => bevelGear({ ...base, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   code({ spiral: { ...sp, trace: 'epicycloidal' } }, 'UNSUPPORTED_GEAR_KIND', /face-hobbed/); code({ spiral: sp, offsetMM: 5 }, 'UNSUPPORTED_GEAR_KIND', /hypoid/);
   code({ spiral: { ...sp, angleDeg: 50 } }, 'INVALID_INPUT', /45°/); code({ spiral: { ...sp, angleDeg: 0 } }, 'INVALID_INPUT'); code({ spiral: { ...sp, hand: 'up' } }, 'INVALID_INPUT', /hand/);
   code({ spiral: { ...sp, cutterRadiusMM: 5 } }, 'INVALID_INPUT', /cutter radius of 5 mm takes the spiral angle to 0° or past it/); code({ spiral: { ...sp, cutterRadiusMM: 0 } }, 'INVALID_INPUT');

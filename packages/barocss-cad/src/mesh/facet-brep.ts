@@ -9,7 +9,7 @@
 // region's first triangle in the file: the same file gives the same names. An open mesh is taken only when asked
 // (`open`: a sheet body, its open edges its boundary, M3); a repair's fill patches keep to faces of their own (`groups`).
 import { assertValidBrep, buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
-import { MeshBrepError, type MeshBrepOptions } from './mesh-brep.js';
+import { meshBrepError, type MeshBrepOptions } from './mesh-brep.js';
 import type { Curve, FacetPatch, Point } from '../types.js';
 import { boundsOf, triangleArea2 } from './facet-patch.js';
 
@@ -42,7 +42,7 @@ const POLYLINE = 64;
 /** The mesh (x, y, z per vertex; three vertex indices per triangle, or every three vertices one) as a B-rep of facet faces; refused when it is in more than one piece. */
 export function facetBrepFromTriangles(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions = {}): Brep {
   const m = welded(positions, indices, options), pieces = componentsOf(m.across, m.I.length / 3);
-  if (pieces.count > 1) throw new MeshBrepError(`the mesh is more than one piece (${pieces.count} pieces): open each piece as its own body`);
+  if (pieces.count > 1) throw meshBrepError(`the mesh is more than one piece (${pieces.count} pieces): open each piece as its own body`);
   return pieceBrep(m.id, m.P, m.I, m.G, options);
 }
 /**
@@ -57,7 +57,7 @@ export function facetBrepsFromTriangles(positions: ArrayLike<number>, indices: A
   const lists: number[][] = Array.from({ length: pieces.count }, () => []), groups: number[][] = Array.from({ length: pieces.count }, () => []);
   for (let t = 0; t < nt; t++) { lists[pieces.of[t]].push(m.I[3 * t], m.I[3 * t + 1], m.I[3 * t + 2]); if (m.G) groups[pieces.of[t]].push(m.G[t]); }
   return lists.map((list, j) => {
-    if (list.length < 12 && !options.open) throw new MeshBrepError(`piece ${j} of the mesh has fewer than four triangles: it encloses nothing`);
+    if (list.length < 12 && !options.open) throw meshBrepError(`piece ${j} of the mesh has fewer than four triangles: it encloses nothing`);
     return pieceBrep(`${m.id}_part${j}`, m.P, Uint32Array.from(list), m.G ? Int32Array.from(groups[j]) : null, options, `${m.id}.part${j}`);
   });
 }
@@ -74,10 +74,10 @@ export function facetPieces(positions: ArrayLike<number>, indices: ArrayLike<num
 function welded(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: FacetBrepOptions): { id: string; P: Float64Array; I: Uint32Array; across: Int32Array; G: Int32Array | null } {
   const id = (options.id ?? 'mesh').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
   const n = positions.length / 3, count = indices ? indices.length / 3 : n / 3, limit = options.maximumTriangles ?? 200_000;
-  if (!Number.isInteger(n) || !Number.isInteger(count)) throw new MeshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
-  if (count > limit) throw new MeshBrepError(`the mesh has ${count} triangles, more than the ${limit} read`);
+  if (!Number.isInteger(n) || !Number.isInteger(count)) throw meshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
+  if (count > limit) throw meshBrepError(`the mesh has ${count} triangles, more than the ${limit} read`);
   let size = 0;
-  for (let i = 0; i < positions.length; i++) { const x = positions[i]; if (!Number.isFinite(x)) throw new MeshBrepError('the mesh has a coordinate that is not a finite number'); if (Math.abs(x) > size) size = Math.abs(x); }
+  for (let i = 0; i < positions.length; i++) { const x = positions[i]; if (!Number.isFinite(x)) throw meshBrepError('the mesh has a coordinate that is not a finite number'); if (Math.abs(x) > size) size = Math.abs(x); }
   const weld = options.weldMM ?? Math.max(1e-9, size * 1e-6);
   const { P, remap } = weldVertices(positions, n, weld);
   const nv = P.length / 3;
@@ -90,7 +90,7 @@ function welded(positions: ArrayLike<number>, indices: ArrayLike<number> | null,
     T.push(a, b, c); if (options.groups) G.push(options.groups[t] ?? -1);
   }
   const I = Uint32Array.from(T);
-  if (I.length / 3 < (options.open ? 1 : 4)) throw new MeshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
+  if (I.length / 3 < (options.open ? 1 : 4)) throw meshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
   return { id, P, I, across: adjacency(I, nv, !!options.open), G: options.groups ? Int32Array.from(G) : null };
 }
 /** One piece as a B-rep: turned outward, grown into regions, assembled (faces named `<prefix>.region<k>`). */
@@ -162,12 +162,12 @@ function adjacency(I: Uint32Array, nv: number, allowOpen = false): Int32Array {
   let open = 0;
   for (let h = 0; h < nh; h++) {
     const a = I[h], b = I[h - h % 3 + (h % 3 + 1) % 3];
-    for (let k = start[a]; k < start[a + 1]; k++) { const g = list[k]; if (g !== h && I[g - g % 3 + (g % 3 + 1) % 3] === b) throw new MeshBrepError('the mesh is not consistently wound (two triangles run one edge the same way) or an edge has more than two triangles'); }
+    for (let k = start[a]; k < start[a + 1]; k++) { const g = list[k]; if (g !== h && I[g - g % 3 + (g % 3 + 1) % 3] === b) throw meshBrepError('the mesh is not consistently wound (two triangles run one edge the same way) or an edge has more than two triangles'); }
     let back = -1;
     for (let k = start[b]; k < start[b + 1]; k++) { const g = list[k]; if (I[g - g % 3 + (g % 3 + 1) % 3] === a) { back = g; break; } }
     if (back < 0) open++; else across[h] = back;
   }
-  if (open && !allowOpen) throw new MeshBrepError(`the mesh is not closed: ${open} edge${open === 1 ? '' : 's'} with a triangle on one side only`);
+  if (open && !allowOpen) throw meshBrepError(`the mesh is not closed: ${open} edge${open === 1 ? '' : 's'} with a triangle on one side only`);
   return across;
 }
 
@@ -309,7 +309,7 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
     for (let from = start; from >= 0;) {
       const pts = [I[from]]; let h = from; from = -1;
       for (let guard = 0; ; guard++) {
-        if (guard > 3 * nt) throw new MeshBrepError('a region boundary does not close');
+        if (guard > 3 * nt) throw meshBrepError('a region boundary does not close');
         edgeOf[h] = edges.length; if (across[h] >= 0) edgeOf[across[h]] = edges.length;
         const end = I[nextHalf(h)]; pts.push(end);
         if (corner[end]) break;
@@ -326,7 +326,7 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
   for (let h = 0; h < 3 * nt; h++) {
     if (!boundary(w, h) || edgeOf[h] >= 0) continue;
     let low = h, g = nextBoundary(w, h);
-    for (let guard = 0; g !== h; guard++) { if (guard > 3 * nt) throw new MeshBrepError('a region boundary does not close'); if (I[g] < I[low]) low = g; g = nextBoundary(w, g); }
+    for (let guard = 0; g !== h; guard++) { if (guard > 3 * nt) throw meshBrepError('a region boundary does not close'); if (I[g] < I[low]) low = g; g = nextBoundary(w, g); }
     corner[I[low]] = 1; trace(low);
   }
   // Loops: each face's boundary cycles from a corner, one use per edge passed.
@@ -341,7 +341,7 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
       const uses: { edge: string; sense: 'forward' | 'reversed' }[] = [];
       let h = h0, length = 0;
       for (let guard = 0; ; guard++) {
-        if (guard > 3 * nt) throw new MeshBrepError('a region boundary does not close');
+        if (guard > 3 * nt) throw meshBrepError('a region boundary does not close');
         const e = edgeOf[h];
         uses.push({ edge: edges[e].id, sense: edgeFace[e] === f ? 'forward' : 'reversed' });
         do { used[h] = 1; length++; h = nextBoundary(w, h); } while (!corner[I[h]]);
@@ -349,7 +349,7 @@ function assemble(id: string, P: Float64Array, I: Uint32Array, across: Int32Arra
       }
       loops.push({ uses, length });
     }
-    if (!loops.length) throw new MeshBrepError(`region ${f} has no boundary`);
+    if (!loops.length) throw meshBrepError(`region ${f} has no boundary`);
     // (The longest boundary is the outer loop: on a facet face, which is "outer" is a convention only.)
     loops.sort((a, b) => b.length - a.length);
     // (A repair's fill patch k keeps its own name: shown as what it is, a guess.)
@@ -377,7 +377,7 @@ const boundary = (w: Walk, h: number) => w.across[h] < 0 || w.piece[(h / 3) | 0]
 /** The boundary half-edge of the same face leaving where h ends: round that vertex inside the face, across interior edges. */
 function nextBoundary(w: Walk, h: number): number {
   let g = nextHalf(h);
-  for (let guard = 0; !boundary(w, g); guard++) { if (guard > 3 * w.nt) throw new MeshBrepError('a region boundary does not close'); g = nextHalf(w.across[g]); }
+  for (let guard = 0; !boundary(w, g); guard++) { if (guard > 3 * w.nt) throw meshBrepError('a region boundary does not close'); g = nextHalf(w.across[g]); }
   return g;
 }
 

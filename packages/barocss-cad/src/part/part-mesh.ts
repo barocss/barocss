@@ -2,8 +2,8 @@
 // moved out of part-model.ts's operation() as they were there. The dispatcher calls `meshOperation` for those kinds.
 import { type Brep, BrepError, isFacetFace } from '../brep/brep-core.js';
 import { type FacetPatch, type Point } from '../types.js';
-import { MeshBrepError, brepFromTriangles } from '../mesh/mesh-brep.js';
-import { SewError, sewSolid } from '../brep/sew-solid.js';
+import { isMeshBrepError, brepFromTriangles } from '../mesh/mesh-brep.js';
+import { isSewError, sewSolid } from '../brep/sew-solid.js';
 import { SubdError, buildSubd, subdSummary } from '../features/subd.js';
 import { decimateMesh } from '../mesh/mesh-decimate.js';
 import { facetBrepFromTriangles, facetBrepsFromTriangles } from '../mesh/facet-brep.js';
@@ -63,7 +63,7 @@ export function meshOperation(f: CadPartFeature & Record<string, unknown>, t: To
       });
       return () => {
         try { return one({ kind: 'brep', brep: sewSolid({ id: at, surfaces, ...(tol === undefined ? {} : { toleranceMM: tol as number }) }) }); }
-        catch (cause) { if (cause instanceof SewError) fail('GEOMETRY', cause.message); if (cause instanceof BrepError) fail('GEOMETRY', cause.message.replace(/^B-rep: /, '')); throw cause; }
+        catch (cause) { if (isSewError(cause)) fail('GEOMETRY', cause.message); if (cause instanceof BrepError) fail('GEOMETRY', cause.message.replace(/^B-rep: /, '')); throw cause; }
       };
     }
     case 'mesh': {
@@ -83,7 +83,7 @@ export function meshOperation(f: CadPartFeature & Record<string, unknown>, t: To
           if (facets && f.each) return many(facetBrepsFromTriangles(P as ArrayLike<number>, I as ArrayLike<number>, opts).map(brep => ({ kind: 'brep' as const, brep })));
           return one({ kind: 'brep', brep: (facets ? facetBrepFromTriangles : brepFromTriangles)(P as ArrayLike<number>, I as ArrayLike<number>, opts) });
         }
-        catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+        catch (cause) { if (isMeshBrepError(cause)) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
     case 'decimate': {
@@ -105,7 +105,7 @@ export function meshOperation(f: CadPartFeature & Record<string, unknown>, t: To
           // (Each source face's triangles a group of its own, named as that face: its references keep resolving.)
           const out = facetBrepFromTriangles(r.positions, r.indices, { id: at, maximumTriangles: CadPartLimits.meshTriangles, groups: r.groups!, groupName: g => mesh.names[g], creaseDegrees: 180, ...(sheet ? { open: true } : {}) });
           return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: out }, decimate: r.report }] };
-        } catch (cause) { if (cause instanceof MeshBrepError) fail('GEOMETRY', cause.message); throw cause; }
+        } catch (cause) { if (isMeshBrepError(cause)) fail('GEOMETRY', cause.message); throw cause; }
       };
     }
     case 'separate': {

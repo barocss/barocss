@@ -68,6 +68,16 @@ const boxWithHole = async () => {
   await press('h'); await hudReady(); await page.waitForTimeout(250); await press('Enter');
   await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: WAIT }); await idle();
 };
+/** A Joints card slider set as a person drags it (turns in radians, slides in mm). */
+const slide = (label, v) => page.evaluate(([l, x]) => { const el = document.querySelector(`[aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]);
+const rad = d => d * Math.PI / 180;
+/** The robots page's sample shots: each sample with the pose its motion is played to (its demo motion's main waypoint). */
+const ROBOT_SHOTS = [
+  ['arm-6r', { 'base~l1': rad(90), 'l1~l2': rad(-30), 'l2~l3': rad(60) }],
+  ['scara', { 'base~arm1': rad(45), 'arm1~arm2': rad(-60), 'arm2~quill': -30 }],
+  // (The gantry's ram stays up: lowered on this path it meets the X carriage, which the shot isn't about.)
+  ['gantry-ppp', { 'base~x': 150, 'x~y': 100 }],
+];
 /** A file the studio opens, written outside the repository. */
 const scratchFile = (name, bytes) => { const dir = join(tmpdir(), 'library-docs-capture'); mkdirSync(dir, { recursive: true }); const f = join(dir, name); writeFileSync(f, bytes); return f; };
 const openFile = async (file) => {
@@ -317,6 +327,26 @@ const steps = [
     await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 2 * WAIT }); await iso(); await page.waitForTimeout(500);
     await shot('studio/robots', 'joints', 'studio/robots: the Joints card');
   }],
+  ['studio/robots: the robot samples in Templates', async () => {
+    await fresh();
+    await page.click('[aria-label="New from a template"]');
+    await page.waitForSelector('[aria-label="Templates"] [aria-label="Samples"]', { timeout: WAIT }); await page.waitForTimeout(300);
+    await shot('studio/robots', 'samples-menu', 'studio/robots: the robot samples in Templates', { target: page.locator('[aria-label="Templates"]') });
+    await press('Escape');
+  }],
+  ...ROBOT_SHOTS.map(([id, pose]) => [`studio/robots: the ${id} sample, its motion paused half-way`, async () => {
+    await fresh();
+    await openFile(join(studio, `../../packages/barocss-cad-model/samples/robots/${id}.bcad`));
+    // (The pose shown is the motion's end: home to it, played and scrubbed to half its time.)
+    for (const [key, value] of Object.entries(pose)) {
+      await page.waitForSelector(`[aria-label="Joint ${key} value"]`, { timeout: 2 * WAIT });
+      await slide(`Joint ${key} value`, value);
+    }
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 2 * WAIT });
+    const T = +/\/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText())[1];
+    await slide('Motion time', T / 2); await iso(); await page.waitForTimeout(500);
+    await shot('studio/robots', `${id}-motion`, `studio/robots: the ${id} sample, its motion paused half-way`);
+  }]),
   ['studio/files: the mesh repair dialog', async () => {
     await fresh();
     await page.setInputFiles('input[aria-label="Model file"]', scratchFile('cup.stl', cupStl()));

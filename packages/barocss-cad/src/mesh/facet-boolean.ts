@@ -17,10 +17,10 @@ import { tessellateBrep } from '../brep/brep-tessellate.js';
 import { facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
 import { facetSoup, splitSoup } from './facet-split.js';
 import { surfaceDomain, surfaceEvaluator } from '../core/math.js';
-import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
+import { brepFromTriangles, isMeshBrepError } from './mesh-brep.js';
 import { selfIntersections } from './mesh-repair.js';
 import type { FacetPatch, Point, Surface } from '../types.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export interface FacetBooleanOptions {
   /** The result's id. */
@@ -30,9 +30,10 @@ export interface FacetBooleanOptions {
   /** At most this many mesh triangles near the tool (the exact Boolean's share); default 16 000. */
   readonly nearTriangles?: number;
 }
-export class FacetBooleanError extends KernelError {
-  constructor(readonly code: 'CAPABILITY' | 'GEOMETRY', detail: string) { super(detail); this.name = 'FacetBooleanError'; }
-}
+/** This module's refusal (R7.3a batch 2: the FacetBooleanError class folded, D279): a BarocssError, `details.source` 'facet-boolean'. */
+export const facetBooleanError = (code: 'CAPABILITY' | 'GEOMETRY', detail: string) => kernelRefusal('facet-boolean', code, detail) as KernelError & { readonly code: 'CAPABILITY' | 'GEOMETRY' };
+/** Whether something thrown is this module's refusal. */
+export const isFacetBooleanError = (e: unknown): e is KernelError & { readonly code: 'CAPABILITY' | 'GEOMETRY' } => isFrom<'CAPABILITY' | 'GEOMETRY'>(e, 'facet-boolean');
 
 /** Where a face came from: its name, and its exact surface (null for a mesh face). */
 interface Source { readonly name: string; readonly surface: Surface | null }
@@ -43,13 +44,13 @@ const CAP = /^cap$/;
 /** `a` holds facet faces (and maybe exact ones from an earlier F2); `b` none. */
 export function facetBoolean(a: Brep, b: Brep, op: AnalyticBooleanOperation, options: FacetBooleanOptions): Brep {
   if (!a.faces.some(isFacetFace) || b.faces.some(isFacetFace)) throw new BrepError('INPUT', 'facet Boolean: the first body must hold mesh faces, the second none');
-  if (a.bodies.some(x => x.kind === 'sheet')) throw new FacetBooleanError('GEOMETRY', 'Booleans need a closed solid: this mesh is open (a sheet)');
+  if (a.bodies.some(x => x.kind === 'sheet')) throw facetBooleanError('GEOMETRY', 'Booleans need a closed solid: this mesh is open (a sheet)');
   const q = options.segmentsPerQuarter ?? 32, id = options.id, sources: Source[] = [];
   // The mesh as one welded soup, each triangle grouped by its source face (an exact face tessellated, its surface noted).
   const mesh = soupOf(a, sources, q);
   // (A mesh that crosses itself has no inside to cut, D46: refused, saying where; worked out once a body.)
   const crossing = crossingsOf(a, mesh);
-  if (crossing.count) throw new FacetBooleanError('GEOMETRY', `Booleans need a mesh that does not cross itself: this one does in ${crossing.count} place${crossing.count > 1 ? 's' : ''} (near ${crossing.at.map(x => +x.toFixed(2)).join(', ')}); repair does not fix that yet`);
+  if (crossing.count) throw facetBooleanError('GEOMETRY', `Booleans need a mesh that does not cross itself: this one does in ${crossing.count} place${crossing.count > 1 ? 's' : ''} (near ${crossing.at.map(x => +x.toFixed(2)).join(', ')}); repair does not fix that yet`);
   let size = 0; for (let i = 0; i < mesh.P.length; i++) size = Math.max(size, Math.abs(mesh.P[i]));
   const weld = Math.max(1e-9, size * 1e-6);
   // The box round the tool, a little larger: the mesh outside it never meets the tool. Clipped to it plane by plane
@@ -80,11 +81,11 @@ export function facetBoolean(a: Brep, b: Brep, op: AnalyticBooleanOperation, opt
     return mergeBreps([a, b], { family: 'mesh', id });
   }
   let near = 0; for (let t = 0; t < inside.G.length; t++) if (inside.G[t] !== CAP_GROUP) near++;
-  if (near > (options.nearTriangles ?? 16_000)) throw new FacetBooleanError('CAPABILITY', `the tool meets ${near} triangles of the mesh near it, more than the ${options.nearTriangles ?? 16_000} the exact Boolean takes there (a smaller tool, or a coarser mesh)`);
+  if (near > (options.nearTriangles ?? 16_000)) throw facetBooleanError('CAPABILITY', `the tool meets ${near} triangles of the mesh near it, more than the ${options.nearTriangles ?? 16_000} the exact Boolean takes there (a smaller tool, or a coarser mesh)`);
   const planar = planarOf(inside, id);
   let result: Brep;
   try { result = booleanAnalytic(planar, bTok, op, { id }); }
-  catch (cause) { if (cause instanceof BrepError) throw new FacetBooleanError(/not supported/.test(cause.message) ? 'CAPABILITY' : 'GEOMETRY', cause.message.replace(/^B-rep: (analytic Boolean: )?/, '')); throw cause; }
+  catch (cause) { if (cause instanceof BrepError) throw facetBooleanError(/not supported/.test(cause.message) ? 'CAPABILITY' : 'GEOMETRY', cause.message.replace(/^B-rep: (analytic Boolean: )?/, '')); throw cause; }
   // One soup again: the near result tessellated (caps dropped) and, unless intersecting, the far mesh.
   const soup: Soup = { P: [], I: [], G: [] };
   addTessellated(soup, result, q);
@@ -93,7 +94,7 @@ export function facetBoolean(a: Brep, b: Brep, op: AnalyticBooleanOperation, opt
   mendTJunctions(soup, planes);
   let pieces: Brep[];
   try { pieces = facetBrepsFromTriangles(soup.P, soup.I, { id, groups: soup.G, groupName: g => `t${g}`, maximumTriangles: Infinity, maximumRegions: Infinity, creaseDegrees: 180, weldMM: soupWeld(soup) }); }
-  catch (cause) { if (cause instanceof MeshBrepError) { throw new FacetBooleanError('GEOMETRY', `the result does not close (${cause.message})`); } throw cause; }
+  catch (cause) { if (isMeshBrepError(cause)) { throw facetBooleanError('GEOMETRY', `the result does not close (${cause.message})`); } throw cause; }
   return restore(pieces.length === 1 ? pieces[0] : mergeBreps(pieces, { family: 'mesh', id }), sources);
 }
 
@@ -133,7 +134,7 @@ function planarOf(inside: Soup, id: string): Brep {
   // (The caps' group made non-negative: a negative group is no group to the planar builder.)
   const capAt = 2 ** 30, G = inside.G.map(g => g === CAP_GROUP ? capAt : g);
   try { return brepFromTriangles(inside.P, inside.I, { id: `${id}_near`, groups: G, groupName: g => g === capAt ? 'cap' : `t${g}`, maximumTriangles: Infinity }); }
-  catch (cause) { if (cause instanceof MeshBrepError) throw new FacetBooleanError('GEOMETRY', `the mesh near the tool: ${cause.message}`); throw cause; }
+  catch (cause) { if (isMeshBrepError(cause)) throw facetBooleanError('GEOMETRY', `the mesh near the tool: ${cause.message}`); throw cause; }
 }
 
 /** A Boolean's result tessellated into the soup, each face under its source (t<k>, a piece's #n left off); caps left out. */
@@ -142,7 +143,7 @@ function addTessellated(soup: Soup, brep: Brep, q: number): void {
   for (const mf of mesh.faces) {
     const name = names.get(mf.faceId)!.replace(/#\d+$/, '');
     if (CAP.test(name)) continue;
-    const m = /^t(\d+)$/.exec(name); if (!m) throw new FacetBooleanError('GEOMETRY', `a face of the result has no source (${name})`);
+    const m = /^t(\d+)$/.exec(name); if (!m) throw facetBooleanError('GEOMETRY', `a face of the result has no source (${name})`);
     appendMeshFace(soup, mesh.positionsMM, mesh.indices, mf, Number(m[1]));
   }
 }
@@ -249,7 +250,7 @@ function restore(brep: Brep, sources: Source[]): Brep {
   const edges = brep.edges.map(e => { const t = tol.get(e.id); return t !== undefined && 2 * t > e.toleranceMM ? { ...e, toleranceMM: 2 * t } : e; });
   const out: Brep = { ...brep, faces, edges };
   const report = checkBrep(out);
-  if (!report.valid) throw new FacetBooleanError('GEOMETRY', `the result is not valid: ${report.issues[0]}`);
+  if (!report.valid) throw facetBooleanError('GEOMETRY', `the result is not valid: ${report.issues[0]}`);
   return out;
 }
 

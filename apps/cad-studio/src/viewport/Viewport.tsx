@@ -33,6 +33,7 @@ import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
 import { splineOutline } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
+import { recordCanvas } from './recordVideo';
 
 export type { SketchTool, SketchShape, SketchAnchor, SketchState, Make } from '@barocss/cad-model/sketch/types';
 import type { SketchShape, SketchState } from '@barocss/cad-model/sketch/types';
@@ -46,6 +47,8 @@ export interface ViewportHandle {
   setTheme(name: ThemeName): void; setAo(on: boolean): void;
   /** The frame as a PNG (WebGPU only). */
   capture(): Promise<Blob | null>;
+  /** A WebM of `count` frames at `fps`, frame i drawn by `draw(i)` first (RS2: a motion, the Render turntable). */
+  recordVideo(count: number, fps: number, draw: (i: number) => void): Promise<Blob>;
   /** The camera as render settings keep it, and back. */
   getCamera(): RenderCamera;
   setCamera(c: RenderCamera): void;
@@ -791,6 +794,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     setTheme(name) { theme.current = name; setThemeName(name); renderer.current?.setTheme(name); request(); },
     setAo(on) { ao.current = on; if (renderer.current) renderer.current.aoEnabled = on; request(); },
     capture() { return renderer.current?.capture ? renderer.current.capture() : Promise.resolve(null); },
+    recordVideo(count, fps, draw) { return recordCanvas(canvas.current!, count, fps, draw, request, renderer.current?.drawNow ? () => renderer.current?.drawNow?.() : undefined); },
     getCamera() { const c = camera.current; return { target: [...c.target] as [number, number, number], distance: c.distance, yaw: c.yaw, pitch: c.pitch, fovY: c.fovY, ortho: c.ortho }; },
     setCamera(v) { const c = camera.current; c.target = [...v.target] as Vec3; c.distance = v.distance; c.yaw = v.yaw; c.pitch = v.pitch; c.fovY = v.fovY; c.ortho = v.ortho; request(); },
     get backend() { return backend; },

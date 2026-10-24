@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sprocket, sprocketPitchDiameter, timingPitchDiameter, pulley, openBeltLength, chainLinks, beltBand, couplingEnvelope, driveRowProblem, DriveError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart } from '../dist/index.js';
+import { sprocket, sprocketPitchDiameter, timingPitchDiameter, pulley, openBeltLength, chainLinks, beltBand, couplingEnvelope, driveRowProblem, isDriveError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart } from '../dist/index.js';
 
 // R12c.6b (D161): sprockets and chain, pulleys and belts, couplings. The rows are test rows flagged estimates (no chain,
 // belt or coupling table was read: D139 found none as public text). Oracles written here, apart from the kernel's code:
@@ -14,7 +14,7 @@ import { sprocket, sprocketPitchDiameter, timingPitchDiameter, pulley, openBeltL
 //   kernel's), the band's volume L·t·w (Steiner: the offsets' lengths differ from L by πt).
 
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want} (±${abs})`);
-const code = c => e => e instanceof DriveError && e.code === c;
+const code = c => e => isDriveError(e) && e.code === c;
 const vol = b => brepMassProperties(b, 1, { quadratureSegments: 16 }).volumeMM3;
 const TAU = 2 * Math.PI;
 const CHAIN = { kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true };

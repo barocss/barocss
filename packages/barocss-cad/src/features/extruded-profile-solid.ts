@@ -2,7 +2,7 @@ import type { Curve, Point, Surface } from '../types.js';
 import { evaluateCurve, evaluateSurface } from '../core/math.js';
 import { encodeBinaryStl } from '../io/stl.js';
 import { dist as d3 } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 // Extruded profile solids: a closed XY loop of lines and circular arcs, swept straight along +Z.
 // Geometry is binary64 with explicit tolerances (not exact rationals); arcs are exact rational
@@ -15,13 +15,10 @@ export const ExtrudedProfileDiagnosticCode = Object.freeze({
 } as const);
 export type ExtrudedProfileDiagnosticCode = typeof ExtrudedProfileDiagnosticCode[keyof typeof ExtrudedProfileDiagnosticCode];
 
-export class ExtrudedProfileError extends KernelError {
-  readonly code: ExtrudedProfileDiagnosticCode;
-  constructor(code: ExtrudedProfileDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Extruded profile: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
-    this.name = 'ExtrudedProfileError'; this.code = code;
-  }
-}
+/** This module's refusal (R7.3a batch 2: the ExtrudedProfileError class folded, D279): a BarocssError, `details.source` 'extruded-profile'. */
+export const extrudedProfileError = (code: ExtrudedProfileDiagnosticCode, detail: string, cause?: unknown) => kernelRefusal('extruded-profile', code, ('Extruded profile: ' + detail).slice(0, 1024), cause) as KernelError & { readonly code: ExtrudedProfileDiagnosticCode };
+/** Whether something thrown is this module's refusal. */
+export const isExtrudedProfileError = (e: unknown): e is KernelError & { readonly code: ExtrudedProfileDiagnosticCode } => isFrom<ExtrudedProfileDiagnosticCode>(e, 'extruded-profile');
 
 export type XY = [number, number];
 /** One loop segment runs from its `start` to the next segment's `start` (the loop closes). */
@@ -65,7 +62,7 @@ export interface ExtrudedProfileSolidResult {
 
 export const ExtrudedProfileLimits = Object.freeze({ segments: 64, coordinateMM: 10000, minimumRadiusMM: 0.01, minimumLengthMM: 1e-4, toleranceMM: 1e-7 });
 
-const fail = (code: ExtrudedProfileDiagnosticCode, detail: string): never => { throw new ExtrudedProfileError(code, detail); };
+const fail = (code: ExtrudedProfileDiagnosticCode, detail: string): never => { throw extrudedProfileError(code, detail); };
 const finite = (v: unknown, what: string) => {
   if (typeof v !== 'number' || !Number.isFinite(v) || Math.abs(v) > ExtrudedProfileLimits.coordinateMM) fail('INPUT', `${what} must be a finite number within ±${ExtrudedProfileLimits.coordinateMM} mm`);
   return v as number;

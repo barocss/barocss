@@ -11,6 +11,9 @@ import { boxCage } from '../src/app/primitives';
 import { dispatchTool, TOOLS, type ChatState } from '../src/chat/tools';
 import { annotationsOf, breakingChanges, outputSchemaOf, validate, type ContractEntry, type JsonSchema } from '../src/chat/contract';
 import { withSampleRows } from './person-file';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { readStudioDoc } from '../src/engine/migrate';
 
 // A5.1 (O9): the tool layer's contract. Every handler classified; the breaking-change rules (the v2 list is frozen by
 // them in tools-v2.json, toolset.test.ts); every read handler's result matching its output schema; the MCP server
@@ -91,6 +94,13 @@ test('every read tool’s result matches its output schema and changes nothing',
     const out = await dispatchTool({ doc: d, bodies: [] }, name, args, evalDoc);
     assert.ok(!out.isError && !out.changed, `${name}: ${out.content.slice(0, 200)}`); assert.equal(out.state.doc, d, `${name}: the document as it was`);
     assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name); seen.add(name);
+  }
+  // (The robot's movement, RS3 b: the sample 2R arm and its stored motion.)
+  const arm = readStudioDoc(readFileSync(resolve(import.meta.dirname, '..', 'samples/robots/arm-2r.bcad'), 'utf8')); assert.ok('doc' in arm);
+  const ae = await evaluate(arm.doc); assert.ok(ae.ok);
+  for (const [name, args] of [['set_pose', { values: { 'base~a': 30 } }], ['check_path', { motion: 'wave' }], ['play_motion', { motion: 'wave', samples: 3 }]] as const) {
+    const out = await dispatchTool({ doc: arm.doc, bodies: ae.bodies }, name, args, evaluate);
+    assert.ok(!out.isError && !out.changed, `${name}: ${out.content.slice(0, 200)}`); assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name); seen.add(name);
   }
   assert.deepEqual(TOOLS.filter(t => outputSchemaOf(t.name) && !seen.has(t.name)).map(t => t.name), []);
 });

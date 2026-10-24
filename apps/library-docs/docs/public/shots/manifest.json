@@ -227,11 +227,39 @@
    "bytes": 5499
   },
   {
+   "file": "studio/robots/arm-6r-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: the arm-6r sample, its motion paused half-way",
+   "renderer": "webgpu",
+   "bytes": 164896
+  },
+  {
+   "file": "studio/robots/gantry-ppp-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: the gantry-ppp sample, its motion paused half-way",
+   "renderer": "webgpu",
+   "bytes": 153936
+  },
+  {
    "file": "studio/robots/joints.jpg",
    "page": "studio/robots",
    "step": "studio/robots: the Joints card",
    "renderer": "webgpu",
    "bytes": 130670
+  },
+  {
+   "file": "studio/robots/samples-menu.png",
+   "page": "studio/robots",
+   "step": "studio/robots: the robot samples in Templates",
+   "renderer": "webgpu",
+   "bytes": 18700
+  },
+  {
+   "file": "studio/robots/scara-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: the scara sample, its motion paused half-way",
+   "renderer": "webgpu",
+   "bytes": 148706
   },
   {
    "file": "studio/sketches/rectangle.jpg",

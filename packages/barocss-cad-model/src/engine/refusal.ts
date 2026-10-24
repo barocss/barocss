@@ -43,7 +43,7 @@ export type CadModelCode =
   // team
   | 'NO_RUN'
   // robot motion, actuators and the readers of the exports
-  | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'PATH_TOO_SHORT' | 'JOINT_UNKNOWN' | 'JOINT_MIMIC' | 'JOINT_LIMIT' | 'MOTION_UNKNOWN' | 'ACTUATOR_INPUT' | 'MODEL_READ' | 'XML_MALFORMED'
+  | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'PATH_TOO_SHORT' | 'JOINT_UNKNOWN' | 'JOINT_MIMIC' | 'JOINT_LIMIT' | 'MOTION_UNKNOWN' | 'LOOP_OPEN' | 'ACTUATOR_INPUT' | 'MODEL_READ' | 'XML_MALFORMED'
   // files
   | 'MESH_NOT_LOADED' | 'CONTAINER_NEWER' | 'CONTAINER_DAMAGED'
   // sketch export

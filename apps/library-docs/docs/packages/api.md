@@ -114,9 +114,12 @@ ended by `.close()`.
 - **With several bodies and none chosen,** a verb refuses with `BODY_AMBIGUOUS`. `step()` writes every body, and
   `meshes()` gives every body.
 - **A Boolean's tool** is a body of the part by name, or a callback that adds it. The callback builds in the part's own
-  document, so the tool's features take the next ids. It must add exactly one body.
+  document, so the tool's features take the next ids. It must add exactly one body. Its verbs after the first act on
+  the body it made, so a callback can pattern or round its tool before the Boolean.
 
 <<< @/../samples/cad-api.test.mjs#bodies
+
+<<< @/../samples/cad-api.test.mjs#finned
 
 Two separate parts aren't combined: merging two documents would renumber one's ids, and so its names.
 
@@ -179,6 +182,27 @@ ways, and all three give one document, byte for byte. The sample checks each aga
   with no argument then weighs the body in it, and `.meshes()` carries the id for a scene to look up.
 
 <<< @/../samples/cad-model-api.test.mjs#material
+
+### The studio's own commands
+
+The studio part also runs studio commands the kernel has no feature for. Each writes what the agent's `run_command`
+writes, and the kernel part refuses them with `UNAVAILABLE`.
+
+| Verb | v2 command | What it does |
+|---|---|---|
+| `gear({ m, teeth, b, shift?, helix?, hand?, bore?, x?, y?, z? })` | `gear` | An involute spur or helical gear, a body of its own |
+| `gearMesh({ teeth, dir, bore?, shift? })` | `gear-mesh` | A gear meshing with the chosen one, `dir` degrees from +X |
+| `spring({ type, d, D, n, p, ends, hand, … })` | `spring` | A coil spring of round wire, by the command's values |
+| `fastener({ kind, size, length?, joint?, grip?, x?, y?, z?, model? })` | `fastener` | A bolt, screw, nut or washer, from the document's fastener-size rows |
+
+<<< @/../samples/cad-model-api.test.mjs#gears
+
+- **Rows come from a person's file.** `loadRows(kind, { name, text })` loads a rows file as the studio's Library does,
+  with a receipt naming the file. The facade never writes rows itself, and nothing is built in, so `fastener` is refused
+  until fastener sizes are loaded. The same file always loads the same bytes. The sample uses the rows cad-model ships
+  under `samples/rows/`.
+
+<<< @/../samples/cad-model-api.test.mjs#fastener
 
 ## Parameters, configurations and suppression
 
@@ -318,5 +342,4 @@ A scene is an immutable description of meshes, each with its material, lights, a
 
 - **Expressions** in dimensions, and feature names of your own: the stable ids (`n3`, `fillet1`) serve.
 - **Suppression in the kernel part,** until the kernel document carries it.
-- **Rows:** reading a person's rows file. Under the rows rule the facade never writes rows.
 - **More of the assembly,** as listed under [Assemblies](#assemblies).

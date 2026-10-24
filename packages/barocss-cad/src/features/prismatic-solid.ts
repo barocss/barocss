@@ -27,7 +27,7 @@ import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type Br
 import { buildProfileLoop, capSurface, extrudedSurface, segmentCurve, type ProfileSegment, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { sideName, type SideTags } from '../document/side-names.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export interface PrismaticSlab { readonly z0: number; readonly z1: number; readonly regions: readonly CurveRegion2[] }
 /** An authored top or bottom: caps of the solid at height z inside these regions take its tag. */
@@ -35,7 +35,10 @@ export interface PrismaticCapSource { readonly z: number; readonly regions: read
 /** Slabs sorted by height, disjoint in Z; adjacent slabs with equal sections are merged. */
 export interface PrismaticSolid { readonly kind: 'prismatic-solid'; readonly slabs: readonly PrismaticSlab[]; readonly caps?: readonly PrismaticCapSource[] }
 export type PrismaticBooleanOperation = 'union' | 'intersection' | 'difference';
-export class PrismaticSolidError extends KernelError { constructor(detail: string) { super('Prismatic solid: ' + detail, { code: 'PRISMATIC_SOLID' }); this.name = 'PrismaticSolidError'; } }
+/** This module's refusal (R7.3a batch 2: the PrismaticSolidError class folded, D279): a BarocssError, `details.source` 'prismatic-solid'. */
+export const prismaticSolidError = (detail: string) => kernelRefusal('prismatic-solid', 'PRISMATIC_SOLID', 'Prismatic solid: ' + detail) as KernelError & { readonly code: 'PRISMATIC_SOLID' };
+/** Whether something thrown is this module's refusal. */
+export const isPrismaticSolidError = (e: unknown): e is KernelError & { readonly code: 'PRISMATIC_SOLID' } => isFrom<'PRISMATIC_SOLID'>(e, 'prismatic-solid');
 
 const ringsOf = (regions: readonly CurveRegion2[]) => regions.flatMap(r => [r.outer, ...r.holes]);
 const allRings = (slabs: readonly PrismaticSlab[]) => slabs.flatMap(s => ringsOf(s.regions));
@@ -43,9 +46,9 @@ const allRings = (slabs: readonly PrismaticSlab[]) => slabs.flatMap(s => ringsOf
 function normalize(slabs: readonly PrismaticSlab[], tolerance: number, caps: readonly PrismaticCapSource[] = [], merged = false): PrismaticSolid {
   const sorted = slabs.filter(s => s.regions.length).sort((a, b) => a.z0 - b.z0), out: PrismaticSlab[] = [];
   for (const s of sorted) {
-    if (!(Number.isFinite(s.z0) && Number.isFinite(s.z1) && s.z1 > s.z0)) throw new PrismaticSolidError('every slab needs finite z0 < z1');
+    if (!(Number.isFinite(s.z0) && Number.isFinite(s.z1) && s.z1 > s.z0)) throw prismaticSolidError('every slab needs finite z0 < z1');
     const prev = out[out.length - 1];
-    if (prev && s.z0 < prev.z1) throw new PrismaticSolidError('slabs overlap in Z');
+    if (prev && s.z0 < prev.z1) throw prismaticSolidError('slabs overlap in Z');
     if (!merged && prev && prev.z1 === s.z0 && !booleanCurveRegions(ringsOf(prev.regions), ringsOf(s.regions), 'xor', tolerance).length) { out[out.length - 1] = { ...prev, z1: s.z1 }; continue; }
     out.push(s);
   }
@@ -101,7 +104,7 @@ export function transformPrismatic(solid: PrismaticSolid, transform: { readonly 
   const [a, b, c, d] = transform.matrix, [tx, ty] = transform.offset ?? [0, 0], zs = transform.zScale ?? 1, zo = transform.zOffset ?? 0, det = a * d - b * c;
   const scale = Math.sqrt(Math.abs(det));
   if (!(scale > 0) || Math.abs(a * a + c * c - scale * scale) > 1e-12 * scale * scale || Math.abs(b * b + d * d - scale * scale) > 1e-12 * scale * scale || Math.abs(a * b + c * d) > 1e-12 * scale * scale || !(zs !== 0 && Number.isFinite(zs)))
-    throw new PrismaticSolidError('the transform must be a similarity in XY with a nonzero Z scale');
+    throw prismaticSolidError('the transform must be a similarity in XY with a nonzero Z scale');
   const map = (p: XY): XY => [a * p[0] + b * p[1] + tx, c * p[0] + d * p[1] + ty];
   const retag = <T extends { tag?: string }>(x: T): T => transform.retag && x.tag !== undefined ? { ...x, tag: transform.retag(x.tag) } : x;
   const seg = (s: CurveSegment2): CurveSegment2 => s.kind === 'curve' ? noCurves() : retag(s.kind === 'line' ? { ...s, a: map(s.a), b: map(s.b) }
@@ -154,7 +157,7 @@ class PointSet {
 }
 
 /** Prismatic sections are lines and arcs only. */
-const noCurves = (): never => { throw new PrismaticSolidError('prismatic sections are made of lines and arcs'); };
+const noCurves = (): never => { throw prismaticSolidError('prismatic sections are made of lines and arcs'); };
 const profileSegment = (s: CurveSegment2, start: XY, end: XY): ProfileSegment => s.kind === 'curve' ? noCurves() : s.kind === 'line'
   ? { kind: 'line', start, end, lengthMM: Math.hypot(end[0] - start[0], end[1] - start[1]) }
   : { kind: 'arc', start, end, center: s.c, radiusMM: s.r, startAngle: s.t0, sweep: s.sweep, lengthMM: Math.abs(s.sweep) * s.r };

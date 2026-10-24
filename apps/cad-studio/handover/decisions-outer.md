@@ -8950,6 +8950,10 @@ fillets round a closed curve loop, were refused "The kernel could not build this
   - matchSignature doesn't read `n`, so re-matching on open is unchanged.
 - **The trade-off, for now:** closed rims and merged faces get no kernel check, while single-name edges and faces keep
   it. The vertex-insert refusal holds.
+- **Fingerprint (the coordinator checked it after fc3fde052):** two records moved, rb9/product-brief/0 and /2, and in
+  them only `step.text`'s hash. Bodies, breps, brepsMade, keys, rebuild and stl are identical. Both briefs end in a
+  fillet (n6, R0.5) whose stored signature now carries `n`. That changes the document's canonical JSON, and with it the
+  source revision in the STEP header — the same mechanism as step 3's weld record.
 - **Follow-up (logged):** signatures per kernel name, taken from each piece's own geometry, so that a display element
   carries one signature per name. That would restore the check for rims and merged faces.
 - **The kernel lane** had started a distance-to-samples change in part-expect.ts. The coordinator asked it to drop
@@ -8977,3 +8981,179 @@ fillets round a closed curve loop, were refused "The kernel could not build this
   - tsc; eslint 0 errors.
 - **Next, (b):** the four actions set_pose, waypoint, check_path and play, in degrees and mm, with the budget
   reported.
+
+## RS3 (b) — the agent moves the robot: set_pose, waypoint, check_path, play, in degrees and mm (2026-10-24)
+
+- **Four assembly actions:** each is a verb in robot/verbs.ts plus a handler in chat/robot.ts. The handlers are
+  `set_waypoint` and `play_motion`, because one-word handler names (`waypoint`, `play`) read ambiguously in prose
+  (O105b).
+
+| action | handler | what it does | changes the document? |
+|---|---|---|---|
+| `set_pose {values}` | `set_pose` | the links and frames placed as FK places them, values out in degrees | no, a preview |
+| `waypoint {motion, values?, at?, remove?, limits?}` | `set_waypoint` | adds, inserts or removes a waypoint in robot.motions; makes the motion when it is absent; `limits` are the stored `{velocity, acceleration, jerk?}` per key or `default` | yes, robot settings, so it is proposed |
+| `check_path {motion}` | `check_path` | sweepTimed along the motion's timing: clear, or the first contact (t_s, segment, links, values in degrees); min_clearance; samples; skipped pairs | no |
+| `play {motion, samples?}` | `play_motion` | poseAt at 2–200 even times (default 30): values in degrees and mm, and each link's placement | no |
+
+- **Refusals, typed:**
+  - JOINT_LIMIT is given in the units the agent used ("a~b = 151° is outside its limits -150° to 150°"; a slide's in
+    mm). The verbs check this themselves before checkPath, whose own text is in radians.
+  - JOINT_UNKNOWN, JOINT_MIMIC, MOTION_UNKNOWN.
+  - LIMITS_MISSING when a motion without limits is played or checked.
+  - VALUE for a bad `at` or `remove`, or a waypoint with no values.
+  - A bad call shape is refused in the handler.
+- **The approval:** `set_waypoint` is in ASSEMBLY_CHANGES and BATCHABLE, and in ALTERS as not idempotent.
+  approvalOf already lists `robot`, so the agent proposes it, like set_joints.
+- **Bug fixed in RS2, a saved `default` limit:**
+  - timedPathOf passed `default` through unconverted. The samples' `default {90, 180}`, meant as deg/s, therefore
+    played as 90 rad/s.
+  - A saved `default` is now in each joint's own unit (deg/s for a turn, mm/s for a slide). It becomes each moving
+    joint's own limits where that joint has none.
+  - motionOf does the same in reverse.
+  - The rs2 test now pins this. It previously pinned the unconverted default (`p.limits.default.v == 45`); that value
+    was the bug, so the expectation was corrected, not loosened.
+  - Every sample's motion is now about 57× slower than before, as intended: for example arm-2r's wave takes 5.5 s and
+    the SCARA's pick 5.17 s.
+- **Bug fixed in RS1, the gantry's `box` motion:** the ram went 30 mm down into the X carriage (contact at −10 mm).
+  It now goes up 30 mm, within ±40. Only gantry-ppp.bcad changed when the samples were regenerated.
+- **Open for the coordinator:** check_path on gripper, four-bar and gear-joint reports contact at t = 0.
+  - The pairs are meshing gears and the loop's closing joint, which touch by design.
+  - sweep skips parent and child pairs, and pairs that touch where the path starts only when the path doesn't move
+    them.
+  - The proposal is to skip gear-coupled pairs, whose mesh the coupling's phase already holds, and loop-closure pairs,
+    which meet at their joint.
+  - This changes sweep_path and the studio's Check path too, so it is the coordinator's call.
+- **Budget:** 24,042 characters a turn, cap 25,000; this step added 360. The tools stay separate: there is room, and
+  merging set_pose into `pose` with a flag was the fallback only if the budget got tight.
+- **tools-v2.json:** re-recorded with the four new assembly actions, additions only.
+- **Docs:** _tools.md and _refusals.md regenerated; check:docs passes.
+- **Tests:**
+  - New, test/rs3-movement.test.ts (4 tests on the RS1 samples):
+    - set_pose against FK in radians, its refusals, a gear follower from its leader;
+    - set_waypoint: direct use refused with needs_approval, a proposal's approval is `robot`, then make, insert and
+      remove, each refusal, and degrees and mm in the text;
+    - check_path: the SCARA's pick and the gantry's box are clear, the duration matches the trapezoid's closed form,
+      the limits are in degrees, MOTION_UNKNOWN and LIMITS_MISSING are refused;
+    - play_motion against poseAt at the same times, with the first and last waypoints met.
+  - Changed: tool-contract runs the three read tools; the studio chat test lists the four handlers.
+- **Verified (T1):** rs1, rs2, rs3, robot-*, tool-contract and toolset 103/103; tsc; eslint 0 errors.
+
+## O22 — designed contact in the collision sweep: meshing gears and planar loop pins; LOOP_OPEN for looped motions (2026-10-24)
+
+The docs lane found (RS4) that three samples' demo motions report contact from t = 0: gripper and gear-joint (meshing
+gears) and four-bar (its coupler and rocker, pinned by the loop closure). The sweep skipped only parent and child
+pairs. The coordinator scheduled it as O22.
+- **robot/sweep.ts:** sweepPath now reads designed seats from the tree, so the agent's tools, the studio's Check path
+  (App.tsx, no change there) and the harness all get them. The result gains
+  `designed: [{links, why}]`; sweepTimed, sweep_path and check_path pass it on.
+  - **Meshing gears (a coupling):**
+    - Each gear's zone is its triangles inside its tip cylinder (spurGearDimensions' ra) about its joint's axis, over
+      the axial span its teeth have.
+    - Zone against zone (teeth on teeth) is the coupling's to hold, by its phase. Every other triangle pair is still
+      checked.
+    - Two bare gears have nothing else, so the pair is left out, with the reason given.
+  - **A planar loop's pin (a closure):**
+    - Every joint between the two links turns about an axis parallel to the pin's axis (or slides across it), so
+      each point keeps its place along that axis. Two triangles whose extents along it meet at most at a plane can
+      only touch, never cross.
+    - So only the triangles inside the slab both links fill are checked. Stacked links share no slab and are left out:
+      they cannot meet.
+    - A part of one reaching into the other's slab (a post) is checked as any other pair.
+    - A loop that is not planar, or interleaved links with no stacking, are checked as any other pair.
+  - **Rejected first approach:** checking stacked pins a 1e-4 mm gap apart along the axis. It stalled conservative
+    advancement (step = gap / rate, 20,000 samples) and ended in a false contact.
+- **LOOP_OPEN (new code):** nothing closes a loop along a motion — not poseAt, not the sweep, not the studio's playback.
+  - The four-bar's demo motion turns the crank while crank~coupler and base~rocker stay at 0, so its poses are open
+    chain.
+  - check_path and play_motion therefore refuse a robot that has a loop (a typed refusal rather than a wrong result).
+  - The proposed follow-up, RS5: motions close their loops, with closeLoop per pose in poseAt (the RS1 test already
+    closes the four-bar along its demo values) and a sweep over the closed path. The studio's playback and Check path
+    have the same gap; that part is the GPU lane's.
+- **Tests:**
+  - New, test/o22-designed-contact.test.ts (3 tests):
+    - **Gears:** the bare gripper is clear both ways and its gear pair is left out with the reason. An arm on the left
+      finger, outside its tip circle, swung −90° hits the right gear at 0.927296 rad. The closed form is
+      90° − asin((ra + 2) / 40) = 0.927295 rad, and the test allows from it up to one pitch angle past it. Swung +90°,
+      the arm is clear.
+    - **Loop pin:** the bare four-bar is clear both ways and the stacked pair is left out with the reason. A post on
+      the rocker is hit by the coupler one way, clear the other way (designed, checked), and a post where the coupler
+      already lies is a contact at s = 0.
+    - **LOOP_OPEN:** check_path and play_motion refuse the four-bar.
+  - RS1 extended: every sample's demo motion passes check_path clear, except the four-bar, which is refused with
+    LOOP_OPEN.
+- **The samples' check_path results:** arm-2r, scara, arm-6r, gantry-ppp (after RS3 (b)'s fix), pan-tilt, gripper and
+  gear-joint are clear; four-bar is refused with LOOP_OPEN.
+- **Docs:** _refusals.md regenerated.
+- **Verified (T1):** o22, rs1–3, robot-*, tool-contract and toolset; tsc; eslint 0 errors.
+
+## P1-L3 (harness) — a live AI run of a product brief on Codex, prepared and dry-run only (2026-10-24)
+
+The owner: P1-L3 may run on Codex ("AI 실행하는건 codex 로 해줘도 돼"), with no token cap ("codex 는 토큰 상관 없이 쓸
+수 있어"). The harness is ready. No live run has been made; it waits for the coordinator to say P1's scripted build is
+complete.
+- **The choice: Codex directly, not O15's chat-server path.** `codex exec --json` is one process with a JSONL event
+  stream, which is simpler to make deterministic and to log than the claude-CLI chat turn.
+- **server/liveRun/codexRun.ts, scripts/live-run.mjs:**
+  - **The runs:** each run gets a fresh folder holding the same start (part.bcad), the byte-identical brief on stdin
+    (its sha256 recorded) and nothing kept between runs (`--ephemeral`).
+  - **The tools:**
+    - cad-mcp (server/cadDoc.ts, the v2 tools, `--autonomy 4`) on that folder's part.bcad is the only MCP server. It is
+      bundled once per series, so every run talks to the same build.
+    - The user's config and rules are ignored (`--ignore-user-config --ignore-rules`), so the owner's plugins and MCP
+      servers are left out.
+    - The sandbox is read-only and the working root is the empty run folder.
+    - Codex's built-ins are disabled (verified with `codex features list`): shell_tool, plugins, apps, browser_use(_external),
+      computer_use, in_app_browser, image_generation, memories, skill_search, tool_suggest, code_mode_host, goals; and
+      `web_search="disabled"`.
+  - **Model:** gpt-6.1-sol with reasoning high, named in the harness (the owner's Codex default), since the user config is
+    ignored.
+  - **Off-contract:** any event item that is neither a cad tool call nor the model's own text (a command_execution,
+    another server's tool) fails the run.
+  - **Caps:** a tool-call cap (default 400) and a wall clock (default 60 min). Either one ends the run, killing the run's
+    own process group, Codex and its MCP server. There are no dollar caps on Codex (the owner).
+  - **Per run, on disk:** events.jsonl (each event stamped as it arrived), stderr, the last message, codex-args.json,
+    check.json, and records.json: turns, tool calls (tool, refused, ms), tokens summed from `turn.completed`, how the
+    run ended (completed, tool-cap, wall-clock, failed, error) and the result.
+  - **The judgment:** only a fresh run of the brief's own oracle, `--check '["cmd", …, "{doc}"]'`, on the part the run
+    saved. Exit 0 passes. Its stdout is kept, as JSON when it is.
+  - **The series:** a series stops when Codex never ran (it refused at once).
+  - **A live run** needs `--live` and `CAD_LIVE_RUN=1`.
+- **Open:**
+  - `unified_exec` cannot be turned off, by `--disable` or by `features.*`. With shell_tool off it may not be offered at
+    all. If it is, the read-only sandbox, the empty working root and the off-contract rule cover it: a run that uses it
+    fails.
+  - Codex's event format comes from its `exec --json` events (thread.started, turn.started/completed/failed,
+    item.started/completed; mcp_tool_call, agent_message, reasoning). The first live run confirms it, and readEvents
+    reads unknown kinds as off-contract.
+  - A headless run has no person to accept proposals, so assembly changes are proposed and the agent accepts them
+    itself. The brief must say so; the API lane writes it.
+  - The API lane provides the brief and the oracle command. Its contract is exit 0 = every P1 check passes, with JSON
+    on stdout.
+- **Test (dry run):** test/p1-l3-live-run.test.ts, 3 tests. test/fixtures/scripted-codex.mjs stands in for codex; it
+  starts the configured MCP server and reports its calls as Codex's events.
+  - The arguments and the event reading.
+  - A pass, an oracle failure (cad-cli check, exit 3) and an off-contract shell call, each judged afresh.
+  - The tool-call cap and the wall clock: a run killed at 1.5 s, not waited out.
+- **Verified (T1):** p1-l3 3/3, a scripted run through scripts/live-run.mjs, studio tsc, eslint 0 errors.
+
+## RS1/RS2 follow-ups — sample joint limits, the Joints card in degrees, `default` limits pinned (2026-10-24)
+
+From the coordinator, after the docs lane's arm-6r shot and its repro of the `default` bug (fixed in RS3 (b)):
+- **Samples:** scara and arm-6r now carry real lower and upper limits, so robot-check and the exports' limit checks
+  exercise them.
+  - scara: base~arm1 ±130°, arm1~arm2 ±145°, quill~tool ±360°.
+  - arm-6r: ±170°, ±120°, ±150°, ±180°, ±120°, ±360°.
+  - Their joints read revolute now, no longer continuous; RS1's EXPECT is updated to match.
+  - Left unbounded, by design: the four-bar's crank and passive pins, and the gear-joint's driving gear. A gear
+    follower has no limits of its own.
+  - Only arm-6r.bcad and scara.bcad changed when the samples were regenerated. Every demo motion stays inside the
+    limits (checkPath) and clear (check_path).
+- **JointsPanel (the studio's Joints card):** a turning joint's range now reads in degrees ("-150° … 150°"), its
+  velocity in °/s ("180 °/s") and its effort in N·m, each to 4 significant figures; a slide reads in mm, mm/s and N.
+  Before, the card printed raw radians ("3.141592653589793 rad/s").
+- **Tests:**
+  - rs2: the `default` form and the per-joint form give the same duration, which equals the trapezoid's closed form,
+    and a default-limits motion round-trips to the per-joint form with the same duration.
+  - RS1: arm-2r's wave is pinned at 5.5 s (1.5 + 2.5 + 1.5); every moving joint is rated, and only the four listed are
+    unbounded.
+- **Verified (T1):** rs1, rs2, rs3, o22 and robot-*, 96/96; tsc (model and studio); eslint 0 errors.

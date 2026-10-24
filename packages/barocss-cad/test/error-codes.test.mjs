@@ -26,7 +26,7 @@ test('R7.3a: CAD_REFUSAL_CODES is every bracketed code the kernel\'s string lite
 test('R7.3a: CAD_ERROR_CODES holds every code a kernel error class can carry', () => {
   const program = ts.createProgram(files, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext, strict: true, noEmit: true });
   const checker = program.getTypeChecker(), all = new Set(CAD_ERROR_CODES), missing = [];
-  let classes = 0;
+  let classes = 0, factories = 0;
   for (const sf of program.getSourceFiles()) {
     if (!sf.fileName.startsWith(join(pkg, 'src'))) continue;
     ts.forEachChild(sf, function visit(n) {
@@ -35,12 +35,18 @@ test('R7.3a: CAD_ERROR_CODES holds every code a kernel error class can carry', (
         const p = checker.getTypeAtLocation(n).getProperty('code'), t = checker.getTypeOfSymbolAtLocation(p, n);
         for (const u of t.isUnion() ? t.types : [t]) if (u.isStringLiteral() && !all.has(u.value)) missing.push(`${n.name.text}: ${u.value}`);
       }
+      // (A module's refusal folded into a factory (D279): `kernelRefusal(…) as KernelError & { readonly code: C }`, its C.)
+      if (ts.isAsExpression(n) && ts.isCallExpression(n.expression) && n.expression.expression.getText() === 'kernelRefusal') {
+        factories++;
+        const p = checker.getTypeAtLocation(n).getProperty('code'), t = checker.getTypeOfSymbolAtLocation(p, n);
+        for (const u of t.isUnion() ? t.types : [t]) if (u.isStringLiteral() && !all.has(u.value)) missing.push(`${sf.fileName}: ${u.value}`);
+      }
       // (A class whose code is a plain string passes it as `{ code: 'X' }`.)
       if (ts.isPropertyAssignment(n) && n.name.getText() === 'code' && ts.isStringLiteral(n.initializer) && /^[A-Z][A-Z0-9_]+$/.test(n.initializer.text) && !all.has(n.initializer.text) && /KernelError|super\(/.test(n.parent.parent?.getText() ?? '')) missing.push(`${sf.fileName}: ${n.initializer.text}`);
       ts.forEachChild(n, visit);
     });
   }
-  assert.ok(classes > 150, `${classes} classes`);
+  assert.ok(classes > 140 && factories >= 21, `${classes} classes, ${factories} module refusals`);
   assert.deepEqual(missing, []);
 });
 

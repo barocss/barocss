@@ -33,6 +33,19 @@ write metres and radians.
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
+- **Playing a motion.** **Play motion** plays the motion chosen in **Motion choice** in time. Its length shows before
+  it plays.
+  - The draft is the path above: from home, through the waypoints, to the pose shown. Each joint moves at its velocity
+    limit, or at 1 rad/s or 100 mm/s when it has none.
+  - A saved motion plays as the document keeps it: its waypoints, profile and limits.
+  - **Pause motion** holds it. The **Motion time** scrubber sets the pose at a time, **Loop motion** repeats it, and
+    **Motion speed** plays it at 0.25× to 2×.
+  - The first contact on the way is reported as "Contact *link* – *link* at t … s". From then on the two links are
+    marked: outlined on WebGPU, tinted on WebGL2.
+  - Playing saves nothing. Moving a slider, **Home**, a change to the waypoints or another choice stops it.
+- **Saving a motion.** With the draft chosen, name it in **Motion name** and **Save as motion** keeps it in the
+  document, in degrees and millimetres, and chooses it. A motion of the same name is replaced. Saving is an undo step;
+  the pose shown and the play state are never saved.
 - **Workspace.** **Workspace** (Map workspace) samples the reachable space and draws it as voxels, with a summary and the samples.
   **Download workspace** saves it.
 
@@ -100,3 +113,91 @@ the joints.
     `check_urdf`.
   - SDF is checked only by our own reader.
 
+
+## Sample robots
+
+`@barocss/cad-model` ships eight sample robots under `samples/robots/`, each a `.bcad` file you can open, with
+`index.json` listing them. They're built from blocks joined by the studio's mates. Each joint has an estimated rating,
+so every sample exports, and each carries one demo motion in its robot settings, in degrees and millimetres.
+
+| Sample | What it is | Joints |
+|---|---|---|
+| `arm-2r` | A planar arm | Two turns about parallel vertical axes, 40 mm apart, ±150° |
+| `scara` | A SCARA arm | Turn, turn, a slide of ±40 mm, turn |
+| `arm-6r` | An industrial arm's chain | Six turns about Z, Y, Y, Z, Y and Z: waist, shoulder, elbow and a three-axis wrist |
+| `gantry-ppp` | A Cartesian gantry | Slides along X (0–200 mm), Y (0–120 mm) and Z (±40 mm) |
+| `pan-tilt` | A camera head | Pan about Z (±170°), tilt about X (±60°), and a `camera` sensor frame |
+| `gripper` | A gear-coupled gripper | The left finger turns ±30°; the right one follows on meshing 20-tooth gears, the other way |
+| `four-bar` | A four-bar linkage | Crank, coupler and rocker, closed in one loop |
+| `gear-joint` | A gear-driven joint | A 20-tooth gear driving a 30-tooth one, which turns two thirds as far, the other way |
+
+Open one from **Templates**, under **Samples · Robots**. It opens as Open would open its file, with its joints in the
+**Joints** card and its demo motion in **Motion choice**.
+
+![The Templates menu, with the eight robot samples under Samples · Robots](/shots/studio/robots/samples-menu.png)
+
+Set a pose with the sliders, and **Play motion** plays the draft from home to it. Here three samples are paused
+half-way:
+
+![The 6R arm half-way from home to a reach, its shoulder and elbow bent](/shots/studio/robots/arm-6r-motion.jpg)
+
+![The SCARA arm half-way through a pick, its quill partly lowered](/shots/studio/robots/scara-motion.jpg)
+
+![The Cartesian gantry half-way across its X and Y travel, its ram up](/shots/studio/robots/gantry-ppp-motion.jpg)
+
+### In code
+
+The [object API](/packages/api) reads an assembly as a robot: `assembly(…).robot()`. Each method returns what the
+agent's robot tool returns: `joints()`, `pose(values)`, `path(waypoints).check()`, `inertia()`, `gravity(values)`, and
+`urdf()`, `mjcf()`, `sdf()` and `usd()`. Joint values go in as degrees and millimetres. The pose's `values` come back as
+the tool gives them, with turns in radians.
+
+<<< @/../samples/robots.test.mjs#import
+
+<<< @/../samples/robots.test.mjs#open
+
+- **The 2R arm:** its two turns, a pose, and a path checked for collisions.
+
+<<< @/../samples/robots.test.mjs#arm-2r
+
+- **The SCARA arm:** the quill's slide.
+
+<<< @/../samples/robots.test.mjs#scara
+
+- **The 6R arm:** its axes, its demo motion swept, and its URDF read back.
+
+<<< @/../samples/robots.test.mjs#arm-6r
+
+- **The gantry:** each slide carries the ones after it.
+
+<<< @/../samples/robots.test.mjs#gantry
+
+- **The pan-tilt head:** its camera frame at a pose, and a pose past the tilt's limit.
+
+<<< @/../samples/robots.test.mjs#pan-tilt
+
+- **The gripper:** only the leader is given; the follower turns by the coupling.
+
+<<< @/../samples/robots.test.mjs#gripper
+
+- **The four-bar linkage:** the loop, and what a tree format leaves out.
+
+<<< @/../samples/robots.test.mjs#four-bar
+
+- **The gear-driven joint:** the gear ratio.
+
+<<< @/../samples/robots.test.mjs#gear-joint
+
+- **Motions:** a path timed and played, the sample's saved motion read, and a path saved as a motion.
+  `path(waypoints, { profile?, limits? })` takes waypoints in degrees and millimetres, and limits per joint in deg/s
+  and deg/s² (or mm/s and mm/s²). `duration()` gives its length in seconds, `poseAt(t)` the joint values at a time in
+  degrees, and `problems()` what is wrong with it on this robot. `motion(name)` reads a saved motion, and
+  `withMotion(name, path)` returns a robot with the path saved.
+
+<<< @/../samples/robots.test.mjs#motions
+
+- **The exports**, each with what its reader found and what it had to assume. `check` lists what our own reader found
+  wrong when reading the file back, and `notes` what the export assumed, such as aluminium for a body without a
+  material.
+
+<<< @/../samples/robots.test.mjs#exports

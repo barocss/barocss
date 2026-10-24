@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cad, BrepEditor, BrepError, ExtrudedProfileError, brepFromBody, checkBrep, assertValidBrep, extrudeProfileWithHoles, tessellateBrep, triangulatePolygonWithHoles } from '../dist/index.js';
+import { cad, BrepEditor, BrepError, isExtrudedProfileError, brepFromBody, checkBrep, assertValidBrep, extrudeProfileWithHoles, tessellateBrep, triangulatePolygonWithHoles } from '../dist/index.js';
 
 const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(p => ({ kind: 'line', start: p }));
 const circle = (cx, cy, r) => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
@@ -35,7 +35,7 @@ test('profiles with holes extrude through Euler operators: genus = holes, no ver
     const t = assertValidBrep(extrudeProfileWithHoles(input)).topology[0];
     assert.deepEqual({ V: t.vertices, E: t.edges, F: t.faces, L: t.loops, G: t.genus }, expected, JSON.stringify(expected));
   }
-  const refused = input => { try { extrudeProfileWithHoles(input); return 'none'; } catch (e) { assert.ok(e instanceof ExtrudedProfileError); return e.message; } };
+  const refused = input => { try { extrudeProfileWithHoles(input); return 'none'; } catch (e) { assert.ok(isExtrudedProfileError(e)); return e.message; } };
   assert.match(refused({ outer: rect(0, 0, 50, 50), holes: [circle(20, 25, 8), circle(28, 25, 8)], heightMM: 5 }), /overlap/);
   assert.match(refused({ outer: rect(0, 0, 50, 50), holes: [circle(48, 25, 8)], heightMM: 5 }), /not strictly inside/);
   assert.match(refused({ outer: rect(0, 0, 50, 50), heightMM: 0 }), /positive/);

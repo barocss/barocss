@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkPlacedSpurGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurGear, spurGearProfile, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkPlacedSpurGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
 
 // R6a.1–2 (issue #2167, D53): the involute spur gear's first stage — 20°, no profile shift, external, straight teeth.
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: ${a} vs ${b}`);
@@ -33,7 +33,7 @@ test('the issue\'s fixture (m 2, α 20°, x 0, z 20 and 40): d, db, da, df; the 
   const pair = spurGearPairNominal(g1, g2);
   close(pair.centerDistanceMM, 60, 1e-12, 'a'); assert.equal(pair.speedRatio, -0.5); close(pair.idealContactRatio, 1.6351859636, 1e-9, 'εα');
   assert.equal(spurGearPairNominal({ ...g1, toothThicknessReductionMM: 0.05 }, { ...g2, toothThicknessReductionMM: 0.07 }).backlashMM.toFixed(12), '0.120000000000');
-  assert.throws(() => spurGearPairNominal(g1, { ...g2, moduleMM: 2.5 }), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
+  assert.throws(() => spurGearPairNominal(g1, { ...g2, moduleMM: 2.5 }), e => isGearError(e) && e.code === 'MATE_INCOMPATIBLE');
 });
 
 test('the solid: valid; its volume the exact profile\'s area × the face width to within what the measured flank deviation allows; the bore taken out; tooth by tooth names', () => {
@@ -57,7 +57,7 @@ test('the profile: as few cubic pieces as the tolerance asks, the deviation meas
   const loose = spurGearProfile({ moduleMM: 2, teeth: 20, faceWidthMM: 10, profileToleranceMM: 1e-2 }).report;
   const tight = spurGearProfile({ moduleMM: 2, teeth: 20, faceWidthMM: 10, profileToleranceMM: 1e-5 }).report;
   assert.ok(loose.flankPieces < tight.flankPieces && tight.profileDeviationMM <= 1e-5 && loose.profileDeviationMM <= 1e-2);
-  assert.throws(() => spurGearProfile({ moduleMM: 2, teeth: 20, faceWidthMM: 10, profileToleranceMM: 1e-9 }), e => e instanceof GearError && e.code === 'PROFILE_BUDGET_EXCEEDED' && /more than 5 cubic pieces/.test(e.message));
+  assert.throws(() => spurGearProfile({ moduleMM: 2, teeth: 20, faceWidthMM: 10, profileToleranceMM: 1e-9 }), e => isGearError(e) && e.code === 'PROFILE_BUDGET_EXCEEDED' && /more than 5 cubic pieces/.test(e.message));
   // The root is schematic, and said so.
   const r = spurGearProfile({ moduleMM: 2, teeth: 20, faceWidthMM: 10 }).report;
   assert.equal(r.manufacturingValidated, false); assert.equal(r.rootPolicy, 'schematic-radial');
@@ -65,7 +65,7 @@ test('the profile: as few cubic pieces as the tolerance asks, the deviation meas
 });
 
 test('refusals with their codes: bad input, a pressure angle other than 20°, a profile shift out of range, an undercut tooth count (the shift that would avoid it), a bore into the rim', () => {
-  const g = { moduleMM: 2, teeth: 20, faceWidthMM: 10 }, code = (spec, c, re) => assert.throws(() => spurGear(spec), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)));
+  const g = { moduleMM: 2, teeth: 20, faceWidthMM: 10 }, code = (spec, c, re) => assert.throws(() => spurGear(spec), e => isGearError(e) && e.code === c && (!re || re.test(e.message)));
   code({ ...g, moduleMM: 0 }, 'INVALID_INPUT'); code({ ...g, moduleMM: NaN }, 'INVALID_INPUT'); code({ ...g, teeth: 20.5 }, 'INVALID_INPUT'); code({ ...g, faceWidthMM: -1 }, 'INVALID_INPUT');
   code({ ...g, profileToleranceMM: 0 }, 'INVALID_INPUT'); code({ ...g, toothThicknessReductionMM: 4 }, 'INVALID_INPUT', /leaves no tooth/);
   code({ ...g, pressureAngleDeg: 14.5 }, 'UNSUPPORTED_GEAR_KIND');
@@ -104,7 +104,7 @@ test('pair checks (R6a.4): at nominal centre distance the teeth just touch over 
   assert.ok(near.backlashMM < 0 && near.sweep.interference && near.diagnostics.some(x => x.code === 'SELF_INTERSECTION'));
   close(near.sweep.minimumClearanceMM, near.backlashMM * Math.cos(awn) / 2, 1e-4, 'penetration');
   assert.ok(checkSpurGearPair({ ...g1, toothThicknessReductionMM: 0.05 }, { ...g2, toothThicknessReductionMM: 0.05 }, { relativePhaseDeg: 1 }).sweep.interference);
-  assert.throws(() => checkSpurGearPair(g1, { ...g2, moduleMM: 3 }), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
+  assert.throws(() => checkSpurGearPair(g1, { ...g2, moduleMM: 3 }), e => isGearError(e) && e.code === 'MATE_INCOMPATIBLE');
 });
 
 test('pair check verdict mode (pass or fail, stopping at the first crossing) agrees with the report; repeated checks come from the cache', () => {
@@ -142,7 +142,7 @@ test('a meshing gear (R6a.4b, D56): placed beside its driver and turned to mesh 
   assert.throws(() => evaluateCadPart(D([g1(0), g2({}, { module: 3 })])), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   assert.throws(() => evaluateCadPart(D([g1(0), { id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'c', kind: 'extrude', sketch: 's', height: 3 }, { ...g2({}), mesh: { gear: 'c' } }])), e => (e.details?.category ?? e.code) === 'REFERENCE' && /not a spur gear/.test(e.message));
   const apart = { ...r.output('g2').gearPlacement, from: 10 };
-  assert.throws(() => checkPlacedSpurGears(r.output('g1').gearPlacement, apart), e => e instanceof GearError && e.code === 'MATE_INCOMPATIBLE');
+  assert.throws(() => checkPlacedSpurGears(r.output('g1').gearPlacement, apart), e => isGearError(e) && e.code === 'MATE_INCOMPATIBLE');
 });
 
 test('profile shift (R6a.5a, D57): KHK\'s shifted pair (m 3, z 12 and 24, x 0.6 and 0.36) — α_w 26.0886°, a 56.4999 mm, df 32.1; at that distance no backlash, and the exact profiles swept touch without crossing (the formula and the geometry agree); a meshing gear stands there', () => {

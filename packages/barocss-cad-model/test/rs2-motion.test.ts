@@ -59,11 +59,16 @@ test('RS2: checkPath — unknown joints, waypoints past a limit, missing limits,
 });
 
 test('RS2: a saved motion in degrees ⇄ the timed path in radians; robot.motions read from a document', async () => {
-  const { doc, tree, keys: [j1] } = await chain();
-  const saved = { waypoints: [{}, { [j1]: 90 }], profile: 'trapezoid' as const, limits: { default: { velocity: 45, acceleration: 90 }, [j1]: { velocity: 30, acceleration: 60 } } };
+  const { doc, tree, keys: [j1, j2] } = await chain();
+  const saved = { waypoints: [{}, { [j1]: 90 }], profile: 'trapezoid' as const, limits: { [j1]: { velocity: 30, acceleration: 60 }, [j2]: { velocity: 45, acceleration: 90, jerk: 900 } } };
   const p = timedPathOf(tree, saved);
   near(p.waypoints[1][j1], Math.PI / 2);
-  near(p.limits[j1]!.v, 30 * Math.PI / 180); near(p.limits.default!.v, 45, 0);
+  near(p.limits[j1]!.v, 30 * Math.PI / 180); near(p.limits[j2]!.j!, 900 * Math.PI / 180);
+  // (A saved default is in each joint's own unit: 45 deg/s on a turn is 45° a second, each moving joint's own where it has none.)
+  const withDefault = timedPathOf(tree, { ...saved, limits: { default: { velocity: 45, acceleration: 90 }, [j1]: { velocity: 30, acceleration: 60 } } });
+  assert.equal(withDefault.limits.default, undefined);
+  near(withDefault.limits[j1]!.v, 30 * Math.PI / 180); near(withDefault.limits[j2]!.v, 45 * Math.PI / 180); near(withDefault.limits[j2]!.a, 90 * Math.PI / 180);
+  near(motionOf(tree, { ...p, limits: { default: { v: 1, a: 2 } } }).limits![j2].velocity, 180 / Math.PI, 1e-12);
   const back = motionOf(tree, p);
   // (The round trip: motionOf(timedPathOf(m)) is m, to the doubles' last digits.)
   const close = (a: unknown, b: unknown): boolean => typeof a === 'number' && typeof b === 'number' ? Math.abs(a - b) <= 1e-12 * Math.max(1, Math.abs(b)) : a && b && typeof a === 'object' && typeof b === 'object' ? Object.keys(a).length === Object.keys(b).length && Object.keys(b).every(k => close((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) : a === b;
@@ -74,4 +79,19 @@ test('RS2: a saved motion in degrees ⇄ the timed path in radians; robot.motion
   assert.equal(motionNamed(read.motions, 'wave').path.waypoints.length, 2);
   assert.throws(() => motionNamed(read.motions, 'other'), { code: 'MOTION_UNKNOWN', message: /^\[MOTION_UNKNOWN\] no motion other \(motions: wave\)$/ });
   assert.equal(readMotions('x'), undefined);
+});
+
+test('RS2: a saved `default` limit is in each joint\'s own unit — the same duration as the per-joint form; a default-limits motion round-trips to that form', async () => {
+  const { tree, keys: [j1, j2] } = await chain();
+  const waypoints = [{}, { [j1]: 60 }, { [j1]: 60, [j2]: -90 }];
+  const byDefault = { waypoints, profile: 'trapezoid' as const, limits: { default: { velocity: 90, acceleration: 180 } } };
+  const perJoint = { waypoints, profile: 'trapezoid' as const, limits: { [j1]: { velocity: 90, acceleration: 180 }, [j2]: { velocity: 90, acceleration: 180 } } };
+  const T = duration(timedPathOf(tree, byDefault));
+  near(T, duration(timedPathOf(tree, perJoint)), 1e-12);
+  // (The trapezoid's closed form in degrees: 60° and then 90° at 90°/s, 180°/s² — each long enough to cruise (d ≥ v²/a = 45°): d/v + v/a.)
+  near(T, (60 / 90 + 0.5) + (90 / 90 + 0.5), 1e-12);
+  const back = motionOf(tree, timedPathOf(tree, byDefault));
+  assert.deepEqual(Object.keys(back.limits!).sort(), [j1, j2].sort(), 'the default, each moving joint\'s own');
+  for (const k of [j1, j2]) { near(back.limits![k].velocity, 90, 1e-12); near(back.limits![k].acceleration, 180, 1e-12); }
+  near(duration(timedPathOf(tree, back)), T, 1e-12);
 });

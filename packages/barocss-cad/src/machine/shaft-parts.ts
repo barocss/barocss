@@ -25,13 +25,14 @@ import { fitLimits, type FitLimits, type FitTable } from './fits.js';
 import type { ShaftReport } from './shaft.js';
 import type { Point } from '../types.js';
 import { add, cross, dot, scale as scl, sub } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type ShaftPartCode = 'INVALID_INPUT' | 'KEY_FIT' | 'RING_FIT' | 'PIN_FIT';
-export class ShaftPartError extends KernelError {
-  constructor(readonly code: ShaftPartCode, detail: string) { super(`shaft part: ${detail}`); this.name = 'ShaftPartError'; }
-}
-const fail = (code: ShaftPartCode, detail: string): never => { throw new ShaftPartError(code, detail); };
+/** This module's refusal (R7.3a batch 2: the ShaftPartError class folded, D279): a BarocssError, `details.source` 'shaft-part'. */
+export const shaftPartError = (code: ShaftPartCode, detail: string) => kernelRefusal('shaft-part', code, `shaft part: ${detail}`) as KernelError & { readonly code: ShaftPartCode };
+/** Whether something thrown is this module's refusal. */
+export const isShaftPartError = (e: unknown): e is KernelError & { readonly code: ShaftPartCode } => isFrom<ShaftPartCode>(e, 'shaft-part');
+const fail = (code: ShaftPartCode, detail: string): never => { throw shaftPartError(code, detail); };
 const pos = (v: unknown, what: string): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : fail('INVALID_INPUT', `${what} must be a number of mm above 0`));
 const EPS = 1e-9;
 const mm = (x: number) => +x.toFixed(6);

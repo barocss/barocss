@@ -29,7 +29,7 @@ export function autonomy(): 1 | 2 | 3 | 4 {
   return n === 1 || n === 3 || n === 4 ? n : 2;
 }
 // (add_library changes no model: it adds data to the document, marked as the agent's until a person confirms it.)
-export const ASSEMBLY_CHANGES = new Set(['set_joints', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'set_inputs', 'set_variants', 'set_frames']);
+export const ASSEMBLY_CHANGES = new Set(['set_joints', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'set_inputs', 'set_variants', 'set_frames', 'set_waypoint']);
 /** Whether a call changes the part (requirements are the brief, not the part; a dry run changes nothing). */
 export function changesPart(name: string, input: unknown): boolean {
   if (name === 'set_requirements' || name === 'accept_proposal') return false;

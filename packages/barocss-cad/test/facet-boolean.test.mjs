@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { facetBrepFromTriangles, facetBoolean, FacetBooleanError, evaluateCadPart, brepMassProperties, checkBrep, exportStep, importStep } from '../dist/index.js';
+import { facetBrepFromTriangles, facetBoolean, isFacetBooleanError, evaluateCadPart, brepMassProperties, checkBrep, exportStep, importStep } from '../dist/index.js';
 
 // F2 (R6, D52): a mesh body with an exact one — the mesh near the tool through the exact Boolean, the tool's faces
 // kept exact (their rims polylines on them), the far mesh untouched; mixed bodies go on through F1 and F2.
@@ -68,9 +68,9 @@ test('part model: holes and Booleans on a mesh of 25,600 triangles (past F0\'s 1
 
 test('refusals: too much mesh near the tool is CAPABILITY, saying how much; a sheet is GEOMETRY', () => {
   const { P, I } = cube(40), m = facetBrepFromTriangles(P, I, { id: 'm' });
-  assert.throws(() => facetBoolean(m, cylinder(3, -5, 30), 'difference', { id: 'r', nearTriangles: 100 }), e => e instanceof FacetBooleanError && e.code === 'CAPABILITY' && /the tool meets \d+ triangles of the mesh near it, more than the 100/.test(e.message));
+  assert.throws(() => facetBoolean(m, cylinder(3, -5, 30), 'difference', { id: 'r', nearTriangles: 100 }), e => isFacetBooleanError(e) && e.code === 'CAPABILITY' && /the tool meets \d+ triangles of the mesh near it, more than the 100/.test(e.message));
   const sheet = facetBrepFromTriangles([0, 0, 0, 10, 0, 0, 10, 10, 0, 0, 10, 0, 5, 5, 4], [0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4], { id: 'p', open: true });
-  assert.throws(() => facetBoolean(sheet, cylinder(1, -5, 30, 5, 5), 'difference', { id: 'r' }), e => e instanceof FacetBooleanError && e.code === 'GEOMETRY' && /open \(a sheet\)/.test(e.message));
+  assert.throws(() => facetBoolean(sheet, cylinder(1, -5, 30, 5, 5), 'difference', { id: 'r' }), e => isFacetBooleanError(e) && e.code === 'GEOMETRY' && /open \(a sheet\)/.test(e.message));
 });
 
 test('a mixed body (mesh faces and exact ones) out to STEP as a mesh body (its exact faces sampled) and back: the volume within the sampling', () => {

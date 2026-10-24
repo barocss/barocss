@@ -38,7 +38,8 @@ import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { poseKinematics, useJoints } from './state/useJoints';
-import { pathLimits } from './state/motion';
+import { draftPath, pathLimits, timedMotion } from './state/motion';
+import { motionOf, timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
 import { JointsPanelLive } from './ui/JointsPanelLive';
@@ -149,6 +150,7 @@ import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
 import { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from '@barocss/cad-model/engine/meshImport';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
+import { ROBOT_SAMPLES, robotSampleFile } from './app/samples';
 import { bodyMass, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { boundsOf } from '@barocss/cad-model/engine/bounds';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
@@ -877,7 +879,10 @@ export function App() {
   // section's copies, the clearance check; elsewhere SceneViewport and the Joints card do, not the App.)
   const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
   const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
-    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown } = useJoints(jointTree, posesInApp);
+    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown,
+    motionChoice, setMotionChoice, freezeMotion, showMotionAt } = useJoints(jointTree, posesInApp, doc.robot?.motions);
+  // (RS2: the saved motion chosen, its length before it plays — timed once per choice.)
+  const chosenDuration = useMemo(() => { const m = motionChoice === null || !jointTree ? undefined : doc.robot?.motions?.find(x => x.name === motionChoice); try { return m && jointTree ? timedMotion(timedPathOf(jointTree, m.path)).duration : undefined; } catch { return undefined; } }, [motionChoice, jointTree, doc.robot?.motions]);
   // (RS2: a motion frozen is swept once, as Check path sweeps — the links as placed — for its first contact: the time of
   // impact and the two links, tinted from that time on as it plays.)
   useEffect(() => {
@@ -951,6 +956,18 @@ export function App() {
   // (By body key; put on the bodies shown — in a section the kept ones and the exact section's pieces, each moved as
   // its body is: G19.5 — further down.)
   const animatedAt = useMemo(() => !rendering || !Object.keys(render.animation.tracks).length ? null : offsetsAt(render.animation, time), [rendering, render.animation, time]);
+  // (RS2's recorder: a video of the motion at its own timing, or of the Render workspace's animation over its duration.)
+  const [videoBusy, setVideoBusy] = useState(false);
+  const recordVideo = async (seconds: number, draw: (t: number) => void, name: string) => {
+    if (!viewport.current || !(seconds > 0) || videoBusy) return;
+    setVideoBusy(true);
+    try {
+      const FPS = 30, n = Math.ceil(seconds * FPS) + 1;
+      const blob = await viewport.current.recordVideo(n, FPS, i => draw(Math.min(seconds, i / FPS)));
+      downloadBytes(new Uint8Array(await blob.arrayBuffer()), name, 'video/webm');
+    } catch (e) { setToast({ title: 'Could not record a video', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
+    finally { setVideoBusy(false); }
+  };
   const exportImage = async () => {
     const png = await viewport.current?.capture();
     if (png) downloadBytes(new Uint8Array(await png.arrayBuffer()), `${fileName}.png`, 'image/png');
@@ -2570,7 +2587,17 @@ export function App() {
         onValue={(k, v) => { stopMotion(); setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { stopMotion(); setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={k => { stopMotion(); setJointPlaying(k); }} links={linkInertias}
         motionState={{ time: motionTime, motion, waypoints: jointWaypoints, playing: motionPlaying, loop: motionLoop, speed: motionSpeed,
           contact: contactShown && motionContact ? `Contact ${jointTree.links.find(x => x.id === motionContact.links[0])?.name ?? motionContact.links[0]} – ${jointTree.links.find(x => x.id === motionContact.links[1])?.name ?? motionContact.links[1]} at t ${motionContact.toi.toFixed(2)} s` : null,
-          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed } }}
+          chosenDuration,
+          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed,
+            onExportVideo: () => { const m = freezeMotion(); if (!m) return; setMotionPlaying(false); void recordVideo(m.duration, t => showMotionAt(m, t), `${fileName}-${motionChoice ?? 'motion'}.webm`); }, exporting: videoBusy,
+            saved: (doc.robot?.motions ?? []).map(m => m.name), choice: motionChoice, onChoose: setMotionChoice,
+            // (The draft kept in the document: replacing one of the same name; an undo step, the file dirty.)
+            onSave: name => {
+              let path; try { path = motionOf(jointTree, draftPath(jointTree, jointWaypoints, poseStore.get())); } catch (e) { setToast({ title: 'Could not save the motion', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+              pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) };
+              robot.motions = [...(robot.motions ?? []).filter(m => m.name !== name), { name, path }];
+              setDoc({ ...doc, robot }); setDirty(true); setMotionChoice(name);
+            } } }}
         onExportUrdf={() => {
           // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
           const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
@@ -2786,6 +2813,12 @@ export function App() {
               <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { replaceDoc({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setFileName('Untitled'); setTemplatesOpen(false); setTimeout(() => viewport.current?.fit(), 300); }}>{t.name}</Button>
               {t.own && <ToolIconButton size="tiny" aria-label={`Remove template ${t.name}`} onClick={() => { removeTemplate(t.name); setTemplatesOpen(false); }}><Icon name="close" small /></ToolIconButton>}
             </div>)}
+            {/* (RS1: the robot samples, each with a demo motion in its Joints card; opened as Open opens a file.) */}
+            {ROBOT_SAMPLES.length > 0 && <div className="card-title mt-1" aria-label="Samples">SAMPLES · ROBOTS</div>}
+            {ROBOT_SAMPLES.map(r => <div key={'sample:' + r.id} className="tpl-row">
+              <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`Open sample ${r.title}`} title={r.about}
+                onClick={() => { setTemplatesOpen(false); void robotSampleFile(r).then(open, e => setToast({ title: 'Could not open the sample', hint: e instanceof Error ? e.message : String(e), detail: '' })); }}>{r.title}</Button>
+            </div>)}
             <div className="tpl-row add"><Input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
               <Button variant="ghost" size="sm" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</Button></div>
           </div>}</span>,
@@ -2875,7 +2908,8 @@ export function App() {
         const i = selectedBodies(selection)[0], b = i !== undefined ? bodies[i] : undefined, ref = b ? refOf(b) : null, node = ref ? evaluated.nodes[ref.node] : null;
         return <Timeline animation={render.animation} time={time} playing={playing} bodyKey={b?.key ?? null}
           bodyLabel={node && ref ? featureLabel(node, ref.node, evaluated.nodes) : b?.key ?? ''}
-          onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })} />;
+          onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })}
+          exporting={videoBusy} onExportVideo={() => { setPlaying(false); turnFrom.current = viewport.current?.getCamera() ?? null; void recordVideo(render.animation.duration, setTime, `${fileName}-render.webm`); }} />;
       })()}
       {!sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) && <aside className="card refs" aria-label="References">
         <div className="card-title">REFERENCES <span className="muted">{[refMarks.length && `${refMarks.length} matched again`, refProblems.length && `${refProblems.length} need${refProblems.length === 1 ? 's' : ''} a choice`].filter(Boolean).join(', ')}</span></div>

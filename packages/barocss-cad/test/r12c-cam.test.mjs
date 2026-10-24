@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, CamError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, isCamError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
 
 // R12c.6a (D160): disc cams and followers. Oracles written here, apart from the kernel's code:
 // - the laws: f(0) = 0, f(1) = 1, f' and f'' against central differences of f, the peaks against dense sampling; the
@@ -15,7 +15,7 @@ import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, CamError
 // - the volume by Green's theorem on the exact profile; the follower's lift found on the built solid's own profile curves.
 
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want} (±${abs})`);
-const code = c => e => e instanceof CamError && e.code === c;
+const code = c => e => isCamError(e) && e.code === c;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const S0 = { baseRadiusMM: 20, follower: 'roller', rollerRadiusMM: 5, thicknessMM: 10, segments: [{ angleDeg: 120, to: 8, law: 'cycloidal' }, { angleDeg: 60 }, { angleDeg: 120, to: 0, law: 'cycloidal' }, { angleDeg: 60 }] };
 const TAU = 2 * Math.PI;

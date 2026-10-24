@@ -1,7 +1,7 @@
 // R5.3 (D226): the part model's sheet-metal features — base and contour flanges, corner reliefs and edge flanges — moved
 // out of part-model.ts's operation() as they were there. Their helpers stay in part-model.ts and come in the helpers.
 // The dispatcher calls `sheetOperation` for those kinds.
-import { type BendTable, SheetMetalError, type SheetReport, bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, outsideSetback } from '../frame-sheet/sheet-metal.js';
+import { type BendTable, isSheetMetalError, type SheetReport, bendAllowance, bendDeduction, bendTableProblem, contourFlangeSection, outsideSetback } from '../frame-sheet/sheet-metal.js';
 import { type Point } from '../types.js';
 import { prismaticFromProfile } from '../features/prismatic-solid.js';
 import type { CadPartDim, CadPartPoint2, CadPartSketchPlane, Result, Solid, CadPartFeature, Tools, PartHelpers } from './part-model.js';
@@ -35,7 +35,7 @@ export function sheetOperation(f: CadPartFeature & Record<string, unknown>, t: T
       const width = dim(f.width as CadPartDim, 'width', true), frame = f.plane === undefined ? undefined : frameOf(f.plane as CadPartSketchPlane, xyz, fail);
       let section: ReturnType<typeof contourFlangeSection>;
       try { section = contourFlangeSection(path, f.side as 'left' | 'right', T, R, at); }
-      catch (cause) { if (cause instanceof SheetMetalError) fail(cause.code, cause.message); throw cause; }
+      catch (cause) { if (isSheetMetalError(cause)) fail(cause.code, cause.message); throw cause; }
       const report: SheetReport = { thicknessMM: T, bendRadiusMM: R, ...rules, fixedFace: `${at}.leg0.a`, bends: section!.bends.map(b => {
         const angle = Math.abs(b.angle), k = bendK(rules, T, R, angle, `bend${b.vertex}`, fail);
         return { name: `${at}.bend${b.vertex}`, inner: b.inner, outer: b.outer, radiusMM: R, angleDegrees: angle * 180 / Math.PI, axis: { origin: framed(frame, [b.center[0], b.center[1], 0]), direction: frame ? [frame.m[2], frame.m[5], frame.m[8]] as Point : [0, 0, 1] as Point },

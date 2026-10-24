@@ -36,3 +36,16 @@ export class KernelError extends BarocssError {
     if (options && 'cause' in options) Object.defineProperty(this, 'cause', { value: options.cause, writable: true, configurable: true, enumerable: false });
   }
 }
+
+/**
+ * A refusal of one kernel module (R7.3a batch 2: the per-module classes folded, D279): a BarocssError by name, its code,
+ * its message as the module writes it, and `details.source` naming the module, which `isFrom` tells apart where codes
+ * of two modules share a name.
+ */
+export function kernelRefusal(source: string, code: string, message: string, cause?: unknown): KernelError {
+  const e = new KernelError(message, cause === undefined ? { code, details: { source } } : { code, details: { source }, cause });
+  e.name = 'BarocssError';
+  return e;
+}
+/** Whether something thrown is a refusal of the module named `source` (with its codes typed as `C`). */
+export const isFrom = <C extends string>(e: unknown, source: string): e is KernelError & { readonly code: C } => e instanceof KernelError && e.details?.source === source;

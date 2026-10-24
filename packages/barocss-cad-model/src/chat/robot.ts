@@ -21,11 +21,11 @@ import type { ProfileKind } from '../robot/profile';
 import { checkFramesOn, withFrames } from '../assembly/edit';
 import { readRobot, type JointSettings, type JointTree } from '../robot/joints';
 import { r6 } from '../util/round';
-import { isRefusal } from '../engine/refusal';
-import { gravityOf, inertiaOf, mjcfOf, movesOf, partsOf, poseOf, robotViewOf, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, type RobotView } from '../robot/verbs';
+import { isRefusal, type BarocssError } from '../engine/refusal';
+import { checkMotion, gravityOf, inertiaOf, mjcfOf, movesOf, partsOf, playMotion, poseOf, robotViewOf, setPose, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, withWaypoint, type RobotView } from '../robot/verbs';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
-export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'set_frames', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators']);
+export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'set_frames', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators', 'set_pose', 'set_waypoint', 'check_path', 'play_motion']);
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
 
 export const ROBOT_TOOLS: ToolDefinition[] = [
@@ -83,6 +83,26 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
     name: 'set_joints',
     description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (radians for a turning joint, mm for a sliding one), effort (N·m or N) and velocity (rad/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
     input_schema: { type: 'object', properties: { base: { type: 'string' }, joints: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, additionalProperties: false },
+  },
+  {
+    name: 'set_pose',
+    description: 'Shows the robot at joint values (by joint key, from get_joints; degrees for a turning joint, mm for a slide; absent: 0, the solved pose): each link\'s and frame\'s placement as forward_kinematics gives it, the values used (gear followers from their leaders) in degrees and mm. Refused past a joint\'s limits (JOINT_LIMIT), for a key no moving joint has (JOINT_UNKNOWN) or a gear follower given its own value (JOINT_MIMIC). A preview: nothing is stored.',
+    input_schema: { type: 'object', properties: { values: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['values'], additionalProperties: false },
+  },
+  {
+    name: 'set_waypoint',
+    description: 'Records the robot\'s motions, kept in the document and played in the studio: adds a waypoint (joint values by key, degrees or mm) to the motion named (made when absent, from the solved pose, trapezoid profile) at the end or at index "at"; "remove" takes waypoint i out; "limits" set the motion\'s own, by joint key or "default" (the rest): {velocity, acceleration, jerk?} in deg/s, deg/s², deg/s³, mm/s… for a slide — a motion plays only with them. Checked as it will play: limits, unknown keys and gear followers refused, typed. The robot\'s, so it is proposed (propose) for the user to accept.',
+    input_schema: { type: 'object', properties: { motion: { type: 'string' }, values: { type: 'object', additionalProperties: { type: 'number' } }, at: { type: 'integer' }, remove: { type: 'integer' }, limits: { type: 'object', additionalProperties: { type: 'object' } } }, required: ['motion'], additionalProperties: false },
+  },
+  {
+    name: 'check_path',
+    description: 'Checks a stored motion (set_waypoint) for contact between the robot\'s links along its timing, as sweep_path checks a move (certified, not sampled): clear, or the first contact (its time in s, segment, the two links, the joint values there in degrees and mm), the least clearance (mm, when and between which links), the motion\'s duration and the samples taken. Meshing gears\' teeth and a planar loop pin\'s shared face are designed contact, not contact; anything else between them is. Refused, typed, when the motion is unknown (MOTION_UNKNOWN), cannot play (LIMITS_MISSING, JOINT_LIMIT, …) or the robot has a closed loop (LOOP_OPEN: not closed along a motion yet). Changes nothing.',
+    input_schema: { type: 'object', properties: { motion: { type: 'string' } }, required: ['motion'], additionalProperties: false },
+  },
+  {
+    name: 'play_motion',
+    description: 'A stored motion as the studio plays it: its duration and, at "samples" even times (default 30, 2–200), the joint values (degrees, mm) and each link\'s placement. Refused as check_path is. Changes nothing.',
+    input_schema: { type: 'object', properties: { motion: { type: 'string' }, samples: { type: 'integer' } }, required: ['motion'], additionalProperties: false },
   },
 ];
 
@@ -157,6 +177,18 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     if (p.unknown.length) return { error: `No joint ${p.unknown.join(', ')}; joints: ${t.joints.map(j => j.key).join(', ') || 'none'}.` };
     return { doc, content: p.reply, changed: false, summary: `${p.reply.links.length} links placed${p.reply.out_of_limits.length ? `, ${p.reply.out_of_limits.length} outside their limits` : ''}` };
   }
+  if (name === 'set_pose' || name === 'set_waypoint' || name === 'check_path' || name === 'play_motion') {
+    // (RS3 b: degrees and mm in and out; a refusal is the verb's, typed.)
+    const bad = movementArgs(args); if (bad) return { error: bad };
+    try {
+      if (name === 'set_pose') { const content = setPose(view, args.values as Record<string, number>); return { doc, content, changed: false, summary: `${content.links.length} links placed` }; }
+      if (name === 'check_path') { const content = checkMotion(view, args.motion as string); return { doc, content, changed: false, summary: content.clear ? `${content.motion}: clear, ${content.duration_s} s` : `${content.motion}: contact at ${content.contact!.t_s} s (${content.contact!.links.join(' / ')})` }; }
+      if (name === 'play_motion') { const content = playMotion(view, args.motion as string, (args.samples as number | undefined) ?? 30); return { doc, content, changed: false, summary: `${content.motion}: ${content.samples.length} samples over ${content.duration_s} s` }; }
+      const out = withWaypoint(view, { motion: args.motion as string, ...(args.values ? { values: args.values as Record<string, number> } : {}), ...(args.at !== undefined ? { at: args.at as number } : {}), ...(args.remove !== undefined ? { remove: args.remove as number } : {}), ...(args.limits ? { limits: args.limits as Record<string, { velocity: number; acceleration: number; jerk?: number }> } : {}) });
+      const m = readRobot(out.robot).motions!.find(x => x.name === args.motion)!, changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(out.robot ?? null);
+      return { doc: out, content: { ok: true, did: changed ? 'set the motion' : 'no change', motion: m.name, waypoints: m.path.waypoints, profile: m.path.profile, ...(m.path.limits ? { limits: m.path.limits } : {}) }, changed, summary: changed ? `${m.name}: ${m.path.waypoints.length} waypoints` : 'no change' };
+    } catch (e) { if (isRefusal(e)) return { error: (e as BarocssError).message }; throw e; }
+  }
   if (name === 'set_frames') return setFrames(view, args);
   const was = readRobot(doc.robot), joints: Record<string, JointSettings | null> = {};
   const parts = [BASE, ...(doc.instances ?? []).map(i => i.id)];
@@ -183,6 +215,23 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   if (unknown.length) return { error: `No joint ${unknown.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
   const changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(out.robot ?? null);
   return { doc: out, content: { ok: true, did: changed ? 'set the robot settings' : 'no change', base: tree.base, joints: tree.joints.map(j => ({ key: j.key, type: j.type, ...(j.limit ? { limit: j.limit } : {}) })), problems: tree.problems }, changed, summary: changed ? `robot settings set (${tree.joints.length} joints)` : 'no change' };
+}
+
+const LIMIT_KEYS = ['velocity', 'acceleration', 'jerk'];
+const isValues = (v: unknown) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.values(v).every(x => typeof x === 'number' && Number.isFinite(x));
+/** The movement tools' call shape (their values checked on the tree by the verbs). */
+function movementArgs(args: Record<string, unknown>): string | undefined {
+  if (args.values !== undefined && !isValues(args.values)) return '"values" is {joint key: number} (degrees for a turning joint, mm for a slide).';
+  if (args.motion !== undefined && (typeof args.motion !== 'string' || !args.motion)) return '"motion" is the motion\'s name.';
+  for (const f of ['at', 'remove', 'samples'] as const) if (args[f] !== undefined && !Number.isInteger(args[f])) return `"${f}" is a whole number.`;
+  if (args.limits !== undefined) {
+    if (!args.limits || typeof args.limits !== 'object' || Array.isArray(args.limits)) return '"limits" is {joint key | default: {velocity, acceleration, jerk?}}.';
+    for (const [k, l] of Object.entries(args.limits as Record<string, unknown>)) {
+      const x = l as Record<string, unknown>;
+      if (!x || typeof x !== 'object' || Object.keys(x).some(f => !LIMIT_KEYS.includes(f)) || [x.velocity, x.acceleration].some(n => typeof n !== 'number' || !(n > 0)) || (x.jerk !== undefined && !(typeof x.jerk === 'number' && x.jerk > 0))) return `limits.${k} is {velocity, acceleration, jerk?}, each above 0 (deg/s, deg/s², deg/s³ or mm/s…).`;
+    }
+  }
+  return undefined;
 }
 
 /** O12: tool and sensor frames added, replaced (by name) or removed (null); each one named is checked on the tree, typed. */

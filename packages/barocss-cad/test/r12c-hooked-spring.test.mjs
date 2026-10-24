@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hookedSpring, springSolidPitch, SpringError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
+import { hookedSpring, springSolidPitch, isSpringError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1b (D154): extension springs (machine-loop and crossover hooks) and torsion springs (tangent legs), against
@@ -15,7 +15,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.abs(want), `${what}: ${got} vs ${want} (rel ${Math.abs(got - want) / Math.abs(want)})`);
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
-const code = c => e => e instanceof SpringError && e.code === c;
+const code = c => e => isSpringError(e) && e.code === c;
 const add = (a, b) => a.map((x, i) => x + b[i]), sub = (a, b) => a.map((x, i) => x - b[i]), scl = (a, s) => a.map(x => x * s), dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
 const unit = a => scl(a, 1 / Math.hypot(...a));
 function leastTurnGap(R, p) { const h = p / (2 * Math.PI); let best = Infinity; for (let i = -2000; i <= 2000; i++) { const t = 2 * Math.PI + i * 2e-4; best = Math.min(best, Math.hypot(2 * R * Math.sin(t / 2), h * t)); } return best; }
