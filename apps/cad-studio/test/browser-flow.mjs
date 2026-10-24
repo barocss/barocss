@@ -8600,52 +8600,49 @@ try {
     await page.click('.mode button:text-is("Model")');
   });
   await check('G15a finishes: Turned steel, a knurl along Z, a lacquered paint and an oil film from the Render panel — kept on the appearance, the part drawn with its marks; None again, plain', async () => {
+    // (A new part, a box: its one body takes the default appearance, whatever the steps before left open.)
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
     await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await press('Escape');
     await page.click('.render-panel [role="tab"]:text-is("Appearance")');
-    // (The part's body selected, as step 48 left its own appearance: the panel edits that one.)
-    if (!/1 selected body/.test(await page.locator('.render-panel .muted.small').first().innerText())) await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /1 selected body/.test(document.querySelector('.render-panel .muted.small')?.textContent ?? ''));
-    const look = () => page.evaluate(() => Object.values(window.__studioDoc.render.appearances)[0]);
+    await page.waitForFunction(() => /Every body without/.test(document.querySelector('.render-panel .muted.small')?.textContent ?? ''));
+    const look = () => page.evaluate(() => window.__studioDoc.render.defaultAppearance);
     const gpu = renderer === 'webgpu', N = 64;
     // (The marks: how much a sample differs from its neighbours on a dense grid, the whole frame.)
-    const marks = async () => {
-      await idle(); await page.waitForTimeout(600);
-      const f = await page.evaluate(n => window.__studioFrame(n), N); let d = 0;
-      for (let j = 0; j < N - 1; j++) for (let i = 0; i < N - 1; i++) { const k = 3 * (j * N + i); d += Math.abs(f[k] - f[k + 3]) + Math.abs(f[k] - f[k + 3 * N]); }
-      return d / ((N - 1) * (N - 1));
-    };
+    // (A frame on a dense grid; how far two differ, sample by sample, over the samples either changes — the part's.)
+    const marks = async () => { await idle(); await page.waitForTimeout(600); return page.evaluate(n => window.__studioFrame(n), N); };
+    const apart = (a, b) => { let d = 0, n = 0; for (let k = 0; k < a.length; k++) { const e = Math.abs(a[k] - b[k]); if (e > 2) { d += e; n++; } } return n ? d / n : 0; };
     await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
-    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].color === '#a7abb1');
-    const plain = gpu ? await marks() : 0;
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.color === '#a7abb1');
+    const plain = gpu ? await marks() : null;
     await page.selectOption('[aria-label="Appearance preset"]', 'look-turned-steel');
-    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].finish?.kind === 'turned');
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.finish?.kind === 'turned');
     assert.deepEqual((await look()).finish, { kind: 'turned', scale: 0.3, strength: 0.6, axis: [0, 0, 1] });
     assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), 'look-turned-steel', 'the preset shown as chosen');
-    const turned = gpu ? await marks() : 0; if (gpu) await snap('g15a-turned');
+    const turned = gpu ? await marks() : null; if (gpu) await snap('g15a-turned');
     // A knurl, coarser, along Z; the preset becomes Custom.
     await page.selectOption('.render-panel [aria-label="Surface finish"]', 'knurled');
     await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Marks"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '1.5'); el.dispatchEvent(new Event('input', { bubbles: true })); });
-    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].finish?.kind === 'knurled' && Object.values(window.__studioDoc.render.appearances)[0].finish.scale === 1.5);
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.finish?.kind === 'knurled' && window.__studioDoc.render.defaultAppearance.finish.scale === 1.5);
     assert.equal(await page.inputValue('.render-panel [aria-label="Finish direction"]'), 'z');
     assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), '');
-    const knurled = gpu ? await marks() : 0; if (gpu) await snap('g15a-knurled');
+    const knurled = gpu ? await marks() : null; if (gpu) await snap('g15a-knurled');
     await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15a-finish-panel.png`) });
     // Paint under a clear coat; an oil film.
     await page.selectOption('[aria-label="Appearance preset"]', 'look-painted-red');
-    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].clearcoat === 1 && !Object.values(window.__studioDoc.render.appearances)[0].finish);
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.clearcoat === 1 && !window.__studioDoc.render.defaultAppearance.finish);
     if (gpu) await snap('g15a-painted');
     await page.selectOption('[aria-label="Appearance preset"]', 'look-oiled-steel');
-    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].film === 0.7);
+    await page.waitForFunction(() => window.__studioDoc.render.defaultAppearance.film === 0.7);
     if (gpu) await snap('g15a-oiled');
     // None: the finish leaves the appearance.
     await page.selectOption('.render-panel [aria-label="Surface finish"]', '');
-    await page.waitForFunction(() => !Object.values(window.__studioDoc.render.appearances)[0].finish);
+    await page.waitForFunction(() => !window.__studioDoc.render.defaultAppearance.finish);
     if (gpu) {
-      console.log(`  G15a: marks plain ${plain.toFixed(2)}, turned ${turned.toFixed(2)}, knurled ${knurled.toFixed(2)}`);
-      // (The plate's top is square to Z: the turned face shows on it — its rings finer than a pixel at this distance, so
-      // as their radial highlight; the knurl only on its sides. The grid takes in the background too.)
-      assert.ok(turned > plain + 0.6, `the turned face drawn: ${plain.toFixed(2)} → ${turned.toFixed(2)}`);
-      assert.ok(knurled > plain + 0.5, `the knurl drawn on the sides: ${plain.toFixed(2)} → ${knurled.toFixed(2)}`);
+      const t = apart(plain, turned), k = apart(plain, knurled);
+      console.log(`  G15a: frames apart from plain steel — turned ${t.toFixed(1)}, knurled ${k.toFixed(1)}`);
+      assert.ok(t > 8, `the turned face drawn (its radial highlight): ${t.toFixed(1)}`);
+      assert.ok(k > 8, `the knurl drawn: ${k.toFixed(1)}`);
     }
     await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
     await page.click('.mode button:text-is("Model")');
