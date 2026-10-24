@@ -75,7 +75,8 @@ const rad = d => d * Math.PI / 180;
 const ROBOT_SHOTS = [
   ['arm-6r', { 'base~l1': rad(90), 'l1~l2': rad(-30), 'l2~l3': rad(60) }],
   ['scara', { 'base~arm1': rad(45), 'arm1~arm2': rad(-60), 'arm2~quill': -30 }],
-  // (The gantry's ram stays up: lowered on this path it meets the X carriage, which the shot isn't about.)
+  // (The gantry's ram stays up: lowered at once on the draft's straight path it meets the X carriage; its demo motion
+  // lowers it last, and is clear.)
   ['gantry-ppp', { 'base~x': 150, 'x~y': 100 }],
 ];
 /** A file the studio opens, written outside the repository. */
@@ -333,6 +334,16 @@ const steps = [
     await page.waitForSelector('[aria-label="Templates"] [aria-label="Samples"]', { timeout: WAIT }); await page.waitForTimeout(300);
     await shot('studio/robots', 'samples-menu', 'studio/robots: the robot samples in Templates', { target: page.locator('[aria-label="Templates"]') });
     await press('Escape');
+  }],
+  ['studio/robots: a saved motion chosen and paused partway', async () => {
+    await fresh();
+    await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="Open sample Pan-tilt camera head"]');
+    await page.waitForFunction(() => [...(document.querySelector('[aria-label="Motion choice"]')?.options ?? [])].some(o => o.value === 'look around'), null, { timeout: 2 * WAIT });
+    await idle(); await page.selectOption('[aria-label="Motion choice"]', 'look around');
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 2 * WAIT });
+    const T = +/\/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText())[1];
+    await slide('Motion time', T * 0.4); await iso(); await page.waitForTimeout(500);
+    await shot('studio/robots', 'saved-motion', 'studio/robots: a saved motion chosen and paused partway');
   }],
   ...ROBOT_SHOTS.map(([id, pose]) => [`studio/robots: the ${id} sample, its motion paused half-way`, async () => {
     await fresh();
