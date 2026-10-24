@@ -13431,3 +13431,63 @@ reached.
 - RB: no NEW, the same 3 TODOs.
 - cad-model 1020/1020, studio 286/286.
 - No browser flow.
+
+## D257 — K15: a face wrapping most of its full-turn surface is judged by its winding in its domain (2026-10-24)
+
+**Findings.** L4 fuzz seed 20261025 #62 and seed 20261026 #115, robust (D249, D254). Both were refused as "orientation:
+face … sense disagrees with its outer loop".
+- **25#62**, shrunk: (a tilted cylinder less a box) in a linear pattern of 3, then of 2. The face is the second copy's
+  cylinder wall, kept over 354°.
+- **26#115**, shrunk: (a tilted cylinder ∪ a box ∪ a cone) less a cylinder. The face (`f13`) is a cylinder wall kept over
+  most of its turn too.
+
+**Cause (`checkBrep`, `src/brep/brep-core.ts`).** The Boolean spans a cylinder piece's surface from its smallest to its
+largest θ. A piece crossing its frame's ±π cut therefore gets the whole turn, and its gap can lie anywhere in the
+domain. In #62 the gap is at u 0.31.
+- The sense check compares the outer loop's vector area with the surface normal at the domain's middle.
+- That judges a face whose normals all lie within 90° of the middle's normal.
+- A face over most of a closed surface has its vector area pointing away from its gap. In #62 the middle's normal was
+  68° from the gap, so the two came out opposed (cos −0.18). The face was right.
+- With that one check skipped, #62 is valid, strictly valid and watertight, −0.19 e at 256² × 6 by quadrature.
+
+**Fix (`loopWindsInDomain`).** Where the vector area disagrees with the middle's normal, the loop's winding in the
+face's own (u, v) domain decides.
+- The loop is sampled as `loopVectorArea` samples it, and each sample is projected onto the surface (`closestPointOnSurface`).
+- A direction in which the surface closes on itself is unwrapped along the ring.
+- Counter-clockwise agrees with `forward`, clockwise with `reversed`.
+- It decides only when every sample lies within 100 edge tolerances of the surface, the ring closes in the domain, and
+  it encloses area. Otherwise the flag stands as before.
+- Faces the vector area passes pay nothing, and no face is newly refused: the change can only clear a flag.
+
+**Results:**
+
+| Case | Before | After |
+|---|---|---|
+| 25#62 shrunk, as fuzzed | refused | one body each, −0.19 e and +0.24 e at 256² × 6, by quadrature; nudged 4 ways each, 8/8 build, within 0.6 e (128² × 6) |
+| 26#115 shrunk, as fuzzed | refused | one body each, +0.25 e and +0.03 e; nudged, 8/8 build, within 1.0 e |
+| 20261024 #185 (not queued) | refused, the same message | valid (fuzz OK) |
+
+In #62's body every face's domain winding agrees with its sense, planes included. Turned over one at a time, each face
+is refused except the wrapping one, `f23`.
+
+**Open (pre-existing, not fixed).** The check fails the other way too: a face wrapping most of its surface is passed
+when it is turned over, since its vector area then agrees with the middle's normal. Closing that means running the
+winding for every face whose surface normals leave the middle's hemisphere, at a cost on every check. Not needed by
+any finding.
+
+**Test:** `test/fuzz-k15-findings.test.mjs` "checker: a face wrapping most of its full-turn surface …", failing before.
+It also pins that every other face, turned over, is refused.
+**Corpus:** `robustness/corpus/fuzz/fuzz-20261025-62.json`, `fuzz-20261026-115.json` (their shrunk trees; the oracle's
+volume and centroid).
+
+**Checks (K15 checkpoint 1, T2, in a scratch worktree at 2fbff69e9 with D257):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1665/1672, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against D256's names, one is new (this record's test) and none is gone.
+- RB: no NEW, the same 3 TODOs. The two new corpus cases pass.
+- Fingerprint: 863 cases, `1cd931ee…` (from `cf100676…`, 861). Three lines changed: the two new corpus cases, and
+  `fuzz:20261024:185` refused → valid. Nothing else.
+- Fuzz (200 cases a seed): 20261025 OK 184 (36 empty) / REFUSED 16; 20261026 188 (27) / 12; 20261023 189 (31) / 11;
+  20261024 188 (31) / 12. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- cad-model 1025/1025, studio 286/286.
+- No browser flow: nothing studio-visible changed.

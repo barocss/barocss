@@ -12,6 +12,7 @@ import type { Curve, FacetPatch, Point, Surface } from '../types.js';
 import { cross, dist as distance, dot, sub } from '../core/vec3.js';
 import { strictGeometry } from './brep-check-geometry.js';
 import { facetPatchProblem, facetVectorArea } from '../mesh/facet-patch.js';
+import { closestPointOnSurface, surfaceSeedGrid } from '../nurbs/surfaces/surface-closest.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
@@ -87,6 +88,48 @@ export function loopVectorArea(uses: readonly { readonly curve: Curve; readonly 
   let area: Point = [0, 0, 0];
   for (let i = 0; i < ring.length; i++) { const c = cross(ring[i], ring[(i + 1) % ring.length]); area = [area[0] + c[0] / 2, area[1] + c[1] / 2, area[2] + c[2] / 2]; }
   return area;
+}
+/**
+ * Whether a loop of directed curve uses on `surface` runs counter-clockwise in its (u, v) domain (`true`) or clockwise
+ * (`false`); `undefined` where that cannot be told: a sample more than `reach` off the surface, a ring that does not
+ * close in the domain (it winds round a closed direction), or one enclosing no area. A direction in which the surface
+ * closes on itself is unwrapped along the ring. Each use is sampled as `loopVectorArea` samples it.
+ */
+export function loopWindsInDomain(surface: Surface, uses: readonly { readonly curve: Curve; readonly sense: 'forward' | 'reversed' }[], reach: number): boolean | undefined {
+  const { u: U, v: V } = surfaceDomain(surface), W = U[1] - U[0], H = V[1] - V[0];
+  const closedU = closesAlong(surface, U, V, 0, reach), closedV = closesAlong(surface, U, V, 1, reach), grid = surfaceSeedGrid(surface, 24);
+  let area = 0, u0 = 0, v0 = 0, pu = 0, pv = 0, n = 0, uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+  for (const use of uses) {
+    const c = use.curve, [t0, t1] = curveDomain(c), corners = c.degree === 1, m = corners ? c.controlPoints.length - 1 : 16;
+    for (let k = 0; k < m; k++) {
+      const x = corners ? c.controlPoints[use.sense === 'forward' ? k : m - k] : evaluateCurve(c, use.sense === 'forward' ? t0 + (t1 - t0) * k / m : t1 - (t1 - t0) * k / m);
+      const q = closestPointOnSurface(surface, x, { grid });
+      if (!(q.distance <= reach)) return undefined;
+      let u = q.u, v = q.v;
+      if (n > 0) {
+        if (closedU) u += W * Math.round((pu - u) / W);
+        if (closedV) v += H * Math.round((pv - v) / H);
+        area += pu * v - u * pv;
+      } else { u0 = u; v0 = v; }
+      pu = u; pv = v; n++;
+      if (u < uMin) uMin = u; if (u > uMax) uMax = u; if (v < vMin) vMin = v; if (v > vMax) vMax = v;
+    }
+  }
+  if (n < 3) return undefined;
+  // (Closed: the ring's last point back to its first without a turn's jump.)
+  if ((closedU && Math.abs(Math.round((pu - u0) / W)) > 0) || (closedV && Math.abs(Math.round((pv - v0) / H)) > 0)) return undefined;
+  area += pu * v0 - u0 * pv;
+  if (!(Math.abs(area) > 1e-6 * (uMax - uMin) * (vMax - vMin))) return undefined;
+  return area > 0;
+}
+/** Whether `surface` closes on itself along u (`along` 0) or v (1): its two opposite domain edges meet at three points. */
+function closesAlong(surface: Surface, U: readonly [number, number], V: readonly [number, number], along: 0 | 1, reach: number): boolean {
+  for (let k = 0; k <= 2; k++) {
+    const t = along === 0 ? V[0] + (V[1] - V[0]) * k / 2 : U[0] + (U[1] - U[0]) * k / 2;
+    const a = along === 0 ? evaluateSurface(surface, U[0], t) : evaluateSurface(surface, t, V[0]), b = along === 0 ? evaluateSurface(surface, U[1], t) : evaluateSurface(surface, t, V[1]);
+    if (distance(a, b) > reach) return false;
+  }
+  return true;
 }
 const index = <T extends { id: string }>(items: readonly T[], kind: string, issues: string[]) => {
   const map = new Map<string, T>();
@@ -231,7 +274,15 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
     const area = loopVectorArea(uses), size = Math.hypot(...area), normal = surfaceNormalAtCentre(f.surface as Surface);
     let extent = 0; for (const u of uses) for (const p of u.curve.controlPoints) extent = Math.max(extent, ...p.map(Math.abs));
     if (size <= 1e-6 * Math.max(1, extent) ** 2 || Math.hypot(...normal) === 0) continue;
-    if (dot(area, normal) * (f.sense === 'forward' ? 1 : -1) < 0) add('orientation', `face ${f.id} sense disagrees with its outer loop`);
+    // (The normal at the domain's middle judges a face whose normals all lie within 90° of it. A face wrapping most of a
+    // closed surface — a cylinder's 354°, its gap beside the domain's middle — has its vector area against that normal
+    // even when right: where they disagree, the loop's winding in the face's own domain decides, when it can be told.
+    // K15, D257.)
+    if (dot(area, normal) * (f.sense === 'forward' ? 1 : -1) < 0) {
+      let reach = 0; for (const c of outer.coedges) reach = Math.max(reach, edges.get(coedges.get(c)!.edge)!.toleranceMM);
+      const winds = loopWindsInDomain(f.surface as Surface, uses, Math.max(100 * reach, 1e-6 * Math.max(1, extent)));
+      if (winds !== (f.sense === 'forward')) add('orientation', `face ${f.id} sense disagrees with its outer loop`);
+    }
   }
 
   // Euler–Poincaré per body.
