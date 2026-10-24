@@ -41,7 +41,7 @@ test('show() clears, sets the lights and background, adds each mesh under its ke
 });
 
 test('cad\'s facade meshes go in as they are, byte for byte (no axis conversion)', () => {
-  const bracket = part('bracket').box(80, 40, 10).hole({ at: [20, 20], diameterMM: 8 });
+  const bracket = part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 }).hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 });
   const meshes = bracket.meshes(), viewer = stand();
   show(viewer, scene().add(meshes));
   const added = viewer.calls.filter(c => c[0] === 'add');
