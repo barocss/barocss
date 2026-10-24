@@ -5452,6 +5452,40 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.breaks && !window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('section kinds (CG5 DR-3): a block with holes at Y 10 and Y 30; B–B on the front made offset (both holes, 4 faces), half (1 face), full again', async () => {
+    const fs = await import('node:fs');
+    const block = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 10, id: 'n1' }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [15, 10], radius: 3, id: 'n2' }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [45, 30], radius: 4, id: 'n3' }], outputs: { b3: { node: 3, side: 'solid' } }, nextId: 4 };
+    const file = join(out, 'dr3-block.bcad'); fs.writeFileSync(file, JSON.stringify(block));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.sections?.some(x => x.id === 'B'), null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Section B view"]', 'front');
+      await page.waitForFunction(() => window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.view === 'front', null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '10'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === 10 && x.rings === 2), null, { timeout: 30000 });
+      // Offset: a step at X 30 (the middle) to depth 30.
+      await page.selectOption('[aria-label="Section B kind"]', 'offset');
+      await page.waitForFunction(() => !!window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.steps, null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B step 1 depth"]', '30'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 4), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').steps, [{ past: 30, at: 30 }]);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /OVERLAP|OVER_LINES|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code)), []);
+      await snap('offset-b');
+      // Half: cut right of X 30 — the face X 30–60 alone.
+      await page.selectOption('[aria-label="Section B kind"]', 'half');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 1), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').half, { line: 'vertical', at: 30, cut: 'after' });
+      await page.selectOption('[aria-label="Section B kind"]', 'full');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 2), null, { timeout: 30000 });
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
@@ -8763,6 +8797,52 @@ try {
     assert.equal(o.method, 'faces', JSON.stringify(o)); assert.equal(o.tinted, true);
     await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}c-cg6-faces.png`) });
     await card.locator('[aria-label="Compare Mesh"]').click();
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 linked parts: a part inserted from the project names its file; saved again with a second box, the assembly opened offers it as Revision waiting, accepted the link stays', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-linked-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]');
+    const named = async name => { await page.fill('.doc-tab input', name); };
+    const saveIn = async () => { await page.click('[aria-label="Save"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 }); };
+    // The part, arm.bcad: one box.
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await named('arm');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await saveIn();
+    // The assembly: arm.bcad inserted from the project, saved as assembly.bcad.
+    await page.click('[aria-label="New part"]'); await named('assembly');
+    await card.locator('[aria-label="Insert arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad');
+    await saveIn();
+    assert.match(await card.locator('[aria-label="Project documents"]').innerText(), /arm\.bcad[\s\S]*assembly\.bcad/);
+    // The part opened, a second box added, saved.
+    await card.locator('[aria-label="Open arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    await saveIn();
+    // The assembly opened: the newer file waits, the placed part unchanged until accepted.
+    await card.locator('[aria-label="Open assembly.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1 && !!window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.match(await page.locator('.toast').innerText(), /Newer files for 1 placed part/);
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].doc.nodes.length), 2);
+    assert.equal(await page.evaluate(() => Object.values(window.__studioDoc.pendingParts)[0].name), './arm.bcad');
+    await page.locator('.ol.instance').first().click(); await page.waitForSelector('[aria-label="Revision waiting"]');
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-linked.png`) });
+    await page.click('[aria-label="Instance"] button:text-is("Accept Rev B")');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].doc.nodes.length === 4 && !window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad', 'the link stays');
+    // Checked again: the file is the part as placed, nothing more offered.
+    await page.keyboard.press('Escape');
+    await card.locator('[aria-label="Check placed parts"]').click(); await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.__studioDoc.pendingParts), undefined);
     await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
     await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
   });

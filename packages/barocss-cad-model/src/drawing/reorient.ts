@@ -16,7 +16,9 @@ export const REORIENT_VERSION = 'cad-studio-reorient-v1';
 export type ReorientResult =
   | { ok: true; settings: DrawingSettings; moved: { from: ViewId; to: ViewId }[] }
   | { ok: false; code: 'ORIENTATION_REMAP_FAILED'; message: string; failed: { dim: string; was: string; now: string }[] }
-  | { ok: false; code: 'SECTION_ACROSS'; message: string };
+  | { ok: false; code: 'SECTION_ACROSS'; message: string }
+  /** DR-3: a half or offset section is not turned (its centreline and steps are in its view's own coordinates). */
+  | { ok: false; code: 'SECTION_KIND'; message: string };
 
 const ORTHO: readonly ViewId[] = ['front', 'top', 'right'];
 const dot = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
@@ -56,6 +58,8 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   if (was === next) return { ok: true, settings, moved: [] };
   // Sections (A–A, and O148 X1's on any principal view): each kept where its view's new depth runs along the old (its
   // position along it turned), refused across it.
+  const kind = sectionsOf(settings).find(x => x.half || x.steps);
+  if (kind) return { ok: false, code: 'SECTION_KIND', message: `Section ${kind.id}–${kind.id} is a ${kind.half ? 'half' : 'offset'} section: make it a full one first, then turn the drawing.` };
   if (sectionsOf(settings).length) {
     const kept = turnSections(settings, next);
     if ('across' in kept) return { ok: false, code: 'SECTION_ACROSS', message: `Section ${kept.across.id}–${kept.across.id} is cut across the present ${kept.across.view} view: turn it off first, then turn the drawing.` };
