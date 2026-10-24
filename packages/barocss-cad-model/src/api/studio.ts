@@ -7,7 +7,7 @@
 import { BarocssError, bracketedCode, refuse, type Bound, type FeatureSpec, type PartBackend } from '@barocss/cad/api';
 import { emptyDoc, featureLabel, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
 import { withIds } from '../engine/ids';
-import { editFields, type BindableField } from '../app/editFields';
+import { addParameters, bindParameter, withParameters as coreWithParameters } from '../engine/parameters';
 import { commandById, givenValues, type Ctx, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
 import { checkNode } from '../chat/features';
@@ -43,7 +43,8 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face, edge or body named ${unknown.join(', ')} on the part`);
   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
   const avail = cmd.available(ctx);
-  if (!avail.ok) throw refuse('UNAVAILABLE', `${cmd.label} can't run: ${avail.reason}`);
+  // (A command that can't run says why; a reason that carries the core's own code — [FASTENER_SIZE_ROW] — keeps it, §6.)
+  if (!avail.ok) { const code = bracketedCode(avail.reason); throw code ? new BarocssError(code, `${cmd.label} can't run: ${avail.reason}`, 'evaluate') : refuse('UNAVAILABLE', `${cmd.label} can't run: ${avail.reason}`); }
   // (The spec's own values win over what a command's derive works out from them, O20: givenValues.)
   const values: Values = givenValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, { ...spec.values });
   const why = checkValues(cmd.fields?.(ctx) ?? [], values);
@@ -82,19 +83,15 @@ const BINDS: Record<string, Record<string, readonly [node: number, field: string
 };
 const bindable = (command: string) => Object.keys(BINDS[command] ?? {}).join(', ') || 'none';
 
-// (Each option given as a parameter bound as the feature editor's ƒ binds it: editFields' bind, the core's own — its
-// value written as the reference in the one place it lands, or refused.)
+// (Each option given as a parameter bound as the feature editor's ƒ binds it — the core's bindParameter (O21) on the
+// node and value the table names — or refused, naming the options that bind.)
 function bound(doc: StudioDoc, command: string, first: number, given: Bound): StudioDoc {
-  let nodes = doc.nodes;
   for (const { option, parameter } of given) {
     const at = BINDS[command]?.[option];
     if (!at) throw refuse('PARAMETER_UNBINDABLE', `${command}'s ${option} can't take a parameter (in the studio its options that do are ${bindable(command)})`);
-    const field = editFields(nodes, first + at[0], doc.parameters).find(f => f.key === at[1]) as BindableField | undefined;
-    const next = field?.bind(nodes, parameter);
-    if (!next) throw refuse('PARAMETER_UNBINDABLE', `${command}'s ${option} doesn't land as it is in one place here, so it can't take ${parameter} (a box's w or d only while its x or y is 0)`);
-    nodes = next;
+    doc = bindParameter(doc, { feature: first + at[0], value: at[1], parameter });
   }
-  return { ...doc, nodes };
+  return doc;
 }
 
 function bodyOf(doc: StudioDoc, key: string): BodyResult {
@@ -114,7 +111,9 @@ export const studioBackend: PartBackend<StudioDoc> = {
   meshes: meshesOf,
   parameters: doc => doc.parameters,
   withParameters(doc, parameters) {
-    const next = { ...doc, parameters };
+    // (The core's own (O21): the values of the parameters it has, then the new ones after them, in order.)
+    const known = Object.fromEntries(Object.entries(parameters).filter(([k]) => k in doc.parameters)), added = Object.fromEntries(Object.entries(parameters).filter(([k]) => !(k in doc.parameters)));
+    const next = addParameters(coreWithParameters(doc, known), added);
     if (next.nodes.length) bodiesOf(next);
     return next;
   },
