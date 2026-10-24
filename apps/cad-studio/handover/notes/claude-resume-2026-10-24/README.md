@@ -29,7 +29,7 @@ continue the barocss CAD work: the coordinator and all five lanes.
 | Outer | 바깥 줄 | `studio-mates-cbde0e` | `claude/cad-outer-lane-531d5a` | `packages/barocss-cad-model/**` except `src/api/`; the studio's panels, chat and agent |
 | GPU | GPU 줄 | `compassionate-turing-e88276` | `claude/gpu-lane-2026-10-23` | `packages/barocss-gpu/**`; the studio's shell (layout, dock, top bar, rails, viewport) |
 | Docs | 문서 줄 | `fervent-hopper-d9c6b2` | `claude/fervent-hopper-d9c6b2` | `apps/library-docs/**` |
-| API | API 줄 | `confident-fermi-29a815` | `claude/api-lane-2026-10-24` | `packages/barocss-cad-model/src/api/**` and `src/api.ts` (R7's object facade) |
+| API | API 줄 | `confident-fermi-29a815` | `claude/api-lane-2026-10-24` | R7's object facades: `packages/barocss-cad/src/api/**`, `packages/barocss-cad-model/src/api/**` and `src/api.ts`, `packages/barocss-gpu/src/api/**`, plus the `./api` export entries |
 
 - **Records:**
   - decision logs: `../../decisions.md` (kernel, D-ids), `../../decisions-outer.md` (O-ids) and
@@ -138,15 +138,21 @@ continue the barocss CAD work: the coordinator and all five lanes.
   - tighten the Object API sample's refusal assertion once the kernel's bracket prefix lands;
   - keep pages current as each lane merges. The coordinator routes the changes.
 
-**API (API 줄).** Holding for the owner's look. The brief is `../claude-resume-2026-10-23/api.md`.
-- **Merged:** the slice, `part().box().hole().fillet()` with typed selectors, `.doc`, `.mass()` (MMGS), `.step()`,
-  BarocssError and the single core adapter `src/api/core.ts`.
-- **Next, after the owner's go:**
-  - cylinder, sketch and extrude, chamfer, shell, patterns and Booleans;
-  - a body chooser;
-  - Sketch and Plane/Location;
-  - Assembly;
-  - R7.5b, the Viewer bridge, if approved.
+**API (API 줄).** The brief is `../claude-resume-2026-10-23/api.md`.
+
+On 2026-10-24 the owner asked for a facade in all three packages under the same rules.
+
+- **Merged:** the cad-model slice:
+  - `part().box().hole().fillet()` with typed selectors;
+  - `.doc`, `.mass()` in MMGS and `.step()`;
+  - BarocssError, and `src/api/core.ts` as the one adapter onto the core.
+- **In progress:**
+  1. extend the design note to cover all three;
+  2. the cad slice, `@barocss/cad/api` over evaluateCadPart, replacing createCadModel;
+  3. the gpu slice, `@barocss/gpu/api` with `scene()` and `show(viewer, scene)`, which waits on the coordinate frame
+     (§5 item 3);
+  4. shared selectors and errors in cad/src/api;
+  5. growth, assemblies, then the docs samples.
 
 ## 5. Decisions waiting on the owner
 
