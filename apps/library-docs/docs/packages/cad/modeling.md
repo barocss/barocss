@@ -93,6 +93,7 @@ Each output is one body, or several with `bodyCount`, as a B-rep (`brep`).
 - **Surface area.** `surfaceAreaOf(output)` is in mm², over the exact surfaces.
 - **STEP.** `exportStep(output, { name })` writes the exact B-rep as STEP AP214.
 - **STL.** `exportStl(output, { segmentsPerQuarter })` writes the display tessellation as binary STL.
+- **Sheet metal.** `flatPatternOf(output, { fixedFace, kFactor })` returns a sheet-metal flat pattern.
 - **Reports.** Gears, racks and other generated parts carry a report of their own, such as `gear`.
 
 ### A numerical unit check

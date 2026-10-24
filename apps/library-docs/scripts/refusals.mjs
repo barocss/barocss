@@ -46,7 +46,7 @@ const readable = m => !/\/\*|\*\/|(^|\s)\/\/\s/.test(m);
 const example = list => { const ok = list.filter(readable); return ok.find(m => m.length >= 20) ?? ok[0] ?? ''; };
 
 /** A literal that is a refusal: its code in brackets at its start, then the message. */
-const BRACKETED = /^\[([A-Z][A-Z0-9_]{3,})\]\s*([\s\S]*)$/;
+const BRACKETED = /^\[([A-Z][A-Z0-9_]*)\]\s*([\s\S]*)$/;
 
 const codes = AREAS.map(([title, dir]) => {
   const root = join(repo, dir), found = new Map();

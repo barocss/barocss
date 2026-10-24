@@ -1,5 +1,5 @@
 // Read refusal literals and the authoritative code array without executing package sources.
-const CODE = /^[A-Z][A-Z0-9_]{3,}$/;
+const CODE = /^[A-Z][A-Z0-9_]*$/;
 const BUILDERS = new Map([['refusal', [0, 1]], ['problem', [0, 1]], ['coded', [0, 1]], ['kernelRefusal', [1, 2]]]);
 
 export function readRefusalSource(ts, file, text) {
