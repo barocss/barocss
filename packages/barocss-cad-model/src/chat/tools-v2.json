@@ -21,6 +21,7 @@
        "delete_part",
        "add_mate",
        "edit_mate",
+       "lock",
        "delete_mate",
        "inputs",
        "variants",

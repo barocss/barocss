@@ -311,14 +311,18 @@ function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed:
 /** Meshing spur gears on two turning joints of one carrier: the second follows the first, −z1/z2 (D56's pair check). */
 function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (part: string) => readonly GearPlacement[], notes: RobotIssue[]): Coupling[] {
   const turning = joints.filter(j => (j.type === 'revolute' || j.type === 'continuous') && !j.child.includes('__'));
-  const onAxis = turning.flatMap(j => {
-    const at = placed.get(j.child)!;
-    return gearsOf(j.child).flatMap(g => {
+  // (PG-4: the gears of a link's rigid group — its part and the parts fixed to it, a gear locked on its shaft — not its part's
+  // alone; a locked gear off the joint's axis is said so, not left out silently.)
+  const onAxis = turning.flatMap(j => rigidGroup(joints, j.child).flatMap(part => {
+    const at = placed.get(part)!;
+    return gearsOf(part).flatMap(g => {
       const axis = unit(apply(at.R, [0, 0, 1])), point = add(apply(at.R, [g.center[0], g.center[1], g.from]), at.t);
       const off = sub(point, j.origin), perp = sub(off, scale(j.axis, dot(off, j.axis)));
-      return len(cross(axis, j.axis)) < 1e-9 && len(perp) < 1e-6 ? [{ j, g, axis, point, xAxis: unit(apply(at.R, [1, 0, 0])) }] : [];
+      if (len(cross(axis, j.axis)) < 1e-9 && len(perp) < 1e-6) return [{ j, g, axis, point, xAxis: unit(apply(at.R, [1, 0, 0])) }];
+      if (part !== j.child) notes.push({ code: 'GEAR_NOT_COUPLED', message: `${part}'s gear is fixed to ${j.child} but not on ${j.key}'s axis: it is not coupled.` });
+      return [];
     });
-  });
+  }));
   const out: Coupling[] = [];
   for (let a = 0; a < onAxis.length; a++) for (let b = a + 1; b < onAxis.length; b++) {
     const A = onAxis[a], B = onAxis[b];
@@ -342,6 +346,12 @@ function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (p
   return out;
 }
 
+/** A link and the parts fixed to it (down through fixed joints): its rigid group. */
+function rigidGroup(joints: readonly Joint[], link: string): string[] {
+  const out = [link];
+  for (let i = 0; i < out.length; i++) for (const j of joints) if (j.parent === out[i] && j.type === 'fixed' && !out.includes(j.child)) out.push(j.child);
+  return out;
+}
 /** The link a link is rigidly fixed to (up through fixed joints): its rigid group's first. */
 function rigidOf(joints: readonly Joint[], link: string): string {
   for (let guard = 0; guard < joints.length; guard++) { const j = joints.find(x => x.child === link); if (!j || j.type !== 'fixed') return link; link = j.parent; }

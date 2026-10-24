@@ -21,7 +21,7 @@ import { r3Signed as r3 } from '../util/round';
 import { isObj, isVec3 } from '../util/guards';
 import { boundsOf } from '../engine/bounds';
 import { runVariabilityTool, VARIABILITY_TOOLS } from './variability';
-import { addMate, addPart, ASSEMBLY_CODES, editMate, partCopy, placePart, solveDoc, type Edited, type Mated } from '../assembly/edit';
+import { addMate, lockPart, addPart, ASSEMBLY_CODES, editMate, partCopy, placePart, solveDoc, type Edited, type Mated } from '../assembly/edit';
 import { isRefusal } from '../engine/refusal';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -103,7 +103,7 @@ function reported(doc: StudioDoc, r: Edited, what: string, extra: Record<string,
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'lock_part', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -166,6 +166,13 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       const list = r.doc.mates!, moved = r.doc.instances!.find(i => i.id === r.mate.b.part)!;
       return reported(doc, r, `${name === 'add_mate' ? 'added' : 'edited'} ${mateLabel(r.mate, list.findIndex(m => m.id === r.mate.id))} (${r.mate.id}): ${r.mate.b.part}.${r.mate.b.face} to ${r.mate.a.part}.${r.mate.a.face}`,
         { mate: r.mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation_deg: moved.rotation.map(r3) }, freedom_left: r.freedom });
+    }
+    case 'lock_part': {
+      // (PG-8: the studio's Lock — a part fixed to another where they stand.)
+      if (typeof args.part !== 'string' || typeof args.to !== 'string') return fail(doc, '"part" and "to" are part ids ("base" or an instance id): part is locked to to where they stand.');
+      let r: Mated;
+      try { r = lockPart(doc, { part: args.part, to: args.to }); } catch (e) { if (!isRefusal(e, ...ASSEMBLY_CODES)) throw e; return fail(doc, e.message, e.code === 'MATE_UNMET' ? { kept: 'the assembly is unchanged' } : {}); }
+      return reported(doc, r, `locked ${r.mate.b.part} to ${r.mate.a.part} (${r.mate.id}) where they stand`, { mate: r.mate.id, freedom_left: r.freedom });
     }
     case 'list_library': {
       // (LIB4: what the libraries hold — read only.)
@@ -284,6 +291,11 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
     name: 'add_mate',
     description: 'Places a part by its faces, solved exactly by the studio\'s mate solver; a mate that conflicts with the others is refused with the reason. "a" stays, "b" moves (swapped when b\'s part is fixed). Kinds: coincident (two flat faces flush, facing each other; flip: facing the same way; with an origin plane the default is the same way and flip opposes them), distance (the same, `distance` mm apart), angle (two flat faces `angle` degrees apart), concentric (two round faces on one axis: a shaft in a bore; flip true/false sets the axis sense), tangent (a round face touching a flat or another round face), cam (a: a face of the cam part, b: its follower\'s flat face, seated on the lobe — no hold on b, whose own mates make it slide; get_joints couples its slide to the cam\'s turn by the lobe\'s lift, or to a sliding a\'s slide: a pushed valve). Faces are persistent names (from get_assembly faces_of, or part results), or a part\'s origin planes origin:xy / origin:xz / origin:yz, or the base part\'s datums datum:<id> (add_datum: a plane flat, an axis round). The result says what the moved part can still do (free turns and slides).',
     input_schema: { type: 'object', properties: { kind: { type: 'string', enum: Object.keys(KIND_LABEL) }, a: ref, b: ref, distance: { type: 'number' }, angle: { type: 'number' }, flip: { type: 'boolean' } }, required: ['kind', 'a', 'b'], additionalProperties: false },
+  },
+  {
+    name: 'lock_part',
+    description: 'Locks a part to another where they stand (the studio\'s Lock: a lock mate keeping its placement in the other\'s coordinates), so it moves with it — a gear on its shaft, a fastened cover. A fixed part and a free one swap, as add_mate swaps them; refused when both are fixed or the solver cannot keep it. The assembly\'s, so it is proposed (propose) for the user to accept.',
+    input_schema: { type: 'object', properties: { part: { type: 'string' }, to: { type: 'string' } }, required: ['part', 'to'], additionalProperties: false },
   },
   {
     name: 'edit_mate',

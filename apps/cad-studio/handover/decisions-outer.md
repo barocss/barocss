@@ -9317,3 +9317,28 @@ with its loop closed. The core is ours; the studio's playback is the GPU lane's.
       rocker follows the crank.
     - RS1: every sample's demo motion passes check_path clear, the four-bar's with its loop closed.
 - **Verified (T1):** o24a-loops 7/7; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12 and api-assembly 163/163; tsc; eslint 0 errors; docs tables regenerated.
+
+## PG-8 and PG-4 — the agent can lock (lock_part); gears locked to a shaft couple (2026-10-24)
+
+The coordinator ordered these from P1's gaps.
+- **PG-8, assembly/edit.ts `lockPart(doc, {part, to})`:** the studio's Lock written as the core's own verb.
+  - It writes a `lock` mate whose rel is lockRel(to, part), so the part is kept where it stands in to's coordinates.
+  - A fixed part with a free one swap, as add_mate swaps them.
+  - Refused, typed: NO_PART, MATE_SAME_PART, MATE_BOTH_FIXED, MATE_UNMET.
+  - The agent's action is assembly.lock, handler `lock_part`. It is in ASSEMBLY_CHANGES and BATCHABLE, so it is
+    proposed, and ALTERS counts it as not idempotent.
+  - tools-v2.json is re-recorded, an addition only; the per-turn size is 24,097 (+55); the studio chat test lists the
+    handler.
+  - The facade's own lockDoc (api/assemblyCore.ts, the API lane's, on integration, not on this branch) can delegate
+    to lockPart once they merge. That is the API lane's file, so it is named here and not touched.
+- **PG-4, robot/joints.ts gearCouplings:** a turning joint's gears are those of its link's rigid group, its part and
+  the parts fixed to it (`rigidGroup`, down through fixed joints), not its part's alone.
+  - A locked gear that is not on its joint's axis gets the note GEAR_NOT_COUPLED instead of being left out silently.
+  - The child's own off-axis gears are left as before, so existing trees' notes don't move.
+- **Test:** test/pg48-lock-gears.test.ts, 2 tests.
+  - lock_part: called directly it is refused with needs_approval; through dispatch it locks, with rel (0, 0, 10) and
+    the part where it stood; NO_PART, MATE_SAME_PART and MATE_BOTH_FIXED are refused.
+  - The API lane's repro (two shafts 45 mm apart, a 20T and a 40T gear, m 1.5, each locked to its shaft): one
+    coupling at −20/40, centre distance 45. Unlocked, no coupling.
+- **Verified (T1):** pg48 2/2; toolset, tool-contract and assembly; studio chat 20/20; tsc; eslint 0 errors; docs tables
+  regenerated.
