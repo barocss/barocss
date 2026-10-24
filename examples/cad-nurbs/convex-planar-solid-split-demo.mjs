@@ -76,8 +76,18 @@ if (mode !== '--cold') {
   // This genuine geometric cut meets the original X edges at x=1/3, before native materialization.
   const third = authorCutter({ origin: [0, 1, 16], u: [1, -3, 0], v: [0, 0, -16] });
   reject('non-dyadic-crossing', () => split(parent, third, options), 'REPRESENTABILITY');
-  const thirdChart = authorBlock({ width: 3, height: 2, depth: 2, chartX: 3, chartY: 2, chartZ: 2 }), thirdChartBefore = structuredClone(thirdChart);
-  reject('nonexact-native-pcurve-lift', () => split(thirdChart, authorCutter(x(1)), options), 'BINDING'); assert.deepEqual(thirdChart, thirdChartBefore);
+  // Source/model agree and native float admission passes, but exact binary64 affine coefficients do not:
+  // 2.2 + 1.2 - 0.2 - 3.2 is exactly -1/2^54. Keep a genuine BINDING refusal in the original measured range.
+  const nonexactCutter = authorCutter({ origin: [0.1, 0.2, 0.3], u: [1, 2, 0], v: [0, 1, 1] }), nonexactCutterBefore = structuredClone(nonexactCutter);
+  const y = nonexactCutter.model.objects[0].controlPoints, coefficients = [y[0][0][1], y[1][0][1], y[0][1][1], y[1][1][1]];
+  assert.deepEqual(coefficients, [0.2, 2.2, 1.2, 3.2]);
+  // Scaling these four dyadic values by 2^54 is exact and integral; BigInt keeps their exact affine residual.
+  assert.ok(coefficients.every(value => Number.isInteger(value * 2 ** 54)));
+  const exactY = coefficients.map(value => BigInt(value * 2 ** 54));
+  assert.equal(exactY[1] + exactY[2] - exactY[0] - exactY[3], -1n);
+  reject('nonexact-cutter-coefficients', () => split(parent, nonexactCutter, options), 'BINDING');
+  assert.equal(failures.at(-1).stage, 'split'); assert.equal(failures.at(-1).entity, 'request');
+  assert.match(failures.at(-1).message, /Cutter coefficients are not exactly affine/); assert.deepEqual(nonexactCutter, nonexactCutterBefore);
 
   const contacts = [
     ['outside', x(-1), 'outside', -1], ['facet', x(0), 'tangent', 2],
@@ -96,13 +106,47 @@ if (mode !== '--cold') {
   write('authoring.json', recipes);
 }
 assert.deepEqual(main, accepted); assert.deepEqual(parent, before);
-const coverage = await post('Profiler.takePreciseCoverage'); await post('Profiler.stopPreciseCoverage'); inspector.disconnect();
+const coverage = await post('Profiler.takePreciseCoverage'); await post('Profiler.stopPreciseCoverage');
 const functions = ['compileCadModel', 'buildConvexPlanarFace', 'evaluateCurveD1', 'evaluateSurfaceD1', 'qualifyConvexPlanarSolid', 'validateConvexPlanarSolid', 'splitConvexPlanarSolid', 'validateConvexPlanarSolidSplit'];
 const actual = Object.fromEntries(functions.map(name => [name, coverage.result.flatMap(script => script.functions.filter(f => f.functionName === name)).reduce((sum, f) => sum + f.ranges[0].count, 0)]));
 assert.ok(actual.compileCadModel > 0 && actual.buildConvexPlanarFace > 0 && actual.evaluateCurveD1 > 0 && actual.evaluateSurfaceD1 > 0, 'Precise native entry coverage must be present');
 assert.ok(actual.splitConvexPlanarSolid + actual.validateConvexPlanarSolidSplit <= (mode === '--cold' ? 5 : 15));
 assert.ok(actual.compileCadModel <= (mode === '--cold' ? 5 : 15) * 61 + 56);
 assert.ok(actual.evaluateCurveD1 + actual.evaluateSurfaceD1 <= (mode === '--cold' ? 5 : 15) * 2880 + 864);
+// The original 3 mm chart is accepted by the existing one-rounding policy. Measure its additional work
+// separately: the original main range and its unchanged 15/5-call ceilings above do not include these two calls.
+if (mode !== '--cold') {
+  await post('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
+  const thirdChartRecipe = { width: 3, height: 2, depth: 2, chartX: 3, chartY: 2, chartZ: 2 };
+  const thirdChart = authorBlock(thirdChartRecipe), thirdChartBefore = structuredClone(thirdChart);
+  const thirdCutter = authorCutter(x(1)), thirdCutterBefore = structuredClone(thirdCutter);
+  const roundedChart = split(thirdChart, thirdCutter, options);
+  assert.deepEqual(volumes(roundedChart), ['4/1', '8/1']);
+  assert.deepEqual(validate(roundedChart), roundedChart.report);
+  assert.equal(api.CadNumericPolicy.chartParameters, 'exact-or-one-rounding-certified-v1');
+  // Orthogonal chart axes span at most 3 mm over [0,1]. This is the unchanged chart policy's bound,
+  // with its existing margin, not a modeling tolerance. The actual deviation is independently 2^-54 mm.
+  const chartBound = 3 * 2 ** -52 * (1 + 2 ** -40);
+  for (const child of [roundedChart.negative.solid, roundedChart.positive.solid]) {
+    assert.equal(child.report.pcurveLift.policy, 'exact-or-one-rounding-certified-v1');
+    assert.equal(child.report.pcurveLift.certifiedPoles, 16);
+    assert.equal(child.report.pcurveLift.maximumDeviationMM, 2 ** -54);
+    assert.ok(child.report.pcurveLift.maximumDeviationMM <= chartBound);
+    for (const asset of child.request.assets.filter(a => thirdChartBefore.request.assets.some(b => b.sourceId === a.sourceId))) assert.deepEqual(asset.face.plane, thirdChartBefore.request.assets.find(b => b.sourceId === asset.sourceId).face.plane);
+  }
+  assert.deepEqual(thirdChart, thirdChartBefore); assert.deepEqual(thirdCutter, thirdCutterBefore);
+  assert.deepEqual(main, accepted); assert.deepEqual(parent, before); assert.deepEqual(cutter, cutterBefore);
+  const chartCoverage = await post('Profiler.takePreciseCoverage'); await post('Profiler.stopPreciseCoverage');
+  const chartActual = Object.fromEntries(functions.map(name => [name, chartCoverage.result.flatMap(script => script.functions.filter(f => f.functionName === name)).reduce((sum, f) => sum + f.ranges[0].count, 0)]));
+  assert.equal(chartActual.splitConvexPlanarSolid, 1); assert.equal(chartActual.validateConvexPlanarSolidSplit, 1);
+  assert.ok(chartActual.compileCadModel > 0 && chartActual.buildConvexPlanarFace > 0 && chartActual.evaluateCurveD1 > 0 && chartActual.evaluateSurfaceD1 > 0);
+  assert.ok(chartActual.compileCadModel <= 2 * 61 + 56);
+  assert.ok(chartActual.evaluateCurveD1 + chartActual.evaluateSurfaceD1 <= 2 * 2880 + 864);
+  write(mode.slice(2) + '-rounded-chart.json', roundedChart);
+  write(mode.slice(2) + '-rounded-chart-summary.json', { mode, scope: 'additional-one-rounding-positive-only', recipe: thirdChartRecipe, volumes: volumes(roundedChart), childLifts: [roundedChart.negative.solid.report.pcurveLift, roundedChart.positive.solid.report.pcurveLift], chartBoundMM: chartBound, parentUnchanged: true, cutterUnchanged: true, nativeEntryCounts: chartActual });
+  if (mode === '--emitted') assert.deepEqual(JSON.parse(readFileSync(resolve(output, 'emitted-rounded-chart.json'), 'utf8')), JSON.parse(readFileSync(resolve(output, 'source-rounded-chart.json'), 'utf8')));
+}
+inspector.disconnect();
 const stem = mode.slice(2); write(stem + '-controls.json', controls); write(stem + '-result.json', main); write(stem + '-edited.json', edited); write(stem + '-second.json', second);
 write(stem + '-summary.json', { mode, pid: process.pid, versions: process.versions, volumes: volumes(main), edited: volumes(edited), second: volumes(second), failures, nativeEntryCounts: actual, work: main.report, sourceModelBitsPreserved: true, previousAcceptedResultPreserved: true });
 if (mode !== '--source') for (const suffix of ['result', 'edited', 'second']) assert.deepEqual(JSON.parse(readFileSync(resolve(output, stem + '-' + suffix + '.json'), 'utf8')), JSON.parse(readFileSync(resolve(output, 'source-' + suffix + '.json'), 'utf8')));
