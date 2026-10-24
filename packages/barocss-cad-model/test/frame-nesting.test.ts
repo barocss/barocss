@@ -41,7 +41,7 @@ test('FRb P2\'s oracle: 5 5 4 4 3 3 3 3 into 10s — exactly three bars (5 5 · 
   sound(a, P, 0);
   const b = nest(P, [ROD('R10', 10)], 0.5);
   assert.equal(b.totals.bars, 4); assert.equal(b.totals.stock, 40); assert.equal(b.totals.kerf, 0.5 * (8 - 4)); assert.equal(b.totals.waste, 40 - 30 - 2);
-  assert.deepEqual(b.kerf, { mm: 0.5, basis: 'set' });
+  assert.deepEqual(b.kerf, { value: 0.5, basis: 'set' });
   sound(b, P, 0.5);
 });
 
@@ -86,7 +86,7 @@ test('FRb the stock\'s rules: a tie in length goes to the fewer bars; a count ru
   const r = nestCutList(docOf([ROD('X6', 6000, { section: 'other' })]), listOf([1000]));
   assert.ok(r.ok); assert.deepEqual(r.nesting.unplaced.map(p => p.code), ['NEST_TOO_LONG']);
   const est = nest([1000, 1000], [ROD('A6', 6000)]);
-  assert.deepEqual(est.kerf, { mm: KERF_ESTIMATE_MM, basis: 'estimate' }); assert.equal(est.bars[0].kerf, KERF_ESTIMATE_MM);
+  assert.deepEqual(est.kerf, { value: KERF_ESTIMATE_MM, basis: 'estimate' }); assert.equal(est.bars[0].kerf, KERF_ESTIMATE_MM);
   const none = nestCutList(emptyDoc(), listOf([1000])); assert.ok(!none.ok && none.code === 'NEST_NO_STOCK');
   const empty = nestCutList(docOf([ROD('A6', 6000)]), null); assert.ok(!empty.ok && empty.code === 'NEST_NO_PIECES');
 });
