@@ -2884,10 +2884,8 @@ try {
     await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return b?.length === 1 && (b[0].massRef !== null || b[0].volumeMM3 !== null); }, null, { timeout: 60000 });
     await page.locator('.outliner .ol').first().click();
     const early = await page.locator('.props').innerText();
-    await idle();
-    const late = await page.locator('.props').innerText(), mass = await page.evaluate(() => window.__studioBodies().bodies[0].volumeMM3);
-    assert.ok(mass > 0, String(mass));
-    assert.match(late, /Volume [\d,.]+ mm³/);
+    const shown = await bodyVolume(), mass = await page.evaluate(() => window.__studioBodies().bodies[0].volumeMM3);
+    assert.ok(mass > 0 && Math.abs(shown - mass) <= 1, `${shown} shown, ${mass}`);
     if (/Volume …/.test(early)) console.log('  O18: the inspector read "…" before the mass');
     else console.log('  O18: the mass came before the inspector was read');
     assert.ok(!/Volume 0 mm³/.test(early), 'never 0 while pending');
