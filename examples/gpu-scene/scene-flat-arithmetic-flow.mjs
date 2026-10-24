@@ -4,6 +4,7 @@
  */
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readdirSync } from 'node:fs';
 import { resolve, dirname, isAbsolute } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -13,6 +14,8 @@ import ts from 'typescript';
 assert.equal(Number(process.versions.node.split('.')[0]), 22); assert.equal(process.argv.length, 4); assert.equal(process.argv[2], '--output'); assert.ok(isAbsolute(process.argv[3]));
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..'), output = resolve(process.argv[3]); await mkdir(output, { recursive: false });
 const parent = 'c052fcd0714a6396e34a49b0328f6446051d9118', pkg = resolve(repo, 'packages/barocss-gpu'), manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
+// (The package's built files live in folders since R2d: a leaf's declaration found by its name under dist/.)
+const builtDeclaration = leaf => { const name = leaf + '.d.ts', hit = readdirSync(resolve(pkg, 'dist'), { recursive: true }).find(p => p === name || p.endsWith('/' + name)); assert.ok(hit, 'built ' + name); return resolve(pkg, 'dist', hit); };
 const hash = v => createHash('sha256').update(v).digest('hex'), parentFile = n => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + n], { cwd: repo, encoding: 'utf8' });
 const ordinary = resolve(output, 'ordinary-public.mjs'), bundle = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true, platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
 const sourceGraph = Object.keys(bundle.metafile.inputs); assert.ok(sourceGraph.some(p => p.endsWith('/src/scene/scene-arithmetic-source.ts'))); assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
@@ -30,9 +33,9 @@ function signature(text, name) { const file = ts.createSourceFile('signature.ts'
   return { name, parameters: fn.parameters.map(p => printer.printNode(ts.EmitHint.Unspecified, p, file)), result: printer.printNode(ts.EmitHint.Unspecified, fn.type, file) }; }
 for (const [leaf, names, runtime] of [['scene-parameter-source', ['SceneParameterCode', 'SceneParameterDiagnostic', 'SceneParameterDeclaration', 'ParameterizedAffineSceneAst', 'SceneParameter', 'CompiledParameterizedAffineSceneSource'], 'compileParameterizedAffineSceneSource'],
   ['scene-product-source', ['MultiplicativeAffineSceneAst', 'CompiledMultiplicativeAffineSceneSource'], 'compileMultiplicativeAffineSceneSource']]) {
-  const before = parentFile('src/' + leaf + '.ts'), after = await readFile(resolve(pkg, 'dist/' + leaf + '.d.ts'), 'utf8'); assert.equal(Object.keys(types(before, names)).length, names.length); assert.deepEqual(types(after, names), types(before, names)); assert.deepEqual(signature(after, runtime), signature(before, runtime));
+  const before = parentFile('src/' + leaf + '.ts'), after = await readFile(builtDeclaration(leaf), 'utf8'); assert.equal(Object.keys(types(before, names)).length, names.length); assert.deepEqual(types(after, names), types(before, names)); assert.deepEqual(signature(after, runtime), signature(before, runtime));
 }
-const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), arithmeticDTS = await readFile(resolve(pkg, 'dist/scene-arithmetic-source.d.ts'), 'utf8');
+const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), arithmeticDTS = await readFile(resolve(pkg, 'dist/scene/scene-arithmetic-source.d.ts'), 'utf8');
 const newTypes = ['ArithmeticAffineSceneAst', 'CompiledArithmeticAffineSceneSource'];
 for (const name of ['compileArithmeticAffineSceneSource', ...newTypes]) { assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(arithmeticDTS)); }
 for (const name of ['compileSceneParameterData', 'finishSceneParameterSource']) assert.ok(!new RegExp('\\b' + name + '\\b').test(publicDTS));

@@ -40,7 +40,7 @@ const parentRuntime = ast.statements.filter(node => ts.isExportDeclaration(node)
 assert.equal(parentRuntime.length, 156); assert.equal(manifest.publishConfig.exports['.'].import, './dist/index.js');
 const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }]; for (const provider of providers) provider.gpu = await import(pathToFileURL(provider.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.ok(['lowerEngineUVTextureMaterialWGSL'].sort().every(x => namespace.includes(x))); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
-const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/engine-uv-texture-material-wgsl.d.ts'), 'utf8');
+const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDTS = await readFile(resolve(pkg, 'dist/material/engine-uv-texture-material-wgsl.d.ts'), 'utf8');
 for (const name of ['lowerEngineUVTextureMaterialWGSL', 'LoweredEngineUVTextureMaterialWGSL']) { assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDTS)); }
 
 // Portable context originals: retained only, not fed to an old resource producer.

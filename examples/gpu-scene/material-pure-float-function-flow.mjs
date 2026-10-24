@@ -44,7 +44,7 @@ assert.equal(declarationDiagnostics.length, 0, ts.formatDiagnosticsWithColorAndC
   { getCurrentDirectory: () => repo, getCanonicalFileName: x => x, getNewLine: () => '\n' }));
 assert.equal(declarationProgram.emit().emitSkipped, false);
 const parentDTS = await readFile(resolve(parentFolder, 'mesh-material.d.ts'), 'utf8');
-const currentDTS = await readFile(resolve(pkg, 'dist/mesh-material.d.ts'), 'utf8');
+const currentDTS = await readFile(resolve(pkg, 'dist/material/mesh-material.d.ts'), 'utf8');
 const indexDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8');
 assert.ok(!/PureFloatFunction|MaterialFunction|FunctionParameter/.test(currentDTS));
 assert.ok(!/compileMaterialFunction|evaluateNativeSurface/.test(indexDTS));

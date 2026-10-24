@@ -12,7 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const bundle = path.resolve(here, '../dist/index.js'), cadDist = path.resolve(here, '../../barocss-cad/dist');
+const gpuDist = path.resolve(here, '../dist'), cadDist = path.resolve(here, '../../barocss-cad/dist');
 const page = '<!doctype html><meta charset="utf-8"><script type="importmap">{"imports":{"@barocss/cad":"/cad/index.js"}}</script><body></body>';
 
 test('G25a wall thickness on WebGPU equals its CPU mirror per triangle', { timeout: 240000 }, async t => {
@@ -21,7 +21,7 @@ test('G25a wall thickness on WebGPU equals its CPU mirror per triangle', { timeo
   const server = createServer(async (req, res) => {
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
-    if (req.url === '/gpu.js') { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(bundle)); return; }
+    if (/^\/gpu\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(path.join(gpuDist, req.url.slice(5)))); return; }
     if (/^\/cad\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(await readFile(path.join(cadDist, req.url.slice(5)))); return; }
     res.writeHead(404); res.end();
   });
@@ -33,7 +33,7 @@ test('G25a wall thickness on WebGPU equals its CPU mirror per triangle', { timeo
     await p.goto(`http://127.0.0.1:${server.address().port}/`);
     if (!await p.evaluate(async () => !!(await navigator.gpu?.requestAdapter()))) { t.skip('no WebGPU adapter'); return; }
     const results = await p.evaluate(async () => {
-      const { computeExperimental: C } = await import('/gpu.js'), { triangleBvh } = await import('@barocss/cad');
+      const { computeExperimental: C } = await import('/gpu/index.js'), { triangleBvh } = await import('@barocss/cad');
       const device = await (await navigator.gpu.requestAdapter()).requestDevice();
       const box = (lo, hi) => { const P = []; for (let i = 0; i < 8; i++) P.push(i & 1 ? hi[0] : lo[0], i & 2 ? hi[1] : lo[1], i & 4 ? hi[2] : lo[2]); return { positions: P, indices: [0, 2, 1, 1, 2, 3, 4, 5, 6, 5, 7, 6, 0, 1, 4, 1, 5, 4, 2, 6, 3, 3, 6, 7, 0, 4, 2, 2, 4, 6, 1, 3, 5, 3, 7, 5] }; };
       const shell = (R, r, n) => { const P = [], I = []; for (const [rad, flip] of [[R, false], [r, true]]) { const base = P.length / 3; for (let i = 0; i <= n; i++) for (let j = 0; j <= 2 * n; j++) { const th = Math.PI * i / n, ph = Math.PI * j / n; P.push(rad * Math.sin(th) * Math.cos(ph), rad * Math.sin(th) * Math.sin(ph), rad * Math.cos(th)); } const row = 2 * n + 1; for (let i = 0; i < n; i++) for (let j = 0; j < 2 * n; j++) { const a = base + i * row + j, b = a + 1, d = a + row, e = d + 1; if (flip) I.push(a, b, d, b, e, d); else I.push(a, d, b, b, d, e); } } return { positions: P, indices: I }; };

@@ -43,7 +43,7 @@ const namespace = Object.keys(providers[0].gpu).sort(), newNames = ['compileNati
 assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 for (const name of newNames) assert.ok(namespace.includes(name));
 const declarationPath = resolve(pkg, manifest.publishConfig.exports['.'].types), declaration = await readFile(declarationPath, 'utf8');
-const leafDeclarationPath = resolve(pkg, 'dist/mesh-material.d.ts'), leafDeclaration = await readFile(leafDeclarationPath, 'utf8');
+const leafDeclarationPath = resolve(pkg, 'dist/material/mesh-material.d.ts'), leafDeclaration = await readFile(leafDeclarationPath, 'utf8');
 for (const name of [...newNames, 'NativeSurfaceUV01MaterialExpression', 'NativeSurfaceUV01MaterialIR', 'LoweredNativeSurfaceUV01Material']) {
   assert.ok(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public declaration export ' + name);
   assert.ok(new RegExp('\\b' + name + '\\b').test(leafDeclaration), 'Actual emitted leaf declaration ' + name);

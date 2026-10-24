@@ -60,7 +60,7 @@ for (const provider of providers) provider.gpu = await import(pathToFileURL(prov
 const additions = ['prepareNativeSurfaceUV01Frame', 'NativeSurfaceUV01FrameError', 'NativeSurfaceUV01FrameDiagnosticCode'];
 const namespace = Object.keys(providers[0].gpu).sort();
 assert.ok(additions.every(x => namespace.includes(x))); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
-const dts = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDts = await readFile(resolve(pkg, 'dist/native-surface-uv01-frame.d.ts'), 'utf8');
+const dts = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'), leafDts = await readFile(resolve(pkg, 'dist/native/uv01/native-surface-uv01-frame.d.ts'), 'utf8');
 for (const name of [...additions, 'NativeSurfaceUV01FrameRequest', 'NativeSurfaceUV01FrameEntry', 'NativeSurfaceUV01FrameOptions', 'NativeSurfaceUV01FrameDraw', 'NativeSurfaceUV01FrameResources', 'PreparedNativeSurfaceUV01Frame']) {
   assert.ok(new RegExp('\\b' + name + '\\b').test(dts), name); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDts), name);
 }

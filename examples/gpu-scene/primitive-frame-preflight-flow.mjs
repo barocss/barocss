@@ -42,7 +42,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(gpuRoot, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['preparePrimitiveSceneFrame', 'PrimitiveSceneFrameProfile', 'PrimitiveSceneCpuFrameV0', 'PreparedPrimitiveSceneFrameEntry', 'PreparedPrimitiveSceneFrame'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(gpuRoot, 'dist/primitive-frame-preflight.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(gpuRoot, 'dist/mesh/primitive-frame-preflight.d.ts'), 'utf8');
 assert(/preparePrimitiveSceneFrame\(input:\s*unknown,\s*profile\?:\s*PrimitiveSceneFrameProfile\):\s*PreparedPrimitiveSceneFrame/.test(leafDeclaration));
 const fixturePath = resolve(repo, 'examples/gpu-scene/fixtures/material-authoring.native.source0.css');
 const fixtureBytes = await readFile(fixturePath), originalFixture = fixtureBytes.toString('utf8');

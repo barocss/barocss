@@ -28,7 +28,7 @@ const program = ts.createProgram([parentLeaf], { target: ts.ScriptTarget.ES2022,
 const typeDiagnostics = ts.getPreEmitDiagnostics(program); assert.equal(typeDiagnostics.length, 0, ts.formatDiagnosticsWithColorAndContext(typeDiagnostics, { getCurrentDirectory: () => repo, getCanonicalFileName: path => path, getNewLine: () => '\n' })); assert.equal(program.emit().emitSkipped, false);
 const printer = ts.createPrinter({ removeComments: true });
 function declarations(text) { const file = ts.createSourceFile('material.d.ts', text, ts.ScriptTarget.Latest, true); return Object.fromEntries(file.statements.filter(node => node.name && node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)).map(node => [node.name.text, printer.printNode(ts.EmitHint.Unspecified, node, file)])); }
-const oldDeclarations = declarations(await readFile(resolve(parentDir, 'mesh-material.d.ts'), 'utf8')), newDeclarations = declarations(await readFile(resolve(pkg, 'dist/mesh-material.d.ts'), 'utf8'));
+const oldDeclarations = declarations(await readFile(resolve(parentDir, 'mesh-material.d.ts'), 'utf8')), newDeclarations = declarations(await readFile(resolve(pkg, 'dist/material/mesh-material.d.ts'), 'utf8'));
 
 const newTypes = ['EngineMaterialSampler', 'EngineUVTextureMaterialExpression', 'EngineUVTextureMaterialIR', 'LoweredEngineUVTextureMaterial'];
 const publicDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8'); for (const name of newTypes) assert.ok(new RegExp('\\b' + name + '\\b').test(publicDTS)); assert.ok(!namespace.includes('engineUVTextureSamplingHelpers'));

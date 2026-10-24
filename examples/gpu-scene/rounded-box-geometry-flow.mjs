@@ -28,7 +28,7 @@ const namespace = Object.keys(providers[0][1]).sort(); assert.deepEqual(namespac
 const declarationPath = resolve(pkg, published.types), declaration = await readFile(declarationPath, 'utf8');
 for (const name of ['prepareRoundedBoxGeometry', 'RoundedBoxGeometrySourceV0', 'PreparedRoundedBoxGeometry'])
   assert(new RegExp('\\b' + name + '\\b').test(declaration), 'Actual public DTS ' + name);
-const leafDeclaration = await readFile(resolve(pkg, 'dist/rounded-box-geometry.d.ts'), 'utf8');
+const leafDeclaration = await readFile(resolve(pkg, 'dist/geometry/rounded-box-geometry.d.ts'), 'utf8');
 assert(/prepareRoundedBoxGeometry\(input:\s*unknown\):\s*PreparedRoundedBoxGeometry/.test(leafDeclaration));
 for (const field of ['sizeXYZ', 'cornerRadius', 'segments']) assert(new RegExp('\\b' + field + ':').test(leafDeclaration));
 const hash = value => createHash('sha256').update(value).digest('hex');

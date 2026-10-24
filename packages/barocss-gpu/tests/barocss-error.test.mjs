@@ -54,8 +54,9 @@ test('a cause given as undefined is kept as one; none given, none kept (the clas
 
 test('batch 3: the viewer refuses a caller\'s input with a coded ViewerError, its words kept after the code', async () => {
   const v = await import('../dist/viewer/index.js');
-  // (The viewer entry is unbundled and the main entry a bundle, each with its own copy of the classes: compared within one.)
-  assert.throws(() => v.invert(new Float64Array(16)), e => e instanceof v.ViewerError && Object.getPrototypeOf(v.ViewerError.prototype).constructor.name === 'BarocssError'
+  // (One module graph for every entry: the viewer's ViewerError is the main entry's, a BarocssError from either.)
+  assert.equal(v.ViewerError, gpu.ViewerError);
+  assert.throws(() => v.invert(new Float64Array(16)), e => e instanceof v.ViewerError && e instanceof gpu.BarocssError
     && e.code === 'MATRIX_SINGULAR' && e.message === '[MATRIX_SINGULAR] Matrix is not invertible');
 });
 

@@ -24,7 +24,7 @@ const providers = [{ label: 'ordinary-source', path: ordinary }, { label: 'emitt
 for (const p of providers) p.gpu = await import(pathToFileURL(p.path).href);
 const namespace = Object.keys(providers[0].gpu).sort(); assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
 const dtsPath = resolve(pkg, manifest.publishConfig.exports['.'].types), dts = await readFile(dtsPath, 'utf8');
-const leafDtsPath = resolve(pkg, 'dist/native-surface-uv01-binding.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
+const leafDtsPath = resolve(pkg, 'dist/native/uv01/native-surface-uv01-binding.d.ts'), leafDts = await readFile(leafDtsPath, 'utf8');
 for (const name of ['prepareNativeSurfaceUV01MaterialBinding', 'NativeSurfaceUV01BindingError', 'NativeSurfaceUV01BindingRequest', 'PreparedNativeSurfaceUV01Binding', 'NativeSurfaceUV01BindingCode']) {
   assert.ok(new RegExp('\\b' + name + '\\b').test(dts)); assert.ok(new RegExp('\\b' + name + '\\b').test(leafDts));
 }
