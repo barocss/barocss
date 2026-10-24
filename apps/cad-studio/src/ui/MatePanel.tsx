@@ -1,7 +1,9 @@
+import { ConnectorEditor } from './MateConnector';
+import { withConnector, type Connector } from '@barocss/cad-model/assembly/connectors';
 import { useEffect, useState } from 'react';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { fmt } from '@barocss/cad-model/engine/doc';
-import { BASE, KIND_LABEL, kindsFor, mateLabel, type FaceTable, type Mate, type MateKind, type MateRef } from '@barocss/cad-model/assembly/mates';
+import { BASE, KIND_LABEL, mateKindsOf, mateLabel, type FaceTable, type Mate, type MateKind, type MateRef } from '@barocss/cad-model/assembly/mates';
 import type { Assembly } from '../assembly/useAssembly';
 import { Icon } from './atoms';
 import { CONTROL, FIELD, TICK } from './panelStyles';
@@ -59,6 +61,7 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
         {draft.kind !== 'concentric' && <label className="field check-row"><span>Flip</span>
           <input type="checkbox" className={TICK} aria-label="Mate flip" checked={draft.flip} onChange={e => assembly.setDraft({ flip: e.target.checked })} /></label>}
         <PlanePicker instances={instances} onPick={assembly.pickFace} />
+        <ReferencePicker instances={instances} tables={tables} onPick={assembly.pickFace} />
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
@@ -85,11 +88,14 @@ function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
   onEdit(patch: Partial<Mate>): void; onDelete(): void;
 }) {
   const fa = tables.get(mate.a.part)?.[mate.a.face], fb = tables.get(mate.b.part)?.[mate.b.face];
-  const kinds = fa && fb ? kindsFor(fa, fb) : [mate.kind];
+  let kinds: MateKind[] = [mate.kind];
+  if (fa && fb) { try { kinds = mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }); } catch { /* Keep the selected kind visible for an invalid saved connector. */ } }
   return (
     <div className="mate-edit" style={{ display: 'grid', gap: 6, marginTop: 8 }}>
       <div className="kv">Stays <b>{refText(mate.a)}</b></div>
       <div className="kv">Moves <b>{refText(mate.b)}</b></div>
+      <ConnectorEditor label="Stays" face={fa} value={mate.a.at} onChange={at => onEdit({ a: withConnector(mate.a, at) })} />
+      <ConnectorEditor label="Moves" face={fb} value={mate.b.at} onChange={at => onEdit({ b: withConnector(mate.b, at) })} />
       <label className={FIELD}><span>Type</span>
         <NativeSelect className={CONTROL} aria-label="Edit mate type" value={mate.kind} onChange={e => {
           const kind = e.target.value as MateKind;
@@ -140,6 +146,23 @@ function PlanePicker({ instances, onPick }: { instances: PartInstance[]; onPick(
       {(['xy', 'xz', 'yz'] as const).map(p => <Button key={p} type="button" variant="ghost" aria-label={`Pick ${p.toUpperCase()} plane`} onClick={() => onPick({ part, face: `origin:${p}` })}>{p.toUpperCase()}</Button>)}
     </div>
   </>);
+}
+
+/** Persistent geometry choices also expose edges until the GPU lane supplies viewport edge picking. */
+function ReferencePicker({ instances, tables, onPick }: { instances: PartInstance[]; tables: Map<string, FaceTable>; onPick(ref: MateRef): void }) {
+  const [part, setPart] = useState(BASE), [face, setFace] = useState('');
+  const [at, setAt] = useState<Connector | undefined>();
+  const table = tables.get(part), entries = Object.keys(table ?? {}), name = entries.includes(face) ? face : entries[0] ?? '';
+  return <div className="grid gap-1" aria-label="Mate reference picker">
+    <label className={FIELD}><span>Reference of</span><NativeSelect className={CONTROL} aria-label="Reference part" value={part} onChange={e => { setPart(e.target.value); setFace(''); setAt(undefined); }}>
+      <option value={BASE}>Base part</option>{instances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+    </NativeSelect></label>
+    <label className={FIELD}><span>Geometry</span><NativeSelect className={CONTROL} aria-label="Reference geometry" value={name} onChange={e => { setFace(e.target.value); setAt(undefined); }}>
+      {entries.map(n => <option key={n} value={n}>{faceLabel(n, table)} · {n}</option>)}
+    </NativeSelect></label>
+    <ConnectorEditor label="Pick" face={table?.[name]} value={at} onChange={next => setAt(next ?? undefined)} />
+    <Button variant="ghost" disabled={!name} aria-label="Pick mate reference" onClick={() => onPick({ part, face: name, ...(at !== undefined ? { at } : {}) })}>Pick reference</Button>
+  </div>;
 }
 
 function NumberField({ label, value, onCommit, unit = 'mm' }: { label: string; value: number; onCommit(v: number): void; unit?: string }) {
