@@ -163,9 +163,23 @@ export interface DrawingSettings {
  * as `view`'s sections are and drawn with `view`'s up (made square to `dir`); its cutting plane shows edge-on in a view
  * whose depth is square to `dir`.
  */
-export interface DrawingSection { id: string; view: SectionViewId; at: number; dir?: [number, number, number] }
-/** Whether two sections are the same cut: letter, view, place and (an aligned one's) direction. */
-export const sameSection = (a: DrawingSection, b: DrawingSection): boolean => a.id === b.id && a.view === b.view && a.at === b.at && JSON.stringify(a.dir ?? null) === JSON.stringify(b.dir ?? null);
+/**
+ * DR-3: `half`, a half section — the section on one side of a centreline in the section's view (`line` vertical at
+ * u = `at` or horizontal at v = `at`; `cut` the side shown cut: after = greater), the view's exterior on the other.
+ * `steps`, an offset (stepped) section — from the section view's coordinate `past` onward (along `along`, horizontal by
+ * default) the plane is at depth `at` instead; `past` increasing. Both only for a principal section, not together.
+ */
+export interface DrawingSection { id: string; view: SectionViewId; at: number; dir?: [number, number, number]; half?: SectionHalf; steps?: SectionStep[]; along?: 'horizontal' | 'vertical' }
+export interface SectionHalf { line: 'vertical' | 'horizontal'; at: number; cut: 'after' | 'before' }
+export interface SectionStep { past: number; at: number }
+/** Whether two sections are the same cut: letter, view, place, (an aligned one's) direction, and (DR-3) its half or steps. */
+export const sameSection = (a: DrawingSection, b: DrawingSection): boolean => a.id === b.id && a.view === b.view && a.at === b.at && JSON.stringify(a.dir ?? null) === JSON.stringify(b.dir ?? null)
+  && JSON.stringify(a.half ?? null) === JSON.stringify(b.half ?? null) && JSON.stringify(a.steps ?? null) === JSON.stringify(b.steps ?? null) && (a.along ?? 'horizontal') === (b.along ?? 'horizontal');
+const finiteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+/** DR-3: a half section's centreline as given, or null. */
+export const halfOk = (h: unknown): h is SectionHalf => { const x = h as SectionHalf; return !!x && (x.line === 'vertical' || x.line === 'horizontal') && finiteNum(x.at) && (x.cut === 'after' || x.cut === 'before'); };
+/** DR-3: an offset section's steps as given: one to 20, finite, `past` strictly increasing. */
+export const stepsOk = (st: unknown): st is SectionStep[] => Array.isArray(st) && st.length >= 1 && st.length <= 20 && st.every((x, k) => !!x && finiteNum(x.past) && finiteNum(x.at) && (k === 0 || x.past > st[k - 1].past));
 /** A direction an aligned section may have: three finite numbers, not all zero. */
 export const sectionDirOk = (d: unknown): d is [number, number, number] => isVec3(d) && Math.hypot(d[0], d[1], d[2]) > 1e-9;
 export type SectionViewId = 'front' | 'top' | 'right';
@@ -176,7 +190,7 @@ export const sectionsOf = (s: Pick<DrawingSettings, 'section' | 'sections'>): Dr
 export function withSections(s: DrawingSettings, list: readonly DrawingSection[]): DrawingSettings {
   const rest = { ...s }; delete rest.section; delete rest.sections;
   if (!list.length) return rest;
-  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir) return { ...rest, section: { y: list[0].at } };
+  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir && !list[0].half && !list[0].steps) return { ...rest, section: { y: list[0].at } };
   return { ...rest, sections: list.map(x => ({ ...x })) };
 }
 /** The next free section letter (A, B, … Z; then AA, AB, …); `also`: letters taken otherwise (DR-1: the details'). */
@@ -194,7 +208,11 @@ export const defaultDrawing = (): DrawingSettings => ({ sheet: 'A4', projection:
 function readSections(raw: unknown): DrawingSection[] | null {
   if (!Array.isArray(raw)) return null;
   const out: DrawingSection[] = [];
-  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id) && (x.dir === undefined || sectionDirOk(x.dir))) out.push({ id: x.id, view: x.view, at: x.at, ...(x.dir ? { dir: [x.dir[0], x.dir[1], x.dir[2]] as [number, number, number] } : {}) });
+  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id) && (x.dir === undefined || sectionDirOk(x.dir))) {
+    // (DR-3: a half or the steps kept when valid and the section principal; never both.)
+    const half = !x.dir && halfOk(x.half) ? { line: x.half.line, at: x.half.at, cut: x.half.cut } as SectionHalf : null, steps = !x.dir && !half && stepsOk(x.steps) ? x.steps.map((st: SectionStep) => ({ past: st.past, at: st.at })) : null;
+    out.push({ id: x.id, view: x.view, at: x.at, ...(x.dir ? { dir: [x.dir[0], x.dir[1], x.dir[2]] as [number, number, number] } : {}), ...(half ? { half } : {}), ...(steps ? { steps, ...(x.along === 'vertical' ? { along: 'vertical' as const } : {}) } : {}) });
+  }
   return out.length ? out : null;
 }
 /** Reads drawing settings from a saved file, keeping what is valid. */

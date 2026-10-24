@@ -54,7 +54,7 @@ export function hatchGroups(rings: readonly XY[][], bodies?: readonly number[]):
 }
 /** The sections that cut (O148 X1), as the sheet draws them; one that failed is left out (its error is the caller's to say). */
 export const sheetSections = (cuts: readonly (DrawingSection & { result: { ok: true; projection: BrepProjection; rings: XY[][]; ringBodies?: number[] } | { ok: false; error: string } })[]): SheetSection[] =>
-  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, ...(c.dir ? { dir: c.dir } : {}), projection: c.result.projection, rings: c.result.rings, ...(c.result.ringBodies ? { ringBodies: c.result.ringBodies } : {}) }] : []);
+  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, ...(c.dir ? { dir: c.dir } : {}), ...(c.half ? { half: c.half } : {}), ...(c.steps ? { steps: c.steps, ...(c.along ? { along: c.along } : {}) } : {}), projection: c.result.projection, rings: c.result.rings, ...(c.result.ringBodies ? { ringBodies: c.result.ringBodies } : {}) }] : []);
 /** The middle of the part along a section view's depth (O148 X1: where a new section is cut), from a view that sees that depth edge-on; null if none is shown. */
 export function sectionMiddle(views: DrawingViews, view: SectionViewId, orientation?: Orientation): number | null {
   const { k, sign } = sectionDepth(view, orientation);
@@ -588,6 +588,11 @@ function sectionMarks(v: SectionPlacement, section: SheetSection): Mark[] {
   const rings = cut ? cut.rings : section.rings, bodies = cut ? (section.ringBodies ? cut.kept.map(k => section.ringBodies![k]) : undefined) : section.ringBodies;
   for (const e of pr.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(v, p.curve, 'visible'));
   if (v.breaks) marks.push(...breakLines(v));
+  // (DR-3: a half section's centreline between its cut and its uncut half, 3 mm past its box.)
+  if (section.half) {
+    const [x0, y0, x1, y1] = v.box, c = toSheet(v, section.half.line === 'vertical' ? [section.half.at, 0] : [0, section.half.at]);
+    marks.push(section.half.line === 'vertical' ? { kind: 'line', a: [c[0], y0 - 3], b: [c[0], y1 + 3], pen: 'center' } : { kind: 'line', a: [x0 - 3, c[1]], b: [x1 + 3, c[1]], pen: 'center' });
+  }
   // (Each body its own hatch — the part's body k at HATCH_ANGLES[k], so adjacent parts read apart, and a body the same in
   // every section; one body alone at 45° as always.)
   for (const g of hatchGroups(rings, bodies)) marks.push({ kind: 'hatch', rings: g.rings.map(r => r.map(q => toSheet(v, q))), spacing: g.spacing, angle: g.angle, pen: 'thin' });
@@ -596,6 +601,7 @@ function sectionMarks(v: SectionPlacement, section: SheetSection): Mark[] {
 /** A section's cutting plane, in the first shown view that sees it edge-on (none shown: none). */
 function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation?: Orientation): MarkGroup | null {
   if (section.dir) return alignedCuttingPlane(layout, views, section, orientation);
+  if (section.steps) return steppedCuttingPlane(layout, views, section, orientation);
   const marks: Mark[] = [];
   const { k, sign, d } = sectionDepth(section.view, orientation), plane = sign * section.at;
   const showing = (CUT_SHOWN[section.view] as readonly ViewId[]).find(id => !layout.views[id].hidden);
@@ -649,6 +655,36 @@ function alignedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: 
     const f: XY = [end[0] + inward * 2 * t[0], end[1] + inward * 2 * t[1]], tip: XY = [f[0] + 7 * seen[0], f[1] + 7 * seen[1]];
     marks.push({ kind: 'line', a: f, b: [tip[0] - ARROW * seen[0], tip[1] - ARROW * seen[1]], pen: 'thin' }, arrow(tip, seen));
     marks.push({ kind: 'text', at: [tip[0] + 2.5 * seen[0] - inward * 2.5 * t[0], tip[1] + 2.5 * seen[1] - inward * 2.5 * t[1] + 1.2], text: section.id, size: TEXT, anchor: 'middle', bold: true });
+  }
+  return { role: 'section', id: section.id, view: showing, marks };
+}
+/**
+ * An offset section's cutting line (DR-3): in the first shown view that sees its planes edge-on, a chain line along the
+ * section view's axis at each plane's depth over its band, stepping square across at each step's place; thick at its ends
+ * and at each bend, the arrows at its ends pointing the way it is seen, the letter by each.
+ */
+function steppedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation?: Orientation): MarkGroup | null {
+  const showing = (CUT_SHOWN[section.view] as readonly ViewId[]).find(id => !layout.views[id].hidden);
+  if (!showing) return null;
+  const w = layout.views[showing], pr = views[showing], { d } = sectionDepth(section.view, orientation), axis = section.along === 'vertical' ? 1 : 0;
+  const a3 = axis === 0 ? section.projection.right : section.projection.up, pad = 6 / w.scale;
+  // (A model point at the section view's coordinate p along its axis and at depth t, in the showing view.)
+  const at = (p: number, t: number): XY => { const q = [a3[0] * p + d[0] * t, a3[1] * p + d[1] * t, a3[2] * p + d[2] * t]; return toSheet(w, [q[0] * pr.right[0] + q[1] * pr.right[1] + q[2] * pr.right[2], q[0] * pr.up[0] + q[1] * pr.up[1] + q[2] * pr.up[2]]); };
+  const steps = section.steps ?? [], lo = section.projection.min[axis] - pad, hi = section.projection.max[axis] + pad;
+  const pts: XY[] = [at(lo, section.at)];
+  let depth = section.at;
+  for (const st of steps) { pts.push(at(st.past, depth), at(st.past, st.at)); depth = st.at; }
+  pts.push(at(hi, depth));
+  const marks: Mark[] = [{ kind: 'polyline', points: pts, pen: 'center' }];
+  const seen = unit([d[0] * pr.right[0] + d[1] * pr.right[1] + d[2] * pr.right[2], -(d[0] * pr.up[0] + d[1] * pr.up[1] + d[2] * pr.up[2])]);
+  // (Thick at each bend, 2.5 mm along both legs.)
+  for (let i = 1; i + 1 < pts.length; i++) for (const o of [pts[i - 1], pts[i + 1]]) marks.push({ kind: 'line', a: pts[i], b: add(pts[i], unit(sub(o, pts[i])), 2.5), pen: 'frame' });
+  for (const [end, next] of [[pts[0], pts[1]], [pts[pts.length - 1], pts[pts.length - 2]]] as const) {
+    const t = unit(sub(next, end));
+    marks.push({ kind: 'line', a: end, b: add(end, t, 5), pen: 'frame' });
+    const foot = add(end, t, 2), tip = add(foot, seen, 7);
+    marks.push({ kind: 'line', a: foot, b: add(tip, seen, -ARROW), pen: 'thin' }, arrow(tip, seen));
+    marks.push({ kind: 'text', at: [tip[0] + 2.5 * seen[0] - 2.5 * t[0], tip[1] + 2.5 * seen[1] - 2.5 * t[1] + 1.2], text: section.id, size: TEXT, anchor: 'middle', bold: true });
   }
   return { role: 'section', id: section.id, view: showing, marks };
 }
