@@ -135,7 +135,7 @@ async function wallThicknessOrDraft(name: string, state: ChatState, args: Record
     return { state, content: json({ ...out, note: 'on the display mesh: good to its chord error on curved walls' }), isError: false, changed: false, summary: `wall of ${b.key}` };
   }
   const pull = Array.isArray(args.pull) && args.pull.length === 3 ? args.pull.map(Number) as [number, number, number] : [0, 0, 1] as [number, number, number];
-  const out = draftAnalysis(state.doc, b, pull, args.min_deg === undefined ? 1 : Number(args.min_deg));
+  const out = draftAnalysis(state.doc, b, pull, args.draftMin === undefined ? 1 : Number(args.draftMin));
   return { state, content: json(out), isError: false, changed: false, summary: `draft of ${b.key}` };
 }
 const wallThicknessTool = (state: ChatState, args: Record<string, unknown>) => wallThicknessOrDraft('wall_thickness', state, args);

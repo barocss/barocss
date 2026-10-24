@@ -43,5 +43,5 @@ test('section, wall thickness and draft of a plate', async () => {
   const wall = await call(s, 'wall_thickness', {});
   assert.equal(wall.thinnest, 8);
   const draft = await call(s, 'draft', { body: 'b1' });
-  assert.deepEqual([draft.walls.length, draft.under_min.length, draft.walls.every((w: { draft_deg: number }) => w.draft_deg === 0)], [4, 4, true]);
+  assert.deepEqual([draft.walls.length, draft.under_min.length, draft.walls.every((w: { draft: number }) => w.draft === 0)], [4, 4, true]);
 });

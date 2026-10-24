@@ -86,9 +86,9 @@ test('IM2 in the manufacturability report: a 3°-drafted ABS cup passes PM-T1\'s
 test('IM2 through the agent\'s tools: query.draft (v1 draft) judges curved faces now — a cone\'s side 3°; draft_min as a requirement reads the exact least', async () => {
   const doc = extrude({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, 30, 3);
   const s = { doc, bodies: bodiesOf(doc) } as never as Parameters<typeof dispatchTool>[0];
-  const out = JSON.parse((await dispatchTool(s, 'draft', { pull: [0, 0, 1], min_deg: 1 }, evaluate)).content);
+  const out = JSON.parse((await dispatchTool(s, 'draft', { pull: [0, 0, 1], draftMin: 1 }, evaluate)).content);
   const side = out.walls.find((w: { face: string }) => w.face === 'n1.side0');
-  assert.deepEqual([side.draft_deg, side.class], [3, 'drafted']); assert.deepEqual(out.under_min, []);
+  assert.deepEqual([side.draft, side.class], [3, 'drafted']); assert.deepEqual(out.under_min, []);
   const r = await dispatchTool(s, 'set_requirements', { requirements: [{ id: 'D', source: 'drafted', hard: true, check: { op: '>=', query: { fn: 'draft_min', pull: [0, 0, 1] }, value: 2.9 } }] }, evaluate);
   assert.ok(!r.isError, r.content);
   const spec = JSON.parse((await dispatchTool(r.state, 'check_spec', {}, evaluate)).content);
