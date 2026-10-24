@@ -31,7 +31,7 @@ const READ: Record<string, JsonSchema | null> = {
   output_bundle: o({ revision: str, files: arr }, ['revision', 'files']),
   get_part_summary: o({ feature_count: num, facts: obj, parameters: obj, features: arr, bodies: arr, note: str, followed_changed: arr, variability: obj }, ['feature_count', 'facts', 'parameters', 'features', 'bodies']),
   get_image_layers: null,
-  measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle_deg: num, normal_distance: num, resolved: arr }),
+  measure: o({ label: str, area: num, length: num, radius: num, distance: num, from: arr, to: arr, angle: num, normalDistance: num, resolved: arr }),
   mass_properties: o({ bodies: arr, note: str }, ['bodies']),
   interference: o({ pairs: arr, note: str }, ['pairs']),
   section: o({ axis: str, at: num, cut: arr }, ['axis', 'at', 'cut']),
