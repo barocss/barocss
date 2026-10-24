@@ -25,7 +25,7 @@ function imageLayers(t: ImageTrace) {
   const box = silhouetteBox(t), w = box.maxX - box.minX, h = box.maxY - box.minY;
   return {
     silhouette_aspect: Math.round(h / w * 1000) / 1000, background: t.background,
-    note: 'height of the figure = width_mm × silhouette_aspect. Layer boxes are fractions of the silhouette box, x from the left, y from the bottom.',
+    note: 'height of the figure in mm = width × silhouette_aspect. Layer boxes are fractions of the silhouette box, x from the left, y from the bottom.',
     layers: t.layers.map(l => {
       const pts = l.regions.flatMap(r => r.outer), xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
       const fx = (x: number) => r3((x - box.minX) / w), fy = (y: number) => r3((box.maxY - y) / h);
@@ -107,8 +107,8 @@ async function getImageLayersTool(state: ChatState, args: Record<string, unknown
 async function extrudeImageLayerTool(state: ChatState, args: Record<string, unknown>, evaluate: Evaluate): Promise<ToolOutcome> {
   const t = traceOf(state, args.image);
   if (typeof t === 'string') return fail(state, t);
-  const width = Number(args.width_mm), height = Number(args.height), base = Number(args.base ?? 0);
-  if (!(width > 0)) return fail(state, '"width_mm" (the silhouette\'s width) must be positive.');
+  const width = Number(args.width), height = Number(args.height), base = Number(args.base ?? 0);
+  if (!(width > 0)) return fail(state, '"width" (the silhouette\'s width) must be positive.');
   if (!(height > 0)) return fail(state, '"height" (the layer\'s thickness) must be positive.');
   if (!Number.isFinite(base)) return fail(state, '"base" must be a number.');
   const at: [number, number] = Array.isArray(args.at) && args.at.length === 2 ? [Number(args.at[0]), Number(args.at[1])] : [0, 0];
@@ -129,8 +129,8 @@ async function inflateImageLayerTool(state: ChatState, args: Record<string, unkn
   // A rounded, puffed-up solid of a traced layer (a plush or figure look) instead of a flat slab.
   const t = traceOf(state, args.image);
   if (typeof t === 'string') return fail(state, t);
-  const width = Number(args.width_mm), depth = Number(args.depth), mode = args.mode === 'bump' ? 'bump' : 'body';
-  if (!(width > 0)) return fail(state, '"width_mm" (the silhouette\'s width) must be positive.');
+  const width = Number(args.width), depth = Number(args.depth), mode = args.mode === 'bump' ? 'bump' : 'body';
+  if (!(width > 0)) return fail(state, '"width" (the silhouette\'s width) must be positive.');
   if (!(depth > 0)) return fail(state, mode === 'body' ? '"depth" (front-to-back thickness) must be positive.' : '"depth" (how far the bump stands out) must be positive.');
   const layerId = String(args.layer ?? 'silhouette'), layer = t.layers.find(l => l.id === layerId);
   if (!layer) return fail(state, `No layer "${layerId}"; layers: ${t.layers.map(l => l.id).join(', ')}.`);
@@ -142,7 +142,7 @@ async function inflateImageLayerTool(state: ChatState, args: Record<string, unkn
   // Standing: the mid plane is XZ at y = `y`, the front towards −Y.
   const plane = standing ? { plane: { origin: [0, Number(args.y ?? 0), 0] as [number, number, number], normal: [0, -1, 0] as [number, number, number], xAxis: [1, 0, 0] as [number, number, number] } } : {};
   const bodyDepth = Number(args.body_depth ?? 0);
-  if (mode === 'bump' && !(bodyDepth > 0)) return fail(state, 'A bump sits on an inflated silhouette: pass "body_depth", the depth that silhouette was inflated with (same image, width_mm and at).');
+  if (mode === 'bump' && !(bodyDepth > 0)) return fail(state, 'A bump sits on an inflated silhouette: pass "body_depth", the depth that silhouette was inflated with (same image, width and at).');
   // The largest silhouette region carries the surface.
   const silOutline = sil.regions.length ? sil.regions[0].outer.map(map) : [];
   let doc = state.doc; const skipped: string[] = [];
