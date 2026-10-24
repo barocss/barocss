@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Robot } from '../src/api';
 import type { StudioDoc } from '../src/engine/doc';
-import { viewOf } from '../src/api/robotCore';
+import { treeOf, viewOf } from '../src/api/robotCore';
 import { poseOf as corePose } from '../src/robot/verbs';
 
 const robot = (name: string) => new Robot(JSON.parse(readFileSync(join(import.meta.dirname, `../samples/robots/${name}.bcad`), 'utf8')) as StudioDoc);
@@ -50,12 +50,16 @@ test('a timed path returns degrees and mm that pose accepts without another conv
   assert.deepEqual(path.motion.waypoints, [{}, { 'base~arm1': 60, 'arm2~quill': -30 }]);
 });
 
-test('pose reports an 80 degree tilt past the 60 degree stop without changing internal radian limits', () => {
-  const r = robot('pan-tilt'), before = JSON.stringify(r.doc), p = r.pose({ 'pan~tilt': 80 });
+test('pose reports an 80 degree tilt past the public 60 degree stop; the internal limit stays in radians', () => {
+  const doc = robot('pan-tilt').doc;
+  doc.robot = { ...doc.robot, version: 1, joints: { ...doc.robot?.joints, 'pan~tilt': { lower: -60, upper: 60 } } };
+  const r = new Robot(doc), before = JSON.stringify(r.doc), p = r.pose({ 'pan~tilt': 80 });
   close(p.values['pan~tilt'], 80);
   assert.deepEqual(p.out_of_limits, ['pan~tilt']);
   const joint = r.joints().joints.find(j => j.key === 'pan~tilt')!;
-  close(joint.limit!.lower!, -Math.PI / 3);
-  close(joint.limit!.upper!, Math.PI / 3);
+  close(joint.limit!.lower!, -60); close(joint.limit!.upper!, 60);
+  const internal = treeOf(r.doc).joints.find(j => j.key === 'pan~tilt')!;
+  close(internal.limit!.lower!, -Math.PI / 3);
+  close(internal.limit!.upper!, Math.PI / 3);
   assert.equal(JSON.stringify(r.doc), before);
 });
