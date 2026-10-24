@@ -6,7 +6,8 @@ import type { DrawingScope } from './scope';
 import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
 import { readDetails, type DrawingDetail } from './detail';
-export type { DrawingDetail };
+import { readBreaks, type DrawingBreak } from './breaks';
+export type { DrawingDetail, DrawingBreak };
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
 export const VIEW_IDS: readonly ViewId[] = ['front', 'top', 'right', 'iso'];
@@ -129,6 +130,8 @@ export interface DrawingSettings {
   sections?: DrawingSection[];
   /** DR-1: detail views, each a circle on a view or a section drawn larger (detail.ts). Letters share the sections' namespace. */
   details?: DrawingDetail[];
+  /** DR-2: breaks, each a band along a model axis left out of the orthographic views (breaks.ts). */
+  breaks?: DrawingBreak[];
   /** The title block's part name (default: the file name). */
   title?: string;
   /** The drawing's revision (A, B, … or 01), shown in the title block's REV cell (default: -). */
@@ -210,6 +213,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(readSections(r.sections) ? { sections: readSections(r.sections)! } : {}),
     ...(readDetails(r.details) ? { details: readDetails(r.details)! } : {}),
+    ...(readBreaks(r.breaks) ? { breaks: readBreaks(r.breaks)! } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),

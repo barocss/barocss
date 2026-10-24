@@ -5426,6 +5426,32 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.details && !(window.__studioDrawing?.()?.details ?? []).length, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('broken views (CG5 DR-2): a 500 mm bar, Add break, its ends typed, the front and top views shortened in projection, removed', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('500'); await field('Depth Y').fill('20'); await field('Height Z').fill('20'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 500×20×20/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Add break"]');
+      // (The middle third of the longest axis: X 167 to 333.)
+      await page.waitForFunction(() => !!window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+      assert.deepEqual((await doc()).drawing.breaks, [{ axis: 'x', from: 167, to: 333 }]);
+      await page.fill('[aria-label="Break 1 from"]', '100'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.breaks?.[0]?.from === 100, null, { timeout: 20000 });
+      await page.fill('[aria-label="Break 1 to"]', '400'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.breaks?.front?.[0]?.to === 400, null, { timeout: 20000 });
+      const d = await page.evaluate(() => window.__studioDrawing());
+      // (Drawn 200 mm of the 500 at the sheet's scale, plus the 6 mm gap; the top view with it, the right view whole.)
+      const w = (id) => d.boxes[id][2] - d.boxes[id][0];
+      assert.ok(Math.abs(w('front') - (200 * d.scale + 6)) < 1e-9 && Math.abs(w('top') - w('front')) < 1e-9, `${w('front')} at ${d.scale}`);
+      assert.ok(!d.breaks.right && Math.abs(w('right') - 20 * d.scale) < 1e-9);
+      assert.deepEqual(d.issues.filter(x => /BREAK|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code), []);
+      await snap('broken-bar');
+      await page.click('[aria-label="Remove break 1"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.breaks && !window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
@@ -8537,6 +8563,57 @@ try {
       const back = await frame();
       assert.ok(corners(back).every((c, i) => Math.abs(c - corners(before)[i]) < 4), 'neutral: the frame as before');
     }
+    await page.click('.mode button:text-is("Model")');
+  });
+  await check('G15a finishes: Turned steel, a knurl along Z, a lacquered paint and an oil film from the Render panel — kept on the appearance, the part drawn with its marks; None again, plain', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    // (The part's body selected, as step 48 left its own appearance: the panel edits that one.)
+    if (!/1 selected body/.test(await page.locator('.render-panel .muted.small').first().innerText())) await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /1 selected body/.test(document.querySelector('.render-panel .muted.small')?.textContent ?? ''));
+    const look = () => page.evaluate(() => Object.values(window.__studioDoc.render.appearances)[0]);
+    const gpu = renderer === 'webgpu', N = 64;
+    // (The marks: how much a sample differs from its neighbours on a dense grid, the whole frame.)
+    const marks = async () => {
+      await idle(); await page.waitForTimeout(600);
+      const f = await page.evaluate(n => window.__studioFrame(n), N); let d = 0;
+      for (let j = 0; j < N - 1; j++) for (let i = 0; i < N - 1; i++) { const k = 3 * (j * N + i); d += Math.abs(f[k] - f[k + 3]) + Math.abs(f[k] - f[k + 3 * N]); }
+      return d / ((N - 1) * (N - 1));
+    };
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].color === '#a7abb1');
+    const plain = gpu ? await marks() : 0;
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-turned-steel');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].finish?.kind === 'turned');
+    assert.deepEqual((await look()).finish, { kind: 'turned', scale: 0.3, strength: 0.6, axis: [0, 0, 1] });
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), 'look-turned-steel', 'the preset shown as chosen');
+    const turned = gpu ? await marks() : 0; if (gpu) await snap('g15a-turned');
+    // A knurl, coarser, along Z; the preset becomes Custom.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', 'knurled');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Marks"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '1.5'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].finish?.kind === 'knurled' && Object.values(window.__studioDoc.render.appearances)[0].finish.scale === 1.5);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Finish direction"]'), 'z');
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), '');
+    const knurled = gpu ? await marks() : 0; if (gpu) await snap('g15a-knurled');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15a-finish-panel.png`) });
+    // Paint under a clear coat; an oil film.
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-painted-red');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].clearcoat === 1 && !Object.values(window.__studioDoc.render.appearances)[0].finish);
+    if (gpu) await snap('g15a-painted');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-oiled-steel');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].film === 0.7);
+    if (gpu) await snap('g15a-oiled');
+    // None: the finish leaves the appearance.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', '');
+    await page.waitForFunction(() => !Object.values(window.__studioDoc.render.appearances)[0].finish);
+    if (gpu) {
+      console.log(`  G15a: marks plain ${plain.toFixed(2)}, turned ${turned.toFixed(2)}, knurled ${knurled.toFixed(2)}`);
+      // (The plate's top is square to Z: the turned face shows on it — its rings finer than a pixel at this distance, so
+      // as their radial highlight; the knurl only on its sides. The grid takes in the background too.)
+      assert.ok(turned > plain + 0.6, `the turned face drawn: ${plain.toFixed(2)} → ${turned.toFixed(2)}`);
+      assert.ok(knurled > plain + 0.5, `the knurl drawn on the sides: ${plain.toFixed(2)} → ${knurled.toFixed(2)}`);
+    }
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
     await page.click('.mode button:text-is("Model")');
   });
 } finally {

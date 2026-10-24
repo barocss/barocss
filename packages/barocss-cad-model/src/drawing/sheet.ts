@@ -15,6 +15,7 @@ import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSection, DrawingSe
 import { tableLayout, tableSize, type TableContent, type TableLayout } from './table';
 import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, sameSection, sectionLetter, sectionsOf, type DetailRef, type DimView, type SectionRef } from './types';
 import { clipProjectionToDisk, clipRingsToDisk, detailScale, type DetailParent, type DrawingDetail } from './detail';
+import { clipProjectionOutside, clipRingsOutside } from './breaks';
 
 /** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
 export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'frame';
@@ -82,7 +83,7 @@ export function projectionOf(views: DrawingViews, sheet: Pick<Sheet, 'sections' 
 /** O148 X1: the extents of the sections the settings list and the caller cut (for the layout). */
 export function sectionExtents(settings: DrawingSettings, sections?: readonly SheetSection[]): SectionExtent[] {
   const out: SectionExtent[] = [];
-  for (const x of sectionsOf(settings)) { const c = sections?.find(y => sameSection(y, x)); if (c) out.push({ id: x.id, view: x.view, min: c.projection.min, max: c.projection.max }); }
+  for (const x of sectionsOf(settings)) { const c = sections?.find(y => sameSection(y, x)); if (c) out.push({ id: x.id, view: x.view, min: c.projection.min, max: c.projection.max, ...(x.dir ? { aligned: true as const } : {}) }); }
   return out;
 }
 /** `detail` (DR-1): a detail's circle and letter on its parent (`view` the parent), or the detail itself (`view` its own `detail:B`). */
@@ -104,8 +105,10 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
   groups.push({ role: 'title', marks: titleBlock(layout, settings, meta) });
   for (const id of VIEW_IDS) {
-    const v = layout.views[id], pr = views[id], marks: Mark[] = [];
+    const v = layout.views[id], marks: Mark[] = [];
     if (v.hidden) continue;
+    // (DR-2: a broken view's curves outside its bands; `toSheet` closes the gaps.)
+    const pr = v.breaks ? clipProjectionOutside(views[id], v.breaks) : views[id];
     const showHidden = settings.hidden && id !== 'iso';
     // Hidden pieces first, so visible ink covers them where they touch.
     for (const visible of [false, true]) for (const e of pr.edges) for (const p of e.pieces) {
@@ -114,6 +117,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     }
     if (id !== 'iso' && settings.centers !== false) marks.push(...centreMarks(v, pr));
     if (id !== 'iso' && meta.threads) marks.push(...threadMarks(v, pr, meta.threads, showHidden));
+    if (v.breaks) marks.push(...breakLines(v));
     groups.push({ role: 'view', view: id, marks });
   }
   // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it. O148 X2: one on a section is
@@ -264,6 +268,20 @@ function detailRoom(layout: SheetLayout, taken: readonly Rect[], w: number, h: n
     if (!taken.some(r => meets(box, r, g)) && !meets(box, layout.title, g)) return [box[0], box[1]];
   }
   return null;
+}
+/**
+ * A view's break lines (DR-2): at each side of each gap, a thin line across the view (2 mm past its box) with a small
+ * zig-zag at its middle, the long-break symbol.
+ */
+function breakLines(v: ViewPlacement): Mark[] {
+  const out: Mark[] = [], [x0, y0, x1, y1] = v.box;
+  for (const b of v.breaks ?? []) for (const w of [b.from, b.to]) {
+    // (A side's place: the band's start or end through the breaks — the gap between them on the paper.)
+    const at = toSheet(v, b.axis === 0 ? [w, 0] : [0, w]);
+    if (b.axis === 0) { const X = at[0], m = (y0 + y1) / 2; out.push({ kind: 'polyline', points: [[X, y0 - 2], [X, m - 1.5], [X - 1.2, m - 0.5], [X + 1.2, m + 0.5], [X, m + 1.5], [X, y1 + 2]], pen: 'thin' }); }
+    else { const Y = at[1], m = (x0 + x1) / 2; out.push({ kind: 'polyline', points: [[x0 - 2, Y], [m - 1.5, Y], [m - 0.5, Y - 1.2], [m + 0.5, Y + 1.2], [m + 1.5, Y], [x1 + 2, Y]], pen: 'thin' }); }
+  }
+  return out;
 }
 const circleMark = (c: XY, r: number, pen: Pen): Mark => ({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen });
 const meets = (a: Rect, b: Rect, gap = 1) => a[0] < b[2] + gap && b[0] < a[2] + gap && a[1] < b[3] + gap && b[1] < a[3] + gap;
@@ -565,10 +583,14 @@ const circlePoints = (c: XY, r: number): XY[] => Array.from({ length: 12 }, (_, 
  */
 function sectionMarks(v: SectionPlacement, section: SheetSection): Mark[] {
   const marks: Mark[] = [];
-  for (const e of section.projection.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(v, p.curve, 'visible'));
+  // (DR-2: broken as its view is: its curves and cut faces outside the bands.)
+  const pr = v.breaks ? clipProjectionOutside(section.projection, v.breaks) : section.projection, cut = v.breaks ? clipRingsOutside(section.rings, v.breaks) : null;
+  const rings = cut ? cut.rings : section.rings, bodies = cut ? (section.ringBodies ? cut.kept.map(k => section.ringBodies![k]) : undefined) : section.ringBodies;
+  for (const e of pr.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(v, p.curve, 'visible'));
+  if (v.breaks) marks.push(...breakLines(v));
   // (Each body its own hatch — the part's body k at HATCH_ANGLES[k], so adjacent parts read apart, and a body the same in
   // every section; one body alone at 45° as always.)
-  for (const g of hatchGroups(section.rings, section.ringBodies)) marks.push({ kind: 'hatch', rings: g.rings.map(r => r.map(q => toSheet(v, q))), spacing: g.spacing, angle: g.angle, pen: 'thin' });
+  for (const g of hatchGroups(rings, bodies)) marks.push({ kind: 'hatch', rings: g.rings.map(r => r.map(q => toSheet(v, q))), spacing: g.spacing, angle: g.angle, pen: 'thin' });
   return marks;
 }
 /** A section's cutting plane, in the first shown view that sees it edge-on (none shown: none). */
