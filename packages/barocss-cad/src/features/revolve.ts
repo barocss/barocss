@@ -10,6 +10,7 @@ import { curveTolerance, intersectSegments, locateInRegion, segStart, type Curve
 import { sideName, SIDE_TAG } from '../document/side-names.js';
 import { buildProfileLoop, segmentCurve, type ProfileSegment, type ProfileSegmentInput, type XY } from './extruded-profile-solid.js';
 import { evaluateCurve, curveDomain } from '../core/math.js';
+import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { add, dot, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
 
@@ -277,5 +278,5 @@ export function revolveMassProperties(input: RevolveInput, density: number): { v
   const L = [[k * (aa + bb), -k * ha, -k * hb], [-k * ha, k * (hh + bb), -k * ab], [-k * hb, -k * ab, k * (hh + aa)]], R = [D, S, Z];
   const world = [0, 1, 2].map(i => [0, 1, 2].map(j => { let v = 0; for (let p = 0; p < 3; p++) for (let q = 0; q < 3; q++) v += R[p][i] * L[p][q] * R[q][j]; return v; })) as [[number, number, number], [number, number, number], [number, number, number]];
   const centroid = add(add(A0, scale(D, ch)), add(scale(S, ca), scale(Z, cb)));
-  return { volume: V, mass: density * V * 1e-3, centroid, inertia: world, method: 'closed-form' };
+  return unsupportedNativeMass({ volume: V, mass: density * V * 1e-3, centroid, inertia: world, method: 'closed-form' }, 'revolved');
 }

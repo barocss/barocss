@@ -1,5 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { homedir, tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
@@ -8,6 +12,8 @@ import { drawingInputs } from '../src/chat/drawing';
 import { drawingIssues, issueContext } from '../src/drawing/issues';
 import { readDrawing } from '../src/drawing/types';
 import { deviation, fitCallout, withFit } from '../src/drawing/fits';
+import { sheetDxf } from '../src/io/dxf';
+import { sheetSvg } from '../src/io/svg';
 
 // D155 with the outer lane (the kernel lane's request): fit callouts on the drawing and the fit_clearance query, from
 // the user's tables — the kernel test's tube (a Ø12 bore, H7 +18/0) and pin (Ø12, g6 −6/−17), rows flagged estimates:
@@ -67,4 +73,33 @@ test('D155 fit_clearance: the faces — clearance, 6 to 35 µm, both rows estima
   // (A declared pair the geometry contradicts refuses the model's evaluation (FIT_PAIR); the query reads two faces not declared.)
   const off = await dispatchTool(state(parts(0.01, undefined, false)), 'fit_clearance', { hole: 'n1.hole0.side0', shaft: 'n3.side0' }, evaluate);
   assert.ok(!off.isError, off.content); assert.equal(JSON.parse(off.content).contradicted, true);
+});
+
+const dxfPython = join(homedir(), '.cache/barocss-ezdxf/bin/python');
+test('R7 fit units: ezdxf reads 12 mm and signed millimetre deviations at sheet scales 1 and 2', { skip: !existsSync(dxfPython) && 'ezdxf interpreter is not installed' }, async () => {
+  // Physical oracle: hole 12 + [0, 18]/1000, shaft 12 + [-17, -6]/1000 mm.
+  // These written limits and the model diameter must survive the producer's µm-to-mm contract change.
+  const dimensioned = await dispatchTool(state(parts()), 'auto_dimension', {}, evaluate); assert.ok(!dimensioned.isError, dimensioned.content);
+  const evidence = process.env.DRAWING_FIT_EVIDENCE;
+  const dir = evidence ?? mkdtempSync(join(tmpdir(), 'fit-drawing-units-')); mkdirSync(dir, { recursive: true });
+  const script = resolve(import.meta.dirname, '../../barocss-cad/scripts/dxf-oracle.py');
+  const expected = 'H7/g6 (+0.018/0, -0.006/-0.017) (est.)';
+  try {
+    for (const scale of [1, 2]) {
+      const settings = { ...readDrawing(dimensioned.state.doc.drawing), sheet: 'A3' as const, scale };
+      const inputs = drawingInputs(dimensioned.state.doc, settings); assert.ok(typeof inputs !== 'string', String(inputs));
+      const ctx = issueContext({ ...inputs, meta: { ...inputs.meta, date: '2026-10-25' } });
+      const fit = ctx.sheet.dimensions.filter(d => d.ok && d.text.endsWith(expected)); assert.ok(fit.length > 0);
+      for (const d of fit) { assert.ok(d.ok); assert.equal(d.value, 12); }
+      assert.ok(sheetSvg(ctx.sheet, 'fit').includes('>mm</text>'), 'the sheet labels its dimensions in millimetres');
+      const file = join(dir, `fit-scale-${scale}.dxf`); writeFileSync(file, sheetDxf(ctx.sheet, ctx.layout).bytes);
+      const text = execFileSync(dxfPython, ['-I', script, file], { encoding: 'utf8' });
+      if (evidence) writeFileSync(join(dir, `fit-scale-${scale}.json`), text);
+      const oracle = JSON.parse(text) as { insunits: number; audit: { errors: string[]; fixes: string[] }; modelspace: { type: string; text?: string; measurement?: number }[] };
+      assert.equal(oracle.insunits, 4, '$INSUNITS 4 means millimetres');
+      assert.deepEqual(oracle.audit.errors, []); assert.deepEqual(oracle.audit.fixes, []);
+      const dimensions = oracle.modelspace.filter(e => e.type === 'DIMENSION' && e.text?.endsWith(expected)); assert.ok(dimensions.length > 0);
+      for (const d of dimensions) { assert.equal(d.text, `%%c12 ${expected}`, 'DXF stores the diameter sign as %%c'); assert.equal(d.measurement, 12, `model diameter remains 12 mm at sheet scale ${scale}`); }
+    }
+  } finally { if (!evidence) rmSync(dir, { recursive: true, force: true }); }
 });
