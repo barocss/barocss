@@ -6,7 +6,7 @@
 // a facade-built StudioDoc is the one the agent's tools would write, `made` and signatures and all.
 import { BarocssError, bracketedCode, refuse, type FeatureSpec, type PartBackend } from '@barocss/cad/api';
 import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
-import { commandById, patchValues, type Ctx, type Values } from '../app/commands';
+import { commandById, givenValues, type Ctx, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
 import { checkNode } from '../chat/features';
 import { captureSignatures } from '../engine/references';
@@ -42,7 +42,7 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
   const avail = cmd.available(ctx);
   if (!avail.ok) throw refuse('UNAVAILABLE', `${cmd.label} can't run: ${avail.reason}`);
-  const values: Values = patchValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, { ...spec.values });
+  const values: Values = givenValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, { ...spec.values });
   const why = checkValues(cmd.fields?.(ctx) ?? [], values);
   if (why) throw refuse('VALUE', `${cmd.label}: ${why}`);
   let next: StudioDoc;

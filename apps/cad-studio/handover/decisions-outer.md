@@ -8681,3 +8681,29 @@ regression can be pinned to one of them.
   kernel's K16: last-ulp volumes, B-reps, STEP and STL of the o7 enclosure and fasteners fixtures, and rb9's sheet and
   enclosure and print-in-place rungs. No recorded document reaches NO_BODY.
   - Not run: the flow, the kernel suite, RB.
+
+## O20 — a value the agent gives a command is never replaced by a derived one (2026-10-24)
+
+Found by the API lane. A 10 mm box and `run_command {command: 'split', values: {axis: 'x', at: 2}}` made
+`{kind: 'split', axis: 'x', at: 5}`: two 500 mm³ halves, with no warning. Mirror did the same: `plane: 'yz', at: 12`
+put the plane at x = 10.
+- **Cause.** run_command patches every given value at once, so `changed` is every given key. A command's `derive`
+  recomputes the values that follow a changed one, and it overwrote a given one. Split's `at` follows its axis and
+  mirror's follows its plane. The studio's UI sets one value at a time, so it was right.
+- **Fix.** `givenValues(cmd, ctx, values, given)` in app/commands.ts is patchValues with the given values put back on
+  top, so a derived value never replaces a given one.
+  - The agent's run_command (chat/part/features.ts) and the facade's verbs (api/studio.ts, the API lane's call site)
+    use it.
+  - patchValues stays as it was for the studio, whose `place` passes whole value sets (a fastener at a hole's rim),
+    where the derived size must win.
+- **The audit:** every command with a derive is fastener, hole, mirror, move and split. The test pins that list.
+  - split: a given `at` with its axis was moved to the middle. **Fixed.**
+  - mirror: a given `at` with its plane was moved to the body's face. **Fixed.**
+  - hole: a tapped hole's given Ø was replaced by the thread's tap drill. **Fixed**; no Ø given still takes the tap drill.
+  - fastener: a given length was swapped for the nearest length the size comes in. **Fixed**: an offered length is kept,
+    and one not offered is now refused ("length" is one of 12, 16, 20 …), never swapped.
+  - move: with only Δ or only the landing point given, the other follows, as before. With both given, both stand and
+    the build uses Δ.
+- **Test:** test/o20-given-values.test.ts, 6 tests. With patchValues in place of givenValues, 4 fail (split, mirror,
+  hole, fastener).
+- **Verified (T1):** o20 6/6; tsc (model, studio); eslint. The full suites run with the next checkpoint.
