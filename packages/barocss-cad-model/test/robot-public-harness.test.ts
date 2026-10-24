@@ -87,7 +87,7 @@ test('default core check and size accept only canonical Duty and project native 
     [{ ...input, clearance_mm: .25 }, 'No duty field clearance_mm.'],
     [{ ...input, serviceLife: Infinity }, '"serviceLife" is a number above 0'],
     [{ ...input, moves: [{ ...input.moves[0], dwell_s: .5 }] }, 'move 0: no field dwell_s.'],
-  ] as const;
+  ] satisfies [unknown, string][];
   for (const [bad, text] of invalid) {
     const beforeBad = structuredClone(bad);
     assert.deepEqual(readDuty(tree, bad), { error: text }, 'native decoder result stays unchanged');
