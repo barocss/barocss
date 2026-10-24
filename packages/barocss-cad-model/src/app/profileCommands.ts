@@ -11,6 +11,7 @@ import type { Command, Ctx, Field, Values } from './commands';
 
 // (Only types from commands.ts: it lists these commands, so a value import would be a cycle.)
 import { refOf } from './bodyRef';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 /** The sketch a single-profile command works on, or why there is none. */
@@ -99,7 +100,7 @@ export const offsetFaceCommand: Command = {
   defaults: () => ({ d: 2 }),
   steps: (_ctx, v) => [{ label: 'Move', text: Number(v.d) > 0 ? `${v.d} mm out (material added)` : Number(v.d) < 0 ? `${-Number(v.d)} mm in (material taken off)` : 'give it a distance (out +, in −)', done: Number(v.d) !== 0 }],
   build: (ctx, v) => {
-    const d = Number(v.d); if (!d) throw new Error('Give the face a distance to move: out (+) or in (−).');
+    const d = Number(v.d); if (!d) throw refusal('FACE_DISTANCE', 'Give the face a distance to move: out (+) or in (−).');
     return extrudeCommand.build!(ctx, { h: Math.abs(d), draft: 0, op: d > 0 ? 'join' : 'cut', depth: 'distance' });
   },
   handles: ctx => {
@@ -177,7 +178,7 @@ export const loftCommand: Command = {
   defaults: () => ({ smooth: 'no' }),
   build: (ctx, v) => {
     const s = loftSections(ctx.doc.nodes, ctx.selection.sketches ?? []);
-    if ('error' in s) throw new Error(s.error);
+    if ('error' in s) throw refusal('LOFT_SECTIONS', s.error);
     // Each section on the first one's plane (the picked sketches stay as they are, used by the loft).
     let doc = ctx.doc; const at: number[] = [];
     for (const sec of s.sections) { doc = withNode(doc, sec.node); at.push(doc.nodes.length - 1); }
@@ -205,7 +206,7 @@ export const sweepCurveCommand: Command = {
   steps: ctx => { const p = pickedPath(ctx); return typeof p === 'string' ? [] : [{ label: 'Path', text: `along ${p.name} (faceted; a path tighter than the profile folds it)`, done: true }]; },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, path = pickedPath(ctx);
-    if (typeof path === 'string') throw new Error(path);
+    if (typeof path === 'string') throw refusal('SWEEP_PATH', path);
     return combine(withNode(ctx.doc, { kind: 'sweep-curve', sketch: p.index, name: path.name, path: path.path }), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
 };

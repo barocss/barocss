@@ -5,12 +5,10 @@ import { writeDxf, type DxfDocument, type DxfEntity, type DxfVersion, type DxfWr
 import type { Dim, LoopSegment, SketchNode } from '../engine/doc';
 import { slotSegments, type P2 } from './profile';
 import type { SketchShape } from './types';
+import { refusal } from '../engine/refusal';
 
 export const SKETCH_DXF_VERSION = 'cad-studio-sketch-dxf-v1';
 
-export class SketchDxfError extends Error {
-  constructor(detail: string) { super(detail); this.name = 'SketchDxfError'; }
-}
 
 const LAYERS = [
   { name: 'PROFILE', color: 7, lineweight: 35 },
@@ -22,7 +20,7 @@ const LINETYPES = [{ name: 'BC_CONSTRUCTION', description: 'Construction _ _ _ (
 function value(d: Dim, parameters: Readonly<Record<string, number>>): number {
   if (typeof d === 'number') return d;
   const v = parameters[d.parameter];
-  if (typeof v !== 'number' || !Number.isFinite(v)) throw new SketchDxfError(`The sketch uses the parameter “${d.parameter}”, which has no value.`);
+  if (typeof v !== 'number' || !Number.isFinite(v)) throw refusal('SKETCH_PARAMETER', `The sketch uses the parameter “${d.parameter}”, which has no value.`);
   return v;
 }
 const point = (p: readonly [Dim, Dim], parameters: Readonly<Record<string, number>>): DxfXY => [value(p[0], parameters), value(p[1], parameters)];

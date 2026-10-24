@@ -10,7 +10,7 @@ import { mountRowsOf, NO_MOUNTS, noMountRow, patternPoints, type StudioMountRow 
 import type { BodyResult } from '../engine/evaluate';
 import { refOf } from './bodyRef';
 import type { Command, Ctx, Values } from './commands';
-import { refusal } from '../engine/refusal';
+import { coded, refusal } from '../engine/refusal';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 type Axis = 'x' | 'y' | 'z';
@@ -54,8 +54,8 @@ const r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
 /** The nodes a mount adds, or its refusal (thrown, as every command's build). */
 export function mountNodes(ctx: Ctx, v: Values): StudioDoc {
   const rows = mountRowsOf(ctx.doc);
-  if (!rows.size) throw new Error(NO_MOUNTS);
-  const row = rows.get(String(v.row)); if (!row) throw new Error(noMountRow(String(v.row), [...rows.keys()]));
+  if (!rows.size) throw coded('MOUNT_ROW', NO_MOUNTS);
+  const row = rows.get(String(v.row)); if (!row) throw coded('MOUNT_ROW', noMountRow(String(v.row), [...rows.keys()]));
   if (ctx.selection.faces.length !== 1) throw refusal('MOUNT_FACE', 'select the flat face the mount goes on');
   const f = ctx.selection.faces[0], body = ctx.bodies[f.body], face = body?.mesh.faces[f.face], fa = face && face.kind === 'plane' ? faceAxis(face.normal) : null;
   if (!body || !face || !fa) throw refusal('MOUNT_FACE', 'a mount goes on a flat face facing ±X, ±Y or ±Z');

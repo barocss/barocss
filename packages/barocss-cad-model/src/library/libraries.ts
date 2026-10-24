@@ -18,6 +18,7 @@ import { materialIdOf } from '../app/bodies';
 import { tslotInterfaces } from '../frames/interfaces';
 import { castingProfileOf } from '../engine/castingRuleRows';
 import { nextFreeId } from '../util/ids';
+import { refusal } from '../engine/refusal';
 
 /** Where a library comes from: built into the studio, shared by a team, or the user's own. */
 export type LibrarySource = 'built-in' | 'team' | 'user';
@@ -36,7 +37,7 @@ const registry = new Map<string, LibraryEntry>();
 export function registerLibrary(json: unknown, source: LibrarySource, meta: { authoredBy?: 'person' | 'agent'; confirmed?: boolean; check?: LibraryCheck } = {}): CadLibrary {
   const library = loadCadLibrary(json);
   const kept = registry.get(library.manifest.id);
-  if (kept && kept.source === 'built-in' && source !== 'built-in') throw new Error(`${library.manifest.id} is a built-in library: give yours another id`);
+  if (kept && kept.source === 'built-in' && source !== 'built-in') throw refusal('LIBRARY_ID', `${library.manifest.id} is a built-in library: give yours another id`);
   const authoredBy = meta.authoredBy ?? 'person';
   registry.set(library.manifest.id, { library, source, license: licenseOf(library), estimates: estimateCount(library), authoredBy, confirmed: authoredBy === 'person' || meta.confirmed === true, ...(meta.check ? { check: meta.check } : {}) });
   if (source === 'user') saveUserLibraries();
@@ -107,7 +108,7 @@ export function registerDocLibraries(doc: StudioDoc): string[] {
 export function addDocLibrary(doc: StudioDoc, json: unknown, authoredBy: 'agent' | 'person'): { doc: StudioDoc; check: LibraryCheck; license: string | null; estimates: number } {
   const lib = loadCadLibrary(json), manifest = lib.manifest;
   const kept = registry.get(manifest.id);
-  if (kept && kept.source !== 'user') throw new Error(`${manifest.id} is a ${kept.source} library: give this one another id`);
+  if (kept && kept.source !== 'user') throw refusal('LIBRARY_ID', `${manifest.id} is a ${kept.source} library: give this one another id`);
   const check = checkLibraryForSharing(manifest);
   const libs = [...(doc.libraries ?? []).filter(l => l.library.id !== manifest.id), { library: manifest, authoredBy, ...(authoredBy === 'agent' ? { confirmed: false } : {}) }];
   registerLibrary(manifest, 'user', { authoredBy, check });
@@ -134,7 +135,7 @@ export function libraryNode(lib: CadLibrary, part: string, options: { variant?: 
 export function insertLibraryPart(doc: StudioDoc, libraryId: string, part: string, options: { variant?: string; params?: Record<string, number> } = {}): StudioDoc {
   registerDocLibraries(doc);
   const lib = libraryById(libraryId);
-  if (!lib) throw new Error(`No library ${libraryId} (libraries: ${libraries().map(e => e.library.manifest.id).join(', ')})`);
+  if (!lib) throw refusal('LIBRARY_UNKNOWN', `No library ${libraryId} (libraries: ${libraries().map(e => e.library.manifest.id).join(', ')})`);
   return withNode(doc, libraryNode(lib, part, options, freshPrefix(doc)));
 }
 /** A new assembly instance holding one library part. */

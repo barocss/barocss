@@ -1,6 +1,7 @@
 // Our own ZIP writer (AM5, D76) for packages such as 3MF: CRC-32 and the archive's headers written here, the deflate
 // by the web-standard CompressionStream (Node and browsers; no dependency). No ZIP64: an entry or archive past 4 GiB,
 // or more than 65 535 entries, is refused.
+import { refusal } from '../engine/refusal';
 
 const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 /** CRC-32 (ISO-HDLC, as ZIP and PNG use) of the bytes. */
@@ -31,13 +32,13 @@ export interface ZipEntry { readonly name: string; readonly data: Uint8Array; /*
 const MAX32 = 0xffffffff;
 /** The entries as one ZIP archive (UTF-8 names, deflated or stored), stamped with `date` (DOS time, 2-second steps). */
 export async function writeZip(entries: readonly ZipEntry[], date: Date = new Date()): Promise<Uint8Array> {
-  if (entries.length > 0xffff) throw new Error(`zip: ${entries.length} entries (at most 65 535 without ZIP64)`);
+  if (entries.length > 0xffff) throw refusal('ZIP_LIMIT', `zip: ${entries.length} entries (at most 65 535 without ZIP64)`);
   const time = (date.getHours() << 11) | (date.getMinutes() << 5) | (date.getSeconds() >> 1);
   const day = (Math.max(0, date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
   const enc = new TextEncoder(), parts: Uint8Array[] = [], central: Uint8Array[] = [];
   let offset = 0;
   for (const e of entries) {
-    if (e.data.length > MAX32) throw new Error(`zip: ${e.name} is past 4 GiB (no ZIP64)`);
+    if (e.data.length > MAX32) throw refusal('ZIP_LIMIT', `zip: ${e.name} is past 4 GiB (no ZIP64)`);
     const name = enc.encode(e.name), crc = crc32(e.data);
     let body = e.data, method = 0;
     if (e.deflate) { const d = await deflateRaw(e.data); if (d.length < e.data.length) { body = d; method = 8; } }
@@ -51,7 +52,7 @@ export async function writeZip(entries: readonly ZipEntry[], date: Date = new Da
     cv.setUint16(28, name.length, true); cv.setUint32(42, offset, true); dir.set(name, 46);
     parts.push(local, body); central.push(dir);
     offset += local.length + body.length;
-    if (offset > MAX32) throw new Error('zip: the archive is past 4 GiB (no ZIP64)');
+    if (offset > MAX32) throw refusal('ZIP_LIMIT', 'zip: the archive is past 4 GiB (no ZIP64)');
   }
   const dirSize = central.reduce((n, d) => n + d.length, 0), end = new Uint8Array(22), ev = new DataView(end.buffer);
   ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, entries.length, true); ev.setUint16(10, entries.length, true); ev.setUint32(12, dirSize, true); ev.setUint32(16, offset, true);

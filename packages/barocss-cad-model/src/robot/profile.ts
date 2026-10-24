@@ -4,11 +4,11 @@
 //              jerk (+j, 0, −j, 0, −j, 0, +j); a or v not reached shortens them (their closed forms, below).
 // Each segment is a polynomial in time, so positions, speeds and accelerations are exact anywhere and their extremes
 // are at the segment ends: the limits are checked there, never by sampling alone.
+import { refusal } from '../engine/refusal';
 
 export type ProfileKind = 'trapezoid' | 's-curve';
 export interface Segment { t0: number; t1: number; /** At t0: position, velocity, acceleration; the jerk over the segment. */ s: number; v: number; a: number; j: number }
 export interface Profile { kind: ProfileKind; distance: number; duration: number; segments: Segment[]; /** The peaks the profile reaches. */ vPeak: number; aPeak: number; jPeak: number }
-export class ProfileError extends Error { constructor(message: string) { super(message); this.name = 'ProfileError'; } }
 
 /** The segments from their durations and jerks (or a constant acceleration, for the trapezoid), integrated exactly. */
 function build(kind: ProfileKind, d: number, parts: { dt: number; j?: number; a?: number }[]): Profile {
@@ -29,7 +29,7 @@ function build(kind: ProfileKind, d: number, parts: { dt: number; j?: number; a?
 
 /** A trapezoid (triangular when v is not reached) over |d| ≥ 0, its sign d's. */
 export function trapezoid(d: number, vMax: number, aMax: number): Profile {
-  if (!(vMax > 0 && aMax > 0)) throw new ProfileError('a trapezoid needs velocity and acceleration limits above 0');
+  if (!(vMax > 0 && aMax > 0)) throw refusal('LIMITS_BAD', 'a trapezoid needs velocity and acceleration limits above 0');
   const D = Math.abs(d), sg = Math.sign(d) || 1;
   if (D === 0) return build('trapezoid', d, []);
   if (D >= vMax * vMax / aMax) { const ta = vMax / aMax, tv = D / vMax - ta; return build('trapezoid', d, [{ dt: ta, a: sg * aMax }, { dt: tv, a: 0 }, { dt: ta, a: -sg * aMax }]); }
@@ -52,7 +52,7 @@ export function sCurveTimes(D: number, vMax: number, aMax: number, jMax: number)
 }
 /** A jerk-limited S-curve over d, rest to rest. */
 export function sCurve(d: number, vMax: number, aMax: number, jMax: number): Profile {
-  if (!(vMax > 0 && aMax > 0 && jMax > 0)) throw new ProfileError('an S-curve needs velocity, acceleration and jerk limits above 0');
+  if (!(vMax > 0 && aMax > 0 && jMax > 0)) throw refusal('LIMITS_BAD', 'an S-curve needs velocity, acceleration and jerk limits above 0');
   const D = Math.abs(d), sg = Math.sign(d) || 1;
   if (D === 0) return build('s-curve', d, []);
   const { Tj, Ta, Tv } = sCurveTimes(D, vMax, aMax, jMax), j = sg * jMax;

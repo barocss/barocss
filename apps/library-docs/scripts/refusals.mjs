@@ -32,12 +32,24 @@ function sources(dir) {
   }
   return out;
 }
-/** Every string and template literal in a source file, as its text with a template's `${…}` shown as …. */
+/** A literal's text, a template's `${…}` shown as …; null for anything else. */
+const literalText = node => ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node) ? node.text
+  : ts.isTemplateExpression(node) ? node.head.text + node.templateSpans.map(span => `…${span.literal.text}`).join('') : null;
+/** R7.3a's refusal builders: `refusal('CODE', '…')`, `problem('CODE', '…')`, `coded('CODE', '[CODE] …')` — the code a literal of its own. */
+const BUILDERS = new Set(['refusal', 'problem', 'coded']);
+/**
+ * Every string and template literal in a source file, as literalText; and each refusal builder's call as the text it
+ * makes, `[CODE] message` (its message `…` when it is not a literal).
+ */
 function literals(file, text) {
   const out = [], sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, false, file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
   const visit = node => {
-    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) out.push(node.text);
-    else if (ts.isTemplateExpression(node)) out.push(node.head.text + node.templateSpans.map(span => `…${span.literal.text}`).join(''));
+    const t = literalText(node);
+    if (t !== null) out.push(t);
+    else if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && BUILDERS.has(node.expression.text) && node.arguments.length >= 2 && ts.isStringLiteral(node.arguments[0]) && CODE.test(node.arguments[0].text)) {
+      const code = node.arguments[0].text, said = literalText(node.arguments[1]) ?? '…';
+      if (!said.startsWith(`[${code}]`)) out.push(`[${code}] ${said}`);
+    }
     ts.forEachChild(node, visit);
   };
   visit(sf);
@@ -56,6 +68,8 @@ const folderOf = (root, file) => relative(root, file).split('/').slice(0, -1).jo
 const readable = m => !/\/\*|\*\/|(^|\s)\/\/\s/.test(m);
 const example = list => { const ok = list.filter(readable); return ok.find(m => m.length >= 20) ?? ok[0] ?? ''; };
 
+/** A refusal code as written: upper-snake, four characters or more. */
+const CODE = /^[A-Z][A-Z0-9_]{3,}$/;
 /** A literal that is a refusal: its code in brackets at its start, then the message. */
 const BRACKETED = /^\[([A-Z][A-Z0-9_]{3,})\]\s*([\s\S]*)$/;
 

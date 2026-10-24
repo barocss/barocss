@@ -5,6 +5,7 @@ import { sha256Hex } from '../util/digest';
 import { isPersonRowFiles, ROWS_NOT_FROM_PERSON, type PersonRowFiles, type RowFileSource } from './rowFiles';
 
 import type { RowKind } from './rowDefinitions';
+import { coded } from './refusal';
 export { ROW_KINDS, type RowKind } from './rowDefinitions';
 export interface RowSupply { kind: RowKind; id: string; row?: number; file: RowFileSource; fingerprint: string }
 export type SuppliedRowDoc = StudioDoc & { rowSources?: { version: 1; rows: RowSupply[] } };
@@ -28,7 +29,7 @@ export function rowSupplies(kind: RowKind, value: Row, file: RowFileSource): Row
 }
 
 export function authorizeRows(context: PersonRowFiles, kind: RowKind, value: Row, file: RowFileSource): RowSupply[] {
-  if (!isPersonRowFiles(context)) throw new Error(ROWS_NOT_FROM_PERSON);
+  if (!isPersonRowFiles(context)) throw coded('ROWS_NOT_FROM_PERSON', ROWS_NOT_FROM_PERSON);
   let rows = authorized.get(context); if (!rows) { rows = new Set(); authorized.set(context, rows); }
   rows.add(rowKey(kind, value));
   const receipts = rowSupplies(kind, value, file);

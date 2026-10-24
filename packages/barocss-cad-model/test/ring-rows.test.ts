@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
-import { editRingRows, ringRowProblem } from '../src/engine/rings';
+import { checkRingRow, editRingRows } from '../src/engine/rings';
 
 // O139 (the kernel lane's open studio item): retaining-ring rows the person loads (none built in) — a ring naming one is
 // checked against it by the kernel and is no longer an estimate; the default shaft's groove is Ø19 × 1.3 on its Ø20 step.
@@ -40,7 +40,7 @@ test('ring rows refused: a row for another groove (the kernel\'s RING_FIT), a ro
   const r2 = evaluateDoc(gone, 4);
   assert.ok(!r2.ok && /\[RING_ROW_UNKNOWN\].*"DIN471-20"/.test(r2.error.detail), r2.ok ? 'built' : r2.error.detail);
   assert.match(String((editRingRows(used, [], ['DIN471-20']) as { error: string }).error), /used by a retaining ring/);
-  assert.match(String(ringRowProblem({ id: 'x', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3 })), /cite its source or say estimate: true/);
-  assert.match(String(ringRowProblem({ ...ROW, grooveDiameterMM: 21 })), /below the shaft's/);
-  assert.match(String(ringRowProblem({ ...ROW, thickness: 1 })), /unknown field thickness/);
+  assert.match(String(checkRingRow({ id: 'x', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3 })[0]?.message), /cite its source or say estimate: true/);
+  assert.match(String(checkRingRow({ ...ROW, grooveDiameterMM: 21 })[0]?.message), /below the shaft's/);
+  assert.match(String(checkRingRow({ ...ROW, thickness: 1 })[0]?.message), /unknown field thickness/);
 });

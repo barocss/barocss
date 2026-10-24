@@ -25,6 +25,7 @@ import { planHollow } from '../print/hollow';
 import { isHollowed, planLattice } from '../print/lattice';
 import { printerProfile, processProfile } from '../library/materials';
 import { featureId } from '../engine/ids';
+import { coded, refusal } from '../engine/refusal';
 
 export interface FaceSel { body: number; face: number }
 export interface EdgeSel { body: number; edge: number }
@@ -417,16 +418,16 @@ const allCommands: Command[] = [
       // sits in the body — a boss's top inside a shell), are kept so a later depth edit drills in from that face. A
       // counterbore is a second, wider hole to its depth on the same centre.
       const at = { center: [Number(v.x), Number(v.y)] as [number, number], ...(axis === 'z' ? {} : { axis }), ...(side === 'min' ? { side } : {}), face: picked.name.split('+')[0] };
-      if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw new Error('The counterbore must be wider than the hole.');
-      if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw new Error('The countersink must be wider than the hole.');
-      if (v.type === 'tapped' && !fastenerSizesOf(ctx.doc)[String(v.thread)]) throw new Error(noSizeRow(String(v.thread)));
+      if (v.type === 'counterbore' && !(Number(v.cd) > Number(v.d))) throw refusal('HOLE_SIZE', 'The counterbore must be wider than the hole.');
+      if (v.type === 'countersink' && !(Number(v.csd) > Number(v.d))) throw refusal('HOLE_SIZE', 'The countersink must be wider than the hole.');
+      if (v.type === 'tapped' && !fastenerSizesOf(ctx.doc)[String(v.thread)]) throw coded('FASTENER_SIZE_ROW', noSizeRow(String(v.thread)));
       const tapped = v.type === 'tapped' && fastenerSizesOf(ctx.doc)[String(v.thread)], blind = v.type === 'blind' || (v.type === 'tapped' && v.tend === 'blind');
       // Copies on the face: a row or a bolt circle (each a hole of the kernel's, one step in the history).
       const count = Math.round(Number(v.pn));
-      if (v.pat !== 'one' && v.pat !== undefined && !(count >= 2 && count <= 64)) throw new Error('A hole pattern has 2 to 64 holes.');
+      if (v.pat !== 'one' && v.pat !== undefined && !(count >= 2 && count <= 64)) throw refusal('HOLE_PATTERN', 'A hole pattern has 2 to 64 holes.');
       const pattern: HolePattern | undefined = v.pat === 'row' ? { count, step: [Number(v.pa), Number(v.pb)] } : v.pat === 'circle' ? { count, about: [Number(v.qa), Number(v.qb)] } : undefined;
-      if (pattern && 'step' in pattern && !(Math.hypot(pattern.step[0], pattern.step[1]) > Number(v.d))) throw new Error('The row’s step must be longer than the hole’s diameter, or the holes run into each other.');
-      if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw new Error('Put the first hole away from the circle’s centre: the copies turn round it.');
+      if (pattern && 'step' in pattern && !(Math.hypot(pattern.step[0], pattern.step[1]) > Number(v.d))) throw refusal('HOLE_PATTERN', 'The row’s step must be longer than the hole’s diameter, or the holes run into each other.');
+      if (pattern && 'about' in pattern && Math.hypot(Number(v.x) - pattern.about[0], Number(v.y) - pattern.about[1]) < 1e-6) throw refusal('HOLE_PATTERN', 'Put the first hole away from the circle’s centre: the copies turn round it.');
       const pat = pattern ? { pattern } : {};
       const doc = withNode(ctx.doc, { kind: 'hole', parent: refOf(body), radius: Number(v.d) / 2, ...at, ...(blind ? { depth: Number(v.depth) } : {}), ...(tapped ? { thread: `${v.thread}×${tapped.pitch}` } : {}), ...(v.type === 'countersink' ? { countersink: Number(v.csd) } : {}), ...pat });
       if (v.type === 'counterbore') return withNode(doc, { kind: 'hole', parent: { node: doc.nodes.length - 1, side: 'solid' }, radius: Number(v.cd) / 2, depth: Number(v.ch), ...at, ...pat });
@@ -440,8 +441,8 @@ const allCommands: Command[] = [
     defaults: () => ({ deg: 5 }),
     steps: ctx => { const d = draftOf(ctx); return typeof d === 'string' ? [] : [{ label: 'Faces', text: d.extrude !== null ? `every side of its extrusion: the extrusion's own draft (exact)` : `${d.faces.length} side face${d.faces.length === 1 ? '' : 's'}, turned about the body's bottom`, done: true }]; },
     build: (ctx, v) => {
-      const d = draftOf(ctx); if (typeof d === 'string') throw new Error(d);
-      const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw new Error('A draft angle is not 0 and below 45° in size.');
+      const d = draftOf(ctx); if (typeof d === 'string') throw refusal('DRAFT_PICK', d);
+      const deg = Number(v.deg); if (!(deg !== 0 && Math.abs(deg) < 45)) throw refusal('DRAFT_ANGLE', 'A draft angle is not 0 and below 45° in size.');
       if (d.extrude !== null) return { ...ctx.doc, nodes: ctx.doc.nodes.map((n, i) => i === d.extrude && n.kind === 'extrude' ? { ...n, draft: deg } : n) };
       return withNode(ctx.doc, { kind: 'draft', parent: refOf(d.body), faces: d.faces, angleDegrees: deg });
     },
@@ -483,7 +484,7 @@ const allCommands: Command[] = [
       // (An end radius: the radius varies along the picked chain from its start to its end, R10.5, D100.)
       if (r1 > 0 && Math.abs(r1 - r) > 1e-9) {
         const ends = chainEnds(edges);
-        if (!ends) throw new Error('A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
+        if (!ends) throw refusal('FILLET_CHAIN', 'A varying radius needs the picked edges to form one open chain: its two ends take the two radii.');
         return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, radii: [{ at: ends[0], radius: r }, { at: ends[1], radius: r1 }], ...shaped });
       }
       return withNode(ctx.doc, { kind: 'fillet', parent: refOf(body), edges: names, radius: r, ...shaped });
@@ -497,7 +498,7 @@ const allCommands: Command[] = [
     defaults: () => ({ keep: 25, maxError: 0, crease: 0 }),
     build: (ctx, v) => {
       const body = ctx.bodies[selectedBodies(ctx.selection)[0]], keep = Math.round(Number(v.keep)), maxError = Number(v.maxError), crease = Number(v.crease);
-      if (!(keep >= 1 && keep <= 99)) throw new Error('Keep between 1 and 99% of the triangles.');
+      if (!(keep >= 1 && keep <= 99)) throw refusal('DECIMATE_KEEP', 'Keep between 1 and 99% of the triangles.');
       return withNode(ctx.doc, { kind: 'decimate', parent: refOf(body), ratio: keep / 100, ...(maxError > 0 ? { maxError } : {}), ...(crease > 0 ? { featureAngle: crease } : {}) });
     },
   },
@@ -683,7 +684,7 @@ const allCommands: Command[] = [
     steps: (_ctx, v) => v.axis === 'n' ? [{ label: 'Plane', text: splitNormal(v) ? `${planeText(splitNormal(v)!)} = ${Number(v.at)}` : 'Give the plane a direction: its normal must not be zero.', done: !!splitNormal(v) }] : [],
     build: (ctx, v) => {
       if (v.axis !== 'n') return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: v.axis as Axis, at: Number(v.at) });
-      const n = splitNormal(v); if (!n) throw new Error('Give the plane a direction: its normal must not be zero.');
+      const n = splitNormal(v); if (!n) throw refusal('SPLIT_PLANE', 'Give the plane a direction: its normal must not be zero.');
       return withNode(ctx.doc, { kind: 'split', parent: refOf(oneBody(ctx)!), axis: 'x', normal: n, at: Number(v.at) });
     },
   },

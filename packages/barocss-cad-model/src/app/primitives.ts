@@ -4,6 +4,7 @@
 import { bevelGearDimensions, wormDimensions, wormWheelSpec, checkWormPair } from '@barocss/cad';
 import { withNode, type CamLawName, type LoopSegment, type ModelNode, type StudioDoc } from '../engine/doc';
 import type { Command, Ctx, HandleSpec, Values } from './commands';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const };
 const r1 = (v: number) => Math.round(v * 10) / 10;
@@ -140,7 +141,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [R, r, x, y, z] = n(v, 'R', 'r', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('R', [x + R + r, y, z + r], X, { min: 1 }), arrow('r', [x + R, y, z + 2 * r], Z, { scale: 0.5 })]; },
     build: (ctx, v) => {
       const R = Number(v.R), r = Number(v.r);
-      if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
+      if (!(r < R)) throw refusal('PRIMITIVE_SIZE', 'The tube radius must be smaller than the ring radius.');
       return turned(ctx.doc, { kind: 'sketch', profile: 'circle', center: [R, r], radius: r, plane: upright(v) });
     },
   },
@@ -289,7 +290,7 @@ export const primitives: Command[] = [
         const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
         return withNode(ctx.doc, { kind: 'gear', module: ring.node.module, teeth: Math.round(z), faceWidth: ring.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(ring.node.thicknessReduction !== undefined ? { thicknessReduction: ring.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: ring.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@1' });
       }
-      const g = gearPicked(ctx); if (!g) throw new Error('Select one spur gear or internal gear to mesh with.');
+      const g = gearPicked(ctx); if (!g) throw refusal('GEAR_PICK', 'Select one spur gear or internal gear to mesh with.');
       const [z, dir, bore, shift] = n(v, 'teeth', 'dir', 'bore', 'shift');
       return withNode(ctx.doc, { kind: 'gear', module: g.node.module, teeth: Math.round(z), faceWidth: g.node.faceWidth, ...(shift ? { profileShift: shift } : {}), ...(bore > 0 ? { bore } : {}), ...(g.node.thicknessReduction !== undefined ? { thicknessReduction: g.node.thicknessReduction } : {}), center: [0, 0], mesh: { gear: g.index, ...(dir ? { direction: dir } : {}) }, generator: 'spur-gear@1' });
     },
@@ -320,7 +321,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [R, r, x, y, z] = n(v, 'R', 'r', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('R', [x + R + r, y, z + r], X, { min: 1 }), arrow('r', [x + R, y, z + 2 * r], Z, { scale: 0.5 })]; },
     build: (ctx, v) => {
       const [R, r] = n(v, 'R', 'r');
-      if (!(r < R)) throw new Error('The tube radius must be smaller than the ring radius.');
+      if (!(r < R)) throw refusal('PRIMITIVE_SIZE', 'The tube radius must be smaller than the ring radius.');
       return withNode(ctx.doc, { kind: 'subd', name: 'torus', cage: torusCage(R, r, Math.round(Number(v.nu)), Math.round(Number(v.nv)), n(v, 'x', 'y', 'z') as [number, number, number]) });
     },
   },
@@ -333,7 +334,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [r, ri, h, x, y, z] = n(v, 'r', 'ri', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z + h / 2], X, { min: 1 }), arrow('ri', [x - ri, y, z + h], [-1, 0, 0], { min: 0.5 }), arrow('h', [x + (r + ri) / 2, y, z + h], Z, { min: 1 })]; },
     build: (ctx, v) => {
       const [r, ri, h] = n(v, 'r', 'ri', 'h');
-      if (!(ri < r)) throw new Error('The inner radius must be smaller than the outer one.');
+      if (!(ri < r)) throw refusal('PRIMITIVE_SIZE', 'The inner radius must be smaller than the outer one.');
       return withNode(ctx.doc, { kind: 'subd', name: 'tube', cage: tubeCage(r, ri, h, Math.round(Number(v.nu)), Math.round(Number(v.nh)), n(v, 'x', 'y', 'z') as [number, number, number]) });
     },
   },
@@ -358,7 +359,7 @@ export const primitives: Command[] = [
     handles: (_, v) => { const [r, ri, h, x, y, z] = n(v, 'r', 'ri', 'h', 'x', 'y', 'z'); return [puck([x, y, z]), arrow('r', [x + r, y, z + h / 2], X, { min: 1 }), arrow('ri', [x - ri, y, z + h], [-1, 0, 0], { min: 0.1 }), arrow('h', [x + (r + ri) / 2, y, z + h], Z)]; },
     build: (ctx, v) => {
       const r = Number(v.r), ri = Number(v.ri), x = Number(v.x), y = Number(v.y), z = Number(v.z);
-      if (!(ri < r)) throw new Error('The inner radius must be smaller than the outer one.');
+      if (!(ri < r)) throw refusal('PRIMITIVE_SIZE', 'The inner radius must be smaller than the outer one.');
       const d = withNode(ctx.doc, { kind: 'sketch', profile: 'circle', center: [x, y], radius: r, holes: [circleLoop(x, y, ri)] });
       return withNode(d, { kind: 'extrude', sketch: d.nodes.length - 1, height: Number(v.h), ...(z ? { from: z } : {}) });
     },
