@@ -8,8 +8,8 @@ has seen them. The API lane wrote this note, and the coordinator reconciles it w
   `.step()`, `.stl()` and `.meshes()`. The shared selectors and `BarocssError` live here.
 - **`@barocss/cad-model/api`:** the same chain over `StudioDoc`, with `.mass(material)`, `.step()` and `.meshes()`. It
   uses cad's selectors and error.
-- **`@barocss/gpu/api`:** an immutable `scene()` and `show(viewer, scene)`. The browser check waits on the
-  coordinate frame.
+- **`@barocss/gpu/api`:** an immutable `scene()` and `show(viewer, scene)`. The coordinate frame is settled: Z-up, as
+  given. The browser check runs through the gpu lane's harness.
 
 ## What it is
 
@@ -75,12 +75,12 @@ await view.showIn(viewer);               // viewer.clear(), viewer.add(...) per 
 - `part().meshes()`, in cad and in cad-model, returns `{ key, positions, normals, indices }` per body. That structurally
   matches gpu's `GeometryInput`, so neither package imports the other.
 - In cad, the meshes come from the kernel's tessellation of each output. In cad-model, they come from `BodyResult.mesh`.
-- **The coordinate frame is a prerequisite** (coordinator, 2026-10-24). CAD is right-handed, Z-up, in mm. gpu's mesh
-  packets declare `right-handed-y-up` (mesh-packet.ts, kernel-face-preview.ts).
-  - The facades never convert axes themselves.
-  - Either the Viewer takes Z-up (a camera up axis), or one documented conversion happens in exactly one place. That's
-    item 1 of §10 of the coordinator's proposed common formats, and the GPU lane measures it first.
-  - gpu's slice waits for it.
+- **The coordinate frame is settled: Z-up, as given** (the GPU lane checked, 2026-10-24).
+  - The Viewer is already Z-up: Camera's `up` defaults to [0, 0, 1], `fit` uses the same, and the grid is the XY plane.
+  - The studio feeds CAD XYZ in mm to it with no conversion.
+  - The packets' `right-handed-y-up` tag is a label only: no code reorients on it. The GPU lane renames it in R7.3.
+  - So `.meshes()` and `scene()` take CAD coordinates directly. There's no conversion and no axis option.
+  - `SceneData` carries `frame: 'z-up'`. It records what's true, and it never uses the packets' old tag.
 
 **The kernel facade's mapping** (to be checked with the kernel lane through the coordinator):
 - `box(w, d, h)` is a rectangle `sketch` feature plus an `extrude` feature, with ids the facade assigns in feature
@@ -319,7 +319,8 @@ retires modeling.ts.
   - cad's `.meshes()` goes in as the same arrays, with no conversion;
   - the refusals.
 - This test isn't yet in gpu's `test` script list, because package.json's scripts are the gpu lane's.
-- The browser check comes after the coordinate-frame decision.
+- The browser check (the bracket through `show()`, with `sceneBounds()` equal to its bounds) runs through the gpu
+  lane's harness.
 
 ### cad-model (`packages/barocss-cad-model/src/api/`)
 
