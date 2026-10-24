@@ -35,7 +35,7 @@ import { angleBetween, edgeAt, inView, resolveLine, newDimensionId, orientFor, r
 import { DETAIL_PARENTS, type DetailParent } from '@barocss/cad-model/drawing/detail';
 import { DetailsList } from './drawing/DetailsList';
 import { BreaksList } from './drawing/BreaksList';
-import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, sameSection, sectionLetter, sectionsOf, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
+import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, nextSectionId, sameSection, sectionLetter, sectionsOf, withSections, type DimView, type DimPoint, type DrawingNote, type EdgeRef, type DrawingDimension, type DrawingSettings, type DrawingViews, type Vec3, type ViewId, type XY } from '@barocss/cad-model/drawing/types';
 import { downloadBytes } from './files';
 import { today, useDrawingSheet } from './useDrawingSheet';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
@@ -88,7 +88,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const [hover, setHover] = useState<Hover | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [drag, setDrag] = useState<{ id: string; place: XY } | { note: string; at: XY; grab: XY } | { detail: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
+  const [drag, setDrag] = useState<{ id: string; place: XY } | { note: string; at: XY; grab: XY } | { detail: string; at: XY; grab: XY } | { removed: string; at: XY; grab: XY } | { pan: XY; box: [number, number, number, number] } | null>(null);
   /** The selected note's text while it is typed, and the selected dimension's tolerance fields. */
   const [noteDraft, setNoteDraft] = useState<string | null>(null);
   const [tolDraft, setTolDraft] = useState<Record<string, string>>({});
@@ -160,10 +160,11 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const viewAt = useCallback((q: XY): DimView | null => {
     if (!layout) return null;
     let best: DimView | null = null, bestD = 30;
-    const near = (id: DimView, [x0, y0, x1, y1]: readonly number[]) => { const d = Math.max(x0 - q[0], q[0] - x1, y0 - q[1], q[1] - y1, 0); if (d < bestD) { bestD = d; best = id; } };
+    // (DR-4: a revolved section lies on its view: inside its box, it is taken before the view.)
+    const near = (id: DimView, [x0, y0, x1, y1]: readonly number[], over = 0) => { const d = Math.max(x0 - q[0], q[0] - x1, y0 - q[1], q[1] - y1, 0); if (d - (d === 0 ? over : 0) < bestD) { bestD = d - (d === 0 ? over : 0); best = id; } };
     for (const id of VIEW_IDS) if (!layout.views[id].hidden) near(id, layout.views[id].box);
     // (O148 X2: the sections as placed, dimensioned as views are.)
-    for (const x of sheet?.sections ?? []) near(`section:${x.id}`, x.placement.box);
+    for (const x of sheet?.sections ?? []) near(`section:${x.id}`, x.placement.box, x.form === 'revolved' ? 1 : 0);
     // (DR-1: the details as drawn, dimensioned as views are.)
     for (const x of sheet?.details ?? []) near(`detail:${x.id}`, x.placement.box);
     return best;
@@ -293,6 +294,12 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         const at = toSheet(det.placement, sd.center);
         setSelected(null); setDrag({ detail: det.id, at, grab: [qd[0] - at[0], qd[1] - at[1]] }); (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
       }
+      // (DR-4: a removed section grabbed anywhere in its box moves it; its place is its box's centre.)
+      const rem = !onDim && qd ? sheet?.sections?.find(x => x.form === 'removed' && qd[0] >= x.placement.box[0] && qd[0] <= x.placement.box[2] && qd[1] >= x.placement.box[1] && qd[1] <= x.placement.box[3]) : undefined;
+      if (rem && qd) {
+        const b = rem.placement.box, at: XY = [(b[0] + b[2]) / 2, (b[1] + b[3]) / 2];
+        setSelected(null); setDrag({ removed: rem.id, at, grab: [qd[0] - at[0], qd[1] - at[1]] }); (e.currentTarget as Element).setPointerCapture(e.pointerId); return;
+      }
       const id = target?.getAttribute('data-dim') ?? null;
       setSelected(id); setNoteDraft(null); setTolDraft({});
       const d = id ? settings.dimensions.find(x => x.id === id) : undefined, n = id ? settings.notes?.find(x => x.id === id) : undefined, q = sheetPoint(e.clientX, e.clientY);
@@ -309,7 +316,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     if (drag && 'pan' in drag) {
       const k = mmPerPx(); setBox([drag.box[0] - (e.clientX - drag.pan[0]) * k, drag.box[1] - (e.clientY - drag.pan[1]) * k, drag.box[2], drag.box[3]]); return;
     }
-    if (drag && ('note' in drag || 'detail' in drag)) {
+    if (drag && ('note' in drag || 'detail' in drag || 'removed' in drag)) {
       const q = sheetPoint(e.clientX, e.clientY);
       if (q) setDrag({ ...drag, at: [Math.round((q[0] - drag.grab[0]) * 10) / 10, Math.round((q[1] - drag.grab[1]) * 10) / 10] });
       return;
@@ -323,6 +330,11 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
     setHover(hoverAt(e.clientX, e.clientY) ?? placingAt(e.clientX, e.clientY));
   };
   const onPointerUp = () => {
+    if (drag && 'removed' in drag) {
+      const list = sectionsOf(settings), x = list.find(y => y.id === drag.removed);
+      if (x?.removed && (x.removed.at?.[0] !== drag.at[0] || x.removed.at?.[1] !== drag.at[1])) onChange(withSections(settings, list.map(y => y === x ? { ...y, removed: { ...y.removed, at: drag.at } } : y)));
+      setDrag(null); return;
+    }
     if (drag && 'detail' in drag) {
       const d = settings.details?.find(x => x.id === drag.detail);
       if (d && (d.at?.[0] !== drag.at[0] || d.at?.[1] !== drag.at[1])) onChange({ ...settings, details: settings.details!.map(x => x.id === d.id ? { ...x, at: drag.at } : x) });
@@ -379,6 +391,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
       section: cutA ? (cutA.result.ok ? { rings: cutA.result.rings.length, edges: cutA.result.projection.edges.length } : { error: cutA.result.error }) : null,
       sections: (cutsMade ?? []).map(c => ({ id: c.id, view: c.view, at: c.at, ...(c.result.ok ? { rings: c.result.rings.length, edges: c.result.projection.edges.length } : { error: c.result.error }) })),
       placedSections: (layout?.sections ?? []).map(p => ({ id: p.section, of: p.of, box: p.box })),
+      apartSections: (sheet.sections ?? []).filter(x => x.form).map(x => ({ id: x.id, form: x.form, ...(x.on ? { on: x.on } : {}), scale: x.placement.scale, box: x.placement.box, edges: x.projection.edges.length })),
       details: (sheet.details ?? []).map(d => ({ id: d.id, view: d.view, scale: d.scale, box: d.placement.box, edges: d.projection.edges.length })),
       boxes: Object.fromEntries(VIEW_IDS.map(id => [id, layout!.views[id].box])), breaks: Object.fromEntries(VIEW_IDS.filter(id => layout!.views[id].breaks).map(id => [id, layout!.views[id].breaks])),
       issues: issues.map(x => ({ code: x.code, severity: x.severity, ...(x.fix ? { fix: x.fix.kind } : {}), ...(x.tables ? { tables: x.tables } : {}) })),
@@ -502,6 +515,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const shownMarkup = useMemo(() => {
     if (!drag || 'pan' in drag || !views || !layout || !sheet) return sheetMarkup;
     if ('detail' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, details: (settings.details ?? []).map(d => d.id === drag.detail ? { ...d, at: drag.at } : d) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
+    if ('removed' in drag) return sheetGroupsSvg(buildSheet(views, layout, withSections(settings, sectionsOf(settings).map(x => x.id === drag.removed && x.removed ? { ...x, removed: { ...x.removed, at: drag.at } } : x)), { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
     if ('note' in drag) return sheetGroupsSvg(buildSheet(views, layout, { ...settings, notes: (settings.notes ?? []).map(n => n.id === drag.note ? { ...n, at: drag.at } : n) }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);
     const dims = settings.dimensions.map(d => d.id === drag.id ? (d.kind === 'linear' ? { ...d, place: drag.place, orient: orientFor(pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.a), pointIn(projectionOf(views, sheet ?? undefined, d.view)!, d.b), drag.place) } : { ...d, place: drag.place }) : d);
     return sheetGroupsSvg(buildSheet(views, layout, { ...settings, dimensions: dims }, { title, date: today(), callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), selected);

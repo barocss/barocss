@@ -54,7 +54,7 @@ export function hatchGroups(rings: readonly XY[][], bodies?: readonly number[]):
 }
 /** The sections that cut (O148 X1), as the sheet draws them; one that failed is left out (its error is the caller's to say). */
 export const sheetSections = (cuts: readonly (DrawingSection & { result: { ok: true; projection: BrepProjection; rings: XY[][]; ringBodies?: number[] } | { ok: false; error: string } })[]): SheetSection[] =>
-  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, ...(c.dir ? { dir: c.dir } : {}), ...(c.half ? { half: c.half } : {}), ...(c.steps ? { steps: c.steps, ...(c.along ? { along: c.along } : {}) } : {}), projection: c.result.projection, rings: c.result.rings, ...(c.result.ringBodies ? { ringBodies: c.result.ringBodies } : {}) }] : []);
+  cuts.flatMap(c => c.result.ok ? [{ id: c.id, view: c.view, at: c.at, ...(c.dir ? { dir: c.dir } : {}), ...(c.half ? { half: c.half } : {}), ...(c.steps ? { steps: c.steps, ...(c.along ? { along: c.along } : {}) } : {}), ...(c.removed ? { removed: c.removed } : {}), ...(c.revolved ? { revolved: true as const } : {}), projection: c.result.projection, rings: c.result.rings, ...(c.result.ringBodies ? { ringBodies: c.result.ringBodies } : {}) }] : []);
 /** The middle of the part along a section view's depth (O148 X1: where a new section is cut), from a view that sees that depth edge-on; null if none is shown. */
 export function sectionMiddle(views: DrawingViews, view: SectionViewId, orientation?: Orientation): number | null {
   const { k, sign } = sectionDepth(view, orientation);
@@ -83,15 +83,17 @@ export function projectionOf(views: DrawingViews, sheet: Pick<Sheet, 'sections' 
 /** O148 X1: the extents of the sections the settings list and the caller cut (for the layout). */
 export function sectionExtents(settings: DrawingSettings, sections?: readonly SheetSection[]): SectionExtent[] {
   const out: SectionExtent[] = [];
-  for (const x of sectionsOf(settings)) { const c = sections?.find(y => sameSection(y, x)); if (c) out.push({ id: x.id, view: x.view, min: c.projection.min, max: c.projection.max, ...(x.dir ? { aligned: true as const } : {}) }); }
+  // (DR-4: a removed or revolved section takes no room in the rows: it is drawn apart, or on its view.)
+  for (const x of sectionsOf(settings)) { if (x.removed || x.revolved) continue; const c = sections?.find(y => sameSection(y, x)); if (c) out.push({ id: x.id, view: x.view, min: c.projection.min, max: c.projection.max, ...(x.dir ? { aligned: true as const } : {}) }); }
   return out;
 }
 /** `detail` (DR-1): a detail's circle and letter on its parent (`view` the parent), or the detail itself (`view` its own `detail:B`). */
 export interface MarkGroup { role: 'frame' | 'title' | 'view' | 'label' | 'dimension' | 'section' | 'note' | 'datum' | 'control' | 'table' | 'weld' | 'balloon' | 'detail'; id?: string; view?: DimView; marks: Mark[] }
+export interface SheetSectionPlaced { id: string; view: SectionViewId; placement: SectionPlacement; projection: BrepProjection; form?: 'removed' | 'revolved'; on?: ViewId }
 /** DR-1: a detail as the sheet drew it: its parent, scale, placement (its circle's square) and clipped projection; where its dimensions are drawn. */
 export interface SheetDetail { id: string; view: DetailParent; scale: number; placement: ViewPlacement; projection: BrepProjection }
 /** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
-export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] }; /** O148 X2: each section as placed (moved under its view's name) with its projection: where its dimensions are drawn. */ sections?: { id: string; view: SectionViewId; placement: SectionPlacement; projection: BrepProjection }[]; /** DR-1: each detail drawn; `unplaced`: the details whose parent is not on the sheet, and those with no room. */ details?: SheetDetail[]; detailsMissing?: { id: string; why: 'parent' | 'room' | 'empty' }[] }
+export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] }; /** O148 X2: each section as placed (moved under its view's name) with its projection: where its dimensions are drawn. DR-4: `form` a removed or revolved one's, `on` the view a revolved one is drawn on. */ sections?: SheetSectionPlaced[]; /** DR-4: the removed sections with no free room, the revolved ones with no view to be drawn on. */ sectionsMissing?: { id: string; why: 'room' | 'view' }[]; /** DR-1: each detail drawn; `unplaced`: the details whose parent is not on the sheet, and those with no room. */ details?: SheetDetail[]; detailsMissing?: { id: string; why: 'parent' | 'room' | 'empty' }[] }
 
 export const TEXT = 3.5;
 const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
@@ -139,6 +141,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (Pushed after each section's drawing, as A–A's always was: the DXF's entities keep their order.)
   const cutting = new Map<string, MarkGroup>();
   for (const p of layout.sections ?? []) { const sec = sections?.find(x => x.id === p.section); const g = sec && cuttingPlane(layout, views, sec, settings.orientation); if (g) cutting.set(p.section, g); }
+  for (const sec of sections ?? []) if (sec.removed && sectionsOf(settings).some(x => sameSection(x, sec))) { const g = cuttingPlane(layout, views, sec, settings.orientation); if (g) cutting.set(sec.id, g); }
   // Each view's name under it, below any dimension placed under the view.
   for (const id of VIEW_IDS) {
     if (layout.views[id].hidden) continue;
@@ -148,7 +151,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     groups.push({ role: 'label', view: id, marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: VIEWS[id].label, size: 2.5, anchor: 'middle' }] });
   }
   // (O148 X1: each section placed, its name under it; a front's or a right's under its view's name, as A–A always was.)
-  const onSheet: NonNullable<Sheet['sections']> = [], inSections = new Map<string, Resolved>();
+  const onSheet: SheetSectionPlaced[] = [], inSections = new Map<string, Resolved>();
   for (const p of layout.sections ?? []) {
     const sec = sections?.find(x => x.id === p.section); if (!sec) continue;
     const parent = p.of !== 'top' ? groups.find(g => g.role === 'label' && g.view === p.of)?.marks[0] as Extract<Mark, { kind: 'text' }> | undefined : undefined;
@@ -171,6 +174,10 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= x0 - 2 && q[0] <= x1 + 2 && q[1] > below) below = q[1];
     groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: `SECTION ${sec.id}–${sec.id}`, size: 2.5, anchor: 'middle' }] });
   }
+  // (DR-4: the removed sections in free room and the revolved ones on their views, after the others; their dimensions too.)
+  const apart = apartSections(layout, views, settings, groups, onSheet, sections ?? [], cutting, meta.callout);
+  groups.push(...apart.groups); onSheet.push(...apart.placed);
+  for (const [id, r] of apart.resolved) inSections.set(id, r);
   // (A dimension on a section the sheet does not have, kept unresolved so the issue list names it; its frames, as a view's.)
   for (const d of settings.dimensions) if (isSectionRef(d.view) && !inSections.has(d.id)) inSections.set(d.id, { ok: false, dim: d, reason: `Its section (${sectionLetter(d.view)}–${sectionLetter(d.view)}) is not on the sheet.` });
   // (DR-1: the details, after the sections — a detail may enlarge one — each with its dimensions and name.)
@@ -188,13 +195,95 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
   // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
   const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent).content, t.at!, t.corner ?? 'top-left').box as Rect);
-  const detailBoxes = drawn.details.map(x => x.box);
+  const detailBoxes = [...drawn.details.map(x => x.box), ...apart.boxes];
   const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups, detailBoxes), ...pinned], meta.bodyFaces) : null;
   if (balloons) groups.push(...balloons.groups);
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent, detailBoxes);
   groups.push(...tables.groups);
-  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}), ...(onSheet.length ? { sections: onSheet } : {}), ...(drawn.details.length ? { details: drawn.details.map(x => x.detail) } : {}), ...(drawn.missing.length ? { detailsMissing: drawn.missing } : {}) };
+  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}), ...(onSheet.length ? { sections: onSheet } : {}), ...(drawn.details.length ? { details: drawn.details.map(x => x.detail) } : {}), ...(drawn.missing.length ? { detailsMissing: drawn.missing } : {}), ...(apart.missing.length ? { sectionsMissing: apart.missing } : {}) };
+}
+
+/** The view a revolved section is drawn on (DR-4): a front section's on the top view, a top's or a right's on the front view (both always shown). */
+export const REVOLVED_ON: Record<SectionViewId, ViewId> = { front: 'top', top: 'front', right: 'front' };
+/**
+ * Where a revolved section (DR-4) is drawn on its view: the cut face turned a quarter about its trace (the plane seen
+ * edge-on) so that it faces the view's viewer as it faced the section's — p' = p + (p·t − c)·d with t the view's
+ * `toward`, d the section's depth and c the face's middle along t, so the face is centred on the trace. For the views
+ * REVOLVED_ON names this map is a pure shift in the section's own coordinates; the placement is the view's scale with
+ * the origin moved by it (through the view's breaks at the face's middle). Null when the view is hidden or the map is not
+ * a shift.
+ */
+export function revolvedPlacement(layout: SheetLayout, views: DrawingViews, sec: Pick<SheetSection, 'id' | 'view' | 'at' | 'projection'>): { placement: SectionPlacement; on: ViewId; along: XY } | null {
+  const on = REVOLVED_ON[sec.view], W = layout.views[on], w = views[on], pr = sec.projection;
+  if (W.hidden) return null;
+  const d = [-pr.toward[0], -pr.toward[1], -pr.toward[2]], n2: XY = [dot3(d, w.right), dot3(d, w.up)];
+  const lin = [dot3(pr.right, w.right) + dot3(pr.right, w.toward) * n2[0], dot3(pr.up, w.right) + dot3(pr.up, w.toward) * n2[0], dot3(pr.right, w.up) + dot3(pr.right, w.toward) * n2[1], dot3(pr.up, w.up) + dot3(pr.up, w.toward) * n2[1]];
+  if (Math.abs(dot3(d, w.toward)) > 1e-9 || Math.abs(lin[0] - 1) > 1e-9 || Math.abs(lin[1]) > 1e-9 || Math.abs(lin[2]) > 1e-9 || Math.abs(lin[3] - 1) > 1e-9) return null;
+  // (The face's middle along the view's toward: from its extent's corners, p·t linear in the section's coordinates.)
+  const tr = dot3(pr.right, w.toward), tu = dot3(pr.up, w.toward), lo = Math.min(tr * pr.min[0], tr * pr.max[0]) + Math.min(tu * pr.min[1], tu * pr.max[1]), hi = Math.max(tr * pr.min[0], tr * pr.max[0]) + Math.max(tu * pr.min[1], tu * pr.max[1]);
+  const c = (lo + hi) / 2, shift: XY = [(sec.at - c) * n2[0], (sec.at - c) * n2[1]];
+  const A: XY = [(pr.min[0] + pr.max[0]) / 2, (pr.min[1] + pr.max[1]) / 2], at = toSheet(W, [A[0] + shift[0], A[1] + shift[1]]), s = W.scale;
+  const origin: XY = [at[0] - s * A[0], at[1] + s * A[1]];
+  return { on, along: [-n2[1], n2[0]], placement: { id: 'section', section: sec.id, of: sec.view, scale: s, origin, box: [origin[0] + s * pr.min[0], origin[1] - s * pr.max[1], origin[0] + s * pr.max[0], origin[1] - s * pr.min[1]] } };
+}
+const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+/**
+ * The removed and revolved sections (DR-4). A removed one: its cut face (outline and hatch) at its scale (absent: the
+ * sheet's) centred where it was put or in the first free room (as a detail is found room), its dimensions, its name
+ * `SECTION B–B` (with its scale when not the sheet's) under them; its cutting line (already in `cutting`) on its view. A
+ * revolved one: its cut face on the view REVOLVED_ON names (revolvedPlacement), a centreline along the trace 3 mm past
+ * it, no name; its dimensions drawn there.
+ */
+function apartSections(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: readonly SheetSectionPlaced[], sections: readonly SheetSection[], cutting: ReadonlyMap<string, MarkGroup>, callout?: (edge: string, diameterMM?: number) => string | null): { groups: MarkGroup[]; placed: SheetSectionPlaced[]; boxes: Rect[]; missing: NonNullable<Sheet['sectionsMissing']>; resolved: Map<string, Resolved> } {
+  const groups: MarkGroup[] = [], placed: SheetSectionPlaced[] = [], boxes: Rect[] = [], missing: NonNullable<Sheet['sectionsMissing']> = [], resolved = new Map<string, Resolved>();
+  const taken = takenOf(layout, [...before, ...cutting.values()], placedSections.map(x => x.placement.box));
+  for (const s of sectionsOf(settings)) {
+    if (!s.removed && !s.revolved) continue;
+    const sec = sections.find(x => sameSection(x, s)); if (!sec) continue;
+    const pr = sec.projection, ref: SectionRef = `section:${s.id}`;
+    let placement: SectionPlacement, on: ViewId | undefined, along: XY | null = null, k = layout.scale;
+    if (s.removed) {
+      // (Its place and scale from the settings: the cut is matched without them, so a moved one is not cut again.)
+      k = s.removed.scale ?? layout.scale;
+      const w = k * (pr.max[0] - pr.min[0]), h = k * (pr.max[1] - pr.min[1]);
+      let at: XY | null = s.removed.at ?? null;
+      if (!at) { const room = detailRoom(layout, taken, w, h + DETAIL_LABEL); if (room) at = [room[0] + w / 2, room[1] + h / 2]; }
+      if (!at) { missing.push({ id: s.id, why: 'room' }); continue; }
+      const cx = (pr.min[0] + pr.max[0]) / 2, cy = (pr.min[1] + pr.max[1]) / 2;
+      placement = { id: 'section', section: s.id, of: s.view, scale: k, origin: [at[0] - k * cx, at[1] + k * cy], box: [at[0] - w / 2, at[1] - h / 2, at[0] + w / 2, at[1] + h / 2] };
+    } else {
+      const r = revolvedPlacement(layout, views, sec);
+      if (!r) { missing.push({ id: s.id, why: 'view' }); continue; }
+      placement = r.placement; on = r.on; along = r.along;
+    }
+    const marks: Mark[] = [];
+    for (const e of pr.edges) for (const p of e.pieces) if (p.visible) marks.push(curveMark(placement, p.curve, 'visible'));
+    for (const g of hatchGroups(sec.rings, sec.ringBodies)) marks.push({ kind: 'hatch', rings: g.rings.map(r => r.map(q => toSheet(placement, q))), spacing: g.spacing, angle: g.angle, pen: 'thin' });
+    if (along) {
+      // (The axis it was turned about: the trace, through the face's middle, 3 mm past its ends.)
+      const A: XY = [(pr.min[0] + pr.max[0]) / 2, (pr.min[1] + pr.max[1]) / 2], reach = Math.max(Math.abs(along[0]) * (pr.max[0] - pr.min[0]), Math.abs(along[1]) * (pr.max[1] - pr.min[1])) / 2 + 3 / placement.scale;
+      marks.push({ kind: 'line', a: toSheet(placement, [A[0] - reach * along[0], A[1] - reach * along[1]]), b: toSheet(placement, [A[0] + reach * along[0], A[1] + reach * along[1]]), pen: 'center' });
+    }
+    groups.push({ role: 'section', id: s.id, ...(on ? { view: on } : {}), marks });
+    const cut = cutting.get(s.id); if (cut) groups.push(cut);
+    placed.push({ id: s.id, view: s.view, placement, projection: pr, form: s.removed ? 'removed' : 'revolved', ...(on ? { on } : {}) });
+    for (const d of settings.dimensions) if (d.view === ref) {
+      const r = resolveDimension({ [ref]: pr }, d), shown = r.ok ? { ...r, text: dimensionText(r, callout) } as Resolved : r;
+      resolved.set(d.id, shown);
+      if (!shown.ok) continue;
+      const dm = dimensionMarks(placement, shown); if (d.basic) dm.push(...basicBox(dm));
+      groups.push({ role: 'dimension', id: d.id, view: ref, marks: dm });
+    }
+    if (!s.removed) continue;
+    const [x0, , x1, y1] = placement.box;
+    let below = y1;
+    for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= x0 - 2 && q[0] <= x1 + 2 && q[1] > below) below = q[1];
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + DETAIL_LABEL], text: `SECTION ${s.id}–${s.id}${Math.abs(k - layout.scale) > 1e-12 ? ` (${scaleLabel(k)})` : ''}`, size: 2.5, anchor: 'middle' }] });
+    const box: Rect = [placement.box[0], placement.box[1], placement.box[2], below + DETAIL_LABEL];
+    taken.push(box); boxes.push(box);
+  }
+  return { groups, placed, boxes, missing, resolved };
 }
 
 type Rect = [number, number, number, number];

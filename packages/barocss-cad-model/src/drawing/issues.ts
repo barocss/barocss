@@ -37,7 +37,7 @@ import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewI
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW';
+export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW';
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -277,6 +277,12 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     else if (m.why === 'empty') out.push({ code: 'DETAIL_EMPTY', severity: 'warning', message: `Detail ${m.id}: its circle on ${parent} holds no line of the part.`, view: `detail:${m.id}`, fix: { kind: 'remove-detail', detail: m.id } });
     else out.push({ code: 'DETAIL_NO_ROOM', severity: 'error', message: `Detail ${m.id}: no free room on the sheet for it at ${scaleLabel(detailScale(d ?? {}, ctx.layout.scale))}. A larger sheet, a smaller scale for it, or placing it by hand gives room.` });
   }
+  // (DR-4: a removed section with no free room; a revolved one with no view to be drawn on.)
+  for (const m of sheet.sectionsMissing ?? []) {
+    const x = sectionsOf(settings).find(y => y.id === m.id);
+    if (m.why === 'room') out.push({ code: 'SECTION_NO_ROOM', severity: 'error', message: `Section ${m.id}–${m.id} (removed): no free room on the sheet for it at ${scaleLabel(x?.removed?.scale ?? ctx.layout.scale)}. A larger sheet, a smaller scale for it, or placing it by hand gives room.` });
+    else out.push({ code: 'SECTION_NO_VIEW', severity: 'error', message: `Section ${m.id}–${m.id} (revolved): no view shows its plane edge-on to turn it onto, so it is not drawn. A removed section shows the same cut face.` });
+  }
   // (DR-2: a break that shortens no shown orthographic view: its band misses the part, or only hidden views show its axis.)
   (settings.breaks ?? []).forEach((b, index) => {
     if ((['front', 'top', 'right'] as const).some(id => !ctx.layout.views[id].hidden && viewBreaksOf(ctx.views[id], [b]).length)) return;
@@ -300,21 +306,21 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   for (const p of placed) {
     if (p.owner.kind === 'label') {
       // A view's name sits under the dimensions below its view: pushed into the next view, it needs room, not a move.
-      if (p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet.details, b, p.owner.view))) out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing: the dimensions under its view push it there (a larger sheet or a smaller scale gives room).`, ...(p.owner.view ? { view: p.owner.view } : {}), at: center(p.boxes[0]) });
+      if (p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing: the dimensions under its view push it there (a larger sheet or a smaller scale gives room).`, ...(p.owner.view ? { view: p.owner.view } : {}), at: center(p.boxes[0]) });
       continue;
     }
     if (p.owner.kind === 'table') {
-      if (!flagged.has(`table:${p.owner.id}`) && p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet.details, b, undefined))) { flagged.add(`table:${p.owner.id}`); out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over a view of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewGrid) }); }
+      if (!flagged.has(`table:${p.owner.id}`) && p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet, b, undefined))) { flagged.add(`table:${p.owner.id}`); out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over a view of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewGrid) }); }
       continue;
     }
     if (p.owner.kind === 'weld' || p.owner.kind === 'balloon') {
       // (FRd2, and O147's balloons: a weld symbol's texts — its size and W-number — off the views' lines; its leader runs into its view by design.)
-      if (!flagged.has(`weld:${p.owner.id}`) && p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet.details, b, p.owner.view))) { flagged.add(`weld:${p.owner.id}`); out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]) }); }
+      if (!flagged.has(`weld:${p.owner.id}`) && p.boxes.some(b => viewGrid.hits(b) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) { flagged.add(`weld:${p.owner.id}`); out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `${cap(name(p.owner, sheet))} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]) }); }
       continue;
     }
     if (p.owner.kind !== 'dimension' || flagged.has(`dimension:${p.owner.id}`)) continue;
     const others = placed.filter(q => q !== p && (q.owner.kind === 'dimension' || q.owner.kind === 'weld' || q.owner.kind === 'balloon')).flatMap(q => q.lines);
-    if (p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, ctx.sheet.details, b, p.owner.view))) {
+    if (p.boxes.some(b => viewGrid.hits(b) || others.some(([s, t]) => segmentHitsQuad(s, t, b)) || onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))) {
       flagged.add(`dimension:${p.owner.id}`);
       out.push({ code: 'TEXT_OVER_LINES', severity: 'error', message: `The text of ${name(p.owner, sheet)} lies over lines of the drawing.`, ...ids([p]), at: center(p.boxes[0]), ...fixFor(ctx, p, placed, viewGrid) });
     }
@@ -396,9 +402,13 @@ function roundEdgeOf(views: DrawingViews, face: string): { center: readonly numb
   return null;
 }
 
-/** Whether a text box lies on the area of a view other than `own` (the section's too; a note's every view). */
-function onOtherView(layout: SheetLayout, details: Sheet['details'], b: Quad, own: DimView | undefined): boolean {
-  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own && !layout.views[v].hidden).map(v => layout.views[v].box).concat((layout.sections ?? []).filter(x => `section:${x.section}` !== own).map(x => x.box), (details ?? []).filter(x => `detail:${x.id}` !== own).map(x => x.placement.box));
+/**
+ * Whether a text box lies on the area of a view other than `own` (the section's too; a note's every view). DR-4: a removed
+ * section's area counts as a view's; a revolved one lies on its view, whose area is then its own too.
+ */
+function onOtherView(layout: SheetLayout, sheet: Pick<Sheet, 'details' | 'sections'>, b: Quad, own: DimView | undefined): boolean {
+  const host = sheet.sections?.find(x => x.form === 'revolved' && `section:${x.id}` === own)?.on;
+  const areas = (['front', 'top', 'right', 'iso'] as const).filter(v => v !== own && v !== host && !layout.views[v].hidden).map(v => layout.views[v].box).concat((layout.sections ?? []).filter(x => `section:${x.section}` !== own).map(x => x.box), (sheet.sections ?? []).filter(x => x.form === 'removed' && `section:${x.id}` !== own).map(x => x.placement.box), (sheet.details ?? []).filter(x => `detail:${x.id}` !== own).map(x => x.placement.box));
   return areas.some(([x0, y0, x1, y1]) => quadsOverlap(b, [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]));
 }
 
@@ -451,7 +461,7 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
   if (p.owner.kind === 'label' || p.owner.kind === 'datum' || p.owner.kind === 'weld' || p.owner.kind === 'balloon') return {};
   const others = placed.filter(q => !same(q.owner, p.owner)), boxes = others.flatMap(q => q.boxes), lines = others.filter(q => q.owner.kind === 'dimension' || q.owner.kind === 'weld' || q.owner.kind === 'balloon').flatMap(q => q.lines);
   const [fx0, fy0, fx1, fy1] = ctx.layout.frame, [tx0, ty0, tx1, ty1] = ctx.layout.title;
-  const clear = (q: Placed) => q.boxes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !viewGrid.hits(b) && !lines.some(([s, t]) => segmentHitsQuad(s, t, b)) && !onOtherView(ctx.layout, ctx.sheet.details, b, p.owner.view))
+  const clear = (q: Placed) => q.boxes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !viewGrid.hits(b) && !lines.some(([s, t]) => segmentHitsQuad(s, t, b)) && !onOtherView(ctx.layout, ctx.sheet, b, p.owner.view))
     && q.points.every(([x, y]) => x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1 && !(x > tx0 && x < tx1 && y > ty0 && y < ty1));
   if (p.owner.kind === 'table') {
     // (A table goes where an auto-placed one would: the first room clear of everything else, O49.)
@@ -501,7 +511,7 @@ export function marksClear(ctx: IssueContext, marks: Mark[], view: ViewId): bool
   const [fx0, fy0, fx1, fy1] = ctx.layout.frame, [tx0, ty0, tx1, ty1] = ctx.layout.title;
   // Its text and box clear of all; its leader and box lines clear of other texts.
   const shapes: Quad[] = [...me.boxes, ...marks.filter((m): m is Extract<Mark, { kind: 'polyline' }> => m.kind === 'polyline').map(m => [m.points[0], m.points[1], m.points[2], m.points[3]] as Quad)];
-  return shapes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !grid.hits(b) && !onOtherView(ctx.layout, ctx.sheet.details, b, view))
+  return shapes.every(b => !boxes.some(o => quadsOverlap(b, o)) && !grid.hits(b) && !onOtherView(ctx.layout, ctx.sheet, b, view))
     && me.lines.every(([p, q]) => !boxes.some(b => segmentHitsQuad(p, q, b)) && !grid.crosses(p, q))
     && me.points.every(([x, y]) => x >= fx0 && x <= fx1 && y >= fy0 && y <= fy1 && !(x > tx0 && x < tx1 && y > ty0 && y < ty1));
 }

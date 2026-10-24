@@ -58,8 +58,9 @@ export function reorient(from: DrawingViews, to: DrawingViews, settings: Drawing
   if (was === next) return { ok: true, settings, moved: [] };
   // Sections (A–A, and O148 X1's on any principal view): each kept where its view's new depth runs along the old (its
   // position along it turned), refused across it.
-  const kind = sectionsOf(settings).find(x => x.half || x.steps);
-  if (kind) return { ok: false, code: 'SECTION_KIND', message: `Section ${kind.id}–${kind.id} is a ${kind.half ? 'half' : 'offset'} section: make it a full one first, then turn the drawing.` };
+  // (DR-3/DR-4: a half, offset, removed or revolved section is refused — their placing is in the view's own coordinates.)
+  const kind = sectionsOf(settings).find(x => x.half || x.steps || x.removed || x.revolved);
+  if (kind) return { ok: false, code: 'SECTION_KIND', message: `Section ${kind.id}–${kind.id} is a ${kind.half ? 'half' : kind.steps ? 'offset' : kind.removed ? 'removed' : 'revolved'} section: make it a full one first, then turn the drawing.` };
   if (sectionsOf(settings).length) {
     const kept = turnSections(settings, next);
     if ('across' in kept) return { ok: false, code: 'SECTION_ACROSS', message: `Section ${kept.across.id}–${kept.across.id} is cut across the present ${kept.across.view} view: turn it off first, then turn the drawing.` };

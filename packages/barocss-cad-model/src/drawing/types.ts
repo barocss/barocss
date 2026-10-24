@@ -169,13 +169,26 @@ export interface DrawingSettings {
  * `steps`, an offset (stepped) section — from the section view's coordinate `past` onward (along `along`, horizontal by
  * default) the plane is at depth `at` instead; `past` increasing. Both only for a principal section, not together.
  */
-export interface DrawingSection { id: string; view: SectionViewId; at: number; dir?: [number, number, number]; half?: SectionHalf; steps?: SectionStep[]; along?: 'horizontal' | 'vertical' }
+/**
+ * DR-4: `removed`, a removed section — only the cut face (its outline exact, hatched), drawn apart from the views at its
+ * own scale (absolute; absent: the sheet's) with its centre at `at` on the sheet (absent: in free room), its cutting line
+ * on the view as usual. `revolved`, a revolved section — the cut face turned a quarter about its trace onto the view that
+ * sees the plane edge-on (a front section's onto the top view, a top's or a right's onto the front view), centred on the
+ * trace; principal only. Neither with a half or steps, nor together.
+ */
+export interface DrawingSection { id: string; view: SectionViewId; at: number; dir?: [number, number, number]; half?: SectionHalf; steps?: SectionStep[]; along?: 'horizontal' | 'vertical'; removed?: SectionRemoved; revolved?: true }
 export interface SectionHalf { line: 'vertical' | 'horizontal'; at: number; cut: 'after' | 'before' }
 export interface SectionStep { past: number; at: number }
-/** Whether two sections are the same cut: letter, view, place, (an aligned one's) direction, and (DR-3) its half or steps. */
+export interface SectionRemoved { at?: XY; scale?: number }
+/** Whether two sections are the same cut: letter, view, place, (an aligned one's) direction, (DR-3) its half or steps, and (DR-4) its form — a removed one's place and scale aside. */
 export const sameSection = (a: DrawingSection, b: DrawingSection): boolean => a.id === b.id && a.view === b.view && a.at === b.at && JSON.stringify(a.dir ?? null) === JSON.stringify(b.dir ?? null)
-  && JSON.stringify(a.half ?? null) === JSON.stringify(b.half ?? null) && JSON.stringify(a.steps ?? null) === JSON.stringify(b.steps ?? null) && (a.along ?? 'horizontal') === (b.along ?? 'horizontal');
+  && JSON.stringify(a.half ?? null) === JSON.stringify(b.half ?? null) && JSON.stringify(a.steps ?? null) === JSON.stringify(b.steps ?? null) && (a.along ?? 'horizontal') === (b.along ?? 'horizontal')
+  && !a.removed === !b.removed && !a.revolved === !b.revolved;
 const finiteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+/** DR-4: a removed section's options as given: an optional sheet point and an optional scale in (0, 1000]. */
+export const removedOk = (r: unknown): r is SectionRemoved => { const x = r as SectionRemoved; return !!x && typeof x === 'object' && !Array.isArray(x) && (x.at === undefined || (Array.isArray(x.at) && x.at.length === 2 && x.at.every(finiteNum))) && (x.scale === undefined || (finiteNum(x.scale) && x.scale > 0 && x.scale <= 1000)); };
+/** DR-4: the form a section is drawn in (full is every other: a plain, half, offset or aligned section in its row). */
+export const sectionForm = (s: Pick<DrawingSection, 'removed' | 'revolved'>): 'full' | 'removed' | 'revolved' => s.removed ? 'removed' : s.revolved ? 'revolved' : 'full';
 /** DR-3: a half section's centreline as given, or null. */
 export const halfOk = (h: unknown): h is SectionHalf => { const x = h as SectionHalf; return !!x && (x.line === 'vertical' || x.line === 'horizontal') && finiteNum(x.at) && (x.cut === 'after' || x.cut === 'before'); };
 /** DR-3: an offset section's steps as given: one to 20, finite, `past` strictly increasing. */
@@ -190,7 +203,7 @@ export const sectionsOf = (s: Pick<DrawingSettings, 'section' | 'sections'>): Dr
 export function withSections(s: DrawingSettings, list: readonly DrawingSection[]): DrawingSettings {
   const rest = { ...s }; delete rest.section; delete rest.sections;
   if (!list.length) return rest;
-  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir && !list[0].half && !list[0].steps) return { ...rest, section: { y: list[0].at } };
+  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir && !list[0].half && !list[0].steps && !list[0].removed && !list[0].revolved) return { ...rest, section: { y: list[0].at } };
   return { ...rest, sections: list.map(x => ({ ...x })) };
 }
 /** The next free section letter (A, B, … Z; then AA, AB, …); `also`: letters taken otherwise (DR-1: the details'). */
@@ -211,7 +224,10 @@ function readSections(raw: unknown): DrawingSection[] | null {
   for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id) && (x.dir === undefined || sectionDirOk(x.dir))) {
     // (DR-3: a half or the steps kept when valid and the section principal; never both.)
     const half = !x.dir && halfOk(x.half) ? { line: x.half.line, at: x.half.at, cut: x.half.cut } as SectionHalf : null, steps = !x.dir && !half && stepsOk(x.steps) ? x.steps.map((st: SectionStep) => ({ past: st.past, at: st.at })) : null;
-    out.push({ id: x.id, view: x.view, at: x.at, ...(x.dir ? { dir: [x.dir[0], x.dir[1], x.dir[2]] as [number, number, number] } : {}), ...(half ? { half } : {}), ...(steps ? { steps, ...(x.along === 'vertical' ? { along: 'vertical' as const } : {}) } : {}) });
+    // (DR-4: removed on a plain or aligned section, revolved on a plain principal one; never with a half or steps.)
+    const removed = !half && !steps && removedOk(x.removed) ? { ...(x.removed.at ? { at: [x.removed.at[0], x.removed.at[1]] as XY } : {}), ...(x.removed.scale !== undefined ? { scale: x.removed.scale } : {}) } : null;
+    const revolved = !half && !steps && !removed && !x.dir && x.revolved === true;
+    out.push({ id: x.id, view: x.view, at: x.at, ...(x.dir ? { dir: [x.dir[0], x.dir[1], x.dir[2]] as [number, number, number] } : {}), ...(half ? { half } : {}), ...(steps ? { steps, ...(x.along === 'vertical' ? { along: 'vertical' as const } : {}) } : {}), ...(removed ? { removed } : {}), ...(revolved ? { revolved: true as const } : {}) });
   }
   return out.length ? out : null;
 }
