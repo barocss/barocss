@@ -169,10 +169,10 @@ async function printabilityOf(doc: StudioDoc, all: readonly BodyResult[], evalua
   // Gaps between bodies printed together.
   if (bodies.length < 2) rules.push({ id: 'gap', level: 'recommended', status: 'n/a', message: 'one body: no gaps between bodies' });
   else {
-    const pairs = await interference(doc, bodies, evaluate as never) as { a?: string; b?: string; bodies?: string[]; overlap_mm3?: number; clearance_mm?: number }[];
-    const overlap = pairs.find(p => (p.overlap_mm3 ?? 0) > 0), close = pairs.filter(p => p.clearance_mm !== undefined).sort((x, y) => x.clearance_mm! - y.clearance_mm!)[0];
-    if (overlap) rules.push({ id: 'gap', level: 'feasible', status: 'fail', message: 'bodies overlap: they print as one', value: -(overlap.overlap_mm3 ?? 0), unit: 'mm³' });
-    else rules.push(rule('gap', 'recommended', !close || close.clearance_mm! >= t('fitGap').value, 'the least gap between bodies printed together, against the gap that does not fuse', close?.clearance_mm ?? Infinity, t('fitGap').value, 'mm', t('fitGap').source));
+    const pairs = await interference(doc, bodies, evaluate as never) as { a?: string; b?: string; bodies?: string[]; overlap?: number; clearance?: number }[];
+    const overlap = pairs.find(p => (p.overlap ?? 0) > 0), close = pairs.filter(p => p.clearance !== undefined).sort((x, y) => x.clearance! - y.clearance!)[0];
+    if (overlap) rules.push({ id: 'gap', level: 'feasible', status: 'fail', message: 'bodies overlap: they print as one', value: -(overlap.overlap ?? 0), unit: 'mm³' });
+    else rules.push(rule('gap', 'recommended', !close || close.clearance! >= t('fitGap').value, 'the least gap between bodies printed together, against the gap that does not fuse', close?.clearance ?? Infinity, t('fitGap').value, 'mm', t('fitGap').source));
   }
   // Enclosed cavities: powder and resin stay trapped without escape holes. Exactly, the B-rep's inner shells; the
   // display mesh's enclosed pieces only where a body has no shells to count (said which).

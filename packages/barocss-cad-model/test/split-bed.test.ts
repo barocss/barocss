@@ -43,7 +43,7 @@ test('a 300 mm bar on the 256 mm bed: two pieces that each fit; dowels at the fi
   for (const c of report.connectors) { const rs = radii(c.pin!); assert.ok(rs.length && rs.every(r => Math.abs(r - 3) <= 1e-9) && Math.abs(rB - rs[0] - FIT) <= 1e-9, JSON.stringify(rs)); }
   // (Interference, exact: no two of them overlap — the cut faces touch, the pins sit in their bores with the fit.)
   const pairs = await interference(out, bs, evaluate, [...report.pieces.map(p => p.key), ...report.connectors.map(c => c.pin!)]);
-  assert.equal(pairs.length, 6); assert.deepEqual(pairs.filter(p => 'overlap_mm3' in p), [], JSON.stringify(pairs));
+  assert.equal(pairs.length, 6); assert.deepEqual(pairs.filter(p => 'overlap' in p), [], JSON.stringify(pairs));
   // (Before connectors, the cut alone: the pieces sum to the bar exactly.)
   const cutOnly = { ...out, nodes: out.nodes.slice(0, doc.nodes.length + 1) }, cb = await bodiesOf(cutOnly);
   assert.ok(Math.abs(cb.reduce((s, b) => s + b.volume!, 0) - V) <= 1e-9 * V);
@@ -59,7 +59,7 @@ test('the fewest pieces along the axis that needs it: 600 mm in three; a tall pa
   assert.equal(bs.length, 2, 'two pieces, the pins one with the lower'); assert.ok(report.connectors.every(c => c.pin === null));
   const rB = 3 + FIT, want = V + 2 * (Math.PI * 9 * 10 - Math.PI * rB * rB * (10 + FIT));
   assert.ok(Math.abs(bs.reduce((s, b) => s + b.volume!, 0) - want) <= 1e-9 * V, `${bs.reduce((s, b) => s + b.volume!, 0)} vs ${want}`);
-  assert.deepEqual((await interference(out, bs, evaluate)).filter(p => 'overlap_mm3' in p), []);
+  assert.deepEqual((await interference(out, bs, evaluate)).filter(p => 'overlap' in p), []);
 });
 
 test('refusals, typed: it fits; two bodies; no printer; an oblique print direction; too big two ways; no room for the bore; a bad connector', async () => {

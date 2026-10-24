@@ -79,8 +79,8 @@ export async function interference(doc: StudioDoc, bodies: readonly BodyResult[]
       const r = await evaluate(probe);
       overlap = r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(probe.nodes, probe.nodes.length - 1))?.volume ?? 0 : 0;
     }
-    if (overlap > 1e-6) out.push({ a: list[i].key, b: list[j].key, overlap_mm3: r3(overlap) });
-    else { const c = clearance(list[i].mesh, list[j].mesh); out.push({ a: list[i].key, b: list[j].key, clearance_mm: r3(c.distance), near: v3(c.at) }); }
+    if (overlap > 1e-6) out.push({ a: list[i].key, b: list[j].key, overlap: r3(overlap) });
+    else { const c = clearance(list[i].mesh, list[j].mesh); out.push({ a: list[i].key, b: list[j].key, clearance: r3(c.distance), near: v3(c.at) }); }
   }
   return out;
 }

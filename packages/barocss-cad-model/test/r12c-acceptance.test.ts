@@ -85,12 +85,12 @@ test('R12c.8 the gearbox output shaft by the agent: the shaft by Pappus less its
   const cs = lo + hi, squeeze = (cs - h) / cs, fill = Math.PI * cs * cs / 4 / (w * h);
   assert.ok(notesOf(state, 9).includes(`Stretch 0 %, the section ${+cs.toFixed(4)} stretched; squeeze ${+(100 * (3.53 - h) / 3.53).toFixed(1)} % (${+(100 * squeeze).toFixed(1)} % stretched); fill ${+(100 * fill).toFixed(1)} %`), JSON.stringify(notesOf(state, 9)));
   // Nothing overlaps (the agent's own interference query).
-  const pairs = (JSON.parse(results.at(-1)!) as { pairs: { overlap_mm3?: number; clearance_mm?: number }[] }).pairs;
+  const pairs = (JSON.parse(results.at(-1)!) as { pairs: { overlap?: number; clearance?: number }[] }).pairs;
   // The one overlap is the ring's squeeze into its cover: the stretched ring on the rod (R' = 12.5 + r') beyond the groove's
   // bottom Ø30.648 — Pappus on that circular segment, V = 2π(R' + ȳ)A (A = r'² acos(c/r') − c√(r'² − c²), ȳ = (2/3)(r'² − c²)^{3/2}/A).
   const rp = cs / 2, Rp = 12.5 + rp, cc = Dg / 2 - Rp, Aseg = rp * rp * Math.acos(cc / rp) - cc * Math.sqrt(rp * rp - cc * cc), yseg = 2 / 3 * (rp * rp - cc * cc) ** 1.5 / Aseg, squeezed = 2 * Math.PI * (Rp + yseg) * Aseg;
-  const over = (pairs as { a: string; b: string; overlap_mm3?: number }[]).filter(p => p.overlap_mm3);
-  assert.ok(over.length === 1 && over[0].a === 'b9' && over[0].b === 'b10' && Math.abs(over[0].overlap_mm3! - squeezed) < 1e-3, `${JSON.stringify(over)} vs ${squeezed}`);
+  const over = (pairs as { a: string; b: string; overlap?: number }[]).filter(p => p.overlap);
+  assert.ok(over.length === 1 && over[0].a === 'b9' && over[0].b === 'b10' && Math.abs(over[0].overlap! - squeezed) < 1e-3, `${JSON.stringify(over)} vs ${squeezed}`);
   assert.ok(notesOf(state, 10).some(t => t.includes(`overlaps what squeezes it by ${+squeezed.toFixed(4)} mm³`)), JSON.stringify(notesOf(state, 10)));
   caseFile('accept-gearbox-shaft', state.doc, 'R12c.8 acceptance (D163): a gearbox output shaft built by the agent in one turn — a stepped, keyed shaft with a ring groove; a keyed spur gear m2 z30; a key; two 6204 envelopes (B1) against the Ø25 shoulders; a retaining ring; a cover sealed by an AS568-214 rod gland (O1) and its ring.', { outputs: [
     ONE(shaftV, 1e-7, [massPropertiesOf(out(snap, 'n0'), 1).centroid[0], massPropertiesOf(out(snap, 'n0'), 1).centroid[1], (shaftZ - groove * (59 + 0.65) - keyseat * (20 + 9)) / shaftV], 2e-3, 0),
@@ -121,8 +121,8 @@ test('R12c.8 the spring-loaded plunger by the agent: the housing and its bore, t
   close(Math.min(...sz), 10, 1e-9, 'on the bore\'s bottom'); close(Math.max(...sz), 10 + L0, 1e-6, 'its top at the free length');
   // Radial room in the bore: (24 − (D + d))/2 = 1.
   assert.equal((24 - (D + d)) / 2, 1);
-  const pairs = (JSON.parse(results.at(-1)!) as { pairs: { a: string; b: string; overlap_mm3?: number; clearance_mm?: number }[] }).pairs;
-  assert.ok(pairs.length === 3 && pairs.every(x => !(x.overlap_mm3! > 1e-6)) && pairs.filter(x => (x.clearance_mm ?? 1) < 1e-3).length === 2, JSON.stringify(pairs));
+  const pairs = (JSON.parse(results.at(-1)!) as { pairs: { a: string; b: string; overlap?: number; clearance?: number }[] }).pairs;
+  assert.ok(pairs.length === 3 && pairs.every(x => !(x.overlap! > 1e-6)) && pairs.filter(x => (x.clearance ?? 1) < 1e-3).length === 2, JSON.stringify(pairs));
   caseFile('accept-plunger', state.doc, 'R12c.8 acceptance (D163): a spring-loaded plunger built by the agent in one turn — a Ø30 × 50 housing with a Ø24 blind bore 40 deep; a closed and ground compression spring (wire Ø2, mean Ø20, 6 active coils, pitch 5) on the bore\'s bottom; a Ø23 × 15 plunger on its top.', { outputs: [
     ONE(Math.PI * 225 * 50 - Math.PI * 144 * 40, 1e-9, [0, 0, (Math.PI * 225 * 50 * 25 - Math.PI * 144 * 40 * 30) / (Math.PI * 225 * 50 - Math.PI * 144 * 40)], 1e-7, 0),
     ONE(1541.1998773110126, 4e-4, massPropertiesOf(out(snap, 'n3'), 1).centroid, 0.005, 0),
