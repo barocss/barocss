@@ -13,7 +13,7 @@ type View = ReturnType<Texture['createView']>;
 import { Geometry, ImageTexture, INSTANCE_STRIDE, Mesh, ViewerError, packColorMap, packInstances, type AddMeshOptions, type CapHatch, type ClipPlane, type ColorMap, type InstancesInput, type Material, type ShaderMaterial, type TextureOptions, type TextureSource } from './scene.js';
 export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
 export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
-import { defaultLights, directionalLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
+import { defaultLights, directionalLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
@@ -1165,7 +1165,11 @@ export class Viewer {
       if (t - r * 0.01 < near) near = Math.max(r * 1e-3, t - r * 0.01); if (t + r * 0.01 > far) far = t + r * 0.01;
     }
     const viewProjection = multiply(orthographic(r, r, near, far), lookAt(eye, c, up)), size = this.shadowMapSize;
-    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005, eye, direction: d };
+    // (G15b: a light of an angular size softens it — the penumbra's uv per unit of map depth: the depth's world range
+    // times the size's tangent, over the map's breadth, 2r.)
+    const soft = this.environment.softShadows ?? 0;
+    const softness = soft > 0 ? ((far - near) * Math.tan((Math.min(soft, 30) * Math.PI) / 180)) / (2 * r) : 0;
+    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005, eye, direction: d, softness };
   }
 
   /** The grid this frame: a power-of-ten cell fitted to the view distance unless one is set. */
@@ -1439,7 +1443,7 @@ export class Viewer {
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
     this.writeUniforms(vp, shadow);
-    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock);
+    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock, this.contactFrame());
     this.device.queue.writeBuffer(this.outputBuffer, 0, outputBytes);
     const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
     const enc = this.device.createCommandEncoder();
@@ -1569,6 +1573,19 @@ export class Viewer {
     if (capture) enc.copyTextureToBuffer({ texture: out }, { buffer: capture, bytesPerRow: Math.ceil((out.width * 4) / 256) * 256 }, [out.width, out.height]);
     this.device.queue.submit([enc.finish()]);
     Object.assign(this.stats, { frames: this.stats.frames + 1, drawCalls: opaque.length + transparent.length + caps, culled, triangles: tris, lines, points });
+  }
+
+  /** G15b: the contact shadows' ray toward the shadow-casting light, in view space (none without one or when off). */
+  private contactFrame(): ContactFrame | null {
+    const c = this.environment.contactShadows, scene = this.sceneBounds(), light = c ? directionalLights(this.lights).find(l => l.castShadow) : undefined;
+    if (!c || !scene || !light) return null;
+    const v = this.camera.view(), l = normalize(light.direction), to: Vec3 = [-l[0], -l[1], -l[2]];
+    const dir = normalize([v[0] * to[0] + v[4] * to[1] + v[8] * to[2], v[1] * to[0] + v[5] * to[1] + v[9] * to[2], v[2] * to[0] + v[6] * to[1] + v[10] * to[2]]);
+    // (A blocker is taken to be twice the ray's length thick: a solid seen from above shows only its top in the depth
+    // buffer, so a point beside its wall finds that top well above the ray.)
+    const length = c.length ?? boxRadius(scene) / 40;
+    const projection = this.camera.projectionMatrix(this.aspect);
+    return { projection, inverseProjection: invert(projection), direction: dir, length, strength: c.strength ?? 0.6, thickness: length * 2 };
   }
 
   private occlusionFrame() {

@@ -79,6 +79,23 @@ const ROBOT_SHOTS = [
   // lowers it last, and is clear.)
   ['gantry-ppp', { 'base~x': 150, 'x~y': 100 }],
 ];
+/** A project opened on a new part with one box. The folder picker is a native dialog headless Chromium can't drive, so
+ *  it hands back a folder in the browser's private file system: the same handle calls a picked folder answers. */
+const projectIn = async name => {
+  await page.evaluate(async n => { const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(`${n}-${Date.now()}`, { create: true }); window.showDirectoryPicker = async () => dir; }, name);
+  await newPart(); await press('b'); await hudReady(); await press('Enter'); await idle();
+  await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 2 * WAIT });
+  const card = page.locator('[aria-label="Versions panel"]');
+  await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: WAIT });
+  await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: WAIT });
+  return card;
+};
+/** A version made on the project's card, with a name. */
+const version = async (card, name) => {
+  const rows = '[aria-label="Versions panel"] ul[aria-label="Versions"] > li', n = await page.locator(rows).count();
+  await card.locator('[aria-label="Version name"]').fill(name); await card.locator('[aria-label="Make version"]').click();
+  await page.waitForFunction(([sel, k]) => document.querySelectorAll(sel).length > k, [rows, n], { timeout: 2 * WAIT });
+};
 /** A file the studio opens, written outside the repository. */
 const scratchFile = (name, bytes) => { const dir = join(tmpdir(), 'library-docs-capture'); mkdirSync(dir, { recursive: true }); const f = join(dir, name); writeFileSync(f, bytes); return f; };
 const openFile = async (file) => {
@@ -357,6 +374,38 @@ const steps = [
     await page.evaluate(() => document.querySelectorAll('.toast:not([role="dialog"]) button').forEach(b => b.click())); await page.waitForTimeout(600);
     await shot('studio/drawings', 'broken-view', 'studio/drawings: a broken view');
     await page.click('.mode button:text-is("Model")');
+  }],
+  ['studio/projects: two versions compared', async () => {
+    await fresh();
+    const card = await projectIn('capture-compare');
+    await version(card, 'First');
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 2 * WAIT }); await idle();
+    await page.click('[aria-label="Save"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: WAIT });
+    await version(card, 'Second');
+    await card.locator('[aria-label="Compare First"]').click(); await card.locator('[aria-label="Compared changes"]').waitFor({ timeout: WAIT });
+    await iso(); await page.waitForTimeout(1500);
+    await shot('studio/projects', 'compare', 'studio/projects: two versions compared');
+    await card.locator('[aria-label="Compare First"]').click();
+  }],
+  ['studio/projects: a merge conflict', async () => {
+    await fresh();
+    const card = await projectIn('capture-conflict');
+    await version(card, 'Base');
+    await card.locator('[aria-label="Branch name"]').fill('thick'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'thick'), null, { timeout: WAIT });
+    const onBranch = async name => { await card.locator('[aria-label="Branch"]').selectOption(name); await page.waitForFunction(n => document.querySelector('[aria-label="Versions panel"] [aria-label="Branch"]')?.value === n, name, { timeout: 2 * WAIT }); };
+    const parameter = async (name, value) => {
+      await page.click('[aria-label="Parameters"]');
+      await page.fill('[aria-label="New parameter name"]', name); await page.fill('[aria-label="New parameter value"]', String(value)); await page.click('[aria-label="Add parameter"]');
+      await page.waitForFunction(([n, v]) => window.__studioDoc.parameters[n] === v, [name, value], { timeout: WAIT });
+      await page.click('[aria-label="Close parameters"]'); await card.waitFor({ timeout: WAIT });
+    };
+    await onBranch('thick'); await parameter('T', 5); await version(card, 'T5');
+    await onBranch('main'); await parameter('T', 3); await version(card, 'T3');
+    await card.locator('[aria-label="Merge from"]').selectOption('thick'); await card.locator('[aria-label="Merge"]').click();
+    await card.locator('[aria-label="Conflict parameter:T"]').waitFor({ timeout: 2 * WAIT }); await page.waitForTimeout(300);
+    await shot('studio/projects', 'conflict', 'studio/projects: a merge conflict', { target: card });
   }],
   ['studio/robots: the Joints card', async () => {
     await fresh();

@@ -4,13 +4,14 @@
 // written over. Version actions are versions/*.ts's, each written back to the project at once.
 import { useMemo, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion, type VersionLog } from '@barocss/cad-model/versions/log';
+import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion, turnLog, withTurnLog, type VersionLog } from '@barocss/cad-model/versions/log';
 import { applyMerge, type MergeResult, type Resolutions } from '@barocss/cad-model/versions/merge';
 import { BarocssError } from '@barocss/cad/api';
 import { browserProject, pickFolder, recentFolder, reopenFolder } from './access';
 import { clearAutosave, partsOf, readAutosave, readPart, readVersions, writeAutosave, writePart, writeVersions } from './project';
 import type { ProjectStore, StoreEntry } from './store';
 import type { DirHandle } from './handleStore';
+import { linkedRevisions, type Linked } from './linked';
 
 export interface ProjectView {
   store: ProjectStore | null;
@@ -25,6 +26,8 @@ export interface ProjectCallbacks {
   /** A document of the project opened (as Open opens a file): the App replaces its document. */
   onOpened(doc: StudioDoc, path: string, notes: string[]): void;
   onError(title: string, hint: string): void;
+  /** Placed parts whose project files differ (offered as waiting revisions), or that the project no longer has. */
+  onLinked?(linked: Linked): void;
 }
 const EMPTY: ProjectView = { store: null, part: null, parts: [], log: null, offered: null };
 /** A file name as a project path: `<name>.bcad`. */
@@ -39,6 +42,8 @@ export function useProject(cb: ProjectCallbacks) {
   const tags = useRef<{ part: string | null; log: string | null }>({ part: null, log: null });
   const live = useRef(view); live.current = view;
   const call = useRef(cb); call.current = cb;
+  // (The versions a turn's call asked for and did not have: sent with the next turn, DA-9.)
+  const wanted = useRef<string[]>([]);
 
   const actions = useMemo(() => {
     const set = (next: Partial<ProjectView>) => { live.current = { ...live.current, ...next }; setView(live.current); };
@@ -82,6 +87,7 @@ export function useProject(cb: ProjectCallbacks) {
           await loadLog(store, path);
           const a = await readAutosave(store, path);
           if (a && 'doc' in a) set({ offered: a.doc });
+          await actions.checkLinked(r.doc);
           return true;
         } catch (e) { return fail(`Could not open ${path}`, e); }
       },
@@ -106,6 +112,18 @@ export function useProject(cb: ProjectCallbacks) {
       /** The offered autosave answered: restored (the caller commits it) or discarded. */
       async settleOffered(restore: boolean) { const { store, part, offered } = live.current; set({ offered: null }); if (!restore && store && part) await clearAutosave(store, part).catch(() => {}); return restore ? offered : null; },
 
+      /** Placed parts referenced by their project path checked against their files (storage/linked.ts). */
+      async checkLinked(doc: StudioDoc) {
+        const store = live.current.store; if (!store || !doc.instances?.length) return;
+        try { const l = await linkedRevisions(doc, store); if (l.offered.length || l.missing.length) call.current.onLinked?.(l); }
+        catch (e) { fail('The placed parts could not be checked', e); }
+      },
+      /** A document of the project as a file (to insert it as a placed part). */
+      async fileOf(path: string): Promise<File | null> {
+        const store = live.current.store; if (!store) return null;
+        const f = await store.read(path).catch(e => { fail(`Could not read ${path}`, e); return null; });
+        return f ? new File([f.bytes as BlobPart], path.split('/').pop()!) : null;
+      },
       /** A version of the document: saved first (a version is a save with a name), then recorded. */
       async makeVersion(doc: StudioDoc, name: string, o: { versionName?: string; note?: string } = {}) {
         if (!(await actions.save(doc, name))) return false;
@@ -126,6 +144,18 @@ export function useProject(cb: ProjectCallbacks) {
         const { store, part, log } = live.current; if (!store || !part || !log) return null;
         try { const r = applyBranch(log, name, working, { discard }); return (await keepLog(store, part, r.log)) ? r.doc : null; }
         catch (e) { fail('Could not switch', e); return null; }
+      },
+      /** The agent's side (DA-9): the log a turn carries, and the log a turn brings back. */
+      chat: {
+        turn(): VersionLog | null { const log = live.current.log; return log ? turnLog(log, { wanted: wanted.current }).log : null; },
+        back(log: VersionLog, asked: readonly string[]) {
+          wanted.current = [...asked];
+          const full = live.current.log, r = full ? withTurnLog(full, log) : { log, kept: [] as string[] };
+          if (r.kept.length) call.current.onError('Branches moved twice', `The agent moved ${r.kept.join(', ')} while you did: yours stays the branch's latest; the agent's versions are kept in the list.`);
+          const { store, part } = live.current;
+          // (No project open, or this document not in it yet: the agent's versions kept for this session.)
+          if (store && part) void keepLog(store, part, r.log); else set({ log: r.log });
+        },
       },
       /** A branch merged into the current one; the conflicts returned for the person to answer. */
       async merge(from: string, working: StudioDoc, resolve?: Resolutions): Promise<MergeResult | null> {

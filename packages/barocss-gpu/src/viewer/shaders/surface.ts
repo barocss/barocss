@@ -63,11 +63,41 @@ fn smith(nov: f32, nol: f32, a: f32) -> f32 {
   let gl = nov * sqrt(nol * nol * (1.0 - a2) + a2);
   return 0.5 / max(gv + gl, 1e-5);
 }
-/** Lit share (0–1) of a point by the shadow map: 3×3 percentage-closer filtering. */
+// G15b: a Poisson disc of 16 taps (unit radius) for the soft shadows' blocker search and filter.
+const DISC = array<vec2f, 16>(vec2f(-0.942, -0.399), vec2f(0.946, -0.769), vec2f(-0.094, -0.929), vec2f(0.345, 0.294),
+  vec2f(-0.916, 0.458), vec2f(-0.815, -0.879), vec2f(-0.383, 0.277), vec2f(0.975, 0.756), vec2f(0.443, -0.975),
+  vec2f(0.537, -0.474), vec2f(-0.265, -0.419), vec2f(0.792, 0.191), vec2f(-0.242, 0.997), vec2f(-0.814, 0.914),
+  vec2f(0.200, 0.786), vec2f(0.144, -0.141));
+/**
+ * G15b's soft shadow (PCSS): the blockers' mean depth found round the point, the penumbra's width from how far behind them
+ * it lies (frame.shadow.w: uv per unit of depth, the light's angular size), then that wide a filter of 16 taps, the disc
+ * turned per point so its pattern becomes noise.
+ */
+fn softShadowAt(uv: vec2f, z: f32, world: vec3f) -> f32 {
+  let texel = frame.shadow.y;
+  let size = vec2f(textureDimensions(shadowMap));
+  let a = fract(sin(dot(world, vec3f(12.9898, 78.233, 37.719))) * 43758.5453) * 6.2831853;
+  let rot = mat2x2f(cos(a), sin(a), -sin(a), cos(a));
+  let search = clamp(z * frame.shadow.w, 2.0 * texel, 24.0 * texel);
+  var blockers = 0.0;
+  var count = 0.0;
+  for (var i = 0; i < 16; i++) {
+    let q = clamp(uv + rot * DISC[i] * search, vec2f(0.0), vec2f(1.0));
+    let d = textureLoad(shadowMap, min(vec2i(q * size), vec2i(size) - 1), 0);
+    if (d < z) { blockers += d; count += 1.0; }
+  }
+  if (count == 0.0) { return 1.0; }
+  let radius = clamp((z - blockers / count) * frame.shadow.w, texel, 32.0 * texel);
+  var lit = 0.0;
+  for (var i = 0; i < 16; i++) { lit += textureSampleCompareLevel(shadowMap, shadowSampler, uv + rot * DISC[i] * radius, z); }
+  return lit / 16.0;
+}
+/** Lit share (0–1) of a point by the shadow map: 3×3 percentage-closer filtering, or soft (PCSS) when the light has a size. */
 fn shadowAt(world: vec3f, n: vec3f) -> f32 {
   let p = frame.shadowViewProj * vec4f(world + n * frame.shadow.x, 1.0);
   let uv = vec2f(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5);
   if (any(uv < vec2f(0.0)) || any(uv > vec2f(1.0)) || p.z > 1.0) { return 1.0; }
+  if (frame.shadow.w > 0.0) { return softShadowAt(uv, p.z - frame.shadow.z, world); }
   var lit = 0.0;
   for (var y = -1; y <= 1; y++) {
     for (var x = -1; x <= 1; x++) {

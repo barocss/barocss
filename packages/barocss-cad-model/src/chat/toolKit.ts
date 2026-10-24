@@ -39,7 +39,7 @@ export type PartHandler = (state: ChatState, args: Record<string, unknown>, eval
 /** `turnBase`: the part as the turn found it (the L2 gate weighs the turn's changes against it, D41). */
 /** `turns`: what the user typed in this conversation, sent by the studio (A6.2, O25), so a quote said to be theirs can be
  * checked; absent where no conversation is known (cad-cli, cad-mcp --doc, a plain script). */
-export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; /** FRf2: a part-scoped call's placed part (its document the state's). */ partOf?: string; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc; turns?: readonly string[]; rowFiles?: PersonRowFiles }
+export interface ChatState { doc: StudioDoc; bodies: BodyResult[]; /** FRf2: a part-scoped call's placed part (its document the state's). */ partOf?: string; selection?: NameSelection; images?: ImageTrace[]; policy?: Policy; tx?: Transactions; turnBase?: StudioDoc; turns?: readonly string[]; rowFiles?: PersonRowFiles; /** CG6: the document's versions and branches — the studio's open project, else this session's (versions/tools.ts). */ versions?: import('../versions/log').VersionLog; /** Versions whose documents a call needed and the turn did not carry: the host sends them with the next turn. */ versionsWanted?: string[] }
 export type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** `images`: PNGs to show the model along with the text (base64). */
 export interface ToolOutcome { state: ChatState; content: string; isError: boolean; changed: boolean; summary: string; images?: { data: string; mediaType: 'image/png' }[] }

@@ -17,7 +17,7 @@ import { renameIds } from '../chat/remap';
 import { canonical, revisionOf } from '../util/revision';
 import { refusal, type VersionCode } from './codes';
 import { idFormOf, indexForm, namedIdsOf, nodeKey, serialRefsOf } from './idForm';
-import { ancestorsOf, branchOf, checkAt, checkBy, checkName, findBase, isUnsaved, keep, versionNamed, versionOf, type Version, type VersionLog } from './log';
+import { ancestorsOf, branchOf, checkAt, checkBy, checkName, findBase, isUnsaved, keep, readVersion, versionNamed, versionOf, type Version, type VersionLog } from './log';
 
 export type Side = 'ours' | 'theirs';
 export interface Conflict {
@@ -228,11 +228,11 @@ export function applyMerge(log: VersionLog, o: { from: string; working: StudioDo
   if (ancestorsOf(log, into.head).has(from.head)) throw refusal('MERGE_UP_TO_DATE', `“${into.name}” already has everything on “${from.name}”`);
   if (ancestorsOf(log, from.head).has(into.head)) {
     const head = versionNamed(log, from.head);
-    return { log: { ...log, branches: log.branches.map(b => b.name === into.name ? { ...b, head: head.id } : b) }, doc: log.snapshots[head.snapshot], version: null, fastForward: true, dropped: [] };
+    return { log: { ...log, branches: log.branches.map(b => b.name === into.name ? { ...b, head: head.id } : b) }, doc: readVersion(log, head.id), version: null, fastForward: true, dropped: [] };
   }
   const baseId = findBase(log, into.head, from.head);
   if (!baseId) throw refusal('MERGE_NO_BASE', `“${into.name}” and “${from.name}” share no version`);
-  const snap = (id: string) => log.snapshots[versionNamed(log, id).snapshot];
+  const snap = (id: string) => readVersion(log, id);
   const r = mergeDocs(snap(baseId), snap(into.head), snap(from.head), { resolve: o.resolve });
   if ('conflicts' in r) return r;
   // (A merge version even when the document is ours as it was: theirs' head is then one of its parents, so it is merged.)

@@ -49,14 +49,14 @@ test('every read tool’s result matches its output schema and changes nothing',
   let doc: StudioDoc = withSampleRows({ ...starterDoc(), requirements: [{ id: 'R1', source: '64 long', hard: true, check: { op: '==', query: { fn: 'bbox', axis: 'x' }, value: 64, tol: 0.1 } }] } as StudioDoc);
   const r = await evaluate(doc); assert.ok(r.ok);
   let s: ChatState = { doc, bodies: r.bodies };
-  const calls: [string, object][] = [['get_part_summary', {}], ['measure', { a: 'n1.top' }], ['measure', { a: 'n1.top', b: 'n1.bottom' }], ['mass_properties', {}], ['rebuild_report', {}], ['interference', {}], ['section', { axis: 'z', at: 4 }], ['wall_thickness', {}], ['draft', {}], ['check_spec', {}], ['diff', {}], ['list_proposals', {}], ['inspect', { faces: ['n1.top'] }], ['select', { faces: ['n1.top'] }], ['checkpoint', { name: 'a' }], ['drawing_issues', {}], ['tolerance_suggestions', {}], ['get_assembly', {}], ['list_library', {}], ['check_printability', {}], ['render_views', {}], ['get_joints', {}], ['forward_kinematics', {}], ['link_inertia', {}], ['export_urdf', {}], ['export_mjcf', {}], ['sweep_path', { to: {} }], ['gravity_torques', {}], ['motion_torques', { to: {}, profile: 'trapezoid' }], ['size_actuators', { to: {}, profile: 'trapezoid' }], ['get_brief', {}], ['get_references', {}], ['get_drafts', {}], ['standards_lookup', {}], ['standards_lookup', { table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' }]];
+  const calls: [string, object][] = [['get_part_summary', {}], ['measure', { a: 'n1.top' }], ['measure', { a: 'n1.top', b: 'n1.bottom' }], ['mass_properties', {}], ['rebuild_report', {}], ['interference', {}], ['section', { axis: 'z', at: 4 }], ['wall_thickness', {}], ['draft', {}], ['check_spec', {}], ['diff', {}], ['list_proposals', {}], ['inspect', { faces: ['n1.top'] }], ['select', { faces: ['n1.top'] }], ['checkpoint', { name: 'a' }], ['make_version', { name: 'v1' }], ['make_branch', { name: 'b' }], ['list_versions', {}], ['compare_versions', {}], ['drawing_issues', {}], ['tolerance_suggestions', {}], ['get_assembly', {}], ['list_library', {}], ['check_printability', {}], ['render_views', {}], ['get_joints', {}], ['forward_kinematics', {}], ['link_inertia', {}], ['export_urdf', {}], ['export_mjcf', {}], ['sweep_path', { to: {} }], ['gravity_torques', {}], ['motion_torques', { to: {}, profile: 'trapezoid' }], ['size_actuators', { to: {}, profile: 'trapezoid' }], ['get_brief', {}], ['get_references', {}], ['get_drafts', {}], ['standards_lookup', {}], ['standards_lookup', { table: 'fasteners-metric-coarse', row: 'M6', field: 'tap' }]];
   const seen = new Set<string>();
   for (const [name, args] of calls) {
     const out = await dispatchTool(s, name, args, evaluate);
     assert.ok(!out.isError, `${name}: ${out.content.slice(0, 200)}`);
     assert.equal(out.changed, false, `${name} changes nothing`); assert.equal(out.state.doc, s.doc, `${name}: the document as it was`);
     assert.deepEqual(validate(outputSchemaOf(name)!, JSON.parse(out.content)), [], name);
-    if (name === 'checkpoint') s = out.state;
+    if (name === 'checkpoint' || name === 'make_version' || name === 'make_branch') s = out.state;
     seen.add(name);
   }
   doc = withNode(starterDoc(), { kind: 'subd', cage: boxCage(20, 20, 20, 1, [0, 0, 0]) } as never);

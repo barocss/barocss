@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createInterface } from 'node:readline';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
+import type { VersionLog } from '@barocss/cad-model/versions/log';
 import type { NameSelection } from '@barocss/cad-model/chat/tools';
 import { TOOLSET } from '@barocss/cad-model/chat/toolset';
 import { v1Call } from '@barocss/cad-model/chat/groups';
@@ -70,7 +71,7 @@ export type ChatServerEvent =
   | { type: 'reasoning'; delta: string }
   | { type: 'tool'; name: string; input: unknown; summary: string; isError: boolean }
   | { type: 'state'; doc: StudioDoc; /** The turn's calls that changed the part since the last state (O133). */ ops?: TurnOp[] }
-  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; usage?: TurnUsage; ops?: TurnOp[] };
+  | { type: 'done'; doc?: StudioDoc; selection?: NameSelection; session?: string; end: 'done' | 'aborted' | 'error'; error?: string; /** CG6: the turn's version log, when a call moved it. */ versions?: VersionLog; versionsWanted?: string[]; usage?: TurnUsage; ops?: TurnOp[] };
 /** What the CLI reports a turn used (its result message, A5.5): tokens, model turns, cost. */
 export interface TurnUsage { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number; num_turns?: number; total_cost_usd?: number }
 
@@ -206,7 +207,7 @@ export function createChatServer(options: ChatServerOptions) {
     if (req.method !== 'POST' || path !== '/turn') return sendJson(res, 404, { error: 'Not found.' });
     // JSON only: a cross-site page cannot send it without a CORS preflight, which this server never answers.
     if (!/^application\/json\s*(;|$)/i.test(req.headers['content-type'] ?? '')) return sendJson(res, 415, { error: 'Send the turn as application/json.' });
-    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown };
+    let body: { rowFiles?: unknown; rowConversation?: unknown; text?: unknown; doc?: unknown; turns?: unknown; session?: unknown; images?: unknown; traces?: unknown; autonomy?: unknown; blobs?: unknown; blobSession?: unknown; blobRefs?: unknown; versions?: unknown };
     try { body = JSON.parse(await readBody(req)); } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid JSON.' }); }
     if (typeof body.text !== 'string' || !body.text.trim() || typeof body.doc !== 'object' || !body.doc) return sendJson(res, 400, { error: 'Expected {text, doc, session?, images?}.' });
     const imageError = checkImages(body.images);
@@ -242,9 +243,12 @@ export function createChatServer(options: ChatServerOptions) {
         rowNote = '\n\n[Files supplied by the person in this conversation; features.load_rows takes file by id:\n' + files.files.map(f => `${f.id}: ${JSON.stringify(f.source.filename)} (user turn ${f.source.turn}, SHA256 ${f.source.sha256})`).join('\n') + ']';
       } catch (e) { return sendJson(res, 400, { error: e instanceof Error ? e.message : 'Invalid conversation row files.' }); }
     }
+    // (CG6: a version log as a turn carries it — the index, some documents; the tools check what they read.)
+    const v = body.versions as { format?: unknown; versions?: unknown; branches?: unknown; snapshots?: unknown } | undefined;
+    if (v !== undefined && (!v || v.format !== 'barocss-versions' || !Array.isArray(v.versions) || !Array.isArray(v.branches) || !v.snapshots || typeof v.snapshots !== 'object')) return sendJson(res, 400, { error: 'versions: not a version log.' });
     const dir = mkdtempSync(join(workDir, 'turn-'));
     const statePath = join(dir, 'state.json');
-    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}) } satisfies StateFile));
+    writeFileSync(statePath, JSON.stringify({ doc: body.doc as StudioDoc, changed: false, ...(rowInputs ? { rowFiles: rowInputs, rowConversation } : {}), ...(body.traces ? { images: body.traces as StateFile['images'] } : {}), ...(blobFiles ? { blobFiles } : {}), ...(body.turns ? { turns: body.turns as string[] } : {}), ...(body.versions ? { versions: body.versions as StateFile['versions'] } : {}) } satisfies StateFile));
     // (How far the agent may go on its own, D41: 1–4, else the default 2.)
     const level = [1, 2, 3, 4].includes(Number(body.autonomy)) ? Number(body.autonomy) : 2;
     const mcpConfig = JSON.stringify({ mcpServers: { cad: { type: 'stdio', command: process.execPath, args: [options.mcpScript], env: { CAD_CHAT_STATE: statePath, CAD_MAX_TURNS: String(MAX_TURNS), CAD_MODEL: model, CAD_PROMPT: body.text.slice(0, PROMPT_CHARS), CAD_AUTONOMY: String(level), ...(robotL3() ? robotL3Env() : {}), ...(teamDir ? { CAD_TEAM_LIBRARIES: teamDir } : {}) } } } });
@@ -299,7 +303,8 @@ export function createChatServer(options: ChatServerOptions) {
     const code = await new Promise<number | null>(resolve => { child.on('error', e => { failure = e.message; resolve(null); }); child.on('close', resolve); });
     const s = read();
     if (!aborted && code !== 0 && !failure) failure = stderr.trim().split('\n').slice(-3).join(' ') || `claude exited with ${code}`;
-    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
+    // (CG6: the turn's version log back when a call moved it — the studio folds it into the project's, versions/log.ts withTurnLog.)
+    emit({ type: 'done', ...(s?.changed ? { doc: s.doc } : {}), ...newOps(s), ...(s?.versionsChanged && s.versions ? { versions: s.versions, ...(s.versionsWanted?.length ? { versionsWanted: s.versionsWanted } : {}) } : {}), ...(s?.selection ? { selection: s.selection } : {}), ...(session ? { session } : {}), end: aborted ? 'aborted' : failure ? 'error' : 'done', ...(failure ? { error: failure } : {}), ...(usage ? { usage } : {}) });
     res.end();
     rmSync(dir, { recursive: true, force: true });
   };

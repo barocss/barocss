@@ -9,6 +9,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { canonical, fnv64, revisionOf } from '../util/revision';
 import { problem, refusal, type VersionProblem } from './codes';
+import { withoutSigs } from './idForm';
 
 export interface Version {
   id: string;
@@ -99,16 +100,28 @@ export function versionNamed(log: VersionLog, id: string): Version {
 }
 /** The head of a branch (the current one when not named). */
 export const headOf = (log: VersionLog, branch?: string): Version => versionNamed(log, branchOf(log, branch).head);
-/** A version's document (by id or name): the working document when it is restored. */
-export const readVersion = (log: VersionLog, id: string): StudioDoc => log.snapshots[versionNamed(log, id).snapshot];
+/**
+ * A version's document (by id or name): the working document when it is restored. Refused, VERSION_NOT_LOADED, when the
+ * log is a turn's (`turnLog`) and does not hold that version's document; `details.ids` names it.
+ */
+export function readVersion(log: VersionLog, id: string): StudioDoc {
+  const v = versionNamed(log, id), doc = log.snapshots[v.snapshot];
+  if (!doc) throw refusal('VERSION_NOT_LOADED', `the document of version ${v.name ?? v.id} is not with this turn: it comes with the next one`, { ids: [v.id] });
+  return doc;
+}
+/**
+ * A document's content as versions compare it: its nodes' stored face signatures left out — they follow the geometry of
+ * the faces a node names, and the studio and the agent write them on every change they evaluate.
+ */
+export const contentOf = (doc: StudioDoc) => canonical({ ...doc, nodes: doc.nodes.map(withoutSigs) });
 /** Whether the working document differs from the current branch's head. */
-export const isUnsaved = (log: VersionLog, working: StudioDoc): boolean => canonical(working) !== canonical(log.snapshots[headOf(log).snapshot]);
+export const isUnsaved = (log: VersionLog, working: StudioDoc): boolean => contentOf(working) !== contentOf(readVersion(log, headOf(log).id));
 
 /** The document as a new version on the current branch, its head moved to it. Refused when nothing changed since the head. */
 export function makeVersion(log: VersionLog, doc: StudioDoc, o: { at: string; by?: string; name?: string; note?: string }): { log: VersionLog; version: Version } {
   const at = checkAt(o.at), by = checkBy(o.by), name = checkName(log, o.name), head = headOf(log);
   const { snapshots, key } = keep(log.snapshots, doc);
-  if (key === head.snapshot) throw refusal('VERSION_NO_CHANGE', `the document is the same as the branch's last version${head.name ? ` (“${head.name}”)` : ''}`);
+  if (key === head.snapshot || contentOf(doc) === contentOf(readVersion(log, head.id))) throw refusal('VERSION_NO_CHANGE', `the document is the same as the branch's last version${head.name ? ` (“${head.name}”)` : ''}`);
   const v = versionOf({ parents: [head.id], snapshot: key, revision: revisionOf(doc), branch: log.current, ...(name ? { name } : {}), ...(o.note ? { note: String(o.note) } : {}), ...(by ? { by } : {}), at });
   return { log: { ...log, versions: [...log.versions, v], branches: log.branches.map(b => b.name === log.current ? { ...b, head: v.id } : b), snapshots }, version: v };
 }
@@ -163,7 +176,7 @@ export function makeBranch(log: VersionLog, name: string, o: { from?: string } =
 export function applyBranch(log: VersionLog, name: string, working: StudioDoc, o: { discard?: boolean } = {}): { log: VersionLog; doc: StudioDoc } {
   const b = branchOf(log, name);
   if (!o.discard && isUnsaved(log, working)) throw refusal('BRANCH_UNSAVED', `the document has changes since the last version of “${log.current}”: make a version first, or discard them`);
-  return { log: { ...log, current: b.name }, doc: log.snapshots[versionNamed(log, b.head).snapshot] };
+  return { log: { ...log, current: b.name }, doc: readVersion(log, b.head) };
 }
 
 /** What is wrong with a version log (read from a file, say): its shape, ids, parents, branches and snapshots. Never throws. */
@@ -199,4 +212,50 @@ export function checkVersions(value: unknown): VersionProblem[] {
   });
   if (!branchNames.has(log.current)) out.push(problem('BRANCH_UNKNOWN', `the current branch “${log.current}” is not listed`, 'current'));
   return out;
+}
+
+// ——— a turn's log (VA-2, DA-9): what an agent's turn carries, and what it brings back
+
+/** At most this many characters of documents go with a turn (the index always goes whole). */
+export const TURN_SNAPSHOTS = 4_000_000;
+/**
+ * The log as a turn carries it: every version and branch (the index), with only the documents the turn's actions need —
+ * each branch's head (switch, merge), the version each other branch shares with the current one (merge), then the
+ * versions asked for (`wanted`: restore or compare), in that order while they fit in `cap` characters; the current
+ * branch's head always. Others are refused in the turn as VERSION_NOT_LOADED and asked for the next.
+ */
+export function turnLog(log: VersionLog, o: { wanted?: readonly string[]; cap?: number } = {}): { log: VersionLog; omitted: string[] } {
+  const head = headOf(log), keys: string[] = [], add = (id: string | null) => { const v = id ? log.versions.find(x => x.id === id || x.name === id) : undefined; if (v && !keys.includes(v.snapshot)) keys.push(v.snapshot); };
+  add(head.id);
+  for (const b of log.branches) add(b.head);
+  for (const b of log.branches) if (b.name !== log.current) add(findBase(log, head.id, b.head));
+  for (const id of o.wanted ?? []) add(id);
+  const cap = o.cap ?? TURN_SNAPSHOTS, snapshots: Record<string, StudioDoc> = {}, omitted: string[] = [];
+  let size = 0;
+  keys.forEach((k, i) => {
+    const n = JSON.stringify(log.snapshots[k]).length;
+    if (i > 0 && size + n > cap) { omitted.push(k); return; }
+    size += n; snapshots[k] = log.snapshots[k];
+  });
+  return { log: { ...log, snapshots }, omitted };
+}
+/**
+ * A turn's log brought back into the full one: the versions it made added (by id: the person's own made meanwhile
+ * kept), each branch moved where the turn moved it unless the person moved it elsewhere meanwhile (then the person's
+ * stays, and the branch is named in `kept`), the documents it made kept, the current branch the turn's.
+ */
+export function withTurnLog(full: VersionLog, turn: VersionLog): { log: VersionLog; kept: string[] } {
+  const ids = new Set(full.versions.map(v => v.id)), versions = [...full.versions, ...turn.versions.filter(v => !ids.has(v.id))];
+  const at = new Map(full.branches.map(b => [b.name, b])), kept: string[] = [], merged = { ...full, versions };
+  const branches = [...full.branches.map(b => {
+    const t = turn.branches.find(x => x.name === b.name);
+    if (!t || t.head === b.head) return b;
+    // (The turn's head must have been made from the person's: else both moved the branch.)
+    if (ancestorsOf(merged, t.head).has(b.head)) return { ...b, head: t.head };
+    kept.push(b.name); return b;
+  }), ...turn.branches.filter(t => !at.has(t.name))];
+  const snapshots = { ...full.snapshots };
+  for (const [k, d] of Object.entries(turn.snapshots)) if (!snapshots[k]) snapshots[k] = d;
+  const current = branches.some(b => b.name === turn.current) ? turn.current : full.current;
+  return { log: { ...full, versions, branches, current, snapshots }, kept };
 }

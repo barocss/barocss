@@ -3787,3 +3787,36 @@ is untouched as history. The coordinator settled the scope:
   - Flow 295 (new) passes on WebGPU and WebGL2: softboxes, strength ×2, cyclorama, an image replacing it, then Sky and
     ground. The frame's mean on machined steel: sky 52.2, softbox 47.2, ×2 48.6.
 - **Next, G15b (3–4)**: soft shadows (PCSS for the casting light) and contact shadows in the output pass.
+
+## G-R70 — G15b (3–4): soft shadows (PCSS) and contact shadows (roadmap G15b, 2026-10-24)
+
+- **Soft shadows** (`Environment.softShadows`: the casting light's angular size in degrees; `ShadowFrame.softness`, frame
+  `shadow.w`):
+  - PCSS. A 16-tap Poisson blocker search finds the blockers' mean depth; the penumbra's width follows from how far behind
+    them the point lies (uv per unit of map depth = the depth range × tan(size) / the map's breadth); then a 16-tap
+    comparison filter of that width. The disc is turned per point, so its pattern becomes noise.
+  - The search is capped at 24 texels and the filter at 32.
+  - With 0 or none, the old 3×3 PCF runs, so the modelling look is unchanged.
+  - Only the one shadow-casting light is softened. "Every shadowing light" in the roadmap needs more shadow maps; that is
+    left for when a scene asks for it.
+- **Contact shadows** (`Environment.contactShadows: { length, strength }`; output block: the projection, the direction
+  toward the light in view space, length, strength, thickness):
+  - A 14-step screen-space ray from each pixel toward the casting light through the depth buffer. The light is blocked
+    where a surface lies in front of the ray's point by less than a blocker's thickness (twice the ray's length: a solid
+    seen from above shows only its top). The effect is weaker toward the ray's end.
+  - It darkens the creases and contacts the shadow map is too coarse for. The inverse projection is packed for it when
+    the occlusion is off.
+- **The studio**: the Render workspace sets `softShadows: 3` (a studio key light's size, `RENDER_SUN_SIZE`) and contact
+  shadows at strength 0.5. There is no control yet; the modelling look is untouched.
+- **Tests**:
+  - `viewer-shadow-soft-browser` (new) passes on hardware and SwiftShader:
+    - a tall post's shadow: hard, it is as dark along its length (73, 73); soft (6°), it is dark at the foot (73) and
+      lighter toward the tip (134), wider than hard;
+    - contact shadows: the crease beside a box with no shadow-map shadow goes 234 → 164, while the open ground stays 234.
+  - viewer-core packing test for the contact block. gpu unit and test:browser: see the checkpoint.
+  - Flow 294 now starts from a new box part (it ran on whatever the steps before left, the 6R robot after 292). Its
+    check compares whole frames against plain steel: turned 13.7, knurled 21.7.
+  - FLOW_ONLY `^(starter|render a part|G15|RS2 video)` passes on WebGPU and WebGL2.
+- **Bench** (loaded, 25–30, comparison only; the soft and contact shadows are on in every Render row):
+  - DPR 1: render orbit 2.86 ms a submit, with the post 4.42, knurled and lacquered 3.99.
+  - DPR 2: 9.96 ms. That is within the 16.7 ms Render target but the heaviest yet, at 2880×1800. A quiet run is owed.

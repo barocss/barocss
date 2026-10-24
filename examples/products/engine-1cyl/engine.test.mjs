@@ -24,18 +24,18 @@ test('engine.bcad is the build\'s, byte for byte', () => {
   assert.equal(JSON.stringify(engine().doc), committed);
 });
 
-test('it passes the brief\'s checks (the sweep in run.mjs)', () => {
-  const r = checkEngine(JSON.parse(committed), { sweep: false });
+test('it passes the brief\'s checks (the sweep in run.mjs)', async () => {
+  const r = await checkEngine(JSON.parse(committed), { sweep: false });
   assert.ok(r.ok, JSON.stringify(r.checks.filter(c => !c.ok)));
-  assert.deepEqual(r.checks.map(c => c.id), ['parts', 'solves', 'cycle', 'timing', 'masses', 'balance']);
+  assert.deepEqual(r.checks.map(c => c.id), ['parts', 'solves', 'cycle', 'timing', 'masses', 'balance', 'outputs']);
   assert.equal(r.figures.strokeMM, 50);
   assert.equal(r.figures.camRatio, 0.5);
 });
 
-test('without the piston\'s bore mate the slider-crank has no loop: the cycle check fails, the others stand', () => {
+test('without the piston\'s bore mate the slider-crank has no loop: the cycle check fails, the others stand', async () => {
   const doc = JSON.parse(committed), piston = doc.instances.find(i => i.name === 'piston').id, block = doc.instances.find(i => i.name === 'cylinder-block').id;
   doc.mates = doc.mates.filter(m => !(m.kind === 'concentric' && [m.a.part, m.b.part].includes(piston) && [m.a.part, m.b.part].includes(block)));
-  const r = checkEngine(doc, { sweep: false }), by = Object.fromEntries(r.checks.map(c => [c.id, c]));
+  const r = await checkEngine(doc, { sweep: false, outputs: false }), by = Object.fromEntries(r.checks.map(c => [c.id, c]));
   assert.equal(r.ok, false);
   assert.equal(by.cycle.ok, false);
   assert.match(by.cycle.detail, /no closed loop/);

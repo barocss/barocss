@@ -2,13 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { emptyDoc, withNode, type PartInstance, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { acceptRevision, freshPartId } from '@barocss/cad-model/assembly/definitions';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
 import { canonical } from '@barocss/cad-model/util/revision';
 import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion } from '@barocss/cad-model/versions/log';
 import { memoryStore } from '../src/storage/memoryStore';
 import { handleStore, type DirHandle, type FileHandle } from '../src/storage/handleStore';
 import { checkPath, type ProjectStore } from '../src/storage/store';
+import { linkedPath, linkedRevisions, linkSource } from '../src/storage/linked';
 import { autosavePath, clearAutosave, partsOf, readAutosave, readPart, readVersions, snapshotPath, versionsPath, writeAutosave, writePart, writeVersions } from '../src/storage/project';
 
 // (Run from apps/cad-studio, as the suite is: its fixtures are read from there.)
@@ -133,4 +135,35 @@ test('project: a document with mesh data keeps it — the container written and 
   const f = await s.read('block.bcad');
   assert.equal(new TextDecoder().decode(f!.bytes.subarray(0, 8)), 'BCADPACK', 'the container, as Save writes it');
   const back = await readPart(s, 'block.bcad'); assert.ok('doc' in back); eq(back.doc, read.doc);
+});
+
+// ——— S4: placed parts referenced by their path in the project
+
+test('linked parts: a part inserted from the project is offered again when its file changes, accepted keeps the link; unchanged, waiting or from disk: nothing', async () => {
+  const s = memoryStore('P');
+  await writePart(s, 'parts/arm.bcad', doc1);
+  const placed = (id: string, d: StudioDoc, source: string, name = 'arm'): PartInstance => ({ id, name, doc: d, position: [0, 0, 0], rotation: [0, 0, 0], part: { id: 'part1', rev: 'A', source } });
+  const asm: StudioDoc = { ...emptyDoc(), instances: [placed('inst1', doc1, linkSource('parts/arm.bcad')), placed('inst2', doc1, linkSource('parts/arm.bcad'), 'arm copy')] };
+  assert.equal(linkedPath('./parts/arm.bcad'), 'parts/arm.bcad'); assert.equal(linkedPath('arm.bcad'), null);
+  // The file as placed: nothing offered.
+  let r = await linkedRevisions(asm, s);
+  assert.deepEqual([r.offered, r.missing], [[], []]); assert.equal(r.doc, asm);
+  // The file saved with a fillet: offered once, for the shared definition; both copies take it on Accept, the link kept.
+  await writePart(s, 'parts/arm.bcad', doc2);
+  r = await linkedRevisions(asm, s);
+  assert.deepEqual(r.offered, ['parts/arm.bcad']);
+  assert.equal(r.doc.pendingParts!.part1.rev, 'B'); assert.equal(r.doc.pendingParts!.part1.name, './parts/arm.bcad');
+  eq(r.doc.instances![0].doc, doc1, 'nothing changes until it is accepted');
+  const again = await linkedRevisions(r.doc, s);
+  assert.deepEqual(again.offered, [], 'already waiting as this file'); assert.equal(again.doc, r.doc);
+  const accepted = acceptRevision(r.doc, 'part1');
+  for (const i of accepted.instances!) { eq(i.doc, { ...doc2, render: undefined, direct: undefined }); assert.equal(i.part!.source, './parts/arm.bcad'); assert.equal(i.part!.rev, 'B'); }
+  assert.deepEqual((await linkedRevisions(accepted, s)).offered, [], 'accepted: the file is the part as placed');
+  // A file gone from the project is named; a part inserted from disk (a bare name) is left alone.
+  await s.remove('parts/arm.bcad');
+  assert.deepEqual((await linkedRevisions(accepted, s)).missing, ['parts/arm.bcad']);
+  const disk: StudioDoc = { ...emptyDoc(), instances: [{ ...placed('inst1', doc1, 'arm.bcad'), part: { id: freshPartId(emptyDoc()), rev: 'A', source: 'arm.bcad' } }] };
+  await writePart(s, 'arm.bcad', doc2);
+  const d = await linkedRevisions(disk, s);
+  assert.deepEqual([d.offered, d.missing], [[], []]);
 });

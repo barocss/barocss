@@ -99,12 +99,15 @@
 | `[BRANCH_NAME]` | `versions` | a branch's name is 1 to 63 letters, digits, spaces and . _ / - (starting with a letter or digit), got … |
 | `[BRANCH_UNKNOWN]` | `versions` | there is no branch “…” (branches: …) |
 | `[BRANCH_UNSAVED]` | `versions` | the document has changes since the last version of “…”: make a version first, or discard them |
+| `[CAM_IN_LOOP]` | `robot` | … follows a cam (…) and moves a closed loop: a loop through a cam is not closed yet |
+| `[CAM_PROFILE_UNSUPPORTED]` | `robot` | …: ….… is a flat face neither along the cam's axis nor across it: no lift is read from it |
+| `[CAM_UNSUPPORTED]` | `robot` | … follows a cam (…): motion torques through a cam are not worked out yet |
 | `[CAP_PICK]` | `app` | … |
-| `[CASTING_ALLOWANCE]` | `chat/part` | allowance is mm a machined face, 0 to 100: …. |
-| `[CASTING_FACE]` | `casting`, `chat/part` | marked machined but not on the part: … |
-| `[CASTING_GATE]` | `chat/part` | gate is a point [x, y, z] (mm) on the part, where the metal comes in. |
+| `[CASTING_ALLOWANCE]` | `api`, `chat/part` | allowance is mm a machined face, 0 to 100: …. |
+| `[CASTING_FACE]` | `api`, `casting`, `chat/part` | machined is a list of face names ("n1.top"). |
+| `[CASTING_GATE]` | `api`, `chat/part` | gate is a point [x, y, z] (mm) on the part, where the metal comes in. |
 | `[CASTING_RULE_ROW]` | `engine` | no … rules loaded — load your casting rules (samples/rows/casting-rules.json is an example) |
-| `[CASTING_SHRINK]` | `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
+| `[CASTING_SHRINK]` | `api`, `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
 | `[CONFIRM_IS_THE_USERS]` | `chat/part` | …: only the user confirms a requirement, in the studio; leave "confirmed" and "said" out. |
 | `[CONNECTOR_ROW_UNKNOWN]` | `engine` | an opening names the connector row "…", which the document's connector rows do not hold (rows: …) |
 | `[CONTAINER_DAMAGED]` | `engine` | the file is cut short |
@@ -198,7 +201,7 @@
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
 | `[LOOP_MATE_UNSUPPORTED]` | `robot` | … (… between ….… and ….…) closes a loop, and no loop closure holds that mate yet: concentric round faces, coincident, distance or angle between flat faces, … |
-| `[LOOP_OPEN]` | `api`, `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_OPEN]` | `api` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
 | `[LOOP_PASSIVE]` | `robot` | the loop… … degree… of freedom: give … of …, and the rest are solved (… given) |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
@@ -302,6 +305,7 @@
 | `[VERSION_KEY_COLLISION]` | `versions` | two different documents have the content key …: the version is not kept |
 | `[VERSION_LOG]` | `versions` | not a version log (format barocss-versions, schema 1) |
 | `[VERSION_NAME]` | `versions` | a version's name is 1 to … characters |
+| `[VERSION_NOT_LOADED]` | `versions` | the document of version … is not with this turn: it comes with the next one |
 | `[VERSION_NO_CHANGE]` | `versions` | the document is the same as the branch's last version… |
 | `[VERSION_UNKNOWN]` | `versions` | there is no version “…” |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |

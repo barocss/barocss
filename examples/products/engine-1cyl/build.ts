@@ -5,9 +5,9 @@
 // The engine's frame: the crank's axis along Y through the origin, the cylinder's axis up Z; the piston at top dead
 // centre has its pin 125 above the crank axis (crank 25 + rod 100).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { assembly, part, sketch, Plane, Location, type Assembly, type StudioPart } from '../../../packages/barocss-cad-model/src/api';
-import { checkEngine } from './check';
+import { checkEngine, type OutputFile } from './check';
 
 type XY = [number, number];
 
@@ -32,6 +32,23 @@ function tangents(c1: XY, r1: number, c2: XY, r2: number): { right: [XY, XY]; le
   return { right: [at(c1, r1, nR), at(c2, r2, nR)], left: [at(c1, r1, nL), at(c2, r2, nL)] };
 }
 const round = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
+// ── how each part is made (milestone 3) ──
+// The Library panel's Process; a casting's pull out of the die, the casting rules (the shipped sample rows, loaded as a
+// person loads them) and the pattern's inputs — the faces machined after casting (bores, seats, joint faces), where the
+// metal comes in, and the shrinkage: ours, 0.6 % for A356 in a permanent mould (no public page gave one to read); then
+// the part's drawing, titled and dimensioned.
+type V3 = [number, number, number];
+interface Make { process: 'die-casting' | 'cnc-turning' | 'cnc-milling'; cast?: { pull: V3; machined: string[]; gate: V3 } }
+const SHRINK = 0.006;
+let rules: { name: string; text: string } | undefined;
+const RULES = () => rules ??= { name: 'casting-rules.json', text: readFileSync(join(import.meta.dirname, '../../../packages/barocss-cad-model/samples/rows/casting-rules.json'), 'utf8') };
+function made(p: StudioPart, title: string, how: Make): StudioPart {
+  let q = p.process(how.process, how.cast ? { pull: how.cast.pull } : {});
+  if (how.cast) q = q.loadRows('casting-rules', RULES()).casting({ machined: how.cast.machined, gate: how.cast.gate, shrink: SHRINK });
+  return q.drawingSettings({ title }).autoDimension();
+}
+const TURNED: Make = { process: 'cnc-turning' }, MILLED: Make = { process: 'cnc-milling' };
+
 const rotate = ([x, y]: XY, deg: number): XY => { const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a); return [round(x * c - y * s), round(x * s + y * c)]; };
 
 // ── 1. the crankshaft (own frame: its axis Z, the crankpin toward +X) ──
@@ -45,7 +62,7 @@ function web(z: number) {
 }
 export function crankshaft(): StudioPart {
   const half = WEB_GAP / 2, z1 = -half - WEB_T, journal = JOURNAL_END - half - WEB_T;
-  return part('crankshaft')
+  const p = part('crankshaft')
     .cylinder({ r: JOURNAL_R, h: journal, z: z1 - journal })
     .union(p => p.extrude(web(z1), { h: WEB_T }))
     .union(p => p.cylinder({ r: PIN_R, h: WEB_GAP + 2, x: CRANK, z: -half - 1 }))
@@ -56,6 +73,7 @@ export function crankshaft(): StudioPart {
     // (The timing gear on its seat, a body of the crankshaft's own: a gear on a part locked to the shaft is not coupled
     // to the camshaft's by the joint tree — gap PG-4.)
     .gear({ m: GEAR_M, teeth: CRANK_TEETH, b: 10, bore: 20, x: 0, y: 0, z: GEAR_Y }).material('steel');
+  return made(p, 'crankshaft', TURNED);
 }
 
 // ── 2. the connecting rod (own frame: in XY, big end at the origin, small end at +Y, 18 thick from z 0) ──
@@ -64,14 +82,14 @@ export function connectingRod(): StudioPart {
   // narrow enough to swing inside the bore's lower edge.)
   const t = 15, yb = round(Math.sqrt(17 * 17 - 8 * 8)), ys = round(ROD - Math.sqrt(11 * 11 - 7 * 7));
   const outline = sketch().moveTo([8, yb]).lineTo([7, ys]).arcTo([-7, ys], { center: [0, ROD] }).lineTo([-8, yb]).arcTo([8, yb], { center: [0, 0] }).close();
-  return part('connecting-rod')
+  return made(part('connecting-rod')
     .extrude(outline, { h: t })
     .subtract(p => p.cylinder({ r: PIN_R + 0.05, h: t + 2, z: -1 }))
     .subtract(p => p.cylinder({ r: SMALL_END_PIN_R + 0.02, h: t + 2, y: ROD, z: -1 }))
     // (The I-beam: a pocket 4 deep in each face, between the ends.)
     .subtract(p => p.extrude(sketch(Plane.XY.offset(t - 4)).polygon([[-5, 24], [5, 24], [4, 86], [-4, 86]]), { h: 5 }))
     .subtract(p => p.extrude(sketch(Plane.XY.offset(-1)).polygon([[-5, 24], [5, 24], [4, 86], [-4, 86]]), { h: 5 }))
-    .material('steel');
+    .material('steel'), 'connecting-rod', MILLED);
 }
 
 // ── 3. the piston, its rings and its pin (own frame: axis Z, skirt from z 0, crown at z 50; pin axis along Y at z 20) ──
@@ -81,21 +99,25 @@ export function piston(): StudioPart {
   const pts: XY[] = [[23, 0], [PISTON_R, 0]];
   for (const [lo, hi] of [...GROOVES].reverse()) pts.push([PISTON_R, lo], [GROOVE_R, lo], [GROOVE_R, hi], [PISTON_R, hi]);
   pts.push([PISTON_R, 50], [0, 50], [0, 42], [23, 42]);
-  return part('piston')
+  return made(part('piston')
     .revolve(sketch(Plane.XZ).polygon(pts))
     // (The pin's bosses, inside the skirt either side, reaching a millimetre into its wall, and the pin's bore through both.)
     .union(p => p.box({ w: 18, d: 12, h: 16, x: -9, y: 12, z: PIN_Z - 8 }))
     .union(p => p.box({ w: 18, d: 12, h: 16, x: -9, y: -24, z: PIN_Z - 8 }))
     .subtract(p => p.extrude(sketch(Plane.XZ.offset(-30)).circle({ r: SMALL_END_PIN_R + 0.02, y: PIN_Z }), { h: 60 }))
-    .material('a356');
+    .material('a356'), 'piston', { process: 'die-casting', cast: {
+      // (Cast skirt-down, the core from below; the skirt, the lands, the grooves, the crown and the pin's bore machined.)
+      pull: [0, 0, 1], gate: [0, 0, 50],
+      machined: ['n9.side[e1]', 'n1.side[e2]', 'n1.side[e3]', 'n1.side[e4]', 'n1.side[e5]', 'n1.side[e6]', 'n1.side[e7]', 'n1.side[e8]', 'n1.side[e9]', 'n1.side[e10]', 'n1.side[e11]', 'n1.side[e12]', 'n1.side[e13]', 'n1.side[e14]', 'n1.side[e15]'],
+    } });
 }
 export function ring(name: string, [lo, hi]: readonly [number, number]): StudioPart {
   // (A ring in its groove, 0.05 short of its floor and 0.05 thinner: own frame, its groove's height from z 0.)
   const h = hi - lo - 0.05;
-  return part(name).revolve(sketch(Plane.XZ).polygon([[GROOVE_R + 0.05, 0], [PISTON_R + 0.05, 0], [PISTON_R + 0.05, h], [GROOVE_R + 0.05, h]])).material('steel');
+  return made(part(name).revolve(sketch(Plane.XZ).polygon([[GROOVE_R + 0.05, 0], [PISTON_R + 0.05, 0], [PISTON_R + 0.05, h], [GROOVE_R + 0.05, h]])).material('steel'), name, TURNED);
 }
 export function pistonPin(): StudioPart {
-  return part('piston-pin').revolve(sketch(Plane.XZ).polygon([[4, 0], [SMALL_END_PIN_R, 0], [SMALL_END_PIN_R, 46], [4, 46]])).material('steel');
+  return made(part('piston-pin').revolve(sketch(Plane.XZ).polygon([[4, 0], [SMALL_END_PIN_R, 0], [SMALL_END_PIN_R, 46], [4, 46]])).material('steel'), 'piston-pin', TURNED);
 }
 
 // ── 4. the finned cylinder block (own frame: bore axis Z, from z 0 on the crankcase to z 95 under the head; its spigot
@@ -107,7 +129,7 @@ export function pistonPin(): StudioPart {
 export const CASE_TOP = 60, SQUISH = 1, BLOCK_H = CRANK + ROD + 30 + SQUISH - CASE_TOP, SPIGOT = 3, SPIGOT_R = 31.5;
 export function cylinderBlock(): StudioPart {
   const fin = 2, pitch = 8, fins = Math.floor((BLOCK_H - 20) / pitch);
-  return part('cylinder-block')
+  return made(part('cylinder-block')
     .box({ w: 76, d: 76, h: 10, x: -38, y: -38 })
     .union(p => p.cylinder({ r: 36, h: BLOCK_H }))
     .union(p => p.box({ w: 100, d: 100, h: fin, x: -50, y: -50, z: 14 }).linearPattern({ axis: 'z', spacing: pitch, count: fins }))
@@ -117,7 +139,11 @@ export function cylinderBlock(): StudioPart {
     .subtract(p => p.cylinder({ r: 4.25, h: BLOCK_H + 2, x: -40, y: 40, z: -1 }))
     .subtract(p => p.cylinder({ r: 4.25, h: BLOCK_H + 2, x: 40, y: -40, z: -1 }))
     .subtract(p => p.cylinder({ r: 4.25, h: BLOCK_H + 2, x: -40, y: -40, z: -1 }))
-    .material('a356');
+    .material('a356'), 'cylinder-block', { process: 'die-casting', cast: {
+      // (The bore, the spigot, the flange's seat, the deck and the stud holes machined; fed at the flange.)
+      pull: [0, 0, 1], gate: [38, 0, 5],
+      machined: ['n13.side0', 'n10.side0', 'n10.bottom', 'n1.bottom', 'n3.top', 'n16.side0', 'n19.side0', 'n22.side0', 'n25.side0'],
+    } });
 }
 
 // ── 5. the head (own frame: its gasket face at z 0, on the block's top) ──
@@ -130,22 +156,31 @@ export function cylinderHead(): StudioPart {
   let p = part('cylinder-head')
     .box({ w: 100, d: 100, h: 12, x: -50, y: -50 })
     .union(q => q.cylinder({ r: 36, h: 46 }))
-    .union(q => q.box({ w: 100, d: 100, h: 2, x: -50, y: -50, z: 16 }).linearPattern({ axis: 'z', spacing: 8, count: 4 }))
+    // (The fins above the ports' bosses, z 26 up; each port in a boss Ø22 round its Ø18 passage at z 14, from the seat out
+    // to the side — a passage cut into the plate alone would leave a knife edge of wall, and one lower would run over the
+    // combustion dome's edge.)
+    .union(q => q.box({ w: 100, d: 100, h: 2, x: -50, y: -50, z: 26 }).linearPattern({ axis: 'z', spacing: 8, count: 3 }))
+    .union(q => q.extrude(sketch(Plane.YZ.offset(VALVE_X)).circle({ r: 11, x: 0, y: 14 }), { h: 50 - VALVE_X }))
+    .union(q => q.extrude(sketch(Plane.YZ.offset(-50)).circle({ r: 11, x: 0, y: 14 }), { h: 50 - VALVE_X }))
     .subtract(q => q.revolve(dome));
   for (const sx of [-1, 1]) {
     p = p.subtract(q => q.cylinder({ r: 11, h: 20, x: sx * VALVE_X, z: -1 }))
       .subtract(q => q.cylinder({ r: 3.6, h: 30, x: sx * VALVE_X, z: 18 }))
-      // (The port: from the seat out the side, a Ø20 passage along X at z 12.)
-      .subtract(q => q.extrude(sketch(sx > 0 ? Plane.YZ.offset(VALVE_X) : Plane.YZ.offset(-60)).circle({ r: 10, x: 0, y: 12 }), { h: 60 - VALVE_X }));
+      // (The port: from the seat out the side, a Ø18 passage along X at z 14.)
+      .subtract(q => q.extrude(sketch(sx > 0 ? Plane.YZ.offset(VALVE_X) : Plane.YZ.offset(-60)).circle({ r: 9, x: 0, y: 14 }), { h: 60 - VALVE_X }));
   }
   p = p.subtract(q => q.cylinder({ r: 7, h: 48, y: 16, z: -1 }));
   for (const [x, y] of [[40, 40], [-40, 40], [40, -40], [-40, -40]] as const) p = p.subtract(q => q.cylinder({ r: 4.25, h: 48, x, y, z: -1 }));
-  return p.material('a356');
+  return made(p.material('a356'), 'cylinder-head', { process: 'die-casting', cast: {
+    // (The gasket face, the valve seats and guides, the plug's hole and the stud holes machined; fed from the side.)
+    pull: [0, 0, 1], gate: [50, 0, 6],
+    machined: ['n3.bottom', 'n19.side0', 'n28.side0', 'n22.side0', 'n31.side0', 'n37.side0', 'n40.side0', 'n43.side0', 'n46.side0', 'n49.side0'],
+  } });
 }
 
 // ── 6. a valve (own frame: axis Z, its face at z 0, the stem up to z 70) ──
 export function valve(name: string): StudioPart {
-  return part(name).revolve(sketch(Plane.XZ).polygon([[0, 0], [10.5, 0], [10.5, 1.5], [3, 6], [3, 70], [0, 70]])).material('steel');
+  return made(part(name).revolve(sketch(Plane.XZ).polygon([[0, 0], [10.5, 0], [10.5, 1.5], [3, 6], [3, 70], [0, 70]])).material('steel'), name, TURNED);
 }
 
 // ── 7. the camshaft and its followers (own frame: axis Z) ──
@@ -157,16 +192,17 @@ function lobe(z: number, phase: number) {
 }
 // (The shaft from z 20, clear of the crank's webs; its timing gear on z 62 — a body of its own, as on the crankshaft.)
 export function camshaft(): StudioPart {
-  return part('camshaft')
+  const p = part('camshaft')
     .cylinder({ r: 8, h: 60, z: 20 })
     .union(p => p.extrude(lobe(20, 0), { h: 10 }))
     .union(p => p.extrude(lobe(33, 90), { h: 10 }))
     .material('steel')
     .gear({ m: GEAR_M, teeth: CAM_TEETH, b: 10, bore: 16, x: 0, y: 0, z: GEAR_Y - 2 }).material('steel');
+  return made(p, 'camshaft', TURNED);
 }
 export function follower(name: string): StudioPart {
   // (Its foot Ø10, the lobe's width: clear of the crank's webs beside it.)
-  return part(name).cylinder({ r: 5, h: 12 }).union(p => p.cylinder({ r: 3, h: 20, z: 12 })).material('steel');
+  return made(part(name).cylinder({ r: 5, h: 12 }).union(p => p.cylinder({ r: 3, h: 20, z: 12 })).material('steel'), name, TURNED);
 }
 
 // The camshaft's axis: along Y, 45 (the gears' centres) from the crank's, down and back at 45°.
@@ -177,7 +213,7 @@ export const GEAR_CENTRES_MM = 45, CAM_X = round(-GEAR_CENTRES_MM / Math.SQRT2),
 // outer wall and its bore, and the cylinder's opening in the top.
 export function crankcaseHalf(name: string, side: 1 | -1): StudioPart {
   const outer = side > 0 ? Plane.of({ origin: [0, 49, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] }) : Plane.of({ origin: [0, -49, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] });
-  return part(name)
+  return made(part(name)
     .box({ w: 120, d: 55, h: CASE_TOP + 70, x: -60, y: side > 0 ? 0 : -55, z: -70 })
     .shell(b => b.faces().facing(side > 0 ? '-y' : '+y'), { t: 6 })
     .union(p => p.extrude(sketch(outer).circle({ r: 20 }), { h: 14 }))
@@ -185,7 +221,12 @@ export function crankcaseHalf(name: string, side: 1 | -1): StudioPart {
     .subtract(p => p.cylinder({ r: SPIGOT_R + 0.5, h: 20, z: CASE_TOP - 10 }))
     // (The camshaft's bearing, through the right half's wall only.)
     .subtract(p => side > 0 ? p.extrude(sketch(Plane.of({ origin: [0, 40, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] })).circle({ r: 8.1, x: CAM_X, y: -CAM_Z }), { h: 30 }) : p.box({ w: 1, d: 1, h: 1, x: 200, y: 200, z: 200 }))
-    .material('a356');
+    .material('a356').named(name), name, { process: 'die-casting', cast: {
+      // (Pulled out of the open split face; the split face, the main bearing's bore and boss face, the cylinder's seat
+      // and opening, and the right half's cam bearing machined; fed at the bottom.)
+      pull: [0, -side, 0], gate: [0, side * 27, -70],
+      machined: [side > 0 ? 'n1.side0' : 'n1.side2', 'n7.side[e1]', 'n4.top', 'n1.top', 'n10.side0', ...(side > 0 ? ['n13.side[e1]'] : [])],
+    } });
 }
 
 // ── 9. the timing gears (on the crankshaft's seat and the camshaft, bodies of their own): 20 teeth on the crank, 40 on
@@ -194,7 +235,8 @@ export const GEAR_M = 1.5, CRANK_TEETH = 20, CAM_TEETH = 40, GEAR_CENTRES = GEAR
 if (GEAR_CENTRES !== GEAR_CENTRES_MM) throw new Error('the gears\' centres and the camshaft\'s place disagree');
 
 // ── 10. a valve spring (own frame: axis Z, standing on z 0) ──
-export const valveSpring = (name: string) => part(name).spring({ type: 'compression', d: 2.5, D: 18, n: 5, p: 6, ends: 'closed-ground', hand: 'right', x: 0, y: 0, z: 0 }).material('steel');
+// (Bought, as a valve spring is: the BOM and the purchase list carry it as bought.)
+export const valveSpring = (name: string) => part(name).spring({ type: 'compression', d: 2.5, D: 18, n: 5, p: 6, ends: 'closed-ground', hand: 'right', x: 0, y: 0, z: 0 }).material('steel').bought();
 
 // ── 11. fasteners, from the shipped sample fastener sizes loaded as a person's file (rows rule b: none built in) ──
 let sizes: { name: string; text: string } | null = null;
@@ -270,7 +312,15 @@ export function partMass(p: StudioPart): { volumeMM3: number; massG: number; cen
   return { volumeMM3: v, massG: g, centroidMM: [c[0] / g, c[1] / g, c[2] / g] };
 }
 
-function main(out: string) {
+/** The assembly's drawing: A3, its BOM table and balloons. */
+function assemblyDrawing(a: Assembly): OutputFile[] {
+  try {
+    const d = a.drawingSettings({ scope: { kind: 'assembly' }, sheet: 'A3', balloons: true, tables: [{ id: 'bom', from: 'bom' }], title: 'engine-1cyl' }).drawing();
+    return [{ path: 'assembly/drawing.svg', data: d.svg }, { path: 'assembly/drawing.dxf', data: d.dxf }, { path: 'assembly/drawing.pdf', data: d.pdf }, { path: 'assembly/issues.json', data: JSON.stringify(d.issues, null, 1) + '\n' }];
+  } catch (e) { return [{ path: 'assembly/drawing.refused.txt', data: `${e instanceof Error ? e.message : String(e)}\n` }]; }
+}
+
+async function main(out: string) {
   mkdirSync(join(out, 'parts'), { recursive: true });
   const report: Record<string, unknown>[] = [];
   for (const [name, make] of PARTS) {
@@ -293,9 +343,15 @@ function main(out: string) {
     report.push({ assembly: 'engine-1cyl', parts: asm.parts().length, mates: asm.doc.mates?.length ?? 0, problems: asm.problems(), ms: Math.round(built),
       joints: tree.joints.map(j => ({ key: j.key, type: j.type, parent: j.parent, child: j.child })), loops: tree.loops.map(l => l.parts), couplings: tree.couplings.length, treeProblems: tree.problems.map(p => p.code), treeMs: Math.round(performance.now() - t1) });
   }
-  if (asm) report.push({ checks: checkEngine(asm.doc) });
+  if (asm) {
+    // (The checks, keeping the outputs they make: each made part's drawing, report and CAM package, the BOM and the
+    // purchase list; and the assembly's drawing with its BOM table and balloons.)
+    const checked = await checkEngine(asm.doc, { files: true });
+    for (const f of [...checked.files ?? [], ...assemblyDrawing(asm)]) { mkdirSync(join(out, 'outputs', dirname(f.path)), { recursive: true }); writeFileSync(join(out, 'outputs', f.path), f.data); }
+    report.push({ checks: { ...checked, files: (checked.files ?? []).map(f => f.path) } });
+  }
   writeFileSync(join(out, 'report.json'), JSON.stringify(report, null, 1));
   for (const r of report) console.log(JSON.stringify(r));
 }
 
-if (process.argv[1]?.endsWith("build.mjs")) main(process.argv[2]);
+if (process.argv[1]?.endsWith("build.mjs")) await main(process.argv[2]);

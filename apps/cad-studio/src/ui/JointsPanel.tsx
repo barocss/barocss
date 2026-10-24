@@ -83,7 +83,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         const r = sliderRange(j), turn = j.type !== 'prismatic', v = values[j.key] ?? 0, shown = turn ? v * DEG : v;
         return (
           <div key={j.key} aria-label={`Joint ${j.key}`} title={`mates ${j.mates.join(', ') || 'none'}`}>
-            <div className="kv">{name(j.parent)} → {name(j.child)} <b>{TYPE_LABEL[j.type]}{j.type !== 'fixed' ? ` ${axisText(j.axis)}` : ''}{j.mimic ? ` · follows ${j.mimic.joint} ×${j.mimic.multiplier.toFixed(4)}` : ''}</b>
+            <div className="kv">{name(j.parent)} → {name(j.child)} <b>{TYPE_LABEL[j.type]}{j.type !== 'fixed' ? ` ${axisText(j.axis)}` : ''}{j.mimic ? (j.cam ? ` · follows ${j.mimic.joint} on its cam (${j.cam.mate})` : ` · follows ${j.mimic.joint} ×${j.mimic.multiplier.toFixed(4)}`) : ''}</b>
               {j.limit && <span className="muted"> {limitText(j.limit, j.type)}</span>}</div>
             {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque(holding[j.key] ?? 0)} {turn ? 'N·m' : 'N'} against gravity</div>}
             {j.type !== 'fixed' && !j.mimic && <div className={FIELD} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
