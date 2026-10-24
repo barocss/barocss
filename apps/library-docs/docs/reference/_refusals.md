@@ -188,7 +188,7 @@
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
-| `[LOOP_OPEN]` | `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_OPEN]` | `api`, `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
 | `[MATE_FACES]` | `assembly` | …… |
