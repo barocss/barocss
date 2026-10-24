@@ -10,7 +10,7 @@ export { BarocssError };
 /** Every code cad-model refuses with, as it is written in the message's brackets. */
 export type CadModelCode =
   // robot
-  | 'NO_LINK' | 'NO_JOINTS' | 'NO_FRAME' | 'NOT_PLANAR' | 'NOT_ONE_LOOP' | 'NO_CLOSURE' | 'BRANCH_FLIP' | 'NO_PIN' | 'NO_RANGE' | 'BAD_VALUES'
+  | 'HARNESS_RAW_PROVENANCE_UNAVAILABLE' | 'NO_LINK' | 'NO_JOINTS' | 'NO_FRAME' | 'NOT_PLANAR' | 'NOT_ONE_LOOP' | 'NO_CLOSURE' | 'BRANCH_FLIP' | 'NO_PIN' | 'NO_RANGE' | 'BAD_VALUES'
   // print
   | 'NOT_NEEDED' | 'ONE_BODY' | 'NO_PRINTER' | 'DIRECTION_NOT_AXIS' | 'TOO_BIG_TWO_WAYS' | 'NO_ROOM' | 'BAD_CONNECTOR'
   | 'NOT_HOLLOW' | 'GRID_TOO_FINE' | 'NO_LATTICE' | 'UNDRAINED'
