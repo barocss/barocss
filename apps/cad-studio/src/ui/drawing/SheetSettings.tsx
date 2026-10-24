@@ -53,7 +53,7 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
           const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));
           // By default through the middle of the part, front to back.
           const at = views ? sectionMiddle(views, 'front', settings.orientation) : null;
-          onChange(withSections(settings, e.target.checked && at !== null && !rest.some(x => x.id === 'A') ? [{ id: 'A', view: 'front', at }, ...rest] : rest));
+          onChange(withSections(settings, e.target.checked && at !== null && !rest.some(x => x.id === 'A') && !settings.details?.some(d => d.id === 'A') ? [{ id: 'A', view: 'front', at }, ...rest] : rest));
         }} /></label>
         {sectionA && <label className={FIELD}><span>Cut at Y</span><span className="num flex items-center gap-1"><Input type="number" className="w-20 text-right" step="any" aria-label="Section Y" value={sectionY ?? sectionA.at}
           onChange={e => setSectionY(e.target.value)}
@@ -78,7 +78,7 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
         <Button variant="ghost" className="self-start" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
           const view: SectionViewId = sectionList.some(x => x.view === 'top') ? 'right' : 'top', at = views ? sectionMiddle(views, view, settings.orientation) : null;
           // (A is the front's, by its checkbox above: added sections take B on.)
-          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList]), view, at }]));
+          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList], (settings.details ?? []).map(d => d.id)), view, at }]));
         }}>Add section</Button>
         {(['right', 'iso'] as const).map(v => <label key={v} className={FIELD}><span>{v === 'right' ? 'Right view' : 'Isometric view'}</span><input type="checkbox" className={TICK} aria-label={v === 'right' ? 'Right view' : 'Isometric view'} checked={!settings.views || settings.views.includes(v)} onChange={e => {
           const on = new Set(settings.views ?? VIEW_IDS); if (e.target.checked) on.add(v); else on.delete(v);

@@ -24,7 +24,7 @@ export type CadModelCode =
   // sketch
   | 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY' | 'DWG_NOT_READ'
   // drawing
-  | 'DRAWING_SCOPE' | 'DRAWING_SCOPE_REFERENCES' | 'DRAWING_OPTIONS' | 'DRAWING_SECTION_REFERENCES'
+  | 'DRAWING_SCOPE' | 'DRAWING_SCOPE_REFERENCES' | 'DRAWING_OPTIONS' | 'DRAWING_SECTION_REFERENCES' | 'DRAWING_DETAIL_REFERENCES' | 'DRAWING_DETAIL_LETTER' | 'DRAWING_DETAIL_PARENT'
   // frames (weldments) following a sketch, a skeleton or a part
   | FrameGeometryCode | 'FRAME_SKELETON_IN_USE' | 'FRAME_PART_IN_USE'
   // 3D sketches (skeletons) and their bound values

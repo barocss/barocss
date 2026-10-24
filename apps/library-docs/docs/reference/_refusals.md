@@ -124,6 +124,9 @@
 | `[DRAFT_ANGLE]` | `app` | A draft angle is not 0 and below 45° in size. |
 | `[DRAFT_PICK]` | `app` | … |
 | `[DRAIN_NO_ROOM]` | `print` | a drain of Ø… at (…) does not fit inside the part's bottom |
+| `[DRAWING_DETAIL_LETTER]` | `drawing` | Detail … has a section's letter: letters are unique among sections and details. |
+| `[DRAWING_DETAIL_PARENT]` | `drawing` | Detail … enlarges section …, which the drawing does not have. |
+| `[DRAWING_DETAIL_REFERENCES]` | `drawing` | A changed or removed detail has dimensions. Keep its view, centre and radius, or remove those dimensions explicitly first. |
 | `[DRAWING_OPTIONS]` | `chat`, `drawing` | Unknown drawing setting …. |
 | `[DRAWING_SCOPE]` | `drawing` | scope is {kind: part, part?: id} or {kind: assembly} |
 | `[DRAWING_SCOPE_AUTO]` | `chat` | automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained |
@@ -185,7 +188,7 @@
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
-| `[LOOP_OPEN]` | `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_OPEN]` | `api`, `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
 | `[MATE_FACES]` | `assembly` | …… |

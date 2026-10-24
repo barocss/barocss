@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { compileGpu, materialShader } from '@barocss/gpu';
-import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderSettings } from '@barocss/cad-model/engine/render';
+import { APPEARANCES, MATERIAL_TEMPLATE, SCENE_TEMPLATE, anglesOf, directionFrom, type Appearance, type Hex, type RenderLight, type RenderPost, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { Icon } from './atoms';
 import { CONTROL, FIELD, NUM, SLIDER, TICK } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,13 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   };
   const setLight = (i: number, l: RenderLight) => onChange({ ...render, lights: render.lights.map((x, k) => k === i ? l : x) });
   const env = render.environment, setEnv = (patch: Partial<RenderSettings['environment']>) => onChange({ ...render, environment: { ...env, ...patch } });
+  // (G15d.1: the post, neutral until set; set back to neutral, it is dropped from the settings.)
+  const post: RenderPost = env.post ?? NO_POST;
+  const setPost = (patch: Partial<RenderPost>) => {
+    const next = { ...post, ...patch }, neutral = next.grade === 'neutral' && next.contrast === 1 && next.saturation === 1 && next.vignette === 0;
+    const rest = { ...env }; delete rest.post;
+    onChange({ ...render, environment: neutral ? rest : { ...rest, post: next } });
+  };
   const preset = APPEARANCES.find(p => JSON.stringify(p.appearance) === JSON.stringify(current))?.id ?? '';
 
   const slider = (label: string, value: number, set: (v: number) => void, min = 0, max = 1, step = 0.01) => (
@@ -139,14 +146,21 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
             {env.map && <Button variant="ghost" size="xs" aria-label="Remove environment" onClick={() => setEnv({ map: undefined })}><Icon name="close" small /></Button>}
           </span></div>
         {env.map && slider('Environment strength', env.map.intensity, v => setEnv({ map: { ...env.map!, intensity: v } }), 0, 4)}
-        {slider('Exposure', env.exposure, v => setEnv({ exposure: v }), 0.1, 4)}
-        <label className={FIELD}><span>Tone map</span>
-          <NativeSelect className={CONTROL} aria-label="Tone mapping" value={env.toneMapping} onChange={e => setEnv({ toneMapping: e.target.value as 'none' | 'aces' })}>
-            <option value="aces">Filmic (ACES)</option><option value="none">None</option></NativeSelect></label>
         {check('Occlusion', env.occlusion, v => setEnv({ occlusion: v }))}
         {check('Ground', env.ground, v => setEnv({ ground: v }))}
         {check('Grid', env.grid, v => setEnv({ grid: v }))}
         {check('Edges', env.edges, v => setEnv({ edges: v }))}
+        <div className="card-title" style={{ marginTop: 10 }}>POST</div>
+        {slider('Exposure', env.exposure, v => setEnv({ exposure: v }), 0.1, 4)}
+        <label className={FIELD}><span>Tone map</span>
+          <NativeSelect className={CONTROL} aria-label="Tone mapping" value={env.toneMapping} onChange={e => setEnv({ toneMapping: e.target.value as RenderSettings['environment']['toneMapping'] })}>
+            <option value="aces">Filmic (ACES)</option><option value="agx">Soft highlights (AgX)</option><option value="none">None</option></NativeSelect></label>
+        <label className={FIELD}><span>Grade</span>
+          <NativeSelect className={CONTROL} aria-label="Colour grade" value={post.grade} onChange={e => setPost({ grade: e.target.value as RenderPost['grade'] })}>
+            <option value="neutral">Neutral</option><option value="warm">Warm studio</option><option value="cool">Cool daylight</option></NativeSelect></label>
+        {slider('Contrast', post.contrast, v => setPost({ contrast: v }), 0.5, 1.5)}
+        {slider('Saturation', post.saturation, v => setPost({ saturation: v }), 0, 2)}
+        {slider('Vignette', post.vignette, v => setPost({ vignette: v }))}
         <div className="card-title" style={{ marginTop: 10 }}>CAMERA</div>
         {slider('Field of view', fov, onFov, 10, 90, 1)}
         <div className="flex flex-wrap gap-1">
@@ -157,6 +171,8 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
     </aside>
   );
 }
+
+const NO_POST: RenderPost = { grade: 'neutral', contrast: 1, saturation: 1, vignette: 0 };
 
 /** #rgb as #rrggbb (the colour input wants six digits). */
 const full = (h: Hex) => h.length === 4 ? `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}` : h;

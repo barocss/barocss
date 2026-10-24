@@ -18,6 +18,14 @@ test('render settings: read back with defaults for anything missing or out of ra
   assert.equal(appearanceOf(r, 'b9'), r.defaultAppearance);
 });
 
+test('render post (G15d.1): AgX kept, the post read in range; absent, none', () => {
+  assert.equal(readRender({ environment: { toneMapping: 'agx' } }).environment.toneMapping, 'agx');
+  assert.equal(readRender({ environment: { toneMapping: 'reinhard' } }).environment.toneMapping, 'aces');
+  assert.equal(readRender({ environment: {} }).environment.post, undefined);
+  assert.deepEqual(readRender({ environment: { post: { grade: 'warm', contrast: 9, saturation: -1, vignette: 0.3 } } }).environment.post, { grade: 'warm', contrast: 1.5, saturation: 0, vignette: 0.3 });
+  assert.deepEqual(readRender({ environment: { post: { grade: 'sepia' } } }).environment.post, { grade: 'neutral', contrast: 1, saturation: 1, vignette: 0 });
+});
+
 test('render settings: light angles round-trip through directions', () => {
   for (const [az, el] of [[0, 45], [-120, 30], [90, 80]] as const) {
     const d = directionFrom(az, el);

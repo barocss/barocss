@@ -67,7 +67,7 @@ export const TITLE_BLOCK = { width: 120, height: 32 };
 const GAP = 22, PAD = 14;
 
 /** `hidden`: a view the settings do not show (R14.3, O4): placed nowhere (an empty box at its cell), drawn nowhere. */
-export interface ViewPlacement { id: ViewId | 'section'; scale: number; origin: XY; box: [number, number, number, number]; hidden?: true }
+export interface ViewPlacement { id: ViewId | 'section' | 'detail'; scale: number; origin: XY; box: [number, number, number, number]; hidden?: true }
 export interface SheetLayout {
   size: [number, number]; scale: number; fits: boolean;
   frame: [number, number, number, number];
