@@ -3,12 +3,13 @@ import type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, E
 import type { SurfaceBoundary } from '../core/boundary.js';
 import { copyCadData } from '../data-copy.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const ClosedExactPatchShellDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', COVERAGE: 'COVERAGE', CONNECTED: 'CONNECTED', BINDING: 'BINDING', NATIVE: 'NATIVE', INCIDENCE: 'INCIDENCE', OWNED: 'OWNED',
 } as const);
 export type ClosedExactPatchShellDiagnosticCode = typeof ClosedExactPatchShellDiagnosticCode[keyof typeof ClosedExactPatchShellDiagnosticCode];
-export class ClosedExactPatchShellError extends Error {
+export class ClosedExactPatchShellError extends KernelError {
   readonly code: ClosedExactPatchShellDiagnosticCode;
   constructor(code: ClosedExactPatchShellDiagnosticCode, detail: string, cause?: unknown) {
     super(('Closed exact patch Shell: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

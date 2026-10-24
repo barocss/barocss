@@ -15,9 +15,10 @@ import { brepMassProperties } from '../brep/solid-mass.js';
 import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { cross } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type ConnectorCode = 'INVALID_INPUT' | 'CONNECTOR_PLACEMENT' | 'CONNECTOR_FIT';
-export class ConnectorError extends Error {
+export class ConnectorError extends KernelError {
   constructor(readonly code: ConnectorCode, detail: string) { super(`connector: ${detail}`); this.name = 'ConnectorError'; }
 }
 const fail = (code: ConnectorCode, detail: string): never => { throw new ConnectorError(code, detail); };

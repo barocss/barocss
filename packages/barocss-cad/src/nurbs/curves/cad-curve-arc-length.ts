@@ -5,13 +5,14 @@ import { validateCurve, curveDomain, evaluateCurve } from '../../core/math.js';
 import { evaluateCurveD1 } from '../../core/derivatives.js';
 import type { Curve, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CadCurveArcLengthDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', REFERENCE: 'REFERENCE', STALE: 'STALE', INTERVAL: 'INTERVAL', REPRESENTABILITY: 'REPRESENTABILITY',
   BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CadCurveArcLengthDiagnosticCode = typeof CadCurveArcLengthDiagnosticCode[keyof typeof CadCurveArcLengthDiagnosticCode];
-export class CadCurveArcLengthError extends Error {
+export class CadCurveArcLengthError extends KernelError {
   readonly code: CadCurveArcLengthDiagnosticCode;
   constructor(code: CadCurveArcLengthDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD Curve arc length: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

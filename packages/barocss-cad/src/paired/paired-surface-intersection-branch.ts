@@ -5,6 +5,7 @@ import { validateSurface, surfaceDomain, evaluateSurface } from '../core/math.js
 import { evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { SurfaceD1Result } from '../core/derivatives.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type Two<T> = [T,T];
 type Three<T> = [T,T,T];
@@ -69,7 +70,7 @@ type ErrorContext = {
   trialIndex:number|null;
   directCounts:DirectCounts; // copied actual prefix at failure, no partial accepted branch
 };
-export class PairedSurfaceIntersectionBranchError extends Error {
+export class PairedSurfaceIntersectionBranchError extends KernelError {
   readonly code: DiagnosticCode;
   readonly context: ErrorContext;
   constructor(code: DiagnosticCode, detail: string, context: ErrorContext, cause?: unknown) {

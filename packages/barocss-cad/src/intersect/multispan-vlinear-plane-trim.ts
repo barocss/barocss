@@ -13,10 +13,11 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { Curve, Model, Point, Surface } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const MultiSpanVLinearSurfacePlaneTrimDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SECTION: 'SECTION', UV: 'UV', INTERVAL: 'INTERVAL', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type MultiSpanVLinearSurfacePlaneTrimDiagnosticCode = typeof MultiSpanVLinearSurfacePlaneTrimDiagnosticCode[keyof typeof MultiSpanVLinearSurfacePlaneTrimDiagnosticCode];
-export class MultiSpanVLinearSurfacePlaneTrimError extends Error {
+export class MultiSpanVLinearSurfacePlaneTrimError extends KernelError {
   readonly code: MultiSpanVLinearSurfacePlaneTrimDiagnosticCode;
   constructor(code: MultiSpanVLinearSurfacePlaneTrimDiagnosticCode, detail: string, cause?: unknown) {
     super(('Multi-span V-linear Plane trim: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'MultiSpanVLinearSurfacePlaneTrimError'; this.code = code;

@@ -10,6 +10,7 @@ import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const WideAdaptiveCurveSamplingDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', SPAN: 'SPAN', REPRESENTABILITY: 'REPRESENTABILITY',
@@ -17,7 +18,7 @@ export const WideAdaptiveCurveSamplingDiagnosticCode = Object.freeze({
 } as const);
 export type WideAdaptiveCurveSamplingDiagnosticCode =
   typeof WideAdaptiveCurveSamplingDiagnosticCode[keyof typeof WideAdaptiveCurveSamplingDiagnosticCode];
-export class WideAdaptiveCurveSamplingError extends Error {
+export class WideAdaptiveCurveSamplingError extends KernelError {
   readonly code: WideAdaptiveCurveSamplingDiagnosticCode;
   constructor(code: WideAdaptiveCurveSamplingDiagnosticCode, detail: string, cause?: unknown) {
     super(('Wide adaptive Curve sampling: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

@@ -6,11 +6,12 @@ import { adopt } from '../intersect/own-plane-cylinder-intersection-internal.js'
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const AffineGeometryTransformDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', MATRIX: 'MATRIX', BUDGET: 'BUDGET',
   NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type AffineGeometryTransformDiagnosticCode = typeof AffineGeometryTransformDiagnosticCode[keyof typeof AffineGeometryTransformDiagnosticCode];
-export class AffineGeometryTransformError extends Error {
+export class AffineGeometryTransformError extends KernelError {
   readonly code: AffineGeometryTransformDiagnosticCode;
   constructor(code: AffineGeometryTransformDiagnosticCode, detail: string, cause?: unknown) {
     super(('Affine native geometry transform: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

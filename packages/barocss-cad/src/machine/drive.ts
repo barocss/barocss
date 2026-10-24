@@ -28,9 +28,10 @@ import { arcCurve, extrudedProfile, lineCurve, reversed } from './gear.js';
 import { evaluateCurve } from '../core/math.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { transformBrep } from '../brep/brep-transform.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type DriveCode = 'INVALID_INPUT' | 'UNSUPPORTED_TOOTH_FORM' | 'TOOTH_FORM' | 'BELT_GEOMETRY';
-export class DriveError extends Error {
+export class DriveError extends KernelError {
   constructor(readonly code: DriveCode, detail: string) { super(`drive: ${detail}`); this.name = 'DriveError'; }
 }
 const fail = (code: DriveCode, detail: string): never => { throw new DriveError(code, detail); };

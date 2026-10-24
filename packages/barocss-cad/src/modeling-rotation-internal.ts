@@ -8,6 +8,7 @@ import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 
 import type { Point, Curve, Surface } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 /** Discrete right-handed rotations around the origin, in authored XYZ millimetres. */
 export type CardinalRotationAxis = 'x' | 'y' | 'z';
@@ -135,7 +136,7 @@ interface RotationResult<Pivoted extends boolean> {
 
 export type ModelingRotationResult = RotationResult<false> | RotationResult<true>;
 
-class ModelingRotationError extends Error {
+class ModelingRotationError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, readonly stage: string, readonly entity: string,
     detail: string, readonly report: Progress, cause: unknown) {
     super(('Modeling rotation: ' + detail).slice(0, 1024), { cause }); this.name = 'ModelingRotationError';

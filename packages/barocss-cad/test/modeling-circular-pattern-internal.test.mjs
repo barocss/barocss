@@ -16,7 +16,7 @@ const { build } = require('esbuild');
 const entries = process.env.CAD_MODEL_CIRCULAR_PATTERN_INTERNAL_ENTRY
   ? [resolve(process.env.CAD_MODEL_CIRCULAR_PATTERN_INTERNAL_ENTRY)]
   : ['../src/modeling-circular-pattern-internal.ts', '../dist/modeling-circular-pattern-internal.js'].map(path => fileURLToPath(new URL(path, import.meta.url)));
-const allowed = new Set(['modeling-circular-pattern-internal', 'convex-planar-solid-proof-internal', 'section-rational-internal', 'numeric-policy']);
+const allowed = new Set(['barocss-error', 'modeling-circular-pattern-internal', 'convex-planar-solid-proof-internal', 'section-rational-internal', 'numeric-policy']);
 const providers = new Map([['convex-planar-solid', 'validateConvexPlanarSolid'], ['modeling-rotation-internal', 'buildModelingRotation']]);
 const marker = 'INERT_PATTERN_WRAPPER_CONTROL_NOT_GEOMETRY';
 const clone = value => structuredClone(value);

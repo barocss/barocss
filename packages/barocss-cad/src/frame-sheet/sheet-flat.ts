@@ -8,6 +8,7 @@ import { brepMassProperties } from '../brep/solid-mass.js';
 import type { DxfDocument, DxfEntity } from '../io/dxf-writer.js';
 import { lookupBend, type BendTable, type BendTableUse } from './sheet-metal.js';
 import { add, cross, dot, len, scale as scl, sub } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
 // R12.2 (D117): a sheet-metal body's flat pattern, from its B-rep and the sheet's thickness T and K-factor alone (D115).
 // The skin — the faces joined to a fixed planar face across smooth edges — is developed onto that face's plane: planes
@@ -47,7 +48,7 @@ export interface FlatPattern {
 }
 export type FlatPatternErrorCode = 'NOT_A_SHEET' | 'NON_NORMAL_CUT' | 'BEND_NOT_CYLINDRICAL' | 'FLAT_OVERLAPS' | 'CUT_ACROSS_BEND' | 'BEND_TABLE_MISS';
 /** A refusal: its message starts with its `[CODE]`. */
-export class FlatPatternError extends Error {
+export class FlatPatternError extends KernelError {
   constructor(readonly code: FlatPatternErrorCode, detail: string) { super(`[${code}] ${detail}`.slice(0, 1024)); this.name = 'FlatPatternError'; }
 }
 export interface FlatPatternOptions {

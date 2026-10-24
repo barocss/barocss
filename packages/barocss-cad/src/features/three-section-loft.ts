@@ -5,13 +5,14 @@ import { adopt } from '../intersect/own-plane-cylinder-intersection-internal.js'
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const ThreeSectionLoftDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BASIS: 'BASIS', REPRESENTABILITY: 'REPRESENTABILITY',
   BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type ThreeSectionLoftDiagnosticCode = typeof ThreeSectionLoftDiagnosticCode[keyof typeof ThreeSectionLoftDiagnosticCode];
-export class ThreeSectionLoftError extends Error {
+export class ThreeSectionLoftError extends KernelError {
   readonly code: ThreeSectionLoftDiagnosticCode;
   constructor(code: ThreeSectionLoftDiagnosticCode, detail: string, cause?: unknown) {
     super(('Three-section loft Surface: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

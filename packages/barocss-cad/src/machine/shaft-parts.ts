@@ -25,9 +25,10 @@ import { fitLimits, type FitLimits, type FitTable } from './fits.js';
 import type { ShaftReport } from './shaft.js';
 import type { Point } from '../types.js';
 import { add, cross, dot, scale as scl, sub } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type ShaftPartCode = 'INVALID_INPUT' | 'KEY_FIT' | 'RING_FIT' | 'PIN_FIT';
-export class ShaftPartError extends Error {
+export class ShaftPartError extends KernelError {
   constructor(readonly code: ShaftPartCode, detail: string) { super(`shaft part: ${detail}`); this.name = 'ShaftPartError'; }
 }
 const fail = (code: ShaftPartCode, detail: string): never => { throw new ShaftPartError(code, detail); };

@@ -10,10 +10,11 @@ import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Model, Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const TranslatedSurfaceBaseFaceDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', PARENT:'PARENT', PAIR:'PAIR', SUPPORT:'SUPPORT', TRANSLATION:'TRANSLATION', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type TranslatedSurfaceBaseFaceDiagnosticCode = typeof TranslatedSurfaceBaseFaceDiagnosticCode[keyof typeof TranslatedSurfaceBaseFaceDiagnosticCode];
-export class TranslatedSurfaceBaseFaceError extends Error {
+export class TranslatedSurfaceBaseFaceError extends KernelError {
   readonly code: TranslatedSurfaceBaseFaceDiagnosticCode;
   constructor(code: TranslatedSurfaceBaseFaceDiagnosticCode, detail: string, cause?: unknown) { super(('Translated original Surface base Face: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='TranslatedSurfaceBaseFaceError';this.code=code; }
 }

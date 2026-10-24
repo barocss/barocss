@@ -12,6 +12,7 @@
 // cylinder's domain, a quartic intersection): its crossings come from polylines refined by Newton's
 // method, its area and crossings with a horizontal line by Gauss–Legendre and bisection.
 import { linearToleranceMM } from '../numeric-policy.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type XY = [number, number];
 /**
@@ -26,7 +27,7 @@ export type CurveSegment2 =
 /** A region: closed rings (material on the left: outer counter-clockwise, holes clockwise). */
 export type CurveRegion2 = { readonly outer: readonly CurveSegment2[]; readonly holes: readonly (readonly CurveSegment2[])[] };
 export type CurveBooleanOperation = 'union' | 'intersection' | 'difference' | 'xor';
-export class CurvedArrangementError extends Error { constructor(detail: string) { super('Curved arrangement: ' + detail); this.name = 'CurvedArrangementError'; } }
+export class CurvedArrangementError extends KernelError { constructor(detail: string) { super('Curved arrangement: ' + detail, { code: 'CURVED_ARRANGEMENT' }); this.name = 'CurvedArrangementError'; } }
 
 const TWO_PI = 2 * Math.PI;
 type ParamCurve = Extract<CurveSegment2, { kind: 'curve' }>;

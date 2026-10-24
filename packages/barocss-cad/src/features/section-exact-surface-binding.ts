@@ -7,10 +7,11 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const SectionExactSurfaceBindingDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', SECTION:'SECTION', SUPPORT:'SUPPORT', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type SectionExactSurfaceBindingDiagnosticCode = typeof SectionExactSurfaceBindingDiagnosticCode[keyof typeof SectionExactSurfaceBindingDiagnosticCode];
-export class SectionExactSurfaceBindingError extends Error {
+export class SectionExactSurfaceBindingError extends KernelError {
  readonly code:SectionExactSurfaceBindingDiagnosticCode;
  constructor(code:SectionExactSurfaceBindingDiagnosticCode,detail:string,cause?:unknown) { super(('Exact section Surface binding: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='SectionExactSurfaceBindingError';this.code=code; }
 }

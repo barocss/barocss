@@ -6,11 +6,12 @@ import { adopt } from '../../intersect/own-plane-cylinder-intersection-internal.
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SurfaceInterpolationDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type SurfaceInterpolationDiagnosticCode = typeof SurfaceInterpolationDiagnosticCode[keyof typeof SurfaceInterpolationDiagnosticCode];
-export class SurfaceInterpolationError extends Error {
+export class SurfaceInterpolationError extends KernelError {
   readonly code: SurfaceInterpolationDiagnosticCode; readonly axis: 'u' | 'v' | null; readonly index: number | null;
   constructor(code: SurfaceInterpolationDiagnosticCode, detail: string, context: { axis?: 'u' | 'v' | null; index?: number | null; cause?: unknown } = {}) {
     const axis = context.axis === 'u' || context.axis === 'v' ? context.axis : null;

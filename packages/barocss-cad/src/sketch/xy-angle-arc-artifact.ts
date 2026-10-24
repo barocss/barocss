@@ -5,10 +5,11 @@ import { evaluateCurve } from '../core/math.js';
 import { evaluateCurveD1 } from '../core/derivatives.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const XYAngleArcArtifactDiagnosticCode = Object.freeze({ INPUT: 'INPUT', REQUEST: 'REQUEST', SOURCE: 'SOURCE', BINDING: 'BINDING', STRUCTURE: 'STRUCTURE', ASSOCIATION: 'ASSOCIATION', OBSERVATION: 'OBSERVATION', BUDGET: 'BUDGET', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const);
 type Code = typeof XYAngleArcArtifactDiagnosticCode[keyof typeof XYAngleArcArtifactDiagnosticCode];
-export class XYAngleArcArtifactError extends Error {
+export class XYAngleArcArtifactError extends KernelError {
   readonly code: Code;
   constructor(code: Code, detail: string, cause?: unknown) { super(('XY angle-arc artifact: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'XYAngleArcArtifactError'; this.code = code; }
 }

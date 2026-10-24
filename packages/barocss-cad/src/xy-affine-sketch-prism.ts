@@ -7,6 +7,7 @@ import { qualifyConvexPlanarSolid } from './convex-planar-solid.js';
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidAsset, ConvexPlanarSolidEdgePair } from './convex-planar-solid.js';
 import { SolidSnapshotLedger, same, record, id } from './convex-planar-solid-proof-internal.js';
 import type { Curve, Point, Surface } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 export interface XYAffineSketchPrismOptions {
   sourceId: string; sourceRevision: number; orderedSegmentIds: string[]; heightMM: number;
@@ -66,9 +67,9 @@ export interface XYAffineSketchPrismWallResolution {
   status: 'preserved' | 'deleted' | 'stale'; targets: XYAffineSketchPrismFaceReference[];
 }
 export type XYAffineSketchPrismStage = 'input' | 'sketch' | 'cycle' | 'chart' | 'face' | 'qualification' | 'lineage' | 'result' | 'reference';
-export class XYAffineSketchPrismError extends Error {
+export class XYAffineSketchPrismError extends KernelError {
   constructor(readonly stage: XYAffineSketchPrismStage, readonly entityId: string | null, detail: string, cause?: unknown) {
-    super(('XY affine sketch prism: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'XYAffineSketchPrismError';
+    super(('XY affine sketch prism: ' + detail).slice(0, 1024), cause === undefined ? { code: 'XY_AFFINE_SKETCH_PRISM' } : { cause, code: 'XY_AFFINE_SKETCH_PRISM' }); this.name = 'XYAffineSketchPrismError';
   }
 }
 function at<T>(stage: XYAffineSketchPrismStage, entityId: string | null, action: () => T): T {

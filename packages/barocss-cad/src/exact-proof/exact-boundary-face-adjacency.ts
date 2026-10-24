@@ -11,12 +11,13 @@ import type { CurveD1Result } from '../core/derivatives.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const ExactBoundaryFaceAdjacencyDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', IDENTITY: 'IDENTITY', BASIS: 'BASIS', ORIENTATION: 'ORIENTATION', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED',
 } as const);
 export type ExactBoundaryFaceAdjacencyDiagnosticCode = typeof ExactBoundaryFaceAdjacencyDiagnosticCode[keyof typeof ExactBoundaryFaceAdjacencyDiagnosticCode];
-export class ExactBoundaryFaceAdjacencyError extends Error {
+export class ExactBoundaryFaceAdjacencyError extends KernelError {
   readonly code: ExactBoundaryFaceAdjacencyDiagnosticCode;
   constructor(code: ExactBoundaryFaceAdjacencyDiagnosticCode, detail: string, cause?: unknown) {
     super(('Exact boundary Face adjacency: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

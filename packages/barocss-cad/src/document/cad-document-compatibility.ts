@@ -4,6 +4,7 @@ import { compileCadModel } from '../model-compiler.js';
 import { copyCadData } from '../data-copy.js';
 import type { Model } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CadDocumentCompatibilityDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', FORMAT: 'FORMAT', VERSION: 'VERSION', PROFILE: 'PROFILE', IDENTITY: 'IDENTITY',
@@ -11,7 +12,7 @@ export const CadDocumentCompatibilityDiagnosticCode = Object.freeze({
 } as const);
 export type CadDocumentCompatibilityDiagnosticCode =
   typeof CadDocumentCompatibilityDiagnosticCode[keyof typeof CadDocumentCompatibilityDiagnosticCode];
-export class CadDocumentCompatibilityError extends Error {
+export class CadDocumentCompatibilityError extends KernelError {
   readonly code: CadDocumentCompatibilityDiagnosticCode;
   constructor(code: CadDocumentCompatibilityDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD document compatibility: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

@@ -681,3 +681,5 @@ export { cutPiece, cutList, cutListCsv, CutListError } from './frame-sheet/frame
 export type { CutPiece, CutRow, CutList, CutEnd } from './frame-sheet/frame-cutlist.js';
 export { loopArea, loopPerimeter } from './frame-sheet/frame-weldment.js';
 export type { GussetReport, EndCapReport, WeldmentSeam, BeadReport, BeadJointRef, BeadSharedComponent, BeadSharedSeam } from './frame-sheet/frame-weldment.js';
+// R7.3a: the one refusal shape; every error class of the kernel is a BarocssError (api-conventions.md §6).
+export { BarocssError, type Problem, type RefusalWhere } from './core/barocss-error.js';

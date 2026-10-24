@@ -8,6 +8,7 @@ import type { SurfaceBoundary } from '../../core/boundary.js';
 import { compileCadModel } from '../../model-compiler.js';
 import type { CadCompileResult } from '../../model-compiler.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceLineWidthFaceDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET',
@@ -16,7 +17,7 @@ export const SourceLineWidthFaceDiagnosticCode = Object.freeze({
 } as const);
 export type SourceLineWidthFaceDiagnosticCode =
   typeof SourceLineWidthFaceDiagnosticCode[keyof typeof SourceLineWidthFaceDiagnosticCode];
-export class SourceLineWidthFaceError extends Error {
+export class SourceLineWidthFaceError extends KernelError {
   readonly code: SourceLineWidthFaceDiagnosticCode;
   constructor(code: SourceLineWidthFaceDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source Line width Face: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

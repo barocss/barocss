@@ -13,6 +13,7 @@ import { cross, dist as distance, dot, sub } from '../core/vec3.js';
 import { strictGeometry } from './brep-check-geometry.js';
 import { facetPatchProblem, facetVectorArea } from '../mesh/facet-patch.js';
 import { closestPointOnSurface, surfaceSeedGrid, type SurfaceSeedGrid } from '../nurbs/surfaces/surface-closest.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
@@ -58,7 +59,7 @@ export interface BrepCheckReport {
  * `NOT_PLANAR_WITHIN_FLOAT` — the polyhedral Boolean's face whose vertices are coplanar only to binary64 (FR3b, D126).
  */
 export type BrepErrorReason = 'NOT_PLANAR_WITHIN_FLOAT';
-export class BrepError extends Error {
+export class BrepError extends KernelError {
   constructor(readonly code: 'INPUT' | 'TOPOLOGY' | 'GEOMETRY', detail: string, readonly report?: BrepCheckReport, readonly reason?: BrepErrorReason) { super(('B-rep: ' + detail).slice(0, 1024)); this.name = 'BrepError'; }
 }
 

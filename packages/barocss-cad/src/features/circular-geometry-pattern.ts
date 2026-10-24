@@ -5,11 +5,12 @@ import { adopt } from '../intersect/own-plane-cylinder-intersection-internal.js'
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CircularGeometryPatternDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type CircularGeometryPatternDiagnosticCode = typeof CircularGeometryPatternDiagnosticCode[keyof typeof CircularGeometryPatternDiagnosticCode];
-export class CircularGeometryPatternError extends Error {
+export class CircularGeometryPatternError extends KernelError {
   readonly code: CircularGeometryPatternDiagnosticCode; readonly instanceIndex: number | null;
   constructor(code: CircularGeometryPatternDiagnosticCode, detail: string, context: { instanceIndex?: number | null; cause?: unknown } = {}) {
     super(('Native circular geometry pattern: ' + detail).slice(0, 1024), context.cause === undefined ? undefined : { cause: context.cause });

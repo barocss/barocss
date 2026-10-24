@@ -5,6 +5,7 @@ import { validateQualifiedTranslatedStripBodyMesh } from './qualified-translated
 import { encodeQualifiedStripBinaryStlTrusted } from '../qualified-strip-binary-stl-encoding-internal.js';
 import type {Point} from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 export interface QualifiedTranslatedStripBodyBinaryStlOptions {
  evaluationId:string;maximumVertices:290;maximumTriangles:576;maximumBytes:28884;
 }
@@ -64,7 +65,7 @@ export const QualifiedTranslatedStripBodyBinaryStlDiagnosticCode = Object.freeze
   BUDGET: 'BUDGET', FILE: 'FILE', OWNED: 'OWNED',
 } as const);
 export type QualifiedTranslatedStripBodyBinaryStlDiagnosticCode = Code;
-export class QualifiedTranslatedStripBodyBinaryStlError extends Error {
+export class QualifiedTranslatedStripBodyBinaryStlError extends KernelError {
   readonly code: Code;
   readonly context: Context;
   constructor(code: Code, detail: string, context: Context, cause?: unknown) {

@@ -5,12 +5,13 @@ import { evaluateSurface } from '../core/math.js';
 import { copyCadData } from '../data-copy.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CoplanarFaceBooleanExtrusionMassDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED',
 } as const);
 export type CoplanarFaceBooleanExtrusionMassDiagnosticCode = typeof CoplanarFaceBooleanExtrusionMassDiagnosticCode[keyof typeof CoplanarFaceBooleanExtrusionMassDiagnosticCode];
-export class CoplanarFaceBooleanExtrusionMassError extends Error {
+export class CoplanarFaceBooleanExtrusionMassError extends KernelError {
   readonly code: CoplanarFaceBooleanExtrusionMassDiagnosticCode;
   constructor(code: CoplanarFaceBooleanExtrusionMassDiagnosticCode, detail: string, cause?: unknown) {
     super(('Coplanar Face Boolean Extrusion Mass: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

@@ -9,13 +9,14 @@ import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SurfaceAxisReversalDiagnosticCode = Object.freeze({
   INPUT:'INPUT', AXIS:'AXIS', IDENTITY:'IDENTITY', DOMAIN:'DOMAIN',
   REPRESENTABILITY:'REPRESENTABILITY', NATIVE:'NATIVE', BINDING:'BINDING', OWNED:'OWNED',
 } as const);
 export type SurfaceAxisReversalDiagnosticCode = typeof SurfaceAxisReversalDiagnosticCode[keyof typeof SurfaceAxisReversalDiagnosticCode];
-export class SurfaceAxisReversalError extends Error {
+export class SurfaceAxisReversalError extends KernelError {
   readonly code: SurfaceAxisReversalDiagnosticCode;
   constructor(code: SurfaceAxisReversalDiagnosticCode, detail: string, cause?: unknown) {
     super(('Surface axis reversal: '+detail).slice(0,1024),cause===undefined?undefined:{cause});

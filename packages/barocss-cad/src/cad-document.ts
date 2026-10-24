@@ -1,13 +1,14 @@
 import { compileCadModel } from './model-compiler.js';
 import { copyCadData } from './data-copy.js';
 import type { Model } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 export const CadDocumentDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', PROFILE: 'PROFILE', IDENTITY: 'IDENTITY', REFERENCE: 'REFERENCE',
   SOURCE: 'SOURCE', FRAME: 'FRAME', BUDGET: 'BUDGET', JSON: 'JSON', OWNED: 'OWNED',
 } as const);
 export type CadDocumentDiagnosticCode = typeof CadDocumentDiagnosticCode[keyof typeof CadDocumentDiagnosticCode];
-export class CadDocumentError extends Error {
+export class CadDocumentError extends KernelError {
   readonly code: CadDocumentDiagnosticCode;
   constructor(code: CadDocumentDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD document: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

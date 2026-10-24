@@ -9,6 +9,7 @@ import { evaluateCurveD1 } from '../../core/derivatives.js';
 import type { CurveD1Result } from '../../core/derivatives.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceCurveDegreeElevationDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET',
@@ -17,7 +18,7 @@ export const SourceCurveDegreeElevationDiagnosticCode = Object.freeze({
 } as const);
 export type SourceCurveDegreeElevationDiagnosticCode =
   typeof SourceCurveDegreeElevationDiagnosticCode[keyof typeof SourceCurveDegreeElevationDiagnosticCode];
-export class SourceCurveDegreeElevationError extends Error {
+export class SourceCurveDegreeElevationError extends KernelError {
   readonly code: SourceCurveDegreeElevationDiagnosticCode;
   constructor(code: SourceCurveDegreeElevationDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source Curve degree elevation: ' + detail).slice(0, 1024),

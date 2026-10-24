@@ -19,10 +19,11 @@
 // circle, or, when the gear is undercut, where it crosses it (the involute below is cut away).
 import { buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type GearDiagnosticCode = 'INVALID_INPUT' | 'UNSUPPORTED_PROFILE_SHIFT' | 'UNSUPPORTED_GEAR_KIND' | 'PROFILE_BUDGET_EXCEEDED' | 'SELF_INTERSECTION' | 'ROOT_TRANSITION_UNVALIDATED' | 'BORE_INTERSECTION' | 'MATE_INCOMPATIBLE' | 'UNDERCUT' | 'INVOLUTE_INTERFERENCE' | 'TROCHOID_INTERFERENCE' | 'TRIMMING_INTERFERENCE' | 'RIM_INTERSECTION' | 'IDEAL_MODEL';
 export interface GearDiagnostic { readonly code: GearDiagnosticCode; readonly severity: 'error' | 'warning'; readonly message: string }
-export class GearError extends Error {
+export class GearError extends KernelError {
   constructor(readonly code: GearDiagnosticCode, detail: string) { super(`gear: ${detail}`); this.name = 'GearError'; }
 }
 

@@ -5,10 +5,11 @@ import type { SectionRational, SectionFraction } from './section-rational-intern
 import type { Point } from './types.js';
 import { chartRoundingBoundMM } from './numeric-policy.js';
 import { same } from './core/structural-equality.js';
+import { KernelError } from './core/barocss-error.js';
 
 export const StoredPlateHoleSolidDiagnosticCode = { INPUT: 'INPUT', NATIVE: 'NATIVE', GEOMETRY: 'GEOMETRY', TOPOLOGY: 'TOPOLOGY', BUDGET: 'BUDGET', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const;
 type Code = typeof StoredPlateHoleSolidDiagnosticCode[keyof typeof StoredPlateHoleSolidDiagnosticCode];
-export class StoredPlateHoleSolidError extends Error {
+export class StoredPlateHoleSolidError extends KernelError {
   readonly code: Code;
   constructor(code: Code, detail: string, cause?: unknown) { super(('Stored plate-hole Solid: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'StoredPlateHoleSolidError'; this.code = code; }
 }

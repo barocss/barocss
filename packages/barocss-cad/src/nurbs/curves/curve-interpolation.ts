@@ -1,11 +1,12 @@
 import { buildCurveInterpolationKernel, snapshotCurveInterpolationKernelData as snapshot,
   recordCurveInterpolationKernelData as record, sameCurveInterpolationKernelData as same } from './curve-interpolation-kernel-internal.js';
 import type { Curve, Model, Point } from '../../types.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CurveInterpolationDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type CurveInterpolationDiagnosticCode = typeof CurveInterpolationDiagnosticCode[keyof typeof CurveInterpolationDiagnosticCode];
-export class CurveInterpolationError extends Error {
+export class CurveInterpolationError extends KernelError {
   readonly code: CurveInterpolationDiagnosticCode;
   constructor(code: CurveInterpolationDiagnosticCode, detail: string, cause?: unknown) {
     super(('Curve interpolation: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

@@ -9,6 +9,7 @@ import { subtractConvexPlanarSlab, ConvexPlanarSlabSubtractionError } from '../c
 import type { ConvexPlanarSlabSubtractionOptions, ConvexPlanarSlabSubtractionResult } from '../convex-planar-slab-subtraction.js';
 import { SlabSubtractionLedger, same, SLAB_LIMITS } from './convex-planar-slab-subtraction-internal.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../cad-document.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export interface XYAffinePrismSketchNode { id: string; kind: 'sketch'; sourceId: string; revision: number; document: XYAffineSketchDocumentV0 }
 export interface XYAffinePrismNode { id: string; kind: 'prism'; sketchNodeId: string; options: Omit<XYAffineSketchPrismOptions, 'sourceId' | 'sourceRevision'> }
@@ -74,7 +75,7 @@ type Work = XYAffinePrismFeatureWork & { chamfers?: number };
 type Result = Omit<XYAffinePrismFeatureResult, 'document' | 'report'> & { document: Document; chamfer?: ConvexPlanarSolidChamferResult | null; report: Omit<XYAffinePrismFeatureResult['report'], 'version' | 'coldWork'> & { version: 0 | 1; coldWork: Work } };
 type Update = { result: Result; transaction: { request: { previousDocument: Document; edits: XYAffinePrismFeatureEdits }; report: Omit<XYAffinePrismFeatureUpdate['transaction']['report'], 'validation' | 'candidate'> & { validation: Work; candidate: Work } } };
 export type XYAffinePrismFeatureDiagnosticCode = 'INPUT' | 'VERSION' | 'IDENTITY' | 'DEPENDENCY' | 'REVISION' | 'PARAMETER' | 'REFERENCE' | 'NATIVE' | 'OWNED' | 'CODEC' | 'BUDGET';
-export class XYAffinePrismFeatureError extends Error {
+export class XYAffinePrismFeatureError extends KernelError {
   constructor(readonly code: XYAffinePrismFeatureDiagnosticCode, readonly stage: string, readonly nodeId: string | null,
     detail: string, readonly attempted: XYAffinePrismFeatureWork, cause?: unknown) {
     super(('XY affine prism feature document: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'XYAffinePrismFeatureError';

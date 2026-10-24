@@ -4,10 +4,11 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const StoredPlateHolePointDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOLID: 'SOLID', ARITHMETIC: 'ARITHMETIC', OWNED: 'OWNED', CODEC: 'CODEC', VERSION: 'VERSION' } as const);
 type Code = typeof StoredPlateHolePointDiagnosticCode[keyof typeof StoredPlateHolePointDiagnosticCode];
-export class StoredPlateHolePointError extends Error {
+export class StoredPlateHolePointError extends KernelError {
   readonly code: Code;
   constructor(code: Code, detail: string, cause?: unknown) { super(('Stored plate-hole point: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'StoredPlateHolePointError'; this.code = code; }
 }

@@ -3,12 +3,13 @@ import type { CoplanarFaceBooleanExtrusionMassResult } from '../planar-solids/co
 import { copyCadData } from '../data-copy.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const ExtrusionPrincipalInertiaDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED',
 } as const);
 export type ExtrusionPrincipalInertiaDiagnosticCode = typeof ExtrusionPrincipalInertiaDiagnosticCode[keyof typeof ExtrusionPrincipalInertiaDiagnosticCode];
-export class ExtrusionPrincipalInertiaError extends Error {
+export class ExtrusionPrincipalInertiaError extends KernelError {
   readonly code: ExtrusionPrincipalInertiaDiagnosticCode;
   constructor(code: ExtrusionPrincipalInertiaDiagnosticCode, detail: string, cause?: unknown) {
     super(('Extrusion principal inertia: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
