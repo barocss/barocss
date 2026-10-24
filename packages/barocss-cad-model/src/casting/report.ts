@@ -21,7 +21,7 @@ export const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'san
 /** The casting summary: the material and its family, and the tolerance where one is read. */
 export interface CastingSummary {
   readonly material: string | null; readonly family: CastFamily | null;
-  readonly tolerance: { readonly mm: number; readonly source: string; readonly page: string } | null;
+  readonly tolerance: { readonly value: number; readonly source: string; readonly page: string } | null;
   /** The faces under the least draft, and under the achievable one (by name). */
   readonly steep: readonly string[]; readonly underRecommended: readonly string[];
   /** IM8b (O108): the pattern's shrinkage and the machining allowance (null: not known), and the faces it goes on. */
@@ -129,7 +129,7 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   const tol = family ? limitOf(profile, family, 'TolMM') : undefined;
   rules.push(tol ? { id: 'tolerance', level: 'recommended', status: 'pass', message: `a ${family} alloy holds about ±${tol.value} mm (${tol.page?.label ?? tol.description})`, value: tol.value, unit: 'mm', source: pageOf(tol) }
     : { id: 'tolerance', level: 'recommended', status: 'unknown', message: 'the general tolerance', why: noFamily ?? `no ${profile.label.toLowerCase()} tolerance for a ${family} alloy was read from a public page: ask your caster` });
-  const casting: CastingSummary = { material: id, family, tolerance: tol ? { mm: tol.value, source: tol.source, page: pageOf(tol) } : null, steep: faceNames(steep), underRecommended: faceNames(underRec),
+  const casting: CastingSummary = { material: id, family, tolerance: tol ? { value: tol.value, source: tol.source, page: pageOf(tol) } : null, steep: faceNames(steep), underRecommended: faceNames(underRec),
     shrink: shrink?.ok ? shrinkView(shrink) : null, machining: machining?.ok ? machiningView(machining) : null, machined: marked.found.filter(f => f.flat).map(f => f.name), solidification: sol };
   return { process: profile.id, direction: pull, rules, casting };
 }
