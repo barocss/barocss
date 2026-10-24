@@ -125,10 +125,17 @@ export function deferMasses(on: boolean): void { deferring = on; }
 const massRefs = new Map<number, WeakRef<Brep>>(), refOfBrep = new WeakMap<Brep, number>();
 let nextMassRef = 1;
 type MassProps = NonNullable<ReturnType<typeof massPropertiesOf>>;
+// Native file exports need the original Kernel result's private provenance. Body copies used for notes retain
+// their inertia-array identity; worker clones and placed tensors intentionally do not acquire this provenance.
+const nativeMasses = new WeakMap<object, MassProps>();
+/** Internal native-export lookup only: no evaluation, integration, public body field or inferred provenance. */
+export const nativeMassPropertiesOfBody = (body: Pick<BodyResult, 'inertia'>): MassProps | undefined => body.inertia ? nativeMasses.get(body.inertia) : undefined;
 /** The body's mass fields from its mass properties (null: no positive volume). */
 function massFields(m: MassProps | null): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> {
   const basis = m ? volumeBasisOf(m) : undefined;
-  return m ? { volume: m.volume, mass: m.mass, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]] as [number, number, number], inertia: m.inertia.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volume: null, mass: null };
+  const fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> = m ? { volume: m.volume, mass: m.mass, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]] as [number, number, number], inertia: m.inertia.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volume: null, mass: null };
+  if (m && fields.inertia) nativeMasses.set(fields.inertia, m);
+  return fields;
 }
 /** A B-rep's mass properties, once (null: no positive volume). */
 function massOfBrep(o: CadPartOutput): MassProps | null {

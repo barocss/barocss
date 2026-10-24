@@ -84,7 +84,7 @@ test('empty inherited context preserves legacy document and instance identity', 
 });
 
 test('nested flatten refuses a referenced distinct bearing row but accepts unused local rows', () => {
-  const row = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10] as [number, number], source: 'shop' };
+  const row = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviation: [0, -0.01] as [number, number], source: 'shop' };
   const child: StudioDoc = { ...emptyDoc(), bearings: { version: 1, rows: [row] } };
   const parent: StudioDoc = { ...emptyDoc(), instances: [{ id: 'p', name: 'P', doc: child, position: [0, 0, 0], rotation: [0, 0, 0] }] };
   assert.doesNotThrow(() => flattenShopView(resolveShopTree(parent)));
@@ -94,7 +94,7 @@ test('nested flatten refuses a referenced distinct bearing row but accepts unuse
 
 
 test('wire and evaluation results retain inherited and override origins across parent changes', () => {
-  const inherited = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10] as [number, number], source: 'shop' };
+  const inherited = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviation: [0, -0.01] as [number, number], source: 'shop' };
   const child: StudioDoc = { ...emptyDoc(), bearings: { version: 1, rows: [{ ...inherited, id: 'own' }] } };
   const parent: StudioDoc = { ...emptyDoc(), bearings: { version: 1, rows: [inherited, { ...inherited, id: 'own', source: 'parent' }] }, instances: [{ id: 'p', name: 'P', doc: child, position: [0, 0, 0], rotation: [0, 0, 0] }] };
   const sender = new WireSender(), receiver = new WireReceiver();

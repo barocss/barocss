@@ -17,8 +17,8 @@ import { applyFill, assemblyPlacedBodies, clearanceMap, designedSeats, fillOverl
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const box = (x: number, y: number, z: number): StudioDoc => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [x, y] } as never), { kind: 'extrude', sketch: 0, height: z } as never);
 const inst = (id: string, doc: StudioDoc, position: [number, number, number]): PartInstance => ({ id, name: id, doc, position, rotation: [0, 0, 0] });
-const ROW = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10], source: 'B1 (D139)' };
-const FITS = { id: 'seat-fits', rows: [{ class: 'k5', over: 18, upTo: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
+const ROW = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviation: [0, -0.01], source: 'B1 (D139)' };
+const FITS = { id: 'seat-fits', rows: [{ class: 'k5', over: 18, upTo: 30, upper: 0.011, lower: 0.002, estimate: true }] };
 const O1 = { id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1 (D139)' };
 /** The map with every pending volume filled. */
 function filled(bodies: readonly PlacedBody[], nearMM = 1): ClearanceMap {

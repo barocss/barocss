@@ -2,7 +2,7 @@
 //
 // No bearing is built in (the owner's data rule): a row is the user's — { id, designation?, bore d, outside D,
 // width B, chamfer r (the corners), and the abutment values daMin, daMax, DaMax, raMax when the catalogue
-// gives them; boreDeviationUM / outsideDeviationUM [upper, lower] (the rings' tolerances, µm); source | estimate }.
+// gives them; boreDeviation / outsideDeviation [upper, lower] (the rings' tolerances, mm); source | estimate }.
 // - The envelope is the section d…D × B with its four corners rounded r, revolved exactly: faces `<id>.bore`,
 //   `.outside`, `.face0`, `.face1`, `.corner1`…`.corner4`. It is a simplified envelope: not for structural calculation
 //   (no rolling elements, no load ratings or life).
@@ -42,11 +42,11 @@ export interface BearingRow {
   readonly id: string; readonly designation?: string;
   readonly bore: number; readonly outside: number; readonly width: number; readonly chamfer?: number;
   readonly daMin?: number; readonly daMax?: number; readonly DaMax?: number; readonly raMax?: number;
-  readonly boreDeviationUM?: readonly [number, number]; readonly outsideDeviationUM?: readonly [number, number];
+  readonly boreDeviation?: readonly [number, number]; readonly outsideDeviation?: readonly [number, number];
   readonly source?: string; readonly estimate?: boolean;
 }
 export interface BearingFitClasses { readonly tables: readonly FitTable[]; readonly shaft?: string; readonly housing?: string }
-export interface BearingRingFit { readonly limit: FitLimit; readonly clearanceMinUM?: number; readonly clearanceMaxUM?: number; readonly kind?: 'clearance' | 'transition' | 'interference' }
+export interface BearingRingFit { readonly limit: FitLimit; readonly clearanceMin?: number; readonly clearanceMax?: number; readonly kind?: 'clearance' | 'transition' | 'interference' }
 export interface BearingReport {
   readonly row: string; readonly designation?: string; readonly bore: number; readonly outside: number; readonly width: number; readonly chamfer: number;
   readonly estimate: boolean; readonly source?: string;
@@ -68,14 +68,14 @@ export function bearingRowProblem(r: unknown): string | null {
   if (typeof r !== 'object' || r === null || Array.isArray(r)) return 'a bearing row is an object { id, bore, outside, width, chamfer?, … , source | estimate }';
   const o = r as Record<string, unknown>, at = typeof o.id === 'string' && o.id.trim() ? `bearing row ${o.id}` : '';
   if (!at) return 'a bearing row needs an id';
-  for (const k of Object.keys(o)) if (!['id', 'designation', 'bore', 'outside', 'width', 'chamfer', 'daMin', 'daMax', 'DaMax', 'raMax', 'boreDeviationUM', 'outsideDeviationUM', 'source', 'estimate'].includes(k)) return `${at}: unknown field ${k}`;
+  for (const k of Object.keys(o)) if (!['id', 'designation', 'bore', 'outside', 'width', 'chamfer', 'daMin', 'daMax', 'DaMax', 'raMax', 'boreDeviation', 'outsideDeviation', 'source', 'estimate'].includes(k)) return `${at}: unknown field ${k}`;
   for (const k of ['bore', 'outside', 'width']) if (!(num(o[k]) && (o[k] as number) > 0)) return `${at}: ${k} must be a number of mm above 0`;
   for (const k of ['chamfer', 'daMin', 'daMax', 'DaMax', 'raMax']) if (o[k] !== undefined && !(num(o[k]) && (o[k] as number) >= 0)) return `${at}: ${k} must be a number of mm, 0 or more`;
   const d = o.bore as number, D = o.outside as number, B = o.width as number, c = (o.chamfer as number | undefined) ?? 0;
   if (!(D > d)) return `${at}: its outside Ø${D} must exceed its bore Ø${d}`;
   if (!(2 * c < Math.min(B, (D - d) / 2))) return `${at}: its corner r ${c} is too large for a ${B} × ${(D - d) / 2} section`;
   if (o.daMin !== undefined && o.daMax !== undefined && (o.daMin as number) > (o.daMax as number)) return `${at}: da min is above da max`;
-  for (const k of ['boreDeviationUM', 'outsideDeviationUM']) { const v = o[k]; if (v !== undefined && !(Array.isArray(v) && v.length === 2 && num(v[0]) && num(v[1]) && v[0] >= v[1])) return `${at}: ${k} must be [upper, lower] µm, upper ≥ lower`; }
+  for (const k of ['boreDeviation', 'outsideDeviation']) { const v = o[k]; if (v !== undefined && !(Array.isArray(v) && v.length === 2 && num(v[0]) && num(v[1]) && v[0] >= v[1])) return `${at}: ${k} must be [upper, lower] mm, upper ≥ lower`; }
   if ((o.source !== undefined) === (o.estimate === true)) return `${at}: cite its source or say estimate: true — ${o.source !== undefined ? 'not both' : 'never neither'}`;
   if (o.source !== undefined && typeof o.source !== 'string') return `${at}: source must be text`;
   return null;
@@ -114,15 +114,15 @@ function overlapOf(body: Brep, tool: Brep): number {
 const apply = (m: BrepAffine, p: Point): Point => { const a = m.matrix, t = m.offset ?? [0, 0, 0]; return [a[0] * p[0] + a[1] * p[1] + a[2] * p[2] + t[0], a[3] * p[0] + a[4] * p[1] + a[5] * p[2] + t[1], a[6] * p[0] + a[7] * p[1] + a[8] * p[2] + t[2]]; };
 const dirOf = (m: BrepAffine, v: Point): Point => { const a = m.matrix; return [a[0] * v[0] + a[1] * v[1] + a[2] * v[2], a[3] * v[0] + a[4] * v[1] + a[5] * v[2], a[6] * v[0] + a[7] * v[1] + a[8] * v[2]]; };
 
-/** A ring's fit: the seat's class at its size against the ring's deviation (µm), as clearance = hole − shaft. */
+/** A ring's fit: the seat's class at its size against the ring's deviation (mm), as clearance = hole − shaft. */
 function ringFit(tables: readonly FitTable[], cls: string, size: number, ring: readonly [number, number] | undefined, seatIsShaft: boolean): BearingRingFit {
   let limit: FitLimit;
   try { limit = lookupFit(tables, cls, size); } catch (cause) { if (cause instanceof FitError) fail('SEAT_FIT', cause.message.replace(/^\[[A-Z_]+\] /, '')); throw cause; }
   if (!ring) return { limit };
   // (Hole − shaft: on the shaft the bearing's bore is the hole; in the housing the housing's bore is.)
-  const [hiH, loH, hiS, loS] = seatIsShaft ? [ring[0], ring[1], limit!.upperUM, limit!.lowerUM] : [limit!.upperUM, limit!.lowerUM, ring[0], ring[1]];
+  const [hiH, loH, hiS, loS] = seatIsShaft ? [ring[0], ring[1], limit!.upper, limit!.lower] : [limit!.upper, limit!.lower, ring[0], ring[1]];
   const min = loH - hiS, max = hiH - loS;
-  return { limit: limit!, clearanceMinUM: min, clearanceMaxUM: max, kind: min >= 0 ? 'clearance' : max <= 0 ? 'interference' : 'transition' };
+  return { limit: limit!, clearanceMin: min, clearanceMax: max, kind: min >= 0 ? 'clearance' : max <= 0 ? 'interference' : 'transition' };
 }
 
 /**
@@ -200,8 +200,8 @@ export function seatedBearing(row: BearingRow, shaft: PlacedShaft & { readonly b
     if (mine === null) warnings.push(other !== null ? `the housing has no shoulder at the bearing's ${spec.against} (its shaft's located side), only at its ${otherSide}` : 'the housing has no shoulder at either face of the bearing: its outer ring is not located (a cover or a ring is not modelled)');
     housing = { bore: D, overlap: hOverlap, covered, shoulder };
   }
-  const shaftFit = spec.fit?.shaft ? ringFit(spec.fit.tables, spec.fit.shaft, d, row.boreDeviationUM, true) : undefined;
-  const housingFit = spec.fit?.housing && spec.housing ? ringFit(spec.fit.tables, spec.fit.housing, D, row.outsideDeviationUM, false) : undefined;
+  const shaftFit = spec.fit?.shaft ? ringFit(spec.fit.tables, spec.fit.shaft, d, row.boreDeviation, true) : undefined;
+  const housingFit = spec.fit?.housing && spec.housing ? ringFit(spec.fit.tables, spec.fit.housing, D, row.outsideDeviation, false) : undefined;
   if (spec.fit?.housing && !spec.housing) warnings.push('a housing class is given but no housing');
   return { brep, report: { row: row.id, ...(row.designation ? { designation: row.designation } : {}), bore: d, outside: D, width: B, chamfer: c, estimate: row.estimate === true, ...(row.source ? { source: row.source } : {}),
     seat: { step: spec.step, against: spec.against, from: from, to: to, shoulder: shoulderD, shoulderFillet: fil, located, overlap: shaftOverlap },

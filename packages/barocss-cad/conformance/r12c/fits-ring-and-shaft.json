@@ -149,40 +149,40 @@
                 "class": "H8",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 39,
-                "lowerUM": 0,
+                "upper": 0.039,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "f7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": -25,
-                "lowerUM": -50,
+                "upper": -0.025,
+                "lower": -0.05,
                 "source": "F2"
               },
               {
                 "class": "H7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 25,
-                "lowerUM": 0,
+                "upper": 0.025,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "k6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 18,
-                "lowerUM": 2,
+                "upper": 0.018,
+                "lower": 0.002,
                 "source": "F2"
               },
               {
                 "class": "p6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 42,
-                "lowerUM": 26,
+                "upper": 0.042,
+                "lower": 0.026,
                 "source": "F2"
               }
             ]
@@ -225,40 +225,40 @@
                 "class": "H8",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 39,
-                "lowerUM": 0,
+                "upper": 0.039,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "f7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": -25,
-                "lowerUM": -50,
+                "upper": -0.025,
+                "lower": -0.05,
                 "source": "F2"
               },
               {
                 "class": "H7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 25,
-                "lowerUM": 0,
+                "upper": 0.025,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "k6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 18,
-                "lowerUM": 2,
+                "upper": 0.018,
+                "lower": 0.002,
                 "source": "F2"
               },
               {
                 "class": "p6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 42,
-                "lowerUM": 26,
+                "upper": 0.042,
+                "lower": 0.026,
                 "source": "F2"
               }
             ]
@@ -301,40 +301,40 @@
                 "class": "H8",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 39,
-                "lowerUM": 0,
+                "upper": 0.039,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "f7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": -25,
-                "lowerUM": -50,
+                "upper": -0.025,
+                "lower": -0.05,
                 "source": "F2"
               },
               {
                 "class": "H7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 25,
-                "lowerUM": 0,
+                "upper": 0.025,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "k6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 18,
-                "lowerUM": 2,
+                "upper": 0.018,
+                "lower": 0.002,
                 "source": "F2"
               },
               {
                 "class": "p6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 42,
-                "lowerUM": 26,
+                "upper": 0.042,
+                "lower": 0.026,
                 "source": "F2"
               }
             ]
@@ -377,40 +377,40 @@
                 "class": "H8",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 39,
-                "lowerUM": 0,
+                "upper": 0.039,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "f7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": -25,
-                "lowerUM": -50,
+                "upper": -0.025,
+                "lower": -0.05,
                 "source": "F2"
               },
               {
                 "class": "H7",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 25,
-                "lowerUM": 0,
+                "upper": 0.025,
+                "lower": 0,
                 "source": "F2"
               },
               {
                 "class": "k6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 18,
-                "lowerUM": 2,
+                "upper": 0.018,
+                "lower": 0.002,
                 "source": "F2"
               },
               {
                 "class": "p6",
                 "over": 30,
                 "upTo": 50,
-                "upperUM": 42,
-                "lowerUM": 26,
+                "upper": 0.042,
+                "lower": 0.026,
                 "source": "F2"
               }
             ]

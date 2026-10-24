@@ -41,8 +41,8 @@
        "class": "k5",
        "over": 18,
        "upTo": 30,
-       "upperUM": 11,
-       "lowerUM": 2,
+       "upper": 0.011,
+       "lower": 0.002,
        "estimate": true
       }
      ]

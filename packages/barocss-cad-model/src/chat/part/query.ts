@@ -19,9 +19,9 @@ import { isObj } from '../../util/guards';
 import { variabilityView } from '../variability';
 
 /** D155: a fit's limits as a result shows them (each row's deviations, sizes, table and row, estimate and source). */
-export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMinUM: l.clearanceMinUM, clearanceMaxUM: l.clearanceMaxUM, estimate: l.estimate,
-  hole: { class: l.hole.class, nominal: l.hole.nominal, upperUM: l.hole.upperUM, lowerUM: l.hole.lowerUM, min: l.hole.min, max: l.hole.max, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
-  shaft: { class: l.shaft.class, nominal: l.shaft.nominal, upperUM: l.shaft.upperUM, lowerUM: l.shaft.lowerUM, min: l.shaft.min, max: l.shaft.max, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
+export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMin: l.clearanceMin, clearanceMax: l.clearanceMax, estimate: l.estimate,
+  hole: { class: l.hole.class, nominal: l.hole.nominal, upper: l.hole.upper, lower: l.hole.lower, min: l.hole.min, max: l.hole.max, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
+  shaft: { class: l.shaft.class, nominal: l.shaft.nominal, upper: l.shaft.upper, lower: l.shaft.lower, min: l.shaft.min, max: l.shaft.max, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
 
 async function getPartSummaryTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   // Big parts (lofted figures) have hundreds of faces: list them for one body at a time, the rest by count.
@@ -94,7 +94,7 @@ async function fitClearanceTool(state: ChatState, args: Record<string, unknown>)
       const h = find(args.hole), sh = find(args.shaft);
       if (!h || !sh) return fail(state, `[FIT_FACE] no face ${!h ? args.hole : args.shaft} on the part (names from query.summary).`);
       const c = checkFit(tables, { ...h, class: hc }, { ...sh, class: sc });
-      return { state, content: json({ ...fitView(c.limits), offset: c.offset, length: c.length, margin: c.margin, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMinUM} … ${c.limits.clearanceMaxUM} µm` };
+      return { state, content: json({ ...fitView(c.limits), offset: c.offset, length: c.length, margin: c.margin, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMin} … ${c.limits.clearanceMax} mm` };
     }
     if (typeof args.hole_class === 'string' && typeof args.shaft_class === 'string' && typeof args.size === 'number') {
       const l = fitLimits(tables, args.hole_class, args.shaft_class, args.size);

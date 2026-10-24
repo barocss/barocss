@@ -136,3 +136,26 @@ The existing internal STANDARD_GRAVITY is9.80665m/s². Preserve that physical de
 The initial9810 wording assumed an existing9.81 default and did not authorize a physical default change.
 An explicit input of9810mm/s² still converts to9.81m/s²; independent examples using that explicit input remain valid.
 Native/dynamics defaults and existing physical oracles must not change merely to match a rounded example.
+
+## Residual audit decisions (2026-10-25)
+
+These omissions were found after the354-row inventory; that inventory is not a closure certificate.
+
+| Boundary | Canonical field | Rule / owner |
+|---|---|---|
+| T-slot row sizeMM | cellSize | mm unchanged; row size remains its string name. Kernel producer then Outer table converter and fixtures. Remove the sizeMM whitelist; no alias. |
+| CadPartFeatureProfile.ms | wallTime | seconds, retain original measured elapsed milliseconds and divide1000; Kernel producer, Outer rebuild/worker/UI consumers. |
+| DecimateReport.ms | wallTime | seconds, divide1000; keep measurement sites, geometry and numeric bounds. |
+| ApproximationReport.maxSampledDeviationMM | maxSampledDeviation | mm unchanged; Kernel producer and exact GPU tessellation consumers. |
+| P1 Check/EngineCheck.ms | duration | seconds, existing rounded-ms resolution divided1000; API-owned P1 reports only. |
+| P1 treeMs | treeTime | seconds, divide1000; preserve P1 physical outputs and scope, no new sweep campaign. |
+| Public coupling g1/g2.rotation | rotation | raw internal GearPlacement radians to detached public degrees. Outer shared projection; no independent API helper. |
+
+RevolveOptions.deg is a natural option name explicitly allowed by api-conventions section2; do not rename it through
+an unscoped suffix substitution. Source unit metadata and explicitly labelled human text are separate from quantity
+field names. In particular, retain Kernel checkFit.message's existing µm display with its explicit unit and its
+one-time mm-to-µm formatting; this does not change the public fit JSON's mm contract.
+
+P1 timing verification uses the existing --check --no-sweep flow and existing regressions. Its full files:true build
+report runtime is NOT RUN here; do not add a sweep, new execution option or test seam to turn this rename into a
+product campaign. Existing manufacturing findings and person-row waits remain.
