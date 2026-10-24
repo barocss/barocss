@@ -107,8 +107,8 @@ test('the gravity_torques tool on the planar 3R; the conformance case (rm/gravit
   assert.ok(!out.isError && !out.changed, out.content);
   const th = [0.4, -0.5, 0.8], xJ = [0, 40 * Math.sin(th[0]), 40 * Math.sin(th[0]) + 40 * Math.sin(th[1])], xc = th.map((t, i) => xJ[i] + 20 * Math.sin(t));
   const closed = [0, 1, 2].map(i => -g0 * xc.slice(i).reduce((s, x) => s + BLOCK_KG * (x - xJ[i]) / 1000, 0));
-  tree.joints.forEach((jj, i) => assert.ok(Math.abs(j.torques[jj.key] - closed[i]) < 1e-9 * Math.abs(closed[i]) + 1e-12, `${jj.key}: ${j.torques[jj.key]} vs ${closed[i]}`));
-  assert.equal(j.gravity_m_s2, STANDARD_GRAVITY);
+  tree.joints.forEach((jj, i) => assert.ok(Math.abs(j.torques[jj.key] / 1000 - closed[i]) < 1e-9 * Math.abs(closed[i]) + 1e-12, `${jj.key}: ${j.torques[jj.key]} vs ${closed[i]}`));
+  assert.equal(j.gravity, STANDARD_GRAVITY * 1000);
   assert.ok((await dispatchTool({ doc, bodies }, 'gravity_torques', { values: { nope: 1 } }, evaluate)).isError);
   const dir = join(CASES, 'gravity-3r');
   if (process.env.UPDATE_RM_FIXTURES) {
