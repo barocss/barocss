@@ -302,6 +302,7 @@
 | `[VERSION_KEY_COLLISION]` | `versions` | two different documents have the content key …: the version is not kept |
 | `[VERSION_LOG]` | `versions` | not a version log (format barocss-versions, schema 1) |
 | `[VERSION_NAME]` | `versions` | a version's name is 1 to … characters |
+| `[VERSION_NOT_LOADED]` | `versions` | the document of version … is not with this turn: it comes with the next one |
 | `[VERSION_NO_CHANGE]` | `versions` | the document is the same as the branch's last version… |
 | `[VERSION_UNKNOWN]` | `versions` | there is no version “…” |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
