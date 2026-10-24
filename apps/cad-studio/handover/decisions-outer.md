@@ -9135,3 +9135,25 @@ complete.
   - A pass, an oracle failure (cad-cli check, exit 3) and an off-contract shell call, each judged afresh.
   - The tool-call cap and the wall clock: a run killed at 1.5 s, not waited out.
 - **Verified (T1):** p1-l3 3/3, a scripted run through scripts/live-run.mjs, studio tsc, eslint 0 errors.
+
+## RS1/RS2 follow-ups — sample joint limits, the Joints card in degrees, `default` limits pinned (2026-10-24)
+
+From the coordinator, after the docs lane's arm-6r shot and its repro of the `default` bug (fixed in RS3 (b)):
+- **Samples:** scara and arm-6r now carry real lower and upper limits, so robot-check and the exports' limit checks
+  exercise them.
+  - scara: base~arm1 ±130°, arm1~arm2 ±145°, quill~tool ±360°.
+  - arm-6r: ±170°, ±120°, ±150°, ±180°, ±120°, ±360°.
+  - Their joints read revolute now, no longer continuous; RS1's EXPECT is updated to match.
+  - Left unbounded, by design: the four-bar's crank and passive pins, and the gear-joint's driving gear. A gear
+    follower has no limits of its own.
+  - Only arm-6r.bcad and scara.bcad changed when the samples were regenerated. Every demo motion stays inside the
+    limits (checkPath) and clear (check_path).
+- **JointsPanel (the studio's Joints card):** a turning joint's range now reads in degrees ("-150° … 150°"), its
+  velocity in °/s ("180 °/s") and its effort in N·m, each to 4 significant figures; a slide reads in mm, mm/s and N.
+  Before, the card printed raw radians ("3.141592653589793 rad/s").
+- **Tests:**
+  - rs2: the `default` form and the per-joint form give the same duration, which equals the trapezoid's closed form,
+    and a default-limits motion round-trips to the per-joint form with the same duration.
+  - RS1: arm-2r's wave is pinned at 5.5 s (1.5 + 2.5 + 1.5); every moving joint is rated, and only the four listed are
+    unbounded.
+- **Verified (T1):** rs1, rs2, rs3, o22 and robot-*, 96/96; tsc (model and studio); eslint 0 errors.

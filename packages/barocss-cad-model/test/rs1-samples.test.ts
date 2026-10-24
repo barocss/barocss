@@ -60,8 +60,8 @@ const poseOf = (tree: JointTree) => Object.fromEntries(tree.joints.filter(j => j
 
 const EXPECT: Record<string, [string, string][]> = {
   'arm-2r': [['base~a', 'revolute'], ['a~b', 'revolute']],
-  scara: [['base~arm1', 'continuous'], ['arm1~arm2', 'continuous'], ['arm2~quill', 'prismatic'], ['quill~tool', 'continuous']],
-  'arm-6r': [['base~l1', 'continuous'], ['l1~l2', 'continuous'], ['l2~l3', 'continuous'], ['l3~l4', 'continuous'], ['l4~l5', 'continuous'], ['l5~l6', 'continuous']],
+  scara: [['base~arm1', 'revolute'], ['arm1~arm2', 'revolute'], ['arm2~quill', 'prismatic'], ['quill~tool', 'revolute']],
+  'arm-6r': [['base~l1', 'revolute'], ['l1~l2', 'revolute'], ['l2~l3', 'revolute'], ['l3~l4', 'revolute'], ['l4~l5', 'revolute'], ['l5~l6', 'revolute']],
   'gantry-ppp': [['base~x', 'prismatic'], ['x~y', 'prismatic'], ['y~z', 'prismatic']],
   'pan-tilt': [['base~pan', 'revolute'], ['pan~tilt', 'revolute']],
   gripper: [['base~left', 'revolute'], ['base~right', 'continuous']],
@@ -113,6 +113,20 @@ test('RS1: FK at 20 poses each against the closed form (the chain\'s product of 
   const two = (await opened('arm-2r')).tree, q1 = Math.PI / 3, at = forwardKinematics(two, { 'base~a': q1 }).motions.get('a')!, o = two.joints[1].origin;
   const p = [0, 1, 2].map(i => at.R[i * 3] * o[0] + at.R[i * 3 + 1] * o[1] + at.R[i * 3 + 2] * o[2] + at.t[i]);
   assert.ok(Math.abs(p[0] - (20 + 40 * Math.cos(q1))) < 1e-9 && Math.abs(p[1] - (20 + 40 * Math.sin(q1))) < 1e-9, JSON.stringify(p));
+});
+
+test('RS1: the demo motions\' durations in degrees (arm-2r\'s wave against the trapezoid\'s closed form); the arms carry real joint limits', async () => {
+  const o = await opened('arm-2r'), wave = readRobot(o.doc.robot).motions![0];
+  // (Three segments at 90°/s, 180°/s², each on its tightest joint: 90°, 180° and 90°, each past v²/a = 45°, so d/v + v/a.)
+  const T = duration(timedPathOf(o.tree, wave.path));
+  assert.ok(Math.abs(T - ((90 / 90 + 0.5) + (180 / 90 + 0.5) + (90 / 90 + 0.5))) <= 1e-12, `${T}`);
+  // (Every moving joint has lower and upper limits, effort and velocity, but a gear follower and the joints that turn round: a crank, a gear, the loop's passive pins.)
+  const unbounded: string[] = [];
+  for (const s of index()) for (const j of (await opened(s.id)).tree.joints) if (j.type !== 'fixed' && !j.mimic) {
+    assert.ok(j.limit?.effort !== undefined && j.limit.velocity !== undefined, `${s.id} ${j.key}: rated`);
+    if (j.limit.lower === undefined || j.limit.upper === undefined) unbounded.push(`${s.id} ${j.key}`);
+  }
+  assert.deepEqual(unbounded.sort(), ['four-bar base~crank', 'four-bar base~rocker', 'four-bar crank~coupler', 'gear-joint base~g1']);
 });
 
 test('RS1 (O22): every sample\'s demo motion passes check_path clear along its timing; the four-bar refused, its loop not closed along a motion (LOOP_OPEN)', async () => {

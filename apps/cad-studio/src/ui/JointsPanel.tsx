@@ -11,7 +11,9 @@ import { NativeSelect } from '@/components/ui/native-select';
 
 const TYPE_LABEL: Record<JointType, string> = { fixed: 'Fixed', revolute: 'Revolute', continuous: 'Continuous', prismatic: 'Prismatic' };
 const axisText = (a: readonly number[]) => { const k = a.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9); return k >= 0 ? `${a[k] < 0 ? '−' : '+'}${'XYZ'[k]}` : `[${a.map(x => x.toFixed(3)).join(', ')}]`; };
-const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => [l.lower !== undefined && l.upper !== undefined ? `${l.lower} … ${l.upper} ${type === 'prismatic' ? 'mm' : 'rad'}` : '', l.effort !== undefined ? `${l.effort} ${type === 'prismatic' ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${l.velocity} ${type === 'prismatic' ? 'mm/s' : 'rad/s'}` : ''].filter(Boolean).join(' · ');
+// (Conventions §2: a turning joint's range in degrees and its velocity in °/s, a slide's in mm and mm/s; each number to 4 significant figures.)
+const sig4 = (v: number) => { const t = Number(v.toPrecision(4)); return Object.is(t, -0) ? 0 : t; };
+const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => { const slide = type === 'prismatic', k = slide ? 1 : 180 / Math.PI; return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower * k)}° … ${sig4(l.upper * k)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${sig4(l.velocity * k)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · '); };
 
 /** A gear pair at the pose shown: its phase against home, its backlash (RM2). */
 export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlashMM: number }

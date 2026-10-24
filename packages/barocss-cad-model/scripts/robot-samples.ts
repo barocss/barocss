@@ -74,12 +74,12 @@ export function samples(): Sample[] {
       mates: [...turning('j1', 'base', 'n2.side0', 'n1.top', 'arm1', 'n2.side0', 'n1.bottom'), ...turning('j2', 'arm1', 'n3.side0', 'n1.top', 'arm2', 'n2.side0', 'n1.bottom'),
         ...sliding('j3', 'arm2', 'n1.side1', 'n1.side3', 'quill', 'n1.side0', 'n1.side0'), ...turning('j4', 'quill', 'n2.side0', 'n1.bottom', 'tool', 'n2.side0', 'n1.top')] };
     out.push({ id: 'scara', title: 'SCARA arm', about: 'Turn, turn, slide, turn: two arms about vertical axes, a quill sliding up and down at the second arm\'s end, a tool turning on it.',
-      doc: { ...doc, robot: robot({ turning: ['base~arm1', 'arm1~arm2', 'quill~tool'], sliding: ['arm2~quill'] }, { 'arm2~quill': { lower: -40, upper: 40 } }, [motion('pick', [{}, { 'base~arm1': 45, 'arm1~arm2': -60 }, { 'base~arm1': 45, 'arm1~arm2': -60, 'arm2~quill': -30 }, { 'base~arm1': 45, 'arm1~arm2': -60, 'arm2~quill': -30, 'quill~tool': 90 }, {}], { default: { velocity: 90, acceleration: 180 }, 'arm2~quill': { velocity: 60, acceleration: 120 } })]) } });
+      doc: { ...doc, robot: robot({ turning: ['base~arm1', 'arm1~arm2', 'quill~tool'], sliding: ['arm2~quill'] }, { 'base~arm1': within(130), 'arm1~arm2': within(145), 'arm2~quill': { lower: -40, upper: 40 }, 'quill~tool': within(360) }, [motion('pick', [{}, { 'base~arm1': 45, 'arm1~arm2': -60 }, { 'base~arm1': 45, 'arm1~arm2': -60, 'arm2~quill': -30 }, { 'base~arm1': 45, 'arm1~arm2': -60, 'arm2~quill': -30, 'quill~tool': 90 }, {}], { default: { velocity: 90, acceleration: 180 }, 'arm2~quill': { velocity: 60, acceleration: 120 } })]) } });
   }
   // 6R arm: the kernel's (RM conformance arm-6r).
   {
     const d = conformance('arm-6r');
-    out.push({ id: 'arm-6r', title: '6R arm', about: 'Six turning joints, the industrial arm\'s chain: waist, shoulder, elbow and a three-axis wrist.', doc: { ...d, robot: robot({ turning: ['base~l1', 'l1~l2', 'l2~l3', 'l3~l4', 'l4~l5', 'l5~l6'] }, {}, [motion('reach', [{}, { 'base~l1': 90, 'l1~l2': -30, 'l2~l3': 60 }, { 'base~l1': 90, 'l1~l2': -30, 'l2~l3': 60, 'l3~l4': 90, 'l4~l5': 45, 'l5~l6': 180 }, {}], DEG_LIMITS)]) } });
+    out.push({ id: 'arm-6r', title: '6R arm', about: 'Six turning joints, the industrial arm\'s chain: waist, shoulder, elbow and a three-axis wrist.', doc: { ...d, robot: robot({ turning: ['base~l1', 'l1~l2', 'l2~l3', 'l3~l4', 'l4~l5', 'l5~l6'] }, { 'base~l1': within(170), 'l1~l2': within(120), 'l2~l3': within(150), 'l3~l4': within(180), 'l4~l5': within(120), 'l5~l6': within(360) }, [motion('reach', [{}, { 'base~l1': 90, 'l1~l2': -30, 'l2~l3': 60 }, { 'base~l1': 90, 'l1~l2': -30, 'l2~l3': 60, 'l3~l4': 90, 'l4~l5': 45, 'l5~l6': 180 }, {}], DEG_LIMITS)]) } });
   }
   // Cartesian gantry (P P P): a carriage along X on the bed, a slide along Y on it, a ram along Z on that.
   {
