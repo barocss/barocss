@@ -1,4 +1,5 @@
 // Lights and the frame block they are packed into with the camera (see Frame in shaders.ts).
+import { ViewerError } from './viewer-error.js';
 import type { Camera } from './camera.js';
 import { invert, normalize, srgbToLinear, sub, type Mat4, type Vec3 } from './math.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_OUTLINES, MAX_POINT, MAX_SPOT, OUTPUT_BYTES } from './shaders.js';
@@ -34,7 +35,7 @@ export function parseColor(c: Color | undefined, fallback: Vec3 = [1, 1, 1]): Ve
   let v = parsed.get(c);
   if (!v) {
     const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c.trim());
-    if (!m) throw new RangeError(`Not a hex colour: ${c}`);
+    if (!m) throw new ViewerError('COLOR_INVALID', `Not a hex colour: ${c}`);
     const h = m[1].length === 3 ? m[1].split('').map(x => x + x).join('') : m[1];
     v = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255) as unknown as Vec3;
     if (parsed.size >= 256) parsed.clear();
