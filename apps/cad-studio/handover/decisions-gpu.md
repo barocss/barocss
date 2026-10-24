@@ -3749,3 +3749,41 @@ is untouched as history. The coordinator settled the scope:
   41), so this is for comparison only:
   - DPR 1: the surface pass costs 1.41 → 2.21 ms with the knurl and coat; 4.92 ms a submit against the 8 ms budget.
   - The quiet run for the 1440p check is still owed.
+
+## G-R69 — G15b (1–2): the environment's lighting prefiltered, and studio environments (roadmap G15b, 2026-10-24)
+
+- **The environment's lighting** (`packages/barocss-gpu`, `viewer/shaders/env.ts`, `viewer.envLighting`):
+  - Made once per environment map, kept with it (`ImageTexture.gpu.lighting`) and destroyed with it.
+  - **Reflections**: prefiltered by GGX for each roughness, one mip level each, from 0 to 1 (`ENV_LEVELS` 7, at most
+    1024 across, rgba16float). Each level takes 128 importance samples with the split sum's normal = view = reflection.
+    Each sample is read from the source level whose texels match its share of the sphere (filtered importance sampling).
+  - **Diffuse light**: the cosine-weighted mean radiance round a normal (64 × 32, 512 samples). Before, this was the map's
+    most blurred mip level, a box average.
+  - **The split sum's BRDF table** (Karis; 64 × 64 rg16float, made once per device): scale and bias to f0 over n·v and
+    roughness.
+  - The surface shader (`envReflect`, `envDiffuse`, `brdfScaleBias` in common; frame bindings 7 and 8) uses them
+    **only under an environment map**. The sky-and-ground look, the modelling one, is unchanged; so are the coat's
+    reflection and the anisotropic bend. The old `envAt` (lod from the frame block) is gone; the levels now come from
+    `textureNumLevels`.
+- **Studio environments** (`viewer/studio-env.ts`, `studioEnvironment(kind, width)`): equirectangular sRGB bytes made in
+  our own code, no download.
+  - `softbox`: a dark room; a large key up in front on the left, a fill on the right, a strip behind.
+  - `cyclorama`: a white backdrop with a light bank above and the cove's soft horizon into the floor.
+  They are 8-bit (the light's range is the environment strength); HDR sources are not taken yet.
+- **cad-model** (`engine/render.ts`, outer's file, coordinator-approved pattern, its own commit):
+  - `RenderEnvironment.studio?: { kind: 'softbox' | 'cyclorama', intensity }` (`STUDIO_KINDS`). It is read with clamps;
+    absent means none. An image, when present, is used instead.
+- **The studio**:
+  - The Render panel's Scene tab gets "Studio" (Sky and ground, Softboxes, Cyclorama; Image when one is loaded).
+  - Environment strength covers either source.
+  - Choosing a studio drops the image; loading an image drops the studio and keeps its strength.
+  - `gpuRenderer.studioTexture` makes each studio once.
+- **Tests**:
+  - `viewer-env-browser` (new) passes on hardware and SwiftShader. A white diffuse sphere under a white sky over a black
+    ground reads 243 at the top, 188 at the equator (0.5 linear is 188) and 74 below. A mirror's horizon is 3 px wide; a
+    rough metal's (0.6) is 35 px.
+  - gpu test:browser 31/31 before the new test; gpu unit 303/303 (the studio environments' shape and brightness).
+  - cad-model render 7/7; studio unit 292/292.
+  - Flow 295 (new) passes on WebGPU and WebGL2: softboxes, strength ×2, cyclorama, an image replacing it, then Sky and
+    ground. The frame's mean on machined steel: sky 52.2, softbox 47.2, ×2 48.6.
+- **Next, G15b (3–4)**: soft shadows (PCSS for the casting light) and contact shadows in the output pass.

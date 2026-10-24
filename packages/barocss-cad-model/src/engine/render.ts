@@ -48,7 +48,12 @@ export interface RenderEnvironment {
   edges: boolean;
   /** Image-based lighting: an equirectangular environment image (a data URL; its top row overhead) lighting the part, and its brightness. */
   map?: { image: string; intensity: number };
+  /** G15b: a studio made by the viewer lighting the part instead (softboxes in a dark room, or a white cyclorama), and its
+   *  brightness; an image, when there is one, is used instead. */
+  studio?: { kind: StudioKind; intensity: number };
 }
+export const STUDIO_KINDS = ['softbox', 'cyclorama'] as const;
+export type StudioKind = typeof STUDIO_KINDS[number];
 export interface RenderPost { grade: 'neutral' | 'warm' | 'cool'; contrast: number; saturation: number; vignette: number }
 export interface RenderCamera { target: [number, number, number]; distance: number; yaw: number; pitch: number; fovY: number; ortho: boolean }
 export interface RenderSettings {
@@ -194,6 +199,7 @@ export function readRender(v: unknown): RenderSettings {
       ...(env.post && typeof env.post === 'object' ? { post: readPost(env.post) } : {}),
       occlusion: env.occlusion !== false, ground: env.ground !== false, grid: env.grid === true, edges: env.edges === true,
       ...(typeof obj(env.map).image === 'string' && /^data:image\//.test(obj(env.map).image as string) ? { map: { image: obj(env.map).image as string, intensity: num(obj(env.map).intensity, 0, 8, 1) } } : {}),
+      ...(STUDIO_KINDS.includes(obj(env.studio).kind as StudioKind) ? { studio: { kind: obj(env.studio).kind as StudioKind, intensity: num(obj(env.studio).intensity, 0, 8, 1) } } : {}),
     },
     materials: Object.fromEntries(Object.entries(obj(o.materials)).filter((e): e is [string, string] => typeof e[1] === 'string' && e[1].length <= 65536).slice(0, 32)),
     scene: typeof o.scene === 'string' && o.scene.length <= 65536 ? o.scene : '',

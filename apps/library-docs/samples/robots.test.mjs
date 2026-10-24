@@ -143,12 +143,18 @@ test('motions: a path timed and played, a saved motion read, a path saved as one
 test('every sample\'s demo motion swept; designed contact is not a collision', () => {
   // #region sweeps
   // (The four-bar is left out: a motion's poses don't close its loop yet.)
-  for (const sample of read('index.json').filter(s => s.id !== 'four-bar')) {
+  const LOOPED = ['four-bar'];
+  for (const sample of read('index.json').filter(s => !LOOPED.includes(s.id))) {
     const [demo] = read(sample.file).robot.motions;
     assert.ok(open(sample.id).motion(demo.name).check().every(segment => segment.clear), sample.id);
   }
   // The gripper's fingers mesh: their teeth are the coupling's to hold, so that pair is skipped, with why.
   const [segment] = open('gripper').motion('grip').check();
   assert.match(segment.skipped.find(p => p.links.join() === 'left,right').why, /^meshing gears/);
+  // A robot with a closed loop is refused, typed, rather than swept or played open.
+  const crank = open('four-bar').motion('crank');
+  assert.throws(() => crank.check(), e => e.code === 'LOOP_OPEN');
+  assert.throws(() => crank.poseAt(1), e => e.code === 'LOOP_OPEN');
+  assert.equal(crank.problems()[0].code, 'LOOP_OPEN');
   // #endregion sweeps
 });
