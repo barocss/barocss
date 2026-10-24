@@ -59,11 +59,16 @@ test('RS2: checkPath — unknown joints, waypoints past a limit, missing limits,
 });
 
 test('RS2: a saved motion in degrees ⇄ the timed path in radians; robot.motions read from a document', async () => {
-  const { doc, tree, keys: [j1] } = await chain();
-  const saved = { waypoints: [{}, { [j1]: 90 }], profile: 'trapezoid' as const, limits: { default: { velocity: 45, acceleration: 90 }, [j1]: { velocity: 30, acceleration: 60 } } };
+  const { doc, tree, keys: [j1, j2] } = await chain();
+  const saved = { waypoints: [{}, { [j1]: 90 }], profile: 'trapezoid' as const, limits: { [j1]: { velocity: 30, acceleration: 60 }, [j2]: { velocity: 45, acceleration: 90, jerk: 900 } } };
   const p = timedPathOf(tree, saved);
   near(p.waypoints[1][j1], Math.PI / 2);
-  near(p.limits[j1]!.v, 30 * Math.PI / 180); near(p.limits.default!.v, 45, 0);
+  near(p.limits[j1]!.v, 30 * Math.PI / 180); near(p.limits[j2]!.j!, 900 * Math.PI / 180);
+  // (A saved default is in each joint's own unit: 45 deg/s on a turn is 45° a second, each moving joint's own where it has none.)
+  const withDefault = timedPathOf(tree, { ...saved, limits: { default: { velocity: 45, acceleration: 90 }, [j1]: { velocity: 30, acceleration: 60 } } });
+  assert.equal(withDefault.limits.default, undefined);
+  near(withDefault.limits[j1]!.v, 30 * Math.PI / 180); near(withDefault.limits[j2]!.v, 45 * Math.PI / 180); near(withDefault.limits[j2]!.a, 90 * Math.PI / 180);
+  near(motionOf(tree, { ...p, limits: { default: { v: 1, a: 2 } } }).limits![j2].velocity, 180 / Math.PI, 1e-12);
   const back = motionOf(tree, p);
   // (The round trip: motionOf(timedPathOf(m)) is m, to the doubles' last digits.)
   const close = (a: unknown, b: unknown): boolean => typeof a === 'number' && typeof b === 'number' ? Math.abs(a - b) <= 1e-12 * Math.max(1, Math.abs(b)) : a && b && typeof a === 'object' && typeof b === 'object' ? Object.keys(a).length === Object.keys(b).length && Object.keys(b).every(k => close((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) : a === b;

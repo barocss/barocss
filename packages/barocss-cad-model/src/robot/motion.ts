@@ -16,6 +16,8 @@ export interface MotionPath { waypoints: Record<string, number>[]; profile?: 'tr
 export interface Motion { name: string; path: MotionPath }
 
 const DEG = Math.PI / 180;
+const limitsIn = (l: MotionLimits, k: number): JointLimits => ({ v: l.velocity * k, a: l.acceleration * k, ...(l.jerk !== undefined ? { j: l.jerk * k } : {}) });
+const limitsOut = (l: JointLimits, k: number): MotionLimits => ({ velocity: l.v * k, acceleration: l.a * k, ...(l.j !== undefined ? { jerk: l.j * k } : {}) });
 const turns = (j: Joint | undefined) => j?.type === 'revolute' || j?.type === 'continuous';
 
 /** The joint values at time `t` (s, clamped to the path's span) along a timed path: driven joints only (FK adds followers). */
@@ -61,20 +63,30 @@ export function checkPath(tree: JointTree, path: TimedPath): Problem[] {
   return out;
 }
 
-/** A saved motion as the timed path poseAt, duration and sweepTimed take: a turning joint's degrees as radians. */
+const moving = (j: Joint) => j.type !== 'fixed' && !j.mimic;
+/**
+ * A saved motion as the timed path poseAt, duration and sweepTimed take: a turning joint's degrees as radians. A saved
+ * `default` is in each joint's own unit too (deg/s for a turn, mm/s for a slide), so it becomes each moving joint's own
+ * limits where it has none — the timed path's `default` is one number for every unit, which a saved motion never means.
+ */
 export function timedPathOf(tree: JointTree, m: MotionPath): TimedPath {
   const byKey = new Map(tree.joints.map(j => [j.key, j]));
   const value = (key: string, v: number) => turns(byKey.get(key)) ? v * DEG : v;
-  const limits: Record<string, JointLimits> = {};
-  for (const [key, l] of Object.entries(m.limits ?? {})) { const k = key === 'default' ? 1 : value(key, 1); limits[key] = { v: l.velocity * k, a: l.acceleration * k, ...(l.jerk !== undefined ? { j: l.jerk * k } : {}) }; }
+  const limits: Record<string, JointLimits> = {}, given = m.limits ?? {}, d = given.default;
+  for (const [key, l] of Object.entries(given)) if (key !== 'default') limits[key] = limitsIn(l, value(key, 1));
+  if (d) for (const j of tree.joints) if (moving(j) && !limits[j.key]) limits[j.key] = limitsIn(d, value(j.key, 1));
   return { waypoints: m.waypoints.map(w => Object.fromEntries(Object.entries(w).map(([key, v]) => [key, value(key, v)]))), profile: m.profile ?? 'trapezoid', limits };
 }
-/** A timed path (the studio's draft, in radians) as a saved motion, in degrees: "Save as motion". */
+/**
+ * A timed path (the studio's draft, in radians) as a saved motion, in degrees: "Save as motion". Its `default` (one
+ * number in rad/s and mm/s alike) becomes each moving joint's own limits where it has none, in that joint's unit.
+ */
 export function motionOf(tree: JointTree, p: TimedPath): MotionPath {
   const byKey = new Map(tree.joints.map(j => [j.key, j]));
   const value = (key: string, v: number) => turns(byKey.get(key)) ? v / DEG : v;
-  const limits: Record<string, MotionLimits> = {};
-  for (const [key, l] of Object.entries(p.limits)) { if (!l) continue; const k = key === 'default' ? 1 : value(key, 1); limits[key] = { velocity: l.v * k, acceleration: l.a * k, ...(l.j !== undefined ? { jerk: l.j * k } : {}) }; }
+  const limits: Record<string, MotionLimits> = {}, d = p.limits.default;
+  for (const [key, l] of Object.entries(p.limits)) if (l && key !== 'default') limits[key] = limitsOut(l, value(key, 1));
+  if (d) for (const j of tree.joints) if (moving(j) && !limits[j.key]) limits[j.key] = limitsOut(d, value(j.key, 1));
   return { waypoints: p.waypoints.map(w => Object.fromEntries(Object.entries(w).map(([key, v]) => [key, value(key, v)]))), profile: p.profile, ...(Object.keys(limits).length ? { limits } : {}) };
 }
 

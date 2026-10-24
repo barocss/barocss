@@ -177,6 +177,9 @@
 | `[INPUT_RANGE]` | `assembly` | … = …: true or false |
 | `[INPUT_TARGET]` | `assembly` | …: … has no parameter … |
 | `[INPUT_TYPE]` | `assembly`, `chat` | … (…) cannot drive … |
+| `[JOINT_LIMIT]` | `robot` | waypoint …: … = … is outside its limits … to … |
+| `[JOINT_MIMIC]` | `robot` | waypoint …: … follows … (gears): give … instead |
+| `[JOINT_UNKNOWN]` | `robot` | waypoint …: no moving joint … (joints: …) |
 | `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
 | `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
@@ -193,6 +196,7 @@
 | `[MERGE_SUPERSEDED]` | `chat` | The evaluation was superseded while the chat turn was merged. |
 | `[MESH_NOT_LOADED]` | `engine` | the mesh data …… is not loaded: it cannot be saved |
 | `[MODEL_READ]` | `robot` | …: … numbers expected, got "…" |
+| `[MOTION_UNKNOWN]` | `robot` | no motion … (motions: …) |
 | `[MOUNT_FACE]` | `app` | select the flat face the mount goes on |
 | `[MOUNT_RANGE]` | `app`, `engine` | mount row …: its bearing …'s bore Ø… is not its shaft Ø… |
 | `[MOUNT_ROW]` | `app`, `engine` | mount row … names bearing row …, not loaded — load your bearing rows |
@@ -272,7 +276,7 @@
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
-| `[VALUE]` | `chat/part`, `engine` | add and set are {name: value} with numbers. |
+| `[VALUE]` | `chat/part`, `engine`, `robot` | add and set are {name: value} with numbers. |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |
