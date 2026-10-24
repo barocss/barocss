@@ -189,9 +189,9 @@ async function printabilityOf(doc: StudioDoc, all: readonly BodyResult[], evalua
     if (!printer) rules.push({ id: 'bed-fit', level: 'feasible', status: 'unknown', message: 'the part within the printer\'s build volume', why: 'no printer is chosen' });
     else {
       const all = bodies.reduce((e, x) => { const q = extents(x.mesh, u, v, b); return [Math.max(e[0], q[0]), Math.max(e[1], q[1]), Math.max(e[2], q[2])]; }, [0, 0, 0]);
-      const [a1, a2] = [Math.max(all[0], all[1]), Math.min(all[0], all[1])], [b1, b2] = [Math.max(printer.buildMM[0], printer.buildMM[1]), Math.min(printer.buildMM[0], printer.buildMM[1])];
-      const fits = a1 <= b1 && a2 <= b2 && all[2] <= printer.buildMM[2];
-      rules.push({ id: 'bed-fit', level: 'feasible', status: fits ? 'pass' : 'fail', message: `the part (${all.map(x => +x.toFixed(2)).join(' × ')} mm) within ${printer.label}`, value: Math.max(a1 / b1, a2 / b2, all[2] / printer.buildMM[2]), limit: 1, unit: 'ratio', source: printer.source });
+      const [a1, a2] = [Math.max(all[0], all[1]), Math.min(all[0], all[1])], [b1, b2] = [Math.max(printer.buildVolume[0], printer.buildVolume[1]), Math.min(printer.buildVolume[0], printer.buildVolume[1])];
+      const fits = a1 <= b1 && a2 <= b2 && all[2] <= printer.buildVolume[2];
+      rules.push({ id: 'bed-fit', level: 'feasible', status: fits ? 'pass' : 'fail', message: `the part (${all.map(x => +x.toFixed(2)).join(' × ')} mm) within ${printer.label}`, value: Math.max(a1 / b1, a2 / b2, all[2] / printer.buildVolume[2]), limit: 1, unit: 'ratio', source: printer.source });
     }
     const overArea = per.reduce((n, x) => n + x.over.overhangArea, 0);
     rules.push({ id: 'overhang', level: 'recommended', status: overArea > 0 ? 'warn' : 'pass', message: `the area past ${t('maxOverhangDeg').value}° from the vertical needs support${per.some(x => x.over.approximate) ? ' (curved faces to the chord error)' : ''}`, value: overArea, unit: 'mm²', source: t('maxOverhangDeg').source, entities: per.flatMap(x => x.over.faces.map(f => f.name)).slice(0, 20) });
@@ -211,7 +211,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   const finishId = options.finish ?? doc.mould?.finish ?? null, finish: MouldFinish | undefined = finishId ? profile.finishes?.find(f => f.id === finishId) : undefined;
   rules.push(pull ? { id: 'pull', level: 'feasible', status: 'pass', message: `the pull direction (the mould opens along it): ${pull.map(v => +v.toFixed(6)).join(', ')}` }
     : { id: 'pull', level: 'feasible', status: 'unknown', message: 'the pull direction', why: 'no pull direction is given or set (the mould\'s opening): none is assumed' });
-  rules.push(finish ? { id: 'finish', level: 'recommended', status: 'pass', message: `${finish.label}: at least ${finish.draftMinDeg}° of draft${finish.draftRecDeg !== undefined ? `, ${finish.draftRecDeg}° recommended` : ''}`, value: finish.draftMinDeg, unit: 'deg', source: finish.source }
+  rules.push(finish ? { id: 'finish', level: 'recommended', status: 'pass', message: `${finish.label}: at least ${finish.draftMin}° of draft${finish.draftRecommended !== undefined ? `, ${finish.draftRecommended}° recommended` : ''}`, value: finish.draftMin, unit: 'deg', source: finish.source }
     : { id: 'finish', level: 'recommended', status: 'unknown', message: 'the surface finish (its least draft)', why: finishId ? `"${finishId}" is not a finish here: ${(profile.finishes ?? []).map(f => f.id).join(', ')}` : 'no surface finish is set' });
   // Walls: the thinnest against the process, and each body's thinnest and thick sections against its material's range.
   // (IM4, O80: the walls by the local thickness — the inscribed sphere at each inward ray's middle — and the thinnest by the ray.)
@@ -263,11 +263,11 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   let field: DraftFace[] | null = null;
   if (!pull || !finish) rules.push({ id: 'draft', level: 'recommended', status: 'unknown', message: 'draft on every face along the pull', why: !pull ? 'no pull direction: the draft is measured along it' : 'no finish: it sets the least draft' });
   else {
-    field = draftField(doc, bodies, pull, finish.draftMinDeg).faces;
+    field = draftField(doc, bodies, pull, finish.draftMin).faces;
     const steep = field.filter(f => f.cls === 'steep'), straddle = field.filter(f => f.cls === 'straddle');
     rules.push({ id: 'draft', level: 'recommended', status: steep.length || straddle.length ? 'warn' : 'pass',
-      message: `every face's draft (its exact normal) against ${finish.label}'s least, ${finish.draftMinDeg}°${steep.length ? `: ${steep.length} too steep` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (n·d takes both signs: a parting line crosses them, IM5)` : ''}`,
-      value: steep.length ? Math.min(...steep.map(f => f.steepestDeg)) : Math.min(...field.map(f => f.steepestDeg)), limit: finish.draftMinDeg, unit: 'deg', source: finish.source, entities: [...steep, ...straddle].map(f => f.face).slice(0, 40) });
+      message: `every face's draft (its exact normal) against ${finish.label}'s least, ${finish.draftMin}°${steep.length ? `: ${steep.length} too steep` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (n·d takes both signs: a parting line crosses them, IM5)` : ''}`,
+      value: steep.length ? Math.min(...steep.map(f => f.steepestDeg)) : Math.min(...field.map(f => f.steepestDeg)), limit: finish.draftMin, unit: 'deg', source: finish.source, entities: [...steep, ...straddle].map(f => f.face).slice(0, 40) });
   }
   // IM3 (O79): what neither half sees along the pull; freed by a side action across it (warned), or by none (fails).
   let regions: UndercutRegion[] | null = null;
@@ -300,7 +300,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   rules.push(tooling.ok ? { id: 'tooling', level: 'recommended', status: tooling.plan.stuck.length ? 'warn' : 'pass',
       message: `two halves ${tooling.plan.levels.length > 1 ? `meeting at ${tooling.plan.levels.length} parting heights (${tooling.plan.axis} = ${tooling.plan.levels.join(', ')}) and ${tooling.plan.cuts.length - tooling.plan.levels.length} riser${tooling.plan.cuts.length - tooling.plan.levels.length === 1 ? '' : 's'}` : `on a flat parting plane (${tooling.plan.axis} = ${tooling.plan.planeAt})`}: ${tooling.plan.shutOffs.length} shut-off${tooling.plan.shutOffs.length === 1 ? '' : 's'}, ${tooling.plan.sideCores.length} side core${tooling.plan.sideCores.length === 1 ? '' : 's'}${tooling.plan.stuck.length ? `, ${tooling.plan.stuck.length} undercut${tooling.plan.stuck.length === 1 ? '' : 's'} no side core frees` : ''} ${straddles?.ok && straddles.split.length ? `; ${straddles.split.length} face${straddles.split.length === 1 ? '' : 's'} split along the isocline` : ''} (cad-cli mould writes them)`, value: tooling.plan.shutOffs.length, unit: 'shut-offs' }
     : { id: 'tooling', level: 'recommended', status: 'unknown', message: `the halves: [${tooling.code}]${tooling.sideCores.length ? `; ${tooling.sideCores.length} side core${tooling.sideCores.length === 1 ? '' : 's'} (${tooling.sideCores.map(c => `[${c.direction.map(v => +v.toFixed(6)).join(', ')}]`).join(', ')})` : ''}`, why: tooling.message });
-  return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, draftMin: finish?.draftMinDeg ?? null, draftRecommended: finish ? finish.draftRecDeg ?? finish.draftMinDeg : null, bodies: per.map(x => ({ body: x.key, material: x.material, wall: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
+  return { process: profile.id, direction: pull, rules, mould: { finish: finish?.id ?? null, draftMin: finish?.draftMin ?? null, draftRecommended: finish ? finish.draftRecommended ?? finish.draftMin : null, bodies: per.map(x => ({ body: x.key, material: x.material, wall: x.range, ...(x.note ? { wallNote: x.note } : {}), shrink: x.shrink })),
     ...(parting ? { parting: { faces: parting.faces.map(f => ({ face: f.face, half: f.half, basis: f.basis })), split: parting.split.map(x => ({ face: x.face, isoclineLength: r6(x.isoclineMM) })), loops: parting.loops.map(l => ({ closed: l.closed, length: r6(l.length), pullRange: l.rangeMM.map(r6), flat: l.flat, points: l.points.length })) } } : {}),
     walls: wr.map(w => ({ body: w.body, nominal: w.nominal === null ? null : r6(w.nominal), thinnest: w.thinnest === null ? null : r6(w.thinnest), thick95: w.thick95 === null ? null : r6(w.thick95), ribs: w.ribs.map(r => ({ faces: r.faces, thickness: r6(r.thickness) })), bosses: w.bosses.map(b => ({ outer: b.outer, inner: b.inner, wall: r6(b.wall) })), fillets: w.fillets.map(f => ({ face: f.face, radius: r6(f.radius) })), sharp_corners: w.sharp.length, thick: w.thick ? { faces: w.thick.faces, area: r6(w.thick.area), max: r6(w.thick.max) } : null })),
     ...(regions ? { undercuts: regions.map(r => ({ body: r.body, faces: r.faces, area: r6(r.area), centroid: r.centroid.map(r6) as Vec3, side_action: r.sideAction, best_share: r6(r.best.clearShare) })) } : {}),
