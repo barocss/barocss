@@ -3205,3 +3205,15 @@ The work stopped here for the owner's move to another place.
   - **Decisions proposed**: (a) New part puts the camera back to the default view; this is user-visible, so it is the
     coordinator's call. (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
     flow's steps 96, 193 and 217 don't need to change.
+- **O18's placed copies dropped on a rebuild with identical meshes** (measure first):
+  - The outer lane's work-round (App's `sameMeshes`, 2aae36ec3) was taken out in this worktree only, for the runs, then
+    put back (nothing committed).
+  - FLOW_ONLY `^O10 (frame costs|Rebuild)` and `^(AM7|O10 (frame costs|Rebuild))` on WebGPU: all pass (285, 286, and
+    AM7a and AM7b before them). The frame costs list the 10 bodies with the 8 copies by their keys in every display
+    mode. **Not reproduced at 540df6a71.**
+  - Why it can't come from gpuRenderer.setBodies today: it keys bodies by their mesh signature (content), keeps every
+    body whose signature is unchanged, and returns at once when all are. A new array of the same meshes rebuilds
+    nothing. The instances are keyed the same way (setInstances). So "should the renderer key on mesh identity" is
+    answered: it already keys on content, which covers identity.
+  - **Decision proposed**: close the item. Keep the work-round: it also saves the App's re-render on a mass patch. If a
+    full window shows the copies missing again, its O10 steps will catch it.
