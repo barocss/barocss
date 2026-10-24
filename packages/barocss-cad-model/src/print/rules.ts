@@ -106,9 +106,9 @@ export function cavitiesOf(m: DisplayMesh): number {
 /** A body's thinnest wall (mm), or null; a body whose lumps touch, the thinnest of its lumps' (O8). */
 function thinnestWall(x: BodyResult): number | null {
   const lumps = x.lumpTouch?.length ? lumpTriangles(x.mesh) : null;
-  if (!lumps) return (wallThickness(x) as { thinnest_mm: number | null }).thinnest_mm;
+  if (!lumps) return (wallThickness(x) as { thinnest: number | null }).thinnest;
   let w: number | null = null;
-  for (const t of lumps) { const v = (wallThickness({ ...x, mesh: lumpMesh(x.mesh, t) }) as { thinnest_mm: number | null }).thinnest_mm; if (v !== null && (w === null || v < w)) w = v; }
+  for (const t of lumps) { const v = (wallThickness({ ...x, mesh: lumpMesh(x.mesh, t) }) as { thinnest: number | null }).thinnest; if (v !== null && (w === null || v < w)) w = v; }
   return w;
 }
 /**

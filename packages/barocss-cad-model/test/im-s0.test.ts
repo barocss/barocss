@@ -135,7 +135,7 @@ test('IM S0 P4: a shelled box, wall t — the studio\'s ray thickness gives t to
   let doc = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] });
   doc = withNode(doc, { kind: 'extrude', sketch: 0, height: 25 });
   doc = withNode(doc, { kind: 'shell', parent: { node: 1, side: 'solid' }, thickness: 1.8, open: ['n1.top'] });
-  const { bodies } = ev(doc), w = wallThickness(bodies[0]) as { thinnest_mm: number };
+  const { bodies } = ev(doc), w = wallThickness(bodies[0]) as { thinnest: number };
   console.log('P4:', JSON.stringify(w).slice(0, 300));
-  assert.ok(Math.abs(w.thinnest_mm - 1.8) <= 1e-4, String(w.thinnest_mm));
+  assert.ok(Math.abs(w.thinnest - 1.8) <= 1e-4, String(w.thinnest));
 });
