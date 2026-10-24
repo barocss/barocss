@@ -58,7 +58,7 @@ test('IM8 S0 P4: die-casting draft per alloy on IM2\'s exact field — a block d
   const doc = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }), { kind: 'extrude', sketch: 0, height: 20, draft: 0.75 });
   const r = evaluateDoc(doc, 1); assert.ok(r.ok);
   const sides = (minDeg: number) => draftField(doc, r.bodies, [0, 0, 1], minDeg).faces.filter(f => f.kind !== 'plane' || Math.abs(f.max) < 89);
-  const least = Math.min(...sides(0.5).filter(f => f.steepestDeg < 89).map(f => f.steepestDeg));
+  const least = Math.min(...sides(0.5).filter(f => f.steepest < 89).map(f => f.steepest));
   assert.ok(Math.abs(least - 0.75) <= 1e-6, String(least));
   assert.ok(least >= 0.5 - 1e-9, 'zinc: 0.5° met'); assert.ok(least < 1 - 1e-9, 'aluminium: 1° not');
 });

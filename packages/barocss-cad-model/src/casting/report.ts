@@ -87,7 +87,7 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
     steep = field.filter(f => f.cls === 'steep');
     const straddle = field.filter(f => f.cls === 'straddle');
     underRec = dRec ? draftField(doc, bodies, pull, dRec.value).faces.filter(f => f.cls === 'steep' && !steep.some(s => s.face === f.face && s.body === f.body)) : [];
-    const least = field.length ? Math.min(...field.map(f => f.steepestDeg)) : 0;
+    const least = field.length ? Math.min(...field.map(f => f.steepest)) : 0;
     rules.push({ id: 'draft', level: steep.length ? 'feasible' : 'recommended', status: steep.length ? 'fail' : straddle.length || underRec.length ? 'warn' : 'pass',
       message: `every face's draft (its exact normal), the least ${r3(least)}°, against a ${family} alloy's least ${dMin.value}°${dRec ? ` and achievable ${dRec.value}°` : ''}${steep.length ? `: ${steep.length} under the least` : ''}${underRec.length ? `; ${underRec.length} under the achievable` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (a parting line crosses them, IM5)` : ''}`,
       value: r3(least), limit: steep.length || !dRec ? dMin.value : dRec.value, unit: 'deg', source: pageOf(steep.length || !dRec ? dMin : dRec), entities: faceNames([...steep, ...underRec, ...straddle]) });
