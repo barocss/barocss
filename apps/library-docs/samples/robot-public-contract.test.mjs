@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { part, assembly } from '@barocss/cad-model/api';
-import { jointCase } from './robot-contract.fixture.mjs';
+import { jointTreeOut } from '@barocss/cad-model/robot/units';
+import { couplingCases, jointCase } from './robot-contract.fixture.mjs';
 
 const samples = resolve(import.meta.dirname, '../../../packages/barocss-cad-model/samples/robots');
 const open = id => assembly(id, part(id, JSON.parse(readFileSync(resolve(samples, `${id}.bcad`), 'utf8')))).robot();
@@ -43,4 +44,36 @@ test('same-type gear mimic keeps its dimensionless ratio and public degree value
   near(pose.values['base~g2'], -20, 'follower degrees');
   const follower = robot.joints().joints.find(j => j.key === 'base~g2');
   near(follower.mimic.multiplier, -2 / 3, 'gear ratio');
+});
+
+test('shared tree projection: all four turn/slide mimic combinations retain independent public relations', () => {
+  // A pure projection fixture. This does not establish that these four relations are assembled by a robot tool.
+  const raw = [[-2 / 3, Math.PI / 36], [18 / Math.PI, 2], [Math.PI / 18, Math.PI / 36], [-2, 1]];
+  for (const [i, c] of couplingCases.entries()) {
+    const joint = (key, type) => ({ key, type, parent: 'base', child: key, origin: [0, 0, 0], axis: [0, 0, 1], mates: [] });
+    const tree = { version: 1, base: 'base', links: [], loops: [], couplings: [], problems: [], notes: [], joints: [
+      joint('leader', c.leaderType),
+      { ...joint('follower', c.followerType), mimic: { joint: 'leader', multiplier: raw[i][0], offset: raw[i][1] } },
+    ] };
+    const before = structuredClone(tree), { mimic } = jointTreeOut(tree).joints[1];
+    near(mimic.multiplier, c.multiplier, `${c.leaderType}→${c.followerType} multiplier`);
+    near(mimic.offset, c.offset, 'follower offset');
+    near(mimic.multiplier * c.leader + mimic.offset, c.follower, 'public relation');
+    assert.deepEqual(tree, before, 'projection leaves the internal tree unchanged');
+  }
+});
+
+test('actual sweep contact reports the starting mixed pose as 45 degrees and -12.5 mm', () => {
+  const doc = open('scara').doc;
+  doc.instances.push({ id: 'post', name: 'post',
+    doc: part('post').box({ w: 1000, d: 1000, h: 1000, x: -500, y: -500, z: -500 }).doc,
+    position: [0, 0, 0], rotation: [0, 0, 0], grounded: true });
+  const robot = assembly('contact', part('contact', doc)).robot(), before = robot.doc;
+  const [sweep] = robot.path([{ 'base~arm1': 45, 'arm2~quill': -12.5 }, { 'base~arm1': 60, 'arm2~quill': -20 }]).check();
+  assert.equal(sweep.clear, false);
+  assert.ok(sweep.contact);
+  near(sweep.contact.s, 0, 'initial contact');
+  near(sweep.contact.values['base~arm1'], 45, 'turning contact degrees');
+  near(sweep.contact.values['arm2~quill'], -12.5, 'sliding contact mm');
+  assert.deepEqual(robot.doc, before);
 });
