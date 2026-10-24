@@ -5537,6 +5537,57 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('drawing metadata (CG5 DR-5): extended title block, two revision records, saved file and SVG/DXF exports', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.waitForSelector('[aria-label="Title block template"]', { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.selectOption('[aria-label="Title block template"]', 'extended');
+      await page.locator('[aria-label="Title block fields"] > summary').click();
+      for (const [label, value] of [['Organization', 'Flow shop'], ['Drawing number', 'DR-005'], ['Drawn by', 'Flow author'], ['Checked by', 'Flow checker'], ['Material', 'Flow material'], ['Finish', 'Flow finish']]) {
+        await page.fill(`[aria-label="${label}"]`, value); await page.press(`[aria-label="${label}"]`, 'Enter');
+      }
+      await page.waitForFunction(() => window.__studioDoc.drawing.titleBlock?.finish === 'Flow finish');
+      await page.click('[aria-label="Next revision"]');
+      await page.locator('[aria-label="Revision history"] > summary').click();
+      for (const [date, description] of [['2026-10-24', 'First test entry'], ['2026-10-25', 'Second test entry']]) {
+        await page.fill('[aria-label="Revision date"]', date);
+        await page.fill('[aria-label="Revision description"]', description);
+        await page.fill('[aria-label="Revision by"]', 'Flow author');
+        await page.click('[aria-label="Record revision"]');
+        await page.waitForFunction(text => [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === text), description, { timeout: 15000 });
+        if (description === 'First test entry') await page.click('[aria-label="Next revision"]');
+      }
+      assert.equal(await page.isDisabled('[aria-label="Record revision"]'), true, 'no duplicate revision record');
+      assert.deepEqual(await page.evaluate(() => window.__studioDoc.drawing.revisions.map(r => [r.revision, r.date, r.description, r.by])), [['A', '2026-10-24', 'First test entry', 'Flow author'], ['B', '2026-10-25', 'Second test entry', 'Flow author']]);
+      await page.waitForFunction(() => !window.__studioDrawing().issues.some(x => x.severity === 'error' && x.tables?.includes('revisions')));
+      await snap('dr5-extended-title-revisions');
+      await page.locator('[aria-label="Drawing sheet"]').screenshot({ path: join(out, 'dr5-sheet.png') });
+      for (const [label, name] of [['Export SVG', 'dr5-metadata.svg'], ['Export DXF', 'dr5-metadata.dxf']]) {
+        const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click(`[aria-label="${label}"]`)]);
+        const file = join(out, name); await download.saveAs(file);
+        const text = fs.readFileSync(file, 'utf8');
+        for (const value of ['Flow shop', 'DR-005', 'Flow material', 'Flow finish', 'First test entry', 'Second test entry']) assert.ok(text.includes(value), `${value} in ${name}`);
+      }
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Save"]')]);
+      const file = join(out, 'dr5-saved.bcad'); await saved.saveAs(file);
+      const before = await page.evaluate(() => ({ titleBlock: window.__studioDoc.drawing.titleBlock, revisions: window.__studioDoc.drawing.revisions }));
+      await page.click('.mode button:text-is("Model")');
+      await openModel(file, 2); await idle();
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.revisions?.length === 2 && [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === 'Second test entry'), null, { timeout: 20000 });
+      assert.deepEqual(await page.evaluate(() => ({ titleBlock: window.__studioDoc.drawing.titleBlock, revisions: window.__studioDoc.drawing.revisions })), before);
+      await page.selectOption('[aria-label="Title block template"]', 'basic');
+      await page.waitForFunction(() => ![...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === 'Flow shop'));
+      assert.equal(await page.evaluate(() => window.__studioDoc.drawing.titleBlock.organization), 'Flow shop', 'template switches keep metadata');
+      await page.selectOption('[aria-label="Title block template"]', 'extended');
+      await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Drawing sheet"] text')].some(x => x.textContent === 'Flow shop'));
+      await snap('dr5-reopened');
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();

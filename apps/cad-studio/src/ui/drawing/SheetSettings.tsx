@@ -10,6 +10,7 @@ import { SECTION_VIEWS, VIEW_IDS, modelPrint, nextRevision, nextSectionId, sameS
 import type { useDrawingSheet } from '../useDrawingSheet';
 import { Icon } from '../atoms';
 import { CONTROL, FIELD, SIDE_NAMES, TICK, withTable } from './sheetShared';
+import { DrawingMetadata } from './DrawingMetadata';
 import { SectionKind } from './SectionKind';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,6 +112,7 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
               <Button variant="ghost" aria-label="Next revision" data-tip="Next revision" data-tip-desc="A → B, 01 → 02: the drawing’s new issue" onClick={() => set(nextRevision(settings.revision))}>Next</Button></label>
             {stale && <div className="empty" style={{ color: 'var(--warn)' }} aria-label="Revision out of date">The model changed since revision {settings.revision}: give the drawing its next revision when you issue it.</div>}
           </>; })()}
+        <DrawingMetadata settings={settings} onChange={onChange} onRefused={hint => onToast({ title: 'Drawing metadata unchanged', hint, detail: '' })} />
         {layout && !layout.fits && <div className="empty" style={{ color: 'var(--warn)' }}>The views do not fit the sheet at {scaleLabel(layout.scale)}. Pick a smaller scale or a larger sheet.</div>}
   </>;
 }
