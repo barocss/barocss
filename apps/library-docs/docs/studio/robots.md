@@ -107,3 +107,78 @@ the joints.
     `check_urdf`.
   - SDF is checked only by our own reader.
 
+
+## Sample robots
+
+`@barocss/cad-model` ships eight sample robots under `samples/robots/`, each a `.bcad` file you can open, with
+`index.json` listing them. They're built from blocks joined by the studio's mates. Each joint has an estimated rating,
+so every sample exports, and each carries one demo motion in its robot settings, in degrees and millimetres.
+
+| Sample | What it is | Joints |
+|---|---|---|
+| `arm-2r` | A planar arm | Two turns about parallel vertical axes, 40 mm apart, ±150° |
+| `scara` | A SCARA arm | Turn, turn, a slide of ±40 mm, turn |
+| `arm-6r` | An industrial arm's chain | Six turns about Z, Y, Y, Z, Y and Z: waist, shoulder, elbow and a three-axis wrist |
+| `gantry-ppp` | A Cartesian gantry | Slides along X (0–200 mm), Y (0–120 mm) and Z (±40 mm) |
+| `pan-tilt` | A camera head | Pan about Z (±170°), tilt about X (±60°), and a `camera` sensor frame |
+| `gripper` | A gear-coupled gripper | The left finger turns ±30°; the right one follows on meshing 20-tooth gears, the other way |
+| `four-bar` | A four-bar linkage | Crank, coupler and rocker, closed in one loop |
+| `gear-joint` | A gear-driven joint | A 20-tooth gear driving a 30-tooth one, which turns two thirds as far, the other way |
+
+Opened in the studio, each one's joints are in the **Joints** card. Set a pose with the sliders, and **Play motion**
+plays from home to it. Here three samples are paused half-way:
+
+![The 6R arm half-way from home to a reach, its shoulder and elbow bent](/shots/studio/robots/arm-6r-motion.jpg)
+
+![The SCARA arm half-way through a pick, its quill partly lowered](/shots/studio/robots/scara-motion.jpg)
+
+![The Cartesian gantry half-way across its X and Y travel, its ram up](/shots/studio/robots/gantry-ppp-motion.jpg)
+
+### In code
+
+The [object API](/packages/api) reads an assembly as a robot: `assembly(…).robot()`. Each method returns what the
+agent's robot tool returns: `joints()`, `pose(values)`, `path(waypoints).check()`, `inertia()`, `gravity(values)`, and
+`urdf()`, `mjcf()`, `sdf()` and `usd()`. Joint values go in as degrees and millimetres. The pose's `values` come back as
+the tool gives them, with turns in radians.
+
+<<< @/../samples/robots.test.mjs#import
+
+<<< @/../samples/robots.test.mjs#open
+
+- **The 2R arm:** its two turns, a pose, and a path checked for collisions.
+
+<<< @/../samples/robots.test.mjs#arm-2r
+
+- **The SCARA arm:** the quill's slide.
+
+<<< @/../samples/robots.test.mjs#scara
+
+- **The 6R arm:** its axes, its demo motion swept, and its URDF read back.
+
+<<< @/../samples/robots.test.mjs#arm-6r
+
+- **The gantry:** each slide carries the ones after it.
+
+<<< @/../samples/robots.test.mjs#gantry
+
+- **The pan-tilt head:** its camera frame at a pose, and a pose past the tilt's limit.
+
+<<< @/../samples/robots.test.mjs#pan-tilt
+
+- **The gripper:** only the leader is given; the follower turns by the coupling.
+
+<<< @/../samples/robots.test.mjs#gripper
+
+- **The four-bar linkage:** the loop, and what a tree format leaves out.
+
+<<< @/../samples/robots.test.mjs#four-bar
+
+- **The gear-driven joint:** the gear ratio.
+
+<<< @/../samples/robots.test.mjs#gear-joint
+
+- **The exports**, each with what its reader found and what it had to assume. `check` lists what our own reader found
+  wrong when reading the file back, and `notes` what the export assumed, such as aluminium for a body without a
+  material.
+
+<<< @/../samples/robots.test.mjs#exports
