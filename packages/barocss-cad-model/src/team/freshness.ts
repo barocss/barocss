@@ -25,6 +25,7 @@ import { digestOf } from '../util/digest';
 import { readInterfaces } from './interfaces';
 import { modelContent } from '../util/revision';
 import { beadAccounting, incompleteBeadReason } from '../frames/beadAccounting';
+import { refusal } from '../engine/refusal';
 
 export type ResultKind = 'requirement' | 'check_spec' | 'keepout' | 'mass' | 'inertia' | 'dfm' | 'bom' | 'drawing';
 export type InputName = 'model' | 'material' | 'process' | 'interfaces' | 'references' | 'requirement' | 'requirements' | 'drafts' | 'drawing';
@@ -174,7 +175,7 @@ export function openRun(store: ResultStore, kind: ResultKind, subject: string, p
 /** A result recorded under its run; late when a later run for the same kind and subject was opened before it arrived. */
 export function recordResult(store: ResultStore, r: Result): ResultStore {
   const run = store.runs.find(x => x.id === r.run);
-  if (!run || !sameSubject(run, r)) throw new Error(`[NO_RUN] ${r.run} is not a run for ${r.kind} ${r.subject}`);
+  if (!run || !sameSubject(run, r)) throw refusal('NO_RUN', `${r.run} is not a run for ${r.kind} ${r.subject}`);
   const late = store.runs.some(x => x.seq > run.seq && sameSubject(x, run));
   return { ...store, results: [...store.results.filter(x => x.run !== r.run), late ? { ...r, late: true } : r] };
 }

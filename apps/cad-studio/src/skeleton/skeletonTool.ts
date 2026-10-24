@@ -3,7 +3,8 @@
 // FRg's solver (frames/sketch3d.ts, the outer lane's) with the dragged point as its target, the constraints offered
 // for a selection, and the marks the viewport draws for them.
 import { solveSketch3D, type Axis3, type BoundConstraint3D, type Constraint3D, type Solve3D, type V3 } from '@barocss/cad-model/frames/sketch3d';
-import { boundConstraints, boundRefusal } from '@barocss/cad-model/frames/skeleton';
+import { boundConstraints, boundRefusal, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 
 export interface SkeletonDraft { points: V3[]; segments: [number, number][]; constraints: BoundConstraint3D[] }
 export type WorkPlane = 'xy' | 'xz' | 'yz';
@@ -52,10 +53,15 @@ export function segmentAt(x: number, y: number, project: (p: V3) => readonly num
   return best;
 }
 
+/** The draft's bound values as its parameters' now, or the refusal's words (the editor shows them as it draws). */
+function boundOf(draft: SkeletonDraft, parameters: Readonly<Record<string, number>>): ReturnType<typeof boundConstraints> | { error: string } {
+  try { return boundConstraints(draft.constraints, parameters); } catch (e) { if (isRefusal(e, ...SKELETON_CODES)) return { error: e.message }; throw e; }
+}
+
 export type Diagnosis = { solve: Solve3D; constraints: Constraint3D[]; bound: ReadonlyMap<number, string> } | { error: string };
 /** The draft solved from its points as they are, with its diagnosis (well, under, over, conflict); or why it is refused. */
 export function diagnoseDraft(draft: SkeletonDraft, parameters: Readonly<Record<string, number>>): Diagnosis {
-  const b = boundConstraints(draft.constraints, parameters); if ('error' in b) return b;
+  const b = boundOf(draft, parameters); if ('error' in b) return b;
   const why = boundRefusal(draft.points, draft.segments, b); if (why) return { error: why };
   return { solve: solveSketch3D(draft.points, draft.segments, b.constraints), constraints: b.constraints, bound: b.bound };
 }
@@ -67,7 +73,7 @@ export function diagnoseDraft(draft: SkeletonDraft, parameters: Readonly<Record<
  * A point the sketch fixes does not move. The points, the diagnosis without the hold, and whether it reached the target.
  */
 export function dragSolve(draft: SkeletonDraft, index: number, target: V3, parameters: Readonly<Record<string, number>>): { points: V3[]; solve: Solve3D; reached: boolean } | { error: string } {
-  const b = boundConstraints(draft.constraints, parameters); if ('error' in b) return b;
+  const b = boundOf(draft, parameters); if ('error' in b) return b;
   const start = draft.points.map((p, i) => i === index ? [...target] as V3 : p);
   const why = boundRefusal(start, draft.segments, b); if (why) return { error: why };
   if (b.constraints.some(c => c.kind === 'fixed' && c.point === index)) { const solve = solveSketch3D(draft.points, draft.segments, b.constraints); return { points: solve.points, solve, reached: false }; }

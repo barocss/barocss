@@ -13,7 +13,7 @@ import { MATERIALS } from '../../library/materials';
 import { resolveNames, resolveSelectors } from '../names';
 import { rematchNames } from '../../engine/rematch';
 import { editSections } from '../../frames/sections';
-import { skeletonEditRefusal, solvedSkeleton, withFollowed } from '../../frames/skeleton';
+import { checkSkeletonEdit, SKELETON_CODES, solvedSkeleton, withFollowed } from '../../frames/skeleton';
 import { weldList, type WeldRecord } from '../../frames/welds';
 import { beadOwnershipError, type BeadOwnership } from '../../frames/beadOwnership';
 import { bearingContextOf } from '../../engine/bearingContext';
@@ -21,7 +21,7 @@ import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json
 import { isObj, isVec3 } from '../../util/guards';
 import { mountRowsOf } from '../../engine/mountRows';
 import { mountAxis } from '../../app/mounts';
-import { isRefusal } from '../../engine/refusal';
+import { firstProblem, isRefusal } from '../../engine/refusal';
 import { REFERENCE_CODES } from '../../engine/schema/references';
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
@@ -175,8 +175,9 @@ async function addFeaturesTool(state: ChatState, args: Record<string, unknown>, 
     const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, state.partOf ? null : doc.instances ?? []);
     if (why) return fail(state, `Feature ${k + 1} of ${list.length} (would be index ${doc.nodes.length}): ${why}`, { kept: 'nothing was added' });
     // (A new feature takes the next stable id: one the call brings is not used, ids are never handed out twice.)
-    const solved = solvedSkeleton(node as ModelNode, doc.parameters);
-    if ('error' in solved) return fail(state, `Feature ${k + 1} of ${list.length}: ${solved.error}`, { kept: 'nothing was added' });
+    let solved: ReturnType<typeof solvedSkeleton>;
+    try { solved = solvedSkeleton(node as ModelNode, doc.parameters); }
+    catch (e) { if (isRefusal(e, ...SKELETON_CODES)) return fail(state, `Feature ${k + 1} of ${list.length}: ${e.message}`, { kept: 'nothing was added' }); throw e; }
     if (solved.solve) solves.push({ feature: doc.nodes.length, ...solved.solve });
     doc = withNode(doc, { ...withFollowed(doc, solved.node), id: undefined });
   }
@@ -205,11 +206,12 @@ async function editFeatureTool(state: ChatState, args: Record<string, unknown>, 
     }
   }
   // (FRg, O122: a skeleton with constraints solved again from its edit.)
-  const solved = solvedSkeleton(next[index], state.doc.parameters);
-  if ('error' in solved) return fail(state, `Feature ${index}: ${solved.error}`, { kept: 'the part is unchanged' });
+  let solved: ReturnType<typeof solvedSkeleton>;
+  try { solved = solvedSkeleton(next[index], state.doc.parameters); }
+  catch (e) { if (isRefusal(e, ...SKELETON_CODES)) return fail(state, `Feature ${index}: ${e.message}`, { kept: 'the part is unchanged' }); throw e; }
   next = next.map((n, k) => k === index ? solved.node : n);
   // (FRf, O121: a skeleton frames follow keeps every point and segment they use.)
-  const held = skeletonEditRefusal(nodes, index, next[index]);
+  const held = firstProblem(checkSkeletonEdit(nodes, index, next[index]));
   if (held) return fail(state, held);
   // (Names later features store, renumbered by this edit, matched again by their geometry: engine/rematch.ts.)
   const rm = await rematchNames(state.doc, prefixDoc({ ...state.doc, nodes: next }, next.length), evaluate);

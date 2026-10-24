@@ -5,6 +5,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
 import type { Evaluate } from '../chat/toolKit';
+import { refusal } from '../engine/refusal';
 
 /** Each document of the tree with its evaluation. */
 export async function evaluateTree(doc: StudioDoc, evaluate: Evaluate): Promise<Map<StudioDoc, EvalResult | null>> {
@@ -15,6 +16,6 @@ export async function evaluateTree(doc: StudioDoc, evaluate: Evaluate): Promise<
 async function take(d: StudioDoc, evaluate: Evaluate, results: Map<StudioDoc, EvalResult | null>): Promise<void> {
   if (results.has(d)) return;
   const result = await evaluate(d);
-  if (!result?.ok && d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) throw new Error(`[BEARING_HOUSING_EVALUATION] ${result ? JSON.stringify(result.error) : 'no evaluation result'}`);
+  if (!result?.ok && d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) throw refusal('BEARING_HOUSING_EVALUATION', `${result ? JSON.stringify(result.error) : 'no evaluation result'}`);
   results.set(d, result); for (const i of d.instances ?? []) await take(i.doc, evaluate, results);
 }

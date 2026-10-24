@@ -22,7 +22,7 @@ import { resolveNames, type NameSelection } from './names';
 import { approvalOf } from './proposals';
 import type { Op } from '../engine/schema/proposals';
 import { newPolicy } from './spec';
-import { partEditRefusal, refreshFollowed } from '../frames/skeleton';
+import { checkPartEdit, refreshFollowed } from '../frames/skeleton';
 import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, setCall, json, accept, fail, subToolResult } from './toolKit';
 import { QUERY_HANDLERS } from './part/query';
 import { IMAGE_HANDLERS } from './part/image';
@@ -33,7 +33,7 @@ import { HISTORY_HANDLERS, moveOpsWith } from './part/history';
 import { ASSEMBLY_CHANGES, PROPOSAL_HANDLERS, acceptProposalWith, autonomy, changesPart, previewProposalWith, proposalNeededAtL2, proposalOfWith, rebaseProposalWith, type Decider } from './part/proposals';
 import { BATCHABLE, MUTATORS, PART_SCOPED, describe, unknownArguments } from './toolDefinitions';
 import { isObj, isVec3 } from '../util/guards';
-import { isRefusal } from '../engine/refusal';
+import { firstProblem, isRefusal } from '../engine/refusal';
 import { REFERENCE_CODES } from '../engine/schema/references';
 // ./outputs is loaded on first use: it reaches team/bundle → baseline → assembly → parts, which import this
 // module, so a static import closes a cycle that leaves `commands` undefined here at load.
@@ -211,7 +211,7 @@ async function runToolUnchecked(state: ChatState, name: string, input: unknown, 
   const authored = restoreAuthoredShopRows(out.state.doc, shop.doc);
   if ('error' in authored) return fail(state, authored.error);
   // (FRf2, O125: base frames following this part's sketches keep every edge they use; their copies follow the edit.)
-  const held = partEditRefusal(state.doc, inst.id, authored.doc);
+  const held = firstProblem(checkPartEdit(state.doc, inst.id, authored.doc));
   if (held) return fail(state, held, { kept: 'the part is unchanged' });
   const doc = refreshFollowed({ ...state.doc, instances: state.doc.instances!.map(i => i.id === inst.id ? { ...i, doc: authored.doc } : i) });
   const solved = solveDoc(doc, state.doc.instances);

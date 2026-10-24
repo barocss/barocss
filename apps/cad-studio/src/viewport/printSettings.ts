@@ -1,5 +1,6 @@
 import type { PrintPreviewSettings, StudioDoc } from '@barocss/cad-model/engine/doc';
-import { documentPrintPreviewProblem, printPreviewProblem } from '@barocss/cad-model/engine/printPreview';
+import { checkDocumentPrintPreview, checkPrintPreview } from '@barocss/cad-model/engine/printPreview';
+import { refused } from '@barocss/cad-model/engine/refusal';
 import type { PrintOptions } from './usePrintLayers';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
@@ -15,8 +16,8 @@ export type PrintPreviewPatch = Partial<Omit<PrintPreviewSettings, 'version'>>;
 
 /** Display defaults do not author settings, the estimated layer height, or a build direction. */
 export function printOptionsOf(doc: StudioDoc, limitDeg?: number): PrintOptions {
-  const problem = documentPrintPreviewProblem(doc);
-  if (problem) throw new Error(problem);
+  const [problem] = checkDocumentPrintPreview(doc);
+  if (problem) throw refused(problem);
   const saved = doc.printPreview;
   const direction: PrintOptions['direction'] = doc.print ? [...doc.print.direction] : undefined;
   return {
@@ -31,11 +32,11 @@ export function printOptionsOf(doc: StudioDoc, limitDeg?: number): PrintOptions 
 
 /** Apply one immutable document edit. Explicit undefined removes a saved optional control. */
 export function withPrintPreviewSettings(doc: StudioDoc, patch: PrintPreviewPatch): StudioDoc {
-  const documentProblem = documentPrintPreviewProblem(doc);
-  if (documentProblem) throw new Error(documentProblem);
+  const [documentProblem] = checkDocumentPrintPreview(doc);
+  if (documentProblem) throw refused(documentProblem);
   const saved: PrintPreviewSettings = { version: 1, ...doc.printPreview, ...patch };
-  const problem = printPreviewProblem(saved);
-  if (problem) throw new Error(problem);
+  const [problem] = checkPrintPreview(saved);
+  if (problem) throw refused(problem);
   if ('layer' in patch && patch.layer === undefined) delete saved.layer;
   if ('layerMM' in patch && patch.layerMM === undefined) delete saved.layerMM;
   if ('supports' in patch && patch.supports === undefined) delete saved.supports;

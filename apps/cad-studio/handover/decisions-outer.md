@@ -8450,3 +8450,46 @@ regression can be pinned to one of them.
 - After R7.3a, the queue goes on to R7.3c (one mass and one bounds function; `stepFor` becomes
   `exportStudioStep(doc, options)` with `timestamp` in options; readonly vectors across packages), then R7.3b's
   cad-model follow-up (bodyMass inertia in g·mm²) once the kernel's lands.
+
+## R7.3a batch 1 closed — validators, coded throws and operations on one shape, no text changed (2026-10-24)
+
+**Done (4a2e534e9, on integration a1857acec).**
+- Before it, step 1's tree (a1857acec) was checked again: fingerprint 1125c4eb… (152 documents), cad-model 1028/1028,
+  studio 286/286.
+- **Validators → `check…(x): Problem[]`** (none, or the first problem), for those whose texts carry a code:
+  checkDrawingScope, checkManufacturingDrawing, checkPrintPreview, checkDocumentPrintPreview, checkBearingHousingRef,
+  checkDocumentBearingHousing, checkMountRow, checkFrame (`Problem<FrameCode>`), checkValue, checkVariability,
+  checkSkeletonEdit, checkPartDelete, checkPartEdit.
+  - A caller that kept a string uses `firstProblem()`; one that threw throws `refused(problem)`.
+  - `Problem` is generic in its code (`Problem<C>`), so a validator can say which codes it returns.
+- **The 43 `throw new Error('[CODE] …')`** are `refusal('CODE', '…')`. frameGeometry's two `[${code}]` throws are too,
+  its codes typed as `FrameGeometryCode`.
+- **`refusal()` writes the prefix itself.** BarocssError's constructor drops the first `[CODE] ` it finds anywhere in
+  the message. So step 1's `refusal(code, text)` would have dropped a nested refusal's own `[CODE] ` (for example
+  BEARING_HOUSING_EVALUATION quoting an evaluation error). `refusal()` now passes `[CODE] text`, so the text is byte for
+  byte what was written. `coded(code, text)` is for a text written already, such as NO_SIZES.
+- **Operations throw instead of returning `{ error }`:**
+  - variantOf and variantNamed, with `VARIANT_CODES`;
+  - boundConstraints, solvedSkeleton and resolveSkeletons, with `SKELETON_CODES`; resolveSkeletons rethrows with the
+    feature named, as its old text did;
+  - withManufacturingDrawing, with DRAWING_SECTION_REFERENCES.
+
+  Their callers catch only those codes and show the same text: the chat tools, part.ts's evaluated view,
+  useVariants, App's parameter change, the skeleton editor and its draft diagnosis. Anything else is rethrown, as before.
+- **Kept on purpose:**
+  - frameGeometry's `{ code, error }`: a query that seven callers branch on, not a refusal;
+  - readStudioDoc's `{ error }`: a reader's result;
+  - the chat tools' `{ error }` outcomes: the tool layer, per §6.
+- **Moved to batch 2:** the row validators whose texts have no code (ring, fastener, fastener size, casting rule), and
+  editRows' texts.
+- **Studio call sites moved with the change** (the GPU lane's files named):
+  - `viewport/printSettings.ts` and `App.tsx`: one import, the print check, the parameter change;
+  - `state/useVariants.ts`, `skeleton/skeletonTool.ts`, `skeleton/useSkeletonEditor.tsx`.
+- **The fingerprint's `message(e)` records `${e.name}`,** and BarocssError's name differs from Error's. No recorded
+  document throws (the records have no `threw`), so nothing moved. A refusal that starts throwing where a document is
+  recorded would show the name: watch for it in batch 2.
+- **Verified (T2):**
+  - fingerprint **1125c4eb… byte-identical** (152 documents);
+  - cad-model 1028/1028, studio 286/286 (TEST_CONCURRENCY=4, scratch worktree);
+  - tsc (model, studio); eslint 0 errors (20 old warnings).
+  - Flow not run: no UI text or step changed.

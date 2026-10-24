@@ -17,7 +17,8 @@ import type { StudioRingRow } from './rings';
 import { rotationSteps } from './placement';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../util/revision';
-import { resolveSkeletons } from '../frames/skeleton';
+import { resolveSkeletons, SKELETON_CODES } from '../frames/skeleton';
+import { isRefusal, refusal } from './refusal';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -32,12 +33,12 @@ let library: ReadonlyMap<string, InlineSection> = new Map();
 export function beltFeature(node: Extract<ModelNode, { kind: 'belt' }>, row: DriveRow): Record<string, unknown> {
   const wheel = (i: number) => {
     const w = current[i];
-    if (!w || (w.kind !== 'sprocket' && w.kind !== 'pulley')) throw new Error(`[DRIVE_WHEELS] a belt runs on two sprockets or pulleys: feature ${i + 1} is ${w ? `a ${w.kind}` : 'missing'}`);
-    if (w.row !== row.id) throw new Error(`[DRIVE_WHEELS] the ${row.kind} ${row.id} runs on wheels of its row: feature ${i + 1} is for ${w.row}`);
+    if (!w || (w.kind !== 'sprocket' && w.kind !== 'pulley')) throw refusal('DRIVE_WHEELS', `a belt runs on two sprockets or pulleys: feature ${i + 1} is ${w ? `a ${w.kind}` : 'missing'}`);
+    if (w.row !== row.id) throw refusal('DRIVE_WHEELS', `the ${row.kind} ${row.id} runs on wheels of its row: feature ${i + 1} is for ${w.row}`);
     return w;
   };
   const a = wheel(node.wheels[0]), b = wheel(node.wheels[1]);
-  if ((a.from ?? 0) !== (b.from ?? 0)) throw new Error(`[DRIVE_WHEELS] the wheels stand at Z ${a.from ?? 0} and ${b.from ?? 0}: a belt runs on wheels in one plane`);
+  if ((a.from ?? 0) !== (b.from ?? 0)) throw refusal('DRIVE_WHEELS', `the wheels stand at Z ${a.from ?? 0} and ${b.from ?? 0}: a belt runs on wheels in one plane`);
   const R = (w: typeof a): number => w.kind === 'sprocket' ? sprocketPitchDiameter((row as ChainRow).pitchMM, w.teeth) / 2
     : row.kind === 'timing-belt' ? timingPitchDiameter(row.pitchMM, w.teeth ?? 0) / 2 : row.kind === 'flat-belt' ? (w.diameter ?? 0) / 2 + row.thicknessMM / 2 : (w.diameter ?? 0) / 2;
   const dx = b.center[0] - a.center[0], dy = b.center[1] - a.center[1], C = Math.hypot(dx, dy);
@@ -64,7 +65,7 @@ const kernelSection = (s: MemberSection, toId: (i: number) => string): CadPartSe
 function libraryRow(rowId: string): CadPartSection {
   const row = library.get(rowId);
   if (row) return row;
-  throw new Error(`[FRAME_SECTION_UNKNOWN] a frame's section names the library row "${rowId}", which the document's section library does not hold (rows: ${[...library.keys()].join(', ') || 'none'})`);
+  throw refusal('FRAME_SECTION_UNKNOWN', `a frame's section names the library row "${rowId}", which the document's section library does not hold (rows: ${[...library.keys()].join(', ') || 'none'})`);
 }
 /** A frame's override for the kernel: its sketch section by feature id. */
 function kernelOverride(o: FrameOverride): CadPartFrameOverride { const { section, ...rest } = o; return { ...rest, ...(section ? { section: kernelSection(section, id) } : {}) }; }
@@ -103,7 +104,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sheet-base': return { ...at, kind: 'sheet-base', sketch: id(node.sketch), thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node), ...(node.reverse ? { reverse: true } : {}) };
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
     case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angleDegrees !== undefined ? { angleDegrees: node.angleDegrees } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
-    case 'frame': { const g = frameGeometry(current, node, params, partsNow); if ('code' in g) throw new Error(`[${g.code}] ${g.error}`);
+    case 'frame': { const g = frameGeometry(current, node, params, partsNow); if ('code' in g) throw refusal(g.code, g.error);
       return { ...at, kind: 'frame', points: g.points, segments: g.segments, ...(node.bends !== undefined ? { bends: node.bends } : {}), section: kernelSection(node.section, id),
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.mirror ? { mirror: true } : {}), ...(node.up ? { up: node.up } : {}),
       ...(node.overrides?.length ? { overrides: node.overrides.map(kernelOverride) } : {}), ...(node.corners ? { corners: node.corners } : {}), ...(node.trims?.length ? { trims: node.trims.map(t => 'body' in t ? { member: t.member, end: t.end, body: ref(t.body) } : t) } : {}) }; }
@@ -137,7 +138,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     }
     case 'oring-gland': {
       const row = oringRows.get(node.ring);
-      if (!row) throw new Error(`[ORING_ROW_UNKNOWN] a gland names the O-ring row "${node.ring}", which the document's O-ring rows do not hold (rows: ${[...oringRows.keys()].join(', ') || 'none'})`);
+      if (!row) throw refusal('ORING_ROW_UNKNOWN', `a gland names the O-ring row "${node.ring}", which the document's O-ring rows do not hold (rows: ${[...oringRows.keys()].join(', ') || 'none'})`);
       const fit = node.sealClass || node.grooveClass ? { fit: { tables: fitTables, ...(node.sealClass ? { seal: node.sealClass } : {}), ...(node.grooveClass ? { groove: node.grooveClass } : {}) } } : {};
       return { ...at, kind: 'oring-gland', target: ref(node.parent), face: node.face, gland: node.gland, ring: { id: row.id, ...(row.dash ? { dash: row.dash } : {}), insideDiameter: row.insideDiameterMM, crossSection: row.crossSectionMM, ...(row.source ? { source: row.source } : {}), ...(row.estimate ? { estimate: true } : {}) },
         groove: { diameter: node.diameter, width: node.width, ...(node.at !== undefined ? { at: node.at } : {}), ...(node.depth !== undefined ? { depth: node.depth } : {}), ...(node.center ? { center: node.center } : {}) }, ...(node.seal !== undefined ? { seal: node.seal } : {}), ...fit };
@@ -146,7 +147,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'connector-opening': {
       // (R12c.7, D162: the connector row inline.)
       const row = connectorRows.get(node.row);
-      if (!row) throw new Error(`[CONNECTOR_ROW_UNKNOWN] an opening names the connector row "${node.row}", which the document's connector rows do not hold (rows: ${[...connectorRows.keys()].join(', ') || 'none'})`);
+      if (!row) throw refusal('CONNECTOR_ROW_UNKNOWN', `an opening names the connector row "${node.row}", which the document's connector rows do not hold (rows: ${[...connectorRows.keys()].join(', ') || 'none'})`);
       return { ...at, kind: 'connector-opening', target: ref(node.parent), face: node.face, row, center: node.center, ...(node.rotation ? { rotation: node.rotation } : {}) };
     }
     case 'connector-body': return { ...at, kind: 'connector-body', opening: id(node.opening) };
@@ -156,14 +157,14 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'bearing': {
       // (A row the document does not hold is refused, typed — never a fallback.)
       const row = bearingRows.get(node.row);
-      if (!row) throw new Error(`[BEARING_ROW_UNKNOWN] a bearing names the row "${node.row}", which the document's bearing rows do not hold (rows: ${[...bearingRows.keys()].join(', ') || 'none'})`);
+      if (!row) throw refusal('BEARING_ROW_UNKNOWN', `a bearing names the row "${node.row}", which the document's bearing rows do not hold (rows: ${[...bearingRows.keys()].join(', ') || 'none'})`);
       const fit = node.shaftClass || node.housingClass ? { fit: { tables: fitTables, ...(node.shaftClass ? { shaft: node.shaftClass } : {}), ...(node.housingClass ? { housing: node.housingClass } : {}) } } : {};
       return { ...at, kind: 'bearing', row, shaft: id(node.shaft), step: node.step, against: node.against, ...(node.housing !== undefined ? { housing: id(node.housing) } : {}), ...fit };
     }
     case 'key': {
       // (O138: the key's width fit from the classes on its sides, its keyseat's and its hub keyway's — the user's tables.)
       const c = keyClasses(fitFaces, { key: id(index), shaft: id(node.shaft), keyseat: node.keyseat, ...(node.hub !== undefined ? { hub: id(node.hub) } : {}) });
-      if (!c.key && (c.seat || c.hub)) throw new Error(`[FIT_FACE] the ${c.seat ? `keyseat (${c.seat})` : `hub's keyway (${c.hub})`} carries a class but the key does not: give one of the key's sides a shaft's class (h9)`);
+      if (!c.key && (c.seat || c.hub)) throw refusal('FIT_FACE', `the ${c.seat ? `keyseat (${c.seat})` : `hub's keyway (${c.hub})`} carries a class but the key does not: give one of the key's sides a shaft's class (h9)`);
       const fit = c.key ? { fit: { tables: fitTables, key: c.key, ...(c.seat ? { seat: c.seat } : {}), ...(c.hub ? { hub: c.hub } : {}) } } : {};
       return { ...at, kind: 'key', shaft: id(node.shaft), keyseat: node.keyseat, height: node.height, ...(node.width !== undefined ? { width: node.width } : {}), ...(node.length !== undefined ? { length: node.length } : {}), ...(node.ends ? { ends: node.ends } : {}), ...(node.hub !== undefined ? { hub: id(node.hub) } : {}), ...fit };
     }
@@ -171,7 +172,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'retaining-ring': {
       // (O139: the user's row it names, checked by the kernel — never a fallback; none named: an estimate.)
       const r = node.row === undefined ? null : ringRows.get(node.row);
-      if (node.row !== undefined && !r) throw new Error(`[RING_ROW_UNKNOWN] a retaining ring names the row "${node.row}", which the document's ring rows do not hold (rows: ${[...ringRows.keys()].join(', ') || 'none'})`);
+      if (node.row !== undefined && !r) throw refusal('RING_ROW_UNKNOWN', `a retaining ring names the row "${node.row}", which the document's ring rows do not hold (rows: ${[...ringRows.keys()].join(', ') || 'none'})`);
       const row = r ? { shaftDiameter: r.shaftDiameterMM, grooveDiameter: r.grooveDiameterMM, grooveWidth: r.grooveWidthMM, ...(r.source ? { source: r.source } : { estimate: true }) } : { estimate: true };
       return { ...at, kind: 'retaining-ring', shaft: id(node.shaft), groove: node.groove, thickness: node.thickness, outerDiameter: node.outerDiameter, row };
     }
@@ -184,7 +185,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'sprocket': case 'pulley': case 'coupling': case 'belt': {
       // (R12c.6b, D161: the drive row inline; a belt's path from its wheels' pitch circles and centres.)
       const row = driveRows.get(node.row);
-      if (!row) throw new Error(`[DRIVE_ROW_UNKNOWN] a ${node.kind} names the drive row "${node.row}", which the document's drive rows do not hold (rows: ${[...driveRows.keys()].join(', ') || 'none'})`);
+      if (!row) throw refusal('DRIVE_ROW_UNKNOWN', `a ${node.kind} names the drive row "${node.row}", which the document's drive rows do not hold (rows: ${[...driveRows.keys()].join(', ') || 'none'})`);
       if (node.kind === 'belt') return { ...at, ...beltFeature(node, row) } as unknown as CadPartFeature;
       const place = { center: node.center, ...(node.from ? { from: node.from } : {}), ...(node.rotation ? { rotation: node.rotation } : {}) };
       if (node.kind === 'coupling') return { ...at, kind: 'coupling', row, ...place, generator: node.generator };
@@ -350,9 +351,13 @@ const quietOf = (b: BeadFeature, reason: string) => b.quiet && /\[BEAD_KIND\][^\
 /** A joint's bead refusal in this document (null: none, or none refused). */
 /** The document as the evaluation keys its beads: shop rows resolved into the parts, skeletons solved (O168). */
 const evaluatedViews = new WeakMap<StudioDoc, StudioDoc>();
+/** The tree with its skeletons solved; one that is refused, the tree as it is (its refusal is the evaluation's). */
+function solvedView(tree: StudioDoc): StudioDoc {
+  try { return resolveSkeletons(tree).doc; } catch (e) { if (isRefusal(e, ...SKELETON_CODES)) return tree; throw e; }
+}
 function evaluatedView(doc: StudioDoc): StudioDoc {
   const had = evaluatedViews.get(doc); if (had) return had;
-  const tree = resolveShopTree(doc), solved = resolveSkeletons(tree), view = 'error' in solved ? tree : solved.doc;
+  const tree = resolveShopTree(doc), view = solvedView(tree);
   evaluatedViews.set(doc, view);
   return view;
 }
@@ -399,12 +404,12 @@ export function partSnapshot(doc: StudioDoc, build: (part: CadPartDocument) => C
     source = resolveShopTree(source);
     // (Geometry is always built from the solved skeletons, here, whoever calls; provenance — stepFor's source revision —
     // is always the authored document's, the one a saved file hashes to. Both on purpose: see test/r4-skeletons.test.ts.)
-    const solved = resolveSkeletons(source); if ('error' in solved) throw new Error(solved.error); source = solved.doc;
+    source = resolveSkeletons(source).doc;
     bearingDependencyKey(source);
     const context = bearingContextOf(source), snapshot = withBeadRetry(source, make), reports = new Map<number, BearingReport>();
     for (const [i, n] of source.nodes.entries()) {
       const ref = bearingHousingRef(n); if (!ref || n.kind !== 'bearing' || n.suppressed) continue;
-      if (!context) throw new Error('[BEARING_HOUSING_REFERENCE] missing current assembly context');
+      if (!context) throw refusal('BEARING_HOUSING_REFERENCE', 'missing current assembly context');
       const target = bearingHousingTarget(source, ref);
       let targetSnapshot = taken.get(target.part);
       if (!targetSnapshot) {
@@ -412,13 +417,13 @@ export function partSnapshot(doc: StudioDoc, build: (part: CadPartDocument) => C
         taken.set(target.part, targetSnapshot);
       }
       const output = targetSnapshot.outputs.find(o => bodyKeyOf(o.id, target.doc.nodes) === ref.body);
-      if (!output || output.representation === 'faceted') throw new Error(`[BEARING_HOUSING_REFERENCE] ${ref.part}/${ref.body} is not a current exact housing body`);
+      if (!output || output.representation === 'faceted') throw refusal('BEARING_HOUSING_REFERENCE', `${ref.part}/${ref.body} is not a current exact housing body`);
       const shaftNode = source.nodes[n.shaft];
-      if (shaftNode?.kind !== 'shaft') throw new Error('[BEARING_HOUSING_REFERENCE] the linked bearing needs its actual shaft feature');
+      if (shaftNode?.kind !== 'shaft') throw refusal('BEARING_HOUSING_REFERENCE', 'the linked bearing needs its actual shaft feature');
       const shaft = withBeadRetry(prefixDoc(source, n.shaft + 1), p => evaluateCadPart(p)).outputs.find(o => o.id === featureId(source.nodes, n.shaft));
-      if (!shaft?.shaft) throw new Error('[BEARING_HOUSING_REFERENCE] the current shaft body is missing');
+      if (!shaft?.shaft) throw refusal('BEARING_HOUSING_REFERENCE', 'the current shaft body is missing');
       const row = source.bearings?.rows.find(r => r.id === n.row);
-      if (!row) throw new Error(`[BEARING_ROW_UNKNOWN] no current row ${n.row}`);
+      if (!row) throw refusal('BEARING_ROW_UNKNOWN', `no current row ${n.row}`);
       const angle = (shaftNode.rotation ?? 0) * Math.PI / 180, c = Math.cos(angle), s = Math.sin(angle);
       const made = bearingInExternalHousing({ row, shaft: { report: shaft.shaft, brep: shaft.brep, place: { matrix: [c, -s, 0, s, c, 0, 0, 0, 1], offset: [shaftNode.center[0], shaftNode.center[1], shaftNode.from ?? 0] } }, ownerPose: context.ownerPose, target: { brep: output.brep, pose: target.pose }, step: n.step, against: n.against, id: featureId(source.nodes, i), ...(n.shaftClass || n.housingClass ? { fit: { tables: source.fits?.tables ?? [], ...(n.shaftClass ? { shaft: n.shaftClass } : {}), ...(n.housingClass ? { housing: n.housingClass } : {}) } } : {}) });
       reports.set(i, made.report);

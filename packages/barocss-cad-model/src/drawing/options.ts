@@ -1,4 +1,5 @@
 // Strict source-table and section inputs for drawing.set. Saved-file readers remain permissive.
+import { problem, refusal, type Problem } from '../engine/refusal';
 import { sameSection, sectionDirOk, sectionsOf, withSections, type DrawingSection, type DrawingSettings, type DrawingTable } from './types';
 
 export const manufacturingDrawingProperties = {
@@ -13,29 +14,29 @@ const finite = (v: unknown): v is number => typeof v === 'number' && Number.isFi
 const keys = (v: Record<string, unknown>, allowed: string[]) => Object.keys(v).every(k => allowed.includes(k));
 
 /** No coercion or partial acceptance, even when the caller bypasses the offered JSON schema. */
-export function manufacturingDrawingProblem(args: Record<string, unknown>): string | null {
-  for (const flag of ['weldSymbols', 'balloons']) if (flag in args && typeof args[flag] !== 'boolean') return `[DRAWING_OPTIONS] ${flag} must be boolean.`;
+export function checkManufacturingDrawing(args: Record<string, unknown>): Problem[] {
+  for (const flag of ['weldSymbols', 'balloons']) if (flag in args && typeof args[flag] !== 'boolean') return [problem('DRAWING_OPTIONS', `${flag} must be boolean.`)];
   if ('sections' in args) {
-    if (!Array.isArray(args.sections)) return '[DRAWING_OPTIONS] sections must be an array.';
+    if (!Array.isArray(args.sections)) return [problem('DRAWING_OPTIONS', 'sections must be an array.')];
     const ids = new Set<string>();
     for (const [index, s] of args.sections.entries()) {
-      if (!record(s) || !keys(s, ['id', 'view', 'at', 'dir']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at) || (s.dir !== undefined && !sectionDirOk(s.dir))) return `[DRAWING_OPTIONS] sections[${index}] needs a unique letter id, front/top/right view and finite at (an aligned section: dir, its plane's normal [x, y, z]), with no other keys.`;
+      if (!record(s) || !keys(s, ['id', 'view', 'at', 'dir']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at) || (s.dir !== undefined && !sectionDirOk(s.dir))) return [problem('DRAWING_OPTIONS', `sections[${index}] needs a unique letter id, front/top/right view and finite at (an aligned section: dir, its plane's normal [x, y, z]), with no other keys.`)];
       ids.add(s.id);
     }
   }
   if ('tables' in args) {
-    if (!Array.isArray(args.tables)) return '[DRAWING_OPTIONS] tables must be an array.';
+    if (!Array.isArray(args.tables)) return [problem('DRAWING_OPTIONS', 'tables must be an array.')];
     const ids = new Set<string>();
     for (const [index, t] of args.tables.entries()) {
-      if (!record(t) || !keys(t, ['id', 'from', 'title', 'at', 'corner', 'whole']) || typeof t.id !== 'string' || !t.id.trim() || ids.has(t.id) || (typeof t.from !== 'string' || !['bom', 'cut-list', 'weld-list'].includes(t.from)) || ('title' in t && typeof t.title !== 'string') || ('whole' in t && typeof t.whole !== 'boolean') || ('corner' in t && (typeof t.corner !== 'string' || !['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(t.corner))) || ('at' in t && (!Array.isArray(t.at) || t.at.length !== 2 || !t.at.every(finite)))) return `[DRAWING_OPTIONS] tables[${index}] needs a unique nonempty id and bom/cut-list/weld-list source; optional title, at[2], corner and whole must match the schema. No other keys.`;
+      if (!record(t) || !keys(t, ['id', 'from', 'title', 'at', 'corner', 'whole']) || typeof t.id !== 'string' || !t.id.trim() || ids.has(t.id) || (typeof t.from !== 'string' || !['bom', 'cut-list', 'weld-list'].includes(t.from)) || ('title' in t && typeof t.title !== 'string') || ('whole' in t && typeof t.whole !== 'boolean') || ('corner' in t && (typeof t.corner !== 'string' || !['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(t.corner))) || ('at' in t && (!Array.isArray(t.at) || t.at.length !== 2 || !t.at.every(finite)))) return [problem('DRAWING_OPTIONS', `tables[${index}] needs a unique nonempty id and bom/cut-list/weld-list source; optional title, at[2], corner and whole must match the schema. No other keys.`)];
       ids.add(t.id);
     }
   }
-  return null;
+  return [];
 }
 
-/** Call only after strict validation. Refuse section edits that would change an annotation's model reference. */
-export function withManufacturingDrawing(s: DrawingSettings, args: Record<string, unknown>): DrawingSettings | string {
+/** Call only after strict validation. Refuse section edits that would change an annotation's model reference (DRAWING_SECTION_REFERENCES, thrown). */
+export function withManufacturingDrawing(s: DrawingSettings, args: Record<string, unknown>): DrawingSettings {
   let next = { ...s };
   for (const flag of ['weldSymbols', 'balloons'] as const) if (flag in args) {
     delete next[flag];
@@ -44,7 +45,7 @@ export function withManufacturingDrawing(s: DrawingSettings, args: Record<string
   if ('sections' in args) {
     const list = args.sections as DrawingSection[];
     const changed = sectionsOf(s).filter(old => !list.some(n => sameSection(n, old)));
-    if (s.dimensions.some(d => changed.some(c => d.view === `section:${c.id}`))) return '[DRAWING_SECTION_REFERENCES] A changed or removed section has dimensions. Keep its definition or remove those dimensions explicitly first.';
+    if (s.dimensions.some(d => changed.some(c => d.view === `section:${c.id}`))) throw refusal('DRAWING_SECTION_REFERENCES', 'A changed or removed section has dimensions. Keep its definition or remove those dimensions explicitly first.');
     next = withSections(next, list);
   }
   if ('tables' in args) {
