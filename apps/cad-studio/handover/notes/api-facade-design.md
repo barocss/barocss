@@ -1,8 +1,15 @@
 # The object facade (R7): design note and first slice
 
-Status, 2026-10-24: a design for the owner and one working slice. The facade grows only after the owner has seen this.
-It's written by the API lane and reconciled by the coordinator with R7.1 (the API inventory) and R7.2 (the
-conventions).
+Status, 2026-10-24: there's one working slice in each of the three packages. The facades grow only after the owner
+has seen them. The API lane wrote this note, and the coordinator reconciles it with R7.1 (the API inventory) and R7.2
+(the conventions).
+
+- **`@barocss/cad/api`:** `part().box().hole().fillet(selector)` over `CadPartDocument`, with `.doc`, `.mass(g/cm³)`,
+  `.step()`, `.stl()` and `.meshes()`. The shared selectors and `BarocssError` live here.
+- **`@barocss/cad-model/api`:** the same chain over `StudioDoc`, with `.mass(material)`, `.step()` and `.meshes()`. It
+  uses cad's selectors and error.
+- **`@barocss/gpu/api`:** an immutable `scene()` and `show(viewer, scene)`. The browser check waits on the
+  coordinate frame.
 
 ## What it is
 
@@ -253,7 +260,7 @@ doesn't build on it. Nothing outside cad calls it. R7.3 retires it once the faca
 | `hole({ center, radius })` | 17 | **slice 1**: `.hole({ at, diameterMM, depthMM? })` |
 | `edges({ parallelTo, at }).one()` + `chamfer(edge, d)` | 22 / 21 | **slice 1** has the selectors (`along`, `sortBy`, `first`/`last`, `on`). `.chamfer(select, d)` comes in step 1, beside `.fillet` |
 | `massProperties(output, { densityKgPerM3 })` | 1 (modeling-mass) | **slice 1**: `.mass(material)`, by material id, in MMGS |
-| `exportStl(output)` | 1 (modeling-stl) | step 1: `.stl()` through the adapter (`stlFor`) |
+| `exportStl(output)` | 1 (modeling-stl) | **slice 1** (cad): `.stl()`, from the output's own `exportStl` |
 | `polygon(...)`, `constrainedPolygon(...)`, `extrude(h, { from })` | 15 / 12 | step 2: `sketch()` with `lineTo`/`close`, and constraints through the core's sketch solver |
 | `union`, `cut`, `intersect` | 8 / 14 / 11 | step 1: `.union(other)`, `.subtract(other)`, `.intersect(other)` (difference, union and intersect nodes) |
 | `split({ axis, at })` | 21 | step 1: `.split(plane)` (a split node, its two sides as bodies; needs the body chooser) |
@@ -263,8 +270,11 @@ doesn't build on it. Nothing outside cad calls it. R7.3 retires it once the faca
 | `withSuppression(edits)` | 1 | step 2: `.suppressed(featureName, true)` (the node's `suppressed` flag) |
 | `save()` | 15 | `.doc` (the studio document itself), with cad-model's container for the file |
 
-So slice 1 covers `rectangle().extrude`, `hole`, the edge queries and `massProperties`. Steps 1–3 cover the rest
-without a recipe limit: any count, angle or factor the core allows instead of the fixed sets.
+Slice 1 covers `rectangle().extrude`, `hole`, the edge queries, `massProperties` and `exportStl`, in **cad's facade**
+(`@barocss/cad/api`, over the same kernel the old API sits on) as well as cad-model's. Steps 1–3 cover the rest, with
+no recipe limit: they take any count, angle or factor the core allows instead of the fixed sets. cad's facade is the
+one that replaces `createCadModel`. Its tests move onto `@barocss/cad/api` once each step lands, and then R7.3
+retires modeling.ts.
 
 ## Out of scope
 
@@ -277,13 +287,47 @@ without a recipe limit: any count, angle or factor the core allows instead of th
 - The studio. The facade is a library API, and the studio keeps using the core directly.
 - Changing gpu's `Viewer`, `Camera` and other classes. gpu's facade presents a scene through them as they are.
 
-## The first slice, as built
+## The slices, as built
+
+### cad (`packages/barocss-cad/src/api/`)
+
+- **Files:**
+  - part.ts (`part()`, `Part.box/hole/fillet/select/mass/step/stl/meshes`; feature ids by kind: `sketch1`, `extrude1`,
+    `hole1`, `fillet1` …);
+  - select.ts (the shared `BodyQuery`, `EdgeQuery`, `FaceQuery`, and `brepSelection` from the B-rep: each edge's
+    persistent name, line or not, its two faces through its coedges; seams and tangent joints left out, by cad-model's
+    display rule);
+  - core.ts (the adapter: `evaluateCadPart`, the output's `massProperties`, `exportStep`, `exportStl` and
+    `tessellateBrep`; kg → g and kg·m² → g·mm²);
+  - refusal.ts (`BarocssError`, `FacadeCode`, `bracketedCode`).
+- **test/api-part.test.mjs, 5/5:**
+  - the document equals the hand-written CadPartDocument;
+  - mass, STEP (with the stamp masked), STL bytes and the meshes' arrays equal `evaluateCadPart`'s own outputs;
+  - immutability;
+  - the selectors return the kernel's names;
+  - the refusals: the kernel's code is passed through once (`[TANGENT_FACES] fillet1: edge …`, not twice), with the
+    feature in `details`.
+- `dist/api/` is emitted by `build:library`.
+
+### gpu (`packages/barocss-gpu/src/api/`)
+
+- **Files:** scene.ts (`scene()`, `Scene.add/light/background`, `.data`, `show(viewer, scene)`) and refusal.ts.
+- **Lights** are given in the Viewer's own terms (directional, point or spot), so the facade assumes no up axis.
+- **tests/api-scene.test.mjs, 4/4,** on a Viewer stand-in:
+  - immutability and plain `.data`;
+  - `show()` calls clear, background, add and fit, using public methods only;
+  - cad's `.meshes()` goes in as the same arrays, with no conversion;
+  - the refusals.
+- This test isn't yet in gpu's `test` script list, because package.json's scripts are the gpu lane's.
+- The browser check comes after the coordinate-frame decision.
+
+### cad-model (`packages/barocss-cad-model/src/api/`)
 
 - **The files:**
-  - `src/api/part.ts`: `part()`, `Part.box/hole/fillet/select/mass/step`;
-  - `src/api/select.ts`: `BodyQuery`, `EdgeQuery`, `FaceQuery`;
+  - `src/api/part.ts`: `part()`, `Part.box/hole/fillet/select/mass/step/meshes`;
+  - `src/api/select.ts`: `meshSelection`, which fills cad's shared selector records from the display mesh;
   - `src/api/core.ts`: the one adapter onto today's core;
-  - `src/api/refusal.ts`: `BarocssError`, `FacadeCode`;
+  - `src/api/refusal.ts`: cad's `BarocssError`, plus `fromEvaluation` and `fromExport`;
   - `src/api.ts`: the `@barocss/cad-model/api` entry;
   - `src/api/index.ts`.
 - **The test**, test/api-part.test.ts, has five tests and all pass:
