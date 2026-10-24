@@ -23,11 +23,11 @@ export interface PrintLayers {
   direction: Vec3; directionSource: 'given' | 'default';
   /** Model → bed, column-major: the turn taking the direction to +Z, then down onto the bed. */
   modelToBed: number[];
-  layerMM: { mm: number; basis: 'set' | 'estimate' };
-  limit: { deg: number; basis: 'set' | 'estimate' };
+  layerHeight: { value: number; basis: 'set' | 'estimate' };
+  overhangLimit: { value: number; basis: 'set' | 'estimate' };
   count: number; height: number;
   supportColumns: SupportColumn[];
-  supportVolumeMM3: number;
+  supportVolume: number;
   /** The contours are the display meshes' (to their chord), not the exact surfaces'. */
   basis: 'display mesh';
   /** A layer, worked out on first asking and kept. */
@@ -101,8 +101,8 @@ export function printLayers(meshes: readonly DisplayMesh[], o: { layerHeight?: n
   };
   return {
     version: PRINT_LAYERS_VERSION, direction, directionSource: o.direction ? 'given' : 'default', modelToBed,
-    layerMM: { mm: h, basis: o.layerHeight !== undefined ? 'set' : 'estimate' }, limit: { deg: limit, basis: o.overhangLimit !== undefined ? 'set' : 'estimate' },
-    count, height: top, supportColumns: columns, supportVolumeMM3: supportVolume, basis: 'display mesh', layer,
+    layerHeight: { value: h, basis: o.layerHeight !== undefined ? 'set' : 'estimate' }, overhangLimit: { value: limit, basis: o.overhangLimit !== undefined ? 'set' : 'estimate' },
+    count, height: top, supportColumns: columns, supportVolume: supportVolume, basis: 'display mesh', layer,
   };
 }
 

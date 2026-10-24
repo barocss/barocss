@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 /** Use the consumer driver's one actual extracted archive, never pack again. */
-export async function verifyProfileConsumer({api,destination,temp,require}) {
+export async function verifyProfileConsumer({api,destination,temp,require,archive}) {
   assert.equal(typeof api.buildXYProfile,'function');
   const requests=[
     {kind:'line',id:'packed_line',points:[[0,0],[120,0]]},
@@ -43,7 +43,7 @@ buildXYProfile({kind:'rectangle',id:'rect',origin:[0,0],width:1,height:2,unit:'c
   execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'profile-types.ts')],{stdio:'inherit'});
   const results=requests.map(request=>api.buildXYProfile(request));
   const hash=value=>createHash('sha256').update(value).digest('hex');
-  const record={archiveSHA256:hash(readFileSync(join(temp,'barocss-cad-0.0.0-private-experimental.tgz'))),producer:'Actual extracted public @barocss/cad ESM/types archive',indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceVersion:0,nativeVersion:0,fixtures:results.map((result,i)=>({id:requests[i].id,sourceSHA256:hash(result.source),sourceBytes:Buffer.byteLength(result.source),report:result.report,igesFlags:{entity:126,planar:0,closed:0,polynomial:1,periodic:0}}))};
+  const record={archiveSHA256:hash(readFileSync(archive)),producer:'Actual extracted public @barocss/cad ESM/types archive',indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceVersion:0,nativeVersion:0,fixtures:results.map((result,i)=>({id:requests[i].id,sourceSHA256:hash(result.source),sourceBytes:Buffer.byteLength(result.source),report:result.report,igesFlags:{entity:126,planar:0,closed:0,polynomial:1,periodic:0}}))};
   if(process.env.BAROCSS_CAD_PROFILE_EVIDENCE){const folder=resolve(process.env.BAROCSS_CAD_PROFILE_EVIDENCE);mkdirSync(folder,{recursive:true});writeFileSync(join(folder,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');for(let i=0;i<results.length;i++){writeFileSync(join(folder,requests[i].id+'.css'),results[i].source);writeFileSync(join(folder,requests[i].id+'.json'),JSON.stringify(results[i],null,2)+'\n');}}
   console.log('Packed XY profile ESM/types, actual source/native identity and original IGES flags passed');
   return record;

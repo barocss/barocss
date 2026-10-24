@@ -24,6 +24,7 @@ import { r6 } from '../util/round';
 import { refusal, refused } from '../engine/refusal';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from './motion';
 import { CCD_TOLERANCE, sweepTimed, timeAt, timePath, type TimedPath } from './ccd';
+import { pathClearanceJson, timedClearanceJson } from './reports';
 import { jointValuesIn, jointValuesOut } from './units';
 export { jointValuesIn, jointValuesOut } from './units';
 
@@ -88,7 +89,7 @@ export function poseOf(view: RobotView, given: Readonly<Record<string, number>>,
 export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {
   const r = sweepPath(t, sweepLinksOf(view, t), from, to);
   return { ...(r.contact ? { rawContactValues: r.contact.values as Readonly<Record<string, number>> } : {}),
-    reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
+    reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), minClearance: pathClearanceJson(r.minClearance), samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
     summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
 }
 const sig10 = (v: number) => Number(v.toPrecision(10)) + 0;
@@ -249,13 +250,13 @@ export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf
   if (closer) {
     const r = sweepClosed(view, t, closer, path), contact = r.clear ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
     return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
-      min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), time: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped, designed: r.designed,
+      minClearance: timedClearanceJson(r.minClearance), samples: r.samples, skipped: r.skipped, designed: r.designed,
       loops: { chords: r.chords, chordResidual: Number(r.worst.toPrecision(3)) } };
   }
   const r = sweepTimed(t, sweepLinksOf(view, t), path);
   const contact = r.clear ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
   return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
-    min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), time: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped, designed: r.designed };
+    minClearance: timedClearanceJson(r.minClearance), samples: r.samples, skipped: r.skipped, designed: r.designed };
 }
 /** play: a motion's poses at `samples` even times (poseAt, as the studio plays it): each time, the values (degrees, mm) and the links' placements. */
 export function playMotion(view: RobotView, name: string, samples = 30, t: JointTree = treeOf(view)) {

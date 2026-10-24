@@ -54,7 +54,7 @@ test('O22 loop pin: the four-bar\'s stacked coupler and rocker are no contact (l
   // (A 4 × 4 mm post 12 mm tall on the rocker, 7 mm into the coupler's slab.)
   const posted = withBox(f, 'rocker', [30, 0], [34, 4], 12);
   const away = await sweep(posted, { 'base~crank': 1 });
-  assert.equal(away.clear, true, JSON.stringify(away)); assert.ok(away.min_clearance!.mm > 1, 'it passes the post');
+  assert.equal(away.clear, true, JSON.stringify(away)); assert.ok(away.minClearance!.value > 1, 'it passes the post');
   assert.match(pairOf(away.designed, 'coupler', 'rocker')!.why, /only what both fill along it checked$/);
   const into = await sweep(posted, { 'base~crank': -1 });
   assert.equal(into.clear, false); assert.deepEqual([...into.contact!.links].sort(), ['coupler', 'rocker']); assert.ok(into.contact!.s > 0, 'not at the start');

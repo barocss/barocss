@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 /** Consume the driver's existing extracted archive; never perform a second pack. */
-export async function verifyRectangleExtrusionConsumer({api,destination,temp,require}) {
+export async function verifyRectangleExtrusionConsumer({api,destination,temp,require,archive}) {
   assert.equal(typeof api.buildAxisRectangleExtrusion,'function');
   const request={bodyId:'packed_body',profile:{kind:'rectangle',id:'packed_profile',origin:[4,-3],width:7,height:5},distance:6};
   writeFileSync(join(temp,'rectangle-extrusion-runtime.mjs'),`import assert from 'node:assert/strict';
@@ -28,7 +28,7 @@ buildAxisRectangleExtrusion({...request,direction:[0,0,-1]});
 `);
   execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'rectangle-extrusion-types.ts')],{stdio:'inherit'});
   const result=api.buildAxisRectangleExtrusion(request),hash=value=>createHash('sha256').update(value).digest('hex');
-  const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(join(temp,'barocss-cad-0.0.0-private-experimental.tgz'))),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceSHA256:hash(result.source),sourceBytes:Buffer.byteLength(result.source),sourceVersion:2,nativeVersion:0,solidReport:result.solidReport,construction:result.construction,selectedEntities:[126,128,128,128,128,128,128],wholeSolidInterchange:false};
+  const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(archive)),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceSHA256:hash(result.source),sourceBytes:Buffer.byteLength(result.source),sourceVersion:2,nativeVersion:0,solidReport:result.solidReport,construction:result.construction,selectedEntities:[126,128,128,128,128,128,128],wholeSolidInterchange:false};
   if(process.env.BAROCSS_CAD_RECTANGLE_EXTRUSION_EVIDENCE){const folder=resolve(process.env.BAROCSS_CAD_RECTANGLE_EXTRUSION_EVIDENCE);mkdirSync(folder,{recursive:true});writeFileSync(join(folder,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');writeFileSync(join(folder,'packed-rectangle-extrusion.css'),result.source);writeFileSync(join(folder,'packed-rectangle-extrusion.json'),JSON.stringify(result,null,2)+'\n');}
   console.log('Packed rectangle extrusion ESM/types, actual source2, fresh edited solid and native adapters passed');return record;
 }

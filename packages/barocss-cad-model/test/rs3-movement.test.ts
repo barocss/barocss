@@ -82,7 +82,7 @@ test('RS3 check_path: the SCARA\'s pick clear along its timing, its duration the
   const { out, json } = await call(s, 'check_path', { motion: 'pick' });
   assert.ok(!out.isError && !out.changed, out.content);
   assert.equal(json.clear, true, out.content); assert.equal(json.contact, undefined);
-  assert.ok(json.min_clearance === null || json.min_clearance.mm > 0);
+  assert.ok(json.minClearance === null || json.minClearance.value > 0);
   const pick = readRobot(s.doc.robot).motions!.find(m => m.name === 'pick')!, path = timedPathOf(tree, pick.path);
   near(json.duration, duration(path), 1e-6);
   // (The closed form: each segment one trapezoid on its tightest joint — a distance d at v, a reaches v when d ≥ v²/a.)

@@ -246,8 +246,8 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       // (AM4: which way up — the best of a fixed candidate set, deterministic; applied unless apply is false.)
       const r = orientPart(doc, state.bodies, faceTableOf(doc), processProfile(doc.process));
       if (typeof r === 'string') return fail(doc, r);
-      const round = (o: OrientationScore) => ({ direction: o.direction.map(v => +v.toFixed(6)), score: +o.score.toFixed(6), terms: Object.fromEntries(Object.entries(o.terms).map(([k, v]) => [k, +v.toFixed(6)])), support_mm3: +(o.supportMM3 ?? 0).toFixed(3), overhang_mm2: +o.overhangMM2.toFixed(3), height_mm: +o.height.toFixed(3), contact_mm2: +o.contactMM2.toFixed(3) });
-      const out = { best: round(r.best), top: r.top.map(round), candidates: r.candidates, weights: r.weights, ms: Math.round(r.ms) };
+      const round = (o: OrientationScore) => ({ direction: o.direction.map(v => +v.toFixed(6)), score: +o.score.toFixed(6), terms: Object.fromEntries(Object.entries(o.terms).map(([k, v]) => [k, +v.toFixed(6)])), supportVolume: +(o.supportVolume ?? 0).toFixed(3), overhangArea: +o.overhangArea.toFixed(3), height: +o.height.toFixed(3), contactArea: +o.contactArea.toFixed(3) });
+      const out = { best: round(r.best), top: r.top.map(round), candidates: r.candidates, weights: r.weights, wallTime: Math.round(r.wallTime * 1000) / 1000 };
       if (args.apply === false) return { doc, content: json(out), isError: false, changed: false, summary: 'orientation scored' };
       return { doc: { ...doc, print: { direction: r.best.direction.map(v => v + 0) as [number, number, number] } }, content: json({ ...out, applied: true }), isError: false, changed: true, summary: `oriented for printing: up ${out.best.direction.join(', ')}` };
     }

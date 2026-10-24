@@ -34,7 +34,7 @@ test('G23: absent preview fields retain the existing default direction and 0.2 m
   assert.equal('print' in read.doc, false);
   const evaluated = evaluateDoc(read.doc, 1); assert.ok(evaluated.ok);
   const layers = printLayers(evaluated.bodies.map(b => b.mesh), { layerHeight: read.doc.printPreview?.layerHeight, direction: read.doc.print?.direction });
-  assert.deepEqual(layers.layerMM, { mm: 0.2, basis: 'estimate' });
+  assert.deepEqual(layers.layerHeight, { value: 0.2, basis: 'estimate' });
   assert.equal(layers.directionSource, 'default'); assert.deepEqual(layers.direction, [0, 0, 1]);
 });
 

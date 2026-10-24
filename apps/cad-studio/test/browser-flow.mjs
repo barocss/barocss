@@ -8410,7 +8410,7 @@ try {
     await openModel(join(root, 'test/fixtures/cnc8-pocket.bcad'), 5, 60000); await idle(); await iso();
     const display = page.locator('[aria-label="Display and previews"]');
     if (await display.getAttribute('aria-expanded') !== 'true') await display.click();
-    const print = () => page.evaluate(() => { const p = window.__studioPrint?.(), d = p?.display; return p && { reason: p.reason, stage: p.stage, count: d?.summary.count, k: d?.layer.k, z: d?.layer.z, top: d?.topMM, printed: d?.printed, supports: d?.supports }; });
+    const print = () => page.evaluate(() => { const p = window.__studioPrint?.(), d = p?.display; return p && { reason: p.reason, stage: p.stage, count: d?.summary.count, k: d?.layer.k, z: d?.layer.z, top: d?.top, printed: d?.printed, supports: d?.supports }; });
     const at = (q) => page.waitForFunction(([k, n]) => { const p = window.__studioPrint?.(), d = p?.display; return !p?.reason && p?.stage === 'ready' && d?.layer.k === k && (n === null || d.summary.count === n); }, q, { timeout: 60000 }).then(print);
     const rangeTo = (v) => page.locator('[aria-label="Print layer"]').evaluate((el, x) => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, v);
     const before = await canvasShot();

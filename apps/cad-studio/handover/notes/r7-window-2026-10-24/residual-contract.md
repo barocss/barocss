@@ -184,3 +184,34 @@ consumers in their actual scratch context; do not import unrelated repository am
 an archive under an obsolete name or alter package metadata to satisfy a stale test. Only the explicitly leased
 consumer driver and its matching metadata/archive/context helpers may change. Keep each original failure.
 These are implementation and verification assignments, not completed gates or product adoption.
+
+## Public clearance and viewport follow-up (2026-10-25)
+
+The same public quantity contract applies to structured worker and viewport DTOs. A transient value is not an
+exception merely because it is not saved in a document. The following mechanical projections preserve numeric
+values, original rounding, geometry, decisions, cache dependencies and human display units:
+
+| Boundary | Canonical field | Meaning / owner |
+|---|---|---|
+| sweep_path.min_clearance | minClearance | {value,fraction,links}: mm clearance and dimensionless path coordinate; Outer shared projector. |
+| check_path.min_clearance | minClearance | {value,time,links}: mm clearance and time in seconds; do not substitute fraction for time. |
+| reference residual_mm | residual | mm unchanged, original twelve-significant-digit formatter; stored datum and fitting unchanged. |
+| public keepout overlap_mm3 / clearance_mm | overlap / clearance | mm³ / mm unchanged; core KeepoutResult and App raw use stay unchanged. |
+| public keepout required_mm / chord_tolerance_mm | requiredClearance / chordTolerance | mm unchanged; keep historical conformance oracle names and verdict thresholds. |
+| PrintDisplay.topMM | top | mm unchanged; GPU owns the display, worker, panel, projection, overlay and Viewport consumers plus matching tests. Root owns the browser-flow probe. |
+
+The PrintDisplay change is distinct from the Model PrintLayers producer but must be reconciled in this R7
+window. It does not authorize a new clipping formula, cache algorithm, shader optimization or threshold. Retain
+support geometry and the original displayed mm values. GPU consumes the exact Model producer on a branch
+without G14/DoF/G15c feature ancestry. Root reconciles its shared browser getter after those exact producers.
+
+The API L3 temporary five-file lease covers server robotL3 tool/main and three matching tests. Project the original
+harness before serialization, validate canonical duty with readDuty, and preserve validated canonical numbers
+rather than repeatedly converting and rounding them. keepsBrief retains strict life, poses and dwell comparisons
+and its existing limits allowance. Preserve the original initial physical ratings of1rad/s and1Nm through the
+shared settings adapter. No live model or new budget campaign is required for this contract migration.
+
+The packaged numerical-v0 XYArc consumer still uses its actual centerMM/radiusMM report. That explicitly leased
+legacy consumer correction is not closure of R7.3d retirement or a permanent exception for active public DTOs.
+Final qualification remains on one immutable assembled SHA with Node22.23.3. Focused results below that boundary
+remain scoped evidence, and P2 remains held.
