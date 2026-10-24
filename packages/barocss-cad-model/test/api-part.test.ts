@@ -71,6 +71,9 @@ test('refusals are typed: the facade\'s own, and the core\'s passed through with
   // A fillet larger than its walls: the kernel refuses it, and the facade passes its code and words on.
   const e4 = refusal(() => part().box(10, 10, 10).fillet(b => b.edges().along('z'), 8).mass('al6061'));
   assert.ok(e4 instanceof BarocssError); assert.equal(e4.where, 'evaluate');
+  // (The core's code, when it gave one, is the refusal's: the kernel's bracketed code, or its error's kind.)
+  const given = (e4.details?.friendly as { code?: string } | undefined)?.code;
+  assert.ok(given, 'the core gave a code'); assert.equal(e4.code, given); assert.notEqual(e4.code, 'EVALUATION');
   assert.ok(e4.details?.friendly, 'the core\'s own words are kept');
   assert.match(e4.message, /^\[[A-Z_]+\] /);
 });

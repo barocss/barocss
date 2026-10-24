@@ -43,8 +43,8 @@ import { bodyMass } from '@barocss/cad-model/app/mass';
 
 let doc = rectanglePart(80, 40, 10);
 doc = withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [20, 20], radius: 4 });
-doc = withNode(doc, { kind: 'fillet', parent: { node: 2, side: 'solid' }, radius: 2,
-  edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'] });
+doc = withNode(doc, { kind: 'fillet', parent: { node: 2, side: 'solid' },
+  edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'], radius: 2 });
 const r = evaluateDoc(doc, 1);                     // { ok, bodies } or { ok: false, error }
 const mass = r.ok ? bodyMass(r.bodies[0], 2.7) : null;
 const step = stepFor(doc, 'bracket');              // { text, source } or { error }
@@ -131,7 +131,8 @@ These come later, in this order, each with the same oracle:
 
 - **A core refusal is passed through.**
   - `evaluateDoc`'s `{ ok: false, error }` becomes a `BarocssError` with `where: 'evaluate'`.
-  - Its code is the bracketed code in the core's words, or `EVALUATION` when the words carry none.
+  - Its code is the core's own `FriendlyError.code` (the kernel's bracketed code, or its error's kind), else a
+    bracketed code in the core's words, else `EVALUATION`.
   - The core's `FriendlyError` (its title, hint and detail) stays on `.details.friendly`.
   - `stepFor`'s `{ error }` becomes `where: 'export'`.
 - **The facade's own codes** cover only how it was called:
@@ -147,11 +148,9 @@ These come later, in this order, each with the same oracle:
 
 ## Findings for other lanes (through the coordinator)
 
-1. **The kernel's code is lost at `evaluateDoc`.** This is in the outer lane's engine/evaluate.ts and engine/errors.ts,
-   for R7.3. A fillet too large for its walls is `CadPartError` PARAMETER `[RADIUS_EXCEEDS_FACE]` in the kernel. By the
-   time it reaches `evaluateDoc`'s `FriendlyError` the detail reads "edge n1.side0|n1.side3: fillet 8 mm is too large
-   for walls of 10 and 2 mm", with no code, so the facade can only say `EVALUATION`. The fix: `FriendlyError` should
-   carry the kernel's `code` and its bracketed detail code.
+1. **The kernel's code at `evaluateDoc`: fixed.** The outer lane's 59bfaf342 gives `FriendlyError` a `code`, and the
+   facade reads it first. A too-large fillet now comes through as the kernel's kind, `PARAMETER`. It becomes
+   `RADIUS_EXCEEDS_FACE` once the kernel's part-model.ts adds that bracket, which is routed to the kernel lane.
 2. **`@barocss/cad-model/api` resolves** through the one-line `src/api.ts` (`export * from './api/index'`), matching
    cad-model's `./*` → `./src/*.ts` export. That was finding 2, now done in this lane.
 3. **STEP isn't deterministic.** `stepFor` (engine/evaluate.ts, outer lane) passes no `timestamp` to the kernel's

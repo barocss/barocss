@@ -29,9 +29,12 @@ export const refuse = (code: FacadeCode, message: string, where: RefusalWhere = 
 // (The first bracketed code in a core message, as the core writes its typed refusals: `[RADIUS_EXCEEDS_FACE] …`.)
 const CODE = /\[([A-Z][A-Z0-9_]+)\]/;
 
-/** A core refusal from an evaluation, its code taken from the kernel's words (or EVALUATION where it names none). */
+/**
+ * A core refusal from an evaluation: its code the core's own (`FriendlyError.code`: the kernel's bracketed code, or its
+ * error's kind), else a bracketed code in its words, else EVALUATION.
+ */
 export function fromEvaluation(error: FriendlyError): BarocssError {
-  const code = CODE.exec(error.detail)?.[1] ?? CODE.exec(error.title)?.[1] ?? 'EVALUATION';
+  const code = error.code ?? CODE.exec(error.detail)?.[1] ?? CODE.exec(error.title)?.[1] ?? 'EVALUATION';
   return new BarocssError(code, error.detail || error.title, 'evaluate', { friendly: error });
 }
 
