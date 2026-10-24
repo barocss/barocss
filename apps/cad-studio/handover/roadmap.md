@@ -18,10 +18,10 @@ section current.
 | Lane | Now | Next | Then |
 |---|---|---|---|
 | Kernel | R7.3a batch 2, plan agreed (CadErrorCode union + CAD_ERROR_CODES; `code` = the specific bracketed code, the category in details.category; no category prefix on the ~400 uncoded refusals; 165 internal classes folded, the 6 used outside and BrepError kept, legacy left for R7.3d); O19's kernel half done (`78a84d506`, D277); K16 done (`ca9c6b0c4`, D276); R7.3d's packet tag done (`86da39e14`) | R7.3a batch 2 | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
-| Outer | R7.7a step 2 (rows, with the kernel's R7.7b) and step 4 (results, with R7.3b); O19 done and R7.7a steps 1 and 3 done (merges 345dc5f3d, 7c8c6c038); then O21; R7.3c and O20 done (merge 730ab70ea); was: R7.3c (one mass and bounds function, `stepFor` → `exportStudioStep`, rotate's pivot default, the assembly writes as core verbs, the row editors' and readStudioDoc's `{ error }`, vectors at the boundary); R7.3a done for cad-model (merge 9be3fe6bf) | O19 (stored edge names checked) | the R7.3b follow-up in cad-model (`bodyMass` in g·mm²), then the Later list |
-| GPU | the 3 dormant gpu tests (repair or retire); G14's quiet-machine section run; the full flow on WebGL2 at the tip; then 2–3 proposed next items with measured need | — | the Later list |
-| API | R7.7d after the cores' renames; R7.4d done (merge 25eb8561f, both backends; sketch and Location Dims after R7.7); assemblyCore on assembly/edit.ts | R7.6 with the docs lane (supporting) | the facades' adapters after R7.3b/R7.3c |
-| Docs | the prose for R7.4c's renames (api.md, cad/index.md); R7.6 part 1 done (merge 45c94eb09, samples 31/31) | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
+| Outer | O21 (agent parameters, design approved); RS1 (sample robots) and RS2's poseAt; RS3 (the agent moves the robot) | R7.7a step 2 (rows, with the kernel's R7.7b), step 4 (results, with R7.3b) | the Later list |
+| GPU | RS2 (joint motion playback) and RS1's Samples list; the WebGL2 full flow and the quiet section run as the load allows | 2–3 proposed next items | the Later list |
+| API | RS5 (the robot on the facade); R7.7d after the cores' renames | R7.4d's sketch/Location Dims after R7.7 | the Later list |
+| Docs | RS4 after RS1/RS2 land; the prose for R7.4c's renames (api.md, cad/index.md); R7.6 part 1 done (merge 45c94eb09, samples 31/31) | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
 | Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
 
 ## Where we are
@@ -152,6 +152,18 @@ Moved out of Phase 0:
 | G9 | GPU | **done** G-R22: r16uint triangle key, 15.8 MiB at 1080p, 63.3 at 4K (key collision ~1/65 535 per pair, measured) |
 | G10 | GPU | **done** G-R23: the full flow on WebGL2; analysis maps (thickness, draft, 3-axis access) and the mould's parting line and halves are WebGPU only, and WebGL2 says so |
 
+### Robot samples and motion (owner, 2026-10-24)
+
+The owner: "로봇 관련해서 좀 더 다양한 샘플, 예제를 만들어봐야하지 않아? 관절 움직임 같은거라던가?", then "로봇 샘플 확장(RS1–RS4)을 로드맵에 넣고 각 줄에 나눠서 진행해줘". The robot features (RM1–RM9, O12, G13) work, but only a few test fixtures exercise them, and a pose is shown one slider at a time.
+
+| # | Lane | Item |
+|---|---|---|
+| RS1 | outer (+ GPU for the studio's sample menu) | **Sample robots**: ready-to-open robot documents — a 2R planar arm, a SCARA, a 6R arm, a Cartesian gantry (PPP), a pan-tilt camera head (a sensor frame), a parallel gripper (two coupled fingers), a four-bar linkage (a closed loop) and a gear-driven joint; geometry and joints only (no standards rows: rule (b)). Each tested: its joint tree, FK at a few poses against a closed form, its URDF/MJCF read back by urdfdom/MuJoCo. The studio opens them from a **Samples** list (GPU, the shell) |
+| RS2 | GPU (+ outer for a core interpolation function) | **Joint motion playback**: waypoints played as motion over time (joint-space interpolation, the core function a pure `poseAt(doc, path, t)` from outer), play/pause, a time scrubber, loop, speed; a collision during playback marked on the bodies; no App re-render per frame (poseStore, as R1c/G13); flow steps on both renderers. Video export of the motion folds in here (the Later list's turntable/explode video) |
+| RS3 | outer | **The agent moves the robot**: chat can set a joint, record a waypoint, run check path and play the path; first audit what the v2 actions already do, add only what's missing; the per-turn budget kept |
+| RS4 | docs | **Robot docs examples**: the robots page per sample (its joints, a pose, an export), shots of the samples and of playback; samples run under test:samples |
+| RS5 | API | **The robot on the facade**: assembly(...).robot() — joints(), pose(values) → frame and link poses, path(waypoints).check(), poseAt(t), exports — over the core functions, byte-equal to the tools; feeds RS4's samples |
+
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
 
 The owner asked for one refactoring pass when the features are reasonably complete: code that is only laid out flat is
@@ -240,6 +252,11 @@ evidence files.
 - **O14** — Robot mounts from datasheet rows · ko: 데이터시트 행으로 만드는 서보·모터·베어링 마운트
 - **R6** — Triage the stale examples/gpu-scene flows · ko: 오래된 gpu-scene 예제 흐름 정리 (고치거나 은퇴)
 - **R7** — API consistency and an object facade over the core · ko: API 일관성 정리와 객체형 겉 API
+- **RS1** — Sample robots (8 kinds, opened from a Samples list) · ko: 샘플 로봇 묶음 (8종, 샘플 목록에서 열기)
+- **RS2** — Joint motion playback (and motion video) · ko: 관절 움직임 재생 (경유 자세를 시간에 따라 재생, 영상 내보내기)
+- **RS3** — The agent moves the robot (joints, waypoints, check and play) · ko: 에이전트가 채팅으로 로봇을 움직이기
+- **RS4** — Robot docs examples · ko: 로봇 문서 예제와 화면
+- **RS5** — The robot on the facade · ko: 겉 API에서 로봇 다루기
 - **R7.1** — Public API inventory · ko: 공개 API 목록 자동 추출
 - **R7.2** — API conventions (approved) · ko: API 규약 (승인됨)
 - **R7.3a** — Errors to one BarocssError shape in all three packages · ko: 세 패키지 오류를 BarocssError 하나로
