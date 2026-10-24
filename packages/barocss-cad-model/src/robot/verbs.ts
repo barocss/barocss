@@ -63,11 +63,11 @@ export function sweepLinksOf(view: RobotView, t: JointTree): SweepLink[] {
  * The values with the robot's loops closed (O24 a): the loop joints given are the drivers, the rest solved on the
  * loops' own mates (robot/loop.ts) — refused, typed, as closeLoops refuses. No loop: the values as they are.
  */
-export function closedValues(view: RobotView, values: Readonly<Record<string, number>>, t: JointTree = treeOf(view)): { values: Record<string, number>; closed: { drivers: string[]; solved: string[]; residual_mm: number } | null } {
+export function closedValues(view: RobotView, values: Readonly<Record<string, number>>, t: JointTree = treeOf(view)): { values: Record<string, number>; closed: { drivers: string[]; solved: string[]; residual: number } | null } {
   const c = loopCloserOf(view.doc, t);
   if (!c) return { values: { ...values }, closed: null };
   const drivers = Object.keys(values).filter(k => c.all.includes(k)), out = closeLoops(t, c, Object.fromEntries(drivers.map(k => [k, values[k]])));
-  return { values: { ...values, ...out.q }, closed: { drivers, solved: c.free.filter(k => !drivers.includes(k)), residual_mm: out.residualMM } };
+  return { values: { ...values, ...out.q }, closed: { drivers, solved: c.free.filter(k => !drivers.includes(k)), residual: out.residual } };
 }
 /** forward_kinematics' reply: each link and frame where the values put it (the loops closed), the gears' phase; `unknown`: keys no joint has. */
 export function poseOf(view: RobotView, given: Readonly<Record<string, number>>, t: JointTree = treeOf(view), close = true) {
@@ -83,7 +83,7 @@ export function poseOf(view: RobotView, given: Readonly<Record<string, number>>,
   const gears = t.couplings.map(c => { const at = gearPairAt(c, fk.values), home = gearPairAt(c, {}); return { leader: c.leader, follower: c.follower, phase: r(at.phaseDeg), homePhase: r(home.phaseDeg), held: Math.abs(at.phaseDeg - home.phaseDeg) < 1e-6, backlash: r(at.backlash) }; });
   // (O12: each tool and sensor frame where its link puts it.)
   const frames = [...framePoses(t, fk.motions)].map(([frame, p]) => ({ frame, link: t.frames!.find(f => f.name === frame)!.link, position: p.o.map(r), rotation: eulerOf(p.R).map(r) }));
-  return { unknown: fk.unknown, reply: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits, ...(closed ? { loops: { drivers: closed.drivers, solved: closed.solved, residual: closed.residual_mm } } : {}) } };
+  return { unknown: fk.unknown, reply: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits, ...(closed ? { loops: { drivers: closed.drivers, solved: closed.solved, residual: closed.residual } } : {}) } };
 }
 /** sweep_path's reply: a straight joint move checked for contact between the links. */
 export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {

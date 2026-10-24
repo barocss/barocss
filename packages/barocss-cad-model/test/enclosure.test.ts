@@ -1,3 +1,4 @@
+import { holeAlignment } from '../src/analysis/alignment';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc } from '../src/engine/evaluate';
@@ -171,10 +172,21 @@ test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an
     return { ...doc, instances: [{ id: 'p1', name: 'PCB', doc: withNode(emptyDoc(), { kind: 'import', name: 'pcb', step }), position: [6, 6, 8] as [number, number, number], rotation: [0, 0, 0] as [number, number, number] }] };
   };
   const doc = place(), b = bodies(doc), ev = async () => evaluateDoc(doc, 1);
+  const aligned = holeAlignment(doc, 'p1'); assert.ok(typeof aligned !== 'string');
+  assert.ok(aligned.maxOffset !== null && Math.abs(aligned.maxOffset) < 1e-9);
+  assert.ok(!('maxOffsetMM' in aligned));
   const ok = await runCheck(doc, b, ev as never, { op: '<=', query: { fn: 'hole_alignment', board: 'p1' }, value: 0.05, unit: 'mm' });
   assert.equal(ok.status, 'pass', JSON.stringify(ok)); assert.ok(Math.abs(ok.measured as number) < 1e-9);
   const off = place(0.3), bad = await runCheck(off, bodies(off), (async () => evaluateDoc(off, 1)) as never, { op: '<=', query: { fn: 'hole_alignment', board: 'p1' }, value: 0.05, unit: 'mm' });
   assert.deepEqual([bad.status, bad.measured], ['fail', 0.3]); assert.match(bad.hint!, /off .* by 0\.3 mm/);
+  const offset = holeAlignment(off, 'p1'); assert.ok(typeof offset !== 'string');
+  assert.ok(offset.maxOffset !== null && Math.abs(offset.maxOffset - 0.3) < 1e-9);
+  assert.ok(!('maxOffsetMM' in offset));
+  const before = JSON.stringify(doc), transverse = { ...doc, instances: doc.instances!.map(i => ({ ...i, rotation: [90, 0, 0] as [number, number, number] })) };
+  const unmatched = holeAlignment(transverse, 'p1'); assert.ok(typeof unmatched !== 'string');
+  assert.equal(unmatched.maxOffset, null); assert.equal(unmatched.unmatched.length, 4);
+  assert.ok(unmatched.pairs.every(p => p.offset === null)); assert.ok(!('maxOffsetMM' in unmatched));
+  assert.equal(JSON.stringify(doc), before);
   const none = await runCheck(doc, b, ev as never, { op: '<=', query: { fn: 'hole_alignment', board: 'p9' }, value: 0.05 });
   assert.equal(none.status, 'unknown'); assert.match(none.why!, /no part p9/);
 });

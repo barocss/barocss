@@ -66,23 +66,23 @@ async function buildClamp(): Promise<{ calls: { tool: string; args: Record<strin
   const cu = (4 + 2 * Math.cos(2 * Math.PI / NU)) / 6, half = (RO / cu) * Math.sin(Math.PI / NU), x0 = (RO / cu) * Math.cos(Math.PI / NU);
   const col0 = (lo: V3, hi: V3) => ({ box: { min: [0, -1, lo[2]], max: [hi[0], 1, hi[2]] } });
   // 1. Holding loops at both rims: on each wall near each end, on each rim near both corners.
-  await loopAt({ normal: [1, 0, 0], within_deg: 5, ...col0([0, 0, 0], [99, 0, ROW]) }, 2, HOLD);
-  await loopAt({ normal: [1, 0, 0], within_deg: 5, ...col0([0, 0, H - ROW], [99, 0, H]) }, 2, H - HOLD);
-  await loopAt({ normal: [-1, 0, 0], within_deg: 5, ...col0([0, 0, 0], [99, 0, ROW]) }, 2, HOLD);
-  await loopAt({ normal: [-1, 0, 0], within_deg: 5, ...col0([0, 0, H - ROW], [99, 0, H]) }, 2, H - HOLD);
+  await loopAt({ normal: [1, 0, 0], withinAngle: 5, ...col0([0, 0, 0], [99, 0, ROW]) }, 2, HOLD);
+  await loopAt({ normal: [1, 0, 0], withinAngle: 5, ...col0([0, 0, H - ROW], [99, 0, H]) }, 2, H - HOLD);
+  await loopAt({ normal: [-1, 0, 0], withinAngle: 5, ...col0([0, 0, 0], [99, 0, ROW]) }, 2, HOLD);
+  await loopAt({ normal: [-1, 0, 0], withinAngle: 5, ...col0([0, 0, H - ROW], [99, 0, H]) }, 2, H - HOLD);
   for (const n of [[0, 0, 1], [0, 0, -1]]) {
-    await loopAt({ normal: n, within_deg: 5, ...col0([0, 0, -1], [99, 0, H + 1]) }, 0, RO / cu - HOLD);
-    await loopAt({ normal: n, within_deg: 5, ...col0([0, 0, -1], [99, 0, H + 1]) }, 0, RI / cu + HOLD);
+    await loopAt({ normal: n, withinAngle: 5, ...col0([0, 0, -1], [99, 0, H + 1]) }, 0, RO / cu - HOLD);
+    await loopAt({ normal: n, withinAngle: 5, ...col0([0, 0, -1], [99, 0, H + 1]) }, 0, RI / cu + HOLD);
   }
   // 2. The lug: column 0's outer faces over rows 1–5 extruded out along +X, level by level; the first row stops a
   // level short (the step).
-  const strip = (await ask({ what: 'faces', normal: [1, 0, 0], within_deg: 5, ...col0([0, 0, ROW], [99, 0, 6 * ROW]) })).faces.map((f: { face: number }) => f.face);
+  const strip = (await ask({ what: 'faces', normal: [1, 0, 0], withinAngle: 5, ...col0([0, 0, ROW], [99, 0, 6 * ROW]) })).faces.map((f: { face: number }) => f.face);
   assert.equal(strip.length, 5);
   let top: number[] = strip;
   // (Their normal is +X: the column is centred on it.)
   for (const d of LEVELS.slice(0, 3)) top = (await call('subd_extrude', { index: 0, faces: top, offset: [d, 0, 0] })).cage.new.faces;
   const xl = [x0, x0 + LEVELS[0], x0 + LEVELS[0] + LEVELS[1], x0 + LEVELS[0] + LEVELS[1] + LEVELS[2]], x4 = xl[3] + LEVELS[3];
-  const upper = (await ask({ what: 'faces', normal: [1, 0, 0], within_deg: 5, box: { min: [xl[3] - 0.1, -1, 2 * ROW], max: [xl[3] + 0.1, 1, 6 * ROW] } })).faces.map((f: { face: number }) => f.face);
+  const upper = (await ask({ what: 'faces', normal: [1, 0, 0], withinAngle: 5, box: { min: [xl[3] - 0.1, -1, 2 * ROW], max: [xl[3] + 0.1, 1, 6 * ROW] } })).faces.map((f: { face: number }) => f.face);
   assert.equal(upper.length, 4);
   await call('subd_extrude', { index: 0, faces: upper, offset: [LEVELS[3], 0, 0] });
   // 3. The hole: the 2 × 2 block of side faces at levels 2–3 × rows 3–4 deleted on both sides; each mouth moved
@@ -90,7 +90,7 @@ async function buildClamp(): Promise<{ calls: { tool: string; args: Record<strin
   // onto the hole's circle; the two mouths bridged. (Each step a body the kernel builds: an extrusion of 0 to drag
   // afterwards, as the editor's gizmo does, would leave coincident vertices, which it refuses.)
   const xc = xl[2], zc = 4 * ROW;
-  const block = await Promise.all([1, -1].map(async s => (await ask({ what: 'faces', normal: [0, s, 0], within_deg: 5, box: { min: [xl[1], -9, 3 * ROW], max: [xl[3], 9, 5 * ROW] } })).faces.map((f: { face: number }) => f.face)));
+  const block = await Promise.all([1, -1].map(async s => (await ask({ what: 'faces', normal: [0, s, 0], withinAngle: 5, box: { min: [xl[1], -9, 3 * ROW], max: [xl[3], 9, 5 * ROW] } })).faces.map((f: { face: number }) => f.face)));
   assert.deepEqual(block.map(b => b.length), [4, 4]);
   await call('subd_delete', { index: 0, faces: block.flat() });
   const onCircle = (r: number) => (p: V3): V3 => { const a = Math.atan2(p[2] - zc, p[0] - xc); return [xc + r * Math.cos(a), p[1], zc + r * Math.sin(a)]; };
@@ -111,7 +111,7 @@ async function buildClamp(): Promise<{ calls: { tool: string; args: Record<strin
   const tunnel = { box: { min: [xc - HOLE - 0.1, -half, zc - HOLE - 0.1] as V3, max: [xc + HOLE + 0.1, half, zc + HOLE + 0.1] as V3 } };
   await loopAt({ ...tunnel }, 1, half - FUNNEL - 0.5);
   await loopAt({ ...tunnel }, 1, -half + FUNNEL + 0.5);
-  const lugTop = { normal: [1, 0, 0], within_deg: 5, box: { min: [xl[3] + 0.1, -9, 0], max: [99, 9, H] } };
+  const lugTop = { normal: [1, 0, 0], withinAngle: 5, box: { min: [xl[3] + 0.1, -9, 0], max: [99, 9, H] } };
   await loopAt(lugTop, 1, half - HOLD);
   await loopAt(lugTop, 1, -half + HOLD);
   // 4. The lug's top an arc round the hole's centre (radius two rows) through its middle, its right end turned down

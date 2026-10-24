@@ -4,8 +4,9 @@ import { evaluatePart, partBreps } from '../src/engine/evaluate';
 import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { chordOf, verdictOf } from '../src/chat/references';
-import { bodyMesh, measureChords, type DisplayMesh } from '../src/engine/mesh';
+import { bodyMesh, measureChords, unmeasured, type DisplayMesh } from '../src/engine/mesh';
 import { depthAt, depthBins } from '../src/print/hollow';
+import { MeshReceiver, MeshSender } from '../src/engine/meshWire';
 
 // O55: A6.3's chord tolerance, bounded from the tessellation's own steps in both directions. On a sphere and a torus the
 // new δ is at least the mesh's true worst depth below the exact surface (sampled over every triangle) and not far
@@ -75,6 +76,10 @@ test('a freeform SubD face: the plain quadratic model undershoots the true depth
   const brep = partBreps(doc)[0].brep, m = bodyMesh(brep, 0, 1), fine = bodyMesh(brep, 0, 64);
   assert.ok(m.faces.every(f => f.kind !== 'curved' || (f.freeform && !f.analytic)), 'the SubD patches are freeform');
   assert.equal(chordOf(m), Infinity, 'unmeasured: unbounded');
+  assert.equal(unmeasured(m), true);
+  assert.ok(m.faces.filter(f => f.freeform).every(f => f.chordDepth === undefined && !('chordMM' in f)));
+  const arrays = ['positions', 'normals', 'faceOfVertex', 'indices', 'edgeLines', 'edgeOfSegment'] as const;
+  const geometry = arrays.map(key => m[key].slice());
   // (The truth: the coarse mesh against the fine one both ways — its points' distance to the fine triangles, and the fine
   // mesh's vertices (on the surface) to the coarse — within the fine mesh's own depth.)
   const near = depthBins(fine, 4), back = depthBins(m, 4); let toFine = 0, toCoarse = 0;
@@ -86,6 +91,20 @@ test('a freeform SubD face: the plain quadratic model undershoots the true depth
   const truth = Math.max(toFine, toCoarse), asAnalytic = (x: DisplayMesh): DisplayMesh => ({ ...x, faces: x.faces.map(f => ({ ...f, analytic: true as const, freeform: undefined })) });
   const plain = chordOf(asAnalytic(m)), slack = chordOf(asAnalytic(fine));
   measureChords(m, brep); const next = chordOf(m);
+  assert.equal(unmeasured(m), false);
+  assert.ok(m.faces.filter(f => f.freeform).every(f => Number.isFinite(f.chordDepth) && !('chordMM' in f)));
+  assert.equal(chordOf(m), next, 'the measured mesh retains its cached chord result');
+  arrays.forEach((key, i) => assert.deepEqual(m[key], geometry[i], key));
+  const sender = new MeshSender(), receiver = new MeshReceiver(), source = { ...e, bodies: [{ ...e.bodies[0], mesh: m }] };
+  const packet = sender.pack('chord', source);
+  const received = receiver.unpack('chord', structuredClone(packet.result, { transfer: packet.transfer }));
+  assert.ok(received.ok);
+  assert.deepEqual(received.bodies[0].mesh.faces, m.faces);
+  assert.ok(received.bodies[0].mesh.faces.filter(f => f.freeform).every(f => Number.isFinite(f.chordDepth) && !('chordMM' in f)));
+  arrays.forEach((key, i) => { assert.deepEqual(received.bodies[0].mesh[key], geometry[i], key); assert.deepEqual(m[key], geometry[i], key + ' source retained'); });
+  const again = sender.pack('chord', source); assert.equal(again.transfer.length, 0);
+  const reused = receiver.unpack('chord', structuredClone(again.result));
+  assert.ok(reused.ok); assert.equal(reused.bodies[0].mesh, received.bodies[0].mesh);
   console.log(`O59 SubD: true depth ${truth.toFixed(5)} (± ${slack.toFixed(5)}), plain model ${plain.toFixed(5)}, measured δ ${next.toFixed(5)}`);
   assert.ok(plain < truth - slack, `the plain model under the truth: ${plain} vs ${truth}`);
   assert.ok(next >= truth + slack && next <= 1.5 * truth, `${next} vs ${truth}`);

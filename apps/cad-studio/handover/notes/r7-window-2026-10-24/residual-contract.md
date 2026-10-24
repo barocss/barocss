@@ -278,3 +278,26 @@ three new native modules and one explicitly delegated Docs sample. A dependency 
 an exact file/reason report. Implementation must demonstrate module dependency safety, direct canonical and
 explicit-native calls, unchanged native solver operands/results and unchanged actual CLI/L3/fixture boundaries.
 It is preparation work, not a qualified checkpoint; final same-SHA whole checks remain required.
+
+## Remaining solver and mesh metadata boundaries (coordinator, 2026-10-25)
+
+The existing FK and solver calculations keep their coordinate conventions and acceptance thresholds. These specific solver-level entries remain intentionally importable:
+
+- `robot/loop.closeLoop`, `closeLoops` and their `Closed.q` retain the existing joint-coordinate inputs and outputs. Rename the result `residualMM` and the exported `closedValues.residual_mm` to `residual`, with the same number. A pin closer measures pin distance in mm. The general closer retains its original row norm combining distance and orientation rows; its scalar must be described as the solver residual, without assigning it a new pure-length unit. Keep every solver equation, weight, iteration, constant, threshold, refusal and joint conversion unchanged. The existing façade/tool `loops.residual` stays unchanged.
+- `robot/ik.solveIk` / `IkResult` retain the existing solver contract: FK target/tool coordinates as documented by the source, native joint coordinates, `errorM` in metres and `errorRad` in radians. The source comments, current types and the focused boundary map establish this narrow preservation. Wildcard importability remains explicit. The traced production façade/tool paths have no current solveIk projection; this observation is limited to the mapped paths. Existing public projections keep degrees/MMGS, and any future public IK projection needs an explicit paired error/q conversion contract. No IK source or test change is required by this naming window.
+
+Display metadata and Team views follow the public names below. Values, optionality, existing clone behaviour, buffers and precision remain unchanged.
+
+| Producer/result | Canonical field | Preserved meaning |
+|---|---|---|
+| `DisplayFace.chordMM` | `chordDepth` | Sampled freeform chord depth in mm, with the existing safety factor; retain unmeasured/Infinity behaviour and the existing sampling and WeakMap cache. |
+| Team `verifierView.keepouts[].chordMM` | `chordTolerance` | Existing finite mm value before the existing JSON clone; preserve that clone's non-finite-to-null behaviour and precision. |
+
+`KeepoutResult.chordMM`, private edge-sag helpers, positional tolerance arguments and native Kernel quantities keep their established raw calculation contracts. The existing references formatter retains its twelve significant digits. The metadata worker transfer and public view projection need their actual matching tests; these decisions do not establish runtime or aggregate qualification.
+
+## Remaining inertia and gear entry quantities (coordinator, 2026-10-25)
+
+- The generic public `team/freshness.inertiaResult` success egress uses the existing `inertiaJson` projection once. Its `number` remains the mass scalar, now in g. Its `value` is `{ mass, centroid, inertia, issues }`, with mass in g, centroid in mm, the original flat nine tensor entries in g·mm², and the original issue-code strings. Flatten the projected three-row tensor without changing its entries. Preserve failure/unsupported/stale conditions, stamping and native calculations.
+- The specifically mapped inertia/dynamics calculations `linkInertia`, `treeInertia`, `linkMasses`, `linkBodies`, `withPointMass`, `sizeActuators` and `sizeCoupled` retain their source-documented native calculation contracts. Their raw `LinkInertia`/`LinkMass`/`LinkBody`/`Sizing`/`CoupledSizing` quantities and the exact forwarding entries `robot/verbs.inertiaOf` and `sizeOf` remain intentionally importable for native calculations. Existing default façades and tools still use the shared public projections. This scope is function-specific; no entire module or generic public Result is excluded.
+- Direct `gearPairAt.phaseDeg` becomes `phase`, preserving its existing degree value. The Kernel already returns degrees modulo the follower pitch; perform no new angular conversion. Preserve the native FK joint coordinates, placement rotations, gear calculation and all tolerances.
+- The direct `movesOf` public-input/result contract and the neighbouring `gravityOf` formatter remain open until the exact canonical argument and refusal boundary is fixed. Their current exportability or generic formatter comment does not complete that boundary.
