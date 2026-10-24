@@ -17,7 +17,7 @@ for (const file of cases) {
   test(`conformance ${c.id}: ${c.about}`, () => {
     assert.equal(`${c.step.toLowerCase()}-${file.split('/').pop().replace(/\.json$/, '')}`, c.id, 'id matches the file');
     if (c.expect.error) {
-      assert.throws(() => evaluateCadPart(c.input.partDocument), e => e.code === c.expect.error.code && e.message.includes(c.expect.error.messageIncludes));
+      assert.throws(() => evaluateCadPart(c.input.partDocument), e => e.code === c.expect.error.code && (c.expect.error.category === undefined || e.details?.category === c.expect.error.category) && e.message.includes(c.expect.error.messageIncludes));
       return;
     }
     const outputs = evaluateCadPart(c.input.partDocument).outputs;

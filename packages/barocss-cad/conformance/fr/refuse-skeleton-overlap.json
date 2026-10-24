@@ -60,7 +60,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "SKELETON_OVERLAP",
+      "category": "PARAMETER",
       "messageIncludes": "[SKELETON_OVERLAP] segments 0 and 1 lie on one line and share 200 mm"
     }
   },

@@ -68,7 +68,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "BEAD_KIND",
+      "category": "PARAMETER",
       "messageIncludes": "[BEAD_KIND] member 0's end is mitred"
     }
   },

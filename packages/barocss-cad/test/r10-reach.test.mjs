@@ -61,7 +61,7 @@ test('D97 convex: a block with oblique ends, its bottom edge on y = 0 rounded 8,
 test('D97 refusals, none built wrong: the concave chamfer 8 past the round (RADIUS_EXCEEDS_FACE; built 51 % over before); within the flat riser the closed form as before', () => {
   for (const oblique of [false, true]) {
     const body = step(oblique), o0 = out(body), inner = at(o0.brep, 15, 10);
-    assert.throws(() => out([...body, finish('chamfer', 'g', inner, 8)]), e => e.code === 'PARAMETER' && /\[RADIUS_EXCEEDS_FACE\].*walls of 6 and 15 mm/.test(e.message), `chamfer, oblique ${oblique}`);
+    assert.throws(() => out([...body, finish('chamfer', 'g', inner, 8)]), e => (e.details?.category ?? e.code) === 'PARAMETER' && /\[RADIUS_EXCEEDS_FACE\].*walls of 6 and 15 mm/.test(e.message), `chamfer, oblique ${oblique}`);
     // (The fillet 8 past the round, refused at D97 where the Boolean could not close it, builds since R10.B: r10-b.test.mjs.)
     const got = out([...body, finish('fillet', 'g', inner, 5)]).massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3;
     assert.ok(Math.abs(got / ((1 - Math.PI / 4) * 25 * 40) - 1) < (oblique ? 2e-7 : 1e-9), `fillet 5, oblique ${oblique}: ${got}`);

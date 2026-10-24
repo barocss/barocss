@@ -12,7 +12,7 @@ import { evaluateCadPart, flatPattern } from '../dist/index.js';
 // - the K-factor's area identity on the flat (V/T + (K − ½)·T·Σθw).
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b} (${(a - b) / Math.max(1, Math.abs(b))})`);
 const T = 1.5, R = 1.5, K = 0.44, A = 80, B = 50;
 const BD = (th, r = R) => 2 * (r + T) * Math.tan(th / 2) - th * (r + K * T);
@@ -113,7 +113,7 @@ test('R12.3a the sheet\'s report is dropped, never carried stale, past a move, a
   for (const op of [after[0], after[1], after[2], after[3]]) {
     const o = out([...base, op]);
     assert.equal(o.sheet, undefined, op.kind);
-    assert.throws(() => o.flatPattern(), e => e.code === 'CAPABILITY' && /not made as sheet metal/.test(e.message), op.kind);
+    assert.throws(() => o.flatPattern(), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /not made as sheet metal/.test(e.message), op.kind);
     refused([...base, op, { id: 'f2', kind: 'sheet-flange', target: 'm', edge: 'b.side3|b.top', length: 10 }], 'CAPABILITY', /\[NOT_A_SHEET\] the target is not sheet metal/);
   }
   // Moved or turned, the body unfolds again from its own B-rep with T and K given: the same flat.
@@ -147,9 +147,9 @@ test('R12.3b corner reliefs: a square s × s or a round quarter of radius s off 
     close(f.areaMM2, o.massProperties(1).volumeMM3 / T + (K - 0.5) * T * th * (2 * (A + B) - 8 * s), 1e-11, `${shape} ${s} flat area`);
   }
   // Short of the setback (3 mm), the second flange's trim reaches the first one's bend.
-  assert.throws(() => out([...plate, ...reliefs('square', 2), ...flanges('c3')]), e => e.code === 'GEOMETRY' && /\[FLANGES_COLLIDE\]/.test(e.message));
+  assert.throws(() => out([...plate, ...reliefs('square', 2), ...flanges('c3')]), e => (e.details?.category ?? e.code) === 'GEOMETRY' && /\[FLANGES_COLLIDE\]/.test(e.message));
   // A round quarter of the setback's radius leaves a sliver of the plate at each corner, held at a point: no sheet, said so.
-  assert.throws(() => out([...plate, ...reliefs('round', 3), ...flanges('c3')]).flatPattern(), e => e.code === 'GEOMETRY' && /\[NOT_A_SHEET\] b\.top#\d+ lies in the skin's plane but is cut off from it/.test(e.message));
+  assert.throws(() => out([...plate, ...reliefs('round', 3), ...flanges('c3')]).flatPattern(), e => (e.details?.category ?? e.code) === 'GEOMETRY' && /\[NOT_A_SHEET\] b\.top#\d+ lies in the skin's plane but is cut off from it/.test(e.message));
 });
 
 test('R12.3b corner relief refusals: not a corner (EDGE_NOT_SHEET), not square (CORNER_NOT_SQUARE), not clear — a flange there, or past the plate (CORNER_NOT_CLEAR), not a sheet', () => {

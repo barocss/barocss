@@ -26,7 +26,8 @@
   },
   "expect": {
     "error": {
-      "code": "INPUT",
+      "code": "INVALID_INPUT",
+      "category": "INPUT",
       "messageIncludes": "below 0.943821"
     }
   }

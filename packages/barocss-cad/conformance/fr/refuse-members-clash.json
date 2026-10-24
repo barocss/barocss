@@ -61,7 +61,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "MEMBERS_CLASH",
+      "category": "PARAMETER",
       "messageIncludes": "[MEMBERS_CLASH] members 0 and 1 cross inside both their lengths"
     }
   },

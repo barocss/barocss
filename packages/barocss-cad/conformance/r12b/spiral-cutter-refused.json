@@ -31,7 +31,8 @@
   },
   "expect": {
     "error": {
-      "code": "INPUT",
+      "code": "INVALID_INPUT",
+      "category": "INPUT",
       "messageIncludes": "takes the spiral angle to 90°"
     }
   }

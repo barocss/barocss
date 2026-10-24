@@ -72,7 +72,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "CORNER_NOT_A_JOINT",
+      "category": "PARAMETER",
       "messageIncludes": "[CORNER_NOT_A_JOINT] point 1: 3 member ends meet there"
     }
   },

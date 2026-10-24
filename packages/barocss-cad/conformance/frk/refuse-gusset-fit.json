@@ -67,7 +67,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "GUSSET_FIT",
+      "category": "PARAMETER",
       "messageIncludes": "[GUSSET_FIT] member 0 has no flat face under the gusset"
     }
   },

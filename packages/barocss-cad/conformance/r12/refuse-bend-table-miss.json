@@ -64,7 +64,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "BEND_TABLE_MISS",
+      "category": "PARAMETER",
       "messageIncludes": "[BEND_TABLE_MISS] bend1: table shop-2mm has no rows round 2 mm, R 3 mm, 60°"
     }
   },

@@ -36,7 +36,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "SEGMENT_ZERO_LENGTH",
+      "category": "PARAMETER",
       "messageIncludes": "[SEGMENT_ZERO_LENGTH]"
     }
   },

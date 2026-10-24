@@ -92,7 +92,8 @@
   },
   "expect": {
     "error": {
-      "code": "CAPABILITY",
+      "code": "OFFSET_FOLDS",
+      "category": "CAPABILITY",
       "messageIncludes": "[OFFSET_FOLDS]"
     }
   },
