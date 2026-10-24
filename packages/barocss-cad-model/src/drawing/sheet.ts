@@ -1,5 +1,6 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
+import { characteristicMarks, modifierMarks } from './controls';
 import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
 import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
@@ -866,18 +867,28 @@ export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingD
 
 /** Sheet mm: a frame's height and its symbol and datum cells' widths. */
 const FRAME_H = 6, FRAME_SYMBOL = 7, FRAME_DATUM = 6;
-/** A feature control frame under a text: the position symbol, Ø and the value, the datums in order. */
+/** A geometric control frame under a text; vector symbols and circled ASCII modifier letters. */
 export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFrame): Mark[] {
   const q = textCorners(under.at, under.text, under.size, under.anchor, 0, !!under.bold);
-  const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6, value = `Ø${fmtMM(f.value)}`, vw = textWidth(value, TEXT, false) + 2.5;
-  const cells = [FRAME_SYMBOL, vw, ...f.datums.map(() => FRAME_DATUM)], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;
+  const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6;
+  const value = `${(f.diameter ?? (f.characteristic === 'position')) ? 'Ø' : ''}${fmtMM(f.value)}`, base = textWidth(value, TEXT, false) + 2.5;
+  const modifiers = [...(f.material ? [f.material === 'maximum' ? 'M' : 'L'] : []), ...(f.freeState ? ['F'] : []), ...(f.tangentPlane ? ['T'] : []), ...(f.projected ? ['P'] : [])];
+  const height = f.projected ? fmtMM(f.projected) : '', heightWidth = height ? textWidth(height, TEXT, false) + 1 : 0;
+  const vw = base + modifiers.length * 4 + heightWidth;
+  const datumWidths = f.datums.map(d => FRAME_DATUM + (f.datumModifiers?.[d] ? 4 : 0));
+  const cells = [FRAME_SYMBOL, vw, ...datumWidths], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;
   const marks: Mark[] = [{ kind: 'polyline', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]], pen: 'thin', role: 'frame' }];
   let x = x0;
   cells.forEach((w, k) => { if (k) marks.push({ kind: 'line', a: [x, y0], b: [x, y1], pen: 'thin', role: 'frame' }); x += w; });
-  // The position symbol: a circle with a cross through it.
-  const c: XY = [x0 + FRAME_SYMBOL / 2, y0 + FRAME_H / 2], r = 1.7, arm = 2.3;
-  marks.push({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'frame' }, { kind: 'line', a: [c[0] - arm, c[1]], b: [c[0] + arm, c[1]], pen: 'thin', role: 'frame' }, { kind: 'line', a: [c[0], c[1] - arm], b: [c[0], c[1] + arm], pen: 'thin', role: 'frame' });
-  marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw / 2, y0 + 4.5], text: value, size: TEXT, anchor: 'middle' });
-  f.datums.forEach((l, k) => marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + vw + FRAME_DATUM * (k + 0.5), y0 + 4.5], text: l, size: TEXT, anchor: 'middle' }));
+  marks.push(...characteristicMarks(f.characteristic, [x0 + FRAME_SYMBOL / 2, y0 + FRAME_H / 2]));
+  marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base / 2, y0 + 4.5], text: value, size: TEXT, anchor: 'middle' });
+  modifiers.forEach((m, k) => marks.push(...modifierMarks(m, [x0 + FRAME_SYMBOL + base + 2 + k * 4, y0 + FRAME_H / 2])));
+  if (height) marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base + modifiers.length * 4 + 0.5, y0 + 4.5], text: height, size: TEXT, anchor: 'start' });
+  x = x0 + FRAME_SYMBOL + vw;
+  f.datums.forEach((d, k) => {
+    marks.push({ kind: 'text', at: [x + FRAME_DATUM / 2, y0 + 4.5], text: d, size: TEXT, anchor: 'middle' });
+    const modifier = f.datumModifiers?.[d]; if (modifier) marks.push(...modifierMarks(modifier === 'maximum' ? 'M' : 'L', [x + FRAME_DATUM + 1.5, y0 + FRAME_H / 2]));
+    x += datumWidths[k];
+  });
   return marks;
 }

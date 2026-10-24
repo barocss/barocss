@@ -110,6 +110,6 @@ test('datums and frames: saved and read back, drawn in the SVG, PDF and DXF; the
   const codes = drawingIssues(issueContext({ ...i, settings: broken })).map(x => x.code);
   for (const c of ['DATUM_LOST', 'DATUM_TWICE', 'FRAME_LOST', 'DATUM_UNDEFINED']) assert.ok(codes.includes(c as never), c);
   // Bad values are dropped on reading.
-  const bad = readDrawing({ ...JSON.parse(JSON.stringify(a)), datums: [{ id: 'x', letter: 'I', view: 'top', edge: { edge: 'e', near: [0, 0, 0] }, place: [0, 0] }], frames: [{ id: 'y', dim: 'd1', characteristic: 'flatness', value: 0.1, datums: [] }] });
+  const bad = readDrawing({ ...JSON.parse(JSON.stringify(a)), datums: [{ id: 'x', letter: 'I', view: 'top', edge: { edge: 'e', near: [0, 0, 0] }, place: [0, 0] }], frames: [{ id: 'y', dim: 'd1', characteristic: 'unsupported', value: 0.1, datums: [] }] });
   assert.equal(bad.datums, undefined); assert.equal(bad.frames, undefined);
 });

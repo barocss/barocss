@@ -45,6 +45,7 @@ import { SheetSettings } from './drawing/SheetSettings';
 import { IssuesList } from './drawing/IssuesList';
 import { TolerancingList } from './drawing/TolerancingList';
 import { DimensionsList } from './drawing/DimensionsList';
+import { FrameEditor } from './drawing/FrameEditor';
 import { ToleranceEditor } from './drawing/ToleranceEditor';
 import { NotesList } from './drawing/NotesList';
 import { ExportActions } from './drawing/ExportActions';
@@ -559,6 +560,8 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         <DimensionsList sheet={sheet} views={views} layout={layout} scope={scope} settings={settings} selected={selected} onSelect={id => { setSelected(id); setTool('select'); }} remove={remove} autoDimension={autoDimension} />
 
         <ToleranceEditor selDim={selDim} settings={settings} tolDraft={tolDraft} setTolDraft={setTolDraft} commitDims={commitDims} setMessage={setMessage} />
+
+        <FrameEditor key={selDim?.id ?? 'none'} dim={selDim?.id} settings={settings} onChange={onChange} onRefused={setMessage} />
 
         <NotesList settings={settings} selected={selected} selNote={selNote} noteDraft={noteDraft} setNoteDraft={setNoteDraft} noteBox={noteBox} onSelect={n => { setSelected(n.id); setNoteDraft(n.text); setTool('select'); }} remove={remove} onChange={onChange} />
 
