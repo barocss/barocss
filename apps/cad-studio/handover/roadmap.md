@@ -20,7 +20,7 @@ section current.
 | Kernel | R7.3a batch 1 (cad's 171 classes on core/barocss-error.ts, no text change; T2 then commit); then K16's 5 invalid intermediates from the commutativity check (D271), then K16's closing record | R7.3a batch 2 | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
 | Outer | R7.3c (one mass and bounds function, `stepFor` → `exportStudioStep`, rotate's pivot default, the assembly writes as core verbs, the row editors' and readStudioDoc's `{ error }`, vectors at the boundary); R7.3a done for cad-model (merge 9be3fe6bf) | O19 (stored edge names checked) | the R7.3b follow-up in cad-model (`bodyMass` in g·mm²), then the Later list |
 | GPU | R7.3d's gpu and interop side (the packet tag, landed with the kernel's packet.ts); R7.3c for gpu done (merge d0a27443b, G-R53) | R7.3a batch 3 (the 101 plain throws, classified first) | G14 (measure, then decide) |
-| API | the Vec3 shape in cad/src/api (§10.2); cad-model tsc fixed (merge f82e0b135); R7.5b done (`a45717b72`, merge 2e79a11db) | R7.6 with the docs lane (supporting) | the facades' adapters after R7.3b/R7.3c |
+| API | R7.4c (option names without unit suffixes, owner); the Vec3 shape in cad/src/api (§10.2); cad-model tsc fixed (merge f82e0b135); R7.5b done (`a45717b72`, merge 2e79a11db) | R7.6 with the docs lane (supporting) | the facades' adapters after R7.3b/R7.3c |
 | Docs | R7.6 part 1 (samples and the Object API page on the facades; the API lane supports) and R7.3a's changed texts | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
 | Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
 
@@ -181,6 +181,7 @@ Order inside a lane is lowest risk first: duplicate copies, then hot-path alloca
 | R7.4a | API | **One part implementation** (§11): cad-model's `part()` wraps cad's; verbs and options on the v2 command names (§12); the oracle unchanged |
 | R7.4b | API | **done** (`5cd3af988`, merge 887f638fd; api tests 21/21 in each package). **Part growth**: cylinder, sketch → extrude/revolve, chamfer, shell, union/subtract/intersect, patterns, a body chooser; Plane/Location; a selector-stability test (an upstream edit re-evaluated, the same named edge still picked or a typed refusal) |
 | R7.5 | API | **done** (`2e96fcdef`, merge 8571ceff3; cad-model api 25/25). Finding 7 (add_part, place_part, add_mate and set_frames write inline in async tool handlers; make them `verb(doc, options) → doc` core functions both the tools and the facade call) goes to the outer lane with R7.3c. **Assembly facade** (cad-model): placing parts, mates, inputs and variants (O11), frames (O12) |
+| R7.4c | API | **Option names without unit suffixes** (owner, 2026-10-24; conventions §2, §12 amended): the facades' inputs take the agent's value names (`box({ w, d, h })`, `cylinder({ r, h })`, `mass({ density })`), results keep unit names (`massG`, `volumeMM3`); documents' stored names unchanged; the docs samples follow |
 | R7.5b | API (GPU reviews) | **done** (`a45717b72`, merge 2e79a11db; show() 2/2 on hardware and SwiftShader; display lines are `lines`, §10.3 aligned). **gpu facade growth**: materials by id (§10.6), edges as lines, a camera view; `show()` browser check on both backends |
 | R7.6 | docs + API | **Docs on the facades**: samples rewritten on them, the Object API page out of experimental, the API inventory in check:docs as a drift check on §1–§12 |
 
@@ -242,6 +243,7 @@ evidence files.
 - **R7.3d** — Legacy APIs out (createCadModel, old document versions, the y-up tag) · ko: 옛 API 정리 (createCadModel, 옛 문서 버전, y-up 이름표)
 - **R7.4a** — One part implementation; verbs on the agent's command names · ko: 부품 구현 하나로, 동사는 에이전트 명령 이름으로
 - **R7.4b** — Part facade growth with a selector-stability test · ko: 부품 겉 API 확장과 선택자 안정성 검사
+- **R7.4c** — Facade option names without unit suffixes · ko: 겉 API 입력 옵션 이름에서 단위 접미사 빼기 (결과에는 유지)
 - **R7.5** — Assembly facade · ko: 조립품 겉 API
 - **R7.5b** — gpu facade growth · ko: gpu 겉 API 확장
 - **R7.6** — Docs on the facades; the inventory as a drift check · ko: 문서를 겉 API로, API 목록을 검사에 포함
@@ -293,7 +295,6 @@ evidence files.
 - A v3 decision, if S3 finds a breaking v2 change. · ko: S3에서 v2 호환이 깨지면 v3 결정
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
-- Unit suffixes on the facades' option names (`wMM`, `dMM` …): the API lane recommends the agent's value names on inputs (`w`, `d`, `h`, `radius`, all mm by §2) and unit names only on results (`massG`, `volumeMM3`); a wording change to conventions §2/§12. · ko: 겉 API 옵션 이름의 단위 접미사(wMM 등)를 뺄지 — 입력은 에이전트 이름(w, d, h), 결과만 단위 이름(massG)
 - A built-in display look per material id (al6061's colour, …) in gpu, or scenes keep registering their own looks (today: none; O75 keeps look ids apart from material ids; R7.5b finding 10). · ko: 재료 id마다 기본 표시 모양(색)을 gpu에 둘지, 장면이 직접 등록할지
 
 ## Off the roadmap (owner decisions)
