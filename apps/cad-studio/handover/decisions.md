@@ -14161,3 +14161,82 @@ The kernel suite ends at 1702/1709 (6 skipped), the one failure being the native
 | 23:9 | valid → refused under D268; near-degenerate, its nudges refuse 4/4 at the old tip too | D268 |
 | a body united with itself | `B ∪ B` of 25#49's inner body refused, an edge used 5 times | D260 |
 | 26#34, 25#190, 25#170's nudges, D239's 25 and 110 nudges | unchanged from K15's end; K16's step 5 was not taken | D265 |
+
+## D277 — O19 (kernel): a stored name that resolves to other geometry than it named is refused, typed (2026-10-24)
+
+**Finding (O19, API lane finding 4; the outer lane's design, the coordinator's approval).** A fillet's, chamfer's, shell's
+or draft's stored names are positional on a sketch without sideTags. A vertex inserted upstream renumbers the sides, and
+`n1.side1|n1.side2` then names another corner. The feature builds there: a wrong result, silently. cad-model's A1 rematch
+catches it only where cad-model evaluates before and after the edit.
+
+**The field (part document, latest schema, no version bump; an addition, so saved documents resolve as before).**
+`fillet`, `chamfer`, `shell` and `draft` take an optional
+`expect: { readonly [name: string]: CadPartNameSignature }`, one entry per stored name the feature uses (`edges`,
+`open`, `faces`). Each entry is what the named edge or face looked like when the name was stored, in the shape of
+cad-model's rematch.ts `Signature`:
+
+```ts
+interface CadPartNameSignature {
+  readonly kind: 'line' | 'curve' | 'plane' | 'curved'; // an edge straight or not; a face planar or not
+  readonly at: readonly [number, number, number];          // an edge's midpoint (of its two ends), a face's centroid (mm)
+  readonly dir?: readonly [number, number, number] | null; // a straight edge's direction (either way), a planar face's normal
+  readonly size: number;                                    // an edge's chord, a face's area (informational: not judged)
+  readonly radius?: number;                                 // a cylindrical or spherical face's radius
+}
+```
+
+No unit suffixes (conventions §2). An entry for a name the feature does not use refuses INPUT. An entry whose numbers are
+not finite, or whose `kind` is none of the four, refuses INPUT. Without `expect`, nothing changes.
+
+**The rule** (cad-model's tolerances: SAME_DIRECTION 1°, SAME_RADIUS 1e-6 relative, CLEARLY_NEARER 2). The kernel
+computes each name's signature on the target part's B-rep as cad-model computes it on the display mesh:
+- an edge: straight when its curve is a line; `at` the midpoint of its ends, over the pieces carrying the name;
+- a face: planar or curved, its area centroid and normal over its tessellation, its radius as cad-model reads it.
+
+It then refuses when either holds:
+- (a) the named geometry is not alike the expectation: another kind, another radius, or another direction past 1°
+  (an edge's either way);
+- (b) another edge or face of the body, alike the expectation, is clearly nearer it: at half the named one's distance
+  from `at`, or less.
+
+Otherwise the feature builds on its names as before. This is cad-model's "clearly nearest" rule applied in the refusing
+direction only: a name is overruled when the geometry says it now points elsewhere, never because nothing is certain.
+So a dimension edit that keeps the names (the corner moved from (40, 40) to (50, 50), no other corner near (40, 40))
+still builds. Rule (b) catches the vertex insert: (40, 40, 5) has an alike edge on it, the named one now at (40, 0, 5).
+
+**What it does not catch** (the same limit as cad-model's rematch): a named edge or face whose geometry is alike its
+expectation but moved, with no other alike one near the old `at`, still builds on its name. Such a name may have moved
+to a corner that only looks like the old one: a square's corner renumbered onto another corner, with nothing left near
+the old corner, because the edit removed or moved it. The check says only that the geometry does not contradict the
+name. Only side tags, or an edit cad-model rematches before and after, say the name is right.
+
+**The refusal:** CadPartError `REFERENCE`, its message carrying the bracketed code:
+`n7: [REFERENCE_MOVED] edge n1.side1|n1.side2 is no longer the edge it named (was at (40, 40, 5), now at (40, 0, 5); n1.side2|n1.side3 is at (40, 40, 5))`,
+with a face's likewise ("face … is no longer the face it named").
+
+**Cost:** none without `expect`. With it, a check before the feature builds: the target's B-rep (built when the part is
+upright, as finishing it builds it anyway), and one tessellation where a face is named.
+
+**Built:**
+- `src/part/part-expect.ts`, new:
+  - `expectOf` checks the field as data;
+  - `edgeSignatures` and `faceSignatures` compute a body's signatures;
+  - `checkExpected` applies the rule.
+- `part-model.ts`: when a feature has `expect`, its run is wrapped (`expectedThen`): each target part's B-rep is checked
+  before the feature builds. The four kinds' types carry `expect`, and the main entry exports `CadPartNameSignature`.
+- The docs refusal table gains `[REFERENCE_MOVED]` (regenerated with `refusals.mjs`, in this commit).
+
+**Tests** (`test/o19-expect.test.mjs`, four):
+- The square: the (40, 40) corner builds with its expectation. With a vertex inserted upstream it refuses, the exact
+  message above. Without `expect` it builds at (40, 0), the silent move.
+- A dimension edit to 50 × 50 that keeps the names builds with `expect`, the same volume as without.
+- A shell's open face whose normal flipped refuses; a chamfer's line expected as a curve refuses.
+- The field checked as data: a name the feature does not use, a malformed `at`, a face kind on an edge.
+
+**Checks** (in a scratch worktree at 86da39e14 + the change):
+- cad tsc and eslint clean.
+- Kernel suite at concurrency 4: 1719/1726, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names +4 (these tests), with the API lane's legacy-coverage tests merged since; none gone.
+- Fingerprint byte-identical: 869 cases `dbc1ad33…` (no corpus document has `expect`).
+- cad-model 1051/1051. No RB (nothing in it uses `expect`), no flow (nothing studio-visible until the outer lane wires
+  `node.sigs`).

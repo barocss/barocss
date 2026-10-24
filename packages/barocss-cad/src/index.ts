@@ -683,3 +683,5 @@ export { loopArea, loopPerimeter } from './frame-sheet/frame-weldment.js';
 export type { GussetReport, EndCapReport, WeldmentSeam, BeadReport, BeadJointRef, BeadSharedComponent, BeadSharedSeam } from './frame-sheet/frame-weldment.js';
 // R7.3a: the one refusal shape; every error class of the kernel is a BarocssError (api-conventions.md §6).
 export { BarocssError, type Problem, type RefusalWhere } from './core/barocss-error.js';
+// O19: a stored name's signature, for a fillet's, chamfer's, shell's or draft's `expect` (D277).
+export type { CadPartNameSignature } from './part/part-expect.js';
