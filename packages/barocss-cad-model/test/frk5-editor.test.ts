@@ -81,7 +81,7 @@ test('FRk5 positive authored gap never creates a contact bead; zero-gap re-edit 
     if (gap > 0) {
       assert.equal(joint.gap, gap); assert.equal(joint.contact, 'clearance');
       assert.ok(list.notes.some(note => note.includes('not in contact')));
-      assert.equal(list.totals.beads?.complete, false); assert.equal(list.totals.beads?.ownedVolumeMM3, 0);
+      assert.equal(list.totals.beads?.complete, false); assert.equal(list.totals.beads?.ownedVolume, 0);
       assert.deepEqual(list.totals.beads?.refusedJointIds, [record.joint]);
     } else {
       assert.equal(joint.gap, undefined); assert.equal(joint.contact, undefined); assert.equal(list.totals.beads?.complete, true);

@@ -30,9 +30,9 @@ test('interference: an overlap by its volume; apart, the clearance', async () =>
   const s = await stateOf(box(box(box(emptyDoc(), 0, 10, 5), 5, 10, 5), 30, 10, 5));
   const { pairs } = await call(s, 'interference', {});
   const p = (a: string, b: string) => pairs.find((x: { a: string; b: string }) => x.a === a && x.b === b);
-  assert.equal(p('b1', 'b3').overlap_mm3, 5 * 10 * 5);
-  assert.ok(Math.abs(p('b3', 'b5').clearance_mm - 15) < 1e-6);
-  assert.ok(Math.abs(p('b1', 'b5').clearance_mm - 20) < 1e-6);
+  assert.equal(p('b1', 'b3').overlap, 5 * 10 * 5);
+  assert.ok(Math.abs(p('b3', 'b5').clearance - 15) < 1e-6);
+  assert.ok(Math.abs(p('b1', 'b5').clearance - 20) < 1e-6);
 });
 
 test('section, wall thickness and draft of a plate', async () => {

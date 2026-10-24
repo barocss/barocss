@@ -193,7 +193,7 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
   },
   {
     name: 'weld_list',
-    description: 'The frame\'s weld joints read off the geometry (FRd1): {joints [{label W1…, id, kind mitre | butt | on-face, body, end, meets, face, seamMM (the end face\'s outer loop), seamBasis exact | mesh, innerLoop {mm, welded: yours, null when not said} | null, weldMM, at, centre, weld {kind, sizeMM, sizeBasis set | estimate | none, allRound, notes?}}], totals {count, seamMM}, orphaned (records whose joint is gone), notes}. Say estimated sizes are estimates.',
+    description: 'The frame\'s weld joints read off the geometry (FRd1): {joints [{label W1…, id, kind mitre | butt | on-face, body, end, meets, face, seamLength (the end face\'s outer loop), seamBasis exact | mesh, innerLoop {length, welded: yours, null when not said} | null, weldDistance, at, centre, weld {kind, size, sizeBasis set | estimate | none, allRound, notes?}}], totals {count, seamLength}, orphaned (records whose joint is gone), notes}. Say estimated sizes are estimates.',
     input_schema: { type: 'object', properties: {}, additionalProperties: false },
   },
   {

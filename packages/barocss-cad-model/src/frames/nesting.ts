@@ -20,7 +20,7 @@ export interface NestSection {
 export interface Nesting {
   readonly bars: readonly NestBar[]; readonly sections: readonly NestSection[];
   readonly totals: { readonly bars: number; readonly stock: number; readonly pieces: number; readonly kerf: number; readonly waste: number };
-  readonly kerf: { readonly mm: number; readonly basis: 'set' | 'estimate' };
+  readonly kerf: { readonly value: number; readonly basis: 'set' | 'estimate' };
   /** Pieces no stock row can take: longer than every length (NEST_TOO_LONG), or the rows' counts spent (NEST_STOCK_SHORT). */
   readonly unplaced: readonly (NestPiece & { readonly code: 'NEST_TOO_LONG' | 'NEST_STOCK_SHORT' })[];
 }
@@ -39,7 +39,7 @@ export function nestCutList(doc: StudioDoc, list: PartCutList | null): NestResul
   const rows = doc.frames?.stock ?? [];
   if (!rows.length) return { ok: false, code: 'NEST_NO_STOCK', message: 'no stock lengths loaded: load the shop\'s list (features.frame_stock); none is built in' };
   if (!list || !list.rows.length) return { ok: false, code: 'NEST_NO_PIECES', message: 'the part has no frame members to cut' };
-  const set = doc.frames?.kerf, kerf = { mm: typeof set === 'number' && set >= 0 ? set : KERF_ESTIMATE_MM, basis: (typeof set === 'number' && set >= 0 ? 'set' : 'estimate') as 'set' | 'estimate' };
+  const set = doc.frames?.kerf, kerf = { value: typeof set === 'number' && set >= 0 ? set : KERF_ESTIMATE_MM, basis: (typeof set === 'number' && set >= 0 ? 'set' : 'estimate') as 'set' | 'estimate' };
   const pieces: NestPiece[] = list.rows.flatMap(r => r.pieces.map(key => ({ item: r.item, key, name: list.names[key] ?? key, section: r.section, length: r6(r.longPoint) })));
   const bySection = new Map<string, NestPiece[]>();
   for (const p of pieces) { const s = bySection.get(p.section) ?? []; s.push(p); bySection.set(p.section, s); }
@@ -49,13 +49,13 @@ export function nestCutList(doc: StudioDoc, list: PartCutList | null): NestResul
     const longest = Math.max(0, ...stock.map(s => s.length)), fit = ps.filter(p => p.length <= longest + EPS);
     for (const p of ps) if (p.length > longest + EPS) unplaced.push({ ...p, code: 'NEST_TOO_LONG' });
     if (!fit.length) continue;
-    const plan = fit.length <= EXACT_PIECES ? exact(fit, stock, kerf.mm) : null;
-    const used = plan ?? ffd(fit, stock, kerf.mm), method: NestSection['method'] = plan ? 'exact' : 'first-fit-decreasing';
+    const plan = fit.length <= EXACT_PIECES ? exact(fit, stock, kerf.value) : null;
+    const used = plan ?? ffd(fit, stock, kerf.value), method: NestSection['method'] = plan ? 'exact' : 'first-fit-decreasing';
     for (const p of used.short) unplaced.push({ ...p, code: 'NEST_STOCK_SHORT' });
-    const made = used.bars.map(b => barOf(b, section, kerf.mm));
+    const made = used.bars.map(b => barOf(b, section, kerf.value));
     bars.push(...made);
     const piecesMM = r6(fit.filter(p => !used.short.includes(p)).reduce((t, p) => t + p.length, 0)), stockMM = r6(made.reduce((t, b) => t + b.length, 0));
-    const lowerBoundMM = nestLowerBound(piecesMM, fit.length - used.short.length, kerf.mm, stock[0].length, longest), atBound = stockMM <= lowerBoundMM + 1e-6;
+    const lowerBoundMM = nestLowerBound(piecesMM, fit.length - used.short.length, kerf.value, stock[0].length, longest), atBound = stockMM <= lowerBoundMM + 1e-6;
     sections.push({ section, method, bars: made.length, stock: stockMM, pieces: piecesMM, lowerBound: lowerBoundMM, optimal: (!!plan || atBound) && !used.short.length,
       ...(plan ? {} : { note: fit.length > EXACT_PIECES ? `${fit.length} pieces: first-fit-decreasing (exact up to ${EXACT_PIECES}); ${atBound ? 'at the lower bound: optimal' : `${r6(stockMM - lowerBoundMM)} mm over the lower bound at most`}` : `first-fit-decreasing: the exact search spent its ${NEST_NODES} nodes, or the stock's counts left a piece without a bar` }) });
   }

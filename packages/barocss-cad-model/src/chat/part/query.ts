@@ -79,7 +79,7 @@ async function weldListTool(state: ChatState): Promise<ToolOutcome> {
   // (FRd1, O118: read only — each joint, its seam from the geometry and its weld, the person's or the rule's.)
   const w = weldList(state.doc, state.bodies);
   if (!w.joints.length && !w.orphaned.length) return fail(state, 'The part has no weld joints: frame members meeting at a corner, a butt or a face.');
-  return { state, content: json({ joints: w.joints.map((j, k) => ({ label: `W${k + 1}`, ...j })), totals: w.totals, orphaned: w.orphaned, notes: w.notes }), isError: false, changed: false, summary: `${w.totals.count} welds, ${w.totals.seamMM} mm of seam` };
+  return { state, content: json({ joints: w.joints.map((j, k) => ({ label: `W${k + 1}`, ...j })), totals: w.totals, orphaned: w.orphaned, notes: w.notes }), isError: false, changed: false, summary: `${w.totals.count} welds, ${w.totals.seamLength} mm of seam` };
 }
 async function fitClearanceTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   // (D155: a hole and a shaft — two faces with their classes, or two classes at a size — their limits from the user's
