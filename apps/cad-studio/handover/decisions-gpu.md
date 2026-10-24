@@ -3282,3 +3282,45 @@ The work stopped here for the owner's move to another place.
   - Studio tsc 0 and eslint 0 (with R7.3d's kernel patch applied in the lane's tree; this branch is cut before R7.3d).
 - **Branch**: `claude/gpu-g14-handle-2026-10-24`, cut at 3801e2d9f (before R7.3d), so it can merge ahead of the R7.3d
   pair. The lane branch merges it too.
+
+## G-R57 — R7.3a batch 3: gpu's public-input refusals coded (roadmap R7.3a, 2026-10-24; in progress, by area)
+
+The coordinator's plan from the classification (`gpu-throws-classified.md` in the lanes' shared notes):
+- Of the 101 plain throws in gpu's src, 61 refuse a caller's input on a public path, 28 are invariants or unreachable,
+  and 12 are wrapped as causes or turned into diagnostics.
+- The 61 become coded BarocssErrors, area by area, one commit each.
+- Shared helpers stay plain. Where they are public through an entry, the entry wraps them, keeping the RangeError as
+  the cause, so the seven flows that check `cause instanceof RangeError` stay true.
+- (b) and (c) are unchanged. Refusals that fire when a frame or a pick runs stay where they fire.
+- **Later, "verify, then remove"**: 17 (b) sites the classifier called dead: face-highlight 6, edge-overlay 1,
+  boolean-shell-scene-input 8, requireSceneExecution 2. Not verified: face-highlight is still imported by
+  object-highlight.
+
+**1. The viewer** (32 sites):
+- ViewerError moves into its own module, `viewer/viewer-error.ts` (re-exported where it was, from viewer/scene.ts and
+  the viewer entry), so geometry, lights and math refuse with it without an import cycle. Its code union is
+  `ViewerErrorCode`, exported from the viewer entry; GpuErrorCode takes it through ViewerError as before.
+- New codes, each `[CODE] ` followed by the old words:
+
+| Code | Sites |
+|---|---|
+| GEOMETRY_INVALID | geometry.ts' input checks (15: positions, indices, topology counts, normals, faces, edges, uvs, labels, colours, a colour range, scalar fields); Geometry's setColors/colour range/uvs (scene.ts, 4) |
+| INSTANCES_INVALID | instance transforms or colours of the wrong length; instancing a non-triangle mesh (3) |
+| TRANSFORM_INVALID | a transform that isn't 16 numbers (1) |
+| COLOR_MAP_INVALID | fewer than two stops, or stops not rising (1) |
+| COLOR_INVALID | not a hex colour (lights.ts, at frame time, 1) |
+| MATERIAL_INVALID | a shader material with more than 16 params (at frame time, 1) |
+| CLIP_INVALID | more clip planes than allowed; a plane without a normal or a finite offset (2) |
+| TEXTURE_INVALID | a texture without a size; data not width × height RGBA (2) |
+| SIZE_INVALID | a backing size under 1 × 1 (1) |
+| MATRIX_SINGULAR | `invert` of a matrix with no inverse (1) |
+
+- The class was RangeError; it's ViewerError now. Nothing in gpu's tests, the gpu-scene flows, the studio or cad-model
+  checks these as RangeError (the classifier's search, rechecked). The tests' message regexes are unanchored.
+- **Found, for the coordinator**: the published package has two copies of the viewer's classes. `@barocss/gpu` is a
+  bundle (dist/index.js) and `@barocss/gpu/viewer` is tsc's unbundled output (dist/viewer/), so `instanceof` across
+  the two entries fails (a ViewerError from one is not the other's BarocssError). This predates batch 3; the studio
+  uses src and is unaffected. barocss-error.test compares within the viewer entry and says why.
+- **Runs** (with R7.3d's kernel patch applied in the lane's tree, uncommitted; without it gpu's build stops at tsc):
+  gpu tsc 0, eslint 0, unit 202/202 (barocss-error.test 6, a new MATRIX_SINGULAR case); test:browser 29/29 on hardware
+  and 29/29 on SwiftShader; studio tsc 0, studio unit 286/286.

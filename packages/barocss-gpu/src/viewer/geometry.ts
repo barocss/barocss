@@ -1,5 +1,6 @@
 // Geometry kept on the CPU (so it can be re-uploaded after a device loss and ray-cast for picking) and
 // its vertex data as the viewer uploads it: positions, normals and linear RGBA8 colours.
+import { ViewerError } from './viewer-error.js';
 import { boxOfPositions, type Box3 } from './bounds.js';
 import type { LabelInput } from './glyphs.js';
 import { invert, srgbToLinear, transformDirection, transformPoint, type Vec3 } from './math.js';
@@ -63,9 +64,9 @@ export const SCALAR_MISSING = -3e38;
 
 /** A scalar field for a triangle geometry: checked, and laid out for drawing. */
 export function prepareScalars(g: PreparedGeometry, input: ArrayLike<number>, per: 'vertex' | 'triangle'): ScalarField {
-  if (g.topology !== 'triangles') throw new RangeError('Only triangle geometry has a scalar field');
+  if (g.topology !== 'triangles') throw new ViewerError('GEOMETRY_INVALID', 'Only triangle geometry has a scalar field');
   const T = g.elementCount / 3, n = per === 'vertex' ? g.vertexCount : T;
-  if (input.length !== n) throw new RangeError(`A per-${per} field needs ${n} values (it has ${input.length})`);
+  if (input.length !== n) throw new ViewerError('GEOMETRY_INVALID', `A per-${per} field needs ${n} values (it has ${input.length})`);
   const values = Float32Array.from(input), I = g.indices;
   if (per === 'vertex') {
     const draw = new Float32Array(n);
@@ -105,41 +106,41 @@ export function prepareGeometry(input: GeometryInput): PreparedGeometry {
   const topology = input.topology ?? 'triangles';
   if (topology === 'labels') return prepareLabels(input);
   const positions = Float32Array.from(input.positions);
-  if (positions.length % 3) throw new RangeError('positions must hold three numbers per vertex');
+  if (positions.length % 3) throw new ViewerError('GEOMETRY_INVALID', 'positions must hold three numbers per vertex');
   const vertexCount = positions.length / 3;
-  for (let i = 0; i < positions.length; i++) if (!Number.isFinite(positions[i])) throw new RangeError(`positions[${i}] is not finite`);
+  for (let i = 0; i < positions.length; i++) if (!Number.isFinite(positions[i])) throw new ViewerError('GEOMETRY_INVALID', `positions[${i}] is not finite`);
   let indices: Uint32Array | Uint16Array | null = null;
   if (input.indices) {
     indices = vertexCount <= 0xffff ? Uint16Array.from(input.indices) : Uint32Array.from(input.indices);
-    for (let i = 0; i < indices.length; i++) if (input.indices[i] >= vertexCount || input.indices[i] < 0 || !Number.isInteger(input.indices[i])) throw new RangeError(`indices[${i}] = ${input.indices[i]} is not a vertex`);
+    for (let i = 0; i < indices.length; i++) if (input.indices[i] >= vertexCount || input.indices[i] < 0 || !Number.isInteger(input.indices[i])) throw new ViewerError('GEOMETRY_INVALID', `indices[${i}] = ${input.indices[i]} is not a vertex`);
   }
   const contour = !!input.contour;
-  if (contour && (topology !== 'lines' || !input.normals || input.edges)) throw new RangeError('A contour is line geometry from triangles with normals, without edge ids');
+  if (contour && (topology !== 'lines' || !input.normals || input.edges)) throw new ViewerError('GEOMETRY_INVALID', 'A contour is line geometry from triangles with normals, without edge ids');
   const elementCount = indices ? indices.length : vertexCount, per = topology === 'lines' && !contour ? 2 : topology === 'points' ? 1 : 3;
-  if (elementCount % per) throw new RangeError(`${topology} need a multiple of ${per} ${indices ? 'indices' : 'vertices'}`);
+  if (elementCount % per) throw new ViewerError('GEOMETRY_INVALID', `${topology} need a multiple of ${per} ${indices ? 'indices' : 'vertices'}`);
   let normals: Float32Array;
   if (input.normals) {
     normals = Float32Array.from(input.normals);
-    if (normals.length !== positions.length) throw new RangeError('normals must match positions');
+    if (normals.length !== positions.length) throw new ViewerError('GEOMETRY_INVALID', 'normals must match positions');
   } else normals = topology !== 'triangles' ? new Float32Array(positions.length) : vertexNormals(positions, indices);
   let faces: Uint32Array | null = null;
   if (input.faces) {
-    if (topology !== 'triangles' || input.faces.length !== elementCount / 3) throw new RangeError('faces must hold one id per triangle');
+    if (topology !== 'triangles' || input.faces.length !== elementCount / 3) throw new ViewerError('GEOMETRY_INVALID', 'faces must hold one id per triangle');
     faces = Uint32Array.from(input.faces);
   }
   let edges: Uint32Array | null = null;
   if (input.edges) {
-    if (topology !== 'lines' || input.edges.length !== elementCount / 2) throw new RangeError('edges must hold one id per segment');
+    if (topology !== 'lines' || input.edges.length !== elementCount / 2) throw new ViewerError('GEOMETRY_INVALID', 'edges must hold one id per segment');
     edges = Uint32Array.from(input.edges);
   }
   const uvs = input.uvs ? Float32Array.from(input.uvs) : null;
-  if (uvs && uvs.length !== vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
+  if (uvs && uvs.length !== vertexCount * 2) throw new ViewerError('GEOMETRY_INVALID', 'uvs must hold two numbers per vertex');
   return { topology, positions, normals, colors: vertexColors(input.colors, vertexCount), uvs, indices, faces, edges, contour, vertexCount, elementCount, bounds: boxOfPositions(positions), scalars: null, labels: null };
 }
 /** Labels (G15): their anchors as the positions — for the bounds, the frustum and the scene tree — one element each. */
 function prepareLabels(input: GeometryInput): PreparedGeometry {
   const labels = input.labels ?? [], positions = new Float32Array(labels.length * 3);
-  labels.forEach((l, i) => { for (let k = 0; k < 3; k++) { const v = Number(l.at[k]); if (!Number.isFinite(v)) throw new RangeError(`labels[${i}].at is not finite`); positions[3 * i + k] = v; } });
+  labels.forEach((l, i) => { for (let k = 0; k < 3; k++) { const v = Number(l.at[k]); if (!Number.isFinite(v)) throw new ViewerError('GEOMETRY_INVALID', `labels[${i}].at is not finite`); positions[3 * i + k] = v; } });
   return { topology: 'labels', positions, normals: new Float32Array(positions.length), colors: vertexColors(undefined, labels.length), uvs: null, indices: null, faces: null, edges: null, contour: false, vertexCount: labels.length, elementCount: labels.length, bounds: boxOfPositions(positions), scalars: null, labels: labels.map(l => ({ ...l })) };
 }
 
@@ -148,7 +149,7 @@ export function vertexColors(c: ArrayLike<number> | undefined, vertexCount: numb
   const colors = new Uint8Array(vertexCount * 4).fill(255);
   if (!c) return colors;
   const k = c.length === vertexCount * 4 ? 4 : c.length === vertexCount * 3 ? 3 : 0;
-  if (!k) throw new RangeError('colors must hold three or four numbers per vertex');
+  if (!k) throw new ViewerError('GEOMETRY_INVALID', 'colors must hold three or four numbers per vertex');
   // (A run of vertices of one colour, a face's, is converted once: the same bytes, without three powers a vertex.)
   let r = NaN, g = NaN, b = NaN, R = 0, G = 0, B = 0;
   for (let v = 0; v < vertexCount; v++) {
@@ -166,8 +167,8 @@ const linearByte = (x: number) => Math.round(srgbToLinear(Math.min(1, Math.max(0
  * prepared colours (four bytes a vertex), as `vertexColors` writes it: a face's highlight changed in place.
  */
 export function fillVertexColors(colors: Uint8Array, first: number, count: number, color: ArrayLike<number>): void {
-  if (color.length !== 3 && color.length !== 4) throw new RangeError('a colour is three or four numbers');
-  if (!(Number.isInteger(first) && Number.isInteger(count) && first >= 0 && count >= 0 && 4 * (first + count) <= colors.length)) throw new RangeError('the range is not within the vertices');
+  if (color.length !== 3 && color.length !== 4) throw new ViewerError('GEOMETRY_INVALID', 'a colour is three or four numbers');
+  if (!(Number.isInteger(first) && Number.isInteger(count) && first >= 0 && count >= 0 && 4 * (first + count) <= colors.length)) throw new ViewerError('GEOMETRY_INVALID', 'the range is not within the vertices');
   const R = linearByte(color[0]), G = linearByte(color[1]), B = linearByte(color[2]), A = color.length === 4 ? Math.round(Math.min(1, Math.max(0, color[3])) * 255) : 255;
   for (let v = first, end = first + count; v < end; v++) { colors[v * 4] = R; colors[v * 4 + 1] = G; colors[v * 4 + 2] = B; colors[v * 4 + 3] = A; }
 }

@@ -51,3 +51,10 @@ test('a cause given as undefined is kept as one; none given, none kept (the clas
   assert.equal(Object.hasOwn(new gpu.NativePointLightsError('INPUT', 'x'), 'cause'), false);
   assert.equal(Object.hasOwn(new gpu.EngineRaycastError('INPUT', 'x', undefined), 'cause'), false);
 });
+
+test('batch 3: the viewer refuses a caller\'s input with a coded ViewerError, its words kept after the code', async () => {
+  const v = await import('../dist/viewer/index.js');
+  // (The viewer entry is unbundled and the main entry a bundle, each with its own copy of the classes: compared within one.)
+  assert.throws(() => v.invert(new Float64Array(16)), e => e instanceof v.ViewerError && Object.getPrototypeOf(v.ViewerError.prototype).constructor.name === 'BarocssError'
+    && e.code === 'MATRIX_SINGULAR' && e.message === '[MATRIX_SINGULAR] Matrix is not invertible');
+});
