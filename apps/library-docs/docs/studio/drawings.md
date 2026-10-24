@@ -40,14 +40,37 @@ at its own scale. Nothing is approximated except a section's hatch boundary.
   The **DETAILS** card lists each detail with its scale, which you can set, and a button to remove it.
 - **Its place.** It's laid out in the first free room from the frame's top right. Drag it anywhere in its square to
   move it.
-- **Dimensions** work in a detail as in a view. Their values come from the model, so a detail's dimension reads the true
+- **Dimensions.** They work in a detail as in a view. Their values come from the model, so a detail's dimension reads the true
   size, not the enlarged one.
 - **Issues.** `DETAIL_PARENT_MISSING`, when its view or section isn't on the sheet, and `DETAIL_EMPTY`, when its circle
   holds nothing. Both are fixed by removing the detail with its dimensions. `DETAIL_NO_ROOM` has no automatic fix.
-- **The agent** sets them with `set_drawing`'s `details`, each `{ id, view, center, radius, scale?, at? }`. A list
+- **The agent.** It sets them with `set_drawing`'s `details`, each `{ id, view, center, radius, scale?, at? }`. A list
   replaces the details, and `[]` clears them. A detail's parent, centre or radius can't change while it has dimensions.
 - **Not yet:** centre and thread marks inside a detail, a rectangular or jagged boundary, a detail of the isometric
   view, and a detail on another sheet.
+
+## Broken views
+
+A long part, such as a shaft or a bar, can be drawn with a band of its length left out, so the views fit the sheet at
+a larger scale.
+
+![A 500 × 20 × 20 bar broken from X 100 to 400, drawn at 1:1 on A4 without the isometric view: its front and top views shortened, break lines at the gap, the length dimension reading 500](/shots/studio/drawings/broken-view.jpg)
+
+- **The BREAKS card.** **Add break** leaves out the middle third of the part's longest axis, in whole millimetres.
+  Each break then has its axis and its two ends, in model mm, which you can change, and a button to remove it. A change
+  that would reverse a break or make two meet on one axis is refused.
+- **A break is along a model axis, not a view.** It applies to every orthographic view whose horizontal or vertical
+  axis it is, and to their principal sections, so the views stay in projection. A view looking along that axis, the
+  isometric view and aligned sections aren't broken.
+- **What is drawn.** The band is left out and closed to a 6 mm gap. A thin break line, with a small zig-zag, crosses
+  the view at each side of the gap.
+- **Dimensions across a break.** They read the true length, though drawn shorter. So does everything placed on the
+  view: centre marks, datums, leaders and balloons.
+- **The layout.** Each scale is worked out with the breaks, so **Auto** takes the larger scale a broken part allows.
+- **Issues.** `BREAK_NO_VIEW` when a break shortens no view on the sheet; its fix removes the break.
+- **The agent.** It sets them with `set_drawing`'s `breaks`, each `{ axis, from, to }`. A list replaces the breaks, and
+  `[]` clears them.
+- **Not yet:** breaks in the isometric view, the curved break symbol for round bars, and a break inside a detail.
 
 ## Dimensions and notes
 
