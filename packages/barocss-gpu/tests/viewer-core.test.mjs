@@ -10,6 +10,7 @@ import { clippedRay, clippedRayFull, fillVertexColors, keptBy, localPlane, neare
 import { packFrame, packOutput, parseColor, whiteBalance } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
 import { clipBox, Viewer } from '../dist/viewer/viewer.js';
+import { studioEnvironment, STUDIO_ENVIRONMENTS } from '../dist/viewer/studio-env.js';
 
 const near = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps * Math.max(1, Math.abs(b));
 const close = (a, b, eps = 1e-9) => a.every((x, i) => near(x, b[i], eps));
@@ -164,6 +165,20 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.deepEqual([...packFrame(vp, cam, [], {}).slice(248, 276)], new Array(28).fill(0));
   assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES));
   assert.match(surfaceWGSL(), new RegExp(`clipColor: vec4f,\\n  clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\n}`));
+});
+
+test('G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round', () => {
+  for (const kind of STUDIO_ENVIRONMENTS) {
+    const e = studioEnvironment(kind, 256);
+    assert.equal(e.width, 256); assert.equal(e.height, 128); assert.equal(e.data.length, 256 * 128 * 4);
+    assert.ok(e.data.every((v, i) => i % 4 !== 3 || v === 255), `${kind}: opaque`);
+  }
+  const s = studioEnvironment('softbox', 256), at = (e, az, el) => { const x = Math.floor(((az + 180) / 360) * e.width), y = Math.floor(((90 - el) / 180) * e.height); return e.data[(y * e.width + x) * 4]; };
+  assert.equal(at(s, -120, 50), 255, 'the key: full white');
+  assert.ok(at(s, 60, 10) < 60 && at(s, 0, -45) < 50, 'the room dark between its panels');
+  assert.ok(at(s, 90, 30) > 200, 'the strip behind');
+  const c = studioEnvironment('cyclorama', 256);
+  assert.ok(at(c, 45, 20) > 190 && at(c, 45, -20) > 140 && at(c, 45, -80) < at(c, 45, -10), 'the backdrop bright, the cove into the floor');
 });
 
 test('G2 the clip plane on the CPU: a ray finds the nearest hit on the kept side, a back face through the cut; a segment only its kept part', () => {

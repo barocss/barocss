@@ -15,7 +15,7 @@ export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
 export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
 import { defaultLights, directionalLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, capProbeSamplesWGSL, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 /** The ground grid on the plane across the camera's up axis. */
 export interface GridOptions {
@@ -256,6 +256,10 @@ export class Viewer {
   private boundEnv: ImageTexture | null = null;
   private mipPipelines = new Map<string, Pipeline>();
   private mipSampler!: object;
+  /** G15b: the environment passes (by entry point), the environment's sampler (mips, wrapping round), the BRDF table. */
+  private envPipelines = new Map<string, Pipeline>();
+  private envSampler!: object;
+  private brdfLut!: Texture;
   /** The colour maps' ramp sampler (G6: linear, clamped). */
   private rampSampler!: object;
   private textures = new Set<ImageTexture>();
@@ -332,6 +336,8 @@ export class Viewer {
     this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.atlasSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipPipelines.clear();
+    this.envPipelines.clear();
+    this.envSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'clamp-to-edge' });
     const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
     device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
     this.zeroParams = device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer no params' });
@@ -341,6 +347,8 @@ export class Viewer {
     this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
     this.emptyFront = device.createTexture({ size: [1, 1], format: 'rg32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no caps probe' });
     this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
+    this.brdfLut = device.createTexture({ size: [BRDF_LUT_SIZE, BRDF_LUT_SIZE], format: 'rg16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer BRDF table' });
+    this.envPass('fsLut', this.white.texture, this.brdfLut, 0, 'rg16float', [0, 0, 1, 0]);
     this.shadowMap = null;
     // (The targets were the lost device's: made again, and bound, when next drawn.)
     this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
@@ -357,10 +365,13 @@ export class Viewer {
     const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
     if (env) this.mapGroup(env);
     this.boundEnv = env;
-    const envView = env?.gpu ? env.gpu.texture.createView() : this.white.texture.createView(), envSampler = env?.gpu ? env.gpu.sampler : this.mipSampler;
+    // (G15b: its reflections prefiltered by roughness and its diffuse light, made once per map; the BRDF table always.)
+    const lighting = env?.gpu ? this.envLighting(env) : null;
+    const envView = lighting ? lighting.specular.createView() : this.white.texture.createView(), envSampler = lighting ? this.envSampler : this.mipSampler;
+    const irradianceView = lighting ? lighting.irradiance.createView() : this.white.texture.createView(), lutView = this.brdfLut.createView();
     // (The caps' prepass target where the targets exist; the scene's group must not hold it while the prepass draws into it.)
     const front = this.targets?.capFront ?? this.emptyFront;
-    const group = (buffer: Buffer, map: Texture, depth: Texture, samples = this.emptyFrontSamples) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }, { binding: 5, resource: depth.createView() }, { binding: 6, resource: samples.createView() }] });
+    const group = (buffer: Buffer, map: Texture, depth: Texture, samples = this.emptyFrontSamples) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView() }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }, { binding: 5, resource: depth.createView() }, { binding: 6, resource: samples.createView() }, { binding: 7, resource: irradianceView }, { binding: 8, resource: lutView }] });
     this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, front, this.targets?.capFrontSamples ?? this.emptyFrontSamples);
     this.frameGroupBare = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, this.emptyFront);
     this.shadowFrameGroup = group(this.shadowFrameBuffer, this.emptyShadow, this.emptyFront);
@@ -390,6 +401,7 @@ export class Viewer {
       { binding: 3, visibility: 2, texture: { sampleType: 'float' } }, { binding: 4, visibility: 2, sampler: { type: 'filtering' } },
       { binding: 5, visibility: 2, texture: { sampleType: 'unfilterable-float' } },
       { binding: 6, visibility: 2, texture: { sampleType: 'uint', multisampled: true } },
+      { binding: 7, visibility: 2, texture: { sampleType: 'float' } }, { binding: 8, visibility: 2, texture: { sampleType: 'float' } },
     ] });
     const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
     const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
@@ -834,6 +846,46 @@ export class Viewer {
       this.pipelines.set(key, (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({ label: `viewer ${key}`, layout: this.surfaceLayout, ...this.surfaceDescriptor(entry.module, lit, two, t, decal) }));
     }
     return key;
+  }
+
+  /**
+   * G15b: an environment map's lighting — its reflections prefiltered by GGX, a mip level each from roughness 0 to 1
+   * (ENV_LEVELS, from at most 1024 across), and its diffuse light (IRRADIANCE_SIZE) — made on first use and kept with it.
+   */
+  private envLighting(map: ImageTexture): { specular: Texture; irradiance: Texture } {
+    const gpu = map.gpu!;
+    if (gpu.lighting) return gpu.lighting;
+    const srcW = map.width, srcLevels = Math.floor(Math.log2(Math.max(map.width, map.height))) + 1;
+    const w = Math.max(8, Math.min(1024, 2 ** Math.floor(Math.log2(srcW)))), levels = Math.min(ENV_LEVELS, Math.floor(Math.log2(w / 2)) + 1);
+    const specular = this.device.createTexture({ size: [w, w / 2], format: 'rgba16float', mipLevelCount: levels, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer environment reflections' });
+    const irradiance = this.device.createTexture({ size: [IRRADIANCE_SIZE[0], IRRADIANCE_SIZE[1]], format: 'rgba16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer environment diffuse' });
+    for (let level = 0; level < levels; level++) this.envPass('fsSpecular', gpu.texture, specular, level, 'rgba16float', [levels > 1 ? level / (levels - 1) : 0, srcW, srcLevels, 128]);
+    this.envPass('fsIrradiance', gpu.texture, irradiance, 0, 'rgba16float', [0, srcW, srcLevels, 512]);
+    gpu.lighting = { specular, irradiance };
+    return gpu.lighting;
+  }
+  /** One environment pass: an entry point of envWGSL from a source into a target's level, with its four parameters. */
+  private envPass(entry: string, source: Texture, target: Texture, level: number, format: string, params: readonly number[]): void {
+    const key = `${entry}:${format}`;
+    let pipeline = this.envPipelines.get(key);
+    if (!pipeline) {
+      const module = this.device.createShaderModule({ code: envWGSL, label: 'viewer environment' });
+      pipeline = (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({
+        label: `viewer environment ${entry}`, layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: entry, targets: [{ format }] }, primitive: { topology: 'triangle-list' },
+      });
+      this.envPipelines.set(key, pipeline);
+    }
+    // (The BRDF table reads nothing: its pass has no bindings.)
+    const sourced = entry !== 'fsLut', buffer = sourced ? this.device.createBuffer({ size: 16, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer environment parameters' }) : null;
+    if (buffer) this.device.queue.writeBuffer(buffer, 0, new Float32Array(params));
+    const group = buffer ? this.device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [
+      { binding: 0, resource: source.createView() }, { binding: 1, resource: this.envSampler }, { binding: 2, resource: { buffer } },
+    ] }) : null;
+    const enc = this.device.createCommandEncoder();
+    const pass = enc.beginRenderPass({ label: `viewer environment ${entry}`, colorAttachments: [{ view: target.createView({ baseMipLevel: level, mipLevelCount: 1 }), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 0 } }] });
+    pass.setPipeline(pipeline); if (group) pass.setBindGroup(0, group); pass.draw(3); pass.end();
+    this.device.queue.submit([enc.finish()]);
+    buffer?.destroy();
   }
 
   /** Fill a texture's mip levels, each a filtered half of the one above. */

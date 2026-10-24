@@ -283,7 +283,7 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
   let hemi = dot(n, frame.up.xyz) * 0.5 + 0.5;
   var ambient = mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, hemi);
   // An environment map (up.w its intensity) lights instead: its most blurred level round the normal.
-  if (frame.up.w > 0.0) { ambient = envAt(n, frame.forward.w) * frame.up.w; }
+  if (frame.up.w > 0.0) { ambient = envDiffuse(n) * frame.up.w; }
   // Ambient: diffuse from the hemisphere around the normal, and its reflection around the mirrored view
   // direction (blurred toward the diffuse one with roughness), weighted by Fresnel. Metals get their
   // colour from the reflection only.
@@ -300,15 +300,20 @@ fn shadeLayered(world: vec3f, base: vec3f, metallicIn: f32, emissive: f32, recei
   let mirrored = reflect(-v, rn);
   let skyward = smoothstep(-0.3, 0.3, dot(mirrored, frame.up.xyz));
   var reflected = mix(mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, skyward), ambient, rough);
-  if (frame.up.w > 0.0) { reflected = envAt(mirrored, rough * frame.forward.w) * frame.up.w; }
-  let fresnel = f0 + (max(vec3f(1.0 - rough), f0) - f0) * pow(1.0 - nov, 5.0);
+  var fresnel = f0 + (max(vec3f(1.0 - rough), f0) - f0) * pow(1.0 - nov, 5.0);
+  if (frame.up.w > 0.0) {
+    // (G15b, under an environment: its reflection prefiltered for this roughness, weighted by the split sum's table.)
+    reflected = envReflect(mirrored, rough) * frame.up.w;
+    let ab = brdfScaleBias(nov, rough);
+    fresnel = f0 * ab.x + ab.y;
+  }
   var c = ambient * base * (1.0 - metallic) + reflected * fresnel + emissive * base;
   if (layer.coat > 0.0) {
     // (The coat's own reflection, sharp, on the surface's unfinished normal; it takes its share from what lies under it.)
     let cn = layer.coatN;
     let cm = reflect(-v, cn);
     var cr = mix(frame.ground.rgb * frame.ground.w, frame.sky.rgb * frame.sky.w, smoothstep(-0.3, 0.3, dot(cm, frame.up.xyz)));
-    if (frame.up.w > 0.0) { cr = envAt(cm, layer.coatRough * frame.forward.w) * frame.up.w; }
+    if (frame.up.w > 0.0) { cr = envReflect(cm, layer.coatRough) * frame.up.w; }
     let fc = (0.04 + 0.96 * pow(1.0 - max(dot(cn, v), 0.0), 5.0)) * layer.coat;
     c = c * (1.0 - fc) + cr * fc;
   }
