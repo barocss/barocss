@@ -8961,3 +8961,19 @@ fillets round a closed curve loop, were refused "The kernel could not build this
   - o19 5/5, references and rematch 13/13;
   - tsc; eslint;
   - FLOW_ONLY '^R10\.(2a|4b)' on port 52391: steps 1, 176 and 183 ok.
+
+## RS3 (a) — the robot tools' work as sync core functions (robot/verbs.ts), replies unchanged (2026-10-24)
+
+- **One async gatherer:** `robotViewOf(doc, bodies, evaluate)` builds `RobotView { doc, bodies, parts }`, each placed
+  part evaluated once. `viewWith(view, doc)` keeps the parts and takes another document's settings.
+- **The sync verbs:** treeOf, partsOf, sweepLinksOf, poseOf, sweepOf, inertiaOf, gravityOf, movesOf, sizeOf, urdfOf,
+  mjcfOf, and withJoints (set_joints' write, beside assembly/edit's withFrames).
+- **chat/robot.ts:** each tool is now `view = await robotViewOf(…)` followed by a verb. The call's shape is still
+  checked in the tool, in the same words.
+  - treeOfDoc, robotOfDoc, sweepLinksOfDoc, urdfOfDoc and mjcfOfDoc are thin async entries over the view.
+- **Oracle:** every robot test unchanged and passing, with the replies byte for byte as before.
+  - model 116/116 (robot, rs1, rs2, api-assembly, tool-contract, toolset, o11, o12, frames);
+  - studio robot 24/24;
+  - tsc; eslint 0 errors.
+- **Next, (b):** the four actions set_pose, waypoint, check_path and play, in degrees and mm, with the budget
+  reported.
