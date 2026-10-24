@@ -57,7 +57,7 @@ test('A7.5 the replay gate, mutants: the part read back with other facts, a verd
   const s = await seeded();
   const bent = (f: (e: Evidence) => Evidence | { error: string }): Reopen => async bytes => { const real = await (await import('@barocss/cad-model/team/candidates')).inProcessReopen(evaluate)(bytes); return 'error' in real ? real : f(real); };
   for (const [reopen, code] of [
-    [bent(e => ({ ...e, facts: { ...e.facts, volume_mm3: e.facts.volume + 1 } })), 'REPLAY_FACTS_DIFFER'],
+    [bent(e => ({ ...e, facts: { ...e.facts, volume: e.facts.volume + 1 } })), 'REPLAY_FACTS_DIFFER'],
     [bent(e => ({ ...e, verdicts: { ...e.verdicts, H: { ...e.verdicts.H, measured: (e.verdicts.H.measured ?? 0) + 0.02 } } })), 'REPLAY_VERDICT_DIFFERS'],
     [bent(e => ({ ...e, verdicts: { ...e.verdicts, H: { status: 'fail' } } })), 'REPLAY_VERDICT_DIFFERS'],
     [(async () => ({ error: 'the file is cut short' })) as Reopen, 'REPLAY_UNREADABLE'],
