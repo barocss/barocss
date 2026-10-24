@@ -52,7 +52,7 @@ export function ReferencesPanel(p: ReferencesPanelProps) {
       </div>;
     })}
     {p.set.datums.map(d => <div key={d.id} className="req pass" role="listitem" aria-label={`Datum ${d.id}`}>
-      <span className="req-row"><span className="req-mark">⌖</span><b>{d.id}</b> {d.name !== d.id ? d.name : ''} <span className="muted">· {d.kind}{d.of ? ` of ${d.of.reference} ${d.of.face ?? 'vertex'}` : ''}{d.radius ? ` · r ${Math.round(d.radius * 1000) / 1000}` : ''}{d.residualMM !== undefined ? ` · fit ${d.residualMM === 0 ? 'exact' : `${d.residualMM.toPrecision(2)} mm`}` : ''}</span></span>
+      <span className="req-row"><span className="req-mark">⌖</span><b>{d.id}</b> {d.name !== d.id ? d.name : ''} <span className="muted">· {d.kind}{d.of ? ` of ${d.of.reference} ${d.of.face ?? 'vertex'}` : ''}{d.radius ? ` · r ${Math.round(d.radius * 1000) / 1000}` : ''}{d.residual !== undefined ? ` · fit ${d.residual === 0 ? 'exact' : `${d.residual.toPrecision(2)} mm`}` : ''}</span></span>
       <span className="req-edit"><Button variant="ghost" aria-label={`Remove ${d.id}`} onClick={() => p.onRemove(d.id)}>Remove</Button></span>
     </div>)}
     {p.set.keepouts.map(k => {

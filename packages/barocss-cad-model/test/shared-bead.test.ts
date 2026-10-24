@@ -33,7 +33,7 @@ test('shared table through actual v2 weld edit: 8 owned 270, nominal 2880, 4 ids
 });
 
 test('unequal peer atomically refuses two joints, replans remaining manifest, and keeps three unrelated shared components', () => {
-  const doc = table(), bad: StudioDoc = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.map(w => w.joint === joints[0] ? { ...w, sizeMM: 2 } : w) } };
+  const doc = table(), bad: StudioDoc = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.map(w => w.joint === joints[0] ? { ...w, size: 2 } : w) } };
   const r = ok(bad), a = beadAccounting(bad, r.bodies)!;
   assert.equal(a.complete, false); assert.deepEqual(a.refusedJointIds, ['b0_part4.start', 'b0_part7.end']);
   assert.equal(a.bodyCount, 6); near(a.ownedVolumeMM3, 1620); near(a.nominalVolumeMM3, 2160); assert.equal(a.sharedSeamCount, 3);
@@ -60,7 +60,7 @@ test('default missing policy refuses all actual pairs; an authored peer removal 
 test('three-way actual component is refused atomically and no partial nominal survivor is emitted', () => {
   const doc = table(), n = doc.nodes[0]; assert.ok(n.kind === 'frame' && n.points && n.segments);
   const bad: StudioDoc = { ...doc, nodes: [{ ...n, points: [...n.points, [150, 150, 300]], segments: [...n.segments, [8, 4]] }],
-    frames: { ...doc.frames!, welds: [...doc.frames!.welds!, { joint: 'b0_part8.end', sizeMM: 3, kind: 'fillet' }] } };
+    frames: { ...doc.frames!, welds: [...doc.frames!.welds!, { joint: 'b0_part8.end', size: 3, kind: 'fillet' }] } };
   const e = ok(bad), a = beadAccounting(bad, e.bodies)!;
   assert.equal(a.complete, false); assert.deepEqual(a.refusedJointIds, ['b0_part4.start', 'b0_part7.end', 'b0_part8.end']);
   assert.equal(a.bodyCount, 6); near(a.ownedVolumeMM3, 1620);

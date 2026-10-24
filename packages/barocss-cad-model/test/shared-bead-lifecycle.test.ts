@@ -20,7 +20,7 @@ import { draftBaseline, moveBaseline, verifyBaseline } from '../src/team/baselin
 import { userToken } from '../src/team/ecr';
 const evaluate = async (d: StudioDoc) => evaluateDoc(d, 1);
 const ok = (d: StudioDoc) => { const e = evaluateDoc(d, 1); assert.ok(e.ok, JSON.stringify(e)); return e; };
-const bad = (): StudioDoc => { const d = table(); return { ...d, frames: { ...d.frames!, welds: d.frames!.welds!.map((w, i) => i ? w : { ...w, sizeMM: 2 }) } }; };
+const bad = (): StudioDoc => { const d = table(); return { ...d, frames: { ...d.frames!, welds: d.frames!.welds!.map((w, i) => i ? w : { ...w, size: 2 }) } }; };
 const inst = (doc: StudioDoc, id = 'p1'): PartInstance => ({ id, name: 'Table', doc, position: [1000, 20, 30], rotation: [0, 0, 30] });
 
 test('actual shared geometry Save/fresh Open/re-edit and incremental wire preserve reports and invalidate peer keys', async () => {

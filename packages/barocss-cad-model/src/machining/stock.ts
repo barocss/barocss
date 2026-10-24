@@ -2,7 +2,7 @@
 // built in, the owner's pattern of D121): blocks by their three sides, bars by diameter (and the longest they come in).
 // The smallest block whose sorted sides hold the part's sorted sides plus twice the allowance, or the thinnest bar
 // holding its turned diameter plus twice the allowance, cut to its length plus twice the allowance. The allowance is the
-// user's (`allowanceMM`); unset, 1 mm per face is taken, an estimate, and said. The choice is placed about the part —
+// user's (`allowance`); unset, 1 mm per face is taken, an estimate, and said. The choice is placed about the part —
 // centred on its box (a block), on its turning axis (a bar) — and exported as `stock.json` and a STEP of the stock body.
 import type { DocPlane, StockRow, StudioDoc } from '../engine/doc';
 import { emptyDoc, withNode } from '../engine/doc';
@@ -34,7 +34,7 @@ export function partBox(bodies: readonly BodyResult[]): { min: number[]; max: nu
 
 /** The stock for the part: a block for milling, a bar for turning (its axis from CNC6). */
 export function chooseStock(doc: StudioDoc, bodies: readonly BodyResult[], process: 'cnc-milling' | 'cnc-turning', turning?: Turning | null): StockResult {
-  const set = doc.machining?.allowanceMM, allowance = { mm: typeof set === 'number' && set >= 0 ? set : ALLOWANCE_ESTIMATE_MM, basis: (typeof set === 'number' && set >= 0 ? 'set' : 'estimate') as 'set' | 'estimate' }, a2 = 2 * allowance.mm;
+  const set = doc.machining?.allowance, allowance = { mm: typeof set === 'number' && set >= 0 ? set : ALLOWANCE_ESTIMATE_MM, basis: (typeof set === 'number' && set >= 0 ? 'set' : 'estimate') as 'set' | 'estimate' }, a2 = 2 * allowance.mm;
   const rows = doc.machining?.stock ?? [];
   if (process === 'cnc-milling') {
     const box = partBox(bodies), sides = [0, 1, 2].map(k => box.max[k] - box.min[k]), part = sides.map(r6);

@@ -8740,3 +8740,34 @@ word, and the coordinator approved those words (r7.7a-rename-proposal.md in the 
   - the affected model files 85/85 (toolset, tool-contract, chat-outputs, clearance, cam, print, a9, shop-context,
     sheet, pipe, sweep, o20) and studio cnc-cam and robot 29/29;
   - tsc (model, studio); eslint 0 errors.
+
+## R7.7a step 3 — StudioDoc's own stored fields without unit suffixes (2026-10-24)
+
+The owner widened R7.7 to stored fields (4b0413599): the documents are unreleased, so the rename happens in place,
+with no alias and no migration. Values are unchanged.
+
+| stored field | old | new |
+|---|---|---|
+| print preview | `printPreview.layerMM` | `layerHeight` (`layer` is the shown layer's index) |
+| machining | `machining.allowanceMM` | `allowance` |
+| casting | `casting.machiningAllowanceMM` | `machiningAllowance` |
+| frames | `frames.kerfMM` | `kerf` |
+| weld records | `frames.welds[].sizeMM` (WeldRecord; part.ts gives it to the bead as its leg) | `size` |
+| datums | `datums[].residualMM` | `residual` |
+
+- The set_* tool arguments were already `allowance`, `kerf` and `size`.
+- printPreview's validator text now reads `layerHeight must be …`.
+- **Studio:**
+  - the GPU lane's print state, which mirrors the stored field and printLayers' options: PrintOptions, PrintRequest,
+    PrintPanel, printSettings, usePrintLayers and print.worker, with layerMM → layerHeight and limitDeg →
+    overhangLimit;
+  - ReferencesPanel reads `residual`.
+  - ClearancePanel's `nearMM` prop is UI state and isn't touched.
+- browser-flow.mjs: two assertions now read `frames.kerf` and `printPreview.layerHeight`.
+- No fixture, sample or .bcad carries these fields, so nothing is regenerated.
+- **Left for the later steps:**
+  - step 2: the fit-table rows (`upToMM`, `overMM`, kernel row types);
+  - step 4: results such as nesting's `kerfMM` per bar, a weld joint's `weld.sizeMM`, KeepoutResult, robot/loop's
+    `residualMM` and print layers' `layerMM: { mm }`.
+- **Verified (T1):** tsc (model, studio); eslint 0 errors. The affected tests and the full suites run in the scratch
+  check together with O19's wiring.

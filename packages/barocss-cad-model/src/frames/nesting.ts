@@ -39,7 +39,7 @@ export function nestCutList(doc: StudioDoc, list: PartCutList | null): NestResul
   const rows = doc.frames?.stock ?? [];
   if (!rows.length) return { ok: false, code: 'NEST_NO_STOCK', message: 'no stock lengths loaded: load the shop\'s list (features.frame_stock); none is built in' };
   if (!list || !list.rows.length) return { ok: false, code: 'NEST_NO_PIECES', message: 'the part has no frame members to cut' };
-  const set = doc.frames?.kerfMM, kerf = { mm: typeof set === 'number' && set >= 0 ? set : KERF_ESTIMATE_MM, basis: (typeof set === 'number' && set >= 0 ? 'set' : 'estimate') as 'set' | 'estimate' };
+  const set = doc.frames?.kerf, kerf = { mm: typeof set === 'number' && set >= 0 ? set : KERF_ESTIMATE_MM, basis: (typeof set === 'number' && set >= 0 ? 'set' : 'estimate') as 'set' | 'estimate' };
   const pieces: NestPiece[] = list.rows.flatMap(r => r.pieces.map(key => ({ item: r.item, key, name: list.names[key] ?? key, section: r.section, lengthMM: r6(r.longPointMM) })));
   const bySection = new Map<string, NestPiece[]>();
   for (const p of pieces) { const s = bySection.get(p.section) ?? []; s.push(p); bySection.set(p.section, s); }

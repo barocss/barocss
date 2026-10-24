@@ -306,7 +306,7 @@ export function toPartDocument(doc: StudioDoc): CadPartDocument {
 // An unbounded shared failure propagates. Reasons remain on the authored joints (`beadRefusal`).
 // A record with no kind set on a mitre or a cap (a groove or a corner weld by default) is no bead:
 // the kernel's BEAD_KIND there is kept quiet.
-type WeldRecordLike = { joint: string; kind?: 'fillet' | 'butt'; sizeMM?: number; inner?: boolean };
+type WeldRecordLike = { joint: string; kind?: 'fillet' | 'butt'; size?: number; inner?: boolean };
 export interface BeadFeature { key: string; joint: string; quiet: boolean; feature: Extract<CadPartFeature, { kind: 'weld-bead' }> }
 /**
  * A joint's bead feature id: `bead_` and, for a member's end, the joint id; for a plate's seam, the plate's key — the
@@ -320,7 +320,7 @@ export function beadIdOf(joint: string): string {
 export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): BeadFeature[] {
   const out: BeadFeature[] = [], nodes = doc.nodes, records = (doc.frames?.welds ?? []) as readonly WeldRecordLike[], input = canonical(modelContent(doc));
   for (const r of records) {
-    if (r.kind === 'butt' || r.sizeMM === undefined) continue;
+    if (r.kind === 'butt' || r.size === undefined) continue;
     let feature: Record<string, unknown> | null = null, owner = -1, plate = -1;
     const end = /^(.+)\.(start|end)$/.exec(r.joint);
     if (end) {
@@ -335,7 +335,7 @@ export function beadsOf(doc: StudioDoc, gone: ReadonlySet<number> = new Set()): 
       feature = { frame: featureId(nodes, n.frame), on: n.kind === 'gusset' ? { gusset: featureId(nodes, at.node) } : { cap: featureId(nodes, at.node) } };
     }
     if (owner < 0 || gone.has(owner) || (plate >= 0 && gone.has(plate)) || nodes[owner]?.suppressed) continue;
-    const f = { id: beadIdOf(r.joint), kind: 'weld-bead', ...feature, leg: r.sizeMM } as BeadFeature['feature'];
+    const f = { id: beadIdOf(r.joint), kind: 'weld-bead', ...feature, leg: r.size } as BeadFeature['feature'];
     // (A plate's seams share one bead: its first record's.)
     if (out.some(x => x.feature.id === f.id)) continue;
     // Keep the full authored evaluation context even when retry removes failed Kernel features.

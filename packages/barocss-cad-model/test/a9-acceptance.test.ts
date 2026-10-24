@@ -62,7 +62,7 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   assert.deepEqual([sections.added, (sections.rows as { estimate?: boolean }[])[0].estimate], [['R40'], true]);
   await call('features', { action: 'frame_stock', file: files.file('frame-stock.json'), kerf: 2 });
   await call('features', { action: 'stock', file: files.file('stock.json'), allowance: 1 });
-  assert.deepEqual([s.doc.frames?.stock?.map(r => r.id), s.doc.frames?.kerfMM, s.doc.machining?.stock?.map(r => r.id), s.doc.machining?.allowanceMM], [['S6'], 2, ['B1', 'R30'], 1]);
+  assert.deepEqual([s.doc.frames?.stock?.map(r => r.id), s.doc.frames?.kerf, s.doc.machining?.stock?.map(r => r.id), s.doc.machining?.allowance], [['S6'], 2, ['B1', 'R30'], 1]);
 
   // 3. The frame (the base part): the table skeleton on R40, butt corners, steel. Exact: A · ΣL with A = 40² − 34².
   await call('features', { action: 'command', command: 'frame', values: { skeleton: 'table', W: 400, D: 300, H: 300, x: 0, y: 0, z: 0, section: 'library', row: 'R40', corners: 'butt' } });

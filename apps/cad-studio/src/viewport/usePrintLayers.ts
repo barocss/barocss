@@ -4,16 +4,16 @@ import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 import type { PrintDisplay } from './printDisplay';
 import type { PrintReply, PrintRequest } from './print.worker';
 
-export interface PrintOptions { layer: number; layerMM?: number; direction?: [number, number, number]; limitDeg?: number; supports: boolean; printed: boolean }
+export interface PrintOptions { layer: number; layerHeight?: number; direction?: [number, number, number]; overhangLimit?: number; supports: boolean; printed: boolean }
 export interface PrintState { stage: 'pending' | 'ready' | 'error'; display: PrintDisplay | null; count?: number; error?: string }
 /** One Model summary per source/options, lazy layer requests, and no old-source frame during source/pose changes. */
 export function usePrintLayers(active: boolean, meshes: DisplayMesh[], options: PrintOptions): PrintState {
   const worker = useRef<Worker | null>(null), request = useRef(0), source = useRef({ meshes, key: 1 }), support = useRef<{ key: number; mesh: DisplayMesh; summary: PrintDisplay['summary'] } | null>(null);
   if (source.current.meshes !== meshes) source.current = { meshes, key: source.current.key + 1 };
   const directionKey = JSON.stringify(options.direction ?? null);
-  const scope = useMemo(() => ({}), [active, meshes, directionKey, options.layerMM, options.limitDeg]);
+  const scope = useMemo(() => ({}), [active, meshes, directionKey, options.layerHeight, options.overhangLimit]);
   const range = useRef<{ scope: object; count: number } | null>(null);
-  const key = useMemo(() => ({}), [active, meshes, directionKey, options.layer, options.layerMM, options.limitDeg]);
+  const key = useMemo(() => ({}), [active, meshes, directionKey, options.layer, options.layerHeight, options.overhangLimit]);
   const [result, setResult] = useState<{ key: object; state: PrintState } | null>(null);
   useEffect(() => {
     if (!active) return;
@@ -33,7 +33,7 @@ export function usePrintLayers(active: boolean, meshes: DisplayMesh[], options: 
       setResult({ key, state: { stage: 'ready', display: { ...value.display, supportMesh: support.current.mesh, summary: support.current.summary } } });
     };
     next.onerror = event => { if (id === request.current) setResult({ key, state: { stage: 'error', display: null, error: event.message || 'Print preview worker failed.' } }); };
-    const job: PrintRequest = { request: id, sourceKey: source.current.key, meshes, layer: options.layer, layerMM: options.layerMM, direction: options.direction, limitDeg: options.limitDeg };
+    const job: PrintRequest = { request: id, sourceKey: source.current.key, meshes, layer: options.layer, layerHeight: options.layerHeight, direction: options.direction, overhangLimit: options.overhangLimit };
     try { next.postMessage(job); }
     catch (error) { setResult({ key, state: { stage: 'error', display: null, error: error instanceof Error ? error.message : String(error) } }); }
     return () => { if (request.current === id) request.current++; };

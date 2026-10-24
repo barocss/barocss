@@ -69,7 +69,7 @@ test('FRk5 positive authored gap never creates a contact bead; zero-gap re-edit 
   const made = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'features', { action: 'add', features: [tee] }, evaluate);
   assert.equal(made.isError, false, made.content);
   const branch = made.state.bodies.find(b => b.cutPiece?.id.endsWith('/1')); assert.ok(branch);
-  const record = { joint: `${branch.key}.end`, kind: 'fillet' as const, sizeMM: 3 };
+  const record = { joint: `${branch.key}.end`, kind: 'fillet' as const, size: 3 };
   const original = { ...made.state.doc, frames: { ...made.state.doc.frames, version: 1 as const, welds: [record] } } satisfies StudioDoc;
   for (const gap of [2, 1e-8, 0, 2]) {
     const field = editFields(original.nodes, 0).find(f => f.key === 'gap'); assert.ok(field?.kind === 'number');
