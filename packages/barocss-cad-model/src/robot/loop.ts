@@ -272,6 +272,10 @@ function rankOf(J: Float64Array, m: number, n: number): number {
   return ev.filter(e => e > 1e-14 * top && e > 1e-24).length;
 }
 
+/** How far the loops' mates are from holding at q (mm, the residual's norm): a chord's midpoint between two closed poses, RS6. */
+export function loopResidual(tree: JointTree, c: LoopCloser, q: Readonly<Record<string, number>>): number {
+  return Math.sqrt(evalLoop(tree, c.terms, q, new Float64Array(termRows(c.terms)), null, [], c.onPath));
+}
 /** A closer for a tree's loops: its terms, and which joints are round them. */
 export interface LoopCloser { terms: LoopTerm[]; all: string[]; free: string[]; freedom: number; onPath: Map<string, Set<string>> }
 /** The closer of a document's loops (null: none): its loops' freedom from the Jacobian's rank at the solved pose. */

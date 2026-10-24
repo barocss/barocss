@@ -14,8 +14,8 @@ import { framePoses } from './frames';
 import { treeInertia, type LinkInertia } from './inertia';
 import { exportUrdf, withoutCams, type UrdfResult } from './urdf';
 import { exportMjcf, type MjcfClosure, type MjcfResult } from './mjcf';
-import { closeLoops, closureOfDoc, loopCloserOf } from './loop';
-import { sweepLinks, sweepPath, type SweepLink } from './sweep';
+import { closeLoops, closureOfDoc, loopCloserOf, loopResidual, type LoopCloser } from './loop';
+import { sweepLinks, sweepPath, type SweepLink, type SweepResult } from './sweep';
 import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from './dynamics';
 import { sizeActuators, sizeCoupled, type Motor, type Reducer } from './actuators';
 import type { ProfileKind } from './profile';
@@ -23,7 +23,7 @@ import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotS
 import { r6 } from '../util/round';
 import { refusal, refused } from '../engine/refusal';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from './motion';
-import { sweepTimed } from './ccd';
+import { CCD_TOLERANCE, sweepTimed, timeAt, timePath, type TimedPath } from './ccd';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** A robot as its functions read it: the document, the base part's bodies, and each placed part's in its own coordinates. */
@@ -67,9 +67,9 @@ export function closedValues(view: RobotView, values: Readonly<Record<string, nu
   return { values: { ...values, ...out.q }, closed: { drivers, solved: c.free.filter(k => !drivers.includes(k)), residual_mm: out.residualMM } };
 }
 /** forward_kinematics' reply: each link and frame where the values put it (the loops closed), the gears' phase; `unknown`: keys no joint has. */
-export function poseOf(view: RobotView, given: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {
+export function poseOf(view: RobotView, given: Readonly<Record<string, number>>, t: JointTree = treeOf(view), close = true) {
   const unknownKeys = Object.keys(given).filter(k => !t.joints.some(j => j.key === k));
-  const { values, closed } = unknownKeys.length ? { values: { ...given }, closed: null } : closedValues(view, given, t);
+  const { values, closed } = unknownKeys.length || !close ? { values: { ...given }, closed: null } : closedValues(view, given, t);
   const fk = forwardKinematics(t, values), solved = solveDoc(view.doc).doc, r = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
   const links = t.links.filter(l => l.part !== null).flatMap(l => {
     const m = fk.motions.get(l.id); if (!m) return [];
@@ -181,6 +181,9 @@ export function withWaypoint(view: RobotView, o: { motion: string; values?: Read
     const at = o.at ?? waypoints.length;
     if (!Number.isInteger(at) || at < 0 || at > waypoints.length) throw refusal('VALUE', `at is 0–${waypoints.length} (where the waypoint goes)`);
     waypoints.splice(at, 0, { ...o.values });
+    // (RS6: a looped robot's waypoint names its drivers; a passive loop joint is refused, as pose refuses it.)
+    const closer = loopCloserOf(view.doc, t);
+    if (closer) closeLoops(t, closer, jointValuesIn(t, o.values));
   }
   const next: Motion = { name: o.motion, path: { ...was.path, waypoints, ...(o.limits ? { limits: { ...was.path.limits, ...o.limits } } : {}) } };
   // (Checked as it will play: unknown keys, gear followers and limits refused; a single waypoint is a motion still being recorded.)
@@ -191,16 +194,59 @@ export function withWaypoint(view: RobotView, o: { motion: string; values?: Read
 }
 /** The motion's timed path, checked as it will play (its limits the motion's own: LIMITS_MISSING without them). */
 function playable(t: JointTree, m: Motion) {
-  // (O22: a motion names joint values; nothing closes a loop along it yet, so its poses would leave the loop open — refused, not shown wrong.)
-  if (t.loops.length) throw refusal('LOOP_OPEN', `the robot has a closed loop (${t.loops.map(l => l.parts.join('–')).join(', ')}); a motion's poses do not close it yet, so it is not played or checked`);
   m.path.waypoints.forEach((w, k) => checkLimits(t, w, `${m.name}, waypoint ${k}: `));
   const path = timedPathOf(t, m.path), bad = checkPath(t, path);
   if (bad.length) throw refused(bad[0]);
   return path;
 }
-/** check_path: a motion checked for contact between the links along its timing (sweepTimed), degrees and mm out. */
+// ── RS6: a looped robot's motion closed along it — its waypoints name the drivers, the loops closed at every pose ──
+const CHORD_TURN = Math.PI / 180, CHORD_SLIDE = 1;
+/** The poses of a looped motion at times, each closed from the one before (from the solved pose). */
+function closedAt(t: JointTree, closer: LoopCloser, path: TimedPath, times: readonly number[]): Record<string, number>[] {
+  let prev: Record<string, number> = {};
+  return times.map(at => { const q = poseAt(t, path, at), out = closeLoops(t, closer, q, prev); prev = out.q; return { ...q, ...out.q }; });
+}
+/**
+ * A looped motion swept (RS6): each timed segment cut into chords no more than 1° (1 mm) of its drivers apart, each chord
+ * between two closed poses swept straight and certified (sweepPath, RM6); how far a chord's midpoint is from closing is
+ * the chords' error, reported. The first contact's time is on its chord's profile.
+ */
+function sweepClosed(view: RobotView, t: JointTree, closer: LoopCloser, path: TimedPath) {
+  const links = sweepLinksOf(view, t), segments = timePath(t, path), skipped: SweepResult['skipped'] = [], designed: SweepResult['designed'] = [];
+  let prev: Record<string, number> = {}, qa: Record<string, number> = { ...closeLoops(t, closer, path.waypoints[0], {}).q, ...path.waypoints[0] };
+  prev = qa;
+  let samples = 0, chords = 0, worst = 0, min: { mm: number; t: number; links: [string, string] } | null = null;
+  const turn = (k: string) => t.joints.find(j => j.key === k)?.type !== 'prismatic';
+  for (let k = 0; k < segments.length; k++) {
+    const g = segments[k]; if (!g.profile) continue;
+    const span = Math.max(0, ...Object.keys({ ...g.from, ...g.to }).map(key => Math.abs((g.to[key] ?? 0) - (g.from[key] ?? 0)) / (turn(key) ? CHORD_TURN : CHORD_SLIDE)));
+    const n = Math.max(1, Math.ceil(span));
+    for (let i = 1; i <= n; i++) {
+      const u = i / n, drv = Object.fromEntries(Object.keys({ ...g.from, ...g.to }).map(key => [key, (g.from[key] ?? 0) + u * ((g.to[key] ?? 0) - (g.from[key] ?? 0))]));
+      const qb = { ...drv, ...closeLoops(t, closer, drv, prev).q }; prev = qb;
+      const mid = Object.fromEntries(Object.keys({ ...qa, ...qb }).map(key => [key, ((qa[key] ?? 0) + (qb[key] ?? 0)) / 2]));
+      worst = Math.max(worst, loopResidual(t, closer, mid)); chords++;
+      const r = sweepPath(t, links, qa, qb, { tolerance: CCD_TOLERANCE }), at = (s: number) => g.t0 + timeAt(g.profile, (i - 1 + s) / n);
+      samples += r.samples;
+      for (const x of r.skipped) if (!skipped.some(y => y.links.join() === x.links.join())) skipped.push(x);
+      for (const x of r.designed) if (!designed.some(y => y.links.join() === x.links.join())) designed.push(x);
+      if (r.minClearance && (!min || r.minClearance.mm < min.mm)) min = { mm: r.minClearance.mm, t: at(r.minClearance.s), links: r.minClearance.links };
+      if (r.contact) return { clear: false, toi: at(r.contact.s), segment: k, links: r.contact.links, values: r.contact.values, minClearance: min, samples, skipped, designed, chords, worst };
+      qa = qb;
+    }
+  }
+  return { clear: true, minClearance: min, samples, skipped, designed, chords, worst };
+}
+/** check_path: a motion checked for contact between the links along its timing (sweepTimed; a looped robot's closed, RS6), degrees and mm out. */
 export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf(view)) {
-  const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), r = sweepTimed(t, sweepLinksOf(view, t), path);
+  const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), closer = loopCloserOf(view.doc, t);
+  if (closer) {
+    const r = sweepClosed(view, t, closer, path), contact = r.clear ? undefined : { t_s: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
+    return { motion: name, duration_s: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
+      min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), t_s: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped, designed: r.designed,
+      loops: { chords: r.chords, chord_residual_mm: Number(r.worst.toPrecision(3)) } };
+  }
+  const r = sweepTimed(t, sweepLinksOf(view, t), path);
   const contact = r.clear ? undefined : { t_s: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
   return { motion: name, duration_s: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
     min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), t_s: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped, designed: r.designed };
@@ -208,6 +254,8 @@ export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf
 /** play: a motion's poses at `samples` even times (poseAt, as the studio plays it): each time, the values (degrees, mm) and the links' placements. */
 export function playMotion(view: RobotView, name: string, samples = 30, t: JointTree = treeOf(view)) {
   const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), T = duration(path), n = Math.max(2, Math.min(200, Math.round(samples)));
-  const frames = Array.from({ length: n }, (_, k) => { const at = (T * k) / (n - 1), p = poseOf(view, poseAt(t, path, at), t).reply; return { t_s: r6(at), values: jointValuesOut(t, p.values), links: p.links }; });
+  // (RS6: a looped robot's poses closed along the motion, each from the one before.)
+  const times = Array.from({ length: n }, (_, k) => (T * k) / (n - 1)), closer = loopCloserOf(view.doc, t), poses = closer ? closedAt(t, closer, path, times) : times.map(at => poseAt(t, path, at));
+  const frames = poses.map((q, k) => { const p = poseOf(view, q, t, false).reply; return { t_s: r6(times[k]), values: jointValuesOut(t, p.values), links: p.links }; });
   return { motion: name, duration_s: r6(T), samples: frames };
 }

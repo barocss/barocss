@@ -9282,3 +9282,38 @@ coordinator approved the design: a declared `cam` mate.
 - **Verified (T1):** o24a-cam 4/4; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12
   and api-assembly 161/161; tsc (model and studio); eslint 0 errors; docs tables regenerated. The per-turn size is
   unchanged at 24,042.
+
+## RS6 (core) — motions close their loops: play and check_path through the general closer; LOOP_OPEN retired (2026-10-24)
+
+The coordinator ordered RS6 right after O24 (a): P1's cycle sweep needs a looped mechanism moved through its motion
+with its loop closed. The core is ours; the studio's playback is the GPU lane's.
+- **robot/verbs.ts:**
+  - **play_motion:** each sample's pose from poseAt (the waypoints name the drivers), closed by closeLoops from the
+    sample before. poseOf gains `close = false` for poses that are already closed.
+  - **check_path, on a looped robot (`sweepClosed`):**
+    - Each timed segment is cut into chords no more than 1° (or 1 mm) of its drivers apart.
+    - Each chord runs between two closed poses and is swept straight and certified by sweepPath (RM6), at
+      CCD_TOLERANCE.
+    - A chord's middle is not closed exactly. How far it is (loopResidual, the mates' residual) is reported as
+      `loops: {chords, chord_residual_mm}`, the chords' error.
+    - The first contact's time is taken on its chord's profile, timeAt over the chord's span of the segment.
+    - Robots without loops keep sweepTimed, unchanged.
+  - **set_waypoint** on a looped robot closes the waypoint, so one that gives a passive loop joint is refused,
+    LOOP_PASSIVE.
+  - **LOOP_OPEN** is no longer thrown, and its code is removed from CadModelCode.
+- **robot/loop.ts:** `loopResidual(tree, closer, q)`.
+- **For the GPU lane's playback:** `loopCloserOf(doc, tree)` once, then, per frame,
+  `closeLoops(tree, closer, poseAt(tree, path, t), previous)`, which gives the passive joints. The studio's Check path
+  can call checkMotion's chord sweep, or the same chords.
+- **Tests:**
+  - o24a-loops gains 2:
+    - play_motion on the slider-crank's full turn has the piston on the closed form at all 25 samples (to 1e-6 mm, the
+      reply's rounding). check_path is clear over 360 chords, with a chord residual under 0.01 mm. A waypoint giving the
+      rod's joint is refused, LOOP_PASSIVE.
+    - A grounded block behind the stroke: check_path's first contact is piston–stop at the crank angle where the
+      closed form puts the piston's back on the block's face, to under 1e-3 rad.
+  - Changed, because LOOP_OPEN is retired:
+    - o22's test 3: the four-bar's crank motion is clear over 240 chords, with a chord residual under 0.01 mm, and the
+      rocker follows the crank.
+    - RS1: every sample's demo motion passes check_path clear, the four-bar's with its loop closed.
+- **Verified (T1):** o24a-loops 7/7; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12 and api-assembly 163/163; tsc; eslint 0 errors; docs tables regenerated.

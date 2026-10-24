@@ -121,3 +121,46 @@ test('O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-
     assert.ok(bad.isError, name); assert.match(bad.content, /\[LOOP_PASSIVE\] the loop has 1 degree of freedom: give 1 of /);
   }
 });
+
+// ── RS6: the slider-crank's motion closed along it ──
+/** The slider-crank (e 0) with a stored motion — the crank a full turn at 90°/s, 180°/s² — and optionally a grounded block behind the piston's stroke. */
+async function withMotion(block: boolean): Promise<{ doc: StudioDoc; crank: string }> {
+  const s = sliderCrank(0), r = await evaluate(s.doc); assert.ok(r.ok);
+  const crank = (await treeOfDoc(s.doc, r.bodies, evaluate)).joints.find(j => j.child === 'crank')!.key;
+  // (The block: x 45 … 65, over the piston's height but clear of the rod beneath it (z 25 … 40).)
+  const stop = { ...emptyDoc(), nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 20] } as ModelNode, { kind: 'extrude', sketch: 0, height: 15 } as ModelNode] };
+  const doc: StudioDoc = { ...s.doc, robot: { version: 1, motions: [{ name: 'turn', path: { waypoints: [{}, { [crank]: 360 }], profile: 'trapezoid', limits: { default: { velocity: 90, acceleration: 180 } } } }] },
+    instances: [...s.doc.instances!, ...(block ? [{ id: 'stop', name: 'stop', doc: stop, position: [45, 20, 25] as [number, number, number], rotation: [0, 0, 0] as [number, number, number], grounded: true }] : [])] };
+  return { doc, crank };
+}
+const pistonX = (theta: number) => { const P = [30 + 30 * Math.cos(theta), 30 + 30 * Math.sin(theta)]; return P[0] + Math.sqrt(70 * 70 - (30 - P[1]) ** 2); };
+
+test('RS6: play_motion closes the slider-crank\'s loop at every sample — the piston where the closed form puts it; check_path sweeps the closed path in 1° chords, clear', async () => {
+  const { dispatchTool } = await import('../src/chat/tools');
+  const { doc, crank } = await withMotion(false), r = await evaluate(doc); assert.ok(r.ok);
+  const s = { doc, bodies: r.bodies }, tree = await treeOfDoc(doc, r.bodies, evaluate), sign = Math.sign(tree.joints.find(j => j.key === crank)!.axis[2]);
+  const play = JSON.parse((await dispatchTool(s, 'play_motion', { motion: 'turn', samples: 25 }, evaluate)).content);
+  assert.equal(play.samples.length, 25);
+  for (const f of play.samples as { values: Record<string, number>; links: { link: string; position: number[] }[] }[]) {
+    const theta = (f.values[crank] * Math.PI / 180) * sign, piston = f.links.find(l => l.link === 'piston')!;
+    assert.ok(Math.abs(piston.position[0] + 10 - pistonX(theta)) <= 1e-6, `${f.values[crank]}°: ${piston.position[0] + 10} vs ${pistonX(theta)}`);
+  }
+  const check = JSON.parse((await dispatchTool(s, 'check_path', { motion: 'turn' }, evaluate)).content);
+  assert.equal(check.clear, true, JSON.stringify(check).slice(0, 400));
+  assert.equal(check.loops.chords, 360); assert.ok(check.loops.chord_residual_mm < 0.01, `${check.loops.chord_residual_mm}`);
+  // (A waypoint names the driver: one giving a passive loop joint is refused, as pose refuses it.)
+  const rod = tree.joints.find(j => j.child === 'rod')!.key, bad = await dispatchTool(s, 'set_waypoint', { motion: 'turn', values: { [crank]: 90, [rod]: 10 } }, evaluate);
+  assert.ok(bad.isError); assert.match(bad.content, /\[LOOP_PASSIVE\]/);
+});
+
+test('RS6: check_path finds the piston meeting a block behind its stroke where the closed form puts it, to the chord\'s error', async () => {
+  const { dispatchTool } = await import('../src/chat/tools');
+  const { doc, crank } = await withMotion(true), r = await evaluate(doc); assert.ok(r.ok);
+  const tree = await treeOfDoc(doc, r.bodies, evaluate), sign = Math.sign(tree.joints.find(j => j.key === crank)!.axis[2]);
+  const check = JSON.parse((await dispatchTool({ doc, bodies: r.bodies }, 'check_path', { motion: 'turn' }, evaluate)).content);
+  assert.equal(check.clear, false, JSON.stringify(check).slice(0, 300)); assert.deepEqual([...check.contact.links].sort(), ['piston', 'stop']);
+  // (The closed form: the piston's back face (W.x − 10) at the block's face (x 65), first on the way out: bisection on [0, π].)
+  let lo = 0, hi = Math.PI; for (let i = 0; i < 80; i++) { const m = (lo + hi) / 2; if (pistonX(m) - 10 > 65) lo = m; else hi = m; }
+  const theta = Math.abs(check.contact.values[crank] * Math.PI / 180); void sign;
+  assert.ok(Math.abs(theta - lo) < 1e-3, `contact at ${theta} rad, the closed form ${lo}`);
+});
