@@ -919,8 +919,8 @@ export interface CadPartEvaluationOptions { readonly facetExplodeTriangles?: num
  * for the feature that made it. A body's B-rep built lazily, after the evaluation, is not counted.
  */
 export interface CadPartProfileCalls { booleans: number; planarBooleans: number; tessellations: number; sweeps: number; shells: number; finishes: number }
-/** A feature's cost in one evaluation: `ms`, its own wall time (performance.now(), not CPU time); `calls`, as above. */
-export interface CadPartFeatureProfile { readonly ms: number; readonly calls: Readonly<CadPartProfileCalls> }
+/** A feature's cost in one evaluation: `wallTime` in seconds (performance.now(), not CPU time); `calls`, as above. */
+export interface CadPartFeatureProfile { readonly wallTime: number; readonly calls: Readonly<CadPartProfileCalls> }
 export function evaluateCadPart(input: CadPartDocument, previous?: Cache, options: CadPartEvaluationOptions = {}): CadPartSnapshot {
   const was = facetLimit, wasProfiling = profiling;
   facetLimit = Math.min(FACET_EXPLODE_TRIANGLES, options.facetExplodeTriangles ?? FACET_EXPLODE_TRIANGLES);
@@ -1015,7 +1015,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       throw new CadPartError('GEOMETRY', at, known ? (cause as Error).message : `unexpected kernel failure: ${cause instanceof Error ? cause.message : String(cause)}`);
     }
     results.set(at, result); features.push({ id: at, kind: f.kind, dependencies: [...new Set(deps)] });
-    if (profile) { profile[at] = Object.freeze({ ms: performance.now() - started, calls: Object.freeze(profiling!) }); profiling = null; }
+    if (profile) { profile[at] = Object.freeze({ wallTime: (performance.now() - started) / 1000, calls: Object.freeze(profiling!) }); profiling = null; }
   }
   // Outputs: parts not consumed by a later feature.
   const outputs: CadPartOutput[] = [];

@@ -51,7 +51,7 @@ export function writeConstructionEvidence(api) {
     }
     fixtures.push({ name, inputId: feature.inputId, outputId: feature.outputId, feature, domain, samples,
       sourceVersion: 1, geometryVersion: 0, packetVersion: 0, revision: 505, entity: 128, grid: report.grid,
-      maxSampledPreviewDeviationMM: report.maxSampledDeviationMM, hashes });
+      maxSampledPreviewDeviationMM: report.maxSampledDeviation, hashes });
   }
   const manifest = { base: '6185396138c91c6971943410de690e296837dd09',
     head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
