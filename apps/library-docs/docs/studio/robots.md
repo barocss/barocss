@@ -102,8 +102,12 @@ and jerk use the corresponding units per second, second squared and second cubed
 seconds, `clearance` uses mm, and `g` uses mm/s². `inertia_ratio_max` is dimensionless. The `actuators` map names
 catalogue motor and reducer ids by joint key. It does not supply new sourced hardware data.
 
-The CLI reads this public file with `readDuty`. Its shared `dutyJson` adapter writes public values back. The sample
-uses the shipped SCARA document, including its turn and slide:
+The CLI passes canonical `PublicDuty` directly to `robotCheckOfDoc`; sizing uses `robotSizeOfDoc`. Public
+`serviceLife` and `dwell` remain in seconds. The sample also uses the explicitly importable
+`robot/native/duty.readDuty` to decode the same public input into native operands, then calls
+`nativeRobotCheckOfDoc` and `nativeRobotSizeOfDoc` for comparison. Those native operands use radians, existing SI
+quantities and `life_h` in hours. The shared `dutyJson` adapter writes public values back. The sample compares the
+shared projections with the canonical results on the shipped SCARA document, including its turn and slide:
 
 <<< @/../samples/robot-public-metadata.test.mjs#duty
 
@@ -266,8 +270,10 @@ offset when you pass between public and internal units. Apply the same joint-typ
 
 Nested gear placements `couplings[i].g1.rotation` and `g2.rotation` use degrees in the gear pair's common frame.
 The internal FK and `GearPlacement` keep radians. GearSpec pressure and helix angles already use degrees; do not
-convert them again. A pose's gear metadata uses `phase` and `homePhase` in degrees and `backlash` in mm. A closed
-pose reports `loops.residual` in mm, and a checked closed-loop motion reports `loops.chordResidual` in mm.
+convert them again. A pose's gear metadata uses `phase` and `homePhase` in degrees and `backlash` in mm.
+`loops.residual` is the pin distance in mm for a pin closer. For a general closer, it is the original norm of
+distance and rotation constraint rows, not a pure length. The four-bar pin-loop sample's checked motion reports
+`loops.chordResidual` in mm.
 
 **Public reports.** `Robot.inertia()` returns `{ links }`. Each link uses these fields, as does its agent report:
 
