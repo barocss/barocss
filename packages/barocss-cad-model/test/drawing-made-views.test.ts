@@ -16,7 +16,7 @@ import { readDrawing } from '../src/drawing/types';
 // view whose outline is a full circle locates every circle on its centre by that alone (HOLE_NOT_LOCATED had counted a
 // shaft's own steps and a cover's bore and gland). After Auto-dimension and one Fix, the shaft and the cover say nothing.
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
-const ROW = { id: '6204', designation: '6204', bore: 20, outsideMM: 47, width: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'a test row' };
+const ROW = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, source: 'a test row' };
 const FITS = { id: 'f', rows: [{ class: 'k5', over: 18, upTo: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
 async function build(steps: (s: ChatState, call: (tool: string, args: Record<string, unknown>) => Promise<unknown>) => Promise<ChatState | void>): Promise<ChatState> {
   let s: ChatState = { doc: emptyDoc(), bodies: [] };
@@ -28,7 +28,9 @@ const shaft = () => build(async (s0, call) => {
   await call('features', { action: 'command', command: 'shaft', values: {} });
   return undefined;
 }).then(async s => {
-  let st: ChatState = { ...s, doc: (editFitTables((editBearingRows(s.doc, [ROW]) as { doc: StudioDoc }).doc, [FITS]) as { doc: StudioDoc }).doc };
+  const bearingRows = editBearingRows(s.doc, [ROW]); assert.ok('doc' in bearingRows, 'error' in bearingRows ? bearingRows.error : '');
+  const fitTables = editFitTables(bearingRows.doc, [FITS]); assert.ok('doc' in fitTables, 'error' in fitTables ? fitTables.error : '');
+  let st: ChatState = { ...s, doc: fitTables.doc };
   for (const [command, values] of [['key', { h: 6 }], ['bearing', { sc: 'k5', step: 3, against: 'start' }]] as const) {
     const r = await dispatchTool(st, 'features', { action: 'command', command, values, bodies: ['b0'] }, evaluate); assert.ok(!r.isError, r.content); st = r.state;
   }

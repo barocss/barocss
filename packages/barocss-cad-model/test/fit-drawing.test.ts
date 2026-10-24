@@ -58,8 +58,8 @@ test('D155 fit_clearance: the faces — clearance, 6 to 35 µm, both rows estima
   let r = await dispatchTool(s, 'fit_clearance', { hole: 'n1.hole0.side0', shaft: 'n3.side0' }, evaluate); assert.ok(!r.isError, r.content);
   const out = JSON.parse(r.content);
   assert.deepEqual([out.kind, out.clearanceMinUM, out.clearanceMaxUM, out.estimate, out.contradicted], ['clearance', 6, 35, true, false]);
-  assert.deepEqual([out.hole.minMM, out.hole.maxMM, out.shaft.minMM, out.shaft.maxMM], [12, 12.018, 11.983, 11.994]);
-  assert.equal(out.mmc.overlapMM3, 0);
+  assert.deepEqual([out.hole.min, out.hole.max, out.shaft.min, out.shaft.max], [12, 12.018, 11.983, 11.994]);
+  assert.equal(out.mmc.overlap, 0);
   r = await dispatchTool(s, 'fit_clearance', { hole_class: 'H7', shaft_class: 'g6', size: 12 }, evaluate); assert.ok(!r.isError, r.content);
   assert.deepEqual([JSON.parse(r.content).clearanceMinUM, JSON.parse(r.content).clearanceMaxUM], [6, 35]);
   r = await dispatchTool(s, 'fit_clearance', { hole_class: 'H7', shaft_class: 'g6', size: 30 }, evaluate);
