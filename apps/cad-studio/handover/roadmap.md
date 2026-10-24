@@ -209,6 +209,23 @@ Today (the Render workspace, WebGPU): metallic/roughness materials with presets,
 
 Order (agreed with the GPU lane, 2026-10-24): after RS2 — G15d.1, then G15a, G15b, G15d.2–3, G15c, G15d.4. The built-in look per material id (waiting on the owner) is decided inside G15a and put to the owner then.
 
+### Toward commercial grade: candidates (2026-10-24, waiting for the owner's priorities)
+
+The owner asked "상용 수준으로 갈려면 로드맵에 더 많이 추가해야하는 것들이 있어?". Compared with SolidWorks, Fusion and Onshape, by what the studio's own docs list today. Nothing here starts until the owner orders it; FEM/CAE and PCB stay off the roadmap by earlier decisions.
+
+| # | Area | Gap |
+|---|---|---|
+| CG1 | Modelling | Loft with guide rails and non-parallel sections; boundary surfaces; variable-radius and face fillets; draft along any pull direction and from a parting line; rib; emboss/deboss and text on faces; wrap; modelled (helical) threads beside cosmetic ones; helix and spiral curves |
+| CG2 | Modelling | Feature patterns (a feature, not a body), patterns along a curve and fill patterns; move/delete/replace face on solids (direct editing); thicken and offset surfaces, knit, trim and extend (surface modelling) |
+| CG3 | Sketch | Splines with handles, conics, sketch text, sketch blocks; dimension expressions (waiting on the owner) |
+| CG4 | Assembly | Subassemblies (flexible), component patterns, assembly features (a cut across parts), a motion study (time-based drive with contacts and plots), large-assembly modes (P3 measures need) |
+| CG5 | Drawings | Detail and broken views, more section types, title-block templates and revision tables, full GD&T frames with datum features, ISO/ASME presets, inch drawings |
+| CG6 | Data | Real file storage beyond the browser (a local folder or cloud), versions with branches and compare, sharing and comments, multi-user editing |
+| CG7 | Exchange | STEP AP242 assemblies with PMI in and out, glTF/USDZ export for web and AR, Parasolid x_t (reading only, if the owner wants it) |
+| CG8 | Manufacturing | Production CAM: toolpaths with a post-processor (G-code) beyond the preview's NOT FOR PRODUCTION; sheet-metal DXF nesting |
+| CG9 | Product | Units beyond MMGS for display (inch), a Korean UI, onboarding/tutorials, a desktop build, accessibility |
+| CG10 | Robustness | Healing of imported geometry; the kernel's open robust refusals (fuzz 38) toward zero; tolerant modelling |
+
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
 
 The owner asked for one refactoring pass when the features are reasonably complete: code that is only laid out flat is
@@ -308,6 +325,7 @@ evidence files.
 - **RS3** — The agent moves the robot (joints, waypoints, check and play) · ko: 에이전트가 채팅으로 로봇을 움직이기
 - **RS4** — Robot docs examples · ko: 로봇 문서 예제와 화면
 - **RS5** — The robot on the facade · ko: 겉 API에서 로봇 다루기
+- **CG1–CG10** — Toward commercial grade: candidates waiting for the owner's priorities · ko: 상용 수준을 위한 후보 (모델링, 스케치, 조립, 도면, 데이터, 교환, 제조, 제품, 견고성) — 오너 우선순위 대기
 - **R7.1** — Public API inventory · ko: 공개 API 목록 자동 추출
 - **R7.2** — API conventions (approved) · ko: API 규약 (승인됨)
 - **R7.3a** — Errors to one BarocssError shape in all three packages · ko: 세 패키지 오류를 BarocssError 하나로
