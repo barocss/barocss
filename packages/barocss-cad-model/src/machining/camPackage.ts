@@ -56,9 +56,9 @@ function axesOf(n: readonly number[]): [Vec3, Vec3, Vec3] {
 }
 
 /** The package: the tool's whole shape (`tool` given, else a flat end mill of CNC8's diameter, its flute 3 D and shank D, estimates). */
-export function camPackage(doc: StudioDoc, all: readonly BodyResult[], o: { toolMM?: number; tool?: Partial<Omit<ToolShape, 'basis'>> } = {}): CamPackage {
+export function camPackage(doc: StudioDoc, all: readonly BodyResult[], o: { toolDiameter?: number; tool?: Partial<Omit<ToolShape, 'basis'>> } = {}): CamPackage {
   const bodies = madeBodies(doc.nodes, all); // (O160: the stock, the safe height and the cuts are the made part's.)
-  const p = camPreview(doc, bodies, { ...(o.tool?.diameterMM ?? o.toolMM ? { toolMM: o.tool?.diameterMM ?? o.toolMM } : {}) });
+  const p = camPreview(doc, bodies, { ...(o.tool?.diameterMM ?? o.toolDiameter ? { toolDiameter: o.tool?.diameterMM ?? o.toolDiameter } : {}) });
   const D = p.tool.diameterMM, kind = o.tool?.kind ?? 'flat';
   const tool: ToolShape = { kind, diameterMM: D, cornerMM: kind === 'ball' ? D / 2 : kind === 'bull' ? o.tool?.cornerMM ?? D / 4 : 0, fluteMM: o.tool?.fluteMM ?? 3 * D, shankMM: o.tool?.shankMM ?? D, basis: { diameter: p.tool.basis, shape: o.tool ? 'given' : 'estimate' } };
   const st = chooseStock(doc, bodies, 'cnc-milling');

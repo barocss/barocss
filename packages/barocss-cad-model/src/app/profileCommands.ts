@@ -160,13 +160,13 @@ export const pipeCommand: Command = {
   hint: 'Carry a finished sketch along a run, a bend and a run',
   available: needProfile,
   fields: ctx => { const p = oneProfile(ctx); return [{ key: 'h', label: 'Run', kind: 'mm', min: 0.1 }, { key: 'bend', label: 'Bend radius', kind: 'mm', min: 0.1 },
-    { key: 'bendDeg', label: 'Bend angle', kind: 'deg', min: 1, max: 270, step: 15 },
+    { key: 'bendAngle', label: 'Bend angle', kind: 'deg', min: 1, max: 270, step: 15 },
     { key: 'toward', label: 'Bends toward', kind: 'choice', options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }] },
     ...opFields(!!(p && baseOf(ctx, p.node)))]; },
-  defaults: ctx => { const p = oneProfile(ctx); return { h: 8, bend: 20, bendDeg: 90, toward: 'x', ...(p && baseOf(ctx, p.node) ? { op: 'join' } : {}) }; },
+  defaults: ctx => { const p = oneProfile(ctx); return { h: 8, bend: 20, bendAngle: 90, toward: 'x', ...(p && baseOf(ctx, p.node) ? { op: 'join' } : {}) }; },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, run = Number(v.h);
-    return combine(withNode(ctx.doc, { kind: 'sweep', sketch: p.index, path: [{ kind: 'straight', length: run }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendDeg), toward: v.toward as 'x' }, { kind: 'straight', length: run }] }), baseOf(ctx, p.node)?.ref ?? null, v.op);
+    return combine(withNode(ctx.doc, { kind: 'sweep', sketch: p.index, path: [{ kind: 'straight', length: run }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendAngle), toward: v.toward as 'x' }, { kind: 'straight', length: run }] }), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
 };
 

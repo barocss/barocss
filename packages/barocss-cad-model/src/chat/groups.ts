@@ -51,7 +51,7 @@ export const GROUPS: Record<string, Group> = {
       rebuild: ['rebuild_report', '— each feature\'s build time and kernel calls; mate loops'],
       welds: ['weld_list', '— the frame\'s weld joints, seams from the geometry, sizes yours or estimated (FRd1)'],
       cutlist: ['cut_list', 'csv? — a frame\u2019s members to cut: rows of identical ones, lengths, end cuts, mass (FR4a); nested into the stock lengths (FRb)'],
-      bom: ['output_bom', 'expectedRevision? — BOM files'], purchase_csv: ['output_purchase_csv', 'withMade?, expectedRevision?'], clearance: ['output_clearance', 'nearMM?, expectedRevision? — current assembly map'], cam: ['output_cam_package', 'part?, toolMM?, expectedRevision? — NOT FOR PRODUCTION'],
+      bom: ['output_bom', 'expectedRevision? — BOM files'], purchase_csv: ['output_purchase_csv', 'withMade?, expectedRevision?'], clearance: ['output_clearance', 'near?, expectedRevision? — current assembly map'], cam: ['output_cam_package', 'part?, toolDiameter?, expectedRevision? — NOT FOR PRODUCTION'],
       render: ['render_views', 'highlight?, section? — pictures of the part'],
       select: ['select', 'faces?, edges?, bodies? — shows them selected in the studio'],
       manufacturability: ['check_printability', 'direction?, finish?, sides? — the report for the part\'s process: printing, injection moulding (pull, finish, halves), machining, casting (pull)'],
@@ -87,7 +87,7 @@ export const GROUPS: Record<string, Group> = {
     about: 'Standard and team parts.',
     actions: { standards: ['standards_lookup', 'table?, row?, field? — a standards-derived value and its source'], list: ['list_library', 'library?'], add: ['add_library', 'library — a library document'], add_part: ['add_library_part', 'library, part, face, point, variant?, params?, x_direction?, context?'] },
   },
-  print: { title: '3D print', about: 'Printability on an FDM printer (check: as query.manufacturability).', actions: { layers: ['output_print_layers', 'part?, layers?, layerMM?, direction?, limitDeg?, expectedRevision?'], check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
+  print: { title: '3D print', about: 'Printability on an FDM printer (check: as query.manufacturability).', actions: { layers: ['output_print_layers', 'part?, layers?, layerHeight?, direction?, overhangLimit?, expectedRevision?'], check: ['check_printability', 'direction?'], orient: ['orient_for_print', 'apply?'] } },
   drawing: {
     title: 'Drawing',
     about: 'The part\'s 2D drawing; a drawing change is always the user\'s, so make it as ops of proposals.propose.',
