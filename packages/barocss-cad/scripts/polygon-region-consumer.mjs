@@ -1,11 +1,10 @@
-import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 
 /** Consume the driver's actual extracted archive without repacking. */
-export async function verifyPolygonRegionConsumer({api,destination,temp,require}){
+export async function verifyPolygonRegionConsumer({api,destination,temp,require,archive}){
  const points=[[0,0],[4,0],[4,1],[1,1],[1,4],[0,4]];
  writeFileSync(join(temp,'polygon-region-runtime.mjs'),`import assert from 'node:assert/strict';import {buildXYPolygonRegion,validateXYPolygonRegion,buildXYProfile,compileCadModel,evaluateCurve,evaluateCurveD1,exportIGES} from '@barocss/cad';
 const points=${JSON.stringify(points)},result=buildXYPolygonRegion({id:'packed_region',points});assert.equal(result.region.areaMM2,7);assert.equal(result.region.signedAreaMM2,7);assert.equal(result.region.regionCertified,true);assert.equal(result.region.topologicalWire,false);assert.equal(result.region.face,false);assert.equal(result.region.solid,false);assert.equal(result.sourceVersion,0);assert.equal(result.model.version,0);assert.deepEqual(validateXYPolygonRegion(result.curve),result.region);const compiled=compileCadModel(result.source,{sourceVersion:0});assert.equal(compiled.ok,true);assert.deepEqual(compiled.model,result.model);assert.notEqual(result.curve,result.model.objects[0]);
@@ -20,6 +19,6 @@ buildXYPolygonRegion({id:'region',points:[[0,0,0],[3,0,0],[0,3,0]]});
 // @ts-expect-error Cached proof is not authoring input.
 buildXYPolygonRegion({...request,region:{valid:true}});
 `);execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'polygon-region-types.ts')],{stdio:'inherit'});
- const result=api.buildXYPolygonRegion({id:'packed_region',points}),hash=x=>createHash('sha256').update(x).digest('hex');const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(join(temp,'barocss-cad-0.0.0-private-experimental.tgz'))),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceSHA256:hash(result.source),sourceVersion:0,nativeVersion:0,region:result.region,igesFlags:{entity:126,planar:0,closed:0,polynomial:1,periodic:0}};
+ const result=api.buildXYPolygonRegion({id:'packed_region',points}),hash=x=>createHash('sha256').update(x).digest('hex');const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(archive)),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceSHA256:hash(result.source),sourceVersion:0,nativeVersion:0,region:result.region,igesFlags:{entity:126,planar:0,closed:0,polynomial:1,periodic:0}};
  if(process.env.BAROCSS_CAD_POLYGON_REGION_EVIDENCE){const folder=resolve(process.env.BAROCSS_CAD_POLYGON_REGION_EVIDENCE);mkdirSync(folder,{recursive:true});writeFileSync(join(folder,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');writeFileSync(join(folder,'packed-region-result.json'),JSON.stringify(result,null,2)+'\n');writeFileSync(join(folder,'packed-region.css'),result.source);}console.log('Packed polygon region ESM/types, actual source/native spans and separate mathematical certificate passed');return record;
 }

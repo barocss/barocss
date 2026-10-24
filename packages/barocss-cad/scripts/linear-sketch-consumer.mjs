@@ -5,7 +5,7 @@ import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {join,resolve} from 'node:path';
 
 /** Reuse the driver's actual extracted public archive; no second pack. */
-export async function verifyLinearSketchConsumer({api,destination,temp,require}){
+export async function verifyLinearSketchConsumer({api,destination,temp,require,archive}){
   assert.equal(typeof api.solveXYLinearSketch,'function');
   const document={format:'barocss-xy-linear-sketch',version:0,id:'packed_sketch',lengthUnit:'mm',points:[{id:'A',position:[0,1]},{id:'B',position:[4,3]}],segments:[{id:'line',startPointId:'A',endPointId:'B'}],constraints:[{id:'h',kind:'horizontal',segmentId:'line'}]};
   writeFileSync(join(temp,'linear-sketch-runtime.mjs'),`import assert from 'node:assert/strict';import {solveXYLinearSketch as solve,compileCadModel,evaluateCurveD1,exportIGES} from '@barocss/cad';
@@ -22,7 +22,7 @@ solveXYLinearSketch({...document,constraints:[{id:'angle',kind:'angle',segmentId
 // @ts-expect-error Native sketch document versions are explicit.
 solveXYLinearSketch({...document,version:2});
 `);execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'linear-sketch-types.ts')],{stdio:'inherit'});
-  const result=api.solveXYLinearSketch(document);assert.equal(result.ok,true);const hash=x=>createHash('sha256').update(x).digest('hex');const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(join(temp,'barocss-cad-0.0.0-private-experimental.tgz'))),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceSHA256:hash(result.solution.source),report:result.report,sourceVersion:0,nativeVersion:0,selectedEntity:126};
+  const result=api.solveXYLinearSketch(document);assert.equal(result.ok,true);const hash=x=>createHash('sha256').update(x).digest('hex');const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(archive)),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceSHA256:hash(result.solution.source),report:result.report,sourceVersion:0,nativeVersion:0,selectedEntity:126};
   if(process.env.BAROCSS_CAD_LINEAR_SKETCH_EVIDENCE){const folder=resolve(process.env.BAROCSS_CAD_LINEAR_SKETCH_EVIDENCE);mkdirSync(folder,{recursive:true});writeFileSync(join(folder,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');writeFileSync(join(folder,'packed-sketch-result.json'),JSON.stringify(result,null,2)+'\n');writeFileSync(join(folder,'packed-sketch.css'),result.solution.source);}
   console.log('Packed XY linear sketch ESM/types, exact rank/DOF cases, conflict and original line source passed');return record;
 }
