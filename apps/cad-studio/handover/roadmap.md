@@ -209,9 +209,11 @@ Today (the Render workspace, WebGPU): metallic/roughness materials with presets,
 
 Order (agreed with the GPU lane, 2026-10-24): after RS2 — G15d.1, then G15a, G15b, G15d.2–3, G15c, G15d.4. The built-in look per material id (waiting on the owner) is decided inside G15a and put to the owner then.
 
-### Toward commercial grade: candidates (2026-10-24, waiting for the owner's priorities)
+### Toward commercial grade (2026-10-24; the owner's order: CG1, CG2, CG5, CG6 first)
 
-The owner asked "상용 수준으로 갈려면 로드맵에 더 많이 추가해야하는 것들이 있어?". Compared with SolidWorks, Fusion and Onshape, by what the studio's own docs list today. Nothing here starts until the owner orders it; FEM/CAE and PCB stay off the roadmap by earlier decisions.
+The owner asked "상용 수준으로 갈려면 로드맵에 더 많이 추가해야하는 것들이 있어?". Compared with SolidWorks, Fusion and Onshape, by what the studio's own docs list today. The owner: "CG1·CG2(모델링), CG5(도면), CG6(파일 저장·버전)부터 로드맵 순서에 넣고 진행해줘." Those four are ordered (below); the rest wait. FEM/CAE and PCB stay off the roadmap by earlier decisions.
+
+Order and owners: **CG1/CG2** — kernel (the geometry: loft with rails and non-parallel sections, boundary surfaces, variable/face fillets, draft from any direction and a parting line, rib, emboss and text, wrap, helical threads and helices, feature patterns, face move/delete/replace, thicken/offset/knit/trim/extend) right after the R7.3b + R7.7b window and before R7.3d; outer adds the studio commands and v2 actions per feature as the kernel lands it; GPU adds pickers where a new reference kind needs one. **CG5** (drawings) and **CG6** (storage and versions) — new lanes proposed to the owner, since outer and GPU are full (O22, O24, RS, G15); until then they wait.
 
 | # | Area | Gap |
 |---|---|---|
