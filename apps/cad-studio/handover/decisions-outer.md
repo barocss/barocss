@@ -9157,3 +9157,59 @@ From the coordinator, after the docs lane's arm-6r shot and its repro of the `de
   - RS1: arm-2r's wave is pinned at 5.5 s (1.5 + 2.5 + 1.5); every moving joint is rated, and only the four listed are
     unbounded.
 - **Verified (T1):** rs1, rs2, rs3, o22 and robot-*, 96/96; tsc (model and studio); eslint 0 errors.
+
+## O24 (a), PG-7 — loops close on their own mates: slides, chains, several loops; pose and set_pose close them (2026-10-24)
+
+P1's slider-crank was refused by closureOf: NOT_ONE_LOOP ("… has 5"). Its piston rides on the rod's small end by a
+concentric-only wrist pin (a slide plus a turn), and the piston–bore concentric closes the loop. The coordinator
+approved the design, which lifts the API lane's check.ts close().
+- **robot/loop.ts, the general closer (the four-bar's pin closer stays as it is):**
+  - `loopTermsOf(doc, tree)`: each loop mate as it holds at the solved pose.
+
+    | mate | its term |
+    |---|---|
+    | concentric | two points of a's axis kept on b's line (6 rows) |
+    | coincident or distance | a's point at b's plane offset (1 row), plus the normals kept (n_a × n_b, 3 rows) |
+    | angle | the normals' cosine (1 row) |
+    | lock | three of b's points where a carries them (9 rows) |
+    | anything else | refused: LOOP_MATE_UNSUPPORTED |
+
+  - `loopCloserOf(doc, tree)` gives the terms, the loop joints (on one part's path, not both), the free ones (gear
+    followers move with their leaders, folded into the leader's column × multiplier) and the loops' freedom: the free
+    joints less the Jacobian's rank at the solved pose.
+  - `closeLoops(tree, closer, drivers, from)`:
+    - damped Gauss–Newton, (JᵀJ + λI)δ = −Jᵀr with λ = 1e-12·max(1, diag), on the analytic Jacobian (a turn moves a
+      point by ω × (x − o) and a direction by ω × d; a slide moves a point along its axis);
+    - it starts from the previous pose and converges at 1e-9 mm;
+    - continuation in steps of at most 5° or 5 mm, halved down to 1e-3°, keeps the assembled branch.
+  - **Refusals:**
+    - LOOP_PASSIVE: more drivers than the freedom; the text names how many and which.
+    - JOINT_MIMIC: a follower given.
+    - NO_CLOSURE: no closure at the smallest step (past a toggle or out of reach), with how far apart the mates are.
+    - DEAD_POINT: closed, but the passive joints lose rank against the solved pose.
+  - The hot helpers are module level with scratch arrays: evalLoop, rateOn, solveNormal, and rankOf (cyclic Jacobi).
+- **robot/verbs.ts:** `closedValues(view, values)` closes the loops, taking the loop joints given as the drivers.
+  - poseOf uses it, so forward_kinematics and set_pose return solved loops, plus `loops: {drivers, solved,
+    residual_mm}`.
+  - forward_kinematics returns refusals as tool errors.
+  - The descriptions say all this; the per-turn size is unchanged at 24,042, since handler descriptions aren't counted
+    in it.
+- **Not done from the design:** "the tree prefers to leave out a turning pin". Both of the engine's candidate pairs are
+  concentric-only (cylindrical), so it would not help, and it would risk other trees. MJCF still writes a loop it can
+  close (a pin, `connect`) and leaves the others out with a note, as before.
+- **Test:** test/o24a-loops.test.ts, 5 tests.
+  - **The slider-crank (r 30, L 70):** crank, rod, a piston on a concentric-only wrist pin, and a grounded cylinder
+    holding the bore, built from blocks with holes.
+    - Run with e 0 (the bore left out as the loop), e 5 (the bore left out) and e 5 (the wrist pin left out).
+    - At every 5° through 720° the wrist pin is where W.x = P.x + √(L² − (y_b − P.y)²) puts it, to 1e-9 mm, with the
+      crankpin P from the crank's own FK. The stroke is 60 mm (2r) at e 0. A jump to 200° gives the same pose as
+      stepping there.
+    - The old closer refuses it.
+  - **The four-bar:** the general closer equals the pin closer to 1e-9 at seven crank angles. LOOP_PASSIVE is refused
+    (two drivers); the rocker driven to 3 rad is refused at its toggle, 0.901 rad; a tangent mate closing a loop is
+    refused, LOOP_MATE_UNSUPPORTED.
+  - **The tools:** forward_kinematics at 60° puts the piston at the closed form's x; set_pose at 60° gives the same
+    links; a passive joint given is refused, LOOP_PASSIVE, through both tools.
+- **Next:** PG-5 (the cam mate), then RS6: poseAt, check_path and play close loops, and LOOP_OPEN goes away.
+- **Verified (T1):** o24a 5/5; robot-*, rs1–3, o22, tool-contract and toolset 113/113; tsc; eslint 0 errors; docs
+  tables regenerated.
