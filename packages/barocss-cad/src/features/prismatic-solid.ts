@@ -27,6 +27,7 @@ import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type Br
 import { buildProfileLoop, capSurface, extrudedSurface, segmentCurve, type ProfileSegment, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { sideName, type SideTags } from '../document/side-names.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export interface PrismaticSlab { readonly z0: number; readonly z1: number; readonly regions: readonly CurveRegion2[] }
 /** An authored top or bottom: caps of the solid at height z inside these regions take its tag. */
@@ -34,7 +35,7 @@ export interface PrismaticCapSource { readonly z: number; readonly regions: read
 /** Slabs sorted by height, disjoint in Z; adjacent slabs with equal sections are merged. */
 export interface PrismaticSolid { readonly kind: 'prismatic-solid'; readonly slabs: readonly PrismaticSlab[]; readonly caps?: readonly PrismaticCapSource[] }
 export type PrismaticBooleanOperation = 'union' | 'intersection' | 'difference';
-export class PrismaticSolidError extends Error { constructor(detail: string) { super('Prismatic solid: ' + detail); this.name = 'PrismaticSolidError'; } }
+export class PrismaticSolidError extends KernelError { constructor(detail: string) { super('Prismatic solid: ' + detail, { code: 'PRISMATIC_SOLID' }); this.name = 'PrismaticSolidError'; } }
 
 const ringsOf = (regions: readonly CurveRegion2[]) => regions.flatMap(r => [r.outer, ...r.holes]);
 const allRings = (slabs: readonly PrismaticSlab[]) => slabs.flatMap(s => ringsOf(s.regions));
@@ -328,6 +329,18 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
     edges.push({ id: eid, curve, vertices: [vertexOf(fwd.start, fwd.startRoot!), vertexOf(fwd.end, fwd.endRoot!)], name: edgeBase(list) });
   }
   nameEdges(edges);
+  // (A cap whose boundary passes one point at two vertices: two walls tangent there along a vertical line. Where the
+  // solid lies on both sides of the line — two discs touching from outside, a figure eight — its parts touch along it:
+  // not a manifold solid, refused. Where it lies on neither — a disc tangent inside a disc, a wall tangent inside a hole
+  // — it is the crescent, kept as one body (D195). The commutativity check's 20261024 #51, D275.)
+  const extent = P.reduce((m, q) => Math.max(m, Math.abs(q[0]), Math.abs(q[1])), 1), rho = Math.max(1e-4 * extent, 1e3 * tol);
+  for (const f of faces) {
+    if (!f.cap) continue;
+    const at = new Map<number, Set<string>>();
+    for (const l of f.loops) for (const u of l.uses) { const p = Number(u.start.split('_')[0]), ids = at.get(p) ?? new Set<string>(); ids.add(vertexOf(u.start, u.startRoot!)); at.set(p, ids); }
+    for (const [p, ids] of at) if (ids.size > 1 && materialAround(f.cap.region, P[p], rho) > 0.5)
+      throw new BrepError('GEOMETRY', `the solid touches itself along the vertical line at (${P[p].map(x => +x.toFixed(4))}): two of its walls meet there from outside each other`);
+  }
 
   // 4d. Shells: faces connected through edges. Positive shells are bodies; negative ones are cavities.
   const froot = faces.map((_, i) => i), ff = (i: number): number => { while (froot[i] !== i) i = froot[i] = froot[froot[i]]; return i; };
@@ -370,6 +383,13 @@ export function nameEdges(edges: { curve: Curve; name?: string }[]): void {
   for (const e of edges) groups.set(e.name!, [...(groups.get(e.name!) ?? []), e]);
   const mid = (c: Curve): Point => { const p = c.controlPoints, a = p[0], b = p[p.length - 1], m = p[Math.floor(p.length / 2)]; return [(a[0] + b[0] + m[0]) / 3, (a[1] + b[1] + m[1]) / 3, (a[2] + b[2] + m[2]) / 3]; };
   for (const [base, list] of groups) if (list.length > 1) [...list].sort((a, b) => byPosition(mid(a.curve), mid(b.curve))).forEach((e, k) => { e.name = `${base}#${k + 1}`; });
+}
+
+/** The share of 16 points on a circle of radius rho about p that lie in the region. */
+function materialAround(region: CurveRegion2, p: XY, rho: number): number {
+  let n = 0;
+  for (let k = 0; k < 16; k++) { const a = (k + 0.5) * Math.PI / 8; if (inRegion([p[0] + rho * Math.cos(a), p[1] + rho * Math.sin(a)], region)) n++; }
+  return n / 16;
 }
 
 function interiorPoint(region: CurveRegion2): XY {

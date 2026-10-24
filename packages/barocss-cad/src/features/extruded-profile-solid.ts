@@ -2,6 +2,7 @@ import type { Curve, Point, Surface } from '../types.js';
 import { evaluateCurve, evaluateSurface } from '../core/math.js';
 import { encodeBinaryStl } from '../io/stl.js';
 import { dist as d3 } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
 // Extruded profile solids: a closed XY loop of lines and circular arcs, swept straight along +Z.
 // Geometry is binary64 with explicit tolerances (not exact rationals); arcs are exact rational
@@ -14,7 +15,7 @@ export const ExtrudedProfileDiagnosticCode = Object.freeze({
 } as const);
 export type ExtrudedProfileDiagnosticCode = typeof ExtrudedProfileDiagnosticCode[keyof typeof ExtrudedProfileDiagnosticCode];
 
-export class ExtrudedProfileError extends Error {
+export class ExtrudedProfileError extends KernelError {
   readonly code: ExtrudedProfileDiagnosticCode;
   constructor(code: ExtrudedProfileDiagnosticCode, detail: string, cause?: unknown) {
     super(('Extruded profile: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

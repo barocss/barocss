@@ -6,10 +6,11 @@ import { transformNativeGeometryAffine, validateAffineGeometryTransform } from '
 import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from '../features/affine-geometry-transform.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const WorkplaneSketchDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', FRAME: 'FRAME', BINDING: 'BINDING', BUDGET: 'BUDGET', LOCAL: 'LOCAL', AFFINE: 'AFFINE', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type WorkplaneSketchDocumentDiagnosticCode = typeof WorkplaneSketchDocumentDiagnosticCode[keyof typeof WorkplaneSketchDocumentDiagnosticCode];
-export class WorkplaneSketchDocumentError extends Error { readonly code: WorkplaneSketchDocumentDiagnosticCode; constructor(code: WorkplaneSketchDocumentDiagnosticCode, detail: string, cause?: unknown) { super(('Workplane Sketch document: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'WorkplaneSketchDocumentError'; this.code = code; } }
+export class WorkplaneSketchDocumentError extends KernelError { readonly code: WorkplaneSketchDocumentDiagnosticCode; constructor(code: WorkplaneSketchDocumentDiagnosticCode, detail: string, cause?: unknown) { super(('Workplane Sketch document: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'WorkplaneSketchDocumentError'; this.code = code; } }
 export interface WorkplaneSketchFrame { id: string; originMM: Point; uAxis: Point; vAxis: Point; normalAxis: Point }
 type WorldBinding = { profileId: string; worldCurveId: string };
 const DOCUMENT_LIMITS = { maximumProfiles: 8, maximumAffineObservations: 127, maximumAggregateObservations: 1016, maximumWorldPointBindings: 136, maximumAggregateSourceUTF16: 4194304, maximumAggregateSourceUTF8: 4194304, maximumJSONUTF16: 262144, maximumJSONUTF8: 262144, frameTolerance: 0.000000001 } as const;

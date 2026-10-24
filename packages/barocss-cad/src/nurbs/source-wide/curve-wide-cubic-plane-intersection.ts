@@ -10,6 +10,7 @@ import { adopt } from '../../intersect/own-plane-cylinder-intersection-internal.
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const WideCubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', SPAN: 'SPAN', REPRESENTABILITY: 'REPRESENTABILITY',
@@ -17,7 +18,7 @@ export const WideCubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze
 } as const);
 export type WideCubicCurveAffinePlaneIntersectionDiagnosticCode =
   typeof WideCubicCurveAffinePlaneIntersectionDiagnosticCode[keyof typeof WideCubicCurveAffinePlaneIntersectionDiagnosticCode];
-export class WideCubicCurveAffinePlaneIntersectionError extends Error {
+export class WideCubicCurveAffinePlaneIntersectionError extends KernelError {
   readonly code: WideCubicCurveAffinePlaneIntersectionDiagnosticCode;
   constructor(code: WideCubicCurveAffinePlaneIntersectionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Wide cubic Curve-plane intersection: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

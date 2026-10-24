@@ -7,7 +7,9 @@ import { closestPointOnSurface, faceGeometry, pointTriangleDistance2, revolution
 export { sub, cross, dot, len, unit as norm } from './vec3';
 import { sub, cross, dot, len, unit as norm } from './vec3';
 
-export type Vec3 = [number, number, number];
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+import type { Vec3 } from './vec3';
+export type { Vec3 };
 
 /** `radius`: a cylinder's or a sphere's. */
 export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;

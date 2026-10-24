@@ -8,10 +8,11 @@ import type { SurfaceD1Result } from '../core/derivatives.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const TranslatedSurfaceStripVolumeDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', PARENT:'PARENT', PAIR:'PAIR', SUPPORT:'SUPPORT', TRANSLATION:'TRANSLATION', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type TranslatedSurfaceStripVolumeDiagnosticCode = typeof TranslatedSurfaceStripVolumeDiagnosticCode[keyof typeof TranslatedSurfaceStripVolumeDiagnosticCode];
-export class TranslatedSurfaceStripVolumeError extends Error {
+export class TranslatedSurfaceStripVolumeError extends KernelError {
   readonly code: TranslatedSurfaceStripVolumeDiagnosticCode;
   constructor(code: TranslatedSurfaceStripVolumeDiagnosticCode, detail: string, cause?: unknown) { super(('Translated Surface strip volume: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='TranslatedSurfaceStripVolumeError';this.code=code; }
 }

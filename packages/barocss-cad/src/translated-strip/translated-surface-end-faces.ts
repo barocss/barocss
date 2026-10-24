@@ -11,10 +11,11 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const TranslatedSurfaceEndFacesDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', PARENT:'PARENT', PAIR:'PAIR', SUPPORT:'SUPPORT', TRANSLATION:'TRANSLATION', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type TranslatedSurfaceEndFacesDiagnosticCode = typeof TranslatedSurfaceEndFacesDiagnosticCode[keyof typeof TranslatedSurfaceEndFacesDiagnosticCode];
-export class TranslatedSurfaceEndFacesError extends Error {
+export class TranslatedSurfaceEndFacesError extends KernelError {
   readonly code: TranslatedSurfaceEndFacesDiagnosticCode;
   constructor(code: TranslatedSurfaceEndFacesDiagnosticCode, detail: string, cause?: unknown) { super(('Translated Surface end Faces: '+detail).slice(0,1024),cause===undefined?undefined:{cause}); this.name='TranslatedSurfaceEndFacesError'; this.code=code; }
 }

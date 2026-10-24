@@ -11,10 +11,11 @@ import type { SourceSurfaceControlNetResult } from '../nurbs/source-wide/source-
 import type { SurfacePoleEdit } from '../nurbs/surfaces/surface-control-net.js';
 import type { Model, Point, Surface } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const AxisBoxSolidFeatureDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', REVISION: 'REVISION', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', NATIVE: 'NATIVE', BOOLEAN: 'BOOLEAN', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidFeatureDocumentDiagnosticCode = typeof AxisBoxSolidFeatureDocumentDiagnosticCode[keyof typeof AxisBoxSolidFeatureDocumentDiagnosticCode];
-export class AxisBoxSolidFeatureDocumentError extends Error {
+export class AxisBoxSolidFeatureDocumentError extends KernelError {
   readonly code: AxisBoxSolidFeatureDocumentDiagnosticCode;
   constructor(code: AxisBoxSolidFeatureDocumentDiagnosticCode, detail: string, cause?: unknown) { super(('Axis-box Solid feature document: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'AxisBoxSolidFeatureDocumentError'; this.code = code; }
 }

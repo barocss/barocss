@@ -24,18 +24,22 @@ The package is `@barocss/cad`, version `0.0.0-experimental`. It is unreleased an
 - **From the repository.** Use it from a checkout, as a workspace package.
 - **TypeScript sources.** Its entry point is the TypeScript source itself (`./src/index.ts`). Use it with a bundler or
   a TypeScript-aware runtime; there is no build step to run first.
-- **One entry point.** Everything is exported from `@barocss/cad`.
+- **Two entry points.**
+  - `@barocss/cad` is the core: the part document, its evaluation, and everything else the kernel does.
+  - `@barocss/cad/api` is the [object facade](/packages/api) over it, for writing parts in code.
 
 <<< @/../samples/cad-part.test.mjs#import
 
 ## A part in code
 
-A part is a JSON document: its units, its parameters, and its features in order. `evaluateCadPart` evaluates it and
-returns a snapshot. Its `outputs` are the bodies no later feature consumes.
+A part is a JSON document: its units, its parameters, and its features in order. The facade's `part()` writes one,
+verb by verb, and `.doc` is the document. `evaluateCadPart` evaluates a document and returns a snapshot. Its
+`outputs` are the bodies no later feature consumes.
 
 <<< @/../samples/cad-part.test.mjs#part
 
-Each output measures itself, checks itself and writes itself:
+The facade gives the results as plain data, in millimetres and grams. Each output of the snapshot also checks
+itself:
 
 <<< @/../samples/cad-part.test.mjs#outputs
 

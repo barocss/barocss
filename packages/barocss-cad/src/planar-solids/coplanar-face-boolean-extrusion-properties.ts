@@ -4,11 +4,12 @@ import { evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { SurfaceD1Result } from '../core/derivatives.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode = typeof CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode[keyof typeof CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode];
-export class CoplanarFaceBooleanExtrusionPropertiesError extends Error {
+export class CoplanarFaceBooleanExtrusionPropertiesError extends KernelError {
   readonly code: CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode;
   constructor(code: CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode, detail: string, cause?: unknown) {
     super(('Coplanar Face Boolean Extrusion Properties: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

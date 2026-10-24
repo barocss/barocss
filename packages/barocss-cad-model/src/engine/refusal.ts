@@ -48,6 +48,10 @@ export type CadModelCode =
   | 'MESH_NOT_LOADED' | 'CONTAINER_NEWER' | 'CONTAINER_DAMAGED'
   // sketch export
   | 'SKETCH_PARAMETER'
+  // exports
+  | 'NO_BODY'
+  // the assembly's edits (assembly/edit.ts)
+  | 'NO_PART' | 'PART_MATED' | 'MATE_KIND' | 'MATE_SAME_PART' | 'MATE_BOTH_FIXED' | 'MATE_FACE_UNKNOWN' | 'MATE_FACES' | 'MATE_UNMET' | 'NO_MATE'
   // the studio's commands (a pick, a value)
   | 'ALIGN_PICK' | 'ALIGN_TURN' | 'HOLE_SIZE' | 'HOLE_PATTERN' | 'DRAFT_PICK' | 'DRAFT_ANGLE' | 'FILLET_CHAIN' | 'DECIMATE_KEEP'
   | 'SPLIT_PLANE' | 'FACE_DISTANCE' | 'LOFT_SECTIONS' | 'SWEEP_PATH' | 'PRIMITIVE_SIZE' | 'GEAR_PICK'

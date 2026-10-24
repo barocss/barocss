@@ -5,10 +5,11 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const AxisBoxSolidMassFrameDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', POSE: 'POSE', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidMassFrameDiagnosticCode = typeof AxisBoxSolidMassFrameDiagnosticCode[keyof typeof AxisBoxSolidMassFrameDiagnosticCode];
-export class AxisBoxSolidMassFrameError extends Error {
+export class AxisBoxSolidMassFrameError extends KernelError {
   readonly code: AxisBoxSolidMassFrameDiagnosticCode;
   constructor(code: AxisBoxSolidMassFrameDiagnosticCode, detail: string, cause?: unknown) {
     super(('Axis-box Solid mass frame: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'AxisBoxSolidMassFrameError'; this.code = code;

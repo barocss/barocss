@@ -10,6 +10,7 @@ import { facetIntegrals } from '../mesh/facet-patch.js';
 import type { Brep } from './brep-core.js';
 import type { PrismaticSolid } from '../features/prismatic-solid.js';
 import type { Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export interface SolidMassProperties {
   readonly volumeMM3: number; readonly massKG: number; readonly centroidMM: Point;
@@ -23,7 +24,7 @@ export interface SolidMassProperties {
    */
   readonly volumeBoundMM3?: number;
 }
-export class SolidMassError extends Error { constructor(detail: string) { super('Mass properties: ' + detail); this.name = 'SolidMassError'; } }
+export class SolidMassError extends KernelError { constructor(detail: string) { super('Mass properties: ' + detail, { code: 'SOLID_MASS' }); this.name = 'SolidMassError'; } }
 
 /** From volume integrals [V, ∫x, ∫y, ∫z, ∫x², ∫y², ∫z², ∫xy, ∫xz, ∫yz] in mm-powers. */
 export function solidMassFromIntegrals(I: readonly number[], density: number, method: SolidMassProperties['method']): SolidMassProperties {

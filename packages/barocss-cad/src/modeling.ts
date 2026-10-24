@@ -51,9 +51,10 @@ import { signedJson } from './xy-affine-prism-feature-document-internal.js';
 import { modelingGraphKey as graphKey, modelingNodeParameters as nodeParameters, modelingReusablePrefix as reusablePrefix } from './modeling-regeneration-internal.js';
 import { resolveModelDimension, ModelDimensionError, ModelDimensionLimits } from './modeling-dimension-internal.js';
 import type { ModelDimension as Dimension } from './modeling-dimension-internal.js';
+import { KernelError } from './core/barocss-error.js';
 
 export type CadModelErrorCode = 'INPUT' | 'PARAMETER' | 'OWNERSHIP' | 'CAPABILITY' | 'SELECTION' | 'FORMAT' | 'BUDGET' | 'NATIVE';
-export class CadModelError extends Error {
+export class CadModelError extends KernelError {
   constructor(readonly code: CadModelErrorCode, readonly operation: string, detail: string, cause?: unknown) {
     super(`CAD model ${operation}: ${detail}`, cause === undefined ? undefined : { cause });
     this.name = 'CadModelError';

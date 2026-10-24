@@ -6,10 +6,11 @@ import type { PiecewiseRationalLoftOptions, PiecewiseRationalLoftResult } from '
 import { compileCadModel } from '../model-compiler.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../cad-document.js';
 import type { Model, Curve } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const NurbsSourceLoftFeatureGraphDiagnosticCode = Object.freeze({INPUT:'INPUT',VERSION:'VERSION',IDENTITY:'IDENTITY',REVISION:'REVISION',BUDGET:'BUDGET',SOURCE:'SOURCE',REFERENCE:'REFERENCE',DEPENDENCY:'DEPENDENCY',BASIS:'BASIS',STATIONS:'STATIONS',NATIVE:'NATIVE',REPRESENTABILITY:'REPRESENTABILITY',CODEC:'CODEC',OWNED:'OWNED'} as const);
 export type NurbsSourceLoftFeatureGraphDiagnosticCode = typeof NurbsSourceLoftFeatureGraphDiagnosticCode[keyof typeof NurbsSourceLoftFeatureGraphDiagnosticCode];
-export class NurbsSourceLoftFeatureGraphError extends Error {
+export class NurbsSourceLoftFeatureGraphError extends KernelError {
   readonly code:NurbsSourceLoftFeatureGraphDiagnosticCode;
   constructor(code:NurbsSourceLoftFeatureGraphDiagnosticCode,detail:string,cause?:unknown) {super(('NURBS Source Loft feature graph: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='NurbsSourceLoftFeatureGraphError';this.code=code;}
 }

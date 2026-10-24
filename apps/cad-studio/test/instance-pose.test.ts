@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { evaluatePart, placeBody, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { tablesFor } from '@barocss/cad-model/assembly/faces';
-import { solveDoc } from '@barocss/cad-model/chat/assembly';
+import { solveDoc } from '@barocss/cad-model/assembly/edit';
 import { rotationMatrix } from '@barocss/cad-model/engine/placement';
 import { explodeOffsets, movedBody } from '@barocss/cad-model/assembly/explode';
 import { jointTreeOf } from '@barocss/cad-model/robot/joints';

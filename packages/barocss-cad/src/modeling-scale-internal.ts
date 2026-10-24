@@ -8,6 +8,7 @@ import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 
 import type { Point, Curve, Surface } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 /** Positive uniform scaling about the world origin, in authored XYZ millimetres. */
 export type UniformScaleFactor = 0.5 | 2;
@@ -144,7 +145,7 @@ export interface ModelingScaleResult {
   };
 }
 
-class ModelingScaleError extends Error {
+class ModelingScaleError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, readonly stage: string, readonly entity: string,
     detail: string, readonly report: Progress, cause: unknown) {
     super(('Modeling scale: ' + detail).slice(0, 1024), { cause }); this.name = 'ModelingScaleError';

@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, BarocssError, StudioPart } from '../src/api';
 import { type StudioDoc } from '../src/engine/doc';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { bodyMass } from '../src/app/mass';
 import { runTool, type ChatState } from '../src/chat/tools';
 
@@ -28,11 +28,11 @@ const handWritten = (): StudioDoc => ({
 });
 
 const bracket = () => part('bracket')
-  .box({ wMM: 80, dMM: 40, hMM: 10 })
-  .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
-  .fillet(body => body.edges().along('z'), { radiusMM: 2 });
+  .box({ w: 80, d: 40, h: 10 })
+  .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 })
+  .fillet(body => body.edges().along('z'), { radius: 2 });
 
-// (stepFor stamps the export's time in FILE_NAME; the two runs are compared without it.)
+// (exportStudioStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = (text: string) => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
 
 test('the facade writes the hand-written document, byte for byte', () => {
@@ -65,18 +65,17 @@ test('its mass, meshes and STEP are the core functions\' on that document, byte 
   const expected = { volumeMM3: body.volumeMM3, massG: props.massG, centroidMM: props.centroid, inertiaGMM2: props.inertia.map(row => row.map(v => v * 1000)) };
   assert.equal(JSON.stringify(bracket().mass('al6061')), JSON.stringify(expected));
   // (A material id or a density, the same verb as the kernel part's: al6061 is 2.7 g/cm³.)
-  assert.equal(JSON.stringify(bracket().mass({ densityGPerCm3: 2.7 })), JSON.stringify(expected));
+  assert.equal(JSON.stringify(bracket().mass({ density: 2.7 })), JSON.stringify(expected));
   const [mesh] = bracket().meshes();
   assert.equal(mesh.key, body.key);
   assert.deepEqual([Buffer.from(mesh.positions.buffer), Buffer.from(mesh.normals.buffer), Buffer.from(mesh.indices.buffer)], [Buffer.from(body.mesh.positions.buffer), Buffer.from(body.mesh.normals.buffer), Buffer.from(body.mesh.indices.buffer)]);
-  const core = stepFor(doc, 'bracket');
-  assert.ok('text' in core);
+  const core = exportStudioStep(doc, { name: 'bracket' });
   assert.equal(unstamped(bracket().step()), unstamped(core.text));
 });
 
 test('every method returns a new part of its own kind and leaves the old one as it was', () => {
-  const block = part('b').box({ wMM: 80, dMM: 40, hMM: 10 }), before = JSON.stringify(block.doc);
-  const holed = block.hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 });
+  const block = part('b').box({ w: 80, d: 40, h: 10 }), before = JSON.stringify(block.doc);
+  const holed = block.hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 });
   assert.ok(holed instanceof StudioPart, 'the studio layer is kept through the chain');
   assert.equal(JSON.stringify(block.doc), before);
   assert.notEqual(JSON.stringify(holed.doc), before);
@@ -86,7 +85,7 @@ test('every method returns a new part of its own kind and leaves the old one as 
 });
 
 test('typed selectors read the core\'s edges and faces by their names', () => {
-  const body = part().box({ wMM: 80, dMM: 40, hMM: 10 }).hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 }).select();
+  const body = part().box({ w: 80, d: 40, h: 10 }).hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 }).select();
   assert.deepEqual(body.edges().along('z').names(), ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3']);
   assert.deepEqual(body.faces().facing('+z').names(), ['n1.top']);
   // The top face's edges: its four sides and the hole's rim (a closed curve, two names).
@@ -98,14 +97,14 @@ test('typed selectors read the core\'s edges and faces by their names', () => {
 
 test('refusals are typed: the facade\'s own, and the core\'s passed through with its code', () => {
   const refusal = (f: () => unknown) => { try { f(); } catch (e) { return e; } assert.fail('no refusal'); };
-  const e1 = refusal(() => part().hole(b => b.faces().facing('+z'), { dMM: 4, xMM: 0, yMM: 0 }));
+  const e1 = refusal(() => part().hole(b => b.faces().facing('+z'), { d: 4, x: 0, y: 0 }));
   assert.ok(e1 instanceof BarocssError); assert.equal(e1.code, 'NO_BODY'); assert.equal(e1.where, 'facade');
-  const e2 = refusal(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).fillet(b => b.edges().along('z').where(() => false), { radiusMM: 1 }));
+  const e2 = refusal(() => part().box({ w: 10, d: 10, h: 10 }).fillet(b => b.edges().along('z').where(() => false), { radius: 1 }));
   assert.ok(e2 instanceof BarocssError); assert.equal(e2.code, 'SELECTION_EMPTY');
-  const e3 = refusal(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).mass('unobtainium'));
+  const e3 = refusal(() => part().box({ w: 10, d: 10, h: 10 }).mass('unobtainium'));
   assert.ok(e3 instanceof BarocssError); assert.equal(e3.code, 'MATERIAL_UNKNOWN');
   // A fillet larger than its walls: the kernel refuses it, and the facade passes its code and words on.
-  const e4 = refusal(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).fillet(b => b.edges().along('z'), { radiusMM: 8 }).mass('al6061'));
+  const e4 = refusal(() => part().box({ w: 10, d: 10, h: 10 }).fillet(b => b.edges().along('z'), { radius: 8 }).mass('al6061'));
   assert.ok(e4 instanceof BarocssError); assert.equal(e4.where, 'evaluate');
   // (The core's code, when it gave one, is the refusal's: the kernel's bracketed code, or its error's kind.)
   const given = (e4.details?.friendly as { code?: string } | undefined)?.code;

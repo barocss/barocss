@@ -1,11 +1,14 @@
 // QA probe (engine level): builds studio documents the way the HUD commands and the sketch builder do,
-// evaluates them with the same code the worker runs (evaluateDoc / stepFor / stlFor) and compares
+// evaluates them with the same code the worker runs (evaluateDoc / exportStudioStep / stlFor) and compares
 // volume, face counts and bounds with hand-computed values. Prints one JSON line per case.
 //   node test/qa/run-engine-probe.mjs
-import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, exportStudioStep, stlFor } from '@barocss/cad-model/engine/evaluate';
 import { brepMassProperties, importStep, meshVolume } from '@barocss/cad';
 import { emptyDoc, loftTop, prefixDoc, rectanglePart, starterDoc, withNode, type ModelNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { editFields } from '@barocss/cad-model/app/editFields';
+
+/** The STEP file, or the refusal's words, as the probe reports them (R7.3c: exportStudioStep throws). */
+const stepOr = (doc: StudioDoc, name: string): ReturnType<typeof exportStudioStep> | { error: string } => { try { return exportStudioStep(doc, { name }); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; } };
 
 type Row = { id: string; name: string; ok: boolean; expected?: unknown; actual?: unknown; note?: string };
 const rows: Row[] = [];
@@ -215,7 +218,7 @@ for (const [id, name, doc] of [['X01', 'starter plate', starterDoc()], ['X02', '
   const r = evaluateDoc(doc, rev++);
   if (!r.ok) { rows.push({ id, name: 'STEP round trip: ' + name, ok: false, actual: 'model refused' }); continue; }
   const want = r.bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0);
-  const s = stepFor(doc, name);
+  const s = stepOr(doc, name);
   if (!('text' in s)) { rows.push({ id, name: 'STEP round trip: ' + name, ok: false, actual: 'export refused: ' + s.error }); continue; }
   try {
     // Reopened through the studio's own STEP import feature (what Open does).
@@ -238,9 +241,9 @@ for (const [id, name, doc] of [['X01', 'starter plate', starterDoc()], ['X02', '
 }
 // STEP export of an empty part, and of brepMassProperties on import (independent reader).
 {
-  const s = stepFor(emptyDoc(), 'empty');
+  const s = stepOr(emptyDoc(), 'empty');
   rows.push({ id: 'X09', name: 'STEP export of an empty part explains itself', ok: 'error' in s && /no body/.test(s.error), actual: s });
-  const t = stepFor(starterDoc(), 'p');
+  const t = stepOr(starterDoc(), 'p');
   if ('text' in t) { try { const solids = importStep(t.text); const m = (solids as unknown as { solids?: unknown[] }).solids ?? solids; rows.push({ id: 'X10', name: 'importStep (kernel) reads the exported starter', ok: true, actual: Array.isArray(m) ? `${m.length} solids` : typeof m }); void brepMassProperties; } catch (e) { rows.push({ id: 'X10', name: 'importStep reads exported starter', ok: false, actual: String(e) }); } }
 }
 // --- Rapid sequence through the snapshot cache (the worker reuses the last snapshot) ---------------

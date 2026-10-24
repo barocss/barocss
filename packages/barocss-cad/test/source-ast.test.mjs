@@ -42,7 +42,7 @@ test('forward v1 references, comment braces and actual source version fields rem
   assert.equal(parseCadAst('@model x{version:9;length-unit:wrong;@curve #bad{degree:broken;}}', 0).fields[0].value.value, 9);
   assert.doesNotThrow(() => parseCadAst('@model x{version:1;length-unit:mm;@extrude #a{curve:#missing;vector:[0,0,0];}}', 1));
   const compiled = compileCadModel(source, { sourceVersion: 1 }); assert.equal(compiled.ok, true); const metadata = compiled.constructions[0]; assert.equal(field.value.range.start, metadata.referenceSpan.start); assert.equal(field.value.range.end, metadata.referenceSpan.end);
-  const implementation = readFileSync(new URL('../src/language/source-ast.ts', import.meta.url), 'utf8'); const imports = [...implementation.matchAll(/^import(?! type).*from ['\"]([^'\"]+)['\"]/gm)].map(match => match[1]); assert.deepEqual(imports, ['./expression-parser.js'], 'AST parsing may import only its bounded expression parser');
+  const implementation = readFileSync(new URL('../src/language/source-ast.ts', import.meta.url), 'utf8'); const imports = [...implementation.matchAll(/^import(?! type).*from ['\"]([^'\"]+)['\"]/gm)].map(match => match[1]); assert.deepEqual(imports, ['./expression-parser.js', '../core/barocss-error.js'], 'AST parsing may import only its bounded expression parser (and the kernel\'s one error shape, R7.3a)');
 });
 
 test('direct v1 curve errors refer only to actual source and expose no partial model', () => {

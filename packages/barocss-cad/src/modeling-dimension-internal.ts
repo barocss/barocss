@@ -1,9 +1,10 @@
+import { KernelError } from './core/barocss-error.js';
 /** Package-private authored arithmetic; no owner handles, native geometry or evaluation frames. */
 export type ModelDimension = number | { parameter: string }
   | { op: 'add'; left: ModelDimension; right: ModelDimension }
   | { op: 'scale'; value: ModelDimension; factor: number };
 export const ModelDimensionLimits = Object.freeze({ nodes: 32, depth: 6, lengthMM: 10000 });
-export class ModelDimensionError extends Error {
+export class ModelDimensionError extends KernelError {
   constructor(readonly code: 'INPUT' | 'PARAMETER' | 'BUDGET', detail: string) { super(detail); this.name = 'ModelDimensionError'; }
 }
 function check(value: unknown, code: ModelDimensionError['code'], detail: string): asserts value {

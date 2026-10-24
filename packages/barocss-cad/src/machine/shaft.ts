@@ -24,9 +24,10 @@ import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic } from '../brep/analytic-boolean.js';
 import { transformBrep } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type ShaftDiagnosticCode = 'INVALID_INPUT' | 'SHAFT_STEPS' | 'KEYSEAT_DIMENSIONS' | 'GROOVE_DIMENSIONS' | 'HOLE_DIMENSIONS';
-export class ShaftError extends Error {
+export class ShaftError extends KernelError {
   constructor(readonly code: ShaftDiagnosticCode, detail: string) { super(`shaft: ${detail}`); this.name = 'ShaftError'; }
 }
 export interface ShaftGroove { readonly diameterMM: number; readonly widthMM: number; readonly atMM: number }

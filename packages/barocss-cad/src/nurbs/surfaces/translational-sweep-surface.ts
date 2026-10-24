@@ -6,11 +6,12 @@ import { adopt } from '../../intersect/own-plane-cylinder-intersection-internal.
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const TranslationalSweepDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type TranslationalSweepDiagnosticCode = typeof TranslationalSweepDiagnosticCode[keyof typeof TranslationalSweepDiagnosticCode];
-export class TranslationalSweepError extends Error {
+export class TranslationalSweepError extends KernelError {
   readonly code: TranslationalSweepDiagnosticCode;
   constructor(code: TranslationalSweepDiagnosticCode, detail: string, cause?: unknown) {
     super(('Translational sweep Surface: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

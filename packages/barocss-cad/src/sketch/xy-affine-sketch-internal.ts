@@ -2,11 +2,12 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational } from '../section-rational-internal.js';
 import type { XYPoint } from './xy-profile.js';
 import type { XYAffineSketchConstraint, XYAffineSketchCoordinate, XYAffineSketchDiagnostic, XYAffineSketchDocumentV0, XYAffineSketchPoint, XYAffineSketchReport } from '../xy-affine-sketch.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const XYAffineSketchDiagnosticCode = Object.freeze({ INVALID_DOCUMENT: 'INVALID_DOCUMENT', UNSUPPORTED: 'UNSUPPORTED', LIMIT: 'LIMIT',
   REFERENCE: 'REFERENCE', CONFLICT: 'CONFLICT', BUDGET: 'BUDGET', REPRESENTABILITY: 'REPRESENTABILITY', DEGENERATE_GEOMETRY: 'DEGENERATE_GEOMETRY', COMPILATION: 'COMPILATION', OWNED: 'OWNED' } as const);
 export type XYAffineSketchDiagnosticCode = typeof XYAffineSketchDiagnosticCode[keyof typeof XYAffineSketchDiagnosticCode];
-export class XYAffineSketchError extends Error {
+export class XYAffineSketchError extends KernelError {
   constructor(readonly code: XYAffineSketchDiagnosticCode, detail: string, readonly path = '$', readonly constraintIds: string[] = [],
     readonly coordinate: XYAffineSketchCoordinate | null = null, readonly exactFraction: XYAffineSketchDiagnostic['exactFraction'] = null, cause?: unknown) {
     super(('XY affine sketch: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'XYAffineSketchError';

@@ -10,10 +10,11 @@ import type { CadAffineMatrix3x4, AffineGeometryTransformResult } from '../featu
 import type { XYPoint } from './xy-profile.js';
 import type { Curve, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const MixedWorkplaneSketchDocumentDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', FRAME: 'FRAME', BINDING: 'BINDING', BUDGET: 'BUDGET', LOCAL: 'LOCAL', ARC: 'ARC', AFFINE: 'AFFINE', CODEC: 'CODEC', OWNED: 'OWNED' } as const);
 export type MixedWorkplaneSketchDocumentDiagnosticCode = typeof MixedWorkplaneSketchDocumentDiagnosticCode[keyof typeof MixedWorkplaneSketchDocumentDiagnosticCode];
-export class MixedWorkplaneSketchDocumentError extends Error { readonly code: MixedWorkplaneSketchDocumentDiagnosticCode; constructor(code: MixedWorkplaneSketchDocumentDiagnosticCode, detail: string, cause?: unknown) { super(('Mixed workplane Sketch document: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'MixedWorkplaneSketchDocumentError'; this.code = code; } }
+export class MixedWorkplaneSketchDocumentError extends KernelError { readonly code: MixedWorkplaneSketchDocumentDiagnosticCode; constructor(code: MixedWorkplaneSketchDocumentDiagnosticCode, detail: string, cause?: unknown) { super(('Mixed workplane Sketch document: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'MixedWorkplaneSketchDocumentError'; this.code = code; } }
 type ArcIntent = { id: string; kind: 'arc'; centerId: string; centerMM: XYPoint; radius: { id: string; valueMM: number }; startAngleRad: number; sweepAngleRad: number; endpointIds: [string, string] };
 export type MixedWorkplaneSketchProfileIntent = XYSketchProfileIntent | ArcIntent;
 type WorldBinding = { profileId: string; worldCurveId: string };

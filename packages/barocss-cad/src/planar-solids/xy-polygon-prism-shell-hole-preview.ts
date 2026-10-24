@@ -184,7 +184,7 @@ export function tessellateXYPolygonPrismShellWithHole(input: XYPolygonPrismShell
   }
   check(faceRanges.length <= 14 && positions.length / 3 <= 576 && indices.length / 3 <= 288, '$packet', 'bounded native face mesh counts exceeded');
   const packet: PreviewPacket = { version: 0, surfaceId: options.meshId, revision: options.revision, lengthUnit: 'mm',
-    coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
+    coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
   validatePreviewPacket(packet);
   const globalVertices = new Map(shell.vertices.map(vertex => [vertex.id, vertex.point]));
   const edgePaths: XYPolygonPrismHoleShellEdgePath[] = [], edgeProvenance: XYPolygonPrismHoleShellEdgeProvenance[] = [];

@@ -91,7 +91,7 @@ export function proveBuffers(native,buffers) {
  // This field excludes work inside the native validator; do not treat it as total compilation work.
  assert.equal(buffers.report.sourceCompilationCalls,0);assert.equal(buffers.panels.length,14);assert.equal(buffers.report.vertexCount,56);assert.equal(buffers.report.triangleCount,28);
  assert.equal(buffers.positions.length,168);assert.equal(buffers.normals.length,168);assert.equal(buffers.indices.length,84);
- assert.equal(buffers.coordinateSystem,'right-handed-y-up');assert.equal(buffers.options.basis,'authored-xyz-matches-rhyup');
+ assert.equal(buffers.coordinateSystem,'right-handed-z-up');assert.equal(buffers.options.basis,'authored-xyz-matches-rhyup');
  for(const [i,range] of buffers.panels.entries()){
   const panel=native.panels[i];assert.equal(range.panelId,panel.id);assert.deepEqual(range.lineage,panel.lineage);
   assert.equal(range.vertexOffset,i*4);assert.equal(range.indexOffset,i*6);

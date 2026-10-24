@@ -15,6 +15,7 @@
 //
 // The format was read from the public DXF reference and from files a test oracle (ezdxf, MIT, run outside the
 // product) writes; no code is taken from either.
+import { KernelError } from '../core/barocss-error.js';
 
 export const DXF_WRITER_VERSION = 'barocss-dxf-writer-v1';
 
@@ -90,7 +91,7 @@ export interface DxfWriteReport {
 export interface DxfWriteResult { text: string; bytes: Uint8Array; report: DxfWriteReport }
 
 export type DxfWriteErrorCode = 'NOT_FINITE' | 'BAD_ENTITY' | 'BAD_NAME' | 'DUPLICATE_NAME' | 'UNKNOWN_LAYER' | 'UNKNOWN_LINETYPE' | 'UNKNOWN_STYLE' | 'UNKNOWN_BLOCK' | 'BLOCK_CYCLE' | 'BAD_TEXT' | 'TEXT_TOO_LONG' | 'R12_UNSUPPORTED' | 'R12_NEEDS_TOLERANCE' | 'APPROX_TOLERANCE_NOT_MET';
-export class DxfWriteError extends Error {
+export class DxfWriteError extends KernelError {
   constructor(readonly code: DxfWriteErrorCode, detail: string) { super(`DXF [${code}]: ${detail}`); this.name = 'DxfWriteError'; }
 }
 

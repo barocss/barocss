@@ -2,6 +2,7 @@ import type { Brep } from '../brep/brep-core.js';
 import type { FrameEndReport, FrameMemberReport } from './frame-section.js';
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { dot } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
 // FR4a (D127): a frame's cut list. Each member as a piece to cut — its axis length (the centroidal line between its two
 // end planes, in closed form where both ends are planes; else its volume over its section's area), its long point (its
@@ -54,8 +55,8 @@ export interface CutList {
 }
 
 /** A cut list refused: its message starts with `[CODE]`. */
-export class CutListError extends Error {
-  constructor(detail: string) { super(detail.slice(0, 1024)); this.name = 'CutListError'; }
+export class CutListError extends KernelError {
+  constructor(detail: string) { super(detail.slice(0, 1024), { code: /^\[([A-Z][A-Z0-9_]+)\]/.exec(detail)?.[1] ?? 'CUT_LIST' }); this.name = 'CutListError'; }
 }
 
 type V3 = readonly [number, number, number];

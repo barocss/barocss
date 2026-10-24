@@ -9,10 +9,11 @@ import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceSurfaceControlNetWideDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type SourceSurfaceControlNetWideDiagnosticCode = typeof SourceSurfaceControlNetWideDiagnosticCode[keyof typeof SourceSurfaceControlNetWideDiagnosticCode];
-export class SourceSurfaceControlNetWideError extends Error {
+export class SourceSurfaceControlNetWideError extends KernelError {
   readonly code: SourceSurfaceControlNetWideDiagnosticCode;
   constructor(code: SourceSurfaceControlNetWideDiagnosticCode, detail: string, cause?: unknown) { super(('Source Surface control-net wide: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'SourceSurfaceControlNetWideError'; this.code = code; }
 }

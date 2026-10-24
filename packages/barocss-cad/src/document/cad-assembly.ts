@@ -3,13 +3,14 @@ import type { CadDocumentV1, CadDocumentResult } from '../cad-document.js';
 import { resolveCadGeometryReference, CadReferenceError } from './cad-document-reference.js';
 import type { CadGeometryReferenceV0 } from './cad-document-reference.js';
 import type { Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CadAssemblyDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', REFERENCE: 'REFERENCE', STALE: 'STALE', HIERARCHY: 'HIERARCHY',
   REVISION: 'REVISION', PLACEMENT: 'PLACEMENT', REPRESENTABILITY: 'REPRESENTABILITY', BUDGET: 'BUDGET', JSON: 'JSON', OWNED: 'OWNED', QUERY: 'QUERY', NATIVE: 'NATIVE',
 } as const);
 export type CadAssemblyDiagnosticCode = typeof CadAssemblyDiagnosticCode[keyof typeof CadAssemblyDiagnosticCode];
-export class CadAssemblyError extends Error {
+export class CadAssemblyError extends KernelError {
   readonly code: CadAssemblyDiagnosticCode;
   constructor(code: CadAssemblyDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD assembly: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

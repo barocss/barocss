@@ -102,7 +102,7 @@ export function tessellateZAxisRevolvedSurface(meridian: Curve, inputOptions: ZA
   check(panels.length <= 960 && positions.length / 3 <= 3840 && indices.length / 3 <= 1920, '$packet', 'bounded panel budget exceeded');
   const min: Point = [Infinity, Infinity, Infinity], max: Point = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < positions.length; i++) { const axis = i % 3; min[axis] = Math.min(min[axis], positions[i]); max[axis] = Math.max(max[axis], positions[i]); }
-  const packet: PreviewPacket = { version: 0, surfaceId: settings.meshId, revision: settings.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max } };
+  const packet: PreviewPacket = { version: 0, surfaceId: settings.meshId, revision: settings.revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max } };
   validatePreviewPacket(packet);
   const pathIds = ['_u_min', '_u_max', '_seam'].map(suffix => settings.meshId + suffix);
   check(new Set(pathIds).size === 3 && pathIds.every(id => id.length <= 128 && id !== native.meridian.id && id !== surface.id && id !== settings.meshId), '$boundaries.ids', 'distinct bounded display boundary IDs required');

@@ -2,7 +2,7 @@
 // result methods as functions, public results in MMGS — this file is the switch: the rest of src/api/ never calls the
 // core's evaluation, mass or export functions directly.
 import type { StudioDoc } from '../engine/doc';
-import { evaluateDoc, stepFor, type BodyResult } from '../engine/evaluate';
+import { evaluateDoc, exportStudioStep, type BodyResult } from '../engine/evaluate';
 import { bodyMass } from '../app/mass';
 import { materialIdOf, withLook } from '../app/bodies';
 import { fromEvaluation, fromExport, refuse } from './refusal';
@@ -42,9 +42,7 @@ export function meshesOf(doc: StudioDoc): MeshData[] {
 
 /** The document's exact solids as one STEP AP214 file. */
 export function stepOf(doc: StudioDoc, name: string): string {
-  const out = stepFor(doc, name);
-  if ('error' in out) throw fromExport(out.error);
-  return out.text;
+  try { return exportStudioStep(doc, { name }).text; } catch (e) { throw fromExport(e instanceof Error ? e.message : String(e)); }
 }
 
 /** The material id a body names (its own, else the brief's), if any. */

@@ -9,6 +9,7 @@ import { evaluateCurveD1 } from '../../core/derivatives.js';
 import type { CurveD1Result } from '../../core/derivatives.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceCurveKnotInsertionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE',
@@ -18,7 +19,7 @@ export const SourceCurveKnotInsertionDiagnosticCode = Object.freeze({
 } as const);
 export type SourceCurveKnotInsertionDiagnosticCode =
   typeof SourceCurveKnotInsertionDiagnosticCode[keyof typeof SourceCurveKnotInsertionDiagnosticCode];
-export class SourceCurveKnotInsertionError extends Error {
+export class SourceCurveKnotInsertionError extends KernelError {
   readonly code: SourceCurveKnotInsertionDiagnosticCode;
   constructor(code: SourceCurveKnotInsertionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source Curve knot insertion: ' + detail).slice(0, 1024),

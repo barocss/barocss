@@ -20,9 +20,10 @@ import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { lookupFit, FitError, type FitTable } from './fits.js';
 import type { Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type GlandCode = 'INVALID_INPUT' | 'GLAND_DIMENSIONS' | 'SQUEEZE_RANGE' | 'FILL_RANGE' | 'STRETCH_RANGE';
-export class GlandError extends Error {
+export class GlandError extends KernelError {
   constructor(readonly code: GlandCode, detail: string) { super(`gland: ${detail}`); this.name = 'GlandError'; }
 }
 const fail = (code: GlandCode, detail: string): never => { throw new GlandError(code, detail); };

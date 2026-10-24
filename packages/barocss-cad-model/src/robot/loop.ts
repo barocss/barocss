@@ -10,7 +10,7 @@ import { pathTo } from './ik';
 import type { Joint, JointTree, Loop } from './joints';
 import { rotationMatrix } from '../engine/placement';
 import { tablesFor } from '../assembly/faces';
-import { solveDoc } from '../chat/assembly';
+import { solveDoc } from '../assembly/edit';
 import { refusal } from '../engine/refusal';
 
 export interface Closure {

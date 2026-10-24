@@ -9,10 +9,11 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { Curve, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const PairedSectionPlaneCapDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', SECTION:'SECTION', BASIS:'BASIS', GRAPH:'GRAPH', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type PairedSectionPlaneCapDiagnosticCode = typeof PairedSectionPlaneCapDiagnosticCode[keyof typeof PairedSectionPlaneCapDiagnosticCode];
-export class PairedSectionPlaneCapError extends Error {
+export class PairedSectionPlaneCapError extends KernelError {
   readonly code: PairedSectionPlaneCapDiagnosticCode;
   constructor(code: PairedSectionPlaneCapDiagnosticCode, detail: string, cause?: unknown) { super(('Paired section Plane cap: '+detail).slice(0,1024), cause===undefined?undefined:{cause}); this.name='PairedSectionPlaneCapError';this.code=code; }
 }

@@ -7,13 +7,14 @@ import type { IGESExportReport } from '../io/iges.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CadDocumentExportDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', TARGET: 'TARGET', REFERENCE: 'REFERENCE', IDENTITY: 'IDENTITY',
   BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CadDocumentExportDiagnosticCode = typeof CadDocumentExportDiagnosticCode[keyof typeof CadDocumentExportDiagnosticCode];
-export class CadDocumentExportError extends Error {
+export class CadDocumentExportError extends KernelError {
   readonly code: CadDocumentExportDiagnosticCode;
   constructor(code: CadDocumentExportDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD document export: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

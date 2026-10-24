@@ -24,6 +24,7 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction } from '../section-rational-internal.js';
 import type { Curve, Surface, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const RectangularFaceExtrusionBodyDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', PROFILE: 'PROFILE', DISTANCE: 'DISTANCE',
@@ -33,7 +34,7 @@ export const RectangularFaceExtrusionBodyDiagnosticCode = Object.freeze({
 } as const);
 export type RectangularFaceExtrusionBodyDiagnosticCode =
   typeof RectangularFaceExtrusionBodyDiagnosticCode[keyof typeof RectangularFaceExtrusionBodyDiagnosticCode];
-export class RectangularFaceExtrusionBodyError extends Error {
+export class RectangularFaceExtrusionBodyError extends KernelError {
   readonly code: RectangularFaceExtrusionBodyDiagnosticCode;
   constructor(code: RectangularFaceExtrusionBodyDiagnosticCode, detail: string, cause?: unknown) {
     super(('Rectangular Face extrusion Body: ' + detail).slice(0, 1024),

@@ -4,7 +4,7 @@ import { table, policy } from './helpers/shared-bead-scene';
 import { emptyDoc, type StudioDoc, type PartInstance } from '../src/engine/doc';
 import { placementOf } from '../src/engine/placement';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
-import { evaluateDoc, brepsFor, stepFor, shareMeshes } from '../src/engine/evaluate';
+import { evaluateDoc, brepsFor, exportStudioStep, shareMeshes } from '../src/engine/evaluate';
 import { WireSender, WireReceiver } from '../src/engine/wireDoc';
 import { MeshSender, MeshReceiver } from '../src/engine/meshWire';
 import { beadAccounting } from '../src/frames/beadAccounting';
@@ -121,7 +121,7 @@ test('placed shared metadata transforms once, exact drawing/STEP geometry agrees
       assert.ok(Math.abs(Math.max(...vertices.map(p => p[axis])) - b.mesh.bounds.max[axis]) < 1e-4);
     }
   }
-  assert.ok('text' in stepFor(assembly, 'Shared table'));
+  assert.match(exportStudioStep(assembly, { name: 'Shared table' }).text, /^ISO-10303-21;/);
   const bom = deriveBom(await bomView(assembly, evaluate));
   assert.equal(bom.beadAccounting!.sharedSeamCount, 8); assert.equal(bom.beadAccounting!.ownedVolumeMM3, 4320); assert.equal(bom.totalQty, 2);
   assert.equal(bom.lines.some(l => l.kind === 'weld-bead'), false);

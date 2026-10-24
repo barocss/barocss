@@ -1,5 +1,6 @@
 import { createHomogeneousBernsteinEquation, solveHomogeneousBernsteinEquation } from './own-homogeneous-bernstein-roots.js';
 import type { HomogeneousBernsteinEquation, HomogeneousBernsteinRoot } from './own-homogeneous-bernstein-roots.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export interface CubicBernsteinRootEvidence {
   originalCoefficients: [number, number, number, number]; normalizedCoefficients: [number, number, number, number];
@@ -18,7 +19,7 @@ export interface CubicBernsteinRootEvidence {
   scalarEvaluationCount: number; derivativeRootSteps: number[]; cubicRootSteps: number[];
   coincident: boolean; parameterWidthTarget: number; arithmeticGuard: number;
 }
-export class CubicBernsteinRootError extends Error {
+export class CubicBernsteinRootError extends KernelError {
   readonly code: 'INPUT' | 'REPRESENTABILITY' | 'BUDGET';
   constructor(code: CubicBernsteinRootError['code'], detail: string, cause?: unknown) {
     super(('Own cubic Bernstein roots: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

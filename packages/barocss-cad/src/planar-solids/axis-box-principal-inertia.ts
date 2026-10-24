@@ -3,10 +3,11 @@ import type { AxisBoxSolidMassResult, AxisBoxSolidMassMeasure } from '../axis-bo
 import { copyCadData } from '../data-copy.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const AxisBoxSolidPrincipalInertiaDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', MASS: 'MASS', SELECTION: 'SELECTION', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidPrincipalInertiaDiagnosticCode = typeof AxisBoxSolidPrincipalInertiaDiagnosticCode[keyof typeof AxisBoxSolidPrincipalInertiaDiagnosticCode];
-export class AxisBoxSolidPrincipalInertiaError extends Error {
+export class AxisBoxSolidPrincipalInertiaError extends KernelError {
   readonly code: AxisBoxSolidPrincipalInertiaDiagnosticCode;
   constructor(code: AxisBoxSolidPrincipalInertiaDiagnosticCode, detail: string, cause?: unknown) {
     super(('Axis-box Solid principal inertia: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'AxisBoxSolidPrincipalInertiaError'; this.code = code;

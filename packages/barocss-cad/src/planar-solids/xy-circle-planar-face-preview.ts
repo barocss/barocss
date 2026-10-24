@@ -109,7 +109,7 @@ export function tessellateXYCirclePlanarFace(input: XYCirclePlanarFaceBundle, in
   for (let j = 0; j < positions.length; j += 3) for (let axis = 0; axis < 3; axis++) {
     bounds.min[axis] = Math.min(bounds.min[axis], positions[j + axis]); bounds.max[axis] = Math.max(bounds.max[axis], positions[j + axis]);
   }
-  const packet: PreviewPacket = { version: 0, surfaceId: meshId, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
+  const packet: PreviewPacket = { version: 0, surfaceId: meshId, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds };
   validatePreviewPacket(packet);
   check(pathPoints[0].every((value, axis) => value === pathPoints[n][axis]), '$edgePath', 'actual original seam sample must close once');
   const edgePaths: XYCirclePlanarFaceEdgePath[] = [{ id: edge.id, points: pathPoints }];

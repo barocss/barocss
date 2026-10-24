@@ -8,6 +8,7 @@ import { buildPiecewiseRationalLoftSurface } from '../../features/piecewise-rati
 import type { PiecewiseRationalLoftResult, PiecewiseRationalLoftReport } from '../../features/piecewise-rational-loft.js';
 import type { Curve, Model } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceKnotAlignedLoftDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET',
@@ -16,7 +17,7 @@ export const SourceKnotAlignedLoftDiagnosticCode = Object.freeze({
 } as const);
 export type SourceKnotAlignedLoftDiagnosticCode =
   typeof SourceKnotAlignedLoftDiagnosticCode[keyof typeof SourceKnotAlignedLoftDiagnosticCode];
-export class SourceKnotAlignedLoftError extends Error {
+export class SourceKnotAlignedLoftError extends KernelError {
   readonly code: SourceKnotAlignedLoftDiagnosticCode;
   constructor(code: SourceKnotAlignedLoftDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source knot-aligned Loft: ' + detail).slice(0, 1024),

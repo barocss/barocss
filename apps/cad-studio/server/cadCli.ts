@@ -10,7 +10,7 @@ import { mjcfOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
 import { readMjcf } from '@barocss/cad-model/robot/mjcfCheck';
 import { readUrdf } from '@barocss/cad-model/robot/urdfCheck';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
-import { evaluateDoc, stepFor, stlFor } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, exportStudioStep, stlFor } from '@barocss/cad-model/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { lumpStls, meshToStl } from '@barocss/cad-model/engine/stl';
@@ -39,6 +39,11 @@ import { tmpdir } from 'node:os';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
 import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { sourceBytes, sourceName, sourceRecord } from '@barocss/cad-model/team/source';
+
+/** A STEP file for the CLI's reports: the text, or the refusal's words (R7.3c: exportStudioStep throws). */
+function stepOrError(doc: StudioDoc, name: string): ReturnType<typeof exportStudioStep> | { error: string } {
+  try { return exportStudioStep(doc, { name }); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; }
+}
 
 /** A mould plan as mould.json shows it: without the loops' points (the lumps' classifier's). */
 /** A row list named on the person's own command line (rows rule b): the file they supplied, received as the chat receives
@@ -255,7 +260,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const turning = process === 'cnc-turning' ? turningOf(s0.doc, s0.bodies, holesOf(s0.bodies)) : null, r = chooseStock(s0.doc, s0.bodies, process, turning);
     if (!r.ok) { say(io.stdout, { ok: false, code: r.code, message: r.message, allowance: r.allowance }); return 1; }
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
-    const step = stepFor(stockDoc(r.choice), 'stock');
+    const step = stepOrError(stockDoc(r.choice), 'stock');
     if ('error' in step) return failed(`the stock's STEP: ${step.error}`);
     writeAtomic(join(dir, 'stock.json'), new TextEncoder().encode(JSON.stringify(stockFile(r.choice), null, 1) + '\n'));
     writeAtomic(join(dir, 'stock.step'), new TextEncoder().encode(step.text));
@@ -294,7 +299,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const p = await patternOf(s0.doc, s0.bodies, evaluate);
     if (!p.ok) { say(io.stdout, { ok: false, code: p.code, message: p.message }); return 1; }
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
-    const step = stepFor(p.doc, 'pattern');
+    const step = stepOrError(p.doc, 'pattern');
     if ('error' in step) return failed(`the pattern's STEP: ${step.error}`);
     writeAtomic(join(dir, 'pattern.json'), new TextEncoder().encode(JSON.stringify(p.file, null, 1) + '\n'));
     writeAtomic(join(dir, 'pattern.step'), new TextEncoder().encode(step.text));
@@ -320,7 +325,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const halves = mouldHalves(doc, bodies, plan.plan);
     if (!halves.ok) { say(io.stdout, { ok: false, code: halves.code, message: halves.message }); return 1; }
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
-    const step = stepFor(halves.doc, 'mould');
+    const step = stepOrError(halves.doc, 'mould');
     if ('error' in step) return failed(`the halves' STEP: ${step.error}`);
     const vol = (bs: readonly { volumeMM3?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * 1e3) / 1e3;
     const shown = withoutLoops(plan.plan);
@@ -424,7 +429,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
   if (!o.dry) {
     try {
       if (o.out) { writeAtomic(o.out, encodeStudioFile(s.doc)); wrote.push(o.out); }
-      if (o.step) { const step = stepFor(s.doc, o.step.replace(/^.*[\\/]/, '').replace(/\.\w+$/, '')); if ('error' in step) return failed(`STEP: ${step.error}`); writeAtomic(o.step, step.text); wrote.push(o.step); if (step.omitted) notes.push(...step.omitted); }
+      if (o.step) { const step = stepOrError(s.doc, o.step.replace(/^.*[\\/]/, '').replace(/\.\w+$/, '')); if ('error' in step) return failed(`STEP: ${step.error}`); writeAtomic(o.step, step.text); wrote.push(o.step); if (step.omitted) notes.push(...step.omitted); }
       if (o.stl) {
         if (!s.bodies.length) return failed('STL: there is no body to write');
         for (const b of s.bodies) {

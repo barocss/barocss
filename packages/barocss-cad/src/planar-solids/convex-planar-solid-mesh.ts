@@ -2,9 +2,10 @@ import { validateConvexPlanarSolid } from '../convex-planar-solid.js';
 import type { ConvexPlanarSolidResult, ConvexPlanarSolidReport } from '../convex-planar-solid.js';
 import type { Point } from '../types.js';
 import { MassLedger, ConvexPlanarSolidMassError, same } from './convex-planar-solid-mass-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type ConvexPlanarSolidMeshDiagnosticCode = 'INPUT' | 'BUDGET' | 'PARENT' | 'BINDING' | 'REPRESENTABILITY' | 'OWNED';
-export class ConvexPlanarSolidMeshError extends Error {
+export class ConvexPlanarSolidMeshError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidMeshDiagnosticCode, detail: string, cause?: unknown) {
     super(('Convex planar Solid mesh: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'ConvexPlanarSolidMeshError';
   }

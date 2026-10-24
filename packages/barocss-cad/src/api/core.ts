@@ -7,7 +7,9 @@ import { exportStep } from '../io/step.js';
 import { brepLines, brepSelection, type BodyQuery } from './select.js';
 import { BarocssError, bracketedCode, refuse } from './refusal.js';
 
-export type Vec3 = [number, number, number];
+// (One Vec3 for the facades, api-conventions §10.2: `readonly [x, y, z]`, as gpu's core/geometry-types.ts declares it.)
+export type { Vec3 } from './select.js';
+import type { Vec3 } from './select.js';
 
 /** A body's mass properties at a density, in MMGS (api-conventions.md §2): mm³, g, mm, and g·mm² about the centre of mass. */
 export interface MassResult { volumeMM3: number; massG: number; centroidMM: Vec3; inertiaGMM2: number[][] }

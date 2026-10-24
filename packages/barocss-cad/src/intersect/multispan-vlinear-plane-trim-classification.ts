@@ -3,10 +3,11 @@ import type { MultiSpanVLinearSurfacePlaneTrimResult } from './multispan-vlinear
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', TRIM: 'TRIM', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode = typeof MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode[keyof typeof MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode];
-export class MultiSpanVLinearSurfacePlaneTrimUVError extends Error {
+export class MultiSpanVLinearSurfacePlaneTrimUVError extends KernelError {
   readonly code: MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode;
   constructor(code: MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode, detail: string, cause?: unknown) {
     super(('Multi-span V-linear trim UV classification: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'MultiSpanVLinearSurfacePlaneTrimUVError'; this.code = code;

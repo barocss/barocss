@@ -74,6 +74,23 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const { axis, count, span, px, py } = spec.values;
       return [{ id: nextId(doc, 'circular-pattern'), kind: 'circular-pattern', target: target(), axis, angleDegrees: axis === 'z' ? step(span, count) : 90, count, ...(axis === 'z' && (px || py) ? { pivot: [px, py, 0] } : {}) }];
     }
+    case 'mirror': {
+      // (As the studio writes it: the kernel mirrors across planes through the origin, so a plane elsewhere is a move
+      // there, the mirror and the move back.)
+      const { plane, at } = spec.values;
+      if (!at) return [{ id: nextId(doc, 'mirror'), kind: 'mirror', target: target(), plane, keep: true }];
+      const k = { yz: 0, xz: 1, xy: 2 }[plane], shift = (v: number): [number, number, number] => { const o: [number, number, number] = [0, 0, 0]; o[k] = v; return o; };
+      const there = nextId(doc, 'translate'), mirrored = nextId(doc, 'mirror'), back = `translate${Number(there.slice(9)) + 1}`;
+      return [{ id: there, kind: 'translate', target: target(), offset: shift(-at) }, { id: mirrored, kind: 'mirror', target: there, plane, keep: true }, { id: back, kind: 'translate', target: mirrored, offset: shift(at) }];
+    }
+    case 'scale': {
+      const { factor, px, py, pz } = spec.values;
+      return [{ id: nextId(doc, 'scale'), kind: 'scale', target: target(), factor, ...(px || py || pz ? { pivot: [px, py, pz] } : {}) }];
+    }
+    case 'split': {
+      const v = spec.values;
+      return [{ id: nextId(doc, 'split'), kind: 'split', target: target(), ...(v.axis === 'n' ? { normal: [v.nx, v.ny, v.nz] } : { axis: v.axis }), at: v.at }];
+    }
     case 'move':
       return [{ id: nextId(doc, 'translate'), kind: 'translate', target: target(), offset: [spec.values.x, spec.values.y, spec.values.z] }];
     case 'rotate': {

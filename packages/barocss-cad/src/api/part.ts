@@ -8,9 +8,9 @@
 // body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
 // with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
 import {
-  booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearPatternSpec, moveSpec, revolveSpec, rotateSpec, shellSpec,
+  booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
   type BooleanCommand, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
-  type HoleOptions, type LinearPatternOptions, type RevolveOptions, type ShellOptions,
+  type HoleOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
 } from './spec.js';
 import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
 import { Location, type Sketch } from './sketch.js';
@@ -28,14 +28,17 @@ export interface PartBackend<D> {
   /** A body's edges and faces. */
   select(doc: D, body: string): BodyQuery;
   /** A body's mass properties at a density (g/cm³), in MMGS. */
-  mass(doc: D, body: string, densityGPerCm3: number): MassResult;
+  mass(doc: D, body: string, density: number): MassResult;
   /** Every body of the part as one STEP AP214 file. */
   step(doc: D, name: string): string;
   meshes(doc: D): MeshData[];
 }
 
-/** A density, the kernel's way of asking for mass (it keeps no material library; cad-model's part also takes a material id). */
-export interface Density { densityGPerCm3: number }
+/**
+ * A density in g/cm³, the way materials are quoted (api-conventions §2) — the kernel's way of asking for mass (it keeps
+ * no material library; cad-model's part also takes a material id).
+ */
+export interface Density { density: number }
 
 /** A Boolean's tool: a body of the part by name, or a callback that adds the tool body to the part (`p => p.cylinder(…)`). */
 export type Tool<P> = string | ((part: P) => P);
@@ -128,13 +131,20 @@ export class Part<D> {
   /** `circular-pattern`: copies of the body round an axis, joined into one body. */
   circularPattern(options: CircularPatternOptions): this { return this.#act(circularPatternSpec(options)); }
 
+  /** `mirror`: the body joined with its mirror image across a coordinate plane (through `at` on its axis). */
+  mirror(options: MirrorOptions): this { return this.#act(mirrorSpec(options)); }
+  /** `scale`: the body scaled uniformly about a pivot, the origin unless given. */
+  scale(options: ScaleOptions): this { return this.#act(scaleSpec(options)); }
+  /** `split`: the body cut in two by a plane, each side a body of its own (choose one with body(name)). */
+  split(options: SplitOptions): this { return this.#act(splitSpec(options)); }
+
   /**
    * The body placed by a Location: `rotate` about X, then Y, then Z through the origin, then `move` — the two commands,
    * one node each for every part of the placement that isn't zero.
    */
   moved(location: Location): this {
-    if (!(location instanceof Location)) throw refuse('VALUE', 'moved() takes a Location (Location.of({ positionMM, rotationDeg }), Location.at(…))');
-    const r = location.rotationDeg, p = location.positionMM;
+    if (!(location instanceof Location)) throw refuse('VALUE', 'moved() takes a Location (Location.of({ position, rotation }), Location.at(…))');
+    const r = location.rotation, p = location.position;
     let out = this.next(this.#doc, this.#focus);
     for (const k of [0, 1, 2] as const) if (r[k] !== 0) out = out.#act(rotateSpec(AXES[k], r[k]));
     if (p[0] !== 0 || p[1] !== 0 || p[2] !== 0) out = out.#act(moveSpec([p[0], p[1], p[2]]));
@@ -145,7 +155,7 @@ export class Part<D> {
   select(): BodyQuery { return this.backend.select(this.#doc, this.target()); }
 
   /** The body's mass properties at a density, in MMGS. */
-  mass(density: Density): MassResult { return this.backend.mass(this.#doc, this.target(), density.densityGPerCm3); }
+  mass(density: Density): MassResult { return this.backend.mass(this.#doc, this.target(), density.density); }
 
   /** The part (every body) as one STEP AP214 file, named after the part unless another name is given. */
   step(name: string = this.name): string { return this.backend.step(this.#doc, name); }

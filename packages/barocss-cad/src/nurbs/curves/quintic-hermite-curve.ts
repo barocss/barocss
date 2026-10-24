@@ -4,12 +4,13 @@ import type { CurveD2Result } from '../../core/second-derivatives.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const QuinticHermiteDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', REPRESENTABILITY: 'REPRESENTABILITY', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type QuinticHermiteDiagnosticCode = typeof QuinticHermiteDiagnosticCode[keyof typeof QuinticHermiteDiagnosticCode];
-export class QuinticHermiteError extends Error {
+export class QuinticHermiteError extends KernelError {
   readonly code: QuinticHermiteDiagnosticCode;
   constructor(code: QuinticHermiteDiagnosticCode, detail: string, cause?: unknown) {
     super(('Quintic Hermite Curve: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
