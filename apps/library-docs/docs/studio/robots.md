@@ -204,8 +204,9 @@ the tool gives them, with turns in radians.
 
 <<< @/../samples/robots.test.mjs#motions
 
-- **Every demo motion swept.** Each sample's own motion is clear, the four-bar aside; the gripper's meshing fingers
-  are skipped as designed contact.
+- **Every demo motion swept.** Each sample's own motion is clear, and the gripper's meshing fingers are skipped as
+  designed contact. The four-bar's motion is refused with `LOOP_OPEN`: by `check()`, `poseAt()` and `duration()`, and
+  listed first by `problems()`.
 
 <<< @/../samples/robots.test.mjs#sweeps
 
