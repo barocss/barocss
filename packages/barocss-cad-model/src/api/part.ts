@@ -23,7 +23,7 @@ export class StudioPart extends Part<StudioDoc> {
     if (material !== undefined && typeof material !== 'string') return super.mass(material);
     const id = material ?? materialOf(this.document, this.target());
     if (id === undefined) throw refuse('MATERIAL_UNKNOWN', `the body ${this.target()} names no material: give one (mass('al6061')), or set it with material(id)`);
-    return super.mass({ densityGPerCm3: libraryMaterial(id).gPerCm3 });
+    return super.mass({ density: libraryMaterial(id).gPerCm3 });
   }
 
   /** `features.material` (set_material): the chosen body's material — or, with none chosen, every body's — by its library id. */

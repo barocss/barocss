@@ -12,8 +12,8 @@ test('a plate with a hole: written, evaluated, measured, valid, written as STEP 
   // #region part
   // A 60 × 40 × 8 plate with a Ø8 hole through it.
   const plate = part('plate')
-    .box({ wMM: 60, dMM: 40, hMM: 8 })
-    .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 30, yMM: 20 });
+    .box({ w: 60, d: 40, h: 8 })
+    .hole(body => body.faces().facing('+z'), { d: 8, x: 30, y: 20 });
 
   const doc = plate.doc;                    // the part document: its features in order
   assert.deepEqual(doc.features.map(f => [f.id, f.kind]), [['sketch1', 'sketch'], ['extrude1', 'extrude'], ['hole1', 'hole']]);
@@ -22,7 +22,7 @@ test('a plate with a hole: written, evaluated, measured, valid, written as STEP 
   // #endregion part
 
   // #region outputs
-  const mass = plate.mass({ densityGPerCm3: 2.7 });          // aluminium: mm³, g, mm, g·mm²
+  const mass = plate.mass({ density: 2.7 });          // aluminium: mm³, g, mm, g·mm²
   assert.ok(Math.abs(mass.volumeMM3 - (60 * 40 * 8 - Math.PI * 16 * 8)) < 1e-6);
   assert.ok(Math.abs(mass.massG - mass.volumeMM3 * 2.7e-3) < 1e-9);
   assert.equal(body.validate().valid, true);   // strict B-rep validity, on the core's output

@@ -55,8 +55,8 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
     `bodies()` / `body(name)`. See "R7.4b: part growth, as built".
   - **Planned:** `split`, `mirror`, parameters, assemblies (R7.5).
   - cad-model's part adds the studio layer: materials, rows, instances, assemblies.
-  - `mass` reads the same in both: cad takes `mass({ densityGPerCm3 })`, because the kernel has no material library.
-    cad-model takes `mass(material | { densityGPerCm3 })`.
+  - `mass` reads the same in both: cad takes `mass({ density })`, because the kernel has no material library.
+    cad-model takes `mass(material | { density })`.
 - **The same selectors.** `edges().along('z')`, `faces().facing('+z')`, `on`, `sortBy`, `first`/`last` and `names()` are
   one shared selector module over a common edge/face record.
   - cad fills that record from the B-rep (each `BrepEdge.name`, and its curve as a line or not).
@@ -72,10 +72,10 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
 import { part } from '@barocss/cad/api';
 import { scene, show } from '@barocss/gpu/api';
 
-const bracket = part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 })
-  .hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
-  .fillet(b => b.edges().along('z'), { radiusMM: 2 });
-bracket.mass({ densityGPerCm3: 2.7 });   // MMGS out
+const bracket = part('bracket').box({ w: 80, d: 40, h: 10 })
+  .hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 })
+  .fillet(b => b.edges().along('z'), { radius: 2 });
+bracket.mass({ density: 2.7 });   // MMGS out
 bracket.step();
 
 const view = scene()
@@ -153,22 +153,43 @@ same StudioDoc, byte for byte (test/api-part.test.ts).
 ```
 To write it this way, you need the faces' and edges' persistent names, and you have to read each result to find them.
 
-**3. The facade.** The same command names, and the same values with units in their names (§12):
+**3. The facade.** The same command names, and the same values by their own names (§12; no unit suffix, owner 2026-10-24):
 ```ts
 import { part } from '@barocss/cad-model/api';
 
 const bracket = part('bracket')
-  .box({ wMM: 80, dMM: 40, hMM: 10 })
-  .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
-  .fillet(body => body.edges().along('z'), { radiusMM: 2 });
+  .box({ w: 80, d: 40, h: 10 })
+  .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 })
+  .fillet(body => body.edges().along('z'), { radius: 2 });
 
 bracket.doc;                              // the JSON above
-bracket.mass('al6061');                   // or mass({ densityGPerCm3: 2.7 }): { volumeMM3, massG, centroidMM, inertiaGMM2 }
+bracket.mass('al6061');                   // or mass({ density: 2.7 }): { volumeMM3, massG, centroidMM, inertiaGMM2 }
 bracket.step();                           // the core's STEP text
 ```
 For the kernel alone, `@barocss/cad/api`'s `part()` takes the same chain and writes a CadPartDocument instead:
 - the features are `sketch1`, `extrude1`, `hole1` (with `face: 'extrude1.top'`) and `fillet1`;
-- `mass()` takes `{ densityGPerCm3 }`.
+- `mass()` takes `{ density }`.
+
+## Option names carry no unit (owner, 2026-10-24)
+
+The owner asked why the options read `wMM`, `dMM`, `hMM` when the documents already fix millimetres ("cad 자체가 이미 mm
+로 유닛을 정하는데 … 이상해서 그래"), and decided: "단위 접미사 빼줘".
+- **Every facade input takes the agent's v2 value name as it is:**
+  - box `{ w, d, h, x, y, z }` and cylinder `{ r, h, x, y, z }`;
+  - hole `{ d, x, y, type?, depth? }`;
+  - fillet `{ radius }`, chamfer `{ distance }` and shell `{ t }`;
+  - extrude `{ h, draft? }` and revolve `{ axis?, deg? }`;
+  - the patterns' `spacing`, `count`, `span`, `px` and `py`;
+  - a mate's `distance` and `angle`;
+  - gpu's camera `fovY`, as its Camera names it.
+- **Inputs are in the conventions' fixed units:** lengths in mm, angles in degrees, and density in g/cm³
+  (`mass({ density })`). So no name carries a unit.
+- **Placements are `{ position, rotation }`:** Location, `placements()` and `framePoses()`. That's how a placed part
+  and a robot frame store them.
+- **Results keep their unit names** (`volumeMM3`, `massG`, `centroidMM`, `inertiaGMM2`). Those really did come in other
+  units: the kernel's are in kg and kg·m² until R7.3b.
+- **The conventions' §2 and §12 wording** (option names "with units in the name") is the coordinator's to change.
+- **The docs lane's samples** use the old names. They move in the same merge window.
 
 ## R7.4a: one part implementation, the agent's vocabulary
 
@@ -181,7 +202,7 @@ For the kernel alone, `@barocss/cad/api`'s `part()` takes the same chain and wri
   - **cad-model's backend** (cad-model/src/api/studio.ts) runs the studio's own command, as run_command does: names
     resolved (`resolveNames`), the command's defaults patched (`patchValues`), the values checked (`checkValues`),
     `build`, and the new references signed (`captureSignatures`, as every commit does).
-  - `StudioPart extends Part<StudioDoc>` adds only the studio layer. Today that's `mass(material | { densityGPerCm3 })`.
+  - `StudioPart extends Part<StudioDoc>` adds only the studio layer. Today that's `mass(material | { density })`.
 - **No forked feature code.** A part verb is added once, in cad's `Part` plus a spec. The studio backend needs nothing
   new for a verb whose v2 command exists. The kernel backend writes that verb's kernel feature.
 - **The oracle, per facade:** `.doc` equals its own hand-written document; for cad-model, it also equals what the
@@ -195,27 +216,27 @@ the body chooser, the sketch node and the evaluation at each verb.
 
 | Verb | v2 command, values | Kernel features | Studio nodes (through the command) |
 |---|---|---|---|
-| `cylinder({ rMM, hMM, xMM?, yMM?, zMM? })` | `cylinder` r, h, x, y, z | circle `sketch` + `extrude` | the same, `made` remembered |
-| `extrude(sketch, { hMM, draftDeg? })` | `extrude` h, draft | the sketch + `extrude` (`draft` when not 0) | the sketch as add_features writes it, then `extrude` |
-| `revolve(sketch, { axis?, angleDeg? })` | `revolve` axis, deg | the sketch + `revolve` (`axis: { origin: [0, 0], direction }`) | the sketch, then `revolve` |
-| `chamfer(edges, { distanceMM })` | `chamfer` distance | `chamfer` | `chamfer`, signed |
-| `shell(open?, { tMM })` | `shell` t; the faces to open, or the body for a closed hollow | `shell` (`open` when given) | `shell`, signed |
+| `cylinder({ r, h, x?, y?, z? })` | `cylinder` r, h, x, y, z | circle `sketch` + `extrude` | the same, `made` remembered |
+| `extrude(sketch, { h, draft? })` | `extrude` h, draft | the sketch + `extrude` (`draft` when not 0) | the sketch as add_features writes it, then `extrude` |
+| `revolve(sketch, { axis?, deg? })` | `revolve` axis, deg | the sketch + `revolve` (`axis: { origin: [0, 0], direction }`) | the sketch, then `revolve` |
+| `chamfer(edges, { distance })` | `chamfer` distance | `chamfer` | `chamfer`, signed |
+| `shell(open?, { t })` | `shell` t; the faces to open, or the body for a closed hollow | `shell` (`open` when given) | `shell`, signed |
 | `union` / `subtract` / `intersect(tool)` | `union` / `difference` / `intersect`, bodies [body, tool] | `{ target, tool }` | `{ left, right }`, or `{ parent, tool }` |
-| `linearPattern({ axis, spacingMM, count })` | `linear-pattern` axis, spacing, count | `linear-pattern` | `linear-pattern` |
-| `circularPattern({ axis?, count, spanDeg?, pxMM?, pyMM? })` | `circular-pattern` axis, count, span, px, py | `circular-pattern`, its step the studio's | `circular-pattern` |
+| `linearPattern({ axis, spacing, count })` | `linear-pattern` axis, spacing, count | `linear-pattern` | `linear-pattern` |
+| `circularPattern({ axis?, count, span?, px?, py? })` | `circular-pattern` axis, count, span, px, py | `circular-pattern`, its step the studio's | `circular-pattern` |
 | `moved(Location)` | `rotate` (each of X, Y, Z not 0, pivot the origin), then `move` | `rotate`, `translate` | `rotate` (pivot written), `translate` |
 
 - **Sketches** (cad/src/api/sketch.ts) are replicad's chain in our data:
-  - `sketch(plane?)` gives `.rectangle({ wMM, dMM, xMM?, yMM? })`, `.circle({ rMM, xMM?, yMM? })`, `.polygon(points)`, or
+  - `sketch(plane?)` gives `.rectangle({ w, d, x?, y? })`, `.circle({ r, x?, y? })`, `.polygon(points)`, or
     `.moveTo(p).lineTo(p).arcTo(p, { center, direction? }).close()`, a `loop` of lines and arcs.
   - A `Sketch` is immutable. Its `.data` is the profile a sketch node carries, the same in both documents.
   - **Every side is tagged** `e1 …` (`sideTags`, D86), as the studio's sketcher tags the sketches it draws. The walls are
     named `side[e<k>]`, so a vertex inserted later in the sketcher keeps the other names. Commands' sketches (box,
     cylinder) stay positional, as D86 has them.
-- **Plane** (build123d's): `Plane.XY`, `Plane.XZ` (normal −Y, so its Y is world Z), `Plane.YZ`, `.offset(dMM)` and
+- **Plane** (build123d's): `Plane.XY`, `Plane.XZ` (normal −Y, so its Y is world Z), `Plane.YZ`, `.offset(d)` and
   `Plane.of({ origin, normal, xAxis })`, which refuses vectors that aren't unit and square. `.data` is the documents'
   plane shape. A sketch on XY through the origin stores no plane, as the studio writes it.
-- **Location** (build123d's): `Location.of({ positionMM, rotationDeg })` and `Location.at(p)`. It's the documents' Pose
+- **Location** (build123d's): `Location.of({ position, rotation })` and `Location.at(p)`. It's the documents' Pose
   (conventions §10.2), rotated about X, then Y, then Z, through the origin, then moved. R7.5 places parts with it.
 - **The body chooser.**
   - `bodies()` lists the part's bodies in the core's order: the studio's keys (`b1`, `b3` …), the kernel's output ids
@@ -278,7 +299,7 @@ the body chooser, the sketch node and the evaluation at each verb.
   - `addPart(name, part, { at?, grounded? })` is `add_part`. The part's document goes in as it is; the tool's is empty
     or a copy, and the agent then builds it with part-scoped tools.
   - `place(name, { at?, grounded? })` is `place_part`.
-  - `addMate(kind, a, b, { distanceMM?, angleDeg?, flip? })` is `add_mate`. Each end is `{ part, face }`:
+  - `addMate(kind, a, b, { distance?, angle?, flip? })` is `add_mate`. Each end is `{ part, face }`:
     - the part is `'base'` or a placed part by the name it was added with;
     - the face is a selector picking one face, or a face name.
 
@@ -290,7 +311,7 @@ the body chooser, the sketch node and the evaluation at each verb.
     Location in that part's own coordinates.
 - **Results are plain data:**
   - `parts()`;
-  - `placements()`: each placed part's id, name, `positionMM`, `rotationDeg` and grounding;
+  - `placements()`: each placed part's id, name, `position`, `rotation` and grounding;
   - `problems()`: the unmet mates;
   - `variant(values)`: an assembly over `variantOf`'s document, the master unchanged;
   - `framePoses()`: each frame's world pose from the joint tree;
@@ -340,7 +361,7 @@ the body chooser, the sketch node and the evaluation at each verb.
     facade mesh handed straight to `viewer.add` would have its lines misread as ids. The coordinator may want §10.3's
     wording to match.
 - **A camera view.**
-  - `scene().camera('iso' | 'front' | 'back' | 'right' | 'left' | 'top' | 'bottom' | { direction, up? }, { projection?, fovYDeg? })`.
+  - `scene().camera('iso' | 'front' | 'back' | 'right' | 'left' | 'top' | 'bottom' | { direction, up? }, { projection?, fovY? })`.
     The top and bottom views keep +Y up, the rest +Z.
   - `show()` sets the Viewer camera's projection, field of view and up, and puts the eye along the direction. Then
     `fit()` frames the scene, keeping that direction. This uses the camera's public fields only.
@@ -419,8 +440,8 @@ These come later, each with the same oracle:
     cad-model from its display mesh.
   - Without it, `edges().along('z')` on a holed plate also picks the hole's half-cylinder joints, and the kernel refuses
     the fillet with TANGENT_FACES, since there's no corner to round.
-- **The mass argument (done in R7.4a):** cad takes `mass({ densityGPerCm3 })`, and cad-model takes
-  `mass(material | { densityGPerCm3 })`, so a bare number can't be mistaken for a material id.
+- **The mass argument (done in R7.4a):** cad takes `mass({ density })`, and cad-model takes
+  `mass(material | { density })`, so a bare number can't be mistaken for a material id.
 
 ## Stable ids and names (the FeatureScript point)
 
@@ -503,7 +524,7 @@ doesn't build on it. Nothing outside cad calls it. R7.3 retires it once the faca
 | Old method (`CadShape` / `CadModel`) | Tests using it | Facade |
 |---|---|---|
 | `rectangle(...).extrude(h)` | 29 | **slice 1**: `part().box(w, d, h)` (a rectangle sketch extruded); a general `sketch().rectangle()` comes in step 2 |
-| `hole({ center, radius })` | 17 | **slice 1**: `.hole(face selector, { dMM, xMM, yMM, type?, depthMM? })` |
+| `hole({ center, radius })` | 17 | **slice 1**: `.hole(face selector, { d, x, y, type?, depth? })` |
 | `edges({ parallelTo, at }).one()` + `chamfer(edge, d)` | 22 / 21 | **slice 1** has the selectors (`along`, `sortBy`, `first`/`last`, `on`). `.chamfer(select, d)` comes in step 1, beside `.fillet` |
 | `massProperties(output, { densityKgPerM3 })` | 1 (modeling-mass) | **slice 1**: `.mass(material)`, by material id, in MMGS |
 | `exportStl(output)` | 1 (modeling-stl) | **slice 1** (cad): `.stl()`, from the output's own `exportStl` |

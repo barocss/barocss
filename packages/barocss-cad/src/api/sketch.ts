@@ -1,7 +1,7 @@
 // R7 (the facades): Plane, Location and the sketcher, as objects of their own (build123d's Plane and Location,
 // replicad's `draw().lineTo().arcTo().close()`). Each is immutable and plain underneath: a Plane is a sketch's
 // `{ origin, normal, xAxis }` (the kernel's CadPartSketchPlane and the studio's DocPlane, one shape), a Location the
-// documents' Pose `{ positionMM, rotationDeg }` (api-conventions.md §10.2), and a Sketch the profile fields a sketch
+// documents' Pose `{ position, rotation }` (api-conventions.md §10.2), and a Sketch the profile fields a sketch
 // node carries in both documents (rectangle, circle, polygon or a loop of lines and arcs). The facade writes them into
 // sketch, translate and rotate nodes; it computes no geometry of its own.
 import { refuse } from './refusal.js';
@@ -47,10 +47,10 @@ export class Plane {
     return new Plane(o, n, x);
   }
 
-  /** The same plane moved `dMM` along its normal. */
-  offset(dMM: number): Plane {
-    const d = finite('dMM', dMM), [o, n] = [this.origin, this.normal];
-    return new Plane([o[0] + n[0] * d, o[1] + n[1] * d, o[2] + n[2] * d], n, this.xAxis);
+  /** The same plane moved `distance` (mm) along its normal. */
+  offset(distance: number): Plane {
+    const k = finite('distance', distance), [o, n] = [this.origin, this.normal];
+    return new Plane([o[0] + n[0] * k, o[1] + n[1] * k, o[2] + n[2] * k], n, this.xAxis);
   }
 
   /** Whether it is the XY plane through the origin, which a sketch node leaves out. */
@@ -65,22 +65,22 @@ export class Plane {
 const same = (a: Vec3, b: Vec3) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
 
 /** A placement as the documents store one (an instance's, a frame's): rotated about X, then Y, then Z (degrees), then moved (mm). */
-export interface PoseData { readonly positionMM: Vec3; readonly rotationDeg: Vec3 }
+export interface PoseData { readonly position: Vec3; readonly rotation: Vec3 }
 
 /** A placement (build123d's Location), the documents' Pose: a turn about X, then Y, then Z, through the origin, then a move. */
 export class Location {
-  readonly positionMM: Vec3; readonly rotationDeg: Vec3;
-  private constructor(position: Vec3, rotation: Vec3) { this.positionMM = position; this.rotationDeg = rotation; Object.freeze(this); }
+  readonly position: Vec3; readonly rotation: Vec3;
+  private constructor(position: Vec3, rotation: Vec3) { this.position = position; this.rotation = rotation; Object.freeze(this); }
 
   /** Where nothing moves. */
   static readonly IDENTITY = new Location([0, 0, 0], [0, 0, 0]);
   /** A placement of your own, either part left out at zero. */
-  static of(pose: Partial<PoseData>): Location { return new Location(vec3('positionMM', pose.positionMM ?? [0, 0, 0]), vec3('rotationDeg', pose.rotationDeg ?? [0, 0, 0])); }
+  static of(pose: Partial<PoseData>): Location { return new Location(vec3('position', pose.position ?? [0, 0, 0]), vec3('rotation', pose.rotation ?? [0, 0, 0])); }
   /** A move only. */
-  static at(positionMM: Vec3): Location { return Location.of({ positionMM }); }
+  static at(position: Vec3): Location { return Location.of({ position }); }
 
   /** The plain pose, as an instance stores it. */
-  get data(): { positionMM: [number, number, number]; rotationDeg: [number, number, number] } { return { positionMM: [...this.positionMM], rotationDeg: [...this.rotationDeg] }; }
+  get data(): { position: [number, number, number]; rotation: [number, number, number] } { return { position: [...this.position], rotation: [...this.rotation] }; }
 }
 
 /** One segment of a sketch loop, as both documents store it: from `start` to the next segment's start, straight or round `center`. */
@@ -119,13 +119,13 @@ export class SketchStart {
   constructor(plane: Plane) { this.plane = plane; }
 
   /** A w × d rectangle with its least corner at (x, y) in the plane — the box command's profile. */
-  rectangle(o: { wMM: number; dMM: number; xMM?: number; yMM?: number }): Sketch {
-    const x = finite('xMM', o.xMM ?? 0), y = finite('yMM', o.yMM ?? 0);
-    return onPlane(this.plane, { profile: 'rectangle', min: [x, y], max: [x + positive('wMM', o.wMM), y + positive('dMM', o.dMM)] }, 4);
+  rectangle(o: { w: number; d: number; x?: number; y?: number }): Sketch {
+    const x = finite('x', o.x ?? 0), y = finite('y', o.y ?? 0);
+    return onPlane(this.plane, { profile: 'rectangle', min: [x, y], max: [x + positive('w', o.w), y + positive('d', o.d)] }, 4);
   }
   /** A circle of radius r about (x, y) in the plane — the cylinder command's profile. */
-  circle(o: { rMM: number; xMM?: number; yMM?: number }): Sketch {
-    return onPlane(this.plane, { profile: 'circle', center: [finite('xMM', o.xMM ?? 0), finite('yMM', o.yMM ?? 0)], radius: positive('rMM', o.rMM) }, 1);
+  circle(o: { r: number; x?: number; y?: number }): Sketch {
+    return onPlane(this.plane, { profile: 'circle', center: [finite('x', o.x ?? 0), finite('y', o.y ?? 0)], radius: positive('r', o.r) }, 1);
   }
   /** A closed polygon through the points (mm, in the plane), in order. */
   polygon(points: readonly Vec2[]): Sketch {
