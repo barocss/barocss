@@ -35,7 +35,7 @@ export interface DrillPoint { readonly kind: 'drill'; readonly feature: string; 
 export interface CamPreview {
   readonly banner: string; readonly notForProduction: true;
   readonly tool: { readonly diameter: number; readonly basis: 'given' | 'estimate' };
-  readonly stepoverMM: number; readonly stepdownMM: number; readonly basis: string;
+  readonly stepover: number; readonly stepdown: number; readonly basis: string;
   readonly operations: readonly (PocketPass | DrillPoint)[];
   /** Features not previewed, and why. */
   readonly skipped: readonly { readonly feature: string; readonly why: string }[];
@@ -104,7 +104,7 @@ export function camPreview(doc: StudioDoc, all: readonly BodyResult[], o: { tool
     else if (f.kind === 'hole') for (const dp of drillPoints(f, holes)) ops.push(dp.diameter > D + 1e-9 ? boreAsPocket(dp, R, so, sd) : dp);
     else if (f.kind === 'slot' || f.kind === 'step') skipped.push({ feature: f.id, why: `a ${f.kind} is open on a side: not previewed` });
   }
-  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, tool: { diameter: D, basis: o.toolDiameter && o.toolDiameter > 0 ? 'given' : 'estimate' }, stepoverMM: r6(so), stepdownMM: r6(sd),
+  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, tool: { diameter: D, basis: o.toolDiameter && o.toolDiameter > 0 ? 'given' : 'estimate' }, stepover: r6(so), stepdown: r6(sd),
     basis: `the stepover ${STEPOVER_SHARE * 100} % and the step-down ${STEPDOWN_SHARE * 100} % of the tool's diameter: estimates`, operations: ops, skipped };
 }
 function pocketPass(f: Feature, bodies: readonly BodyResult[], R: number, so: number, sd: number): PocketPass | null {

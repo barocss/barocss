@@ -37,7 +37,7 @@ test('CNC8 inset: a 10 × 4 rectangle by 1 — 8 × 2; by 2 — closed up (null)
 
 test('CNC8 a 50 × 30 pocket, 8 deep, Ø6 tool (an estimate): loops (44 − 4.8k) × (24 − 4.8k), k = 0…4; levels 3, 6, 8; length 1464; the plane +Z at the floor', async () => {
   const s = await build(POCKET()), p = camPreview(s.doc, s.bodies), pk = p.operations.find((o): o is PocketPass => o.kind === 'pocket')!;
-  assert.deepEqual([p.notForProduction, p.banner, p.tool, p.stepoverMM, p.stepdownMM], [true, NOT_FOR_PRODUCTION, { diameter: 6, basis: 'estimate' }, 2.4, 3]);
+  assert.deepEqual([p.notForProduction, p.banner, p.tool, p.stepover, p.stepdown], [true, NOT_FOR_PRODUCTION, { diameter: 6, basis: 'estimate' }, 2.4, 3]);
   assert.deepEqual(pk.loops.map(box), [0, 1, 2, 3, 4].map(k => [+(44 - 4.8 * k).toFixed(6), +(24 - 4.8 * k).toFixed(6)]));
   assert.deepEqual(pk.levels, [3, 6, 8]); assert.ok(Math.abs(pk.length - 3 * [0, 1, 2, 3, 4].reduce((t, k) => t + 2 * (68 - 9.6 * k), 0)) <= 1e-6, String(pk.length));
   assert.deepEqual([pk.setup, pk.plane.normal, pk.plane.origin[2]], ['+Z', [0, 0, 1], 12]);
