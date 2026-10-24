@@ -190,7 +190,7 @@ half-way:
 The [object API](/packages/api) reads an assembly as a robot: `assembly(…).robot()`. Each method returns what the
 agent's robot tool returns: `joints()`, `pose(values)`, `path(waypoints).check()`, `inertia()`, `gravity(values)`, and
 `urdf()`, `mjcf()`, `sdf()` and `usd()`. Joint values go in as degrees and millimetres. The pose's `values` come back as
-the tool gives them, with turns in radians.
+degrees for turns and millimetres for slides. The internal robot solver uses radians.
 
 <<< @/../samples/robots.test.mjs#import
 

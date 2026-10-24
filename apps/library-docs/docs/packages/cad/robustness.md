@@ -186,7 +186,7 @@ These are the current source paths under `packages/barocss-cad/src/`:
 
 ## Strict validity and typed refusals
 
-`validate()` runs the strict check on an output. It checks:
+`checkOutput(output)` runs the strict check on an output. It checks:
 
 - the topology: closed shells, each edge used twice;
 - that edges lie on their surfaces;

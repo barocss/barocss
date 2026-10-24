@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 // #region import
 import { part } from '@barocss/cad/api';                       // the object facade
-import { evaluateCadPart, CadPartError } from '@barocss/cad';   // the core: the part document and its evaluation
+import { evaluateCadPart, CadPartError, checkOutput, reevaluate, massPropertiesOf } from '@barocss/cad';   // the core: the part document and its evaluation
 // #endregion import
 
 test('a plate with a hole: written, evaluated, measured, valid, written as STEP and STL', () => {
@@ -23,9 +23,9 @@ test('a plate with a hole: written, evaluated, measured, valid, written as STEP 
 
   // #region outputs
   const mass = plate.mass({ density: 2.7 });          // aluminium: mm³, g, mm, g·mm²
-  assert.ok(Math.abs(mass.volumeMM3 - (60 * 40 * 8 - Math.PI * 16 * 8)) < 1e-6);
-  assert.ok(Math.abs(mass.massG - mass.volumeMM3 * 2.7e-3) < 1e-9);
-  assert.equal(body.validate().valid, true);   // strict B-rep validity, on the core's output
+  assert.ok(Math.abs(mass.volume - (60 * 40 * 8 - Math.PI * 16 * 8)) < 1e-6);
+  assert.ok(Math.abs(mass.mass - mass.volume * 2.7e-3) < 1e-9);
+  assert.equal(checkOutput(body).valid, true);   // strict B-rep validity, on the core's output
   assert.match(plate.step(), /^ISO-10303-21;/);
   const stl = plate.stl();                  // binary STL of the display tessellation
   assert.equal(stl.length, 84 + 50 * new DataView(stl.buffer, stl.byteOffset).getUint32(80, true));
@@ -36,8 +36,8 @@ test('a parameter edited: unchanged features reused', () => {
   const first = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: { t: 8 },
     features: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] }, { id: 'p', kind: 'extrude', sketch: 's', height: { parameter: 't' } }] });
   // #region edit
-  const thicker = first.withParameters({ t: 10 });
-  assert.ok(Math.abs(thicker.outputs[0].massProperties(2700).volumeMM3 - 60 * 40 * 10) < 1e-6);
+  const thicker = reevaluate(first, { parameters: { t: 10 } });
+  assert.ok(Math.abs(massPropertiesOf(thicker.outputs[0], 2.7).volume - 60 * 40 * 10) < 1e-6);
   assert.deepEqual(thicker.recomputation.evaluated, ['p']);   // only the extrude ran again
   // #endregion edit
 });

@@ -21,8 +21,8 @@ The facades are for code. The agent keeps working through its JSON tools, and th
   reaches its core through one adapter.
 - **One set of units.** Inputs are in millimetres, degrees and g/cm³, so no option names a unit. Results are in
   millimetres and grams.
-- **Results are the core's, as plain data,** with the unit in the name: `volumeMM3`, `massG`, `centroidMM` and
-  `inertiaGMM2`, the inertia about the centre of mass.
+- **Results are plain data.** Mass results contain `volume` in mm³, `mass` in g, `centroid` in mm and
+  `inertia` in g·mm² about the centre of mass. A numeric `density` is in g/cm³.
 - **The agent's words.** The modelling verbs are the agent's v2 command names, and their options are that command's
   value names, with no unit in the name: `box({ w, d, h })`, `hole(face, { d, x, y })`, `fillet(edges, { radius })`.
   Where no command names a value, the option is named for it: `mass({ density })`. Two verbs are named for their
