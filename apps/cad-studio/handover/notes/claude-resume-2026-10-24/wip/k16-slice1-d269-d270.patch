@@ -1,0 +1,1839 @@
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1009.dxf b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1009.dxf
+index 09656982f..5cd0ef867 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1009.dxf
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1009.dxf
+@@ -325,13 +325,13 @@ CIRCLE
+   8
+ OUTLINE
+  10
+-47.17831822927444
++47.17831822927441
+  20
+-12.499999999999961
++12.499999999999932
+  30
+ 0.0
+  40
+-4.000000000000014
++3.999999999999986
+   0
+ LINE
+   8
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1015.dxf b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1015.dxf
+index 46ae34382..d118c0277 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1015.dxf
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/expected.AC1015.dxf
+@@ -825,13 +825,13 @@ OUTLINE
+ 100
+ AcDbCircle
+  10
+-47.17831822927444
++47.17831822927441
+  20
+-12.499999999999961
++12.499999999999932
+  30
+ 0.0
+  40
+-4.000000000000014
++3.999999999999986
+   0
+ LINE
+   5
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1009.json b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1009.json
+index 98234bfaf..92d9c2053 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1009.json
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1009.json
+@@ -117,11 +117,11 @@
+   },
+   {
+    "center": [
+-    47.17831822927444,
+-    12.499999999999961
++    47.17831822927441,
++    12.499999999999932
+    ],
+    "layer": "OUTLINE",
+-   "radius": 4.000000000000014,
++   "radius": 3.999999999999986,
+    "type": "CIRCLE"
+   },
+   {
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1015.json b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1015.json
+index 6487040b2..879dedb32 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1015.json
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/channel-hole/oracle.AC1015.json
+@@ -117,11 +117,11 @@
+   },
+   {
+    "center": [
+-    47.17831822927444,
+-    12.499999999999961
++    47.17831822927441,
++    12.499999999999932
+    ],
+    "layer": "OUTLINE",
+-   "radius": 4.000000000000014,
++   "radius": 3.999999999999986,
+    "type": "CIRCLE"
+   },
+   {
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1009.dxf b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1009.dxf
+index 2534b1b0c..6a71381e4 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1009.dxf
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1009.dxf
+@@ -263,13 +263,13 @@ OUTLINE
+  10
+ 24.17831822927442
+  20
+-24.178318229274435
++24.178318229274428
+  30
+ 0.0
+  11
+ 24.67831822927442
+  21
+-24.178318229274435
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -283,7 +283,7 @@ OUTLINE
+  30
+ 0.0
+  11
+-24.67831822927442
++24.678318229274417
+  21
+ 0.0
+  31
+@@ -293,7 +293,7 @@ LINE
+   8
+ OUTLINE
+  10
+-24.67831822927442
++24.678318229274417
+  20
+ 0.0
+  30
+@@ -301,7 +301,7 @@ OUTLINE
+  11
+ 103.67831822927442
+  21
+-0.00000000000001065814
++0.00000000000000355271
+  31
+ 0.0
+   0
+@@ -311,13 +311,13 @@ OUTLINE
+  10
+ 103.67831822927442
+  20
+-0.00000000000001065814
++0.00000000000000355271
+  30
+ 0.0
+  11
+ 103.67831822927442
+  21
+-24.178318229274442
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -327,13 +327,13 @@ OUTLINE
+  10
+ 103.67831822927442
+  20
+-24.178318229274442
++24.178318229274428
+  30
+ 0.0
+  11
+ 104.17831822927442
+  21
+-24.178318229274435
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -343,13 +343,13 @@ OUTLINE
+  10
+ 104.17831822927442
+  20
+-24.178318229274435
++24.178318229274428
+  30
+ 0.0
+  11
+ 104.17831822927442
+  21
+-24.678318229274435
++24.678318229274428
+  31
+ 0.0
+   0
+@@ -363,7 +363,7 @@ OUTLINE
+  30
+ 0.0
+  11
+-128.35663645854882
++128.35663645854885
+  21
+ 24.67831822927443
+  31
+@@ -373,7 +373,7 @@ LINE
+   8
+ OUTLINE
+  10
+-128.35663645854882
++128.35663645854885
+  20
+ 24.67831822927443
+  30
+@@ -539,9 +539,9 @@ OUTLINE
+  30
+ 0.0
+  11
+-0.0
++0.00000000000000355271
+  21
+-24.67831822927444
++24.678318229274435
+  31
+ 0.0
+   0
+@@ -549,15 +549,15 @@ LINE
+   8
+ OUTLINE
+  10
+-0.0
++0.00000000000000355271
+  20
+-24.67831822927444
++24.678318229274435
+  30
+ 0.0
+  11
+ 24.17831822927442
+  21
+-24.678318229274435
++24.678318229274428
+  31
+ 0.0
+   0
+@@ -567,13 +567,13 @@ OUTLINE
+  10
+ 24.17831822927442
+  20
+-24.678318229274435
++24.678318229274428
+  30
+ 0.0
+  11
+ 24.17831822927442
+  21
+-24.178318229274435
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -581,13 +581,13 @@ CIRCLE
+   8
+ OUTLINE
+  10
+-64.17831822927442
++64.17831822927441
+  20
+-49.178318229274446
++49.178318229274424
+  30
+ 0.0
+  40
+-5.000000000000014
++4.999999999999986
+   0
+ LINE
+   8
+@@ -595,13 +595,13 @@ BEND_UP
+  10
+ 103.67831822927442
+  20
+-22.089159114637226
++22.089159114637212
+  30
+ 0.0
+  11
+ 24.678318229274417
+  21
+-22.08915911463722
++22.089159114637212
+  31
+ 0.0
+   0
+@@ -611,7 +611,7 @@ BEND_NOTES
+  10
+ 64.17831822927442
+  20
+-22.089159114637223
++22.089159114637212
+  30
+ 0.0
+  40
+@@ -623,7 +623,7 @@ UP 90%%d R2
+  11
+ 64.17831822927442
+  21
+-22.089159114637223
++22.089159114637212
+  31
+ 0.0
+   0
+@@ -711,11 +711,11 @@ BEND_UP
+  10
+ 22.08915911463721
+  20
+-24.678318229274435
++24.678318229274428
+  30
+ 0.0
+  11
+-22.08915911463721
++22.089159114637205
+  21
+ 73.67831822927442
+  31
+@@ -725,9 +725,9 @@ TEXT
+   8
+ BEND_NOTES
+  10
+-22.08915911463721
++22.089159114637205
+  20
+-49.17831822927443
++49.178318229274424
+  30
+ 0.0
+  40
+@@ -739,9 +739,9 @@ UP 90%%d R2
+  72
+ 1
+  11
+-22.08915911463721
++22.089159114637205
+  21
+-49.17831822927443
++49.178318229274424
+  31
+ 0.0
+   0
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1015.dxf b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1015.dxf
+index a230e8678..d293dfad9 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1015.dxf
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/expected.AC1015.dxf
+@@ -731,13 +731,13 @@ AcDbLine
+  10
+ 24.17831822927442
+  20
+-24.178318229274435
++24.178318229274428
+  30
+ 0.0
+  11
+ 24.67831822927442
+  21
+-24.178318229274435
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -759,7 +759,7 @@ AcDbLine
+  30
+ 0.0
+  11
+-24.67831822927442
++24.678318229274417
+  21
+ 0.0
+  31
+@@ -777,7 +777,7 @@ OUTLINE
+ 100
+ AcDbLine
+  10
+-24.67831822927442
++24.678318229274417
+  20
+ 0.0
+  30
+@@ -785,7 +785,7 @@ AcDbLine
+  11
+ 103.67831822927442
+  21
+-0.00000000000001065814
++0.00000000000000355271
+  31
+ 0.0
+   0
+@@ -803,13 +803,13 @@ AcDbLine
+  10
+ 103.67831822927442
+  20
+-0.00000000000001065814
++0.00000000000000355271
+  30
+ 0.0
+  11
+ 103.67831822927442
+  21
+-24.178318229274442
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -827,13 +827,13 @@ AcDbLine
+  10
+ 103.67831822927442
+  20
+-24.178318229274442
++24.178318229274428
+  30
+ 0.0
+  11
+ 104.17831822927442
+  21
+-24.178318229274435
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -851,13 +851,13 @@ AcDbLine
+  10
+ 104.17831822927442
+  20
+-24.178318229274435
++24.178318229274428
+  30
+ 0.0
+  11
+ 104.17831822927442
+  21
+-24.678318229274435
++24.678318229274428
+  31
+ 0.0
+   0
+@@ -879,7 +879,7 @@ AcDbLine
+  30
+ 0.0
+  11
+-128.35663645854882
++128.35663645854885
+  21
+ 24.67831822927443
+  31
+@@ -897,7 +897,7 @@ OUTLINE
+ 100
+ AcDbLine
+  10
+-128.35663645854882
++128.35663645854885
+  20
+ 24.67831822927443
+  30
+@@ -1143,9 +1143,9 @@ AcDbLine
+  30
+ 0.0
+  11
+-0.0
++0.00000000000000355271
+  21
+-24.67831822927444
++24.678318229274435
+  31
+ 0.0
+   0
+@@ -1161,15 +1161,15 @@ OUTLINE
+ 100
+ AcDbLine
+  10
+-0.0
++0.00000000000000355271
+  20
+-24.67831822927444
++24.678318229274435
+  30
+ 0.0
+  11
+ 24.17831822927442
+  21
+-24.678318229274435
++24.678318229274428
+  31
+ 0.0
+   0
+@@ -1187,13 +1187,13 @@ AcDbLine
+  10
+ 24.17831822927442
+  20
+-24.678318229274435
++24.678318229274428
+  30
+ 0.0
+  11
+ 24.17831822927442
+  21
+-24.178318229274435
++24.178318229274428
+  31
+ 0.0
+   0
+@@ -1209,13 +1209,13 @@ OUTLINE
+ 100
+ AcDbCircle
+  10
+-64.17831822927442
++64.17831822927441
+  20
+-49.178318229274446
++49.178318229274424
+  30
+ 0.0
+  40
+-5.000000000000014
++4.999999999999986
+   0
+ LINE
+   5
+@@ -1231,13 +1231,13 @@ AcDbLine
+  10
+ 103.67831822927442
+  20
+-22.089159114637226
++22.089159114637212
+  30
+ 0.0
+  11
+ 24.678318229274417
+  21
+-22.08915911463722
++22.089159114637212
+  31
+ 0.0
+   0
+@@ -1255,7 +1255,7 @@ AcDbText
+  10
+ 64.17831822927442
+  20
+-22.089159114637223
++22.089159114637212
+  30
+ 0.0
+  40
+@@ -1267,7 +1267,7 @@ UP 90%%d R2
+  11
+ 64.17831822927442
+  21
+-22.089159114637223
++22.089159114637212
+  31
+ 0.0
+ 100
+@@ -1401,11 +1401,11 @@ AcDbLine
+  10
+ 22.08915911463721
+  20
+-24.678318229274435
++24.678318229274428
+  30
+ 0.0
+  11
+-22.08915911463721
++22.089159114637205
+  21
+ 73.67831822927442
+  31
+@@ -1423,9 +1423,9 @@ BEND_NOTES
+ 100
+ AcDbText
+  10
+-22.08915911463721
++22.089159114637205
+  20
+-49.17831822927443
++49.178318229274424
+  30
+ 0.0
+  40
+@@ -1437,9 +1437,9 @@ UP 90%%d R2
+  72
+ 1
+  11
+-22.08915911463721
++22.089159114637205
+  21
+-49.17831822927443
++49.178318229274424
+  31
+ 0.0
+ 100
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1009.json b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1009.json
+index b81a98ff3..f2000e628 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1009.json
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1009.json
+@@ -70,11 +70,11 @@
+   {
+    "a": [
+     24.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "b": [
+     24.67831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -85,7 +85,7 @@
+     24.178318229274424
+    ],
+    "b": [
+-    24.67831822927442,
++    24.678318229274417,
+     0.0
+    ],
+    "layer": "OUTLINE",
+@@ -93,12 +93,12 @@
+   },
+   {
+    "a": [
+-    24.67831822927442,
++    24.678318229274417,
+     0.0
+    ],
+    "b": [
+     103.67831822927442,
+-    1.065814e-14
++    3.55271e-15
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -106,11 +106,11 @@
+   {
+    "a": [
+     103.67831822927442,
+-    1.065814e-14
++    3.55271e-15
+    ],
+    "b": [
+     103.67831822927442,
+-    24.178318229274442
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -118,11 +118,11 @@
+   {
+    "a": [
+     103.67831822927442,
+-    24.178318229274442
++    24.178318229274428
+    ],
+    "b": [
+     104.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -130,11 +130,11 @@
+   {
+    "a": [
+     104.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "b": [
+     104.17831822927442,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -145,7 +145,7 @@
+     24.67831822927443
+    ],
+    "b": [
+-    128.35663645854882,
++    128.35663645854885,
+     24.67831822927443
+    ],
+    "layer": "OUTLINE",
+@@ -153,7 +153,7 @@
+   },
+   {
+    "a": [
+-    128.35663645854882,
++    128.35663645854885,
+     24.67831822927443
+    ],
+    "b": [
+@@ -277,20 +277,20 @@
+     73.67831822927442
+    ],
+    "b": [
+-    0.0,
+-    24.67831822927444
++    3.55271e-15,
++    24.678318229274435
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+   },
+   {
+    "a": [
+-    0.0,
+-    24.67831822927444
++    3.55271e-15,
++    24.678318229274435
+    ],
+    "b": [
+     24.17831822927442,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -298,32 +298,32 @@
+   {
+    "a": [
+     24.17831822927442,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "b": [
+     24.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+   },
+   {
+    "center": [
+-    64.17831822927442,
+-    49.178318229274446
++    64.17831822927441,
++    49.178318229274424
+    ],
+    "layer": "OUTLINE",
+-   "radius": 5.000000000000014,
++   "radius": 4.999999999999986,
+    "type": "CIRCLE"
+   },
+   {
+    "a": [
+     103.67831822927442,
+-    22.089159114637226
++    22.089159114637212
+    ],
+    "b": [
+     24.678318229274417,
+-    22.08915911463722
++    22.089159114637212
+    ],
+    "layer": "BEND_UP",
+    "type": "LINE"
+@@ -331,11 +331,11 @@
+   {
+    "alignAt": [
+     64.17831822927442,
+-    22.089159114637223
++    22.089159114637212
+    ],
+    "at": [
+     64.17831822927442,
+-    22.089159114637223
++    22.089159114637212
+    ],
+    "halign": 1,
+    "height": 2.5,
+@@ -406,10 +406,10 @@
+   {
+    "a": [
+     22.08915911463721,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "b": [
+-    22.08915911463721,
++    22.089159114637205,
+     73.67831822927442
+    ],
+    "layer": "BEND_UP",
+@@ -417,12 +417,12 @@
+   },
+   {
+    "alignAt": [
+-    22.08915911463721,
+-    49.17831822927443
++    22.089159114637205,
++    49.178318229274424
+    ],
+    "at": [
+-    22.08915911463721,
+-    49.17831822927443
++    22.089159114637205,
++    49.178318229274424
+    ],
+    "halign": 1,
+    "height": 2.5,
+diff --git a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1015.json b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1015.json
+index de96960dd..a173457b6 100644
+--- a/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1015.json
++++ b/packages/barocss-cad/conformance/r12/flat-dxf/tray-holes/oracle.AC1015.json
+@@ -70,11 +70,11 @@
+   {
+    "a": [
+     24.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "b": [
+     24.67831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -85,7 +85,7 @@
+     24.178318229274424
+    ],
+    "b": [
+-    24.67831822927442,
++    24.678318229274417,
+     0.0
+    ],
+    "layer": "OUTLINE",
+@@ -93,12 +93,12 @@
+   },
+   {
+    "a": [
+-    24.67831822927442,
++    24.678318229274417,
+     0.0
+    ],
+    "b": [
+     103.67831822927442,
+-    1.065814e-14
++    3.55271e-15
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -106,11 +106,11 @@
+   {
+    "a": [
+     103.67831822927442,
+-    1.065814e-14
++    3.55271e-15
+    ],
+    "b": [
+     103.67831822927442,
+-    24.178318229274442
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -118,11 +118,11 @@
+   {
+    "a": [
+     103.67831822927442,
+-    24.178318229274442
++    24.178318229274428
+    ],
+    "b": [
+     104.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -130,11 +130,11 @@
+   {
+    "a": [
+     104.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "b": [
+     104.17831822927442,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -145,7 +145,7 @@
+     24.67831822927443
+    ],
+    "b": [
+-    128.35663645854882,
++    128.35663645854885,
+     24.67831822927443
+    ],
+    "layer": "OUTLINE",
+@@ -153,7 +153,7 @@
+   },
+   {
+    "a": [
+-    128.35663645854882,
++    128.35663645854885,
+     24.67831822927443
+    ],
+    "b": [
+@@ -277,20 +277,20 @@
+     73.67831822927442
+    ],
+    "b": [
+-    0.0,
+-    24.67831822927444
++    3.55271e-15,
++    24.678318229274435
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+   },
+   {
+    "a": [
+-    0.0,
+-    24.67831822927444
++    3.55271e-15,
++    24.678318229274435
+    ],
+    "b": [
+     24.17831822927442,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+@@ -298,32 +298,32 @@
+   {
+    "a": [
+     24.17831822927442,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "b": [
+     24.17831822927442,
+-    24.178318229274435
++    24.178318229274428
+    ],
+    "layer": "OUTLINE",
+    "type": "LINE"
+   },
+   {
+    "center": [
+-    64.17831822927442,
+-    49.178318229274446
++    64.17831822927441,
++    49.178318229274424
+    ],
+    "layer": "OUTLINE",
+-   "radius": 5.000000000000014,
++   "radius": 4.999999999999986,
+    "type": "CIRCLE"
+   },
+   {
+    "a": [
+     103.67831822927442,
+-    22.089159114637226
++    22.089159114637212
+    ],
+    "b": [
+     24.678318229274417,
+-    22.08915911463722
++    22.089159114637212
+    ],
+    "layer": "BEND_UP",
+    "type": "LINE"
+@@ -331,11 +331,11 @@
+   {
+    "alignAt": [
+     64.17831822927442,
+-    22.089159114637223
++    22.089159114637212
+    ],
+    "at": [
+     64.17831822927442,
+-    22.089159114637223
++    22.089159114637212
+    ],
+    "halign": 1,
+    "height": 2.5,
+@@ -406,10 +406,10 @@
+   {
+    "a": [
+     22.08915911463721,
+-    24.678318229274435
++    24.678318229274428
+    ],
+    "b": [
+-    22.08915911463721,
++    22.089159114637205,
+     73.67831822927442
+    ],
+    "layer": "BEND_UP",
+@@ -417,12 +417,12 @@
+   },
+   {
+    "alignAt": [
+-    22.08915911463721,
+-    49.17831822927443
++    22.089159114637205,
++    49.178318229274424
+    ],
+    "at": [
+-    22.08915911463721,
+-    49.17831822927443
++    22.089159114637205,
++    49.178318229274424
+    ],
+    "halign": 1,
+    "height": 2.5,
+diff --git a/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261023-110.json b/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261023-110.json
+new file mode 100644
+index 000000000..8aa2d32d6
+--- /dev/null
++++ b/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261023-110.json
+@@ -0,0 +1,247 @@
++{
++  "id": "fuzz-20261023-110",
++  "about": "L4 fuzz (seed 20261023, case 110), shrunk: (a cylinder ∪ a ball) less a cylinder, the ball through the small cylinder's wall line and bottom plane. Built through the part model's self-union (D260); without it refused: a piece's loop touching its domain's side with a hole beside it (the Boolean's shell volume), and a face's point met twice a few ulps apart (the tessellation, D270). Now one body.",
++  "input": {
++    "partDocument": {
++      "format": "barocss-cad-part",
++      "version": 1,
++      "units": "mm",
++      "parameters": {},
++      "features": [
++        {
++          "id": "n2s",
++          "kind": "sketch",
++          "profile": "circle",
++          "center": [
++            0,
++            0
++          ],
++          "radius": 1
++        },
++        {
++          "id": "n2b",
++          "kind": "extrude",
++          "sketch": "n2s",
++          "height": 4
++        },
++        {
++          "id": "n2",
++          "kind": "translate",
++          "target": "n2b",
++          "offset": [
++            -2,
++            2,
++            2
++          ]
++        },
++        {
++          "id": "n3s",
++          "kind": "sketch",
++          "profile": "loop",
++          "segments": [
++            {
++              "kind": "line",
++              "start": [
++                0,
++                -2
++              ]
++            },
++            {
++              "kind": "arc",
++              "start": [
++                0,
++                2
++              ],
++              "center": [
++                0,
++                0
++              ],
++              "direction": "cw"
++            }
++          ],
++          "plane": {
++            "origin": [
++              0,
++              0,
++              0
++            ],
++            "normal": [
++              0,
++              -1,
++              0
++            ],
++            "xAxis": [
++              1,
++              0,
++              0
++            ]
++          }
++        },
++        {
++          "id": "n3b",
++          "kind": "revolve",
++          "sketch": "n3s",
++          "axis": {
++            "origin": [
++              0,
++              0
++            ],
++            "direction": "y"
++          },
++          "angleDegrees": 360
++        },
++        {
++          "id": "n3r0",
++          "kind": "rotate",
++          "target": "n3b",
++          "axis": "y",
++          "angleDegrees": 90,
++          "pivot": [
++            0,
++            0,
++            0
++          ]
++        },
++        {
++          "id": "n3",
++          "kind": "translate",
++          "target": "n3r0",
++          "offset": [
++            -2,
++            3,
++            2
++          ]
++        },
++        {
++          "id": "n1",
++          "kind": "union",
++          "target": "n2",
++          "tool": "n3"
++        },
++        {
++          "id": "n4s",
++          "kind": "sketch",
++          "profile": "circle",
++          "center": [
++            0,
++            0
++          ],
++          "radius": 3
++        },
++        {
++          "id": "n4b",
++          "kind": "extrude",
++          "sketch": "n4s",
++          "height": 8
++        },
++        {
++          "id": "n4r0",
++          "kind": "rotate",
++          "target": "n4b",
++          "axis": "x",
++          "angleDegrees": 180,
++          "pivot": [
++            0,
++            0,
++            0
++          ]
++        },
++        {
++          "id": "n4",
++          "kind": "translate",
++          "target": "n4r0",
++          "offset": [
++            -2,
++            -1,
++            1
++          ]
++        },
++        {
++          "id": "n0",
++          "kind": "difference",
++          "target": "n1",
++          "tool": "n4"
++        }
++      ]
++    }
++  },
++  "expect": {
++    "outputs": [
++      {
++        "volumeMM3": {
++          "value": 40.85006184861148,
++          "relTol": 0.0017294405589594925,
++          "absTol": 0.07064775379699248
++        },
++        "centroidMM": {
++          "value": [
++            -2.0000086887377573,
++            2.809167466080061,
++            2.532628370336403
++          ],
++          "absTol": 0.003227394366170388
++        }
++      }
++    ]
++  },
++  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 3.53e-2 mm³, centroid e 1.61e-3 mm",
++  "fuzz": {
++    "seed": 20261023,
++    "k": 110,
++    "status": "REFUSED",
++    "tree": {
++      "op": "difference",
++      "a": {
++        "op": "union",
++        "a": {
++          "leaf": {
++            "kind": "cyl",
++            "r": 1,
++            "h": 4,
++            "rot": [],
++            "move": [
++              -2,
++              2,
++              2
++            ]
++          }
++        },
++        "b": {
++          "leaf": {
++            "kind": "sphere",
++            "r": 2,
++            "rot": [
++              {
++                "axis": "y",
++                "deg": 90
++              }
++            ],
++            "move": [
++              -2,
++              3,
++              2
++            ]
++          }
++        }
++      },
++      "b": {
++        "leaf": {
++          "kind": "cyl",
++          "r": 3,
++          "h": 8,
++          "rot": [
++            {
++              "axis": "x",
++              "deg": 180
++            }
++          ],
++          "move": [
++            -2,
++            -1,
++            1
++          ]
++        }
++      }
++    }
++  }
++}
+diff --git a/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261024-154.json b/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261024-154.json
+new file mode 100644
+index 000000000..264d24fe8
+--- /dev/null
++++ b/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261024-154.json
+@@ -0,0 +1,199 @@
++{
++  "id": "fuzz-20261024-154",
++  "about": "L4 fuzz (seed 20261024, case 154), shrunk: a ball ∪ a rounded box, the ball's pole on the box's edge between its top and its round. Built through the part model's self-union (D260); without it the box ∪ ball order was refused: the march of the ball's curve with the round ran 4.4e-4 past the pole, and the pole put after it made a hook (D269). Now one body.",
++  "input": {
++    "partDocument": {
++      "format": "barocss-cad-part",
++      "version": 1,
++      "units": "mm",
++      "parameters": {},
++      "features": [
++        {
++          "id": "n1s",
++          "kind": "sketch",
++          "profile": "loop",
++          "segments": [
++            {
++              "kind": "line",
++              "start": [
++                0,
++                -3
++              ]
++            },
++            {
++              "kind": "arc",
++              "start": [
++                0,
++                3
++              ],
++              "center": [
++                0,
++                0
++              ],
++              "direction": "cw"
++            }
++          ],
++          "plane": {
++            "origin": [
++              0,
++              0,
++              0
++            ],
++            "normal": [
++              0,
++              -1,
++              0
++            ],
++            "xAxis": [
++              1,
++              0,
++              0
++            ]
++          }
++        },
++        {
++          "id": "n1b",
++          "kind": "revolve",
++          "sketch": "n1s",
++          "axis": {
++            "origin": [
++              0,
++              0
++            ],
++            "direction": "y"
++          },
++          "angleDegrees": 360
++        },
++        {
++          "id": "n1",
++          "kind": "translate",
++          "target": "n1b",
++          "offset": [
++            -2,
++            -1,
++            -2
++          ]
++        },
++        {
++          "id": "n2s",
++          "kind": "sketch",
++          "profile": "rectangle",
++          "min": [
++            0,
++            0
++          ],
++          "max": [
++            3,
++            5
++          ]
++        },
++        {
++          "id": "n2b",
++          "kind": "extrude",
++          "sketch": "n2s",
++          "height": 5
++        },
++        {
++          "id": "n2f",
++          "kind": "fillet",
++          "target": "n2b",
++          "edges": [
++            "n2b.side0|n2b.side1",
++            "n2b.side1|n2b.side2",
++            "n2b.side2|n2b.side3",
++            "n2b.side0|n2b.side3"
++          ],
++          "radius": 1
++        },
++        {
++          "id": "n2r0",
++          "kind": "rotate",
++          "target": "n2f",
++          "axis": "y",
++          "angleDegrees": 270,
++          "pivot": [
++            0,
++            0,
++            0
++          ]
++        },
++        {
++          "id": "n2",
++          "kind": "translate",
++          "target": "n2r0",
++          "offset": [
++            -1,
++            -2,
++            -2
++          ]
++        },
++        {
++          "id": "n0",
++          "kind": "union",
++          "target": "n1",
++          "tool": "n2"
++        }
++      ]
++    }
++  },
++  "expect": {
++    "outputs": [
++      {
++        "volumeMM3": {
++          "value": 154.25730245019923,
++          "relTol": 0.0001365718566385136,
++          "absTol": 0.02106720619567244
++        },
++        "centroidMM": {
++          "value": [
++            -2.565408192320911,
++            -0.4454310959948985,
++            -1.5472448498266937
++          ],
++          "absTol": 0.0007000000000000001
++        }
++      }
++    ]
++  },
++  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 1.05e-2 mm³, centroid e 1.56e-4 mm",
++  "fuzz": {
++    "seed": 20261024,
++    "k": 154,
++    "status": "REFUSED",
++    "tree": {
++      "op": "union",
++      "a": {
++        "leaf": {
++          "kind": "sphere",
++          "r": 3,
++          "rot": [],
++          "move": [
++            -2,
++            -1,
++            -2
++          ]
++        }
++      },
++      "b": {
++        "leaf": {
++          "kind": "rbox",
++          "w": 3,
++          "d": 5,
++          "h": 5,
++          "r": 1,
++          "rot": [
++            {
++              "axis": "y",
++              "deg": 270
++            }
++          ],
++          "move": [
++            -1,
++            -2,
++            -2
++          ]
++        }
++      }
++    }
++  }
++}
+diff --git a/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261025-49.json b/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261025-49.json
+new file mode 100644
+index 000000000..a43437e7e
+--- /dev/null
++++ b/packages/barocss-cad/robustness/corpus/fuzz/fuzz-20261025-49.json
+@@ -0,0 +1,207 @@
++{
++  "id": "fuzz-20261025-49",
++  "about": "L4 fuzz robust refusal (seed 20261025, case 49), shrunk: a cylinder ∪ (a cylinder ∪ a tilted cylinder). The inner union's traced curve is split into micro edges up a ruling where it runs along it; it builds, but the part model united the union feature's first tool part with itself (D260), and that self-union was refused, an edge used 4 times. Now one body.",
++  "input": {
++    "partDocument": {
++      "format": "barocss-cad-part",
++      "version": 1,
++      "units": "mm",
++      "parameters": {},
++      "features": [
++        {
++          "id": "n1s",
++          "kind": "sketch",
++          "profile": "circle",
++          "center": [
++            0,
++            0
++          ],
++          "radius": 4
++        },
++        {
++          "id": "n1b",
++          "kind": "extrude",
++          "sketch": "n1s",
++          "height": 3.5
++        },
++        {
++          "id": "n1",
++          "kind": "translate",
++          "target": "n1b",
++          "offset": [
++            -1,
++            0.5,
++            -1
++          ]
++        },
++        {
++          "id": "n3s",
++          "kind": "sketch",
++          "profile": "circle",
++          "center": [
++            0,
++            0
++          ],
++          "radius": 3.188
++        },
++        {
++          "id": "n3b",
++          "kind": "extrude",
++          "sketch": "n3s",
++          "height": 4.588
++        },
++        {
++          "id": "n3",
++          "kind": "translate",
++          "target": "n3b",
++          "offset": [
++            1.181,
++            -1.081,
++            -2.413
++          ]
++        },
++        {
++          "id": "n4s",
++          "kind": "sketch",
++          "profile": "circle",
++          "center": [
++            0,
++            0
++          ],
++          "radius": 3.623
++        },
++        {
++          "id": "n4b",
++          "kind": "extrude",
++          "sketch": "n4s",
++          "height": 3.785
++        },
++        {
++          "id": "n4r0",
++          "kind": "rotate",
++          "target": "n4b",
++          "axis": "y",
++          "angleDegrees": 346.031,
++          "pivot": [
++            0,
++            0,
++            0
++          ]
++        },
++        {
++          "id": "n4r1",
++          "kind": "rotate",
++          "target": "n4r0",
++          "axis": "y",
++          "angleDegrees": 315.62,
++          "pivot": [
++            0,
++            0,
++            0
++          ]
++        },
++        {
++          "id": "n4",
++          "kind": "translate",
++          "target": "n4r1",
++          "offset": [
++            2.709,
++            -1.728,
++            0.498
++          ]
++        },
++        {
++          "id": "n2",
++          "kind": "union",
++          "target": "n3",
++          "tool": "n4"
++        },
++        {
++          "id": "n0",
++          "kind": "union",
++          "target": "n1",
++          "tool": "n2"
++        }
++      ]
++    }
++  },
++  "expect": {
++    "outputs": [
++      {
++        "volumeMM3": {
++          "value": 320.6903611543681,
++          "relTol": 0.0005112012137967994,
++          "absTol": 0.1639373018750469
++        },
++        "centroidMM": {
++          "value": [
++            0.22956117387782968,
++            -0.5949271336145333,
++            0.8104882205341577
++          ],
++          "absTol": 0.0031750629241804862
++        }
++      }
++    ]
++  },
++  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 8.20e-2 mm³, centroid e 1.59e-3 mm",
++  "fuzz": {
++    "seed": 20261025,
++    "k": 49,
++    "status": "REFUSED",
++    "tree": {
++      "op": "union",
++      "a": {
++        "leaf": {
++          "kind": "cyl",
++          "r": 4,
++          "h": 3.5,
++          "rot": [],
++          "move": [
++            -1,
++            0.5,
++            -1
++          ]
++        }
++      },
++      "b": {
++        "op": "union",
++        "a": {
++          "leaf": {
++            "kind": "cyl",
++            "r": 3.188,
++            "h": 4.588,
++            "rot": [],
++            "move": [
++              1.181,
++              -1.081,
++              -2.413
++            ]
++          }
++        },
++        "b": {
++          "leaf": {
++            "kind": "cyl",
++            "r": 3.623,
++            "h": 3.785,
++            "rot": [
++              {
++                "axis": "y",
++                "deg": 346.031
++              },
++              {
++                "axis": "y",
++                "deg": 315.62
++              }
++            ],
++            "move": [
++              2.709,
++              -1.728,
++              0.498
++            ]
++          }
++        }
++      }
++    }
++  }
++}
+diff --git a/packages/barocss-cad/src/brep/analytic-boolean.ts b/packages/barocss-cad/src/brep/analytic-boolean.ts
+index 039a98cd7..9948d6086 100644
+--- a/packages/barocss-cad/src/brep/analytic-boolean.ts
++++ b/packages/barocss-cad/src/brep/analytic-boolean.ts
+@@ -561,10 +561,20 @@ function toPoles(chain: IntersectionChain, fa: GFace, fb: GFace, boxA: readonly
+       if (f.surf.kind !== 'nurbs') continue;
+       const pole = f.surf.poles.find(o => len(sub(o.point, x)) > tol && len(sub(o.point, x)) <= reach && offSurface(g, o.point, 10 * tol) <= tol);
+       if (!pole) continue;
+-      const own = (end ? (f === fa ? uvA : uvB)[i] : (f === fa ? uvA : uvB)[0]), at: XY = pole.along === 0 ? [own[0], pole.at] : [pole.at, own[1]], other = to2(g, pole.point);
++      // (A march that ran a little past the pole before it stopped — 4.4e-4 mm, where the patch's side collapses to it — is
++      // cut back to its point nearest the pole first. The pole put after the overshoot made a hook: the cut passed the
++      // pole, turned and came back to it, and the search for the nearest point on it found its own end 1.8e-4 off, so the
++      // end lay on no edge and the piece's ring stayed open. Only a short overshoot, within 1000 tolerances. L4 fuzz
++      // 20261024 #154, D269.)
++      // (Past it: the pole behind the last point, as the march ran.)
++      let k = i;
++      const behind = (j: number, from: number) => dot(sub(points[j], points[from]), sub(pole.point, points[j])) < 0;
++      if (len(sub(x, pole.point)) <= 1000 * tol) { if (end) while (k > 1 && behind(k, k - 1)) k--; else while (k < points.length - 2 && behind(k, k + 1)) k++; }
++      const own = (f === fa ? uvA : uvB)[k], at: XY = pole.along === 0 ? [own[0], pole.at] : [pole.at, own[1]], other = to2(g, pole.point);
+       const [pa, pb] = f === fa ? [at, other] : [other, at];
+       if (!inBox(pa, boxA, tol) || !inBox(pb, boxB, tol)) continue;
+-      const t = unit(end ? sub(pole.point, x) : sub(x, pole.point));
++      if (k !== i) { const [s0, s1] = end ? [0, k + 1] : [k, points.length]; points = points.slice(s0, s1); tangents = tangents.slice(s0, s1); uvA = uvA.slice(s0, s1); uvB = uvB.slice(s0, s1); }
++      const y = points[end ? points.length - 1 : 0], t = unit(end ? sub(pole.point, y) : sub(y, pole.point));
+       if (end) { points = [...points, pole.point]; tangents = [...tangents, t]; uvA = [...uvA, pa]; uvB = [...uvB, pb]; }
+       else { points = [pole.point, ...points]; tangents = [t, ...tangents]; uvA = [pa, ...uvA]; uvB = [pb, ...uvB]; }
+       break;
+@@ -577,11 +587,12 @@ const inBox = (p: XY, box: readonly [XY, XY], tol: number) => p[0] >= box[0][0]
+  * A piece's sampled domain polygon triangulated; one whose outer ring passes a point twice — a piece pinched at a vertex,
+  * two lobes meeting there within the tolerance — is cut there into simple rings, each triangulated; a lobe turning
+  * the other way (a hole touching the boundary at that point) is triangulated reversed and counts negatively. (Ear clipping failed on the pinch. L4
+- * fuzz 137, D209.)
++ * fuzz 137, D209.) A hole goes with the lobe it lies in (a cylinder wall's piece whose cut loop touches the seam, with the
++ * ball's own cut as a hole beside it: L4 fuzz 20261023 #110, D270).
+  */
+ function triangulatePinched(outer: readonly XY[], holes: readonly (readonly XY[])[], tol: number): [number, number, number][] {
+   try { return triangulatePolygonWithHoles(outer, holes); } catch (e) {
+-    if (!(e instanceof BrepError) || holes.length) throw e;
++    if (!(e instanceof BrepError)) throw e;
+     const rings: number[][] = [], stack: number[] = [];
+     for (let i = 0; i < outer.length; i++) {
+       const at = stack.findIndex(k => Math.hypot(outer[k][0] - outer[i][0], outer[k][1] - outer[i][1]) <= tol);
+@@ -590,16 +601,26 @@ function triangulatePinched(outer: readonly XY[], holes: readonly (readonly XY[]
+     }
+     rings.push(stack);
+     if (rings.length < 2) throw e;
+-    const out: [number, number, number][] = [];
+-    for (const r of rings) {
++    const out: [number, number, number][] = [], areas = rings.map(r => { let area = 0; for (let i = 0; i < r.length; i++) { const a = outer[r[i]], b = outer[r[(i + 1) % r.length]]; area += a[0] * b[1] - b[0] * a[1]; } return area; });
++    // (Each hole with the counter-clockwise lobe holding its first point; its indices are the caller's, after the outer ring's.)
++    const owner = holes.map(h => rings.findIndex((r, k) => areas[k] > 0 && inRing(h[0], r, outer)));
++    if (owner.some(k => k < 0)) throw e;
++    const starts: number[] = []; let at = outer.length; for (const h of holes) { starts.push(at); at += h.length; }
++    rings.forEach((r, k) => {
+       // (A lobe turning the other way is a hole touching the boundary there: its triangles count negatively.)
+-      let area = 0; for (let i = 0; i < r.length; i++) { const a = outer[r[i]], b = outer[r[(i + 1) % r.length]]; area += a[0] * b[1] - b[0] * a[1]; }
+-      const ring = area < 0 ? [...r].reverse() : r;
+-      for (const [a, b, c] of triangulatePolygonWithHoles(ring.map(k => outer[k]), [])) out.push(area < 0 ? [ring[a], ring[c], ring[b]] : [ring[a], ring[b], ring[c]]);
+-    }
++      const area = areas[k], ring = area < 0 ? [...r].reverse() : r, mine = holes.map((_, j) => j).filter(j => owner[j] === k);
++      const index = [...ring, ...mine.flatMap(j => holes[j].map((_, i) => starts[j] + i))];
++      for (const [a, b, c] of triangulatePolygonWithHoles(ring.map(q => outer[q]), mine.map(j => holes[j]))) out.push(area < 0 ? [index[a], index[c], index[b]] : [index[a], index[b], index[c]]);
++    });
+     return out;
+   }
+ }
++/** Whether p lies inside the ring of `pts` indexed by `ring` (even-odd). */
++function inRing(p: XY, ring: readonly number[], pts: readonly XY[]): boolean {
++  let c = false;
++  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const a = pts[ring[i]], b = pts[ring[j]]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; }
++  return c;
++}
+ /** A curve's parameter range cut where it crosses a cylinder face's domain seam (θ = ref ± π), so each piece maps continuously. */
+ function seamRanges(f: GFace, at: (t: number) => P3, lo: number, hi: number): [number, number][] {
+   if (f.surf.kind !== 'cylinder') return [[lo, hi]];
+diff --git a/packages/barocss-cad/src/brep/brep-tessellate.ts b/packages/barocss-cad/src/brep/brep-tessellate.ts
+index 95e12aec6..28692f082 100644
+--- a/packages/barocss-cad/src/brep/brep-tessellate.ts
++++ b/packages/barocss-cad/src/brep/brep-tessellate.ts
+@@ -951,6 +951,15 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
+     ringSizes.push(pts.length - before);
+   }
+   rings = []; { let o = 0; for (const n of ringSizes) { rings.push(pts.slice(o, o + n)); o += n; } }
++  // (One boundary point met twice — a cut's loop touching the domain's side there, each run snapped to its iso line on its
++  // own — takes one parameter pair: a few ulps apart, ear clipping found no ear at the near-pinch, where an exact one
++  // passes. A seam's two sides lie a period apart and stay as they are. L4 fuzz 20261023 #110, D270.)
++  { const first = new Map<string, number>(), close = 1e-9 * (U[1] - U[0] + V[1] - V[0]);
++    for (let i = 0; i < pts.length; i++) {
++      const p = pts[i]; if (polar3.has(p)) continue;
++      const k = `${p[0]},${p[1]},${p[2]}`, j = first.get(k);
++      if (j === undefined) first.set(k, i); else if (Math.abs(uv[i][0] - uv[j][0]) <= close && Math.abs(uv[i][1] - uv[j][1]) <= close) uv[i] = uv[j];
++    } }
+   const flat = (q: XY): XY => [q[0] * ku, q[1] * kv];
+   // The boundary must lie on the surface (a curve off it would be projected, not tessellated): within 1e-5 of the face's
+   // size, or its edges' own tolerance where that is more.
+diff --git a/packages/barocss-cad/src/part/part-model.ts b/packages/barocss-cad/src/part/part-model.ts
+index 0024b4ecd..69677efa6 100644
+--- a/packages/barocss-cad/src/part/part-model.ts
++++ b/packages/barocss-cad/src/part/part-model.ts
+@@ -1370,7 +1370,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
+           if (op === 'union') return one(left.slice(1).reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), left[0].solid));
+           return { kind: 'solid', parts: target };
+         }
+-        const joined = tool.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
++        // (The tool's parts joined from the first over the rest: over all of them, every such feature began with
++        // tool[0] ∪ tool[0], a Boolean of a body with itself, D260/D268.)
++        const joined = tool.slice(1).reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), tool[0].solid);
+         // Unions merge every target part into one; difference and intersection act on each part.
+         if (op === 'union') return one(target.reduce<Solid>((acc, p) => boolean(acc, p.solid, 'union', at), joined));
+         // (A sheet's holes and cuts: still the sheet, its rules carried on; R12.2, D117.)
+diff --git a/packages/barocss-cad/test/fuzz-k16-findings.test.mjs b/packages/barocss-cad/test/fuzz-k16-findings.test.mjs
+new file mode 100644
+index 000000000..bb49e3cb0
+--- /dev/null
++++ b/packages/barocss-cad/test/fuzz-k16-findings.test.mjs
+@@ -0,0 +1,50 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
++import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
++import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
++
++const leaf = (kind, dims, rot, move) => ({ leaf: { kind, ...dims, rot: rot.map(([axis, deg]) => ({ axis, deg })), move } });
++/** Mesh edges (by position) not used exactly twice. */
++function openEdges(mesh) {
++  const P = mesh.positionsMM, uses = new Map();
++  for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
++    const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
++    uses.set(e, (uses.get(e) ?? 0) + 1);
++  }
++  return [...uses.values()].filter(n => n !== 2).length;
++}
++function check(name, tree, method) {
++  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = o.massProperties(1), q = oracle(tree, 256, 6);
++  assert.equal(o.validate().valid, true, `${name}: valid`);
++  assert.equal(openEdges(tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `${name}: watertight`);
++  if (method) assert.equal(m.method, method, name);
++  assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
++  return o;
++}
++
++test('part model: a Boolean feature joins its tool parts without uniting the first with itself (L4 fuzz 20261025 #49, D260)', () => {
++  // (The tool's parts were reduced from the first part over every part, the first included: each union, difference and
++  // intersection began with tool ∪ tool. 49's inner union, its curve split into micro edges up a ruling where it runs
++  // along it, built; united with itself it was refused, an edge used 4 times.)
++  const tree = { op: 'union', a: leaf('cyl', { r: 4, h: 3.5 }, [], [-1, 0.5, -1]),
++    b: { op: 'union', a: leaf('cyl', { r: 3.188, h: 4.588 }, [], [1.181, -1.081, -2.413]), b: leaf('cyl', { r: 3.623, h: 3.785 }, [['y', 346.031], ['y', 315.62]], [2.709, -1.728, 0.498]) } };
++  check('a cylinder ∪ (a cylinder ∪ a tilted cylinder)', tree, 'quadrature');
++  const { document } = documentOf(tree), profile = evaluateCadPart(document, undefined, { profile: true }).profile;
++  for (const f of document.features.filter(f => f.kind === 'union')) assert.equal(profile[f.id].calls.booleans, 1, `${f.id}: one Boolean`);
++});
++
++test('analytic Boolean: a march past a ball\'s pole is cut back to it before the pole ends it (L4 fuzz 20261024 #154, D269)', () => {
++  // (The ball's pole lies on the rounded box's edge between its top and its round; the ball's curve with the round runs
++  // into it and the march stopped 4.4e-4 past it. The pole put after that made a hook: the cut's nearest point to its own
++  // end lay 1.8e-4 off, its end lay on no edge, and the round's piece there was dropped. Box ∪ ball was refused; with the
++  // self-union gone (D260) the part model takes that order.)
++  check('a ball\'s pole on a rounded box\'s top edge', { op: 'union', a: leaf('sphere', { r: 3 }, [], [-2, -1, -2]), b: leaf('rbox', { w: 3, d: 5, h: 5, r: 1 }, [['y', 270]], [-1, -2, -2]) });
++});
++
++test('tessellation: a face whose loop touches its domain\'s side, with a hole beside it, is triangulated (L4 fuzz 20261023 #110, D270)', () => {
++  // (A ball through a cylinder's wall line and bottom plane: the wall's piece and the ball's face each have a cut loop
++  // touching their domain's side at a point. The Boolean's shell volume took the pinch only without holes; the
++  // tessellation met the point twice a few ulps apart, its iso runs snapped each on its own, and ear clipping found no ear.)
++  check('(a cylinder ∪ a ball) less a cylinder', { op: 'difference', a: { op: 'union', a: leaf('cyl', { r: 1, h: 4 }, [], [-2, 2, 2]), b: leaf('sphere', { r: 2 }, [['y', 90]], [-2, 3, 2]) }, b: leaf('cyl', { r: 3, h: 8 }, [['x', 180]], [-2, -1, 1]) });
++});
