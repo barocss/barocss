@@ -17,12 +17,12 @@ section current.
 
 | Lane | Now | Next | Then |
 |---|---|---|---|
-| Kernel | R7.3a batch 2: part 1 done (`f1da68dc1`, D278: CAD_ERROR_CODES, `code` the specific code); part 2 folds the 24 live classes (the 141 unreachable ones wait for R7.3d); plan was (CadErrorCode union + CAD_ERROR_CODES; `code` = the specific bracketed code, the category in details.category; no category prefix on the ~400 uncoded refusals; 165 internal classes folded, the 6 used outside and BrepError kept, legacy left for R7.3d); O19's kernel half done (`78a84d506`, D277); K16 done (`ca9c6b0c4`, D276); R7.3d's packet tag done (`86da39e14`) | R7.3a batch 2 | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
-| Outer | RS3 (the agent moves the robot, with sync robot verbs the facade shares); O21, O19 fix, RS1 and RS2's core done (merge dc4b196e3) | R7.7a step 2 (rows, with the kernel's R7.7b), step 4 (results, with R7.3b) | follow-ups: signatures per kernel name, a parallel-jaw gripper |
-| GPU | RS2 (joint motion playback) and RS1's Samples list | G15 in order: G15d.1 (vignette, grading, AgX) → G15a (materials) → G15b (light) → G15d.2–3 (bloom, depth of field) → G15c (path tracing) → G15d.4; accepted on the P1 engine render | the quiet section run as the load allows |
-| API | P1 (the engine, end to end; gaps become PG items); RS5 between, once outer's RS2 lands | P2, P3, P4 in order | R7.7d after the cores' renames |
-| Docs | RS4 after RS1/RS2 land; the prose for R7.4c's renames (api.md, cad/index.md); R7.6 part 1 done (merge 45c94eb09, samples 31/31) | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
-| Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
+| Kernel | R7.3a batch 2 part 2, the fold (patch r73a-b2-part2-fold-wip.patch in the shared notes, checks to run, D279); part 1 done (`f1da68dc1`, D278) | R7.3b + R7.7b in one window with outer's R7.7a steps 2/4 and API's R7.7d; PG-3 (profile the engine head and spring) | R7.3d (284 of 401 files reachable only through exports), K17 |
+| Outer | RS3 (b): set_pose, waypoint, check_path, play (degrees, mm); RS3 (a) done (merge f11abe816) | R7.7a steps 2 (rows) and 4 (results, the robot tools' radians), with the kernel's window | follow-ups: signatures per kernel name (O19), a parallel-jaw gripper |
+| GPU | RS2 part 2 (outer's robot/motion, Save as motion; a79d3df3f to verify), RS1's Samples group, the motion video; RS2 part 1 done (merge 553edb8a8) | G15 in order: G15d.1 → G15a → G15b → G15d.2–3 → G15c → G15d.4, accepted on the P1 engine render | the quiet section run |
+| API | the facade on engine/parameters.ts and robot/verbs.ts; RS5's poseAt and motions; P1 milestone 2 (assembly, slider-crank, 2:1 train, cycle sweep, balance); P1 milestone 1 done (merge 6b8a42ba1) | P1 milestone 3 (outputs), then P2, P3, P4 | R7.7d after the cores' renames |
+| Docs | RS4 part 1 now (the robots page per RS1 sample, shots; RS2's playback once part 2 lands); R7.6 part 1 done | the P1 showcase page when P1 lands; R7.6 part 2 after R7.3 | the Later list |
+| Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3) | a live brief → product run after P1, if the owner gives a budget | the owner's open decisions (below) |
 
 ## Where we are
 
@@ -369,6 +369,7 @@ evidence files.
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
 - Dimension expressions (`W/2 + 3`) in documents: today a value is a number or `{ parameter }`, neither document stores an expression; adding one is a schema change for the kernel and the studio. · ko: 문서에 치수 식(W/2+3 같은)을 저장할지 (지금은 숫자나 매개변수 이름만)
+- A live run of the goal itself: give the studio's agent a product brief (P1's engine, or A9's shaft assembly) and see whether it reaches a manufacturable, buyable product through the v2 tools, judged by a fresh harness run; needs a token budget (like O15's ≤ US$25). · ko: 목표 자체의 실제 실행 — 에이전트에게 제품 브리프를 주고 만들게 하기 (토큰 예산 필요)
 - P1's rows (PG-2): a rows file for the spark plug thread (M14 × 1.25) and the engine's main bearings, from a source the owner supplies; until then stand-ins. · ko: 엔진용 행 파일 (점화 플러그 M14×1.25 나사, 메인 베어링) — 사람이 준 자료 필요
 - A built-in display look per material id (al6061's colour, …) in gpu, or scenes keep registering their own looks (today: none; O75 keeps look ids apart from material ids; R7.5b finding 10; the GPU lane recommends none in gpu: looks stay with the app or the person). · ko: 재료 id마다 기본 표시 모양(색)을 gpu에 둘지, 장면이 직접 등록할지
 
