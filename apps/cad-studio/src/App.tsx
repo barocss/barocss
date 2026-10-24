@@ -443,7 +443,7 @@ export function App() {
   const recoveryOff = useRef<string | null>(null);
   // (CG6: with a project open and the document saved in it, the work is kept in the project instead: storage/project.ts.)
   const project = useProject({
-    onOpened: (d, path, notes) => { replaceDoc(d); setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0); setTimeout(() => viewport.current?.fit(), 300); },
+    onOpened: (d, path, notes) => { replaceDoc(d, true); setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0); setTimeout(() => viewport.current?.fit(), 300); },
     onError: (title, hint) => setToast({ title, hint, detail: '' }),
   });
   const [versionsOpen, setVersionsOpen] = useState(false);
@@ -1490,7 +1490,8 @@ export function App() {
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
-  const replaceDoc = (next: StudioDoc) => { cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false, true); };
+  // (CG6: from anywhere but the project, the document is no longer its open one — `fromProject` keeps it so.)
+  const replaceDoc = (next: StudioDoc, fromProject = false) => { if (!fromProject) { project.detach(); setCompareBase(null); } cancel(); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false, true); };
   // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
   // recovery copy and its blobs go.)
   const writeFile = (d: StudioDoc, name: string) => {
@@ -2070,11 +2071,12 @@ export function App() {
   // Faces coloured on their own, by body index and face index (their names kept with the body's look).
   // (G12: a shown proposal's faces tinted — where the Boolean refused (WebGL2 draws the overlay too, G16) — those it adds or changes
   // green on the after view, those it removes or changes red on the before view.)
+  // (CG6: a compared version the same way — the working document is the after view.)
   const proposalTint = useMemo(() => {
-    const o = proposalOverlay; if (!o || !ghost || o.method === 'boolean') return null;
-    const on = new Set(o.changedFaces.filter(f => ghost.after ? f.kind !== 'removed' : f.kind !== 'added').map(f => f.name));
-    return { on, color: rgbOf(ghost.after ? PROPOSAL_ADDED : PROPOSAL_REMOVED) };
-  }, [proposalOverlay, ghost]);
+    const o = ghost ? proposalOverlay : compareOverlay, after = ghost ? ghost.after : true; if (!o || o.method === 'boolean') return null;
+    const on = new Set(o.changedFaces.filter(f => after ? f.kind !== 'removed' : f.kind !== 'added').map(f => f.name));
+    return { on, color: rgbOf(after ? PROPOSAL_ADDED : PROPOSAL_REMOVED) };
+  }, [proposalOverlay, compareOverlay, ghost]);
   const faceColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => {
     const own = lookOf(doc, b).faces; if (!own && !proposalTint) return [];
     const m = new Map(b.mesh.faces.flatMap(f => { const c = proposalTint?.on.has(f.name) ? proposalTint.color : own?.[f.name] ? rgbOf(own[f.name]) : null; return c ? [[f.index, c] as [number, [number, number, number]]] : []; }));
@@ -2145,6 +2147,8 @@ export function App() {
     (window as unknown as { __studioOverlayTexts: () => Record<string, string[]> }).__studioOverlayTexts = () => viewport.current?.overlayTexts() ?? {};
     // (G12: the shown proposal's diff, as the overlay has it.)
     (window as unknown as { __studioProposalOverlay: () => unknown }).__studioProposalOverlay = () => proposalOverlay && { added: proposalOverlay.added?.volumeMM3 ?? null, removed: proposalOverlay.removed?.volumeMM3 ?? null, method: proposalOverlay.method, faces: proposalOverlay.changedFaces.length, tinted: !!proposalTint };
+    // (CG6: the compared version's diff, the same way.)
+    (window as unknown as { __studioCompareOverlay: () => unknown }).__studioCompareOverlay = () => compareOverlay && { added: compareOverlay.added?.volumeMM3 ?? null, removed: compareOverlay.removed?.volumeMM3 ?? null, method: compareOverlay.method, faces: compareOverlay.changedFaces.length, tinted: !!proposalTint };
     // (n points spread through a box, coloured by height; 0: none.)
     (window as unknown as { __studioSetCloud: (n: number, min: Vec3, max: Vec3) => void }).__studioSetCloud = (n, min, max) => setBenchCloud(n > 0 ? Array.from({ length: n }, (_, i) => {
       const u = (i * 0.61803398875) % 1, v = (i * 0.7548776662) % 1, w = (i * 0.5698402910) % 1;
@@ -2542,7 +2546,7 @@ export function App() {
       {bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <BomPanel doc={doc} name={fileName} evaluate={d => engine.part(d, revision.current++, 'read')} onCommit={next => commit(next, false)} onClose={() => setBomOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} />}
       {rebuildOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <RebuildPanel store={rebuildStore} problems={assembly.problems} mode={effectiveDisplayMode} viewport={viewport} onClose={() => setRebuildOpen(false)} />}
       {versionsOpen && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase?.id ?? null} onCompare={setCompareBase}
-        onOpen={d => { setCompareBase(null); replaceDoc(d); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
+        onOpen={d => { setCompareBase(null); replaceDoc(d, true); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
       {variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VariantsPanel doc={doc} variants={variants} onCommit={next => commit(next, false)} onError={hint => setToast({ title: 'Variants: refused', hint, detail: '' })} onClose={() => setVariantsOpen(false)} />}
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}

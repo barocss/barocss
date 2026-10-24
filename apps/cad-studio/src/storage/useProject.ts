@@ -69,6 +69,8 @@ export function useProject(cb: ProjectCallbacks) {
       async reopen() { if (!recent) return; try { const s = await reopenFolder(recent); if (s) await use(s); else call.current.onError('No access to the folder', 'The browser did not allow it. Open the folder again.'); } catch (e) { fail('The folder could not be opened', e); } },
       async openInBrowser(name: string) { try { await use(await browserProject(name)); } catch (e) { fail('The project could not be opened', e); } },
       close() { tags.current = { part: null, log: null }; set(EMPTY); },
+      /** The document no longer the open one of the project (a new part, another file): the project stays open, the next save is a new file in it. */
+      detach() { if (!live.current.part && !live.current.log) return; tags.current = { part: null, log: null }; set({ part: null, log: null, offered: null }); },
       /** A document of the project opened, its versions read, its autosaved work offered when there is some. */
       async openPart(path: string) {
         const store = live.current.store; if (!store) return false;
@@ -129,7 +131,7 @@ export function useProject(cb: ProjectCallbacks) {
       async merge(from: string, working: StudioDoc, resolve?: Resolutions): Promise<MergeResult | null> {
         const { store, part, log } = live.current; if (!store || !part || !log) return null;
         try {
-          const r = applyMerge(log, { from, working, at: now(), resolve });
+          const r = applyMerge(log, { from, working, at: now(), resolve, note: `merged from ${from}` });
           if ('conflicts' in r) return r;
           return (await keepLog(store, part, r.log)) ? r : null;
         } catch (e) { fail('Could not merge', e); return null; }

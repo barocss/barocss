@@ -167,3 +167,28 @@ merges.
   restores one box.
 - **Not covered yet**: the face-tint fallback for a compare the Boolean refuses (proposals tint faces; compare shows
   only the change list then); the flow on WebGL2; branches and merge in the flow (S3); parts by path (S4).
+
+## DA-6 — branches and merge in the studio; compare by faces; a new part leaves the project's document (2026-10-24)
+
+- **What**:
+  - **The card's branches** (DA-5's card, now exercised end to end): switch with the Branch list (refused with unsaved
+    work, `BRANCH_UNSAVED`); make a branch from the latest version; Merge from another branch into the current one. A
+    merge with conflicts lists each with its two sides, short values shown (`main (3)`, `thick (5)`, `(deleted)`), one
+    choice each; Merge with these answers merges again with them. A merge version carries the note `merged from
+    <branch>`, shown in its row when it has no name.
+  - **Compare by faces**: when the kernel's Boolean refuses the two sides (facet or mixed bodies), the changed faces of
+    the working document are tinted as a proposal's are (App.tsx's `proposalTint` reads the compared version's overlay
+    when no proposal is shown). `__studioCompareOverlay` (DEV) reports it as `__studioProposalOverlay` does.
+  - **A new part, another file, a template or a sample** replaces the document through `replaceDoc`, which now detaches
+    it from the project's open document (`useProject.detach`): the versions leave the card, and the next Save is a new
+    file in the project (refused when that name exists). Replacements from the project itself (opening its document,
+    restore, switch, merge) pass `fromProject` and stay attached. Without this, Save after New part would have written
+    the new part over the project's file.
+  - App.tsx (approved scope, DA-5): `replaceDoc` gains `fromProject` (its two project callers pass true); `proposalTint`
+    reads `compareOverlay` when no proposal is shown; one DEV hook.
+- **Oracle**: the flow step "CG6 branches", on WebGPU and WebGL2: Base; a branch `wide` adds a box along X (version
+  Wide); main adds one along Y (Deep), its history still only Base; Merge gives three bodies, six unique ids, a merge
+  version "merged from wide" over Deep and Base; a branch `thick` sets parameter T = 5, main T = 3; Merge lists one
+  conflict with `main (3)` and `thick (5)`; answered for thick, T is 5. New part empties the card's versions; a mesh
+  (block-cm.stl, cm) made a version writes a second .bcad and leaves Untitled.bcad byte-identical; a box added and
+  compared with the mesh's version gives `method: 'faces'`, faces tinted. The whole studio suite 298/298.
