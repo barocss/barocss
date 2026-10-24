@@ -3203,7 +3203,7 @@ The work stopped here for the owner's move to another place.
     up, Chamfer refused).
   - Step 74 passes alone.
   - **Decisions proposed**: (a) New part puts the camera back to the default view; this is user-visible, so it is the
-    coordinator's call. (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
+    coordinator's call. **The coordinator's answer: not now.** It stays a possible later UX item, so it doesn't hide (b). (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
     flow's steps 96, 193 and 217 don't need to change.
 - **O18's placed copies dropped on a rebuild with identical meshes** (measure first):
   - The outer lane's work-round (App's `sameMeshes`, 2aae36ec3) was taken out in this worktree only, for the runs, then
@@ -3217,3 +3217,68 @@ The work stopped here for the owner's move to another place.
     answered: it already keys on content, which covers identity.
   - **Decision proposed**: close the item. Keep the work-round: it also saves the App's re-render on a mass patch. If a
     full window shows the copies missing again, its O10 steps will catch it.
+
+## G-R55 — R7.3d, gpu and interop side: the CAD packet's tag is `right-handed-z-up`; GpuErrorCode takes the facade's codes (roadmap R7.3d, 2026-10-24)
+
+- **Scope, as the coordinator settled it**: the mm mesh packet from CAD only. Its tag was `right-handed-y-up`, which
+  is wrong for CAD's data (Z up, §10.1); it becomes `right-handed-z-up`, with no alias. gpu's primitive geometries,
+  the engine scene, the SDF render IR, the cloth and particle layers and the pinned evidence JSON keep
+  `right-handed-y-up`: they are scene units with a real Y up (cylinder-geometry is "a generic Y-axis mesh").
+- **gpu** (489a29d36, the README in dc39326fd and 540df6a71):
+  - mesh-packet.ts (the PreviewPacket type, its validator and its copy) and kernel-face-preview.ts (the packet it builds).
+  - gpu-compiler.ts: the render IR's frame is per variant now. The SDF IRs are `right-handed-y-up`, the indexed-mesh IR
+    (a CAD packet) is `right-handed-z-up`.
+  - The README's packet example and IR line.
+  - Tests and fixtures that build packets: tests/mesh-fixtures, mesh-packet, mesh-consumer, gpu-compiler-consumer,
+    fixtures/original-compiler.json's packet. examples/gpu-scene: mesh-fixtures.mjs, mesh-flat-packet.json and
+    native-surface-uv01-geometry-flow's packet check. examples/cad-nurbs/preview-flat-packet.json.
+- **barocss-cad-interop** (assigned to this lane for the rename only): its packet reader (packet.ts), native-face.ts's
+  packet and babylon.ts's surface-mesh metadata, which copies the packet's frame. Its curve lineage (three, babylon,
+  pixi3d curves) is not a packet and keeps its label. Tests: interop.test's packet, babylon-loader's metadata check.
+- **barocss-viewer**: unchanged. It passes cad's packets through gpu's validator and writes no packet tag itself; its
+  `frame: 'right-handed-y-up'` is another field.
+- **The physics examples** (3541c0e48, assigned by the coordinator): physics-character-viewer's capsule-mesh, terrain and
+  geometry-checks, and the rigid-hinge viewer's meshes.mjs, built packets with the old tag, which gpu now refuses. Only
+  the literals changed; `node --check` on each.
+- **The kernel's side**: cad's core/packet.ts, core/preview.ts, z-axis-revolve-preview.ts, the seven planar-solids
+  preview builders, the README's three lines, and the fixtures/tests that build packets (tessellation.test,
+  modeling-box-cut-fixture, modeling-union-fixture, stored-circle-prism-solid-fixture, modeling-circle-native). It is a
+  patch for the kernel lane, `r73d-kernel-packet-tag.patch` in the lanes' shared notes folder (16 files, 22 lines;
+  `git apply --check` clean). The two sides land together: gpu now refuses a y-up packet, and native-surface-uv01's
+  frame pack compares cad's packet type with gpu's, which tsc rejects until both are renamed.
+- **GpuErrorCode** (the API lane's R7.5b finding 8): `| SceneCode` from src/api/refusal.ts, a type-only import, in
+  place of the hand-written `'MESH_INVALID' | 'LIGHT_INVALID'`. The facade's MATERIAL_UNKNOWN, MATERIAL_INVALID and
+  CAMERA_INVALID reach the union, and the union and the refusal table can't drift.
+- **Runs**, with the kernel patch applied locally (then reverted, not committed by this lane): cad tsc 0 and its three
+  packet suites (construction, stored-circle-prism-solid, tessellation) 28/28. gpu tsc 0, eslint 0, unit 201/201,
+  test:consumer 3/3, gpu-scene flows 65/65 (after native-surface-uv01-geometry's check), test:browser 29/29 on
+  hardware. Interop `pnpm test` passes. `test:babylon` passes with gpu's cad-dist hook
+  (`node --import ../barocss-gpu/tests/cad-dist.mjs test/babylon-loader.test.mjs`); its own script fails before running
+  anything, because `@barocss/cad` resolves to TypeScript sources (G-R40's cause, which this change didn't introduce).
+  Studio tsc 0: the studio, cad-model and the docs don't use the packet path.
+
+## G-R56 — G14 (b): a handle drag measured from where it began; the release no longer moves the section handle (roadmap G14, 2026-10-24)
+
+- **Cause** (G-R54's cause 2): Viewport's handle drag measured each step with `dragAlong(from, pointer, hd.at, …)` and
+  `dragIn(…)`, linearised at the handle's *current* point.
+  - On WebGPU, SceneViewport hands Viewport the section's live handles, drawn where the plane now is, in every frame of
+    the drag. So each step measured from the point one frame back, and the release measured from yet another point.
+  - In perspective, the same pointer then gives a slightly different value. At step 74's zoom after step 48, that flipped
+    a 0.5 mm snap: the plane was committed half a millimetre back from where it was shown, and the handle moved 2.9 px
+    on release.
+- **Fix** (`viewport/Viewport.tsx`): the drag keeps the handle's point as the drag began (`handleAt`) and measures every
+  step and the release from it. The move gizmo already did this (`origin`, "measured from the gizmo where the drag
+  began"). Arcs, which add up their turn step by step about a fixed centre, are unchanged.
+- **Runs**:
+  - FLOW_ONLY `^(render a part|section view|a selected box shows its dimension|drag a surface pole|drag a part
+    instance|drag a dimension handle|Hole: drag its centre|a box under a fillet keeps up|O9:|G19\.|G20\.2|G16:|G17:)`:
+    every handle-drag step passes on WebGPU and on WebGL2 (32, 64, 66, 69, 74, 271–277), and **74 passes after 48**:
+    the order dependency is gone at its cause.
+  - 50, 58 and 270 failed in that selection on both renderers. Rerun with their prerequisites,
+    `^(import a \.barocad source|drag a surface pole|place another part as an instance|drag a part instance|G16:)`, all
+    six pass on both. 50 needs 49's imported surface and 58 needs 57's instance.
+  - 270 (G16) is another camera carry-over: it passes after 49/57 and failed after the G19 steps. That is the New-part
+    camera item (G-R54 (a)), left for later.
+  - Studio tsc 0 and eslint 0 (with R7.3d's kernel patch applied in the lane's tree; this branch is cut before R7.3d).
+- **Branch**: `claude/gpu-g14-handle-2026-10-24`, cut at 3801e2d9f (before R7.3d), so it can merge ahead of the R7.3d
+  pair. The lane branch merges it too.
