@@ -759,6 +759,28 @@ functions, its results byte-equal to what the agent's robot tools return. It fee
   through as BarocssError with the core's code, and a sentence-only refusal gets `ROBOT`. The facade's own refusals are
   only how it was called: a path needs at least two waypoints (`VALUE`), and `poseAt` waits for RS2 (`UNAVAILABLE`).
 
+**The RS2 contract, as settled with the outer lane:** robot/motion.ts.
+- `poseAt(tree, path: TimedPath, t)` returns the core's values (radians for turning joints). `duration(path)` and
+  `checkPath(tree, path)` (returning `Problem[]`) come with it.
+- Saved motions are `RobotSettings.motions: { name, path: Motion }[]`. A Motion is in degrees and mm, and `timedPathOf`
+  and `motionOf` convert between the two.
+- So `path(waypoints)` builds a Motion, and `poseAt(t)` goes through `timedPathOf` and answers in degrees.
+- `motion(name)` and `withMotion(name, waypoints)` work over `robot.motions`, written byte-equal to RS3's waypoint
+  action.
+- Both come after outer's step 1.
+
+**As built (without poseAt and motions):** src/api/robot.ts and src/api/robotCore.ts.
+- `joints`, `setJoints`, `pose`, `path(…).check`, `inertia`, `gravity`, `urdf`, `mjcf`, `sdf` and `usd` are built.
+- assemblyCore's copy of `treeOf` moved into robotCore, so the assembly's frames and the robot share one.
+- **Units:** joint values go in as the facade's, degrees and mm (§2), and are converted for the core. The replies are
+  the tools' own, so `pose(…).values` echoes the core's radians. That's to look at with R7.7.
+- **test/api-robot.test.ts, 5/5 on arm-6r:**
+  - `joints`, `pose`, `inertia`, `gravity`, `urdf` and `mjcf` (file data set aside), and each segment of a path's
+    check, are byte-equal to dispatchTool's reply;
+  - `setJoints` writes what set_joints writes;
+  - `sdf` and `usd` equal the core exports;
+  - four typed refusals.
+
 **The oracle:**
 - For each verb, the reply is byte-equal to `runRobotTool`'s content (through `dispatchTool`) on the same document.
   The documents are RS1's sample robots once they land; until then, the arm-6r fixture (packages/barocss-cad/conformance/rm/arm-6r).
