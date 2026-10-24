@@ -103,11 +103,11 @@
 | `[CAM_PROFILE_UNSUPPORTED]` | `robot` | …: ….… is a flat face neither along the cam's axis nor across it: no lift is read from it |
 | `[CAM_UNSUPPORTED]` | `robot` | … follows a cam (…): motion torques through a cam are not worked out yet |
 | `[CAP_PICK]` | `app` | … |
-| `[CASTING_ALLOWANCE]` | `chat/part` | allowance is mm a machined face, 0 to 100: …. |
-| `[CASTING_FACE]` | `casting`, `chat/part` | marked machined but not on the part: … |
-| `[CASTING_GATE]` | `chat/part` | gate is a point [x, y, z] (mm) on the part, where the metal comes in. |
+| `[CASTING_ALLOWANCE]` | `api`, `chat/part` | allowance is mm a machined face, 0 to 100: …. |
+| `[CASTING_FACE]` | `api`, `casting`, `chat/part` | machined is a list of face names ("n1.top"). |
+| `[CASTING_GATE]` | `api`, `chat/part` | gate is a point [x, y, z] (mm) on the part, where the metal comes in. |
 | `[CASTING_RULE_ROW]` | `engine` | no … rules loaded — load your casting rules (samples/rows/casting-rules.json is an example) |
-| `[CASTING_SHRINK]` | `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
+| `[CASTING_SHRINK]` | `api`, `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
 | `[CONFIRM_IS_THE_USERS]` | `chat/part` | …: only the user confirms a requirement, in the studio; leave "confirmed" and "said" out. |
 | `[CONNECTOR_ROW_UNKNOWN]` | `engine` | an opening names the connector row "…", which the document's connector rows do not hold (rows: …) |
 | `[CONTAINER_DAMAGED]` | `engine` | the file is cut short |
