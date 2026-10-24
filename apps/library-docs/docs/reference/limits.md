@@ -47,7 +47,11 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
   ([Frames and weldments](/studio/frames))
 - **Robots.**
   - Motions such as a screw, or two turns about different axes, are refused.
-  - A loop in the mates keeps one path.
+  - A loop in the mates keeps one path. The agent's motions close it; the studio's playback and **Check path**, and the
+    object API, don't yet.
+  - A cam's lobe is read only from flats and arcs along its axis, and the follower's face as an infinite plane. Motion
+    torques and the robot exports don't take a cam.
+  - The sweep checks a cam's seat and a running fit's round faces at its steps, not certified between them.
   - Revolute and prismatic joints need their limits, effort and velocity before they export.
     ([Robots](/studio/robots))
 - **Unsupported cases.** The kernel refuses a case it doesn't support yet, in the category `CAPABILITY`, rather than

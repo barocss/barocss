@@ -49,6 +49,11 @@ package's own browser tests drive it in Chrome.
 - **The scene.**
   - Instancing (one draw for many copies) and frustum culling.
   - Directional shadows, ambient occlusion, a gradient or transparent background, and a ground grid.
+  - Soft shadows: `environment.softShadows`, the shadow-casting light's angular size in degrees, widens the penumbra
+    with the distance from what casts it (PCSS). With 0 or none, the edge stays hard. Only the one shadow-casting
+    light is softened.
+  - Contact shadows: `environment.contactShadows: { length?, strength? }` darkens where the depth buffer blocks a short
+    ray toward the shadow-casting light, in the creases the shadow map is too coarse for.
   - 4× MSAA, exposure and ACES tone mapping in a linear half-float pipeline.
   - Clip planes and cap hatching for sections.
 

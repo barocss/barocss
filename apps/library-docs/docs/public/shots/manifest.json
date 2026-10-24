@@ -230,7 +230,7 @@
    "page": "studio/rendering",
    "step": "studio/rendering: the Render workspace",
    "renderer": "webgpu",
-   "bytes": 75429,
+   "bytes": 78540,
    "caption": "WebGPU only"
   },
   {
@@ -239,6 +239,20 @@
    "step": "studio/rendering: the Render workspace",
    "renderer": "webgpu",
    "bytes": 18055
+  },
+  {
+   "file": "studio/rendering/scene.png",
+   "page": "studio/rendering",
+   "step": "studio/rendering: the Render workspace",
+   "renderer": "webgpu",
+   "bytes": 23521
+  },
+  {
+   "file": "studio/rendering/shadows.jpg",
+   "page": "studio/rendering",
+   "step": "studio/rendering: the Render workspace",
+   "renderer": "webgpu",
+   "bytes": 74526
   },
   {
    "file": "studio/rendering/source.png",
@@ -252,7 +266,7 @@
    "page": "studio/rendering",
    "step": "studio/rendering: the Render workspace",
    "renderer": "webgpu",
-   "bytes": 5499
+   "bytes": 6147
   },
   {
    "file": "studio/robots/arm-6r-motion.jpg",

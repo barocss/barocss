@@ -22,6 +22,11 @@ An appearance applies to the selected bodies. With none selected, it applies to 
 - **Texture:** an image multiplied into the colour.
   - **Repeat every** sets its size in mm.
   - **Cut out below** leaves out what is under an alpha value, for holes, leaves or grilles.
+- **Finish:** the marks a process leaves on the surface: **Cast**, **Sand-cast**, **Machined**, **Turned**,
+  **Brushed**, **Knurled** or **Bead-blasted**.
+  - **Marks** sets their size and **Depth** how strong they are.
+  - **Along** sets their direction, X, Y or Z, for the finishes that have one.
+- **Clear coat**, a lacquer over the colour, and **Oil film**, an oil's tint on the reflections, from 0 to 1.
 - **Shader:** one of the materials written on the **Source** tab.
 - **Use the default appearance** removes a body's own.
 
@@ -34,13 +39,26 @@ An appearance is a look, not a material: a body's mass comes from its material, 
   - A point or spot light has a position, and a **Range** over which it fades. A spot also has a **Cone**.
   - Every light has **Intensity** and **Colour**.
   - One sun can cast a **Shadow**.
+- **Shadows.** The shadow is soft, as from a studio key light about 3° across: sharp at the foot of what casts it and
+  wider and lighter farther off. Contact shadows darken the creases and the places where parts meet, which the shadow
+  map is too coarse to show. Both are on in the Render workspace, with no control for them yet; the modelling look
+  is unchanged.
 - **Scene.**
-  - The background's **Top** and **Bottom** colours, or an **Environment** image.
-  - **Environment strength** and **Exposure**.
-  - **Tone map**: **Filmic (ACES)** or **None**.
-  - **Edges**, **Grid**, **Ground** and **Occlusion**.
+  - The background's **Top** and **Bottom** colours, and the **Ambient** light.
+  - **Studio** lights the part: **Sky and ground**, **Softboxes** or **Cyclorama**. **Environment** takes an image
+    instead, an equirectangular one with its top row overhead.
+  - **Environment strength**, for a studio or an image.
+  - **Occlusion**, **Ground**, **Grid** and **Edges**.
+- **Post.**
+  - **Exposure**.
+  - **Tone map**: **Filmic (ACES)**, **Soft highlights (AgX)** or **None**.
+  - **Grade**: **Neutral**, **Warm studio** or **Cool daylight**, with **Contrast**, **Saturation** and **Vignette**.
 
 ![The Lights tab](/shots/studio/rendering/lights.png)
+
+![A post on a plate in the Render workspace: its shadow dark at the foot and softer and wider farther off, and the crease where it meets the plate darkened](/shots/studio/rendering/shadows.jpg)
+
+![The Scene tab: the background, the ambient light, the Softboxes studio, its strength and the view toggles; under Post, exposure, tone map and grade](/shots/studio/rendering/scene.png)
 
 ## Camera
 

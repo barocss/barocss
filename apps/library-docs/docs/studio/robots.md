@@ -16,8 +16,25 @@ free, not from the mates' names:
 | a turn and the slide along its axis (cylindrical), a plane's two slides and a turn, a ball's three turns | a chain of one-degree joints through extra links |
 
 Anything else, such as a screw motion or two turns about different axes, is refused with a typed reason. A part joined
-twice round the graph closes a loop; the tree keeps one path and lists the loop, which the **Loop** line shows. Two
-spur gears meshing on one carrier's joints are coupled: the second follows the first at the gear ratio.
+twice round the graph closes a loop; the tree keeps one path and lists the loop, which the **Loop** line shows.
+
+Some joints follow another instead of moving on their own:
+
+- **Gears.** Two spur gears meshing on one carrier's joints are coupled: the second follows the first at the gear
+  ratio. A joint's gears are those of its part and of the parts fixed to it, so a gear locked to its shaft turns with
+  the shaft's joint. A locked gear off the joint's axis is noted `GEAR_NOT_COUPLED` rather than left out.
+- **Cams.** A **Cam** mate, from a face of the cam part to the follower's flat face, makes the follower ride the lobe.
+  The mate holds nothing itself: the follower's own mates place it in its guide, and its slide follows the cam's joint
+  by the lobe's lift. A cam mate from the follower to another sliding part, such as a valve it pushes, moves that
+  part with it, so chains like crank → gear → cam → follower → valve work. The Joints card says "follows *joint* on its cam (*mate*)".
+  - The lobe is read from the cam's faces at the follower's face: flats and arcs along the cam's axis, such as an
+    arc-and-line profile. Anything else is refused, `CAM_PROFILE_UNSUPPORTED`.
+  - Nothing is coupled, and `CAM_NOT_SEATED` says why, when the cam has no joint to drive it, the follower doesn't
+    slide, its face isn't flat or isn't across the cam's axis, the two are on different links, or the face is off the
+    lobe at the solved pose (by how much).
+  - The follower's face is taken as an infinite plane, so a face narrower than its contact's travel isn't caught.
+- **One leader each.** A joint follows one leader: a second cam or push on it is refused, `COUPLED_TWICE`. Couplings
+  that lead back round to their own joint are cut where the cycle closes, `COUPLING_CYCLE`.
 
 **Base link** chooses which link stays put. Angles are in degrees and lengths in millimetres in the card; exports
 write metres and radians.
@@ -33,12 +50,21 @@ write metres and radians.
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
-  - **Designed contact isn't a collision.** Two meshing gears' teeth are the coupling's to hold, and two links pinned
-    in a planar loop can't cross where they're stacked. Those pairs are skipped, each with why; anything else between
-    the same links is still checked.
-  - **A closed loop isn't closed along a motion yet.** A motion moves only the joints it names, so a looped robot's
-    poses along it are open. The agent's `check_path` and `play_motion` refuse such a robot with `LOOP_OPEN`; the
-    studio's **Check path** and playback don't close the loop either.
+  - **Designed contact isn't a collision.** Some faces touch by design, and the sweep leaves those to the design
+    while it still checks the rest of the same links. Each pair it skips says why.
+    - Two meshing gears' teeth are the coupling's to hold.
+    - Two links pinned in a planar loop can't cross where they're stacked.
+    - A cam follower's face rides the lobe. The rest of the follower is checked against the cam.
+    - A running fit: the two round faces of a concentric mate, such as a piston in its bore. The display meshes' facets
+      cut inside a true circle, so a 0.1 mm clearance would read as contact. Within the facets' depth, plus 0.05 mm,
+      the fit's faces don't count as touching; a boss past the bore still does.
+    - The cam's and the fit's faces are checked at the sweep's steps, at most 1/90 of the move apart, not certified
+      between them as the rest of the sweep is.
+  - **Closed loops along a motion.** The agent's `play_motion` and `check_path` close a looped robot's loop at every
+    pose: the motion names the driving joints, and the passive ones are solved. `check_path` cuts each segment into
+    chords at most 1° (or 1 mm) of the drivers apart and certifies each one. A chord's middle isn't closed exactly, and
+    the reply says by how much, as `loops: {chords, chord_residual_mm}`. A waypoint that gives a passive joint is
+    refused, `LOOP_PASSIVE`. The studio's **Check path** and playback don't close the loop yet.
 - **Playing a motion.** **Play motion** plays the motion chosen in **Motion choice** in time. Its length shows before
   it plays.
   - The draft is the path above: from home, through the waypoints, to the pose shown. Each joint moves at its velocity
@@ -67,6 +93,9 @@ and `cad-cli` can also run two checks:
 - **robot-size** raises actuators and ratings, or slows the profile, round by round until every margin is above
   zero, or stops with a typed reason when no sizing can fix the brief.
 
+Gravity torques, the sweep and inverse kinematics follow a cam's coupling. A move's torques through a cam are
+refused, `CAM_UNSUPPORTED`: the lift's second derivative isn't worked out yet.
+
 ## Exporting
 
 **Export URDF**, **Export MJCF**, **Export SDF** and **Export USD** write the robot with:
@@ -74,6 +103,9 @@ and `cad-cli` can also run two checks:
 - one link per part, the joint at the child;
 - the visual mesh and a convex hull for collision;
 - each link's inertia, in metres, kilograms and radians.
+
+No format holds a cam coupling, so a robot with a cam follower is refused, `CAM_UNSUPPORTED`. The agent's
+`export_urdf` and `export_mjcf` take `leave_out: ["cam"]`, which writes the follower as a free joint and notes it.
 
 Every export is checked against its format's rules by our own reader before it is written. The URDF and MJCF outputs have also been read back by
 external tools — urdfdom's `check_urdf` and MuJoCo — and their kinematics match the studio's.
@@ -205,8 +237,8 @@ the tool gives them, with turns in radians.
 <<< @/../samples/robots.test.mjs#motions
 
 - **Every demo motion swept.** Each sample's own motion is clear, and the gripper's meshing fingers are skipped as
-  designed contact. The four-bar's motion is refused with `LOOP_OPEN`: by `check()`, `poseAt()` and `duration()`, and
-  listed first by `problems()`.
+  designed contact. The object API doesn't close loops yet, unlike the agent's tools, so the four-bar's motion is
+  refused with `LOOP_OPEN`: by `check()`, `poseAt()` and `duration()`, and listed first by `problems()`.
 
 <<< @/../samples/robots.test.mjs#sweeps
 
