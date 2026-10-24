@@ -8740,3 +8740,76 @@ word, and the coordinator approved those words (r7.7a-rename-proposal.md in the 
   - the affected model files 85/85 (toolset, tool-contract, chat-outputs, clearance, cam, print, a9, shop-context,
     sheet, pipe, sweep, o20) and studio cnc-cam and robot 29/29;
   - tsc (model, studio); eslint 0 errors.
+
+## R7.7a step 3 — StudioDoc's own stored fields without unit suffixes (2026-10-24)
+
+The owner widened R7.7 to stored fields (4b0413599): the documents are unreleased, so the rename happens in place,
+with no alias and no migration. Values are unchanged.
+
+| stored field | old | new |
+|---|---|---|
+| print preview | `printPreview.layerMM` | `layerHeight` (`layer` is the shown layer's index) |
+| machining | `machining.allowanceMM` | `allowance` |
+| casting | `casting.machiningAllowanceMM` | `machiningAllowance` |
+| frames | `frames.kerfMM` | `kerf` |
+| weld records | `frames.welds[].sizeMM` (WeldRecord; part.ts gives it to the bead as its leg) | `size` |
+| datums | `datums[].residualMM` | `residual` |
+
+- The set_* tool arguments were already `allowance`, `kerf` and `size`.
+- printPreview's validator text now reads `layerHeight must be …`.
+- **Studio:**
+  - the GPU lane's print state, which mirrors the stored field and printLayers' options: PrintOptions, PrintRequest,
+    PrintPanel, printSettings, usePrintLayers and print.worker, with layerMM → layerHeight and limitDeg →
+    overhangLimit;
+  - ReferencesPanel reads `residual`.
+  - ClearancePanel's `nearMM` prop is UI state and isn't touched.
+- browser-flow.mjs: two assertions now read `frames.kerf` and `printPreview.layerHeight`.
+- No fixture, sample or .bcad carries these fields, so nothing is regenerated.
+- **Left for the later steps:**
+  - step 2: the fit-table rows (`upToMM`, `overMM`, kernel row types);
+  - step 4: results such as nesting's `kerfMM` per bar, a weld joint's `weld.sizeMM`, KeepoutResult, robot/loop's
+    `residualMM` and print layers' `layerMM: { mm }`.
+- **Verified (T1):** tsc (model, studio); eslint 0 errors. The affected tests and the full suites run in the scratch
+  check together with O19's wiring.
+
+## O19 — a stored edge or face name checked against what it named: refused, or matched again, never built on another (2026-10-24)
+
+The API lane found it in R7.4b, finding 4. The kernel's half is D277 (78a84d506): `expect` on fillet, chamfer, shell
+and draft, refusing `[REFERENCE_MOVED]`.
+- **Cause.** A sketch without sideTags (what commands and add_features write) names its walls by position. A vertex
+  inserted upstream renumbers them, and a fillet's stored `side1|side2` rounded another corner, silently. The node
+  carried `sigs`, but only the edit tool's rematch compared them; a document edited elsewhere skipped that.
+- **part.ts.** Each fillet, chamfer, shell and draft passes `expect`: its used names' signatures from `node.sigs`. The
+  compact `{ k, p, d, s, r }` becomes the kernel's `{ kind, at, dir, size, radius }`, and only the names the feature
+  uses go, by name (`expectOf`, at module level). A node without sigs passes none, as before.
+- **The agent's tools** (`chat/toolKit.ts` accept). An evaluation refused REFERENCE_MOVED runs `verifyReferences`, the
+  open path's matcher.
+  - **One clear match:** it is taken, marked re-matched until confirmed. The result carries `rematched` [{ where, was,
+    now }] and a note.
+  - **None or several:** refused with `references` [{ where, name, candidates }], the part unchanged.
+- **The studio's open** (App.tsx verifyOpened, a call site named to the coordinator). A document whose evaluation is
+  refused REFERENCE_MOVED is verified too, with no final bodies, so its moved names are substituted and marked, or the
+  feature is held with its candidates. Before this, an evaluation that failed skipped the check.
+- **Test:** test/o19-stored-names.test.ts, 4 tests:
+  - the sigs are written;
+  - the vertex insert is refused REFERENCE_MOVED; without sigs the same document rounds another corner;
+  - a 12 × 10 dimension change keeps building, with the fillet on its corner;
+  - through add_features on the moved document, the name is matched again (marked) and the fillet stays on its
+    corner.
+
+  With expectOf returning nothing, tests 2 and 4 fail.
+- **Verified (T1):** o19 4/4; tsc (model, studio); eslint. The full suites and the fingerprint run in the scratch check.
+- **Full check** (68c66bd66, scratch):
+  - cad-model 1065/1066, studio 286/286, docs samples 36/36.
+  - The one failure is conformance a1-refs-gone (references.test). Its harness required the opened document to build
+    before verifying. With `expect`, the gone edge's document is refused REFERENCE_MOVED (the kernel: "it is a line
+    edge now, was curve"). The harness now starts the check with no bodies on REFERENCE_MOVED, as the studio's
+    verifyOpened does. The case's expectations are unchanged and pass: the fillet is held, and the rest builds to the
+    same volume. references, rematch and o19: 17/17.
+- **The fingerprint is ddec05e2…, and O19 moved none of it:** its 152 records equal those of the commit before
+  (51bf8b294) one by one. No recorded document carries sigs that moved.
+  - Against the old tip (8f822fed9's), two records differ, both from step 1 and step 3:
+    - `toolset`: step 1's tool descriptions;
+    - frk-weldment-table.calls.json's STEP text hash: step 3's weld `size` renames the document's canonical JSON, so
+      the source revision the STEP header names is a new hash. The geometry is the same (bodies, B-reps and STL
+      unchanged).

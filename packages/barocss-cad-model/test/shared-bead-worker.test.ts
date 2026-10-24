@@ -56,7 +56,7 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
   const b = receive.unpack('evaluate', second); assert.ok(b.ok);
   const facts = (bodies: readonly Pick<BodyResult, 'key' | 'volumeMM3' | 'centroid' | 'inertia' | 'element'>[]) => bodies.filter(x => x.element?.kind === 'weld-bead').map(x => ({ key: x.key, volume: x.volumeMM3, centroid: x.centroid, inertia: x.inertia, element: x.element }));
   assert.deepEqual(facts(await massed(a.bodies)), facts(direct.bodies)); assert.deepEqual(facts(await massed(b.bodies)), facts(direct.bodies));
-  const bad = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.map((w, i) => i ? w : { ...w, sizeMM: 2 }) } };
+  const bad = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.map((w, i) => i ? w : { ...w, size: 2 }) } };
   const refused = await request({ type: 'part', doc: send.pack(bad) });
   assert.equal(refused.bodies.filter(x => x.element?.kind === 'weld-bead').length, 6);
   const fixed = await request({ type: 'part', doc: send.pack(doc) });

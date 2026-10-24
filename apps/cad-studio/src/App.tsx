@@ -1825,8 +1825,9 @@ export function App() {
   // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
   // number faces otherwise, engine/references.ts); what moved is substituted, marked, and said.
   const verifyOpened = async (opened: StudioDoc) => {
-    const r = await engine.part(opened, revision.current++, 'refs'); if (!r?.ok) return;
-    const v = await verifyReferences(opened, r.bodies, d => engine.part(d, revision.current++, 'refs'));
+    // (O19: one that does not build because a stored name moved, REFERENCE_MOVED, is checked too — its moved names matched again, or held.)
+    const r = await engine.part(opened, revision.current++, 'refs'); if (!r || (!r.ok && r.error.code !== 'REFERENCE_MOVED')) return;
+    const v = await verifyReferences(opened, r.ok ? r.bodies : [], d => engine.part(d, revision.current++, 'refs'));
     setRefProblems(v.problems);
     if (!v.changes.length && !v.problems.length) return;
     setDocState(cur => {

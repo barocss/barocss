@@ -9,7 +9,7 @@ export function manufacturingDocument(): StudioDoc {
   if (!evaluated.ok) throw Error(evaluated.error.detail);
   const joints = weldList(frame, evaluated.bodies).joints;
   if (!joints.length) throw Error('Expected a real frame joint in this fixture.');
-  return { ...frame, frames: { version: 1, welds: joints.map(j => ({ joint: j.id, kind: 'fillet', sizeMM: 2, allRound: true, notes: 'User test weld, size 2 mm' })) }, instances: [{ id: 'plate', name: 'Mount plate', doc: rectanglePart(80, 60, 8), position: [80, 60, 0], rotation: [0, 0, 0] }] };
+  return { ...frame, frames: { version: 1, welds: joints.map(j => ({ joint: j.id, kind: 'fillet', size: 2, allRound: true, notes: 'User test weld, size 2 mm' })) }, instances: [{ id: 'plate', name: 'Mount plate', doc: rectanglePart(80, 60, 8), position: [80, 60, 0], rotation: [0, 0, 0] }] };
 }
 
 export const manufacturingOptions = {

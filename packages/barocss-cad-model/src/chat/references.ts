@@ -140,13 +140,13 @@ export function datumFromFace(local: readonly BodyResult[], refId: string, face:
     if (kind === 'plane') {
       const fit = fitPlane(b.mesh, f.index);
       if (fit.residual > FIT_TOLERANCE) throw refusal('DATUM_FIT', `${face} is not flat: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best plane (at most ${FIT_TOLERANCE} mm)`);
-      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, normal: fit.normal, xAxis: xAxisFor(fit.normal), residualMM: fit.residual };
+      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, normal: fit.normal, xAxis: xAxisFor(fit.normal), residual: fit.residual };
     }
     if (kind === 'axis') {
       if (f.kind !== 'curved') throw refusal('DATUM_FIT', `${face} is flat: an axis comes from a cylindrical face`);
       const fit = fitCylinder(b.mesh, f.index);
       if (!(fit.residual <= FIT_TOLERANCE)) throw refusal('DATUM_FIT', `${face} is not a cylinder: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best one (at most ${FIT_TOLERANCE} mm)`);
-      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, direction: fit.direction, radius: fit.radius, residualMM: fit.residual };
+      return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, direction: fit.direction, radius: fit.radius, residual: fit.residual };
     }
     return { id, name, kind, of: { reference: refId, face }, origin: f.centroid.slice() as Vec3 };
   }
@@ -371,7 +371,7 @@ export async function referencesReport(doc: StudioDoc, evaluate: Evaluate) {
   const problems = await verifyDatums(set, evaluate);
   return {
     references: refs, ...(problems.length ? { problems } : {}),
-    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residualMM !== undefined ? { residual_mm: r9(d.residualMM) } : {}) }; }),
+    datums: set.datums.map(d => { const w = datumWorld(set, d); return { id: d.id, name: d.name, kind: d.kind, ...(d.of ? { of: d.of } : {}), origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual_mm: r9(d.residual) } : {}) }; }),
     keepouts: set.keepouts.map(k => ({ id: k.id, name: k.name, frame: k.frame, shape: k.shape, clearance_mm: k.clearance, ...(k.around ? { around: k.around } : {}) })),
   };
 }
@@ -418,7 +418,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
         else return { error: '[BAD_REFERENCE] kind is plane, axis or point.' };
       }
       const w = datumWorld({ ...set, datums: [...set.datums, d] }, d);
-      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residualMM !== undefined ? { residual_mm: r9(d.residualMM) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
+      return { doc: put({ ...set, datums: [...set.datums, d] }), content: { ok: true, id, kind: d.kind, origin: v9(w.origin), ...(w.normal ? { normal: v9(w.normal) } : {}), ...(w.direction ? { direction: v9(w.direction) } : {}), ...(d.radius ? { radius: r9(d.radius) } : {}), ...(d.residual !== undefined ? { residual_mm: r9(d.residual) } : {}) }, changed: true, summary: `datum ${id} (${d.kind})` };
     }
     if (name === 'add_keepout') {
       const id = newKeepoutId(set), label = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : id, clearance = args.clearance === undefined ? 0 : args.clearance;

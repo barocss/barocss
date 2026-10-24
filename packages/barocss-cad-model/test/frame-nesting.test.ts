@@ -22,7 +22,7 @@ const listOf = (lengths: readonly number[], section = 'S'): PartCutList => ({
   rows: lengths.map((L, k) => ({ item: k + 1, section, mirrored: false, quantity: 1, pieces: [`p${k}`], axisLengthMM: L, fromVolume: false, longPointMM: L, ends: [], massKG: 0, totalMassKG: 0 })),
   totals: { quantity: lengths.length, axisLengthMM: lengths.reduce((a, b) => a + b, 0), massKG: 0 }, names: {}, densityEstimate: true,
 }) as never;
-const docOf = (stock: FrameStockRow[], kerfMM?: number): StudioDoc => ({ ...emptyDoc(), frames: { version: 1, stock, ...(kerfMM !== undefined ? { kerfMM } : {}) } });
+const docOf = (stock: FrameStockRow[], kerf?: number): StudioDoc => ({ ...emptyDoc(), frames: { version: 1, stock, ...(kerf !== undefined ? { kerf } : {}) } });
 const nest = (lengths: readonly number[], stock: FrameStockRow[], kerf?: number): Nesting => { const r = nestCutList(docOf(stock, kerf), listOf(lengths)); assert.ok(r.ok, JSON.stringify(r)); return r.nesting; };
 const ROD = (id: string, lengthMM: number, extra: Partial<FrameStockRow> = {}): FrameStockRow => ({ id, lengthMM, source: 'a test value', ...extra });
 /** Every bar's pieces fit it with their kerfs, every piece once, the waste exact. */
@@ -125,5 +125,5 @@ test('FRb set_frame_stock refuses by name: no source, a length of 0, a count of 
   const raw = await dispatchTool({ ...s, rowFiles: f.rowFiles }, 'set_frame_stock', { rows: good, kerf: 2 }, evaluate);
   assert.ok(raw.isError); assert.match(JSON.parse(raw.content).error, /ROWS_NOT_FROM_PERSON/);
   const ok = await dispatchTool({ ...s, rowFiles: f.rowFiles }, 'set_frame_stock', { file: f.file, kerf: 2 }, evaluate);
-  assert.ok(!ok.isError, ok.content); assert.deepEqual(ok.state.doc.frames, { version: 1, stock: [{ id: 'a', lengthMM: 6000, count: 4, section: 'RHS', source: 'the shop' }], kerfMM: 2 });
+  assert.ok(!ok.isError, ok.content); assert.deepEqual(ok.state.doc.frames, { version: 1, stock: [{ id: 'a', lengthMM: 6000, count: 4, section: 'RHS', source: 'the shop' }], kerf: 2 });
 });

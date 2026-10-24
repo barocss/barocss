@@ -15,7 +15,7 @@ export function printSourceMeshes(doc: StudioDoc, bodies: readonly BodyResult[])
 export type PrintPreviewPatch = Partial<Omit<PrintPreviewSettings, 'version'>>;
 
 /** Display defaults do not author settings, the estimated layer height, or a build direction. */
-export function printOptionsOf(doc: StudioDoc, limitDeg?: number): PrintOptions {
+export function printOptionsOf(doc: StudioDoc, overhangLimit?: number): PrintOptions {
   const [problem] = checkDocumentPrintPreview(doc);
   if (problem) throw refused(problem);
   const saved = doc.printPreview;
@@ -24,9 +24,9 @@ export function printOptionsOf(doc: StudioDoc, limitDeg?: number): PrintOptions 
     layer: saved?.layer ?? 0,
     supports: saved?.supports ?? true,
     printed: saved?.printed ?? true,
-    ...(saved?.layerMM !== undefined ? { layerMM: saved.layerMM } : {}),
+    ...(saved?.layerHeight !== undefined ? { layerHeight: saved.layerHeight } : {}),
     ...(direction ? { direction } : {}),
-    ...(limitDeg !== undefined ? { limitDeg } : {}),
+    ...(overhangLimit !== undefined ? { overhangLimit } : {}),
   };
 }
 
@@ -38,7 +38,7 @@ export function withPrintPreviewSettings(doc: StudioDoc, patch: PrintPreviewPatc
   const [problem] = checkPrintPreview(saved);
   if (problem) throw refused(problem);
   if ('layer' in patch && patch.layer === undefined) delete saved.layer;
-  if ('layerMM' in patch && patch.layerMM === undefined) delete saved.layerMM;
+  if ('layerHeight' in patch && patch.layerHeight === undefined) delete saved.layerHeight;
   if ('supports' in patch && patch.supports === undefined) delete saved.supports;
   if ('printed' in patch && patch.printed === undefined) delete saved.printed;
   return { ...doc, printPreview: saved };

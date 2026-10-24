@@ -32,7 +32,7 @@ test('5b: the kernel\'s frk scenes from records — a rail\'s bead on the 80 pos
   for (const [name, want] of [['bead-tee-wide-post', 756], ['bead-tee-flush', 360]] as const) {
     const doc = scene(name), joints = weldList(doc, ok(doc).bodies).joints, j = joints.find(x => x.kind === 'butt')!;
     assert.ok(j, `${name}: the rail's butt joint`);
-    const welded = withWelds(doc, [{ joint: j.id, sizeMM: 3 }]), r = ok(welded);
+    const welded = withWelds(doc, [{ joint: j.id, size: 3 }]), r = ok(welded);
     const bead = r.bodies.find(b => b.key === beadIdOf(j.id))!;
     assert.ok(bead && bead.element?.kind === 'weld-bead', `${name}: the bead's body`);
     assert.ok(Math.abs(bead.volumeMM3! - want) < 1e-9 * want, `${name}: ${bead.volumeMM3}`);
@@ -48,7 +48,7 @@ test('5b: the kernel\'s frk scenes from records — a rail\'s bead on the 80 pos
   // (The gusset: its two seam joints, a bead each — together the kernel's one bead of 1710.)
   const doc = scene('bead-gusset'), joints = weldList(doc, ok(doc).bodies).joints.filter(x => x.kind === 'gusset');
   assert.equal(joints.length, 2);
-  const welded = withWelds(doc, joints.map(j => ({ joint: j.id, sizeMM: 3 }))), r = ok(welded);
+  const welded = withWelds(doc, joints.map(j => ({ joint: j.id, size: 3 }))), r = ok(welded);
   const beads = weldList(welded, r.bodies).joints.filter(x => x.kind === 'gusset').map(x => x.bead);
   assert.ok(beads.every(b => b && !('refused' in b)), JSON.stringify(beads));
   // (Both joints name the one gusset: the kernel welds all its seams in one bead, so one feature — the first joint's — and both read it.)
@@ -58,15 +58,15 @@ test('5b: the kernel\'s frk scenes from records — a rail\'s bead on the 80 pos
 
 test('5b: refusals said on the joint, the part still evaluating — a mitre set to fillet (BEAD_KIND), an oblique brace (BEAD_ANGLE); unset on a mitre or a cap: no bead, quietly; no size: no bead', () => {
   const mitre = scene('refuse-bead-mitre'), mj = weldList(mitre, ok(mitre).bodies).joints.find(x => x.kind === 'mitre')!;
-  const set = withWelds(mitre, [{ joint: mj.id, kind: 'fillet', sizeMM: 3 }]), r = ok(set), j = weldList(set, r.bodies).joints.find(x => x.id === mj.id)!;
+  const set = withWelds(mitre, [{ joint: mj.id, kind: 'fillet', size: 3 }]), r = ok(set), j = weldList(set, r.bodies).joints.find(x => x.id === mj.id)!;
   assert.ok(j.bead && 'refused' in j.bead && /\[BEAD_KIND\] member 0's end is mitred/.test(j.bead.refused), JSON.stringify(j.bead));
   assert.ok(weldListTable(weldList(set, r.bodies), new Map()).notes!.some(n => /^W1: no bead — \[BEAD_KIND\]/.test(n)));
   // (Unset on the mitre: its default is a groove weld — no bead, nothing said.)
-  const unset = withWelds(mitre, [{ joint: mj.id, sizeMM: 3 }]), ru = ok(unset), ju = weldList(unset, ru.bodies).joints.find(x => x.id === mj.id)!;
+  const unset = withWelds(mitre, [{ joint: mj.id, size: 3 }]), ru = ok(unset), ju = weldList(unset, ru.bodies).joints.find(x => x.id === mj.id)!;
   assert.equal(ju.bead, undefined); assert.equal(ju.weld.kind, 'butt');
   // (The 60° brace: refused by angle, said.)
   const brace = scene('refuse-bead-angle'), bj = weldList(brace, ok(brace).bodies).joints.find(x => x.kind === 'butt')!;
-  const bset = withWelds(brace, [{ joint: bj.id, sizeMM: 3 }]), rb = ok(bset), jb = weldList(bset, rb.bodies).joints.find(x => x.id === bj.id)!;
+  const bset = withWelds(brace, [{ joint: bj.id, size: 3 }]), rb = ok(bset), jb = weldList(bset, rb.bodies).joints.find(x => x.id === bj.id)!;
   assert.ok(jb.bead && 'refused' in jb.bead && /\[BEAD_ANGLE\]/.test(jb.bead.refused), JSON.stringify(jb.bead));
   // (No size set: no bead at all.)
   assert.deepEqual(beadsOf(withWelds(brace, [{ joint: bj.id }])), []);

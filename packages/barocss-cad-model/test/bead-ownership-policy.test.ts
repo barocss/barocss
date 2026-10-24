@@ -71,7 +71,7 @@ test('unknown/malformed ownership gets the same file/tool/direct-evaluation refu
 test('ownership policy-only edit uses one evaluation; absent retains and null removes without losing weld records', async () => {
   let calls = 0;
   const counted = async (doc: StudioDoc) => { calls++; return evaluate(doc); };
-  const original = stateOf({ ...rectanglePart(10, 20, 3), frames: { version: 1, welds: [{ joint: 'old.start', notes: 'orphan retained' }], kerfMM: 2 } });
+  const original = stateOf({ ...rectanglePart(10, 20, 3), frames: { version: 1, welds: [{ joint: 'old.start', notes: 'orphan retained' }], kerf: 2 } });
   const out = await dispatchTool(original, 'features', { action: 'welds', beadOwnership: policy }, counted);
   assert.equal(out.isError, false, out.content); assert.equal(out.changed, true); assert.equal(calls, 1);
   assert.deepEqual(out.state.doc.frames, { ...original.doc.frames, beadOwnership: policy });
@@ -95,7 +95,7 @@ test('ordinary unsized weld edits retain policy when absent and never enable it 
     assert.equal(out.isError, false, out.content);
     assert.deepEqual(out.state.doc.frames?.beadOwnership, doc.frames?.beadOwnership);
     assert.equal(out.state.bodies.length, 2);
-    assert.equal(out.state.doc.frames?.welds?.[0].sizeMM, undefined);
+    assert.equal(out.state.doc.frames?.welds?.[0].size, undefined);
   }
 });
 
