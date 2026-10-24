@@ -5600,11 +5600,23 @@ try {
       await page.click('[aria-label="Add geometric control"]');
       await page.waitForFunction(() => window.__studioDoc.drawing?.frames?.length === 1);
       const shapes = {};
+      // Sheet updates can replace SVG children; retry only a detached screenshot target.
+      const controlShot = async name => {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            await page.locator('[aria-label="Drawing sheet"] g.control').screenshot({ path: join(out, name) });
+            return;
+          } catch (error) {
+            if (attempt === 2 || !String(error?.message ?? error).includes('Element is not attached to the DOM')) throw error;
+            console.warn(`DR6a control screenshot attempt ${attempt + 1}/3 failed; retrying ${name}: ${String(error?.message ?? error)}`);
+          }
+        }
+      };
       for (const kind of ['position', 'straightness', 'flatness', 'circularity', 'cylindricity', 'profile-line', 'profile-surface', 'parallelism', 'perpendicularity', 'angularity', 'concentricity', 'symmetry', 'circular-runout', 'total-runout']) {
         await page.selectOption('[aria-label="Geometric characteristic"]', kind);
         await page.waitForFunction(k => window.__studioDoc.drawing.frames[0].characteristic === k && document.querySelector('[aria-label="Drawing sheet"] g.control'), kind);
         shapes[kind] = await page.locator('[aria-label="Drawing sheet"] g.control').innerHTML();
-        if (['position', 'flatness', 'profile-surface', 'total-runout'].includes(kind)) await page.locator('[aria-label="Drawing sheet"] g.control').screenshot({ path: join(out, `dr6a-${kind}.png`) });
+        if (['position', 'flatness', 'profile-surface', 'total-runout'].includes(kind)) await controlShot(`dr6a-${kind}.png`);
       }
       assert.equal(new Set(Object.values(shapes)).size, 14); fs.writeFileSync(join(out, 'dr6a-symbols.json'), JSON.stringify(shapes, null, 2));
       await page.selectOption('[aria-label="Geometric characteristic"]', 'position');
@@ -5617,7 +5629,7 @@ try {
       await page.waitForFunction(() => window.__studioDrawing().issues.some(x => x.code === 'DATUM_UNDEFINED'), null, { timeout: 10000 });
       await page.waitForFunction(() => { const t = [...document.querySelectorAll('[aria-label="Drawing sheet"] g.control text')].map(e => e.textContent); return ['Ø0.05', 'M', 'L', 'F', 'T', 'P', '12', 'A', 'B'].every(x => t.includes(x)); });
       await snap('dr6a-control-modifiers');
-      await page.locator('[aria-label="Drawing sheet"] g.control').screenshot({ path: join(out, 'dr6a-modifiers.png') });
+      await controlShot('dr6a-modifiers.png');
       for (const [label, name] of [['Export SVG', 'dr6a-controls.svg'], ['Export DXF', 'dr6a-controls.dxf']]) {
         const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click(`[aria-label="${label}"]`)]); await download.saveAs(join(out, name));
         const text = fs.readFileSync(join(out, name), 'utf8'); for (const value of ['0.05', 'M', 'L', 'F', 'T', 'P']) assert.ok(text.includes(value), `${value} in ${name}`);
