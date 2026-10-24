@@ -19,6 +19,10 @@
 // - A cam mate (O24 a): the follower's face rides the lobe by design — its triangles on that face against the lobe's
 //   within the face's slab along the cam's axis are the mate's to hold; a pushed part's face on its driver's the same.
 //   Every other triangle pair is checked (the follower's stem against the shaft, the valve against its guide).
+// - A running fit (PG-6): a concentric mate's two round faces, a piston in its bore, a shaft in its bearing — the display
+//   mesh's chords lie inside the true circle (0.135 mm at r 28, 8 segments a quarter turn), so a 0.1 mm fit would read as
+//   contact. Each part's triangles on its round face (its corners on the cylinder) against the other's are the fit's
+//   to hold; every other pair is checked. Two bare round parts have nothing else: left out, said so.
 // - A loop's pin (a closure) in a planar loop: every joint between the two links turns about an axis parallel to the
 //   pin's (or slides across it), so each point keeps its place along that axis. Two triangles whose extents along it
 //   meet at most at a plane can only touch, never cross: only the triangles within the slab both links fill are
@@ -51,7 +55,7 @@ type V3 = readonly [number, number, number];
  * A designed seat between two links: the triangle sets (index triples) still checked against each other, the first
  * of each pair on `first`; `probes`: a triangle of a link whose centre, inside the other link, is a contact too.
  */
-interface Seat { why: string; first: string; checks: [Uint32Array, Uint32Array][]; probes: { link: string; tri: Uint32Array }[]; /** Tested for crossing at each step only (not a clearance: a graze is designed); the mask: the first set's edges left out (bit k: edge k → k+1), those lying in the seat's face. */ crossing?: [Uint32Array, Uint32Array, Uint8Array][] }
+interface Seat { why: string; first: string; checks: [Uint32Array, Uint32Array][]; probes: { link: string; tri: Uint32Array }[]; /** Tested for crossing at each step only (not a clearance: a graze is designed); the mask: the first set's edges left out (bit k: edge k → k+1), those lying in the seat's face. */ crossing?: [Uint32Array, Uint32Array, Uint8Array | undefined, number][] }
 /** The step's cap (of the path, in s) where a seat's sets are tested for crossing only: a cam's (O24 a). */
 export const CROSSING_STEP = 1 / 90;
 /** A crossing a seat's sets count: an edge whose ends are this far (mm) on either side of the triangle's plane — past the display mesh's single precision, so a face lying flat on another (a cam's flat on its follower) is a graze. */
@@ -106,6 +110,19 @@ function edgesOn(P: ArrayLike<number>, I: Uint32Array, p: readonly number[], n: 
   for (let t = 0; t < out.length; t++) for (let e = 0; e < 3; e++) if (on(I[t * 3 + e]) && on(I[t * 3 + (e + 1) % 3])) out[t] |= 1 << e;
   return out;
 }
+/** A link's triangles with their corners on the cylinder through p along d of radius r (the display mesh's vertices are on the surface). */
+function onCylinder(l: SweepLink, p: readonly number[], d: readonly number[], r: number): Uint32Array {
+  const P = l.positions, I = l.indices, out: number[] = [], tol = 1e-4 + 1e-6 * r;
+  for (let k = 0; k < I.length; k += 3) {
+    let on = true;
+    for (let e = 0; e < 3 && on; e++) {
+      const v = I[k + e] * 3, x = P[v] - p[0], y = P[v + 1] - p[1], z = P[v + 2] - p[2], s = x * d[0] + y * d[1] + z * d[2];
+      on = Math.abs(Math.hypot(x - s * d[0], y - s * d[1], z - s * d[2]) - r) <= tol;
+    }
+    if (on) out.push(I[k], I[k + 1], I[k + 2]);
+  }
+  return Uint32Array.from(out);
+}
 /** A link's triangles not in `some` (both as index triples, in the link's order). */
 function complement(l: SweepLink, some: Uint32Array): Uint32Array {
   const have = new Set<string>(); for (let k = 0; k < some.length; k += 3) have.add(`${some[k]},${some[k + 1]},${some[k + 2]}`);
@@ -144,8 +161,20 @@ function seatsOf(tree: JointTree, byId: ReadonlyMap<string, SweepLink>): Map<str
     const why = `${c.kind === 'cam' ? 'a cam' : 'a push'} (${c.mate}): ${s.follower}'s face rides ${s.driver} by design`;
     // (Certified: the whole follower against the driver outside the seat. Crossing only, at each step: the follower's other
     // faces against the seat — they meet the driver where they meet its face, a graze, never a crossing unless they hit.)
-    const rest = complement(f, fz), seat: Seat = { why, first: f.link, checks: [[f.indices, complement(d, dz)]], probes: [], crossing: [[rest, dz, edgesOn(f.positions, rest, s.p, s.n)]] };
+    const rest = complement(f, fz), seat: Seat = { why, first: f.link, checks: [[f.indices, complement(d, dz)]], probes: [], crossing: [[rest, dz, edgesOn(f.positions, rest, s.p, s.n), CROSSING_DEPTH]] };
     out.set(`${f.link}|${d.link}`, seat); out.set(`${d.link}|${f.link}`, seat);
+  }
+  for (const fit of tree.fits ?? []) {
+    const a = byId.get(fit.a), b = byId.get(fit.b);
+    if (!a || !b || out.has(`${fit.a}|${fit.b}`)) continue;
+    const za = onCylinder(a, fit.pa, fit.da, fit.ra), zb = onCylinder(b, fit.pb, fit.db, fit.rb), ra = complement(a, za), rb = complement(b, zb);
+    const why = `a running fit (${fit.mate}): their round faces on one axis are the fit's`;
+    // (Certified: a whole against b off its round face; b's round face against a's rest crossing only past the chords'
+    // sag — the API lane's band, the sag at 8 segments a quarter turn plus 0.05 — so a part's own rim on its face grazes.)
+    const band = Math.max(fit.ra, fit.rb) * (1 - Math.cos(Math.PI / 32)) + 0.05;
+    const seat: Seat | { why: string; skip: true } = !ra.length && !rb.length ? { why: `${why}; nothing else on either`, skip: true }
+      : { why, first: fit.a, checks: [[a.indices, rb]], probes: [], crossing: [[ra, zb, undefined, band]] };
+    out.set(`${fit.a}|${fit.b}`, seat); out.set(`${fit.b}|${fit.a}`, seat);
   }
   for (const loop of tree.loops) {
     const [x, y] = loop.parts, a = byId.get(x), b = byId.get(y), j = tree.joints.find(k => k.child === x);
@@ -163,7 +192,7 @@ function seatsOf(tree: JointTree, byId: ReadonlyMap<string, SweepLink>): Map<str
 function seatMeets(seat: Seat, A: string, PA: Float64Array, IA: Uint32Array, PB: Float64Array, IB: Uint32Array): boolean {
   const flip = seat.first !== A;
   for (const [s1, s2] of seat.checks) if (flip ? piercesAny(PA, s2, PB, s1) : piercesAny(PA, s1, PB, s2)) return true;
-  for (const [s1, s2, mask] of seat.crossing ?? []) if (flip ? piercesAny(PA, s2, PB, s1, CROSSING_DEPTH, undefined, mask) : piercesAny(PA, s1, PB, s2, CROSSING_DEPTH, mask)) return true;
+  for (const [s1, s2, mask, depth] of seat.crossing ?? []) if (flip ? piercesAny(PA, s2, PB, s1, depth, undefined, mask) : piercesAny(PA, s1, PB, s2, depth, mask)) return true;
   for (const p of seat.probes) {
     const mine = p.link === A, P = mine ? PA : PB, t = p.tri, cx = (P[t[0] * 3] + P[t[1] * 3] + P[t[2] * 3]) / 3, cy = (P[t[0] * 3 + 1] + P[t[1] * 3 + 1] + P[t[2] * 3 + 1]) / 3, cz = (P[t[0] * 3 + 2] + P[t[1] * 3 + 2] + P[t[2] * 3 + 2]) / 3;
     if (mine ? inside(cx, cy, cz, PB, IB) : inside(cx, cy, cz, PA, IA)) return true;

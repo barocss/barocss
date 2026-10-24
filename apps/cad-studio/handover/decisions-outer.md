@@ -9342,3 +9342,41 @@ The coordinator ordered these from P1's gaps.
     coupling at −20/40, centre distance 45. Unlocked, no coupling.
 - **Verified (T1):** pg48 2/2; toolset, tool-contract and assembly; studio chat 20/20; tsc; eslint 0 errors; docs tables
   regenerated.
+
+## PG-6 — running fits swept as designed: a concentric mate's round faces are the fit's (2026-10-24)
+
+P1 found that sweep_path tests contact on the display meshes (8 segments a quarter turn, a chord 0.135 mm inside a
+circle of r 28), so a piston with 0.1 mm radial clearance read as touching its bore. The API lane's check.ts worked
+around it with a finer mesh and running-fit seats. Our core now takes the seat approach, as O22 did for gear teeth.
+- **robot/joints.ts:** `tree.fits`, each concentric mate's two round faces in world at the solved pose: {mate, a, b,
+  pa, da, ra, pb, db, rb}.
+- **robot/sweep.ts:** a fit is a seat between its two links when they are not parent and child; those are skipped
+  anyway.
+  - The zone: each link's triangles with all three corners on its cylinder, within 1e-4 + 1e-6·r. The display mesh's
+    vertices lie on the true surface.
+  - Certified: a's whole mesh against b's triangles off its round face.
+  - Crossing only: b's round face against a's other triangles, counted only deeper than the band r(1 − cos π/32) +
+    0.05 mm (the chord sag at 8 segments a quarter turn, plus the API lane's margin). A part's own rim on its face, the
+    piston cap's edge, grazes the other's chords; a boss past the bore is contact.
+  - Two bare round parts are left out, with the reason given. A loop pin's planar seat replaces a fit's seat on the
+    same pair, as before.
+  - The cam seat's crossing now carries its own depth (1e-4).
+- **The limit, recorded:** the fit's crossing part is sampled at the sweep's steps, at most 1/90 of the move, not
+  certified between them, as the cam seat's is. A finer or exact surface check near contact would be the next step if
+  a case needs it.
+- **Test:** test/pg6-running-fit.test.ts, 2 tests.
+  - A piston of r 27.95 in a bore of r 28 (0.05 mm, under the 0.135 sag), its facets turned half a segment. It is
+    locked to a carriage sliding along the bore, and the bore's concentric mate is the loop.
+  - The 20 mm stroke sweeps clear, the fit said designed.
+  - With the tree's fits removed, the meshes are in contact at s = 0: P1's gap reproduced.
+  - A boss reaching to r 31 is still contact.
+- **Coupling checks from the approved design, robot/joints.ts:**
+  - COUPLING_CYCLE: a follower whose chain of leaders leads back to itself. The coupling that closes the cycle is
+    dropped and said so.
+  - COUPLED_TWICE: a second cam or push mate on a follower already coupled, so a joint has one leader. Before, the
+    second mate silently replaced the first.
+  - o24a-cam test 5: two pushes, follower → valve and valve → follower, give one COUPLING_CYCLE with one push kept; the
+    lobe plus a back push give COUPLED_TWICE.
+- **Verified (T1):** pg6 2/2, o24a-cam 5/5; robot*, rs1–3, o22, o24a, pg*, tool-contract, toolset, assembly, mates,
+  clearance, o11, o12, api-assembly and rb9 169/169 before the cycle checks; tsc; eslint 0 errors. The per-turn size is
+  24,097.

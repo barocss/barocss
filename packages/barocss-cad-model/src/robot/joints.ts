@@ -46,7 +46,7 @@ export interface Joint {
   /** O24 (a): a cam's follower — `mimic` names the cam's joint (multiplier 0), and this is the lift (robot/cam.ts). */
   cam?: CamLift;
 }
-export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED' | 'CAM_NOT_SEATED' | 'CAM_PROFILE_UNSUPPORTED' | FrameCode;
+export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED' | 'CAM_NOT_SEATED' | 'CAM_PROFILE_UNSUPPORTED' | 'COUPLING_CYCLE' | 'COUPLED_TWICE' | FrameCode;
 export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string; frame?: string }
 export interface Loop { parts: [string, string]; mates: string[]; freedom: number; message: string }
 export interface Coupling {
@@ -59,6 +59,8 @@ export interface JointTree {
   /** Pairs joined again round the graph: kept as loop closures, with their mates. */
   loops: Loop[];
   couplings: Coupling[];
+  /** PG-6: each concentric mate's two round faces (world, at the solved pose) — a running fit the sweep leaves to the mate. */
+  fits?: Fit[];
   /** O24 (a): cam mates as couplings — a turning cam's follower (kind cam), a follower pushing another (kind push). */
   cams?: CamCoupling[];
   /** What blocks a link or a joint (typed); `notes`: what an export will need (limits) or could not couple. */
@@ -199,6 +201,8 @@ export interface TreeInput {
   /** A part's faces with their boundaries (its B-rep), for its cam mates (robot/cam.ts). */
   camFaces?: (part: string) => readonly CamFace[];
 }
+/** A concentric mate's faces: a's and b's axis (a point, a direction) and radius, world. */
+export interface Fit { mate: string; a: string; b: string; pa: Vec3; da: Vec3; ra: number; pb: Vec3; db: Vec3; rb: number }
 /** A cam mate's coupling: the driver's joint, the follower's, and the lift's range over a turn (mm) or its ratio. */
 export interface CamCoupling {
   kind: 'cam' | 'push'; mate: string; leader: string; follower: string; lift?: [number, number]; multiplier?: number;
@@ -286,14 +290,31 @@ export function jointTree(input: TreeInput): JointTree {
     if ((j.type === 'prismatic' || j.type === 'revolute' || j.type === 'continuous') && (l?.effort === undefined || l.velocity === undefined)) notes.push({ code: 'LIMITS_MISSING', message: `${j.key}: no effort or velocity rating yet (export needs both).`, joint: j.key });
   }
   const couplings = input.gears ? gearCouplings(joints, placed, input.gears, notes) : [];
-  const camMates = input.mates.filter(m => m.kind === 'cam' && !failed.has(m.id)), cams = camMates.length && input.camFaces ? camCouplings(camMates, joints, placed, input.tables, input.camFaces, problems) : [];
+  // (PG-6: the running fits — every concentric mate's two round faces, where the solver put them.)
+  const fits: Fit[] = [];
+  for (const m of input.mates) {
+    if (m.kind !== 'concentric' || failed.has(m.id)) continue;
+    const fa = input.tables(m.a.part)?.[m.a.face], fb = input.tables(m.b.part)?.[m.b.face], A = placed.get(m.a.part), B = placed.get(m.b.part);
+    if (fa?.kind !== 'cylinder' || fb?.kind !== 'cylinder' || !A || !B) continue;
+    fits.push({ mate: m.id, a: m.a.part, b: m.b.part, pa: add(apply(A.R, fa.point), A.t), da: unit(apply(A.R, fa.axis)), ra: fa.radius, pb: add(apply(B.R, fb.point), B.t), db: unit(apply(B.R, fb.axis)), rb: fb.radius });
+  }
+  const camMates = input.mates.filter(m => m.kind === 'cam' && !failed.has(m.id)), cams0 = camMates.length && input.camFaces ? camCouplings(camMates, joints, placed, input.tables, input.camFaces, problems) : [];
+  // (A follower leading, round its chain, back to itself has no value: the coupling that closes the cycle is dropped, said so.)
+  for (const j of joints) {
+    const seen = new Set<string>([j.key]);
+    for (let k = joints.find(x => x.key === j.mimic?.joint); k?.mimic; k = joints.find(x => x.key === k!.mimic!.joint)) {
+      if (seen.has(k.key) || k.mimic.joint === j.key) { problems.push({ code: 'COUPLING_CYCLE', message: `${j.key} follows ${j.mimic!.joint}, whose couplings lead back to it: that coupling is left out.`, joint: j.key }); j.mimic = undefined; j.cam = undefined; break; }
+      seen.add(k.key);
+    }
+  }
+  const cams = cams0.filter(c => joints.find(j => j.key === c.follower)?.mimic);
   // (O12: each frame on its link, or its refusal among the problems.)
   const frames: ToolFrame[] = [], partIds = new Set(parts), names = settings.frames ? exportNames({ links, joints }) : null;
   for (const [name, f] of Object.entries(settings.frames ?? {})) {
     const [why] = checkFrame(name, f, { links }, partIds, names!);
     if (why) problems.push({ ...why, frame: name, parts: [f.link] }); else frames.push(resolveFrame(name, f, placed.get(f.link)!));
   }
-  return { version: 1, base, links, joints, loops, couplings, ...(cams.length ? { cams } : {}), problems, notes, ...(frames.length ? { frames } : {}) };
+  return { version: 1, base, links, joints, loops, couplings, ...(cams.length ? { cams } : {}), ...(fits.length ? { fits } : {}), problems, notes, ...(frames.length ? { frames } : {}) };
 }
 
 /** A pair's free motion from its mates' rows at the solved pose (b relative to a; the same freedom either way round). */
@@ -373,6 +394,7 @@ function camCouplings(mates: readonly Mate[], joints: Joint[], placed: Map<strin
     const P = placed.get(fol), C = placed.get(cam), ff = tables(fol)?.[m.b.face];
     if (!jc || !jf || !P || !C || ff?.kind !== 'plane') { bad('CAM_NOT_SEATED', !jc ? `${cam} has no joint to drive a follower` : !jf ? `${fol} does not slide (a follower slides in its guide)` : `${fol}.${m.b.face} is not a flat face`); continue; }
     if (rigidOf(joints, jointsTo(joints, fol)[0].parent) !== rigidOf(joints, jointsTo(joints, cam)[0].parent)) { bad('CAM_NOT_SEATED', `${cam} and ${fol} move on different links, so the lobe and the follower are not tied`); continue; }
+    if (jf.mimic) { bad('COUPLED_TWICE', `${jf.key} already follows ${jf.mimic.joint}: a joint follows one leader`); continue; }
     const nf = unit(apply(P.R, ff.normal)), pf = add(apply(P.R, ff.point), P.t), u = scale(nf, -1), uw = dot(u, jf.axis);
     if (Math.abs(uw) < 1e-9) { bad('CAM_NOT_SEATED', `${fol} slides across its face, not toward ${cam}`); continue; }
     if (jc.type === 'prismatic') {

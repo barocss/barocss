@@ -34,7 +34,7 @@ async function faceFacing(doc: StudioDoc, n: [number, number, number]): Promise<
   return Object.entries(t).find(([k, f]) => !k.startsWith('origin:') && f.kind === 'plane' && Math.abs(f.normal[0] - n[0]) + Math.abs(f.normal[1] - n[1]) + Math.abs(f.normal[2] - n[2]) < 1e-9)![0];
 }
 /** The cam on the base about (100, 100), its follower above it (its −Y face on the nose, sliding along Y under a grounded guide — on its bottom and its −X face's plane — 1 mm clear of the base), and a valve on the follower's top. */
-async function camDoc(o: { seat?: number; valve?: boolean; skirt?: boolean } = {}): Promise<StudioDoc> {
+async function camDoc(o: { seat?: number; valve?: boolean; skirt?: boolean; lobe?: false; back?: boolean } = {}): Promise<StudioDoc> {
   const base: StudioDoc = { ...box(200, 200, 10, [{ kind: 'hole', parent: { node: 1, side: 'solid' }, center: [100, 100], radius: 5 } as ModelNode]) };
   const W = 60, plain = box(W, 10, 8), follower = o.skirt ? box(W, 10, 8, [{ kind: 'sketch', profile: 'rectangle', min: [12, -10], max: [16, 0] } as ModelNode, { kind: 'extrude', sketch: 2, height: 8 } as ModelNode]) : plain, guide = box(10, 60, 10), valve = box(20, 30, 8);
   const [fY, fX, fTop] = await Promise.all([faceFacing(plain, [0, -1, 0]), faceFacing(plain, [1, 0, 0]), faceFacing(plain, [0, 1, 0])]);
@@ -45,11 +45,12 @@ async function camDoc(o: { seat?: number; valve?: boolean; skirt?: boolean } = {
     { id: 'shaftf', kind: 'coincident', a: { part: 'base', face: 'n1.top' }, b: { part: 'cam', face: 'n1.bottom' } },
     { id: 'guide1', kind: 'coincident', a: { part: 'guide', face: 'n1.bottom' }, b: { part: 'follower', face: 'n1.top' } },
     { id: 'guide2', kind: 'coincident', a: { part: 'guide', face: gX }, b: { part: 'follower', face: fX } },
-    { id: 'lobe', kind: 'cam', a: { part: 'cam', face: 'n1.top' }, b: { part: 'follower', face: fY } },
+    ...(o.lobe === false ? [] : [{ id: 'lobe', kind: 'cam', a: { part: 'cam', face: 'n1.top' }, b: { part: 'follower', face: fY } } as Mate]),
     ...(o.valve ? [
       { id: 'vguide1', kind: 'coincident', a: { part: 'guide', face: 'n1.bottom' }, b: { part: 'valve', face: 'n1.top' } } as Mate,
       { id: 'vguide2', kind: 'coincident', a: { part: 'guide', face: gX }, b: { part: 'valve', face: vX } } as Mate,
       { id: 'push', kind: 'cam', a: { part: 'follower', face: fTop }, b: { part: 'valve', face: vY } } as Mate,
+      ...(o.back ? [{ id: 'back', kind: 'cam', a: { part: 'valve', face: vY }, b: { part: 'follower', face: fTop } } as Mate] : []),
     ] : []),
   ];
   const slide = { lower: -10, upper: 10, effort: 50, velocity: 100 };
@@ -125,4 +126,14 @@ test('O24 (a) PG-5: the sweep still reports a real crash between cam and followe
   const hit = sweepOf(view, {}, { [camJ.key]: (sense * Math.PI) / 2 }, tree), away = sweepOf(view, {}, { [camJ.key]: (-sense * Math.PI) / 2 }, tree);
   assert.equal(hit.reply.clear, false, JSON.stringify(hit.reply).slice(0, 300)); assert.deepEqual([...hit.reply.contact!.links].sort(), ['cam', 'follower']); assert.ok(hit.reply.contact!.s > 0);
   assert.equal(away.reply.clear, true, JSON.stringify(away.reply).slice(0, 300));
+});
+
+test('O24 (a) PG-5: couplings that lead round to themselves are refused (COUPLING_CYCLE), a joint coupled twice (COUPLED_TWICE)', async () => {
+  const cyc = await camDoc({ valve: true, lobe: false, back: true }), rc = await evaluate(cyc); assert.ok(rc.ok);
+  const tc = await treeOfDoc(cyc, rc.bodies, evaluate);
+  assert.deepEqual(tc.problems.map(p => p.code), ['COUPLING_CYCLE']);
+  assert.equal(tc.joints.filter(j => j.mimic).length, 1, 'one of the two pushes kept');
+  const twice = await camDoc({ valve: true, back: true }), rt = await evaluate(twice); assert.ok(rt.ok);
+  const tt = await treeOfDoc(twice, rt.bodies, evaluate);
+  assert.deepEqual(tt.problems.map(p => p.code), ['COUPLED_TWICE']); assert.match(tt.problems[0].message, /^back: \S+ already follows /);
 });
