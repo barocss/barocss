@@ -149,7 +149,7 @@
 | `[FRAME_LINK_MISSING]` | `chat`, `robot` | frame …: "link" is the part it is on ("base" or a part id) |
 | `[FRAME_LINK_STALE]` | `robot` | frame …: … is not a link of the robot as it stands (not joined to the base link). Mate it, put the frame on a link, or remove it (set_frames {"…": null}) |
 | `[FRAME_MEMBER]` | `app` | Give the member a start and an end apart. |
-| `[FRAME_NAME]` | `api`, `assembly`, `chat`, `robot` | no frame … to remove (frames: …) |
+| `[FRAME_NAME]` | `assembly`, `chat`, `robot` | no frame … to remove (frames: …) |
 | `[FRAME_NOTCH]` | `app` | Give the notch an existing joint point number. |
 | `[FRAME_PART_IN_USE]` | `frames` | … holds the sketch… … that … follow…: give those frames their own points, or delete them, first. |
 | `[FRAME_POSE]` | `chat`, `robot` | frame …: {link, position?, rotation?, kind?} |
