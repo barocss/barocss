@@ -151,8 +151,10 @@ tests either move to `evaluateCadPart` fixtures or go with them.
 
    New code uses these. The 13 `Vec3`/`V3`/`Vector3` declarations converge in R7.3c, where they cross a package.
 3. **Mesh data:** `{ key, positions: Float32Array, normals?: Float32Array, indices: Uint32Array }` in mm and Z up. It
-   optionally adds `faceIds` and `edges`, the display lines, as gpu `GeometryInput` with `topology: 'lines'`. This is
-   the facades' `.meshes()` shape, and gpu's `GeometryInput` takes it as it is.
+   optionally adds `faceIds` and `lines`, the display lines (the selectable edges as segment pairs), which gpu draws as
+   line geometry (`topology: 'lines'`). The field is `lines`, not `edges`: gpu's `GeometryInput.edges` already means
+   per-segment ids (R7.5b, finding 9). This is the facades' `.meshes()` shape, and gpu's `GeometryInput` takes it as it
+   is.
 4. **References to topology** across a package boundary are `{ body, face?, edge? }`, carrying the persistent names
    (`n1.side0|n1.side1`). Indices stay inside one package.
 5. **Stored and transmitted formats** carry the header `{ format, schema }`. The documents are unreleased and track the
