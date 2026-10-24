@@ -106,7 +106,7 @@
         throw new Error(`Native Curve mismatch: ${item.key}`);
       const line = display.meshes[0];
       if (display.meshes.length !== 1 || !(line instanceof LinesMesh) || line.metadata.barocss.curveId !== item.id ||
-          line.metadata.barocss.coordinateSystem !== 'right-handed-y-up')
+          line.metadata.barocss.coordinateSystem !== 'right-handed-z-up')
         throw new Error(`Expected one native-bound Babylon Line: ${item.key}`);
       if (JSON.stringify(line.metadata.barocss.nativeParameters) !== JSON.stringify(neutral.curves[0].sample.parameters))
         throw new Error(`Native parameter lineage mismatch: ${item.key}`);

@@ -42,7 +42,7 @@ export function createXYAngleArcThreeHost({ scene, onChange = () => {} }) {
       assertNative(object.position.toArray(), [0, 0, 0]); assertNative(object.quaternion.toArray(), [0, 0, 0, 1]); assertNative(object.scale.toArray(), [1, 1, 1]);
     }
     const metadata = result.line.userData.barocss;
-    for (const [key, value] of Object.entries({ role: 'uniform-curve-display-line', sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', modelName: result.model.name,
+    for (const [key, value] of Object.entries({ role: 'uniform-curve-display-line', sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', modelName: result.model.name,
       curveId: result.curveId, mode: result.mode, nativeParameters: result.parameters, nativeIntervals: result.intervals, quality: result.quality })) assertNative(metadata?.[key], value, 'existing-public-metadata.' + key);
     requireFact(metadata.nativeParameters !== result.parameters && metadata.nativeIntervals !== result.intervals && metadata.quality !== result.quality, 'Public metadata must remain independent copied observations');
   }

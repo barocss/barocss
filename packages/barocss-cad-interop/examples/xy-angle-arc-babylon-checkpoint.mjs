@@ -44,7 +44,7 @@ export function createXYAngleArcBabylonHost({ scene, onChange = () => {} }) {
     assertNative(line.color.asArray(),[40/255,201/255,235/255],'Existing cyan line color');
     assertNative(line.position.asArray(),[0,0,0]);assertNative(line.rotation.asArray(),[0,0,0]);assertNative(line.scaling.asArray(),[1,1,1]);requireFact(line.rotationQuaternion===null,'Actual original line has null rotationQuaternion');
     const metadata = result.line.metadata.barocss;
-    for (const [key, value] of Object.entries({ role: 'uniform-curve-display-line', sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', modelName: result.model.name,
+    for (const [key, value] of Object.entries({ role: 'uniform-curve-display-line', sourceVersion: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', modelName: result.model.name,
       curveId: result.curveId, mode: result.mode, nativeParameters: result.parameters, nativeIntervals: result.intervals, quality: result.quality })) assertNative(metadata?.[key], value, 'existing-public-metadata.' + key);
     requireFact(metadata.nativeParameters !== result.parameters && metadata.nativeIntervals !== result.intervals && metadata.quality !== result.quality, 'Public metadata must remain independent copied observations');
   }

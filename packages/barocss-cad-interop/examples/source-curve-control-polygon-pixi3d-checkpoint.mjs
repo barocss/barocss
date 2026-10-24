@@ -39,7 +39,7 @@ export function createSourceCurveControlPolygonPixi3DHost({stage,onChange=()=>{}
   assertBuffer(geometry.positions.buffer,native.positions);assertBuffer(geometry.indices.buffer,Array.from({length:129},(_,i)=>i));
   assertBuffer(geometry.normals.buffer,Array.from({length:387},(_,i)=>i%3===2?1:0));
   requireFact(material.drawMode===DRAW_MODES.LINE_STRIP&&material.unlit&&material.doubleSided,'Unlit LINE_STRIP material required');assertBuffer(material.baseColor.rgba,[Math.fround(40/255),Math.fround(201/255),Math.fround(235/255),1]);
-  assertNative(mesh.barocss,{role:'selected-uniform-curve-display-line',modelName:native.model.name,curveId:native.curveId,sourceVersion:0,lengthUnit:'mm',coordinateSystem:'right-handed-y-up',mode:native.mode,
+  assertNative(mesh.barocss,{role:'selected-uniform-curve-display-line',modelName:native.model.name,curveId:native.curveId,sourceVersion:0,lengthUnit:'mm',coordinateSystem:'right-handed-z-up',mode:native.mode,
    selectedObjectIndex:native.selectedObjectIndex,unrenderedObjectIds:native.unrenderedObjectIds,nativeDomain:native.domain,nativeParameters:native.parameters,nativeIntervals:native.intervals,quality:native.quality});
   for(const object of [root,mesh]){assertNative(Array.from(object.position.array),[0,0,0]);assertNative(Array.from(object.rotationQuaternion.array),[0,0,0,1]);assertNative(Array.from(object.scale.array),[1,1,1]);}
  }

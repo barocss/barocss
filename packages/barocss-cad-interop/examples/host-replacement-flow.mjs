@@ -33,7 +33,7 @@ async function validateDisplay(record) {
   for (const [index, resource] of record.resources.entries()) {
     const preview = neutral.curves[index];
     const binding = resource.object.userData.barocss;
-    check(resource.geometryId === NATIVE_IDS[index] && binding.curveId === NATIVE_IDS[index] && binding.coordinateSystem === 'right-handed-y-up' && binding.lengthUnit === 'mm', 'Native target identity/frame differs');
+    check(resource.geometryId === NATIVE_IDS[index] && binding.curveId === NATIVE_IDS[index] && binding.coordinateSystem === 'right-handed-z-up' && binding.lengthUnit === 'mm', 'Native target identity/frame differs');
     check(same(result.curves[index].sample, preview.sample) && same(binding.nativeParameters, preview.sample.parameters), 'Native sample parameters differ');
     check(same(binding.nativeIntervals, preview.sample.segments.map(segment => segment.domain)), 'Native intervals differ');
     const position = resource.geometry.getAttribute('position').array;

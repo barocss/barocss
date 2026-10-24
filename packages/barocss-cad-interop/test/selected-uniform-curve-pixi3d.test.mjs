@@ -67,7 +67,7 @@ export async function runSelectedUniformCurvePixi3DRuntimeCheckpoint(asset) {
       fact(same(result.parameters, direct.map(sample => sample.parameter)) && same(result.pointsMM, direct.map(sample => sample.point)), 'Direct original native sampler differs');
       const metadata = result.mesh.barocss;
       for (const [key, value] of Object.entries({ role: 'selected-uniform-curve-display-line', modelName: result.model.name, curveId: result.curveId, sourceVersion: 0,
-        lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', mode: result.mode, selectedObjectIndex: 1, unrenderedObjectIds: result.unrenderedObjectIds,
+        lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', mode: result.mode, selectedObjectIndex: 1, unrenderedObjectIds: result.unrenderedObjectIds,
         nativeDomain: result.domain, nativeParameters: result.parameters, nativeIntervals: result.intervals, quality: result.quality })) fact(same(metadata[key], value), `Copied selected metadata differs: ${key}`);
       fact(metadata.unrenderedObjectIds !== result.unrenderedObjectIds && metadata.nativeDomain !== result.domain && metadata.nativeParameters !== result.parameters && metadata.nativeIntervals !== result.intervals &&
         metadata.nativeIntervals.every((interval, index) => interval !== result.intervals[index]) && metadata.quality !== result.quality, 'Metadata aliases native arrays');
