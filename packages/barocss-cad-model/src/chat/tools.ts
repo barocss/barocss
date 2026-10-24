@@ -69,7 +69,7 @@ async function placedPart(state: ChatState, inst: PartInstance, evaluate: Evalua
   const shop = { ...resolveShopRows(inst.doc, state.doc), doc: resolveShopTree(inst.doc, state.doc, inst.id) };
   const partEvaluate: Evaluate = async d => {
     const authored = restoreAuthoredShopRows(d, shop.doc);
-    return 'error' in authored ? { ok: false, revision: 0, error: friendly(authored.error), ms: 0 } : evaluate(resolveShopTree(authored.doc, state.doc, inst.id));
+    return 'error' in authored ? { ok: false, revision: 0, error: friendly(authored.error), wallTime: 0 } : evaluate(resolveShopTree(authored.doc, state.doc, inst.id));
   };
   const r = await partEvaluate(shop.doc);
   return { shop, partEvaluate, bodies: r?.ok ? r.bodies : [] };
