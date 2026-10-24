@@ -13,7 +13,7 @@
 // (export, RM4, writes metres); joint values are 0 at the pose the mates solve to.
 import { checkPlacedSpurGears, spurGearDimensions, type GearPlacement } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
-import { BASE, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
+import { BASE, solvedFaces, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
 import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
@@ -101,7 +101,7 @@ const dirRow = (n: Vec3, t: Vec3): Row => { const c = cross(n, t); return [c[0],
 type Placed = { R: number[]; t: Vec3 };
 function worldFace(f: MateFace, at: Placed): MateFace {
   const point = add(apply(at.R, f.point), at.t);
-  return f.kind === 'plane' ? { kind: 'plane', point, normal: unit(apply(at.R, f.normal)) } : { ...f, point, axis: unit(apply(at.R, f.axis)) };
+  return f.kind === 'plane' ? { kind: 'plane', point, normal: unit(apply(at.R, f.normal)) } : f.kind === 'sphere' ? { ...f, point } : { ...f, point, axis: unit(apply(at.R, f.axis)) };
 }
 /** The rows a mate puts on b's twist relative to a (both faces in the world). */
 function mateRows(m: Mate, fa: MateFace, fb: MateFace, L: number): Row[] {
@@ -111,6 +111,9 @@ function mateRows(m: Mate, fa: MateFace, fb: MateFace, L: number): Row[] {
     if (m.kind === 'angle') { const c = cross(fb.normal, n); return len(c) > 1e-9 ? [[c[0], c[1], c[2], 0, 0, 0]] : [dirRow(n, t1), dirRow(n, t2)]; }
     return [dirRow(n, t1), dirRow(n, t2), pointRow(fb.point, n, L)];
   }
+  // (O24 c: two spheres concentric hold the centres together; a sphere tangent to a face, its centre a radius off it.)
+  if (fa.kind === 'sphere' && fb.kind === 'sphere') return ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]).map(e => pointRow(fb.point, e, L));
+  if (fa.kind === 'sphere' || fb.kind === 'sphere') { const plane = (fa.kind === 'plane' ? fa : fb) as Extract<MateFace, { kind: 'plane' }>, ball = (fa.kind === 'sphere' ? fa : fb); return [pointRow(ball.point, plane.normal, L)]; }
   if (fa.kind === 'cylinder' && fb.kind === 'cylinder') {
     const a = fa.axis, [t1, t2] = across(a);
     if (m.kind === 'concentric') return [dirRow(a, t1), dirRow(a, t2), pointRow(fb.point, t1, L), pointRow(fb.point, t2, L)];
@@ -324,7 +327,8 @@ function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed:
     if (m.kind === 'lock') { rows.push(...mateRows(m, null as never, null as never, L)); continue; }
     const fa = tables(m.a.part)?.[m.a.face], fb = tables(m.b.part)?.[m.b.face];
     if (!fa || !fb) continue;
-    rows.push(...mateRows(m, worldFace(fa, placed.get(m.a.part)!), worldFace(fb, placed.get(m.b.part)!), L));
+    const sf = solvedFaces(m.kind, fa, fb);
+    rows.push(...mateRows(sf.as === m.kind ? m : { ...m, kind: sf.as }, worldFace(sf.a, placed.get(m.a.part)!), worldFace(sf.b, placed.get(m.b.part)!), L));
   }
   return motionOf(freeTwists(rows, L));
 }

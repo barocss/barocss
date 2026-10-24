@@ -13,6 +13,11 @@ export function faceLabel(name: string, table: FaceTable | undefined): string {
   const f = table?.[name];
   if (table && !f) return `missing face (${name})`;
   if (f?.kind === 'cylinder') return `${f.outer ? 'Round face' : 'Hole'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
+  // (O24 c: spheres, cones and edges.)
+  if (f?.kind === 'sphere') return `${f.outer ? 'Sphere' : 'Socket'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
+  if (f?.kind === 'cone') return `${f.outer ? 'Cone' : 'Conical seat'} ${fmt(Math.round(f.half * 360000 / Math.PI) / 1000)}°`;
+  if (f?.kind === 'line') return `Edge ${fmt(Math.round(f.length * 1000) / 1000)} mm`;
+  if (f?.kind === 'circle') return `${f.ends ? 'Arc edge' : 'Circular edge'} Ø${fmt(Math.round(f.radius * 2000) / 1000)}`;
   const origin = /^origin:(xy|xz|yz)$/.exec(name);
   if (origin) return `${origin[1].toUpperCase()} plane`;
   const tail = name.split('|')[0].split('.').pop() ?? name;

@@ -8,7 +8,7 @@ import { tslotInterfaces } from '../frames/interfaces';
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { tableOf, withDatums } from '../assembly/faces';
-import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateKind, type Vec3 } from '../assembly/mates';
+import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateFace, type MateKind, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import type { ToolDefinition } from './api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
@@ -43,13 +43,21 @@ function placedBounds(inst: PartInstance, min: Vec3, max: Vec3) {
   return { min: lo.map(r3), max: hi.map(r3) };
 }
 
-/** The mateable faces of a part: flat ones (normal) and round ones (axis, radius), in its own coordinates. */
+/** The mateable faces of a part: flat ones (normal), round ones (axis, radius), spheres, cones, then straight and circular edges (O24 c), in its own coordinates. */
 function mateFaces(table: FaceTable, cap = 40) {
   const entries = Object.entries(table);
-  const list = entries.slice(0, cap).map(([name, f]) => f.kind === 'plane'
-    ? { name, kind: 'flat', normal: f.normal.map(r3), point: f.point.map(r3) }
-    : { name, kind: f.outer ? 'round (outer: shaft, pin)' : 'round (inner: hole, bore)', axis: f.axis.map(r3), through: f.point.map(r3), radius: r3(f.radius) });
+  const list = entries.slice(0, cap).map(([name, f]) => mateFaceListed(name, f));
   return entries.length > cap ? { faces: list, more: entries.length - cap } : { faces: list };
+}
+function mateFaceListed(name: string, f: MateFace) {
+  switch (f.kind) {
+    case 'plane': return { name, kind: 'flat', normal: f.normal.map(r3), point: f.point.map(r3) };
+    case 'cylinder': return { name, kind: f.outer ? 'round (outer: shaft, pin)' : 'round (inner: hole, bore)', axis: f.axis.map(r3), through: f.point.map(r3), radius: r3(f.radius) };
+    case 'sphere': return { name, kind: f.outer ? 'sphere (outer: ball)' : 'sphere (inner: socket)', centre: f.point.map(r3), radius: r3(f.radius) };
+    case 'cone': return { name, kind: f.outer ? 'cone (outer)' : 'cone (inner: countersink, seat)', apex: f.point.map(r3), axis: f.axis.map(r3), half_angle: r3(f.half * 180 / Math.PI) };
+    case 'line': return { name, kind: 'straight edge', from: f.point.map(r3), direction: f.axis.map(r3), length: r3(f.length) };
+    case 'circle': return { name, kind: f.ends ? 'circular edge (arc)' : 'circular edge', centre: f.point.map(r3), normal: f.axis.map(r3), radius: r3(f.radius) };
+  }
 }
 
 /** FRe (O120): a part's T-slot frame members' interfaces, for snap_part (`<body>.<id>`: role ⇄ what it accepts). */
@@ -269,7 +277,7 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   ...VARIABILITY_TOOLS,
   {
     name: 'get_assembly',
-    description: 'The assembly: the base part (the document\'s own part, fixed at the origin) and every placed part (instance id, name, placement, grounded, volume, bounds in the assembly), the mates and any that cannot be met. With faces_of, also that part\'s mateable faces (flat: normal; round: axis, radius, inner hole or outer shaft) in its own coordinates.',
+    description: 'The assembly: the base part (the document\'s own part, fixed at the origin) and every placed part (instance id, name, placement, grounded, volume, bounds in the assembly), the mates and any that cannot be met. With faces_of, also that part\'s mateable faces and edges (flat: normal; round: axis, radius, inner hole or outer shaft; sphere: centre, radius; cone: apex, axis, half-angle; straight or circular edge: direction or normal, length or radius) in its own coordinates.',
     input_schema: { type: 'object', properties: { faces_of: { type: 'string', description: 'A part id or "base".' } }, additionalProperties: false },
   },
   {
@@ -289,7 +297,7 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'add_mate',
-    description: 'Places a part by its faces, solved exactly by the studio\'s mate solver; a mate that conflicts with the others is refused with the reason. "a" stays, "b" moves (swapped when b\'s part is fixed). Kinds: coincident (two flat faces flush, facing each other; flip: facing the same way; with an origin plane the default is the same way and flip opposes them), distance (the same, `distance` mm apart), angle (two flat faces `angle` degrees apart), concentric (two round faces on one axis: a shaft in a bore; flip true/false sets the axis sense), tangent (a round face touching a flat or another round face), cam (a: a face of the cam part, b: its follower\'s flat face, seated on the lobe — no hold on b, whose own mates make it slide; get_joints couples its slide to the cam\'s turn by the lobe\'s lift, or to a sliding a\'s slide: a pushed valve). Faces are persistent names (from get_assembly faces_of, or part results), or a part\'s origin planes origin:xy / origin:xz / origin:yz, or the base part\'s datums datum:<id> (add_datum: a plane flat, an axis round). The result says what the moved part can still do (free turns and slides).',
+    description: 'Places a part by its faces, solved exactly by the studio\'s mate solver; a mate that conflicts with the others is refused with the reason. "a" stays, "b" moves (swapped when b\'s part is fixed). Kinds: coincident (a straight edge on a flat face, two straight edges on one line, or two flat faces flush, facing each other; flip: facing the same way; with an origin plane the default is the same way and flip opposes them), distance (the same, `distance` mm apart), angle (two flat faces `angle` degrees apart), concentric (round faces, cones, straight or circular edges on one axis; two spheres at one centre; flip true/false sets the axis sense), tangent (a round face touching a flat or another round face, or a sphere touching a flat face), cam (a: a face of the cam part, b: its follower\'s flat face, seated on the lobe — no hold on b, whose own mates make it slide; get_joints couples its slide to the cam\'s turn by the lobe\'s lift, or to a sliding a\'s slide: a pushed valve). Faces are persistent names (from get_assembly faces_of, or part results), or a part\'s origin planes origin:xy / origin:xz / origin:yz, or the base part\'s datums datum:<id> (add_datum: a plane flat, an axis round). The result says what the moved part can still do (free turns and slides).',
     input_schema: { type: 'object', properties: { kind: { type: 'string', enum: Object.keys(KIND_LABEL) }, a: ref, b: ref, distance: { type: 'number' }, angle: { type: 'number' }, flip: { type: 'boolean' } }, required: ['kind', 'a', 'b'], additionalProperties: false },
   },
   {

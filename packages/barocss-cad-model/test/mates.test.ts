@@ -23,9 +23,9 @@ const boundsOf = (i: PartInstance) => {
 
 test('mates: faces read exactly from the kernel', () => {
   const t = faceTableOf(starterDoc());
-  assert.deepEqual(t['n1.top'], { kind: 'plane', point: [0, 0, 8], normal: [0, 0, 1] });
+  assert.deepEqual(t['n1.top'], { kind: 'plane', point: [0, 0, 8], normal: [0, 0, 1], centre: [32, 16, 8] });
   // The hole's two halves read as one cylinder, its radius and centre clean.
-  assert.deepEqual(t['n2.side0'], { kind: 'cylinder', point: [32, 16, 0], axis: [0, 0, 1], radius: 4, outer: false });
+  assert.deepEqual(t['n2.side0'], { kind: 'cylinder', point: [32, 16, 0], axis: [0, 0, 1], radius: 4, outer: false, span: [0, 8] });
   assert.equal(faceTableOf(cylinderPart(4, 20))['n1.side0'].kind, 'cylinder');
 });
 
