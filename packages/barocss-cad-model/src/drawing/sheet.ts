@@ -1,5 +1,6 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
+import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
 import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
 import type { Bom } from '../bom/core';
@@ -194,7 +195,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   if (welds) groups.push(...welds.groups);
   // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
   // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
-  const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent).content, t.at!, t.corner ?? 'top-left').box as Rect);
+  const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent, settings).content, t.at!, t.corner ?? 'top-left').box as Rect);
   const detailBoxes = [...drawn.details.map(x => x.box), ...apart.boxes];
   const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups, detailBoxes), ...pinned], meta.bodyFaces) : null;
   if (balloons) groups.push(...balloons.groups);
@@ -390,9 +391,9 @@ function takenOf(layout: SheetLayout, groups: readonly MarkGroup[], extra: reado
  */
 function tableGroups(layout: SheetLayout, settings: DrawingSettings, before: readonly MarkGroup[], contentOf?: (t: DrawingTable) => TableContent | { error: string }, extra: readonly Rect[] = []): { groups: MarkGroup[]; placed: NonNullable<Sheet['tables']> } {
   const groups: MarkGroup[] = [], placed: NonNullable<Sheet['tables']> = [], taken = takenOf(layout, before, extra);
-  for (const t of settings.tables ?? []) if (t.at) { const c = tableContentOf(t, contentOf); taken.push(tableLayout(c.content, t.at, t.corner ?? 'top-left').box); }
+  for (const t of settings.tables ?? []) if (t.at) { const c = tableContentOf(t, contentOf, settings); taken.push(tableLayout(c.content, t.at, t.corner ?? 'top-left').box); }
   for (const t of settings.tables ?? []) {
-    const { content, error } = tableContentOf(t, contentOf);
+    const { content, error } = tableContentOf(t, contentOf, settings);
     let l = t.at ? tableLayout(content, t.at, t.corner ?? 'top-left') : tableLayout(content, [layout.title[2], layout.title[1] - 3], 'bottom-right');
     if (!t.at) {
       const at = roomIn(layout, taken, l.box[2] - l.box[0], l.box[3] - l.box[1]);
@@ -464,7 +465,8 @@ export function tableRoom(layout: SheetLayout, sheet: Sheet, id: string): XY | n
   return roomIn(layout, taken, self.box[2] - self.box[0], self.box[3] - self.box[1]);
 }
 /** A table's content, or — its source giving nothing — its title and the reason (never an empty table that reads as "no rows"). */
-function tableContentOf(t: DrawingTable, contentOf?: (t: DrawingTable) => TableContent | { error: string }): { content: TableContent; error?: string } {
+function tableContentOf(t: DrawingTable, contentOf?: (t: DrawingTable) => TableContent | { error: string }, settings?: DrawingSettings): { content: TableContent; error?: string } {
+  if (t.from === 'revisions') return { content: revisionTableContent(settings?.revisions ?? [], t.title) };
   const c = t.from ? contentOf?.(t) ?? { error: 'its source was not run for this sheet' } : { ...(t.title ? { title: t.title } : {}), columns: t.columns ?? [], rows: t.rows ?? [] };
   return 'error' in c ? { content: { title: t.title ?? (t.from ?? t.id).toUpperCase(), columns: [{ key: 'why', label: 'NOT AVAILABLE' }], rows: [[c.error]] }, error: c.error } : { content: c };
 }
@@ -505,7 +507,18 @@ const rect = ([x0, y0, x1, y1]: readonly number[], pen: Pen): Mark[] => [
 export const TITLE_ROOM = TITLE_BLOCK.width - 2 - 59 - 2;
 
 function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string }): Mark[] {
-  const [x0, y0, x1, y1] = layout.title, marks: Mark[] = rect(layout.title, 'frame');
+  const [x0, top, x1, y1] = layout.title, marks: Mark[] = rect(layout.title, 'frame');
+  const extended = settings.titleBlock?.template === 'extended', y0 = top + (extended ? TITLE_EXTRA_HEIGHT : 0);
+  if (extended) {
+    marks.push({ kind: 'line', a: [x0, y0], b: [x1, y0], pen: 'thin' });
+    TITLE_FIELDS.forEach(([key, label], i) => {
+      const x = x0 + (i % 3) * 40, y = top + Math.floor(i / 3) * 9;
+      if (i % 3) marks.push({ kind: 'line', a: [x, y], b: [x, y + 9], pen: 'thin' });
+      if (i === 3) marks.push({ kind: 'line', a: [x0, y], b: [x1, y], pen: 'thin' });
+      marks.push({ kind: 'text', at: [x + 2, y + 2.5], text: label.toUpperCase(), size: 1.4, anchor: 'start' });
+      marks.push({ kind: 'text', at: [x + 2, y + 7], ...fitText(settings.titleBlock?.[key] ?? '—', 2.5, false, 36, 1.5), anchor: 'start' });
+    });
+  }
   const mid = y0 + 14, cols = [x0, x0 + 24, x0 + 42, x0 + 72, x0 + 90, x1];
   marks.push({ kind: 'line', a: [x0, mid], b: [x1, mid], pen: 'thin' });
   for (const x of cols.slice(1, -1)) marks.push({ kind: 'line', a: [x, mid], b: [x, y1], pen: 'thin' });

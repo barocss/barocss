@@ -7,6 +7,8 @@ import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
 import { readDetails, type DrawingDetail } from './detail';
 import { readBreaks, type DrawingBreak } from './breaks';
+import { readTitleBlock, readRevisions, type DrawingTitleBlock, type DrawingRevision } from './metadata';
+export type { DrawingTitleBlock, DrawingRevision };
 export type { DrawingDetail, DrawingBreak };
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
@@ -134,6 +136,10 @@ export interface DrawingSettings {
   breaks?: DrawingBreak[];
   /** The title block's part name (default: the file name). */
   title?: string;
+  /** DR-5: neutral title-block template and person-supplied metadata. */
+  titleBlock?: DrawingTitleBlock;
+  /** DR-5: revision history records; shown by a table with from: revisions. */
+  revisions?: DrawingRevision[];
   /** The drawing's revision (A, B, … or 01), shown in the title block's REV cell (default: -). */
   revision?: string;
   /** The model's fingerprint when the revision was set (to tell when the model changed since). */
@@ -248,6 +254,8 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(readSections(r.sections) ? { sections: readSections(r.sections)! } : {}),
     ...(readDetails(r.details) ? { details: readDetails(r.details)! } : {}),
     ...(readBreaks(r.breaks) ? { breaks: readBreaks(r.breaks)! } : {}),
+    ...(readTitleBlock(r.titleBlock) ? { titleBlock: readTitleBlock(r.titleBlock)! } : {}),
+    ...(readRevisions(r.revisions).length ? { revisions: readRevisions(r.revisions) } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),

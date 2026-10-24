@@ -4,6 +4,7 @@
 // right; first angle puts the top view below it and the right view to its left. The views in one
 // column share their horizontal (model X) mapping, the views in one row their vertical (model Z), so
 // they stay in projection with each other.
+import { TITLE_EXTRA_HEIGHT } from './metadata';
 import type { HiddenLineView } from '@barocss/cad';
 import type { DrawingSection, DrawingSettings, DrawingViews, SectionViewId, ViewId, XY } from './types';
 import { BREAK_GAP, breakPoint, throughBreaks, unbreakPoint, viewBreaksOf, type ViewBreak } from './breaks';
@@ -115,7 +116,7 @@ export function layoutSheet(views: DrawingViews, settings: DrawingSettings, sect
   const sections: readonly SectionExtent[] = !sectionsIn ? [] : 'min' in sectionsIn ? [{ id: 'A', view: 'front', min: sectionsIn.min, max: sectionsIn.max }] : sectionsIn;
   const [W, H] = SHEETS[settings.sheet];
   const frame: SheetLayout['frame'] = [MARGIN, MARGIN, W - MARGIN, H - MARGIN];
-  const title: SheetLayout['title'] = [frame[2] - TITLE_BLOCK.width, frame[3] - TITLE_BLOCK.height, frame[2], frame[3]];
+  const title: SheetLayout['title'] = [frame[2] - TITLE_BLOCK.width, frame[3] - TITLE_BLOCK.height - (settings.titleBlock?.template === 'extended' ? TITLE_EXTRA_HEIGHT : 0), frame[2], frame[3]];
   // The drawing area: the frame above the title block's band.
   const area = [frame[0] + PAD, frame[1] + PAD, frame[2] - PAD, title[1] - PAD];
   const cells = CELLS[settings.projection], shown = (id: ViewId) => !settings.views || settings.views.includes(id) || id === 'front' || id === 'top';
