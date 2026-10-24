@@ -34,7 +34,8 @@ What isn't supported, or is refused, gathered from the other pages. Each item li
   refused.
 - **Unsaved work.** The recovery copy is kept only in this browser. There is none in private browsing, or when the
   part is too large for the browser's storage.
-- **Not exported yet.** A part that is still evaluating, or that failed, isn't exported.
+- **Not exported yet.** A part that is still evaluating, or that failed, isn't exported. A quote package also waits
+  for the part's masses, which arrive a moment after the shape.
 
 ## Modelling
 

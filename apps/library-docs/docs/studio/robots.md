@@ -30,7 +30,7 @@ write metres and radians.
   the mates solve to.
 - **A pose is a preview.** It isn't saved, and it doesn't add undo steps.
 - **Links.** **Link masses** lists each link's mass and centre of mass, from its bodies and their materials. The card
-  shows the gravity torques at the current pose.
+  shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
 - **Workspace.** **Workspace** (Map workspace) samples the reachable space and draws it as voxels, with a summary and the samples.
