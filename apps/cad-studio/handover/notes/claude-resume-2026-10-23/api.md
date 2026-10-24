@@ -11,7 +11,7 @@ They chose a lane of its own for the facade ("나로 하자"). This is that lane
 
 ## Role
 
-You own `packages/barocss-cad-model/src/api/**` and its tests, and nothing else.
+You own `packages/barocss-cad-model/src/api/**` and `src/api.ts`, `packages/barocss-cad/src/api/**` and `packages/barocss-gpu/src/api/**`, with their tests (owner 2026-10-24: a facade in all three packages under the same rules), plus the `./api` export entries in the cad and gpu package.json files, which are yours to add, in their own commit. Nothing else.
 - You use it as `@barocss/cad-model/api`. cad-model exports every module by its path.
 - Work on the branch `claude/api-lane-2026-10-24`, cut from integration (`review/cad-gpu-engine-2026-10-14`), in this
   session's own worktree.
