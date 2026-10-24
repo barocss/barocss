@@ -238,6 +238,17 @@ function grazeCrossings(curve: CurveSegment2, line: Extract<CurveSegment2, { kin
   }
   return out;
 }
+/**
+ * Whether s crosses t at (u on s, v on t): s's points a little before and after u (1e-3 of its parameter, inside it) lie
+ * on opposite sides of t's tangent line there, each more than eps off it.
+ */
+function crossesAt(s: CurveSegment2, t: CurveSegment2, u: number, v: number, eps: number): boolean {
+  const Q = segAt(t, v), Q1 = segAt(t, Math.min(1, v + 1e-6)), Q0 = segAt(t, Math.max(0, v - 1e-6)), tx = Q1[0] - Q0[0], ty = Q1[1] - Q0[1], l = Math.hypot(tx, ty);
+  if (!(l > 0)) return false;
+  const a = segAt(s, Math.max(0, u - 1e-3)), b = segAt(s, Math.min(1, u + 1e-3));
+  const da = (tx * (a[1] - Q[1]) - ty * (a[0] - Q[0])) / l, db = (tx * (b[1] - Q[1]) - ty * (b[0] - Q[0])) / l;
+  return Math.abs(da) > eps && Math.abs(db) > eps && (da > 0) !== (db > 0);
+}
 export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: number, graze = false): XY[] {
   const out: XY[] = [], on = (x: CurveSegment2, p: XY) => !surelyOff(x, p, eps) && segDistance(x, p) <= eps;
   const push = (p: XY) => { if (on(s, p) && on(t, p)) out.push(p); };
@@ -265,16 +276,27 @@ export function intersectSegments(s: CurveSegment2, t: CurveSegment2, eps: numbe
       const e = [r[0] - p[0], r[1] - p[1]], a = (e[0] * d2[1] - e[1] * d2[0]) / den, b = (e[0] * d1[1] - e[1] * d1[0]) / den;
       if (a < -0.25 || a > 1.25 || b < -0.25 || b > 1.25) continue;
       let u = (i + Math.min(1, Math.max(0, a))) / ns, v = (j + Math.min(1, Math.max(0, b))) / nt;
+      const fromEnd = u === 1 || v === 1;
       for (let it = 0; it < 30; it++) {
         const P = segAt(s, u), Q = segAt(t, v), F = [P[0] - Q[0], P[1] - Q[1]], h = 1e-7;
-        const Pu = segAt(s, Math.min(1, u + h)), Qv = segAt(t, Math.min(1, v + h)), hu = Math.min(1, u + h) - u || -h, hv = Math.min(1, v + h) - v || -h;
+        // (Started at an end that already meets the other segment, it stays there: the end is the point.)
+        if (it === 0 && (u === 1 || v === 1) && Math.hypot(F[0], F[1]) <= eps) break;
+        // (At a segment's end the difference is taken back from it: forward, it was taken at the end itself and came out
+        // zero, and Newton stopped before its first step — a crossing just inside the end, the chords meeting past it, was
+        // lost. L4 fuzz 20261026 #184, D259.)
+        const hu = Math.min(1, u + h) - u || -h, hv = Math.min(1, v + h) - v || -h, Pu = segAt(s, u + hu), Qv = segAt(t, v + hv);
         const J = [(Pu[0] - P[0]) / hu, -(Qv[0] - Q[0]) / hv, (Pu[1] - P[1]) / hu, -(Qv[1] - Q[1]) / hv], det = J[0] * J[3] - J[1] * J[2];
         if (Math.abs(det) < 1e-300) break;
         const du = (F[0] * J[3] - F[1] * J[1]) / det, dv = (J[0] * F[1] - J[2] * F[0]) / det;
-        u = Math.min(1, Math.max(0, u - du)); v = Math.min(1, Math.max(0, v - dv));
-        if (Math.abs(du) < 1e-15 && Math.abs(dv) < 1e-15) break;
+        // (Held where it is by the clamp — the step points past an end — it would only repeat itself: done.)
+        const nu = Math.min(1, Math.max(0, u - du)), nv = Math.min(1, Math.max(0, v - dv)), held = nu === u && nv === v;
+        u = nu; v = nv;
+        if (held || (Math.abs(du) < 1e-15 && Math.abs(dv) < 1e-15)) break;
       }
       const P = segAt(s, u), Q = segAt(t, v);
+      // (Found from an end — searched on from it since D259 — a point counts only where the two cross: a near-tangent
+      // touch beside an end, as a fillet's section along its wall, was a point the search from there never reached.)
+      if (fromEnd && u !== 1 && v !== 1 && !crossesAt(s, t, u, v, eps)) continue;
       if (Math.hypot(P[0] - Q[0], P[1] - Q[1]) <= eps) { const m: XY = [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2]; if (!out.some(o => Math.hypot(o[0] - m[0], o[1] - m[1]) <= eps) && !touchOfEnd(s, t, u, m, eps) && !touchOfEnd(t, s, v, m, eps)) push(m); }
     }
     ends(); return overlapEnds(s, t, out, eps);

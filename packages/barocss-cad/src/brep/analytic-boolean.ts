@@ -623,6 +623,8 @@ function insideIntervals(f: GFace, params: number[], at: (t: number) => P3, tol:
 const overlaps = (A: [number, number][], B: [number, number][]) => A.flatMap(([a0, a1]) => B.flatMap(([b0, b1]) => { const lo = Math.max(a0, b0), hi = Math.min(a1, b1); return hi > lo ? [[lo, hi] as [number, number]] : []; }));
 const boxesMeet = (f: GFace, g: GFace, tol: number) => [0, 1, 2].every(k => f.min[k] <= g.max[k] + tol && g.min[k] <= f.max[k] + tol);
 
+/** Where a cut is tested for lying along its face's boundary, and where, then, for running off it too (D258). */
+const ON_BOUNDARY_AT = [0.2, 0.5, 0.8], PARTLY_OFF_AT = [0.05, 0.1, 0.35, 0.65, 0.9, 0.95];
 class Refused extends BrepError { constructor(detail: string) { super('GEOMETRY', 'analytic Boolean: ' + detail); } }
 
 /** The source curves already cut into a face along a contact (each once). */
@@ -1311,8 +1313,12 @@ function analyticBoolean(a: Brep, b: Brep, operation: AnalyticBooleanOperation, 
   const touchedAt: P3[] = [];
   for (const fa of A) for (const fb of B) if (boxesMeet(fa, fb, tol)) cutPair(fa, fb, tol, span, contact.has(fb.id) && (!options.contactWith || rounded.has(fa.name ?? '')) && edgeOnSurface(fb, fa, tol), touchedAt);
   // A cut running along a face's own boundary (two finished edges meeting in a mitre already edged
-  // there) adds nothing but slivers.
-  for (const f of [...A, ...B]) f.cuts = f.cuts.filter(g => ![0.2, 0.5, 0.8].every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary'));
+  // there) adds nothing but slivers. (One that runs along it for most of its length and across the face for the rest —
+  // a coplanar floor's line across a wall's foot, then along the floor's own edge — keeps the parts off the boundary,
+  // when a point of it off the boundary is seen at 0.05 … 0.95. A cut wholly on it, as each of a coincident face's edges
+  // is, is dropped without that search. L4 fuzz 20261026 #184, D258.)
+  for (const f of [...A, ...B]) f.cuts = f.cuts.flatMap(g => !ON_BOUNDARY_AT.every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary') ? [g]
+    : PARTLY_OFF_AT.every(u => locateInRegion(segAtAny(g, u), f.region, 10 * tol) === 'boundary') ? [] : offBoundary(f, { source: 0, seg: g }, tol).map(c => c.seg));
   // A cut made twice (a face's edge on the other surface, and a coplanar face's boundary) is kept once,
   // the exact copy (a line or an arc) over a fitted one.
   for (const f of [...A, ...B]) f.cuts = dedupeCuts(f.cuts, tol, f.surf.kind === 'plane');
