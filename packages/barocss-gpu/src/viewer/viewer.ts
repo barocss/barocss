@@ -15,7 +15,7 @@ export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
 export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
 import { defaultLights, directionalLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
 import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
-import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
 
 /** The ground grid on the plane across the camera's up axis. */
 export interface GridOptions {
@@ -258,6 +258,8 @@ export class Viewer {
   private mipSampler!: object;
   /** G15b: the environment passes (by entry point), the environment's sampler (mips, wrapping round), the BRDF table. */
   private envPipelines = new Map<string, Pipeline>();
+  /** G15d.2: the bloom passes' pipelines, by entry point (the device's: made again after a loss). */
+  private bloomPipelines = new Map<string, Pipeline>();
   private envSampler!: object;
   private brdfLut!: Texture;
   /** The colour maps' ramp sampler (G6: linear, clamped). */
@@ -270,6 +272,10 @@ export class Viewer {
   private objectCapacity = 0;
   private objectData = new Float32Array(0);
   // (Their views made once with them: a frame reuses them.)
+  /** G15d.2: the bloom chain of the targets' size (its levels, each pass's bind group and parameters, the output's group
+   *  reading it), made when bloom is first on. */
+  private bloomChain: { width: number; height: number; levels: Texture[]; prefilter: BindGroup; down: BindGroup[]; up: BindGroup[]; params: Buffer[]; output: BindGroup } | null = null;
+  private black!: Texture;
   private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; capFront: Texture; capFrontSamples: Texture | null; output: BindGroup; views: { msaa: View | null; scene: View; depth: View; mask: View; maskDepth: View; capFront: View; capFrontSamples: View | null } } | null = null;
   private outputBuffer!: Buffer;
   private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer; views: { id: View; z: View; instance: View; depth: View } } | null = null;
@@ -336,10 +342,13 @@ export class Viewer {
     this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.atlasSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
     this.mipPipelines.clear();
-    this.envPipelines.clear();
+    this.envPipelines.clear(); this.bloomPipelines.clear();
     this.envSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'clamp-to-edge' });
     const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
     device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
+    this.black = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer black' });
+    device.queue.writeTexture({ texture: this.black }, new Uint8Array([0, 0, 0, 0]), { bytesPerRow: 4 }, [1, 1]);
+    this.bloomChain = null;
     this.zeroParams = device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer no params' });
     this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: [{ binding: 0, resource: white.createView() }, { binding: 1, resource: this.mipSampler }, { binding: 2, resource: { buffer: this.zeroParams } }] }) };
     this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
@@ -988,11 +997,64 @@ export class Viewer {
     // The full MSAA probe is allocated only for a capped scene, not for ordinary unsectioned frames.
     const capFrontSamples = null;
     const views = { msaa: msaa ? msaa.createView() : null, scene: scene.createView(), depth: depth.createView(), mask: mask.createView(), maskDepth: maskDepth.createView(), capFront: capFront.createView(), capFrontSamples: null as View | null };
-    const output = this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } }, { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }] });
+    const output = this.outputGroup(scene, mask, depth, this.black);
     this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, capFront, capFrontSamples, output, views };
     // (The frame bind group holds the new prepass target.)
     this.bindFrames();
     return this.targets;
+  }
+
+  /** The output pass's bind group: the scene, its block, the outline mask, the depth and the bloom's top level. */
+  private outputGroup(scene: Texture, mask: Texture, depth: Texture, bloom: Texture): BindGroup {
+    return this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } },
+      { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }, { binding: 4, resource: bloom.createView() }, { binding: 5, resource: this.rampSampler }] });
+  }
+
+  /** G15d.2: the bloom chain for these targets — levels from half their size down (BLOOM_LEVELS, at least 2 px). */
+  private ensureBloom(t: NonNullable<Viewer['targets']>): NonNullable<Viewer['bloomChain']> {
+    const b = this.bloomChain;
+    if (b && b.width === t.width && b.height === t.height) return b;
+    if (b) { for (const l of b.levels) l.destroy(); for (const p of b.params) p.destroy(); }
+    const levels: Texture[] = [];
+    for (let i = 0, w = Math.max(2, t.width >> 1), h = Math.max(2, t.height >> 1); i < BLOOM_LEVELS && w >= 2 && h >= 2; i++, w >>= 1, h >>= 1)
+      levels.push(this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: `viewer bloom ${i}` }));
+    const params: Buffer[] = [], group = (entry: string, src: Texture) => {
+      const buffer = this.device.createBuffer({ size: 16, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer bloom parameters' });
+      params.push(buffer);
+      return this.device.createBindGroup({ layout: this.bloomPipeline(entry).getBindGroupLayout(0), entries: [{ binding: 0, resource: src.createView() }, { binding: 1, resource: this.rampSampler }, { binding: 2, resource: { buffer } }] });
+    };
+    const prefilter = group('fsPrefilter', t.scene);
+    const down = levels.slice(0, -1).map(l => group('fsDown', l)), up = levels.slice(1).map(l => group('fsUp', l));
+    this.bloomChain = { width: t.width, height: t.height, levels, prefilter, down, up, params, output: this.outputGroup(t.scene, t.mask, t.depth, levels[0]) };
+    return this.bloomChain;
+  }
+  private bloomPipeline(entry: string): Pipeline {
+    let p = this.bloomPipelines.get(entry);
+    if (!p) {
+      const module = this.device.createShaderModule({ code: bloomWGSL, label: 'viewer bloom' });
+      const add = entry === 'fsUp' ? { blend: { color: { srcFactor: 'one', dstFactor: 'one', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one', operation: 'add' } } } : {};
+      p = (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({
+        label: `viewer bloom ${entry}`, layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: entry, targets: [{ format: SCENE_FORMAT, ...add }] }, primitive: { topology: 'triangle-list' },
+      });
+      this.bloomPipelines.set(entry, p);
+    }
+    return p;
+  }
+  /** G15d.2: the bloom chain drawn from the scene — the prefilter, down the levels, back up adding into each. */
+  private drawBloom(enc: { beginRenderPass(d: object): RenderPass }, t: NonNullable<Viewer['targets']>): BindGroup {
+    // (The threshold is on the light as exposed; the chain reads the scene before its exposure, so it is divided by it.)
+    const b = this.ensureBloom(t), cfg = this.environment.bloom || {}, exposure = Math.max(1e-6, this.environment.exposure ?? 1);
+    const threshold = Math.max(0, cfg.threshold ?? 1) / exposure, knee = Math.max(1e-6, cfg.knee ?? (cfg.threshold ?? 1) * 0.25) / exposure;
+    const write = (i: number, w: number, h: number) => this.device.queue.writeBuffer(b.params[i], 0, new Float32Array([1 / w, 1 / h, threshold, knee]));
+    const run = (label: string, target: Texture, entry: string, group: BindGroup, load: boolean) => {
+      const pass = enc.beginRenderPass({ label, colorAttachments: [{ view: target.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: load ? 'load' : 'clear', storeOp: 'store' }] });
+      pass.setPipeline(this.bloomPipeline(entry)); pass.setBindGroup(0, group); pass.draw(3); pass.end();
+    };
+    write(0, t.width, t.height);
+    run('viewer bloom', b.levels[0], 'fsPrefilter', b.prefilter, false);
+    for (let i = 0; i < b.down.length; i++) { write(1 + i, b.levels[i].width, b.levels[i].height); run('viewer bloom', b.levels[i + 1], 'fsDown', b.down[i], false); }
+    for (let i = b.up.length - 1; i >= 0; i--) { write(1 + b.down.length + i, b.levels[i + 1].width, b.levels[i + 1].height); run('viewer bloom', b.levels[i], 'fsUp', b.up[i], true); }
+    return b.output;
   }
 
   private ensureCapSamples(t: NonNullable<Viewer['targets']>): void {
@@ -1565,9 +1627,11 @@ export class Viewer {
       this.drawCaps(mask, opaque, cur, 'capMask');
       mask.end();
     }
+    // (G15d.2: the bloom from the resolved scene, read by the output pass.)
+    const outputGroup = this.environment.bloom && (this.environment.bloom.strength ?? 0.05) > 0 ? this.drawBloom(enc, targets) : targets.output;
     const show = enc.beginRenderPass({ label: 'viewer output', colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
     show.setPipeline(this.pipelines.get('output')!);
-    show.setBindGroup(0, targets.output);
+    show.setBindGroup(0, outputGroup);
     show.draw(3);
     show.end();
     if (capture) enc.copyTextureToBuffer({ texture: out }, { buffer: capture, bytesPerRow: Math.ceil((out.width * 4) / 256) * 256 }, [out.width, out.height]);

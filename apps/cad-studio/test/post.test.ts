@@ -10,4 +10,5 @@ test('G15d.1: the post as the viewer takes it — nothing when neutral, the grad
   assert.deepEqual(warm.grading, { ...GRADES.warm, contrast: 1, saturation: 0.9 });
   assert.ok((GRADES.warm.temperature ?? 0) > 0 && (GRADES.cool.temperature ?? 0) < 0);
   assert.equal(warm.vignette?.amount, 0.4);
+  assert.deepEqual(postOf({ grade: 'neutral', contrast: 1, saturation: 1, vignette: 0, bloom: 0.5 }), { bloom: { strength: 0.1 } });
 });
