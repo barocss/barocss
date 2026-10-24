@@ -15,7 +15,7 @@ export class EngineTranslationClipError extends BarocssError {
     this.name = 'EngineTranslationClipError';
   }
 }
-export interface EngineTranslationKeyV0 { timeSeconds: number; translation: Vec3 }
+export interface EngineTranslationKeyV0 { time: number; translation: Vec3 }
 export interface EngineTranslationTrackV0 { nodeId: string; keys: EngineTranslationKeyV0[] }
 export interface EngineTranslationClipV0 {
   format: 'barocss-gpu-engine-translation-clip'; version: 0; id: string; sceneId: string;
@@ -23,7 +23,7 @@ export interface EngineTranslationClipV0 {
   interpolation: 'linear'; tracks: EngineTranslationTrackV0[];
 }
 export interface EngineTranslationClipRequestV0 {
-  format: 'barocss-gpu-engine-translation-clip-request'; version: 0; timeSeconds: number;
+  format: 'barocss-gpu-engine-translation-clip-request'; version: 0; time: number;
 }
 export interface SampledEngineTranslationClip {
   readonly originalScene: EngineSceneV0;
@@ -66,11 +66,11 @@ function array(input: unknown, minimum: number, maximum: number): unknown[] {
   return Array.from({ length }, (_, i) => Object.getOwnPropertyDescriptor(input, String(i))!.value);
 }
 function request(input: unknown): EngineTranslationClipRequestV0 {
-  const data = ownRecord(input, ['format', 'version', 'timeSeconds']);
+  const data = ownRecord(input, ['format', 'version', 'time']);
   check(data.format === 'barocss-gpu-engine-translation-clip-request' && data.version === 0,
     CODE.VERSION, 'Only translation clip request0 is supported');
   return Object.freeze({ format: 'barocss-gpu-engine-translation-clip-request', version: 0,
-    timeSeconds: number(data.timeSeconds, 0, 3600, 'Request time') });
+    time: number(data.time, 0, 3600, 'Request time') });
 }
 function clip(input: unknown): EngineTranslationClipV0 {
   const data = ownRecord(input, ['format', 'version', 'id', 'sceneId', 'coordinateSystem',
@@ -91,13 +91,13 @@ function clip(input: unknown): EngineTranslationClipV0 {
   const tracks = rows.map(row => {
     let previous: number | undefined;
     const keys = array(row.input, 1, 32).map(input => {
-      const data = ownRecord(input, ['timeSeconds', 'translation']);
-      const timeSeconds = number(data.timeSeconds, 0, 3600, 'Key time');
-      check(previous === undefined || timeSeconds > previous && timeSeconds - previous >= 1e-6,
+      const data = ownRecord(input, ['time', 'translation']);
+      const time = number(data.time, 0, 3600, 'Key time');
+      check(previous === undefined || time > previous && time - previous >= 1e-6,
         CODE.RANGE, 'Key times require strict increasing order and separation of at least1e-6 seconds');
-      previous = timeSeconds;
+      previous = time;
       const translation = array(data.translation, 3, 3).map(n => number(n, -1000, 1000, 'Local translation')) as [number, number, number];
-      Object.freeze(translation); return Object.freeze({ timeSeconds, translation });
+      Object.freeze(translation); return Object.freeze({ time, translation });
     });
     Object.freeze(keys); return Object.freeze({ nodeId: row.nodeId, keys });
   });
@@ -108,13 +108,13 @@ function clip(input: unknown): EngineTranslationClipV0 {
 function sample(track: EngineTranslationTrackV0, time: number): Vec3 {
   const keys = track.keys, first = keys[0], last = keys[keys.length - 1];
   // Literal keys precede arithmetic so exact endpoints retain their Number sign bits.
-  if (time <= first.timeSeconds) return [...first.translation];
-  if (time >= last.timeSeconds) return [...last.translation];
+  if (time <= first.time) return [...first.translation];
+  if (time >= last.time) return [...last.translation];
   for (let i = 1; i < keys.length; i++) {
     const right = keys[i];
-    if (time === right.timeSeconds) return [...right.translation];
-    if (time < right.timeSeconds) {
-      const left = keys[i - 1], alpha = (time - left.timeSeconds) / (right.timeSeconds - left.timeSeconds);
+    if (time === right.time) return [...right.translation];
+    if (time < right.time) {
+      const left = keys[i - 1], alpha = (time - left.time) / (right.time - left.time);
       check(Number.isFinite(alpha) && alpha >= 0 && alpha <= 1, CODE.RANGE, 'Derived segment ratio is invalid');
       return left.translation.map((n, index) => number(n + (right.translation[index] - n) * alpha,
         -1000, 1000, 'Derived local translation')) as [number, number, number];
@@ -139,7 +139,7 @@ export function sampleEngineTranslationClip(sceneInput: unknown, clipInput: unkn
         'Tracks require unique current group or mesh IDs');
       seen.add(track.nodeId);
     }
-    const translations = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.timeSeconds)]));
+    const translations = new Map(originalClip.tracks.map(track => [track.nodeId, sample(track, originalRequest.time)]));
     const candidate = { ...originalScene, nodes: originalScene.nodes.map(node => ({ ...node,
       translation: translations.get(node.id) ?? node.translation })) };
     const sampledScene = scene(candidate, CODE.FRAME);

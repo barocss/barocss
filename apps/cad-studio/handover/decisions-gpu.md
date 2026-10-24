@@ -3423,3 +3423,38 @@ The coordinator's plan from the classification (`gpu-throws-classified.md` in th
     host scene's frame, not the CAD data's.
   - Renaming only axis-box's basis would split one assertion into two spellings. A rename of the assertion itself is
     one change across all three packages, and it's the coordinator's call.
+  - **The coordinator's answer**: option (a), leave axis-box as it is. The basis is the Y-up hosts' assertion and the
+    output is in scene units.
+
+## G-R60 — R7.7c, part 1: no unit suffixes in gpu's names; the stored formats renamed in place (roadmap R7.7c, 2026-10-24)
+
+The owner, conventions §2: no unit suffixes in names, stored formats included ("저장된 문서 필드도 단위 접미사를 빼줘.
+아직 배포 전이니 최신 스키마로 바꾸고 픽스처를 다시 만들면 돼."). Renamed in place with no alias. Pinned evidence JSON
+is untouched as history. The coordinator settled the scope:
+- **A, options and results**:
+  - FrameStats `cpuMs` → `cpuTime` (ms, in its doc). The studio's `frameCost` row field follows (FrameCost and its
+    tracker), and so do gpuRenderer.ts:719, RebuildPanel's totals line (a read; outer's panel, in the agreed list) and
+    the flow's O10 log line.
+  - accessSampleSet(…, `stepMM`) → `step` (mm, in its doc). Positional, so the studio's useGpuMaps is unchanged.
+  - perspectiveReversed(`fovYRadians`, …) → `fovY` (radians, in its doc).
+- **B, gpu's data formats** (word-level, every use; tsc then checked for collisions):
+  - `rotateDegrees` → `rotation`: the scene objects, the SDF IR, source-scene bounds. In gpu-data, the raw local
+    became `given` so it doesn't meet the new field's name.
+  - `fovYDegrees` → `fovY`: MeshCamera, the engine scene's camera, the frustum. It's used by 64 files: gpu tests,
+    31 gpu-scene flows, barocss-viewer, and the viewer and physics examples that build MeshCameras.
+  - `translationMm` → `translation`: the mesh scene transform and the engine scene's node transform. Also
+    barocss-viewer's DrawnPose and pose data, and the examples that build them.
+  - gpu's four engine clip formats: `timeSeconds` → `time`, with their flows and the README.
+- **Not renamed**:
+  - `pointsMM` and `positionsMM` come from cad's previews and results. They pair with the kernel's R7.7b, as R7.3d did.
+  - `mmToSceneUnit` is a conversion factor's name, not a suffix on a quantity.
+  - The `…Bytes` counts name what they count.
+  - The facade's `fovYDeg` is the API lane's (R7.7d).
+  - barocss-viewer's own ViewerPoseFrame.timeSeconds and the physics examples' timeSeconds are unowned research
+    formats outside R7.7, as the coordinator ruled.
+  - The print fields (layerMM, limitDeg) are outer's R7.7a step 3.
+  - ClearancePanel's `nearMM` and the clearance worker's `job.nearMM` are part 2, after outer's step 3.
+- **Fixtures**: no JSON fixture held these fields. Every use was in code (.ts, .mjs, .js) or the gpu README.
+- **Runs**: tsc 0 in gpu, studio, barocss-viewer and cad-interop; eslint 0 (gpu; the studio's three files); gpu unit
+  204/204, consumer 3/3, gpu-scene flows 65/65, test:browser 29/29 on hardware; studio unit 286/286; FLOW_ONLY
+  `^O10 (frame costs|Rebuild)` on WebGPU passes (the frame costs' "ms CPU" read through cpuTime).

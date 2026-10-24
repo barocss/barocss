@@ -120,13 +120,14 @@ export type FramePass = 'shadow' | 'surface' | 'transparent' | 'oit' | 'hiddenLi
 export const FRAME_PASSES: readonly FramePass[] = ['shadow', 'surface', 'transparent', 'oit', 'hiddenLines', 'caps', 'outlineMask'];
 /**
  * What a mesh cost the last frame drawn while Viewer.costs is on (O10): its draw calls, the primitives they drew, and
- * its draws by pass. Work counts, not time: a frame's time is FrameStats.cpuMs.
+ * its draws by pass. Work counts, not time: a frame's time is FrameStats.cpuTime.
  */
 export interface MeshCost { draws: number; triangles: number; lines: number; points: number; passes: Record<FramePass, number> }
 const zeroCost = (c: MeshCost): void => { c.draws = 0; c.triangles = 0; c.lines = 0; c.points = 0; const p = c.passes; p.shadow = 0; p.surface = 0; p.transparent = 0; p.oit = 0; p.hiddenLines = 0; p.caps = 0; p.outlineMask = 0; };
 const newCost = (): MeshCost => ({ draws: 0, triangles: 0, lines: 0, points: 0, passes: { shadow: 0, surface: 0, transparent: 0, oit: 0, hiddenLines: 0, caps: 0, outlineMask: 0 } });
 
-export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; points: number; deviceLosses: number; cpuMs: number }
+/** The viewer's running counts; `cpuTime` is the last frame's CPU time to record and submit it, in milliseconds. */
+export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; points: number; deviceLosses: number; cpuTime: number }
 
 /** Built-in pipelines by name; a shader material's are `shader<id>:<variant>`. */
 type PipelineKey = string;
@@ -153,7 +154,7 @@ export class Viewer {
   readonly controls: OrbitControls | null = null;
   lights: Light[];
   environment: Environment;
-  readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, points: 0, deviceLosses: 0, cpuMs: 0 };
+  readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, points: 0, deviceLosses: 0, cpuTime: 0 };
   /**
    * Count each mesh's draws and primitives in the frames drawn (O10; off by default). Read-only: nothing drawn changes,
    * and off, a draw costs one branch.
@@ -916,7 +917,7 @@ export class Viewer {
     this.cancelScheduled();
     const t0 = performance.now();
     this.draw(null);
-    this.stats.cpuMs = performance.now() - t0;
+    this.stats.cpuTime = performance.now() - t0;
     const waiters = this.waiters.splice(0);
     if (waiters.length) this.device.queue.onSubmittedWorkDone().then(() => waiters.forEach(f => f()), () => waiters.forEach(f => f()));
   }

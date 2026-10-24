@@ -27,7 +27,7 @@ export function drawHingeMarkers(viewer, canvas, svg, bodies) {
   const forward = backward.map((value) => -value);
   const right = unit(cross(camera.up, backward));
   const up = cross(backward, right);
-  const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360);
+  const tangent = Math.tan(camera.fovY * Math.PI / 360);
   const project = (point) => {
     const offset = sub(point, camera.eye);
     const depth = dot(offset, forward);

@@ -164,7 +164,7 @@ try {
     const nullInput = Object.assign(Object.create(null), source(2, 4, 2, 'sphere_null'));
     const nullResult = gpu.prepareSphereGeometry(nullInput); verify(nullResult, nullInput); accepted++;
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'sphere_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [0, 0, 15], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [0, 0, 15], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'sphere_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [[-5, 0, 0], [5, 1, -2]].map((translation, i) => ({ id: 'sphere_' + i, type: 'mesh', parentId: null,
         geometryId: first.source.id, materialId: 'sphere_material', translation, rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true })) };

@@ -24,9 +24,9 @@ console.warn = (...args) => { warnings.push(args.map(String).join(' ')); warn.ap
 
 const mmToSceneUnit = 0.0013, fixedStep = 1 / 120;
 const front = { eye: [0, 2.6, 0], target: [0, 0.39, 0], up: [0, 0, -1],
-  fovYDegrees: 45, near: 0.01, far: 10 };
+  fovY: 45, near: 0.01, far: 10 };
 const back = { eye: [0, -2.6, 0], target: [0, 0.39, 0], up: [0, 0, 1],
-  fovYDegrees: 45, near: 0.01, far: 10 };
+  fovY: 45, near: 0.01, far: 10 };
 const frameFromState = state => ({ version: 0, layerId: 'viewer_cloth_sheet', contextId: 'cloth_world_980',
   sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
   vertexCount: state.vertexCount, triangleCount: state.triangleCount,

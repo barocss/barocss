@@ -97,7 +97,7 @@ async function fixture({gpu,interop}){
   const refs=projected.map(entry=>entry.kind==='surface'
     ?{kind:'surface',modelId:entry.ref.modelId,surfaceId:entry.ref.geometryId}
     :{kind:'curve',modelId:entry.ref.modelId,curveId:entry.ref.geometryId});
-  const camera={eye:[.02,.015,.04],target:[.002,.002,0],up:[0,1,0],fovYDegrees:45,near:.001,far:1};
+  const camera={eye:[.02,.015,.04],target:[.002,.002,0],up:[0,1,0],fovY:45,near:.001,far:1};
   const frame={contextId:'native_scene_appearance',timeSeconds:0,poses:projected.map((entry,index)=>({
     targetId:entry.binding.bodyId,translation:index===2?[12,0,0]:[0,0,0],rotation:[0,0,0,1],scale:[1,1,1]}))};
   const surfaces=projected.filter(entry=>entry.kind==='surface');
@@ -120,7 +120,7 @@ function oracle(input,context,{gpu,interop}){
   const entries=ordered.map((entry,index)=>{
     const ref=geometryRef(entry),binding=motion?.bindings.find(binding=>same(binding.ref,ref));
     const pose=binding&&motion.frame.poses.find(pose=>pose.targetId===binding.targetId);
-    const transform=pose?{translationMm:pose.translation??[0,0,0],rotationXYZW:pose.rotation??[0,0,0,1],scale:pose.scale??[1,1,1]}:undefined;
+    const transform=pose?{translation:pose.translation??[0,0,0],rotationXYZW:pose.rotation??[0,0,0,1],scale:pose.scale??[1,1,1]}:undefined;
     const fields={ref:copy(entry.ref),color:copy(PALETTE[index%PALETTE.length]),...(transform?{transform}: {})};
     return entry.kind==='surface'?{kind:'surface',packet:copy(entry.packet),...fields}
       :{kind:'curve',sampleVersion:entry.sampleVersion,sample:copy(entry.sample),basis:'authored-xyz-matches-rhyup',...fields};

@@ -16,7 +16,7 @@ const hash=x=>createHash('sha256').update(x).digest('hex');async function receip
 function json(v){if(typeof v==='number'){assert(Number.isFinite(v));return Object.is(v,-0)?'-0':JSON.stringify(v);}if(v===null||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return'['+v.map(json).join(',')+']';return'{'+Object.entries(v).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([k,x])=>JSON.stringify(k)+':'+json(x)).join(',')+'}';}
 const clone=v=>JSON.parse(json(v)), near=(a,b,tol=1e-10)=>assert(Math.abs(a-b)<=tol,`actual ${a}, expected ${b}`);
 const nearArray=(a,b,tol=1e-10)=>{assert.equal(a.length,b.length);a.forEach((v,i)=>near(v,b[i],tol));};
-const camera=()=>({eye:[0,0,12],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100});
+const camera=()=>({eye:[0,0,12],target:[0,0,0],up:[0,1,0],fovY:45,near:.01,far:100});
 const geometry=()=>({format:'barocss-gpu-triangle-geometry',version:0,id:'inclined',coordinateSystem:'right-handed-y-up',positionUnit:'scene',winding:'ccw',positions:[-0,0,0,1,0,0,0,1,1],normals:[0,-Math.SQRT1_2,Math.SQRT1_2,0,-Math.SQRT1_2,Math.SQRT1_2,0,-Math.SQRT1_2,Math.SQRT1_2],uvs:[-0,0,1,0,0,1],indices:[-0,1,2]});
 const group=(id,parentId=null)=>({id,type:'group',parentId,translation:[-0,0,0],rotationXYZW:[0,0,0,1],scale:[1,1,1],visible:true});
 const mesh=(id,parentId=null)=>({...group(id,parentId),type:'mesh',geometryId:'inclined',materialId:'green'});

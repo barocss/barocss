@@ -33,7 +33,7 @@ const options = { mmToSceneUnit: .25, translate: [-1.125,-1.5,-.5], color: [1,.2
 const converted = prepareMesh(literal, options);
 assert.equal(converted.packet.revision, 7);
 assert.equal(Object.hasOwn(converted.options, 'camera'), false);
-const camera = { eye: [4,3,6], target: [0,0,0], up: [0,1,0], fovYDegrees: 45, near: .01, far: 100 };
+const camera = { eye: [4,3,6], target: [0,0,0], up: [0,1,0], fovY: 45, near: .01, far: 100 };
 const viewed = prepareMesh(literal, { ...options, camera });
 assert.deepEqual(viewed.packet, converted.packet);
 camera.eye[0] = 999;

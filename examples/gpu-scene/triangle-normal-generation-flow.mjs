@@ -76,7 +76,7 @@ const fixtures = [
 function scene(geometry) {
   return { format: 'barocss-gpu-engine-scene', version: 0, id: 'generated_normal_scene',
     coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', background: [.02, .04, .08],
-    camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 60, near: .1, far: 100 },
+    camera: { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 60, near: .1, far: 100 },
     geometries: [geometry], materials: [{ id: 'white', type: 'unlit', colorSpace: 'linear', color: [1, 1, 1] }],
     nodes: [{ id: 'generated_mesh', type: 'mesh', parentId: null, translation: [0, 0, 0],
       rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true,

@@ -86,7 +86,7 @@ for (const provider of providers) {
     if (c.source === original || c.source === edited) {
       assert.deepEqual(result.parameters.map(p => [p.name, p.quantity, p.unit, p.value, p.uses.length]), [['extent', 'length', 'scene', c.source === original ? 2 : 3, 1], ['zoom', 'scalar', 'dimensionless', .5, 3], ['turn', 'angle', 'deg', 30, 1]]);
       assert.deepEqual(result.ast.rules[0].declarations[0].literals.map(t => t.text), ['$extent']); assert.deepEqual(result.ast.rules[0].declarations[1].literals.map(t => t.text), ['$zoom', '$zoom', '$zoom']);
-      assert.deepEqual(result.scene.objects.map(o => [o.id, o.radius, o.scaleXYZ, o.rotateDegrees]), [['extent', c.source === original ? 2 : 3, [.5, .5, .5], [0, 0, 30]], ['other', c.source === original ? 2 : 3, [.5, .5, .5], [0, 0, 30]]]);
+      assert.deepEqual(result.scene.objects.map(o => [o.id, o.radius, o.scaleXYZ, o.rotation]), [['extent', c.source === original ? 2 : 3, [.5, .5, .5], [0, 0, 30]], ['other', c.source === original ? 2 : 3, [.5, .5, .5], [0, 0, 30]]]);
     }
     if (c.source === zeroNegative) { assert.equal(result.parameters[0].value, -2); assert.ok(Object.is(result.parameters[1].value, +0)); assert.equal(result.ast.declarations.find(d => d.kind === 'parameter' && d.name.text === 'origin').literal.text, '-0scene'); assert.deepEqual(result.scene.objects[0].translate, [-2, 0, 0]); }
     if (c.source === unused16) { assert.equal(result.parameters.length, 16); assert.ok(result.parameters.every(p => p.uses.length === 0)); }

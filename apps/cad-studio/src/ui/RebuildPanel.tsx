@@ -68,7 +68,7 @@ export function RebuildPanel({ store, problems, mode, viewport, onClose }: {
       <div className="card-title" style={{ marginTop: 8 }}>FRAME COSTS <Button variant="ghost" size="xs" aria-label="Refresh frame costs" onClick={() => setCost(viewport.current?.frameCosts()[mode] ?? null)}><Icon name="refresh" small /></Button></div>
       {!cost && <div className="muted small" role="status">No frame counted yet in {mode}.</div>}
       {cost && <>
-        <div className="muted small" aria-label="Frame cost totals">{cost.renderer}, {cost.mode}: frame {cost.frame}, {ms(cost.cpuMs)} ms CPU to record and submit{cost.mode === 'wireframe' ? '; surface triangles are drawn for depth only' : ''}</div>
+        <div className="muted small" aria-label="Frame cost totals">{cost.renderer}, {cost.mode}: frame {cost.frame}, {ms(cost.cpuTime)} ms CPU to record and submit{cost.mode === 'wireframe' ? '; surface triangles are drawn for depth only' : ''}</div>
         <Table className="bom-table" aria-label="Frame costs">
           <colgroup><col /><col className="w-14" /><col className="w-[4.5rem]" /><col className="w-12" /><col className="w-14" /></colgroup>
           <TableHeader><TableRow><TableHead>Body</TableHead><TableHead>Draws</TableHead><TableHead>Triangles</TableHead><TableHead>Lines</TableHead><TableHead>Share</TableHead></TableRow></TableHeader>

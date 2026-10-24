@@ -4,7 +4,7 @@ import {createRecordedPackets, DISPLAY_PALETTE} from './meshes.mjs';
 import {makeViewerFrame} from './frame.mjs';
 import {createRecordedController, errorDiagnostic} from './controller.mjs';
 
-const CAMERA = Object.freeze({eye: [1.4, 1.2, 1.9], target: [0, 0, .5], up: [0, 1, 0], fovYDegrees: 45, near: .01, far: 10});
+const CAMERA = Object.freeze({eye: [1.4, 1.2, 1.9], target: [0, 0, .5], up: [0, 1, 0], fovY: 45, near: .01, far: 10});
 const canvas = document.querySelector('#view');
 const status = document.querySelector('#status');
 const ids = ['pairA0', 'pairB0', 'pairA1', 'pairB1'];

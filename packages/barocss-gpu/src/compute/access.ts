@@ -15,12 +15,12 @@ const OFF = 0.01, MAX_N = 48;
 /** The samples: their points (3 a sample), the directions on their face's side (6-bit), their triangle and area share. */
 export interface AccessSamples { readonly points: Float32Array; readonly side: Uint32Array; readonly triangle: Uint32Array; readonly area: Float32Array; readonly count: number; readonly triangles: number }
 
-/** CNC4's samples of a mesh at `stepMM` (accessOf's: the parts of each triangle, in its order). */
-export function accessSampleSet(positions: ArrayLike<number>, indices: ArrayLike<number>, stepMM: number): AccessSamples {
+/** CNC4's samples of a mesh at `step` mm apart (accessOf's: the parts of each triangle, in its order). */
+export function accessSampleSet(positions: ArrayLike<number>, indices: ArrayLike<number>, step: number): AccessSamples {
   const T = Math.floor(indices.length / 3);
   // (Counted first, so the arrays are allocated once.)
   let S = 0;
-  for (let t = 0; t < T; t++) S += partsOf(positions, indices, t, stepMM);
+  for (let t = 0; t < T; t++) S += partsOf(positions, indices, t, step);
   const points = new Float32Array(3 * S), side = new Uint32Array(S), triangle = new Uint32Array(S), area = new Float32Array(S);
   let k = 0;
   for (let t = 0; t < T; t++) {
@@ -29,7 +29,7 @@ export function accessSampleSet(positions: ArrayLike<number>, indices: ArrayLike
     const vx = positions[c] - positions[a], vy = positions[c + 1] - positions[a + 1], vz = positions[c + 2] - positions[a + 2];
     const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz);
     if (!(l > 0)) continue;
-    const n = sides(positions, indices, t, stepMM), cell = l / 2 / (n * n), ex = nx / l, ey = ny / l, ez = nz / l;
+    const n = sides(positions, indices, t, step), cell = l / 2 / (n * n), ex = nx / l, ey = ny / l, ez = nz / l;
     let mask = 0;
     for (let d = 0; d < 6; d++) if (ex * ACCESS_DIRECTIONS[d][0] + ey * ACCESS_DIRECTIONS[d][1] + ez * ACCESS_DIRECTIONS[d][2] >= -1e-9) mask |= 1 << d;
     for (let i = 0; i < n; i++) for (let j = 0; j < n - i; j++) for (let up = 0; up < 2; up++) {

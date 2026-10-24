@@ -70,7 +70,7 @@ const warn=console.warn;console.warn=(...args)=>{warnings.push(args.map(String).
 const nativeOptions={sourceVersion:0,countU:5,countV:5,curveDisplay:{version:1,chordToleranceMM:.02,maxSegments:512,maxDepth:16}};
 const bodyIds=['body_0_curve','body_0_surface','body_1_curve','body_1_surface'];
 const documentOptions={native:{...clone(nativeOptions),unitsPerMillimeter:1},basis:'authored-xyz-matches-rhyup',bodyIds};
-const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],fovYDegrees:45,near:.01,far:30};
+const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],fovY:45,near:.01,far:30};
 let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null,nativeSourceDownload=null,igesFileOpen=null;
 let igesStatus='empty',hasIGESProvenance=false;
 let nativeNavigation=null,nativeNavigationDisposed=false;

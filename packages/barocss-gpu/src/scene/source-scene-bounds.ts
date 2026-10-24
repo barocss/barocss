@@ -121,7 +121,7 @@ function localBox(object: SceneObject1): SourceSceneBoundsBox {
   return { min, max };
 }
 function worldBox(object: SceneObject1 | AffineSceneObject2, local: SourceSceneBoundsBox): SourceSceneBoundsBox {
-  const rotation = inverseRotation(object.rotateDegrees);
+  const rotation = inverseRotation(object.rotation);
   const scale: Vec3 = 'scaleXYZ' in object ? object.scaleXYZ : [1, 1, 1];
   let bounds: GrowingBox | null = null;
   for (let corner = 0; corner < 8; corner++) {

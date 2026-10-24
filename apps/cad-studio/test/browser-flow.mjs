@@ -8198,7 +8198,7 @@ try {
     const sum = (b, ...ps) => ps.reduce((n, p) => n + b.passes[p], 0);
     for (const mode of modes) {
       const c = costs[mode], keys = c.bodies.map(b => b.key).sort();
-      console.log(`  O10 (${renderer}) ${mode}: ${c.bodies.length} bodies, ${c.bodies.reduce((n, b) => n + b.draws, 0)} body draws, ${c.bodies.reduce((n, b) => n + b.triangles, 0)} triangles, ${c.bodies.reduce((n, b) => n + b.lines, 0)} lines; scene ${c.scene.draws} draws; ${c.cpuMs.toFixed(2)} ms CPU; b0 ${JSON.stringify(by(mode, 'b0').passes)}`);
+      console.log(`  O10 (${renderer}) ${mode}: ${c.bodies.length} bodies, ${c.bodies.reduce((n, b) => n + b.draws, 0)} body draws, ${c.bodies.reduce((n, b) => n + b.triangles, 0)} triangles, ${c.bodies.reduce((n, b) => n + b.lines, 0)} lines; scene ${c.scene.draws} draws; ${c.cpuTime.toFixed(2)} ms CPU; b0 ${JSON.stringify(by(mode, 'b0').passes)}`);
       assert.deepEqual([c.renderer, c.mode], [renderer, mode], JSON.stringify([c.renderer, c.mode]));
       // (A copy's key is its instance's id and its body's key as the studio evaluates the instance's part.)
       assert.deepEqual(keys.map(k => k.split('/')[0]), ['b0', 'b1', ...[1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}`)], keys.join(','));
