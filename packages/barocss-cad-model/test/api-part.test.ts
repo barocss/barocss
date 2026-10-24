@@ -61,8 +61,8 @@ test('its mass, meshes and STEP are the core functions\' on that document, byte 
   const doc = handWritten(), r = evaluateDoc(doc, 7);
   assert.ok(r.ok);
   const body = r.bodies[0], props = bodyMass(body, 2.7)!;
-  // (MMGS: the core's inertia is in kg·mm² today, the facade's in g·mm², api-conventions.md §2.)
-  const expected = { volumeMM3: body.volumeMM3, massG: props.massG, centroidMM: props.centroid, inertiaGMM2: props.inertia.map(row => row.map(v => v * 1000)) };
+  // R7 contract: the core and facade both return MMGS; no second inertia conversion.
+  const expected = { volume: body.volume, mass: props.mass, centroid: props.centroid, inertia: props.inertia.map(row => [...row]) };
   assert.equal(JSON.stringify(bracket().mass('al6061')), JSON.stringify(expected));
   // (A material id or a density, the same verb as the kernel part's: al6061 is 2.7 g/cm³.)
   assert.equal(JSON.stringify(bracket().mass({ density: 2.7 })), JSON.stringify(expected));

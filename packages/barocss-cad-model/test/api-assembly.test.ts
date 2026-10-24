@@ -84,7 +84,7 @@ test('every method returns a new assembly; a part reads back as a studio part in
   assert.equal(JSON.stringify(one.doc), before);
   assert.deepEqual(two.parts(), [{ id: 'base', name: 'base' }, { id: 'p1', name: 'pin' }]);
   assert.equal(JSON.stringify(two.part('pin').doc.nodes), JSON.stringify(pin().doc.nodes));
-  assert.equal(two.part('pin').mass('al6061').volumeMM3, pin().mass('al6061').volumeMM3);
+  assert.equal(two.part('pin').mass('al6061').volume, pin().mass('al6061').volume);
   // (place: moved and grounded, as place_part writes it.)
   const moved = two.place('pin', { at: Location.of({ position: [5, 0, 0], rotation: [0, 0, 90] }), grounded: true });
   assert.deepEqual(moved.placements(), [{ part: 'p1', name: 'pin', position: [5, 0, 0], rotation: [0, 0, 90], grounded: true }]);

@@ -90,7 +90,7 @@ const CASES = [['plate', plate, plateDoc], ['cup', cup, cupDoc], ['ring', ring, 
 // (exportStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = text => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
 // (The kernel's mass is MMGS since R7.3b: the facade's result shape over it, nothing converted.)
-const mmgs = m => ({ volumeMM3: m.volume, massG: m.mass, centroidMM: [...m.centroid], inertiaGMM2: m.inertia.map(row => [...row]) });
+const mmgs = m => ({ volume: m.volume, mass: m.mass, centroid: [...m.centroid], inertia: m.inertia.map(row => [...row]) });
 
 for (const [name, built, hand] of CASES) {
   test(`${name}: the facade writes the hand-written CadPartDocument, byte for byte`, () => {
@@ -111,7 +111,7 @@ test('a body chooser leaves the document as it was, and follows its body through
   const q = p.body('extrude2').fillet(b => b.edges().curved().sortBy('z').last(2), { radius: 1 });
   // (The peg's fillet replaced the peg: the choice is the fillet's body now, so the next verb acts on it.)
   assert.deepEqual(q.bodies(), ['extrude1', 'fillet1']);
-  assert.equal(q.mass({ density: 1 }).volumeMM3, q.body('fillet1').mass({ density: 1 }).volumeMM3);
+  assert.equal(q.mass({ density: 1 }).volume, q.body('fillet1').mass({ density: 1 }).volume);
 });
 
 test('Plane, Location and Sketch are immutable values with plain data', () => {

@@ -58,9 +58,9 @@ const CASES: Case[] = [
       nodes: [
         { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [30, 10], id: 'n0' },
         { kind: 'extrude', sketch: 0, height: 5, id: 'n1', made: { command: 'box', values: { w: 10, d: 10, h: 5, x: 20, y: 0, z: 0 } } },
-        { kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angleDegrees: 60, count: 6, id: 'n2' },
+        { kind: 'circular-pattern', parent: { node: 1, side: 'solid' }, axis: 'z', angle: 60, count: 6, id: 'n2' },
         { kind: 'linear-pattern', parent: { node: 2, side: 'solid' }, axis: 'z', spacing: 10, count: 2, id: 'n3' },
-        { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'x', angleDegrees: 90, pivot: [0, 0, 0], id: 'n4' },
+        { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'x', angle: 90, pivot: [0, 0, 0], id: 'n4' },
         { kind: 'translate', parent: { node: 4, side: 'solid' }, offset: [0, 0, 5], id: 'n5' },
       ],
       outputs: { b5: { node: 5, side: 'solid' } }, nextId: 6,
@@ -103,7 +103,7 @@ const CASES: Case[] = [
         { kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [30, 0], center: [30, 10], direction: 'ccw' }, { kind: 'line', start: [30, 20] }, { kind: 'line', start: [0, 20] }], plane: { origin: [0, 0, 5], normal: [0, 0, 1], xAxis: [1, 0, 0] }, sideTags: tags(4), id: 'n0' },
         { kind: 'extrude', sketch: 0, height: 6, draft: 3, id: 'n1' },
         { kind: 'sketch', profile: 'rectangle', min: [10, 0], max: [14, 6], plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, sideTags: tags(4), id: 'n2' },
-        { kind: 'revolve', sketch: 2, axis: 'y', angleDegrees: 90, id: 'n3' },
+        { kind: 'revolve', sketch: 2, axis: 'y', angle: 90, id: 'n3' },
       ],
       outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
     } as StudioDoc),
@@ -151,8 +151,8 @@ for (const c of CASES) {
     assert.ok(r.ok);
     assert.deepEqual(p.bodies(), r.bodies.map(b => b.key));
     for (const body of r.bodies) {
-      // (MMGS: the core's inertia is in kg·mm² today, the facade's in g·mm², api-conventions.md §2.)
-      const m = bodyMass(body, 1.2)!, expected = { volumeMM3: body.volumeMM3, massG: m.massG, centroidMM: m.centroid, inertiaGMM2: m.inertia.map(row => row.map(v => v * 1000)) };
+      // R7 contract: the core and facade both return MMGS; no second inertia conversion.
+      const m = bodyMass(body, 1.2)!, expected = { volume: body.volume, mass: m.mass, centroid: m.centroid, inertia: m.inertia.map(row => [...row]) };
       assert.equal(JSON.stringify(p.body(body.key).mass({ density: 1.2 })), JSON.stringify(expected));
     }
     const core = exportStudioStep(doc, { name: c.name });
@@ -165,7 +165,7 @@ test('a body chooser leaves the document as it was, and follows its body through
   assert.equal(JSON.stringify(p.body('b3').doc), JSON.stringify(p.doc));
   const q = p.body('b3').fillet(b => b.edges().curved().sortBy('z').last(1), { radius: 1 });
   assert.deepEqual(q.bodies(), ['b1', 'b4']);
-  assert.equal(q.mass('al6061').volumeMM3, q.body('b4').mass('al6061').volumeMM3);
+  assert.equal(q.mass('al6061').volume, q.body('b4').mass('al6061').volume);
 });
 
 test('the growth\'s refusals are typed: the facade\'s own, and the studio command\'s', () => {
@@ -194,7 +194,7 @@ const bracket = () => part('bracket').box({ w: 80, d: 40, h: 10 })
   .hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 })
   .fillet(b => b.edges().along('z'), { radius: 2 });
 const before = (doc: StudioDoc, n: number) => part('before', prefixDoc(doc, doc.nodes.length - n));
-const volume = (p: StudioPart) => p.mass({ density: 1 }).volumeMM3;
+const volume = (p: StudioPart) => p.mass({ density: 1 }).volume;
 type Loose = Record<string, unknown>;
 
 test('stability: a dimension edit upstream — the stored names pick the same edges, moved with it', () => {
@@ -250,8 +250,8 @@ test('material(id): what set_material writes; the meshes carry the id and the di
 test('mirror and split keep the `at` they are given (the studio commands\' derive would move it to the face or the middle)', () => {
   const m = part('m').box({ w: 10, d: 10, h: 10 }).mirror({ plane: 'yz', at: 12 });
   assert.deepEqual(m.doc.nodes.slice(2).map(n => (n as { offset?: number[] }).offset ?? null), [[-12, 0, 0], null, [12, 0, 0]]);
-  assert.ok(Math.abs(m.mass({ density: 1 }).centroidMM[0] - 12) < 1e-9);
+  assert.ok(Math.abs(m.mass({ density: 1 }).centroid[0] - 12) < 1e-9);
   const p = part('m').box({ w: 10, d: 10, h: 10 }).split({ axis: 'x', at: 2 });
   assert.deepEqual(p.doc.nodes[2], { kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', at: 2, id: 'n2' });
-  assert.deepEqual(p.bodies().map(b => Math.round(p.body(b).mass({ density: 1 }).volumeMM3)), [200, 800]);
+  assert.deepEqual(p.bodies().map(b => Math.round(p.body(b).mass({ density: 1 }).volume)), [200, 800]);
 });

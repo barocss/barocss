@@ -1,6 +1,4 @@
-// R7 (cad's facade): the one place the facade reads results from today's kernel. When R7.3 lands — one error type,
-// CadPartOutput's methods as functions, public results in MMGS — this file is the switch: the rest of src/api/ never
-// calls evaluateCadPart or an output's methods directly.
+// Facade adapters over the R7 MMGS core contract. Results are plain data; expensive work stays explicit.
 import { evaluateCadPart, exportStl, massPropertiesOf, CadPartError, type CadPartDocument, type CadPartOutput } from '../part/part-model.js';
 import { tessellateBrep } from '../brep/brep-tessellate.js';
 import { exportStep } from '../io/step.js';
@@ -12,7 +10,7 @@ export type { Vec3 } from './select.js';
 import type { Vec3 } from './select.js';
 
 /** A body's mass properties at a density, in MMGS (api-conventions.md §2): mm³, g, mm, and g·mm² about the centre of mass. */
-export interface MassResult { volumeMM3: number; massG: number; centroidMM: Vec3; inertiaGMM2: number[][] }
+export interface MassResult { volume: number; mass: number; centroid: Vec3; inertia: number[][] }
 /** A body's display triangles in the common mesh shape (api-conventions.md §10.3): mm, Z up — what gpu's GeometryInput takes. */
 export interface MeshData {
   key: string; positions: Float32Array; normals: Float32Array; indices: Uint32Array;
@@ -22,8 +20,6 @@ export interface MeshData {
   material?: string;
 }
 
-// (Today's kernel: density in kg/m³, mass in kg, inertia in kg·m² — brep/solid-mass.ts. MMGS: g/cm³, g, g·mm².
-// R7.3 moves the kernel's public results to MMGS and these go.)
 
 function fromKernel(error: unknown): BarocssError {
   if (error instanceof CadPartError) {
@@ -39,14 +35,14 @@ export function outputsOf(doc: CadPartDocument): readonly CadPartOutput[] {
 }
 
 /** An output's mass properties at a density (g/cm³). */
-export function massOf(output: CadPartOutput, gPerCm3: number): MassResult {
-  if (!(Number.isFinite(gPerCm3) && gPerCm3 > 0)) throw refuse('DENSITY', `a density must be a positive number of g/cm³, not ${gPerCm3}`);
+export function massOf(output: CadPartOutput, density: number): MassResult {
+  if (!(Number.isFinite(density) && density > 0)) throw refuse('DENSITY', `a density must be a positive number of g/cm³, not ${density}`);
   let m;
   // (The core's mass is in MMGS since R7.3b: the facade's adapter converts nothing.)
-  try { m = massPropertiesOf(output, gPerCm3); } catch (e) { throw fromKernel(e); }
+  try { m = massPropertiesOf(output, density); } catch (e) { throw fromKernel(e); }
   return {
-    volumeMM3: m.volume, massG: m.mass, centroidMM: [m.centroid[0], m.centroid[1], m.centroid[2]],
-    inertiaGMM2: m.inertia.map(row => [...row]),
+    volume: m.volume, mass: m.mass, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]],
+    inertia: m.inertia.map(row => [...row]),
   };
 }
 

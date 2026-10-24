@@ -26,7 +26,7 @@ export interface FaceInfo {
   readonly kind: 'plane' | 'curved';
   readonly normal: Vec3; readonly centroid: Vec3;
   /** Its area (mm²), where the facade's core gives one. */
-  readonly areaMM2?: number;
+  readonly area?: number;
   /** The edges that bound it, by their index in the body's edge list. */
   readonly edges: readonly number[];
 }

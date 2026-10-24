@@ -28,7 +28,7 @@ test('it passes the brief\'s checks (the sweep in run.mjs)', async () => {
   const r = await checkEngine(JSON.parse(committed), { sweep: false });
   assert.ok(r.ok, JSON.stringify(r.checks.filter(c => !c.ok)));
   assert.deepEqual(r.checks.map(c => c.id), ['parts', 'solves', 'cycle', 'timing', 'masses', 'balance', 'outputs']);
-  assert.equal(r.figures.strokeMM, 50);
+  assert.equal(r.figures.stroke, 50);
   assert.equal(r.figures.camRatio, 0.5);
 });
 
