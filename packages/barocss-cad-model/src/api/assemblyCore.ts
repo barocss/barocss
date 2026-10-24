@@ -5,14 +5,13 @@
 import { BarocssError, bracketedCode, type Vec3 } from '@barocss/cad/api';
 import { emptyDoc, placedDoc, type StudioDoc } from '../engine/doc';
 import { BASE, type MateKind } from '../assembly/mates';
-import { tablesFor } from '../assembly/faces';
 import { variantOf } from '../assembly/variability';
 import { runVariabilityTool } from '../chat/variability';
-import { jointTreeOf } from '../robot/joints';
+import { treeOf } from './robotCore';
 import type { FrameSettings } from '../robot/frames';
 import { eulerOf } from '../engine/placement';
 import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from '../assembly/edit';
-import { bodiesOf, meshesOf, type MeshData } from './core';
+import { meshesOf, type MeshData } from './core';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -47,13 +46,6 @@ export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variant
 /** A variant (O11): the master regenerated with these input values (the master itself unchanged); the core's refusal, a BarocssError, passed through as it is. */
 export function variantDoc(doc: StudioDoc, values: Record<string, number | boolean | string>): StudioDoc {
   return variantOf(doc, values).doc;
-}
-
-// (The joint tree as chat/robot.ts treeOfDoc builds it, each part's gears from its own evaluation.)
-function treeOf(doc: StudioDoc) {
-  const s = solveDoc(doc), gears = new Map([[BASE, (doc.nodes.length ? bodiesOf(doc) : []).flatMap(b => (b.gear ? [b.gear] : []))]]);
-  for (const inst of s.doc.instances ?? []) gears.set(inst.id, (inst.doc.nodes.length ? bodiesOf(inst.doc) : []).flatMap(b => (b.gear ? [b.gear] : [])));
-  return jointTreeOf(s.doc, { instances: s.doc.instances ?? [], problems: s.problems }, tablesFor(s.doc), p => gears.get(p) ?? []);
 }
 
 /** set_frames (O12, withFrames): tool and sensor frames on links, added, replaced or (null) removed, each checked on the tree. */
