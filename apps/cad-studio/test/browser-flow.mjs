@@ -1726,7 +1726,7 @@ try {
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'rotate' && window.__studioDoc.nodes.at(-1).axis === 'x', null, { timeout: 15000 });
     const turned = await page.evaluate(() => window.__studioDoc.nodes.at(-1));
-    assert.deepEqual([Math.abs(turned.angleDegrees), turned.pivot.length], [45, 3]);
+    assert.deepEqual([Math.abs(turned.angle), turned.pivot.length], [45, 3]);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? '') && !/error/i.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
     await snap('rotate-x-45');
   });
@@ -2253,7 +2253,7 @@ try {
       await page.click('[aria-label="Load sample mounts"]');
       await page.waitForFunction(() => window.__studioDoc.mounts?.rows?.length === 4 && window.__studioDoc.rowSources?.rows?.some(r => r.kind === 'mounts' && r.file.filename === 'cad-model sample mounts.json'), null, { timeout: 10000 });
       assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /nema17, nema23, ucp204, ucfl204/);
-      const row = { id: 'my-motor', type: 'motor', holes: { pattern: 'square', spacingMM: 31, diameterMM: 3.4 }, shaftMM: 5, shaftHeightMM: 0, clearanceMM: 0.5, estimate: true };
+      const row = { id: 'my-motor', type: 'motor', holes: { pattern: 'square', spacing: 31, diameter: 3.4 }, shaft: 5, shaftHeight: 0, clearance: 0.5, estimate: true };
       await page.setInputFiles('[aria-label="Mounts file"]', { name: 'my-mounts.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify([row])) });
       await page.waitForFunction(() => window.__studioDoc.mounts?.rows?.length === 5, null, { timeout: 10000 });
       assert.match(await page.textContent('[aria-label="Mounts loaded"]'), /my-motor/);
@@ -2873,9 +2873,9 @@ try {
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
     const t0 = Date.now(); await press('Enter');
     // The reply: its body with a mass ref and no mass yet (the preview's bodies, shown on Apply, carry neither).
-    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return window.__studioDoc.nodes[0]?.kind === 'spring' && b?.length === 1 && (b[0].massRef !== null || b[0].volumeMM3 !== null); }, null, { timeout: 60000 });
+    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return window.__studioDoc.nodes[0]?.kind === 'spring' && b?.length === 1 && (b[0].massRef !== null || b[0].volume !== null); }, null, { timeout: 60000 });
     const replied = Date.now() - t0, at = await page.evaluate(() => { const b = window.__studioBodies(); return { massReady: b.massReady, bodies: b.bodies }; });
-    assert.ok(!at.massReady && at.bodies[0].massRef !== null && at.bodies[0].volumeMM3 === null, `the reply came before the mass: ${JSON.stringify(at)}`);
+    assert.ok(!at.massReady && at.bodies[0].massRef !== null && at.bodies[0].volume === null, `the reply came before the mass: ${JSON.stringify(at)}`);
     // An undo at once: its reply (an empty part) does not wait for the spring's quadrature, which it drops.
     const t1 = Date.now(); await page.evaluate(() => document.activeElement?.blur?.()); await press('Meta+z');
     await page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 0 && window.__studioDoc.nodes.length === 0; }, null, { timeout: 10000 });
@@ -2883,10 +2883,10 @@ try {
     assert.ok(undone < 1500, `the undo's reply took ${undone} ms`);
     // Redo: the spring again, its mass "…" in the inspector, then its value.
     await press('Meta+Shift+z');
-    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return b?.length === 1 && (b[0].massRef !== null || b[0].volumeMM3 !== null); }, null, { timeout: 60000 });
+    await page.waitForFunction(() => { const b = window.__studioBodies?.()?.bodies; return b?.length === 1 && (b[0].massRef !== null || b[0].volume !== null); }, null, { timeout: 60000 });
     await page.locator('.outliner .ol').first().click();
     const early = await page.locator('.props:not([aria-label$=" panel"])').innerText();
-    const shown = await bodyVolume(), mass = await page.evaluate(() => window.__studioBodies().bodies[0].volumeMM3);
+    const shown = await bodyVolume(), mass = await page.evaluate(() => window.__studioBodies().bodies[0].volume);
     assert.ok(mass > 0 && Math.abs(shown - mass) <= 1, `${shown} shown, ${mass}`);
     if (/Volume …/.test(early)) console.log('  O18: the inspector read "…" before the mass');
     else console.log('  O18: the mass came before the inspector was read');
@@ -3671,7 +3671,7 @@ try {
     const fs = await import('node:fs'), file = join(out, 'sheet-l.bcad'), tableFile = join(out, 'shop-2mm.json');
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 1, outputs: {}, nodes: [
       { id: 'n0', kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, kFactor: 0.4 }] }));
-    fs.writeFileSync(tableFile, JSON.stringify({ id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [{ thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }] }));
+    fs.writeFileSync(tableFile, JSON.stringify({ id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [{ thickness: 2, radius: 3, angle: 90, deduction: 4.2, source: 'shop' }] }));
     await openModel(file, 1, 30000);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
     await bodyVolume();
@@ -3843,15 +3843,15 @@ try {
 
   await check('FRk2 weld beads (D166): a T and a gusset welded by the kernel\'s beads, opened as STEP', async () => {
     // (The beads come from the person's weld records through the outer lane's mapping; here the kernel's features alone.)
-    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const { evaluateCadPart, exportStep, outputOf } = await import('../../../packages/barocss-cad/dist/index.js');
     const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
     const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
       { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
       { id: 'w', kind: 'weld-bead', frame: 'f', on: { member: 1, end: 'end' }, leg: 3 },
       { id: 'g', kind: 'gusset', frame: 'f', point: 1, legs: [150, 150], thickness: 8, clip: 12 },
       { id: 'gw', kind: 'weld-bead', frame: 'f', on: { gusset: 'g' }, leg: 4 }] });
-    const bead = part.output('w'), gw = part.output('gw');
-    assert.ok(Math.abs(bead.bead.volumeMM3 - 756) < 1e-9 && Math.abs(gw.bead.volumeMM3 - 2 * (138 + 138) * 16 / 2) < 1e-9, `${bead.bead.volumeMM3}, ${gw.bead.volumeMM3}`);
+    const bead = outputOf(part, 'w'), gw = outputOf(part, 'gw');
+    assert.ok(Math.abs(bead.bead.volume - 756) < 1e-9 && Math.abs(gw.bead.volume - 2 * (138 + 138) * 16 / 2) < 1e-9, `${bead.bead.volume}, ${gw.bead.volume}`);
     const file = join(out, 'frk2-welded.step'); (await import('node:fs')).writeFileSync(file, exportStep(part.outputs.map(o => o.brep), { name: 'frk2-welded' }));
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await page.locator('input[aria-label="Model file"]').setInputFiles(file);
@@ -4090,7 +4090,7 @@ try {
   await check('Bearing (R12c.4, D158): the user\'s bearing rows loaded in the Library panel (none built in); a 6204 on the default shaft\'s first shoulder through the scripted chat — its seat and the not-located side in its notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const rows = [{ id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, estimate: true }];
+    const rows = [{ id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, estimate: true }];
     const file = join(out, 'bearing-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
     await page.click('[aria-label="Library"]');
     try {
@@ -4124,7 +4124,7 @@ try {
   await check('O-ring gland (R12c.5, D159): the user\'s O-ring rows loaded (none built in); a piston gland on a Ø31 cylinder for AS568-214 at S0\'s sizes through the scripted chat — stretch, squeeze and fill in its notes, the ranges said to be estimates', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const file = join(out, 'oring-rows.json'); fs.writeFileSync(file, JSON.stringify([{ id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }]));
+    const file = join(out, 'oring-rows.json'); fs.writeFileSync(file, JSON.stringify([{ id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, estimate: true }]));
     await page.click('[aria-label="Library"]');
     try {
       assert.match(await page.textContent('[aria-label="O-ring rows"]'), /No O-ring rows: load your own .* None is built in/);
@@ -4156,7 +4156,7 @@ try {
   await check('Chain drive (R12c.6b, D161): the user\'s drive rows loaded (none built in); two sprockets and a chain on them through the scripted chat — the second moved to the distance for whole links, the links and the tooth form in their notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const rows = [{ kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true }];
+    const rows = [{ kind: 'chain', id: 'chain-a', pitch: 12.7, rollerDiameter: 8.51, innerWidth: 7.75, plateHeight: 11.8, estimate: true }];
     const file = join(out, 'drive-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
     await page.click('[aria-label="Library"]');
     try {
@@ -4192,7 +4192,7 @@ try {
   await check('Connector opening (R12c.7, D162): the user\'s connector row loaded (none built in; U1\'s USB-C opening, a test row citing it); the opening in a plate\'s top through the scripted chat — the body seated, its gaps in the notes, the keep-out in the part\'s keep-outs', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const rows = [{ id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' }];
+    const rows = [{ id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, body: { shape: 'stadium', width: 8.25, height: 2.4, length: 6.51 }, keepOut: { margin: 1, depth: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' }];
     const file = join(out, 'connector-rows.json'); fs.writeFileSync(file, JSON.stringify(rows));
     await page.click('[aria-label="Library"]');
     try {
@@ -4229,7 +4229,7 @@ try {
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const table = { id: 'shop-fits', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
+    const table = { id: 'shop-fits', rows: [{ class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
     const file = join(out, 'shop-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
     await page.click('[aria-label="Library"]');
     try {
@@ -4435,7 +4435,7 @@ try {
   await check('ring rows (O139): a row loaded in the Library panel; a ring on it via the chat cites it, no estimate; the used row stays', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const file = join(out, 'rings.json'); fs.writeFileSync(file, JSON.stringify([{ id: 'r20', designation: '20 × 1.2', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]));
+    const file = join(out, 'rings.json'); fs.writeFileSync(file, JSON.stringify([{ id: 'r20', designation: '20 × 1.2', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' }]));
     await page.click('[aria-label="Library"]');
     try {
       assert.match(await page.textContent('[aria-label="Ring rows"]'), /No ring rows: load your own .* None is built in/);
@@ -4497,7 +4497,7 @@ try {
   await check('key width fit (O138): h9 on the key, N9 on its keyseat, JS9 on the keyway via the chat — both width fits in the key\'s notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const table = { id: 'key-fits', rows: [{ class: 'N9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', overMM: 3, upToMM: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }] };
+    const table = { id: 'key-fits', rows: [{ class: 'N9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', over: 3, upTo: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true }] };
     const file = join(out, 'key-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
     await page.click('[aria-label="Library"]');
     try { await page.setInputFiles('input[aria-label="Fit table file"]', file); await page.waitForFunction(() => window.__studioDoc.fits?.tables?.length === 1, null, { timeout: 10000 }); }
@@ -4802,7 +4802,7 @@ try {
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -10 },
-      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] },
+      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angle: 10, pivot: [20, 0, 10] },
       { id: 'n5', kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 4, side: 'solid' } }] }));
     await openModel(file, 6, 30000);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
@@ -4881,7 +4881,7 @@ try {
     fs.writeFileSync(file, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 6, outputs: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 },
       { id: 'n2', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] } }, { id: 'n3', kind: 'extrude', sketch: 2, height: 60, from: -30 },
-      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'z', angleDegrees: 45, pivot: [0, 0, 10] },
+      { id: 'n4', kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'z', angle: 45, pivot: [0, 0, 10] },
       { id: 'n5', kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 4, side: 'solid' } }] }));
     await openModel(file, 6, 30000);
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
@@ -7926,7 +7926,7 @@ try {
   // ---- G19.4: a section across a welded frame (FRk's gussets, end caps and beads) ------------------------------------------------
   await check('G19.4: a section across a welded frame — members, a gusset, an end cap and beads (FRk1/2) cut by the exact section at the clipped volume, each cut hatched, GPU against CPU — on either renderer', async () => {
     const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);
-    const { evaluateCadPart, exportStep } = await import('../../../packages/barocss-cad/dist/index.js');
+    const { evaluateCadPart, exportStep, massPropertiesOf } = await import('../../../packages/barocss-cad/dist/index.js');
     const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
     const part = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
       { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 800], [500, 0, 400], [0, 0, 400], [0, 0, 800], [400, 0, 800]], segments: [[0, 1], [2, 3], [4, 5]], section: WIDE, overrides: [{ member: 1, section: SHARP }, { member: 2, section: WIDE }], corners: { tee: 'butt', default: 'butt' } },
@@ -7950,7 +7950,7 @@ try {
     await page.evaluate(() => window.__studioSectionDebug({ hold: true, cpu: true })); await page.waitForTimeout(500);
     s = await sec(); const clipped = s.shownVolume, cpuLines = s.hatch.lines;
     await page.evaluate(() => window.__studioSectionDebug({ hold: false, cpu: false })); await page.waitForTimeout(300);
-    const total = part.outputs.reduce((v, o) => v + o.massProperties(1).volumeMM3, 0);
+    const total = part.outputs.reduce((v, o) => v + massPropertiesOf(o, 1).volume, 0);
     console.log(`  G19.4 welded frame: ${JSON.stringify({ renderer, total: Math.round(total), exact: Math.round(exact), clipped: Math.round(clipped), lines: lines.length, cpuLines: cpuLines.length })}`);
     assert.ok(Math.abs(exact - clipped) <= 1e-3 * total, `the exact section ${exact} against the clipped meshes ${clipped}`);
     assert.ok(exact > 0.3 * total && exact < 0.7 * total, `about half kept: ${exact} of ${total}`);
@@ -8084,13 +8084,13 @@ try {
       for (let k = 0; k < A.length; k += 4) if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++;
       return n / (A.length / 4);
     }, [a, b]);
-    const shown = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length > 0 && b.bodies.every(x => x.volumeMM3 !== null); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
+    const shown = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length > 0 && b.bodies.every(x => x.volume !== null); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
     const matches = (bodies, expect, label) => {
       assert.equal(bodies.length, expect.outputs.length, `${label}: ${bodies.length} bodies`);
       // (Each expected output found among the bodies by its volume, then its centroid checked.)
       for (const o of expect.outputs) {
-        const b = bodies.find(x => Math.abs(x.volumeMM3 - o.volumeMM3.value) <= o.volumeMM3.relTol * o.volumeMM3.value);
-        assert.ok(b, `${label}: no body of ${o.volumeMM3.value} mm³ in ${JSON.stringify(bodies.map(x => x.volumeMM3))}`);
+        const b = bodies.find(x => Math.abs(x.volume - o.volumeMM3.value) <= o.volumeMM3.relTol * o.volumeMM3.value);
+        assert.ok(b, `${label}: no body of ${o.volumeMM3.value} mm³ in ${JSON.stringify(bodies.map(x => x.volume))}`);
         assert.ok(b.centroid && b.centroid.every((v, k) => Math.abs(v - o.centroidMM.value[k]) <= Math.max(o.centroidMM.absTol, 1e-6)), `${label}: centroid ${JSON.stringify(b.centroid)} vs ${JSON.stringify(o.centroidMM.value)}`);
       }
     };
@@ -8140,7 +8140,7 @@ try {
       for (let k = 0; k < A.length; k += 4) { if (Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]) > 48) n++; if (B[k] + B[k + 1] + B[k + 2] < 12) dark++; }
       return { changed: n / (A.length / 4), black: dark / (A.length / 4) };
     }, [a, b]);
-    const bodies = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 2 && b.bodies.every(x => x.volumeMM3 > 0); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
+    const bodies = () => page.waitForFunction(() => { const b = window.__studioBodies?.(); return b?.fresh && b.bodies.length === 2 && b.bodies.every(x => x.volume > 0); }, null, { timeout: 120000 }).then(() => page.evaluate(() => window.__studioBodies().bodies));
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await press('f'); await page.waitForTimeout(300); const empty = await shot();
     await page.setInputFiles('input[aria-label="Model file"]', file);
@@ -8153,13 +8153,13 @@ try {
     assert.ok(after.changed > 0.005 && after.black < 0.5, `${renderer}: the L is not drawn after Iso (${JSON.stringify(after)})`);
     await snap('k2-l-gap');
     // (A mitred L with a 2 mm gap: the two members' volumes equal, each less than an ungapped mitre's by its share of the gap.)
-    assert.ok(Math.abs(first[0].volumeMM3 - first[1].volumeMM3) / first[0].volumeMM3 < 0.4, JSON.stringify(first));
+    assert.ok(Math.abs(first[0].volume - first[1].volume) / first[0].volume < 0.4, JSON.stringify(first));
     const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
     const again = join(out, 'saved-k2-l-gap.bcad'); fs.writeFileSync(again, fs.readFileSync(await saved.path()));
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
     await page.setInputFiles('input[aria-label="Model file"]', again);
     const reopened = await bodies();
-    for (const b of first) assert.ok(reopened.some(r => Math.abs(r.volumeMM3 - b.volumeMM3) <= 1e-9 * b.volumeMM3), `reopened: ${JSON.stringify(reopened)} vs ${JSON.stringify(first)}`);
+    for (const b of first) assert.ok(reopened.some(r => Math.abs(r.volume - b.volume) <= 1e-9 * b.volume), `reopened: ${JSON.stringify(reopened)} vs ${JSON.stringify(first)}`);
   });
 
   // ---- G21 rest (roadmap G3): every display mode drawn, picks unchanged, isolate — on either renderer ------------------------
