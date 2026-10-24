@@ -102,7 +102,7 @@ refused, `CAM_UNSUPPORTED`: the lift's second derivative isn't worked out yet.
 
 - one link per part, the joint at the child;
 - the visual mesh and a convex hull for collision;
-- each link's inertia, in metres, kilograms and radians.
+- each link's mass in kg, centre of mass in m, and inertia tensor in kg·m². Rotations follow the file format.
 
 No format holds a cam coupling, so a robot with a cam follower is refused, `CAM_UNSUPPORTED`. The agent's
 `export_urdf` and `export_mjcf` take `leave_out: ["cam"]`, which writes the follower as a free joint and notes it.
@@ -209,8 +209,22 @@ The pose conversion does not convert every field in a robot reply:
 | `RobotPath.check()` contact `values` | radians | mm |
 
 The last three rows retain the current core `JointTree`, `JointSettings` and sweep contracts. Do not apply the pose
-conversion to those fields. Robot inertia and export payloads also retain their documented core or file-format units.
-See [Robot export](#exporting) for the external formats. The internal solver uses radians.
+conversion to those fields. The internal solver uses radians.
+
+**Current inertia reply.** `Robot.inertia()` uses the robot core's SI report fields:
+
+| Field | Current unit |
+|---|---|
+| `mass_kg` | kg |
+| `com_m` | m |
+| `inertia_kg_m2`, `principal.moments_kg_m2` | kg·m² |
+| `frame.origin_mm` | mm |
+
+These are current report fields while the public-unit migration remains incomplete. They are not an approved
+permanent exception to the public MMGS convention. The report contract is separate from the
+[export-file units](#exporting). Using the same inertia calculation for a report and a file does not give both the
+same public contract. Modeling mass results use `mass` in g, `centroid` in mm and `inertia` in g·mm².
+See [Unit and export comparisons](/reference/verification#unit-and-export-comparisons).
 
 <<< @/../samples/robots.test.mjs#import
 
