@@ -220,7 +220,7 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   assert.deepEqual(designed, ['O-ring n3 in its gland n2 (its squeeze)', 'bearing n2 (6204) in p1/b9, seat H7', 'bearing n2 (6204) on its shaft, seat k5', 'key n1 in its keyseat']);
   const near = map.pairs.filter(p => p.state === 'near');
   assert.deepEqual(near.map(p => [p.a, p.b]), [['p2/b0', 'p3/b4']]);
-  assert.ok(near[0].minGapMM <= COVER_CLEARANCE_MM && near[0].minGapMM >= COVER_CLEARANCE_MM - 0.02, String(near[0].minGapMM));
+  assert.ok(near[0].minGap <= COVER_CLEARANCE_MM && near[0].minGap >= COVER_CLEARANCE_MM - 0.02, String(near[0].minGap));
 });
 
 test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; the bundle on the person\'s approval; reopened, the same files', async () => {

@@ -137,7 +137,7 @@ test('an image draft: its width and thickness re-drive the relief (volume by clo
   const W = 40, H = 40, px = new Uint8ClampedArray(W * H * 4).fill(255);
   for (let y = 10; y < 30; y++) for (let x = 10; x < 30; x++) px.set([0, 0, 0, 255], (y * W + x) * 4);
   let s: ChatState = { doc: emptyDoc(), bodies: [], images: [traceImage(px, W, H)] };
-  s = (await ok(s, 'extrude_image_layer', { layer: 'silhouette', width_mm: 20, height: 3 })).state;
+  s = (await ok(s, 'extrude_image_layer', { layer: 'silhouette', width: 20, height: 3 })).state;
   // (The traced outline is the square as simplified: its area A, whatever it is; the closed forms are the ratios.)
   const A = volume(s) / 3; assert.ok(A > 0.9 * 400 && A <= 400 + 1e-6, String(A));
   assert.deepEqual(unconfirmed(s.doc).map(u => u.key), ['F1.width', 'F1.thickness']);

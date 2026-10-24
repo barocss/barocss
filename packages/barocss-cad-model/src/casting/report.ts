@@ -93,7 +93,7 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
       value: r3(least), limit: steep.length || !dRec ? dMin.value : dRec.value, unit: 'deg', source: pageOf(steep.length || !dRec ? dMin : dRec), entities: faceNames([...steep, ...underRec, ...straddle]) });
   }
   // IM8b (O108): the pattern's allowances — the shrinkage it is scaled by, the machining allowance on the faces marked machined.
-  const size = bodies.length ? partExtent(bodies).largestMM : 0;
+  const size = bodies.length ? partExtent(bodies).largest : 0;
   const shrink = family && bodies.length ? shrinkOf(doc, profile, family, size) : null;
   if (!shrink) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: noFamily ?? 'no body' });
   else if (!shrink.ok) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: shrink.why });
@@ -104,12 +104,12 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   else if (marked.missing.length) rules.push({ id: 'machining-allowance', level: 'feasible', status: 'fail', message: `[CASTING_FACE] marked machined but not on the part: ${marked.missing.join(', ')}`, entities: marked.missing });
   else if (!machining || !machining.ok) rules.push({ id: 'machining-allowance', level: 'recommended', status: 'unknown', message: `the machining allowance on ${marked.found.length} face${marked.found.length === 1 ? '' : 's'}`, why: machining ? machining.why : noFamily ?? 'no body', entities: marked.found.map(f => f.name) });
   else rules.push({ id: 'machining-allowance', level: 'recommended', status: curved.length ? 'unknown' : 'pass',
-    message: `${machining.mm} mm on ${flat.length} flat face${flat.length === 1 ? '' : 's'} (${machining.basis === 'set' ? 'your allowance' : `${machining.label}, ${machining.band}`})${curved.length ? `; ${curved.length} curved (${curved.map(f => f.name).join(', ')}) take none here` : ''}`,
-    value: machining.mm, unit: 'mm', ...(machining.page ? { source: machining.page } : {}), entities: marked.found.map(f => f.name), ...(curved.length ? { why: 'only flat faces are moved out by the allowance (offset-face)' } : {}) });
+    message: `${machining.value} mm on ${flat.length} flat face${flat.length === 1 ? '' : 's'} (${machining.basis === 'set' ? 'your allowance' : `${machining.label}, ${machining.band}`})${curved.length ? `; ${curved.length} curved (${curved.map(f => f.name).join(', ')}) take none here` : ''}`,
+    value: machining.value, unit: 'mm', ...(machining.page ? { source: machining.page } : {}), entities: marked.found.map(f => f.name), ...(curved.length ? { why: 'only flat faces are moved out by the allowance (offset-face)' } : {}) });
   // IM8c (O109): where it freezes last (the distance field's hot spots), whether each is fed from the gate, and how steep its section changes are.
   const sol = bodies.length ? solidification(bodies, doc.casting?.gate ?? null) : null;
   if (!sol || !sol.hotSpots.length) rules.push({ id: 'hot-spots', level: 'recommended', status: 'unknown', message: 'where the casting freezes last', why: sol ? 'no hot spot resolved on the grid' : 'no body' });
-  else { const big = sol.hotSpots[0]; rules.push({ id: 'hot-spots', level: 'recommended', status: 'pass', message: `${sol.hotSpots.length} hot spot${sol.hotSpots.length === 1 ? '' : 's'} (where it freezes last: the largest inscribed balls), the largest r ${big.radius} mm at (${big.at.join(', ')}), modulus ≈ ${big.modulusMM} mm (an estimate from its shape, a ${big.shape}: within ${big.modulusRangeMM[0]} … ${big.modulusRangeMM[1]} mm, r/3 … r); grid ${sol.grid.h} mm`, value: big.radius, unit: 'mm' }); }
+  else { const big = sol.hotSpots[0]; rules.push({ id: 'hot-spots', level: 'recommended', status: 'pass', message: `${sol.hotSpots.length} hot spot${sol.hotSpots.length === 1 ? '' : 's'} (where it freezes last: the largest inscribed balls), the largest r ${big.radius} mm at (${big.at.join(', ')}), modulus ≈ ${big.modulus} mm (an estimate from its shape, a ${big.shape}: within ${big.modulusRange[0]} … ${big.modulusRange[1]} mm, r/3 … r); grid ${sol.grid.h} mm`, value: big.radius, unit: 'mm' }); }
   if (!sol || !sol.hotSpots.length) rules.push({ id: 'feeding', level: 'recommended', status: 'unknown', message: 'the hot spots fed from the gate', why: 'no hot spot' });
   else if (!sol.gate) rules.push({ id: 'feeding', level: 'recommended', status: 'unknown', message: 'the hot spots fed from the gate', why: 'no gate is set (set_casting gate: where the metal comes in): feeding is judged from it, none is assumed' });
   else {
@@ -120,10 +120,10 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   }
   const ratioMax = profile.thresholds.sectionRatioMax, nominal = walls.filter(w => w.nominal !== null).map(w => w.nominal!)[0];
   if (!sol || !nominal) rules.push({ id: 'section-change', level: 'recommended', status: 'unknown', message: 'the thickest section against the nominal wall', why: 'no wall measured' });
-  else if (!ratioMax) rules.push({ id: 'section-change', level: 'recommended', status: 'unknown', message: `the thickest section, ${r3(2 * sol.maxRadiusMM)} mm, against the nominal wall, ${r3(nominal)} mm`, why: `no ${profile.label.toLowerCase()} section-change ratio was read from a public page` });
+  else if (!ratioMax) rules.push({ id: 'section-change', level: 'recommended', status: 'unknown', message: `the thickest section, ${r3(2 * sol.maxRadius)} mm, against the nominal wall, ${r3(nominal)} mm`, why: `no ${profile.label.toLowerCase()} section-change ratio was read from a public page` });
   else {
-    const ratio = 2 * sol.maxRadiusMM / nominal;
-    rules.push({ id: 'section-change', level: 'recommended', status: ratio > ratioMax.value + 1e-9 ? 'warn' : 'pass', message: `the thickest section (2r = ${r3(2 * sol.maxRadiusMM)} mm) against the nominal wall (${r3(nominal)} mm): ${r3(ratio)} : 1, against ${ratioMax.value} : 1${ratio > ratioMax.value + 1e-9 ? ' — a wedge between the unequal sections, or two castings' : ''}`, value: r3(ratio), limit: ratioMax.value, unit: 'ratio', source: pageOf(ratioMax) });
+    const ratio = 2 * sol.maxRadius / nominal;
+    rules.push({ id: 'section-change', level: 'recommended', status: ratio > ratioMax.value + 1e-9 ? 'warn' : 'pass', message: `the thickest section (2r = ${r3(2 * sol.maxRadius)} mm) against the nominal wall (${r3(nominal)} mm): ${r3(ratio)} : 1, against ${ratioMax.value} : 1${ratio > ratioMax.value + 1e-9 ? ' — a wedge between the unequal sections, or two castings' : ''}`, value: r3(ratio), limit: ratioMax.value, unit: 'ratio', source: pageOf(ratioMax) });
   }
   // Tolerance: the family's general linear tolerance where a page gives one.
   const tol = family ? limitOf(profile, family, 'TolMM') : undefined;
