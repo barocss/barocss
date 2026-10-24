@@ -69,11 +69,11 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
  * its surface finish (none without a finish set: the rule is unknown), a casting's from its alloy's family
  * (`castingDraftLimits`); null otherwise.
  */
-export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { minDeg: number; recDeg: number | null } | null {
+export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { draftMin: number; draftRecommended: number | null } | null {
   const profile = processProfile(doc.process);
   if (!profile) return null;
-  if (profile.id === 'injection') { const f = doc.mould?.finish ? profile.finishes?.find(x => x.id === doc.mould!.finish) : undefined; return f ? { minDeg: f.draftMin, recDeg: f.draftRecommended ?? null } : null; }
-  if (profile.id === 'die-casting' || profile.id === 'sand-casting') { const c = castingDraftLimits(doc, bodies, profile); return c ? { minDeg: c.minDeg, recDeg: c.recDeg } : null; }
+  if (profile.id === 'injection') { const f = doc.mould?.finish ? profile.finishes?.find(x => x.id === doc.mould!.finish) : undefined; return f ? { draftMin: f.draftMin, draftRecommended: f.draftRecommended ?? null } : null; }
+  if (profile.id === 'die-casting' || profile.id === 'sand-casting') { const c = castingDraftLimits(doc, bodies, profile); return c ? { draftMin: c.draftMin, draftRecommended: c.draftRecommended } : null; }
   return null;
 }
 
@@ -82,8 +82,8 @@ export function draftLimits(doc: StudioDoc, bodies: readonly BodyResult[]): { mi
  * (`draftSamples`). With a least draft m: red where |draft| < m, + light to dark green from m to 2m, − light to dark blue,
  * saturating past ±2m, marks at ±m; without one (no finish, no casting alloy) only the diverging map, ±10°.
  */
-export function draftMap(doc: StudioDoc, body: BodyResult, pull: readonly number[], limits: { minDeg: number; recDeg: number | null } | null): ScalarMap {
-  const values = draftSamples(doc, body, pull), m = limits?.minDeg ?? 0, eps = 1e-6;
+export function draftMap(doc: StudioDoc, body: BodyResult, pull: readonly number[], limits: { draftMin: number; draftRecommended: number | null } | null): ScalarMap {
+  const values = draftSamples(doc, body, pull), m = limits?.draftMin ?? 0, eps = 1e-6;
   const stops: [number, string][] = m > 0
     ? [[-2 * m, '#08519c'], [-m, '#9ecae1'], [-m + eps, '#d7301f'], [m - eps, '#d7301f'], [m, '#a1d99b'], [2 * m, '#006d2c']]
     : [[-10, '#08519c'], [0, '#f0f0f0'], [10, '#006d2c']];
