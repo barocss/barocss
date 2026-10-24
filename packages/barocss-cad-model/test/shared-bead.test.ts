@@ -25,7 +25,7 @@ test('shared table through actual v2 weld edit: 8 owned 270, nominal 2880, 4 ids
     assert.equal(s.id, JSON.stringify(['shared-seam-v1', 'n0', s.joints])); near(s.length, 40); near(s.nominalSharedVolume, 180); near(s.ownedSharedVolume, 90);
   }
   const a = weldList(doc, bodies).totals.beads!;
-  assert.equal(a.complete, true); assert.equal(a.bodyCount, 8); near(a.ownedVolumeMM3, 2160); near(a.nominalVolume, 2880); assert.equal(a.sharedSeamCount, 4);
+  assert.equal(a.complete, true); assert.equal(a.bodyCount, 8); near(a.ownedVolume, 2160); near(a.nominalVolume, 2880); assert.equal(a.sharedSeamCount, 4);
   const features = toPartDocument(doc).features.filter(f => f.kind === 'weld-bead');
   assert.equal(features.length, 8); for (const f of features) { assert.ok(f.kind === 'weld-bead'); assert.equal(f.sharing?.joints.length, 8); }
   const breps = partBreps(doc).filter(b => b.key.startsWith('bead_'));
@@ -36,7 +36,7 @@ test('unequal peer atomically refuses two joints, replans remaining manifest, an
   const doc = table(), bad: StudioDoc = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.map(w => w.joint === joints[0] ? { ...w, size: 2 } : w) } };
   const r = ok(bad), a = beadAccounting(bad, r.bodies)!;
   assert.equal(a.complete, false); assert.deepEqual(a.refusedJointIds, ['b0_part4.start', 'b0_part7.end']);
-  assert.equal(a.bodyCount, 6); near(a.ownedVolumeMM3, 1620); near(a.nominalVolume, 2160); assert.equal(a.sharedSeamCount, 3);
+  assert.equal(a.bodyCount, 6); near(a.ownedVolume, 1620); near(a.nominalVolume, 2160); assert.equal(a.sharedSeamCount, 3);
   for (const b of r.bodies.filter(b => b.element?.kind === 'weld-bead')) near(b.volume!, 270);
   const request = toPartDocument(bad).features.filter(f => f.kind === 'weld-bead');
   assert.equal(request.length, 6); for (const f of request) { assert.ok(f.kind === 'weld-bead'); assert.equal(f.sharing?.joints.length, 6); }
@@ -50,7 +50,7 @@ test('unequal peer atomically refuses two joints, replans remaining manifest, an
 test('default missing policy refuses all actual pairs; an authored peer removal can legitimately leave a 360 singleton', () => {
   const doc = table(), legacy: StudioDoc = { ...doc, frames: { ...doc.frames!, beadOwnership: undefined } };
   const r = ok(legacy), a = beadAccounting(legacy, r.bodies)!;
-  assert.equal(r.bodies.length, 8); assert.equal(a.complete, false); assert.equal(a.refusedJointIds.length, 8); assert.equal(a.ownedVolumeMM3, 0);
+  assert.equal(r.bodies.length, 8); assert.equal(a.complete, false); assert.equal(a.refusedJointIds.length, 8); assert.equal(a.ownedVolume, 0);
   assert.ok(weldList(legacy, r.bodies).joints.every(j => j.bead && 'refused' in j.bead && /BEAD_SHARED_CONTEXT/.test(j.bead.refused)));
   const removed: StudioDoc = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.filter(w => w.joint !== 'b0_part7.end') } };
   const next = ok(removed), singleton = next.bodies.find(b => b.key === beadIdOf('b0_part4.start'))!;
@@ -63,7 +63,7 @@ test('three-way actual component is refused atomically and no partial nominal su
     frames: { ...doc.frames!, welds: [...doc.frames!.welds!, { joint: 'b0_part8.end', size: 3, kind: 'fillet' }] } };
   const e = ok(bad), a = beadAccounting(bad, e.bodies)!;
   assert.equal(a.complete, false); assert.deepEqual(a.refusedJointIds, ['b0_part4.start', 'b0_part7.end', 'b0_part8.end']);
-  assert.equal(a.bodyCount, 6); near(a.ownedVolumeMM3, 1620);
+  assert.equal(a.bodyCount, 6); near(a.ownedVolume, 1620);
 });
 
 test('retry refuses to turn global or incomplete component errors into successful subsets (fault injection only)', () => {

@@ -106,7 +106,7 @@ export function weldList(doc: StudioDoc, bodies: readonly BodyResult[]): WeldLis
   const welded = joints.map(j => withWeld(doc, bodies, j, records.get(j.id), notes));
   const orphaned = [...records.values()].filter(r => !welded.some(j => j.id === r.joint));
   const beads = beadAccounting(doc, bodies);
-  if (beads) notes.push(`${beads.complete ? 'Complete' : 'Incomplete'} bead body subtotals: ${r6(beads.nominalVolume)} mm3 nominal, ${r6(beads.ownedVolumeMM3)} mm3 owned; ${beads.sharedSeamCount} unique shared seams${beads.complete ? '' : '; refused joints: ' + beads.refusedJointIds.join(', ')}`);
+  if (beads) notes.push(`${beads.complete ? 'Complete' : 'Incomplete'} bead body subtotals: ${r6(beads.nominalVolume)} mm3 nominal, ${r6(beads.ownedVolume)} mm3 owned; ${beads.sharedSeamCount} unique shared seams${beads.complete ? '' : '; refused joints: ' + beads.refusedJointIds.join(', ')}`);
   return { joints: welded, totals: { count: welded.length, seamMM: r6(welded.reduce((t, j) => t + j.weldDistance, 0)), innerUnset: welded.filter(j => j.innerLoop?.welded === null).length, ...(beads ? { beads } : {}) }, orphaned, notes: [...new Set(notes)] };
 }
 

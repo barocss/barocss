@@ -43,7 +43,7 @@ try {
 } finally { await rm(temporary, { recursive: true, force: true }); }
 
 const document = (linked = true): Loose => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: linked ? [{ kind: 'bearing', id: 'n1', housingRef: { part: 'housing', body: 'b2' } }] : [], outputs: {}, instances: [] });
-const data = (marker: string) => ({ marker, view: { elements: [] }, bom: { lines: [{ item: marker, qty: 1, parts: ['base:n1'], source: null, estimate: false }], totalQty: 1, totalMassG: 0 }, made: [] });
+const data = (marker: string) => ({ marker, view: { elements: [] }, bom: { lines: [{ item: marker, qty: 1, parts: ['base:n1'], source: null, estimate: false }], totalQty: 1, totalMass: 0 }, made: [] });
 const walk = (node: Loose): Loose[] => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(walk) : [node, ...walk(node.props?.children)];
 const find = (tree: Loose, label: string) => walk(tree).find(node => node.props?.['aria-label'] === label);
 const text = (tree: Loose): string => typeof tree === 'string' || typeof tree === 'number' ? String(tree) : !tree ? '' : Array.isArray(tree) ? tree.map(text).join(' ') : text(tree.props?.children);

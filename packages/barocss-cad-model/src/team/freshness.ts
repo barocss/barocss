@@ -266,7 +266,7 @@ export async function bomResult(doc: StudioDoc, evaluate: Evaluate, run: string)
   const incomplete = await inspect(resolveShopTree(doc), '');
   if (incomplete) return stamp(doc, [], { ...base, status: /BEAD_ACCOUNTING_INCOMPLETE/.test(incomplete) ? 'unsupported' : 'failed', why: incomplete });
   const view = await bomView(doc, evaluate), bom = deriveBom(view), problems = checkBom(view, bom);
-  return stamp(doc, [], { ...base, status: 'ok', verdict: problems.length ? 'fail' : 'pass', number: bom.totalMassG, value: problems.length ? { bom, problems } : bom });
+  return stamp(doc, [], { ...base, status: 'ok', verdict: problems.length ? 'fail' : 'pass', number: bom.totalMass, value: problems.length ? { bom, problems } : bom });
 }
 /** The drawing's issues: errors fail it; a drawing that cannot be built failed. */
 export function drawingResult(doc: StudioDoc, run: string): Result {
