@@ -24,15 +24,15 @@ export interface Problem { readonly code: string; readonly message: string; read
 /**
  * The base of the kernel's own error classes (R7.3a, batch 1): a BarocssError with Error's constructor, so each class
  * keeps its name, its code and its message as written before (the fingerprint records them byte for byte). Each
- * class sets its `code` (and `name`), or passes it here (the classes that had none take one named for the class); one
+ * class sets its `code` (and `name`), or passes it here with its details (the classes that had none take one named for the class); one
  * that sets no name stays an `Error` by name, as before. Batch 2 folds the classes into codes.
  */
 export class KernelError extends BarocssError {
-  constructor(message?: string, options?: { readonly cause?: unknown; readonly code?: string }) {
-    super(options?.code ?? '', '');
+  constructor(message?: string, options?: { readonly cause?: unknown; readonly code?: string; readonly details?: Record<string, unknown> }) {
+    super(options?.code ?? '', '', undefined, options?.details);
     this.name = 'Error'; this.message = message ?? '';
-    // (No own `where` or `details` while unset: the class's own keys stay as they were.)
-    Reflect.deleteProperty(this, 'where'); Reflect.deleteProperty(this, 'details');
+    // (No own `where`, nor `details` while unset: the class's own keys stay as they were.)
+    Reflect.deleteProperty(this, 'where'); if (!options?.details) Reflect.deleteProperty(this, 'details');
     if (options && 'cause' in options) Object.defineProperty(this, 'cause', { value: options.cause, writable: true, configurable: true, enumerable: false });
   }
 }

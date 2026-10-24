@@ -14,7 +14,7 @@ const stepped = (h = 10) => [
   { id: 'u', kind: 'union', target: 'b', tool: 'w' },
 ];
 const volume = doc => evaluateCadPart(doc).outputs.at(-1).massProperties(1).volumeMM3;
-const code = doc => { try { evaluateCadPart(doc); return 'ok'; } catch (e) { return e.code; } };
+const code = doc => { try { evaluateCadPart(doc); return 'ok'; } catch (e) { return e.details?.category ?? e.code; } };
 
 test('D148: a blind hole into the block\'s top beside a tower — from that face, π r² d taken; without the face it misses (as before)', () => {
   const base = volume(D(stepped())), r = 3, d = 6;
@@ -50,6 +50,6 @@ test('D148b: an overhang 0.5 mm above the face is not cut by a 55-deep hole (1 %
   const base = volume(D(overhung(0.5))), v = volume(D([...overhung(0.5), { id: 'h', kind: 'hole', target: 'u', center: [12, 12], radius: 3, depth: 55, face: 'b.top' }]));
   assert.ok(Math.abs(base - v - Math.PI * 9 * 55) <= 1e-9 * base, `taken ${base - v} vs the bore alone ${Math.PI * 9 * 55} (the lip would add ${Math.PI * 9 * 0.05})`);
   const near = D([...overhung(0.0005), { id: 'h', kind: 'hole', target: 'u', center: [12, 12], radius: 3, depth: 55, face: 'b.top' }]);
-  let message = ''; try { evaluateCadPart(near); } catch (e) { message = `${e.code} ${e.message}`; }
-  assert.match(message, /^GEOMETRY .*\[OBSTRUCTED_ABOVE\] material 0\.0005 mm above b\.top/);
+  let message = ''; try { evaluateCadPart(near); } catch (e) { message = `${e.code} ${e.details?.category} ${e.message}`; }
+  assert.match(message, /^OBSTRUCTED_ABOVE GEOMETRY .*\[OBSTRUCTED_ABOVE\] material 0\.0005 mm above b\.top/);
 });

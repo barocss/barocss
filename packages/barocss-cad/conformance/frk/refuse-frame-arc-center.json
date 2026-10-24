@@ -54,7 +54,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "ARC_MEMBER",
+      "category": "PARAMETER",
       "messageIncludes": "[ARC_MEMBER]"
     }
   },

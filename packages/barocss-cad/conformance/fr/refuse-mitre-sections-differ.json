@@ -70,7 +70,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "MITRE_SECTIONS_DIFFER",
+      "category": "PARAMETER",
       "messageIncludes": "[MITRE_SECTIONS_DIFFER] point 1: members 0 and 1"
     }
   },

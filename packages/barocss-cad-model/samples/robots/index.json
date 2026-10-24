@@ -1,0 +1,50 @@
+[
+ {
+  "id": "arm-2r",
+  "title": "2R planar arm",
+  "about": "Two links turning about parallel vertical axes, 40 mm apart: the plane arm of every textbook.",
+  "file": "arm-2r.bcad"
+ },
+ {
+  "id": "scara",
+  "title": "SCARA arm",
+  "about": "Turn, turn, slide, turn: two arms about vertical axes, a quill sliding up and down at the second arm's end, a tool turning on it.",
+  "file": "scara.bcad"
+ },
+ {
+  "id": "arm-6r",
+  "title": "6R arm",
+  "about": "Six turning joints, the industrial arm's chain: waist, shoulder, elbow and a three-axis wrist.",
+  "file": "arm-6r.bcad"
+ },
+ {
+  "id": "gantry-ppp",
+  "title": "Cartesian gantry",
+  "about": "Three slides square to each other — X, Y and Z — as on a 3-axis router or a 3D printer.",
+  "file": "gantry-ppp.bcad"
+ },
+ {
+  "id": "pan-tilt",
+  "title": "Pan-tilt camera head",
+  "about": "Pan about the vertical, tilt about a horizontal axis on its side, and a camera (sensor) frame on the head.",
+  "file": "pan-tilt.bcad"
+ },
+ {
+  "id": "gripper",
+  "title": "Gear-coupled gripper",
+  "about": "Two fingers on meshing gears of 20 teeth: the right one follows the left one, the other way round (1 : −1).",
+  "file": "gripper.bcad"
+ },
+ {
+  "id": "four-bar",
+  "title": "Four-bar linkage",
+  "about": "A closed loop: turn the crank and the coupler and the rocker follow (one degree of freedom).",
+  "file": "four-bar.bcad"
+ },
+ {
+  "id": "gear-joint",
+  "title": "Gear-driven joint",
+  "about": "A 20-tooth gear driving a 30-tooth one: the driven joint turns two thirds as far, the other way.",
+  "file": "gear-joint.bcad"
+ }
+]

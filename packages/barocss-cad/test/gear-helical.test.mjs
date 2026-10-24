@@ -113,8 +113,8 @@ test('a meshing helical gear in the part model: opposite hand at the transverse 
     assert.equal(n.every(k => k > 0), crossed, `${rot} ${dir} ${phase}: ${n}`); if (!crossed) assert.ok(n.every(k => k === 0));
     assert.equal(checkPlacedSpurGears(A.gearPlacement, B.gearPlacement, { mode: 'verdict' }).sweep.interference, crossed);
   }
-  assert.throws(() => evaluateCadPart(D([g1(0), g2({}, { hand: 'right' })])), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE.*same hand/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([g1(0), { ...g2({}), module: 2 }])), e => e.code === 'INPUT' && /takes normalModule/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g1(0), g2({}, { hand: 'right' })])), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE.*same hand/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([g1(0), { ...g2({}), module: 2 }])), e => (e.details?.category ?? e.code) === 'INPUT' && /takes normalModule/.test(e.message));
 });
 
 test('the helical rack (D60): the z → ∞ gear of the pair — the gear\'s β, the opposite hand label, its teeth sliding tan β along it per mm up; planar faces, exact; meshing in the part model, the solids\' own sections at five heights clear, crossing slid 0.6 mm and for a same-hand rack; checks with εβ', () => {
@@ -147,5 +147,5 @@ test('the helical rack (D60): the z → ∞ gear of the pair — the gear\'s β,
   const meshed = run([gear(0), rack({})]).K.rackPlacement;
   const same = run([gear(0), { id: 'k', kind: 'spur-rack', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 12, faceWidth: 8, height: 8, thicknessReduction: 0.05, origin: meshed.origin, angle: meshed.angle * 180 / Math.PI }]);
   assert.ok(same.n.slice(1).every(x => x > 0), String(same.n));
-  assert.throws(() => evaluateCadPart(D([gear(0), rack({}), { ...rack({}), id: 'k2', helixAngle: 20, hand: 'right' }])), e => e.code === 'INPUT' && /must be 20° left-hand/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([gear(0), rack({}), { ...rack({}), id: 'k2', helixAngle: 20, hand: 'right' }])), e => (e.details?.category ?? e.code) === 'INPUT' && /must be 20° left-hand/.test(e.message));
 });

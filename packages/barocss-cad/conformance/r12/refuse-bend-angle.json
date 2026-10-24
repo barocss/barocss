@@ -44,7 +44,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "BEND_ANGLE",
+      "category": "PARAMETER",
       "messageIncludes": "[BEND_ANGLE] path point 1 is in line"
     }
   },

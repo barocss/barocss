@@ -198,9 +198,9 @@ test('the part model: K1\'s wheel (a helical spur gear at γ) and its worm by me
   const Mo = evaluateCadPart(D(feats(0, -90, 60))), Ao = planeSection(Mo.output('g').brep, 12, [10, 5 - 45, 12], 22), Bo = planeSection(Mo.output('w').brep, 12, [10, 5 - 45, 12], 22);
   assert.equal(clearance(Ao, Bo).crossed, true, 'a phase off crosses');
   // Refusals in the part model: a straight wheel, a worm of the other hand.
-  assert.throws(() => evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])).output('w'), e => e.code === 'INPUT' && /straight/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])).output('w'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])).output('w'), e => e.code === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /straight/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])).output('w'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
   const { brep } = worm({ ...w0, boreDiameterMM: 12 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'worm' }));
   close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
   t.diagnostic(rows.join('; '));

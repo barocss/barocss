@@ -17,9 +17,9 @@ messages, easier to read.
 When the kernel or the document model can't produce a result it can stand behind, it refuses with a reason. It
 doesn't return an approximate body or quietly skip a step.
 
-- **Kernel refusals.** These are a `CadPartError` with a code: `FORMAT`, `INPUT`, `PARAMETER`, `REFERENCE`,
-  `SELECTION`, `CAPABILITY` or `GEOMETRY`. They name the feature they come from, and their message says what went
-  wrong, for example that two inputs graze within the merge radius.
+- **Kernel refusals.** These are a `CadPartError` with a code, such as `RADIUS_EXCEEDS_FACE`, and a category:
+  `FORMAT`, `INPUT`, `PARAMETER`, `REFERENCE`, `SELECTION`, `CAPABILITY` or `GEOMETRY`. They name the feature they come
+  from, and their message says what went wrong, for example that two inputs graze within the merge radius.
 - **Typed refusals** from the document model and the agent's tools begin with a code in brackets, so people and
   agents can both act on them. For example, `[FASTENER_SIZE_ROW] no row for M6 — load your fastener sizes …`.
 - **Unknown, not passed.** A check that lacks what it needs reports `unknown`, never `pass`. For example, a casting

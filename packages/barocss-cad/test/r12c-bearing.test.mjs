@@ -89,7 +89,7 @@ test('R12c.4 part model: a shaft turned and moved, a bearing on its seat and in 
   const snap = evaluateCadPart(D(feats)), b = snap.output('b'), bb = brepBounds(b.brep);
   near(bb.min[2], 35, 1e-9, 'z'); near((bb.min[0] + bb.max[0]) / 2, 60, 1e-9, 'x'); assert.equal(b.bearing.seat.located, 'ring groove 1'); assert.equal(b.bearing.housing.covered, true);
   assert.ok(snap.outputs.some(o => o.id === 's') && snap.outputs.some(o => o.id === 'h'), 'the shaft and the housing stay outputs');
-  const refused = (patch, c, tag) => assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'b' ? { ...f, ...patch } : f))), e => e.code === c && e.message.includes(`[${tag}]`), tag);
+  const refused = (patch, c, tag) => assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'b' ? { ...f, ...patch } : f))), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
   refused({ row: { ...ROW, daMaxMM: 24.9, daMinMM: 22 } }, 'GEOMETRY', 'SEAT_ABUTMENT');
   refused({ row: { ...ROW, boreMM: 17 } }, 'GEOMETRY', 'SEAT_FIT');
   refused({ row: { ...ROW, source: undefined } }, 'INPUT', 'INVALID_INPUT');

@@ -9,7 +9,7 @@ import { evaluateCadPart, faceGeometry, importStep, checkBrep, brepMassPropertie
 // T times its middle line, and the volume that times the width.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const contour = (path, side, o = {}) => ({ id: 'c', kind: 'sheet-contour', path, side, width: 40, thickness: 2, bendRadius: 3, kFactor: 0.4, ...o });
 
 /** The middle line of a contour flange from its path: Σ legs, less at each corner its setbacks, plus its middle arc. */

@@ -26,7 +26,7 @@ test('R10.4b a boss\'s foot filleted larger than the boss (forced through the ro
     const got = brepMassProperties(g, 1).volumeMM3 - v0, exact = 2 * Math.PI * Math.abs(M);
     assert.ok(Math.abs(got / exact - 1) < 2e-7, `r ${r}: ${got} vs ${exact} (${got / exact - 1})`);
   }
-  assert.throws(() => out([...boss, { id: 'f', kind: 'fillet', target: 'u', edges: foot, radius: 5 }]), e => e.code === 'PARAMETER' && /RADIUS_EXCEEDS_FACE/.test(e.message));
+  assert.throws(() => out([...boss, { id: 'f', kind: 'fillet', target: 'u', edges: foot, radius: 5 }]), e => (e.details?.category ?? e.code) === 'PARAMETER' && /RADIUS_EXCEEDS_FACE/.test(e.message));
 });
 
 test('R10.4b a pipe tee whose branch stands 12 high, its junction filleted 3 (refused at R10.2a: the contact on the branch would reach 13): where it would run off the branch, the ball rolls along its top rim — valid, one body, the report in bounds, the fillet meeting the rim, its volume within 1e-6 of a loft through twice the stations', () => {

@@ -64,7 +64,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "BUTT_ON_OPEN_SIDE",
+      "category": "PARAMETER",
       "messageIncludes": "[BUTT_ON_OPEN_SIDE] point 1: member 1 meets member 0: its end spans -20 to 20"
     }
   },

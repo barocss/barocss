@@ -20,12 +20,14 @@ export type CadAstDeclaration = CadOrdinaryAstDeclaration | CadFunctionAst;
 export interface CadModelAst { kind: 'model'; name: string; range: CadSourceRange; nameRange: CadSourceRange; fields: CadAstField[]; declarations: CadAstDeclaration[] }
 
 /** An actual-source parser diagnostic, with no synthetic or partial model. */
+/** The source parser's and semantic model's codes. */
+export type CadAstCode = 'CYCLE' | 'DEGREE' | 'DIMENSION' | 'DIVISION_ZERO' | 'DUPLICATE' | 'FIELD' | 'FUNCTION_ARGUMENT' | 'FUNCTION_CAPTURE' | 'FUNCTION_RECURSION' | 'FUNCTION_REFERENCE' | 'FUNCTION_TYPE' | 'GEOMETRY' | 'KIND' | 'KNOTS' | 'LIMIT' | 'REFERENCE' | 'SYNTAX' | 'TYPE' | 'UNIT' | 'VALUE' | 'VERSION' | 'WEIGHTS';
 export class CadAstError extends KernelError {
-  readonly code: string;
+  readonly code: CadAstCode;
   readonly detail: string;
   readonly range: CadSourceRange;
   readonly objectId?: string;
-  constructor(code: string, detail: string, range: CadSourceRange, objectId?: string) {
+  constructor(code: CadAstCode, detail: string, range: CadSourceRange, objectId?: string) {
     super(detail); this.name = 'CadAstError'; this.code = code; this.detail = detail;
     this.range = range; this.objectId = objectId;
   }
@@ -76,7 +78,7 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2 | 3): CadMo
   };
   let at = 0, tokens = 0, values = 0, nodes = 0, expressionNodes = 0, geometryCount = 0, parameterCount = 0, functionCount = 0, objectId: string | undefined;
   const declarations: CadAstDeclaration[] = [], modelFields: CadAstField[] = [];
-  const fail = (code: string, detail: string, start = at, end = Math.min(source.length, start + 1)): never => {
+  const fail = (code: CadAstCode, detail: string, start = at, end = Math.min(source.length, start + 1)): never => {
     throw new CadAstError(code, detail, range(start, end), objectId);
   };
   const chargeToken = () => { if (tokens >= CAD_AST_LIMITS.tokens) fail('LIMIT', 'Source exceeds AST token limit'); tokens++; };

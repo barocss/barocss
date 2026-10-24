@@ -85,7 +85,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "BEAD_ANGLE",
+      "category": "PARAMETER",
       "messageIncludes": "[BEAD_ANGLE] member 1's end meets its face at 60° from square"
     }
   },

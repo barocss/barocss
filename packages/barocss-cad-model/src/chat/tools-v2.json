@@ -120,6 +120,7 @@
        "command",
        "add",
        "edit",
+       "parameters",
        "load_rows",
        "delete",
        "material",

@@ -163,7 +163,7 @@ test('R12c.6b part model: sprocket, pulley, belt and coupling kinds placed, thei
   ]));
   assert.equal(snap.output('s').sprocket.teeth, 17); assert.equal(snap.output('p').pulley.type, 'flat'); assert.equal(snap.output('b').belt.row, 'flat-a'); assert.equal(snap.output('k').coupling.bought.bought, true);
   near(vol(snap.output('k').brep), Math.PI * (225 - 36) * 40, 1e-6, 'a straight bore');
-  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([f])), e => e.code === c && e.message.includes(`[${tag}]`), tag);
+  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([f])), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
   refused({ id: 's', kind: 'sprocket', row: CHAIN, teeth: 17, tip: 85, width: 7 }, 'GEOMETRY', 'TOOTH_FORM');
   refused({ id: 's', kind: 'sprocket', row: CHAIN, teeth: 17, tip: 75, width: 7, toothForm: 'iso-606' }, 'CAPABILITY', 'UNSUPPORTED_TOOTH_FORM');
   refused({ id: 'b', kind: 'belt', row: FLAT, pitchRadii: [40, 25], centerDistance: 50 }, 'GEOMETRY', 'BELT_GEOMETRY');

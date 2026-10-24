@@ -46,7 +46,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "SECTION_DIMENSIONS",
+      "category": "PARAMETER",
       "messageIncludes": "[SECTION_DIMENSIONS]"
     }
   },

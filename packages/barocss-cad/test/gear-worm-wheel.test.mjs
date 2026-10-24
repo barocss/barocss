@@ -163,7 +163,7 @@ test('the part model: a worm-wheel (throated) and its worm by mesh — m_x, d1 a
   for (let k = 0; k <= n; k++) I += (k === 0 || k === n ? 1 : k % 2 ? 4 : 2) * sectionArea(G, -10 + h * k);
   const want = I * h / 3 - Math.PI * 100 * 20, got = brepMassProperties(evaluateCadPart(D(feats(0, 0))).output('g').brep, 1).volumeMM3;
   close(got, want, 2e-5 * want, 'volume');
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])).output('w'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   // STEP (the survey: writing it takes about 15 s — its tessellated copy of 724 curved faces, D137).
   if (SURVEY) {
     const { brep } = throatedWormWheel({ worm: W, teeth: 30, faceWidthMM: 20, boreDiameterMM: 20 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'wheel' }));

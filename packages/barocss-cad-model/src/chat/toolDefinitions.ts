@@ -19,10 +19,10 @@ import { CHAT_COMMANDS, COMMAND_DOCS } from './part/features';
 
 /** The tools a batch may hold (those changing the base part, one at a time). */
 // (The drawing tools that change it ride in ops: an agent proposes a drawing change, R14.5.)
-export const BATCHABLE = new Set([...DRAWING_CHANGES, 'load_rows', 'set_joints', 'set_frames', 'set_inputs', 'set_variants', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
+export const BATCHABLE = new Set([...DRAWING_CHANGES, 'load_rows', 'set_parameters', 'set_joints', 'set_frames', 'set_inputs', 'set_variants', 'set_brief', 'set_material', 'set_stock', 'set_casting', 'set_frame_stock', 'set_frame_sections', 'set_welds', 'import_drawing', 'add_keepout', 'add_datum', 'set_requirements', 'run_script', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'insert_part', 'snap_part', 'add_library_part', ...CAGE_MUTATORS]);
 /** The tools a batch (apply_ops, a patch) may hold (A7.5: a candidate's unsupported op is refused by name before it runs). */
 export const BATCHABLE_TOOLS: ReadonlySet<string> = BATCHABLE;
-export const MUTATORS = new Set(['load_rows', 'set_stock', 'set_frame_stock', 'set_frame_sections', 'apply_ops', 'run_script', 'restore', 'set_requirements', 'import_drawing', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
+export const MUTATORS = new Set(['load_rows', 'set_stock', 'set_frame_stock', 'set_parameters', 'set_frame_sections', 'apply_ops', 'run_script', 'restore', 'set_requirements', 'import_drawing', 'restore_best', 'run_command', 'add_features', 'edit_feature', 'delete_feature', 'extrude_image_layer', 'inflate_image_layer', 'add_library_part', ...CAGE_MUTATORS]);
 
 export const isMutator = (name: string) => MUTATORS.has(name);
 
@@ -170,6 +170,11 @@ Ref = {"node": index of the feature that made a visible body, "side": "solid"} (
     name: 'set_casting',
     description: 'Sets a casting pattern\'s inputs (IM8b): machined, the faces machined after casting (flat ones get the machining allowance on the pattern); allowance, your machining allowance (mm a face; unset: the process\'s table by the part\'s size); shrink, your shrinkage (a ratio, mm/mm; unset: the table\'s by the alloy and size); gate, where the metal comes in ([x, y, z] mm on the part: the report\'s hot spots are fed from it, IM8c). The manufacturability report shows them and their sources; cad-cli pattern writes the pattern.',
     input_schema: { type: 'object', properties: { machined: { type: 'array', items: { type: 'string' } }, allowance: { type: 'number' }, shrink: { type: 'number' }, gate: { type: 'array', items: { type: 'number' } } }, additionalProperties: false },
+  },
+  {
+    name: 'set_parameters',
+    description: 'The part\'s named parameters (O21), all or nothing, in this order: add {name: value} new ones; set {name: value} existing ones; rename {from: to} (every use follows); bind [{feature: index or id, value: its key as edit_feature names it, parameter}] a feature\'s value to one (it then follows the parameter); remove [name] (each use keeps its value). Values in mm, or degrees where bound to an angle. Then evaluated: one that does not build is refused, the part unchanged.',
+    input_schema: { type: 'object', properties: { add: { type: 'object', additionalProperties: { type: 'number' } }, set: { type: 'object', additionalProperties: { type: 'number' } }, rename: { type: 'object', additionalProperties: { type: 'string' } }, bind: { type: 'array', items: { type: 'object', properties: { feature: { type: ['integer', 'string'] }, value: { type: 'string' }, parameter: { type: 'string' } }, required: ['feature', 'value', 'parameter'], additionalProperties: false } }, remove: { type: 'array', items: { type: 'string' } } }, additionalProperties: false },
   },
   {
     name: 'set_frame_stock',

@@ -176,7 +176,7 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     return { doc, content: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits }, changed: false, summary: `${links.length} links placed${fk.outOfLimits.length ? `, ${fk.outOfLimits.length} outside their limits` : ''}` };
   }
   if (name === 'set_frames') return setFrames(doc, bodies, args, evaluate);
-  const was = readRobot(doc.robot), next: RobotSettings = { version: 1, ...(was.base ? { base: was.base } : {}), joints: { ...(was.joints ?? {}) }, ...(was.frames ? { frames: was.frames } : {}) };
+  const was = readRobot(doc.robot), next: RobotSettings = { version: 1, ...(was.base ? { base: was.base } : {}), joints: { ...(was.joints ?? {}) }, ...(was.frames ? { frames: was.frames } : {}), ...(was.motions ? { motions: was.motions } : {}) };
   const parts = [BASE, ...(doc.instances ?? []).map(i => i.id)];
   if (args.base !== undefined) {
     if (typeof args.base !== 'string' || !parts.includes(args.base)) return { error: `The base link is one of ${parts.join(', ')}.` };
@@ -201,7 +201,7 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   const unknown = Object.keys(args.joints && typeof args.joints === 'object' ? args.joints : {}).filter(k => (args.joints as Record<string, unknown>)[k] !== null && !keys.has(k));
   if (unknown.length) return { error: `No joint ${unknown.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
   if (!Object.keys(next.joints!).length) delete next.joints;
-  const robot = next.base || next.joints || next.frames ? next : undefined, out = { ...doc };
+  const robot = next.base || next.joints || next.frames || next.motions ? next : undefined, out = { ...doc };
   if (robot) out.robot = robot; else delete out.robot;
   const changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(robot ?? null);
   return { doc: out, content: { ok: true, did: changed ? 'set the robot settings' : 'no change', base: tree.base, joints: tree.joints.map(j => ({ key: j.key, type: j.type, ...(j.limit ? { limit: j.limit } : {}) })), problems: tree.problems }, changed, summary: changed ? `robot settings set (${tree.joints.length} joints)` : 'no change' };

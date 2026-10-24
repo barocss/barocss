@@ -242,10 +242,10 @@ test('the part model: a spiral pinion and its mate by mesh, their B-reps cut by 
   }
   // A phase off by 4°: the sections cross on some sphere.
   const off = run(0, 4).out; assert.ok(off.some(r => r.crossed), 'a phase off crosses');
-  if (SURVEY) assert.throws(() => evaluateCadPart(D([...feats(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  if (SURVEY) assert.throws(() => evaluateCadPart(D([...feats(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   // The part model's refusals: a mate of the same hand; a spiral without its hand.
-  assert.throws(() => evaluateCadPart(D([feats(0)[0], { ...feats(0)[1], spiral: { angle: 35, hand: 'left', cutterRadius: 60 } }])).output('w'), e => e.code === 'INPUT' && /opposite hands/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ ...feats(0)[0], spiral: { angle: 35, cutterRadius: 60 } }])).output('p'), e => e.code === 'INPUT' && /hand/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([feats(0)[0], { ...feats(0)[1], spiral: { angle: 35, hand: 'left', cutterRadius: 60 } }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /opposite hands/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ ...feats(0)[0], spiral: { angle: 35, cutterRadius: 60 } }])).output('p'), e => (e.details?.category ?? e.code) === 'INPUT' && /hand/.test(e.message));
   // STEP: the volume and names back.
   const { brep } = bevelGear(specOf({ m: 3, z: 20, zm: 40, b: 20, bore: 10, beta: 35, hand: 'left', rc: 60 }), { id: 's' }), back = importStep(exportStep([brep], { name: 'spiral' }));
   close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);

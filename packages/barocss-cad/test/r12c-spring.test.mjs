@@ -199,9 +199,9 @@ test('R12c.1a part model: the `spring` kind placed on its axis, its report on th
   // (Turned 90°: the wire starts on +Y, its ground end there.)
   const g0 = out.brep.faces.find(f => f.name === 's.end0');
   assert.ok(g0, 'the wire\'s start disc');
-  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, ...f }])), e => e.code === c && e.message.includes(`[${tag}]`), tag);
+  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, ...f }])), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
   refused({ pitch: 2, ends: 'open' }, 'GEOMETRY', 'COILS_OVERLAP');
   refused({ body: 'barrel' }, 'CAPABILITY', 'UNSUPPORTED_SPRING_KIND');  // (torsion until D154, which builds it)
   refused({ freeLength: 40 }, 'INPUT', 'INVALID_INPUT');
-  assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, generator: 'spring@9' }])), e => e.code === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, pitch: 5, generator: 'spring@9' }])), e => (e.details?.category ?? e.code) === 'CAPABILITY');
 });

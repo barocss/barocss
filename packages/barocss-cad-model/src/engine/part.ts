@@ -74,13 +74,16 @@ function kernelOverride(o: FrameOverride): CadPartFrameOverride { const { sectio
 /**
  * O19 (the kernel's D277): what each stored name of a fillet, chamfer, shell or draft looked like when it was picked
  * (`node.sigs`, engine/references.ts), for the kernel to check what the name builds on now: a name that moved to other
- * geometry is refused (REFERENCE_MOVED), never built on another edge or face. Only the names the feature uses go.
+ * geometry is refused (REFERENCE_MOVED), never built on another edge or face. Only the names the feature uses go, and
+ * only those whose signature is their own: one taken from a display edge or face that carried several of the kernel's
+ * names (`n`: a closed rim of several edges, merged faces) describes them together — the kernel's piece is elsewhere
+ * on it — so it goes unchecked rather than refuse a good fillet (R10.2a's tee).
  */
 function expectOf(node: { sigs?: Record<string, Sig> }, names: readonly string[]): { expect?: Record<string, CadPartNameSignature> } {
   const sigs = node.sigs; if (!sigs) return {};
   let out: Record<string, CadPartNameSignature> | undefined;
   for (const name of names) {
-    const s = sigs[name]; if (!s) continue;
+    const s = sigs[name]; if (!s || (s.n ?? 1) > 1) continue;
     (out ??= {})[name] = { kind: s.k as CadPartNameSignature['kind'], at: s.p, dir: s.d ?? null, size: s.s, ...(s.r !== undefined ? { radius: s.r } : {}) };
   }
   return out ? { expect: out } : {};
