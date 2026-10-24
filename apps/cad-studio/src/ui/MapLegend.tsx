@@ -33,7 +33,7 @@ export function MapLegend({ map, hover }: { map: ScalarMap; hover: number | null
 }
 
 type MouldResult = Awaited<ReturnType<import('../engine/client').EngineClient['mould']>> | 'working' | null;
-const volume = (bs: readonly { volumeMM3?: number | null }[]) => bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0);
+const volume = (bs: readonly { volume?: number | null }[]) => bs.reduce((t, b) => t + (b.volume ?? 0), 0);
 
 /**
  * The mould's legend (G6): the parting line's loops, and for the halves their bodies and volumes (+ along the pull, − against

@@ -70,7 +70,7 @@ test('G2 CPU instance provenance keeps original body/face/edge authority after p
   }
   const mesh = shown.bodies[0].mesh, caps = mesh.faces.filter(face => face.id === 'section-cap');
   assert.equal(caps.length, 1); assert.equal(caps[0].name, 'section');
-  assert.ok(Math.abs(caps[0].areaMM2 - 20 * 8) < 1e-9, 'posed box cut has the independent 20 by 8 mm cap area');
+  assert.ok(Math.abs(caps[0].area - 20 * 8) < 1e-9, 'posed box cut has the independent 20 by 8 mm cap area');
   assert.deepEqual(caps[0].normal, [-1, 0, 0]);
   assert.equal(caps[0].centroid[0], 0);
   const usedFaces = new Set(Array.from(mesh.indices, vertex => mesh.faceOfVertex[vertex]));
@@ -107,7 +107,7 @@ test('G2 clipMesh\'s caps at the closed forms: a box, a cylinder, a plate with a
   ];
   for (const [m, s, want, rel] of cases) {
     const c = clipMesh(m, 'xyz'.indexOf(s.axis) as 0 | 1 | 2, s.at, s.keep, 'cap')!;
-    assert.ok(Math.abs(c.faces.at(-1)!.areaMM2 - want) <= rel * want, `${JSON.stringify(s)}: ${c.faces.at(-1)!.areaMM2} against ${want}`);
+    assert.ok(Math.abs(c.faces.at(-1)!.area - want) <= rel * want, `${JSON.stringify(s)}: ${c.faces.at(-1)!.area} against ${want}`);
   }
 });
 

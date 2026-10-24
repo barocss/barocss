@@ -50,7 +50,7 @@ function revolved(rings: Ring[], bottomRadius: number, topRadius: number, top: n
 
 /** Full declared cutting profile and shank, at a local tip of [0,0,0], with no holder. */
 export function camToolGeometry(tool: ToolShape): CamToolGeometry {
-  const { kind, diameterMM: diameter, cornerMM: corner, fluteMM: flute, shankMM: shank } = tool, radius = diameter / 2;
+  const { kind, diameter: diameter, cornerMM: corner, fluteMM: flute, shankMM: shank } = tool, radius = diameter / 2;
   if (!['flat', 'ball', 'bull'].includes(kind) || ![diameter, corner, flute, shank].every(Number.isFinite) || diameter <= 0 || flute <= 0 || shank <= 0
     || (kind === 'flat' && corner !== 0) || (kind === 'ball' && Math.abs(corner - radius) > 1e-9 * Math.max(1, radius))
     || (kind === 'bull' && !(corner > 0 && corner <= radius)) || flute < corner) throw new Error('CAM display: unsupported tool dimensions or rounded nose longer than its flute');

@@ -51,7 +51,7 @@ test('G20 the exact cut-out: the pieces split off in turn, one body a source bod
     assert.equal(r.kept.length, splits, 'a piece a plane');
     assert.equal(x.bodies.length, 1, 'one body for its source');
     assert.equal(x.from.get(x.bodies[0].key), bodies[0].key);
-    assert.ok(Math.abs((x.bodies[0].volumeMM3 ?? 0) - want) < 1e-6, `${x.bodies[0].volumeMM3} against ${want}`);
+    assert.ok(Math.abs((x.bodies[0].volume ?? 0) - want) < 1e-6, `${x.bodies[0].volume} against ${want}`);
     assert.ok(Math.abs(volume(x.bodies[0].mesh) - want) < 1e-3, `its mesh ${volume(x.bodies[0].mesh)}`);
   }
   // The corner facing the eye, through the box's middle.

@@ -35,7 +35,7 @@ function boxMesh(min: number[], max: number[]): CamPartMesh {
   return { positions, indices: [0, 2, 1, 1, 2, 3, 4, 5, 6, 5, 7, 6, 0, 1, 4, 1, 5, 4, 2, 6, 3, 3, 6, 7, 0, 4, 2, 2, 4, 6, 1, 3, 5, 3, 7, 5] };
 }
 
-const flat = (d = 6, flute = 3 * d): ToolShape => ({ kind: 'flat', diameterMM: d, cornerMM: 0, fluteMM: flute, shankMM: d, basis: { diameter: 'given', shape: 'given' } });
+const flat = (d = 6, flute = 3 * d): ToolShape => ({ kind: 'flat', diameter: d, cornerMM: 0, fluteMM: flute, shankMM: d, basis: { diameter: 'given', shape: 'given' } });
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const program = (moves: Move[], frame = IDENTITY, safe = 40): SetupProgram => ({ setup: '+Z', frame, axis: [frame[2], frame[6], frame[10]], safeZ: { mm: safe, basis: 'estimate' }, entry: { rampDeg: 3, basis: 'estimate', rule: '' }, moves, passes: [] });
 const box = (min: [number, number, number], max: [number, number, number]): StockSolid => ({ kind: 'box', min, max });

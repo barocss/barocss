@@ -33,7 +33,7 @@ export function clipPrintSupport(mesh: DisplayMesh, topMM?: number): Pick<Displa
 
 /** A stable bed origin/grid reference. Its extent is display-only, never a printer specification. */
 function bedReference(summary: PrintSummary): PrintDrawing {
-  let extent = Math.max(20, summary.heightMM);
+  let extent = Math.max(20, summary.height);
   for (const column of summary.supportColumns) for (const coordinate of column.footprint) extent = Math.max(extent, Math.abs(coordinate));
   extent = Math.ceil(extent / 10) * 10;
   const p: number[] = [];

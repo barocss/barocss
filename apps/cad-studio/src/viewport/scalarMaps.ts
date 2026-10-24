@@ -31,7 +31,7 @@ export interface ThicknessLimits { minWallMM: number | null; materialLowMM: numb
 
 /** The limits for a part's bodies by its process and their materials (IM4's rules, as the outer lane named them, O-G6). */
 export function thicknessLimits(doc: StudioDoc, body: BodyResult): ThicknessLimits {
-  const profile = processProfile(doc.process), id = materialIdOf(doc, body), range = id && doc.process === 'injection' ? materialData(id)?.wallMM?.injection : undefined;
+  const profile = processProfile(doc.process), id = materialIdOf(doc, body), range = id && doc.process === 'injection' ? materialData(id)?.wall?.injection : undefined;
   return { minWallMM: profile?.thresholds.minWall?.value ?? null, materialLowMM: range ? range[0] : null, ratio: profile?.thresholds.adjacentWallRatio?.value ?? 0.6 };
 }
 
@@ -44,7 +44,7 @@ export function thicknessLimits(doc: StudioDoc, body: BodyResult): ThicknessLimi
 export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: ThicknessLimits = thicknessLimits(doc, body)): ScalarMap {
   const w = wallSamples(body), values = new Float32Array(w.local.length);
   for (let t = 0; t < values.length; t++) values[t] = Number.isFinite(w.local[t]) ? w.local[t] : NaN;
-  const report = wallsOf(doc, [body], limits.ratio)[0], nominal = report?.nominalMM ?? 1, limit = nominal / limits.ratio;
+  const report = wallsOf(doc, [body], limits.ratio)[0], nominal = report?.nominal ?? 1, limit = nominal / limits.ratio;
   const hi = Math.max(2 * nominal, report?.thick95MM ?? 0, 1e-6), thin = Math.max(limits.minWallMM ?? 0, limits.materialLowMM ?? 0);
   // (Hard edges at the thresholds: two stops a hair apart.)
   const eps = 1e-6 * hi, stops: [number, string][] = [];

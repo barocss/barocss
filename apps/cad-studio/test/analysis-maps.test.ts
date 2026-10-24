@@ -30,7 +30,7 @@ test('G6 the thickness map: one value a display triangle, the wall samples\' loc
   for (let t = 0; t < m.values.length; t++) assert.ok(Number.isFinite(w.local[t]) ? Math.abs(m.values[t] - w.local[t]) < 1e-5 : Number.isNaN(m.values[t]));
   // (No process: the nominal and the thick limit at the default ratio 0.6; the range [0, max(2 × nominal, thick95)].)
   const nominal = m.thresholds.find(x => x.label === 'nominal')!.value;
-  assert.ok(Math.abs(nominal - 2) < 0.05 && Math.abs(nominal - report.nominalMM!) < 1e-12, `nominal ${nominal}`);
+  assert.ok(Math.abs(nominal - 2) < 0.05 && Math.abs(nominal - report.nominal!) < 1e-12, `nominal ${nominal}`);
   assert.deepEqual(m.range, [0, Math.max(2 * nominal, report.thick95MM ?? 0)]);
   assert.deepEqual(m.thresholds.map(x => x.label), ['nominal', 'thick (nominal / 0.6)']);
   assert.ok(Math.abs(m.thresholds[1].value - nominal / 0.6) < 1e-12);
@@ -47,7 +47,7 @@ test('G6 the mould\'s view: IM7\'s plate with a Ø10 hole along +Z — one flat 
   assert.equal(lines.halves, null); assert.ok(lines.loops.length >= 1 && lines.loops.every(l => l.closed && l.flat), JSON.stringify(lines.loops.map(l => [l.closed, l.flat])));
   const v = mouldView(doc, b, true)!;
   assert.equal(v.why, null); assert.ok(v.halves);
-  const sum = (bs: BodyResult[]) => bs.reduce((t, x) => t + x.volumeMM3!, 0), part = 60 * 40 * 10 - Math.PI * 25 * 10, block = 80 * 60 * 30;
+  const sum = (bs: BodyResult[]) => bs.reduce((t, x) => t + x.volume!, 0), part = 60 * 40 * 10 - Math.PI * 25 * 10, block = 80 * 60 * 30;
   assert.ok(Math.abs(sum(v.halves!.plus) - 48000) <= 1e-6 * 48000, String(sum(v.halves!.plus)));
   assert.ok(Math.abs(sum(v.halves!.plus) + sum(v.halves!.minus) - (block - part)) <= 1e-6 * block);
   assert.equal(mouldView({ ...doc, mould: undefined }, b, true), null);

@@ -66,7 +66,7 @@ export function clearanceOverlays(map: ClearanceMap, bodies: readonly PlacedBody
   for (const pair of map.pairs) {
     const a = bodies.find(body => body.key === pair.a), b = bodies.find(body => body.key === pair.b);
     if (pair.band) { add(pair, 'band-a', a, pair.band.a.positions, pair.band.a.indices, pair.band.a.field); add(pair, 'band-b', b, pair.band.b.positions, pair.band.b.indices, pair.band.b.field); }
-    if (pair.overlap && 'mesh' in pair.overlap && pair.overlap.volumeMM3 > 0) add(pair, 'overlap-a', a, pair.overlap.mesh.positions, pair.overlap.mesh.indices);
+    if (pair.overlap && 'mesh' in pair.overlap && pair.overlap.volume > 0) add(pair, 'overlap-a', a, pair.overlap.mesh.positions, pair.overlap.mesh.indices);
   }
   return overlays;
 }

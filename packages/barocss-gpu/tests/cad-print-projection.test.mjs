@@ -23,7 +23,7 @@ const used = mesh => [...new Set(mesh.indices)].map(i => Array.from(mesh.positio
 function display(bodies, { direction, layerHeight = 0.5, k = 0, printed = false } = {}) {
   const model = api.printLayers(bodies.map(b => b.mesh), { layerHeight, ...(direction ? { direction } : {}) });
   const { layer, ...summary } = model;
-  return { request: 1, summaryKey: 1, summary, layer: layer(k), supportMesh: api.extrudePrintSupport(summary.supportColumns), topMM: Math.min(summary.heightMM, (k + 1) * summary.layerMM.mm), supports: true, printed };
+  return { request: 1, summaryKey: 1, summary, layer: layer(k), supportMesh: api.extrudePrintSupport(summary.supportColumns), topMM: Math.min(summary.height, (k + 1) * summary.layerMM.mm), supports: true, printed };
 }
 function volume(mesh) {
   let sum = 0;

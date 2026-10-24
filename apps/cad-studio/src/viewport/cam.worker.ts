@@ -18,7 +18,7 @@ function check(job: CamRequest): void {
   if (!Number.isFinite(job.progress) || job.progress < 0) throw new Error('CNC progress must be finite and nonnegative.');
   if (!Number.isFinite(job.cellMM) || job.cellMM <= 0) throw new Error('CNC grid pitch must be finite and positive.');
   if (job.tool?.kind !== undefined && !['flat', 'ball', 'bull'].includes(job.tool.kind)) throw new Error('CNC tool profile is unsupported.');
-  for (const key of ['diameterMM', 'fluteMM', 'shankMM'] as const) {
+  for (const key of ['diameter', 'fluteMM', 'shankMM'] as const) {
     const value = job.tool?.[key];
     if (value !== undefined && !(Number.isFinite(value) && value > 0)) throw new Error(`CNC ${key} must be finite and positive.`);
   }

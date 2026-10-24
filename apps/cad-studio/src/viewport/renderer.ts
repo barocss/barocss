@@ -89,7 +89,7 @@ export function proposalChips(view: ProposalOverlay): { side: 'added' | 'removed
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const side of shown) { const b = view[side]!.mesh.bounds; for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.min[k]); hi[k] = Math.max(hi[k], b.max[k]); } }
   const at: Vec3 = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, hi[2]];
-  return shown.map((side, stack) => ({ side, at, stack, text: `${side === 'added' ? '+' : '−'}${Math.round(view[side]!.volumeMM3).toLocaleString('en-US')} mm³` }));
+  return shown.map((side, stack) => ({ side, at, stack, text: `${side === 'added' ? '+' : '−'}${Math.round(view[side]!.volume).toLocaleString('en-US')} mm³` }));
 }
 /** World points for an overlay (G8): a colour each (sRGB 0–1, rgb) or one; size and border in CSS pixels. */
 export interface OverlayPoints {

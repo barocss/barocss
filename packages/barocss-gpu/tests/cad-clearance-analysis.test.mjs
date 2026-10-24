@@ -24,7 +24,7 @@ const body = (key, placement = pose()) => ({ key, mesh: nativeMesh(), brep: null
 const band = () => ({ positions: new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0]), indices: new Uint32Array([0, 1, 2, 0, 2, 3]), field: new Float32Array([0, 0.25, 1, 2]) });
 const pair = (changes = {}) => ({ a: 'arm/body', b: 'base/body', state: 'contact', minGapMM: 0, closest: { a: [0, 0, 0], b: [0, 0, 0], faceA: 'native-37', faceB: 'native-37' }, pose: 'a-pose.b-pose', overlap: { pending: true }, ...changes });
 const map = (pairs = [pair()]) => ({ version: api.CLEARANCE_MAP_VERSION, revision: 'current-revision', near: { mm: 1, source: 'input' }, pairs, pending: pairs.filter(p => p.overlap && 'pending' in p.overlap).length, timing: { pruneMS: 0, clearanceMS: 0, bandMS: 0 } });
-const fill = (changes = {}) => ({ a: 'arm/body', b: 'base/body', revision: 'current-revision', pose: 'a-pose.b-pose', overlap: { volumeMM3: 2, mesh: nativeMesh() }, ...changes });
+const fill = (changes = {}) => ({ a: 'arm/body', b: 'base/body', revision: 'current-revision', pose: 'a-pose.b-pose', overlap: { volume: 2, mesh: nativeMesh() }, ...changes });
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} expected ${expected}`);
 
 test('G22 source prep uses the actual parent-row context and child override without modifying authored parts', () => {
@@ -76,7 +76,7 @@ test('source document folds a nested child once at the outer origin without flat
   assert.equal(origin.instances, undefined); assert.ok(origin.nodes.length > 0); assert.equal(Object.keys(origin.outputs).length, 1);
   assert.equal(origin.nodes.filter(n => n.kind === 'sketch').length, 1); assert.equal(origin.nodes.filter(n => n.kind === 'extrude').length, 1);
   assert.deepEqual(origin.nodes.filter(n => n.kind === 'translate').map(n => n.offset), [[3, 4, 5]], 'only the nested placement is folded into origin geometry');
-  assert.deepEqual(origin.nodes.filter(n => n.kind === 'rotate').map(n => [n.axis, n.angleDegrees]), [['z', 90]]);
+  assert.deepEqual(origin.nodes.filter(n => n.kind === 'rotate').map(n => [n.axis, n.angle]), [['z', 90]]);
   const [output] = Object.values(origin.outputs); assert.equal(output.node, origin.nodes.length - 1); assert.equal(origin.nodes[output.node].kind, 'translate');
   assert.equal(new Set(origin.nodes.map(n => n.id)).size, origin.nodes.length);
   const again = api.clearanceSourceDocument(result); assert.equal(again.nodes.length, 0); assert.equal(again.instances[0].doc.nodes.length, origin.nodes.length); assert.deepEqual(again.instances[0].doc.outputs, origin.outputs);
@@ -163,7 +163,7 @@ test('stale generation/version/revision/pose and missing or completed pairs reje
     { name: 'pose', result: { pose: 'previous-motion' } },
     { name: 'missing pair', result: { a: 'different/body' } },
     { name: 'reversed pair', result: { a: 'base/body', b: 'arm/body' } },
-    { name: 'already completed', change: m => { m.pairs[0].overlap = { volumeMM3: 2, mesh: nativeMesh() }; m.pending = 0; } },
+    { name: 'already completed', change: m => { m.pairs[0].overlap = { volume: 2, mesh: nativeMesh() }; m.pending = 0; } },
     { name: 'no pending overlap', change: m => { delete m.pairs[0].overlap; m.pending = 0; } },
   ];
   for (const c of cases) {
@@ -175,7 +175,7 @@ test('stale generation/version/revision/pose and missing or completed pairs reje
 
 test('matching fills apply actual Model transitions once while retaining independent bands and the current revision', () => {
   for (const [volume, expected] of [[0, 'touching'], [1e-7, 'touching'], [2, 'overlap']]) {
-    const a = band(), b = band(), current = map([pair({ band: { a, b } })]), result = fill({ overlap: { volumeMM3: volume, mesh: nativeMesh() } });
+    const a = band(), b = band(), current = map([pair({ band: { a, b } })]), result = fill({ overlap: { volume: volume, mesh: nativeMesh() } });
     assert.equal(api.acceptClearanceFill(current, result, 7, 7), true); assert.equal(current.pending, 0); assert.equal(current.pairs[0].state, expected);
     assert.equal(current.pairs[0].overlap, result.overlap); assert.equal(current.pairs[0].band.a.field, a.field); assert.equal(current.pairs[0].band.b.field, b.field); assert.equal(current.revision, 'current-revision');
     const before = snapshot(current); assert.equal(api.acceptClearanceFill(current, result, 7, 7), false); assert.equal(snapshot(current), before);
@@ -206,7 +206,7 @@ test('pending, refused and designed outputs retain Model classification and expl
     { data: pair(), state: 'pending', label: 'Contact · overlap unclassified', hatched: false, opacity: 0.38 },
     { data: pair({ state: 'designed', designed: 'bearing seat' }), state: 'pending', label: 'Designed contact · overlap unclassified', hatched: false, opacity: 0.38 },
     { data: pair({ overlap: { refused: 'exact Boolean refused' } }), state: 'refused', label: 'Refused · overlap unclassified', hatched: true, opacity: 0.65 },
-    { data: pair({ state: 'designed', designed: 'declared fit', overlap: { volumeMM3: 2, mesh: nativeMesh() } }), state: 'designed', label: 'Designed', hatched: false, opacity: 0.65 },
+    { data: pair({ state: 'designed', designed: 'declared fit', overlap: { volume: 2, mesh: nativeMesh() } }), state: 'designed', label: 'Designed', hatched: false, opacity: 0.65 },
   ];
   for (const c of cases) {
     c.data.band = { a: band(), b: band() }; const before = snapshot(c.data), overlays = api.clearanceOverlays(map([c.data]), bodies);
@@ -222,7 +222,7 @@ test('pending, refused and designed outputs retain Model classification and expl
 test('designed fill stays designed unless Model squeeze limit classifies excess overlap; refused fill remains unclassified', () => {
   for (const [squeezeMM3, volume, expected] of [[undefined, 2, 'designed'], [3, 2, 'designed'], [1, 2, 'overlap']]) {
     const current = map([pair({ state: 'designed', designed: 'source fit', ...(squeezeMM3 === undefined ? {} : { squeezeMM3 }) })]);
-    assert.equal(api.acceptClearanceFill(current, fill({ overlap: { volumeMM3: volume, mesh: nativeMesh() } }), 7, 7), true);
+    assert.equal(api.acceptClearanceFill(current, fill({ overlap: { volume: volume, mesh: nativeMesh() } }), 7, 7), true);
     assert.equal(current.pairs[0].state, expected); assert.equal(current.pairs[0].designed, 'source fit'); assert.equal(api.clearancePairState(current.pairs[0]), expected);
   }
   const refused = map(); assert.equal(api.acceptClearanceFill(refused, fill({ overlap: { refused: 'unsupported exact operation' } }), 7, 7), true);
