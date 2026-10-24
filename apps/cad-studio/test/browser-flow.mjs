@@ -5486,6 +5486,57 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('section forms (CG5 DR-4): a bar cut at X 50 removed (2:1, dragged) and revolved onto the front view', async () => {
+    const fs = await import('node:fs');
+    // (A 100 × 10 × 20 bar with a Ø6 hole along Z at (50, 5): the plane X 50 cuts two faces, y 0–2 and 8–10 by z 0–20.)
+    const bar = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [100, 10], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 20, id: 'n1' }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [50, 5], radius: 3, id: 'n2' }], outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3 };
+    const file = join(out, 'dr4-bar.bcad'); fs.writeFileSync(file, JSON.stringify(bar));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 3 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.sections?.some(x => x.id === 'B'), null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Section B view"]', 'right');
+      await page.waitForFunction(() => window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.view === 'right', null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '-50'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === -50 && x.rings === 2), null, { timeout: 30000 });
+      // Removed: the cut face alone (its eight lines), apart from the views; at 2:1 its box 20 × 40.
+      await page.selectOption('[aria-label="Section B kind"]', 'removed');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.apartSections?.some(x => x.id === 'B' && x.form === 'removed' && x.edges === 8), null, { timeout: 30000 });
+      await page.selectOption('[aria-label="Section B scale"]', '2');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.apartSections?.some(x => x.id === 'B' && x.scale === 2), null, { timeout: 30000 });
+      let d = await page.evaluate(() => window.__studioDrawing());
+      const rb = d.apartSections[0].box;
+      assert.ok(Math.abs(rb[2] - rb[0] - 20) < 1e-9 && Math.abs(rb[3] - rb[1] - 40) < 1e-9, JSON.stringify(rb));
+      assert.deepEqual(d.placedSections, [], 'no room taken in the rows');
+      assert.deepEqual(d.issues.filter(x => /SECTION|OVERLAP|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code), []);
+      await snap('removed-b');
+      // Dragged 20 mm left: kept where it was put.
+      await press('v');
+      const mid = await page.evaluate(([x0, y0, x1]) => { const svg = document.querySelector('[aria-label="Drawing sheet"]'), m = svg.getScreenCTM(); const p = new DOMPoint((x0 + x1) / 2, y0 + 5).matrixTransform(m), q = new DOMPoint((x0 + x1) / 2 - 20, y0 + 5).matrixTransform(m); return [p.x, p.y, q.x, q.y]; }, rb);
+      await page.mouse.move(mid[0], mid[1]); await page.mouse.down(); await page.mouse.move((mid[0] + mid[2]) / 2, mid[1], { steps: 4 }); await page.mouse.move(mid[2], mid[3], { steps: 4 }); await page.mouse.up();
+      await page.waitForFunction(() => !!window.__studioDoc.drawing?.sections?.find(x => x.id === 'B')?.removed?.at, null, { timeout: 20000 });
+      const moved = await page.evaluate(() => window.__studioDrawing().apartSections[0].box);
+      assert.ok(Math.abs((moved[0] - rb[0]) + 20) < 0.6, `moved ${moved[0] - rb[0]}`);
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      // (Its scale named when not the sheet's.)
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>SECTION B–B${d.scale === 2 ? '' : ' (2:1)'}</text>`), 'SECTION B–B named in the SVG');
+      // Revolved: onto the front view, at X 45–55 there (the front's box starts at X 0), z 0–20.
+      await page.selectOption('[aria-label="Section B kind"]', 'revolved');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.apartSections?.some(x => x.id === 'B' && x.form === 'revolved' && x.on === 'front'), null, { timeout: 30000 });
+      d = await page.evaluate(() => window.__studioDrawing());
+      const vb = d.apartSections[0].box, fb = d.boxes.front;
+      assert.ok(Math.abs(vb[0] - (fb[0] + 45 * d.scale)) < 1e-9 && Math.abs(vb[2] - (fb[0] + 55 * d.scale)) < 1e-9 && Math.abs(vb[1] - fb[1]) < 1e-9 && Math.abs(vb[3] - fb[3]) < 1e-9, `${vb} in ${fb} at ${d.scale}`);
+      await snap('revolved-b');
+      await page.selectOption('[aria-label="Section B kind"]', 'full');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.placedSections?.some(x => x.id === 'B') && !window.__studioDrawing().apartSections.length, null, { timeout: 30000 });
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();

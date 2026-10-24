@@ -3,7 +3,7 @@
 // drawings is the front's — Y = y for the default front from −Y; R14.3b: X = ±y or Y = −y for the others). The kernel's
 // split cuts each body the plane crosses (the far side is kept); a body wholly behind the plane stays whole, one wholly
 // in front goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
-import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature, type ProjectedEdge } from '@barocss/cad';
+import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature, type ProjectedCurve, type ProjectedEdge } from '@barocss/cad';
 import { clipProjectionOutside, clipRingsOutside, type ViewBreak } from './breaks';
 import { bodyKeyOf, toPartDocument, withBeadRetry } from '../engine/part';
 import { boughtOutputIds } from '../engine/evaluate';
@@ -21,7 +21,8 @@ export type SectionCut = DrawingSection & { result: SectionResult };
  * `skip`: outputs not cut nor drawn — a part's bought elements in its own drawing (O174). `dir` (O178): an aligned
  * section's plane normal — the part cut by the plane dot(p, dir/|dir|) = y, the far side kept, seen along it.
  */
-export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 'y-', view: SectionViewId = 'front', skip?: ReadonlySet<string>, dir?: [number, number, number]): SectionResult {
+/** `faceOnly` (DR-4): the projection holds only the edges lying on the plane (the cut faces' outlines), its extent theirs. */
+export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 'y-', view: SectionViewId = 'front', skip?: ReadonlySet<string>, dir?: [number, number, number], faceOnly = false): SectionResult {
   // The depth `d` (unit, away from the viewer): the plane is dot(p, d) = y, the far side (kept) dot(p, d) > y. A principal
   // section's is its view's depth axis (k), cut by the kernel's axis split as it always was; an aligned one's, its own.
   const frame = sectionFrame({ view, ...(dir ? { dir } : {}) }, orientation), { d, principal } = frame;
@@ -49,14 +50,48 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
     const projection = projectBrepHiddenLines(breps, frame.view);
     const rings: XY[][] = [], ringBodies: number[] = [];
     breps.forEach((b, i) => { for (const r of principal ? cutRings(b, at, projection, principal.k) : planeRings(b, d, y, projection)) { rings.push(r); ringBodies.push(body[i]); } });
-    return { ok: true, projection, rings, ringBodies };
+    return { ok: true, projection: faceOnly ? onPlane(projection, breps, d, y) : projection, rings, ringBodies };
   } catch (cause) { return { ok: false, error: cause instanceof Error ? cause.message : String(cause) }; }
 }
 /** O148 X1: every section of the drawing, cut. */
 /** `made` (O174): a part's drawing — its bought elements neither cut nor drawn, as its views leave them. */
 export function sectionsCut(doc: StudioDoc, list: readonly DrawingSection[], orientation: Orientation = 'y-', made = false): SectionCut[] {
   const skip = made && list.length ? boughtOutputIds(doc) : undefined;
-  return list.map(x => ({ ...x, result: x.steps ? offsetSection(doc, x, orientation, skip) : x.half ? halfSection(doc, x, orientation, skip) : sectionOf(doc, x.at, orientation, x.view, skip, x.dir) }));
+  return list.map(x => ({ ...x, result: x.steps ? offsetSection(doc, x, orientation, skip) : x.half ? halfSection(doc, x, orientation, skip) : sectionOf(doc, x.at, orientation, x.view, skip, x.dir, !!(x.removed || x.revolved)) }));
+}
+
+/**
+ * DR-4: a section's projection less everything but the cut faces' outlines — the edges of the faces on the plane
+ * dot(p, d) = y (by name, and on the plane where their ends or circle say so; the far side's edges and the silhouettes
+ * along the cut go). Each kept curve is the kernel's own, so the outline is exact; the extent is the kept curves'.
+ */
+export function onPlane(pr: BrepProjection, breps: readonly Brep[], d: readonly number[], y: number): BrepProjection {
+  const names = new Set<string>(), tol = 1e-6 * Math.max(1, Math.abs(y));
+  for (const b of breps) {
+    const loops = new Map(b.loops.map(l => [l.id, l])), coedges = new Map(b.coedges.map(c => [c.id, c])), edges = new Map(b.edges.map(e => [e.id, e]));
+    for (const face of b.faces) {
+      let g; try { g = faceGeometry(face); } catch { continue; }
+      if (g.kind !== 'plane' || Math.abs(Math.abs(g.n[0] * d[0] + g.n[1] * d[1] + g.n[2] * d[2]) - 1) > 1e-9 || Math.abs(g.o[0] * d[0] + g.o[1] * d[1] + g.o[2] * d[2] - y) > tol) continue;
+      for (const lid of face.loops) for (const cid of loops.get(lid)!.coedges) { const e = edges.get(coedges.get(cid)!.edge); if (e) names.add(e.name ?? e.id); }
+    }
+  }
+  const kept: ProjectedEdge[] = [];
+  for (const e of pr.edges) if (names.has(e.name) && (!e.ends || (onIt(e.ends[0], d, y, tol) && onIt(e.ends[1], d, y, tol))) && (!e.circle || (onIt(e.circle.center, d, y, tol) && Math.abs(Math.abs(e.circle.normal[0] * d[0] + e.circle.normal[1] * d[1] + e.circle.normal[2] * d[2]) - 1) <= 1e-9))) kept.push(e);
+  const min: [number, number] = [Infinity, Infinity], max: [number, number] = [-Infinity, -Infinity];
+  for (const e of kept) for (const p of e.pieces) curveExtent(p.curve, min, max);
+  return { right: pr.right, up: pr.up, toward: pr.toward, edges: kept, min: kept.length ? min : [0, 0], max: kept.length ? max : [0, 0] };
+}
+const onIt = (p: readonly number[], d: readonly number[], y: number, tol: number) => Math.abs(p[0] * d[0] + p[1] * d[1] + p[2] * d[2] - y) <= tol;
+const grow = (min: [number, number], max: [number, number], x: number, y: number) => { if (x < min[0]) min[0] = x; if (y < min[1]) min[1] = y; if (x > max[0]) max[0] = x; if (y > max[1]) max[1] = y; };
+const growArc = (c: Extract<ProjectedCurve, { kind: 'arc' }>, t: number, min: [number, number], max: [number, number]) => grow(min, max, c.center[0] + c.u[0] * Math.cos(t) + c.v[0] * Math.sin(t), c.center[1] + c.u[1] * Math.cos(t) + c.v[1] * Math.sin(t));
+/** A curve's exact extent added to min/max: a line's ends, a polyline's points, an arc's ends and its turning points inside its range. */
+function curveExtent(c: ProjectedCurve, min: [number, number], max: [number, number]): void {
+  if (c.kind === 'line') { grow(min, max, c.a[0], c.a[1]); grow(min, max, c.b[0], c.b[1]); return; }
+  if (c.kind === 'polyline') { for (const p of c.points) grow(min, max, p[0], p[1]); return; }
+  const lo = Math.min(c.t0, c.t1), hi = Math.max(c.t0, c.t1);
+  growArc(c, lo, min, max); growArc(c, hi, min, max);
+  // (x(t) = cx + ux cos t + vx sin t turns where tan t = vx/ux, every π; likewise y.)
+  for (const k of [0, 1] as const) { const base = Math.atan2(c.v[k], c.u[k]); for (let t = base + Math.PI * Math.ceil((lo - base) / Math.PI); t < hi; t += Math.PI) if (t > lo) growArc(c, t, min, max); }
 }
 
 /**
