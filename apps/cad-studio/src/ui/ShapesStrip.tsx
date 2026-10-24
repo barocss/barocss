@@ -2,7 +2,9 @@
 // "More shapes" menu — so the bar is never wider than the window (no sideways page scroll), however many placed commands
 // there are or however narrow the window. The room is the bar's width less its other children (the two `.grow` spacers
 // left out: they take what is left), measured again whenever the bar or one of them changes size.
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 
 /** A 30 px tool and its 1 px gap. */
@@ -26,7 +28,7 @@ function fitting(strip: HTMLElement, count: number): number {
 }
 
 export function ShapesStrip({ buttons }: { buttons: readonly ReactNode[] }) {
-  const ref = useRef<HTMLDivElement>(null), menu = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState(buttons.length), [open, setOpen] = useState(false);
   useLayoutEffect(() => {
     const strip = ref.current, bar = strip?.parentElement; if (!strip || !bar) return;
@@ -36,20 +38,15 @@ export function ShapesStrip({ buttons }: { buttons: readonly ReactNode[] }) {
     ro.observe(bar); for (const el of Array.from(bar.children)) if (el !== strip) ro.observe(el);
     return () => ro.disconnect();
   }, [buttons.length]);
-  // (The menu closes on a pick, on a click outside it, and on Escape.)
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', away); document.addEventListener('keydown', key);
-    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', key); };
-  }, [open]);
   const rest = buttons.slice(fit);
   return <div className="shapes" role="toolbar" aria-label="Shapes" ref={ref}>
     {buttons.slice(0, fit)}
     {rest.length > 0 && <span className="shapes-more-anchor">
-      <button className={'tool' + (open ? ' on' : '')} aria-label="More shapes" aria-expanded={open} data-tip="More shapes" data-tip-desc={`${rest.length} more`} onClick={() => setOpen(v => !v)}><Icon name="more_horiz" /></button>
-      {open && <div className="card shapes-more" role="menu" aria-label="More shapes" ref={menu} onClick={() => setOpen(false)}>{rest}</div>}
+      {/* (G12f: shadcn's DropdownMenu, in place — Radix's dismissal: a click outside, Escape; a pick closes it.) */}
+      <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+        <DropdownMenuTrigger asChild><ToolIconButton state={open ? 'on' : 'idle'} aria-label="More shapes" data-tip="More shapes" data-tip-desc={`${rest.length} more`}><Icon name="more_horiz" /></ToolIconButton></DropdownMenuTrigger>
+        <DropdownMenuContent portal={false} className="card shapes-more min-w-0 p-1.5" aria-label="More shapes" align="end" onClick={() => setOpen(false)}>{rest}</DropdownMenuContent>
+      </DropdownMenu>
     </span>}
   </div>;
 }

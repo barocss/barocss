@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { Command, Ctx } from '@barocss/cad-model/app/commands';
 import { ShapesStrip } from './ShapesStrip';
+import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 
 /**
@@ -13,9 +14,9 @@ export const ToolButton = memo(function ToolButton({ c, ok, reason, on, onStart,
   onDragStart(c: Command, e: React.DragEvent): void;
   onDragEnd(c: Command, e: React.DragEvent): void;
 }) {
-  return <button className={'tool' + (on ? ' on' : '') + (ok ? '' : ' off')} aria-label={c.label}
+  return <ToolIconButton state={on ? 'on' : ok ? 'idle' : 'off'} aria-label={c.label}
     data-tip={c.label} data-tip-key={c.shortcut ?? ''} data-tip-desc={c.hint ?? ''} data-tip-off={reason} onClick={() => onStart(c)}
-    {...(c.place && ok ? { draggable: true, onDragStart: (e: React.DragEvent) => onDragStart(c, e), onDragEnd: (e: React.DragEvent) => onDragEnd(c, e) } : {})}><Icon name={c.icon} /></button>;
+    {...(c.place && ok ? { draggable: true, onDragStart: (e: React.DragEvent) => onDragStart(c, e), onDragEnd: (e: React.DragEvent) => onDragEnd(c, e) } : {})}><Icon name={c.icon} /></ToolIconButton>;
 });
 
 /** A command's availability as its button shows it ('' when it is on). */

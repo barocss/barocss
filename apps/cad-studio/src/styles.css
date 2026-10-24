@@ -152,12 +152,13 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 .shapes { display: flex; flex: 0 1 auto; min-width: 0; gap: 1px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--line-soft); }
 /* More shapes: the strip's overflow (ui/ShapesStrip.tsx), a grid under its button. */
 .shapes-more-anchor { position: relative; display: inline-flex; }
-.shapes-more { position: absolute; top: 34px; left: 0; z-index: 30; display: grid; grid-template-columns: repeat(6, 30px); gap: 2px; padding: 6px; }
+.shapes-more { display: grid; grid-template-columns: repeat(6, 30px); gap: 2px; padding: 6px; }
 .shapes .tool { width: 30px; height: 30px; }
 /* The right-hand tools (ui/ToolsTray.tsx): the bar's spacing between them; the rest in More tools, under its button at the right. */
 .tools-tray { display: flex; flex: 0 0 auto; align-items: center; gap: 10px; }
 .tools-more-anchor { position: relative; display: inline-flex; }
-.tools-more { position: absolute; top: 34px; right: 0; z-index: 30; display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 8px; }
+/* (G12f: the More menus are shadcn's DropdownMenu, placed by Radix: their grids here.) */
+.tools-more { display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 8px; }
 .tools-more .tpl-anchor { position: relative; }
 .shapes .tool[draggable='true'] { cursor: grab; }
 .mode { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: #2a2c30; }
@@ -277,14 +278,15 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .cad-display-control select:disabled { opacity: 0.65; cursor: not-allowed; }
 .cad-display-status { display: block; flex-basis: 100%; max-width: 300px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font-size: 11px; line-height: 1.4; }
 
-.palette-backdrop { position: absolute; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.25); }
-.palette { position: absolute; left: 50%; top: 18vh; transform: translateX(-50%); width: 520px; padding: 6px; }
+/* (G12f: the palette is shadcn's Command in its Dialog — the overlay and its place the Dialog's; its rows here.) */
+.palette-backdrop { background: rgba(0, 0, 0, 0.25); }
+.palette { width: 520px; padding: 6px; }
 .palette-input { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 8px; border-radius: 5px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
 .palette-input input { flex-grow: 1; border: 0; background: transparent; color: var(--text); font: 400 13px var(--sans); outline: none; }
-.palette-list { list-style: none; margin: 6px 0 0; padding: 0; max-height: 50vh; overflow: auto; }
-.palette-list li { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 4px; cursor: pointer; color: var(--text-2); }
-.palette-list li.cur { background: #34363b; color: var(--text); }
-.palette-list li.off { opacity: 0.55; }
+.palette-list { margin: 6px 0 0; padding: 0; max-height: 50vh; overflow: auto; }
+.palette-list .pl-item { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 4px; cursor: pointer; color: var(--text-2); }
+.palette-list .pl-item[data-selected='true'] { background: #34363b; color: var(--text); }
+.palette-list .pl-item.off { opacity: 0.55; }
 .pl-reason { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* (At the stage's top left, under the hint bar — where the Browser was before it moved into the dock, G12b: clear of the
@@ -300,7 +302,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 
 .marquee { fill: rgba(79, 143, 247, 0.10); stroke: #4f8ff7; stroke-width: 1; }
 .marquee.crossing { fill: rgba(87, 178, 107, 0.10); stroke: #57b26b; stroke-dasharray: 5 4; }
-.ctx-menu { position: fixed; z-index: 20; width: 224px; padding: 4px; display: flex; flex-direction: column; }
+/* (G12f: the menus are shadcn's DropdownMenu — Radix places them; a right-click's is anchored at the click.) */
+.menu-anchor { position: fixed; width: 0; height: 0; pointer-events: none; }
+.ctx-menu { width: 224px; display: flex; flex-direction: column; }
 .ctx-title { padding: 6px 8px 2px; margin: 0; }
 .ctx-item { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); text-align: left; cursor: pointer; }
 .ctx-item:hover, .ctx-item:focus { background: #34363b; color: var(--text); outline: none; }
@@ -325,7 +329,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 :root[data-theme='light'] .topbar { background: rgba(247, 248, 250, 0.94); }
 :root[data-theme='light'] .doc-tab, :root[data-theme='light'] .mode, :root[data-theme='light'] .chip, :root[data-theme='light'] .hs, :root[data-theme='light'] .status { background: #eef1f4; }
 :root[data-theme='light'] .mode button.on { background: #ffffff; }
-:root[data-theme='light'] .tool:hover:not(:disabled), :root[data-theme='light'] .ol:hover, :root[data-theme='light'] .views button:hover, :root[data-theme='light'] .ctx-item:hover, :root[data-theme='light'] .palette-list li.cur { background: #e3e8ee; }
+:root[data-theme='light'] .tool:hover:not(:disabled), :root[data-theme='light'] .ol:hover, :root[data-theme='light'] .views button:hover, :root[data-theme='light'] .ctx-item:hover, :root[data-theme='light'] .palette-list .pl-item[data-selected='true'] { background: #e3e8ee; }
 :root[data-theme='light'] .ol.sel, :root[data-theme='light'] .hs.edit { background: var(--accent-soft); color: #7a5a08; }
 :root[data-theme='light'] .kv b { color: var(--text); }
 :root[data-theme='light'] .kbd { background: #f2f4f6; border-color: #c9cfd6; color: #4a5562; }
@@ -409,18 +413,18 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 /* CAD line icons (ui/cadIcons.tsx) and the app's tooltip (ui/Tooltip.tsx). */
 .cad-icon { display: inline-block; vertical-align: middle; flex: none; --icon-ac: #5aa2ff; --icon-bg: var(--panel-solid); }
 /* Faces mix into what the icon sits on (see ui/cadIcons.tsx). */
-.tool:hover:not(:disabled) .cad-icon, .palette-list li.cur .cad-icon { --icon-bg: #34363b; }
+.tool:hover:not(:disabled) .cad-icon, .palette-list .pl-item[data-selected='true'] .cad-icon { --icon-bg: #34363b; }
 .tool.on .cad-icon { --icon-bg: var(--accent); }
-:root[data-theme='light'] .tool:hover:not(:disabled) .cad-icon, :root[data-theme='light'] .palette-list li.cur .cad-icon { --icon-bg: #e3e8ee; }
+:root[data-theme='light'] .tool:hover:not(:disabled) .cad-icon, :root[data-theme='light'] .palette-list .pl-item[data-selected='true'] .cad-icon { --icon-bg: #e3e8ee; }
 .cad-icon .ac { stroke: var(--icon-ac); }
 .cad-icon .acf { fill: var(--icon-ac); }
 :root[data-theme='light'] .cad-icon { --icon-ac: #2f6fd6; }
 /* On the active tool's yellow: one ink. */
 .tool.on .cad-icon { --icon-ac: currentColor; }
 .tool .cad-icon { width: 20px; height: 20px; }
-.tooltip { position: fixed; z-index: 50; max-width: 260px; padding: 7px 10px; pointer-events: none; display: flex; flex-direction: column; gap: 3px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
-.tooltip.right { transform: translateY(-50%); }
-.tooltip.below { transform: translateX(-50%); }
+/* (G12f: the tooltip is shadcn's — its box and placement from components/ui/tooltip; its inner rows here.) */
+.tooltip { display: flex; flex-direction: column; gap: 3px; }
+.tooltip-anchor { position: fixed; pointer-events: none; }
 .tooltip-head { display: flex; align-items: center; gap: 8px; }
 .tooltip-head b { font-weight: 600; }
 .tooltip-desc { color: var(--text-2); line-height: 1.4; }
@@ -442,9 +446,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hud-step:not(.done) .ms { color: var(--accent); }
 
 /* The keyboard and mouse list (ui/ShortcutHelp.tsx). */
-.help-scrim { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.35); }
+.help-scrim { background: rgba(0, 0, 0, 0.35); }
 .help { width: min(720px, calc(100vw - 32px)); max-height: calc(100vh - 80px); overflow: auto; padding: 14px 16px; }
-.help .card-title { display: flex; justify-content: space-between; align-items: center; }
+.help .card-title { display: flex; justify-content: space-between; align-items: center; margin: 0; }
 .help-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
 .help h4 { margin: 12px 0 4px; font: 600 10px var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .help-row { display: flex; align-items: center; gap: 8px; height: 24px; }
