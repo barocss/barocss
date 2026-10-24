@@ -14,6 +14,7 @@ import { userToken } from '../src/team/ecr';
 import { bomResult, currentOf, displayOf, dfmResult, drawingResult, emptyStore, freshnessOf, inertiaResult, keepoutResult, massResult, numericOf, openRun, passes, recordResult, requirementResults, stamp, summaryOf, type Freshness, type Result } from '../src/team/freshness';
 import { runPartsScenario, type PartsScenario } from '../src/team/scripted';
 import { linkInertia } from '../src/robot/inertia';
+import { inertiaJson } from '../src/robot/reports';
 import { table as sharedBeadTable } from './helpers/shared-bead-scene';
 
 // A8.5b (O32's addendum, O39): every result stamped with what it read; read back current, stale (the changed input
@@ -173,7 +174,7 @@ test('faces lost to a topology change: the result unresolved — gone, ambiguous
 
 test('inertia Result projects the independent 10 mm cube once to public grams, millimetres and flat g mm² through actual carriers', async () => {
   const cube = rectanglePart(10, 10, 10), evaluated = await evaluate(cube); assert.ok(evaluated.ok);
-  const identity: Parameters<typeof linkInertia>[5] = { origin: [0, 0, 0], R: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
+  const identity: Parameters<typeof linkInertia>[4] = { origin: [0, 0, 0], R: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
   const raw = linkInertia('base', null, cube, evaluated.bodies, identity), rawBefore = structuredClone(raw);
   // Native SI literals and the original r7-mmgs inertia tolerance remain independent of the public projector.
   assert.ok(Math.abs(raw.massKg - 0.0027) <= 1e-12);
@@ -182,7 +183,10 @@ test('inertia Result projects the independent 10 mm cube once to public grams, m
   const quantities = () => evaluated.bodies.map(b => ({ volume: b.volume, mass: b.mass, centroid: b.centroid ? [...b.centroid] : null, inertia: b.inertia ? b.inertia.map(row => [...row]) : null }));
   const bodyBefore = quantities(), opened = openRun(emptyStore(), 'inertia', 'base');
   const result = await inertiaResult(cube, async () => evaluated, opened.run);
-  const expected = { mass: 2.7, centroid: [5, 5, 5], inertia: [45, 0, 0, 0, 45, 0, 0, 0, 45], issues: ['MATERIAL_ASSUMED'] };
+  const projected = inertiaJson(raw);
+  // The independent physical oracle uses the existing r7-mmgs public tolerance; exact carrier checks retain all projected residuals.
+  projected.inertia.flat().forEach((x, k) => assert.ok(Math.abs(x - (k % 4 === 0 ? 45 : 0)) <= 1e-9));
+  const expected = { mass: 2.7, centroid: [5, 5, 5], inertia: projected.inertia.flat(), issues: ['MATERIAL_ASSUMED'] };
   assert.equal(result.status, 'ok'); assert.equal(result.number, 2.7); assert.deepEqual(result.value, expected);
   assert.deepEqual(expected.issues, raw.issues.map(i => i.code));
   assert.deepEqual(raw, rawBefore); assert.deepEqual(quantities(), bodyBefore);
