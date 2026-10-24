@@ -1,39 +1,35 @@
-// @barocss/cad as a program uses it: a part document evaluated, its output measured, checked and written, a parameter
-// edited, and a refusal. The @barocss/cad pages include the #region blocks. Run: pnpm test:samples
+// @barocss/cad as a program uses it: a part written through the object facade, its document evaluated by the core,
+// measured, checked and written; a parameter edited in the core's document; and a refusal. The @barocss/cad pages
+// include the #region blocks. Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // #region import
-import { evaluateCadPart, CadPartError } from '@barocss/cad';
+import { part } from '@barocss/cad/api';                       // the object facade
+import { evaluateCadPart, CadPartError } from '@barocss/cad';   // the core: the part document and its evaluation
 // #endregion import
 
-test('a plate with a hole: evaluated, measured, valid, written as STEP and STL', () => {
+test('a plate with a hole: written, evaluated, measured, valid, written as STEP and STL', () => {
   // #region part
-  // A 60 × 40 plate, its thickness a parameter, with a Ø8 hole through it.
-  const plate = {
-    format: 'barocss-cad-part', version: 1, units: 'mm',
-    parameters: { t: 8 },
-    features: [
-      { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40] },
-      { id: 'p', kind: 'extrude', sketch: 's', height: { parameter: 't' } },
-      { id: 'h', kind: 'hole', target: 'p', center: [30, 20], radius: 4 },
-    ],
-  };
-  const snapshot = evaluateCadPart(plate);
+  // A 60 × 40 × 8 plate with a Ø8 hole through it.
+  const plate = part('plate')
+    .box({ wMM: 60, dMM: 40, hMM: 8 })
+    .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 30, yMM: 20 });
+
+  const doc = plate.doc;                    // the part document: its features in order
+  assert.deepEqual(doc.features.map(f => [f.id, f.kind]), [['sketch1', 'sketch'], ['extrude1', 'extrude'], ['hole1', 'hole']]);
+  const snapshot = evaluateCadPart(doc);    // what the facade evaluates
   const [body] = snapshot.outputs;          // the parts no later feature consumes
   // #endregion part
 
   // #region outputs
-  const mass = body.massProperties(2700);   // aluminium, kg/m³
-  assert.ok(Math.abs(mass.volumeMM3 - (60 * 40 * 8 - Math.PI * 16 * 8)) < 1e-6);   // mm³
-  assert.equal(mass.method, 'closed-form');   // how it was integrated
-  assert.ok(Math.abs(mass.massKG - mass.volumeMM3 * 2700e-9) < 1e-12);
-  assert.equal(body.bodyCount, 1);
-  assert.equal(body.validate().valid, true);   // strict B-rep validity
-  assert.match(body.exportStep({ name: 'plate' }), /^ISO-10303-21;/);
-  const stl = body.exportStl();             // binary STL of the display tessellation
+  const mass = plate.mass({ densityGPerCm3: 2.7 });          // aluminium: mm³, g, mm, g·mm²
+  assert.ok(Math.abs(mass.volumeMM3 - (60 * 40 * 8 - Math.PI * 16 * 8)) < 1e-6);
+  assert.ok(Math.abs(mass.massG - mass.volumeMM3 * 2.7e-3) < 1e-9);
+  assert.equal(body.validate().valid, true);   // strict B-rep validity, on the core's output
+  assert.match(plate.step(), /^ISO-10303-21;/);
+  const stl = plate.stl();                  // binary STL of the display tessellation
   assert.equal(stl.length, 84 + 50 * new DataView(stl.buffer, stl.byteOffset).getUint32(80, true));
   // #endregion outputs
-  assert.deepEqual(snapshot.features.map(f => f.id), ['s', 'p', 'h']);
 });
 
 test('a parameter edited: unchanged features reused', () => {

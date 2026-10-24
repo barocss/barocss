@@ -1,11 +1,12 @@
-// gpu's object facade (`@barocss/gpu/api`, experimental, R7): an immutable scene of meshes, lights and a background, its
-// `.data` the plain description. `show(viewer, scene)` needs a browser with WebGPU, so this sample stops at `.data`. The
-// Object API page includes the #region blocks. Run: pnpm test:samples
+// gpu's object facade (`@barocss/gpu/api`): an immutable scene of meshes, lights and a background, materials by id,
+// display lines and a camera view, its `.data` the plain description. `show(viewer, scene)` needs a browser with WebGPU,
+// so this sample stops at `.data`. The Object API page includes the #region blocks. Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // #region import
-import { scene, BarocssError } from '@barocss/gpu/api';
+import { scene, LINE_MATERIAL, BarocssError } from '@barocss/gpu/api';
 import { part } from '@barocss/cad/api';
+import { part as studioPart } from '@barocss/cad-model/api';
 // #endregion import
 
 test('a scene of the bracket: its data plain, Z-up, the meshes as the part gave them', () => {
@@ -36,4 +37,22 @@ test('immutable, and a mesh that is not one refused', () => {
   assert.throws(() => scene().add({ positions: new Float64Array([0, 0]) }),
     e => e instanceof BarocssError && e.code === 'MESH_INVALID');
   // #endregion refusals
+});
+
+test('a studio part shown in its material, with its display lines, from the iso view', () => {
+  // #region looks
+  const plate = studioPart('plate').box({ wMM: 60, dMM: 40, hMM: 8 }).material('al6061');
+  const view = scene()
+    .material('al6061', { color: '#b8bcc2', metallic: 1, roughness: 0.35 })   // a look for the part's material id
+    .add(plate.meshes(), undefined, { lines: true })   // each mesh in the look its body names, and its lines
+    .camera('iso', { projection: 'orthographic' });
+
+  const { meshes, materials, camera } = view.data;
+  assert.deepEqual(meshes.map(m => [m.key, m.topology ?? 'triangles', m.material]),
+    [['b1', 'triangles', 'al6061'], ['b1/lines', 'lines', LINE_MATERIAL]]);
+  assert.deepEqual(Object.keys(materials), ['al6061']);   // the ids stay in the data; show() resolves them
+  assert.deepEqual(camera.up, [0, 0, 1]);
+  // #endregion looks
+  assert.throws(() => scene().add(plate.meshes(), 'pla'), e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
+  assert.throws(() => scene().camera('sideways'), e => e instanceof BarocssError && e.code === 'CAMERA_INVALID');
 });
