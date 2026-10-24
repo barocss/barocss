@@ -65,6 +65,9 @@ test('RS2: a saved motion in degrees ⇄ the timed path in radians; robot.motion
   near(p.waypoints[1][j1], Math.PI / 2);
   near(p.limits[j1]!.v, 30 * Math.PI / 180); near(p.limits.default!.v, 45, 0);
   const back = motionOf(tree, p);
+  // (The round trip: motionOf(timedPathOf(m)) is m, to the doubles' last digits.)
+  const close = (a: unknown, b: unknown): boolean => typeof a === 'number' && typeof b === 'number' ? Math.abs(a - b) <= 1e-12 * Math.max(1, Math.abs(b)) : a && b && typeof a === 'object' && typeof b === 'object' ? Object.keys(a).length === Object.keys(b).length && Object.keys(b).every(k => close((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k])) : a === b;
+  assert.ok(close(back, saved), JSON.stringify(back));
   near(back.waypoints[1][j1], 90, 1e-12); near(back.limits![j1].velocity, 30, 1e-12);
   const read = readRobot({ ...doc.robot, version: 1, motions: [{ name: 'wave', path: saved }, { name: '', path: saved }, { nope: true }] });
   assert.deepEqual(read.motions?.map(m => m.name), ['wave'], 'malformed motions dropped, the rest kept');
