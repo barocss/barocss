@@ -22,7 +22,7 @@ const FITS = { id: 'seat-fits', rows: [{ class: 'k5', overMM: 18, upToMM: 30, up
 const O1 = { id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, source: 'O1 (D139)' };
 /** The map with every pending volume filled. */
 function filled(bodies: readonly PlacedBody[], nearMM = 1): ClearanceMap {
-  const map = clearanceMap(bodies, { nearMM });
+  const map = clearanceMap(bodies, { near: nearMM });
   for (const p of [...map.pairs]) if (p.overlap && 'pending' in p.overlap) assert.ok(applyFill(map, fillOverlap(map, bodies, p)));
   return map;
 }
@@ -32,7 +32,7 @@ async function run(tool: string, args: Record<string, unknown>) { const r = awai
 
 test('A9-5: two boxes side by side — in contact at once (pending, not an overlap), then touching: 0 mm³', async () => {
   const bodies = await assemblyPlacedBodies({ ...box(20, 20, 10), instances: [inst('p', box(20, 20, 10), [20, 0, 0])] }, evaluate);
-  const map = clearanceMap(bodies, { nearMM: 1 }), p = map.pairs[0];
+  const map = clearanceMap(bodies, { near: 1 }), p = map.pairs[0];
   assert.deepEqual([map.pairs.length, p.state, p.minGapMM, map.pending], [1, 'contact', 0, 1]);
   assert.ok(applyFill(map, fillOverlap(map, bodies, p)));
   assert.ok(p.state === 'touching' && p.overlap && 'volumeMM3' in p.overlap && p.overlap.volumeMM3 <= TOUCHING_MM3, JSON.stringify([p.state, p.overlap && 'volumeMM3' in p.overlap ? p.overlap.volumeMM3 : p.overlap]));

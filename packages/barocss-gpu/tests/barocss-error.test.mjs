@@ -51,3 +51,24 @@ test('a cause given as undefined is kept as one; none given, none kept (the clas
   assert.equal(Object.hasOwn(new gpu.NativePointLightsError('INPUT', 'x'), 'cause'), false);
   assert.equal(Object.hasOwn(new gpu.EngineRaycastError('INPUT', 'x', undefined), 'cause'), false);
 });
+
+test('batch 3: the viewer refuses a caller\'s input with a coded ViewerError, its words kept after the code', async () => {
+  const v = await import('../dist/viewer/index.js');
+  // (The viewer entry is unbundled and the main entry a bundle, each with its own copy of the classes: compared within one.)
+  assert.throws(() => v.invert(new Float64Array(16)), e => e instanceof v.ViewerError && Object.getPrototypeOf(v.ViewerError.prototype).constructor.name === 'BarocssError'
+    && e.code === 'MATRIX_SINGULAR' && e.message === '[MATRIX_SINGULAR] Matrix is not invertible');
+});
+
+test('batch 3: a public entry refuses with a coded GpuInputError, the plain refusal under it kept as its cause', () => {
+  const bad = { version: 0, surfaceId: 's', revision: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions: [], normals: [], indices: [], parameters: [], bounds: { min: [0, 0, 0], max: [0, 0, 0] } };
+  assert.throws(() => gpu.validatePreviewPacket(bad), e => e instanceof gpu.GpuInputError && e instanceof gpu.BarocssError && e.code === 'MESH_PACKET_INVALID'
+    && e.message.startsWith('[MESH_PACKET_INVALID] ') && e.cause instanceof RangeError && e.message === `[MESH_PACKET_INVALID] ${e.cause.message}`);
+  assert.throws(() => gpu.parseScene('@scene x{version:0;sphere #s;}', { sourceVersion: 7 }), e => e.code === 'SCENE_INVALID' && e.cause instanceof Error);
+  // (A coded refusal passes through unchanged.)
+  assert.throws(() => gpu.parseScene('@scene x{version:0;sphere #s;}sphere{radius:x;}'), e => e instanceof gpu.SceneError && e.code === 'SCENE');
+});
+
+test('batch 3: the boolean buffers\' entries and the BVH depth refuse coded', () => {
+  assert.throws(() => gpu.prepareCoplanarBooleanBuffers({}, { mmToSceneUnit: 1, translate: [0, 0, 0] }), e => e instanceof gpu.GpuInputError && e.code === 'BOOLEAN_BUFFERS_INVALID' && e.cause instanceof RangeError);
+  assert.throws(() => gpu.prepareBooleanShellBuffers({}, { mmToSceneUnit: 1, translate: [0, 0, 0] }), e => e instanceof gpu.GpuInputError && e.code === 'BOOLEAN_BUFFERS_INVALID');
+});

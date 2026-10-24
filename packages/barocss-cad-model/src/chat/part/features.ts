@@ -34,7 +34,7 @@ export const CHAT_COMMANDS = commands.filter(c => c.build && c.id !== 'loft' && 
 export const COMMAND_DOCS: Record<string, { selection: string; values: Record<string, string> }> = {
   extrude: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'distance along the sketch normal', draft: 'wall draft degrees (0: straight)', op: 'join | new | cut (only for a sketch drawn on a body face)', depth: 'distance | through (a cut only)' } },
   revolve: { selection: 'none: the newest finished sketch no feature uses yet', values: { axis: 'y | x: the sketch axis to turn about', deg: 'angle, up to 360', op: 'join | new | cut (sketch on a body face)' } },
-  pipe: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'straight run before and after the bend', bend: 'bend radius', bendDeg: 'bend angle', toward: 'x | -x | y | -y', op: 'join | new | cut (sketch on a body face)' } },
+  pipe: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'straight run before and after the bend', bend: 'bend radius', bendAngle: 'bend angle', toward: 'x | -x | y | -y', op: 'join | new | cut (sketch on a body face)' } },
   'offset-face': { selection: 'faces: [one flat face of a body]', values: { d: 'distance along the face normal: + out (material added), − in (taken off)' } },
   box: { selection: 'none (or a top face to stack on)', values: { w: 'width along X', d: 'depth along Y', h: 'height along Z', x: 'min corner X', y: 'min corner Y', z: 'base Z' } },
   cylinder: { selection: 'none', values: { r: 'radius', h: 'height', x: 'centre X', y: 'centre Y', z: 'base Z' } },

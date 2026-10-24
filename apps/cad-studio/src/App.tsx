@@ -184,6 +184,8 @@ function changesBeyondVariability(a: StudioDoc, b: StudioDoc): boolean {
   return false;
 }
 type MassFields = Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'>;
+/** What Open reads, said when it is given another kind of file. */
+const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
 /** O18: the same bodies to draw — each key and mesh as before (only masses may differ). */
 function sameMeshes(a: readonly BodyResult[], b: readonly BodyResult[]): boolean {
   if (a === b) return true;
@@ -1633,13 +1635,17 @@ export function App() {
         setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
-      // A CAD source adds its curves and surfaces to the part as direct geometry.
-      if (/\.(barocad|cad)$/i.test(file.name)) {
-        const next = (await loadDirect()).importSource(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.(barocad|cad)$/i, ''));
+      // A .barocad source adds its curves and surfaces to the part as direct geometry. (Only .barocad: `.cad` is other
+      // programs' extension, owner 2026-10-24.)
+      if (/\.barocad$/i.test(file.name)) {
+        const next = (await loadDirect()).importSource(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.barocad$/i, ''));
         commitDirect(next, next.objects.slice((doc.direct?.objects.length ?? 0)).map(o => o.id));
         setTimeout(() => viewport.current?.fit(), 300);
         return;
       }
+      // Any other kind of file is named, with what Open reads; the part unchanged. (A file without an extension is still
+      // tried as a model below.)
+      if (/\.[^./\\]+$/.test(file.name) && !/\.(bcad|json)$/i.test(file.name)) { setToast({ title: `Can’t open ${file.name}`, hint: OPEN_READS, detail: '' }); return; }
       // Checked and, for an older file, brought up to date (said what was filled in); the file is left as it is.
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
       if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
@@ -2782,7 +2788,7 @@ export function App() {
           <ToolIconButton key="tool13" aria-label="Insert part" data-tip="Insert part" data-tip-desc="Another part (.bcad) as an instance" onClick={() => partInput.current?.click()}><Icon name="add_to_photos" /></ToolIconButton>,
         ].filter(Boolean)} />
         <input ref={partInput} type="file" accept=".bcad,.json" hidden aria-label="Part file" onChange={e => { const f = e.target.files?.[0]; if (f) insertPart(f); e.target.value = ''; }} />
-        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
+        <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}

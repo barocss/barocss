@@ -21,7 +21,7 @@ self.onmessage = (event: MessageEvent<PrintRequest>) => {
       if (!Number.isSafeInteger(job.layer) || job.layer < 0) throw new Error('Layer index must be a nonnegative safe integer.');
       const key = JSON.stringify([job.sourceKey, job.direction ?? null, job.layerMM ?? null, job.limitDeg ?? null]);
       if (!model || cacheKey !== key) {
-        const next = printLayers(job.meshes, { direction: job.direction, layerMM: job.layerMM, limitDeg: job.limitDeg });
+        const next = printLayers(job.meshes, { direction: job.direction, layerHeight: job.layerMM, overhangLimit: job.limitDeg });
         if (!Number.isSafeInteger(next.count) || next.count < 1) throw new Error('Layer height produces an unsupported layer count.');
         const mesh = extrudePrintSupport(next.supportColumns);
         model = next; supportMesh = mesh; cacheKey = key; summaryKey++;

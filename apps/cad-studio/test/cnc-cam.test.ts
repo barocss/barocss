@@ -42,7 +42,7 @@ test('CNC8 a 50 × 30 pocket, 8 deep, Ø6 tool (an estimate): loops (44 − 4.8k
   assert.deepEqual(pk.levels, [3, 6, 8]); assert.ok(Math.abs(pk.lengthMM - 3 * [0, 1, 2, 3, 4].reduce((t, k) => t + 2 * (68 - 9.6 * k), 0)) <= 1e-6, String(pk.lengthMM));
   assert.deepEqual([pk.setup, pk.plane.normal, pk.plane.origin[2]], ['+Z', [0, 0, 1], 12]);
   // (The mutant: a Ø32 tool in a 30-wide pocket — no loop, said.)
-  const big = camPreview(s.doc, s.bodies, { toolMM: 32 }).operations.find((o): o is PocketPass => o.kind === 'pocket')!;
+  const big = camPreview(s.doc, s.bodies, { toolDiameter: 32 }).operations.find((o): o is PocketPass => o.kind === 'pocket')!;
   assert.deepEqual([big.loops.length, big.note], [0, 'the tool (Ø32) does not fit the pocket (30 wide)']);
 });
 
@@ -57,15 +57,15 @@ test('CNC8 the pocket filleted r 5, Ø6: the first loop 44 × 24 with corners r 
 test('CNC8 holes and the rest: Ø6.6 through 20 — from +Z down to z 0 and from −Z up to z 20, 20 deep; Ø5 blind — from +Z, 10; both wider than the Ø4 tool, so circular pockets (O161, F3), a hole of the tool\'s size a drill point; a slot listed, not previewed; a given tool said given', async () => {
   const s = await build([cmd('box', { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('hole', { d: 6.6, x: 15, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 5, depth: 10, x: 45, y: 20 }, { faces: ['n1.top'] }),
     cmd('box', { w: 8, d: 60, h: 20, x: 26, y: -10, z: 16 }), ['run_command', { command: 'difference', values: {}, bodies: ['b3', 'b5'] }]]);
-  const p = camPreview(s.doc, s.bodies, { toolMM: 4 });
+  const p = camPreview(s.doc, s.bodies, { toolDiameter: 4 });
   // (The preview lists each direction a hole is reachable from; the package makes each once, O161 F2.)
   const bores = p.operations.filter((o): o is PocketPass => o.kind === 'pocket' && !!o.note).map(o => [o.setup, o.plane.origin[2], o.plane.normal[2], o.levels.at(-1), o.note]);
   assert.deepEqual(bores, [['+Z', 0, 1, 20, 'Ø6.6 is wider than the Ø4 tool: milled as a circular pocket, not drilled'], ['−Z', 20, -1, 20, 'Ø6.6 is wider than the Ø4 tool: milled as a circular pocket, not drilled'], ['+Z', 10, 1, 10, 'Ø5 is wider than the Ø4 tool: milled as a circular pocket, not drilled']]);
   assert.deepEqual(p.operations.filter((o): o is DrillPoint => o.kind === 'drill'), []);
-  const fit = camPreview(s.doc, s.bodies, { toolMM: 5 }).operations.filter((o): o is DrillPoint => o.kind === 'drill').map(d => [d.setup, d.at[2], d.axis[2], d.depthMM, d.diameterMM]);
+  const fit = camPreview(s.doc, s.bodies, { toolDiameter: 5 }).operations.filter((o): o is DrillPoint => o.kind === 'drill').map(d => [d.setup, d.at[2], d.axis[2], d.depthMM, d.diameterMM]);
   assert.deepEqual(fit, [['+Z', 20, -1, 10, 5]], 'the Ø5 hole with a Ø5 tool: a drill point');
   assert.deepEqual(p.skipped.map(x => x.why), ['a slot is open on a side: not previewed']); assert.deepEqual(p.tool, { diameterMM: 4, basis: 'given' });
-  const svg = camSvg(camPreview(s.doc, s.bodies, { toolMM: 5 }), '+Z'); assert.ok(svg.startsWith(`<!-- ${NOT_FOR_PRODUCTION} -->`)); assert.match(svg, /<circle /);
+  const svg = camSvg(camPreview(s.doc, s.bodies, { toolDiameter: 5 }), '+Z'); assert.ok(svg.startsWith(`<!-- ${NOT_FOR_PRODUCTION} -->`)); assert.match(svg, /<circle /);
   assert.match(camSvg(p, '+Z'), /<polygon /, 'the circular pockets\' loops');
 });
 

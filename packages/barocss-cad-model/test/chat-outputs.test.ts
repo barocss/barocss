@@ -35,7 +35,7 @@ test('manufacturing files are actual generator content, hashed and read-only', a
     const bytes = new TextEncoder().encode(f.text);
     assert.equal(f.bytes, bytes.length); assert.equal(f.sha256, sha256Hex(bytes));
   }
-  const print = files(await output(doc, 'output_print_layers', { layerMM: 1, layers: [0, 3] }))[0];
+  const print = files(await output(doc, 'output_print_layers', { layerHeight: 1, layers: [0, 3] }))[0];
   const data = JSON.parse(print.text);
   assert.equal(data.count, 4); assert.equal(data.basis, 'display mesh');
   assert.deepEqual(data.layers.map((l: { k: number }) => l.k), [0, 3]);
@@ -68,8 +68,8 @@ test('unknown, nested and unsafe output inputs refuse without changing the docum
   for (const [name, args] of [
     ['output_cam_package', { tool: { diameterMM: 6 } }], ['output_purchase_csv', { withMade: 'true' }],
     ['output_print_layers', { direction: [0, 0, 0] }], ['output_print_layers', { layers: [0, 0] }],
-    ['output_print_layers', { layers: [999] }], ['output_print_layers', { layerMM: 1e-9 }],
-    ['output_clearance', { nearMM: NaN }], ['output_bundle', { baseline: { id: 'BL1' } }],
+    ['output_print_layers', { layers: [999] }], ['output_print_layers', { layerHeight: 1e-9 }],
+    ['output_clearance', { near: NaN }], ['output_bundle', { baseline: { id: 'BL1' } }],
     ['output_cam_package', { part: 'missing' }], ['output_bom', { approve: true }],
   ] as [string, Record<string, unknown>][]) assert.ok('error' in await output(doc, name, args), `${name}: ${JSON.stringify(args)}`);
   assert.equal(OUTPUT_TOOL_NAMES.size, 6);

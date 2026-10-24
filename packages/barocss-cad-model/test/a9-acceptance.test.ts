@@ -139,7 +139,7 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   }
   // (O160, F1: the cover's print layers are the cover's, not its bought O-ring's: 8 mm at 0.2 is 40 layers, no support —
   // the groove opens upward.)
-  const layers = await call('print', C({ action: 'layers', layerMM: 0.2 })) as { files: { text: string }[] };
+  const layers = await call('print', C({ action: 'layers', layerHeight: 0.2 })) as { files: { text: string }[] };
   const print = JSON.parse(layers.files[0].text) as { count: number; supportColumns: unknown[]; heightMM: number };
   assert.deepEqual([print.count, print.supportColumns.length, +print.heightMM.toFixed(6)], [40, 0, 8]);
 
@@ -213,7 +213,7 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   assert.ok(housed.some(t => /^the housing has no shoulder at either face of the bearing/.test(t)), 'D181: the plain bore does not locate the outer ring');
   // (The map, every contact filled: clean — no overlap at all; the designed seats named; contact touching; the one near pair
   // the shaft's end in the cover's hole, its 1 mm a side less the display meshes' chords.)
-  const bodies = await assemblyPlacedBodies(s.doc, evaluate), map = clearanceMap(bodies, { nearMM: 1 });
+  const bodies = await assemblyPlacedBodies(s.doc, evaluate), map = clearanceMap(bodies, { near: 1 });
   for (const p of [...map.pairs]) if (p.overlap && 'pending' in p.overlap) assert.ok(applyFill(map, fillOverlap(map, bodies, p)));
   assert.deepEqual(map.pairs.filter(p => p.state === 'overlap').map(p => [p.a, p.b]), []);
   const designed = map.pairs.filter(p => p.state === 'designed' && !/^weld bead/.test(p.designed ?? '')).map(p => p.designed).sort();

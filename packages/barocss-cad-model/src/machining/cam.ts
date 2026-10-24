@@ -94,9 +94,9 @@ export function inset(poly: readonly P2[], d: number): P2[] | null {
 }
 
 /** The preview: pockets' loops and holes' drill points for the part's features; `tool` the diameter (default an estimate). */
-export function camPreview(doc: StudioDoc, all: readonly BodyResult[], o: { toolMM?: number } = {}): CamPreview {
+export function camPreview(doc: StudioDoc, all: readonly BodyResult[], o: { toolDiameter?: number } = {}): CamPreview {
   const bodies = madeBodies(doc.nodes, all); // (O160: a bought element is not machined.)
-  const D = o.toolMM && o.toolMM > 0 ? o.toolMM : TOOL_ESTIMATE_MM, R = D / 2, so = STEPOVER_SHARE * D, sd = STEPDOWN_SHARE * D;
+  const D = o.toolDiameter && o.toolDiameter > 0 ? o.toolDiameter : TOOL_ESTIMATE_MM, R = D / 2, so = STEPOVER_SHARE * D, sd = STEPDOWN_SHARE * D;
   const holes = holesOf(bodies), features = featuresOf(doc, bodies, holes), ops: (PocketPass | DrillPoint)[] = [], skipped: { feature: string; why: string }[] = [];
   for (const f of features) {
     if (f.kind === 'pocket') { const p = pocketPass(f, bodies, R, so, sd); if (p) ops.push(p); else skipped.push({ feature: f.id, why: 'its floor\'s outline could not be read' }); }
@@ -104,7 +104,7 @@ export function camPreview(doc: StudioDoc, all: readonly BodyResult[], o: { tool
     else if (f.kind === 'hole') for (const dp of drillPoints(f, holes)) ops.push(dp.diameterMM > D + 1e-9 ? boreAsPocket(dp, R, so, sd) : dp);
     else if (f.kind === 'slot' || f.kind === 'step') skipped.push({ feature: f.id, why: `a ${f.kind} is open on a side: not previewed` });
   }
-  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, tool: { diameterMM: D, basis: o.toolMM && o.toolMM > 0 ? 'given' : 'estimate' }, stepoverMM: r6(so), stepdownMM: r6(sd),
+  return { banner: NOT_FOR_PRODUCTION, notForProduction: true, tool: { diameterMM: D, basis: o.toolDiameter && o.toolDiameter > 0 ? 'given' : 'estimate' }, stepoverMM: r6(so), stepdownMM: r6(sd),
     basis: `the stepover ${STEPOVER_SHARE * 100} % and the step-down ${STEPDOWN_SHARE * 100} % of the tool's diameter: estimates`, operations: ops, skipped };
 }
 function pocketPass(f: Feature, bodies: readonly BodyResult[], R: number, so: number, sd: number): PocketPass | null {

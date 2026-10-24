@@ -47,8 +47,8 @@ Reads the part without changing it.
 | `query.cutlist` | `cut_list` | csv? — a frame’s members to cut: rows of identical ones, lengths, end cuts, mass; nested into the stock lengths |
 | `query.bom` | `output_bom` | expectedRevision? — BOM files |
 | `query.purchase_csv` | `output_purchase_csv` | withMade?, expectedRevision? |
-| `query.clearance` | `output_clearance` | nearMM?, expectedRevision? — current assembly map |
-| `query.cam` | `output_cam_package` | part?, toolMM?, expectedRevision? — NOT FOR PRODUCTION |
+| `query.clearance` | `output_clearance` | near?, expectedRevision? — current assembly map |
+| `query.cam` | `output_cam_package` | part?, toolDiameter?, expectedRevision? — NOT FOR PRODUCTION |
 | `query.render` | `render_views` | highlight?, section? — pictures of the part |
 | `query.select` | `select` | faces?, edges?, bodies? — shows them selected in the studio |
 | `query.manufacturability` | `check_printability` | direction?, finish?, sides? — the report for the part's process: printing, injection moulding (pull, finish, halves), machining, casting (pull) |
@@ -141,7 +141,7 @@ Printability on an FDM printer (check: as query.manufacturability).
 
 | Action | Handler | Arguments and notes |
 |---|---|---|
-| `print.layers` | `output_print_layers` | part?, layers?, layerMM?, direction?, limitDeg?, expectedRevision? |
+| `print.layers` | `output_print_layers` | part?, layers?, layerHeight?, direction?, overhangLimit?, expectedRevision? |
 | `print.check` | `check_printability` | direction? (an alias, kept for agents that know it) |
 | `print.orient` | `orient_for_print` | apply? |
 

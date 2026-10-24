@@ -167,8 +167,8 @@ const faceOf = (mesh: DisplayMesh, triangle: number) => triangle < 0 ? '' : mesh
  * The map: candidates by their grown boxes and the exact least distance on each — at once. Bands (`bands: true`, or each
  * by `bandFor`) and overlaps (`fillOverlap`) come after, nearest first: a band costs far more than the map (O-log).
  */
-export function clearanceMap(bodies: readonly PlacedBody[], o: { nearMM?: number; bands?: boolean } = {}): ClearanceMap {
-  const near = o.nearMM ?? 1, t0 = performance.now(), ps = bodies.map(prepare);
+export function clearanceMap(bodies: readonly PlacedBody[], o: { near?: number; bands?: boolean } = {}): ClearanceMap {
+  const near = o.near ?? 1, t0 = performance.now(), ps = bodies.map(prepare);
   const order = ps.map((_, k) => k).sort((a, b) => ps[a].lo[0] - ps[b].lo[0]), cand: [number, number][] = [];
   for (let i = 0; i < order.length; i++) for (let j = i + 1; j < order.length; j++) {
     const A = ps[order[i]], B = ps[order[j]]; if (B.lo[0] > A.hi[0] + near) break;

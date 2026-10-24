@@ -21,7 +21,7 @@ const json = (s: string) => JSON.parse(s) as Record<string, unknown>;
 test('A9-10 existing v2 actions and describe expose read-only outputs within the per-turn contract', async () => {
   const doc = assembly(rectanglePart(20, 15, 4)), s = stateOf(doc), before = JSON.stringify(doc);
   const described = await dispatchTool(s, 'describe', { tool: 'query', action: 'cam' }, evaluate);
-  assert.equal(described.isError, false, described.content); assert.match(described.content, /toolMM/); assert.match(described.content, /expectedRevision/);
+  assert.equal(described.isError, false, described.content); assert.match(described.content, /toolDiameter/); assert.match(described.content, /expectedRevision/);
   const output = await runTool(s, 'query', { action: 'bom' }, evaluate);
   assert.equal(output.isError, false, output.content); assert.equal(output.changed, false); assert.equal(output.state.doc, doc); assert.equal(JSON.stringify(doc), before);
   assert.ok(Array.isArray(json(output.content).files));

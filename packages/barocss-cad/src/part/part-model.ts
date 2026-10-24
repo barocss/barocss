@@ -78,6 +78,7 @@ import { meshOperation } from './part-mesh.js';
 import { shellOperation } from './part-shell.js';
 import { sheetOperation } from './part-sheet.js';
 import { frameOperation } from './part-frame.js';
+import { checkExpected, expectOf, type CadPartNameSignature } from './part-expect.js';
 import { KernelError } from '../core/barocss-error.js';
 
 export type CadPartDim = number | { readonly parameter: string };
@@ -187,7 +188,7 @@ export type CadPartFeature = Base & (
    * line on the neutral plane (default: the body's bottom) by `angleDegrees` — positive leans its top
    * in (material taken off), negative out (material added). The faces by name.
    */
-  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim }
+  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
    * D149: one face of a part split along NURBS curves lying on it (`curves`, mm), or along its isocline n·d = 0 for the pull
    * `pull`; the face by name (a base name naming one face). The pieces are named `<face>#1`, `<face>#2` … (an isocline's +
@@ -496,8 +497,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'sheet-corner-relief'; readonly target: string; readonly corner: string; readonly shape: 'square' | 'round'; readonly size: CadPartDim }
   | { readonly kind: 'sheet-flange'; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angleDegrees?: number; readonly bendRadius?: CadPartDim; readonly measure?: 'outer' | 'inner' | 'tangent'; readonly position?: 'material-inside' | 'material-outside' | 'bend-outside'; readonly offsets?: readonly [CadPartDim, CadPartDim]; readonly relief?: { readonly kind: 'rectangular' | 'obround'; readonly width: CadPartDim; readonly depth: CadPartDim } | { readonly kind: 'none' } }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
-  | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[] }
-  | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim }
+  | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[]; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /** Vertical edges of upright bodies. */
   /**
    * `radius` rounds the edges with one radius. `radii` instead gives the radius at points of the edges (2–16, each on
@@ -510,7 +511,7 @@ export type CadPartFeature = Base & (
    * `rho` in (0, 1) (0.5 a parabola, less flatter, more fuller); `g2`, curvature-continuous with the faces, `tension` in
    * (0, 1) (0.5 when left out). Not circular: the rolling ball's chains, not where it rolls round or onto an edge.
    */
-  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim }[]; readonly section?: { readonly kind: 'circular' } | { readonly kind: 'conic'; readonly rho: number } | { readonly kind: 'g2'; readonly tension?: number } }
+  | { readonly kind: 'fillet'; readonly target: string; readonly edges: readonly string[]; readonly radius?: CadPartDim; readonly radii?: readonly { readonly at: CadPartPoint3; readonly radius: CadPartDim }[]; readonly section?: { readonly kind: 'circular' } | { readonly kind: 'conic'; readonly rho: number } | { readonly kind: 'g2'; readonly tension?: number }; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
 );
 /**
  * A sheet's K (R12.4, D120): one `kFactor` for every bend, or a `bendTable` (rows of T, R, angle → K, BA or BD, each
@@ -809,6 +810,11 @@ function explodeFacets(b: Brep, at: string, what: string): Brep {
   catch (cause) { if (cause instanceof MeshBrepError) throw new CadPartError('GEOMETRY', at, cause.message); throw cause; }
 }
 const brepOf = (part: Part, id: string): Brep => part.brep ??= part.solid.kind === 'upright' ? brepFromPrismatic(part.solid.solid, { id }) : part.solid.brep;
+/** A feature run after its stored names are checked on each target part (O19, D277). */
+function expectedThen(f: CadPartFeature & Record<string, unknown>, t: Tools, expect: ReturnType<typeof expectOf> & object, run: () => Result): () => Result {
+  const parts = t.solids(f.target, 'target'), edges = f.kind === 'fillet' || f.kind === 'chamfer';
+  return () => { for (const p of parts) checkExpected(brepOf(p, t.at), expect, edges, f.kind, t.fail); return run(); };
+}
 
 /** Free space closer than this above a hole's face (mm) refuses it (D148b): the cutter has no room to stop short of it. */
 const OBSTRUCTION_MM = 1e-3;
@@ -1004,7 +1010,9 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
         result = lookup(key, []) ?? sketch;
         remember(key, [], result);
       } else {
-        const compute = operation(f, { dim, xy, xyz, integer, axisOf, solids, ref, fail, at, endpointBead });
+        const tools = { dim, xy, xyz, integer, axisOf, solids, ref, fail, at, endpointBead }, run = operation(f, tools);
+        // (O19: stored names checked against what they named before the feature builds on them, D277.)
+        const expect = expectOf(f, fail), compute = expect ? expectedThen(f, tools, expect, run) : run;
         const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters), ...(isEndpointBead(f) ? [endpointContext(doc.features, f.frame, doc.parameters)] : [])]), inputs = deps.map(d => results.get(d)!);
         const reused = lookup(key, inputs);
         result = reused ?? compute();
