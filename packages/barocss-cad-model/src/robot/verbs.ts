@@ -21,6 +21,9 @@ import { sizeActuators, sizeCoupled, type Motor, type Reducer } from './actuator
 import type { ProfileKind } from './profile';
 import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from './joints';
 import { r6 } from '../util/round';
+import { refusal, refused } from '../engine/refusal';
+import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from './motion';
+import { sweepTimed } from './ccd';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** A robot as its functions read it: the document, the base part's bodies, and each placed part's in its own coordinates. */
@@ -116,4 +119,78 @@ export function withJoints(doc: StudioDoc, o: { base?: string; joints?: Readonly
   const robot = next.base || next.joints || next.frames || next.motions ? next : undefined, out = { ...doc };
   if (robot) out.robot = robot; else delete out.robot;
   return out;
+}
+
+// ── RS3: the agent moves the robot — degrees for a turning joint and mm for a slide, in and out (conventions §2) ──
+const DEG = Math.PI / 180;
+const turning = (t: JointTree, key: string) => { const j = t.joints.find(x => x.key === key); return j?.type === 'revolute' || j?.type === 'continuous'; };
+/** Values in the document's units (degrees, mm) as FK's (radians, mm). */
+export const jointValuesIn = (t: JointTree, v: Readonly<Record<string, number>>) => Object.fromEntries(Object.entries(v).map(([k, x]) => [k, turning(t, k) ? x * DEG : x]));
+/** FK's values (radians, mm) in the document's units (degrees, mm), to 1e-9. */
+export const jointValuesOut = (t: JointTree, v: Readonly<Record<string, number>>) => Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.round((turning(t, k) ? x / DEG : x) * 1e9) / 1e9 + 0]));
+
+const round9 = (x: number) => Math.round(x * 1e9) / 1e9 + 0;
+/** Joint values (degrees, mm) past their joint's limits, refused in the same units (JOINT_LIMIT); `at` names where they are. */
+function checkLimits(t: JointTree, v: Readonly<Record<string, number>>, at: string) {
+  for (const [key, x] of Object.entries(v)) {
+    const j = t.joints.find(y => y.key === key), l = j?.limit; if (!l) continue;
+    const k = turning(t, key) ? 1 / DEG : 1, u = k === 1 ? ' mm' : '°', lo = l.lower !== undefined ? l.lower * k : -Infinity, up = l.upper !== undefined ? l.upper * k : Infinity;
+    if (x < lo - 1e-9 || x > up + 1e-9) throw refusal('JOINT_LIMIT', `${at}${key} = ${round9(x)}${u} is outside its limits ${Number.isFinite(lo) ? `${round9(lo)}${u}` : '−∞'} to ${Number.isFinite(up) ? `${round9(up)}${u}` : '∞'}`);
+  }
+}
+/**
+ * set_pose: the robot at joint values (degrees, mm) — each link and frame where they put it, the gear followers' values
+ * — refused past a joint's limits (JOINT_LIMIT) or for a key no moving joint has (JOINT_UNKNOWN). A preview: nothing is
+ * stored (the studio shows it from the reply).
+ */
+export function setPose(view: RobotView, values: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {
+  checkLimits(t, values, '');
+  const rad = jointValuesIn(t, values), bad = checkPath(t, { waypoints: [{}, rad], profile: 'trapezoid', limits: { default: { v: 1, a: 1 } } }).filter(p => p.code !== 'LIMITS_MISSING');
+  if (bad.length) throw refused(bad[0]);
+  const p = poseOf(view, rad, t);
+  return { ...p.reply, values: jointValuesOut(t, p.reply.values) };
+}
+/**
+ * A waypoint written into a motion (created when absent): appended, or at its index `at`; `remove` takes one out; `limits`
+ * ({velocity, acceleration, jerk?} in deg/s… or mm/s…, by joint key or `default`) set the motion's own. Checked on the tree as it will play.
+ */
+export function withWaypoint(view: RobotView, o: { motion: string; values?: Readonly<Record<string, number>>; at?: number; remove?: number; limits?: MotionPath['limits'] }, t: JointTree = treeOf(view)): StudioDoc {
+  const robot = readRobot(view.doc.robot), motions = [...(robot.motions ?? [])], i = motions.findIndex(m => m.name === o.motion);
+  const was: Motion = i >= 0 ? motions[i] : { name: o.motion, path: { waypoints: [{}], profile: 'trapezoid' } }, waypoints = [...was.path.waypoints];
+  if (o.remove !== undefined) {
+    if (i < 0) throw refusal('MOTION_UNKNOWN', `no motion ${o.motion} (motions: ${motions.map(m => m.name).join(', ') || 'none'})`);
+    if (!Number.isInteger(o.remove) || o.remove < 0 || o.remove >= waypoints.length) throw refusal('VALUE', `waypoint ${o.remove} is not one of ${o.motion}'s 0–${waypoints.length - 1}`);
+    waypoints.splice(o.remove, 1);
+  } else if (o.values || !o.limits) {
+    if (!o.values) throw refusal('VALUE', 'a waypoint needs its joint values (degrees, mm)');
+    const at = o.at ?? waypoints.length;
+    if (!Number.isInteger(at) || at < 0 || at > waypoints.length) throw refusal('VALUE', `at is 0–${waypoints.length} (where the waypoint goes)`);
+    waypoints.splice(at, 0, { ...o.values });
+  }
+  const next: Motion = { name: o.motion, path: { ...was.path, waypoints, ...(o.limits ? { limits: { ...was.path.limits, ...o.limits } } : {}) } };
+  // (Checked as it will play: unknown keys, gear followers and limits refused; a single waypoint is a motion still being recorded.)
+  waypoints.forEach((w, k) => checkLimits(t, w, `waypoint ${k}: `));
+  if (waypoints.length >= 2) { const bad = checkPath(t, timedPathOf(t, next.path)).filter(p => p.code !== 'LIMITS_MISSING'); if (bad.length) throw refused(bad[0]); }
+  if (i >= 0) motions[i] = next; else motions.push(next);
+  return { ...view.doc, robot: { ...robot, motions } };
+}
+/** The motion's timed path, checked as it will play (its limits the motion's own: LIMITS_MISSING without them). */
+function playable(t: JointTree, m: Motion) {
+  m.path.waypoints.forEach((w, k) => checkLimits(t, w, `${m.name}, waypoint ${k}: `));
+  const path = timedPathOf(t, m.path), bad = checkPath(t, path);
+  if (bad.length) throw refused(bad[0]);
+  return path;
+}
+/** check_path: a motion checked for contact between the links along its timing (sweepTimed), degrees and mm out. */
+export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf(view)) {
+  const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), r = sweepTimed(t, sweepLinksOf(view, t), path);
+  const contact = r.clear ? undefined : { t_s: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
+  return { motion: name, duration_s: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
+    min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), t_s: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped };
+}
+/** play: a motion's poses at `samples` even times (poseAt, as the studio plays it): each time, the values (degrees, mm) and the links' placements. */
+export function playMotion(view: RobotView, name: string, samples = 30, t: JointTree = treeOf(view)) {
+  const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), T = duration(path), n = Math.max(2, Math.min(200, Math.round(samples)));
+  const frames = Array.from({ length: n }, (_, k) => { const at = (T * k) / (n - 1), p = poseOf(view, poseAt(t, path, at), t).reply; return { t_s: r6(at), values: jointValuesOut(t, p.values), links: p.links }; });
+  return { motion: name, duration_s: r6(T), samples: frames };
 }

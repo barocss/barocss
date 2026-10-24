@@ -88,7 +88,7 @@ export function samples(): Sample[] {
       instances: [part('x', 'X carriage', cx, [20, 0, 10]), part('y', 'Y slide', cy, [20, 20, 20]), part('z', 'Z ram', ram, [40, 40, 30])],
       mates: [...sliding('px', 'base', 'n1.top', 'n1.bottom', 'x', 'n1.side0', 'n1.side0'), ...sliding('py', 'x', 'n1.top', 'n1.bottom', 'y', 'n1.side3', 'n1.side3'), ...sliding('pz', 'y', 'n1.side1', 'n1.side3', 'z', 'n1.side0', 'n1.side0')] };
     out.push({ id: 'gantry-ppp', title: 'Cartesian gantry', about: 'Three slides square to each other — X, Y and Z — as on a 3-axis router or a 3D printer.',
-      doc: { ...doc, robot: robot({ sliding: ['base~x', 'x~y', 'y~z'] }, { 'base~x': { lower: 0, upper: 200 }, 'x~y': { lower: 0, upper: 120 }, 'y~z': { lower: -40, upper: 40 } }, [motion('box', [{}, { 'base~x': 150 }, { 'base~x': 150, 'x~y': 100 }, { 'base~x': 150, 'x~y': 100, 'y~z': -30 }, {}], MM_LIMITS)]) } });
+      doc: { ...doc, robot: robot({ sliding: ['base~x', 'x~y', 'y~z'] }, { 'base~x': { lower: 0, upper: 200 }, 'x~y': { lower: 0, upper: 120 }, 'y~z': { lower: -40, upper: 40 } }, [motion('box', [{}, { 'base~x': 150 }, { 'base~x': 150, 'x~y': 100 }, { 'base~x': 150, 'x~y': 100, 'y~z': 30 }, {}], MM_LIMITS)]) } });
   }
   // Pan-tilt head: a block turning about Z on the base (pan), a head turning about X on its side (tilt), a camera frame.
   {

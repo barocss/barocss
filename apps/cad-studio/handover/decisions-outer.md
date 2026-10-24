@@ -8977,3 +8977,59 @@ fillets round a closed curve loop, were refused "The kernel could not build this
   - tsc; eslint 0 errors.
 - **Next, (b):** the four actions set_pose, waypoint, check_path and play, in degrees and mm, with the budget
   reported.
+
+## RS3 (b) — the agent moves the robot: set_pose, waypoint, check_path, play, in degrees and mm (2026-10-24)
+
+- **Four assembly actions:** each is a verb in robot/verbs.ts plus a handler in chat/robot.ts. The handlers are
+  `set_waypoint` and `play_motion`, because one-word handler names (`waypoint`, `play`) read ambiguously in prose
+  (O105b).
+
+| action | handler | what it does | changes the document? |
+|---|---|---|---|
+| `set_pose {values}` | `set_pose` | the links and frames placed as FK places them, values out in degrees | no, a preview |
+| `waypoint {motion, values?, at?, remove?, limits?}` | `set_waypoint` | adds, inserts or removes a waypoint in robot.motions; makes the motion when it is absent; `limits` are the stored `{velocity, acceleration, jerk?}` per key or `default` | yes, robot settings, so it is proposed |
+| `check_path {motion}` | `check_path` | sweepTimed along the motion's timing: clear, or the first contact (t_s, segment, links, values in degrees); min_clearance; samples; skipped pairs | no |
+| `play {motion, samples?}` | `play_motion` | poseAt at 2–200 even times (default 30): values in degrees and mm, and each link's placement | no |
+
+- **Refusals, typed:**
+  - JOINT_LIMIT is given in the units the agent used ("a~b = 151° is outside its limits -150° to 150°"; a slide's in
+    mm). The verbs check this themselves before checkPath, whose own text is in radians.
+  - JOINT_UNKNOWN, JOINT_MIMIC, MOTION_UNKNOWN.
+  - LIMITS_MISSING when a motion without limits is played or checked.
+  - VALUE for a bad `at` or `remove`, or a waypoint with no values.
+  - A bad call shape is refused in the handler.
+- **The approval:** `set_waypoint` is in ASSEMBLY_CHANGES and BATCHABLE, and in ALTERS as not idempotent.
+  approvalOf already lists `robot`, so the agent proposes it, like set_joints.
+- **Bug fixed in RS2, a saved `default` limit:**
+  - timedPathOf passed `default` through unconverted. The samples' `default {90, 180}`, meant as deg/s, therefore
+    played as 90 rad/s.
+  - A saved `default` is now in each joint's own unit (deg/s for a turn, mm/s for a slide). It becomes each moving
+    joint's own limits where that joint has none.
+  - motionOf does the same in reverse.
+  - The rs2 test now pins this. It previously pinned the unconverted default (`p.limits.default.v == 45`); that value
+    was the bug, so the expectation was corrected, not loosened.
+  - Every sample's motion is now about 57× slower than before, as intended: for example arm-2r's wave takes 5.5 s and
+    the SCARA's pick 5.17 s.
+- **Bug fixed in RS1, the gantry's `box` motion:** the ram went 30 mm down into the X carriage (contact at −10 mm).
+  It now goes up 30 mm, within ±40. Only gantry-ppp.bcad changed when the samples were regenerated.
+- **Open for the coordinator:** check_path on gripper, four-bar and gear-joint reports contact at t = 0.
+  - The pairs are meshing gears and the loop's closing joint, which touch by design.
+  - sweep skips parent and child pairs, and pairs that touch where the path starts only when the path doesn't move
+    them.
+  - The proposal is to skip gear-coupled pairs, whose mesh the coupling's phase already holds, and loop-closure pairs,
+    which meet at their joint.
+  - This changes sweep_path and the studio's Check path too, so it is the coordinator's call.
+- **Budget:** 24,042 characters a turn, cap 25,000; this step added 360. The tools stay separate: there is room, and
+  merging set_pose into `pose` with a flag was the fallback only if the budget got tight.
+- **tools-v2.json:** re-recorded with the four new assembly actions, additions only.
+- **Docs:** _tools.md and _refusals.md regenerated; check:docs passes.
+- **Tests:**
+  - New, test/rs3-movement.test.ts (4 tests on the RS1 samples):
+    - set_pose against FK in radians, its refusals, a gear follower from its leader;
+    - set_waypoint: direct use refused with needs_approval, a proposal's approval is `robot`, then make, insert and
+      remove, each refusal, and degrees and mm in the text;
+    - check_path: the SCARA's pick and the gantry's box are clear, the duration matches the trapezoid's closed form,
+      the limits are in degrees, MOTION_UNKNOWN and LIMITS_MISSING are refused;
+    - play_motion against poseAt at the same times, with the first and last waypoints met.
+  - Changed: tool-contract runs the three read tools; the studio chat test lists the four handlers.
+- **Verified (T1):** rs1, rs2, rs3, robot-*, tool-contract and toolset 103/103; tsc; eslint 0 errors.

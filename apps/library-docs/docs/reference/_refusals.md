@@ -276,7 +276,7 @@
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
 | `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
-| `[VALUE]` | `api`, `chat/part`, `engine` | …: a joint's value is a number (degrees, or mm for a slide), not … |
+| `[VALUE]` | `api`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |
