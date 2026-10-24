@@ -54,6 +54,8 @@ The dock's **Preview & analysis** section shows one preview on the model at a ti
 - **The switch turns the preview on.** Only the chosen preview's settings show under it.
 - **None** shows a one-line hint.
 
+![The Preview & analysis section with Analysis chosen: its Surface and Map choices](/shots/studio/display/preview-analysis.png)
+
 The previews are:
 
 - **CNC** and **Print**: see [Manufacturing](/studio/manufacturing).

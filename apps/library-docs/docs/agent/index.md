@@ -87,9 +87,13 @@ A turn appears in the chat as it happens:
 
 ## An example turn
 
-These shots come from a scripted run: each message names the calls to make, and a stand-in for the `claude` CLI makes
-them through the real chat server and tool server. No model ran, but the gates and the results are the studio's
-own.
+These shots come from scripted turns streamed in the browser. No model ran and no chat server: the studio was handed
+the chat server's own events for each turn (its text, thinking, tool calls and the part's state), and the chat
+showed and applied them as it does a real turn.
+
+- The part each turn leaves is a real document.
+- The proposal was made by the real tool layer, at the default autonomy, through `cad-mcp`.
+- The chat's header names the model as "scripted".
 
 1. "A 60 × 40 plate, 8 thick." The part is empty, so at L2 the first build applies directly. A toast says **Applied by
    the agent**, with **Undo**.
@@ -99,7 +103,7 @@ own.
 2. "Make it 10 thick, with an 8 mm hole in the middle." That changes one feature and adds another, so at L2 the
    direct change is refused. The agent proposes it instead, as **P1**, and the part stays as it was until you accept.
 
-   ![The refused change and the proposal in the chat](/shots/agent/proposals/refused-then-proposed.png)
+   ![The chat column: the proposal at its top; each turn with its Thinking… line and tool calls; the refused batch, and P1 linked under its propose call](/shots/agent/proposals/refused-then-proposed.png)
 
 The proposal's card, its preview and its choices are on [Proposals and autonomy](/agent/proposals).
 

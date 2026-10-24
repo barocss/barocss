@@ -76,12 +76,12 @@ The card's buttons:
 The chat also links each proposal under the call that made it, with its risk, its status, and **Reject** and **Accept**
 while it is open. Deciding there decides the same proposal. A stale one is rebased from the Proposals list.
 
-These shots come from a scripted run (see [the example turn](/agent/#an-example-turn)): no model ran, but the gates and
-results are the studio's own.
+These shots come from scripted turns streamed in the browser (see [the example turn](/agent/#an-example-turn)): no model
+ran. The proposal itself was made by the real tool layer.
 
-![The agent's change, refused at L2 and proposed instead: the chat shows both calls](/shots/agent/proposals/refused-then-proposed.png)
+![The chat column: the proposal at its top, and in the turn the refused batch, the propose call and P1 linked under it](/shots/agent/proposals/refused-then-proposed.png)
 
-![The proposal previewed: the hole and the thicker plate shown before it is accepted](/shots/agent/proposals/preview.jpg)
+![The proposal previewed: the hole and the thicker plate shown before it is accepted, its card at the top of the chat column](/shots/agent/proposals/preview.jpg)
 
 ![The proposal card: its risk, summary, the features to keep, Reject and Accept](/shots/agent/proposals/card.png)
 
