@@ -6,7 +6,7 @@
  * over both (G15d.1), selection outlines and sRGB encoding for the canvas.
  */
 export const MAX_OUTLINES = 8;
-export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16 + 80 + 16;
+export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16 + 96 + 80 + 16;
 export const outputWGSL = (multisampled: boolean): string => /* wgsl */ `
 struct Output {
   exposure: f32, toneMapping: u32, outlineWidth: f32, outlines: u32,
@@ -17,6 +17,11 @@ struct Output {
   // unit view depth (perspective) or per world unit (orthographic, w < 0).
   invProj: mat4x4f,
   ao: vec4f,
+  // G15b's contact shadows: the camera's projection, the direction toward the shadow-casting light in view space and the
+  // ray's length (world), the strength (0: off) and the thickness a blocker is taken to have.
+  proj: mat4x4f,
+  contact: vec4f,
+  contactK: vec4f,
   // G15d.1's grading (white balance and contrast, lift and saturation, gamma and on, gain) and vignette (amount, the
   // clear radius and where the fade ends, as shares of the half-diagonal). Off: zeros.
   balance: vec4f, lift: vec4f, gamma: vec4f, gain: vec4f,
@@ -118,6 +123,30 @@ fn occlusion(p: vec2i, d: f32) -> f32 {
   }
   return clamp(1.0 - output.ao.y * occ / f32(N), 0.0, 1.0);
 }
+/** G15b: the share of direct light a pixel keeps along a short ray toward the light through the depth buffer — 0.0 to 1.0. */
+fn contactShadow(p: vec2i, d: f32) -> f32 {
+  let P = viewAt(p, d);
+  let size = vec2f(textureDimensions(depth));
+  let jitter = fract(52.9829189 * fract(0.06711056 * f32(p.x) + 0.00583715 * f32(p.y)));
+  let N = 14;
+  for (var i = 0; i < N; i++) {
+    let Q = P + output.contact.xyz * output.contact.w * (f32(i) + jitter + 0.5) / f32(N);
+    let c = output.proj * vec4f(Q, 1.0);
+    let ndc = c.xy / c.w;
+    if (any(abs(ndc) > vec2f(1.0))) { break; }
+    let q = vec2i(vec2f((ndc.x * 0.5 + 0.5) * size.x, (0.5 - ndc.y * 0.5) * size.y));
+    if (all(q == p)) { continue; }
+    let dq = depthAt(q);
+    if (dq <= 0.0) { continue; }
+    // (A surface in front of the ray's point there, by less than a blocker's thickness: the light is blocked.)
+    let s = viewAt(q, dq).z - Q.z;
+    if (s > 1e-4 * output.contact.w && s < output.contactK.y) {
+      // (Weaker toward the ray's end, so its reach shows as a soft fall-off.)
+      return 1.0 - output.contactK.x * (1.0 - f32(i) / f32(N));
+    }
+  }
+  return 1.0;
+}
 @fragment fn fs(@builtin(position) at: vec4f) -> @location(0) vec4f {
   let p = vec2i(at.xy);
   let s = textureLoad(scene, p, 0);
@@ -130,6 +159,7 @@ fn occlusion(p: vec2i, d: f32) -> f32 {
     var lin = s.rgb / s.a * output.exposure;
     let d = depthAt(p);
     if (output.ao.y > 0.0 && d > 0.0) { lin *= occlusion(p, d); }
+    if (output.contactK.x > 0.0 && d > 0.0) { lin *= contactShadow(p, d); }
     if (output.toneMapping == 1u) { lin = aces(lin); } else if (output.toneMapping == 2u) { lin = agx(lin); }
     // Scene over background, in sRGB (the background colours are given in sRGB).
     let e = encode(lin);

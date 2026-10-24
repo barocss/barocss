@@ -478,6 +478,11 @@ test('outline reach: a box\'s screen rectangle holds every point of it the camer
   assert.ok(Math.abs(0.2126 * wb[0] + 0.7152 * wb[1] + 0.0722 * wb[2] - 1) < 1e-9 && wb[0] > wb[2], 'warm: red over blue, luminance kept');
   assert.ok([...new Float32Array(packOutput({})).slice(-24, -4)].every(x => x === 0), 'no post: zeros');
   assert.ok([...new Float32Array(packOutput({ vignette: { amount: 0 } })).slice(-8, -4)].every(x => x === 0), 'amount 0: no vignette');
+  // G15b: the contact shadows' projection, direction and length, strength and thickness, before the grading; none: zeros.
+  const proj = Array.from({ length: 16 }, (_, i) => i + 1);
+  const ct = new Float32Array(packOutput({}, [], 2, null, null, null, null, { projection: proj, inverseProjection: proj, direction: [0, 0.6, 0.8], length: 2, strength: 0.5, thickness: 1.2 })).slice(-48, -24);
+  assert.ok(close([...ct], [...proj, 0, 0.6, 0.8, 2, 0.5, 1.2, 0, 0], 1e-6));
+  assert.ok([...new Float32Array(packOutput({})).slice(-48, -24)].every(x => x === 0), 'no contact shadows: zeros');
 });
 
 // Exercise pickNow's real readback-to-metadata path. Only the GPU transport is mocked: the cap and triangle
