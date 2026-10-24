@@ -8,7 +8,7 @@
 //   ones, then its grade), each range over < up to and no two ranges of one class overlapping, upper ≥ lower, a
 //   source the table holds or the estimate flag (not both, never neither).
 // - `lookupFit`: a class's row at a nominal size, over < size ≤ up to (the first range from 0 includes its top),
-//   across the tables in order ([FIT_TABLE_MISS]).
+//   across the tables in order ([FIT_TABLE_MISS]); the size judged to 1e-6 mm, as its messages name it (D266).
 // - `fitLimits`: a hole class and a shaft class at one nominal size — both limits, the least and the greatest
 //   clearance (ES − ei, EI − es) and the kind: clearance (least ≥ 0), interference (greatest ≤ 0), else transition.
 // - `checkFit`: a hole face and a shaft face of two B-reps — cylinders, of one nominal size, on parallel axes — their
@@ -76,10 +76,18 @@ export interface FitLimit {
   readonly maxMM: number; readonly minMM: number;
   readonly table: string; readonly row: number; readonly estimate: boolean; readonly source?: string;
 }
+/**
+ * A nominal size as it is judged and named: to 1e-6 mm, the resolution its messages print (D266). A size measured off a
+ * face carries the arc's rounding — a Ø50 bore's radius comes back 25.000000000000007 — and a range's end decides the row
+ * on it: unsnapped, "up to 50" missed a Ø50 bore by a few ulps. Ten of the kernel's linear tolerances (1e-7 mm), so two
+ * sizes it snaps together are one size in the model; round(x·10⁶)/10⁶ is the double nearest the decimal typed.
+ */
+const nominalOf = (mm: number): number => Math.round(mm * 1e6) / 1e6;
 /** A class's row at a nominal size, from the first table holding one ([FIT_TABLE_MISS] says what to load). */
-export function lookupFit(tables: readonly FitTable[], cls: string, nominalMM: number): FitLimit {
+export function lookupFit(tables: readonly FitTable[], cls: string, sizeMM: number): FitLimit {
   if (!CLASS.test(cls)) throw new FitError('FIT_TABLE', `${JSON.stringify(cls)} is not a tolerance class`);
-  if (!(fin(nominalMM) && nominalMM > 0)) throw new FitError('FIT_FACE', `a nominal size must be above 0 mm (got ${nominalMM})`);
+  const nominalMM = fin(sizeMM) ? nominalOf(sizeMM) : sizeMM;
+  if (!(fin(nominalMM) && nominalMM > 0)) throw new FitError('FIT_FACE', `a nominal size must be above 0 mm (got ${sizeMM})`);
   for (const t of tables) {
     const k = t.rows.findIndex(r => r.class === cls && (r.overMM < nominalMM || (r.overMM === 0 && nominalMM > 0)) && nominalMM <= r.upToMM);
     if (k < 0) continue;
@@ -154,7 +162,7 @@ export function checkFit(tables: readonly FitTable[], hole: FitFace, shaft: FitF
   const cr = [H.a[1] * S.a[2] - H.a[2] * S.a[1], H.a[2] * S.a[0] - H.a[0] * S.a[2], H.a[0] * S.a[1] - H.a[1] * S.a[0]];
   if (Math.hypot(...cr) > 1e-9) throw new FitError('FIT_PAIR', `${hole.face} and ${shaft.face} are not on parallel axes`);
   if (Math.abs(2 * H.r - 2 * S.r) > 1e-6) throw new FitError('FIT_PAIR', `${hole.face} is Ø${+(2 * H.r).toFixed(6)} and ${shaft.face} Ø${+(2 * S.r).toFixed(6)}: a fit's classes apply to one nominal size, so model both at it`);
-  const nominal = 2 * H.r, limits = fitLimits(tables, hole.class, shaft.class, nominal);
+  const limits = fitLimits(tables, hole.class, shaft.class, 2 * H.r), nominal = limits.hole.nominalMM;
   // The shaft's axis in the hole's frame: its offset, and its extent on the hole's axis.
   const sign = H.a[0] * S.a[0] + H.a[1] * S.a[1] + H.a[2] * S.a[2] > 0 ? 1 : -1, d: Point = [S.c[0] - H.c[0], S.c[1] - H.c[1], S.c[2] - H.c[2]], along = d[0] * H.a[0] + d[1] * H.a[1] + d[2] * H.a[2];
   const offset = Math.hypot(d[0] - H.a[0] * along, d[1] - H.a[1] * along, d[2] - H.a[2] * along);

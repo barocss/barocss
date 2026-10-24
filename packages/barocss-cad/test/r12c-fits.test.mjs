@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkFit, fitLimits, lookupFit, fitTableProblem, FitError } from '../dist/index.js';
+import { evaluateCadPart, checkFit, fitLimits, lookupFit, fitTableProblem, faceGeometry, FitError } from '../dist/index.js';
 
 // R12c.2 (D155): fits from the user's tables, never computed (D139 S0: ISO 286's factor reproduces 55 of 91 IT values).
 // Oracles written here:
@@ -45,6 +45,19 @@ test('R12c.2 fit tables: the page\'s Ø50 results by the user\'s rows — cleara
   // A class the formula could compute is still a miss: limits are only ever loaded.
   assert.throws(() => lookupFit([F2], 'g6', 40), e => code('FIT_TABLE_MISS')(e) && /no g6 rows loaded/.test(e.message) && /never computed/.test(e.message));
   assert.throws(() => fitLimits([F2], 'h6', 'H7', 40), code('FIT_FACE'));
+});
+
+test('R12c.2 a nominal size is judged to 1e-6 mm, as it is named: a Ø50 bore measured a few ulps past 50 takes the "up to 50" row; 1e-6 past it does not (D266)', () => {
+  // (A face's radius comes back from its arc's control points with their rounding: a Ø50 cylinder's side measures
+  // 25.000000000000007. Unsnapped, the range's end decided the row on those ulps: FIT_TABLE_MISS "at Ø50 mm".)
+  const s = evaluateCadPart(D([{ id: 'bs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 25 }, { id: 'bore', kind: 'extrude', sketch: 'bs', height: 20 }]));
+  const measured = s.output('bore').brep.faces.map(f => faceGeometry(f)).filter(g => g.kind === 'cylinder').map(g => 2 * g.r);
+  for (const size of [...measured, 50 + 1.4210854715202004e-14, 50 - 1.4210854715202004e-14, 50.0000004]) {
+    const l = lookupFit([F2], 'H8', size);
+    assert.deepEqual([l.nominalMM, l.row, l.minMM, l.maxMM], [50, 0, 50, 50.039], `Ø${size}`);
+  }
+  assert.throws(() => lookupFit([F2], 'H8', 50.000001), e => code('FIT_TABLE_MISS')(e) && /at Ø50\.000001 mm/.test(e.message));
+  assert.throws(() => lookupFit([F2], 'H8', 4e-7), code('FIT_FACE'));
 });
 
 test('R12c.2 fit tables refused ([FIT_TABLE]): bad class, an empty or inverted range, ranges of one class overlapping, upper below lower, no source and no estimate, an unknown source', () => {

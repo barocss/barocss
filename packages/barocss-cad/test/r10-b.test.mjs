@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
 import { finishBrepEdges } from '../dist/blend/edge-finish.js';
+import { chainPath } from '../dist/blend/rolling-ball.js';
 
 // R10.B (D99): the analytic Boolean where tool faces coincide with body faces or lie along them. Each case here was
 // refused or failed before (HEAD f2015c295-aef81b898): the rolling ball's tool capped in an end face's plane (D97), a
@@ -38,23 +39,34 @@ test('R10.B the rolling ball\'s tool capped in an end face\'s plane (D97\'s over
   }
 });
 
-test('R10.B a general fillet ending square on a face (D90/D94, the rod lying straight across a plate, forced): both feet at r 0.25–3 — the R10.1 section × 40 to 1e-9 (refused before); where the Boolean still cannot close it (one foot at r 2), refused as before, typed', () => {
+test('R10.B a general fillet ending square on a face (D90/D94, the rod lying straight across a plate, forced): both feet at r 0.25–3 — the R10.1 section × 40 to 1e-9 (refused before; one foot at r 2 until D267)', () => {
   const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
   const body = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
     { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 }, { id: 'g', kind: 'union', target: 'pe', tool: 'c0' }];
   const o0 = out(body), v0 = o0.massProperties(1).volumeMM3, rims = o0.brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name)).map(e => e.name);
   const section = r => { const yc = Math.sqrt((4 + r) ** 2 - r ** 2); return yc * r / 2 - r * r * Math.atan2(yc, r) / 2 - 16 * Math.atan2(r, yc) / 2; };
   assert.equal(rims.length, 2);
+  // (The foot at r 2 that "the Boolean could not close" was a tool folded back on itself: its last section, an ulp short of
+  // the chain's end, put at its start, D267.)
   for (const r of [0.25, 0.5, 1, 1.5, 2, 3]) for (const [k, rim] of rims.entries()) {
-    if (r === 2 && k === 1) {
-      assert.throws(() => finishBrepEdges(o0.brep, [rim], r, 'fillet', 'f', { general: true }), e => /CAPABILITY: .*end square on a face.*cannot close it/.test(e.message));
-      continue;
-    }
     const g = finishBrepEdges(o0.brep, [rim], r, 'fillet', 'f', { general: true });
     assert.equal(checkBrep(g).valid, true, `r ${r} rim ${k}`);
     const got = brepMassProperties(g, 1).volumeMM3 - v0, exact = section(r) * 40;
     assert.ok(Math.abs(got / exact - 1) < 1e-9, `r ${r} rim ${k}: ${got} vs ${exact} (${got / exact - 1})`);
   }
+});
+
+test('R10.B an open chain\'s point an ulp or a few short of its end lies at its end, not its start (D267)', () => {
+  // (Wrapped as (x % L + L) % L, x an ulp below L came out 0: x + L rounds to 2L. The general fillet's last section went
+  // to the chain's start, and the tool folded back on itself: "the analytic Boolean cannot close it", an edge used 6 times.)
+  const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
+  const o = out([{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
+    { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 }, { id: 'g', kind: 'union', target: 'pe', tool: 'c0' }]);
+  const rim = o.brep.edges.find(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name)), path = chainPath([{ curve: rim.curve, reversed: false }], false), L = path.length;
+  const end = path.at(L).X, ulp = 2 ** (Math.floor(Math.log2(L)) - 52);
+  for (let k = 1; k <= 4; k++) { const X = path.at(L - k * ulp).X; assert.ok(Math.hypot(X[0] - end[0], X[1] - end[1], X[2] - end[2]) < 1e-9, `L − ${k} ulp: ${X} vs ${end}`); }
+  const X0 = path.at(ulp).X, start = path.at(0).X;
+  assert.ok(Math.hypot(X0[0] - start[0], X0[1] - start[1], X0[2] - start[2]) < 1e-9, 'an ulp past the start');
 });
 
 test('R10.B a coaxial tool touching a cone along a circle (D88\'s TODO, the property\'s smallest counterexample R 9, h 10, top 0.537, hc 4.172, r 1, and its first run): valid, against Pappus to 1e-9 of the part (a band of the cone classified out on one half: the first ray grazed the tool)', () => {

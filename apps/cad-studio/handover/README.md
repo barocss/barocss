@@ -132,6 +132,8 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K15: a face on a surface turning more than a half turn (no pole) is judged by its winding either way: a wrapping face turned over is refused, typed; frames/spring cost 0.3 % / 0.1 % (profiled) | D263 | done (T2) |
 | K15: the part model's too-large corner finish carries [RADIUS_EXCEEDS_FACE]; docs refusal table regenerated | D264 | done (T2: kernel 1675/1682, names +3 (+5 API lane), RB no NEW, fingerprint 866 cases 6fe8417d (24:112, 24:97 refused → valid; 2 added), fuzz refusals 15/9/11/10, cad-model 1027, studio 286) |
 | K15 closing record: refusals 54 → 45 over four seeds, no findings; open: 25#49 (D260), 26#34, 25#190, 170's nudges, D239's 25/110 nudges, B ∪ B; fingerprint chain cf100676 → 1cd931ee → 722d0431 → 6fe8417d | D265 | done |
+| K16 step 1: a fit's nominal size judged to 1e-6 mm, as named — a Ø50 bore measured 25.000000000000007 missed "up to 50" without the self-union's rebuild | D266 | done (T2) |
+| K16 step 3: an open chain's point an ulp short of its end lay at its start ((x % L + L) % L) — the general fillet's tool folded back, "the Boolean cannot close it"; every r10-b foot builds | D267 | done (T2: kernel 1677/1684, names +2 (1 renamed), RB no NEW, fingerprint 866 cases 17c1d5c4 (20 fillet/shell lines, areas ≤ 3e-8, volumes ≤ 1.8e-11), fuzz refusals 15/9/11/10, cad-model 1027, studio 286) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

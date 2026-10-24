@@ -13779,3 +13779,71 @@ The near-degenerate and exact-contact classes (D249) were not worked.
 | Checkpoint 1 (D257) | 863 | `1cd931ee…` | two corpus cases added; 24:185 refused → valid |
 | Checkpoint 2 (D258–D259) | 864 | `722d0431…` | one added; 24:18's message; three with more edges; 166 areas ≤ 5.3e-5, volumes ≤ 3e-10 relative |
 | Checkpoint 3 (D261–D264) | 866 | `6fe8417d…` | two corpus cases added; 24:112 and 24:97 refused → valid |
+
+## D266 — K16 step 1: a fit's nominal size is judged to 1e-6 mm, as it is named (2026-10-24)
+
+**Finding (D260's first dependency).** With D260's fix, `r12c-fits` refused checkFit's ring less a Ø50 bore with
+`[FIT_TABLE_MISS] no row for H8 at Ø50 mm`, the row being "over 30 up to 50".
+
+**Cause (`lookupFit`, `src/machine/fits.ts`).** checkFit takes the nominal size as 2r of the hole face's cylinder, and r is
+recovered from the face's rational arc (`circleOf`: the chord over sin of the half angle). A Ø50 extrusion's two side
+faces measure 25.000000000000004 and 25.000000000000007. The range test `size ≤ up to` then decided the row on those
+ulps: 50.000000000000014 is past 50. The message, which prints the size to 6 decimals, named it "Ø50".
+- With the self-union, the bore was rebuilt through the Boolean, and its face came back 24.999999999999996: the miss was
+  hidden by the rebuild's rounding going the other way, not avoided. Any other measured Ø50 at a range's end could miss
+  the same way (cad-model's `engine/fits.ts` takes `2 * g.r` into lookupFit too).
+
+**Fix.** lookupFit snaps the size to 1e-6 mm, `round(x · 10⁶) / 10⁶`, before the range test, and reports that size
+(`nominalMM`, the limit sizes, the message). 1e-6 mm is the resolution the message prints, and ten of the kernel's linear
+tolerances (1e-7 mm): two sizes it snaps together are one size in the model. The division gives the double nearest the
+decimal, so a typed 12.7 stays 12.7. The table's "up to" is not loosened: 50.000001 still misses, named "Ø50.000001".
+checkFit names the snapped size in its message.
+- A size that snaps to 0 is refused as before (FIT_FACE, "above 0 mm").
+- No bracketed message changed; the docs refusal table is unchanged.
+
+**Test:** "R12c.2 a nominal size is judged to 1e-6 mm, as it is named …", failing before (the measured Ø50 sides and
+50 + 1.4e-14 missed). With D260's fix, r12c-fits' three checkFit tests pass again.
+
+## D267 — K16 step 3: an open chain's point an ulp short of its end lies at its end (2026-10-24)
+
+**Finding (D260's third dependency).** `r10-b` pins the general fillet's one foot at r 2 (the rim on `pe.top#2`) as
+refused, "the analytic Boolean cannot close it". With D260's fix that foot builds; judged by the test's own R10.1 section
+oracle it is right (−8.6e-12 of the section × 40, strictly valid). But another foot, r 3 on `pe.top#1`, was refused in its
+place, with the same message.
+- Both refusals are one failure: an edge used 6 times in the tool's clip by the end plane (`clipTool`). The tool itself
+  was not a solid: its section stations ran x = −0.625, 0, 12.9, 27.1, **0**, 40.625 — the station at the chain's end
+  (x = 40) sat at its start, and the loft folded back over the whole run.
+
+**Cause (`chainPath`, `src/blend/rolling-ball.ts`).** A point along the chain wrapped its arc length as
+`((x % L) + L) % L`. For x an ulp below L, x + L rounds to 2L, and the point came out at 0. The tool's last break, put an
+ulp below the chain's length (39.99999999999999 of 40), drew its section at the start. Which foot falls on it depends
+only on the body's rounding: the self-union's rebuild shifts L and the breaks by ulps (L 40 against 39.99999999999964),
+so D260's fix moved the refusal from one foot to another.
+
+**Fix.** One remainder, a negative one moved up a turn: `m = x % L, y = m < 0 ? m + L : m`. For an open chain inside
+(0, L) the point is x's own; a closed chain still wraps (a negative x an ulp off rounds to L, the start of a closed loop
+anyway).
+
+**Results:** every foot of r10-b's test, r 0.25–3 on both rims, builds and matches the section to 1.2e-10 (the test asks
+1e-9), strictly valid, with and without D260's fix. The foot "the Boolean still cannot close" was this.
+- The square-end refusal (`squareRefusal`, D90/D94/D99) stays for a Boolean that does fail there.
+**Tests:** "R10.B an open chain's point an ulp or a few short of its end lies at its end, not its start", failing before;
+r10-b's general-fillet test no longer pins the r 2 foot as refused (its name changes: "(refused before; one foot at r 2
+until D267)").
+
+**Checks for D266–D267 (K16 checkpoint 1, T2, in a scratch worktree at 8ec90bc49 with D266–D267, without D260's fix):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1677/1684, 6 skipped. The one failure is the native-split demo's Node-version
+  assertion. Against K15's checkpoint 3: two new (D266's, D267's), one renamed (r10-b's general fillet, above), none gone.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint: 866 cases, `17c1d5c4…` (from `6fe8417d…`). 20 lines changed, all general fillets and shells over them
+  (r10 14, r11 6): the wrapped point of every open chain moved by up to an ulp of 2L.
+  - Areas ≤ 3.0e-8 relative (variable-radius-boss-foot; the rest ≤ 6.7e-12), volumes ≤ 1.8e-11.
+  - Three with an edge more or fewer: corner-l-plate-top, shell-pipe-tee-closed, shell-variable-radius-box-edge (21/54/36
+    → 20/51/34), each still valid.
+  - One refusal's message: r11 `refuse-shell-pipe-tee-fillet-folds`, its [OFFSET_FOLDS] point.
+  - None refused → valid, none valid → refused.
+- Fuzz (200 cases a seed): 20261025 OK 185 / REFUSED 15; 20261026 191 / 9; 20261023 189 / 11; 20261024 190 / 10, as at
+  K15's end. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+- cad-model 1027/1027, studio 286/286. No refusal text changed: the docs table stays.
+- No browser flow: nothing studio-visible changed.

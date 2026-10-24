@@ -466,7 +466,9 @@ export function chainPath(curves: readonly { curve: Curve; reversed: boolean }[]
   const pointAt = (x: number): Point => {
     // (An open chain's end is its last curve's own end point, exactly: a cap there lies in the end face's plane.)
     if (!closed && x >= total) return lastPoint;
-    const y = ((x % total) + total) % total;
+    // (Wrapped by one remainder, a negative one moved up a turn: (x % L + L) % L sends x an ulp below L to 0 — x + L
+    // rounds to 2L — and an open chain's last section went to its start, the tool folding back on itself, D267.)
+    const w = x % total, y = w < 0 ? w + total : w;
     let lo = 0, hi = rows.length - 1;
     while (hi - lo > 1) { const m = (lo + hi) >> 1; if (rows[m].s <= y) lo = m; else hi = m; }
     const a = rows[lo], b = rows[lo + 1] && rows[lo + 1].k === a.k ? rows[lo + 1] : { s: lo + 1 < rows.length ? rows[lo + 1].s : total, k: a.k, t: ends[a.k] };
