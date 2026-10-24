@@ -26,10 +26,10 @@ function mesh() {
   return { positions: Float32Array.of(0, 0, 0, 2, 0, 0, 0, 2, 6), normals: new Float32Array(9), indices: Uint32Array.of(0, 1, 2), faceOfVertex: new Float32Array(3), faces: [], edges: [], edgeLines: new Float32Array(), edgeOfSegment: new Float32Array(), bounds: { min: [0, 0, 0], max: [2, 2, 6] } };
 }
 function output(job, { count = 30, summaryKey = 1, supportMesh = mesh() } = {}) {
-  const mm = job.layerMM ?? 0.2;
+  const mm = job.layerHeight ?? 0.2;
   return { request: job.request, display: {
     request: job.request, summaryKey,
-    summary: { version: 'print-layers-v1', direction: job.direction ?? [0, 0, 1], directionSource: job.direction ? 'given' : 'default', modelToBed: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], layerMM: { mm, basis: job.layerMM === undefined ? 'estimate' : 'set' }, limitDeg: { deg: job.limitDeg ?? 45, basis: job.limitDeg === undefined ? 'estimate' : 'set' }, count, heightMM: count * mm, supportColumns: [], supportVolumeMM3: 0, basis: 'display mesh' },
+    summary: { version: 'print-layers-v1', direction: job.direction ?? [0, 0, 1], directionSource: job.direction ? 'given' : 'default', modelToBed: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], layerMM: { mm, basis: job.layerHeight === undefined ? 'estimate' : 'set' }, limitDeg: { deg: job.overhangLimit ?? 45, basis: job.overhangLimit === undefined ? 'estimate' : 'set' }, count, heightMM: count * mm, supportColumns: [], supportVolumeMM3: 0, basis: 'display mesh' },
     layer: { k: job.layer, z: (job.layer + 0.5) * mm, contours: [], overhang: [], support: [] },
     supportMesh, topMM: (job.layer + 1) * mm, supports: true, printed: true,
   } };
@@ -83,8 +83,8 @@ test('mesh source, build direction, explicit layer height and overhang limit inv
   for (const [label, change] of [
     ['source', f => { f.args.meshes = [mesh()]; }],
     ['direction', f => { f.args.options = { ...f.args.options, direction: [1, 0, 0] }; }],
-    ['height', f => { f.args.options = { ...f.args.options, layerMM: 0.4 }; }],
-    ['limit', f => { f.args.options = { ...f.args.options, limitDeg: 35 }; }],
+    ['height', f => { f.args.options = { ...f.args.options, layerHeight: 0.4 }; }],
+    ['limit', f => { f.args.options = { ...f.args.options, overhangLimit: 35 }; }],
   ]) {
     const f = fixture();
     try {
