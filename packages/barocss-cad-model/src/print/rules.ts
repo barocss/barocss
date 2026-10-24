@@ -275,7 +275,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
   else {
     const uc = undercuts(bodies, pull); regions = uc.regions;
     // (O80: the sampling's limit in the message itself — a pass is only as fine as the samples.)
-    const limit = `sampled every ≤ ${+uc.coarsestMM.toFixed(3)} mm: an undercut smaller than that may be missed`;
+    const limit = `sampled every ≤ ${+uc.coarsestStep.toFixed(3)} mm: an undercut smaller than that may be missed`;
     const stuck = regions.filter(r => !r.sideAction), sided = regions.filter(r => r.sideAction), dirName = (v: readonly number[]) => v.map(x => +x.toFixed(6)).join(', ');
     rules.push({ id: 'undercut', level: 'feasible', status: stuck.length ? 'fail' : sided.length ? 'warn' : 'pass',
       message: (!regions.length ? 'no undercut: every face seen along the pull one way or the other' : `${regions.length} undercut region${regions.length > 1 ? 's' : ''} (${+regions.reduce((a, r) => a + r.area, 0).toFixed(3)} mm²): ${sided.length ? `${sided.length} freed by a side action (${sided.map(r => `[${dirName(r.sideAction!)}]`).join(', ')})` : ''}${sided.length && stuck.length ? '; ' : ''}${stuck.length ? `${stuck.length} freed by no straight action across the pull (a collapsing core, a lifter or a redesign)` : ''}`) + ` (${limit})`,
