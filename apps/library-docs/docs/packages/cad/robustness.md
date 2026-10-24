@@ -26,9 +26,11 @@ The report gives `valid`, the first issues, the counts, each body's topology (sh
 
 An operation the kernel can't complete correctly throws a `CadPartError` instead. It has:
 
-- **`code`**: one of `FORMAT`, `INPUT`, `PARAMETER`, `REFERENCE`, `SELECTION`, `CAPABILITY` or `GEOMETRY`;
+- **`code`**: the specific code its message starts with in brackets, such as `RADIUS_EXCEEDS_FACE`, or, when it has
+  none, its category;
+- **`details.category`**: one of `FORMAT`, `INPUT`, `PARAMETER`, `REFERENCE`, `SELECTION`, `CAPABILITY` or `GEOMETRY`;
 - **`feature`**: the id of the feature it comes from;
-- **a message** saying what went wrong, often with a code of its own in brackets and what would work.
+- **a message** saying what went wrong, and what would work.
 
 <<< @/../samples/cad-robust.test.mjs#refusals
 
