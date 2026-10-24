@@ -1,7 +1,7 @@
 // Small vector and matrix helpers for the viewer. Matrices are column-major (WGSL and WebGPU order):
 // element (row r, column c) is at index c * 4 + r. Depth is WebGPU's [0, 1], reversed (near → 1).
-export type Vec3 = readonly [number, number, number];
-export type Mat4 = Float64Array;
+import type { Vec3, Mat4 } from '../core/geometry-types.js';
+export type { Vec3, Mat4 };
 
 export const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 export const sub = (a: Vec3, b: Vec3): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];

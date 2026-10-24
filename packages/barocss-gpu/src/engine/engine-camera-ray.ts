@@ -60,7 +60,7 @@ function normalize(value: Vec3): Vec3 {
   check(Number.isFinite(scale) && scale > 0, CODE.NUMERICAL, 'Direction scale is nonfinite or zero');
   const scaled = value.map(n => n / scale), length = Math.hypot(...scaled);
   check(Number.isFinite(length) && length > 0, CODE.NUMERICAL, 'Direction length is nonfinite or zero');
-  return scaled.map(n => n / length) as Vec3;
+  return scaled.map(n => n / length) as [number, number, number];
 }
 function cross(a: Vec3, b: Vec3): Vec3 {
   return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -75,19 +75,19 @@ export function prepareEngineCameraRay(cameraInput: unknown, requestInput: unkno
   let camera: MeshCamera;
   try { camera = validateMeshCamera(cameraInput); }
   catch (cause) { throw new EngineCameraRayError(CODE.CAMERA, 'Actual original camera validation refused', cause); }
-  const backward = normalize(camera.eye.map((n, i) => n - camera.target[i]) as Vec3);
+  const backward = normalize(camera.eye.map((n, i) => n - camera.target[i]) as [number, number, number]);
   const right = normalize(cross(normalize(camera.up), backward)), vertical = cross(backward, right);
   const x = 2 * (originalRequest.pixelX + 0.5) / originalRequest.viewportWidth - 1;
   const y = 2 * (originalRequest.pixelY + 0.5) / originalRequest.viewportHeight - 1;
   const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360);
   const horizontal = x * (originalRequest.viewportWidth / originalRequest.viewportHeight) * tangent;
-  const direction = normalize(right.map((n, i) => n * horizontal + vertical[i] * y * tangent - backward[i]) as Vec3);
+  const direction = normalize(right.map((n, i) => n * horizontal + vertical[i] * y * tangent - backward[i]) as [number, number, number]);
   const length = Math.hypot(...direction);
   check(direction.every(n => Number.isFinite(n) && Math.abs(n) <= 1)
     && Number.isFinite(length) && Math.abs(length - 1) <= 1e-9, CODE.NUMERICAL,
   'Derived direction does not satisfy the existing ray0 unit contract');
   // Match the existing ray query's second normalization when mapping camera planes.
-  const queryDirection = direction.map(n => n / length) as Vec3;
+  const queryDirection = direction.map(n => n / length) as [number, number, number];
   const facing = -dot(queryDirection, backward);
   check(Number.isFinite(facing) && facing > 0, CODE.NUMERICAL, 'Derived ray does not face the camera clip planes');
   const near = camera.near / facing, far = camera.far / facing;

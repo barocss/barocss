@@ -1,11 +1,12 @@
 import { validateCoplanarFaceBooleanMesh } from '@barocss/cad';
 import type { CoplanarFaceBooleanMeshResult } from '@barocss/cad';
+import type { Vec3 } from '../core/geometry-types.js';
 import { freezeGpuData } from '../mesh/gpu-data.js';
 import { requireValue, snapshotNativeMesh, nativeMeshBufferOptions, nativeMeshGeometryBuffers, requireDistinctBufferPoints } from '../mesh/native-mesh-buffers.js';
 
 export interface CoplanarBooleanBufferOptions {
   mmToSceneUnit: number;
-  translate: [number, number, number];
+  translate: Vec3;
 }
 /** CPU preparation only. Original native data and mutable display buffers have separate ownership. */
 export interface PreparedCoplanarBooleanBuffers {

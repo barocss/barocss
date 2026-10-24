@@ -67,7 +67,7 @@ function lowerSceneShadersInternal(scene: AnyScene, scales?: readonly Vec3[]): S
       ? `cylinderDistance(${point},${scalar(object.radius)},${scalar(object.height/2)})`
       : object.type === 'sphere'
       ? `length(${point})-${scalar(object.radius)}`
-      : `boxDistance(${point},${vec(object.size.map(n => n / 2) as Vec3)})`;
+      : `boxDistance(${point},${vec(object.size.map(n => n / 2) as [number, number, number])})`;
     // The multiplier uses the same executed Float32 scale constants as point division.
     // This is a conservative field in ideal arithmetic, not exact world distance.
     const field = affine ? `(${distance})*${scalar(Math.min(...scale.map(Math.fround)))}` : distance;

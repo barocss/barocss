@@ -60,7 +60,7 @@ export function lowerAffineSceneAst(ast: AffineSceneAst): { scene: AffineScene2;
         }
         return value;
       });
-      return values as Vec3;
+      return values as [number, number, number];
     }),
   }));
 

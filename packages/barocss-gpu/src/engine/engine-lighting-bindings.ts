@@ -66,7 +66,7 @@ function normalized(direction: Vec3): Vec3 {
   check(Number.isFinite(scale) && scale > 0, CODE.NUMERICAL, 'Light direction scale is unsafe');
   const scaled = direction.map(n => n / scale), length = Math.hypot(...scaled);
   check(Number.isFinite(length) && length > 0, CODE.NUMERICAL, 'Light direction length is unsafe');
-  const result = scaled.map(n => n / length) as Vec3;
+  const result = scaled.map(n => n / length) as [number, number, number];
   check(result.every(Number.isFinite), CODE.NUMERICAL, 'Unit light direction is nonfinite');
   Object.freeze(result);
   return result;

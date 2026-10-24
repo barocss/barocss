@@ -96,7 +96,7 @@ function clip(input: unknown): EngineScaleClipV0 {
       check(previous === undefined || timeSeconds > previous && timeSeconds - previous >= 1e-6,
         CODE.RANGE, 'Key times require strict increasing order and separation of at least1e-6 seconds');
       previous = timeSeconds;
-      const scale = array(data.scale, 3, 3).map(n => number(n, .01, 100, 'Local scale')) as Vec3;
+      const scale = array(data.scale, 3, 3).map(n => number(n, .01, 100, 'Local scale')) as [number, number, number];
       Object.freeze(scale); return Object.freeze({ timeSeconds, scale });
     });
     Object.freeze(keys); return Object.freeze({ nodeId: row.nodeId, keys });
@@ -117,7 +117,7 @@ function sample(track: EngineScaleTrackV0, time: number): Vec3 {
       const left = keys[i - 1], alpha = (time - left.timeSeconds) / (right.timeSeconds - left.timeSeconds);
       check(Number.isFinite(alpha) && alpha >= 0 && alpha <= 1, CODE.RANGE, 'Derived segment ratio is invalid');
       return left.scale.map((n, index) => number(n + (right.scale[index] - n) * alpha,
-        .01, 100, 'Derived local scale')) as Vec3;
+        .01, 100, 'Derived local scale')) as [number, number, number];
     }
   }
   throw new EngineScaleClipError(CODE.RANGE, 'No admitted segment contains request time');

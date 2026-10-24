@@ -117,7 +117,7 @@ function normalized(direction: Vec3): Vec3 {
   const scaled = direction.map(value => value / scale);
   const length = Math.hypot(...scaled);
   check(Number.isFinite(length) && length > 0, CODE.NUMERICAL, 'Direction normalization length is unsafe');
-  const result = scaled.map(value => value / length) as Vec3;
+  const result = scaled.map(value => value / length) as [number, number, number];
   check(result.every(Number.isFinite), CODE.NUMERICAL, 'Unit direction is nonfinite');
   return result;
 }
@@ -173,7 +173,7 @@ export function prepareNativeDirectionalLights(input: unknown): PreparedNativeDi
   });
   const lights: NativeDirectionalLightV0[] = admitted.map(({ data, nodeId, label, enabled, intensity }) => {
     const directionScene = dense(data.directionScene, 3, 'directionScene')
-      .map(value => number(value, -1000, 1000, 'directionScene component')) as Vec3;
+      .map(value => number(value, -1000, 1000, 'directionScene component')) as [number, number, number];
     check(directionScene.some(value => value !== 0), CODE.NUMERICAL, 'directionScene must be nonzero');
     const colorLinearRGB = dense(data.colorLinearRGB, 3, 'colorLinearRGB')
       .map(value => number(value, 0, 1, 'colorLinearRGB component')) as RGB;
