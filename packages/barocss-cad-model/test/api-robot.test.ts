@@ -86,3 +86,36 @@ test('the robot from an assembly, and the refusals: the tools\' own, and how it 
     assert.equal(e.code, code, e.message);
   }
 });
+
+// RS5 part 2: a path is RS2's motion — played in time by the core's poseAt over timedPathOf, in degrees and mm.
+import { poseAt as corePoseAt, duration as coreDuration, timedPathOf, readMotions } from '../src/robot/motion';
+
+test('poseAt and duration: the core\'s, in degrees; the path\'s ends at its first and last waypoints', () => {
+  const r = robot(), k = keys(), limits = { default: { velocity: 90, acceleration: 180 } };
+  const path = r.path([{ [k[0]]: 0, [k[1]]: 0 }, { [k[0]]: 90, [k[1]]: -30 }, { [k[0]]: 45, [k[1]]: 10 }], { limits });
+  assert.deepEqual(path.problems(), []);
+  const tree = r.joints(), timed = timedPathOf(tree, path.motion), T = path.duration();
+  assert.equal(T, coreDuration(timed));
+  assert.ok(T > 0);
+  const mid = path.poseAt(T / 3), core = corePoseAt(tree, timed, T / 3);
+  for (const key of Object.keys(core)) assert.ok(Math.abs(mid[key] - core[key] * 180 / Math.PI) < 1e-9, `${key}: ${mid[key]} vs ${core[key]}`);
+  const end = path.poseAt(T);
+  assert.ok(Math.abs(end[k[0]] - 45) < 1e-9 && Math.abs(end[k[1]] - 10) < 1e-9, JSON.stringify(end));
+  // (Its pose there is the pose() of those values.)
+  assert.equal(JSON.stringify(r.pose(path.poseAt(0))), JSON.stringify(r.pose({ [k[0]]: 0, [k[1]]: 0 })));
+});
+
+test('motions: saved under a name in the robot settings, read back, replaced by name; problems typed', () => {
+  const r = robot(), k = keys(), limits = { default: { velocity: 90, acceleration: 180 } };
+  const a = r.path([{ [k[0]]: 0 }, { [k[0]]: 60 }], { limits }), b = r.path([{ [k[0]]: 0 }, { [k[0]]: -60 }], { limits, profile: 's-curve' });
+  const saved = r.withMotion('swing', a).withMotion('back', b).withMotion('swing', b);
+  const motions = readMotions(saved.doc.robot?.motions);
+  assert.deepEqual(motions?.map(m => m.name), ['swing', 'back']);
+  assert.deepEqual(saved.motion('swing').motion, b.motion);
+  assert.equal(JSON.stringify(robot().doc), JSON.stringify(arm6r()), 'the old robot as it was');
+  // (No limits: the core's LIMITS_MISSING; no such motion: MOTION_UNKNOWN; a key that is no joint: JOINT_UNKNOWN.)
+  const refusal = (f: () => unknown) => { try { f(); } catch (e) { return e; } assert.fail('no refusal'); };
+  assert.equal((refusal(() => r.path([{ [k[0]]: 0 }, { [k[0]]: 60 }]).poseAt(0.1)) as BarocssError).code, 'LIMITS_MISSING');
+  assert.equal((refusal(() => saved.motion('nope')) as BarocssError).code, 'MOTION_UNKNOWN');
+  assert.deepEqual(r.path([{ nope: 0 }, { nope: 1 }], { limits }).problems().map(p => p.code), ['JOINT_UNKNOWN', 'JOINT_UNKNOWN']);
+});
