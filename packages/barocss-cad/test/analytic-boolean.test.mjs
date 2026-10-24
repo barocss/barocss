@@ -5,7 +5,7 @@ import { booleanAnalytic, brepFromBody, cad, brepFromPrismatic, prismaticFromPro
 const mulberry = seed => () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
 const circle = (cx, cy, r) => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
-const prism = (outer, z0, z1, id) => brepFromPrismatic(prismaticFromProfile({ outer, heightMM: z1 - z0, fromMM: z0, tag: id }), { id });
+const prism = (outer, z0, z1, id) => brepFromPrismatic(prismaticFromProfile({ outer, height: z1 - z0, from: z0, tag: id }), { id });
 const box = (a, b, id = 'b') => prism(rect(a[0], a[1], b[0], b[1]), a[2], b[2], id);
 /** A cylinder along x, y or z: centre (c0, c1) in the other two axes in cyclic order, over [h0, h1]. */
 function cylinder(axis, c, r, h0, h1, id = 'c') {
@@ -16,7 +16,7 @@ function cylinder(axis, c, r, h0, h1, id = 'c') {
 }
 const pi = Math.PI;
 function mesh(brep, q) {
-  const m = tessellateBrep(brep, { segmentsPerQuarter: q }), p = m.positionsMM, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
+  const m = tessellateBrep(brep, { segmentsPerQuarter: q }), p = m.positions, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
   let volume = 0;
   for (let t = 0; t < ix.length; t += 3) {
     const [a, b, c] = [ix[t] * 3, ix[t + 1] * 3, ix[t + 2] * 3];
@@ -45,7 +45,7 @@ test('planes and cylinders of any axis: exact cases', () => {
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.ok(r.faces.every(f => f.name) && r.edges.every(e => e.name), `${name}: names`);
     for (const q of [4, 16, 32]) assert.ok(mesh(r, q).watertight, `${name}: watertight at ${q}`);
-    const v = brepMassProperties(r, 1, { segmentsPerQuarter: 64 }).volumeMM3;
+    const v = brepMassProperties(r, 1, { segmentsPerQuarter: 64 }).volume;
     if (expected !== null) assert.ok(Math.abs(v - expected) < 2e-4 * expected, `${name}: ${v} vs ${expected}`);
   }
   // Cylinder walls notched (bar across) or holed (a stub inside a half) in their (θ, height) domain
@@ -56,12 +56,12 @@ test('planes and cylinders of any axis: exact cases', () => {
   assert.ok(holed.faces.some(f => f.surface.degreeU === 2 && f.loops.length > 1), 'a wall face with an inner loop');
   for (const q of [2, 8, 32]) assert.ok(mesh(holed, q).watertight && mesh(holed, q).kinds.has('trimmed'));
   // Cylinder + stub (4 × 15 × 4) − their overlap: ∫ (√(100 − x²) − 5) dx over |x| ≤ 2, times 4.
-  const overlap = 4 * (2 * (Math.sqrt(96) + 50 * Math.asin(0.2)) - 20), v = brepMassProperties(holed, 1).volumeMM3;
+  const overlap = 4 * (2 * (Math.sqrt(96) + 50 * Math.asin(0.2)) - 20), v = brepMassProperties(holed, 1).volume;
   assert.ok(Math.abs(v - (2000 * pi + 240 - overlap)) < 2e-4 * v, String(v));
 });
 
 test('ellipses, quartics, seams and merged faces (brep-core step 8)', () => {
-  const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volumeMM3, ok = (name, b) => { assert.equal(checkBrep(b).valid, true, name); for (const q of [4, 16]) assert.ok(mesh(b, q).watertight, `${name} watertight ${q}`); };
+  const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volume, ok = (name, b) => { assert.equal(checkBrep(b).valid, true, name); for (const q of [4, 16]) assert.ok(mesh(b, q).watertight, `${name} watertight ${q}`); };
   // A cube turned 45° about z, minus a cylinder along x: the box planes meet it in ellipses.
   const turned = transformBrep(box([-5, -5, -5], [5, 5, 5]), { matrix: [Math.SQRT1_2, -Math.SQRT1_2, 0, Math.SQRT1_2, Math.SQRT1_2, 0, 0, 0, 1] }), bar = cylinder('x', [0, 0], 2, -10, 10);
   const U = booleanAnalytic(turned, bar, 'union'), I = booleanAnalytic(turned, bar, 'intersection'), Dd = booleanAnalytic(turned, bar, 'difference');
@@ -110,7 +110,7 @@ test('random boxes and cylinders along x, y and z: valid watertight results, vol
     return { inside: p => Math.hypot(p[others[0]] - c[0], p[others[1]] - c[1]) < r && p[k] > h0 && p[k] < h1, brep: cylinder(axis, c, r, h0, h1, id) };
   };
   const inMesh = (b, p) => {
-    const m = tessellateBrep(b, { segmentsPerQuarter: 32 }), P = m.positionsMM, ix = m.indices, d = [0.5377, 0.3138, 0.7832]; let c = 0;
+    const m = tessellateBrep(b, { segmentsPerQuarter: 32 }), P = m.positions, ix = m.indices, d = [0.5377, 0.3138, 0.7832]; let c = 0;
     for (let t = 0; t < ix.length; t += 3) {
       const A = [0, 1, 2].map(k => P[ix[t] * 3 + k]), e1 = [0, 1, 2].map(k => P[ix[t + 1] * 3 + k] - A[k]), e2 = [0, 1, 2].map(k => P[ix[t + 2] * 3 + k] - A[k]);
       const h = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], a = e1[0] * h[0] + e1[1] * h[1] + e1[2] * h[2]; if (Math.abs(a) < 1e-14) continue;
@@ -149,16 +149,16 @@ test('mass: a whole B-spline patch is integrated over its spans, a wall whose su
   const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10), seamed = brepFromBody(m.build({ c }).bodies.c);
   // The seamed wall is its whole patch: tensor Gauss on the exact surface, no tessellation.
   const whole = brepMassProperties(seamed, 1);
-  assert.ok(Math.abs(whole.volumeMM3 - 250 * pi) < 1e-11 * 250 * pi, `${whole.volumeMM3}`);
-  assert.ok(Math.abs(whole.centroidMM[2] - 5) < 1e-11, `${whole.centroidMM}`);
+  assert.ok(Math.abs(whole.volume - 250 * pi) < 1e-11 * 250 * pi, `${whole.volume}`);
+  assert.ok(Math.abs(whole.centroid[2] - 5) < 1e-11, `${whole.centroid}`);
   // After a union the wall's surface spans 315° while its loop goes all round: integrated as trimmed.
-  const r = booleanAnalytic(seamed, box([-2, -2, 8], [2, 2, 14]), 'union'), v = brepMassProperties(r, 1).volumeMM3;
+  const r = booleanAnalytic(seamed, box([-2, -2, 8], [2, 2, 14]), 'union'), v = brepMassProperties(r, 1).volume;
   assert.ok(Math.abs(v - (250 * pi + 64)) < 1e-8 * (250 * pi + 64), `${v}`);
 });
 
 test('full-turn walls with a seam (schema-1 cylinders) are accepted', () => {
   const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10), seamed = brepFromBody(m.build({ c }).bodies.c);
-  const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volumeMM3;
+  const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volume;
   const strip = 2 * (Math.sqrt(24) + 25 * Math.asin(0.2));
   for (const [name, b, op, expected] of [['through a slot', box([-10, -1, 3], [10, 1, 6]), 'difference', 250 * pi - strip * 3], ['a block on top', box([-2, -2, 8], [2, 2, 14]), 'union', 250 * pi + 64], ['a slice', box([-10, -10, 2], [10, 10, 5]), 'intersection', 75 * pi]]) {
     const r = booleanAnalytic(seamed, b, op);

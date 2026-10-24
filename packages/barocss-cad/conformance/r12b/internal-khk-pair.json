@@ -38,11 +38,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 34372.8886,
           "relTol": 2e-05
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -60,11 +60,11 @@
         "faceNamePattern": "^r\\.(flankL|flankR|tip|root|rim|face0|face1)$"
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 17719.8777,
           "relTol": 3e-05
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             13.19995,
             0,

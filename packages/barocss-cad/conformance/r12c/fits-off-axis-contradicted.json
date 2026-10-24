@@ -89,11 +89,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 37699.11184307752,
           "relTol": 1e-09
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -110,11 +110,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 58904.86225480862,
           "relTol": 1e-09
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0.05,
             0,
@@ -147,40 +147,40 @@
             "rows": [
               {
                 "class": "H8",
-                "overMM": 30,
-                "upToMM": 50,
+                "over": 30,
+                "upTo": 50,
                 "upperUM": 39,
                 "lowerUM": 0,
                 "source": "F2"
               },
               {
                 "class": "f7",
-                "overMM": 30,
-                "upToMM": 50,
+                "over": 30,
+                "upTo": 50,
                 "upperUM": -25,
                 "lowerUM": -50,
                 "source": "F2"
               },
               {
                 "class": "H7",
-                "overMM": 30,
-                "upToMM": 50,
+                "over": 30,
+                "upTo": 50,
                 "upperUM": 25,
                 "lowerUM": 0,
                 "source": "F2"
               },
               {
                 "class": "k6",
-                "overMM": 30,
-                "upToMM": 50,
+                "over": 30,
+                "upTo": 50,
                 "upperUM": 18,
                 "lowerUM": 2,
                 "source": "F2"
               },
               {
                 "class": "p6",
-                "overMM": 30,
-                "upToMM": 50,
+                "over": 30,
+                "upTo": 50,
                 "upperUM": 42,
                 "lowerUM": 26,
                 "source": "F2"

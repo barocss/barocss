@@ -19,8 +19,8 @@ export interface ProfileWithHolesInput {
   readonly outer: readonly ProfileSegmentInput[];
   /** Holes, each a closed line + arc loop strictly inside the outer boundary and disjoint from each other. */
   readonly holes?: readonly (readonly ProfileSegmentInput[])[];
-  readonly heightMM: number;
-  readonly fromMM?: number;
+  readonly height: number;
+  readonly from?: number;
 }
 
 const fail = (detail: string): never => { throw extrudedProfileError('GEOMETRY', detail); };
@@ -31,8 +31,8 @@ function atLeastTwo(segments: readonly ProfileSegment[]): ProfileSegment[] {
   const s = segments[0];
   if (s.kind !== 'arc') fail('A loop needs at least two segments');
   const arc = s as Extract<ProfileSegment, { kind: 'arc' }>, half = arc.sweep / 2, mid = arc.startAngle + half;
-  const m: XY = [arc.center[0] + arc.radiusMM * Math.cos(mid), arc.center[1] + arc.radiusMM * Math.sin(mid)];
-  return [{ ...arc, end: m, sweep: half, lengthMM: arc.lengthMM / 2 }, { ...arc, start: m, startAngle: mid, sweep: half, lengthMM: arc.lengthMM / 2 }];
+  const m: XY = [arc.center[0] + arc.radius * Math.cos(mid), arc.center[1] + arc.radius * Math.sin(mid)];
+  return [{ ...arc, end: m, sweep: half, length: arc.length / 2 }, { ...arc, start: m, startAngle: mid, sweep: half, length: arc.length / 2 }];
 }
 function reverseCurve(c: Curve, id = c.id): Curve {
   const a = c.knots[0], b = c.knots[c.knots.length - 1];
@@ -41,7 +41,7 @@ function reverseCurve(c: Curve, id = c.id): Curve {
 const lift = (c: Curve, z: number, id: string): Curve => ({ ...c, id, controlPoints: c.controlPoints.map(p => [p[0], p[1], z] as Point) });
 function samples(loop: readonly ProfileSegment[]): XY[] {
   return loop.flatMap(s => s.kind === 'line' ? [s.start] : Array.from({ length: 12 }, (_, k) => {
-    const t = s.startAngle + s.sweep * k / 12; return [s.center[0] + s.radiusMM * Math.cos(t), s.center[1] + s.radiusMM * Math.sin(t)] as XY;
+    const t = s.startAngle + s.sweep * k / 12; return [s.center[0] + s.radius * Math.cos(t), s.center[1] + s.radius * Math.sin(t)] as XY;
   }));
 }
 function inside(p: XY, ring: readonly XY[]): boolean {
@@ -54,8 +54,8 @@ function inside(p: XY, ring: readonly XY[]): boolean {
 }
 
 export function extrudeProfileWithHoles(input: ProfileWithHolesInput): Brep {
-  const id = input.id ?? 'profile', z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM;
-  if (!(input.heightMM > 0) || !Number.isFinite(z1)) fail('A positive finite height is required');
+  const id = input.id ?? 'profile', z0 = input.from ?? 0, z1 = z0 + input.height;
+  if (!(input.height > 0) || !Number.isFinite(z1)) fail('A positive finite height is required');
   const budget = { maximumSegments: 1024 }, outerLoop = buildProfileLoop(input.outer, budget), outer = atLeastTwo(outerLoop.segments);
   const holeLoops = (input.holes ?? []).map(h => atLeastTwo(buildProfileLoop(h, budget).segments));
   // Holes strictly inside the outer boundary and pairwise disjoint (sampled; arcs at 30°).
@@ -104,8 +104,8 @@ export function extrudeProfileWithHoles(input: ProfileWithHolesInput): Brep {
 
   // 4. Plugs become rings of the bottom face: through holes.
   for (const plug of plugs) ed.kfmrh(plug, faceB);
-  ed.setSurface(faceA, capSurface(outerLoop.boundsMM, z1, `${id}_top`, true), 'forward');
-  ed.setSurface(faceB, capSurface(outerLoop.boundsMM, z0, `${id}_bottom`, false), 'forward');
+  ed.setSurface(faceA, capSurface(outerLoop.bounds, z1, `${id}_top`, true), 'forward');
+  ed.setSurface(faceB, capSurface(outerLoop.bounds, z0, `${id}_bottom`, false), 'forward');
   return ed.toBrep({ family: 'profile-with-holes', id });
 }
 
@@ -115,8 +115,8 @@ export function extrudeProfileWithHoles(input: ProfileWithHolesInput): Brep {
  * disconnected regions give several bodies in one B-rep.
  */
 export function extrudePolygonBoolean(a: readonly PolygonWithHoles[], b: readonly PolygonWithHoles[], operation: PlanarBooleanOperation,
-  options: { readonly heightMM: number; readonly fromMM?: number; readonly id?: string }): { brep: Brep; regions: PolygonWithHoles[] } {
+  options: { readonly height: number; readonly from?: number; readonly id?: string }): { brep: Brep; regions: PolygonWithHoles[] } {
   const id = options.id ?? 'boolean', regions = booleanPolygons(a, b, operation), lines = (ring: readonly XY[]) => ring.map(start => ({ kind: 'line' as const, start: [start[0], start[1]] as XY }));
-  const breps = regions.map((r, k) => extrudeProfileWithHoles({ id: `${id}${k}`, outer: lines(r.outer), holes: r.holes.map(lines), heightMM: options.heightMM, fromMM: options.fromMM }));
+  const breps = regions.map((r, k) => extrudeProfileWithHoles({ id: `${id}${k}`, outer: lines(r.outer), holes: r.holes.map(lines), height: options.height, from: options.from }));
   return { brep: mergeBreps(breps, { family: 'polygon-boolean', id }), regions };
 }

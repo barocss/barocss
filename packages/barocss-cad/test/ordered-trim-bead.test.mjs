@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, booleanAnalytic, brepMassProperties } from '../dist/index.js';
+import { evaluateCadPart, booleanAnalytic, brepMassProperties, massPropertiesOf, checkOutput, outputOf } from '../dist/index.js';
 
 const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 };
 const run = features => evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
-const volume = out => out.massProperties(1).volumeMM3;
+const volume = out => massPropertiesOf(out).volume;
 const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) <= 1e-12 * Math.max(1, Math.abs(expected)), `${label}: ${actual} vs ${expected}`);
 function frame(box = false, transform = p => p) {
   const points = [[0, 0, 0], [400, 0, 0], [400, 300, 0], [0, 300, 0], [0, 0, 300], [400, 0, 300], [400, 300, 300], [0, 300, 300]];
@@ -28,43 +28,43 @@ test('A9 opted-in ordered table: eight owned 270 mm3 beads, nominal 2880 mm3, wi
   assert.equal(beads.length, 8);
   let sum = 0;
   for (const out of beads) {
-    assert.ok(out.validate().valid);
+    assert.ok(checkOutput(out).valid);
     near(volume(out), 270, out.id);
-    near(out.bead.volumeMM3, 270, `${out.id} report`);
-    near(out.bead.nominalVolumeMM3, 360, `${out.id} nominal`);
-    assert.deepEqual(out.bead.seam, { lengthMM: 160, flushMM: 80, exact: true });
+    near(out.bead.volume, 270, `${out.id} report`);
+    near(out.bead.nominalVolume, 360, `${out.id} nominal`);
+    assert.deepEqual(out.bead.seam, { length: 160, flush: 80, exact: true });
     assert.equal(out.bodyCount, 2);
     // Both actual supports matter: the leg and the adjacent rail, not the nominal `with` alone.
     assert.equal(out.bead.meets.length, 2);
     assert.ok(out.bead.meets.some(k => k < 4) && out.bead.meets.some(k => k >= 4));
-    out.massProperties(1).centroidMM.forEach((v, k) => near(v, centroids[beads.indexOf(out)][k], `${out.id} centroid ${k}`));
+    massPropertiesOf(out).centroid.forEach((v, k) => near(v, centroids[beads.indexOf(out)][k], `${out.id} centroid ${k}`));
     for (const member of members) assert.equal(booleanAnalytic(out.brep, member.brep, 'intersection').bodies.length, 0, `${out.id} overlaps member ${member.member.frame.member}`);
     sum += volume(out);
   }
   near(sum, 2160, 'eight owned bead volumes');
-  near(beads.reduce((s, o) => s + o.bead.nominalVolumeMM3, 0), 2880, 'nominal requests');
+  near(beads.reduce((s, o) => s + o.bead.nominalVolume, 0), 2880, 'nominal requests');
   assert.equal(new Set(beads.flatMap(o => o.bead.sharedSeams.map(s => s.id))).size, 4);
   for (let a = 0; a < beads.length; a++) for (let b = a + 1; b < beads.length; b++) assert.equal(booleanAnalytic(beads[a].brep, beads[b].brep, 'intersection').bodies.length, 0, `${beads[a].id}/${beads[b].id}`);
   const welded = union(snapshot.outputs.map(o => o.brep));
   assert.equal(welded.bodies.length, 1);
-  near(brepMassProperties(welded, 1).volumeMM3, 444 * (4 * 320 + 2 * 360 + 2 * 260) + 2160, 'frame and beads unite without double counting');
+  near(brepMassProperties(welded, 1).volume, 444 * (4 * 320 + 2 * 360 + 2 * 260) + 2160, 'frame and beads unite without double counting');
 });
 
 test('ordered box: both levels and start/end directions use their actual planes', () => {
   const out = run([frame(true), ...[4, 8].flatMap(k => ['start', 'end'].map(end => bead(k, end)))]);
   for (const w of out.outputs.filter(o => o.bead)) {
-    assert.ok(w.validate().valid);
+    assert.ok(checkOutput(w).valid);
     near(volume(w), 360, w.id);
   }
 });
 
 test('translated and quarter-turned table: bead volume and centroid follow the actual end plane', () => {
-  const original = run([frame(), bead(4, 'start')]).output('w4start');
+  const original = outputOf(run([frame(), bead(4, 'start')]), 'w4start');
   const transform = ([x, y, z]) => [100 - z, y - 50, x + 20];
-  const moved = run([frame(false, transform), bead(4, 'start')]).output('w4start');
+  const moved = outputOf(run([frame(false, transform), bead(4, 'start')]), 'w4start');
   near(volume(moved), 360, 'placed volume');
-  const expected = transform(original.massProperties(1).centroidMM);
-  moved.massProperties(1).centroidMM.forEach((v, k) => near(v, expected[k], `placed centroid ${k}`));
+  const expected = transform(massPropertiesOf(original).centroid);
+  massPropertiesOf(moved).centroid.forEach((v, k) => near(v, expected[k], `placed centroid ${k}`));
 });
 
 test('ordered curved/mixed ends and explicit oblique ends retain typed refusals', () => {

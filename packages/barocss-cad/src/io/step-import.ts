@@ -521,7 +521,7 @@ export function importStep(source: string, options: { readonly id?: string } = {
   for (const p of points.values()) for (const x of p) extent = Math.max(extent, Math.abs(x));
   const tolerant = accuracy > 1e-6 * (1 + 1e-9) ? Math.min(accuracy, 1e-5 * Math.max(1, extent)) : undefined;
   const brep = buildBrep({
-    ...(tolerant ? { toleranceMM: tolerant } : {}),
+    ...(tolerant ? { tolerance: tolerant } : {}),
     source: { family: 'step', id },
     vertices: [...points].map(([vid, point]) => ({ id: vid, point })),
     edges: [...edges.values()].map(e => ({ id: e.id, curve: curves.get(e.id)!, vertices: e.v, ...(e.name ? { name: e.name } : {}) })),
@@ -581,7 +581,7 @@ function tessellatedBreps(data: Map<number, Entity>, id: string): Brep[] {
         if (!(isMeshBrepError(e)) || !/not closed|more than one piece|pieces/.test(e.message)) throw e;
         // (A closed hollow solid — a mesh shelled, R11.3, D114 — in pieces: the largest its outside, the others its voids.)
         if (!/not closed/.test(e.message)) {
-          const pieces = facetBrepsFromTriangles(m.positions, m.indices, o).map(b => ({ b, v: Math.abs(brepMassProperties(b, 1).volumeMM3) })).sort((x, y) => y.v - x.v);
+          const pieces = facetBrepsFromTriangles(m.positions, m.indices, o).map(b => ({ b, v: Math.abs(brepMassProperties(b, 1).volume) })).sort((x, y) => y.v - x.v);
           // (Only pieces inside the largest are voids; lumps apart are the file's to name as bodies of their own.)
           if (pieces.slice(1).every(p => classifyPointInFacets(pieces[0].b, p.b.vertices[0].point) === 'inside')) return pieces.slice(1).reduce((acc, p) => withCavities(acc, p.b, { family: 'step', id: m.id }), pieces[0].b);
           throw e;
@@ -629,7 +629,7 @@ function renumbered(names: readonly (string | undefined)[]): (string | undefined
 
 /** A STEP file's geometric validation properties (CAx-IF), as written for its part; each may be missing. */
 export interface StepValidationProperties {
-  readonly volumeMM3?: number; readonly areaMM2?: number; readonly centroidMM?: Point;
+  readonly volume?: number; readonly area?: number; readonly centroid?: Point;
   readonly box?: { readonly min: Point; readonly max: Point };
 }
 /**
@@ -637,7 +637,7 @@ export interface StepValidationProperties {
  * whose representations are 'volume', 'surface area', 'centroid' or 'bounding box' (values in mm).
  */
 export function stepValidationProperties(source: string): StepValidationProperties {
-  const data = parseData(source), out: { volumeMM3?: number; areaMM2?: number; centroidMM?: Point; box?: { min: Point; max: Point } } = {};
+  const data = parseData(source), out: { volume?: number; area?: number; centroid?: Point; box?: { min: Point; max: Point } } = {};
   const ref = (v: Value) => (v && typeof v === 'object' && 'ref' in v ? (v as { ref: number }).ref : -1);
   const gvp = new Set<number>();
   for (const [k, e] of data) if (e.type === 'PROPERTY_DEFINITION' && e.args[0] === 'geometric validation property') gvp.add(k);
@@ -647,9 +647,9 @@ export function stepValidationProperties(source: string): StepValidationProperti
     const items = (rep.args[1] as Value[]).map(v => data.get(ref(v))).filter((x): x is Entity => !!x);
     const measure = () => { const m = items.find(x => x.type === 'MEASURE_REPRESENTATION_ITEM')?.args[1]; return m && typeof m === 'object' && 'args' in m ? Number((m as { args: Value[] }).args[0]) : undefined; };
     const pointNamed = (name?: string) => { const p = items.find(x => x.type === 'CARTESIAN_POINT' && (name === undefined || x.args[0] === name)); return p ? (p.args[1] as Value[]).map(Number) as Point : undefined; };
-    if (rep.args[0] === 'volume') out.volumeMM3 = measure();
-    else if (rep.args[0] === 'surface area') out.areaMM2 = measure();
-    else if (rep.args[0] === 'centroid') out.centroidMM = pointNamed();
+    if (rep.args[0] === 'volume') out.volume = measure();
+    else if (rep.args[0] === 'surface area') out.area = measure();
+    else if (rep.args[0] === 'centroid') out.centroid = pointNamed();
     else if (rep.args[0] === 'bounding box') { const min = pointNamed('minimum point'), max = pointNamed('maximum point'); if (min && max) out.box = { min, max }; }
   }
   return out;
@@ -661,11 +661,11 @@ export interface ValidationCheck { readonly expected: number | Point; readonly a
  * The file's validation properties against the model read from it (its volume, area and centroid as measured
  * here). Limits are CAx-IF's: volume and area within 1 %, the centroid within 0.1 % of the box's diagonal.
  */
-export function compareValidationProperties(expected: StepValidationProperties, actual: { readonly volumeMM3: number; readonly areaMM2: number; readonly centroidMM: Point; readonly box: { readonly min: Point; readonly max: Point } }): { readonly volume?: ValidationCheck; readonly area?: ValidationCheck; readonly centroid?: ValidationCheck; readonly ok: boolean } {
+export function compareValidationProperties(expected: StepValidationProperties, actual: { readonly volume: number; readonly area: number; readonly centroid: Point; readonly box: { readonly min: Point; readonly max: Point } }): { readonly volume?: ValidationCheck; readonly area?: ValidationCheck; readonly centroid?: ValidationCheck; readonly ok: boolean } {
   const rel = (e: number, a: number): ValidationCheck => ({ expected: e, actual: a, difference: Math.abs(a - e) / Math.max(Math.abs(e), 1e-300), limit: 0.01, ok: Math.abs(a - e) <= 0.01 * Math.abs(e) });
   const box = expected.box ?? actual.box, diagonal = Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]);
-  const volume = expected.volumeMM3 === undefined ? undefined : rel(expected.volumeMM3, actual.volumeMM3);
-  const area = expected.areaMM2 === undefined ? undefined : rel(expected.areaMM2, actual.areaMM2);
-  const centroid = expected.centroidMM === undefined ? undefined : (() => { const d = Math.hypot(...[0, 1, 2].map(k => actual.centroidMM[k] - expected.centroidMM![k])); return { expected: expected.centroidMM!, actual: actual.centroidMM, difference: d, limit: 1e-3 * diagonal, ok: d <= 1e-3 * diagonal }; })();
+  const volume = expected.volume === undefined ? undefined : rel(expected.volume, actual.volume);
+  const area = expected.area === undefined ? undefined : rel(expected.area, actual.area);
+  const centroid = expected.centroid === undefined ? undefined : (() => { const d = Math.hypot(...[0, 1, 2].map(k => actual.centroid[k] - expected.centroid![k])); return { expected: expected.centroid!, actual: actual.centroid, difference: d, limit: 1e-3 * diagonal, ok: d <= 1e-3 * diagonal }; })();
   return { ...(volume ? { volume } : {}), ...(area ? { area } : {}), ...(centroid ? { centroid } : {}), ok: [volume, area, centroid].every(c => !c || c.ok) };
 }

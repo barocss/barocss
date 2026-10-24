@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { throatedWormWheel, checkThroatedWormPair, checkPlacedThroatedPair, checkWormPair, wormWheelSpec, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { throatedWormWheel, checkThroatedWormPair, checkPlacedThroatedPair, checkWormPair, wormWheelSpec, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain, outputOf, checkOutput } from '../dist/index.js';
 
 // R12b.6 (D137): the throated wheel of a ZA worm, attempted. Oracles written here, apart from gear-worm-wheel.ts: the
 // hob's section in each plane square to the wheel's axis (this file's own carrying of the worm's thread along its
@@ -13,7 +13,7 @@ const close = (a, b, tol, what) => assert.ok(Math.abs(a - b) <= tol, `${what}: $
 const AN = 20 * Math.PI / 180, D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const SURVEY = !!process.env.GEAR_SURVEY, inv = a => Math.tan(a) - a;
 const wrap = (a, p = 2 * Math.PI) => a - p * Math.round(a / p);
-const W = { axialModuleMM: 3, starts: 2, diameterMM: 44, hand: 'right', lengthMM: 60, form: 'ZA' };
+const W = { axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZA' };
 
 /** The pair by this file's formulas: the worm's lead angle and p, its ZA half-thickness ψ(ρ) (the hob's: thickened by j), the wheel's r2, a, the throat and root tori. */
 function geom({ m, z1, d1, hand = 'right', z2, b, j = 0 }) {
@@ -56,11 +56,11 @@ function sectionArea(G, c) {
 
 test('the throated wheel (refused at the previous HEAD: no throatedWormWheel): valid; K1\'s Table 4.23 wheel — throat Ø96, its surface radius 19, root Ø82.5, a 67, d2 90; tips on the throat torus and roots on the root torus exactly; the mid-plane against the closed-form involute of r2 cos α_x; the fits within the tolerance', t => {
   for (const [c, bore] of [[{ m: 3, z1: 2, d1: 44, z2: 30, b: 20 }, 20], ...(SURVEY ? [[{ m: 2, z1: 1, d1: 32, z2: 40, b: 16, hand: 'left' }, 0], [{ m: 2.5, z1: 3, d1: 30, z2: 45, b: 14 }, 12]] : [])]) {
-    const G = geom(c), spec = { worm: { axialModuleMM: c.m, starts: c.z1, diameterMM: c.d1, hand: c.hand ?? 'right', lengthMM: 1, form: 'ZA' }, teeth: c.z2, faceWidthMM: c.b, ...(bore ? { boreDiameterMM: bore } : {}) };
+    const G = geom(c), spec = { worm: { axialModule: c.m, starts: c.z1, diameter: c.d1, hand: c.hand ?? 'right', length: 1, form: 'ZA' }, teeth: c.z2, faceWidth: c.b, ...(bore ? { boreDiameter: bore } : {}) };
     const t0 = performance.now(), { brep, report } = throatedWormWheel(spec, { id: 'w' }), ms = performance.now() - t0, dm = report.dimensions, tol = 1e-4 * c.m * Math.cos(G.gamma);
     assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues?.[0]); assert.equal(brep.bodies.length, 1); assert.equal(report.kind, 'throated');
-    if (c.m === 3) { close(dm.throatDiameterMM, 96, 1e-12, "K1's throat Ø"); close(dm.throatRadiusMM, 19, 1e-12, "K1's throat surface radius"); close(dm.rootDiameterMM, 82.5, 1e-12, "K1's root Ø"); close(dm.centerDistanceMM, 67, 1e-12, "K1's a"); close(dm.referenceDiameterMM, 90, 0, "K1's d2"); }
-    assert.ok(report.flank.deviationMM <= tol && report.fillet.deviationMM <= tol, JSON.stringify(report.flank));
+    if (c.m === 3) { close(dm.throatDiameter, 96, 1e-12, "K1's throat Ø"); close(dm.throatRadius, 19, 1e-12, "K1's throat surface radius"); close(dm.rootDiameter, 82.5, 1e-12, "K1's root Ø"); close(dm.centerDistance, 67, 1e-12, "K1's a"); close(dm.referenceDiameter, 90, 0, "K1's d2"); }
+    assert.ok(report.flank.deviation <= tol && report.fillet.deviation <= tol, JSON.stringify(report.flank));
     // Tips on the throat torus, roots on the root torus (their own surfaces): (r − a)² + (z − b/2)² = R².
     let torus = 0, mid = 0, nMid = 0;
     const rb = G.r2 * Math.cos(G.ax), psiW = (Math.PI * c.m / 2) / (2 * G.r2) + inv(G.ax);
@@ -85,14 +85,14 @@ test('the throated wheel (refused at the previous HEAD: no throatedWormWheel): v
         }
       }
     }
-    assert.ok(torus <= 1e-9, `tori ${torus}`); assert.ok(nMid > 20 && mid <= report.flank.deviationMM * 1.001 + 1e-9, `mid-plane involute ${mid} (${nMid} points) vs fit ${report.flank.deviationMM}`);
-    t.diagnostic(`m_x ${c.m} z1 ${c.z1} d1 ${c.d1} z2 ${c.z2} b ${c.b}: throat Ø${dm.throatDiameterMM}, R_t ${dm.throatRadiusMM}, root Ø${dm.rootDiameterMM}; flank ${report.flank.piecesAcross} × ${report.flank.piecesAlong} pieces on ${report.flank.faces} faces within ${report.flank.deviationMM.toExponential(2)}, fillet ${report.fillet.piecesAcross} × ${report.fillet.piecesAlong} within ${report.fillet.deviationMM.toExponential(2)} (tolerance ${tol.toExponential(2)}); mid-plane involute ${mid.toExponential(2)}; ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
+    assert.ok(torus <= 1e-9, `tori ${torus}`); assert.ok(nMid > 20 && mid <= report.flank.deviation * 1.001 + 1e-9, `mid-plane involute ${mid} (${nMid} points) vs fit ${report.flank.deviation}`);
+    t.diagnostic(`m_x ${c.m} z1 ${c.z1} d1 ${c.d1} z2 ${c.z2} b ${c.b}: throat Ø${dm.throatDiameter}, R_t ${dm.throatRadius}, root Ø${dm.rootDiameter}; flank ${report.flank.piecesAcross} × ${report.flank.piecesAlong} pieces on ${report.flank.faces} faces within ${report.flank.deviation.toExponential(2)}, fillet ${report.fillet.piecesAcross} × ${report.fillet.piecesAlong} within ${report.fillet.deviation.toExponential(2)} (tolerance ${tol.toExponential(2)}); mid-plane involute ${mid.toExponential(2)}; ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
   }
 });
 
 test('enveloping: the B-rep\'s own flank points, the worm turning through tooth 1\'s engagement — never inside the worm\'s thread (by more than 1e-4 m), and each touched by it (within the fits): on the mid-plane and off it', t => {
-  const G = geom({ m: 3, z1: 2, d1: 44, z2: 30, b: 20 }), { brep, report } = throatedWormWheel({ worm: W, teeth: 30, faceWidthMM: 20 }, { id: 'w' });
-  const om = Math.PI / 2 + Math.PI / 30, fit = report.flank.deviationMM;
+  const G = geom({ m: 3, z1: 2, d1: 44, z2: 30, b: 20 }), { brep, report } = throatedWormWheel({ worm: W, teeth: 30, faceWidth: 20 }, { id: 'w' });
+  const om = Math.PI / 2 + Math.PI / 30, fit = report.flank.deviation;
   // A wheel point (its frame) as the worm's: the pair's frame at the cutting pose turned Δ = −h θ z1/z2; the worm turned θ.
   const margin = (q, th) => {
     const D = -G.h * th * G.z1 / G.z2 - om, x = Math.cos(D) * q[0] - Math.sin(D) * q[1], y = Math.sin(D) * q[0] + Math.cos(D) * q[1], c = q[2] - G.b / 2;
@@ -125,25 +125,25 @@ test('enveloping: the B-rep\'s own flank points, the worm turning through tooth 
 });
 
 test('refusals: a ZI worm, too few teeth, a face past the throat\'s reach, a bore; a tolerance the budget cannot hold refused with the measured distance (the cylindrical wheel stays)', () => {
-  const base = { worm: W, teeth: 30, faceWidthMM: 20 };
+  const base = { worm: W, teeth: 30, faceWidth: 20 };
   const code = (spec, c, re) => assert.throws(() => throatedWormWheel({ ...base, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
-  code({ worm: { ...W, form: 'ZI' } }, 'UNSUPPORTED_GEAR_KIND', /ZI worm/); code({ teeth: 17 }, 'INVALID_INPUT'); code({ faceWidthMM: 31 }, 'INVALID_INPUT', /1\.6 R_t = 30\.400/); code({ boreDiameterMM: 80 }, 'BORE_INTERSECTION');
-  code({ profileToleranceMM: 1e-7 }, 'UNSUPPORTED_GEAR_KIND', /throated wheel: its generated flank fits within \d\.\d\de-\d+ mm at the budget \(15 × \d+ bicubic pieces; at most 15 across and 20 along\), not 1\.00e-7 mm — the cylindrical wheel stays/);
-  assert.throws(() => checkThroatedWormPair({ ...W, diameterMM: 40 }, base), e => e.code === 'MATE_INCOMPATIBLE');
+  code({ worm: { ...W, form: 'ZI' } }, 'UNSUPPORTED_GEAR_KIND', /ZI worm/); code({ teeth: 17 }, 'INVALID_INPUT'); code({ faceWidth: 31 }, 'INVALID_INPUT', /1\.6 R_t = 30\.400/); code({ boreDiameter: 80 }, 'BORE_INTERSECTION');
+  code({ profileTolerance: 1e-7 }, 'UNSUPPORTED_GEAR_KIND', /throated wheel: its generated flank fits within \d\.\d\de-\d+ mm at the budget \(15 × \d+ bicubic pieces; at most 15 across and 20 along\), not 1\.00e-7 mm — the cylindrical wheel stays/);
+  assert.throws(() => checkThroatedWormPair({ ...W, diameter: 40 }, base), e => e.code === 'MATE_INCOMPATIBLE');
 });
 
 test('the pair: K1\'s ZA worm and its throated wheel — with the worm 0.1 mm thinner every plane clear by about j cos α_x / 2, at none touching on every plane (the cylindrical wheel stands 0.266 mm off at ±b/3), a phase off crossing', t => {
-  const G = geom({ m: 3, z1: 2, d1: 44, z2: 30, b: 20 }), wh = { worm: W, teeth: 30, faceWidthMM: 20 };
-  const thin = checkThroatedWormPair({ ...W, toothThicknessReductionMM: 0.1 }, wh), none = checkThroatedWormPair(W, wh), want = 0.1 * Math.cos(G.ax) / 2;
-  close(thin.centerDistanceMM, 67, 1e-12, 'a'); close(thin.speedRatio, 15, 0, 'ratio'); assert.equal(thin.interference, false); assert.equal(none.interference, false);
+  const G = geom({ m: 3, z1: 2, d1: 44, z2: 30, b: 20 }), wh = { worm: W, teeth: 30, faceWidth: 20 };
+  const thin = checkThroatedWormPair({ ...W, toothThicknessReduction: 0.1 }, wh), none = checkThroatedWormPair(W, wh), want = 0.1 * Math.cos(G.ax) / 2;
+  close(thin.centerDistance, 67, 1e-12, 'a'); close(thin.speedRatio, 15, 0, 'ratio'); assert.equal(thin.interference, false); assert.equal(none.interference, false);
   // (Off the mid-plane the normal there leans from the plane: the clearance in it falls a little, 1%.)
-  for (const p of thin.planes) assert.ok(p.minimumClearanceMM <= want + 1e-4 && p.minimumClearanceMM >= 0.98 * want, `plane ${p.offsetMM}: ${p.minimumClearanceMM} vs ${want}`);
-  close(thin.planes[0].minimumClearanceMM, want, 1e-5, 'mid-plane j cos α_x / 2');
-  for (const p of none.planes) assert.ok(p.minimumClearanceMM <= none.touchMM, `plane ${p.offsetMM}: ${p.minimumClearanceMM} — touching`);
-  const cyl = checkWormPair({ ...W, toothThicknessReductionMM: 0.05 }, wormWheelSpec(W, { teeth: 30, faceWidthMM: 20, toothThicknessReductionMM: 0.05 }));
-  assert.ok(cyl.planes[1].minimumClearanceMM > 5 * want, 'the cylindrical wheel stands off the worm away from its mid-plane');
-  assert.equal(checkThroatedWormPair(W, wh, { relativePhaseDeg: 20, mode: 'verdict' }).interference, true);
-  t.diagnostic(`thinned 0.1: planes ${thin.planes.map(p => `${p.offsetMM.toFixed(2)} ${p.minimumClearanceMM.toFixed(6)}`).join(', ')} (j cos α_x/2 ${want.toFixed(6)}); none: ${none.planes.map(p => p.minimumClearanceMM.toExponential(1)).join(', ')} (touch ${none.touchMM.toExponential(1)}); the cylindrical wheel ±b/3 ${cyl.planes[1].minimumClearanceMM.toFixed(4)}`);
+  for (const p of thin.planes) assert.ok(p.minimumClearance <= want + 1e-4 && p.minimumClearance >= 0.98 * want, `plane ${p.offset}: ${p.minimumClearance} vs ${want}`);
+  close(thin.planes[0].minimumClearance, want, 1e-5, 'mid-plane j cos α_x / 2');
+  for (const p of none.planes) assert.ok(p.minimumClearance <= none.touch, `plane ${p.offset}: ${p.minimumClearance} — touching`);
+  const cyl = checkWormPair({ ...W, toothThicknessReduction: 0.05 }, wormWheelSpec(W, { teeth: 30, faceWidth: 20, toothThicknessReduction: 0.05 }));
+  assert.ok(cyl.planes[1].minimumClearance > 5 * want, 'the cylindrical wheel stands off the worm away from its mid-plane');
+  assert.equal(checkThroatedWormPair(W, wh, { relativePhase: 20, mode: 'verdict' }).interference, true);
+  t.diagnostic(`thinned 0.1: planes ${thin.planes.map(p => `${p.offset.toFixed(2)} ${p.minimumClearance.toFixed(6)}`).join(', ')} (j cos α_x/2 ${want.toFixed(6)}); none: ${none.planes.map(p => p.minimumClearance.toExponential(1)).join(', ')} (touch ${none.touch.toExponential(1)}); the cylindrical wheel ±b/3 ${cyl.planes[1].minimumClearance.toFixed(4)}`);
 });
 
 test('the part model: a worm-wheel (throated) and its worm by mesh — m_x, d1 and hand from the wheel, square at 67 mm in its mid-plane, the placed check clear; the volume as the sections\' areas along the face; STEP (survey)', t => {
@@ -151,23 +151,23 @@ test('the part model: a worm-wheel (throated) and its worm by mesh — m_x, d1 a
     { id: 'g', kind: 'worm-wheel', worm: { axialModule: 3, starts: 2, diameter: 44, hand: 'right' }, teeth: 30, faceWidth: 20, bore: 20, center: [10, 5], from: 2, rotation: rot },
     { id: 'w', kind: 'worm', starts: 2, length: 60, form: 'ZA', thicknessReduction: 0.05, mesh: { gear: 'g', direction: dir, phase } }];
   for (const [rot, dir] of SURVEY ? [[0, -90], [5, 30], [-7, 200]] : [[5, 30]]) {
-    const M = evaluateCadPart(D(feats(rot, dir))), g = M.output('g'), w = M.output('w'), pw = w.wormPlacement;
-    close(pw.spec.axialModuleMM, 3, 0, 'm_x'); close(pw.spec.diameterMM, 44, 0, 'd1'); assert.equal(pw.spec.hand, 'right');
+    const M = evaluateCadPart(D(feats(rot, dir))), g = outputOf(M, 'g'), w = outputOf(M, 'w'), pw = w.wormPlacement;
+    close(pw.spec.axialModule, 3, 0, 'm_x'); close(pw.spec.diameter, 44, 0, 'd1'); assert.equal(pw.spec.hand, 'right');
     const mid = pw.origin.map((x, i) => x + pw.axis[i] * 30); close(Math.hypot(mid[0] - 10, mid[1] - 5), 67, 1e-9, 'a'); close(mid[2], 12, 1e-12, 'mid-plane'); close(pw.axis[2], 0, 1e-15, 'square');
-    assert.equal(g.validate().valid, true); assert.equal(w.validate().valid, true);
+    assert.equal(checkOutput(g).valid, true); assert.equal(checkOutput(w).valid, true);
     assert.ok(g.wormWheel && g.wormWheelPlacement);
-    const chk = checkPlacedThroatedPair(g.wormWheelPlacement, pw, { mode: 'verdict', samples: 8 }); assert.equal(chk.relativePhaseDeg, 0); assert.equal(chk.interference, false);
+    const chk = checkPlacedThroatedPair(g.wormWheelPlacement, pw, { mode: 'verdict', samples: 8 }); assert.equal(chk.relativePhase, 0); assert.equal(chk.interference, false);
   }
   // The volume: (∫ the section's area along the face, Simpson over 10 planes, this file's sections) less the bore.
   const n = 10, h = 20 / n; let I = 0;
   for (let k = 0; k <= n; k++) I += (k === 0 || k === n ? 1 : k % 2 ? 4 : 2) * sectionArea(G, -10 + h * k);
-  const want = I * h / 3 - Math.PI * 100 * 20, got = brepMassProperties(evaluateCadPart(D(feats(0, 0))).output('g').brep, 1).volumeMM3;
+  const want = I * h / 3 - Math.PI * 100 * 20, got = brepMassProperties(outputOf(evaluateCadPart(D(feats(0, 0))), 'g').brep, 1).volume;
   close(got, want, 2e-5 * want, 'volume');
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   // STEP (the survey: writing it takes about 15 s — its tessellated copy of 724 curved faces, D137).
   if (SURVEY) {
-    const { brep } = throatedWormWheel({ worm: W, teeth: 30, faceWidthMM: 20, boreDiameterMM: 20 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'wheel' }));
-    close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.tip#1')); assert.equal(checkBrep(back).valid, true);
+    const { brep } = throatedWormWheel({ worm: W, teeth: 30, faceWidth: 20, boreDiameter: 20 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'wheel' }));
+    close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.tip#1')); assert.equal(checkBrep(back).valid, true);
   }
   t.diagnostic(`volume ${got.toFixed(3)} vs ${want.toFixed(3)} (${((got - want) / want).toExponential(2)})`);
 });

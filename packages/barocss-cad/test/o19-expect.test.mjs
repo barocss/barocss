@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf } from '../dist/index.js';
 
 // O19 (D277): a stored name checked against what it named. A square's corner (40, 40) filleted by its positional name
 // n1.side1|n1.side2; a vertex inserted upstream renumbers the sides, and the name then names the corner at (40, 0).
@@ -9,7 +9,7 @@ const square = (points, fillet) => D([
   { id: 'n0', kind: 'sketch', profile: 'polygon', points }, { id: 'n1', kind: 'extrude', sketch: 'n0', height: 10 },
   { id: 'n2', kind: 'fillet', target: 'n1', edges: ['n1.side1|n1.side2'], radius: 2, ...fillet }]);
 const corner = { kind: 'line', at: [40, 40, 5], dir: [0, 0, 1], size: 10 };
-const volume = doc => evaluateCadPart(doc).outputs[0].massProperties(1).volumeMM3;
+const volume = doc => massPropertiesOf(evaluateCadPart(doc).outputs[0]).volume;
 
 test('O19: a fillet whose stored edge name moved to another corner after an upstream vertex insert refuses, typed, and never builds there', () => {
   const original = [[0, 0], [40, 0], [40, 40], [0, 40]], inserted = [[0, 0], [20, 0], [40, 0], [40, 40], [0, 40]];

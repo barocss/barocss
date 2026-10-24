@@ -2,14 +2,14 @@ import { check, XYNumericalSketchError } from './xy-numerical-sketch-admission-i
 import type { XYNumericalSketchDocumentV0, XYNumericalSketchPoint, XYNumericalSketchReport, XYNumericalSketchResidual } from './xy-numerical-sketch.js';
 
 export const limits = Object.freeze({ points: 16, segments: 16, constraints: 32, scalarResiduals: 64, unknowns: 32, branchGuards: 16,
-  coordinateAbsMM: 10000, minimumSegmentMM: .001, iterations: 100, evaluations: 1200 });
+  coordinateAbs: 10000, minimumSegment: .001, iterations: 100, evaluations: 1200 });
 /**
  * `bounded-length-angle-v1`: the same solver and tolerances over larger bounded sketches (outlines with
  * several placed circles). v0's limits are unchanged.
  */
 export const limitsV1 = Object.freeze({ ...limits, points: 64, segments: 64, constraints: 128, scalarResiduals: 256, unknowns: 128, branchGuards: 32 });
 export const limitsFor = (profile: string) => profile === 'bounded-length-angle-v1' ? limitsV1 : limits;
-export const tolerances = Object.freeze({ linearMM: 1e-7, angularRad: 1e-9, rankRelative: 1e-10 });
+export const tolerances = Object.freeze({ linear: 1e-7, angular: 1e-9, rankRelative: 1e-10 });
 export function wrap(angle: number): number { const a = Math.atan2(Math.sin(angle), Math.cos(angle)); return a === -Math.PI ? Math.PI : a; }
 
 /** Householder QR with recomputed column norms; strict > selects the first current column on a tie. */
@@ -53,7 +53,7 @@ export function evaluate(d: XYNumericalSketchDocumentV0, x: number[]): { jacobia
     const row = Array(n).fill(0) as number[]; for (const [i, v] of terms) row[i] += v;
     const residual = unit === 'rad' ? wrap(actual - target) : actual - target;
     check(Number.isFinite(residual) && row.every(Number.isFinite), 'NUMERICAL', 'Nonfinite residual or Jacobian', '$.constraints');
-    jacobian.push(row); residuals.push({ constraintId, component, actual, target, residual, unit, tolerance: unit === 'rad' ? tolerances.angularRad : tolerances.linearMM });
+    jacobian.push(row); residuals.push({ constraintId, component, actual, target, residual, unit, tolerance: unit === 'rad' ? tolerances.angular : tolerances.linear });
   };
   for (const c of d.constraints) {
     if (c.kind === 'fixed') { const a = point(c.pointId); for (let k = 0; k < 2; k++) add(c.id, k === 0 ? 'x' : 'y', x[a + k], c.target[k], 'mm', [[a + k, 1]]); }
@@ -64,11 +64,11 @@ export function evaluate(d: XYNumericalSketchDocumentV0, x: number[]): { jacobia
         [b.a, b.dx / lb], [b.a + 1, b.dy / lb], [b.b, -b.dx / lb], [b.b + 1, -b.dy / lb]]);
     } else if (c.kind === 'signed-angle') {
       const a = segment(c.segmentA), b = segment(c.segmentB), aa = a.dx * a.dx + a.dy * a.dy, bb = b.dx * b.dx + b.dy * b.dy;
-      add(c.id, 'signed-angle', wrap(Math.atan2(b.dy, b.dx) - Math.atan2(a.dy, a.dx)), c.angleRad, 'rad',
+      add(c.id, 'signed-angle', wrap(Math.atan2(b.dy, b.dx) - Math.atan2(a.dy, a.dx)), c.angle, 'rad',
         [[a.a, -a.dy / aa], [a.a + 1, a.dx / aa], [a.b, a.dy / aa], [a.b + 1, -a.dx / aa], [b.a, b.dy / bb], [b.a + 1, -b.dx / bb], [b.b, -b.dy / bb], [b.b + 1, b.dx / bb]]);
     } else {
       const v = segment(c.segmentId);
-      if (c.kind === 'length') { const length = Math.hypot(v.dx, v.dy); add(c.id, 'length', length, c.lengthMM, 'mm', [[v.a, -v.dx / length], [v.a + 1, -v.dy / length], [v.b, v.dx / length], [v.b + 1, v.dy / length]]); }
+      if (c.kind === 'length') { const length = Math.hypot(v.dx, v.dy); add(c.id, 'length', length, c.length, 'mm', [[v.a, -v.dx / length], [v.a + 1, -v.dy / length], [v.b, v.dx / length], [v.b + 1, v.dy / length]]); }
       else { const k = c.kind === 'horizontal' ? 1 : 0; add(c.id, k === 1 ? 'dy' : 'dx', k === 1 ? v.dy : v.dx, 0, 'mm', [[v.b + k, 1], [v.a + k, -1]]); }
     }
   }

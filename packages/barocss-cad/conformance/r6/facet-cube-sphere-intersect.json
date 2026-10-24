@@ -945,7 +945,7 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "i",
@@ -959,11 +959,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 113.09733552923255,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             17.75,
             17.75,

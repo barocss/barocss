@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, brepMassProperties, checkBrep, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { finishBrepEdges } from '../dist/blend/edge-finish.js';
 
 // R10.4a (D95): overflow over smooth edges. Where the ball's contact runs off a face across an edge onto a face tangent
@@ -28,19 +28,19 @@ function pappus(r) {
 }
 
 test('R10.4a a boss with its top edge rounded, its foot filleted larger than the wall below the round: the ball rolls over onto the round — by Pappus to 2e-7, as a feature and forced through the rolling ball; smaller, on the wall alone, the closed form as before', () => {
-  const o0 = out(rounded), v0 = o0.massProperties(1).volumeMM3, foot = o0.brep.edges.filter(e => /a\.top/.test(e.name) && /b\.side0/.test(e.name)).map(e => e.name);
+  const o0 = out(rounded), v0 = massPropertiesOf(o0).volume, foot = o0.brep.edges.filter(e => /a\.top/.test(e.name) && /b\.side0/.test(e.name)).map(e => e.name);
   for (const r of [4.5, 5, 6]) {
     const o = out([...rounded, { id: 'f', kind: 'fillet', target: 'g', edges: foot, radius: r }]);
-    assert.equal(o.validate().valid, true, `r ${r}`);
-    const got = o.massProperties(1).volumeMM3 - v0, exact = pappus(r);
+    assert.equal(checkOutput(o).valid, true, `r ${r}`);
+    const got = massPropertiesOf(o).volume - v0, exact = pappus(r);
     assert.ok(Math.abs(got / exact - 1) < 2e-7, `r ${r}: ${got} vs ${exact} (${got / exact - 1})`);
     assert.ok(o.fillet?.length === 1, `r ${r}: by the rolling ball`);
     const g = finishBrepEdges(o0.brep, foot, r, 'fillet', 'f', { general: true });
     assert.equal(checkBrep(g).valid, true);
-    assert.ok(Math.abs((brepMassProperties(g, 1).volumeMM3 - v0) / exact - 1) < 2e-7, `r ${r} forced`);
+    assert.ok(Math.abs((brepMassProperties(g, 1).volume - v0) / exact - 1) < 2e-7, `r ${r} forced`);
   }
   // r 3: its contact on the wall (z = 13, the round starting at 14) — R10.1's closed form, (π/2 · 4)(R A + M) about the axis.
   const r = 3, A = (1 - Math.PI / 4) * r * r, M = r ** 3 * (5 / 6 - Math.PI / 4), o = out([...rounded, { id: 'f', kind: 'fillet', target: 'g', edges: foot, radius: r }]);
   assert.equal(o.fillet, undefined, 'r 3: the closed form');
-  assert.ok(Math.abs((o.massProperties(1).volumeMM3 - v0) / (2 * Math.PI * (R * A + M)) - 1) < 1e-9);
+  assert.ok(Math.abs((massPropertiesOf(o).volume - v0) / (2 * Math.PI * (R * A + M)) - 1) < 1e-9);
 });

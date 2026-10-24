@@ -55,7 +55,7 @@ export function facetBoolean(a: Brep, b: Brep, op: AnalyticBooleanOperation, opt
   const weld = Math.max(1e-9, size * 1e-6);
   // The box round the tool, a little larger: the mesh outside it never meets the tool. Clipped to it plane by plane
   // (F1's split on the soup), the part kept capped each time, the parts cut away left as triangles (no body built).
-  const tool = tessellateBrep(b, { segmentsPerQuarter: 4 }).positionsMM, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  const tool = tessellateBrep(b, { segmentsPerQuarter: 4 }).positions, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < tool.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], tool[i + k]); hi[k] = Math.max(hi[k], tool[i + k]); }
   // (A tenth of the tool's smallest extent: the caps clear of it by far more than any tolerance, the near part small.)
   const pad = 0.1 * Math.min(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) + 1e-3;
@@ -93,7 +93,7 @@ export function facetBoolean(a: Brep, b: Brep, op: AnalyticBooleanOperation, opt
   if (!soup.I.length) return mergeBreps([], { family: 'mesh', id });
   mendTJunctions(soup, planes);
   let pieces: Brep[];
-  try { pieces = facetBrepsFromTriangles(soup.P, soup.I, { id, groups: soup.G, groupName: g => `t${g}`, maximumTriangles: Infinity, maximumRegions: Infinity, creaseDegrees: 180, weldMM: soupWeld(soup) }); }
+  try { pieces = facetBrepsFromTriangles(soup.P, soup.I, { id, groups: soup.G, groupName: g => `t${g}`, maximumTriangles: Infinity, maximumRegions: Infinity, crease: 180, weldDistance: soupWeld(soup) }); }
   catch (cause) { if (isMeshBrepError(cause)) { throw facetBooleanError('GEOMETRY', `the result does not close (${cause.message})`); } throw cause; }
   return restore(pieces.length === 1 ? pieces[0] : mergeBreps(pieces, { family: 'mesh', id }), sources);
 }
@@ -104,7 +104,7 @@ function soupOf(a: Brep, sources: Source[], q: number): Soup {
   a.faces.forEach((f, i) => sources.push({ name: f.name ?? `face${i}`, surface: isFacetFace(f) ? null : f.surface as Surface }));
   if (a.faces.every(isFacetFace)) { const s = facetSoup(a); return { P: Array.from(s.P), I: Array.from(s.I), G: Array.from(s.G, g => base + g) }; }
   const out: Soup = { P: [], I: [], G: [] }, mesh = tessellateBrep(a, { segmentsPerQuarter: q }), index = new Map(a.faces.map((f, i) => [f.id, i]));
-  for (const mf of mesh.faces) appendMeshFace(out, mesh.positionsMM, mesh.indices, mf, base + index.get(mf.faceId)!);
+  for (const mf of mesh.faces) appendMeshFace(out, mesh.positions, mesh.indices, mf, base + index.get(mf.faceId)!);
   let size = 0; for (const x of out.P) size = Math.max(size, Math.abs(x));
   const { P, remap } = weldVertices(out.P, out.P.length / 3, Math.max(1e-12, size * 1e-12));
   return { P: Array.from(P), I: out.I.map(v => remap[v]), G: out.G };
@@ -144,7 +144,7 @@ function addTessellated(soup: Soup, brep: Brep, q: number): void {
     const name = names.get(mf.faceId)!.replace(/#\d+$/, '');
     if (CAP.test(name)) continue;
     const m = /^t(\d+)$/.exec(name); if (!m) throw facetBooleanError('GEOMETRY', `a face of the result has no source (${name})`);
-    appendMeshFace(soup, mesh.positionsMM, mesh.indices, mf, Number(m[1]));
+    appendMeshFace(soup, mesh.positions, mesh.indices, mf, Number(m[1]));
   }
 }
 function appendMeshFace(soup: Soup, P: Float64Array, I: Uint32Array, mf: { vertexOffset: number; vertexCount: number; indexOffset: number; indexCount: number }, g: number): void {
@@ -247,7 +247,7 @@ function restore(brep: Brep, sources: Source[]): Brep {
       tol.set(e.id, worst);
     }
   }
-  const edges = brep.edges.map(e => { const t = tol.get(e.id); return t !== undefined && 2 * t > e.toleranceMM ? { ...e, toleranceMM: 2 * t } : e; });
+  const edges = brep.edges.map(e => { const t = tol.get(e.id); return t !== undefined && 2 * t > e.tolerance ? { ...e, tolerance: 2 * t } : e; });
   const out: Brep = { ...brep, faces, edges };
   const report = checkBrep(out);
   if (!report.valid) throw facetBooleanError('GEOMETRY', `the result is not valid: ${report.issues[0]}`);
@@ -340,7 +340,7 @@ export function splitMixedBrep(a: Brep, normal: Point, offset: number, at: strin
   for (let k = 0; k < 2; k++) {
     if (!r.tris[k].length) { sides.push(null); continue; }
     const part = compact(r.P, r.tris[k], r.groups[k].map(g => g === CAP_GROUP ? (k ? capBottom : capTop) : g));
-    const pieces = facetBrepsFromTriangles(part.P, part.I, { id: `${at}${k ? '_above' : '_below'}`, groups: part.G, groupName: g => `t${g}`, maximumTriangles: Infinity, maximumRegions: Infinity, creaseDegrees: 180, weldMM: soupWeld(part) });
+    const pieces = facetBrepsFromTriangles(part.P, part.I, { id: `${at}${k ? '_above' : '_below'}`, groups: part.G, groupName: g => `t${g}`, maximumTriangles: Infinity, maximumRegions: Infinity, crease: 180, weldDistance: soupWeld(part) });
     sides.push(restore(pieces.length === 1 ? pieces[0] : mergeBreps(pieces, { family: 'mesh', id: at }), sources));
   }
   return { below: sides[0], above: sides[1] };
@@ -353,7 +353,7 @@ export function splitMixedBrep(a: Brep, normal: Point, offset: number, at: strin
  */
 export function facetedCopy(a: Brep, segmentsPerQuarter = 32): Brep {
   const sources: Source[] = [], mesh = soupOf(a, sources, segmentsPerQuarter), id = a.bodies[0]?.id ?? a.source.id;
-  const pieces = facetBrepsFromTriangles(mesh.P, mesh.I, { id, groups: mesh.G, groupName: g => `t${g}`, maximumTriangles: Infinity, maximumRegions: Infinity, creaseDegrees: 180, weldMM: soupWeld(mesh) });
+  const pieces = facetBrepsFromTriangles(mesh.P, mesh.I, { id, groups: mesh.G, groupName: g => `t${g}`, maximumTriangles: Infinity, maximumRegions: Infinity, crease: 180, weldDistance: soupWeld(mesh) });
   const out = pieces.length === 1 ? pieces[0] : mergeBreps(pieces, { family: 'mesh', id });
   return restore(out, sources.map(x => ({ name: x.name, surface: null })));
 }

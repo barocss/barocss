@@ -30,11 +30,11 @@ export interface MeshRepairSteps {
   /** Drop closed pieces under this share of the largest one's volume (default 0.01; false: keep them). */
   readonly floaters?: false | { readonly minFraction: number };
   /** Corners closer than this are one vertex (mm; default 1e-6 of the mesh's size). */
-  readonly weldMM?: number;
+  readonly weldDistance?: number;
 }
-export const DEFAULT_REPAIR: Required<Omit<MeshRepairSteps, 'weldMM'>> = { weld: true, degenerate: true, fins: true, orient: true, fill: true, floaters: { minFraction: 0.01 } };
+export const DEFAULT_REPAIR: Required<Omit<MeshRepairSteps, 'weldDistance'>> = { weld: true, degenerate: true, fins: true, orient: true, fill: true, floaters: { minFraction: 0.01 } };
 
-export interface MeshHole { readonly index: number; readonly edges: number; readonly perimeterMM: number; readonly centre: Point }
+export interface MeshHole { readonly index: number; readonly edges: number; readonly perimeter: number; readonly centre: Point }
 export interface MeshDiagnosis {
   readonly triangles: number; readonly vertices: number;
   /** Input corners merged by the weld. */
@@ -46,7 +46,7 @@ export interface MeshDiagnosis {
   readonly inconsistentEdges: number;
   readonly holes: readonly MeshHole[];
   /** Edge-connected pieces (through two-triangle edges), and those that are closed with their volumes. */
-  readonly pieces: number; readonly pieceVolumesMM3: readonly number[];
+  readonly pieces: number; readonly pieceVolumes: readonly number[];
   /** Pieces under 1% of the largest volume. */
   readonly floaters: number;
   readonly selfIntersections: number;
@@ -58,8 +58,8 @@ export interface MeshDiagnosis {
 export interface MeshRepairReport {
   readonly welded: number; readonly degenerateRemoved: number; readonly duplicatesRemoved: number;
   readonly finsRemoved: number; readonly finTriangles: number; readonly flipped: number;
-  readonly holesFilled: number; readonly fillTriangles: number; readonly largestFilledPerimeterMM: number; readonly filledAreaMM2: number;
-  readonly holesLeft: number; readonly floatersRemoved: number; readonly floaterVolumeMM3: number;
+  readonly holesFilled: number; readonly fillTriangles: number; readonly largestFilledPerimeter: number; readonly filledArea: number;
+  readonly holesLeft: number; readonly floatersRemoved: number; readonly floaterVolume: number;
   readonly nonManifoldEdgesLeft: number; readonly selfIntersections: number;
   /** After repair: closed and manifold (a solid), or open (it imports as a sheet). */
   readonly closed: boolean;
@@ -78,7 +78,7 @@ function prepare(positions: ArrayLike<number>, indices: ArrayLike<number> | null
   if (!Number.isInteger(n) || !Number.isInteger(count)) throw meshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
   let size = 0;
   for (let i = 0; i < positions.length; i++) { const x = positions[i]; if (!Number.isFinite(x)) throw meshBrepError('the mesh has a coordinate that is not a finite number'); if (Math.abs(x) > size) size = Math.abs(x); }
-  const weld = s.weldMM ?? Math.max(1e-9, size * 1e-6);
+  const weld = s.weldDistance ?? Math.max(1e-9, size * 1e-6);
   let P: Float64Array, remap: Uint32Array;
   if (s.weld !== false) ({ P, remap } = weldVertices(positions, n, weld));
   else { P = Float64Array.from(positions); remap = new Uint32Array(n); for (let v = 0; v < n; v++) remap[v] = v; }
@@ -164,8 +164,8 @@ function holeLoops(T: number[], sides: Sides): number[][] {
 }
 
 /** What is wrong with a mesh (nothing changed). */
-export function diagnoseMesh(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: { readonly weldMM?: number } = {}): MeshDiagnosis {
-  const counts = { welded: 0, degenerate: 0, duplicates: 0 }, m = prepare(positions, indices, { weldMM: options.weldMM }, counts);
+export function diagnoseMesh(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: { readonly weldDistance?: number } = {}): MeshDiagnosis {
+  const counts = { welded: 0, degenerate: 0, duplicates: 0 }, m = prepare(positions, indices, { weldDistance: options.weldDistance }, counts);
   const sides = edgeSides(m.T, m.nv), { of, count } = pieces(m.T, sides);
   let nonManifold = 0, inconsistent = 0;
   for (let g = 0; g < sides.count; g++) { const s0 = sides.start[g], n = sides.start[g + 1] - s0; if (n > 2) nonManifold++; else if (n === 2 && from(m.T, sides.half[s0]) === from(m.T, sides.half[s0 + 1])) inconsistent++; }
@@ -173,7 +173,7 @@ export function diagnoseMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
   const crossing = selfIntersections(Float64Array.from(m.P), Uint32Array.from(m.T));
   return {
     triangles: m.T.length / 3, vertices: m.nv, welded: counts.welded, degenerate: counts.degenerate, duplicates: counts.duplicates,
-    nonManifoldEdges: nonManifold, inconsistentEdges: inconsistent, holes: loops.map((l, index) => holeOf(m.P, l, index)), pieces: count, pieceVolumesMM3: vols,
+    nonManifoldEdges: nonManifold, inconsistentEdges: inconsistent, holes: loops.map((l, index) => holeOf(m.P, l, index)), pieces: count, pieceVolumes: vols,
     floaters: vols.filter(v => v < 0.01 * largest).length, selfIntersections: crossing.count, selfIntersectionAt: crossing.at,
     closed: !loops.length && !nonManifold && !inconsistent,
   };
@@ -181,7 +181,7 @@ export function diagnoseMesh(positions: ArrayLike<number>, indices: ArrayLike<nu
 function holeOf(P: number[], loop: number[], index: number): MeshHole {
   let perimeter = 0; const c: Point = [0, 0, 0];
   for (let i = 0; i < loop.length; i++) { const a = loop[i], b = loop[(i + 1) % loop.length]; perimeter += Math.hypot(P[3 * b] - P[3 * a], P[3 * b + 1] - P[3 * a + 1], P[3 * b + 2] - P[3 * a + 2]); for (let k = 0; k < 3; k++) c[k] += P[3 * a + k] / loop.length; }
-  return { index, edges: loop.length, perimeterMM: perimeter, centre: c };
+  return { index, edges: loop.length, perimeter: perimeter, centre: c };
 }
 
 /** The mesh repaired by the steps asked (DEFAULT_REPAIR by default), with what each did. */
@@ -244,7 +244,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
       const patch = fillHole(P, loop, coarse);
       if (!patch) { holesLeft++; return; }
       for (let i = 0; i < patch.length; i += 3) { T.push(patch[i], patch[i + 1], patch[i + 2]); fillOf.push(index); filledArea += Math.sqrt(area2(P, patch[i], patch[i + 1], patch[i + 2])) / 2; }
-      holesFilled++; fillTriangles += patch.length / 3; largestPerimeter = Math.max(largestPerimeter, holeOf(P, loop, index).perimeterMM);
+      holesFilled++; fillTriangles += patch.length / 3; largestPerimeter = Math.max(largestPerimeter, holeOf(P, loop, index).perimeter);
     });
   }
   // Each closed piece outward; floaters dropped.
@@ -277,7 +277,7 @@ export function repairMesh(positions: ArrayLike<number>, indices: ArrayLike<numb
   return {
     positions: positionsOut, indices: outT, fill: Int32Array.from(fillOf),
     report: { welded: counts.welded, degenerateRemoved: s.degenerate ? counts.degenerate : 0, duplicatesRemoved: s.degenerate ? counts.duplicates : 0, finsRemoved, finTriangles, flipped,
-      holesFilled, fillTriangles, largestFilledPerimeterMM: largestPerimeter, filledAreaMM2: filledArea, holesLeft, floatersRemoved, floaterVolumeMM3: floaterVolume,
+      holesFilled, fillTriangles, largestFilledPerimeter: largestPerimeter, filledArea: filledArea, holesLeft, floatersRemoved, floaterVolume: floaterVolume,
       nonManifoldEdgesLeft: nonManifoldLeft, selfIntersections: selfIntersections(positionsOut, outT).count, closed: !nonManifoldLeft && !openEdges && !wrong },
   };
 }

@@ -354,11 +354,11 @@
  "expect": {
   "outputs": [
    {
-    "volumeMM3": {
+    "volume": {
      "value": 1000,
      "relTol": 1e-12
     },
-    "centroidMM": {
+    "centroid": {
      "value": [
       10,
       5,
@@ -374,7 +374,7 @@
      }
     ],
     "faceNamePattern": "^m\\.(fill0\\.)?region\\d+$",
-    "areaMM2": {
+    "area": {
      "value": 700,
      "relTol": 1e-12
     },

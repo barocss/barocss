@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyPointInFacets, facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, FACET_PREVIEW_TRIANGLES, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, isMeshBrepError, faceGeometry, facetArea } from '../dist/index.js';
+import { classifyPointInFacets, facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, FACET_PREVIEW_TRIANGLES, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, isMeshBrepError, faceGeometry, facetArea, outputOf, massPropertiesOf, checkOutput, saveCadPart, reevaluate } from '../dist/index.js';
 
 // Facet faces (F0, R3): a closed mesh as regions of typed-array triangles, polyline edges between them.
 
 const BOX_OBJ = `v 0 0 0\nv 20 0 0\nv 20 10 0\nv 0 10 0\nv 0 0 5\nv 20 0 5\nv 20 10 5\nv 0 10 5
 f 1 4 3 2\nf 5 6 7 8\nf 1 2 6 5\nf 2 3 7 6\nf 3 4 8 7\nf 4 1 5 8\n`;
-const mass = b => brepMassProperties(b, 1000, { quadratureSegments: 0 });
+const mass = b => brepMassProperties(b, 1, { quadratureSegments: 0 });
 
 /** A UV sphere: `n` around, `m` from pole to pole, wound outward. */
 function sphere(r, n, m) {
@@ -38,7 +38,7 @@ test('a box: six flat regions, twelve polyline edges, valid, exact volume and ar
   assert.equal(b.faces.length, 6); assert.equal(b.edges.length, 12); assert.equal(b.vertices.length, 8);
   assert.ok(b.faces.every(f => f.surface.kind === 'facets' && f.name.startsWith('box.region')));
   const m = mass(b);
-  assert.ok(Math.abs(m.volumeMM3 - 1000) < 1e-9, String(m.volumeMM3)); assert.equal(m.method, 'planar-exact');
+  assert.ok(Math.abs(m.volume - 1000) < 1e-9, String(m.volume)); assert.equal(m.method, 'planar-exact');
   assert.ok(Math.abs(brepSurfaceArea(b) - 2 * (200 + 100 + 50)) < 1e-9);
   assert.deepEqual(b.faces.map(f => faceGeometry(f).kind), Array(6).fill('plane'));
   // Display: the region triangles as they are, watertight against the polyline edges (the same points).
@@ -53,12 +53,12 @@ test('a sphere (one smooth region) is split in two, every face bounded; volume a
   assert.equal(b.faces.length, 2);
   assert.ok(b.faces.every(f => f.loops.length >= 1));
   const m = mass(b);
-  assert.ok(Math.abs(m.volumeMM3 - meshVolume(positions, indices)) < 1e-9 * m.volumeMM3);
-  assert.ok(Math.hypot(...m.centroidMM) < 1e-9);
+  assert.ok(Math.abs(m.volume - meshVolume(positions, indices)) < 1e-9 * m.volume);
+  assert.ok(Math.hypot(...m.centroid) < 1e-9);
   assert.equal(b.faces.map(f => faceGeometry(f).kind).join(), 'other,other');
   // The quadrature path (a mixed body's) gives the same exact sums.
-  const q = brepMassProperties(b, 1000);
-  assert.ok(Math.abs(q.volumeMM3 - m.volumeMM3) < 1e-9 * m.volumeMM3, `${q.volumeMM3} vs ${m.volumeMM3}`);
+  const q = brepMassProperties(b, 1);
+  assert.ok(Math.abs(q.volume - m.volume) < 1e-9 * m.volume, `${q.volume} vs ${m.volume}`);
   assert.ok(Math.abs(b.faces.reduce((s, f) => s + facetArea(f.surface), 0) - brepSurfaceArea(b)) < 1e-9 * brepSurfaceArea(b));
 });
 
@@ -71,19 +71,19 @@ test('a cylinder: caps and side are three regions (creases at the rims, the 15°
   for (const e of b.edges) { assert.equal(e.curve.degree, 1); assert.equal(e.curve.controlPoints.length, 25); assert.equal(e.vertices[0], e.vertices[1]); }
   // Tessellated edges are exactly those vertices: no T-junctions against the facets.
   const mesh = tessellateBrep(b);
-  assert.deepEqual(mesh.edges.map(e => e.pointsMM.length / 3), [25, 25]);
-  assert.ok(Math.abs(mass(b).volumeMM3 - meshVolume(positions, indices)) < 1e-9 * 800);
+  assert.deepEqual(mesh.edges.map(e => e.points.length / 3), [25, 25]);
+  assert.ok(Math.abs(mass(b).volume - meshVolume(positions, indices)) < 1e-9 * 800);
   // Finer creases split the side; a 10° turn keeps 24 sides apart.
-  assert.equal(facetBrepFromTriangles(positions, indices, { id: 'c', creaseDegrees: 10 }).faces.length, 26);
+  assert.equal(facetBrepFromTriangles(positions, indices, { id: 'c', crease: 10 }).faces.length, 26);
 });
 
 test('moved, turned and mirrored: patches mapped, a mirror turns the faces over; volume kept, the check passes', () => {
   const { positions, indices } = readObj(BOX_OBJ), b = facetBrepFromTriangles(positions, indices, { id: 'box' });
   const moved = transformBrep(b, { matrix: [0, -1, 0, 1, 0, 0, 0, 0, 1], offset: [100, 0, 0] });
-  assert.deepEqual(checkBrep(moved).issues, []); assert.ok(Math.abs(mass(moved).volumeMM3 - 1000) < 1e-9);
+  assert.deepEqual(checkBrep(moved).issues, []); assert.ok(Math.abs(mass(moved).volume - 1000) < 1e-9);
   assert.ok(moved.faces.every((f, k) => f.surface.positions !== b.faces[k].surface.positions));
   const mirrored = transformBrep(b, { matrix: [-1, 0, 0, 0, 1, 0, 0, 0, 1] });
-  assert.deepEqual(checkBrep(mirrored).issues, []); assert.ok(Math.abs(mass(mirrored).volumeMM3 - 1000) < 1e-9);
+  assert.deepEqual(checkBrep(mirrored).issues, []); assert.ok(Math.abs(mass(mirrored).volume - 1000) < 1e-9);
   // An identity map (a rename) shares the arrays.
   const renamed = transformBrep(b, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => 'x' + n);
   assert.ok(renamed.faces.every((f, k) => f.surface === b.faces[k].surface && f.name === 'x' + b.faces[k].name));
@@ -97,7 +97,7 @@ test('noisy meshes: regions capped by smoothing then merging; broken meshes refu
   const b = facetBrepFromTriangles(noisy, indices, { id: 'n', maximumRegions: 50 });
   assert.ok(b.faces.length <= 50, String(b.faces.length));
   assert.deepEqual(checkBrep(b).issues, []);
-  assert.ok(Math.abs(mass(b).volumeMM3 - meshVolume(noisy, indices)) < 1e-9 * mass(b).volumeMM3);
+  assert.ok(Math.abs(mass(b).volume - meshVolume(noisy, indices)) < 1e-9 * mass(b).volume);
   // Open, inconsistently wound, in two pieces: refused with the reason.
   const box = readObj(BOX_OBJ);
   assert.throws(() => facetBrepFromTriangles(box.positions, box.indices.slice(0, -3)), /not closed/);
@@ -111,26 +111,26 @@ test('part model: a mesh node with representation facets is faceted; old nodes s
   const { positions, indices } = readObj(BOX_OBJ);
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const mesh = (rep, P = positions, I = indices) => ({ id: 'm', kind: 'mesh', positions: P, indices: I, ...(rep ? { representation: rep } : {}) });
-  const faceted = evaluateCadPart(D([mesh('facets')])).output('m');
+  const faceted = outputOf(evaluateCadPart(D([mesh('facets')])), 'm');
   assert.equal(faceted.representation, 'faceted');
   assert.ok(faceted.brep.faces.every(f => f.name.startsWith('m.region')));
-  const planar = evaluateCadPart(D([mesh()])).output('m');
+  const planar = outputOf(evaluateCadPart(D([mesh()])), 'm');
   assert.equal(planar.representation, 'planar');
   assert.ok(planar.brep.faces.every(f => /^m\.facet\d+$/.test(f.name)));
   // A hole through a small facet body (F2, D52: the mesh near the tool through the exact Boolean): the volume exact.
-  const hole = evaluateCadPart(D([mesh('facets'), { id: 'h', kind: 'hole', target: 'm', center: [10, 5], radius: 2 }])).output('h');
-  assert.ok(Math.abs(hole.massProperties(1).volumeMM3 - (1000 - Math.PI * 4 * 5)) < 1e-6);
+  const hole = outputOf(evaluateCadPart(D([mesh('facets'), { id: 'h', kind: 'hole', target: 'm', center: [10, 5], radius: 2 }])), 'h');
+  assert.ok(Math.abs(massPropertiesOf(hole).volume - (1000 - Math.PI * 4 * 5)) < 1e-6);
   assert.equal(hole.representation, 'faceted'); assert.ok(hole.brep.faces.some(f => f.surface.kind !== 'facets' && /^h\./.test(f.name)), 'the hole wall exact');
   // Fillets on mesh faces are refused with CAPABILITY.
   assert.throws(() => evaluateCadPart(D([mesh('facets'), { id: 'f', kind: 'fillet', target: 'm', edges: ['x'], radius: 1 }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /fillet on mesh faces is not supported yet/.test(e.message));
   // A 6240-triangle mesh: a hole previewed and committed alike (F2 takes only the mesh near the tool).
   const big = sphere(10, 80, 40), drilled = D([mesh('facets', big.positions, big.indices), { id: 'h', kind: 'hole', target: 'm', center: [0, 0], radius: 2 }]);
   assert.ok(big.indices.length / 3 > FACET_PREVIEW_TRIANGLES && big.indices.length / 3 <= FACET_EXPLODE_TRIANGLES);
-  assert.ok(evaluateCadPart(drilled).output('h').massProperties(1).volumeMM3 < meshVolume(big.positions, big.indices));
-  assert.ok(evaluateCadPart(drilled, undefined, { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES }).output('h').validate().valid);
+  assert.ok(massPropertiesOf(outputOf(evaluateCadPart(drilled), 'h')).volume < meshVolume(big.positions, big.indices));
+  assert.ok(checkOutput(outputOf(evaluateCadPart(drilled, undefined, { facetExplodeTriangles: FACET_PREVIEW_TRIANGLES }), 'h')).valid);
   // Over F0's 16000: drilled too.
-  const huge = sphere(10, 160, 80), through = evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { id: 'h', kind: 'hole', target: 'm', center: [0.3, 0.2], radius: 1.5 }])).output('h');
-  assert.ok(through.validate().valid && through.massProperties(1).volumeMM3 < meshVolume(huge.positions, huge.indices));
+  const huge = sphere(10, 160, 80), through = outputOf(evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { id: 'h', kind: 'hole', target: 'm', center: [0.3, 0.2], radius: 1.5 }])), 'h');
+  assert.ok(checkOutput(through).valid && massPropertiesOf(through).volume < meshVolume(huge.positions, huge.indices));
   // A Boolean of two meshes is still F0's planar path (F3): over 16000, refused naming what is missing.
   assert.throws(() => evaluateCadPart(D([mesh('facets', huge.positions, huge.indices), { ...mesh('facets'), id: 'n' }, { id: 'd', kind: 'difference', target: 'n', tool: 'm' }])), e => e instanceof CadPartError && e.code === 'CAPABILITY' && /of two large meshes arrive with F3 \(this mesh has 25280 triangles; up to 16000/.test(e.message));
 });
@@ -139,9 +139,9 @@ test('STEP: a facet body goes out as its triangles (planar faces), and reads bac
   const { positions, indices } = cylinder(5, 10, 24), b = facetBrepFromTriangles(positions, indices, { id: 'c' });
   const text = exportStep([b], { name: 'c' });
   const back = importStep(text);
-  assert.ok(Math.abs(brepMassProperties(back, 1).volumeMM3 - meshVolume(positions, indices)) < 1e-6);
+  assert.ok(Math.abs(brepMassProperties(back, 1).volume - meshVolume(positions, indices)) < 1e-6);
   // The planar builder agrees.
-  assert.ok(Math.abs(brepMassProperties(brepFromTriangles(positions, indices), 1).volumeMM3 - mass(b).volumeMM3) < 1e-9);
+  assert.ok(Math.abs(brepMassProperties(brepFromTriangles(positions, indices), 1).volume - mass(b).volume) < 1e-9);
 });
 
 test('a mesh in pieces: each closed piece its own body (parts id/j, faces id.partj.regionk), its volume; facetPieces counts them', () => {
@@ -150,7 +150,7 @@ test('a mesh in pieces: each closed piece its own body (parts id/j, faces id.par
   const P = [...box.positions, ...s.positions.map((x, i) => x + (i % 3 === 0 ? 40 : 0))], I = [...box.indices, ...s.indices.map(i => i + 8)];
   const pieces = facetPieces(P, I);
   assert.deepEqual(pieces.map(p => p.triangles), [12, s.indices.length / 3]);
-  assert.ok(Math.abs(pieces[0].volumeMM3 - 1000) < 1e-9 && pieces[1].volumeMM3 < 5);
+  assert.ok(Math.abs(pieces[0].volume - 1000) < 1e-9 && pieces[1].volume < 5);
   const breps = facetBrepsFromTriangles(P, I, { id: 'k' });
   assert.equal(breps.length, 2);
   assert.ok(breps[0].faces.every(f => /^k\.part0\.region\d+$/.test(f.name)) && breps[1].faces.every(f => /^k\.part1\.region\d+$/.test(f.name)));
@@ -160,11 +160,11 @@ test('a mesh in pieces: each closed piece its own body (parts id/j, faces id.par
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'm', kind: 'mesh', positions: Float64Array.from(P), indices: Uint32Array.from(I), representation: 'facets', each: true }] };
   const snap = evaluateCadPart(doc);
   assert.deepEqual(snap.outputs.map(o => o.id), ['m/0', 'm/1']);
-  assert.ok(Math.abs(snap.output('m/0').massProperties(1).volumeMM3 - 1000) < 1e-9);
+  assert.ok(Math.abs(massPropertiesOf(outputOf(snap, 'm/0')).volume - 1000) < 1e-9);
   assert.equal(snap.document.features[0].positions, doc.features[0].positions, 'not copied');
-  assert.ok(Array.isArray(JSON.parse(snap.save()).features[0].positions));
+  assert.ok(Array.isArray(JSON.parse(saveCadPart(snap)).features[0].positions));
   // Evaluated again with the same arrays, the mesh is reused (its key hashed once per array).
-  assert.deepEqual(snap.withDocument(doc).recomputation.reused, ['m']);
+  assert.deepEqual(reevaluate(snap, { document: doc }).recomputation.reused, ['m']);
   // One piece asked of a mesh in two: refused, saying how many.
   assert.throws(() => evaluateCadPart({ ...doc, features: [{ ...doc.features[0], each: false }] }), /more than one piece \(2 pieces\)/);
 });

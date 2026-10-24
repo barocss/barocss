@@ -7,12 +7,12 @@ import { same as sameData } from '../../core/structural-equality.js';
 export interface SurfaceIsoCurveOptions { fixedAxis: 'u' | 'v'; parameter: number; curveId: string }
 export interface SurfaceIsoCurveBasis { start: number; poleIndices: number[]; values: number[] }
 export interface SurfaceIsoCurveContribution {
-  sourceUIndex: number; sourceVIndex: number; basisValue: number; factor: number; weightedPointMM: Point;
+  sourceUIndex: number; sourceVIndex: number; basisValue: number; factor: number; weightedPoint: Point;
 }
 export interface SurfaceIsoCurvePole {
   curvePoleIndex: number; construction: 'endpoint-direct-copy' | 'homogeneous-contraction';
   endpointSourcePole: { uIndex: number; vIndex: number } | null;
-  homogeneous: [number, number, number, number]; pointMM: Point; weight: number;
+  homogeneous: [number, number, number, number]; point: Point; weight: number;
   contributions: SurfaceIsoCurveContribution[];
 }
 export interface SurfaceIsoCurveProvenance {
@@ -25,10 +25,10 @@ export interface SurfaceIsoCurveReport {
   parameter: number; fixedDomain: [number, number]; varying: { degree: number; knots: number[]; domain: [number, number]; controlPointCount: number };
   endpointDirectCopy: boolean; basis: SurfaceIsoCurveBasis; construction: SurfaceIsoCurvePole[];
   guardedFixedParameter: boolean; guardedVaryingKnots: number[]; derivativeSemantics: 'native-guards-unchanged';
-  observations: { varyingParameter: number; u: number; v: number; surfacePointMM: Point; curvePointMM: Point; differenceMM: number }[];
-  maximumObservedDifferenceMM: number; authority: 'original-surface-coefficients'; geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
+  observations: { varyingParameter: number; u: number; v: number; surfacePoint: Point; curvePoint: Point; difference: number }[];
+  maximumObservedDifference: number; authority: 'original-surface-coefficients'; geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   limits: { maximumGridAxis: 16; maximumPoles: 256; maximumDegree: 3; authoredIdCharacters: 48;
-    snapshotValues: 4096; snapshotDepth: 8; arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 32; observationComparisonMM: 1e-7 };
+    snapshotValues: 4096; snapshotDepth: 8; arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 32; observationComparison: 1e-7 };
 }
 export interface SurfaceIsoCurveResult {
   original: Surface; curve: Curve; source: string; sourceVersion: 0; model: Model; provenance: SurfaceIsoCurveProvenance; report: SurfaceIsoCurveReport;
@@ -104,24 +104,24 @@ export function extractSurfaceIsoCurve(input: Surface, options: SurfaceIsoCurveO
     const poles: SurfaceIsoCurvePole[] = Array.from({ length: varyingCount }, (_, curvePoleIndex): SurfaceIsoCurvePole => {
       if (endpoint !== null) {
         const fixed = endpoint === 'min' ? 0 : fixedCount - 1, uIndex = fixedAxis === 'u' ? fixed : curvePoleIndex, vIndex = fixedAxis === 'u' ? curvePoleIndex : fixed;
-        const pointMM = copyCadData(original.controlPoints[uIndex][vIndex]), weight = original.weights[uIndex][vIndex], weightedPointMM = pointMM.map(n => finite(n * weight)) as Point;
-        return { curvePoleIndex, construction: 'endpoint-direct-copy', endpointSourcePole: { uIndex, vIndex }, homogeneous: [...weightedPointMM, weight], pointMM, weight,
-          contributions: [{ sourceUIndex: uIndex, sourceVIndex: vIndex, basisValue: 1, factor: weight, weightedPointMM }] };
+        const point = copyCadData(original.controlPoints[uIndex][vIndex]), weight = original.weights[uIndex][vIndex], weightedPoint = point.map(n => finite(n * weight)) as Point;
+        return { curvePoleIndex, construction: 'endpoint-direct-copy', endpointSourcePole: { uIndex, vIndex }, homogeneous: [...weightedPoint, weight], point: point, weight,
+          contributions: [{ sourceUIndex: uIndex, sourceVIndex: vIndex, basisValue: 1, factor: weight, weightedPoint: weightedPoint }] };
       }
       const homogeneous: [number, number, number, number] = [0, 0, 0, 0];
       const contributions = local.values.map((basisValue, i) => {
         const fixed = local.start + i, sourceUIndex = fixedAxis === 'u' ? fixed : curvePoleIndex, sourceVIndex = fixedAxis === 'u' ? curvePoleIndex : fixed;
         const factor = finite(basisValue * original.weights[sourceUIndex][sourceVIndex]), point = original.controlPoints[sourceUIndex][sourceVIndex];
-        const weightedPointMM = point.map(n => finite(factor * n)) as Point;
-        for (let axis = 0; axis < 3; axis++) homogeneous[axis] = finite(homogeneous[axis] + weightedPointMM[axis]);
+        const weightedPoint = point.map(n => finite(factor * n)) as Point;
+        for (let axis = 0; axis < 3; axis++) homogeneous[axis] = finite(homogeneous[axis] + weightedPoint[axis]);
         homogeneous[3] = finite(homogeneous[3] + factor);
-        return { sourceUIndex, sourceVIndex, basisValue, factor, weightedPointMM };
+        return { sourceUIndex, sourceVIndex, basisValue, factor, weightedPoint: weightedPoint };
       });
       const weight = homogeneous[3]; check(weight > 0, 'positive finite contracted denominator required');
-      const pointMM = [finite(homogeneous[0] / weight), finite(homogeneous[1] / weight), finite(homogeneous[2] / weight)] as Point;
-      return { curvePoleIndex, construction: 'homogeneous-contraction', endpointSourcePole: null, homogeneous, pointMM, weight, contributions };
+      const point = [finite(homogeneous[0] / weight), finite(homogeneous[1] / weight), finite(homogeneous[2] / weight)] as Point;
+      return { curvePoleIndex, construction: 'homogeneous-contraction', endpointSourcePole: null, homogeneous, point: point, weight, contributions };
     });
-    const candidate: Curve = { kind: 'curve', id: curveId, degree: varyingDegree, knots: copyCadData(varyingKnots), controlPoints: poles.map(p => p.pointMM), weights: poles.map(p => p.weight) };
+    const candidate: Curve = { kind: 'curve', id: curveId, degree: varyingDegree, knots: copyCadData(varyingKnots), controlPoints: poles.map(p => p.point), weights: poles.map(p => p.weight) };
     validateCurve(candidate);
     check(candidate.controlPoints.every(p => p.every(n => Math.abs(n) <= 10000)), 'generated Cartesian coefficients exceed native family range');
     check(sameData(curveDomain(candidate), varyingDomain), 'original varying domain bits must remain');
@@ -132,18 +132,18 @@ export function extractSurfaceIsoCurve(input: Surface, options: SurfaceIsoCurveO
     check(parameters.length <= 32, 'native observation bound exceeded');
     const observations = parameters.map(varyingParameter => {
       const u = fixedAxis === 'u' ? parameter : varyingParameter, v = fixedAxis === 'u' ? varyingParameter : parameter;
-      const surfacePointMM = evaluateSurface(original, u, v), curvePointMM = evaluateCurve(curve, varyingParameter), differenceMM = Math.hypot(...curvePointMM.map((n, i) => n - surfacePointMM[i]));
-      check(Number.isFinite(differenceMM) && differenceMM <= 1e-7, 'local Surface/Curve point observation exceeds 1e-7 mm');
-      return { varyingParameter, u, v, surfacePointMM, curvePointMM, differenceMM };
+      const surfacePoint = evaluateSurface(original, u, v), curvePoint = evaluateCurve(curve, varyingParameter), difference = Math.hypot(...curvePoint.map((n, i) => n - surfacePoint[i]));
+      check(Number.isFinite(difference) && difference <= 1e-7, 'local Surface/Curve point observation exceeds 1e-7 mm');
+      return { varyingParameter, u, v, surfacePoint: surfacePoint, curvePoint: curvePoint, difference: difference };
     });
     return copyCadData({ original, curve, source: compiled.source, sourceVersion: 0, model: compiled.model,
       provenance: { kind: 'surface-parameter-isocurve', sourceSurfaceId: original.id, curveId, fixedAxis, varyingAxis, parameter, fixedDomain, varyingDomain, endpoint, basis: usedBasis, poles },
       report: { kind: 'surface-isocurve', surfaceId: original.id, curveId, lengthUnit: 'mm', fixedAxis, varyingAxis, parameter, fixedDomain,
         varying: { degree: curve.degree, knots: curve.knots, domain: varyingDomain, controlPointCount: curve.controlPoints.length }, endpointDirectCopy: endpoint !== null, basis: usedBasis, construction: poles,
         guardedFixedParameter: guarded(fixedKnots, fixedDegree, fixedDomain, parameter), guardedVaryingKnots: [...new Set(varyingKnots)].filter(k => guarded(varyingKnots, varyingDegree, varyingDomain, k)),
-        derivativeSemantics: 'native-guards-unchanged', observations, maximumObservedDifferenceMM: Math.max(...observations.map(o => o.differenceMM)), authority: 'original-surface-coefficients',
+        derivativeSemantics: 'native-guards-unchanged', observations, maximumObservedDifference: Math.max(...observations.map(o => o.difference)), authority: 'original-surface-coefficients',
         geometricValidity: 'not-certified', topologyCertified: false, solid: false,
-        limits: { maximumGridAxis: 16, maximumPoles: 256, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 4096, snapshotDepth: 8, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 32, observationComparisonMM: 1e-7 } } });
+        limits: { maximumGridAxis: 16, maximumPoles: 256, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 4096, snapshotDepth: 8, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 32, observationComparison: 1e-7 } } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'invalid original Surface/iso-Curve options';
     throw new Error((message.startsWith(LABEL) ? message : LABEL + ': ' + message).slice(0, 1024), { cause: error });

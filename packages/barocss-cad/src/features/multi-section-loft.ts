@@ -24,14 +24,14 @@ export class MultiSectionLoftError extends KernelError {
 export interface MultiSectionLoftOptions { surfaceId: string; degreeV: number; maximumBasisEvaluations: number; maximumEliminationSteps: number; maximumObservations: number }
 type D1State<T> = { status: 'evaluated'; value: T } | { status: 'native-refused'; reason: string; nativeErrorName: string };
 export interface MultiSectionLoftObservation {
-  u: number; v: number; sectionIndex: number; originalPointMM: Point; actualPointMM: Point; differenceMM: number;
+  u: number; v: number; sectionIndex: number; originalPoint: Point; actualPoint: Point; difference: number;
   originalD1: D1State<CurveD1Result>; surfaceD1: D1State<SurfaceD1Result>; representativeVStateIndex: number; relativeDuDifference: number | null;
 }
 export interface MultiSectionLoftProvenance {
   kind: 'compatible-rational-u-polynomial-v-section-interpolation'; sectionIds: string[]; surfaceId: string; originalUKnots: number[]; originalUWeights: number[]; parametersV: number[];
   rowCurves: { poleIndex: number; curveId: string; evaluation: CurveInterpolationResult }[];
   poleMappings: { surfacePole: [number, number]; rowCurveId: string; rowCurvePoleIndex: number; origin: 'original-endpoint-bit-copy' | 'row-interpolation-solved';
-    originalSectionIndex: number | null; originalPoleIndex: number | null; pointMM: Point }[];
+    originalSectionIndex: number | null; originalPoleIndex: number | null; point: Point }[];
   weightMappings: { surfacePole: [number, number]; origin: 'common-u-weight-bit-copy'; originalSectionIndex: 0; originalPoleIndex: number; weight: number }[];
   uKnotMappings: { originalKnotIndex: number; surfaceKnotIndex: number; originalValue: number; surfaceValue: number }[];
   vKnotMappings: { rowCurveKnotIndex: number; surfaceKnotIndex: number; rowCurveValue: number; surfaceValue: number }[];
@@ -48,7 +48,7 @@ export interface MultiSectionLoftReport {
   representativeVStates: { sectionIndex: number; parameter: number; curveId: string; state: D1State<CurveD1Result> }[];
   guardedParameters: { u: number[]; v: number[] }; observations: MultiSectionLoftObservation[]; derivativeComparisonCount: number; derivativeRefusalCount: number;
   derivativeSourceRefusalCounts: { originalU: number; representativeV: number; surface: number };
-  maximumPointDifferenceMM: number; maximumRelativeDuDifference: number | null; sourceModelObjectCount: number;
+  maximumPointDifference: number; maximumRelativeDuDifference: number | null; sourceModelObjectCount: number;
   geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   quality: { authority: 'actual-original-compatible-sections-and-public-native-row-interpolation'; uBasisAndWeightBitsPreserved: true;
     vBasis: 'actual-polynomial-row-interpolation-original-parameters'; endpointPoleAndWeightBitsPreserved: true;
@@ -60,14 +60,14 @@ export interface MultiSectionLoftReport {
   budgetFailure: 'atomic-refusal-no-partial-multi-section-loft';
   limits: { maximumSections: 15; maximumUPoles: 16; maximumDegree: 3; maximumSurfacePoles: 240; maximumUSamples: 31;
     maximumBasisEvaluations: 3600; maximumEliminationSteps: 1680; maximumObservations: 465; maximumSourceObjects: 16; authoredIdCharacters: 48;
-    coordinateAbsMM: 10000; parameterAbs: 10000; weightRange: [1e-6, 1e6]; pointComparisonMM: 1e-7; relativeDuComparison: 1e-7;
+    coordinateAbs: 10000; parameterAbs: 10000; weightRange: [1e-6, 1e6]; pointComparison: 1e-7; relativeDuComparison: 1e-7;
     inputValues: 32768; inputDepth: 8; inputArrayElements: 128; inputRecordFields: 16; inputStringCharacters: 128;
     ownValues: 1048576; ownDepth: 40; arrayElements: 8192; recordFields: 64; sourceStringCharacters: 262144 };
 }
 export interface MultiSectionLoftResult { sections: Curve[]; parametersV: number[]; options: MultiSectionLoftOptions; surface: Surface;
   source: string; sourceVersion: 0; model: Model; provenance: MultiSectionLoftProvenance; report: MultiSectionLoftReport }
 
-const CODE = MultiSectionLoftDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const CODE = MultiSectionLoftDiagnosticCode, TOLERANCE = CadNumericPolicy.linearTolerance;
 type Context = { poleIndex?: number | null; cause?: unknown };
 function check(condition: boolean, code: MultiSectionLoftDiagnosticCode, detail: string, context: Context = {}): asserts condition {
   if (!condition) throw new MultiSectionLoftError(code, detail, context);
@@ -197,7 +197,7 @@ export function buildMultiSectionLoftSurface(sectionsInput: Curve[], parametersV
     if (endpoint) check(same(candidate.controlPoints[i][k], sections[k].controlPoints[i]) && Object.is(candidate.weights[i][k], sections[k].weights[i]),
       CODE.BINDING, 'first/last original section pole and weight bits must be exactly preserved', { poleIndex: i });
     poleMappings.push({ surfacePole: [i, k], rowCurveId: rowIds[i], rowCurvePoleIndex: k, origin: endpoint ? 'original-endpoint-bit-copy' : 'row-interpolation-solved',
-      originalSectionIndex: endpoint ? k : null, originalPoleIndex: endpoint ? i : null, pointMM: candidate.controlPoints[i][k] });
+      originalSectionIndex: endpoint ? k : null, originalPoleIndex: endpoint ? i : null, point: candidate.controlPoints[i][k] });
     weightMappings.push({ surfacePole: [i, k], origin: 'common-u-weight-bit-copy', originalSectionIndex: 0, originalPoleIndex: i, weight: candidate.weights[i][k] });
   }
   native(() => validateSurface(candidate), 'actual compatible rational-U/polynomial-V Surface validation');
@@ -232,7 +232,7 @@ export function buildMultiSectionLoftSurface(sectionsInput: Curve[], parametersV
       derivativeComparisonCount++; relativeDuDifference = relative(surfaceD1.value.du, originalD1.value.derivative);
       check(relativeDuDifference <= TOLERANCE, CODE.BINDING, 'actual Surface du/original section D1 residual exceeds1e-7 relative');
     } else derivativeRefusalCount++;
-    observations.push({ u, v, sectionIndex, originalPointMM, actualPointMM, differenceMM, originalD1, surfaceD1, representativeVStateIndex: sectionIndex, relativeDuDifference });
+    observations.push({ u, v, sectionIndex, originalPoint: originalPointMM, actualPoint: actualPointMM, difference: differenceMM, originalD1, surfaceD1, representativeVStateIndex: sectionIndex, relativeDuDifference });
   }
   check(observations.length === plannedCounts.observations && originalCurveD0EvaluationCount === observations.length && surfaceD0EvaluationCount === observations.length
     && originalCurveD1AttemptCount === observations.length && surfaceD1AttemptCount === observations.length && representativeVD1AttemptCount === n,
@@ -249,7 +249,7 @@ export function buildMultiSectionLoftSurface(sectionsInput: Curve[], parametersV
     unrepresentedMidpointIntervals: samples.gaps, plannedCounts, basisEvaluationCount, eliminationStepCount, rowCurveConstructionCount, nestedCurvePointEvaluationCount,
     observationCount: observations.length, originalCurveD0EvaluationCount, surfaceD0EvaluationCount, originalCurveD1AttemptCount, surfaceD1AttemptCount, representativeVD1AttemptCount,
     representativeVStates, guardedParameters: { u: samples.guards, v: representativeVStates.filter(entry => entry.state.status === 'native-refused').map(entry => entry.parameter) },
-    observations, derivativeComparisonCount, derivativeRefusalCount, derivativeSourceRefusalCounts, maximumPointDifferenceMM: Math.max(...observations.map(observation => observation.differenceMM)),
+    observations, derivativeComparisonCount, derivativeRefusalCount, derivativeSourceRefusalCounts, maximumPointDifference: Math.max(...observations.map(observation => observation.difference)),
     maximumRelativeDuDifference: compared.length === 0 ? null : Math.max(...compared.map(observation => observation.relativeDuDifference!)), sourceModelObjectCount: file.model.objects.length,
     geometricValidity: 'not-certified', topologyCertified: false, solid: false,
     quality: { authority: 'actual-original-compatible-sections-and-public-native-row-interpolation', uBasisAndWeightBitsPreserved: true,
@@ -259,8 +259,8 @@ export function buildMultiSectionLoftSurface(sectionsInput: Curve[], parametersV
       globalShapeErrorCertified: false, globalBinary64ErrorCertified: false, manufacturingToleranceCertified: false, g1g2Certified: false, regularityCertified: false,
       sewingCertified: false, sourceObjectLimitUnchanged: 16, ownership: 'copied-cpu-data-gc-no-renderer-resources' }, budgetFailure: 'atomic-refusal-no-partial-multi-section-loft',
     limits: { maximumSections: 15, maximumUPoles: 16, maximumDegree: 3, maximumSurfacePoles: 240, maximumUSamples: 31, maximumBasisEvaluations: 3600,
-      maximumEliminationSteps: 1680, maximumObservations: 465, maximumSourceObjects: 16, authoredIdCharacters: 48, coordinateAbsMM: 10000, parameterAbs: 10000,
-      weightRange: [1e-6, 1e6], pointComparisonMM: TOLERANCE, relativeDuComparison: TOLERANCE, inputValues: 32768, inputDepth: 8, inputArrayElements: 128,
+      maximumEliminationSteps: 1680, maximumObservations: 465, maximumSourceObjects: 16, authoredIdCharacters: 48, coordinateAbs: 10000, parameterAbs: 10000,
+      weightRange: [1e-6, 1e6], pointComparison: TOLERANCE, relativeDuComparison: TOLERANCE, inputValues: 32768, inputDepth: 8, inputArrayElements: 128,
       inputRecordFields: 16, inputStringCharacters: 128, ownValues: 1048576, ownDepth: 40, arrayElements: 8192, recordFields: 64, sourceStringCharacters: 262144 },
   };
   return snapshot({ sections, parametersV, options, surface, source: file.source, sourceVersion: 0, model: file.model, provenance, report }, true) as MultiSectionLoftResult;

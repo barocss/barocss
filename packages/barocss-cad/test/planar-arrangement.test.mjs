@@ -58,14 +58,14 @@ test('random polygons: area identities and point classification agree for every 
 });
 
 test('prism Booleans become valid B-reps: shared-edge union, through cut into two bodies, a frame', () => {
-  const union = extrudePolygonBoolean([sq(0, 0, 10, 10)], [sq(10, 0, 20, 10)], 'union', { heightMM: 5 });
+  const union = extrudePolygonBoolean([sq(0, 0, 10, 10)], [sq(10, 0, 20, 10)], 'union', { height: 5 });
   assert.equal(assertValidBrep(union.brep).topology.length, 1);
   assert.deepEqual(assertValidBrep(union.brep).topology[0].faces, 6);
-  const cut = extrudePolygonBoolean([sq(0, 0, 30, 10)], [sq(10, -5, 20, 15)], 'difference', { heightMM: 4, fromMM: 1 });
+  const cut = extrudePolygonBoolean([sq(0, 0, 30, 10)], [sq(10, -5, 20, 15)], 'difference', { height: 4, from: 1 });
   assert.equal(cut.brep.bodies.length, 2); assert.equal(assertValidBrep(cut.brep).valid, true);
-  const frame = extrudePolygonBoolean([sq(0, 0, 40, 30)], [sq(5, 5, 35, 25)], 'difference', { heightMM: 3 });
+  const frame = extrudePolygonBoolean([sq(0, 0, 40, 30)], [sq(5, 5, 35, 25)], 'difference', { height: 3 });
   assert.equal(assertValidBrep(frame.brep).topology[0].genus, 1);
-  const mesh = tessellateBrep(frame.brep), p = mesh.positionsMM, I = mesh.indices; let vol = 0;
+  const mesh = tessellateBrep(frame.brep), p = mesh.positions, I = mesh.indices; let vol = 0;
   for (let t = 0; t < I.length; t += 3) { const [a, b, c] = [I[t] * 3, I[t + 1] * 3, I[t + 2] * 3]; vol += (p[a] * (p[b + 1] * p[c + 2] - p[b + 2] * p[c + 1]) - p[a + 1] * (p[b] * p[c + 2] - p[b + 2] * p[c]) + p[a + 2] * (p[b] * p[c + 1] - p[b + 1] * p[c])) / 6; }
   assert.ok(Math.abs(vol - (1200 - 600) * 3) < 1e-9, String(vol));
 });

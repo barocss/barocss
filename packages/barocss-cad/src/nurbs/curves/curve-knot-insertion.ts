@@ -118,7 +118,7 @@ export function insertCurveKnotCoefficientsTrusted(original: Curve, knot: number
   const candidate: Curve = { kind: 'curve', id: original.id, degree: original.degree, knots: knots.map(k => k.value),
     controlPoints: poles.map(entry => entry.originalIndex !== null ? copyCadData(original.controlPoints[entry.originalIndex]) : [entry.h[0] / entry.h[3], entry.h[1] / entry.h[3], entry.h[2] / entry.h[3]] as Point),
     weights: poles.map(entry => entry.originalIndex !== null ? original.weights[entry.originalIndex] : entry.h[3]) };
-  check(candidate.controlPoints.every(p => p.every(n => Number.isFinite(n) && Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbsMM)), 'generated Cartesian coefficients exceed native family range');
+  check(candidate.controlPoints.every(p => p.every(n => Number.isFinite(n) && Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbs)), 'generated Cartesian coefficients exceed native family range');
   validateCurve(candidate); check(sameData(curveDomain(candidate), domain), 'original parameter endpoint bits must remain');
   const unchangedPoles = poles.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalPoleIndex: entry.originalIndex, refinedPoleIndex: i }]);
   const unchangedKnots = knots.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalKnotIndex: entry.originalIndex, refinedKnotIndex: i }]);
@@ -133,7 +133,7 @@ export function insertCurveKnot(input: Curve, options: CurveKnotInsertionOptions
     check(typeof data.degree === 'number' && Number.isInteger(data.degree) && data.degree >= 1 && data.degree <= 3, 'degree1..3 required');
     check(Array.isArray(data.controlPoints) && data.controlPoints.length >= 2 && data.controlPoints.length <= 16, 'initial poles2..16 required');
     const original = data as unknown as Curve; validateCurve(original);
-    check(original.controlPoints.every(p => p.every(n => Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbsMM)), 'original XYZ coordinates within the geometry range ±' + CadNumericPolicy.geometryCoordinateAbsMM + 'mm required');
+    check(original.controlPoints.every(p => p.every(n => Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbs)), 'original XYZ coordinates within the geometry range ±' + CadNumericPolicy.geometryCoordinateAbs + 'mm required');
     // CadNumericPolicy: observations use this curve's linear tolerance (1e-7 mm within the modeling range).
     const observationTolerance = linearToleranceMM(geometryScaleMM(original.controlPoints));
     const domain = curveDomain(original), knot = settings.knot, insertions = settings.insertions;

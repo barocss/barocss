@@ -41,7 +41,7 @@
           "kind": "rotate",
           "target": "B0",
           "axis": "z",
-          "angleDegrees": 89.99,
+          "angle": 89.99,
           "pivot": [0, 0, 0]
         },
         {
@@ -56,12 +56,12 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 36.533960968403086,
           "relTol": 0.000001,
           "absTol": 1e-12
         },
-        "centroidMM": {
+        "centroid": {
           "value": [1.8567890170953514, 0.3305183849434679, 1.6315000000000006],
           "absTol": 0.000001
         },

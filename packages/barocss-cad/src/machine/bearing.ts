@@ -1,7 +1,7 @@
 // R12c.4 (D158): rolling bearings as envelopes from the user's catalogue rows, and their seats on a shaft and in a housing.
 //
-// No bearing is built in (the owner's data rule): a row is the user's — { id, designation?, boreMM d, outsideMM D,
-// widthMM B, chamferMM r (the corners), and the abutment values daMinMM, daMaxMM, DaMaxMM, raMaxMM when the catalogue
+// No bearing is built in (the owner's data rule): a row is the user's — { id, designation?, bore d, outside D,
+// width B, chamfer r (the corners), and the abutment values daMin, daMax, DaMax, raMax when the catalogue
 // gives them; boreDeviationUM / outsideDeviationUM [upper, lower] (the rings' tolerances, µm); source | estimate }.
 // - The envelope is the section d…D × B with its four corners rounded r, revolved exactly: faces `<id>.bore`,
 //   `.outside`, `.face0`, `.face1`, `.corner1`…`.corner4`. It is a simplified envelope: not for structural calculation
@@ -21,7 +21,7 @@ import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
 import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { evaluateCurve, curveDomain } from '../core/math.js';
 import { lookupFit, FitError, type FitLimit, type FitTable } from './fits.js';
 import type { PlacedShaft } from './shaft-parts.js';
@@ -40,23 +40,23 @@ const mm = (x: number) => +x.toFixed(6);
 
 export interface BearingRow {
   readonly id: string; readonly designation?: string;
-  readonly boreMM: number; readonly outsideMM: number; readonly widthMM: number; readonly chamferMM?: number;
-  readonly daMinMM?: number; readonly daMaxMM?: number; readonly DaMaxMM?: number; readonly raMaxMM?: number;
+  readonly bore: number; readonly outside: number; readonly width: number; readonly chamfer?: number;
+  readonly daMin?: number; readonly daMax?: number; readonly DaMax?: number; readonly raMax?: number;
   readonly boreDeviationUM?: readonly [number, number]; readonly outsideDeviationUM?: readonly [number, number];
   readonly source?: string; readonly estimate?: boolean;
 }
 export interface BearingFitClasses { readonly tables: readonly FitTable[]; readonly shaft?: string; readonly housing?: string }
 export interface BearingRingFit { readonly limit: FitLimit; readonly clearanceMinUM?: number; readonly clearanceMaxUM?: number; readonly kind?: 'clearance' | 'transition' | 'interference' }
 export interface BearingReport {
-  readonly row: string; readonly designation?: string; readonly boreMM: number; readonly outsideMM: number; readonly widthMM: number; readonly chamferMM: number;
+  readonly row: string; readonly designation?: string; readonly bore: number; readonly outside: number; readonly width: number; readonly chamfer: number;
   readonly estimate: boolean; readonly source?: string;
   /** On its shaft: the step, the side against a shoulder, the bearing's span, the shoulder's diameter and fillet, the other side's location. */
-  readonly seat?: { readonly step: number; readonly against: 'start' | 'end'; readonly fromMM: number; readonly toMM: number; readonly shoulderMM: number; readonly shoulderFilletMM: number; readonly located: string | null; readonly overlapMM3: number };
+  readonly seat?: { readonly step: number; readonly against: 'start' | 'end'; readonly from: number; readonly to: number; readonly shoulder: number; readonly shoulderFillet: number; readonly located: string | null; readonly overlap: number };
   /**
    * In its housing: the bore, the overlap, whether the bore covers the bearing, and its shoulder (FRk8a, D181): the planar
    * annulus at a face of the bearing stepping in from the bore, its diameter its inner edge's (null: none at either face).
    */
-  readonly housing?: { readonly boreMM: number; readonly overlapMM3: number; readonly covered: boolean; readonly shoulder: { readonly at: 'start' | 'end'; readonly diameterMM: number } | null };
+  readonly housing?: { readonly bore: number; readonly overlap: number; readonly covered: boolean; readonly shoulder: { readonly at: 'start' | 'end'; readonly diameter: number } | null };
   readonly shaftFit?: BearingRingFit; readonly housingFit?: BearingRingFit;
   readonly warnings: readonly string[];
   readonly notForStructuralCalculation: true;
@@ -65,16 +65,16 @@ export interface BearingReport {
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 /** Why a bearing row is not one, or null. */
 export function bearingRowProblem(r: unknown): string | null {
-  if (typeof r !== 'object' || r === null || Array.isArray(r)) return 'a bearing row is an object { id, boreMM, outsideMM, widthMM, chamferMM?, … , source | estimate }';
+  if (typeof r !== 'object' || r === null || Array.isArray(r)) return 'a bearing row is an object { id, bore, outside, width, chamfer?, … , source | estimate }';
   const o = r as Record<string, unknown>, at = typeof o.id === 'string' && o.id.trim() ? `bearing row ${o.id}` : '';
   if (!at) return 'a bearing row needs an id';
-  for (const k of Object.keys(o)) if (!['id', 'designation', 'boreMM', 'outsideMM', 'widthMM', 'chamferMM', 'daMinMM', 'daMaxMM', 'DaMaxMM', 'raMaxMM', 'boreDeviationUM', 'outsideDeviationUM', 'source', 'estimate'].includes(k)) return `${at}: unknown field ${k}`;
-  for (const k of ['boreMM', 'outsideMM', 'widthMM']) if (!(num(o[k]) && (o[k] as number) > 0)) return `${at}: ${k} must be a number of mm above 0`;
-  for (const k of ['chamferMM', 'daMinMM', 'daMaxMM', 'DaMaxMM', 'raMaxMM']) if (o[k] !== undefined && !(num(o[k]) && (o[k] as number) >= 0)) return `${at}: ${k} must be a number of mm, 0 or more`;
-  const d = o.boreMM as number, D = o.outsideMM as number, B = o.widthMM as number, c = (o.chamferMM as number | undefined) ?? 0;
+  for (const k of Object.keys(o)) if (!['id', 'designation', 'bore', 'outside', 'width', 'chamfer', 'daMin', 'daMax', 'DaMax', 'raMax', 'boreDeviationUM', 'outsideDeviationUM', 'source', 'estimate'].includes(k)) return `${at}: unknown field ${k}`;
+  for (const k of ['bore', 'outside', 'width']) if (!(num(o[k]) && (o[k] as number) > 0)) return `${at}: ${k} must be a number of mm above 0`;
+  for (const k of ['chamfer', 'daMin', 'daMax', 'DaMax', 'raMax']) if (o[k] !== undefined && !(num(o[k]) && (o[k] as number) >= 0)) return `${at}: ${k} must be a number of mm, 0 or more`;
+  const d = o.bore as number, D = o.outside as number, B = o.width as number, c = (o.chamfer as number | undefined) ?? 0;
   if (!(D > d)) return `${at}: its outside Ø${D} must exceed its bore Ø${d}`;
   if (!(2 * c < Math.min(B, (D - d) / 2))) return `${at}: its corner r ${c} is too large for a ${B} × ${(D - d) / 2} section`;
-  if (o.daMinMM !== undefined && o.daMaxMM !== undefined && (o.daMinMM as number) > (o.daMaxMM as number)) return `${at}: da min is above da max`;
+  if (o.daMin !== undefined && o.daMax !== undefined && (o.daMin as number) > (o.daMax as number)) return `${at}: da min is above da max`;
   for (const k of ['boreDeviationUM', 'outsideDeviationUM']) { const v = o[k]; if (v !== undefined && !(Array.isArray(v) && v.length === 2 && num(v[0]) && num(v[1]) && v[0] >= v[1])) return `${at}: ${k} must be [upper, lower] µm, upper ≥ lower`; }
   if ((o.source !== undefined) === (o.estimate === true)) return `${at}: cite its source or say estimate: true — ${o.source !== undefined ? 'not both' : 'never neither'}`;
   if (o.source !== undefined && typeof o.source !== 'string') return `${at}: source must be text`;
@@ -84,7 +84,7 @@ export function bearingRowProblem(r: unknown): string | null {
 /** The envelope in its own frame: axis +Z, from z 0 to B, faces named under `id`. */
 export function bearingEnvelope(row: BearingRow, id: string): Brep {
   const p = bearingRowProblem(row); if (p) fail('INVALID_INPUT', p);
-  const ri = row.boreMM / 2, ro = row.outsideMM / 2, B = row.widthMM, c = row.chamferMM ?? 0, segs: unknown[] = [], tags: string[] = [];
+  const ri = row.bore / 2, ro = row.outside / 2, B = row.width, c = row.chamfer ?? 0, segs: unknown[] = [], tags: string[] = [];
   const line = (x: number, y: number, t: string) => { segs.push({ kind: 'line', start: [x, y] }); tags.push(t); };
   const arc = (x: number, y: number, cx: number, cy: number, t: string) => { segs.push({ kind: 'arc', start: [x, y], center: [cx, cy], direction: 'ccw' }); tags.push(t); };
   line(ri + c, 0, 'face0');
@@ -97,13 +97,13 @@ export function bearingEnvelope(row: BearingRow, id: string): Brep {
   if (c) arc(ri, c, ri + c, c, 'corner4');
   const sub = `${id}__e`, doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: `${sub}s`, kind: 'sketch', profile: 'loop', segments: segs, plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }, sideTags: { outer: tags } },
-    { id: sub, kind: 'revolve', sketch: `${sub}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }] };
+    { id: sub, kind: 'revolve', sketch: `${sub}s`, axis: { origin: [0, 0], direction: 'y' }, angle: 360 }] };
   const prefix = `${sub}.side[`;
-  return transformBrep(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+  return transformBrep(outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
     nm => nm.split('|').map(q => q.startsWith(prefix) ? `${id}.${q.slice(prefix.length, q.indexOf(']'))}${q.slice(q.indexOf(']') + 1)}` : q).join('|'));
 }
 
-const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volume;
 /** What the Boolean takes of `body` where `tool` stands (V(body) − V(body − tool)). */
 function overlapOf(body: Brep, tool: Brep): number {
   const v0 = vol(body);
@@ -154,23 +154,23 @@ function housingShoulder(housing: Brep, origin: Point, axis: Point, D: number, t
 }
 /** A bearing from `row`, on step `step` of a placed shaft against the shoulder at its `against` end; optionally in a housing. */
 export function seatedBearing(row: BearingRow, shaft: PlacedShaft & { readonly brep: Brep }, spec: { readonly step: number; readonly against: 'start' | 'end'; readonly housing?: Brep; readonly fit?: BearingFitClasses }, id: string): { readonly brep: Brep; readonly report: BearingReport } {
-  const env = bearingEnvelope(row, id), d = row.boreMM, D = row.outsideMM, B = row.widthMM, c = row.chamferMM ?? 0, warnings: string[] = [];
+  const env = bearingEnvelope(row, id), d = row.bore, D = row.outside, B = row.width, c = row.chamfer ?? 0, warnings: string[] = [];
   const s = shaft.report.steps[spec.step - 1] ?? fail('INVALID_INPUT', `the shaft has no step ${spec.step} (it has ${shaft.report.steps.length})`);
-  if (Math.abs(s.diameterMM - d) > EPS) fail('SEAT_FIT', `step ${spec.step} is Ø${mm(s.diameterMM)}; bearing ${row.id}'s bore is Ø${mm(d)}: the seat is modelled at the bore's size (its class carries the limits)`);
+  if (Math.abs(s.diameter - d) > EPS) fail('SEAT_FIT', `step ${spec.step} is Ø${mm(s.diameter)}; bearing ${row.id}'s bore is Ø${mm(d)}: the seat is modelled at the bore's size (its class carries the limits)`);
   if (spec.against !== 'start' && spec.against !== 'end') fail('INVALID_INPUT', 'against is start or end');
-  if (B > s.toMM - s.fromMM + EPS) fail('SEAT_ABUTMENT', `step ${spec.step}'s seat is ${mm(s.toMM - s.fromMM)} long, shorter than the bearing's ${mm(B)}`);
+  if (B > s.to - s.from + EPS) fail('SEAT_ABUTMENT', `step ${spec.step}'s seat is ${mm(s.to - s.from)} long, shorter than the bearing's ${mm(B)}`);
   const sh = spec.against === 'start' ? shaft.report.shoulders.find(x => x.index === spec.step - 1) : shaft.report.shoulders.find(x => x.index === spec.step);
   if (!sh) fail('SEAT_ABUTMENT', `step ${spec.step} has no shoulder at its ${spec.against}: the bearing has nothing to stand against`);
-  const shoulderD = spec.against === 'start' ? sh!.beforeMM : sh!.afterMM;
+  const shoulderD = spec.against === 'start' ? sh!.before : sh!.after;
   if (!(shoulderD > d)) fail('SEAT_ABUTMENT', `the shoulder at step ${spec.step}'s ${spec.against} steps down (Ø${mm(shoulderD)}): it does not hold the bearing`);
-  if (row.daMinMM !== undefined && shoulderD < row.daMinMM - EPS) fail('SEAT_ABUTMENT', `the shoulder Ø${mm(shoulderD)} is below da min ${row.daMinMM} (bearing ${row.id}): the inner ring would not bear on it`);
-  if (row.daMaxMM !== undefined && shoulderD > row.daMaxMM + EPS) fail('SEAT_ABUTMENT', `the shoulder Ø${mm(shoulderD)} is above da max ${row.daMaxMM} (bearing ${row.id}): it would reach the seals or the cage`);
-  const fil = sh!.filletMM, raMax = row.raMaxMM ?? c;
-  if (fil > raMax + EPS) fail('SEAT_ABUTMENT', `the shoulder's fillet r ${mm(fil)} exceeds ${row.raMaxMM !== undefined ? 'ra max' : 'the bearing\'s corner r'} ${mm(raMax)}: the bearing would stand on it`);
-  const from = spec.against === 'start' ? s.fromMM : s.toMM - B, to = from + B, far = spec.against === 'start' ? to : from;
+  if (row.daMin !== undefined && shoulderD < row.daMin - EPS) fail('SEAT_ABUTMENT', `the shoulder Ø${mm(shoulderD)} is below da min ${row.daMin} (bearing ${row.id}): the inner ring would not bear on it`);
+  if (row.daMax !== undefined && shoulderD > row.daMax + EPS) fail('SEAT_ABUTMENT', `the shoulder Ø${mm(shoulderD)} is above da max ${row.daMax} (bearing ${row.id}): it would reach the seals or the cage`);
+  const fil = sh!.fillet, raMax = row.raMax ?? c;
+  if (fil > raMax + EPS) fail('SEAT_ABUTMENT', `the shoulder's fillet r ${mm(fil)} exceeds ${row.raMax !== undefined ? 'ra max' : 'the bearing\'s corner r'} ${mm(raMax)}: the bearing would stand on it`);
+  const from = spec.against === 'start' ? s.from : s.to - B, to = from + B, far = spec.against === 'start' ? to : from;
   // The other side: a ring groove's near wall within 1 mm of the face, or a shoulder there.
-  const groove = shaft.report.grooves.find(g => g.step === spec.step && (spec.against === 'start' ? g.fromMM >= far - EPS && g.fromMM <= far + 1 + EPS : g.fromMM + g.widthMM <= far + EPS && g.fromMM + g.widthMM >= far - 1 - EPS));
-  const otherShoulder = Math.abs(far - (spec.against === 'start' ? s.toMM : s.fromMM)) < EPS;
+  const groove = shaft.report.grooves.find(g => g.step === spec.step && (spec.against === 'start' ? g.from >= far - EPS && g.from <= far + 1 + EPS : g.from + g.width <= far + EPS && g.from + g.width >= far - 1 - EPS));
+  const otherShoulder = Math.abs(far - (spec.against === 'start' ? s.to : s.from)) < EPS;
   const located = groove ? `ring groove ${groove.index}` : otherShoulder ? 'a shoulder' : null;
   if (!located) warnings.push(`the bearing's ${spec.against === 'start' ? 'end' : 'start'} side is not located: no ring groove within 1 mm of its face and no shoulder (a spacer is not modelled)`);
   const local = transformBrep(env, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 0, from] }), brep = transformBrep(local, shaft.place);
@@ -194,16 +194,16 @@ export function seatedBearing(row: BearingRow, shaft: PlacedShaft & { readonly b
     if (hOverlap > 1e-6 * vol(brep)) fail('SEAT_ABUTMENT', `the bearing overlaps the housing by ${+hOverlap.toPrecision(4)} mm³`);
     // FRk8a (D181): the housing's shoulder, from its faces, against the row's Da max.
     const start = housingShoulder(spec.housing, originW, axisW, D, from, 1), end = housingShoulder(spec.housing, originW, axisW, D, to, -1);
-    for (const [at, dia] of [['start', start], ['end', end]] as const) if (dia !== null && row.DaMaxMM !== undefined && dia > row.DaMaxMM + EPS) fail('SEAT_ABUTMENT', `the housing's shoulder Ø${mm(dia)} at the bearing's ${at} is above Da max ${row.DaMaxMM} (bearing ${row.id}): the outer ring would not bear on it`);
+    for (const [at, dia] of [['start', start], ['end', end]] as const) if (dia !== null && row.DaMax !== undefined && dia > row.DaMax + EPS) fail('SEAT_ABUTMENT', `the housing's shoulder Ø${mm(dia)} at the bearing's ${at} is above Da max ${row.DaMax} (bearing ${row.id}): the outer ring would not bear on it`);
     const mine = spec.against === 'start' ? start : end, other = spec.against === 'start' ? end : start, otherSide: 'start' | 'end' = spec.against === 'start' ? 'end' : 'start';
-    const shoulder = mine !== null ? { at: spec.against, diameterMM: mm(mine) } : other !== null ? { at: otherSide, diameterMM: mm(other) } : null;
+    const shoulder = mine !== null ? { at: spec.against, diameter: mm(mine) } : other !== null ? { at: otherSide, diameter: mm(other) } : null;
     if (mine === null) warnings.push(other !== null ? `the housing has no shoulder at the bearing's ${spec.against} (its shaft's located side), only at its ${otherSide}` : 'the housing has no shoulder at either face of the bearing: its outer ring is not located (a cover or a ring is not modelled)');
-    housing = { boreMM: D, overlapMM3: hOverlap, covered, shoulder };
+    housing = { bore: D, overlap: hOverlap, covered, shoulder };
   }
   const shaftFit = spec.fit?.shaft ? ringFit(spec.fit.tables, spec.fit.shaft, d, row.boreDeviationUM, true) : undefined;
   const housingFit = spec.fit?.housing && spec.housing ? ringFit(spec.fit.tables, spec.fit.housing, D, row.outsideDeviationUM, false) : undefined;
   if (spec.fit?.housing && !spec.housing) warnings.push('a housing class is given but no housing');
-  return { brep, report: { row: row.id, ...(row.designation ? { designation: row.designation } : {}), boreMM: d, outsideMM: D, widthMM: B, chamferMM: c, estimate: row.estimate === true, ...(row.source ? { source: row.source } : {}),
-    seat: { step: spec.step, against: spec.against, fromMM: from, toMM: to, shoulderMM: shoulderD, shoulderFilletMM: fil, located, overlapMM3: shaftOverlap },
+  return { brep, report: { row: row.id, ...(row.designation ? { designation: row.designation } : {}), bore: d, outside: D, width: B, chamfer: c, estimate: row.estimate === true, ...(row.source ? { source: row.source } : {}),
+    seat: { step: spec.step, against: spec.against, from: from, to: to, shoulder: shoulderD, shoulderFillet: fil, located, overlap: shaftOverlap },
     ...(housing ? { housing } : {}), ...(shaftFit ? { shaftFit } : {}), ...(housingFit ? { housingFit } : {}), warnings, notForStructuralCalculation: true } };
 }

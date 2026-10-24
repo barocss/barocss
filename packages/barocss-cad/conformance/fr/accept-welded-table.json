@@ -165,11 +165,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 444000,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500.0000000000001,
             -0.4593333333333304,
@@ -186,11 +186,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000.7655555555556,
             300.00000000000006,
@@ -207,11 +207,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 444000,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500,
             600.4593333333333,
@@ -228,11 +228,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.7655555555555521,
             300,
@@ -249,11 +249,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -2.560514363099462e-16,
             4.352874417269085e-15,
@@ -270,11 +270,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             4.352874417269085e-15,
@@ -291,11 +291,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             600,
@@ -312,11 +312,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -2.560514363099462e-16,
             600,
@@ -333,11 +333,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 426240,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500,
             0,
@@ -354,11 +354,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 248640,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             300.00000000000006,
@@ -375,11 +375,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 426240,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500,
             600,
@@ -396,11 +396,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 248640,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             300.00000000000006,
@@ -418,7 +418,7 @@
       }
     ],
     "cutList": {
-      "densityKgPerM3": 7850,
+      "density": 7.85,
       "absTol": 1e-9,
       "rows": [
         {
@@ -427,22 +427,22 @@
             "n0/0",
             "n0/2"
           ],
-          "axisLengthMM": 1000,
-          "longPointMM": 1040,
+          "axisLength": 1000,
+          "longPoint": 1040,
           "fromVolume": false,
           "ends": [
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             },
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             }
           ],
-          "massKG": 3.4854000000000003
+          "mass": 3485.4
         },
         {
           "quantity": 2,
@@ -450,22 +450,22 @@
             "n0/1",
             "n0/3"
           ],
-          "axisLengthMM": 600,
-          "longPointMM": 640,
+          "axisLength": 600,
+          "longPoint": 640,
           "fromVolume": false,
           "ends": [
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             },
             {
               "kind": "mitre",
-              "mitreDegrees": 45,
-              "bevelDegrees": 0
+              "mitre": 45,
+              "bevel": 0
             }
           ],
-          "massKG": 2.09124
+          "mass": 2091.24
         },
         {
           "quantity": 4,
@@ -475,22 +475,22 @@
             "n0/6",
             "n0/7"
           ],
-          "axisLengthMM": 730,
-          "longPointMM": 730,
+          "axisLength": 730,
+          "longPoint": 730,
           "fromVolume": false,
           "ends": [
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             }
           ],
-          "massKG": 2.5443420000000003
+          "mass": 2544.3420000000006
         },
         {
           "quantity": 2,
@@ -498,22 +498,22 @@
             "n0/8",
             "n0/10"
           ],
-          "axisLengthMM": 960,
-          "longPointMM": 960,
+          "axisLength": 960,
+          "longPoint": 960,
           "fromVolume": false,
           "ends": [
             {
               "kind": "butt",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "butt",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             }
           ],
-          "massKG": 3.345984
+          "mass": 3345.984
         },
         {
           "quantity": 2,
@@ -521,28 +521,28 @@
             "n0/9",
             "n0/11"
           ],
-          "axisLengthMM": 560,
-          "longPointMM": 560,
+          "axisLength": 560,
+          "longPoint": 560,
           "fromVolume": false,
           "ends": [
             {
               "kind": "butt",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "butt",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             }
           ],
-          "massKG": 1.9518240000000002
+          "mass": 1951.8240000000003
         }
       ],
       "totals": {
         "quantity": 12,
-        "axisLengthMM": 9160,
-        "massKG": 31.926264
+        "axisLength": 9160,
+        "mass": 31926.264
       }
     },
     "stepRoundTrip": {

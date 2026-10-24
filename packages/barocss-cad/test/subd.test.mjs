@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subdBrep, subdReport, tessellateBrep, evaluateSurfaceD1, SubdError, checkBrep, brepMassProperties, brepSurfaceArea, evaluateCadPart, exportStep, importStep, evaluateSurface } from '../dist/index.js';
+import { subdBrep, subdReport, tessellateBrep, evaluateSurfaceD1, SubdError, checkBrep, brepMassProperties, brepSurfaceArea, evaluateCadPart, exportStep, importStep, evaluateSurface, outputOf, checkOutput, massPropertiesOf } from '../dist/index.js';
 import { openEdges } from '../scripts/rb/stages.mjs';
 import { tessellateBrepWithParameters } from '../dist/brep/brep-tessellate.js';
 
 // SD1 (R5, D51): a regular SubD cage as its exact limit surface, bicubic B-spline faces built from the cage's topology.
 // The check that does not trust the construction: one Catmull–Clark step (written here, apart from it) gives a cage
 // with the same limit surface, so the same volume and area.
-const vol = b => brepMassProperties(b, 1).volumeMM3;
+const vol = b => brepMassProperties(b, 1).volume;
 function torusCage(n, m, R = 20, r = 6) {
   const positions = [], faces = [];
   for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m; positions.push((R + r * Math.cos(v)) * Math.cos(u), (R + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v)); }
@@ -103,19 +103,19 @@ test('refusals: bad cages INPUT (a bowtie, a face of two sides, an unknown verte
 test('part model: the subd feature — a solid with its patches named, a STEP round trip of its B-spline faces, a cube cage of caps', () => {
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const r = evaluateCadPart(D([{ id: 'ring', kind: 'subd', cage: torusCage(16, 8) }]));
-  const o = r.output('ring');
-  assert.equal(o.representation, 'curved'); assert.equal(o.validate().valid, true);
+  const o = outputOf(r, 'ring');
+  assert.equal(o.representation, 'curved'); assert.equal(checkOutput(o).valid, true);
   assert.ok(o.brep.faces.every(f => /^ring\.patch\d+$/.test(f.name)));
   const back = importStep(exportStep([o.brep], { name: 'ring' }));
-  assert.ok(Math.abs(vol(back) / o.massProperties(1).volumeMM3 - 1) < 1e-9);
+  assert.ok(Math.abs(vol(back) / massPropertiesOf(o).volume - 1) < 1e-9);
   // (SD2: a cube cage, extraordinary everywhere, is a solid of caps.)
-  const cube = evaluateCadPart(D([{ id: 'c', kind: 'subd', cage: CUBE }])).output('c');
-  assert.equal(cube.validate().valid, true); assert.ok(cube.brep.faces.every(f => /^c\.cap\d+_\d+$/.test(f.name)));
+  const cube = outputOf(evaluateCadPart(D([{ id: 'c', kind: 'subd', cage: CUBE }])), 'c');
+  assert.equal(checkOutput(cube).valid, true); assert.ok(cube.brep.faces.every(f => /^c\.cap\d+_\d+$/.test(f.name)));
   assert.throws(() => evaluateCadPart(D([{ id: 'c', kind: 'subd', cage: { positions: [], faces: 'x' } }])), e => e.code === 'INPUT');
   // A Boolean with it goes through the analytic path (B-spline faces).
   const cut = evaluateCadPart(D([{ id: 'ring', kind: 'subd', cage: torusCage(16, 8) }, { id: 'c', kind: 'split', target: 'ring', axis: 'z', at: 0 }]));
   assert.equal(cut.outputs.length, 2);
-  assert.ok(Math.abs(cut.outputs.reduce((s, x) => s + x.massProperties(1).volumeMM3, 0) / o.massProperties(1).volumeMM3 - 1) < 1e-6);
+  assert.ok(Math.abs(cut.outputs.reduce((s, x) => s + massPropertiesOf(x).volume, 0) / massPropertiesOf(o).volume - 1) < 1e-6);
 });
 
 // ---- SD2 (R7, D78): extraordinary vertices, n-gons and darts ---------------------------------------------------------
@@ -205,7 +205,7 @@ test('SD2 a cube cage (every vertex valence 3): one step, 24 G1 caps named by fa
   assert.ok(b.faces.every(f => f.surface.knotsU.join() === '0,0,0,0,0.25,0.25,1,1,1,1'));
   const v = vol(b), want = extrapolated(CUBE);
   assert.ok(Math.abs(v / want - 1) < 2e-3, `${v} vs the limit ${want}`);
-  assert.ok(brepMassProperties(b, 1).centroidMM.every(x => Math.abs(x - 5) < 1e-9));
+  assert.ok(brepMassProperties(b, 1).centroid.every(x => Math.abs(x - 5) < 1e-9));
   const back = importStep(exportStep([b], { name: 'c' }));
   assert.ok(Math.abs(vol(back) / v - 1) < 1e-9);
   // The cage wound inward is turned outward.
@@ -268,7 +268,7 @@ function boxCage(w, d, h, n) {
 }
 /** The largest concave fold between neighbouring triangles (a dent; 0 on a convex body tessellated well). */
 function worstFold(mesh) {
-  const P = mesh.positionsMM, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]], edges = new Map();
+  const P = mesh.positions, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]], edges = new Map();
   for (let t = 0; t < I.length / 3; t++) for (let k = 0; k < 3; k++) { const a = key(I[3 * t + k]), c = key(I[3 * t + (k + 1) % 3]), e = a < c ? `${a}|${c}` : `${c}|${a}`; if (!edges.has(e)) edges.set(e, []); edges.get(e).push(t); }
   const tri = t => { const a = pt(I[3 * t]), b = pt(I[3 * t + 1]), c = pt(I[3 * t + 2]), u = b.map((x, i) => x - a[i]), v = c.map((x, i) => x - a[i]), n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], l = Math.hypot(...n); return { n: n.map(x => x / l), c: [0, 1, 2].map(i => (a[i] + b[i] + c[i]) / 3) }; };
   let worst = 0;
@@ -296,7 +296,7 @@ test('D79 display of a SubD box: vertex normals are the surface\'s own (they wer
   assert.ok(worst < 0.01, `vertex normals ${worst}° off the surface's`);
   assert.ok(worstFold(mesh) < 25, `a ${worstFold(mesh)}° dent`);
   assert.ok(worstFold(tessellateBrep(subdBrep(boxCage(30, 20, 16, 6)), { segmentsPerQuarter: 8 })) < 45);
-  assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0);
+  assert.equal(openEdges(mesh.positions, mesh.indices), 0);
 });
 
 test('PERF3 A4 (D82): caps kept by their vertex\'s 2-ring — the same cage again has the same caps; a vertex moved outside every irregular vertex\'s 2-ring leaves them all, one inside a corner\'s changes that corner\'s only', async () => {

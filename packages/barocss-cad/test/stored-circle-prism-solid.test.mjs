@@ -79,7 +79,7 @@ test('nested field types, numeric tuples and enum fields are admitted structural
     ['parent', 'profile', 'curve', 'knots', '0'], ['parent', 'profile', 'curve', 'controlPoints', '0', '0'],
     ['parent', 'baseFace', 'bundle', 'geometry', 'objects', '1', 'weights', '0', '0'],
     ['parent', 'baseFace', 'bundle', 'topology', 'loop', 'uses', '0', 'sense'],
-    ['parent', 'bundle', 'construction', 'heightMM'], ['parent', 'bundle', 'topology', 'loops', '2', 'uses', '1', 'pcurve', 'coordinateSystem'],
+    ['parent', 'bundle', 'construction', 'height'], ['parent', 'bundle', 'topology', 'loops', '2', 'uses', '1', 'pcurve', 'coordinateSystem'],
     ['parent', 'report', 'normalObservations', '0', 'uv', '0'], ['parent', 'report', 'baseFaceReport', 'limits', 'evaluationComparisonMM'],
     ['world', 'source'], ['world', 'model', 'lengthUnit'], ['certificate', 'arithmetic', 'operations'],
     ['certificate', 'directCounts', 'parentReconstructionCalls'], ['certificate', 'ringProof', 'quadrants', '0', 'derivativeNumeratorsX', '0', 'numerator'],
@@ -91,7 +91,7 @@ test('nested field types, numeric tuples and enum fields are admitted structural
     const before = signedData(changed); refuses(validate, changed); assert.equal(signedData(changed), before);
     if (path[0] === 'parent') refuses(qualify, changed.parent);
   }
-  for (const path of [['parent', 'report', 'centerMM'], ['parent', 'bundle', 'topology', 'vertices', '0', 'point'], ['parent', 'report', 'domains', 'wallSurface', 'u']]) {
+  for (const path of [['parent', 'report', 'center'], ['parent', 'bundle', 'topology', 'vertices', '0', 'point'], ['parent', 'report', 'domains', 'wallSurface', 'u']]) {
     const changed = shapeOnlyResult(); at(changed, path).pop(); refuses(validate, changed); refuses(qualify, changed.parent);
   }
   for (const [type, path] of typedLeaves(shapeOnlyResult())) {
@@ -110,14 +110,14 @@ test('descriptor snapshots never invoke getters and refuse hidden/symbol/foreign
     value => Object.defineProperty(value.parent.report, 'hidden', { value: 0 }),
     value => { value.parent.report[Symbol('hidden')] = 0; },
     value => Object.setPrototypeOf(value.parent.profile, { inherited: true }),
-    value => { value.parent.report.boundsMM.min = new Float64Array([0, 0, 0]); },
-    value => { value.parent.report.boundsMM.min[0] = NaN; },
-    value => { value.parent.report.boundsMM.min[0] = Infinity; },
-    value => { value.parent.report.boundsMM.min[0] = -Infinity; },
+    value => { value.parent.report.bounds.min = new Float64Array([0, 0, 0]); },
+    value => { value.parent.report.bounds.min[0] = NaN; },
+    value => { value.parent.report.bounds.min[0] = Infinity; },
+    value => { value.parent.report.bounds.min[0] = -Infinity; },
     value => { value.parent.profile.curve.controlPoints[0][0] = value; },
   ]) { const changed = shapeOnlyResult(); alter(changed); refuses(validate, changed); }
-  const sparse = shapeOnlyResult(); delete sparse.parent.report.centerMM[0]; refuses(validate, sparse, 'BUDGET');
-  const extraArray = shapeOnlyResult(); extraArray.parent.report.centerMM.extra = 0; refuses(validate, extraArray, 'BUDGET');
+  const sparse = shapeOnlyResult(); delete sparse.parent.report.center[0]; refuses(validate, sparse, 'BUDGET');
+  const extraArray = shapeOnlyResult(); extraArray.parent.report.center.extra = 0; refuses(validate, extraArray, 'BUDGET');
 });
 
 test('own-data budgets count depth, arrays, fields, strings and repeated occurrences before any native admission', () => {

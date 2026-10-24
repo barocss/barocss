@@ -19,13 +19,13 @@
             "kind": "coupling",
             "id": "R20",
             "type": "rigid sleeve",
-            "boreMM": [
+            "bore": [
               12,
               14
             ],
-            "outsideMM": 30,
-            "lengthMM": 40,
-            "boreStepMM": 18,
+            "outside": 30,
+            "length": 40,
+            "boreStep": 18,
             "estimate": true
           }
         }
@@ -35,11 +35,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 22851.944962212154,
           "relTol": 1e-8
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,

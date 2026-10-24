@@ -36,7 +36,8 @@ export function sectionOracle(s) {
   const [A, ux, uy, xx, xy, yy] = m, cx = ux/A, cy = uy/A;
   return { A, c:[cx,cy], Jxx:yy-A*cy*cy, Jyy:xx-A*cx*cx, Jxy:xy-A*cx*cy };
 }
-export function prismOracle(s, L, rho = 7850) {
-  const o = sectionOracle(s), q = rho * 1e-15 * L, { A,Jxx,Jyy,Jxy } = o;
-  return { ...o, volume: A*L, mass:rho*A*L*1e-9, inertia:[[q*(Jxx+A*L*L/12),-q*Jxy,0],[-q*Jxy,q*(Jyy+A*L*L/12),0],[0,0,q*(Jxx+Jyy)]] };
+/** A straight prism of the section, length L, density rho (g/cm³): its volume, mass (g) and inertia (g·mm²) about the centroid. */
+export function prismOracle(s, L, rho = 7.85) {
+  const o = sectionOracle(s), q = rho * 1e-3 * L, { A,Jxx,Jyy,Jxy } = o;
+  return { ...o, volume: A*L, mass:rho*A*L*1e-3, inertia:[[q*(Jxx+A*L*L/12),-q*Jxy,0],[-q*Jxy,q*(Jyy+A*L*L/12),0],[0,0,q*(Jxx+Jyy)]] };
 }

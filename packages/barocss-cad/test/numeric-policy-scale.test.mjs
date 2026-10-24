@@ -10,10 +10,10 @@ const quadratic = (id, poles) => ({ kind: 'curve', id, degree: 2, knots: [0, 0, 
 
 test('linear tolerance: the 1e-7 mm floor inside the modeling range, scaled beyond it', () => {
   assert.equal(linearToleranceMM(0), 1e-7);
-  assert.equal(linearToleranceMM(CadNumericPolicy.coordinateAbsMM), 1e-7);
+  assert.equal(linearToleranceMM(CadNumericPolicy.coordinateAbs), 1e-7);
   assert.ok(Math.abs(linearToleranceMM(1e6) - 1e-5) < 1e-18);
   assert.equal(geometryScaleMM([[1, -7, 2]], [[3, 4, 5]]), 7);
-  assert.equal(CadNumericPolicy.geometryCoordinateAbsMM, 1e6);
+  assert.equal(CadNumericPolicy.geometryCoordinateAbs, 1e6);
 });
 
 test('C7: curve-plane intersections at 1e6 mm bind (36 % were refused), and report the tolerance used', () => {

@@ -1,23 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBrep, lineCurve, checkBrep, evaluateCadPart } from '../dist/index.js';
+import { buildBrep, lineCurve, checkBrep, evaluateCadPart, checkOutput } from '../dist/index.js';
 
 // A sheet of one planar face bounded by line edges through `pts` (in order), on the plane z = 0 unless `surface` is given.
 function sheet(pts, { surface, tol } = {}) {
   const vertices = pts.map((p, k) => ({ id: `v${k}`, point: p }));
   const edges = pts.map((p, k) => ({ id: `e${k}`, curve: lineCurve(`e${k}`, p, pts[(k + 1) % pts.length]), vertices: [`v${k}`, `v${(k + 1) % pts.length}`] }));
   const plane = surface ?? { kind: 'surface', id: 'p', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[[-20, -20, 0], [-20, 20, 0]], [[20, -20, 0], [20, 20, 0]]], weights: [[1, 1], [1, 1]] };
-  return buildBrep({ source: { family: 'test', id: 's' }, vertices, edges, ...(tol ? { toleranceMM: tol } : {}),
+  return buildBrep({ source: { family: 'test', id: 's' }, vertices, edges, ...(tol ? { tolerance: tol } : {}),
     bodies: [{ id: 'b', kind: 'sheet', shells: [{ id: 's', closed: false, faces: [{ id: 'f', surface: plane, sense: 'forward', loops: [{ kind: 'outer', uses: edges.map(e => ({ edge: e.id, sense: 'forward' })) }] }] }] }] });
 }
 const square = [[0, 0, 0], [10, 0, 0], [10, 10, 0], [0, 10, 0]];
 
 test('strict L0: a clean sheet and the corpus\'s models pass; the default check stays as it was', () => {
   const r = checkBrep(sheet(square), { strict: true });
-  assert.equal(r.valid, true, r.issues[0]); assert.equal(r.maximumEdgeSurfaceGapMM, 0);
+  assert.equal(r.valid, true, r.issues[0]); assert.equal(r.maximumEdgeSurfaceGap, 0);
   const box = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'c', kind: 'extrude', sketch: 's', height: 10 }] }).outputs[0].brep;
   assert.equal(checkBrep(box, { strict: true }).valid, true);
-  assert.equal(checkBrep(box).maximumEdgeSurfaceGapMM, 0, 'not measured unless strict');
+  assert.equal(checkBrep(box).maximumEdgeSurfaceGap, 0, 'not measured unless strict');
 });
 
 test('strict L0: an edge off its face\'s surface, a crossing loop, a sliver and a blown-up tolerance are each reported', () => {
@@ -25,7 +25,7 @@ test('strict L0: an edge off its face\'s surface, a crossing loop, a sliver and 
   const lifted = { kind: 'surface', id: 'p', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[[-20, -20, 0.5], [-20, 20, 0.5]], [[20, -20, 0.5], [20, 20, 0.5]]], weights: [[1, 1], [1, 1]] };
   const off = checkBrep(sheet(square, { surface: lifted }), { strict: true });
   assert.ok(off.issues.some(i => /^geometry: edge e\d is 5\.00e-1 mm off the surface of face \S*f$/.test(i)), off.issues[0]);
-  assert.ok(Math.abs(off.maximumEdgeSurfaceGapMM - 0.5) < 1e-12);
+  assert.ok(Math.abs(off.maximumEdgeSurfaceGap - 0.5) < 1e-12);
   // A bow tie: its loop crosses itself.
   const bow = checkBrep(sheet([[0, 0, 0], [10, 10, 0], [10, 0, 0], [0, 10, 0]]), { strict: true });
   assert.ok(bow.issues.some(i => /loops cross or touch/.test(i)), bow.issues.join('; '));
@@ -100,6 +100,6 @@ test('strict L0 at a pole: an edge along a sphere patch\'s meridian from its pol
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
   const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
   const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
-  const r = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0].validate();
-  assert.equal(r.valid, true, r.issues[0]); assert.ok(r.maximumEdgeSurfaceGapMM < 1e-8, `${r.maximumEdgeSurfaceGapMM}`);
+  const r = checkOutput(evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0]);
+  assert.equal(r.valid, true, r.issues[0]); assert.ok(r.maximumEdgeSurfaceGap < 1e-8, `${r.maximumEdgeSurfaceGap}`);
 });

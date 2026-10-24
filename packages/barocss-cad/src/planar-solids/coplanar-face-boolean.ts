@@ -102,7 +102,7 @@ export interface CoplanarFaceBooleanResult {
 }
 
 const CODE = CoplanarFaceBooleanDiagnosticCode;
-const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
+const POINT_TOLERANCE = CadNumericPolicy.linearTolerance, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 function check(condition: boolean, code: CoplanarFaceBooleanDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CoplanarFaceBooleanError(code, detail);
 }

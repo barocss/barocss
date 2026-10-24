@@ -43,7 +43,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const target = solids(f.target, 'target');
       if (target.length !== 1) fail('SELECTION', 'an opening is cut into one body');
       if (typeof f.face !== 'string') fail('INPUT', 'face must name the face the opening is cut into');
-      const spec = { row: f.row as ConnectorRow, face: f.face as string, centerMM: xyz(f.center as CadPartPoint3, 'center'), ...(f.rotation !== undefined ? { rotationDeg: f.rotation as number } : {}) };
+      const spec = { row: f.row as ConnectorRow, face: f.face as string, center: xyz(f.center as CadPartPoint3, 'center'), ...(f.rotation !== undefined ? { rotation: f.rotation as number } : {}) };
       return () => {
         let made: ReturnType<typeof connectorOpening> | undefined;
         try { made = connectorOpening(brepOf(target[0], at), spec, at); }
@@ -58,7 +58,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
         let made: ReturnType<typeof connectorBody> | undefined;
         try { made = connectorBody(brepOf(gp!, at), gp!.connector!, at); }
         catch (cause) { if (isConnectorError(cause)) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
-        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connectorBody: { row: gp!.connector!.row, overlapMM3: made!.overlapMM3 } }] };
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connectorBody: { row: gp!.connector!.row, overlap: made!.overlap } }] };
       };
     }
     case 'oring-gland': {
@@ -67,10 +67,10 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       if (typeof f.face !== 'string') fail('INPUT', 'face must name the face the groove is cut into');
       const rg = f.ring as Record<string, unknown> | undefined, gr = f.groove as Record<string, unknown> | undefined;
       if (!isRecord(rg) || !isRecord(gr)) fail('INPUT', 'ring and groove must be objects');
-      const ring: ORingRow = { id: String(rg!.id), ...(rg!.dash !== undefined ? { dash: String(rg!.dash) } : {}), insideDiameterMM: rg!.insideDiameter as number, crossSectionMM: rg!.crossSection as number, ...(rg!.source !== undefined ? { source: rg!.source as string } : {}), ...(rg!.estimate !== undefined ? { estimate: rg!.estimate as boolean } : {}) };
-      const spec = { kind: f.gland as 'piston' | 'rod' | 'face', ring, face: f.face as string, grooveDiameterMM: dim(gr!.diameter as CadPartDim, 'groove.diameter', true), widthMM: dim(gr!.width as CadPartDim, 'groove.width', true),
-        ...(gr!.at !== undefined ? { atMM: dim(gr!.at as CadPartDim, 'groove.at') } : {}), ...(gr!.depth !== undefined ? { depthMM: dim(gr!.depth as CadPartDim, 'groove.depth', true) } : {}), ...(gr!.center !== undefined ? { centerMM: xyz(gr!.center as CadPartPoint3, 'groove.center') } : {}),
-        ...(f.seal !== undefined ? { sealDiameterMM: dim(f.seal as CadPartDim, 'seal', true) } : {}), ...(f.ranges !== undefined ? { ranges: f.ranges as GlandRanges } : {}), ...(f.fit !== undefined ? { fit: f.fit as { tables: readonly FitTable[]; seal?: string; groove?: string } } : {}) };
+      const ring: ORingRow = { id: String(rg!.id), ...(rg!.dash !== undefined ? { dash: String(rg!.dash) } : {}), insideDiameter: rg!.insideDiameter as number, crossSection: rg!.crossSection as number, ...(rg!.source !== undefined ? { source: rg!.source as string } : {}), ...(rg!.estimate !== undefined ? { estimate: rg!.estimate as boolean } : {}) };
+      const spec = { kind: f.gland as 'piston' | 'rod' | 'face', ring, face: f.face as string, grooveDiameter: dim(gr!.diameter as CadPartDim, 'groove.diameter', true), width: dim(gr!.width as CadPartDim, 'groove.width', true),
+        ...(gr!.at !== undefined ? { at: dim(gr!.at as CadPartDim, 'groove.at') } : {}), ...(gr!.depth !== undefined ? { depth: dim(gr!.depth as CadPartDim, 'groove.depth', true) } : {}), ...(gr!.center !== undefined ? { center: xyz(gr!.center as CadPartPoint3, 'groove.center') } : {}),
+        ...(f.seal !== undefined ? { sealDiameter: dim(f.seal as CadPartDim, 'seal', true) } : {}), ...(f.ranges !== undefined ? { ranges: f.ranges as GlandRanges } : {}), ...(f.fit !== undefined ? { fit: f.fit as { tables: readonly FitTable[]; seal?: string; groove?: string } } : {}) };
       return () => {
         let made: ReturnType<typeof glandCut> | undefined;
         try { made = glandCut(brepOf(target[0], at), spec, at); }
@@ -83,7 +83,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       if (!gp?.gland || !gp.glandPlace) fail('REFERENCE', `${String(f.gland)} is not an O-ring gland`);
       return () => {
         const made = oringInGland(gp!.gland!, gp!.glandPlace!, at);
-        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, oring: { ring: gp!.gland!.ring, overlapMM3: made.overlapMM3, stretchedCrossSectionMM: gp!.gland!.stretchedCrossSectionMM } }] };
+        return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, oring: { ring: gp!.gland!.ring, overlap: made.overlap, stretchedCrossSection: gp!.gland!.stretchedCrossSection } }] };
       };
     }
     case 'bearing': {
@@ -115,9 +115,9 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const fit = f.kind === 'key' && f.fit !== undefined ? (isRecord(f.fit) && Array.isArray((f.fit as Record<string, unknown>).tables) && typeof (f.fit as Record<string, unknown>).key === 'string' ? f.fit as unknown as KeyFitClasses : fail('INPUT', 'fit must be { tables, key, seat?, hub? }')) : undefined;
       return () => {
         try {
-          if (f.kind === 'key') { const made = keySolid(placed, { keyseat: index(f.keyseat, 'keyseat'), heightMM: dim(f.height as CadPartDim, 'height', true), ...(f.width !== undefined ? { widthMM: optDim(f.width, 'width') } : {}), ...(f.length !== undefined ? { lengthMM: optDim(f.length, 'length') } : {}), ...(f.ends !== undefined ? { ends: f.ends as 'round' | 'square' } : {}), ...(hub ? { hub } : {}), ...(fit ? { fit } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, key: made.report }] }; }
-          if (f.kind === 'retaining-ring') { const row = f.row as Record<string, unknown> | undefined; const made = ringSolid(placed, { groove: index(f.groove, 'groove'), thicknessMM: dim(f.thickness as CadPartDim, 'thickness', true), outerDiameterMM: dim(f.outerDiameter as CadPartDim, 'outerDiameter', true), ...(row ? { row: { ...(row.shaftDiameter !== undefined ? { shaftDiameterMM: row.shaftDiameter as number } : {}), ...(row.grooveDiameter !== undefined ? { grooveDiameterMM: row.grooveDiameter as number } : {}), ...(row.grooveWidth !== undefined ? { grooveWidthMM: row.grooveWidth as number } : {}), ...(row.source !== undefined ? { source: row.source as string } : {}), ...(row.estimate !== undefined ? { estimate: row.estimate as boolean } : {}) } } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, ring: made.report }] }; }
-          const made = pinSolid(placed, { hole: index(f.hole, 'hole'), ...(f.diameter !== undefined ? { diameterMM: optDim(f.diameter, 'diameter') } : {}), ...(f.length !== undefined ? { lengthMM: optDim(f.length, 'length') } : {}), ...(f.fit ? { fit: true } : {}) }, at);
+          if (f.kind === 'key') { const made = keySolid(placed, { keyseat: index(f.keyseat, 'keyseat'), height: dim(f.height as CadPartDim, 'height', true), ...(f.width !== undefined ? { width: optDim(f.width, 'width') } : {}), ...(f.length !== undefined ? { length: optDim(f.length, 'length') } : {}), ...(f.ends !== undefined ? { ends: f.ends as 'round' | 'square' } : {}), ...(hub ? { hub } : {}), ...(fit ? { fit } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, key: made.report }] }; }
+          if (f.kind === 'retaining-ring') { const row = f.row as Record<string, unknown> | undefined; const made = ringSolid(placed, { groove: index(f.groove, 'groove'), thickness: dim(f.thickness as CadPartDim, 'thickness', true), outerDiameter: dim(f.outerDiameter as CadPartDim, 'outerDiameter', true), ...(row ? { row: { ...(row.shaftDiameter !== undefined ? { shaftDiameter: row.shaftDiameter as number } : {}), ...(row.grooveDiameter !== undefined ? { grooveDiameter: row.grooveDiameter as number } : {}), ...(row.grooveWidth !== undefined ? { grooveWidth: row.grooveWidth as number } : {}), ...(row.source !== undefined ? { source: row.source as string } : {}), ...(row.estimate !== undefined ? { estimate: row.estimate as boolean } : {}) } } : {}) }, at); return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, ring: made.report }] }; }
+          const made = pinSolid(placed, { hole: index(f.hole, 'hole'), ...(f.diameter !== undefined ? { diameter: optDim(f.diameter, 'diameter') } : {}), ...(f.length !== undefined ? { length: optDim(f.length, 'length') } : {}), ...(f.fit ? { fit: true } : {}) }, at);
           return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, pin: made.report }] };
         } catch (cause) { return partFail(cause); }
       };
@@ -130,7 +130,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       if (f.angle !== undefined && !(typeof f.angle === 'number' && Number.isFinite(f.angle))) fail('INPUT', 'angle must be a number of degrees');
       return () => {
         let made: ReturnType<typeof keywayCut> | undefined;
-        try { made = keywayCut(brepOf(target[0], at), { face: f.face as string, widthMM: b, depthMM: t2, ...(f.angle !== undefined ? { angleDeg: f.angle as number } : {}) }, at); }
+        try { made = keywayCut(brepOf(target[0], at), { face: f.face as string, width: b, depth: t2, ...(f.angle !== undefined ? { angle: f.angle as number } : {}) }, at); }
         catch (cause) { if (isShaftPartError(cause)) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; }
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, keyway: made!.report }] };
       };
@@ -143,16 +143,16 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const deg = (v: unknown, what: string) => { if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${what} must be a number of degrees`); return v as number | undefined; };
       const steps = list<unknown>(f.steps, 'steps').map((x, k) => {
         const s = rec(x, `steps[${k}]`), at = `steps[${k}]`, u = s.undercut === undefined ? undefined : rec(s.undercut, `${at}.undercut`);
-        return { diameterMM: dim(s.diameter as CadPartDim, `${at}.diameter`), lengthMM: dim(s.length as CadPartDim, `${at}.length`), ...(s.fillet !== undefined ? { filletMM: opt(s.fillet, `${at}.fillet`) } : {}),
-          ...(u ? { undercut: { widthMM: dim(u.width as CadPartDim, `${at}.undercut.width`), depthMM: dim(u.depth as CadPartDim, `${at}.undercut.depth`) } } : {}),
-          grooves: list<unknown>(s.grooves, `${at}.grooves`).map((g, j) => { const r = rec(g, `${at}.grooves[${j}]`); return { diameterMM: dim(r.diameter as CadPartDim, 'groove diameter'), widthMM: dim(r.width as CadPartDim, 'groove width'), atMM: dim(r.at as CadPartDim, 'groove at') }; }),
-          keyseats: list<unknown>(s.keyseats, `${at}.keyseats`).map((g, j) => { const r = rec(g, `${at}.keyseats[${j}]`); return { widthMM: dim(r.width as CadPartDim, 'keyseat width'), depthMM: dim(r.depth as CadPartDim, 'keyseat depth'), lengthMM: dim(r.length as CadPartDim, 'keyseat length'), offsetMM: dim(r.offset as CadPartDim, 'keyseat offset'),
-            ...(r.ends !== undefined ? { ends: r.ends as 'square' | 'end-mill' | 'disc' } : {}), ...(r.cutterRadius !== undefined ? { cutterRadiusMM: opt(r.cutterRadius, 'keyseat cutterRadius') } : {}), ...(r.angle !== undefined ? { angleDeg: deg(r.angle, 'keyseat angle') } : {}) }; }) };
+        return { diameter: dim(s.diameter as CadPartDim, `${at}.diameter`), length: dim(s.length as CadPartDim, `${at}.length`), ...(s.fillet !== undefined ? { fillet: opt(s.fillet, `${at}.fillet`) } : {}),
+          ...(u ? { undercut: { width: dim(u.width as CadPartDim, `${at}.undercut.width`), depth: dim(u.depth as CadPartDim, `${at}.undercut.depth`) } } : {}),
+          grooves: list<unknown>(s.grooves, `${at}.grooves`).map((g, j) => { const r = rec(g, `${at}.grooves[${j}]`); return { diameter: dim(r.diameter as CadPartDim, 'groove diameter'), width: dim(r.width as CadPartDim, 'groove width'), at: dim(r.at as CadPartDim, 'groove at') }; }),
+          keyseats: list<unknown>(s.keyseats, `${at}.keyseats`).map((g, j) => { const r = rec(g, `${at}.keyseats[${j}]`); return { width: dim(r.width as CadPartDim, 'keyseat width'), depth: dim(r.depth as CadPartDim, 'keyseat depth'), length: dim(r.length as CadPartDim, 'keyseat length'), offset: dim(r.offset as CadPartDim, 'keyseat offset'),
+            ...(r.ends !== undefined ? { ends: r.ends as 'square' | 'end-mill' | 'disc' } : {}), ...(r.cutterRadius !== undefined ? { cutterRadius: opt(r.cutterRadius, 'keyseat cutterRadius') } : {}), ...(r.angle !== undefined ? { angle: deg(r.angle, 'keyseat angle') } : {}) }; }) };
       });
       const ch = f.chamfers as unknown;
       if (ch !== undefined && !(Array.isArray(ch) && ch.length === 2)) fail('INPUT', 'chamfers must be [start, end]');
-      const spec: ShaftSpec = { steps, ...(ch ? { chamfersMM: [dim((ch as CadPartDim[])[0], 'chamfers[0]'), dim((ch as CadPartDim[])[1], 'chamfers[1]')] as const } : {}),
-        holes: list<unknown>(f.holes, 'holes').map((h, j) => { const r = rec(h, `holes[${j}]`); return { diameterMM: dim(r.diameter as CadPartDim, 'hole diameter'), atMM: dim(r.at as CadPartDim, 'hole at'), ...(r.angle !== undefined ? { angleDeg: deg(r.angle, 'hole angle') } : {}) }; }) };
+      const spec: ShaftSpec = { steps, ...(ch ? { chamfers: [dim((ch as CadPartDim[])[0], 'chamfers[0]'), dim((ch as CadPartDim[])[1], 'chamfers[1]')] as const } : {}),
+        holes: list<unknown>(f.holes, 'holes').map((h, j) => { const r = rec(h, `holes[${j}]`); return { diameter: dim(r.diameter as CadPartDim, 'hole diameter'), at: dim(r.at as CadPartDim, 'hole at'), ...(r.angle !== undefined ? { angle: deg(r.angle, 'hole angle') } : {}) }; }) };
       const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (deg(f.rotation, 'rotation') ?? 0) * Math.PI / 180;
       return () => {
         let made: ReturnType<typeof shaftSolid> | undefined;
@@ -167,11 +167,11 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const opt = (k: string) => f[k as keyof typeof f] === undefined ? undefined : dim(f[k as keyof typeof f] as CadPartDim, k, true);
       const num = (k: string) => { const v = f[k as keyof typeof f]; if (v !== undefined && !(typeof v === 'number' && Number.isFinite(v))) fail('INPUT', `${k} must be a number`); return v as number | undefined; };
       if (f.shearModulusEstimate !== undefined && typeof f.shearModulusEstimate !== 'boolean') fail('INPUT', 'shearModulusEstimate must be true or false');
-      const spec: SpringSpec = { wireDiameterMM: dim(f.wire as CadPartDim, 'wire', true), activeCoils: num('activeCoils') as number,
-        ...(f.diameter !== undefined ? { meanDiameterMM: opt('diameter') } : {}), ...(f.outerDiameter !== undefined ? { outerDiameterMM: opt('outerDiameter') } : {}), ...(f.innerDiameter !== undefined ? { innerDiameterMM: opt('innerDiameter') } : {}),
-        ...(f.pitch !== undefined ? { pitchMM: opt('pitch') } : {}), ...(f.freeLength !== undefined ? { freeLengthMM: opt('freeLength') } : {}),
-        ...(f.hand !== undefined ? { hand: f.hand as SpringSpec['hand'] } : {}), ...(f.ends !== undefined ? { ends: f.ends as SpringSpec['ends'] } : {}), ...(f.endCoils !== undefined ? { endCoils: num('endCoils') } : {}), ...(f.transition !== undefined ? { transitionDeg: num('transition') } : {}),
-        ...(f.shearModulus !== undefined ? { shearModulusMPa: num('shearModulus'), ...(f.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(f.load !== undefined ? { loadN: num('load') } : {}), ...(f.profileTolerance !== undefined ? { profileToleranceMM: num('profileTolerance') } : {}),
+      const spec: SpringSpec = { wireDiameter: dim(f.wire as CadPartDim, 'wire', true), activeCoils: num('activeCoils') as number,
+        ...(f.diameter !== undefined ? { meanDiameter: opt('diameter') } : {}), ...(f.outerDiameter !== undefined ? { outerDiameter: opt('outerDiameter') } : {}), ...(f.innerDiameter !== undefined ? { innerDiameter: opt('innerDiameter') } : {}),
+        ...(f.pitch !== undefined ? { pitch: opt('pitch') } : {}), ...(f.freeLength !== undefined ? { freeLength: opt('freeLength') } : {}),
+        ...(f.hand !== undefined ? { hand: f.hand as SpringSpec['hand'] } : {}), ...(f.ends !== undefined ? { ends: f.ends as SpringSpec['ends'] } : {}), ...(f.endCoils !== undefined ? { endCoils: num('endCoils') } : {}), ...(f.transition !== undefined ? { transition: num('transition') } : {}),
+        ...(f.shearModulus !== undefined ? { shearModulus: num('shearModulus'), ...(f.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(f.load !== undefined ? { load: num('load') } : {}), ...(f.profileTolerance !== undefined ? { profileTolerance: num('profileTolerance') } : {}),
         ...(f.type !== undefined ? { type: f.type as SpringSpec['type'] } : {}), ...(f.body !== undefined ? { body: f.body as SpringSpec['body'] } : {}), ...(f.wireSection !== undefined ? { wire: f.wireSection as SpringSpec['wire'] } : {}) };
       const springFail = (cause: unknown): never => { if (isSpringError(cause)) fail(SPRING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^spring: /, '')}`); throw cause; };
       const hooked = f.type === 'extension' || f.type === 'torsion';
@@ -179,10 +179,10 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       if (f.youngsModulusEstimate !== undefined && typeof f.youngsModulusEstimate !== 'boolean') fail('INPUT', 'youngsModulusEstimate must be true or false');
       const legs = f.legLengths as unknown;
       if (legs !== undefined && !(Array.isArray(legs) && legs.length === 2)) fail('INPUT', 'legLengths must be [start, end]');
-      const hspec: HookedSpringSpec | undefined = hooked ? { ...spec, ...(f.hooks !== undefined ? { hooks: f.hooks as HookedSpringSpec['hooks'] } : {}), ...(f.bendRadius !== undefined ? { bendRadiusMM: opt('bendRadius') } : {}), ...(f.loopRadius !== undefined ? { loopRadiusMM: opt('loopRadius') } : {}),
-        ...(f.loopAngle !== undefined ? { loopAngleDeg: num('loopAngle') } : {}), ...(f.initialTension !== undefined ? { initialTensionN: num('initialTension') } : {}),
-        ...(legs !== undefined ? { legLengthsMM: [dim((legs as CadPartDim[])[0], 'legLengths[0]', true), dim((legs as CadPartDim[])[1], 'legLengths[1]', true)] as const } : {}),
-        ...(f.youngsModulus !== undefined ? { youngsModulusMPa: num('youngsModulus'), ...(f.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(f.moment !== undefined ? { momentNmm: num('moment') } : {}) } : undefined;
+      const hspec: HookedSpringSpec | undefined = hooked ? { ...spec, ...(f.hooks !== undefined ? { hooks: f.hooks as HookedSpringSpec['hooks'] } : {}), ...(f.bendRadius !== undefined ? { bendRadius: opt('bendRadius') } : {}), ...(f.loopRadius !== undefined ? { loopRadius: opt('loopRadius') } : {}),
+        ...(f.loopAngle !== undefined ? { loopAngle: num('loopAngle') } : {}), ...(f.initialTension !== undefined ? { initialTension: num('initialTension') } : {}),
+        ...(legs !== undefined ? { legLengths: [dim((legs as CadPartDim[])[0], 'legLengths[0]', true), dim((legs as CadPartDim[])[1], 'legLengths[1]', true)] as const } : {}),
+        ...(f.youngsModulus !== undefined ? { youngsModulus: num('youngsModulus'), ...(f.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(f.moment !== undefined ? { moment: num('moment') } : {}) } : undefined;
       if (!hspec) { try { springDimensions(spec); } catch (cause) { springFail(cause); } }
       const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (num('rotation') ?? 0) * Math.PI / 180;
       return () => {
@@ -205,9 +205,9 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       if (f.kind === 'belt' && !(Array.isArray(radii) && radii.length === 2)) fail('INPUT', 'pitchRadii must be [first wheel, second wheel]');
       const make = (): { brep: Brep; part: Record<string, unknown> } => {
         switch (f.kind) {
-          case 'sprocket': { const m = sprocket({ chain: row as never, teeth: int('teeth') as number, tipDiameterMM: opt('tip') as number, widthMM: opt('width') as number, ...(g.seat !== undefined ? { seatDiameterMM: opt('seat') } : {}), ...(g.toothForm !== undefined ? { toothForm: g.toothForm as 'pivot-clearance' } : {}), ...(g.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { sprocket: m.report } }; }
-          case 'pulley': { const m = pulley({ belt: row as never, ...(g.teeth !== undefined ? { teeth: int('teeth') } : {}), ...(g.diameter !== undefined ? { diameterMM: opt('diameter') } : {}), ...(g.grooves !== undefined ? { grooves: int('grooves') } : {}), ...(g.width !== undefined ? { widthMM: opt('width') } : {}), ...(g.crown !== undefined ? { crownMM: opt('crown') } : {}), ...(g.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { pulley: m.report } }; }
-          case 'belt': { const r = radii as CadPartDim[], m = beltBand({ row: row as never, pitchRadiiMM: [dim(r[0], 'pitchRadii[0]', true), dim(r[1], 'pitchRadii[1]', true)], centerDistanceMM: dim(g.centerDistance as CadPartDim, 'centerDistance', true), ...(g.rounding !== undefined ? { rounding: g.rounding as 'whole' | 'even' } : {}), ...(g.width !== undefined ? { widthMM: opt('width') } : {}) }, { id: at }); return { brep: m.brep, part: { belt: m.report } }; }
+          case 'sprocket': { const m = sprocket({ chain: row as never, teeth: int('teeth') as number, tipDiameter: opt('tip') as number, width: opt('width') as number, ...(g.seat !== undefined ? { seatDiameter: opt('seat') } : {}), ...(g.toothForm !== undefined ? { toothForm: g.toothForm as 'pivot-clearance' } : {}), ...(g.bore !== undefined ? { boreDiameter: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRim: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { sprocket: m.report } }; }
+          case 'pulley': { const m = pulley({ belt: row as never, ...(g.teeth !== undefined ? { teeth: int('teeth') } : {}), ...(g.diameter !== undefined ? { diameter: opt('diameter') } : {}), ...(g.grooves !== undefined ? { grooves: int('grooves') } : {}), ...(g.width !== undefined ? { width: opt('width') } : {}), ...(g.crown !== undefined ? { crown: opt('crown') } : {}), ...(g.bore !== undefined ? { boreDiameter: opt('bore') } : {}), ...(g.minimumRim !== undefined ? { minimumRim: opt('minimumRim') } : {}) }, { id: at }); return { brep: m.brep, part: { pulley: m.report } }; }
+          case 'belt': { const r = radii as CadPartDim[], m = beltBand({ row: row as never, pitchRadii: [dim(r[0], 'pitchRadii[0]', true), dim(r[1], 'pitchRadii[1]', true)], centerDistance: dim(g.centerDistance as CadPartDim, 'centerDistance', true), ...(g.rounding !== undefined ? { rounding: g.rounding as 'whole' | 'even' } : {}), ...(g.width !== undefined ? { width: opt('width') } : {}) }, { id: at }); return { brep: m.brep, part: { belt: m.report } }; }
           default: { const m = couplingEnvelope(row as never, { id: at }); return { brep: m.brep, part: { coupling: m.report } }; }
         }
       };
@@ -227,12 +227,12 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       if (!Array.isArray(segs)) fail('INPUT', 'segments must be a list of { angle, to?, law? }');
       const keys = ['angle', 'to', 'law'];
       (segs as Record<string, unknown>[]).forEach((g, i) => { if (!g || typeof g !== 'object') fail('INPUT', `segments[${i}] must be { angle, to?, law? }`); const extra = Object.keys(g).find(x => !keys.includes(x)); if (extra) fail('INPUT', `segments[${i}].${extra} is not angle, to or law`); });
-      const spec: CamSpec = { baseRadiusMM: dim(f.base as CadPartDim, 'base', true), thicknessMM: dim(f.thickness as CadPartDim, 'thickness', true), follower: f.follower as CamSpec['follower'],
-        ...(f.motion !== undefined ? { motion: f.motion as CamSpec['motion'] } : {}), ...(f.roller !== undefined ? { rollerRadiusMM: opt('roller') } : {}), ...(f.offset !== undefined ? { offsetMM: opt('offset') } : {}),
-        ...(f.pivotDistance !== undefined ? { pivotDistanceMM: opt('pivotDistance') } : {}), ...(f.armLength !== undefined ? { armLengthMM: opt('armLength') } : {}), ...(f.faceOffset !== undefined ? { faceOffsetMM: opt('faceOffset') } : {}),
-        ...(f.faceWidth !== undefined ? { faceWidthMM: opt('faceWidth') } : {}), ...(f.bore !== undefined ? { boreDiameterMM: opt('bore') } : {}), ...(f.minimumRim !== undefined ? { minimumRimMM: opt('minimumRim') } : {}),
-        ...(f.pressureAngleLimit !== undefined ? { pressureAngleLimitDeg: num('pressureAngleLimit') } : {}), ...(f.profileTolerance !== undefined ? { profileToleranceMM: num('profileTolerance') } : {}),
-        segments: (segs as { angle: number; to?: number; law?: CamLaw }[]).map(g => ({ angleDeg: g.angle, ...(g.to !== undefined ? { to: g.to } : {}), ...(g.law !== undefined ? { law: g.law } : {}) })) };
+      const spec: CamSpec = { baseRadius: dim(f.base as CadPartDim, 'base', true), thickness: dim(f.thickness as CadPartDim, 'thickness', true), follower: f.follower as CamSpec['follower'],
+        ...(f.motion !== undefined ? { motion: f.motion as CamSpec['motion'] } : {}), ...(f.roller !== undefined ? { rollerRadius: opt('roller') } : {}), ...(f.offset !== undefined ? { offset: opt('offset') } : {}),
+        ...(f.pivotDistance !== undefined ? { pivotDistance: opt('pivotDistance') } : {}), ...(f.armLength !== undefined ? { armLength: opt('armLength') } : {}), ...(f.faceOffset !== undefined ? { faceOffset: opt('faceOffset') } : {}),
+        ...(f.faceWidth !== undefined ? { faceWidth: opt('faceWidth') } : {}), ...(f.bore !== undefined ? { boreDiameter: opt('bore') } : {}), ...(f.minimumRim !== undefined ? { minimumRim: opt('minimumRim') } : {}),
+        ...(f.pressureAngleLimit !== undefined ? { pressureAngleLimit: num('pressureAngleLimit') } : {}), ...(f.profileTolerance !== undefined ? { profileTolerance: num('profileTolerance') } : {}),
+        segments: (segs as { angle: number; to?: number; law?: CamLaw }[]).map(g => ({ angle: g.angle, ...(g.to !== undefined ? { to: g.to } : {}), ...(g.law !== undefined ? { law: g.law } : {}) })) };
       const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (num('rotation') ?? 0) * Math.PI / 180;
       return () => {
         let made: { readonly brep: Brep; readonly report: CamReport } | undefined;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { paramOf, segAt } from '../dist/brep/curved-arrangement.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
@@ -23,14 +23,14 @@ test('analytic Boolean: faces nearly along a cylinder\'s axis cut it where its t
     ['a cylinder ∪ a box, both turned a little', { op: 'union', a: leaf('cyl', { r: 1, h: 6.5 }, [['x', 351.227]], [0.5, 2.5, -1.5]), b: leaf('box', { w: 1.5, d: 2, h: 2 }, [['x', 355.606], ['z', 63.792]], [1, 2, -2]) }],
   ];
   for (const [name, tree] of cases) {
-    const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = o.massProperties(1), q = oracle(tree, 256, 6);
-    assert.equal(o.validate().valid, true, name);
-    const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, uses = new Map();
+    const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = massPropertiesOf(o), q = oracle(tree, 256, 6);
+    assert.equal(checkOutput(o).valid, true, name);
+    const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positions, uses = new Map();
     for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
       const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
       uses.set(e, (uses.get(e) ?? 0) + 1);
     }
     assert.ok([...uses.values()].every(n => n === 2), `${name}: watertight`);
-    assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+    assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
   }
 });

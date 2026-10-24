@@ -24,7 +24,7 @@ try {
   disk();flow.tessellations++;write();const holeMesh=tessellateOwnPlateCircularHole(initial.bodies.plate.native.bundle,{context,segmentsPerQuarter:4});
   flow.holeDisplay=proveHoleMesh(initial.bodies.plate.native,holeMesh);assert.deepEqual(holeMesh.mesh.context,context);
   const points=[[40,20,4],[1,1,4],[45,20,4],[40,20,0],[1,1,8],[0,0,0]],expected=['outside','inside','boundary','outside','boundary','boundary'];
-  const queries=points.map((pointMM,i)=>({queryId:'material_'+i,pointMM}));
+  const queries=points.map((point,i)=>({queryId:'material_'+i,point}));
   disk();flow.classificationCalls++;flow.classificationQueries=queries.length;write();
   const material=classifyStoredPlateHoleSolidPoints(initial.bodies.plate.native,queries,{evaluationId:'mounting_material',maximumQueries:8});
   assert.deepEqual(material.classifications.map(c=>c.status),expected);assert.deepEqual(material.queries,queries);

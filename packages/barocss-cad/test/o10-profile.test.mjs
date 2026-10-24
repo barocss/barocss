@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf, reevaluate } from '../dist/index.js';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
 // O10 (D228): evaluateCadPart's `profile` option — each feature's own wall time and its kernel calls, counted at the part
@@ -24,9 +24,9 @@ test('O10: profile gives every feature its wall time and kernel calls; without i
   assert.ok(of('fillet').every(c => c.finishes >= 1), 'finishes counted');
   assert.ok(of('sketch').every(c => Object.values(c).every(n => n === 0)), 'a sketch calls nothing');
   // The same body, bit for bit.
-  const a = plain.outputs.find(o => o.id === root).massProperties(1), b = timed.outputs.find(o => o.id === root).massProperties(1);
-  assert.equal(b.volumeMM3, a.volumeMM3); assert.deepEqual(b.centroidMM, a.centroidMM);
+  const a = massPropertiesOf(plain.outputs.find(o => o.id === root)), b = massPropertiesOf(timed.outputs.find(o => o.id === root));
+  assert.equal(b.volume, a.volume); assert.deepEqual(b.centroid, a.centroid);
   // Kept through a re-evaluation, reused features included.
-  const again = timed.withDocument(document);
+  const again = reevaluate(timed, { document: document });
   assert.deepEqual(Object.keys(again.profile).sort(), Object.keys(p).sort());
 });

@@ -92,7 +92,7 @@ test('K2 shared: facet classification and the mesh distance on the one tree, as 
   assert.equal(classifyPointInFacets(brep, [0, 0, 0]), 'inside'); assert.equal(classifyPointInFacets(brep, [0, 0, 40]), 'outside');
   // A sphere of radius 25 inside: the mesh distance (one way, its largest) between 4.5 and 5.5 (the bumps ±0.5).
   const inner = bumpy(20, 25), md = meshDistance(inner.P, inner.I, P, I);
-  assert.ok(md.maxMM > 4.4 && md.maxMM < 6.1, String(md.maxMM));
+  assert.ok(md.max > 4.4 && md.max < 6.1, String(md.max));
   const big = bumpy(224), t0 = performance.now(), bb = triangleBvh(big.P, big.I), built = performance.now() - t0;
   const t1 = performance.now(); let hits = 0; for (let k = 0; k < 20000; k++) { const z = 1 - 2 * (k + 0.5) / 20000, s = Math.sqrt(1 - z * z); if (rayHit(bb, [0.1, 0.2, 0.3], [s * Math.cos(2.4 * k), s * Math.sin(2.4 * k), z]) < Infinity) hits++; }
   const rays = performance.now() - t1;

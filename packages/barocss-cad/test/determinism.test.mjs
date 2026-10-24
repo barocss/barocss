@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf } from '../dist/index.js';
 import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // D101: no state outlives an evaluation. Each model, evaluated alone, after the others and again, gives the same
@@ -15,7 +15,7 @@ const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
 const groove = () => {
   const body = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
     { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 },
-    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
+    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angle: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
   const rims = out(body).brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0);
   const pts = rims.flatMap(e => [e.curve.controlPoints[0], e.curve.controlPoints.at(-1)]), ends = pts.filter(p => pts.filter(q => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1e-9).length === 1).sort((a, b) => a[0] - b[0]);
   return [...body, { id: 'f', kind: 'fillet', target: 'g', edges: rims.map(e => e.name), radii: [{ at: ends[0], radius: 0.6 }, { at: ends[1], radius: 1.2 }] }];
@@ -41,7 +41,7 @@ const print = ([name, make, stations]) => {
   try {
     const o = out(make()), h = createHash('sha256');
     for (const v of o.brep.vertices) h.update(new Uint8Array(Float64Array.from(v.point).buffer));
-    return `${name} ${o.brep.faces.length} ${o.massProperties(1).volumeMM3} ${h.digest('hex')}`;
+    return `${name} ${o.brep.faces.length} ${massPropertiesOf(o).volume} ${h.digest('hex')}`;
   } catch (e) { return `${name} refused ${e.code}: ${e.message}`; }
   finally { setRingStations(null); }
 };

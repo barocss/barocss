@@ -56,11 +56,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6374.995845242525,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             42.31156130072226,
             24.558828129838755,
@@ -94,7 +94,7 @@
           "fl.trim.side7"
         ],
         "flat": {
-          "areaMM2": {
+          "area": {
             "value": 4247.876655120511,
             "relTol": 1e-9
           },
@@ -103,7 +103,7 @@
             {
               "name": "fl.bend",
               "direction": "up",
-              "angleDegrees": 90
+              "angle": 90
             }
           ]
         }

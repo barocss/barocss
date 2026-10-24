@@ -50,7 +50,7 @@ export interface SurfaceInterpolationReport {
 export interface SurfaceInterpolationResult { parametersU: number[]; parametersV: number[]; points: Point[][]; options: SurfaceInterpolationOptions;
   surface: Surface; source: string; sourceVersion: 0; model: Model; report: SurfaceInterpolationReport }
 
-const CODE = SurfaceInterpolationDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const CODE = SurfaceInterpolationDiagnosticCode, TOLERANCE = CadNumericPolicy.linearTolerance;
 type Context = { axis?: 'u' | 'v' | null; index?: number | null; cause?: unknown };
 function check(condition: boolean, code: SurfaceInterpolationDiagnosticCode, detail: string, context: Context = {}): asserts condition {
   if (!condition) throw new SurfaceInterpolationError(code, detail, context);

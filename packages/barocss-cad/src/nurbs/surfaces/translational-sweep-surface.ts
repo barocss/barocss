@@ -21,16 +21,16 @@ export class TranslationalSweepError extends KernelError {
 export interface TranslationalSweepOptions { surfaceId: string; maximumObservations: number }
 type D1State<T> = { status: 'evaluated'; value: T } | { status: 'native-refused'; reason: string; nativeErrorName: string };
 export interface TranslationalSweepObservation {
-  u: number; v: number; profilePointMM: Point; railPointMM: Point; expectedPointMM: Point; actualPointMM: Point; differenceMM: number;
+  u: number; v: number; profilePoint: Point; railPoint: Point; expectedPoint: Point; actualPoint: Point; difference: number;
   profileD1: D1State<CurveD1Result>; railD1: D1State<CurveD1Result>; surfaceD1: D1State<SurfaceD1Result>;
   relativeDuDifference: number | null; relativeDvDifference: number | null;
 }
 export interface TranslationalSweepProvenance {
   kind: 'independent-rational-profile-rail-translational-tensor'; profileId: string; railId: string; surfaceId: string;
-  formula: 'Qij=Pi+(Rj-nativeAnchor);Wij=profileWeight_i*railWeight_j'; anchorParameter: number; anchorMM: Point;
+  formula: 'Qij=Pi+(Rj-nativeAnchor);Wij=profileWeight_i*railWeight_j'; anchorParameter: number; anchor: Point;
   profileDomain: [number, number]; railDomain: [number, number]; poleGrid: [number, number];
-  poles: { surfacePole: [number, number]; profilePoleIndex: number; railPoleIndex: number; profilePointMM: Point; railPointMM: Point;
-    anchorMM: Point; translationMM: Point; profileWeight: number; railWeight: number; pointMM: Point; weight: number }[];
+  poles: { surfacePole: [number, number]; profilePoleIndex: number; railPoleIndex: number; profilePoint: Point; railPoint: Point;
+    anchor: Point; translation: Point; profileWeight: number; railWeight: number; point: Point; weight: number }[];
   uKnotMappings: { profileKnotIndex: number; surfaceKnotIndex: number; originalValue: number; surfaceValue: number }[];
   vKnotMappings: { railKnotIndex: number; surfaceKnotIndex: number; originalValue: number; surfaceValue: number }[];
 }
@@ -39,12 +39,12 @@ export interface TranslationalSweepReport {
     representation: 'native-independent-profile-rail-tensor-surface-not-moving-frame-or-solid' };
   surfaceId: string; profileId: string; railId: string; degreeU: number; degreeV: number; controlPointGrid: [number, number];
   domains: { u: [number, number]; v: [number, number] }; axisRoles: { u: 'original-profile-parameter'; v: 'original-rail-parameter' };
-  anchorParameter: number; anchorMM: Point; profileSamples: number[]; railSamples: number[]; observationCount: number; observations: TranslationalSweepObservation[];
+  anchorParameter: number; anchor: Point; profileSamples: number[]; railSamples: number[]; observationCount: number; observations: TranslationalSweepObservation[];
   unrepresentedMidpointIntervals: { profile: { domain: [number, number]; attemptedParameter: number }[]; rail: { domain: [number, number]; attemptedParameter: number }[] };
   guardedParameters: { u: number[]; v: number[] }; anchorD0EvaluationCount: 1; curveD0EvaluationCount: number; surfaceD0EvaluationCount: number;
   profileD1AttemptCount: number; railD1AttemptCount: number; surfaceD1AttemptCount: number; derivativeComparisonCount: number; derivativeRefusalCount: number;
   derivativeSourceRefusalCounts: { profile: number; rail: number; surface: number };
-  maximumPointDifferenceMM: number; maximumRelativeDuDifference: number | null; maximumRelativeDvDifference: number | null;
+  maximumPointDifference: number; maximumRelativeDuDifference: number | null; maximumRelativeDvDifference: number | null;
   geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   quality: { relation: 'actual-profile-point-plus-actual-rail-point-minus-actual-native-anchor'; independentRationalBasesPreserved: true;
     knotDomainBitsPreserved: true; productWeights: 'actual-input-weight-products-no-normalization';
@@ -58,12 +58,12 @@ export interface TranslationalSweepReport {
   limits: { maximumCurveDegree: 3; maximumCurvePoles: 16; maximumSurfacePoles: 256; maximumAxisSamples: 31; maximumObservations: 961;
     inputValues: 32768; inputDepth: 8; inputArrayElements: 128; inputRecordFields: 16; inputStringCharacters: 128;
     ownValues: 524288; ownDepth: 32; arrayElements: 4096; recordFields: 64; sourceStringCharacters: 262144;
-    authoredIdCharacters: 48; coordinateAbsMM: 10000; weightRange: [1e-6, 1e6]; pointComparisonMM: 1e-7; relativeD1Comparison: 1e-7 };
+    authoredIdCharacters: 48; coordinateAbs: 10000; weightRange: [1e-6, 1e6]; pointComparison: 1e-7; relativeD1Comparison: 1e-7 };
 }
 export interface TranslationalSweepResult { profile: Curve; rail: Curve; options: TranslationalSweepOptions; surface: Surface;
   source: string; sourceVersion: 0; model: Model; provenance: TranslationalSweepProvenance; report: TranslationalSweepReport }
 
-const CODE = TranslationalSweepDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const CODE = TranslationalSweepDiagnosticCode, TOLERANCE = CadNumericPolicy.linearTolerance;
 function check(condition: boolean, code: TranslationalSweepDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new TranslationalSweepError(code, detail);
 }
@@ -166,8 +166,8 @@ export function buildTranslationalSweepSurface(profileInput: Curve, railInput: C
       const pointMM = translated(profile.controlPoints[i], translationMM), weight = product(profile.weights[i], rail.weights[j]);
       check(pointMM.every(value => Math.abs(value) <= 10000) && weight >= 1e-6 && weight <= 1e6, CODE.REPRESENTABILITY, 'generated tensor XYZ/weight product exceeds unchanged native construction bounds');
       row.push(pointMM); weightRow.push(weight);
-      poles.push({ surfacePole: [i, j], profilePoleIndex: i, railPoleIndex: j, profilePointMM: profile.controlPoints[i], railPointMM: rail.controlPoints[j],
-        anchorMM, translationMM, profileWeight: profile.weights[i], railWeight: rail.weights[j], pointMM, weight });
+      poles.push({ surfacePole: [i, j], profilePoleIndex: i, railPoleIndex: j, profilePoint: profile.controlPoints[i], railPoint: rail.controlPoints[j],
+        anchor: anchorMM, translation: translationMM, profileWeight: profile.weights[i], railWeight: rail.weights[j], point: pointMM, weight });
     }
     controlPoints.push(row); weights.push(weightRow);
   }
@@ -203,12 +203,12 @@ export function buildTranslationalSweepSurface(profileInput: Curve, railInput: C
       derivativeComparisonCount++; relativeDuDifference = relative(surfaceD1.value.du, profileD1.value.derivative); relativeDvDifference = relative(surfaceD1.value.dv, railD1.value.derivative);
       check(relativeDuDifference <= TOLERANCE && relativeDvDifference <= TOLERANCE, CODE.BINDING, 'actual native du/profileD1 or dv/railD1 relation exceeds1e-7 relative');
     } else derivativeRefusalCount++;
-    observations.push({ u, v, profilePointMM, railPointMM, expectedPointMM, actualPointMM, differenceMM, profileD1, railD1, surfaceD1, relativeDuDifference, relativeDvDifference });
+    observations.push({ u, v, profilePoint: profilePointMM, railPoint: railPointMM, expectedPoint: expectedPointMM, actualPoint: actualPointMM, difference: differenceMM, profileD1, railD1, surfaceD1, relativeDuDifference, relativeDvDifference });
   }
   check(observations.length === completeCount && profileD1AttemptCount === completeCount && railD1AttemptCount === completeCount && surfaceD1AttemptCount === completeCount,
     CODE.BINDING, 'complete actual point/D1 pair counts required');
   const provenance: TranslationalSweepProvenance = { kind: 'independent-rational-profile-rail-translational-tensor', profileId: profile.id, railId: rail.id, surfaceId,
-    formula: 'Qij=Pi+(Rj-nativeAnchor);Wij=profileWeight_i*railWeight_j', anchorParameter, anchorMM, profileDomain: profileAxis.domain, railDomain: railAxis.domain,
+    formula: 'Qij=Pi+(Rj-nativeAnchor);Wij=profileWeight_i*railWeight_j', anchorParameter, anchor: anchorMM, profileDomain: profileAxis.domain, railDomain: railAxis.domain,
     poleGrid: [profile.controlPoints.length, rail.controlPoints.length], poles,
     uKnotMappings: profile.knots.map((value, index) => ({ profileKnotIndex: index, surfaceKnotIndex: index, originalValue: value, surfaceValue: surface.knotsU[index] })),
     vKnotMappings: rail.knots.map((value, index) => ({ railKnotIndex: index, surfaceKnotIndex: index, originalValue: value, surfaceValue: surface.knotsV[index] })) };
@@ -217,10 +217,10 @@ export function buildTranslationalSweepSurface(profileInput: Curve, railInput: C
     kind: 'translational-sweep-surface', dto: { schema: 'barocss-native-translational-sweep-surface', version: 0, lengthUnit: 'mm', frame: 'authored-xyz-no-axis-conversion',
       representation: 'native-independent-profile-rail-tensor-surface-not-moving-frame-or-solid' }, surfaceId, profileId: profile.id, railId: rail.id,
     degreeU: surface.degreeU, degreeV: surface.degreeV, controlPointGrid: [profile.controlPoints.length, rail.controlPoints.length], domains: surfaceDomain(surface),
-    axisRoles: { u: 'original-profile-parameter', v: 'original-rail-parameter' }, anchorParameter, anchorMM, profileSamples: profileAxis.samples, railSamples: railAxis.samples,
+    axisRoles: { u: 'original-profile-parameter', v: 'original-rail-parameter' }, anchorParameter, anchor: anchorMM, profileSamples: profileAxis.samples, railSamples: railAxis.samples,
     observationCount: observations.length, observations, unrepresentedMidpointIntervals: { profile: profileAxis.gaps, rail: railAxis.gaps }, guardedParameters: { u: profileAxis.guards, v: railAxis.guards },
     anchorD0EvaluationCount: 1, curveD0EvaluationCount, surfaceD0EvaluationCount, profileD1AttemptCount, railD1AttemptCount, surfaceD1AttemptCount,
-    derivativeComparisonCount, derivativeRefusalCount, derivativeSourceRefusalCounts, maximumPointDifferenceMM: Math.max(...observations.map(observation => observation.differenceMM)),
+    derivativeComparisonCount, derivativeRefusalCount, derivativeSourceRefusalCounts, maximumPointDifference: Math.max(...observations.map(observation => observation.difference)),
     maximumRelativeDuDifference: compared.length === 0 ? null : Math.max(...compared.map(observation => observation.relativeDuDifference!)),
     maximumRelativeDvDifference: compared.length === 0 ? null : Math.max(...compared.map(observation => observation.relativeDvDifference!)),
     geometricValidity: 'not-certified', topologyCertified: false, solid: false,
@@ -232,8 +232,8 @@ export function buildTranslationalSweepSurface(profileInput: Curve, railInput: C
       movingFrameCertified: false, sourceObjectLimitUnchanged: 16, ownership: 'copied-cpu-data-gc-no-renderer-resources' }, budgetFailure: 'atomic-refusal-no-partial-sweep-surface',
     limits: { maximumCurveDegree: 3, maximumCurvePoles: 16, maximumSurfacePoles: 256, maximumAxisSamples: 31, maximumObservations: 961,
       inputValues: 32768, inputDepth: 8, inputArrayElements: 128, inputRecordFields: 16, inputStringCharacters: 128, ownValues: 524288, ownDepth: 32,
-      arrayElements: 4096, recordFields: 64, sourceStringCharacters: 262144, authoredIdCharacters: 48, coordinateAbsMM: 10000, weightRange: [1e-6, 1e6],
-      pointComparisonMM: TOLERANCE, relativeD1Comparison: TOLERANCE },
+      arrayElements: 4096, recordFields: 64, sourceStringCharacters: 262144, authoredIdCharacters: 48, coordinateAbs: 10000, weightRange: [1e-6, 1e6],
+      pointComparison: TOLERANCE, relativeD1Comparison: TOLERANCE },
   };
   return snapshot({ profile, rail, options, surface, source: file.source, sourceVersion: 0, model: file.model, provenance, report }, true) as TranslationalSweepResult;
 }

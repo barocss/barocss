@@ -37,7 +37,7 @@ export interface XYPolygonPrismHoleShellRayQueryResult {
   hits: XYPolygonPrismHoleShellRayHit[]; candidates: XYPolygonPrismHoleShellRayHit[]; coplanarFaces: XYPolygonPrismHoleShellCoplanarFace[];
   report: XYPolygonPrismHoleShellRayQueryReport;
 }
-const BOUNDARY_MM = CadNumericPolicy.linearToleranceMM, PARALLEL_COSINE = 1e-12, UNIT_TOLERANCE = 1e-9;
+const BOUNDARY_MM = CadNumericPolicy.linearTolerance, PARALLEL_COSINE = 1e-12, UNIT_TOLERANCE = 1e-9;
 function check(condition: boolean, path: string, detail: string): asserts condition {
   if (!condition) throw new Error(('XY polygon through-hole shell ray: ' + path.slice(0, 256) + ': ' + detail).slice(0, 512));
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { curveFaceRegions, curveRegionArea, evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { curveFaceRegions, curveRegionArea, evaluateCadPart, tessellateBrep, checkOutput, massPropertiesOf } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
@@ -25,27 +25,27 @@ test('analytic Boolean: a box ∩ (a cylinder ∪ a cone), the cuts on the box s
   // edge with the cylinder: the side was not divided, and its corner below the cone's base rim stayed (an edge used once).
   const tree = { op: 'intersect', a: { leaf: { kind: 'box', w: 2, d: 7, h: 3, rot: [{ axis: 'z', deg: 180 }, { axis: 'z', deg: 270 }], move: [1, 2, -2] } },
     b: { op: 'union', a: { leaf: { kind: 'cyl', r: 2, h: 6, rot: [], move: [1, 1, -2] } }, b: { leaf: { kind: 'cone', r1: 4, r2: 1, h: 3, rot: [{ axis: 'z', deg: 90 }], move: [2, 0, -2] } } } };
-  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), v = o.validate();
+  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), v = checkOutput(o);
   assert.equal(v.valid, true, v.issues[0]);
   assert.equal(o.bodyCount, 1);
-  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, uses = new Map();
+  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positions, uses = new Map();
   for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
     const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
     uses.set(e, (uses.get(e) ?? 0) + 1);
   }
   assert.ok([...uses.values()].every(n => n === 2), 'watertight');
-  const m = o.massProperties(1), q = oracle(tree, 256, 6);
-  assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-6, `${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+  const m = massPropertiesOf(o), q = oracle(tree, 256, 6);
+  assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-6, `${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
 });
 
 test('analytic Boolean: three balls in a circular pattern, a cut 1.3e-6 off a half-face\'s ring at the triple point (L4 fuzz seed 20261023 #170, D237)', () => {
   // On the lower half of the first ball, the third ball's circle ended 1.3e-6 mm beside the first two balls' circle, between
   // two of its vertices: the half kept only its piece inside, and the seam from its pole was an edge used once.
   const tree = { pattern: { kind: 'circular', axis: 'z', deg: 120, count: 3, pivot: [2, -1, 0] }, child: { leaf: { kind: 'sphere', r: 3, rot: [{ axis: 'x', deg: 270 }], move: [0, -1, -2] } } };
-  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), v = o.validate();
+  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), v = checkOutput(o);
   assert.equal(v.valid, true, v.issues[0]);
   assert.equal(o.bodyCount, 1);
-  const m = o.massProperties(1), q = oracle(tree, 256, 6);
+  const m = massPropertiesOf(o), q = oracle(tree, 256, 6);
   assert.equal(m.method, 'quadrature');
-  assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-6, `${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+  assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-6, `${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
 });

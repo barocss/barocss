@@ -18,8 +18,8 @@
           "row": {
             "kind": "flat-belt",
             "id": "flat-a",
-            "widthMM": 40,
-            "thicknessMM": 3,
+            "width": 40,
+            "thickness": 3,
             "estimate": true
           },
           "pitchRadii": [
@@ -34,11 +34,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 60684.573150020326,
           "relTol": 1e-7
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             64.16158774802388,
             0,

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, intersectPatches, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, intersectPatches, tessellateBrep, checkOutput, massPropertiesOf } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
@@ -31,15 +31,15 @@ test('analytic Boolean: two balls patterned ∪ a ball, its circle traced once (
   // ran over each other and the stitch found an edge used six times. The result is two bodies: the first copy alone.
   const tree = { op: 'union', a: { pattern: { kind: 'circular', axis: 'z', deg: 81.238, count: 2, pivot: [-0.834, 2.832, 0] }, child: { leaf: { kind: 'sphere', r: 1.655, rot: [{ axis: 'x', deg: 34.277 }], move: [-1.231, -2.668, -1.569] } } },
     b: { leaf: { kind: 'sphere', r: 2.021, rot: [{ axis: 'z', deg: 220.265 }], move: [1.763, 0.973, 0.703] } } };
-  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), v = o.validate();
+  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), v = checkOutput(o);
   assert.equal(v.valid, true, v.issues[0]);
   assert.equal(o.bodyCount, 2);
-  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, uses = new Map();
+  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positions, uses = new Map();
   for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
     const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
     uses.set(e, (uses.get(e) ?? 0) + 1);
   }
   assert.ok([...uses.values()].every(n => n === 2), 'watertight');
-  const m = o.massProperties(1), q = oracle(tree, 256, 6);
-  assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-6, `${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+  const m = massPropertiesOf(o), q = oracle(tree, 256, 6);
+  assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-6, `${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
 });

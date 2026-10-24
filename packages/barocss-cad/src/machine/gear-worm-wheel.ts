@@ -21,24 +21,24 @@ export interface ThroatedWheelSpec {
   readonly worm: WormSpec;
   readonly teeth: number;
   /** Along the wheel's axis, centred on the mid-plane (below 1.6 R_t). */
-  readonly faceWidthMM: number;
-  readonly boreDiameterMM?: number;
+  readonly faceWidth: number;
+  readonly boreDiameter?: number;
   /** The hob's thread thickened by this much along its axis (the wheel's spaces wider: backlash). */
-  readonly toothThicknessReductionMM?: number;
+  readonly toothThicknessReduction?: number;
   /** The flanks' and fillets' fit within this of the generated surface, in every plane; 1e-4 m_n by default. */
-  readonly profileToleranceMM?: number;
+  readonly profileTolerance?: number;
 }
 
 export interface ThroatedWheelReport {
   readonly generator: 'worm-wheel@0'; readonly kind: 'throated';
   readonly dimensions: {
-    readonly referenceDiameterMM: number; readonly throatDiameterMM: number; readonly rootDiameterMM: number; readonly throatRadiusMM: number; readonly rootTorusRadiusMM: number;
-    readonly centerDistanceMM: number; readonly faceWidthMM: number; readonly tipDiameterAtFacesMM: number; readonly rootDiameterAtFacesMM: number;
+    readonly referenceDiameter: number; readonly throatDiameter: number; readonly rootDiameter: number; readonly throatRadius: number; readonly rootTorusRadius: number;
+    readonly centerDistance: number; readonly faceWidth: number; readonly tipDiameterAtFaces: number; readonly rootDiameterAtFaces: number;
   };
   /** The fits: bicubic pieces across the profile and along the face, the faces they take, and the largest distance from the generated section found in any plane. */
-  readonly flank: { readonly piecesAcross: number; readonly piecesAlong: number; readonly faces: number; readonly deviationMM: number };
-  readonly fillet: { readonly piecesAcross: number; readonly piecesAlong: number; readonly faces: number; readonly deviationMM: number };
-  readonly profileToleranceMM: number;
+  readonly flank: { readonly piecesAcross: number; readonly piecesAlong: number; readonly faces: number; readonly deviation: number };
+  readonly fillet: { readonly piecesAcross: number; readonly piecesAlong: number; readonly faces: number; readonly deviation: number };
+  readonly profileTolerance: number;
   readonly manufacturingValidated: false;
   readonly diagnostics: readonly GearDiagnostic[];
 }
@@ -52,18 +52,18 @@ export interface WheelGeom {
 }
 
 export function throatedWheelGeom(spec: ThroatedWheelSpec): WheelGeom {
-  const w = wormDimensions({ ...spec.worm, toothThicknessReductionMM: 0 });
+  const w = wormDimensions({ ...spec.worm, toothThicknessReduction: 0 });
   if (w.form !== 'ZA') throw gearError('UNSUPPORTED_GEAR_KIND', `a throated wheel for a ${w.form} worm: only for ZA worms in this stage (its mid-plane is an involute only then)`);
-  const z2 = spec.teeth, b = spec.faceWidthMM;
+  const z2 = spec.teeth, b = spec.faceWidth;
   if (!(Number.isInteger(z2) && z2 >= 18 && z2 <= 200)) throw gearError('INVALID_INPUT', 'teeth must be a whole number from 18 to 200');
   const r2 = z2 * w.m / 2, a = w.r1 + r2, Rt = a - r2 - w.m, Rh = w.r1 + 1.25 * w.m;
-  if (!(Number.isFinite(b) && b > 0 && b / 2 < 0.8 * Rt)) throw gearError('INVALID_INPUT', `faceWidthMM must be above 0 and below 1.6 R_t = ${(1.6 * Rt).toFixed(3)} mm (the throat arc's reach)`);
-  const j = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(j) && j >= 0 && j < w.sx)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more, below the thread\'s thickness');
+  if (!(Number.isFinite(b) && b > 0 && b / 2 < 0.8 * Rt)) throw gearError('INVALID_INPUT', `faceWidth must be above 0 and below 1.6 R_t = ${(1.6 * Rt).toFixed(3)} mm (the throat arc's reach)`);
+  const j = spec.toothThicknessReduction ?? 0;
+  if (!(Number.isFinite(j) && j >= 0 && j < w.sx)) throw gearError('INVALID_INPUT', 'toothThicknessReduction must be a number of mm, 0 or more, below the thread\'s thickness');
   const sxH = w.sx + j, psiRefH = sxH / (2 * w.p);
   const psiH = (rho: number) => psiRefH - (rho - w.r1) * Math.tan(w.alphaX) / w.p;
-  const bd = spec.boreDiameterMM ?? 0, rootMin = a - Rh;
-  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
+  const bd = spec.boreDiameter ?? 0, rootMin = a - Rh;
+  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameter must be a number of mm, 0 or more');
   if (bd > 0 && !(bd / 2 <= rootMin - w.m)) throw gearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${w.m} mm rim below the root (Ø${(2 * rootMin).toFixed(3)} mm): at most Ø${Math.max(0, 2 * (rootMin - w.m)).toFixed(3)}`);
   return { w, z2, r2, a, Rt, Rh, b, psiH, bore: bd / 2, step: 2 * Math.PI / z2 };
 }
@@ -295,8 +295,8 @@ function fitKind(G: WheelGeom, kind: 'fillet' | 'flank', sigma: number, tol: num
  * `.face0`, `.face1`, `.bore#1/2`; along the axis in segments `.2` ….
  */
 export function throatedWormWheel(spec: ThroatedWheelSpec, options: { readonly id?: string } = {}): { brep: Brep; report: ThroatedWheelReport } {
-  const id = safeId(options.id ?? 'wheel'), G = throatedWheelGeom(spec), tol = spec.profileToleranceMM ?? 1e-4 * G.w.mn;
-  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  const id = safeId(options.id ?? 'wheel'), G = throatedWheelGeom(spec), tol = spec.profileTolerance ?? 1e-4 * G.w.mn;
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileTolerance must be a number of mm above 0');
   // Which side of the hob's thread cuts a space's upper (counter-clockwise) side: its corner's point at the greater angle.
   const o = [0, 0, 0]; flankPoint(G, 1, 0, G.Rh, o); const a1 = Math.atan2(o[1], o[0]); flankPoint(G, -1, 0, G.Rh, o); const a2 = Math.atan2(o[1], o[0]);
   const up = a1 > a2 ? 1 : -1, lo = -up;
@@ -343,7 +343,7 @@ export function throatedWormWheel(spec: ThroatedWheelSpec, options: { readonly i
   for (const [what, d] of [['flank', devFlank], ['root fillet', devFillet]] as const)
     if (!(d <= tol)) throw gearError('UNSUPPORTED_GEAR_KIND', `throated wheel: its generated ${what}'s faces as built come within ${d.toExponential(2)} mm, not ${tol.toExponential(2)} mm — the cylindrical wheel stays`);
   // The ring: z2 teeth of m pieces.
-  const n = G.z2 * m, vertices: { id: string; point: Point; toleranceMM?: number }[] = [], edges: { id: string; curve: Curve; vertices: [string, string]; toleranceMM?: number }[] = [], faces: BrepFaceInput[] = [];
+  const n = G.z2 * m, vertices: { id: string; point: Point; tolerance?: number }[] = [], edges: { id: string; curve: Curve; vertices: [string, string]; tolerance?: number }[] = [], faces: BrepFaceInput[] = [];
   const V = (i: number, j: number) => `${id}_v${i}_${j}`, EL = (i: number, j: number) => `${id}_l${i}_${j}`, ES = (i: number, j: number) => `${id}_s${i}_${j}`;
   const toothOf = (i: number) => Math.floor(i / m), tk = (i: number) => i % m, rotOf = (i: number) => G.step * toothOf(i);
   const ptOf = (i: number, j: number) => { const p = start[tk(i)][j], a = rotOf(i); return turnPt(p, Math.cos(a), Math.sin(a)); };
@@ -357,7 +357,7 @@ export function throatedWormWheel(spec: ThroatedWheelSpec, options: { readonly i
     }
     // (A side edge beside a torus is the fitted neighbour's: on the torus within the fit, so tolerant by it.)
     const tolerant = !fitted(k) || !fitted((k + m - 1) % m);
-    for (let j = 0; j < S; j++) edges.push({ id: ES(i, j), curve: turnCurve(side[k][j], a, `${ES(i, j)}c`), vertices: [V(i, j), V(i, j + 1)], ...(tolerant ? { toleranceMM: tolEdge } : {}) });
+    for (let j = 0; j < S; j++) edges.push({ id: ES(i, j), curve: turnCurve(side[k][j], a, `${ES(i, j)}c`), vertices: [V(i, j), V(i, j + 1)], ...(tolerant ? { tolerance: tolEdge } : {}) });
   }
   for (let i = 0; i < n; i++) {
     const k = tk(i), a = rotOf(i), P = T[k].P, nx = (i + 1) % n, tooth = toothOf(i) + 1;
@@ -395,29 +395,29 @@ export function throatedWormWheel(spec: ThroatedWheelSpec, options: { readonly i
   const brep = buildBrep({ source: { family: 'gear', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
   const diagnostics: GearDiagnostic[] = [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'cut by a hob of the worm\'s own thread, its crest the worm\'s raised by the 0.25 m_x clearance and sharp-cornered: the hob a real shop uses (its tip round, its oversize, its resharpening) is not modelled' }];
   return { brep, report: { generator: 'worm-wheel@0', kind: 'throated',
-    dimensions: { referenceDiameterMM: 2 * G.r2, throatDiameterMM: 2 * tipRadius(G, 0), rootDiameterMM: 2 * rootRadius(G, 0), throatRadiusMM: G.Rt, rootTorusRadiusMM: G.Rh, centerDistanceMM: G.a, faceWidthMM: G.b,
-      tipDiameterAtFacesMM: 2 * tipRadius(G, G.b / 2), rootDiameterAtFacesMM: 2 * rootRadius(G, G.b / 2) },
-    flank: { piecesAcross: Ff * nuf, piecesAlong: S * nvs, faces: Ff * S, deviationMM: devFlank }, fillet: { piecesAcross: Fi * nui, piecesAlong: S * nvs, faces: Fi * S, deviationMM: devFillet },
-    profileToleranceMM: tol, manufacturingValidated: false, diagnostics } };
+    dimensions: { referenceDiameter: 2 * G.r2, throatDiameter: 2 * tipRadius(G, 0), rootDiameter: 2 * rootRadius(G, 0), throatRadius: G.Rt, rootTorusRadius: G.Rh, centerDistance: G.a, faceWidth: G.b,
+      tipDiameterAtFaces: 2 * tipRadius(G, G.b / 2), rootDiameterAtFaces: 2 * rootRadius(G, G.b / 2) },
+    flank: { piecesAcross: Ff * nuf, piecesAlong: S * nvs, faces: Ff * S, deviation: devFlank }, fillet: { piecesAcross: Fi * nui, piecesAlong: S * nvs, faces: Fi * S, deviation: devFillet },
+    profileTolerance: tol, manufacturingValidated: false, diagnostics } };
 }
 
 // ——— The pair and its placement ———
 
 /** A throated wheel's worm (R12b.6): the wheel's own, its length and thinning the worm's. */
-export function throatedWheelWorm(wheel: ThroatedWheelSpec, worm: { readonly lengthMM: number; readonly boreDiameterMM?: number; readonly toothThicknessReductionMM?: number }): WormSpec {
-  return { ...wheel.worm, form: 'ZA', lengthMM: worm.lengthMM, ...(worm.boreDiameterMM ? { boreDiameterMM: worm.boreDiameterMM } : {}), ...(worm.toothThicknessReductionMM ? { toothThicknessReductionMM: worm.toothThicknessReductionMM } : {}) };
+export function throatedWheelWorm(wheel: ThroatedWheelSpec, worm: { readonly length: number; readonly boreDiameter?: number; readonly toothThicknessReduction?: number }): WormSpec {
+  return { ...wheel.worm, form: 'ZA', length: worm.length, ...(worm.boreDiameter ? { boreDiameter: worm.boreDiameter } : {}), ...(worm.toothThicknessReduction ? { toothThicknessReduction: worm.toothThicknessReduction } : {}) };
 }
 export interface ThroatedPairCheck {
-  readonly centerDistanceMM: number; readonly speedRatio: number; readonly backlashMM: number;
+  readonly centerDistance: number; readonly speedRatio: number; readonly backlash: number;
   /** Sections square to the wheel's axis (the mid-plane, ±b/4, ±b/2.2), each swept over an axial pitch of the worm. */
-  readonly planes: readonly { readonly offsetMM: number; readonly minimumClearanceMM: number; readonly interference: boolean }[];
+  readonly planes: readonly { readonly offset: number; readonly minimumClearance: number; readonly interference: boolean }[];
   readonly interference: boolean;
   /** How close two sections may come and be in contact (the throated wheel touches its worm along lines): the fits and the sections' chords. */
-  readonly touchMM: number;
+  readonly touch: number;
   readonly diagnostics: readonly GearDiagnostic[];
 }
 function sameWorm(a: WormSpec, b: WormSpec): void {
-  const A = wormDimensions({ ...a, lengthMM: 1 }), B = wormDimensions({ ...b, lengthMM: 1 });
+  const A = wormDimensions({ ...a, length: 1 }), B = wormDimensions({ ...b, length: 1 });
   if (B.form !== 'ZA' || A.m !== B.m || A.z1 !== B.z1 || Math.abs(A.d1 - B.d1) > 1e-9 * A.d1 || A.h !== B.h) throw gearError('MATE_INCOMPATIBLE', `a throated wheel meshes with the ZA worm it was cut for (m_x ${A.m}, ${A.z1} starts, d1 ${A.d1}, ${A.h > 0 ? 'right' : 'left'} hand)`);
 }
 /** The wheel's exact sections near the mesh (the pair's frame, the wheel turned Δ from its cutting pose), segments x0 y0 x1 y1 within the band. */
@@ -445,11 +445,11 @@ function wheelSections(G: WheelGeom, c: number, delta: number, yLo: number, yHi:
  * turned θ, the wheel −h θ z1/z2 from its cutting pose, plus the phase: the worm's own extra turn). In contact the two
  * touch along lines: sections nearer than the touch bound (the faces' fits and the chords) are in contact, not crossing.
  */
-export function checkThroatedWormPair(worm: WormSpec, wheel: ThroatedWheelSpec, options: { readonly relativePhaseDeg?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' } = {}): ThroatedPairCheck {
+export function checkThroatedWormPair(worm: WormSpec, wheel: ThroatedWheelSpec, options: { readonly relativePhase?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' } = {}): ThroatedPairCheck {
   sameWorm(wheel.worm, worm);
-  const G = throatedWheelGeom(wheel), w = wormDimensions(worm), tol = wheel.profileToleranceMM ?? 1e-4 * G.w.mn;
+  const G = throatedWheelGeom(wheel), w = wormDimensions(worm), tol = wheel.profileTolerance ?? 1e-4 * G.w.mn;
   const reach = Math.sqrt(Math.max(0, tipRadius(G, 0) ** 2 - (G.a - w.ra) ** 2)) + Math.PI * w.m, yLo = -tipRadius(G, G.b / 2) - w.m, yHi = -(G.a - w.ra) + w.m;
-  const Wk = { w, W: wormOutline(w), a: G.a, reach, yLo, yHi }, N = Math.max(8, options.samples ?? 32), phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180, verdict = options.mode === 'verdict', period = 2 * Math.PI / w.z1;
+  const Wk = { w, W: wormOutline(w), a: G.a, reach, yLo, yHi }, N = Math.max(8, options.samples ?? 32), phase = (options.relativePhase ?? 0) * Math.PI / 180, verdict = options.mode === 'verdict', period = 2 * Math.PI / w.z1;
   // (Touch: twice the fit's tolerance — the wheel's faces lie within it of the generated surface — and the 200-point chords' sag.)
   const touch = 2 * tol + 2e-5 * w.m;
   const planes = [0, -G.b / 4, G.b / 4, -G.b / 2.2, G.b / 2.2].map(c => {
@@ -458,11 +458,11 @@ export function checkThroatedWormPair(worm: WormSpec, wheel: ThroatedWheelSpec, 
       const th = period * i / N, d = planeClearance(wormSection(Wk, c, th + phase), wheelSections(G, c, -w.h * th * w.z1 / G.z2, yLo, yHi, reach), touch, w.m);
       if (d < least) least = d; if (d < 0 && verdict) break;
     }
-    return { offsetMM: c, minimumClearanceMM: least, interference: least < 0 };
+    return { offset: c, minimumClearance: least, interference: least < 0 };
   });
   const crossed = planes.filter(p => p.interference), diagnostics: GearDiagnostic[] = [];
-  if (crossed.length) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the worm's thread and the throated wheel's teeth cross in the section${crossed.length > 1 ? 's' : ''} ${crossed.map(p => p.offsetMM.toFixed(3)).join(', ')} mm from its mid-plane` });
-  return { centerDistanceMM: G.a, speedRatio: G.z2 / w.z1, backlashMM: (wheel.toothThicknessReductionMM ?? 0) + w.red, planes, interference: crossed.length > 0, touchMM: touch, diagnostics };
+  if (crossed.length) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the worm's thread and the throated wheel's teeth cross in the section${crossed.length > 1 ? 's' : ''} ${crossed.map(p => p.offset.toFixed(3)).join(', ')} mm from its mid-plane` });
+  return { centerDistance: G.a, speedRatio: G.z2 / w.z1, backlash: (wheel.toothThicknessReduction ?? 0) + w.red, planes, interference: crossed.length > 0, touch: touch, diagnostics };
 }
 
 /** A throated wheel as placed: its spec, its axis +Z through `center` from `from` (its mid-plane at from + b/2), turned `rotation` (tooth 1 on +X in the mid-plane at 0). */
@@ -486,7 +486,7 @@ function throatedTurnFor(wheel: PlacedThroatedWheel, G: WheelGeom, w: WormDimens
   return theta - w.h * (w.L / 2) / w.p;
 }
 /** The pair checks for a throated wheel and its worm as placed: square, at a, in the mid-plane (else MATE_INCOMPATIBLE); the relative phase from the worm's turn; then `checkThroatedWormPair`. */
-export function checkPlacedThroatedPair(wheel: PlacedThroatedWheel, wp: PlacedWorm, options: { readonly samples?: number; readonly mode?: 'report' | 'verdict' } = {}): ThroatedPairCheck & { readonly relativePhaseDeg: number } {
+export function checkPlacedThroatedPair(wheel: PlacedThroatedWheel, wp: PlacedWorm, options: { readonly samples?: number; readonly mode?: 'report' | 'verdict' } = {}): ThroatedPairCheck & { readonly relativePhase: number } {
   sameWorm(wheel.spec.worm, wp.spec);
   const G = throatedWheelGeom(wheel.spec), w = wormDimensions(wp.spec), Z = wp.axis, mid: Point = [wp.origin[0] + Z[0] * w.L / 2, wp.origin[1] + Z[1] * w.L / 2, wp.origin[2] + Z[2] * w.L / 2];
   const dx = mid[0] - wheel.center[0], dy = mid[1] - wheel.center[1], phi = Math.atan2(dy, dx);
@@ -494,5 +494,5 @@ export function checkPlacedThroatedPair(wheel: PlacedThroatedWheel, wp: PlacedWo
   const pitch = 2 * Math.PI / w.z1, raw = wp.rotation - throatedTurnFor(wheel, G, w, phi);
   let phase = ((raw % pitch) + pitch) % pitch; if (phase < 1e-9 * pitch || pitch - phase < 1e-9 * pitch) phase = 0;
   const deg = phase * 180 / Math.PI;
-  return { ...checkThroatedWormPair(wp.spec, wheel.spec, { ...options, relativePhaseDeg: deg }), relativePhaseDeg: deg };
+  return { ...checkThroatedWormPair(wp.spec, wheel.spec, { ...options, relativePhase: deg }), relativePhase: deg };
 }

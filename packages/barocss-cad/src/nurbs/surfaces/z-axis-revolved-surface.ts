@@ -32,7 +32,7 @@ export interface ZAxisRevolvedSurfaceResult {
   construction: ZAxisRevolvedSurfaceConstruction; report: ZAxisRevolvedSurfaceReport;
 }
 const LABEL = 'Z-axis revolved surface';
-const OBSERVATION_MM = CadNumericPolicy.linearToleranceMM;
+const OBSERVATION_MM = CadNumericPolicy.linearTolerance;
 function check(condition: boolean, detail: string): asserts condition { requireCurveValue(condition, detail, LABEL); }
 function snapshot(input: unknown): unknown {
   let remaining = 1024;

@@ -21,8 +21,8 @@ import { add as add3, cross, dot, scale as scale3, sub, unit } from '../core/vec
 import { evaluateSurfaceD1 } from '../core/derivatives.js';
 
 export interface BrepMeshFace { readonly faceId: string; readonly kind: 'planar' | 'ruled' | 'trimmed' | 'facet'; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
-export interface BrepMeshEdge { readonly edgeId: string; readonly pointsMM: Float64Array }
-export interface BrepMesh { readonly positionsMM: Float64Array; readonly normals: Float64Array; readonly indices: Uint32Array; readonly faces: readonly BrepMeshFace[]; readonly edges: readonly BrepMeshEdge[] }
+export interface BrepMeshEdge { readonly edgeId: string; readonly points: Float64Array }
+export interface BrepMesh { readonly positions: Float64Array; readonly normals: Float64Array; readonly indices: Uint32Array; readonly faces: readonly BrepMeshFace[]; readonly edges: readonly BrepMeshEdge[] }
 export interface BrepTessellationOptions { readonly segmentsPerQuarter?: number }
 
 type XY = [number, number];
@@ -435,7 +435,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
         // Any other parametric surface without a seam: triangulated in its (u, v) domain.
         if (ring(outerId).length < 3 || !isSmoothPatch(face.surface)) throw new BrepError('GEOMETRY', `face ${face.id}: a singular surface or a degenerate loop cannot be tessellated`);
         // (Its edges' own tolerance: a fitted offset's edges lie within theirs of its cells, D112.)
-        const near = Math.max(0, ...[outerId, ...innerIds].flatMap(l => loops.get(l)!.coedges.map(c => edges.get(coedges.get(c)!.edge)!.toleranceMM)));
+        const near = Math.max(0, ...[outerId, ...innerIds].flatMap(l => loops.get(l)!.coedges.map(c => edges.get(coedges.get(c)!.edge)!.tolerance)));
         const rings = [ring(outerId), ...innerIds.map(ring)], { pts, tris, uv, domain, normals: exact } = surfaceTriangles(face, rings, Math.PI / 2 / perQuarter, near);
         // (A boundary point at a pole stands twice, its normal null at both: the boundary's points come before the interior's.)
         const poleTwice = exact.reduce((n, x) => x ? n : n + 1, 0) / 2, boundary = rings.reduce((n, r) => n + r.length, 0) + poleTwice;
@@ -497,7 +497,7 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
         const ts = params.get(e.id)!, s = samples.get(e.id)!;
         for (let j = 0; j + 1 < s.length; j++) segments.set(segmentKey(s[j], s[j + 1]), { curve: e.curve, from: s[j], tFrom: ts[j], tTo: ts[j + 1] });
       }
-      return { ...joined(brep.faces.flatMap(f => meshes.get(f.id) ?? [])), edges: brep.edges.map(e => ({ edgeId: e.id, pointsMM: new Float64Array(samples.get(e.id)!.flat()) })) };
+      return { ...joined(brep.faces.flatMap(f => meshes.get(f.id) ?? [])), edges: brep.edges.map(e => ({ edgeId: e.id, points: new Float64Array(samples.get(e.id)!.flat()) })) };
     }
     dirty = new Set();
     for (const [id, js] of splits) {
@@ -509,18 +509,18 @@ function tessellate(brep: Brep, options: BrepTessellationOptions, parameters: Ma
   }
 }
 /** The faces' meshes as one (each face's local indices offset by the vertices before it). */
-function joined(parts: readonly { positions: number[]; normals: number[]; indices: number[]; faces: BrepMeshFace[] }[]): Pick<BrepMesh, 'positionsMM' | 'normals' | 'indices' | 'faces'> {
+function joined(parts: readonly { positions: number[]; normals: number[]; indices: number[]; faces: BrepMeshFace[] }[]): Pick<BrepMesh, 'positions' | 'normals' | 'indices' | 'faces'> {
   let nv = 0, ni = 0;
   for (const p of parts) { nv += p.positions.length; ni += p.indices.length; }
-  const positionsMM = new Float64Array(nv), normals = new Float64Array(nv), indices = new Uint32Array(ni), faces: BrepMeshFace[] = [];
+  const positions = new Float64Array(nv), normals = new Float64Array(nv), indices = new Uint32Array(ni), faces: BrepMeshFace[] = [];
   let v = 0, i = 0;
   for (const p of parts) {
-    positionsMM.set(p.positions, v); normals.set(p.normals, v);
+    positions.set(p.positions, v); normals.set(p.normals, v);
     const base = v / 3; for (let k = 0; k < p.indices.length; k++) indices[i + k] = p.indices[k] + base;
     for (const f of p.faces) faces.push({ ...f, vertexOffset: f.vertexOffset + base, indexOffset: f.indexOffset + i });
     v += p.positions.length; i += p.indices.length;
   }
-  return { positionsMM, normals, indices, faces };
+  return { positions: positions, normals, indices, faces };
 }
 
 /** All control points in one plane. */

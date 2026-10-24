@@ -713,11 +713,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 444000,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500.0000000000001,
             -0.4593333333333304,
@@ -734,11 +734,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000.7655555555556,
             300.00000000000006,
@@ -755,11 +755,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 444000,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500,
             600.4593333333333,
@@ -776,11 +776,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 266400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.7655555555555521,
             300,
@@ -797,11 +797,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -2.560514363099462e-16,
             4.352874417269085e-15,
@@ -818,11 +818,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             4.352874417269085e-15,
@@ -839,11 +839,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             600,
@@ -860,11 +860,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 324120,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -2.560514363099462e-16,
             600,
@@ -881,11 +881,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 426240,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500,
             0,
@@ -902,11 +902,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 248640,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             300.00000000000006,
@@ -923,11 +923,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 426240,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             500,
             600,
@@ -944,11 +944,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 248640,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             300.00000000000006,
@@ -965,11 +965,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 29437.5,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             53.874734607218706,
             60.66878980891721,
@@ -986,11 +986,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 29437.5,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             939.3312101910828,
             53.874734607218706,
@@ -1007,11 +1007,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 29437.5,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             946.1252653927813,
             539.3312101910828,
@@ -1028,11 +1028,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 29437.5,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             60.66878980891721,
             546.1252653927813,
@@ -1049,11 +1049,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             4.618527782440651e-16,
             4.618527782440651e-16,
@@ -1070,11 +1070,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             4.618527782440651e-16,
@@ -1091,11 +1091,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1000,
             600,
@@ -1112,11 +1112,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6400,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             4.618527782440651e-16,
             600,
@@ -1133,11 +1133,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             21,
             4.2,
@@ -1162,11 +1162,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             979,
             4.2,
@@ -1191,11 +1191,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             995.8,
             21,
@@ -1220,11 +1220,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             995.8,
             579,
@@ -1249,11 +1249,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             979,
             595.8,
@@ -1278,11 +1278,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             21,
             595.8,
@@ -1307,11 +1307,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             4.2,
             579,
@@ -1336,11 +1336,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 450,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             4.2,
             21,

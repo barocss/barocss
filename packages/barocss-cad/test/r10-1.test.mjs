@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { evaluateCadPart, evaluateSurface, surfaceDomain, massPropertiesOf, checkOutput } from '../dist/index.js';
 
 // R10.1 (D88): fillets in closed form for two classes beyond plane/plane and plane/square-cylinder — translational
 // (a straight edge between planes along it and cylinders whose axis runs along it) and coaxial (a circular edge between
@@ -9,7 +9,7 @@ import { evaluateCadPart, evaluateSurface, surfaceDomain } from '../dist/index.j
 // faces) and integrated exactly (Green's theorem over lines and arcs; Pappus for the revolved ones).
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const vol = features => out(features).massProperties(1).volumeMM3;
+const vol = features => massPropertiesOf(out(features)).volume;
 const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const fillet = (target, edges, radius) => ({ id: 'f', kind: 'fillet', target, edges, radius });
 const refused = (features, code, typed) => assert.throws(() => evaluateCadPart(D(features)), e => (e.details?.category ?? e.code) === code && e.message.includes(`[${typed}]`), typed);
@@ -71,8 +71,8 @@ test('R10.1 (a) translational: a rod on a plate (plane × cylinder, concave), a 
     const yc = Math.sqrt((5 + r) ** 2 - r ** 2), X = [5, 10], T1 = [yc, 10], C = [yc, 10 + r], T2 = [5 * yc / (5 + r), 10 + 5 * r / (5 + r)];
     const { A } = moments([{ kind: 'line', start: X }, { kind: 'line', start: T1 }, arc(T1, C, T2), arc(T2, [0, 10], X)]);
     const o = out([...rodOnPlate, fillet('u', [junction], r)]);
-    assert.equal(o.validate().valid, true);
-    near(o.massProperties(1).volumeMM3 - v0, A * 40, 1e-9, `rod on plate r ${r}`);
+    assert.equal(checkOutput(o).valid, true);
+    near(massPropertiesOf(o).volume - v0, A * 40, 1e-9, `rod on plate r ${r}`);
     assert.equal(o.brep.faces.filter(f => f.name === 'f.face').length, 1);
     assert.ok(offRadius(o.brep, p => Math.hypot(p[1] - C[0], p[2] - C[1]), r) < 1e-12, 'the fillet face is the cylinder about the ball\'s centre line');
   }
@@ -82,8 +82,8 @@ test('R10.1 (a) translational: a rod on a plate (plane × cylinder, concave), a 
     const C = [3 - r, Math.sqrt((5 - r) ** 2 - (3 - r) ** 2)], X = [3, 4], T1 = [3, C[1]], T2 = unit(C).map(x => 5 * x);
     const { A } = moments([{ kind: 'line', start: X }, arc(T1, C, T2), arc(T2, [0, 0], X)]);
     const o = out([...dShaft, fillet('d', [flat], r)]);
-    assert.equal(o.validate().valid, true);
-    near(d0 - o.massProperties(1).volumeMM3, A * 40, 1e-9, `D shaft r ${r}`);
+    assert.equal(checkOutput(o).valid, true);
+    near(d0 - massPropertiesOf(o).volume, A * 40, 1e-9, `D shaft r ${r}`);
   }
   // Rods of radius 5 about (0, 0) and 4 about (6, 0): the ball 5 + r and 4 + r from the axes.
   const groove = straightEdge(out(twoRods).brep, p => p[0][2] > 1 && Math.abs(p[0][1] - 3.75) < 1e-9), t0 = vol(twoRods);
@@ -92,8 +92,8 @@ test('R10.1 (a) translational: a rod on a plate (plane × cylinder, concave), a 
     const TA = unit(C).map(v => 5 * v), TB = unit([C[0] - 6, C[1]]).map((v, k) => (k ? 0 : 6) + 4 * v);
     const { A } = moments([arc(X, [0, 0], TA), arc(TA, C, TB), arc(TB, [6, 0], X)]);
     const o = out([...twoRods, fillet('u', [groove], r)]);
-    assert.equal(o.validate().valid, true);
-    near(o.massProperties(1).volumeMM3 - t0, A * 40, 1e-9, `two rods r ${r}`);
+    assert.equal(checkOutput(o).valid, true);
+    near(massPropertiesOf(o).volume - t0, A * 40, 1e-9, `two rods r ${r}`);
   }
 });
 
@@ -105,8 +105,8 @@ test('R10.1 (b) coaxial: a cylinder × cone rim and a cone × plane top (convex)
   ];
   for (const [what, body, [a, b], sign, P, w1, w2, r] of cases) {
     const edge = ringEdge(body, a, b), o = out([...body, fillet('r', [edge], r)]), { M } = lineCorner(P, w1, w2, r);
-    assert.equal(o.validate().valid, true, what);
-    nearIn(sign * (o.massProperties(1).volumeMM3 - vol(body)), TAU * M, vol(body), 1e-10, what);
+    assert.equal(checkOutput(o).valid, true, what);
+    nearIn(sign * (massPropertiesOf(o).volume - vol(body)), TAU * M, vol(body), 1e-10, what);
     assert.deepEqual(o.brep.faces.filter(f => /^f\.face/.test(f.name)).map(f => f.name).sort(), ['f.face#1', 'f.face#2'], what);
     const alpha = Math.acos(w1[0] * w2[0] + w1[1] * w2[1]), bis = unit([w1[0] + w2[0], w1[1] + w2[1]]), k = r / Math.sin(alpha / 2), C = [P[0] + bis[0] * k, P[1] + bis[1] * k];
     assert.ok(offRadius(o.brep, p => Math.hypot(Math.hypot(p[0], p[1]) - C[0], p[2] - C[1]), r) < 1e-12, `${what}: the fillet face is the torus about the ball's centre circle`);
@@ -116,10 +116,10 @@ test('R10.1 (b) coaxial: a cylinder × cone rim and a cone × plane top (convex)
   const r = 1, C = [5, Math.sqrt(56)], X = [6, 8], T1 = [6, C[1]], T2 = unit(C).map(x => 10 * x);
   const { M } = moments([{ kind: 'line', start: X }, arc(T1, C, T2), arc(T2, [0, 0], X)]);
   const o = out([...domed, fillet('r', [ringEdge(domed, 'r.side1#1', 'r.side2#1')], r)]);
-  assert.equal(o.validate().valid, true);
+  assert.equal(checkOutput(o).valid, true);
   // (The volume within 1e-7 of the part: quadrature over the sphere face trimmed by the torus, 6e-8 measured; the
   // surfaces themselves exact.)
-  nearIn(vol(domed) - o.massProperties(1).volumeMM3, TAU * M, vol(domed), 1e-7, 'cylinder × sphere');
+  nearIn(vol(domed) - massPropertiesOf(o).volume, TAU * M, vol(domed), 1e-7, 'cylinder × sphere');
   assert.ok(offRadius(o.brep, p => Math.hypot(Math.hypot(p[0], p[1]) - C[0], p[2] - C[1]), r) < 1e-12, 'the dome\'s fillet is the torus about the ball\'s centre circle');
 });
 
@@ -132,7 +132,7 @@ test('R10.1 typed refusals: TANGENT_FACES, RADIUS_EXCEEDS_FACE (planes, translat
   // Past the true reach: the plate's top beside the rod is 15 wide (a ball of r touches it √((5 + r)² − r²) − 5 out: 15 at
   // r = 37.5, 15.6 at 40); the stepped cone's slope is 10.77 long (a fillet of 17 sets back 11.5 on it).
   const junction = straightEdge(out(rodOnPlate).brep, p => p[0][1] > 0 && Math.abs(p[0][2] - 10) < 1e-9);
-  assert.ok(out([...rodOnPlate, fillet('u', [junction], 37.5)]).validate().valid, 'a ball of 37.5 touches the top at its far edge: the reach exactly');
+  assert.ok(checkOutput(out([...rodOnPlate, fillet('u', [junction], 37.5)])).valid, 'a ball of 37.5 touches the top at its far edge: the reach exactly');
   refused([...rodOnPlate, fillet('u', [junction], 40)], 'PARAMETER', 'RADIUS_EXCEEDS_FACE');
   refused([...steppedCone, fillet('r', [ringEdge(steppedCone, 'r.side2', 'r.side3#1')], 17)], 'PARAMETER', 'RADIUS_EXCEEDS_FACE');
   // The D shaft's flat: a ball of 5 inside a rod of 5.

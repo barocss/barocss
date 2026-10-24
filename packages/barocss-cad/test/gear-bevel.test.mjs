@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain, outputOf, checkOutput } from '../dist/index.js';
 
 // R12b.3 (D134): straight bevel gears — the spherical involute, standard proportions (the cones through the apex),
 // spherical ends. Oracles written here, apart from gear-bevel.ts: the spherical involute and the tooth's thickness by
@@ -63,7 +63,7 @@ const CASES = [
   { m: 2, z: 16, zm: 24, S: 60, b: 8 },
   ...(SURVEY ? [{ m: 2, z: 18, zm: 30, S: 120, b: 8 }, { m: 2, z: 13, zm: 13, b: 6 }, { m: 1.5, z: 30, zm: 30, S: 45, b: 9, bore: 8 }, { m: 2, z: 25, zm: 60, b: 12, red: 0.1 }] : []),
 ];
-const specOf = c => ({ moduleMM: c.m, teeth: c.z, mateTeeth: c.zm, ...(c.S ? { shaftAngleDeg: c.S } : {}), faceWidthMM: c.b, ...(c.bore ? { boreDiameterMM: c.bore } : {}), ...(c.red ? { toothThicknessReductionMM: c.red } : {}) });
+const specOf = c => ({ module: c.m, teeth: c.z, mateTeeth: c.zm, ...(c.S ? { shaftAngle: c.S } : {}), faceWidth: c.b, ...(c.bore ? { boreDiameter: c.bore } : {}), ...(c.red ? { toothThicknessReduction: c.red } : {}) });
 
 test('the straight bevel gear (refused at the previous HEAD: no bevelGear): valid, one body; K1\'s example; the B-rep\'s own surfaces — the ends on their spheres, tips and roots on their cones, the meridian joins in their planes, the flanks ruled through the apex and within their fit of the involute written here; names; the volume by the section\'s area on the sphere', t => {
   assert.equal(typeof bevelGear, 'function');
@@ -72,9 +72,9 @@ test('the straight bevel gear (refused at the previous HEAD: no bevelGear): vali
     assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues?.[0]); assert.equal(brep.bodies.length, 1);
     assert.equal(report.generator, 'bevel-gear@0'); assert.equal(report.profile, 'spherical-involute'); assert.equal(report.manufacturingValidated, false);
     const dm = report.dimensions;
-    close(dm.pitchAngleDeg, deg(G.delta), 1e-12, 'δ'); close(dm.coneDistanceMM, G.Re, 1e-12 * G.Re, 'R'); close(dm.baseConeAngleDeg, deg(G.db), 1e-12, 'δb');
-    close(dm.tipAngleDeg, deg(G.tip), 1e-12, 'tip cone'); close(dm.rootAngleDeg, deg(G.root), 1e-12, 'root cone'); close(dm.referenceDiameterMM, c.m * c.z, 1e-12, 'd');
-    if (c.m === 3 && c.z === 20) { close(dm.pitchAngleDeg, 26.56505, 5e-6, "K1's δ1"); close(bevelGearDimensions({ ...specOf(c), teeth: 40, mateTeeth: 20 }).delta * 180 / Math.PI, 63.43495, 5e-6, "K1's δ2"); close(dm.coneDistanceMM, 67.08204, 5e-6, "K1's R"); }
+    close(dm.pitchAngle, deg(G.delta), 1e-12, 'δ'); close(dm.coneDistance, G.Re, 1e-12 * G.Re, 'R'); close(dm.baseConeAngle, deg(G.db), 1e-12, 'δb');
+    close(dm.tipAngle, deg(G.tip), 1e-12, 'tip cone'); close(dm.rootAngle, deg(G.root), 1e-12, 'root cone'); close(dm.referenceDiameter, c.m * c.z, 1e-12, 'd');
+    if (c.m === 3 && c.z === 20) { close(dm.pitchAngle, 26.56505, 5e-6, "K1's δ1"); close(bevelGearDimensions({ ...specOf(c), teeth: 40, mateTeeth: 20 }).delta * 180 / Math.PI, 63.43495, 5e-6, "K1's δ2"); close(dm.coneDistance, 67.08204, 5e-6, "K1's R"); }
     // Each face sampled: flanks (their rulings through the apex, their heel edge against the involute), tips and roots, meridians, ends.
     let flankWorst = 0, faces = 0;
     for (const f of brep.faces) {
@@ -96,16 +96,16 @@ test('the straight bevel gear (refused at the previous HEAD: no bevelGear): vali
       }
       faces++;
     }
-    assert.ok(flankWorst <= report.profileDeviationMM * 1.001 + 1e-12, `flanks ${flankWorst} vs fit ${report.profileDeviationMM}`); assert.ok(report.profileDeviationMM <= 1e-4 * c.m);
+    assert.ok(flankWorst <= report.profileDeviation * 1.001 + 1e-12, `flanks ${flankWorst} vs fit ${report.profileDeviation}`); assert.ok(report.profileDeviation <= 1e-4 * c.m);
     const meridian = G.root < G.db;
     assert.equal(faces, G.z * (2 * report.flankFaces + 2 + (meridian ? 2 : 0)) + 2 + (c.bore ? 2 : 0));
     for (const n of ['g.flankL#1', 'g.flankR#1', 'g.tip#1', 'g.root#1', 'g.heel', 'g.toe', ...(meridian ? ['g.rootL#1'] : []), ...(c.bore ? ['g.bore#1'] : [])]) assert.ok(brep.faces.some(f => f.name === n), n);
     // The volume: (Re³ − Ri³)/3 × the section's area on the unit sphere, less the bore — within the flanks' fit (each flank's
     // deviation over its arc, a bound).
-    const Om = sectionArea(G), want = shellVolume(G, Om), got = brepMassProperties(brep, 1).volumeMM3;
-    const slack = 2 * G.z * (G.tip - G.root) * 1.2 * report.profileDeviationMM / G.Re * (G.Re ** 3 - G.Ri ** 3) / 3 + 1e-7 * want;
+    const Om = sectionArea(G), want = shellVolume(G, Om), got = brepMassProperties(brep, 1).volume;
+    const slack = 2 * G.z * (G.tip - G.root) * 1.2 * report.profileDeviation / G.Re * (G.Re ** 3 - G.Ri ** 3) / 3 + 1e-7 * want;
     close(got, want, slack, `z${c.z}/${c.zm} volume`);
-    t.diagnostic(`m${c.m} z${c.z}/${c.zm} Σ${c.S ?? 90}°${c.bore ? ` bore ${c.bore}` : ''}: δ ${dm.pitchAngleDeg.toFixed(5)}°, R ${G.Re.toFixed(5)}, ${report.flankPieces} conic piece(s) on ${report.flankFaces} face(s), fit ${report.profileDeviationMM.toExponential(2)} mm (sampled ${flankWorst.toExponential(2)}), V ${got.toFixed(4)} vs ${want.toFixed(4)} (${((got - want) / want).toExponential(2)}), ${brep.faces.length} faces, ${ms.toFixed(1)} ms`);
+    t.diagnostic(`m${c.m} z${c.z}/${c.zm} Σ${c.S ?? 90}°${c.bore ? ` bore ${c.bore}` : ''}: δ ${dm.pitchAngle.toFixed(5)}°, R ${G.Re.toFixed(5)}, ${report.flankPieces} conic piece(s) on ${report.flankFaces} face(s), fit ${report.profileDeviation.toExponential(2)} mm (sampled ${flankWorst.toExponential(2)}), V ${got.toFixed(4)} vs ${want.toFixed(4)} (${((got - want) / want).toExponential(2)}), ${brep.faces.length} faces, ${ms.toFixed(1)} ms`);
   }
 });
 
@@ -122,7 +122,7 @@ test('undercut by the exact spherical condition, built here in space — the gre
     for (let i = 0; i < 200; i++) { const s = (a + b) / 2; if (dot(C(s), eTh) > -Math.sin(thA)) a = s; else b = s; }
     const reach = (a + b) / 2, undercut = reach > sT;
     let refused = false, message = '';
-    try { bevelGear({ moduleMM: m, teeth: z, mateTeeth: zm, shaftAngleDeg: S, faceWidthMM: 4 }); } catch (e) { assert.ok(isGearError(e)); if (e.code === 'UNSUPPORTED_PROFILE_SHIFT') { refused = true; message = e.message; } else throw e; }
+    try { bevelGear({ module: m, teeth: z, mateTeeth: zm, shaftAngle: S, faceWidth: 4 }); } catch (e) { assert.ok(isGearError(e)); if (e.code === 'UNSUPPORTED_PROFILE_SHIFT') { refused = true; message = e.message; } else throw e; }
     assert.equal(refused, undercut, `z${z}/${zm} Σ${S}: the crown reaches ${reach}, the base cone at ${sT}`);
     if (refused) assert.match(message, new RegExp(`virtual spur gear has ${(z / Math.cos(G.delta)).toFixed(2)} teeth`));
     rows.push(`${z}/${zm} Σ${S}: z_v ${(z / Math.cos(G.delta)).toFixed(2)}, reach ${(reach * G.Re).toFixed(4)} vs ${(sT * G.Re).toFixed(4)} mm ${undercut ? 'undercut' : 'clear'}`);
@@ -133,18 +133,18 @@ test('undercut by the exact spherical condition, built here in space — the gre
 });
 
 test('refusals and warnings, each with its code', () => {
-  const code = (spec, c, re) => assert.throws(() => bevelGear({ moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 10, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
-  code({ teeth: 40, mateTeeth: 20, shaftAngleDeg: 120 }, 'UNSUPPORTED_GEAR_KIND', /crown gear/);
-  code({ teeth: 60, mateTeeth: 20, shaftAngleDeg: 120 }, 'UNSUPPORTED_GEAR_KIND', /internal bevel/);
-  code({ pressureAngleDeg: 25 }, 'UNSUPPORTED_GEAR_KIND'); code({ profileShiftCoefficient: 0.2 }, 'UNSUPPORTED_GEAR_KIND', /Gleason/); code({ system: 'gleason' }, 'UNSUPPORTED_GEAR_KIND', /Gleason/);
-  code({ faceWidthMM: 45 }, 'INVALID_INPUT', /cone distance 44\.7214/); code({ shaftAngleDeg: 180 }, 'INVALID_INPUT'); code({ teeth: 4 }, 'INVALID_INPUT'); code({ mateTeeth: 201 }, 'INVALID_INPUT');
-  code({ boreDiameterMM: 30 }, 'BORE_INTERSECTION', /at most Ø23\.541/); code({ toothThicknessReductionMM: 3.2 }, 'INVALID_INPUT', /no tooth/); code({ moduleMM: 0 }, 'INVALID_INPUT');
+  const code = (spec, c, re) => assert.throws(() => bevelGear({ module: 2, teeth: 20, mateTeeth: 40, faceWidth: 10, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
+  code({ teeth: 40, mateTeeth: 20, shaftAngle: 120 }, 'UNSUPPORTED_GEAR_KIND', /crown gear/);
+  code({ teeth: 60, mateTeeth: 20, shaftAngle: 120 }, 'UNSUPPORTED_GEAR_KIND', /internal bevel/);
+  code({ pressureAngle: 25 }, 'UNSUPPORTED_GEAR_KIND'); code({ profileShiftCoefficient: 0.2 }, 'UNSUPPORTED_GEAR_KIND', /Gleason/); code({ system: 'gleason' }, 'UNSUPPORTED_GEAR_KIND', /Gleason/);
+  code({ faceWidth: 45 }, 'INVALID_INPUT', /cone distance 44\.7214/); code({ shaftAngle: 180 }, 'INVALID_INPUT'); code({ teeth: 4 }, 'INVALID_INPUT'); code({ mateTeeth: 201 }, 'INVALID_INPUT');
+  code({ boreDiameter: 30 }, 'BORE_INTERSECTION', /at most Ø23\.541/); code({ toothThicknessReduction: 3.2 }, 'INVALID_INPUT', /no tooth/); code({ module: 0 }, 'INVALID_INPUT');
   // The face over R/3: a warning; the schematic root always said.
-  const w = bevelGear({ moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 20 }).report.diagnostics;
+  const w = bevelGear({ module: 2, teeth: 20, mateTeeth: 40, faceWidth: 20 }).report.diagnostics;
   assert.deepEqual(w.map(d => [d.code, d.severity]), [['ROOT_TRANSITION_UNVALIDATED', 'warning'], ['INVALID_INPUT', 'warning']]); assert.match(w[1].message, /third of the cone distance/);
   // A pair: each the other's mate, one module, one shaft angle.
-  const g = { moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 10 }, h = { moduleMM: 2, teeth: 40, mateTeeth: 20, faceWidthMM: 10 };
-  for (const [a, b, re] of [[g, { ...h, moduleMM: 2.5 }, /modules/], [g, { ...h, shaftAngleDeg: 80 }, /shaft angles/], [g, { ...h, teeth: 41, mateTeeth: 20 }, /mateTeeth/]])
+  const g = { module: 2, teeth: 20, mateTeeth: 40, faceWidth: 10 }, h = { module: 2, teeth: 40, mateTeeth: 20, faceWidth: 10 };
+  for (const [a, b, re] of [[g, { ...h, module: 2.5 }, /modules/], [g, { ...h, shaftAngle: 80 }, /shaft angles/], [g, { ...h, teeth: 41, mateTeeth: 20 }, /mateTeeth/]])
     assert.throws(() => checkBevelGearPair(a, b, { mode: 'verdict' }), e => e.code === 'MATE_INCOMPATIBLE' && re.test(e.message));
 });
 
@@ -212,9 +212,9 @@ test('the pair on the heel sphere: the product\'s sweep against the sweep writte
     // (The product's outlines are chords of the involute, 150 a flank, inside each convex tooth: the least can only come
     // out larger, by up to their sag, which it reports.)
     const want = j * Math.cos(ALPHA) / 2;
-    assert.ok(chk.sweep.minimumClearanceMM >= want - 1e-9 && chk.sweep.minimumClearanceMM <= want + chk.sweep.chordSagMM + 1e-9, `the product's least clearance ${chk.sweep.minimumClearanceMM} vs ${want} (+ sag ${chk.sweep.chordSagMM})`);
+    assert.ok(chk.sweep.minimumClearance >= want - 1e-9 && chk.sweep.minimumClearance <= want + chk.sweep.chordSag + 1e-9, `the product's least clearance ${chk.sweep.minimumClearance} vs ${want} (+ sag ${chk.sweep.chordSag})`);
     // A phase off by a third of gear 2's pitch: both cross.
-    const off = 2 * Math.PI / z2 / 3, offHere = sweepHere(G1, G2, { phase: off, samples: 16 }), offChk = checkBevelGearPair(specOf(c1), specOf(c2), { relativePhaseDeg: off * 180 / Math.PI, mode: 'verdict' });
+    const off = 2 * Math.PI / z2 / 3, offHere = sweepHere(G1, G2, { phase: off, samples: 16 }), offChk = checkBevelGearPair(specOf(c1), specOf(c2), { relativePhase: off * 180 / Math.PI, mode: 'verdict' });
     assert.ok(offHere.crossings.length > 0); assert.equal(offChk.sweep.interference, true);
     // The contact ratio: the great circle of action through P (gear 1's frame), from where gear 2's tip cone cuts it to where gear 1's does, over the base pitch.
     const P = [Math.sin(G1.delta), 0, Math.cos(G1.delta)], eTh = [Math.cos(G1.delta), 0, -Math.sin(G1.delta)], d = [-Math.sin(ALPHA) * eTh[0], Math.cos(ALPHA), -Math.sin(ALPHA) * eTh[2]];
@@ -225,40 +225,40 @@ test('the pair on the heel sphere: the product\'s sweep against the sweep writte
     close(chk.idealContactRatio, (sA - sB) / pb, 1e-9, 'ε by the great circle of action');
     const zv1 = z1 / Math.cos(G1.delta), zv2 = z2 / Math.cos(G2.delta), rv1 = m * zv1 / 2, rv2 = m * zv2 / 2, ca = Math.cos(ALPHA);
     close(chk.tredgoldContactRatio, (Math.sqrt((rv1 + m) ** 2 - (rv1 * ca) ** 2) + Math.sqrt((rv2 + m) ** 2 - (rv2 * ca) ** 2) - (rv1 + rv2) * Math.sin(ALPHA)) / (Math.PI * m * ca), 1e-12, "Tredgold's ε");
-    close(chk.tipClearancesMM[0], G1.Re * (Math.atan(1.25 * m / G1.Re) - Math.atan(m / G1.Re)), 1e-12, 'heel tip clearance'); close(chk.backlashMM, j, 1e-15, 'backlash'); close(chk.speedRatio, z2 / z1, 1e-15, 'ratio');
-    t.diagnostic(`z${z1}/${z2} Σ${S}° j ${j}: here ${here.least.toExponential(4)}…${here.most.toExponential(4)}, product ${chk.sweep.minimumClearanceMM.toExponential(4)} (sag ≤ ${chk.sweep.chordSagMM.toExponential(1)}; j cos α/2 ${(j * Math.cos(ALPHA) / 2).toExponential(4)}), ε ${chk.idealContactRatio.toFixed(5)} (Tredgold ${chk.tredgoldContactRatio.toFixed(5)}), ${ms.toFixed(0)} ms`);
+    close(chk.tipClearances[0], G1.Re * (Math.atan(1.25 * m / G1.Re) - Math.atan(m / G1.Re)), 1e-12, 'heel tip clearance'); close(chk.backlash, j, 1e-15, 'backlash'); close(chk.speedRatio, z2 / z1, 1e-15, 'ratio');
+    t.diagnostic(`z${z1}/${z2} Σ${S}° j ${j}: here ${here.least.toExponential(4)}…${here.most.toExponential(4)}, product ${chk.sweep.minimumClearance.toExponential(4)} (sag ≤ ${chk.sweep.chordSag.toExponential(1)}; j cos α/2 ${(j * Math.cos(ALPHA) / 2).toExponential(4)}), ε ${chk.idealContactRatio.toFixed(5)} (Tredgold ${chk.tredgoldContactRatio.toFixed(5)}), ${ms.toFixed(0)} ms`);
   }
 });
 
 test('the part model: a pinion and its mate by mesh — the same apex, the axes at Σ, the mate turning by −z1/z2 (this file\'s formula), phase 0 and clear by checkPlacedBevelGears; the exact Boolean intersection empty when meshed (a small pair; the 16/20 pair and a phase off overlapping in the survey); refusals; STEP', () => {
   const base = (dir, rot, phase = 0) => [{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 16, mateTeeth: 20, faceWidth: 6, thicknessReduction: 0.05, rotation: rot, center: [5, -3], from: 2 }, { id: 'w', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 16, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'p', direction: dir, phase } }];
   for (const [dir, rot] of [[0, 0], [30, 7], [200, -13]]) {
-    const P = evaluateCadPart(D(base(dir, rot))), a = P.output('p'), b = P.output('w'), pa = a.bevelGearPlacement, pb = b.bevelGearPlacement;
+    const P = evaluateCadPart(D(base(dir, rot))), a = outputOf(P, 'p'), b = outputOf(P, 'w'), pa = a.bevelGearPlacement, pb = b.bevelGearPlacement;
     assert.deepEqual(pb.apex, [5, -3, 2]); close(dot(pa.axis, pb.axis), Math.cos(Math.PI / 2), 1e-15, 'axes at Σ');
     // The mate's axis toward the direction about the pinion's axis; its turn π/z2 − (ρ1 − φ) z1/z2.
     const phi = dir * Math.PI / 180; close(Math.atan2(pb.axis[1], pb.axis[0]), Math.atan2(Math.sin(phi), Math.cos(phi)), 1e-12, 'toward the direction');
     close(pb.rotation, Math.PI / 20 - (rot * Math.PI / 180 - phi) * 16 / 20, 1e-12, "the mate's turn");
-    const c = checkPlacedBevelGears(pa, pb); assert.equal(c.relativePhaseDeg, 0); assert.equal(c.sweep.interference, false);
-    assert.equal(a.validate().valid, true); assert.equal(b.validate().valid, true);
+    const c = checkPlacedBevelGears(pa, pb); assert.equal(c.relativePhase, 0); assert.equal(c.sweep.interference, false);
+    assert.equal(checkOutput(a).valid, true); assert.equal(checkOutput(b).valid, true);
     // The mate's teeth stand where the sweep put them: its heel points at the cone distance from the shared apex.
-    for (const f of b.brep.faces.filter(f => f.name === 'w.heel')) { const p = evaluateSurface(f.surface, 0.5, 0.5); close(Math.hypot(p[0] - 5, p[1] + 3, p[2] - 2), bevelGearDimensions({ moduleMM: 2, teeth: 20, mateTeeth: 16, faceWidthMM: 6 }).Re, 1e-9, 'heel about the apex'); }
+    for (const f of b.brep.faces.filter(f => f.name === 'w.heel')) { const p = evaluateSurface(f.surface, 0.5, 0.5); close(Math.hypot(p[0] - 5, p[1] + 3, p[2] - 2), bevelGearDimensions({ module: 2, teeth: 20, mateTeeth: 16, faceWidth: 6 }).Re, 1e-9, 'heel about the apex'); }
   }
   // The exact Boolean, apart from the sweep — the one Boolean the default suite keeps for bevel gears (a small pair, 13/13
   // 4 wide: about 11 s, the 16/20 pair's 20 s in the survey, D135).
   const small = phase => [{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 13, mateTeeth: 13, faceWidth: 4, thicknessReduction: 0.05 }, { id: 'w', kind: 'bevel-gear', module: 2, teeth: 13, mateTeeth: 13, faceWidth: 4, thicknessReduction: 0.05, mesh: { gear: 'p', phase } }];
-  assert.throws(() => evaluateCadPart(D([...small(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([...small(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])), 'i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   if (SURVEY) {
-    assert.throws(() => evaluateCadPart(D([...base(0, 0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
+    assert.throws(() => outputOf(evaluateCadPart(D([...base(0, 0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])), 'i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
     // (4° off. At 6° the analytic Boolean failed — a non-manifold result where the inputs touched along an edge, D134 — until
     // D150 fixed a general face's domain map across C0 knots; that pair is test/d150-bevel-pair.test.mjs's.)
-    const off = evaluateCadPart(D([...base(0, 0, 4), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'); assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap');
+    const off = outputOf(evaluateCadPart(D([...base(0, 0, 4), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])), 'i'); assert.ok(brepMassProperties(off.brep, 1).volume > 1, 'a phase off: the teeth overlap');
   }
   // Refusals in the part model.
-  assert.throws(() => evaluateCadPart(D([base(0, 0)[0], { ...base(0, 0)[1], mateTeeth: 17 }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 12, mateTeeth: 40, faceWidth: 6 }])).output('p'), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /undercut/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 40, faceWidth: 6, generator: 'bevel-gear@1' }])).output('p'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
-  assert.throws(() => evaluateCadPart(D([{ id: 'p', kind: 'spur-gear', module: 2, teeth: 20, faceWidth: 6 }, { ...base(0, 0)[1], mesh: { gear: 'p' } }])).output('w'), e => (e.details?.category ?? e.code) === 'REFERENCE');
+  assert.throws(() => outputOf(evaluateCadPart(D([base(0, 0)[0], { ...base(0, 0)[1], mateTeeth: 17 }])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 12, mateTeeth: 40, faceWidth: 6 }])), 'p'), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /undercut/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 40, faceWidth: 6, generator: 'bevel-gear@1' }])), 'p'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'p', kind: 'spur-gear', module: 2, teeth: 20, faceWidth: 6 }, { ...base(0, 0)[1], mesh: { gear: 'p' } }])), 'w'), e => (e.details?.category ?? e.code) === 'REFERENCE');
   // STEP: the volume and the names back.
-  const { brep } = bevelGear({ moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 10, boreDiameterMM: 12 }, { id: 'b' }), back = importStep(exportStep([brep], { name: 'bevel' }));
-  close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 'b.heel')); assert.equal(checkBrep(back).valid, true);
+  const { brep } = bevelGear({ module: 2, teeth: 20, mateTeeth: 40, faceWidth: 10, boreDiameter: 12 }, { id: 'b' }), back = importStep(exportStep([brep], { name: 'bevel' }));
+  close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip'); assert.ok(back.faces.some(f => f.name === 'b.heel')); assert.equal(checkBrep(back).valid, true);
 });

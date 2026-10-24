@@ -23,9 +23,9 @@ test('C9: beyond the geometry range every geometry operation refuses alike', () 
 
 test('modeling-range results keep the 1e-7 mm floor; reports name the range used', () => {
   const split = ops(100).split(), sample = ops(100).sample();
-  assert.equal(split.report.limits.observationComparisonMM, 1e-7);
-  assert.equal(sample.report.inputProfile.coordinateAbsMM, CadNumericPolicy.geometryCoordinateAbsMM);
-  assert.ok(ops(5e5).split().report.limits.observationComparisonMM > 1e-7);
+  assert.equal(split.report.limits.observationComparison, 1e-7);
+  assert.equal(sample.report.inputProfile.coordinateAbsMM, CadNumericPolicy.geometryCoordinateAbs);
+  assert.ok(ops(5e5).split().report.limits.observationComparison > 1e-7);
 });
 
 test('knot / parameter range stays the parameter range (only coordinates widened)', () => {

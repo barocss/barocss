@@ -533,7 +533,7 @@ function clipTool(tool: Brep, clip: EndClip, kept: Point, size: number, run: num
   const angles = [...new Set(clip.seams.map(q => { const x = Math.atan2(dot(q, e2), dot(q, e1)); return Math.round(((x % TAU) + TAU) % TAU * 1e12) / 1e12; }))].sort((p, q) => p - q);
   if (!angles.length) angles.push(0);
   const outer = angles.map(t => ({ kind: 'arc' as const, start: [clip.r * Math.cos(t), clip.r * Math.sin(t)] as XY, center: [0, 0] as XY, direction: 'ccw' as const }));
-  const prism = brepFromPrismatic(prismaticFromProfile({ outer, heightMM: size, fromMM: 0, tag: `${id}_cyl` }), { id: `${id}_cyl` });
+  const prism = brepFromPrismatic(prismaticFromProfile({ outer, height: size, from: 0, tag: `${id}_cyl` }), { id: `${id}_cyl` });
   const cyl = transformBrep(prism, { matrix: [e1[0], e2[0], a[0], e1[1], e2[1], a[1], e1[2], e2[2], a[2]], offset: add(clip.c, scale(a, dc - size / 2)) as Point });
   // (Only near this end: beyond a plane `back` in from it along the edge, the cylinder's far side — a whole-tool cut would
   // trim the tool's other end too, where it may lie across a seam of the body's faces.)
@@ -544,7 +544,7 @@ function clipTool(tool: Brep, clip: EndClip, kept: Point, size: number, run: num
 }
 function halfSpace(o: Point, n: Point, size: number, id: string): Brep {
   const m = unit(n), e1 = unit(Math.abs(m[0]) < 0.9 ? cross([1, 0, 0], m) : cross([0, 1, 0], m)), e2 = cross(m, e1), h = size / 2;
-  const prism = brepFromPrismatic(prismaticFromProfile({ outer: [{ kind: 'line', start: [-h, -h] }, { kind: 'line', start: [h, -h] }, { kind: 'line', start: [h, h] }, { kind: 'line', start: [-h, h] }], heightMM: size, fromMM: 0, tag: id }), { id });
+  const prism = brepFromPrismatic(prismaticFromProfile({ outer: [{ kind: 'line', start: [-h, -h] }, { kind: 'line', start: [h, -h] }, { kind: 'line', start: [h, h] }, { kind: 'line', start: [-h, h] }], height: size, from: 0, tag: id }), { id });
   return transformBrep(prism, { matrix: [e1[0], e2[0], m[0], e1[1], e2[1], m[1], e1[2], e2[2], m[2]], offset: [o[0], o[1], o[2]] });
 }
 /** A face's outward normal at x from its surface (any face). */
@@ -708,7 +708,7 @@ function cornerTool(V: Point, C: Point, outs: Point[], r: number, id: string): B
   // D93, the Boolean then failed on some boxes; since R10.B it does not (D99).
   const toward = unit(sub(V, C)), any = unit(add(outs[0], scale(outs[1], 0.37))), side = unit(sub(any, scale(toward, dot(any, toward))));
   const axis = unit(cross(toward, side)), e1 = scale(toward, -1), e3 = cross(e1, axis);
-  const ball = revolveProfile({ id: `${id}_b`, profile: [{ kind: 'arc', start: [0, -r], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, r] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+  const ball = revolveProfile({ id: `${id}_b`, profile: [{ kind: 'arc', start: [0, -r], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, r] }], axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
   const placed = transformBrep(ball, { matrix: [e1[0], axis[0], e3[0], e1[1], axis[1], e3[1], e1[2], axis[2], e3[2]], offset: [C[0], C[1], C[2]] });
   return booleanAnalytic(cone, { ...placed, faces: placed.faces.map(f => ({ ...f, name: `${id}.face` })) }, 'difference', { id: `${id}_c` });
 }
@@ -1002,7 +1002,7 @@ function straightTool(e: Brep['edges'][number], uses: Use[], P: Point, Q: Point,
   // (A corner blend takes over the last stretch before a vertex: there the tool is cut back by `trim`.)
   const extent = (t + 2 * g) * 2, zq = dot(sub(Q, P), z), ext0 = reach[0] * extent - trim[0], ext1 = reach[1] * extent - trim[1];
   const [z0, z1] = zq > 0 ? [-ext0, L + ext1] : [-L - ext1, ext0];
-  const prism = brepFromPrismatic(prismaticFromProfile({ outer: profile, heightMM: z1 - z0, fromMM: z0, tag: `${id}_t` }), { id: `${id}_t` });
+  const prism = brepFromPrismatic(prismaticFromProfile({ outer: profile, height: z1 - z0, from: z0, tag: `${id}_t` }), { id: `${id}_t` });
   const tool = transformBrep(prism, { matrix: [u[0], v[0], z[0], u[1], v[1], z[1], u[2], v[2], z[2]], offset: [P[0], P[1], P[2]] });
   // A point of the finishing surface: on the bisector, between the corner and the fillet's centre.
   const alpha = Math.acos(Math.max(-1, Math.min(1, dot(sides[0].w, sides[1].w)))), bis = unit(add(sides[0].w, sides[1].w));
@@ -1051,7 +1051,7 @@ function translationalTool(body: Brep, e: Brep['edges'][number], uses: Use[], P:
   // Past each end, as a straight edge's tool.
   const t = Math.max(...fs.contacts.map(c => Math.hypot(c[0], c[1]))), extent = (t + 2 * fs.g) * 2, zq = dot(sub(Q, P), z);
   const [z0, z1] = zq > 0 ? [-reach[0] * extent, L + reach[1] * extent] : [-L - reach[1] * extent, reach[0] * extent];
-  const prism = brepFromPrismatic(prismaticFromProfile({ outer: fs.profile, heightMM: z1 - z0, fromMM: z0, tag: `${id}_t`, sideTags: { outer: fs.tags } }), { id: `${id}_t` });
+  const prism = brepFromPrismatic(prismaticFromProfile({ outer: fs.profile, height: z1 - z0, from: z0, tag: `${id}_t`, sideTags: { outer: fs.tags } }), { id: `${id}_t` });
   const tool = transformBrep(prism, { matrix: [u[0], v[0], z[0], u[1], v[1], z[1], u[2], v[2], z[2]], offset: [P[0], P[1], P[2]] });
   return { brep: byTag(tool, id), convex: fs.convex };
 }
@@ -1105,7 +1105,7 @@ function coaxialTool(body: Brep, e: Brep['edges'][number], uses: Use[], P: Point
   const back = closed ? 0 : reach[0] * extent, on = closed ? 0 : reach[1] * extent;
   const total = Math.min(TAU, sweep + back + on), start = total >= TAU ? 0 : back;
   const c0 = Math.cos(-start), s0 = Math.sin(-start), erS = add(scale(er0, c0), scale(et0, s0)), etS = cross(erS, axis);
-  const turned = revolveProfile({ id: `${id}_t`, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: total * 180 / Math.PI, sideTags: fs.tags });
+  const turned = revolveProfile({ id: `${id}_t`, profile, axis: { origin: [0, 0], direction: [0, 1] }, angle: total * 180 / Math.PI, sideTags: fs.tags });
   const tool = transformBrep(turned, { matrix: [erS[0], axis[0], etS[0], erS[1], axis[1], etS[1], erS[2], axis[2], etS[2]], offset: [centre[0], centre[1], centre[2]] });
   return { brep: byTag(tool, id), convex: fs.convex };
 }
@@ -1143,7 +1143,7 @@ function arcTool(body: Brep, e: Brep['edges'][number], uses: Use[], P: Point, Q:
   const extent = (t + 2 * g) * 2 / R, back = closed ? 0 : reach[0] * extent, on = closed ? 0 : reach[1] * extent;
   const total = Math.min(2 * Math.PI, sweep + back + on), start = total >= 2 * Math.PI ? 0 : back;
   const c0 = Math.cos(-start), s0 = Math.sin(-start), erS = add(scale(er0, c0), scale(et0, s0)), etS = cross(erS, axis);
-  const turned = revolveProfile({ id: `${id}_t`, profile, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: total * 180 / Math.PI });
+  const turned = revolveProfile({ id: `${id}_t`, profile, axis: { origin: [0, 0], direction: [0, 1] }, angle: total * 180 / Math.PI });
   const tool = transformBrep(turned, { matrix: [erS[0], axis[0], etS[0], erS[1], axis[1], etS[1], erS[2], axis[2], etS[2]], offset: [centre[0], centre[1], centre[2]] });
   return { brep: named(tool, id, null), convex: convexAt(sides) };
 }

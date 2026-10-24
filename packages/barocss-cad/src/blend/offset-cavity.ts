@@ -127,7 +127,7 @@ export function thickenFoldCheck(surface: Surface, name: string, lo: number, hi:
   for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) {
     const uu = i === n ? u[1] : u[0] + (u[1] - u[0]) * i / n, vv = j === n ? v[1] : v[0] + (v[1] - v[0]) * j / n;
     let k: readonly number[];
-    try { k = evaluateSurfaceCurvature(surface, uu, vv).principalCurvaturesPerMM; } catch { continue; }
+    try { k = evaluateSurfaceCurvature(surface, uu, vv).principalCurvaturesPer; } catch { continue; }
     for (const x of k) {
       // (Positive bends towards the normal: an offset along it folds past 1/κ, one against it past −1/κ.)
       const t = x > 0 ? hi : -lo;
@@ -283,7 +283,7 @@ function offsetWall(body: Brep, t: number, id: string, label: string, open: Read
   const flip = (uses: readonly Use[]) => [...uses].reverse().map(u => ({ edge: u.edge, sense: (u.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed' }));
   if (!open.size && !slab) {
     const tolerance = Math.max(2 * deviation, near), report = { deviationMM: deviation, targetMM: target, faces: inner.faceInputs.length, minRadiusMM: minRadius };
-    const cavity = buildBrep({ source: { family: 'shell', id }, vertices: inner.verts.map(v => ({ ...v, toleranceMM: tolerance })), edges: inner.edgeInputs.map(e => ({ ...e, toleranceMM: tolerance })), toleranceMM: tolerance,
+    const cavity = buildBrep({ source: { family: 'shell', id }, vertices: inner.verts.map(v => ({ ...v, tolerance: tolerance })), edges: inner.edgeInputs.map(e => ({ ...e, tolerance: tolerance })), tolerance: tolerance,
       bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: inner.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: f.sense, loops: f.loops.map(l => ({ kind: l.kind, uses: inner.prefixed(l.uses) })) })) }] }] });
     return { brep: cavity, report };
   }
@@ -327,9 +327,9 @@ function offsetWall(body: Brep, t: number, id: string, label: string, open: Read
     const tolerance = Math.max(2 * deviation, near), report = { deviationMM: deviation, targetMM: target, faces: inner.faceInputs.length + outer.faceInputs.length + bands.length, minRadiusMM: minRadius };
     const brep = buildBrep({
       source: { family: 'shell', id },
-      vertices: [...outer.verts, ...inner.verts].map(v => ({ ...v, toleranceMM: tolerance })),
-      edges: [...outer.edgeInputs, ...inner.edgeInputs, ...[...radials.values()].map(r => ({ id: r.id, curve: r.curve, vertices: [r.a, r.b] as [string, string] }))].map(e => ({ ...e, toleranceMM: tolerance })),
-      toleranceMM: tolerance,
+      vertices: [...outer.verts, ...inner.verts].map(v => ({ ...v, tolerance: tolerance })),
+      edges: [...outer.edgeInputs, ...inner.edgeInputs, ...[...radials.values()].map(r => ({ id: r.id, curve: r.curve, vertices: [r.a, r.b] as [string, string] }))].map(e => ({ ...e, tolerance: tolerance })),
+      tolerance: tolerance,
       bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: [
         ...outer.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: f.sense, loops: f.loops.map(l => ({ kind: l.kind, uses: outer.prefixed(l.uses) })) })),
         ...inner.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: (f.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed', loops: f.loops.map(l => ({ kind: l.kind, uses: flip(inner.prefixed(l.uses)) })) })),
@@ -384,10 +384,10 @@ function offsetWall(body: Brep, t: number, id: string, label: string, open: Read
     });
     const shell = buildBrep({
       source: { family: 'shell', id },
-      vertices: [...[...keptVertices].map(v => ({ id: `o_${v}`, point: vertexPoint.get(v)!, toleranceMM: Math.max(body.vertices.find(x => x.id === v)?.toleranceMM ?? 0, rimVertexIds.has(v) ? shellTolerance : 0) })), ...inner.verts.map(v => ({ ...v, toleranceMM: shellTolerance }))],
-      edges: [...keptEdges.filter(e => !rimPieces.has(e.id)).map(e => ({ id: `o_${e.id}`, curve: e.curve, vertices: [`o_${e.vertices[0]}`, `o_${e.vertices[1]}`] as [string, string], toleranceMM: e.toleranceMM, ...(e.name ? { name: e.name } : {}) })),
-        ...[...rimPieces.values()].flat().map(p => ({ id: `o_${p.id}`, curve: p.curve, vertices: [`o_${p.a}`, `o_${p.b}`] as [string, string], toleranceMM: shellTolerance, ...(p.name ? { name: p.name } : {}) })),
-        ...inner.edgeInputs.map(e => ({ ...e, toleranceMM: shellTolerance })), ...[...radials.values()].map(r => ({ id: r.id, curve: r.curve, vertices: [r.a, r.b] as [string, string], toleranceMM: shellTolerance }))],
+      vertices: [...[...keptVertices].map(v => ({ id: `o_${v}`, point: vertexPoint.get(v)!, tolerance: Math.max(body.vertices.find(x => x.id === v)?.tolerance ?? 0, rimVertexIds.has(v) ? shellTolerance : 0) })), ...inner.verts.map(v => ({ ...v, tolerance: shellTolerance }))],
+      edges: [...keptEdges.filter(e => !rimPieces.has(e.id)).map(e => ({ id: `o_${e.id}`, curve: e.curve, vertices: [`o_${e.vertices[0]}`, `o_${e.vertices[1]}`] as [string, string], tolerance: e.tolerance, ...(e.name ? { name: e.name } : {}) })),
+        ...[...rimPieces.values()].flat().map(p => ({ id: `o_${p.id}`, curve: p.curve, vertices: [`o_${p.a}`, `o_${p.b}`] as [string, string], tolerance: shellTolerance, ...(p.name ? { name: p.name } : {}) })),
+        ...inner.edgeInputs.map(e => ({ ...e, tolerance: shellTolerance })), ...[...radials.values()].map(r => ({ id: r.id, curve: r.curve, vertices: [r.a, r.b] as [string, string], tolerance: shellTolerance }))],
       bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_s`, closed: true, faces: [
         ...body.faces.filter(f => !opened(f)).map(f => ({ id: `o_${ident(f.id)}`, surface: f.surface, sense: f.sense, ...(f.name ? { name: f.name } : {}), loops: f.loops.map(lid => ({ kind: loops.get(lid)!.kind, uses: keptLoop(lid) })) })),
         ...inner.faceInputs.map(f => ({ id: f.id, name: f.name, surface: f.surface, sense: (f.sense === 'forward' ? 'reversed' : 'forward') as 'forward' | 'reversed', loops: f.loops.map(l => ({ kind: l.kind, uses: flip(inner.prefixed(l.uses)) })) })),
@@ -788,7 +788,7 @@ function climb(F: Patch, u: number, v: number, lo: number, hi: number, alongU: b
  * triangle's parameters).
  */
 function thinCheck(body: Brep, faces: readonly Patch[], fits: readonly FaceFit[], t: number, openedFaces: readonly Patch[] = [], exacts: readonly Exact[] = []): void {
-  const { mesh, parameters } = tessellateBrepWithParameters(body, { segmentsPerQuarter: 16 }), P = mesh.positionsMM, I = mesh.indices;
+  const { mesh, parameters } = tessellateBrepWithParameters(body, { segmentsPerQuarter: 16 }), P = mesh.positions, I = mesh.indices;
   const faceOfTri = new Int32Array(I.length / 3), uvOf = new Float64Array(2 * P.length / 3), patchOfFace = new Map(faces.map(F => [F.face.id, F])), openedOf = new Map(openedFaces.map(F => [F.face.id, F])), exactOfFace = new Map(exacts.map(X => [X.face.id, X]));
   mesh.faces.forEach((mf, k) => { for (let i = mf.indexOffset / 3; i < (mf.indexOffset + mf.indexCount) / 3; i++) faceOfTri[i] = k; const par = parameters.get(mf.faceId); if (par) par.uv.forEach((uv, j) => { uvOf[2 * (mf.vertexOffset + j)] = uv[0]; uvOf[2 * (mf.vertexOffset + j) + 1] = uv[1]; }); });
   // Triangles by grid cell of the wall's size.

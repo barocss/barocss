@@ -72,7 +72,7 @@ mesh('two-shells', { positions: [...R.positions, ...R.positions.map((x, i) => i 
 // RB4's counterexample keeps its name.
 const oracle = (name, about, c) => {
   // (A sliver's centroid is known to its moments' rounding over its volume.)
-  const outputs = c.volume > 0 ? [{ volumeMM3: { value: c.volume, ...VOLUME_TOL }, centroidMM: { value: c.centroid, absTol: Math.max(1e-6, 1e-11 / c.volume) }, bodies: 1, topology: [{ shells: 1, genus: 0 }] }] : [];
+  const outputs = c.volume > 0 ? [{ volume: { value: c.volume, ...VOLUME_TOL }, centroid: { value: c.centroid, absTol: Math.max(1e-6, 1e-11 / c.volume) }, bodies: 1, topology: [{ shells: 1, genus: 0 }] }] : [];
   put('oracle', `${name}.json`, compact(JSON.stringify({ id: name, about, input: { partDocument: D(c.features) }, expect: { outputs }, oracle: c.oracle }, null, 2)) + '\n');
 };
 const BOX_ORACLE = 'scripts/rb/oracle-cylinder-box.mjs (exact inner integral, Gauss–Legendre outer between the kinks; to rounding)';

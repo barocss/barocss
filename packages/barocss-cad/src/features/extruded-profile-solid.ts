@@ -27,21 +27,21 @@ export type ProfileSegmentInput =
   | { readonly kind: 'arc'; readonly start: XY; readonly center: XY; readonly direction: 'ccw' | 'cw' };
 
 export type ProfileSegment =
-  | { readonly kind: 'line'; readonly start: XY; readonly end: XY; readonly lengthMM: number }
-  | { readonly kind: 'arc'; readonly start: XY; readonly end: XY; readonly center: XY; readonly radiusMM: number; readonly startAngle: number; readonly sweep: number; readonly lengthMM: number };
+  | { readonly kind: 'line'; readonly start: XY; readonly end: XY; readonly length: number }
+  | { readonly kind: 'arc'; readonly start: XY; readonly end: XY; readonly center: XY; readonly radius: number; readonly startAngle: number; readonly sweep: number; readonly length: number };
 
 export interface ProfileLoop {
   readonly kind: 'extruded-profile-loop'; readonly version: 0;
   readonly segments: readonly ProfileSegment[];
   /** True when the authored order was clockwise and was reversed to counter-clockwise. */
   readonly reversed: boolean;
-  readonly areaMM2: number; readonly centroidMM: XY; readonly perimeterMM: number;
+  readonly area: number; readonly centroid: XY; readonly perimeter: number;
   /** Second moments of area about the centroid: [∫(x−x̄)², ∫(y−ȳ)², ∫(x−x̄)(y−ȳ)] in mm⁴. */
   readonly secondMomentsMM4: readonly [number, number, number];
-  readonly boundsMM: { readonly min: XY; readonly max: XY };
+  readonly bounds: { readonly min: XY; readonly max: XY };
 }
 
-export interface ExtrudedProfileVertex { readonly id: string; readonly pointMM: Point }
+export interface ExtrudedProfileVertex { readonly id: string; readonly point: Point }
 export interface ExtrudedProfileEdge { readonly id: string; readonly vertexIds: readonly [string, string]; readonly curve: Curve; readonly role: 'bottom' | 'top' | 'vertical'; readonly segment: number }
 export interface ExtrudedProfileEdgeUse { readonly edgeId: string; readonly sense: 'forward' | 'reversed' }
 export interface ExtrudedProfileFace {
@@ -51,16 +51,16 @@ export interface ExtrudedProfileFace {
 }
 export interface ExtrudedProfileSolidResult {
   readonly kind: 'extruded-profile-solid'; readonly version: 0; readonly id: string; readonly lengthUnit: 'mm';
-  readonly profile: ProfileLoop; readonly fromMM: number; readonly heightMM: number;
+  readonly profile: ProfileLoop; readonly from: number; readonly height: number;
   readonly vertices: readonly ExtrudedProfileVertex[]; readonly edges: readonly ExtrudedProfileEdge[]; readonly faces: readonly ExtrudedProfileFace[];
   readonly report: {
     readonly valid: true; readonly eulerCharacteristic: number; readonly faceCount: number; readonly edgeCount: number; readonly vertexCount: number;
-    readonly volumeMM3: number; readonly surfaceAreaMM2: number; readonly boundsMM: { readonly min: Point; readonly max: Point };
-    readonly maxCurveDeviationMM: number; readonly toleranceMM: number;
+    readonly volume: number; readonly surfaceArea: number; readonly bounds: { readonly min: Point; readonly max: Point };
+    readonly maxCurveDeviation: number; readonly tolerance: number;
   };
 }
 
-export const ExtrudedProfileLimits = Object.freeze({ segments: 64, coordinateMM: 10000, minimumRadiusMM: 0.01, minimumLengthMM: 1e-4, toleranceMM: 1e-7 });
+export const ExtrudedProfileLimits = Object.freeze({ segments: 64, coordinateMM: 10000, minimumRadiusMM: 0.01, minimumLengthMM: 1e-4, tolerance: 1e-7 });
 
 const fail = (code: ExtrudedProfileDiagnosticCode, detail: string): never => { throw extrudedProfileError(code, detail); };
 const finite = (v: unknown, what: string) => {
@@ -91,13 +91,13 @@ export function buildProfileLoop(input: readonly ProfileSegmentInput[], options:
   });
   let scale = 1;
   for (const s of raw) { scale = Math.max(scale, Math.abs(s.start[0]), Math.abs(s.start[1])); if (s.kind === 'arc') scale = Math.max(scale, Math.abs(s.center[0]), Math.abs(s.center[1])); }
-  const tol = Math.max(ExtrudedProfileLimits.toleranceMM, scale * 1e-12);
+  const tol = Math.max(ExtrudedProfileLimits.tolerance, scale * 1e-12);
   const segments: ProfileSegment[] = raw.map((s, i) => {
     const end = raw[(i + 1) % raw.length].start;
     if (s.kind === 'line') {
       const length = dist(s.start, end);
       if (raw.length === 1 || length < ExtrudedProfileLimits.minimumLengthMM) fail('GEOMETRY', `Line ${i} is degenerate (length ${length})`);
-      return { kind: 'line', start: s.start, end, lengthMM: length };
+      return { kind: 'line', start: s.start, end, length: length };
     }
     const r0 = dist(s.start, s.center), r1 = dist(end, s.center);
     if (r0 < ExtrudedProfileLimits.minimumRadiusMM) fail('GEOMETRY', `Arc ${i} radius ${r0} is below ${ExtrudedProfileLimits.minimumRadiusMM} mm`);
@@ -109,7 +109,7 @@ export function buildProfileLoop(input: readonly ProfileSegmentInput[], options:
     if (s.direction === 'ccw') { while (sweep <= 0) sweep += TAU; if (closed) sweep = TAU; }
     else { while (sweep >= 0) sweep -= TAU; if (closed) sweep = -TAU; }
     if (closed && raw.length !== 1) fail('GEOMETRY', `Arc ${i} is a full circle; a full circle must be the only segment`);
-    return { kind: 'arc', start: s.start, end, center: s.center, radiusMM: r0, startAngle: a0, sweep, lengthMM: Math.abs(sweep) * r0 };
+    return { kind: 'arc', start: s.start, end, center: s.center, radius: r0, startAngle: a0, sweep, length: Math.abs(sweep) * r0 };
   });
   let loop = segments;
   checkSimple(loop, tol);
@@ -123,16 +123,16 @@ export function buildProfileLoop(input: readonly ProfileSegmentInput[], options:
   const cx = moments.mx / moments.area, cy = moments.my / moments.area;
   return deepFreeze({
     kind: 'extruded-profile-loop', version: 0, segments: loop, reversed,
-    areaMM2: moments.area, centroidMM: [cx, cy] as XY, perimeterMM: loop.reduce((s, g) => s + g.lengthMM, 0),
+    area: moments.area, centroid: [cx, cy] as XY, perimeter: loop.reduce((s, g) => s + g.length, 0),
     secondMomentsMM4: [moments.mxx - moments.area * cx * cx, moments.myy - moments.area * cy * cy, moments.mxy - moments.area * cx * cy] as const,
-    boundsMM: { min, max },
+    bounds: { min, max },
   });
 }
 
 function reverseLoop(loop: readonly ProfileSegment[]): ProfileSegment[] {
   return [...loop].reverse().map((s): ProfileSegment => s.kind === 'line'
-    ? { kind: 'line', start: s.end, end: s.start, lengthMM: s.lengthMM }
-    : { kind: 'arc', start: s.end, end: s.start, center: s.center, radiusMM: s.radiusMM, startAngle: s.startAngle + s.sweep, sweep: -s.sweep, lengthMM: s.lengthMM });
+    ? { kind: 'line', start: s.end, end: s.start, length: s.length }
+    : { kind: 'arc', start: s.end, end: s.start, center: s.center, radius: s.radius, startAngle: s.startAngle + s.sweep, sweep: -s.sweep, length: s.length });
 }
 
 // 12-point Gauss–Legendre on [-1, 1].
@@ -156,7 +156,7 @@ function areaMoments(loop: readonly ProfileSegment[]) {
         const t0 = s.startAngle + s.sweep * k / spans, dt = s.sweep / spans;
         for (let q = 0; q < 12; q++) {
           const t = t0 + dt * 0.5 * (GL_X[q] + 1);
-          add(s.center[0] + s.radiusMM * Math.cos(t), s.center[1] + s.radiusMM * Math.sin(t), -s.radiusMM * Math.sin(t) * dt, s.radiusMM * Math.cos(t) * dt, 0.5 * GL_W[q]);
+          add(s.center[0] + s.radius * Math.cos(t), s.center[1] + s.radius * Math.sin(t), -s.radius * Math.sin(t) * dt, s.radius * Math.cos(t) * dt, 0.5 * GL_W[q]);
         }
       }
     }
@@ -169,7 +169,7 @@ function segmentSamples(s: ProfileSegment, step: number): XY[] {
   if (s.kind === 'line') return [s.start];
   const n = Math.max(2, Math.ceil(Math.abs(s.sweep) / step));
   const out: XY[] = [];
-  for (let i = 0; i < n; i++) { const t = s.startAngle + s.sweep * i / n; out.push(i === 0 ? s.start : [s.center[0] + s.radiusMM * Math.cos(t), s.center[1] + s.radiusMM * Math.sin(t)]); }
+  for (let i = 0; i < n; i++) { const t = s.startAngle + s.sweep * i / n; out.push(i === 0 ? s.start : [s.center[0] + s.radius * Math.cos(t), s.center[1] + s.radius * Math.sin(t)]); }
   return out;
 }
 function sampleLoop(loop: readonly ProfileSegment[], step: number): XY[] { return loop.flatMap(s => segmentSamples(s, step)); }
@@ -196,12 +196,12 @@ export function segmentCurve(s: ProfileSegment, z: number, id: string): Curve {
   const cp: Point[] = [], wt: number[] = [], knots = [0, 0, 0];
   for (let k = 0; k < spans; k++) {
     const t0 = s.startAngle + dt * k, tm = t0 + dt / 2;
-    const p0: Point = k === 0 ? [s.start[0], s.start[1], z] : [s.center[0] + s.radiusMM * Math.cos(t0), s.center[1] + s.radiusMM * Math.sin(t0), z];
-    const rm = s.radiusMM / w;
+    const p0: Point = k === 0 ? [s.start[0], s.start[1], z] : [s.center[0] + s.radius * Math.cos(t0), s.center[1] + s.radius * Math.sin(t0), z];
+    const rm = s.radius / w;
     if (k === 0) { cp.push(p0); wt.push(1); }
     cp.push([s.center[0] + rm * Math.cos(tm), s.center[1] + rm * Math.sin(tm), z]); wt.push(w);
     const t1 = t0 + dt;
-    cp.push(k === spans - 1 ? [s.end[0], s.end[1], z] : [s.center[0] + s.radiusMM * Math.cos(t1), s.center[1] + s.radiusMM * Math.sin(t1), z]); wt.push(1);
+    cp.push(k === spans - 1 ? [s.end[0], s.end[1], z] : [s.center[0] + s.radius * Math.cos(t1), s.center[1] + s.radius * Math.sin(t1), z]); wt.push(1);
     if (k < spans - 1) knots.push((k + 1) / spans, (k + 1) / spans);
   }
   knots.push(1, 1, 1);
@@ -220,17 +220,17 @@ export function capSurface(bounds: { min: XY; max: XY }, z: number, id: string, 
   return { kind: 'surface', id, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: grid, weights: [[1, 1], [1, 1]] };
 }
 
-export interface ExtrudedProfileSolidOptions { readonly id: string; readonly heightMM: number; readonly fromMM?: number }
+export interface ExtrudedProfileSolidOptions { readonly id: string; readonly height: number; readonly from?: number }
 
 export function buildExtrudedProfileSolid(profile: ProfileLoop, options: ExtrudedProfileSolidOptions): ExtrudedProfileSolidResult {
   if (!profile || profile.kind !== 'extruded-profile-loop') fail('INPUT', 'A profile loop from buildProfileLoop is required');
   if (typeof options?.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(options.id)) fail('INPUT', 'A short identifier is required');
-  const h = finite(options.heightMM, 'heightMM'); if (h <= 0) fail('INPUT', 'heightMM must be positive');
-  const z0 = options.fromMM === undefined ? 0 : finite(options.fromMM, 'fromMM'), z1 = z0 + h;
+  const h = finite(options.height, 'height'); if (h <= 0) fail('INPUT', 'height must be positive');
+  const z0 = options.from === undefined ? 0 : finite(options.from, 'from'), z1 = z0 + h;
   if (Math.abs(z1) > ExtrudedProfileLimits.coordinateMM) fail('INPUT', 'The extrusion leaves the ±10000 mm modeling range');
   const id = options.id, segs = profile.segments, n = segs.length;
   const vertices: ExtrudedProfileVertex[] = [], edges: ExtrudedProfileEdge[] = [], faces: ExtrudedProfileFace[] = [];
-  segs.forEach((s, i) => { vertices.push({ id: `${id}_v${i}b`, pointMM: [s.start[0], s.start[1], z0] }, { id: `${id}_v${i}t`, pointMM: [s.start[0], s.start[1], z1] }); });
+  segs.forEach((s, i) => { vertices.push({ id: `${id}_v${i}b`, point: [s.start[0], s.start[1], z0] }, { id: `${id}_v${i}t`, point: [s.start[0], s.start[1], z1] }); });
   const next = (i: number) => (i + 1) % n;
   segs.forEach((s, i) => {
     edges.push({ id: `${id}_e${i}b`, vertexIds: [`${id}_v${i}b`, `${id}_v${next(i)}b`], curve: segmentCurve(s, z0, `${id}_c${i}b`), role: 'bottom', segment: i });
@@ -238,13 +238,13 @@ export function buildExtrudedProfileSolid(profile: ProfileLoop, options: Extrude
     edges.push({ id: `${id}_e${i}v`, vertexIds: [`${id}_v${i}b`, `${id}_v${i}t`], role: 'vertical', segment: i,
       curve: { kind: 'curve', id: `${id}_c${i}v`, degree: 1, knots: [0, 0, 1, 1], controlPoints: [[s.start[0], s.start[1], z0], [s.start[0], s.start[1], z1]], weights: [1, 1] } });
   });
-  faces.push({ id: `${id}_f_bottom`, role: 'bottom', segment: null, kind: 'plane', surface: capSurface(profile.boundsMM, z0, `${id}_s_bottom`, false), outwardNormal: [0, 0, -1],
+  faces.push({ id: `${id}_f_bottom`, role: 'bottom', segment: null, kind: 'plane', surface: capSurface(profile.bounds, z0, `${id}_s_bottom`, false), outwardNormal: [0, 0, -1],
     loop: segs.map((_, i) => ({ edgeId: `${id}_e${n - 1 - i}b`, sense: 'reversed' as const })) });
-  faces.push({ id: `${id}_f_top`, role: 'top', segment: null, kind: 'plane', surface: capSurface(profile.boundsMM, z1, `${id}_s_top`, true), outwardNormal: [0, 0, 1],
+  faces.push({ id: `${id}_f_top`, role: 'top', segment: null, kind: 'plane', surface: capSurface(profile.bounds, z1, `${id}_s_top`, true), outwardNormal: [0, 0, 1],
     loop: segs.map((_, i) => ({ edgeId: `${id}_e${i}t`, sense: 'forward' as const })) });
   segs.forEach((s, i) => {
     const curve = edges[i * 3].curve;
-    const normal: Point | null = s.kind === 'line' ? [(s.end[1] - s.start[1]) / s.lengthMM, -(s.end[0] - s.start[0]) / s.lengthMM, 0] : null;
+    const normal: Point | null = s.kind === 'line' ? [(s.end[1] - s.start[1]) / s.length, -(s.end[0] - s.start[0]) / s.length, 0] : null;
     faces.push({ id: `${id}_f_side${i}`, role: 'side', segment: i, kind: s.kind === 'line' ? 'plane' : 'cylinder', surface: extrudedSurface(curve, z0, z1, `${id}_s_side${i}`), outwardNormal: normal,
       loop: [{ edgeId: `${id}_e${i}b`, sense: 'forward' }, { edgeId: `${id}_e${next(i)}v`, sense: 'forward' }, { edgeId: `${id}_e${i}t`, sense: 'reversed' }, { edgeId: `${id}_e${i}v`, sense: 'reversed' }] });
   });
@@ -255,15 +255,15 @@ export function buildExtrudedProfileSolid(profile: ProfileLoop, options: Extrude
   for (const e of edges) { const u = uses.get(e.id) ?? []; if (u.length !== 2 || u[0] === u[1]) fail('TOPOLOGY', `Edge ${e.id} is not used once in each direction`); }
   const euler = vertices.length - edges.length + faces.length;
   if (euler !== 2) fail('TOPOLOGY', `Euler characteristic ${euler} ≠ 2`);
-  const vmap = new Map(vertices.map(v => [v.id, v.pointMM]));
+  const vmap = new Map(vertices.map(v => [v.id, v.point]));
   let deviation = 0;
-  const tol = Math.max(ExtrudedProfileLimits.toleranceMM, Math.max(1, ...profile.boundsMM.max.map(Math.abs), ...profile.boundsMM.min.map(Math.abs), Math.abs(z1)) * 1e-11);
+  const tol = Math.max(ExtrudedProfileLimits.tolerance, Math.max(1, ...profile.bounds.max.map(Math.abs), ...profile.bounds.min.map(Math.abs), Math.abs(z1)) * 1e-11);
   for (const e of edges) {
     const a = evaluateCurve(e.curve, 0), b = evaluateCurve(e.curve, 1);
     deviation = Math.max(deviation, d3(a, vmap.get(e.vertexIds[0])!), d3(b, vmap.get(e.vertexIds[1])!));
     const s = segs[e.segment];
     if (e.role !== 'vertical' && s.kind === 'arc') for (let k = 1; k < 16; k++) {
-      const p = evaluateCurve(e.curve, k / 16); deviation = Math.max(deviation, Math.abs(Math.hypot(p[0] - s.center[0], p[1] - s.center[1]) - s.radiusMM));
+      const p = evaluateCurve(e.curve, k / 16); deviation = Math.max(deviation, Math.abs(Math.hypot(p[0] - s.center[0], p[1] - s.center[1]) - s.radius));
     }
   }
   for (const f of faces) if (f.role === 'side') {
@@ -271,44 +271,44 @@ export function buildExtrudedProfileSolid(profile: ProfileLoop, options: Extrude
     deviation = Math.max(deviation, d3(p, v));
   }
   if (deviation > tol) fail('GEOMETRY', `Curves deviate ${deviation} mm from their vertices or circles (tolerance ${tol})`);
-  const sideArea = segs.reduce((sum, s) => sum + s.lengthMM * h, 0);
+  const sideArea = segs.reduce((sum, s) => sum + s.length * h, 0);
   return deepFreeze({
-    kind: 'extruded-profile-solid', version: 0, id, lengthUnit: 'mm', profile, fromMM: z0, heightMM: h, vertices, edges, faces,
+    kind: 'extruded-profile-solid', version: 0, id, lengthUnit: 'mm', profile, from: z0, height: h, vertices, edges, faces,
     report: { valid: true, eulerCharacteristic: euler, faceCount: faces.length, edgeCount: edges.length, vertexCount: vertices.length,
-      volumeMM3: profile.areaMM2 * h, surfaceAreaMM2: 2 * profile.areaMM2 + sideArea,
-      boundsMM: { min: [profile.boundsMM.min[0], profile.boundsMM.min[1], z0], max: [profile.boundsMM.max[0], profile.boundsMM.max[1], z1] },
-      maxCurveDeviationMM: deviation, toleranceMM: tol },
+      volume: profile.area * h, surfaceArea: 2 * profile.area + sideArea,
+      bounds: { min: [profile.bounds.min[0], profile.bounds.min[1], z0], max: [profile.bounds.max[0], profile.bounds.max[1], z1] },
+      maxCurveDeviation: deviation, tolerance: tol },
   });
 }
 
 export interface ExtrudedProfileMass {
-  readonly volumeMM3: number; readonly massKG: number; readonly centroidMM: Point;
+  readonly volume: number; readonly mass: number; readonly centroid: Point;
   /** Inertia tensor about the centroid in kg·m², products of inertia stored as −∫xy dm. */
-  readonly inertiaCentroidKgM2: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
+  readonly inertiaCentroid: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
 }
 
-export function measureExtrudedProfileSolid(solid: ExtrudedProfileSolidResult, options: { readonly densityKgPerM3: number }): ExtrudedProfileMass {
-  const rho = options?.densityKgPerM3;
+export function measureExtrudedProfileSolid(solid: ExtrudedProfileSolidResult, options: { readonly density: number }): ExtrudedProfileMass {
+  const rho = options?.density;
   if (typeof rho !== 'number' || !Number.isFinite(rho) || rho <= 0) fail('INPUT', 'A positive density is required');
-  const p = solid.profile, h = solid.heightMM, A = p.areaMM2;
+  const p = solid.profile, h = solid.height, A = p.area;
   const [sxx, syy, sxy] = p.secondMomentsMM4;
   const k = rho * 1e-15; // kg/m³ · mm⁵ → kg·m²
   const zz = A * h * h * h / 12;
   const Ixx = k * (h * syy + zz), Iyy = k * (h * sxx + zz), Izz = k * h * (sxx + syy), Ixy = -k * h * sxy;
   return deepFreeze({
-    volumeMM3: A * h, massKG: rho * A * h * 1e-9, centroidMM: [p.centroidMM[0], p.centroidMM[1], solid.fromMM + h / 2],
-    inertiaCentroidKgM2: [[Ixx, Ixy, 0], [Ixy, Iyy, 0], [0, 0, Izz]],
+    volume: A * h, mass: rho * A * h * 1e-9, centroid: [p.centroid[0], p.centroid[1], solid.from + h / 2],
+    inertiaCentroid: [[Ixx, Ixy, 0], [Ixy, Iyy, 0], [0, 0, Izz]],
   });
 }
 
 export interface ExtrudedProfileMeshFace { readonly faceId: string; readonly role: ExtrudedProfileFace['role']; readonly kind: ExtrudedProfileFace['kind']; readonly vertexOffset: number; readonly vertexCount: number; readonly indexOffset: number; readonly indexCount: number }
-export interface ExtrudedProfileMesh { readonly positionsMM: Float64Array; readonly normals: Float64Array; readonly indices: Uint32Array; readonly faces: readonly ExtrudedProfileMeshFace[] }
+export interface ExtrudedProfileMesh { readonly positions: Float64Array; readonly normals: Float64Array; readonly indices: Uint32Array; readonly faces: readonly ExtrudedProfileMeshFace[] }
 
 /** Watertight triangle mesh: caps and side strips share the same boundary samples. */
 export function tessellateExtrudedProfileSolid(solid: ExtrudedProfileSolidResult, options: { readonly segmentsPerQuarter?: number } = {}): ExtrudedProfileMesh {
   const q = options.segmentsPerQuarter ?? 8;
   if (!Number.isInteger(q) || q < 1 || q > 64) fail('INPUT', 'segmentsPerQuarter must be an integer in 1..64');
-  const step = Math.PI / 2 / q, z0 = solid.fromMM, z1 = solid.fromMM + solid.heightMM;
+  const step = Math.PI / 2 / q, z0 = solid.from, z1 = solid.from + solid.height;
   const pos: number[] = [], nor: number[] = [], idx: number[] = [], faces: ExtrudedProfileMeshFace[] = [];
   const begin = (f: ExtrudedProfileFace) => ({ face: f, v: pos.length / 3, i: idx.length });
   const end = (b: { face: ExtrudedProfileFace; v: number; i: number }) => faces.push({ faceId: b.face.id, role: b.face.role, kind: b.face.kind, vertexOffset: b.v, vertexCount: pos.length / 3 - b.v, indexOffset: b.i, indexCount: idx.length - b.i });
@@ -324,14 +324,14 @@ export function tessellateExtrudedProfileSolid(solid: ExtrudedProfileSolidResult
     const face = solid.faces[2 + i]; const b = begin(face); const base = pos.length / 3;
     const pts = [...segmentSamples(s, step), s.end];
     pts.forEach(p => {
-      const n = s.kind === 'line' ? [(s.end[1] - s.start[1]) / s.lengthMM, -(s.end[0] - s.start[0]) / s.lengthMM]
-        : [(p[0] - s.center[0]) / s.radiusMM * Math.sign(s.sweep), (p[1] - s.center[1]) / s.radiusMM * Math.sign(s.sweep)];
+      const n = s.kind === 'line' ? [(s.end[1] - s.start[1]) / s.length, -(s.end[0] - s.start[0]) / s.length]
+        : [(p[0] - s.center[0]) / s.radius * Math.sign(s.sweep), (p[1] - s.center[1]) / s.radius * Math.sign(s.sweep)];
       pos.push(p[0], p[1], z0, p[0], p[1], z1); nor.push(n[0], n[1], 0, n[0], n[1], 0);
     });
     for (let k = 0; k < pts.length - 1; k++) { const a = base + 2 * k; idx.push(a, a + 2, a + 3, a, a + 3, a + 1); }
     end(b);
   });
-  return Object.freeze({ positionsMM: new Float64Array(pos), normals: new Float64Array(nor), indices: new Uint32Array(idx), faces: Object.freeze(faces) });
+  return Object.freeze({ positions: new Float64Array(pos), normals: new Float64Array(nor), indices: new Uint32Array(idx), faces: Object.freeze(faces) });
 }
 
 /** Ear clipping for a simple counter-clockwise polygon. */
@@ -363,7 +363,7 @@ function earClip(ring: readonly XY[]): [number, number, number][] {
 /** Binary STL (little-endian) from the watertight tessellation. */
 export function exportExtrudedProfileSolidStl(solid: ExtrudedProfileSolidResult, options: { readonly segmentsPerQuarter?: number } = {}): Uint8Array {
   const mesh = tessellateExtrudedProfileSolid(solid, options);
-  return encodeBinaryStl(mesh.positionsMM, mesh.indices, `barocss extruded profile ${solid.id}`);
+  return encodeBinaryStl(mesh.positions, mesh.indices, `barocss extruded profile ${solid.id}`);
 }
 
 function deepFreeze<T>(value: T): T {

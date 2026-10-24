@@ -98,14 +98,14 @@
           "row": {
             "id": "6204",
             "designation": "6204",
-            "boreMM": 20,
-            "outsideMM": 47,
-            "widthMM": 14,
-            "chamferMM": 1,
-            "daMinMM": 25,
-            "daMaxMM": 26.5,
-            "DaMaxMM": 42,
-            "raMaxMM": 1,
+            "bore": 20,
+            "outside": 47,
+            "width": 14,
+            "chamfer": 1,
+            "daMin": 25,
+            "daMax": 26.5,
+            "DaMax": 42,
+            "raMax": 1,
             "source": "B1 (D139): NSK, 6204 Series, https://www.oss.nsk.com/6204-dgbb-sr.html"
           },
           "shaft": "n0",
@@ -118,14 +118,14 @@
           "row": {
             "id": "6204",
             "designation": "6204",
-            "boreMM": 20,
-            "outsideMM": 47,
-            "widthMM": 14,
-            "chamferMM": 1,
-            "daMinMM": 25,
-            "daMaxMM": 26.5,
-            "DaMaxMM": 42,
-            "raMaxMM": 1,
+            "bore": 20,
+            "outside": 47,
+            "width": 14,
+            "chamfer": 1,
+            "daMin": 25,
+            "daMax": 26.5,
+            "DaMax": 42,
+            "raMax": 1,
             "source": "B1 (D139): NSK, 6204 Series, https://www.oss.nsk.com/6204-dgbb-sr.html"
           },
           "shaft": "n0",
@@ -138,8 +138,8 @@
                 "rows": [
                   {
                     "class": "k5",
-                    "overMM": 18,
-                    "upToMM": 30,
+                    "over": 18,
+                    "upTo": 30,
                     "upperUM": 11,
                     "lowerUM": 2,
                     "estimate": true
@@ -225,11 +225,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 37824.12260917633,
           "relTol": 1e-7
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.13634912181531172,
             1.488891355005385e-12,
@@ -246,11 +246,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 45645.165119002064,
           "relTol": 0.000001
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.1730274530686345,
             1.7766620037439658e-13,
@@ -267,11 +267,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 911.8583772020568,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             12,
             -1.8475342903422465e-16,
@@ -288,11 +288,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 19800.652218059236,
           "relTol": 1e-7
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -309,11 +309,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 19800.652218059236,
           "relTol": 1e-7
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -330,11 +330,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 202.63272615654165,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -351,11 +351,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 32467.59385799522,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -6.993865355432739e-15,
             -5.462414850368746e-16,
@@ -372,11 +372,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 876.8770143233401,
           "relTol": 1e-7
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,

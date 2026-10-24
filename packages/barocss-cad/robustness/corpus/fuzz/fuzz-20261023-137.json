@@ -100,14 +100,14 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n2r0",
           "kind": "rotate",
           "target": "n2b",
           "axis": "x",
-          "angleDegrees": 270,
+          "angle": 270,
           "pivot": [
             0,
             0,
@@ -119,7 +119,7 @@
           "kind": "rotate",
           "target": "n2r0",
           "axis": "y",
-          "angleDegrees": 270,
+          "angle": 270,
           "pivot": [
             0,
             0,
@@ -148,12 +148,12 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 118.41809666164201,
           "relTol": 0.0001,
           "absTol": 0.011841809666164202
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1.0252676955609525,
             2.5878399132186143,

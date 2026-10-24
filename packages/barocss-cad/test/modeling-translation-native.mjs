@@ -105,7 +105,7 @@ try {
   artifact('zero.cad-model.json', zero.save(), 'actual positive-zero edited save retaining independently owned copy', true);
   work(zero, [0, 1], [2], initial); flow.zero = proveSnapshot(zero, ZERO);
   assert.ok(Object.is(initial.parameters.offsetY, -0)); assert.ok(Object.is(zero.parameters.offsetY, 0));
-  exactData(zero.bodies.right.native.graph.vertices.map(v => v.pointMM), zero.bodies.left.native.graph.vertices.map(v => v.pointMM));
+  exactData(zero.bodies.right.native.graph.vertices.map(v => v.point), zero.bodies.left.native.graph.vertices.map(v => v.point));
   unchanged(initial, before); unchanged(wider, widerBefore); unchanged(recovered, recoveredBefore);
   assert.equal(flow.modelCalls, 5); assert.equal(flow.tessellations, 2);
   assert.equal(flow.stages.filter(s => s.kind === 'modelCalls' && s.outcome === 'threw').length, 1);

@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { facetBrepFromTriangles, facetBoolean, isFacetBooleanError, evaluateCadPart, brepMassProperties, checkBrep, exportStep, importStep } from '../dist/index.js';
+import { facetBrepFromTriangles, facetBoolean, isFacetBooleanError, evaluateCadPart, brepMassProperties, checkBrep, exportStep, importStep, massPropertiesOf, outputOf, checkOutput } from '../dist/index.js';
 
 // F2 (R6, D52): a mesh body with an exact one — the mesh near the tool through the exact Boolean, the tool's faces
 // kept exact (their rims polylines on them), the far mesh untouched; mixed bodies go on through F1 and F2.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
-const vol = b => brepMassProperties(b, 1).volumeMM3;
+const vol = b => brepMassProperties(b, 1).volume;
 /** A cube of side s at the origin, each side an n × n grid of quads. */
 function cube(n, s = 20) {
   const P = [], I = [], key = new Map(), v = (x, y, z) => { const k = `${x},${y},${z}`; if (!key.has(k)) { key.set(k, P.length / 3); P.push(x, y, z); } return key.get(k); };
@@ -17,7 +17,7 @@ function cube(n, s = 20) {
   return { P, I };
 }
 const cylinder = (r, z0, h, cx = 10, cy = 10) => evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'circle', center: [cx, cy], radius: r }, { id: 'c', kind: 'extrude', sketch: 's', height: h, from: z0 }])).outputs[0].brep;
-const sphere = (r, c) => evaluateCadPart(D([{ id: 'ss', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -r] }, { kind: 'arc', start: [0, r], center: [0, 0], direction: 'cw' }], plane: { origin: c, normal: [0, -1, 0], xAxis: [1, 0, 0] } }, { id: 'sp', kind: 'revolve', sketch: 'ss', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])).outputs[0].brep;
+const sphere = (r, c) => evaluateCadPart(D([{ id: 'ss', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -r] }, { kind: 'arc', start: [0, r], center: [0, 0], direction: 'cw' }], plane: { origin: c, normal: [0, -1, 0], xAxis: [1, 0, 0] } }, { id: 'sp', kind: 'revolve', sketch: 'ss', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }])).outputs[0].brep;
 
 test('a facet cube with a cylinder and a sphere: holes, a boss, a bite and an intersection — volumes exact, the tool faces exact, the mesh faces keep their names', () => {
   const { P, I } = cube(4), m = facetBrepFromTriangles(P, I, { id: 'm' });
@@ -40,7 +40,7 @@ test('a facet cube with a cylinder and a sphere: holes, a boss, a bite and an in
   const r = facetBoolean(m, cylinder(3, -5, 30), 'difference', { id: 'r' }), wall = r.faces.find(f => f.surface.kind !== 'facets');
   // (32 segments a quarter on r 3: the sagitta 3(1 − cos(π/128)), doubled.)
   const rims = r.edges.filter(e => e.curve.controlPoints.length > 2), sag = 2 * 3 * (1 - Math.cos(Math.PI / 128));
-  assert.ok(rims.length && rims.every(e => e.toleranceMM <= 1.01 * sag), rims.map(e => e.toleranceMM).join(' '));
+  assert.ok(rims.length && rims.every(e => e.tolerance <= 1.01 * sag), rims.map(e => e.tolerance).join(' '));
   assert.ok(wall);
 });
 
@@ -49,20 +49,20 @@ test('part model: holes and Booleans on a mesh of 25,600 triangles (past F0\'s 1
   for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m; P.push((20 + 6 * Math.cos(v)) * Math.cos(u), (20 + 6 * Math.cos(v)) * Math.sin(u), 6 * Math.sin(v)); }
   const at = (i, j) => (i % n) * m + (j % m);
   for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) I.push(at(i, j), at(i + 1, j), at(i + 1, j + 1), at(i, j), at(i + 1, j + 1), at(i, j + 1));
-  const mesh = { id: 'm', kind: 'mesh', positions: P, indices: I, representation: 'facets' }, V = evaluateCadPart(D([mesh])).outputs[0].massProperties(1).volumeMM3;
+  const mesh = { id: 'm', kind: 'mesh', positions: P, indices: I, representation: 'facets' }, V = massPropertiesOf(evaluateCadPart(D([mesh])).outputs[0]).volume;
   const hole = { id: 'h', kind: 'hole', target: 'm', center: [20, 0.37], radius: 2 };
-  const one = evaluateCadPart(D([mesh, hole])).output('h');
-  assert.equal(one.representation, 'faceted'); assert.ok(one.validate().valid);
-  assert.ok(V - one.massProperties(1).volumeMM3 > 0.9 * Math.PI * 4 * 12 && V - one.massProperties(1).volumeMM3 < 1.1 * Math.PI * 4 * 12);
-  const two = evaluateCadPart(D([mesh, hole, { id: 'h2', kind: 'hole', target: 'h', center: [-20, 0.41], radius: 2 }])).output('h2');
-  assert.ok(two.validate().valid);
+  const one = outputOf(evaluateCadPart(D([mesh, hole])), 'h');
+  assert.equal(one.representation, 'faceted'); assert.ok(checkOutput(one).valid);
+  assert.ok(V - massPropertiesOf(one).volume > 0.9 * Math.PI * 4 * 12 && V - massPropertiesOf(one).volume < 1.1 * Math.PI * 4 * 12);
+  const two = outputOf(evaluateCadPart(D([mesh, hole, { id: 'h2', kind: 'hole', target: 'h', center: [-20, 0.41], radius: 2 }])), 'h2');
+  assert.ok(checkOutput(two).valid);
   assert.equal(two.brep.faces.filter(f => f.surface.kind !== 'facets').length, 4, 'both holes\' walls exact (two halves each)');
   const cut = evaluateCadPart(D([mesh, hole, { id: 'c', kind: 'split', target: 'h', axis: 'z', at: 1 }]));
-  assert.equal(cut.outputs.length, 2); assert.ok(cut.outputs.every(o => o.validate().valid));
-  assert.ok(Math.abs(cut.outputs.reduce((s, o) => s + o.massProperties(1).volumeMM3, 0) / one.massProperties(1).volumeMM3 - 1) < 1e-6);
+  assert.equal(cut.outputs.length, 2); assert.ok(cut.outputs.every(o => checkOutput(o).valid));
+  assert.ok(Math.abs(cut.outputs.reduce((s, o) => s + massPropertiesOf(o).volume, 0) / massPropertiesOf(one).volume - 1) < 1e-6);
   const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [15, -3], max: [25, 3] }, { id: 'b', kind: 'extrude', sketch: 's', height: 10, from: 4 }];
-  const u = evaluateCadPart(D([mesh, ...box, { id: 'u', kind: 'union', target: 'm', tool: 'b' }])).output('u');
-  assert.ok(u.validate().valid && u.massProperties(1).volumeMM3 > V);
+  const u = outputOf(evaluateCadPart(D([mesh, ...box, { id: 'u', kind: 'union', target: 'm', tool: 'b' }])), 'u');
+  assert.ok(checkOutput(u).valid && massPropertiesOf(u).volume > V);
   assert.throws(() => evaluateCadPart(D([mesh, ...box, { id: 'd', kind: 'difference', target: 'b', tool: 'm' }])), e => e.code === 'CAPABILITY' && /F3/.test(e.message));
 });
 

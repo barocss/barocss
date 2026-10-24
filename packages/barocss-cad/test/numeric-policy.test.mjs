@@ -9,8 +9,8 @@ const hole = (w, d, r, center = [w / 2, d / 2]) => { const m = cad.model(); cons
 
 test('policy constants match the values the kernel applies', () => {
   assert.equal(CadNumericPolicy.version, 1);
-  assert.equal(CadNumericPolicy.coordinateAbsMM, 10000);
-  assert.equal(CadNumericPolicy.linearToleranceMM, 1e-7);
+  assert.equal(CadNumericPolicy.coordinateAbs, 10000);
+  assert.equal(CadNumericPolicy.linearTolerance, 1e-7);
   assert.equal(CadNumericPolicy.chartParameters, 'exact-or-one-rounding-certified-v1');
   assert.ok(Object.isFrozen(CadNumericPolicy));
   // One rounding of u in [0, 22] on a 22 mm axis moves at most ~2 ulp(22)/22 · 22 mm.

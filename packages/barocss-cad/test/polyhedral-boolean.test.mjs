@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cad, brepFromBody, buildBrep, lineCurve, checkBrep, assertValidBrep, extrudeProfileWithHoles, booleanPolyhedra, tessellateBrep, BrepError } from '../dist/index.js';
 
-const box = (x0, y0, z0, x1, y1, z1, id = 'b') => extrudeProfileWithHoles({ id, outer: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(p => ({ kind: 'line', start: p })), heightMM: z1 - z0, fromMM: z0 });
+const box = (x0, y0, z0, x1, y1, z1, id = 'b') => extrudeProfileWithHoles({ id, outer: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(p => ({ kind: 'line', start: p })), height: z1 - z0, from: z0 });
 /** Watertight mesh volume and triangles of a B-rep (empty B-reps measure 0). */
 function measure(brep) {
   if (!brep.faces.length) return { vol: 0, tris: [] };
-  const m = tessellateBrep(brep), p = m.positionsMM, I = m.indices, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, d = new Map(); let vol = 0; const tris = [];
+  const m = tessellateBrep(brep), p = m.positions, I = m.indices, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, d = new Map(); let vol = 0; const tris = [];
   for (let t = 0; t < I.length; t += 3) {
     const k = [key(I[t]), key(I[t + 1]), key(I[t + 2])]; for (let e = 0; e < 3; e++) { const s = k[e] + '>' + k[(e + 1) % 3]; d.set(s, (d.get(s) ?? 0) + 1); }
     const [a, b, c] = [I[t] * 3, I[t + 1] * 3, I[t + 2] * 3]; tris.push([[p[a], p[a + 1], p[a + 2]], [p[b], p[b + 1], p[b + 2]], [p[c], p[c + 1], p[c + 2]]]);
@@ -88,12 +88,12 @@ test('random tetrahedra: volume identities and point classification for all oper
 });
 
 test('non-convex and holed inputs: an L-prism minus a tilted tetrahedron, a plate with holes ∪ a bar', () => {
-  const L = extrudeProfileWithHoles({ id: 'L', outer: [[0, 0], [30, 0], [30, 10], [10, 10], [10, 25], [0, 25]].map(p => ({ kind: 'line', start: p })), heightMM: 8 });
+  const L = extrudeProfileWithHoles({ id: 'L', outer: [[0, 0], [30, 0], [30, 10], [10, 10], [10, 25], [0, 25]].map(p => ({ kind: 'line', start: p })), height: 8 });
   const T = tetra([[5, 5, -3], [26, 4, 4], [8, 22, 5], [9, 7, 14]], 'T');
   const D = booleanPolyhedra(L, T.brep, 'difference'), I = booleanPolyhedra(L, T.brep, 'intersection');
   assertValidBrep(D); assertValidBrep(I);
   assert.ok(Math.abs(measure(D).vol + measure(I).vol - (30 * 10 + 10 * 15) * 8) < 1e-8);
-  const plate = extrudeProfileWithHoles({ id: 'P', outer: [[0, 0], [40, 0], [40, 20], [0, 20]].map(p => ({ kind: 'line', start: p })), holes: [[[5, 5], [5, 15], [15, 15], [15, 5]].map(p => ({ kind: 'line', start: p }))], heightMM: 4 });
+  const plate = extrudeProfileWithHoles({ id: 'P', outer: [[0, 0], [40, 0], [40, 20], [0, 20]].map(p => ({ kind: 'line', start: p })), holes: [[[5, 5], [5, 15], [15, 15], [15, 5]].map(p => ({ kind: 'line', start: p }))], height: 4 });
   const U = booleanPolyhedra(plate, box(10, -5, 0, 30, 25, 4, 'bar'), 'union');
   // Plate 700 + bar 600 − overlap 350 = 950 mm²; the bar fills part of the hole, which stays open (genus 1).
   assert.ok(Math.abs(measure(U).vol - 950 * 4) < 1e-8, String(measure(U).vol)); assert.equal(assertValidBrep(U).topology[0].genus, 1);

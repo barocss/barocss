@@ -114,7 +114,7 @@ export interface ExtractedCurveIntervalResult {
   report: ExtractedCurveIntervalReport;
 }
 
-const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const POINT_TOLERANCE = CadNumericPolicy.linearTolerance;
 const D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 const CODE = CurveIntervalExtractionDiagnosticCode;
 function requireValue(condition: boolean, code: CurveIntervalExtractionDiagnosticCode, detail: string): asserts condition {

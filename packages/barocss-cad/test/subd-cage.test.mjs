@@ -19,7 +19,7 @@ function gridCage(nx, ny) {
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) faces.push([j * (nx + 1) + i, j * (nx + 1) + i + 1, (j + 1) * (nx + 1) + i + 1, (j + 1) * (nx + 1) + i]);
   return { positions, faces };
 }
-const vol = c => brepMassProperties(subdBrep(c), 1).volumeMM3;
+const vol = c => brepMassProperties(subdBrep(c), 1).volume;
 /** A box cage at `o` of size `s`, n[k] quads along each axis, wound outward. */
 function box(o, s, n) {
   const at = new Map(), positions = [], faces = [];
@@ -106,7 +106,7 @@ test('mirror across X: a half box (open on the plane) and its mirror are exactly
   // The same cage built whole: a 20 × 10 × 10 box of two quads across X (its middle ring on the plane).
   const whole = box([-10, 0, 0], [20, 10, 10], [2, 1, 1]);
   const sym = brepMassProperties(subdBrep(full), 1);
-  assert.ok(Math.abs(sym.centroidMM[0]) < 1e-9, `centred on the plane: ${sym.centroidMM}`);
+  assert.ok(Math.abs(sym.centroid[0]) < 1e-9, `centred on the plane: ${sym.centroid}`);
   assert.ok(Math.abs(vol(full) / vol(whole) - 1) < 1e-12, `${vol(full)} vs ${vol(whole)}`);
   // (Vertices renumber as faces go: the plane's by position.)
   const onPlane = [...Array(half.positions.length / 3).keys()].filter(v => half.positions[3 * v] === 0), off = [...Array(half.positions.length / 3).keys()].find(v => half.positions[3 * v] !== 0);

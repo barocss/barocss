@@ -90,7 +90,7 @@ export interface CoplanarFaceBooleanMeshResult {
   boundaryPaths: CoplanarFaceBooleanMeshBoundaryPath[]; triangulation: CoplanarFaceBooleanMeshTriangulation; report: CoplanarFaceBooleanMeshReport;
 }
 
-const CODE = CoplanarFaceBooleanMeshDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const CODE = CoplanarFaceBooleanMeshDiagnosticCode, TOLERANCE = CadNumericPolicy.linearTolerance;
 function check(condition: boolean, code: CoplanarFaceBooleanMeshDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CoplanarFaceBooleanMeshError(code, detail);
 }

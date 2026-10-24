@@ -70,7 +70,7 @@ export interface WideCurveRefinementResult {
   original: Curve; options: WideCurveRefinementOptions; curve: Curve; source: string; sourceVersion: 0; model: Model;
   originalSource: string; originalModel: Model; provenance: WideCurveRefinementProvenance; report: WideCurveRefinementReport;
 }
-const POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const POINT_TOLERANCE = CadNumericPolicy.linearTolerance;
 const D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 const CODE = WideCurveRefinementDiagnosticCode;
 function requireValue(condition: boolean, code: WideCurveRefinementDiagnosticCode, detail: string): asserts condition {

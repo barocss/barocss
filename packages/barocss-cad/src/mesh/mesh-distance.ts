@@ -4,13 +4,13 @@
 // child first). One way only: a mesh's distance to another and back are both asked for a Hausdorff distance.
 import { nearestDistance2, triangleBvh } from './triangle-bvh.js';
 
-export interface MeshDistance { readonly maxMM: number; readonly sumSq: number; readonly samples: number; readonly at: readonly [number, number, number] | null }
+export interface MeshDistance { readonly max: number; readonly sumSq: number; readonly samples: number; readonly at: readonly [number, number, number] | null }
 
 
 /** From mesh A's vertices and triangle centres to mesh B's surface: the largest distance (and where), the squares' sum. */
 export function meshDistance(pa: ArrayLike<number>, ia: ArrayLike<number>, pb: ArrayLike<number>, ib: ArrayLike<number>): MeshDistance {
   const P = pb instanceof Float64Array ? pb : Float64Array.from(pb), I = ib instanceof Uint32Array ? ib : Uint32Array.from(ib);
-  if (!(I.length >= 3)) return { maxMM: Infinity, sumSq: Infinity, samples: 0, at: null };
+  if (!(I.length >= 3)) return { max: Infinity, sumSq: Infinity, samples: 0, at: null };
   const tree = triangleBvh(P, I);
   let max = 0, sum = 0, n = 0, ax = 0, ay = 0, az = 0, found = false;
   const nv = pa.length / 3, nt = ia.length / 3;
@@ -22,7 +22,7 @@ export function meshDistance(pa: ArrayLike<number>, ia: ArrayLike<number>, pb: A
     sum += d2; n++;
     if (d2 > max || !found) { max = d2; ax = x; ay = y; az = z; found = true; }
   }
-  return { maxMM: Math.sqrt(max), sumSq: sum, samples: n, at: found ? [ax, ay, az] : null };
+  return { max: Math.sqrt(max), sumSq: sum, samples: n, at: found ? [ax, ay, az] : null };
 }
 
 /** From mesh A's vertices and triangle centres to mesh B's surface: the least and the largest distance, and where (R11.3, D114). */

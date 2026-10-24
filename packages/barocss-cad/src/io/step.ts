@@ -62,8 +62,12 @@ const AP214 = 'AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }', AP242 = 'AP242_MANA
 const facetOnly = (b: Brep) => b.faces.length > 0 && b.faces.every(f => f.surface.kind === 'facets');
 const facetTriangles = (b: Brep) => b.faces.reduce((n, f) => n + (f.surface.kind === 'facets' ? f.surface.indices.length / 3 : 0), 0);
 
-/** One STEP file of every solid of the given B-reps (a part's bodies), as one product. */
-export function exportStep(input: Brep | readonly Brep[], options: StepExportOptions = {}): string {
+/**
+ * One STEP file of every solid of the given B-reps (a part's bodies), as one product. A part output (`{ id, brep }`,
+ * R7.3b) is its B-rep, named by its id unless `name` is given.
+ */
+export function exportStep(input: Brep | readonly Brep[] | { readonly id: string; readonly brep: Brep }, options: StepExportOptions = {}): string {
+  if (!Array.isArray(input) && 'brep' in input && 'id' in input) return exportStep(input.brep, { ...options, name: options.name ?? input.id });
   // (F0: a facet body is written as its triangles, planar faces merged where flat — the planar mesh B-rep any
   // reader takes. AP242 tessellated faces come with R3.5.)
   // (A body mixing mesh and exact faces, F2, goes out as a mesh body, tessellated: its exact faces sampled at 64
@@ -104,7 +108,7 @@ export function exportStep(input: Brep | readonly Brep[], options: StepExportOpt
   // (The distance accuracy: 1e-6 mm, or the bodies' largest entity tolerance where that is larger — a cavity of fitted
   // offsets has tolerant edges, which a reader takes back from it, D110.)
   let accuracy = 1e-6;
-  for (const b of given) for (const x of [...b.edges, ...b.vertices]) if (x.toleranceMM > accuracy) accuracy = x.toleranceMM;
+  for (const b of given) for (const x of [...b.edges, ...b.vertices]) if (x.tolerance > accuracy) accuracy = x.tolerance;
   const uncertainty = add_(`UNCERTAINTY_MEASURE_WITH_UNIT(LENGTH_MEASURE(${accuracy === 1e-6 ? '1.E-06' : real(accuracy)}),${mm},'distance_accuracy_value','confusion accuracy')`);
   const context = add_(`(GEOMETRIC_REPRESENTATION_CONTEXT(3)GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT((${uncertainty}))GLOBAL_UNIT_ASSIGNED_CONTEXT((${mm},${radian},${steradian}))REPRESENTATION_CONTEXT('Context3D','3D Context with UNIT and UNCERTAINTY'))`);
 
@@ -201,7 +205,7 @@ function writeValidationProperties(breps: readonly Brep[], add_: (e: string) => 
   let volume = 0, area = 0; const moment = [0, 0, 0], lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const b of breps) {
     if (!b.bodies.some(x => x.kind === 'solid')) continue;
-    const m = brepMassProperties(b, 1); volume += m.volumeMM3; for (let k = 0; k < 3; k++) moment[k] += m.volumeMM3 * m.centroidMM[k];
+    const m = brepMassProperties(b, 1); volume += m.volume; for (let k = 0; k < 3; k++) moment[k] += m.volume * m.centroid[k];
     area += brepSurfaceArea(b);
     // (The box without a mesh, D151: a tessellation at 16 a quarter took 14 s of the 724-face wheel's 20 s export.)
     const box = brepBounds(b);

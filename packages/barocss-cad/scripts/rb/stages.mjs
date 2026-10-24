@@ -74,7 +74,7 @@ function onSegment(p, [a, b], tol) {
 export function crescentMesh(brep, mesh, c) {
   const shellOf = new Map(brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(brep.shells.map(s => [s.id, s.body])), tris = new Map();
   for (const f of mesh.faces) { const body = bodyOf.get(shellOf.get(f.faceId)), list = tris.get(body) ?? []; for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t++) list.push(mesh.indices[t]); tris.set(body, list); }
-  const open = []; for (const list of tris.values()) openEdgeList(mesh.positionsMM, list, open);
+  const open = []; for (const list of tris.values()) openEdgeList(mesh.positions, list, open);
   return open.length > 0 && open.every(u => u.n === 4 && c.segments.some(s => onSegment(u.a, s, 1e3 * c.tol) && onSegment(u.b, s, 1e3 * c.tol)));
 }
 /** Whether strict L0's issues are all a crescent's: its faces' loops touching, on faces through its coincident vertices. */
@@ -92,7 +92,7 @@ export function openEdgesByBody(brep, mesh) {
     for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t++) list.push(mesh.indices[t]);
     tris.set(body, list);
   }
-  let open = 0; for (const list of tris.values()) open += openEdges(mesh.positionsMM, list);
+  let open = 0; for (const list of tris.values()) open += openEdges(mesh.positions, list);
   return open;
 }
 /** A B-rep's size (largest coordinate of its vertices, at least 1): the scale of its tolerance cap. */
@@ -145,19 +145,19 @@ export function runCase(cad, file, started) {
     const brep = b.brep ?? b, suffix = bodies.length > 1 ? `#${k}` : '', crescent = crescentContacts(brep);
     const report = stage(`validate${suffix}`, () => {
       // (The strict L0 checks: an output's own validate(), or checkBrep strict for an imported body.)
-      const r = b.validate ? b.validate() : cad.checkBrep(brep, { strict: true }), cap = gapCap(sizeOf(brep));
+      const r = b.brep ? cad.checkOutput(b) : cad.checkBrep(brep, { strict: true }), cap = gapCap(sizeOf(brep));
       if (!r.valid) return crescent && crescentIssues(brep, r.issues, crescent) ? { status: 'KNOWN', detail: `KNOWN-CRESCENT (D195): ${r.issues[0]}`, value: r } : { status: 'INVALID', detail: r.issues.slice(0, 3).join('; ') };
-      if (r.maximumVertexGapMM > cap || r.maximumPcurveGapMM > cap) return { status: 'TOL_BLOWUP', detail: `vertex gap ${r.maximumVertexGapMM}, pcurve gap ${r.maximumPcurveGapMM}, cap ${cap}` };
+      if (r.maximumVertexGap > cap || r.maximumPcurveGap > cap) return { status: 'TOL_BLOWUP', detail: `vertex gap ${r.maximumVertexGap}, pcurve gap ${r.maximumPcurveGap}, cap ${cap}` };
       return { value: r };
     });
     const mass = stage(`mass${suffix}`, () => {
       const m = cad.brepMassProperties(brep, 1);
-      if (![m.volumeMM3, ...m.centroidMM].every(Number.isFinite)) return { status: 'CRASH', detail: `not finite: ${m.volumeMM3} ${m.centroidMM}` };
+      if (![m.volume, ...m.centroid].every(Number.isFinite)) return { status: 'CRASH', detail: `not finite: ${m.volume} ${m.centroid}` };
       return { value: m };
     });
     stage(`tessellate${suffix}`, () => {
       const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 8 });
-      if (!mesh.positionsMM.every(Number.isFinite)) return { status: 'CRASH', detail: 'a position is not finite' };
+      if (!mesh.positions.every(Number.isFinite)) return { status: 'CRASH', detail: 'a position is not finite' };
       // (Watertight body by body: separate bodies that touch share positions without sharing edges.)
       const open = openEdgesByBody(brep, mesh);
       if (open && crescent && crescentMesh(brep, mesh, crescent)) return { status: 'KNOWN', detail: `KNOWN-CRESCENT (D195): ${open} edges used four times, along the tangent line` };
@@ -177,9 +177,9 @@ export function runCase(cad, file, started) {
         const a1 = cad.brepSurfaceArea(back), r = cad.checkBrep(back, { strict: true }), how = meshes ? ` (${meshes})` : '';
         const known = !r.valid && crescent && crescentIssues(back, r.issues, crescentContacts(back, true) ?? crescent);
         if (!r.valid && !known) return { status: 'INVALID', detail: `re-imported${how}: ${r.issues[0]}` };
-        if (Math.abs(m.volumeMM3 - mass.volumeMM3) > Math.max(rel * Math.abs(mass.volumeMM3), 1e-12)) return { status: 'WRONG', detail: `volume${how} ${mass.volumeMM3} → ${m.volumeMM3}` };
+        if (Math.abs(m.volume - mass.volume) > Math.max(rel * Math.abs(mass.volume), 1e-12)) return { status: 'WRONG', detail: `volume${how} ${mass.volume} → ${m.volume}` };
         if (Math.abs(a1 - a0) > rel * a0) return { status: 'WRONG', detail: `area${how} ${a0} → ${a1}` };
-        if (Math.hypot(...[0, 1, 2].map(k => m.centroidMM[k] - mass.centroidMM[k])) > rel * size) return { status: 'WRONG', detail: `centroid${how} ${mass.centroidMM} → ${m.centroidMM}` };
+        if (Math.hypot(...[0, 1, 2].map(k => m.centroid[k] - mass.centroid[k])) > rel * size) return { status: 'WRONG', detail: `centroid${how} ${mass.centroid} → ${m.centroid}` };
         if (meshes !== 'planar' && !mixed && counts(report) !== counts(r)) return { status: 'WRONG', detail: `topology${how} ${counts(report)} → ${counts(r)}` };
       }
       return {};
@@ -187,10 +187,10 @@ export function runCase(cad, file, started) {
     // An incoming STEP's own validation properties (CAx-IF) against what was read.
     if (isStep && mass) stage('gvp', () => {
       const g = cad.stepValidationProperties(text);
-      if (g.volumeMM3 === undefined && g.areaMM2 === undefined && g.centroidMM === undefined) return { detail: 'no validation properties' };
-      const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 16 }), P = mesh.positionsMM, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      if (g.volume === undefined && g.area === undefined && g.centroid === undefined) return { detail: 'no validation properties' };
+      const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 16 }), P = mesh.positions, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
       for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], P[i + k]); hi[k] = Math.max(hi[k], P[i + k]); }
-      const c = cad.compareValidationProperties(g, { volumeMM3: mass.volumeMM3, areaMM2: cad.brepSurfaceArea(brep), centroidMM: mass.centroidMM, box: { min: lo, max: hi } });
+      const c = cad.compareValidationProperties(g, { volume: mass.volume, area: cad.brepSurfaceArea(brep), centroid: mass.centroid, box: { min: lo, max: hi } });
       return c.ok ? {} : { status: 'WRONG', detail: ['volume', 'area', 'centroid'].filter(k => c[k] && !c[k].ok).map(k => `${k} off by ${c[k].difference.toExponential(2)} (limit ${c[k].limit.toExponential(2)})`).join('; ') };
     });
     results.push({ report, mass, bodyCount: b.bodyCount ?? brep.bodies.length, brep });
@@ -200,9 +200,9 @@ export function runCase(cad, file, started) {
     for (let k = 0; k < results.length; k++) {
       const r = results[k], want = expect.outputs[k];
       if (!r.mass || !r.report) return { status: 'WRONG', detail: `output ${k} has no mass or report` };
-      const dv = Math.abs(r.mass.volumeMM3 - want.volumeMM3.value);
-      if (dv > Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0)) return { status: 'WRONG', detail: `output ${k} volume ${r.mass.volumeMM3} vs ${want.volumeMM3.value}` };
-      if (r.mass.centroidMM.some((x, i) => Math.abs(x - want.centroidMM.value[i]) > want.centroidMM.absTol)) return { status: 'WRONG', detail: `output ${k} centroid ${r.mass.centroidMM} vs ${want.centroidMM.value}` };
+      const dv = Math.abs(r.mass.volume - want.volume.value);
+      if (dv > Math.max(want.volume.relTol * Math.abs(want.volume.value), want.volume.absTol ?? 0)) return { status: 'WRONG', detail: `output ${k} volume ${r.mass.volume} vs ${want.volume.value}` };
+      if (r.mass.centroid.some((x, i) => Math.abs(x - want.centroid.value[i]) > want.centroid.absTol)) return { status: 'WRONG', detail: `output ${k} centroid ${r.mass.centroid} vs ${want.centroid.value}` };
       // (A case may leave its body count and topology unsaid: an L4 fuzz finding knows its oracle's volume and centroid only, D188.)
       if (want.bodies !== undefined && r.bodyCount !== want.bodies) return { status: 'WRONG', detail: `output ${k} bodies ${r.bodyCount} vs ${want.bodies}` };
       const topo = JSON.stringify(r.report.topology.map(t => ({ shells: t.shells, genus: t.genus })));

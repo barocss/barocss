@@ -224,7 +224,7 @@ function assemble(id: string, drafts: readonly FaceDraft[], size: number): Brep 
     return { edge: edges[k].id, sense: edges[k].vertices[0] === `${id}_v${from}` ? 'forward' : 'reversed' };
   };
   const faces: BrepFaceInput[] = drafts.map((f, i) => ({ id: `${id}_f${i}`, name: f.name, surface: f.surface, sense: f.sense, loops: f.loops.map(l => ({ kind: l.kind, uses: l.pieces.map(edgeOf) })) }));
-  const brep = buildBrep({ source: { family: 'thread', id }, toleranceMM: 1e3 * tol, vertices: points.map((p, i) => ({ id: `${id}_v${i}`, point: p })), edges: edges.map(e => ({ id: e.id, curve: e.curve, vertices: e.vertices })), bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
+  const brep = buildBrep({ source: { family: 'thread', id }, tolerance: 1e3 * tol, vertices: points.map((p, i) => ({ id: `${id}_v${i}`, point: p })), edges: edges.map(e => ({ id: e.id, curve: e.curve, vertices: e.vertices })), bodies: [{ id, kind: 'solid', shells: [{ id: `${id}_shell`, faces, closed: true }] }] });
   assertValidBrep(brep);
   return brep;
 }

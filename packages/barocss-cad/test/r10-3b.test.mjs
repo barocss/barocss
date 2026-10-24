@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, checkOutput, massPropertiesOf } from '../dist/index.js';
 
 // R10.3b (D93): corners of three finished edges. All three concave between planes — a pocket's corner — the ball in the
 // air touching all three: its eighth, as the all-convex box corner has had (D22). The two ways round — a boss's upright
@@ -23,8 +23,8 @@ test('R10.3b a pocket\'s floor and upright edges (all concave, between planes): 
   const o0 = out(pocket), edges = o0.brep.edges.filter(e => e.name.split('|').every(n => /^p\./.test(n))).map(e => e.name), r = 2;
   assert.equal(edges.length, 8);
   const o = out([...pocket, fillet('c', edges, r)]);
-  assert.equal(o.validate().valid, true);
-  const got = o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3, exact = A(r) * (2 * (30 - 2 * r) + 2 * (20 - 2 * r) + 4 * (10 - r)) + 4 * cube(r);
+  assert.equal(checkOutput(o).valid, true);
+  const got = massPropertiesOf(o).volume - massPropertiesOf(o0).volume, exact = A(r) * (2 * (30 - 2 * r) + 2 * (20 - 2 * r) + 4 * (10 - r)) + 4 * cube(r);
   // (The corner patches held their ball's pole, where the quadrature over a trimmed domain was least accurate — 3e-4 of
   // the fillet, D22/D93; turned off it since R10.B, 8e-7, D99.)
   assert.ok(Math.abs(got / exact - 1) < 2e-6, `${got} vs ${exact} (${got / exact - 1})`);
@@ -32,18 +32,18 @@ test('R10.3b a pocket\'s floor and upright edges (all concave, between planes): 
 });
 
 test('R10.3b a box boss\'s foot with its upright edges, the two ways round at each corner: the uprights rounded first, then the foot round them — to the closed form (straight foot, a torus quarter round each rounded corner, the uprights\' rounds), and the same as the two fillets one after the other', () => {
-  const o0 = out(boss), b = o0.brep, v0 = o0.massProperties(1).volumeMM3, r = 2;
+  const o0 = out(boss), b = o0.brep, v0 = massPropertiesOf(o0).volume, r = 2;
   const foot = b.edges.filter(e => /p\.top/.test(e.name) && /b\.side/.test(e.name)).map(e => e.name), up = b.edges.filter(e => e.name.split('|').every(n => /^b\.side/.test(n))).map(e => e.name);
   const torus = Math.PI / 2 * (r * A(r) + M(r)), rolled = Math.PI / 2 * M(r);
   for (const [what, edges, exact] of [['four uprights', [...foot, ...up], A(r) * (64 - 8 * r) + 4 * torus - 4 * A(r) * 15], ['one upright', [...foot, up[0]], A(r) * (64 - 2 * r) + torus + 3 * rolled - A(r) * 15]]) {
     const o = out([...boss, fillet('u', edges, r)]);
-    assert.equal(o.validate().valid, true, what);
-    const got = o.massProperties(1).volumeMM3 - v0;
+    assert.equal(checkOutput(o).valid, true, what);
+    const got = massPropertiesOf(o).volume - v0;
     assert.ok(Math.abs(got / exact - 1) < 1e-8, `${what}: ${got} vs ${exact} (${got / exact - 1})`);
   }
   // The same as rounding the uprights, then the foot round them, in two features.
   const s1 = [...boss, fillet('u', up, r)], b1 = out(s1).brep, foot2 = b1.edges.filter(e => /p\.top/.test(e.name) && /(b\.side|f\.face)/.test(e.name)).map(e => e.name);
-  const two = out([...s1, fillet('f', foot2, r, 'g')]).massProperties(1).volumeMM3, one = out([...boss, fillet('u', [...foot, ...up], r)]).massProperties(1).volumeMM3;
+  const two = massPropertiesOf(out([...s1, fillet('f', foot2, r, 'g')])).volume, one = massPropertiesOf(out([...boss, fillet('u', [...foot, ...up], r)])).volume;
   assert.ok(Math.abs(two - one) < 1e-9 * one, `${one} vs ${two}`);
 });
 
@@ -51,7 +51,7 @@ test('R10.3b an L-plate\'s top with its inner upright edge (concave among convex
   const L = [{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [40, 0], [40, 20], [20, 20], [20, 40], [0, 40]] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
   const o0 = out(L), top = o0.brep.edges.filter(e => /e\.top/.test(e.name)).map(e => e.name), inner = o0.brep.edges.find(e => /e\.side2/.test(e.name) && /e\.side3/.test(e.name)).name, r = 2;
   const o = out([...L, fillet('e', [...top, inner], r)]);
-  assert.equal(o.validate().valid, true);
-  const removed = o0.massProperties(1).volumeMM3 - o.massProperties(1).volumeMM3, exact = -A(r) * 10 + A(r) * (160 - 2 * r) - 5 * mitre(r) + Math.PI / 2 * (r * A(r) + M(r));
+  assert.equal(checkOutput(o).valid, true);
+  const removed = massPropertiesOf(o0).volume - massPropertiesOf(o).volume, exact = -A(r) * 10 + A(r) * (160 - 2 * r) - 5 * mitre(r) + Math.PI / 2 * (r * A(r) + M(r));
   assert.ok(Math.abs(removed / exact - 1) < 5e-8, `${removed} vs ${exact} (${removed / exact - 1})`);
 });

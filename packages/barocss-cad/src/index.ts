@@ -640,8 +640,8 @@ export { prismaticMassProperties, brepMassProperties, brepSurfaceArea, combineMa
 export { loftSolid, type LoftInput, type LoftSectionInput } from './features/loft.js';
 export { generalShell } from './blend/general-shell.js';
 export { revolutionOf, type Revolution } from './nurbs/surfaces/surface-revolution.js';
-export type { SolidMassProperties } from './brep/solid-mass.js';
-export { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, CadPartLimits, stepSizeProblem, type GearPlacement, type RackPlacement, FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from './part/part-model.js';
+export type { MassProperties } from './brep/solid-mass.js';
+export { evaluateCadPart, loadCadPart, emptyCadPart, massPropertiesOf, surfaceAreaOf, checkOutput, exportStl, flatPatternOf, outputOf, reevaluate, saveCadPart, CadPartError, CadPartLimits, stepSizeProblem, type GearPlacement, type RackPlacement, FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES } from './part/part-model.js';
 export type { CadPartDocument, CadPartFeature, CadPartSnapshot, CadPartOutput, CadPartDim, CadPartAxis, CadPartLoopSegment, CadPartErrorCode, CadPartBeadSharing, CadPartLoftSection, CadPartSweepStep, CadPartSketchPlane, CadPartEvaluationOptions, CadPartProfileCalls, CadPartFeatureProfile, CadPartSection, CadPartFrameOverride, CadPartFrameSegment, CadPartFrameCorners, CadPartFrameNotch, CadPartFrameTrim } from './part/part-model.js';
 export { booleanAnalytic } from './brep/analytic-boolean.js';
 export type { AnalyticBooleanOperation } from './brep/analytic-boolean.js';

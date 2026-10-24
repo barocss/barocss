@@ -41,19 +41,19 @@
             "name": "USB-C receptacle opening",
             "opening": {
               "shape": "stadium",
-              "widthMM": 8.34,
-              "heightMM": 2.56,
-              "depthMM": 6.2
+              "width": 8.34,
+              "height": 2.56,
+              "depth": 6.2
             },
             "body": {
               "shape": "stadium",
-              "widthMM": 8.25,
-              "heightMM": 2.4,
-              "lengthMM": 6.51
+              "width": 8.25,
+              "height": 2.4,
+              "length": 6.51
             },
             "keepOut": {
-              "marginMM": 1,
-              "depthMM": 15
+              "margin": 1,
+              "depth": 15
             },
             "source": "U1 (D139): Wikipedia, \"USB hardware\", the connector dimensions table"
           },
@@ -74,11 +74,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 7876.347290497422,
           "relTol": 1e-10
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             20,
             10,
@@ -95,11 +95,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 120.85094617181214,
           "relTol": 1e-10
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             20,
             10,

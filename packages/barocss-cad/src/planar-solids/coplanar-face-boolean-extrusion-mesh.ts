@@ -85,7 +85,7 @@ export interface CoplanarFaceBooleanExtrusionMeshResult {
   shellRanges: CoplanarFaceBooleanExtrusionMeshShellRange[]; report: CoplanarFaceBooleanExtrusionMeshReport;
 }
 
-const CODE = CoplanarFaceBooleanExtrusionMeshDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const CODE = CoplanarFaceBooleanExtrusionMeshDiagnosticCode, TOLERANCE = CadNumericPolicy.linearTolerance;
 function check(condition: boolean, code: CoplanarFaceBooleanExtrusionMeshDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CoplanarFaceBooleanExtrusionMeshError(code, detail);
 }

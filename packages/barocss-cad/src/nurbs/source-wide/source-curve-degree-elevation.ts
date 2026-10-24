@@ -46,9 +46,9 @@ type D1State = { status: 'evaluated'; value: CurveD1Result } |
   { status: 'refused-c0'; name: string; reason: string; value: null };
 type Observation = {
   parameter: number;
-  originalPointMM: Point;
-  pointMM: Point;
-  pointDifferenceMM: number;
+  originalPoint: Point;
+  point: Point;
+  pointDifference: number;
   originalD1: D1State;
   outputD1: D1State;
   relativeDerivativeDifference: number | null;
@@ -83,7 +83,7 @@ export interface SourceCurveDegreeElevationReport {
   fileSizes: { request: Size; result: Size };
   stations: number[];
   observations: Observation[];
-  maximumPointDifferenceMM: number;
+  maximumPointDifference: number;
   maximumRelativeDerivativeDifference: number;
   directCounts: {
     originalCompileCount: 1; candidateCompileCount: 1; coefficientElevationCallCount: 1;
@@ -113,8 +113,8 @@ export interface SourceCurveDegreeElevationReport {
     maximumKnots: 70; maximumGeneratedRows: 48; maximumCopiedEndpoints: 32;
     maximumObservations: 128; maximumProfileObservations: 125; maximumNativeAttempts: 500;
     maximumPatches: 4; maximumDecimalEmissions: 325; maximumModelObjects: 16;
-    coordinateAbsMM: 10000; minimumWeight: 0.000001; maximumWeight: 1000000;
-    maximumReplacementLiteralCharacters: 512; maximumPointDifferenceMM: 1e-7;
+    coordinateAbs: 10000; minimumWeight: 0.000001; maximumWeight: 1000000;
+    maximumReplacementLiteralCharacters: 512; maximumPointDifference: 1e-7;
     maximumRelativeDerivativeDifference: 1e-7; sourceUTF16: 262144; sourceUTF8: 262144;
     maximumFileUTF16: 2097152; maximumFileUTF8: 2097152;
     ownValues: 1048576; ownDepth: 64; arrayElements: 8192; recordFields: 64;
@@ -523,7 +523,7 @@ export function elevateSourceCurveDegree(input: SourceCurveDegreeElevationReques
     'Actual native endpoint/interior C0 states must remain truthful on both supports');
     const relativeDerivativeDifference = originalD1.status === 'evaluated' && outputD1.status === 'evaluated' ?
       relativeDifference(originalD1.value.derivative, outputD1.value.derivative) : null;
-    return { parameter, originalPointMM, pointMM, pointDifferenceMM, originalD1, outputD1,
+    return { parameter, originalPoint: originalPointMM, point: pointMM, pointDifference: pointDifferenceMM, originalD1, outputD1,
       relativeDerivativeDifference };
   });
   const generatedPoleCount = coefficientResult.spans.reduce((sum, span) => sum + span.generated.length, 0);
@@ -551,7 +551,7 @@ export function elevateSourceCurveDegree(input: SourceCurveDegreeElevationReques
     knotCounts: { original: originalCurve.knots.length, output: curve.knots.length }, patchCount: 4,
     sourceSizes: { original: originalSize, candidate: candidateSize },
     fileSizes: { request: requestSize, result: { utf16: 0, utf8: 0 } }, stations, observations,
-    maximumPointDifferenceMM: Math.max(...observations.map(value => value.pointDifferenceMM)),
+    maximumPointDifference: Math.max(...observations.map(value => value.pointDifference)),
     maximumRelativeDerivativeDifference: Math.max(0, ...observations.map(value => value.relativeDerivativeDifference ?? 0)),
     directCounts: {
       originalCompileCount: 1, candidateCompileCount: 1, coefficientElevationCallCount: 1,
@@ -579,8 +579,8 @@ export function elevateSourceCurveDegree(input: SourceCurveDegreeElevationReques
       maximumKnots: 70, maximumGeneratedRows: 48, maximumCopiedEndpoints: 32,
       maximumObservations: 128, maximumProfileObservations: 125, maximumNativeAttempts: 500,
       maximumPatches: 4, maximumDecimalEmissions: 325, maximumModelObjects: 16,
-      coordinateAbsMM: 10000, minimumWeight: 0.000001, maximumWeight: 1000000,
-      maximumReplacementLiteralCharacters: 512, maximumPointDifferenceMM: 1e-7,
+      coordinateAbs: 10000, minimumWeight: 0.000001, maximumWeight: 1000000,
+      maximumReplacementLiteralCharacters: 512, maximumPointDifference: 1e-7,
       maximumRelativeDerivativeDifference: 1e-7, sourceUTF16: 262144, sourceUTF8: 262144,
       maximumFileUTF16: 2097152, maximumFileUTF8: 2097152,
       ownValues: 1048576, ownDepth: 64, arrayElements: 8192, recordFields: 64,

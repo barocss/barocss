@@ -64,7 +64,7 @@ export function prismaticExtrude(rings: readonly (readonly CurveSegment2[])[], z
 
 const toCurve2 = (s: ProfileSegment, tag?: string): CurveSegment2 => {
   const t = tag === undefined ? {} : { tag };
-  return s.kind === 'line' ? { kind: 'line', a: s.start, b: s.end, ...t } : { kind: 'arc', c: s.center, r: s.radiusMM, t0: s.startAngle, sweep: s.sweep, ...t };
+  return s.kind === 'line' ? { kind: 'line', a: s.start, b: s.end, ...t } : { kind: 'arc', c: s.center, r: s.radius, t0: s.startAngle, sweep: s.sweep, ...t };
 };
 const reverseRing = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(segReverse);
 
@@ -73,13 +73,13 @@ const reverseRing = (ring: readonly CurveSegment2[]) => [...ring].reverse().map(
  * walls are named `tag.side<i>` (i: the authored segment) and `tag.hole<h>.side<i>`, caps `tag.top`
  * and `tag.bottom`.
  */
-export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly heightMM: number; readonly fromMM?: number; readonly tag?: string; readonly sideTags?: SideTags;
+export function prismaticFromProfile(input: { readonly outer: readonly ProfileSegmentInput[]; readonly regions?: readonly (readonly ProfileSegmentInput[])[]; readonly holes?: readonly (readonly ProfileSegmentInput[])[]; readonly height: number; readonly from?: number; readonly tag?: string; readonly sideTags?: SideTags;
   /**
    * Whole names for the outer loop's walls (one an authored segment) and the caps, in place of the tag's (R12.1 sheet roles,
    * D116); the holes' walls too, each hole's list in its order (FR1 section roles, D123). A loop left out is named by the tag.
    */
   readonly names?: { readonly outer?: readonly string[]; readonly holes?: readonly (readonly string[])[]; readonly bottom: string; readonly top: string } }): PrismaticSolid {
-  const budget = { maximumSegments: 1024 }, z0 = input.fromMM ?? 0, z1 = z0 + input.heightMM, tag = input.tag, tags = input.sideTags, names = input.names;
+  const budget = { maximumSegments: 1024 }, z0 = input.from ?? 0, z1 = z0 + input.height, tag = input.tag, tags = input.sideTags, names = input.names;
   // A clockwise authored loop is reversed; segment k then runs along authored segment n − 1 − k.
   const loop = (segments: readonly ProfileSegmentInput[], prefix: string, own?: readonly string[], whole?: readonly string[]) => {
     const built = buildProfileLoop(segments, budget), n = built.segments.length;
@@ -159,8 +159,8 @@ class PointSet {
 /** Prismatic sections are lines and arcs only. */
 const noCurves = (): never => { throw prismaticSolidError('prismatic sections are made of lines and arcs'); };
 const profileSegment = (s: CurveSegment2, start: XY, end: XY): ProfileSegment => s.kind === 'curve' ? noCurves() : s.kind === 'line'
-  ? { kind: 'line', start, end, lengthMM: Math.hypot(end[0] - start[0], end[1] - start[1]) }
-  : { kind: 'arc', start, end, center: s.c, radiusMM: s.r, startAngle: s.t0, sweep: s.sweep, lengthMM: Math.abs(s.sweep) * s.r };
+  ? { kind: 'line', start, end, length: Math.hypot(end[0] - start[0], end[1] - start[1]) }
+  : { kind: 'arc', start, end, center: s.c, radius: s.r, startAngle: s.t0, sweep: s.sweep, length: Math.abs(s.sweep) * s.r };
 
 type Tag = 'lowerWall' | 'upperWall' | 'upFace' | 'downFace' | 'strut';
 /** pcurve is null for struts until their final extent is known (u is their wall parameter). */
@@ -366,7 +366,7 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
   return buildBrep({
     source: { family: 'prismatic-solid', id }, vertices, edges,
     bodies: bodies.map((b, k) => ({ id: `${id}_b${k}`, kind: 'solid' as const, shells: [b.outer, ...b.cavities].map((g, s) => ({ id: `${id}_b${k}_s${s}`, faces: g.faces.map(faceInput), closed: true })) })),
-    toleranceMM: Math.max(tol, 1e-9),
+    tolerance: Math.max(tol, 1e-9),
   });
 }
 

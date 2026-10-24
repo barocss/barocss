@@ -25,7 +25,7 @@ test('D104 a SubD box of 18 × 18 quads a side tessellates in under 3.5 s (7 s w
   const t0 = performance.now(), m = tessellateBrep(b, { segmentsPerQuarter: 8 }), ms = performance.now() - t0;
   assert.ok(ms < 3500, `${ms.toFixed(0)} ms`);
   // (Welded by position: faces meet bit for bit at their shared edges.)
-  const P = m.positionsMM, key = i => `${P[3 * i]},${P[3 * i + 1]},${P[3 * i + 2]}`, uses = new Map();
+  const P = m.positions, key = i => `${P[3 * i]},${P[3 * i + 1]},${P[3 * i + 2]}`, uses = new Map();
   for (let t = 0; t < m.indices.length; t += 3) for (let k = 0; k < 3; k++) {
     const a = key(m.indices[t + k]), c = key(m.indices[t + (k + 1) % 3]); if (a === c) continue;
     const e = a < c ? `${a}|${c}` : `${c}|${a}`; uses.set(e, (uses.get(e) ?? 0) + 1);

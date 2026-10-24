@@ -52,7 +52,7 @@ export interface FiniteXYCirclePrismPlaneIntersectionResult {
   supportSource: { source: string; sourceVersion: 0; model: Model; semantics: 'geometry-only-plane-and-wall-not-contact-curve' };
   events: FinitePlaneCylinderBoundaryEvent[]; pieces: FinitePlaneCylinderPiece[]; report: FiniteXYCirclePrismPlaneIntersectionReport;
 }
-const TOL=CadNumericPolicy.linearToleranceMM,WIDTH=1e-12;
+const TOL=CadNumericPolicy.linearTolerance,WIDTH=1e-12;
 function check(c:boolean,message:string):asserts c { if(!c)throw new Error(('Own finite plane-cylinder clipping: '+message).slice(0,1024)); }
 function finite(x:number):number { check(Number.isFinite(x),'finite native root/coefficient arithmetic required');return x; }
 function midpoint(a:number,b:number):number { return a+(b-a)/2; }

@@ -42,7 +42,7 @@
           "kind": "circular-pattern",
           "target": "n1",
           "axis": "z",
-          "angleDegrees": 120,
+          "angle": 120,
           "count": 2,
           "pivot": [
             0,
@@ -56,12 +56,12 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 79.99961854525007,
           "relTol": 0.0001,
           "absTol": 0.007999961854525008
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -0.24102766589624294,
             1.5825289527876545,

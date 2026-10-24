@@ -157,7 +157,7 @@ export function inspectCurveEndpointContinuity(firstInput: CurveEndpointContinui
   const firstDerivativeRelativeDifference = relative(incomingDerivativeMMPerParameter, outgoingDerivativeMMPerParameter);
   const secondDerivativeRelativeDifference = relative(nativeResults[0].derivatives.secondDerivative, nativeResults[1].derivatives.secondDerivative);
   const unitTangentDifference = difference(incomingUnitTangent, outgoingUnitTangent), unitTangentDot = dot(incomingUnitTangent, outgoingUnitTangent);
-  const curvatureVectorRelativeDifference = relative(nativeResults[0].curvatureVectorPerMM, nativeResults[1].curvatureVectorPerMM);
+  const curvatureVectorRelativeDifference = relative(nativeResults[0].curvatureVectorPer, nativeResults[1].curvatureVectorPer);
   const c0 = pointDifferenceMM <= 1e-7, c1 = c0 && firstDerivativeRelativeDifference <= 1e-7, c2 = c1 && secondDerivativeRelativeDifference <= 1e-7;
   const g1 = c0 && unitTangentDifference <= 1e-7 && unitTangentDot > 0, g2 = g1 && curvatureVectorRelativeDifference <= 1e-7;
   const analysis: Analysis = { pointDifferenceMM, firstDerivativeRelativeDifference, secondDerivativeRelativeDifference, unitTangentDifference, unitTangentDot,

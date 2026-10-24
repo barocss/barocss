@@ -493,9 +493,9 @@ export function setRingStations(n: number | null): void { fixedStations = n; }
 export interface FilletReport {
   readonly edges: readonly string[]; readonly stations: number; readonly patches: number;
   /** The lofted contacts' largest distance from their faces, and the fillet's normal against theirs there (degrees). */
-  readonly contactMM: number; readonly normalDeg: number;
+  readonly contact: number; readonly normal: number;
   /** The lofted sections against the true ones (at the stations between), and the solved balls' |c − p| − r. */
-  readonly sectionMM: number; readonly ballMM: number;
+  readonly section: number; readonly ball: number;
 }
 type Face = Brep['faces'][number];
 /** A face for the solve: its sheet, and its trimmed region in its (u, v) as polygons (outer first). */
@@ -823,7 +823,7 @@ export function ringFillet(body: Brep, input: RingInput): { brep: Brep; report: 
     // (Done when the contacts lie within tolMM of their faces and the fillet within 4 tolMM of the true sections — on
     // planes the contacts are exact at any count, and the sections round a corner, R10.3a, then set it.)
     const worst = Math.max(contact / tolMM, report.maxDeviationMM / (4 * tolMM));
-    if (worst <= 1 || fixedStations) return { brep, contactFaces, sides: [...As, ...Bs].map(sd => sd.face.name ?? sd.face.id), report: { edges: input.names, stations: sols.length, patches: report.patches, contactMM: contact, sectionMM: report.maxDeviationMM, ballMM: ball, normalDeg: turn * 180 / Math.PI } };
+    if (worst <= 1 || fixedStations) return { brep, contactFaces, sides: [...As, ...Bs].map(sd => sd.face.name ?? sd.face.id), report: { edges: input.names, stations: sols.length, patches: report.patches, contact: contact, section: report.maxDeviationMM, ball: ball, normal: turn * 180 / Math.PI } };
     if (tries >= 6) N = 8192;
     else N = 2 * Math.ceil(N * Math.max(tries ? 1.25 : 2, 1.15 * worst ** 0.25) / 2);
   }
@@ -1420,7 +1420,7 @@ function cornerFillet(body: Brep, input: RingInput): { brep: Brep; report: Fille
     // (Done when the contacts lie within tolMM of their faces and the fillet within 4 tolMM of the true sections — on
     // planes the contacts are exact at any count, and the sections round a corner, R10.3a, then set it.)
     const worst = Math.max(contact / tolMM, report.maxDeviationMM / (4 * tolMM));
-    if (worst <= 1 || fixedStations) return { brep, contactFaces, sides: [...As, ...Bs].map(sd => sd.face.name ?? sd.face.id), report: { edges: input.names, stations: sols.length, patches: report.patches, contactMM: contact, sectionMM: report.maxDeviationMM, ballMM: ball, normalDeg: turn * 180 / Math.PI } };
+    if (worst <= 1 || fixedStations) return { brep, contactFaces, sides: [...As, ...Bs].map(sd => sd.face.name ?? sd.face.id), report: { edges: input.names, stations: sols.length, patches: report.patches, contact: contact, section: report.maxDeviationMM, ball: ball, normal: turn * 180 / Math.PI } };
     if (tries >= 6) N = 8192;
     else N = 2 * Math.ceil(N * Math.max(tries ? 1.25 : 2, 1.15 * worst ** 0.25) / 2);
   }

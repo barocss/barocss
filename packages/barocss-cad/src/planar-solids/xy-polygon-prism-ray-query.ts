@@ -31,7 +31,7 @@ export interface XYPolygonPrismShellRayQueryResult {
   hits: XYPolygonPrismShellRayHit[]; coplanarFaces: XYPolygonPrismShellCoplanarFace[];
   report: XYPolygonPrismShellRayQueryReport;
 }
-const BOUNDARY_MM = CadNumericPolicy.linearToleranceMM, PARALLEL_COSINE = 1e-12, UNIT_TOLERANCE = 1e-9;
+const BOUNDARY_MM = CadNumericPolicy.linearTolerance, PARALLEL_COSINE = 1e-12, UNIT_TOLERANCE = 1e-9;
 function check(condition: boolean, path: string, detail: string): asserts condition {
   if (!condition) throw new Error(('XY polygon prism shell ray: ' + path.slice(0, 256) + ': ' + detail).slice(0, 512));
 }

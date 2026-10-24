@@ -99,11 +99,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 11900.727773468674,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             40,
             24.99999999999999,
@@ -144,7 +144,7 @@
           "f3.leg.outer"
         ],
         "flat": {
-          "areaMM2": {
+          "area": {
             "value": 7901.585775019952,
             "relTol": 1e-9
           },
@@ -160,22 +160,22 @@
             {
               "name": "f0.bend",
               "direction": "up",
-              "angleDegrees": 90
+              "angle": 90
             },
             {
               "name": "f1.bend",
               "direction": "up",
-              "angleDegrees": 90
+              "angle": 90
             },
             {
               "name": "f2.bend",
               "direction": "up",
-              "angleDegrees": 90
+              "angle": 90
             },
             {
               "name": "f3.bend",
               "direction": "up",
-              "angleDegrees": 90
+              "angle": 90
             }
           ]
         }
