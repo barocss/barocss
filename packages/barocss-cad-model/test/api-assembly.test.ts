@@ -65,7 +65,6 @@ test('its placements, unmet mates, variant, frame poses and meshes are the core\
   // The pin stands in the bore, its bottom flush with the plate's.
   assert.deepEqual(a.placements()[0].positionMM, [20, 20, 0]);
   const low = variantOf(doc, { depth: -5 });
-  assert.ok('doc' in low);
   assert.equal(JSON.stringify(a.variant({ depth: -5 }).doc), JSON.stringify(low.doc));
   assert.deepEqual(a.variant({ depth: -5 }).placements()[0].positionMM, [20, 20, 5]);
   const r = evaluateDoc(doc, 1); assert.ok(r.ok);
@@ -107,6 +106,15 @@ test('the assembly\'s refusals are typed: the facade\'s own, and the core\'s pas
     const e = refusal(f);
     assert.ok(e instanceof BarocssError, `${code}: ${String(e)}`);
     assert.equal(e.code, code, e.message);
+  }
+  // A variant naming no input, and one out of its input's range: variantOf's own BarocssError, passed through as it is.
+  for (const values of [{ nope: 1 }, { depth: 50 }] as Record<string, number>[]) {
+    let core: unknown;
+    try { variantOf(fixture().doc, values); } catch (error) { core = error; }
+    const e = refusal(() => fixture().variant(values));
+    assert.ok(e instanceof BarocssError && core instanceof BarocssError, String(e));
+    assert.match(e.code, /^INPUT_/);
+    assert.deepEqual([e.code, e.message, e.where], [core.code, core.message, core.where]);
   }
   // A concentric mate between flat faces: the solver's refusal, in its words.
   const e = refusal(() => two().addMate('concentric', { part: 'base', face: b => b.faces().facing('+z') }, { part: 'pin', face: b => b.faces().facing('-z') }));
