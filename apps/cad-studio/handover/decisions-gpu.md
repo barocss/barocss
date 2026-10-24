@@ -2870,3 +2870,61 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     - `n more history steps` / `Fewer history steps` (the "+n" / Less chip).
   - For the docs lane: display.md, assemblies.md and manufacturing.md say these previews are in **Display**, and that
     Print layers and the CNC preview "take turns". They are now chosen in the dock's Preview & analysis switch.
+
+## G-R47 — G12f, part 1: the shell onto shadcn (Tooltip, the rail, the HUD, the section bar, the timeline, the view bar, the menus, the palette, the help) (roadmap G12, 2026-10-24)
+
+- **Packages** (a2d8db19f, apps/cad-studio/package.json and pnpm-lock.yaml only):
+  - Added from Radix's 2026-10-05 release, the coordinator approving the pins and the owner the download:
+    react-dropdown-menu 2.1.25, react-context-menu 2.3.8, react-dialog 1.2.0. Also cmdk 1.1.1 (2025-03-14).
+  - Deliberate downgrades onto the same release: G12b's came from the 2026-10-12 release, under the lanes' two-week
+    rule. react-tooltip 1.4.1 → 1.3.0, scroll-area 1.4.0 → 1.3.0, collapsible 1.2.1 → 1.1.21, toggle-group 1.2.1 →
+    1.1.20, slot 1.5.0 → 1.4.0.
+  - cmdk's `react-primitive ^2.0.2` resolved to 2.2.0 (10-12). The root override `"cmdk>@radix-ui/react-primitive":
+    "2.1.11"` (13074758a, the coordinator's) holds it. A direct pin did not, and `pnpm dedupe` touched unrelated
+    packages.
+  - Every package added or changed was published on or before 2026-10-05.
+  - react-context-menu turned out not to be needed: the menus open from code at a point, so a DropdownMenu anchored
+    there fits. It can go in a later package commit.
+- **Areas** (labels, roles and the classes the flows and other lanes use are kept):
+  - 88a30d9da, the **tooltip**: still one layer reading `data-tip`. It now renders shadcn's Tooltip (Radix's
+    placement) anchored on the hovered element's box.
+  - dba7c5781, the **rail**: ToolButton is on `components/ui/tool-button.tsx`, a ghost icon button with the primary
+    fill when on. Its box stays `.tool`'s, so the rail's short-window sizes hold.
+  - 837fa7830, the **HUD**: shadcn's Input, NativeSelect and Button.
+  - e853e6e36:
+    - the **section bar**: the mode is a ToggleGroup, and a click on the mode shown keeps it; the buttons are Button;
+    - the **timeline** and the explode chip.
+  - ee60ff852, App.tsx: the **view bar**'s buttons and chips are Button.
+  - 35ce1cdc2, the **menus, palette and help**:
+    - A right-click's menu is a DropdownMenu anchored at the click. It is kept inside the window, opening upward when
+      that has more room, with arrow keys and Escape.
+    - More tools and More shapes are DropdownMenus rendered in place (`portal={false}`), so the flows find their
+      buttons inside the bar.
+    - The palette is shadcn's Command (cmdk) in its Dialog, ranked by paletteList (`shouldFilter={false}`). Enter is
+      kept from the window's handler.
+    - The keyboard and mouse help is a Dialog.
+  - 262949d1c, App.tsx: `__studioLayoutReset` (DEV) also dismisses every toast. The recovery card is only hidden; a
+    question's toast is cancelled. This is the outer lane's find: a toast from an earlier step met the view cube in the
+    layout step.
+- **Left for part 2**: the top bar's own buttons. The ~30 `className="tool"` spots in App.tsx waited for O11, which is
+  now merged.
+- **Measured** (DEV `__studioRenders`). Neither was changed by G12f; both are R1d, after G12f and before G13:
+  - HUD typing: 4 keystrokes render App 10 times, the same with the old HUD.
+  - Placing: 30 pointer moves render App 114 times.
+- **Runs**:
+  - Full flow at 262949d1c (scratch): WebGPU 281/285, WebGL2 281/285. The failures on both:
+    - FR3b (147), the known flake;
+    - AM7a and AM7b (NaN mass), and O10 Rebuild panel (284). All three pass alone at 262949d1c and at the merge
+      before G12f's menus (83161bb55). They are the outer lane's O18 work in progress: deferred mass, and the
+      copies' frame costs with sameMeshes.
+  - The pair "render a part" (48), then section view (74), parameters, surface analysis and RM2, fails at b548fe1f2
+    too, before G12f. It is an order dependency of step 48 that the full flow, with steps between, does not meet.
+  - R1 bench rows (loaded): orbit App 1, 3.2 ms; pose App 3, 4.6 ms; explode App 2, 9.9 ms; pick 57 ms; section on
+    GPU App 5, 6.8 ms.
+  - Studio tsc 0, eslint 0 errors, unit 286/286, vite build. check:docs: no label drift. Its two other reports at the
+    time (`_refusals.md`, cad-model `api/`) were the API lane's, fixed on integration by the docs lane.
+- **Queued for G14 (measure, then decide)**:
+  - Section on GPU: 8.1 ms a submit against 6.
+  - From O18: with a new bodies array of identical meshes, gpuRenderer's rebuild on WebGPU left the placed copies out
+    of the drawn frames. The outer lane worked round it in App (sameMeshes, 2aae36ec3). Two questions: why the copies
+    drop, and whether the renderer should key on mesh identity.
