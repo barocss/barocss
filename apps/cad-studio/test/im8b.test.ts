@@ -11,7 +11,7 @@ import { withLook } from '@barocss/cad-model/app/bodies';
 import { printability } from '@barocss/cad-model/print/rules';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { checkMaterials, MATERIALS_DATA, materialData } from '@barocss/cad-model/library/materials';
-import { machiningOf, shrinkOf } from '@barocss/cad-model/casting/allowances';
+import { machiningOf, partExtent, shrinkOf } from '@barocss/cad-model/casting/allowances';
 import { patternOf } from '@barocss/cad-model/casting/pattern';
 import { castingProfileOf } from '@barocss/cad-model/engine/castingRuleRows';
 import { loadShopFile, sampleFile } from '../src/app/sizesFile';
@@ -85,6 +85,13 @@ test('IM8b the pattern: the block with 2.286 mm on its top, scaled 1 + 0.155/12 
   const f = 1 + AL, exact = 100 * 60 * (20 + 2.286) * f ** 3;
   assert.ok(near(p.bodies[0].volume!, exact, 1e-9 * exact), `${p.bodies[0].volume} vs ${exact}`);
   assert.deepEqual(p.file.pivot, [50, 30, 10]);
+  const extent = partExtent(bodiesOf(d));
+  assert.equal(extent.largest, 100);
+  assert.equal(Object.hasOwn(extent, 'largest'), true);
+  assert.equal(Object.hasOwn(extent, 'largestMM'), false);
+  const dimensions = (JSON.parse(JSON.stringify(p.file)) as typeof p.file).shrink.byDimension;
+  assert.deepEqual(dimensions.map(x => [x.axis, x.extent]), [['X', 100], ['Y', 60], ['Z', 20]]);
+  for (const dimension of dimensions) { assert.equal(Object.hasOwn(dimension, 'extent'), true); assert.equal(Object.hasOwn(dimension, 'extentMM'), false); }
   const want = { min: [50 - 50 * f, 30 - 30 * f, 10 - 10 * f], max: [50 + 50 * f, 30 + 30 * f, 10 + 12.286 * f] };
   for (const k of [0, 1, 2]) assert.ok(near(p.file.pattern.min[k], want.min[k], 1e-5) && near(p.file.pattern.max[k], want.max[k], 1e-5), JSON.stringify(p.file.pattern));
   assert.deepEqual([p.file.shrink.factor, p.file.shrink.band, p.file.machining!.mm, p.file.machining!.faces], [1.012917, 'up to 4 ft', 2.286, ['n1.top']]);
@@ -129,6 +136,8 @@ test('IM8b the uniform factor said as a simplification (O109): a 1500 × 100 × 
   assert.match(sh.message, /a simplification: one factor by the largest extent — a pattern maker may scale each dimension by its own band \(X 1\.011917, 4 ft to 6 ft; Y 1\.012917, up to 4 ft; Z 1\.012917, up to 4 ft\)/, sh.message);
   const p = await patternOf(d, bodiesOf(d), evaluate); assert.ok(p.ok);
   assert.deepEqual(p.file.shrink.byDimension.map(x => [x.axis, x.factor]), [['X', 1.011917], ['Y', 1.012917], ['Z', 1.012917]]);
+  assert.equal(partExtent(bodiesOf(d)).largest, 1500);
+  assert.deepEqual(p.file.shrink.byDimension.map(x => [x.axis, x.extent]), [['X', 1500], ['Y', 100], ['Z', 100]]);
   assert.match(p.file.shrink.simplification, /one factor by the largest extent/);
   // (One band throughout: said a simplification, no list.)
   assert.doesNotMatch((await rule(cast(block(100, 60, 20), 'a356'), 'shrink')).message, /\(X /);
