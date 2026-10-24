@@ -64,7 +64,7 @@ export function machinability(doc: StudioDoc, all: readonly BodyResult[], profil
   }
   // (CNC7b, O102: the stock it is cut from — the shop's list, the user's; the allowance the user's or an estimate, said.)
   const stock: StockResult = chooseStock(doc, bodies, profile.id as 'cnc-milling' | 'cnc-turning', turning);
-  if (stock.ok) { const c = stock.choice; rules.push({ id: 'stock', level: 'recommended', status: 'pass', message: `stock ${c.row.id}: ${c.row.kind === 'block' ? c.size.join(' × ') : `Ø${c.size[0]} × ${c.size[1]}`} mm (${c.row.source}), ${c.allowance.mm} mm a face${c.allowance.basis === 'estimate' ? ' (an estimate: set yours)' : ''}`, value: c.row.kind === 'block' ? c.size.reduce((p, x) => p * x, 1) : c.size[0], unit: c.row.kind === 'block' ? 'mm³' : 'mm' }); }
+  if (stock.ok) { const c = stock.choice; rules.push({ id: 'stock', level: 'recommended', status: 'pass', message: `stock ${c.row.id}: ${c.row.kind === 'block' ? c.size.join(' × ') : `Ø${c.size[0]} × ${c.size[1]}`} mm (${c.row.source}), ${c.allowance.value} mm a face${c.allowance.basis === 'estimate' ? ' (an estimate: set yours)' : ''}`, value: c.row.kind === 'block' ? c.size.reduce((p, x) => p * x, 1) : c.size[0], unit: c.row.kind === 'block' ? 'mm³' : 'mm' }); }
   else rules.push({ id: 'stock', level: 'recommended', status: stock.code === 'STOCK_NONE_FITS' ? 'warn' : 'unknown', message: `${stock.code}: ${stock.message}`, ...(stock.code === 'STOCK_NONE_FITS' ? {} : { why: stock.message }) });
   const classes = profile.toleranceClasses;
   return { process: profile.id, direction: null, rules, machining: { family, material: id, tolerance: { value: t('tolMM').value, feasibleLimit: t('tolFeasibleMM').value, source: t('tolMM').page?.url ?? t('tolMM').source },
