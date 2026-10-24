@@ -58,3 +58,12 @@ test('batch 3: the viewer refuses a caller\'s input with a coded ViewerError, it
   assert.throws(() => v.invert(new Float64Array(16)), e => e instanceof v.ViewerError && Object.getPrototypeOf(v.ViewerError.prototype).constructor.name === 'BarocssError'
     && e.code === 'MATRIX_SINGULAR' && e.message === '[MATRIX_SINGULAR] Matrix is not invertible');
 });
+
+test('batch 3: a public entry refuses with a coded GpuInputError, the plain refusal under it kept as its cause', () => {
+  const bad = { version: 0, surfaceId: 's', revision: 0, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions: [], normals: [], indices: [], parameters: [], bounds: { min: [0, 0, 0], max: [0, 0, 0] } };
+  assert.throws(() => gpu.validatePreviewPacket(bad), e => e instanceof gpu.GpuInputError && e instanceof gpu.BarocssError && e.code === 'MESH_PACKET_INVALID'
+    && e.message.startsWith('[MESH_PACKET_INVALID] ') && e.cause instanceof RangeError && e.message === `[MESH_PACKET_INVALID] ${e.cause.message}`);
+  assert.throws(() => gpu.parseScene('@scene x{version:0;sphere #s;}', { sourceVersion: 7 }), e => e.code === 'SCENE_INVALID' && e.cause instanceof Error);
+  // (A coded refusal passes through unchanged.)
+  assert.throws(() => gpu.parseScene('@scene x{version:0;sphere #s;}sphere{radius:x;}'), e => e instanceof gpu.SceneError && e.code === 'SCENE');
+});

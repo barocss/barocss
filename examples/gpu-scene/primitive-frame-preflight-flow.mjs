@@ -169,9 +169,13 @@ try {
     async function reject(name, change, expectedType = 'GPUError', profile, inspect) {
       const candidate = clone(input), value = typeof change === 'function' ? change(candidate) ?? candidate : change;
       let error; try { gpu.preparePrimitiveSceneFrame(value, profile); } catch (cause) { error = cause; }
-      const ErrorType = expectedType === 'RangeError' ? RangeError : expectedType === 'Error' ? Error : gpu[expectedType];
+      // (R7.3a batch 3: the entry refuses a plain RangeError's input as a coded GpuInputError, the RangeError its cause.)
+      const plain = expectedType === 'RangeError';
+      const ErrorType = plain ? gpu.GpuInputError : expectedType === 'Error' ? Error : gpu[expectedType];
       assert.equal(typeof ErrorType, 'function', name + ': expected error constructor');
       assert(error instanceof ErrorType, name + ': actual error family');
+      if (plain) { assert.equal(error.code, 'PRIMITIVE_FRAME_INVALID', name); assert(error.cause instanceof RangeError, name + ': the plain refusal kept as the cause');
+        assert.equal(error.message, `[PRIMITIVE_FRAME_INVALID] ${error.cause.message}`, name); }
       inspect?.(error); assert.equal(originalJSON(result.frame), oldFrame); assert.deepEqual(bufferHashes(result.primitives), oldBuffers);
       assert.equal(originalJSON(input), before); for (const file of priorFiles) assert.equal(hash(await readFile(file.path)), file.sha256);
       refused++; refusals.push({ name, family: error.name, code: error.code ?? null, message: error.message,

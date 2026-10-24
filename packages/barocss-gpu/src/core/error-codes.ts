@@ -36,6 +36,7 @@ import type { SceneViewError } from '../scene/scene-viewer.js';
 import type { SourceSceneBoundsError } from '../scene/source-scene-bounds.js';
 import type { ViewerError } from '../viewer/scene.js';
 import type { SceneCode } from '../api/refusal.js';
+import type { GpuInputError } from './input-error.js';
 
 export type GpuErrorCode =
   | InstanceType<typeof AxisBoxBooleanBufferError>['code']
@@ -73,6 +74,7 @@ export type GpuErrorCode =
   | InstanceType<typeof SceneViewError>['code']
   | InstanceType<typeof SourceSceneBoundsError>['code']
   | InstanceType<typeof ViewerError>['code']
+  | InstanceType<typeof GpuInputError>['code']
   // (The facade's own, from its declaration: R7.5b's finding 8 — the union and the refusal table can't drift.)
   | SceneCode;
 

@@ -3324,3 +3324,32 @@ The coordinator's plan from the classification (`gpu-throws-classified.md` in th
 - **Runs** (with R7.3d's kernel patch applied in the lane's tree, uncommitted; without it gpu's build stops at tsc):
   gpu tsc 0, eslint 0, unit 202/202 (barocss-error.test 6, a new MATRIX_SINGULAR case); test:browser 29/29 on hardware
   and 29/29 on SwiftShader; studio tsc 0, studio unit 286/286.
+
+**2. The mesh and scene entries** (24 sites, wrapped at their entries):
+- `core/input-error.ts`: `GpuInputError`, its codes, `recoded(code, error)` and `refusing(code, fn)`. `refusing` is
+  applied once per entry, at load, in src/index.ts. A plain Error from the entry becomes a GpuInputError of the code,
+  with the same words and the plain one as its cause. A BarocssError, and anything that isn't an Error, passes through.
+- Inside the package the plain functions are still used. So the engine and native paths wrap the shared validators as
+  before, and the seven flows that check `cause instanceof RangeError` are unchanged.
+
+| Code | Entry | The sites it covers |
+|---|---|---|
+| SCENE_INVALID | parseScene, compileScene | scene/scene.ts:8 (the source version); gpu-data.ts' 12 record and object checks, through compileScene's admission |
+| MESH_PACKET_INVALID | validatePreviewPacket | mesh-packet.ts:33 |
+| MESH_OPTIONS_INVALID | validateMeshOptions | the options' camera (camera.ts:17), lighting (mesh-lighting.ts, 6) and transform |
+| MESH_INVALID | prepareMesh | the packet's and the options' checks |
+| CAMERA_INVALID | validateMeshCamera, prepareCamera | camera.ts:17 |
+| FACE_PREVIEW_INVALID | prepareKernelFacePreview, resolveKernelFaceReference | kernel-face-preview.ts:20 and its record reads |
+| PRIMITIVE_FRAME_INVALID | preparePrimitiveSceneFrame | mesh-scene-transform.ts:19, gpu-compiler.ts:60 (requireMeshExecution) and the packet, camera and lighting checks under it |
+
+- **preparePrimitiveSceneFrame recodes in its own catch, not through `refusing`.** Its flow checks that an error the
+  caller's own input throws (a Proxy trap's sentinel, while the frame record is read) passes through as the very same
+  object. So once the input is read, a plain refusal is recoded. What the read itself throws passes through, as before.
+- Changed check: primitive-frame-preflight-flow's six `RangeError` expectations now expect a GpuInputError of
+  PRIMITIVE_FRAME_INVALID, with the RangeError as its cause and its message as the cause's after the code.
+- **Runs** (R7.3d's kernel patch applied in the lane's tree, uncommitted): gpu tsc 0, eslint 0, unit 203/203
+  (barocss-error.test 7: an entry's coded refusal with its cause; a coded refusal passing through); test:consumer 3/3;
+  gpu-scene flows 65/65; test:browser 29/29 on hardware; studio tsc 0.
+- **Found while checking**: R7.3c's readonly Vec3 breaks packages/barocss-viewer's type-check (34 errors, all of them
+  gpu's readonly Vec3 meeting barocss-viewer's own mutable `Vec3` aliases; 0 with gpu's Vec3 mutable). It went to the
+  coordinator with a proposed fix in barocss-viewer only.

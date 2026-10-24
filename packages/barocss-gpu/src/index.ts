@@ -1,17 +1,34 @@
-export { parseScene, SceneError } from './scene/scene.js';
+import { parseScene as parseSceneRaw } from './scene/scene.js';
+import { compileScene as compileSceneRaw } from './mesh/compiler.js';
+import { validatePreviewPacket as validatePreviewPacketRaw, validateMeshOptions as validateMeshOptionsRaw, prepareMesh as prepareMeshRaw } from './mesh/mesh-packet.js';
+import { validateMeshCamera as validateMeshCameraRaw, prepareCamera as prepareCameraRaw } from './mesh/camera.js';
+import { prepareKernelFacePreview as prepareKernelFacePreviewRaw, resolveKernelFaceReference as resolveKernelFaceReferenceRaw } from './mesh/kernel-face-preview.js';
+import { refusing } from './core/input-error.js';
+// (R7.3a batch 3: these entries refuse a caller's input with a coded GpuInputError, the plain error under it kept as its
+// cause; inside the package the plain functions are used, so the engine and native paths wrap them as before.)
+export const parseScene = refusing('SCENE_INVALID', parseSceneRaw);
+export const compileScene = refusing('SCENE_INVALID', compileSceneRaw);
+export const validatePreviewPacket = refusing('MESH_PACKET_INVALID', validatePreviewPacketRaw);
+export const validateMeshOptions = refusing('MESH_OPTIONS_INVALID', validateMeshOptionsRaw);
+export const prepareMesh = refusing('MESH_INVALID', prepareMeshRaw);
+export const validateMeshCamera = refusing('CAMERA_INVALID', validateMeshCameraRaw);
+export const prepareCamera = refusing('CAMERA_INVALID', prepareCameraRaw);
+export const prepareKernelFacePreview = refusing('FACE_PREVIEW_INVALID', prepareKernelFacePreviewRaw);
+export const resolveKernelFaceReference = refusing('FACE_PREVIEW_INVALID', resolveKernelFaceReferenceRaw);
+export { preparePrimitiveSceneFrame } from './mesh/primitive-frame-preflight.js'; // (it recodes its own refusals: the caller's reflection passes through)
+export { GpuInputError, type GpuInputErrorCode } from './core/input-error.js';
+export { SceneError } from './scene/scene.js';
 export type { Scene, Scene1, SceneObject, SceneObject1, RotatedSceneObject, CylinderSceneObject, CapsuleSceneObject, RoundedBoxSceneObject, TorusSceneObject, AnyScene, SceneSourceOptions, RGB, Vec3 } from './scene/scene.js';
-export { compileScene, GPU_LIMITS } from './mesh/compiler.js';
+export { GPU_LIMITS } from './mesh/compiler.js';
 export type { SceneShaders } from './mesh/compiler.js';
 export { GPUError } from './core/gpu-error.js';
 export { BarocssError, refusalText, type BarocssErrorOptions, type Problem } from './core/barocss-error.js';
 export type { Mat3, Mat4 } from './core/geometry-types.js';
 export type { GpuErrorCode } from './core/error-codes.js';
 export type { UpdateResult } from './core/gpu-error.js';
-export { validatePreviewPacket, validateMeshOptions, prepareMesh } from './mesh/mesh-packet.js';
 export type { PreviewPacket, MeshOptions } from './mesh/mesh-packet.js';
 export type {MeshLighting} from './mesh/mesh-lighting.js';
 export type { MeshEdgeOverlay } from './mesh/edge-overlay.js';
-export { validateMeshCamera, prepareCamera } from './mesh/camera.js';
 export type { MeshCamera } from './mesh/camera.js';
 
 export {compileGpu} from './mesh/gpu-compiler.js';
@@ -23,7 +40,6 @@ export type {MeshFaceHighlight} from './mesh/face-highlight.js';
 export type {MeshObjectHighlight} from './mesh/object-highlight.js';
 
 
-export {prepareKernelFacePreview,resolveKernelFaceReference} from './mesh/kernel-face-preview.js';
 export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFaceBinding,KernelFacePreview,KernelFacePreviewOptions} from './mesh/kernel-face-preview.js';
 
 export type {MeshSceneOptions} from './scene/primitive-scene.js';
@@ -131,7 +147,6 @@ export type { PlaneGeometrySourceV0, PreparedPlaneGeometry } from './geometry/pl
 export { prepareSphereGeometry } from './geometry/sphere-geometry.js';
 export type { SphereGeometrySourceV0, PreparedSphereGeometry } from './geometry/sphere-geometry.js';
 
-export { preparePrimitiveSceneFrame } from './mesh/primitive-frame-preflight.js';
 export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrimitiveSceneFrameEntry, PreparedPrimitiveSceneFrame } from './mesh/primitive-frame-preflight.js';
 
 

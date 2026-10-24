@@ -1,4 +1,5 @@
 import { GPUError } from '../core/gpu-error.js';
+import { recoded } from '../core/input-error.js';
 import { prepareCompletePrimitiveFrameData } from '../scene/primitive-scene.js';
 import type {
   PrimitiveSceneEntryV2, PrimitiveSceneFrameV0,
@@ -81,9 +82,13 @@ export function preparePrimitiveSceneFrame(
   input: unknown,
   profile: PrimitiveSceneFrameProfile = 'qualified-v2',
 ): PreparedPrimitiveSceneFrame {
+  // (R7.3a batch 3: once the caller's input is read, a plain refusal of it is recoded as PRIMITIVE_FRAME_INVALID; what
+  // reading it throws — the caller's own reflection — passes through as it is.)
+  let read = false;
   try {
     check(profile === 'qualified-v2' || profile === 'viewport-v2', 'Unsupported primitive frame profile');
     const data = frameRecord(input);
+    read = true;
     check(data.version === 0, 'Only complete frame version0 is supported');
     check(data.particles === null, 'Primitive CPU preflight requires particles:null');
     const materials = materialList(data.materials);
@@ -121,7 +126,7 @@ export function preparePrimitiveSceneFrame(
       frame, primitives, bounds, bufferBytes,
     } as PreparedPrimitiveSceneFrame);
   } catch (cause) {
-    if (cause instanceof Error) throw cause;
+    if (cause instanceof Error) throw read ? recoded('PRIMITIVE_FRAME_INVALID', cause) : cause;
     const error = new GPUError('Primitive frame preflight refused non-Error failure');
     Object.defineProperty(error, 'cause', { value: cause, enumerable: false });
     throw error;
