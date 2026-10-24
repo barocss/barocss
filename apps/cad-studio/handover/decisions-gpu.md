@@ -3537,3 +3537,253 @@ is untouched as history. The coordinator settled the scope:
 - **Now in `test`**: browser-runner-contract, cad-clearance-analysis, -clip, -gpu, -hook, -overlay-gl,
   cad-display-browser-fixture, cad-display-browser-runner, cad-print-hook, -overlay, -projection, -settings, -worker,
   cad-silhouette. gpu's unit run is 301/301 (was 204) and takes about 3 s.
+
+## G-R64 — RS2, part 1: a motion played in the Joints card (owner, 2026-10-24: "관절 움직임 같은거")
+
+- **What it plays**: the draft motion, unsaved — home, through the waypoints recorded (RM9a), to the pose shown, the
+  path Check path sweeps. It's frozen when Play starts or the scrubber moves. A slider moved, Home, a joint played, the
+  waypoints changed or a new tree stop it. Nothing is saved.
+- **The Joints card's Motion row**: "Play motion" / "Pause motion", a "Motion time" scrubber (0…T), a readout
+  "t 1.23 / 4.56 s", "Loop motion" and "Motion speed" (0.25×, 0.5×, 1×, 2×). Scrubbing pauses and sets the pose at t.
+  A contact reached shows as "Contact <link> – <link> at t … s".
+- **Mechanism** (`state/motion.ts`, useJoints):
+  - The path is timed once (ccd's `timePath`). The pose at t is each joint from its segment's start to its end by the
+    segment's progress (profile's `at`), as the sweep interpolates.
+  - The time is in its own ValueStore. An rAF loop advances it by dt × speed, wrapping or stopping at T, and sets
+    poseStore. JointsPanelLive follows the time, so a frame renders the card's live part and the viewport, never the
+    App.
+  - Check path's limits rule (each joint's velocity limit, else 1 rad/s or 100 mm/s, twice that per second) is
+    `pathLimits`, shared by Check path and the motion. Check path is otherwise unchanged.
+- **Contact**: a frozen motion is swept once (`sweepTimed`, the links as placed, as Check path does) for its first
+  contact.
+  - From t ≥ toi, the two links are marked. WebGPU outlines them in the error colour; WebGL2 tints them (`uContact`).
+    The part's own bodies are marked when the base link is one of the two.
+  - The mark is a `contactLinks` prop. App sets it once, as t crosses the time of impact: a subscription changes state
+    only on the crossing.
+- **Flow** (step 289, appended last, so no other number moves). The oracles are independent of the motion code: G13's
+  TCP points, a symmetric trapezoid's middle, and the time rate.
+  - The 6R arm from home to l6 at a quarter turn: the TCP is at G13's zero-pose point (45, 97, 330) at 0 and its
+    quarter-turn point (63, 105, 330) at T. At T/2 it is halfway round (as far from both, its height kept).
+  - Paused, the time holds. At 2× the motion's time runs 1.4–2.6 times the wall clock's. Looped past T, it wraps.
+  - RM6's 2R arm into the post: "Contact … post … at t" after the time of impact, with both links marked
+    (`__studioContactLinks`) and more strongly red samples in the frame than before it. Before it, nothing is said or
+    marked.
+  - Passes on WebGPU and on WebGL2.
+- **Bench**: a new row, "motion: the 2R arm's motion played". Loaded run (load 21 → 18), compare only: 190 frames,
+  task 4.4 ms a frame, GPU 1.36 ms a submit, 0 buffers made, 4 App renders over 190 frames — beside the joint played's
+  4.39 ms and App 3. The renders come at Play, the freeze's sweep and Pause, never in a frame. The budget is `app: 4`.
+  The runner contract counts 20 cases.
+- **Runs**: studio tsc 0, eslint 0 on the eight files, browser-runner-contract 11/11, FLOW_ONLY `^RS2:` on WebGPU and
+  WebGL2, BENCH_ONLY `^(pose|motion):`.
+- **Next (part 2)**:
+  - outer's `@barocss/cad-model/robot/motion` (poseAt, duration, timedPathOf, motionOf) in place of this adapter;
+  - "Save as motion" and a select of the document's saved motions (RobotSettings.motions);
+  - RS1's Samples group;
+  - the video export, as its own checkpoint.
+
+## G-R65 — RS2 part 2 (saved motions, outer's core) and RS1's studio side (the Samples group); G14's section, measured again (2026-10-24)
+
+- **RS2 part 2** (a79d3df3f, WIP until this checkpoint verified it):
+  - The motion module uses outer's core, `@barocss/cad-model/robot/motion`: `poseAt(tree, path, t)` and
+    `duration(path)`. The core times a path once per path object. The local adapter is gone; `pathLimits` and
+    `draftPath` stay.
+  - **Choosing**: the Motion row's "Motion choice" select lists the draft ("Draft: home → waypoints → this pose") and
+    the document's saved motions (`RobotSettings.motions`) by name. A saved one is timed through `timedPathOf` (the
+    document keeps degrees and mm; poseAt and the sweep take radians). Its length shows before it plays. A choice
+    changed stops the motion; a saved motion gone from the document returns the card to the draft.
+  - **Saving**: with the draft chosen, "Motion name" and "Save as motion" keep it in the document as
+    `{ name, path: motionOf(tree, draft) }`. A motion of the same name is replaced. It's an undo step, the file is
+    dirty, and the saved one is chosen.
+  - The shown pose and the play state stay UI-only: not stored, no undo.
+- **RS1's studio side**: a "SAMPLES · ROBOTS" group in the Templates menu.
+  - It lists outer's `packages/barocss-cad-model/samples/robots/index.json` (8 samples, title and about).
+  - "Open sample <title>" opens the sample's `.bcad` through Open's own path (`open(file)`). Every sample opens with its
+    demo motion in the Joints card.
+  - `app/samples.ts` reads the index when the studio loads (`import.meta.glob`, eager). A document loads only when it's
+    opened: each is its own lazy chunk in the build.
+- **Flow** (appended, numbers kept):
+  - 290 — Save as motion on the 6R arm. "quarter" is saved with l5~l6 at 90 (degrees) and chosen. From home it plays to
+    the quarter turn (TCP at G13's point, 63, 105). Undo removes it and the card returns to the draft.
+  - 291 — each of the 8 samples opens from Templates → Samples with its own demo motion (the name its file gives:
+    wave, pick, reach, box, look around, grip, crank, turn) and no refusal. The 6R arm's "reach" plays to its end at 2×.
+  - FLOW_ONLY `^RS[12]:` (289, 290, 291): all pass on WebGPU and on WebGL2.
+- **Runs**: studio tsc 0, eslint 0, unit 286/286, vite build (the samples in their own chunks).
+- **G14, section on the GPU, measured again** (load 12 → 18, so "LOADED" again, the quietest run so far):
+  - 8.05 ms a submit against the budget of 6: surface 3.07, output 2.85, cap front samples 1.20, cap front 0.50,
+    shadow 0.26, light probe 0.18.
+  - The CPU path: surface 0.73, output 0.70.
+  - The earlier 5.68 was the outlier; the overrun is steady.
+  - Next, as agreed (G-R54): the output pass first. It costs four times the CPU path's for the same pixels, likely the
+    cap samples' resolve (G7's antialiased caps) or SSAO over the cut faces. A step of its own.
+
+## G-R66 — RS2, checkpoint 2: a motion and the Render turntable exported as WebM video (2026-10-24)
+
+- **What**: a "Video" button in the Joints card's Motion row (aria "Export motion video") and in the Render
+  Timeline (aria "Export animation video"). Each downloads a WebM: `<file>-<motion>.webm`, `<file>-render.webm`.
+- **How** (`viewport/recordVideo.ts`, `viewport/webm.ts`, no dependency):
+  - Frame i is drawn by the caller (the motion's pose at i/30 s through `showMotionAt`, or the turntable's time),
+    shown, copied into an even-sized OffscreenCanvas, and encoded with WebCodecs' VideoEncoder (VP9, else VP8)
+    with its own timestamp i/fps. A key frame every 60.
+  - Our WebM writer: EBML header, Segment with Info (1 ms timecodes, Duration), one video track, Clusters of
+    SimpleBlocks (a new cluster at each key frame or 30 s). No Cues; ffprobe and players read it without them.
+  - Why not MediaRecorder: it times frames by the wall clock. On WebGL2 under a software renderer a 2.07 s motion
+    came out 12.9 s long. Explicit timestamps keep the motion's timing however slow a frame is.
+  - WebGL2 keeps no buffer past a frame (`preserveDrawingBuffer: false`), so the renderer's `drawNow()` draws
+    again just before the canvas is read. `capture()` uses it too.
+  - The motion freezes (no playback) while it records; the turntable stops playing and starts from the current
+    camera.
+- **Flow**:
+  - 292 (new): a motion and a 1 s turntable exported. ffprobe reads vp8/vp9, frames = ceil(T·30)+1, duration
+    within 0.05 s of frames/30, and the last frame is not blank (ffmpeg gray spread > 3). Both renderers.
+  - 289: Iso + Frame all before the post-contact part, and the red count on a 320 grid. WebGPU's contact mark is
+    a 2 px outline, which the 160 grid stepped over after step 48's view (17 red samples).
+  - FLOW_ONLY `^(RS|render a part)` (1, 48, 289–292): all pass on WebGPU and on WebGL2.
+- **Runs**: studio tsc 0, eslint 0, unit 287/287 (webm.test.ts: header, DocType, codec, pixel size, clusters,
+  block bytes).
+
+## G-R67 — G15d.1: AgX, colour grading and a vignette, and the Render panel's Post section (roadmap G15d.1, 2026-10-24)
+
+- **The output pass** (`packages/barocss-gpu`, `viewer/shaders/output.ts`, `viewer/lights.ts`):
+  - `Environment.toneMapping: 'agx'` beside ACES and none. This is Sobotka's AgX in its common fitted form: an inset
+    matrix, log2 between −12.47 and +4.03 stops, a polynomial sigmoid, an outset matrix, then 2.2 back to linear.
+    Bright saturated colour turns towards white instead of clipping. Our own WGSL; no LUT.
+  - `Environment.grading` (`ColorGrading`), applied in this order:
+    - white balance (`whiteBalance(temperature, tint)`: channel gains with the luminance kept);
+    - lift, gamma and gain per channel;
+    - saturation around Rec. 709 luminance;
+    - contrast around mid grey (0.46) in the encoded image.
+  - `Environment.vignette`: an amount, a clear radius and a fade. It is round, with the frame's aspect kept.
+  - Grading and the vignette apply after tone mapping, over the scene and the background, before the outlines (which
+    stay UI colours). The background is still not tone-mapped, as before.
+  - When they are off, the block's slots are zeros and the pass skips them (a uniform branch). The output block grows by
+    80 bytes, and `outlineRect` stays last.
+- **The studio**:
+  - `viewport/post.ts` holds the grades (neutral; warm studio, which is amber with warm-lifted shadows; cool daylight).
+    `postOf` maps the settings' post to the viewer's grading and vignette. Neutral gives nothing.
+  - The Render panel's Scene tab has a **POST** section: Exposure and Tone map (moved here, with the same aria labels),
+    then Tone map with AgX ("Soft highlights (AgX)"), Grade, Contrast, Saturation and Vignette. Each change is one
+    undoable edit. When everything is back to neutral, the post leaves the document.
+- **Cross-lane change** (named to the coordinator before it was made; no answer when committed, so it is a commit of
+  its own that can be dropped or handed on):
+  - `packages/barocss-cad-model/src/engine/render.ts`: `toneMapping` gains `'agx'`, and there is an optional
+    `post: RenderPost` (grade, contrast 0.5–1.5, saturation 0–2, vignette 0–1). It is read with clamps; when absent
+    there is no post. There is no schema bump (doc-schema-tracks-latest).
+- **Tests**:
+  - gpu unit 301/301. That includes `viewer-core`'s layout checks, plus RS2's `contactLinks` added to two studio-renderer
+    fixtures, which had failed 13 tests since b7869913d.
+  - gpu browser `viewer-post-browser` (new, in test:browser) passes on hardware and on SwiftShader. At ×6 exposure:
+    - none: 255,49,49;
+    - ACES: 253,40,40;
+    - AgX: 255,131,131.
+    The vignette's corner is 59 against 104 at the edge; warm gives 137,126,114 on grey; saturation 0 turns red grey;
+    contrast keeps mid grey within 6.
+  - cad-model render 5/5. Studio unit 288/288 (post.test.ts).
+  - Flow 293 (new) passes on WebGPU and WebGL2 (where the document checks run). On WebGPU:
+    - the corners go from 62,62,25,25 to 38,38,13,13 with the vignette;
+    - warmth (red − blue) goes from −2.3 to 26.1;
+    - neutral again gives the frame as before.
+- **Bench** (new rows `render: orbit 60` and `render: orbit 60, post on (AgX, warm grade, vignette)`, LOADED, load
+  28–37):
+  - DPR 1: 1.03 → 1.06 ms of GPU a submit (output 0.71 → 0.75).
+  - DPR 2 (a 2880×1800 page, more than 1440p): 3.29 → 3.46 ms (output 2.37 → 2.46).
+  - Both are far under the 16.7 ms Render orbit target. Modelling is unchanged (the post is off).
+
+## G-R68 — G15a: surface finishes, a clear coat and an oil film (roadmap G15a, 2026-10-24)
+
+- **The surface shader** (`packages/barocss-gpu`, `viewer/shaders/surface.ts`, `viewer/scene.ts`):
+  - `Material.finish` (`SurfaceFinish`: kind, scale, strength, axis, origin), `clearcoat` (+ `clearcoatRoughness`, 0.08 by
+    default) and `film`. They are packed in the object block's free 48 bytes (`OBJECT_BYTES` 208 → 256; the stride was
+    already 256). With none of them set, the slots are zeros and the shading takes the old path.
+  - The relief and roughness are made per pixel from the mesh's own coordinates (its transform's frame, so a pattern
+    stays on the part as it moves or explodes). The noise is our own value noise and fbm, not textures:
+    - cast and sand-cast: grain, the sand's coarser, with pits;
+    - machined: lines across the axis;
+    - turned: rings about the axis through the origin (the body's box centre in the studio), feed lines along it;
+    - brushed: streaks along the axis;
+    - knurled: two ±45° helical grooves round the axis, only on faces not square to it;
+    - blasted: fine pits.
+    The normal is perturbed by finite differences of the relief in the mesh frame.
+  - **Band-limited by the pixel's footprint** (`band`): each detail fades as it nears two to a pixel, and the lost relief
+    becomes roughness. Fine marks never sparkle; at a distance a turned face shows as its radial highlight.
+  - Machined, turned and brushed stretch the highlight across their marks. This uses anisotropic GGX (Burley: rougher
+    across than along) for the lights, and a bent reflection normal for the ambient and environment.
+  - **Clear coat**: a second, smooth dielectric lobe on the unperturbed normal, for the lights and the reflection. What
+    it reflects the base doesn't get. Shadows use the unperturbed normal.
+  - **Oil film**: a thin-film tint on the reflections. Colours cycle with the view angle and a varying thickness, strongest
+    at grazing angles. It is kept subtle (a sheen, not a paint).
+- **cad-model** (`engine/render.ts`, outer's file, its own commit; named to the coordinator before it was built):
+  - `Appearance.finish?` (`AppearanceFinish`: kind of `FINISH_KINDS`, scale 0.01–100 mm, strength 0–1, an optional
+    axis), `clearcoat?` and `film?` (0–1). They are read with clamps; absent means none; no schema bump.
+  - Ten new presets: cast aluminium, sand-cast iron, machined steel, turned steel, brushed aluminium, knurled steel,
+    bead-blasted aluminium, painted red (lacquered), chrome and oiled steel. The `look-` prefix is kept (O75's test
+    passes).
+- **The studio**:
+  - `viewport/finish.ts` maps a look to the viewer's finish, centring turned and knurled finishes on the body.
+  - The Render panel's Appearance tab gets Finish (None or a kind), Marks (mm), Depth, Along (X/Y/Z, for the
+    directional kinds), Clear coat and Oil film.
+  - A preset now matches on the look's material fields (colour, metal, roughness, opacity, finish, coat, film), so a
+    texture or shader on top leaves it chosen. Choosing one replaces those fields, so a finish never carries over to a
+    preset without one.
+- **The built-in look per material id is the owner's call**, so it is not built. The proposal:
+  - steel → machined steel; ss304 → brushed; al6061 and ti64 → machined in their own colour;
+  - brass → turned;
+  - a380, a356, zamak3 and az91d → cast;
+  - grey-iron → sand-cast;
+  - pa12 → blasted (SLS grain);
+  - abs, pc, pp, petg, pom, pla and resin → their plastic, no finish.
+- **Tests**:
+  - gpu unit 302/302, plus a packing test in viewer-display.
+  - `viewer-finish-browser` (new, in test:browser) passes on hardware and SwiftShader. It checks:
+    - every kind's marks are drawn;
+    - sand-cast is rougher than cast;
+    - brushed stretches the highlight 28 × 144 against a round 76 × 76;
+    - the clear coat's highlight peaks at 255 over a rough base at 38;
+    - the oil film adds chroma;
+    - marks a hundredth of a pixel wide become roughness;
+    - the finish moves with its mesh (difference 0).
+  - gpu test:browser 31/31.
+  - cad-model render 6/6 and material-look 3/3; studio unit 292/292 (finish.test.ts).
+  - Flow 294 (new) passes on WebGPU and WebGL2: turned steel, a knurl along Z, the painted and the oiled presets, then
+    None. Marks on the frame: plain 3.55, turned 4.54, knurled 4.60.
+- **Bench** (new row `render: orbit 60, post on, knurled and lacquered (G15a)`). The machine was heavily loaded (load 58 →
+  41), so this is for comparison only:
+  - DPR 1: the surface pass costs 1.41 → 2.21 ms with the knurl and coat; 4.92 ms a submit against the 8 ms budget.
+  - The quiet run for the 1440p check is still owed.
+
+## G-R69 — G15b (1–2): the environment's lighting prefiltered, and studio environments (roadmap G15b, 2026-10-24)
+
+- **The environment's lighting** (`packages/barocss-gpu`, `viewer/shaders/env.ts`, `viewer.envLighting`):
+  - Made once per environment map, kept with it (`ImageTexture.gpu.lighting`) and destroyed with it.
+  - **Reflections**: prefiltered by GGX for each roughness, one mip level each, from 0 to 1 (`ENV_LEVELS` 7, at most
+    1024 across, rgba16float). Each level takes 128 importance samples with the split sum's normal = view = reflection.
+    Each sample is read from the source level whose texels match its share of the sphere (filtered importance sampling).
+  - **Diffuse light**: the cosine-weighted mean radiance round a normal (64 × 32, 512 samples). Before, this was the map's
+    most blurred mip level, a box average.
+  - **The split sum's BRDF table** (Karis; 64 × 64 rg16float, made once per device): scale and bias to f0 over n·v and
+    roughness.
+  - The surface shader (`envReflect`, `envDiffuse`, `brdfScaleBias` in common; frame bindings 7 and 8) uses them
+    **only under an environment map**. The sky-and-ground look, the modelling one, is unchanged; so are the coat's
+    reflection and the anisotropic bend. The old `envAt` (lod from the frame block) is gone; the levels now come from
+    `textureNumLevels`.
+- **Studio environments** (`viewer/studio-env.ts`, `studioEnvironment(kind, width)`): equirectangular sRGB bytes made in
+  our own code, no download.
+  - `softbox`: a dark room; a large key up in front on the left, a fill on the right, a strip behind.
+  - `cyclorama`: a white backdrop with a light bank above and the cove's soft horizon into the floor.
+  They are 8-bit (the light's range is the environment strength); HDR sources are not taken yet.
+- **cad-model** (`engine/render.ts`, outer's file, coordinator-approved pattern, its own commit):
+  - `RenderEnvironment.studio?: { kind: 'softbox' | 'cyclorama', intensity }` (`STUDIO_KINDS`). It is read with clamps;
+    absent means none. An image, when present, is used instead.
+- **The studio**:
+  - The Render panel's Scene tab gets "Studio" (Sky and ground, Softboxes, Cyclorama; Image when one is loaded).
+  - Environment strength covers either source.
+  - Choosing a studio drops the image; loading an image drops the studio and keeps its strength.
+  - `gpuRenderer.studioTexture` makes each studio once.
+- **Tests**:
+  - `viewer-env-browser` (new) passes on hardware and SwiftShader. A white diffuse sphere under a white sky over a black
+    ground reads 243 at the top, 188 at the equator (0.5 linear is 188) and 74 below. A mirror's horizon is 3 px wide; a
+    rough metal's (0.6) is 35 px.
+  - gpu test:browser 31/31 before the new test; gpu unit 303/303 (the studio environments' shape and brightness).
+  - cad-model render 7/7; studio unit 292/292.
+  - Flow 295 (new) passes on WebGPU and WebGL2: softboxes, strength ×2, cyclorama, an image replacing it, then Sky and
+    ground. The frame's mean on machined steel: sky 52.2, softbox 47.2, ×2 48.6.
+- **Next, G15b (3–4)**: soft shadows (PCSS for the casting light) and contact shadows in the output pass.

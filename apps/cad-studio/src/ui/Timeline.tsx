@@ -11,10 +11,12 @@ import { Icon } from './atoms';
  * shadcn's.)
  */
 const NUM = 'w-14 h-6! [font-family:var(--mono)] bg-[var(--bg)]';
-export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime, onPlay, onChange }: {
+export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime, onPlay, onChange, onExportVideo, exporting }: {
   animation: RenderAnimation; time: number; playing: boolean;
   bodyKey: string | null; bodyLabel: string;
   onTime(t: number): void; onPlay(on: boolean): void; onChange(next: RenderAnimation): void;
+  /** A WebM of the animation over its duration — the turntable, the keyed bodies (RS2's recorder). */
+  onExportVideo?(): void; exporting?: boolean;
 }) {
   const keys = bodyKey ? animation.tracks[bodyKey] ?? [] : [];
   const now = bodyKey ? offsetsAt(animation, time).get(bodyKey) ?? [0, 0, 0] : [0, 0, 0];
@@ -36,6 +38,7 @@ export function Timeline({ animation, time, playing, bodyKey, bodyLabel, onTime,
       <Input className={'dur ' + NUM} type="number" aria-label="Duration" min={0.1} step={0.5} value={animation.duration}
         onChange={e => { const v = Number(e.target.value); if (v >= 0.1) onChange({ ...animation, duration: v }); }} /><span className="mono">s</span>
       <label className="check-inline"><input type="checkbox" aria-label="Turntable" checked={animation.turntable} onChange={e => onChange({ ...animation, turntable: e.target.checked })} />Turntable</label>
+      {onExportVideo && <Button variant="ghost" aria-label="Export animation video" disabled={exporting} title="A WebM video of the animation over its duration (30 frames a second)" onClick={onExportVideo}>{exporting ? 'Recording…' : 'Video'}</Button>}
       <div className="sep" />
       {bodyKey ? <>
         <span className="muted small">{bodyLabel}</span>

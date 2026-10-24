@@ -11,7 +11,7 @@ const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', pa
 const run = features => evaluateCadPart(D(features));
 const volume = o => o.massProperties(1).volumeMM3;
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.max(1, Math.abs(want)), `${what}: ${got} vs ${want} (${Math.abs(got - want) / Math.max(1, Math.abs(want))})`);
-const refuse = (features, code, re) => assert.throws(() => run(features), e => e.code === code && re.test(e.message), String(re));
+const refuse = (features, code, re) => assert.throws(() => run(features), e => (e.details?.category ?? e.code) === code && re.test(e.message), String(re));
 function welded(breps) { let b = breps[0]; for (const o of breps.slice(1)) b = booleanAnalytic(b, o, 'union'); return b; }
 const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, WIDE = { kind: 'rect-tube', width: 80, height: 80, wall: 4, outerRadius: 0 };
 const z = 3;

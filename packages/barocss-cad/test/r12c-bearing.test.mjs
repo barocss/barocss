@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, BearingError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, isBearingError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.4 (D158): bearing envelopes from the user's rows, on a shaft's seat and in a housing. The row is D139's B1 (the
@@ -11,7 +11,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
-const code = c => e => e instanceof BearingError && e.code === c;
+const code = c => e => isBearingError(e) && e.code === c;
 const I = { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
 const ROW = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'B1 (D139): the NSK 6204 page' };
 const FITS = [{ id: 'seat-fits', rows: [{ class: 'k5', overMM: 18, upToMM: 30, upperUM: 11, lowerUM: 2, estimate: true }, { class: 'H7', overMM: 30, upToMM: 50, upperUM: 25, lowerUM: 0, estimate: true }] }];
@@ -89,7 +89,7 @@ test('R12c.4 part model: a shaft turned and moved, a bearing on its seat and in 
   const snap = evaluateCadPart(D(feats)), b = snap.output('b'), bb = brepBounds(b.brep);
   near(bb.min[2], 35, 1e-9, 'z'); near((bb.min[0] + bb.max[0]) / 2, 60, 1e-9, 'x'); assert.equal(b.bearing.seat.located, 'ring groove 1'); assert.equal(b.bearing.housing.covered, true);
   assert.ok(snap.outputs.some(o => o.id === 's') && snap.outputs.some(o => o.id === 'h'), 'the shaft and the housing stay outputs');
-  const refused = (patch, c, tag) => assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'b' ? { ...f, ...patch } : f))), e => e.code === c && e.message.includes(`[${tag}]`), tag);
+  const refused = (patch, c, tag) => assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'b' ? { ...f, ...patch } : f))), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
   refused({ row: { ...ROW, daMaxMM: 24.9, daMinMM: 22 } }, 'GEOMETRY', 'SEAT_ABUTMENT');
   refused({ row: { ...ROW, boreMM: 17 } }, 'GEOMETRY', 'SEAT_FIT');
   refused({ row: { ...ROW, source: undefined } }, 'INPUT', 'INVALID_INPUT');

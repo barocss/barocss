@@ -94,7 +94,7 @@ export const GROUPS: Record<string, Group> = {
     about: 'The part\'s 2D drawing; a drawing change is always the user\'s, so make it as ops of proposals.propose.',
     actions: {
       issues: ['drawing_issues', ''], tolerances: ['tolerance_suggestions', 'mode?'], auto: ['auto_dimension', 'layout?'], fix: ['fix_drawing', 'codes?'],
-      accept: ['accept_tolerances', 'ids?, mode?'], set: ['set_drawing', 'scope?: {kind: part, part?: instance id} | {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at}], tables?: [{id,from: bom|cut-list|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval'],
+      accept: ['accept_tolerances', 'ids?, mode?'], set: ['set_drawing', 'scope?: {kind: part, part?: instance id} | {kind: assembly}; sheet?, scale?, projection?, front?, views?, tolerancing?, title?, weldSymbols?, balloons?, sections?: [{id,view,at,half?,steps?}], details?: [{id,view,center,radius,scale?,at?}], breaks?: [{axis,from,to}], tables?: [{id,from: bom|cut-list|weld-list,title?,at?,corner?,whole?}]; lists replace ([] clears), omitted keeps; all changes need user approval'],
     },
   },
   subd: {

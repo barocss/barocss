@@ -13,7 +13,7 @@ const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', pa
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
 const vol = features => out(features).massProperties(1).volumeMM3;
 const yzAt = x => ({ origin: [x, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }), xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const pol = (c, r, a) => [c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)];
 
 /** Bodies extruded along X from 0 to L, as unions (not upright, so the general shell takes them). */

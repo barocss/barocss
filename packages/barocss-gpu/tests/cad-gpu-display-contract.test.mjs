@@ -50,7 +50,7 @@ function fixture() {
     theme: { base: [0.74, 0.75, 0.78], edge: [0.05, 0.05, 0.06], ao: 0.9, shadow: 0.45 }, aoEnabled: true, interacting: false,
     settings: null, analysis: null, scalarMaps: null, instances: [], direct: [], proposalMeshes: [], mould: null, controls: [], regions: [], poses: null, instancePreview: null,
     hatchLines: new Map(), maps: new Map(), boundsKey: null, boundsMemo: null, clip: null, shaders: new Map(),
-    instanceDisplayMode: 'shaded-with-edges', instanceTiles: new WeakMap(), instancePainted: new WeakMap(), instanceFaces: [], instanceSelection: [], instanceMeshes: new Map(), shapes: new Map(), shareCopies: true,
+    instanceDisplayMode: 'shaded-with-edges', instanceTiles: new WeakMap(), instancePainted: new WeakMap(), instanceFaces: [], instanceSelection: [], contactLinks: new Set(), instanceMeshes: new Map(), shapes: new Map(), shareCopies: true,
   });
   renderer.bodies = [0, 1, 2].map(bi => {
     const mesh = { positions: new Float32Array([0, 0, 0, 1, 0, 0, 0, 1, 0]), normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]), indices: new Uint32Array([0, 1, 2]), faceOfVertex: new Uint32Array([0, 0, 0]), faces: [{ index: 0, id: 'native-plane', kind: 'plane' }], edgeLines: new Float32Array([0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0]), edgeOfSegment: new Uint32Array([7, 7, 9, 9]), bounds: { min: [-1, -1, -1], max: [1, 1, 1] } };

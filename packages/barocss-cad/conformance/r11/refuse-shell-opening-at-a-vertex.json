@@ -97,7 +97,8 @@
   },
   "expect": {
     "error": {
-      "code": "CAPABILITY",
+      "code": "OPENING_AT_A_VERTEX",
+      "category": "CAPABILITY",
       "messageIncludes": "[OPENING_AT_A_VERTEX]"
     }
   },

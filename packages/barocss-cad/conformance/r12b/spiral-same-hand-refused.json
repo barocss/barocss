@@ -48,7 +48,8 @@
   },
   "expect": {
     "error": {
-      "code": "INPUT",
+      "code": "MATE_INCOMPATIBLE",
+      "category": "INPUT",
       "messageIncludes": "opposite hands"
     }
   }

@@ -2,7 +2,7 @@
 // citing its source or flagged an estimate (its own, or the table's), as the bend tables (D120). A member names a table
 // and a size; the table is checked whole (`[SECTION_TABLE]`), a size it lacks refused with the sizes it has
 // (`[SECTION_TABLE_MISS]`), and the size built by the section's own closed forms (FR1).
-import { frameSection, FrameSectionError, type FrameSectionSpec } from '../frame-sheet/frame-section.js';
+import { frameSection, isFrameSectionError, type FrameSectionSpec } from '../frame-sheet/frame-section.js';
 
 export type SectionTableKind = 'rect-tube' | 'round-tube' | 'angle' | 'channel' | 'i-beam' | 'tslot';
 export interface SectionTableRow { readonly size: string; readonly source?: string; readonly estimate?: boolean; readonly [dimension: string]: unknown }
@@ -59,7 +59,7 @@ export function sectionTableProblem(t: unknown): string | null {
     if (r.source !== undefined && typeof r.source !== 'string') return `${rat}: source must be text`;
     if (r.source !== undefined && r.estimate === true) return `${rat}: cite its source or say estimate: true — not both`;
     if (r.source === undefined && r.estimate !== true && o.source === undefined && o.estimate !== true) return `${rat}: cite its source or say estimate: true — never neither (here or on the table)`;
-    try { frameSection(specOf(kind, r as SectionTableRow)); } catch (cause) { if (cause instanceof FrameSectionError) return `${rat}: ${cause.message}`; throw cause; }
+    try { frameSection(specOf(kind, r as SectionTableRow)); } catch (cause) { if (isFrameSectionError(cause)) return `${rat}: ${cause.message}`; throw cause; }
   }
   return null;
 }

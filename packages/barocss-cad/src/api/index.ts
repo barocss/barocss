@@ -4,7 +4,7 @@
 export { part, KernelPart, kernelBackend } from './kernel.js';
 export { Part, withParameters, type PartBackend, type Density, type Tool, type FeatureInfo } from './part.js';
 export {
-  boxSpec, cylinderSpec, extrudeSpec, revolveSpec, holeSpec, filletSpec, chamferSpec, shellSpec, booleanSpec, linearPatternSpec, circularPatternSpec, moveSpec, rotateSpec, mirrorSpec, scaleSpec, splitSpec,
+  boxSpec, cylinderSpec, extrudeSpec, revolveSpec, holeSpec, filletSpec, chamferSpec, shellSpec, booleanSpec, linearPatternSpec, circularPatternSpec, moveSpec, rotateSpec, mirrorSpec, scaleSpec, splitSpec, studioSpec, type StudioCommand,
   param, isParam, type Param, type Dim, type Bound, type Resolved,
   type FeatureSpec, type BooleanCommand, type BoxOptions, type CylinderOptions, type ExtrudeOptions, type RevolveOptions, type HoleOptions, type FilletOptions, type ChamferOptions,
   type ShellOptions, type LinearPatternOptions, type CircularPatternOptions, type MirrorOptions, type ScaleOptions, type SplitOptions,

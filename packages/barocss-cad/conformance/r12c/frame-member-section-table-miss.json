@@ -50,7 +50,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "SECTION_TABLE_MISS",
+      "category": "PARAMETER",
       "messageIncludes": "[SECTION_TABLE_MISS] section: the section table rhs-a has no size 50x50x5 (sizes: 40x40x3)"
     }
   },

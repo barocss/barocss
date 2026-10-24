@@ -14240,3 +14240,141 @@ upright, as finishing it builds it anyway), and one tessellation where a face is
 - Fingerprint byte-identical: 869 cases `dbc1ad33…` (no corpus document has `expect`).
 - cad-model 1051/1051. No RB (nothing in it uses `expect`), no flow (nothing studio-visible until the outer lane wires
   `node.sigs`).
+
+## D278 — R7.3a batch 2 (kernel), part 1: one list of codes; a part-model refusal's `code` is its specific code (2026-10-24)
+
+**Scope** (the coordinator's decision on the kernel's options: 1 + 2(b) + 3(a) + 4(a); part 1 is 1 and 2(b), the fold
+follows as part 2). No message text changes anywhere in this batch.
+
+**1. One list.** `src/core/error-codes.ts`, exported from the main entry:
+- `CAD_REFUSAL_CODES`: the 64 bracketed codes the kernel's string and template literals carry (`[FIT_TABLE_MISS] …`);
+- `CAD_ERROR_CODES`: every code a kernel error can carry (269), being those and every error class's `code` literals;
+- `CadErrorCode` and `CadRefusalCode`, their types;
+- `refusalCodeOf(message)`: a message's first known bracketed code.
+
+`CadAstError`'s code, a plain string before, is typed (`CadAstCode`, 22 codes), so the list can be read from it. The
+11 classes that took a code in D272 pass it as a literal. `test/error-codes.test.mjs` keeps the list whole: the
+literals' bracketed codes are exactly `CAD_REFUSAL_CODES`, and every class's code type lies in `CAD_ERROR_CODES` (read
+with the TypeScript checker). The docs table may read `CAD_ERROR_CODES` with R7.6's part 2; it still scrapes the
+literals.
+
+**2(b). `CadPartError.code`.** Where its message carries a known bracketed code, that code; otherwise its category
+(INPUT, PARAMETER, CAPABILITY, REFERENCE, SELECTION, GEOMETRY, FORMAT). The category is in `details.category`
+either way: `KernelError` takes `details`. The one kernel site that re-raised a CadPartError's code (a tagged
+dimension, `taggedDimension`) takes the category. Outside cad, nothing branches on the category: cad-model, the studio and
+the facades were searched. The facade's `refusalOf` (`src/api/core.ts`, the API lane's) already took the bracketed
+code first, so its `code` is unchanged; its `details.kernelCode` now holds the specific code.
+
+**3(a), the kernel's reading of §6.** A refusal with no specific code carries its category in `code` and its words
+unprefixed. There is no `[INPUT] ` sweep over the ~400 such refusals; one gets a specific code when a later change
+touches it.
+
+**What changed in values:**
+- **Fingerprint** (`scripts/r5-fingerprint.mjs`): 869 cases, `49f1fac8…` (from `dbc1ad33…`). Exactly 42 lines change,
+  each a refusal's `code` field only: its name and message are byte-identical. By old → new code:
+
+| Category | Code | Cases | Which |
+|---|---|---|---|
+| CAPABILITY | CORNER_NOT_SQUARE | 1 | r12/refuse-corner-not-square |
+| CAPABILITY | OFFSET_FOLDS | 3 | r11/refuse-shell-pipe-tee-fillet-folds, r11/refuse-shell-subd-folds, r11/refuse-thicken-folds |
+| CAPABILITY | OPENING_AT_A_VERTEX | 1 | r11/refuse-shell-opening-at-a-vertex |
+| CAPABILITY | SHELL_REGIONS_SHARP | 1 | r11/refuse-shell-regions-sharp |
+| CAPABILITY | WALL_TOO_THIN | 2 | r11/refuse-shell-mesh-wall-too-thin, r11/refuse-shell-wall-too-thin |
+| GEOMETRY | FLANGES_COLLIDE | 1 | r12/refuse-flanges-collide |
+| GEOMETRY | SHEET_CROSSES_ITSELF | 1 | r12/refuse-sheet-crosses-itself |
+| INPUT | INVALID_INPUT | 4 | r12b/rack-fillet-refused, r12b/spiral-cutter-refused, r12b/tool-tip-refused, r6a/rack-height-refused |
+| INPUT | MATE_INCOMPATIBLE | 4 | r12b/spiral-same-hand-refused, r12b/worm-wheel-zi-refused, r6a/helical-same-hand-refused, r6a/spur-mesh-module-refused |
+| PARAMETER | ARC_MEMBER | 1 | frk/refuse-frame-arc-center |
+| PARAMETER | BEAD_ANGLE | 1 | frk/refuse-bead-angle |
+| PARAMETER | BEAD_KIND | 1 | frk/refuse-bead-mitre |
+| PARAMETER | BEND_ANGLE | 1 | r12/refuse-bend-angle |
+| PARAMETER | BEND_DOES_NOT_FIT | 1 | r12/refuse-bend-does-not-fit |
+| PARAMETER | BEND_TABLE_MISS | 1 | r12/refuse-bend-table-miss |
+| PARAMETER | BUTT_ON_OPEN_SIDE | 1 | fr/refuse-butt-on-open-side |
+| PARAMETER | CAP_END | 1 | frk/refuse-cap-end |
+| PARAMETER | CONTACT_LEAVES_FACE | 1 | r10/refuse-overflow-end |
+| PARAMETER | CORNER_NOT_A_JOINT | 1 | fr/refuse-corner-not-a-joint |
+| PARAMETER | EDGE_NOT_SHEET | 1 | r12/refuse-flange-edge-not-sheet |
+| PARAMETER | GUSSET_FIT | 1 | frk/refuse-gusset-fit |
+| PARAMETER | MEMBERS_CLASH | 1 | fr/refuse-members-clash |
+| PARAMETER | MEMBER_DUPLICATE | 1 | fr/refuse-member-duplicate |
+| PARAMETER | MITRE_SECTIONS_DIFFER | 1 | fr/refuse-mitre-sections-differ |
+| PARAMETER | NOTCH_CUTTER | 1 | frk/refuse-notch-v-depth |
+| PARAMETER | RADIUS_EXCEEDS_FACE | 2 | r10/refuse-concave-chamfer-past-round, r10/refuse-radius-exceeds-face |
+| PARAMETER | SECTION_DIMENSIONS | 2 | fr/refuse-section-dimensions, frk/refuse-section-tangent-equality |
+| PARAMETER | SECTION_TABLE_MISS | 1 | r12c/frame-member-section-table-miss |
+| PARAMETER | SEGMENT_ZERO_LENGTH | 1 | fr/refuse-segment-zero-length |
+| PARAMETER | SKELETON_OVERLAP | 1 | fr/refuse-skeleton-overlap |
+| SELECTION | TANGENT_FACES | 1 | r10/refuse-tangent-faces |
+
+- **Conformance:** the 42 cases expecting those refusals by category now expect the specific code, with the category
+  beside it (`"code": "BEND_ANGLE", "category": "PARAMETER"`). `test/conformance.test.mjs` checks both.
+- **Tests:** 35 test files' helpers that checked a part-model refusal's category read `e.details?.category ?? e.code`.
+  That is the same assertion: the category for a CadPartError, the code for any other class. d148's message check
+  names both. o19-expect's three refusals check `REFERENCE_MOVED` and their category.
+
+**Checks** (in a scratch worktree at e092ceda0 + the change; then at the commit's parent 1f08f0133, with the outer lane's
+O19 wiring and R7.7a step 3):
+- cad tsc, eslint and build clean.
+- Kernel suite at concurrency 4: 1725/1732, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names +3, these tests, with the API lane's merged since; none gone.
+- RB: no NEW, the same 2 TODOs. Fingerprint as above.
+- At the parent: kernel api, error-codes, barocss-error, conformance and o19 tests 310/310; cad-model tsc 0 and
+  1066/1066 (its O19 checks read `REFERENCE_MOVED` as before); studio tsc 0 and 286/286.
+- No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+## D279 — R7.3a batch 2 (kernel), part 2: the live per-module error classes folded into module refusals (2026-10-24)
+
+**Scope** (option 4(a), narrowed by reachability; the coordinator agreed).
+- Only 117 of cad's 401 source files are reachable by imports from the live engine: `src/part/part-model.ts`, `src/api`
+  and `src/io`. The other **284 files** are reachable only through `index.ts` exports: createCadModel, the old
+  document versions, the native "proof" APIs (convex-planar-*, xy-affine-*, translated-strip, paired, exact-proof, the
+  wide-curve operations). They hold 141 of the 171 error classes. That count is the size of R7.3d's audit: each module
+  there retires (and its class with it) or stays, and a kept one is folded then.
+- Of the 30 live classes, 8 stay named classes, because something outside the live engine tells them apart by class:
+  - CadPartError, BrepError, FitError, IGESImportError, SubdError, SurfaceIntersectionError (cad-model and the studio);
+  - HullError (cad-model);
+  - NativeCurvatureError and NativeSecondDerivativeError (examples/cad-nurbs' demos and cad-interop's examples check
+    `instanceof` and `name`);
+  - CadAstError (a structured diagnostic, with its range and object, returned by compileCadModel).
+- The other **21 are folded**: BearingError, CamError, ConnectorError, CurvedArrangementError, DriveError,
+  DxfWriteError, ExtrudedProfileError, FacetBooleanError, FlatPatternError, FrameSectionError, GearError, GlandError,
+  MeshBrepError, PlanarArrangementError, PrismaticSolidError, SewError, ShaftError, ShaftPartError, SheetMetalError,
+  SolidMassError, SpringError.
+
+**The fold.**
+- `src/core/barocss-error.ts`:
+  - `kernelRefusal(source, code, message, cause?)`: a KernelError named `BarocssError`, its code, its message as the
+    module writes it, `details.source` naming the module;
+  - `isFrom(e, source)`.
+- Each folded class becomes a factory and a guard in its module:
+  `gearError(code, detail)` (the same message the class wrote, e.g. `gear: …`) and `isGearError(e)`. The guard is what
+  the 46 catch sites that told modules apart by class use now: the part model mapping a gear's codes, the facet Boolean
+  catching the mesh builder, and so on. Codes of two modules share names (INPUT …), so `source`, not the code, says
+  whose a refusal is.
+- The main entry exports the factories and guards in place of the classes. No message text changes, and every code is
+  as before.
+- The folded errors' `name` is `BarocssError`. The fingerprint records only the part model's refusals, which are
+  CadPartErrors, so it does not move.
+- Legacy `modeling.ts` told the extruded profile's refusal by its class name, so as not to import the profile builder
+  (its tests' bundle traps forbid it). It now tells it by `isFrom(…, 'extruded-profile')`.
+- `test/error-codes.test.mjs` also reads each `kernelRefusal(…) as … { code: C }` factory's C, so the folded modules'
+  codes stay in `CAD_ERROR_CODES`.
+
+**Tests:** `assert.throws(…, XError)` and `instanceof XError` in the kernel's tests became the guards; nothing else in
+them changed.
+
+**Checks** (in a scratch worktree at 553edb8a8 + the change):
+- cad tsc and eslint clean.
+- Kernel suite at concurrency 4: 1725/1732, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names identical to part 1's run.
+- R5 fingerprint byte-identical: 869 cases `49f1fac8…`. RB: no NEW, the same 2 TODOs.
+- cad-model 1089/1089, studio 286/286, the docs samples 36/36.
+- At the commit's parent 88deb6df7 the samples are 47/48. The failing one, cad-model-api's "rows from a person's file,
+  then a fastener from them", fails on that tip without this change too: not this change's.
+- No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+**Where the change is in history:** the fold's code (69 files under `packages/barocss-cad`) is in `44cb23283`, the
+coordinator's roadmap commit. The patch was applied in the shared integration worktree for its last check, and that
+commit took the working tree with it. The patch and the commit's cad diff are identical. `a152dee7e` holds this record
+and the README row. Integration is never rewritten, so the two stay as they are; read them together as D279.

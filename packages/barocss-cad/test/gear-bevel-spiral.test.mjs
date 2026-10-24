@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
 
 // R12b.4 (D135): spiral bevel gears, the ideal conjugate — flagged as an ideal model. Oracles written here, apart from
 // gear-bevel.ts: the circular tooth trace built on the crown plane (the cutter's circle through the mean point at the
@@ -121,7 +121,7 @@ test('the spiral bevel gear (refused at the previous HEAD: no spiral), the ideal
 
 test('refusals: a face-hobbed trace, a hypoid offset, the spiral angle, the hand, a cutter radius the face cannot take; a pair of one hand, of other spirals or face widths, or spiral with straight', () => {
   const base = { moduleMM: 3, teeth: 20, mateTeeth: 40, faceWidthMM: 20 }, sp = { angleDeg: 35, hand: 'left', cutterRadiusMM: 60 };
-  const code = (spec, c, re) => assert.throws(() => bevelGear({ ...base, ...spec }), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
+  const code = (spec, c, re) => assert.throws(() => bevelGear({ ...base, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   code({ spiral: { ...sp, trace: 'epicycloidal' } }, 'UNSUPPORTED_GEAR_KIND', /face-hobbed/); code({ spiral: sp, offsetMM: 5 }, 'UNSUPPORTED_GEAR_KIND', /hypoid/);
   code({ spiral: { ...sp, angleDeg: 50 } }, 'INVALID_INPUT', /45°/); code({ spiral: { ...sp, angleDeg: 0 } }, 'INVALID_INPUT'); code({ spiral: { ...sp, hand: 'up' } }, 'INVALID_INPUT', /hand/);
   code({ spiral: { ...sp, cutterRadiusMM: 5 } }, 'INVALID_INPUT', /cutter radius of 5 mm takes the spiral angle to 0° or past it/); code({ spiral: { ...sp, cutterRadiusMM: 0 } }, 'INVALID_INPUT');
@@ -242,10 +242,10 @@ test('the part model: a spiral pinion and its mate by mesh, their B-reps cut by 
   }
   // A phase off by 4°: the sections cross on some sphere.
   const off = run(0, 4).out; assert.ok(off.some(r => r.crossed), 'a phase off crosses');
-  if (SURVEY) assert.throws(() => evaluateCadPart(D([...feats(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => e.code === 'REFERENCE' && /no output i/.test(e.message));
+  if (SURVEY) assert.throws(() => evaluateCadPart(D([...feats(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   // The part model's refusals: a mate of the same hand; a spiral without its hand.
-  assert.throws(() => evaluateCadPart(D([feats(0)[0], { ...feats(0)[1], spiral: { angle: 35, hand: 'left', cutterRadius: 60 } }])).output('w'), e => e.code === 'INPUT' && /opposite hands/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ ...feats(0)[0], spiral: { angle: 35, cutterRadius: 60 } }])).output('p'), e => e.code === 'INPUT' && /hand/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([feats(0)[0], { ...feats(0)[1], spiral: { angle: 35, hand: 'left', cutterRadius: 60 } }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /opposite hands/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ ...feats(0)[0], spiral: { angle: 35, cutterRadius: 60 } }])).output('p'), e => (e.details?.category ?? e.code) === 'INPUT' && /hand/.test(e.message));
   // STEP: the volume and names back.
   const { brep } = bevelGear(specOf({ m: 3, z: 20, zm: 40, b: 20, bore: 10, beta: 35, hand: 'left', rc: 60 }), { id: 's' }), back = importStep(exportStep([brep], { name: 'spiral' }));
   close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);

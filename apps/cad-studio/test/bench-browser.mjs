@@ -25,6 +25,7 @@ function benchCaseNames(voxels) {
     'orbit: 60-step drag',
     'orbit: 60 steps, body outlined',
     'pose: a joint of the 2R arm played',
+    'motion: the 2R arm\'s motion played',
     `cloud: ${voxels} workspace voxels, orbit 60`,
     'cloud: 100 000 voxels, orbit 60',
     'explode: 120 brackets, 60-step drag',
@@ -41,7 +42,7 @@ function benchCaseNames(voxels) {
 
 function benchRowsPass(rows, expectedNames, picks, fullRun) {
   const names = rows.map(r => r.name);
-  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 19) &&
+  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 20) &&
     new Set(expectedNames).size === expectedNames.length &&
     names.length === expectedNames.length && new Set(names).size === names.length &&
     expectedNames.every(name => names.includes(name)) && rows.every(r => r.ok === true) &&
@@ -216,7 +217,15 @@ const BUDGET = {
   clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
   orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
   orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
+  // (G15d.1: the Render workspace orbited — its look (shadows, occlusion off while moving), then with the post on: AgX, the
+  // warm grade, contrast, saturation and a vignette. The post's cost: the second row's GPU time less the first's.)
+  renderOrbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
+  renderOrbitPost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
+  // (G15a: the same with the part knurled and lacquered — the finish's relief, four noise lookups a pixel, and the coat.)
+  renderOrbitFinish: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
   pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
+  // (RS2: as a joint played, and the App rendered only as it starts and stops — never in a frame of it.)
+  motion: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3, app: 4 },
   cloud: { submits: 64, avgFrameMS: 2, perFrame: 1, taskMS: 6, kb: 5, buffers: 4, gpuMS: 3 },
   explode: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 30, kb: 128, buffers: 4, gpuMS: 4 },
   sectionGpu: { submits: 140, avgFrameMS: 2, perFrame: 1, taskMS: 33, kb: 5, buffers: 4, gpuMS: 6 },
@@ -357,6 +366,27 @@ try {
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
     await page.mouse.up({ button: 'left' });
   });
+  // ---- G15d.1: the Render workspace orbited, without and with the post ------------------------------------------------
+  const orbit60 = async () => {
+    await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
+    for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
+    await page.mouse.up({ button: 'left' });
+  };
+  await page.keyboard.press('Escape');
+  await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]'); await page.waitForTimeout(800);
+  await measure('render: orbit 60', BUDGET.renderOrbit, orbit60);
+  await page.click('.render-panel [role="tab"]:text-is("Scene")');
+  await page.selectOption('.render-panel [aria-label="Tone mapping"]', 'agx');
+  await page.selectOption('.render-panel [aria-label="Colour grade"]', 'warm');
+  await page.evaluate(() => { for (const [l, x] of [['Contrast', 1.2], ['Saturation', 1.2], ['Vignette', 0.6]]) { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); } });
+  await page.waitForTimeout(800);
+  await measure('render: orbit 60, post on (AgX, warm grade, vignette)', BUDGET.renderOrbitPost, orbit60);
+  await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+  await page.selectOption('[aria-label="Appearance preset"]', 'look-knurled-steel');
+  await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Clear coat"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '0.6'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.waitForTimeout(800);
+  await measure('render: orbit 60, post on, knurled and lacquered (G15a)', BUDGET.renderOrbitFinish, orbit60);
+  await page.click('.mode button:text-is("Model")'); await page.waitForTimeout(500);
   // ---- G1: posed and exploded assemblies -------------------------------------------------------------------------
   const fs = await import('node:fs'), os = await import('node:os');
   const tmp = fs.mkdtempSync(join(os.tmpdir(), 'cad-bench-')), open = async (name, doc, ready) => {
@@ -369,6 +399,13 @@ try {
   await open('chain-2r.bcad', arm, () => window.__studioDoc?.instances?.length === 2 && window.__studioInstanceBounds?.().length === 2 && !!document.querySelector('[aria-label="Play joint base~a"]'));
   await measure('pose: a joint of the 2R arm played', BUDGET.pose, async () => {
     await page.click('[aria-label="Play joint base~a"]'); await page.waitForTimeout(1500); await page.click('[aria-label="Play joint base~a"]');
+  });
+  // RS2: the motion from home to the first joint at 1.5 rad played for 1.5 s (a pose shown, then Play, then Pause).
+  await page.click('[aria-label="Joints home"]').catch(() => {});
+  await page.evaluate(() => { const el = document.querySelector('[aria-label="Joint base~a value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '1.5'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.waitForSelector('[aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+  await measure('motion: the 2R arm\'s motion played', BUDGET.motion, async () => {
+    await page.click('[aria-label="Play motion"]'); await page.waitForTimeout(1500); await page.click('[aria-label="Pause motion"]').catch(() => {});
   });
   // G4: the arm's workspace map shown (RM9b: 20 000 poses, its voxels drawn as an overlay), orbited 60 steps.
   await page.click('[aria-label="Joints home"]').catch(() => {});

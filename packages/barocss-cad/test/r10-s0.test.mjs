@@ -71,5 +71,5 @@ test('R10 S0 then and now: the edges R10.1 added — refused at S0 (D87) — are
   assert.ok(Math.abs(took(7.5) - (1 - Math.PI / 4) * 7.5 * 7.5 * 10) < 1e-6, 'within the true reach: a quarter round');
   assert.ok(Math.abs(took(7.9) - (1 - Math.PI / 4) * 7.9 * 7.9 * 10) < 1e-6, 'just within it');
   // (At S0 8.5 was admitted, and no quarter round came of it.) The true reach, 7.928932, refuses it by name.
-  assert.throws(() => took(8.5), e => e.code === 'PARAMETER' && /\[RADIUS_EXCEEDS_FACE\].*7\.928932 mm/.test(e.message));
+  assert.throws(() => took(8.5), e => (e.details?.category ?? e.code) === 'PARAMETER' && /\[RADIUS_EXCEEDS_FACE\].*7\.928932 mm/.test(e.message));
 });

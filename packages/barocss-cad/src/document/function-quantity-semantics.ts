@@ -1,4 +1,4 @@
-import { CadAstError } from '../language/source-ast.js';
+import { CadAstError, type CadAstCode } from '../language/source-ast.js';
 import type { CadExpression, CadModelAst, CadAstValue, CadFunctionAst, CadOrdinaryAstDeclaration, CadSourceRange } from '../language/source-ast.js';
 import type { CadQuantityKind, CadResolvedParameter, CadFieldBinding, CadParameterDependency } from './parameter-semantics.js';
 import { copyCadData } from '../data-copy.js';
@@ -31,7 +31,7 @@ type Cost = CadFunctionWork['preflight'];
 type Input = { kind: CadQuantityKind; expression: CadExpression; span: CadSourceRange };
 type Leaf = { owner: Owner; expression: CadExpression; required: CadQuantityKind; references: string[] };
 const numericFields = new Set(['degree', 'degree-u', 'degree-v', 'knots', 'knots-u', 'knots-v', 'control-points', 'weights', 'vector']);
-function fail(code: string, detail: string, range: CadSourceRange, owner: string): never {
+function fail(code: CadAstCode, detail: string, range: CadSourceRange, owner: string): never {
   throw new CadAstError(code, detail, range, owner);
 }
 function expression(value: CadAstValue, owner: string): CadExpression {

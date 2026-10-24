@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyPointInFacets, facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, FACET_PREVIEW_TRIANGLES, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, MeshBrepError, faceGeometry, facetArea } from '../dist/index.js';
+import { classifyPointInFacets, facetBrepFromTriangles, facetBrepsFromTriangles, facetPieces, FACET_PREVIEW_TRIANGLES, brepFromTriangles, readObj, brepMassProperties, brepSurfaceArea, checkBrep, exportStep, importStep, tessellateBrep, transformBrep, evaluateCadPart, CadPartError, FACET_EXPLODE_TRIANGLES, isMeshBrepError, faceGeometry, facetArea } from '../dist/index.js';
 
 // Facet faces (F0, R3): a closed mesh as regions of typed-array triangles, polyline edges between them.
 
@@ -102,7 +102,7 @@ test('noisy meshes: regions capped by smoothing then merging; broken meshes refu
   const box = readObj(BOX_OBJ);
   assert.throws(() => facetBrepFromTriangles(box.positions, box.indices.slice(0, -3)), /not closed/);
   const flipped = box.indices.slice(); [flipped[1], flipped[2]] = [flipped[2], flipped[1]];
-  assert.throws(() => facetBrepFromTriangles(box.positions, flipped), MeshBrepError);
+  assert.throws(() => facetBrepFromTriangles(box.positions, flipped), isMeshBrepError);
   const two = [...box.positions, ...box.positions.map((x, i) => i % 3 === 0 ? x + 50 : x)], twoI = [...box.indices, ...box.indices.map(i => i + 8)];
   assert.throws(() => facetBrepFromTriangles(two, twoI), /more than one piece \(2 pieces\)/);
 });

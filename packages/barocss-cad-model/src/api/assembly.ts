@@ -10,8 +10,9 @@ import type { FrameSettings } from '../robot/frames';
 import type { MeshData } from './core';
 import { meshSelection } from './select';
 import { bodiesOf } from './core';
-import { addMateDoc, addPartDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
+import { addMateDoc, addPartDoc, lockDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
+import { Robot } from './robot';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -73,6 +74,14 @@ export class Assembly {
     return new Assembly(this.name, addMateDoc(this.#doc, kind, ea, eb, { distance: options.distance, angle: options.angle, flip: options.flip }).doc);
   }
 
+  /** A placed part locked where it stands to another (the base part unless named) — the studio's Lock: they move as one. */
+  lock(name: string, to = BASE): Assembly {
+    const id = this.idOf(name), other = this.idOf(to);
+    if (id === BASE) throw refuse('VALUE', 'the base part stays at the origin; lock another part to it');
+    if (id === other) throw refuse('VALUE', `${name} can't be locked to itself`);
+    return new Assembly(this.name, lockDoc(this.#doc, id, other).doc);
+  }
+
   /** `assembly.inputs` (O11): inputs added or replaced by name, null removing one — the core's input shape, bindings by part and mate id. */
   inputs(inputs: Record<string, Record<string, unknown> | null>): Assembly { return new Assembly(this.name, variabilityDoc(this.#doc, 'set_inputs', { inputs })); }
 
@@ -111,6 +120,9 @@ export class Assembly {
 
   /** Each frame's world pose at the solved pose (O12). */
   framePoses(): { name: string; link: string; kind?: 'tool' | 'sensor'; position: Vec3; rotation: Vec3 }[] { return framePosesOf(this.#doc); }
+
+  /** The assembly read as a robot (RS5): its joints, poses, paths, inertia and exports. */
+  robot(): Robot { return new Robot(this.#doc); }
 
   /** Every part's display triangles where it stands (`base/<body>`, `<part id>/<body>`), in the common mesh shape. */
   meshes(): MeshData[] { return assemblyMeshes(this.#doc); }

@@ -20,13 +20,14 @@ import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { lookupFit, FitError, type FitTable } from './fits.js';
 import type { Point } from '../types.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type GlandCode = 'INVALID_INPUT' | 'GLAND_DIMENSIONS' | 'SQUEEZE_RANGE' | 'FILL_RANGE' | 'STRETCH_RANGE';
-export class GlandError extends KernelError {
-  constructor(readonly code: GlandCode, detail: string) { super(`gland: ${detail}`); this.name = 'GlandError'; }
-}
-const fail = (code: GlandCode, detail: string): never => { throw new GlandError(code, detail); };
+/** This module's refusal (R7.3a batch 2: the GlandError class folded, D279): a BarocssError, `details.source` 'gland'. */
+export const glandError = (code: GlandCode, detail: string) => kernelRefusal('gland', code, `gland: ${detail}`) as KernelError & { readonly code: GlandCode };
+/** Whether something thrown is this module's refusal. */
+export const isGlandError = (e: unknown): e is KernelError & { readonly code: GlandCode } => isFrom<GlandCode>(e, 'gland');
+const fail = (code: GlandCode, detail: string): never => { throw glandError(code, detail); };
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 const pct = (x: number) => +(100 * x).toFixed(3);
 const mm = (x: number) => +x.toFixed(6);

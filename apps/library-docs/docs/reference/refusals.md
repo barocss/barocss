@@ -5,8 +5,10 @@ page lists the codes refusals carry.
 
 ## How a refusal looks
 
-- **In the kernel**, a `CadPartError` with a `code`, the `feature` it comes from, and a message. The message often
-  starts with a more specific code in brackets.
+- **In the kernel**, a `CadPartError` with a `code`, the `feature` it comes from, and a message.
+  - When the message starts with a specific code in brackets, such as `[RADIUS_EXCEEDS_FACE]`, that is the `code`.
+    Otherwise the `code` is the refusal's category.
+  - The category is always in `details.category`.
 - **In the document model and the agent's tools**, a message that starts with a code in brackets, such as
   `[FASTENER_SIZE_ROW] no row for M6 — load your fastener sizes …`.
   - An operation throws a `BarocssError` (from `@barocss/cad/api`) with that `code`, and the message is
@@ -25,9 +27,9 @@ page lists the codes refusals carry.
 - **Merge conflicts.** When the agent's changes are merged onto your own edits, the ones that collide wait in a
   proposal, each with a `TURN_…` reason. For example, `TURN_SAME_NODE` means it changes a feature you changed.
 
-## The kernel's error codes
+## The kernel's categories
 
-| Code | What it means | For example |
+| Category | What it means | For example |
 |---|---|---|
 | `FORMAT` | The input isn't a part document it can read | `a part document of at most 4 MiB is required` |
 | `INPUT` | A field is missing or malformed | — |

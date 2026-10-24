@@ -715,6 +715,101 @@ the facade's own; `withParameters` as a function over the document (§4); named 
   suppressed fillet gives the unfilleted body's volume.
 - **The stability test** gains a parameter edit: the same named edges are still picked.
 
+## The robot on the facade (RS5): the design (proposed 2026-10-24, before code)
+
+The owner asked for robot samples and motion (RS1–RS5). RS5 is `assembly(…).robot()` over cad-model's core robot
+functions, its results byte-equal to what the agent's robot tools return. It feeds the docs lane's RS4 samples.
+
+**What the tools do today** (chat/robot.ts `runRobotTool`, checked against the source):
+- Each tool is async only because it takes an evaluator for the placed parts' bodies. Everything it computes comes
+  from sync core functions: `solveDoc` and `jointTreeOf` (the tree, `treeOfDoc`); `forwardKinematics`, `composeInto`,
+  `framePoses` and `gearPairAt` (the pose); `sweepLinks` and `sweepPath` (a path's check); `treeInertia` (inertia);
+  `linkMasses` and `gravityTorques` (gravity); `exportUrdf`, `exportMjcf`, `closureOfDoc`, `readUrdf` and `readMjcf`
+  (the exports).
+- SDF and USD have no agent tool. The studio's Export menu (App.tsx) calls `exportSdf` and `exportUsd` with the same
+  tree, parts and closures as MJCF.
+- The tools' replies round as they do: positions with `r6`, torques to 10 or 12 significant figures, snake_case keys.
+
+**The facade, as proposed.** `assembly(…).robot()` returns an immutable `Robot` over the same StudioDoc, with
+`.assembly` to get back to it. Its verbs carry the v2 `assembly` actions' names (§12):
+
+| Verb | v2 action (tool) | Core functions | Returns |
+|---|---|---|---|
+| `joints()` | `joints` (get_joints) | `solveDoc`, `jointTreeOf`, the parts' gears | the JointTree, as the tool's reply |
+| `setJoints({ base?, joints? })` | `set_joints` | its write of `robot` settings (base link, limits, ratings), checked on the tree | a new Robot (the setting is the assembly's) |
+| `pose(values)` | `pose` (forward_kinematics) | `forwardKinematics`, `composeInto`, `framePoses`, `gearPairAt` | `{ values, links, frames?, gears, out_of_limits }`, the tool's reply |
+| `path(waypoints)` | — | a plain list of `{ joint key: value }` | a `RobotPath` |
+| `path(…).check()` | `sweep` (sweep_path), between consecutive waypoints | `sweepLinks`, `sweepPath` | one sweep_path reply per segment, in order |
+| `path(…).poseAt(t)` | — | outer's coming core `poseAt(doc, path, t)` (RS2) | `pose`'s reply at that time: **last, once RS2 lands** |
+| `inertia()` | `inertia` (link_inertia) | `treeInertia` | the tool's reply |
+| `gravity(values, g?)` | `gravity` (gravity_torques) | `linkMasses`, `gravityTorques` | the tool's reply |
+| `urdf(name?)`, `mjcf(name?)` | `urdf`, `mjcf` (export_urdf / export_mjcf) | `exportUrdf`, `exportMjcf` with `closureOfDoc`; `readUrdf`, `readMjcf` | the tool's reply: the text, its files, notes and check |
+| `sdf(name?)`, `usd(name?)` | — (the studio's Export menu) | `exportSdf`, `exportUsd`, the closures as MJCF's | the core's result, as the studio gets it |
+
+- **Left for later, unless RS4 needs them:** `move(…)` (motion_torques) and `size(…)` (size_actuators). They take a
+  duty and catalogues, and they add little to the samples.
+- **Frames** stay on the assembly (`frames()`, R7.5).
+- **One adapter, src/api/robotCore.ts.** Each verb composes the same sync core functions the tool does, with the parts'
+  bodies from the facade's sync evaluation (`bodiesOf`) in place of the tool's evaluator. It builds the reply the same
+  way: the same rounding and the same keys.
+  - Same course as R7.5: when the outer lane turns each tool's work into a sync core function `verb(doc, options) →
+    reply`, with the tool and the adapter both calling it, the adapter switches to those.
+  - Proposed for the outer lane with RS3, which audits the agent's robot actions anyway.
+- **Refusals** are the tools' own: an unknown joint, a URDF refused with its codes, a frame's FRAME_* code. They come
+  through as BarocssError with the core's code, and a sentence-only refusal gets `ROBOT`. The facade's own refusals are
+  only how it was called: a path needs at least two waypoints (`VALUE`), and `poseAt` waits for RS2 (`UNAVAILABLE`).
+
+**The RS2 contract, as settled with the outer lane:** robot/motion.ts.
+- `poseAt(tree, path: TimedPath, t)` returns the core's values (radians for turning joints). `duration(path)` and
+  `checkPath(tree, path)` (returning `Problem[]`) come with it.
+- Saved motions are `RobotSettings.motions: { name, path: Motion }[]`. A Motion is in degrees and mm, and `timedPathOf`
+  and `motionOf` convert between the two.
+- So `path(waypoints)` builds a Motion, and `poseAt(t)` goes through `timedPathOf` and answers in degrees.
+- `motion(name)` and `withMotion(name, waypoints)` work over `robot.motions`, written byte-equal to RS3's waypoint
+  action.
+- Both come after outer's step 1.
+
+**As built (without poseAt and motions):** src/api/robot.ts and src/api/robotCore.ts.
+- `joints`, `setJoints`, `pose`, `path(…).check`, `inertia`, `gravity`, `urdf`, `mjcf`, `sdf` and `usd` are built.
+- assemblyCore's copy of `treeOf` moved into robotCore, so the assembly's frames and the robot share one.
+- **Units:** joint values go in as the facade's, degrees and mm (§2), and are converted for the core. The replies are
+  the tools' own, so `pose(…).values` echoes the core's radians. That's to look at with R7.7.
+- **test/api-robot.test.ts, 5/5 on arm-6r:**
+  - `joints`, `pose`, `inertia`, `gravity`, `urdf` and `mjcf` (file data set aside), and each segment of a path's
+    check, are byte-equal to dispatchTool's reply;
+  - `setJoints` writes what set_joints writes;
+  - `sdf` and `usd` equal the core exports;
+  - four typed refusals.
+
+**As built, part 2 (2026-10-24):**
+- **robotCore now calls the outer lane's sync robot verbs** (robot/verbs.ts: `treeOf`, `poseOf`, `sweepOf`,
+  `inertiaOf`, `gravityOf`, `urdfOf`, `mjcfOf`, `withJoints`), the very functions the tools call. It builds their
+  `RobotView` at once, from its own evaluation. Its own code is now only the call's checks (as the tool's) and SDF/USD,
+  which have no tool.
+- **A path is RS2's `MotionPath`,** in degrees and mm, with a profile and limits: `path(waypoints, { profile?, limits? })`.
+  - `poseAt(t)` is `poseAt(tree, timedPathOf(tree, path), t)`, answered in degrees and mm, so `pose(path.poseAt(t))`
+    places the links.
+  - `duration()` and `problems()` are `checkPath`'s problems. A path with a problem refuses `poseAt` with the
+    problem's code (`LIMITS_MISSING` …).
+- **Motions:** `motion(name)` reads `robot.motions`, and `withMotion(name, path)` saves a path there, replacing one of
+  the same name.
+  - No agent action writes motions yet. When RS3's waypoint action lands, `withMotion` is to match its write byte for
+    byte.
+- **test/api-robot.test.ts, 7/7:**
+  - `poseAt` against the core's, converted to degrees, at a third of the way;
+  - the path's end is its last waypoint;
+  - `duration` against the core's;
+  - motions saved, read back and replaced;
+  - `LIMITS_MISSING`, `MOTION_UNKNOWN` and `JOINT_UNKNOWN`.
+- **Parameters** moved onto O21's core (engine/parameters.ts): `bindParameter`, `withParameters`, `addParameters`. The
+  facade's binding table stays as its own (which options of a verb take a parameter, and where).
+
+**The oracle:**
+- For each verb, the reply is byte-equal to `runRobotTool`'s content (through `dispatchTool`) on the same document.
+  The documents are RS1's sample robots once they land; until then, the arm-6r fixture (packages/barocss-cad/conformance/rm/arm-6r).
+- SDF and USD equal the core export on the same tree, parts and closures.
+- `path(…).check()` equals one sweep_path call per segment.
+
 ## Out of scope
 
 - Agent tools. They stay JSON.
@@ -810,3 +905,24 @@ R7.4b, R7.5 and R7.5b are committed and their checks pass.
     before the browser test;
   - stepFor and exportStep stamp the time, so tests mask FILE_NAME's stamp;
   - the studio backend sets no autonomy; the run_command comparison test sets `CAD_AUTONOMY=3` and restores it.
+
+### P1, the single-cylinder engine (examples/products/engine-1cyl/, milestone 2)
+
+- **The files:**
+  - `build.ts`: the parts and `engine()`, the assembly at top dead centre, on the facade.
+  - `check.ts`: `checkEngine(doc)` over any StudioDoc, with the checks parts, solves, cycle, timing, sweep, masses and
+    balance.
+  - `brief.md`: the text P1-L3's AI gets.
+  - `gaps.md`: PG-4 to PG-7 and the lock gap, with repros.
+  - `engine.bcad`: the assembly, committed.
+  - `engine.test.mjs`: the byte pin, the checks, and one negative case.
+- **Run:**
+  - `node examples/products/engine-1cyl/run.mjs <out>` builds everything and writes `report.json` with the checks.
+  - `run.mjs --check <doc.bcad> [--no-sweep]` runs the checks alone.
+  - `node --test examples/products/engine-1cyl/engine.test.mjs` runs the tests.
+  - All are heavy, so take the gate first.
+- **Changing `build.ts`:** rerun `run.mjs` (it rewrites `engine.bcad`) and commit both files together. The mates name
+  faces by their persistent names, so a new feature before a mated one moves its id. Print the part's
+  `tablesFor(doc)('base')` and re-pick the face.
+- **Next, milestone 3:** the outputs — drawings, the BOM (with stand-ins marked), the CAM package and the casting
+  reports — and an `outputs` check in `check.ts`.

@@ -5381,6 +5381,111 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.sections && !window.__studioDoc.drawing?.section && !(window.__studioDrawing?.()?.placedSections ?? []).length, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('detail views (CG5 DR-1): the Detail tool (E) on a box corner in the top view, auto scale, rescaled, dragged, in the SVG, removed', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Drawing sheet"]')?.getAttribute('viewBox')?.includes('420'), null, { timeout: 20000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      const sheetScale = await page.evaluate(() => window.__studioDrawing().scale), auto = [10, 5, 2, 1, 0.5, 0.2, 0.1].filter(x => x >= 2 * sheetScale * (1 - 1e-9)).at(-1) ?? 2 * sheetScale;
+      await press('e');
+      // (The top view's corner at X 64, Y 32 — snapped — then a point 6 mm along X: the circle's reach.)
+      const c = await page.evaluate(() => window.__studioDrawingAt('top', 64, 32)), r = await page.evaluate(() => window.__studioDrawingAt('top', 70, 32));
+      await page.mouse.move(c.x, c.y); await page.mouse.click(c.x, c.y);
+      await page.mouse.move(r.x, r.y); await page.mouse.click(r.x, r.y);
+      await page.waitForFunction(() => window.__studioDrawing?.()?.details?.length === 1, null, { timeout: 20000 });
+      const [det] = (await doc()).drawing.details;
+      assert.equal(det.id, 'B'); assert.equal(det.view, 'top'); assert.deepEqual(det.center, [64, 32]);
+      assert.ok(Math.abs(det.radius - 6) < 0.5, `radius ${det.radius}`);
+      let d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      // (Auto: the smallest standard scale at least twice the sheet's; the corner's two edges inside the circle.)
+      assert.equal(d.scale, auto, `sheet ${sheetScale}`); assert.ok(d.edges >= 2, `${d.edges} edges`);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * auto * det.radius) < 1e-9);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /DETAIL|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code)), []);
+      const set = [10, 5, 2, 1, 0.5, 0.2, 0.1].find(x => x < auto), label = set >= 1 ? `${set}:1` : `1:${1 / set}`;
+      await page.selectOption('[aria-label="Detail B scale"]', String(set));
+      await page.waitForFunction(s => window.__studioDrawing?.()?.details?.[0]?.scale === s, set, { timeout: 20000 });
+      d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * set * det.radius) < 1e-9 && Math.abs((d.box[3] - d.box[1]) - 2 * set * det.radius) < 1e-9);
+      await snap('detail-b');
+      // Dragged by its drawing 20 mm left: kept where it was put.
+      await press('v');
+      const mid = await page.evaluate(([x0, y0, x1]) => { const svg = document.querySelector('[aria-label="Drawing sheet"]'), m = svg.getScreenCTM(); const p = new DOMPoint((x0 + x1) / 2, y0 + 3).matrixTransform(m), q = new DOMPoint((x0 + x1) / 2 - 20, y0 + 3).matrixTransform(m); return [p.x, p.y, q.x, q.y]; }, d.box);
+      await page.mouse.move(mid[0], mid[1]); await page.mouse.down(); await page.mouse.move((mid[0] + mid[2]) / 2, mid[1], { steps: 4 }); await page.mouse.move(mid[2], mid[3], { steps: 4 }); await page.mouse.up();
+      await page.waitForFunction(() => !!window.__studioDoc.drawing?.details?.[0]?.at, null, { timeout: 20000 });
+      const moved = await page.evaluate(() => window.__studioDrawing().details[0].box);
+      assert.ok(Math.abs((moved[0] - d.box[0]) + 20) < 0.6, `moved ${moved[0] - d.box[0]}`);
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>DETAIL B (${label})</text>`), 'DETAIL B named in the SVG');
+      await page.click('[aria-label="Remove detail B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.details && !(window.__studioDrawing?.()?.details ?? []).length, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('broken views (CG5 DR-2): a 500 mm bar, Add break, its ends typed, the front and top views shortened in projection, removed', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('500'); await field('Depth Y').fill('20'); await field('Height Z').fill('20'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 500×20×20/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Add break"]');
+      // (The middle third of the longest axis: X 167 to 333.)
+      await page.waitForFunction(() => !!window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+      assert.deepEqual((await doc()).drawing.breaks, [{ axis: 'x', from: 167, to: 333 }]);
+      await page.fill('[aria-label="Break 1 from"]', '100'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.breaks?.[0]?.from === 100, null, { timeout: 20000 });
+      await page.fill('[aria-label="Break 1 to"]', '400'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.breaks?.front?.[0]?.to === 400, null, { timeout: 20000 });
+      const d = await page.evaluate(() => window.__studioDrawing());
+      // (Drawn 200 mm of the 500 at the sheet's scale, plus the 6 mm gap; the top view with it, the right view whole.)
+      const w = (id) => d.boxes[id][2] - d.boxes[id][0];
+      assert.ok(Math.abs(w('front') - (200 * d.scale + 6)) < 1e-9 && Math.abs(w('top') - w('front')) < 1e-9, `${w('front')} at ${d.scale}`);
+      assert.ok(!d.breaks.right && Math.abs(w('right') - 20 * d.scale) < 1e-9);
+      assert.deepEqual(d.issues.filter(x => /BREAK|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code), []);
+      await snap('broken-bar');
+      await page.click('[aria-label="Remove break 1"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.breaks && !window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
+  await check('section kinds (CG5 DR-3): a block with holes at Y 10 and Y 30; B–B on the front made offset (both holes, 4 faces), half (1 face), full again', async () => {
+    const fs = await import('node:fs');
+    const block = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [60, 40], id: 'n0' }, { kind: 'extrude', sketch: 0, height: 10, id: 'n1' }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [15, 10], radius: 3, id: 'n2' }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [45, 30], radius: 4, id: 'n3' }], outputs: { b3: { node: 3, side: 'solid' } }, nextId: 4 };
+    const file = join(out, 'dr3-block.bcad'); fs.writeFileSync(file, JSON.stringify(block));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 4 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Add section"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.sections?.some(x => x.id === 'B'), null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Section B view"]', 'front');
+      await page.waitForFunction(() => window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.view === 'front', null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B at"]', '10'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.at === 10 && x.rings === 2), null, { timeout: 30000 });
+      // Offset: a step at X 30 (the middle) to depth 30.
+      await page.selectOption('[aria-label="Section B kind"]', 'offset');
+      await page.waitForFunction(() => !!window.__studioDoc.drawing.sections.find(x => x.id === 'B')?.steps, null, { timeout: 20000 });
+      await page.fill('[aria-label="Section B step 1 depth"]', '30'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 4), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').steps, [{ past: 30, at: 30 }]);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /OVERLAP|OVER_LINES|OFF_SHEET|DONT_FIT/.test(x.code)).map(x => x.code)), []);
+      await snap('offset-b');
+      // Half: cut right of X 30 — the face X 30–60 alone.
+      await page.selectOption('[aria-label="Section B kind"]', 'half');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 1), null, { timeout: 30000 });
+      assert.deepEqual((await doc()).drawing.sections.find(x => x.id === 'B').half, { line: 'vertical', at: 30, cut: 'after' });
+      await page.selectOption('[aria-label="Section B kind"]', 'full');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.sections?.some(x => x.id === 'B' && x.rings === 2), null, { timeout: 30000 });
+      await page.click('[aria-label="Remove section B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.sections, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
@@ -8287,6 +8392,498 @@ try {
     assert.match(await page.locator('.toast').innerText(), /Open reads models \(\.bcad, \.json\), STEP \(\.step, \.stp\), STL, OBJ, IGES \(\.igs, \.iges\) and \.barocad curve and surface sources\. Your part is unchanged\./);
     assert.equal(JSON.stringify(await doc()), before, 'the part is unchanged');
     await page.click('.toast [aria-label="Dismiss"]');
+  });
+
+  // ---- RS2 (owner 2026-10-24, "관절 움직임"): the motion through the waypoints played in the Joints card ----------------
+  await check('RS2: a motion played — the 6R arm\'s TCP at 0, T/2 and T; pause, 2×, loop; the 2R arm into the post marked from the time of impact — either renderer', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-arm-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => (window.__studioFrameTriads?.() ?? []).length === 1, null, { timeout: 30000 }); await idle();
+    const slide = (label, v) => page.evaluate(([l, x]) => { const el = document.querySelector(`[aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]);
+    const tcp = () => page.evaluate(() => window.__studioFrameTriads().find(f => f.name === 'tcp').o);
+    const clock = async () => { const m = /^t ([\d.]+) \/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText()); return m && { t: +m[1], T: +m[2] }; };
+    const near = (a, b, tol) => a.every((v, k) => Math.abs(v - b[k]) < tol), dist = (a, b) => Math.hypot(...a.map((v, k) => v - b[k]));
+    await slide('Joint l5~l6 value', Math.PI / 2);
+    await page.waitForFunction(() => Math.abs(window.__studioFrameTriads().find(x => x.name === 'tcp').o[0] - 63) < 0.05, null, { timeout: 10000 });
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+    const { T } = await clock();
+    assert.ok(T > 0.5 && T < 10, `the motion's length ${T} s`);
+    // (Played to its end: the pose shown, the TCP at G13's quarter-turn point.)
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(() => document.querySelector('[aria-label="Motion"] [aria-label="Play motion"]') && /^t ([\d.]+) \/ \1 s$/.test(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''), null, { timeout: 20000 });
+    assert.ok(near(await tcp(), [63, 105, 330], 0.05), `at T the TCP is G13's quarter-turn point: ${JSON.stringify(await tcp())}`);
+    // (Scrubbed: at 0 home, G13's zero-pose point; at T/2 halfway round l6 — a symmetric trapezoid's middle — as far from both.)
+    await slide('Motion time', 0); await page.waitForTimeout(200);
+    assert.ok(near(await tcp(), [45, 97, 330], 0.05), `at 0 the TCP is G13's zero-pose point: ${JSON.stringify(await tcp())}`);
+    await slide('Motion time', T / 2); await page.waitForTimeout(200);
+    const mid = await tcp();
+    assert.ok(Math.abs(dist(mid, [45, 97, 330]) - dist(mid, [63, 105, 330])) < 0.05 && dist(mid, [45, 97, 330]) > 1, `at T/2 the TCP halfway round: ${JSON.stringify(mid)}`);
+    assert.ok(Math.abs(mid[2] - 330) < 0.05, 'turning about l6 keeps its height');
+    await snap('rs2-motion-mid');
+    // (Paused, it holds; at 2× the motion's time runs twice the wall clock's.)
+    await slide('Motion time', 0); await page.selectOption('[aria-label="Motion speed"]', '2');
+    const rate = async () => { const a = await clock(), w0 = await page.evaluate(() => performance.now()); await page.waitForTimeout(250); const b = await clock(), w1 = await page.evaluate(() => performance.now()); return (b.t - a.t) / ((w1 - w0) / 1000); };
+    await page.click('[aria-label="Play motion"]'); await page.waitForTimeout(100);
+    const fast = await rate();
+    await page.click('[aria-label="Pause motion"]');
+    const held = (await clock()).t; await page.waitForTimeout(300);
+    assert.equal((await clock()).t, held, 'paused, the time holds');
+    assert.ok(fast > 1.4 && fast < 2.6, `at 2× the motion runs about twice as fast: ${fast.toFixed(2)}`);
+    // (Looped, past T it wraps to the start.)
+    await page.check('[aria-label="Loop motion"]'); await slide('Motion time', T * 0.9); await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(T => { const m = /^t ([\d.]+)/.exec(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''); return m && +m[1] < T * 0.5; }, T, { timeout: 10000 });
+    await page.click('[aria-label="Pause motion"]'); await page.uncheck('[aria-label="Loop motion"]');
+    await page.click('[aria-label="Joints home"]');
+    // (The 2R arm swung into the post, RM6's case: the two links marked from the time of impact on, not before.)
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/sweep-post/case.json'), 'utf8')), post = join(out, 'rs2-sweep-post.bcad');
+    fs.writeFileSync(post, JSON.stringify(c.input.document));
+    await page.setInputFiles('input[aria-label="Model file"]', post);
+    await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
+    await page.waitForSelector('[aria-label="Joint base~a value"]', { timeout: 20000 });
+    // (Its own view, framed: a camera left by an earlier step — New part keeps it — would make the links small.)
+    await page.click('.views button:text-is("Iso")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400);
+    await slide('Joint base~a value', 2);
+    await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+    // (A dense grid: WebGPU's mark is a 2 px outline, which a coarse one steps over.)
+    const reds = async () => { const px = await page.evaluate(() => window.__studioFrame(320)); let n = 0; for (let i = 0; i < px.length; i += 3) if (px[i] > 170 && px[i + 1] < 120 && px[i + 2] < 120) n++; return n; };
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForSelector('[aria-label="Motion contact"]', { timeout: 20000 });
+    assert.match(await page.locator('[aria-label="Motion contact"]').innerText(), /^Contact .*post.* at t \d+\.\d{2} s$/);
+    const toi = +/at t ([\d.]+) s/.exec(await page.locator('[aria-label="Motion contact"]').innerText())[1];
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Pause motion"]'), null, { timeout: 20000 });
+    await page.waitForTimeout(300);
+    assert.equal((await page.evaluate(() => window.__studioContactLinks())).length, 2, 'two links marked after the time of impact');
+    const after = await reds(); await snap('rs2-contact');
+    await slide('Motion time', toi * 0.5); await page.waitForTimeout(400);
+    assert.equal(await page.locator('[aria-label="Motion contact"]').count(), 0, 'before the time of impact, no contact said');
+    assert.deepEqual(await page.evaluate(() => window.__studioContactLinks()), [], 'nor marked');
+    const before = await reds();
+    assert.ok(after > before + 20, `the links marked in the error colour after the time of impact: ${after} red samples, ${before} before`);
+    await page.click('[aria-label="Joints home"]');
+  });
+
+  // ---- RS2: the draft kept as a saved motion, chosen and played from the document; the save is an undo step ---------
+  await check('RS2: Save as motion — the draft kept by name in robot.motions (degrees), chosen and played to its end, undone', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-save-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    d.robot = { version: 1, frames: { tcp: { link: 'l6', position: [5, -3, 40], rotation: [0, 90, 0], kind: 'tool' } } };
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForFunction(() => (window.__studioFrameTriads?.() ?? []).length === 1, null, { timeout: 30000 }); await idle();
+    const slide = (label, v) => page.evaluate(([l, x]) => { const el = document.querySelector(`[aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]);
+    const tcp = () => page.evaluate(() => window.__studioFrameTriads().find(f => f.name === 'tcp').o);
+    await slide('Joint l5~l6 value', Math.PI / 2);
+    await page.waitForSelector('[aria-label="Save as motion"]:not([disabled])', { timeout: 20000 });
+    await page.fill('[aria-label="Motion name"]', 'quarter'); await page.click('[aria-label="Save as motion"]');
+    await page.waitForFunction(() => window.__studioDoc?.robot?.motions?.some(m => m.name === 'quarter'), null, { timeout: 10000 });
+    const saved = (await doc()).robot.motions.find(m => m.name === 'quarter');
+    const last = saved.path.waypoints.at(-1);
+    assert.ok(Math.abs((last['l5~l6'] ?? 0) - 90) < 1e-6, `saved in degrees: ${JSON.stringify(saved.path.waypoints)}`);
+    assert.equal(await page.locator('[aria-label="Motion choice"]').inputValue(), 'quarter', 'the saved motion chosen');
+    // (Home, then the saved one played: it ends at the quarter turn — the document's motion, not the pose shown.)
+    await page.click('[aria-label="Joints home"]');
+    await page.waitForFunction(() => Math.abs(window.__studioFrameTriads().find(x => x.name === 'tcp').o[0] - 45) < 0.05, null, { timeout: 10000 });
+    await page.selectOption('[aria-label="Motion choice"]', 'quarter');
+    await page.waitForSelector('[aria-label="Play motion"]:not([disabled])', { timeout: 10000 });
+    await page.click('[aria-label="Play motion"]');
+    await page.waitForFunction(() => document.querySelector('[aria-label="Play motion"]') && /^t ([\d.]+) \/ \1 s$/.test(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''), null, { timeout: 20000 });
+    const end = await tcp();
+    assert.ok(Math.abs(end[0] - 63) < 0.05 && Math.abs(end[1] - 105) < 0.05, `the saved motion ends at the quarter turn: ${JSON.stringify(end)}`);
+    // (The save is an undo step: undone, the motion is gone and the card back on the draft.)
+    await page.click('[aria-label="Joints home"]'); await page.click('[aria-label="Undo"]');
+    await page.waitForFunction(() => !window.__studioDoc?.robot?.motions?.length, null, { timeout: 10000 });
+    await page.waitForFunction(() => document.querySelector('[aria-label="Motion choice"]')?.value === '' || !document.querySelector('[aria-label="Motion choice"]'), null, { timeout: 10000 });
+  });
+
+  // ---- RS1: the robot samples in Templates, each opened with its demo motion; the 6R arm's played to its end --------
+  await check('RS1: Templates → Samples — each of the 8 robot samples opens with its joints and its demo motion; the 6R arm\'s plays to its end', async () => {
+    const index = JSON.parse((await import('node:fs')).readFileSync(join(root, '../../packages/barocss-cad-model/samples/robots/index.json'), 'utf8'));
+    assert.equal(index.length, 8);
+    for (const r of index) {
+      await page.click('[aria-label="New from a template"]');
+      await page.click(`[aria-label="Open sample ${r.title}"]`);
+      // (Its own demo motion, as the sample's file names it: the document opened is this sample's, not the one before.)
+      const name = JSON.parse((await import('node:fs')).readFileSync(join(root, '../../packages/barocss-cad-model/samples/robots', r.file), 'utf8')).robot.motions[0].name;
+      await page.waitForFunction(n => window.__studioDoc?.robot?.motions?.length === 1 && window.__studioDoc.robot.motions[0].name === n && !!document.querySelector('[aria-label="Joints"]'), name, { timeout: 30000 });
+      await page.waitForFunction(n => [...(document.querySelector('[aria-label="Motion choice"]')?.options ?? [])].some(o => o.value === n), name, { timeout: 20000 });
+      assert.equal(await page.locator('.toast').count(), 0, `${r.id} opened without a refusal`);
+      if (r.id !== 'arm-6r') continue;
+      await page.selectOption('[aria-label="Motion choice"]', name);
+      await page.waitForSelector('[aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
+      await page.selectOption('[aria-label="Motion speed"]', '2');
+      await page.click('[aria-label="Play motion"]');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Play motion"]') && /^t ([\d.]+) \/ \1 s$/.test(document.querySelector('[aria-label="Motion time readout"]')?.textContent ?? ''), null, { timeout: 60000 });
+      await snap('rs1-arm-6r-motion');
+      await page.selectOption('[aria-label="Motion speed"]', '1');
+    }
+  });
+
+  // ---- RS2 (2): the recorder — the motion's video at its own timing, the Render turntable's over its duration -------
+  await check('RS2 video: a motion and a Render turntable exported as WebM — ffprobe reads its codec, its frames at 30 a second and the motion\'s length; not blank', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-video-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Joint l5~l6 value"]', { timeout: 30000 }); await idle();
+    await page.evaluate(() => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(Math.PI / 2)); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForSelector('[aria-label="Export motion video"]:not([disabled])', { timeout: 20000 });
+    const T = +/\/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText())[1];
+    const webm = async (button, name) => {
+      const download = page.waitForEvent('download', { timeout: 60000 }), t0 = Date.now();
+      await page.click(`[aria-label="${button}"]`);
+      const got = await download, path = join(out, name); await got.saveAs(path);
+      const bytes = fs.readFileSync(path);
+      assert.match(got.suggestedFilename(), /\.webm$/);
+      assert.deepEqual([...bytes.subarray(0, 4)], [0x1a, 0x45, 0xdf, 0xa3], `${name}: a WebM (EBML) file`);
+      assert.ok(bytes.length > 4000, `${name}: ${bytes.length} bytes`);
+      // (ffprobe, an independent reader: the codec, the frames decoded and the length; ffmpeg's last frame not one colour.)
+      const { execFileSync } = await import('node:child_process');
+      const probe = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name,width,height,nb_read_frames:format=duration', '-of', 'json', path], { encoding: 'utf8' }));
+      const st = probe.streams[0], px = execFileSync('ffmpeg', ['-v', 'error', '-sseof', '-0.2', '-i', path, '-frames:v', '1', '-vf', 'scale=32:32', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 20 });
+      const mean = px.reduce((a, b) => a + b, 0) / px.length, spread = Math.sqrt(px.reduce((a, b) => a + (b - mean) ** 2, 0) / px.length);
+      return { codec: st.codec_name, frames: +st.nb_read_frames, duration: +probe.format.duration, spread, took: (Date.now() - t0) / 1000 };
+    };
+    const v = await webm('Export motion video', 'rs2-motion.webm');
+    console.log(`  RS2 video: ${JSON.stringify(v)} for a ${T} s motion`);
+    assert.ok(/^vp[89]$/.test(v.codec), `a VP8 or VP9 stream: ${v.codec}`);
+    assert.equal(v.frames, Math.ceil(T * 30) + 1, 'a frame each 1/30 s over the motion, its end included');
+    assert.ok(Math.abs(v.duration - (Math.ceil(T * 30) + 1) / 30) < 0.05, `the motion's own length, however long the frames took to draw (${v.took.toFixed(1)} s): ${v.duration}`);
+    assert.ok(v.spread > 3, `its last frame shows the model, not one colour: ${v.spread.toFixed(1)}`);
+    // (The Render workspace: a 1 s turntable, recorded by the same recorder.)
+    await page.click('[aria-label="Joints home"]');
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Timeline"]', { timeout: 20000 });
+    await page.fill('[aria-label="Duration"]', '1'); if (!(await page.isChecked('[aria-label="Turntable"]'))) await page.check('[aria-label="Turntable"]');
+    const r = await webm('Export animation video', 'rs2-turntable.webm');
+    assert.equal(r.frames, 31, 'the 1 s turntable at 30 a second'); assert.ok(r.spread > 3, 'not one colour');
+    await page.click('.mode button:text-is("Model")');
+  });
+  await check('G15d.1 post: AgX, a warm grade, contrast, saturation and a vignette from the Render panel\'s Post section — kept in the document, the frame darker at its corners and warmer; neutral again, dropped', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const N = 9, frame = async () => { await idle(); await page.waitForTimeout(500); return page.evaluate(n => window.__studioFrame(n), N); };
+    // (Corners: the grid's four corner samples, the background's; warmth: red over blue across the whole grid.)
+    const corners = f => [0, N - 1, N * (N - 1), N * N - 1].map(k => (f[3 * k] + f[3 * k + 1] + f[3 * k + 2]) / 3);
+    const warmth = f => { let t = 0; for (let k = 0; k < N * N; k++) t += f[3 * k] - f[3 * k + 2]; return t / (N * N); };
+    const slide = async (label, v) => { await page.evaluate(([l, x]) => { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]); };
+    assert.equal((await env()).post, undefined, 'no post until one is set');
+    const gpu = renderer === 'webgpu', before = gpu ? await frame() : null;
+    await slide('Vignette', 0.8);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post?.vignette === 0.8);
+    const vignetted = gpu ? await frame() : null;
+    await page.selectOption('.render-panel [aria-label="Colour grade"]', 'warm');
+    await slide('Contrast', 1.2); await slide('Saturation', 1.3);
+    await page.selectOption('.render-panel [aria-label="Tone mapping"]', 'agx');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.toneMapping === 'agx' && window.__studioDoc.render.environment.post?.saturation === 1.3);
+    assert.deepEqual((await env()).post, { grade: 'warm', contrast: 1.2, saturation: 1.3, vignette: 0.8 });
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15d1-post-panel.png`) });
+    if (gpu) {
+      const warm = await frame(); await snap('g15d1-post');
+      const c0 = corners(before), c1 = corners(vignetted);
+      console.log(`  G15d.1: corners ${c0.map(Math.round)} → ${c1.map(Math.round)}; warmth ${warmth(before).toFixed(1)} → ${warmth(warm).toFixed(1)}`);
+      assert.ok(c1.every((c, i) => c < c0[i] - 8), `the vignette darkens every corner: ${c0.map(Math.round)} → ${c1.map(Math.round)}`);
+      assert.ok(warmth(warm) > warmth(vignetted) + 4, `the warm grade lifts red over blue: ${warmth(vignetted).toFixed(1)} → ${warmth(warm).toFixed(1)}`);
+    }
+    // Undo takes the tone map back; neutral again (each control to its default), the post leaves the document.
+    await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.toneMapping === 'aces');
+    await page.selectOption('.render-panel [aria-label="Colour grade"]', 'neutral');
+    await slide('Contrast', 1); await slide('Saturation', 1); await slide('Vignette', 0);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post === undefined, null, { timeout: 5000 });
+    if (gpu) {
+      const back = await frame();
+      assert.ok(corners(back).every((c, i) => Math.abs(c - corners(before)[i]) < 4), 'neutral: the frame as before');
+    }
+    await page.click('.mode button:text-is("Model")');
+  });
+  await check('G15a finishes: Turned steel, a knurl along Z, a lacquered paint and an oil film from the Render panel — kept on the appearance, the part drawn with its marks; None again, plain', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    // (The part's body selected, as step 48 left its own appearance: the panel edits that one.)
+    if (!/1 selected body/.test(await page.locator('.render-panel .muted.small').first().innerText())) await page.locator('.outliner .ol').first().click();
+    await page.waitForFunction(() => /1 selected body/.test(document.querySelector('.render-panel .muted.small')?.textContent ?? ''));
+    const look = () => page.evaluate(() => Object.values(window.__studioDoc.render.appearances)[0]);
+    const gpu = renderer === 'webgpu', N = 64;
+    // (The marks: how much a sample differs from its neighbours on a dense grid, the whole frame.)
+    const marks = async () => {
+      await idle(); await page.waitForTimeout(600);
+      const f = await page.evaluate(n => window.__studioFrame(n), N); let d = 0;
+      for (let j = 0; j < N - 1; j++) for (let i = 0; i < N - 1; i++) { const k = 3 * (j * N + i); d += Math.abs(f[k] - f[k + 3]) + Math.abs(f[k] - f[k + 3 * N]); }
+      return d / ((N - 1) * (N - 1));
+    };
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].color === '#a7abb1');
+    const plain = gpu ? await marks() : 0;
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-turned-steel');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].finish?.kind === 'turned');
+    assert.deepEqual((await look()).finish, { kind: 'turned', scale: 0.3, strength: 0.6, axis: [0, 0, 1] });
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), 'look-turned-steel', 'the preset shown as chosen');
+    const turned = gpu ? await marks() : 0; if (gpu) await snap('g15a-turned');
+    // A knurl, coarser, along Z; the preset becomes Custom.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', 'knurled');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Marks"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '1.5'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].finish?.kind === 'knurled' && Object.values(window.__studioDoc.render.appearances)[0].finish.scale === 1.5);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Finish direction"]'), 'z');
+    assert.equal(await page.inputValue('[aria-label="Appearance preset"]'), '');
+    const knurled = gpu ? await marks() : 0; if (gpu) await snap('g15a-knurled');
+    await page.locator('.render-panel').first().screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-g15a-finish-panel.png`) });
+    // Paint under a clear coat; an oil film.
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-painted-red');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].clearcoat === 1 && !Object.values(window.__studioDoc.render.appearances)[0].finish);
+    if (gpu) await snap('g15a-painted');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-oiled-steel');
+    await page.waitForFunction(() => Object.values(window.__studioDoc.render.appearances)[0].film === 0.7);
+    if (gpu) await snap('g15a-oiled');
+    // None: the finish leaves the appearance.
+    await page.selectOption('.render-panel [aria-label="Surface finish"]', '');
+    await page.waitForFunction(() => !Object.values(window.__studioDoc.render.appearances)[0].finish);
+    if (gpu) {
+      console.log(`  G15a: marks plain ${plain.toFixed(2)}, turned ${turned.toFixed(2)}, knurled ${knurled.toFixed(2)}`);
+      // (The plate's top is square to Z: the turned face shows on it — its rings finer than a pixel at this distance, so
+      // as their radial highlight; the knurl only on its sides. The grid takes in the background too.)
+      assert.ok(turned > plain + 0.6, `the turned face drawn: ${plain.toFixed(2)} → ${turned.toFixed(2)}`);
+      assert.ok(knurled > plain + 0.5, `the knurl drawn on the sides: ${plain.toFixed(2)} → ${knurled.toFixed(2)}`);
+    }
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.click('.mode button:text-is("Model")');
+  });
+
+  // ---- CG6: a project folder, versions, restore, autosave (DA-4, DA-5) ---------------------------------------------
+  await check('CG6 project: open a folder, save into it, two versions, compare, restore the first; autosave kept in the project and offered back after a reload', async () => {
+    // (The folder picker is a native dialog a headless browser cannot drive: it hands back a real directory handle from
+    // the browser's private file system instead — the same handle calls a picked folder answers.)
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-flow-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const files = () => page.evaluate(async name => {
+      const out = [], walk = async (d, at) => { for await (const [n, h] of d.entries()) { if (h.kind === 'directory') await walk(h, `${at}${n}/`); else out.push(`${at}${n}`); } };
+      await walk(await (await navigator.storage.getDirectory()).getDirectoryHandle(name), ''); return out.filter(f => !f.endsWith('.crswap')).sort();
+    }, folder);
+    const card = page.locator('[aria-label="Versions panel"]');
+    const versions = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''));
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click();
+    await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Project"]').innerText(), new RegExp(`${folder}\\s*· folder`));
+    // A version saves the document into the folder and keeps it.
+    await card.locator('[aria-label="Version name"]').fill('First'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['First']);
+    const first = await files();
+    assert.ok(first.includes('Untitled.bcad') && first.includes('.barocss/versions/Untitled.bcad.json') && first.filter(f => f.startsWith('.barocss/snapshots/')).length === 1, first.join(', '));
+    // A second box; Save writes into the folder (no download); a second version.
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    let downloads = 0; const count = () => { downloads++; }; page.on('download', count);
+    await page.click('[aria-label="Save"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 });
+    page.off('download', count); assert.equal(downloads, 0, 'saved into the project, not downloaded');
+    await card.locator('[aria-label="Version name"]').fill('Second'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    // Compare the first with the working document: the second box's two features, added.
+    await card.locator('[aria-label="Compare First"]').click();
+    const compared = await card.locator('[aria-label="Compared changes"]').innerText();
+    assert.match(compared, /added sketch n2/); assert.match(compared, /added extrude n3/);
+    await page.waitForTimeout(1500); await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-compare.png`) });
+    await card.locator('[aria-label="Compare First"]').click();
+    // Restore the first: one box again, the history kept (both versions listed), the work unsaved.
+    await card.locator('[aria-label="Restore First"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    assert.deepEqual(await versions(), ['Second', 'First']);
+    await page.waitForSelector('[aria-label="Unsaved changes"]');
+    // Autosave: kept in the project a moment after the change (the restored work: one box); after a reload, the folder
+    // reopened and the work offered back.
+    const autosaved = () => page.evaluate(async name => {
+      try {
+        const d = await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss')).getDirectoryHandle('autosave');
+        return JSON.parse(await (await (await d.getFileHandle('Untitled.bcad')).getFile()).text()).nodes.length;
+      } catch { return null; }
+    }, folder);
+    for (let k = 0; k < 40 && await autosaved() !== 2; k++) await page.waitForTimeout(250);
+    assert.equal(await autosaved(), 2, 'the autosave holds the restored work (one box)');
+    expectLoad(); await page.reload(); await idle();
+    if (await page.locator('[aria-label="Recover unsaved work"]').count()) await page.click('[aria-label="Recover unsaved work"] button:text-is("Discard")');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator(`[aria-label="Reopen ${folder}"]`).click();
+    await card.locator('[aria-label="Open Untitled.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    // (The log is read after the document opens.)
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await versions(), ['Second', 'First'], 'the versions read back from the folder');
+    assert.equal(await autosaved(), 2, 'the autosave still holds the restored work after the reopen');
+    await card.locator('[aria-label="Autosaved work"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Restore autosaved work"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-versions.png`) });
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 branches: a branch and the main line each add a box, merged clean; one parameter set two ways is a conflict, answered for the branch; a new part leaves the project file alone; a mesh compared by its faces', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-branch-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]'), rows = 'ul[aria-label="Versions"] > li';
+    const versions = () => card.locator(rows).evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    const bodies = n => page.waitForFunction(n => new RegExp(`${n} bod`).test(document.querySelector('.outliner')?.textContent ?? ''), n, { timeout: 15000 });
+    const version = async name => {
+      const n = await card.locator(rows).count();
+      await card.locator('[aria-label="Version name"]').fill(name); await card.locator('[aria-label="Make version"]').click();
+      await page.waitForFunction(([sel, n]) => document.querySelectorAll(`[aria-label="Versions panel"] ${sel}`).length > n, [rows, n], { timeout: 10000 });
+      assert.equal((await versions())[0], name);
+    };
+    const onBranch = async name => { await card.locator('[aria-label="Branch"]').selectOption(name); await page.waitForFunction(n => document.querySelector('[aria-label="Versions panel"] [aria-label="Branch"]')?.value === n, name, { timeout: 10000 }); };
+    const boxAt = async (axis, v) => { await press('b'); await hudReady(); await field(axis).fill(String(v)); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle(); };
+    const parameter = async (name, value) => {
+      await page.click('[aria-label="Parameters"]');
+      await page.fill('[aria-label="New parameter name"]', name); await page.fill('[aria-label="New parameter value"]', String(value)); await page.click('[aria-label="Add parameter"]');
+      await page.waitForFunction(([n, v]) => window.__studioDoc.parameters[n] === v, [name, value], { timeout: 5000 });
+      await page.click('[aria-label="Close parameters"]'); await card.waitFor({ timeout: 5000 });
+    };
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle(); await bodies(1);
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await version('Base');
+    // A branch "wide" with a box along X; the main line with a box along Y; merged: three boxes, a merge version.
+    await card.locator('[aria-label="Branch name"]').fill('wide'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'wide'), null, { timeout: 5000 });
+    await onBranch('wide'); await boxAt('At X', 48); await bodies(2); await version('Wide');
+    await onBranch('main'); await bodies(1);
+    assert.deepEqual(await versions(), ['Base'], "main's own history");
+    await boxAt('At Y', 48); await bodies(2); await version('Deep');
+    await card.locator('[aria-label="Merge"]').click();
+    await bodies(3);
+    const ids = await page.evaluate(() => window.__studioDoc.nodes.map(n => n.id));
+    assert.equal(new Set(ids).size, 6, `six features, ids unique: ${ids}`);
+    assert.match(await card.locator(rows).first().innerText(), /merged from wide/);
+    assert.deepEqual((await versions()).slice(1), ['Deep', 'Base']);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-merged.png`) });
+    // One parameter set two ways: a conflict, answered for the branch.
+    await card.locator('[aria-label="Branch name"]').fill('thick'); await card.locator('[aria-label="Make branch"]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('[aria-label="Versions panel"] [aria-label="Branch"] option')].some(o => o.value === 'thick'), null, { timeout: 5000 });
+    await onBranch('thick'); await parameter('T', 5); await version('T5');
+    await onBranch('main'); await parameter('T', 3); await version('T3');
+    await card.locator('[aria-label="Merge from"]').selectOption('thick'); await card.locator('[aria-label="Merge"]').click();
+    await card.locator('[aria-label="Conflict parameter:T"]').waitFor({ timeout: 5000 });
+    assert.match(await card.locator('[aria-label="Merge conflicts"]').innerText(), /1 conflict[\s\S]*main \(3\)[\s\S]*thick \(5\)/);
+    await card.screenshot({ path: join(out, `${String(step).padStart(2, '0')}b-cg6-conflict.png`) });
+    await card.locator('[aria-label="parameter:T theirs"]').check(); await card.locator('[aria-label="Merge with these answers"]').click();
+    await page.waitForFunction(() => window.__studioDoc.parameters.T === 5, null, { timeout: 10000 });
+    assert.equal(await card.locator('[aria-label="Merge conflicts"]').count(), 0);
+    // A new part leaves the project's document: its versions go from the card, and Save writes a new file.
+    const saved = await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder);
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 0, null, { timeout: 5000 });
+    // A mesh and a box: the kernel's Boolean refuses facet bodies, so compare tints the changed faces.
+    await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));
+    await page.waitForSelector('[aria-label="Mesh units"]'); await page.selectOption('[aria-label="Mesh unit"]', 'cm');
+    await page.click('[aria-label="Mesh units"] button:text-is("Open")'); await bodies(1); await idle();
+    await version('Mesh');
+    assert.equal(await page.evaluate(async name => (await (await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getFileHandle('Untitled.bcad')).getFile()).text(), folder), saved, 'Untitled.bcad untouched');
+    const files = await page.evaluate(async name => { const out = []; for await (const [n] of (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).entries()) out.push(n); return out.sort(); }, folder);
+    assert.ok(files.filter(f => f.endsWith('.bcad')).length === 2, files.join(', '));
+    await boxAt('At X', 80); await bodies(2);
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await page.waitForFunction(() => window.__studioCompareOverlay?.()?.faces > 0, null, { timeout: 20000 });
+    const o = await page.evaluate(() => window.__studioCompareOverlay());
+    assert.equal(o.method, 'faces', JSON.stringify(o)); assert.equal(o.tinted, true);
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}c-cg6-faces.png`) });
+    await card.locator('[aria-label="Compare Mesh"]').click();
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('CG6 linked parts: a part inserted from the project names its file; saved again with a second box, the assembly opened offers it as Revision waiting, accepted the link stays', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-linked-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]');
+    const named = async name => { await page.fill('.doc-tab input', name); };
+    const saveIn = async () => { await page.click('[aria-label="Save"]'); await page.waitForFunction(() => !document.querySelector('[aria-label="Unsaved changes"]'), null, { timeout: 5000 }); };
+    // The part, arm.bcad: one box.
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await named('arm');
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await saveIn();
+    // The assembly: arm.bcad inserted from the project, saved as assembly.bcad.
+    await page.click('[aria-label="New part"]'); await named('assembly');
+    await card.locator('[aria-label="Insert arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad');
+    await saveIn();
+    assert.match(await card.locator('[aria-label="Project documents"]').innerText(), /arm\.bcad[\s\S]*assembly\.bcad/);
+    // The part opened, a second box added, saved.
+    await card.locator('[aria-label="Open arm.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && !window.__studioDoc.instances?.length, null, { timeout: 15000 });
+    await press('b'); await hudReady(); await field('At X').fill('48'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4, null, { timeout: 15000 });
+    await saveIn();
+    // The assembly opened: the newer file waits, the placed part unchanged until accepted.
+    await card.locator('[aria-label="Open assembly.bcad"]').click();
+    await page.waitForFunction(() => window.__studioDoc.instances?.length === 1 && !!window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.match(await page.locator('.toast').innerText(), /Newer files for 1 placed part/);
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].doc.nodes.length), 2);
+    assert.equal(await page.evaluate(() => Object.values(window.__studioDoc.pendingParts)[0].name), './arm.bcad');
+    await page.locator('.ol.instance').first().click(); await page.waitForSelector('[aria-label="Revision waiting"]');
+    await page.screenshot({ path: join(out, `${String(step).padStart(2, '0')}a-cg6-linked.png`) });
+    await page.click('[aria-label="Instance"] button:text-is("Accept Rev B")');
+    await page.waitForFunction(() => window.__studioDoc.instances[0].doc.nodes.length === 4 && !window.__studioDoc.pendingParts, null, { timeout: 15000 });
+    assert.equal(await page.evaluate(() => window.__studioDoc.instances[0].part.source), './arm.bcad', 'the link stays');
+    // Checked again: the file is the part as placed, nothing more offered.
+    await page.keyboard.press('Escape');
+    await card.locator('[aria-label="Check placed parts"]').click(); await page.waitForTimeout(500);
+    assert.equal(await page.evaluate(() => window.__studioDoc.pendingParts), undefined);
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
+  await check('G15b studio light: Softboxes and the Cyclorama from the Render panel light the part (kept as the environment\'s studio, its strength), an image replaces them, Sky and ground again none', async () => {
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-machined-steel');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    const env = () => page.evaluate(() => window.__studioDoc.render.environment);
+    const gpu = renderer === 'webgpu';
+    // (Step 48 left an image: Sky and ground first, the image gone.)
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    const mean = async () => { await idle(); await page.waitForTimeout(700); const f = await page.evaluate(() => window.__studioFrame(48)); return f.reduce((a, b) => a + b, 0) / f.length; };
+    const sky = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'softbox');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'softbox');
+    assert.deepEqual((await env()).studio, { kind: 'softbox', intensity: 1 });
+    const softbox = gpu ? await mean() : 0; if (gpu) await snap('g15b-softbox');
+    await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Environment strength"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '2'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.intensity === 2);
+    const brighter = gpu ? await mean() : 0;
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'cyclorama');
+    await page.waitForFunction(() => window.__studioDoc.render.environment.studio?.kind === 'cyclorama' && window.__studioDoc.render.environment.studio.intensity === 2);
+    if (gpu) await snap('g15b-cyclorama');
+    // An image replaces the studio (its strength kept); Sky and ground drops both.
+    await page.setInputFiles('.render-panel [aria-label="Environment image"]', join(root, 'test/fixtures/sky.png'));
+    await page.waitForFunction(() => /^data:image/.test(window.__studioDoc.render.environment.map?.image ?? '') && !window.__studioDoc.render.environment.studio, null, { timeout: 5000 });
+    assert.equal((await env()).map.intensity, 2);
+    assert.equal(await page.inputValue('.render-panel [aria-label="Studio environment"]'), 'image');
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.waitForFunction(() => !window.__studioDoc.render.environment.map && !window.__studioDoc.render.environment.studio);
+    if (gpu) {
+      console.log(`  G15b: frame mean sky ${sky.toFixed(1)}, softbox ${softbox.toFixed(1)}, ×2 ${brighter.toFixed(1)}`);
+      assert.ok(Math.abs(softbox - sky) > 1, 'the softbox room lights the part differently');
+      assert.ok(brighter > softbox + 0.5, `twice as strong, brighter: ${softbox.toFixed(1)} → ${brighter.toFixed(1)}`);
+    }
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
+    await page.click('.mode button:text-is("Model")');
   });
 } finally {
   await browser.close(); await server.close();

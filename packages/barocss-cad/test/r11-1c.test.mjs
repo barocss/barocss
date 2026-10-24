@@ -8,7 +8,7 @@ import { evaluateCadPart, checkBrep } from '../dist/index.js';
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
 const vol = features => out(features).massProperties(1).volumeMM3;
-const refused = (features, code, pattern) => assert.throws(() => out(features), e => e.code === code && pattern.test(e.message), String(pattern));
+const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const exactly = (o, expected, what, rel = 1e-12) => {
   const report = checkBrep(o.brep, { strict: true });
   assert.equal(report.valid, true, `${what}: ${report.issues}`);

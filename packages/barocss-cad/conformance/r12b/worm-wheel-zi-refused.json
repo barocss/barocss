@@ -40,7 +40,8 @@
   },
   "expect": {
     "error": {
-      "code": "INPUT",
+      "code": "MATE_INCOMPATIBLE",
+      "category": "INPUT",
       "messageIncludes": "the ZA worm it was cut for"
     }
   }

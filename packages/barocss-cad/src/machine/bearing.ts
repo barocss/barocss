@@ -27,13 +27,14 @@ import { lookupFit, FitError, type FitLimit, type FitTable } from './fits.js';
 import type { PlacedShaft } from './shaft-parts.js';
 import type { Point } from '../types.js';
 import { dot } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type BearingCode = 'INVALID_INPUT' | 'SEAT_ABUTMENT' | 'SEAT_FIT';
-export class BearingError extends KernelError {
-  constructor(readonly code: BearingCode, detail: string) { super(`bearing: ${detail}`); this.name = 'BearingError'; }
-}
-const fail = (code: BearingCode, detail: string): never => { throw new BearingError(code, detail); };
+/** This module's refusal (R7.3a batch 2: the BearingError class folded, D279): a BarocssError, `details.source` 'bearing'. */
+export const bearingError = (code: BearingCode, detail: string) => kernelRefusal('bearing', code, `bearing: ${detail}`) as KernelError & { readonly code: BearingCode };
+/** Whether something thrown is this module's refusal. */
+export const isBearingError = (e: unknown): e is KernelError & { readonly code: BearingCode } => isFrom<BearingCode>(e, 'bearing');
+const fail = (code: BearingCode, detail: string): never => { throw bearingError(code, detail); };
 const EPS = 1e-6;
 const mm = (x: number) => +x.toFixed(6);
 

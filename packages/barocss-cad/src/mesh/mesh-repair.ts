@@ -16,7 +16,7 @@
 // reported with where they are; repair does not fix them (D46).
 import { triangulatePolygonWithHoles } from '../brep/brep-tessellate.js';
 import { weldVertices } from './facet-brep.js';
-import { MeshBrepError } from './mesh-brep.js';
+import { meshBrepError } from './mesh-brep.js';
 import type { Point } from '../types.js';
 import { cross as crossP, unit as normalize } from '../core/vec3.js';
 
@@ -75,9 +75,9 @@ interface Mesh { P: number[]; T: number[]; nv: number }
 /** Welded (or not) positions and triangle corners, without the degenerate and duplicate triangles when asked. */
 function prepare(positions: ArrayLike<number>, indices: ArrayLike<number> | null, s: MeshRepairSteps, counts: { welded: number; degenerate: number; duplicates: number }): Mesh {
   const n = positions.length / 3, count = indices ? indices.length / 3 : n / 3;
-  if (!Number.isInteger(n) || !Number.isInteger(count)) throw new MeshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
+  if (!Number.isInteger(n) || !Number.isInteger(count)) throw meshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
   let size = 0;
-  for (let i = 0; i < positions.length; i++) { const x = positions[i]; if (!Number.isFinite(x)) throw new MeshBrepError('the mesh has a coordinate that is not a finite number'); if (Math.abs(x) > size) size = Math.abs(x); }
+  for (let i = 0; i < positions.length; i++) { const x = positions[i]; if (!Number.isFinite(x)) throw meshBrepError('the mesh has a coordinate that is not a finite number'); if (Math.abs(x) > size) size = Math.abs(x); }
   const weld = s.weldMM ?? Math.max(1e-9, size * 1e-6);
   let P: Float64Array, remap: Uint32Array;
   if (s.weld !== false) ({ P, remap } = weldVertices(positions, n, weld));

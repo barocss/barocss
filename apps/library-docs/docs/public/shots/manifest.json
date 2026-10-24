@@ -127,6 +127,20 @@
    "bytes": 107752
   },
   {
+   "file": "studio/drawings/broken-view.jpg",
+   "page": "studio/drawings",
+   "step": "studio/drawings: a broken view",
+   "renderer": "webgpu",
+   "bytes": 95774
+  },
+  {
+   "file": "studio/drawings/detail-view.jpg",
+   "page": "studio/drawings",
+   "step": "studio/drawings: a detail view",
+   "renderer": "webgpu",
+   "bytes": 101164
+  },
+  {
    "file": "studio/features/holes-on-a-circle.jpg",
    "page": "studio/features",
    "step": "studio/features: holes on a circle, a SubD box",
@@ -198,6 +212,20 @@
    "bytes": 109628
   },
   {
+   "file": "studio/projects/compare.jpg",
+   "page": "studio/projects",
+   "step": "studio/projects: two versions compared",
+   "renderer": "webgpu",
+   "bytes": 111463
+  },
+  {
+   "file": "studio/projects/conflict.png",
+   "page": "studio/projects",
+   "step": "studio/projects: a merge conflict",
+   "renderer": "webgpu",
+   "bytes": 31460
+  },
+  {
    "file": "studio/rendering/appearance.jpg",
    "page": "studio/rendering",
    "step": "studio/rendering: the Render workspace",
@@ -227,11 +255,46 @@
    "bytes": 5499
   },
   {
+   "file": "studio/robots/arm-6r-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: the arm-6r sample, its motion paused half-way",
+   "renderer": "webgpu",
+   "bytes": 164708
+  },
+  {
+   "file": "studio/robots/gantry-ppp-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: the gantry-ppp sample, its motion paused half-way",
+   "renderer": "webgpu",
+   "bytes": 157444
+  },
+  {
    "file": "studio/robots/joints.jpg",
    "page": "studio/robots",
    "step": "studio/robots: the Joints card",
    "renderer": "webgpu",
    "bytes": 130670
+  },
+  {
+   "file": "studio/robots/samples-menu.png",
+   "page": "studio/robots",
+   "step": "studio/robots: the robot samples in Templates",
+   "renderer": "webgpu",
+   "bytes": 18700
+  },
+  {
+   "file": "studio/robots/saved-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: a saved motion chosen and paused partway",
+   "renderer": "webgpu",
+   "bytes": 130160
+  },
+  {
+   "file": "studio/robots/scara-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: the scara sample, its motion paused half-way",
+   "renderer": "webgpu",
+   "bytes": 149202
   },
   {
    "file": "studio/sketches/rectangle.jpg",

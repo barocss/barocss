@@ -25,7 +25,8 @@
   },
   "expect": {
     "error": {
-      "code": "INPUT",
+      "code": "INVALID_INPUT",
+      "category": "INPUT",
       "messageIncludes": "at least the dedendum and a rim of one module, 4.5000 mm"
     }
   }

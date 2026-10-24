@@ -30,8 +30,9 @@ export const canonicalOf = (doc: StudioDoc) => canonical(revisionContent(doc));
  * not integrity**: equal hashes are confirmed by comparing the canonical JSON before a patch is applied (`integrate`'s
  * `bases`), so a collision cannot apply a patch to another state.
  */
-export function revisionOf(doc: StudioDoc): string {
-  const s = canonicalOf(doc);
+export function revisionOf(doc: StudioDoc): string { return fnv64(canonicalOf(doc)); }
+/** A text's 64-bit FNV-1a (two 32-bit lanes), 16 hex digits: the revision's hash, over any text (CG6's content keys). */
+export function fnv64(s: string): string {
   let h1 = 0x811c9dc5, h2 = 0x050c5d1f;
   for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 ^= c; h1 = Math.imul(h1, 0x01000193) >>> 0; h2 ^= c; h2 = Math.imul(h2, 0x01000193) >>> 0; h2 = (h2 ^ (h1 >>> 7)) >>> 0; }
   return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');

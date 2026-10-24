@@ -10,6 +10,7 @@ import { SECTION_VIEWS, VIEW_IDS, modelPrint, nextRevision, nextSectionId, sameS
 import type { useDrawingSheet } from '../useDrawingSheet';
 import { Icon } from '../atoms';
 import { CONTROL, FIELD, SIDE_NAMES, TICK, withTable } from './sheetShared';
+import { SectionKind } from './SectionKind';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -53,17 +54,18 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
           const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));
           // By default through the middle of the part, front to back.
           const at = views ? sectionMiddle(views, 'front', settings.orientation) : null;
-          onChange(withSections(settings, e.target.checked && at !== null && !rest.some(x => x.id === 'A') ? [{ id: 'A', view: 'front', at }, ...rest] : rest));
+          onChange(withSections(settings, e.target.checked && at !== null && !rest.some(x => x.id === 'A') && !settings.details?.some(d => d.id === 'A') ? [{ id: 'A', view: 'front', at }, ...rest] : rest));
         }} /></label>
         {sectionA && <label className={FIELD}><span>Cut at Y</span><span className="num flex items-center gap-1"><Input type="number" className="w-20 text-right" step="any" aria-label="Section Y" value={sectionY ?? sectionA.at}
           onChange={e => setSectionY(e.target.value)}
           onBlur={() => { const y = Number(sectionY); if (sectionY !== null && sectionY.trim() !== '' && Number.isFinite(y)) onChange(withSections(settings, sectionList.map(x => x === sectionA ? { ...x, at: y } : x))); setSectionY(null); }}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span></label>}
+        {sectionA && <SectionKind section={sectionA} views={views} onSet={next => onChange(withSections(settings, sectionList.map(x => x === sectionA ? next : x)))} />}
         {sectionA && cutA && !cutA.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>Section A–A: {cutA.result.error}</div>}
         {/* (O148 X1: more sections, each square to the front, top or right view's depth; letters in order.) */}
         {sectionList.filter(x => x !== sectionA).map(x => {
           const made = cutsMade?.find(c => sameSection(c, x));
-          return <div key={x.id} className={FIELD} aria-label={`Section ${x.id}`}>
+          return <div key={x.id} className="flex flex-col"><div className={FIELD} aria-label={`Section ${x.id}`}>
             <span>Section {x.id}–{x.id}</span>
             <NativeSelect className={CONTROL} aria-label={`Section ${x.id} view`} value={x.view} onChange={e => { const view = e.target.value as SectionViewId, at = views ? sectionMiddle(views, view, settings.orientation) : null; if (at !== null) onChange(withSections(settings, sectionList.map(y => y === x ? { ...y, view, at } : y))); }}>
               {SECTION_VIEWS.map(v => <option key={v} value={v}>{VIEWS[v].label.toLowerCase()}</option>)}</NativeSelect>
@@ -73,12 +75,14 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} /><em>mm</em></span>
             <Button variant="ghost" size="xs" aria-label={`Remove section ${x.id}`} title={`Remove section ${x.id}–${x.id}`} onClick={() => onChange(withSections(settings, sectionList.filter(y => y !== x)))}><Icon name="close" small /></Button>
             {made && !made.result.ok && <div className="empty" style={{ color: 'var(--warn)' }}>{made.result.error}</div>}
+          </div>
+            <SectionKind section={x} views={views} onSet={next => onChange(withSections(settings, sectionList.map(y => y === x ? next : y)))} />
           </div>;
         })}
         <Button variant="ghost" className="self-start" aria-label="Add section" disabled={!views} title="Another section, square to the top view's depth (change its view and place after)" onClick={() => {
           const view: SectionViewId = sectionList.some(x => x.view === 'top') ? 'right' : 'top', at = views ? sectionMiddle(views, view, settings.orientation) : null;
           // (A is the front's, by its checkbox above: added sections take B on.)
-          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList]), view, at }]));
+          if (at !== null) onChange(withSections(settings, [...sectionList, { id: nextSectionId([{ id: 'A', view: 'front', at: 0 }, ...sectionList], (settings.details ?? []).map(d => d.id)), view, at }]));
         }}>Add section</Button>
         {(['right', 'iso'] as const).map(v => <label key={v} className={FIELD}><span>{v === 'right' ? 'Right view' : 'Isometric view'}</span><input type="checkbox" className={TICK} aria-label={v === 'right' ? 'Right view' : 'Isometric view'} checked={!settings.views || settings.views.includes(v)} onChange={e => {
           const on = new Set(settings.views ?? VIEW_IDS); if (e.target.checked) on.add(v); else on.delete(v);

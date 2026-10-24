@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { throatedWormWheel, checkThroatedWormPair, checkPlacedThroatedPair, checkWormPair, wormWheelSpec, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { throatedWormWheel, checkThroatedWormPair, checkPlacedThroatedPair, checkWormPair, wormWheelSpec, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
 
 // R12b.6 (D137): the throated wheel of a ZA worm, attempted. Oracles written here, apart from gear-worm-wheel.ts: the
 // hob's section in each plane square to the wheel's axis (this file's own carrying of the worm's thread along its
@@ -126,7 +126,7 @@ test('enveloping: the B-rep\'s own flank points, the worm turning through tooth 
 
 test('refusals: a ZI worm, too few teeth, a face past the throat\'s reach, a bore; a tolerance the budget cannot hold refused with the measured distance (the cylindrical wheel stays)', () => {
   const base = { worm: W, teeth: 30, faceWidthMM: 20 };
-  const code = (spec, c, re) => assert.throws(() => throatedWormWheel({ ...base, ...spec }), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
+  const code = (spec, c, re) => assert.throws(() => throatedWormWheel({ ...base, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   code({ worm: { ...W, form: 'ZI' } }, 'UNSUPPORTED_GEAR_KIND', /ZI worm/); code({ teeth: 17 }, 'INVALID_INPUT'); code({ faceWidthMM: 31 }, 'INVALID_INPUT', /1\.6 R_t = 30\.400/); code({ boreDiameterMM: 80 }, 'BORE_INTERSECTION');
   code({ profileToleranceMM: 1e-7 }, 'UNSUPPORTED_GEAR_KIND', /throated wheel: its generated flank fits within \d\.\d\de-\d+ mm at the budget \(15 × \d+ bicubic pieces; at most 15 across and 20 along\), not 1\.00e-7 mm — the cylindrical wheel stays/);
   assert.throws(() => checkThroatedWormPair({ ...W, diameterMM: 40 }, base), e => e.code === 'MATE_INCOMPATIBLE');
@@ -163,7 +163,7 @@ test('the part model: a worm-wheel (throated) and its worm by mesh — m_x, d1 a
   for (let k = 0; k <= n; k++) I += (k === 0 || k === n ? 1 : k % 2 ? 4 : 2) * sectionArea(G, -10 + h * k);
   const want = I * h / 3 - Math.PI * 100 * 20, got = brepMassProperties(evaluateCadPart(D(feats(0, 0))).output('g').brep, 1).volumeMM3;
   close(got, want, 2e-5 * want, 'volume');
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])).output('w'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   // STEP (the survey: writing it takes about 15 s — its tessellated copy of 724 curved faces, D137).
   if (SURVEY) {
     const { brep } = throatedWormWheel({ worm: W, teeth: 30, faceWidthMM: 20, boreDiameterMM: 20 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'wheel' }));

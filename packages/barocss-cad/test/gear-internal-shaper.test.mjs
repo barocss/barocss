@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { internalGear, checkInternalGearPair, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { internalGear, checkInternalGearPair, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
 
 // R12b.2b (D133): the shaper-cut internal root — the ring's root the pinion-type cutter generates. Oracles written here,
 // apart from gear-internal.ts: the cutter as a closed outline (its involute flanks, tip rounds and tip arc) rolled inside
@@ -131,7 +131,7 @@ test('K1 Table 4.8(1) — a cutter\'s least ring (x0 = x2 = 0, radial infeed): t
   for (const [z0, z2] of rows) {
     const g = n => ({ moduleMM: 2, teeth: n, faceWidthMM: 4, rimDiameterMM: 2 * n + 30, rootPolicy: 'shaper-cut', cutter: { teeth: z0 } });
     assert.equal(checkBrep(internalGear(g(z2)).brep).valid, true, `z0 ${z0}, z2 ${z2} builds`);
-    assert.throws(() => internalGear(g(z2 - 1)), e => e instanceof GearError && e.code === 'TRIMMING_INTERFERENCE', `z0 ${z0}, z2 ${z2 - 1} refused`);
+    assert.throws(() => internalGear(g(z2 - 1)), e => isGearError(e) && e.code === 'TRIMMING_INTERFERENCE', `z0 ${z0}, z2 ${z2 - 1} refused`);
   }
   // A 20-tooth cutter in a 60-tooth ring: the ring's tips meet it below its base circle — refused; shifted x2 0.5, cut.
   assert.throws(() => internalGear({ moduleMM: 2, teeth: 60, faceWidthMM: 4, rimDiameterMM: 150, rootPolicy: 'shaper-cut', cutter: { teeth: 20 } }), e => e.code === 'INVOLUTE_INTERFERENCE' && /ring shift/.test(e.message));
@@ -177,7 +177,7 @@ test('the volume against the area of the boundary built here (the cutter rolled,
   const slack = 2 * z2 * (report.profileDeviationMM * 2.25 * m + report.shaperRoot.filletDeviationMM * 1.5 * m) * b + 1e-9 * want;
   close(got, want, slack, 'ring volume');
   // Refusals: helical; a cutter missing; a cutter too large; a tip radius the cutter's tooth cannot hold; a cutter without the policy.
-  const code = (spec, c, re) => assert.throws(() => internalGear(spec), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), JSON.stringify(spec));
+  const code = (spec, c, re) => assert.throws(() => internalGear(spec), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), JSON.stringify(spec));
   const base = { moduleMM: 2, teeth: 48, faceWidthMM: 4, rimDiameterMM: 126, rootPolicy: 'shaper-cut', cutter: { teeth: 30 } };
   code({ ...base, moduleMM: undefined, normalModuleMM: 2, helixAngleDeg: 15, hand: 'right' }, 'UNSUPPORTED_GEAR_KIND');
   code({ ...base, cutter: undefined }, 'INVALID_INPUT', /cutter's teeth/);

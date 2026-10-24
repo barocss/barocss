@@ -149,3 +149,13 @@ test('parameters: named values a dimension follows, edited by withParameters', (
   assert.throws(() => plate.parameter('K', 2).scale({ factor: param('K') }),
     e => e instanceof BarocssError && e.code === 'PARAMETER_UNBINDABLE');
 });
+
+test('a Boolean\'s tool callback with several verbs', () => {
+  // #region finned
+  // A 20 mm cube with three 40 × 40 × 2 fins: the callback adds one fin and patterns it, and the patterned tool is joined.
+  const finned = part('finned').box({ w: 20, d: 20, h: 20, x: -10, y: -10 })
+    .union(p => p.box({ w: 40, d: 40, h: 2, x: -20, y: -20, z: 4 }).linearPattern({ axis: 'z', spacing: 6, count: 3 }));
+  const expected = 20 ** 3 + 3 * (40 * 40 - 20 * 20) * 2;
+  // #endregion finned
+  assert.ok(Math.abs(finned.mass({ density: 1 }).volumeMM3 - expected) < 1e-6 * expected);
+});

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurRack, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { spurGear, spurRack, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
 
 // R12b.1b (D131): the generated root on helical gears — in the transverse plane the normal rack's tip round, a cylinder
 // along the tooth at β to the axis, is an ellipse (a = ρ / cos β along the pitch line, b = ρ across) — and the rack part's
@@ -177,7 +177,7 @@ test('a filleted rack with a generated gear: the usable contact ratio stops wher
     assert.equal(end < A, z === 200); close(fz.idealContactRatio, sz.idealContactRatio, 0, 'ideal');
   }
   close(f.sweep.minimumClearanceMM, sharp.sweep.minimumClearanceMM, 1e-9, 'least clearance'); assert.equal(f.sweep.interference, false);
-  const code = (spec, c, re) => assert.throws(() => spurRack(spec), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), JSON.stringify(spec));
+  const code = (spec, c, re) => assert.throws(() => spurRack(spec), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), JSON.stringify(spec));
   // (Two fillets fill the root at ρ = (p − s − 2 hf tan α) / (2 (1 / cos α − tan α)) = 0.4719 m, as the tool's rounds meet.)
   const max = (Math.PI - 5 * TAN) / (2 * (1 / Math.cos(AN) - TAN));
   close(max, 0.943821, 1e-6, 'the largest fillet');

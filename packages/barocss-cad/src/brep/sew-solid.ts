@@ -9,11 +9,12 @@ import { evaluateCurve, curveDomain, curveEvaluator, surfaceDomain, surfaceEvalu
 import { extractSurfaceIsoCurve } from '../nurbs/surfaces/surface-isocurve.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { dist } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
-export class SewError extends KernelError {
-  constructor(message: string) { super(message, { code: 'SEW' }); this.name = 'SewError'; }
-}
+/** This module's refusal (R7.3a batch 2: the SewError class folded, D279): a BarocssError, `details.source` 'sew'. */
+export const sewError = (message: string) => kernelRefusal('sew', 'SEW', message) as KernelError & { readonly code: 'SEW' };
+/** Whether something thrown is this module's refusal. */
+export const isSewError = (e: unknown): e is KernelError & { readonly code: 'SEW' } => isFrom<'SEW'>(e, 'sew');
 
 export interface SewSolidRequest {
   /** The body's id (also the faces' names' prefix). */
@@ -82,11 +83,11 @@ function runsForward(sides: readonly Side[], mate: Int32Array, same: Uint8Array,
 
 export function sewSolid(req: SewSolidRequest): Brep {
   const id = (req.id ?? 'sew').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_'), surfaces = req.surfaces;
-  if (surfaces.length < 2) throw new SewError('sewing needs two or more surfaces');
+  if (surfaces.length < 2) throw sewError('sewing needs two or more surfaces');
   let size = 0;
   for (const s of surfaces) for (const row of s.controlPoints) for (const p of row) for (const x of p) size = Math.max(size, Math.abs(x));
   const tol = req.toleranceMM ?? Math.max(1e-6, size * 1e-3);
-  if (!(tol > 0)) throw new SewError('the tolerance must be positive');
+  if (!(tol > 0)) throw sewError('the tolerance must be positive');
   // Corners welded within the tolerance; each face's loop a → b → c → d over (u0, v0) (u1, v0) (u1, v1)
   // (u0, v1): counter-clockwise about ∂u × ∂v.
   const corners: Corners = { points: [], cells: new Map(), tol }, sides: Side[] = [], loops: number[][] = [];
@@ -101,7 +102,7 @@ export function sewSolid(req: SewSolidRequest): Brep {
       side.from = weld(corners, sideAt(side, 0)); side.to = weld(corners, sideAt(side, 1));
       sides.push(side); loop.push(sides.length - 1);
     }
-    if (loop.length < 2) throw new SewError(`surface ${k + 1} has no area`);
+    if (loop.length < 2) throw sewError(`surface ${k + 1} has no area`);
     loops.push(loop);
   }
   // Sides matched in pairs: the same two corners, and each lying along the other (candidates by their corners).
@@ -117,13 +118,13 @@ export function sewSolid(req: SewSolidRequest): Brep {
       if (j <= i) continue;
       const b = sides[j];
       const fit = along(a, b); if (farther(fit, tol) || farther(along(b, a), tol)) continue;
-      if (mate[j] >= 0) throw new SewError(`more than two surfaces meet along one edge (surfaces ${sides[mate[j]].face + 1}, ${b.face + 1} and ${a.face + 1})`);
+      if (mate[j] >= 0) throw sewError(`more than two surfaces meet along one edge (surfaces ${sides[mate[j]].face + 1}, ${b.face + 1} and ${a.face + 1})`);
       mate[i] = j; mate[j] = i; same[i] = same[j] = fit[0][0] < fit[3][0] ? 1 : 0;
     }
   }
   const openFaces = new Set<number>(); let open = 0;
   for (let i = 0; i < sides.length; i++) if (mate[i] < 0) { open++; openFaces.add(sides[i].face + 1); }
-  if (open) throw new SewError(`the surfaces do not close: ${open} edge${open === 1 ? '' : 's'} meet no other surface (surface${openFaces.size === 1 ? '' : 's'} ${[...openFaces].join(', ')})`);
+  if (open) throw sewError(`the surfaces do not close: ${open} edge${open === 1 ? '' : 's'} meet no other surface (surface${openFaces.size === 1 ? '' : 's'} ${[...openFaces].join(', ')})`);
   // Faces turned so each edge runs opposite ways in its two faces (a breadth-first walk from the first).
   const flip = new Int8Array(surfaces.length).fill(-1); flip[0] = 0;
   const queue = [0];
@@ -131,14 +132,14 @@ export function sewSolid(req: SewSolidRequest): Brep {
     const f = queue[q];
     for (const i of loops[f]) {
       const g = sides[mate[i]].face, want = flip[f] ^ same[i];
-      if (flip[g] < 0) { flip[g] = want; queue.push(g); } else if (flip[g] !== want) throw new SewError('the surfaces cannot all face one way (the shell has one side, like a Möbius strip)');
+      if (flip[g] < 0) { flip[g] = want; queue.push(g); } else if (flip[g] !== want) throw sewError('the surfaces cannot all face one way (the shell has one side, like a Möbius strip)');
     }
   }
-  if (flip.includes(-1)) throw new SewError('the surfaces are not all joined into one shell');
+  if (flip.includes(-1)) throw sewError('the surfaces are not all joined into one shell');
   // Outward: the enclosed volume (divergence theorem over each face's sampled triangles) positive.
   let volume = 0;
   for (let k = 0; k < surfaces.length; k++) { const v = sampledVolume(surfaces[k]); volume += flip[k] ? -v : v; }
-  if (!(Math.abs(volume) > tol * tol * tol)) throw new SewError('the sewn shell encloses no volume');
+  if (!(Math.abs(volume) > tol * tol * tol)) throw sewError('the sewn shell encloses no volume');
   if (volume < 0) for (let k = 0; k < flip.length; k++) flip[k] ^= 1;
   // The edges: one per matched pair, its curve the first side's (forward as that curve runs).
   const edgeOf = new Int32Array(sides.length), edges: { id: string; curve: Curve; vertices: [string, string] }[] = [];

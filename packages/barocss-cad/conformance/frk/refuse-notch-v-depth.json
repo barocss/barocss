@@ -79,7 +79,8 @@
   },
   "expect": {
     "error": {
-      "code": "PARAMETER",
+      "code": "NOTCH_CUTTER",
+      "category": "PARAMETER",
       "messageIncludes": "[NOTCH_CUTTER] v depth must be under the branch width and length"
     }
   }

@@ -37,7 +37,7 @@ test('R10.2b against closed forms, the general path forced: a groove along the p
 
 test('R10.2b an oblique groove (a rod tilted 10° about Y: its rims ellipse arcs) on a plate from 8 to 32 — both rims filleted, one body, valid, the report in bounds; on a plate from 0 to 40, where the rims end near their tips, the round runs off the top before the rim ends: refused (R10.4)', () => {
   const long = across('difference', 'y', 10);
-  assert.throws(() => out([...long, fillet('g', [rim(long)], 1)]), e => e.code === 'PARAMETER' && /\[CONTACT_LEAVES_FACE\]/.test(e.message));
+  assert.throws(() => out([...long, fillet('g', [rim(long)], 1)]), e => (e.details?.category ?? e.code) === 'PARAMETER' && /\[CONTACT_LEAVES_FACE\]/.test(e.message));
   const body = across('difference', 'y', 10, plateFrom(8, 32)), edges = out(body).brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name));
   for (const side of [1, -1]) {
     const edge = edges.find(e => Math.sign(e.curve.controlPoints[0][1]) === side).name, o = out([...body, fillet('g', [edge], 1)]);
@@ -68,5 +68,5 @@ test('R10.2b refusals: an end meeting another finished edge (a vertex blend, R10
   // The plate's top edge at the rim's end (x = 40) as well: they meet at a vertex.
   const end = b.edges.find(e => /pe\.side[13]/.test(e.name) && /pe\.top/.test(e.name) && e.vertices.some(v => edge.vertices.includes(v)));
   assert.ok(end, 'the top edge at the rim\'s end');
-  assert.throws(() => out([...groove, fillet('g', [edge.name, end.name], 1)]), e => e.code === 'CAPABILITY' && /meets another finished edge at its end/.test(e.message));
+  assert.throws(() => out([...groove, fillet('g', [edge.name, end.name], 1)]), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /meets another finished edge at its end/.test(e.message));
 });

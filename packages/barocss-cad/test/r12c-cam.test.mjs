@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, CamError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, isCamError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
 
 // R12c.6a (D160): disc cams and followers. Oracles written here, apart from the kernel's code:
 // - the laws: f(0) = 0, f(1) = 1, f' and f'' against central differences of f, the peaks against dense sampling; the
@@ -15,7 +15,7 @@ import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, CamError
 // - the volume by Green's theorem on the exact profile; the follower's lift found on the built solid's own profile curves.
 
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want} (±${abs})`);
-const code = c => e => e instanceof CamError && e.code === c;
+const code = c => e => isCamError(e) && e.code === c;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const S0 = { baseRadiusMM: 20, follower: 'roller', rollerRadiusMM: 5, thicknessMM: 10, segments: [{ angleDeg: 120, to: 8, law: 'cycloidal' }, { angleDeg: 60 }, { angleDeg: 120, to: 0, law: 'cycloidal' }, { angleDeg: 60 }] };
 const TAU = 2 * Math.PI;
@@ -231,10 +231,10 @@ test('R12c.6a part model: the `cam` kind placed and turned, its report on the ou
   const V = brepMassProperties(out.brep, 1).volumeMM3, V0 = brepMassProperties(discCam(S0).brep, 1).volumeMM3;
   near(V, V0 - Math.PI * 16 * 10, 1e-3, 'the bore');
   assert.ok(out.brep.faces.some(x => x.name === 'k.bore#1') && out.brep.faces.some(x => x.name === 'k.rise1#1'));
-  const refused = (g, c, tag) => assert.throws(() => evaluateCadPart(D([{ ...f, ...g }])), e => e.code === c && e.message.includes(`[${tag}]`), tag);
+  const refused = (g, c, tag) => assert.throws(() => evaluateCadPart(D([{ ...f, ...g }])), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
   refused({ roller: 15, base: 6, bore: 0, segments: [{ angle: 60, to: 20, law: 'cycloidal' }, { angle: 60, to: 0, law: 'cycloidal' }, { angle: 240 }] }, 'GEOMETRY', 'CAM_UNDERCUT');
   refused({ segments: [{ angle: 180, to: 8, law: 'cycloidal' }, { angle: 90, to: 0, law: 'cycloidal' }] }, 'INPUT', 'INVALID_INPUT');
-  assert.throws(() => evaluateCadPart(D([{ ...f, segments: [{ angle: 360, speed: 2 }] }])), e => e.code === 'INPUT' && /speed is not angle, to or law/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ ...f, generator: 'cam@9' }])), e => e.code === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([{ ...f, segments: [{ angle: 360, speed: 2 }] }])), e => (e.details?.category ?? e.code) === 'INPUT' && /speed is not angle, to or law/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ ...f, generator: 'cam@9' }])), e => (e.details?.category ?? e.code) === 'CAPABILITY');
   const m = camMotion(S0, 60); near(m.s, 4, 1e-12, 'half-rise'); near(m.v, 8 * 2 / (TAU / 3), 1e-12, 'peak velocity at the half');
 });

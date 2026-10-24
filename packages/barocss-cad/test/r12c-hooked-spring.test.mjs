@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hookedSpring, springSolidPitch, SpringError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
+import { hookedSpring, springSolidPitch, isSpringError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1b (D154): extension springs (machine-loop and crossover hooks) and torsion springs (tangent legs), against
@@ -15,7 +15,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.abs(want), `${what}: ${got} vs ${want} (rel ${Math.abs(got - want) / Math.abs(want)})`);
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
-const code = c => e => e instanceof SpringError && e.code === c;
+const code = c => e => isSpringError(e) && e.code === c;
 const add = (a, b) => a.map((x, i) => x + b[i]), sub = (a, b) => a.map((x, i) => x - b[i]), scl = (a, s) => a.map(x => x * s), dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
 const unit = a => scl(a, 1 / Math.hypot(...a));
 function leastTurnGap(R, p) { const h = p / (2 * Math.PI); let best = Infinity; for (let i = -2000; i <= 2000; i++) { const t = 2 * Math.PI + i * 2e-4; best = Math.min(best, Math.hypot(2 * R * Math.sin(t / 2), h * t)); } return best; }
@@ -130,7 +130,7 @@ test('R12c.1b part model: the `spring` kind with type extension or torsion, plac
   assert.equal(e.spring.type, 'extension'); assert.equal(e.spring.dimensions.shearModulusEstimate, true); assert.equal(e.spring.dimensions.initialTensionN, 4);
   assert.equal(t.spring.type, 'torsion'); assert.equal(t.spring.dimensions.youngsModulusEstimate, true);
   const eb = brepBounds(e.brep); assert.ok(eb.min[2] < 5 && eb.max[2] > 5 + e.spring.dimensions.bodyLengthMM && Math.abs((eb.min[0] + eb.max[0]) / 2 - 40) < 2, 'its coil from z 5 about (40, 0), the hooks beyond');
-  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, ...f }])), err => err.code === c && err.message.includes(`[${tag}]`), tag);
+  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'spring', wire: 2, diameter: 20, activeCoils: 6, ...f }])), err => (err.details?.category ?? err.code) === c && err.message.includes(`[${tag}]`), tag);
   refused({ type: 'extension', loopAngle: 300 }, 'GEOMETRY', 'LEG_OVERLAP');
   refused({ type: 'torsion', ends: 'open' }, 'INPUT', 'INVALID_INPUT');
 });

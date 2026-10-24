@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { worm, wormDimensions, wormWheelSpec, checkWormPair, checkPlacedWormPair, spurGear, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { worm, wormDimensions, wormWheelSpec, checkWormPair, checkPlacedWormPair, spurGear, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
 
 // R12b.5 (D136): cylindrical worms (ZI, ZA) and their cylindrical wheel. Oracles written here, apart from gear-worm.ts:
 // the section's half-thickness by this file's own formulas (the involute of r1 cos α_t, or the Archimedean spiral of a
@@ -102,7 +102,7 @@ test('the worm (refused at the previous HEAD: no worm): ZI and ZA, valid; K1\'s 
 
 test('refusals: ZN, ZK, ZC, double-enveloping, the pressure angle, the starts, a diameter with no root, a lead angle past 45°, the bore; a wheel straight, of the other hand, at another helix angle or module', () => {
   const base = { axialModuleMM: 3, starts: 2, diameterMM: 44, hand: 'right', lengthMM: 60 };
-  const code = (spec, c, re) => assert.throws(() => worm({ ...base, ...spec }), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
+  const code = (spec, c, re) => assert.throws(() => worm({ ...base, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   for (const f of ['ZN', 'ZK', 'ZC']) code({ form: f }, 'UNSUPPORTED_GEAR_KIND', new RegExp(f));
   code({ envelope: 'double' }, 'UNSUPPORTED_GEAR_KIND', /double-enveloping/); code({ pressureAngleDeg: 14.5 }, 'UNSUPPORTED_GEAR_KIND'); code({ starts: 5 }, 'INVALID_INPUT');
   code({ diameterMM: 7 }, 'INVALID_INPUT', /2\.5 m_x/); code({ starts: 4, diameterMM: 10, axialModuleMM: 3 }, 'UNSUPPORTED_GEAR_KIND', /45°/); code({ boreDiameterMM: 34 }, 'BORE_INTERSECTION', /at most Ø30\.500/); code({ hand: undefined }, 'INVALID_INPUT', /hand/);
@@ -198,9 +198,9 @@ test('the part model: K1\'s wheel (a helical spur gear at γ) and its worm by me
   const Mo = evaluateCadPart(D(feats(0, -90, 60))), Ao = planeSection(Mo.output('g').brep, 12, [10, 5 - 45, 12], 22), Bo = planeSection(Mo.output('w').brep, 12, [10, 5 - 45, 12], 22);
   assert.equal(clearance(Ao, Bo).crossed, true, 'a phase off crosses');
   // Refusals in the part model: a straight wheel, a worm of the other hand.
-  assert.throws(() => evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])).output('w'), e => e.code === 'INPUT' && /straight/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])).output('w'), e => e.code === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])).output('w'), e => e.code === 'CAPABILITY');
+  assert.throws(() => evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /straight/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])).output('w'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
   const { brep } = worm({ ...w0, boreDiameterMM: 12 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'worm' }));
   close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
   t.diagnostic(rows.join('; '));

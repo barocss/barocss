@@ -4,15 +4,15 @@
 // frames (O12), the placed parts' meshes. A core refusal is the core's BarocssError, passed through as it is (§7).
 import { BarocssError, bracketedCode, type Vec3 } from '@barocss/cad/api';
 import { emptyDoc, placedDoc, type StudioDoc } from '../engine/doc';
-import { BASE, type MateKind } from '../assembly/mates';
+import { BASE, lockRel, solveAssembly, type Mate, type MateKind } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
 import { variantOf } from '../assembly/variability';
 import { runVariabilityTool } from '../chat/variability';
-import { jointTreeOf } from '../robot/joints';
+import { treeOf } from './robotCore';
 import type { FrameSettings } from '../robot/frames';
 import { eulerOf } from '../engine/placement';
 import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from '../assembly/edit';
-import { bodiesOf, meshesOf, type MeshData } from './core';
+import { meshesOf, type MeshData } from './core';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -37,6 +37,22 @@ export function addMateDoc(doc: StudioDoc, kind: MateKind, a: { part: string; fa
   return { doc: r.doc, id: r.mate.id };
 }
 
+/**
+ * A part locked where it stands to another (or the base part): the studio's Lock (app/assembly/useAssembly.ts) — its
+ * placement in the other's own coordinates kept as the mate's `rel`, the mate numbered as the studio numbers it — solved,
+ * or the solver's reason refused. (The agent's add_mate writes no `rel` for a lock; the outer lane may take this into
+ * assembly/edit.ts.)
+ */
+export function lockDoc(doc: StudioDoc, part: string, to: string): { doc: StudioDoc; id: string } {
+  const instances = doc.instances ?? [], mates = doc.mates ?? [], b = instances.find(i => i.id === part)!, a = to === BASE ? null : instances.find(i => i.id === to)!;
+  const used = new Set(mates.map(m => m.id));
+  let n = mates.length + 1; while (used.has(`m${n}`)) n++;
+  const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };
+  const r = solveAssembly(instances, [...mates, mate], tablesFor(doc), instances), problem = r.problems.find(p => p.mate === mate.id);
+  if (problem) throw fromTool(problem.reason);
+  return { doc: { ...doc, instances: r.instances, mates: [...mates, mate] }, id: mate.id };
+}
+
 /** set_inputs and set_variants (O11): the variability written, every variant regenerated to check it. */
 export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variants', args: Record<string, unknown>): StudioDoc {
   const out = runVariabilityTool(doc, tool, args);
@@ -47,13 +63,6 @@ export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variant
 /** A variant (O11): the master regenerated with these input values (the master itself unchanged); the core's refusal, a BarocssError, passed through as it is. */
 export function variantDoc(doc: StudioDoc, values: Record<string, number | boolean | string>): StudioDoc {
   return variantOf(doc, values).doc;
-}
-
-// (The joint tree as chat/robot.ts treeOfDoc builds it, each part's gears from its own evaluation.)
-function treeOf(doc: StudioDoc) {
-  const s = solveDoc(doc), gears = new Map([[BASE, (doc.nodes.length ? bodiesOf(doc) : []).flatMap(b => (b.gear ? [b.gear] : []))]]);
-  for (const inst of s.doc.instances ?? []) gears.set(inst.id, (inst.doc.nodes.length ? bodiesOf(inst.doc) : []).flatMap(b => (b.gear ? [b.gear] : [])));
-  return jointTreeOf(s.doc, { instances: s.doc.instances ?? [], problems: s.problems }, tablesFor(s.doc), p => gears.get(p) ?? []);
 }
 
 /** set_frames (O12, withFrames): tool and sensor frames on links, added, replaced or (null) removed, each checked on the tree. */

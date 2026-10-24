@@ -7,11 +7,12 @@ import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } 
 import type { Point, Surface } from '../types.js';
 import { binary64Dyadic } from '../core/dyadic.js';
 import { add, cross, dot, sub } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
-export class MeshBrepError extends KernelError {
-  constructor(message: string) { super(message, { code: 'MESH_BREP' }); this.name = 'MeshBrepError'; }
-}
+/** This module's refusal (R7.3a batch 2: the MeshBrepError class folded, D279): a BarocssError, `details.source` 'mesh-brep'. */
+export const meshBrepError = (message: string) => kernelRefusal('mesh-brep', 'MESH_BREP', message) as KernelError & { readonly code: 'MESH_BREP' };
+/** Whether something thrown is this module's refusal. */
+export const isMeshBrepError = (e: unknown): e is KernelError & { readonly code: 'MESH_BREP' } => isFrom<'MESH_BREP'>(e, 'mesh-brep');
 
 export interface MeshBrepOptions {
   /** The body's id (a letter, then letters, digits, _ or -; also the faces' names' prefix). */
@@ -29,10 +30,10 @@ export interface MeshBrepOptions {
 /** The mesh (x, y, z per vertex; three vertex indices per triangle, or every three vertices one) as a B-rep. */
 export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLike<number> | null, options: MeshBrepOptions = {}): Brep {
   const id = (options.id ?? 'mesh').replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_'), n = positions.length / 3, count = indices ? indices.length / 3 : n / 3;
-  if (!Number.isInteger(n) || !Number.isInteger(count)) throw new MeshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
-  if (count > (options.maximumTriangles ?? 200_000)) throw new MeshBrepError(`the mesh has ${count} triangles, more than the ${options.maximumTriangles ?? 200_000} read`);
+  if (!Number.isInteger(n) || !Number.isInteger(count)) throw meshBrepError('the mesh needs three numbers per vertex and three vertices per triangle');
+  if (count > (options.maximumTriangles ?? 200_000)) throw meshBrepError(`the mesh has ${count} triangles, more than the ${options.maximumTriangles ?? 200_000} read`);
   let size = 0;
-  for (let i = 0; i < positions.length; i++) { if (!Number.isFinite(positions[i])) throw new MeshBrepError('the mesh has a coordinate that is not a finite number'); size = Math.max(size, Math.abs(positions[i])); }
+  for (let i = 0; i < positions.length; i++) { if (!Number.isFinite(positions[i])) throw meshBrepError('the mesh has a coordinate that is not a finite number'); size = Math.max(size, Math.abs(positions[i])); }
   // Weld: corners on one grid cell of the weld size are one vertex.
   const weld = options.weldMM ?? Math.max(1e-9, size * 1e-6), cell = new Map<string, number>(), points: Point[] = [], remap = new Int32Array(n);
   for (let v = 0; v < n; v++) {
@@ -49,12 +50,12 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
     if (!(l > weld * weld)) continue;
     tris.push([a, b, c]); normals.push([nrm[0] / l, nrm[1] / l, nrm[2] / l]); group.push(options.groups ? options.groups[t] ?? -1 : -1);
   }
-  if (tris.length < 4) throw new MeshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
+  if (tris.length < 4) throw meshBrepError('the mesh has fewer than four triangles with area: it encloses nothing');
   // Closed and consistently wound: each directed edge once, its reverse once.
   const directed = new Map<string, number>(), ek = (a: number, b: number) => `${a}>${b}`;
-  tris.forEach(([a, b, c], t) => { for (const [p, q] of [[a, b], [b, c], [c, a]]) { const k = ek(p, q); if (directed.has(k)) throw new MeshBrepError('the mesh is not consistently wound (two triangles run one edge the same way) or an edge has more than two triangles'); directed.set(k, t); } });
+  tris.forEach(([a, b, c], t) => { for (const [p, q] of [[a, b], [b, c], [c, a]]) { const k = ek(p, q); if (directed.has(k)) throw meshBrepError('the mesh is not consistently wound (two triangles run one edge the same way) or an edge has more than two triangles'); directed.set(k, t); } });
   let open = 0; for (const k of directed.keys()) { const [p, q] = k.split('>'); if (!directed.has(`${q}>${p}`)) open++; }
-  if (open) throw new MeshBrepError(`the mesh is not closed: ${open} edge${open === 1 ? '' : 's'} with a triangle on one side only`);
+  if (open) throw meshBrepError(`the mesh is not closed: ${open} edge${open === 1 ? '' : 's'} with a triangle on one side only`);
   // Outward: a positive enclosed volume (else every triangle is turned over).
   let vol = 0; for (const [a, b, c] of tris) vol += dot(points[a], cross(points[b], points[c]));
   const flip = vol < 0;
@@ -93,7 +94,7 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
     for (const start of out.keys()) {
       while (out.get(start)?.length) {
         const loop = [start]; let at = out.get(start)!.pop()!;
-        for (let guard = 0; at !== start && guard <= tris.length * 3; guard++) { loop.push(at); const next = out.get(at); if (!next?.length) throw new MeshBrepError('a face boundary does not close'); at = next.pop()!; }
+        for (let guard = 0; at !== start && guard <= tris.length * 3; guard++) { loop.push(at); const next = out.get(at); if (!next?.length) throw meshBrepError('a face boundary does not close'); at = next.pop()!; }
         loops.push(loop);
       }
     }
@@ -149,10 +150,10 @@ export function readStl(bytes: Uint8Array): Float64Array {
     }
   }
   const text = new TextDecoder().decode(bytes);
-  if (!/^\s*solid\b/i.test(text)) throw new MeshBrepError('this is neither a binary STL (its size does not match its triangle count) nor an ASCII one (it does not start with "solid")');
+  if (!/^\s*solid\b/i.test(text)) throw meshBrepError('this is neither a binary STL (its size does not match its triangle count) nor an ASCII one (it does not start with "solid")');
   const values: number[] = [];
   for (const m of text.matchAll(/vertex\s+(\S+)\s+(\S+)\s+(\S+)/gi)) values.push(Number(m[1]), Number(m[2]), Number(m[3]));
-  if (values.length % 9 || values.some(v => !Number.isFinite(v))) throw new MeshBrepError('the ASCII STL has a facet without three numeric vertices');
+  if (values.length % 9 || values.some(v => !Number.isFinite(v))) throw meshBrepError('the ASCII STL has a facet without three numeric vertices');
   return Float64Array.from(values);
 }
 
@@ -163,15 +164,15 @@ export function readObj(text: string): { positions: number[]; indices: number[] 
     const line = raw.trim();
     if (line.startsWith('v ')) {
       const [x, y, z] = line.slice(2).trim().split(/\s+/).map(Number);
-      if (![x, y, z].every(Number.isFinite)) throw new MeshBrepError(`the OBJ has a vertex that is not three numbers: ${line}`);
+      if (![x, y, z].every(Number.isFinite)) throw meshBrepError(`the OBJ has a vertex that is not three numbers: ${line}`);
       positions.push(x, y, z);
     } else if (line.startsWith('f ')) {
       const n = positions.length / 3;
       const vs = line.slice(2).trim().split(/\s+/).map(w => { const i = Number(w.split('/')[0]); return i < 0 ? n + i : i - 1; });
-      if (vs.length < 3 || vs.some(i => !Number.isInteger(i) || i < 0 || i >= n)) throw new MeshBrepError(`the OBJ has a face naming a vertex it does not have: ${line}`);
+      if (vs.length < 3 || vs.some(i => !Number.isInteger(i) || i < 0 || i >= n)) throw meshBrepError(`the OBJ has a face naming a vertex it does not have: ${line}`);
       for (let k = 1; k + 1 < vs.length; k++) indices.push(vs[0], vs[k], vs[k + 1]);
     }
   }
-  if (!indices.length) throw new MeshBrepError('the OBJ has no faces');
+  if (!indices.length) throw meshBrepError('the OBJ has no faces');
   return { positions, indices };
 }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { sprocket, sprocketPitchDiameter, timingPitchDiameter, pulley, openBeltLength, chainLinks, beltBand, couplingEnvelope, driveRowProblem, DriveError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart } from '../dist/index.js';
+import { sprocket, sprocketPitchDiameter, timingPitchDiameter, pulley, openBeltLength, chainLinks, beltBand, couplingEnvelope, driveRowProblem, isDriveError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart } from '../dist/index.js';
 
 // R12c.6b (D161): sprockets and chain, pulleys and belts, couplings. The rows are test rows flagged estimates (no chain,
 // belt or coupling table was read: D139 found none as public text). Oracles written here, apart from the kernel's code:
@@ -14,7 +14,7 @@ import { sprocket, sprocketPitchDiameter, timingPitchDiameter, pulley, openBeltL
 //   kernel's), the band's volume L·t·w (Steiner: the offsets' lengths differ from L by πt).
 
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want} (±${abs})`);
-const code = c => e => e instanceof DriveError && e.code === c;
+const code = c => e => isDriveError(e) && e.code === c;
 const vol = b => brepMassProperties(b, 1, { quadratureSegments: 16 }).volumeMM3;
 const TAU = 2 * Math.PI;
 const CHAIN = { kind: 'chain', id: 'chain-a', pitchMM: 12.7, rollerDiameterMM: 8.51, innerWidthMM: 7.75, plateHeightMM: 11.8, estimate: true };
@@ -163,7 +163,7 @@ test('R12c.6b part model: sprocket, pulley, belt and coupling kinds placed, thei
   ]));
   assert.equal(snap.output('s').sprocket.teeth, 17); assert.equal(snap.output('p').pulley.type, 'flat'); assert.equal(snap.output('b').belt.row, 'flat-a'); assert.equal(snap.output('k').coupling.bought.bought, true);
   near(vol(snap.output('k').brep), Math.PI * (225 - 36) * 40, 1e-6, 'a straight bore');
-  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([f])), e => e.code === c && e.message.includes(`[${tag}]`), tag);
+  const refused = (f, c, tag) => assert.throws(() => evaluateCadPart(D([f])), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);
   refused({ id: 's', kind: 'sprocket', row: CHAIN, teeth: 17, tip: 85, width: 7 }, 'GEOMETRY', 'TOOTH_FORM');
   refused({ id: 's', kind: 'sprocket', row: CHAIN, teeth: 17, tip: 75, width: 7, toothForm: 'iso-606' }, 'CAPABILITY', 'UNSUPPORTED_TOOTH_FORM');
   refused({ id: 'b', kind: 'belt', row: FLAT, pitchRadii: [40, 25], centerDistance: 50 }, 'GEOMETRY', 'BELT_GEOMETRY');

@@ -7,9 +7,10 @@ import { Camera } from '../dist/viewer/camera.js';
 import { orbit, pan, zoom } from '../dist/viewer/controls.js';
 import { boxInFrustum, frustumPlanes, screenRect, transformBox } from '../dist/viewer/bounds.js';
 import { clippedRay, clippedRayFull, fillVertexColors, keptBy, localPlane, nearestSegment, prepareGeometry, prepareScalars, rayTriangles, regionEntry, segmentInstances, vertexColors } from '../dist/viewer/geometry.js';
-import { packFrame, packOutput, parseColor } from '../dist/viewer/lights.js';
+import { packFrame, packOutput, parseColor, whiteBalance } from '../dist/viewer/lights.js';
 import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_POINT, surfaceWGSL } from '../dist/viewer/shaders.js';
 import { clipBox, Viewer } from '../dist/viewer/viewer.js';
+import { studioEnvironment, STUDIO_ENVIRONMENTS } from '../dist/viewer/studio-env.js';
 
 const near = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps * Math.max(1, Math.abs(b));
 const close = (a, b, eps = 1e-9) => a.every((x, i) => near(x, b[i], eps));
@@ -164,6 +165,20 @@ test('viewer lights: the frame block matches the WGSL layout', () => {
   assert.deepEqual([...packFrame(vp, cam, [], {}).slice(248, 276)], new Array(28).fill(0));
   assert.equal(FRAME_BYTES, 4 * (252 + 4 * MAX_CLIP_PLANES));
   assert.match(surfaceWGSL(), new RegExp(`clipColor: vec4f,\\n  clips: array<vec4f, ${MAX_CLIP_PLANES}>,\\n}`));
+});
+
+test('G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round', () => {
+  for (const kind of STUDIO_ENVIRONMENTS) {
+    const e = studioEnvironment(kind, 256);
+    assert.equal(e.width, 256); assert.equal(e.height, 128); assert.equal(e.data.length, 256 * 128 * 4);
+    assert.ok(e.data.every((v, i) => i % 4 !== 3 || v === 255), `${kind}: opaque`);
+  }
+  const s = studioEnvironment('softbox', 256), at = (e, az, el) => { const x = Math.floor(((az + 180) / 360) * e.width), y = Math.floor(((90 - el) / 180) * e.height); return e.data[(y * e.width + x) * 4]; };
+  assert.equal(at(s, -120, 50), 255, 'the key: full white');
+  assert.ok(at(s, 60, 10) < 60 && at(s, 0, -45) < 50, 'the room dark between its panels');
+  assert.ok(at(s, 90, 30) > 200, 'the strip behind');
+  const c = studioEnvironment('cyclorama', 256);
+  assert.ok(at(c, 45, 20) > 190 && at(c, 45, -20) > 140 && at(c, 45, -80) < at(c, 45, -10), 'the backdrop bright, the cove into the floor');
 });
 
 test('G2 the clip plane on the CPU: a ray finds the nearest hit on the kept side, a back face through the cut; a segment only its kept part', () => {
@@ -454,6 +469,15 @@ test('outline reach: a box\'s screen rectangle holds every point of it the camer
   const u = new Float32Array(packOutput({}, [[1, 0, 0]], 2, null, null, [10, 20, 30, 40]));
   assert.deepEqual([...u.slice(-4)], [10, 20, 30, 40]);
   assert.deepEqual([...new Float32Array(packOutput({}, [[1, 0, 0]])).slice(-4)], [-1e9, -1e9, 1e9, 1e9]);
+  // G15d.1: AgX is tone map 2; the grading (balance and contrast, lift and saturation, gamma and on, gain) and the
+  // vignette (amount, clear radius, fade end) just before the outline box; off, all zeros.
+  assert.equal(new Uint32Array(packOutput({ toneMapping: 'agx' }), 4, 1)[0], 2);
+  const g = new Float32Array(packOutput({ grading: { temperature: 0.5, contrast: 1.2, saturation: 0.8, lift: [0.1, 0, 0], gamma: [1, 1.1, 1], gain: [1, 1, 0.9] }, vignette: { amount: 0.4, size: 0.2, softness: 0.5 } })).slice(-24, -4);
+  const wb = whiteBalance(0.5, 0);
+  assert.ok(close([...g], [...wb, 1.2, 0.1, 0, 0, 0.8, 1, 1.1, 1, 1, 1, 1, 0.9, 0, 0.4, 0.2, 0.7, 0], 1e-6));
+  assert.ok(Math.abs(0.2126 * wb[0] + 0.7152 * wb[1] + 0.0722 * wb[2] - 1) < 1e-9 && wb[0] > wb[2], 'warm: red over blue, luminance kept');
+  assert.ok([...new Float32Array(packOutput({})).slice(-24, -4)].every(x => x === 0), 'no post: zeros');
+  assert.ok([...new Float32Array(packOutput({ vignette: { amount: 0 } })).slice(-8, -4)].every(x => x === 0), 'amount 0: no vignette');
 });
 
 // Exercise pickNow's real readback-to-metadata path. Only the GPU transport is mocked: the cap and triangle
