@@ -19,7 +19,7 @@ section current.
 |---|---|---|---|
 | Kernel | R7.3a batch 2, plan agreed (CadErrorCode union + CAD_ERROR_CODES; `code` = the specific bracketed code, the category in details.category; no category prefix on the ~400 uncoded refusals; 165 internal classes folded, the 6 used outside and BrepError kept, legacy left for R7.3d); O19's kernel half done (`78a84d506`, D277); K16 done (`ca9c6b0c4`, D276); R7.3d's packet tag done (`86da39e14`) | R7.3a batch 2 | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
 | Outer | O21 (agent parameters, design approved); RS1 (sample robots) and RS2's poseAt; RS3 (the agent moves the robot) | R7.7a step 2 (rows, with the kernel's R7.7b), step 4 (results, with R7.3b) | the Later list |
-| GPU | RS2 (joint motion playback) and RS1's Samples list; the WebGL2 full flow and the quiet section run as the load allows | 2–3 proposed next items | the Later list |
+| GPU | RS2 (joint motion playback) and RS1's Samples list | G15 (photoreal: G15a materials → G15b light → G15c path tracing → G15d post; accepted on the P1 engine render) | the WebGL2 full flow and the quiet section run as the load allows |
 | API | P1 (the engine, end to end; gaps become PG items); RS5 between, once outer's RS2 lands | P2, P3, P4 in order | R7.7d after the cores' renames |
 | Docs | RS4 after RS1/RS2 land; the prose for R7.4c's renames (api.md, cad/index.md); R7.6 part 1 done (merge 45c94eb09, samples 31/31) | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
 | Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
@@ -182,6 +182,22 @@ Gaps found (PG-n, added as they're found):
 | # | Lane | Gap | Found in |
 |---|---|---|---|
 
+### Photoreal rendering G15 (owner, 2026-10-24)
+
+The owner: "우리가 만든 것에 대한 GPU 렌더링은 실제로 어느정도 까지 실사 렌더링이 되는거야? 만약에 엔진을 만들어서 보여주는거면 실제 엔진의 느낌이 나야하잖아", then "G15(재질 사실감, 조명·그림자, 점진 경로 추적, 후처리)를 로드맵에 넣고 RS2 다음에 GPU 줄이 진행해줘. 엔진 렌더를 인수 기준으로 해줘."
+
+Today (the Render workspace, WebGPU): metallic/roughness materials with presets, colour textures, sun/point/spot lights, an environment map's blurred levels for ambient and reflection, one sun's hard shadow map, occlusion, ACES tone mapping, @shader materials, props, turntable, PNG export. Missing for a real product's look: surface detail, layered and anisotropic materials, soft and multiple shadows, inter-reflection and indirect light, a physically converged image, camera effects.
+
+| # | Lane | Item |
+|---|---|---|
+| G15a | GPU | **Material realism**: procedural normal and roughness detail made in our own code (cast, sand-cast, machined, turned, brushed, knurled, bead-blasted), anisotropic metal, a clearcoat layer (painted parts), rubber, chrome, oil-film; presets combining them; no texture downloads |
+| G15b | GPU | **Light and shadow**: a properly prefiltered environment (split-sum specular, irradiance), procedural studio environments (softboxes, a cyclorama), soft shadows (PCF/PCSS) for every shadowing light, contact shadows |
+| G15c | GPU | **Progressive path tracing** for stills: a WebGPU compute path tracer over the scene's meshes (a BVH, the same materials as G15a), accumulating until stopped, with a denoiser of our own; Export image uses it when chosen; the raster view stays interactive |
+| G15d | GPU | **Post**: depth of field, bloom, a vignette and exposure controls |
+| G15-accept | GPU + API | **Acceptance: the P1 engine rendered** — a still of the assembled engine (cast block and head with their fins, machined faces, a steel crank, a painted case) and a turntable, judged against real engine photos by the owner |
+
+Order: after RS2. The built-in look per material id (waiting on the owner) is decided inside G15a and put to the owner then.
+
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
 
 The owner asked for one refactoring pass when the features are reasonably complete: code that is only laid out flat is
@@ -274,6 +290,7 @@ evidence files.
 - **P2** — A real product: electronics enclosure · ko: 실제 제품: 전자기기 외함
 - **P3** — A real product: large machine (gantry CNC router) · ko: 실제 제품: 대형 기계 (갠트리 CNC 라우터)
 - **P4** — A real product: 6-axis robot arm · ko: 실제 제품: 실제 6축 로봇 팔
+- **G15** — Photoreal rendering: material realism, light and shadow, progressive path tracing, post; accepted on the P1 engine render · ko: 실사 렌더링: 재질 사실감, 조명·그림자, 점진 경로 추적, 후처리 (엔진 렌더로 인수)
 - **RS1** — Sample robots (8 kinds, opened from a Samples list) · ko: 샘플 로봇 묶음 (8종, 샘플 목록에서 열기)
 - **RS2** — Joint motion playback (and motion video) · ko: 관절 움직임 재생 (경유 자세를 시간에 따라 재생, 영상 내보내기)
 - **RS3** — The agent moves the robot (joints, waypoints, check and play) · ko: 에이전트가 채팅으로 로봇을 움직이기
