@@ -7,7 +7,8 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { BASE } from '../assembly/mates';
 import { solveDoc } from '../assembly/edit';
-import { gravityOf as gravityVerb, inertiaOf as inertiaVerb, jointValuesOut, mjcfOf as mjcfVerb, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
+import { gravityOf as gravityVerb, inertiaOf as inertiaVerb, mjcfOf as mjcfVerb, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
+import { jointTreeOut, jointValuesIn, jointValuesOut } from '../robot/units';
 import { readUrdf } from '../robot/urdfCheck';
 import { readMjcf } from '../robot/mjcfCheck';
 import { exportSdf } from '../robot/sdf';
@@ -37,13 +38,10 @@ export const treeOf = (doc: StudioDoc): JointTree => treeVerb(viewOf(doc));
 
 /** A joint's value given in the facade's units — degrees for a turning joint, mm for a slide — as the core takes it (radians, mm). */
 export function coreValues(tree: JointTree, values: Readonly<Record<string, number>>): Record<string, number> {
-  const out: Record<string, number> = {};
   for (const [k, v] of Object.entries(values)) {
     if (typeof v !== 'number' || !Number.isFinite(v)) throw new BarocssError('VALUE', `[VALUE] ${k}: a joint's value is a number (degrees, or mm for a slide), not ${String(v)}`, 'facade');
-    const j = tree.joints.find(x => x.key === k);
-    out[k] = j && j.type !== 'prismatic' ? v * Math.PI / 180 : v;
   }
-  return out;
+  return jointValuesIn(tree, values);
 }
 
 const check = (tree: JointTree, values: Readonly<Record<string, number>>) => {
@@ -51,11 +49,11 @@ const check = (tree: JointTree, values: Readonly<Record<string, number>>) => {
   if (bad.length) throw refused(`No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.`);
 };
 
-/** get_joints' reply: the tree. */
-export const jointsOf = (doc: StudioDoc): JointTree => treeOf(doc);
+/** get_joints' public tree: degrees/mm, degree/s or mm/s, and N·mm or N. */
+export const jointsOf = (doc: StudioDoc) => jointTreeOut(treeOf(doc));
 
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
-/** set_joints' write (withJoints): the base link and the joints' limits and ratings (null removes a joint's), checked as the tool checks them. */
+/** set_joints' write: store public units unchanged; the producer converts to core units when it builds the tree. */
 export function withJoints(doc: StudioDoc, o: { base?: string; joints?: Record<string, Partial<JointSettings> | null> }): StudioDoc {
   const parts = [BASE, ...(doc.instances ?? []).map(i => i.id)];
   if (o.base !== undefined && (typeof o.base !== 'string' || !parts.includes(o.base))) throw refused(`The base link is one of ${parts.join(', ')}.`);
@@ -87,7 +85,8 @@ export function poseOf(doc: StudioDoc, values: Readonly<Record<string, number>>)
 export function sweepOf(doc: StudioDoc, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>) {
   const view = viewOf(doc), t = treeVerb(view);
   check(t, from); check(t, to);
-  return sweepVerb(view, from, to, t).reply;
+  const r = sweepVerb(view, from, to, t);
+  return { ...r.reply, ...(r.reply.contact ? { contact: { ...r.reply.contact, values: jointValuesOut(t, r.rawContactValues!) } } : {}) };
 }
 
 /** link_inertia's reply. */
