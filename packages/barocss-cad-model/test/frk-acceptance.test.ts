@@ -56,9 +56,9 @@ test('FRk9 the welded table made a weldment by the agent: 4 clipped gussets (294
   const beads = kinds('weld-bead');
   assert.equal(beads.length, 8);
   for (const b of beads) close(b.volume!, 2 * run + run / 2, 1e-9, `bead ${b.key}`);
-  type Welds = { joints: { kind: string; bead?: { nominalVolume: number; flush: number; seamMM: number } }[]; totals: { beads: { complete: boolean; bodyCount: number; nominalVolume: number; ownedVolume: number; sharedSeamCount: number } } };
+  type Welds = { joints: { kind: string; bead?: { nominalVolume: number; flush: number; seamLength: number } }[]; totals: { beads: { complete: boolean; bodyCount: number; nominalVolume: number; ownedVolume: number; sharedSeamCount: number } } };
   const list = await dispatchTool(state, 'query', { action: 'welds' }, evaluate), w = JSON.parse(list.content) as Welds;
-  for (const j of w.joints.filter(j => j.kind === 'butt')) { close(j.bead!.nominalVolume, 3 * run, 1e-9, 'nominal'); assert.equal(j.bead!.flush, a); assert.equal(j.bead!.seamMM, 4 * a); }
+  for (const j of w.joints.filter(j => j.kind === 'butt')) { close(j.bead!.nominalVolume, 3 * run, 1e-9, 'nominal'); assert.equal(j.bead!.flush, a); assert.equal(j.bead!.seamLength, 4 * a); }
   const t = w.totals.beads;
   assert.deepEqual([t.complete, t.bodyCount, t.sharedSeamCount], [true, 8, 4]);
   close(t.ownedVolume, 4 * 5 * run, 1e-9, 'owned: five fillets of 40 at each leg'); close(t.nominalVolume, 8 * 3 * run, 1e-9, 'nominal');
