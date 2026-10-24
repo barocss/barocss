@@ -26,7 +26,9 @@ test('G22: an overlap in contact at once, then filled — 5 × 20 × 10 = 1000 m
   const bodies = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [15, 0, 0])), evaluate);
   assert.deepEqual(bodies.map(b => b.key).sort(), ['b1', 'p/b1']);
   const map = clearanceMap(bodies, { near: 1.5 }), p = only(map.pairs);
-  assert.deepEqual([p.state, p.minGapMM, map.pending], ['contact', 0, 1], 'in contact: touching or a clash, the Boolean to say');
+  assert.deepEqual([p.state, p.minGap, map.pending], ['contact', 0, 1], 'in contact: touching or a clash, the Boolean to say');
+  assert.deepEqual(map.near, { value: 1.5, source: 'input' });
+  assert.equal('minGapMM' in p || 'squeezeMM3' in p, false);
   assert.ok(p.overlap && 'pending' in p.overlap);
   const f = fillOverlap(map, bodies, pendingPairs(map)[0]);
   assert.ok('volume' in f.overlap, JSON.stringify(f.overlap));
@@ -42,12 +44,13 @@ test('G22: an overlap in contact at once, then filled — 5 × 20 × 10 = 1000 m
   assert.equal(p.band, undefined); assert.deepEqual(bandPending(map), [p]);
   const band = bandFor(map, bodies, p)!;
   assert.ok(band.a.indices.length > 0 && band.b.indices.length > 0, 'bands on both sides'); assert.deepEqual(bandPending(map), []);
+  assert.equal(bandFor(map, bodies, p), band, 'an already filled band retains its identity');
 });
 
 test('G22: 1 mm apart — near, the least gap 1 between the facing faces by name, closest points in each body\'s frame; far apart, no pair', async () => {
   const bodies = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [21, 0, 0])), evaluate);
   const map = clearanceMap(bodies, { near: 1.5 }), p = only(map.pairs);
-  assert.equal(p.state, 'near'); assert.ok(Math.abs(p.minGapMM - 1) < 1e-6, String(p.minGapMM));
+  assert.equal(p.state, 'near'); assert.ok(Math.abs(p.minGap - 1) < 1e-6, String(p.minGap));
   assert.ok(Math.abs(p.closest.a[0] - 20) < 1e-6 && Math.abs(p.closest.b[0]) < 1e-6, JSON.stringify(p.closest));
   assert.ok(p.closest.faceA && p.closest.faceB && p.closest.faceA !== '' && p.closest.faceB !== '');
   assert.equal(p.overlap, undefined);
@@ -55,15 +58,19 @@ test('G22: 1 mm apart — near, the least gap 1 between the facing faces by name
   assert.ok(Math.abs(facing - 1) < 1e-6, `the facing side's field ${facing}`);
   const far = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [40, 0, 0])), evaluate);
   assert.deepEqual(clearanceMap(far, { near: 1.5 }).pairs, []);
+  const three = await assemblyPlacedBodies(asm(box(20, 20, 10), inst('p', box(20, 20, 10), [21, 0, 0]), inst('q', box(20, 20, 10), [0, 22, 0])), evaluate);
+  const waiting = bandPending(clearanceMap(three, { near: 2.5 }));
+  assert.equal(waiting.length, 3);
+  for (const [i, gap] of [1, 2, Math.sqrt(5)].entries()) assert.ok(Math.abs(waiting[i].minGap - gap) < 1e-6, `nearest-first gap ${waiting[i].minGap} vs ${gap}`);
 });
 
 test('G22 band oracle: a 2 mm cube 0.8 above the middle of a box\'s top face (two big triangles) — the band refines there; its least field equals the gap within the subdivision\'s bound (near/3)', async () => {
   const near = 1.5, bodies = await assemblyPlacedBodies(asm(box(60, 40, 10), inst('c', box(2, 2, 2), [29, 19, 10.8])), evaluate);
   const top = bodies.find(b => b.key === 'b1')!;
   const map = clearanceMap(bodies, { near: near }), p = only(map.pairs), both = bandFor(map, bodies, p)!, band = p.a === 'b1' ? both.a : both.b;
-  assert.ok(Math.abs(p.minGapMM - 0.8) < 1e-6, String(p.minGapMM));
+  assert.ok(Math.abs(p.minGap - 0.8) < 1e-6, String(p.minGap));
   const least = Math.min(...band.field);
-  assert.ok(least >= p.minGapMM - 1e-6 && least - p.minGapMM <= near / 3 + 1e-9, `least ${least}, gap ${p.minGapMM}`);
+  assert.ok(least >= p.minGap - 1e-6 && least - p.minGap <= near / 3 + 1e-9, `least ${least}, gap ${p.minGap}`);
   // (Refined: the band's triangles are small, around the spot — none is the face's own big triangle.)
   let longest = 0;
   for (let t = 0; t < band.indices.length; t += 3) for (const [u, v] of [[0, 1], [1, 2], [2, 0]]) { const i = 3 * band.indices[t + u], j = 3 * band.indices[t + v]; longest = Math.max(longest, Math.hypot(band.positions[i] - band.positions[j], band.positions[i + 1] - band.positions[j + 1], band.positions[i + 2] - band.positions[j + 2])); }
