@@ -27,34 +27,34 @@ const frozenDoc = () => {
 test('omitted settings remain absent while display defaults retain estimate and direction provenance', () => {
   const doc = frozenDoc(), before = JSON.stringify(doc);
   assert.deepEqual(printOptionsOf(doc), { layer: 0, supports: true, printed: true });
-  assert.equal(printOptionsOf(doc).layerMM, undefined); assert.equal(printOptionsOf(doc).direction, undefined);
-  assert.equal(Object.hasOwn(printOptionsOf(doc), 'layerMM'), false); assert.equal(Object.hasOwn(printOptionsOf(doc), 'direction'), false);
+  assert.equal(printOptionsOf(doc).layerHeight, undefined); assert.equal(printOptionsOf(doc).direction, undefined);
+  assert.equal(Object.hasOwn(printOptionsOf(doc), 'layerHeight'), false); assert.equal(Object.hasOwn(printOptionsOf(doc), 'direction'), false);
   assert.equal(Object.hasOwn(doc, 'printPreview'), false); assert.equal(Object.hasOwn(doc, 'print'), false);
   assert.equal(JSON.stringify(doc), before);
-  const authored = { ...doc, print: { direction: [0, -2, 0] }, printPreview: { version: 1, layerMM: 0.25 } };
+  const authored = { ...doc, print: { direction: [0, -2, 0] }, printPreview: { version: 1, layerHeight: 0.25 } };
   const options = printOptionsOf(authored, 37);
-  assert.deepEqual(options, { layer: 0, supports: true, printed: true, layerMM: 0.25, direction: [0, -2, 0], limitDeg: 37 });
+  assert.deepEqual(options, { layer: 0, supports: true, printed: true, layerHeight: 0.25, direction: [0, -2, 0], overhangLimit: 37 });
   options.direction[0] = 9; assert.deepEqual(authored.print.direction, [0, -2, 0], 'options do not alias the authored direction');
 });
 
 test('zero and false survive immutable patches; omitted values stay saved and explicit undefined deletes only that field', () => {
-  const original = frozenDoc(), first = withPrintPreviewSettings(original, { layer: 7, layerMM: 0.4, supports: true, printed: true });
+  const original = frozenDoc(), first = withPrintPreviewSettings(original, { layer: 7, layerHeight: 0.4, supports: true, printed: true });
   Object.freeze(first.printPreview); Object.freeze(first);
   const next = withPrintPreviewSettings(first, { layer: 0, supports: false, printed: false });
   assert.notEqual(next, first); assert.notEqual(next.printPreview, first.printPreview);
-  assert.deepEqual(next.printPreview, { version: 1, layer: 0, layerMM: 0.4, supports: false, printed: false });
-  assert.deepEqual(printOptionsOf(next), { layer: 0, supports: false, printed: false, layerMM: 0.4 });
-  const removed = withPrintPreviewSettings(next, { layerMM: undefined, supports: undefined });
+  assert.deepEqual(next.printPreview, { version: 1, layer: 0, layerHeight: 0.4, supports: false, printed: false });
+  assert.deepEqual(printOptionsOf(next), { layer: 0, supports: false, printed: false, layerHeight: 0.4 });
+  const removed = withPrintPreviewSettings(next, { layerHeight: undefined, supports: undefined });
   assert.deepEqual(removed.printPreview, { version: 1, layer: 0, printed: false });
-  assert.equal(Object.hasOwn(removed.printPreview, 'layerMM'), false); assert.equal(Object.hasOwn(removed.printPreview, 'supports'), false);
+  assert.equal(Object.hasOwn(removed.printPreview, 'layerHeight'), false); assert.equal(Object.hasOwn(removed.printPreview, 'supports'), false);
   assert.deepEqual(printOptionsOf(removed), { layer: 0, supports: true, printed: false });
   assert.equal(Object.hasOwn(removed, 'print'), false); assert.equal(next.nodes, original.nodes); assert.equal(next.outputs, original.outputs);
-  assert.deepEqual(first.printPreview, { version: 1, layer: 7, layerMM: 0.4, supports: true, printed: true });
+  assert.deepEqual(first.printPreview, { version: 1, layer: 7, layerHeight: 0.4, supports: true, printed: true });
 });
 
 test('actual Model validators refuse invalid controls, unknown fields, version changes and invalid nested document state', () => {
   const doc = frozenDoc();
-  for (const patch of [{ layer: -1 }, { layer: 0.5 }, { layer: Number.MAX_SAFE_INTEGER + 1 }, { layerMM: 0 }, { layerMM: NaN }, { layerMM: Infinity }, { supports: 0 }, { printed: 'false' }, { version: 2 }, { version: undefined }, { direction: [0, 0, 1] }]) {
+  for (const patch of [{ layer: -1 }, { layer: 0.5 }, { layer: Number.MAX_SAFE_INTEGER + 1 }, { layerHeight: 0 }, { layerHeight: NaN }, { layerHeight: Infinity }, { supports: 0 }, { printed: 'false' }, { version: 2 }, { version: undefined }, { direction: [0, 0, 1] }]) {
     assert.throws(() => withPrintPreviewSettings(doc, patch), /\[PRINT_PREVIEW_INPUT\]/);
   }
   const invalid = { ...doc, printPreview: { version: 1, layer: -1 } };
@@ -75,8 +75,8 @@ test('actual Model reader and carryOver retain sparse settings through an indepe
   const read = readStudioDoc(JSON.stringify(carried)); assert.equal('error' in read, false);
   assert.deepEqual(read.doc.printPreview, { version: 1, layer: 0, supports: false, printed: false });
   assert.deepEqual(printOptionsOf(read.doc), { layer: 0, supports: false, printed: false });
-  assert.equal(Object.hasOwn(read.doc.printPreview, 'layerMM'), false); assert.equal(Object.hasOwn(read.doc, 'print'), false);
-  const authored = withPrintPreviewSettings({ ...read.doc, print: { direction: [1, 0, 0] } }, { layerMM: 0.3 });
+  assert.equal(Object.hasOwn(read.doc.printPreview, 'layerHeight'), false); assert.equal(Object.hasOwn(read.doc, 'print'), false);
+  const authored = withPrintPreviewSettings({ ...read.doc, print: { direction: [1, 0, 0] } }, { layerHeight: 0.3 });
   const readAuthored = readStudioDoc(JSON.stringify(authored)); assert.equal('error' in readAuthored, false);
-  assert.deepEqual(printOptionsOf(readAuthored.doc).direction, [1, 0, 0]); assert.equal(printOptionsOf(readAuthored.doc).layerMM, 0.3);
+  assert.deepEqual(printOptionsOf(readAuthored.doc).direction, [1, 0, 0]); assert.equal(printOptionsOf(readAuthored.doc).layerHeight, 0.3);
 });

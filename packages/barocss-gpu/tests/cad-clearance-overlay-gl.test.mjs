@@ -44,7 +44,7 @@ function mockGl() {
   return { gl, draws, events, state: () => ({ depth, func, enabled }), clear: () => { events.length = 0; draws.length = 0; } };
 }
 const overlay = (extra = {}) => ({ id: 'pair:a', bodyKey: 'part-a:b1', positions: Float32Array.of(0, 0, 0, 2, 0, 0, 0, 2, 0), normals: Float32Array.of(0, 0, 1, 0, 0, 1, 0, 0, 1), indices: Uint32Array.of(0, 1, 2), colors: Float32Array.of(0.2, 0.8, 0.3, 0.9, 0.2, 0.1, 0.3, 0.4, 0.9), field: Float32Array.of(0.1, 0.2, 0.3), model: Float64Array.from(identity()), state: 'near', hatched: false, opacity: 0.63, ...extra });
-const display = (overlays, clip) => ({ version: 'clearance-map-v1', request: 3, revision: 'pose-3', nearMM: 2, stage: 'ready', pairs: [], overlays, ...(clip ? { clip } : {}) });
+const display = (overlays, clip) => ({ version: 'clearance-map-v1', request: 3, revision: 'pose-3', near: 2, stage: 'ready', pairs: [], overlays, ...(clip ? { clip } : {}) });
 const uploaded = f => f.events.filter(event => event.name === 'bufferData').map(event => event.args[1]);
 
 test('local buffers retain the original field/provenance and a rotated translated model is sent once', () => {
