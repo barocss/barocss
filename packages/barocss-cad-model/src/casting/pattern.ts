@@ -14,7 +14,7 @@ type Evaluate = Parameters<typeof dispatchTool>[3];
 export type PatternCode = 'PATTERN_NOT_CASTING' | 'PATTERN_ONE_BODY' | 'PATTERN_MATERIAL' | 'PATTERN_SHRINK' | 'PATTERN_ALLOWANCE' | 'PATTERN_FACE' | 'PATTERN_BUILD';
 export interface PatternFile {
   readonly format: 'barocss-pattern'; readonly version: 1; readonly process: string; readonly material: string; readonly family: string;
-  readonly shrink: Omit<ShrinkAllowance, never> & { readonly factor: number; readonly simplification: string; readonly byDimension: readonly { axis: string; extentMM: number; factor: number; band: string }[] };
+  readonly shrink: Omit<ShrinkAllowance, never> & { readonly factor: number; readonly simplification: string; readonly byDimension: readonly { axis: string; extent: number; factor: number; band: string }[] };
   readonly machining: (Omit<MachiningAllowance, never> & { readonly faces: readonly string[] }) | null;
   readonly pivot: readonly number[]; readonly part: { readonly min: readonly number[]; readonly max: readonly number[] }; readonly pattern: { readonly min: readonly number[]; readonly max: readonly number[] };
   readonly note: string;
@@ -32,13 +32,13 @@ export async function patternOf(doc: StudioDoc, bodies: readonly BodyResult[], e
   const id = materialIdOf(doc, bodies[0]) ?? null, m = id ? materialData(id) : undefined;
   if (!m?.castFamily) return failed('PATTERN_MATERIAL', m ? `${m.label} is not a casting alloy` : 'the material is not set (set_material): none is assumed');
   const box = partExtent(bodies), family = m.castFamily;
-  const shrink = shrinkOf(doc, profile, family, box.largestMM);
+  const shrink = shrinkOf(doc, profile, family, box.largest);
   if (!shrink.ok) return failed('PATTERN_SHRINK', shrink.why);
   const marked = machinedFaces(doc, bodies);
   if (marked.missing.length) return failed('PATTERN_FACE', `marked machined but not on the part: ${marked.missing.join(', ')}`);
   const curved = marked.found.filter(f => !f.flat);
   if (curved.length) return failed('PATTERN_FACE', `only flat faces take a machining allowance here: ${curved.map(f => f.name).join(', ')}`);
-  const machining = marked.found.length ? machiningOf(doc, profile, family, box.largestMM) : null;
+  const machining = marked.found.length ? machiningOf(doc, profile, family, box.largest) : null;
   if (machining && !machining.ok) return failed('PATTERN_ALLOWANCE', machining.why);
   let state = { doc, bodies: [...bodies], turnBase: doc } as never as ChatState;
   const run = async (args: Record<string, unknown>): Promise<string | null> => {

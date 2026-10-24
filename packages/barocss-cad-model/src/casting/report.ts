@@ -93,7 +93,7 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
       value: r3(least), limit: steep.length || !dRec ? dMin.value : dRec.value, unit: 'deg', source: pageOf(steep.length || !dRec ? dMin : dRec), entities: faceNames([...steep, ...underRec, ...straddle]) });
   }
   // IM8b (O108): the pattern's allowances — the shrinkage it is scaled by, the machining allowance on the faces marked machined.
-  const size = bodies.length ? partExtent(bodies).largestMM : 0;
+  const size = bodies.length ? partExtent(bodies).largest : 0;
   const shrink = family && bodies.length ? shrinkOf(doc, profile, family, size) : null;
   if (!shrink) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: noFamily ?? 'no body' });
   else if (!shrink.ok) rules.push({ id: 'shrink', level: 'recommended', status: 'unknown', message: 'the pattern\'s shrinkage', why: shrink.why });
