@@ -119,3 +119,22 @@ test('exports: URDF, MJCF, SDF and USD, each with what it checks', () => {
   assert.equal(arm.usd('arm-2r').ok, true);
   // #endregion exports
 });
+
+test('motions: a path timed and played, a saved motion read, a path saved as one', () => {
+  // #region motions
+  const arm = open('arm-2r');
+  // Home to 60° on the first joint, at 90°/s and 180°/s²: a trapezoid of two half-second ramps and 1/6 s between.
+  const swing = arm.path([{}, { 'base~a': 60 }], { limits: { 'base~a': { velocity: 90, acceleration: 180 } } });
+  assert.deepEqual(swing.problems(), []);
+  const T = swing.duration();
+  assert.ok(near(T, 1 + 1 / 6));
+  assert.ok(near(swing.poseAt(T / 2)['base~a'], 30));        // degrees: half-way at half the time
+  assert.ok(near(swing.poseAt(T)['base~a'], 60));
+
+  const wave = arm.motion('wave');                           // the sample's demo motion, saved in its robot settings
+  assert.deepEqual(wave.waypoints, [{}, { 'base~a': 60, 'a~b': -90 }, { 'base~a': -45, 'a~b': 90 }, {}]);
+  const saved = arm.withMotion('swing', swing);              // a new robot, the motion kept in its document
+  assert.deepEqual(saved.motion('swing').waypoints, swing.waypoints);
+  // #endregion motions
+  assert.equal(arm.doc.robot.motions.length, 1);             // the first robot is unchanged
+});

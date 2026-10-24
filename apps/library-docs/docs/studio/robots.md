@@ -33,13 +33,19 @@ write metres and radians.
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
-- **Playing the path.** **Play motion** plays the same path in time: from home, through the waypoints, to the pose
-  shown. Each joint moves at its velocity limit, or at 1 rad/s or 100 mm/s when it has none.
+- **Playing a motion.** **Play motion** plays the motion chosen in **Motion choice** in time. Its length shows before
+  it plays.
+  - The draft is the path above: from home, through the waypoints, to the pose shown. Each joint moves at its velocity
+    limit, or at 1 rad/s or 100 mm/s when it has none.
+  - A saved motion plays as the document keeps it: its waypoints, profile and limits.
   - **Pause motion** holds it. The **Motion time** scrubber sets the pose at a time, **Loop motion** repeats it, and
     **Motion speed** plays it at 0.25× to 2×.
   - The first contact on the way is reported as "Contact *link* – *link* at t … s". From then on the two links are
     marked: outlined on WebGPU, tinted on WebGL2.
-  - Nothing is saved. Moving a slider, **Home** or a change to the waypoints stops it.
+  - Playing saves nothing. Moving a slider, **Home**, a change to the waypoints or another choice stops it.
+- **Saving a motion.** With the draft chosen, name it in **Motion name** and **Save as motion** keeps it in the
+  document, in degrees and millimetres, and chooses it. A motion of the same name is replaced. Saving is an undo step;
+  the pose shown and the play state are never saved.
 - **Workspace.** **Workspace** (Map workspace) samples the reachable space and draws it as voxels, with a summary and the samples.
   **Download workspace** saves it.
 
@@ -125,8 +131,13 @@ so every sample exports, and each carries one demo motion in its robot settings,
 | `four-bar` | A four-bar linkage | Crank, coupler and rocker, closed in one loop |
 | `gear-joint` | A gear-driven joint | A 20-tooth gear driving a 30-tooth one, which turns two thirds as far, the other way |
 
-Opened in the studio, each one's joints are in the **Joints** card. Set a pose with the sliders, and **Play motion**
-plays from home to it. Here three samples are paused half-way:
+Open one from **Templates**, under **Samples · Robots**. It opens as Open would open its file, with its joints in the
+**Joints** card and its demo motion in **Motion choice**.
+
+![The Templates menu, with the eight robot samples under Samples · Robots](/shots/studio/robots/samples-menu.png)
+
+Set a pose with the sliders, and **Play motion** plays the draft from home to it. Here three samples are paused
+half-way:
 
 ![The 6R arm half-way from home to a reach, its shoulder and elbow bent](/shots/studio/robots/arm-6r-motion.jpg)
 
@@ -176,6 +187,14 @@ the tool gives them, with turns in radians.
 - **The gear-driven joint:** the gear ratio.
 
 <<< @/../samples/robots.test.mjs#gear-joint
+
+- **Motions:** a path timed and played, the sample's saved motion read, and a path saved as a motion.
+  `path(waypoints, { profile?, limits? })` takes waypoints in degrees and millimetres, and limits per joint in deg/s
+  and deg/s² (or mm/s and mm/s²). `duration()` gives its length in seconds, `poseAt(t)` the joint values at a time in
+  degrees, and `problems()` what is wrong with it on this robot. `motion(name)` reads a saved motion, and
+  `withMotion(name, path)` returns a robot with the path saved.
+
+<<< @/../samples/robots.test.mjs#motions
 
 - **The exports**, each with what its reader found and what it had to assume. `check` lists what our own reader found
   wrong when reading the file back, and `notes` what the export assumed, such as aluminium for a body without a

@@ -248,6 +248,13 @@
    "bytes": 130670
   },
   {
+   "file": "studio/robots/samples-menu.png",
+   "page": "studio/robots",
+   "step": "studio/robots: the robot samples in Templates",
+   "renderer": "webgpu",
+   "bytes": 18700
+  },
+  {
    "file": "studio/robots/scara-motion.jpg",
    "page": "studio/robots",
    "step": "studio/robots: the scara sample, its motion paused half-way",
