@@ -267,6 +267,17 @@ const whenOf = (at: string) => { const d = new Date(at); return Number.isNaN(d.g
 
 /** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
 interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
+/** Stable numbers for objects (a command's context, its values), for the App's subscription key. */
+const objectIds = new WeakMap<object, number>();
+let nextObjectId = 0;
+const idOf = (o: object) => { let id = objectIds.get(o); if (id === undefined) { id = ++nextObjectId; objectIds.set(o, id); } return id; };
+/**
+ * What of the running command the App renders for (R1d): its start and end, its command, context and placing — and its
+ * values, unless the HUD typed them (`typed`, the values its last keystroke made) or the pointer is placing the shape. The
+ * preview's state and error are the HUD's; a typed or placed value's preview renders the App once, with its result.
+ */
+const activeKey = (a: Active | null, typed: Values | null) =>
+  a ? `${a.cmd.id}|${idOf(a.ctx)}|${a.placing ? 1 : 0}|${a.placing || a.values === typed ? '' : idOf(a.values)}` : '';
 
 /** The pointer's point to 0.1 mm (it renders again only when that text changes). */
 function CursorReadout({ sink }: { sink: React.MutableRefObject<((p: Vec3 | null) => void) | null> }) {
@@ -332,7 +343,11 @@ export function App() {
   const [busy, setBusy] = useState(true);
   const [selection, setSelection] = useState<Selection>(emptySel);
   const [pick, setPick] = useState<Vec3 | null>(null);
-  const [active, setActive] = useState<Active | null>(null);
+  // (R1d: the running command outside React state — see activeKey. The HUD subscribes to all of it.)
+  const activeStore = useMemo(() => createValueStore<Active | null>(null), []), setActive = activeStore.set;
+  const hudValues = useRef<Values | null>(null);
+  useSyncExternalStore(activeStore.subscribe, () => activeKey(activeStore.get(), hudValues.current));
+  const active = activeStore.get();
   const [previewBodies, setPreviewBodies] = useState<BodyResult[] | null>(null);
   /**
    * A Move or Rotate gizmo drag: the body follows at once by this matrix on the evaluated part; once let
@@ -947,53 +962,62 @@ export function App() {
   const fullTimer = useRef(0);
   const bearingRootCurrent = active?.cmd.id !== 'bearing' || active.ctx.bearingAssembly?.root === doc;
   useEffect(() => {
-    if (!active?.cmd.build) return;
-    if (!bearingRootCurrent) {
-      setPreviewBodies(null);
-      setActive(a => a && { ...a, preview: 'error', error: { title: 'Assembly changed', hint: 'Start Bearing again to use the current housing geometry.', detail: '' } });
-      return;
-    }
-    let live = true;
-    const missing = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
-    if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
-    const values = active.values, cmd = active.cmd, ctx = active.ctx;
-    const job = async (full = false) => {
-      let candidate: StudioDoc;
-      try { candidate = cmd.build!(ctx, values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
-      let shown = candidate, rolled = false;
-      // A part it places as an instance (a fastener inserted as its own part) shows folded in as features.
-      const placed = (candidate.instances ?? []).filter(i => !(ctx.doc.instances ?? []).some(j => j.id === i.id));
-      if (placed.length) shown = flattenAssembly({ ...candidate, instances: placed });
-      if (!full && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
-        // (The last node the drag changed: nodes it left are the same objects, compared by content only if not.)
-        let k = -1; for (let i = 0; i < candidate.nodes.length; i++) { const n = candidate.nodes[i], o = ctx.doc.nodes[i]; if (n !== o && JSON.stringify(n) !== JSON.stringify(o)) k = i; }
-        if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
+    // (R1d: run on each change of the command's values, followed in the store — the App does not render for a value typed
+    // into the HUD or placed by the pointer.)
+    let seen: Values | undefined, stop: (() => void) | undefined;
+    const evaluate = (active: Active | null): (() => void) | undefined => {
+      if (!active?.cmd.build) return;
+      if (!bearingRootCurrent) {
+        setPreviewBodies(null);
+        setActive(a => a && { ...a, preview: 'error', error: { title: 'Assembly changed', hint: 'Start Bearing again to use the current housing geometry.', detail: '' } });
+        return;
       }
-      window.clearTimeout(fullTimer.current);
-      const result = await engine.preview(shown, revision.current++);
-      if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== bearingEditScope.current.doc) return;
-      if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
-      // (A newer job is queued: its result supersedes this one, unless this command is gone.)
-      if (!live && !previewRun.current.next) return;
-      const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
-      if (hd && Number.isFinite(hv)) {
-        // (Only the whole part decides the wall: the part up to the feature may take what its later features refuse.)
-        if (result.ok) { if (!rolled && (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall)) hd.lastOk = hv; }
-        else if (hv !== hd.lastOk) {
-          hd.wall = Math.sign(hv - hd.lastOk);
-          setActive(a => a && a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd.key]: hd.lastOk }), preview: 'busy' } : a);
-          return;
+      let live = true;
+      const missing = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values).find(f => f.kind !== 'choice' && (active.values[f.key] === '' || !Number.isFinite(Number(active.values[f.key]))));
+      if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
+      const values = active.values, cmd = active.cmd, ctx = active.ctx;
+      const job = async (full = false) => {
+        let candidate: StudioDoc;
+        try { candidate = cmd.build!(ctx, values); } catch (e) { setActive(a => a && { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } }); return; }
+        let shown = candidate, rolled = false;
+        // A part it places as an instance (a fastener inserted as its own part) shows folded in as features.
+        const placed = (candidate.instances ?? []).filter(i => !(ctx.doc.instances ?? []).some(j => j.id === i.id));
+        if (placed.length) shown = flattenAssembly({ ...candidate, instances: placed });
+        if (!full && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
+          // (The last node the drag changed: nodes it left are the same objects, compared by content only if not.)
+          let k = -1; for (let i = 0; i < candidate.nodes.length; i++) { const n = candidate.nodes[i], o = ctx.doc.nodes[i]; if (n !== o && JSON.stringify(n) !== JSON.stringify(o)) k = i; }
+          if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
         }
-      }
-      if (result.ok) { previewFor.current = rolled ? '' : JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: !rolled && JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
-      else if (live) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
+        window.clearTimeout(fullTimer.current);
+        const result = await engine.preview(shown, revision.current++);
+        if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== bearingEditScope.current.doc) return;
+        if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
+        // (A newer job is queued: its result supersedes this one, unless this command is gone.)
+        if (!live && !previewRun.current.next) return;
+        const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
+        if (hd && Number.isFinite(hv)) {
+          // (Only the whole part decides the wall: the part up to the feature may take what its later features refuse.)
+          if (result.ok) { if (!rolled && (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall)) hd.lastOk = hv; }
+          else if (hv !== hd.lastOk) {
+            hd.wall = Math.sign(hv - hd.lastOk);
+            setActive(a => a && a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd.key]: hd.lastOk }), preview: 'busy' } : a);
+            return;
+          }
+        }
+        if (result.ok) { previewFor.current = rolled ? '' : JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: !rolled && JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
+        else if (live) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
+      };
+      const run = previewRun.current;
+      const pump = async () => { while (run.next) { const j = run.next; run.next = null; run.busy = true; try { await j(); } finally { run.busy = false; } } };
+      const typed = Date.now() - lastTyped.current < 50;
+      const t = setTimeout(() => { run.next = job; if (!run.busy) void pump(); }, typed ? 140 : 0);
+      return () => { live = false; clearTimeout(t); };
     };
-    const run = previewRun.current;
-    const pump = async () => { while (run.next) { const j = run.next; run.next = null; run.busy = true; try { await j(); } finally { run.busy = false; } } };
-    const typed = Date.now() - lastTyped.current < 50;
-    const t = setTimeout(() => { run.next = job; if (!run.busy) void pump(); }, typed ? 140 : 0);
-    return () => { live = false; clearTimeout(t); };
-  }, [active?.values, active?.cmd, engine, bearingRootCurrent]);
+    const follow = () => { const a = activeStore.get(); if (a?.values === seen) return; seen = a?.values; stop?.(); stop = evaluate(a); };
+    follow();
+    const unsubscribe = activeStore.subscribe(follow);
+    return () => { unsubscribe(); stop?.(); };
+  }, [active?.cmd, engine, bearingRootCurrent, activeStore]);
 
   /** The command to start again once what Shift-Enter applied is the part (its bodies evaluated). */
   const again = useRef<Command | null>(null);
@@ -1001,6 +1025,8 @@ export function App() {
   // Apply while the preview is still computing (just after a drag or a typed value) waits for it.
   const applyWhenReady = useRef<Command | null>(null);
   const apply = useCallback(() => {
+    // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
+    const active = activeStore.get();
     if (!active?.cmd.build) return;
     if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
@@ -1012,12 +1038,19 @@ export function App() {
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (previewBodies && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     commit(next); setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [active, commit, previewBodies, bearingRootCurrent]);
-  // (Only for the command it was asked for: cancelled or replaced, it is forgotten.)
+  }, [activeStore, commit, previewBodies, bearingRootCurrent]);
+  // (Only for the command it was asked for: cancelled or replaced, it is forgotten. R1d: looked at after each render — a
+  // preview's result renders the App with its bodies — and as the preview's state settles without one, an error.)
   useEffect(() => {
-    if (applyWhenReady.current && applyWhenReady.current !== active?.cmd) applyWhenReady.current = null;
-    else if (applyWhenReady.current && active?.preview !== 'busy') apply();
-  }, [active?.preview, active?.cmd, apply]);
+    const check = () => {
+      const a = activeStore.get();
+      if (applyWhenReady.current && applyWhenReady.current !== a?.cmd) applyWhenReady.current = null;
+      else if (applyWhenReady.current && a?.preview === 'error') apply();
+    };
+    check();
+    if (applyWhenReady.current && activeStore.get()?.preview === 'ok') apply();
+    return activeStore.subscribe(check);
+  }, [previewBodies, active?.cmd, apply, activeStore]);
 
   const start = useCallback((cmd: Command) => {
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
@@ -1188,12 +1221,14 @@ export function App() {
     if (sectionRef.current && !activeRef.current && !validInstance) return;
     // (G6: while the mould's halves show, picks reach only them — none here.)
     if (halvesShownRef.current && !activeRef.current) return;
-    if (active) {
-      // A command that takes a pick (a revolve's axis edge) gets the click; others ignore it.
-      if (!active.cmd.onPick) return;
-      const r = active.cmd.onPick(active.ctx, active.values, { face: hit.face, edge: hit.edge });
+    const cur = activeStore.get();
+    if (cur) {
+      // A command that takes a pick (a revolve's axis edge) gets the click; others ignore it. (R1d: its values as they are
+      // now, from the store.)
+      if (!cur.cmd.onPick) return;
+      const r = cur.cmd.onPick(cur.ctx, cur.values, { face: hit.face, edge: hit.edge });
       if (!r) return;
-      if ('error' in r && typeof r.error === 'string' && Object.keys(r).length === 1) { setToast({ title: `${active.cmd.label}: not that one`, hint: r.error, detail: '' }); return; }
+      if ('error' in r && typeof r.error === 'string' && Object.keys(r).length === 1) { setToast({ title: `${cur.cmd.label}: not that one`, hint: r.error, detail: '' }); return; }
       setActive(a => a && { ...a, values: r as Values, preview: 'busy' }); return;
     }
     if (validInstance && !hit.instanceFace) {
@@ -1233,7 +1268,7 @@ export function App() {
       }
       return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
     });
-  }, [active, measure, assembly, doc.instances]);
+  }, [activeStore, measure, assembly, doc.instances]);
   pickRef.current = onPick;
   // Finished sketches waiting for a feature, drawn and picked in the viewport and the History.
   const freeSketches = useMemo(() => unusedSketches(evaluated.nodes), [evaluated.nodes]);
@@ -1641,7 +1676,9 @@ export function App() {
   const [specRunning, setSpecRunning] = useState(false), [failingOnly, setFailingOnly] = useState(false);
   const specPassed = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!doc.requirements?.length) { setSpec(null); specPassed.current = new Set(); return; }
+    // (R1d: cleared only when there is something to clear — a set to the same null rendered the App again after each
+    // preview result.)
+    if (!doc.requirements?.length) { if (spec !== null) setSpec(null); specPassed.current = new Set(); return; }
     if (busy || !fresh || active || sketch || previewBodies) return;
     let live = true;
     const t = setTimeout(() => {
@@ -2690,7 +2727,9 @@ export function App() {
       </aside>}
       </div></Profiler>
   );
-  const hud = active && <Hud active={active} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null; setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [key]: value }), preview: 'busy' }); }} onApply={apply} onCancel={cancel} />;
+  // (R1d: the HUD subscribes to the command; the values it types are noted, so the App does not render for them.)
+  const hud = active && <Hud store={activeStore} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null;
+    setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: 'busy' }; }); }} onApply={apply} onCancel={cancel} />;
   return (
     <div className={'studio' + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}

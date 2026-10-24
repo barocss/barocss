@@ -13,7 +13,9 @@ const CPU: GpuMaps = { state: 'cpu', maps: null };
 export function useGpuAccessMaps(active: boolean, bodies: readonly BodyResult[], device: () => object | null): GpuMaps {
   const [result, setResult] = useState<{ bodies: readonly BodyResult[]; maps: GpuMaps } | null>(null);
   useEffect(() => {
-    if (!active) { setResult(null); return; }
+    // (R1d: cleared only when there is a result: off, the bodies change with each preview, and a set to the same null
+    // rendered the App again each time.)
+    if (!active) { if (result !== null) setResult(null); return; }
     const d = device();
     if (!d) { setResult({ bodies, maps: CPU }); return; }
     let live = true;
