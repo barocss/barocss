@@ -8813,3 +8813,41 @@ and draft, refusing `[REFERENCE_MOVED]`.
     - frk-weldment-table.calls.json's STEP text hash: step 3's weld `size` renames the document's canonical JSON, so
       the source revision the STEP header names is a new hash. The geometry is the same (bodies, B-reps and STL
       unchanged).
+
+## O21 — the agent can make, set, rename, bind and remove named parameters; one core for the panel, the tools and the facade (2026-10-24)
+
+The API lane found it in R7.4d's design: no v2 action created or set a named parameter. The design was approved by
+the coordinator before code.
+- **Core,** in engine/parameters.ts. Each is verb(doc, …) → doc, pure, with refusals coded (PARAMETER_CODES) and the
+  facade's texts kept:
+  - `withParameters(doc, edits)` sets existing parameters, with PARAMETER_UNKNOWN and VALUE. It is the same as the
+    kernel facade's.
+  - `addParameters(doc, values)`: PARAMETER_NAME, PARAMETER_EXISTS, VALUE.
+  - `renameParameter(doc, from, to)` renames the nodes' references and the configurations, and keeps the order.
+  - `removeParameter(doc, name)`: each use keeps its value, and the configurations stay as they are, as the panel
+    did.
+  - `bindParameter(doc, { feature: index | id, value: edit_feature's key, parameter })` goes through editFields'
+    bind. It refuses PARAMETER_UNBINDABLE, the facade's code for the same refusal, when the value isn't written as it
+    is to one place, and NO_FEATURE for a feature that isn't there.
+  - `parameterUses` and `referencesRenamed` move from the studio's ParametersPanel.
+- **The studio's ParametersPanel** calls these and keeps its own checks and words (its toasts), so its behaviour is
+  unchanged. One difference: a rename in a document with no configurations no longer writes an empty
+  `configurations: {}`.
+- **The agent:**
+  - `features.parameters`, backed by set_parameters. It takes add, set, rename, bind, remove (and because), applied in
+    that order, all or nothing, then evaluated by accept, so a value that doesn't build is refused with the part
+    unchanged. The result lists each parameter with its value and uses.
+  - The contract classes it ALTERS (not idempotent), BATCHABLE and MUTATORS.
+- **tools-v2.json is re-recorded with one additive value,** `parameters` in features' action enum
+  (UPDATE_TOOL_CONTRACT=1, no breaking change).
+- **Per turn:** 23,682 characters (tools/list 15,440 + system prompt 8,242; cap 25,000).
+- **Docs:** the tool table (_tools.md) and the refusal table are regenerated, and check:docs passes (596 labels).
+- **Follow-ups:**
+  - configurations (named parameter sets) through the agent;
+  - the API lane moves its adapter's withParameters and binding onto these.
+- **Test:** test/o21-parameters.test.ts, 3 tests:
+  - the core functions and their refusals (texts pinned);
+  - bind, rename and remove;
+  - through set_parameters: add, bind and set give a 40 × 20 × 8 volume; a refusal anywhere applies nothing; T = 0
+    is refused by the evaluation.
+- **Verified (T1):** o21 3/3, toolset 9/9, tool-contract; tsc (model, studio); eslint 0 errors.

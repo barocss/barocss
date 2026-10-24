@@ -24,6 +24,7 @@ export const GROUPS: Record<string, Group> = {
       command: ['run_command', 'command, values?, faces?, edges?, bodies?, point? — a studio command as the toolbar runs it'],
       add: ['add_features', 'features: [node] — raw feature nodes (sketches, extrudes, revolves, sweeps, lofts, …)'],
       edit: ['edit_feature', 'index, values? | feature?'],
+      parameters: ['set_parameters', 'add?, set?, rename?, bind?, remove? — named parameters; bind a feature\'s value to one'],
       load_rows: ['load_rows', 'kind, file, part?, feature? — rows from the person’s conversation file'],
       delete: ['delete_feature', 'index'],
       material: ['set_material', 'material, bodies?, part? — what bodies are made of'],
