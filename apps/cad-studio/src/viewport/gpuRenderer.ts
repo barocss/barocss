@@ -5,7 +5,7 @@
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
 import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, PALETTE, SELECT_MIX, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
-import { clipBox, createViewer, invert, multiply, rotation, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
+import { clipBox, createViewer, invert, multiply, rotation, studioEnvironment, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
@@ -24,7 +24,7 @@ import { overlayTriangles, type OverlayDrawing } from './overlayDrawing';
 const ZEBRA = zebra(), CURVATURE = curvature();
 import { materialShader, showScene, type MaterialShaderResult, type SceneView } from '@barocss/gpu';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { appearanceOf, tiledUVs, type Appearance, type RenderSettings } from '@barocss/cad-model/engine/render';
+import { appearanceOf, tiledUVs, type Appearance, type RenderSettings, type StudioKind } from '@barocss/cad-model/engine/render';
 import type { DirectDisplay } from '@barocss/cad-model/engine/direct';
 import type { DisplayMesh, Vec3 } from '@barocss/cad-model/engine/mesh';
 import type { OrbitCamera } from './camera';
@@ -680,8 +680,8 @@ export class GpuRenderer implements ViewRenderer {
         : l.kind === 'point' ? { kind: 'point', position: l.position, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range }
           : { kind: 'spot', position: l.position, direction: l.direction, color: l.color, intensity: l.intensity * size * size * 0.05, range: l.range, angle: l.angle, penumbra: l.penumbra });
       const e = r.environment;
-      const envMap = e.map ? this.imageTexture(e.map.image) : null;
-      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map!.intensity } : {}) };
+      const envMap = e.map ? this.imageTexture(e.map.image) : e.studio ? this.studioTexture(e.studio.kind) : null;
+      v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: e.ambient, exposure: e.exposure, toneMapping: e.toneMapping, ...postOf(e.post), ambientOcclusion: e.occlusion && !this.interacting ? { radius: Math.max(1, size * 0.045), strength: 0.9 } : false, ...(envMap ? { map: envMap, mapIntensity: e.map?.intensity ?? e.studio?.intensity ?? 1 } : {}) };
     } else {
       v.lights = this.lights(camera);
       v.environment = { sky: [0.95, 0.96, 1], ground: [0.55, 0.53, 0.5], ambient: 0.4, ambientOcclusion: this.aoEnabled && !this.interacting && !lineOnly ? { radius: Math.max(1, size * 0.045), strength: this.theme.ao } : false };
@@ -843,6 +843,14 @@ export class GpuRenderer implements ViewRenderer {
     const t = look?.texture, tile = t ? t.scale : undefined;
     if (keep.tile !== tile) { g.setUVs(t ? tiledUVs(mesh.positions, mesh.normals, t.scale) : boxUVs(mesh.positions, mesh.normals, mesh.bounds)); keep.tile = tile; }
     return t ? this.imageTexture(t.image) : null;
+  }
+
+  /** G15b: a studio environment made by the viewer, once (kept with the images, by kind). */
+  private studioTexture(kind: StudioKind): ImageTexture {
+    const key = `studio:${kind}`;
+    let t = this.maps.get(key);
+    if (!t) { t = this.viewer.createTexture(studioEnvironment(kind, 1024)); this.maps.set(key, t); }
+    return t;
   }
 
   /** An image (a data URL) as a texture, loaded once (null while it loads: the bodies are painted again when it arrives). */

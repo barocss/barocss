@@ -14,3 +14,4 @@ export { gridWGSL } from './shaders/grid.js';
 export { pickWGSL, capProbeSamplesWGSL } from './shaders/pick.js';
 export { MAX_OUTLINES, OUTPUT_BYTES, outputWGSL } from './shaders/output.js';
 export { mipWGSL } from './shaders/mip.js';
+export { envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE } from './shaders/env.js';
