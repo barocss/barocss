@@ -18,10 +18,12 @@ Documents follow the latest schema. The studio is unreleased, so there is no mig
 | `.bcad`, `.json` | The part, with its history |
 | `.step`, `.stp` | The exact solids, one body for each solid. The toast says the file's length unit; a file that declares none is read as millimetres. |
 | `.stl`, `.obj` | A mesh body. You first choose the file's unit in **Mesh units**. |
-| `.igs`, `.iges`, `.barocad`, `.cad` | Curves and surfaces you can edit directly |
+| `.igs`, `.iges`, `.barocad` | Curves and surfaces you can edit directly |
 | `.dwg` | Refused: **DWG files are not read** |
 
-A file that can't be read leaves your part unchanged.
+A file that can't be read leaves your part unchanged. A file whose extension Open doesn't read, such as another
+program's `.cad`, is refused as **Can't open** with its name, and the toast lists what Open reads. A file with no
+extension is tried as a model.
 
 A STEP file that holds only meshes (AP242 tessellated, from scans or other systems) is read like an STL. A mesh that
 isn't closed and clean goes through the **mesh repair** dialog before it opens:
