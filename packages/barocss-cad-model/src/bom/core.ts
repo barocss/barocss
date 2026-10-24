@@ -29,10 +29,10 @@ const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massPropertie
 /** O179: a mass found partly from the mesh — its bound (g; null when a tessellated body has none) — or nothing when exact. */
 /** O8: how many solids a part comes as, when a body of it is in several (lumps touching or apart): nothing otherwise. */
 export const lumpsField = (bodies: readonly BodyResult[]): { lumps?: number } => bodies.some(b => (b.pieces ?? 1) > 1) ? { lumps: bodies.reduce((n, b) => n + (b.pieces ?? 1), 0) } : {};
-export const massBoundField = (doc: StudioDoc, bodies: readonly BodyResult[]): { massBoundG?: number | null } => {
+export const massBoundField = (doc: StudioDoc, bodies: readonly BodyResult[]): { massBound?: number | null } => {
   if (!bodies.some(b => b.volumeBasis)) return {};
   const g = massBoundOf(doc, bodies);
-  return { massBoundG: g === null ? null : r6(g) };
+  return { massBound: g === null ? null : r6(g) };
 };
 /** A placed fastener's bought line (F9): its kind, size and length as placed, and the person's row it is, if one is. */
 export interface BomFastener { kind: string; size: string; row: string | null; source: string | null; estimate: boolean; why: string[]; catalogue?: string }
@@ -48,8 +48,8 @@ function fastenerOfPart(doc: StudioDoc, inst: StudioDoc): BomFastener | null {
 }
 export interface BomView {
   beadAccounting?: BeadAccounting;
-  /** `massBoundG` (O179): the part's mass is partly from the mesh — how far it may be off (g), an estimate. */
-  parts: { id: string; name: string; material: string | null; mass: number; massBoundG?: number | null; /** O8: the solids it comes as, when a body is in several. */ lumps?: number; library: string | null; shape: string; fastener?: BomFastener }[];
+  /** `massBound` (O179): the part's mass is partly from the mesh — how far it may be off (g), an estimate. */
+  parts: { id: string; name: string; material: string | null; mass: number; massBound?: number | null; /** O8: the solids it comes as, when a body is in several. */ lumps?: number; library: string | null; shape: string; fastener?: BomFastener }[];
   /** The bought machine elements (O142): in the base part (`part: 'base'`) and in each placed part, one a body. */
   /** FRk1 (D165): the frame's plates made — gussets and end caps — one a body: their thickness, area, volume and material. */
   plates?: { part: string; item: string; kind: 'gusset' | 'end-cap'; thickness: number; area: number; volume: number; material: string | null; mass: number | null }[];
@@ -58,12 +58,12 @@ export interface BomView {
    * O165's F10 (O169): an assembly's base part's own made bodies — its frame's members by cut-list row (section, length,
    * material), and any other made body — and the base part's whole mass (Σ volume · density, as a placed part's is).
    */
-  base?: { members: { item: number; section: string; length: number; material: string | null; pieces: string[]; mass: number; massBoundG?: number | null }[]; others: { key: string; name: string; material: string | null; mass: number; massBoundG?: number | null; lumps?: number }[]; mass: number; massBoundG?: number | null };
+  base?: { members: { item: number; section: string; length: number; material: string | null; pieces: string[]; mass: number; massBound?: number | null }[]; others: { key: string; name: string; material: string | null; mass: number; massBound?: number | null; lumps?: number }[]; mass: number; massBound?: number | null };
 }
 export interface BomLine {
   item: string; parts: string[]; qty: number; material: string | null; mass: number; source: string | null;
   /** O179: a part's mass partly from the mesh: how far the line's may be off (g; null: unknown) — the line an estimate. */
-  massBoundG?: number | null;
+  massBound?: number | null;
   /** O8: the solids a part comes as, when a body of it is in several (lumps touching or apart). */
   lumps?: number;
   /** A bought element's line (O142): its kind, sizes, the user's row, whether an estimate, and whether the person's override made it bought. `parts`: `part:feature` each. */
@@ -73,7 +73,7 @@ export interface BomLine {
   /** A frame member's line (O169): its cut-list row's section and long-point length; `parts` `base:body` each. */
   member?: { section: string; length: number };
 }
-export interface Bom { lines: BomLine[]; totalQty: number; /** Valid body subtotal when beadAccounting is incomplete; not an approvable total. */ totalMassG: number; /** O179: how far the total may be off (g; null: unknown), when any of it is from the mesh. */ totalMassBoundG?: number | null; beadAccounting?: BeadAccounting; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
+export interface Bom { lines: BomLine[]; totalQty: number; /** Valid body subtotal when beadAccounting is incomplete; not an approvable total. */ totalMassG: number; /** O179: how far the total may be off (g; null: unknown), when any of it is from the mesh. */ totalMassBound?: number | null; beadAccounting?: BeadAccounting; /** The bought elements counted (their mass is their parts'). */ elementQty?: number; /** The plates counted (FRk1; their mass is their parts'). */ plateQty?: number }
 /** The BOM agent's view from evaluations given at once (O147: the chat's drawings build it synchronously). */
 export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null): BomView {
   doc = resolveShopTree(doc);
@@ -121,7 +121,7 @@ export function bomViewOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResu
 }
 /** A line's mass bound with one more part's added (O179): null stays unknown; the line is an estimate. */
 function withBound(l: BomLine, g: number | null): void {
-  l.massBoundG = l.massBoundG === null || g === null ? null : r6((l.massBoundG ?? 0) + g);
+  l.massBound = l.massBound === null || g === null ? null : r6((l.massBound ?? 0) + g);
   l.estimate = true;
 }
 /** The deterministic BOM: identical parts (same shape and material) on one line, in first-seen order. */
@@ -129,14 +129,14 @@ export function deriveBom(view: BomView): Bom {
   const lines: BomLine[] = [];
   for (const p of view.parts) {
     const l = lines.find(x => { const q = view.parts.find(v => v.id === x.parts[0])!; return q.shape === p.shape && q.material === p.material; });
-    if (l) { l.parts.push(p.id); l.qty++; l.mass = r6(l.mass + p.mass); if (p.massBoundG !== undefined) withBound(l, p.massBoundG); }
+    if (l) { l.parts.push(p.id); l.qty++; l.mass = r6(l.mass + p.mass); if (p.massBound !== undefined) withBound(l, p.massBound); }
     else if (p.fastener) { const f = p.fastener; lines.push({ item: p.name, parts: [p.id], qty: 1, material: p.material, mass: p.mass, source: f.source, kind: 'fastener', size: f.size, row: f.row, estimate: f.estimate, ...(f.catalogue ? { catalogue: f.catalogue } : {}) }); }
-    else lines.push({ item: p.name, parts: [p.id], qty: 1, material: p.material, mass: p.mass, source: p.library, ...(p.massBoundG !== undefined ? { massBoundG: p.massBoundG, estimate: true } : {}), ...(p.lumps ? { lumps: p.lumps } : {}) });
+    else lines.push({ item: p.name, parts: [p.id], qty: 1, material: p.material, mass: p.mass, source: p.library, ...(p.massBound !== undefined ? { massBound: p.massBound, estimate: true } : {}), ...(p.lumps ? { lumps: p.lumps } : {}) });
   }
   // (O169, F10: the base part's frame members, a line a cut-list row — section, length, material — then its other made
   // bodies, one line each, before the plates.)
-  for (const m of view.base?.members ?? []) lines.push({ item: `${m.section} × ${+m.length.toFixed(3)}`, parts: m.pieces.map(k => `base:${k}`), qty: m.pieces.length, material: m.material, mass: m.mass, source: null, member: { section: m.section, length: m.length }, ...(m.massBoundG !== undefined ? { massBoundG: m.massBoundG, estimate: true } : {}) });
-  for (const o of view.base?.others ?? []) lines.push({ item: o.name, parts: [`base:${o.key}`], qty: 1, material: o.material, mass: o.mass, source: null, ...(o.massBoundG !== undefined ? { massBoundG: o.massBoundG, estimate: true } : {}), ...(o.lumps ? { lumps: o.lumps } : {}) });
+  for (const m of view.base?.members ?? []) lines.push({ item: `${m.section} × ${+m.length.toFixed(3)}`, parts: m.pieces.map(k => `base:${k}`), qty: m.pieces.length, material: m.material, mass: m.mass, source: null, member: { section: m.section, length: m.length }, ...(m.massBound !== undefined ? { massBound: m.massBound, estimate: true } : {}) });
+  for (const o of view.base?.others ?? []) lines.push({ item: o.name, parts: [`base:${o.key}`], qty: 1, material: o.material, mass: o.mass, source: null, ...(o.massBound !== undefined ? { massBound: o.massBound, estimate: true } : {}), ...(o.lumps ? { lumps: o.lumps } : {}) });
   // (FRk1: the made plates after the parts, merged by kind, thickness, area and material: four equal gussets one line ×4.)
   for (const p of view.plates ?? []) {
     const id = `${p.part}:${p.item}`, l = lines.find(x => x.plate && x.plate.kind === p.kind && x.plate.thickness === p.thickness && x.plate.area === p.area && x.material === p.material);
@@ -150,7 +150,7 @@ export function deriveBom(view: BomView): Bom {
     else lines.push({ item: `${e.kind} ${e.size}`, parts: [id], qty: 1, material: null, mass: e.mass ?? 0, source: e.source, kind: e.kind, size: e.size, row: e.row, estimate: e.estimate, override: e.by === 'override', ...(e.catalogue ? { catalogue: e.catalogue } : {}) });
   }
   // (O179: the total's bound, when any mass in it is partly from the mesh: the parts' and the base part's.)
-  const bounded = [...view.parts.map(p => p.massBoundG), view.base?.massBoundG].filter(b => b !== undefined);
-  const totalBound = bounded.length ? { totalMassBoundG: bounded.some(b => b === null) ? null : r6(bounded.reduce((t: number, b) => t + (b as number), 0)) } : {};
+  const bounded = [...view.parts.map(p => p.massBound), view.base?.massBound].filter(b => b !== undefined);
+  const totalBound = bounded.length ? { totalMassBound: bounded.some(b => b === null) ? null : r6(bounded.reduce((t: number, b) => t + (b as number), 0)) } : {};
   return { lines, totalQty: view.parts.length, totalMassG: r6(view.parts.reduce((s, p) => s + p.mass, 0) + (view.base?.mass ?? 0)), ...totalBound, ...(view.beadAccounting ? { beadAccounting: view.beadAccounting } : {}), ...(view.elements?.length ? { elementQty: view.elements.length } : {}), ...(view.plates?.length ? { plateQty: view.plates.length } : {}) };
 }
