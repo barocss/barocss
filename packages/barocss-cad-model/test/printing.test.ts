@@ -12,7 +12,7 @@ test('AM1 profiles: five processes (SLS and MJF added), every printing one with 
   // (Powder supports itself: no overhang limit, escape holes for the powder; FDM needs none.)
   assert.deepEqual([processProfile('sls')!.thresholds.maxOverhangDeg.value, processProfile('sls')!.thresholds.escapeHoles.value, processProfile('fdm')!.thresholds.escapeHoles.value], [90, 2, 0]);
   assert.deepEqual(MATERIALS_DATA.printers.map(p => [p.id, p.process]), [['fdm-256', 'fdm'], ['fdm-220', 'fdm'], ['sla-desktop', 'sla'], ['sls-300', 'sls'], ['mjf-380', 'mjf']]);
-  assert.deepEqual(printerProfile('fdm-256')!.buildMM, [256, 256, 256]);
+  assert.deepEqual(printerProfile('fdm-256')!.buildVolume, [256, 256, 256]);
   // A broken entry is caught: a printer on a moulding process, a threshold missing.
   const bad = { ...MATERIALS_DATA, printers: [...MATERIALS_DATA.printers, { ...MATERIALS_DATA.printers[0], id: 'x', process: 'injection' }], profiles: MATERIALS_DATA.profiles.map(p => p.id === 'sla' ? { ...p, thresholds: { ...p.thresholds, minHoleMM: undefined as never } } : p) };
   const problems = checkMaterials(bad as never);
