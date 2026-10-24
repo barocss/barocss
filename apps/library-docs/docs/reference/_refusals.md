@@ -315,3 +315,8 @@
 | Code | Raised in | For example |
 |---|---|---|
 | `[BEARING_EDIT_SCOPE]` | `app` | … |
+| `[STORAGE_CHANGED]` | `storage` | … changed since it was read |
+| `[STORAGE_DENIED]` | `storage` | the browser does not allow …: open the folder again to grant access |
+| `[STORAGE_MISSING]` | `storage` | the project has no … |
+| `[STORAGE_PATH]` | `storage` | a document's path ends in .bcad, outside …/ (got …) |
+| `[STORAGE_UNAVAILABLE]` | `storage` | this browser cannot write files here: export the project instead |
