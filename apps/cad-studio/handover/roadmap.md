@@ -22,7 +22,7 @@ section current.
 | GPU | RS2 part 2 (outer's robot/motion, Save as motion; a79d3df3f to verify), RS1's Samples group, the motion video; RS2 part 1 done (merge 553edb8a8) | G15 in order: G15d.1 → G15a → G15b → G15d.2–3 → G15c → G15d.4, accepted on the P1 engine render | the quiet section run |
 | API | the facade on engine/parameters.ts and robot/verbs.ts; RS5's poseAt and motions; P1 milestone 2 (assembly, slider-crank, 2:1 train, cycle sweep, balance); P1 milestone 1 done (merge 6b8a42ba1) | P1 milestone 3 (outputs), then P2, P3, P4 | R7.7d after the cores' renames |
 | Docs | RS4 part 1 now (the robots page per RS1 sample, shots; RS2's playback once part 2 lands); R7.6 part 1 done | the P1 showcase page when P1 lands; R7.6 part 2 after R7.3 | the Later list |
-| Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3) | a live brief → product run after P1, if the owner gives a budget | the owner's open decisions (below) |
+| Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3) | P1-L3 after P1's scripted build (owner-approved budget) | the owner's open decisions (below) |
 
 ## Where we are
 
@@ -179,6 +179,8 @@ Each product is built end to end — parts, assembly, mates and motion, mass, in
 | P3 | API, gaps to owners | **A large machine**: a gantry CNC router — a welded frame, linear rails, carriages, a gantry, motor mounts from mount rows, ball screws, many fasteners (hundreds of parts) | scale (opening, evaluation and display time with hundreds of parts), frames and the cut list, mounts, the BOM at size, the drawing set |
 | P4 | API (+ outer for sizing), gaps to owners | **A real 6-axis robot arm**: link castings, joint housings for strain-wave gearboxes, motor mounts, bearings, a cable path, a tool flange | robot-size and robot-check on real link masses, motion (RS2), URDF/MJCF read back, manufacturing outputs of each link |
 
+| P1-L3 | outer (harness, the agent side), API (the brief and the oracle from P1's build) | **A live AI run of the engine brief** (owner, 2026-10-24: "P1(엔진) 스크립트 버전이 끝나면 실제 AI 실행을 해봐. 예산은 모두 합쳐 US$25 이하, 한 번에 US$8을 넘으면 멈춰."): after P1's scripted build is done, the studio's chat default model (claude-opus-5-5 through `claude -p` and cad-mcp, O15's harness) gets the engine brief and works through the v2 tools only; success is judged by a fresh harness run against P1's own checks (parts, mechanism, masses, outputs), never the model's word; every place it fails or works around becomes a PG item; usage logged per run; **at most US$25 in all, a run stopped past US$8** |
+
 Gaps found (PG-n, added as they're found):
 
 | # | Lane | Gap | Found in |
@@ -292,6 +294,7 @@ evidence files.
 - **R6** — Triage the stale examples/gpu-scene flows · ko: 오래된 gpu-scene 예제 흐름 정리 (고치거나 은퇴)
 - **R7** — API consistency and an object facade over the core · ko: API 일관성 정리와 객체형 겉 API
 - **P1** — A real product: single-cylinder four-stroke engine · ko: 실제 제품: 단기통 4행정 엔진
+- **P1-L3** — A live AI run of the engine brief (≤ US$25, a run stopped past US$8) · ko: 실제 AI로 엔진 브리프 만들기 (총 25달러 이하, 1회 8달러 넘으면 중단)
 - **P2** — A real product: electronics enclosure · ko: 실제 제품: 전자기기 외함
 - **P3** — A real product: large machine (gantry CNC router) · ko: 실제 제품: 대형 기계 (갠트리 CNC 라우터)
 - **P4** — A real product: 6-axis robot arm · ko: 실제 제품: 실제 6축 로봇 팔
@@ -369,7 +372,6 @@ evidence files.
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
 - Dimension expressions (`W/2 + 3`) in documents: today a value is a number or `{ parameter }`, neither document stores an expression; adding one is a schema change for the kernel and the studio. · ko: 문서에 치수 식(W/2+3 같은)을 저장할지 (지금은 숫자나 매개변수 이름만)
-- A live run of the goal itself: give the studio's agent a product brief (P1's engine, or A9's shaft assembly) and see whether it reaches a manufacturable, buyable product through the v2 tools, judged by a fresh harness run; needs a token budget (like O15's ≤ US$25). · ko: 목표 자체의 실제 실행 — 에이전트에게 제품 브리프를 주고 만들게 하기 (토큰 예산 필요)
 - P1's rows (PG-2): a rows file for the spark plug thread (M14 × 1.25) and the engine's main bearings, from a source the owner supplies; until then stand-ins. · ko: 엔진용 행 파일 (점화 플러그 M14×1.25 나사, 메인 베어링) — 사람이 준 자료 필요
 - A built-in display look per material id (al6061's colour, …) in gpu, or scenes keep registering their own looks (today: none; O75 keeps look ids apart from material ids; R7.5b finding 10; the GPU lane recommends none in gpu: looks stay with the app or the person). · ko: 재료 id마다 기본 표시 모양(색)을 gpu에 둘지, 장면이 직접 등록할지
 
