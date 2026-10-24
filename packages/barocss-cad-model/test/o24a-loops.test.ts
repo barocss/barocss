@@ -108,7 +108,7 @@ test('O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-
   const fk = await dispatchTool(state, 'forward_kinematics', { values: { [crank]: 60 } }, evaluate);
   assert.ok(!fk.isError, fk.content);
   const j = JSON.parse(fk.content);
-  assert.deepEqual(j.loops.drivers, [crank]); assert.ok(j.loops.residual_mm <= 1e-9); assert.equal(j.loops.solved.length, 3);
+  assert.deepEqual(j.loops.drivers, [crank]); assert.ok(j.loops.residual <= 1e-9); assert.equal(j.loops.solved.length, 3);
   // (The piston's placement: moved along X only, by the closed form's x(60°) − x(0°).)
   const piston = j.links.find((l: { link: string }) => l.link === 'piston'), P = [30 + 30 * Math.cos(Math.PI / 3), 30 + 30 * Math.sin(Math.PI / 3) * Math.sign(tree.joints.find(x => x.key === crank)!.axis[2])];
   const x = P[0] + Math.sqrt(70 * 70 - (30 - P[1]) ** 2), x0 = 130;
@@ -147,7 +147,7 @@ test('RS6: play_motion closes the slider-crank\'s loop at every sample — the p
   }
   const check = JSON.parse((await dispatchTool(s, 'check_path', { motion: 'turn' }, evaluate)).content);
   assert.equal(check.clear, true, JSON.stringify(check).slice(0, 400));
-  assert.equal(check.loops.chords, 360); assert.ok(check.loops.chord_residual_mm < 0.01, `${check.loops.chord_residual_mm}`);
+  assert.equal(check.loops.chords, 360); assert.ok(check.loops.chordResidual < 0.01, `${check.loops.chordResidual}`);
   // (A waypoint names the driver: one giving a passive loop joint is refused, as pose refuses it.)
   const rod = tree.joints.find(j => j.child === 'rod')!.key, bad = await dispatchTool(s, 'set_waypoint', { motion: 'turn', values: { [crank]: 90, [rod]: 10 } }, evaluate);
   assert.ok(bad.isError); assert.match(bad.content, /\[LOOP_PASSIVE\]/);

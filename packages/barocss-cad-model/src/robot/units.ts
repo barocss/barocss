@@ -1,5 +1,5 @@
 // Public robot values and latest stored settings use degrees, mm and N·mm; solvers use radians, mm and N·m.
-import type { Joint, JointSettings, JointTree, JointType } from './joints';
+import type { Coupling, Joint, JointSettings, JointTree, JointType } from './joints';
 import type { MoveLimits } from './dynamics';
 import type { CamLift } from './cam';
 
@@ -49,7 +49,10 @@ export function moveJointsOut<T extends { distance: number; v_peak: number; a_pe
 /** Public cam geometry: points/radii in mm; arc spans in degrees. It is not a solver CamLift. */
 export type PublicCamLift = Omit<CamLift, 'arcs'> & { arcs: { c: CamLift['arcs'][number]['c']; r: number; from: number; width: number }[] };
 export type PublicJoint = Omit<Joint, 'cam'> & { cam?: PublicCamLift };
-export type PublicJointTree = Omit<JointTree, 'joints'> & { joints: PublicJoint[] };
+export type PublicGearPlacement = Pick<Coupling['g1'], 'spec' | 'center' | 'from'> & { rotation: number };
+export type PublicCoupling = Omit<Coupling, 'g1' | 'g2'> & { g1: PublicGearPlacement; g2: PublicGearPlacement };
+export type PublicJointTree = Omit<JointTree, 'joints' | 'couplings'> & { joints: PublicJoint[]; couplings: PublicCoupling[] };
+const gearPlacementOut = (g: Coupling['g1']): PublicGearPlacement => ({ spec: { ...g.spec }, center: [g.center[0], g.center[1]], from: g.from, rotation: g.rotation / DEG });
 
 /** A detached public tree projection. Internal geometry, couplings and solver inputs are not mutated. */
 export function jointTreeOut(tree: JointTree): PublicJointTree {
@@ -62,7 +65,7 @@ export function jointTreeOut(tree: JointTree): PublicJointTree {
       ...(j.mimic ? { mimic: { ...j.mimic, multiplier: ratioOut(j.mimic.joint, j.key, j.mimic.multiplier), offset: j.mimic.offset / scaleIn(tree, j.key) } } : {}),
       ...(j.cam ? { cam: { ...j.cam, arcs: j.cam.arcs.map(a => ({ ...a, from: a.from / DEG, width: a.width / DEG })) } } : {}),
     })),
-    couplings: tree.couplings.map(c => ({ ...c, multiplier: ratioOut(c.leader, c.follower, c.multiplier) })),
+    couplings: tree.couplings.map(c => ({ ...c, multiplier: ratioOut(c.leader, c.follower, c.multiplier), g1: gearPlacementOut(c.g1), g2: gearPlacementOut(c.g2) })),
     ...(tree.cams ? { cams: tree.cams.map(c => ({ ...c, ...(c.multiplier !== undefined ? { multiplier: ratioOut(c.leader, c.follower, c.multiplier) } : {}) })) } : {}),
   };
 }
