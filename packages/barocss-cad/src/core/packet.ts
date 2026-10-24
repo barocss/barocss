@@ -6,7 +6,7 @@ export interface PreviewPacket {
   surfaceId: string;
   revision: number;
   lengthUnit: 'mm';
-  coordinateSystem: 'right-handed-y-up';
+  coordinateSystem: 'right-handed-z-up';
   winding: 'ccw';
   positions: number[];
   normals: number[];
@@ -71,7 +71,7 @@ export function validatePreviewPacket(packet: unknown): asserts packet is Previe
   requireValue(typeof revision === 'number' && Number.isInteger(revision) && revision >= 0 && revision <= 2147483647,
     'revision must be an integer in 0..2147483647');
   requireValue(field(packet, 'lengthUnit') === 'mm', 'lengthUnit must be mm');
-  requireValue(field(packet, 'coordinateSystem') === 'right-handed-y-up', 'unsupported coordinate system');
+  requireValue(field(packet, 'coordinateSystem') === 'right-handed-z-up', 'unsupported coordinate system');
   requireValue(field(packet, 'winding') === 'ccw', 'winding must be ccw');
   const positions = field(packet, 'positions');
   const normals = field(packet, 'normals');
@@ -154,7 +154,7 @@ export function copyPreviewPacket(packet: unknown): PreviewPacket {
     surfaceId: field(packet, 'surfaceId') as string,
     revision: field(packet, 'revision') as number,
     lengthUnit: 'mm',
-    coordinateSystem: 'right-handed-y-up',
+    coordinateSystem: 'right-handed-z-up',
     winding: 'ccw',
     positions: copyArray(field(packet, 'positions') as number[]),
     normals: copyArray(field(packet, 'normals') as number[]),
