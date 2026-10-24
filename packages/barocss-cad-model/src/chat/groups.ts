@@ -102,7 +102,7 @@ export const GROUPS: Record<string, Group> = {
     title: 'SubD',
     about: 'A SubD cage (features.command subd-box, subd-torus or subd-tube makes one), by its feature index.',
     actions: {
-      cage: ['subd_cage', 'index'], select: ['subd_select', 'index, what, normal?, within_deg?, box?, edge?, limit?'], move: ['subd_move', 'index, delta, vertices?, edges?, faces?'],
+      cage: ['subd_cage', 'index'], select: ['subd_select', 'index, what, normal?, withinAngle?, box?, edge?, limit?'], move: ['subd_move', 'index, delta, vertices?, edges?, faces?'],
       extrude: ['subd_extrude', 'index, faces? | edges?, offset? | distance?'], insert_loop: ['subd_insert_loop', 'index, edge, t?'], bridge: ['subd_bridge', 'index, edges'],
       fill: ['subd_fill', 'index, edges'], weld: ['subd_weld', 'index, vertices, tolerance?'], crease: ['subd_crease', 'index, edges? | faces?, on?'], delete: ['subd_delete', 'index, faces'],
     },
