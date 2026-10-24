@@ -924,5 +924,26 @@ R7.4b, R7.5 and R7.5b are committed and their checks pass.
 - **Changing `build.ts`:** rerun `run.mjs` (it rewrites `engine.bcad`) and commit both files together. The mates name
   faces by their persistent names, so a new feature before a mated one moves its id. Print the part's
   `tablesFor(doc)('base')` and re-pick the face.
-- **Next, milestone 3:** the outputs — drawings, the BOM (with stand-ins marked), the CAM package and the casting
-  reports — and an `outputs` check in `check.ts`.
+- **Milestone 3 (outputs), on the facade's outputs (cad-model/src/api/outputs.ts):**
+  - Inputs, written as the studio and the agent write them:
+    - `part.process(id, { pull })`: the Library panel's Process and Pull;
+    - `part.casting(o)`: set_casting;
+    - `part.drawingSettings(o)` and `part.autoDimension()`: set_drawing and auto_dimension, through runDrawingTool,
+      which is what an accepted proposal runs;
+    - `part.bought()`: the BOM panel's Bought;
+    - `part.named(name)`: the studio's Rename.
+  - Outputs, the agent's tools' replies:
+    - `part.drawing()`: drawing_issues, plus SVG, DXF and PDF as the drawing workspace exports them;
+    - `await part.manufacturability()`: check_printability;
+    - `await part.camPackage()`: output_cam_package;
+    - `await assembly.bom()` and `purchaseCsv()`: output_bom and output_purchase_csv;
+    - `assembly.drawingSettings()` and `drawing()`.
+  - The output tools evaluate asynchronously, so those methods are async.
+  - Tests: test/api-outputs.test.ts.
+- **`checkEngine` is async now.** Its `outputs` check covers each made part (not a part the BOM lists whole as bought):
+  - a process, a report, and a drawing with dimensions and no error;
+  - cast: its pattern's inputs;
+  - machined: its CAM package, or STOCK_NONE_LOADED (PG-9, no sample stock list) as a wait;
+  - the BOM: every part, its mass the parts' own.
+  - A rule that fails in a report is a finding, not a check failure.
+  - `checkEngine(doc, { files: true })` keeps the files, and run.mjs writes them to `<out>/outputs/`.

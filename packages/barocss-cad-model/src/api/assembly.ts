@@ -13,6 +13,8 @@ import { bodiesOf } from './core';
 import { addMateDoc, addPartDoc, lockDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 import { Robot } from './robot';
+import { drawingDoc, drawingOf, outputOf } from './outputs';
+import type { DrawingSettingsInput } from './part';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -81,6 +83,16 @@ export class Assembly {
     if (id === other) throw refuse('VALUE', `${name} can't be locked to itself`);
     return new Assembly(this.name, lockDoc(this.#doc, id, other).doc);
   }
+
+  /** `set_drawing` on the assembly: its drawing's settings — scope { kind: 'assembly' }, the BOM table, balloons, sheet, views … */
+  drawingSettings(o: DrawingSettingsInput): Assembly { return new Assembly(this.name, drawingDoc(this.#doc, 'set_drawing', o)); }
+  /** The assembly's drawing: drawing_issues' reply and its files (SVG, DXF, PDF), as a part's. */
+  drawing() { return drawingOf(this.#doc); }
+
+  /** output_bom's reply: the BOM (each part's line, the bought elements', the totals) and bom.json. Async: the tool's own. */
+  bom() { return outputOf(this.#doc, 'output_bom'); }
+  /** output_purchase_csv's reply: the purchase list (bought lines; with the made ones too when `withMade`) and purchase.csv. */
+  purchaseCsv(withMade = false) { return outputOf(this.#doc, 'output_purchase_csv', withMade ? { withMade } : {}); }
 
   /** `assembly.inputs` (O11): inputs added or replaced by name, null removing one — the core's input shape, bindings by part and mate id. */
   inputs(inputs: Record<string, Record<string, unknown> | null>): Assembly { return new Assembly(this.name, variabilityDoc(this.#doc, 'set_inputs', { inputs })); }
