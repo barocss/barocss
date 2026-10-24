@@ -8928,3 +8928,36 @@ exports `./samples/*`.
     and writes JSON, and nothing is committed from it.
 - The fingerprint doesn't read samples/ (its roots are the fixtures and conformance), so nothing in it moves.
 - **Verified (T1):** rs1 6/6, rs2 4/4; tsc; eslint 0 errors.
+
+## O19 fix — a display edge or face carrying several kernel names: its shared signature is not sent as expect (2026-10-24)
+
+The coordinator's full flow at 7c8c6c038 was 286/288. Steps 176 (R10.2a) and 183 (R10.4b), the pipe tee's junction
+fillets round a closed curve loop, were refused "The kernel could not build this" (volume NaN). They passed at
+1f43a0818.
+- **Cause, reproduced in node:**
+  - The junction is one display edge carrying the kernel's eight names (`n1.side0#1|n3.side0#2#4` … `#1#4`), its two
+    ends at the same point (35, 0, 10).
+  - signaturesOf gave all eight names that edge's one signature: at = the midpoint of its ends.
+  - In the kernel each name is its own piece of the loop. Only the piece whose midpoint is nearest (35, 0, 10) built;
+    the other six were refused REFERENCE_MOVED, the named piece 3 to 9 mm away and another clearly nearer.
+  - The flow picks its name by iterating, so it hit one of the six.
+  - Merged faces (`a+b`, one signature for each name) are the same case for shell and draft.
+- **The fix:**
+  - The Signature of a display element that carries more than one kernel name records `shared` (the count), stored as
+    `n` in the Sig.
+  - expectOf (part.ts) doesn't send those signatures, because they describe the rim or the merged faces together, not
+    that name.
+  - matchSignature doesn't read `n`, so re-matching on open is unchanged.
+- **The trade-off, for now:** closed rims and merged faces get no kernel check, while single-name edges and faces keep
+  it. The vertex-insert refusal holds.
+- **Follow-up (logged):** signatures per kernel name, taken from each piece's own geometry, so that a display element
+  carries one signature per name. That would restore the check for rims and merged faces.
+- **The kernel lane** had started a distance-to-samples change in part-expect.ts. The coordinator asked it to drop
+  that unless it has a failing single-name closed-loop case: on its own it wouldn't fix this case, because `at` would
+  still be nearer a different piece.
+- **Test:** o19 test 5, the tee filleted by each of its eight names, builds to the same volume, each name's sig marked
+  `n: 8`. It fails without the fix.
+- **Verified:**
+  - o19 5/5, references and rematch 13/13;
+  - tsc; eslint;
+  - FLOW_ONLY '^R10\.(2a|4b)' on port 52391: steps 1, 176 and 183 ok.
