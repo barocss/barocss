@@ -12,6 +12,7 @@ import { faceRuns, paintFaces, type FaceRuns, type Painted } from './facePaint';
 import { movedCopy, topologyKey } from './instanceGeometry';
 import { contourTriangles } from './silhouette';
 import { postOf } from './post';
+import { finishOf } from './finish';
 import { clipClearanceGeometry, type ClearanceDisplay } from './clearanceDisplay';
 import type { PrintDisplay } from './printDisplay';
 import { PrintOverlayGeometry } from './printOverlayGeometry';
@@ -620,8 +621,8 @@ export class GpuRenderer implements ViewRenderer {
       const isolated = !!view.isolatedInstances?.length, ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
       b.surface.material = look
-        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(GHOST_OPACITY, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: this.mapFor(b.surface.geometry, b.result.mesh, look, b), alphaCutoff: look.cutout ?? 0 }
-        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? GHOST_OPACITY : 1, shader: this.analysis, unlit: !!this.analysis, map: this.mapFor(b.surface.geometry, b.result.mesh, null, b), alphaCutoff: 0 };
+        ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: ghost ? Math.min(GHOST_OPACITY, look.opacity) : look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: this.mapFor(b.surface.geometry, b.result.mesh, look, b), alphaCutoff: look.cutout ?? 0, ...finishOf(look, b.result.mesh.positions) }
+        : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: ghost ? GHOST_OPACITY : 1, shader: this.analysis, unlit: !!this.analysis, map: this.mapFor(b.surface.geometry, b.result.mesh, null, b), alphaCutoff: 0, ...finishOf(null, null) };
       // Keep the original pick opacity while x-ray changes only its appearance.
       b.surface.pickTransparent = isolated || (b.surface.material.opacity ?? 1) < 1;
       b.surface.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(ghost ? XRAY_OPACITY * GHOST_OPACITY : XRAY_OPACITY, b.surface.material.opacity ?? 1) : b.surface.material.opacity ?? 1) * (isolated ? FADED : 1) };
@@ -1038,8 +1039,8 @@ export class GpuRenderer implements ViewRenderer {
       it.surfaces.forEach((m, bi) => {
         const tiles = this.instanceTiles.get(m) ?? {}; this.instanceTiles.set(m, tiles);
         const dm = this.instanceMeshes.get(it.id)?.[bi], shared = it.sharing[bi];
-        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm && !shared ? this.mapFor(m.geometry, dm, look, tiles) : null, alphaCutoff: look.cutout ?? 0 }
-          : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: this.analysis, unlit: !!this.analysis, map: null, alphaCutoff: 0 };
+        m.material = look ? { color: look.color, metallic: look.metallic, roughness: look.roughness, opacity: look.opacity, shader: this.shaderOf(look.shader), doubleSided: !!look.twoSided, map: dm && !shared ? this.mapFor(m.geometry, dm, look, tiles) : null, alphaCutoff: look.cutout ?? 0, ...finishOf(look, dm?.positions ?? null) }
+          : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: this.analysis, unlit: !!this.analysis, map: null, alphaCutoff: 0, ...finishOf(null, null) };
         // X-ray changes appearance only; picks retain the original material's transparency policy.
         m.pickTransparent = faded || (m.material.opacity ?? 1) < 1;
         m.pickable = !faded;

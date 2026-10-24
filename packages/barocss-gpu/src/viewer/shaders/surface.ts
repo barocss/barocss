@@ -134,9 +134,9 @@ fn fbm(q: vec3f, octaves: i32, fp: f32) -> f32 {
 }
 /** A unit direction square to a (the knurl's and the brush's frame across the axis). */
 fn crossAxis(a: vec3f) -> vec3f { return normalize(select(cross(a, vec3f(1.0, 0.0, 0.0)), cross(a, vec3f(0.0, 1.0, 0.0)), abs(a.x) > 0.7)); }
-/** The finish's relief at a point of the mesh's frame, in units of its scale (0–1 about); fp the pixel's footprint in
- *  the same units. */
-fn relief(kind: u32, p: vec3f, a: vec3f, o: vec3f, s: f32, fp: f32) -> f32 {
+/** The finish's relief at a point of the mesh's frame (nl its normal there), in units of its scale (0–1 about); fp the
+ *  pixel's footprint in the same units. */
+fn relief(kind: u32, p: vec3f, nl: vec3f, a: vec3f, o: vec3f, s: f32, fp: f32) -> f32 {
   let q = p / s;
   let rel = p - o;
   let along = dot(rel, a) / s;
@@ -157,7 +157,9 @@ fn relief(kind: u32, p: vec3f, a: vec3f, o: vec3f, s: f32, fp: f32) -> f32 {
       let arc = atan2(dot(radial, cross(a, b)), dot(radial, b)) * length(radial) / s;
       let g1 = abs(fract(along + arc) - 0.5);
       let g2 = abs(fract(along - arc) - 0.5);
-      return mix(0.5, min(g1, g2) * 2.0, b1);
+      // (A knurl is rolled into the round surface: none on faces square to its axis, where its lines would meet.)
+      let side = 1.0 - smoothstep(0.5, 0.9, abs(dot(nl, a)));
+      return mix(0.5, min(g1, g2) * 2.0, band(2.0, fp) * side);
     }
     case 7u: { return vnoise(q) * 0.7 * b1 + 0.3 * vnoise(q * 2.7) * band(2.7, fp); }
     default: { return 0.0; }
@@ -195,8 +197,8 @@ fn finishLayer(local: vec3f, n: vec3f, rough0: f32, footprint: f32) -> Layer {
   let nl = normalize(transpose(r) * n);
   if (fade > 0.0) {
     let e = 0.12 * s;
-    let h0 = relief(kind, local, a, o, s, fp);
-    let g = vec3f(relief(kind, local + vec3f(e, 0.0, 0.0), a, o, s, fp) - h0, relief(kind, local + vec3f(0.0, e, 0.0), a, o, s, fp) - h0, relief(kind, local + vec3f(0.0, 0.0, e), a, o, s, fp) - h0) / 0.12;
+    let h0 = relief(kind, local, nl, a, o, s, fp);
+    let g = vec3f(relief(kind, local + vec3f(e, 0.0, 0.0), nl, a, o, s, fp) - h0, relief(kind, local + vec3f(0.0, e, 0.0), nl, a, o, s, fp) - h0, relief(kind, local + vec3f(0.0, 0.0, e), nl, a, o, s, fp) - h0) / 0.12;
     let gt = g - dot(g, nl) * nl;
     layer.n = normalize(r * normalize(nl - look.x * k * fade * gt));
     if (dot(layer.n, n) < 0.05) { layer.n = n; }
