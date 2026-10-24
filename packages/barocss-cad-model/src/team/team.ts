@@ -46,7 +46,7 @@ export const contractChanges = (a: StudioDoc, b: StudioDoc) => CONTRACT_FIELDS.f
 async function overlaps(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate): Promise<Map<string, number>> {
   const out = new Map<string, number>();
   if (bodies.length < 2) return out;
-  for (const r of await interference(doc, bodies, evaluate) as { a: string; b: string; overlap_mm3?: number }[]) if (r.overlap_mm3) out.set(`${r.a}|${r.b}`, r.overlap_mm3);
+  for (const r of await interference(doc, bodies, evaluate) as { a: string; b: string; overlap?: number }[]) if (r.overlap) out.set(`${r.a}|${r.b}`, r.overlap);
   return out;
 }
 /** The process the DFM gate checks: the brief's stated one, else the part's. */

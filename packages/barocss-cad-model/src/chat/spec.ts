@@ -138,9 +138,9 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
       return { x: m.distance, entities: [names[0]], hint: `${m.what}${m.angle !== null ? `; at ${r4(m.angle)}°` : ''}` };
     }
     case 'clearance': {
-      const pairs = await interference(doc, bodies, evaluate, [q.a, q.b]) as { overlap_mm3?: number; clearance_mm?: number }[];
+      const pairs = await interference(doc, bodies, evaluate, [q.a, q.b]) as { overlap?: number; clearance?: number }[];
       if (!pairs.length) return { unknown: `bodies ${q.a} and ${q.b} are not both there` };
-      return pairs[0].overlap_mm3 ? { x: -pairs[0].overlap_mm3, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap_mm3} mm³ (measured as minus that)` } : { x: pairs[0].clearance_mm!, entities: [q.a, q.b] };
+      return pairs[0].overlap ? { x: -pairs[0].overlap, entities: [q.a, q.b], hint: `they overlap by ${pairs[0].overlap} mm³ (measured as minus that)` } : { x: pairs[0].clearance!, entities: [q.a, q.b] };
     }
     case 'gear_center_distance': case 'gear_backlash': case 'gear_contact_ratio': case 'gear_clearance': return gearPair(doc, bodies, q);
     case 'print_rule': {
