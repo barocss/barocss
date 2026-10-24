@@ -11,19 +11,23 @@ import { pathToFileURL } from 'node:url';
 export async function verifyCompilerConsumer(context) {
   const root = context?.root ?? resolve(import.meta.dirname, '../../..');
   const packageRoot = resolve(import.meta.dirname, '..');
+  const sourceManifest = JSON.parse(readFileSync(join(packageRoot,'package.json'),'utf8'));
+  const packedFilename = `${sourceManifest.name.replace(/^@/,'').replace('/','-')}-${sourceManifest.version}.tgz`;
   const require = context?.require ?? createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
   const scratch = context?.temp ?? mkdtempSync(join(tmpdir(), 'cad-compiler-consumer-'));
   const hash = bytes => createHash('sha256').update(bytes).digest('hex');
   try {
     if (!context) execFileSync('pnpm', ['pack', '--pack-destination', scratch], {cwd:packageRoot,stdio:'pipe'});
-    const archive = join(scratch, 'barocss-cad-0.0.0-private-experimental.tgz');
+    const archive = context?.archive ?? join(scratch, packedFilename);
     const destination = context?.destination ?? join(scratch, 'node_modules/@barocss/cad');
     if (!context) {
       mkdirSync(destination, {recursive:true});
       execFileSync('tar', ['-xzf',archive,'-C',destination,'--strip-components=1']);
     }
     const manifest = JSON.parse(readFileSync(join(destination,'package.json'),'utf8'));
-    assert.equal(manifest.private, true);
+    assert.equal(manifest.name, sourceManifest.name);
+    assert.equal(manifest.version, sourceManifest.version);
+    assert.equal(manifest.private, sourceManifest.private);
     assert.equal(manifest.dependencies, undefined);
     for(const module of ['parser','compiler','legacy-diagnostics'])for(const extension of ['js','d.ts']) {
       assert.equal(existsSync(join(destination,'dist',module+'.'+extension)),false,'Removed compiler artifact was packed');
@@ -67,7 +71,7 @@ compileCadModel('',{sourceVersion:3});
 compileCadModel('',{sourceVersion:0,target:'iges'});
 `);
     execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022',
-      '--module','NodeNext','--moduleResolution','NodeNext',join(scratch,'compiler-types.ts')],{stdio:'inherit'});
+      '--module','NodeNext','--moduleResolution','NodeNext',join(scratch,'compiler-types.ts')],{cwd:scratch,stdio:'inherit'});
     const api = context?.api ?? await import(pathToFileURL(join(destination,'dist/index.js')).href);
     const values = sources.map((source,index) => api.compileCadModel(source,{sourceVersion:index}));
     assert.ok(values.every(value=>value.ok));
