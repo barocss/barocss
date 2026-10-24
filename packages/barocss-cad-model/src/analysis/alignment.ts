@@ -36,7 +36,7 @@ export function screwAxesOf(doc: StudioDoc, features?: readonly string[]): { fea
   });
   return out;
 }
-export interface AlignmentReport { readonly pairs: { feature: string; hole: string | null; offset: number | null }[]; readonly maxOffsetMM: number | null; readonly holes: number; readonly unmatched: string[] }
+export interface AlignmentReport { readonly pairs: { feature: string; hole: string | null; offset: number | null }[]; readonly maxOffset: number | null; readonly holes: number; readonly unmatched: string[] }
 /**
  * Each standoff against the board's nearest parallel hole (within 1e-6 rad): the distance between the axes. A standoff
  * with no parallel hole is unmatched (said); the largest offset over the matched is the report's.
@@ -58,5 +58,5 @@ export function holeAlignment(doc: StudioDoc, board: string, features?: readonly
     return { feature: s.feature, hole: best?.hole ?? null, offset: best ? best.d : null };
   });
   const matched = pairs.filter(p => p.offset !== null);
-  return { pairs, maxOffsetMM: matched.length ? Math.max(...matched.map(p => p.offset!)) : null, holes: holes.length, unmatched: pairs.filter(p => p.offset === null).map(p => p.feature) };
+  return { pairs, maxOffset: matched.length ? Math.max(...matched.map(p => p.offset!)) : null, holes: holes.length, unmatched: pairs.filter(p => p.offset === null).map(p => p.feature) };
 }

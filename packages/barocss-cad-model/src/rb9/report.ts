@@ -27,7 +27,7 @@ export function reportRb9(run: Rb9Run, mode: 'scripted' | 'live' = 'scripted'): 
     ...all.map(s => `| ${s.n} | ${s.title} | ${s.passed}/${s.trials} | ${s.pass1.toFixed(2)} | ${s.passAtK ? 1 : 0} | ${s.passPowK ? 1 : 0} | ${s.rs.toFixed(3)} | ${s.killed}/${s.mutants} | ${s.unkilled.join(', ') || '—'} |`),
     '', `Overall: ${passed}/${trials} trials pass (${pct(trials ? passed / trials : 0)}); mutants killed ${run.mutants.filter(m => m.killed).length}/${run.mutants.length}.`, '',
     '## Trials', '', '| rung | trial | seed | parameters | pass | RS | failed | calls | ms |', '|---|---|---|---|---|---|---|---|---|',
-    ...run.trials.map(t => `| ${t.rung} | ${t.trial} | ${t.seed} | ${Object.entries(t.params).map(([k, v]) => `${k} ${v}`).join(', ')} | ${t.pass ? 'yes' : 'no'} | ${t.rs.toFixed(3)} | ${[...t.outcomes.filter(o => o.hard && !o.pass).map(o => o.id), ...t.refused.map(() => '(refused)')].join(', ') || '—'} | ${t.calls} | ${t.wallMs} |`),
+    ...run.trials.map(t => `| ${t.rung} | ${t.trial} | ${t.seed} | ${Object.entries(t.params).map(([k, v]) => `${k} ${v}`).join(', ')} | ${t.pass ? 'yes' : 'no'} | ${t.rs.toFixed(3)} | ${[...t.outcomes.filter(o => o.hard && !o.pass).map(o => o.id), ...t.refused.map(() => '(refused)')].join(', ') || '—'} | ${t.calls} | ${Math.round(t.wallTime * 1000)} |`),
     '', '## Mutants', '', '| rung | mutant | what is wrong | target | killed | failed |', '|---|---|---|---|---|---|',
     ...run.mutants.map(m => `| ${m.rung} | ${m.mutant} | ${m.why} | ${m.target} | ${m.killed ? 'yes' : '**no**'} | ${m.failed.join(', ') || '—'} |`), '',
   ];

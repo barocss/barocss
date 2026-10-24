@@ -168,9 +168,9 @@ async function measure(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: 
     case 'hole_alignment': {
       const r = holeAlignment(doc, q.board, q.features);
       if (typeof r === 'string') return { unknown: r };
-      if (r.unmatched.length || r.maxOffsetMM === null) return { unknown: `no hole of ${q.board} runs parallel to ${r.unmatched.join(', ')}` };
+      if (r.unmatched.length || r.maxOffset === null) return { unknown: `no hole of ${q.board} runs parallel to ${r.unmatched.join(', ')}` };
       const worst = r.pairs.reduce((a, b) => (b.offset ?? 0) > (a.offset ?? 0) ? b : a);
-      return { x: r.maxOffsetMM, entities: r.pairs.map(p => p.feature), hint: `${r.pairs.length} axes against ${r.holes} holes; the worst ${worst.feature} off ${worst.hole} by ${+r.maxOffsetMM.toFixed(4)} mm` };
+      return { x: r.maxOffset, entities: r.pairs.map(p => p.feature), hint: `${r.pairs.length} axes against ${r.holes} holes; the worst ${worst.feature} off ${worst.hole} by ${+r.maxOffset.toFixed(4)} mm` };
     }
     case 'library_check': {
       const i = nodeIndexOf(doc.nodes, q.feature), node = i >= 0 ? doc.nodes[i] : undefined;
@@ -314,7 +314,7 @@ export async function validateSuite(doc: StudioDoc, bodies: readonly BodyResult[
       applies.set(req.id, (applies.get(req.id) ?? 0) + 1); if (o.status === 'pass') passes.set(req.id, (passes.get(req.id) ?? 0) + 1);
     }
   }
-  const out: Validation = { mutants: { built, tried: mutants.length, ms: Math.round(performance.now() - t), labels: mutants.map(m => m.label) }, vacuous: [], unverified: [], invariant: [] };
+  const out: Validation = { mutants: { built, tried: mutants.length, duration: Math.round(performance.now() - t) / 1000, labels: mutants.map(m => m.label) }, vacuous: [], unverified: [], invariant: [] };
   for (const req of doc.requirements ?? []) {
     if (outcomes.get(req.id)?.status !== 'pass') continue;
     const n = applies.get(req.id) ?? 0, p = passes.get(req.id) ?? 0;

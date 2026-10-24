@@ -68,7 +68,11 @@ test('IM3 in the manufacturability report: the side hole warned (a side action n
   assert.equal(r.mould!.undercuts!.length, 1); assert.ok(r.mould!.undercuts![0].best_share === 1);
   const groove = await build([box(40, 40, 30), ['run_command', { command: 'hole', values: { d: 10, x: 20, y: 20 }, faces: ['n1.top'] }], ['run_command', { command: 'cylinder', values: { r: 8, h: 4, x: 20, y: 20, z: 13 } }], ['run_command', { command: 'difference', values: {}, bodies: ['b2', 'b4'] }]]);
   ({ u } = await rule(groove, [0, 0, 1])); assert.equal(u.status, 'fail'); assert.match(u.message, /freed by no straight action/);
-  ({ u } = await rule(await build([box(40, 30, 20)]), [0, 0, 1])); assert.equal(u.status, 'pass');
+  const plain = await build([box(40, 30, 20)]), sampled = undercuts(plain.bodies, [0, 0, 1]);
+  assert.equal(sampled.sampleStep, Math.max(0.05, Math.hypot(40, 30, 20) / 400));
+  assert.equal(sampled.coarsestStep, 50 / 64);
+  assert.ok(!('stepMM' in sampled) && !('coarsestMM' in sampled));
+  ({ u } = await rule(plain, [0, 0, 1])); assert.equal(u.status, 'pass');
   // (O80: a pass says how fine it looked — a 40 × 30 face is two triangles, their 50 mm diagonal capped at 64 parts: 0.781.)
   assert.match(u.message, /^no undercut: .* \(sampled every ≤ 0\.781 mm: an undercut smaller than that may be missed\)$/, u.message);
   ({ u } = await rule(side)); assert.equal(u.status, 'unknown'); assert.match(u.why!, /no pull direction/);

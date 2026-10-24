@@ -23,7 +23,7 @@ export function ClearancePanel({ near, onNear, display, reason, labels }: {
     <div role="status" aria-live="polite">{reason ?? display?.error ?? (!display || display.stage === 'evaluating' ? 'Pending · current pose not classified' : display.stage !== 'ready' ? 'Updating current pose…' : display.pairs.length ? `${display.pairs.length} candidate pair${display.pairs.length === 1 ? '' : 's'}` : `No candidate pairs within the ${numeric(near)} mm band`)}</div>
     {!!display?.pairs.length && <ul style={{ maxHeight: 190, overflowY: 'auto', paddingLeft: 16, margin: '4px 0' }}>{display.pairs.map(pair => <li key={pair.a + '|' + pair.b} data-clearance-state={clearancePairState(pair)} style={{ padding: '3px 0' }}>
       <span>{pairName(pair.a, labels)} / {pairName(pair.b, labels)}</span><br />
-      <strong>{clearancePairLabel(pair)}</strong> · mesh gap {numeric(pair.minGapMM)} mm
+      <strong>{clearancePairLabel(pair)}</strong> · mesh gap {numeric(pair.minGap)} mm
       {pair.overlap && 'volume' in pair.overlap && <> · overlap {numeric(pair.overlap.volume)} mm³</>}
       {pair.designed && <div>Source: {pair.designed}</div>}
       {pair.overlap && 'refused' in pair.overlap && <div>{pair.overlap.refused}</div>}
