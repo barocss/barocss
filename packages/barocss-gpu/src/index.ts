@@ -3,7 +3,7 @@ export type { Scene, Scene1, SceneObject, SceneObject1, RotatedSceneObject, Cyli
 export { compileScene, GPU_LIMITS } from './mesh/compiler.js';
 export type { SceneShaders } from './mesh/compiler.js';
 export { GPUError } from './core/gpu-error.js';
-export { BarocssError, type Problem } from './core/barocss-error.js';
+export { BarocssError, refusalText, type BarocssErrorOptions, type Problem } from './core/barocss-error.js';
 export type { GpuErrorCode } from './core/error-codes.js';
 export type { UpdateResult } from './core/gpu-error.js';
 export { validatePreviewPacket, validateMeshOptions, prepareMesh } from './mesh/mesh-packet.js';

@@ -7,7 +7,7 @@ import type { NativeSurfaceUV01GeometryRequest, PreparedNativeSurfaceUV01Geometr
 export type NativeSurfaceUV01BindingCode = 'INPUT' | 'MATERIAL' | 'UNIFORM' | 'GEOMETRY';
 export class NativeSurfaceUV01BindingError extends BarocssError {
  constructor(readonly code: NativeSurfaceUV01BindingCode, message: string, readonly start = 0, readonly end = 0, cause?: unknown) {
-  super(code, message.slice(0, 1024), cause === undefined ? undefined : { cause });
+  super(code, message, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
   this.name = 'NativeSurfaceUV01BindingError';
  }
 }

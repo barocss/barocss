@@ -11,8 +11,8 @@ export type NativeDirectionalLightsDiagnosticCode =
 
 export class NativeDirectionalLightsError extends BarocssError {
   constructor(readonly code: NativeDirectionalLightsDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Native directional lights: ' + detail).slice(0, 1024),
-      arguments.length > 2 ? { cause } : undefined);
+    super(code, 'Native directional lights: ' + detail,
+      arguments.length > 2 ? { cause, maxLength: 1024 } : { maxLength: 1024 });
     this.name = 'NativeDirectionalLightsError';
   }
 }

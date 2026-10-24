@@ -15,8 +15,8 @@ export type EngineUVTextureMaterialBindingsDiagnosticCode =
 
 export class EngineUVTextureMaterialBindingsError extends BarocssError {
   constructor(readonly code: EngineUVTextureMaterialBindingsDiagnosticCode, detail: string, ...cause: [] | [unknown]) {
-    super(code, ('Engine UV texture material bindings: ' + detail).slice(0, 1024),
-      cause.length ? { cause: cause[0] } : undefined);
+    super(code, 'Engine UV texture material bindings: ' + detail,
+      cause.length ? { cause: cause[0], maxLength: 1024 } : { maxLength: 1024 });
     this.name = 'EngineUVTextureMaterialBindingsError';
   }
 }

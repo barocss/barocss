@@ -245,7 +245,7 @@ for (const [name, gpu] of providers) {
     let error; try { gpu.sampleEngineTransformClip(s, c, q); } catch (e) { error = e; }
     assert(error instanceof gpu.EngineTransformClipError, label + ' actual public error class');
     assert.equal(error.code, code, label); assert.equal(error.name, 'EngineTransformClipError');
-    assert(error.message.startsWith('Engine transform clip: ')); assert(error.message.length <= 1024);
+    assert(error.message.startsWith(`[${code}] Engine transform clip: `)); assert(error.message.length <= 1024);
     if (causeCode) { assert(error.cause instanceof gpu.EngineSceneError); assert.equal(error.cause.code, causeCode); }
     if (exactCause) assert.strictEqual(error.cause, exactCause);
     assert.equal(getters, 0); assert.equal(oversizeOwnKeys, 0);

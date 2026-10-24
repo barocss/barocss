@@ -1,4 +1,4 @@
-import { BarocssError } from '../core/barocss-error.js';
+import { BarocssError, refusalText } from '../core/barocss-error.js';
 import { engineUVTextureSamplingHelpers } from './material-texture-shader-body.js';
 
 /** Bounded CPU material compiler. No DOM, WebGL, eval or caller GLSL. */
@@ -339,7 +339,7 @@ class Parser {
 export function compileMeshMaterial(source:string):{ok:true;material:MeshMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
  // Default parser mode cannot resolve input leaves; the legacy public type stays unchanged.
  try{const parsed=parseMaterialSource(source);return{ok:true,material:freeze({format:'barocss-gpu-mesh-material',version:0,profile:'mesh-opaque-fragment-v0',...parsed,expression:trustedMaterialExpression<MeshMaterialExpression>(parsed.expression,'mesh')})};}
- catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message,start:e.start,end:e.end}]};}
+ catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?refusalText(error):'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:refusalText(e),start:e.start,end:e.end}]};}
 }
 function parseMaterialSource(source:string,uvInputs=false,repeatingUV=false,nativeSurfaceUV01=false,discrete=false,texture=false):ParsedMaterial{
  if(typeof source!=='string')fail('INPUT','Material source must be text');
@@ -348,16 +348,16 @@ function parseMaterialSource(source:string,uvInputs=false,repeatingUV=false,nati
 }
 export function compileEngineUVMaterial(source:string):{ok:true;material:EngineUVMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
  try{const parsed=parseMaterialSource(source,true);return{ok:true,material:freeze({format:'barocss-gpu-engine-uv-material',version:0,profile:'engine-opaque-uv-fragment-v0',...parsed,expression:trustedMaterialExpression<EngineUVMaterialExpression>(parsed.expression,'uv')})};}
- catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}]};}
+ catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?refusalText(error):'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:refusalText(e).slice(0,1024),start:e.start,end:e.end}]};}
 }
 export function compileEngineUVRepeatingMaterial(source:string):{ok:true;material:EngineUVRepeatingMaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
  try{const parsed=parseMaterialSource(source,true,true);return{ok:true,material:freeze({format:'barocss-gpu-engine-uv-repeating-material',version:0,profile:'engine-opaque-uv-repeating-fragment-v0',...parsed,expression:trustedMaterialExpression<EngineUVRepeatingMaterialExpression>(parsed.expression,'repeating')})};}
- catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}]};}
+ catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?refusalText(error):'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:refusalText(e).slice(0,1024),start:e.start,end:e.end}]};}
 }
 /** CPU grammar stage only. A future native producer must supply normalized original-domain inputs. */
 export function compileNativeSurfaceUV01Material(source:string):{ok:true;material:NativeSurfaceUV01MaterialIR}|{ok:false;diagnostics:MeshMaterialDiagnostic[]}{
  try{const parsed=parseMaterialSource(source,false,false,true);return{ok:true,material:freeze({format:'barocss-gpu-native-surface-uv01-material',version:0,profile:'native-surface-opaque-uv01-fragment-v0',...parsed,expression:trustedMaterialExpression<NativeSurfaceUV01MaterialExpression>(parsed.expression,'native')})};}
- catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?error.message:'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}]};}
+ catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX',error instanceof Error?refusalText(error):'Material compile failed');return{ok:false,diagnostics:[{code:e.code,message:refusalText(e).slice(0,1024),start:e.start,end:e.end}]};}
 }
 /** Only private parser-produced trees reach this bounded domain proof. */
 function trustedMaterialExpression<E extends ParsedMaterialExpression>(expression:ParsedMaterialExpression,mode:'mesh'|'uv'|'repeating'|'native'|'discrete'|'texture'):E{
@@ -390,7 +390,7 @@ export function compileDiscreteMeshMaterial(source:string):{ok:true;material:Dis
   const material:DiscreteMeshMaterialIR={format:'barocss-gpu-discrete-mesh-material',version:0,profile:'mesh-opaque-discrete-fragment-v0',...parsed,expression};
   discreteSize(material,2097152,'Discrete material IR exceeds2MiB');
   return{ok:true,material:freeze(ownSnapshot(material) as DiscreteMeshMaterialIR)};
- }catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX','Discrete material compile failed');return{ok:false,diagnostics:freeze([{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}])};}
+ }catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX','Discrete material compile failed');return{ok:false,diagnostics:freeze([{code:e.code,message:refusalText(e).slice(0,1024),start:e.start,end:e.end}])};}
 }
 export function validateDiscreteMeshMaterialIR(input:unknown):DiscreteMeshMaterialIR{
  const data=ownSnapshot(input,'discrete') as Partial<DiscreteMeshMaterialIR>;
@@ -491,7 +491,7 @@ export function compileEngineUVTextureMaterial(source:string):{ok:true;material:
    expression:trustedMaterialExpression<EngineUVTextureMaterialExpression>(parsed.expression,'texture')};
   discreteSize(material,2097152,'Texture material IR exceeds2MiB');
   return{ok:true,material:freeze(ownSnapshot(material,'texture') as EngineUVTextureMaterialIR)};
- }catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX','Texture material compile failed');return{ok:false,diagnostics:freeze([{code:e.code,message:e.message.slice(0,1024),start:e.start,end:e.end}])};}
+ }catch(error){const e=error instanceof MeshMaterialError?error:new MeshMaterialError('SYNTAX','Texture material compile failed');return{ok:false,diagnostics:freeze([{code:e.code,message:refusalText(e).slice(0,1024),start:e.start,end:e.end}])};}
 }
 export function validateEngineUVTextureMaterialIR(input:unknown):EngineUVTextureMaterialIR{
  const data=ownSnapshot(input,'texture') as Partial<EngineUVTextureMaterialIR>;

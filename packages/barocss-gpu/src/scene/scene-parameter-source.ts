@@ -1,4 +1,4 @@
-import { BarocssError } from '../core/barocss-error.js';
+import { BarocssError, refusalText } from '../core/barocss-error.js';
 import { parseAffineSceneAst } from './scene-front.js';
 import type { AffineSceneAst, SceneAst, SceneToken, SourceRange } from './scene-front.js';
 import { lowerAffineSceneAst } from './affine-scene-source.js';
@@ -14,8 +14,8 @@ export class SceneParameterSourceError extends BarocssError {
   constructor(readonly code: SceneParameterCode, diagnostics: SceneParameterDiagnostic[], cause?: unknown) {
     const owned = diagnostics.map(d => ({ code: d.code, message: d.message.slice(0, 1024),
       start: d.start, end: d.end, line: d.line, column: d.column }));
-    super(code, owned.map(d => `${d.line}:${d.column}: ${d.message}`).join('\n').slice(0, 1024),
-      cause === undefined ? undefined : { cause });
+    super(code, owned.map(d => `${d.line}:${d.column}: ${d.message}`).join('\n'),
+      cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'SceneParameterSourceError';
     this.diagnostics = freezeGpuData(owned);
   }
@@ -225,7 +225,7 @@ function delegated<T>(action: () => T, fallback: SourceRange): T {
   try { return action(); } catch (cause) {
     const diagnostics: SceneParameterDiagnostic[] = cause instanceof SceneError
       ? cause.diagnostics.map(d => ({ code: 'SCENE', message: d.message, start: d.start, end: d.end, line: d.line, column: d.column }))
-      : [{ code: 'SCENE', message: cause instanceof Error ? cause.message : 'Actual Source2 compiler refused', ...fallback }];
+      : [{ code: 'SCENE', message: cause instanceof Error ? refusalText(cause) : 'Actual Source2 compiler refused', ...fallback }];
     throw new SceneParameterSourceError('SCENE', diagnostics, cause);
   }
 }

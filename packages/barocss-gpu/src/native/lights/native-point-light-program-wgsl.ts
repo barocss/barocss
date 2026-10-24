@@ -12,8 +12,8 @@ import type { Vec3, RGB } from '../../scene/scene-types.js';
 export type NativePointLightProgramWGSLCode = 'INPUT' | 'LIGHTS' | 'MATERIAL' | 'REPRESENTATION' | 'BUDGET';
 export class NativePointLightProgramWGSLError extends BarocssError {
   constructor(readonly code: NativePointLightProgramWGSLCode, detail: string, cause?: unknown) {
-    super(code, ('Native point light WGSL program: ' + detail).slice(0, 1024),
-      arguments.length > 2 ? { cause } : undefined);
+    super(code, 'Native point light WGSL program: ' + detail,
+      arguments.length > 2 ? { cause, maxLength: 1024 } : { maxLength: 1024 });
     this.name = 'NativePointLightProgramWGSLError';
   }
 }

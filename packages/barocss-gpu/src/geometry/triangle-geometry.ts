@@ -13,8 +13,8 @@ export type TriangleGeometryDiagnosticCode =
 export class TriangleGeometryError extends BarocssError {
   readonly code: TriangleGeometryDiagnosticCode;
   constructor(code: TriangleGeometryDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Triangle geometry: ' + detail).slice(0, 1024),
-      cause === undefined ? undefined : { cause });
+    super(code, 'Triangle geometry: ' + detail,
+      cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'TriangleGeometryError';
     this.code = code;
   }

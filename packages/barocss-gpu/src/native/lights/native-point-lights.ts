@@ -11,8 +11,8 @@ export type NativePointLightsDiagnosticCode =
 
 export class NativePointLightsError extends BarocssError {
   constructor(readonly code: NativePointLightsDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Native point lights: ' + detail).slice(0, 1024),
-      arguments.length > 2 ? { cause } : undefined);
+    super(code, 'Native point lights: ' + detail,
+      arguments.length > 2 ? { cause, maxLength: 1024 } : { maxLength: 1024 });
     this.name = 'NativePointLightsError';
   }
 }

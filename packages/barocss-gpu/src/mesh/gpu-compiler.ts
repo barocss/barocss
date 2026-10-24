@@ -1,3 +1,4 @@
+import {refusalText} from '../core/barocss-error.js';
 import {SceneError} from '../scene/scene-types.js';
 import type {AnyScene,SceneObject,SceneObject1,SceneSourceOptions} from '../scene/scene-types.js';
 import {parseSceneAst,analyzeSceneAst,freezeScene} from '../scene/scene-front.js';
@@ -50,7 +51,7 @@ export function compileGpu(input:GpuCompileInput):GpuCompileResult{
    return{ok:true,ast:null,ir,execution,diagnostics:[]};
   }
   throw new Error('Only scene or mesh compiler input is supported');
- }catch(error){const message=error instanceof Error?error.message:'Invalid compiler input';const diagnostic:GpuDiagnostic={code:stage==='lowering'?'LOWERING':code(message),severity:'error',message,range:mesh?null:{start:0,end:0,line:1,column:1}};
+ }catch(error){const message=error instanceof Error?refusalText(error):'Invalid compiler input';const diagnostic:GpuDiagnostic={code:stage==='lowering'?'LOWERING':code(message),severity:'error',message,range:mesh?null:{start:0,end:0,line:1,column:1}};
   if(error instanceof SceneError){const first=error.diagnostics[0];diagnostic.message=first.message;diagnostic.code=code(first.message);diagnostic.range={start:first.start,end:first.end,line:first.line,column:first.column};const id=/object ID '([^']+)'/.exec(first.message);if(id)diagnostic.objectId=id[1];}
   if(mesh)diagnostic.dataPath=stage==='lowering'?'execution.mesh':stage;return{ok:false,diagnostics:[diagnostic]};
  }
