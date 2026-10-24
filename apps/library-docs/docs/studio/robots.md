@@ -187,10 +187,30 @@ half-way:
 
 ### In code
 
-The [object API](/packages/api) reads an assembly as a robot: `assembly(…).robot()`. Each method returns what the
-agent's robot tool returns: `joints()`, `pose(values)`, `path(waypoints).check()`, `inertia()`, `gravity(values)`, and
-`urdf()`, `mjcf()`, `sdf()` and `usd()`. Joint values go in as degrees and millimetres. The pose's `values` come back as
-degrees for turns and millimetres for slides. The internal robot solver uses radians.
+The [object API](/packages/api) reads an assembly as a robot: `assembly(…).robot()`. It exposes `joints()`,
+`pose(values)`, `path(waypoints).check()`, `inertia()`, `gravity(values)`, and the robot export methods.
+It uses the robot core, but the facade and agent tools do not have identical unit contracts.
+
+For `Robot.pose(values)`, turning-joint inputs and the returned `values` are in degrees. Sliding-joint values are in
+millimetres. `RobotPath.waypoints` and `RobotPath.poseAt(t)` use the same units. Link and frame placements keep
+positions in mm and rotations in degrees.
+
+#### Robot unit boundaries
+
+The pose conversion does not convert every field in a robot reply:
+
+| Interface or field | Turning joint | Sliding joint |
+|---|---|---|
+| `Robot.pose(values)` input and returned `values` | degrees | mm |
+| `RobotPath.waypoints`, `RobotPath.poseAt(t)` | degrees | mm |
+| `Robot.path(waypoints, { limits })` velocity and acceleration | deg/s, deg/s² | mm/s, mm/s² |
+| `Robot.joints()` and `Robot.setJoints()` lower/upper limits | radians | mm |
+| `Robot.joints()` and `Robot.setJoints()` velocity | rad/s | mm/s |
+| `RobotPath.check()` contact `values` | radians | mm |
+
+The last three rows retain the current core `JointTree`, `JointSettings` and sweep contracts. Do not apply the pose
+conversion to those fields. Robot inertia and export payloads also retain their documented core or file-format units.
+See [Robot export](#exporting) for the external formats. The internal solver uses radians.
 
 <<< @/../samples/robots.test.mjs#import
 
