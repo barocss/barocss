@@ -3,7 +3,7 @@
 import { BarocssError } from '@barocss/cad/api';
 
 export type VersionCode =
-  | 'VERSION_INPUT' | 'VERSION_UNKNOWN' | 'VERSION_NAME' | 'VERSION_NO_CHANGE' | 'VERSION_KEY_COLLISION' | 'VERSION_LOG'
+  | 'VERSION_INPUT' | 'VERSION_UNKNOWN' | 'VERSION_NAME' | 'VERSION_NO_CHANGE' | 'VERSION_KEY_COLLISION' | 'VERSION_LOG' | 'VERSION_NOT_LOADED'
   | 'BRANCH_UNKNOWN' | 'BRANCH_NAME' | 'BRANCH_EXISTS' | 'BRANCH_UNSAVED'
   | 'MERGE_SAME' | 'MERGE_UP_TO_DATE' | 'MERGE_NO_BASE' | 'MERGE_ORDER'
   // merge conflicts (returned as data, not thrown)

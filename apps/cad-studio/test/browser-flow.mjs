@@ -8847,6 +8847,55 @@ try {
     await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
   });
 
+  await check('CG6 agent versions: a chat turn carries the project\'s version log (its index, the head\'s document); a version the agent made comes back into the project', async () => {
+    const folder = await page.evaluate(async () => {
+      const name = `cg6-agent-${Date.now()}`, dir = await (await navigator.storage.getDirectory()).getDirectoryHandle(name, { create: true });
+      window.showDirectoryPicker = async () => dir; return name;
+    });
+    const card = page.locator('[aria-label="Versions panel"]'), rows = () => card.locator('ul[aria-label="Versions"] > li').evaluateAll(ls => ls.map(l => l.getAttribute('aria-label').slice(8)));
+    await page.route(u => u.pathname === '/api/chat/status', r => r.fulfill({ json: { enabled: true, model: 'mock-model', via: 'mock' } }));
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.click('[aria-label="Project and versions"]'); await card.waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Open folder"]').click(); await card.locator('[aria-label="Project"]').waitFor({ timeout: 5000 });
+    await card.locator('[aria-label="Version name"]').fill('Base'); await card.locator('[aria-label="Make version"]').click();
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 1, null, { timeout: 10000 });
+    // The turn's answer, made from the project's files: the part with a parameter, and the log with the agent's version of it.
+    const back = await page.evaluate(async ([name, repo]) => {
+      const L = await import(`/@fs${repo}/packages/barocss-cad-model/src/versions/log.ts`);
+      const meta = await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss');
+      const text = async (d, f) => (await (await (await meta.getDirectoryHandle(d)).getFileHandle(f)).getFile()).text();
+      const index = JSON.parse(await text('versions', 'Untitled.bcad.json')), snapshots = {};
+      for (const v of index.versions) snapshots[v.snapshot] = JSON.parse(await text('snapshots', `${v.snapshot}.bcad`));
+      const doc = { ...window.__studioDoc, parameters: { ...window.__studioDoc.parameters, agent: 1 } };
+      return { doc, versions: L.makeVersion({ ...index, snapshots }, doc, { at: new Date().toISOString(), name: 'Agent', by: 'agent' }).log };
+    }, [folder, resolve(root, '../..')]);
+    await page.click('[aria-label="Chat"]');
+    await page.waitForFunction(() => !!window.__studioScriptChat);
+    await page.evaluate(turns => window.__studioScriptChat(turns), [[{ type: 'tool', name: 'history', input: { action: 'version', name: 'Agent' }, summary: 'version Agent', isError: false },
+      { type: 'text', delta: 'Kept the part as version Agent.' }, { type: 'done', doc: back.doc, versions: back.versions, session: 'cg6', end: 'done' }]]);
+    const input = page.locator('[aria-label="Chat message"]');
+    await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled);
+    await input.fill('keep this as a version'); await press('Enter');
+    await page.waitForSelector('.chat-msg.assistant:has-text("version Agent")', { timeout: 30000 });
+    // What the turn sent: the index whole, only the head's document.
+    const sent = await page.evaluate(() => window.__studioChatSent()[0].versions);
+    assert.deepEqual([sent.versions.length, Object.keys(sent.snapshots).length, sent.current], [1, 1, 'main']);
+    // What came back: the agent's version in the card and in the folder's log, the part with its parameter.
+    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Versions panel"] ul[aria-label="Versions"] > li').length === 2, null, { timeout: 10000 });
+    assert.deepEqual(await rows(), ['Agent', 'Base']);
+    assert.equal(await page.evaluate(() => window.__studioDoc.parameters.agent), 1);
+    const kept = await page.evaluate(async name => {
+      const meta = await (await (await navigator.storage.getDirectory()).getDirectoryHandle(name)).getDirectoryHandle('.barocss');
+      const file = await (await (await meta.getDirectoryHandle('versions')).getFileHandle('Untitled.bcad.json')).getFile();
+      return JSON.parse(await file.text()).versions.map(v => [v.name, v.by ?? null]);
+    }, folder);
+    assert.deepEqual(kept, [['Base', null], ['Agent', 'agent']]);
+    await page.click('[aria-label="Chat"]');
+    await card.locator('[aria-label="Close project"]').click(); await page.click('[aria-label="Project and versions"]');
+    await page.unroute(u => u.pathname === '/api/chat/status');
+    await page.evaluate(async name => (await navigator.storage.getDirectory()).removeEntry(name, { recursive: true }), folder);
+  });
+
   await check('G15b studio light: Softboxes and the Cyclorama from the Render panel light the part (kept as the environment\'s studio, its strength), an image replaces them, Sky and ground again none', async () => {
     await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
     await page.click('.render-panel [role="tab"]:text-is("Appearance")');

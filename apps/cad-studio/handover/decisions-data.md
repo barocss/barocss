@@ -219,3 +219,57 @@ merges.
   waiting; accepted: two boxes, the link kept; Check offers nothing more.
 - **Not covered yet**: renaming a document in the project (its links then read as missing); a linked part's own
   versions are not consulted (the file as saved is what is offered).
+
+## DA-8 — the agent's version actions, on the history tool (VA-1, 2026-10-24)
+
+- **What**: `packages/barocss-cad-model/src/versions/tools.ts` (the handlers) and, in the outer lane's chat files
+  (coordinator-approved: "refresh tools-v2.json additively with a record, add tool-contract entries"):
+  - `chat/groups.ts`: seven actions on the existing `history` tool — `version {name?, note?}`, `versions {branch?}`,
+    `restore_version {id}`, `compare {from?, to?}`, `branch {name, from?}`, `switch {branch, discard?}`,
+    `merge {from, resolve?}` (handlers `make_version`, `list_versions`, `restore_version`, `compare_versions`,
+    `make_branch`, `switch_branch`, `merge_branch`); its about text says versions and branches are kept with the project;
+  - `chat/toolDefinitions.ts`: the seven definitions (what `describe` serves), document-wide (no `part` argument);
+  - `chat/tools.ts`: `VERSION_HANDLERS` beside the history group's;
+  - `chat/toolKit.ts`: `ChatState.versions?: VersionLog` — the studio's open project's log, else the session's;
+  - `chat/contract.ts`: `make_version`, `make_branch`, `list_versions` and `compare_versions` read-only with output
+    schemas (a version and a branch change the log, not the document, as a checkpoint does); `restore_version`,
+    `switch_branch` and `merge_branch` alter (idempotent: a merge again is refused up to date);
+  - `chat/merge.ts`: the three that bring back a whole state join `RESTORES` (not replayed onto a part the person
+    edited during the turn, as restore and restore_best);
+  - `chat/tools-v2.json`: recorded with UPDATE_TOOL_CONTRACT=1 — the history tool's action enum gains the seven,
+    nothing else changes (annotations as before); additive, so still `barocss-cad-tools-v2`;
+  - `test/tool-contract.test.ts`: the four read tools in the every-read-tool check.
+  - A document a version action gives goes through `accept` (evaluated; a hard requirement that passed stays kept).
+    `make_version` is by `agent`; times are the clock's (the handlers are the tool layer, not the pure model).
+  - A merge's conflicts return `{ok: false, conflicts: [{code, where, message, ours, theirs}]}` with nothing merged
+    (not an error: the agent answers them); long sides are given as their kind and length.
+  - **Signatures**: `accept` writes stored face signatures into the document, so "unsaved" and "no change" now compare
+    documents without them (`versions/log.ts contentOf`); a version restored and then switched from is not unsaved.
+- **Budget**: tools/list 15,888 → 16,154 characters; per turn 24,130 → 24,396 (cap 25,000).
+- **Oracle**: `test/version-tools.test.ts`, every call as the agent makes it (`history {action}`): no log (list says
+  so, restore refused); a version, no-change refused; a second; compare Start → current is exactly the block's sketch
+  and extrude, added; restore gives the starting volume from the kernel and leaves the log as it was; a branch not
+  switched to; a switch refused with unsaved work, then discarded; blocks on two branches merged into base + 2,000 mm³;
+  merging again refused up to date; one parameter set two ways gives exactly one PARAMETER_BOTH conflict with ours 3
+  and theirs 5, nothing merged; a bad answer refused; answered for theirs, T = 5; every log checked.
+- **Not yet (VA-2)**: the studio's chat path carrying the project's log to the turn and back.
+
+## DA-9 — the agent's versions over the chat turn (VA-2, 2026-10-24)
+
+- **What**: a turn carries `turnLog(log)` (versions/log.ts): the index whole plus only the documents it needs — every
+  branch head, the version each other branch shares with the current head, and versions asked for — under 4,000,000
+  characters (the current head always). A version whose document did not come is refused `VERSION_NOT_LOADED`, named
+  in the result (`wanted`; a failed call changes nothing, so cadMcp reads it with `wantedOf`) and sent with the next
+  turn. `withTurnLog(full, turn)` folds the turn's log back: its versions added, the person's made meanwhile kept, a
+  branch both moved left the person's (named). Files (coordinator-approved): server/cadMcp.ts (StateFile `versions`,
+  `versionsChanged`, `versionsWanted`; a call that moves only the log is saved), server/chatServer.ts (the log written
+  in, shape-checked, 400 otherwise; `done` carries it when moved), src/chat/client.ts, src/chat/useStudioChat.ts,
+  src/ui/ChatPanel.tsx (a `versions` prop type), App.tsx (`<ChatPanel versions={project.chat}>`); useProject.chat.
+  Unsaved and no-change ignore stored face signatures (`contentOf`). VA-1's list hints trimmed: per turn 24,355.
+- **Measured**: 20 versions of arm-6r: whole log 155,512 characters; a turn's 18,909 (index 3,730 + two documents of
+  ~7,570), 12.2%.
+- **Oracle**: version-tools.test.ts (turn log contents, NOT_LOADED then sent, cap, fold-back with concurrent versions,
+  the 20-version measure); version-tools-mcp.test.ts (the state file over JSON-RPC: a version made without a part
+  change written back, an old version asked for, folded in, carried next turn); flow step "CG6 agent versions"
+  (scripted turn: sent the index and one document; the agent's version in the card and the folder's log, by agent).
+  cad-model 1157/1157, studio 300/300, CG6 flow steps 298–301 on WebGPU and WebGL2.

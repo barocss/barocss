@@ -4,7 +4,7 @@
 // written over. Version actions are versions/*.ts's, each written back to the project at once.
 import { useMemo, useRef, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion, type VersionLog } from '@barocss/cad-model/versions/log';
+import { applyBranch, makeBranch, makeVersion, makeVersions, readVersion, turnLog, withTurnLog, type VersionLog } from '@barocss/cad-model/versions/log';
 import { applyMerge, type MergeResult, type Resolutions } from '@barocss/cad-model/versions/merge';
 import { BarocssError } from '@barocss/cad/api';
 import { browserProject, pickFolder, recentFolder, reopenFolder } from './access';
@@ -42,6 +42,8 @@ export function useProject(cb: ProjectCallbacks) {
   const tags = useRef<{ part: string | null; log: string | null }>({ part: null, log: null });
   const live = useRef(view); live.current = view;
   const call = useRef(cb); call.current = cb;
+  // (The versions a turn's call asked for and did not have: sent with the next turn, DA-9.)
+  const wanted = useRef<string[]>([]);
 
   const actions = useMemo(() => {
     const set = (next: Partial<ProjectView>) => { live.current = { ...live.current, ...next }; setView(live.current); };
@@ -142,6 +144,18 @@ export function useProject(cb: ProjectCallbacks) {
         const { store, part, log } = live.current; if (!store || !part || !log) return null;
         try { const r = applyBranch(log, name, working, { discard }); return (await keepLog(store, part, r.log)) ? r.doc : null; }
         catch (e) { fail('Could not switch', e); return null; }
+      },
+      /** The agent's side (DA-9): the log a turn carries, and the log a turn brings back. */
+      chat: {
+        turn(): VersionLog | null { const log = live.current.log; return log ? turnLog(log, { wanted: wanted.current }).log : null; },
+        back(log: VersionLog, asked: readonly string[]) {
+          wanted.current = [...asked];
+          const full = live.current.log, r = full ? withTurnLog(full, log) : { log, kept: [] as string[] };
+          if (r.kept.length) call.current.onError('Branches moved twice', `The agent moved ${r.kept.join(', ')} while you did: yours stays the branch's latest; the agent's versions are kept in the list.`);
+          const { store, part } = live.current;
+          // (No project open, or this document not in it yet: the agent's versions kept for this session.)
+          if (store && part) void keepLog(store, part, r.log); else set({ log: r.log });
+        },
       },
       /** A branch merged into the current one; the conflicts returned for the person to answer. */
       async merge(from: string, working: StudioDoc, resolve?: Resolutions): Promise<MergeResult | null> {

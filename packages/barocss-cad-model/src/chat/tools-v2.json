@@ -160,7 +160,14 @@
        "checkpoint",
        "restore",
        "best",
-       "diff"
+       "diff",
+       "version",
+       "versions",
+       "restore_version",
+       "compare",
+       "branch",
+       "switch",
+       "merge"
       ],
       "type": "string"
      }
