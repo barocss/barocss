@@ -492,6 +492,18 @@ const steps = [
       await page.locator('aside[aria-label="Render"] [role="tab"]', { hasText: 'Source' }).click(); await page.waitForTimeout(300);
       await shot('studio/rendering', 'source', 'studio/rendering: the Render workspace', { target: page.locator('aside[aria-label="Render"]') });
       await shot('studio/rendering', 'timeline', 'studio/rendering: the Render workspace', { target: page.locator('[aria-label="Timeline"]') });
+      await page.locator('aside[aria-label="Render"] [role="tab"]', { hasText: 'Scene' }).click(); await page.waitForTimeout(300);
+      await page.selectOption('[aria-label="Studio environment"]', 'softbox'); await page.waitForTimeout(1500);
+      await shot('studio/rendering', 'scene', 'studio/rendering: the Render workspace', { target: page.locator('aside[aria-label="Render"]') });
+      // A post on a plate: the sun's soft shadow, sharp at its foot and wider toward the tip, and the contact shadow in the crease.
+      const post = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {},
+        nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [120, 80] }, { kind: 'extrude', sketch: 0, height: 4 },
+          { kind: 'sketch', profile: 'rectangle', min: [55, 35], max: [65, 45] }, { kind: 'extrude', sketch: 2, height: 70 }],
+        outputs: { b2: { node: 1, side: 'solid' }, b4: { node: 3, side: 'solid' } } };
+      await page.click('.mode button:text-is("Model")');
+      await openFile(scratchFile('render-post.bcad', JSON.stringify(post))); await iso();
+      await page.click('.mode button:text-is("Render")'); await page.waitForSelector('aside[aria-label="Render"]', { timeout: WAIT }); await page.waitForTimeout(1500);
+      await shot('studio/rendering', 'shadows', 'studio/rendering: the Render workspace');
     } else await shows('aside[aria-label="Render"]', /Rendering needs a browser with WebGPU/, 'on WebGL2 the Render panel says it needs WebGPU');
     await page.click('.mode button:text-is("Model")');
   }],

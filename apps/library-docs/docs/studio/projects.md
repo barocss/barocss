@@ -77,11 +77,43 @@ The folder can be copied or synced: a version's files never change once they're 
 - **A missing file** the project no longer has is named: "Not in the project any more: …".
 - **It still opens anywhere.** The assembly keeps its own copy of each placed part, so its `.bcad` opens on its own.
 
+## The agent's versions
+
+The agent keeps, compares and merges versions too, through actions on its `history` tool. They work on the open
+project's log, the same one the card shows. With no project open, or a document not in the project yet, the log is kept
+for the session.
+
+| Action | What it does |
+|---|---|
+| `history.version` | `name?`, `note?`: keeps the part as a version on the current branch. Refused when nothing changed since the branch's last version, or the name is taken |
+| `history.versions` | `branch?`: the branches, the current one, and a branch's versions, newest first |
+| `history.restore_version` | `id`: the part back as that version kept it (an id or a name) |
+| `history.compare` | `from?`, `to?`: what changed, as the card's list gives it. Each is a version, `latest` or `current`; by default from `latest` to `current` |
+| `history.branch` | `name`, `from?`: a branch made at a version, by default the current branch's last. It isn't switched to |
+| `history.switch` | `branch`, `discard?`: the branch's last version becomes the part. Refused while there are changes not made into a version, unless `discard: true` drops them |
+| `history.merge` | `from`, `resolve?`: another branch's work brought in, as **Merge into** does. The part must be its branch's last version first |
+
+- **Merge conflicts.** They come back as data, and nothing is merged. Each has its code, where it is, and both sides:
+  a short value whole, a long one as its kind and length. The agent merges again with `resolve`, `"ours"` (the current
+  branch) or `"theirs"` for each.
+- **Who made it.** A version the agent makes is recorded in the folder's log as made by `agent`.
+- **What a turn carries.** A chat turn takes the whole list of versions and branches, but only the documents its
+  actions need: each branch's latest version, and the version each other branch shares with the current one. A version
+  the agent asks for whose document didn't come is refused with `VERSION_NOT_LOADED`, and that document comes with the
+  next turn.
+- **When the turn comes back.** Its versions are added to the project, and the ones you made meanwhile are kept. If you
+  and the agent both moved a branch, yours stays the branch's latest and a message says so; the agent's versions stay
+  in the list.
+- **Edits made during the turn.** A restore, a switch or a merge brings back a whole earlier state, so it isn't
+  replayed onto a part you edited while the agent worked. It waits in a proposal instead, as
+  [other colliding changes](/agent/proposals#when-the-part-changed-meanwhile) do.
+
 ## Refusals
 
 A project refuses rather than guess, each refusal with its code:
 
-- versions, branches and merges: `VERSION_…`, `BRANCH_…` and `MERGE_…`;
+- versions, branches and merges: `VERSION_…`, `BRANCH_…` and `MERGE_…`, with `VERSION_NOT_LOADED` for a version whose
+  document didn't come with the agent's turn;
 - conflicts: `FEATURE_EDITED_BOTH`, `FEATURE_DELETED_EDITED`, `MERGE_DANGLING`, `ID_CLASH` and `ITEM_DELETED_EDITED`;
 - storage: `STORAGE_PATH`, `STORAGE_CHANGED` (the file changed elsewhere), `STORAGE_DENIED`, `STORAGE_MISSING` and
   `STORAGE_UNAVAILABLE`.
@@ -92,4 +124,3 @@ See [Refusal codes](/reference/refusals).
 
 - Renaming a document doesn't update the links to it.
 - Sharing, comments and several people editing one project.
-- The agent has no version actions yet.

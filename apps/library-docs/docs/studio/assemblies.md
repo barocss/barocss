@@ -32,11 +32,15 @@ To add one, pick a face that stays, then a face on the part to move.
 | **Concentric** | Two round faces on one axis |
 | **Tangent** | A round face touching a flat face or another round face |
 | **Lock** | One part fixed to another |
+| **Cam** | A follower's flat face riding a cam's lobe, from a face of the cam: see [Robots](/studio/robots#the-joint-tree) |
 
 Only the kinds a pair of faces admits are offered (two flat faces: coincident, distance, angle; two round faces:
-concentric, tangent; a flat and a round face: tangent), and **Mate flip** turns the moving part to face the other way. The
+concentric, tangent; a flat and a round face: tangent; **Cam** last, whenever the moving face is flat), and **Mate flip** turns the moving part to face the other way. The
 panel's **Freedom** line says what the picked part can still do: fixed in place, placed by typed numbers, or the
 motion its mates leave free. A mate that can't be solved is refused, and **Mate refused** says why.
+
+The agent locks a part with `assembly.lock` (`part`, `to`): a lock mate that keeps the part where it stands in the
+other's coordinates, proposed for you to accept as its other assembly changes are.
 
 The freedom that mates leave is also what makes a mechanism move. [Robots](/studio/robots) reads the mates as joints.
 
