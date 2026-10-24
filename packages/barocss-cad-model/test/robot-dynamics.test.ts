@@ -103,7 +103,7 @@ test('a follower\'s share is its leader\'s by virtual work: the generalized valu
 
 test('the gravity_torques tool on the planar 3R; the conformance case (rm/gravity-3r: the closed form\'s values)', async () => {
   const doc = await planarArm(3), { tree, bodies } = await robotOf(doc), q = { 'base~l1': 0.4, 'l1~l2': -0.9, 'l2~l3': 1.3 };
-  const out = await dispatchTool({ doc, bodies }, 'gravity_torques', { values: q }, evaluate), j = JSON.parse(out.content);
+  const out = await dispatchTool({ doc, bodies }, 'gravity_torques', { values: Object.fromEntries(Object.entries(q).map(([k, v]) => [k, v * 180 / Math.PI])) }, evaluate), j = JSON.parse(out.content);
   assert.ok(!out.isError && !out.changed, out.content);
   const th = [0.4, -0.5, 0.8], xJ = [0, 40 * Math.sin(th[0]), 40 * Math.sin(th[0]) + 40 * Math.sin(th[1])], xc = th.map((t, i) => xJ[i] + 20 * Math.sin(t));
   const closed = [0, 1, 2].map(i => -g0 * xc.slice(i).reduce((s, x) => s + BLOCK_KG * (x - xJ[i]) / 1000, 0));
