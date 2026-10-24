@@ -5,16 +5,31 @@ import type { BrepProjection } from '@barocss/cad';
 import type { DrawingScope } from './scope';
 import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
+import { readDetails, type DrawingDetail } from './detail';
+import { readBreaks, type DrawingBreak } from './breaks';
+export type { DrawingDetail, DrawingBreak };
 
 export type ViewId = 'front' | 'top' | 'right' | 'iso';
 export const VIEW_IDS: readonly ViewId[] = ['front', 'top', 'right', 'iso'];
 /** O148 X2: where a dimension sits — a view, or a section by its letter (`section:A`). */
 export type SectionRef = `section:${string}`;
-export type DimView = ViewId | SectionRef;
+/** DR-1: a detail view by its letter (`detail:B`). */
+export type DetailRef = `detail:${string}`;
+export type DimView = ViewId | SectionRef | DetailRef;
 export const isSectionRef = (v: string): v is SectionRef => /^section:[A-Z]{1,2}$/.test(v);
 export const sectionLetter = (v: SectionRef) => v.slice(8);
-/** A dimension's view read from a file: a view, or a section's letter. */
-export const isDimView = (v: unknown): v is DimView => typeof v === 'string' && ((VIEW_IDS as readonly string[]).includes(v) || isSectionRef(v));
+export const isDetailRef = (v: string): v is DetailRef => /^detail:[A-Z]{1,2}$/.test(v);
+export const detailLetter = (v: DetailRef) => v.slice(7);
+/** One of the four views (not a section's or a detail's). */
+export const isViewId = (v: string): v is ViewId => (VIEW_IDS as readonly string[]).includes(v);
+/** The view whose axes a view, a section or a detail is drawn in (a section's view; a detail's parent's); unknown: the front. */
+export function baseViewOf(v: DimView, sections: readonly { id: string; view: ViewId }[], details: readonly { id: string; view: DimView }[] = []): ViewId {
+  if (isDetailRef(v)) { const d = details.find(x => x.id === detailLetter(v)); return d && !isDetailRef(d.view) ? baseViewOf(d.view, sections) : 'front'; }
+  if (isSectionRef(v)) return sections.find(x => x.id === sectionLetter(v))?.view ?? 'front';
+  return v;
+}
+/** A dimension's view read from a file: a view, a section's letter or a detail's. */
+export const isDimView = (v: unknown): v is DimView => typeof v === 'string' && (isViewId(v) || isSectionRef(v) || isDetailRef(v));
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
@@ -113,6 +128,10 @@ export interface DrawingSettings {
    * (`sectionsOf`); one section A on the front is written back as `section`, so such files stay as they were.
    */
   sections?: DrawingSection[];
+  /** DR-1: detail views, each a circle on a view or a section drawn larger (detail.ts). Letters share the sections' namespace. */
+  details?: DrawingDetail[];
+  /** DR-2: breaks, each a band along a model axis left out of the orthographic views (breaks.ts). */
+  breaks?: DrawingBreak[];
   /** The title block's part name (default: the file name). */
   title?: string;
   /** The drawing's revision (A, B, … or 01), shown in the title block's REV cell (default: -). */
@@ -144,9 +163,23 @@ export interface DrawingSettings {
  * as `view`'s sections are and drawn with `view`'s up (made square to `dir`); its cutting plane shows edge-on in a view
  * whose depth is square to `dir`.
  */
-export interface DrawingSection { id: string; view: SectionViewId; at: number; dir?: [number, number, number] }
-/** Whether two sections are the same cut: letter, view, place and (an aligned one's) direction. */
-export const sameSection = (a: DrawingSection, b: DrawingSection): boolean => a.id === b.id && a.view === b.view && a.at === b.at && JSON.stringify(a.dir ?? null) === JSON.stringify(b.dir ?? null);
+/**
+ * DR-3: `half`, a half section — the section on one side of a centreline in the section's view (`line` vertical at
+ * u = `at` or horizontal at v = `at`; `cut` the side shown cut: after = greater), the view's exterior on the other.
+ * `steps`, an offset (stepped) section — from the section view's coordinate `past` onward (along `along`, horizontal by
+ * default) the plane is at depth `at` instead; `past` increasing. Both only for a principal section, not together.
+ */
+export interface DrawingSection { id: string; view: SectionViewId; at: number; dir?: [number, number, number]; half?: SectionHalf; steps?: SectionStep[]; along?: 'horizontal' | 'vertical' }
+export interface SectionHalf { line: 'vertical' | 'horizontal'; at: number; cut: 'after' | 'before' }
+export interface SectionStep { past: number; at: number }
+/** Whether two sections are the same cut: letter, view, place, (an aligned one's) direction, and (DR-3) its half or steps. */
+export const sameSection = (a: DrawingSection, b: DrawingSection): boolean => a.id === b.id && a.view === b.view && a.at === b.at && JSON.stringify(a.dir ?? null) === JSON.stringify(b.dir ?? null)
+  && JSON.stringify(a.half ?? null) === JSON.stringify(b.half ?? null) && JSON.stringify(a.steps ?? null) === JSON.stringify(b.steps ?? null) && (a.along ?? 'horizontal') === (b.along ?? 'horizontal');
+const finiteNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+/** DR-3: a half section's centreline as given, or null. */
+export const halfOk = (h: unknown): h is SectionHalf => { const x = h as SectionHalf; return !!x && (x.line === 'vertical' || x.line === 'horizontal') && finiteNum(x.at) && (x.cut === 'after' || x.cut === 'before'); };
+/** DR-3: an offset section's steps as given: one to 20, finite, `past` strictly increasing. */
+export const stepsOk = (st: unknown): st is SectionStep[] => Array.isArray(st) && st.length >= 1 && st.length <= 20 && st.every((x, k) => !!x && finiteNum(x.past) && finiteNum(x.at) && (k === 0 || x.past > st[k - 1].past));
 /** A direction an aligned section may have: three finite numbers, not all zero. */
 export const sectionDirOk = (d: unknown): d is [number, number, number] => isVec3(d) && Math.hypot(d[0], d[1], d[2]) > 1e-9;
 export type SectionViewId = 'front' | 'top' | 'right';
@@ -157,12 +190,12 @@ export const sectionsOf = (s: Pick<DrawingSettings, 'section' | 'sections'>): Dr
 export function withSections(s: DrawingSettings, list: readonly DrawingSection[]): DrawingSettings {
   const rest = { ...s }; delete rest.section; delete rest.sections;
   if (!list.length) return rest;
-  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir) return { ...rest, section: { y: list[0].at } };
+  if (list.length === 1 && list[0].id === 'A' && list[0].view === 'front' && !list[0].dir && !list[0].half && !list[0].steps) return { ...rest, section: { y: list[0].at } };
   return { ...rest, sections: list.map(x => ({ ...x })) };
 }
-/** The next free section letter (A, B, … Z; then AA, AB, …). */
-export function nextSectionId(list: readonly DrawingSection[]): string {
-  const used = new Set(list.map(x => x.id));
+/** The next free section letter (A, B, … Z; then AA, AB, …); `also`: letters taken otherwise (DR-1: the details'). */
+export function nextSectionId(list: readonly DrawingSection[], also: Iterable<string> = []): string {
+  const used = new Set([...list.map(x => x.id), ...also]);
   for (let k = 0; ; k++) { const id = k < 26 ? String.fromCharCode(65 + k) : String.fromCharCode(64 + Math.floor(k / 26)) + String.fromCharCode(65 + k % 26); if (!used.has(id)) return id; }
 }
 export type RoomSide = 'above' | 'below' | 'left' | 'right';
@@ -175,7 +208,11 @@ export const defaultDrawing = (): DrawingSettings => ({ sheet: 'A4', projection:
 function readSections(raw: unknown): DrawingSection[] | null {
   if (!Array.isArray(raw)) return null;
   const out: DrawingSection[] = [];
-  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id) && (x.dir === undefined || sectionDirOk(x.dir))) out.push({ id: x.id, view: x.view, at: x.at, ...(x.dir ? { dir: [x.dir[0], x.dir[1], x.dir[2]] as [number, number, number] } : {}) });
+  for (const x of raw) if (x && typeof x.id === 'string' && /^[A-Z]{1,2}$/.test(x.id) && SECTION_VIEWS.includes(x.view) && typeof x.at === 'number' && Number.isFinite(x.at) && !out.some(o => o.id === x.id) && (x.dir === undefined || sectionDirOk(x.dir))) {
+    // (DR-3: a half or the steps kept when valid and the section principal; never both.)
+    const half = !x.dir && halfOk(x.half) ? { line: x.half.line, at: x.half.at, cut: x.half.cut } as SectionHalf : null, steps = !x.dir && !half && stepsOk(x.steps) ? x.steps.map((st: SectionStep) => ({ past: st.past, at: st.at })) : null;
+    out.push({ id: x.id, view: x.view, at: x.at, ...(x.dir ? { dir: [x.dir[0], x.dir[1], x.dir[2]] as [number, number, number] } : {}), ...(half ? { half } : {}), ...(steps ? { steps, ...(x.along === 'vertical' ? { along: 'vertical' as const } : {}) } : {}) });
+  }
   return out.length ? out : null;
 }
 /** Reads drawing settings from a saved file, keeping what is valid. */
@@ -193,6 +230,8 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.balloons === true ? { balloons: true } : {}),
     ...(r.section && typeof r.section.y === 'number' && Number.isFinite(r.section.y) ? { section: { y: r.section.y } } : {}),
     ...(readSections(r.sections) ? { sections: readSections(r.sections)! } : {}),
+    ...(readDetails(r.details) ? { details: readDetails(r.details)! } : {}),
+    ...(readBreaks(r.breaks) ? { breaks: readBreaks(r.breaks)! } : {}),
     ...(typeof r.title === 'string' && r.title ? { title: r.title } : {}),
     ...(typeof r.revision === 'string' && r.revision ? { revision: r.revision.slice(0, 6) } : {}),
     ...(typeof r.revisedModel === 'string' ? { revisedModel: r.revisedModel } : {}),

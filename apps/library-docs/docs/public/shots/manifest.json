@@ -127,6 +127,20 @@
    "bytes": 107752
   },
   {
+   "file": "studio/drawings/broken-view.jpg",
+   "page": "studio/drawings",
+   "step": "studio/drawings: a broken view",
+   "renderer": "webgpu",
+   "bytes": 95774
+  },
+  {
+   "file": "studio/drawings/detail-view.jpg",
+   "page": "studio/drawings",
+   "step": "studio/drawings: a detail view",
+   "renderer": "webgpu",
+   "bytes": 101164
+  },
+  {
    "file": "studio/features/holes-on-a-circle.jpg",
    "page": "studio/features",
    "step": "studio/features: holes on a circle, a SubD box",
@@ -196,6 +210,20 @@
    "step": "studio/parameters: a chamfer bound to C, a configuration",
    "renderer": "webgpu",
    "bytes": 109628
+  },
+  {
+   "file": "studio/projects/compare.jpg",
+   "page": "studio/projects",
+   "step": "studio/projects: two versions compared",
+   "renderer": "webgpu",
+   "bytes": 111463
+  },
+  {
+   "file": "studio/projects/conflict.png",
+   "page": "studio/projects",
+   "step": "studio/projects: a merge conflict",
+   "renderer": "webgpu",
+   "bytes": 31460
   },
   {
    "file": "studio/rendering/appearance.jpg",

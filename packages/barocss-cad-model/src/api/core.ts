@@ -50,6 +50,13 @@ export function materialOf(doc: StudioDoc, key: string): string | undefined {
   return materialIdOf(doc, bodiesOf(doc).find(b => b.key === key)!);
 }
 
+/** The document with a body's name set, as the studio's Rename writes it (its look's name): what the BOM and the drawings call it. */
+export function withBodyName(doc: StudioDoc, key: string, name: string): StudioDoc {
+  const b = bodiesOf(doc).find(x => x.key === key);
+  if (!b) throw refuse('NO_BODY', `the part has no body ${key}`);
+  return withLook(doc, b, { name });
+}
+
 /** The document with a body's material set (`key` null: every body's), as set_material writes it. */
 export function withMaterial(doc: StudioDoc, key: string | null, id: string): StudioDoc {
   const picked = bodiesOf(doc).filter(b => key === null || b.key === key);

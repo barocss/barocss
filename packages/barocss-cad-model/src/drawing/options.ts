@@ -1,11 +1,15 @@
 // Strict source-table and section inputs for drawing.set. Saved-file readers remain permissive.
 import { problem, refusal, type Problem } from '../engine/refusal';
-import { sameSection, sectionDirOk, sectionsOf, withSections, type DrawingSection, type DrawingSettings, type DrawingTable } from './types';
+import { halfOk, sameSection, sectionDirOk, sectionsOf, stepsOk, withSections, type DrawingSection, type DrawingSettings, type DrawingTable } from './types';
+import { detailOk, type DrawingDetail } from './detail';
+import { breakOk, breaksMeet, type DrawingBreak } from './breaks';
 
 export const manufacturingDrawingProperties = {
   weldSymbols: { type: 'boolean', description: 'true enables weld symbols; false removes the flag; omitted keeps it.' },
   balloons: { type: 'boolean', description: 'true enables BOM item balloons; false removes the flag; omitted keeps it. Does not change scope.' },
-  sections: { type: 'array', description: 'Replaces all sections; [] clears them. Omitted keeps them. Referenced section changes are refused.', items: { type: 'object', properties: { id: { type: 'string', pattern: '^[A-Z]{1,2}$' }, view: { type: 'string', enum: ['front', 'top', 'right'] }, at: { type: 'number', description: 'Position along the view depth, model mm.' }, dir: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3, description: 'Aligned section: plane normal (model axes); at is along it.' } }, required: ['id', 'view', 'at'], additionalProperties: false } },
+  sections: { type: 'array', description: 'Replaces all sections; [] clears them. Omitted keeps them. Referenced section changes are refused.', items: { type: 'object', properties: { id: { type: 'string', pattern: '^[A-Z]{1,2}$' }, view: { type: 'string', enum: ['front', 'top', 'right'] }, at: { type: 'number', description: 'Position along the view depth, model mm.' }, dir: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3, description: 'Aligned section: plane normal (model axes); at is along it.' }, half: { type: 'object', description: 'DR-3 half section: cut on one side of a centreline in the section view (vertical at u = at, or horizontal at v = at); cut after = the greater side.', properties: { line: { type: 'string', enum: ['vertical', 'horizontal'] }, at: { type: 'number' }, cut: { type: 'string', enum: ['after', 'before'] } }, required: ['line', 'at', 'cut'], additionalProperties: false }, steps: { type: 'array', description: 'DR-3 offset section: from the section view coordinate past onward (along along, horizontal by default), the plane is at depth at; past increasing.', items: { type: 'object', properties: { past: { type: 'number' }, at: { type: 'number' } }, required: ['past', 'at'], additionalProperties: false } }, along: { type: 'string', enum: ['horizontal', 'vertical'] } }, required: ['id', 'view', 'at'], additionalProperties: false } },
+  details: { type: 'array', description: 'DR-1: replaces all detail views; [] clears them; omitted keeps them. A detail enlarges what lies inside a circle on a view or a section. Letters are unique among sections and details. Changing or removing one with dimensions is refused.', items: { type: 'object', properties: { id: { type: 'string', pattern: '^[A-Z]{1,2}$' }, view: { type: 'string', description: 'front, top, right or section:<letter>.' }, center: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2, description: 'The circle\'s centre in that view\'s coordinates, model mm.' }, radius: { type: 'number', description: 'Model mm.' }, scale: { type: 'number', description: 'Absolute, 5 = 5:1; omitted: the smallest standard scale at least twice the sheet\'s.' }, at: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2, description: 'Its centre on the sheet, sheet mm; omitted: placed in free room.' } }, required: ['id', 'view', 'center', 'radius'], additionalProperties: false } },
+  breaks: { type: 'array', description: 'DR-2: replaces all breaks; [] clears them; omitted keeps them. A break leaves the part between from and to (model mm along axis x, y or z) out of the front, top and right views (and their sections), drawn shorter with break lines; dimensions across it keep their true values. Breaks on one axis may not overlap.', items: { type: 'object', properties: { axis: { type: 'string', enum: ['x', 'y', 'z'] }, from: { type: 'number' }, to: { type: 'number' } }, required: ['axis', 'from', 'to'], additionalProperties: false } },
   tables: { type: 'array', description: 'Replaces all tables with model-derived source tables; [] clears them. Omitted keeps every existing table.', items: { type: 'object', properties: { id: { type: 'string', minLength: 1 }, from: { type: 'string', enum: ['bom', 'cut-list', 'weld-list'] }, title: { type: 'string' }, at: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2 }, corner: { type: 'string', enum: ['top-left', 'top-right', 'bottom-left', 'bottom-right'] }, whole: { type: 'boolean' } }, required: ['id', 'from'], additionalProperties: false } },
 };
 
@@ -20,8 +24,26 @@ export function checkManufacturingDrawing(args: Record<string, unknown>): Proble
     if (!Array.isArray(args.sections)) return [problem('DRAWING_OPTIONS', 'sections must be an array.')];
     const ids = new Set<string>();
     for (const [index, s] of args.sections.entries()) {
-      if (!record(s) || !keys(s, ['id', 'view', 'at', 'dir']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at) || (s.dir !== undefined && !sectionDirOk(s.dir))) return [problem('DRAWING_OPTIONS', `sections[${index}] needs a unique letter id, front/top/right view and finite at (an aligned section: dir, its plane's normal [x, y, z]), with no other keys.`)];
+      if (record(s) && (s.half !== undefined || s.steps !== undefined || s.along !== undefined) && (s.dir !== undefined || (s.half !== undefined && s.steps !== undefined) || (s.half !== undefined && !halfOk(s.half)) || (s.steps !== undefined && !stepsOk(s.steps)) || (s.along !== undefined && (s.steps === undefined || !['horizontal', 'vertical'].includes(s.along as string))))) return [problem('DRAWING_OPTIONS', `sections[${index}]: a half {line: vertical|horizontal, at, cut: after|before} or steps [{past, at}] with past increasing (along: horizontal|vertical with steps), on a principal section (no dir), not both.`)];
+      if (!record(s) || !keys(s, ['id', 'view', 'at', 'dir', 'half', 'steps', 'along']) || typeof s.id !== 'string' || !/^[A-Z]{1,2}$/.test(s.id) || ids.has(s.id) || (typeof s.view !== 'string' || !['front', 'top', 'right'].includes(s.view)) || !finite(s.at) || (s.dir !== undefined && !sectionDirOk(s.dir))) return [problem('DRAWING_OPTIONS', `sections[${index}] needs a unique letter id, front/top/right view and finite at (an aligned section: dir, its plane's normal [x, y, z]), with no other keys.`)];
       ids.add(s.id);
+    }
+  }
+  if ('details' in args) {
+    if (!Array.isArray(args.details)) return [problem('DRAWING_OPTIONS', 'details must be an array.')];
+    const ids = new Set<string>(), sectionIds = new Set(Array.isArray(args.sections) ? (args.sections as { id?: unknown }[]).map(x => String(x?.id)) : []);
+    for (const [index, d] of args.details.entries()) {
+      if (!record(d) || !keys(d, ['id', 'view', 'center', 'radius', 'scale', 'at']) || !detailOk(d) || ids.has(d.id) || sectionIds.has(d.id)) return [problem('DRAWING_OPTIONS', `details[${index}] needs a unique letter id (not a section's), view front/top/right or section:<letter>, center [x, y] and radius > 0 in that view's model mm; optional scale > 0 and at [x, y] on the sheet. No other keys.`)];
+      ids.add(d.id);
+    }
+  }
+  if ('breaks' in args) {
+    if (!Array.isArray(args.breaks)) return [problem('DRAWING_OPTIONS', 'breaks must be an array.')];
+    const seen: DrawingBreak[] = [];
+    for (const [index, b] of args.breaks.entries()) {
+      if (!record(b) || !keys(b, ['axis', 'from', 'to']) || !breakOk(b)) return [problem('DRAWING_OPTIONS', `breaks[${index}] needs axis x, y or z and finite from < to (model mm). No other keys.`)];
+      if (seen.some(o => breaksMeet(o, b))) return [problem('DRAWING_OPTIONS', `breaks[${index}] overlaps another break on ${b.axis}.`)];
+      seen.push(b);
     }
   }
   if ('tables' in args) {
@@ -47,6 +69,25 @@ export function withManufacturingDrawing(s: DrawingSettings, args: Record<string
     const changed = sectionsOf(s).filter(old => !list.some(n => sameSection(n, old)));
     if (s.dimensions.some(d => changed.some(c => d.view === `section:${c.id}`))) throw refusal('DRAWING_SECTION_REFERENCES', 'A changed or removed section has dimensions. Keep its definition or remove those dimensions explicitly first.');
     next = withSections(next, list);
+  }
+  // (DR-1: a detail's circle and parent are its dimensions' reference — changed or removed, refused while they have any;
+  // its scale and place may change. Its parent section must be on the drawing.)
+  if ('details' in args) {
+    const list = args.details as DrawingDetail[], same = (a: DrawingDetail, b: DrawingDetail) => a.id === b.id && a.view === b.view && a.center[0] === b.center[0] && a.center[1] === b.center[1] && a.radius === b.radius;
+    const changed = (s.details ?? []).filter(old => !list.some(n => same(n, old)));
+    if (s.dimensions.some(d => changed.some(c => d.view === `detail:${c.id}`))) throw refusal('DRAWING_DETAIL_REFERENCES', 'A changed or removed detail has dimensions. Keep its view, centre and radius, or remove those dimensions explicitly first.');
+    delete next.details;
+    if (list.length) next.details = list.map(d => ({ id: d.id, view: d.view, center: [d.center[0], d.center[1]], radius: d.radius, ...(d.scale !== undefined ? { scale: d.scale } : {}), ...(d.at ? { at: [d.at[0], d.at[1]] } : {}) }) as DrawingDetail);
+  }
+  if ('breaks' in args) {
+    delete next.breaks;
+    const list = args.breaks as DrawingBreak[];
+    if (list.length) next.breaks = list.map(b => ({ axis: b.axis, from: b.from, to: b.to }));
+  }
+  const letters = new Set(sectionsOf(next).map(x => x.id));
+  for (const d of next.details ?? []) {
+    if (letters.has(d.id)) throw refusal('DRAWING_DETAIL_LETTER', `Detail ${d.id} has a section's letter: letters are unique among sections and details.`);
+    if (d.view.startsWith('section:') && !letters.has(d.view.slice(8))) throw refusal('DRAWING_DETAIL_PARENT', `Detail ${d.id} enlarges section ${d.view.slice(8)}, which the drawing does not have.`);
   }
   if ('tables' in args) {
     delete next.tables;

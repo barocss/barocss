@@ -129,11 +129,10 @@ test('RS1: the demo motions\' durations in degrees (arm-2r\'s wave against the t
   assert.deepEqual(unbounded.sort(), ['four-bar base~crank', 'four-bar base~rocker', 'four-bar crank~coupler', 'gear-joint base~g1']);
 });
 
-test('RS1 (O22): every sample\'s demo motion passes check_path clear along its timing; the four-bar refused, its loop not closed along a motion (LOOP_OPEN)', async () => {
+test('RS1 (O22, RS6): every sample\'s demo motion passes check_path clear along its timing — the four-bar\'s with its loop closed', async () => {
   for (const s of index()) {
     const o = await opened(s.id), m = readRobot(o.doc.robot).motions![0];
     const out = await dispatchTool({ doc: o.doc, bodies: o.bodies }, 'check_path', { motion: m.name }, evaluate);
-    if (o.tree.loops.length) { assert.ok(out.isError, s.id); assert.match(out.content, /\[LOOP_OPEN\]/); continue; }
     assert.ok(!out.isError, `${s.id}: ${out.content}`);
     const j = JSON.parse(out.content); assert.equal(j.clear, true, `${s.id} ${m.name}: ${out.content.slice(0, 300)}`);
   }

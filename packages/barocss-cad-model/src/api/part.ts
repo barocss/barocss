@@ -1,7 +1,7 @@
 // R7 (cad-model's facade): the one part (@barocss/cad/api's Part) over the studio document, with its studio backend
 // (./studio), and only the studio layer added: a material by its library id for mass. `.doc` is the StudioDoc the
 // agent's tools, the studio, save/open and the fingerprints use. Assemblies, variants and rows come as the layer grows.
-import { BarocssError, Part, bracketedCode, refuse, studioSpec, type Density } from '@barocss/cad/api';
+import { BarocssError, Part, bracketedCode, refuse, studioSpec, type Density, type Vec3 } from '@barocss/cad/api';
 import { sha256Hex } from '../util/digest';
 import { loadPersonRows } from '../chat/rows';
 import { receivePersonRowFiles } from '../engine/rowFiles';
@@ -9,8 +9,17 @@ import type { RowKind } from '../engine/rowDefinitions';
 import type { StudioDoc } from '../engine/doc';
 import { MATERIALS } from '../library/materials';
 import type { MassResult } from './core';
-import { bodiesOf, materialOf, withMaterial } from './core';
+import { bodiesOf, materialOf, withBodyName, withMaterial } from './core';
 import { studioBackend } from './studio';
+import { drawingDoc, drawingOf, manufacturabilityOf, outputOf, withCasting, withProcess, type CastingOptions } from './outputs';
+import { setBought } from '../bom/bom';
+
+/** set_drawing's settings (its schema's names): the sheet, scale, projection, front, views, tolerancing, title, scope, sections, details, tables, balloons, weld symbols. */
+export interface DrawingSettingsInput {
+  sheet?: 'A4' | 'A3'; scale?: number | 'auto'; projection?: 'third' | 'first'; front?: 'y-' | 'x+' | 'y+' | 'x-';
+  views?: ('front' | 'top' | 'right' | 'iso')[]; tolerancing?: 'plus-minus' | 'geometric'; title?: string;
+  [setting: string]: unknown;
+}
 
 const libraryMaterial = (id: string) => {
   const m = MATERIALS.find(x => x.id === id);
@@ -85,6 +94,44 @@ export class StudioPart extends Part<StudioDoc> {
     if ('error' in r) throw new BarocssError(bracketedCode(r.error) ?? 'ROWS', r.error, 'evaluate');
     return this.next(r.doc, this.focus);
   }
+
+  /** The Library panel's Process (and Pull): the process the part is made by (null: none), a casting's or moulding's pull one of the six axes. */
+  process(id: string | null, o: { pull?: Vec3 } = {}): this { return this.next(withProcess(this.document, id, o), this.focus); }
+
+  /**
+   * The BOM panel's Bought: the part's features (by id; every one when none named) bought rather than made — a spring, a
+   * bearing (null: back to the default for their kind). The BOM and the purchase list then list them as bought.
+   */
+  bought(value: boolean | null = true, features?: readonly string[]): this {
+    const ids = features ?? this.document.nodes.flatMap(n => n.id && n.kind !== 'sketch' ? [n.id] : []);
+    const known = new Set(this.document.nodes.flatMap(n => n.id ? [n.id] : [])), unknown = ids.filter(f => !known.has(f));
+    if (unknown.length) throw refuse('FEATURE_UNKNOWN', `no feature ${unknown.join(', ')}; the features are ${[...known].join(', ') || 'none'}`);
+    return this.next(setBought(this.document, ids.map(f => `base:${f}`), value), this.focus);
+  }
+
+  /** The studio's Rename: the chosen body's name (the only one's, when none is chosen) — what the BOM and the drawings call it. */
+  named(name: string): this {
+    if (typeof name !== 'string' || !name.trim()) throw refuse('VALUE', 'a body has a name');
+    return this.next(withBodyName(this.document, this.target(), name.trim()), this.focus);
+  }
+
+  /** `set_casting`: the casting pattern's inputs — the faces machined after casting, your allowance (mm) and shrinkage, the gate. */
+  casting(o: CastingOptions): this { return this.next(withCasting(this.document, bodiesOf(this.document), o), this.focus); }
+
+  /** `set_drawing`: the drawing's settings — sheet, scale, projection, front, views, tolerancing, title … */
+  drawingSettings(o: DrawingSettingsInput): this { return this.next(drawingDoc(this.document, 'set_drawing', o), this.focus); }
+
+  /** `auto_dimension`: the drawing dimensioned (its views laid out and the front chosen by information, unless `layout` is false). */
+  autoDimension(o: { layout?: boolean } = {}): this { return this.next(drawingDoc(this.document, 'auto_dimension', o), this.focus); }
+
+  /** The drawing: drawing_issues' reply (the sheet, its issues) and its files — SVG, DXF (R2000) and PDF — as the drawing workspace exports them. */
+  drawing() { return drawingOf(this.document); }
+
+  /** check_printability's report: the rules of the part's process (printing, moulding, machining, casting). Async: the tool's own. */
+  manufacturability(o: { direction?: Vec3; finish?: string; sides?: Readonly<Record<string, '+' | '-'>> } = {}) { return manufacturabilityOf(this.document, o); }
+
+  /** output_cam_package's reply: the 2.5D CAM preview (NOT FOR PRODUCTION), or its refusal (no stock loaded …). Async: the tool's own. */
+  camPackage(o: { toolDiameter?: number } = {}) { return outputOf(this.document, 'output_cam_package', o); }
 
   /** `features.material` (set_material): the chosen body's material — or, with none chosen, every body's — by its library id. */
   material(id: string): this {

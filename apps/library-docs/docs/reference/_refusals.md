@@ -94,19 +94,27 @@
 | `[BOM_INVALID]` | `team` | … |
 | `[BOOLEAN_REFUSED]` | `print` | a cavity (… triangles) could not be taken from the part even simplified to h/10: …; a coarser h makes a smaller cavity mesh |
 | `[BOUND]` | `chat` | a sketch point is bound to a parameter: change the parameter instead |
+| `[BRANCH_EXISTS]` | `versions` | a branch is already named “…” |
 | `[BRANCH_FLIP]` | `robot` | … at … rad closes on the other branch: not the one the linkage was assembled in |
+| `[BRANCH_NAME]` | `versions` | a branch's name is 1 to 63 letters, digits, spaces and . _ / - (starting with a letter or digit), got … |
+| `[BRANCH_UNKNOWN]` | `versions` | there is no branch “…” (branches: …) |
+| `[BRANCH_UNSAVED]` | `versions` | the document has changes since the last version of “…”: make a version first, or discard them |
+| `[CAM_IN_LOOP]` | `robot` | … follows a cam (…) and moves a closed loop: a loop through a cam is not closed yet |
+| `[CAM_PROFILE_UNSUPPORTED]` | `robot` | …: ….… is a flat face neither along the cam's axis nor across it: no lift is read from it |
+| `[CAM_UNSUPPORTED]` | `robot` | … follows a cam (…): motion torques through a cam are not worked out yet |
 | `[CAP_PICK]` | `app` | … |
-| `[CASTING_ALLOWANCE]` | `chat/part` | allowance is mm a machined face, 0 to 100: …. |
-| `[CASTING_FACE]` | `casting`, `chat/part` | marked machined but not on the part: … |
-| `[CASTING_GATE]` | `chat/part` | gate is a point [x, y, z] (mm) on the part, where the metal comes in. |
+| `[CASTING_ALLOWANCE]` | `api`, `chat/part` | allowance is mm a machined face, 0 to 100: …. |
+| `[CASTING_FACE]` | `api`, `casting`, `chat/part` | machined is a list of face names ("n1.top"). |
+| `[CASTING_GATE]` | `api`, `chat/part` | gate is a point [x, y, z] (mm) on the part, where the metal comes in. |
 | `[CASTING_RULE_ROW]` | `engine` | no … rules loaded — load your casting rules (samples/rows/casting-rules.json is an example) |
-| `[CASTING_SHRINK]` | `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
+| `[CASTING_SHRINK]` | `api`, `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
 | `[CONFIRM_IS_THE_USERS]` | `chat/part` | …: only the user confirms a requirement, in the studio; leave "confirmed" and "said" out. |
 | `[CONNECTOR_ROW_UNKNOWN]` | `engine` | an opening names the connector row "…", which the document's connector rows do not hold (rows: …) |
 | `[CONTAINER_DAMAGED]` | `engine` | the file is cut short |
 | `[CONTAINER_NEWER]` | `engine` | this file was saved by a newer cad-studio (container version …; this one reads …) |
 | `[CURVED_BODY]` | `print` | the part has … curved face… and …: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3) |
 | `[DATUM_FIT]` | `chat` | … is not flat: its vertices are up to … mm off the best plane (at most … mm) |
+| `[DEAD_POINT]` | `robot` | at … the loop reaches a dead point (its passive joints lose a degree of freedom): past it the linkage would change branch |
 | `[DECIDED]` | `team` | … is already … |
 | `[DECIMATE_KEEP]` | `app` | Keep between 1 and 99% of the triangles. |
 | `[DIRECTION_NOT_AXIS]` | `print` | the print direction (…) is not along X, Y or Z |
@@ -124,6 +132,9 @@
 | `[DRAFT_ANGLE]` | `app` | A draft angle is not 0 and below 45° in size. |
 | `[DRAFT_PICK]` | `app` | … |
 | `[DRAIN_NO_ROOM]` | `print` | a drain of Ø… at (…) does not fit inside the part's bottom |
+| `[DRAWING_DETAIL_LETTER]` | `drawing` | Detail … has a section's letter: letters are unique among sections and details. |
+| `[DRAWING_DETAIL_PARENT]` | `drawing` | Detail … enlarges section …, which the drawing does not have. |
+| `[DRAWING_DETAIL_REFERENCES]` | `drawing` | A changed or removed detail has dimensions. Keep its view, centre and radius, or remove those dimensions explicitly first. |
 | `[DRAWING_OPTIONS]` | `chat`, `drawing` | Unknown drawing setting …. |
 | `[DRAWING_SCOPE]` | `drawing` | scope is {kind: part, part?: id} or {kind: assembly} |
 | `[DRAWING_SCOPE_AUTO]` | `chat` | automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained |
@@ -143,6 +154,8 @@
 | `[FASTENER_POSITION]` | `app` | Give the fastener a position (X, Y and Z in mm). |
 | `[FASTENER_ROW]` | `engine` | a fastener row is an object { id, kind, size, lengthMM (a screw or bolt), source \| estimate: true } |
 | `[FASTENER_SIZE_ROW]` | `app`, `engine` | no fastener sizes loaded — load your fastener sizes (samples/rows/fastener-sizes.json is an example) |
+| `[FEATURE_DELETED_EDITED]` | `versions` | the … … was deleted on one branch and changed on the other |
+| `[FEATURE_EDITED_BOTH]` | `versions` | the … … was changed on both branches |
 | `[FILLET_CHAIN]` | `app` | A varying radius needs the picked edges to form one open chain: its two ends take the two radii. |
 | `[FIT_FACE]` | `chat/part`, `engine` | … carries no tolerance class: give hole_class / shaft_class, or set the face's class first. |
 | `[FIT_TABLE]` | `engine` | … |
@@ -168,6 +181,7 @@
 | `[GUSSET_PICK]` | `app` | … |
 | `[HOLE_PATTERN]` | `app` | A hole pattern has 2 to 64 holes. |
 | `[HOLE_SIZE]` | `app` | The counterbore must be wider than the hole. |
+| `[ID_CLASH]` | `versions` | both branches added a different … item “…” |
 | `[IGES_EXPORT]` | `engine` | There are no visible curves or surfaces to export. |
 | `[IGES_READ]` | `engine` | This IGES file cannot be read (…): only untransformed NURBS curves and surfaces (entities 126 and 128) in mm, at most 16, are read so far. … |
 | `[INPUT_CHOICE]` | `assembly` | …: … is not one of its choices |
@@ -177,15 +191,18 @@
 | `[INPUT_RANGE]` | `assembly` | … = …: true or false |
 | `[INPUT_TARGET]` | `assembly` | …: … has no parameter … |
 | `[INPUT_TYPE]` | `assembly`, `chat` | … (…) cannot drive … |
+| `[ITEM_DELETED_EDITED]` | `versions` | … “…” was deleted on one branch and changed on the other |
 | `[JOINT_LIMIT]` | `robot` | waypoint …: … = … is outside its limits … to … |
-| `[JOINT_MIMIC]` | `robot` | waypoint …: … follows … (gears): give … instead |
+| `[JOINT_MIMIC]` | `robot` | … follows another joint: give its leader |
 | `[JOINT_UNKNOWN]` | `robot` | waypoint …: no moving joint … (joints: …) |
 | `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
 | `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
-| `[LOOP_OPEN]` | `robot` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_MATE_UNSUPPORTED]` | `robot` | … (… between ….… and ….…) closes a loop, and no loop closure holds that mate yet: concentric round faces, coincident, distance or angle between flat faces, … |
+| `[LOOP_OPEN]` | `api` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
+| `[LOOP_PASSIVE]` | `robot` | the loop… … degree… of freedom: give … of …, and the rest are solved (… given) |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
 | `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
 | `[MATE_FACES]` | `assembly` | …… |
@@ -193,8 +210,13 @@
 | `[MATE_KIND]` | `assembly` | "kind" is one of …. |
 | `[MATE_SAME_PART]` | `assembly` | Both faces are on the same part; mate faces of two different parts. |
 | `[MATE_UNMET]` | `assembly` | … |
+| `[MERGE_DANGLING]` | `versions` | … uses …, which the other branch deleted: keep …, or drop what uses it |
 | `[MERGE_MISSING]` | `chat` | The merged part names …, which it does not have. |
+| `[MERGE_NO_BASE]` | `versions` | “…” and “…” share no version |
+| `[MERGE_ORDER]` | `versions` | … would use n…, which comes after it in the merged tree: merge these branches by hand |
+| `[MERGE_SAME]` | `versions` | “…” is the branch being worked on |
 | `[MERGE_SUPERSEDED]` | `chat` | The evaluation was superseded while the chat turn was merged. |
+| `[MERGE_UP_TO_DATE]` | `versions` | “…” already has everything on “…” |
 | `[MESH_NOT_LOADED]` | `engine` | the mesh data …… is not loaded: it cannot be saved |
 | `[MODEL_READ]` | `robot` | …: … numbers expected, got "…" |
 | `[MOTION_UNKNOWN]` | `robot` | no motion … (motions: …) |
@@ -279,6 +301,13 @@
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
 | `[VALUE]` | `api`, `chat/part`, `engine`, `robot` | …: a joint's value is a number (degrees, or mm for a slide), not … |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
+| `[VERSION_INPUT]` | `versions` | the time a version is made is an ISO 8601 text (got …) |
+| `[VERSION_KEY_COLLISION]` | `versions` | two different documents have the content key …: the version is not kept |
+| `[VERSION_LOG]` | `versions` | not a version log (format barocss-versions, schema 1) |
+| `[VERSION_NAME]` | `versions` | a version's name is 1 to … characters |
+| `[VERSION_NOT_LOADED]` | `versions` | the document of version … is not with this turn: it comes with the next one |
+| `[VERSION_NO_CHANGE]` | `versions` | the document is the same as the branch's last version… |
+| `[VERSION_UNKNOWN]` | `versions` | there is no version “…” |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |
 | `[WELD_NO_JOINTS]` | `chat/part` | the part has no weld joints: frame members meeting at a corner, a butt or a face. |
@@ -290,3 +319,8 @@
 | Code | Raised in | For example |
 |---|---|---|
 | `[BEARING_EDIT_SCOPE]` | `app` | … |
+| `[STORAGE_CHANGED]` | `storage` | … changed since it was read |
+| `[STORAGE_DENIED]` | `storage` | the browser does not allow …: open the folder again to grant access |
+| `[STORAGE_MISSING]` | `storage` | the project has no … |
+| `[STORAGE_PATH]` | `storage` | a document's path ends in .bcad, outside …/ (got …) |
+| `[STORAGE_UNAVAILABLE]` | `storage` | this browser cannot write files here: export the project instead |

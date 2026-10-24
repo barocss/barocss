@@ -9157,3 +9157,226 @@ From the coordinator, after the docs lane's arm-6r shot and its repro of the `de
   - RS1: arm-2r's wave is pinned at 5.5 s (1.5 + 2.5 + 1.5); every moving joint is rated, and only the four listed are
     unbounded.
 - **Verified (T1):** rs1, rs2, rs3, o22 and robot-*, 96/96; tsc (model and studio); eslint 0 errors.
+
+## O24 (a), PG-7 — loops close on their own mates: slides, chains, several loops; pose and set_pose close them (2026-10-24)
+
+P1's slider-crank was refused by closureOf: NOT_ONE_LOOP ("… has 5"). Its piston rides on the rod's small end by a
+concentric-only wrist pin (a slide plus a turn), and the piston–bore concentric closes the loop. The coordinator
+approved the design, which lifts the API lane's check.ts close().
+- **robot/loop.ts, the general closer (the four-bar's pin closer stays as it is):**
+  - `loopTermsOf(doc, tree)`: each loop mate as it holds at the solved pose.
+
+    | mate | its term |
+    |---|---|
+    | concentric | two points of a's axis kept on b's line (6 rows) |
+    | coincident or distance | a's point at b's plane offset (1 row), plus the normals kept (n_a × n_b, 3 rows) |
+    | angle | the normals' cosine (1 row) |
+    | lock | three of b's points where a carries them (9 rows) |
+    | anything else | refused: LOOP_MATE_UNSUPPORTED |
+
+  - `loopCloserOf(doc, tree)` gives the terms, the loop joints (on one part's path, not both), the free ones (gear
+    followers move with their leaders, folded into the leader's column × multiplier) and the loops' freedom: the free
+    joints less the Jacobian's rank at the solved pose.
+  - `closeLoops(tree, closer, drivers, from)`:
+    - damped Gauss–Newton, (JᵀJ + λI)δ = −Jᵀr with λ = 1e-12·max(1, diag), on the analytic Jacobian (a turn moves a
+      point by ω × (x − o) and a direction by ω × d; a slide moves a point along its axis);
+    - it starts from the previous pose and converges at 1e-9 mm;
+    - continuation in steps of at most 5° or 5 mm, halved down to 1e-3°, keeps the assembled branch.
+  - **Refusals:**
+    - LOOP_PASSIVE: more drivers than the freedom; the text names how many and which.
+    - JOINT_MIMIC: a follower given.
+    - NO_CLOSURE: no closure at the smallest step (past a toggle or out of reach), with how far apart the mates are.
+    - DEAD_POINT: closed, but the passive joints lose rank against the solved pose.
+  - The hot helpers are module level with scratch arrays: evalLoop, rateOn, solveNormal, and rankOf (cyclic Jacobi).
+- **robot/verbs.ts:** `closedValues(view, values)` closes the loops, taking the loop joints given as the drivers.
+  - poseOf uses it, so forward_kinematics and set_pose return solved loops, plus `loops: {drivers, solved,
+    residual_mm}`.
+  - forward_kinematics returns refusals as tool errors.
+  - The descriptions say all this; the per-turn size is unchanged at 24,042, since handler descriptions aren't counted
+    in it.
+- **Not done from the design:** "the tree prefers to leave out a turning pin". Both of the engine's candidate pairs are
+  concentric-only (cylindrical), so it would not help, and it would risk other trees. MJCF still writes a loop it can
+  close (a pin, `connect`) and leaves the others out with a note, as before.
+- **Test:** test/o24a-loops.test.ts, 5 tests.
+  - **The slider-crank (r 30, L 70):** crank, rod, a piston on a concentric-only wrist pin, and a grounded cylinder
+    holding the bore, built from blocks with holes.
+    - Run with e 0 (the bore left out as the loop), e 5 (the bore left out) and e 5 (the wrist pin left out).
+    - At every 5° through 720° the wrist pin is where W.x = P.x + √(L² − (y_b − P.y)²) puts it, to 1e-9 mm, with the
+      crankpin P from the crank's own FK. The stroke is 60 mm (2r) at e 0. A jump to 200° gives the same pose as
+      stepping there.
+    - The old closer refuses it.
+  - **The four-bar:** the general closer equals the pin closer to 1e-9 at seven crank angles. LOOP_PASSIVE is refused
+    (two drivers); the rocker driven to 3 rad is refused at its toggle, 0.901 rad; a tangent mate closing a loop is
+    refused, LOOP_MATE_UNSUPPORTED.
+  - **The tools:** forward_kinematics at 60° puts the piston at the closed form's x; set_pose at 60° gives the same
+    links; a passive joint given is refused, LOOP_PASSIVE, through both tools.
+- **Next:** PG-5 (the cam mate), then RS6: poseAt, check_path and play close loops, and LOOP_OPEN goes away.
+- **Verified (T1):** o24a 5/5; robot-*, rs1–3, o22, tool-contract and toolset 113/113; tsc; eslint 0 errors; docs
+  tables regenerated.
+
+## O24 (a), PG-5 — the cam mate: a flat-faced follower lifted by its lobe's support, a pushed valve; seen by pose, sweep, dynamics and exports (2026-10-24)
+
+P1's lobes are sketched arc-and-line profiles, not kernel cam nodes, and the joint tree had no cam pair. The
+coordinator approved the design: a declared `cam` mate.
+- **assembly/mates.ts:** MateKind gains `cam` (a: a face of the cam part; b: the follower's flat face).
+  - kindsFor offers it whenever b is flat, at the end of the list, so an automatic choice is unchanged.
+  - The solver holds nothing for it: the follower's own mates place it.
+  - The studio's mate list shows it, from KIND_LABEL.
+- **robot/cam.ts:**
+  - `camFacesOf(doc)`: a part's B-rep faces, each with its geometry, snapped as the face tables snap theirs, and its
+    boundary sampled (17 points per edge; a round face bounded by a closed edge is whole). Cached by content.
+  - `camLiftOf(…)`: the lobe's profile is its faces within the follower face's slab along the cam's axis.
+    - flats along the axis (their boundary points);
+    - round faces along it (an arc: centre, radius, and the span its boundary covers);
+    - end faces are skipped;
+    - anything else is refused, CAM_PROFILE_UNSUPPORTED.
+  - `camSupport` is h(θ) = max over the profile of (p − o)·R(a, −θ)u, with u the direction from the cam toward the
+    follower's face. It is exact for a flat face at any offset, and a concave stretch is bridged as a tappet bridges it.
+  - `camValue` = (h(θ) − h(0)) / (u·w); `camRate` is its central difference.
+- **robot/joints.ts, camCouplings:**
+  - **Turning driver:** the follower's slide is coupled by the lift. The joint gets `mimic` (naming the cam's joint,
+    multiplier 0) plus `cam` (the lift).
+  - **Sliding driver (a follower pushing a valve):** linear, mimic = (w_a·u)/(w_b·u).
+  - **Problems, typed, and nothing coupled:**
+    - CAM_NOT_SEATED: no driver joint; the follower doesn't slide; the face isn't flat; the two on different rigid
+      groups (compared through fixed joints); a slide across the face; the face not across the cam's axis; the face
+      off the lobe at the solved pose, by how much.
+    - CAM_PROFILE_UNSUPPORTED: the lobe's profile can't be read.
+  - `tree.cams`: {kind cam|push, mate, leader, follower, lift range (mm) or multiplier, seat}.
+- **Everything that follows a leader now handles a cam:**
+  - FK (followersInto): passes until settled, so chains work (crank → gear → cam → follower → valve).
+  - `rootOf` (fk.ts): the free root joint and the rate against it. Used by gravity's generalized fold (virtual work),
+    the mass matrix's columns and IK's Jacobian.
+  - The sweep's bound (followerBound): the lobe's reach per radian over |u·w|, through chains.
+  - checkPath: JOINT_MIMIC, "follows … (a cam)".
+  - Loop closing: CAM_IN_LOOP.
+  - Motion torques (jointRate): CAM_UNSUPPORTED, because the second derivative of the lift isn't worked out.
+  - Exports (robotParts, so URDF, MJCF, SDF and USD): CAM_UNSUPPORTED, unless `leave_out: ["cam"]` (export_urdf and
+    export_mjcf; withoutCams), which writes the follower as a free joint and notes it.
+  - The Joints card: "follows X on its cam (mate)".
+- **The sweep's cam seat (robot/sweep.ts):** the follower's face rides the lobe by design.
+  - Certified: the whole follower against the driver outside the seat (outside the face's slab; for a push, off the
+    face it meets).
+  - Crossing only, at each step with the step capped at 1/90 of the move:
+    - the follower's other triangles against the seat, with edges lying in the contact plane left out (they are the
+      contact face's own boundary);
+    - a crossing counts only at least 1e-4 mm through the plane, and 1e-4 mm inside the triangle.
+    - Why: single-precision display meshes make a graze — a lobe flat lying in the follower's plane, the face's edge
+      on the lobe — look like a crossing, and 1e-4 mm is past their precision.
+  - The pair's hulls all but meet throughout, so the seat's own sets set the step, not the hulls.
+  - **The limit, recorded:** the seat's crossing test is sampled at those steps, not certified between them, unlike the
+    rest of the sweep.
+- **The flat face's width:** the coupling doesn't check it; the support is the infinite plane's. A follower face
+  narrower than its contact excursion would be modelled too high, not as a crash.
+- **Test:** test/o24a-cam.test.ts, 4 tests.
+  - The engine's own lobe (base r 14, nose r 6 at 14 out, tangent-joined) on its shaft; a flat-faced follower sliding
+    under a grounded guide; a valve pushed by it.
+  - The lift is max(14, 14 cos θ + 6) − 20 at 72 cam angles to 1e-9 mm, the face on the lobe, and the valve with the
+    follower.
+  - get_joints' couplings; set_pose at 90° gives −6 mm; a half-turn sweep is clear, the seat said designed.
+  - Exports refused with CAM_UNSUPPORTED only; leave_out writes it free and noted.
+  - A follower 0.5 mm off the lobe: CAM_NOT_SEATED, uncoupled.
+  - A skirt under the follower's face is hit by the nose swinging toward it and clear swinging away.
+- **Not covered here:** a gear → cam chain is the same follower passes, but has no dedicated test; P1 milestone 2's own
+  check covers it.
+- **Verified (T1):** o24a-cam 4/4; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12
+  and api-assembly 161/161; tsc (model and studio); eslint 0 errors; docs tables regenerated. The per-turn size is
+  unchanged at 24,042.
+
+## RS6 (core) — motions close their loops: play and check_path through the general closer; LOOP_OPEN retired (2026-10-24)
+
+The coordinator ordered RS6 right after O24 (a): P1's cycle sweep needs a looped mechanism moved through its motion
+with its loop closed. The core is ours; the studio's playback is the GPU lane's.
+- **robot/verbs.ts:**
+  - **play_motion:** each sample's pose from poseAt (the waypoints name the drivers), closed by closeLoops from the
+    sample before. poseOf gains `close = false` for poses that are already closed.
+  - **check_path, on a looped robot (`sweepClosed`):**
+    - Each timed segment is cut into chords no more than 1° (or 1 mm) of its drivers apart.
+    - Each chord runs between two closed poses and is swept straight and certified by sweepPath (RM6), at
+      CCD_TOLERANCE.
+    - A chord's middle is not closed exactly. How far it is (loopResidual, the mates' residual) is reported as
+      `loops: {chords, chord_residual_mm}`, the chords' error.
+    - The first contact's time is taken on its chord's profile, timeAt over the chord's span of the segment.
+    - Robots without loops keep sweepTimed, unchanged.
+  - **set_waypoint** on a looped robot closes the waypoint, so one that gives a passive loop joint is refused,
+    LOOP_PASSIVE.
+  - **LOOP_OPEN** is no longer thrown, and its code is removed from CadModelCode.
+- **robot/loop.ts:** `loopResidual(tree, closer, q)`.
+- **For the GPU lane's playback:** `loopCloserOf(doc, tree)` once, then, per frame,
+  `closeLoops(tree, closer, poseAt(tree, path, t), previous)`, which gives the passive joints. The studio's Check path
+  can call checkMotion's chord sweep, or the same chords.
+- **Tests:**
+  - o24a-loops gains 2:
+    - play_motion on the slider-crank's full turn has the piston on the closed form at all 25 samples (to 1e-6 mm, the
+      reply's rounding). check_path is clear over 360 chords, with a chord residual under 0.01 mm. A waypoint giving the
+      rod's joint is refused, LOOP_PASSIVE.
+    - A grounded block behind the stroke: check_path's first contact is piston–stop at the crank angle where the
+      closed form puts the piston's back on the block's face, to under 1e-3 rad.
+  - Changed, because LOOP_OPEN is retired:
+    - o22's test 3: the four-bar's crank motion is clear over 240 chords, with a chord residual under 0.01 mm, and the
+      rocker follows the crank.
+    - RS1: every sample's demo motion passes check_path clear, the four-bar's with its loop closed.
+- **Verified (T1):** o24a-loops 7/7; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12 and api-assembly 163/163; tsc; eslint 0 errors; docs tables regenerated.
+
+## PG-8 and PG-4 — the agent can lock (lock_part); gears locked to a shaft couple (2026-10-24)
+
+The coordinator ordered these from P1's gaps.
+- **PG-8, assembly/edit.ts `lockPart(doc, {part, to})`:** the studio's Lock written as the core's own verb.
+  - It writes a `lock` mate whose rel is lockRel(to, part), so the part is kept where it stands in to's coordinates.
+  - A fixed part with a free one swap, as add_mate swaps them.
+  - Refused, typed: NO_PART, MATE_SAME_PART, MATE_BOTH_FIXED, MATE_UNMET.
+  - The agent's action is assembly.lock, handler `lock_part`. It is in ASSEMBLY_CHANGES and BATCHABLE, so it is
+    proposed, and ALTERS counts it as not idempotent.
+  - tools-v2.json is re-recorded, an addition only; the per-turn size is 24,097 (+55); the studio chat test lists the
+    handler.
+  - The facade's own lockDoc (api/assemblyCore.ts, the API lane's, on integration, not on this branch) can delegate
+    to lockPart once they merge. That is the API lane's file, so it is named here and not touched.
+- **PG-4, robot/joints.ts gearCouplings:** a turning joint's gears are those of its link's rigid group, its part and
+  the parts fixed to it (`rigidGroup`, down through fixed joints), not its part's alone.
+  - A locked gear that is not on its joint's axis gets the note GEAR_NOT_COUPLED instead of being left out silently.
+  - The child's own off-axis gears are left as before, so existing trees' notes don't move.
+- **Test:** test/pg48-lock-gears.test.ts, 2 tests.
+  - lock_part: called directly it is refused with needs_approval; through dispatch it locks, with rel (0, 0, 10) and
+    the part where it stood; NO_PART, MATE_SAME_PART and MATE_BOTH_FIXED are refused.
+  - The API lane's repro (two shafts 45 mm apart, a 20T and a 40T gear, m 1.5, each locked to its shaft): one
+    coupling at −20/40, centre distance 45. Unlocked, no coupling.
+- **Verified (T1):** pg48 2/2; toolset, tool-contract and assembly; studio chat 20/20; tsc; eslint 0 errors; docs tables
+  regenerated.
+
+## PG-6 — running fits swept as designed: a concentric mate's round faces are the fit's (2026-10-24)
+
+P1 found that sweep_path tests contact on the display meshes (8 segments a quarter turn, a chord 0.135 mm inside a
+circle of r 28), so a piston with 0.1 mm radial clearance read as touching its bore. The API lane's check.ts worked
+around it with a finer mesh and running-fit seats. Our core now takes the seat approach, as O22 did for gear teeth.
+- **robot/joints.ts:** `tree.fits`, each concentric mate's two round faces in world at the solved pose: {mate, a, b,
+  pa, da, ra, pb, db, rb}.
+- **robot/sweep.ts:** a fit is a seat between its two links when they are not parent and child; those are skipped
+  anyway.
+  - The zone: each link's triangles with all three corners on its cylinder, within 1e-4 + 1e-6·r. The display mesh's
+    vertices lie on the true surface.
+  - Certified: a's whole mesh against b's triangles off its round face.
+  - Crossing only: b's round face against a's other triangles, counted only deeper than the band r(1 − cos π/32) +
+    0.05 mm (the chord sag at 8 segments a quarter turn, plus the API lane's margin). A part's own rim on its face, the
+    piston cap's edge, grazes the other's chords; a boss past the bore is contact.
+  - Two bare round parts are left out, with the reason given. A loop pin's planar seat replaces a fit's seat on the
+    same pair, as before.
+  - The cam seat's crossing now carries its own depth (1e-4).
+- **The limit, recorded:** the fit's crossing part is sampled at the sweep's steps, at most 1/90 of the move, not
+  certified between them, as the cam seat's is. A finer or exact surface check near contact would be the next step if
+  a case needs it.
+- **Test:** test/pg6-running-fit.test.ts, 2 tests.
+  - A piston of r 27.95 in a bore of r 28 (0.05 mm, under the 0.135 sag), its facets turned half a segment. It is
+    locked to a carriage sliding along the bore, and the bore's concentric mate is the loop.
+  - The 20 mm stroke sweeps clear, the fit said designed.
+  - With the tree's fits removed, the meshes are in contact at s = 0: P1's gap reproduced.
+  - A boss reaching to r 31 is still contact.
+- **Coupling checks from the approved design, robot/joints.ts:**
+  - COUPLING_CYCLE: a follower whose chain of leaders leads back to itself. The coupling that closes the cycle is
+    dropped and said so.
+  - COUPLED_TWICE: a second cam or push mate on a follower already coupled, so a joint has one leader. Before, the
+    second mate silently replaced the first.
+  - o24a-cam test 5: two pushes, follower → valve and valve → follower, give one COUPLING_CYCLE with one push kept; the
+    lobe plus a back push give COUPLED_TWICE.
+- **Verified (T1):** pg6 2/2, o24a-cam 5/5; robot*, rs1–3, o22, o24a, pg*, tool-contract, toolset, assembly, mates,
+  clearance, o11, o12, api-assembly and rb9 169/169 before the cycle checks; tsc; eslint 0 errors. The per-turn size is
+  24,097.
