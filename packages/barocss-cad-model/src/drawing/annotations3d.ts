@@ -15,7 +15,9 @@ import { isSectionRef, sectionLetter, sectionsOf, type DimView, type DrawingDime
 import type { WeldJoint } from '../frames/welds';
 
 export const MODEL_ANNOTATIONS_VERSION = 'model-annotations-v1';
-export type Vec3 = [number, number, number];
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+import type { Vec3 } from '../engine/vec3';
+export type { Vec3 };
 /** The plane an annotation lies in: its view's axes (model), through `depth` along `normal` (the view's toward). */
 export interface AnnotationPlane { normal: Vec3; right: Vec3; up: Vec3; depth: number }
 /** What an annotation points at: a point on the model and what it is on, by persistent name. */

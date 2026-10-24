@@ -25,7 +25,7 @@ any product code.
 ```bash
 export PATH=$HOME/.nvm/versions/node/v22.19.0/bin:$PATH
 cd apps/cad-studio
-# Engine level: the same evaluateDoc / stepFor / stlFor code the worker runs (126 cases, ~3 s).
+# Engine level: the same evaluateDoc / exportStudioStep / stlFor code the worker runs (126 cases, ~3 s).
 node test/qa/run-engine-probe.mjs                     # engine-probe.ts
 node test/qa/run-engine-probe.mjs regions-probe.ts    # overlapping shapes in one sketch
 node test/qa/run-engine-probe.mjs detail-probe.ts     # fillet/chamfer sizes, edge-touch union, hole/region classification

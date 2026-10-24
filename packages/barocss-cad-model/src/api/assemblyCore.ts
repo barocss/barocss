@@ -14,7 +14,7 @@ import { jointTreeOf, readRobot, type RobotSettings } from '../robot/joints';
 import type { FrameSettings } from '../robot/frames';
 import { eulerOf } from '../engine/placement';
 import { nextFreeId } from '../util/ids';
-import { solveDoc } from '../chat/assembly';
+import { solveDoc } from '../assembly/edit';
 import { bodiesOf, meshesOf, type MeshData } from './core';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)

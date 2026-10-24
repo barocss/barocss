@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import type { StudioDoc } from '../src/engine/doc';
-import { brepsFor, evaluateDoc, stepFor, stlFor, type EvalResult } from '../src/engine/evaluate';
+import { brepsFor, evaluateDoc, exportStudioStep, stlFor, type EvalResult, type StudioStep } from '../src/engine/evaluate';
 import { readStudioFile } from '../src/engine/container';
 import { rebuildReport } from '../src/team/rebuild';
 import { bomView, deriveBom } from '../src/team/assembly';
@@ -60,7 +60,7 @@ async function record(doc: StudioDoc): Promise<Record<string, unknown>> {
     r.stl = ev.bodies.map(b => { const s = stlFor(doc, b.key); return s ? sha(s) : null; });
   }
   const safe = async (k: string, f: () => unknown) => { try { r[k] = await f(); } catch (e) { r[k] = { threw: message(e) }; } };
-  await safe('step', () => { const s = stepFor(doc, 'part'); return 'error' in s ? s : { text: sha(s.text.replace(/FILE_NAME\([^;]*;/, 'FILE_NAME;')), omitted: s.omitted ?? null }; });
+  await safe('step', () => { let s: StudioStep; try { s = exportStudioStep(doc, { name: 'part' }); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; } return { text: sha(s.text.replace(/FILE_NAME\([^;]*;/, 'FILE_NAME;')), omitted: s.omitted ?? null }; });
   await safe('breps', () => { const b = brepsFor(doc); return 'error' in b ? b : sha(json(b)); });
   await safe('brepsMade', () => { const b = brepsFor(doc, { made: true }); return 'error' in b ? b : sha(json(b)); });
   await safe('bom', async () => deriveBom(await bomView(doc, evaluate)).lines);

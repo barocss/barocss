@@ -16,6 +16,7 @@ import { fastenerLinkNotes } from '../library/fastenerLinks';
 import { fastenerSizesOf } from './fastenerSizeRows';
 import { revisionOf } from '../util/revision';
 import { beadNotes, bearingNotes, bevelGearNotes, bevelMeshNotes, camNotes, connectorNotes, decimateNotes, driveNotes, endCapNotes, gearNotes, glandNotes, gussetNotes, internalGearNotes, memberNotes, meshNotes, rackMeshNotes, rackNotes, shaftNotes, shaftPartNotes, sheetOf, springNotes, staleOf, subdNotes, wormMeshNotes, wormNotes, wormWheelNotes } from './bodyNotes';
+import { refusal } from './refusal';
 
 /** A kernel output's body key and the node and side it is now. */
 /** A body's role, from the node that made it (O60: 'infill' on a print infill's mesh node). */
@@ -447,33 +448,41 @@ export function partBreps(doc: StudioDoc): { key: string; brep: Brep }[] {
   return snapshotOf(doc).outputs.map(o => ({ key: bodyKeyOf(o.id, doc.nodes), brep: o.brep }));
 }
 
-/** The whole part (every visible body, and its placed instances) as one STEP file, or the reason it cannot be written. */
-/** `meshes`: how mesh bodies are written (STEP export option, R3.5: auto, tessellated or planar). */
+/** How a StudioDoc is written as STEP: the file's name; how mesh bodies are written (R3.5); the file's time. */
+export interface StudioStepOptions {
+  name: string;
+  /** auto, tessellated or planar (STEP export option, R3.5). */
+  meshes?: 'auto' | 'tessellated' | 'planar';
+  /** The file's time (ISO 8601, seconds), so a test or a doc writes the same bytes each time; left out: now (R7 finding). */
+  timestamp?: string;
+}
+/** A StudioDoc's STEP file: its text, the source revision it names (O9), and what was left out. */
+export interface StudioStep { text: string; source: string; omitted?: string[] }
 /**
- * The part (and its shown instances) as one STEP file. Bodies with the `infill` role (O60: a print lattice) are left out —
- * STEP stays the exact part — and `omitted` says so; 3MF and the mass keep them. `options.timestamp` (R7 finding): the
- * file's time (ISO 8601, seconds), so a test or a doc writes the same bytes each time; the studio leaves it out (now).
+ * The part (and its shown instances) as one STEP file (R7.3c: the model level's one STEP function; the kernel's is
+ * exportStep(breps, options)). Bodies with the `infill` role (O60: a print lattice) are left out — STEP stays the exact
+ * part — and `omitted` says so; 3MF and the mass keep them. No body to write is refused (NO_BODY); the kernel's own
+ * refusal while writing is passed through.
  */
-export function stepFor(doc: StudioDoc, name: string, meshes?: 'auto' | 'tessellated' | 'planar', options: { timestamp?: string } = {}): { text: string; source: string; omitted?: string[] } | { error: string } {
-  try {
-    const breps: Brep[] = [], left: string[] = [];
-    const take = (d: StudioDoc, outputs: CadPartSnapshot['outputs'], prefix: string) => {
-      for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
-    };
-    take(doc, snapshotOf(doc).outputs, '');
-    // (O10: a copy's body by its origin node — its role and key the instance's own, not a placement transform's.)
-    for (const inst of doc.instances ?? []) if (!inst.hidden) {
-      const placed = placedDoc(inst, doc), base = placedBase(inst, doc);
-      for (const o of placedOutputs(inst, placed, doc)) {
-        const at = originNode(o.id, placed, base);
-        if (at !== undefined && roleOf(base.nodes[at])) left.push(`${inst.id}/${bodyKeyFor(base.nodes, at)}`); else breps.push(o.brep);
-      }
+export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): StudioStep {
+  const { name, meshes } = options;
+  const breps: Brep[] = [], left: string[] = [];
+  const take = (d: StudioDoc, outputs: CadPartSnapshot['outputs'], prefix: string) => {
+    for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
+  };
+  take(doc, snapshotOf(doc).outputs, '');
+  // (O10: a copy's body by its origin node — its role and key the instance's own, not a placement transform's.)
+  for (const inst of doc.instances ?? []) if (!inst.hidden) {
+    const placed = placedDoc(inst, doc), base = placedBase(inst, doc);
+    for (const o of placedOutputs(inst, placed, doc)) {
+      const at = originNode(o.id, placed, base);
+      if (at !== undefined && roleOf(base.nodes[at])) left.push(`${inst.id}/${bodyKeyFor(base.nodes, at)}`); else breps.push(o.brep);
     }
-    if (!breps.length) return { error: left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.' };
-    // (O9: the header names the source revision the file was made from.)
-    const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
-    return left.length ? { text, source, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text, source };
-  } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
+  }
+  if (!breps.length) throw refusal('NO_BODY', left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
+  // (O9: the header names the source revision the file was made from.)
+  const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
+  return left.length ? { text, source, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text, source };
 }
 
 export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
@@ -526,7 +535,7 @@ export function brepsFor(doc: StudioDoc, options: { made?: boolean } = {}): { br
 }
 
 /**
- * Each placed part's last snapshots (as placed, and at the origin for its beads), by instance id (R4 C4): stepFor and
+ * Each placed part's last snapshots (as placed, and at the origin for its beads), by instance id (R4 C4): exportStudioStep and
  * brepsFor build a copy again through the kernel's withDocument, which reuses only the features whose inputs are
  * unchanged — as the main evaluation does — so an unchanged copy is not evaluated from nothing on every export.
  */

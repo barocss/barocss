@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart, placeBody, type BodyResult } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
 import { rotationMatrix } from '../src/engine/placement';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { treeOfDoc } from '../src/chat/robot';
 import { applyTo, forwardKinematics } from '../src/robot/fk';
 import { convexHull } from '@barocss/cad';

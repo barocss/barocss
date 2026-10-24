@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { importStep, checkBrep, brepMassProperties } from '@barocss/cad';
 import { cylinderPart, emptyDoc, featureLabel, leafBodies, loftTop, prefixDoc, rectanglePart, starterDoc, withNode } from '../src/engine/doc';
 import type { DisplayMesh } from '../src/engine/mesh';
@@ -198,9 +198,7 @@ test('extrude with draft: the walls lean in, the volume is exact, the label show
 });
 
 test('a STEP file opens as a body: its faces named, features work on it', () => {
-  const text = stepFor(rectanglePart(40, 30, 10), 'plate');
-  assert.ok('text' in text);
-  if (!('text' in text)) return;
+  const text = exportStudioStep(rectanglePart(40, 30, 10), { name: 'plate' });
   let doc = withNode(emptyDoc(), { kind: 'import', name: 'plate', step: text.text });
   doc = withNode(doc, { kind: 'hole', parent: { node: 0, side: 'solid' }, center: [20, 15], radius: 4 });
   const r = evaluateDoc(doc, 1);
@@ -215,15 +213,13 @@ test('a STEP file opens as a body: its faces named, features work on it', () => 
 test('STEP export of the whole part: every body in one exact file that reads back', () => {
   let doc = starterDoc();
   doc = withNode(doc, { kind: 'linear-pattern', parent: { node: 2, side: 'solid' }, axis: 'x', spacing: 80, count: 2 });
-  const r = stepFor(doc, 'plate');
-  assert.ok('text' in r, JSON.stringify(r));
-  if (!('text' in r)) return;
+  const r = exportStudioStep(doc, { name: 'plate' });
   assert.equal((r.text.match(/MANIFOLD_SOLID_BREP/g) ?? []).length, 2);
   assert.match(r.text, /FILE_NAME\('plate\.step'/);
   const back = importStep(r.text), plate = 64 * 32 * 8 - Math.PI * 16 * 8;
   assert.equal(checkBrep(back).valid, true);
   assert.ok(Math.abs(brepMassProperties(back, 1000, { segmentsPerQuarter: 32 }).volumeMM3 - 2 * plate) < 1e-3 * plate);
-  assert.ok('error' in stepFor(emptyDoc(), 'empty'));
+  assert.throws(() => exportStudioStep(emptyDoc(), { name: 'empty' }), { code: 'NO_BODY', message: '[NO_BODY] There is no body to export.' });
 });
 
 test('pipe: a circle swept along a run, a bend and a run, with exact mass', () => {
@@ -487,8 +483,7 @@ test('closing infers equal radii and shared centres; a loop with them still extr
 test('a STEP file with two solids opens as two bodies that take features on their own (D2)', () => {
   let two = rectanglePart(10, 10, 5);
   two = withNode(withNode(two, { kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [26, 6] }), { kind: 'extrude', sketch: 2, height: 4 });
-  const text = stepFor(prefixDoc(two, two.nodes.length), 'two');
-  assert.ok('text' in text);
+  const text = exportStudioStep(prefixDoc(two, two.nodes.length), { name: 'two' });
   let doc = withNode(emptyDoc(), { kind: 'import', name: 'two', step: text.text, solids: 2 });
   assert.deepEqual(leafBodies(doc.nodes), [{ node: 0, side: 'part0' }, { node: 0, side: 'part1' }]);
   let r = evaluateDoc(doc, 1);

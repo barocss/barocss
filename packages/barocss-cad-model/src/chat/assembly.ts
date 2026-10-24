@@ -5,10 +5,10 @@
 import { checkPartDelete } from '../frames/skeleton';
 import { firstProblem } from '../engine/refusal';
 import { tslotInterfaces } from '../frames/interfaces';
-import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
+import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { tableOf, tablesFor, withDatums } from '../assembly/faces';
-import { BASE, KIND_LABEL, kindsFor, mateLabel, mateRefusal, solveAssembly, type FaceTable, type Mate, type MateKind, type Vec3 } from '../assembly/mates';
+import { tableOf, withDatums } from '../assembly/faces';
+import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateKind, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import type { ToolDefinition } from './api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
@@ -19,9 +19,10 @@ import { processProfile } from '../library/materials';
 import { UNLICENSED } from '../library/sharing';
 import { r3Signed as r3 } from '../util/round';
 import { isObj, isVec3 } from '../util/guards';
-import { nextFreeId } from '../util/ids';
 import { boundsOf } from '../engine/bounds';
 import { runVariabilityTool, VARIABILITY_TOOLS } from './variability';
+import { addMate, addPart, ASSEMBLY_CODES, editMate, partCopy, placePart, solveDoc, type Edited, type Mated } from '../assembly/edit';
+import { isRefusal } from '../engine/refusal';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
@@ -30,14 +31,6 @@ export interface AssemblyOutcome { doc: StudioDoc; content: string; isError: boo
 const json = (v: unknown) => JSON.stringify(v);
 const fail = (doc: StudioDoc, error: string, extra: Record<string, unknown> = {}): AssemblyOutcome => ({ doc, content: json({ ok: false, error, ...extra }), isError: true, changed: false, summary: error });
 
-const partDoc = (doc: StudioDoc, part: string) => part === BASE ? doc : doc.instances?.find(i => i.id === part)?.doc;
-
-/** The document with its mates solved (from the placements it has), and what cannot be met. */
-export function solveDoc(doc: StudioDoc, before?: readonly PartInstance[]): { doc: StudioDoc; problems: { mate: string; reason: string }[] } {
-  if (!doc.mates?.length || !doc.instances?.length) return { doc, problems: [] };
-  const r = solveAssembly(doc.instances, doc.mates, tablesFor(doc), before ?? doc.instances);
-  return { doc: { ...doc, instances: r.instances }, problems: r.problems };
-}
 
 /** A part's own bounds turned and moved into place (its box's corners). */
 function placedBounds(inst: PartInstance, min: Vec3, max: Vec3) {
@@ -101,6 +94,15 @@ async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: Body
   };
 }
 
+/** An edit the core solved already (assembly/edit.ts), reported as changed() reports one. */
+function reported(doc: StudioDoc, r: Edited, what: string, extra: Record<string, unknown> = {}): AssemblyOutcome {
+  const parts = (r.doc.instances ?? []).map(i => ({ id: i.id, name: i.name, position: i.position.map(r3), rotation_deg: i.rotation.map(r3), ...(i.grounded ? { grounded: true } : {}) }));
+  return {
+    doc: r.doc, isError: false, changed: true, summary: `${what}${r.problems.length ? ` (${r.problems.length} unmet mate${r.problems.length > 1 ? 's' : ''})` : ''}`,
+    content: json({ ok: true, did: what, ...extra, parts, ...(r.problems.length ? { unmet_mates: r.problems } : {}) }),
+  };
+}
+
 export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
@@ -117,30 +119,24 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
     case 'add_part': {
       const label = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : null;
       if (!label) return fail(doc, '"name" is required (e.g. "Shaft").');
-      const id = nextFreeId('p', new Set(instances.map(i => i.id)));
-      let partDocument = emptyDoc();
-      if (args.copy_of !== undefined) {
-        const src = partDoc(doc, String(args.copy_of));
-        if (!src) return fail(doc, `No part "${String(args.copy_of)}" to copy; parts: ${partList()}.`);
-        partDocument = { ...src, instances: undefined, mates: undefined, render: undefined, drawing: undefined, direct: undefined };
-      }
-      const position = vec3(args.position) ?? [0, 0, 0], rotation = vec3(args.rotation) ?? [0, 0, 0];
-      const inst: PartInstance = { id, name: label, doc: partDocument, position, rotation, ...(args.grounded ? { grounded: true } : {}) };
-      return changed(doc, { ...doc, instances: [...instances, inst] }, `added part ${id} "${label}"${args.copy_of !== undefined ? ` (a copy of ${String(args.copy_of)})` : ''}`, state.bodies, evaluate,
-        { part: id, note: partDocument.nodes.length ? 'build or edit it with the part tools and "part": id' : 'empty: build it with run_command / add_features and "part": id (its own coordinates; place it with place_part or mates)' });
+      try {
+        const copy = args.copy_of !== undefined ? partCopy(doc, String(args.copy_of)) : undefined;
+        const r = addPart(doc, { name: label, ...(copy ? { doc: copy } : {}), position: vec3(args.position) ?? [0, 0, 0], rotation: vec3(args.rotation) ?? [0, 0, 0], grounded: !!args.grounded });
+        return reported(doc, r, `added part ${r.id} "${label}"${args.copy_of !== undefined ? ` (a copy of ${String(args.copy_of)})` : ''}`,
+          { part: r.id, note: copy?.nodes.length ? 'build or edit it with the part tools and "part": id' : 'empty: build it with run_command / add_features and "part": id (its own coordinates; place it with place_part or mates)' });
+      } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
     }
     case 'place_part': {
       const inst = byId(args.part);
-      if (!inst) return fail(doc, `No part "${String(args.part)}"; parts: ${instances.map(i => i.id).join(', ') || 'none (the base part is fixed at the origin)'}.`);
-      const position = args.position === undefined ? inst.position : vec3(args.position), rotation = args.rotation === undefined ? inst.rotation : vec3(args.rotation);
-      if (!position || !rotation) return fail(doc, '"position" and "rotation" are [x, y, z] (mm; degrees about X, then Y, then Z).');
-      const by = mates.filter(m => m.b.part === inst.id);
-      if (args.grounded === true && by.length) return fail(doc, `${by.length} mate${by.length > 1 ? 's' : ''} move ${inst.name}; delete ${by.length > 1 ? 'them' : 'it'} first, or fix the other part.`);
-      const next: PartInstance = { ...inst, position, rotation, ...(typeof args.name === 'string' && args.name.trim() ? { name: args.name.trim() } : {}),
-        ...(args.grounded === undefined ? {} : { grounded: args.grounded ? true : undefined }), ...(args.hidden === undefined ? {} : { hidden: args.hidden ? true : undefined }) };
-      const out = await changed(doc, { ...doc, instances: instances.map(i => i.id === inst.id ? next : i) }, `placed ${inst.id}`, state.bodies, evaluate,
-        by.length && (args.position !== undefined || args.rotation !== undefined) ? { note: `${by.length} mate${by.length > 1 ? 's' : ''} still place it: the solver keeps what they fix and moves it only where they leave it free` } : {});
-      return out;
+      const position = args.position === undefined ? undefined : vec3(args.position), rotation = args.rotation === undefined ? undefined : vec3(args.rotation);
+      if (inst && (position === null || rotation === null)) return fail(doc, '"position" and "rotation" are [x, y, z] (mm; degrees about X, then Y, then Z).');
+      try {
+        const next = placePart(doc, { part: String(args.part), ...(position ? { position } : {}), ...(rotation ? { rotation } : {}), ...(typeof args.name === 'string' && args.name.trim() ? { name: args.name.trim() } : {}),
+          ...(args.grounded === undefined ? {} : { grounded: !!args.grounded }), ...(args.hidden === undefined ? {} : { hidden: !!args.hidden }) });
+        const by = mates.filter(m => m.b.part === inst!.id);
+        return reported(doc, next, `placed ${inst!.id}`,
+          by.length && (args.position !== undefined || args.rotation !== undefined) ? { note: `${by.length} mate${by.length > 1 ? 's' : ''} still place it: the solver keeps what they fix and moves it only where they leave it free` } : {});
+      } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
     }
     case 'delete_part': {
       const inst = byId(args.part);
@@ -152,38 +148,24 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       return changed(doc, { ...doc, instances: instances.filter(i => i !== inst), mates: kept }, `deleted ${inst.id} "${inst.name}"${kept.length < mates.length ? ` and ${mates.length - kept.length} mate${mates.length - kept.length > 1 ? 's' : ''} on it` : ''}`, state.bodies, evaluate);
     }
     case 'add_mate': case 'edit_mate': {
-      let mate: Mate, list: Mate[];
-      if (name === 'add_mate') {
-        const kind = String(args.kind) as MateKind;
-        if (!KIND_LABEL[kind]) return fail(doc, `"kind" is one of ${Object.keys(KIND_LABEL).join(', ')}.`);
-        const ref = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.face === 'string' ? { part: v.part, face: v.face } : null;
-        let a = ref(args.a), b = ref(args.b);
-        if (!a || !b) return fail(doc, '"a" and "b" are {part, face}: part "base" or an instance id, face a persistent face name (or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
-        for (const r of [a, b]) if (!partDoc(doc, r.part)) return fail(doc, `No part "${r.part}"; parts: ${partList()}.`);
-        if (a.part === b.part) return fail(doc, 'Both faces are on the same part; mate faces of two different parts.');
-        // b moves; when it is fixed and a is not, they swap (as when picking in the studio).
-        const fixed = (p: string) => p === BASE || !!byId(p)?.grounded;
-        if (fixed(b.part)) { if (fixed(a.part)) return fail(doc, 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
-        mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a, b,
-          ...(kind === 'distance' ? { distance: Number(args.distance) } : {}), ...(kind === 'angle' ? { angle: Number(args.angle) } : {}), ...(kind !== 'concentric' && args.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof args.flip === 'boolean' ? { flip: args.flip } : {}) };
-        list = [...mates, mate];
-      } else {
-        const old = mates.find(m => m.id === args.id);
-        if (!old) return fail(doc, `No mate "${String(args.id)}"; mates: ${mates.map(m => m.id).join(', ') || 'none'}.`);
-        mate = { ...old, ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : {}) };
-        list = mates.map(m => m.id === mate.id ? mate : m);
+      let r: Mated;
+      try {
+        if (name === 'add_mate') {
+          const ref = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.face === 'string' ? { part: v.part, face: v.face } : null;
+          const a = ref(args.a), b = ref(args.b);
+          if (KIND_LABEL[String(args.kind) as MateKind] && (!a || !b)) return fail(doc, '"a" and "b" are {part, face}: part "base" or an instance id, face a persistent face name (or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
+          r = addMate(doc, { kind: String(args.kind) as MateKind, a: a!, b: b!, ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : args.flip && String(args.kind) !== 'concentric' ? { flip: true } : {}) });
+        } else r = editMate(doc, { id: String(args.id), ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : {}) });
+      } catch (e) {
+        if (!isRefusal(e, ...ASSEMBLY_CODES)) throw e;
+        // (The tool's own hints after the core's words: where the faces are listed; that nothing was kept.)
+        if (e.code === 'MATE_FACE_UNKNOWN') return fail(doc, `${e.message}. List mateable faces with get_assembly {"faces_of": part}.`);
+        if (e.code === 'MATE_UNMET') return fail(doc, e.message, { kept: 'the assembly is unchanged' });
+        return fail(doc, e.message);
       }
-      const tables = tablesFor(doc), fa = tables(mate.a.part)?.[mate.a.face], fb = tables(mate.b.part)?.[mate.b.face];
-      const missing = [!fa && mate.a, !fb && mate.b].filter(Boolean) as { part: string; face: string }[];
-      if (missing.length) return fail(doc, `${missing.map(r => `"${r.face}" is not a flat or round face of ${r.part}`).join('; ')}. List mateable faces with get_assembly {"faces_of": part}.`);
-      const why = mateRefusal(mate, fa, fb);
-      if (why) return fail(doc, `${why}${fa && fb ? ` (these faces admit: ${kindsFor(fa, fb).join(', ')})` : ''}`);
-      const r = solveAssembly(instances, list, tables, instances);
-      const problem = r.problems.find(p => p.mate === mate.id);
-      if (problem) return fail(doc, problem.reason, { kept: 'the assembly is unchanged' });
-      const moved = r.instances.find(i => i.id === mate.b.part)!;
-      return changed(doc, { ...doc, instances: r.instances, mates: list }, `${name === 'add_mate' ? 'added' : 'edited'} ${mateLabel(mate, list.indexOf(mate))} (${mate.id}): ${mate.b.part}.${mate.b.face} to ${mate.a.part}.${mate.a.face}`, state.bodies, evaluate,
-        { mate: mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation_deg: moved.rotation.map(r3) }, freedom_left: r.freedom[moved.id] });
+      const list = r.doc.mates!, moved = r.doc.instances!.find(i => i.id === r.mate.b.part)!;
+      return reported(doc, r, `${name === 'add_mate' ? 'added' : 'edited'} ${mateLabel(r.mate, list.findIndex(m => m.id === r.mate.id))} (${r.mate.id}): ${r.mate.b.part}.${r.mate.b.face} to ${r.mate.a.part}.${r.mate.a.face}`,
+        { mate: r.mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation_deg: moved.rotation.map(r3) }, freedom_left: r.freedom });
     }
     case 'list_library': {
       // (LIB4: what the libraries hold — read only.)

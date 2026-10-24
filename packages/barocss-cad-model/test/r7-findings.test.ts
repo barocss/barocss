@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { friendly } from '../src/engine/errors';
 import { rectanglePart, withNode, type ModelNode } from '../src/engine/doc';
 
 // R7's findings (api-facade-design.md): a refusal's kernel code reaches FriendlyError — its bracketed code as `code`
-// and the start of `detail`, else the thrown error's kind — with the title and hint as before; and stepFor takes a
+// and the start of `detail`, else the thrown error's kind — with the title and hint as before; and exportStudioStep takes a
 // fixed timestamp, so the same part writes the same bytes.
 
 test('R7: FriendlyError carries the kernel code; the person-facing title and hint unchanged', () => {
@@ -22,11 +22,10 @@ test('R7: FriendlyError carries the kernel code; the person-facing title and hin
   assert.ok(!r.ok); assert.ok(r.error.code, JSON.stringify(r.error));
 });
 
-test('R7: stepFor with a fixed timestamp writes the same bytes; without one, the time is now', () => {
+test('R7: exportStudioStep with a fixed timestamp writes the same bytes; without one, the time is now', () => {
   const doc = rectanglePart(20, 10, 4), at = '2026-01-02T03:04:05';
-  const a = stepFor(doc, 'plate', undefined, { timestamp: at }), b = stepFor(doc, 'plate', undefined, { timestamp: at });
-  assert.ok('text' in a && 'text' in b);
+  const a = exportStudioStep(doc, { name: 'plate', timestamp: at }), b = exportStudioStep(doc, { name: 'plate', timestamp: at });
   assert.equal(a.text, b.text);
   assert.ok(a.text.includes(`'${at}'`), 'the header names the time given');
-  const now = stepFor(doc, 'plate'); assert.ok('text' in now && !now.text.includes(`'${at}'`));
+  const now = exportStudioStep(doc, { name: 'plate' }); assert.ok(!now.text.includes(`'${at}'`));
 });

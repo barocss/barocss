@@ -4,7 +4,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { emptyDoc, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { checkFits, insertLibraryPart, libraries, libraryById, libraryInstance, regenerateLibraryNode, registerLibrary, snapByInterfaces, unregisterLibrary } from '../src/library/libraries';
 import { readStudioDoc } from '../src/engine/migrate';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { BASE } from '../src/assembly/mates';
 
 // LIB2–LIB3 (D62–D63): the built-in T-slot 20 series; its fits; library parts inserted as features kept with the

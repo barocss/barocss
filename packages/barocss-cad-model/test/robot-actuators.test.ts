@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import { emptyDoc, type PartInstance, type StudioDoc } from '../src/engine/doc';
 import type { Mate } from '../src/assembly/mates';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { treeOfDoc } from '../src/chat/robot';
 import { coordinates, linkBodies, massMatrix, rnea, type LinkBody } from '../src/robot/dynamics';

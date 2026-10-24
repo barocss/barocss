@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { evaluateDoc } from '@barocss/cad-model/engine/evaluate';
-import { stepFor } from '@barocss/cad-model/engine/evaluate';
+import { exportStudioStep } from '@barocss/cad-model/engine/evaluate';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
 import { emptyDoc, withNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
@@ -76,7 +76,7 @@ test('CNC7b the export: the stock as a body — the block 122 × 82 × 30 to 1e-
   const s = await build([...PLATE, stockList(BLOCKS)]), r = chooseStock(s.doc, s.bodies, 'cnc-milling'); assert.ok(r.ok);
   const blk = evaluateDoc(stockDoc(r.choice), 1); assert.ok(blk.ok);
   assert.ok(Math.abs(blk.bodies[0].volumeMM3! - 122 * 82 * 30) <= 1e-6, String(blk.bodies[0].volumeMM3));
-  const step = stepFor(stockDoc(r.choice), 'stock'); assert.ok(!('error' in step)); assert.match(step.text, /^ISO-10303-21;/);
+  const step = exportStudioStep(stockDoc(r.choice), { name: 'stock' }); assert.match(step.text, /^ISO-10303-21;/);
   const bar = stockDoc({ ...r.choice, placement: { start: [0, -1, 0], axis: [0, 1, 0], length: 54, diameter: 22 } }), be = evaluateDoc(bar, 1); assert.ok(be.ok);
   const exact = Math.PI * 121 * 54; assert.ok(Math.abs(be.bodies[0].volumeMM3! - exact) / exact < 0.01, String(be.bodies[0].volumeMM3));
 });

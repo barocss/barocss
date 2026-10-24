@@ -148,7 +148,8 @@ import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
 import { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from '@barocss/cad-model/engine/meshImport';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
-import { bodyMass, boxOf, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
+import { bodyMass, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
+import { boundsOf } from '@barocss/cad-model/engine/bounds';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
 import { downloadBytes, lumpStls, meshToStl } from './ui/files';
 import { useBottomRow, HISTORY_LEFT, HISTORY_LEFT_RAIL } from './ui/useBottomRow';
@@ -2711,12 +2712,12 @@ export function App() {
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
           {selBodies.length > 1 && selBodies.some(b => b.massRef !== undefined) && <div className="kv">Together <b aria-label="Mass pending">…</b></div>}
-          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
+          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boundsOf(selBodies);
             return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
               <div className="kv">Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></div></> : null; })()}
         </>}
         {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && !massReady && <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div><div className="kv">Mass <b aria-label="Mass pending">…</b></div></div>}
-        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(bodies);
+        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boundsOf(bodies);
           return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
             <div className="kv">Mass <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
@@ -2794,7 +2795,7 @@ export function App() {
           const base = additive ? selectedBodies(prev) : [];
           return { faces: [], edges: [], bodies: [...new Set([...base, ...picked])] };
         }); }}
-        boundsBox={showBox ? (() => { const box = boxOf(selBodies.length ? selBodies : bodies); return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null; })() : null}
+        boundsBox={showBox ? (() => { const shown = selBodies.length ? selBodies : bodies, box = shown.length ? boundsOf(shown) : null; return box ? { ...box, label: [0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ') } : null; })() : null}
         measureLine={measured && measured.distance > 1e-9 ? { a: measured.a, b: measured.b, label: fmt(Math.round(measured.distance * 100) / 100) + ' mm' } : null}
         onDimClick={key => { const el = document.getElementById('sk-' + key) as HTMLInputElement | null; el?.focus(); el?.select(); }}
         onSketchPick={(hit, additive) => setSketch(s => s && sketchClick(s, hit, additive))}
