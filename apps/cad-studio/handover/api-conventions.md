@@ -1,5 +1,8 @@
 # API conventions for cad, cad-model and gpu (R7.2, 2026-10-24)
 
+**Status: owner-approved, 2026-10-24** ("로드맵 제대로 정해서 진행해줘", after the R7 proposal, the §10 common data
+formats and the facade structure in §11). R7.3 onwards implements these rules.
+
 On 2026-10-24 the owner decided the API is two layers: the core stays data and functions, and the public facade is
 object-style ("겉 api 는 객체 형태로"). These rules apply to new code now. R7.3 brings the existing public surface
 in line with them.
@@ -132,3 +135,51 @@ tests either move to `evaluateCadPart` fixtures or go with them.
     the same.
 - **Generated docs:** the refusal table switches from scraping strings to reading the code unions. The API inventory
   joins check:docs once R7.3 is done, as a drift check on these rules.
+
+## 10. Common data formats across the three packages
+
+1. **Coordinate frame:** right-handed, **Z up**, millimetres, everywhere. The gpu Viewer is already Z-up: Camera.up
+   is [0, 0, 1], and the studio feeds CAD XYZ unconverted. No conversion exists or is added. gpu's packet tag
+   `right-handed-y-up` is a misleading label that nothing acts on; R7.3d renames it, in gpu and in the kernel's
+   core/packet.ts together, with no alias.
+2. **Geometry primitives** have one shape, by structure rather than through a shared package:
+   - `Vec3 = readonly [x, y, z]`;
+   - `Mat3`: 9 numbers, row-major, whose columns are the frame's axes, so Z = [R[2], R[5], R[8]];
+   - `Mat4`: a column-major `Float64Array(16)`, used only inside computation;
+   - `Pose` in documents: `{ positionMM: Vec3, rotationDeg: Vec3 }`, rotated about X, then Y, then Z, as instances
+     and frames already are.
+
+   New code uses these. The 13 `Vec3`/`V3`/`Vector3` declarations converge in R7.3c, where they cross a package.
+3. **Mesh data:** `{ key, positions: Float32Array, normals?: Float32Array, indices: Uint32Array }` in mm and Z up. It
+   optionally adds `faceIds` and `edges`, the display lines, as gpu `GeometryInput` with `topology: 'lines'`. This is
+   the facades' `.meshes()` shape, and gpu's `GeometryInput` takes it as it is.
+4. **References to topology** across a package boundary are `{ body, face?, edge? }`, carrying the persistent names
+   (`n1.side0|n1.side1`). Indices stay inside one package.
+5. **Stored and transmitted formats** carry the header `{ format, schema }`. The documents are unreleased and track the
+   latest schema, so there are no version branches.
+6. **Materials** have one id, such as `al6061`. It finds the density in cad-model's library and the look in gpu's
+   materials. The kernel takes a density, never an id.
+7. **Requests and cancellation:** worker requests carry a request id and the document revision. A newer request
+   cancels older ones on its lane (O9), and results are matched by ref, never by order (O18). New async APIs follow
+   this.
+
+## 11. The facades' structure
+
+- **One part implementation.** `@barocss/cad/api`'s `part()` is the part. `@barocss/cad-model/api`'s `part()` wraps it
+  and adds only the studio layer: materials by id, rows, the studio document, assemblies and variants. A part feature
+  is added once, in cad, and cad-model inherits it.
+- **Shared code lives in cad/src/api:** the selectors and BarocssError. cad-model imports them. gpu imports neither and
+  matches by structure.
+- **Which to use:**
+  - `@barocss/cad/api` for a kernel-only part, with `.doc` a CadPartDocument;
+  - `@barocss/cad-model/api` for anything the studio opens, with `.doc` a StudioDoc;
+  - `@barocss/gpu/api` to show either.
+
+## 12. One vocabulary with the agent
+
+- The facade's modelling verbs carry the agent's v2 command names (COMMAND_DOCS in chat/part/features.ts), written in
+  camelCase: extrude, revolve, pipe, `offsetFace`, hole, fillet, chamfer, shell and so on.
+- Option names match the command's `values`, with units in the name (§2).
+- A verb with no v2 command, such as `box`, is named for its studio palette entry.
+- The docs, the facade and the agent's tool table then read as one vocabulary. Read-only results (mass, step, stl,
+  meshes) aren't commands and keep their names.
