@@ -179,6 +179,13 @@ function changesBeyondVariability(a: StudioDoc, b: StudioDoc): boolean {
   return false;
 }
 type MassFields = Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'>;
+/** O18: the same bodies to draw — each key and mesh as before (only masses may differ). */
+function sameMeshes(a: readonly BodyResult[], b: readonly BodyResult[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i].mesh !== b[i].mesh || a[i].key !== b[i].key) return false;
+  return true;
+}
 /** O18: bodies with the masses that came for their refs (placed by their massPlace); the same array when none did. */
 function withMasses(bodies: BodyResult[], got: ReadonlyMap<number, MassFields>): BodyResult[] {
   let out: BodyResult[] | null = null;
@@ -1928,7 +1935,12 @@ export function App() {
     ...selection.edges.flatMap(e => { const n = bodies[e.body]?.mesh.edges[e.edge]?.names[0]; return n ? [{ kind: 'edge' as const, name: n }] : []; }),
     ...selection.bodies.flatMap(b => bodies[b] ? [{ kind: 'body' as const, name: bodies[b].key }] : []),
   ].slice(0, 12).filter(() => fresh), [selection, bodies, fresh]);
-  const shownBodies = bodyDrag ? bodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : bodies);
+  // (O18: the viewport keeps the bodies it has while only their masses come — the same meshes, the same array — so a mass
+  // patch is no change of what is drawn: WebGPU rebuilt the part on a new array and left the copies sharing its shapes out.)
+  const drawnRef = useRef(bodies);
+  if (!sameMeshes(drawnRef.current, bodies)) drawnRef.current = bodies;
+  const drawnBodies = drawnRef.current;
+  const shownBodies = bodyDrag ? drawnBodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : drawnBodies);
   // The Render workspace's animated offsets on the bodies shown: each by its body's key — an exact section's piece by the
   // body it was cut from (G19.5: by index they fell on other bodies once the section left some out or split them).
   const animatedOffsets = useMemo(() => {
@@ -2724,7 +2736,7 @@ export function App() {
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
-      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
