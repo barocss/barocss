@@ -2962,3 +2962,38 @@ state for exact WIP, process cleanup, blockers and first resume steps.
     (render a part, then section view, parameters, surface analysis or RM2).
   - R7.3: rename the packets' `right-handed-y-up` tag to what it means. Viewer is already Z-up and nothing converts
     coordinates.
+
+## G-R49 — R1d: the HUD's values and the placing pointer outside the App's renders (roadmap R1d, 2026-10-24)
+
+- **What rendered the App**:
+  - Typing in the HUD: 4 keystrokes rendered App 10 times.
+  - Placing: 30 pointer moves rendered App 76 times, before the click. That is the bench's loaded measure; 114 in the
+    dev server's first count.
+  - Each value went through App state (`active`), then the preview's result again (`previewBodies`, `preview: 'ok'`).
+    Two effects then set state to the value it already had, which renders App once more to bail out:
+    - the requirements' `setSpec(null)` with no requirements;
+    - the access map's `setResult(null)` while off, its deps the shown bodies.
+- **The change** (83ce1a2cb, 7a62bda29 App.tsx):
+  - The running command is in a store (`activeStore`, a ValueStore; `setActive` is its `set`, with the same updaters).
+  - App subscribes to a key (`activeKey`): the command, its context and placing, and its values, unless the HUD typed
+    them (the values its last keystroke made) or the pointer is placing the shape.
+  - Handle and gizmo drags render App as before, so their handles follow the pointer.
+  - The HUD subscribes to the whole command: values, preview state, error.
+  - The preview evaluation follows the store's values, not App's renders.
+  - Apply-when-ready is checked after each render (a result renders App with its bodies) and as the preview settles
+    without one (an error).
+  - `apply` and a command's pick read the store.
+  - Both bailout setters now set state only when there is something to clear.
+- **Bench** (two new rows, `app` = App's renders; budgets one per keystroke or move; loaded, compare only):
+  - HUD typing: App 10 → **1** (1 result).
+  - Placing: App 76 → **16** (16 results, one each).
+  - Side effect of the access-map fix: the section drag's App renders 121 → 61 (CPU) and 5 → 3 (GPU).
+  - The full bench, all 19 rows: ok. Section on GPU is within its budget in this run.
+- **Also** (7b919a762, the coordinator's asks from the API lane):
+  - The facades' browser check `api-show-browser` (the API lane's, reviewed) is in gpu's `test:browser`. It passes 1/1
+    on hardware WebGPU and on SwiftShader.
+  - gpu's tsconfig.json is `noEmit`. build:library emits through `tsconfig.build.json`, so a bare `tsc` only checks and
+    no longer overwrites the bundle in dist/index.js with unbundled output.
+- **Runs**:
+  - Full flow at 7a62bda29 (scratch): **WebGPU 286/286, WebGL2 286/286**.
+  - Studio unit 286/286, tsc and eslint 0 errors, check:docs clean (595 labels). gpu unit 193/193.
