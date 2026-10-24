@@ -1,4 +1,4 @@
-// R7 phase A. Prepared on the contract base; execute only after the exact producer/API checkpoint is assembled.
+// R7 phase A. Consumes the assembled angular producer/API contract; Phase B reports have separate pending checks.
 // No skip or alternate SI/radian expectation turns an incomplete producer into a passing sample.
 import test from 'node:test';
 import assert from 'node:assert/strict';

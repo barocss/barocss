@@ -198,8 +198,9 @@ positions in mm and rotations in degrees.
 #### Robot unit boundaries
 
 ::: warning R7 contract preparation
-This section records the confirmed R7 public contract. Producer and facade changes still need a combined runtime
-check. These units and field names are not a claim that the current product implements the full contract.
+This section records the confirmed R7 public contract. Three documentation samples check stored turn/slide settings,
+pose conversion and a same-type gear mimic on the combined angular implementation. Public mass, gravity and motion
+reports still need their Phase B implementation and runtime checks. The full contract is not yet product-qualified.
 :::
 
 Use degrees for turning joints and mm for sliding joints. Resolve the joint type before you convert a value.
@@ -234,7 +235,8 @@ offset when you pass between public and internal units. Apply the same joint-typ
 | `inertia`, principal `moments` | g·mm² |
 | Frame `origin` | mm |
 
-For `Robot.gravity(values, g)`, supply `g` in mm/s². Standard gravity is `[0, 0, -9810]`. Public gravity magnitudes
+For `Robot.gravity(values, g)`, supply `g` in mm/s². The default is `[0, 0, -9806.65]`, which preserves the existing
+9.80665 m/s² physical value. An explicit input of `[0, 0, -9810]` selects 9.81 m/s² instead. Public gravity magnitudes
 use the name `gravity` and the same unit. Turning effort is in N·mm, and slide effort is in N. A report's `peak` and
 `rms` retain unit metadata so the reader can distinguish these quantities. Density remains g/cm³.
 
@@ -243,7 +245,8 @@ and `dwell`. `evaluationTime`, `builtTime` and `wallTime` convert former millise
 `serviceLife` converts former hours to seconds by multiplying by 3600. A turning joint's `stopDeceleration` uses deg/s².
 
 For a physical reference, take a solid 10 × 10 × 10 mm cube at density 2.7 g/cm³. Its mass is 2.7 g, centroid is
-[5, 5, 5] mm and each diagonal centroidal inertia is 45 g·mm². At standard gravity its weight is 0.026487 N.
+[5, 5, 5] mm and each diagonal centroidal inertia is 45 g·mm². With the explicit test input `[0, 0, -9810]` mm/s²,
+its weight is 0.026487 N.
 With its centre 5 mm perpendicular to a hinge axis, the holding torque magnitude is 0.132435 N·mm. The corresponding
 native SI values are 0.0027 kg, [0.005, 0.005, 0.005] m and 4.5 × 10⁻⁸ kg·m². These closed-form values are independent
 test inputs; they do not report a completed robot runtime check.
