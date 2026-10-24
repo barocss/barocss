@@ -21,6 +21,7 @@ import type { ProfileKind } from '../robot/profile';
 import { checkFramesOn, withFrames } from '../assembly/edit';
 import { readRobot, type JointSettings, type JointTree } from '../robot/joints';
 import { r6 } from '../util/round';
+import { jointSettingsOut, jointTreeOut, jointValuesIn, jointValuesOut, moveJointsOut, moveLimitsIn } from '../robot/units';
 import { isRefusal, type BarocssError } from '../engine/refusal';
 import { checkMotion, gravityOf, inertiaOf, mjcfOf, movesOf, partsOf, playMotion, poseOf, robotViewOf, setPose, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, withWaypoint, type RobotView } from '../robot/verbs';
 
@@ -36,7 +37,7 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'forward_kinematics',
-    description: 'Where every part of the robot is for joint values (by joint key, from get_joints; radians for a turning joint, mm for a sliding one; absent: 0, the pose the mates solve to): each link\'s placement (position mm, rotation degrees about X, Y, Z, as place_part takes them), the values used (a gear follower from its leader), joints outside their limits, and each coupled gear pair\'s tooth phase there against its home phase (held: the pair turns together). A closed loop (a slider-crank, a four-bar) is closed on its own mates: give its driver, and the other loop joints come back solved ("loops"); refused, typed: LOOP_PASSIVE (more given than the loop\'s freedom), NO_CLOSURE, DEAD_POINT. Changes nothing.',
+    description: 'Where every part of the robot is for joint values (by joint key, from get_joints; degrees for a turning joint, mm for a sliding one; absent: 0, the pose the mates solve to): each link\'s placement (position mm, rotation degrees about X, Y, Z, as place_part takes them), the values used (a gear follower from its leader), joints outside their limits, and each coupled gear pair\'s tooth phase there against its home phase (held: the pair turns together). A closed loop (a slider-crank, a four-bar) is closed on its own mates: give its driver, and the other loop joints come back solved ("loops"); refused, typed: LOOP_PASSIVE (more given than the loop\'s freedom), NO_CLOSURE, DEAD_POINT. Changes nothing.',
     input_schema: { type: 'object', properties: { values: { type: 'object', additionalProperties: { type: 'number' } } }, additionalProperties: false },
   },
   {
@@ -56,17 +57,17 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'sweep_path',
-    description: 'Checks a straight joint-space move for collisions between the robot\'s links: from "from" to "to" (joint values by key; absent: 0, the solved pose; radians or mm). Conservative advancement: each step is as long as the links\' clearance allows by a bound on how far the joints can carry their points, so the whole path is certified, not just samples; the clearance from the links\' convex hulls first, the meshes exactly where those meet. Parent and child links are not checked. Returns clear, or the first contact (where, the joint values there, the two links), the least clearance and where, the samples taken. Changes nothing.',
+    description: 'Checks a straight joint-space move for collisions between the robot\'s links: from "from" to "to" (joint values by key; absent: 0, the solved pose; degrees or mm). Conservative advancement: each step is as long as the links\' clearance allows by a bound on how far the joints can carry their points, so the whole path is certified, not just samples; the clearance from the links\' convex hulls first, the meshes exactly where those meet. Parent and child links are not checked. Returns clear, or the first contact (where, the joint values there, the two links), the least clearance and where, the samples taken. Changes nothing.',
     input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } } }, required: ['to'], additionalProperties: false },
   },
   {
     name: 'gravity_torques',
-    description: 'What each joint must hold for the robot to stand still at joint values (by key; absent: 0; radians or mm): the static gravity torque (N·m, a turning joint) or force (N, a slide), G = ∂V/∂q, from each link\'s mass and centre of mass (link_inertia\'s) at that pose; gravity 9.80665 m/s² on −Z unless "g" is given. "generalized" folds a gear follower\'s share into its leader (×multiplier). Changes nothing.',
+    description: 'What each joint must hold for the robot to stand still at joint values (by key; absent: 0; degrees or mm): the static gravity torque (N·m, a turning joint) or force (N, a slide), G = ∂V/∂q, from each link\'s mass and centre of mass (link_inertia\'s) at that pose; gravity 9.80665 m/s² on −Z unless "g" is given. "generalized" folds a gear follower\'s share into its leader (×multiplier). Changes nothing.',
     input_schema: { type: 'object', properties: { values: { type: 'object', additionalProperties: { type: 'number' } }, g: { type: 'array', items: { type: 'number' } } }, additionalProperties: false },
   },
   {
     name: 'motion_torques',
-    description: 'The torques of a straight joint move from "from" to "to" (by key; absent: 0; radians or mm) under a motion profile: "trapezoid" (velocity and acceleration limits) or "s-curve" (and jerk), from rest to rest, all joints together on one profile so that each stays within its limits (per joint in "joint_limits", else "limits"; rad/s, rad/s², rad/s³ or mm/s…). Inverse dynamics (RNEA) with gravity along it: the move\'s duration, and per joint the peak and RMS torque (N·m, or N for a slide), when the peak comes, the distance and the peaks of velocity, acceleration and jerk reached, and how it was sampled. No limit is assumed: give them. Changes nothing.',
+    description: 'The torques of a straight joint move from "from" to "to" (by key; absent: 0; degrees or mm) under a motion profile: "trapezoid" (velocity and acceleration limits) or "s-curve" (and jerk), from rest to rest, all joints together on one profile so that each stays within its limits (per joint in "joint_limits", else "limits"; degree/s, degree/s², degree/s³ or mm/s…). Inverse dynamics (RNEA) with gravity along it: the move\'s duration, and per joint the peak and RMS torque (N·m, or N for a slide), when the peak comes, the distance and the peaks of velocity, acceleration and jerk reached, and how it was sampled. No limit is assumed: give them. Changes nothing.',
     input_schema: { type: 'object', properties: { from: { type: 'object', additionalProperties: { type: 'number' } }, to: { type: 'object', additionalProperties: { type: 'number' } }, profile: { type: 'string', enum: ['trapezoid', 's-curve'] }, limits: { type: 'object', properties: { velocity: { type: 'number' }, acceleration: { type: 'number' }, jerk: { type: 'number' } } }, joint_limits: { type: 'object', additionalProperties: { type: 'object' } } }, required: ['to', 'profile'], additionalProperties: false },
   },
   {
@@ -81,7 +82,7 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'set_joints',
-    description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (radians for a turning joint, mm for a sliding one), effort (N·m or N) and velocity (rad/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
+    description: 'Sets the robot\'s base link ("base" or a part id) and joints\' limits and ratings by joint key: {lower, upper} (degrees for a turning joint, mm for a sliding one), effort (N·mm or N) and velocity (degree/s or mm/s); a joint given null clears its settings. A turning joint with limits is revolute, without them continuous. The assembly\'s, so it is proposed (propose) for the user to accept.',
     input_schema: { type: 'object', properties: { base: { type: 'string' }, joints: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, additionalProperties: false },
   },
   {
@@ -116,11 +117,11 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   const view = await robotViewOf(doc, bodies, evaluate);
   if (name === 'get_joints') {
     const t = treeOf(view);
-    return { doc, content: t, changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
+    return { doc, content: jointTreeOut(t), changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
   }
   if (name === 'motion_torques') {
     const t = treeOf(view), mv = moveArgs(t, args); if ('error' in mv) return mv;
-    const content = movesOf(view, mv, t);
+    const raw = movesOf(view, mv, t), content = { ...raw, joints: moveJointsOut(t, raw.joints) };
     return { doc, content, changed: false, summary: `${content.profile}, ${content.duration_s} s` };
   }
   if (name === 'size_actuators') {
@@ -141,7 +142,7 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     const bad = Object.keys(given).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
     const g = args.g === undefined ? [0, 0, -STANDARD_GRAVITY] : args.g;
     if (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"g" is [x, y, z] in m/s².' };
-    const content = gravityOf(view, given as Record<string, number>, g as [number, number, number], t);
+    const content = gravityOf(view, jointValuesIn(t, given as Record<string, number>), g as [number, number, number], t);
     return { doc, content, changed: false, summary: `${Object.keys(content.torques).length} joints` };
   }
   if (name === 'sweep_path') {
@@ -151,8 +152,8 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
       if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
       const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
     }
-    const r = sweepOf(view, from as Record<string, number>, to as Record<string, number>, t);
-    return { doc, content: r.reply, changed: false, summary: r.summary };
+    const r = sweepOf(view, jointValuesIn(t, from as Record<string, number>), jointValuesIn(t, to as Record<string, number>), t);
+    return { doc, content: { ...r.reply, ...(r.reply.contact ? { contact: { ...r.reply.contact, values: jointValuesOut(t, r.rawContactValues!) } } : {}) }, changed: false, summary: r.summary };
   }
   if (name === 'export_mjcf') {
     const r = mjcfOf(view, typeof args.name === 'string' ? args.name : 'robot', treeOf(view), { leaveOut: leaveOutOf(args) });
@@ -174,9 +175,9 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     const t = treeOf(view), given = args.values ?? {};
     if (!given || typeof given !== 'object' || Array.isArray(given) || Object.values(given).some(v => typeof v !== 'number' || !Number.isFinite(v))) return { error: '"values" is {joint key: number}.' };
     let p: ReturnType<typeof poseOf>;
-    try { p = poseOf(view, given as Record<string, number>, t); } catch (e) { if (isRefusal(e)) return { error: (e as BarocssError).message }; throw e; }
+    try { p = poseOf(view, jointValuesIn(t, given as Record<string, number>), t); } catch (e) { if (isRefusal(e)) return { error: (e as BarocssError).message }; throw e; }
     if (p.unknown.length) return { error: `No joint ${p.unknown.join(', ')}; joints: ${t.joints.map(j => j.key).join(', ') || 'none'}.` };
-    return { doc, content: p.reply, changed: false, summary: `${p.reply.links.length} links placed${p.reply.out_of_limits.length ? `, ${p.reply.out_of_limits.length} outside their limits` : ''}` };
+    return { doc, content: { ...p.reply, values: jointValuesOut(t, p.reply.values) }, changed: false, summary: `${p.reply.links.length} links placed${p.reply.out_of_limits.length ? `, ${p.reply.out_of_limits.length} outside their limits` : ''}` };
   }
   if (name === 'set_pose' || name === 'set_waypoint' || name === 'check_path' || name === 'play_motion') {
     // (RS3 b: degrees and mm in and out; a refusal is the verb's, typed.)
@@ -215,7 +216,7 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
   const unknown = Object.keys(args.joints && typeof args.joints === 'object' ? args.joints : {}).filter(k => (args.joints as Record<string, unknown>)[k] !== null && !keys.has(k));
   if (unknown.length) return { error: `No joint ${unknown.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
   const changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(out.robot ?? null);
-  return { doc: out, content: { ok: true, did: changed ? 'set the robot settings' : 'no change', base: tree.base, joints: tree.joints.map(j => ({ key: j.key, type: j.type, ...(j.limit ? { limit: j.limit } : {}) })), problems: tree.problems }, changed, summary: changed ? `robot settings set (${tree.joints.length} joints)` : 'no change' };
+  return { doc: out, content: { ok: true, did: changed ? 'set the robot settings' : 'no change', base: tree.base, joints: jointTreeOut(tree).joints.map(j => ({ key: j.key, type: j.type, ...(j.limit ? { limit: j.limit } : {}) })), problems: tree.problems }, changed, summary: changed ? `robot settings set (${tree.joints.length} joints)` : 'no change' };
 }
 
 const LIMIT_KEYS = ['velocity', 'acceleration', 'jerk'];
@@ -281,7 +282,7 @@ function moveArgs(tree: JointTree, args: Record<string, unknown>): { from: Recor
   const per = (args.joint_limits ?? {}) as Record<string, unknown>, all = args.limits;
   const moving = Object.keys({ ...from, ...to }).filter(k => ((to[k] as number) ?? 0) !== ((from[k] as number) ?? 0));
   for (const k of moving) { const l = per[k] ?? all; if (!ok(l)) return { error: `${k}: give its limits (velocity and acceleration above 0${args.profile === 's-curve' ? ', and jerk for an S-curve' : ''}) in "limits" or "joint_limits" — none is assumed.` }; if (args.profile === 's-curve' && (l as MoveLimits).jerk === undefined) return { error: `${k}: an S-curve needs a jerk limit.` }; }
-  return { from: from as Record<string, number>, to: to as Record<string, number>, profile: args.profile, limits: k => (per[k] ?? all) as MoveLimits };
+  return { from: jointValuesIn(tree, from as Record<string, number>), to: jointValuesIn(tree, to as Record<string, number>), profile: args.profile, limits: k => moveLimitsIn(tree, k, (per[k] ?? all) as MoveLimits) };
 }
 
 /** The sizing as the tool returns it (10 significant figures; a margin with nothing to check is null). */
@@ -326,7 +327,7 @@ export function readDuty(tree: JointTree, raw: unknown): Duty | { error: string 
   for (const [i, m] of (d.moves as Record<string, unknown>[]).entries()) {
     const a = moveArgs(tree, m); if ('error' in a) return { error: `move ${i}: ${a.error}` };
     const dwell = m.dwell_s ?? 0; if (typeof dwell !== 'number' || !(dwell >= 0)) return { error: `move ${i}: "dwell_s" is a time of 0 s or more` };
-    moves.push({ from: a.from, to: a.to, profile: a.profile, ...(m.limits ? { limits: m.limits as MoveLimits } : {}), ...(m.joint_limits ? { joint_limits: m.joint_limits as Record<string, MoveLimits> } : {}), dwell_s: dwell });
+    moves.push({ from: a.from, to: a.to, profile: a.profile, joint_limits: Object.fromEntries(Object.keys({ ...a.from, ...a.to }).filter(k => (a.from[k] ?? 0) !== (a.to[k] ?? 0)).map(k => [k, a.limits(k)])), dwell_s: dwell });
   }
   const num = (k: string) => { const v = d[k]; return v === undefined ? undefined : typeof v === 'number' && v > 0 ? v : NaN; };
   for (const k of ['life_h', 'inertia_ratio_max']) if (Number.isNaN(num(k))) return { error: `"${k}" is a number above 0` };
@@ -342,7 +343,10 @@ export async function robotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResul
 export async function robotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: Duty, o: { maxRounds?: number } = {}): Promise<{ sized: Sized; doc: StudioDoc }> {
   const r = await robotOfDoc(doc, bodies, evaluate), sized = sizeDesign(r.tree, linkBodies(r.tree, r.partOf), await sweepLinksOfDoc(doc, bodies, evaluate, r.tree), duty, o);
   const robot = readRobot(doc.robot), joints: Record<string, JointSettings> = { ...robot.joints };
-  for (const j of sized.tree.joints) if (j.limit && (j.limit.velocity !== undefined || j.limit.effort !== undefined)) joints[j.key] = { ...joints[j.key], ...(j.limit.velocity !== undefined ? { velocity: j.limit.velocity } : {}), ...(j.limit.effort !== undefined ? { effort: j.limit.effort } : {}) };
+  for (const j of sized.tree.joints) if (j.limit) {
+    const limit = jointSettingsOut(j.type, j.limit);
+    if (limit.velocity !== undefined || limit.effort !== undefined) joints[j.key] = { ...joints[j.key], ...(limit.velocity !== undefined ? { velocity: limit.velocity } : {}), ...(limit.effort !== undefined ? { effort: limit.effort } : {}) };
+  }
   return { sized, doc: { ...doc, robot: { ...robot, joints } } };
 }
 /** The document's robot as URDF (RM4). */

@@ -16,10 +16,10 @@ export class Robot {
   /** The plain document (a copy): the assembly's, robot settings and all. */
   get doc(): StudioDoc { return structuredClone(this.#doc); }
 
-  /** `assembly.joints` (get_joints): the assembly as links and joints from its base link. */
+  /** `assembly.joints`: the public tree, with turning limits/velocity in degrees and degree/s, effort in N·mm; slides in mm and N. */
   joints() { return jointsOf(this.#doc); }
 
-  /** `assembly.set_joints`: the base link and joints' limits and ratings (null removes one's) — a new robot. */
+  /** `assembly.set_joints`: store public degree/mm limits and ratings unchanged (null removes one's) — a new robot. */
   setJoints(o: { base?: string; joints?: Record<string, Partial<JointSettings> | null> }): Robot { return new Robot(withJoints(this.#doc, o)); }
 
   /** `assembly.pose` (forward_kinematics): each link and frame, with joint values in degrees (or mm for a slide), in and out. */
@@ -67,7 +67,7 @@ export class RobotPath {
   get motion(): MotionPath { return structuredClone(this.#motion); }
   get waypoints(): readonly Readonly<Record<string, number>>[] { return this.motion.waypoints; }
 
-  /** `assembly.sweep` (sweep_path) between each two waypoints in turn: one reply a segment. */
+  /** `assembly.sweep` between each two waypoints: one reply per segment, contact joint values in degrees/mm. */
   check() {
     const tree = treeOf(this.#doc);
     refuseLoop(tree);

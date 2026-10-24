@@ -24,6 +24,8 @@ import { r6 } from '../util/round';
 import { refusal, refused } from '../engine/refusal';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from './motion';
 import { CCD_TOLERANCE, sweepTimed, timeAt, timePath, type TimedPath } from './ccd';
+import { jointValuesIn, jointValuesOut } from './units';
+export { jointValuesIn, jointValuesOut } from './units';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 /** A robot as its functions read it: the document, the base part's bodies, and each placed part's in its own coordinates. */
@@ -85,7 +87,8 @@ export function poseOf(view: RobotView, given: Readonly<Record<string, number>>,
 /** sweep_path's reply: a straight joint move checked for contact between the links. */
 export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {
   const r = sweepPath(t, sweepLinksOf(view, t), from, to);
-  return { reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
+  return { ...(r.contact ? { rawContactValues: r.contact.values as Readonly<Record<string, number>> } : {}),
+    reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
     summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
 }
 const sig10 = (v: number) => Number(v.toPrecision(10)) + 0;
@@ -139,10 +142,6 @@ export function withJoints(doc: StudioDoc, o: { base?: string; joints?: Readonly
 // ── RS3: the agent moves the robot — degrees for a turning joint and mm for a slide, in and out (conventions §2) ──
 const DEG = Math.PI / 180;
 const turning = (t: JointTree, key: string) => { const j = t.joints.find(x => x.key === key); return j?.type === 'revolute' || j?.type === 'continuous'; };
-/** Values in the document's units (degrees, mm) as FK's (radians, mm). */
-export const jointValuesIn = (t: JointTree, v: Readonly<Record<string, number>>) => Object.fromEntries(Object.entries(v).map(([k, x]) => [k, turning(t, k) ? x * DEG : x]));
-/** FK's values (radians, mm) in the document's units (degrees, mm), to 1e-9. */
-export const jointValuesOut = (t: JointTree, v: Readonly<Record<string, number>>) => Object.fromEntries(Object.entries(v).map(([k, x]) => [k, Math.round((turning(t, k) ? x / DEG : x) * 1e9) / 1e9 + 0]));
 
 const round9 = (x: number) => Math.round(x * 1e9) / 1e9 + 0;
 /** Joint values (degrees, mm) past their joint's limits, refused in the same units (JOINT_LIMIT); `at` names where they are. */
