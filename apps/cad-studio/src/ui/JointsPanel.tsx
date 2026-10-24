@@ -89,7 +89,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
           <div key={j.key} aria-label={`Joint ${j.key}`} title={`mates ${j.mates.join(', ') || 'none'}`}>
             <div className="kv">{name(j.parent)} → {name(j.child)} <b>{TYPE_LABEL[j.type]}{j.type !== 'fixed' ? ` ${axisText(j.axis)}` : ''}{j.mimic ? (j.cam ? ` · follows ${j.mimic.joint} on its cam (${j.cam.mate})` : ` · follows ${j.mimic.joint} ×${j.mimic.multiplier.toFixed(4)}`) : ''}</b>
               {j.limit && <span className="muted"> {limitText(j.limit, j.type)}</span>}</div>
-            {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque(holding[j.key] ?? 0)} {turn ? 'N·m' : 'N'} against gravity</div>}
+            {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque((holding[j.key] ?? 0) * (turn ? 1000 : 1))} {turn ? 'N·mm' : 'N'} against gravity</div>}
             {j.type !== 'fixed' && !j.mimic && <div className={FIELD} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input type="range" aria-label={`Joint ${j.key} value`} min={r.min} max={r.max} step="any" value={v} style={{ flex: 1 }}
                 onChange={e => onValue(j.key, Number(e.target.value))} />
@@ -147,7 +147,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       {massLinks.map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
         if (!massesOpen) return bad.map((i, k) => <div key={`${l.link}-${k}`} className="hud-error" role="status">{name(l.link)}: {i.message}</div>);
-        return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>
+        return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (g·mm²): ${l.principal.moments.map(m => (m * 1e9).toExponential(3)).join(', ')} principal`}>
           <div className="kv">{name(l.link)} <b>{mm1(l.massKg * 1000)} g</b></div>
           <div className="kv muted">CoM ({l.comM.map(v => mm1(v * 1000)).join(', ')}) mm{assumed ? ' · material assumed' : ''}</div>
           {bad.map((i, k) => <div key={k} className="hud-error" role="status">{i.message}</div>)}

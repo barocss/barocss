@@ -11,7 +11,7 @@ one assembled commit before adopting R7 together. This applies api-conventions.m
 
 - Public options, stored latest documents, agent replies and facade results use mm, g, s and degrees. Angular
   velocity/acceleration/jerk use degree/s, degree/s², degree/s³. Slides use mm and corresponding time derivatives.
-- Public force is N; turning effort/torque is N·mm. Gravity vector/magnitude is mm/s² (standard9810).
+- Public force is N; turning effort/torque is N·mm. Gravity vector/magnitude is mm/s² (preserve existing standard9.80665m/s² as9806.65mm/s²).
   Density is g/cm³; inertia is g·mm², mass g, centroid mm. Service life is seconds.
 - Core FK/IK/loop/profile/dynamics calculations retain radians and existing SI internals. Convert once at ingress
   and once at egress. Existing degree-based set_pose, waypoints, motion documents and API pose conversion must not
@@ -129,3 +129,10 @@ not evidence that implementation has passed.
 
 The native Split demo currently asserts Node22.23.3 while the selected host toolchain is22.22.0. This is an existing
 required-check failure under the selected runtime. Record its exact cause and resolution; it is not an aggregate PASS.
+
+## Gravity default correction
+
+The existing internal STANDARD_GRAVITY is9.80665m/s². Preserve that physical default as9806.65mm/s² publicly.
+The initial9810 wording assumed an existing9.81 default and did not authorize a physical default change.
+An explicit input of9810mm/s² still converts to9.81m/s²; independent examples using that explicit input remain valid.
+Native/dynamics defaults and existing physical oracles must not change merely to match a rounded example.

@@ -117,9 +117,9 @@ test('the link_inertia tool on the 2R arm; the conformance case (rm/inertia-cubo
   assert.deepEqual(j.links.map((l: { link: string }) => l.link), ['base', 'a', 'b']);
   const a = j.links[1], b = j.links[2], armMass = (60 * 20 * 5 - 2 * Math.PI * 25 * 5) * RHO * 1e-6;
   // (The tool gives 10 significant figures.)
-  assert.ok(Math.abs(a.mass_kg - armMass) < 1e-10 * armMass && a.mass_kg === b.mass_kg, `${a.mass_kg} vs ${armMass}`);
+  assert.ok(Math.abs(a.mass / 1000 - armMass) < 1e-10 * armMass && a.mass === b.mass, `${a.mass / 1000} vs ${armMass}`);
   // (The arm's centre, (30, 10, 2.5) in its part, from its turning hole at (10, 10, 0): 20 mm along X, 2.5 up.)
-  assert.ok(close(a.com_m, [0.02, 0, 0.0025], 1e-9), JSON.stringify(a.com_m));
+  assert.ok(close(a.centroid.map((x: number) => x / 1000), [0.02, 0, 0.0025], 1e-9), JSON.stringify(a.centroid));
   assert.ok(a.issues.some((i: { code: string }) => i.code === 'MATERIAL_ASSUMED'));
   // The conformance case: the cuboid's document and its analytic answer, written from the closed form.
   const file = join(CASES, 'inertia-cuboid', 'case.json'), s = await cuboid();
