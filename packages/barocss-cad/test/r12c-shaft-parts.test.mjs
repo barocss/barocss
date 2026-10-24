@@ -18,7 +18,7 @@ const shaft = (ends = 'end-mill') => shaftSolid({ steps: [{ diameter: 20, length
 /** A hub: Ø40 outside, a Ø20 bore, 18 long from z 5 (over the seat). */
 const hubBody = (dx = 0) => outputOf(evaluateCadPart(D([{ id: 'o', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20, plane: { origin: [0, 0, 5], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: 18 },
   { id: 'b', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'be', kind: 'extrude', sketch: 'b', height: 40 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'be' }])), 'h').brep;
-const FITS = [{ id: 'key-fits', rows: [{ class: 'N9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', over: 3, upTo: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true }] }];
+const FITS = [{ id: 'key-fits', rows: [{ class: 'N9', over: 3, upTo: 6, upper: 0, lower: -0.03, estimate: true }, { class: 'JS9', over: 3, upTo: 6, upper: 0.015, lower: -0.015, estimate: true }, { class: 'h9', over: 3, upTo: 6, upper: 0, lower: -0.03, estimate: true }] }];
 
 test('R12c.3b key and hub keyway: a round-ended 6 × 6 × 18 key in the end-milled seat — (l − b)bh + π(b/2)²h; the keyway removes L·∫((r + t2) − √(r² − v²)); 2.5 above the shaft, 0.3 under the keyway\'s floor (S0)', () => {
   const s = shaft(), P = { report: s.report, place: I }, hub = hubBody(), r = 10, b = 6, t2 = 2.8, L = 18;
@@ -52,8 +52,8 @@ test('R12c.3b key checks: KEY_FIT for a key too long, too wide, too high for the
   // key at its seat's width: a 6.01 key with classes is refused (the classes carry the limits, R12c.2's rule).
   const fitted = keySolid(P, { keyseat: 1, height: 6, hub: kw.report, fit: { tables: FITS, key: 'h9', seat: 'N9', hub: 'JS9' } }, 'k');
   assert.throws(() => keySolid(P, { keyseat: 1, height: 6, width: 6.01, fit: { tables: FITS, key: 'h9', seat: 'N9' } }, 'k'), e => code('KEY_FIT')(e) && /nominal width 6/.test(e.message));
-  assert.deepEqual([fitted.report.seatFit.kind, fitted.report.seatFit.clearanceMinUM, fitted.report.seatFit.clearanceMaxUM], ['transition', -30, 30]);
-  assert.deepEqual([fitted.report.hubFit.kind, fitted.report.hubFit.clearanceMinUM, fitted.report.hubFit.clearanceMaxUM], ['transition', -15, 45]);
+  assert.deepEqual([fitted.report.seatFit.kind, fitted.report.seatFit.clearanceMin, fitted.report.seatFit.clearanceMax], ['transition', -30 / 1000 - 0 / 1000, 0 / 1000 - -30 / 1000]);
+  assert.deepEqual([fitted.report.hubFit.kind, fitted.report.hubFit.clearanceMin, fitted.report.hubFit.clearanceMax], ['transition', -15 / 1000 - 0 / 1000, 15 / 1000 - -30 / 1000]);
   assert.throws(() => keySolid(P, { keyseat: 2, height: 6 }, 'k'), code('INVALID_INPUT'));
 });
 
