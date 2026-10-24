@@ -1,3 +1,4 @@
+import { readDuty } from '@barocss/cad-model/robot/native/duty';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
@@ -7,7 +8,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
-import { readDuty, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { dutyJson, type PublicDuty, type PublicHarnessReport } from '@barocss/cad-model/robot/reports';
 import * as L3 from '../server/robotL3/main';
 import { robotCheckCall, robotCheckListed, withRatings } from '../server/robotL3/tool';

@@ -1,3 +1,4 @@
+import { readDuty } from '@barocss/cad-model/robot/native/duty';
 // O15, RD10's L3 run (O46's protocol, the owner's go-ahead 2026-10-23): a model sizes arm-3r from O48's undersized start
 // with RD9's harness as its tool (robot_check, listed for this run only), through the real chat server and cad-mcp, as a
 // chat turn runs. Each run is independent: a fresh folder, the same start, the byte-identical prompt, no session resumed.
@@ -17,8 +18,8 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
-import { readDuty, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
-import type { Duty } from '@barocss/cad-model/robot/harness';
+import { nativeRobotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import type { NativeDuty } from '@barocss/cad-model/robot/native/duty';
 import { dutyJson, type PublicDuty } from '@barocss/cad-model/robot/reports';
 import { jointSettingsOut } from '@barocss/cad-model/robot/units';
 import { createChatServer } from '../chatServer';
@@ -30,11 +31,11 @@ export const MODEL = 'claude-opus-5-5';
 const RUN_BUDGET_USD = 8, TOTAL_BUDGET_USD = 25, WALL_MS = Number(process.env.CAD_ROBOT_L3_WALL_MS) || 30 * 60 * 1000, ORIGIN = 'http://robot-l3.localhost';
 const P1 = { 'base~l1': 1, 'l1~l2': 0.9, 'l2~l3': 0.6 }, P2 = { 'base~l1': -0.8, 'l1~l2': -1, 'l2~l3': -0.7 };
 /** O48's brief: arm-3r between two poses, 0.5 s dwells, 20 000 h, at 6 rad/s and 60 rad/s². */
-const BRIEF: Duty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }], life_h: 20000 };
+const BRIEF: NativeDuty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }], life_h: 20000 };
 const on = (ratio: number) => ({ motor: 'maxon-608131', reducer: `hd-csg-14-${ratio}-2a-r-bb-lw` });
 
 /** O48's undersized start: ratings 1 rad/s and 1 N·m, every joint on 100:1. */
-export function start(conformance: string): { doc: StudioDoc; duty: Duty } {
+export function start(conformance: string): { doc: StudioDoc; duty: NativeDuty } {
   const r = readStudioDoc(readFileSync(join(conformance, 'rd/arm-3r/robot.bcad'), 'utf8'));
   if (!('doc' in r)) throw new Error(r.error);
   const joints = Object.fromEntries(Object.entries(r.doc.robot!.joints!).map(([k, v]) => [k, { ...v, ...jointSettingsOut('revolute', { velocity: 1, effort: 1 }) }]));
@@ -72,7 +73,7 @@ export interface RunRecord {
 }
 
 /** One run in its own folder through a fresh chat server: the record, and the part and duty it left (in `dir`). */
-async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: string; conformance: string; dir: string; scripted?: (s: { doc: StudioDoc; duty: Duty }) => Promise<string>; costEnv?: string }): Promise<RunRecord> {
+async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: string; conformance: string; dir: string; scripted?: (s: { doc: StudioDoc; duty: NativeDuty }) => Promise<string>; costEnv?: string }): Promise<RunRecord> {
   const s = start(o.conformance), evaluate = async (d: StudioDoc) => evaluatePart(d, 1), initial = await evaluate(s.doc);
   if (!initial.ok) throw new Error('the start does not evaluate');
   const tree = await treeOfDoc(s.doc, initial.bodies, evaluate), brief = dutyJson(tree, s.duty);
@@ -122,11 +123,11 @@ async function oneRun(k: number, o: { claude: string; mcpScript: string; cli: st
 }
 
 /** The scripted dry run's calls: the sizer's own answer, as a model would make it. */
-export async function sizerScript(s: { doc: StudioDoc; duty: Duty }): Promise<string> {
+export async function sizerScript(s: { doc: StudioDoc; duty: NativeDuty }): Promise<string> {
   const evaluate = async (d: StudioDoc) => evaluatePart(d, 1), e = await evaluate(s.doc);
   if (!e.ok) throw new Error('the start does not evaluate');
   const tree = await treeOfDoc(s.doc, e.bodies, evaluate);
-  const { sized, doc } = await robotSizeOfDoc(s.doc, e.bodies, evaluate, s.duty);
+  const { sized, doc } = await nativeRobotSizeOfDoc(s.doc, e.bodies, evaluate, s.duty);
   const joints = Object.fromEntries(Object.entries(doc.robot!.joints!).map(([k, v]) => [k, { velocity: v.velocity, effort: v.effort }]));
   return `script ${JSON.stringify({ calls: [
     { tool: 'robot_check', args: { duty: dutyJson(tree, s.duty) } },

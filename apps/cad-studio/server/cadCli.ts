@@ -37,8 +37,8 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
-import { readDuty, robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
-import { harnessJson, sizedJson } from '@barocss/cad-model/robot/reports';
+import { robotCheckOfDoc, robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
+import type { PublicDuty } from '@barocss/cad-model/robot/reports';
 import { sourceBytes, sourceName, sourceRecord } from '@barocss/cad-model/team/source';
 
 /** A STEP file for the CLI's reports: the text, or the refusal's words (R7.3c: exportStudioStep throws). */
@@ -361,10 +361,9 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(rest[1]), 'utf8')); } catch (e) { return failed(`${rest[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const tree = await treeOfDoc(s.doc, s.bodies, evaluate), duty = readDuty(tree, raw);
-    if ('error' in duty) return failed(`${rest[1]}: ${duty.error}`, 2);
-    const r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, duty);
-    say(io.stdout, harnessJson(tree, r));
+    const r = await robotCheckOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty);
+    if ('error' in r) return failed(`${rest[1]}: ${r.error}`, 2);
+    say(io.stdout, r);
     return r.ok ? 0 : 1;
   }
   if (cmd === 'robot-size') {
@@ -377,13 +376,12 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     if ('error' in s) return failed(s.error);
     let raw: unknown;
     try { raw = JSON.parse(readFileSync(resolve(files[1]), 'utf8')); } catch (e) { return failed(`${files[1]}: ${e instanceof Error ? e.message : String(e)}`, 2); }
-    const tree = await treeOfDoc(s.doc, s.bodies, evaluate), duty = readDuty(tree, raw);
-    if ('error' in duty) return failed(`${files[1]}: ${duty.error}`, 2);
-    const { sized, doc } = await robotSizeOfDoc(s.doc, s.bodies, evaluate, duty), out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
-    const published = sizedJson(sized);
+    const result = await robotSizeOfDoc(s.doc, s.bodies, evaluate, raw as PublicDuty);
+    if ('error' in result) return failed(`${files[1]}: ${result.error}`, 2);
+    const { sized: published, doc } = result, out = resolve(rest[oi + 1]), dutyOut = out.replace(/\.bcad$/i, '') + '.duty.json';
     writeAtomic(out, encodeStudioFile(doc)); writeAtomic(dutyOut, JSON.stringify(published.duty, null, 1) + '\n');
     say(io.stdout, { ok: published.ok, rounds: published.rounds, trace: published.trace, ...(published.stopped ? { stopped: published.stopped } : {}), least: published.report.least, wrote: [out, dutyOut] });
-    return sized.ok ? 0 : 1;
+    return published.ok ? 0 : 1;
   }
   if (cmd === 'check') {
     if (rest.length !== 1) return usage('check takes one .bcad file');

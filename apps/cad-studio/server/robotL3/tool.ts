@@ -7,8 +7,8 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
-import { readDuty, robotCheckOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
-import { harnessJson } from '@barocss/cad-model/robot/reports';
+import { robotCheckOfDoc } from '@barocss/cad-model/chat/robot';
+import type { PublicDuty } from '@barocss/cad-model/robot/reports';
 
 type Evaluate = (doc: StudioDoc) => Promise<{ ok: true; bodies: BodyResult[] } | { ok: false } | null | undefined>;
 export const robotL3 = () => process.env.CAD_ROBOT_L3 === '1';
@@ -52,9 +52,8 @@ export async function robotCheckCall(doc: StudioDoc, bodies: readonly BodyResult
   if (ratings === undefined) { try { ratings = jointsPath ? JSON.parse(readFileSync(jointsPath, 'utf8')) : {}; } catch { ratings = {}; } }
   const bad = ratingsProblem(ratings); if (bad) return { text: JSON.stringify({ ok: false, error: `joints: ${bad}` }), isError: true };
   doc = withRatings(doc, ratings as Ratings);
-  const tree = await treeOfDoc(doc, bodies, evaluate as never), duty = readDuty(tree, raw);
-  if ('error' in duty) return { text: JSON.stringify({ ok: false, error: `duty: ${duty.error}` }), isError: true };
-  const report = harnessJson(tree, await robotCheckOfDoc(doc, bodies, evaluate as never, duty));
+  const report = await robotCheckOfDoc(doc, bodies, evaluate as never, raw as PublicDuty);
+  if ('error' in report) return { text: JSON.stringify({ ok: false, error: `duty: ${report.error}` }), isError: true };
   // Preserve validated public numbers: a second duty projection can round a pose by one ULP.
   if (path) writeFileSync(path, JSON.stringify(raw, null, 1) + '\n');
   if (jointsPath) writeFileSync(jointsPath, JSON.stringify(ratings, null, 1) + '\n');

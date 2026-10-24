@@ -1,3 +1,4 @@
+import { readDuty } from '@barocss/cad-model/robot/native/duty';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -12,12 +13,13 @@ import { dispatchTool, type ChatState } from '@barocss/cad-model/chat/tools';
 import { materialIdOf, withLook } from '@barocss/cad-model/app/bodies';
 import { materialOf } from '@barocss/cad-model/library/materials';
 import { solveDoc } from '@barocss/cad-model/assembly/edit';
-import { readDuty, robotCheckOfDoc, robotOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { nativeRobotCheckOfDoc, robotOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { linkBodies } from '@barocss/cad-model/robot/dynamics';
 import { sizeActuators } from '@barocss/cad-model/robot/actuators';
 import { jointSettingsOut, jointValuesOut } from '@barocss/cad-model/robot/units';
 import { dutyJson } from '@barocss/cad-model/robot/reports';
-import type { Duty, HarnessReport } from '@barocss/cad-model/robot/harness';
+import type { NativeDuty } from '@barocss/cad-model/robot/native/duty';
+import type { HarnessReport } from '@barocss/cad-model/robot/native/harness';
 
 // RD9 (O46, O47): the design-check harness v1, without FEA. A 3R arm (base, three 20 × 20 × 80 aluminium blocks on Z, Y,
 // Y, a 60 mm steel cube locked on the last) from its mates, with limits and ratings: on a clean duty every margin is
@@ -49,7 +51,7 @@ async function arm3r(): Promise<StudioDoc> {
   return { ...base, instances, mates, robot: { version: 1, joints: storedRatings } };
 }
 const P1 = { 'base~l1': 1, 'l1~l2': 0.9, 'l2~l3': 0.6 }, P2 = { 'base~l1': -0.8, 'l1~l2': -1, 'l2~l3': -0.7 };
-export const DUTY: Duty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 1, acceleration: 3 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 1, acceleration: 3 }, dwell_s: 0.5 }], life_h: 20000 };
+export const DUTY: NativeDuty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 1, acceleration: 3 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 1, acceleration: 3 }, dwell_s: 0.5 }], life_h: 20000 };
 async function frozen(): Promise<StudioDoc> {
   if (process.env.UPDATE_RM_FIXTURES) {
     mkdirSync(DIR, { recursive: true });
@@ -59,7 +61,7 @@ async function frozen(): Promise<StudioDoc> {
   }
   const r = readStudioDoc(readFileSync(join(DIR, 'robot.bcad'), 'utf8')); assert.ok('doc' in r); return r.doc;
 }
-const check = async (doc: StudioDoc, duty: Duty): Promise<HarnessReport> => robotCheckOfDoc(doc, await bodiesOf(doc), evaluate, duty);
+const check = async (doc: StudioDoc, duty: NativeDuty): Promise<HarnessReport> => nativeRobotCheckOfDoc(doc, await bodiesOf(doc), evaluate, duty);
 const failing = (r: HarnessReport) => [...new Set(r.margins.filter(m => !m.ok).map(m => `${m.check}${m.joint ? ` ${m.joint}` : ''}`))].sort();
 const rated = (doc: StudioDoc, key: string, patch: import('@barocss/cad-model/robot/joints').JointSettings): StudioDoc => ({ ...doc, robot: { version: 1, joints: { ...doc.robot!.joints, [key]: { ...doc.robot!.joints![key], ...jointSettingsOut('revolute', patch) } } } });
 
@@ -90,7 +92,7 @@ test('seeded defects: each a negative margin at its own check and only there; a 
   // (An undersized actuator given: a fast duty (6 rad/s cruise, 60 rad/s², the ratings raised to allow it) with the shoulder on the 100:1
   // reducer — its motor would run past its torque–speed line — the others on 50:1: the failing RD3 checks the shoulder's.)
   const fastDoc: StudioDoc = { ...doc, robot: { version: 1, joints: Object.fromEntries(Object.entries(RATINGS).map(([k, v]) => [k, jointSettingsOut('revolute', { ...v, velocity: 10 })])) } };
-  const fast: Duty = { ...DUTY, moves: DUTY.moves.map(m => ({ ...m, limits: { velocity: 6, acceleration: 60 } })) };
+  const fast: NativeDuty = { ...DUTY, moves: DUTY.moves.map(m => ({ ...m, limits: { velocity: 6, acceleration: 60 } })) };
   const on = (reducer: string) => ({ motor: 'maxon-608131', reducer: `hd-csg-14-${reducer}-2a-r-bb-lw` });
   const small = await check(fastDoc, { ...fast, actuators: { 'base~l1': on('50'), 'l1~l2': on('100'), 'l2~l3': on('50') } });
   const f = failing(small);
@@ -164,5 +166,5 @@ test('cad-cli robot-check: the frozen arm and duty exit 0; a seeded duty exits 1
   assert.ok(existsSync(join(DIR, 'case.json')));
   // The frozen internal duty is supplied through the canonical public boundary.
   const d = readDuty(tree, dutyJson(tree, JSON.parse(readFileSync(join(DIR, 'duty.json'), 'utf8'))));
-  assert.ok(!('error' in d)); assert.deepEqual((d as Duty).moves.length, 2);
+  assert.ok(!('error' in d)); assert.deepEqual((d as NativeDuty).moves.length, 2);
 });

@@ -11,20 +11,19 @@ import { readUrdf } from '../robot/urdfCheck';
 import { type MjcfResult } from '../robot/mjcf';
 import { readMjcf } from '../robot/mjcfCheck';
 import { type SweepLink } from '../robot/sweep';
-import { checkDesign, type Duty, type HarnessReport } from '../robot/harness';
-import { sizeDesign, type Sized } from '../robot/sizer';
-import type { V3 } from '../robot/inertia';
-import { linkBodies, type MoveLimits } from '../robot/dynamics';
+import { checkDesign, type HarnessReport } from '../robot/native/harness';
+import { readDuty, moveArgs, type NativeDuty } from '../robot/native/duty';
+import { sizeDesign, type NativeSized } from '../robot/native/sizer';
+import { linkBodies } from '../robot/dynamics';
 import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, type Motor, type Reducer } from '../robot/actuators';
-import type { ProfileKind } from '../robot/profile';
 import { checkFramesOn, withFrames } from '../assembly/edit';
 import { readRobot, type JointSettings, type JointTree } from '../robot/joints';
 import { r6 } from '../util/round';
-import { jointSettingsOut, jointTreeOut, jointValuesIn, jointValuesOut, moveLimitsIn } from '../robot/units';
+import { jointSettingsOut, jointTreeOut, jointValuesIn, jointValuesOut } from '../robot/units';
 import { isRefusal, type BarocssError } from '../engine/refusal';
 import { checkMotion, gravityRawOf, inertiaOf, mjcfOf, moveRawOf, partsOf, playMotion, poseOf, robotViewOf, setPose, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, withWaypoint, type RobotView } from '../robot/verbs';
 
-import { gravityIn, gravityJson, inertiaJson, moveJson, PUBLIC_GRAVITY, sizeOptionsIn, sizingJson } from '../robot/reports';
+import { gravityIn, gravityJson, inertiaJson, moveJson, PUBLIC_GRAVITY, sizeOptionsIn, sizingJson, harnessJson, sizedJson, type PublicDuty } from '../robot/reports';
 export { inertiaJson, sizingJson } from '../robot/reports';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -267,22 +266,6 @@ function setFrames(view: RobotView, args: Record<string, unknown>): { doc: Studi
 const FRAME_FIELDS = ['link', 'position', 'rotation', 'kind'];
 
 const sig = (v: number) => Number(v.toPrecision(10)) + 0;
-/** A move's arguments (motion_torques, size_actuators): from and to by joint key, the profile, and each moving joint's
- * limits (per joint, else for all; none assumed). */
-function moveArgs(tree: JointTree, args: Record<string, unknown>): { from: Record<string, number>; to: Record<string, number>; profile: ProfileKind; limits: (k: string) => MoveLimits } | { error: string } {
-  const keys = new Set(tree.joints.map(j => j.key)), from = (args.from ?? {}) as Record<string, unknown>, to = (args.to ?? {}) as Record<string, unknown>;
-  for (const v of [from, to]) {
-    if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
-    const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
-  }
-  if (args.profile !== 'trapezoid' && args.profile !== 's-curve') return { error: '"profile" is "trapezoid" or "s-curve".' };
-  const ok = (l: unknown): l is MoveLimits => !!l && typeof l === 'object' && typeof (l as MoveLimits).velocity === 'number' && (l as MoveLimits).velocity > 0 && typeof (l as MoveLimits).acceleration === 'number' && (l as MoveLimits).acceleration > 0 && ((l as MoveLimits).jerk === undefined || (typeof (l as MoveLimits).jerk === 'number' && (l as MoveLimits).jerk! > 0));
-  const per = (args.joint_limits ?? {}) as Record<string, unknown>, all = args.limits;
-  const moving = Object.keys({ ...from, ...to }).filter(k => ((to[k] as number) ?? 0) !== ((from[k] as number) ?? 0));
-  for (const k of moving) { const l = per[k] ?? all; if (!ok(l)) return { error: `${k}: give its limits (velocity and acceleration above 0${args.profile === 's-curve' ? ', and jerk for an S-curve' : ''}) in "limits" or "joint_limits" — none is assumed.` }; if (args.profile === 's-curve' && (l as MoveLimits).jerk === undefined) return { error: `${k}: an S-curve needs a jerk limit.` }; }
-  return { from: jointValuesIn(tree, from as Record<string, number>), to: jointValuesIn(tree, to as Record<string, number>), profile: args.profile, limits: k => moveLimitsIn(tree, k, (per[k] ?? all) as MoveLimits) };
-}
-
 /** The document's robot and its parts: its instances evaluated in their own coordinates, each with its placement. */
 export async function robotOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate) {
   const view = await robotViewOf(doc, bodies, evaluate);
@@ -292,36 +275,13 @@ export async function robotOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], 
 export async function sweepLinksOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, t: JointTree): Promise<SweepLink[]> {
   return sweepLinksOf(await robotViewOf(doc, bodies, evaluate), t);
 }
-/** A duty as given (JSON), each move checked as motion_torques takes one; or why not. */
-export function readDuty(tree: JointTree, raw: unknown): Duty | { error: string } {
-  const d = raw as Record<string, unknown> | null;
-  if (!d || typeof d !== 'object' || Array.isArray(d) || !Array.isArray(d.moves) || !d.moves.length) return { error: 'a duty has "moves": [{from, to, profile, limits | joint_limits, dwell?}, …]' };
-  const extra = Object.keys(d).filter(k => !['moves', 'serviceLife', 'inertia_ratio_max', 'clearance', 'g', 'actuators'].includes(k));
-  if (extra.length) return { error: `No duty field ${extra.join(', ')}.` };
-  const moves: Duty['moves'] = [];
-  for (const [i, m] of (d.moves as Record<string, unknown>[]).entries()) {
-    if (!m || typeof m !== 'object' || Array.isArray(m)) return { error: `move ${i} is an object.` };
-    const extra = Object.keys(m).filter(k => !['from', 'to', 'profile', 'limits', 'joint_limits', 'dwell'].includes(k));
-    if (extra.length) return { error: `move ${i}: no field ${extra.join(', ')}.` };
-    const a = moveArgs(tree, m); if ('error' in a) return { error: `move ${i}: ${a.error}` };
-    const moving = Object.keys({ ...a.from, ...a.to }).filter(k => (a.from[k] ?? 0) !== (a.to[k] ?? 0));
-    for (const key of moving) if (Object.values(a.limits(key)).some(v => !Number.isFinite(v))) return { error: `move ${i}: ${key}: limits must be finite numbers.` };
-    const dwell = m.dwell ?? 0; if (typeof dwell !== 'number' || !Number.isFinite(dwell) || !(dwell >= 0)) return { error: `move ${i}: "dwell" is a time of 0 s or more` };
-    moves.push({ from: a.from, to: a.to, profile: a.profile, joint_limits: Object.fromEntries(Object.keys({ ...a.from, ...a.to }).filter(k => (a.from[k] ?? 0) !== (a.to[k] ?? 0)).map(k => [k, a.limits(k)])), dwell_s: dwell });
-  }
-  const num = (k: string) => { const v = d[k]; return v === undefined ? undefined : typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : NaN; };
-  for (const k of ['serviceLife', 'inertia_ratio_max']) if (Number.isNaN(num(k))) return { error: `"${k}" is a number above 0` };
-  if (d.clearance !== undefined && !(typeof d.clearance === 'number' && Number.isFinite(d.clearance) && d.clearance >= 0)) return { error: '"clearance" is 0 or more' };
-  if (d.g !== undefined && (!Array.isArray(d.g) || d.g.length !== 3 || d.g.some(x => typeof x !== 'number' || !Number.isFinite(x)))) return { error: '"g" is [x, y, z] in mm/s².' };
-  return { moves, ...(num('serviceLife') ? { life_h: num('serviceLife')! / 3600 } : {}), ...(num('inertia_ratio_max') ? { inertia_ratio_max: num('inertia_ratio_max') } : {}), ...(d.clearance !== undefined ? { clearance_mm: d.clearance as number } : {}), ...(d.actuators ? { actuators: d.actuators as Duty['actuators'] } : {}), g: gravityIn(d.g as V3 | undefined) };
-}
-/** RD9's harness on the document's robot: every margin against the duty (src/robot/harness.ts). */
-export async function robotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: Duty): Promise<HarnessReport> {
+/** Explicit native document adapter: turning radians, slide/clearance mm, dwell s, life_h hours, g m/s² and link dynamics SI. RD9's harness on the document's robot: every margin against the duty (src/robot/harness.ts). */
+export async function nativeRobotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: NativeDuty): Promise<HarnessReport> {
   const r = await robotOfDoc(doc, bodies, evaluate);
   return checkDesign(r.tree, linkBodies(r.tree, r.partOf), await sweepLinksOfDoc(doc, bodies, evaluate, r.tree), duty);
 }
-/** RD10's scripted sizer on the document's robot: the sized ratings written back to its joints, the duty with its actuators. */
-export async function robotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: Duty, o: { maxRounds?: number } = {}): Promise<{ sized: Sized; doc: StudioDoc }> {
+/** Explicit native document adapter: turning radians, slide/clearance mm, dwell s, life_h hours, g m/s² and link dynamics SI. RD10's scripted sizer on the document's robot: the sized ratings written back to its joints, the duty with its actuators. */
+export async function nativeRobotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: NativeDuty, o: { maxRounds?: number } = {}): Promise<{ sized: NativeSized; doc: StudioDoc }> {
   const r = await robotOfDoc(doc, bodies, evaluate), sized = sizeDesign(r.tree, linkBodies(r.tree, r.partOf), await sweepLinksOfDoc(doc, bodies, evaluate, r.tree), duty, o);
   const robot = readRobot(doc.robot), joints: Record<string, JointSettings> = { ...robot.joints };
   for (const j of sized.tree.joints) if (j.limit) {
@@ -329,6 +289,19 @@ export async function robotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult
     if (limit.velocity !== undefined || limit.effort !== undefined) joints[j.key] = { ...joints[j.key], ...(limit.velocity !== undefined ? { velocity: limit.velocity } : {}), ...(limit.effort !== undefined ? { effort: limit.effort } : {}) };
   }
   return { sized, doc: { ...doc, robot: { ...robot, joints } } };
+}
+/** Canonical document check: validate public seconds/degrees/mm once, then project the original native report. */
+export async function robotCheckOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: PublicDuty) {
+  const tree = await treeOfDoc(doc, bodies, evaluate), native = readDuty(tree, duty);
+  if ('error' in native) return native;
+  return harnessJson(tree, await nativeRobotCheckOfDoc(doc, bodies, evaluate, native));
+}
+/** Canonical document sizing; stored ratings are written from the native tree before projection. */
+export async function robotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, duty: PublicDuty, o: { maxRounds?: number } = {}) {
+  const tree = await treeOfDoc(doc, bodies, evaluate), native = readDuty(tree, duty);
+  if ('error' in native) return native;
+  const result = await nativeRobotSizeOfDoc(doc, bodies, evaluate, native, o);
+  return { ...result, sized: sizedJson(result.sized) };
 }
 /** The document's robot as URDF (RM4). */
 export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> { return urdfOf(await robotViewOf(doc, bodies, evaluate), name); }
