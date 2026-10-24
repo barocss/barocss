@@ -54,6 +54,7 @@ export type CadModelCode =
   // the assembly's edits (assembly/edit.ts)
   // parameters (engine/parameters.ts; the facade's codes)
   | 'PARAMETER_UNKNOWN' | 'PARAMETER_NAME' | 'PARAMETER_EXISTS' | 'PARAMETER_UNBINDABLE' | 'VALUE' | 'NO_FEATURE'
+  | 'CONNECTOR_INVALID' | 'CONNECTOR_POINT' | 'CONNECTOR_UNAVAILABLE' | 'CONNECTOR_KIND'
   | 'NO_PART' | 'PART_MATED' | 'MATE_KIND' | 'MATE_SAME_PART' | 'MATE_BOTH_FIXED' | 'MATE_FACE_UNKNOWN' | 'MATE_FACES' | 'MATE_UNMET' | 'NO_MATE'
   // the studio's commands (a pick, a value)
   | 'ALIGN_PICK' | 'ALIGN_TURN' | 'HOLE_SIZE' | 'HOLE_PATTERN' | 'DRAFT_PICK' | 'DRAFT_ANGLE' | 'FILLET_CHAIN' | 'DECIMATE_KEEP'

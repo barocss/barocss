@@ -1,3 +1,4 @@
+import { readConnector, withConnector, type Connector } from './connectors';
 // R7.3c (api-conventions §3): the assembly's edits as core functions, verb(doc, options) → result — what the agent's
 // add_part, place_part, add_mate and edit_mate write, and set_frames' write. The tools (chat/assembly.ts,
 // chat/robot.ts) and the facade's assembly (api/assemblyCore.ts) call these. After a change the assembly is solved
@@ -6,12 +7,12 @@ import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import { coded, refusal, type CadModelCode } from '../engine/refusal';
 import { nextFreeId } from '../util/ids';
 import { tablesFor } from './faces';
-import { BASE, KIND_LABEL, kindsFor, lockRel, mateRefusal, solveAssembly, type Mate, type MateKind, type Vec3 } from './mates';
+import { BASE, KIND_LABEL, mateKindsOf, mateFacesOf, lockRel, mateRefusal, solveAssembly, type Mate, type MateRef, type MateKind, type Vec3 } from './mates';
 import { readRobot, type JointTree, type RobotSettings } from '../robot/joints';
 import type { FrameSettings } from '../robot/frames';
 
 /** What the assembly's edits refuse with. */
-export const ASSEMBLY_CODES: readonly CadModelCode[] = ['NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME'];
+export const ASSEMBLY_CODES: readonly CadModelCode[] = ['CONNECTOR_INVALID', 'CONNECTOR_POINT', 'CONNECTOR_UNAVAILABLE', 'CONNECTOR_KIND', 'NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME'];
 
 /** The document with its mates solved from the placements `before` (its own when left out), and what cannot be met. */
 export function solveDoc(doc: StudioDoc, before?: readonly PartInstance[]): { doc: StudioDoc; problems: { mate: string; reason: string }[] } {
@@ -64,7 +65,7 @@ export function placePart(doc: StudioDoc, o: PlacePartOptions): Edited {
 /** A mate placed: the document, the mate as kept, and the freedom its moved part has left. */
 export interface Mated extends Edited { mate: Mate; freedom: ReturnType<typeof solveAssembly>['freedom'][string] }
 
-export interface AddMateOptions { kind: MateKind; a: { part: string; face: string }; b: { part: string; face: string }; distance?: number; angle?: number; flip?: boolean }
+export interface AddMateOptions { kind: MateKind; a: MateRef; b: MateRef; distance?: number; angle?: number; flip?: boolean }
 /** add_mate: a mate between faces of two parts (b moves; a fixed b and a free a swap), checked and solved. */
 export function addMate(doc: StudioDoc, o: AddMateOptions): Mated {
   const instances = doc.instances ?? [], mates = doc.mates ?? [], kind = o.kind;
@@ -74,7 +75,7 @@ export function addMate(doc: StudioDoc, o: AddMateOptions): Mated {
   if (a.part === b.part) throw refusal('MATE_SAME_PART', 'Both faces are on the same part; mate faces of two different parts.');
   const fixed = (p: string) => p === BASE || !!instances.find(i => i.id === p)?.grounded;
   if (fixed(b.part)) { if (fixed(a.part)) throw refusal('MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
-  const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a: { part: a.part, face: a.face }, b: { part: b.part, face: b.face },
+  const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a: { part: a.part, face: a.face, ...(a.at !== undefined ? { at: readConnector(a.at) } : {}) }, b: { part: b.part, face: b.face, ...(b.at !== undefined ? { at: readConnector(b.at) } : {}) },
     ...(kind === 'distance' ? { distance: Number(o.distance) } : {}), ...(kind === 'angle' ? { angle: Number(o.angle) } : {}), ...(kind !== 'concentric' && o.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof o.flip === 'boolean' ? { flip: o.flip } : {}) };
   return mated(doc, mate, [...mates, mate]);
 }
@@ -98,12 +99,15 @@ export function lockPart(doc: StudioDoc, o: { part: string; to: string }): Mated
   return { ...solveDoc({ ...doc, instances: r.instances, mates: list }, instances), mate, freedom: r.freedom[b] };
 }
 
-export interface EditMateOptions { id: string; distance?: number; angle?: number; flip?: boolean }
+export interface EditMateOptions { connectors?: { a?: Connector | null; b?: Connector | null }; id: string; distance?: number; angle?: number; flip?: boolean }
 /** edit_mate: a mate's distance, angle or flip changed (each left out: kept), checked and solved. */
 export function editMate(doc: StudioDoc, o: EditMateOptions): Mated {
   const mates = doc.mates ?? [], old = mates.find(m => m.id === o.id);
   if (!old) throw refusal('NO_MATE', `No mate "${o.id}"; mates: ${mates.map(m => m.id).join(', ') || 'none'}.`);
-  const mate: Mate = { ...old, ...(o.distance !== undefined ? { distance: Number(o.distance) } : {}), ...(o.angle !== undefined ? { angle: Number(o.angle) } : {}), ...(typeof o.flip === 'boolean' ? { flip: o.flip } : {}) };
+  if (o.connectors !== undefined && (!o.connectors || typeof o.connectors !== 'object' || Array.isArray(o.connectors) || Object.keys(o.connectors).some(k => k !== 'a' && k !== 'b'))) throw refusal('CONNECTOR_INVALID', 'connectors contains a and/or b; null removes a connector.');
+  const mate: Mate = { ...old,
+    ...(o.connectors?.a !== undefined ? { a: withConnector(old.a, o.connectors.a) } : {}),
+    ...(o.connectors?.b !== undefined ? { b: withConnector(old.b, o.connectors.b) } : {}), ...(o.distance !== undefined ? { distance: Number(o.distance) } : {}), ...(o.angle !== undefined ? { angle: Number(o.angle) } : {}), ...(typeof o.flip === 'boolean' ? { flip: o.flip } : {}) };
   return mated(doc, mate, mates.map(m => m.id === mate.id ? mate : m));
 }
 
@@ -112,8 +116,9 @@ function mated(doc: StudioDoc, mate: Mate, list: Mate[]): Mated {
   const instances = doc.instances ?? [], tables = tablesFor(doc), fa = tables(mate.a.part)?.[mate.a.face], fb = tables(mate.b.part)?.[mate.b.face];
   const missing = [!fa && mate.a, !fb && mate.b].filter(Boolean) as { part: string; face: string }[];
   if (missing.length) throw refusal('MATE_FACE_UNKNOWN', missing.map(r => `"${r.face}" is not a flat or round face of ${r.part}`).join('; '), { missing });
+  mateFacesOf(mate, { a: fa!, b: fb! }); // Preserve the connector refusal code at the editing boundary.
   const why = mateRefusal(mate, fa, fb);
-  if (why) throw refusal('MATE_FACES', `${why}${fa && fb ? ` (these faces admit: ${kindsFor(fa, fb).join(', ')})` : ''}`);
+  if (why) throw refusal('MATE_FACES', `${why}${fa && fb ? ` (these faces admit: ${mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }).join(', ')})` : ''}`);
   const r = solveAssembly(instances, list, tables, instances), problem = r.problems.find(p => p.mate === mate.id);
   if (problem) throw refusal('MATE_UNMET', problem.reason, { mate: mate.id });
   return { ...solveDoc({ ...doc, instances: r.instances, mates: list }, instances), mate, freedom: r.freedom[mate.b.part] };
