@@ -16,7 +16,7 @@ const upright = (v: Values) => ({ origin: [Number(v.x), Number(v.y), Number(v.z)
 /** A sketch drawn on the upright plane, turned a full turn about its Y axis (world Z through x, y). */
 function turned(doc: StudioDoc, sketch: ModelNode): StudioDoc {
   const d = withNode(doc, sketch);
-  return withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: 'y', angleDegrees: 360 });
+  return withNode(d, { kind: 'revolve', sketch: d.nodes.length - 1, axis: 'y', angle: 360 });
 }
 /**
  * A regular torus cage (every vertex valence 4) of nu × nv quads standing on z, wound outward. Its radii are grown so
@@ -190,7 +190,7 @@ export const primitives: Command[] = [
     build: (ctx, v) => {
       const [m, z, zm, sigma, b, bore, x, y, zz, beta, rc] = n(v, 'm', 'teeth', 'mate', 'sigma', 'b', 'bore', 'x', 'y', 'z', 'spiral', 'rc');
       // (Standing on At Z: its apex below by the toe's lowest point, Ri cos(δ + θa), the teeth above it.)
-      const spec = { moduleMM: m, teeth: Math.round(z), mateTeeth: Math.round(zm), shaftAngleDeg: sigma, faceWidthMM: b }, g = bevelGearDimensions(spec), low = g.Ri * Math.cos(g.tipPolar);
+      const spec = { module: m, teeth: Math.round(z), mateTeeth: Math.round(zm), shaftAngle: sigma, faceWidth: b }, g = bevelGearDimensions(spec), low = g.Ri * Math.cos(g.tipPolar);
       // (A spiral one's cutter radius left 0: the mean cone distance, said to be an estimate.)
       const spiral = beta > 0 ? { angle: beta, hand: v.hand === 'right' ? 'right' as const : 'left' as const, cutterRadius: rc > 0 ? rc : +((g.Re + g.Ri) / 2).toFixed(3), ...(rc > 0 ? {} : { cutterEstimate: true }) } : undefined;
       return withNode(ctx.doc, { kind: 'bevel-gear', module: m, teeth: Math.round(z), mateTeeth: Math.round(zm), ...(sigma !== 90 ? { shaftAngle: sigma } : {}), faceWidth: b, ...(bore > 0 ? { bore } : {}), center: [x, y], from: zz - low, generator: 'bevel-gear@0', ...(spiral ? { spiral } : {}) });
@@ -213,8 +213,8 @@ export const primitives: Command[] = [
       const [m, z1, d1, z2, b, bore, wbore, x, y, zz] = n(v, 'm', 'starts', 'd1', 'z2', 'b', 'bore', 'wbore', 'x', 'y', 'z'), hand = v.hand === 'left' ? 'left' as const : 'right' as const, throated = v.wheel === 'throated', form = throated || v.form === 'ZA' ? 'ZA' as const : 'ZI' as const;
       // (The wheel: a helical gear at β = γ of the worm's hand, its normal module m_x cos γ. The worm long enough for the
       // mesh zone — where the wheel's tips reach its thread — and an axial pitch on either side.)
-      const worm = { axialModuleMM: m, starts: Math.round(z1), diameterMM: d1, hand, lengthMM: 1, form }, g = wormDimensions(worm), wh = wormWheelSpec(worm, { teeth: Math.round(z2), faceWidthMM: b });
-      const zone = checkWormPair(worm, wh, { mode: 'verdict', samples: 16 }).meshZoneHalfLengthMM, L = Math.ceil(2 * zone + 2 * Math.PI * m);
+      const worm = { axialModule: m, starts: Math.round(z1), diameter: d1, hand, length: 1, form }, g = wormDimensions(worm), wh = wormWheelSpec(worm, { teeth: Math.round(z2), faceWidth: b });
+      const zone = checkWormPair(worm, wh, { mode: 'verdict', samples: 16 }).meshZoneHalfLength, L = Math.ceil(2 * zone + 2 * Math.PI * m);
       // (The wheel's root schematic, spur-gear@0: a worm wheel is hobbed by a hob of the worm's own form, not cut by the
       // basic rack — whose generated root, at m_n, puts its fillet where an axial-module worm's crest reaches: a ZA worm
       // cuts it at no backlash, D136.)

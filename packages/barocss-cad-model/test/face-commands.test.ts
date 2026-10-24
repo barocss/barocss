@@ -40,10 +40,10 @@ test('Extrude on a picked flat face: its outline (holes too) is the profile, joi
   assert.deepEqual(sk.holes, [[{ kind: 'arc', start: [13, 10], center: [10, 10], direction: 'ccw' }]]);
   const up = pull(plate, 'n1.top', { h: 5 });
   assert.equal(up.bodies.length, 1);
-  assert.ok(Math.abs(up.bodies[0].volumeMM3! - (40 * 20 - Math.PI * 9) * 13) < 0.5, String(up.bodies[0].volumeMM3));
+  assert.ok(Math.abs(up.bodies[0].volume! - (40 * 20 - Math.PI * 9) * 13) < 0.5, String(up.bodies[0].volume));
   // Cut into it through the side face, a millimetre in.
   const cut = pull(rectanglePart(40, 20, 8), 'n1.side1', { h: 1, op: 'cut' });
-  assert.ok(Math.abs(cut.bodies[0].volumeMM3! - 40 * 20 * 8 + 20 * 8 * 1) < 0.5 || Math.abs(cut.bodies[0].volumeMM3! - 40 * 20 * 8 + 40 * 8) < 0.5, String(cut.bodies[0].volumeMM3));
+  assert.ok(Math.abs(cut.bodies[0].volume! - 40 * 20 * 8 + 20 * 8 * 1) < 0.5 || Math.abs(cut.bodies[0].volume! - 40 * 20 * 8 + 40 * 8) < 0.5, String(cut.bodies[0].volume));
 });
 
 test('A rounded corner of a face comes back as its arc', () => {
@@ -61,7 +61,7 @@ test('Extrude on a cylinder top: one circle; a curved face cannot be pulled', ()
   const sk = faceProfile(bodies[0].mesh, top)!;
   assert.deepEqual(sk.profile === 'loop' && sk.segments, [{ kind: 'arc', start: [6, 0], center: [0, 0], direction: 'ccw' }]);
   const up = pull(doc, 'n1.top', { h: 4 });
-  assert.ok(Math.abs(up.bodies[0].volumeMM3! - Math.PI * 36 * 14) < 0.5);
+  assert.ok(Math.abs(up.bodies[0].volume! - Math.PI * 36 * 14) < 0.5);
   const wall = bodies[0].mesh.faces.findIndex(f => f.kind === 'curved');
   const ctx: Ctx = { doc, bodies, selection: { faces: [{ body: 0, face: wall }], edges: [], bodies: [] } };
   const a = extrudeCommand.available(ctx);

@@ -43,14 +43,14 @@ test('the solid fraction on whole cells: a 24 × 24 × 12 cavity of 6 mm cells, 
 });
 
 test('filled: the solid one component, nothing loose; every empty region drained (the two labyrinths); in the mass beside the exact shell', async () => {
-  const { doc, bodies } = await hollowBox(30, 30, 18, 3), shellVolume = bodies[0].volumeMM3!;
+  const { doc, bodies } = await hollowBox(30, 30, 18, 3), shellVolume = bodies[0].volume!;
   const { doc: out, report } = planLattice(doc, bodies, { cell: 6, k: 0.6, h: 0.5 }), e = await evaluate(out); assert.ok(e.ok, JSON.stringify(!e.ok && e).slice(0, 400));
   console.log(`AM7b fill: ${report.pieces} piece(s), ${report.dropped.count} dropped (${report.dropped.volume.toFixed(2)} mm³), ${report.drains.length} drain(s) added (${report.joined} joined), ${report.snapped} wall vertices snapped, ${report.triangles} triangles, lattice ${report.volume.toFixed(1)} mm³, ${report.mixed} mixed tets`);
   // (The lattice: the facet bodies, its pieces, their volumes its own; the shell: the B-rep, its drains added.)
   const lats = e.bodies.filter(b => b.family === 'faceted'), shell = e.bodies.find(b => b.family !== 'faceted')!;
-  assert.equal(lats.length, report.pieces); assert.ok(Math.abs(lats.reduce((s, b) => s + b.volumeMM3!, 0) - report.volume) <= 1e-6 * report.volume);
+  assert.equal(lats.length, report.pieces); assert.ok(Math.abs(lats.reduce((s, b) => s + b.volume!, 0) - report.volume) <= 1e-6 * report.volume);
   assert.ok(report.drains.length >= 1, 'a sheet gyroid leaves two labyrinths: at least one more drain');
-  assert.ok(shell.volumeMM3! < shellVolume, 'the new drains cut through the shell');
+  assert.ok(shell.volume! < shellVolume, 'the new drains cut through the shell');
   // (Each body's voxels at h/4, OR'd — one triangle soup's parity would flip where the lattice meets the shell's wall: the
   // solid one 6-connected component; every empty voxel reached from outside.)
   const hc = 0.25, lo = shell.mesh.bounds.min, hi = shell.mesh.bounds.max, o: [number, number, number] = [lo[0] - 0.8, lo[1] - 0.87, lo[2] - 0.91], n = [0, 1, 2].map(q => Math.ceil((hi[q] - o[q] + 0.8) / hc) + 1);

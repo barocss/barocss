@@ -15,13 +15,13 @@ const box = (doc: StudioDoc, x: number, w: number, h: number) => withNode(withNo
 test('mass properties: area, mass by material (aluminium assumed until set), inertia scaled to the density', async () => {
   let s = await stateOf(rectanglePart(40, 20, 8));
   let [b] = (await call(s, 'mass_properties', {})).bodies;
-  assert.deepEqual([b.volume_mm3, b.area_mm2, b.mass_g, b.assumed, b.centroid], [6400, 2560, 17.28, true, [20, 10, 4]]);
+  assert.deepEqual([b.volume, b.area, b.mass, b.assumed, b.centroid], [6400, 2560, 17.28, true, [20, 10, 4]]);
   // Steel: 7.85 g/cm³; Izz of a box about its centre m (a² + b²)/12.
   const doc = withLook(s.doc, s.bodies[0], { material: 'steel' }); s = await stateOf(doc);
   [b] = (await call(s, 'mass_properties', {})).bodies;
-  assert.deepEqual([b.mass_g, b.assumed, b.material], [50.24, false, 'Steel (mild)']);
+  assert.deepEqual([b.mass, b.assumed, b.material], [50.24, false, 'Steel (mild)']);
   const izz = 0.05024 * (0.04 ** 2 + 0.02 ** 2) / 12;
-  assert.ok(Math.abs(b.inertia_kg_m2_about_centroid[2][2] - izz) < 1e-6 * izz + 1e-12, String(b.inertia_kg_m2_about_centroid[2][2]));
+  assert.ok(Math.abs(b.inertia[2][2] - izz) < 1e-6 * izz + 1e-12, String(b.inertia[2][2]));
   assert.equal(parse((await runTool(s, 'get_part_summary', {}, evaluate)).content).facts.mass_assumed, false);
 });
 

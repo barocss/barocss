@@ -25,7 +25,7 @@ test('reorder: a step moves past one it does not depend on, names kept (A1); not
   doc = withNode(doc, { kind: 'chamfer', parent: { node: 1, side: 'solid' }, edges: ['n1.side0|n1.top'], distance: 1 }); // 2
   doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [40, 0], max: [50, 10] });                      // 3
   doc = withNode(doc, { kind: 'extrude', sketch: 3, height: 5 });                                                   // 4
-  const vols = (d: typeof doc) => { const r = evaluateDoc(d, 1); assert.ok(r.ok); return r.bodies.map(b => Math.round(b.volumeMM3!)).sort((a, b) => a - b); };
+  const vols = (d: typeof doc) => { const r = evaluateDoc(d, 1); assert.ok(r.ok); return r.bodies.map(b => Math.round(b.volume!)).sort((a, b) => a - b); };
   const before = vols(doc);
   const once = moveFeature(doc, 4, -1);
   assert.ok('doc' in once);

@@ -22,15 +22,15 @@ function scene(tag: number) {
 }
 function facts(e: EvalResult) {
   assert.ok(e.ok, JSON.stringify(e));
-  return e.bodies.map(b => ({ key: b.key, volumeMM3: b.volumeMM3, centroid: b.centroid, bounds: b.mesh.bounds, faces: b.mesh.faces.map(f => f.name) }));
+  return e.bodies.map(b => ({ key: b.key, volume: b.volume, centroid: b.centroid, bounds: b.mesh.bounds, faces: b.mesh.faces.map(f => f.name) }));
 }
 function beadVolume(doc: StudioDoc, joint: string): number {
-  return ok(doc).bodies.find(b => b.key === beadIdOf(joint))?.volumeMM3 ?? 0;
+  return ok(doc).bodies.find(b => b.key === beadIdOf(joint))?.volume ?? 0;
 }
 
 test('REVIEW-M3 wire T: direct and transported evaluation keep 3 bodies and the 360 mm3 bead; stock stays local', () => {
   const s = scene(1), welded = s.weld(3);
-  const doc: StudioDoc = { ...welded, frames: { ...welded.frames!, sections: [{ id: 'unused', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, estimate: true }], stock: [{ id: 'shop', lengthMM: 6000, source: 'test' }], kerf: 2 } };
+  const doc: StudioDoc = { ...welded, frames: { ...welded.frames!, sections: [{ id: 'unused', section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, estimate: true }], stock: [{ id: 'shop', length: 6000, source: 'test' }], kerf: 2 } };
   assert.equal(ok(doc).bodies.length, 3); assert.ok(Math.abs(beadVolume(doc, s.joint) - 360) < 1e-6);
   const packet = structuredClone(new WireSender().pack(doc)), back = new WireReceiver().unpack(packet);
   assert.deepEqual(back.frames, { version: 1, sections: doc.frames!.sections, welds: doc.frames!.welds });
@@ -88,12 +88,12 @@ test('REVIEW-M3 production batch memo evaluates new weld inputs and reuses an id
   const evaluate = async (doc: StudioDoc) => { calls++; return evaluateDoc(doc, 1); };
   const base: ChatState = { doc: s.doc, bodies: ok(s.doc).bodies };
   let state = base;
-  for (const [sizeMM, expected] of [[3, 360], [2, 160], [undefined, 0], [3, 360]] as const) {
-    const args = sizeMM === undefined ? { remove: [s.joint] } : { welds: [{ joint: s.joint, size: sizeMM }] };
+  for (const [size, expected] of [[3, 360], [2, 160], [undefined, 0], [3, 360]] as const) {
+    const args = size === undefined ? { remove: [s.joint] } : { welds: [{ joint: s.joint, size: size }] };
     const out = await dispatchTool(state, 'apply_ops', { ops: [{ tool: 'set_welds', args }] }, evaluate);
     assert.equal(out.isError, false, out.content);
     const bead = out.state.bodies.find(b => b.key === beadIdOf(s.joint));
-    assert.ok(Math.abs((bead?.volumeMM3 ?? 0) - expected) < 1e-6);
+    assert.ok(Math.abs((bead?.volume ?? 0) - expected) < 1e-6);
     state = out.state;
   }
   assert.equal(calls, 3, 'the real apply_ops -> rememberedEvaluate -> evaluationKey path evaluates each distinct input once');

@@ -21,7 +21,7 @@ test('the screw boss: M2–M5 with and without gussets build valid; without guss
   // (M3, h 8: the cylinder Ø6.4 × 8 less the Ø2.5 pilot 7.4 deep.)
   const m3 = addLibraryPartToBody(plate(2.5), 'enclosure', 'screw-boss', { variant: 'M3', params: { ribs: 0 } }, top(2.5, 20, 20));
   assert.ok(!('error' in m3), JSON.stringify(m3));
-  const v = bodies((m3 as { doc: StudioDoc }).doc)[0].volumeMM3!, boss = Math.PI * 3.2 ** 2 * 8 - Math.PI * 1.25 ** 2 * 7.4;
+  const v = bodies((m3 as { doc: StudioDoc }).doc)[0].volume!, boss = Math.PI * 3.2 ** 2 * 8 - Math.PI * 1.25 ** 2 * 7.4;
   assert.ok(Math.abs(v - (60 * 40 * 2.5 + boss)) < 1e-6, `${v} vs ${60 * 40 * 2.5 + boss}`);
 });
 
@@ -33,7 +33,7 @@ test('added to a body as one step: on the top face — the wall measured there (
   assert.ok(!node.warnings.some(w => /^(boss|rib|engagement)/.test(w)), node.warnings.join(' | '));
   const b = bodies(doc);
   assert.equal(b.length, 1, 'one body: the boss is part of the plate');
-  assert.ok(b[0].volumeMM3! > 60 * 40 * 2.5 + Math.PI * 3.2 ** 2 * 8 - Math.PI * 1.25 ** 2 * 7.4, 'the gussets add to it');
+  assert.ok(b[0].volume! > 60 * 40 * 2.5 + Math.PI * 3.2 ** 2 * 8 - Math.PI * 1.25 ** 2 * 7.4, 'the gussets add to it');
   // (Its bounds: the boss stands 8 above the 2.5 mm plate.)
   assert.ok(Math.abs(b[0].mesh.bounds.max[2] - 10.5) < 1e-6);
   // A thin wall: warned with the margins, the wall measured.
@@ -52,7 +52,7 @@ test('added to a body as one step: on the top face — the wall measured there (
   assert.ok(Math.abs(bodies((side as { doc: StudioDoc }).doc)[0].mesh.bounds.max[0] - 68) < 1e-6);
   // Suppressed: the plate as it was.
   const sup = { ...doc, nodes: doc.nodes.map((n, i) => i === 2 ? { ...n, suppressed: true as const } : n) };
-  assert.ok(Math.abs(bodies(sup)[0].volumeMM3! - 60 * 40 * 2.5) < 1e-6);
+  assert.ok(Math.abs(bodies(sup)[0].volume! - 60 * 40 * 2.5) < 1e-6);
   // No wall measured (the ray leaves nothing): the wall rules unknown, said.
   assert.equal(thicknessAt(bodies(plate(2.5))[0].mesh, [100, 100, 2.5], [0, 0, 1]), null);
   const lib = loadCadLibrary(libraryById('enclosure')!.manifest), i = instantiateLibraryPart(lib, 'screw-boss', { variant: 'M3' });
@@ -97,7 +97,7 @@ test('R6b.2 heat-set insert hole: cut into a boss\'s top — the material under 
   assert.ok(node.warnings.some(w => /^boss-size: .* \(0\.69/.test(w)), node.warnings.join(' | '));
   const after = bodies((r as { doc: StudioDoc }).doc)[0];
   // (A Ø4 × 5 hole where the Ø2.5 pilot already was: π (2² − 1.25²) 5 taken.)
-  assert.ok(Math.abs(before.volumeMM3! - after.volumeMM3! - Math.PI * (4 - 1.5625) * 5) < 1e-6, String(before.volumeMM3! - after.volumeMM3!));
+  assert.ok(Math.abs(before.volume! - after.volume! - Math.PI * (4 - 1.5625) * 5) < 1e-6, String(before.volume! - after.volume!));
   // Into the bare 2.5 mm plate: it would break through.
   assert.match((addLibraryPartToBody(plate(2.5), 'enclosure', 'insert-hole', { variant: 'M3' }, top(2.5, 30, 20)) as { error: string }).error, /breaks-through: .* \(-2\.5\)/);
   // Its mouth over the plate's edge: refused, its outline not all on the body.
@@ -111,7 +111,7 @@ test('R6b.2 PCB standoffs and hole alignment: four standoffs on a floor under an
   const holes = [[4, 4], [46, 4], [4, 36], [46, 36]];
   const board = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [50, 40] }, { id: 'pcb', kind: 'extrude', sketch: 's', height: 1.6 },
-    ...holes.map(([x, y], k) => ({ id: `h${k}`, kind: 'hole', target: k ? `h${k - 1}` : 'pcb', center: [x, y], radius: 1.6 }))] as never }).output('h3').brep;
+    ...holes.map(([x, y], k) => ({ id: `h${k}`, kind: 'hole', target: k ? `h${k - 1}` : 'pcb', center: [x, y], radius: 1.6 }))] as never }).outputs.find(o => o.id === 'h3')!.brep;
   const step = exportStep([board], { name: 'pcb' });
   const place = (shift = 0) => {
     let doc: StudioDoc = { ...rectanglePart(70, 60, 2), process: 'injection' };
@@ -176,7 +176,7 @@ test('R6b.3 cantilever snap hook: its volume the closed form; its root strain re
   assert.deepEqual([abs.node.context!.epsAllow, abs.node.context!.E, abs.node.context!.ys, abs.node.context!.mu], [0.025, 2200, 40, 0.5]);
   assert.ok(!abs.node.warnings.some(w => /^(strain|yield)/.test(w)), abs.node.warnings.join(' | '));
   // (A 1.5 × 6 beam 12 long, a 1 × 2 hook: (1.5 × 14 + 1 × 2 / 2) × 6.)
-  assert.ok(Math.abs(bodies(abs.doc)[0].volumeMM3! - (60 * 40 * 3 + (1.5 * 14 + 1) * 6)) < 1e-6);
+  assert.ok(Math.abs(bodies(abs.doc)[0].volume! - (60 * 40 * 3 + (1.5 * 14 + 1) * 6)) < 1e-6);
   const pla = snap('pla') as { node: LibraryNode };
   assert.ok(pla.node.warnings.some(w => w === `strain: the beam is strained past the material's allowable strain on assembly (${+(eps / 0.015).toFixed(6)})`), pla.node.warnings.join(' | '));
   assert.match((snap('pla', { y: 1.5 }) as { error: string }).error, /yield: the beam would yield on assembly .* \(1\.49/);
@@ -230,12 +230,12 @@ test('R6b.3 the hook latched under its ledge (a declared fit): no overlap, in co
   const lib = libraryById('enclosure')!;
   for (const id of ['hook-on-ledge', 'tapered-hook-on-ledge']) {
     const r = checkLibraryFit(lib, id);
-    assert.deepEqual([r.ok, r.overlapMM3, r.contact, r.checks.every(c => c.pass)], [true, 0, true, true], `${id}: ${JSON.stringify(r)}`);
+    assert.deepEqual([r.ok, r.overlap, r.contact, r.checks.every(c => c.pass)], [true, 0, true, true], `${id}: ${JSON.stringify(r)}`);
   }
   const fit = lib.manifest.fits!.find(f => f.id === 'hook-on-ledge')!;
   // (A ledge only 0.75 deep under a 1 mm undercut: placed clear, in contact, but engaged 0.25 short — past the 0.2 clearance.)
   const shallow = checkLibraryFit(lib, { ...fit, a: { ...fit.a, params: { e: 0.75 } } });
-  assert.deepEqual([shallow.overlapMM3, shallow.contact, shallow.ok], [0, true, false]);
+  assert.deepEqual([shallow.overlap, shallow.contact, shallow.ok], [0, true, false]);
   assert.deepEqual([shallow.checks.find(c => c.id === 'engagement')!.pass, shallow.checks.find(c => c.id === 'engagement')!.value], [false, -0.25]);
 });
 
@@ -246,18 +246,18 @@ test('R6b.4 enclosure halves: the base (lip round the inside of its rim) and the
   const lib = libraryById('enclosure')!, ctx = { minWall: 0.6, fitClearance: 0.1 };
   const L = 80, W = 50, w = 2, lt = 1, lh = 2, c = 0.2, hs = 20, Hl = 10, inner = (L - 2 * w) * (W - 2 * w);
   const { insertLibraryPart } = await import('../src/library/libraries');
-  const build = (part: string) => bodies(insertLibraryPart(emptyDoc(), 'enclosure', part))[0].volumeMM3!;
+  const build = (part: string) => bodies(insertLibraryPart(emptyDoc(), 'enclosure', part))[0].volume!;
   assert.ok(Math.abs(build('enclosure-base') - (L * W * hs - inner * (hs - w) + ((L - 2 * w + 2 * lt) * (W - 2 * w + 2 * lt) - inner) * lh)) < 1e-6);
   assert.ok(Math.abs(build('enclosure-lid') - (L * W * Hl - inner * (Hl - w) - ((L - 2 * w + 2 * (lt + c)) * (W - 2 * w + 2 * (lt + c)) - inner) * (lh + c))) < 1e-6);
   // The declared fit: clear, touching on the rim, its rules met.
   const fit = checkLibraryFit(lib, 'lid-on-base');
-  assert.deepEqual([fit.ok, fit.overlapMM3, fit.contact, fit.checks.map(x => x.pass)], [true, 0, true, [true, true, true]]);
+  assert.deepEqual([fit.ok, fit.overlap, fit.contact, fit.checks.map(x => x.pass)], [true, 0, true, [true, true, true]]);
   assert.ok(Math.abs(fit.checks.find(x => x.id === 'lip-side')!.value! - 0.2) < 1e-12);
   // A lid whose groove (0.7 + 0.2) is narrower than the 1 mm lip: they overlap by the 0.1 ring, 2 high.
   const def = lib.manifest.fits!.find(f => f.id === 'lid-on-base')!;
   const tight = checkLibraryFit(lib, { ...def, b: { ...def.b, params: { lt: 0.7 } } });
   const ring = (L - 2 * w + 2) * (W - 2 * w + 2) - (L - 2 * w + 1.8) * (W - 2 * w + 1.8);
-  assert.equal(tight.ok, false); assert.ok(Math.abs(tight.overlapMM3 - ring * lh) < 1e-6, `${tight.overlapMM3} vs ${ring * lh}`);
+  assert.equal(tight.ok, false); assert.ok(Math.abs(tight.overlap - ring * lh) < 1e-6, `${tight.overlap} vs ${ring * lh}`);
   assert.equal(tight.checks.find(x => x.id === 'lip-side')!.pass, false);
   // In an assembly: the lid snapped onto the base's rim — one coincident mate on the rims, the lid on top.
   let doc = emptyDoc();
@@ -277,22 +277,22 @@ test('R6b.5 vents and grilles: cut through the wall as deep as it is there (no f
   const { emptyDoc } = await import('../src/engine/doc');
   const { insertLibraryPart } = await import('../src/library/libraries');
   const plate2 = { ...rectanglePart(60, 40, 2), process: 'injection' };
-  const before = bodies(plate2)[0].volumeMM3!;
+  const before = bodies(plate2)[0].volume!;
   const vent = addLibraryPartToBody(plate2, 'enclosure', 'slot-vent', {}, top(2, 30, 20)) as { doc: StudioDoc; node: LibraryNode };
   assert.ok(!('error' in vent), JSON.stringify(vent));
   assert.equal(vent.node.library.params.cutDepth, 2.5);
-  assert.ok(Math.abs(before - bodies(vent.doc)[0].volumeMM3! - 6 * 12 * 1.5 * 2) < 1e-6);
+  assert.ok(Math.abs(before - bodies(vent.doc)[0].volume! - 6 * 12 * 1.5 * 2) < 1e-6);
   const lib = libraryById('enclosure')!, ctx = { minWall: 0.6, minWallRec: 1.0 };
   const slots = instantiateLibraryPart(lib, 'slot-vent', { context: ctx });
   assert.ok(Math.abs(slots.reports.find(r => r.id === 'openRatio')!.value! - 9 / 19) < 1e-12);
   const hex = addLibraryPartToBody(plate2, 'enclosure', 'hex-grille', {}, top(2, 30, 20)) as { doc: StudioDoc; node: LibraryNode };
   assert.ok(!('error' in hex), JSON.stringify(hex));
   // (20 hexagons 4 across their flats, √3/2 · 16 each, 2 deep.)
-  assert.ok(Math.abs(before - bodies(hex.doc)[0].volumeMM3! - 20 * Math.sqrt(3) / 2 * 16 * 2) < 1e-6);
+  assert.ok(Math.abs(before - bodies(hex.doc)[0].volume! - 20 * Math.sqrt(3) / 2 * 16 * 2) < 1e-6);
   assert.ok(Math.abs(instantiateLibraryPart(lib, 'hex-grille', { context: ctx }).reports.find(r => r.id === 'openRatio')!.value! - 16 / 5.2 ** 2) < 1e-12);
   // One row: no staggered rows.
   const row = addLibraryPartToBody(plate2, 'enclosure', 'hex-grille', { params: { ny: 1 } }, top(2, 30, 20)) as { doc: StudioDoc };
-  assert.ok(Math.abs(before - bodies(row.doc)[0].volumeMM3! - 5 * Math.sqrt(3) / 2 * 16 * 2) < 1e-6);
+  assert.ok(Math.abs(before - bodies(row.doc)[0].volume! - 5 * Math.sqrt(3) / 2 * 16 * 2) < 1e-6);
   // Webs: 0.5 refused, 0.8 warned under moulding.
   assert.throws(() => instantiateLibraryPart(lib, 'hex-grille', { params: { wb: 0.5 }, context: ctx }), (e: Error) => /web: the web between openings is thinner than the process can make \(0\.5\)/.test(e.message));
   assert.ok(instantiateLibraryPart(lib, 'hex-grille', { params: { wb: 0.8 }, context: ctx }).warnings.some(w => /^web-rec: .* \(0\.8\)$/.test(w)));
@@ -300,7 +300,7 @@ test('R6b.5 vents and grilles: cut through the wall as deep as it is there (no f
   const box = insertLibraryPart(emptyDoc(), 'enclosure', 'enclosure-base'), b = bodies(box)[0];
   const side = addLibraryPartToBody(box, 'enclosure', 'slot-vent', {}, { body: b.ref!, face: 'lib1_ob.side0', point: [40, 0, 10], normal: [0, -1, 0], xDir: [1, 0, 0] }) as { doc: StudioDoc };
   assert.ok(!('error' in side), JSON.stringify(side));
-  assert.ok(Math.abs(b.volumeMM3! - bodies(side.doc)[0].volumeMM3! - 6 * 12 * 1.5 * 2) < 1e-6, 'only the near wall cut');
+  assert.ok(Math.abs(b.volume! - bodies(side.doc)[0].volume! - 6 * 12 * 1.5 * 2) < 1e-6, 'only the near wall cut');
 });
 
 test('R6b.6 living hinge: a groove across a PP plate leaving its thickness — the material taken exactly; its thickness and strain against PP\'s living-hinge values; ABS is not a living-hinge material (unknown, said); FDM warned; a short land strained past PP\'s value warned; a hinge as thick as the plate refused', async () => {
@@ -312,7 +312,7 @@ test('R6b.6 living hinge: a groove across a PP plate leaving its thickness — t
   assert.ok(!('error' in pp), JSON.stringify(pp));
   assert.equal(pp.node.library.params.wallT, 2);
   // (1.5 land × 40 span × 1.7 deep.)
-  assert.ok(Math.abs(b0.volumeMM3! - bodies(pp.doc)[0].volumeMM3! - 1.5 * 40 * 1.7) < 1e-6);
+  assert.ok(Math.abs(b0.volume! - bodies(pp.doc)[0].volume! - 1.5 * 40 * 1.7) < 1e-6);
   assert.ok(!pp.node.warnings.some(w => /^(thickness|strain|process)/.test(w)), pp.node.warnings.join(' | '));
   const abs = hinge('abs') as { node: LibraryNode };
   assert.ok(abs.node.warnings.includes('context hingeStrain: ABS is not a living-hinge material') && abs.node.warnings.some(w => /^strain: unknown/.test(w)), abs.node.warnings.join(' | '));
@@ -367,7 +367,7 @@ test('O73: set_material — a body of the base part or of a placed part made of 
   await call('run_command', { command: 'box', values: { w: 40, d: 20, h: 3, x: 0, y: 0, z: 0 } });
   await call('set_material', { material: 'abs' });
   const m = await call('mass_properties', {});
-  assert.equal(m.bodies[0].mass_g, +(2400 * 1.04 / 1000).toFixed(3)); assert.equal(m.note, undefined, 'set, not assumed');
+  assert.equal(m.bodies[0].mass, +(2400 * 1.04 / 1000).toFixed(3)); assert.equal(m.note, undefined, 'set, not assumed');
   // (A library part on it takes ABS's strain: no brief, no context.)
   const hook = await call('add_library_part', { library: 'enclosure', part: 'snap-hook', face: 'n1.top', point: [20, 10, 3] });
   assert.equal(hook.context.epsAllow, 0.025);

@@ -25,7 +25,7 @@ test('Spring (R12c.1a): the command\'s default — closed and ground, steel\'s G
   const body = r.ok ? r.bodies[0] : null!;
   // The volume: πa²·S − (4/3)a³R/h_s with S the centreline's length (dead coils at p_s 2.0010140, 90° transitions):
   // 1541.19988 mm³, within the 1e-4·d fit's bound (rel 4e-4).
-  assert.ok(Math.abs(body.volumeMM3! - 1541.1998773) <= 4e-4 * 1541.2, String(body.volumeMM3));
+  assert.ok(Math.abs(body.volume! - 1541.1998773) <= 4e-4 * 1541.2, String(body.volume));
   assert.ok(Math.abs(body.mesh.bounds.min[2]) < 1e-4 && Math.abs(body.mesh.bounds.max[2] - (2 * 2.0010139858630147 + 30)) < 1e-4, JSON.stringify(body.mesh.bounds));
   const k = 79300 * 16 / (8 * 8000 * 6), notes = body.notes!.map(n => n.text);
   assert.ok(notes.some(t => /^Compression spring, right hand, ends closed and ground: wire Ø2, mean Ø20 \(outer 22, inner 18\), index C 10; 6 active of 8 coils, pitch 5 mm/.test(t)), JSON.stringify(notes));
@@ -75,7 +75,7 @@ test('Spring (R12c.1b): extension with machine loops and torsion with legs from 
   assert.equal(featureLabel(en, 0, ext.nodes), 'Extension spring d2 × Ø20, 6 coils (machine loops)');
   // πa²·S, S the centreline's length by D154's recipe (conformance r12c/extension-machine-loops): 1405.35079 mm³.
   const eb = re.ok ? re.bodies[0] : null!;
-  assert.ok(Math.abs(eb.volumeMM3! - 1405.3507892) <= 4e-4 * 1405.35, String(eb.volumeMM3));
+  assert.ok(Math.abs(eb.volume! - 1405.3507892) <= 4e-4 * 1405.35, String(eb.volume));
   const k = 79300 * 16 / (8 * 8000 * 6), et = eb.notes!.map(n => n.text);
   assert.ok(et.some(t => /^Extension spring, right hand, machine loops: wire Ø2, mean Ø20 .* 6 coils close-wound at pitch 2\.0014 mm/.test(t)), JSON.stringify(et));
   assert.ok(et.some(t => /^Length inside the hooks 34\.3779 mm; initial tension 4 N \(your figure/.test(t)), JSON.stringify(et));
@@ -88,7 +88,7 @@ test('Spring (R12c.1b): extension with machine loops and torsion with legs from 
   assert.deepEqual([tn.type, tn.legLengths, tn.youngsModulus, tn.youngsModulusEstimate, tn.moment, tn.shearModulus], ['torsion', [15, 25], STEEL_E_ESTIMATE_MPA, true, 500, undefined]);
   assert.equal(featureLabel(tn, 0, tor.nodes), 'Torsion spring d2 × Ø20, 5.25 coils');
   const tb = rt.ok ? rt.bodies[0] : null!, kr = 206000 * 16 / (64 * 20 * 5.25);
-  assert.ok(Math.abs(tb.volumeMM3! - 1162.4977779) <= 4e-4 * 1162.5, String(tb.volumeMM3));
+  assert.ok(Math.abs(tb.volume! - 1162.4977779) <= 4e-4 * 1162.5, String(tb.volume));
   assert.ok(tb.notes!.some(n => /^Legs 15 and 25 mm along the coil's tangent, 90° apart/.test(n.text)) && tb.notes!.some(n => n.text.startsWith(`Rate ${+(kr * Math.PI / 180).toFixed(4)} N·mm/°`) && n.warning), JSON.stringify(tb.notes));
   const e = editFields(tor.nodes, 0).find(f => f.key === 'E')!, e2 = e.kind === 'number' ? e.set(tor.nodes, 200000) : tor.nodes;
   assert.deepEqual([(e2[0] as Spring).youngsModulus, (e2[0] as Spring).youngsModulusEstimate], [200000, undefined]);

@@ -33,14 +33,14 @@ const glandCommand: Command = {
   available: ctx => !ctx.doc.orings?.rows.length ? no('Load your O-ring rows first (Library panel, O-RINGS): none is built in.') : pickedFace(ctx) ? ok : no('Pick one face: a shaft\'s outside, a bore, or a flat face.'),
   fields: ctx => {
     const p = pickedFace(ctx), rows = ctx.doc.orings?.rows ?? [], radial = p?.kind !== 'face';
-    return [{ key: 'ring', label: 'O-ring row', kind: 'choice', options: rows.map(r => ({ value: r.id, label: `${r.dash ?? r.id} · ID ${r.insideDiameterMM} × CS ${r.crossSectionMM}${r.estimate ? ' (estimate)' : ''}` })) },
+    return [{ key: 'ring', label: 'O-ring row', kind: 'choice', options: rows.map(r => ({ value: r.id, label: `${r.dash ?? r.id} · ID ${r.insideDiameter} × CS ${r.crossSection}${r.estimate ? ' (estimate)' : ''}` })) },
       ...(radial ? [{ key: 'seal', label: p?.kind === 'rod' ? 'Rod Ø it seals on' : 'Bore Ø it seals on', kind: 'mm' as const, min: 0.1 }] : []),
       { key: 'dg', label: radial ? 'Groove bottom Ø (from 20 % squeeze, an estimate)' : 'Groove inner Ø (the ring\'s ID, an estimate)', kind: 'mm', min: 0.1 },
       { key: 'w', label: 'Groove width (from 80 % fill, an estimate)', kind: 'mm', min: 0.1 },
       ...(radial ? [{ key: 'at', label: 'Groove from the face\'s start', kind: 'mm' as const, min: 0 }] : [{ key: 'h', label: 'Groove depth (from 25 % squeeze, an estimate)', kind: 'mm' as const, min: 0.05 }])];
   },
   defaults: (ctx): Values => {
-    const p = pickedFace(ctx), row = ctx.doc.orings?.rows[0], CS = row?.crossSectionMM ?? 3, ID = row?.insideDiameterMM ?? 20;
+    const p = pickedFace(ctx), row = ctx.doc.orings?.rows[0], CS = row?.crossSection ?? 3, ID = row?.insideDiameter ?? 20;
     if (!p || p.kind === 'face') { const h = 0.75 * CS; return { ring: row?.id ?? '', dg: r3(ID), w: r3(Math.PI * CS * CS / 4 / (0.8 * h)), h: r3(h) }; }
     const h = 0.8 * CS, seal = p.kind === 'piston' ? r3(p.diameter + 0.1) : r3(p.diameter - 0.1), dg = p.kind === 'piston' ? r3(seal - 2 * h) : r3(seal + 2 * h), w = r3(Math.PI * CS * CS / 4 / (0.8 * h));
     return { ring: row?.id ?? '', seal, dg, w, at: r3(Math.max(0, (p.length - w) / 2)) };

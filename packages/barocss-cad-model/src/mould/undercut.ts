@@ -14,7 +14,7 @@ import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 import { boundsOf } from '../engine/bounds';
 
 export interface UndercutRegion {
-  body: string; faces: string[]; areaMM2: number; centroid: Vec3; triangles: number;
+  body: string; faces: string[]; area: number; centroid: Vec3; triangles: number;
   /** The side action across the pull that frees all of it (null: none does), and the best one tried with the share it frees. */
   sideAction: Vec3 | null; best: { direction: Vec3; clearShare: number };
 }
@@ -99,9 +99,9 @@ export function undercuts(bodies: readonly BodyResult[], pull: readonly number[]
         const share = left === 0 ? 1 : A > 0 ? Math.min(freed / A, 1 - 1e-15) : 0;
         if (share > best.clearShare) { best = { direction: s, clearShare: share }; bestAll = left === 0; }
       }
-      regions.push({ body: body.key, faces: [...faces].sort(), areaMM2: A, centroid: [c[0] / A, c[1] / A, c[2] / A], triangles: tris.length, sideAction: bestAll ? best.direction : null, best });
+      regions.push({ body: body.key, faces: [...faces].sort(), area: A, centroid: [c[0] / A, c[1] / A, c[2] / A], triangles: tris.length, sideAction: bestAll ? best.direction : null, best });
     }
   }
-  regions.sort((a, b) => b.areaMM2 - a.areaMM2);
+  regions.sort((a, b) => b.area - a.area);
   return { pull: d, regions, samples, stepMM: h, coarsestMM: coarsest, method: `each display triangle split into n² equal parts (n from its longest edge over a ${+h.toFixed(4)} mm step, at most ${MAX_N}); each part's centre ${OFF} mm off the triangle along its normal, a ray along +d and −d through the triangle BVH; hidden both ways: an undercut, its share of the area with it; regions joined at shared positions; side actions tried along the two axes across d, both ways` };
 }

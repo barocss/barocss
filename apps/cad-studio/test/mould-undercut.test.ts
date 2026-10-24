@@ -28,7 +28,7 @@ test('IM3 a block with a hole along the pull and one across it: the side hole\'s
   assert.equal(r.regions.length, 1, JSON.stringify(r.regions.map(x => x.faces)));
   const [g] = r.regions, bore = s.bodies[0].mesh.faces.find(f => f.exact?.kind === 'cylinder' && Math.abs(Math.abs((f.exact as { a: number[] }).a[1]) - 1) < 1e-9)!.name;
   assert.deepEqual(g.faces, [bore]);
-  assert.ok(Math.abs(g.areaMM2 - meshArea(s, bore)) <= 1e-9 * g.areaMM2, `${g.areaMM2} vs ${meshArea(s, bore)}`);
+  assert.ok(Math.abs(g.area - meshArea(s, bore)) <= 1e-9 * g.area, `${g.area} vs ${meshArea(s, bore)}`);
   assert.ok(g.sideAction && parallel(g.sideAction, [0, 1, 0]), JSON.stringify(g.best));
   // (Pulled along y instead, the side hole is the one along the pull: no undercut — the vertical one is across it now.)
   const y = undercuts(s.bodies, [0, 1, 0]);
@@ -42,7 +42,7 @@ test('IM3 a snap hook standing on a plate: its catch, the beam\'s face under the
   const [g] = r.regions;
   // (The catch 1 × 6 and the beam's face below the latch 12 × 6; the plate's top under the latch, 1 × 6, to the sampling step.)
   assert.deepEqual(g.faces, [`${prefix}_h.side1`, `${prefix}_h.side2`, 'n1.top']);
-  assert.ok(Math.abs(g.areaMM2 - (6 + 72 + 6)) <= 1, String(g.areaMM2));
+  assert.ok(Math.abs(g.area - (6 + 72 + 6)) <= 1, String(g.area));
   assert.ok(g.sideAction && parallel(g.sideAction, [1, 0, 0]) && g.sideAction[0] > 0, JSON.stringify(g.best));
   const post = await build([box(40, 20, 3), box(1.5, 6, 14).map((x, k) => k ? { ...(x as Record<string, unknown>), values: { w: 1.5, d: 6, h: 14, x: 19.25, y: 7, z: 3 } } : x) as [string, Record<string, unknown>], ['run_command', { command: 'union', values: {}, bodies: ['b1', 'b3'] }]]);
   assert.deepEqual(undercuts(post.bodies, [0, 0, 1]).regions, []);

@@ -127,7 +127,7 @@ export function summarize(name: string, text: string, isError: boolean): string 
   if (name === 'get_assembly') return `${(j.instances?.length ?? 0) + 1} parts, ${j.mates?.length ?? 0} mates${j.problems?.length ? `, ${j.problems.length} unmet` : ''}`;
   if (typeof j.did === 'string' && !Array.isArray(j.bodies)) return `${j.did}${j.unmet_mates?.length ? ` (${j.unmet_mates.length} unmet mate${j.unmet_mates.length > 1 ? 's' : ''})` : ''}`;
   if (Array.isArray(j.bodies)) {
-    const v = j.bodies.reduce((s: number, b: { volume_mm3: number | null }) => s + (b.volume_mm3 ?? 0), 0);
+    const v = j.bodies.reduce((s: number, b: { volume: number | null }) => s + (b.volume ?? 0), 0);
     return `${j.did} → ${j.bodies.length} bod${j.bodies.length === 1 ? 'y' : 'ies'}, ${r0(v)} mm³`;
   }
   return text.length > 160 ? text.slice(0, 157) + '…' : text;

@@ -83,14 +83,14 @@ test('IM8b the pattern: the block with 2.286 mm on its top, scaled 1 + 0.155/12 
   const d = cast(block(100, 60, 20), 'a356', { version: 1, machined: ['n1.top'] }), p = await patternOf(d, bodiesOf(d), evaluate);
   assert.ok(p.ok, JSON.stringify(p));
   const f = 1 + AL, exact = 100 * 60 * (20 + 2.286) * f ** 3;
-  assert.ok(near(p.bodies[0].volumeMM3!, exact, 1e-9 * exact), `${p.bodies[0].volumeMM3} vs ${exact}`);
+  assert.ok(near(p.bodies[0].volume!, exact, 1e-9 * exact), `${p.bodies[0].volume} vs ${exact}`);
   assert.deepEqual(p.file.pivot, [50, 30, 10]);
   const want = { min: [50 - 50 * f, 30 - 30 * f, 10 - 10 * f], max: [50 + 50 * f, 30 + 30 * f, 10 + 12.286 * f] };
   for (const k of [0, 1, 2]) assert.ok(near(p.file.pattern.min[k], want.min[k], 1e-5) && near(p.file.pattern.max[k], want.max[k], 1e-5), JSON.stringify(p.file.pattern));
   assert.deepEqual([p.file.shrink.factor, p.file.shrink.band, p.file.machining!.mm, p.file.machining!.faces], [1.012917, 'up to 4 ft', 2.286, ['n1.top']]);
   const step = exportStudioStep(p.doc, { name: 'pattern' }); assert.match(step.text, /^ISO-10303-21;/);
   const back = evaluateDoc(withNode(emptyDoc(), { kind: 'import', name: 'pattern', step: step.text } as never), 1); assert.ok(back.ok);
-  assert.ok(near(back.bodies[0].volumeMM3!, exact, 1e-6 * exact), `STEP read back: ${back.bodies[0].volumeMM3}`);
+  assert.ok(near(back.bodies[0].volume!, exact, 1e-6 * exact), `STEP read back: ${back.bodies[0].volume}`);
 });
 
 test('IM8b refusals by name: set_casting with a face not on the part, a negative allowance, a shrink of 20 %, nothing given; a pattern of two bodies, of a wrought alloy, of a die-cast part, of a curved machined face', async () => {

@@ -12,7 +12,7 @@ import type { Vec3 } from './vec3';
 export type { Vec3 };
 
 /** `radius`: a cylinder's or a sphere's. */
-export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; areaMM2: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
+export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; area: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
   exact?: { kind: 'plane'; o: Vec3; n: Vec3 } | { kind: 'cylinder'; c: Vec3; a: Vec3; r: number };
   /** A curved face of constant curvature along its circles — a cylinder, sphere, cone or torus (A6.3: the edge-sag bound holds, O55). */
@@ -51,7 +51,7 @@ function addFace(b: Builder, id: string, name: string, kind: DisplayFace['kind']
     const src = normals ?? faceNormals; const nv = norm([src[v * 3], src[v * 3 + 1], src[v * 3 + 2]]);
     b.n.push(nv[0], nv[1], nv[2]);
   }
-  b.faces.push({ index: faceIndex, id, name, kind, normal: norm(normal), centroid: area > 0 ? centroid.map(x => x / area) as Vec3 : vec(positions, 0), areaMM2: area });
+  b.faces.push({ index: faceIndex, id, name, kind, normal: norm(normal), centroid: area > 0 ? centroid.map(x => x / area) as Vec3 : vec(positions, 0), area: area });
 }
 
 const baseName = (name: string | undefined) => (name ?? '').replace(/#\d+$/, '');
@@ -62,7 +62,7 @@ const pushSegment = (lines: number[], p: Vec3, q: Vec3) => { lines.push(p[0], p[
 export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMesh {
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
   const nameOf = new Map(brep.faces.map(f => [f.id, f.name ?? f.id]));
-  const P = mesh.positionsMM, N = mesh.normals;
+  const P = mesh.positions, N = mesh.normals;
   const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
   const loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
   const facesOfEdge = new Map<string, string[]>();
@@ -135,7 +135,7 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
   const curves = new Map(brep.edges.map(e => [e.id, e.curve])), edgeName = new Map(brep.edges.map(e => [e.id, e.name ?? e.id]));
   for (const e of mesh.edges) {
     const fs = facesOfEdge.get(e.edgeId) ?? [], pts: Vec3[] = [];
-    for (let k = 0; k < e.pointsMM.length; k += 3) pts.push([e.pointsMM[k], e.pointsMM[k + 1], e.pointsMM[k + 2]]);
+    for (let k = 0; k < e.points.length; k += 3) pts.push([e.points[k], e.points[k + 1], e.points[k + 2]]);
     if (fs.length !== 2 || find(fs[0]) === find(fs[1])) continue; // a seam, or between merged coplanar faces
     const mid = pts[Math.floor(pts.length / 2)], na = normalAt(fs[0], mid), nb = normalAt(fs[1], mid);
     if (na && nb && dot(na, nb) > Math.cos(Math.PI / 9)) continue; // tangent joint
@@ -211,7 +211,7 @@ const Q = new Float64Array(3);
  */
 function sampledChord(face: BrepFace, mf: { vertexOffset: number; vertexCount: number; indexOffset: number; indexCount: number; kind: string }, mesh: BrepMesh): number {
   if (face.surface.kind !== 'surface' || mf.kind === 'facet') return Infinity;
-  const surface = face.surface, S = surfaceEvaluator(surface), dom = surfaceDomain(surface), P = mesh.positionsMM, n = mf.vertexCount, uv = new Float64Array(n * 2);
+  const surface = face.surface, S = surfaceEvaluator(surface), dom = surfaceDomain(surface), P = mesh.positions, n = mf.vertexCount, uv = new Float64Array(n * 2);
   let grid: SurfaceSeedGrid | undefined;
   let size = 0; for (let v = mf.vertexOffset; v < mf.vertexOffset + n; v++) size = Math.max(size, Math.abs(P[v * 3]), Math.abs(P[v * 3 + 1]), Math.abs(P[v * 3 + 2]));
   const tol = 1e-7 * (1 + size);

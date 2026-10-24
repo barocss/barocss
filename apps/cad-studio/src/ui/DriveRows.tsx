@@ -8,7 +8,7 @@ import { ROW } from './panelStyles';
 import { Button } from '@/components/ui/button';
 import { RowsEmpty } from './RowsEmpty';
 
-const sizes = (r: DriveRow) => r.kind === 'chain' ? `chain p ${r.pitchMM}, roller Ø${r.rollerDiameterMM}` : r.kind === 'timing-belt' ? `timing p ${r.pitchMM}, u ${r.pitchLineOffsetMM}` : r.kind === 'v-belt' ? `V ${r.angleDeg}°, datum width ${r.datumWidthMM}` : r.kind === 'flat-belt' ? `flat ${r.widthMM} × ${r.thicknessMM}` : `coupling Ø${r.outsideMM} × ${r.lengthMM}, bores Ø${r.boreMM[0]}/Ø${r.boreMM[1]}`;
+const sizes = (r: DriveRow) => r.kind === 'chain' ? `chain p ${r.pitch}, roller Ø${r.rollerDiameter}` : r.kind === 'timing-belt' ? `timing p ${r.pitch}, u ${r.pitchLineOffset}` : r.kind === 'v-belt' ? `V ${r.angle}°, datum width ${r.datumWidth}` : r.kind === 'flat-belt' ? `flat ${r.width} × ${r.thickness}` : `coupling Ø${r.outside} × ${r.length}, bores Ø${r.bore[0]}/Ø${r.bore[1]}`;
 
 export function DriveRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit(next: StudioDoc): void; onError(title: string, message: string): void }) {
   const rows = doc.drives?.rows ?? [];

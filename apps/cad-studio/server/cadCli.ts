@@ -327,7 +327,7 @@ export async function cliMain(argv: readonly string[], io: CliIo = { stdout: pro
     const dir = resolve(rest[oi + 1]); mkdirSync(dir, { recursive: true });
     const step = stepOrError(halves.doc, 'mould');
     if ('error' in step) return failed(`the halves' STEP: ${step.error}`);
-    const vol = (bs: readonly { volumeMM3?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volumeMM3 ?? 0), 0) * 1e3) / 1e3;
+    const vol = (bs: readonly { volume?: number | null }[]) => Math.round(bs.reduce((t, b) => t + (b.volume ?? 0), 0) * 1e3) / 1e3;
     const shown = withoutLoops(plan.plan);
     const json = { format: 'barocss-mould', version: 1, ...shown, split: sp?.split ?? [], halves: { plus: { label: 'moves along the pull (B side, usually the core)', lumps: halves.plus.length, volume_mm3: vol(halves.plus) }, minus: { label: 'fixed (A side, usually the cavity)', lumps: halves.minus.length, volume_mm3: vol(halves.minus) } },
       lumps: halves.lumps.map(l => ({ key: l.body.key, half: l.half, basis: l.basis, volume_mm3: vol([l.body]) })), margin: { mm: margin, basis: mi >= 0 ? 'set' : 'estimate' } };

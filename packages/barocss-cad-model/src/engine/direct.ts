@@ -476,12 +476,12 @@ export function curveLength(d: DirectGeometry, id: string): number {
 /** A curve at a parameter: its point, tangent and radius of curvature (null where it is straight). */
 export function analyzeCurve(d: DirectGeometry, id: string, t: number) {
   const r = evaluateCurveCurvature(curveOf(d, id), t);
-  return { point: r.derivatives.point, tangent: r.unitTangent, curvature: r.curvaturePerMM, radius: r.radiusMM };
+  return { point: r.derivatives.point, tangent: r.unitTangent, curvature: r.curvaturePer, radius: r.radius };
 }
 /** A surface at (u, v): its point, normal and mean and Gaussian curvature. */
 export function analyzeSurface(d: DirectGeometry, id: string, u: number, v: number) {
   const r = evaluateSurfaceCurvature(surfaceOf(d, id), u, v);
-  return { point: r.derivatives.point, normal: r.unitNormal, mean: r.meanCurvaturePerMM, gaussian: r.gaussianCurvaturePerMM2 };
+  return { point: r.derivatives.point, normal: r.unitNormal, mean: r.meanCurvaturePer, gaussian: r.gaussianCurvaturePer };
 }
 /** The visible curves and surfaces as one IGES file (at most 16; named by their object ids). */
 export function directIGES(d: DirectGeometry, name = 'barocss_part'): string {

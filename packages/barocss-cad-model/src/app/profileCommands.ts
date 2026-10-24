@@ -140,7 +140,7 @@ export const revolveCommand: Command = {
   },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, ax = revolveAxis(v);
-    const node: ModelNode = v.axis === 'edge' ? { kind: 'revolve', sketch: p.index, axis: 'x', origin: ax.o, dir: ax.d, angleDegrees: Number(v.deg) } : { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angleDegrees: Number(v.deg) };
+    const node: ModelNode = v.axis === 'edge' ? { kind: 'revolve', sketch: p.index, axis: 'x', origin: ax.o, dir: ax.d, angle: Number(v.deg) } : { kind: 'revolve', sketch: p.index, axis: v.axis === 'x' ? 'x' : 'y', angle: Number(v.deg) };
     return combine(withNode(ctx.doc, node), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
   // The angle: an arc about the axis, from the profile's middle.
@@ -166,7 +166,7 @@ export const pipeCommand: Command = {
   defaults: ctx => { const p = oneProfile(ctx); return { h: 8, bend: 20, bendAngle: 90, toward: 'x', ...(p && baseOf(ctx, p.node) ? { op: 'join' } : {}) }; },
   build: (ctx, v) => {
     const p = oneProfile(ctx)!, run = Number(v.h);
-    return combine(withNode(ctx.doc, { kind: 'sweep', sketch: p.index, path: [{ kind: 'straight', length: run }, { kind: 'bend', radius: Number(v.bend), angleDegrees: Number(v.bendAngle), toward: v.toward as 'x' }, { kind: 'straight', length: run }] }), baseOf(ctx, p.node)?.ref ?? null, v.op);
+    return combine(withNode(ctx.doc, { kind: 'sweep', sketch: p.index, path: [{ kind: 'straight', length: run }, { kind: 'bend', radius: Number(v.bend), angle: Number(v.bendAngle), toward: v.toward as 'x' }, { kind: 'straight', length: run }] }), baseOf(ctx, p.node)?.ref ?? null, v.op);
   },
 };
 

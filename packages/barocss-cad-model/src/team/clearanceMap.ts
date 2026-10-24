@@ -43,7 +43,7 @@ export interface ClearancePair {
   closest: { a: Vec3; b: Vec3; faceA: string; faceB: string };
   /** The two bodies' content and poses: a fill for another key is stale. */
   pose: string;
-  overlap?: { volumeMM3: number; mesh: DisplayMesh } | { pending: true } | { refused: string };
+  overlap?: { volume: number; mesh: DisplayMesh } | { pending: true } | { refused: string };
   band?: { a: Band; b: Band };
 }
 export interface ClearanceMap {
@@ -92,7 +92,7 @@ export async function assemblyPlacedBodies(doc: StudioDoc, evaluate: Evaluate): 
     for (const b of bodies) {
       const own = seats.get(b.key);
       const ring = b.element?.kind === 'oring' ? b.element.report : null;
-      out.push({ key: `${prefix}${b.key}`, mesh: b.mesh, brep: breps.get(b.key) ?? null, pose, ...(own ? { designedWith: new Map([...own].map(([k, v]) => [`${prefix}${k}`, v])) } : {}), ...(ring ? { squeeze: { ring: ring.ring, mm3: ring.overlapMM3 } } : {}) });
+      out.push({ key: `${prefix}${b.key}`, mesh: b.mesh, brep: breps.get(b.key) ?? null, pose, ...(own ? { designedWith: new Map([...own].map(([k, v]) => [`${prefix}${k}`, v])) } : {}), ...(ring ? { squeeze: { ring: ring.ring, mm3: ring.overlap } } : {}) });
     }
   };
   const base = await evaluate(doc); if (base?.ok) take(doc, base.bodies, '', IDENTITY);
@@ -179,7 +179,7 @@ export function clearanceMap(bodies: readonly PlacedBody[], o: { near?: number; 
   let bandMS = 0;
   for (const [i, j] of cand) {
     const A = ps[i], B = ps[j], c = meshClearance(A.world, A.mesh.indices, B.world, B.mesh.indices, { bvhA: A.bvh, bvhB: B.bvh });
-    const ring = A.squeeze ?? B.squeeze, gap = c.distanceMM;
+    const ring = A.squeeze ?? B.squeeze, gap = c.distance;
     const designed = A.designedWith?.get(B.key) ?? B.designedWith?.get(A.key) ?? (ring ? `O-ring ${ring.ring}: its squeeze, up to ${+ring.mm3.toFixed(4)} mm³ (its gland's figure)` : undefined);
     const state: ClearancePair['state'] = gap === 0 ? designed ? 'designed' : 'contact' : gap <= near ? 'near' : 'clear';
     const pair: ClearancePair = { a: A.key, b: B.key, state, minGapMM: gap, closest: { a: c.pointA ? unapply(A.pose, c.pointA) : [0, 0, 0], b: c.pointB ? unapply(B.pose, c.pointB) : [0, 0, 0], faceA: faceOf(A.mesh, c.triangleA), faceB: faceOf(B.mesh, c.triangleB) }, pose: `${A.hash}.${B.hash}` };
@@ -253,8 +253,8 @@ export function fillOverlap(map: ClearanceMap, bodies: readonly PlacedBody[], pa
   try {
     // (B in A's frame: A's pose undone after B's done; the overlap is then in A's own frame.)
     const rel = relative(A.pose, B.pose), o = booleanAnalytic(A.brep, transformBrep(B.brep, { matrix: rel.m as never, offset: rel.t }), 'intersection');
-    if (!o.bodies.length) return { ...base, overlap: { volumeMM3: 0, mesh: bodyMesh(o, 0, 8) } };
-    return { ...base, overlap: { volumeMM3: brepMassProperties(o, 1).volumeMM3, mesh: bodyMesh(o, 0, 8) } };
+    if (!o.bodies.length) return { ...base, overlap: { volume: 0, mesh: bodyMesh(o, 0, 8) } };
+    return { ...base, overlap: { volume: brepMassProperties(o, 1).volume, mesh: bodyMesh(o, 0, 8) } };
   } catch (e) { return { ...base, overlap: { refused: e instanceof Error ? e.message : String(e) } }; }
 }
 /** B's pose seen from A's frame: x_A = mAᵀ(mB·x + tB − tA). */
@@ -269,9 +269,9 @@ export function applyFill(map: ClearanceMap, f: OverlapFill): boolean {
   if (!p || p.pose !== f.pose || !p.overlap || !('pending' in p.overlap)) return false;
   p.overlap = f.overlap; map.pending--;
   // (A9-5: in contact, no volume — touching; some — a clash. A designed pair stays designed, its volume given.)
-  if (p.state === 'contact' && 'volumeMM3' in f.overlap) p.state = f.overlap.volumeMM3 <= TOUCHING_MM3 ? 'touching' : 'overlap';
+  if (p.state === 'contact' && 'volume' in f.overlap) p.state = f.overlap.volume <= TOUCHING_MM3 ? 'touching' : 'overlap';
   // (An O-ring overlapping what squeezes it by more than its gland's figure: a clash, its declared squeeze still said.)
-  if (p.state === 'designed' && p.squeezeMM3 !== undefined && 'volumeMM3' in f.overlap && f.overlap.volumeMM3 > p.squeezeMM3 * (1 + 1e-9) + TOUCHING_MM3) p.state = 'overlap';
+  if (p.state === 'designed' && p.squeezeMM3 !== undefined && 'volume' in f.overlap && f.overlap.volume > p.squeezeMM3 * (1 + 1e-9) + TOUCHING_MM3) p.state = 'overlap';
   return true;
 }
 /** The pending pairs, nearest first (crossing ones by their overlap's likely size: the boxes' common volume, largest first). */

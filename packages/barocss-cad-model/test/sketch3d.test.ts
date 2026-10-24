@@ -65,7 +65,7 @@ test('FRg a skeleton with constraints through the chat: a rectangle 600 × 400 f
   assert.ok(!r.isError, r.content);
   const out = JSON.parse(r.content);
   assert.equal(out.skeletons[0].feature, 0); assert.ok(['well', 'under'].includes(out.skeletons[0].status), JSON.stringify(out.skeletons));
-  const A = 1600 - 34 * 34, vols = (s: typeof r.state) => s.bodies.map(b => b.volumeMM3!).sort((a, b) => a - b);
+  const A = 1600 - 34 * 34, vols = (s: typeof r.state) => s.bodies.map(b => b.volume!).sort((a, b) => a - b);
   const close = (a: number[], b: number[]) => assert.ok(a.every((v, k) => Math.abs(v - b[k]) <= 1e-6 * b[k]), `${a} vs ${b}`);
   close(vols(r.state), [400, 400, 600, 600].map(L => A * L));
   r = await dispatchTool(r.state, 'edit_feature', { index: 0, feature: sk(800) }, evaluate); assert.ok(!r.isError, r.content);

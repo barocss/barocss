@@ -33,7 +33,7 @@ function curveAt(c: Curve, t: number): [number, number, number, number] {
 
 /** The two frozen gears: module 2, face width 8, bore diameter 8, schematic root. Units: kg, m, kg m2. */
 export function gearMoments(teeth: 20 | 30, order: 32 | 48) {
-  const { pieces } = spurGearProfile({ moduleMM: 2, teeth, faceWidthMM: 8, boreDiameterMM: 8 });
+  const { pieces } = spurGearProfile({ module: 2, teeth, faceWidth: 8, boreDiameter: 8 });
   const sum = [0, 0, 0, 0, 0, 0], compensation = sum.map(() => 0), quadrature = gauss(order);
   const add = (values: number[]) => values.forEach((v, i) => { const y = v - compensation[i], t = sum[i] + y; compensation[i] = (t - sum[i]) - y; sum[i] = t; });
   for (const { curve } of pieces) for (let k = curve.degree; k < curve.controlPoints.length; k++) {
@@ -47,7 +47,7 @@ export function gearMoments(teeth: 20 | 30, order: 32 | 48) {
   const A = sum[0] - Math.PI * 4 ** 2, c = [sum[1] / A, sum[2] / A];
   const Qxx = sum[3] - Math.PI * 4 ** 4 / 4 - A * c[0] ** 2, Qyy = sum[4] - Math.PI * 4 ** 4 / 4 - A * c[1] ** 2;
   const Qxy = sum[5] - A * c[0] * c[1], rho = 2.7e-6, h = 8, mass = rho * h * A, transverseZ = mass * h * h / 12;
-  return { volumeMM3: A * h, mass, centreMM: [c[0], c[1], h / 2], inertia: [
+  return { volume: A * h, mass, centreMM: [c[0], c[1], h / 2], inertia: [
     (rho * h * Qyy + transverseZ) * 1e-6, -rho * h * Qxy * 1e-6, 0,
     -rho * h * Qxy * 1e-6, (rho * h * Qxx + transverseZ) * 1e-6, 0, 0, 0, rho * h * (Qxx + Qyy) * 1e-6] };
 }

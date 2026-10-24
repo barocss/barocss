@@ -17,9 +17,9 @@ import { applyFill, assemblyPlacedBodies, clearanceMap, designedSeats, fillOverl
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
 const box = (x: number, y: number, z: number): StudioDoc => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [x, y] } as never), { kind: 'extrude', sketch: 0, height: z } as never);
 const inst = (id: string, doc: StudioDoc, position: [number, number, number]): PartInstance => ({ id, name: id, doc, position, rotation: [0, 0, 0] });
-const ROW = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, boreDeviationUM: [0, -10], source: 'B1 (D139)' };
-const FITS = { id: 'seat-fits', rows: [{ class: 'k5', overMM: 18, upToMM: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
-const O1 = { id: '214', dash: '2-214', insideDiameterMM: 24.99, crossSectionMM: 3.53, source: 'O1 (D139)' };
+const ROW = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10], source: 'B1 (D139)' };
+const FITS = { id: 'seat-fits', rows: [{ class: 'k5', over: 18, upTo: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
+const O1 = { id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1 (D139)' };
 /** The map with every pending volume filled. */
 function filled(bodies: readonly PlacedBody[], nearMM = 1): ClearanceMap {
   const map = clearanceMap(bodies, { near: nearMM });
@@ -35,7 +35,7 @@ test('A9-5: two boxes side by side — in contact at once (pending, not an overl
   const map = clearanceMap(bodies, { near: 1 }), p = map.pairs[0];
   assert.deepEqual([map.pairs.length, p.state, p.minGapMM, map.pending], [1, 'contact', 0, 1]);
   assert.ok(applyFill(map, fillOverlap(map, bodies, p)));
-  assert.ok(p.state === 'touching' && p.overlap && 'volumeMM3' in p.overlap && p.overlap.volumeMM3 <= TOUCHING_MM3, JSON.stringify([p.state, p.overlap && 'volumeMM3' in p.overlap ? p.overlap.volumeMM3 : p.overlap]));
+  assert.ok(p.state === 'touching' && p.overlap && 'volume' in p.overlap && p.overlap.volume <= TOUCHING_MM3, JSON.stringify([p.state, p.overlap && 'volume' in p.overlap ? p.overlap.volume : p.overlap]));
 });
 
 test('A9-5: a welded table frame (R40, butt corners) — every pair of members at no distance is touching once filled, none overlapping', async () => {
@@ -58,7 +58,7 @@ test('A9-6: the default shaft, a key in its keyseat, a 6204 on step 1 at k5 — 
   const key = pairOf(map, 'b0', 'b1'), seat = pairOf(map, 'b0', 'b2'), clash = pairOf(map, 'b1', 'b2');
   assert.deepEqual([key.state, key.designed], ['designed', 'key n1 in its keyseat']);
   assert.deepEqual([seat.state, seat.designed], ['designed', 'bearing n2 (6204) on its shaft, seat k5']);
-  assert.ok(clash.state === 'overlap' && !clash.designed && clash.overlap && 'volumeMM3' in clash.overlap && clash.overlap.volumeMM3 > 100, JSON.stringify([clash.state, clash.overlap && 'volumeMM3' in clash.overlap && clash.overlap.volumeMM3]));
+  assert.ok(clash.state === 'overlap' && !clash.designed && clash.overlap && 'volume' in clash.overlap && clash.overlap.volume > 100, JSON.stringify([clash.state, clash.overlap && 'volume' in clash.overlap && clash.overlap.volume]));
   // (Both ways, by body key; nothing seats the key with the bearing.)
   const e = await evaluate(s.doc); assert.ok(e.ok);
   const seats = designedSeats(s.doc, e.bodies);
@@ -75,14 +75,14 @@ test('A9-6: an O-ring in a face gland, a plate placed on the cover — designed 
   await run('features', { action: 'command', part: 'p1', command: 'box', values: { w: 80, d: 80, h: 6, x: 0, y: 0, z: 0 } });
   const bodies = await assemblyPlacedBodies(s.doc, evaluate), ring = bodies.find(b => b.squeeze)!, map = filled(bodies);
   const on = pairOf(map, ring.key, 'p1/b1'), inGland = map.pairs.find(p => p !== on && (p.a === ring.key || p.b === ring.key))!;
-  assert.ok(on.state === 'designed' && on.overlap && 'volumeMM3' in on.overlap, JSON.stringify(on.state));
+  assert.ok(on.state === 'designed' && on.overlap && 'volume' in on.overlap, JSON.stringify(on.state));
   assert.equal(on.designed, `O-ring 214: its squeeze, up to ${+ring.squeeze!.mm3.toFixed(4)} mm³ (its gland's figure)`);
-  assert.ok(Math.abs(on.overlap.volumeMM3 - ring.squeeze!.mm3) <= 1e-6 * ring.squeeze!.mm3, `${on.overlap.volumeMM3} vs ${ring.squeeze!.mm3}`);
+  assert.ok(Math.abs(on.overlap.volume - ring.squeeze!.mm3) <= 1e-6 * ring.squeeze!.mm3, `${on.overlap.volume} vs ${ring.squeeze!.mm3}`);
   assert.deepEqual([inGland.state, inGland.designed], ['designed', 'O-ring n3 in its gland n2 (its squeeze)']);
   assert.equal(pairOf(map, 'b2', 'p1/b1').state, 'touching', 'the cover under the plate');
   const pressed = { ...s.doc, instances: s.doc.instances!.map(i => ({ ...i, position: [-40, -40, 7.8] as [number, number, number] })) };
   const more = pairOf(filled(await assemblyPlacedBodies(pressed, evaluate)), ring.key, 'p1/b1');
-  assert.ok(more.state === 'overlap' && more.designed && more.overlap && 'volumeMM3' in more.overlap && more.overlap.volumeMM3 > ring.squeeze!.mm3, JSON.stringify(more.state));
+  assert.ok(more.state === 'overlap' && more.designed && more.overlap && 'volume' in more.overlap && more.overlap.volume > ring.squeeze!.mm3, JSON.stringify(more.state));
 });
 
 test('O3 (A9 brief): the default shaft and its key, the 6204 moved to step 3 against the Ø25 shoulder at k5 — both seats designed, no clash anywhere', async () => {

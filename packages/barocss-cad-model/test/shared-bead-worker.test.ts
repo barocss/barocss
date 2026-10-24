@@ -31,7 +31,7 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
   const worker = new Worker(join(dir, 'adapter.mjs')); t.after(() => worker.terminate());
   await once(worker, 'message');
   const send = new WireSender(), receive = new MeshReceiver(); let id = 0;
-  type Fields = Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'>;
+  type Fields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>;
   const masses = new Map<number, Fields>(), replies: ((data: { id: number; result: WireResult }) => void)[] = [];
   worker.on('message', (data: { masses?: { ref: number; fields: Fields }[]; id: number; result: WireResult }) => {
     if (data.masses) for (const m of data.masses) masses.set(m.ref, m.fields); else replies.shift()?.(data);
@@ -54,7 +54,7 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
   const second = await request({ type: 'evaluate', doc: send.pack(doc) });
   assert.ok(second.bodies.every(b => 'meshRef' in b), 'unchanged production mesh cache is reused');
   const b = receive.unpack('evaluate', second); assert.ok(b.ok);
-  const facts = (bodies: readonly Pick<BodyResult, 'key' | 'volumeMM3' | 'centroid' | 'inertia' | 'element'>[]) => bodies.filter(x => x.element?.kind === 'weld-bead').map(x => ({ key: x.key, volume: x.volumeMM3, centroid: x.centroid, inertia: x.inertia, element: x.element }));
+  const facts = (bodies: readonly Pick<BodyResult, 'key' | 'volume' | 'centroid' | 'inertia' | 'element'>[]) => bodies.filter(x => x.element?.kind === 'weld-bead').map(x => ({ key: x.key, volume: x.volume, centroid: x.centroid, inertia: x.inertia, element: x.element }));
   assert.deepEqual(facts(await massed(a.bodies)), facts(direct.bodies)); assert.deepEqual(facts(await massed(b.bodies)), facts(direct.bodies));
   const bad = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.map((w, i) => i ? w : { ...w, size: 2 }) } };
   const refused = await request({ type: 'part', doc: send.pack(bad) });
@@ -69,16 +69,16 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
   assert.deepEqual(facts(await massed(again.bodies)), facts(placed.bodies), 'a repeat does not transform metadata twice');
   for (const source of direct.bodies.filter(x => x.element?.kind === 'weld-bead')) {
     const out: WireBody | undefined = placed.bodies.find(x => x.key === source.key); assert.ok(out?.element?.kind === 'weld-bead');
-    assert.equal(out.volumeMM3, source.volumeMM3); assert.equal(out.massG, source.massG);
+    assert.equal(out.volume, source.volume); assert.equal(out.mass, source.mass);
     const move = (p: readonly number[]) => [0, 1, 2].map(i => place.t[i] + p.reduce((s, v, k) => s + place.m[i * 3 + k] * v, 0));
     const near = (a: readonly number[], z: readonly number[]) => a.forEach((v, i) => assert.ok(Math.abs(v - z[i]) < 1e-8, `${v} vs ${z[i]}`));
     near(out.centroid!, move(source.centroid!));
     assert.ok(source.element?.kind === 'weld-bead');
     const before: BeadSharedSeam = source.element.report.sharedSeams[0];
     const after: BeadSharedSeam = out.element.report.sharedSeams[0];
-    assert.equal(out.element.report.nominalVolumeMM3, source.element.report.nominalVolumeMM3);
+    assert.equal(out.element.report.nominalVolume, source.element.report.nominalVolume);
     assert.equal(after.id, before.id); assert.deepEqual(after.joints, before.joints); assert.deepEqual(after.ownedInterval, before.ownedInterval);
-    after.pathMM.forEach((p, i) => near(p, move(before.pathMM[i])));
+    after.path.forEach((p, i) => near(p, move(before.path[i])));
     const tensor = source.inertia!.map((_, i) => source.inertia!.map((__, j) => source.inertia!.reduce((sum, row, k) => sum + row.reduce((s, v, l) => s + place.m[3 * i + k] * v * place.m[3 * j + l], 0), 0)));
     out.inertia!.forEach((row, i) => near(row, tensor[i]));
   }

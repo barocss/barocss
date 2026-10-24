@@ -7,14 +7,14 @@
     {
      "id": "6204",
      "designation": "6204",
-     "boreMM": 20,
-     "outsideMM": 47,
-     "widthMM": 14,
-     "chamferMM": 1,
-     "daMinMM": 25,
-     "daMaxMM": 26.5,
-     "DaMaxMM": 42,
-     "raMaxMM": 1,
+     "bore": 20,
+     "outside": 47,
+     "width": 14,
+     "chamfer": 1,
+     "daMin": 25,
+     "daMax": 26.5,
+     "DaMax": 42,
+     "raMax": 1,
      "source": "B1 (D139): NSK, 6204 Series, https://www.oss.nsk.com/6204-dgbb-sr.html"
     }
    ]
@@ -25,8 +25,8 @@
     {
      "id": "214",
      "dash": "2-214",
-     "insideDiameterMM": 24.99,
-     "crossSectionMM": 3.53,
+     "insideDiameter": 24.99,
+     "crossSection": 3.53,
      "source": "O1 (D139): the Global O-Ring AS568 chart"
     }
    ]
@@ -39,8 +39,8 @@
      "rows": [
       {
        "class": "k5",
-       "overMM": 18,
-       "upToMM": 30,
+       "over": 18,
+       "upTo": 30,
        "upperUM": 11,
        "lowerUM": 2,
        "estimate": true

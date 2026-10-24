@@ -24,11 +24,11 @@ async function frame(withPart: boolean): Promise<StudioDoc> {
 
 test('O169: a frame as the base with a placed plate — its members a made line a cut-list row, steel by volume; the total the parts\' and the base\'s; checkBom clean', async () => {
   const doc = await frame(true), view = await bomView(doc, evaluate), bom = deriveBom(view);
-  const members = bom.lines.filter(l => l.member).map(l => [l.item, l.qty, l.material, +l.massG.toFixed(3), l.parts.every(p => p.startsWith('base:'))]);
+  const members = bom.lines.filter(l => l.member).map(l => [l.item, l.qty, l.material, +l.mass.toFixed(3), l.parts.every(p => p.startsWith('base:'))]);
   assert.deepEqual(members, [[320, 4], [360, 2], [260, 2]].map(([L, n]) => [`rect-tube 40 × 40 × 3 × ${L}`, n, 'steel', +(n * A * L * STEEL).toFixed(3), true]));
   assert.deepEqual(checkBom(view, bom), []);
   const plate = bom.lines.find(l => l.item === 'Plate')!;
-  assert.ok(Math.abs(bom.totalMassG - (plate.massG + view.base!.massG)) < 1e-6 && Math.abs(view.base!.massG - A * 2520 * STEEL) < 1e-2, `${bom.totalMassG} = ${plate.massG} + ${view.base!.massG}`);
+  assert.ok(Math.abs(bom.totalMassG - (plate.mass + view.base!.mass)) < 1e-6 && Math.abs(view.base!.mass - A * 2520 * STEEL) < 1e-2, `${bom.totalMassG} = ${plate.mass} + ${view.base!.mass}`);
   assert.equal(bom.totalQty, 1, 'the placed parts');
 });
 

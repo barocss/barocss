@@ -49,7 +49,7 @@ export function chooseStock(doc: StudioDoc, bodies: readonly BodyResult[], proce
     return { ok: true, choice: { row: best.r, size: size.map(r6), placement: { min: centre.map((c, k) => r6(c - size[k] / 2)), max: centre.map((c, k) => r6(c + size[k] / 2)) }, allowance, part } };
   }
   if (!turning?.axis) return { ok: false, code: 'STOCK_NO_AXIS', message: 'no turning axis: a bar needs one (CNC6)', allowance, part: [] };
-  const D = turning.diameterMM, L = turning.lengthMM, part = [r6(D), r6(L)];
+  const D = turning.diameter, L = turning.length, part = [r6(D), r6(L)];
   if (!rows.some(r => r.kind === 'bar')) return { ok: false, code: 'STOCK_NONE_LOADED', message: 'no bar stock loaded: load the shop\'s list (set_stock); none is built in', allowance, part };
   const needD = D + a2, needL = L + a2;
   const fits = rows.flatMap(r => r.kind === 'bar' && r.diameter >= needD - FIT && (r.maxLength === undefined || r.maxLength >= needL - FIT) ? [r] : []).sort((x, y) => x.diameter - y.diameter || x.id.localeCompare(y.id));

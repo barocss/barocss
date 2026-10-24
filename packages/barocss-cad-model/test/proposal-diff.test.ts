@@ -13,7 +13,7 @@ const close = (v: number | undefined, want: number) => assert.ok(v !== undefined
 test('a hole: removed π · 9 · 10 as a body\'s mesh, nothing added; its faces added, the plate\'s top and bottom changed', () => {
   const d = proposalDiff(side(plate()), side(hole(plate())));
   assert.equal(d.method, 'boolean');
-  close(d.removed?.volumeMM3, 90 * Math.PI); assert.equal(d.added, null);
+  close(d.removed?.volume, 90 * Math.PI); assert.equal(d.added, null);
   assert.ok(d.removed!.mesh.positions.length > 0 && d.removed!.mesh.faces.length >= 1);
   assert.ok(d.changedFaces.filter(f => f.kind === 'added').every(f => f.name.startsWith('n2.')));
   assert.deepEqual(d.changedFaces.filter(f => f.kind === 'changed').map(f => f.name), ['n1.bottom', 'n1.top']);
@@ -24,12 +24,12 @@ test('a boss united on top (its body keyed anew): added π · 25 · 8, nothing r
   let after = withNode(plate(), { kind: 'sketch', profile: 'circle', center: [20, 15], radius: 5, plane: { origin: [0, 0, 10], normal: [0, 0, 1], xAxis: [1, 0, 0] } } as never);
   after = withNode(withNode(after, { kind: 'extrude', sketch: 2, height: 8 } as never), { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } } as never);
   const d = proposalDiff(side(plate()), side(after));
-  close(d.added?.volumeMM3, 200 * Math.PI); assert.equal(d.removed, null);
+  close(d.added?.volume, 200 * Math.PI); assert.equal(d.removed, null);
 });
 
 test('the extrude made taller (coincident faces): added the slab 6000, nothing removed; the side faces changed', () => {
   const d = proposalDiff(side(plate(10)), side(plate(15)));
-  close(d.added?.volumeMM3, 6000); assert.equal(d.removed, null);
+  close(d.added?.volume, 6000); assert.equal(d.removed, null);
   assert.ok(d.changedFaces.some(f => f.name === 'n1.top' && f.kind === 'changed'));
 });
 

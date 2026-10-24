@@ -46,7 +46,7 @@ export function interfaceChanges(a: Interfaces, b: Interfaces): EcrChange[] {
   }
   const pa = a.budgets.parts ?? {}, pb = b.budgets.parts ?? {};
   for (const p of uniq([...Object.keys(pa), ...Object.keys(pb)])) if (pa[p] !== pb[p]) out.push({ item: `budget ${p}`, kind: pa[p] === undefined ? 'added' : pb[p] === undefined ? 'removed' : 'changed', parts: [p] });
-  if (a.budgets.massG !== b.budgets.massG) out.push({ item: 'budget total', kind: a.budgets.massG === undefined ? 'added' : b.budgets.massG === undefined ? 'removed' : 'changed', parts: ['*'] });
+  if (a.budgets.mass !== b.budgets.mass) out.push({ item: 'budget total', kind: a.budgets.mass === undefined ? 'added' : b.budgets.mass === undefined ? 'removed' : 'changed', parts: ['*'] });
   for (const [what, key] of [['datum', 'datums'], ['keep-out', 'keepouts']] as const) {
     for (const id of a[key]) if (!b[key].includes(id)) out.push({ item: `${what} ${id}`, kind: 'removed', parts: [] });
     for (const id of b[key]) if (!a[key].includes(id)) out.push({ item: `${what} ${id}`, kind: 'added', parts: [] });

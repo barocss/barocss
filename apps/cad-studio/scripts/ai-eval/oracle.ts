@@ -46,8 +46,8 @@ export async function judge(doc: StudioDoc): Promise<Judged> {
 export const check = (id: string, what: string, pass: boolean, measured?: unknown, expected?: unknown, hard = true): Check => ({ id, what, pass, hard, ...(measured !== undefined ? { measured } : {}), ...(expected !== undefined ? { expected } : {}) });
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 /** Solids (bodies with a volume) of a part. */
-export const solids = (b: BodyResult[] | null) => (b ?? []).filter(x => (x.volumeMM3 ?? 0) > 0 && x.role !== 'infill');
-export const volumeOf = (b: BodyResult[] | null) => r3(solids(b).reduce((s, x) => s + (x.volumeMM3 ?? 0), 0));
+export const solids = (b: BodyResult[] | null) => (b ?? []).filter(x => (x.volume ?? 0) > 0 && x.role !== 'infill');
+export const volumeOf = (b: BodyResult[] | null) => r3(solids(b).reduce((s, x) => s + (x.volume ?? 0), 0));
 /** The bodies' overall box, sorted smallest first (the brief's sizes, in whichever axis the agent put them). */
 export function sizeOf(b: BodyResult[] | null): number[] {
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];

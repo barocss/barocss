@@ -20,8 +20,8 @@ import { variabilityView } from '../variability';
 
 /** D155: a fit's limits as a result shows them (each row's deviations, sizes, table and row, estimate and source). */
 export const fitView = (l: FitLimits) => ({ kind: l.kind, clearanceMinUM: l.clearanceMinUM, clearanceMaxUM: l.clearanceMaxUM, estimate: l.estimate,
-  hole: { class: l.hole.class, nominalMM: l.hole.nominalMM, upperUM: l.hole.upperUM, lowerUM: l.hole.lowerUM, minMM: l.hole.minMM, maxMM: l.hole.maxMM, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
-  shaft: { class: l.shaft.class, nominalMM: l.shaft.nominalMM, upperUM: l.shaft.upperUM, lowerUM: l.shaft.lowerUM, minMM: l.shaft.minMM, maxMM: l.shaft.maxMM, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
+  hole: { class: l.hole.class, nominal: l.hole.nominal, upperUM: l.hole.upperUM, lowerUM: l.hole.lowerUM, min: l.hole.min, max: l.hole.max, table: l.hole.table, row: l.hole.row, estimate: l.hole.estimate, ...(l.hole.source ? { source: l.hole.source } : {}) },
+  shaft: { class: l.shaft.class, nominal: l.shaft.nominal, upperUM: l.shaft.upperUM, lowerUM: l.shaft.lowerUM, min: l.shaft.min, max: l.shaft.max, table: l.shaft.table, row: l.shaft.row, estimate: l.shaft.estimate, ...(l.shaft.source ? { source: l.shaft.source } : {}) } });
 
 async function getPartSummaryTool(state: ChatState, args: Record<string, unknown>): Promise<ToolOutcome> {
   // Big parts (lofted figures) have hundreds of faces: list them for one body at a time, the rest by count.
@@ -50,7 +50,7 @@ async function measureTool(state: ChatState, args: Record<string, unknown>): Pro
     const f = resolveNames(state.bodies, { faces: [r[0]] }).selection.faces[0];
     if (!f) return fail(state, `No face ${r[0]} on the part.`);
     const m = datumToFace(datumWorld(set, d0), state.bodies[f.body].mesh, f.face);
-    return { state, content: json({ label: `${args.a} to ${r[0]}`, distance: Number(m.distanceMM.toPrecision(12)), ...(m.angleDeg !== null ? { angle_deg: Number(m.angleDeg.toPrecision(9)) } : {}), what: m.what }), isError: false, changed: false, summary: `${args.a} to ${r[0]}` };
+    return { state, content: json({ label: `${args.a} to ${r[0]}`, distance: Number(m.distance.toPrecision(12)), ...(m.angle !== null ? { angle_deg: Number(m.angle.toPrecision(9)) } : {}), what: m.what }), isError: false, changed: false, summary: `${args.a} to ${r[0]}` };
   }
   const names: string[] = [], resolved: Resolved[] = [];
   for (const s of [args.a ?? '', ...(args.b === undefined ? [] : [args.b])]) {
@@ -94,7 +94,7 @@ async function fitClearanceTool(state: ChatState, args: Record<string, unknown>)
       const h = find(args.hole), sh = find(args.shaft);
       if (!h || !sh) return fail(state, `[FIT_FACE] no face ${!h ? args.hole : args.shaft} on the part (names from query.summary).`);
       const c = checkFit(tables, { ...h, class: hc }, { ...sh, class: sc });
-      return { state, content: json({ ...fitView(c.limits), offsetMM: c.offsetMM, lengthMM: c.lengthMM, marginMM: c.marginMM, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMinUM} … ${c.limits.clearanceMaxUM} µm` };
+      return { state, content: json({ ...fitView(c.limits), offset: c.offset, length: c.length, margin: c.margin, mmc: c.mmc, lmc: c.lmc, contradicted: c.contradicted, message: c.message }), isError: false, changed: false, summary: `${hc}/${sc}: ${c.limits.kind}, ${c.limits.clearanceMinUM} … ${c.limits.clearanceMaxUM} µm` };
     }
     if (typeof args.hole_class === 'string' && typeof args.shaft_class === 'string' && typeof args.size === 'number') {
       const l = fitLimits(tables, args.hole_class, args.shaft_class, args.size);
@@ -147,7 +147,7 @@ async function cutListTool(state: ChatState, args: Record<string, unknown>): Pro
   // (FRb, O116: with stock lengths loaded, the pieces nested into them; else the result says how to load them.)
   const rows = list.rows.map(r => ({ ...r, names: r.pieces.map(k => list.names[k] ?? k) })), nest = nestCutList(state.doc, list);
   const nesting = nest.ok ? nest.nesting : { error: `[${nest.code}] ${nest.message}` };
-  return { state, content: json({ rows, totals: list.totals, densities: 'estimates (the materials library\'s)', nesting, ...(args.csv === true ? { csv: cutListCsv(list) } : {}) }), isError: false, changed: false, summary: `${list.totals.quantity} pieces in ${list.rows.length} rows${nest.ok ? `; ${nest.nesting.totals.bars} bars, ${nest.nesting.totals.wasteMM} mm waste` : ''}` };
+  return { state, content: json({ rows, totals: list.totals, densities: 'estimates (the materials library\'s)', nesting, ...(args.csv === true ? { csv: cutListCsv(list) } : {}) }), isError: false, changed: false, summary: `${list.totals.quantity} pieces in ${list.rows.length} rows${nest.ok ? `; ${nest.nesting.totals.bars} bars, ${nest.nesting.totals.waste} mm waste` : ''}` };
 }
 
 /** The query group's handlers, by v1 tool name (R3). */

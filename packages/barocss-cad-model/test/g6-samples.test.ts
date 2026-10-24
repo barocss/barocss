@@ -33,7 +33,7 @@ test('O-G6 draftSamples: a cone drafted 3° — every vertex of its side 3 withi
   }
   // (The exact values before Float32: draftField's own minimum and maximum on the side, 3 to 1e-9.)
   const side = draftField(CONE, [b], [0, 0, 1], 1).faces.find(x => x.face === 'n1.side0')!;
-  assert.ok(Math.abs(side.minDeg - 3) <= 1e-9 && Math.abs(side.maxDeg - 3) <= 1e-9);
+  assert.ok(Math.abs(side.minDeg - 3) <= 1e-9 && Math.abs(side.max - 3) <= 1e-9);
 });
 
 test('O-G6 draftSamples: its sign changes on exactly the faces draftField calls straddling — a cylinder across the pull, a drafted box, a cone, pulled along Z and X', () => {

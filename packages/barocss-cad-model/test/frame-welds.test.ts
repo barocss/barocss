@@ -34,9 +34,9 @@ test('FRd1 the welded table\'s joints by closed form: 4 mitres 2 · (40 + 40√2
   for (const j of by('mitre')) { assert.ok(Math.abs(j.seamMM - MITRE) <= 1e-6, `${j.id} ${j.seamMM}`); assert.equal(j.weld.kind, 'butt'); assert.equal(j.seamBasis, 'exact'); }
   for (const j of [...by('butt'), ...by('on-face')]) { assert.ok(Math.abs(j.seamMM - SQUARE) <= 1e-6, `${j.id} ${j.seamMM}`); assert.equal(j.weld.kind, 'fillet'); }
   for (const j of by('on-face')) assert.equal(j.meets.length, 2, `${j.id} meets ${j.meets}`);
-  for (const j of w.joints) assert.deepEqual([j.weld.sizeMM, j.weld.sizeBasis, j.weld.allRound], [3, 'estimate', true]);
+  for (const j of w.joints) assert.deepEqual([j.weld.size, j.weld.sizeBasis, j.weld.allRound], [3, 'estimate', true]);
   // (Each end's bore: its loop given, welded or not unsaid — never a default — so not in the seams.)
-  for (const j of w.joints) { assert.equal(j.innerLoop!.welded, null); assert.ok(Math.abs(j.innerLoop!.mm - (j.kind === 'mitre' ? BORE_MITRE : BORE)) <= 1e-6, `${j.id} bore ${j.innerLoop!.mm}`); assert.equal(j.weldMM, j.seamMM); }
+  for (const j of w.joints) { assert.equal(j.innerLoop!.welded, null); assert.ok(Math.abs(j.innerLoop!.mm - (j.kind === 'mitre' ? BORE_MITRE : BORE)) <= 1e-6, `${j.id} bore ${j.innerLoop!.mm}`); assert.equal(j.weldDistance, j.seamMM); }
   assert.equal(w.totals.innerUnset, 16); assert.match(w.notes.join(' '), /inner loop .* yours to say .* none assumed/);
   assert.equal(new Set(w.joints.map(j => j.id)).size, 16, 'one id a joint');
   // (Ids by body and end: a corner by its lesser end — the first, b0_part0's start with b0_part3's end.)
@@ -51,10 +51,10 @@ test('FRd1 the person\'s welds through the chat: a mitre set to a 4 mm fillet wi
   assert.equal(before.joints[0].label, 'W1');
   let r = await dispatchTool(s, 'set_welds', { welds: [{ joint: mitre.id, kind: 'fillet', size: 4, inner: true, notes: 'grind flush' }, { joint: 'b0_part8.start', inner: false }] }, evaluate); assert.ok(!r.isError, r.content); s = r.state;
   const after = JSON.parse((await dispatchTool(s, 'weld_list', {}, evaluate)).content), j = after.joints.find((x: { id: string }) => x.id === mitre.id);
-  assert.deepEqual(j.weld, { kind: 'fillet', sizeMM: 4, sizeBasis: 'set', allRound: true, notes: 'grind flush' });
+  assert.deepEqual(j.weld, { kind: 'fillet', size: 4, sizeBasis: 'set', allRound: true, notes: 'grind flush' });
   assert.equal(after.joints.filter((x: { weld: { sizeBasis: string } }) => x.weld.sizeBasis === 'estimate').length, 15);
   // (The bore welded where said: the mitre's seam with its inner loop; the butt's said not; the other 14 still unsaid.)
-  assert.equal(j.innerLoop.welded, true); assert.ok(Math.abs(j.weldMM - (MITRE + BORE_MITRE)) <= 1e-6, String(j.weldMM));
+  assert.equal(j.innerLoop.welded, true); assert.ok(Math.abs(j.weldDistance - (MITRE + BORE_MITRE)) <= 1e-6, String(j.weldDistance));
   assert.equal(after.joints.find((x: { id: string }) => x.id === 'b0_part8.start').innerLoop.welded, false);
   assert.equal(after.totals.innerUnset, 14); assert.ok(Math.abs(after.totals.seamMM - (4 * MITRE + 12 * SQUARE + BORE_MITRE)) <= 1e-5, String(after.totals.seamMM));
   r = await dispatchTool(s, 'set_welds', { welds: [{ joint: 'b9.side', size: 3 }] }, evaluate);
@@ -93,7 +93,7 @@ test('FRd1 a seam along curved sides: an RHS 20 × 20 × 2 with 3 mm outer corne
   const w = weldList(doc, r.bodies);
   assert.equal(w.joints.length, 1, JSON.stringify(w.joints.map(j => [j.id, j.kind])));
   const j = w.joints[0], exact = 80 - 24 + 6 * Math.PI;
-  assert.equal(j.kind, 'butt'); assert.equal(j.seamBasis, 'mesh'); assert.equal(j.weld.sizeMM, 2);
+  assert.equal(j.kind, 'butt'); assert.equal(j.seamBasis, 'mesh'); assert.equal(j.weld.size, 2);
   assert.ok(j.seamMM <= exact + 1e-9 && j.seamMM > 0.995 * exact, `${j.seamMM} vs ${exact}`);
 });
 
@@ -109,7 +109,7 @@ test('A9-1 a table frame\'s top corners, three members trimmed in order: the leg
   for (const j of w.joints) {
     assert.equal(j.kind, 'butt'); assert.equal(j.meets.length, 1); assert.ok(legs.includes(j.meets[0]), `${j.id} meets ${j.meets}`);
     assert.ok(Math.abs(j.seamMM - SQUARE) < 1e-6 && j.seamBasis === 'exact', `${j.id}: ${j.seamMM}`);
-    assert.deepEqual([j.weld.kind, j.weld.sizeMM, j.weld.sizeBasis], ['fillet', 3, 'estimate']);
+    assert.deepEqual([j.weld.kind, j.weld.size, j.weld.sizeBasis], ['fillet', 3, 'estimate']);
   }
   // (Each leg meets the two rails of its corner — one rail's trim names the other rail; its end face lies on the leg.)
   for (const leg of legs) assert.equal(w.joints.filter(j => j.meets[0] === leg).length, 2, leg);

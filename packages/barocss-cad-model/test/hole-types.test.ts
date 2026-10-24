@@ -18,7 +18,7 @@ test('countersunk hole: a 90° cone from Ø csd down to the hole, on the top and
     const [b] = bodiesOf(hole.build!(ctx, v));
     const R = csd / 2, t = R - 3.3, frustum = Math.PI * t / 3 * (R * R + R * 3.3 + 3.3 * 3.3), cyl = Math.PI * 3.3 * 3.3;
     const thick = k === 2 ? 8 : 32, want = 32 * 32 * 8 - cyl * thick - (frustum - cyl * t);
-    assert.ok(Math.abs(b.volumeMM3! - want) < 0.5, `${face}: ${b.volumeMM3} vs ${want}`);
+    assert.ok(Math.abs(b.volume! - want) < 0.5, `${face}: ${b.volume} vs ${want}`);
   }
   assert.throws(() => hole.build!(faceCtx('n1.top'), { ...hole.defaults!(faceCtx('n1.top')), type: 'countersink', d: 8, csd: 6 }), /wider than the hole/);
 });
@@ -28,7 +28,7 @@ test('tapped hole: the tap drill of its thread, the thread noted on the feature'
   assert.equal(v.d, 6.8);
   const doc = hole.build!(ctx, v), node = doc.nodes.at(-1)!;
   assert.equal(featureLabel(node, doc.nodes.length - 1, doc.nodes), 'Tapped M8×1.25');
-  assert.ok(Math.abs(bodiesOf(doc)[0].volumeMM3! - (32 * 32 * 8 - Math.PI * 3.4 * 3.4 * 8)) < 2);
+  assert.ok(Math.abs(bodiesOf(doc)[0].volume! - (32 * 32 * 8 - Math.PI * 3.4 * 3.4 * 8)) < 2);
   const blind = hole.build!(ctx, { ...v, tend: 'blind', depth: 5 }).nodes.at(-1) as { depth?: number };
   assert.equal(blind.depth, 5);
   assert.equal(hole.steps!(ctx, { ...v, d: 7 })[0].done, false, 'not its tap drill');
@@ -40,10 +40,10 @@ test('hole patterns: a row and a bolt circle, one history step each; the count e
   const row = hole.build!(ctx, { ...base, pat: 'row', pn: 4, pa: 6, pb: 0 }), rn = row.nodes.at(-1)!;
   assert.equal(row.nodes.length, plate.nodes.length + 1, 'one node');
   assert.equal(featureLabel(rn, row.nodes.length - 1, row.nodes), 'Hole Ø4 × 4');
-  assert.ok(Math.abs(bodiesOf(row)[0].volumeMM3! - (32 * 32 * 8 - 4 * Math.PI * 4 * 8)) < 2);
+  assert.ok(Math.abs(bodiesOf(row)[0].volume! - (32 * 32 * 8 - 4 * Math.PI * 4 * 8)) < 2);
   const ring = hole.build!(ctx, { ...base, pat: 'circle', pn: 6, x: 26, y: 16, qa: 16, qb: 16 });
   const [b] = bodiesOf(ring);
-  assert.ok(Math.abs(b.volumeMM3! - (32 * 32 * 8 - 6 * Math.PI * 4 * 8)) < 2);
+  assert.ok(Math.abs(b.volume! - (32 * 32 * 8 - 6 * Math.PI * 4 * 8)) < 2);
   assert.equal(b.mesh.faces.filter(f => f.kind === 'curved').length, 6, 'six bores');
   // The count, edited from the feature.
   const f = editFields(ring.nodes, ring.nodes.length - 1).find(x => x.key === 'count')!;

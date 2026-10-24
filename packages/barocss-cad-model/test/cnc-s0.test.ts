@@ -48,7 +48,7 @@ test('CNC S0 P1: a plate\'s pocket — its four vertical corner radii exact (r 5
   const s = await build([cmd('box', { w: 120, d: 80, h: 12, x: 0, y: 0, z: 0 }), cmd('box', { w: 50, d: 30, h: 9, x: 35, y: 25, z: 4 }), cmd('difference', {}, { bodies: ['b1', 'b3'] }),
     cmd('fillet', { radius: 5 }, { edges: [0, 1, 2, 3].map(k => ({ between: [`n3.side${k}`, `n3.side${(k + 1) % 4}`] })) })]);
   const [w] = wallsOf(s.doc, s.bodies, 0.6);
-  assert.deepEqual(w.fillets.map(f => +f.radiusMM.toFixed(9)), [5, 5, 5, 5]);
+  assert.deepEqual(w.fillets.map(f => +f.radius.toFixed(9)), [5, 5, 5, 5]);
   const floor = s.bodies[0].mesh.faces.filter(f => f.exact?.kind === 'plane' && Math.abs(f.exact.n[2] - 1) < 1e-12 && f.exact.o[2] < 12 - 1e-9).map(f => (f.exact as { o: V }).o[2]);
   assert.deepEqual(floor, [4]); assert.ok(5 >= (12 - 4) / 3);
 });

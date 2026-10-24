@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { rectanglePart, withNode, type ModelNode, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc } from '../src/engine/evaluate';
 
-const vols = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title + ' ' + r.error.detail); return r.bodies.map(b => Math.round(b.volumeMM3!)); };
+const vols = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.title + ' ' + r.error.detail); return r.bodies.map(b => Math.round(b.volume!)); };
 const off = (doc: StudioDoc, i: number): StudioDoc => ({ ...doc, nodes: doc.nodes.map((n, k) => k === i ? { ...n, suppressed: true } as ModelNode : n) });
 
 test('suppress: a hole passes its body on; a body made by an extrude goes, and a union keeps the other side', () => {
@@ -30,7 +30,7 @@ test('separate: a bar cut in two shows two pieces; separated, each is a body of 
   const r = evaluateDoc(doc, 1); assert.ok(r.ok);
   assert.equal(r.bodies.length, 1); assert.equal(r.bodies[0].pieces, 2);
   const sep = withNode(doc, { kind: 'separate', parent: { node: 4, side: 'solid' } }), s = evaluateDoc(sep, 1); assert.ok(s.ok);
-  assert.deepEqual(s.bodies.map(b => [b.key, Math.round(b.volumeMM3!), b.pieces ?? 1]), [['b5_part0', 500, 1], ['b5_part1', 500, 1]]);
+  assert.deepEqual(s.bodies.map(b => [b.key, Math.round(b.volume!), b.pieces ?? 1]), [['b5_part0', 500, 1], ['b5_part1', 500, 1]]);
   // A hole in one piece only.
   const holed = withNode(sep, { kind: 'hole', parent: { node: 5, side: 'part1' }, center: [25, 5], radius: 1 }), h = evaluateDoc(holed, 1); assert.ok(h.ok);
   assert.deepEqual(h.bodies.map(b => b.key), ['b5_part0', 'b6']);

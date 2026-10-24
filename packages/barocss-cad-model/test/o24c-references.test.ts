@@ -16,8 +16,8 @@ import { treeOfDoc } from '../src/chat/robot';
 const near = (a: number, b: number, tol = 1e-9) => assert.ok(Math.abs(a - b) <= tol, `${a} vs ${b}`);
 const vector = (a: readonly number[], b: readonly number[], tol = 1e-9) => a.forEach((x, k) => near(x, b[k], tol));
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
-const ball = () => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -6], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 6] }] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
-const cone = () => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [8, 0], [4, 12], [0, 12]] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+const ball = () => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -6], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 6] }] }), { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 });
+const cone = () => withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [8, 0], [4, 12], [0, 12]] }), { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 });
 const named = (doc: StudioDoc, kind: MateFace['kind']) => {
   const found = Object.entries(faceTableOf(doc)).find(([, f]) => f.kind === kind);
   assert.ok(found, `${kind}: ${JSON.stringify(faceTableOf(doc))}`);
@@ -74,7 +74,7 @@ test('O24 c: sphere and cone classification survives a large translation; a toru
   vector(sphere.point, offset); near(sphere.radius, 6);
   const taper = Object.values(table(cone())).find(f => f.kind === 'cone'); assert.ok(taper?.kind === 'cone');
   vector(taper.point, [offset[0], offset[1] + 24, offset[2]]); near(taper.half, Math.atan(1 / 3));
-  const torus = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [10, 0], radius: 3 }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  const torus = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'circle', center: [10, 0], radius: 3 }), { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 });
   assert.ok(!Object.values(faceTableOf(torus)).some(f => f.kind === 'sphere' || f.kind === 'cone'));
 });
 

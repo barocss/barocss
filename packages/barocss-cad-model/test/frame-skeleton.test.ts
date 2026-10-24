@@ -16,7 +16,7 @@ const SKELETON = { kind: 'skeleton', name: 'top', points: [[0, 0, 0], [600, 0, 0
 const onIt = (section: object) => ({ kind: 'frame', follows: { skeleton: 0 }, section, corners: { default: 'mitre' } });
 async function run(s: ChatState, tool: string, args: Record<string, unknown>) { const r = await dispatchTool(s, tool, args, evaluate); return r; }
 async function ok(s: ChatState, tool: string, args: Record<string, unknown>) { const r = await run(s, tool, args); assert.ok(!r.isError, `${tool}: ${r.content}`); return r.state; }
-const volumes = (s: ChatState, node: number) => s.bodies.filter(b => b.ref?.node === node).map(b => b.volumeMM3!).sort((a, b) => a - b);
+const volumes = (s: ChatState, node: number) => s.bodies.filter(b => b.ref?.node === node).map(b => b.volume!).sort((a, b) => a - b);
 const close = (a: readonly number[], b: readonly number[]) => assert.ok(a.length === b.length && a.every((x, k) => Math.abs(x - b[k]) <= 1e-9 * Math.max(1, b[k])), `${a} vs ${b}`);
 
 test('FRf two frames on one skeleton: 4 members each, A · L (L 600, 400); the skeleton edited to 800 × 400 — both follow; its points kept as a copy in each frame', async () => {

@@ -9,9 +9,9 @@ import type { FaceTable } from '../assembly/mates';
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
-export interface OverhangFace { readonly name: string; readonly areaMM2: number; readonly worstDeg: number; readonly exact: boolean }
+export interface OverhangFace { readonly name: string; readonly area: number; readonly worstDeg: number; readonly exact: boolean }
 export interface OverhangReport {
-  readonly direction: Vec3; readonly limitDeg: number;
+  readonly direction: Vec3; readonly limit: number;
   /** The overhanging area in all, by face (planar faces whole, exactly; curved faces their overhanging triangles). */
   readonly totalMM2: number; readonly faces: readonly OverhangFace[];
   /** Whether a curved face counted: then the total is as accurate as the display mesh's chords. */
@@ -28,8 +28,8 @@ const fromVertical = (nb: number) => Math.asin(Math.max(-1, Math.min(1, -nb))) *
  * The overhangs of a body (its display mesh, and its part's exact face table for planar faces) printed along
  * `direction` with the limit `limitDeg` from the vertical.
  */
-export function overhangOf(mesh: DisplayMesh, table: FaceTable, limitDeg: number, direction: readonly number[] = [0, 0, 1]): OverhangReport {
-  const b = unit(direction), s = Math.sin(limitDeg * Math.PI / 180), P = mesh.positions, I = mesh.indices, F = mesh.faceOfVertex;
+export function overhangOf(mesh: DisplayMesh, table: FaceTable, limit: number, direction: readonly number[] = [0, 0, 1]): OverhangReport {
+  const b = unit(direction), s = Math.sin(limit * Math.PI / 180), P = mesh.positions, I = mesh.indices, F = mesh.faceOfVertex;
   // The part's lowest point along b (the bed).
   let low = Infinity; for (let i = 0; i < P.length; i += 3) low = Math.min(low, P[i] * b[0] + P[i + 1] * b[1] + P[i + 2] * b[2]);
   const tol = 1e-4 * Math.max(1, Math.abs(low));
@@ -39,8 +39,8 @@ export function overhangOf(mesh: DisplayMesh, table: FaceTable, limitDeg: number
     if (f.kind !== 'plane') continue;
     const exact = table[f.name.replace(/#\d+$/, '')], n = exact && exact.kind === 'plane' ? exact.normal : f.normal, nb = dot(n, b);
     // On the bed: facing straight down and at the lowest point.
-    if (nb < -1 + 1e-9 && Math.abs(dot(exact && exact.kind === 'plane' ? exact.point : f.centroid, b) - low) <= tol) { bed += f.areaMM2; continue; }
-    if (-nb > s + 1e-12) { faces.push({ name: f.name, areaMM2: f.areaMM2, worstDeg: fromVertical(nb), exact: !!exact }); total += f.areaMM2; }
+    if (nb < -1 + 1e-9 && Math.abs(dot(exact && exact.kind === 'plane' ? exact.point : f.centroid, b) - low) <= tol) { bed += f.area; continue; }
+    if (-nb > s + 1e-12) { faces.push({ name: f.name, area: f.area, worstDeg: fromVertical(nb), exact: !!exact }); total += f.area; }
   }
   // Curved faces: triangle by triangle.
   for (let k = 0; k < I.length; k += 3) {
@@ -55,6 +55,6 @@ export function overhangOf(mesh: DisplayMesh, table: FaceTable, limitDeg: number
     const kept = byFace.get(fi) ?? { area: 0, worst: 0 };
     kept.area += twice / 2; kept.worst = Math.max(kept.worst, fromVertical(nb)); byFace.set(fi, kept);
   }
-  for (const [fi, v] of byFace) { faces.push({ name: mesh.faces[fi].name, areaMM2: v.area, worstDeg: v.worst, exact: false }); total += v.area; approximate = true; }
-  return { direction: b, limitDeg, totalMM2: total, faces, approximate, bedMM2: bed };
+  for (const [fi, v] of byFace) { faces.push({ name: mesh.faces[fi].name, area: v.area, worstDeg: v.worst, exact: false }); total += v.area; approximate = true; }
+  return { direction: b, limit, totalMM2: total, faces, approximate, bedMM2: bed };
 }

@@ -22,8 +22,8 @@ test('FRb cad-cli nest: the mitred L into 600 mm bars at a 3 mm kerf — exit 0,
   let r = cli(part, '-o', join(dir, 'out'), '--list', list, '--kerf', '3');
   assert.equal(r.status, 0, r.stderr + r.stdout);
   const n = JSON.parse(readFileSync(join(dir, 'out/nesting.json'), 'utf8'));
-  assert.equal(n.bars.length, 1); assert.deepEqual([n.bars[0].usedMM, n.bars[0].kerfMM, n.bars[0].offcutMM], [540, 3, 57]);
-  assert.deepEqual(n.kerf, { mm: 3, basis: 'set' }); assert.equal(n.sections[0].method, 'exact'); assert.equal(n.totals.wasteMM, 57);
+  assert.equal(n.bars.length, 1); assert.deepEqual([n.bars[0].used, n.bars[0].kerf, n.bars[0].offcut], [540, 3, 57]);
+  assert.deepEqual(n.kerf, { mm: 3, basis: 'set' }); assert.equal(n.sections[0].method, 'exact'); assert.equal(n.totals.waste, 57);
   const csv = readFileSync(join(dir, 'out/nesting.csv'), 'utf8').trim().split('\n');
   assert.equal(csv.length, 3); assert.match(csv[1], /^1,B600,.*,600,.*320.*220.*,540,3,57$/); assert.equal(csv[2], 'total,,,600,,540,3,57');
   r = cli(part, '-o', join(dir, 'none')); assert.equal(r.status, 1); assert.match(r.stdout, /NEST_NO_STOCK/);

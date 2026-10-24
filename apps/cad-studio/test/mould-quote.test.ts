@@ -46,9 +46,9 @@ test('IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-
   for (const f of q.manifest.files) { const bytes: Uint8Array = q.files.get(f.path)!; assert.equal(f.sha256, createHash('sha256').update(bytes).digest('hex'), f.path); assert.equal(f.bytes, bytes.length); }
   const r = q.request, d = 25 * Math.tan(3 * Math.PI / 180), volume = 25 * (2400 - 100 * d + 4 * d * d / 3);
   assert.deepEqual([r.material, r.finish, r.pull, r.quantity], [{ id: 'abs', label: 'ABS', basis: 'body' }, { id: 'pm-t1', label: 'Light bead blast (PM-T1)', minDraftDeg: 3 }, [0, 0, 1], 1000]);
-  assert.deepEqual(r.part.sizeMM, [60, 40, 25]);
-  assert.ok(Math.abs(r.part.volumeMM3 - volume) <= 1e-6 * volume, `${r.part.volumeMM3} vs ${volume}`);
-  assert.ok(Math.abs(r.part.massG! - volume * materialData('abs')!.densityGPerCm3 / 1000) <= 2e-3, String(r.part.massG));
+  assert.deepEqual(r.part.size, [60, 40, 25]);
+  assert.ok(Math.abs(r.part.volume - volume) <= 1e-6 * volume, `${r.part.volume} vs ${volume}`);
+  assert.ok(Math.abs(r.part.mass! - volume * materialData('abs')!.densityGPerCm3 / 1000) <= 2e-3, String(r.part.mass));
   assert.deepEqual([r.tolerance, r.shrink, r.limits], [{ mm: 0.08, perMM: 0.002, source: 'https://www.protolabs.com/services/injection-molding/' }, 0.002, { largestPartMM: [751, 480, 203] }]);
   assert.match(new TextDecoder().decode(q.files.get(QUOTE_FILES.step)!), /^ISO-10303-21;/);
   const md = new TextDecoder().decode(q.files.get(QUOTE_FILES.page)!);
@@ -60,7 +60,7 @@ test('IM6 nothing assumed: no material and no quantity stated — both open, not
   if ('error' in q) { assert.fail(q.error); return; }
   assert.equal(q.manifest.complete, false);
   assert.ok(q.manifest.open.some(o => /the material is not set/.test(o)) && q.manifest.open.some(o => /the quantity is not stated/.test(o)), q.manifest.open.join(' | '));
-  assert.equal(q.request.material, null); assert.equal(q.request.part.massG, null);
+  assert.equal(q.request.material, null); assert.equal(q.request.part.mass, null);
   // (A finish asking more draft than the part has: a warning in the report, not an open item.)
   const t2 = moulded({ finish: 'pm-t2' }), q2 = await quotePackage(t2, bodiesOf(t2), evaluate);
   if ('error' in q2) { assert.fail(q2.error); return; }

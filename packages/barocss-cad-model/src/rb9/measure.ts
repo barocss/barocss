@@ -9,7 +9,7 @@ import type { Requirement } from '../engine/schema/spec';
 import type { Evaluate, Outcome } from './core';
 import { boundsOf } from '../engine/bounds';
 
-export const volumeOf = (bodies: readonly BodyResult[]) => bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0);
+export const volumeOf = (bodies: readonly BodyResult[]) => bodies.reduce((s, b) => s + (b.volume ?? 0), 0);
 export interface Cylinder { c: Vec3; a: Vec3; r: number; zMin: number; zMax: number; body: number; face: number }
 /** Every exact cylindrical face (the B-rep's own, A6.3), with its extent along its axis from its mesh. */
 export function cylindersOf(bodies: readonly BodyResult[]): Cylinder[] {

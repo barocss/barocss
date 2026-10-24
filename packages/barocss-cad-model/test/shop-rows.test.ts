@@ -84,7 +84,7 @@ test('empty inherited context preserves legacy document and instance identity', 
 });
 
 test('nested flatten refuses a referenced distinct bearing row but accepts unused local rows', () => {
-  const row = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, boreDeviationUM: [0, -10] as [number, number], source: 'shop' };
+  const row = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10] as [number, number], source: 'shop' };
   const child: StudioDoc = { ...emptyDoc(), bearings: { version: 1, rows: [row] } };
   const parent: StudioDoc = { ...emptyDoc(), instances: [{ id: 'p', name: 'P', doc: child, position: [0, 0, 0], rotation: [0, 0, 0] }] };
   assert.doesNotThrow(() => flattenShopView(resolveShopTree(parent)));
@@ -94,7 +94,7 @@ test('nested flatten refuses a referenced distinct bearing row but accepts unuse
 
 
 test('wire and evaluation results retain inherited and override origins across parent changes', () => {
-  const inherited = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, boreDeviationUM: [0, -10] as [number, number], source: 'shop' };
+  const inherited = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10] as [number, number], source: 'shop' };
   const child: StudioDoc = { ...emptyDoc(), bearings: { version: 1, rows: [{ ...inherited, id: 'own' }] } };
   const parent: StudioDoc = { ...emptyDoc(), bearings: { version: 1, rows: [inherited, { ...inherited, id: 'own', source: 'parent' }] }, instances: [{ id: 'p', name: 'P', doc: child, position: [0, 0, 0], rotation: [0, 0, 0] }] };
   const sender = new WireSender(), receiver = new WireReceiver();
@@ -104,9 +104,9 @@ test('wire and evaluation results retain inherited and override origins across p
   const result = evaluatePart(first.instances![0].doc, 1);
   assert.ok(result.ok);
   if (result.ok) assert.deepEqual(result.shopRows, provenanceOfTree(first.instances![0].doc));
-  const changed: StudioDoc = { ...parent, bearings: { version: 1, rows: [{ ...inherited, widthMM: 15 }] } };
+  const changed: StudioDoc = { ...parent, bearings: { version: 1, rows: [{ ...inherited, width: 15 }] } };
   const second = receiver.unpack(sender.pack(changed));
-  assert.equal(second.instances![0].doc.bearings?.rows.find(r => r.id === '6204')?.widthMM, 15);
+  assert.equal(second.instances![0].doc.bearings?.rows.find(r => r.id === '6204')?.width, 15);
   assert.deepEqual(provenanceOfTree(second), provenanceOfTree(changed));
   assert.notEqual(evaluationKey(first), evaluationKey(second));
   assert.equal('shopRows' in first, false);

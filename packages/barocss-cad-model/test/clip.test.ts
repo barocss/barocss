@@ -21,7 +21,7 @@ test('clipMesh: a plate with a hole cut across each axis keeps its side, capped 
     // Half the plate, closed by its cap (the volume is only right when the cap closes it, facing out).
     assert.ok(Math.abs(volume(c) - full / 2) < 1e-3 * full, `${k} ${keep}: ${volume(c)} vs ${full / 2}`);
     const holeArea = k === 2 ? Math.PI * 25 : 10 * 16;
-    assert.ok(Math.abs(cap.areaMM2 - ((k === 2 ? 32 * 32 : 32 * 16) - holeArea)) < 2, `${k}: cap ${cap.areaMM2}`);
+    assert.ok(Math.abs(cap.area - ((k === 2 ? 32 * 32 : 32 * 16) - holeArea)) < 2, `${k}: cap ${cap.area}`);
   }
   assert.equal(clipMesh(m, 2, 20, 'negative', 'x'), m, 'wholly on the kept side');
   assert.equal(clipMesh(m, 2, -1, 'negative', 'x'), null, 'wholly beyond');

@@ -66,7 +66,7 @@ test('clearance exports contact as pending, not an invented overlap verdict', as
 test('unknown, nested and unsafe output inputs refuse without changing the document', async () => {
   const doc = rectanglePart(20, 15, 4);
   for (const [name, args] of [
-    ['output_cam_package', { tool: { diameterMM: 6 } }], ['output_purchase_csv', { withMade: 'true' }],
+    ['output_cam_package', { tool: { diameter: 6 } }], ['output_purchase_csv', { withMade: 'true' }],
     ['output_print_layers', { direction: [0, 0, 0] }], ['output_print_layers', { layers: [0, 0] }],
     ['output_print_layers', { layers: [999] }], ['output_print_layers', { layerHeight: 1e-9 }],
     ['output_clearance', { near: NaN }], ['output_bundle', { baseline: { id: 'BL1' } }],

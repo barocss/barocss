@@ -5,7 +5,7 @@
 // and the kernel's version kept beside it; another model's geometry is never a library part (LIB1 refuses import,
 // mesh and sewn surfaces); a library an agent wrote is marked so until a person confirms it. Kernel only: the studio
 // and the chat server run the same check.
-import { CAD_KERNEL_VERSION, checkLibraryFit, evaluateCadPart, instantiateLibraryPart, loadCadLibrary, type CadLibrary } from '@barocss/cad';
+import { CAD_KERNEL_VERSION, checkLibraryFit, checkOutput, outputOf, evaluateCadPart, instantiateLibraryPart, loadCadLibrary, type CadLibrary } from '@barocss/cad';
 
 /** A library's licence as given, or null: unlicensed, private use only. */
 export const licenseOf = (lib: CadLibrary): string | null => typeof lib.manifest.license === 'string' && lib.manifest.license.trim() ? lib.manifest.license.trim() : null;
@@ -33,12 +33,12 @@ export function checkLibraryForSharing(json: unknown, now = new Date()): Library
     try {
       const inst = instantiateLibraryPart(lib, p.id, variant ? { variant } : {});
       const result = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: inst.features });
-      for (const o of inst.outputs) { const report = result.output(o).validate(); if (!report.valid) problems.push(`${what}: ${o} is not a valid solid (${report.issues[0] ?? 'invalid'})`); }
+      for (const o of inst.outputs) { const report = checkOutput(outputOf(result, o)); if (!report.valid) problems.push(`${what}: ${o} is not a valid solid (${report.issues[0] ?? 'invalid'})`); }
       built++;
     } catch (cause) { problems.push(`${what}: ${cause instanceof Error ? cause.message : String(cause)}`); }
   }
   for (const f of lib.manifest.fits ?? []) {
-    try { const r = checkLibraryFit(lib, f.id); fits++; if (!r.ok) problems.push(`fit ${f.id}: ${r.overlapMM3 > r.maxOverlapMM3 ? `overlap ${r.overlapMM3.toFixed(6)} mm³` : 'the parts do not touch'}`); }
+    try { const r = checkLibraryFit(lib, f.id); fits++; if (!r.ok) problems.push(`fit ${f.id}: ${r.overlap > r.maxOverlap ? `overlap ${r.overlap.toFixed(6)} mm³` : 'the parts do not touch'}`); }
     catch (cause) { problems.push(`fit ${f.id}: ${cause instanceof Error ? cause.message : String(cause)}`); }
   }
   return { ok: !problems.length, at: now.toISOString(), kernel: CAD_KERNEL_VERSION, library: lib.manifest.id, version: lib.manifest.libraryVersion, built, fits, problems };

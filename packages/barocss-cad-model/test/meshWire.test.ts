@@ -7,7 +7,7 @@ import type { DisplayMesh } from '../src/engine/mesh';
 
 // PERF3 B12 (D82): evaluation replies carry only the meshes the client does not hold; the client puts back the rest.
 const mesh = (n: number): DisplayMesh => ({ positions: new Float32Array(3 * n).fill(n), normals: new Float32Array(3 * n), faceOfVertex: new Float32Array(n), indices: new Uint32Array(3), faces: [], edgeLines: new Float32Array(6), edgeOfSegment: new Float32Array(2), edges: [], bounds: { min: [0, 0, 0], max: [1, 1, 1] } } as unknown as DisplayMesh);
-const result = (...meshes: DisplayMesh[]): EvalResult => ({ ok: true, revision: 1, ms: 0, bodies: meshes.map((m, i) => ({ key: `b${i}`, mesh: m, volumeMM3: i, massG: null } as never)) });
+const result = (...meshes: DisplayMesh[]): EvalResult => ({ ok: true, revision: 1, ms: 0, bodies: meshes.map((m, i) => ({ key: `b${i}`, mesh: m, volume: i, mass: null } as never)) });
 const bytes = (t: readonly unknown[]) => t.reduce((n: number, b) => n + (b as ArrayBuffer).byteLength, 0);
 
 test('B12 protocol: a mesh sent once in a slot goes back as a token; the client gives the same mesh back; slots apart; a refusal forgets the slot; a token not held is an error', () => {
@@ -67,7 +67,7 @@ test('B12 through the worker\'s path: shared kept meshes, packed and unpacked, e
       assert.equal(r.bodies.length, p.bodies.length);
       for (let i = 0; i < p.bodies.length; i++) {
         const a: BodyResult = r.bodies[i], b: BodyResult = p.bodies[i];
-        assert.equal(a.key, b.key); assert.equal(a.volumeMM3, b.volumeMM3);
+        assert.equal(a.key, b.key); assert.equal(a.volume, b.volume);
         for (const f of ['positions', 'normals', 'faceOfVertex', 'indices', 'edgeLines', 'edgeOfSegment'] as const) assert.deepEqual(Array.from(a.mesh[f]), Array.from(b.mesh[f]), `${k} ${i} ${f}`);
         assert.deepEqual(a.mesh.faces, b.mesh.faces);
       }
@@ -81,8 +81,8 @@ test('B12 through the worker\'s path: shared kept meshes, packed and unpacked, e
 test('B12 slots and volumes: each purpose its own snapshot; a clash probe\'s volumes without meshes, the same as the full evaluation\'s', () => {
   const doc = plates(80), full = evaluatePart(doc, 1, 8, 'check'), v = evaluateVolumes(doc);
   assert.ok(full.ok && v.ok);
-  assert.deepEqual(v.volumes, full.bodies.map(b => ({ key: b.key, volumeMM3: b.volumeMM3 })));
+  assert.deepEqual(v.volumes, full.bodies.map(b => ({ key: b.key, volume: b.volume })));
   // Two purposes taking turns each keep reusing their own features (the result the same either way).
   const other = plates(81), a = evaluatePart(other, 2, 8, 'agent'), b = evaluatePart(doc, 3, 8, 'check');
-  assert.ok(a.ok && b.ok && b.bodies[0].volumeMM3 === full.bodies[0].volumeMM3);
+  assert.ok(a.ok && b.ok && b.bodies[0].volume === full.bodies[0].volume);
 });

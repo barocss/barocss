@@ -17,8 +17,8 @@ test('union: bodies touching only along an edge or at a point stay two bodies in
   for (const [x, y, z] of [[10, 10, 0], [10, 10, 10], [10, 10, 5]]) {
     const r = evaluateDoc(pair(x, y, z), 1); assert.ok(r.ok, `${[x, y, z]}: ${!r.ok && r.error.detail}`);
     assert.equal(r.bodies.length, 1, `${[x, y, z]}`);
-    assert.ok(Math.abs(r.bodies[0].volumeMM3! - 2000) < 1e-6, `${[x, y, z]}: ${r.bodies[0].volumeMM3}`);
+    assert.ok(Math.abs(r.bodies[0].volume! - 2000) < 1e-6, `${[x, y, z]}: ${r.bodies[0].volume}`);
   }
-  const apart = evaluateDoc(pair(20, 0, 0), 1); assert.ok(apart.ok && Math.abs(apart.bodies.reduce((v, b) => v + b.volumeMM3!, 0) - 2000) < 1e-6);
-  const faces = evaluateDoc(pair(10, 0, 0), 1); assert.ok(faces.ok && faces.bodies.length === 1 && Math.abs(faces.bodies[0].volumeMM3! - 2000) < 1e-6);
+  const apart = evaluateDoc(pair(20, 0, 0), 1); assert.ok(apart.ok && Math.abs(apart.bodies.reduce((v, b) => v + b.volume!, 0) - 2000) < 1e-6);
+  const faces = evaluateDoc(pair(10, 0, 0), 1); assert.ok(faces.ok && faces.bodies.length === 1 && Math.abs(faces.bodies[0].volume! - 2000) < 1e-6);
 });

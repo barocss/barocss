@@ -71,7 +71,7 @@ export interface BodyRef { node: number; side: Side }
 /** A stock row (CNC7b): a block's three sides, or a bar's diameter (and the longest length it comes in), with its source (the shop's own, a page …). */
 export type StockRow = { id: string; kind: 'block'; size: [number, number, number]; source: string } | { id: string; kind: 'bar'; diameter: number; maxLength?: number; source: string };
 /** A frame stock row (FRb, O116): a length bars come in, how many if limited, the section it is (a cut list's section text; unset: any), with its source. */
-export interface FrameStockRow { id: string; lengthMM: number; count?: number; section?: string; source: string }
+export interface FrameStockRow { id: string; length: number; count?: number; section?: string; source: string }
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
 /** A sheet's K (R12.4, D120): one K-factor, or a bend table (the shop's, loaded from a file) giving each bend's. */
 export type SheetK = { kFactor: number; bendTable?: undefined } | { bendTable: BendTable; kFactor?: undefined };
@@ -130,23 +130,23 @@ type ModelNodeBase = SketchNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
-  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angleDegrees: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
+  | { kind: 'revolve'; sketch: number; axis: 'x' | 'y'; origin?: [Dim, Dim]; angle: number; /** Any direction in the sketch plane (a picked edge), instead of its X or Y. */ dir?: [number, number]; made?: Made }
   | { kind: 'translate'; parent: BodyRef; offset: [Dim, Dim, Dim] }
   /** About the axis through `pivot` (none: the origin, as parts placed by rotation steps). */
-  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angleDegrees: number; pivot?: [Dim, Dim, Dim]; made?: Made }
+  | { kind: 'rotate'; parent: BodyRef; axis: Axis; angle: number; pivot?: [Dim, Dim, Dim]; made?: Made }
   | { kind: 'mirror'; parent: BodyRef; plane: 'xy' | 'xz' | 'yz' }
   /** About `pivot` (none: the origin). */
   | { kind: 'scale'; parent: BodyRef; factor: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   /** About `axis` through `pivot` (default the origin). */
-  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angleDegrees: number; count: number; pivot?: [Dim, Dim, Dim] }
+  | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
   | { kind: 'intersect'; left: BodyRef; right: BodyRef }
   | { kind: 'difference'; parent: BodyRef; tool: BodyRef; made?: Made }
   /** Across `axis` = at, or with `normal` across the plane normal·p = at (an oblique cut: x + y = at for [1, 1, 0]). */
   | { kind: 'split'; parent: BodyRef; at: Dim; axis: Axis; normal?: [number, number, number] }
   /** The sketch swept along straight runs and bends (from the sketch plane up +Z). */
-  | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angleDegrees: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
+  | { kind: 'sweep'; sketch: number; path: ({ kind: 'straight'; length: Dim } | { kind: 'bend'; radius: Dim; angle: number; toward: 'x' | '-x' | 'y' | '-y' })[] }
   /** The sketch's profile swept along a curve (a NURBS path in mm, copied from a direct curve `name`): faceted. */
   | { kind: 'sweep-curve'; sketch: number; name: string; path: { degree: number; knots: number[]; controlPoints: [number, number, number][]; weights: number[] } }
   /** A ruled loft through sketches at increasing heights (each section's edges to the next one's). */
@@ -185,7 +185,7 @@ type ModelNodeBase = SketchNode
    */
   /** A corner relief (R12.3b, D119; the kernel's `sheet-corner-relief`): the corner kept by its edge's name, as a flange's. */
   | { kind: 'sheet-corner-relief'; parent: BodyRef; edges: [string]; shape: 'square' | 'round'; size: Dim }
-  | { kind: 'sheet-flange'; parent: BodyRef; edges: [string]; length: Dim; angleDegrees?: number; bendRadius?: Dim; measure?: 'outer' | 'inner' | 'tangent'; position?: 'material-inside' | 'material-outside' | 'bend-outside'; offsets?: [Dim, Dim]; relief?: { kind: 'rectangular' | 'obround'; width: Dim; depth: Dim } | { kind: 'none' } }
+  | { kind: 'sheet-flange'; parent: BodyRef; edges: [string]; length: Dim; angle?: number; bendRadius?: Dim; measure?: 'outer' | 'inner' | 'tangent'; position?: 'material-inside' | 'material-outside' | 'bend-outside'; offsets?: [Dim, Dim]; relief?: { kind: 'rectangular' | 'obround'; width: Dim; depth: Dim } | { kind: 'none' } }
   /**
    * A structural member (FR1, D123; the kernel's `frame-member`): a `section` square to the line `start` → `end`, extruded
    * its length. Its `anchor` (default the centroid) on the line, the section moved by `offset`, its y along `up` (default
@@ -368,7 +368,7 @@ type ModelNodeBase = SketchNode
   /** Direct surfaces (copied, by their names) sewn along their edges into one closed solid; edges `tolerance` mm apart still meet. */
   | { kind: 'sew'; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }[]; tolerance?: number }
   /** Draft on chosen side faces (by name) for a pull along +Z: each turned about its line on the body's bottom (positive: its top leans in). */
-  | { kind: 'draft'; parent: BodyRef; faces: string[]; angleDegrees: number }
+  | { kind: 'draft'; parent: BodyRef; faces: string[]; angle: number }
   /** IM7b (O113): a face split along its isocline n·d = 0 for the pull (the kernel's split-face, D149): its pieces `<face>#1` (the + side), `<face>#2` …, or `names`. */
   | { kind: 'split-face'; parent: BodyRef; face: string; pull: [number, number, number]; names?: string[] }
   /** `radii` (R10.5, D100): a varying radius, given at points of the edges; `radius` then the first point's. `section` (R10.5b, D103): a conic or G2 section (default a circle). */
@@ -579,8 +579,8 @@ export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   for (const ref of Object.values(base.outputs)) {
     let at: BodyRef = ref;
     // (Any rotation: the kernel turns about X and Y by quarter turns only, see rotationSteps.)
-    rotationSteps(inst.rotation).forEach(({ axis, angleDegrees }) => {
-      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angleDegrees }] };
+    rotationSteps(inst.rotation).forEach(({ axis, angle }) => {
+      doc = { ...doc, nodes: [...doc.nodes, { kind: 'rotate', parent: at, axis, angle }] };
       at = { node: doc.nodes.length - 1, side: 'solid' };
     });
     if (inst.position.some(v => v !== 0)) {
@@ -768,13 +768,13 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
       const kind = s && s.kind === 'sketch' && s.profile === 'circle' ? 'Cylinder' : 'Extrude';
       return `${kind} ${n(node.height)}${node.draft ? ` · ${node.draft}°` : ''}`;
     }
-    case 'revolve': return `Revolve ${node.angleDegrees}°`;
+    case 'revolve': return `Revolve ${node.angle}°`;
     case 'hole': return (node.thread ? `Tapped ${node.thread}` : `${node.countersink ? 'Countersunk' : 'Hole'} Ø${typeof node.radius === 'number' ? fmt(node.radius * 2) : node.radius.parameter}`) + (node.pattern && node.pattern.count > 1 ? ` × ${node.pattern.count}` : '');
     case 'chamfer': return `Chamfer ${n(node.distance)}`;
-    case 'draft': return `Draft ${fmt(node.angleDegrees)}° × ${node.faces.length}`;
+    case 'draft': return `Draft ${fmt(node.angle)}° × ${node.faces.length}`;
     case 'thicken': return `Thicken ${node.name} ${n(node.thickness)}`;
     case 'sheet-base': return `Sheet plate T${n(node.thickness)}`;
-    case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angleDegrees ?? 90)}°`;
+    case 'sheet-flange': return `Flange ${n(node.length)} · ${fmt(node.angle ?? 90)}°`;
     case 'frame-member': return `Member ${sectionLabel(node.section, n)} · ${memberLength(node)}`;
     case 'frame': { const k = frameSegmentCount(nodes, node); return `Frame ${sectionLabel(node.section, n)} · ${k} member${k === 1 ? '' : 's'}${node.follows ? ` · on ${'part' in node.follows ? `${node.follows.part}'s sketch ${node.follows.sketch}` : 'skeleton' in node.follows ? `skeleton ${node.follows.skeleton + 1}` : `sketch ${node.follows.sketch + 1}`}` : ''}`; }
     case 'skeleton': return `Skeleton${node.name ? ` ${node.name}` : ''} · ${node.points.length} points, ${node.segments.length} segments`;
@@ -786,7 +786,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'intersect': return 'Intersect';
     case 'difference': return 'Subtract';
     case 'translate': return 'Move';
-    case 'rotate': return `Rotate ${node.angleDegrees}°`;
+    case 'rotate': return `Rotate ${node.angle}°`;
     case 'mirror': return `Mirror ${node.plane.toUpperCase()}`;
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;

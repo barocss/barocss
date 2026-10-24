@@ -75,6 +75,6 @@ test('FR S0 P3: a parameter already moves two frames together — w = 300 then 4
 test('FR S0 P4: the cut list carries what nesting needs — the L\'s two mitred members: each piece\'s long-point length (300 + 20 and 200 + 20 at the 45° cuts) and the row counts', () => {
   const pieces = bodiesOf(L()).map(b => b.cutPiece!).filter(Boolean);
   assert.equal(pieces.length, 2);
-  const longs = pieces.map(p => Math.round(p.longPointMM * 1e6) / 1e6).sort((a, b) => b - a);
+  const longs = pieces.map(p => Math.round(p.longPoint * 1e6) / 1e6).sort((a, b) => b - a);
   assert.deepEqual(longs, [320, 220]);
 });

@@ -34,7 +34,7 @@ const segDist2 = (px: number, py: number, m: Move) => { const dx = m.b[0] - m.a[
 test('B: CNC8\'s 50 × 30 pocket — NOT FOR PRODUCTION first; the whole tool; one +Z setup, the identity frame; the linking rule; loops at z 17, 14, 12; the block stock as a box', async () => {
   const s = await build(POCKET), p = camPackage(withStock(s.doc), s.bodies);
   assert.deepEqual([Object.keys(p)[0], p.banner, p.notForProduction], ['banner', NOT_FOR_PRODUCTION, true]);
-  assert.deepEqual(p.tool, { kind: 'flat', diameterMM: 6, cornerMM: 0, fluteMM: 18, shankMM: 6, basis: { diameter: 'estimate', shape: 'estimate' } });
+  assert.deepEqual(p.tool, { kind: 'flat', diameter: 6, cornerMM: 0, fluteMM: 18, shankMM: 6, basis: { diameter: 'estimate', shape: 'estimate' } });
   assert.equal(p.setups.length, 1);
   const s0 = p.setups[0];
   assert.deepEqual([s0.setup, s0.frame, s0.axis], ['+Z', [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], [0, 0, 1]]);
@@ -53,7 +53,7 @@ test('B: CNC8\'s 50 × 30 pocket — NOT FOR PRODUCTION first; the whole tool; o
 });
 
 test('B: the swept volume of the feed moves is the pocket\'s 50 · 30 · 8 = 12000 mm³, less at most the four corners a flat Ø6 tool cannot reach (4(1 − π/4)·3²·8)', async () => {
-  const s = await build(POCKET), p = camPackage(withStock(s.doc), s.bodies), s0 = p.setups[0], R = p.tool.diameterMM / 2;
+  const s = await build(POCKET), p = camPackage(withStock(s.doc), s.bodies), s0 = p.setups[0], R = p.tool.diameter / 2;
   // (Each level's cut: the cells within R of a feed or a ramp at it, times its thickness from the level above.)
   const levels = [[17, 3], [14, 3], [12, 2]] as const, cell = 0.05, feeds = s0.moves.filter(m => m.kind === 'feed');
   // (The pocket's plan from the outermost loop grown by the tool's radius: where the box command put it.)
@@ -125,8 +125,8 @@ test('O157 the pocket where it is: +Z, −Z and side setups — the feeds in wor
 
 test('O161, F3: a Ø47 through bore with the Ø6 tool — never a plunge: one circular pocket from +Z, its levels down through 14, every cut inside the bore by R; the Ø6 holes beside it still plunged', async () => {
   const s = await build([cmd('box', { w: 200, d: 300, h: 14, x: 0, y: 0, z: 0 }), cmd('hole', { d: 47, x: 100, y: 150 }, { faces: ['n1.top'] }), cmd('hole', { d: 6, x: 20, y: 20 }, { faces: ['n1.top'] })]);
-  const p = camPackage(s.doc, s.bodies), R = p.tool.diameterMM / 2;
-  assert.deepEqual([p.tool.diameterMM, p.setups.map(x => x.setup)], [6, ['+Z']]);
+  const p = camPackage(s.doc, s.bodies), R = p.tool.diameter / 2;
+  assert.deepEqual([p.tool.diameter, p.setups.map(x => x.setup)], [6, ['+Z']]);
   const top = p.setups[0], bore = top.passes.filter(q => q.kind === 'pocket'), drills = top.passes.filter(q => q.kind === 'drill');
   assert.equal(new Set(bore.map(q => q.feature)).size, 1); assert.equal(drills.length, 1, 'the Ø6 hole, the tool\'s size, a plunge');
   assert.ok(!drills.some(q => q.feature === bore[0].feature), 'the bore is not drilled');
@@ -143,7 +143,7 @@ test('O161, F3: a Ø47 through bore with the Ø6 tool — never a plunge: one ci
 test('O166: a hole narrower than the tool is refused by name, CAM_TOOL_TOO_LARGE — never an overcut drill point; the rest of the program kept', async () => {
   const s = await build([cmd('box', { w: 60, d: 40, h: 20, x: 0, y: 0, z: 0 }), cmd('hole', { type: 'blind', d: 5, depth: 10, x: 15, y: 20 }, { faces: ['n1.top'] }), cmd('hole', { type: 'blind', d: 6, depth: 10, x: 45, y: 20 }, { faces: ['n1.top'] })]);
   const p = camPackage(s.doc, s.bodies), top = p.setups.find(x => x.setup === '+Z')!;
-  assert.equal(p.tool.diameterMM, 6);
+  assert.equal(p.tool.diameter, 6);
   assert.equal(p.refusals?.length, 1);
   const [r] = p.refusals!, drilled = top.passes.filter(q => q.kind === 'drill').map(q => q.feature);
   assert.deepEqual([r.code, r.setup, r.message], ['CAM_TOOL_TOO_LARGE', '+Z', 'Ø5 hole is narrower than the Ø6 tool: a plunge would overcut it']);

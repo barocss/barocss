@@ -21,7 +21,7 @@ function run(doc: StudioDoc, id: string, pick: { bodies?: number[]; face?: strin
   assert.ok(ok.ok, ok.ok ? '' : `${id}: ${ok.reason}`);
   return c.build!(ctx, { ...c.defaults!(ctx), ...values });
 }
-const ROW = { id: 'r20', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' };
+const ROW = { id: 'r20', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' };
 /** The shaft-parts scene: the default shaft (n0), a hub (n1, n2) with its keyway (n3), the key (n4), a ring on r20 (n5), a pin (n6). */
 function scene(withRow = true): StudioDoc {
   let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
@@ -37,7 +37,7 @@ function scene(withRow = true): StudioDoc {
 test('each element body keeps its kernel report as data; its line: our size text, the user\'s row, estimate and why, bought or made', () => {
   const doc = scene(), bodies = evaluated(doc);
   const key = bodies.find(b => b.element?.kind === 'key')!;
-  assert.equal(key.element!.kind === 'key' && key.element!.report.widthMM, 6);
+  assert.equal(key.element!.kind === 'key' && key.element!.report.width, 6);
   // (Plain data: what the engine worker posts to the page goes by structured clone — a function in a report would throw.)
   for (const b of bodies) if (b.element) assert.deepEqual(structuredClone(b.element), b.element);
   const lines = elementLines(doc, bodies), by = (kind: string) => lines.find(l => l.kind === kind)!;
@@ -86,8 +86,8 @@ test('the BOM: 2 copies of the shaft part — the part ×2, and each bought elem
 
 test('D160/D161 in the element lines and the BOM: a cam and pulleys made, a belt and a coupling bought — the coupling as its row says, its part number and supplier carried', async () => {
   const { editDriveRows } = await import('../src/engine/drives');
-  const FLAT = { kind: 'flat-belt', id: 'flat-a', widthMM: 40, thicknessMM: 3, estimate: true };
-  const COUPLING = { kind: 'coupling', id: 'sleeve-a', type: 'rigid sleeve', boreMM: [12, 14], outsideMM: 30, lengthMM: 40, boreStepMM: 18, partNumber: 'TEST-1', supplier: 'a test supplier', estimate: true };
+  const FLAT = { kind: 'flat-belt', id: 'flat-a', width: 40, thickness: 3, estimate: true };
+  const COUPLING = { kind: 'coupling', id: 'sleeve-a', type: 'rigid sleeve', bore: [12, 14], outside: 30, length: 40, boreStep: 18, partNumber: 'TEST-1', supplier: 'a test supplier', estimate: true };
   let doc = (editDriveRows(emptyDoc(), [FLAT, COUPLING]) as { doc: StudioDoc }).doc;
   const build = (d: StudioDoc, id: string, values: Record<string, string | number>, sel: number[] = []) => {
     const bodies = evaluated(d), ctx: Ctx = { doc: d, bodies, selection: { faces: [], edges: [], bodies: sel.map(n => bodies.findIndex(b => b.ref?.node === n)) } }, c = cmd(id);
@@ -109,7 +109,7 @@ test('D160/D161 in the element lines and the BOM: a cam and pulleys made, a belt
 test('D162 in the element lines and the BOM: a connector\'s opening made, its body bought — named from the user\'s row, the row cited', async () => {
   const { editConnectorRows } = await import('../src/engine/connectors');
   const { rectanglePart } = await import('../src/engine/doc');
-  const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
+  const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, body: { shape: 'stadium', width: 8.25, height: 2.4, length: 6.51 }, keepOut: { margin: 1, depth: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
   const plate = (editConnectorRows(rectanglePart(40, 20, 10), [U1]) as { doc: StudioDoc }).doc, r0 = evaluated(plate);
   const face = r0[0].mesh.faces.findIndex(f => f.name.endsWith('.top')), c = cmd('connector'), ctx: Ctx = { doc: plate, bodies: r0, selection: { faces: [{ body: 0, face }], edges: [], bodies: [] } };
   const doc = c.build!(ctx, { ...c.defaults!(ctx) }), bodies = evaluated(doc);

@@ -74,7 +74,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
     const { min, max } = boundsOf(bodies);
     return {
       id: inst.id, name: inst.name, position: inst.position.map(r3), rotation_deg: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}),
-      feature_count: inst.doc.nodes.length, bodies: bodies.length, volume_mm3: r3(bodies.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)),
+      feature_count: inst.doc.nodes.length, bodies: bodies.length, volume: r3(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)),
       ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
       ...(r && !r.ok ? { error: r.error.title } : {}),
       ...memberInterfaceList(bodies),
@@ -84,7 +84,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
   const mates = doc.mates ?? [];
   const solved = solveDoc(doc).problems;
   return {
-    base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume_mm3: r3(base.reduce((s, b) => s + (b.volumeMM3 ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...memberInterfaceList(base), ...(detail === BASE ? mateFaces(withDatums(tableOf(doc), doc)) : {}) },
+    base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume: r3(base.reduce((s, b) => s + (b.volume ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...memberInterfaceList(base), ...(detail === BASE ? mateFaces(withDatums(tableOf(doc), doc)) : {}) },
     instances,
     mates: mates.map((m, i) => ({ id: m.id, label: mateLabel(m, i), kind: m.kind, a: m.a, b: m.b, ...(m.distance !== undefined ? { distance: m.distance } : {}), ...(m.angle !== undefined ? { angle: m.angle } : {}), ...(m.flip ? { flip: true } : {}) })),
     ...(solved.length ? { problems: solved } : {}),
@@ -246,7 +246,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       // (AM4: which way up — the best of a fixed candidate set, deterministic; applied unless apply is false.)
       const r = orientPart(doc, state.bodies, faceTableOf(doc), processProfile(doc.process));
       if (typeof r === 'string') return fail(doc, r);
-      const round = (o: OrientationScore) => ({ direction: o.direction.map(v => +v.toFixed(6)), score: +o.score.toFixed(6), terms: Object.fromEntries(Object.entries(o.terms).map(([k, v]) => [k, +v.toFixed(6)])), support_mm3: +(o.supportMM3 ?? 0).toFixed(3), overhang_mm2: +o.overhangMM2.toFixed(3), height_mm: +o.heightMM.toFixed(3), contact_mm2: +o.contactMM2.toFixed(3) });
+      const round = (o: OrientationScore) => ({ direction: o.direction.map(v => +v.toFixed(6)), score: +o.score.toFixed(6), terms: Object.fromEntries(Object.entries(o.terms).map(([k, v]) => [k, +v.toFixed(6)])), support_mm3: +(o.supportMM3 ?? 0).toFixed(3), overhang_mm2: +o.overhangMM2.toFixed(3), height_mm: +o.height.toFixed(3), contact_mm2: +o.contactMM2.toFixed(3) });
       const out = { best: round(r.best), top: r.top.map(round), candidates: r.candidates, weights: r.weights, ms: Math.round(r.ms) };
       if (args.apply === false) return { doc, content: json(out), isError: false, changed: false, summary: 'orientation scored' };
       return { doc: { ...doc, print: { direction: r.best.direction.map(v => v + 0) as [number, number, number] } }, content: json({ ...out, applied: true }), isError: false, changed: true, summary: `oriented for printing: up ${out.best.direction.join(', ')}` };

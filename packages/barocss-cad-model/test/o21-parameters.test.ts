@@ -43,7 +43,7 @@ test('O21: features.parameters through the agent: add, bind, set — the volume 
   const s = await stateOf(plate());
   const r = await runTool(s, 'set_parameters', { add: { T: 5 }, bind: [{ feature: 1, value: 'h', parameter: 'T' }], set: { T: 8 } }, evaluate);
   assert.ok(!r.isError, r.content);
-  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! - 40 * 20 * 8) < 1e-6, String(r.state.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.state.bodies[0].volume! - 40 * 20 * 8) < 1e-6, String(r.state.bodies[0].volume));
   assert.deepEqual(JSON.parse(r.content).parameters, [{ name: 'T', value: 8, uses: 1 }]);
   // (A refusal anywhere: nothing applied.)
   const bad = await runTool(r.state, 'set_parameters', { set: { T: 10 }, remove: ['nope'] }, evaluate);

@@ -46,7 +46,7 @@ export function scriptedVerifier(rules: readonly VerifierRule[], model = 'script
     async review(view: VerifierView) {
       const findings: string[] = [];
       for (const r of rules) {
-        if (r.kind === 'max_mass_g') { const g = (view.mass as { mass_g?: number }[]).reduce((s, b) => s + n(b.mass_g), 0); if (g > r.value) findings.push(`the part weighs ${Number(g.toPrecision(6))} g, over ${r.value} g`); }
+        if (r.kind === 'max_mass_g') { const g = (view.mass as { mass?: number }[]).reduce((s, b) => s + n(b.mass), 0); if (g > r.value) findings.push(`the part weighs ${Number(g.toPrecision(6))} g, over ${r.value} g`); }
         else if (r.kind === 'max_size') { const k = 'xyz'.indexOf(r.axis), boxes = view.boxes as { body: string; min: number[]; max: number[] }[]; const lo = Math.min(...boxes.map(b => b.min[k])), hi = Math.max(...boxes.map(b => b.max[k])); if (hi - lo > r.value + 1e-9) findings.push(`${Number((hi - lo).toPrecision(6))} mm along ${r.axis}, over ${r.value} mm`); }
         else if ((view.boxes as unknown[]).length < r.value) findings.push(`${(view.boxes as unknown[]).length} bodies, fewer than ${r.value}`);
       }

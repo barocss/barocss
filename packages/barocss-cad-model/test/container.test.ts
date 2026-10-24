@@ -11,7 +11,7 @@ import { WireReceiver, WireSender } from '../src/engine/wireDoc';
 
 // M1 (R3.3): mesh arrays as blobs named by SHA-256; the .bcad container; plain JSON when there are none.
 const block = () => meshInMM(readMeshFile('block-cm.stl', new Uint8Array(readFileSync(join(resolve(import.meta.dirname, '..'), 'test/fixtures/block-cm.stl')))), 'cm');
-const summary = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.hint); return r.bodies.map(b => ({ key: b.key, volume: b.volumeMM3, faces: b.mesh.faces.map(f => f.name) })); };
+const summary = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.hint); return r.bodies.map(b => ({ key: b.key, volume: b.volume, faces: b.mesh.faces.map(f => f.name) })); };
 
 test('an old file (inline arrays) and the same part as blobs in the container: the same bodies, volumes and names', async () => {
   const m = block();

@@ -27,7 +27,7 @@ test('actual shared geometry Save/fresh Open/re-edit and incremental wire preser
   const doc = table(), original = ok(doc), saved = await readStudioFile(encodeStudioFile(doc)); assert.ok('doc' in saved);
   assert.equal(canonical(doc), canonical(saved.doc)); assert.deepEqual(saved.doc.frames!.beadOwnership, policy);
   assert.equal(revisionOf(doc), revisionOf(saved.doc));
-  const facts = (d: StudioDoc) => ok(d).bodies.map(b => ({ key: b.key, volume: b.volumeMM3, centroid: b.centroid, inertia: b.inertia, element: b.element }));
+  const facts = (d: StudioDoc) => ok(d).bodies.map(b => ({ key: b.key, volume: b.volume, centroid: b.centroid, inertia: b.inertia, element: b.element }));
   assert.deepEqual(facts(saved.doc), facts(doc));
   const sender = new WireSender(), receiver = new WireReceiver(); receiver.unpack(structuredClone(sender.pack(doc)));
   const edits = [bad(), { ...doc, frames: { ...doc.frames!, beadOwnership: undefined } },
@@ -74,7 +74,7 @@ test('incomplete beads block whole mass/inertia/BOM/requirements/approval; selec
   const draft = draftBaseline(doc, bom, view), review = await moveBaseline(draft.doc, draft.baseline.id, 'review', userToken('t1'));
   await assert.rejects(() => moveBaseline(review.doc, draft.baseline.id, 'approved', userToken('t2'), evaluate), /RESULT_NOT_OK.*BEAD_ACCOUNTING_INCOMPLETE/);
   const gate = await checkAssembly(doc, evaluate); assert.equal(gate.verdict, 'undecided'); assert.equal(gate.beadAccounting!.complete, false);
-  assert.ok(gate.massG > 0); assert.equal(gate.findings[0].code, 'BEAD_ACCOUNTING_INCOMPLETE');
+  assert.ok(gate.mass > 0); assert.equal(gate.findings[0].code, 'BEAD_ACCOUNTING_INCOMPLETE');
   const assembly = { ...emptyDoc(), instances: [inst(table()), inst(doc, 'p2')] };
   const incomplete = await bomResult(assembly, evaluate, 'nested'); assert.equal(incomplete.status, 'unsupported'); assert.match(incomplete.why!, /p2/);
   const nested = { ...emptyDoc(), instances: [inst(assembly)] }, nestedView = await bomView(nested, evaluate), nestedBom = deriveBom(nestedView);
@@ -105,7 +105,7 @@ test('placed shared metadata transforms once, exact drawing/STEP geometry agrees
   const move = (p: readonly number[]) => [0, 1, 2].map(i => place.t[i] + p.reduce((s, v, k) => s + place.m[i * 3 + k] * v, 0));
   for (const b of source.bodies.filter(b => b.element?.kind === 'weld-bead')) {
     const out = moved.find(x => x.key === b.key)!; assert.ok(out.element?.kind === 'weld-bead' && b.element?.kind === 'weld-bead');
-    assert.deepEqual(out.element.report.sharedSeams[0].pathMM, b.element.report.sharedSeams[0].pathMM.map(move));
+    assert.deepEqual(out.element.report.sharedSeams[0].path, b.element.report.sharedSeams[0].path.map(move));
     assert.equal(out.element.report.sharedSeams[0].id, b.element.report.sharedSeams[0].id);
   }
   const send = new MeshSender(), receive = new MeshReceiver(), result = { ...source, bodies: moved };

@@ -15,7 +15,7 @@ const cs = (extra: BoundConstraint3D[] = []): BoundConstraint3D[] => [{ kind: 'f
   { kind: 'length', segment: 0, value: { parameter: 'W' } }, { kind: 'length', segment: 1, value: { parameter: 'D' } }, { kind: 'perpendicular', a: 0, b: 1 }, { kind: 'parallel', a: 0, b: 2 }, { kind: 'parallel', a: 1, b: 3 }, ...extra];
 const sk = (extra?: BoundConstraint3D[]) => ({ kind: 'skeleton', points: [[0, 0, 0], [590, 10, 0], [610, 390, 5], [-5, 405, 3]], segments: [[0, 1], [1, 2], [2, 3], [3, 0]], constraints: cs(extra) });
 const frame = { kind: 'frame', follows: { skeleton: 0 }, section: { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, corners: { default: 'mitre' } };
-const vols = (bodies: readonly { volumeMM3?: number | null }[]) => bodies.map(b => b.volumeMM3!).sort((a, b) => a - b);
+const vols = (bodies: readonly { volume?: number | null }[]) => bodies.map(b => b.volume!).sort((a, b) => a - b);
 const close = (a: number[], b: number[]) => assert.ok(a.length === b.length && a.every((v, k) => Math.abs(v - b[k]) <= 1e-6 * b[k]), `${a} vs ${b}`);
 async function built(W = 600, D = 400, extra?: BoundConstraint3D[]): Promise<ChatState> {
   const r = await dispatchTool({ doc: { ...emptyDoc(), parameters: { W, D } }, bodies: [] }, 'add_features', { features: [sk(extra), frame] }, evaluate);

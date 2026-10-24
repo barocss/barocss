@@ -50,7 +50,7 @@ export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' 
 export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string; frame?: string }
 export interface Loop { parts: [string, string]; mates: string[]; freedom: number; message: string }
 export interface Coupling {
-  leader: string; follower: string; multiplier: number; centerDistanceMM: number; nominalCenterDistanceMM: number; backlashMM: number; contactRatio: number;
+  leader: string; follower: string; multiplier: number; centerDistance: number; nominalCenterDistance: number; backlash: number; contactRatio: number;
   /** The two gears in their common frame (Z on the first's axis), and how each joint's positive turn reads about that Z (RM2: the pair at any pose). */
   g1: GearPlacement; g2: GearPlacement; s1: 1 | -1; s2: 1 | -1;
 }
@@ -357,14 +357,14 @@ function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (p
       return { spec: g.g.spec, center: [dot(d, x), dot(d, y)], from: dot(d, z), rotation: g.g.rotation + turn };
     };
     const g1 = frame(A), g2 = frame(B), dist = Math.hypot(g2.center[0] - g1.center[0], g2.center[1] - g1.center[1]);
-    const tips = (spurGearDimensions(g1.spec).tipDiameterMM + spurGearDimensions(g2.spec).tipDiameterMM) / 2;
+    const tips = (spurGearDimensions(g1.spec).tipDiameter + spurGearDimensions(g2.spec).tipDiameter) / 2;
     if (!(dist < tips)) continue;
     if (dot(A.axis, B.axis) < 0) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: their gears face opposite ways (not coupled yet).` }); continue; }
     if (A.j.parent !== B.j.parent) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: their gears mesh but turn on different links, so their angles are not tied.` }); continue; }
     try {
       const c = checkPlacedSpurGears(g1, g2, { mode: 'verdict' }), multiplier = -g1.spec.teeth / g2.spec.teeth;
       B.j.mimic = { joint: A.j.key, multiplier, offset: 0 };
-      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistanceMM: c.centerDistanceMM, nominalCenterDistanceMM: c.nominalCenterDistanceMM, backlashMM: c.backlashMM, contactRatio: c.usableContactRatio,
+      out.push({ leader: A.j.key, follower: B.j.key, multiplier, centerDistance: c.centerDistance, nominalCenterDistance: c.nominalCenterDistance, backlash: c.backlash, contactRatio: c.usableContactRatio,
         g1, g2, s1: dot(A.j.axis, z) < 0 ? -1 : 1, s2: dot(B.j.axis, z) < 0 ? -1 : 1 });
     } catch (cause) { notes.push({ code: 'GEAR_NOT_COUPLED', message: `${A.j.key} and ${B.j.key}: ${cause instanceof Error ? cause.message.replace(/^gear: /, '') : String(cause)}` }); }
   }

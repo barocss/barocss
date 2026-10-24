@@ -14,7 +14,7 @@ export type ElementReport =
   | { kind: 'pin'; report: PinReport }
   | { kind: 'bearing'; report: BearingReport }
   | { kind: 'oring-gland'; report: GlandReport }
-  | { kind: 'oring'; report: { readonly ring: string; readonly overlapMM3: number; readonly stretchedCrossSectionMM: number } }
+  | { kind: 'oring'; report: { readonly ring: string; readonly overlap: number; readonly stretchedCrossSection: number } }
   // (D160, D161: a cam; a sprocket, a pulley, a belt or chain, a coupling.)
   | { kind: 'cam'; report: CamReport }
   | { kind: 'sprocket'; report: SprocketReport }
@@ -23,7 +23,7 @@ export type ElementReport =
   | { kind: 'coupling'; report: CouplingReport }
   // (D162: a connector's opening cut in its panel, and the bought body seated in it.)
   | { kind: 'connector-opening'; report: ConnectorReport }
-  | { kind: 'connector-body'; report: { readonly row: string; readonly overlapMM3: number } }
+  | { kind: 'connector-body'; report: { readonly row: string; readonly overlap: number } }
   // (FRk1, D165: a frame's gusset and end cap — plates, made; the BOM lists them as plates, the weld list their seams.)
   | { kind: 'gusset'; report: GussetReport }
   | { kind: 'end-cap'; report: EndCapReport }
@@ -92,7 +92,7 @@ export interface ElementLine {
   /** Whether a value of it is an estimate, and which. */
   estimate: boolean; why: string[];
   bought: boolean; boughtBy: 'override' | 'default';
-  massG: number | null;
+  mass: number | null;
   /** A bought item's catalogue number and supplier, where its row gives them (a coupling's, D161). */
   catalogue?: string;
 }
@@ -100,33 +100,33 @@ const n = (x: number) => `${+x.toFixed(3)}`;
 /** A connector's name for its lines: the row's name less a trailing "opening" (the line says which), else its id. */
 const connectorName = (name: string | undefined, id: string) => name ? name.replace(/\s*opening$/i, '') : id;
 /** A connector row as far as its sizes go (engine/doc's `connectors`). */
-type ConnectorRowLike = { name?: string; body?: { shape: string; widthMM: number; heightMM: number; lengthMM: number }; source?: string; estimate?: boolean };
+type ConnectorRowLike = { name?: string; body?: { shape: string; width: number; height: number; length: number }; source?: string; estimate?: boolean };
 /** A report's sizes as one short line (our own words; the values the kernel's). */
-export function sizeOf(e: BodyElement, oringRow?: { insideDiameterMM: number; crossSectionMM: number }, connectorRow?: ConnectorRowLike): string {
+export function sizeOf(e: BodyElement, oringRow?: { insideDiameter: number; crossSection: number }, connectorRow?: ConnectorRowLike): string {
   switch (e.kind) {
-    case 'spring': { const d = e.report.dimensions, type = e.report.type, L = 'freeLengthMM' in d ? `${n(d.freeLengthMM)} free` : `${n(d.bodyLengthMM)} body`; return `${type}, Ø${n(d.wireDiameterMM)} wire, Ø${n(d.meanDiameterMM)} mean × ${L}, ${n(d.activeCoils)} active`; }
-    case 'shaft': { const ds = e.report.steps.map(s => s.diameterMM); return `${e.report.steps.length} steps Ø${n(Math.min(...ds))}–Ø${n(Math.max(...ds))} × ${n(e.report.lengthMM)}`; }
-    case 'key': return `${n(e.report.widthMM)} × ${n(e.report.heightMM)} × ${n(e.report.lengthMM)}`;
-    case 'keyway': return `${n(e.report.widthMM)} × ${n(e.report.depthMM)} in Ø${n(2 * e.report.boreRadiusMM)}`;
-    case 'retaining-ring': return `Ø${n(e.report.innerDiameterMM)} / Ø${n(e.report.outerDiameterMM)} × ${n(e.report.thicknessMM)}`;
-    case 'pin': return `Ø${n(e.report.diameterMM)} × ${n(e.report.lengthMM)}`;
-    case 'bearing': return `${n(e.report.boreMM)} × ${n(e.report.outsideMM)} × ${n(e.report.widthMM)}`;
-    case 'oring-gland': return `groove Ø${n(e.report.grooveDiameterMM)} × ${n(e.report.widthMM)} × ${n(e.report.depthMM)}`;
-    case 'oring': return oringRow ? `${n(oringRow.insideDiameterMM)} × ${n(oringRow.crossSectionMM)}` : e.report.ring;
-    case 'cam': return `${e.report.motion} ${e.report.follower}, base R${n(e.report.baseRadiusMM)}, stroke ${n(e.report.stroke)} ${e.report.units}`;
-    case 'sprocket': return `${e.report.teeth} teeth, p ${n(e.report.pitchMM)}, Ø${n(e.report.pitchDiameterMM)} pitch`;
-    case 'pulley': return `${e.report.type}${e.report.teeth ? ` ${e.report.teeth} teeth` : ''}, Ø${n(e.report.pitchDiameterMM)} pitch × ${n(e.report.widthMM)}`;
-    case 'belt': return `${e.report.kind}, L ${n(e.report.lengthMM)}${e.report.chain ? `, ${e.report.chain.links} links` : ''} at ${n(e.report.centerDistanceMM)}`;
-    case 'connector-opening': { const o = e.report.opening, b = e.report.body; return `${connectorName(e.report.name, e.report.row)} opening, ${o.shape} ${n(o.widthMM)} × ${n(o.heightMM)} × ${n(o.depthMM)} deep${b ? `; its body ${n(b.gapWidthMM)} / ${n(b.gapHeightMM)} clear across` : ''}`; }
-    case 'connector-body': { const b = connectorRow?.body; return `${connectorName(connectorRow?.name, e.report.row)} envelope${b ? ` ${b.shape} ${n(b.widthMM)} × ${n(b.heightMM)} × ${n(b.lengthMM)}` : ''}`; }
-    case 'gusset': return `plate ${n(e.report.thicknessMM)} thick, legs ${n(e.report.legsMM[0])} × ${n(e.report.legsMM[1])}${e.report.clipMM ? `, clipped ${n(e.report.clipMM)}` : ''}`;
-    case 'end-cap': return `plate ${n(e.report.thicknessMM)} thick, ${e.report.fit}, ${n(e.report.areaMM2)} mm²`;
-    case 'weld-bead': return `fillet ${n(e.report.legMM)} leg (throat ${n(e.report.throatMM)}), ${n(e.report.seam.lengthMM)} seam`;
-    case 'coupling': return `Ø${n(e.report.boreMM[0])} / Ø${n(e.report.boreMM[1])} bores, Ø${n(e.report.outsideMM)} × ${n(e.report.lengthMM)}`;
+    case 'spring': { const d = e.report.dimensions, type = e.report.type, L = 'freeLength' in d ? `${n(d.freeLength)} free` : `${n(d.bodyLength)} body`; return `${type}, Ø${n(d.wireDiameter)} wire, Ø${n(d.meanDiameter)} mean × ${L}, ${n(d.activeCoils)} active`; }
+    case 'shaft': { const ds = e.report.steps.map(s => s.diameter); return `${e.report.steps.length} steps Ø${n(Math.min(...ds))}–Ø${n(Math.max(...ds))} × ${n(e.report.length)}`; }
+    case 'key': return `${n(e.report.width)} × ${n(e.report.height)} × ${n(e.report.length)}`;
+    case 'keyway': return `${n(e.report.width)} × ${n(e.report.depth)} in Ø${n(2 * e.report.boreRadius)}`;
+    case 'retaining-ring': return `Ø${n(e.report.innerDiameter)} / Ø${n(e.report.outerDiameter)} × ${n(e.report.thickness)}`;
+    case 'pin': return `Ø${n(e.report.diameter)} × ${n(e.report.length)}`;
+    case 'bearing': return `${n(e.report.bore)} × ${n(e.report.outside)} × ${n(e.report.width)}`;
+    case 'oring-gland': return `groove Ø${n(e.report.grooveDiameter)} × ${n(e.report.width)} × ${n(e.report.depth)}`;
+    case 'oring': return oringRow ? `${n(oringRow.insideDiameter)} × ${n(oringRow.crossSection)}` : e.report.ring;
+    case 'cam': return `${e.report.motion} ${e.report.follower}, base R${n(e.report.baseRadius)}, stroke ${n(e.report.stroke)} ${e.report.units}`;
+    case 'sprocket': return `${e.report.teeth} teeth, p ${n(e.report.pitch)}, Ø${n(e.report.pitchDiameter)} pitch`;
+    case 'pulley': return `${e.report.type}${e.report.teeth ? ` ${e.report.teeth} teeth` : ''}, Ø${n(e.report.pitchDiameter)} pitch × ${n(e.report.width)}`;
+    case 'belt': return `${e.report.kind}, L ${n(e.report.length)}${e.report.chain ? `, ${e.report.chain.links} links` : ''} at ${n(e.report.centerDistance)}`;
+    case 'connector-opening': { const o = e.report.opening, b = e.report.body; return `${connectorName(e.report.name, e.report.row)} opening, ${o.shape} ${n(o.width)} × ${n(o.height)} × ${n(o.depth)} deep${b ? `; its body ${n(b.gapWidth)} / ${n(b.gapHeight)} clear across` : ''}`; }
+    case 'connector-body': { const b = connectorRow?.body; return `${connectorName(connectorRow?.name, e.report.row)} envelope${b ? ` ${b.shape} ${n(b.width)} × ${n(b.height)} × ${n(b.length)}` : ''}`; }
+    case 'gusset': return `plate ${n(e.report.thickness)} thick, legs ${n(e.report.legs[0])} × ${n(e.report.legs[1])}${e.report.clip ? `, clipped ${n(e.report.clip)}` : ''}`;
+    case 'end-cap': return `plate ${n(e.report.thickness)} thick, ${e.report.fit}, ${n(e.report.area)} mm²`;
+    case 'weld-bead': return `fillet ${n(e.report.leg)} leg (throat ${n(e.report.throat)}), ${n(e.report.seam.length)} seam`;
+    case 'coupling': return `Ø${n(e.report.bore[0])} / Ø${n(e.report.bore[1])} bores, Ø${n(e.report.outside)} × ${n(e.report.length)}`;
   }
 }
 /** Each machine element of a part (and each node the person marked bought), one line a body: what the BOM and the element list carry. */
-export function elementLines(doc: Pick<StudioDoc, 'nodes' | 'orings' | 'connectors'>, bodies: readonly { ref?: { node: number }; element?: BodyElement; massG: number | null }[]): ElementLine[] {
+export function elementLines(doc: Pick<StudioDoc, 'nodes' | 'orings' | 'connectors'>, bodies: readonly { ref?: { node: number }; element?: BodyElement; mass: number | null }[]): ElementLine[] {
   const out: ElementLine[] = [], seen = new Set<number>();
   for (const b of bodies) {
     const k = b.ref?.node; if (k === undefined || seen.has(k)) continue;
@@ -149,7 +149,7 @@ export function elementLines(doc: Pick<StudioDoc, 'nodes' | 'orings' | 'connecto
     if (e?.kind === 'cam' && e.report.pressureAngle.limitEstimate) why.push('its pressure-angle limit is an estimate');
     if (e?.kind === 'belt' && e.report.bandEstimate) why.push('its band\'s section is an estimate');
     const catalogue = e?.kind === 'coupling' && (e.report.bought.partNumber || e.report.bought.supplier) ? [e.report.bought.partNumber, e.report.bought.supplier].filter(Boolean).join(', ') : undefined;
-    out.push({ item: node.id ?? `n${k}`, label, kind: e?.kind ?? node.kind, size: e ? sizeOf(e, oring, connector) : label, row, estimate: why.length > 0, why, bought: buy.bought, boughtBy: buy.by, massG: b.massG, ...(catalogue ? { catalogue } : {}) });
+    out.push({ item: node.id ?? `n${k}`, label, kind: e?.kind ?? node.kind, size: e ? sizeOf(e, oring, connector) : label, row, estimate: why.length > 0, why, bought: buy.bought, boughtBy: buy.by, mass: b.mass, ...(catalogue ? { catalogue } : {}) });
   }
   return out;
 }

@@ -50,7 +50,7 @@ test('the sphere R 15: the new δ covers the mesh\'s true depth (the old was hal
 });
 
 test('the torus (R 20, r 5): unbounded before, now a finite δ at least the true depth; a keep-out clearly clear is decided, one within δ undecided', async () => {
-  const { doc, bodies } = await body('add_features', { features: [{ kind: 'sketch', profile: 'circle', center: [20, 0], radius: 5 }, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 }] }), m = bodies[0].mesh;
+  const { doc, bodies } = await body('add_features', { features: [{ kind: 'sketch', profile: 'circle', center: [20, 0], radius: 5 }, { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 }] }), m = bodies[0].mesh;
   // (Revolved about Y: the tube's centre circle radius 20 in the XZ plane.)
   const truth = trueDepth(m, p => 5 - Math.hypot(Math.hypot(p[0], p[2]) - 20, p[1])), next = chordOf(m);
   console.log(`O55 torus: true depth ${truth.depth.toFixed(5)}, new δ ${next.toFixed(5)} (before: unbounded)`);

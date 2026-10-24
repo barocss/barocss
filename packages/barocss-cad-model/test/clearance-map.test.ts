@@ -29,14 +29,14 @@ test('G22: an overlap in contact at once, then filled — 5 × 20 × 10 = 1000 m
   assert.deepEqual([p.state, p.minGapMM, map.pending], ['contact', 0, 1], 'in contact: touching or a clash, the Boolean to say');
   assert.ok(p.overlap && 'pending' in p.overlap);
   const f = fillOverlap(map, bodies, pendingPairs(map)[0]);
-  assert.ok('volumeMM3' in f.overlap, JSON.stringify(f.overlap));
-  assert.ok(Math.abs(f.overlap.volumeMM3 - 1000) < 1e-9 * 1000, String(f.overlap.volumeMM3));
-  assert.ok(Math.abs(meshVolume(f.overlap.mesh.positions, f.overlap.mesh.indices) - f.overlap.volumeMM3) < 1e-3, 'its mesh encloses its volume');
+  assert.ok('volume' in f.overlap, JSON.stringify(f.overlap));
+  assert.ok(Math.abs(f.overlap.volume - 1000) < 1e-9 * 1000, String(f.overlap.volume));
+  assert.ok(Math.abs(meshVolume(f.overlap.mesh.positions, f.overlap.mesh.indices) - f.overlap.volume) < 1e-3, 'its mesh encloses its volume');
   // (In a's frame: the block between x 15 and 20 of the base box.)
   const a = p.a === 'b1';
   assert.ok(a, 'the base body is side a');
   assert.ok(Math.abs(f.overlap.mesh.bounds.min[0] - 15) < 1e-5 && Math.abs(f.overlap.mesh.bounds.max[0] - 20) < 1e-5);
-  assert.ok(applyFill(map, f) && map.pending === 0 && 'volumeMM3' in p.overlap!);
+  assert.ok(applyFill(map, f) && map.pending === 0 && 'volume' in p.overlap!);
   assert.equal(p.state, 'overlap', '1000 mm³: a clash');
   // (Bands come after the map, on asking: none in it at first.)
   assert.equal(p.band, undefined); assert.deepEqual(bandPending(map), [p]);
@@ -79,7 +79,7 @@ test('G22: turned 90° about Z — the fill in a\'s frame (still 1000 mm³), the
   const bodies = await assemblyPlacedBodies(doc, evaluate), map = clearanceMap(bodies, { near: 1 }), p = only(map.pairs);
   assert.equal(p.state, 'contact');
   const f = fillOverlap(map, bodies, p);
-  assert.ok('volumeMM3' in f.overlap && Math.abs(f.overlap.volumeMM3 - 1000) < 1e-9 * 1000, JSON.stringify('volumeMM3' in f.overlap ? f.overlap.volumeMM3 : f.overlap));
+  assert.ok('volume' in f.overlap && Math.abs(f.overlap.volume - 1000) < 1e-9 * 1000, JSON.stringify('volume' in f.overlap ? f.overlap.volume : f.overlap));
   // (The instance moved: a new map, its pair's pose key changed — the old fill no longer applies.)
   const moved = asm(box(20, 20, 10), inst('p', box(20, 20, 10), [20 + 14, 0, 0], [0, 0, 90]));
   const map2 = clearanceMap(await assemblyPlacedBodies(moved, evaluate), { near: 1 });

@@ -17,7 +17,7 @@ import { readDrawing } from '../src/drawing/types';
 // fastener row (kind, size, length) when one is loaded — from a file they supplied (rows rule b) — and an estimate,
 // said so, when none is. Its shape is still the fastener command's own (FASTENER_SIZES, untouched).
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
-const ROW = { id: 'F-M6x20', kind: 'socket-screw', size: 'M6', lengthMM: 20, designation: 'cap screw M6 × 20, A2', partNumber: 'SCS-M6-20', supplier: 'the shop', source: 'a test row' };
+const ROW = { id: 'F-M6x20', kind: 'socket-screw', size: 'M6', length: 20, designation: 'cap screw M6 × 20, A2', partNumber: 'SCS-M6-20', supplier: 'the shop', source: 'a test row' };
 /** A plate with four M6 × 20 cap screws placed in the assembly, each a part of its own. */
 function plateWithScrews(): StudioDoc {
   // (O7: the sizes the screws are drawn by, the sample rows loaded as the person loads them.)
@@ -47,7 +47,7 @@ test('F9: the person\'s fastener row, from their file — the line named by it (
   const agent = await dispatchTool({ doc: plateWithScrews(), bodies: [] }, 'features', { action: 'load_rows', kind: 'fasteners', file: 'rows-0000' }, evaluate);
   assert.ok(agent.isError && agent.content.includes(ROWS_NOT_FROM_PERSON.slice(0, 20)), agent.content);
   // (A row of another length is not this screw's: the line stays an estimate.)
-  const other = personFile('fasteners.json', [{ ...ROW, id: 'F-M6x25', lengthMM: 25 }]);
+  const other = personFile('fasteners.json', [{ ...ROW, id: 'F-M6x25', length: 25 }]);
   const r2 = await dispatchTool({ doc: plateWithScrews(), bodies: [], rowFiles: other.rowFiles }, 'features', { action: 'load_rows', kind: 'fasteners', file: other.file }, evaluate); assert.ok(!r2.isError, r2.content);
   assert.equal(deriveBom(await bomView(r2.state.doc, evaluate)).lines.find(l => l.kind === 'fastener')!.estimate, true);
 });
@@ -56,8 +56,8 @@ test('F9: a fastener row is checked — a kind, a thread size, a length for a sc
   assert.deepEqual(checkFastenerRow(ROW), []);
   assert.deepEqual(checkFastenerRow({ id: 'N6', kind: 'hex-nut', size: 'M6', estimate: true }), []);
   assert.match(checkFastenerRow({ ...ROW, source: undefined })[0].message, /cite its source or say estimate: true/);
-  assert.match(checkFastenerRow({ ...ROW, lengthMM: 0 })[0].message, /lengthMM is a number of mm above 0/);
-  assert.match(checkFastenerRow({ id: 'N6', kind: 'hex-nut', size: 'M6', lengthMM: 5, estimate: true })[0].message, /has no lengthMM/);
+  assert.match(checkFastenerRow({ ...ROW, length: 0 })[0].message, /lengthMM is a number of mm above 0/);
+  assert.match(checkFastenerRow({ id: 'N6', kind: 'hex-nut', size: 'M6', length: 5, estimate: true })[0].message, /has no lengthMM/);
   assert.match(checkFastenerRow({ ...ROW, size: '6' })[0].message, /size is the thread's/);
   assert.match(checkFastenerRow({ ...ROW, kind: 'rivet' })[0].message, /kind is one of/);
   assert.match(checkFastenerRow({ ...ROW, strength: '8.8' })[0].message, /unknown field strength/);

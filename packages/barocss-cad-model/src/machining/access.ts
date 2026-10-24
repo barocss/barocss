@@ -10,11 +10,11 @@ import { boundsOf } from '../engine/bounds';
 
 export const DIRECTIONS: readonly (readonly [number, number, number])[] = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
 export const DIRECTION_NAMES: readonly string[] = ['+X', '−X', '+Y', '−Y', '+Z', '−Z'];
-export interface Unreached { readonly body: string; readonly face: string; readonly areaMM2: number }
+export interface Unreached { readonly body: string; readonly face: string; readonly area: number }
 export interface Access {
   /** The surface area by the directions that reach it (bit k: DIRECTIONS[k]); `byMask[0]` reached by none. */
   readonly byMask: readonly number[];
-  readonly areaMM2: number; readonly unreachedMM2: number; readonly unreached: readonly Unreached[];
+  readonly area: number; readonly unreachedMM2: number; readonly unreached: readonly Unreached[];
   /** The greedy setups: directions in order, each with the area it adds. */
   readonly setups: readonly { readonly direction: string; readonly addsMM2: number }[];
   readonly samples: number; readonly stepMM: number; readonly method: string;
@@ -25,7 +25,7 @@ const OFF = 0.01, MAX_N = 48, o = [0, 0, 0];
 export function accessOf(bodies: readonly BodyResult[], stepMM?: number): Access {
   const { min: lo, max: hi } = boundsOf(bodies);
   const h = stepMM ?? Math.max(0.1, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / 200);
-  const byMask = new Array<number>(64).fill(0), unreached = new Map<string, Unreached & { areaMM2: number }>();
+  const byMask = new Array<number>(64).fill(0), unreached = new Map<string, Unreached & { area: number }>();
   const total = { area: 0, samples: 0 };
   for (const body of bodies) {
     const m = body.mesh, P = m.positions, I = m.indices, T = I.length / 3, bvh = triangleBvh(m.positions, m.indices);
@@ -33,7 +33,7 @@ export function accessOf(bodies: readonly BodyResult[], stepMM?: number): Access
       const r = sampleTriangle(P, I, t, h, bvh, byMask, total); if (!r) continue;
       if (r.none) {
         const face = m.faces[m.faceOfVertex[I[3 * t]]]?.name.split('+')[0] ?? '?', key = `${body.key}|${face}`, u = unreached.get(key);
-        if (u) u.areaMM2 += r.none; else unreached.set(key, { body: body.key, face, areaMM2: r.none });
+        if (u) u.area += r.none; else unreached.set(key, { body: body.key, face, area: r.none });
       }
     }
   }
@@ -46,7 +46,7 @@ export function accessOf(bodies: readonly BodyResult[], stepMM?: number): Access
     setups.push({ direction: DIRECTION_NAMES[best], addsMM2: bestA });
     for (let q = 1; q < 64; q++) if (q & (1 << best)) left[q] = 0;
   }
-  return { byMask, areaMM2: total.area, unreachedMM2: byMask[0], unreached: [...unreached.values()].sort((x, y) => y.areaMM2 - x.areaMM2), setups, samples: total.samples, stepMM: h,
+  return { byMask, area: total.area, unreachedMM2: byMask[0], unreached: [...unreached.values()].sort((x, y) => y.area - x.area), setups, samples: total.samples, stepMM: h,
     method: `each display triangle split into n² equal parts (n from its longest edge over a ${+h.toFixed(4)} mm step, at most ${MAX_N}); each part's centre ${OFF} mm off it along its normal; a ray along each of ±X, ±Y, ±Z on the face's side (n · d ≥ 0) through the triangle BVH; setups chosen greedily by the area each direction adds` };
 }
 

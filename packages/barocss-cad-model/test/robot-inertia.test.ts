@@ -76,7 +76,7 @@ test('two bodies combined by the parallel-axis theorem: the pair of cuboids\' cl
 });
 
 test('the checks, typed: not positive definite, the triangle inequality, no volume, a massless dummy', () => {
-  const body = (key: string, I: number[][] | undefined, volume: number | null = 1000): BodyResult => ({ key, family: 'planar', mesh: { faces: [] } as never, volumeMM3: volume, massG: null, centroid: [0, 0, 0], ...(I ? { inertia: I } : {}) });
+  const body = (key: string, I: number[][] | undefined, volume: number | null = 1000): BodyResult => ({ key, family: 'planar', mesh: { faces: [] } as never, volume: volume, mass: null, centroid: [0, 0, 0], ...(I ? { inertia: I } : {}) });
   const doc = emptyDoc();
   assert.deepEqual(linkInertia('L', 'base', doc, [body('b1', [[1, 0, 0], [0, 1, 0], [0, 0, 3]])], AT_PART).issues.map(i => i.code), ['MATERIAL_ASSUMED', 'TRIANGLE']);
   assert.ok(linkInertia('L', 'base', doc, [body('b1', [[-1, 0, 0], [0, 1, 0], [0, 0, 1]])], AT_PART).issues.some(i => i.code === 'NOT_SPD'));
@@ -128,7 +128,7 @@ test('the link_inertia tool on the 2R arm; the conformance case (rm/inertia-cubo
     const centre = [0, 1, 2].map(i => (ROT[i * 3] * CENTRE[0] + ROT[i * 3 + 1] * CENTRE[1] + ROT[i * 3 + 2] * CENTRE[2]) / 1000);
     writeFileSync(file, JSON.stringify({ case: 'inertia-cuboid', step: 'RM3', note: 'A 40 × 20 × 10 mm aluminium (2.70 g/cm³) cuboid from (15, −7, 3), turned 30° about Z then 50° about X through the origin: m = 0.0216 kg; I about its centre R·diag(m(d²+h²)/12, m(w²+h²)/12, m(w²+d²)/12)·Rᵀ, R = Rx(50°)·Rz(30°); in the part frame, SI.', input: { document: s.doc }, expect: { mass_kg: M, com_m: centre, inertia_kg_m2: mul(mul(ROT, DIAG), tr(ROT)), principal_kg_m2: [DIAG[0], DIAG[4], DIAG[8]] }, tol_rel: 1e-12 }, null, 1) + '\n');
   }
-  const k = JSON.parse(readFileSync(file, 'utf8')), rk = await evaluate(k.input.document); assert.ok(rk.ok);
+  const k = JSON.parse(readFileSync(file, 'utf8')), rk = await evaluate(k.input.document); assert.ok(rk.ok, JSON.stringify(rk.ok ? null : rk.error));
   const l = linkInertia('L', 'base', k.input.document, rk.bodies, AT_PART);
   assert.ok(Math.abs(l.massKg - k.expect.mass_kg) < 1e-15 && close(l.comM, k.expect.com_m, k.tol_rel) && close(l.inertia, k.expect.inertia_kg_m2, k.tol_rel) && close(l.principal.moments, k.expect.principal_kg_m2, k.tol_rel));
 });

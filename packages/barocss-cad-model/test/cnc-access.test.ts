@@ -25,7 +25,7 @@ const near = (a: number, b: number, tol = 1e-6) => Math.abs(a - b) <= tol;
 
 test('CNC4 a box 40 × 30 × 20: every face reached; two setups — +X first (its end on 30 × 20, its sides on the ±Y and ±Z faces: 600 + 1600 + 2400), then −X (600)', async () => {
   const s = await build([cmd('box', { w: 40, d: 30, h: 20, x: 0, y: 0, z: 0 })]), a = accessOf(s.bodies);
-  assert.ok(near(a.areaMM2, 2 * (40 * 30 + 40 * 20 + 30 * 20)), String(a.areaMM2)); assert.equal(a.unreachedMM2, 0);
+  assert.ok(near(a.area, 2 * (40 * 30 + 40 * 20 + 30 * 20)), String(a.area)); assert.equal(a.unreachedMM2, 0);
   assert.deepEqual(a.setups.map(x => [x.direction, +x.addsMM2.toFixed(6)]), [['+X', 30 * 20 + 2 * 40 * 20 + 2 * 40 * 30], ['−X', 30 * 20]]);
   const r = report(s); assert.deepEqual([r.access.status, r.setups.status, r.setups.value], ['pass', 'pass', 2]);
 });

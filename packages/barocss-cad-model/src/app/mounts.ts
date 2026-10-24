@@ -24,15 +24,15 @@ function faceAxis(n: readonly number[]): { axis: Axis; k: number; side: 'min' | 
 }
 /** What the mount cuts, in the face's two axes about its output axis: holes (centre, Ø, through or a depth) and a body cut. */
 export interface MountCut { holes: { c: [number, number]; d: number; depth?: number; what: string }[]; body?: { c: [number, number]; w: number; h: number; turn: number } }
-export function mountCuts(row: StudioMountRow, x: number, y: number, turnDeg: number, pilot: 'through' | 'recess'): MountCut {
-  const t = (turnDeg * Math.PI) / 180, cs = Math.cos(t), sn = Math.sin(t), off = row.shaftOffsetMM ?? [0, 0];
+export function mountCuts(row: StudioMountRow, x: number, y: number, turn: number, pilot: 'through' | 'recess'): MountCut {
+  const t = (turn * Math.PI) / 180, cs = Math.cos(t), sn = Math.sin(t), off = row.shaftOffset ?? [0, 0];
   const at = (p: readonly number[]): [number, number] => [x + cs * (p[0] - off[0]) - sn * (p[1] - off[1]), y + sn * (p[0] - off[0]) + cs * (p[1] - off[1])];
-  const c = row.clearanceMM, holes: MountCut['holes'] = patternPoints(row.holes).map((p, i) => ({ c: at(p), d: row.holes.diameterMM, what: `bolt ${i + 1}` }));
-  if (row.type === 'servo') return { holes, body: { c: at([0, 0]), w: row.bodyMM![0] + 2 * c, h: row.bodyMM![1] + 2 * c, turn: turnDeg } };
-  if (row.pilotMM !== undefined) {
-    if (pilot === 'recess' && row.pilotDepthMM !== undefined) holes.push({ c: [x, y], d: row.pilotMM + 2 * c, depth: row.pilotDepthMM, what: 'pilot recess' }, { c: [x, y], d: row.shaftMM + 2 * c, what: 'shaft' });
-    else holes.push({ c: [x, y], d: row.pilotMM + 2 * c, what: 'pilot' });
-  } else if (row.shaftHeightMM === 0) holes.push({ c: [x, y], d: row.shaftMM + 2 * c, what: 'shaft' });
+  const c = row.clearance, holes: MountCut['holes'] = patternPoints(row.holes).map((p, i) => ({ c: at(p), d: row.holes.diameter, what: `bolt ${i + 1}` }));
+  if (row.type === 'servo') return { holes, body: { c: at([0, 0]), w: row.body![0] + 2 * c, h: row.body![1] + 2 * c, turn: turn } };
+  if (row.pilot !== undefined) {
+    if (pilot === 'recess' && row.pilotDepth !== undefined) holes.push({ c: [x, y], d: row.pilot + 2 * c, depth: row.pilotDepth, what: 'pilot recess' }, { c: [x, y], d: row.shaft + 2 * c, what: 'shaft' });
+    else holes.push({ c: [x, y], d: row.pilot + 2 * c, what: 'pilot' });
+  } else if (row.shaftHeight === 0) holes.push({ c: [x, y], d: row.shaft + 2 * c, what: 'shaft' });
   return { holes };
 }
 
@@ -62,7 +62,7 @@ export function mountNodes(ctx: Ctx, v: Values): StudioDoc {
   if (row.bearing !== undefined) {
     const b = ctx.doc.bearings?.rows.find(r => r.id === row.bearing);
     if (!b) throw refusal('MOUNT_ROW', `mount row ${row.id} names bearing row ${row.bearing}, not loaded — load your bearing rows`);
-    if (Math.abs(b.boreMM - row.shaftMM) > 1e-9) throw refusal('MOUNT_RANGE', `mount row ${row.id}: its bearing ${row.bearing}'s bore Ø${b.boreMM} is not its shaft Ø${row.shaftMM}`);
+    if (Math.abs(b.bore - row.shaft) > 1e-9) throw refusal('MOUNT_RANGE', `mount row ${row.id}: its bearing ${row.bearing}'s bore Ø${b.bore} is not its shaft Ø${row.shaft}`);
   }
   const turn = Number(v.turn ?? 0);
   if (!TURNS.includes(String(turn))) throw refusal('MOUNT_RANGE', 'turn is 0, 90, 180 or 270 (degrees)');
@@ -97,12 +97,12 @@ export function mountNodes(ctx: Ctx, v: Values): StudioDoc {
 }
 
 /** The output axis of a mount placed at (x, y) on a face: its point (the face, or above it by the row's shaft height) and direction out of the face. */
-export function mountAxis(row: StudioMountRow, face: { normal: readonly number[] }, level: number, x: number, y: number, turnDeg = 0): { position: [number, number, number]; direction: [number, number, number] } {
+export function mountAxis(row: StudioMountRow, face: { normal: readonly number[] }, level: number, x: number, y: number, turn = 0): { position: [number, number, number]; direction: [number, number, number] } {
   const fa = faceAxis(face.normal)!, [a, b] = PLANE[fa.axis], p: [number, number, number] = [0, 0, 0], d: [number, number, number] = [0, 0, 0], out = fa.side === 'max' ? 1 : -1;
-  p[a] = x; p[b] = y; p[fa.k] = level + out * row.shaftHeightMM;
+  p[a] = x; p[b] = y; p[fa.k] = level + out * row.shaftHeight;
   // (A flange's and a servo's axis stands out of the face. A pillow block's lies along it, its height above, square to
   // the line of its bolts — the pattern's first axis, turned with the mount.)
-  if (row.type === 'bearing-unit' && row.shaftHeightMM > 0) { const t = (turnDeg * Math.PI) / 180; d[a] = r6(-Math.sin(t)); d[b] = r6(Math.cos(t)); }
+  if (row.type === 'bearing-unit' && row.shaftHeight > 0) { const t = (turn * Math.PI) / 180; d[a] = r6(-Math.sin(t)); d[b] = r6(Math.cos(t)); }
   else d[fa.k] = out;
   return { position: p, direction: d };
 }
@@ -125,7 +125,7 @@ export const mountCommand: Command = {
   fields: ctx => [
     { key: 'row', label: 'Mount', kind: 'choice', options: [...mountRowsOf(ctx.doc).values()].map(r => ({ value: r.id, label: `${r.designation ?? r.id} (${r.type})` })), empty: NO_MOUNTS, unknown: id => noMountRow(id, [...mountRowsOf(ctx.doc).keys()]) },
     { key: 'turn', label: 'Turn', kind: 'choice', options: TURNS.map(t => ({ value: t, label: `${t}°` })) },
-    { key: 'pilot', label: 'Pilot', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'recess', label: 'A recess, its depth' }], when: (v: Values) => { const r = mountRowsOf(ctx.doc).get(String(v.row)); return !!r?.pilotDepthMM; } },
+    { key: 'pilot', label: 'Pilot', kind: 'choice', options: [{ value: 'through', label: 'Through' }, { value: 'recess', label: 'A recess, its depth' }], when: (v: Values) => { const r = mountRowsOf(ctx.doc).get(String(v.row)); return !!r?.pilotDepth; } },
     { key: 'x', label: 'Axis at', kind: 'mm' }, { key: 'y', label: 'Axis at', kind: 'mm' },
   ],
   defaults: ctx => {

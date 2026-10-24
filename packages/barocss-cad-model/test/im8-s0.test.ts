@@ -32,7 +32,7 @@ function areaOf(b: BodyResult): number {
 
 test('IM8 S0 P1: the casting modulus V/A — a 100 × 100 × 10 plate 100000/24000 = 4.1667, a 20 mm cube 20/6 = 3.3333; Chvorinov (M1/M2)² = 1.5625: the plate freezes last', async () => {
   const plate = (await build([cmd('box', { w: 100, d: 100, h: 10, x: 0, y: 0, z: 0 })])).bodies[0], cube = (await build([cmd('box', { w: 20, d: 20, h: 20, x: 0, y: 0, z: 0 })])).bodies[0];
-  const M = (b: BodyResult) => b.volumeMM3! / areaOf(b);
+  const M = (b: BodyResult) => b.volume! / areaOf(b);
   assert.ok(Math.abs(M(plate) - 100000 / 24000) <= 1e-9 && Math.abs(M(cube) - 20 / 6) <= 1e-9, `${M(plate)} ${M(cube)}`);
   assert.ok(Math.abs((M(plate) / M(cube)) ** 2 - 1.5625) <= 1e-9);
 });
@@ -57,7 +57,7 @@ test('IM8 S0 P3: a pattern\'s shrink allowance — aluminium up to 4 ft, 0.155 i
 test('IM8 S0 P4: die-casting draft per alloy on IM2\'s exact field — a block drafted 0.75°: zinc\'s 0.5° met, aluminium\'s 1° not', async () => {
   const doc = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }), { kind: 'extrude', sketch: 0, height: 20, draft: 0.75 });
   const r = evaluateDoc(doc, 1); assert.ok(r.ok);
-  const sides = (minDeg: number) => draftField(doc, r.bodies, [0, 0, 1], minDeg).faces.filter(f => f.kind !== 'plane' || Math.abs(f.maxDeg) < 89);
+  const sides = (minDeg: number) => draftField(doc, r.bodies, [0, 0, 1], minDeg).faces.filter(f => f.kind !== 'plane' || Math.abs(f.max) < 89);
   const least = Math.min(...sides(0.5).filter(f => f.steepestDeg < 89).map(f => f.steepestDeg));
   assert.ok(Math.abs(least - 0.75) <= 1e-6, String(least));
   assert.ok(least >= 0.5 - 1e-9, 'zinc: 0.5° met'); assert.ok(least < 1 - 1e-9, 'aluminium: 1° not');

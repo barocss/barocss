@@ -80,7 +80,7 @@ export const alignCommand: Command = {
       if (turn === null) throw refusal('ALIGN_TURN', 'The faces must face along X, Y or Z for the body to be turned onto it: turn it first (Rotate).');
       let c = s.centroid;
       if (turn !== 'none') {
-        doc = withNode(doc, { kind: 'rotate', parent, axis: 'xyz'[turn.axis] as Axis, angleDegrees: turn.deg, pivot } as ModelNode);
+        doc = withNode(doc, { kind: 'rotate', parent, axis: 'xyz'[turn.axis] as Axis, angle: turn.deg, pivot } as ModelNode);
         parent = { node: doc.nodes.length - 1, side: 'solid' };
         c = turnAbout([c[0] - pivot[0], c[1] - pivot[1], c[2] - pivot[2]], turn.axis, turn.deg).map((x, k) => x + pivot[k]) as V3;
       }

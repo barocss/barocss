@@ -26,7 +26,7 @@ test('IM1 data: every web value names its page (https URL, the date read, the pa
   assert.deepEqual(inj.finishes!.map(f => [f.id, f.draftMinDeg, f.draftRecDeg ?? null]), [['smooth', 0.5, 1], ['pm-t1', 3, null], ['pm-t2', 5, null]]);
   assert.deepEqual(['maxPartLongMM', 'maxPartWideMM', 'maxPartDepthMM', 'tolMM', 'tolResinMMPerMM'].map(k => inj.thresholds[k].value), [751, 480, 203, 0.08, 0.002]);
   for (const f of inj.finishes!) assert.ok(f.page && f.page.url.startsWith('https://www.protolabs.com/') && f.page.read === '2026-10-21', f.id);
-  assert.deepEqual(['abs', 'pom', 'pc', 'pp', 'pa12'].map(id => materialData(id)!.wallMM!.injection), [[1.143, 3.556], [0.762, 3.048], [1.016, 3.81], [0.635, 3.81], [0.762, 2.921]]);
+  assert.deepEqual(['abs', 'pom', 'pc', 'pp', 'pa12'].map(id => materialData(id)!.wall!.injection), [[1.143, 3.556], [0.762, 3.048], [1.016, 3.81], [0.635, 3.81], [0.762, 2.921]]);
   assert.match(materialData('pom')!.pages!['wallMM.injection'].label, /Acetal/);
   // (O78: PA12 reads the page's nylon family row, and says so.)
   assert.equal(materialData('pa12')!.pages!['wallMM.injection'].note, 'the page\'s nylon family row, not PA12-specific');
@@ -48,7 +48,7 @@ test('IM1 a shelled ABS box 60 × 40 × 25, walls 1.8, pulled along +Z with a PM
   assert.ok(parting);
   assert.equal(walls!.length, 1);
   assert.deepEqual(under, []);
-  assert.deepEqual(mould, { finish: 'pm-t1', minDraftDeg: 3, recDraftDeg: 3, bodies: [{ body: r.mould!.bodies[0].body, material: 'abs', wallMM: [1.143, 3.556], shrink: 0.002 }] });
+  assert.deepEqual(mould, { finish: 'pm-t1', minDraftDeg: 3, recDraftDeg: 3, bodies: [{ body: r.mould!.bodies[0].body, material: 'abs', wall: [1.143, 3.556], shrink: 0.002 }] });
   assert.ok(draft!.some(f => f.cls === 'steep'), 'its walls undrafted');
   // (O78: the draft field now — a shelled box's walls have none: warned against PM-T1's 3°; undercuts still IM3's.)
   assert.equal(by.draft.status, 'warn'); assert.equal(by.draft.limit, 3);

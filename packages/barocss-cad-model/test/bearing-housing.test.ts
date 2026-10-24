@@ -10,7 +10,7 @@ import { bearingInExternalHousing, relativeHousingPose, type HousingPose } from 
 // Source cases only until the A9-7 execution lease. This helper is not the saved link or the UI integration.
 const origin: HousingPose = { m: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [0, 0, 0] };
 const turned: HousingPose = { m: [0, -1, 0, 1, 0, 0, 0, 0, 1], t: [100, 50, 7] };
-const row: BearingRow = { id: '6204-test', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, raMaxMM: 1, outsideDeviationUM: [0, -11], source: 'A9-7 test row' };
+const row: BearingRow = { id: '6204-test', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, raMax: 1, outsideDeviationUM: [0, -11], source: 'A9-7 test row' };
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
 function bodies(bore = 47, height = 20) {
@@ -26,9 +26,9 @@ test('A9-7 geometry: current relative poses cancel a common rotation and transla
   assert.deepEqual(relativeHousingPose(turned, turned), { matrix: origin.m, offset: origin.t });
   assert.deepEqual(relativeHousingPose(turned, { ...turned, t: [100, 51, 7] }).offset, [1, 0, 0]);
   const { shaft, target } = bodies(), before = JSON.stringify({ row, shaft, target });
-  const result = bearingInExternalHousing({ row, shaft, ownerPose: turned, target: { brep: target, pose: turned }, step: 1, against: 'end', id: 'bearing-test', fit: { tables: [{ id: 'test-fits', rows: [{ class: 'H7', overMM: 30, upToMM: 50, lowerUM: 0, upperUM: 25, estimate: true }] }], housing: 'H7' } });
-  assert.equal(result.report.housing!.boreMM, 47); assert.equal(result.report.housing!.covered, true);
-  assert.ok(Math.abs(result.report.housing!.overlapMM3) < 1e-6);
+  const result = bearingInExternalHousing({ row, shaft, ownerPose: turned, target: { brep: target, pose: turned }, step: 1, against: 'end', id: 'bearing-test', fit: { tables: [{ id: 'test-fits', rows: [{ class: 'H7', over: 30, upTo: 50, lowerUM: 0, upperUM: 25, estimate: true }] }], housing: 'H7' } });
+  assert.equal(result.report.housing!.bore, 47); assert.equal(result.report.housing!.covered, true);
+  assert.ok(Math.abs(result.report.housing!.overlap) < 1e-6);
   assert.equal(result.report.source, row.source); assert.equal(result.report.estimate, false);
   assert.equal(result.report.housingFit!.limit.class, 'H7'); assert.equal(result.report.housingFit!.limit.estimate, true);
   assert.equal(result.report.housingFit!.clearanceMinUM, 0); assert.equal(result.report.housingFit!.clearanceMaxUM, 36);

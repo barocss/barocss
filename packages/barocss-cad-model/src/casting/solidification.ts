@@ -12,7 +12,7 @@ import { r3 } from '../util/round';
 
 export interface HotSpot {
   /** The plateau's centre (mm) and the inscribed ball's radius there. */
-  readonly at: readonly [number, number, number]; readonly radiusMM: number;
+  readonly at: readonly [number, number, number]; readonly radius: number;
   /**
    * The section's modulus V/A, an estimate from the plateau's shape: a sheet (a plate 2r thick) r, a line (a long round
    * bar of radius r) r/2, a point (a ball or a cube about it) r/3 — always within [r/3, r].
@@ -90,7 +90,7 @@ export function solidification(bodies: readonly BodyResult[], gate: readonly num
     const c = [0, 0, 0]; for (const v of s.nodes) { const p = node(v, o, h, n); c[0] += p[0]; c[1] += p[1]; c[2] += p[2]; }
     const at = c.map(x => r3(x / s.nodes.length)) as [number, number, number];
     const shape = shapeOf(s.nodes, o, h, n, s.r);
-    return { at, radiusMM: r3(s.r), modulusMM: r3(shape === 'sheet' ? s.r : shape === 'line' ? s.r / 2 : s.r / 3), shape, modulusRangeMM: [r3(s.r / 3), r3(s.r)] as const, fed: g ? s.region.some(v => touches(v, g, depth[v] + h, o, h, n)) : null };
+    return { at, radius: r3(s.r), modulusMM: r3(shape === 'sheet' ? s.r : shape === 'line' ? s.r / 2 : s.r / 3), shape, modulusRangeMM: [r3(s.r / 3), r3(s.r)] as const, fed: g ? s.region.some(v => touches(v, g, depth[v] + h, o, h, n)) : null };
   });
   return { grid: { h: r3(h), n, nodes: N }, hotSpots, gate: g as [number, number, number] | null, maxRadiusMM: r3(maxR) };
 }
