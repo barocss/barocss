@@ -764,8 +764,8 @@
     {
      "id": "smooth",
      "label": "Smooth (no texture)",
-     "draftMinDeg": 0.5,
-     "draftRecDeg": 1.0,
+     "draftMin": 0.5,
+     "draftRecommended": 1.0,
      "source": "W-WEB",
      "page": {
       "url": "https://www.protolabs.com/resources/design-tips/solving-wall-thickness-issues-in-molded-parts/",
@@ -776,7 +776,7 @@
     {
      "id": "pm-t1",
      "label": "Light bead blast (PM-T1)",
-     "draftMinDeg": 3.0,
+     "draftMin": 3.0,
      "source": "W-WEB",
      "page": {
       "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
@@ -787,7 +787,7 @@
     {
      "id": "pm-t2",
      "label": "Medium bead blast (PM-T2)",
-     "draftMinDeg": 5.0,
+     "draftMin": 5.0,
      "source": "W-WEB",
      "page": {
       "url": "https://www.protolabs.com/resources/guides-and-trend-reports/injection-molding-guide-process-design-tips-materials/",
@@ -1978,13 +1978,13 @@
    "id": "fdm-256",
    "label": "Generic FDM 256³",
    "process": "fdm",
-   "buildMM": [
+   "buildVolume": [
     256,
     256,
     256
    ],
-   "layerMM": 0.2,
-   "nozzleMM": 0.4,
+   "layerHeight": 0.2,
+   "nozzleDiameter": 0.4,
    "heatedBed": true,
    "source": "P-PRN"
   },
@@ -1992,13 +1992,13 @@
    "id": "fdm-220",
    "label": "Generic FDM 220 × 220 × 250",
    "process": "fdm",
-   "buildMM": [
+   "buildVolume": [
     220,
     220,
     250
    ],
-   "layerMM": 0.2,
-   "nozzleMM": 0.4,
+   "layerHeight": 0.2,
+   "nozzleDiameter": 0.4,
    "heatedBed": true,
    "source": "P-PRN"
   },
@@ -2006,36 +2006,36 @@
    "id": "sla-desktop",
    "label": "Generic desktop SLA 145 × 145 × 185",
    "process": "sla",
-   "buildMM": [
+   "buildVolume": [
     145,
     145,
     185
    ],
-   "layerMM": 0.05,
+   "layerHeight": 0.05,
    "source": "P-PRN"
   },
   {
    "id": "sls-300",
    "label": "Generic SLS 300³",
    "process": "sls",
-   "buildMM": [
+   "buildVolume": [
     300,
     300,
     300
    ],
-   "layerMM": 0.1,
+   "layerHeight": 0.1,
    "source": "P-PRN"
   },
   {
    "id": "mjf-380",
    "label": "Generic MJF 380 × 284 × 380",
    "process": "mjf",
-   "buildMM": [
+   "buildVolume": [
     380,
     284,
     380
    ],
-   "layerMM": 0.08,
+   "layerHeight": 0.08,
    "source": "P-PRN"
   }
  ]
