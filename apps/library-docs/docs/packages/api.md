@@ -101,8 +101,8 @@ A part over the studio document:
 
 - **Refusals come when the part is evaluated.** On both parts the modelling methods only add features, so a feature
   the kernel refuses surfaces when the part is evaluated: by `.mass()`, `.step()`, `.meshes()` or `.select()`.
-- **Limit.** A fillet too large for its walls arrives today with the kernel's error kind (`PARAMETER`) as its code, not
-  its own `RADIUS_EXCEEDS_FACE`. This changes when the kernel names that refusal.
+- **The kernel's own code comes through.** A fillet too large for its walls is refused as `RADIUS_EXCEEDS_FACE` by
+  both parts, with the kernel's words in its message.
 
 ## @barocss/gpu/api
 
@@ -125,8 +125,11 @@ A scene is an immutable description of meshes, each with its material, lights an
 
 <<< @/../samples/gpu-api.test.mjs#refusals
 
-`show()` needs a browser with WebGPU, so this site's sample stops at `.data`. gpu's own tests check `show()` against a
-stand-in viewer: the calls it makes, in order.
+`show()` needs a browser with WebGPU, so this site's sample stops at `.data`. gpu's own tests check `show()` two ways:
+
+- against a stand-in viewer, for the calls it makes, in order;
+- in Chrome's WebGPU, with the bracket from `@barocss/cad/api` shown in a real Viewer. The scene's bounds are the part's
+  80 × 40 × 10 mm, and the camera's up is +Z.
 
 ## What's next
 

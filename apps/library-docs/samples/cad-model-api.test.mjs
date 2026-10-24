@@ -77,6 +77,6 @@ test('refusals: one error class, the facade\'s own codes and the core\'s passed 
     e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
   // A fillet too large for its walls: the kernel refuses it when the part is evaluated, here by .mass().
   assert.throws(() => part().box(10, 10, 10).fillet(body => body.edges().along('z'), 50).mass('al6061'),
-    e => e instanceof BarocssError && e.where === 'evaluate' && /^\[[A-Z_]+\] /.test(e.message) && !!e.details?.friendly);
+    e => e instanceof BarocssError && e.code === 'RADIUS_EXCEEDS_FACE' && e.where === 'evaluate' && !!e.details?.friendly);
   // #endregion refusals
 });
