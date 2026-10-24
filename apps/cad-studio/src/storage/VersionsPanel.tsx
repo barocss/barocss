@@ -9,6 +9,7 @@ import { versionsOf, headOf } from '@barocss/cad-model/versions/log';
 import type { Conflict, Resolutions, Side } from '@barocss/cad-model/versions/merge';
 import { canKeepInBrowser, canPickFolder } from './access';
 import type { ProjectActions } from './useProject';
+import { linkedPath } from './linked';
 import { DockSection } from '../layout/DockSection';
 import { ROW } from '../ui/panelStyles';
 import { Button } from '@/components/ui/button';
@@ -33,13 +34,15 @@ export function changeLines(c: DocChanges): string[] {
   return out;
 }
 
-export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing }: {
+export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, comparing, onInsert }: {
   project: ProjectActions; doc: StudioDoc; fileName: string;
   /** A document to work on: restored, switched to or merged. */
   onOpen(next: StudioDoc): void;
   /** Compare the working document with a version's (its id and document), or stop (null). */
   onCompare(base: { id: string; doc: StudioDoc } | null): void;
   comparing: string | null;
+  /** A document of the project placed in this one, linked by its path. */
+  onInsert(path: string): void;
 }) {
   const { view } = project, log = view.log;
   const [browserName, setBrowserName] = useState('My project');
@@ -52,6 +55,7 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
   const head = log ? headOf(log).id : null;
   const compared = useMemo(() => { if (!log || !comparing) return null; const v = log.versions.find(x => x.id === comparing); return v ? changesOf(log.snapshots[v.snapshot], doc) : null; }, [log, comparing, doc]);
   const others = log ? log.branches.filter(b => b.name !== log.current) : [];
+  const linkedCount = useMemo(() => new Set((doc.instances ?? []).flatMap(i => linkedPath(i.part?.source) !== null ? [i.part!.id] : [])).size, [doc.instances]);
 
   const merge = async (resolve?: Resolutions) => {
     const r = await project.merge(mergeFrom || others[0]?.name, doc, resolve);
@@ -80,8 +84,11 @@ export function VersionsPanel({ project, doc, fileName, onOpen, onCompare, compa
     <div className="card-title" style={{ marginTop: 6 }}>DOCUMENTS · {view.parts.length}</div>
     <ul className="m-0 list-none p-0" aria-label="Project documents">{view.parts.map(p => <li key={p.path} className={ROW} data-active={p.path === view.part || undefined}>
       <span className={p.path === view.part ? 'font-semibold' : ''}>{p.path}</span>
+      {p.path !== view.part && <Button variant="ghost" size="xs" aria-label={`Insert ${p.path}`} title="Place it in this document, linked to its file" onClick={() => onInsert(p.path)}>Insert</Button>}
       {p.path !== view.part && <Button variant="ghost" size="xs" aria-label={`Open ${p.path}`} onClick={() => void project.openPart(p.path)}>Open</Button>}
     </li>)}</ul>
+    {linkedCount > 0 && <div className={ROW}><span className="text-muted-foreground">{linkedCount} placed part{linkedCount === 1 ? '' : 's'} linked to project files</span>
+      <Button variant="ghost" size="xs" aria-label="Check placed parts" onClick={() => void project.checkLinked(doc)}>Check</Button></div>}
     {view.offered && <div className="mt-1 rounded-md border px-2 py-1.5 text-[11px]" role="status" aria-label="Autosaved work">
       Work on {view.part} since its last save was kept.{' '}
       <Button variant="ghost" size="xs" aria-label="Restore autosaved work" onClick={async () => { const d = await project.settleOffered(true); if (d) onOpen(d); }}>Restore</Button>

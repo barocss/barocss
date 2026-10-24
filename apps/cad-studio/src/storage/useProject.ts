@@ -11,6 +11,7 @@ import { browserProject, pickFolder, recentFolder, reopenFolder } from './access
 import { clearAutosave, partsOf, readAutosave, readPart, readVersions, writeAutosave, writePart, writeVersions } from './project';
 import type { ProjectStore, StoreEntry } from './store';
 import type { DirHandle } from './handleStore';
+import { linkedRevisions, type Linked } from './linked';
 
 export interface ProjectView {
   store: ProjectStore | null;
@@ -25,6 +26,8 @@ export interface ProjectCallbacks {
   /** A document of the project opened (as Open opens a file): the App replaces its document. */
   onOpened(doc: StudioDoc, path: string, notes: string[]): void;
   onError(title: string, hint: string): void;
+  /** Placed parts whose project files differ (offered as waiting revisions), or that the project no longer has. */
+  onLinked?(linked: Linked): void;
 }
 const EMPTY: ProjectView = { store: null, part: null, parts: [], log: null, offered: null };
 /** A file name as a project path: `<name>.bcad`. */
@@ -82,6 +85,7 @@ export function useProject(cb: ProjectCallbacks) {
           await loadLog(store, path);
           const a = await readAutosave(store, path);
           if (a && 'doc' in a) set({ offered: a.doc });
+          await actions.checkLinked(r.doc);
           return true;
         } catch (e) { return fail(`Could not open ${path}`, e); }
       },
@@ -106,6 +110,18 @@ export function useProject(cb: ProjectCallbacks) {
       /** The offered autosave answered: restored (the caller commits it) or discarded. */
       async settleOffered(restore: boolean) { const { store, part, offered } = live.current; set({ offered: null }); if (!restore && store && part) await clearAutosave(store, part).catch(() => {}); return restore ? offered : null; },
 
+      /** Placed parts referenced by their project path checked against their files (storage/linked.ts). */
+      async checkLinked(doc: StudioDoc) {
+        const store = live.current.store; if (!store || !doc.instances?.length) return;
+        try { const l = await linkedRevisions(doc, store); if (l.offered.length || l.missing.length) call.current.onLinked?.(l); }
+        catch (e) { fail('The placed parts could not be checked', e); }
+      },
+      /** A document of the project as a file (to insert it as a placed part). */
+      async fileOf(path: string): Promise<File | null> {
+        const store = live.current.store; if (!store) return null;
+        const f = await store.read(path).catch(e => { fail(`Could not read ${path}`, e); return null; });
+        return f ? new File([f.bytes as BlobPart], path.split('/').pop()!) : null;
+      },
       /** A version of the document: saved first (a version is a save with a name), then recorded. */
       async makeVersion(doc: StudioDoc, name: string, o: { versionName?: string; note?: string } = {}) {
         if (!(await actions.save(doc, name))) return false;
