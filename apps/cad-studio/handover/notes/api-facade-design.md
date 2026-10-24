@@ -68,6 +68,12 @@ await view.showIn(viewer);               // viewer.clear(), viewer.add(...) per 
 - `part().meshes()`, in cad and in cad-model, returns `{ key, positions, normals, indices }` per body. That structurally
   matches gpu's `GeometryInput`, so neither package imports the other.
 - In cad, the meshes come from the kernel's tessellation of each output. In cad-model, they come from `BodyResult.mesh`.
+- **The coordinate frame is a prerequisite** (coordinator, 2026-10-24). CAD is right-handed, Z-up, in mm. gpu's mesh
+  packets declare `right-handed-y-up` (mesh-packet.ts, kernel-face-preview.ts).
+  - The facades never convert axes themselves.
+  - Either the Viewer takes Z-up (a camera up axis), or one documented conversion happens in exactly one place. That's
+    item 1 of §10 of the coordinator's proposed common formats, and the GPU lane measures it first.
+  - gpu's slice waits for it.
 
 **The kernel facade's mapping** (to be checked with the kernel lane through the coordinator):
 - `box(w, d, h)` is a rectangle `sketch` feature plus an `extrude` feature, with ids the facade assigns in feature
