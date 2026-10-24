@@ -3537,3 +3537,46 @@ is untouched as history. The coordinator settled the scope:
 - **Now in `test`**: browser-runner-contract, cad-clearance-analysis, -clip, -gpu, -hook, -overlay-gl,
   cad-display-browser-fixture, cad-display-browser-runner, cad-print-hook, -overlay, -projection, -settings, -worker,
   cad-silhouette. gpu's unit run is 301/301 (was 204) and takes about 3 s.
+
+## G-R64 — RS2, part 1: a motion played in the Joints card (owner, 2026-10-24: "관절 움직임 같은거")
+
+- **What it plays**: the draft motion, unsaved — home, through the waypoints recorded (RM9a), to the pose shown, the
+  path Check path sweeps. It's frozen when Play starts or the scrubber moves. A slider moved, Home, a joint played, the
+  waypoints changed or a new tree stop it. Nothing is saved.
+- **The Joints card's Motion row**: "Play motion" / "Pause motion", a "Motion time" scrubber (0…T), a readout
+  "t 1.23 / 4.56 s", "Loop motion" and "Motion speed" (0.25×, 0.5×, 1×, 2×). Scrubbing pauses and sets the pose at t.
+  A contact reached shows as "Contact <link> – <link> at t … s".
+- **Mechanism** (`state/motion.ts`, useJoints):
+  - The path is timed once (ccd's `timePath`). The pose at t is each joint from its segment's start to its end by the
+    segment's progress (profile's `at`), as the sweep interpolates.
+  - The time is in its own ValueStore. An rAF loop advances it by dt × speed, wrapping or stopping at T, and sets
+    poseStore. JointsPanelLive follows the time, so a frame renders the card's live part and the viewport, never the
+    App.
+  - Check path's limits rule (each joint's velocity limit, else 1 rad/s or 100 mm/s, twice that per second) is
+    `pathLimits`, shared by Check path and the motion. Check path is otherwise unchanged.
+- **Contact**: a frozen motion is swept once (`sweepTimed`, the links as placed, as Check path does) for its first
+  contact.
+  - From t ≥ toi, the two links are marked. WebGPU outlines them in the error colour; WebGL2 tints them (`uContact`).
+    The part's own bodies are marked when the base link is one of the two.
+  - The mark is a `contactLinks` prop. App sets it once, as t crosses the time of impact: a subscription changes state
+    only on the crossing.
+- **Flow** (step 289, appended last, so no other number moves). The oracles are independent of the motion code: G13's
+  TCP points, a symmetric trapezoid's middle, and the time rate.
+  - The 6R arm from home to l6 at a quarter turn: the TCP is at G13's zero-pose point (45, 97, 330) at 0 and its
+    quarter-turn point (63, 105, 330) at T. At T/2 it is halfway round (as far from both, its height kept).
+  - Paused, the time holds. At 2× the motion's time runs 1.4–2.6 times the wall clock's. Looped past T, it wraps.
+  - RM6's 2R arm into the post: "Contact … post … at t" after the time of impact, with both links marked
+    (`__studioContactLinks`) and more strongly red samples in the frame than before it. Before it, nothing is said or
+    marked.
+  - Passes on WebGPU and on WebGL2.
+- **Bench**: a new row, "motion: the 2R arm's motion played". Loaded run (load 21 → 18), compare only: 190 frames,
+  task 4.4 ms a frame, GPU 1.36 ms a submit, 0 buffers made, 4 App renders over 190 frames — beside the joint played's
+  4.39 ms and App 3. The renders come at Play, the freeze's sweep and Pause, never in a frame. The budget is `app: 4`.
+  The runner contract counts 20 cases.
+- **Runs**: studio tsc 0, eslint 0 on the eight files, browser-runner-contract 11/11, FLOW_ONLY `^RS2:` on WebGPU and
+  WebGL2, BENCH_ONLY `^(pose|motion):`.
+- **Next (part 2)**:
+  - outer's `@barocss/cad-model/robot/motion` (poseAt, duration, timedPathOf, motionOf) in place of this adapter;
+  - "Save as motion" and a select of the document's saved motions (RobotSettings.motions);
+  - RS1's Samples group;
+  - the video export, as its own checkpoint.

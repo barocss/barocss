@@ -188,6 +188,8 @@ interface Props {
   /** A shown proposal's added and removed material (G12; WebGPU), or none. */
   proposal?: import('../engine/client').ProposalOverlay | null;
   instanceSelection?: string[];
+  /** RS2: the links in contact as a motion plays (instance ids; BASE, the part's own bodies), marked in the error colour. */
+  contactLinks?: readonly string[];
   /** Faces of instances shown picked (mate faces). */
   instanceFaces?: { id: string; body: number; face: number }[];
   /** Finished sketches no feature uses yet (world outlines), picked ones highlighted; a click picks one (Shift: adds). */
@@ -623,6 +625,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
   useEffect(() => { applyPmiLabels(); request(); }, [props.annotations, props.annotationSelected, backend]);
   useEffect(() => { renderer.current?.setInstances?.(props.instances ?? [], props.instanceSelection ?? []); request(); }, [props.instances, props.instanceSelection, backend]);
+  useEffect(() => { renderer.current?.setContactLinks?.(props.contactLinks ?? []); request(); }, [props.contactLinks, backend]);
   useEffect(() => { renderer.current?.setInstancePreview?.(props.instancePreview ?? null); request(); }, [props.instancePreview, backend]);
   useEffect(() => { renderer.current?.setInstanceTransforms?.(props.instanceTransforms ?? null); request(); }, [props.instanceTransforms, backend]);
   useEffect(() => { renderer.current?.setClip?.(props.clip ?? null); request(); }, [props.clip, backend]);
@@ -684,6 +687,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     w.__studioInstanceAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceFace?.(q[0], q[1], camera.current) ?? null; };
     w.__studioInstanceEdgeAt = (p: Vec3) => { const q = screen(p); return renderer.current?.pickInstanceEdge?.(q[0], q[1], camera.current) ?? null; };
     w.__studioProject = (p: Vec3) => screen(p);
+    // (RS2, for the flow: the links marked in contact as a motion plays.)
+    w.__studioContactLinks = () => [...(propsRef.current.contactLinks ?? [])];
   }, [backend]);
   // G7: the bounding box, the measure line, the underlays' polylines and the SubD cage's edges as engine lines on WebGPU —
   // made when they change (keyed by their content: the App hands new objects each render), not projected every frame;
