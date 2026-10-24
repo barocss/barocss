@@ -54,10 +54,12 @@ export type {ParticleLayerV0} from './mesh/particle-layer.js';
 export {prepareClothLayer} from './mesh/cloth-layer.js';
 export type {ClothLayerV0,PreparedClothLayer} from './mesh/cloth-layer.js';
 
-export {prepareCoplanarBooleanBuffers} from './boolean/coplanar-boolean-buffers.js';
+import {prepareCoplanarBooleanBuffers as prepareCoplanarBooleanBuffersRaw} from './boolean/coplanar-boolean-buffers.js';
+export const prepareCoplanarBooleanBuffers = refusing('BOOLEAN_BUFFERS_INVALID', prepareCoplanarBooleanBuffersRaw);
 export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from './boolean/coplanar-boolean-buffers.js';
 
-export {prepareBooleanShellBuffers} from './boolean/boolean-shell-buffers.js';
+import {prepareBooleanShellBuffers as prepareBooleanShellBuffersRaw} from './boolean/boolean-shell-buffers.js';
+export const prepareBooleanShellBuffers = refusing('BOOLEAN_BUFFERS_INVALID', prepareBooleanShellBuffersRaw);
 export type {PreparedBooleanShellBuffers} from './boolean/boolean-shell-buffers.js';
 
 

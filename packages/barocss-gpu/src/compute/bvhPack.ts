@@ -12,6 +12,7 @@
 // Boxes are rounded outward from f64, so a triangle's f32 vertices never fall outside its node's f32 box.
 
 import { triangleBvh, type TriangleBvh } from '@barocss/cad';
+import { GpuInputError } from '../core/input-error.js';
 
 export const BVH_NODE_WORDS = 8;
 export const BVH_TRIANGLE_WORDS = 12;
@@ -62,7 +63,7 @@ export function packBvh(source: TriangleBvh | { positions: ArrayLike<number>; in
     if (l >= 0) { ni[w + 3] = l; ni[w + 7] = 0; depthOf[l] = depthOf[l + 1] = depthOf[n] + 1; }
     else { ni[w + 3] = -1 - bvh.start[n]; ni[w + 7] = bvh.count[n]; if (depthOf[n] > depth) depth = depthOf[n]; }
   }
-  if (depth + 1 > BVH_STACK) throw new Error(`[GPU_BVH_DEPTH] the hierarchy is ${depth} deep; the GPU traversal's stack holds ${BVH_STACK}`);
+  if (depth + 1 > BVH_STACK) throw new GpuInputError('GPU_BVH_DEPTH', `the hierarchy is ${depth} deep; the GPU traversal's stack holds ${BVH_STACK}`);
   return { nodes, triangles, nodeCount: bvh.nodes, triangleCount: tri, depth };
 }
 

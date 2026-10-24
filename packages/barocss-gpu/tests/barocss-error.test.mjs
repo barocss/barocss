@@ -67,3 +67,8 @@ test('batch 3: a public entry refuses with a coded GpuInputError, the plain refu
   // (A coded refusal passes through unchanged.)
   assert.throws(() => gpu.parseScene('@scene x{version:0;sphere #s;}sphere{radius:x;}'), e => e instanceof gpu.SceneError && e.code === 'SCENE');
 });
+
+test('batch 3: the boolean buffers\' entries and the BVH depth refuse coded', () => {
+  assert.throws(() => gpu.prepareCoplanarBooleanBuffers({}, { mmToSceneUnit: 1, translate: [0, 0, 0] }), e => e instanceof gpu.GpuInputError && e.code === 'BOOLEAN_BUFFERS_INVALID' && e.cause instanceof RangeError);
+  assert.throws(() => gpu.prepareBooleanShellBuffers({}, { mmToSceneUnit: 1, translate: [0, 0, 0] }), e => e instanceof gpu.GpuInputError && e.code === 'BOOLEAN_BUFFERS_INVALID');
+});

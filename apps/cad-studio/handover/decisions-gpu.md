@@ -3353,3 +3353,23 @@ The coordinator's plan from the classification (`gpu-throws-classified.md` in th
 - **Found while checking**: R7.3c's readonly Vec3 breaks packages/barocss-viewer's type-check (34 errors, all of them
   gpu's readonly Vec3 meeting barocss-viewer's own mutable `Vec3` aliases; 0 with gpu's Vec3 mutable). It went to the
   coordinator with a proposed fix in barocss-viewer only.
+
+**3. Boolean buffers and the BVH** (5 sites):
+- BOOLEAN_BUFFERS_INVALID: prepareCoplanarBooleanBuffers and prepareBooleanShellBuffers are wrapped in index.ts. That
+  covers native-mesh-buffers.ts:6 and 46, coplanar-boolean-buffers.ts:29 and boolean-shell-buffers.ts:22. axis-box,
+  which wraps the same helpers in its own `child()`, is unchanged.
+- GPU_BVH_DEPTH: packBvh (computeExperimental) throws a GpuInputError in place. Its message is byte-identical to
+  before (`[GPU_BVH_DEPTH] the hierarchy is … deep; …`), so the studio's access map shows the same words.
+- **Runs** (R7.3d now merged on integration; the kernel's half was applied locally): gpu tsc 0, eslint 0, unit
+  204/204, consumer 3/3, gpu-scene flows 65/65, test:browser 29/29 on hardware and on SwiftShader; studio tsc 0,
+  cad-interop tsc 0.
+
+**Batch 3's codes, for the docs lane's refusal table**:
+- ViewerError: GEOMETRY_INVALID, INSTANCES_INVALID, TRANSFORM_INVALID, COLOR_MAP_INVALID, COLOR_INVALID,
+  MATERIAL_INVALID, CLIP_INVALID, TEXTURE_INVALID, SIZE_INVALID, MATRIX_SINGULAR.
+- GpuInputError: SCENE_INVALID, MESH_PACKET_INVALID, MESH_OPTIONS_INVALID, MESH_INVALID, CAMERA_INVALID,
+  FACE_PREVIEW_INVALID, PRIMITIVE_FRAME_INVALID, BOOLEAN_BUFFERS_INVALID, GPU_BVH_DEPTH.
+- All are in GpuErrorCode (`ViewerErrorCode`, `GpuInputErrorCode`). Each message is `[CODE] ` followed by the old
+  words.
+- After batch 3, gpu's src keeps 40 plain throws: 28 invariants or unreachable and 12 wrapped as causes. That's by
+  design.

@@ -6,7 +6,7 @@ import { BarocssError, refusalText } from './barocss-error.js';
 
 export type GpuInputErrorCode =
   | 'MESH_PACKET_INVALID' | 'MESH_OPTIONS_INVALID' | 'MESH_INVALID' | 'CAMERA_INVALID'
-  | 'PRIMITIVE_FRAME_INVALID' | 'FACE_PREVIEW_INVALID' | 'SCENE_INVALID';
+  | 'PRIMITIVE_FRAME_INVALID' | 'FACE_PREVIEW_INVALID' | 'SCENE_INVALID' | 'BOOLEAN_BUFFERS_INVALID' | 'GPU_BVH_DEPTH';
 
 export class GpuInputError extends BarocssError {
   constructor(readonly code: GpuInputErrorCode, message: string, cause?: unknown) {
