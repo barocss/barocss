@@ -27,9 +27,9 @@ test('IM1 data: every web value names its page (https URL, the date read, the pa
   assert.deepEqual(['maxPartLongMM', 'maxPartWideMM', 'maxPartDepthMM', 'tolMM', 'tolResinMMPerMM'].map(k => inj.thresholds[k].value), [751, 480, 203, 0.08, 0.002]);
   for (const f of inj.finishes!) assert.ok(f.page && f.page.url.startsWith('https://www.protolabs.com/') && f.page.read === '2026-10-21', f.id);
   assert.deepEqual(['abs', 'pom', 'pc', 'pp', 'pa12'].map(id => materialData(id)!.wall!.injection), [[1.143, 3.556], [0.762, 3.048], [1.016, 3.81], [0.635, 3.81], [0.762, 2.921]]);
-  assert.match(materialData('pom')!.pages!['wallMM.injection'].label, /Acetal/);
+  assert.match(materialData('pom')!.pages!['wall.injection'].label, /Acetal/);
   // (O78: PA12 reads the page's nylon family row, and says so.)
-  assert.equal(materialData('pa12')!.pages!['wallMM.injection'].note, 'the page\'s nylon family row, not PA12-specific');
+  assert.equal(materialData('pa12')!.pages!['wall.injection'].note, 'the page\'s nylon family row, not PA12-specific');
   assert.deepEqual(['abs', 'pc', 'pp'].map(id => materialData(id)!.mouldShrink ?? null), [0.002, 0.002, null]);
   // (The checker catches a web value without its page.)
   const broken = JSON.parse(JSON.stringify(MATERIALS_DATA)) as { profiles: { id: string; thresholds: Record<string, { page?: unknown }> }[] };
