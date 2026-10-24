@@ -8771,3 +8771,31 @@ with no alias and no migration. Values are unchanged.
     `residualMM` and print layers' `layerMM: { mm }`.
 - **Verified (T1):** tsc (model, studio); eslint 0 errors. The affected tests and the full suites run in the scratch
   check together with O19's wiring.
+
+## O19 — a stored edge or face name checked against what it named: refused, or matched again, never built on another (2026-10-24)
+
+The API lane found it in R7.4b, finding 4. The kernel's half is D277 (78a84d506): `expect` on fillet, chamfer, shell
+and draft, refusing `[REFERENCE_MOVED]`.
+- **Cause.** A sketch without sideTags (what commands and add_features write) names its walls by position. A vertex
+  inserted upstream renumbers them, and a fillet's stored `side1|side2` rounded another corner, silently. The node
+  carried `sigs`, but only the edit tool's rematch compared them; a document edited elsewhere skipped that.
+- **part.ts.** Each fillet, chamfer, shell and draft passes `expect`: its used names' signatures from `node.sigs`. The
+  compact `{ k, p, d, s, r }` becomes the kernel's `{ kind, at, dir, size, radius }`, and only the names the feature
+  uses go, by name (`expectOf`, at module level). A node without sigs passes none, as before.
+- **The agent's tools** (`chat/toolKit.ts` accept). An evaluation refused REFERENCE_MOVED runs `verifyReferences`, the
+  open path's matcher.
+  - **One clear match:** it is taken, marked re-matched until confirmed. The result carries `rematched` [{ where, was,
+    now }] and a note.
+  - **None or several:** refused with `references` [{ where, name, candidates }], the part unchanged.
+- **The studio's open** (App.tsx verifyOpened, a call site named to the coordinator). A document whose evaluation is
+  refused REFERENCE_MOVED is verified too, with no final bodies, so its moved names are substituted and marked, or the
+  feature is held with its candidates. Before this, an evaluation that failed skipped the check.
+- **Test:** test/o19-stored-names.test.ts, 4 tests:
+  - the sigs are written;
+  - the vertex insert is refused REFERENCE_MOVED; without sigs the same document rounds another corner;
+  - a 12 × 10 dimension change keeps building, with the fillet on its corner;
+  - through add_features on the moved document, the name is matched again (marked) and the fillet stays on its
+    corner.
+
+  With expectOf returning nothing, tests 2 and 4 fail.
+- **Verified (T1):** o19 4/4; tsc (model, studio); eslint. The full suites and the fingerprint run in the scratch check.
