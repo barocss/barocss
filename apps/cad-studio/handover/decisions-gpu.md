@@ -3395,3 +3395,31 @@ The coordinator's plan from the classification (`gpu-throws-classified.md` in th
   - 49 is the `.barocad` import; 46 is STEP and its refusal of a bad .step.
 - **Runs**: studio tsc 0, eslint 0 on App.tsx. Not run: studio unit (the change is in App's open path, which only the
   flow reaches); WebGL2 (renderer-independent).
+
+## G-R59 — R7.3d follow-up: cad-interop's curve metadata and its examples are `right-handed-z-up`; the axis-box basis question returned (roadmap R7.3d, 2026-10-24)
+
+- **The interop curve metadata** (the coordinator's go): CAD curve samples in mm, put into Three, Babylon and pixi3d
+  geometry with no axis change. That's CAD's Z-up data under a Y-up label, the packet's mislabel again.
+  - `'right-handed-y-up'` → `'right-handed-z-up'` in: three.ts, babylon.ts (the curve lines), three-uniform-curve,
+    babylon-uniform-curve, babylon-selected-uniform-curve, pixi3d-selected-uniform-curve; and the test
+    selected-uniform-curve-pixi3d.
+  - In the examples that check these labels: curve-parameterization-three (verify and html), host-replacement-flow,
+    host-replacement-babylon-flow, weighted-curve-babylon (verify and html), the xy-angle-arc and
+    source-curve-control-polygon checkpoints. Also multi-section-loft-babylon (verify and html),
+    native-surface-curvature-babylon-verify and sdk-entry-checkpoint-verify: these check the *surface* mesh's metadata,
+    which R7.3d renamed (babylon.ts:113) but whose example checks it missed.
+  - The `-scene-units` labels (cloth, particles) are untouched.
+- **Runs**: interop tsc 0, build, `pnpm test` passes, test:babylon (with gpu's cad-dist hook) passes,
+  selected-uniform-curve-pixi3d.test passes.
+  - **Not run, and can't be as they stand**: the example verifies and checkpoints. They need a demo's output directory
+    (`<CAD-947-demo-output-directory>`, `--output EVIDENCE_DIR`) or a TypeScript loader for interop's src
+    (ERR_MODULE_NOT_FOUND on src/*.js, ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX). This predates the change: it's the state
+    G-R40 triaged for the gpu-scene flows. Their edits are the same literal as src's.
+- **axis-box-boolean-buffers: returned to the coordinator, not changed.** Its `basis: 'authored-xyz-matches-rhyup'` is
+  not its own.
+  - It's the host assertion used in about 150 places across cad-interop (the Three, Babylon and pixi3d hosts) and
+    barocss-viewer: "map authored XYZ unchanged into the host's right-handed Y-up frame".
+  - Its output is scaled into scene units by mmToSceneUnit, like the engine scene. So its `coordinateSystem` names the
+    host scene's frame, not the CAD data's.
+  - Renaming only axis-box's basis would split one assertion into two spellings. A rename of the assertion itself is
+    one change across all three packages, and it's the coordinator's call.

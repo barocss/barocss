@@ -49,7 +49,7 @@ async function qualify(record) {
   assertNative(native.model.objects.map(object => object.id), NATIVE_IDS);
   for (const [index, row] of record.resources.entries()) {
     const curve = native.model.objects[index], preview = native.curves[index], metadata = row.mesh.metadata.barocss;
-    requireFact(curve.kind === 'curve' && curve.degree === 2 && row.geometryId === NATIVE_IDS[index] && metadata.lengthUnit === 'mm' && metadata.coordinateSystem === 'right-handed-y-up', 'Original Curve identity/frame differs');
+    requireFact(curve.kind === 'curve' && curve.degree === 2 && row.geometryId === NATIVE_IDS[index] && metadata.lengthUnit === 'mm' && metadata.coordinateSystem === 'right-handed-z-up', 'Original Curve identity/frame differs');
     assertNative(curve.knots, [-3, -3, -3, 7, 7, 7]);
     requireFact(Object.is(curve.controlPoints[0][1], -0) && curve.controlPoints.every(point => Object.is(point[2], -0)), 'Original signed-zero coefficients differ');
     assertNative(metadata.nativeParameters, preview.sample.parameters); assertNative(metadata.nativeIntervals, preview.sample.segments.map(segment => segment.domain)); assertNative(metadata.sampleReport, preview.sample.report);

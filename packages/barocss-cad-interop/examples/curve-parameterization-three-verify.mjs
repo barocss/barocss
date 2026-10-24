@@ -47,7 +47,7 @@ for (const [key, expectedHash] of Object.entries(expectedHashes)) {
   assert.equal(line.name, saved.interpolation.curve.id);
   assert.equal(line.userData.barocss.curveId, saved.interpolation.curve.id);
   assert.equal(line.userData.barocss.sourceVersion, 0);
-  assert.equal(line.userData.barocss.coordinateSystem, 'right-handed-y-up');
+  assert.equal(line.userData.barocss.coordinateSystem, 'right-handed-z-up');
   assert.deepEqual(line.userData.barocss.nativeParameters, neutral.curves[0].sample.parameters);
   assert.deepEqual(Array.from(line.geometry.getAttribute('position').array), Array.from(neutral.curves[0].positions));
   assert.equal(neutral.curves[0].sample.pointsMM.length <= 4096, true);

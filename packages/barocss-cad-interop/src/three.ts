@@ -76,7 +76,7 @@ export class BaroCADLoader extends Loader {
         child.userData = { barocss: {
           role: 'curve-display-line', modelName: native.model.name,
           curveId: curve.curveId, sourceVersion: 0, lengthUnit: 'mm',
-          coordinateSystem: 'right-handed-y-up',
+          coordinateSystem: 'right-handed-z-up',
           nativeParameters: [...curve.sample.parameters],
           nativeIntervals: curve.sample.segments.map(segment => [...segment.domain]),
           sampleReport: curve.sample.report,

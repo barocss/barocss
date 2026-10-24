@@ -12,7 +12,7 @@ export interface BaroCadSelectedUniformCurvePixi3DResult extends BaroCadSelected
   readonly root: Container3D;
   readonly mesh: Mesh3D & { readonly barocss: {
     role: 'selected-uniform-curve-display-line'; modelName: string; curveId: string;
-    sourceVersion: 0; lengthUnit: 'mm'; coordinateSystem: 'right-handed-y-up'; mode: 'uniform-original-parameter';
+    sourceVersion: 0; lengthUnit: 'mm'; coordinateSystem: 'right-handed-z-up'; mode: 'uniform-original-parameter';
     selectedObjectIndex: number; unrenderedObjectIds: string[]; nativeDomain: [number, number];
     nativeParameters: number[]; nativeIntervals: [number, number][]; quality: BaroCadSelectedUniformCurveSourceResult['quality'];
   } };
@@ -62,7 +62,7 @@ export class BaroCADSelectedUniformCurvePixi3DLoader {
       mesh = new Mesh3D(geometry, material);
       Object.assign(mesh, { barocss: {
         role: 'selected-uniform-curve-display-line' as const, modelName: native.model.name, curveId: native.curveId,
-        sourceVersion: 0 as const, lengthUnit: 'mm' as const, coordinateSystem: 'right-handed-y-up' as const, mode: native.mode,
+        sourceVersion: 0 as const, lengthUnit: 'mm' as const, coordinateSystem: 'right-handed-z-up' as const, mode: native.mode,
         selectedObjectIndex: native.selectedObjectIndex, unrenderedObjectIds: [...native.unrenderedObjectIds], nativeDomain: [...native.domain] as [number, number],
         nativeParameters: [...native.parameters], nativeIntervals: native.intervals.map(interval => [...interval] as [number, number]), quality: { ...native.quality },
       } });
