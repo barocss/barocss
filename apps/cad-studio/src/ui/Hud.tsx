@@ -1,5 +1,6 @@
 import { shownFields } from '@barocss/cad-model/app/commands';
 import { useEffect, useRef } from 'react';
+import { useStoreValue, type ValueStore } from '../state/valueStore';
 import type { Command, Ctx, Values } from '@barocss/cad-model/app/commands';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import { Button } from '@/components/ui/button';
@@ -10,16 +11,21 @@ import { Icon, Kbd } from './atoms';
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
 const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
 
+interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean }
 interface Props {
-  active: { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean };
+  /** The running command (R1d): the HUD subscribes to it — its values, preview state and error — not the App. */
+  store: ValueStore<Active | null>;
   onChange(key: string, value: number | string): void; onApply(): void; onCancel(): void;
 }
 
 /** The floating command HUD: few fields, keyboard-first, with the kernel’s answer inline. (G12f: its fields, choices and
  * actions shadcn's Input, NativeSelect and Button, at the HUD's 26 px in the studio's mono type.) */
-export function Hud({ active, onChange, onApply, onCancel }: Props) {
+export function Hud({ store, onChange, onApply, onCancel }: Props) {
+  const active = useStoreValue(store);
   const first = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
-  useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement) first.current.select(); }, [active.cmd.id]);
+  useEffect(() => { first.current?.focus(); if (first.current instanceof HTMLInputElement) first.current.select(); }, [active?.cmd.id]);
+  // (Ended before the App unmounts it.)
+  if (!active) return null;
   const fields = shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values);
   return (
     <div className="card hud" role="dialog" aria-label={active.cmd.label}>

@@ -20,6 +20,8 @@ function benchCaseNames(voxels) {
     'hover: 60 moves across the plate',
     'select: a face clicked from idle',
     'select: cleared (Escape) from idle',
+    'HUD: 4 keystrokes into the box width',
+    'placing: 30 pointer moves before the click',
     'orbit: 60-step drag',
     'orbit: 60 steps, body outlined',
     'pose: a joint of the 2R arm played',
@@ -39,7 +41,7 @@ function benchCaseNames(voxels) {
 
 function benchRowsPass(rows, expectedNames, picks, fullRun) {
   const names = rows.map(r => r.name);
-  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 17) &&
+  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 19) &&
     new Set(expectedNames).size === expectedNames.length &&
     names.length === expectedNames.length && new Set(names).size === names.length &&
     expectedNames.every(name => names.includes(name)) && rows.every(r => r.ok === true) &&
@@ -228,6 +230,11 @@ const BUDGET = {
   pattern: { submits: 8, avgFrameMS: 2, perFrame: 1 },
   // (G11: the 120 brackets see-through, orbited.)
   ghost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
+  // (R1d: a command's values typed into the HUD and a shape placed by the pointer — the App's renders, `app`, one for each
+  // evaluated result, so never more than a keystroke's or a move's. Before R1d, loaded: 10 for the 4 keystrokes (5 results)
+  // and 76 for the 30 moves (29 results); after, 1 (1 result) and 16 (16 results).)
+  hudTyping: { submits: 60, avgFrameMS: 2, app: 4 },
+  placing: { submits: 60, avgFrameMS: 2, app: 30 },
 };
 const os = await import('node:os'), loadAtStart = os.loadavg()[0];
 const rows = [];
@@ -247,6 +254,7 @@ const measure = async (name, budget, act) => {
   const ms0 = trace ? await page.evaluate(() => ({ ...(window.__studioRenderMs ?? {}) })) : null;
   if (trace) await page.evaluate(() => { const c = window.__appHookChanges ?? {}; for (const k in c) delete c[k]; });
   if (trace) await cdp.send('Profiler.enable').then(() => cdp.send('Profiler.setSamplingInterval', { interval: 200 })).then(() => cdp.send('Profiler.start'));
+  const app0 = await page.evaluate(() => window.__studioRenders?.App ?? 0);
   const task0 = await taskTime(), t0 = Date.now(); await act(); await page.waitForTimeout(400);
   // (BENCH_TRACE: the main thread's self time by function over the row, from a CPU profile.)
   if (trace) {
@@ -273,6 +281,7 @@ const measure = async (name, budget, act) => {
   }
   await page.evaluate(() => window.__benchDrain());
   const b = await page.evaluate(() => window.__bench), wall = Date.now() - t0, task = await taskTime() - task0;
+  const app = await page.evaluate(() => window.__studioRenders?.App ?? 0) - app0;
   if (trace) {
     const renders1 = await page.evaluate(() => ({ ...(window.__studioRenders ?? {}) }));
     console.log(`  [${name}] renders ${JSON.stringify(Object.fromEntries(Object.keys(renders1).map(k => [k, renders1[k] - (renders0[k] ?? 0)])))}`);
@@ -290,8 +299,8 @@ const measure = async (name, budget, act) => {
   const timing = benchGpuTiming(b), taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn, gpu = timing.msPerSubmit;
   const drawless = !!budget.drawless && b.submits === 0;
   const validMetrics = [b.submits, b.frames, avg, most, taskPerFrame, kbPerFrame, b.buffers, b.queueMS, wall].every(v => Number.isFinite(v) && v >= 0) && (drawless || (b.submits > 0 && b.frames > 0));
-  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: timing.valid ? +gpu.toFixed(2) : null, queueMS: +(b.submits ? b.queueMS / b.submits : 0).toFixed(2), timed: timing.valid, timing, queryBatches: b.queryBatches, sameStamp: b.sameStamp, wallMS: wall, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
-    ok: validMetrics && (timing.valid || drawless) && b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (drawless || gpu <= (budget.gpuMS ?? Infinity)), budget });
+  rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: timing.valid ? +gpu.toFixed(2) : null, queueMS: +(b.submits ? b.queueMS / b.submits : 0).toFixed(2), timed: timing.valid, timing, queryBatches: b.queryBatches, sameStamp: b.sameStamp, wallMS: wall, app, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
+    ok: validMetrics && (timing.valid || drawless) && b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (drawless || gpu <= (budget.gpuMS ?? Infinity)) && app <= (budget.app ?? Infinity), budget });
 };
 try {
   await page.goto(server.resolvedUrls.local[0]);
@@ -318,6 +327,17 @@ try {
   // A click on a face from idle (the selection changes): one frame drawn, once.
   await measure('select: a face clicked from idle', BUDGET.select, async () => { await page.mouse.click(cx + 40, cy + 30); });
   await measure('select: cleared (Escape) from idle', BUDGET.clear, async () => { await page.keyboard.press('Escape'); });
+  // (R1d: the Box command's width typed, as a person types — its first field focused and selected as the HUD opens — then
+  // the shape placed by the pointer: 30 moves over the plate before a click. Each command cancelled after.)
+  await page.mouse.move(cx, cy); await page.keyboard.press('b'); await page.waitForSelector('.hud input[type=number]', { timeout: 10000 }); await page.waitForTimeout(600);
+  await measure('HUD: 4 keystrokes into the box width', BUDGET.hudTyping, async () => { await page.keyboard.type('3640', { delay: 60 }); await page.waitForTimeout(800); });
+  await page.keyboard.press('Escape'); await page.waitForTimeout(300); await page.keyboard.press('Escape');
+  await page.mouse.move(cx, cy); await page.keyboard.press('b'); await page.waitForSelector('.hud', { timeout: 10000 }); await page.waitForTimeout(400);
+  await measure('placing: 30 pointer moves before the click', BUDGET.placing, async () => {
+    for (let i = 0; i < 30; i++) { await page.mouse.move(cx - 150 + 10 * i, cy - 20 + (i % 5) * 8); await page.waitForTimeout(16); }
+    await page.waitForTimeout(400);
+  });
+  await page.keyboard.press('Escape'); await page.waitForTimeout(300); await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   // An orbit drag of 60 steps: one frame each.
   await measure('orbit: 60-step drag', BUDGET.orbit, async () => {
     await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
@@ -470,7 +490,7 @@ try {
 } finally { await browser.close(); await server.close(); }
 // (The machine's load average: a budget is not set from numbers measured under load.)
 console.log(`load average ${loadAtStart.toFixed(1)} at the start, ${os.loadavg()[0].toFixed(1)} at the end${Math.max(loadAtStart, os.loadavg()[0]) > 4 ? ' — LOADED: compare, do not set budgets from this run' : ''}`);
-for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${r.timed ? String(r.gpuMS).padStart(5) + ' ms/submit' : 'UNAVAILABLE (invalid or missing timestamps)'}${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}${r.timing.unstamped ? ` (${r.timing.unstamped} unstamped)` : ''}  queue ${r.queueMS} ms${r.sameStamp ? ` (${r.sameStamp} frames stamped as the last)` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}`);
+for (const r of rows) console.log(`${r.ok ? 'ok  ' : 'SLOW'} ${r.name.padEnd(36)} submits ${String(r.submits).padStart(3)} (≤ ${r.budget.submits}, ${r.most} in one frame)  frames ${String(r.frames).padStart(3)}  avg frame ${String(r.avgFrameMS).padStart(5)} ms (≤ ${r.budget.avgFrameMS})  task ${String(r.taskMS).padStart(6)} ms/frame${r.budget.taskMS ? ` (≤ ${r.budget.taskMS})` : ''}  upload ${String(r.kb).padStart(7)} KiB/frame${r.budget.kb ? ` (≤ ${r.budget.kb})` : ''}  buffers ${String(r.buffers).padStart(5)}${r.budget.buffers !== undefined ? ` (≤ ${r.budget.buffers})` : ''}  GPU ${r.timed ? String(r.gpuMS).padStart(5) + ' ms/submit' : 'UNAVAILABLE (invalid or missing timestamps)'}${r.budget.gpuMS ? ` (≤ ${r.budget.gpuMS})` : ''}${r.timing.unstamped ? ` (${r.timing.unstamped} unstamped)` : ''}  queue ${r.queueMS} ms${r.sameStamp ? ` (${r.sameStamp} frames stamped as the last)` : ''}  wall ${r.wallMS} ms  task total ${r.taskTotalMS} ms${r.geometry ? `  uploaded ${r.uploadTotalKiB} KiB; ${r.geometry.meshes} meshes on ${r.geometry.geometries} geometries, ${r.geometry.kib} KiB; heap ${r.geometry.heapMiB} MiB` : ''}  App ${r.app}${Number.isFinite(r.budget.app) ? ` (≤ ${r.budget.app})` : ''}`);
 if (picks) console.log(`picks over 120 brackets, ${picks.pointers} pointers (${picks.hits} on a bracket), ${picks.differ} answers different: raycast ${picks.linear.ray.toFixed(1)} → ${picks.trees.ray.toFixed(1)} ms, pickLine ${picks.linear.line.toFixed(1)} → ${picks.trees.line.toFixed(1)} ms (linear walk → scene trees)`);
 console.log(`bench results: ${JSON.stringify(rows)}`);
 const expectedNames = benchCaseNames(voxels).filter(name => !only || only.test(name));
