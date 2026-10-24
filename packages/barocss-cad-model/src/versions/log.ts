@@ -7,7 +7,7 @@
 //   - Reading a version gives its document as the working one; history is never rewound (saving it again is a new
 //     version on the head), so nothing made is lost.
 import type { StudioDoc } from '../engine/doc';
-import { canonical, revisionOf } from '../util/revision';
+import { canonical, fnv64, revisionOf } from '../util/revision';
 import { problem, refusal, type VersionProblem } from './codes';
 
 export interface Version {
@@ -40,12 +40,8 @@ export const MAIN = 'main';
 const NAME_MAX = 80;
 const BRANCH_NAME = /^[A-Za-z0-9][A-Za-z0-9 ._/-]{0,62}$/;
 
-/** A 64-bit FNV-1a (two 32-bit lanes) of a text, 16 hex digits (util/revision.ts's hash, over any text). */
-export function keyOf(s: string): string {
-  let h1 = 0x811c9dc5, h2 = 0x050c5d1f;
-  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 ^= c; h1 = Math.imul(h1, 0x01000193) >>> 0; h2 ^= c; h2 = Math.imul(h2, 0x01000193) >>> 0; h2 = (h2 ^ (h1 >>> 7)) >>> 0; }
-  return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
-}
+/** A text's content key: util/revision.ts's hash. */
+export const keyOf = fnv64;
 /** A document's content key: of its whole canonical JSON (every field, not only a revision's). */
 export const snapshotKeyOf = (doc: StudioDoc) => keyOf(canonical(doc));
 

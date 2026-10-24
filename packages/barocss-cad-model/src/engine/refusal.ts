@@ -3,6 +3,7 @@
 // returned, never thrown. The codes are one union (CadModelCode), so the table can be made from the type.
 import { BarocssError } from '@barocss/cad/api';
 import type { FrameGeometryCode } from './doc';
+import type { VersionCode } from '../versions/codes';
 
 export { BarocssError };
 
@@ -64,6 +65,8 @@ export type CadModelCode =
   | 'DIRECT_SOURCE' | 'DIRECT_PICK' | 'DIRECT_DEGREE' | 'DIRECT_LOOP' | 'DIRECT_VALUE' | 'DIRECT_KNOT' | 'DIRECT_LOFT' | 'DIRECT_RANGE'
   | 'DIRECT_PLANE' | 'DIRECT_INTERSECT' | 'DIRECT_ID' | 'IGES_READ' | 'IGES_EXPORT' | 'TRIM_CURVE'
   // the person's row files, libraries, archives, the chat's merge
+  // versions, compare and merge (CG6, versions/codes.ts)
+  | VersionCode
   | 'ROWS_NOT_FROM_PERSON' | 'ROW_FILES' | 'ROW_UNKNOWN' | 'ROW_IN_USE' | 'RING_ROW' | 'FASTENER_ROW' | 'CASTING_RULE_ROW' | 'LIBRARY_ID' | 'LIBRARY_UNKNOWN' | 'ZIP_LIMIT' | 'MERGE_SUPERSEDED' | 'MERGE_MISSING';
 
 /** A validator's finding: its code, the "[CODE] …" sentence, and where in the input (a field or a path), when it says. */

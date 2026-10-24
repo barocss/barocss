@@ -1,5 +1,5 @@
-// CG6 (DA-1): the version model's refusals, one union and the "[CODE] …" builder of engine/refusal.ts's shape — kept here
-// until `VersionCode` joins `CadModelCode` (one line in engine/refusal.ts, the outer lane's file).
+// CG6 (DA-1): the version model's refusals — one union, part of engine/refusal.ts's CadModelCode — and the "[CODE] …"
+// builder over it (the refusal table reads calls named `refusal`).
 import { BarocssError } from '@barocss/cad/api';
 
 export type VersionCode =
