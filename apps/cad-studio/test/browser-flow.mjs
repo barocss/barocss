@@ -5381,6 +5381,51 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.sections && !window.__studioDoc.drawing?.section && !(window.__studioDrawing?.()?.placedSections ?? []).length, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('detail views (CG5 DR-1): the Detail tool (E) on a box corner in the top view, auto scale, rescaled, dragged, in the SVG, removed', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Drawing sheet"]')?.getAttribute('viewBox')?.includes('420'), null, { timeout: 20000 }).catch(() => {});
+      await page.waitForTimeout(500);
+      const sheetScale = await page.evaluate(() => window.__studioDrawing().scale), auto = [10, 5, 2, 1, 0.5, 0.2, 0.1].filter(x => x >= 2 * sheetScale * (1 - 1e-9)).at(-1) ?? 2 * sheetScale;
+      await press('e');
+      // (The top view's corner at X 64, Y 32 — snapped — then a point 6 mm along X: the circle's reach.)
+      const c = await page.evaluate(() => window.__studioDrawingAt('top', 64, 32)), r = await page.evaluate(() => window.__studioDrawingAt('top', 70, 32));
+      await page.mouse.move(c.x, c.y); await page.mouse.click(c.x, c.y);
+      await page.mouse.move(r.x, r.y); await page.mouse.click(r.x, r.y);
+      await page.waitForFunction(() => window.__studioDrawing?.()?.details?.length === 1, null, { timeout: 20000 });
+      const [det] = (await doc()).drawing.details;
+      assert.equal(det.id, 'B'); assert.equal(det.view, 'top'); assert.deepEqual(det.center, [64, 32]);
+      assert.ok(Math.abs(det.radius - 6) < 0.5, `radius ${det.radius}`);
+      let d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      // (Auto: the smallest standard scale at least twice the sheet's; the corner's two edges inside the circle.)
+      assert.equal(d.scale, auto, `sheet ${sheetScale}`); assert.ok(d.edges >= 2, `${d.edges} edges`);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * auto * det.radius) < 1e-9);
+      assert.deepEqual(await page.evaluate(() => window.__studioDrawing().issues.filter(x => /DETAIL|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code)), []);
+      const set = [10, 5, 2, 1, 0.5, 0.2, 0.1].find(x => x < auto), label = set >= 1 ? `${set}:1` : `1:${1 / set}`;
+      await page.selectOption('[aria-label="Detail B scale"]', String(set));
+      await page.waitForFunction(s => window.__studioDrawing?.()?.details?.[0]?.scale === s, set, { timeout: 20000 });
+      d = await page.evaluate(() => window.__studioDrawing().details[0]);
+      assert.ok(Math.abs((d.box[2] - d.box[0]) - 2 * set * det.radius) < 1e-9 && Math.abs((d.box[3] - d.box[1]) - 2 * set * det.radius) < 1e-9);
+      await snap('detail-b');
+      // Dragged by its drawing 20 mm left: kept where it was put.
+      await press('v');
+      const mid = await page.evaluate(([x0, y0, x1]) => { const svg = document.querySelector('[aria-label="Drawing sheet"]'), m = svg.getScreenCTM(); const p = new DOMPoint((x0 + x1) / 2, y0 + 3).matrixTransform(m), q = new DOMPoint((x0 + x1) / 2 - 20, y0 + 3).matrixTransform(m); return [p.x, p.y, q.x, q.y]; }, d.box);
+      await page.mouse.move(mid[0], mid[1]); await page.mouse.down(); await page.mouse.move((mid[0] + mid[2]) / 2, mid[1], { steps: 4 }); await page.mouse.move(mid[2], mid[3], { steps: 4 }); await page.mouse.up();
+      await page.waitForFunction(() => !!window.__studioDoc.drawing?.details?.[0]?.at, null, { timeout: 20000 });
+      const moved = await page.evaluate(() => window.__studioDrawing().details[0].box);
+      assert.ok(Math.abs((moved[0] - d.box[0]) + 20) < 0.6, `moved ${moved[0] - d.box[0]}`);
+      const [svgFile] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Export SVG"]')]);
+      assert.ok(fs.readFileSync(await svgFile.path(), 'utf8').includes(`>DETAIL B (${label})</text>`), 'DETAIL B named in the SVG');
+      await page.click('[aria-label="Remove detail B"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.details && !(window.__studioDrawing?.()?.details ?? []).length, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
