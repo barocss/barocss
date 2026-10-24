@@ -2,10 +2,11 @@ import { validateAxisBoxSolidBoolean } from '../axis-box-boolean.js';
 import type { AxisBoxSolidBooleanResult } from '../axis-box-boolean.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const AxisBoxSolidBooleanPointDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', BOOLEAN: 'BOOLEAN', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidBooleanPointDiagnosticCode = typeof AxisBoxSolidBooleanPointDiagnosticCode[keyof typeof AxisBoxSolidBooleanPointDiagnosticCode];
-export class AxisBoxSolidBooleanPointError extends Error {
+export class AxisBoxSolidBooleanPointError extends KernelError {
   readonly code: AxisBoxSolidBooleanPointDiagnosticCode;
   constructor(code: AxisBoxSolidBooleanPointDiagnosticCode, detail: string, cause?: unknown) {
     super(('Axis-box Solid point classification: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'AxisBoxSolidBooleanPointError'; this.code = code;

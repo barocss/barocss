@@ -10,10 +10,11 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const ExactSurfaceLowerTrimDiagnosticCode=Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',BUDGET:'BUDGET',BINDING:'BINDING',PARENT:'PARENT',SUPPORT:'SUPPORT',EMBEDDING:'EMBEDDING',REPRESENTABILITY:'REPRESENTABILITY',NATIVE:'NATIVE',OWNED:'OWNED'} as const);
 export type ExactSurfaceLowerTrimDiagnosticCode=typeof ExactSurfaceLowerTrimDiagnosticCode[keyof typeof ExactSurfaceLowerTrimDiagnosticCode];
-export class ExactSurfaceLowerTrimError extends Error {readonly code:ExactSurfaceLowerTrimDiagnosticCode;constructor(code:ExactSurfaceLowerTrimDiagnosticCode,detail:string,cause?:unknown){super(('Exact original Surface lower trim: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='ExactSurfaceLowerTrimError';this.code=code}}
+export class ExactSurfaceLowerTrimError extends KernelError {readonly code:ExactSurfaceLowerTrimDiagnosticCode;constructor(code:ExactSurfaceLowerTrimDiagnosticCode,detail:string,cause?:unknown){super(('Exact original Surface lower trim: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='ExactSurfaceLowerTrimError';this.code=code}}
 export interface ExactSurfaceLowerTrimOptions {evaluationId:string;resultIdPrefix:string;orientation:'forward'|'reverse';maximumObservations:40}
 type Bound={exact:SectionFraction;upper:number};
 type Vertex={id:string;sourceId:string;surfaceId:string;world:Point;uv:Point};

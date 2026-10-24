@@ -9,6 +9,7 @@ import { curveDecimal } from './curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CurveIntervalExtractionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', INTERVAL: 'INTERVAL', IDENTITY: 'IDENTITY',
@@ -18,7 +19,7 @@ export const CurveIntervalExtractionDiagnosticCode = Object.freeze({
 export type CurveIntervalExtractionDiagnosticCode =
   typeof CurveIntervalExtractionDiagnosticCode[keyof typeof CurveIntervalExtractionDiagnosticCode];
 
-export class CurveIntervalExtractionError extends Error {
+export class CurveIntervalExtractionError extends KernelError {
   readonly code: CurveIntervalExtractionDiagnosticCode;
   constructor(code: CurveIntervalExtractionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Curve interval extraction: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

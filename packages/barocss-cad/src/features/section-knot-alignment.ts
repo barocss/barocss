@@ -7,12 +7,13 @@ import { adopt } from '../intersect/own-plane-cylinder-intersection-internal.js'
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Model } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const SectionKnotAlignmentDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BASIS: 'BASIS', BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type SectionKnotAlignmentDiagnosticCode = typeof SectionKnotAlignmentDiagnosticCode[keyof typeof SectionKnotAlignmentDiagnosticCode];
-export class SectionKnotAlignmentError extends Error {
+export class SectionKnotAlignmentError extends KernelError {
   readonly code: SectionKnotAlignmentDiagnosticCode;
   constructor(code: SectionKnotAlignmentDiagnosticCode, detail: string, cause?: unknown) {
     super(('Section knot alignment: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

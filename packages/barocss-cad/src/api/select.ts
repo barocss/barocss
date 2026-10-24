@@ -5,6 +5,7 @@
 import type { Brep } from '../brep/brep-core.js';
 import type { BrepMesh, BrepMeshFace } from '../brep/brep-tessellate.js';
 
+/** A point or direction, mm, Z up: the facades' one shape (api-conventions §10.2), the same tuple gpu's core/geometry-types.ts declares. */
 export type Vec3 = readonly [number, number, number];
 export type AxisName = 'x' | 'y' | 'z';
 /** An outward direction along an axis, for faces: '+z' is a face whose normal points up. */

@@ -3,13 +3,14 @@ import type { CurveReversalOptions, CurveReversalProvenance, CurveReversalObserv
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const WideCurveReversalDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', DOMAIN: 'DOMAIN', REPRESENTABILITY: 'REPRESENTABILITY',
   BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type WideCurveReversalDiagnosticCode = typeof WideCurveReversalDiagnosticCode[keyof typeof WideCurveReversalDiagnosticCode];
-export class WideCurveReversalError extends Error {
+export class WideCurveReversalError extends KernelError {
   readonly code: WideCurveReversalDiagnosticCode;
   constructor(code: WideCurveReversalDiagnosticCode, detail: string, cause?: unknown) {
     super(('Wide Curve reversal: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

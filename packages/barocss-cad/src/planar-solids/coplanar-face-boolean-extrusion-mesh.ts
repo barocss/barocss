@@ -8,11 +8,12 @@ import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { curveDomain, surfaceDomain } from '../core/math.js';
 import type { Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CoplanarFaceBooleanExtrusionMeshDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET',
   NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', INCIDENCE: 'INCIDENCE', COVERAGE: 'COVERAGE', OWNED: 'OWNED' } as const);
 export type CoplanarFaceBooleanExtrusionMeshDiagnosticCode = typeof CoplanarFaceBooleanExtrusionMeshDiagnosticCode[keyof typeof CoplanarFaceBooleanExtrusionMeshDiagnosticCode];
-export class CoplanarFaceBooleanExtrusionMeshError extends Error {
+export class CoplanarFaceBooleanExtrusionMeshError extends KernelError {
   readonly code: CoplanarFaceBooleanExtrusionMeshDiagnosticCode;
   constructor(code: CoplanarFaceBooleanExtrusionMeshDiagnosticCode, detail: string, cause?: unknown) {
     super(('Coplanar Face Boolean Extrusion Mesh: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

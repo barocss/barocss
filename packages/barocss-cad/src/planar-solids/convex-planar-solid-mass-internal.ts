@@ -1,10 +1,11 @@
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational } from '../section-rational-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 export { SectionRationalContext };
 export { same } from '../convex-planar-solid-proof-internal.js';
 export const ConvexPlanarSolidMassDiagnosticCode = Object.freeze({ INPUT: 'INPUT', BUDGET: 'BUDGET', PARENT: 'PARENT', BINDING: 'BINDING', REPRESENTABILITY: 'REPRESENTABILITY', OWNED: 'OWNED' } as const);
 export type ConvexPlanarSolidMassDiagnosticCode = typeof ConvexPlanarSolidMassDiagnosticCode[keyof typeof ConvexPlanarSolidMassDiagnosticCode];
-export class ConvexPlanarSolidMassError extends Error {
+export class ConvexPlanarSolidMassError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidMassDiagnosticCode, detail: string, cause?: unknown) {
     super(('Convex planar Solid mass: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'ConvexPlanarSolidMassError';
   }

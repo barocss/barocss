@@ -10,11 +10,12 @@ import { validateCurve, validateSurface } from '../core/math.js';
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const BooleanExtrusionFeatureGraphDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', PARAMETER: 'PARAMETER', DEPENDENCY: 'DEPENDENCY',
   REVISION: 'REVISION', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', JSON: 'JSON', OWNED: 'OWNED' } as const);
 export type BooleanExtrusionFeatureGraphDiagnosticCode = typeof BooleanExtrusionFeatureGraphDiagnosticCode[keyof typeof BooleanExtrusionFeatureGraphDiagnosticCode];
-export class BooleanExtrusionFeatureGraphError extends Error {
+export class BooleanExtrusionFeatureGraphError extends KernelError {
   readonly code: BooleanExtrusionFeatureGraphDiagnosticCode; readonly path: string; readonly featureId: string | null; readonly parameterId: string | null;
   constructor(code: BooleanExtrusionFeatureGraphDiagnosticCode, detail: string,
     context: { path?: string; featureId?: string | null; parameterId?: string | null; cause?: unknown } = {}) {

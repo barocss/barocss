@@ -3,10 +3,11 @@ import type { TranslatedSurfaceStripVolumeResult } from './translated-surface-st
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const TranslatedSurfaceStripWorldPointDiagnosticCode=Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',BUDGET:'BUDGET',PARENT:'PARENT',SUPPORT:'SUPPORT',REPRESENTABILITY:'REPRESENTABILITY',BINDING:'BINDING',OWNED:'OWNED'} as const);
 export type TranslatedSurfaceStripWorldPointDiagnosticCode=typeof TranslatedSurfaceStripWorldPointDiagnosticCode[keyof typeof TranslatedSurfaceStripWorldPointDiagnosticCode];
-export class TranslatedSurfaceStripWorldPointError extends Error {
+export class TranslatedSurfaceStripWorldPointError extends KernelError {
   readonly code:TranslatedSurfaceStripWorldPointDiagnosticCode;
   constructor(code:TranslatedSurfaceStripWorldPointDiagnosticCode,detail:string,cause?:unknown){super(('Translated Surface strip World point: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='TranslatedSurfaceStripWorldPointError';this.code=code;}
 }

@@ -28,14 +28,17 @@ export interface PartBackend<D> {
   /** A body's edges and faces. */
   select(doc: D, body: string): BodyQuery;
   /** A body's mass properties at a density (g/cm³), in MMGS. */
-  mass(doc: D, body: string, densityGPerCm3: number): MassResult;
+  mass(doc: D, body: string, density: number): MassResult;
   /** Every body of the part as one STEP AP214 file. */
   step(doc: D, name: string): string;
   meshes(doc: D): MeshData[];
 }
 
-/** A density, the kernel's way of asking for mass (it keeps no material library; cad-model's part also takes a material id). */
-export interface Density { densityGPerCm3: number }
+/**
+ * A density in g/cm³, the way materials are quoted (api-conventions §2) — the kernel's way of asking for mass (it keeps
+ * no material library; cad-model's part also takes a material id).
+ */
+export interface Density { density: number }
 
 /** A Boolean's tool: a body of the part by name, or a callback that adds the tool body to the part (`p => p.cylinder(…)`). */
 export type Tool<P> = string | ((part: P) => P);
@@ -133,8 +136,8 @@ export class Part<D> {
    * one node each for every part of the placement that isn't zero.
    */
   moved(location: Location): this {
-    if (!(location instanceof Location)) throw refuse('VALUE', 'moved() takes a Location (Location.of({ positionMM, rotationDeg }), Location.at(…))');
-    const r = location.rotationDeg, p = location.positionMM;
+    if (!(location instanceof Location)) throw refuse('VALUE', 'moved() takes a Location (Location.of({ position, rotation }), Location.at(…))');
+    const r = location.rotation, p = location.position;
     let out = this.next(this.#doc, this.#focus);
     for (const k of [0, 1, 2] as const) if (r[k] !== 0) out = out.#act(rotateSpec(AXES[k], r[k]));
     if (p[0] !== 0 || p[1] !== 0 || p[2] !== 0) out = out.#act(moveSpec([p[0], p[1], p[2]]));
@@ -145,7 +148,7 @@ export class Part<D> {
   select(): BodyQuery { return this.backend.select(this.#doc, this.target()); }
 
   /** The body's mass properties at a density, in MMGS. */
-  mass(density: Density): MassResult { return this.backend.mass(this.#doc, this.target(), density.densityGPerCm3); }
+  mass(density: Density): MassResult { return this.backend.mass(this.#doc, this.target(), density.density); }
 
   /** The part (every body) as one STEP AP214 file, named after the part unless another name is given. */
   step(name: string = this.name): string { return this.backend.step(this.#doc, name); }

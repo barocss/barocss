@@ -7,6 +7,7 @@ import type {
   PairedRoofDifferenceGeometry, PairedRoofDifferenceBand, PairedRoofDifferenceClosures,
   PairedRoofDifferenceSourceRef, PairedRoofDifferenceSourceModel,
 } from './paired-roof-difference-body-proof-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type R = SectionRational;
 type P = R[][];
@@ -23,7 +24,7 @@ export interface PairedRoofDifferenceConstructionCallbacks {
 }
 
 /** This leaf does not catch failures from the caller's q or native callbacks. */
-export class PairedRoofDifferenceConstructionError extends Error {
+export class PairedRoofDifferenceConstructionError extends KernelError {
   readonly code: Code;
   readonly edgeIndex: number | null;
   readonly faceRole: FaceRole | null;

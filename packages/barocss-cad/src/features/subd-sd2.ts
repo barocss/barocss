@@ -14,8 +14,9 @@
 import type { Point, Surface } from '../types.js';
 import { evaluateSurfaceD1 } from '../core/derivatives.js';
 import { evaluateSurface } from '../core/math.js';
+import { KernelError } from '../core/barocss-error.js';
 
-export class SubdError extends Error {
+export class SubdError extends KernelError {
   constructor(readonly code: 'INPUT' | 'CAPABILITY', detail: string) { super(`SubD: ${detail}`); this.name = 'SubdError'; }
 }
 export interface PolyCage { readonly positions: ArrayLike<number>; readonly faces: readonly (readonly number[])[]; readonly creases?: readonly (readonly [number, number])[] }

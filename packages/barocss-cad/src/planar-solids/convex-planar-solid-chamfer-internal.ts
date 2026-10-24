@@ -1,8 +1,9 @@
 import { ConvexPlanarSolidError, SolidProof, same } from '../convex-planar-solid-proof-internal.js';
 import { ConvexPlanarSolidSplitError } from './convex-planar-solid-split-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 export { SolidProof, same };
 export type ChamferCode = 'INPUT' | 'IDENTITY' | 'BUDGET' | 'NATIVE' | 'OWNED' | 'BINDING' | 'INCIDENCE' | 'DEGENERATE' | 'REPRESENTABILITY' | 'SELECTION' | 'METRIC' | 'LOCALITY';
-export class ConvexPlanarSolidChamferError extends Error {
+export class ConvexPlanarSolidChamferError extends KernelError {
   constructor(readonly code: ChamferCode, readonly stage: string, readonly entity: string, detail: string, cause?: unknown) {
     super(('Convex planar solid chamfer: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'ConvexPlanarSolidChamferError';
   }

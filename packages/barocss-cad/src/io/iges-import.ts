@@ -4,6 +4,7 @@ import { validateCurve, validateSurface, curveDomain, surfaceDomain } from '../c
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const IGESImportDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', FILE: 'FILE', RECORD: 'RECORD', GLOBAL: 'GLOBAL',
@@ -11,7 +12,7 @@ export const IGESImportDiagnosticCode = Object.freeze({
   NUMBER: 'NUMBER', NATIVE: 'NATIVE', SOURCE: 'SOURCE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type IGESImportDiagnosticCode = typeof IGESImportDiagnosticCode[keyof typeof IGESImportDiagnosticCode];
-export class IGESImportError extends Error {
+export class IGESImportError extends KernelError {
   readonly code: IGESImportDiagnosticCode;
   constructor(code: IGESImportDiagnosticCode, detail: string, cause?: unknown) {
     super(('Native IGES import: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

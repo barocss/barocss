@@ -5,6 +5,7 @@
 // box or closes on itself. The result is a list of point chains (with tangents) on both surfaces.
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type XY = [number, number];
 export interface Patch {
@@ -18,7 +19,7 @@ export interface IntersectionChain {
   /** Points the march went through where the surfaces touch (n₁ × n₂ turned its sign, D238): the curve crosses itself there. */
   readonly touches?: readonly Point[];
 }
-export class SurfaceIntersectionError extends Error { constructor(detail: string) { super('Surface intersection: ' + detail); this.name = 'SurfaceIntersectionError'; } }
+export class SurfaceIntersectionError extends KernelError { constructor(detail: string) { super('Surface intersection: ' + detail, { code: 'SURFACE_INTERSECTION' }); this.name = 'SurfaceIntersectionError'; } }
 
 function derivatives(P: Patch, p: XY): { x: Point; du: Point; dv: Point } {
   const [[u0, v0], [u1, v1]] = P.box, hu = 1e-6 * (u1 - u0 || 1), hv = 1e-6 * (v1 - v0 || 1);

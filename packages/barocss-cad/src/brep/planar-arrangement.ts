@@ -14,11 +14,12 @@
 // Points are homogeneous integers (x, y, w), w > 0. Every point is either an input binary64 point or
 // the intersection of two input segments, so bit sizes stay bounded and every predicate is exact.
 import { binary64Dyadic } from '../core/dyadic.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type XY = [number, number];
 export interface PolygonWithHoles { readonly outer: readonly XY[]; readonly holes: readonly (readonly XY[])[] }
 export type PlanarBooleanOperation = 'union' | 'intersection' | 'difference' | 'xor';
-export class PlanarArrangementError extends Error { constructor(detail: string) { super('Planar arrangement: ' + detail); this.name = 'PlanarArrangementError'; } }
+export class PlanarArrangementError extends KernelError { constructor(detail: string) { super('Planar arrangement: ' + detail, { code: 'PLANAR_ARRANGEMENT' }); this.name = 'PlanarArrangementError'; } }
 
 type H = { x: bigint; y: bigint; w: bigint };
 const abs = (a: bigint) => a < 0n ? -a : a;

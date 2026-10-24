@@ -30,7 +30,7 @@ const providers = new Map([
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
-const pureModules = new Set(['modeling', 'cad-document', 'data-copy', 'xy-affine-prism-feature-document-internal',
+const pureModules = new Set(['barocss-error', 'modeling', 'cad-document', 'data-copy', 'xy-affine-prism-feature-document-internal',
   'modeling-regeneration-internal', 'modeling-dimension-internal']);
 const replaced = new Set(), state = { phase: 'closed', unexpected: [], construction: [], mass: [], booleanEdit: null, massEdit: null, cause: undefined };
 const clone = value => structuredClone(value);

@@ -8,11 +8,12 @@ import type { Curve, Surface, Model, Point } from '../types.js';
 import type { CompatibleRuledSurfaceResult } from '../nurbs/surfaces/compatible-ruled-surface.js';
 import { buildCoplanarExtrusionGeometry } from './coplanar-face-boolean-extrusion-geometry.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CoplanarFaceBooleanExtrusionDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET',
   NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', INCIDENCE: 'INCIDENCE', OWNED: 'OWNED' } as const);
 export type CoplanarFaceBooleanExtrusionDiagnosticCode = typeof CoplanarFaceBooleanExtrusionDiagnosticCode[keyof typeof CoplanarFaceBooleanExtrusionDiagnosticCode];
-export class CoplanarFaceBooleanExtrusionError extends Error {
+export class CoplanarFaceBooleanExtrusionError extends KernelError {
   readonly code: CoplanarFaceBooleanExtrusionDiagnosticCode;
   constructor(code: CoplanarFaceBooleanExtrusionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Coplanar Face Boolean Extrusion: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

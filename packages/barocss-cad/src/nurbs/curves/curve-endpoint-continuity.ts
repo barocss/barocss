@@ -5,13 +5,14 @@ import type { CurveCurvatureResult } from '../surfaces/local-curvature.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CurveEndpointContinuityDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', NATIVE: 'NATIVE',
   REGULARITY: 'REGULARITY', ARITHMETIC: 'ARITHMETIC', OWNED: 'OWNED',
 } as const);
 export type CurveEndpointContinuityDiagnosticCode = typeof CurveEndpointContinuityDiagnosticCode[keyof typeof CurveEndpointContinuityDiagnosticCode];
-export class CurveEndpointContinuityError extends Error {
+export class CurveEndpointContinuityError extends KernelError {
   readonly code: CurveEndpointContinuityDiagnosticCode;
   constructor(code: CurveEndpointContinuityDiagnosticCode, detail: string, cause?: unknown) {
     super(('Curve endpoint continuity: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

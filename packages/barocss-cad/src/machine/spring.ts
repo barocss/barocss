@@ -28,10 +28,11 @@ import { transformBrep } from '../brep/brep-transform.js';
 import { glueAtSharedFace } from '../brep/brep-glue.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { add as vAdd, cross as vCross, dot as vDot, scale as vScl, sub as vSub } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type SpringDiagnosticCode = 'INVALID_INPUT' | 'SELF_INTERSECTION' | 'COILS_OVERLAP' | 'PROFILE_BUDGET_EXCEEDED' | 'UNSUPPORTED_SPRING_KIND' | 'LEG_OVERLAP';
 export interface SpringDiagnostic { readonly code: SpringDiagnosticCode; readonly severity: 'error' | 'warning'; readonly message: string }
-export class SpringError extends Error {
+export class SpringError extends KernelError {
   constructor(readonly code: SpringDiagnosticCode, detail: string) { super(`spring: ${detail}`); this.name = 'SpringError'; }
 }
 

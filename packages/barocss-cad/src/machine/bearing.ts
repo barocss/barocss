@@ -27,9 +27,10 @@ import { lookupFit, FitError, type FitLimit, type FitTable } from './fits.js';
 import type { PlacedShaft } from './shaft-parts.js';
 import type { Point } from '../types.js';
 import { dot } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type BearingCode = 'INVALID_INPUT' | 'SEAT_ABUTMENT' | 'SEAT_FIT';
-export class BearingError extends Error {
+export class BearingError extends KernelError {
   constructor(readonly code: BearingCode, detail: string) { super(`bearing: ${detail}`); this.name = 'BearingError'; }
 }
 const fail = (code: BearingCode, detail: string): never => { throw new BearingError(code, detail); };

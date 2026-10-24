@@ -5,12 +5,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, sketch, BarocssError } from '../dist/api/index.js';
 
-const bracket = () => part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 })
-  .hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
-  .fillet(b => b.edges().along('z'), { radiusMM: 2 });
+const bracket = () => part('bracket').box({ w: 80, d: 40, h: 10 })
+  .hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 })
+  .fillet(b => b.edges().along('z'), { radius: 2 });
 // (The part as it was before its last `n` features, to look at the body a later feature's names were picked on.)
 const before = (doc, n) => part('before', { ...doc, features: doc.features.slice(0, doc.features.length - n) });
-const volume = p => p.mass({ densityGPerCm3: 1 }).volumeMM3;
+const volume = p => p.mass({ density: 1 }).volumeMM3;
 
 test('a dimension edit upstream: the stored names pick the same edges, moved with it', () => {
   const was = bracket(), edited = was.doc;
@@ -28,14 +28,14 @@ test('a dimension edit upstream: the stored names pick the same edges, moved wit
 test('a vertex inserted upstream (the studio sketcher\'s edit, keeping the side tags): the same named edge', () => {
   // The corner at (40, 40) of a square, rounded; the facade's sketch tags its sides e1 … e4 (D86).
   const corner = b => b.edges().along('z').where(e => e.a[0] === 40 && e.a[1] === 40);
-  const was = part('tab').extrude(sketch().polygon([[0, 0], [40, 0], [40, 40], [0, 40]]), { hMM: 10 }).fillet(corner, { radiusMM: 3 }), edited = was.doc;
+  const was = part('tab').extrude(sketch().polygon([[0, 0], [40, 0], [40, 40], [0, 40]]), { h: 10 }).fillet(corner, { radius: 3 }), edited = was.doc;
   assert.deepEqual(edited.features[2].edges, ['extrude1.side[e2]|extrude1.side[e3]']);
   // A point inserted in the first side, as the sketcher does it: the new piece takes a new tag, the others keep theirs.
   edited.features[0] = { ...edited.features[0], points: [[0, 0], [20, -5], [40, 0], [40, 40], [0, 40]], sideTags: { outer: ['e1', 'e5', 'e2', 'e3', 'e4'] } };
   const named = before(edited, 1).select().edges().where(e => e.names.includes('extrude1.side[e2]|extrude1.side[e3]')).list();
   assert.deepEqual(named.map(e => [e.a[0], e.a[1]]), [[40, 40]]);
   // The edited part rounds that corner: the same as building the new outline afresh and picking (40, 40) again.
-  const fresh = part('tab').extrude(sketch().polygon([[0, 0], [20, -5], [40, 0], [40, 40], [0, 40]]), { hMM: 10 }).fillet(corner, { radiusMM: 3 });
+  const fresh = part('tab').extrude(sketch().polygon([[0, 0], [20, -5], [40, 0], [40, 40], [0, 40]]), { h: 10 }).fillet(corner, { radius: 3 });
   assert.ok(Math.abs(volume(part('tab', edited)) - volume(fresh)) < 1e-9 * volume(fresh));
 });
 

@@ -41,7 +41,7 @@ test('show() clears, sets the lights and background, adds each mesh under its ke
 });
 
 test('cad\'s facade meshes go in as they are, byte for byte (no axis conversion)', () => {
-  const bracket = part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 }).hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 });
+  const bracket = part('bracket').box({ w: 80, d: 40, h: 10 }).hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 });
   const meshes = bracket.meshes(), viewer = stand();
   show(viewer, scene().add(meshes));
   const added = viewer.calls.filter(c => c[0] === 'add');
@@ -83,7 +83,7 @@ test('display lines: a facade mesh\'s lines drawn as line geometry when asked, i
   assert.deepEqual(drawn.data.meshes.map(m => [m.key, m.topology ?? 'triangles']), [['a', 'triangles'], ['a/lines', 'lines']]);
   assert.equal(drawn.data.meshes[1].positions, lines);
   assert.deepEqual(drawn.data.meshes[1].material, LINE_MATERIAL);
-  const part2 = part('p').box({ wMM: 10, dMM: 10, hMM: 10 }).meshes()[0];
+  const part2 = part('p').box({ w: 10, d: 10, h: 10 }).meshes()[0];
   // (A box's 12 edges, one segment each.)
   assert.equal(part2.lines.length, 12 * 6);
 });

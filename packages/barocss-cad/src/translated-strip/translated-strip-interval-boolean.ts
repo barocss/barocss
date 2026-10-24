@@ -10,10 +10,11 @@ import type { TranslatedSurfaceEndFacesOptions } from './translated-surface-end-
 import type { TranslatedSurfaceStripVolumeOptions } from './translated-surface-strip-volume.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const TranslatedStripIntervalBooleanDiagnosticCode=Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',BUDGET:'BUDGET',PARENT:'PARENT',SUPPORT:'SUPPORT',PAIR:'PAIR',REPRESENTABILITY:'REPRESENTABILITY',BINDING:'BINDING',CONSTRUCTION:'CONSTRUCTION',OWNED:'OWNED'} as const);
 export type TranslatedStripIntervalBooleanDiagnosticCode=typeof TranslatedStripIntervalBooleanDiagnosticCode[keyof typeof TranslatedStripIntervalBooleanDiagnosticCode];
-export class TranslatedStripIntervalBooleanError extends Error {
+export class TranslatedStripIntervalBooleanError extends KernelError {
   readonly code:TranslatedStripIntervalBooleanDiagnosticCode;
   constructor(code:TranslatedStripIntervalBooleanDiagnosticCode,detail:string,cause?:unknown){super(('Translated-strip interval Boolean: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='TranslatedStripIntervalBooleanError';this.code=code;}
 }

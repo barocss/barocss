@@ -13,13 +13,14 @@ import { evaluateCurve } from '../../core/math.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CurvePlanarFaceMaterialDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', BUDGET: 'BUDGET', UNSUPPORTED: 'UNSUPPORTED', NATIVE: 'NATIVE',
   UNCERTAINTY: 'UNCERTAINTY', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CurvePlanarFaceMaterialDiagnosticCode = typeof CurvePlanarFaceMaterialDiagnosticCode[keyof typeof CurvePlanarFaceMaterialDiagnosticCode];
-export class CurvePlanarFaceMaterialError extends Error {
+export class CurvePlanarFaceMaterialError extends KernelError {
   readonly code: CurvePlanarFaceMaterialDiagnosticCode;
   constructor(code: CurvePlanarFaceMaterialDiagnosticCode, detail: string, cause?: unknown) {
     super(('Curve planar Face material: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

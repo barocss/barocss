@@ -13,6 +13,7 @@ import type {PairedSurfaceUVSplitFacesResult} from './paired-surface-uv-split-fa
 import type {PairedSurfaceBUVSplitFacesResult} from './paired-surface-b-uv-split-faces.js';
 import type {SectionFraction,SectionRational} from '../section-rational-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 type F=SectionFraction;
 type Sense='forward'|'reverse';
 type Size={utf16:number;utf8:number};
@@ -144,7 +145,7 @@ type Context = {
   assetIndex: 0 | 1 | null; closureIndex: number | null; edgeIndex: number | null; observationIndex: number | null;
   directCounts: { [K in keyof DirectCounts]: number };
 };
-export class PairedSurfaceMaterialBodyError extends Error {
+export class PairedSurfaceMaterialBodyError extends KernelError {
   readonly code: Code;
   readonly context: Context;
   constructor(code: Code, detail: string, context: Context, cause?: unknown) {

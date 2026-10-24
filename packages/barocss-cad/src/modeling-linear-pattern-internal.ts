@@ -6,6 +6,7 @@ import { check, id, same, SolidSnapshotLedger, ConvexPlanarSolidError } from './
 import type { ConvexPlanarSolidDiagnosticCode } from './convex-planar-solid-proof-internal.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { Point } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 type ChildReport = ModelingTranslationResult['report'];
 type DirectCalls = { parentValidationCount: number; translationCount: number; retries: 0 };
@@ -43,7 +44,7 @@ export type ModelingLinearPatternResult = PatternResult<2> | PatternResult<3> | 
 function freeze(value: unknown): void {
   if (value !== null && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
 }
-class ModelingLinearPatternError extends Error {
+class ModelingLinearPatternError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, readonly stage: string, readonly entity: string,
     detail: string, readonly report: Progress, cause: unknown) {
     super(('Modeling linear pattern: ' + detail).slice(0, 1024), { cause }); this.name = 'ModelingLinearPatternError';

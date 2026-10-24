@@ -1,7 +1,8 @@
 import { ConvexPlanarSolidError, SolidProof, same } from '../convex-planar-solid-proof-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 export { SolidProof, same };
 export type SlabSubtractionCode = 'INPUT' | 'IDENTITY' | 'BUDGET' | 'NATIVE' | 'OWNED' | 'BINDING' | 'INCIDENCE' | 'DEGENERATE' | 'REPRESENTABILITY' | 'SLAB';
-export class ConvexPlanarSlabSubtractionError extends Error {
+export class ConvexPlanarSlabSubtractionError extends KernelError {
   constructor(readonly code: SlabSubtractionCode, readonly stage: string, readonly entity: string, detail: string, cause?: unknown) {
     super(('Convex planar solid slab subtraction: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'ConvexPlanarSlabSubtractionError';
   }

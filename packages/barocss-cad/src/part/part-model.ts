@@ -78,6 +78,7 @@ import { meshOperation } from './part-mesh.js';
 import { shellOperation } from './part-shell.js';
 import { sheetOperation } from './part-sheet.js';
 import { frameOperation } from './part-frame.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type CadPartDim = number | { readonly parameter: string };
 export type CadPartAxis = 'x' | 'y' | 'z';
@@ -567,7 +568,7 @@ export interface CadPartBeadSharing {
   /** Complete active endpoint manifest for this frame; membership is not a geometric component. */
   readonly joints: readonly (BeadJointRef & { readonly leg: CadPartDim })[];
 }
-export class CadPartError extends Error {
+export class CadPartError extends KernelError {
   constructor(readonly code: CadPartErrorCode, readonly feature: string | null, detail: string, readonly sharedComponent?: BeadSharedComponent) { super(`${feature ? feature + ': ' : ''}${detail}`.slice(0, 1024)); this.name = 'CadPartError'; }
 }
 export interface CadPartOutput {

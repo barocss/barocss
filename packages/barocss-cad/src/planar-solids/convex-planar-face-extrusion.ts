@@ -11,6 +11,7 @@ import type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair } 
 import type { SurfaceBoundary } from '../core/boundary.js';
 import { adopt as adoptSourceModel } from '../intersect/own-plane-cylinder-intersection-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const ConvexPlanarFaceExtrusionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', PROFILE: 'PROFILE', DISTANCE: 'DISTANCE',
@@ -19,7 +20,7 @@ export const ConvexPlanarFaceExtrusionDiagnosticCode = Object.freeze({
 } as const);
 export type ConvexPlanarFaceExtrusionDiagnosticCode =
   typeof ConvexPlanarFaceExtrusionDiagnosticCode[keyof typeof ConvexPlanarFaceExtrusionDiagnosticCode];
-export class ConvexPlanarFaceExtrusionError extends Error {
+export class ConvexPlanarFaceExtrusionError extends KernelError {
   readonly code: ConvexPlanarFaceExtrusionDiagnosticCode;
   constructor(code: ConvexPlanarFaceExtrusionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Direct Convex Face extrusion: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

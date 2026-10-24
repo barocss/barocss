@@ -9,9 +9,10 @@ import { evaluateCurve, curveDomain, curveEvaluator, surfaceDomain, surfaceEvalu
 import { extractSurfaceIsoCurve } from '../nurbs/surfaces/surface-isocurve.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { dist } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
-export class SewError extends Error {
-  constructor(message: string) { super(message); this.name = 'SewError'; }
+export class SewError extends KernelError {
+  constructor(message: string) { super(message, { code: 'SEW' }); this.name = 'SewError'; }
 }
 
 export interface SewSolidRequest {

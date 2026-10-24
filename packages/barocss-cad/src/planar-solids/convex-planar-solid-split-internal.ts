@@ -1,7 +1,8 @@
 import { ConvexPlanarSolidError, SolidProof, same } from '../convex-planar-solid-proof-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 export { SolidProof, same };
 export type SplitCode = 'INPUT' | 'IDENTITY' | 'BUDGET' | 'NATIVE' | 'OWNED' | 'BINDING' | 'INCIDENCE' | 'DEGENERATE' | 'REPRESENTABILITY';
-export class ConvexPlanarSolidSplitError extends Error {
+export class ConvexPlanarSolidSplitError extends KernelError {
   constructor(readonly code: SplitCode, readonly stage: string, readonly entity: string, detail: string, cause?: unknown) {
     super(('Convex planar solid split: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'ConvexPlanarSolidSplitError';
   }

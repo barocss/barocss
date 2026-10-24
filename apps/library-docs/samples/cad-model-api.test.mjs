@@ -53,14 +53,14 @@ test('one bracket three ways: the document by hand, the agent\'s commands and th
   } finally { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }
 
   // #region bracket
-  // 3. The facade: the same command names, the same values with their units in the names, the selectors in place of
+  // 3. The facade: the same command names, the same value names (no unit suffix), the selectors in place of
   // the names.
   const bracket = part('bracket')
-    .box({ wMM: 80, dMM: 40, hMM: 10 })
-    .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
-    .fillet(body => body.edges().along('z'), { radiusMM: 2 });
+    .box({ w: 80, d: 40, h: 10 })
+    .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 })
+    .fillet(body => body.edges().along('z'), { radius: 2 });
 
-  const mass = bracket.mass('al6061');      // or mass({ densityGPerCm3: 2.7 }): { volumeMM3, massG, centroidMM, inertiaGMM2 }
+  const mass = bracket.mass('al6061');      // or mass({ density: 2.7 }): { volumeMM3, massG, centroidMM, inertiaGMM2 }
   const step = bracket.step();              // STEP AP214 text
   const meshes = bracket.meshes();          // [{ key, positions, normals, indices }], one a body
   // #endregion bracket
@@ -72,7 +72,7 @@ test('one bracket three ways: the document by hand, the agent\'s commands and th
   assert.equal(mass.volumeMM3, r.bodies[0].volumeMM3);
   assert.equal(mass.massG, core.massG);
   assert.deepEqual(mass.centroidMM, core.centroid);
-  assert.equal(JSON.stringify(bracket.mass({ densityGPerCm3: 2.7 })), JSON.stringify(mass));
+  assert.equal(JSON.stringify(bracket.mass({ density: 2.7 })), JSON.stringify(mass));
   const coreStep = stepFor(raw, 'bracket');
   assert.ok('text' in coreStep);
   assert.equal(unstamped(step), unstamped(coreStep.text));
@@ -82,8 +82,8 @@ test('one bracket three ways: the document by hand, the agent\'s commands and th
 
 test('immutable: a method returns a new part; .doc is a copy', () => {
   // #region immutable
-  const plate = part('plate').box({ wMM: 60, dMM: 40, hMM: 8 });
-  const holed = plate.hole(body => body.faces().facing('+z'), { dMM: 6, xMM: 30, yMM: 20 });
+  const plate = part('plate').box({ w: 60, d: 40, h: 8 });
+  const holed = plate.hole(body => body.faces().facing('+z'), { d: 6, x: 30, y: 20 });
   assert.equal(plate.doc.nodes.length, 2);    // the sketch and its extrude, still
   assert.equal(holed.doc.nodes.length, 3);
   const copy = holed.doc; copy.nodes.length = 0;
@@ -93,7 +93,7 @@ test('immutable: a method returns a new part; .doc is a copy', () => {
 
 test('selectors: typed filters that hand back the core\'s names', () => {
   // #region select
-  const plate = part('plate').box({ wMM: 60, dMM: 40, hMM: 8 });
+  const plate = part('plate').box({ w: 60, d: 40, h: 8 });
   const top = plate.select().faces().facing('+z');
   assert.deepEqual(top.names(), ['n1.top']);
   assert.equal(top.edges().count, 4);                       // the top face's four edges
@@ -103,19 +103,19 @@ test('selectors: typed filters that hand back the core\'s names', () => {
 
 test('refusals: one error class, the facade\'s own codes and the core\'s passed through', () => {
   // #region refusals
-  assert.throws(() => part().hole(body => body.faces().facing('+z'), { dMM: 4, xMM: 0, yMM: 0 }),
+  assert.throws(() => part().hole(body => body.faces().facing('+z'), { d: 4, x: 0, y: 0 }),
     e => e instanceof BarocssError && e.code === 'NO_BODY' && e.where === 'facade' && e.message.startsWith('[NO_BODY] '));
-  assert.throws(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).mass('unobtainium'),
+  assert.throws(() => part().box({ w: 10, d: 10, h: 10 }).mass('unobtainium'),
     e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
   // A fillet too large for its walls: the kernel's own code, with the core's words.
-  assert.throws(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).fillet(body => body.edges().along('z'), { radiusMM: 50 }).mass('al6061'),
+  assert.throws(() => part().box({ w: 10, d: 10, h: 10 }).fillet(body => body.edges().along('z'), { radius: 50 }).mass('al6061'),
     e => e instanceof BarocssError && e.code === 'RADIUS_EXCEEDS_FACE' && e.where === 'evaluate' && !!e.details?.friendly);
   // #endregion refusals
 });
 
 test('a material by its library id: set on the body, weighed in it, carried by its meshes', () => {
   // #region material
-  const plate = part('plate').box({ wMM: 60, dMM: 40, hMM: 8 }).material('al6061');   // as set_material writes it
+  const plate = part('plate').box({ w: 60, d: 40, h: 8 }).material('al6061');   // as set_material writes it
   assert.equal(JSON.stringify(plate.mass()), JSON.stringify(plate.mass('al6061')));    // weighed in its own material
   assert.equal(plate.meshes()[0].material, 'al6061');                                  // for a scene to look up
   // #endregion material
@@ -124,22 +124,22 @@ test('a material by its library id: set on the body, weighed in it, carried by i
 test('an assembly: a pin placed, mated into a plate\'s bore, an input with a variant, a tool frame', () => {
   // #region assembly
   // A 60 × 40 × 8 plate with a Ø10 bore at (20, 20), and a Ø10 pin 30 long.
-  const plate = part('plate').box({ wMM: 60, dMM: 40, hMM: 8 }).hole(b => b.faces().facing('+z'), { dMM: 10, xMM: 20, yMM: 20 });
-  const pin = part('pin').cylinder({ rMM: 5, hMM: 30 });
+  const plate = part('plate').box({ w: 60, d: 40, h: 8 }).hole(b => b.faces().facing('+z'), { d: 10, x: 20, y: 20 });
+  const pin = part('pin').cylinder({ r: 5, h: 30 });
 
   const fixture = assembly('fixture', plate)                  // the base part, fixed at the origin
     .addPart('pin', pin, { at: Location.at([100, 0, 0]) })     // placed off to the side
     .addMate('concentric', { part: 'base', face: b => b.faces().curved() }, { part: 'pin', face: b => b.faces().curved() })
     .addMate('distance', { part: 'base', face: b => b.faces().facing('-z') }, { part: 'pin', face: b => b.faces().facing('-z') },
-      { distanceMM: 0, flip: true })                           // the bottoms flush
+      { distance: 0, flip: true })                           // the bottoms flush
     .inputs({ depth: { type: 'number', unit: 'mm', default: 0, min: -10, max: 10,
       bindings: [{ to: 'mate', mate: 'm2', field: 'distance' }] } })   // an input driving the second mate
     .variants({ low: { depth: -5 } })
     .frames({ tip: { link: 'pin', at: Location.at([0, 0, 30]), kind: 'tool' } });
 
-  assert.deepEqual(fixture.placements()[0].positionMM, [20, 20, 0]);                // solved: in the bore
-  assert.deepEqual(fixture.variant({ depth: -5 }).placements()[0].positionMM, [20, 20, 5]);
-  assert.deepEqual(fixture.framePoses()[0].positionMM, [20, 20, 30]);               // the tip, on the pin's top
+  assert.deepEqual(fixture.placements()[0].position, [20, 20, 0]);                // solved: in the bore
+  assert.deepEqual(fixture.variant({ depth: -5 }).placements()[0].position, [20, 20, 5]);
+  assert.deepEqual(fixture.framePoses()[0].position, [20, 20, 30]);               // the tip, on the pin's top
   assert.deepEqual(fixture.meshes().map(m => m.key), ['base/b2', 'p1/b2']);         // each part where it stands
   // #endregion assembly
   assert.deepEqual(fixture.problems(), []);

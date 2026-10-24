@@ -12,6 +12,7 @@
 // immutable B-rep for checkBrep and the tessellator.
 import { buildBrep, lineCurve, type Brep } from './brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type Sense = 'forward' | 'reversed';
 interface V { id: string; point: Point }
@@ -21,7 +22,7 @@ interface L { id: string; face: string; first: string | null; anchor: string | n
 interface F { id: string; shell: string; outer: string; inner: string[]; surface: Surface | null; sense: Sense }
 interface S { id: string; body: string; faces: string[] }
 
-export class BrepEulerError extends Error { constructor(detail: string) { super('B-rep Euler operator: ' + detail); this.name = 'BrepEulerError'; } }
+export class BrepEulerError extends KernelError { constructor(detail: string) { super('B-rep Euler operator: ' + detail, { code: 'BREP_EULER' }); this.name = 'BrepEulerError'; } }
 const fail = (detail: string): never => { throw new BrepEulerError(detail); };
 
 export class BrepEditor {

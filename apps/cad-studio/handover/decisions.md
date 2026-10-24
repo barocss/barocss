@@ -13968,3 +13968,47 @@ DIFFER 0, EMPTY-SIDED 0, BROKEN 6. That is 7 findings in 6 trees, all unions:
   that fail the strict check ("its loops cross or touch"); later Booleans of their trees hide it from the fuzz's root
   judgement. All 7 are recorded as TODO, and reported to the coordinator before any fix (the brief's "more than a
   handful").
+
+## D272 — R7.3a batch 1 (kernel): BarocssError in the kernel's core; every kernel error class on it, no text change (2026-10-24)
+
+**What (api-conventions.md §6, roadmap R7.3a; the coordinator approved the API-lane file edit).**
+- `src/core/barocss-error.ts`, new:
+  - `BarocssError`, moved here unchanged from `src/api/refusal.ts`: the same class, name, fields and constructor
+    (`code, message, where?, details?`; the message written `[CODE] …`);
+  - `RefusalWhere`, `Problem { code, message, where? }`;
+  - `KernelError`, internal: a BarocssError with Error's own constructor `(message?, { cause?, code? })`.
+- `src/api/refusal.ts` (the API lane's file) imports the class and re-exports it with `RefusalWhere`; `FacadeCode`,
+  `refuse()` and `bracketedCode` stay. One class: `@barocss/cad/api`'s `BarocssError` is the core's (tested).
+- The main entry exports `BarocssError`, `Problem` and `RefusalWhere`.
+- **All 171 kernel error classes** extend `KernelError` instead of `Error`. Nothing else in them changed: each keeps its
+  name, its code (its own field, as before) and its message, written as before.
+  - `KernelError` sets `name` to `'Error'` first, so the one class that names nothing (`SketchFailure`) stays an Error
+    by name.
+  - It defines `cause` as Error does: only when the options carry one.
+  - It deletes the own `where` and `details` that BarocssError's fields leave `undefined` under ES2022 class fields, so
+    a kernel error's own keys are as they were. A test that lists an error's own keys found this.
+  - The 11 classes that had no code take one named for the class: BREP_EULER, CURVED_ARRANGEMENT, PLANAR_ARRANGEMENT,
+    SEW, SOLID_MASS, PRISMATIC_SOLID, SECTION_DIMENSIONS (FrameSectionError, as its message already says),
+    SURFACE_INTERSECTION, MESH_BREP, XY_AFFINE_SKETCH_PRISM; CutListError takes its message's own bracketed code, else
+    CUT_LIST. No message changed.
+- **Not in batch 1** (batch 2, with the text changes recorded): one code union for the package (`CadErrorCode`) from
+  which the docs' refusal table is generated, the codes to UPPER_SNAKE where they are not, `[CODE] ` messages, and the
+  classes folded into codes. The legacy `createCadModel` classes go with R7.3d instead.
+
+**Tests.** `test/barocss-error.test.mjs`, new: every exported error class (more than 100) is a BarocssError and the
+facade's class is the same one; a kernel error keeps name, code, message, stack header and cause; the codeless classes'
+codes; a part-model refusal caught as a BarocssError.
+- The legacy createCadModel tests bundle the sources behind import allow-lists (14 `pureModules` sets, 4 `allowed`
+  sets, two map traps, one scale trap), and `source-ast` pins its module's imports: each now admits
+  `core/barocss-error`. These are test-only changes of a dependency list, not of any value.
+
+**Checks (T2 by parts; the kernel side at 6374a7351 + the change, the rest at the tip 3e14b0aeb + the change):**
+- cad tsc, eslint and build clean.
+- Kernel suite at concurrency 4 at the tip 3e14b0aeb: 1698/1705, 6 skipped, the one failure the native-split demo's
+  Node-version assertion. Names +18: this record's 2 and the API lane's R7.4b 16 (merged since checkpoint 2); none gone.
+- At the commit's parent (b5a492b24, the facades' Vec3, types only): cad build and lint, the api, error, public-api,
+  source-ast and one legacy modeling test 48/48, cad-model tsc 0.
+- R5 fingerprint byte-identical: 869 cases `4e3603b7…`. RB: no NEW (the 3 TODOs). Properties pass.
+- cad-model 1047/1047, its R4 fingerprint byte-identical to the unchanged tip's (152 documents, `d1f8bb3c…`); studio
+  tsc 0 and 286/286; the api, error and public-api tests 30/30.
+- No refusal text changed: the docs table stays. No flow: nothing studio-visible.

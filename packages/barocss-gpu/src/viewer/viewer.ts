@@ -851,7 +851,7 @@ export class Viewer {
       const group = this.device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [
         { binding: 0, resource: texture.createView({ baseMipLevel: level - 1, mipLevelCount: 1 }) }, { binding: 1, resource: this.mipSampler },
       ] });
-      const pass = enc.beginRenderPass({ colorAttachments: [{ view: texture.createView({ baseMipLevel: level, mipLevelCount: 1 }), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 0 } }] });
+      const pass = enc.beginRenderPass({ label: 'viewer mip', colorAttachments: [{ view: texture.createView({ baseMipLevel: level, mipLevelCount: 1 }), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 0 } }] });
       pass.setPipeline(pipeline); pass.setBindGroup(0, group); pass.draw(3); pass.end();
     }
     this.device.queue.submit([enc.finish()]);
@@ -1255,7 +1255,7 @@ export class Viewer {
     // own sample's probe: a pixel-centre winner cannot describe both sides of a covered back-face edge.
     for (const samples of [false, true]) {
       if (samples && (scissor || !t.views.capFrontSamples)) continue;
-      const pass = enc.beginRenderPass({
+      const pass = enc.beginRenderPass({ label: samples ? 'viewer cap front samples' : 'viewer cap front',
         colorAttachments: [{ view: samples ? t.views.capFrontSamples! : t.views.capFront, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
         depthStencilAttachment: { view: samples ? t.views.depth : t.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
       });
@@ -1282,7 +1282,7 @@ export class Viewer {
       this.lightProbe = this.device.createTexture({ size: [size, size], format: 'rg32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe from the light' });
       this.bindFrames();
     }
-    const pass = enc.beginRenderPass({
+    const pass = enc.beginRenderPass({ label: 'viewer light probe',
       colorAttachments: [{ view: this.lightProbe.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
       depthStencilAttachment: { view: this.shadowMap!.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' },
     });
@@ -1399,7 +1399,7 @@ export class Viewer {
       this.costPass = 'shadow';
       if (capping) this.drawLightProbe(enc, casters);
       // Every shadow caster, in view or not.
-      const sp = enc.beginRenderPass({ colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
+      const sp = enc.beginRenderPass({ label: 'viewer shadow', colorAttachments: [], depthStencilAttachment: { view: this.shadowMap.createView(), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
       sp.setBindGroup(0, capping && this.shadowCapGroup ? this.shadowCapGroup : this.shadowFrameGroup);
       sp.setPipeline(this.pipelines.get('shadow')!);
       for (const m of casters) {
@@ -1423,7 +1423,7 @@ export class Viewer {
     // over it. Without one, one pass as before.)
     let oit = false;
     if (this.orderIndependent) for (const m of transparent) if (oitSurface(m)) { oit = true; break; }
-    const pass = enc.beginRenderPass({
+    const pass = enc.beginRenderPass({ label: 'viewer surface',
       colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa && !oit ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa && !oit ? 'discard' : 'store' }],
       // (The depth is kept for ambient occlusion in the output pass; the background is put in there too.)
       depthStencilAttachment: { view: targets.views.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
@@ -1446,7 +1446,7 @@ export class Viewer {
     pass.end();
     if (oit) {
       const o = this.ensureOit();
-      const op = enc.beginRenderPass({
+      const op = enc.beginRenderPass({ label: 'viewer oit',
         colorAttachments: [
           { view: o.views.accumMs ?? o.views.accum, resolveTarget: o.accumMs ? o.views.accum : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.accumMs ? 'discard' : 'store' },
           { view: o.views.revealMs ?? o.views.reveal, resolveTarget: o.revealMs ? o.views.reveal : undefined, clearValue: { r: 1, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.revealMs ? 'discard' : 'store' },
@@ -1467,7 +1467,7 @@ export class Viewer {
         caps++;
       }
       op.end();
-      const cp = enc.beginRenderPass({
+      const cp = enc.beginRenderPass({ label: 'viewer oit composite',
         colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, loadOp: 'load', storeOp: targets.msaa ? 'discard' : 'store' }],
         depthStencilAttachment: { view: targets.views.depth, depthLoadOp: 'load', depthStoreOp: 'store' },
       });
@@ -1485,7 +1485,7 @@ export class Viewer {
     }
     if (outlines.length) {
       // The outline mask: every opaque surface hides what is behind it; outlined meshes write their number.
-      const mask = enc.beginRenderPass({
+      const mask = enc.beginRenderPass({ label: 'viewer outline mask',
         colorAttachments: [{ view: targets.views.mask, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
         depthStencilAttachment: { view: targets.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
       });
@@ -1508,7 +1508,7 @@ export class Viewer {
       this.drawCaps(mask, opaque, cur, 'capMask');
       mask.end();
     }
-    const show = enc.beginRenderPass({ colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
+    const show = enc.beginRenderPass({ label: 'viewer output', colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
     show.setPipeline(this.pipelines.get('output')!);
     show.setBindGroup(0, targets.output);
     show.draw(3);
@@ -1582,7 +1582,7 @@ export class Viewer {
     this.writeUniforms(vp);
     const t = this.ensurePickTargets(), enc = this.device.createCommandEncoder();
     this.drawCapFront(enc, opaque, transparent, [px, py]);
-    const pass = enc.beginRenderPass({
+    const pass = enc.beginRenderPass({ label: 'viewer pick',
       colorAttachments: [
         { view: t.views.id, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
         { view: t.views.z, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },

@@ -16,13 +16,13 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 // A 60 × 40 × 8 plate with a Ø10 bore at (20, 20); a Ø10 pin 30 long, placed off to the side, then mated into the bore
 // (concentric) and its bottom flush with the plate's (a distance mate, 0); an input `depth` drives that distance, the
 // variant `low` sets it to −5; a tool frame `tip` on the pin's top.
-const plate = () => part('plate').box({ wMM: 60, dMM: 40, hMM: 8 }).hole(b => b.faces().facing('+z'), { dMM: 10, xMM: 20, yMM: 20 });
-const pin = () => part('pin').cylinder({ rMM: 5, hMM: 30 });
+const plate = () => part('plate').box({ w: 60, d: 40, h: 8 }).hole(b => b.faces().facing('+z'), { d: 10, x: 20, y: 20 });
+const pin = () => part('pin').cylinder({ r: 5, h: 30 });
 const DEPTH = { type: 'number', unit: 'mm', default: 0, min: -10, max: 10, bindings: [{ to: 'mate', mate: 'm2', field: 'distance' }] };
 const fixture = (): Assembly => assembly('fixture', plate())
   .addPart('pin', pin(), { at: Location.at([100, 0, 0]) })
   .addMate('concentric', { part: 'base', face: b => b.faces().curved() }, { part: 'pin', face: b => b.faces().curved() })
-  .addMate('distance', { part: 'base', face: b => b.faces().facing('-z') }, { part: 'pin', face: b => b.faces().facing('-z') }, { distanceMM: 0, flip: true })
+  .addMate('distance', { part: 'base', face: b => b.faces().facing('-z') }, { part: 'pin', face: b => b.faces().facing('-z') }, { distance: 0, flip: true })
   .inputs({ depth: DEPTH })
   .variants({ low: { depth: -5 } })
   .frames({ tip: { link: 'pin', at: Location.at([0, 0, 30]), kind: 'tool' } });
@@ -61,17 +61,16 @@ test('the assembly facade writes what the agent\'s assembly tools write, byte fo
 test('its placements, unmet mates, variant, frame poses and meshes are the core\'s on that document', async () => {
   const doc = await agentDoc(), a = fixture(), solved = solveDoc(doc);
   assert.deepEqual(a.problems(), solved.problems);
-  assert.deepEqual(a.placements(), solved.doc.instances!.map(i => ({ part: i.id, name: i.name, positionMM: i.position, rotationDeg: i.rotation })));
+  assert.deepEqual(a.placements(), solved.doc.instances!.map(i => ({ part: i.id, name: i.name, position: i.position, rotation: i.rotation })));
   // The pin stands in the bore, its bottom flush with the plate's.
-  assert.deepEqual(a.placements()[0].positionMM, [20, 20, 0]);
+  assert.deepEqual(a.placements()[0].position, [20, 20, 0]);
   const low = variantOf(doc, { depth: -5 });
-  assert.ok('doc' in low);
   assert.equal(JSON.stringify(a.variant({ depth: -5 }).doc), JSON.stringify(low.doc));
-  assert.deepEqual(a.variant({ depth: -5 }).placements()[0].positionMM, [20, 20, 5]);
+  assert.deepEqual(a.variant({ depth: -5 }).placements()[0].position, [20, 20, 5]);
   const r = evaluateDoc(doc, 1); assert.ok(r.ok);
   const tree = await treeOfDoc(doc, r.bodies, evaluate);
-  assert.deepEqual(a.framePoses(), tree.frames!.map(f => ({ name: f.name, link: f.link, kind: f.kind, positionMM: f.o, rotationDeg: eulerOf(f.R) })));
-  assert.deepEqual(a.framePoses()[0].positionMM, [20, 20, 30]);
+  assert.deepEqual(a.framePoses(), tree.frames!.map(f => ({ name: f.name, link: f.link, kind: f.kind, position: f.o, rotation: eulerOf(f.R) })));
+  assert.deepEqual(a.framePoses()[0].position, [20, 20, 30]);
   const meshes = a.meshes(), inst = doc.instances![0], placed = evaluateDoc(placedDoc(inst, doc), 1);
   assert.ok(placed.ok);
   assert.deepEqual(meshes.map(m => m.key), ['base/b2', 'p1/b2']);
@@ -86,8 +85,8 @@ test('every method returns a new assembly; a part reads back as a studio part in
   assert.equal(JSON.stringify(two.part('pin').doc.nodes), JSON.stringify(pin().doc.nodes));
   assert.equal(two.part('pin').mass('al6061').volumeMM3, pin().mass('al6061').volumeMM3);
   // (place: moved and grounded, as place_part writes it.)
-  const moved = two.place('pin', { at: Location.of({ positionMM: [5, 0, 0], rotationDeg: [0, 0, 90] }), grounded: true });
-  assert.deepEqual(moved.placements(), [{ part: 'p1', name: 'pin', positionMM: [5, 0, 0], rotationDeg: [0, 0, 90], grounded: true }]);
+  const moved = two.place('pin', { at: Location.of({ position: [5, 0, 0], rotation: [0, 0, 90] }), grounded: true });
+  assert.deepEqual(moved.placements(), [{ part: 'p1', name: 'pin', position: [5, 0, 0], rotation: [0, 0, 90], grounded: true }]);
 });
 
 test('the assembly\'s refusals are typed: the facade\'s own, and the core\'s passed through with its code', () => {
@@ -101,12 +100,21 @@ test('the assembly\'s refusals are typed: the facade\'s own, and the core\'s pas
     // (The core's: a frame on a part not joined to the robot's base link.)
     ['FRAME_LINK_STALE', () => two().frames({ tip: { link: 'pin' } })],
     // (The core's: an input whose default the master doesn't hold.)
-    ['INPUT_DEFAULT', () => two().addMate('distance', { part: 'base', face: b => b.faces().facing('+z') }, { part: 'pin', face: b => b.faces().facing('-z') }, { distanceMM: 0 }).inputs({ gap: { ...DEPTH, default: 3, bindings: [{ to: 'mate', mate: 'm1', field: 'distance' }] } })],
+    ['INPUT_DEFAULT', () => two().addMate('distance', { part: 'base', face: b => b.faces().facing('+z') }, { part: 'pin', face: b => b.faces().facing('-z') }, { distance: 0 }).inputs({ gap: { ...DEPTH, default: 3, bindings: [{ to: 'mate', mate: 'm1', field: 'distance' }] } })],
   ];
   for (const [code, f] of cases) {
     const e = refusal(f);
     assert.ok(e instanceof BarocssError, `${code}: ${String(e)}`);
     assert.equal(e.code, code, e.message);
+  }
+  // A variant naming no input, and one out of its input's range: variantOf's own BarocssError, passed through as it is.
+  for (const values of [{ nope: 1 }, { depth: 50 }] as Record<string, number>[]) {
+    let core: unknown;
+    try { variantOf(fixture().doc, values); } catch (error) { core = error; }
+    const e = refusal(() => fixture().variant(values));
+    assert.ok(e instanceof BarocssError && core instanceof BarocssError, String(e));
+    assert.match(e.code, /^INPUT_/);
+    assert.deepEqual([e.code, e.message, e.where], [core.code, core.message, core.where]);
   }
   // A concentric mate between flat faces: the solver's refusal, in its words.
   const e = refusal(() => two().addMate('concentric', { part: 'base', face: b => b.faces().facing('+z') }, { part: 'pin', face: b => b.faces().facing('-z') }));

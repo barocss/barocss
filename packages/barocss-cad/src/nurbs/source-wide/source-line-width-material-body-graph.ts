@@ -7,6 +7,7 @@ import type { SourceLineWidthFaceOptions, SourceLineWidthFaceResult } from './so
 import type { ConvexPlanarFaceExtrusionResult } from '../../planar-solids/convex-planar-face-extrusion.js';
 import type { RectangularFaceExtrusionBodyOptions, RectangularFaceExtrusionBodyResult } from '../../planar-solids/rectangular-face-extrusion-body.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 type Size = { utf16: number; utf8: number };
 type Parameter = { id: string; kind: 'length'; unit: 'mm'; valueMM: number };
@@ -189,7 +190,7 @@ type ErrorContext = {
   graphId: string | null; nodeId: string | null; revision: number | null;
   directCounts: OperationCounts;
 };
-export class SourceLineWidthMaterialBodyGraphError extends Error {
+export class SourceLineWidthMaterialBodyGraphError extends KernelError {
   readonly code: DiagnosticCode;
   readonly context: ErrorContext;
   constructor(code: DiagnosticCode, detail: string, state: ErrorContext, cause?: unknown) {

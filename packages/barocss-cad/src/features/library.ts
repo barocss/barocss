@@ -5,9 +5,10 @@
 // refused with typed errors; a part is instantiated to ordinary part-model features (its ids prefixed) carrying where
 // they came from.
 import type { CadPartFeature } from '../part/part-model.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type CadLibraryErrorCode = 'FORMAT' | 'PARAMETER' | 'EXPRESSION' | 'REFERENCE' | 'RECIPE' | 'VERSION';
-export class CadLibraryError extends Error {
+export class CadLibraryError extends KernelError {
   constructor(readonly code: CadLibraryErrorCode, readonly where: string, detail: string) { super(`library: ${where ? `${where}: ` : ''}${detail}`.slice(0, 1024)); this.name = 'CadLibraryError'; }
 }
 

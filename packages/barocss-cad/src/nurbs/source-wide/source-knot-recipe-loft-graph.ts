@@ -8,6 +8,7 @@ import type { SourceKnotAlignedLoftOptions, SourceKnotAlignedLoftResult,
   SourceKnotAlignedLoftRequest } from './source-knot-aligned-loft.js';
 import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../../cad-document.js';
 import type { Curve } from '../../types.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceKnotRecipeLoftGraphDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', REFERENCE: 'REFERENCE',
@@ -18,7 +19,7 @@ export const SourceKnotRecipeLoftGraphDiagnosticCode = Object.freeze({
 } as const);
 export type SourceKnotRecipeLoftGraphDiagnosticCode =
   typeof SourceKnotRecipeLoftGraphDiagnosticCode[keyof typeof SourceKnotRecipeLoftGraphDiagnosticCode];
-export class SourceKnotRecipeLoftGraphError extends Error {
+export class SourceKnotRecipeLoftGraphError extends KernelError {
   readonly code: SourceKnotRecipeLoftGraphDiagnosticCode;
   constructor(code: SourceKnotRecipeLoftGraphDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source knot-recipe Loft graph: ' + detail).slice(0, 1024),

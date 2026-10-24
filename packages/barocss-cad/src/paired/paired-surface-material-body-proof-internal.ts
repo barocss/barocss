@@ -3,6 +3,7 @@ import type { FaceBundle, FaceIds } from '../core/face.js';
 import type { CompatibleRuledSurfaceResult } from '../nurbs/surfaces/compatible-ruled-surface.js';
 import type { PairedSurfaceMaterialBodyRequest } from './paired-surface-material-body.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type F = SectionFraction;
 type R = SectionRational;
@@ -87,7 +88,7 @@ export type PairedSurfaceMaterialBodyFace = Face;
 export type PairedSurfaceMaterialBodyShell = Shell;
 export type PairedSurfaceMaterialBodyBody = Body;
 
-export class PairedSurfaceMaterialBodyProofError extends Error {
+export class PairedSurfaceMaterialBodyProofError extends KernelError {
   readonly code: 'PROFILE' | 'DOMAIN' | 'TOPOLOGY' | 'MATERIAL' | 'ORIENTATION' | 'BINDING' | 'REPRESENTABILITY';
   readonly edgeIndex: number | null; readonly faceRole: FaceRole | null;
   constructor(code: PairedSurfaceMaterialBodyProofError['code'], detail: string,

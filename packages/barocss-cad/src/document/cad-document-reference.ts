@@ -4,13 +4,14 @@ import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain } from '../c
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CadReferenceDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', REFERENCE: 'REFERENCE', STALE: 'STALE', QUERY: 'QUERY', FRAME: 'FRAME',
   REPRESENTABILITY: 'REPRESENTABILITY', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CadReferenceDiagnosticCode = typeof CadReferenceDiagnosticCode[keyof typeof CadReferenceDiagnosticCode];
-export class CadReferenceError extends Error {
+export class CadReferenceError extends KernelError {
   readonly code: CadReferenceDiagnosticCode;
   constructor(code: CadReferenceDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD document reference: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

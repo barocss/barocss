@@ -1,8 +1,9 @@
 import type { XYPoint } from './xy-profile.js';
 import type { XYNumericalSketchDocumentV0, XYNumericalSketchConstraint, XYNumericalSketchBranchGuard } from './xy-numerical-sketch.js';
+import { KernelError } from '../core/barocss-error.js';
 export const XYNumericalSketchDiagnosticCode = Object.freeze({ INVALID_DOCUMENT: 'INVALID_DOCUMENT', UNSUPPORTED: 'UNSUPPORTED', LIMIT: 'LIMIT', REFERENCE: 'REFERENCE', NONCONVERGENCE: 'NONCONVERGENCE', NUMERICAL: 'NUMERICAL', BUDGET: 'BUDGET', BRANCH: 'BRANCH', DEGENERATE_GEOMETRY: 'DEGENERATE_GEOMETRY', COMPILATION: 'COMPILATION', OWNED: 'OWNED' } as const);
 export type XYNumericalSketchDiagnosticCode = typeof XYNumericalSketchDiagnosticCode[keyof typeof XYNumericalSketchDiagnosticCode];
-export class XYNumericalSketchError extends Error {
+export class XYNumericalSketchError extends KernelError {
   constructor(readonly code: XYNumericalSketchDiagnosticCode, detail: string, readonly path = '$', cause?: unknown) {
     super(('XY numerical sketch: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'XYNumericalSketchError';
   }

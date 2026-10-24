@@ -1,7 +1,8 @@
 # API conventions for cad, cad-model and gpu (R7.2, 2026-10-24)
 
 **Status: owner-approved, 2026-10-24** ("로드맵 제대로 정해서 진행해줘", after the R7 proposal, the §10 common data
-formats and the facade structure in §11). R7.3 onwards implements these rules.
+formats and the facade structure in §11). R7.3 onwards implements these rules. Amended by the owner the same day:
+the facades' input options carry no unit suffix (§2, §12).
 
 On 2026-10-24 the owner decided the API is two layers: the core stays data and functions, and the public facade is
 object-style ("겉 api 는 객체 형태로"). These rules apply to new code now. R7.3 brings the existing public surface
@@ -30,8 +31,13 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
   - Lengths are in mm. Angles in documents and options are in degrees.
   - Mass is in g. Density is in g/cm³, the way materials are quoted.
   - Volume is in mm³, area in mm², and inertia in g·mm².
-  - A field name carries its unit, as cad already does (`volumeMM3`, `massG`, `areaMM2`, `inertiaGMM2`,
-    `angleDeg`).
+  - **Results** carry their unit in the field name, as cad already does (`volumeMM3`, `massG`, `areaMM2`,
+    `inertiaGMM2`, `angleDeg`).
+  - **The facades' input options** carry no unit suffix (owner, 2026-10-24): they use the agent's value names from
+    COMMAND_DOCS (`w`, `d`, `h`, `r`, `deg` …; `density` where no command names it), because every quantity is in
+    the units above: lengths mm, angles degrees, density g/cm³. So `box({ w, d, h })`, not `box({ wMM, dMM, hMM })`.
+  - **Documents** keep their stored field names; this rule renames no saved field (instances and frames already store
+    `position` and `rotation`).
   - Today cad's mass properties are in kg and kg/m³ (`massKG`, `inertiaCentroidKgM2`, density in kg/m³), while
     cad-model's are in g and g/cm³. R7.3 moves cad's public results to MMGS.
 - **Ids and names** follow the document's existing rules. A face or edge reference that the core resolves stays
@@ -146,7 +152,7 @@ tests either move to `evaluateCadPart` fixtures or go with them.
    - `Vec3 = readonly [x, y, z]`;
    - `Mat3`: 9 numbers, row-major, whose columns are the frame's axes, so Z = [R[2], R[5], R[8]];
    - `Mat4`: a column-major `Float64Array(16)`, used only inside computation;
-   - `Pose` in documents: `{ positionMM: Vec3, rotationDeg: Vec3 }`, rotated about X, then Y, then Z, as instances
+   - `Pose` in documents: `{ position: Vec3, rotation: Vec3 }` (mm and degrees), rotated about X, then Y, then Z, as instances
      and frames already are.
 
    New code uses these. The 13 `Vec3`/`V3`/`Vector3` declarations converge in R7.3c, where they cross a package.
@@ -181,7 +187,8 @@ tests either move to `evaluateCadPart` fixtures or go with them.
 
 - The facade's modelling verbs carry the agent's v2 command names (COMMAND_DOCS in chat/part/features.ts), written in
   camelCase: extrude, revolve, pipe, `offsetFace`, hole, fillet, chamfer, shell and so on.
-- Option names match the command's `values`, with units in the name (§2).
+- Option names are the command's `values` names, with no unit suffix (§2): `box({ w, d, h })`,
+  `cylinder({ r, h })`, `extrude({ h })`, `revolve({ deg })`. Results keep their unit names (`massG`, `volumeMM3`).
 - A verb with no v2 command, such as `box`, is named for its studio palette entry.
 - The docs, the facade and the agent's tool table then read as one vocabulary. Read-only results (mass, step, stl,
   meshes) aren't commands and keep their names.

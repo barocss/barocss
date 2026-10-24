@@ -16,6 +16,7 @@ import type { SurfaceIsoCurveResult } from '../nurbs/surfaces/surface-isocurve.j
 import type { SourceCurveIntervalExtractionResult } from '../nurbs/source-wide/source-curve-interval-extraction.js';
 import type { SectionFraction } from '../section-rational-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 type F = SectionFraction;
 type Role = 'bottom'|'rightLow'|'rightHigh'|'top'|'leftLow'|'leftHigh'|'sharedCut';
 type VertexRole = 'bottomLeft'|'bottomRight'|'topRight'|'topLeft'|'cutLeft'|'cutRight';
@@ -109,7 +110,7 @@ type ErrorContext = {
     'proof' | 'observation' | 'file' | 'owned';
   edgeIndex: number | null; observationIndex: number | null; directCounts: DirectAttempts;
 };
-export class PairedSurfaceBUVSplitFacesError extends Error {
+export class PairedSurfaceBUVSplitFacesError extends KernelError {
   readonly code: DiagnosticCode;
   readonly context: ErrorContext;
   constructor(code: DiagnosticCode, detail: string, state: ErrorContext, cause?: unknown) {

@@ -6,6 +6,7 @@ import { check, id, same, SolidSnapshotLedger, ConvexPlanarSolidError } from './
 import type { ConvexPlanarSolidDiagnosticCode } from './convex-planar-solid-proof-internal.js';
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { Point } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 type ThreeInstanceSpec = Readonly<{ axis: 'x' | 'y' | 'z'; angleDegrees: 90 | -90; count?: never }>;
 type FourInstanceSpec = Readonly<{ axis: 'x' | 'y' | 'z'; angleDegrees: 90 | -90; count: 4 }>;
@@ -49,7 +50,7 @@ export type ModelingCircularPatternResult = CircularPatternResult<3> | CircularP
 function freeze(value: unknown): void {
   if (value !== null && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
 }
-class ModelingCircularPatternError extends Error {
+class ModelingCircularPatternError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, readonly stage: string, readonly entity: string,
     detail: string, readonly report: Progress, cause: unknown) {
     super(('Modeling circular pattern: ' + detail).slice(0, 1024), { cause }); this.name = 'ModelingCircularPatternError';

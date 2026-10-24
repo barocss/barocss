@@ -1,4 +1,5 @@
 import type { ProfileSegmentInput, XY } from '../features/extruded-profile-solid.js';
+import { KernelError } from '../core/barocss-error.js';
 
 // FR1 structural sections (D122, D123). A section is a closed profile with holes in its own XY: its loops, a name for
 // each segment, its area and centroid in closed form and its box. Every dimension is given (no section sizes and no
@@ -28,8 +29,8 @@ export interface FrameSection {
 }
 
 /** A section's dimensions refused: the part model's PARAMETER code, the message starting `[SECTION_DIMENSIONS]`. */
-export class FrameSectionError extends Error {
-  constructor(detail: string) { super(`[SECTION_DIMENSIONS] ${detail}`.slice(0, 1024)); this.name = 'FrameSectionError'; }
+export class FrameSectionError extends KernelError {
+  constructor(detail: string) { super(`[SECTION_DIMENSIONS] ${detail}`.slice(0, 1024), { code: 'SECTION_DIMENSIONS' }); this.name = 'FrameSectionError'; }
 }
 
 /** The spandrel of a quarter disk of radius r (the square r × r less the disk): its area and its centroid's distance from the square's corner, along each side. */

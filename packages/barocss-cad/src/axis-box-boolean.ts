@@ -10,10 +10,11 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from './core/derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from './core/derivatives.js';
 import type { Curve, Surface, Model, Point } from './types.js';
 import { same } from './core/structural-equality.js';
+import { KernelError } from './core/barocss-error.js';
 
 export const AxisBoxSolidBooleanDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', CONTACT: 'CONTACT', TOPOLOGY: 'TOPOLOGY', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type AxisBoxSolidBooleanDiagnosticCode = typeof AxisBoxSolidBooleanDiagnosticCode[keyof typeof AxisBoxSolidBooleanDiagnosticCode];
-export class AxisBoxSolidBooleanError extends Error {
+export class AxisBoxSolidBooleanError extends KernelError {
   readonly code: AxisBoxSolidBooleanDiagnosticCode;
   constructor(code: AxisBoxSolidBooleanDiagnosticCode, detail: string, cause?: unknown) {
     super(('Axis-box Solid Boolean: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'AxisBoxSolidBooleanError'; this.code = code;
