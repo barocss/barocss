@@ -1,8 +1,8 @@
 // RS5 (cad-model's facade): an assembly read as a robot — its joint tree, a pose, a path checked for collisions, its
 // inertia and gravity torques, and the four exports — as an immutable object over the same StudioDoc. Its verbs carry
 // the v2 `assembly` actions' names (api-conventions §12): joints, set_joints, pose, sweep, inertia, gravity, urdf, mjcf;
-// each reply is the agent's tool's, byte for byte (./robotCore). A path is RS2's motion: poseAt plays it in time. Joint values go in as the facade's units (§2): degrees
-// for a turning joint, mm for a slide; the replies are the tools' own (their `values` the core's: radians, mm).
+// each reply uses the agent's core tools (./robotCore). A path is RS2's motion: poseAt plays it in time. Pose joint
+// values use the facade's units (§2), in and out: degrees for a turning joint, mm for a slide.
 import { refuse } from '@barocss/cad/api';
 import type { StudioDoc } from '../engine/doc';
 import type { JointSettings } from '../robot/joints';
@@ -22,7 +22,7 @@ export class Robot {
   /** `assembly.set_joints`: the base link and joints' limits and ratings (null removes one's) — a new robot. */
   setJoints(o: { base?: string; joints?: Record<string, Partial<JointSettings> | null> }): Robot { return new Robot(withJoints(this.#doc, o)); }
 
-  /** `assembly.pose` (forward_kinematics): where each link and frame is at joint values (degrees, or mm for a slide). */
+  /** `assembly.pose` (forward_kinematics): each link and frame, with joint values in degrees (or mm for a slide), in and out. */
   pose(values: Readonly<Record<string, number>> = {}) { return poseOf(this.#doc, coreValues(treeOf(this.#doc), values)); }
 
   /**

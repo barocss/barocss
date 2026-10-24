@@ -1,5 +1,5 @@
 // RS5, cad-model's facade: an assembly read as a robot. Each reply — joints, a pose, a path's check, inertia, gravity
-// torques, URDF and MJCF — is the agent's robot tool's on the same document, byte for byte (through dispatchTool, the
+// torques, URDF and MJCF — is the agent's robot tool's on the same document, except pose values use degrees (through dispatchTool, the
 // tools without the session's gates); set_joints writes the same document; SDF and USD are the core exports the studio's
 // Export menu makes. The document is the arm-6r fixture (packages/barocss-cad/conformance/rm), until RS1's samples land.
 import test from 'node:test';
@@ -35,11 +35,15 @@ const keys = () => robot().joints().joints.map(j => j.key);
 const pose = () => { const k = keys(); return { deg: { [k[0]]: 30, [k[1]]: -45, [k[2]]: 60 }, rad: { [k[0]]: rad(30), [k[1]]: rad(-45), [k[2]]: rad(60) } }; };
 const withoutData = (reply: { files: { path: string; bytes: number }[] }) => ({ ...reply, files: reply.files.map(f => ({ path: f.path, bytes: f.bytes })) });
 
-test('joints, pose, inertia and gravity: the tools\' replies, byte for byte', async () => {
+test('joints, pose, inertia and gravity: the tools\' replies, with public pose values in degrees', async () => {
   const doc = arm6r(), r = robot(), p = pose();
   assert.ok(keys().length >= 3);
   assert.equal(JSON.stringify(r.joints()), (await tool(doc, 'get_joints', {})).content);
-  assert.equal(JSON.stringify(r.pose(p.deg)), (await tool(doc, 'forward_kinematics', { values: p.rad })).content);
+  const publicPose = r.pose(p.deg), corePose = JSON.parse((await tool(doc, 'forward_kinematics', { values: p.rad })).content);
+  assert.deepEqual({ ...publicPose, values: undefined }, { ...corePose, values: undefined });
+  for (const [key, value] of Object.entries(corePose.values) as [string, number][]) {
+    assert.ok(Math.abs(publicPose.values[key] - value * 180 / Math.PI) < 1e-9, key);
+  }
   assert.equal(JSON.stringify(r.inertia()), (await tool(doc, 'link_inertia', {})).content);
   assert.equal(JSON.stringify(r.gravity(p.deg)), (await tool(doc, 'gravity_torques', { values: p.rad })).content);
 });

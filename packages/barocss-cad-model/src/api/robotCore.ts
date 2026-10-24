@@ -7,7 +7,7 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { BASE } from '../assembly/mates';
 import { solveDoc } from '../assembly/edit';
-import { gravityOf as gravityVerb, inertiaOf as inertiaVerb, mjcfOf as mjcfVerb, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
+import { gravityOf as gravityVerb, inertiaOf as inertiaVerb, jointValuesOut, mjcfOf as mjcfVerb, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
 import { readUrdf } from '../robot/urdfCheck';
 import { readMjcf } from '../robot/mjcfCheck';
 import { exportSdf } from '../robot/sdf';
@@ -76,11 +76,11 @@ export function withJoints(doc: StudioDoc, o: { base?: string; joints?: Record<s
   return out;
 }
 
-/** forward_kinematics' reply at joint values (the core's: radians, mm). */
+/** forward_kinematics' reply: core input in radians/mm; public reply values in degrees/mm. */
 export function poseOf(doc: StudioDoc, values: Readonly<Record<string, number>>) {
   const view = viewOf(doc), t = treeVerb(view), p = poseVerb(view, values, t);
   if (p.unknown.length) throw refused(`No joint ${p.unknown.join(', ')}; joints: ${t.joints.map(j => j.key).join(', ') || 'none'}.`);
-  return p.reply;
+  return { ...p.reply, values: jointValuesOut(t, p.reply.values) };
 }
 
 /** sweep_path's reply between two sets of joint values (the core's units). */
