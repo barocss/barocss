@@ -127,6 +127,13 @@
    "bytes": 107752
   },
   {
+   "file": "studio/drawings/detail-view.jpg",
+   "page": "studio/drawings",
+   "step": "studio/drawings: a detail view",
+   "renderer": "webgpu",
+   "bytes": 101164
+  },
+  {
    "file": "studio/features/holes-on-a-circle.jpg",
    "page": "studio/features",
    "step": "studio/features: holes on a circle, a SubD box",
@@ -231,14 +238,14 @@
    "page": "studio/robots",
    "step": "studio/robots: the arm-6r sample, its motion paused half-way",
    "renderer": "webgpu",
-   "bytes": 164896
+   "bytes": 164708
   },
   {
    "file": "studio/robots/gantry-ppp-motion.jpg",
    "page": "studio/robots",
    "step": "studio/robots: the gantry-ppp sample, its motion paused half-way",
    "renderer": "webgpu",
-   "bytes": 153936
+   "bytes": 157444
   },
   {
    "file": "studio/robots/joints.jpg",
@@ -255,11 +262,18 @@
    "bytes": 18700
   },
   {
+   "file": "studio/robots/saved-motion.jpg",
+   "page": "studio/robots",
+   "step": "studio/robots: a saved motion chosen and paused partway",
+   "renderer": "webgpu",
+   "bytes": 130160
+  },
+  {
    "file": "studio/robots/scara-motion.jpg",
    "page": "studio/robots",
    "step": "studio/robots: the scara sample, its motion paused half-way",
    "renderer": "webgpu",
-   "bytes": 148706
+   "bytes": 149202
   },
   {
    "file": "studio/sketches/rectangle.jpg",

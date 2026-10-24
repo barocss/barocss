@@ -62,7 +62,34 @@ export interface Material {
    * and their own struct MaterialParams of that size; aliases name uv, world or normal otherwise.
    */
   shader?: ShaderMaterial | null;
+  /** A surface finish (G15a): relief and roughness made per pixel from the mesh's own coordinates; none by default. */
+  finish?: SurfaceFinish | null;
+  /** A clear lacquer over the surface (G15a, paint): 0 none – 1, its own roughness (default 0.08). */
+  clearcoat?: number;
+  clearcoatRoughness?: number;
+  /** An oil film's thin-film tint on the reflections (G15a): 0 none – 1. */
+  film?: number;
 }
+/**
+ * A surface finish (G15a), from the mesh's own coordinates (its transform's frame, so the pattern stays on the part as it
+ * moves): cast and sand-cast grain, machined lines across `axis`, turned rings about `axis` through `origin`, brushed
+ * streaks along `axis`, a knurl's diamonds round `axis`, a blasted surface's pits. Machined, turned and brushed also stretch
+ * the highlights across their marks (anisotropic reflection).
+ */
+export interface SurfaceFinish {
+  kind: SurfaceFinishKind;
+  /** The marks' size or pitch in the mesh's units (default 1). */
+  scale?: number;
+  /** How deep they look: 0 none – 1 (default 0.5). */
+  strength?: number;
+  /** Machined, turned, brushed, knurled: the direction (mesh frame; default its Z). */
+  axis?: Vec3;
+  /** Turned, knurled: a point on the axis (mesh frame; default its origin). */
+  origin?: Vec3;
+}
+export type SurfaceFinishKind = 'cast' | 'sand-cast' | 'machined' | 'turned' | 'brushed' | 'knurled' | 'blasted';
+/** The finish kinds in the order the shader numbers them from 1. */
+export const SURFACE_FINISHES: readonly SurfaceFinishKind[] = ['cast', 'sand-cast', 'machined', 'turned', 'brushed', 'knurled', 'blasted'];
 export interface ShaderMaterial extends SurfaceShader {
   /** Up to 16 numbers for materialParams. */
   params?: ArrayLike<number>;
@@ -380,6 +407,15 @@ export class Mesh {
       const hiddenDash = m.lineHiddenDash === undefined ? m.lineDash : m.lineHiddenDash;
       f[o + 48] = (hiddenDash?.[0] ?? 0) * pixelRatio; f[o + 49] = (hiddenDash?.[1] ?? 0) * pixelRatio; f[o + 50] = 0; f[o + 51] = 0;
     } else if (h) { const a = (h.angle * Math.PI) / 180; f[o + 48] = Math.cos(a); f[o + 49] = Math.sin(a); f[o + 50] = h.spacing; f[o + 51] = 1; } else f.fill(0, o + 48, o + 52);
+    // (G15a: the finish — kind from 1, scale, strength, clearcoat; axis and the coat's roughness; origin and the oil film.
+    // Surfaces only; zeros otherwise.)
+    const fin = m.finish, surface = this.geometry.topology === 'triangles';
+    if (surface && (fin || m.clearcoat > 0 || m.film > 0)) {
+      f[o + 52] = fin ? SURFACE_FINISHES.indexOf(fin.kind) + 1 : 0; f[o + 53] = fin?.scale ?? 1; f[o + 54] = fin?.strength ?? 0; f[o + 55] = m.clearcoat;
+      const ax = fin?.axis ?? [0, 0, 1], og = fin?.origin ?? [0, 0, 0];
+      f[o + 56] = ax[0]; f[o + 57] = ax[1]; f[o + 58] = ax[2]; f[o + 59] = m.clearcoatRoughness;
+      f[o + 60] = og[0]; f[o + 61] = og[1]; f[o + 62] = og[2]; f[o + 63] = m.film;
+    } else f.fill(0, o + 52, o + 64);
   }
 }
 
@@ -391,14 +427,23 @@ export function hatchOf(h: CapHatch): CapHatch | null {
 }
 
 /** @internal (R2c: used by the viewer too.) */
-export function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'lineHiddenDash' | 'pointBorder'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; lineHiddenDash: readonly [number, number] | null | undefined; pointBorder: { width: number; color: Vec3 } | null } {
+export function materialOf(m: Material = {}): Required<Omit<Material, 'color' | 'map' | 'shader' | 'lineDash' | 'lineHiddenDash' | 'pointBorder' | 'finish'>> & { color: Vec3; map: ImageTexture | null; shader: ShaderMaterial | null; lineDash: readonly [number, number] | null; lineHiddenDash: readonly [number, number] | null | undefined; pointBorder: { width: number; color: Vec3 } | null; finish: Required<SurfaceFinish> | null } {
   const hiddenDash = m.lineHiddenDash;
   return {
     color: parseColor(m.color, m.shadowOnly ? [0, 0, 0] : [0.8, 0.8, 0.8]), opacity: Math.min(1, Math.max(0, m.opacity ?? 1)),
     colorWrite: m.colorWrite ?? true, lineHiddenDash: hiddenDash === undefined ? undefined : hiddenDash && hiddenDash[0] > 0 && hiddenDash[1] > 0 ? [hiddenDash[0], hiddenDash[1]] : null,
     metallic: m.metallic ?? 0, roughness: m.roughness ?? 0.55, emissive: m.emissive ?? 0, unlit: m.unlit ?? false, doubleSided: m.doubleSided ?? false, lineWidth: m.lineWidth ?? 1, lineDash: m.lineDash && m.lineDash[0] > 0 && m.lineDash[1] > 0 ? [m.lineDash[0], m.lineDash[1]] : null, lineOver: m.lineOver ?? false, lineHidden: Math.min(1, Math.max(0, m.lineHidden ?? 0)), decal: m.decal ?? false,
     pointSize: Math.max(0, m.pointSize ?? 4), pointShape: m.pointShape ?? 'circle', pointBorder: m.pointBorder && m.pointBorder.width > 0 ? { width: m.pointBorder.width, color: parseColor(m.pointBorder.color, [1, 1, 1]) } : null, shadowOnly: m.shadowOnly ?? false, map: m.map ?? null, shader: m.shader ?? null, alphaCutoff: Math.min(1, Math.max(0, m.alphaCutoff ?? 0)),
+    finish: finishOf(m.finish), clearcoat: unit(m.clearcoat), clearcoatRoughness: Math.min(1, Math.max(0.02, m.clearcoatRoughness ?? 0.08)), film: unit(m.film),
   };
+}
+const unit = (v: number | undefined) => Number.isFinite(v) ? Math.min(1, Math.max(0, v!)) : 0;
+/** A finish as packed: known kind, positive scale, strength 0–1, a unit axis (Z when none or zero). */
+function finishOf(f: SurfaceFinish | null | undefined): Required<SurfaceFinish> | null {
+  if (!f || !SURFACE_FINISHES.includes(f.kind)) return null;
+  const a = f.axis ?? [0, 0, 1], l = Math.hypot(a[0], a[1], a[2]);
+  return { kind: f.kind, scale: Number.isFinite(f.scale) && f.scale! > 0 ? f.scale! : 1, strength: f.strength === undefined ? 0.5 : unit(f.strength),
+    axis: l > 1e-12 && Number.isFinite(l) ? [a[0] / l, a[1] / l, a[2] / l] : [0, 0, 1], origin: f.origin && f.origin.every(Number.isFinite) ? [f.origin[0], f.origin[1], f.origin[2]] : [0, 0, 0] };
 }
 
 

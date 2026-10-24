@@ -3640,3 +3640,112 @@ is untouched as history. The coordinator settled the scope:
   - FLOW_ONLY `^(RS|render a part)` (1, 48, 289–292): all pass on WebGPU and on WebGL2.
 - **Runs**: studio tsc 0, eslint 0, unit 287/287 (webm.test.ts: header, DocType, codec, pixel size, clusters,
   block bytes).
+
+## G-R67 — G15d.1: AgX, colour grading and a vignette, and the Render panel's Post section (roadmap G15d.1, 2026-10-24)
+
+- **The output pass** (`packages/barocss-gpu`, `viewer/shaders/output.ts`, `viewer/lights.ts`):
+  - `Environment.toneMapping: 'agx'` beside ACES and none. This is Sobotka's AgX in its common fitted form: an inset
+    matrix, log2 between −12.47 and +4.03 stops, a polynomial sigmoid, an outset matrix, then 2.2 back to linear.
+    Bright saturated colour turns towards white instead of clipping. Our own WGSL; no LUT.
+  - `Environment.grading` (`ColorGrading`), applied in this order:
+    - white balance (`whiteBalance(temperature, tint)`: channel gains with the luminance kept);
+    - lift, gamma and gain per channel;
+    - saturation around Rec. 709 luminance;
+    - contrast around mid grey (0.46) in the encoded image.
+  - `Environment.vignette`: an amount, a clear radius and a fade. It is round, with the frame's aspect kept.
+  - Grading and the vignette apply after tone mapping, over the scene and the background, before the outlines (which
+    stay UI colours). The background is still not tone-mapped, as before.
+  - When they are off, the block's slots are zeros and the pass skips them (a uniform branch). The output block grows by
+    80 bytes, and `outlineRect` stays last.
+- **The studio**:
+  - `viewport/post.ts` holds the grades (neutral; warm studio, which is amber with warm-lifted shadows; cool daylight).
+    `postOf` maps the settings' post to the viewer's grading and vignette. Neutral gives nothing.
+  - The Render panel's Scene tab has a **POST** section: Exposure and Tone map (moved here, with the same aria labels),
+    then Tone map with AgX ("Soft highlights (AgX)"), Grade, Contrast, Saturation and Vignette. Each change is one
+    undoable edit. When everything is back to neutral, the post leaves the document.
+- **Cross-lane change** (named to the coordinator before it was made; no answer when committed, so it is a commit of
+  its own that can be dropped or handed on):
+  - `packages/barocss-cad-model/src/engine/render.ts`: `toneMapping` gains `'agx'`, and there is an optional
+    `post: RenderPost` (grade, contrast 0.5–1.5, saturation 0–2, vignette 0–1). It is read with clamps; when absent
+    there is no post. There is no schema bump (doc-schema-tracks-latest).
+- **Tests**:
+  - gpu unit 301/301. That includes `viewer-core`'s layout checks, plus RS2's `contactLinks` added to two studio-renderer
+    fixtures, which had failed 13 tests since b7869913d.
+  - gpu browser `viewer-post-browser` (new, in test:browser) passes on hardware and on SwiftShader. At ×6 exposure:
+    - none: 255,49,49;
+    - ACES: 253,40,40;
+    - AgX: 255,131,131.
+    The vignette's corner is 59 against 104 at the edge; warm gives 137,126,114 on grey; saturation 0 turns red grey;
+    contrast keeps mid grey within 6.
+  - cad-model render 5/5. Studio unit 288/288 (post.test.ts).
+  - Flow 293 (new) passes on WebGPU and WebGL2 (where the document checks run). On WebGPU:
+    - the corners go from 62,62,25,25 to 38,38,13,13 with the vignette;
+    - warmth (red − blue) goes from −2.3 to 26.1;
+    - neutral again gives the frame as before.
+- **Bench** (new rows `render: orbit 60` and `render: orbit 60, post on (AgX, warm grade, vignette)`, LOADED, load
+  28–37):
+  - DPR 1: 1.03 → 1.06 ms of GPU a submit (output 0.71 → 0.75).
+  - DPR 2 (a 2880×1800 page, more than 1440p): 3.29 → 3.46 ms (output 2.37 → 2.46).
+  - Both are far under the 16.7 ms Render orbit target. Modelling is unchanged (the post is off).
+
+## G-R68 — G15a: surface finishes, a clear coat and an oil film (roadmap G15a, 2026-10-24)
+
+- **The surface shader** (`packages/barocss-gpu`, `viewer/shaders/surface.ts`, `viewer/scene.ts`):
+  - `Material.finish` (`SurfaceFinish`: kind, scale, strength, axis, origin), `clearcoat` (+ `clearcoatRoughness`, 0.08 by
+    default) and `film`. They are packed in the object block's free 48 bytes (`OBJECT_BYTES` 208 → 256; the stride was
+    already 256). With none of them set, the slots are zeros and the shading takes the old path.
+  - The relief and roughness are made per pixel from the mesh's own coordinates (its transform's frame, so a pattern
+    stays on the part as it moves or explodes). The noise is our own value noise and fbm, not textures:
+    - cast and sand-cast: grain, the sand's coarser, with pits;
+    - machined: lines across the axis;
+    - turned: rings about the axis through the origin (the body's box centre in the studio), feed lines along it;
+    - brushed: streaks along the axis;
+    - knurled: two ±45° helical grooves round the axis, only on faces not square to it;
+    - blasted: fine pits.
+    The normal is perturbed by finite differences of the relief in the mesh frame.
+  - **Band-limited by the pixel's footprint** (`band`): each detail fades as it nears two to a pixel, and the lost relief
+    becomes roughness. Fine marks never sparkle; at a distance a turned face shows as its radial highlight.
+  - Machined, turned and brushed stretch the highlight across their marks. This uses anisotropic GGX (Burley: rougher
+    across than along) for the lights, and a bent reflection normal for the ambient and environment.
+  - **Clear coat**: a second, smooth dielectric lobe on the unperturbed normal, for the lights and the reflection. What
+    it reflects the base doesn't get. Shadows use the unperturbed normal.
+  - **Oil film**: a thin-film tint on the reflections. Colours cycle with the view angle and a varying thickness, strongest
+    at grazing angles. It is kept subtle (a sheen, not a paint).
+- **cad-model** (`engine/render.ts`, outer's file, its own commit; named to the coordinator before it was built):
+  - `Appearance.finish?` (`AppearanceFinish`: kind of `FINISH_KINDS`, scale 0.01–100 mm, strength 0–1, an optional
+    axis), `clearcoat?` and `film?` (0–1). They are read with clamps; absent means none; no schema bump.
+  - Ten new presets: cast aluminium, sand-cast iron, machined steel, turned steel, brushed aluminium, knurled steel,
+    bead-blasted aluminium, painted red (lacquered), chrome and oiled steel. The `look-` prefix is kept (O75's test
+    passes).
+- **The studio**:
+  - `viewport/finish.ts` maps a look to the viewer's finish, centring turned and knurled finishes on the body.
+  - The Render panel's Appearance tab gets Finish (None or a kind), Marks (mm), Depth, Along (X/Y/Z, for the
+    directional kinds), Clear coat and Oil film.
+  - A preset now matches on the look's material fields (colour, metal, roughness, opacity, finish, coat, film), so a
+    texture or shader on top leaves it chosen. Choosing one replaces those fields, so a finish never carries over to a
+    preset without one.
+- **The built-in look per material id is the owner's call**, so it is not built. The proposal:
+  - steel → machined steel; ss304 → brushed; al6061 and ti64 → machined in their own colour;
+  - brass → turned;
+  - a380, a356, zamak3 and az91d → cast;
+  - grey-iron → sand-cast;
+  - pa12 → blasted (SLS grain);
+  - abs, pc, pp, petg, pom, pla and resin → their plastic, no finish.
+- **Tests**:
+  - gpu unit 302/302, plus a packing test in viewer-display.
+  - `viewer-finish-browser` (new, in test:browser) passes on hardware and SwiftShader. It checks:
+    - every kind's marks are drawn;
+    - sand-cast is rougher than cast;
+    - brushed stretches the highlight 28 × 144 against a round 76 × 76;
+    - the clear coat's highlight peaks at 255 over a rough base at 38;
+    - the oil film adds chroma;
+    - marks a hundredth of a pixel wide become roughness;
+    - the finish moves with its mesh (difference 0).
+  - gpu test:browser 31/31.
+  - cad-model render 6/6 and material-look 3/3; studio unit 292/292 (finish.test.ts).
+  - Flow 294 (new) passes on WebGPU and WebGL2: turned steel, a knurl along Z, the painted and the oiled presets, then
+    None. Marks on the frame: plain 3.55, turned 4.54, knurled 4.60.
+- **Bench** (new row `render: orbit 60, post on, knurled and lacquered (G15a)`). The machine was heavily loaded (load 58 →
+  41), so this is for comparison only:
+  - DPR 1: the surface pass costs 1.41 → 2.21 ms with the knurl and coat; 4.92 ms a submit against the 8 ms budget.
+  - The quiet run for the 1440p check is still owed.

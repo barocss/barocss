@@ -217,6 +217,12 @@ const BUDGET = {
   clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
   orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
   orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
+  // (G15d.1: the Render workspace orbited — its look (shadows, occlusion off while moving), then with the post on: AgX, the
+  // warm grade, contrast, saturation and a vignette. The post's cost: the second row's GPU time less the first's.)
+  renderOrbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
+  renderOrbitPost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
+  // (G15a: the same with the part knurled and lacquered — the finish's relief, four noise lookups a pixel, and the coat.)
+  renderOrbitFinish: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
   pose: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3 },
   // (RS2: as a joint played, and the App rendered only as it starts and stops — never in a frame of it.)
   motion: { submits: 120, avgFrameMS: 2, perFrame: 1, taskMS: 22, kb: 7, buffers: 4, gpuMS: 3, app: 4 },
@@ -360,6 +366,27 @@ try {
     for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
     await page.mouse.up({ button: 'left' });
   });
+  // ---- G15d.1: the Render workspace orbited, without and with the post ------------------------------------------------
+  const orbit60 = async () => {
+    await page.mouse.move(cx, cy); await page.mouse.down({ button: 'left' });
+    for (let i = 0; i < 60; i++) { await page.mouse.move(cx + 4 * i, cy + (i % 5)); await page.waitForTimeout(16); }
+    await page.mouse.up({ button: 'left' });
+  };
+  await page.keyboard.press('Escape');
+  await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]'); await page.waitForTimeout(800);
+  await measure('render: orbit 60', BUDGET.renderOrbit, orbit60);
+  await page.click('.render-panel [role="tab"]:text-is("Scene")');
+  await page.selectOption('.render-panel [aria-label="Tone mapping"]', 'agx');
+  await page.selectOption('.render-panel [aria-label="Colour grade"]', 'warm');
+  await page.evaluate(() => { for (const [l, x] of [['Contrast', 1.2], ['Saturation', 1.2], ['Vignette', 0.6]]) { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); } });
+  await page.waitForTimeout(800);
+  await measure('render: orbit 60, post on (AgX, warm grade, vignette)', BUDGET.renderOrbitPost, orbit60);
+  await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+  await page.selectOption('[aria-label="Appearance preset"]', 'look-knurled-steel');
+  await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Clear coat"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '0.6'); el.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.waitForTimeout(800);
+  await measure('render: orbit 60, post on, knurled and lacquered (G15a)', BUDGET.renderOrbitFinish, orbit60);
+  await page.click('.mode button:text-is("Model")'); await page.waitForTimeout(500);
   // ---- G1: posed and exploded assemblies -------------------------------------------------------------------------
   const fs = await import('node:fs'), os = await import('node:os');
   const tmp = fs.mkdtempSync(join(os.tmpdir(), 'cad-bench-')), open = async (name, doc, ready) => {

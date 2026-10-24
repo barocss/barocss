@@ -6,7 +6,7 @@
 import { refuse } from '@barocss/cad/api';
 import type { StudioDoc } from '../engine/doc';
 import type { JointSettings } from '../robot/joints';
-import { coreValues, durationOf, gravityOf, inertiaOf, jointsOf, mjcfOf, motionOf, poseAtOf, poseOf, problemsOf, sdfOf, sweepOf, treeOf, urdfOf, usdOf, withJoints, withMotion } from './robotCore';
+import { coreValues, durationOf, refuseLoop, gravityOf, inertiaOf, jointsOf, mjcfOf, motionOf, poseAtOf, poseOf, problemsOf, sdfOf, sweepOf, treeOf, urdfOf, usdOf, withJoints, withMotion } from './robotCore';
 import type { MotionLimits, MotionPath } from '../robot/motion';
 
 export class Robot {
@@ -69,7 +69,9 @@ export class RobotPath {
 
   /** `assembly.sweep` (sweep_path) between each two waypoints in turn: one reply a segment. */
   check() {
-    const tree = treeOf(this.#doc), w = this.#motion.waypoints.map(v => coreValues(tree, v));
+    const tree = treeOf(this.#doc);
+    refuseLoop(tree);
+    const w = this.#motion.waypoints.map(v => coreValues(tree, v));
     return w.slice(1).map((to, k) => sweepOf(this.#doc, w[k], to));
   }
 
