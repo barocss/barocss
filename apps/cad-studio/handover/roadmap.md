@@ -20,7 +20,7 @@ section current.
 | Kernel | R7.3a batch 2, plan agreed (CadErrorCode union + CAD_ERROR_CODES; `code` = the specific bracketed code, the category in details.category; no category prefix on the ~400 uncoded refusals; 165 internal classes folded, the 6 used outside and BrepError kept, legacy left for R7.3d); O19's kernel half done (`78a84d506`, D277); K16 done (`ca9c6b0c4`, D276); R7.3d's packet tag done (`86da39e14`) | R7.3a batch 2 | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
 | Outer | O21 (agent parameters, design approved); RS1 (sample robots) and RS2's poseAt; RS3 (the agent moves the robot) | R7.7a step 2 (rows, with the kernel's R7.7b), step 4 (results, with R7.3b) | the Later list |
 | GPU | RS2 (joint motion playback) and RS1's Samples list; the WebGL2 full flow and the quiet section run as the load allows | 2–3 proposed next items | the Later list |
-| API | RS5 (the robot on the facade); R7.7d after the cores' renames | R7.4d's sketch/Location Dims after R7.7 | the Later list |
+| API | P1 (the engine, end to end; gaps become PG items); RS5 between, once outer's RS2 lands | P2, P3, P4 in order | R7.7d after the cores' renames |
 | Docs | RS4 after RS1/RS2 land; the prose for R7.4c's renames (api.md, cad/index.md); R7.6 part 1 done (merge 45c94eb09, samples 31/31) | R7.6 part 2 (the API inventory in check:docs, after R7.3) | the Later list |
 | Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
 
@@ -164,6 +164,24 @@ The owner: "로봇 관련해서 좀 더 다양한 샘플, 예제를 만들어봐
 | RS4 | docs | **Robot docs examples**: the robots page per sample (its joints, a pose, an export), shots of the samples and of playback; samples run under test:samples |
 | RS5 | API | **The robot on the facade**: assembly(...).robot() — joints(), pose(values) → frame and link poses, path(waypoints).check(), poseAt(t), exports — over the core functions, byte-equal to the tools; feeds RS4's samples |
 
+### Real products (owner, 2026-10-24)
+
+The owner: "지금은 각각의 기능별 잘 돌아가는지 샘플들만 만들었는데, 실제로 좀 제대로된 제품을 모델링 해봐야하지 않을까? 자동차 엔진? 전자 부품? 거대한 기계, 로봇 등등?", then "P1–P4를 엔진부터 차례로 로드맵에 넣고 진행해줘. 막히는 것은 로드맵 항목으로 만들어줘."
+
+Each product is built end to end — parts, assembly, mates and motion, mass, interference, drawings, BOM and manufacturing outputs — as a deterministic, rerunnable build (`examples/products/<id>/`, written on the facade where it reaches, the core functions where it doesn't; the documents it writes open in the studio). Every point where the build can't go on, or goes on only by a workaround, becomes its own roadmap item below (PG-n), routed to its owner lane; the product resumes when it's fixed. Standard parts' sizes come only from person-supplied rows (rule b): the shipped sample rows where they fit, otherwise the gap is listed and the owner asked. PCB/ECAD stays deferred (owner, 2026-10-19): P2's board is a sized placeholder. A live-agent run of the same briefs (brief → product) comes after, with the owner's token budget.
+
+| # | Lane | Product | What it tests |
+|---|---|---|---|
+| P1 | API (builds), gaps to their owners | **A single-cylinder four-stroke engine**: crankshaft (with counterweights), connecting rod, piston with rings and pin, finned cylinder block, head with valves and ports, camshaft, cam followers, crankcase halves, fasteners | complex solids (fin patterns, fillets, sweeps, shells), the slider-crank and the cam train as a mechanism (a closed loop, gear-timed cam 2:1), interference through a cycle, masses and balance, drawings, the BOM, CNC and casting reports |
+| P2 | API, gaps to owners | **An electronics enclosure**: a handheld device's two-part moulded housing with bosses, snap fits, ribs, a battery bay, connector openings from connector rows, a heat sink with fins, the board as a sized placeholder | thin walls, draft, moulding DFM, connector rows, fits between halves, an exploded assembly |
+| P3 | API, gaps to owners | **A large machine**: a gantry CNC router — a welded frame, linear rails, carriages, a gantry, motor mounts from mount rows, ball screws, many fasteners (hundreds of parts) | scale (opening, evaluation and display time with hundreds of parts), frames and the cut list, mounts, the BOM at size, the drawing set |
+| P4 | API (+ outer for sizing), gaps to owners | **A real 6-axis robot arm**: link castings, joint housings for strain-wave gearboxes, motor mounts, bearings, a cable path, a tool flange | robot-size and robot-check on real link masses, motion (RS2), URDF/MJCF read back, manufacturing outputs of each link |
+
+Gaps found (PG-n, added as they're found):
+
+| # | Lane | Gap | Found in |
+|---|---|---|---|
+
 ## Phase R: refactoring, once the current items close (owner, 2026-10-23)
 
 The owner asked for one refactoring pass when the features are reasonably complete: code that is only laid out flat is
@@ -252,6 +270,10 @@ evidence files.
 - **O14** — Robot mounts from datasheet rows · ko: 데이터시트 행으로 만드는 서보·모터·베어링 마운트
 - **R6** — Triage the stale examples/gpu-scene flows · ko: 오래된 gpu-scene 예제 흐름 정리 (고치거나 은퇴)
 - **R7** — API consistency and an object facade over the core · ko: API 일관성 정리와 객체형 겉 API
+- **P1** — A real product: single-cylinder four-stroke engine · ko: 실제 제품: 단기통 4행정 엔진
+- **P2** — A real product: electronics enclosure · ko: 실제 제품: 전자기기 외함
+- **P3** — A real product: large machine (gantry CNC router) · ko: 실제 제품: 대형 기계 (갠트리 CNC 라우터)
+- **P4** — A real product: 6-axis robot arm · ko: 실제 제품: 실제 6축 로봇 팔
 - **RS1** — Sample robots (8 kinds, opened from a Samples list) · ko: 샘플 로봇 묶음 (8종, 샘플 목록에서 열기)
 - **RS2** — Joint motion playback (and motion video) · ko: 관절 움직임 재생 (경유 자세를 시간에 따라 재생, 영상 내보내기)
 - **RS3** — The agent moves the robot (joints, waypoints, check and play) · ko: 에이전트가 채팅으로 로봇을 움직이기
