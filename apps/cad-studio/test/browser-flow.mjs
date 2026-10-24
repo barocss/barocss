@@ -8186,7 +8186,8 @@ try {
     console.log(`  O10 rebuild (${renderer}): ${seen.map(([id, s, t]) => `${id} ${s} ${t} ms`).join(', ')}`);
     // (The clearance fixture: its bodies, the eight copies by their keys, in the frame costs the panel reads every 500 ms.)
     await openModel(join(root, 'test/fixtures/clearance-states.bcad'), 2, 60000); await idle();
-    await page.waitForFunction(() => document.querySelectorAll('[aria-label="Frame costs"] tr[aria-label^="Frame cost "]').length >= 10, null, { timeout: 15000 });
+    try { await page.waitForFunction(() => document.querySelectorAll('[aria-label="Frame costs"] tr[aria-label^="Frame cost "]').length >= 10, null, { timeout: 15000 }); }
+    catch (e) { console.log(`  O10 frame costs (${renderer}): ${JSON.stringify(await page.evaluate(() => ({ rows: [...document.querySelectorAll('[aria-label="Frame costs"] tr[aria-label^="Frame cost "]')].map(r => r.getAttribute('aria-label')), totals: document.querySelector('[aria-label="Frame cost totals"]')?.textContent, status: document.querySelector('[aria-label="Rebuild panel"] [role=status]')?.textContent, bodies: window.__studioBodies(), inst: window.__studioInstanceBounds?.().length })))}`); throw e; }
     const keys = await panel.locator('tr[aria-label^="Frame cost "]').evaluateAll(rs => rs.map(r => r.getAttribute('aria-label').slice(11)).sort());
     assert.deepEqual(keys.filter(k => k.includes('/')), [1, 2, 3, 4, 5, 6, 7, 8].map(i => `i${i}/b1`), keys.join(','));
     assert.match(await panel.locator('[aria-label="Frame cost totals"]').innerText(), new RegExp(`^${renderer}, shaded-with-edges`));
