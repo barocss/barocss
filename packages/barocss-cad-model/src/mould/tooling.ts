@@ -96,8 +96,8 @@ export function toolingPlan(bodies: readonly BodyResult[], pull: readonly number
   // caps above its split isocline — takes the height of its runs across the pull, the cut plane crossing those walls.)
   const levelOf = new Map<PartingReport['loops'][number], number>();
   for (const l of parting.loops) {
-    const lv = l.flat ? l.rangeMM[0] : loopLevel(l.points, bodies[0], pull, tol);
-    if (lv === null) return refuse('MOULD_STEPPED', `a parting loop not across the pull in one plane (${r6(l.rangeMM[0])} … ${r6(l.rangeMM[1])}), climbing across faces that are not along the pull: it waits for ${WAITS_FOR.MOULD_STEPPED}`);
+    const lv = l.flat ? l.pullRange[0] : loopLevel(l.points, bodies[0], pull, tol);
+    if (lv === null) return refuse('MOULD_STEPPED', `a parting loop not across the pull in one plane (${r6(l.pullRange[0])} … ${r6(l.pullRange[1])}), climbing across faces that are not along the pull: it waits for ${WAITS_FOR.MOULD_STEPPED}`);
     levelOf.set(l, lv);
   }
   const heights: number[] = [];
