@@ -188,6 +188,7 @@ test('inertia Result projects the independent 10 mm cube once to public grams, m
   projected.inertia.flat().forEach((x, k) => assert.ok(Math.abs(x - (k % 4 === 0 ? 45 : 0)) <= 1e-9));
   const expected = { mass: 2.7, centroid: [5, 5, 5], inertia: projected.inertia.flat(), issues: ['MATERIAL_ASSUMED'] };
   assert.equal(result.status, 'ok'); assert.equal(result.number, 2.7); assert.deepEqual(result.value, expected);
+  assert.deepEqual(result.value, { mass: projected.mass, centroid: projected.centroid, inertia: projected.inertia.flat(), issues: raw.issues.map(i => i.code) });
   assert.deepEqual(expected.issues, raw.issues.map(i => i.code));
   assert.deepEqual(raw, rawBefore); assert.deepEqual(quantities(), bodyBefore);
   assert.deepEqual(linkInertia('base', null, cube, evaluated.bodies, identity), rawBefore);
