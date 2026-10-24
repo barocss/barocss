@@ -8799,3 +8799,17 @@ and draft, refusing `[REFERENCE_MOVED]`.
 
   With expectOf returning nothing, tests 2 and 4 fail.
 - **Verified (T1):** o19 4/4; tsc (model, studio); eslint. The full suites and the fingerprint run in the scratch check.
+- **Full check** (68c66bd66, scratch):
+  - cad-model 1065/1066, studio 286/286, docs samples 36/36.
+  - The one failure is conformance a1-refs-gone (references.test). Its harness required the opened document to build
+    before verifying. With `expect`, the gone edge's document is refused REFERENCE_MOVED (the kernel: "it is a line
+    edge now, was curve"). The harness now starts the check with no bodies on REFERENCE_MOVED, as the studio's
+    verifyOpened does. The case's expectations are unchanged and pass: the fillet is held, and the rest builds to the
+    same volume. references, rematch and o19: 17/17.
+- **The fingerprint is ddec05e2…, and O19 moved none of it:** its 152 records equal those of the commit before
+  (51bf8b294) one by one. No recorded document carries sigs that moved.
+  - Against the old tip (8f822fed9's), two records differ, both from step 1 and step 3:
+    - `toolset`: step 1's tool descriptions;
+    - frk-weldment-table.calls.json's STEP text hash: step 3's weld `size` renames the document's canonical JSON, so
+      the source revision the STEP header names is a new hash. The geometry is the same (bodies, B-reps and STL
+      unchanged).
