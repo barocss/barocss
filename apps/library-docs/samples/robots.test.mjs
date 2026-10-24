@@ -38,7 +38,7 @@ test('the index and the 2R arm: two turns, a pose, a path checked', () => {
 test('the SCARA arm: turn, turn, slide, turn', () => {
   // #region scara
   const scara = open('scara');
-  assert.deepEqual(scara.joints().joints.map(j => j.type), ['continuous', 'continuous', 'prismatic', 'continuous']);
+  assert.deepEqual(scara.joints().joints.map(j => j.type), ['revolute', 'revolute', 'prismatic', 'revolute']);
   const home = link(scara.pose(), 'quill').position, down = link(scara.pose({ 'arm2~quill': -30 }), 'quill').position;
   assert.deepEqual([down[0] - home[0], down[1] - home[1], down[2] - home[2]], [0, 0, -30]);   // the quill slides 30 mm down
   // #endregion scara
@@ -124,7 +124,8 @@ test('motions: a path timed and played, a saved motion read, a path saved as one
   // #region motions
   const arm = open('arm-2r');
   // Home to 60° on the first joint, at 90°/s and 180°/s²: a trapezoid of two half-second ramps and 1/6 s between.
-  const swing = arm.path([{}, { 'base~a': 60 }], { limits: { 'base~a': { velocity: 90, acceleration: 180 } } });
+  // (`default` limits every joint not named; a joint's own key limits that one.)
+  const swing = arm.path([{}, { 'base~a': 60 }], { limits: { default: { velocity: 90, acceleration: 180 } } });
   assert.deepEqual(swing.problems(), []);
   const T = swing.duration();
   assert.ok(near(T, 1 + 1 / 6));
@@ -137,4 +138,17 @@ test('motions: a path timed and played, a saved motion read, a path saved as one
   assert.deepEqual(saved.motion('swing').waypoints, swing.waypoints);
   // #endregion motions
   assert.equal(arm.doc.robot.motions.length, 1);             // the first robot is unchanged
+});
+
+test('every sample\'s demo motion swept; designed contact is not a collision', () => {
+  // #region sweeps
+  // (The four-bar is left out: a motion's poses don't close its loop yet.)
+  for (const sample of read('index.json').filter(s => s.id !== 'four-bar')) {
+    const [demo] = read(sample.file).robot.motions;
+    assert.ok(open(sample.id).motion(demo.name).check().every(segment => segment.clear), sample.id);
+  }
+  // The gripper's fingers mesh: their teeth are the coupling's to hold, so that pair is skipped, with why.
+  const [segment] = open('gripper').motion('grip').check();
+  assert.match(segment.skipped.find(p => p.links.join() === 'left,right').why, /^meshing gears/);
+  // #endregion sweeps
 });

@@ -33,6 +33,12 @@ write metres and radians.
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
+  - **Designed contact isn't a collision.** Two meshing gears' teeth are the coupling's to hold, and two links pinned
+    in a planar loop can't cross where they're stacked. Those pairs are skipped, each with why; anything else between
+    the same links is still checked.
+  - **A closed loop isn't closed along a motion yet.** A motion moves only the joints it names, so a looped robot's
+    poses along it are open. The agent's `check_path` and `play_motion` refuse such a robot with `LOOP_OPEN`; the
+    studio's **Check path** and playback don't close the loop either.
 - **Playing a motion.** **Play motion** plays the motion chosen in **Motion choice** in time. Its length shows before
   it plays.
   - The draft is the path above: from home, through the waypoints, to the pose shown. Each joint moves at its velocity
@@ -43,6 +49,8 @@ write metres and radians.
   - The first contact on the way is reported as "Contact *link* – *link* at t … s". From then on the two links are
     marked: outlined on WebGPU, tinted on WebGL2.
   - Playing saves nothing. Moving a slider, **Home**, a change to the waypoints or another choice stops it.
+![The pan-tilt head's saved motion "look around" chosen in Motion choice, paused partway, its camera frame drawn](/shots/studio/robots/saved-motion.jpg)
+
 - **Saving a motion.** With the draft chosen, name it in **Motion name** and **Save as motion** keeps it in the
   document, in degrees and millimetres, and chooses it. A motion of the same name is replaced. Saving is an undo step;
   the pose shown and the play state are never saved.
@@ -123,8 +131,8 @@ so every sample exports, and each carries one demo motion in its robot settings,
 | Sample | What it is | Joints |
 |---|---|---|
 | `arm-2r` | A planar arm | Two turns about parallel vertical axes, 40 mm apart, ±150° |
-| `scara` | A SCARA arm | Turn, turn, a slide of ±40 mm, turn |
-| `arm-6r` | An industrial arm's chain | Six turns about Z, Y, Y, Z, Y and Z: waist, shoulder, elbow and a three-axis wrist |
+| `scara` | A SCARA arm | Turn (±130°), turn (±145°), a slide of ±40 mm, turn (±360°) |
+| `arm-6r` | An industrial arm's chain | Six turns about Z, Y, Y, Z, Y and Z: waist, shoulder, elbow and a three-axis wrist, each with its limits |
 | `gantry-ppp` | A Cartesian gantry | Slides along X (0–200 mm), Y (0–120 mm) and Z (±40 mm) |
 | `pan-tilt` | A camera head | Pan about Z (±170°), tilt about X (±60°), and a `camera` sensor frame |
 | `gripper` | A gear-coupled gripper | The left finger turns ±30°; the right one follows on meshing 20-tooth gears, the other way |
@@ -195,6 +203,11 @@ the tool gives them, with turns in radians.
   `withMotion(name, path)` returns a robot with the path saved.
 
 <<< @/../samples/robots.test.mjs#motions
+
+- **Every demo motion swept.** Each sample's own motion is clear, the four-bar aside; the gripper's meshing fingers
+  are skipped as designed contact.
+
+<<< @/../samples/robots.test.mjs#sweeps
 
 - **The exports**, each with what its reader found and what it had to assume. `check` lists what our own reader found
   wrong when reading the file back, and `notes` what the export assumed, such as aluminium for a body without a
