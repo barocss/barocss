@@ -12,8 +12,8 @@ import { runTool, type ChatState } from '../src/chat/tools';
 // overlaps at the limit sizes πL(r_s² − r_h²) (the kernel test's oracle, packages/barocss-cad/test/r12c-fits.test.mjs).
 
 const TABLE = { id: 'shop-fits', rows: [
-  { class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true },
-  { class: 'p6', over: 10, upTo: 18, upperUM: 29, lowerUM: 18, estimate: true }] };
+  { class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true },
+  { class: 'p6', over: 10, upTo: 18, upper: 0.029, lower: 0.018, estimate: true }] };
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 /** A tube with a Ø12 bore, 24 long, and a Ø12 pin through it (z −5 to 19), its centre `dx` off along X. */
 function parts(dx = 0): StudioDoc {
@@ -37,7 +37,7 @@ test('Fits (R12c.2): no table, no class — the user loads one; classes on the b
   const before = fc.available({ doc, bodies: r0.bodies, selection: { faces: [{ body: 0, face: bore }], edges: [], bodies: [] } });
   assert.ok(!before.ok && /Load a fit table first .* none is built in/.test(before.reason));
   const loaded = editFitTables(doc, [TABLE]); assert.ok('doc' in loaded); doc = loaded.doc;
-  assert.match(String((editFitTables(doc, [{ id: 'x', rows: [{ class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0 }] }]) as { error: string }).error), /\[FIT_TABLE\].*never neither/);
+  assert.match(String((editFitTables(doc, [{ id: 'x', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0 }] }]) as { error: string }).error), /\[FIT_TABLE\].*never neither/);
   doc = run(doc, 'fit-class', ['n1.hole0.side0'], { class: 'H7' });
   doc = run(doc, 'fit-class', ['n3.side0'], { class: 'g6' });
   doc = run(doc, 'fit-pair', ['n3.side0', 'n1.hole0.side0'], {});

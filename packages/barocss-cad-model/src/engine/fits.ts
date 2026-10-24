@@ -60,7 +60,7 @@ export function fitClasses(doc: StudioDoc): string[] {
 }
 
 const mm = (x: number) => +x.toFixed(4);
-const dev = (um: number) => `${um > 0 ? '+' : um < 0 ? '−' : ''}${mm(Math.abs(um) / 1000)}`;
+const dev = (value: number) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${mm(Math.abs(value))}`;
 // (A pair's check builds two Booleans: kept per pair of B-reps and classes.)
 const checks = new WeakMap<Brep, Map<string, { shaft: Brep; check: FitCheck }>>();
 
@@ -86,7 +86,7 @@ export function fitNotes(doc: StudioDoc, outputs: readonly Output[]): Map<string
     const hole = g.out === -1;
     if (hole !== isHoleClass(cls)) throw new FitError('FIT_FACE', `${face} is a ${hole ? 'hole' : 'shaft'}'s face: give it a ${hole ? "hole's class (a capital letter: H7)" : "shaft's class (a small letter: g6)"}, not ${cls}`);
     const l = lookupFit(tables, cls, 2 * g.r), src = tables.find(t => t.id === l.table)?.sources?.find(s => s.id === l.source);
-    add(hit.o.id, { text: `${face}: Ø${mm(l.nominal)} ${cls} ${dev(l.upperUM)}/${dev(l.lowerUM)} mm — ${mm(l.min)} to ${mm(l.max)} (${l.table} row ${l.row}${l.estimate ? ', an estimate' : src ? `, ${src.label}` : ''})`, ...(l.estimate ? { warning: true } : {}) });
+    add(hit.o.id, { text: `${face}: Ø${mm(l.nominal)} ${cls} ${dev(l.upper)}/${dev(l.lower)} mm — ${mm(l.min)} to ${mm(l.max)} (${l.table} row ${l.row}${l.estimate ? ', an estimate' : src ? `, ${src.label}` : ''})`, ...(l.estimate ? { warning: true } : {}) });
   }
   for (const p of f.pairs ?? []) {
     const h = find(p.hole), s = find(p.shaft), hc = classOf(doc, p.hole), sc = classOf(doc, p.shaft);
