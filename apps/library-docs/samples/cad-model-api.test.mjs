@@ -218,7 +218,7 @@ test('rows from a person\'s file, then a fastener from them', () => {
   const sizes = { name: 'fastener-sizes.json',
     text: readFileSync(resolve(import.meta.dirname, '../../../packages/barocss-cad-model/samples/rows/fastener-sizes.json'), 'utf8') };
   assert.throws(() => part('bolt').fastener({ kind: 'hex-bolt', size: 'M8', length: '60' }),
-    e => e instanceof BarocssError && e.message.includes('[FASTENER_SIZE_ROW] no fastener sizes loaded'));   // no rows: refused
+    e => e instanceof BarocssError && e.code === 'FASTENER_SIZE_ROW');   // no rows loaded: refused
   const bolt = part('bolt')
     .loadRows('fastener-sizes', sizes)        // its receipt names the file, as the studio's Library writes it
     .fastener({ kind: 'hex-bolt', size: 'M8', length: '60' });

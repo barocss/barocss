@@ -327,6 +327,13 @@ const steps = [
     await page.waitForSelector('[aria-label="Joint a~b value"]', { timeout: 2 * WAIT }); await iso(); await page.waitForTimeout(500);
     await shot('studio/robots', 'joints', 'studio/robots: the Joints card');
   }],
+  ['studio/robots: the robot samples in Templates', async () => {
+    await fresh();
+    await page.click('[aria-label="New from a template"]');
+    await page.waitForSelector('[aria-label="Templates"] [aria-label="Samples"]', { timeout: WAIT }); await page.waitForTimeout(300);
+    await shot('studio/robots', 'samples-menu', 'studio/robots: the robot samples in Templates', { target: page.locator('[aria-label="Templates"]') });
+    await press('Escape');
+  }],
   ...ROBOT_SHOTS.map(([id, pose]) => [`studio/robots: the ${id} sample, its motion paused half-way`, async () => {
     await fresh();
     await openFile(join(studio, `../../packages/barocss-cad-model/samples/robots/${id}.bcad`));
