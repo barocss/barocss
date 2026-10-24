@@ -179,8 +179,8 @@ function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
  * 45° of the pull) with their least draft; those under `min`.
  */
 export function draftAnalysis(doc: StudioDoc, b: BodyResult, pull: Vec3, min = 1): Record<string, unknown> {
-  const f = draftField(doc, [b], pull, min), walls = f.faces.filter(x => Math.min(Math.abs(x.minDeg), Math.abs(x.max)) < 45 || x.cls === 'straddle');
+  const f = draftField(doc, [b], pull, min), walls = f.faces.filter(x => Math.min(Math.abs(x.min), Math.abs(x.max)) < 45 || x.cls === 'straddle');
   return { body: b.key, pull: v3(f.pull),
-    walls: walls.map(x => ({ face: x.face, draft_deg: r3(x.cls === 'straddle' ? 0 : Math.sign(x.max) * x.steepestDeg), min_deg: r3(x.minDeg), max_deg: r3(x.max), class: x.cls, ...(x.isocline ? { isocline_points: x.isocline.length } : {}) })),
+    walls: walls.map(x => ({ face: x.face, draft_deg: r3(x.cls === 'straddle' ? 0 : Math.sign(x.max) * x.steepest), min_deg: r3(x.min), max_deg: r3(x.max), class: x.cls, ...(x.isocline ? { isocline_points: x.isocline.length } : {}) })),
     under_min: walls.filter(x => x.cls !== 'drafted').map(x => x.face), note: 'exact normals (planes, cylinders, curved faces from the B-rep); straddle: n·d takes both signs, a parting line crosses it' };
 }

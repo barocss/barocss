@@ -267,7 +267,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     const steep = field.filter(f => f.cls === 'steep'), straddle = field.filter(f => f.cls === 'straddle');
     rules.push({ id: 'draft', level: 'recommended', status: steep.length || straddle.length ? 'warn' : 'pass',
       message: `every face's draft (its exact normal) against ${finish.label}'s least, ${finish.draftMin}°${steep.length ? `: ${steep.length} too steep` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (n·d takes both signs: a parting line crosses them, IM5)` : ''}`,
-      value: steep.length ? Math.min(...steep.map(f => f.steepestDeg)) : Math.min(...field.map(f => f.steepestDeg)), limit: finish.draftMin, unit: 'deg', source: finish.source, entities: [...steep, ...straddle].map(f => f.face).slice(0, 40) });
+      value: steep.length ? Math.min(...steep.map(f => f.steepest)) : Math.min(...field.map(f => f.steepest)), limit: finish.draftMin, unit: 'deg', source: finish.source, entities: [...steep, ...straddle].map(f => f.face).slice(0, 40) });
   }
   // IM3 (O79): what neither half sees along the pull; freed by a side action across it (warned), or by none (fails).
   let regions: UndercutRegion[] | null = null;
@@ -304,7 +304,7 @@ function mouldability(doc: StudioDoc, bodies: readonly BodyResult[], profile: Pr
     ...(parting ? { parting: { faces: parting.faces.map(f => ({ face: f.face, half: f.half, basis: f.basis })), split: parting.split.map(x => ({ face: x.face, isoclineLength: r6(x.isoclineLength) })), loops: parting.loops.map(l => ({ closed: l.closed, length: r6(l.length), pullRange: l.pullRange.map(r6), flat: l.flat, points: l.points.length })) } } : {}),
     walls: wr.map(w => ({ body: w.body, nominal: w.nominal === null ? null : r6(w.nominal), thinnest: w.thinnest === null ? null : r6(w.thinnest), thick95: w.thick95 === null ? null : r6(w.thick95), ribs: w.ribs.map(r => ({ faces: r.faces, thickness: r6(r.thickness) })), bosses: w.bosses.map(b => ({ outer: b.outer, inner: b.inner, wall: r6(b.wall) })), fillets: w.fillets.map(f => ({ face: f.face, radius: r6(f.radius) })), sharp_corners: w.sharp.length, thick: w.thick ? { faces: w.thick.faces, area: r6(w.thick.area), max: r6(w.thick.max) } : null })),
     ...(regions ? { undercuts: regions.map(r => ({ body: r.body, faces: r.faces, area: r6(r.area), centroid: r.centroid.map(r6) as Vec3, side_action: r.sideAction, best_share: r6(r.best.clearShare) })) } : {}),
-    ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min: r6(f.minDeg), max: r6(f.max), steepest: r6(f.steepestDeg), side: f.side, belowArea: r6(f.belowMM2), area: r6(f.area), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
+    ...(field ? { draft: field.map(f => ({ body: f.body, face: f.face, cls: f.cls, min: r6(f.min), max: r6(f.max), steepest: r6(f.steepest), side: f.side, belowArea: r6(f.belowArea), area: r6(f.area), ...(f.isocline ? { isocline_points: f.isocline.length } : {}) })) } : {}) } };
 }
 
 function rule(id: string, level: 'feasible' | 'recommended', met: boolean, message: string, value: number, limit: number, unitName: string, source: string, entities?: string[]): PrintRule {
