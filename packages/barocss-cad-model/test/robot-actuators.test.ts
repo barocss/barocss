@@ -155,7 +155,7 @@ function assertSourced(x: Value, what: string) {
 
 test('the size_actuators tool; refusals (a value with no source, an unknown unit, a slide); the conformance case (rm/size-1r: the closed forms)', async () => {
   const doc = JSON.parse(readFileSync(join(CASES, 'revolute', 'case.json'), 'utf8')).input.document as StudioDoc, { tree, bodies, evaluated } = await robotOf(doc), key = coordinates(tree)[0];
-  const args = { to: { [key]: 2 }, profile: 'trapezoid', limits: { velocity: 1.5, acceleration: 4 }, dwell_s: 0.5, life_h: 1 };
+  const args = { to: { [key]: 2 * 180 / Math.PI }, profile: 'trapezoid', limits: { velocity: 1.5 * 180 / Math.PI, acceleration: 4 * 180 / Math.PI }, dwell_s: 0.5, life_h: 1 };
   const out = await dispatchTool({ doc, bodies: evaluated }, 'size_actuators', args, evaluate), j = JSON.parse(out.content);
   assert.ok(!out.isError && !out.changed, out.content);
   const joint = j.joints[0];

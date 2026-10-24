@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import type { JointTree, JointType } from '@barocss/cad-model/robot/joints';
+import { jointSettingsOut } from '@barocss/cad-model/robot/units';
 import { sliderRange } from '@barocss/cad-model/robot/fk';
 import type { LinkInertia } from '@barocss/cad-model/robot/inertia';
 import { CONTROL, FIELD, TICK } from './panelStyles';
@@ -13,7 +14,10 @@ const TYPE_LABEL: Record<JointType, string> = { fixed: 'Fixed', revolute: 'Revol
 const axisText = (a: readonly number[]) => { const k = a.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9); return k >= 0 ? `${a[k] < 0 ? '−' : '+'}${'XYZ'[k]}` : `[${a.map(x => x.toFixed(3)).join(', ')}]`; };
 // (Conventions §2: a turning joint's range in degrees and its velocity in °/s, a slide's in mm and mm/s; each number to 4 significant figures.)
 const sig4 = (v: number) => { const t = Number(v.toPrecision(4)); return Object.is(t, -0) ? 0 : t; };
-const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => { const slide = type === 'prismatic', k = slide ? 1 : 180 / Math.PI; return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower * k)}° … ${sig4(l.upper * k)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${sig4(l.velocity * k)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · '); };
+const limitText = (raw: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => {
+  const l = jointSettingsOut(type, raw), slide = type === 'prismatic';
+  return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower)}° … ${sig4(l.upper)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·mm'}` : '', l.velocity !== undefined ? `${sig4(l.velocity)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · ');
+};
 
 /** A gear pair at the pose shown: its phase against home, its backlash (RM2). */
 export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlash: number }

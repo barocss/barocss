@@ -91,6 +91,13 @@ test('O24 (a) PG-5: the cam as the agent sees it — get_joints\' couplings, pos
   const s = { doc, bodies: r.bodies };
   const joints = JSON.parse((await dispatchTool(s, 'get_joints', {}, evaluate)).content);
   assert.equal(joints.cams[0].kind, 'cam'); assert.equal(joints.cams[0].follower, folJ.key);
+  const publicCam = joints.joints.find((j: { key: string }) => j.key === folJ.key).cam;
+  assert.deepEqual(publicCam.points, folJ.cam!.points, 'public cam points stay in mm');
+  folJ.cam!.arcs.forEach((arc, i) => {
+    assert.ok(Math.abs(publicCam.arcs[i].from - arc.from * 180 / Math.PI) <= 1e-9);
+    assert.ok(Math.abs(publicCam.arcs[i].width - arc.width * 180 / Math.PI) <= 1e-9);
+    assert.deepEqual(publicCam.arcs[i].c, arc.c); assert.equal(publicCam.arcs[i].r, arc.r);
+  });
   const pose = JSON.parse((await dispatchTool(s, 'set_pose', { values: { [camJ.key]: 90 } }, evaluate)).content);
   assert.ok(Math.abs(Math.abs(pose.values[folJ.key]) - (C + RN - RB)) <= 1e-9, `a quarter turn: the base circle under the follower, 6 mm down: ${JSON.stringify(pose).slice(0, 300)}`);
   // (A half turn swept: certified clear — the follower rides the lobe, its seat designed — with the lift's bound.)

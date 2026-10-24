@@ -105,7 +105,7 @@ test('limits: values outside are reported, not clamped; slider ranges; unknown j
 
 test('the forward_kinematics tool: placements as place_part takes them, the gear phase held, refusals', async () => {
   const doc = caseDoc('chain-2r'), r = await evaluate(doc); assert.ok(r.ok);
-  const out = await dispatchTool({ doc, bodies: r.bodies }, 'forward_kinematics', { values: { 'base~a': Math.PI / 2 } }, evaluate);
+  const out = await dispatchTool({ doc, bodies: r.bodies }, 'forward_kinematics', { values: { 'base~a': 90 } }, evaluate);
   assert.ok(!out.isError && !out.changed, out.content);
   const j = JSON.parse(out.content), a = j.links.find((l: { link: string }) => l.link === 'a'), b = j.links.find((l: { link: string }) => l.link === 'b');
   // (a turned a quarter about its hole at (20, 20): its corner, 10 mm from the hole each way, goes round with it.)
