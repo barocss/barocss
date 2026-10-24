@@ -19,7 +19,7 @@ export interface SceneMesh extends GeometryInput { key?: string; material?: Mate
 /** A facade's mesh (§10.3): triangles, with its display lines as segment pairs and its body's material id when it has them. */
 export type FacadeMesh = GeometryInput & { key?: string; lines?: ArrayLike<number>; material?: string };
 /** A camera view: the direction from the scene towards the eye, and the up it keeps; fit() then frames the scene from there. */
-export interface SceneCamera { direction: Vec3; up: Vec3; projection: Projection; fovYDeg: number }
+export interface SceneCamera { direction: Vec3; up: Vec3; projection: Projection; fovY: number }
 /** The scene's plain description. Typed arrays appear only in the meshes (conventions §2). */
 export interface SceneData {
   frame: 'z-up'; meshes: SceneMesh[]; materials?: Record<string, Material>; lights?: Light[]; background?: BackgroundInput; camera?: SceneCamera;
@@ -109,17 +109,17 @@ export class Scene {
 
   /**
    * The camera's view: a standard one (iso, front, back, right, left, top, bottom) or a direction to the eye (and the
-   * up it keeps, +Z unless given), perspective (fovYDeg 40) or orthographic. show() frames the scene from it.
+   * up it keeps, +Z unless given), perspective (fovY 40) or orthographic. show() frames the scene from it.
    */
-  camera(view: ViewName | { direction: readonly number[]; up?: readonly number[] }, options: { projection?: Projection; fovYDeg?: number } = {}): Scene {
+  camera(view: ViewName | { direction: readonly number[]; up?: readonly number[] }, options: { projection?: Projection; fovY?: number } = {}): Scene {
     const v = typeof view === 'string' ? VIEWS[view] : view;
     if (!v) throw refuse('CAMERA_INVALID', `a view is ${Object.keys(VIEWS).join(', ')} or { direction, up? }, not ${String(view)}`);
     const direction = unit3(v.direction, 'direction'), up = unit3(v.up ?? [0, 0, 1], 'up');
     if (Math.abs(direction[0] * up[0] + direction[1] * up[1] + direction[2] * up[2]) > 1 - 1e-9) throw refuse('CAMERA_INVALID', 'the camera\'s up must not lie along its direction');
-    const projection = options.projection ?? 'perspective', fovYDeg = options.fovYDeg ?? 40;
+    const projection = options.projection ?? 'perspective', fovY = options.fovY ?? 40;
     if (projection !== 'perspective' && projection !== 'orthographic') throw refuse('CAMERA_INVALID', `a projection is perspective or orthographic, not ${String(projection)}`);
-    if (!(Number.isFinite(fovYDeg) && fovYDeg > 0 && fovYDeg < 180)) throw refuse('CAMERA_INVALID', `fovYDeg is between 0 and 180, not ${fovYDeg}`);
-    return new Scene({ ...this.#data, camera: { direction, up, projection, fovYDeg } });
+    if (!(Number.isFinite(fovY) && fovY > 0 && fovY < 180)) throw refuse('CAMERA_INVALID', `fovY is between 0 and 180, not ${fovY}`);
+    return new Scene({ ...this.#data, camera: { direction, up, projection, fovY } });
   }
 
   #known(id: string): void {
@@ -145,10 +145,12 @@ export function show(viewer: Viewer, view: Scene): void {
     const look = typeof material === 'string' ? data.materials![material] : material;
     viewer.add(geometry, { ...(look ? { material: look } : {}), ...(key !== undefined ? { name: key } : {}) });
   }
-  // (fit() keeps the view's direction and frames the scene's box from it: the eye is placed one unit along the view.)
+  // (fit() keeps the view's direction and frames the scene's box from it, recentring on the box and backing off to fit:
+  // so the eye is put one unit along the view from the current target only to give fit() that direction — the unit
+  // distance is meant, not a bug.)
   if (data.camera) {
     const c = viewer.camera, t = c.target, d = data.camera.direction;
-    c.projection = data.camera.projection; c.fovY = data.camera.fovYDeg; c.up = [...data.camera.up];
+    c.projection = data.camera.projection; c.fovY = data.camera.fovY; c.up = [...data.camera.up];
     c.position = [t[0] + d[0], t[1] + d[1], t[2] + d[2]];
   }
   viewer.fit();

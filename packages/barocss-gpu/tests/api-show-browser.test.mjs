@@ -49,7 +49,7 @@ test('a facade-built part shows through show() in a real Viewer, Z-up, at its ow
       const gpu = await import('/gpu.js');
       const { scene, show } = await import('/gpu/api/index.js');
       const { part } = await import('/cad/api/index.js');
-      const bracket = part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 }).hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 }).fillet(b => b.edges().along('z'), { radiusMM: 2 });
+      const bracket = part('bracket').box({ w: 80, d: 40, h: 10 }).hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 }).fillet(b => b.edges().along('z'), { radius: 2 });
       const meshes = bracket.meshes();
       const viewer = await gpu.createViewer(document.getElementById('c'), { pixelRatio: 1, controls: false });
       show(viewer, scene().add(meshes, { color: '#c8ccd2' }).background('#102030'));
@@ -86,7 +86,7 @@ test('show() draws a material by id, the display lines and a top view', { timeou
       const gpu = await import('/gpu.js');
       const { scene, show } = await import('/gpu/api/index.js');
       const { part } = await import('/cad/api/index.js');
-      const plate = part('plate').box({ wMM: 80, dMM: 40, hMM: 10 }).hole(b => b.faces().facing('+z'), { dMM: 16, xMM: 20, yMM: 20 });
+      const plate = part('plate').box({ w: 80, d: 40, h: 10 }).hole(b => b.faces().facing('+z'), { d: 16, x: 20, y: 20 });
       // (cad's kernel names no material, so the mesh is given the id cad-model's part would carry.)
       const meshes = plate.meshes().map(m => ({ ...m, material: 'al6061' }));
       const viewer = await gpu.createViewer(document.getElementById('c'), { pixelRatio: 1, controls: false });

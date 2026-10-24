@@ -14,8 +14,8 @@ test('a document: built, evaluated, written as STEP, saved and read back', async
   // #region doc
   // A 40 × 20 × 5 plate, then a Ø6 hole through it.
   const plate = part('plate')
-    .box({ wMM: 40, dMM: 20, hMM: 5 })
-    .hole(body => body.faces().facing('+z'), { dMM: 6, xMM: 10, yMM: 10 });
+    .box({ w: 40, d: 20, h: 5 })
+    .hole(body => body.faces().facing('+z'), { d: 6, x: 10, y: 10 });
   const doc = plate.doc;                       // the studio document, as the studio's own commands write it
 
   const result = evaluateDoc(doc, 1);          // the core: the bodies, their display meshes and masses

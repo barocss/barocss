@@ -98,7 +98,7 @@ export function framesDoc(doc: StudioDoc, frames: Record<string, FrameSettings |
 
 /** Each frame's world pose at the solved pose (mm, degrees about X, then Y, then Z). */
 export function framePosesOf(doc: StudioDoc) {
-  return (treeOf(doc).frames ?? []).map(f => ({ name: f.name, link: f.link, ...(f.kind ? { kind: f.kind } : {}), positionMM: [...f.o] as Vec3, rotationDeg: eulerOf(f.R) as Vec3 }));
+  return (treeOf(doc).frames ?? []).map(f => ({ name: f.name, link: f.link, ...(f.kind ? { kind: f.kind } : {}), position: [...f.o] as Vec3, rotation: eulerOf(f.R) as Vec3 }));
 }
 
 /** The mates the solver cannot meet, with its reasons. */

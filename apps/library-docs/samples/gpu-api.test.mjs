@@ -12,8 +12,8 @@ import { part as studioPart } from '@barocss/cad-model/api';
 test('a scene of the bracket: its data plain, Z-up, the meshes as the part gave them', () => {
   // #region scene
   const bracket = part('bracket')
-    .box({ wMM: 80, dMM: 40, hMM: 10 })
-    .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 });
+    .box({ w: 80, d: 40, h: 10 })
+    .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 });
   const view = scene()
     .add(bracket.meshes(), { color: '#c8ccd2', roughness: 0.5 })
     .light({ kind: 'directional', direction: [-0.4, 0.6, -1] })
@@ -41,7 +41,7 @@ test('immutable, and a mesh that is not one refused', () => {
 
 test('a studio part shown in its material, with its display lines, from the iso view', () => {
   // #region looks
-  const plate = studioPart('plate').box({ wMM: 60, dMM: 40, hMM: 8 }).material('al6061');
+  const plate = studioPart('plate').box({ w: 60, d: 40, h: 8 }).material('al6061');
   const view = scene()
     .material('al6061', { color: '#b8bcc2', metallic: 1, roughness: 0.35 })   // a look for the part's material id
     .add(plate.meshes(), undefined, { lines: true })   // each mesh in the look its body names, and its lines

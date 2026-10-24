@@ -19,7 +19,7 @@ type XYZ = [number, number, number];
 /** A face a mate holds: on the base part (`'base'`) or a placed part (by the name it was added with), by a selector or its name. */
 export interface MateEnd { part: string; face: string | ((body: BodyQuery) => FaceQuery); body?: string }
 /** A mate's values: a distance's mm, an angle's degrees, `flip` as the studio's (api: assembly.add_mate). */
-export interface MateOptions { distanceMM?: number; angleDeg?: number; flip?: boolean }
+export interface MateOptions { distance?: number; angle?: number; flip?: boolean }
 /** A tool or sensor frame (O12) on a link — the base part or a placed part, by name — at a Location in that part's own coordinates. */
 export interface FrameOptions { link: string; at?: Location; kind?: 'tool' | 'sensor' }
 
@@ -51,7 +51,7 @@ export class Assembly {
     if (!(part instanceof StudioPart)) throw refuse('VALUE', 'addPart takes a studio part (part() from @barocss/cad-model/api)');
     const at = options.at ?? Location.IDENTITY;
     if (!(at instanceof Location)) throw refuse('VALUE', 'a part is placed at a Location');
-    return new Assembly(this.name, addPartDoc(this.#doc, name, part.doc, toVec(at.positionMM), toVec(at.rotationDeg), options.grounded === true).doc);
+    return new Assembly(this.name, addPartDoc(this.#doc, name, part.doc, toVec(at.position), toVec(at.rotation), options.grounded === true).doc);
   }
 
   /** `assembly.place`: a placed part moved to a Location, or grounded (true) or freed (false). Mates still place it where they fix it. */
@@ -59,7 +59,7 @@ export class Assembly {
     const id = this.idOf(name);
     if (id === BASE) throw refuse('VALUE', 'the base part stays at the origin');
     if (o.at !== undefined && !(o.at instanceof Location)) throw refuse('VALUE', 'a part is placed at a Location');
-    return new Assembly(this.name, placePartDoc(this.#doc, id, { ...(o.at ? { position: toVec(o.at.positionMM), rotation: toVec(o.at.rotationDeg) } : {}), ...(o.grounded !== undefined ? { grounded: o.grounded } : {}) }));
+    return new Assembly(this.name, placePartDoc(this.#doc, id, { ...(o.at ? { position: toVec(o.at.position), rotation: toVec(o.at.rotation) } : {}), ...(o.grounded !== undefined ? { grounded: o.grounded } : {}) }));
   }
 
   /**
@@ -67,10 +67,10 @@ export class Assembly {
    * tangent. The second part moves (a fixed second and a free first swap, as in the studio), solved exactly.
    */
   addMate(kind: Exclude<MateKind, 'lock'>, a: MateEnd, b: MateEnd, options: MateOptions = {}): Assembly {
-    if (kind === 'distance' && !Number.isFinite(options.distanceMM)) throw refuse('VALUE', 'a distance mate needs distanceMM');
-    if (kind === 'angle' && !Number.isFinite(options.angleDeg)) throw refuse('VALUE', 'an angle mate needs angleDeg');
+    if (kind === 'distance' && !Number.isFinite(options.distance)) throw refuse('VALUE', 'a distance mate needs distance');
+    if (kind === 'angle' && !Number.isFinite(options.angle)) throw refuse('VALUE', 'an angle mate needs angle (degrees)');
     const ea = this.#end(a), eb = this.#end(b);
-    return new Assembly(this.name, addMateDoc(this.#doc, kind, ea, eb, { distance: options.distanceMM, angle: options.angleDeg, flip: options.flip }).doc);
+    return new Assembly(this.name, addMateDoc(this.#doc, kind, ea, eb, { distance: options.distance, angle: options.angle, flip: options.flip }).doc);
   }
 
   /** `assembly.inputs` (O11): inputs added or replaced by name, null removing one — the core's input shape, bindings by part and mate id. */
@@ -87,7 +87,7 @@ export class Assembly {
     for (const [name, f] of Object.entries(frames)) {
       if (f === null) { out[name] = null; continue; }
       if (f.at !== undefined && !(f.at instanceof Location)) throw refuse('VALUE', `frame ${name}: at is a Location`);
-      out[name] = { link: this.idOf(f.link), ...(f.at ? { position: [...f.at.positionMM], rotation: [...f.at.rotationDeg] } : {}), ...(f.kind ? { kind: f.kind } : {}) };
+      out[name] = { link: this.idOf(f.link), ...(f.at ? { position: [...f.at.position], rotation: [...f.at.rotation] } : {}), ...(f.kind ? { kind: f.kind } : {}) };
     }
     return new Assembly(this.name, framesDoc(this.#doc, out));
   }
@@ -102,15 +102,15 @@ export class Assembly {
   }
 
   /** Where each placed part stands: its id, name, position (mm) and rotation (degrees about X, then Y, then Z). */
-  placements(): { part: string; name: string; positionMM: Vec3; rotationDeg: Vec3; grounded?: true }[] {
-    return (this.#doc.instances ?? []).map(i => ({ part: i.id, name: i.name, positionMM: toVec(i.position), rotationDeg: toVec(i.rotation), ...(i.grounded ? { grounded: true as const } : {}) }));
+  placements(): { part: string; name: string; position: Vec3; rotation: Vec3; grounded?: true }[] {
+    return (this.#doc.instances ?? []).map(i => ({ part: i.id, name: i.name, position: toVec(i.position), rotation: toVec(i.rotation), ...(i.grounded ? { grounded: true as const } : {}) }));
   }
 
   /** The mates the solver cannot meet, with its reasons (none: every mate is met). */
   problems(): { mate: string; reason: string }[] { return problemsOf(this.#doc); }
 
   /** Each frame's world pose at the solved pose (O12). */
-  framePoses(): { name: string; link: string; kind?: 'tool' | 'sensor'; positionMM: Vec3; rotationDeg: Vec3 }[] { return framePosesOf(this.#doc); }
+  framePoses(): { name: string; link: string; kind?: 'tool' | 'sensor'; position: Vec3; rotation: Vec3 }[] { return framePosesOf(this.#doc); }
 
   /** Every part's display triangles where it stands (`base/<body>`, `<part id>/<body>`), in the common mesh shape. */
   meshes(): MeshData[] { return assemblyMeshes(this.#doc); }
