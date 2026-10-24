@@ -21,7 +21,7 @@ export interface Closure {
   branch: 1 | -1;
 }
 export type LoopCode = 'NOT_PLANAR' | 'NOT_ONE_LOOP' | 'NO_CLOSURE' | 'BRANCH_FLIP' | 'NO_PIN';
-export interface Closed { q: Record<string, number>; residualMM: number; branch: 1 | -1; iterations: number }
+export interface Closed { q: Record<string, number>; residual: number; branch: 1 | -1; iterations: number }
 
 const RESIDUAL_MM = 1e-12, MAX_ITER = 60;
 const point = (m: { R: Float64Array; t: Float64Array }, p: readonly number[]): [number, number, number] => [m.R[0] * p[0] + m.R[1] * p[1] + m.R[2] * p[2] + m.t[0], m.R[3] * p[0] + m.R[4] * p[1] + m.R[5] * p[2] + m.t[1], m.R[6] * p[0] + m.R[7] * p[1] + m.R[8] * p[2] + m.t[2]];
@@ -95,7 +95,7 @@ export function closeLoop(tree: JointTree, c: Closure, driver: string, value: nu
   if (!(res <= 1e-9)) throw refusal('NO_CLOSURE', `${driver} at ${value} rad: the loop does not close (its pin ${res.toExponential(3)} mm apart after ${it} steps)`);
   const branch = branchAt(tree, c, q);
   if (branch !== c.branch) throw refusal('BRANCH_FLIP', `${driver} at ${value} rad closes on the other branch: not the one the linkage was assembled in`);
-  return { q, residualMM: res, branch, iterations: it };
+  return { q, residual: res, branch, iterations: it };
 }
 
 // ── O24 (a), PG-7: a loop closed on its own mates (the API lane's check.ts close(), lifted) ──
@@ -303,7 +303,7 @@ export function loopCloserOf(doc: StudioDoc, tree: JointTree): LoopCloser | null
  * values; absent: the solved pose's 0) by continuation. Refused: more drivers than the loops' freedom (LOOP_PASSIVE), a
  * driver that is not round a loop, no closure (NO_CLOSURE), a dead point (DEAD_POINT).
  */
-export function closeLoops(tree: JointTree, c: LoopCloser, drivers: Readonly<Record<string, number>>, from: Readonly<Record<string, number>> = {}): { q: Record<string, number>; residualMM: number; steps: number } {
+export function closeLoops(tree: JointTree, c: LoopCloser, drivers: Readonly<Record<string, number>>, from: Readonly<Record<string, number>> = {}): { q: Record<string, number>; residual: number; steps: number } {
   const given = Object.keys(drivers).filter(k => c.all.includes(k));
   if (given.some(k => !c.free.includes(k))) throw refusal('JOINT_MIMIC', `${given.filter(k => !c.free.includes(k)).join(', ')} follows another joint: give its leader`);
   if (given.length > c.freedom) throw refusal('LOOP_PASSIVE', `the loop${tree.loops.length > 1 ? 's have' : ' has'} ${c.freedom} degree${c.freedom === 1 ? '' : 's'} of freedom: give ${c.freedom} of ${c.free.join(', ')}, and the rest are solved (${given.join(', ')} given)`);
@@ -341,5 +341,5 @@ export function closeLoops(tree: JointTree, c: LoopCloser, drivers: Readonly<Rec
     du /= 2;
   }
   const res = Math.sqrt(evalLoop(tree, c.terms, q, r, null, cols, c.onPath));
-  return { q, residualMM: res, steps };
+  return { q, residual: res, steps };
 }
