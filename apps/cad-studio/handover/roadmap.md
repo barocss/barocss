@@ -31,7 +31,7 @@ Integration is `review/cad-gpu-engine-2026-10-14`, local only (tip in `git log`;
 | | |
 |---|---|
 | Content | develop (#2185) + Codex's work squashed (`99da385a1`, no evidence files) + the GPU lint fix |
-| Last fully verified commit | `16eabdd8e`, 2026-10-24: the full window and the full flow 287/287 (S9) |
+| Last fully verified commit | `1f43a0818`, 2026-10-24, after K16 (a track boundary): builds, types, lint, model 1051/1051, studio 286/286, gpu 201/201, kernel 1715/1722 (only native-split), RB and props pass, full flow 287/287 on WebGPU. Before it: `16eabdd8e` (S9) |
 | Integration window at `99da385a1` | builds and tsc pass; gpu 179/179; kernel 1597/1608 (4 real failures); model 902/915; studio 166/187; studio lint 1 error (fixed since); browser flow not run |
 
 Done, per area (see the logs):
