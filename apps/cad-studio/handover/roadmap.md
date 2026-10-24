@@ -24,7 +24,7 @@ section current.
 | Docs | Boolean algorithms, interactive figures and native 3D construction stages adopted (`f1b1819e9`, merge `7b275de05`); lane samples 56/56, build and desktop/mobile checks pass. Fifteen native results and independent volume oracles are checked; reconstructed face stages are teaching illustrations, not execution traces | R7 docs migration at `c9cd4a8ca` plus explicit `5237df391` supplement; product adoption held | R7.6 part 2 after coordinated R7 qualification |
 | Drawings (CG5) | DR-6a control characteristics/modifiers adopted (`c31386e9a`, merge `c5f144e72`); DR-5 stays done. DR-6 as a whole remains incomplete; focused lane browser, native, contract and DXF checks pass | DR-6b face datum features; then targets and standalone/composite frames in bounded slices | DR-7 presets and inch display, DR-8 drawing sets |
 | Data (CG6) | idle: VA-1/VA-2 done (merge df8761f1e); what is left (sharing, comments, multi-user) waits on the owner | — | — |
-| Coordinator | merges; the periodic roadmap review (every30minutes; notify only on meaningful changes); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3); the 2026-10-24 night merges (2fff42cb9, af4384170, df8761f1e, 816c2263b, 3e305ea01) checked by cad-model/studio tsc and the merged areas' tests only (cad-model 40/40, studio 21/21); gpu build:library in the integration worktree passes again after the untracked stale G18.2 draft src/engine-uv-material-wgsl.ts was moved aside to ~/.cache/barocss-preserved/2026-10-24-integration-untracked/ (GPU lane: superseded by material/engine-uv-repeating-material-wgsl.ts) | P1-L3 after P1's scripted build (owner-approved budget); route AI-eval's AE-1..AE-19 (notes/ai-eval-2026-10-24.md) | the owner's open decisions (below) |
+| Coordinator | merges; the periodic roadmap review (every5minutes and on lane messages; notify only on meaningful changes); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3); the 2026-10-24 night merges (2fff42cb9, af4384170, df8761f1e, 816c2263b, 3e305ea01) checked by cad-model/studio tsc and the merged areas' tests only (cad-model 40/40, studio 21/21); gpu build:library in the integration worktree passes again after the untracked stale G18.2 draft src/engine-uv-material-wgsl.ts was moved aside to ~/.cache/barocss-preserved/2026-10-24-integration-untracked/ (GPU lane: superseded by material/engine-uv-repeating-material-wgsl.ts) | P1-L3 after P1's scripted build (owner-approved budget); route AI-eval's AE-1..AE-19 (notes/ai-eval-2026-10-24.md) | the owner's open decisions (below) |
 
 ## Codex lane ownership and R7 readiness (2026-10-24)
 
@@ -76,8 +76,11 @@ have immutable compatible checkpoints and their required checks are recorded:
 - GPU: approved compatibility `1205fbe91` covers19 initial consumer/test files plus4 matching test/fixture leases. Lane Studio types49→0, related native103/103, WebGPU/WebGL2 flows6/6 each pass. Latest direct owner instruction keeps that checkpoint idle until aggregate results; no extra eb4 GPU run or rendering optimization is claimed.
 
 The isolated qualification branch is `codex/cad-r7-qualification-20261025` in the preparation worktree.
-Latest preparation is `b4be15b7ca27c0399c69211def0bda6af4df16e8`; its final change from `78be079e8`
-is the two checked Docs pages. Docs check passes. This preparation is **NOT QUALIFIED** and remains outside product.
+Latest isolated preparation is `0632daabd60d02cbda42a5d3fde450d4ad9f4ad1` (actual later tip in git log).
+It assembles the residual contract77d5/interface86ea/gravity correction331947, Drawing baseline0f56,
+Docs preparation093a, Outer angular WIP552e, API consumer1d31099 and Kernel stored inputsb567/d788.
+It is **NOT QUALIFIED** and remains outside product. Current docs check FAIL is the generated tools reference drifting
+from the new public angular description; preserve the failure and regenerate once with the matching completed producer.
 
 - At exact `eb4a0487c4c0e3ef17101fb021a7867e41a164ca`, model/Studio types pass, whole model has1208 PASS /11 FAIL /0 SKIP of1219, docs61/61 pass, and O24(b) Save/Open8 assertions pass.
 - At `3f7006abcdecb290d0406d062758832be02cce29`, the seven bounded Kernel/Outer repair groups pass30/30. This is a focused rerun, not a rerun of all1219. Four frozen-SI model failure groups remain unresolved.
@@ -97,18 +100,18 @@ bounded next tasks at that exact base and preserve their previous checkpoints.
 
 | Work | Active scope | Dependency / completion condition |
 |---|---|---|
-| Kernel | Native SI moment/cache access and package-local internal subpath; then separate fit deviations | Publish exact internal function/type first; preserve public MMGS output, no extra integration or fabricated density |
-| Outer | Public robot angular/storage adapters first; then force/time/MMGS reports and residual mechanical/row names | Publish public projection signatures to API; consume exact Kernel SI checkpoint separately; preserve internal radians/SI |
-| API | Public joints/setJoints, mixed turning/sliding contact, then MMGS/gravity and owned names | Use the same Outer producer contract; preserve existing pose conversion and P1; exclude P2 |
-| Docs | Confirmed contract text and independent degree/MMGS examples | Execute samples/regenerate references on exact completed producer/API assembly; preserve5173 preview |
-| Drawings | Residual drawing-name and fit-deviation consumer map; bounded owned migrations | Consume exact Kernel/Outer producer; keep DR6b outside R7 |
+| Kernel | Stored input checkpointsb567/d788 submitted; native SI16/16/build/lint passed with fingerprint review in progress, then fit/bearing deviations | Internal subpath interface fixed; preserve public MMGS output, no extra integration or fabricated density |
+| Outer | Angular/storage WIP552e assembled; phaseB1 raw-before-rounding/public force-time-MMGS reports active, then B2 duty/diagnostics and mechanical/row names | Angular fixture dependency resolved in6ced15/15; exact Kernel SI/fit producers follow separately |
+| API | Angular consumer1d31099:9/9 independent/previous units,61/61 API, types/lint pass; next phaseB shared reports | Exact Outer phaseB producer needed; preserve existing pose conversion and P1; exclude P2 |
+| Docs | Preparation093a static/build pass;3 new angular samples assigned at exact0632; runtime result pending | Full samples/scenes/build/reference generation after phaseB producer/API; preserve5173 preview |
+| Drawings | Physical fit/DXF baseline0f56:4/4 pass,12mm and deviations unchanged at scales1/2 | Await exact Kernel fit/bearing plus Outer fitView/validator before11-row consumer migration; keep DR6b outside R7 |
 | GPU | Read-only exact consumer-impact map for confirmed CAM/print/material/public DTO fields | Keep1205 clean under direct source-edit/remeasurement hold; coordinator assigns any demonstrated compatibility patch separately |
 | Coordinator | Contract/roadmap, serial preparation adoption, shared browser-flow changes and final assembly | Freeze one SHA after all producers and consumers are ready; run required full suites and actual WebGPU/WebGL2 flows before product R7 window |
 
 Public and stored turning quantities use degrees, force N, turning moment N·mm, gravity mm/s², time seconds,
 mass g and inertia g·mm². Native robot files retain format SI; raw FK/dynamics remain internal radians/SI.
-No aliases, schema bump, tolerance loosening or frozen-native-pin regeneration is authorized. A7.5 test-only checkpoint
-`6b7e58d3b` is adopted in preparation `3795e938b`; focused5/5 and docs pass, without a new whole Studio result.
+Default gravity preserves9.80665m/s² as9806.65mm/s²; explicit9810 remains a separate input. No aliases, schema bump, tolerance loosening or frozen-native-pin regeneration is authorized. A7.5 test-only checkpoint
+`6b7e58d3b` is adopted in preparation `3795e938b`; focused5/5 passed, without a new whole Studio result. Kernel/Outer angular storage at6ced passes15/15; this is a focused result, not a whole suite or the later0632 result.
 Product R7 and P2 remain HOLD. Finish the residual contract instead of promoting the354-row kernel map as complete.
 
 The coordinator must record the complete immutable set and shared field/unit map before the serial window. Verify
