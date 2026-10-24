@@ -3165,3 +3165,43 @@ The work stopped here for the owner's move to another place.
 - **Not done, for the other lanes** (§10.2 says "where they cross a package"): cad's `Vector3` (section-properties) and
   its api/ Vec3s (the API lane's), and cad-model's eight `Vec3`/`V3`/`Mat3` declarations, are the kernel's, the API
   lane's and the outer lane's.
+
+## G-R54 — G14 in progress, measured: section's GPU time by pass; the step-48 order dependency (roadmap G14, 2026-10-24)
+
+- **Section's GPU time, by pass** (measure first):
+  - The viewer's render passes now carry labels (`viewer surface`, `viewer output`, `viewer shadow`, `viewer cap front`
+    and `… samples`, `viewer light probe`, `viewer oit` and `… composite`, `viewer outline mask`, `viewer mip`,
+    `viewer pick`). A label is the only change: no pass, draw or binding moved.
+  - bench-browser records each stamped pass's time by its label and prints it under the row with `BENCH_PASSES=1`.
+  - Run: `BENCH_ONLY='^(section|orbit)' BENCH_PASSES=1 node test/bench-browser.mjs`, load 14 → 12, so LOADED (compare
+    only). Milliseconds per submit:
+
+| Row | GPU | surface | output | cap front samples | light probe | cap front | shadow | outline mask |
+|---|---|---|---|---|---|---|---|---|
+| orbit, 60 steps | 1.2 | 0.41 | 0.79 | — | — | — | — | — |
+| orbit, a body outlined | 2.06 | 0.40 | 1.27 | — | — | — | — | 0.39 |
+| section, 120 brackets on the GPU | **5.68** (≤ 6) | 2.17 | 2.06 | 0.71 | 0.30 | 0.27 | 0.17 | — |
+| section, CPU clipMesh (WebGL2's) | 1.95 | 0.86 | 0.81 | — | — | — | 0.28 | — |
+
+  - Within its budget in this run; 8.1–8.8 ms at G-R46–G-R50, also loaded. So the overrun is not steady.
+  - Where the time goes: the surface pass costs 2.5 times the CPU path's (the clip plane's discard and the caps' probe
+    in the same shader), and so does the output pass (2.06 against 0.81). The cap passes add 1.3 ms. The output pass's
+    share is the open question: it resolves and composites the same pixels either way.
+  - **Decision proposed**: no change to the section path from this. Next, one quiet-machine run of the section rows to
+    settle whether 6 ms holds, then, only if it doesn't, the output pass first.
+- **The step-48 order dependency** (reproduced: FLOW_ONLY `^(render a part|section view|parameters:|surface
+  analysis|RM2:)` on WebGPU; 48 passes, 74, 96, 193 and 217 fail):
+  - Cause 1: **New part keeps the camera.** Step 48 leaves its saved view (the camera further out). Step 74 starts from
+    New part with that camera, where it otherwise starts from the default one. Its six 12 px drag steps then move the
+    plane to 29 mm, not 24.
+  - Cause 2: at that zoom the section handle moves 2.9 px on release (held → after: −2.7, −1.0 px), over step 74's
+    2 px limit. The drag and the commit both snap to 0.5 mm, and the handle's point comes from the same
+    `sectionHandles(section, sectionBox)` both times, so the move is in how the handle is drawn, not in the plane. Still
+    to find: during the drag SceneViewport draws the handle from the live store; after release the App draws it, and
+    they differ.
+  - Steps 96, 193 and 217 fail only because 74 stopped with the section left on (96's screenshot: the section bar still
+    up, Chamfer refused).
+  - Step 74 passes alone.
+  - **Decisions proposed**: (a) New part puts the camera back to the default view; this is user-visible, so it is the
+    coordinator's call. (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
+    flow's steps 96, 193 and 217 don't need to change.

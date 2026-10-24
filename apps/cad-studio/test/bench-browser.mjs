@@ -79,7 +79,7 @@ function benchGpuTiming(b) {
 
 function benchCounters() {
   return { submits: 0, frames: 0, frameMS: 0, gpuMS: 0, queueMS: 0, perFrame: {}, t: -1, batch: 0, sameStamp: 0, bytes: 0, buffers: 0, made: {}, wrote: {},
-    gpuExpected: 0, gpuCompleted: 0, gpuQueries: 0, gpuReadQueries: 0, unstamped: 0, timingErrors: [], queryBatches: [] };
+    gpuExpected: 0, gpuCompleted: 0, gpuQueries: 0, gpuReadQueries: 0, unstamped: 0, timingErrors: [], queryBatches: [], passMS: {} };
 }
 
 function installBenchInstrumentation(timestampSample, benchCounters) {
@@ -111,11 +111,11 @@ function installBenchInstrumentation(timestampSample, benchCounters) {
       if (!dev.features.has('timestamp-query')) return enc;
       const pool = dev.__ts ??= [], qs = pool.pop() ?? dev.createQuerySet({ type: 'timestamp', count: 32 });
       let n = 0, passes = 0;
-      const errors = [], begin = enc.beginRenderPass.bind(enc), finish = enc.finish.bind(enc);
+      const errors = [], labels = [], begin = enc.beginRenderPass.bind(enc), finish = enc.finish.bind(enc);
       enc.beginRenderPass = desc => {
         passes++;
         if (desc.timestampWrites || n + 2 > 32) { errors.push('render-pass-not-instrumented'); return begin(desc); }
-        const first = n; n += 2;
+        const first = n; n += 2; labels.push(desc.label ?? 'unlabelled');
         return begin({ ...desc, timestampWrites: { querySet: qs, beginningOfPassWriteIndex: first, endOfPassWriteIndex: first + 1 } });
       };
       enc.finish = fd => {
@@ -127,7 +127,7 @@ function installBenchInstrumentation(timestampSample, benchCounters) {
         } else pool.push(qs);
         const command = finish(fd);
         // Finished but unsubmitted encoders must not be mapped or have their query sets recycled by another submit.
-        batches.set(command, { dev, qs, res, read, n, passes, errors });
+        batches.set(command, { dev, qs, res, read, n, passes, errors, labels });
         return command;
       };
       return enc;
@@ -156,7 +156,11 @@ function installBenchInstrumentation(timestampSample, benchCounters) {
         if (result.reason === 'invalid-or-reversed-timestamp-pair' && !q.errors.length) sample.unstamped++;
         else if (!result.valid || q.errors.length) sample.timingErrors.push({ ...result, valid: false,
           reason: result.reason ?? 'render-pass-not-instrumented', encoderErrors: q.errors, values: Array.from(values, String) });
-        else sample.gpuMS += result.ms;
+        else {
+          sample.gpuMS += result.ms;
+          // (G14: each stamped pass's time by its label — the viewer labels its passes — printed with BENCH_PASSES.)
+          for (let i = 0; i < q.labels.length; i++) sample.passMS[q.labels[i]] = (sample.passMS[q.labels[i]] ?? 0) + Number(values[2 * i + 1] - values[2 * i]) / 1e6;
+        }
       }).catch(e => { sample.timingErrors.push({ reason: 'timestamp-readback-failed', message: String(e) }); }).finally(() => {
         sample.gpuCompleted++;
         if (mapped) q.read.unmap();
@@ -298,6 +302,8 @@ const measure = async (name, budget, act) => {
   const avg = b.frames ? b.frameMS / b.frames : 0, most = Math.max(0, ...Object.values(b.perFrame)), drawn = Math.max(1, Object.keys(b.perFrame).length);
   const timing = benchGpuTiming(b), taskPerFrame = task / drawn, kbPerFrame = b.bytes / 1024 / drawn, gpu = timing.msPerSubmit;
   const drawless = !!budget.drawless && b.submits === 0;
+  // (BENCH_PASSES: the GPU time a stamped submit spends in each of the viewer's passes, most first — G14.)
+  if (process.env.BENCH_PASSES && timing.valid) console.log(`  [${name}] passes ms a submit ${Object.entries(b.passMS).sort((x, y) => y[1] - x[1]).map(([k, ms]) => `${k} ${(ms / (b.submits - (b.unstamped ?? 0))).toFixed(2)}`).join(', ')}`);
   const validMetrics = [b.submits, b.frames, avg, most, taskPerFrame, kbPerFrame, b.buffers, b.queueMS, wall].every(v => Number.isFinite(v) && v >= 0) && (drawless || (b.submits > 0 && b.frames > 0));
   rows.push({ name, submits: b.submits, frames: b.frames, most, avgFrameMS: +avg.toFixed(2), taskMS: +taskPerFrame.toFixed(2), kb: +kbPerFrame.toFixed(1), buffers: b.buffers, gpuMS: timing.valid ? +gpu.toFixed(2) : null, queueMS: +(b.submits ? b.queueMS / b.submits : 0).toFixed(2), timed: timing.valid, timing, queryBatches: b.queryBatches, sameStamp: b.sameStamp, wallMS: wall, app, taskTotalMS: +task.toFixed(1), uploadTotalKiB: +(b.bytes / 1024).toFixed(0),
     ok: validMetrics && (timing.valid || drawless) && b.submits <= budget.submits && avg <= budget.avgFrameMS && most <= (budget.perFrame ?? Infinity) && taskPerFrame <= (budget.taskMS ?? Infinity) && kbPerFrame <= (budget.kb ?? Infinity) && b.buffers <= (budget.buffers ?? Infinity) && (drawless || gpu <= (budget.gpuMS ?? Infinity)) && app <= (budget.app ?? Infinity), budget });
