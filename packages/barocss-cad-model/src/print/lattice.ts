@@ -8,10 +8,10 @@ import { evaluatePart, type BodyResult } from '../engine/evaluate';
 import { positionsArray } from '../engine/blobs';
 import type { Vec3 } from '../engine/mesh';
 import { cavityField, depthAt, depthBins, meshPieces, putNow, type DepthBins, type Grid } from './hollow';
+import { refusal } from '../engine/refusal';
 
 export type LatticeCode = 'NOT_HOLLOW' | 'BAD_VALUES' | 'GRID_TOO_FINE' | 'NO_LATTICE' | 'UNDRAINED';
 const MAX_DRAIN_ROUNDS = 64;
-export class LatticeError extends Error { constructor(public code: LatticeCode, message: string) { super(`[${code}] ${message}`); this.name = 'LatticeError'; } }
 export interface LatticeOptions { cell: number; k: number; h?: number }
 export interface LatticeReport {
   cell: number; k: number; h: number; t: number; nodes: number;
@@ -179,19 +179,19 @@ export const isHollowed = (doc: StudioDoc): boolean => hollowOf(doc) !== null;
 /** The lattice planned: the drains it needs (B-rep holes) and its mesh body appended; the field's numbers for the report. */
 export function planLattice(doc: StudioDoc, bodies: readonly BodyResult[], o: LatticeOptions): { doc: StudioDoc; report: LatticeReport; mesh: { positions: number[]; indices: number[] }; grid: Grid; psi: Float64Array } {
   const hol = hollowOf(doc);
-  if (!hol || bodies.length !== 1) throw new LatticeError('NOT_HOLLOW', 'the lattice fills a part hollowed by Hollow for printing (its exact shell): hollow the part first');
+  if (!hol || bodies.length !== 1) throw refusal('NOT_HOLLOW', 'the lattice fills a part hollowed by Hollow for printing (its exact shell): hollow the part first');
   const L = o.cell, k = o.k, h = o.h ?? L / 12;
-  if (!(L > 0 && k > 0 && k < 1.5 && h > 0 && h <= L / 4)) throw new LatticeError('BAD_VALUES', `a cell L > 0, a band 0 < k < 1.5 and a voxel 0 < h ≤ L/4 (L ${L}, k ${k}, h ${h})`);
+  if (!(L > 0 && k > 0 && k < 1.5 && h > 0 && h <= L / 4)) throw refusal('BAD_VALUES', `a cell L > 0, a band 0 < k < 1.5 and a voxel 0 < h ≤ L/4 (L ${L}, k ${k}, h ${h})`);
   // (A drain's column must hold the grid's nodes to drain anything: the voxel at most its radius.)
   const rd = hol.holes[0]?.radius ?? 2;
-  if (h > rd) throw new LatticeError('BAD_VALUES', `a voxel h at most the drain's radius ${rd} mm, so a drain's column holds the grid's nodes (h ${h})`);
+  if (h > rd) throw refusal('BAD_VALUES', `a voxel h at most the drain's radius ${rd} mm, so a drain's column holds the grid's nodes (h ${h})`);
   const d = doc.print?.direction ?? [0, 0, 1], up = d.findIndex(x => Math.abs(x) > 1e-9), [a, b] = [0, 1, 2].filter(x => x !== up);
   // (The original body, before the shell: its depth field gives the cavity, φ_c = depth − t.)
   const before = evaluatePart({ ...doc, nodes: doc.nodes.slice(0, hol.shell) }, 0);
-  if (!before.ok) throw new LatticeError('NOT_HOLLOW', 'the part before its shell could not be evaluated');
+  if (!before.ok) throw refusal('NOT_HOLLOW', 'the part before its shell could not be evaluated');
   const orig = before.bodies.find(x => x.ref?.node === hol.original.node) ?? before.bodies[0];
   let cav: Grid;
-  try { cav = cavityField(orig.mesh, hol.t, h); } catch (e) { throw new LatticeError('GRID_TOO_FINE', e instanceof Error ? e.message.replace(/^\[\w+\] /, '') : String(e)); }
+  try { cav = cavityField(orig.mesh, hol.t, h); } catch (e) { throw refusal('GRID_TOO_FINE', e instanceof Error ? e.message.replace(/^\[\w+\] /, '') : String(e)); }
   const floor = orig.mesh.bounds.min[up], origin: Vec3 = [orig.mesh.bounds.min[0] + hol.t, orig.mesh.bounds.min[1] + hol.t, orig.mesh.bounds.min[2] + hol.t];
   // (The hollowing's drains as columns, then one more for each empty region left undrained, until none is.)
   const columns: Column[] = hol.holes.map(x => ({ a: x.center[0], b: x.center[1], top: floor + x.depth, r: x.radius }));
@@ -207,7 +207,7 @@ export function planLattice(doc: StudioDoc, bodies: readonly BodyResult[], o: La
     columns.push({ a: p[a], b: p[b], top: p[up], r: r0 });
     if (u.hole) added.push({ at: p, depth: p[up] - floor }); else joined++;
     field = latticeField(cav, origin, L, k, columns, up);
-    if (round === MAX_DRAIN_ROUNDS - 1 && emptyRegions(cav, field.psi, field.active, up).some(x => !x.drained)) throw new LatticeError('UNDRAINED', `the lattice leaves empty regions undrained after ${MAX_DRAIN_ROUNDS} drains: take a larger cell or a finer voxel`);
+    if (round === MAX_DRAIN_ROUNDS - 1 && emptyRegions(cav, field.psi, field.active, up).some(x => !x.drained)) throw refusal('UNDRAINED', `the lattice leaves empty regions undrained after ${MAX_DRAIN_ROUNDS} drains: take a larger cell or a finer voxel`);
   }
   const size = Math.max(...[0, 1, 2].flatMap(q => [Math.abs(orig.mesh.bounds.min[q]), Math.abs(orig.mesh.bounds.max[q])])), tau = weldTau(size, L);
   awayFromZero(field.psi, tau);
@@ -221,7 +221,7 @@ export function planLattice(doc: StudioDoc, bodies: readonly BodyResult[], o: La
     for (let v = 0; v < piece.positions.length && !touches; v += 3) if (phiAt(cav, [piece.positions[v], piece.positions[v + 1], piece.positions[v + 2]]) <= h && Math.abs(depthAt(depth, piece.positions[v], piece.positions[v + 1], piece.positions[v + 2]) - hol.t) <= 2 * tau) touches = true;
     if (touches) kept.push(piece); else { dropped++; droppedVolume += meshVolume(piece.positions, piece.indices); }
   }
-  if (!kept.length) throw new LatticeError('NO_LATTICE', `no lattice is left in the cavity at L ${L}, k ${k}`);
+  if (!kept.length) throw refusal('NO_LATTICE', `no lattice is left in the cavity at L ${L}, k ${k}`);
   const all = { positions: [] as number[], indices: [] as number[] };
   // (Copied element by element: a spread of hundreds of thousands of numbers overflows the call stack.)
   for (const p of kept) { const base = all.positions.length / 3; for (let i = 0; i < p.positions.length; i++) all.positions.push(p.positions[i]); for (let i = 0; i < p.indices.length; i++) all.indices.push(base + p.indices[i]); }

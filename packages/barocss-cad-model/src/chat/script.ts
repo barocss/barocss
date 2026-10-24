@@ -20,15 +20,17 @@
 // set_requirements takes them).
 // A feature handle: `.top`, `.bottom`, `.cut`, `.side0` … (its faces by role), `.side(k)` or `.side("e3")`, `.face(role)`,
 // `.id`, `.body` (the body it made, for commands that take bodies).
+import { refusal } from '../engine/refusal';
 
 export const SCRIPT_VERSION = 'barocss-cad-script-v1';
 /** Limits: the source, the tool calls a script makes, the loop iterations, nesting. */
 export const SCRIPT_LIMITS = { sourceChars: 20000, calls: 200, iterations: 2000, depth: 48, arrayItems: 1000 } as const;
 
 export type ScriptErrorCode = 'SYNTAX' | 'UNKNOWN_NAME' | 'TYPE' | 'LIMIT' | 'REFUSED';
-export class ScriptError extends Error {
-  constructor(readonly code: ScriptErrorCode, message: string, readonly line: number, readonly col: number) { super(`[${code}] line ${line}:${col}: ${message}`); this.name = 'ScriptError'; }
-}
+/** The codes a script refuses with. */
+export const SCRIPT_CODES: readonly ScriptErrorCode[] = ['SYNTAX', 'UNKNOWN_NAME', 'TYPE', 'LIMIT', 'REFUSED'];
+/** A script's refusal: "[CODE] line L:C: …", its line and column in `details`. */
+export const scriptError = (code: ScriptErrorCode, message: string, line: number, col: number) => refusal(code, `line ${line}:${col}: ${message}`, { line, col });
 
 // ---------------------------------------------------------------------------------------------------------
 // Lexer
@@ -39,7 +41,7 @@ const PUNCT = ['===', '!==', '==', '!=', '<=', '>=', '&&', '||', '(', ')', '[', 
 const KEYWORDS = new Set(['const', 'for', 'of', 'if', 'else', 'true', 'false', 'let', 'var', 'function', 'while', 'return']);
 
 export function lex(source: string): Token[] {
-  if (source.length > SCRIPT_LIMITS.sourceChars) throw new ScriptError('LIMIT', `the script is ${source.length} characters (at most ${SCRIPT_LIMITS.sourceChars})`, 1, 1);
+  if (source.length > SCRIPT_LIMITS.sourceChars) throw scriptError('LIMIT', `the script is ${source.length} characters (at most ${SCRIPT_LIMITS.sourceChars})`, 1, 1);
   const out: Token[] = [];
   let i = 0, line = 1, col = 1;
   const step = (n: number) => { for (let k = 0; k < n; k++) { if (source[i] === '\n') { line++; col = 1; } else col++; i++; } };
@@ -47,7 +49,7 @@ export function lex(source: string): Token[] {
     const c = source[i];
     if (c === ' ' || c === '\t' || c === '\r' || c === '\n') { step(1); continue; }
     if (c === '/' && source[i + 1] === '/') { while (i < source.length && source[i] !== '\n') step(1); continue; }
-    if (c === '/' && source[i + 1] === '*') { const at = { line, col }; step(2); while (i < source.length && !(source[i] === '*' && source[i + 1] === '/')) step(1); if (i >= source.length) throw new ScriptError('SYNTAX', 'a comment is not closed', at.line, at.col); step(2); continue; }
+    if (c === '/' && source[i + 1] === '*') { const at = { line, col }; step(2); while (i < source.length && !(source[i] === '*' && source[i + 1] === '/')) step(1); if (i >= source.length) throw scriptError('SYNTAX', 'a comment is not closed', at.line, at.col); step(2); continue; }
     const at = { line, col };
     if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(source[i + 1] ?? ''))) {
       const m = /^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/.exec(source.slice(i))!;
@@ -56,11 +58,11 @@ export function lex(source: string): Token[] {
     if (c === '"' || c === "'") {
       let j = i + 1, s = '';
       while (j < source.length && source[j] !== c) {
-        if (source[j] === '\n') throw new ScriptError('SYNTAX', 'a string is not closed on its line', at.line, at.col);
+        if (source[j] === '\n') throw scriptError('SYNTAX', 'a string is not closed on its line', at.line, at.col);
         if (source[j] === '\\') { const e = source[j + 1]; s += e === 'n' ? '\n' : e === 't' ? '\t' : e; j += 2; continue; }
         s += source[j]; j++;
       }
-      if (j >= source.length) throw new ScriptError('SYNTAX', 'a string is not closed', at.line, at.col);
+      if (j >= source.length) throw scriptError('SYNTAX', 'a string is not closed', at.line, at.col);
       out.push({ kind: 'str', text: source.slice(i, j + 1), value: s, ...at }); step(j + 1 - i); continue;
     }
     if (/[A-Za-z_$]/.test(c)) {
@@ -68,7 +70,7 @@ export function lex(source: string): Token[] {
       out.push({ kind: 'name', text: m[0], ...at }); step(m[0].length); continue;
     }
     const p = PUNCT.find(q => source.startsWith(q, i));
-    if (!p) throw new ScriptError('SYNTAX', `unexpected character "${c}"`, at.line, at.col);
+    if (!p) throw scriptError('SYNTAX', `unexpected character "${c}"`, at.line, at.col);
     out.push({ kind: 'punct', text: p, ...at }); step(p.length);
   }
   out.push({ kind: 'end', text: '', line, col });
@@ -95,20 +97,20 @@ export function parse(source: string): Stmt[] {
   let k = 0, depth = 0;
   const peek = () => tokens[k], next = () => tokens[k++];
   const is = (text: string) => (peek().kind === 'punct' || peek().kind === 'name') && peek().text === text;
-  const expect = (text: string, what = `"${text}"`) => { const t = next(); if (t.text !== text || (t.kind !== 'punct' && t.kind !== 'name')) throw new ScriptError('SYNTAX', `${what} expected, found ${t.kind === 'end' ? 'the end' : `"${t.text}"`}`, t.line, t.col); return t; };
-  const deeper = (t: Token) => { if (++depth > SCRIPT_LIMITS.depth) throw new ScriptError('LIMIT', `nested more than ${SCRIPT_LIMITS.depth} deep`, t.line, t.col); };
-  const nameToken = (what: string) => { const t = next(); if (t.kind !== 'name' || KEYWORDS.has(t.text)) throw new ScriptError('SYNTAX', `${what} expected, found ${t.kind === 'end' ? 'the end' : `"${t.text}"`}`, t.line, t.col); return t; };
+  const expect = (text: string, what = `"${text}"`) => { const t = next(); if (t.text !== text || (t.kind !== 'punct' && t.kind !== 'name')) throw scriptError('SYNTAX', `${what} expected, found ${t.kind === 'end' ? 'the end' : `"${t.text}"`}`, t.line, t.col); return t; };
+  const deeper = (t: Token) => { if (++depth > SCRIPT_LIMITS.depth) throw scriptError('LIMIT', `nested more than ${SCRIPT_LIMITS.depth} deep`, t.line, t.col); };
+  const nameToken = (what: string) => { const t = next(); if (t.kind !== 'name' || KEYWORDS.has(t.text)) throw scriptError('SYNTAX', `${what} expected, found ${t.kind === 'end' ? 'the end' : `"${t.text}"`}`, t.line, t.col); return t; };
 
   function block(): Stmt[] {
     expect('{'); const out: Stmt[] = [];
-    while (!is('}')) { if (peek().kind === 'end') throw new ScriptError('SYNTAX', '"}" expected, found the end', peek().line, peek().col); out.push(statement()); }
+    while (!is('}')) { if (peek().kind === 'end') throw scriptError('SYNTAX', '"}" expected, found the end', peek().line, peek().col); out.push(statement()); }
     next(); return out;
   }
   function statement(): Stmt {
     const t = peek(); deeper(t);
     try {
-      if (t.kind === 'name' && (t.text === 'let' || t.text === 'var')) throw new ScriptError('SYNTAX', `use const: names are set once (${t.text} is not part of the language)`, t.line, t.col);
-      if (t.kind === 'name' && (t.text === 'function' || t.text === 'while' || t.text === 'return')) throw new ScriptError('SYNTAX', `"${t.text}" is not part of the language: use for (const … of range(n)) and calls`, t.line, t.col);
+      if (t.kind === 'name' && (t.text === 'let' || t.text === 'var')) throw scriptError('SYNTAX', `use const: names are set once (${t.text} is not part of the language)`, t.line, t.col);
+      if (t.kind === 'name' && (t.text === 'function' || t.text === 'while' || t.text === 'return')) throw scriptError('SYNTAX', `"${t.text}" is not part of the language: use for (const … of range(n)) and calls`, t.line, t.col);
       if (t.kind === 'name' && t.text === 'const') {
         // (`const a = 1, b = 2`: several names in one statement, set in order.)
         next(); const decls: (Pos & { name: string; init: Expr })[] = [];
@@ -149,7 +151,7 @@ export function parse(source: string): Stmt[] {
   function postfix(e: Expr): Expr {
     for (;;) {
       const t = peek();
-      if (is('.')) { next(); const n = next(); if (n.kind !== 'name') throw new ScriptError('SYNTAX', 'a name expected after "."', n.line, n.col); e = { t: 'member', obj: e, prop: n.text, line: n.line, col: n.col }; continue; }
+      if (is('.')) { next(); const n = next(); if (n.kind !== 'name') throw scriptError('SYNTAX', 'a name expected after "."', n.line, n.col); e = { t: 'member', obj: e, prop: n.text, line: n.line, col: n.col }; continue; }
       if (is('[')) { next(); const index = expression(); expect(']'); e = { t: 'index', obj: e, index, line: t.line, col: t.col }; continue; }
       if (is('(')) {
         next(); const args: Expr[] = [];
@@ -166,7 +168,7 @@ export function parse(source: string): Stmt[] {
       if (t.kind === 'str') return { t: 'str', v: t.value as string, line: t.line, col: t.col };
       if (t.kind === 'name') {
         if (t.text === 'true' || t.text === 'false') return { t: 'bool', v: t.text === 'true', line: t.line, col: t.col };
-        if (KEYWORDS.has(t.text)) throw new ScriptError('SYNTAX', `"${t.text}" cannot start an expression`, t.line, t.col);
+        if (KEYWORDS.has(t.text)) throw scriptError('SYNTAX', `"${t.text}" cannot start an expression`, t.line, t.col);
         return { t: 'name', name: t.text, line: t.line, col: t.col };
       }
       if (t.text === '(') { const e = expression(); expect(')'); return e; }
@@ -179,16 +181,16 @@ export function parse(source: string): Stmt[] {
         const props: [string, Expr][] = [];
         while (!is('}')) {
           const key = next();
-          if (key.kind !== 'name' && key.kind !== 'str' && key.kind !== 'num') throw new ScriptError('SYNTAX', 'a property name expected', key.line, key.col);
+          if (key.kind !== 'name' && key.kind !== 'str' && key.kind !== 'num') throw scriptError('SYNTAX', 'a property name expected', key.line, key.col);
           const name = key.kind === 'str' ? String(key.value) : key.text;
           // (A shorthand `{ w }` is `{ w: w }`.)
-          if (is(',') || is('}')) { if (key.kind !== 'name') throw new ScriptError('SYNTAX', '":" expected', key.line, key.col); props.push([name, { t: 'name', name, line: key.line, col: key.col }]); }
+          if (is(',') || is('}')) { if (key.kind !== 'name') throw scriptError('SYNTAX', '":" expected', key.line, key.col); props.push([name, { t: 'name', name, line: key.line, col: key.col }]); }
           else { expect(':'); props.push([name, expression()]); }
           if (!is('}')) expect(',', '"," or "}"');
         }
         next(); return { t: 'object', props, line: t.line, col: t.col };
       }
-      throw new ScriptError('SYNTAX', t.kind === 'end' ? 'the script ends too early' : `unexpected "${t.text}"`, t.line, t.col);
+      throw scriptError('SYNTAX', t.kind === 'end' ? 'the script ends too early' : `unexpected "${t.text}"`, t.line, t.col);
     } finally { depth--; }
   }
   const out: Stmt[] = [];
@@ -229,12 +231,12 @@ const PURE: Record<string, (args: number[]) => number> = {
 };
 const SPECIAL = new Set(['range', 'face', 'edge', 'body', 'ref', 'node', 'feature', 'edit', 'remove', 'requirements', 'brief']);
 
-/** Runs a parsed script against the host. Throws ScriptError (typed, with its line) on the first problem. */
+/** Runs a parsed script against the host. Throws a refusal (scriptError: typed, with its line) on the first problem. */
 export async function runScript(program: Stmt[], host: ScriptHost): Promise<ScriptRun> {
   const scopes: Map<string, Value>[] = [new Map()], run: ScriptRun = { calls: [], names: {} };
   const commandOf = new Map(host.commands.map(c => [c.replace(/-/g, '_'), c]));
   let iterations = 0;
-  const fail = (code: ScriptErrorCode, msg: string, at: Pos): never => { throw new ScriptError(code, msg, at.line, at.col); };
+  const fail = (code: ScriptErrorCode, msg: string, at: Pos): never => { throw scriptError(code, msg, at.line, at.col); };
   const lookup = (name: string, at: Pos): Value => {
     for (let s = scopes.length - 1; s >= 0; s--) if (scopes[s].has(name)) return scopes[s].get(name)!;
     if (name === 'PI') return Math.PI;

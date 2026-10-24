@@ -8,8 +8,9 @@ import { badValue, briefGaps, readBrief, REQUIRED } from './brief';
 import { BRIEF_FIELDS, PROCESSES } from '../engine/schema/brief';
 import type { Brief, BriefKey, Field } from '../engine/schema/brief';
 import type { Requirement } from '../engine/schema/spec';
-import { confirmDimension, DraftError, unconfirmed } from './drafts';
+import { confirmDimension, DRAFT_CODES, unconfirmed } from './drafts';
 import type { Blocks, Question, Batch, QuestionLog, AskCode } from '../engine/schema/questions';
+import { isRefusal } from '../engine/refusal';
 
 export const MAX_QUESTIONS = 5, MAX_BATCHES = 2;
 
@@ -93,7 +94,7 @@ export function answerBatch(doc: StudioDoc, answers: Record<string, string | num
     if ('dimension' in q.blocks) {
       // (A draft's dimension, A6.4: confirmed at the answer, its features re-driven.)
       const v = typeof a === 'number' ? a : Number(words);
-      try { reqDoc = confirmDimension(reqDoc, q.blocks.dimension, v, at); } catch (e) { return { error: `${q.text}: ${e instanceof DraftError ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e)}` }; }
+      try { reqDoc = confirmDimension(reqDoc, q.blocks.dimension, v, at); } catch (e) { return { error: `${q.text}: ${isRefusal(e, ...DRAFT_CODES) ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e)}` }; }
     } else if ('field' in q.blocks) {
       const key = q.blocks.field, v = fieldValue(key, a), bad = badValue(key, v);
       if (bad) return { error: `${q.text}: the answer is ${bad}.` };

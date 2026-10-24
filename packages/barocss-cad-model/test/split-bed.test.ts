@@ -5,7 +5,8 @@ import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { interference } from '../src/analysis/analysis';
 import { processProfile } from '../src/library/materials';
-import { fitsBed, planBedSplit, SplitError, type SplitOptions } from '../src/print/splitBed';
+import { fitsBed, planBedSplit, type SplitOptions } from '../src/print/splitBed';
+import { isRefusal } from '../src/engine/refusal';
 
 // AM6 (O51): a part too big for the bed split along one axis into the fewest even pieces that fit, with dowel or plug
 // connectors. Piece volumes against the original (exactly before connectors, by the closed form after); each piece
@@ -20,7 +21,7 @@ async function box(w: number, d: number, h: number, extra: Partial<StudioDoc> = 
 }
 async function bodiesOf(doc: StudioDoc) { const e = await evaluate(doc); assert.ok(e.ok, JSON.stringify(!e.ok && e)); return e.bodies; }
 const vol = (bs: readonly BodyResult[], keys: readonly string[]) => keys.reduce((s, k) => s + bs.find(b => b.key === k)!.volumeMM3!, 0);
-const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return e instanceof SplitError ? e.code : String(e); } };
+const code = (f: () => unknown) => { try { f(); return 'none'; } catch (e) { return isRefusal(e) ? e.code : String(e); } };
 const DOWEL: SplitOptions = { connector: 'dowel', d: 6, length: 20 };
 
 test('a 300 mm bar on the 256 mm bed: two pieces that each fit; dowels at the fit; volumes by the closed form; no overlap anywhere', async () => {

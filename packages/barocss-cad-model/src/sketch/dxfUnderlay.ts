@@ -6,7 +6,8 @@
 // height, rotation and plain string (MTEXT's inline codes stripped). The underlay never becomes a region, a hole, a
 // sketch entity or a dimension: the profile reader reads regions from the top level's LINE, ARC, CIRCLE, LWPOLYLINE and
 // POLYLINE alone, as before. A spline given by fit points only is left out and listed (its interpolation is the writer's).
-import { DxfReadError, pairsOf } from './dxfRead';
+import { pairsOf } from './dxfRead';
+import { refusal } from '../engine/refusal';
 
 type P = [number, number];
 /** A 2D affine map: x' = a x + b y + e, y' = c x + d y + f. */
@@ -49,8 +50,8 @@ function similar(m: M2): boolean {
 }
 
 interface Entity { type: string; body: [number, string][] }
-const num = (v: string | undefined, what: string): number => { const x = Number(v); if (v === undefined || !Number.isFinite(x)) throw new DxfReadError('DXF_MALFORMED', `${what}: "${(v ?? '').slice(0, 20)}" is not a number`); return x; };
-const get = (e: Entity, code: number, d?: number): number => { const v = e.body.find(p => p[0] === code); if (!v) { if (d !== undefined) return d; throw new DxfReadError('DXF_MALFORMED', `a ${e.type} without its group ${code}`); } return num(v[1], `${e.type} group ${code}`); };
+const num = (v: string | undefined, what: string): number => { const x = Number(v); if (v === undefined || !Number.isFinite(x)) throw refusal('DXF_MALFORMED', `${what}: "${(v ?? '').slice(0, 20)}" is not a number`); return x; };
+const get = (e: Entity, code: number, d?: number): number => { const v = e.body.find(p => p[0] === code); if (!v) { if (d !== undefined) return d; throw refusal('DXF_MALFORMED', `a ${e.type} without its group ${code}`); } return num(v[1], `${e.type} group ${code}`); };
 const all = (e: Entity, code: number): number[] => e.body.filter(p => p[0] === code).map(p => num(p[1], `${e.type} group ${code}`));
 const str = (e: Entity, code: number): string | undefined => e.body.find(p => p[0] === code)?.[1];
 
@@ -138,7 +139,7 @@ export function plainMtext(s: string): string {
 export function readUnderlay(text: string, toMM: number, o: { detail?: boolean } = {}): Underlay {
   const pairs = pairsOf(text), blocks = blocksOf(pairs);
   const start = pairs.findIndex((p, i) => p[0] === 2 && p[1] === 'ENTITIES' && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1] === 'SECTION');
-  if (start < 0) throw new DxfReadError('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
+  if (start < 0) throw refusal('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
   const top = entitiesOf(pairs, start + 1, p => p[0] === 0 && p[1] === 'ENDSEC').list;
   const u: Underlay = { polylines: [], texts: [], counts: {}, left: {}, ...(o.detail ? { curves: [] } : {}) }, unit = scale(toMM, toMM);
   const count = (t: string) => { u.counts[t] = (u.counts[t] ?? 0) + 1; };
@@ -149,13 +150,13 @@ export function readUnderlay(text: string, toMM: number, o: { detail?: boolean }
       if (e.type === 'VERTEX' || e.type === 'SEQEND' || e.type === 'ATTRIB') continue;
       if (!inBlock && !UNDERLAY_TOP.has(e.type)) continue;
       const z = get(e, 230, 1);
-      if (Math.abs(Math.abs(z) - 1) > 1e-9 || all(e, 30).some(v => Math.abs(v) > 1e-9) && e.type !== 'INSERT' && e.type !== 'TEXT' && e.type !== 'MTEXT') throw new DxfReadError('DXF_UNSUPPORTED', `a ${e.type} off the XY plane: the drawing reader takes 2D drawings`);
+      if (Math.abs(Math.abs(z) - 1) > 1e-9 || all(e, 30).some(v => Math.abs(v) > 1e-9) && e.type !== 'INSERT' && e.type !== 'TEXT' && e.type !== 'MTEXT') throw refusal('DXF_UNSUPPORTED', `a ${e.type} off the XY plane: the drawing reader takes 2D drawings`);
       const M = mul(m, ocs(z));
       const tol = UNDERLAY_TOLERANCE / stretch(mul(unit, M));
       if (e.type === 'INSERT') {
         const name = str(e, 2) ?? '', b = blocks.get(name);
-        if (!b) throw new DxfReadError('DXF_MALFORMED', `an INSERT of a block "${name}" the file does not define`);
-        if (path.includes(name)) throw new DxfReadError('DXF_MALFORMED', `block "${name}" inserts itself (${[...path, name].join(' → ')})`);
+        if (!b) throw refusal('DXF_MALFORMED', `an INSERT of a block "${name}" the file does not define`);
+        if (path.includes(name)) throw refusal('DXF_MALFORMED', `block "${name}" inserts itself (${[...path, name].join(' → ')})`);
         const cols = get(e, 70, 1), rows = get(e, 71, 1), cs = get(e, 44, 0), rs = get(e, 45, 0), rot = get(e, 50, 0);
         for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
           const cell = mul(mul(mul(mul(shift(get(e, 10), get(e, 20)), turn(rot)), shift(c * cs, r * rs)), scale(get(e, 41, 1), get(e, 42, 1))), shift(-b.base[0], -b.base[1]));
@@ -185,7 +186,7 @@ export function readUnderlay(text: string, toMM: number, o: { detail?: boolean }
         const degree = get(e, 71), xs = all(e, 10), ys = all(e, 20), knots = all(e, 40), w = all(e, 41);
         if (!xs.length) { leave('SPLINE', 'fit points only: the curve through them is the writing program\'s interpolation, not read'); continue; }
         const cps: P[] = xs.map((x, i) => [x, ys[i]]);
-        if (knots.length !== cps.length + degree + 1) throw new DxfReadError('DXF_MALFORMED', `a SPLINE with ${knots.length} knots for ${cps.length} control points of degree ${degree}`);
+        if (knots.length !== cps.length + degree + 1) throw refusal('DXF_MALFORMED', `a SPLINE with ${knots.length} knots for ${cps.length} control points of degree ${degree}`);
         const weights = w.length === cps.length && w.some(v => v !== 1) ? w : null;
         const at = (t: number) => { const q = splinePoint(degree, knots, cps, weights, t); return point(q[0], q[1]); };
         // (Each knot span flattened on its own: the curve is smooth only within one.)
