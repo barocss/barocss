@@ -3028,7 +3028,8 @@ state for exact WIP, process cleanup, blockers and first resume steps.
 
 ## G-R51 — R7.3a in progress: gpu's errors onto BarocssError, batch 1 of 2 (roadmap R7.3a, 2026-10-24)
 
-The work stopped here for the owner's move to another place. Batch 1 is committed; batch 2 is not started.
+R7.3a in progress: batch 1 is committed as WIP (c185821e8), unit-checked, not browser-checked; batch 2 is not started.
+The work stopped here for the owner's move to another place.
 
 - **Done (batch 1, no message or code changed)**:
   - `src/core/barocss-error.ts`: gpu's `BarocssError`, in api-conventions.md §6's shape `{ code, message, where?,
@@ -3056,7 +3057,9 @@ The work stopped here for the owner's move to another place. Batch 1 is committe
   - Whether they become `check…` functions returning `Problem[]`, or throws, is not decided. Either changes their
     callers.
 - **Checks at the commit**: gpu tsc 0 and eslint 0; gpu unit 195/195, its earlier 193 plus the new error test's two; the
-  build; studio tsc 0. gpu's test:browser results are in the commit message.
+  build; studio tsc 0. gpu's test:browser was stopped before it finished, on the owner's stop:
+  **the batch is NOT VERIFIED in the browser**. The next session runs `pnpm test:browser` in packages/barocss-gpu, after
+  CAD's and gpu's build:library, on hardware and with VIEWER_ADAPTER=swiftshader.
 - **Then**, from the coordinator's queue:
   - R7.3c: gpu's Vec3, Mat3 and Mat4 at the package boundary (§10.2).
   - R7.3d: the `right-handed-y-up` tag renamed, with the kernel lane (§10.1).
