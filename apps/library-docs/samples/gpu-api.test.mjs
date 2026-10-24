@@ -10,7 +10,9 @@ import { part } from '@barocss/cad/api';
 
 test('a scene of the bracket: its data plain, Z-up, the meshes as the part gave them', () => {
   // #region scene
-  const bracket = part('bracket').box(80, 40, 10).hole({ at: [20, 20], diameterMM: 8 });
+  const bracket = part('bracket')
+    .box({ wMM: 80, dMM: 40, hMM: 10 })
+    .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 });
   const view = scene()
     .add(bracket.meshes(), { color: '#c8ccd2', roughness: 0.5 })
     .light({ kind: 'directional', direction: [-0.4, 0.6, -1] })
@@ -19,7 +21,7 @@ test('a scene of the bracket: its data plain, Z-up, the meshes as the part gave 
   const data = view.data;
   assert.equal(data.frame, 'z-up');                         // CAD coordinates as given, no conversion
   assert.equal(data.meshes.length, 1);
-  assert.ok(data.meshes[0].positions instanceof Float64Array);  // typed arrays only in the meshes
+  assert.ok(data.meshes[0].positions instanceof Float32Array);  // typed arrays only in the meshes (Float32, the common shape)
   assert.deepEqual(data.lights, [{ kind: 'directional', direction: [-0.4, 0.6, -1] }]);
   // show(viewer, view) clears the viewer, sets its lights and background, adds each mesh and fits the view.
   // #endregion scene

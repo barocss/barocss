@@ -13,26 +13,27 @@ const unstamped = text => text.replace(/^FILE_NAME\(.*$/m, '');
 test('the bracket through the kernel facade: the hand-written document, the kernel\'s results', () => {
   // #region bracket
   const bracket = part('bracket')
-    .box(80, 40, 10)
-    .hole({ at: [20, 20], diameterMM: 8 })
-    .fillet(body => body.edges().along('z'), 2);
+    .box({ wMM: 80, dMM: 40, hMM: 10 })
+    .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
+    .fillet(body => body.edges().along('z'), { radiusMM: 2 });
 
-  const mass = bracket.mass(2.7);           // a density in g/cm³: the kernel keeps no material library
+  const mass = bracket.mass({ densityGPerCm3: 2.7 });   // a density: the kernel keeps no material library
   const step = bracket.step();              // STEP AP214 text
   const stl = bracket.stl();                // binary STL
   const meshes = bracket.meshes();          // [{ key, positions, normals, indices }], one a body
   // #endregion bracket
 
   // #region doc
-  // The CadPartDocument it builds: string ids the facade assigns in feature order, each feature naming its target.
+  // The CadPartDocument it builds: string ids the facade assigns in feature order, each feature naming its target, and
+  // the hole the face it went into.
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 'sketch1', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 40] },
     { id: 'extrude1', kind: 'extrude', sketch: 'sketch1', height: 10 },
-    { id: 'hole1', kind: 'hole', target: 'extrude1', center: [20, 20], radius: 4 },
-    { id: 'fillet1', kind: 'fillet', target: 'hole1', radius: 2,
-      edges: ['extrude1.side0|extrude1.side1', 'extrude1.side0|extrude1.side3', 'extrude1.side1|extrude1.side2', 'extrude1.side2|extrude1.side3'] },
+    { id: 'hole1', kind: 'hole', target: 'extrude1', center: [20, 20], radius: 4, face: 'extrude1.top' },
+    { id: 'fillet1', kind: 'fillet', target: 'hole1',
+      edges: ['extrude1.side0|extrude1.side1', 'extrude1.side0|extrude1.side3', 'extrude1.side1|extrude1.side2', 'extrude1.side2|extrude1.side3'], radius: 2 },
   ] };
-  assert.deepEqual(bracket.doc, doc);
+  assert.equal(JSON.stringify(bracket.doc), JSON.stringify(doc));   // byte for byte
   // #endregion doc
 
   const [out] = evaluateCadPart(doc).outputs, kernel = out.massProperties(2700);   // kg/m³ in the kernel
@@ -46,10 +47,15 @@ test('the bracket through the kernel facade: the hand-written document, the kern
 
 test('refusals: the facade\'s own codes, the kernel\'s passed through with the feature', () => {
   // #region refusals
-  assert.throws(() => part().mass(2.7), e => e instanceof BarocssError && e.code === 'NO_BODY');
-  assert.throws(() => part().box(10, 10, 10).mass(-1), e => e instanceof BarocssError && e.code === 'DENSITY');
+  const block = part().box({ wMM: 10, dMM: 10, hMM: 10 });
+  assert.throws(() => part().mass({ densityGPerCm3: 2.7 }), e => e instanceof BarocssError && e.code === 'NO_BODY');
+  assert.throws(() => block.mass({ densityGPerCm3: -1 }), e => e instanceof BarocssError && e.code === 'DENSITY');
+  assert.throws(() => part().box({ wMM: -1, dMM: 10, hMM: 10 }), e => e instanceof BarocssError && e.code === 'VALUE');
+  // A hole goes into one face: two picked is refused before the kernel.
+  assert.throws(() => block.hole(body => body.faces().planar(), { dMM: 2, xMM: 5, yMM: 5 }),
+    e => e instanceof BarocssError && e.code === 'SELECTION_ONE');
   // A fillet too large for its walls: the kernel's refusal, with the feature it came from.
-  assert.throws(() => part().box(10, 10, 10).fillet(body => body.edges().along('z'), 50).mass(2.7),
+  assert.throws(() => block.fillet(body => body.edges().along('z'), { radiusMM: 50 }).mass({ densityGPerCm3: 2.7 }),
     e => e instanceof BarocssError && e.code === 'RADIUS_EXCEEDS_FACE' && e.where === 'evaluate' && e.details?.feature === 'fillet1'
       && e.message.startsWith('[RADIUS_EXCEEDS_FACE] '));
   // #endregion refusals
