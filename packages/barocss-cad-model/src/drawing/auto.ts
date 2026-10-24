@@ -46,7 +46,7 @@ export interface AutoDimensionReport {
   kept: number;
   skipped: { view: ViewId; what: string; why: string }[];
   /** Sides of a view whose rows need more sheet room than there is at this scale and sheet (they overlap what is next to them). */
-  crowded: { view: DimView; side: 'above' | 'below' | 'left' | 'right'; neededMM: number; roomMM: number }[];
+  crowded: { view: DimView; side: 'above' | 'below' | 'left' | 'right'; needed: number; room: number }[];
   /** The sheet room (mm) each view side's dimensions take, from the view's edge (a view's name below not counted): what the layout gives room for (R14.3). */
   needs: Partial<Record<DimView, Record<'above' | 'below' | 'left' | 'right', number>>>;
 }
@@ -89,15 +89,15 @@ function keyPlans(views: DrawingViews, layout: SheetLayout, elements: readonly P
   const want: { what: string; a: (f: string[]) => boolean; b: (f: string[]) => boolean; mm: number; level: boolean }[] = [];
   for (const { id, element: e } of elements) {
     if (e.kind === 'shaft') for (const s of e.report.keyseats) {
-      const seat = `${id}.keyseat${s.index}`, step = e.report.steps[s.step - 1], d = step ? step.diameterMM : NaN;
-      want.push({ what: `keyseat ${s.index}'s width`, a: f => f.includes(seat), b: f => f.includes(seat), mm: s.widthMM, level: true });
+      const seat = `${id}.keyseat${s.index}`, step = e.report.steps[s.step - 1], d = step ? step.diameter : NaN;
+      want.push({ what: `keyseat ${s.index}'s width`, a: f => f.includes(seat), b: f => f.includes(seat), mm: s.width, level: true });
       // (Its floor: an edge between two of the seat's own faces; the far side: its step's silhouette.)
-      if (Number.isFinite(d)) want.push({ what: `d − t1 at keyseat ${s.index}`, a: f => f.length > 0 && f.every(x => x === seat), b: f => f.some(x => x === `${id}.seat${s.step}` || x.startsWith(`${id}.seat${s.step}.`)), mm: d - s.depthMM, level: false });
+      if (Number.isFinite(d)) want.push({ what: `d − t1 at keyseat ${s.index}`, a: f => f.length > 0 && f.every(x => x === seat), b: f => f.some(x => x === `${id}.seat${s.step}` || x.startsWith(`${id}.seat${s.step}.`)), mm: d - s.depth, level: false });
     }
     if (e.kind === 'keyway') {
       const way = `${id}.keyway`, bore = e.report.face;
-      want.push({ what: `keyway ${id}'s width`, a: f => f.includes(way), b: f => f.includes(way), mm: e.report.widthMM, level: true });
-      want.push({ what: `d + t2 at keyway ${id}`, a: f => f.includes(way) && !f.includes(bore), b: f => f.includes(bore) && !f.includes(way), mm: 2 * e.report.boreRadiusMM + e.report.depthMM, level: false });
+      want.push({ what: `keyway ${id}'s width`, a: f => f.includes(way), b: f => f.includes(way), mm: e.report.width, level: true });
+      want.push({ what: `d + t2 at keyway ${id}`, a: f => f.includes(way) && !f.includes(bore), b: f => f.includes(bore) && !f.includes(way), mm: 2 * e.report.boreRadius + e.report.depth, level: false });
     }
   }
   const out: Planned[] = [];
@@ -350,7 +350,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     need[vSide] = rowsOn(vRows - usedOpposite.v); need[opposite[vSide]] = rowsOn(usedOpposite.v);
     report.needs[id] = { ...need };
     need.below += need.below ? LABEL : 0;
-    for (const side of ['above', 'below', 'left', 'right'] as const) if (need[side] > free[side] + 1e-9) report.crowded.push({ view: id, side, neededMM: Math.round(need[side] * 10) / 10, roomMM: Math.round(free[side] * 10) / 10 });
+    for (const side of ['above', 'below', 'left', 'right'] as const) if (need[side] > free[side] + 1e-9) report.crowded.push({ view: id, side, needed: Math.round(need[side] * 10) / 10, room: Math.round(free[side] * 10) / 10 });
     leaders.sort((a, b) => a.span[0][0] - b.span[0][0]).forEach((p, k) => {
       const [x] = p.span[0], r = p.radius!, off = (CALLOUT_ROW + ROW * (k + usedOpposite.u)) / s;
       const place: XY = [x + (toRight ? 1 : -1) * (r + CALLOUT_RUN / s), down ? pr.min[1] - off : pr.max[1] + off];

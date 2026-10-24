@@ -19,7 +19,7 @@ const near = (a: number, b: number) => Math.abs(a - b) <= 1e-6 * Math.max(1, Mat
 const cited = (row: ElementRow | undefined) => row ? (row.source ? ` (${row.source})` : row.estimate ? ' (est.)' : '') : ' (est.)';
 /** A face's name as the studio shows it: no piece number (`#1`). */
 const faceOf = (name: string) => name.replace(/#\d+$/, '');
-interface Rule { test: (face: string) => boolean; diameterMM: number; text: string }
+interface Rule { test: (face: string) => boolean; diameter: number; text: string }
 
 /** The part's elements evaluated here (the chat's and the servers' drawings; the studio passes its bodies'). */
 export const partElements = (doc: StudioDoc): PartElement[] => evaluatedElements(doc).flatMap(x => doc.nodes[x.node]?.id ? [{ ...x, id: doc.nodes[x.node].id! }] : []);
@@ -31,13 +31,13 @@ export function elementRules(doc: StudioDoc, elements: readonly PartElement[]): 
     const n = doc.nodes[node] as ModelNode & { shaft?: number; housing?: number };
     if (e.kind === 'bearing') {
       const b = e.report, name = `bearing ${b.designation ?? b.row}${cited(e.row)}`, shaft = idOf(n.shaft), housing = idOf(n.housing);
-      if (shaft && b.seat) { const re = new RegExp(`^${shaft}\\.seat${b.seat.step}(\\.\\d+)?$`); out.push({ test: f => re.test(f), diameterMM: b.boreMM, text: name }); }
-      if (housing && b.housing) out.push({ test: f => f.startsWith(`${housing}.`), diameterMM: b.housing.boreMM, text: name });
+      if (shaft && b.seat) { const re = new RegExp(`^${shaft}\\.seat${b.seat.step}(\\.\\d+)?$`); out.push({ test: f => re.test(f), diameter: b.bore, text: name }); }
+      if (housing && b.housing) out.push({ test: f => f.startsWith(`${housing}.`), diameter: b.housing.bore, text: name });
     }
     if (e.kind === 'retaining-ring') {
       const r = e.report, shaft = idOf(n.shaft); if (!shaft) continue;
-      const re = new RegExp(`^${shaft}\\.groove${r.groove}$`), width = r.thicknessMM + r.axialPlayMM;
-      out.push({ test: f => re.test(f), diameterMM: r.innerDiameterMM, text: `× ${fmt(width)} · ring${e.row ? ` ${e.row.id}` : ''}${cited(e.row)}` });
+      const re = new RegExp(`^${shaft}\\.groove${r.groove}$`), width = r.thickness + r.axialPlay;
+      out.push({ test: f => re.test(f), diameter: r.innerDiameter, text: `× ${fmt(width)} · ring${e.row ? ` ${e.row.id}` : ''}${cited(e.row)}` });
     }
   }
   return out;
@@ -46,14 +46,14 @@ export function elementRules(doc: StudioDoc, elements: readonly PartElement[]): 
  * A diameter dimension's text with the element its face carries (the elements given, else the part's evaluated here): the inner callout's text (a hole's, a fit's), or Ø and
  * the size, then the element's; the inner text alone when the face carries none.
  */
-export function withElements(doc: StudioDoc, inner: (edge: string, diameterMM?: number) => string | null, elements: readonly PartElement[] = partElements(doc)): (edge: string, diameterMM?: number) => string | null {
+export function withElements(doc: StudioDoc, inner: (edge: string, diameter?: number) => string | null, elements: readonly PartElement[] = partElements(doc)): (edge: string, diameter?: number) => string | null {
   const rules = elementRules(doc, elements);
   if (!rules.length) return inner;
-  return (edge, diameterMM) => {
-    const base = inner(edge, diameterMM);
-    if (diameterMM === undefined) return base;
-    const faces = edge.split('|').map(faceOf), hit = rules.find(r => near(r.diameterMM, diameterMM) && faces.some(r.test));
-    return hit ? `${base ?? `Ø${fmt(diameterMM)}`} ${hit.text}` : base;
+  return (edge, diameter) => {
+    const base = inner(edge, diameter);
+    if (diameter === undefined) return base;
+    const faces = edge.split('|').map(faceOf), hit = rules.find(r => near(r.diameter, diameter) && faces.some(r.test));
+    return hit ? `${base ?? `Ø${fmt(diameter)}`} ${hit.text}` : base;
   };
 }
 

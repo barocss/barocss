@@ -114,7 +114,7 @@ export function symbolMarks(tip: XY, knee: XY, side: Side, j: WeldJoint, label: 
   const mx = knee[0] + dir * LINE / 3, my = knee[1];
   if (j.weld.kind === 'fillet') marks.push({ kind: 'polyline', points: [[mx, my], [mx, my - MARK], [mx + dir * MARK, my], [mx, my]], pen: 'thin', role: 'weld' });
   else marks.push({ kind: 'line', a: [mx, my], b: [mx, my - MARK], pen: 'thin', role: 'weld' }, { kind: 'line', a: [mx + dir * MARK * 0.6, my], b: [mx + dir * MARK * 0.6, my - MARK], pen: 'thin', role: 'weld' });
-  if (j.weld.sizeMM !== null) marks.push({ kind: 'text', at: [mx - dir * 1, my - 0.6], text: `${+j.weld.sizeMM.toFixed(2)}${j.weld.sizeBasis === 'estimate' ? '*' : ''}`, size: TEXT, anchor: dir > 0 ? 'end' : 'start' });
+  if (j.weld.size !== null) marks.push({ kind: 'text', at: [mx - dir * 1, my - 0.6], text: `${+j.weld.size.toFixed(2)}${j.weld.sizeBasis === 'estimate' ? '*' : ''}`, size: TEXT, anchor: dir > 0 ? 'end' : 'start' });
   if (j.weld.allRound) marks.push(ring(knee, RING));
   if (j.innerLoop?.welded) marks.push(ring(knee, RING * 1.8));
   marks.push({ kind: 'text', at: [end[0] + dir * 1, end[1] + 0.9], text: label, size: TEXT, anchor: dir > 0 ? 'start' : 'end' });

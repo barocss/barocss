@@ -61,7 +61,7 @@ test('the bend table on R12\'s L-bracket: BA = θ(R + K·T), BD = 2(R + T)tan(θ
   assert.ok(Math.abs(ba - th * (R + K * T)) < 1e-12 && Math.abs(bd - (2 * (R + T) * Math.tan(th / 2) - th * (R + K * T))) < 1e-12, `${ba} ${bd}`);
   assert.deepEqual(c.notes, ['T 1.5 mm; K 0.44 for every bend']);
   // (D120's case: a contour L with a shop's table — its 90° row gives the deduction. The table is the person's file, rows rule b.)
-  const table = personFile('bends.json', { id: 'shop-2mm', sources: [{ id: 'shop', label: 'a shop\'s own test bends (illustrative values for the case)' }], rows: [{ thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }, { thicknessMM: 2, radiusMM: 3, angleDegrees: 120, kFactor: 0.42, source: 'shop' }] });
+  const table = personFile('bends.json', { id: 'shop-2mm', sources: [{ id: 'shop', label: 'a shop\'s own test bends (illustrative values for the case)' }], rows: [{ thickness: 2, radius: 3, angle: 90, deduction: 4.2, source: 'shop' }, { thickness: 2, radius: 3, angle: 120, kFactor: 0.42, source: 'shop' }] });
   const shop = await run([{ tool: 'add_features', args: { features: [{ kind: 'sheet-contour', path: [[0, 0], [50, 0], [50, 35]], side: 'left', width: 20, thickness: 2, bendRadius: 3, kFactor: 0.5 }] } },
     { tool: 'load_rows', args: { kind: 'bend', file: table.file, feature: 0 } }], table.rowFiles);
   const s = bendTable({ doc: shop }); assert.ok(!('error' in s), JSON.stringify(s));

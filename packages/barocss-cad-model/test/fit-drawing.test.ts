@@ -14,7 +14,7 @@ import { deviation, fitCallout, withFit } from '../src/drawing/fits';
 // the callout Ø12 H7/g6 (+0.018/0, -0.006/-0.017) (est.); the clearance 0 − (−6) = 6 to 18 − (−17) = 35 µm; a pin
 // 0.01 off the bore's axis contradicted at MMC (3 µm of radial clearance); a class with no row a typed issue.
 
-const TABLE = { id: 'shop-fits', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
+const TABLE = { id: 'shop-fits', rows: [{ class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 function parts(dx = 0, cls: { hole: string; shaft: string } = { hole: 'H7', shaft: 'g6' }, pair = true): StudioDoc {
   const tube = commands.find(c => c.id === 'tube')!, cyl = commands.find(c => c.id === 'cylinder')!;

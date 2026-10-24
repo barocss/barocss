@@ -16,8 +16,8 @@ import { snapPoints } from '../src/drawing/dimensions';
 // (a dimension over the key's note) was invisible to that same pass, so a second Fix was needed. Fix now builds the sheet
 // again and fixes what it shows until a round applies none.
 const evaluate = async (doc: StudioDoc) => evaluateDoc(doc, 1);
-const ROW = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'test' };
-const FITS = { id: 'f', rows: [{ class: 'k5', overMM: 18, upToMM: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
+const ROW = { id: '6204', designation: '6204', bore: 20, outsideMM: 47, width: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'test' };
+const FITS = { id: 'f', rows: [{ class: 'k5', over: 18, upTo: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
 async function shaft(): Promise<ChatState> {
   let s: ChatState = { doc: emptyDoc(), bodies: [] };
   const call = async (tool: string, args: Record<string, unknown>) => { const r = await dispatchTool(s, tool, args, evaluate); assert.ok(!r.isError, r.content); s = r.state; return JSON.parse(r.content); };
