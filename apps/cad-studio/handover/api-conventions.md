@@ -2,7 +2,7 @@
 
 **Status: owner-approved, 2026-10-24** ("로드맵 제대로 정해서 진행해줘", after the R7 proposal, the §10 common data
 formats and the facade structure in §11). R7.3 onwards implements these rules. Amended by the owner the same day:
-the facades' input options carry no unit suffix (§2, §12).
+no unit suffixes in names (§2, §12).
 
 On 2026-10-24 the owner decided the API is two layers: the core stays data and functions, and the public facade is
 object-style ("겉 api 는 객체 형태로"). These rules apply to new code now. R7.3 brings the existing public surface
@@ -31,13 +31,18 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
   - Lengths are in mm. Angles in documents and options are in degrees.
   - Mass is in g. Density is in g/cm³, the way materials are quoted.
   - Volume is in mm³, area in mm², and inertia in g·mm².
-  - **Results** carry their unit in the field name, as cad already does (`volumeMM3`, `massG`, `areaMM2`,
-    `inertiaGMM2`, `angleDeg`).
-  - **The facades' input options** carry no unit suffix (owner, 2026-10-24): they use the agent's value names from
-    COMMAND_DOCS (`w`, `d`, `h`, `r`, `deg` …; `density` where no command names it), because every quantity is in
-    the units above: lengths mm, angles degrees, density g/cm³. So `box({ w, d, h })`, not `box({ wMM, dMM, hMM })`.
-  - **Documents** keep their stored field names; this rule renames no saved field (instances and frames already store
-    `position` and `rotation`).
+  - **No unit suffixes in names** (owner, 2026-10-24, widened the same day from the facades' options to everything):
+    every quantity is in the units above, so names don't repeat them — `w`, `d`, `h`, `r`, `deg`, `distance`,
+    `radius`, `volume`, `mass`, `centroid`, `inertia`, `density`, not `wMM`, `volumeMM3`, `massG`, `inertiaGMM2`. This
+    covers:
+    1. the facades' input options (the agent's COMMAND_DOCS value names: `box({ w, d, h })`; done in R7.4c);
+    2. the agent's tool arguments (`nearMM`, `layerMM`, `toolMM`, `limitDeg` → `near`, `layer`, `tool`, `limit`);
+    3. the core functions' options (the kernel's `distanceMM`, `radiusMM` …);
+    4. rows file fields (`lengthMM`, `boreMM`, `insideDiameterMM` …), with the sample rows and the validators;
+    5. result names (`volumeMM3`, `massG`, `centroidMM`, `inertiaGMM2` …).
+    A name that would read ambiguously without its unit gets a clearer word, never the unit back.
+  - **Documents' stored fields** (the part document's `rotationDeg`, `lengthMM`, `upToMM` …): waiting on the owner.
+    Until decided, saved fields keep their names.
   - Today cad's mass properties are in kg and kg/m³ (`massKG`, `inertiaCentroidKgM2`, density in kg/m³), while
     cad-model's are in g and g/cm³. R7.3 moves cad's public results to MMGS.
 - **Ids and names** follow the document's existing rules. A face or edge reference that the core resolves stays
@@ -188,7 +193,7 @@ tests either move to `evaluateCadPart` fixtures or go with them.
 - The facade's modelling verbs carry the agent's v2 command names (COMMAND_DOCS in chat/part/features.ts), written in
   camelCase: extrude, revolve, pipe, `offsetFace`, hole, fillet, chamfer, shell and so on.
 - Option names are the command's `values` names, with no unit suffix (§2): `box({ w, d, h })`,
-  `cylinder({ r, h })`, `extrude({ h })`, `revolve({ deg })`. Results keep their unit names (`massG`, `volumeMM3`).
+  `cylinder({ r, h })`, `extrude({ h })`, `revolve({ deg })`. Results carry no unit suffix either (`mass`, `volume`).
 - A verb with no v2 command, such as `box`, is named for its studio palette entry.
 - The docs, the facade and the agent's tool table then read as one vocabulary. Read-only results (mass, step, stl,
   meshes) aren't commands and keep their names.
