@@ -1,7 +1,7 @@
 // R12c.2 (D155): fits and tolerances from the user's tables.
 //
 // No limits are built in and none is computed: ISO 286's tolerance factor reproduces only 55 of 91 IT values (D139
-// S0), so a size's limits are a row the user loads — `{ class, over, upTo, upperUM, lowerUM }`, each citing a source
+// S0), so a size's limits are a row the user loads — `{ class, over, upTo, upper, lower }`, each citing a source
 // in its table or flagged `estimate`, as the bend tables (D120). A class with no row for a size is a typed miss that
 // says what to load.
 // - `fitTableProblem`: a table's validity ([FIT_TABLE]): the class's form (a hole's capital letters, a shaft's small
@@ -29,8 +29,8 @@ export class FitError extends KernelError {
   constructor(readonly code: FitErrorCode, detail: string) { super(`[${code}] ${detail}`); this.name = 'FitError'; }
 }
 export interface FitSource { readonly id: string; readonly label: string; readonly url?: string; readonly read?: string; readonly note?: string }
-/** A class's limits over a range of nominal sizes: over < size ≤ up to (mm), the upper and lower deviations (µm). */
-export interface FitRow { readonly class: string; readonly over: number; readonly upTo: number; readonly upperUM: number; readonly lowerUM: number; readonly source?: string; readonly estimate?: boolean }
+/** A class's limits over a range of nominal sizes: over < size ≤ up to (mm), the upper and lower deviations (mm). */
+export interface FitRow { readonly class: string; readonly over: number; readonly upTo: number; readonly upper: number; readonly lower: number; readonly source?: string; readonly estimate?: boolean }
 export interface FitTable { readonly id: string; readonly sources?: readonly FitSource[]; readonly rows: readonly FitRow[] }
 
 /** ISO 286's fundamental-deviation letters (a hole's capitals; a shaft's the same in small letters) and IT grades 01, 0–18. */
@@ -53,10 +53,10 @@ export function fitTableProblem(t: unknown): string | null {
   for (const [k, r] of t.rows.entries()) {
     const at = `${t.id} row ${k}`;
     if (!isObj(r)) return `${at} is not an object`;
-    for (const key of Object.keys(r)) if (!['class', 'over', 'upTo', 'upperUM', 'lowerUM', 'source', 'estimate'].includes(key)) return `${at}: unknown field ${key}`;
+    for (const key of Object.keys(r)) if (!['class', 'over', 'upTo', 'upper', 'lower', 'source', 'estimate'].includes(key)) return `${at}: unknown field ${key}`;
     if (typeof r.class !== 'string' || !CLASS.test(r.class)) return `${at}: class ${JSON.stringify(r.class)} is not a tolerance class (a deviation letter, capital for a hole, small for a shaft, then an IT grade: H7, g6, JS9)`;
     if (!fin(r.over) || !fin(r.upTo) || r.over < 0 || !(r.over < r.upTo)) return `${at} (${r.class}): its range must be over ≥ 0 and below up to (mm)`;
-    if (!fin(r.upperUM) || !fin(r.lowerUM) || r.upperUM < r.lowerUM) return `${at} (${r.class}): its upper deviation must be at or above its lower (µm)`;
+    if (!fin(r.upper) || !fin(r.lower) || r.upper < r.lower) return `${at} (${r.class}): its upper deviation must be at or above its lower (mm)`;
     const src = r.source !== undefined, est = r.estimate === true;
     if (r.estimate !== undefined && typeof r.estimate !== 'boolean') return `${at}: estimate is true or left out`;
     if (src === est) return `${at} (${r.class}): cite one of the table's sources, or say estimate: true — ${src ? 'not both' : 'never neither'}`;
@@ -72,7 +72,7 @@ export function fitTableProblem(t: unknown): string | null {
 
 /** A class's limits at a nominal size: the deviations, the limit sizes and the row they come from. */
 export interface FitLimit {
-  readonly class: string; readonly nominal: number; readonly upperUM: number; readonly lowerUM: number;
+  readonly class: string; readonly nominal: number; readonly upper: number; readonly lower: number;
   /** The greatest and least sizes: nominal + upper, nominal + lower. */
   readonly max: number; readonly min: number;
   readonly table: string; readonly row: number; readonly estimate: boolean; readonly source?: string;
@@ -93,7 +93,7 @@ export function lookupFit(tables: readonly FitTable[], cls: string, size: number
     const k = t.rows.findIndex(r => r.class === cls && (r.over < nominal || (r.over === 0 && nominal > 0)) && nominal <= r.upTo);
     if (k < 0) continue;
     const r = t.rows[k];
-    return { class: cls, nominal: nominal, upperUM: r.upperUM, lowerUM: r.lowerUM, max: nominal + r.upperUM / 1000, min: nominal + r.lowerUM / 1000, table: t.id, row: k, estimate: r.estimate === true, ...(r.source !== undefined ? { source: r.source } : {}) };
+    return { class: cls, nominal: nominal, upper: r.upper, lower: r.lower, max: nominal + r.upper, min: nominal + r.lower, table: t.id, row: k, estimate: r.estimate === true, ...(r.source !== undefined ? { source: r.source } : {}) };
   }
   const has = tables.flatMap(t => t.rows.filter(r => r.class === cls).map(r => `over ${r.over} up to ${r.upTo}`));
   throw new FitError('FIT_TABLE_MISS', `no row for ${cls} at Ø${+nominal.toFixed(6)} mm in ${tables.length ? tables.map(t => t.id).join(', ') : 'no fit table'}: load a row for ${cls} whose range holds ${+nominal.toFixed(6)} mm${has.length ? ` (${cls} has ${has.join('; ')})` : ` (no ${cls} rows loaded)`}. Limits are never computed: ISO 286's formula does not reproduce its own table.`);
@@ -101,8 +101,8 @@ export function lookupFit(tables: readonly FitTable[], cls: string, size: number
 
 export interface FitLimits {
   readonly hole: FitLimit; readonly shaft: FitLimit;
-  /** EI − es and ES − ei (µm): the least and the greatest clearance; negative is interference. */
-  readonly clearanceMinUM: number; readonly clearanceMaxUM: number;
+  /** EI − es and ES − ei (mm): the least and the greatest clearance; negative is interference. */
+  readonly clearanceMin: number; readonly clearanceMax: number;
   readonly kind: 'clearance' | 'transition' | 'interference';
   /** Whether either row is an estimate. */
   readonly estimate: boolean;
@@ -112,8 +112,8 @@ export function fitLimits(tables: readonly FitTable[], holeClass: string, shaftC
   if (!isHoleClass(holeClass)) throw new FitError('FIT_FACE', `${holeClass} is a shaft's class: a hole takes a capital letter (H7)`);
   if (isHoleClass(shaftClass)) throw new FitError('FIT_FACE', `${shaftClass} is a hole's class: a shaft takes a small letter (g6)`);
   const hole = lookupFit(tables, holeClass, nominal), shaft = lookupFit(tables, shaftClass, nominal);
-  const min = hole.lowerUM - shaft.upperUM, max = hole.upperUM - shaft.lowerUM;
-  return { hole, shaft, clearanceMinUM: min, clearanceMaxUM: max, kind: min >= 0 ? 'clearance' : max <= 0 ? 'interference' : 'transition', estimate: hole.estimate || shaft.estimate };
+  const min = hole.lower - shaft.upper, max = hole.upper - shaft.lower;
+  return { hole, shaft, clearanceMin: min, clearanceMax: max, kind: min >= 0 ? 'clearance' : max <= 0 ? 'interference' : 'transition', estimate: hole.estimate || shaft.estimate };
 }
 
 /** A cylindrical face of a B-rep, by name or id, and its class. */
@@ -183,9 +183,9 @@ export function checkFit(tables: readonly FitTable[], hole: FitFace, shaft: FitF
     return { hole: holeSize, shaft: shaftSize, overlap: Math.max(0, overlap), coaxial: coaxial };
   };
   const mmc = condition('m', limits.hole.min, limits.shaft.max), lmc = condition('l', limits.hole.max, limits.shaft.min);
-  const margin = (limits.clearanceMinUM / 1000) / 2 - offset, contradicted = limits.kind === 'clearance' && mmc.overlap > 1e-9 * Math.PI * L * H.r * H.r;
-  const um = (x: number) => `${x > 0 ? '+' : ''}${+x.toFixed(3)}`;
-  const message = `${hole.class}/${shaft.class} at Ø${+nominal.toFixed(6)}: ${limits.kind} fit, clearance ${um(limits.clearanceMinUM)} to ${um(limits.clearanceMaxUM)} µm` + (offset > 1e-9 ? `; the axes ${+offset.toFixed(6)} mm apart` : '')
+  const margin = limits.clearanceMin / 2 - offset, contradicted = limits.kind === 'clearance' && mmc.overlap > 1e-9 * Math.PI * L * H.r * H.r;
+  const um = (x: number) => `${x > 0 ? '+' : ''}${+(x * 1000).toFixed(3)}`;
+  const message = `${hole.class}/${shaft.class} at Ø${+nominal.toFixed(6)}: ${limits.kind} fit, clearance ${um(limits.clearanceMin)} to ${um(limits.clearanceMax)} µm` + (offset > 1e-9 ? `; the axes ${+offset.toFixed(6)} mm apart` : '')
     + (contradicted ? `; contradicted by the geometry: at MMC the shaft overlaps the hole by ${+mmc.overlap.toPrecision(4)} mm³ over ${+L.toFixed(4)} mm` : '');
   return { limits, offset: offset, length: L, margin: margin, mmc, lmc, contradicted, message };
 }

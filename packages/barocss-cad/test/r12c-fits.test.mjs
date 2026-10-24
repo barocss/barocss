@@ -11,9 +11,9 @@ import { evaluateCadPart, checkFit, fitLimits, lookupFit, fitTableProblem, faceG
 // - off-axis by e: the overlap is L(πr_s² − A), A the two circles' common area (the lens, in closed form).
 
 const F2 = { id: 'f2-50', sources: [{ id: 'F2', label: 'Engineering fit (Wikipedia): the Ø50 worked examples', url: 'https://en.wikipedia.org/wiki/Engineering_fit', read: '2026-10-21' }], rows: [
-  { class: 'H8', over: 30, upTo: 50, upperUM: 39, lowerUM: 0, source: 'F2' }, { class: 'f7', over: 30, upTo: 50, upperUM: -25, lowerUM: -50, source: 'F2' },
-  { class: 'H7', over: 30, upTo: 50, upperUM: 25, lowerUM: 0, source: 'F2' }, { class: 'k6', over: 30, upTo: 50, upperUM: 18, lowerUM: 2, source: 'F2' },
-  { class: 'p6', over: 30, upTo: 50, upperUM: 42, lowerUM: 26, source: 'F2' }, { class: 'h6', over: 30, upTo: 50, upperUM: 0, lowerUM: -16, estimate: true }] };
+  { class: 'H8', over: 30, upTo: 50, upper: 0.039, lower: 0, source: 'F2' }, { class: 'f7', over: 30, upTo: 50, upper: -0.025, lower: -0.05, source: 'F2' },
+  { class: 'H7', over: 30, upTo: 50, upper: 0.025, lower: 0, source: 'F2' }, { class: 'k6', over: 30, upTo: 50, upper: 0.018, lower: 0.002, source: 'F2' },
+  { class: 'p6', over: 30, upTo: 50, upper: 0.042, lower: 0.026, source: 'F2' }, { class: 'h6', over: 30, upTo: 50, upper: 0, lower: -0.016, estimate: true }] };
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
 const code = c => e => e instanceof FitError && e.code === c;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
@@ -35,8 +35,8 @@ function lens(a, b, e) {
 
 test('R12c.2 fit tables: the page\'s Ø50 results by the user\'s rows — clearance, transition, interference; a size outside a range or a class not loaded is a typed miss naming what to load', () => {
   assert.equal(fitTableProblem(F2), null);
-  const cases = [['H8', 'f7', 25, 89, 'clearance'], ['H7', 'k6', -18, 23, 'transition'], ['H7', 'p6', -42, -1, 'interference'], ['H7', 'h6', 0, 41, 'clearance']];
-  for (const [h, s, lo, hi, kind] of cases) { const f = fitLimits([F2], h, s, 50); assert.deepEqual([f.clearanceMinUM, f.clearanceMaxUM, f.kind], [lo, hi, kind], `${h}/${s}`); }
+  const cases = [['H8', 'f7', 0 / 1000 - -25 / 1000, 39 / 1000 - -50 / 1000, 'clearance'], ['H7', 'k6', 0 / 1000 - 18 / 1000, 25 / 1000 - 2 / 1000, 'transition'], ['H7', 'p6', 0 / 1000 - 42 / 1000, 25 / 1000 - 26 / 1000, 'interference'], ['H7', 'h6', 0 / 1000 - 0 / 1000, 25 / 1000 - -16 / 1000, 'clearance']];
+  for (const [h, s, lo, hi, kind] of cases) { const f = fitLimits([F2], h, s, 50); assert.deepEqual([f.clearanceMin, f.clearanceMax, f.kind], [lo, hi, kind], `${h}/${s}`); }
   assert.equal(fitLimits([F2], 'H7', 'h6', 50).estimate, true);
   const l = lookupFit([F2], 'H7', 40);
   assert.deepEqual([l.min, l.max, l.table, l.row, l.source], [40, 40.025, 'f2-50', 2, 'F2']);
@@ -61,8 +61,8 @@ test('R12c.2 a nominal size is judged to 1e-6 mm, as it is named: a Ø50 bore me
 });
 
 test('R12c.2 fit tables refused ([FIT_TABLE]): bad class, an empty or inverted range, ranges of one class overlapping, upper below lower, no source and no estimate, an unknown source', () => {
-  const row = { class: 'H7', over: 30, upTo: 50, upperUM: 25, lowerUM: 0, source: 'F2' }, t = rows => ({ id: 't', sources: [{ id: 'F2', label: 'x' }], rows });
-  const bad = [[{ ...row, class: 'Q7' }, /not a tolerance class/], [{ ...row, class: 'H' }, /not a tolerance class/], [{ ...row, upTo: 30 }, /below up to/], [{ ...row, upperUM: -1 }, /at or above its lower/],
+  const row = { class: 'H7', over: 30, upTo: 50, upper: 0.025, lower: 0, source: 'F2' }, t = rows => ({ id: 't', sources: [{ id: 'F2', label: 'x' }], rows });
+  const bad = [[{ ...row, class: 'Q7' }, /not a tolerance class/], [{ ...row, class: 'H' }, /not a tolerance class/], [{ ...row, upTo: 30 }, /below up to/], [{ ...row, upper: -0.001 }, /at or above its lower/],
     [{ ...row, source: undefined }, /never neither/], [{ ...row, estimate: true }, /not both/], [{ ...row, source: 'X' }, /not among the table's sources/], [{ ...row, extra: 1 }, /unknown field extra/]];
   for (const [r, why] of bad) assert.match(fitTableProblem(t([r])) ?? 'accepted', why, JSON.stringify(r));
   assert.match(fitTableProblem(t([row, { ...row, over: 40, upTo: 65 }])), /overlap/);
@@ -109,4 +109,27 @@ test('R12c.2 checkFit refusals: a face that is no cylinder, a hole\'s face given
   assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H7' }, { brep: outputOf(s, 'thin').brep, face: 'thin.side0#1', class: 'k6' }), e => code('FIT_PAIR')(e) && /one nominal size/.test(e.message));
   assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H7' }, { brep: outputOf(s, 'far').brep, face: 'far.side0#1', class: 'k6' }), e => code('FIT_PAIR')(e) && /do not overlap/.test(e.message));
   assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H6' }, { brep: shaft, face: 'shaft.side0#1', class: 'k6' }), code('FIT_TABLE_MISS'));
+});
+
+// R7 public quantities are mm. These oracles use the independently specified Ø12 H7/g6 limits.
+test('R12c.2 R7 public fit fields use mm, reject old names and preserve zero-clearance decisions', () => {
+  const table = { id: 'r7-mm', rows: [
+    { class: 'H7', over: 0, upTo: 18, upper: 0.018, lower: 0, estimate: true },
+    { class: 'g6', over: 0, upTo: 18, upper: -0.006, lower: -0.017, estimate: true },
+  ] };
+  assert.equal(fitTableProblem(table), null);
+  const limits = fitLimits([table], 'H7', 'g6', 12);
+  assert.deepEqual([limits.hole.min, limits.hole.max, limits.shaft.min, limits.shaft.max], [12, 12.018, 11.983, 11.994]);
+  near(limits.clearanceMin, 0.006, 1e-12, '6 µm clearance in mm');
+  near(limits.clearanceMax, 0.035, 1e-12, '35 µm clearance in mm');
+  assert.deepEqual(Object.keys(limits), ['hole', 'shaft', 'clearanceMin', 'clearanceMax', 'kind', 'estimate']);
+  assert.deepEqual(Object.keys(limits.hole), ['class', 'nominal', 'upper', 'lower', 'max', 'min', 'table', 'row', 'estimate']);
+  for (const old of ['upperUM', 'lowerUM']) assert.match(fitTableProblem({ ...table, rows: [{ ...table.rows[0], [old]: 18 }] }), new RegExp(`unknown field ${old}`));
+  const boundary = (holeLower, holeUpper, shaftLower, shaftUpper) => fitLimits([{ id: 'zero', rows: [
+    { class: 'H7', over: 0, upTo: 18, lower: holeLower, upper: holeUpper, estimate: true },
+    { class: 'h6', over: 0, upTo: 18, lower: shaftLower, upper: shaftUpper, estimate: true },
+  ] }], 'H7', 'h6', 12);
+  assert.equal(boundary(0, 0.018, -0.011, 0).kind, 'clearance');
+  assert.equal(boundary(-0.018, 0, 0, 0.011).kind, 'interference');
+  assert.equal(boundary(-0.018, 0.018, -0.011, 0.011).kind, 'transition');
 });

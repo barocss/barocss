@@ -53,7 +53,7 @@ test('R12c.5 gland refusals and warnings: GLAND_DIMENSIONS for no depth, no sque
 });
 
 test('R12c.5 squeeze at the fit\'s extremes: the bore H8 and the groove h9 (test rows) — the depth 2.8 … 2.8455, so the squeeze\'s range', () => {
-  const tables = [{ id: 't', rows: [{ class: 'H8', over: 30, upTo: 50, upperUM: 39, lowerUM: 0, estimate: true }, { class: 'h9', over: 18, upTo: 30, upperUM: 0, lowerUM: -52, estimate: true }] }];
+  const tables = [{ id: 't', rows: [{ class: 'H8', over: 30, upTo: 50, upper: 0.039, lower: 0, estimate: true }, { class: 'h9', over: 18, upTo: 30, upper: 0, lower: -0.052, estimate: true }] }];
   const g = glandCheck({ kind: 'piston', ring: O1, grooveDiameter: 25.5, width: 4.7, sealDiameter: 31.1, fit: { tables, seal: 'H8', groove: 'h9' } });
   const cs = g.stretchedCrossSection, hMax = (31.139 - 25.448) / 2, hMin = (31.1 - 25.5) / 2;
   near(g.squeezeRangePercent[0], 100 * (cs - hMax) / cs, 1e-9, 'least'); near(g.squeezeRangePercent[1], 100 * (cs - hMin) / cs, 1e-9, 'greatest');
