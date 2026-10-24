@@ -692,6 +692,19 @@ the facade's own; `withParameters` as a function over the document (§4); named 
   - suppression: the toggle's write, and back again to the same bytes;
   - eight typed refusals.
 
+**As built, checkpoint 2 (the kernel backend):**
+- A bound option is written as `{ parameter }` into the one leaf of the kernel feature that holds its number as it is
+  (`BINDS`, cad/src/api/kernel.ts).
+- The kernel's set is the studio's, less what a CadPartDocument holds as a plain number: a revolve's
+  `angleDegrees`, a linear pattern's `count` and a scale's `factor`. Those refuse a parameter there, while the
+  studio binds them.
+- Like the studio, a box's `w` or `d` binds only while `x` or `y` is 0, and a hole's `d` never does.
+- **test/api-parameters.test.mjs, 3/3:**
+  - the hand-written document with `{ parameter }` leaves, byte for byte, and the kernel's mass on it;
+  - `withParameters` as a function and as a method, against a fresh build at the new numbers, with the stored names
+    kept;
+  - seven typed refusals, suppression's `UNAVAILABLE` among them.
+
 **Oracles:**
 - **Studio:** `.doc` is byte-equal to the document made through the studio's own functions. That's the panel's writes
   for parameters and configurations, `editFields(…).bind` for each binding, and the History toggle's write for
