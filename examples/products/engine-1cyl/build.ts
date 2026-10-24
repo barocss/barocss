@@ -14,13 +14,15 @@ type XY = [number, number];
 // ── sizes (mm) ──
 export const BORE = 56, STROKE = 50, CRANK = STROKE / 2, ROD = 100;
 const JOURNAL_R = 12.5, PIN_R = 10, WEB_T = 12, WEB_GAP = 18;
-/** The webs' counterweights: half discs of 50 — enough to carry the rod's turning share and about 70 % of the reciprocating mass. */
-const WEB_R = 50;
+/** The webs' counterweights: half discs of 48 — the rod's turning share and about 60 % of the reciprocating mass. */
+const WEB_R = 48;
 /** The journals run out to ±62 on the axis, through the case's bearing bosses (y ±49 … ±63); the gear's seat beyond, 12 long. */
 export const JOURNAL_END = 62, SEAT_LENGTH = 12;
+/** The timing gears' face, y 64 … 74: on the seat, clear of the bearing boss's face (y 63). */
+const GEAR_Y = JOURNAL_END + 2;
 const SMALL_END_PIN_R = 7;
 
-// (Arc-and-line loops for the sketcher: the outline of two circles joined by their outer tangents, a cam lobe, a web.)
+// (Arc-and-line loops for the sketcher: two circles' outer tangents, for a cam lobe.)
 function tangents(c1: XY, r1: number, c2: XY, r2: number): { right: [XY, XY]; left: [XY, XY] } {
   const dx = c2[0] - c1[0], dy = c2[1] - c1[1], d = Math.hypot(dx, dy), ux = dx / d, uy = dy / d;
   const a = (r1 - r2) / d, b = Math.sqrt(1 - a * a);
@@ -30,11 +32,6 @@ function tangents(c1: XY, r1: number, c2: XY, r2: number): { right: [XY, XY]; le
   return { right: [at(c1, r1, nR), at(c2, r2, nR)], left: [at(c1, r1, nL), at(c2, r2, nL)] };
 }
 const round = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
-/** Two circles joined by their outer tangents, as one closed loop (c2's arc over its far side, c1's over its own). */
-function stadium(c1: XY, r1: number, c2: XY, r2: number) {
-  const t = tangents(c1, r1, c2, r2);
-  return sketch().moveTo(t.right[0]).lineTo(t.right[1]).arcTo(t.left[1], { center: c2 }).lineTo(t.left[0]).arcTo(t.right[0], { center: c1 }).close();
-}
 const rotate = ([x, y]: XY, deg: number): XY => { const a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a); return [round(x * c - y * s), round(x * s + y * c)]; };
 
 // ── 1. the crankshaft (own frame: its axis Z, the crankpin toward +X) ──
@@ -58,19 +55,22 @@ export function crankshaft(): StudioPart {
     .material('steel')
     // (The timing gear on its seat, a body of the crankshaft's own: a gear on a part locked to the shaft is not coupled
     // to the camshaft's by the joint tree — gap PG-4.)
-    .gear({ m: GEAR_M, teeth: CRANK_TEETH, b: 10, bore: 20, x: 0, y: 0, z: JOURNAL_END }).material('steel');
+    .gear({ m: GEAR_M, teeth: CRANK_TEETH, b: 10, bore: 20, x: 0, y: 0, z: GEAR_Y }).material('steel');
 }
 
 // ── 2. the connecting rod (own frame: in XY, big end at the origin, small end at +Y, 18 thick from z 0) ──
 export function connectingRod(): StudioPart {
-  const t = 15, big: XY = [0, 0], small: XY = [0, ROD];
+  // (Its outline: the big end's Ø34 and the small end's Ø22 joined by a shank 16 wide at the big end and 14 at the small,
+  // narrow enough to swing inside the bore's lower edge.)
+  const t = 15, yb = round(Math.sqrt(17 * 17 - 8 * 8)), ys = round(ROD - Math.sqrt(11 * 11 - 7 * 7));
+  const outline = sketch().moveTo([8, yb]).lineTo([7, ys]).arcTo([-7, ys], { center: [0, ROD] }).lineTo([-8, yb]).arcTo([8, yb], { center: [0, 0] }).close();
   return part('connecting-rod')
-    .extrude(stadium(big, 17, small, 11), { h: t })
+    .extrude(outline, { h: t })
     .subtract(p => p.cylinder({ r: PIN_R + 0.05, h: t + 2, z: -1 }))
     .subtract(p => p.cylinder({ r: SMALL_END_PIN_R + 0.02, h: t + 2, y: ROD, z: -1 }))
     // (The I-beam: a pocket 4 deep in each face, between the ends.)
-    .subtract(p => p.extrude(sketch(Plane.XY.offset(t - 4)).polygon([[-10, 30], [10, 30], [6, 80], [-6, 80]]), { h: 5 }))
-    .subtract(p => p.extrude(sketch(Plane.XY.offset(-1)).polygon([[-10, 30], [10, 30], [6, 80], [-6, 80]]), { h: 5 }))
+    .subtract(p => p.extrude(sketch(Plane.XY.offset(t - 4)).polygon([[-5, 24], [5, 24], [4, 86], [-4, 86]]), { h: 5 }))
+    .subtract(p => p.extrude(sketch(Plane.XY.offset(-1)).polygon([[-5, 24], [5, 24], [4, 86], [-4, 86]]), { h: 5 }))
     .material('steel');
 }
 
@@ -99,9 +99,12 @@ export function pistonPin(): StudioPart {
 }
 
 // ── 4. the finned cylinder block (own frame: bore axis Z, from z 0 on the crankcase to z 95 under the head; its spigot
-// 6 down into the case) ──
-/** The case's top (z 60, clear of the counterweights) to the block's deck: the crown at top dead centre, 155 above the crank's axis, flush with it. */
-export const CASE_TOP = 60, BLOCK_H = CRANK + ROD + 30 - CASE_TOP, SPIGOT = 6, SPIGOT_R = 31.5;
+// 3 down into the case, clear of the rod as it swings) ──
+/**
+ * The case's top (z 60, clear of the counterweights) to the block's deck, 156 above the crank's axis: the crown at top
+ * dead centre (155) a squish clearance of 1 below it.
+ */
+export const CASE_TOP = 60, SQUISH = 1, BLOCK_H = CRANK + ROD + 30 + SQUISH - CASE_TOP, SPIGOT = 3, SPIGOT_R = 31.5;
 export function cylinderBlock(): StudioPart {
   const fin = 2, pitch = 8, fins = Math.floor((BLOCK_H - 20) / pitch);
   return part('cylinder-block')
@@ -152,17 +155,18 @@ function lobe(z: number, phase: number) {
   const t = tangents([0, 0], 14, [0, 14], 6), r = (q: XY) => rotate(q, phase);
   return sketch(Plane.XY.offset(z)).moveTo(r(t.right[0])).lineTo(r(t.right[1])).arcTo(r(t.left[1]), { center: r([0, 14]) }).lineTo(r(t.left[0])).arcTo(r(t.right[0]), { center: [0, 0] }).close();
 }
-// (The shaft from z 20, clear of the crank's webs; its timing gear on z 60 — a body of its own, as on the crankshaft.)
+// (The shaft from z 20, clear of the crank's webs; its timing gear on z 62 — a body of its own, as on the crankshaft.)
 export function camshaft(): StudioPart {
   return part('camshaft')
     .cylinder({ r: 8, h: 60, z: 20 })
     .union(p => p.extrude(lobe(20, 0), { h: 10 }))
     .union(p => p.extrude(lobe(33, 90), { h: 10 }))
     .material('steel')
-    .gear({ m: GEAR_M, teeth: CAM_TEETH, b: 10, bore: 16, x: 0, y: 0, z: JOURNAL_END - 2 }).material('steel');
+    .gear({ m: GEAR_M, teeth: CAM_TEETH, b: 10, bore: 16, x: 0, y: 0, z: GEAR_Y - 2 }).material('steel');
 }
 export function follower(name: string): StudioPart {
-  return part(name).cylinder({ r: 8, h: 12 }).union(p => p.cylinder({ r: 4, h: 20, z: 12 })).material('steel');
+  // (Its foot Ø10, the lobe's width: clear of the crank's webs beside it.)
+  return part(name).cylinder({ r: 5, h: 12 }).union(p => p.cylinder({ r: 3, h: 20, z: 12 })).material('steel');
 }
 
 // The camshaft's axis: along Y, 45 (the gears' centres) from the crank's, down and back at 45°.

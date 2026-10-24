@@ -29,18 +29,25 @@ checked by motion.
 **Workaround.** The followers are locked to the case on the lobes' base circles. The cycle sweep leaves out a follower
 that no joint moves, and its report says so.
 
-## PG-6: sweeps use display meshes, coarser than a running fit
+## PG-6: the sweep on running fits
 
-`sweep_path`, and `robot().sweep` through `robotViewOf`, test contact on the display meshes. Those have 8 segments
-per quarter turn, so a chord sits 0.135 mm inside a bore of radius 28. A piston with 0.1 mm radial clearance therefore
-reads as touching its bore at the assembled pose: "cylinder-block touches piston at 0°".
+`sweep_path`, and `robot().sweep` through `robotViewOf`, test contact on the display meshes, which have 8 segments per
+quarter turn. That puts a chord 0.135 mm inside a bore of radius 28, so a piston with 0.1 mm radial clearance reads as
+touching its bore at the assembled pose: "cylinder-block touches piston at 0°".
 
-**Expected.** Running fits (0.02 to 0.1 mm here) sweep clear. Either the sweep tessellates to a chord tolerance well
-under the least clearance, or it tests exact surfaces where the hulls meet.
+Finer meshes are no way out. At 24 segments per quarter turn the sweep ran over 18 minutes and was stopped. The
+sweep's step is set by the least clearance over all pairs together, so piston rings 0.05 mm from the bore make every
+pair advance in tiny steps.
 
-**Owner.** Outer lane: `robot/verbs.ts` `sweepLinksOf` and `robot/sweep.ts`.
+**Expected.** Running fits, 0.02 to 0.1 mm here, sweep clear in reasonable time. O22's designed seats cover meshing
+teeth and planar loop pins, but not a concentric fit (a piston in its bore, a journal in its bearing).
 
-**Workaround.** `check.ts` builds the sweep's view at 24 segments per quarter turn (a chord of 0.015 mm at r 28).
+**Owner.** Outer lane: `robot/sweep.ts`, part of O24 (a).
+
+**Workaround.** `check.ts` certifies each pair on its own between the cycle's poses (clearances d0, d1 and the hull's
+travel m; clear if d0 + d1 > m, else halve, down to 1/1024 of a step). A concentric mate's fit surfaces (each part's
+triangles within the mesh's chord tolerance of the fit's cylinder) are left out between the two rigid groups. Gear teeth
+are left out as O22 does it: each zone checked against the other's rest. The run takes 64 s over 127 pairs.
 
 ## PG-7: closeLoop takes only four-bar loops
 

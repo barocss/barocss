@@ -13,6 +13,8 @@ const here = import.meta.dirname, dir = mkdtempSync(join(tmpdir(), 'engine-1cyl-
 await build({
   stdin: { contents: "export { engine } from './build.ts'; export { checkEngine } from './check.ts';", resolveDir: here, loader: 'ts' },
   outfile: join(dir, 'p1.mjs'), bundle: true, platform: 'node', format: 'esm', target: 'node22', logLevel: 'warning', define: { 'import.meta.dirname': JSON.stringify(here) },
+  // (The kernel's own exports, as cad-model resolves them.)
+  nodePaths: [join(here, '../../../packages/barocss-cad-model/node_modules')],
 });
 const { engine, checkEngine } = await import(pathToFileURL(join(dir, 'p1.mjs')).href);
 rmSync(dir, { recursive: true, force: true });

@@ -14,7 +14,7 @@ const here = import.meta.dirname, checking = process.argv[2] === '--check', entr
 const args = checking ? [resolve(process.argv[3]), ...process.argv.slice(4)] : [resolve(process.argv[2] ?? join(here, 'out'))];
 const dir = mkdtempSync(join(tmpdir(), 'engine-1cyl-'));
 try {
-  await build({ entryPoints: [join(here, `${entry}.ts`)], outfile: join(dir, `${entry}.mjs`), bundle: true, platform: 'node', format: 'esm', target: 'node22', logLevel: 'warning', define: { 'import.meta.dirname': JSON.stringify(here) } });
+  await build({ entryPoints: [join(here, `${entry}.ts`)], outfile: join(dir, `${entry}.mjs`), bundle: true, platform: 'node', format: 'esm', target: 'node22', logLevel: 'warning', define: { 'import.meta.dirname': JSON.stringify(here) }, nodePaths: [join(here, '../../../packages/barocss-cad-model/node_modules')] });
   const r = spawnSync(process.execPath, [join(dir, `${entry}.mjs`), ...args], { stdio: 'inherit' });
   process.exitCode = r.status ?? 1;
 } finally { rmSync(dir, { recursive: true, force: true }); }

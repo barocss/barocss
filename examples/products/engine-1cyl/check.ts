@@ -8,7 +8,7 @@
 //              slider-crank's piston kept on its bore by the loop's own mates — and the stroke, bore and
 //              displacement the brief asks for
 //   timing     the camshaft follows the crank at 1:2 (a gear coupling the joint tree found)
-//   sweep      no two parts touch anywhere through the cycle (the core's certified sweep, pose to pose)
+//   sweep      no two parts touch anywhere through the cycle: pair by pair, certified between the poses (below)
 //   masses     every part has a material and a mass; the engine's mass in range
 //   balance    the crank's counterweights: the balance factor in range
 //
@@ -17,11 +17,11 @@ import { readFileSync } from 'node:fs';
 import type { StudioDoc } from '../../../packages/barocss-cad-model/src/engine/doc';
 import { part } from '../../../packages/barocss-cad-model/src/api';
 import { viewOf } from '../../../packages/barocss-cad-model/src/api/robotCore';
-import { treeOf, sweepLinksOf, type RobotView } from '../../../packages/barocss-cad-model/src/robot/verbs';
-import { evaluateDoc, type BodyResult } from '../../../packages/barocss-cad-model/src/engine/evaluate';
-import { forwardKinematics, type Motion } from '../../../packages/barocss-cad-model/src/robot/fk';
+import { treeOf, sweepLinksOf } from '../../../packages/barocss-cad-model/src/robot/verbs';
+import { convexDistance, meshClearance, spurGearDimensions, triangleBvh, type TriangleBvh } from '@barocss/cad';
+import { forwardKinematics, type FkResult, type Motion } from '../../../packages/barocss-cad-model/src/robot/fk';
 import { pathTo } from '../../../packages/barocss-cad-model/src/robot/ik';
-import { sweepPath } from '../../../packages/barocss-cad-model/src/robot/sweep';
+import { partParent, type SweepLink } from '../../../packages/barocss-cad-model/src/robot/sweep';
 import type { Joint, JointTree } from '../../../packages/barocss-cad-model/src/robot/joints';
 import { solveDoc } from '../../../packages/barocss-cad-model/src/assembly/edit';
 import { tablesFor } from '../../../packages/barocss-cad-model/src/assembly/faces';
@@ -40,11 +40,6 @@ export const BRIEF = {
   /** The camshaft's turns per crank turn. */
   camRatio: 0.5,
   stepDeg: 5,
-  /**
-   * The sweep's meshes: segments per quarter turn. The display's 8 put a chord 0.13 inside a bore of 28 — more than a
-   * piston's running clearance — so the sweep tessellates finer (24: 0.015) and a running fit reads as one (PG-6).
-   */
-  sweepQuality: 24,
 };
 
 export interface Check { id: string; ok: boolean; detail: string; ms: number }
@@ -197,17 +192,186 @@ function rigidGroup(tree: JointTree, link: string): Set<string> {
   return out;
 }
 
-/** The robot's view with its meshes at a quality of the sweep's own (the facade's viewOf at the display's). */
-function sweepView(doc: StudioDoc, solved: StudioDoc, quality: number): RobotView {
-  const own = (d: StudioDoc): readonly BodyResult[] => {
-    if (!d.nodes.length) return [];
-    const r = evaluateDoc(d, 1, quality);
-    if (!r.ok) throw new Error(`${r.error.title}: ${r.error.detail}`);
-    return r.bodies;
-  };
-  const parts = new Map<string, readonly BodyResult[]>();
-  for (const inst of solved.instances ?? []) parts.set(inst.id, own(inst.doc));
-  return { doc, bodies: own(doc), parts };
+// ── the sweep, pair by pair ──
+// The core's sweep_path advances all pairs together, each step as short as the tightest pair allows, so a piston ring
+// 0.05 from its bore makes every pair crawl; and its display meshes put a bore's chord 0.13 inside the circle (PG-6), so
+// a running fit reads as contact. Here each pair of parts that moves relative to the other is certified on its own
+// between the cycle's poses: with clearances d0, d1 at two poses and no point of either part travelling more than m
+// between them (the chord of its hull's corners, 1 % over for the arc), there is no contact between if d0 + d1 > m;
+// else the interval is halved (the loop closed at the middle angle) and each half checked, down to 1/1024 of a step.
+// A pair's designed seats are left out of its meshes, as O22's sweep leaves meshing teeth out: a running fit — each
+// part's triangles lying within the fit's chord tolerance of a concentric mate's cylinder between their rigid groups —
+// and the zone of meshing gears' teeth (root to tip about each joint's axis). Parent and child of a joint seated on a
+// flat mate (coincident, or a distance of 0) are not checked, as the core's sweep checks no parent and child; nor a
+// follower no joint drives against its camshaft (PG-5).
+const CONTACT_MM = 1e-6, DEPTH = 10, ARC = 1.01;
+/** The chord a display mesh's facets put inside a circle of radius r (8 segments a quarter turn), and a margin. */
+const band = (r: number) => r * (1 - Math.cos(Math.PI / 32)) + 0.05;
+interface Ring { o: V3; d: V3; lo: number; hi: number }
+/** Gear teeth: the disc within the tip radius about the joint's axis, over the axial span the teeth have (O22's zone). */
+interface Disc { o: V3; d: V3; ra: number; rf: number }
+/** A pair's meshes to check: triangle sets of each, one or more (a gear zone against the other's rest only). */
+interface SubCheck { ia: Uint32Array; ib: Uint32Array; ka: string; kb: string }
+interface PairCheck { a: SweepLink; b: SweepLink; checks: SubCheck[] }
+interface Pose { deg: number; q: Record<string, number>; fk: FkResult; pos: Map<string, Float64Array>; hull: Map<string, Float64Array>; bvh: Map<string, TriangleBvh> }
+
+/** The triangles of a link not lying wholly in any of the rings (radial bands about axes, world at home). */
+function outside(l: SweepLink, rings: readonly Ring[]): Uint32Array {
+  if (!rings.length) return l.indices;
+  const P = l.positions, I = l.indices, keep: number[] = [];
+  for (let t = 0; t < I.length; t += 3) {
+    let inAny = false;
+    for (const g of rings) {
+      let all = true;
+      for (let c = 0; c < 3 && all; c++) {
+        const v = I[t + c] * 3, x = P[v] - g.o[0], y = P[v + 1] - g.o[1], z = P[v + 2] - g.o[2], a = x * g.d[0] + y * g.d[1] + z * g.d[2];
+        const rho = Math.hypot(x - a * g.d[0], y - a * g.d[1], z - a * g.d[2]);
+        all = rho >= g.lo && rho <= g.hi;
+      }
+      if (all) { inAny = true; break; }
+    }
+    if (!inAny) keep.push(I[t], I[t + 1], I[t + 2]);
+  }
+  return Uint32Array.from(keep);
+}
+/** A link's triangles split at a gear disc: inside it over the teeth's span (the zone), and the rest. */
+function splitDisc(l: SweepLink, set: Uint32Array, g: Disc): { zone: Uint32Array; rest: Uint32Array } {
+  const P = l.positions, nv = P.length / 3, rho = new Float64Array(nv), h = new Float64Array(nv), tol = band(g.ra);
+  let lo = Infinity, hi = -Infinity;
+  for (let v = 0; v < nv; v++) {
+    const x = P[v * 3] - g.o[0], y = P[v * 3 + 1] - g.o[1], z = P[v * 3 + 2] - g.o[2], a = x * g.d[0] + y * g.d[1] + z * g.d[2];
+    h[v] = a; rho[v] = Math.hypot(x - a * g.d[0], y - a * g.d[1], z - a * g.d[2]);
+    if (rho[v] >= g.rf - tol && rho[v] <= g.ra + tol) { lo = Math.min(lo, a); hi = Math.max(hi, a); }
+  }
+  const zone: number[] = [], rest: number[] = [];
+  for (let t = 0; t < set.length; t += 3) {
+    let inZone = true;
+    for (let c = 0; c < 3 && inZone; c++) { const v = set[t + c]; inZone = rho[v] <= g.ra + tol && h[v] >= lo - tol && h[v] <= hi + tol; }
+    (inZone ? zone : rest).push(set[t], set[t + 1], set[t + 2]);
+  }
+  return { zone: Uint32Array.from(zone), rest: Uint32Array.from(rest) };
+}
+const posed = (m: Motion, home: Float64Array): Float64Array => {
+  const out = new Float64Array(home.length), R = m.R, t = m.t;
+  for (let i = 0; i < home.length; i += 3) { const x = home[i], y = home[i + 1], z = home[i + 2]; out[i] = R[0] * x + R[1] * y + R[2] * z + t[0]; out[i + 1] = R[3] * x + R[4] * y + R[5] * z + t[1]; out[i + 2] = R[6] * x + R[7] * y + R[8] * z + t[2]; }
+  return out;
+};
+function poseOf(tree: JointTree, deg: number, q: Record<string, number>): Pose {
+  return { deg, q, fk: forwardKinematics(tree, q), pos: new Map(), hull: new Map(), bvh: new Map() };
+}
+function hullAt(p: Pose, l: SweepLink): Float64Array {
+  let h = p.hull.get(l.link);
+  if (!h) p.hull.set(l.link, h = posed(motionOf(p.fk, l.link), l.hull));
+  return h;
+}
+function bvhAt(p: Pose, key: string, positions: Float64Array, set: Uint32Array): TriangleBvh {
+  let b = p.bvh.get(key);
+  if (!b) p.bvh.set(key, b = triangleBvh(positions, set));
+  return b;
+}
+function positionsAt(p: Pose, l: SweepLink): Float64Array {
+  let x = p.pos.get(l.link);
+  if (!x) p.pos.set(l.link, x = posed(motionOf(p.fk, l.link), l.positions));
+  return x;
+}
+function clearance(p: Pose, c: PairCheck): number {
+  const d = convexDistance(hullAt(p, c.a), hullAt(p, c.b));
+  if (d > CONTACT_MM) return d;
+  const pa = positionsAt(p, c.a), pb = positionsAt(p, c.b);
+  let least = Infinity;
+  for (const k of c.checks) {
+    if (!k.ia.length || !k.ib.length) continue;
+    least = Math.min(least, meshClearance(pa, k.ia, pb, k.ib, { bvhA: bvhAt(p, k.ka, pa, k.ia), bvhB: bvhAt(p, k.kb, pb, k.ib) }).distanceMM);
+  }
+  return least;
+}
+/** The most any corner of a link's hull travels between two poses (the chord, ARC over for the arc between). */
+function travel(p0: Pose, p1: Pose, l: SweepLink): number {
+  const h0 = hullAt(p0, l), h1 = hullAt(p1, l);
+  let m = 0;
+  for (let i = 0; i < h0.length; i += 3) m = Math.max(m, Math.hypot(h1[i] - h0[i], h1[i + 1] - h0[i + 1], h1[i + 2] - h0[i + 2]));
+  return ARC * m;
+}
+
+interface SweepState { tree: JointTree; terms: readonly Term[]; unknowns: readonly string[]; driver: string; poses: number; least: { mm: number; deg: number; links: [string, string] } | null }
+/** A pair between two poses: clear, or the angle of its first contact. */
+function certify(s: SweepState, c: PairCheck, p0: Pose, p1: Pose, d0: number, d1: number, depth: number): number | null {
+  if (d0 <= CONTACT_MM) return p0.deg;
+  if (d1 <= CONTACT_MM) return p1.deg;
+  if (d0 + d1 > travel(p0, p1, c.a) + travel(p0, p1, c.b)) return null;
+  if (depth >= DEPTH) return (p0.deg + p1.deg) / 2;
+  const deg = (p0.deg + p1.deg) / 2, q = { ...p0.q, [s.driver]: deg * Math.PI / 180 };
+  close(s.tree, s.terms, s.unknowns, q); s.poses++;
+  const pm = poseOf(s.tree, deg, q), dm = clearance(pm, c);
+  if (!s.least || dm < s.least.mm) s.least = { mm: dm, deg, links: [c.a.link, c.b.link] };
+  return certify(s, c, p0, pm, d0, dm, depth + 1) ?? certify(s, c, pm, p1, dm, d1, depth + 1);
+}
+
+/** Where a pair meets at an angle (the loop closed there): the point on each, world. */
+function contactAt(s: SweepState, c: PairCheck, from: Record<string, number>, deg: number) {
+  const q = { ...from, [s.driver]: deg * Math.PI / 180 };
+  close(s.tree, s.terms, s.unknowns, q);
+  const p = poseOf(s.tree, deg, q);
+  const pa = positionsAt(p, c.a), pb = positionsAt(p, c.b);
+  let m = { distanceMM: Infinity, pointA: null as readonly [number, number, number] | null };
+  for (const k of c.checks) { if (!k.ia.length || !k.ib.length) continue; const x = meshClearance(pa, k.ia, pb, k.ib); if (x.distanceMM < m.distanceMM) m = x; }
+  return { deg, links: [c.a.link, c.b.link] as [string, string], at: m.pointA ? m.pointA.map(r3) as V3 : null, mm: m.distanceMM };
+}
+
+/** The cycle swept pair by pair: the first contact, the least clearance, what was left out and why. */
+function sweepCycle(tree: JointTree, links: readonly SweepLink[], solved: StudioDoc, cycle: { poses: Record<string, number>[]; terms: Term[]; unknowns: string[] }, driver: string, step: number, followers: readonly string[]) {
+  const group = new Map<string, Set<string>>(), parentOf = new Map(tree.joints.map(j => [j.child, j.parent])), tables = tablesFor(solved);
+  for (const l of links) group.set(l.link, rigidGroup(tree, l.link));
+  const groupOf = (id: string) => group.get(id) ?? rigidGroup(tree, id);
+  // (Each concentric mate's fit, and each coupling's teeth, as rings for the pairs between their rigid groups.)
+  const fits: { ga: Set<string>; gb: Set<string>; ring: Ring }[] = [];
+  for (const m of solved.mates ?? []) {
+    if (m.kind !== 'concentric') continue;
+    const fa = worldFace(solved, tables, m.a.part, m.a.face), fb = worldFace(solved, tables, m.b.part, m.b.face);
+    if (fa?.kind !== 'cylinder' || fb?.kind !== 'cylinder') continue;
+    const lo = Math.min(fa.radius, fb.radius), hi = Math.max(fa.radius, fb.radius);
+    fits.push({ ga: groupOf(m.a.part), gb: groupOf(m.b.part), ring: { o: [...fb.point] as V3, d: unit(fb.axis), lo: lo - band(hi), hi: hi + band(hi) } });
+  }
+  const teeth: { ga: Set<string>; gb: Set<string>; da: Disc; db: Disc }[] = [];
+  for (const c of tree.couplings) {
+    const jl = tree.joints.find(j => j.key === c.leader)!, jf = tree.joints.find(j => j.key === c.follower)!, dl = spurGearDimensions(c.g1.spec), df = spurGearDimensions(c.g2.spec);
+    teeth.push({ ga: groupOf(jl.child), gb: groupOf(jf.child), da: { o: jl.origin, d: unit(jl.axis), ra: dl.ra, rf: dl.rf }, db: { o: jf.origin, d: unit(jf.axis), ra: df.ra, rf: df.rf } });
+  }
+  const pairs: PairCheck[] = [], skipped: { links: [string, string]; why: string }[] = [];
+  let seated = 0;
+  const camGroups = tree.joints.filter(j => turning(j) && /cam-?shaft/.test((solved.instances ?? []).find(i => i.id === j.child)?.name.toLowerCase() ?? '')).map(j => groupOf(j.child));
+  for (let i = 0; i < links.length; i++) for (let k = i + 1; k < links.length; k++) {
+    const a = links[i], b = links[k], ga = groupOf(a.link);
+    if (ga.has(b.link)) continue;
+    const pair: [string, string] = [a.link, b.link];
+    if (partParent(parentOf, a.link) === b.link || partParent(parentOf, b.link) === a.link) {
+      const flat = (solved.mates ?? []).some(m => [m.a.part, m.b.part].includes(a.link) && [m.a.part, m.b.part].includes(b.link) && (m.kind === 'coincident' || (m.kind === 'distance' && Math.abs(m.distance ?? 0) < 1e-9)));
+      if (flat) { skipped.push({ links: pair, why: 'parent and child seated on a flat mate' }); continue; }
+    }
+    const parked = followers.find(f => f === a.link || f === b.link);
+    if (parked && camGroups.some(g => g.has(parked === a.link ? b.link : a.link))) { skipped.push({ links: pair, why: 'a follower no joint drives, on its cam (PG-5)' }); continue; }
+    const rings: Ring[] = [];
+    for (const f of fits) if ((f.ga.has(a.link) && f.gb.has(b.link)) || (f.gb.has(a.link) && f.ga.has(b.link))) rings.push(f.ring);
+    const tooth = teeth.find(t => (t.ga.has(a.link) && t.gb.has(b.link)) || (t.gb.has(a.link) && t.ga.has(b.link)));
+    if (rings.length || tooth) seated++;
+    const tag = `@${a.link}|${b.link}`, sa = outside(a, rings), sb = outside(b, rings), ka = rings.length ? a.link + tag : a.link, kb = rings.length ? b.link + tag : b.link;
+    if (!tooth) { pairs.push({ a, b, checks: [{ ia: sa, ib: sb, ka, kb }] }); continue; }
+    // (Meshing gears: each one's teeth zone against the other's rest, and the rest against all — O22's seat.)
+    const [da, db] = tooth.ga.has(a.link) ? [tooth.da, tooth.db] : [tooth.db, tooth.da], za = splitDisc(a, sa, da), zb = splitDisc(b, sb, db);
+    pairs.push({ a, b, checks: [{ ia: za.rest, ib: sb, ka: `${a.link}${tag}:rest`, kb }, { ia: za.zone, ib: zb.rest, ka: `${a.link}${tag}:zone`, kb: `${b.link}${tag}:rest` }] });
+  }
+  const s: SweepState = { tree, terms: cycle.terms, unknowns: cycle.unknowns, driver, poses: cycle.poses.length, least: null };
+  let p0 = poseOf(tree, 0, cycle.poses[0]), d0 = pairs.map(c => clearance(p0, c));
+  for (let k = 0; k + 1 < cycle.poses.length; k++) {
+    const p1 = poseOf(tree, (k + 1) * step, cycle.poses[k + 1]), d1 = pairs.map(c => clearance(p1, c));
+    for (let n = 0; n < pairs.length; n++) {
+      if (!s.least || d0[n] < s.least.mm) s.least = { mm: d0[n], deg: p0.deg, links: [pairs[n].a.link, pairs[n].b.link] };
+      const hit = certify(s, pairs[n], p0, p1, d0[n], d1[n], 0);
+      if (hit !== null) return { contact: contactAt(s, pairs[n], p0.q, hit), least: s.least, skipped, pairs: pairs.length, poses: s.poses, seated };
+    }
+    p0 = p1; d0 = d1;
+  }
+  return { contact: null, least: s.least, skipped, pairs: pairs.length, poses: s.poses, seated };
 }
 
 const turning = (j: Joint) => j.type === 'revolute' || j.type === 'continuous';
@@ -220,7 +384,7 @@ const timed = <T>(checks: Check[], id: string, run: () => { ok: boolean; detail:
 };
 
 /** The checks over a document (a StudioDoc whose instances are the engine's parts, as Save writes it). */
-export function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: number; sweepQuality?: number } = {}): EngineCheck {
+export function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: number } = {}): EngineCheck {
   const t0 = performance.now(), checks: Check[] = [], figures: EngineFigures = {}, step = o.stepDeg ?? BRIEF.stepDeg;
   const instances = doc.instances ?? [], named = (role: Role) => instances.filter(i => role.test(i.name.toLowerCase()));
 
@@ -246,7 +410,7 @@ export function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: numb
   if (crankR !== undefined) figures.crankRadiusMM = r3(crankR);
 
   // cycle
-  const poses = timed<Record<string, number>[]>(checks, 'cycle', () => {
+  const cycle = timed<{ poses: Record<string, number>[]; terms: Term[]; unknowns: string[] }>(checks, 'cycle', () => {
     if (!driver) return { ok: false, detail: 'no turning joint carries the crankshaft' };
     if (!pistonId) return { ok: false, detail: 'no piston' };
     if (!tree.loops.length) return { ok: false, detail: 'no closed loop: the piston is not held in its bore by a second path (the slider-crank needs one)' };
@@ -281,7 +445,7 @@ export function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: numb
     if (Math.abs(at0 - hi) > 1e-6 && Math.abs(at0 - lo) > 1e-6) problems.push('the assembled pose is neither top nor bottom dead centre');
     if (cc === undefined) problems.push('no bore: the piston has no round mate in its loop');
     else if (cc < BRIEF.displacementCC[0] || cc > BRIEF.displacementCC[1]) problems.push(`displacement ${r3(cc)} cc is outside ${BRIEF.displacementCC.join('–')} cc`);
-    return { ok: !problems.length, detail: problems.length ? problems.join('; ') : `720° in ${step}° steps, the loop closed at each (worst ${worst.toExponential(1)} mm); stroke ${r3(stroke)}, bore ${r3(boreD!)}, ${r3(cc!)} cc`, value: out };
+    return { ok: !problems.length, detail: problems.length ? problems.join('; ') : `720° in ${step}° steps, the loop closed at each (worst ${worst.toExponential(1)} mm); stroke ${r3(stroke)}, bore ${r3(boreD!)}, ${r3(cc!)} cc`, value: { poses: out, terms, unknowns } };
   });
 
   // timing
@@ -300,18 +464,13 @@ export function checkEngine(doc: StudioDoc, o: { sweep?: boolean; stepDeg?: numb
 
   // sweep
   if (o.sweep !== false) timed(checks, 'sweep', () => {
-    if (!poses) return { ok: false, detail: 'no cycle to sweep' };
-    // (A follower no joint moves stays where it was put while the cam turns under it: left out, said so — PG-5.)
-    const parked = new Set(instances.filter(i => FOLLOWER.test(i.name.toLowerCase()) && !tree.joints.some(j => j.type !== 'fixed' && (j.child === i.id || j.child.startsWith(`${i.id}__`)))).map(i => i.id));
-    const links = sweepLinksOf(sweepView(doc, solved, o.sweepQuality ?? BRIEF.sweepQuality), tree).filter(l => !parked.has(l.link)), name = (id: string) => instances.find(i => i.id === id)?.name ?? id;
-    let least: { mm: number; deg: number; links: [string, string] } | null = null;
-    for (let k = 0; k + 1 < poses.length; k++) {
-      const r = sweepPath(tree, links, poses[k], poses[k + 1]);
-      if (!r.clear) return { ok: false, detail: `${name(r.contact!.links[0])} touches ${name(r.contact!.links[1])} at ${r3((k + r.contact!.s) * step)}°` };
-      if (r.minClearance && (!least || r.minClearance.mm < least.mm)) least = { mm: r.minClearance.mm, deg: (k + r.minClearance.s) * step, links: r.minClearance.links };
-    }
-    if (least) figures.minClearanceMM = r3(least.mm);
-    return { ok: true, detail: `no contact through 720°${least ? `; least clearance ${r3(least.mm)} mm (${name(least.links[0])}–${name(least.links[1])} at ${r3(least.deg)}°)` : ''}${parked.size ? `; left out: ${[...parked].map(name).join(', ')} (no cam joint, PG-5)` : ''}` };
+    if (!cycle || !driver) return { ok: false, detail: 'no cycle to sweep' };
+    const name = (id: string) => instances.find(i => i.id === id)?.name ?? id;
+    const r = sweepCycle(tree, sweepLinksOf(view, tree), solved, cycle, driver.key, step, instances.filter(i => FOLLOWER.test(i.name.toLowerCase())).map(i => i.id));
+    if (r.contact) return { ok: false, detail: `${name(r.contact.links[0])} touches ${name(r.contact.links[1])} at ${r3(r.contact.deg)}°${r.contact.at ? `, near (${r.contact.at.join(', ')}) mm` : ''}` };
+    if (r.least) figures.minClearanceMM = r3(r.least.mm);
+    const notes = [...r.skipped.map(x => `${name(x.links[0])}–${name(x.links[1])}: ${x.why}`)];
+    return { ok: true, detail: `no contact through 720° (${r.pairs} pairs, ${r.poses} poses with the subdivisions)${r.least ? `; least clearance ${r3(r.least.mm)} mm (${name(r.least.links[0])}–${name(r.least.links[1])} at ${r3(r.least.deg)}°)` : ''}${r.seated ? `; ${r.seated} pairs checked without their running fits' surfaces and gear teeth` : ''}${notes.length ? `; not checked: ${notes.join('; ')}` : ''}` };
   });
 
   // masses and balance

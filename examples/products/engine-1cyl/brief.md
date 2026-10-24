@@ -68,3 +68,8 @@ The checks allow for these.
   out of the sweep, and the check says so.
 - A gear on a separate part locked to a shaft isn't coupled by the joint tree. Make each timing gear a body of its
   shaft's part.
+- The sweep leaves out two kinds of contact that are there by design:
+  - a running fit's own surfaces on a concentric mate, and meshing gear teeth;
+  - a joint's parent and child seated on a flat mate (the rod on its web).
+
+  Everything else is certified between the 5° poses.
