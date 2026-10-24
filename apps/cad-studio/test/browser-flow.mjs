@@ -6764,6 +6764,17 @@ try {
         }
         await page.click('[aria-label="Preview: None"]');
         const lb = await leftBorders(); if (lb.length) bad.push(`${width}: left border alone with a radius: ${lb.join(', ')}`);
+        // (G12f: a right-click on the plate's top — a face's long menu — opens inside the stage: below the top bar, clear of
+        // the dock, its own scroll.)
+        if (!chat && (width === 1440 || width === 1024)) {
+          const [px, py] = await page.evaluate(() => window.__studioScreenOf([10, 10, 20]));
+          await page.mouse.click(px, py, { button: 'right' }); await page.waitForSelector('.ctx-menu', { timeout: 5000 }); await page.waitForTimeout(200);
+          const m = await page.evaluate(() => { const r = s => document.querySelector(s)?.getBoundingClientRect(); const menu = r('.ctx-menu'), bar = r('.topbar'), stage = r('.stage'), dock = r('.dock'), strip = r('.dock-strip');
+            const meets = (a, b) => !!a && !!b && a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+            return { inStage: menu.left >= stage.left - 0.5 && menu.right <= stage.right + 0.5 && menu.bottom <= stage.bottom + 0.5, bar: meets(menu, bar), dock: meets(menu, dock) || meets(menu, strip) }; });
+          if (!m.inStage || m.bar || m.dock) bad.push(`${width}: the right-click menu leaves the stage or meets the top bar or dock: ${JSON.stringify(m)}`);
+          await page.keyboard.press('Escape'); await page.waitForTimeout(200);
+        }
         // (G12e: where chips are hidden, "+n" opens the bar on more rows — every step shown, whole — and Less closes it. At
         // 1440 the part's steps all fit, stacked above the view bar if not beside it: no "+n".)
         const more = page.locator('.history .hs-more');
