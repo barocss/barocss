@@ -14,7 +14,8 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { rotationMatrix } from '../engine/placement';
 import type { Joint, JointTree } from './joints';
-import { linkInertia, linkFrames, type Frame, type LinkInertia, type Mat3, type V3 } from './inertia';
+import { linkFrames, type Frame, type LinkInertia, type Mat3, type V3 } from './inertia';
+import { nativeLinkInertia, type NativeInertiaBasis } from './nativeInertia';
 import { namer, type FrameCode } from './frames';
 
 export const URDF_EXPORT_VERSION = 'barocss-urdf-v1';
@@ -57,6 +58,8 @@ export interface RobotParts {
   world: Map<string, { R: Mat3; o: V3 }>; inertias: Map<string, LinkInertia>;
   meshes: Map<string, { visual: { positions: Float32Array; indices: Uint32Array }; hull: { positions: Float64Array; indices: Uint32Array } }>;
   notes: string[];
+  /** Internal native-export provenance. A fallback keeps general export support; it is not byte-preservation proof. */
+  nativeInertia: NativeInertiaBasis[];
   /** The tool and sensor frames (O12), each a fixed child of its link: its pose in the link frame (t mm) and in the world. */
   frames: { name: string; link: string; R: Mat3; t: V3; world: { R: Mat3; o: V3 } }[];
 }
@@ -67,7 +70,7 @@ export function withoutCams(tree: JointTree): { tree: JointTree; notes: string[]
   return { tree: { ...tree, joints: tree.joints.map(j => (j.cam ? { ...j, mimic: undefined, cam: undefined } : j)) }, notes: cams.map(j => `${j.key} follows a cam (${j.cam!.mate}): left out — written as a free joint`) };
 }
 export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart | null): RobotParts | { refusals: { code: UrdfRefusal; message: string }[] } {
-  const refusals: { code: UrdfRefusal; message: string }[] = [], notes: string[] = [];
+  const refusals: { code: UrdfRefusal; message: string }[] = [], notes: string[] = [], nativeInertia: NativeInertiaBasis[] = [];
   for (const p of tree.problems) {
     if (p.code === 'MOTION_UNSUPPORTED') refusals.push({ code: 'MOTION_UNSUPPORTED', message: p.message });
     else if (p.code === 'LIMITS_BAD') refusals.push({ code: 'LIMITS_BAD', message: p.message });
@@ -92,7 +95,8 @@ export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart |
     const part = partOf(l.part), F = local.get(l.id)!, P = (part ? rotationMatrix(part.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1]) as Mat3, t = (part?.position ?? [0, 0, 0]) as V3;
     const o = ap(P, F.origin);
     world.set(l.id, { R: mul(P, F.R), o: [o[0] + t[0], o[1] + t[1], o[2] + t[2]] });
-    const li = linkInertia(l.id, l.part, part?.doc ?? null, part?.bodies ?? [], F);
+    const native = nativeLinkInertia(l.id, l.part, part?.doc ?? null, part?.bodies ?? [], F), li = native.inertia;
+    nativeInertia.push(...native.basis); notes.push(...native.notes);
     inertias.set(l.id, li);
     for (const i of li.issues) if (i.code === 'NOT_SPD' || i.code === 'TRIANGLE' || i.code === 'NO_BODY') refusals.push({ code: 'INERTIA', message: `${l.name}: ${i.message}` });
       else if (i.code !== 'MATERIAL_ASSUMED') notes.push(`${l.name}: ${i.message}`);
@@ -108,7 +112,7 @@ export function robotParts(tree: JointTree, partOf: (part: string) => UrdfPart |
     const L = world.get(f.link)!, Lt = tr(L.R);
     frames.push({ name: f.name, link: f.link, R: mul(Lt, f.R), t: ap(Lt, [f.o[0] - L.o[0], f.o[1] - L.o[1], f.o[2] - L.o[2]]), world: { R: f.R, o: f.o } });
   }
-  return refusals.length ? { refusals } : { world, inertias, meshes, notes, frames };
+  return refusals.length ? { refusals } : { world, inertias, meshes, notes, frames, nativeInertia };
 }
 
 /** The robot as a URDF document and its mesh files, or what refuses it. `partOf(part)`: a part's document, bodies (own coordinates) and placement. */

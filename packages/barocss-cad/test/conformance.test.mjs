@@ -108,7 +108,11 @@ for (const file of cases) {
         const face = (f) => ({ brep: outputs.find(o => o.id === f.output).brep, face: f.face, class: f.class });
         if (w.error) { assert.throws(() => checkFit(w.tables, face(w.hole), face(w.shaft)), e => e.code === w.error.code && e.message.includes(w.error.messageIncludes)); continue; }
         const r = checkFit(w.tables, face(w.hole), face(w.shaft)), close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `fit ${what}: ${x} vs ${y}`);
-        assert.deepEqual([r.limits.kind, r.limits.clearanceMinUM, r.limits.clearanceMaxUM, r.contradicted], [w.kind, w.clearanceUM[0], w.clearanceUM[1], w.contradicted], 'fit');
+        // Independent original µm operands; retain strict binary64 equality after each input is converted to mm.
+        const clearances = { 'H8/f7': [0 / 1000 - -25 / 1000, 39 / 1000 - -50 / 1000], 'H7/k6': [0 / 1000 - 18 / 1000, 25 / 1000 - 2 / 1000], 'H7/p6': [0 / 1000 - 42 / 1000, 25 / 1000 - 26 / 1000] };
+        const expected = clearances[`${w.hole.class}/${w.shaft.class}`];
+        assert.ok(expected, 'independent clearance oracle');
+        assert.deepEqual([r.limits.kind, r.limits.clearanceMin, r.limits.clearanceMax, r.contradicted], [w.kind, expected[0], expected[1], w.contradicted], 'fit');
         close(r.mmc.overlap, w.mmcOverlapMM3, 'MMC overlap'); close(r.lmc.overlap, w.lmcOverlapMM3, 'LMC overlap');
       }
     }

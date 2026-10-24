@@ -114,7 +114,7 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   assert.ok(notes.includes('Shaft seat k5: 20.002 to 20.011 (the ring\'s tolerance is not in its row), an estimate'), JSON.stringify(notes));
   assert.ok(notes.some(n => /^Bearing 6204: Ø20 × Ø47 × 14, corners r 1 \(your row, B1 \(D139\): NSK/.test(n)), JSON.stringify(notes));
   const fit = exclude(await call('query', S({ action: 'fit_clearance', hole_class: 'H7', shaft_class: 'k6', size: 20 })));
-  assert.deepEqual([fit.kind, fit.clearanceMinUM, fit.clearanceMaxUM, fit.estimate], ['transition', -15, 19, true]);
+  assert.deepEqual([fit.kind, fit.clearanceMin, fit.clearanceMax, fit.estimate], ['transition', 0 / 1000 - 15 / 1000, 21 / 1000 - 2 / 1000, true]);
 
   // 7. The cover (p3): Ø60 × 8 with a face gland on its top for the 214 — the prefills by their closed forms.
   await call('assembly', { action: 'add_part', name: 'Cover', position: [0, 0, 0] });

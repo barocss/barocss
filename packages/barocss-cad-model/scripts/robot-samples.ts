@@ -37,11 +37,11 @@ const motion = (name: string, waypoints: Record<string, number>[], limits: Motio
  *  exports need, a person's own to set), its limits where given; the frames; the motions. */
 function robot(keys: { turning?: string[]; sliding?: string[] }, limits: Record<string, { lower: number; upper: number }>, motions: Motion[], frames?: Record<string, FrameSettings>): RobotSettings {
   const joints: NonNullable<RobotSettings['joints']> = {};
-  for (const k of keys.turning ?? []) joints[k] = { ...limits[k], effort: 2, velocity: Math.PI };
+  for (const k of keys.turning ?? []) joints[k] = { ...limits[k], effort: 2000, velocity: 180 };
   for (const k of keys.sliding ?? []) joints[k] = { ...limits[k], effort: 50, velocity: 100 };
   return { version: 1, joints, ...(frames ? { frames } : {}), motions };
 }
-const rad = (deg: number) => deg * Math.PI / 180, within = (deg: number) => ({ lower: rad(-deg), upper: rad(deg) });
+const within = (deg: number) => ({ lower: -deg, upper: deg });
 
 const RM = resolve(import.meta.dirname, '../../barocss-cad/conformance/rm');
 const conformance = (name: string, file = 'robot.bcad'): StudioDoc => {

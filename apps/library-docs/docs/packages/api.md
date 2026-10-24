@@ -20,8 +20,10 @@ The facades are for code. The agent keeps working through its JSON tools, and th
 - **Each method adds to the document** and calls the core, and computes no geometry of its own. Each package's facade
   reaches its core through one adapter.
 - **Modeling units.** Lengths are in millimetres, angles in degrees and density in g/cm³. Mass results use
-  millimetres and grams. Robot metadata and export payloads have separate
-  [unit contracts](/studio/robots#robot-unit-boundaries).
+  millimetres and grams. The confirmed R7 [robot contract](/studio/robots#robot-unit-boundaries) extends these units
+  to public replies and stored joint settings. It uses N·mm for turning effort, mm/s² for gravity and seconds for
+  time. The robot samples check the combined angular and B1 inertia/gravity boundary. B2 duty/consistency and the
+  remaining field changes are pending. Native robot files retain their format-specific SI units.
 - **Results are plain data.** Mass results contain `volume` in mm³, `mass` in g, `centroid` in mm and
   `inertia` in g·mm² about the centre of mass. A numeric `density` is in g/cm³.
 - **The agent's words.** The modelling verbs are the agent's v2 command names, and their options are that command's

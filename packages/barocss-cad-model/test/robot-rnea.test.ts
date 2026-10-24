@@ -178,10 +178,10 @@ test('peak and RMS torque of a joint with no gravity load, against the closed fo
 
 test('the motion_torques tool on the planar 2R; the conformance case (rm/move-2r: closed-form profile, the Lagrangian\'s peak)', async () => {
   const { doc, tree, bodies, evaluated } = await planar2R(), [k1, k2] = coordinates(tree), to = { [k1]: 1.2, [k2]: -0.8 };
-  const out = await dispatchTool({ doc, bodies: evaluated }, 'motion_torques', { to, profile: 's-curve', limits: { velocity: 1, acceleration: 4, jerk: 40 } }, evaluate), j = JSON.parse(out.content);
-  assert.ok(!out.isError && !out.changed && j.profile === 's-curve' && j.joints[k1].peak_N_m > 0, out.content);
+  const out = await dispatchTool({ doc, bodies: evaluated }, 'motion_torques', { to: Object.fromEntries(Object.entries(to).map(([k, v]) => [k, v * 180 / Math.PI])), profile: 's-curve', limits: { velocity: 180 / Math.PI, acceleration: 4 * 180 / Math.PI, jerk: 40 * 180 / Math.PI } }, evaluate), j = JSON.parse(out.content);
+  assert.ok(!out.isError && !out.changed && j.profile === 's-curve' && j.joints[k1].peak > 0, out.content);
   const ref = moveTorques(tree, bodies, {}, to, 's-curve', () => ({ velocity: 1, acceleration: 4, jerk: 40 }));
-  assert.ok(Math.abs(j.duration_s - ref.duration) < 1e-9 && Math.abs(j.joints[k1].peak_N_m - ref.joints[k1].peak) < 1e-9);
+  assert.ok(Math.abs(j.duration - ref.duration) < 1e-9 && Math.abs(j.joints[k1].peak / 1000 - ref.joints[k1].peak) < 1e-9);
   assert.ok((await dispatchTool({ doc, bodies: evaluated }, 'motion_torques', { to, profile: 's-curve', limits: { velocity: 1, acceleration: 4 } }, evaluate)).isError, 'an S-curve without jerk');
   const dir = join(CASES, 'move-2r');
   if (process.env.UPDATE_RM_FIXTURES) {

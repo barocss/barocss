@@ -1,5 +1,5 @@
 // RS5 (cad-model's facade): the one place the robot facade calls the core's robot functions — since RS3 the robot's
-// work is sync core verbs over a view (robot/verbs.ts: treeOf, poseOf, sweepOf, inertiaOf, gravityOf, urdfOf, mjcfOf,
+// work is sync core verbs over a view (robot/verbs.ts: treeOf, poseOf, sweepOf, inertiaOf, gravityRawOf, urdfOf, mjcfOf,
 // withJoints), the very functions the agent's robot tools call, so the replies are theirs. The facade builds the view
 // at once from its own sync evaluation; it checks a call's shape as the tool does (the verbs leave that to the caller).
 import { BarocssError, bracketedCode } from '@barocss/cad/api';
@@ -7,17 +7,17 @@ import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { BASE } from '../assembly/mates';
 import { solveDoc } from '../assembly/edit';
-import { gravityOf as gravityVerb, inertiaOf as inertiaVerb, jointValuesOut, mjcfOf as mjcfVerb, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
+import { gravityRawOf as gravityRawVerb, inertiaOf as inertiaVerb, mjcfOf as mjcfVerb, partsOf, poseOf as poseVerb, sweepOf as sweepVerb, treeOf as treeVerb, urdfOf as urdfVerb, withJoints as jointsVerb, type RobotView } from '../robot/verbs';
+import { jointTreeOut, jointValuesIn, jointValuesOut } from '../robot/units';
+import { gravityIn, gravityJson, inertiaJson } from '../robot/reports';
 import { readUrdf } from '../robot/urdfCheck';
 import { readMjcf } from '../robot/mjcfCheck';
 import { exportSdf } from '../robot/sdf';
 import { exportUsd } from '../robot/usd';
 import { closureOfDoc } from '../robot/loop';
 import type { MjcfClosure } from '../robot/mjcf';
-import { STANDARD_GRAVITY } from '../robot/dynamics';
 import { readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
 import { checkPath, duration, motionNamed, poseAt, timedPathOf, type Motion, type MotionPath } from '../robot/motion';
-import { inertiaJson } from '../chat/robot';
 import { problem, type Problem } from '../engine/refusal';
 import { bodiesOf } from './core';
 
@@ -37,13 +37,10 @@ export const treeOf = (doc: StudioDoc): JointTree => treeVerb(viewOf(doc));
 
 /** A joint's value given in the facade's units — degrees for a turning joint, mm for a slide — as the core takes it (radians, mm). */
 export function coreValues(tree: JointTree, values: Readonly<Record<string, number>>): Record<string, number> {
-  const out: Record<string, number> = {};
   for (const [k, v] of Object.entries(values)) {
     if (typeof v !== 'number' || !Number.isFinite(v)) throw new BarocssError('VALUE', `[VALUE] ${k}: a joint's value is a number (degrees, or mm for a slide), not ${String(v)}`, 'facade');
-    const j = tree.joints.find(x => x.key === k);
-    out[k] = j && j.type !== 'prismatic' ? v * Math.PI / 180 : v;
   }
-  return out;
+  return jointValuesIn(tree, values);
 }
 
 const check = (tree: JointTree, values: Readonly<Record<string, number>>) => {
@@ -51,11 +48,11 @@ const check = (tree: JointTree, values: Readonly<Record<string, number>>) => {
   if (bad.length) throw refused(`No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.`);
 };
 
-/** get_joints' reply: the tree. */
-export const jointsOf = (doc: StudioDoc): JointTree => treeOf(doc);
+/** get_joints' public tree: degrees/mm, degree/s or mm/s, and N·mm or N. */
+export const jointsOf = (doc: StudioDoc) => jointTreeOut(treeOf(doc));
 
 const LIMIT_FIELDS = ['lower', 'upper', 'effort', 'velocity'] as const;
-/** set_joints' write (withJoints): the base link and the joints' limits and ratings (null removes a joint's), checked as the tool checks them. */
+/** set_joints' write: store public units unchanged; the producer converts to core units when it builds the tree. */
 export function withJoints(doc: StudioDoc, o: { base?: string; joints?: Record<string, Partial<JointSettings> | null> }): StudioDoc {
   const parts = [BASE, ...(doc.instances ?? []).map(i => i.id)];
   if (o.base !== undefined && (typeof o.base !== 'string' || !parts.includes(o.base))) throw refused(`The base link is one of ${parts.join(', ')}.`);
@@ -87,19 +84,20 @@ export function poseOf(doc: StudioDoc, values: Readonly<Record<string, number>>)
 export function sweepOf(doc: StudioDoc, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>) {
   const view = viewOf(doc), t = treeVerb(view);
   check(t, from); check(t, to);
-  return sweepVerb(view, from, to, t).reply;
+  const r = sweepVerb(view, from, to, t);
+  return { ...r.reply, ...(r.reply.contact ? { contact: { ...r.reply.contact, values: jointValuesOut(t, r.rawContactValues!) } } : {}) };
 }
 
-/** link_inertia's reply. */
+/** link_inertia's public MMGS reply, projected once from the internal SI inertia. */
 export const inertiaOf = (doc: StudioDoc) => ({ links: inertiaVerb(viewOf(doc)).map(inertiaJson) });
 
-/** gravity_torques' reply at joint values (the core's units), gravity `g` in m/s² (standard, down −Z, unless given). */
+/** Public gravity reply at core joint values; g is mm/s², converted once to SI before dynamics. */
 export function gravityOf(doc: StudioDoc, values: Readonly<Record<string, number>>, g?: readonly [number, number, number]) {
   const view = viewOf(doc), t = treeVerb(view);
   check(t, values);
-  const G = g ?? [0, 0, -STANDARD_GRAVITY];
-  if (!Array.isArray(G) || G.length !== 3 || G.some(x => typeof x !== 'number' || !Number.isFinite(x))) throw refused('"g" is [x, y, z] in m/s².');
-  return gravityVerb(view, values, G, t);
+  if (g !== undefined && (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x)))) throw refused('"g" is [x, y, z] in mm/s².');
+  const G = gravityIn(g);
+  return gravityJson(t, gravityRawVerb(view, values, G, t), G);
 }
 
 const fileList = (files: readonly { path: string; data: Uint8Array | string }[]) => files.map(f => ({ path: f.path, bytes: f.data.length, data: f.data }));

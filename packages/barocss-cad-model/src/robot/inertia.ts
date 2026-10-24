@@ -54,9 +54,12 @@ function bodyMass(doc: StudioDoc, b: BodyResult): { m: number; c: V3; I: Mat3; m
 }
 
 /** A part's bodies combined (parallel axis), then in the frame: mass, centre, inertia, principal axes, the checks. */
-export function linkInertia(link: string, part: string | null, doc: StudioDoc | null, bodies: readonly BodyResult[], frame: Frame): LinkInertia {
+export function linkInertia(link: string, part: string | null, doc: StudioDoc | null, bodies: readonly BodyResult[], frame: Frame, bodyInertia?: (body: BodyResult) => Mat3 | undefined): LinkInertia {
   const issues: LinkInertia['issues'] = [], counted: LinkInertia['bodies'] = [];
-  const parts = doc ? bodies.map(b => ({ b, mass: bodyMass(doc, b) })) : [];
+  const parts = doc ? bodies.map(b => {
+    const mass = bodyMass(doc, b), native = mass && bodyInertia?.(b);
+    return { b, mass: mass && native ? { ...mass, I: native } : mass };
+  }) : [];
   for (const { b, mass } of parts) if (!mass) issues.push({ code: 'NO_VOLUME', message: `${b.key} has no closed volume: its mass is not counted.` });
   const ok = parts.filter((p): p is { b: BodyResult; mass: NonNullable<ReturnType<typeof bodyMass>> } => !!p.mass);
   const M = ok.reduce((s, p) => s + p.mass.m, 0);

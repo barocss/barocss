@@ -15,9 +15,9 @@ import { personRowsRefusal, rowEntries, validRowSupplies, type RowKind } from '.
 // sheet.test and connector.test respectively.
 const fixtures: { kind: RowKind; payload: unknown }[] = [
   { kind: 'fits', payload: { id: 'shop-fits', rows: [
-    { class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true },
-    { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true }] } },
-  { kind: 'bearings', payload: [{ id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10], source: 'B1 (D139)' }] },
+    { class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true },
+    { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] } },
+  { kind: 'bearings', payload: [{ id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviation: [0, -0.01], source: 'B1 (D139)' }] },
   { kind: 'orings', payload: [{ id: '214', dash: '2-214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1 (D139)' }] },
   { kind: 'rings', payload: [{ id: 'DIN471-20', designation: '20 × 1.2', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: "the maker's sheet" }] },
   { kind: 'drives', payload: [{ kind: 'chain', id: 'chain-a', pitch: 12.7, rollerDiameter: 8.51, innerWidth: 7.75, plateHeight: 11.8, estimate: true }] },

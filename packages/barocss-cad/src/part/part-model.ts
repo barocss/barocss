@@ -58,6 +58,7 @@ import { curveDomain, evaluateCurve } from '../core/math.js';
 import { planar, tessellateBrep } from '../brep/brep-tessellate.js';
 import { rayHit, triangleBvh } from '../mesh/triangle-bvh.js';
 import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type MassProperties } from '../brep/solid-mass.js';
+import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { glueAtSharedFace, withCavities } from '../brep/brep-glue.js';
 import { loftSolid } from '../features/loft.js';
 import { generalShell } from '../blend/general-shell.js';
@@ -3088,8 +3089,8 @@ function movedMass(p: MassProperties, m: BrepAffine['matrix'], o: Point): MassPr
   const k = Math.cbrt(Math.abs(m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6]))), R = m.map(x => x / k);
   const c = p.centroid, I = p.inertia, k5 = k ** 5;
   const RIRt = [0, 1, 2].map(i => [0, 1, 2].map(j => { let sum = 0; for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) sum += R[3 * i + a] * I[a][b] * R[3 * j + b]; return sum * k5; })) as [[number, number, number], [number, number, number], [number, number, number]];
-  return { volume: p.volume * k ** 3, mass: p.mass * k ** 3, method: p.method, inertia: RIRt,
-    centroid: [0, 1, 2].map(i => m[3 * i] * c[0] + m[3 * i + 1] * c[1] + m[3 * i + 2] * c[2] + o[i]) as Point };
+  return unsupportedNativeMass({ volume: p.volume * k ** 3, mass: p.mass * k ** 3, method: p.method, inertia: RIRt,
+    centroid: [0, 1, 2].map(i => m[3 * i] * c[0] + m[3 * i + 1] * c[1] + m[3 * i + 2] * c[2] + o[i]) as Point }, 'transformed');
 }
 function rotation(axis: CadPartAxis, deg: number, pivot: Point): { m: BrepAffine['matrix']; o: Point } {
   let m: BrepAffine['matrix'];
@@ -3306,7 +3307,7 @@ function massLess(outer: MassProperties, inner: readonly MassProperties[]): Mass
   const T = about(outer); for (const p of inner) about(p).forEach((row, i) => row.forEach((v, j) => { T[i][j] -= v; }));
   const cc = c[0] ** 2 + c[1] ** 2 + c[2] ** 2;
   const I = T.map((row, i) => row.map((v, j) => v - m * ((i === j ? cc : 0) - c[i] * c[j]))) as [[number, number, number], [number, number, number], [number, number, number]];
-  return { volume: V, mass: m, centroid: c, inertia: I, method: outer.method };
+  return unsupportedNativeMass({ volume: V, mass: m, centroid: c, inertia: I, method: outer.method }, 'difference');
 }
 /** A ring of section segments as profile segments (each from its start). */
 const profileOfRing = (ring: readonly CurveSegment2[]): ProfileSegmentInput[] => ring.map(g => {

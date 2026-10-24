@@ -89,7 +89,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
   // (Fit class takes a cylindrical face with a fit table loaded; Fit pair two classed faces, a bore and a pin: R12c.2, D155.)
   const tubeCmd = commandById('tube')!, cylCmd = commandById('cylinder')!, blank: Ctx = { doc: emptyDoc(), bodies: [], selection: sel({}) };
   const pinned = cylCmd.build!({ ...blank, doc: tubeCmd.build!(blank, { ...tubeCmd.defaults!(blank), r: 10, ri: 6, x: 0, y: 0, z: 0 }) }, { ...cylCmd.defaults!(blank), r: 6, x: 0, y: 0, z: -5 });
-  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
+  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
   const faceOf = (name: string) => { const body = fitted.bodies.findIndex(b => b.mesh.faces.some(f => f.name === name)); return { body, face: fitted.bodies[body].mesh.faces.findIndex(f => f.name === name) }; };
   // (Key, Retaining ring and Pin take a shaft with a keyseat, a groove and a cross hole; Keyway a hub's bore: R12c.3b, D157.)
   const shaftCmd = commandById('shaft')!, shaftDoc = shaftCmd.build!(blank, shaftCmd.defaults!(blank));

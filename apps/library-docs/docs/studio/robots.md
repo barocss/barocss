@@ -68,7 +68,7 @@ write metres and radians.
 - **Playing a motion.** **Play motion** plays the motion chosen in **Motion choice** in time. Its length shows before
   it plays.
   - The draft is the path above: from home, through the waypoints, to the pose shown. Each joint moves at its velocity
-    limit, or at 1 rad/s or 100 mm/s when it has none.
+    limit, or at 180/π deg/s (about 57.3 deg/s) for a turn and 100 mm/s for a slide when it has none.
   - A saved motion plays as the document keeps it: its waypoints, profile and limits.
   - **Pause motion** holds it. The **Motion time** scrubber sets the pose at a time, **Loop motion** repeats it, and
     **Motion speed** plays it at 0.25× to 2×.
@@ -189,7 +189,7 @@ half-way:
 
 The [object API](/packages/api) reads an assembly as a robot: `assembly(…).robot()`. It exposes `joints()`,
 `pose(values)`, `path(waypoints).check()`, `inertia()`, `gravity(values)`, and the robot export methods.
-It uses the robot core, but the facade and agent tools do not have identical unit contracts.
+The public contract below applies to the facade, agent replies and stored robot settings.
 
 For `Robot.pose(values)`, turning-joint inputs and the returned `values` are in degrees. Sliding-joint values are in
 millimetres. `RobotPath.waypoints` and `RobotPath.poseAt(t)` use the same units. Link and frame placements keep
@@ -197,33 +197,107 @@ positions in mm and rotations in degrees.
 
 #### Robot unit boundaries
 
-The pose conversion does not convert every field in a robot reply:
+::: warning R7 contract preparation
+This section records the confirmed R7 public contract. The samples check the combined angular and B1 mass/gravity
+implementation. B2 duty/consistency reports and the remaining field changes are pending. The full R7 contract is not
+yet product-qualified.
+:::
+
+Use degrees for turning joints and mm for sliding joints. Resolve the joint type before you convert a value.
 
 | Interface or field | Turning joint | Sliding joint |
 |---|---|---|
 | `Robot.pose(values)` input and returned `values` | degrees | mm |
 | `RobotPath.waypoints`, `RobotPath.poseAt(t)` | degrees | mm |
 | `Robot.path(waypoints, { limits })` velocity and acceleration | deg/s, deg/s² | mm/s, mm/s² |
-| `Robot.joints()` and `Robot.setJoints()` lower/upper limits | radians | mm |
-| `Robot.joints()` and `Robot.setJoints()` velocity | rad/s | mm/s |
-| `RobotPath.check()` contact `values` | radians | mm |
+| `Robot.joints()`, `Robot.setJoints()` and stored `RobotSettings.joints` lower/upper limits | degrees | mm |
+| Public and stored joint velocity | deg/s | mm/s |
+| Public acceleration and jerk | deg/s², deg/s³ | mm/s², mm/s³ |
+| Public and stored joint effort; reported torque or force | N·mm | N |
+| `RobotPath.check()` contact `values` | degrees | mm |
 
-The last three rows retain the current core `JointTree`, `JointSettings` and sweep contracts. Do not apply the pose
-conversion to those fields. The internal solver uses radians.
+The internal joint tree, kinematics and dynamics keep their radians and SI calculations. Adapters convert at the
+public boundary. Values that already use degrees, such as pose inputs and saved motion waypoints, need no second
+conversion. A value of `90` must remain a quarter turn after a save, read, pose or contact report.
 
-**Current inertia reply.** `Robot.inertia()` uses the robot core's SI report fields:
+For a mimic relation, `follower = multiplier × leader + offset`. The offset uses the follower's unit. The multiplier
+uses the follower's unit divided by the leader's unit. It is dimensionless when both use the same unit. For a turn
+that drives a slide, a public multiplier of 0.1 mm/degree and an offset of 2 mm give 11 mm at 90 degrees. For the
+reverse relation, 10 degrees/mm and an offset of 5 degrees give 35 degrees at 3 mm. Convert both the multiplier and
+offset when you pass between public and internal units. Apply the same joint-type rule to cam and contact values.
 
-| Field | Current unit |
+**Public reports.** `Robot.inertia()` returns `{ links }`. Each link uses these fields, as does its agent report:
+
+| Field | Public unit |
 |---|---|
-| `mass_kg` | kg |
-| `com_m` | m |
-| `inertia_kg_m2`, `principal.moments_kg_m2` | kg·m² |
-| `frame.origin_mm` | mm |
+| `links[i].mass` | g |
+| `links[i].centroid` | mm |
+| `links[i].inertia`, `links[i].principal.moments` | g·mm² |
+| `links[i].frame.origin` | mm |
+| `links[i].bodies[j].mass` | g |
 
-These are current report fields while the public-unit migration remains incomplete. They are not an approved
-permanent exception to the public MMGS convention. The report contract is separate from the
-[export-file units](#exporting). Using the same inertia calculation for a report and a file does not give both the
-same public contract. Modeling mass results use `mass` in g, `centroid` in mm and `inertia` in g·mm².
+For `Robot.gravity(values, g)`, supply `g` in mm/s². The default is `[0, 0, -9806.65]`, which preserves the existing
+9.80665 m/s² physical value. An explicit input of `[0, 0, -9810]` selects 9.81 m/s² instead. The reply's `gravity` is
+the magnitude in mm/s². It is not a returned vector. `torques` and `generalized` contain the holding moment or force
+by joint key. Read `units[key]`: a turn uses N·mm, and a slide uses N. Density remains g/cm³.
+
+A motion report uses `joints[key].peak`, `rms` and `unit` for moment or force. Its `distance`, `peakVelocity`,
+`peakAcceleration` and `peakJerk` use degrees or mm and the corresponding time derivatives. `at` is in seconds.
+These motion fields are separate from a gravity reply. The object facade exposes `path()` for motion; it has no
+`move()` or `size()` method.
+
+Public durations and timestamps use seconds. This includes `duration`, `time`, `at`, `moveDuration`, `cycleDuration`
+and `dwell`. `evaluationTime`, `builtTime` and `wallTime` convert former millisecond values by dividing by 1000.
+`serviceLife` converts former hours to seconds by multiplying by 3600. A turning joint's `stopDeceleration` uses deg/s².
+
+For a physical reference, take a solid 10 × 10 × 10 mm cube at density 2.7 g/cm³. Its mass is 2.7 g, centroid is
+[5, 5, 5] mm and each diagonal centroidal inertia is 45 g·mm². With the explicit test input `[0, 0, -9810]` mm/s²,
+its weight is 0.026487 N.
+With its centre 5 mm perpendicular to a hinge axis, the holding torque magnitude is 0.132435 N·mm. The corresponding
+native SI values are 0.0027 kg, [0.005, 0.005, 0.005] m and 4.5 × 10⁻⁸ kg·m². The cube samples below check mass,
+inertia and slide force against these independent values. The hypothetical 5 mm hinge is a calculation only; the
+tested hinge below uses a drilled arm with a 20 mm lever.
+
+#### Physical report examples
+
+The cube uses aluminium `al6061`, whose density is 2.7 g/cm³. The code calls the object facade, and compares its
+reply to closed-form values. The expected values are not taken from a conversion helper.
+
+<<< @/../samples/robot-public-reports.test.mjs#import
+
+<<< @/../samples/robot-public-reports.test.mjs#cube
+
+<<< @/../samples/robot-public-reports.test.mjs#cube-report
+
+The gravity input is a vector, and the returned `gravity` is its magnitude. A cube with no joint can check that
+magnitude, but supplies no joint holding-force result:
+
+<<< @/../samples/robot-public-reports.test.mjs#gravity
+
+Add two perpendicular plane mates to constrain a second cube to a vertical slide. Its holding force is
+0.026477955 N at the default gravity and 0.026487 N at the explicit 9810 mm/s². A 20 mm displacement does not change
+its weight:
+
+<<< @/../samples/robot-public-reports.test.mjs#slide
+
+<<< @/../samples/robot-public-reports.test.mjs#slide-force
+
+For turning effort, use a 20 × 20 × 80 mm aluminium block. It has two blind bores of radius 4 mm and depth 8 mm,
+and two transverse bores of radius 4 mm and length 20 mm. None intersect. The concentric and plane mates make a
+hinge about +Y. The block's centre is 20 mm above that hinge at home. At 90 degrees, the lever is perpendicular to
+gravity. The holding moment is negative about +Y, in N·mm:
+
+<<< @/../samples/robot-public-reports.test.mjs#arm
+
+<<< @/../samples/robot-public-reports.test.mjs#arm-torque
+
+The samples also check a real sweep's initial contact at 45 degrees and −12.5 mm. A separate unit projection
+fixture covers all four turn/slide mimic combinations. That fixture checks conversion; it does not demonstrate
+four physically assembled coupling mechanisms. B2 duty/consistency and remaining field changes need later checks.
+
+[Native export files](#exporting) retain their format-specific SI units. Their frozen bytes need a separate check
+from public JSON quantities. Explicit source catalogue records such as `{ v, unit, src }` retain their source units
+and provenance. They do not change the units of public robot results.
 See [Unit and export comparisons](/reference/verification#unit-and-export-comparisons).
 
 <<< @/../samples/robots.test.mjs#import

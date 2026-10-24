@@ -11,7 +11,7 @@ one assembled commit before adopting R7 together. This applies api-conventions.m
 
 - Public options, stored latest documents, agent replies and facade results use mm, g, s and degrees. Angular
   velocity/acceleration/jerk use degree/s, degree/s², degree/s³. Slides use mm and corresponding time derivatives.
-- Public force is N; turning effort/torque is N·mm. Gravity vector/magnitude is mm/s² (standard9810).
+- Public force is N; turning effort/torque is N·mm. Gravity vector/magnitude is mm/s² (preserve existing standard9.80665m/s² as9806.65mm/s²).
   Density is g/cm³; inertia is g·mm², mass g, centroid mm. Service life is seconds.
 - Core FK/IK/loop/profile/dynamics calculations retain radians and existing SI internals. Convert once at ingress
   and once at egress. Existing degree-based set_pose, waypoints, motion documents and API pose conversion must not
@@ -100,3 +100,62 @@ full Studio browser flow on WebGPU and WebGL2. Keep prior failures and classify 
 never report them as PASS. The final acceptance decision must cite the exact suite results and unresolved exceptions.
 No product merge occurs with an unexplained required failure or incomplete consumer contract. When qualified, adopt
 R7 and its related lanes together in one serial local window with --no-ff and docs checks. P2 stays held.
+
+## Confirmed producer interface supplements
+
+The following signatures were agreed with their producers after the initial contract checkpoint. They are dependencies,
+not evidence that implementation has passed.
+
+- Outer `robot/units.ts`: jointSettingsIn(type,s), jointSettingsOut(type,s), jointTreeOut(tree),
+  jointValuesIn/Out(tree,values), moveLimitsIn(tree,key,limits). Existing verbs exports of jointValuesIn/Out remain
+  re-exports. Public joint-tree projection converts mixed coupling scale and offsets by both joint types.
+- Outer `robot/verbs.ts` sweepOf adds optional `rawContactValues: Readonly<Record<string,number>>` outside `reply`.
+  This internal value precedes radian rounding. Public tool and API project it once using jointValuesOut;
+  no raw-radian alias is emitted in the public JSON. Do not convert an already r6-rounded radian contact to degrees.
+- Kernel `@barocss/cad/internal/native-si-mass`: readNativeSIInertia(props:MassProperties) returns
+  `{ok:true,inertia:NativeSITensor,density:number}` or
+  `{ok:false,code:'NATIVE_SI_PROVENANCE_UNAVAILABLE',reason:'untracked'|'revolved'|'transformed'|'combined'|'difference'}`.
+  Density is the actual original g/cm³. Kernel owns source/dist package-local wiring; no runtime dependency is added.
+  Target native pins must not count unavailable plus a silent fallback as a successful byte-preservation check.
+  Preserve existing general native-export support and disclose unsupported provenance paths separately.
+- Kernel also migrates stored RobotSettings in its conformance/frozen input documents; low-level radian test vectors
+  stay internal radians. Native output pins are unchanged. Outer migrates its own stored samples and fixtures.
+- PrintLayers and its Omit-based PrintSummary: layerMM `{mm,basis}` becomes layerHeight `{value,basis}`;
+  limit `{deg,basis}` becomes overhangLimit `{value,basis}`; supportVolumeMM3 becomes supportVolume.
+  Values, basis flags and lazy layer(k) behavior are unchanged. GPU mechanical scope follows the exact producer.
+- Fit producer lowerUM/upperUM/clearanceMinUM/clearanceMaxUM becomes lower/upper/clearanceMin/clearanceMax in mm.
+  Drawing formatters remove their former divide1000 exactly once; e.g.18µm remains printed as+0.018mm.
+  Root browser-flow has two owned fit-row fixtures and public RD2/RD3 payload/reply migrations to reconcile.
+
+The native Split demo currently asserts Node22.23.3 while the selected host toolchain is22.22.0. This is an existing
+required-check failure under the selected runtime. Record its exact cause and resolution; it is not an aggregate PASS.
+
+## Gravity default correction
+
+The existing internal STANDARD_GRAVITY is9.80665m/s². Preserve that physical default as9806.65mm/s² publicly.
+The initial9810 wording assumed an existing9.81 default and did not authorize a physical default change.
+An explicit input of9810mm/s² still converts to9.81m/s²; independent examples using that explicit input remain valid.
+Native/dynamics defaults and existing physical oracles must not change merely to match a rounded example.
+
+## Residual audit decisions (2026-10-25)
+
+These omissions were found after the354-row inventory; that inventory is not a closure certificate.
+
+| Boundary | Canonical field | Rule / owner |
+|---|---|---|
+| T-slot row sizeMM | cellSize | mm unchanged; row size remains its string name. Kernel producer then Outer table converter and fixtures. Remove the sizeMM whitelist; no alias. |
+| CadPartFeatureProfile.ms | wallTime | seconds, retain original measured elapsed milliseconds and divide1000; Kernel producer, Outer rebuild/worker/UI consumers. |
+| DecimateReport.ms | wallTime | seconds, divide1000; keep measurement sites, geometry and numeric bounds. |
+| ApproximationReport.maxSampledDeviationMM | maxSampledDeviation | mm unchanged; Kernel producer and exact GPU tessellation consumers. |
+| P1 Check/EngineCheck.ms | duration | seconds, existing rounded-ms resolution divided1000; API-owned P1 reports only. |
+| P1 treeMs | treeTime | seconds, divide1000; preserve P1 physical outputs and scope, no new sweep campaign. |
+| Public coupling g1/g2.rotation | rotation | raw internal GearPlacement radians to detached public degrees. Outer shared projection; no independent API helper. |
+
+RevolveOptions.deg is a natural option name explicitly allowed by api-conventions section2; do not rename it through
+an unscoped suffix substitution. Source unit metadata and explicitly labelled human text are separate from quantity
+field names. In particular, retain Kernel checkFit.message's existing µm display with its explicit unit and its
+one-time mm-to-µm formatting; this does not change the public fit JSON's mm contract.
+
+P1 timing verification uses the existing --check --no-sweep flow and existing regressions. Its full files:true build
+report runtime is NOT RUN here; do not add a sweep, new execution option or test seam to turn this rename into a
+product campaign. Existing manufacturing findings and person-row waits remain.

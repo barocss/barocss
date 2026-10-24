@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import type { JointTree, JointType } from '@barocss/cad-model/robot/joints';
+import { jointSettingsOut } from '@barocss/cad-model/robot/units';
 import { sliderRange } from '@barocss/cad-model/robot/fk';
 import type { LinkInertia } from '@barocss/cad-model/robot/inertia';
 import { CONTROL, FIELD, TICK } from './panelStyles';
@@ -13,7 +14,10 @@ const TYPE_LABEL: Record<JointType, string> = { fixed: 'Fixed', revolute: 'Revol
 const axisText = (a: readonly number[]) => { const k = a.findIndex(x => Math.abs(Math.abs(x) - 1) < 1e-9); return k >= 0 ? `${a[k] < 0 ? '−' : '+'}${'XYZ'[k]}` : `[${a.map(x => x.toFixed(3)).join(', ')}]`; };
 // (Conventions §2: a turning joint's range in degrees and its velocity in °/s, a slide's in mm and mm/s; each number to 4 significant figures.)
 const sig4 = (v: number) => { const t = Number(v.toPrecision(4)); return Object.is(t, -0) ? 0 : t; };
-const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => { const slide = type === 'prismatic', k = slide ? 1 : 180 / Math.PI; return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower * k)}° … ${sig4(l.upper * k)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${sig4(l.velocity * k)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · '); };
+const limitText = (raw: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => {
+  const l = jointSettingsOut(type, raw), slide = type === 'prismatic';
+  return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower)}° … ${sig4(l.upper)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·mm'}` : '', l.velocity !== undefined ? `${sig4(l.velocity)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · ');
+};
 
 /** A gear pair at the pose shown: its phase against home, its backlash (RM2). */
 export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlash: number }
@@ -85,7 +89,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
           <div key={j.key} aria-label={`Joint ${j.key}`} title={`mates ${j.mates.join(', ') || 'none'}`}>
             <div className="kv">{name(j.parent)} → {name(j.child)} <b>{TYPE_LABEL[j.type]}{j.type !== 'fixed' ? ` ${axisText(j.axis)}` : ''}{j.mimic ? (j.cam ? ` · follows ${j.mimic.joint} on its cam (${j.cam.mate})` : ` · follows ${j.mimic.joint} ×${j.mimic.multiplier.toFixed(4)}`) : ''}</b>
               {j.limit && <span className="muted"> {limitText(j.limit, j.type)}</span>}</div>
-            {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque(holding[j.key] ?? 0)} {turn ? 'N·m' : 'N'} against gravity</div>}
+            {holding && j.type !== 'fixed' && <div className="kv muted" aria-label={`Joint ${j.key} holding`}>holds {fmtTorque((holding[j.key] ?? 0) * (turn ? 1000 : 1))} {turn ? 'N·mm' : 'N'} against gravity</div>}
             {j.type !== 'fixed' && !j.mimic && <div className={FIELD} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input type="range" aria-label={`Joint ${j.key} value`} min={r.min} max={r.max} step="any" value={v} style={{ flex: 1 }}
                 onChange={e => onValue(j.key, Number(e.target.value))} />
@@ -143,7 +147,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       {massLinks.map(l => {
         const bad = l.issues.filter(i => i.code !== 'MATERIAL_ASSUMED'), assumed = l.issues.some(i => i.code === 'MATERIAL_ASSUMED');
         if (!massesOpen) return bad.map((i, k) => <div key={`${l.link}-${k}`} className="hud-error" role="status">{name(l.link)}: {i.message}</div>);
-        return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (kg·m²): ${l.principal.moments.map(m => m.toExponential(3)).join(', ')} principal`}>
+        return <div key={l.link} aria-label={`Link ${l.link} mass`} title={`inertia about the centre of mass, link frame (g·mm²): ${l.principal.moments.map(m => (m * 1e9).toExponential(3)).join(', ')} principal`}>
           <div className="kv">{name(l.link)} <b>{mm1(l.massKg * 1000)} g</b></div>
           <div className="kv muted">CoM ({l.comM.map(v => mm1(v * 1000)).join(', ')}) mm{assumed ? ' · material assumed' : ''}</div>
           {bad.map((i, k) => <div key={k} className="hud-error" role="status">{i.message}</div>)}

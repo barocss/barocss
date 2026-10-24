@@ -37,7 +37,7 @@ const revoluteMates = (id: string, baseHole: string, child: string, childHole = 
 
 const CASE_DOCS: Record<string, () => StudioDoc | Promise<StudioDoc>> = {
   'revolute': () => assembly(BASE, [inst('arm', ARM)], revoluteMates('m1', 'n2.side0', 'arm')),
-  'revolute-limited': () => assembly(BASE, [inst('arm', ARM)], revoluteMates('m1', 'n2.side0', 'arm'), { version: 1, joints: { 'base~arm': { lower: -1.5, upper: 1.5, effort: 2, velocity: 3 } } }),
+  'revolute-limited': () => assembly(BASE, [inst('arm', ARM)], revoluteMates('m1', 'n2.side0', 'arm'), { version: 1, joints: { 'base~arm': { lower: -1.5 * 180 / Math.PI, upper: 1.5 * 180 / Math.PI, effort: 2000, velocity: 3 * 180 / Math.PI } } }),
   'prismatic': () => assembly(BASE, [inst('slider', BLOCK)], [mate('m1', 'coincident', ['base', 'n1.top'], ['slider', 'n1.bottom']), mate('m2', 'coincident', ['base', 'n1.side0'], ['slider', 'n1.side0'], { flip: true })], { version: 1, joints: { 'base~slider': { lower: 0, upper: 80, effort: 10, velocity: 50 } } }),
   'cylindrical': () => assembly(BASE, [inst('arm', ARM)], [mate('m1', 'concentric', ['base', 'n2.side0'], ['arm', 'n2.side0'])]),
   'planar': () => assembly(BASE, [inst('slider', BLOCK)], [mate('m1', 'coincident', ['base', 'n1.top'], ['slider', 'n1.bottom'])]),

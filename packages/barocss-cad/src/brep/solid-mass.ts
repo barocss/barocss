@@ -4,6 +4,7 @@
 // faces the chord error of the tessellation, reported). Bodies of facet faces and straight-edged planar faces
 // (mesh bodies) are integrated exactly from their triangles and loops, once per B-rep.
 import { regionMoments } from './curved-arrangement.js';
+import { recordIntegralMass, transferNativeMassBasis, unsupportedNativeMass } from '../internal/native-si-mass-state.js';
 import { planar, tessellateBrep } from './brep-tessellate.js';
 import { brepQuadratureIntegrals } from './brep-mass-quadrature.js';
 import { facetIntegrals } from '../mesh/facet-patch.js';
@@ -41,8 +42,10 @@ export function solidMassFromIntegrals(I: readonly number[], density: number, me
   const xx = XX - V * c[0] * c[0], yy = YY - V * c[1] * c[1], zz = ZZ - V * c[2] * c[2];
   const xy = XY - V * c[0] * c[1], xz = XZ - V * c[0] * c[2], yz = YZ - V * c[1] * c[2];
   // (g/cm³ is 1e-3 g/mm³: the mass in g, the inertia in g·mm².)
-  return { volume: V, mass: density * V * 1e-3, centroid: c, method,
+  const props: MassProperties = { volume: V, mass: density * V * 1e-3, centroid: c, method,
     inertia: [[k * (yy + zz), -k * xy, -k * xz], [-k * xy, k * (xx + zz), -k * yz], [-k * xz, -k * yz, k * (xx + yy)]] };
+  recordIntegralMass(props, density, [xx, yy, zz, xy, xz, yz]);
+  return props;
 }
 
 export function prismaticMassProperties(solid: PrismaticSolid, density: number): MassProperties {
@@ -128,7 +131,10 @@ export function brepMassProperties(brep: Brep, density: number, options: { reado
   // (Not silently: the chord error is the mesh's, and it is stated — the volume's change from half the segments, some
   // three times its error as the error falls with the square of the step. L4 fuzz 171, D200.)
   const half = meshIntegrals(brep, Math.max(1, Math.floor(segments / 2)));
-  return { ...solidMassFromIntegrals(I, density, 'tessellated'), volumeBound: Math.abs(I[0] - half[0]) };
+  const mass = solidMassFromIntegrals(I, density, 'tessellated');
+  const result = { ...mass, volumeBound: Math.abs(I[0] - half[0]) };
+  transferNativeMassBasis(mass, result);
+  return result;
 }
 /** Volume integrals over a B-rep's watertight tessellation: tetrahedra from the origin (divergence theorem). */
 function meshIntegrals(brep: Brep, segmentsPerQuarter: number): number[] {
@@ -164,7 +170,7 @@ export function combineMassProperties(parts: readonly { readonly props: MassProp
     const d = [0, 1, 2].map(k => w.centroid[k] - C[k]), dd = d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
     return a + w.I[i][j] + w.m * ((i === j ? dd : 0) - d[i] * d[j]);
   }, 0))) as [[number, number, number], [number, number, number], [number, number, number]];
-  return { volume: V, mass: M, centroid: C, inertia: I, method: 'closed-form' };
+  return unsupportedNativeMass({ volume: V, mass: M, centroid: C, inertia: I, method: 'closed-form' }, 'combined');
 }
 
 // ---- Polyhedral bodies (PERF3 B9): facet faces and planar faces bounded by straight edges, the mesh bodies ----

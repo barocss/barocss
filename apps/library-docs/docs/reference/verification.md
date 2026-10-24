@@ -19,18 +19,28 @@ studio in a browser.
 
 ## Unit and export comparisons
 
-Compare physical quantities in the same units. Modeling mass results use MMGS. Current robot inertia reports and
-native robot export files have their own [documented units](/studio/robots#robot-unit-boundaries).
+Compare physical quantities in the same units. Modeling mass results use MMGS. The confirmed R7 contract also uses
+MMGS for public robot inertia reports. The [physical robot examples](/studio/robots#physical-report-examples) compare
+the B1 facade's cube mass/inertia and actual joint holding forces to independent geometry and gravity values.
+Native robot export files retain their format-specific SI units. B2 duty/consistency and remaining field changes
+are pending. See [Robot unit boundaries](/studio/robots#robot-unit-boundaries).
 
 | Quantity | MMGS to SI |
 |---|---|
 | Mass | g × 10⁻³ = kg |
 | Length or centroid coordinate | mm × 10⁻³ = m |
 | Inertia | g·mm² × 10⁻⁹ = kg·m² |
+| Turning torque or effort | N·mm × 10⁻³ = N·m |
+| Gravity | mm/s² × 10⁻³ = m/s² |
 
 For a 10 × 10 × 10 mm cube at density 2.7 g/cm³, the mass is 2.7 g and each diagonal centroidal inertia is
 45 g·mm². The same values in SI are 0.0027 kg and 4.5 × 10⁻⁸ kg·m². A unit conversion changes the representation,
 not the physical quantity.
+
+For robot boundary checks, use independent degree and mm inputs for both joint types. Check the stored settings,
+public limits and velocities, mimic multipliers and offsets, contact values, torque and gravity reports. Check
+seconds separately from former milliseconds or hours. Bind these checks to the exact combined producer and facade
+commit before execution. A documented contract or a prepared fixture supplies no runtime pass result.
 
 A numerical comparison and a frozen-file comparison answer different questions. Floating-point multiplication and
 conversion can change the last stored digits. A passing numerical check does not prove identical serialized bytes.
