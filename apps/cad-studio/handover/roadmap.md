@@ -195,7 +195,7 @@ Gaps found (PG-n, added as they're found):
 | PG-4 | outer (O24 e) | A gear on a part locked to a shaft isn't coupled: gearCouplings reads only the joint child's own gears, silently (workaround: the gear as a body of the shaft part) | P1 assembly |
 | PG-5 | outer (O24 a) | No cam–follower: a follower in a guide bore driven by a lobe's profile (lift as a function of cam angle) for pose and sweep, then the follower–valve push (workaround: followers locked on the base circle, left out of the sweep) | P1 assembly |
 | PG-6 | outer | sweep_path checks display meshes (quality 8: chord 0.135 mm at r 28), so a 0.1 mm piston fit reads as contact at 0° (workaround: sweep at quality 24); the sweep needs a tolerance tied to the fits, or exact geometry near contact | P1 assembly |
-| PG-7 | outer (O24 a) | A slider-crank loop (slides and chains in the loop) refused by closureOf ([NOT_ONE_LOOP], it takes three turning joints only); the API lane's check.ts closes it by damped Gauss–Newton on the loop's own mates (720° in 5° steps, residual 1e-10 mm), a reference to lift | P1 assembly |
+| PG-7 | outer (O24 a) — **done** (`15bb4e98d`, merge 06dd90883) | A slider-crank loop (slides and chains in the loop) refused by closureOf ([NOT_ONE_LOOP], it takes three turning joints only); the API lane's check.ts closes it by damped Gauss–Newton on the loop's own mates (720° in 5° steps, residual 1e-10 mm), a reference to lift | P1 assembly |
 | PG-8 | outer | The agent can't lock a part (add_mate writes no rel); the facade's lockDoc mirrors the studio's Lock and can move into assembly/edit.ts | P1 assembly |
 
 ### Photoreal rendering G15 (owner, 2026-10-24)
