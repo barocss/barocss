@@ -1,3 +1,5 @@
+import { robotCheckOfDoc as canonicalRobotCheckOfDoc, robotSizeOfDoc as canonicalRobotSizeOfDoc } from '@barocss/cad-model/chat/robot';
+import { readDuty } from '@barocss/cad-model/robot/native/duty';
 // Actual shipped robot documents and the same parsers/projectors used by cad-cli. No fabricated report DTOs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -5,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { Robot } from '@barocss/cad-model/api';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
-import { readDuty, treeOfDoc, robotCheckOfDoc, robotSizeOfDoc, runRobotTool } from '@barocss/cad-model/chat/robot';
+import { treeOfDoc, nativeRobotCheckOfDoc, nativeRobotSizeOfDoc, runRobotTool } from '@barocss/cad-model/chat/robot';
 import { dutyJson, harnessJson, sizedJson } from '@barocss/cad-model/robot/reports';
 import { MOTORS, REDUCERS } from '@barocss/cad-model/robot/actuators';
 
@@ -80,11 +82,12 @@ test('actual mixed SCARA duty round-trips public degrees/mm, limits, seconds and
 });
 
 test('actual harness margins and consistency use shared public projections before cloning; decisions remain intact', async t => {
-  const { doc, bodies, tree, duty } = await scaraDuty();
+  const { doc, bodies, tree, input, duty } = await scaraDuty();
   // #region harness
-  const original = await robotCheckOfDoc(doc, bodies, evaluate, duty);
+  const original = await nativeRobotCheckOfDoc(doc, bodies, evaluate, duty);
   const before = JSON.stringify(original);
   const report = harnessJson(tree, original); // project the original before cloning or serializing it
+  assert.deepEqual(await canonicalRobotCheckOfDoc(doc, bodies, evaluate, input), report);
   const range = report.margins.find(m => m.check === 'joint range' && m.joint === 'base~arm1' && m.detail === 'to');
   near(range.value, 10);                      // degrees
   near(range.limit, 130);                     // degrees, the sample's upper limit
@@ -115,10 +118,13 @@ test('actual harness margins and consistency use shared public projections befor
 });
 
 test('actual bounded sizer result projects its own tree, duty and report without inventing a successful design', async t => {
-  const { doc, bodies, duty } = await scaraDuty();
+  const { doc, bodies, input, duty } = await scaraDuty();
   // #region sized
-  const { sized } = await robotSizeOfDoc(doc, bodies, evaluate, duty, { maxRounds: 0 });
+  const { sized } = await nativeRobotSizeOfDoc(doc, bodies, evaluate, duty, { maxRounds: 0 });
   const output = sizedJson(sized);             // actual producer output, using the same public projectors
+  const canonical = await canonicalRobotSizeOfDoc(doc, bodies, evaluate, input, { maxRounds: 0 });
+  assert.ok(!('error' in canonical));
+  assert.deepEqual(canonical.sized, output);
   assert.equal(output.ok, sized.ok);
   assert.equal(output.rounds, sized.rounds);
   assert.deepEqual(output.trace, sized.trace);

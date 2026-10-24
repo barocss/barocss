@@ -1,3 +1,6 @@
+import { BarocssError } from '@barocss/cad-model/engine/refusal';
+import { robotCheckOfDoc, robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
+import { readDuty } from '@barocss/cad-model/robot/native/duty';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
@@ -7,7 +10,7 @@ import { join, resolve } from 'node:path';
 import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { encodeStudioFile } from '@barocss/cad-model/engine/container';
-import { readDuty, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { treeOfDoc } from '@barocss/cad-model/chat/robot';
 import { dutyJson, type PublicDuty, type PublicHarnessReport } from '@barocss/cad-model/robot/reports';
 import * as L3 from '../server/robotL3/main';
 import { robotCheckCall, robotCheckListed, withRatings } from '../server/robotL3/tool';
@@ -122,4 +125,24 @@ test('L3 real sizer script supplies two canonical calls; local tool saves a brie
     if (wasLog === undefined) delete process.env.CAD_ROBOT_L3_LOG; else process.env.CAD_ROBOT_L3_LOG = wasLog;
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+
+test('canonical document operations reject invalid duties with exact typed BAD_VALUES and preserve inputs', async () => {
+  const f = await fixture(), beforeDoc = structuredClone(f.doc), input = f.canonical;
+  const invalid = [
+    [f.duty, 'No duty field life_h.'],
+    [{ ...input, life_h: 2 }, 'No duty field life_h.'],
+    [{ ...input, clearance_mm: .25 }, 'No duty field clearance_mm.'],
+    [{ ...input, serviceLife: Infinity }, '"serviceLife" is a number above 0'],
+    [{ ...input, moves: [{ ...input.moves[0], dwell_s: .5 }] }, 'move 0: no field dwell_s.'],
+  ] as const;
+  for (const [bad, text] of invalid) {
+    const before = structuredClone(bad);
+    const typed = (error: unknown) => { assert.ok(error instanceof BarocssError); assert.equal(error.code, 'BAD_VALUES'); assert.equal(error.message, `[BAD_VALUES] ${text}`); return true; };
+    await assert.rejects(() => robotCheckOfDoc(f.doc, f.bodies, evaluate, bad as PublicDuty), typed);
+    await assert.rejects(() => robotSizeOfDoc(f.doc, f.bodies, evaluate, bad as PublicDuty, { maxRounds: 0 }), typed);
+    assert.deepEqual(bad, before);
+  }
+  assert.deepEqual(f.doc, beforeDoc);
 });
