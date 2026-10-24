@@ -5588,6 +5588,53 @@ try {
       await snap('dr5-reopened');
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('geometric controls (CG5 DR-6a): fourteen characteristics, modifiers, typed missing datum issues, save and exports', async () => {
+    const fs = await import('node:fs');
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await press('Enter'); await idle();
+    await page.click('.mode button:text-is("Drawing")');
+    try {
+      await page.waitForSelector('[aria-label="Auto-dimension"]', { timeout: 20000 });
+      await page.selectOption('[aria-label="Sheet size"]', 'A3');
+      await page.click('[aria-label="Auto-dimension"]');
+      await page.waitForSelector('.dw-dim', { timeout: 30000 }); await page.locator('.dw-dim').filter({ hasText: 'horizontal · front' }).first().click();
+      await page.click('[aria-label="Add geometric control"]');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.frames?.length === 1);
+      const shapes = {};
+      for (const kind of ['position', 'straightness', 'flatness', 'circularity', 'cylindricity', 'profile-line', 'profile-surface', 'parallelism', 'perpendicularity', 'angularity', 'concentricity', 'symmetry', 'circular-runout', 'total-runout']) {
+        await page.selectOption('[aria-label="Geometric characteristic"]', kind);
+        await page.waitForFunction(k => window.__studioDoc.drawing.frames[0].characteristic === k && document.querySelector('[aria-label="Drawing sheet"] g.control'), kind);
+        shapes[kind] = await page.locator('[aria-label="Drawing sheet"] g.control').innerHTML();
+        if (['position', 'flatness', 'profile-surface', 'total-runout'].includes(kind)) await page.locator('[aria-label="Drawing sheet"] g.control').screenshot({ path: join(out, `dr6a-${kind}.png`) });
+      }
+      assert.equal(new Set(Object.values(shapes)).size, 14); fs.writeFileSync(join(out, 'dr6a-symbols.json'), JSON.stringify(shapes, null, 2));
+      await page.selectOption('[aria-label="Geometric characteristic"]', 'position');
+      await page.fill('[aria-label="Geometric tolerance"]', '0.05'); await page.press('[aria-label="Geometric tolerance"]', 'Enter');
+      await page.selectOption('[aria-label="Material modifier"]', 'maximum');
+      await page.check('[aria-label="Free state modifier"]'); await page.check('[aria-label="Tangent plane modifier"]');
+      await page.fill('[aria-label="Projected zone height"]', '12'); await page.press('[aria-label="Projected zone height"]', 'Enter');
+      await page.fill('[aria-label="Geometric datums"]', 'A, B'); await page.press('[aria-label="Geometric datums"]', 'Enter');
+      await page.selectOption('[aria-label="Datum A modifier"]', 'least'); await page.selectOption('[aria-label="Datum B modifier"]', 'maximum');
+      await page.waitForFunction(() => window.__studioDrawing().issues.some(x => x.code === 'DATUM_UNDEFINED'), null, { timeout: 10000 });
+      await page.waitForFunction(() => { const t = [...document.querySelectorAll('[aria-label="Drawing sheet"] g.control text')].map(e => e.textContent); return ['Ø0.05', 'M', 'L', 'F', 'T', 'P', '12', 'A', 'B'].every(x => t.includes(x)); });
+      await snap('dr6a-control-modifiers');
+      await page.locator('[aria-label="Drawing sheet"] g.control').screenshot({ path: join(out, 'dr6a-modifiers.png') });
+      for (const [label, name] of [['Export SVG', 'dr6a-controls.svg'], ['Export DXF', 'dr6a-controls.dxf']]) {
+        const [download] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click(`[aria-label="${label}"]`)]); await download.saveAs(join(out, name));
+        const text = fs.readFileSync(join(out, name), 'utf8'); for (const value of ['0.05', 'M', 'L', 'F', 'T', 'P']) assert.ok(text.includes(value), `${value} in ${name}`);
+      }
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[aria-label="Save"]')]); const file = join(out, 'dr6a-saved.bcad'); await saved.saveAs(file);
+      const frame = await page.evaluate(() => window.__studioDoc.drawing.frames[0]);
+      await page.click('.mode button:text-is("Model")'); await openModel(file, 2); await idle(); await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => document.querySelector('[aria-label="Drawing sheet"] g.control') && window.__studioDoc.drawing?.frames?.[0]?.projected === 12);
+      assert.deepEqual(await page.evaluate(() => window.__studioDoc.drawing.frames[0]), frame);
+      await page.locator('.dw-dim').filter({ hasText: 'horizontal · front' }).first().click();
+      await page.fill('[aria-label="Geometric datums"]', ''); await page.press('[aria-label="Geometric datums"]', 'Enter');
+      await page.waitForFunction(() => !window.__studioDrawing().issues.some(x => x.code === 'DATUM_UNDEFINED'));
+      assert.equal(await page.evaluate(() => window.__studioDoc.drawing.frames[0].datumModifiers), undefined);
+      await page.click('[aria-label="Remove geometric control"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing.frames?.length && !document.querySelector('[aria-label="Drawing sheet"] g.control'));
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();

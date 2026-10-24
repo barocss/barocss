@@ -6,6 +6,7 @@
 // mm and its baseline direction, a frame its cells and box, a weld its data. Targets are the drawing's own references:
 // persistent edge names (a placed part's `<inst>/` kept) with their 3D points. Ids are the sheet items'. The glyph
 // builders the sheet uses are given in plane coordinates too (`frameGlyph`, `weldGlyph`), one source for both.
+import type { Characteristic, MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
 import { fmtMM, type Resolved } from './dimensions';
 import { frameMarks, placementOf, projectionOf, type Head, type LineRole, type Mark, type MarkGroup, type Sheet } from './sheet';
@@ -41,7 +42,7 @@ export interface ModelAnnotation {
   lines: Line3[]; arcs: Arc3[]; arrows: Head3[];
   dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; text: string; tol?: Tolerance; basic?: true; count?: number };
   /** The frame's compartments in order (the symbol's, the zone and value, each datum), and its box in plane coordinates [u0, v0, u1, v1]. */
-  frame?: { characteristic: 'position'; zone: 'diameter'; value: number; datums: string[]; dim: string; cells: { text: string; symbol?: 'position' }[]; box: [number, number, number, number] };
+  frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear'; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; box: [number, number, number, number] };
   datum?: { letter: string };
   weld?: { joint: string; kind: 'fillet' | 'butt'; sizeMM: number | null; estimate: boolean; allRound: boolean; inner: boolean };
 }
@@ -92,7 +93,7 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     if (!r) return null;
     targets = targetsOf(r.dim);
     if (kind === 'dimension') extra = { dimension: { measure: r.kind, value: r.value, unit: r.kind === 'angle' ? 'deg' : 'mm', text: r.text, ...(r.dim.tol ? { tol: r.dim.tol } : {}), ...(r.dim.basic ? { basic: true as const } : {}), ...(r.dim.count ? { count: r.dim.count } : {}) } };
-    else if (f) extra = { frame: { characteristic: f.characteristic, zone: 'diameter', value: f.value, datums: [...f.datums], dim: f.dim, cells: cellsOf(f), box: boxOf(g.marks, v) } };
+    else if (f) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), box: boxOf(g.marks, v) } };
   } else if (kind === 'datum') {
     const d = i.settings.datums?.find(x => x.id === g.id); if (!d) return null;
     targets = [{ at: [...d.edge.near] as Vec3, edge: d.edge.edge }]; extra = { datum: { letter: d.letter } };
@@ -137,7 +138,12 @@ function planeOf(i: AnnotationInputs, view: DimView, pr: BrepProjection, targets
   return { normal, right, up, depth: depth + 0 };
 }
 
-const cellsOf = (f: DrawingFrame): { text: string; symbol?: 'position' }[] => [{ text: '⌖', symbol: 'position' }, { text: `Ø${fmtMM(f.value)}` }, ...f.datums.map(text => ({ text }))];
+const materialLetter = (m: MaterialModifier) => m === 'maximum' ? '(M)' : '(L)';
+const cellsOf = (f: DrawingFrame): { text: string; symbol?: Characteristic }[] => [
+  { text: f.characteristic === 'position' ? '⌖' : f.characteristic, symbol: f.characteristic },
+  { text: `${(f.diameter ?? (f.characteristic === 'position')) ? 'Ø' : ''}${fmtMM(f.value)}${f.material ? materialLetter(f.material) : ''}${f.freeState ? '(F)' : ''}${f.tangentPlane ? '(T)' : ''}${f.projected ? `(P)${fmtMM(f.projected)}` : ''}` },
+  ...f.datums.map(d => ({ text: d + (f.datumModifiers?.[d] ? materialLetter(f.datumModifiers[d]) : '') })),
+];
 /** A frame's box: its marks' extent, in plane coordinates. */
 function boxOf(marks: readonly Mark[], v: ViewPlacement): [number, number, number, number] {
   let u0 = Infinity, v0 = Infinity, u1 = -Infinity, v1 = -Infinity;
