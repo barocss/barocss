@@ -1,32 +1,28 @@
 // The robot tools (RM1, O14): the assembly read as a joint tree, and its settings (the base link, joint limits and
 // ratings). A change to the settings is the assembly's, so like a mate it is the user's to accept (D41: proposed).
-import { convexHull, type GearPlacement } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import type { ToolDefinition } from './api';
 import { BASE } from '../assembly/mates';
-import { eulerOf, rotationMatrix } from '../engine/placement';
-import { composeInto, forwardKinematics, gearPairAt } from '../robot/fk';
-import { framePoses, type FrameSettings } from '../robot/frames';
-import { treeInertia, type LinkInertia } from '../robot/inertia';
-import { exportUrdf, type UrdfResult } from '../robot/urdf';
+import { eulerOf } from '../engine/placement';
+import { type FrameSettings } from '../robot/frames';
+import { type LinkInertia } from '../robot/inertia';
+import { type UrdfResult } from '../robot/urdf';
 import { readUrdf } from '../robot/urdfCheck';
-import { exportMjcf, type MjcfClosure, type MjcfResult } from '../robot/mjcf';
-import { closureOfDoc } from '../robot/loop';
+import { type MjcfResult } from '../robot/mjcf';
 import { readMjcf } from '../robot/mjcfCheck';
-import { sweepLinks, sweepPath, type SweepLink } from '../robot/sweep';
+import { type SweepLink } from '../robot/sweep';
 import { checkDesign, type Duty, type HarnessReport } from '../robot/harness';
 import { sizeDesign, type Sized } from '../robot/sizer';
 import type { V3 } from '../robot/inertia';
-import { gravityTorques, linkBodies, linkMasses, moveTorques, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
-import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, sizeActuators, sizeCoupled, SIZING_MODEL, type Motor, type Reducer, type Sizing, type Source } from '../robot/actuators';
+import { linkBodies, STANDARD_GRAVITY, type MoveLimits } from '../robot/dynamics';
+import { MOTOR_FIELDS, MOTORS, readCatalogue, REDUCER_FIELDS, REDUCERS, SIZING_MODEL, type Motor, type Reducer, type Sizing, type Source } from '../robot/actuators';
 import type { ProfileKind } from '../robot/profile';
-import { placeBody } from '../engine/evaluate';
-import { tablesFor } from '../assembly/faces';
-import { checkFramesOn, solveDoc, withFrames } from '../assembly/edit';
-import { jointTreeOf, readRobot, type JointSettings, type JointTree, type RobotSettings } from '../robot/joints';
+import { checkFramesOn, withFrames } from '../assembly/edit';
+import { readRobot, type JointSettings, type JointTree } from '../robot/joints';
 import { r6 } from '../util/round';
 import { isRefusal } from '../engine/refusal';
+import { gravityOf, inertiaOf, mjcfOf, movesOf, partsOf, poseOf, robotViewOf, sizeOf, sweepLinksOf, sweepOf, treeOf, urdfOf, viewWith, withJoints, type RobotView } from '../robot/verbs';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 export const ROBOT_TOOL_NAMES = new Set(['get_joints', 'set_joints', 'set_frames', 'forward_kinematics', 'link_inertia', 'export_urdf', 'export_mjcf', 'sweep_path', 'gravity_torques', 'motion_torques', 'size_actuators']);
@@ -92,24 +88,23 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
 
 /** The joint tree of a document as it stands: its instances solved, its parts' faces and gears. */
 export async function treeOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate): Promise<JointTree> {
-  const solved = solveDoc(doc), gears = new Map<string, GearPlacement[]>([[BASE, bodies.flatMap(b => (b.gear ? [b.gear] : []))]]);
-  for (const inst of solved.doc.instances ?? []) { const r = await evaluate(inst.doc); gears.set(inst.id, r?.ok ? r.bodies.flatMap(b => (b.gear ? [b.gear] : [])) : []); }
-  return jointTreeOf(solved.doc, { instances: solved.doc.instances ?? [], problems: solved.problems }, tablesFor(solved.doc), p => gears.get(p) ?? []);
+  return treeOf(await robotViewOf(doc, bodies, evaluate));
 }
 
+// (RS3: each tool's work is robot/verbs.ts's, on the view of the robot built once here; the call's shape is checked here.)
 export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[], name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<{ doc: StudioDoc; content: unknown; changed: boolean; summary: string } | { error: string }> {
+  const view = await robotViewOf(doc, bodies, evaluate);
   if (name === 'get_joints') {
-    const t = await treeOfDoc(doc, bodies, evaluate);
+    const t = treeOf(view);
     return { doc, content: t, changed: false, summary: `${t.joints.length} joints, ${t.loops.length} loops, ${t.problems.length} problems` };
   }
   if (name === 'motion_torques') {
-    const r = await robotOfDoc(doc, bodies, evaluate), mv = moveArgs(r.tree, args); if ('error' in mv) return mv;
-    const bodiesOf = linkBodies(r.tree, r.partOf), m = moveTorques(r.tree, bodiesOf, mv.from, mv.to, mv.profile, mv.limits), sig = (v: number) => Number(v.toPrecision(10)) + 0;
-    const unit = (k: string) => (r.tree.joints.find(j => j.key === k)!.type === 'prismatic' ? 'N' : 'N·m');
-    return { doc, content: { profile: m.kind, duration_s: sig(m.duration), joints: Object.fromEntries(Object.entries(m.joints).map(([k, j]) => [k, { [`peak_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig(j.peak), [`rms_${unit(k) === 'N' ? 'N' : 'N_m'}`]: sig(j.rms), at_s: sig(j.atPeak), distance: sig(j.distance), v_peak: sig(j.vPeak), a_peak: sig(j.aPeak), j_peak: sig(j.jPeak) }])), sampling: m.sampling, gravity_m_s2: STANDARD_GRAVITY }, changed: false, summary: `${m.kind}, ${sig(m.duration)} s` };
+    const t = treeOf(view), mv = moveArgs(t, args); if ('error' in mv) return mv;
+    const content = movesOf(view, mv, t);
+    return { doc, content, changed: false, summary: `${content.profile}, ${content.duration_s} s` };
   }
   if (name === 'size_actuators') {
-    const r = await robotOfDoc(doc, bodies, evaluate), mv = moveArgs(r.tree, args); if ('error' in mv) return mv;
+    const t = treeOf(view), mv = moveArgs(t, args); if ('error' in mv) return mv;
     for (const f of ['dwell_s', 'life_h', 'inertia_ratio_max', 'estop_rad_s2'] as const) { const v = args[f]; if (v !== undefined && (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || (f !== 'dwell_s' && v === 0))) return { error: `"${f}" is a number ${f === 'dwell_s' ? 'of 0 or more' : 'above 0'}.` }; }
     let motors: readonly Motor[] = args.only_given ? [] : MOTORS, reducers: readonly Reducer[] = args.only_given ? [] : REDUCERS;
     if (args.motors !== undefined) { const c = readCatalogue(args.motors, MOTOR_FIELDS, 'motors'); if ('error' in c) return c; motors = [...motors, ...(c.entries as unknown as Motor[])]; }
@@ -117,98 +112,82 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     if (!motors.length || !reducers.length) return { error: 'No motor or no reducer to choose from: give "motors" and "reducers", or leave "only_given" off for the built-in ones.' };
     const so = { motors, reducers, dwell: args.dwell_s as number | undefined, life: args.life_h as number | undefined, inertiaRatio: args.inertia_ratio_max as number | undefined, ...(args.estop_rad_s2 !== undefined ? { estop: args.estop_rad_s2 as number } : {}) };
     // (O75: coupled — each chosen pair's own mass on its joint's parent link, sized again until the choices settle.)
-    const cs = args.coupled === true ? sizeCoupled(r.tree, linkBodies(r.tree, r.partOf), mv.from, mv.to, mv.profile, mv.limits, so) : null, s = cs ? cs.sizing : sizeActuators(r.tree, linkBodies(r.tree, r.partOf), mv.from, mv.to, mv.profile, mv.limits, so);
+    const { sizing: s, coupled: cs } = sizeOf(view, mv, so, args.coupled === true, t);
     return { doc, content: { ...sizingJson(s), ...(cs ? { coupled: { rounds: cs.rounds, settled: cs.settled, added: cs.added.map(a => ({ joint: a.joint, link: a.link, mass_kg: sig(a.massKg) })) } } : {}) }, changed: false, summary: s.joints.map(j => `${j.key}: ${j.choice ? `${j.choice.motor} + ${j.choice.reducer}` : 'none feasible'}`).join('; ') || 'nothing to size' };
   }
   if (name === 'gravity_torques') {
-    const r = await robotOfDoc(doc, bodies, evaluate), keys = new Set(r.tree.joints.map(j => j.key)), given = (args.values ?? {}) as Record<string, unknown>;
+    const t = treeOf(view), keys = new Set(t.joints.map(j => j.key)), given = (args.values ?? {}) as Record<string, unknown>;
     if (!given || typeof given !== 'object' || Array.isArray(given) || Object.values(given).some(v => typeof v !== 'number' || !Number.isFinite(v))) return { error: '"values" is {joint key: number}.' };
     const bad = Object.keys(given).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
     const g = args.g === undefined ? [0, 0, -STANDARD_GRAVITY] : args.g;
     if (!Array.isArray(g) || g.length !== 3 || g.some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"g" is [x, y, z] in m/s².' };
-    const masses = linkMasses(r.tree, r.partOf), t = gravityTorques(r.tree, masses, given as Record<string, number>, g as [number, number, number]), sig = (v: number) => Number(v.toPrecision(12)) + 0;
-    const units = Object.fromEntries(r.tree.joints.map(j => [j.key, j.type === 'prismatic' ? 'N' : 'N·m']));
-    return { doc, content: { torques: Object.fromEntries(Object.entries(t.torques).map(([k, v]) => [k, sig(v)])), generalized: Object.fromEntries(Object.entries(t.generalized).map(([k, v]) => [k, sig(v)])), units, gravity_m_s2: Math.hypot(...(g as number[])) }, changed: false, summary: `${Object.keys(t.torques).length} joints` };
+    const content = gravityOf(view, given as Record<string, number>, g as [number, number, number], t);
+    return { doc, content, changed: false, summary: `${Object.keys(content.torques).length} joints` };
   }
   if (name === 'sweep_path') {
-    const t = await treeOfDoc(doc, bodies, evaluate), keys = new Set(t.joints.map(j => j.key));
+    const t = treeOf(view), keys = new Set(t.joints.map(j => j.key));
     const from = (args.from ?? {}) as Record<string, unknown>, to = (args.to ?? {}) as Record<string, unknown>;
     for (const v of [from, to]) {
       if (!v || typeof v !== 'object' || Array.isArray(v) || Object.values(v).some(x => typeof x !== 'number' || !Number.isFinite(x))) return { error: '"from" and "to" are {joint key: number}.' };
       const bad = Object.keys(v).filter(k => !keys.has(k)); if (bad.length) return { error: `No joint ${bad.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
     }
-    const r = sweepPath(t, await sweepLinksOfDoc(doc, bodies, evaluate, t), from as Record<string, number>, to as Record<string, number>);
-    return { doc, content: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped }, changed: false, summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
+    const r = sweepOf(view, from as Record<string, number>, to as Record<string, number>, t);
+    return { doc, content: r.reply, changed: false, summary: r.summary };
   }
   if (name === 'export_mjcf') {
-    const r = await mjcfOfDoc(doc, bodies, evaluate, typeof args.name === 'string' ? args.name : 'robot');
+    const r = mjcfOf(view, typeof args.name === 'string' ? args.name : 'robot');
     if (!r.ok) return { error: `MJCF refused: ${r.refusals.map(x => `[${x.code}] ${x.message}`).join(' ')}` };
     const check = readMjcf(r.xml, new Set(r.files.map(f => f.path)));
     return { doc, content: { mjcf: r.xml, files: r.files.map(f => ({ path: f.path, bytes: f.data.length })), notes: r.notes, check: check.issues }, changed: false, summary: `MJCF: ${check.model.bodies.length} bodies${check.issues.length ? `, ${check.issues.length} issues` : ''}` };
   }
   if (name === 'export_urdf') {
-    const r = await urdfOfDoc(doc, bodies, evaluate, typeof args.name === 'string' ? args.name : 'robot');
+    const r = urdfOf(view, typeof args.name === 'string' ? args.name : 'robot');
     if (!r.ok) return { error: `URDF refused: ${r.refusals.map(x => `[${x.code}] ${x.message}`).join(' ')}` };
     const check = readUrdf(r.urdf, new Set(r.files.map(f => f.path)));
     return { doc, content: { urdf: r.urdf, files: r.files.map(f => ({ path: f.path, bytes: f.data.length })), notes: r.notes, check: check.issues }, changed: false, summary: `URDF: ${check.model.links.length} links, ${check.model.joints.length} joints${check.issues.length ? `, ${check.issues.length} issues` : ''}` };
   }
   if (name === 'link_inertia') {
-    const t = await treeOfDoc(doc, bodies, evaluate), solved = solveDoc(doc).doc, own = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
-    for (const inst of solved.instances ?? []) { const r = await evaluate(inst.doc); own.set(inst.id, r?.ok ? r.bodies : []); }
-    const links = treeInertia(t, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: i.doc, bodies: own.get(p) ?? [], position: i.position, rotation: i.rotation } : null; });
+    const links = inertiaOf(view);
     return { doc, content: { links: links.map(inertiaJson) }, changed: false, summary: `${links.length} links, ${links.reduce((s, l) => s + l.massKg, 0).toPrecision(4)} kg` };
   }
   if (name === 'forward_kinematics') {
-    const t = await treeOfDoc(doc, bodies, evaluate), given = args.values ?? {};
+    const t = treeOf(view), given = args.values ?? {};
     if (!given || typeof given !== 'object' || Array.isArray(given) || Object.values(given).some(v => typeof v !== 'number' || !Number.isFinite(v))) return { error: '"values" is {joint key: number}.' };
-    const fk = forwardKinematics(t, given as Record<string, number>);
-    if (fk.unknown.length) return { error: `No joint ${fk.unknown.join(', ')}; joints: ${t.joints.map(j => j.key).join(', ') || 'none'}.` };
-    const solved = solveDoc(doc).doc, r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
-    const links = t.links.filter(l => l.part !== null).flatMap(l => {
-      const m = fk.motions.get(l.id); if (!m) return [];
-      const inst = solved.instances?.find(i => i.id === l.id), M = { R: Float64Array.from(inst ? rotationMatrix(inst.rotation) : [1, 0, 0, 0, 1, 0, 0, 0, 1]), t: Float64Array.from(inst ? inst.position : [0, 0, 0]) };
-      const pose = composeInto({ R: new Float64Array(9), t: new Float64Array(3) }, m, M);
-      return [{ link: l.id, name: l.name, position: [...pose.t].map(r6), rotation: eulerOf([...pose.R] as never).map(r6) }];
-    });
-    const gears = t.couplings.map(c => { const at = gearPairAt(c, fk.values), home = gearPairAt(c, {}); return { leader: c.leader, follower: c.follower, phase_deg: r6(at.phaseDeg), home_phase_deg: r6(home.phaseDeg), held: Math.abs(at.phaseDeg - home.phaseDeg) < 1e-6, backlash_mm: r6(at.backlashMM) }; });
-    // (O12: each tool and sensor frame where its link puts it.)
-    const frames = [...framePoses(t, fk.motions)].map(([frame, p]) => ({ frame, link: t.frames!.find(f => f.name === frame)!.link, position: p.o.map(r6), rotation: eulerOf(p.R).map(r6) }));
-    return { doc, content: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits }, changed: false, summary: `${links.length} links placed${fk.outOfLimits.length ? `, ${fk.outOfLimits.length} outside their limits` : ''}` };
+    const p = poseOf(view, given as Record<string, number>, t);
+    if (p.unknown.length) return { error: `No joint ${p.unknown.join(', ')}; joints: ${t.joints.map(j => j.key).join(', ') || 'none'}.` };
+    return { doc, content: p.reply, changed: false, summary: `${p.reply.links.length} links placed${p.reply.out_of_limits.length ? `, ${p.reply.out_of_limits.length} outside their limits` : ''}` };
   }
-  if (name === 'set_frames') return setFrames(doc, bodies, args, evaluate);
-  const was = readRobot(doc.robot), next: RobotSettings = { version: 1, ...(was.base ? { base: was.base } : {}), joints: { ...(was.joints ?? {}) }, ...(was.frames ? { frames: was.frames } : {}), ...(was.motions ? { motions: was.motions } : {}) };
+  if (name === 'set_frames') return setFrames(view, args);
+  const was = readRobot(doc.robot), joints: Record<string, JointSettings | null> = {};
   const parts = [BASE, ...(doc.instances ?? []).map(i => i.id)];
-  if (args.base !== undefined) {
-    if (typeof args.base !== 'string' || !parts.includes(args.base)) return { error: `The base link is one of ${parts.join(', ')}.` };
-    if (args.base === BASE) delete next.base; else next.base = args.base;
-  }
+  if (args.base !== undefined && (typeof args.base !== 'string' || !parts.includes(args.base))) return { error: `The base link is one of ${parts.join(', ')}.` };
   if (args.joints !== undefined) {
     if (!args.joints || typeof args.joints !== 'object' || Array.isArray(args.joints)) return { error: '"joints" is {key: {lower?, upper?, effort?, velocity?} | null}.' };
+    const merged: Record<string, JointSettings> = { ...(was.joints ?? {}) };
     for (const [key, s] of Object.entries(args.joints as Record<string, unknown>)) {
-      if (s === null) { delete next.joints![key]; continue; }
+      if (s === null) { joints[key] = null; delete merged[key]; continue; }
       if (!s || typeof s !== 'object') return { error: `${key}: settings are {lower?, upper?, effort?, velocity?} or null.` };
       const bad = Object.keys(s).filter(k => !(LIMIT_FIELDS as readonly string[]).includes(k));
       if (bad.length) return { error: `${key}: no setting ${bad.join(', ')}; settings are ${LIMIT_FIELDS.join(', ')}.` };
-      const j: JointSettings = { ...(next.joints![key] ?? {}) };
+      const j: JointSettings = { ...(merged[key] ?? {}) };
       for (const f of LIMIT_FIELDS) { const v = (s as Record<string, unknown>)[f]; if (v === undefined) continue; if (typeof v !== 'number' || !Number.isFinite(v)) return { error: `${key}.${f} is a number.` }; j[f] = v; }
       if (j.lower !== undefined && j.upper !== undefined && j.lower > j.upper) return { error: `${key}: lower (${j.lower}) is above upper (${j.upper}).` };
       if ((j.effort !== undefined && j.effort <= 0) || (j.velocity !== undefined && j.velocity <= 0)) return { error: `${key}: effort and velocity are above 0.` };
-      next.joints![key] = j;
+      merged[key] = j; joints[key] = j;
     }
   }
+  const out = withJoints(doc, { ...(args.base !== undefined ? { base: args.base as string } : {}), joints });
   // (A key the tree does not have is refused: it would be kept for nothing.)
-  const tree = await treeOfDoc({ ...doc, robot: next }, bodies, evaluate), keys = new Set(tree.joints.map(j => j.key));
+  const tree = treeOf(viewWith(view, out)), keys = new Set(tree.joints.map(j => j.key));
   const unknown = Object.keys(args.joints && typeof args.joints === 'object' ? args.joints : {}).filter(k => (args.joints as Record<string, unknown>)[k] !== null && !keys.has(k));
   if (unknown.length) return { error: `No joint ${unknown.join(', ')}; joints: ${[...keys].join(', ') || 'none'}.` };
-  if (!Object.keys(next.joints!).length) delete next.joints;
-  const robot = next.base || next.joints || next.frames || next.motions ? next : undefined, out = { ...doc };
-  if (robot) out.robot = robot; else delete out.robot;
-  const changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(robot ?? null);
+  const changed = JSON.stringify(doc.robot ?? null) !== JSON.stringify(out.robot ?? null);
   return { doc: out, content: { ok: true, did: changed ? 'set the robot settings' : 'no change', base: tree.base, joints: tree.joints.map(j => ({ key: j.key, type: j.type, ...(j.limit ? { limit: j.limit } : {}) })), problems: tree.problems }, changed, summary: changed ? `robot settings set (${tree.joints.length} joints)` : 'no change' };
 }
 
 /** O12: tool and sensor frames added, replaced (by name) or removed (null); each one named is checked on the tree, typed. */
-async function setFrames(doc: StudioDoc, bodies: readonly BodyResult[], args: Record<string, unknown>, evaluate: Evaluate): Promise<{ doc: StudioDoc; content: unknown; changed: boolean; summary: string } | { error: string }> {
+function setFrames(view: RobotView, args: Record<string, unknown>): { doc: StudioDoc; content: unknown; changed: boolean; summary: string } | { error: string } {
+  const doc = view.doc;
   if (!args.frames || typeof args.frames !== 'object' || Array.isArray(args.frames) || !Object.keys(args.frames).length) return { error: '"frames" is {name: {link, position?, rotation?, kind?} | null}: a frame added or replaced by its name, null removes it.' };
   const was = readRobot(doc.robot), frames: Record<string, FrameSettings> = { ...(was.frames ?? {}) }, did: string[] = [];
   for (const [name, f] of Object.entries(args.frames as Record<string, unknown>)) {
@@ -223,7 +202,7 @@ async function setFrames(doc: StudioDoc, bodies: readonly BodyResult[], args: Re
     frames[name] = { link: g.link, ...(g.position !== undefined ? { position: g.position as number[] } : {}), ...(g.rotation !== undefined ? { rotation: g.rotation as number[] } : {}), ...(g.kind ? { kind: g.kind as 'tool' | 'sensor' } : {}) };
   }
   // (The write and the tree's check are the core's, assembly/edit.ts; the call's shape is checked above, in its order.)
-  const out = withFrames(doc, args.frames as Record<string, FrameSettings | null>), tree = await treeOfDoc(out, bodies, evaluate);
+  const out = withFrames(doc, args.frames as Record<string, FrameSettings | null>), tree = treeOf(viewWith(view, out));
   try { checkFramesOn(tree, Object.keys(args.frames)); } catch (e) { if (isRefusal(e)) return { error: e.message }; throw e; }
   return { doc: out, content: { ok: true, did: did.join(', '), frames: (tree.frames ?? []).map(f => ({ frame: f.name, link: f.link, ...(f.kind ? { kind: f.kind } : {}), position: f.o.map(r6), rotation: eulerOf(f.R).map(r6) })) }, changed: true, summary: `frames: ${did.join(', ')}` };
 }
@@ -280,16 +259,12 @@ function sourcesJson(list: readonly { field: string; src: Source }[]) {
 
 /** The document's robot and its parts: its instances evaluated in their own coordinates, each with its placement. */
 export async function robotOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate) {
-  const t = await treeOfDoc(doc, bodies, evaluate), solved = solveDoc(doc).doc, own = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
-  for (const inst of solved.instances ?? []) { const r = await evaluate(inst.doc); own.set(inst.id, r?.ok ? r.bodies : []); }
-  const partOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: i.doc, bodies: own.get(p) ?? [], position: i.position, rotation: i.rotation } : null; };
-  return { tree: t, partOf };
+  const view = await robotViewOf(doc, bodies, evaluate);
+  return { tree: treeOf(view), partOf: partsOf(view) };
 }
 /** The robot's links for RM6's sweep: each part's bodies where the mates put them, with their convex hulls. */
 export async function sweepLinksOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, t: JointTree): Promise<SweepLink[]> {
-  const solved = solveDoc(doc).doc, world = new Map<string, readonly BodyResult[]>([[BASE, bodies]]);
-  for (const i of solved.instances ?? []) { const r = await evaluate(i.doc); world.set(i.id, r?.ok ? r.bodies.map(b => placeBody({ ...b, mesh: { ...b.mesh, positions: b.mesh.positions.slice(), normals: b.mesh.normals.slice(), edgeLines: b.mesh.edgeLines.slice() } }, rotationMatrix(i.rotation), i.position)) : []); }
-  return sweepLinks(t, p => world.get(p), pts => convexHull(pts).positions);
+  return sweepLinksOf(await robotViewOf(doc, bodies, evaluate), t);
 }
 /** A duty as given (JSON), each move checked as motion_torques takes one; or why not. */
 export function readDuty(tree: JointTree, raw: unknown): Duty | { error: string } {
@@ -319,12 +294,6 @@ export async function robotSizeOfDoc(doc: StudioDoc, bodies: readonly BodyResult
   return { sized, doc: { ...doc, robot: { ...robot, joints } } };
 }
 /** The document's robot as URDF (RM4). */
-export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> { const r = await robotOfDoc(doc, bodies, evaluate); return exportUrdf(r.tree, r.partOf, name); }
+export async function urdfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<UrdfResult> { return urdfOf(await robotViewOf(doc, bodies, evaluate), name); }
 /** The document's robot as MJCF (RM5). */
-export async function mjcfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<MjcfResult> {
-  const r = await robotOfDoc(doc, bodies, evaluate), closures: MjcfClosure[] = [], left: string[] = [];
-  // (RM8: each loop closed at its pin when it is a planar one; else left out and said why.)
-  for (const l of r.tree.loops) { try { closures.push(closureOfDoc(doc, r.tree, l)); } catch (e) { left.push(`${l.parts.join('–')}: ${e instanceof Error ? e.message : String(e)}`); } }
-  const out = exportMjcf(r.tree, r.partOf, name, closures);
-  return out.ok && left.length ? { ...out, notes: [...out.notes, ...left.map(x => `loop not written (${x})`)] } : out;
-}
+export async function mjcfOfDoc(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate, name: string): Promise<MjcfResult> { return mjcfOf(await robotViewOf(doc, bodies, evaluate), name); }
