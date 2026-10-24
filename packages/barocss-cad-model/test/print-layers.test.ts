@@ -64,7 +64,7 @@ test('A: the cube along (1, 0, 1) — its lower faces lean 45°: no overhang at 
 test('A: a sphere along AM4\'s best direction — the support columns\' volume is AM4\'s support volume; each column footprint × height sums to it', () => {
   const sphere = commands.find(c => c.id === 'sphere')!, blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
   const r = meshOf(sphere.build!(blank, { ...sphere.defaults!(blank), r: 10 })), mesh = r.bodies[0].mesh;
-  const am4 = searchOrientation(mesh, r.faceTable!, 45).best, support = am4.supportMM3 ?? 0;
+  const am4 = searchOrientation(mesh, r.faceTable!, 45).best, support = am4.supportVolume ?? 0;
   assert.ok(support > 0, 'a ball needs support');
   const L = printLayers([mesh], { direction: am4.direction, overhangLimit: 45 });
   assert.ok(Math.abs(L.supportVolumeMM3 - support) <= 1e-9 * support, `${L.supportVolumeMM3} vs AM4 ${support}`);

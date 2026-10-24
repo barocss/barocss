@@ -145,7 +145,7 @@ test('AM4 orientation: a T prints on its flat side (whole outline on the bed, lo
   const t = { ...tShape(), process: 'fdm' }, b = bodiesOf(t)[0];
   const r = orientPart(t, [b], faceTableOf(t), processProfile('fdm')) as ReturnType<typeof searchOrientation>;
   assert.ok(typeof r !== 'string');
-  assert.ok(Math.abs(Math.abs(r.best.direction[1]) - 1) < 1e-9, JSON.stringify(r.best)); assert.equal(r.best.supportMM3, 0); assert.equal(r.best.overhangMM2, 0); assert.equal(r.best.height, 10); assert.ok(Math.abs(r.best.contactMM2 - 400) < 1e-6);
+  assert.ok(Math.abs(Math.abs(r.best.direction[1]) - 1) < 1e-9, JSON.stringify(r.best)); assert.equal(r.best.supportVolume, 0); assert.equal(r.best.overhangArea, 0); assert.equal(r.best.height, 10); assert.ok(Math.abs(r.best.contactArea - 400) < 1e-6);
   const up = overhangOf(b.mesh, faceTableOf(t), 45, [0, 0, 1]), down = overhangOf(b.mesh, faceTableOf(t), 45, [0, 0, -1]);
   assert.ok(Math.abs(up.totalMM2 - 300) < 1e-6, String(up.totalMM2)); assert.equal(down.totalMM2, 0); assert.ok(r.candidates >= 64);
   assert.equal(r.top.length, 3); assert.ok(r.top.every((x, i) => i === 0 || x.score >= r.top[i - 1].score));
@@ -180,8 +180,8 @@ test('AM4 performance: 100 000 triangles oriented (well under 6 s even under loa
   const r = searchOrientation(mesh, faceTableOf(doc), 45);
   // (A wall-clock bound, so with room for a loaded machine — the suite beside the kernel's once took it past 2 s; the
   // measure is the bench row 'print: orientation search, 100k triangles', budget 1.2 s, about 0.6 s alone.)
-  assert.ok(r.ms < 6000, `${r.ms} ms for ${tris} triangles`);
-  if (process.env.AM_PERF) console.log(`AM4 perf: ${tris} triangles, ${r.candidates} candidates, ${r.ms.toFixed(0)} ms`);
+  assert.ok(r.wallTime < 6, `${r.wallTime * 1000} ms for ${tris} triangles`);
+  if (process.env.AM_PERF) console.log(`AM4 perf: ${tris} triangles, ${r.candidates} candidates, ${(r.wallTime * 1000).toFixed(0)} ms`);
   // The snap hook on a plate's top face: printed up +Z its beam stands up (across the layers) — warned; up +X it lies in them.
   const { addLibraryPartToBody } = await import('../src/library/libraries');
   const plate = (direction: [number, number, number]) => withLook({ ...rectanglePart(60, 40, 3), process: 'fdm', print: { direction } }, bodiesOf(rectanglePart(60, 40, 3))[0], { material: 'abs' });
@@ -205,4 +205,29 @@ test('AM4 through the agent tool: orient_for_print scores (apply false changes n
   const set = applied.state.doc.print?.direction; assert.ok(set && set.every((v, i) => Math.abs(v - out.best.direction[i]) < 1e-6 && !Object.is(v, -0)), JSON.stringify(set));
   const none = await runTool({ ...s, doc: tShape() }, 'orient_for_print', {}, evaluate);
   assert.ok(none.isError, none.content);
+});
+
+
+test('AM4 public result and tool JSON keep quantity values and the same clock interval in seconds; the write classification stays unchanged', async context => {
+  const { outputSchemaOf, annotationsOf } = await import('../src/chat/contract');
+  const { runTool } = await import('../src/chat/tools');
+  const doc = { ...tShape(), process: 'fdm' }, r = evaluateDoc(doc, 1); assert.ok(r.ok && r.faceTable);
+  let calls = 0;
+  context.mock.method(performance, 'now', () => 1000 + calls++ * 1234.567);
+  const raw = searchOrientation(r.bodies[0].mesh, r.faceTable, 45);
+  assert.equal(raw.wallTime, 1.234567); assert.equal('ms' in raw, false);
+  assert.deepEqual([raw.best.supportVolume, raw.best.overhangArea, raw.best.height], [0, 0, 10]);
+  for (const score of [raw.best, ...raw.top]) for (const old of ['supportMM3', 'overhangMM2', 'contactMM2']) assert.equal(old in score, false);
+  const tool = await runTool({ doc, bodies: r.bodies }, 'orient_for_print', { apply: false }, async d => evaluateDoc(d, 1));
+  assert.equal(tool.isError, false); assert.equal(tool.changed, false); assert.equal(tool.state.doc.print, undefined);
+  const publicResult = JSON.parse(tool.content);
+  assert.equal(publicResult.wallTime, 1.235, 'the original rounded-ms resolution is 0.001 seconds');
+  assert.equal('ms' in publicResult, false);
+  for (const score of [publicResult.best, ...publicResult.top]) {
+    for (const key of ['supportVolume', 'overhangArea', 'height', 'contactArea']) assert.equal(typeof score[key], 'number');
+    for (const old of ['support_mm3', 'overhang_mm2', 'height_mm', 'contact_mm2']) assert.equal(old in score, false);
+  }
+  assert.deepEqual([publicResult.best.supportVolume, publicResult.best.overhangArea, publicResult.best.height, publicResult.best.contactArea], [0, 0, 10, 400]);
+  assert.equal(annotationsOf('orient_for_print').readOnlyHint, false);
+  assert.equal(outputSchemaOf('orient_for_print'), undefined, 'the existing write tool has no fixed output schema');
 });
