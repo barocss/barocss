@@ -73,7 +73,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
     const r = await evaluate(inst.doc), bodies = r?.ok ? r.bodies : [];
     const { min, max } = boundsOf(bodies);
     return {
-      id: inst.id, name: inst.name, position: inst.position.map(r3), rotation_deg: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}),
+      id: inst.id, name: inst.name, position: inst.position.map(r3), rotation: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}),
       feature_count: inst.doc.nodes.length, bodies: bodies.length, volume: r3(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)),
       ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
       ...(r && !r.ok ? { error: r.error.title } : {}),
@@ -96,7 +96,7 @@ const vec3 = (v: unknown): [number, number, number] | null => isVec3(v) ? v : nu
 
 async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: BodyResult[], evaluate: Evaluate, extra: Record<string, unknown> = {}): Promise<AssemblyOutcome> {
   const s = solveDoc(next, doc.instances);
-  const parts = (s.doc.instances ?? []).map(i => ({ id: i.id, name: i.name, position: i.position.map(r3), rotation_deg: i.rotation.map(r3), ...(i.grounded ? { grounded: true } : {}) }));
+  const parts = (s.doc.instances ?? []).map(i => ({ id: i.id, name: i.name, position: i.position.map(r3), rotation: i.rotation.map(r3), ...(i.grounded ? { grounded: true } : {}) }));
   return {
     doc: s.doc, isError: false, changed: true, summary: `${what}${s.problems.length ? ` (${s.problems.length} unmet mate${s.problems.length > 1 ? 's' : ''})` : ''}`,
     content: json({ ok: true, did: what, ...extra, parts, ...(s.problems.length ? { unmet_mates: s.problems } : {}) }),
@@ -105,7 +105,7 @@ async function changed(doc: StudioDoc, next: StudioDoc, what: string, base: Body
 
 /** An edit the core solved already (assembly/edit.ts), reported as changed() reports one. */
 function reported(doc: StudioDoc, r: Edited, what: string, extra: Record<string, unknown> = {}): AssemblyOutcome {
-  const parts = (r.doc.instances ?? []).map(i => ({ id: i.id, name: i.name, position: i.position.map(r3), rotation_deg: i.rotation.map(r3), ...(i.grounded ? { grounded: true } : {}) }));
+  const parts = (r.doc.instances ?? []).map(i => ({ id: i.id, name: i.name, position: i.position.map(r3), rotation: i.rotation.map(r3), ...(i.grounded ? { grounded: true } : {}) }));
   return {
     doc: r.doc, isError: false, changed: true, summary: `${what}${r.problems.length ? ` (${r.problems.length} unmet mate${r.problems.length > 1 ? 's' : ''})` : ''}`,
     content: json({ ok: true, did: what, ...extra, parts, ...(r.problems.length ? { unmet_mates: r.problems } : {}) }),
@@ -174,7 +174,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       }
       const list = r.doc.mates!, moved = r.doc.instances!.find(i => i.id === r.mate.b.part)!;
       return reported(doc, r, `${name === 'add_mate' ? 'added' : 'edited'} ${mateLabel(r.mate, list.findIndex(m => m.id === r.mate.id))} (${r.mate.id}): ${r.mate.b.part}.${r.mate.b.face} to ${r.mate.a.part}.${r.mate.a.face}`,
-        { mate: r.mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation_deg: moved.rotation.map(r3) }, freedom_left: r.freedom });
+        { mate: r.mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation: moved.rotation.map(r3) }, freedom_left: r.freedom });
     }
     case 'lock_part': {
       // (PG-8: the studio's Lock — a part fixed to another where they stand.)

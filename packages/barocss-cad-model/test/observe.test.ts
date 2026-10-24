@@ -34,7 +34,8 @@ test('inspect: a face with its neighbours and maker, a round face with its axis,
   assert.ok(top.adjacent.includes('n2.side0') && top.adjacent.length === 5, JSON.stringify(top.adjacent));
   assert.deepEqual([bore.kind, bore.radius, bore.axis.direction.map(Math.abs)], ['curved', 4, [0, 0, 1]]);
   assert.ok(bore.made_by.startsWith('2: '));
-  assert.deepEqual([edge.line, edge.chord_mm, edge.faces.length], ['along y', 20, 2]);
+  assert.deepEqual([edge.line, edge.chordLength, edge.faces.length], ['along y', 20, 2]);
+  assert.ok(!('chord_mm' in edge));
 });
 
 // The A2 conformance cases (conformance/a2): a document, one tool call, and the facts before and after.

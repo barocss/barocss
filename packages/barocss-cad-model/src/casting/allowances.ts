@@ -19,9 +19,9 @@ export interface MachinedFace { readonly name: string; readonly body: string; re
 export const shrinkView = ({ ok: _, ...s }: { ok: true } & ShrinkAllowance): ShrinkAllowance => s;
 export const machiningView = ({ ok: _, ...m }: { ok: true } & MachiningAllowance): MachiningAllowance => m;
 /** The part's box and its largest extent (mm). */
-export function partExtent(bodies: readonly BodyResult[]): { min: number[]; max: number[]; largestMM: number } {
+export function partExtent(bodies: readonly BodyResult[]): { min: number[]; max: number[]; largest: number } {
   const { min, max } = boundsOf(bodies);
-  return { min, max, largestMM: Math.max(...[0, 1, 2].map(k => max[k] - min[k])) };
+  return { min, max, largest: Math.max(...[0, 1, 2].map(k => max[k] - min[k])) };
 }
 /** A band's words as the page has them: "up to 4 ft", "2 ft to 4 ft", "over 6 ft". */
 function bandWords(lo: number | null, hi: number | null, unit: string): string {
@@ -38,10 +38,10 @@ export function shrinkOf(doc: StudioDoc, profile: ProcessProfile, family: CastFa
   return { ok: true, ratio: b.inPerFt / 12, basis: 'table', band: bandWords(k ? row.bands[k - 1].upToFt : null, b.upToFt, 'ft'), label: row.label, page: row.page.url };
 }
 /** Each dimension's own band (X, Y, Z extents): what the table gives a pattern maker who scales each dimension by its own band. */
-export function shrinkByDimension(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, bodies: readonly BodyResult[]): { axis: 'X' | 'Y' | 'Z'; extentMM: number; factor: number; band: string }[] {
-  const box = partExtent(bodies), out: { axis: 'X' | 'Y' | 'Z'; extentMM: number; factor: number; band: string }[] = [];
+export function shrinkByDimension(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, bodies: readonly BodyResult[]): { axis: 'X' | 'Y' | 'Z'; extent: number; factor: number; band: string }[] {
+  const box = partExtent(bodies), out: { axis: 'X' | 'Y' | 'Z'; extent: number; factor: number; band: string }[] = [];
   const table = { ...doc, casting: { ...(doc.casting ?? { version: 1 as const }), shrink: undefined } };
-  for (const [k, axis] of (['X', 'Y', 'Z'] as const).entries()) { const e = box.max[k] - box.min[k], s = shrinkOf(table, profile, family, e); if (s.ok) out.push({ axis, extentMM: r6(e), factor: r6(1 + s.ratio), band: s.band }); }
+  for (const [k, axis] of (['X', 'Y', 'Z'] as const).entries()) { const e = box.max[k] - box.min[k], s = shrinkOf(table, profile, family, e); if (s.ok) out.push({ axis, extent: r6(e), factor: r6(1 + s.ratio), band: s.band }); }
   return out;
 }
 /** The machining allowance for a family at the part's size: the user's, else the table's (none past its last band). */

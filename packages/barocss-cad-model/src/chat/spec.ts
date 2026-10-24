@@ -314,7 +314,7 @@ export async function validateSuite(doc: StudioDoc, bodies: readonly BodyResult[
       applies.set(req.id, (applies.get(req.id) ?? 0) + 1); if (o.status === 'pass') passes.set(req.id, (passes.get(req.id) ?? 0) + 1);
     }
   }
-  const out: Validation = { mutants: { built, tried: mutants.length, ms: Math.round(performance.now() - t), labels: mutants.map(m => m.label) }, vacuous: [], unverified: [], invariant: [] };
+  const out: Validation = { mutants: { built, tried: mutants.length, duration: Math.round(performance.now() - t) / 1000, labels: mutants.map(m => m.label) }, vacuous: [], unverified: [], invariant: [] };
   for (const req of doc.requirements ?? []) {
     if (outcomes.get(req.id)?.status !== 'pass') continue;
     const n = applies.get(req.id) ?? 0, p = passes.get(req.id) ?? 0;
