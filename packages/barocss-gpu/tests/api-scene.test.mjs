@@ -1,6 +1,6 @@
 // R7, gpu's facade: an immutable scene whose .data is the plain description, shown in a Viewer through its public
-// methods only. A Viewer stand-in records the calls (the browser check through the gpu lane's harness comes once the
-// coordinate frame is settled). cad's facade's .meshes() goes in as it is: the match is by shape.
+// methods only. A Viewer stand-in records the calls (the browser check runs through the gpu lane's harness). The frame
+// is Z-up as given: cad's facade's .meshes() goes in as it is — the match is by shape, with no conversion.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { scene, show, Scene, BarocssError } from '../dist/api/index.js';
@@ -26,7 +26,7 @@ test('every method returns a new scene and leaves the old one as it was; .data i
   assert.equal(one.data.meshes.length, 1);
   const lit = one.light({ kind: 'directional', direction: [0, 0, -1] }).background('transparent');
   assert.equal(one.data.lights, undefined);
-  assert.deepEqual(JSON.parse(JSON.stringify(lit.data)), { meshes: [{ ...triangle, material: { color: '#c8ccd2' } }], lights: [{ kind: 'directional', direction: [0, 0, -1] }], background: 'transparent' });
+  assert.deepEqual(JSON.parse(JSON.stringify(lit.data)), { frame: 'z-up', meshes: [{ ...triangle, material: { color: '#c8ccd2' } }], lights: [{ kind: 'directional', direction: [0, 0, -1] }], background: 'transparent' });
 });
 
 test('show() clears, sets the lights and background, adds each mesh under its key, and fits — public methods only', () => {

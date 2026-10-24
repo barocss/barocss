@@ -2,8 +2,8 @@
 // `.data` is the plain description. `show(viewer, scene)` presents it through the Viewer's public methods only (clear,
 // add, lights, setBackground, fit); the Viewer stays the one stateful object (api-conventions.md §3).
 // Meshes come in as plain data: cad's and cad-model's facades' `.meshes()` match GeometryInput by shape, so this
-// package imports neither. No axis conversion happens here: a CAD mesh is Z-up and the Viewer's frame is settled
-// separately (the coordinator's common formats, §10 item 1).
+// package imports neither. The frame is Z-up as given (the Viewer's camera up is +Z, the studio feeds CAD XYZ in mm
+// unconverted): no axis conversion and no axis option here; `frame: 'z-up'` records it.
 import type { Viewer, BackgroundInput, Material } from '../viewer/viewer.js';
 import type { GeometryInput } from '../viewer/geometry.js';
 import type { Light } from '../viewer/lights.js';
@@ -12,7 +12,7 @@ import { refuse } from './refusal.js';
 /** A mesh as data: GeometryInput's fields, a key to name it by, and its material. */
 export interface SceneMesh extends GeometryInput { key?: string; material?: Material }
 /** The scene's plain description. Typed arrays appear only in the meshes (conventions §2). */
-export interface SceneData { meshes: SceneMesh[]; lights?: Light[]; background?: BackgroundInput }
+export interface SceneData { frame: 'z-up'; meshes: SceneMesh[]; lights?: Light[]; background?: BackgroundInput }
 
 const finiteAll = (a: ArrayLike<number>) => { for (let i = 0; i < a.length; i++) if (!Number.isFinite(a[i])) return false; return true; };
 
@@ -30,7 +30,7 @@ export class Scene {
 
   /** The plain description (a shallow copy: the mesh arrays are shared, never changed by the scene). */
   get data(): SceneData {
-    return { meshes: this.#data.meshes.map(m => ({ ...m })), ...(this.#data.lights ? { lights: this.#data.lights.map(l => ({ ...l })) } : {}), ...(this.#data.background !== undefined ? { background: this.#data.background } : {}) };
+    return { frame: 'z-up', meshes: this.#data.meshes.map(m => ({ ...m })), ...(this.#data.lights ? { lights: this.#data.lights.map(l => ({ ...l })) } : {}), ...(this.#data.background !== undefined ? { background: this.#data.background } : {}) };
   }
 
   /** Adds meshes — one, or a facade's `.meshes()` — each with the material given. */
@@ -51,7 +51,7 @@ export class Scene {
 }
 
 /** A new, empty scene. */
-export function scene(): Scene { return new Scene({ meshes: [] }); }
+export function scene(): Scene { return new Scene({ frame: 'z-up', meshes: [] }); }
 
 /**
  * Shows a scene in a Viewer: what it showed is cleared, the scene's lights (when it has any) and background set, each
