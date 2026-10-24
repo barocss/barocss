@@ -8388,3 +8388,65 @@ One caller a commit, each guard's own behaviour kept; App.tsx edits on the guard
   batch FLOW_ONLY at be38231a7 on WebGPU and WebGL2, 20 steps each, exit 0 (the section steps with O9's fast drag,
   placing / dragging / mating instances, the real-chat proposals, Bearing, IM2 and IM5's mould views, drawing revision,
   R14.1–R14.3b, sections O148 X1/X2, BOM table and balloons).
+
+## R7.3a in progress — cad-model's refusals onto one shape (2026-10-24)
+
+The owner approved api-conventions.md (§6) and the R7 rows. The coordinator's order: two separate batches, so that a
+regression can be pinned to one of them.
+- **Batch 1:** no text change. The fingerprint stays byte-identical to 1125c4eb… (2e0a2f34f, 152 documents).
+- **Batch 2:** the uncoded throws and classes get codes. Their message text changes, and the deltas are recorded.
+
+**Done (step 1 of batch 1, 71cf7807f).**
+- `src/engine/refusal.ts`:
+  - re-exports `BarocssError` from `@barocss/cad/api` (no second class);
+  - `CadModelCode`, one union of the codes folded so far;
+  - `Problem { code, message, where? }`;
+  - `refusal(code, message, details?)`, whose message is the old "[CODE] …" text byte for byte, plus `problem()`,
+    `isRefusal(e, ...codes)` and `firstProblem()`.
+- Twelve coded Error classes are folded: IkError, LoopError, WorkspaceError, SplitError, LatticeError, HollowError,
+  EcrError, BaselineError, DxfReadError, DraftError, ReferenceError, ScriptError.
+  - Each class's `[CODE] message` text is unchanged.
+  - Callers' `instanceof X` became `isRefusal(e, ...X_CODES)`, with DXF_READ_CODES, DRAFT_CODES, REFERENCE_CODES
+    (in schema/references) and SCRIPT_CODES.
+  - ScriptError's line and col are in `details`, built by `scriptError()`; history.ts and script.test read them there.
+- Verified:
+  - cad-model tsc and eslint, studio tsc;
+  - the affected tests 150/150 (robot, print, team, drafts, dxf, references, script, questions, a6);
+  - step 1's full suites and fingerprint ran after the commit and are reported with the hand-over.
+
+**Next, still batch 1 (no text change):**
+1. **Validators.** `…Problem(x): string | null` becomes `check…(x): Problem[]`:
+   - drawingScopeProblem, manufacturingDrawingProblem, valueProblem, frameProblem, fastenerSizeRowProblem,
+     printPreviewProblem, documentPrintPreviewProblem, bearingHousingRefProblem, documentBearingHousingProblem,
+     ringRowProblem, mountRowProblem, fastenerRowProblem, castingRuleRowProblem, and checkVariability's string return.
+   - Read each callsite first. The row validators return text without the code (`${at}: unknown field…`); their
+     callers or the `at` prefix add the code.
+   - A caller that threw `new Error(p)` throws `new BarocssError(p.code, p.message)`. The constructor drops the
+     leading `[CODE] ` and adds it back, so the text is the same.
+   - A caller that kept a string uses `firstProblem()`.
+2. **The 40 `throw new Error('[CODE] …')`** become `refusal('CODE', '…')`, the text unchanged. By module: engine 24,
+   app 11, drawing 2, assembly, team and bom 1 each.
+3. **The bracketed-string returns in results**, e.g. variantOf's `{ error }`, chat/drafts and references' `{ error }`,
+   frames/skeleton, chat/features and chat/drawing. Operations throw; tool-layer message builders such as
+   toolDefinitions' UNKNOWN_ARGUMENT may stay as builders. Update scripts/r4-fingerprint.ts where it reads `'error' in r`.
+4. **Close batch 1.** Run the full cad-model and studio suites and the fingerprint; it must be byte-identical to
+   1125c4eb… (152 documents).
+
+**Then batch 2 (codes added, text changes recorded):**
+- About 110 uncoded throws: engine 45, app 51, chat 3, drawing 3, team 2, io 3, library 3.
+- The 7 uncoded classes: XmlError ("XML at N: …"), ModelReadError, ActuatorError, CcdError, ProfileError,
+  ContainerError, SketchDxfError.
+- Name each code by the refusal's kind, UPPER_SNAKE, reusing an existing code where it means the same.
+- Record each moved message as before → after here, together with the fingerprint lines it moves.
+- Update tests that pin the old text in the same commits, and regenerate apps/library-docs' refusal table with
+  `node apps/library-docs/scripts/refusals.mjs`.
+
+**Things the next session must know.**
+- `BarocssError`'s `where` is typed `RefusalWhere` ('facade' | 'evaluate' | 'export'), so cad-model passes none. The
+  kernel lane moves the class into the kernel's core in their R7.3a (after K16); import it from there once it lands.
+- Don't change `src/api/`; it is the API lane's. cad-model's facade (src/api/refusal.ts) already re-exports the same class.
+- A fold helper (regex: class line removed, `new X(` becomes `refusal(`, tests' `instanceof X` becomes `isRefusal(e)`)
+  lived in the scratchpad only. The pattern is simple to redo per file.
+- After R7.3a, the queue goes on to R7.3c (one mass and one bounds function; `stepFor` becomes
+  `exportStudioStep(doc, options)` with `timestamp` in options; readonly vectors across packages), then R7.3b's
+  cad-model follow-up (bodyMass inertia in g·mm²) once the kernel's lands.
