@@ -223,9 +223,9 @@ existing world-space distance gradient. Rotating a sphere retains authored data
 but does not change its ideal spherical geometry.
 
 Structured `Scene1` uses `version: 1` and requires each object's owned
-`rotateDegrees: [x, y, z]` data. `compileScene(Scene1)` accepts the same bounds.
+`rotation: [x, y, z]` data. `compileScene(Scene1)` accepts the same bounds.
 Source1 emits SDF render IR schema2 with `angleUnit: 'deg'`, `rotationOrder: 'X-Y-Z'`
-and per-draw `rotateDegrees`. Scene0, SDF IR1, mesh IR1 and old shader bytes
+and per-draw `rotation`. Scene0, SDF IR1, mesh IR1 and old shader bytes
 remain unchanged. AST schema1 identifies source0 or source1 in `sourceVersion`.
 
 `showScene` compiles a source as source1 when its header says `version: 1;` and
@@ -394,7 +394,7 @@ cross(partialU,partialV); no CAD package imports are required.
 ```js
 const camera = {
   eye: [4, 3, 6], target: [0, 0, 0], up: [0, 1, 0],
-  fovYDegrees: 45, near: 0.01, far: 100,
+  fovY: 45, near: 0.01, far: 100,
 };
 const accepted = validateMeshOptions({ ...options, camera });
 ```
@@ -565,14 +565,14 @@ copies. Exactly repeated native sample points remain zero-length segments; nonze
 native segments that collapse in Float32 refuse.
 
 `MeshSceneTransform` optionally supplies the complete
-`{translationMm,rotationXYZW,scale}` pose in the original packet's declared
+`{translation,rotationXYZW,scale}` pose in the original packet's declared
 right-handed Y-up XYZ frame. No axis conversion is inferred. Translation is
 finite within ±10000 mm; each scale is in [0.001,100]; the XYZW quaternion has
 components in [-1,1] and unit norm within 1e-9. Computation normalizes that
 quaternion, while owned pose copies retain its authored components and signed
 zeros. Explicit undefined, unknown fields, sparse arrays and accessors refuse.
 
-Positions use `commonTranslate + mmToSceneUnit * (translationMm + R * (scale *
+Positions use `commonTranslate + mmToSceneUnit * (translation + R * (scale *
 nativePositionMm))`. Normals use `normalize(R * (nativeNormal / scale))`.
 Original packets, UV, native IDs, winding and bounds remain unchanged. Derived
 Float64 and Float32 geometry must both retain finite positive triangle area and
@@ -595,13 +595,13 @@ it in draw options. The declared strength is `ambientStrength + directionalStren
 ```ts
 const result = compileMeshMaterial(`
 @shader #wave {
-  @uniform timeSeconds: float(0,2,0);
+  @uniform time: float(0,2,0);
   @fragment {
-    color: mix(#204080,#E08020,sin(timeSeconds*1.5707963267948966)*0.5+0.5);
+    color: mix(#204080,#E08020,sin(time*1.5707963267948966)*0.5+0.5);
   }
 }`);
 if (result.ok) {
-  mesh.material = { shader: bindingShader({ material: result.material, uniforms: { timeSeconds: 1 } }) };
+  mesh.material = { shader: bindingShader({ material: result.material, uniforms: { time: 1 } }) };
 }
 ```
 
@@ -919,12 +919,12 @@ const sampled = sampleEngineTranslationClip(originalScene, {
   coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
   timeUnit: 'seconds', interpolation: 'linear',
   tracks: [{nodeId: 'mesh', keys: [
-    {timeSeconds: 0, translation: [0, 0, 0]},
-    {timeSeconds: 2, translation: [2, 0, 0]},
+    {time: 0, translation: [0, 0, 0]},
+    {time: 2, translation: [2, 0, 0]},
   ]}],
 }, {
   format: 'barocss-gpu-engine-translation-clip-request', version: 0,
-  timeSeconds: 1,
+  time: 1,
 });
 const preparedFrame = prepareEngineScene(sampled.scene);
 ```
@@ -1001,12 +1001,12 @@ const sampled = sampleEngineRotationClip(originalScene, {
   timeUnit: 'seconds', rotationOrder: 'xyzw',
   interpolation: 'shortest-path-nlerp',
   tracks: [{ nodeId: 'parent', keys: [
-    { timeSeconds: 0, rotationXYZW: [0, 0, 0, 1] },
-    { timeSeconds: 2, rotationXYZW: [0, 0, 1, 0] },
+    { time: 0, rotationXYZW: [0, 0, 0, 1] },
+    { time: 2, rotationXYZW: [0, 0, 1, 0] },
   ] }],
 }, {
   format: 'barocss-gpu-engine-rotation-clip-request', version: 0,
-  timeSeconds: 1,
+  time: 1,
 });
 ```
 
@@ -1054,12 +1054,12 @@ const sampled = sampleEngineScaleClip(originalScene, {
   coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
   timeUnit: 'seconds', interpolation: 'linear',
   tracks: [{ nodeId: 'parent', keys: [
-    { timeSeconds: 0, scale: [1, 1, 1] },
-    { timeSeconds: 2, scale: [2, 3, 4] },
+    { time: 0, scale: [1, 1, 1] },
+    { time: 2, scale: [2, 3, 4] },
   ] }],
 }, {
   format: 'barocss-gpu-engine-scale-clip-request', version: 0,
-  timeSeconds: 1,
+  time: 1,
 });
 ```
 

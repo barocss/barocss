@@ -34,7 +34,7 @@ const inCamera = (points, camera) => {
   const forward = backward.map(value => -value);
   const right = unit(cross(camera.up, backward));
   const up = cross(backward, right);
-  const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360);
+  const tangent = Math.tan(camera.fovY * Math.PI / 360);
   const aspect = canvas.width / canvas.height;
   return points.every(point => {
     const offset = subtract(point, camera.eye), depth = dot(offset, forward);

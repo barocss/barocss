@@ -79,7 +79,7 @@ export function prepareEngineCameraRay(cameraInput: unknown, requestInput: unkno
   const right = normalize(cross(normalize(camera.up), backward)), vertical = cross(backward, right);
   const x = 2 * (originalRequest.pixelX + 0.5) / originalRequest.viewportWidth - 1;
   const y = 2 * (originalRequest.pixelY + 0.5) / originalRequest.viewportHeight - 1;
-  const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360);
+  const tangent = Math.tan(camera.fovY * Math.PI / 360);
   const horizontal = x * (originalRequest.viewportWidth / originalRequest.viewportHeight) * tangent;
   const direction = normalize(right.map((n, i) => n * horizontal + vertical[i] * y * tangent - backward[i]) as [number, number, number]);
   const length = Math.hypot(...direction);

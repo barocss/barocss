@@ -121,12 +121,12 @@ export interface ViewerPose {
 export interface ViewerPoseFrame { contextId: string; timeSeconds: number; poses: ViewerPose[] }
 export const VIEWER_POSE_LIMITS = Object.freeze({
   durationSeconds: 3600,
-  translationMm: 10000,
+  translation: 10000,
   scaleMin: 0.001,
   scaleMax: 100,
   quaternionNormTolerance: 1e-9,
 });
-export interface ViewerDisplayPose { ref: ViewerRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3 }
+export interface ViewerDisplayPose { ref: ViewerRef; translation: Vec3; rotationXYZW: Quat; scale: Vec3 }
 export interface ViewerMotionState {
   basis: 'part-xyz-matches-rhyup';
   frame: ViewerPoseFrame;
@@ -135,7 +135,7 @@ export interface ViewerMotionState {
 }
 export interface ViewerGeometryMotionBinding { contextId: string; targetId: string; ref: ViewerGeometryRef }
 export interface ViewerGeometryDisplayPose {
-  ref: ViewerGeometryRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3
+  ref: ViewerGeometryRef; translation: Vec3; rotationXYZW: Quat; scale: Vec3
 }
 export interface ViewerGeometryMotionState {
   basis: 'part-xyz-matches-rhyup';
@@ -275,7 +275,7 @@ export interface ViewerState {
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
 const SELECTED_COLOR: Vec3 = [1, 0.94, 0.38];
-const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100 };
+const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: 0.01, far: 100 };
 const ID = /^[A-Za-z_][A-Za-z0-9_-]{0,127}$/;
 const MODEL_ID = /^[A-Za-z_][A-Za-z0-9_.-]{0,127}$/;
 const MOTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -344,7 +344,7 @@ function parseMotionFrame(input: unknown): ViewerPoseFrame {
     const pose = ownRecord(inputPose, keys as string[], 'Motion pose');
     return { targetId: motionId(pose.targetId, 'Motion targetId'),
       ...(Object.hasOwn(pose, 'translation') ? { translation: vector(pose.translation, 'Motion translation',
-        -VIEWER_POSE_LIMITS.translationMm, VIEWER_POSE_LIMITS.translationMm) } : {}),
+        -VIEWER_POSE_LIMITS.translation, VIEWER_POSE_LIMITS.translation) } : {}),
       ...(Object.hasOwn(pose, 'rotation') ? { rotation: quaternion(pose.rotation) } : {}),
       ...(Object.hasOwn(pose, 'scale') ? { scale: vector(pose.scale, 'Motion scale',
         VIEWER_POSE_LIMITS.scaleMin, VIEWER_POSE_LIMITS.scaleMax) } : {}) };
@@ -528,11 +528,11 @@ function rotated(q: Quat, v: Vec3): Vec3 {
   const t = multiply(cross([q[0], q[1], q[2]], v), 2);
   return add(v, add(multiply(t, q[3]), cross([q[0], q[1], q[2]], t)));
 }
-type DisplayTransform = Pick<ViewerDisplayPose, 'translationMm' | 'rotationXYZW' | 'scale'>;
+type DisplayTransform = Pick<ViewerDisplayPose, 'translation' | 'rotationXYZW' | 'scale'>;
 function displayVertex(native: Vec3, pose: DisplayTransform | undefined, mmToSceneUnit: number): Vec3 {
   if (!pose) return multiply(native, mmToSceneUnit);
   const scaled = native.map((value, axis) => value * pose.scale[axis]) as Vec3;
-  return multiply(add(pose.translationMm, rotated(pose.rotationXYZW, scaled)), mmToSceneUnit);
+  return multiply(add(pose.translation, rotated(pose.rotationXYZW, scaled)), mmToSceneUnit);
 }
 function surfacePose(ref: ViewerRef, motion: ViewerMotionState | null,
   geometryMotion: ViewerGeometryMotionState | null): DisplayTransform | undefined {
@@ -571,7 +571,7 @@ function cameraForBounds(low: Vec3, high: Vec3, width: number, height: number): 
   const distance = radius * 1.3 / Math.sin(Math.atan(Math.tan(halfFov) * Math.min(1, width / height)));
   check(distance + radius * 2 < 10000, 'Scene cannot fit within camera clipping bounds');
   return validateMeshCamera({ eye: add(target, multiply(unit([1, 1, 1]), distance)), target, up: [0, 1, 0],
-    fovYDegrees: 45, near: Math.max(0.0001, distance - radius * 2), far: distance + radius * 2 });
+    fovY: 45, near: Math.max(0.0001, distance - radius * 2), far: distance + radius * 2 });
 }
 
 function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale: number, width: number, height: number,
@@ -734,7 +734,7 @@ export class Viewer {
       check(colorIndex >= 0, 'Native appearance Surface is absent from the current palette inventory');
       return { packet: entry.packet,
         color: sameRef(ref, selected) ? SELECTED_COLOR : PALETTE[colorIndex],
-        ...(pose ? { transform: { translationMm: pose.translationMm,
+        ...(pose ? { transform: { translation: pose.translation,
           rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
     });
   }
@@ -784,7 +784,7 @@ export class Viewer {
           color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === ref.modelId
             && geometrySelection.curveId === ref.geometryId
             ? SELECTED_COLOR : PALETTE[colorIndex % PALETTE.length],
-          ...(pose ? { transform: { translationMm: pose.translationMm,
+          ...(pose ? { transform: { translation: pose.translation,
             rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) } as PrimitiveSceneEntryV2;
       }),
     ];
@@ -1028,7 +1028,7 @@ export class Viewer {
       const poses = new Map(frame.poses.map(pose => [pose.targetId, pose]));
       const displayPoses: ViewerGeometryDisplayPose[] = bindings.map(binding => {
         const pose = poses.get(binding.targetId)!;
-        return { ref: binding.ref, translationMm: pose.translation ?? [0, 0, 0],
+        return { ref: binding.ref, translation: pose.translation ?? [0, 0, 0],
           rotationXYZW: pose.rotation ?? [0, 0, 0, 1], scale: pose.scale ?? [1, 1, 1] };
       });
       geometryMotion = { basis: 'part-xyz-matches-rhyup', frame, bindings, displayPoses };
@@ -1506,7 +1506,7 @@ export class Viewer {
     const displayPoses = bindings.map(binding => {
       const pose = poses.get(binding.targetId)!;
       return { ref: binding.ref,
-        translationMm: pose.translation ?? [0, 0, 0] as Vec3,
+        translation: pose.translation ?? [0, 0, 0] as Vec3,
         rotationXYZW: pose.rotation ?? [0, 0, 0, 1] as Quat,
         scale: pose.scale ?? [1, 1, 1] as Vec3 };
     });
@@ -1536,7 +1536,7 @@ export class Viewer {
     const displayPoses: ViewerGeometryDisplayPose[] = bindings.map(binding => {
       const pose = poses.get(binding.targetId)!;
       return { ref: binding.ref,
-        translationMm: pose.translation ?? [0, 0, 0] as Vec3,
+        translation: pose.translation ?? [0, 0, 0] as Vec3,
         rotationXYZW: pose.rotation ?? [0, 0, 0, 1] as Quat,
         scale: pose.scale ?? [1, 1, 1] as Vec3 };
     });
@@ -1690,7 +1690,7 @@ export class Viewer {
     const offset = subtract(displayPositionScene, this.camera.eye);
     const depthScene = dot(offset, forward);
     if (depthScene < this.camera.near || depthScene > this.camera.far) return null;
-    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const tangent = Math.tan(this.camera.fovY * Math.PI / 360);
     const aspect = this.canvas.width / this.canvas.height;
     const x = dot(offset, right) / (depthScene * tangent * aspect);
     const y = dot(offset, up) / (depthScene * tangent);
@@ -1900,7 +1900,7 @@ export class Viewer {
         } else {
           const camera = this.camera;
           const distance = Math.hypot(...subtract(camera.eye, camera.target));
-          const perPixel = 2 * distance * Math.tan(camera.fovYDegrees * Math.PI / 360) / bounds.height;
+          const perPixel = 2 * distance * Math.tan(camera.fovY * Math.PI / 360) / bounds.height;
           check(Number.isFinite(perPixel), 'Pointer pan scale must be finite');
           this.pan(Math.max(-1000, Math.min(1000, -dx * perPixel)),
             Math.max(-1000, Math.min(1000, dy * perPixel)));
@@ -2042,7 +2042,7 @@ export class Viewer {
     check(xCss <= rect.width && yCss <= rect.height, 'Pick point is outside canvas');
     const backward = unit(subtract(this.camera.eye, this.camera.target));
     const right = unit(cross(this.camera.up, backward)), up = cross(backward, right);
-    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const tangent = Math.tan(this.camera.fovY * Math.PI / 360);
     const aspect = this.canvas.width / this.canvas.height;
     const direction = unit(add(multiply(backward, -1), add(
       multiply(right, (2 * xCss / rect.width - 1) * tangent * aspect),
@@ -2123,7 +2123,7 @@ export class Viewer {
     const forward = multiply(backward, -1);
     const right = unit(cross(this.camera.up, backward));
     const up = cross(backward, right);
-    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const tangent = Math.tan(this.camera.fovY * Math.PI / 360);
     const aspect = this.canvas.width / this.canvas.height;
     const depth = (position: Vec3) => dot(subtract(position, this.camera.eye), forward);
     const project = (position: Vec3, z: number): [number, number] => {

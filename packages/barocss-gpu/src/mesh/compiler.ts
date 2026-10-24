@@ -48,7 +48,7 @@ function lowerSceneShadersInternal(scene: AnyScene, scales?: readonly Vec3[]): S
     if (typeof object.radius !== 'number' || !Number.isFinite(object.radius) || object.radius <= 0 || object.radius > 1000 || Math.fround(object.radius) <= 0) throw new Error('Invalid sphere radius');
     let point=`p-${vec(object.translate)}`;
     if(scene.version===1){
-      const rotation=scene.objects[index].rotateDegrees;
+      const rotation=scene.objects[index].rotation;
       if(rotation.some(n=>n!==0))point=`(mat3(${inverseRotation(rotation).map(scalar).join(',')})*(${point}))`;
     }
     const scale = scales?.[index];

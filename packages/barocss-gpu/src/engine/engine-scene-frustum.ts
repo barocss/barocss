@@ -86,7 +86,7 @@ export function prepareEngineSceneFrustum(sceneInput: unknown, requestInput: unk
     const backward = normalize(camera.eye.map((n, i) => n - camera.target[i]) as [number, number, number]);
     const forward = backward.map(n => -n) as [number, number, number];
     const right = normalize(cross(normalize(camera.up), backward)), vertical = cross(backward, right);
-    const tanY = Math.tan(camera.fovYDegrees * Math.PI / 360);
+    const tanY = Math.tan(camera.fovY * Math.PI / 360);
     const tanX = tanY * originalRequest.viewportWidth / originalRequest.viewportHeight;
     check(Number.isFinite(tanY) && tanY > 0 && Number.isFinite(tanX) && tanX > 0,
       CODE.NUMERICAL, 'Original viewport camera tangent is unsafe');

@@ -91,7 +91,7 @@ for (const provider of providers) {
     const record = { provider: provider.label, name: c.name, sourcePath, literalPath, resultPath, digest: hash(signed(result)), files, uses: result.parameters.reduce((sum, p) => sum + p.uses.length, 0) };
     retained.push({ result, digest: record.digest, files }); records.push(record); coldCases.push(record); accepted++;
   }
-  const changed = clone(retained[0].result.scene); for (const o of changed.objects) { o.radius = 1.5; o.scaleXYZ = [.5625, .5, 1]; o.rotateDegrees = [22.5, 0, 22.5]; }
+  const changed = clone(retained[0].result.scene); for (const o of changed.objects) { o.radius = 1.5; o.scaleXYZ = [.5625, .5, 1]; o.rotation = [22.5, 0, 22.5]; }
   changed.objects[0].translate = [-1.5, 0, 0]; changed.objects[1].translate = [1.5, 0, 0]; assert.deepEqual(retained[1].result.scene, changed);
   const old = gpu.compileParameterizedAffineSceneSource(literal), fresh = gpu.compileMultiplicativeAffineSceneSource(literal); assert.deepEqual(fresh.scene, old.scene); assert.deepEqual(fresh.shaders, old.shaders); assert.equal(fresh.parameters.length, 0); accepted++;
   let oldRefusal; try { gpu.compileParameterizedAffineSceneSource(original); } catch (e) { oldRefusal = e; } assert.ok(oldRefusal instanceof gpu.SceneParameterSourceError); assert.equal(oldRefusal.code, 'TYPE');

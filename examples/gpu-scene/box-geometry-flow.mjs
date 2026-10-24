@@ -168,7 +168,7 @@ try {
     const nullResult = gpu.prepareBoxGeometry(nullableRoot); assert.deepEqual(nullResult.source.sizeXYZ, [2, 4, 6]); accepted++;
 
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'two_box_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [9, 8, 16], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [9, 8, 16], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'box_material', type: 'unlit', colorSpace: 'linear', color: [.25, .5, .75] }],
       nodes: [
         { id: 'left_box', type: 'mesh', parentId: null, geometryId: 'box_authored', materialId: 'box_material', translation: [-5, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true },

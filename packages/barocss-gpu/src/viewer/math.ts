@@ -39,9 +39,9 @@ export function lookAt(eye: Vec3, target: Vec3, up: Vec3): Mat4 {
   return m;
 }
 
-/** Perspective with reversed depth and an infinite far plane: view depth −near → 1, −∞ → 0. */
-export function perspectiveReversed(fovYRadians: number, aspect: number, near: number): Mat4 {
-  const f = 1 / Math.tan(fovYRadians / 2), m = new Float64Array(16);
+/** Perspective with reversed depth and an infinite far plane: view depth −near → 1, −∞ → 0. `fovY` in radians. */
+export function perspectiveReversed(fovY: number, aspect: number, near: number): Mat4 {
+  const f = 1 / Math.tan(fovY / 2), m = new Float64Array(16);
   m[0] = f / aspect; m[5] = f; m[11] = -1; m[14] = near;
   return m;
 }

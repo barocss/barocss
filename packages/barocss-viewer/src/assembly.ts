@@ -132,11 +132,11 @@ export function prepareViewerAssembly(input: CadAssemblyResult, instanceIds: unk
     const ref: ViewerGeometryRef = entry.kind === 'surface'
       ? { kind: 'surface', modelId, surfaceId: reference.geometryId }
       : { kind: 'curve', modelId, curveId: reference.geometryId };
-    const translationMm: [number, number, number] =
+    const translation: [number, number, number] =
       [instance.worldMatrix[3], instance.worldMatrix[7], instance.worldMatrix[11]];
-    check(translationMm.every(value => Number.isFinite(value) && Math.abs(value) <= 10000),
+    check(translation.every(value => Number.isFinite(value) && Math.abs(value) <= 10000),
       'authored world translation exceeds GPU10000mm limit');
-    const displayPose: ViewerGeometryDisplayPose = { ref, translationMm,
+    const displayPose: ViewerGeometryDisplayPose = { ref, translation,
       rotationXYZW: rotation(instance.worldMatrix), scale: [1, 1, 1] };
     if (entry.kind === 'surface') {
       check(entry.packet.surfaceId === reference.geometryId, 'Surface packet lost original ID');
@@ -155,7 +155,7 @@ export function prepareViewerAssembly(input: CadAssemblyResult, instanceIds: unk
   }
   const geometryMotion: ViewerGeometryMotionState = { basis: 'part-xyz-matches-rhyup',
     frame: { contextId: 'viewer_assembly', timeSeconds: 0, poses: instances.map(instance => ({
-      targetId: instance.ref.modelId, translation: [...instance.displayPose.translationMm],
+      targetId: instance.ref.modelId, translation: [...instance.displayPose.translation],
       rotation: [...instance.displayPose.rotationXYZW], scale: [1, 1, 1] })) },
     bindings: instances.map(instance => ({ contextId: 'viewer_assembly',
       targetId: instance.ref.modelId, ref: instance.ref })),

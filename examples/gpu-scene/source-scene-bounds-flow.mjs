@@ -103,7 +103,7 @@ for (const [provider, gpu, entryURL] of providers) {
     assert.notStrictEqual(cold.objects, result.objects);
     for (let i = 0; i < result.scene.objects.length; i++) {
       assert.notStrictEqual(cold.scene.objects[i], result.scene.objects[i]);
-      for (const field of ['color', 'translate', 'size', 'rotateDegrees', ...(input.sourceVersion === 2 ? ['scaleXYZ'] : []), ...('start' in result.scene.objects[i] ? ['start', 'end'] : [])])
+      for (const field of ['color', 'translate', 'size', 'rotation', ...(input.sourceVersion === 2 ? ['scaleXYZ'] : []), ...('start' in result.scene.objects[i] ? ['start', 'end'] : [])])
         assert.notStrictEqual(cold.scene.objects[i][field], result.scene.objects[i][field]);
     }
     for (let i = 0; i < result.objects.length; i++) {

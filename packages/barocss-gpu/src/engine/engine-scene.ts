@@ -171,7 +171,7 @@ function unique<T>(items: T[], getId: (item: T) => string, label: string): Map<s
   } return result;
 }
 function localMatrix(source: EngineSceneNodeV0): Matrix4 {
-  const rotate = sceneRotation({ translationMm: source.translation, rotationXYZW: source.rotationXYZW, scale: source.scale });
+  const rotate = sceneRotation({ translation: source.translation, rotationXYZW: source.rotationXYZW, scale: source.scale });
   const x = rotate(source.scale[0], 0, 0), y = rotate(0, source.scale[1], 0), z = rotate(0, 0, source.scale[2]);
   return [...x, 0, ...y, 0, ...z, 0, ...source.translation, 1] as Matrix4;
 }

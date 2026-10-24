@@ -167,7 +167,7 @@ try {
     assert.equal(first.source.radius, 1); accepted++;
     const nullInput = Object.assign(Object.create(null), source(1, 2, 4, 1, 2, 'capsule_null')); verify(gpu.prepareCapsuleGeometry(nullInput), nullInput); accepted++;
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'capsule_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [0, 4, 9], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [0, 4, 9], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'capsule_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [[0, 0, 0], [5, 1, -2]].map((translation, i) => ({ id: 'capsule_' + i, type: 'mesh', parentId: null, geometryId: first.source.id,
         materialId: 'capsule_material', translation, rotationXYZW: [0, 0, 0, 1], scale: i ? [1, .5, .5] : [1, 1, 1], visible: true })) };

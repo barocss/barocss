@@ -31,7 +31,7 @@ const options={native:{sourceVersion:0,countU:3,countV:3,
 // Own the admission options before the external proof hook can expose its separate copy.
 const choiceOptions=clone(options);
 const mmToSceneUnit=.05;
-const camera={eye:[.375,.25,2],target:[.375,.25,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10};
+const camera={eye:[.375,.25,2],target:[.375,.25,0],up:[0,1,0],fovY:45,near:.01,far:10};
 const sameRef=(a,b)=>a?.kind===b?.kind && a?.modelId===b?.modelId
   && (a?.kind==='surface'?a.surfaceId===b.surfaceId:a?.curveId===b?.curveId);
 let viewer=null,assemblies=[],clothWorld=null,nativeSet=null,result=null,running=false,disposed=false;
@@ -221,7 +221,7 @@ function project(worldMM) {
   const unit=a=>{const n=Math.hypot(...a);return a.map(v=>v/n);},dot=(a,b)=>a.reduce((n,v,i)=>n+v*b[i],0);
   const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
   const forward=unit(c.target.map((n,i)=>n-c.eye[i])),right=unit(cross(forward,c.up)),up=cross(right,forward);
-  const delta=worldMM.map((n,i)=>n*mmToSceneUnit-c.eye[i]),z=dot(delta,forward),t=Math.tan(c.fovYDegrees*Math.PI/360);
+  const delta=worldMM.map((n,i)=>n*mmToSceneUnit-c.eye[i]),z=dot(delta,forward),t=Math.tan(c.fovY*Math.PI/360);
   return {xCss:(1+dot(delta,right)/(z*t*canvas.width/canvas.height))*rect.width/2,
     yCss:(1-dot(delta,up)/(z*t))*rect.height/2};
 }
@@ -287,7 +287,7 @@ async function startClothScene() {
   clothWorld??=createClothWorld({format:'barocss-cloth-scene',version:1,revision:'assemblyClothPrior',
     basis:'right-handed-xyz-metres',fixedStepSeconds:1/120,profile:'pinned-sheet-sphere-v1'});
   const state=clothWorld.getState();viewer.loadModelSet(nativeSet);
-  viewer.setView({eye:[0,100,0],target:[0,15,0],up:[0,0,-1],fovYDegrees:45,near:.01,far:500});
+  viewer.setView({eye:[0,100,0],target:[0,15,0],up:[0,0,-1],fovY:45,near:.01,far:500});
   const frame={version:0,layerId:'prior_native_cloth',contextId:'prior_world',sceneRevision:state.sceneRevision,
     stepIndex:state.stepIndex,vertexCount:state.vertexCount,triangleCount:state.triangleCount,
     positionsM:state.positionsM,triangles:state.triangles};viewer.setClothFrame(frame);return frame;

@@ -57,12 +57,12 @@ const fixturePath = resolve(repo, 'examples/gpu-scene/affine-scene-authoring.css
 const source = await readFile(fixturePath, 'utf8');
 assert(source.includes('Original Source2')); assert.equal((source.match(/(?:translate|start)\s*:[^;]*-0/g) ?? []).length, 3);
 const expected = [
-  { id: 'orb', type: 'sphere', color: [.2, .4, .6], radius: .75, size: [2, 2, 2], translate: [-2, 0, 0], rotateDegrees: [23, -37, 41], scaleXYZ: [2, .5, 1.5] },
-  { id: 'brick', type: 'box', color: [.8, .4, .2], radius: 1, size: [1.5, 2, .5], translate: [0, 0, 0], rotateDegrees: [0, 0, 0], scaleXYZ: [1.25, .75, .5] },
-  { id: 'column', type: 'cylinder', color: [.4, .6, .2], radius: .4, size: [2, 2, 2], height: 1.6, translate: [2, 0, 0], rotateDegrees: [0, 0, 0], scaleXYZ: [.8, 1.2, 1.6] },
-  { id: 'link', type: 'capsule', color: [.6, .2, .8], radius: .2, size: [2, 2, 2], start: [0, -.6, 0], end: [.3, .6, .2], translate: [-2, 0, -2], rotateDegrees: [0, 0, 0], scaleXYZ: [1.5, .5, 2] },
-  { id: 'rounded', type: 'rounded-box', color: [.2, .8, .8], radius: .15, size: [1.2, 1.6, 2], translate: [0, 0, -2], rotateDegrees: [0, 0, 0], scaleXYZ: [.75, 1.25, 1.5] },
-  { id: 'ring', type: 'torus', color: [.8, .2, .6], radius: 1, size: [2, 2, 2], majorRadius: .7, minorRadius: .15, translate: [2, 0, -2], rotateDegrees: [0, 0, 0], scaleXYZ: [.01, 100, 1] },
+  { id: 'orb', type: 'sphere', color: [.2, .4, .6], radius: .75, size: [2, 2, 2], translate: [-2, 0, 0], rotation: [23, -37, 41], scaleXYZ: [2, .5, 1.5] },
+  { id: 'brick', type: 'box', color: [.8, .4, .2], radius: 1, size: [1.5, 2, .5], translate: [0, 0, 0], rotation: [0, 0, 0], scaleXYZ: [1.25, .75, .5] },
+  { id: 'column', type: 'cylinder', color: [.4, .6, .2], radius: .4, size: [2, 2, 2], height: 1.6, translate: [2, 0, 0], rotation: [0, 0, 0], scaleXYZ: [.8, 1.2, 1.6] },
+  { id: 'link', type: 'capsule', color: [.6, .2, .8], radius: .2, size: [2, 2, 2], start: [0, -.6, 0], end: [.3, .6, .2], translate: [-2, 0, -2], rotation: [0, 0, 0], scaleXYZ: [1.5, .5, 2] },
+  { id: 'rounded', type: 'rounded-box', color: [.2, .8, .8], radius: .15, size: [1.2, 1.6, 2], translate: [0, 0, -2], rotation: [0, 0, 0], scaleXYZ: [.75, 1.25, 1.5] },
+  { id: 'ring', type: 'torus', color: [.8, .2, .6], radius: 1, size: [2, 2, 2], majorRadius: .7, minorRadius: .15, translate: [2, 0, -2], rotation: [0, 0, 0], scaleXYZ: [.01, 100, 1] },
 ];
 const originalFiles = [], results = []; let accepted = 0, refused = 0;
 for (const [provider, gpu] of providers) {
@@ -92,7 +92,7 @@ for (const [provider, gpu] of providers) {
     assert(statement.endsWith('material=' + glVector(object.color) + ';}'));
     if (object.type === 'sphere') {
       const matrixText = /mat3\(([^)]+)\)/.exec(statement)[1];
-      const expectedMatrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].flatMap(v => inverseRotate(v, object.rotateDegrees));
+      const expectedMatrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].flatMap(v => inverseRotate(v, object.rotation));
       vector(matrixText.split(',').map(Number), expectedMatrix.map(Math.fround), 1e-7);
       assert(statement.includes('length(')); assert(statement.includes('-' + scalar(object.radius) + ')*'));
       assert(statement.indexOf('mat3(') < statement.indexOf('/' + glVector(object.scaleXYZ)));
@@ -110,16 +110,16 @@ for (const [provider, gpu] of providers) {
   const orb = expected[0], axisArithmetic = [];
   for (let axis = 0; axis < 3; axis++) for (const sign of [-1, 1]) {
     const local = [0, 0, 0]; local[axis] = sign * orb.radius;
-    const rotated = rotate(multiply(local, orb.scaleXYZ), orb.rotateDegrees), world = add(rotated, orb.translate);
-    const inverse = inverseRotate(world.map((n, i) => n - orb.translate[i]), orb.rotateDegrees)
+    const rotated = rotate(multiply(local, orb.scaleXYZ), orb.rotation), world = add(rotated, orb.translate);
+    const inverse = inverseRotate(world.map((n, i) => n - orb.translate[i]), orb.rotation)
       .map((n, i) => n / orb.scaleXYZ[i]);
     near(norm(inverse) - orb.radius, 0); near(norm(rotated), orb.radius * orb.scaleXYZ[axis]);
     axisArithmetic.push({ axis, sign, local, world, idealLocalZeroField: norm(inverse) - orb.radius });
   }
   const localNormal = [Math.SQRT1_2, Math.SQRT1_2, 0];
-  const unnormalized = rotate(localNormal.map((n, i) => n / orb.scaleXYZ[i]), orb.rotateDegrees);
+  const unnormalized = rotate(localNormal.map((n, i) => n / orb.scaleXYZ[i]), orb.rotation);
   const idealNormal = unnormalized.map(n => n / norm(unnormalized)); near(norm(idealNormal), 1);
-  const tangent = rotate(multiply([-Math.SQRT1_2, Math.SQRT1_2, 0], orb.scaleXYZ), orb.rotateDegrees);
+  const tangent = rotate(multiply([-Math.SQRT1_2, Math.SQRT1_2, 0], orb.scaleXYZ), orb.rotation);
   near(idealNormal.reduce((sum, n, i) => sum + n * tangent[i], 0), 0);
   const localOutside = [2 * orb.radius, 0, 0];
   const idealConservativeField = (norm(localOutside) - orb.radius) * Math.min(...orb.scaleXYZ);
@@ -137,7 +137,7 @@ for (const [provider, gpu] of providers) {
   assert.notStrictEqual(cold.shaders, current.shaders);
   for (let i = 0; i < expected.length; i++) {
     assert.notStrictEqual(cold.scene.objects[i], current.scene.objects[i]);
-    for (const field of ['scaleXYZ', 'translate', 'rotateDegrees', 'color', 'size', ...(expected[i].type === 'capsule' ? ['start', 'end'] : [])])
+    for (const field of ['scaleXYZ', 'translate', 'rotation', 'color', 'size', ...(expected[i].type === 'capsule' ? ['start', 'end'] : [])])
       assert.notStrictEqual(cold.scene.objects[i][field], current.scene.objects[i][field]);
   }
   frozen(cold); assert.deepEqual(JSON.parse(await readFile(resultFile, 'utf8')), current);

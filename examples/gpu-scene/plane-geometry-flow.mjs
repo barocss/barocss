@@ -151,7 +151,7 @@ try {
     assert.deepEqual(dimensionsMaximum.prepared.bounds, { min: [-1000, -1000, 0], max: [1000, 1000, 0] }); accepted++;
 
     const sceneInput = { format: 'barocss-gpu-engine-scene', version: 0, id: 'plane_instances', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
-      background: [.02, .04, .06], camera: { eye: [8, 6, 12], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      background: [.02, .04, .06], camera: { eye: [8, 6, 12], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       geometries: [first.prepared.geometry], materials: [{ id: 'plane_material', type: 'unlit', colorSpace: 'linear', color: [.2, .4, .6] }],
       nodes: [
         { id: 'front_plane', type: 'mesh', parentId: null, geometryId: 'plane_authored', materialId: 'plane_material', translation: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1], visible: true },

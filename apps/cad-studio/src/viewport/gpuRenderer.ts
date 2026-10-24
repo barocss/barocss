@@ -716,7 +716,7 @@ export class GpuRenderer implements ViewRenderer {
     }
     for (const b of this.bodies) { const r = T.recordOf(b); if (r) T.subtractFromScene(r); }
     for (const it of this.instances) for (const m of it.surfaces) { const r = T.recordOf(m); if (r) T.subtractFromScene(r); }
-    T.end(this.viewer.stats.cpuMs);
+    T.end(this.viewer.stats.cpuTime);
   }
 
   /** Curved-face screen silhouettes are display lines, with no native pick identity. */

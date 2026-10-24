@@ -20,7 +20,7 @@ export interface FrameCost {
   /** The renderer's count of frames tracked, at this frame. */
   frame: number;
   /** The frame's CPU time to record and submit it (ms). */
-  cpuMs: number;
+  cpuTime: number;
   bodies: BodyCost[];
   /**
    * What no body drew: the grid, ground, background, overlays and labels on WebGPU; on WebGL2 the draws its render
@@ -54,7 +54,7 @@ export class FrameCostTally {
   private frame = 0;
   private mode = 0;
   private records = new WeakMap<object, CostRecord>();
-  private last: ({ frame: number; cpuMs: number; scene: CostCounts & { frame: number } } | undefined)[] = [];
+  private last: ({ frame: number; cpuTime: number; scene: CostCounts & { frame: number } } | undefined)[] = [];
 
   /** The owner's record, or null when it has none yet (then `recordNew`, its key made once). */
   recordOf(owner: object): CostRecord | null { return this.records.get(owner) ?? null; }
@@ -62,7 +62,7 @@ export class FrameCostTally {
 
   begin(mode: DisplayMode): void {
     this.frame++; this.mode = Math.max(0, MODES.indexOf(mode));
-    const l = this.last[this.mode] ??= { frame: -1, cpuMs: 0, scene: newCounts() };
+    const l = this.last[this.mode] ??= { frame: -1, cpuTime: 0, scene: newCounts() };
     l.frame = this.frame; zero(l.scene);
   }
   private counts(r: CostRecord): CostCounts {
@@ -89,7 +89,7 @@ export class FrameCostTally {
     s.draws -= c.draws; s.triangles -= c.triangles; s.lines -= c.lines; s.points -= c.points;
     for (let i = 0; i < FRAME_PASSES.length; i++) { const p = FRAME_PASSES[i]; s.passes[p] -= c.passes[p]; }
   }
-  end(cpuMs: number): void { this.last[this.mode]!.cpuMs = cpuMs; }
+  end(cpuTime: number): void { this.last[this.mode]!.cpuTime = cpuTime; }
 
   /** The last frame tracked in each mode, of the records still shown (`shown`: the renderer's current ones). */
   report(renderer: FrameCost['renderer'], shown: readonly (CostRecord | null)[]): Partial<Record<DisplayMode, FrameCost>> {
@@ -100,7 +100,7 @@ export class FrameCostTally {
       for (const r of shown) { const c = r?.modes[m]; if (r && c && c.frame === l.frame) bodies.push({ key: r.key, share: 0, ...copyCounts(c) }); }
       const total = bodies.reduce((n, b) => n + primitives(b), primitives(l.scene));
       for (const b of bodies) b.share = total ? primitives(b) / total : 0;
-      out[MODES[m]] = { renderer, mode: MODES[m], frame: l.frame, cpuMs: l.cpuMs, bodies, scene: copyCounts(l.scene) };
+      out[MODES[m]] = { renderer, mode: MODES[m], frame: l.frame, cpuTime: l.cpuTime, bodies, scene: copyCounts(l.scene) };
     }
     return out;
   }

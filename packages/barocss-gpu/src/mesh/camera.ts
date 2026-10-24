@@ -4,14 +4,14 @@ export interface MeshCamera {
   eye: Vec3;
   target: Vec3;
   up: Vec3;
-  fovYDegrees: number;
+  fovY: number;
   near: number;
   far: number;
 }
 
 type Triple = Vec3;
 const DEFAULT_CAMERA: MeshCamera = {
-  eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100,
+  eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovY: 45, near: 0.01, far: 100,
 };
 function requireValue(condition: unknown, message: string): asserts condition {
   if (!condition) throw new RangeError(message);
@@ -51,7 +51,7 @@ function matrices(camera: MeshCamera, aspect: number): { view: Float32Array; pro
     -dot(right, camera.eye), -dot(vertical, camera.eye), -dot(backward, camera.eye), 1,
   ]);
   requireValue(Math.fround(camera.near) < Math.fround(camera.far), 'Camera Float32 clipping planes collapse');
-  const focal = 1 / Math.tan(camera.fovYDegrees * Math.PI / 360), range = camera.far - camera.near;
+  const focal = 1 / Math.tan(camera.fovY * Math.PI / 360), range = camera.far - camera.near;
   const projection = Float32Array.from([
     focal / aspect, 0, 0, 0, 0, focal, 0, 0,
     0, 0, -(camera.far + camera.near) / range, -1,
@@ -83,7 +83,7 @@ function matrices(camera: MeshCamera, aspect: number): { view: Float32Array; pro
 export function validateMeshCamera(input: unknown): MeshCamera {
   requireValue(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
     'Camera must be a plain JSON object');
-  const keys = ['eye', 'target', 'up', 'fovYDegrees', 'near', 'far'];
+  const keys = ['eye', 'target', 'up', 'fovY', 'near', 'far'];
   const actual = Reflect.ownKeys(input);
   requireValue(actual.length === keys.length && actual.every((key) => typeof key === 'string' && keys.includes(key)),
     'Camera has missing or unsupported fields');
@@ -97,12 +97,12 @@ export function validateMeshCamera(input: unknown): MeshCamera {
   const up = vector(data.up, 'Camera.up', Number.MAX_VALUE);
   requireValue(Math.hypot(...eye.map((n, i) => n - target[i])) >= 1e-4, 'Camera eye-target separation must be at least 1e-4');
   requireValue(Math.hypot(...up) >= 1e-6, 'Camera up length must be at least 1e-6');
-  requireValue(typeof data.fovYDegrees === 'number' && Number.isFinite(data.fovYDegrees) && data.fovYDegrees >= 10 && data.fovYDegrees <= 100,
+  requireValue(typeof data.fovY === 'number' && Number.isFinite(data.fovY) && data.fovY >= 10 && data.fovY <= 100,
     'Camera FOV must be in 10..100 degrees');
   requireValue(typeof data.near === 'number' && Number.isFinite(data.near) && data.near >= 1e-4
     && typeof data.far === 'number' && Number.isFinite(data.far) && data.near < data.far && data.far <= 10000,
   'Camera clipping requires 1e-4 <= near < far <= 10000');
-  const result: MeshCamera = { eye, target, up, fovYDegrees: data.fovYDegrees, near: data.near, far: data.far };
+  const result: MeshCamera = { eye, target, up, fovY: data.fovY, near: data.near, far: data.far };
   matrices(result, 1);
   for (const owned of [eye, target, up, result]) Object.freeze(owned);
   return result;

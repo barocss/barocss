@@ -30,7 +30,7 @@ export function createSeedInput(): ViewerNativeSurfaceUV01Input {
     owner: { id: 'two-surface-uv01-study', revision: -0 },
     source: { kind: 'document', result, options, bindings: entries.map(entry => entry.binding) },
     display: { visibleGeometry: refs,
-      camera: { eye: [0, 2, 11], target: [0, 1, 0], up: [0, 1, 0], fovYDegrees: 45, near: .1, far: 100 },
+      camera: { eye: [0, 2, 11], target: [0, 1, 0], up: [0, 1, 0], fovY: 45, near: .1, far: 100 },
       motion: { frame: { contextId: 'example-pose', timeSeconds: -0, poses: [
         { targetId: 'left', translation: [-3, -1, 0], rotation: [0, 0, 0, 1], scale: [1, 1, 1] },
         { targetId: 'right', translation: [.5, -.5, -1], rotation: [0, 0, .25881904510252074, .9659258262890683], scale: [1.1, .9, 1] },

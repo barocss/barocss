@@ -81,7 +81,7 @@ function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshS
    point=rotate!(x,y,z);
   }
   for(let axis=0;axis<3;axis++){
-   const millimeters=point[axis]+(pose?.translationMm[axis]??0),scaled=millimeters*options.mmToSceneUnit;
+   const millimeters=point[axis]+(pose?.translation[axis]??0),scaled=millimeters*options.mmToSceneUnit;
    check(Number.isFinite(scaled)&&(millimeters===0||scaled!==0),'Native Curve coordinate overflows or underflows during scene scaling');
    const n=scaled+options.translate[axis];check(Number.isFinite(n)&&Math.abs(n)<=1000,'Curve display positions exceed ±1000 scene units');
    const f32=Math.fround(n);check(Number.isFinite(f32)&&(n===0||f32!==0),'Native Curve coordinate underflows in Float32 display');

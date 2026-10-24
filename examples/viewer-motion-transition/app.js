@@ -32,7 +32,7 @@ function describe(message = '') {
     `Viewer: ${state.status} · native model: ${state.native?.model.name ?? 'none'}`,
     `Surfaces: ${state.surfaces.map(ref => ref.surfaceId).join(', ')}`,
     `Caller time: ${timeSeconds} s · ${playing ? 'playing' : 'paused'}`,
-    `Display translations (mm): ${state.motion?.displayPoses.map(p => p.translationMm.join(',')).join(' | ') ?? 'identity'}`,
+    `Display translations (mm): ${state.motion?.displayPoses.map(p => p.translation.join(',')).join(' | ') ?? 'identity'}`,
     `Native Surface distance (mm): ${state.measurement?.distanceMM.toFixed(6) ?? 'none'}`,
     `Original source retained: ${state.native?.source === source}`,
     message,

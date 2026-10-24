@@ -217,7 +217,7 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       await viewer.frame();
       return { ms, all, close: { ...viewer.stats } };
     });
-    t.diagnostic(`4000 meshes: ${many.ms.toFixed(1)} ms/frame, cpu ${many.all.cpuMs.toFixed(1)} ms, close-up draws ${many.close.drawCalls}, culled ${many.close.culled}`);
+    t.diagnostic(`4000 meshes: ${many.ms.toFixed(1)} ms/frame, cpu ${many.all.cpuTime.toFixed(1)} ms, close-up draws ${many.close.drawCalls}, culled ${many.close.culled}`);
     assert.equal(many.all.drawCalls, 4000);
     assert.ok(many.close.culled > 3000 && many.close.drawCalls + many.close.culled === 4000);
     // (A software rasteriser draws thousands of meshes slowly; the bound is for a hardware adapter.)

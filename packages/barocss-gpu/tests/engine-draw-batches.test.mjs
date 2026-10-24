@@ -9,7 +9,7 @@ const mesh = (id, materialId='red', visible=true) => ({id,type:'mesh',parentId:n
  rotationXYZW:[0,0,0,1],scale:[1,1,1],visible,geometryId:'tri',materialId});
 const scene = () => ({format:'barocss-gpu-engine-scene',version:0,id:'batched',coordinateSystem:'right-handed-y-up',
  positionUnit:'scene',background:[0,0,0],
- camera:{eye:[0,0,5],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.1,far:100},
+ camera:{eye:[0,0,5],target:[0,0,0],up:[0,1,0],fovY:45,near:.1,far:100},
  geometries:[triangle()],materials:[{id:'red',type:'unlit',colorSpace:'linear',color:[1,0,0]},
  {id:'blue',type:'unlit',colorSpace:'linear',color:[0,0,1]}],
  nodes:[mesh('a'),mesh('b'),mesh('c','blue'),mesh('d'),mesh('hidden','red',false)]});

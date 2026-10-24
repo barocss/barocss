@@ -13,7 +13,7 @@ type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
 
 /** A display pose in authored millimetres: scale, then rotation, then translation. */
-export interface DrawnPose { translationMm: ReadVec3; rotationXYZW: Quat; scale: ReadVec3 }
+export interface DrawnPose { translation: ReadVec3; rotationXYZW: Quat; scale: ReadVec3 }
 export interface DrawnTriangles {
   kind: 'triangles';
   /** Authored millimetres (with `mm`) or scene units. */
@@ -68,7 +68,7 @@ export const DEFAULT_LIGHTING: MeshLighting = { ambientStrength: 0.35, direction
 
 /** Column-major T(offset) · S(mm) · T(t) · R(q) · S(s). */
 export function poseMatrix(pose: DrawnPose | null | undefined, mmToScene: number, offset: ReadVec3 = [0, 0, 0]): number[] {
-  const [x, y, z, w] = pose?.rotationXYZW ?? [0, 0, 0, 1], s = pose?.scale ?? [1, 1, 1], t = pose?.translationMm ?? [0, 0, 0];
+  const [x, y, z, w] = pose?.rotationXYZW ?? [0, 0, 0, 1], s = pose?.scale ?? [1, 1, 1], t = pose?.translation ?? [0, 0, 0];
   const r = [
     1 - 2 * (y * y + z * z), 2 * (x * y + z * w), 2 * (x * z - y * w),
     2 * (x * y - z * w), 1 - 2 * (x * x + z * z), 2 * (y * z + x * w),
@@ -112,13 +112,13 @@ export class Presenter {
     for (const m of this.meshes) m.remove();
     this.meshes = [];
     const cam = drawing.camera;
-    Object.assign(core.camera, { projection: 'perspective', position: [...cam.eye], target: [...cam.target], up: [...cam.up], fovY: cam.fovYDegrees });
+    Object.assign(core.camera, { projection: 'perspective', position: [...cam.eye], target: [...cam.target], up: [...cam.up], fovY: cam.fovY });
     const { lights, environment } = drawing.lights ?? lightsOf(drawing.lighting);
     core.lights = lights; core.environment = environment;
     core.setBackground(drawing.background);
     // A pixel at the target, for dots of a screen size.
     const distance = Math.hypot(cam.eye[0] - cam.target[0], cam.eye[1] - cam.target[1], cam.eye[2] - cam.target[2]);
-    const pixel = (2 * distance * Math.tan((cam.fovYDegrees * Math.PI) / 360)) / Math.max(1, core.canvas.height);
+    const pixel = (2 * distance * Math.tan((cam.fovY * Math.PI) / 360)) / Math.max(1, core.canvas.height);
     for (const item of drawing.items) {
       if (item.kind === 'points') {
         const count = item.positions.length / 3;

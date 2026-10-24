@@ -13,7 +13,7 @@ const pkg=resolve(repo,'packages/barocss-gpu'),manifest=JSON.parse(await readFil
 const hash=value=>createHash('sha256').update(value).digest('hex');async function receipt(path){const bytes=await readFile(path);return{path,bytes:bytes.length,sha256:hash(bytes)};}
 function json(v){if(typeof v==='number'){assert(Number.isFinite(v));return Object.is(v,-0)?'-0':JSON.stringify(v);}if(v===null||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return '['+v.map(json).join(',')+']';return '{'+Object.entries(v).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([k,n])=>JSON.stringify(k)+':'+json(n)).join(',')+'}';}
 const clone=v=>JSON.parse(json(v)),near=(a,b)=>assert(Math.abs(a-b)<=1e-10,`actual ${a}; expected ${b}`),vector=(a,b)=>{assert.equal(a.length,b.length);a.forEach((n,i)=>near(n,b[i]));};
-const camera=()=>({eye:[-0,0,6],target:[-0,0,0],up:[0,1,0],fovYDegrees:90,near:1,far:10});
+const camera=()=>({eye:[-0,0,6],target:[-0,0,0],up:[0,1,0],fovY:90,near:1,far:10});
 const request=(viewportWidth=100,viewportHeight=100)=>({format:'barocss-gpu-engine-scene-frustum-request',version:0,viewportWidth,viewportHeight});
 const group=(id,parentId=null,translation=[0,0,0])=>({id,type:'group',parentId,translation,rotationXYZW:[0,0,0,1],scale:[1,1,1],visible:true});
 const mesh=(id,translation=[0,0,0],geometryId='flat',parentId=null)=>({...group(id,parentId,translation),type:'mesh',geometryId,materialId:'white'});
