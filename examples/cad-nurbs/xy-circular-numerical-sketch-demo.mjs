@@ -39,8 +39,8 @@ if (mode === '--controls') {
   d.circles.push(circle('second', 'C', 4.9));
   d.constraints.push({ id: 'second_tangent', kind: 'line-circle-tangent', segmentId: 'AB', circleId: 'second', side: 'left' },
     { id: 'horizontal_probe', kind: 'horizontal', segmentId: 'AB' }, { id: 'vertical_probe', kind: 'vertical', segmentId: 'AD' },
-    { id: 'coincident_probe', kind: 'coincident', pointA: 'A', pointB: 'C' }, { id: 'length_probe', kind: 'length', segmentId: 'AB', lengthMM: 50 },
-    { id: 'angle_probe', kind: 'signed-angle', segmentA: 'AB', segmentB: 'AD', angleRad: Math.PI / 2 });
+    { id: 'coincident_probe', kind: 'coincident', pointA: 'A', pointB: 'C' }, { id: 'length_probe', kind: 'length', segmentId: 'AB', length: 50 },
+    { id: 'angle_probe', kind: 'signed-angle', segmentA: 'AB', segmentB: 'AD', angle: Math.PI / 2 });
   const x = [...d.points.flatMap(p => p.position), ...d.circles.map(c => c.radius.valueMM)], e = evaluate(d, x), h = 1e-5;
   for (let j = 0; j < x.length; j++) {
     const plus = [...x], minus = [...x]; plus[j] += h; minus[j] -= h;
