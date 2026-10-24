@@ -267,6 +267,53 @@ the body chooser, the sketch node and the evaluation at each verb.
   3. **An edit that takes the edges away** (the rectangle made a circle): a typed refusal, `[SELECTION] … no edge named
      …`, from `part(name, doc)`, naming the feature in the kernel. Never another edge.
 
+## R7.5: the assembly facade, as built
+
+`@barocss/cad-model/api`'s `assembly(name, base?)` is an immutable assembly over the StudioDoc:
+- **The base part** is fixed at the origin. It's the given studio part's document, or empty.
+- **Placed parts** are instances, each with its own document. Mates relate their faces.
+- **The verbs carry the v2 `assembly` actions' names** (§12). Each writes what the action's tool writes, and the
+  assembly is solved again after it:
+  - `addPart(name, part, { at?, grounded? })` is `add_part`. The part's document goes in as it is; the tool's is empty
+    or a copy, and the agent then builds it with part-scoped tools.
+  - `place(name, { at?, grounded? })` is `place_part`.
+  - `addMate(kind, a, b, { distanceMM?, angleDeg?, flip? })` is `add_mate`. Each end is `{ part, face }`:
+    - the part is `'base'` or a placed part by the name it was added with;
+    - the face is a selector picking one face, or a face name.
+
+    A fixed second part and a free first one swap, as in the studio. The solver's refusals pass through.
+  - `inputs({ name: input | null })` and `variants({ name: values | null }, active?)` are O11's `set_inputs` and
+    `set_variants`. They take the core's own input shape, with bindings by part and mate id (`parts()` lists the ids;
+    mates are `m1` … in order).
+  - `frames({ name: { link, at?, kind? } | null })` is O12's `set_frames`. The link is a part by name. `at` is a
+    Location in that part's own coordinates.
+- **Results are plain data:**
+  - `parts()`;
+  - `placements()`: each placed part's id, name, `positionMM`, `rotationDeg` and grounding;
+  - `problems()`: the unmet mates;
+  - `variant(values)`: an assembly over `variantOf`'s document, the master unchanged;
+  - `framePoses()`: each frame's world pose from the joint tree;
+  - `meshes()`: `base/<body>`, `<part>/<body>`, each part where it stands;
+  - `part(name)`: a studio part in its own coordinates.
+- **One adapter, src/api/assemblyCore.ts.** The tools are async (they take an evaluator), but none of their writes
+  needs one. So the adapter does the same writes in sync, over the core's sync functions: `solveAssembly`, `tablesFor`,
+  `mateRefusal`, `runVariabilityTool`, `variantOf`, `jointTreeOf`, `placedDoc`.
+- **The oracle** (test/api-assembly.test.ts, 4/4):
+  - A plate with a bore and a pin, mated concentric and flush, with an input driving the flush distance, a variant and
+    a tool frame. Its `.doc` equals, byte for byte, what the agent's tools write for the same calls: `add_part`, the
+    pin's own `run_command` with `part: p1`, two `add_mate`, `set_inputs`, `set_variants` and `set_frames`, through
+    `dispatchTool`. That's the ungated dispatcher, because an agent proposes assembly changes (D41) and an accepted
+    proposal replays this.
+  - The placements equal `solveDoc`'s; the pin stands at (20, 20, 0). The variant equals `variantOf`'s, with the pin
+    raised 5 mm. The frame poses equal `treeOfDoc`'s, the tip at (20, 20, 30). The meshes equal each placed document's
+    evaluation.
+  - Also tested: immutability, `part()` and `place()`, and typed refusals: the facade's own (`NAME_TAKEN`,
+    `PART_UNKNOWN`, `SELECTION_ONE`, `VALUE`), and the core's (`FRAME_LINK_STALE`, `INPUT_DEFAULT`, the solver's
+    refusal of a concentric mate between flat faces).
+- **Not in R7.5:** editing a placed part in place (the agent's part-scoped path also resolves shop rows and refreshes
+  followed frames); delete and edit of parts and mates; library parts and snaps; joints and kinematics; STEP and BOM of
+  an assembly.
+
 ## Object types
 
 | Type | What it is | Built on |
@@ -281,7 +328,8 @@ patterns, `.union()`, `.subtract()` and `.intersect()`, since TS has no operator
 `part.body(name)`; `Sketch`, the replicad-style chain on a `Plane`; `Plane` and `Location`.
 
 These come later, each with the same oracle:
-- **`Assembly` (R7.5):** `assembly().place(part, location).mate(…)`. Variants come through O11's `variability`.
+- **More of the assembly:** editing a placed part in place, deletes and edits, library parts, joints (R7.5 built the
+  rest; see its section).
 - **More part features:** split, mirror, parameters.
 - **Rows:** reading a person's rows file. Under rows rule (b) the facade never writes rows.
 
@@ -384,6 +432,13 @@ These come later, each with the same oracle:
    `sortBy`, `facing`) reads the same in both. Making cad's `brepSelection` merge them, as the display does, is open in
    this lane; it would change cad's R7.4a counts (the top face's edges 6 → 5).
 
+7. **The assembly tools' writes aren't core functions** (R7.5, outer lane). add_part, place_part, add_mate and
+   set_frames write their changes inline in async tool handlers (chat/assembly.ts, chat/robot.ts), though none of the
+   writes awaits anything. The facade's adapter (src/api/assemblyCore.ts) mirrors them in sync, held to them byte for
+   byte by its test.
+   - Proposed for R7.3c: `addPart(doc, options)`, `placePart`, `addMate` and `setFrames` as `verb(doc, options) → doc`
+     core functions (§3), with the tools and the adapter both calling them.
+
 ## The kernel's old object API (`createCadModel`) and what replaces it
 
 `packages/barocss-cad/src/modeling.ts` has `createCadModel()` with `CadModel`, `CadShape` and `CadSketch`. It's a
@@ -479,7 +534,7 @@ retires modeling.ts.
 
 ## Hand-over (2026-10-24, after R7.4b)
 
-R7.4b is committed and its checks pass. The next work is R7.5 (the assembly facade), then R7.5b (gpu's growth).
+R7.4b and R7.5 are committed and their checks pass. The next work is R7.5b (gpu's growth), then R7.6 with the docs lane.
 
 - **A new part verb:** add a `FeatureSpec` case and its option builder in cad/src/api/spec.ts, the verb on `Part` in
   cad/src/api/part.ts, and the kernel features in cad/src/api/kernel.ts.
@@ -495,7 +550,7 @@ R7.4b is committed and its checks pass. The next work is R7.5 (the assembly faca
 - **Tests:**
   - cad: `node --test test/api-*.test.mjs` after a build (`node scripts/tool.mjs build:fast`, or `pnpm build:library`,
     which cad-model's tsc needs for the `.d.ts`);
-  - cad-model: `node scripts/test.mjs api-`;
+  - cad-model: `node scripts/test.mjs api-` (api-part, api-verbs, api-assembly);
   - gpu: `node --test tests/api-scene.test.mjs`, and, after both packages' build:library,
     `CHROME=… PW_DIR=… node --test tests/api-show-browser.test.mjs`.
 - **Traps:**
