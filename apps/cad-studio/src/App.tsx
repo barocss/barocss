@@ -38,6 +38,7 @@ import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { poseKinematics, useJoints } from './state/useJoints';
+import { pathLimits } from './state/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
 import { JointsPanelLive } from './ui/JointsPanelLive';
@@ -98,7 +99,7 @@ import { linkMasses } from '@barocss/cad-model/robot/dynamics';
 import { exportUrdf } from '@barocss/cad-model/robot/urdf';
 import { exportMjcf, type MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 import { sweepLinks } from '@barocss/cad-model/robot/sweep';
-import { sweepTimed, type JointLimits } from '@barocss/cad-model/robot/ccd';
+import { sweepTimed } from '@barocss/cad-model/robot/ccd';
 import { workspaceMap } from '@barocss/cad-model/robot/workspace';
 import { Lanes } from './engine/lanes';
 import { exportSdf } from '@barocss/cad-model/robot/sdf';
@@ -875,7 +876,18 @@ export function App() {
   // (R1c (3b): the App follows the pose and the explode factor in each frame only where it uses them itself — a CPU
   // section's copies, the clearance check; elsewhere SceneViewport and the Joints card do, not the App.)
   const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
-  const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk } = useJoints(jointTree, posesInApp);
+  const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
+    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown } = useJoints(jointTree, posesInApp);
+  // (RS2: a motion frozen is swept once, as Check path sweeps — the links as placed — for its first contact: the time of
+  // impact and the two links, tinted from that time on as it plays.)
+  useEffect(() => {
+    if (!motion || !jointTree || !robotReady) { setMotionContact(null); return; }
+    try {
+      const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions);
+      const r = sweepTimed(jointTree, links, motion.path);
+      setMotionContact(r.toi !== undefined && r.links ? { toi: r.toi, links: r.links } : null);
+    } catch { setMotionContact(null); }
+  }, [motion, jointTree, robotReady, bodies, instanceBodies, setMotionContact]);
   /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
   const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
   /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
@@ -2555,7 +2567,10 @@ export function App() {
           onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
       })()}
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanelLive poseStore={poseStore} tree={jointTree} masses={jointMasses} instances={doc.instances ?? []}
-        onValue={(k, v) => { setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={setJointPlaying} links={linkInertias}
+        onValue={(k, v) => { stopMotion(); setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { stopMotion(); setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={k => { stopMotion(); setJointPlaying(k); }} links={linkInertias}
+        motionState={{ time: motionTime, motion, waypoints: jointWaypoints, playing: motionPlaying, loop: motionLoop, speed: motionSpeed,
+          contact: contactShown && motionContact ? `Contact ${jointTree.links.find(x => x.id === motionContact.links[0])?.name ?? motionContact.links[0]} – ${jointTree.links.find(x => x.id === motionContact.links[1])?.name ?? motionContact.links[1]} at t ${motionContact.toi.toFixed(2)} s` : null,
+          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed } }}
         onExportUrdf={() => {
           // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
           const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
@@ -2584,8 +2599,7 @@ export function App() {
           // segment a trapezoid within the joints' velocity limits — 1 rad/s or 100 mm/s where none is set — and twice that
           // per second's acceleration; the whole path certified, or its time of impact.)
           const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions);
-          const limits: Record<string, JointLimits> = {}, assumed: string[] = [];
-          for (const j of jointTree.joints) { if (j.type === 'fixed' || j.mimic) continue; const v = j.limit?.velocity ?? (j.type === 'prismatic' ? 100 : 1); if (j.limit?.velocity === undefined) assumed.push(j.key); limits[j.key] = { v, a: 2 * v }; }
+          const { limits, assumed } = pathLimits(jointTree);
           const r = sweepTimed(jointTree, links, { waypoints: [{}, ...jointWaypoints, poseStore.get()], profile: 'trapezoid', limits });
           const name = (l: string) => jointTree.links.find(x => x.id === l)?.name ?? l, total = r.segments.reduce((t, g) => t + g.duration, 0), n = r.segments.length;
           const note = assumed.length ? `; no velocity limit on ${assumed.join(', ')}: 1 rad/s (100 mm/s) taken` : '';
@@ -2792,7 +2806,7 @@ export function App() {
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
-      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+      <SceneViewport ref={viewport} contactLinks={contactShown && motionContact ? motionContact.links : undefined} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
