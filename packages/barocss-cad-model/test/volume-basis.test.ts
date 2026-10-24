@@ -5,6 +5,7 @@ import { evaluateDoc, partBreps, volumeBasisOf, type BodyResult } from '../src/e
 import { emptyDoc, rectanglePart, type StudioDoc } from '../src/engine/doc';
 import { commands, type Ctx } from '../src/app/commands';
 import { massProperties } from '../src/analysis/analysis';
+import { withLook } from '../src/app/bodies';
 import { bomView, deriveBom } from '../src/team/assembly';
 import { quotePackage, QUOTE_FILES } from '../src/mould/quote';
 
@@ -68,11 +69,40 @@ test('O179: the quote request — its part\'s volume and mass from the mesh, an 
   const doc: StudioDoc = { ...ball(), process: 'injection' }, bodies = fallen(doc);
   const out = await quotePackage(doc, bodies, async d => evaluateDoc(d, 1));
   assert.ok(!('error' in out), 'error' in out ? out.error : '');
-  const req = JSON.parse(new TextDecoder().decode(out.files.get(QUOTE_FILES.request))) as { part: { volumeBasis?: { method: string; bound: number; massBoundG: number | null } } };
+  const req = JSON.parse(new TextDecoder().decode(out.files.get(QUOTE_FILES.request))) as { part: { volumeBasis?: { method: string; bound: number; massBound: number | null } } };
   assert.equal(req.part.volumeBasis?.method, 'tessellated');
   assert.ok(Math.abs(req.part.volumeBasis!.bound - bodies[0].volumeBasis!.bound!) < 1e-6);
+  assert.ok(req.part.volumeBasis);
+  assert.equal(Object.hasOwn(req.part.volumeBasis, 'massBound'), true);
+  assert.equal(Object.hasOwn(req.part.volumeBasis, 'massBoundG'), false);
+  // Independent units: 1000 mm³ = 1 cm³; the fixture's aluminium is 2.70 g/cm³.
+  const expectedMassBound = Math.round((bodies[0].volumeBasis!.bound! / 1000 * 2.7) * 1e6) / 1e6 + 0;
+  assert.equal(req.part.volumeBasis.massBound, expectedMassBound);
+  assert.equal(out.request.part.volumeBasis?.massBound, expectedMassBound);
+  // The same ball, its existing aluminium explicitly stated: the page must show the bound in g.
+  const statedDoc = withLook(doc, bodies[0], { material: 'al6061' });
+  const stated = await quotePackage(statedDoc, bodies, async d => evaluateDoc(d, 1));
+  assert.ok(!('error' in stated), 'error' in stated ? stated.error : '');
+  assert.equal(stated.request.part.volumeBasis?.massBound, expectedMassBound);
+  assert.ok(new TextDecoder().decode(stated.files.get(QUOTE_FILES.page)).includes(`, ± ${expectedMassBound} g`));
+  // Unknown is null, never zero; reuse the same body and geometry.
+  const unknownBodies: BodyResult[] = [{ ...bodies[0], volumeBasis: { method: 'tessellated', bound: null } }];
+  const unknown = await quotePackage(statedDoc, unknownBodies, async d => evaluateDoc(d, 1));
+  assert.ok(!('error' in unknown), 'error' in unknown ? unknown.error : '');
+  assert.equal(unknown.request.part.volumeBasis?.massBound, null);
+  const unknownRequest = JSON.parse(new TextDecoder().decode(unknown.files.get(QUOTE_FILES.request))) as typeof req;
+  assert.ok(unknownRequest.part.volumeBasis);
+  assert.deepEqual(unknownRequest.part.volumeBasis, { method: 'tessellated', bound: null, massBound: null });
+  assert.equal(Object.hasOwn(unknownRequest.part.volumeBasis, 'massBoundG'), false);
+  // Existing r6/+0 semantics: a signed zero bound is serialized and returned as positive zero.
+  const zeroBodies: BodyResult[] = [{ ...bodies[0], volumeBasis: { method: 'tessellated', bound: -0 } }];
+  const zero = await quotePackage(statedDoc, zeroBodies, async d => evaluateDoc(d, 1));
+  assert.ok(!('error' in zero), 'error' in zero ? zero.error : '');
+  assert.ok(Object.is(zero.request.part.volumeBasis?.massBound, 0));
   assert.match(new TextDecoder().decode(out.files.get(QUOTE_FILES.page)), /an estimate from the mesh: ± [\d.]+ mm³/);
   // (Exact: the request as before, no volumeBasis.)
   const exact = await quotePackage(doc, bodiesOf(doc), async d => evaluateDoc(d, 1)); assert.ok(!('error' in exact));
   assert.equal((JSON.parse(new TextDecoder().decode(exact.files.get(QUOTE_FILES.request))) as { part: { volumeBasis?: unknown } }).part.volumeBasis, undefined);
+  assert.equal(Object.hasOwn(exact.request.part, 'volumeBasis'), false);
+  assert.equal(Object.hasOwn(JSON.parse(new TextDecoder().decode(exact.files.get(QUOTE_FILES.request))).part, 'volumeBasis'), false);
 });

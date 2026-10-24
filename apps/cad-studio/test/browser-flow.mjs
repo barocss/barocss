@@ -6706,11 +6706,11 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'query', args: { action: 'draft', pull: [0, 0, 1], min_deg: 1 } }, { tool: 'query', args: { action: 'manufacturability' } }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'query', args: { action: 'draft', pull: [0, 0, 1], draftMin: 1 } }, { tool: 'query', args: { action: 'manufacturability' } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const lines = await page.locator('.chat-tool').allInnerTexts(), draft = lines[lines.length - 2], report = lines[lines.length - 1];
-      assert.ok(draft.includes('"face":"n1.side0","draft_deg":3,"min_deg":3,"max_deg":3,"class":"drafted"'), draft);
+      assert.ok(draft.includes('"face":"n1.side0","draft":3,"min":3,"max":3,"class":"drafted"'), draft);
       assert.match(report, /query\.manufacturability\s*injection: pull pass, finish pass, wall pass, wall-material \w+, wall-uniform \w+, rib [\w/]+, boss [\w/]+, inside-radius \w+, sink \w+, size pass, draft pass, undercut pass/, report);
       await snap('im2-cone');
       await page.click('[aria-label="Close chat"]');
