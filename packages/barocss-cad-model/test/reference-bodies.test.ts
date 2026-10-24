@@ -42,11 +42,12 @@ test('datums from a STEP reference\'s faces against their closed forms (1e-9): t
   const faces = local[0].mesh.faces, top = faces.find(f => f.kind === 'plane' && near(f.normal[2], 1, 1e-12) && near(f.centroid[2], 10, 1e-12))!, bore = faces.find(f => f.kind === 'curved')!;
   assert.ok(top && bore, faces.map(f => f.name).join());
   const p = JSON.parse((await ok(s, 'add_datum', { reference: 'ref1', face: top.name, kind: 'plane', name: 'board top' })).content);
-  assert.ok(near(p.normal[0], 0) && near(p.normal[1], 0) && near(p.normal[2], 1) && near(p.origin[2], 10) && p.residual_mm < 1e-9, JSON.stringify(p));
+  assert.ok(near(p.normal[0], 0) && near(p.normal[1], 0) && near(p.normal[2], 1) && near(p.origin[2], 10) && p.residual < 1e-9, JSON.stringify(p));
+  assert.equal('residual_mm' in p, false);
   s = (await ok(s, 'add_datum', { reference: 'ref1', face: top.name, kind: 'plane' })).state;
   const a = JSON.parse((await ok(s, 'add_datum', { reference: 'ref1', face: bore.name, kind: 'axis' })).content);
   // (The hole's axis at local (12, 15): placed at (100 − 15, 12) = (85, 12); along ±Z; radius 4.)
-  assert.ok(near(Math.abs(a.direction[2]), 1) && near(a.origin[0], 85) && near(a.origin[1], 12) && near(a.radius, 4) && a.residual_mm < 1e-9, JSON.stringify(a));
+  assert.ok(near(Math.abs(a.direction[2]), 1) && near(a.origin[0], 85) && near(a.origin[1], 12) && near(a.radius, 4) && a.residual < 1e-9, JSON.stringify(a));
   s = (await ok(s, 'add_datum', { reference: 'ref1', face: bore.name, kind: 'axis' })).state;
   const v = JSON.parse((await ok(s, 'add_datum', { reference: 'ref1', vertex: [40.3, 30.2, 9.9] })).content);
   // (The corner (40, 30, 10) placed: (100 − 30, 40, 10).)
@@ -56,9 +57,14 @@ test('datums from a STEP reference\'s faces against their closed forms (1e-9): t
   assert.equal(code((await call(s, 'add_datum', { reference: 'ref1', face: bore.name, kind: 'plane' })).content), 'DATUM_FIT');
   assert.equal(code((await call(s, 'add_datum', { reference: 'ref1', face: 'ref1.face999', kind: 'plane' })).content), 'NO_REFERENCE');
   assert.equal(code((await call(s, 'add_datum', { reference: 'ref1', vertex: [20, 15, 30] })).content), 'NO_REFERENCE');
+  assert.equal('residual_mm' in a, false);
   // (Kept through a save; verified on open.)
   const back = JSON.parse(JSON.stringify(s.doc)) as StudioDoc;
   assert.deepEqual(await verifyDatums(readReferences(back.references), evaluate), []);
+  const probe: StudioDoc = { ...back, references: { ...readReferences(back.references), datums: readReferences(back.references).datums.map((d, i) => i === 0 ? { ...d, residual: .000123456789456789 } : d) } };
+  const listed = JSON.parse((await ok({ ...s, doc: probe }, 'get_references', {})).content);
+  assert.equal(listed.datums[0].residual, .000123456789457, 'stored mm residual keeps the original twelve-significant-digit precision');
+  assert.ok(listed.datums.every((d: Record<string, unknown>) => !('residual_mm' in d)));
   const moved = readReferences(back.references); moved.datums[0] = { ...moved.datums[0], origin: [0, 0, 10.001] };
   assert.equal((await verifyDatums(moved, evaluate))[0]?.datum, 'D1');
 });
@@ -104,15 +110,20 @@ test('keep-out verdicts against closed forms: box ∩ box overlap 125 mm³ exact
   s = (await ok(s, 'add_keepout', { name: 'overlapping', box: { frame: frame([5, 5, 5]), size: [10, 10, 10] } })).state;
   s = (await ok(s, 'add_keepout', { name: 'beside', box: { frame: frame([12, 0, 0]), size: [5, 10, 10] }, clearance: 2 })).state;
   s = (await ok(s, 'add_keepout', { name: 'post', cylinder: { frame: frame([20, 5, 0]), radius: 5, height: 10 }, clearance: 5 })).state;
-  type KR = { keepout: string; verdict: string; overlap_mm3: number; clearance_mm: number; chord_tolerance_mm: number; why: string };
+  const listing = JSON.parse((await ok(s, 'get_references', {})).content);
+  assert.deepEqual(listing.keepouts.map((k: { clearance: number }) => k.clearance), [0, 2, 5]);
+  assert.ok(listing.keepouts.every((k: Record<string, unknown>) => !('clearance_mm' in k)));
+  type KR = { keepout: string; verdict: string; overlap: number; clearance: number; requiredClearance: number; chordTolerance: number; why: string };
   const r = JSON.parse((await ok(s, 'check_keepouts', {})).content).results as KR[];
+  assert.deepEqual(r.map(x => x.requiredClearance), [0, 2, 5]);
+  for (const row of r) for (const old of ['overlap_mm3', 'clearance_mm', 'required_mm', 'chord_tolerance_mm']) assert.equal(old in row, false);
   const by = (k: string) => r.find(x => x.keepout === k)!;
-  assert.ok(by('K1').verdict === 'violated' && near(by('K1').overlap_mm3, 125, 1e-9), JSON.stringify(by('K1')));
-  assert.ok(by('K2').verdict === 'clear' && near(by('K2').clearance_mm, 2, 1e-12) && by('K2').chord_tolerance_mm === 0, JSON.stringify(by('K2')));
+  assert.ok(by('K1').verdict === 'violated' && near(by('K1').overlap, 125, 1e-9), JSON.stringify(by('K1')));
+  assert.ok(by('K2').verdict === 'clear' && near(by('K2').clearance, 2, 1e-12) && by('K2').chordTolerance === 0, JSON.stringify(by('K2')));
   // (The post's nearest surface is 5 mm from the cube; its mesh's chord tolerance ≈ r(1 − cos π/32) ≈ 0.024 mm — since O55
   // bounded from the mesh's own normals, the cylinder's edge sag, to 1e-4 of that: 5 required is undecided.)
-  const chord = by('K3').chord_tolerance_mm;
-  assert.ok(by('K3').verdict === 'undecided' && Math.abs(chord - 5 * (1 - Math.cos(Math.PI / 32))) < 1e-4 && Math.abs(by('K3').clearance_mm - 5) <= chord, JSON.stringify(by('K3')));
+  const chord = by('K3').chordTolerance;
+  assert.ok(by('K3').verdict === 'undecided' && Math.abs(chord - 5 * (1 - Math.cos(Math.PI / 32))) < 1e-4 && Math.abs(by('K3').clearance - 5) <= chord, JSON.stringify(by('K3')));
   assert.match(by('K3').why, /chord tolerance 0\.0241 mm/);
   // (The tolerance is an upper bound: every point of the cylinder's mesh is within it of the true surface.)
   const { withKeepout } = await import('../src/chat/references'), probe = withKeepout(s.doc, readReferences(s.doc.references).keepouts[2]), ev = await evaluate(probe.doc);
@@ -159,7 +170,7 @@ test('the requirement query keepout (undecided within the chord tolerance), datu
     writeFileSync(join(dir, 'case.json'), JSON.stringify({ case: 'block-keepout', step: 'A6.3', note: 'A 10 mm cube; the studio\'s 40 × 30 × 10 block with a Ø8 hole (block.step) as a locked reference at z 30. Closed forms: the underside datum plane at z 30, normal −Z (20 mm from the cube\'s top); the block\'s envelope grown 2 mm starts at z 28, 18 mm from the cube (flat faces both: chord 0), so a 3 mm clearance is clear; a sketch on the datum lies at z 30.', input: { part: 'box 10 × 10 × 10 at the origin', reference: { file: 'block.step', at: { position: [0, 0, 30], rotation: [0, 0, 0] } }, datum: 'the reference face with normal −Z, as a plane', keepout: { around: 'ref1', offset: 2, shape: 'box', clearance: 3 } }, expect: { datum_origin_z: 30, datum_normal: [0, 0, -1], keepout_clearance_mm: 18, verdict: 'clear', chord_tolerance_mm: 0, tol: 1e-9 } }, null, 1) + '\n');
   }
   const c = JSON.parse(readFileSync(join(dir, 'case.json'), 'utf8')), k = JSON.parse((await ok(s, 'check_keepouts', {})).content).results[0];
-  assert.ok(k.verdict === c.expect.verdict && near(k.clearance_mm, c.expect.keepout_clearance_mm) && k.chord_tolerance_mm === c.expect.chord_tolerance_mm, JSON.stringify(k));
+  assert.ok(k.verdict === c.expect.verdict && near(k.clearance, c.expect.keepout_clearance_mm) && k.chordTolerance === c.expect.chord_tolerance_mm, JSON.stringify(k));
   const w = datumWorld(readReferences(s.doc.references), readReferences(s.doc.references).datums[0]);
   assert.ok(near(w.origin[2], c.expect.datum_origin_z) && w.normal!.every((x, i) => near(x, c.expect.datum_normal[i])));
 });
