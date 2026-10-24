@@ -7340,6 +7340,12 @@ try {
       const names = await page.evaluate(() => window.__studioViewer.meshList.map(m => m.name).filter(n => n?.startsWith('proposal:')));
       assert.deepEqual(names.sort(), ['proposal:added', 'proposal:removed']);
     } else assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('.vp-overlay [aria-label^="Material"]')].map(g => g.textContent).sort()), ['+500 mm³', '−101 mm³'], 'WebGL2: the chips in the overlay');
+    // (The two chips stacked, never meeting — they overlapped by the hole in the docs lane's shot. WebGPU draws them as engine
+    // labels at one anchor, a chip's step apart; WebGL2's are the overlay's.)
+    if (await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer !== 'webgpu')) {
+      const [r1, r2] = await page.evaluate(() => [...document.querySelectorAll('.vp-overlay [aria-label^="Material"] rect')].map(r => { const b = r.getBoundingClientRect(); return { l: b.left, r: b.right, t: b.top, b: b.bottom }; }));
+      assert.ok(r1.b <= r2.t + 0.5 || r2.b <= r1.t + 0.5 || r1.r <= r2.l + 0.5 || r2.r <= r1.l + 0.5, `the volume chips meet: ${JSON.stringify([r1, r2])}`);
+    }
     const [block, hole] = await page.evaluate(() => window.__studioPixels([[55, 5, 5], [30, 10, 8]]));
     assert.ok(block[1] > block[0] + 20 && block[1] > block[2] + 10, `green over the block ${JSON.stringify(block)}`);
     assert.ok(hole[0] > hole[1] + 20, `red at the hole ${JSON.stringify(hole)}`);

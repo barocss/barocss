@@ -5,6 +5,7 @@
 // selection changes only rewrite small state buffers.
 import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, PALETTE, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
+import type { ProposalOverlay } from '../engine/client';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 import { invert, multiply } from '@barocss/gpu/viewer';
@@ -74,6 +75,21 @@ export interface MouldShown { pull: Vec3; loops: { points: Vec3[]; closed: boole
 /** A section's planes on the GPU (G2, G19): kept where dot(normal, p) ≥ offset for each; `bodies`: the part's bodies cut by them too (not yet exact). */
 /** A proposal's added and removed material (G12): the view triad's green and red. */
 export const PROPOSAL_ADDED = '#57b26b', PROPOSAL_REMOVED = '#e5534b';
+/**
+ * Where a proposal's volume chips stand (G12): over their material's box top, or — both shown — one above the other over
+ * the two boxes' top, so they never meet however the view turns (they overlapped by the hole in the docs lane's shot).
+ * `stack`: 0 the lower, 1 the one above it.
+ */
+/** A chip's height and the gap to the next (CSS px): 12 px type, 4 px padding, 2 px apart. */
+export const PROPOSAL_CHIP_STEP = 22;
+export function proposalChips(view: ProposalOverlay): { side: 'added' | 'removed'; at: Vec3; stack: number; text: string }[] {
+  const shown = (['added', 'removed'] as const).filter(side => !!view[side]?.mesh.indices.length);
+  if (!shown.length) return [];
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const side of shown) { const b = view[side]!.mesh.bounds; for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], b.min[k]); hi[k] = Math.max(hi[k], b.max[k]); } }
+  const at: Vec3 = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, hi[2]];
+  return shown.map((side, stack) => ({ side, at, stack, text: `${side === 'added' ? '+' : '−'}${Math.round(view[side]!.volumeMM3).toLocaleString('en-US')} mm³` }));
+}
 /** World points for an overlay (G8): a colour each (sRGB 0–1, rgb) or one; size and border in CSS pixels. */
 export interface OverlayPoints {
   positions: ArrayLike<number>;

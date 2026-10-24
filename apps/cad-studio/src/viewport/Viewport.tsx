@@ -11,7 +11,7 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { OrbitCamera } from './camera';
 import type { FrameCost } from './frameCost';
-import { PROPOSAL_ADDED, PROPOSAL_REMOVED, Renderer, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
+import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, Renderer, proposalChips, type DisplayMode, type DisplayModeStatus, type EdgeRef, type FaceRef, type InstanceItem, type MouldShown, type OverlayLabels, type OverlayLines, type OverlayPoints, type SectionClip, type SectionHatch, type ThemeName, type ViewRenderer, type ViewState } from './renderer';
 import type { ScalarMap } from './scalarMaps';
 import { GpuRenderer } from './gpuRenderer';
 import type { RenderCamera, RenderSettings } from '@barocss/cad-model/engine/render';
@@ -1372,12 +1372,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     }
     // A proposal's volume chips (G12), where the renderer draws no labels (WebGL2, G16): at each material's box top, as the GPU's.
     const pr = props.proposal;
-    if (pr && !sk && !renderer.current?.setOverlayLabels) for (const side of ['added', 'removed'] as const) {
-      const s = pr[side]; if (!s || !s.mesh.indices.length) continue;
-      const b = s.mesh.bounds, q = cam.project([(b.min[0] + b.max[0]) / 2, (b.min[1] + b.max[1]) / 2, b.max[2]], w, h);
-      const text = `${side === 'added' ? '+' : '−'}${Math.round(s.volumeMM3).toLocaleString('en-US')} mm³`, tw = text.length * 7 + 12, fill = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED;
-      items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={q[1] - 26} width={tw} height={20} rx={4} style={{ fill }} />
-        <text x={q[0]} y={q[1] - 12} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
+    // (Stacked over the two boxes' top, as the GPU's: they never meet.)
+    if (pr && !sk && !renderer.current?.setOverlayLabels) for (const { side, at, stack, text } of proposalChips(pr)) {
+      const q = cam.project(at, w, h), y = q[1] - 26 - stack * PROPOSAL_CHIP_STEP;
+      const tw = text.length * 7 + 12, fill = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED;
+      items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={y} width={tw} height={20} rx={4} style={{ fill }} />
+        <text x={q[0]} y={y + 14} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
     }
     if (props.tool) items.push(<g key="tool" className="vp-tool">{props.tool.marks(toolView())}</g>);
     const dr = drag.current;
