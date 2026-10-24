@@ -105,6 +105,7 @@ export const kernelBackend: PartBackend<CadPartDocument> = {
   copy: doc => structuredClone(doc),
   bodies: doc => outputs(doc).map(o => o.id),
   apply(doc, spec, body) {
+    if (spec.bound?.length) throw refuse('UNAVAILABLE', `a parameter in the kernel part's ${spec.command} (${spec.bound.map(b => b.option).join(', ')}) comes with the kernel backend's binding; give a number for now`);
     let next = doc;
     for (const feature of featuresOf(doc, spec, body)) next = { ...next, features: [...next.features, feature] };
     // (Written, then evaluated once: a feature the kernel refuses is refused here, the part unchanged.)
@@ -115,6 +116,14 @@ export const kernelBackend: PartBackend<CadPartDocument> = {
   mass: (doc, body, density) => massOf(output(doc, body), density),
   step: (doc, name) => stepOf(outputs(doc), name),
   meshes: doc => outputs(doc).map(meshOf),
+  parameters: doc => doc.parameters,
+  withParameters(doc, parameters) {
+    const next = { ...doc, parameters };
+    if (next.features.length) outputsOf(next);
+    return next;
+  },
+  features: doc => doc.features.map(f => ({ id: f.id, kind: f.kind, label: f.id })),
+  suppress(_doc, id) { throw refuse('UNAVAILABLE', `a kernel part's features can't be suppressed: the CadPartDocument has no suppressed flag yet (${id})`); },
 };
 
 /** A kernel part: the one part over a CadPartDocument, with the kernel's STL besides. */

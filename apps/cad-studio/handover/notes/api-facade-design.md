@@ -675,6 +675,23 @@ the facade's own; `withParameters` as a function over the document (§4); named 
      change for the kernel and outer lanes, and a decision for the owner.
    - **Person-written feature names** (the old named chamfer): the ids serve.
 
+**As built, checkpoint 1 (the studio backend):**
+- Part reads each option given as `param(name)` as its number before the spec is built, so every check still sees
+  a number. The options given as parameters ride on the spec as `bound`. The studio backend binds them after the
+  command, with `editFields(…).bind`, through the table above (`BINDS`, src/api/studio.ts).
+- **Not yet:** sketches (`rectangle({ w: param(…) })`) and `Location` take numbers only, so extrude's
+  rectangle `w`/`d` and moved's angles and position wait for those values to hold a `Dim`.
+- `parameter`, `parameters()`, `withParameters`, `features()` and `suppressed` are on the shared Part.
+  `configuration`, `withConfiguration` and `configurations()` are StudioPart's.
+- **The kernel backend for now:** it refuses a parameter in a verb (`UNAVAILABLE`, until checkpoint 2) and any
+  suppression (`UNAVAILABLE`, until K17). `parameter` and `withParameters` already work there.
+- **test/api-parameters.test.ts, 5/5:**
+  - the bindings equal run_command, plus the panel's Add, plus ƒ's bind;
+  - `withParameters` equals a fresh build at the new numbers, with the stored names kept;
+  - configurations: Save and Apply;
+  - suppression: the toggle's write, and back again to the same bytes;
+  - eight typed refusals.
+
 **Oracles:**
 - **Studio:** `.doc` is byte-equal to the document made through the studio's own functions. That's the panel's writes
   for parameters and configurations, `editFields(…).bind` for each binding, and the History toggle's write for
