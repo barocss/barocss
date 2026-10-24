@@ -8,10 +8,12 @@ import type { MeshCamera, MeshLighting, PrimitiveSceneEntryV1, PrimitiveSceneEnt
   ParticleLayerV0, ClothLayerV0 } from '@barocss/gpu';
 
 type Vec3 = [number, number, number];
+/** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
+type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
 
 /** A display pose in authored millimetres: scale, then rotation, then translation. */
-export interface DrawnPose { translationMm: Vec3; rotationXYZW: Quat; scale: Vec3 }
+export interface DrawnPose { translationMm: ReadVec3; rotationXYZW: Quat; scale: ReadVec3 }
 export interface DrawnTriangles {
   kind: 'triangles';
   /** Authored millimetres (with `mm`) or scene units. */
@@ -33,7 +35,7 @@ export type DrawnItem = DrawnTriangles | DrawnLines | DrawnPoints;
 export interface Drawing {
   items: DrawnItem[]; camera: MeshCamera; lighting: MeshLighting | null; background: Vec3;
   /** Scene units per authored millimetre, and a scene-unit offset after it. */
-  mmToScene: number; translate?: Vec3;
+  mmToScene: number; translate?: ReadVec3;
   /** Lights and environment in place of the ones from `lighting`. */
   lights?: { lights: Light[]; environment: Environment };
 }
@@ -65,7 +67,7 @@ export function itemsOf(entries: readonly (PrimitiveSceneEntryV1 | PrimitiveScen
 export const DEFAULT_LIGHTING: MeshLighting = { ambientStrength: 0.35, directionalStrength: 0.65, direction: [-0.6, 0.8, 1] };
 
 /** Column-major T(offset) · S(mm) · T(t) · R(q) · S(s). */
-export function poseMatrix(pose: DrawnPose | null | undefined, mmToScene: number, offset: Vec3 = [0, 0, 0]): number[] {
+export function poseMatrix(pose: DrawnPose | null | undefined, mmToScene: number, offset: ReadVec3 = [0, 0, 0]): number[] {
   const [x, y, z, w] = pose?.rotationXYZW ?? [0, 0, 0, 1], s = pose?.scale ?? [1, 1, 1], t = pose?.translationMm ?? [0, 0, 0];
   const r = [
     1 - 2 * (y * y + z * z), 2 * (x * y + z * w), 2 * (x * z - y * w),

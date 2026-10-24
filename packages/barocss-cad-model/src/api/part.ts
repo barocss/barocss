@@ -26,6 +26,26 @@ export class StudioPart extends Part<StudioDoc> {
     return super.mass({ density: libraryMaterial(id).gPerCm3 });
   }
 
+  /**
+   * A configuration (R7.4d): the parameters' values now, saved under a name — the Parameters panel's Save. Studio parts
+   * only (the kernel document has none).
+   */
+  configuration(name: string): this {
+    if (typeof name !== 'string' || !name.trim()) throw refuse('VALUE', 'a configuration has a name');
+    const d = this.document;
+    return this.next({ ...d, configurations: { ...d.configurations, [name.trim()]: { ...d.parameters } } }, this.focus);
+  }
+
+  /** The part with a configuration's values applied — the panel's Apply: the values of the parameters it still has. */
+  withConfiguration(name: string): this {
+    const d = this.document, c = d.configurations?.[name];
+    if (!c) throw refuse('CONFIGURATION_UNKNOWN', `no configuration ${name}; the configurations are ${Object.keys(d.configurations ?? {}).join(', ') || 'none'}`);
+    return this.withParameters(Object.fromEntries(Object.entries(c).filter(([k]) => k in d.parameters)));
+  }
+
+  /** The configurations: each name and its values. */
+  configurations(): Record<string, Record<string, number>> { return structuredClone(this.document.configurations ?? {}); }
+
   /** `features.material` (set_material): the chosen body's material — or, with none chosen, every body's — by its library id. */
   material(id: string): this {
     libraryMaterial(id);

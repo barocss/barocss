@@ -9,6 +9,8 @@ import { Presenter, itemsOf } from './presenter.js';
 import type { Drawing, DrawnItem } from './presenter.js';
 
 type Vec3 = [number, number, number];
+/** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
+type ReadVec3 = readonly [number, number, number];
 export type UpdateResult = { ok: true } | { ok: false; error: Error };
 export interface ViewerWebGPUStatus {
   readonly backend: 'webgpu'; readonly state: 'ready' | 'disposed';
@@ -27,7 +29,7 @@ export interface NativeBackend {
 }
 interface NativeFrame {
   scene: { entries: PrimitiveSceneEntryV2[] }; materials: PrimitiveSceneMaterial[];
-  options: { mmToSceneUnit: number; translate: Vec3; background: Vec3; camera: MeshCamera; lighting?: MeshLighting };
+  options: { mmToSceneUnit: number; translate: ReadVec3; background: Vec3; camera: MeshCamera; lighting?: MeshLighting };
 }
 
 const toSrgb = (c: number) => c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;

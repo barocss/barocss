@@ -61,6 +61,8 @@ import type { ViewerQualifiedFaceNativeSample } from './qualified-face-native-sa
 export type { ViewerQualifiedFaceNativeSample } from './qualified-face-native-sample.js';
 
 type Vec3 = [number, number, number];
+/** A vector only read (gpu's readonly Vec3 passes as one, R7.3c). */
+type ReadVec3 = readonly [number, number, number];
 type Quat = [number, number, number, number];
 export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }
 export interface ViewerPointerControlOptions { onError?: (error: unknown) => void }
@@ -516,12 +518,12 @@ function parseGeometryMotionBindings(input: unknown, frame: ViewerPoseFrame,
   'Geometry Motion bindings must cover every displayed object exactly once');
   return bindings;
 }
-function add(a: Vec3, b: Vec3): Vec3 { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
-function subtract(a: Vec3, b: Vec3): Vec3 { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
-function multiply(a: Vec3, n: number): Vec3 { return [a[0] * n, a[1] * n, a[2] * n]; }
-function dot(a: Vec3, b: Vec3): number { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
-function cross(a: Vec3, b: Vec3): Vec3 { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
-function unit(a: Vec3): Vec3 { const length = Math.hypot(...a); check(length > 1e-12, 'Degenerate camera vector'); return multiply(a, 1 / length); }
+function add(a: ReadVec3, b: ReadVec3): Vec3 { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+function subtract(a: ReadVec3, b: ReadVec3): Vec3 { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+function multiply(a: ReadVec3, n: number): Vec3 { return [a[0] * n, a[1] * n, a[2] * n]; }
+function dot(a: ReadVec3, b: ReadVec3): number { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+function cross(a: ReadVec3, b: ReadVec3): Vec3 { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+function unit(a: ReadVec3): Vec3 { const length = Math.hypot(...a); check(length > 1e-12, 'Degenerate camera vector'); return multiply(a, 1 / length); }
 function rotated(q: Quat, v: Vec3): Vec3 {
   const t = multiply(cross([q[0], q[1], q[2]], v), 2);
   return add(v, add(multiply(t, q[3]), cross([q[0], q[1], q[2]], t)));
@@ -598,7 +600,7 @@ function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale
   return cameraForBounds(low, high, width, height);
 }
 
-function rayTriangle(origin: Vec3, direction: Vec3, a: Vec3, b: Vec3, c: Vec3): { distance: number; u: number; v: number } | null {
+function rayTriangle(origin: ReadVec3, direction: ReadVec3, a: ReadVec3, b: ReadVec3, c: ReadVec3): { distance: number; u: number; v: number } | null {
   const edge1 = subtract(b, a), edge2 = subtract(c, a), p = cross(direction, edge2), determinant = dot(edge1, p);
   if (Math.abs(determinant) < 1e-10) return null;
   const inverse = 1 / determinant, offset = subtract(origin, a), u = dot(offset, p) * inverse;
@@ -678,7 +680,7 @@ export class Viewer {
   private primitiveScope(): void {
     this.nativeScope(); check(!this.mixedDepth, 'This primitive operation is unavailable in mixed depth mode');
   }
-  private show(items: DrawnItem[], camera: MeshCamera, translate?: Vec3): void {
+  private show(items: DrawnItem[], camera: MeshCamera, translate?: ReadVec3): void {
     const drawing: Drawing = { items, camera, lighting: this.acceptedLighting ?? this.options.lighting ?? null,
       background: this.options.background, mmToScene: this.options.mmToSceneUnit, ...(translate ? { translate } : {}) };
     this.presenter.show(drawing);
