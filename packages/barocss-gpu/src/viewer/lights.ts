@@ -14,7 +14,12 @@ export interface Environment {
   /** Hemisphere ambient: sky above the up axis, ground below. */
   sky?: Color; ground?: Color; ambient?: number;
   exposure?: number;
-  toneMapping?: 'none' | 'aces';
+  /** ACES (filmic, the default look), AgX (G15d.1: gentler highlights, colours that desaturate to white) or none. */
+  toneMapping?: 'none' | 'aces' | 'agx';
+  /** Colour grading after tone mapping (G15d.1), on the whole frame — scene and background, not the outlines. */
+  grading?: ColorGrading | null;
+  /** A vignette (G15d.1): the frame darkened towards its corners. */
+  vignette?: Vignette | null;
   /** Screen-space ambient occlusion: radius in world units (default a twelfth of the scene's), strength 0–2. */
   ambientOcclusion?: { radius?: number; strength?: number } | false;
   /**
@@ -25,6 +30,38 @@ export interface Environment {
   map?: { readonly width: number; readonly height: number } | null;
   /** The environment's brightness (default 1). */
   mapIntensity?: number;
+}
+
+/**
+ * Colour grading (G15d.1), in the order applied: white balance, lift / gamma / gain (per channel, linear), saturation
+ * (around Rec. 709 luminance), then contrast around mid grey in the encoded image. Every field's default leaves the
+ * image as it is.
+ */
+export interface ColorGrading {
+  /** White balance: −1 cool (blue) … 1 warm (amber); default 0. */
+  temperature?: number;
+  /** −1 green … 1 magenta; default 0. */
+  tint?: number;
+  /** Shadows raised (per channel, 0–1); default 0. */
+  lift?: Vec3;
+  /** Midtones (per channel, above 1 brighter); default 1. */
+  gamma?: Vec3;
+  /** Highlights scaled (per channel); default 1. */
+  gain?: Vec3;
+  /** 0 grey, 1 unchanged, above 1 more colourful. */
+  saturation?: number;
+  /** 1 unchanged; above 1 darker shadows and brighter highlights. */
+  contrast?: number;
+}
+/** A vignette: `amount` 0–1 (how dark the corners get), `size` the share of the half-diagonal left clear (default 0.5),
+ *  `softness` the share it fades over (default 0.5). */
+export interface Vignette { amount: number; size?: number; softness?: number }
+
+/** White balance as channel gains, luminance kept: temperature along amber–blue, tint along magenta–green. */
+export function whiteBalance(temperature = 0, tint = 0): Vec3 {
+  const t = Math.max(-1, Math.min(1, temperature)), m = Math.max(-1, Math.min(1, tint));
+  const r = 1 + 0.25 * t, g = 1 - 0.2 * m, b = 1 - 0.25 * t, y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return [r / y, g / y, b / y];
 }
 
 export function parseColor(c: Color | undefined, fallback: Vec3 = [1, 1, 1]): Vec3 {
@@ -135,7 +172,7 @@ export function packOutput(env: Environment, outlines: readonly Vec3[] = [], out
   const b = into ?? new ArrayBuffer(OUTPUT_BYTES), f = new Float32Array(b), u = new Uint32Array(b);
   if (into) f.fill(0);
   f[0] = env.exposure ?? 1;
-  u[1] = env.toneMapping === 'aces' ? 1 : 0;
+  u[1] = env.toneMapping === 'aces' ? 1 : env.toneMapping === 'agx' ? 2 : 0;
   f[2] = outlineWidth;
   u[3] = Math.min(outlines.length, MAX_OUTLINES);
   for (let i = 0; i < outlines.length && i < MAX_OUTLINES; i++) { const c = outlines[i], k = 4 + i * 4; f[k] = c[0]; f[k + 1] = c[1]; f[k + 2] = c[2]; f[k + 3] = 1; }
@@ -145,6 +182,20 @@ export function packOutput(env: Environment, outlines: readonly Vec3[] = [], out
     f.set(ao.inverseProjection, o + 8);
     f.set([ao.radius, env.ambientOcclusion.strength ?? 1, ao.pixelsPerUnit, ao.perspective ? 1 : -1], o + 24);
   }
-  f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 28);
+  // (G15d.1: balance and contrast, lift and saturation, gamma and on, gain; then the vignette. Off: zeros, and the
+  // pass skips them.)
+  const g = env.grading, v = env.vignette;
+  if (g) {
+    const wb = whiteBalance(g.temperature, g.tint), lift = g.lift ?? [0, 0, 0], gamma = g.gamma ?? [1, 1, 1], gain = g.gain ?? [1, 1, 1];
+    f.set([wb[0], wb[1], wb[2], Math.max(0, g.contrast ?? 1)], o + 28);
+    f.set([lift[0], lift[1], lift[2], Math.max(0, g.saturation ?? 1)], o + 32);
+    f.set([Math.max(1e-3, gamma[0]), Math.max(1e-3, gamma[1]), Math.max(1e-3, gamma[2]), 1], o + 36);
+    f.set([gain[0], gain[1], gain[2], 0], o + 40);
+  }
+  if (v && v.amount > 0) {
+    const size = Math.max(0, Math.min(1, v.size ?? 0.5)), soft = Math.max(1e-3, v.softness ?? 0.5);
+    f.set([Math.min(1, v.amount), size, size + soft, 0], o + 44);
+  }
+  f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 48);
   return b;
 }
