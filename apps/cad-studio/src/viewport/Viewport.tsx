@@ -68,6 +68,11 @@ export interface ViewportHandle {
 /** Where a new shape stands: a point on the ground or on an upward face, and that surface's normal. */
 /** `hole`: placed at a round hole's rim — its diameter, its depth along the axis, and whether it runs through the body. */
 export interface Spot { point: Vec3; normal: Vec3; hole?: { d: number; depth: number; through: boolean } }
+/**
+ * A robot's tool or sensor frame as the viewport draws it (G13, O12): `o` its origin (mm, assembly coordinates), `R` row-major
+ * with its columns the frame's X, Y and Z (Z = [R[2], R[5], R[8]]), `kind` its label's colour.
+ */
+export interface FrameTriad { name: string; kind?: 'tool' | 'sensor'; o: Vec3; R: readonly number[] }
 
 interface Props {
   /** Bed-frame print display, separate from the authored/native document. */
@@ -132,6 +137,10 @@ interface Props {
   onDimCommit?(key: string, value: number): void;
   /** A measured distance: a dimension line between the closest points. */
   measureLine?: { a: Vec3; b: Vec3; label: string } | null;
+  /** The robot's tool and sensor frames at the pose shown (G13): a triad each — X red, Y green, Z blue — and its name.
+   *  `frameSize`: the axes' length (mm). */
+  frames?: readonly FrameTriad[];
+  frameSize?: number;
   /** Corners picked (shown as rings). */
   pickedVertices?: { body: number; at: Vec3 }[];
   /** What clicks pick: whatever is under the pointer, or only faces, edges or whole bodies. */
@@ -237,6 +246,14 @@ const CHIP_LOOKS: Record<ThemeName, Pick<OverlayLabels, 'color' | 'chip'>> = {
 };
 const chipLook = (theme: ThemeName) => CHIP_LOOKS[theme];
 const UNDERLAY_TEXT_LOOK = { color: '#8a93a3', opacity: 0.8, hidden: 0.35 };
+/** G13: a frame's axes (the view triad's red, green and blue) and its name's chip — a tool's the accent, a sensor's cyan. */
+const FRAME_AXES = [['x', '#e5534b'], ['y', '#57b26b'], ['z', '#4a90e2']] as const;
+const FRAME_CHIP: Record<'tool' | 'sensor', string> = { tool: '#e8c25a', sensor: '#56c8e0' };
+/** A frame's axis ends: its origin and o + size · each column of R. */
+export function frameAxisEnds(f: FrameTriad, size: number): { x: Vec3; y: Vec3; z: Vec3 } {
+  const end = (k: number): Vec3 => [f.o[0] + size * f.R[k], f.o[1] + size * f.R[3 + k], f.o[2] + size * f.R[6 + k]];
+  return { x: end(0), y: end(1), z: end(2) };
+}
 /** An underlay text as a plane label: its height the em, the anchor its first line's baseline-left (as the SVG text had it). */
 function underlayLabel(t: { at: Vec3; dir: Vec3; up: Vec3; text: string; height: number }): OverlayLabels['labels'][number] {
   const lines = Math.max(1, t.text.split('\n').length), n = (v: Vec3): Vec3 => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
@@ -697,6 +714,29 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     const m = mlKey ? mlKey.split(',').map(Number) : null;
     r.setOverlayLabels('measure:label', m ? { labels: [{ text: mlLabel, at: [(m[0] + m[3]) / 2, (m[1] + m[4]) / 2, (m[2] + m[5]) / 2], size: 12, align: [0.5, 1], offset: [0, -8] }], ...chipLook(themeName), over: true } : null); request();
   }, [mlKey, mlLabel, themeName, backend]);
+  // G13: the frames' triads and names as engine lines and labels on WebGPU, over the scene; made when the pose moves them
+  // (keyed by their content).
+  const frames = props.frames, frameSize = props.frameSize ?? 25;
+  const framesKey = frames?.length && !sketching ? JSON.stringify([frameSize, frames.map(f => [f.name, f.kind ?? '', ...f.o, ...f.R])]) : '';
+  useEffect(() => {
+    const r = renderer.current; if (!r?.setOverlayLines || !r.setOverlayLabels) return;
+    const list = framesKey ? (JSON.parse(framesKey)[1] as (string | number)[][]).map(a => ({ name: a[0] as string, kind: (a[1] || undefined) as FrameTriad['kind'], o: a.slice(2, 5) as Vec3, R: a.slice(5) as number[] })) : [];
+    // (The names first, the axes after them: drawn later, an axis that turns under its name stays seen over the chip.)
+    for (const kind of ['tool', 'sensor'] as const) {
+      const labels = list.filter(f => (f.kind ?? 'tool') === kind).map(f => ({ text: f.name, at: f.o, size: 11, align: [0, 1] as const, offset: [8, -6] as const }));
+      r.setOverlayLabels('frames:' + kind, labels.length ? { labels, color: '#121315', chip: { fill: FRAME_CHIP[kind], padding: 3 }, over: true } : null);
+    }
+    for (const [axis, color] of FRAME_AXES) {
+      const segments = list.flatMap(f => [...f.o, ...frameAxisEnds(f, frameSize)[axis]]);
+      r.setOverlayLines('frames:' + axis, segments.length ? { segments, color, width: 2, over: true } : null);
+    }
+    request();
+  }, [framesKey, frameSize, backend]);
+  // (DEV, for the flow: the frames drawn, each's origin and axis ends in the world.)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __studioFrameTriads: () => unknown }).__studioFrameTriads = () => (framesKey ? props.frames ?? [] : []).map(f => ({ name: f.name, kind: f.kind ?? 'tool', o: f.o, ...frameAxisEnds(f, frameSize) }));
+  });
   const underlayKeys = useRef<string[]>([]);
   useEffect(() => {
     const r = renderer.current; if (!r?.setOverlayLines) return;
@@ -1378,6 +1418,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       const tw = text.length * 7 + 12, fill = side === 'added' ? PROPOSAL_ADDED : PROPOSAL_REMOVED;
       items.push(<g key={'proposal:' + side} aria-label={side === 'added' ? 'Material added' : 'Material removed'}><rect x={q[0] - tw / 2} y={y} width={tw} height={20} rx={4} style={{ fill }} />
         <text x={q[0]} y={y + 14} textAnchor="middle" className="dim-text" style={{ fill: '#ffffff' }}>{text}</text></g>);
+    }
+    // G13: the frames' triads and names in the overlay where the renderer draws no lines (WebGL2).
+    if (props.frames?.length && !sk && !engineLines) for (const f of props.frames) {
+      const q = cam.project(f.o, w, h), ends = frameAxisEnds(f, props.frameSize ?? 25), kind = f.kind ?? 'tool';
+      items.push(<g key={'frame:' + f.name} aria-label={`Frame triad ${f.name}`}>
+        <rect x={q[0] + 8} y={q[1] - 22} width={f.name.length * 7 + 8} height={16} rx={3} style={{ fill: FRAME_CHIP[kind] }} />
+        <text x={q[0] + 12} y={q[1] - 10} className="dim-text" style={{ fill: '#121315' }}>{f.name}</text>
+        {FRAME_AXES.map(([axis, color]) => { const e = cam.project(ends[axis], w, h); return <line key={axis} x1={q[0]} y1={q[1]} x2={e[0]} y2={e[1]} style={{ stroke: color, strokeWidth: 2 }} />; })}</g>);
     }
     if (props.tool) items.push(<g key="tool" className="vp-tool">{props.tool.marks(toolView())}</g>);
     const dr = drag.current;
