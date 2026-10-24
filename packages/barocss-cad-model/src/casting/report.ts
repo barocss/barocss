@@ -43,11 +43,11 @@ const faceNames = (fs: readonly DraftFace[]) => fs.map(f => f.face).slice(0, 40)
  * the casting report's draft rule judges by — with their pages; null when the material, its family or the limit is not
  * known (the report then says why). One material for the part, as the report takes it.
  */
-export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): { minDeg: number; recDeg: number | null; source: string } | null {
+export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): { draftMin: number; draftRecommended: number | null; source: string } | null {
   profile = castingProfileOf(doc, profile.id) ?? profile; // (O7c: the limits are the document's rows.)
   const { id } = partMaterial(doc, bodies), family = id ? materialData(id)?.castFamily ?? null : null;
   const dMin = family ? limitOf(profile, family, 'DraftMinDeg') : undefined, dRec = family ? limitOf(profile, family, 'DraftRecDeg') : undefined;
-  return dMin ? { minDeg: dMin.value, recDeg: dRec?.value ?? null, source: pageOf(dMin) } : null;
+  return dMin ? { draftMin: dMin.value, draftRecommended: dRec?.value ?? null, source: pageOf(dMin) } : null;
 }
 
 /** The casting report for a die- or sand-casting profile; `direction` overrides the mould's pull. */
