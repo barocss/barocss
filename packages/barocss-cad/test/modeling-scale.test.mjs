@@ -29,7 +29,7 @@ const providers = new Map([
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
-const pureModules = new Set(['modeling', 'cad-document', 'data-copy', 'xy-affine-prism-feature-document-internal',
+const pureModules = new Set(['barocss-error', 'modeling', 'cad-document', 'data-copy', 'xy-affine-prism-feature-document-internal',
   'modeling-regeneration-internal', 'modeling-dimension-internal']);
 const replaced = new Set(), state = { phase: 'closed', calls: [], unexpected: [], scaleError: undefined };
 const clone = value => structuredClone(value);
@@ -254,7 +254,7 @@ test('native refusal keeps original complete cause and accepted snapshot data',(
 const mapEntry=resolve(dirname(entry),'modeling-scale-internal'+extname(entry));
 const mapBindings={ 'own-convex-planar-face':['buildConvexPlanarFace'], 'convex-planar-solid':['qualifyConvexPlanarSolid','validateConvexPlanarSolid'],
   'convex-planar-solid-proof-internal':['check','id','same','SolidSnapshotLedger','ConvexPlanarSolidError'] };
-const mapPureModules=new Set(['modeling-scale-internal','section-rational-internal']);
+const mapPureModules=new Set(['barocss-error','modeling-scale-internal','section-rational-internal']);
 let mapAttempts=0;const mapKey=Symbol.for('barocss.modeling-scale.coefficient-trap');globalThis[mapKey]=()=>{mapAttempts++;throw Error('UNEXPECTED_MAP_NATIVE');};
 const mapBundle=await build({stdin:{contents:`export { scalePointExactly, scaleCurveExactly, scaleSurfaceExactly } from ${JSON.stringify(mapEntry)};`,resolveDir:dirname(entry),sourcefile:'scale-map-entry.mjs',loader:'js'},bundle:true,platform:'node',format:'esm',target:'node22',write:false,metafile:true,
  plugins:[{name:'scale-map-native-trap',setup(b){b.onResolve({filter:/\.(?:ts|js)$/},args=>{const key=basename(args.path,extname(args.path));if(mapBindings[key])return{path:key,namespace:'map-trap'};assert.ok(mapPureModules.has(key),'Only checked pure scale/rational modules may enter the map bundle: '+key);});b.onLoad({filter:/.*/,namespace:'map-trap'},args=>({loader:'js',contents:mapBindings[args.path].map(name=>`export const ${name}=function(){return globalThis[Symbol.for('barocss.modeling-scale.coefficient-trap')]();};`).join('\n')}));}}]});

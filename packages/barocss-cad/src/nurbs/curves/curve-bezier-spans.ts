@@ -8,6 +8,7 @@ import { curveDecimal } from './curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CurveBezierSpanExtractionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', SPAN: 'SPAN', REPRESENTABILITY: 'REPRESENTABILITY',
@@ -15,7 +16,7 @@ export const CurveBezierSpanExtractionDiagnosticCode = Object.freeze({
 } as const);
 export type CurveBezierSpanExtractionDiagnosticCode =
   typeof CurveBezierSpanExtractionDiagnosticCode[keyof typeof CurveBezierSpanExtractionDiagnosticCode];
-export class CurveBezierSpanExtractionError extends Error {
+export class CurveBezierSpanExtractionError extends KernelError {
   readonly code: CurveBezierSpanExtractionDiagnosticCode;
   constructor(code: CurveBezierSpanExtractionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Curve Bezier span extraction: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

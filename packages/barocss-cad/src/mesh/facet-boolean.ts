@@ -20,6 +20,7 @@ import { surfaceDomain, surfaceEvaluator } from '../core/math.js';
 import { brepFromTriangles, MeshBrepError } from './mesh-brep.js';
 import { selfIntersections } from './mesh-repair.js';
 import type { FacetPatch, Point, Surface } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export interface FacetBooleanOptions {
   /** The result's id. */
@@ -29,7 +30,7 @@ export interface FacetBooleanOptions {
   /** At most this many mesh triangles near the tool (the exact Boolean's share); default 16 000. */
   readonly nearTriangles?: number;
 }
-export class FacetBooleanError extends Error {
+export class FacetBooleanError extends KernelError {
   constructor(readonly code: 'CAPABILITY' | 'GEOMETRY', detail: string) { super(detail); this.name = 'FacetBooleanError'; }
 }
 

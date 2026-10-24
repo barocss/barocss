@@ -8,11 +8,12 @@ import { adopt } from '../intersect/own-plane-cylinder-intersection-internal.js'
 import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const MultiSectionLoftDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BASIS: 'BASIS', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type MultiSectionLoftDiagnosticCode = typeof MultiSectionLoftDiagnosticCode[keyof typeof MultiSectionLoftDiagnosticCode];
-export class MultiSectionLoftError extends Error {
+export class MultiSectionLoftError extends KernelError {
   readonly code: MultiSectionLoftDiagnosticCode; readonly poleIndex: number | null;
   constructor(code: MultiSectionLoftDiagnosticCode, detail: string, context: { poleIndex?: number | null; cause?: unknown } = {}) {
     const poleIndex = typeof context.poleIndex === 'number' && Number.isInteger(context.poleIndex) && context.poleIndex >= 0 && context.poleIndex < 16 ? context.poleIndex : null;

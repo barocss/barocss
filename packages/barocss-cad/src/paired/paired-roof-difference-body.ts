@@ -12,6 +12,7 @@ import type {CompatibleRuledSurfaceResult} from '../nurbs/surfaces/compatible-ru
 import type {PairedSurfaceMaterialBodyResult} from './paired-surface-material-body.js';
 import type {SectionFraction,SectionRational} from '../section-rational-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type F=SectionFraction; type Sense='forward'|'reverse'; type Size={utf16:number;utf8:number};
 type Operand=PairedSurfaceMaterialBodyResult;
@@ -79,7 +80,7 @@ export interface PairedRoofDifferenceBodyReport {
 }
 type Limits={maximumClosures:3;maximumFaces:6;maximumEdgePairs:12;maximumObservations:24;maximumNativeD0Attempts:72;maximumVertices:8;maximumEdges:12;maximumUses:24;maximumOriginalUDegree:2;vDegree:1;maximumProofDegree:8;maximumRuledDegree:2;sourceCharacters:262144;sourceUTF8Bytes:262144;maximumObjectsPerModel:16;requestBytes:8388608;resultBytes:16777216;ownValues:4194304;ownDepth:64;arrayElements:8192;recordFields:64;keyCharacters:128;stringCharacters:262144;prefixCharacters:8;identityCharacters:48;rationalOperations:200000;gcdSteps:200000;rationalIntegerBits:8192;fractionIntegerCharacters:5000;maximumRationalFloatConversions:0;maximumSettlePasses:8};
 export const PairedRoofDifferenceBodyDiagnosticCode=Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',PARENT:'PARENT',PROFILE:'PROFILE',SOURCE:'SOURCE',NATIVE:'NATIVE',CLOSURE:'CLOSURE',TOPOLOGY:'TOPOLOGY',MATERIAL:'MATERIAL',ORIENTATION:'ORIENTATION',DOMAIN:'DOMAIN',REPRESENTABILITY:'REPRESENTABILITY',BINDING:'BINDING',BUDGET:'BUDGET',FILE:'FILE',OWNED:'OWNED'} as const);
-export class PairedRoofDifferenceBodyError extends Error {
+export class PairedRoofDifferenceBodyError extends KernelError {
   readonly code: Code;
   readonly context: Context;
   constructor(code: Code, detail: string, context: Context, cause?: unknown) {

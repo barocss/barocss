@@ -22,9 +22,10 @@ import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import type { Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type FitErrorCode = 'FIT_TABLE' | 'FIT_TABLE_MISS' | 'FIT_FACE' | 'FIT_PAIR';
-export class FitError extends Error {
+export class FitError extends KernelError {
   constructor(readonly code: FitErrorCode, detail: string) { super(`[${code}] ${detail}`); this.name = 'FitError'; }
 }
 export interface FitSource { readonly id: string; readonly label: string; readonly url?: string; readonly read?: string; readonly note?: string }

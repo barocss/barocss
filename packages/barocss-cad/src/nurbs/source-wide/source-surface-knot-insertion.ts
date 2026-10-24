@@ -9,6 +9,7 @@ import { evaluateSurfaceD1 } from '../../core/derivatives.js';
 import type { SurfaceD1Result } from '../../core/derivatives.js';
 import type { Curve, Surface, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceSurfaceKnotInsertionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE',
@@ -18,7 +19,7 @@ export const SourceSurfaceKnotInsertionDiagnosticCode = Object.freeze({
 } as const);
 export type SourceSurfaceKnotInsertionDiagnosticCode =
   typeof SourceSurfaceKnotInsertionDiagnosticCode[keyof typeof SourceSurfaceKnotInsertionDiagnosticCode];
-export class SourceSurfaceKnotInsertionError extends Error {
+export class SourceSurfaceKnotInsertionError extends KernelError {
   readonly code: SourceSurfaceKnotInsertionDiagnosticCode;
   constructor(code: SourceSurfaceKnotInsertionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source Surface knot insertion: ' + detail).slice(0, 1024),

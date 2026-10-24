@@ -5,6 +5,7 @@
 import type { Brep } from '../brep/brep-core.js';
 import type { BrepMesh, BrepMeshFace } from '../brep/brep-tessellate.js';
 
+/** A point or direction, mm, Z up: the facades' one shape (api-conventions §10.2), the same tuple gpu's core/geometry-types.ts declares. */
 export type Vec3 = readonly [number, number, number];
 export type AxisName = 'x' | 'y' | 'z';
 /** An outward direction along an axis, for faces: '+z' is a face whose normal points up. */
@@ -129,17 +130,41 @@ function tangent(mesh: BrepMesh, fa: BrepMeshFace | undefined, fb: BrepMeshFace 
  * by the kernel's tessellation, its normal and centroid from that tessellation. A seam (an edge both of whose uses are
  * on one face) is left out, as the studio's display leaves it out.
  */
+/** Each edge's faces through its coedges, by face id. */
+function usesOf(brep: Brep): Map<string, string[]> {
+  const loopFace = new Map(brep.loops.map(l => [l.id, l.face])), uses = new Map<string, string[]>();
+  for (const c of brep.coedges) { const f = loopFace.get(c.loop)!, l = uses.get(c.edge); if (l) l.push(f); else uses.set(c.edge, [f]); }
+  return uses;
+}
+
+// (An edge a person sees and picks: two different faces meeting at it, not smoothly — no seam, no tangent joint.)
+function shown(uses: readonly string[] | undefined, mesh: BrepMesh, meshFace: ReadonlyMap<string, BrepMeshFace>, points: Float64Array | undefined): boolean {
+  return !!uses && uses.length === 2 && uses[0] !== uses[1] && !tangent(mesh, meshFace.get(uses[0]), meshFace.get(uses[1]), points);
+}
+
+/**
+ * A B-rep's display lines (api-conventions.md §10.3): the edges the selectors offer — seams and tangent joints left out,
+ * as the studio's display leaves them — as segment pairs of their tessellated polylines, in mm.
+ */
+export function brepLines(brep: Brep, mesh: BrepMesh): Float32Array {
+  const uses = usesOf(brep), meshFace = new Map(mesh.faces.map(f => [f.faceId, f])), out: number[] = [];
+  for (const e of mesh.edges) {
+    if (!shown(uses.get(e.edgeId), mesh, meshFace, e.pointsMM)) continue;
+    const P = e.pointsMM;
+    for (let k = 0; k + 5 < P.length; k += 3) out.push(P[k], P[k + 1], P[k + 2], P[k + 3], P[k + 4], P[k + 5]);
+  }
+  return Float32Array.from(out);
+}
+
 export function brepSelection(brep: Brep, mesh: BrepMesh): BodyQuery {
-  const loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
   const faceName = new Map(brep.faces.map(f => [f.id, f.name ?? f.id]));
   const vertex = new Map(brep.vertices.map(v => [v.id, v.point]));
-  const usesOf = new Map<string, string[]>();
-  for (const c of brep.coedges) { const f = loopFace.get(c.loop)!, l = usesOf.get(c.edge); if (l) l.push(f); else usesOf.set(c.edge, [f]); }
+  const faceUses = usesOf(brep);
   const edges: EdgeInfo[] = [], edgesOfFace = new Map<string, number[]>();
   const meshFace = new Map(mesh.faces.map(f => [f.faceId, f])), meshEdge = new Map(mesh.edges.map(e => [e.edgeId, e.pointsMM]));
   for (const e of brep.edges) {
-    const uses = usesOf.get(e.id) ?? [];
-    if (uses.length !== 2 || uses[0] === uses[1] || tangent(mesh, meshFace.get(uses[0]), meshFace.get(uses[1]), meshEdge.get(e.id))) continue;
+    const uses = faceUses.get(e.id) ?? [];
+    if (!shown(uses, mesh, meshFace, meshEdge.get(e.id))) continue;
     const a = vertex.get(e.vertices[0])!, b = vertex.get(e.vertices[1])!;
     const straight = e.curve.degree === 1 && e.curve.controlPoints.length === 2, dir = unit([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
     const axis = straight ? (['x', 'y', 'z'] as const).find((_, k) => Math.abs(Math.abs(dir[k]) - 1) < AXIS_TOL) ?? null : null;

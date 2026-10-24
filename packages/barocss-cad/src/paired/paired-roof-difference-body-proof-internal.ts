@@ -3,6 +3,7 @@ import type { FaceBundle, FaceIds } from '../core/face.js';
 import type { CompatibleRuledSurfaceResult } from '../nurbs/surfaces/compatible-ruled-surface.js';
 import type { PairedRoofDifferenceBodyRequest } from './paired-roof-difference-body.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 type F = SectionFraction;
 type R = SectionRational;
 type Sense = 'forward' | 'reverse';
@@ -64,7 +65,7 @@ export type PairedRoofDifferenceLoop = Loop;
 export type PairedRoofDifferenceFace = Face;
 export type PairedRoofDifferenceShell = Shell;
 export type PairedRoofDifferenceBody = Body;
-export class PairedRoofDifferenceProofError extends Error {
+export class PairedRoofDifferenceProofError extends KernelError {
   readonly code: Code;
   readonly edgeIndex: number | null; readonly faceRole: FaceRole | null;
   constructor(code: PairedRoofDifferenceProofError['code'], detail: string,

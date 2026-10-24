@@ -6,13 +6,14 @@ import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { Point } from '../types.js';
 import { triangulateCoplanarMaterial } from './coplanar-face-boolean-mesh-triangulation.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CoplanarFaceBooleanMeshDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY',
   UNCERTAINTY: 'UNCERTAINTY', TRIANGULATION: 'TRIANGULATION', INCIDENCE: 'INCIDENCE', COVERAGE: 'COVERAGE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CoplanarFaceBooleanMeshDiagnosticCode = typeof CoplanarFaceBooleanMeshDiagnosticCode[keyof typeof CoplanarFaceBooleanMeshDiagnosticCode];
-export class CoplanarFaceBooleanMeshError extends Error {
+export class CoplanarFaceBooleanMeshError extends KernelError {
   readonly code: CoplanarFaceBooleanMeshDiagnosticCode;
   constructor(code: CoplanarFaceBooleanMeshDiagnosticCode, detail: string, cause?: unknown) {
     super(('Coplanar Face Boolean Mesh: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

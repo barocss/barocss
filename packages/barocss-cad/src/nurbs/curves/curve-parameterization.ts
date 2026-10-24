@@ -3,11 +3,12 @@ import type { CurveInterpolationResult } from './curve-interpolation.js';
 import { curveDomain } from '../../core/math.js';
 import type { Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CurveParameterizationDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type CurveParameterizationDiagnosticCode = typeof CurveParameterizationDiagnosticCode[keyof typeof CurveParameterizationDiagnosticCode];
-export class CurveParameterizationError extends Error {
+export class CurveParameterizationError extends KernelError {
   readonly code: CurveParameterizationDiagnosticCode;
   constructor(code: CurveParameterizationDiagnosticCode, detail: string, cause?: unknown) {
     super(('Curve parameterization: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

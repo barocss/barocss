@@ -4,6 +4,7 @@
 import type { StudioDoc } from '../engine/doc';
 import { evaluateDoc, exportStudioStep, type BodyResult } from '../engine/evaluate';
 import { bodyMass } from '../app/mass';
+import { materialIdOf, withLook } from '../app/bodies';
 import { fromEvaluation, fromExport, refuse } from './refusal';
 
 
@@ -31,12 +32,29 @@ export function massOf(body: BodyResult, gPerCm3: number): MassResult {
   return { volumeMM3: body.volumeMM3, massG: props.massG, centroidMM: props.centroid, inertiaGMM2: props.inertia.map(row => row.map(v => v * G_PER_KG)) };
 }
 
-/** Each body's display triangles, as the core's evaluation made them. */
+/** Each body's display triangles and lines, as the core's evaluation made them, with the material id the body names. */
 export function meshesOf(doc: StudioDoc): MeshData[] {
-  return bodiesOf(doc).map(b => ({ key: b.key, positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices }));
+  return bodiesOf(doc).map(b => {
+    const material = materialIdOf(doc, b);
+    return { key: b.key, positions: b.mesh.positions, normals: b.mesh.normals, indices: b.mesh.indices, lines: b.mesh.edgeLines, ...(material !== undefined ? { material } : {}) };
+  });
 }
 
 /** The document's exact solids as one STEP AP214 file. */
 export function stepOf(doc: StudioDoc, name: string): string {
   try { return exportStudioStep(doc, { name }).text; } catch (e) { throw fromExport(e instanceof Error ? e.message : String(e)); }
+}
+
+/** The material id a body names (its own, else the brief's), if any. */
+export function materialOf(doc: StudioDoc, key: string): string | undefined {
+  return materialIdOf(doc, bodiesOf(doc).find(b => b.key === key)!);
+}
+
+/** The document with a body's material set (`key` null: every body's), as set_material writes it. */
+export function withMaterial(doc: StudioDoc, key: string | null, id: string): StudioDoc {
+  const picked = bodiesOf(doc).filter(b => key === null || b.key === key);
+  if (!picked.length) throw refuse('NO_BODY', 'the part has no body to set a material on');
+  let out = doc;
+  for (const b of picked) out = withLook(out, b, { material: id });
+  return out;
 }

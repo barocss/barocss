@@ -18,9 +18,9 @@ const handWritten = () => ({
 
 // (The verbs are the agent's v2 commands, their options the commands' values with units: api-conventions.md §12.)
 const bracket = () => part('bracket')
-  .box({ wMM: 80, dMM: 40, hMM: 10 })
-  .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
-  .fillet(body => body.edges().along('z'), { radiusMM: 2 });
+  .box({ w: 80, d: 40, h: 10 })
+  .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 })
+  .fillet(body => body.edges().along('z'), { radius: 2 });
 
 // (exportStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = text => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
@@ -33,7 +33,7 @@ test('its mass, STEP, STL and meshes are the kernel\'s own on that document, byt
   const [output] = evaluateCadPart(handWritten()).outputs, m = output.massProperties(2700);
   // (MMGS, api-conventions.md §2: the kernel's kg and kg·m² × 1000 and × 1e9; its density in kg/m³ is g/cm³ × 1000.)
   const expected = { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroidMM: [...m.centroidMM], inertiaGMM2: m.inertiaCentroidKgM2.map(row => row.map(v => v * 1e9)) };
-  assert.equal(JSON.stringify(bracket().mass({ densityGPerCm3: 2.7 })), JSON.stringify(expected));
+  assert.equal(JSON.stringify(bracket().mass({ density: 2.7 })), JSON.stringify(expected));
   assert.equal(unstamped(bracket().step()), unstamped(output.exportStep({ name: 'bracket' })));
   assert.deepEqual(Buffer.from(bracket().stl()), Buffer.from(output.exportStl()));
   const [mesh] = bracket().meshes(), t = tessellateBrep(output.brep);
@@ -43,8 +43,8 @@ test('its mass, STEP, STL and meshes are the kernel\'s own on that document, byt
 });
 
 test('every method returns a new part and leaves the old one as it was', () => {
-  const block = part('b').box({ wMM: 80, dMM: 40, hMM: 10 }), before = JSON.stringify(block.doc);
-  const holed = block.hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 });
+  const block = part('b').box({ w: 80, d: 40, h: 10 }), before = JSON.stringify(block.doc);
+  const holed = block.hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 });
   assert.equal(JSON.stringify(block.doc), before);
   assert.notEqual(JSON.stringify(holed.doc), before);
   const copy = holed.doc; copy.features.length = 0;
@@ -52,7 +52,7 @@ test('every method returns a new part and leaves the old one as it was', () => {
 });
 
 test('typed selectors read the kernel\'s B-rep by its persistent names, its seams and tangent joints left out', () => {
-  const body = part().box({ wMM: 80, dMM: 40, hMM: 10 }).hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 }).select();
+  const body = part().box({ w: 80, d: 40, h: 10 }).hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 }).select();
   assert.deepEqual(body.edges().along('z').names(), ['extrude1.side0|extrude1.side1', 'extrude1.side0|extrude1.side3', 'extrude1.side1|extrude1.side2', 'extrude1.side2|extrude1.side3']);
   assert.deepEqual(body.faces().facing('+z').names(), ['extrude1.top']);
   // The top face's edges: its four sides and the hole's rim (two half-circle edges).
@@ -64,20 +64,20 @@ test('typed selectors read the kernel\'s B-rep by its persistent names, its seam
 
 test('refusals are typed: the facade\'s own, and the kernel\'s passed through with its code, once', () => {
   const refusal = f => { try { f(); } catch (e) { return e; } assert.fail('no refusal'); };
-  const e1 = refusal(() => part().hole(b => b.faces().facing('+z'), { dMM: 4, xMM: 0, yMM: 0 }));
+  const e1 = refusal(() => part().hole(b => b.faces().facing('+z'), { d: 4, x: 0, y: 0 }));
   assert.ok(e1 instanceof BarocssError); assert.equal(e1.code, 'NO_BODY'); assert.equal(e1.where, 'facade');
-  const e2 = refusal(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).mass({ densityGPerCm3: 0 }));
+  const e2 = refusal(() => part().box({ w: 10, d: 10, h: 10 }).mass({ density: 0 }));
   assert.ok(e2 instanceof BarocssError); assert.equal(e2.code, 'DENSITY');
   // A fillet larger than its walls: the kernel refuses it, and the facade passes its code and words on.
-  const e3 = refusal(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).fillet(b => b.edges().along('z'), { radiusMM: 8 }).mass({ densityGPerCm3: 2.7 }));
+  const e3 = refusal(() => part().box({ w: 10, d: 10, h: 10 }).fillet(b => b.edges().along('z'), { radius: 8 }).mass({ density: 2.7 }));
   assert.ok(e3 instanceof BarocssError); assert.equal(e3.where, 'evaluate');
   assert.equal(e3.details?.feature, 'fillet1');
   assert.ok(e3.code !== 'EVALUATION', 'the kernel\'s code, not a stand-in');
   assert.match(e3.message, /^\[[A-Z_]+\] /);
   // (Two faces picked where a hole needs one, and a value that is no length: the facade's own, before the kernel.)
-  const e4 = refusal(() => part().box({ wMM: 10, dMM: 10, hMM: 10 }).hole(b => b.faces().planar(), { dMM: 2, xMM: 5, yMM: 5 }));
+  const e4 = refusal(() => part().box({ w: 10, d: 10, h: 10 }).hole(b => b.faces().planar(), { d: 2, x: 5, y: 5 }));
   assert.equal(e4.code, 'SELECTION_ONE');
-  const e5 = refusal(() => part().box({ wMM: -1, dMM: 10, hMM: 10 }));
+  const e5 = refusal(() => part().box({ w: -1, d: 10, h: 10 }));
   assert.equal(e5.code, 'VALUE');
   assert.equal(e3.message.indexOf(`[${e3.code}]`), e3.message.lastIndexOf(`[${e3.code}]`), 'the code appears once');
 });

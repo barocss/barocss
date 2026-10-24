@@ -1,12 +1,13 @@
 import { evaluateCurveD2, evaluateSurfaceD2 } from '../../core/second-derivatives.js';
 import type { CurveD2Result, SurfaceD2Result } from '../../core/second-derivatives.js';
 import type { Curve, Surface, Point } from '../../types.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const NativeCurvatureDiagnosticCode = Object.freeze({
   DERIVATIVE: 'DERIVATIVE', REGULARITY: 'REGULARITY', ARITHMETIC: 'ARITHMETIC',
 } as const);
 export type NativeCurvatureDiagnosticCode = typeof NativeCurvatureDiagnosticCode[keyof typeof NativeCurvatureDiagnosticCode];
-export class NativeCurvatureError extends Error {
+export class NativeCurvatureError extends KernelError {
   readonly code: NativeCurvatureDiagnosticCode;
   constructor(code: NativeCurvatureDiagnosticCode, detail: string, cause?: unknown) {
     super(('Native curvature: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

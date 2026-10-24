@@ -2,10 +2,11 @@ import { CadNumericPolicy } from '../numeric-policy.js';
 import { basis, validateCurve, validateSurface } from './math.js';
 import { evaluateCurveD1, surfaceD1Evaluator } from './derivatives.js';
 import type { Curve, Surface, Point } from '../types.js';
+import { KernelError } from './barocss-error.js';
 
 export const NativeSecondDerivativeDiagnosticCode = Object.freeze({ INPUT: 'INPUT', CONTINUITY: 'CONTINUITY', ARITHMETIC: 'ARITHMETIC', NATIVE: 'NATIVE' } as const);
 export type NativeSecondDerivativeDiagnosticCode = typeof NativeSecondDerivativeDiagnosticCode[keyof typeof NativeSecondDerivativeDiagnosticCode];
-export class NativeSecondDerivativeError extends Error {
+export class NativeSecondDerivativeError extends KernelError {
   readonly code: NativeSecondDerivativeDiagnosticCode;
   constructor(code: NativeSecondDerivativeDiagnosticCode, detail: string, cause?: unknown) {
     super(('Native second derivative: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

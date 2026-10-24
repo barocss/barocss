@@ -3,10 +3,11 @@ import type { VLinearSurfacePlaneTrimResult } from './vlinear-plane-trim.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const VLinearSurfacePlaneTrimUVDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', TRIM: 'TRIM', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type VLinearSurfacePlaneTrimUVDiagnosticCode = typeof VLinearSurfacePlaneTrimUVDiagnosticCode[keyof typeof VLinearSurfacePlaneTrimUVDiagnosticCode];
-export class VLinearSurfacePlaneTrimUVError extends Error {
+export class VLinearSurfacePlaneTrimUVError extends KernelError {
   readonly code: VLinearSurfacePlaneTrimUVDiagnosticCode;
   constructor(code: VLinearSurfacePlaneTrimUVDiagnosticCode, detail: string, cause?: unknown) {
     super(('V-linear trim UV classification: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'VLinearSurfacePlaneTrimUVError'; this.code = code;

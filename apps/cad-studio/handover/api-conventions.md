@@ -1,7 +1,8 @@
 # API conventions for cad, cad-model and gpu (R7.2, 2026-10-24)
 
 **Status: owner-approved, 2026-10-24** ("로드맵 제대로 정해서 진행해줘", after the R7 proposal, the §10 common data
-formats and the facade structure in §11). R7.3 onwards implements these rules.
+formats and the facade structure in §11). R7.3 onwards implements these rules. Amended by the owner the same day:
+no unit suffixes in names (§2, §12).
 
 On 2026-10-24 the owner decided the API is two layers: the core stays data and functions, and the public facade is
 object-style ("겉 api 는 객체 형태로"). These rules apply to new code now. R7.3 brings the existing public surface
@@ -30,8 +31,20 @@ isn't in `.doc`. The agent stays on the JSON v2 tools.
   - Lengths are in mm. Angles in documents and options are in degrees.
   - Mass is in g. Density is in g/cm³, the way materials are quoted.
   - Volume is in mm³, area in mm², and inertia in g·mm².
-  - A field name carries its unit, as cad already does (`volumeMM3`, `massG`, `areaMM2`, `inertiaGMM2`,
-    `angleDeg`).
+  - **No unit suffixes in names** (owner, 2026-10-24, widened the same day from the facades' options to everything):
+    every quantity is in the units above, so names don't repeat them — `w`, `d`, `h`, `r`, `deg`, `distance`,
+    `radius`, `volume`, `mass`, `centroid`, `inertia`, `density`, not `wMM`, `volumeMM3`, `massG`, `inertiaGMM2`. This
+    covers:
+    1. the facades' input options (the agent's COMMAND_DOCS value names: `box({ w, d, h })`; done in R7.4c);
+    2. the agent's tool arguments (`nearMM`, `layerMM`, `toolMM`, `limitDeg` → `near`, `layer`, `tool`, `limit`);
+    3. the core functions' options (the kernel's `distanceMM`, `radiusMM` …);
+    4. rows file fields (`lengthMM`, `boreMM`, `insideDiameterMM` …), with the sample rows and the validators;
+    5. result names (`volumeMM3`, `massG`, `centroidMM`, `inertiaGMM2` …);
+    6. documents' stored fields (the part document's `rotationDeg`, `lengthMM`, `upToMM`, `startDeg` …, the studio
+       document's and gpu's scene formats alike). The documents are unreleased and track the latest schema, so the
+       fields are renamed in place, with no version bump, alias or migration, and the fixtures and conformance cases
+       are regenerated (owner, 2026-10-24).
+    A name that would read ambiguously without its unit gets a clearer word, never the unit back.
   - Today cad's mass properties are in kg and kg/m³ (`massKG`, `inertiaCentroidKgM2`, density in kg/m³), while
     cad-model's are in g and g/cm³. R7.3 moves cad's public results to MMGS.
 - **Ids and names** follow the document's existing rules. A face or edge reference that the core resolves stays
@@ -146,13 +159,15 @@ tests either move to `evaluateCadPart` fixtures or go with them.
    - `Vec3 = readonly [x, y, z]`;
    - `Mat3`: 9 numbers, row-major, whose columns are the frame's axes, so Z = [R[2], R[5], R[8]];
    - `Mat4`: a column-major `Float64Array(16)`, used only inside computation;
-   - `Pose` in documents: `{ positionMM: Vec3, rotationDeg: Vec3 }`, rotated about X, then Y, then Z, as instances
+   - `Pose` in documents: `{ position: Vec3, rotation: Vec3 }` (mm and degrees), rotated about X, then Y, then Z, as instances
      and frames already are.
 
    New code uses these. The 13 `Vec3`/`V3`/`Vector3` declarations converge in R7.3c, where they cross a package.
 3. **Mesh data:** `{ key, positions: Float32Array, normals?: Float32Array, indices: Uint32Array }` in mm and Z up. It
-   optionally adds `faceIds` and `edges`, the display lines, as gpu `GeometryInput` with `topology: 'lines'`. This is
-   the facades' `.meshes()` shape, and gpu's `GeometryInput` takes it as it is.
+   optionally adds `faceIds` and `lines`, the display lines (the selectable edges as segment pairs), which gpu draws as
+   line geometry (`topology: 'lines'`). The field is `lines`, not `edges`: gpu's `GeometryInput.edges` already means
+   per-segment ids (R7.5b, finding 9). This is the facades' `.meshes()` shape, and gpu's `GeometryInput` takes it as it
+   is.
 4. **References to topology** across a package boundary are `{ body, face?, edge? }`, carrying the persistent names
    (`n1.side0|n1.side1`). Indices stay inside one package.
 5. **Stored and transmitted formats** carry the header `{ format, schema }`. The documents are unreleased and track the
@@ -179,7 +194,8 @@ tests either move to `evaluateCadPart` fixtures or go with them.
 
 - The facade's modelling verbs carry the agent's v2 command names (COMMAND_DOCS in chat/part/features.ts), written in
   camelCase: extrude, revolve, pipe, `offsetFace`, hole, fillet, chamfer, shell and so on.
-- Option names match the command's `values`, with units in the name (§2).
+- Option names are the command's `values` names, with no unit suffix (§2): `box({ w, d, h })`,
+  `cylinder({ r, h })`, `extrude({ h })`, `revolve({ deg })`. Results carry no unit suffix either (`mass`, `volume`).
 - A verb with no v2 command, such as `box`, is named for its studio palette entry.
 - The docs, the facade and the agent's tool table then read as one vocabulary. Read-only results (mass, step, stl,
   meshes) aren't commands and keep their names.

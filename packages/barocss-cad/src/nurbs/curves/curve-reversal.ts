@@ -6,10 +6,11 @@ import { compileCadModel } from '../../model-compiler.js';
 import { curveDecimal } from './curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CurveReversalDiagnosticCode=Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',DOMAIN:'DOMAIN',REPRESENTABILITY:'REPRESENTABILITY',NATIVE:'NATIVE',BINDING:'BINDING',OWNED:'OWNED'} as const);
 export type CurveReversalDiagnosticCode=typeof CurveReversalDiagnosticCode[keyof typeof CurveReversalDiagnosticCode];
-export class CurveReversalError extends Error {
+export class CurveReversalError extends KernelError {
   readonly code:CurveReversalDiagnosticCode;
   constructor(code:CurveReversalDiagnosticCode,detail:string){super(('Curve reversal: '+detail).slice(0,1024));this.name='CurveReversalError';this.code=code;}
 }

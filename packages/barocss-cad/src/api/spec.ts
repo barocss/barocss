@@ -23,32 +23,45 @@ export type FeatureSpec =
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
+  | { readonly command: 'mirror'; readonly values: { readonly plane: 'yz' | 'xz' | 'xy'; readonly at: number } }
+  | { readonly command: 'scale'; readonly values: { readonly factor: number; readonly px: number; readonly py: number; readonly pz: number } }
+  | { readonly command: 'split'; readonly values: { readonly axis: AxisName; readonly at: number } | { readonly axis: 'n'; readonly nx: number; readonly ny: number; readonly nz: number; readonly at: number } }
   | { readonly command: 'rotate'; readonly values: { readonly axis: AxisName; readonly angle: number; readonly px: number; readonly py: number; readonly pz: number } };
 
-/** `box`: the command's values, with their units in the names (§2). */
-export interface BoxOptions { wMM: number; dMM: number; hMM: number; xMM?: number; yMM?: number; zMM?: number }
+/**
+ * `box`: the command's values by their own names (§12). Every input is in the conventions' fixed units — lengths in mm,
+ * angles in degrees — so no name carries a unit (owner, 2026-10-24).
+ */
+export interface BoxOptions { w: number; d: number; h: number; x?: number; y?: number; z?: number }
 /** `cylinder`: radius r and height h, standing on z about (x, y). */
-export interface CylinderOptions { rMM: number; hMM: number; xMM?: number; yMM?: number; zMM?: number }
-/** `extrude`: the sketch pulled h along its plane's normal; `draftDeg` leans its walls in (0: straight). */
-export interface ExtrudeOptions { hMM: number; draftDeg?: number }
-/** `revolve`: the sketch turned about its plane's Y axis (or X), `angleDeg` (default 360). */
-export interface RevolveOptions { axis?: 'x' | 'y'; angleDeg?: number }
+export interface CylinderOptions { r: number; h: number; x?: number; y?: number; z?: number }
+/** `extrude`: the sketch pulled h along its plane's normal; `draft` leans its walls in (0: straight). */
+export interface ExtrudeOptions { h: number; draft?: number }
+/** `revolve`: the sketch turned about its plane's Y axis (or X), `deg` degrees (default 360). */
+export interface RevolveOptions { axis?: 'x' | 'y'; deg?: number }
 /** `hole`: into the face a selector picks; `x`, `y` on that face's plane (a Z face: X and Y), as the command takes them. */
-export interface HoleOptions { dMM: number; xMM: number; yMM: number; type?: 'through' | 'blind'; depthMM?: number }
+export interface HoleOptions { d: number; x: number; y: number; type?: 'through' | 'blind'; depth?: number }
 /** `fillet`: on the edges a selector picks. */
-export interface FilletOptions { radiusMM: number }
+export interface FilletOptions { radius: number }
 /** `chamfer`: on the edges a selector picks, at 45°. */
-export interface ChamferOptions { distanceMM: number }
+export interface ChamferOptions { distance: number }
 /** `shell`: walls t thick, the faces a selector picks left open (none: a closed hollow). */
-export interface ShellOptions { tMM: number }
-/** `linear-pattern`: `count` copies (the original among them) `spacingMM` apart along an axis, joined into one body. */
-export interface LinearPatternOptions { axis: AxisName; spacingMM: number; count: number }
+export interface ShellOptions { t: number }
+/** `linear-pattern`: `count` copies (the original among them) `spacing` apart along an axis, joined into one body. */
+export interface LinearPatternOptions { axis: AxisName; spacing: number; count: number }
 /**
  * `circular-pattern`: `count` copies (the original among them) about an axis, joined into one body. About Z they spread
- * over `spanDeg` (360, the default: an even full turn) round the axis through (px, py); about X or Y the kernel steps by
+ * over `span` (360, the default: an even full turn) round the axis through (px, py); about X or Y the kernel steps by
  * quarter turns, so the copies are 2 to 4 and no span or axis position is taken.
  */
-export interface CircularPatternOptions { axis?: AxisName; count: number; spanDeg?: number; pxMM?: number; pyMM?: number }
+export interface CircularPatternOptions { axis?: AxisName; count: number; span?: number; px?: number; py?: number }
+
+/** `mirror`: a mirrored copy, joined, across a coordinate plane — yz (across X), xz or xy — through `at` on its axis (0: the origin). */
+export interface MirrorOptions { plane: 'yz' | 'xz' | 'xy'; at?: number }
+/** `scale`: the body scaled uniformly by `factor` about `pivot` (the origin unless given). */
+export interface ScaleOptions { factor: number; pivot?: readonly [number, number, number] }
+/** `split`: the body cut in two across the plane `axis` = at, or with `normal` any plane normal·p = at (x + y = at for [1, 1, 0]: a mitre). */
+export type SplitOptions = { axis: AxisName; at: number } | { normal: readonly [number, number, number]; at: number };
 
 const positive = (name: string, v: number) => { if (!(Number.isFinite(v) && v > 0)) throw refuse('VALUE', `${name} must be a positive number of mm, not ${v}`); return v; };
 const finite = (name: string, v: number) => { if (!Number.isFinite(v)) throw refuse('VALUE', `${name} must be a number of mm, not ${v}`); return v; };
@@ -59,40 +72,40 @@ const edgesOf = (edges: readonly string[], verb: string) => { if (!edges.length)
 const sketchData = (s: Sketch) => { if (!(s instanceof Sketch)) throw refuse('VALUE', 'give a finished sketch: sketch(plane)…close(), .rectangle(), .circle() or .polygon()'); return s.data; };
 
 export function boxSpec(o: BoxOptions): FeatureSpec {
-  return { command: 'box', values: { w: positive('wMM', o.wMM), d: positive('dMM', o.dMM), h: positive('hMM', o.hMM), x: finite('xMM', o.xMM ?? 0), y: finite('yMM', o.yMM ?? 0), z: finite('zMM', o.zMM ?? 0) } };
+  return { command: 'box', values: { w: positive('w', o.w), d: positive('d', o.d), h: positive('h', o.h), x: finite('x', o.x ?? 0), y: finite('y', o.y ?? 0), z: finite('z', o.z ?? 0) } };
 }
 
 export function cylinderSpec(o: CylinderOptions): FeatureSpec {
-  return { command: 'cylinder', values: { r: positive('rMM', o.rMM), h: positive('hMM', o.hMM), x: finite('xMM', o.xMM ?? 0), y: finite('yMM', o.yMM ?? 0), z: finite('zMM', o.zMM ?? 0) } };
+  return { command: 'cylinder', values: { r: positive('r', o.r), h: positive('h', o.h), x: finite('x', o.x ?? 0), y: finite('y', o.y ?? 0), z: finite('z', o.z ?? 0) } };
 }
 
 export function extrudeSpec(s: Sketch, o: ExtrudeOptions): FeatureSpec {
-  return { command: 'extrude', sketch: sketchData(s), values: { h: positive('hMM', o.hMM), draft: degrees('draftDeg', o.draftDeg ?? 0) } };
+  return { command: 'extrude', sketch: sketchData(s), values: { h: positive('h', o.h), draft: degrees('draft', o.draft ?? 0) } };
 }
 
 export function revolveSpec(s: Sketch, o: RevolveOptions = {}): FeatureSpec {
-  const axis = o.axis ?? 'y', deg = degrees('angleDeg', o.angleDeg ?? 360);
+  const axis = o.axis ?? 'y', deg = degrees('deg', o.deg ?? 360);
   if (axis !== 'x' && axis !== 'y') throw refuse('VALUE', `a revolve turns about the sketch's x or y axis, not ${String(axis)}`);
-  if (!(deg > 0 && deg <= 360)) throw refuse('VALUE', `angleDeg is more than 0 and at most 360, not ${deg}`);
+  if (!(deg > 0 && deg <= 360)) throw refuse('VALUE', `deg is more than 0 and at most 360, not ${deg}`);
   return { command: 'revolve', sketch: sketchData(s), values: { axis, deg } };
 }
 
 export function holeSpec(face: string, o: HoleOptions): FeatureSpec {
-  const type = o.type ?? (o.depthMM !== undefined ? 'blind' : 'through');
-  if (type === 'blind' && o.depthMM === undefined) throw refuse('VALUE', 'a blind hole needs depthMM');
-  return { command: 'hole', face, values: { type, d: positive('dMM', o.dMM), x: finite('xMM', o.xMM), y: finite('yMM', o.yMM), ...(type === 'blind' ? { depth: positive('depthMM', o.depthMM!) } : {}) } };
+  const type = o.type ?? (o.depth !== undefined ? 'blind' : 'through');
+  if (type === 'blind' && o.depth === undefined) throw refuse('VALUE', 'a blind hole needs depth');
+  return { command: 'hole', face, values: { type, d: positive('d', o.d), x: finite('x', o.x), y: finite('y', o.y), ...(type === 'blind' ? { depth: positive('depth', o.depth!) } : {}) } };
 }
 
 export function filletSpec(edges: readonly string[], o: FilletOptions): FeatureSpec {
-  return { command: 'fillet', edges: edgesOf(edges, 'fillet'), values: { radius: positive('radiusMM', o.radiusMM) } };
+  return { command: 'fillet', edges: edgesOf(edges, 'fillet'), values: { radius: positive('radius', o.radius) } };
 }
 
 export function chamferSpec(edges: readonly string[], o: ChamferOptions): FeatureSpec {
-  return { command: 'chamfer', edges: edgesOf(edges, 'chamfer'), values: { distance: positive('distanceMM', o.distanceMM) } };
+  return { command: 'chamfer', edges: edgesOf(edges, 'chamfer'), values: { distance: positive('distance', o.distance) } };
 }
 
 export function shellSpec(open: readonly string[], o: ShellOptions): FeatureSpec {
-  return { command: 'shell', faces: open, values: { t: positive('tMM', o.tMM) } };
+  return { command: 'shell', faces: open, values: { t: positive('t', o.t) } };
 }
 
 export function booleanSpec(command: BooleanCommand, tool: string): FeatureSpec {
@@ -100,14 +113,14 @@ export function booleanSpec(command: BooleanCommand, tool: string): FeatureSpec 
 }
 
 export function linearPatternSpec(o: LinearPatternOptions): FeatureSpec {
-  return { command: 'linear-pattern', values: { axis: axisName(o.axis), spacing: positive('spacingMM', o.spacingMM), count: count(o.count) } };
+  return { command: 'linear-pattern', values: { axis: axisName(o.axis), spacing: positive('spacing', o.spacing), count: count(o.count) } };
 }
 
 export function circularPatternSpec(o: CircularPatternOptions): FeatureSpec {
-  const axis = axisName(o.axis ?? 'z'), n = count(o.count), span = degrees('spanDeg', o.spanDeg ?? 360);
-  if (!(span > 0 && span <= 360)) throw refuse('VALUE', `spanDeg is more than 0 and at most 360, not ${span}`);
-  if (axis !== 'z' && (n > 4 || span !== 360 || o.pxMM !== undefined || o.pyMM !== undefined)) throw refuse('VALUE', `about ${axis} the copies step by quarter turns: 2 to 4 of them, with no span or axis position`);
-  return { command: 'circular-pattern', values: { axis, count: n, span, px: finite('pxMM', o.pxMM ?? 0), py: finite('pyMM', o.pyMM ?? 0) } };
+  const axis = axisName(o.axis ?? 'z'), n = count(o.count), span = degrees('span', o.span ?? 360);
+  if (!(span > 0 && span <= 360)) throw refuse('VALUE', `span is more than 0 and at most 360, not ${span}`);
+  if (axis !== 'z' && (n > 4 || span !== 360 || o.px !== undefined || o.py !== undefined)) throw refuse('VALUE', `about ${axis} the copies step by quarter turns: 2 to 4 of them, with no span or axis position`);
+  return { command: 'circular-pattern', values: { axis, count: n, span, px: finite('px', o.px ?? 0), py: finite('py', o.py ?? 0) } };
 }
 
 export function moveSpec(offset: readonly [number, number, number]): FeatureSpec {
@@ -115,6 +128,28 @@ export function moveSpec(offset: readonly [number, number, number]): FeatureSpec
 }
 
 /** A turn about an axis through the origin (a Location's). */
-export function rotateSpec(axis: AxisName, angleDeg: number): FeatureSpec {
-  return { command: 'rotate', values: { axis, angle: degrees('angleDeg', angleDeg), px: 0, py: 0, pz: 0 } };
+export function rotateSpec(axis: AxisName, angle: number): FeatureSpec {
+  return { command: 'rotate', values: { axis, angle: degrees('angle', angle), px: 0, py: 0, pz: 0 } };
+}
+
+export function mirrorSpec(o: MirrorOptions): FeatureSpec {
+  if (o.plane !== 'yz' && o.plane !== 'xz' && o.plane !== 'xy') throw refuse('VALUE', `a mirror plane is yz, xz or xy, not ${String(o.plane)}`);
+  return { command: 'mirror', values: { plane: o.plane, at: finite('at', o.at ?? 0) } };
+}
+
+/** A uniform scale about a pivot (the origin unless given, in both cores: the studio's own default, the body's centre, is not taken). */
+export function scaleSpec(o: ScaleOptions): FeatureSpec {
+  const p = o.pivot ?? [0, 0, 0];
+  if (!(Number.isFinite(o.factor) && o.factor > 0)) throw refuse('VALUE', `factor must be a positive number, not ${o.factor}`);
+  return { command: 'scale', values: { factor: o.factor, px: finite('pivot x', p[0]), py: finite('pivot y', p[1]), pz: finite('pivot z', p[2]) } };
+}
+
+export function splitSpec(o: SplitOptions): FeatureSpec {
+  const at = finite('at', o.at);
+  if ('normal' in o) {
+    const [nx, ny, nz] = o.normal.map((v, k) => finite(`normal ${'xyz'[k]}`, v));
+    if (!(Math.hypot(nx, ny, nz) > 1e-9)) throw refuse('VALUE', 'a split plane\'s normal must not be zero');
+    return { command: 'split', values: { axis: 'n', nx, ny, nz, at } };
+  }
+  return { command: 'split', values: { axis: axisName(o.axis), at } };
 }

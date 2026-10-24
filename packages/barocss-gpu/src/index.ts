@@ -4,6 +4,7 @@ export { compileScene, GPU_LIMITS } from './mesh/compiler.js';
 export type { SceneShaders } from './mesh/compiler.js';
 export { GPUError } from './core/gpu-error.js';
 export { BarocssError, refusalText, type BarocssErrorOptions, type Problem } from './core/barocss-error.js';
+export type { Mat3, Mat4 } from './core/geometry-types.js';
 export type { GpuErrorCode } from './core/error-codes.js';
 export type { UpdateResult } from './core/gpu-error.js';
 export { validatePreviewPacket, validateMeshOptions, prepareMesh } from './mesh/mesh-packet.js';

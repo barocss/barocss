@@ -9,6 +9,7 @@ import { splitBezierCurveTrusted } from '../curves/curve-bezier-subdivision-inte
 import type { BezierSubdivisionResult } from '../curves/curve-bezier-subdivision-internal.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceCurveAdaptiveSamplingDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', SOURCE: 'SOURCE', REFERENCE: 'REFERENCE', IDENTITY: 'IDENTITY',
@@ -17,7 +18,7 @@ export const SourceCurveAdaptiveSamplingDiagnosticCode = Object.freeze({
 } as const);
 export type SourceCurveAdaptiveSamplingDiagnosticCode =
   typeof SourceCurveAdaptiveSamplingDiagnosticCode[keyof typeof SourceCurveAdaptiveSamplingDiagnosticCode];
-export class SourceCurveAdaptiveSamplingError extends Error {
+export class SourceCurveAdaptiveSamplingError extends KernelError {
   readonly code: SourceCurveAdaptiveSamplingDiagnosticCode;
   constructor(code: SourceCurveAdaptiveSamplingDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source Curve adaptive sampling: ' + detail).slice(0, 1024),

@@ -33,12 +33,13 @@
 import type { Brep } from '../brep/brep-core.js';
 import type { Curve, Point } from '../types.js';
 import { arcCurve, extrudedProfile } from './gear.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export type CamLaw = 'uniform' | 'harmonic' | 'cycloidal' | 'polynomial-345' | 'modified-trapezoid';
 export const CAM_LAWS: readonly CamLaw[] = ['uniform', 'harmonic', 'cycloidal', 'polynomial-345', 'modified-trapezoid'];
 export type CamCode = 'INVALID_INPUT' | 'CAM_UNDERCUT' | 'PROFILE_BUDGET_EXCEEDED';
 export type CamWarningCode = 'PRESSURE_ANGLE' | 'ACCELERATION_STEP' | 'FACE_WIDTH';
-export class CamError extends Error {
+export class CamError extends KernelError {
   constructor(readonly code: CamCode, detail: string) { super(`cam: ${detail}`); this.name = 'CamError'; }
 }
 const fail = (code: CamCode, detail: string): never => { throw new CamError(code, detail); };

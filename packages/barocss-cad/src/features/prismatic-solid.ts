@@ -27,6 +27,7 @@ import { BrepError, buildBrep, lineCurve, type Brep, type BrepFaceInput, type Br
 import { buildProfileLoop, capSurface, extrudedSurface, segmentCurve, type ProfileSegment, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { sideName, type SideTags } from '../document/side-names.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export interface PrismaticSlab { readonly z0: number; readonly z1: number; readonly regions: readonly CurveRegion2[] }
 /** An authored top or bottom: caps of the solid at height z inside these regions take its tag. */
@@ -34,7 +35,7 @@ export interface PrismaticCapSource { readonly z: number; readonly regions: read
 /** Slabs sorted by height, disjoint in Z; adjacent slabs with equal sections are merged. */
 export interface PrismaticSolid { readonly kind: 'prismatic-solid'; readonly slabs: readonly PrismaticSlab[]; readonly caps?: readonly PrismaticCapSource[] }
 export type PrismaticBooleanOperation = 'union' | 'intersection' | 'difference';
-export class PrismaticSolidError extends Error { constructor(detail: string) { super('Prismatic solid: ' + detail); this.name = 'PrismaticSolidError'; } }
+export class PrismaticSolidError extends KernelError { constructor(detail: string) { super('Prismatic solid: ' + detail, { code: 'PRISMATIC_SOLID' }); this.name = 'PrismaticSolidError'; } }
 
 const ringsOf = (regions: readonly CurveRegion2[]) => regions.flatMap(r => [r.outer, ...r.holes]);
 const allRings = (slabs: readonly PrismaticSlab[]) => slabs.flatMap(s => ringsOf(s.regions));

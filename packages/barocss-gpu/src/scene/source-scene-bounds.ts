@@ -24,6 +24,8 @@ export interface SourceSceneBoundsRequest {
   objectIds?: string[];
 }
 export interface SourceSceneBoundsBox { min: Vec3; max: Vec3 }
+// (A box being grown, corner by corner or object by object.)
+type GrowingBox = { min: [number, number, number]; max: [number, number, number] };
 export interface SourceSceneObjectBounds {
   objectId: string;
   kind: SceneObject1['type'];
@@ -103,16 +105,16 @@ function finite(values: readonly number[]): void {
 function localBox(object: SceneObject1): SourceSceneBoundsBox {
   let min: Vec3, max: Vec3;
   switch (object.type) {
-    case 'sphere': max = [object.radius, object.radius, object.radius]; min = max.map(n => -n) as Vec3; break;
-    case 'box': case 'rounded-box': max = object.size.map(n => n / 2) as Vec3; min = max.map(n => -n) as Vec3; break;
-    case 'cylinder': max = [object.radius, object.height / 2, object.radius]; min = max.map(n => -n) as Vec3; break;
+    case 'sphere': max = [object.radius, object.radius, object.radius]; min = max.map(n => -n) as [number, number, number]; break;
+    case 'box': case 'rounded-box': max = object.size.map(n => n / 2) as [number, number, number]; min = max.map(n => -n) as [number, number, number]; break;
+    case 'cylinder': max = [object.radius, object.height / 2, object.radius]; min = max.map(n => -n) as [number, number, number]; break;
     case 'capsule':
-      min = object.start.map((n, axis) => Math.min(n, object.end[axis]) - object.radius) as Vec3;
-      max = object.start.map((n, axis) => Math.max(n, object.end[axis]) + object.radius) as Vec3;
+      min = object.start.map((n, axis) => Math.min(n, object.end[axis]) - object.radius) as [number, number, number];
+      max = object.start.map((n, axis) => Math.max(n, object.end[axis]) + object.radius) as [number, number, number];
       break;
     case 'torus':
       max = [object.majorRadius + object.minorRadius, object.minorRadius, object.majorRadius + object.minorRadius];
-      min = max.map(n => -n) as Vec3; break;
+      min = max.map(n => -n) as [number, number, number]; break;
   }
   finite([...min, ...max]);
   check(min.every((n, axis) => n <= max[axis]), CODE.NUMERICAL, 'Local bounds are unordered');
@@ -121,7 +123,7 @@ function localBox(object: SceneObject1): SourceSceneBoundsBox {
 function worldBox(object: SceneObject1 | AffineSceneObject2, local: SourceSceneBoundsBox): SourceSceneBoundsBox {
   const rotation = inverseRotation(object.rotateDegrees);
   const scale: Vec3 = 'scaleXYZ' in object ? object.scaleXYZ : [1, 1, 1];
-  let bounds: SourceSceneBoundsBox | null = null;
+  let bounds: GrowingBox | null = null;
   for (let corner = 0; corner < 8; corner++) {
     const point = [0, 1, 2].map(axis => ((corner & (1 << axis)) ? local.max[axis] : local.min[axis]) * scale[axis]);
     finite(point);
@@ -132,8 +134,8 @@ function worldBox(object: SceneObject1 | AffineSceneObject2, local: SourceSceneB
       const translated = object.translate[axis] + rotated;
       finite([...products, first, rotated, translated]);
       return translated;
-    }) as Vec3;
-    if (bounds === null) bounds = { min: [...world] as Vec3, max: [...world] as Vec3 };
+    }) as [number, number, number];
+    if (bounds === null) bounds = { min: [...world] as [number, number, number], max: [...world] as [number, number, number] };
     else for (let axis = 0; axis < 3; axis++) {
       bounds.min[axis] = Math.min(bounds.min[axis], world[axis]);
       bounds.max[axis] = Math.max(bounds.max[axis], world[axis]);
@@ -153,11 +155,11 @@ export function prepareSourceSceneBounds(input: unknown): PreparedSourceSceneBou
   }
   const selected = admitted.selection === null ? null : new Set(admitted.selection);
   const objects: SourceSceneObjectBounds[] = [];
-  let bounds: SourceSceneBoundsBox | null = null;
+  let bounds: GrowingBox | null = null;
   for (const object of original.objects) if (selected === null || selected.has(object.id)) {
     const localBounds = localBox(object), worldBounds = worldBox(object, localBounds);
     objects.push({ objectId: object.id, kind: object.type, localBounds, worldBounds });
-    if (bounds === null) bounds = copyGpuData(worldBounds);
+    if (bounds === null) bounds = copyGpuData(worldBounds) as GrowingBox;
     else for (let axis = 0; axis < 3; axis++) {
       bounds.min[axis] = Math.min(bounds.min[axis], worldBounds.min[axis]);
       bounds.max[axis] = Math.max(bounds.max[axis], worldBounds.max[axis]);

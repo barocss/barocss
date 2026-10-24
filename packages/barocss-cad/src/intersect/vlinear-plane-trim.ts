@@ -13,10 +13,11 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { Curve, Model, Point, Surface } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const VLinearSurfacePlaneTrimDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SECTION: 'SECTION', UV: 'UV', INTERVAL: 'INTERVAL', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type VLinearSurfacePlaneTrimDiagnosticCode = typeof VLinearSurfacePlaneTrimDiagnosticCode[keyof typeof VLinearSurfacePlaneTrimDiagnosticCode];
-export class VLinearSurfacePlaneTrimError extends Error {
+export class VLinearSurfacePlaneTrimError extends KernelError {
   readonly code: VLinearSurfacePlaneTrimDiagnosticCode;
   constructor(code: VLinearSurfacePlaneTrimDiagnosticCode, detail: string, cause?: unknown) {
     super(('V-linear Plane trim: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'VLinearSurfacePlaneTrimError'; this.code = code;

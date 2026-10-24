@@ -3,6 +3,7 @@ import type { TranslatedSurfaceEndFacesResult } from './translated-surface-end-f
 import type { TranslatedSurfaceStripVolumeResult } from './translated-surface-strip-volume.js';
 import type { SectionRationalContext, SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Surface } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type Role='lower'|'upper'|'cap'|'base'|'uMin'|'uMax';
 type Domains={u:[number,number];v:[number,number]};
@@ -26,7 +27,7 @@ export interface QualifiedTranslatedStripMaterialProof {
   limits:{nativeOrParentCalls:0;floatConversions:0;maximumPolynomialDegree:4;maximumSpans:4};
 }
 
-class MaterialError extends Error {
+class MaterialError extends KernelError {
   readonly code:'MATERIAL'|'ORIENTATION';
   constructor(code:'MATERIAL'|'ORIENTATION',detail:string){super(('Qualified translated-strip material: '+detail).slice(0,1024));this.name='QualifiedTranslatedStripMaterialInternalError';this.code=code}
 }

@@ -6,13 +6,14 @@ import { compileCurveSource } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const WideCurveControlPolygonEditDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type WideCurveControlPolygonEditDiagnosticCode =
   typeof WideCurveControlPolygonEditDiagnosticCode[keyof typeof WideCurveControlPolygonEditDiagnosticCode];
-export class WideCurveControlPolygonEditError extends Error {
+export class WideCurveControlPolygonEditError extends KernelError {
   readonly code: WideCurveControlPolygonEditDiagnosticCode;
   constructor(code: WideCurveControlPolygonEditDiagnosticCode, detail: string, cause?: unknown) {
     super(('Wide Curve control-polygon edit: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

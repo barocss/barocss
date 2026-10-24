@@ -4,7 +4,7 @@
 // set_inputs, set_variants; chat/robot.ts set_frames), then the assembly is solved again as the tools solve it. The
 // tools are async (they take an evaluator); these are their writes, done in sync over the core's sync functions. When
 // the core gains them as `verb(doc, options) → doc` functions (api-conventions §3), this file calls those instead.
-import { BarocssError, bracketedCode, refuse } from '@barocss/cad/api';
+import { BarocssError, bracketedCode, refuse, type Vec3 } from '@barocss/cad/api';
 import { emptyDoc, placedDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, KIND_LABEL, kindsFor, mateRefusal, solveAssembly, type Mate, type MateKind } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
@@ -17,7 +17,8 @@ import { nextFreeId } from '../util/ids';
 import { solveDoc } from '../assembly/edit';
 import { bodiesOf, meshesOf, type MeshData } from './core';
 
-type Vec3 = [number, number, number];
+// (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
+type XYZ = [number, number, number];
 
 /** A core refusal in a tool's words (`[CODE] …`, or a sentence): its code the bracketed one, else ASSEMBLY. */
 const fromTool = (message: string) => new BarocssError(bracketedCode(message) ?? 'ASSEMBLY', message, 'evaluate');
@@ -26,14 +27,14 @@ const fromTool = (message: string) => new BarocssError(bracketedCode(message) ??
 const solved = (before: StudioDoc, next: StudioDoc) => solveDoc(next, before.instances).doc;
 
 /** add_part: a part placed by a rotation and a move, its document the given one (the tool's is empty or a copy). */
-export function addPartDoc(doc: StudioDoc, name: string, partDoc: StudioDoc, position: Vec3, rotation: Vec3, grounded: boolean): { doc: StudioDoc; id: string } {
+export function addPartDoc(doc: StudioDoc, name: string, partDoc: StudioDoc, position: XYZ, rotation: XYZ, grounded: boolean): { doc: StudioDoc; id: string } {
   const instances = doc.instances ?? [], id = nextFreeId('p', new Set(instances.map(i => i.id)));
   const inst: PartInstance = { id, name, doc: partDoc, position, rotation, ...(grounded ? { grounded: true } : {}) };
   return { doc: solved(doc, { ...doc, instances: [...instances, inst] }), id };
 }
 
 /** place_part: a part's placement and grounding (`undefined` keeps each). */
-export function placePartDoc(doc: StudioDoc, id: string, o: { position?: Vec3; rotation?: Vec3; grounded?: boolean }): StudioDoc {
+export function placePartDoc(doc: StudioDoc, id: string, o: { position?: XYZ; rotation?: XYZ; grounded?: boolean }): StudioDoc {
   const instances = doc.instances ?? [], inst = instances.find(i => i.id === id)!, mates = doc.mates ?? [];
   const by = mates.filter(m => m.b.part === inst.id);
   if (o.grounded === true && by.length) throw fromTool(`${by.length} mate${by.length > 1 ? 's' : ''} move ${inst.name}; delete ${by.length > 1 ? 'them' : 'it'} first, or fix the other part.`);
@@ -67,11 +68,9 @@ export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variant
   return out.doc;
 }
 
-/** A variant (O11): the master regenerated with these input values (the master itself unchanged), or the refusal. */
+/** A variant (O11): the master regenerated with these input values (the master itself unchanged); the core's refusal, a BarocssError, passed through as it is. */
 export function variantDoc(doc: StudioDoc, values: Record<string, number | boolean | string>): StudioDoc {
-  const r = variantOf(doc, values);
-  if ('error' in r) throw fromTool(r.error);
-  return r.doc;
+  return variantOf(doc, values).doc;
 }
 
 // (The joint tree as chat/robot.ts treeOfDoc builds it, each part's gears from its own evaluation.)
@@ -99,7 +98,7 @@ export function framesDoc(doc: StudioDoc, frames: Record<string, FrameSettings |
 
 /** Each frame's world pose at the solved pose (mm, degrees about X, then Y, then Z). */
 export function framePosesOf(doc: StudioDoc) {
-  return (treeOf(doc).frames ?? []).map(f => ({ name: f.name, link: f.link, ...(f.kind ? { kind: f.kind } : {}), positionMM: [...f.o] as Vec3, rotationDeg: eulerOf(f.R) as Vec3 }));
+  return (treeOf(doc).frames ?? []).map(f => ({ name: f.name, link: f.link, ...(f.kind ? { kind: f.kind } : {}), position: [...f.o] as Vec3, rotation: eulerOf(f.R) as Vec3 }));
 }
 
 /** The mates the solver cannot meet, with its reasons. */

@@ -21,9 +21,9 @@ const CASES: Case[] = [
   {
     // A 60 × 40 × 8 plate, a Ø8 bore cut through it by a cylinder, its top's four straight edges chamfered 1.
     name: 'plate',
-    built: () => part('plate').box({ wMM: 60, dMM: 40, hMM: 8 })
-      .subtract(p => p.cylinder({ rMM: 4, hMM: 20, xMM: 15, yMM: 20, zMM: -6 }))
-      .chamfer(b => b.faces().facing('+z').edges().straight(), { distanceMM: 1 }),
+    built: () => part('plate').box({ w: 60, d: 40, h: 8 })
+      .subtract(p => p.cylinder({ r: 4, h: 20, x: 15, y: 20, z: -6 }))
+      .chamfer(b => b.faces().facing('+z').edges().straight(), { distance: 1 }),
     agent: [
       ['run_command', { command: 'box', values: { w: 60, d: 40, h: 8, x: 0, y: 0, z: 0 } }],
       ['run_command', { command: 'cylinder', values: { r: 4, h: 20, x: 15, y: 20, z: -6 } }],
@@ -34,7 +34,7 @@ const CASES: Case[] = [
   {
     // A cup: a 20 × 30 section on XZ turned a full turn about Z, hollowed to 2 mm walls with its top open.
     name: 'cup',
-    built: () => part('cup').revolve(sketch(Plane.XZ).polygon([[0, 0], [20, 0], [20, 30], [0, 30]])).shell(b => b.faces().facing('+z'), { tMM: 2 }),
+    built: () => part('cup').revolve(sketch(Plane.XZ).polygon([[0, 0], [20, 0], [20, 30], [0, 30]])).shell(b => b.faces().facing('+z'), { t: 2 }),
     agent: [
       ['add_features', { features: [{ kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]], plane: XZ, sideTags: tags(4) }] }],
       ['run_command', { command: 'revolve', values: { axis: 'y', deg: 360 } }],
@@ -44,8 +44,8 @@ const CASES: Case[] = [
   {
     // A ring of six blocks round Z, two tiers, stood up on X and lifted 5.
     name: 'ring',
-    built: () => part('ring').box({ wMM: 10, dMM: 10, hMM: 5, xMM: 20 }).circularPattern({ count: 6 }).linearPattern({ axis: 'z', spacingMM: 10, count: 2 })
-      .moved(Location.of({ positionMM: [0, 0, 5], rotationDeg: [90, 0, 0] })),
+    built: () => part('ring').box({ w: 10, d: 10, h: 5, x: 20 }).circularPattern({ count: 6 }).linearPattern({ axis: 'z', spacing: 10, count: 2 })
+      .moved(Location.of({ position: [0, 0, 5], rotation: [90, 0, 0] })),
     agent: [
       ['run_command', { command: 'box', values: { w: 10, d: 10, h: 5, x: 20, y: 0, z: 0 } }],
       ['run_command', { command: 'circular-pattern', bodies: ['b1'], values: { axis: 'z', count: 6, span: 360, px: 0, py: 0 } }],
@@ -71,10 +71,10 @@ const CASES: Case[] = [
     // the whole cut down to a 20 × 20 core by intersecting with a box the callback adds.
     name: 'pegged',
     built: () => {
-      const p = part('pegged').box({ wMM: 30, dMM: 30, hMM: 10 }).cylinder({ rMM: 5, hMM: 30, xMM: 15, yMM: 15 });
+      const p = part('pegged').box({ w: 30, d: 30, h: 10 }).cylinder({ r: 5, h: 30, x: 15, y: 15 });
       // (The studio's display gives a closed rim one edge of two names; the kernel's B-rep, two half-circles.)
-      const q = p.body('b3').fillet(b => b.edges().curved().sortBy('z').last(1), { radiusMM: 1 });
-      return q.body('b1').union('b4').intersect(x => x.box({ wMM: 20, dMM: 20, hMM: 40, xMM: 5, yMM: 5 }));
+      const q = p.body('b3').fillet(b => b.edges().curved().sortBy('z').last(1), { radius: 1 });
+      return q.body('b1').union('b4').intersect(x => x.box({ w: 20, d: 20, h: 40, x: 5, y: 5 }));
     },
     agent: [
       ['run_command', { command: 'box', values: { w: 30, d: 30, h: 10, x: 0, y: 0, z: 0 } }],
@@ -89,8 +89,8 @@ const CASES: Case[] = [
     // Two bodies of sketches on other planes: a drafted tab from a loop on XY lifted 5, and a quarter-turned ring section on YZ.
     name: 'tabs',
     built: () => part('tabs')
-      .extrude(sketch(Plane.XY.offset(5)).moveTo([0, 0]).lineTo([30, 0]).arcTo([30, 20], { center: [30, 10] }).lineTo([0, 20]).close(), { hMM: 6, draftDeg: 3 })
-      .revolve(sketch(Plane.YZ).rectangle({ wMM: 4, dMM: 6, xMM: 10 }), { angleDeg: 90 }),
+      .extrude(sketch(Plane.XY.offset(5)).moveTo([0, 0]).lineTo([30, 0]).arcTo([30, 20], { center: [30, 10] }).lineTo([0, 20]).close(), { h: 6, draft: 3 })
+      .revolve(sketch(Plane.YZ).rectangle({ w: 4, d: 6, x: 10 }), { deg: 90 }),
     agent: [
       ['add_features', { features: [{ kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [30, 0], center: [30, 10], direction: 'ccw' }, { kind: 'line', start: [30, 20] }, { kind: 'line', start: [0, 20] }], plane: { origin: [0, 0, 5], normal: [0, 0, 1], xAxis: [1, 0, 0] }, sideTags: tags(4) }] }],
       ['run_command', { command: 'extrude', values: { h: 6, draft: 3 } }],
@@ -107,6 +107,20 @@ const CASES: Case[] = [
       ],
       outputs: { b1: { node: 1, side: 'solid' }, b3: { node: 3, side: 'solid' } }, nextId: 4,
     } as StudioDoc),
+  },
+  {
+    // A block mirrored across its +X face, x = 10 (kept, joined), scaled ×2 about (1, 2, 3), and split across its middle,
+    // x = 19, into two bodies. (Those values because the agent's mirror and split commands move `at` to the face and the
+    // middle when the plane or axis is given with it — the outer lane's to fix; the facade keeps the `at` it is given,
+    // tested below.)
+    name: 'mirrored',
+    built: () => part('mirrored').box({ w: 10, d: 10, h: 10 }).mirror({ plane: 'yz', at: 10 }).scale({ factor: 2, pivot: [1, 2, 3] }).split({ axis: 'x', at: 19 }),
+    agent: [
+      ['run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } }],
+      ['run_command', { command: 'mirror', bodies: ['b1'], values: { plane: 'yz', at: 10 } }],
+      ['run_command', { command: 'scale', bodies: ['b4'], values: { factor: 2, px: 1, py: 2, pz: 3 } }],
+      ['run_command', { command: 'split', bodies: ['b5'], values: { axis: 'x', at: 19 } }],
+    ],
   },
 ];
 
@@ -139,7 +153,7 @@ for (const c of CASES) {
     for (const body of r.bodies) {
       // (MMGS: the core's inertia is in kg·mm² today, the facade's in g·mm², api-conventions.md §2.)
       const m = bodyMass(body, 1.2)!, expected = { volumeMM3: body.volumeMM3, massG: m.massG, centroidMM: m.centroid, inertiaGMM2: m.inertia.map(row => row.map(v => v * 1000)) };
-      assert.equal(JSON.stringify(p.body(body.key).mass({ densityGPerCm3: 1.2 })), JSON.stringify(expected));
+      assert.equal(JSON.stringify(p.body(body.key).mass({ density: 1.2 })), JSON.stringify(expected));
     }
     const core = exportStudioStep(doc, { name: c.name });
     assert.equal(unstamped(p.step()), unstamped(core.text));
@@ -147,25 +161,25 @@ for (const c of CASES) {
 }
 
 test('a body chooser leaves the document as it was, and follows its body through the verbs that replace it', () => {
-  const p = part().box({ wMM: 30, dMM: 30, hMM: 10 }).cylinder({ rMM: 5, hMM: 30, xMM: 15, yMM: 15 });
+  const p = part().box({ w: 30, d: 30, h: 10 }).cylinder({ r: 5, h: 30, x: 15, y: 15 });
   assert.equal(JSON.stringify(p.body('b3').doc), JSON.stringify(p.doc));
-  const q = p.body('b3').fillet(b => b.edges().curved().sortBy('z').last(1), { radiusMM: 1 });
+  const q = p.body('b3').fillet(b => b.edges().curved().sortBy('z').last(1), { radius: 1 });
   assert.deepEqual(q.bodies(), ['b1', 'b4']);
   assert.equal(q.mass('al6061').volumeMM3, q.body('b4').mass('al6061').volumeMM3);
 });
 
 test('the growth\'s refusals are typed: the facade\'s own, and the studio command\'s', () => {
   const refusal = (f: () => unknown) => { try { f(); } catch (e) { return e; } assert.fail('no refusal'); };
-  const two = () => part().box({ wMM: 10, dMM: 10, hMM: 10 }).cylinder({ rMM: 2, hMM: 10, xMM: 30 });
+  const two = () => part().box({ w: 10, d: 10, h: 10 }).cylinder({ r: 2, h: 10, x: 30 });
   const cases: [string, () => unknown][] = [
     ['BODY_AMBIGUOUS', () => two().mass('al6061')],
     ['BODY_UNKNOWN', () => two().body('nope')],
     ['VALUE', () => two().body('b1').union('b1')],
-    ['SELECTION_ONE', () => two().body('b1').subtract(x => x.box({ wMM: 1, dMM: 1, hMM: 1 }).box({ wMM: 1, dMM: 1, hMM: 1, xMM: 5 }))],
-    ['VALUE', () => part().box({ wMM: 10, dMM: 10, hMM: 10, yMM: 20 }).circularPattern({ axis: 'x', count: 5 })],
+    ['SELECTION_ONE', () => two().body('b1').subtract(x => x.box({ w: 1, d: 1, h: 1 }).box({ w: 1, d: 1, h: 1, x: 5 }))],
+    ['VALUE', () => part().box({ w: 10, d: 10, h: 10, y: 20 }).circularPattern({ axis: 'x', count: 5 })],
     // (The studio's command allows 2–24 copies in a row: its own check, as run_command's.)
-    ['VALUE', () => part().box({ wMM: 10, dMM: 10, hMM: 10 }).linearPattern({ axis: 'x', spacingMM: 20, count: 30 })],
-    ['NO_BODY', () => part().shell({ tMM: 1 })],
+    ['VALUE', () => part().box({ w: 10, d: 10, h: 10 }).linearPattern({ axis: 'x', spacing: 20, count: 30 })],
+    ['NO_BODY', () => part().shell({ t: 1 })],
   ];
   for (const [code, f] of cases) {
     const e = refusal(f);
@@ -176,11 +190,11 @@ test('the growth\'s refusals are typed: the facade\'s own, and the studio comman
 
 // R7.4b, the selector-stability test (Onshape FeatureScript's point): after an upstream edit is re-evaluated, the names a
 // feature stores still pick the same edge — moved with the edit — or the part is refused, typed; never another edge.
-const bracket = () => part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 })
-  .hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
-  .fillet(b => b.edges().along('z'), { radiusMM: 2 });
+const bracket = () => part('bracket').box({ w: 80, d: 40, h: 10 })
+  .hole(b => b.faces().facing('+z'), { d: 8, x: 20, y: 20 })
+  .fillet(b => b.edges().along('z'), { radius: 2 });
 const before = (doc: StudioDoc, n: number) => part('before', prefixDoc(doc, doc.nodes.length - n));
-const volume = (p: StudioPart) => p.mass({ densityGPerCm3: 1 }).volumeMM3;
+const volume = (p: StudioPart) => p.mass({ density: 1 }).volumeMM3;
 type Loose = Record<string, unknown>;
 
 test('stability: a dimension edit upstream — the stored names pick the same edges, moved with it', () => {
@@ -196,12 +210,12 @@ test('stability: a dimension edit upstream — the stored names pick the same ed
 
 test('stability: a vertex inserted upstream (the studio sketcher\'s edit, keeping the side tags) — the same named edge', () => {
   const corner = (b: ReturnType<StudioPart['select']>) => b.edges().along('z').where(e => e.a[0] === 40 && e.a[1] === 40);
-  const was = part('tab').extrude(sketch().polygon([[0, 0], [40, 0], [40, 40], [0, 40]]), { hMM: 10 }).fillet(corner, { radiusMM: 3 }), edited = was.doc;
+  const was = part('tab').extrude(sketch().polygon([[0, 0], [40, 0], [40, 40], [0, 40]]), { h: 10 }).fillet(corner, { radius: 3 }), edited = was.doc;
   assert.deepEqual((edited.nodes[2] as { edges: string[] }).edges, ['n1.side[e2]|n1.side[e3]']);
   edited.nodes[0] = { ...edited.nodes[0], points: [[0, 0], [20, -5], [40, 0], [40, 40], [0, 40]], sideTags: { outer: ['e1', 'e5', 'e2', 'e3', 'e4'] } } as StudioDoc['nodes'][number];
   const named = before(edited, 1).select().edges().where(e => e.names.includes('n1.side[e2]|n1.side[e3]')).list();
   assert.deepEqual(named.map(e => [e.a[0], e.a[1]]), [[40, 40]]);
-  const fresh = part('tab').extrude(sketch().polygon([[0, 0], [20, -5], [40, 0], [40, 40], [0, 40]]), { hMM: 10 }).fillet(corner, { radiusMM: 3 });
+  const fresh = part('tab').extrude(sketch().polygon([[0, 0], [20, -5], [40, 0], [40, 40], [0, 40]]), { h: 10 }).fillet(corner, { radius: 3 });
   assert.ok(Math.abs(volume(part('tab', edited)) - volume(fresh)) < 1e-9 * volume(fresh));
 });
 
@@ -213,4 +227,31 @@ test('stability: an edit that takes the named edges away — a typed refusal, ne
   assert.ok(e instanceof BarocssError, String(e));
   assert.equal(e.code, 'SELECTION'); assert.equal(e.where, 'evaluate');
   assert.match(e.message, /^\[SELECTION\] no edge named n1\.side0\|n1\.side1/);
+});
+
+// R7.5b, materials by id (api-conventions §10.6) and display lines (§10.3): a body's material set as the agent's
+// set_material sets it, carried on its meshes with its display lines, and its mass in that material.
+test('material(id): what set_material writes; the meshes carry the id and the display lines; mass() reads it', async () => {
+  const p = part('m').box({ w: 10, d: 10, h: 10 }).material('al6061');
+  const agent = await agentDoc([['run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } }], ['set_material', { material: 'al6061' }]]);
+  assert.equal(JSON.stringify(p.doc), JSON.stringify(agent));
+  const r = evaluateDoc(agent, 1); assert.ok(r.ok);
+  const [mesh] = p.meshes();
+  assert.equal(mesh.material, 'al6061');
+  assert.deepEqual(Buffer.from(mesh.lines!.buffer), Buffer.from(r.bodies[0].mesh.edgeLines.buffer));
+  assert.equal(JSON.stringify(p.mass()), JSON.stringify(p.mass('al6061')));
+  // (Two bodies, one chosen: only its material is set; with none it is the brief's, else refused.)
+  const two = part('t').box({ w: 10, d: 10, h: 10 }).cylinder({ r: 2, h: 10, x: 30 }).body('b3').material('steel');
+  assert.deepEqual(two.meshes().map(m => m.material), [undefined, 'steel']);
+  assert.throws(() => two.body('b1').mass(), e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
+  assert.throws(() => part().box({ w: 1, d: 1, h: 1 }).material('unobtainium'), e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
+});
+
+test('mirror and split keep the `at` they are given (the studio commands\' derive would move it to the face or the middle)', () => {
+  const m = part('m').box({ w: 10, d: 10, h: 10 }).mirror({ plane: 'yz', at: 12 });
+  assert.deepEqual(m.doc.nodes.slice(2).map(n => (n as { offset?: number[] }).offset ?? null), [[-12, 0, 0], null, [12, 0, 0]]);
+  assert.ok(Math.abs(m.mass({ density: 1 }).centroidMM[0] - 12) < 1e-9);
+  const p = part('m').box({ w: 10, d: 10, h: 10 }).split({ axis: 'x', at: 2 });
+  assert.deepEqual(p.doc.nodes[2], { kind: 'split', parent: { node: 1, side: 'solid' }, axis: 'x', at: 2, id: 'n2' });
+  assert.deepEqual(p.bodies().map(b => Math.round(p.body(b).mass({ density: 1 }).volumeMM3)), [200, 800]);
 });

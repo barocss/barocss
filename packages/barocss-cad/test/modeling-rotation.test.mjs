@@ -29,7 +29,7 @@ const providers = new Map([
   ['own-plate-circular-hole', 'buildOwnPlateCircularHole'], ['stored-plate-hole-solid', 'qualifyStoredPlateHoleSolid'],
   ['convex-planar-solid-mass', 'measureConvexPlanarSolidMass'], ['axis-box-solid-mass', 'measureAxisBoxSolidBooleanMass'],
 ]);
-const pureModules = new Set(['modeling', 'cad-document', 'data-copy', 'xy-affine-prism-feature-document-internal',
+const pureModules = new Set(['barocss-error', 'modeling', 'cad-document', 'data-copy', 'xy-affine-prism-feature-document-internal',
   'modeling-regeneration-internal', 'modeling-dimension-internal']);
 const replaced = new Set(), state = { phase: 'closed', calls: [], unexpected: [], rotationError: undefined };
 const clone = value => structuredClone(value);
@@ -256,7 +256,7 @@ const mapBindings={ 'own-convex-planar-face':['buildConvexPlanarFace'], 'convex-
   'convex-planar-solid-proof-internal':['check','id','same','SolidSnapshotLedger','ConvexPlanarSolidError'], 'section-rational-internal':['SectionRationalContext'] };
 let mapAttempts=0;const mapKey=Symbol.for('barocss.modeling-rotation.coefficient-trap');globalThis[mapKey]=()=>{mapAttempts++;throw Error('UNEXPECTED_MAP_NATIVE');};
 const mapBundle=await build({stdin:{contents:`export { rotateCardinalPoint, rotateCardinalCurve, rotateCardinalSurface } from ${JSON.stringify(mapEntry)};`,resolveDir:dirname(entry),sourcefile:'rotation-map-entry.mjs',loader:'js'},bundle:true,platform:'node',format:'esm',target:'node22',write:false,metafile:true,
- plugins:[{name:'rotation-map-native-trap',setup(b){b.onResolve({filter:/\.(?:ts|js)$/},args=>{const key=basename(args.path,extname(args.path));if(mapBindings[key])return{path:key,namespace:'map-trap'};assert.equal(key,'modeling-rotation-internal');});b.onLoad({filter:/.*/,namespace:'map-trap'},args=>({loader:'js',contents:mapBindings[args.path].map(name=>`export const ${name}=function(){return globalThis[Symbol.for('barocss.modeling-rotation.coefficient-trap')]();};`).join('\n')}));}}]});
+ plugins:[{name:'rotation-map-native-trap',setup(b){b.onResolve({filter:/\.(?:ts|js)$/},args=>{const key=basename(args.path,extname(args.path));if(mapBindings[key])return{path:key,namespace:'map-trap'};if(key!=='barocss-error')assert.equal(key,'modeling-rotation-internal');});b.onLoad({filter:/.*/,namespace:'map-trap'},args=>({loader:'js',contents:mapBindings[args.path].map(name=>`export const ${name}=function(){return globalThis[Symbol.for('barocss.modeling-rotation.coefficient-trap')]();};`).join('\n')}));}}]});
 const {rotateCardinalPoint:rotate,rotateCardinalCurve,rotateCardinalSurface}=await import('data:text/javascript;base64,'+Buffer.from(mapBundle.outputFiles[0].text).toString('base64'));
 if(provenance){const dir=provenance.directory;writeFileSync(resolve(dir,'map-bundle.mjs'),mapBundle.outputFiles[0].text,{flag:'wx'});writeFileSync(resolve(dir,'map-metafile.json'),JSON.stringify(mapBundle.metafile,null,2)+'\n',{flag:'wx'});provenance.map={entry:mapEntry,sourceSHA256:sha256(readFileSync(mapEntry)),bundleSHA256:sha256(mapBundle.outputFiles[0].text),nativeBindingsReplaced:mapBindings};}
 after(()=>{delete globalThis[mapKey];assert.equal(mapAttempts,0);});

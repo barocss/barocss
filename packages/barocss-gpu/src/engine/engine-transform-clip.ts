@@ -111,7 +111,7 @@ function clip(input: unknown): EngineTransformClipV0 {
 }
 function vector(input: unknown, minimum: number, maximum: number, label: string): Vec3 {
   check(arrayLength(input, 0, Number.MAX_SAFE_INTEGER) === 3, CODE.INPUT, label + ' requires exactly three components');
-  return array(input, 3, 3).map(n => number(n, minimum, maximum, label)) as Vec3;
+  return array(input, 3, 3).map(n => number(n, minimum, maximum, label)) as [number, number, number];
 }
 function quaternion(input: unknown): Quat {
   check(arrayLength(input, 0, Number.MAX_SAFE_INTEGER) === 4, CODE.INPUT, 'Local quaternion requires exactly four components');
@@ -142,9 +142,9 @@ function sample(track: EngineTransformTrackV0, time: number): LocalTransform {
       const leftKey = keys[i - 1], alpha = (time - leftKey.timeSeconds) / (rightKey.timeSeconds - leftKey.timeSeconds);
       check(Number.isFinite(alpha) && alpha >= 0 && alpha <= 1, CODE.RANGE, 'Derived segment ratio is invalid');
       const translation = leftKey.translation.map((n, index) => number(n + (rightKey.translation[index] - n) * alpha,
-        -1000, 1000, 'Derived local translation')) as Vec3;
+        -1000, 1000, 'Derived local translation')) as [number, number, number];
       const scale = leftKey.scale.map((n, index) => number(n + (rightKey.scale[index] - n) * alpha,
-        .01, 100, 'Derived local scale')) as Vec3;
+        .01, 100, 'Derived local scale')) as [number, number, number];
       const left = normalize(leftKey.rotationXYZW), right = normalize(rightKey.rotationXYZW);
       const dot = left.reduce((sum, n, index) => sum + n * right[index], 0);
       check(Number.isFinite(dot), CODE.RANGE, 'Derived quaternion dot product is nonfinite');

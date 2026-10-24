@@ -4,12 +4,13 @@ import type { CadDocumentResult } from '../cad-document.js';
 import { curveDomain, surfaceDomain } from '../core/math.js';
 import type { Curve, Surface, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CadDocumentBoundsDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', REFERENCE: 'REFERENCE', STALE: 'STALE', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CadDocumentBoundsDiagnosticCode = typeof CadDocumentBoundsDiagnosticCode[keyof typeof CadDocumentBoundsDiagnosticCode];
-export class CadDocumentBoundsError extends Error {
+export class CadDocumentBoundsError extends KernelError {
   readonly code: CadDocumentBoundsDiagnosticCode;
   constructor(code: CadDocumentBoundsDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD document bounds: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

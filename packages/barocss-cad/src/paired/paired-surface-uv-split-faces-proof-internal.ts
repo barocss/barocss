@@ -3,6 +3,7 @@ import type { ExactPairedVLinearSurfaceIntersectionResult } from '../exact-proof
 import type { SurfaceIsoCurveResult } from '../nurbs/surfaces/surface-isocurve.js';
 import type { SourceCurveIntervalExtractionResult } from '../nurbs/source-wide/source-curve-interval-extraction.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type F = SectionFraction;
 type R = SectionRational;
@@ -62,7 +63,7 @@ export type PairedSurfaceUVSplitLoop = Loop;
 export type PairedSurfaceUVSplitFace = Face;
 export type PairedSurfaceUVSplitWorld = World;
 
-export class PairedSurfaceUVSplitFacesProofError extends Error {
+export class PairedSurfaceUVSplitFacesProofError extends KernelError {
   readonly code: 'SUPPORT' | 'DOMAIN' | 'REGION' | 'REPRESENTABILITY' | 'BINDING';
   readonly edgeIndex: number | null;
   readonly role: Role | null;

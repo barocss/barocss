@@ -7,10 +7,11 @@ import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Model, Surface } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceSurfaceControlNetDiagnosticCode = Object.freeze({ INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE', TARGET: 'TARGET', BINDING: 'BINDING', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type SourceSurfaceControlNetDiagnosticCode = typeof SourceSurfaceControlNetDiagnosticCode[keyof typeof SourceSurfaceControlNetDiagnosticCode];
-export class SourceSurfaceControlNetError extends Error {
+export class SourceSurfaceControlNetError extends KernelError {
   readonly code: SourceSurfaceControlNetDiagnosticCode;
   constructor(code: SourceSurfaceControlNetDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source Surface control-net: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'SourceSurfaceControlNetError'; this.code = code;

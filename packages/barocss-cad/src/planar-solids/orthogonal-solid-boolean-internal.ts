@@ -10,10 +10,11 @@ import { evaluateCurveD1, evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const OrthogonalSolidBooleanDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', BINDING: 'BINDING', CONTACT: 'CONTACT', TOPOLOGY: 'TOPOLOGY', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type OrthogonalSolidBooleanDiagnosticCode = typeof OrthogonalSolidBooleanDiagnosticCode[keyof typeof OrthogonalSolidBooleanDiagnosticCode];
-export class OrthogonalSolidBooleanError extends Error {
+export class OrthogonalSolidBooleanError extends KernelError {
   readonly code: OrthogonalSolidBooleanDiagnosticCode;
   constructor(code: OrthogonalSolidBooleanDiagnosticCode, detail: string, cause?: unknown) {
     super(('Orthogonal Solid Boolean: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'OrthogonalSolidBooleanError'; this.code = code;

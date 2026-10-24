@@ -1,4 +1,4 @@
-import type {AnyScene,SceneObject1,SceneObject,Vec3} from '../scene/scene-types.js';
+import type {AnyScene,SceneObject1,SceneObject} from '../scene/scene-types.js';
 import {validateTorusRadii} from '../geometry/torus.js';
 import {roundedBoxInner} from '../geometry/rounded-box.js';
 import {validateCapsuleSegment} from '../geometry/capsule.js';
@@ -20,7 +20,7 @@ function array(value:unknown,maximum:number,path:string):unknown[]{
  for(const k of Reflect.ownKeys(descriptors)){if(k==='length')continue;if(typeof k!=='string'||!/^(0|[1-9]\d*)$/.test(k)||Number(k)>=length||!('value'in descriptors[k])||!descriptors[k].enumerable)throw new Error(`${path} has non-data array fields`);}
  return Array.from({length},(_,i)=>{if(!Object.hasOwn(descriptors,i))throw new Error(`${path} is sparse`);return descriptors[i].value;});
 }
-function triple(value:unknown,positive:boolean,color:boolean,path:string):Vec3{const items=array(value,3,path);if(items.length!==3||items.some(n=>typeof n!=='number'||!Number.isFinite(n)||Math.abs(n)>(color?1:1000)||(color&&(n as number)<0)||(positive&&((n as number)<=0||Math.fround(n as number)<=0))))throw new Error(`Invalid scene ${path}`);return items as Vec3;}
+function triple(value:unknown,positive:boolean,color:boolean,path:string):[number,number,number]{const items=array(value,3,path);if(items.length!==3||items.some(n=>typeof n!=='number'||!Number.isFinite(n)||Math.abs(n)>(color?1:1000)||(color&&(n as number)<0)||(positive&&((n as number)<=0||Math.fround(n as number)<=0))))throw new Error(`Invalid scene ${path}`);return items as [number, number, number];}
 export function resolveStructuredScene(input:unknown):AnyScene{
  const s=ownRecord(input,['version','name','background','objects'],['version','background','objects'],'scene');
  if((s.version!==0&&s.version!==1)||('name'in s&&typeof s.name!=='string'))throw new Error('Invalid scene');
@@ -28,7 +28,7 @@ export function resolveStructuredScene(input:unknown):AnyScene{
   if(typeof o.id!=='string'||seen.has(o.id)||(o.type!=='sphere'&&o.type!=='box'&&!cylinder&&!capsule&&!rounded&&!torus))throw new Error('Invalid scene object');seen.add(o.id);
   const color=triple(o.color,false,true,'color'),translate=triple(o.translate,false,false,'translate'),size=triple(o.size,true,false,'size');if(typeof o.radius!=='number'||!Number.isFinite(o.radius)||o.radius<=0||o.radius>1000||Math.fround(o.radius)<=0)throw new Error('Invalid sphere radius');
   const common={id:o.id,color,translate,radius:o.radius,size};
-  if(s.version===1){const rotation=triple(o.rotateDegrees,false,false,'rotateDegrees');if(rotation.some(n=>Math.abs(n)>360))throw new Error('Rotation must be within -360 to 360');const rotateDegrees=rotation.map(n=>n||0) as Vec3;
+  if(s.version===1){const rotation=triple(o.rotateDegrees,false,false,'rotateDegrees');if(rotation.some(n=>Math.abs(n)>360))throw new Error('Rotation must be within -360 to 360');const rotateDegrees=rotation.map(n=>n||0) as [number, number, number];
    if(cylinder){if(typeof o.height!=='number'||!Number.isFinite(o.height)||o.height<=0||o.height>1000||Math.fround(o.height/2)<=0)throw new Error('Invalid cylinder height');return{...common,type:'cylinder',height:o.height,rotateDegrees} as SceneObject1;}
    if(capsule){const start=triple(o.start,false,false,'start'),end=triple(o.end,false,false,'end');validateCapsuleSegment(start,end);return{...common,type:'capsule',start,end,rotateDegrees} as SceneObject1;}
    if(torus){if(typeof o.majorRadius!=='number'||typeof o.minorRadius!=='number')throw new Error('Invalid torus radii');validateTorusRadii(o.majorRadius,o.minorRadius);return{...common,type:'torus',majorRadius:o.majorRadius,minorRadius:o.minorRadius,rotateDegrees} as SceneObject1;}

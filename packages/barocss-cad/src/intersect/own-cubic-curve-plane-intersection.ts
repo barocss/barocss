@@ -8,6 +8,7 @@ import { copyCadData } from '../data-copy.js';
 import { linearToleranceMM, geometryScaleMM } from '../numeric-policy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', REPRESENTABILITY: 'REPRESENTABILITY', BUDGET: 'BUDGET',
@@ -15,7 +16,7 @@ export const CubicCurveAffinePlaneIntersectionDiagnosticCode = Object.freeze({
 } as const);
 export type CubicCurveAffinePlaneIntersectionDiagnosticCode =
   typeof CubicCurveAffinePlaneIntersectionDiagnosticCode[keyof typeof CubicCurveAffinePlaneIntersectionDiagnosticCode];
-export class CubicCurveAffinePlaneIntersectionError extends Error {
+export class CubicCurveAffinePlaneIntersectionError extends KernelError {
   readonly code: CubicCurveAffinePlaneIntersectionDiagnosticCode;
   constructor(code: CubicCurveAffinePlaneIntersectionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Cubic Curve-plane intersection: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

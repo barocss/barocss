@@ -5,13 +5,14 @@ import { validateSurface, surfaceDomain, evaluateSurface } from '../../core/math
 import { evaluateSurfaceD1 } from '../../core/derivatives.js';
 import type { Surface, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const CadSurfaceAreaDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', REFERENCE: 'REFERENCE', STALE: 'STALE', REGION: 'REGION', REPRESENTABILITY: 'REPRESENTABILITY',
   BUDGET: 'BUDGET', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CadSurfaceAreaDiagnosticCode = typeof CadSurfaceAreaDiagnosticCode[keyof typeof CadSurfaceAreaDiagnosticCode];
-export class CadSurfaceAreaError extends Error {
+export class CadSurfaceAreaError extends KernelError {
   readonly code: CadSurfaceAreaDiagnosticCode;
   constructor(code: CadSurfaceAreaDiagnosticCode, detail: string, cause?: unknown) {
     super(('CAD Surface area: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

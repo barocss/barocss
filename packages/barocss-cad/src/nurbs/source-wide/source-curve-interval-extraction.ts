@@ -9,6 +9,7 @@ import { evaluateCurveD1 } from '../../core/derivatives.js';
 import type { CurveD1Result } from '../../core/derivatives.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SourceCurveIntervalExtractionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', IDENTITY: 'IDENTITY', SOURCE: 'SOURCE',
@@ -18,7 +19,7 @@ export const SourceCurveIntervalExtractionDiagnosticCode = Object.freeze({
 } as const);
 export type SourceCurveIntervalExtractionDiagnosticCode =
   typeof SourceCurveIntervalExtractionDiagnosticCode[keyof typeof SourceCurveIntervalExtractionDiagnosticCode];
-export class SourceCurveIntervalExtractionError extends Error {
+export class SourceCurveIntervalExtractionError extends KernelError {
   readonly code: SourceCurveIntervalExtractionDiagnosticCode;
   constructor(code: SourceCurveIntervalExtractionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Source Curve interval extraction: ' + detail).slice(0, 1024),

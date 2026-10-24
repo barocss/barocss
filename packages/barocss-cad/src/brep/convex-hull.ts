@@ -2,9 +2,10 @@
 // collision geometry is each link's convex hull. Faces keep their outside points; each round the farthest point of one
 // face sees a cap of faces, which is replaced by a fan from the cap's horizon to the point. Points within `eps` of the
 // hull (a scale-relative tolerance) are inside. Flat or line-like input has no hull: refused, typed.
+import { KernelError } from '../core/barocss-error.js';
 
 export type HullErrorCode = 'TOO_FEW' | 'DEGENERATE';
-export class HullError extends Error { constructor(readonly code: HullErrorCode, message: string) { super(message); this.name = 'HullError'; } }
+export class HullError extends KernelError { constructor(readonly code: HullErrorCode, message: string) { super(message); this.name = 'HullError'; } }
 export interface ConvexHull { /** The hull's corners, x, y, z each. */ readonly positions: Float64Array; /** Triangles into `positions`, counter-clockwise from outside. */ readonly indices: Uint32Array }
 
 interface Face { a: number; b: number; c: number; nx: number; ny: number; nz: number; d: number; outside: number[]; alive: boolean }

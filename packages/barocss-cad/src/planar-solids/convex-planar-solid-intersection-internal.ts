@@ -1,7 +1,8 @@
 import { ConvexPlanarSolidError, SolidProof, same } from '../convex-planar-solid-proof-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 export { SolidProof, same };
 export type IntersectionCode = 'INPUT' | 'IDENTITY' | 'BUDGET' | 'NATIVE' | 'OWNED' | 'BINDING' | 'INCIDENCE' | 'DEGENERATE' | 'REPRESENTABILITY';
-export class ConvexPlanarSolidIntersectionError extends Error {
+export class ConvexPlanarSolidIntersectionError extends KernelError {
   constructor(readonly code: IntersectionCode, readonly stage: string, readonly entity: string, detail: string, cause?: unknown) {
     super(('Convex planar solid intersection: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'ConvexPlanarSolidIntersectionError';
   }

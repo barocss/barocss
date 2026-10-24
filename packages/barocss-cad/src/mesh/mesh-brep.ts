@@ -7,9 +7,10 @@ import { assertValidBrep, buildBrep, lineCurve, type Brep, type BrepFaceInput } 
 import type { Point, Surface } from '../types.js';
 import { binary64Dyadic } from '../core/dyadic.js';
 import { add, cross, dot, sub } from '../core/vec3.js';
+import { KernelError } from '../core/barocss-error.js';
 
-export class MeshBrepError extends Error {
-  constructor(message: string) { super(message); this.name = 'MeshBrepError'; }
+export class MeshBrepError extends KernelError {
+  constructor(message: string) { super(message, { code: 'MESH_BREP' }); this.name = 'MeshBrepError'; }
 }
 
 export interface MeshBrepOptions {

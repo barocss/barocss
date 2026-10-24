@@ -42,6 +42,7 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
   const avail = cmd.available(ctx);
   if (!avail.ok) throw refuse('UNAVAILABLE', `${cmd.label} can't run: ${avail.reason}`);
+  // (The spec's own values win over what a command's derive works out from them, O20: givenValues.)
   const values: Values = givenValues(cmd, ctx, cmd.defaults?.(ctx) ?? {}, { ...spec.values });
   const why = checkValues(cmd.fields?.(ctx) ?? [], values);
   if (why) throw refuse('VALUE', `${cmd.label}: ${why}`);

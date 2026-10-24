@@ -8,10 +8,11 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionRational, SectionFraction } from '../section-rational-internal.js';
 import type { Curve, Surface, Point, Model } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const MultiSpanVLinearSurfacePlaneSectionDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', SOURCE: 'SOURCE', SUPPORT: 'SUPPORT', CROSSING: 'CROSSING', CHART: 'CHART', REPRESENTABILITY: 'REPRESENTABILITY', BINDING: 'BINDING', NATIVE: 'NATIVE', OWNED: 'OWNED' } as const);
 export type MultiSpanVLinearSurfacePlaneSectionDiagnosticCode = typeof MultiSpanVLinearSurfacePlaneSectionDiagnosticCode[keyof typeof MultiSpanVLinearSurfacePlaneSectionDiagnosticCode];
-export class MultiSpanVLinearSurfacePlaneSectionError extends Error {
+export class MultiSpanVLinearSurfacePlaneSectionError extends KernelError {
   readonly code: MultiSpanVLinearSurfacePlaneSectionDiagnosticCode;
   constructor(code: MultiSpanVLinearSurfacePlaneSectionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Multi-span V-linear Plane section: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'MultiSpanVLinearSurfacePlaneSectionError'; this.code = code;

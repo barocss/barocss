@@ -5,6 +5,7 @@ import type { CadModelIR1 } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import { copyCadData } from '../data-copy.js';
 import type { Model } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 interface SketchPoint { id: string; position: XYPoint }
 interface SketchSegment { id: string; startPointId: string; endPointId: string }
@@ -33,7 +34,7 @@ export type XYLinearSketchResultV1 = { ok: true; document: XYLinearSketchDocumen
   solution: Extract<XYLinearSketchResult, { ok: true }>['solution'];
   report: Extract<XYLinearSketchResult, { ok: true }>['report'] & { dimensions: XYLinearSketchDimensionReport[] } }
   | Extract<XYLinearSketchResult, { ok: false }>;
-class SketchFailure extends Error {
+class SketchFailure extends KernelError {
   constructor(readonly code: XYLinearSketchDiagnostic['code'], message: string, readonly path: string, readonly constraintIds: string[] = []) { super(message); }
 }
 function fail(code: XYLinearSketchDiagnostic['code'], message: string, path: string, constraintIds: string[] = []): never { throw new SketchFailure(code, message, path, constraintIds); }

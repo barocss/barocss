@@ -5,10 +5,11 @@ import type { CurveD1Result } from '../core/derivatives.js';
 import type { Curve, Model, Point } from '../types.js';
 import type { XYPoint } from './xy-profile.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const XYAngleArcDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', UNIT: 'UNIT', RANGE: 'RANGE', ARITHMETIC: 'ARITHMETIC', NATIVE: 'NATIVE', SOURCE: 'SOURCE', BUDGET: 'BUDGET', OWNED: 'OWNED' } as const);
 export type XYAngleArcDiagnosticCode = typeof XYAngleArcDiagnosticCode[keyof typeof XYAngleArcDiagnosticCode];
-export class XYAngleArcError extends Error { readonly code: XYAngleArcDiagnosticCode; constructor(code: XYAngleArcDiagnosticCode, detail: string, cause?: unknown) { super(('XY angle arc: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'XYAngleArcError'; this.code = code; } }
+export class XYAngleArcError extends KernelError { readonly code: XYAngleArcDiagnosticCode; constructor(code: XYAngleArcDiagnosticCode, detail: string, cause?: unknown) { super(('XY angle arc: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'XYAngleArcError'; this.code = code; } }
 export interface XYAngleArcRequest { id: string; lengthUnit: 'mm'; angleUnit: 'rad'; centerMM: XYPoint; radiusMM: number; startAngleRad: number; sweepAngleRad: number }
 type Span = { index: number; startAngleRad: number; endAngleRad: number; midAngleRad: number; middleWeight: number; nativeInterval: [number, number]; controlPointIndices: [number, number, number] };
 type D1 = { status: 'evaluated'; value: CurveD1Result } | { status: 'native-refused'; reason: string; nativeErrorName: string };

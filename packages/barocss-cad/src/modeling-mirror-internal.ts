@@ -8,6 +8,7 @@ import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 
 import type { Point, Curve, Surface } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 /** World-origin cardinal plane reflection in authored XYZ millimetres. */
 export type CardinalMirrorPlane = 'xy' | 'xz' | 'yz';
@@ -102,7 +103,7 @@ export interface ModelingMirrorResult {
   };
 }
 
-class ModelingMirrorError extends Error {
+class ModelingMirrorError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, readonly stage: string, readonly entity: string,
     detail: string, readonly report: Progress, cause: unknown) {
     super(('Modeling mirror: ' + detail).slice(0, 1024), { cause }); this.name = 'ModelingMirrorError';

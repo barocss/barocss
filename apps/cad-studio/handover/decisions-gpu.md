@@ -3138,3 +3138,108 @@ The work stopped here for the owner's move to another place.
   core/packet.ts and its seven preview builders, gpu's mesh-packet.ts, gpu-compiler and kernel-face-preview), which is
   Z-up data. The same tag also sits in packages/barocss-cad-interop (its packet, three and babylon hosts, which are Y-up
   engines), packages/barocss-viewer, the physics examples and pinned evidence JSON. The scope is the coordinator's call.
+
+## G-R53 — R7.3c: gpu's Vec3, Mat3 and Mat4 in one declaration, readonly at the boundary (roadmap R7.3c, 2026-10-24)
+
+- **One declaration**: `src/core/geometry-types.ts`, in api-conventions.md §10.2's shapes:
+  - `Vec3 = readonly [number, number, number]`;
+  - `Mat3`: 9 numbers, row-major, its columns the frame's axes;
+  - `Mat4 = Float64Array`, column-major.
+- **Before**: two exported Vec3s, viewer/math.ts's readonly one (exported as `ViewerVec3`) and scene-types.ts's mutable
+  one (the main entry's `Vec3`), plus scene-viewer's local `V3` and inline `[number, number, number]` in the public
+  mesh packet, the mesh camera, capHatchAxes and the SDF render IR. No Mat3.
+- **After**:
+  - viewer/math.ts and scene-types.ts re-export the core types. scene-viewer's `V3` is the core `Vec3`.
+  - The main entry exports `Vec3` (now readonly), `Mat3` and `Mat4`. The viewer entry exports the same three under the
+    same names. `ViewerVec3` is gone, with no alias; nothing in the repository used it.
+  - Readonly `Vec3` in the public types: MeshPacket's `bounds`; MeshOptions' and the coplanar boolean options'
+    `translate`; MeshCamera's `eye`, `target` and `up`; capHatchAxes' `u` and `v`; the SDF IR's `translate`, `size`,
+    `rotateDegrees`, `start` and `end`. Colours stay `RGB`, a mutable triple: they are not geometry.
+  - Inside gpu, values being built stay mutable: 58 `number[] as Vec3` casts read `as [number, number, number]`, and
+    the growing min/max accumulators are typed mutable (engine-scene, triangle-geometry, mesh-scene-transform,
+    primitive-frame-preflight, source-scene-bounds' `GrowingBox`). A readonly Vec3 accepts them.
+- **No runtime change**: the built `dist/index.js` and every emitted `.js` are byte-identical to batch 2's (`cmp`). The
+  only new file is the type-only `dist/core/geometry-types.js`. So the browser tests and flows were not rerun.
+- **Runs**: gpu tsc 0, eslint 0, unit 198/198. Studio tsc 0 and cad-model tsc 0 against the new declarations; neither
+  changed.
+- **Not done, for the other lanes** (§10.2 says "where they cross a package"): cad's `Vector3` (section-properties) and
+  its api/ Vec3s (the API lane's), and cad-model's eight `Vec3`/`V3`/`Mat3` declarations, are the kernel's, the API
+  lane's and the outer lane's.
+
+## G-R54 — G14 in progress, measured: section's GPU time by pass; the step-48 order dependency (roadmap G14, 2026-10-24)
+
+- **Section's GPU time, by pass** (measure first):
+  - The viewer's render passes now carry labels (`viewer surface`, `viewer output`, `viewer shadow`, `viewer cap front`
+    and `… samples`, `viewer light probe`, `viewer oit` and `… composite`, `viewer outline mask`, `viewer mip`,
+    `viewer pick`). A label is the only change: no pass, draw or binding moved.
+  - bench-browser records each stamped pass's time by its label and prints it under the row with `BENCH_PASSES=1`.
+  - Run: `BENCH_ONLY='^(section|orbit)' BENCH_PASSES=1 node test/bench-browser.mjs`, load 14 → 12, so LOADED (compare
+    only). Milliseconds per submit:
+
+| Row | GPU | surface | output | cap front samples | light probe | cap front | shadow | outline mask |
+|---|---|---|---|---|---|---|---|---|
+| orbit, 60 steps | 1.2 | 0.41 | 0.79 | — | — | — | — | — |
+| orbit, a body outlined | 2.06 | 0.40 | 1.27 | — | — | — | — | 0.39 |
+| section, 120 brackets on the GPU | **5.68** (≤ 6) | 2.17 | 2.06 | 0.71 | 0.30 | 0.27 | 0.17 | — |
+| section, CPU clipMesh (WebGL2's) | 1.95 | 0.86 | 0.81 | — | — | — | 0.28 | — |
+
+  - Within its budget in this run; 8.1–8.8 ms at G-R46–G-R50, also loaded. So the overrun is not steady.
+  - Where the time goes: the surface pass costs 2.5 times the CPU path's (the clip plane's discard and the caps' probe
+    in the same shader), and so does the output pass (2.06 against 0.81). The cap passes add 1.3 ms. The output pass's
+    share is the open question: it resolves and composites the same pixels either way.
+  - **Decision proposed**: no change to the section path from this. Next, one quiet-machine run of the section rows to
+    settle whether 6 ms holds, then, only if it doesn't, the output pass first.
+- **The step-48 order dependency** (reproduced: FLOW_ONLY `^(render a part|section view|parameters:|surface
+  analysis|RM2:)` on WebGPU; 48 passes, 74, 96, 193 and 217 fail):
+  - Cause 1: **New part keeps the camera.** Step 48 leaves its saved view (the camera further out). Step 74 starts from
+    New part with that camera, where it otherwise starts from the default one. Its six 12 px drag steps then move the
+    plane to 29 mm, not 24.
+  - Cause 2: at that zoom the section handle moves 2.9 px on release (held → after: −2.7, −1.0 px), over step 74's
+    2 px limit. The drag and the commit both snap to 0.5 mm, and the handle's point comes from the same
+    `sectionHandles(section, sectionBox)` both times, so the move is in how the handle is drawn, not in the plane. Still
+    to find: during the drag SceneViewport draws the handle from the live store; after release the App draws it, and
+    they differ.
+  - Steps 96, 193 and 217 fail only because 74 stopped with the section left on (96's screenshot: the section bar still
+    up, Chamfer refused).
+  - Step 74 passes alone.
+  - **Decisions proposed**: (a) New part puts the camera back to the default view; this is user-visible, so it is the
+    coordinator's call. **The coordinator's answer: not now.** It stays a possible later UX item, so it doesn't hide (b). (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
+    flow's steps 96, 193 and 217 don't need to change.
+- **O18's placed copies dropped on a rebuild with identical meshes** (measure first):
+  - The outer lane's work-round (App's `sameMeshes`, 2aae36ec3) was taken out in this worktree only, for the runs, then
+    put back (nothing committed).
+  - FLOW_ONLY `^O10 (frame costs|Rebuild)` and `^(AM7|O10 (frame costs|Rebuild))` on WebGPU: all pass (285, 286, and
+    AM7a and AM7b before them). The frame costs list the 10 bodies with the 8 copies by their keys in every display
+    mode. **Not reproduced at 540df6a71.**
+  - Why it can't come from gpuRenderer.setBodies today: it keys bodies by their mesh signature (content), keeps every
+    body whose signature is unchanged, and returns at once when all are. A new array of the same meshes rebuilds
+    nothing. The instances are keyed the same way (setInstances). So "should the renderer key on mesh identity" is
+    answered: it already keys on content, which covers identity.
+  - **Decision proposed**: close the item. Keep the work-round: it also saves the App's re-render on a mass patch. If a
+    full window shows the copies missing again, its O10 steps will catch it.
+
+## G-R56 — G14 (b): a handle drag measured from where it began; the release no longer moves the section handle (roadmap G14, 2026-10-24)
+
+- **Cause** (G-R54's cause 2): Viewport's handle drag measured each step with `dragAlong(from, pointer, hd.at, …)` and
+  `dragIn(…)`, linearised at the handle's *current* point.
+  - On WebGPU, SceneViewport hands Viewport the section's live handles, drawn where the plane now is, in every frame of
+    the drag. So each step measured from the point one frame back, and the release measured from yet another point.
+  - In perspective, the same pointer then gives a slightly different value. At step 74's zoom after step 48, that flipped
+    a 0.5 mm snap: the plane was committed half a millimetre back from where it was shown, and the handle moved 2.9 px
+    on release.
+- **Fix** (`viewport/Viewport.tsx`): the drag keeps the handle's point as the drag began (`handleAt`) and measures every
+  step and the release from it. The move gizmo already did this (`origin`, "measured from the gizmo where the drag
+  began"). Arcs, which add up their turn step by step about a fixed centre, are unchanged.
+- **Runs**:
+  - FLOW_ONLY `^(render a part|section view|a selected box shows its dimension|drag a surface pole|drag a part
+    instance|drag a dimension handle|Hole: drag its centre|a box under a fillet keeps up|O9:|G19\.|G20\.2|G16:|G17:)`:
+    every handle-drag step passes on WebGPU and on WebGL2 (32, 64, 66, 69, 74, 271–277), and **74 passes after 48**:
+    the order dependency is gone at its cause.
+  - 50, 58 and 270 failed in that selection on both renderers. Rerun with their prerequisites,
+    `^(import a \.barocad source|drag a surface pole|place another part as an instance|drag a part instance|G16:)`, all
+    six pass on both. 50 needs 49's imported surface and 58 needs 57's instance.
+  - 270 (G16) is another camera carry-over: it passes after 49/57 and failed after the G19 steps. That is the New-part
+    camera item (G-R54 (a)), left for later.
+  - Studio tsc 0 and eslint 0 (with R7.3d's kernel patch applied in the lane's tree; this branch is cut before R7.3d).
+- **Branch**: `claude/gpu-g14-handle-2026-10-24`, cut at 3801e2d9f (before R7.3d), so it can merge ahead of the R7.3d
+  pair. The lane branch merges it too.

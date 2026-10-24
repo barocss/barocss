@@ -4,10 +4,11 @@ import { buildQualifiedStripMeshFaceSamplesTrusted } from './qualified-translate
 import { curveDomain, evaluateCurve, evaluateSurface } from '../core/math.js';
 import { evaluateSurfaceD1 } from '../core/derivatives.js';
 import type { Point, Surface } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const QualifiedTranslatedStripBodyMeshDiagnosticCode = Object.freeze({ INPUT:'INPUT', BUDGET:'BUDGET', BODY:'BODY', SOURCE:'SOURCE', TOPOLOGY:'TOPOLOGY', UV:'UV', NATIVE:'NATIVE', ORIENTATION:'ORIENTATION', REPRESENTABILITY:'REPRESENTABILITY', FILE:'FILE', OWNED:'OWNED' } as const);
 export type QualifiedTranslatedStripBodyMeshDiagnosticCode = typeof QualifiedTranslatedStripBodyMeshDiagnosticCode[keyof typeof QualifiedTranslatedStripBodyMeshDiagnosticCode];
-export class QualifiedTranslatedStripBodyMeshError extends Error {
+export class QualifiedTranslatedStripBodyMeshError extends KernelError {
   readonly code:QualifiedTranslatedStripBodyMeshDiagnosticCode;
   constructor(code:QualifiedTranslatedStripBodyMeshDiagnosticCode,detail:string,cause?:unknown) {super(('Qualified translated-strip Body mesh: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='QualifiedTranslatedStripBodyMeshError';this.code=code;}
 }

@@ -9,13 +9,14 @@ import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Curve, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const WideCurveRefinementDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', REQUEST: 'REQUEST', IDENTITY: 'IDENTITY', REPRESENTABILITY: 'REPRESENTABILITY',
   NATIVE_CAPACITY: 'NATIVE_CAPACITY', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type WideCurveRefinementDiagnosticCode = typeof WideCurveRefinementDiagnosticCode[keyof typeof WideCurveRefinementDiagnosticCode];
-export class WideCurveRefinementError extends Error {
+export class WideCurveRefinementError extends KernelError {
   readonly code: WideCurveRefinementDiagnosticCode;
   constructor(code: WideCurveRefinementDiagnosticCode, detail: string, cause?: unknown) {
     super(('Wide Curve refinement: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

@@ -6,6 +6,7 @@ import { parseCadDocumentOwnJson, cadDocumentOwnUtf8Bytes } from '../../cad-docu
 import type { SourceLineWidthFaceOptions,SourceLineWidthFaceResult } from './source-line-width-face.js';
 import type { ConvexPlanarFaceExtrusionResult } from '../../planar-solids/convex-planar-face-extrusion.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 type Size={utf16:number;utf8:number};
 type Pair<T>=[T,T];
 type Asset={sourceId:string;sourceVersion:0;source:string;curveId:string};
@@ -143,7 +144,7 @@ export const SourceLineWidthExtrusionGraphDiagnosticCode=Object.freeze({
 type DiagnosticCode=typeof SourceLineWidthExtrusionGraphDiagnosticCode[keyof typeof SourceLineWidthExtrusionGraphDiagnosticCode];
 type ErrorContext={stage:'input'|'width'|'extrusion'|'update'|'owned'|'codec'|'file';
   graphId:string|null;nodeId:string|null;revision:number|null;directCounts:OperationCounts};
-export class SourceLineWidthExtrusionGraphError extends Error {
+export class SourceLineWidthExtrusionGraphError extends KernelError {
   readonly code: DiagnosticCode;
   readonly context: ErrorContext;
   constructor(code: DiagnosticCode, detail: string, context: ErrorContext, cause?: unknown) {

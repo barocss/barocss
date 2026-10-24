@@ -1,5 +1,6 @@
 import type { Curve, Point, Surface } from '../types.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type F = SectionFraction;
 type R = SectionRational;
@@ -30,7 +31,7 @@ export interface ExactPairedVLinearDerived {
 }
 
 /** Known private admission failures; errors from the caller's q are never wrapped. */
-export class ExactPairedVLinearPolynomialError extends Error {
+export class ExactPairedVLinearPolynomialError extends KernelError {
   readonly code: 'SUPPORT' | 'DOMAIN' | 'BINDING';
   readonly assetIndex: 0 | 1 | null;
   constructor(code: ExactPairedVLinearPolynomialError['code'], detail: string, assetIndex: 0 | 1 | null) {

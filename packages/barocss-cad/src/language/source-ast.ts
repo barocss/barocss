@@ -1,5 +1,6 @@
 import { parseCadExpression, CAD_EXPRESSION_LIMITS } from './expression-parser.js';
 import type { CadExpression } from './expression-parser.js';
+import { KernelError } from '../core/barocss-error.js';
 export { CAD_EXPRESSION_LIMITS } from './expression-parser.js';
 export type { CadExpression, CadCallArgument, CadCallExpression } from './expression-parser.js';
 
@@ -19,7 +20,7 @@ export type CadAstDeclaration = CadOrdinaryAstDeclaration | CadFunctionAst;
 export interface CadModelAst { kind: 'model'; name: string; range: CadSourceRange; nameRange: CadSourceRange; fields: CadAstField[]; declarations: CadAstDeclaration[] }
 
 /** An actual-source parser diagnostic, with no synthetic or partial model. */
-export class CadAstError extends Error {
+export class CadAstError extends KernelError {
   readonly code: string;
   readonly detail: string;
   readonly range: CadSourceRange;

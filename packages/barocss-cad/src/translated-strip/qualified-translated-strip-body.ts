@@ -12,10 +12,11 @@ import { evaluateCurve } from '../core/math.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction } from '../section-rational-internal.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const QualifiedTranslatedStripBodyDiagnosticCode = Object.freeze({ INPUT:'INPUT', IDENTITY:'IDENTITY', BUDGET:'BUDGET', PARENT:'PARENT', PAIR:'PAIR', SOURCE:'SOURCE', TOPOLOGY:'TOPOLOGY', MATERIAL:'MATERIAL', ORIENTATION:'ORIENTATION', REPRESENTABILITY:'REPRESENTABILITY', BINDING:'BINDING', NATIVE:'NATIVE', OWNED:'OWNED' } as const);
 export type QualifiedTranslatedStripBodyDiagnosticCode = typeof QualifiedTranslatedStripBodyDiagnosticCode[keyof typeof QualifiedTranslatedStripBodyDiagnosticCode];
-export class QualifiedTranslatedStripBodyError extends Error {
+export class QualifiedTranslatedStripBodyError extends KernelError {
   readonly code:QualifiedTranslatedStripBodyDiagnosticCode;
   constructor(code:QualifiedTranslatedStripBodyDiagnosticCode,detail:string,cause?:unknown) {super(('Qualified translated-strip Body: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='QualifiedTranslatedStripBodyError';this.code=code;}
 }

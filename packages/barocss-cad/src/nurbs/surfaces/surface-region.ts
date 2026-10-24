@@ -9,13 +9,14 @@ import { curveDecimal } from '../curves/curve-source.js';
 import { copyCadData } from '../../data-copy.js';
 import type { Surface, Model, Point } from '../../types.js';
 import { same } from '../../core/structural-equality.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const SurfaceRegionDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', INTERVAL: 'INTERVAL', IDENTITY: 'IDENTITY', REPRESENTABILITY: 'REPRESENTABILITY',
   NATIVE_CAPACITY: 'NATIVE_CAPACITY', NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type SurfaceRegionDiagnosticCode = typeof SurfaceRegionDiagnosticCode[keyof typeof SurfaceRegionDiagnosticCode];
-export class SurfaceRegionError extends Error {
+export class SurfaceRegionError extends KernelError {
   readonly code: SurfaceRegionDiagnosticCode;
   constructor(code: SurfaceRegionDiagnosticCode, detail: string, cause?: unknown) {
     super(('Surface region extraction: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

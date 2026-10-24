@@ -3,6 +3,7 @@ import type { PairedRoofDifferenceBodyResult } from './paired-roof-difference-bo
 import type { PairedSurfaceMaterialBodyResult } from './paired-surface-material-body.js';
 import type { SectionFraction, SectionRational, SectionRationalContext } from '../section-rational-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type F = SectionFraction;
 type R = SectionRational;
@@ -38,7 +39,7 @@ export interface PairedRoofBodySplitProof {
     generatedIds: string[]; unchangedSources: true };
 }
 
-export class PairedRoofBodySplitProofError extends Error {
+export class PairedRoofBodySplitProofError extends KernelError {
   readonly code: Code;
   constructor(code: Code, detail: string, cause?: unknown) {
     super(('Paired roof Body split proof: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

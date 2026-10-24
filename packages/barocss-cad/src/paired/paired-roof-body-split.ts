@@ -7,6 +7,7 @@ import type {PairedSurfaceMaterialBodyResult, PairedSurfaceMaterialBodyReport} f
 import type {SectionFraction} from '../section-rational-internal.js';
 import type {PairedRoofBodySplitProof} from './paired-roof-body-split-proof-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type F = SectionFraction;
 type Size = {utf16:number; utf8:number};
@@ -35,7 +36,7 @@ export interface PairedRoofBodySplitReport {
   limits:ReturnType<typeof limits>;sizes:{request:Size;result:Size};ownValues:number;budgetFailure:'atomic-no-partial-split';
 }
 export const PairedRoofBodySplitDiagnosticCode = Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',PARENT:'PARENT',PROFILE:'PROFILE',CONSTRUCTION:'CONSTRUCTION',BINDING:'BINDING',PARTITION:'PARTITION',ORIENTATION:'ORIENTATION',BUDGET:'BUDGET',REPRESENTABILITY:'REPRESENTABILITY',OWNED:'OWNED'} as const);
-export class PairedRoofBodySplitError extends Error {
+export class PairedRoofBodySplitError extends KernelError {
   readonly code:Code;
   readonly context:Context;
   constructor(code:Code, detail:string, context:Context, cause?:unknown) {

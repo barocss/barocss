@@ -9,6 +9,7 @@ import type { ExactPairedVLinearProof, ExactPairedVLinearDerived } from './exact
 import type { Curve, Surface, Model, Point } from '../types.js';
 import type { CurveD1Result, SurfaceD1Result } from '../core/derivatives.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type Asset = { sourceId: string; source: string; surface: Surface };
 export interface ExactPairedVLinearSurfaceIntersectionOptions {
@@ -101,7 +102,7 @@ type ErrorContext = {
     'curve-validation' | 'world-adoption' | 'observation' | 'file' | 'owned';
   assetIndex: 0 | 1 | null; stationIndex: number | null; directCounts: DirectAttempts;
 };
-export class ExactPairedVLinearSurfaceIntersectionError extends Error {
+export class ExactPairedVLinearSurfaceIntersectionError extends KernelError {
   readonly code: DiagnosticCode;
   readonly context: ErrorContext;
   constructor(code: DiagnosticCode, detail: string, state: ErrorContext, cause?: unknown) {

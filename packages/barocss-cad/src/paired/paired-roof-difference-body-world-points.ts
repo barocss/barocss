@@ -5,6 +5,7 @@ import type {Point} from '../types.js';
 import type {PairedRoofDifferenceBodyResult} from './paired-roof-difference-body.js';
 import type {SectionFraction} from '../section-rational-internal.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 type F=SectionFraction;
 type Size={utf16:number;utf8:number};
 type Status='inside'|'outside'|'boundary';
@@ -77,7 +78,7 @@ type Context = {
   queryIndex: number | null; stage: Stage | null;
   directCounts: { [K in keyof DirectCounts]: number };
 };
-export class PairedRoofDifferenceBodyWorldPointError extends Error {
+export class PairedRoofDifferenceBodyWorldPointError extends KernelError {
   readonly code: Code;
   readonly context: Context;
   constructor(code: Code, detail: string, context: Context, cause?: unknown) {

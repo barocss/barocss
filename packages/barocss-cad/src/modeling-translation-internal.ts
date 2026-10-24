@@ -7,6 +7,7 @@ import type { ConvexPlanarSolidDiagnosticCode, ExactPointData } from './convex-p
 import { SectionRationalContext } from './section-rational-internal.js';
 import type { SectionFraction, SectionRational } from './section-rational-internal.js';
 import type { Point, Surface, Curve } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 type Mapping<T> = { original: T; translated: T };
 type FaceReference = { sourceId: string; faceId: string; surfaceId: string; loopId: string; evaluationId: string };
@@ -55,7 +56,7 @@ export interface ModelingTranslationResult {
   };
 }
 
-class ModelingTranslationError extends Error {
+class ModelingTranslationError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, readonly stage: string, readonly entity: string,
     detail: string, readonly report: Progress, cause: unknown) {
     super(('Modeling translation: ' + detail).slice(0, 1024), { cause }); this.name = 'ModelingTranslationError';

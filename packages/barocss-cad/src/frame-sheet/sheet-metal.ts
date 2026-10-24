@@ -1,5 +1,6 @@
 import type { Point } from '../types.js';
 import type { ProfileSegmentInput, XY } from '../features/extruded-profile-solid.js';
+import { KernelError } from '../core/barocss-error.js';
 
 // R12 sheet metal (D115, D116). A sheet is T thick; a bend is a piece of a cylinder of inner radius R turned θ, its
 // neutral layer at R + K·T (K the K-factor, defined by the bend allowance below). These are the closed forms; real K
@@ -36,7 +37,7 @@ export interface SheetReport {
 }
 
 /** A sheet-metal refusal: the part model's code, the message starting with its own `[CODE]`. */
-export class SheetMetalError extends Error {
+export class SheetMetalError extends KernelError {
   constructor(readonly code: 'PARAMETER' | 'GEOMETRY', detail: string) { super(detail.slice(0, 1024)); this.name = 'SheetMetalError'; }
 }
 

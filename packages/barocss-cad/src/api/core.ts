@@ -4,15 +4,23 @@
 import { evaluateCadPart, CadPartError, type CadPartDocument, type CadPartOutput } from '../part/part-model.js';
 import { tessellateBrep } from '../brep/brep-tessellate.js';
 import { exportStep } from '../io/step.js';
-import { brepSelection, type BodyQuery } from './select.js';
+import { brepLines, brepSelection, type BodyQuery } from './select.js';
 import { BarocssError, bracketedCode, refuse } from './refusal.js';
 
-export type Vec3 = [number, number, number];
+// (One Vec3 for the facades, api-conventions §10.2: `readonly [x, y, z]`, as gpu's core/geometry-types.ts declares it.)
+export type { Vec3 } from './select.js';
+import type { Vec3 } from './select.js';
 
 /** A body's mass properties at a density, in MMGS (api-conventions.md §2): mm³, g, mm, and g·mm² about the centre of mass. */
 export interface MassResult { volumeMM3: number; massG: number; centroidMM: Vec3; inertiaGMM2: number[][] }
 /** A body's display triangles in the common mesh shape (api-conventions.md §10.3): mm, Z up — what gpu's GeometryInput takes. */
-export interface MeshData { key: string; positions: Float32Array; normals: Float32Array; indices: Uint32Array }
+export interface MeshData {
+  key: string; positions: Float32Array; normals: Float32Array; indices: Uint32Array;
+  /** Its display lines (the edges a person sees) as segment pairs, x, y, z each end — gpu's line geometry (R7.5b). */
+  lines?: Float32Array;
+  /** The material id its body names (cad-model: the body's own, else the brief's), for gpu's scene materials (§10.6). */
+  material?: string;
+}
 
 // (Today's kernel: density in kg/m³, mass in kg, inertia in kg·m² — brep/solid-mass.ts. MMGS: g/cm³, g, g·mm².
 // R7.3 moves the kernel's public results to MMGS and these go.)
@@ -56,7 +64,7 @@ export function stlOf(output: CadPartOutput): Uint8Array {
 /** An output's display triangles, from the kernel's tessellation (its Float64 positions and normals as the common shape's Float32). */
 export function meshOf(output: CadPartOutput): MeshData {
   const m = tessellateBrep(output.brep);
-  return { key: output.id, positions: Float32Array.from(m.positionsMM), normals: Float32Array.from(m.normals), indices: m.indices };
+  return { key: output.id, positions: Float32Array.from(m.positionsMM), normals: Float32Array.from(m.normals), indices: m.indices, lines: brepLines(output.brep, m) };
 }
 
 /** An output's edges and faces, to select from. */

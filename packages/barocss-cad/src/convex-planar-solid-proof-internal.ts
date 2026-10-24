@@ -3,10 +3,11 @@ import { chartRoundingBoundMM } from './numeric-policy.js';
 import type { SectionRational, SectionFraction } from './section-rational-internal.js';
 import type { ConvexPlanarFaceResult } from './own-convex-planar-face.js';
 import type { Point } from './types.js';
+import { KernelError } from './core/barocss-error.js';
 
 export const ConvexPlanarSolidDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE', OWNED: 'OWNED', COVERAGE: 'COVERAGE', BINDING: 'BINDING', INCIDENCE: 'INCIDENCE', CONVEXITY: 'CONVEXITY', DEGENERATE: 'DEGENERATE', REPRESENTABILITY: 'REPRESENTABILITY' } as const);
 export type ConvexPlanarSolidDiagnosticCode = typeof ConvexPlanarSolidDiagnosticCode[keyof typeof ConvexPlanarSolidDiagnosticCode];
-export class ConvexPlanarSolidError extends Error {
+export class ConvexPlanarSolidError extends KernelError {
   constructor(readonly code: ConvexPlanarSolidDiagnosticCode, detail: string, cause?: unknown) {
     super(('Convex planar solid: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'ConvexPlanarSolidError';
   }

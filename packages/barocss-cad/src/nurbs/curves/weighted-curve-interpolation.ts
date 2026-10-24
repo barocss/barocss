@@ -2,11 +2,12 @@ import { CurveInterpolationError } from './curve-interpolation.js';
 import type { CurveInterpolationPoint, CurveInterpolationOptions, CurveInterpolationReport } from './curve-interpolation.js';
 import { buildCurveInterpolationKernel, snapshotCurveInterpolationKernelData, sameCurveInterpolationKernelData } from './curve-interpolation-kernel-internal.js';
 import type { Curve, Model } from '../../types.js';
+import { KernelError } from '../../core/barocss-error.js';
 
 export const WeightedCurveInterpolationDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', NATIVE: 'NATIVE',
   REPRESENTABILITY: 'REPRESENTABILITY', CONDITIONING: 'CONDITIONING', BINDING: 'BINDING', OWNED: 'OWNED' } as const);
 export type WeightedCurveInterpolationDiagnosticCode = typeof WeightedCurveInterpolationDiagnosticCode[keyof typeof WeightedCurveInterpolationDiagnosticCode];
-export class WeightedCurveInterpolationError extends Error {
+export class WeightedCurveInterpolationError extends KernelError {
   readonly code: WeightedCurveInterpolationDiagnosticCode;
   constructor(code: WeightedCurveInterpolationDiagnosticCode, detail: string, cause?: unknown) {
     super(('Weighted Curve interpolation: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });

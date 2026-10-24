@@ -5,10 +5,11 @@ import { compileCadModel } from '../model-compiler.js';
 import { curveDecimal } from '../nurbs/curves/curve-source.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const PiecewiseRationalLoftDiagnosticCode = Object.freeze({ INPUT: 'INPUT', IDENTITY: 'IDENTITY', BUDGET: 'BUDGET', BASIS: 'BASIS', STATIONS: 'STATIONS', NATIVE: 'NATIVE', REPRESENTABILITY: 'REPRESENTABILITY', SOURCE: 'SOURCE', OWNED: 'OWNED' } as const);
 export type PiecewiseRationalLoftDiagnosticCode = typeof PiecewiseRationalLoftDiagnosticCode[keyof typeof PiecewiseRationalLoftDiagnosticCode];
-export class PiecewiseRationalLoftError extends Error {
+export class PiecewiseRationalLoftError extends KernelError {
   readonly code: PiecewiseRationalLoftDiagnosticCode;
   constructor(code: PiecewiseRationalLoftDiagnosticCode, detail: string, cause?: unknown) { super(('Piecewise rational loft: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause }); this.name = 'PiecewiseRationalLoftError'; this.code = code; }
 }

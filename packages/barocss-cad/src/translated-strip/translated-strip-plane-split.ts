@@ -24,6 +24,7 @@ import type { TranslatedSurfaceBaseFaceOptions } from './translated-surface-base
 import type { TranslatedSurfaceEndFacesOptions } from './translated-surface-end-faces.js';
 import type { TranslatedSurfaceStripVolumeOptions } from './translated-surface-strip-volume.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 type Two<T> = [T,T];
 type Size = {utf16:number;utf8:number};
@@ -141,7 +142,7 @@ type Context = {stage:'input'|'parent'|'cut-source'|'cut-binding'|'partition'|'i
   componentIndex:0|1|null;directCounts:DirectCounts;
   codecCounts:{ownedSplitValidationCount:number;originalBodyReconstructionCount:number;
     originalProducerDelegationCount:number;splitConstructionCount:number}};
-export class TranslatedStripPlaneSplitError extends Error {
+export class TranslatedStripPlaneSplitError extends KernelError {
   readonly code: DiagnosticCode;
   readonly context: Context;
   constructor(code: DiagnosticCode, detail: string, context: Context, cause?: unknown) {

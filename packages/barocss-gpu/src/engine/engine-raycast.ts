@@ -54,7 +54,7 @@ function vector(input: unknown, label: string): Vec3 {
       CODE.INPUT, label + ' requires own enumerable numeric data');
     result.push(descriptor.value);
   }
-  return result as Vec3;
+  return result as [number, number, number];
 }
 function ray(input: unknown): { original: EngineRayV0; direction: Vec3 } {
   return guard(CODE.INPUT, 'Own ray reflection refused', () => {
@@ -71,7 +71,7 @@ function ray(input: unknown): { original: EngineRayV0; direction: Vec3 } {
       && Number.isFinite(data.near) && Number.isFinite(data.far)
       && data.near >= 0 && data.near <= data.far && data.far <= 10000, CODE.RAY,
     'Ray requires a bounded origin, a unit direction within1e-9 and clips0<=near<=far<=10000');
-    const direction = originalDirection.map(n => n / length) as Vec3;
+    const direction = originalDirection.map(n => n / length) as [number, number, number];
     Object.freeze(origin); Object.freeze(originalDirection); Object.freeze(direction);
     const original: EngineRayV0 = Object.freeze({ format: 'barocss-gpu-engine-ray', version: 0,
       coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', origin,
@@ -89,7 +89,7 @@ function finite(values: readonly number[], detail: string): void {
   check(values.every(Number.isFinite), CODE.NUMERICAL, detail);
 }
 function subtract(a: Vec3, b: Vec3): Vec3 {
-  const result = a.map((n, axis) => n - b[axis]) as Vec3; finite(result, 'Triangle/ray subtraction is nonfinite'); return result;
+  const result = a.map((n, axis) => n - b[axis]) as [number, number, number]; finite(result, 'Triangle/ray subtraction is nonfinite'); return result;
 }
 function cross(a: Vec3, b: Vec3): Vec3 {
   const result: Vec3 = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
@@ -100,13 +100,13 @@ function dot(a: Vec3, b: Vec3): number {
 }
 function transformed(matrix: ArrayLike<number>, stride: 3 | 4, input: Vec3, translation: boolean): Vec3 {
   const result = [0, 1, 2].map(row => matrix[row] * input[0] + matrix[stride + row] * input[1]
-    + matrix[2 * stride + row] * input[2] + (translation ? matrix[3 * stride + row] : 0)) as Vec3;
+    + matrix[2 * stride + row] * input[2] + (translation ? matrix[3 * stride + row] : 0)) as [number, number, number];
   finite(result, 'Original world triangle/normal transformation is nonfinite'); return result;
 }
 function normalized(input: Vec3): Vec3 {
   const length = Math.hypot(...input); check(Number.isFinite(length) && length > 0, CODE.NUMERICAL,
     'Interpolated world normal requires finite nonzero length');
-  const result = input.map(n => n / length) as Vec3; finite(result, 'World normal normalization is nonfinite'); return result;
+  const result = input.map(n => n / length) as [number, number, number]; finite(result, 'World normal normalization is nonfinite'); return result;
 }
 function vertex(array: number[], index: number): Vec3 {
   return [array[index * 3], array[index * 3 + 1], array[index * 3 + 2]];
@@ -140,7 +140,7 @@ export function raycastEngineScene(sceneInput: unknown, rayInput: unknown): Engi
       // Strict comparison preserves the first draw and triangle for exact ties.
       if (nearest !== null && distance >= nearest.distance) continue;
       const barycentric: [number, number, number] = [1 - u - v, u, v];
-      const point = origin.map((n, axis) => n + distance * direction[axis]) as Vec3;
+      const point = origin.map((n, axis) => n + distance * direction[axis]) as [number, number, number];
       finite([...barycentric, ...point], 'World hit point or barycentrics are nonfinite');
       check(point.every(n => Math.abs(n) <= 1000), CODE.NUMERICAL, 'World hit point exceeds1000 scene bounds');
       const reconstructed = [0, 1, 2].map(axis => barycentric[0] * a[axis] + barycentric[1] * b[axis] + barycentric[2] * c[axis]);
@@ -151,7 +151,7 @@ export function raycastEngineScene(sceneInput: unknown, rayInput: unknown): Engi
       finite(uv, 'Original UV interpolation is nonfinite');
       const vertexNormals = indices.map(index => normalized(transformed(draw.node.normalMatrix, 3, vertex(geometry.normals, index), false)));
       const blended = [0, 1, 2].map(axis => barycentric[0] * vertexNormals[0][axis]
-        + barycentric[1] * vertexNormals[1][axis] + barycentric[2] * vertexNormals[2][axis]) as Vec3;
+        + barycentric[1] * vertexNormals[1][axis] + barycentric[2] * vertexNormals[2][axis]) as [number, number, number];
       finite(blended, 'World vertex normal interpolation is nonfinite'); const normal = normalized(blended);
       for (const array of [point, barycentric, uv, normal]) Object.freeze(array);
       nearest = Object.freeze({ format: 'barocss-gpu-engine-ray-hit', version: 0,

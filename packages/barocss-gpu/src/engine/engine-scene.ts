@@ -121,9 +121,9 @@ function node(input: unknown): EngineSceneNodeV0 {
   check(tag.type === 'group' || tag.type === 'mesh', CODE.INPUT, 'Node type must be group or mesh');
   const data = record(input, tag.type === 'group' ? NODE_FIELDS : [...NODE_FIELDS, 'geometryId', 'materialId'], 'node');
   const id = identifier(data.id, 'node.id'), parentId = data.parentId === null ? null : identifier(data.parentId, 'node.parentId');
-  const translation = numbers(data.translation, 3, 'node.translation') as Vec3;
+  const translation = numbers(data.translation, 3, 'node.translation') as [number, number, number];
   const rotationXYZW = numbers(data.rotationXYZW, 4, 'node.rotationXYZW') as [number, number, number, number];
-  const scale = numbers(data.scale, 3, 'node.scale') as Vec3;
+  const scale = numbers(data.scale, 3, 'node.scale') as [number, number, number];
   check(translation.every(n => Math.abs(n) <= 1000) && scale.every(n => n >= .01 && n <= 100)
     && rotationXYZW.every(n => Math.abs(n) <= 1) && Math.abs(Math.hypot(...rotationXYZW) - 1) <= 1e-9,
   CODE.TRANSFORM, 'Authored SRT requires bounded translation, positive scale and a unit quaternion within1e-9');
@@ -205,7 +205,7 @@ function floatMatrix(matrix: number[]): Float32Array {
 }
 function numberVector(matrix: ArrayLike<number>, stride: 3 | 4, value: Vec3, translation: boolean): Vec3 {
   return [0, 1, 2].map(row => matrix[row] * value[0] + matrix[stride + row] * value[1]
-    + matrix[2 * stride + row] * value[2] + (translation ? matrix[3 * stride + row] : 0)) as Vec3;
+    + matrix[2 * stride + row] * value[2] + (translation ? matrix[3 * stride + row] : 0)) as [number, number, number];
 }
 function f32Scalar(value: number): number {
   const result = Math.fround(value);
@@ -219,11 +219,11 @@ function f32Vector(matrix: Float32Array, stride: 3 | 4, value: Vec3, translation
     result = Math.fround(result + Math.fround(matrix[2 * stride + row] * value[2]));
     if (translation) result = Math.fround(result + matrix[3 * stride + row]);
     return result;
-  }) as Vec3;
+  }) as [number, number, number];
 }
 function normalize(value: Vec3, code: EngineSceneDiagnosticCode): Vec3 {
   const length = Math.hypot(...value); check(Number.isFinite(length) && length > 0, code, 'Transformed normal must have finite nonzero length');
-  const result = value.map(n => n / length) as Vec3;
+  const result = value.map(n => n / length) as [number, number, number];
   check(result.every((n, i) => Number.isFinite(n) && (value[i] === 0 || n !== 0)), code, 'Transformed normal normalization loses finite nonzero data'); return result;
 }
 function transformedBounds(geometry: PreparedTriangleGeometry, world: Matrix4, normal: Matrix3,
@@ -231,18 +231,18 @@ function transformedBounds(geometry: PreparedTriangleGeometry, world: Matrix4, n
   // These four temporary arrays exist for only this mesh validation. No expanded
   // world geometry is retained in the result or shared with prepared resources.
   const positions: number[] = [], normals: number[] = [], positionsF32 = new Float32Array(geometry.positions.length), normalsF32 = new Float32Array(geometry.normals.length);
-  const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
+  const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < geometry.geometry.positions.length; i += 3) {
-    const originalPoint = geometry.geometry.positions.slice(i, i + 3) as Vec3;
-    const originalNormal = geometry.geometry.normals.slice(i, i + 3) as Vec3;
+    const originalPoint = geometry.geometry.positions.slice(i, i + 3) as [number, number, number];
+    const originalNormal = geometry.geometry.normals.slice(i, i + 3) as [number, number, number];
     const point = numberVector(world, 4, originalPoint, true), direction = normalize(numberVector(normal, 3, originalNormal, false), CODE.GEOMETRY);
     check(point.every(n => Number.isFinite(n) && Math.abs(n) <= 1000), CODE.GEOMETRY, 'Original transformed points exceed finite1000 scene bounds');
     // Encoding underflow differs from rounded arithmetic cancellation. A nominal
     // zero can leave a tiny Number residual but cancel exactly in the F32 path.
     point.forEach(f32Scalar); direction.forEach(f32Scalar);
-    const pointF32 = f32Vector(worldF32, 4, Array.from(geometry.positions.slice(i, i + 3)) as Vec3, true);
-    const rawNormalF32 = f32Vector(normalF32, 3, Array.from(geometry.normals.slice(i, i + 3)) as Vec3, false);
-    const directionF32 = normalize(rawNormalF32, CODE.REPRESENTATION).map(f32Scalar) as Vec3;
+    const pointF32 = f32Vector(worldF32, 4, Array.from(geometry.positions.slice(i, i + 3)) as [number, number, number], true);
+    const rawNormalF32 = f32Vector(normalF32, 3, Array.from(geometry.normals.slice(i, i + 3)) as [number, number, number], false);
+    const directionF32 = normalize(rawNormalF32, CODE.REPRESENTATION).map(f32Scalar) as [number, number, number];
     check(pointF32.every(n => Number.isFinite(n) && Math.abs(n) <= 1000), CODE.REPRESENTATION,
       'Float32 transformed points exceed finite scene bounds');
     positions.push(...point); normals.push(...direction);

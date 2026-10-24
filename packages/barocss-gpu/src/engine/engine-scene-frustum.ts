@@ -49,7 +49,7 @@ function normalize(value: Vec3): Vec3 {
   check(Number.isFinite(scale) && scale > 0, CODE.NUMERICAL, 'Plane direction scale is unsafe');
   const scaled = value.map(n => n / scale), length = Math.hypot(...scaled);
   check(Number.isFinite(length) && length > 0, CODE.NUMERICAL, 'Plane direction length is unsafe');
-  const result = scaled.map(n => n / length) as Vec3;
+  const result = scaled.map(n => n / length) as [number, number, number];
   check(result.every(Number.isFinite), CODE.NUMERICAL, 'Plane direction is nonfinite'); return result;
 }
 function cross(a: Vec3, b: Vec3): Vec3 {
@@ -57,8 +57,8 @@ function cross(a: Vec3, b: Vec3): Vec3 {
 }
 interface Plane { name: PlaneName; normal: Vec3; offset: number }
 function classify(min: Vec3, max: Vec3, eye: Vec3, planes: Plane[]): Pick<EngineSceneFrustumEntryV0, 'classification' | 'outsidePlane'> {
-  const center = min.map((n, i) => (n + max[i]) / 2 - eye[i]) as Vec3;
-  const extents = min.map((n, i) => (max[i] - n) / 2) as Vec3;
+  const center = min.map((n, i) => (n + max[i]) / 2 - eye[i]) as [number, number, number];
+  const extents = min.map((n, i) => (max[i] - n) / 2) as [number, number, number];
   check(center.every(Number.isFinite) && extents.every(n => Number.isFinite(n) && n >= 0),
     CODE.NUMERICAL, 'Original bounds cannot form finite centre and radii');
   let inside = true;
@@ -83,15 +83,15 @@ export function prepareEngineSceneFrustum(sceneInput: unknown, requestInput: unk
     try { prepared = prepareEngineScene(sceneInput); }
     catch (cause) { throw new EngineSceneFrustumError(CODE.SCENE, 'Actual complete scene admission refused', cause); }
     const camera = prepared.scene.camera;
-    const backward = normalize(camera.eye.map((n, i) => n - camera.target[i]) as Vec3);
-    const forward = backward.map(n => -n) as Vec3;
+    const backward = normalize(camera.eye.map((n, i) => n - camera.target[i]) as [number, number, number]);
+    const forward = backward.map(n => -n) as [number, number, number];
     const right = normalize(cross(normalize(camera.up), backward)), vertical = cross(backward, right);
     const tanY = Math.tan(camera.fovYDegrees * Math.PI / 360);
     const tanX = tanY * originalRequest.viewportWidth / originalRequest.viewportHeight;
     check(Number.isFinite(tanY) && tanY > 0 && Number.isFinite(tanX) && tanX > 0,
       CODE.NUMERICAL, 'Original viewport camera tangent is unsafe');
     const side = (axis: Vec3, tangent: number, sign: number) => normalize(forward.map((n, i) =>
-      n * tangent + sign * axis[i]) as Vec3);
+      n * tangent + sign * axis[i]) as [number, number, number]);
     const planes: Plane[] = [
       { name: 'near', normal: forward, offset: -camera.near },
       { name: 'far', normal: backward, offset: camera.far },

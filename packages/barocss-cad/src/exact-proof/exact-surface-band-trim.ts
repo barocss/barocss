@@ -9,10 +9,11 @@ import { SectionRationalContext } from '../section-rational-internal.js';
 import type { SectionFraction, SectionRational } from '../section-rational-internal.js';
 import type { Curve, Model, Point } from '../types.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const ExactSurfaceBandTrimDiagnosticCode=Object.freeze({INPUT:'INPUT',IDENTITY:'IDENTITY',BUDGET:'BUDGET',PARENT:'PARENT',PAIR:'PAIR',SUPPORT:'SUPPORT',BAND:'BAND',EMBEDDING:'EMBEDDING',REPRESENTABILITY:'REPRESENTABILITY',BINDING:'BINDING',NATIVE:'NATIVE',OWNED:'OWNED'} as const);
 export type ExactSurfaceBandTrimDiagnosticCode=typeof ExactSurfaceBandTrimDiagnosticCode[keyof typeof ExactSurfaceBandTrimDiagnosticCode];
-export class ExactSurfaceBandTrimError extends Error {readonly code:ExactSurfaceBandTrimDiagnosticCode;constructor(code:ExactSurfaceBandTrimDiagnosticCode,detail:string,cause?:unknown){super(('Exact original Surface band trim: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='ExactSurfaceBandTrimError';this.code=code;}}
+export class ExactSurfaceBandTrimError extends KernelError {readonly code:ExactSurfaceBandTrimDiagnosticCode;constructor(code:ExactSurfaceBandTrimDiagnosticCode,detail:string,cause?:unknown){super(('Exact original Surface band trim: '+detail).slice(0,1024),cause===undefined?undefined:{cause});this.name='ExactSurfaceBandTrimError';this.code=code;}}
 export interface ExactSurfaceBandTrimOptions {
   evaluationId:string;resultIdPrefix:string;orientation:'forward'|'reverse';
   maximumParents:2;maximumObservations:40;

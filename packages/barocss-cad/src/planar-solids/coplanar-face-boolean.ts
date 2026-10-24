@@ -12,6 +12,7 @@ import { copyCadData } from '../data-copy.js';
 import type { Curve, Surface, Model, Point } from '../types.js';
 import { buildCoplanarArrangement } from './coplanar-face-boolean-arrangement.js';
 import { same } from '../core/structural-equality.js';
+import { KernelError } from '../core/barocss-error.js';
 
 export const CoplanarFaceBooleanDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', IDENTITY: 'IDENTITY', SUPPORT: 'SUPPORT', CONTACT: 'CONTACT', UNCERTAINTY: 'UNCERTAINTY',
@@ -19,7 +20,7 @@ export const CoplanarFaceBooleanDiagnosticCode = Object.freeze({
   NATIVE: 'NATIVE', BINDING: 'BINDING', OWNED: 'OWNED',
 } as const);
 export type CoplanarFaceBooleanDiagnosticCode = typeof CoplanarFaceBooleanDiagnosticCode[keyof typeof CoplanarFaceBooleanDiagnosticCode];
-export class CoplanarFaceBooleanError extends Error {
+export class CoplanarFaceBooleanError extends KernelError {
   readonly code: CoplanarFaceBooleanDiagnosticCode;
   constructor(code: CoplanarFaceBooleanDiagnosticCode, detail: string, cause?: unknown) {
     super(('Coplanar Face Boolean: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
