@@ -100,13 +100,55 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
   }
 }
 
+/**
+ * R7.4d: which of a verb's options take a parameter in a CadPartDocument, and where — the feature, counted from the
+ * first one the spec writes, and the path to the leaf holding the value as it is. The studio's set (its ƒ editor's),
+ * less what the kernel's document holds as a plain number: a revolve's angle, a pattern's count, a scale's factor.
+ */
+const BINDS: Record<string, Record<string, readonly [feature: number, path: readonly (string | number)[]]>> = {
+  box: { w: [0, ['max', 0]], d: [0, ['max', 1]], h: [1, ['height']] },
+  cylinder: { x: [0, ['center', 0]], y: [0, ['center', 1]], h: [1, ['height']] },
+  extrude: { h: [1, ['height']] },
+  hole: { x: [0, ['center', 0]], y: [0, ['center', 1]] },
+  fillet: { radius: [0, ['radius']] },
+  chamfer: { distance: [0, ['distance']] },
+  shell: { t: [0, ['thickness']] },
+  'linear-pattern': { spacing: [0, ['spacing']] },
+  split: { at: [0, ['at']] },
+};
+
+// (A leaf of a feature, read and replaced along a path: the feature copied only on the way to it.)
+const leaf = (o: unknown, path: readonly (string | number)[]): unknown => path.reduce<unknown>((v, k) => (v as Record<string | number, unknown>)?.[k], o);
+function withLeaf<T>(o: T, path: readonly (string | number)[], value: unknown): T {
+  if (!path.length) return value as T;
+  const [k, ...rest] = path, copy = (Array.isArray(o) ? [...o] : { ...o }) as Record<string | number, unknown>;
+  copy[k] = withLeaf(copy[k], rest, value);
+  return copy as T;
+}
+
+// (Each option given as a parameter written as the reference in the one leaf that holds its number as it is — a box's
+// far corner is x + w, so its w binds only while x is 0 — or refused, naming the options that bind.)
+function bound(features: CadPartFeature[], spec: FeatureSpec): CadPartFeature[] {
+  const out = [...features], table = BINDS[spec.command] ?? {}, values = spec.values as unknown as Record<string, unknown>;
+  for (const { option, parameter } of spec.bound!) {
+    const at = table[option];
+    if (!at) throw refuse('PARAMETER_UNBINDABLE', `${spec.command}'s ${option} can't take a parameter in a CadPartDocument (its options that do are ${Object.keys(table).join(', ') || 'none'})`);
+    const [k, path] = at;
+    if (leaf(out[k], path) !== values[option]) throw refuse('PARAMETER_UNBINDABLE', `${spec.command}'s ${option} doesn't land as it is in one place here, so it can't take ${parameter} (a box's w or d only while its x or y is 0)`);
+    out[k] = withLeaf(out[k], path, { parameter });
+  }
+  return out;
+}
+
 export const kernelBackend: PartBackend<CadPartDocument> = {
   empty: emptyDocument,
   copy: doc => structuredClone(doc),
   bodies: doc => outputs(doc).map(o => o.id),
   apply(doc, spec, body) {
+    let added = featuresOf(doc, spec, body);
+    if (spec.bound?.length) added = bound(added, spec);
     let next = doc;
-    for (const feature of featuresOf(doc, spec, body)) next = { ...next, features: [...next.features, feature] };
+    for (const feature of added) next = { ...next, features: [...next.features, feature] };
     // (Written, then evaluated once: a feature the kernel refuses is refused here, the part unchanged.)
     outputsOf(next);
     return next;
@@ -115,6 +157,14 @@ export const kernelBackend: PartBackend<CadPartDocument> = {
   mass: (doc, body, density) => massOf(output(doc, body), density),
   step: (doc, name) => stepOf(outputs(doc), name),
   meshes: doc => outputs(doc).map(meshOf),
+  parameters: doc => doc.parameters,
+  withParameters(doc, parameters) {
+    const next = { ...doc, parameters };
+    if (next.features.length) outputsOf(next);
+    return next;
+  },
+  features: doc => doc.features.map(f => ({ id: f.id, kind: f.kind, label: f.id })),
+  suppress(_doc, id) { throw refuse('UNAVAILABLE', `a kernel part's features can't be suppressed: the CadPartDocument has no suppressed flag yet (${id})`); },
 };
 
 /** A kernel part: the one part over a CadPartDocument, with the kernel's STL besides. */

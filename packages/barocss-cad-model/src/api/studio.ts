@@ -4,8 +4,10 @@
 // its build called, the new references signed, the result evaluated. A spec's sketch goes in first as the agent's
 // add_features writes one (checked, the next id), and the command takes it as the newest sketch no feature uses yet. So
 // a facade-built StudioDoc is the one the agent's tools would write, `made` and signatures and all.
-import { BarocssError, bracketedCode, refuse, type FeatureSpec, type PartBackend } from '@barocss/cad/api';
-import { emptyDoc, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
+import { BarocssError, bracketedCode, refuse, type Bound, type FeatureSpec, type PartBackend } from '@barocss/cad/api';
+import { emptyDoc, featureLabel, withNode, type ModelNode, type StudioDoc } from '../engine/doc';
+import { withIds } from '../engine/ids';
+import { editFields, type BindableField } from '../app/editFields';
 import { commandById, givenValues, type Ctx, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
 import { checkNode } from '../chat/features';
@@ -54,8 +56,45 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   // (The references the command wrote get their signatures from the bodies they were picked on, as every commit and
   // the agent's accept do — engine/references.ts; then the part is evaluated, so a refused feature is refused here.)
   next = captureSignatures(next, bodies);
+  if (spec.bound?.length) next = bound(next, spec.command, doc.nodes.length, spec.bound);
   bodiesOf(next);
   return next;
+}
+
+/**
+ * R7.4d: which of a verb's options take a parameter in the studio, and where — the node, counted from the first one the
+ * command adds, and the feature editor's field there. It is the ƒ editor's own set: a field whose value lands as it is
+ * in one place (a hole's diameter is stored as a radius; a box's width, when it doesn't start at 0, is the sketch's
+ * x + w).
+ */
+const BINDS: Record<string, Record<string, readonly [node: number, field: string]>> = {
+  box: { w: [1, 'w'], d: [1, 'd'], h: [1, 'h'] },
+  cylinder: { x: [1, 'cc0'], y: [1, 'cc1'], h: [1, 'h'] },
+  extrude: { h: [1, 'h'] },
+  revolve: { deg: [1, 'deg'] },
+  hole: { x: [0, 'c0'], y: [0, 'c1'] },
+  fillet: { radius: [0, 'r'] },
+  chamfer: { distance: [0, 'd'] },
+  shell: { t: [0, 't'] },
+  'linear-pattern': { spacing: [0, 'spacing'], count: [0, 'count'] },
+  scale: { factor: [0, 'k'] },
+  split: { at: [0, 'at'] },
+};
+const bindable = (command: string) => Object.keys(BINDS[command] ?? {}).join(', ') || 'none';
+
+// (Each option given as a parameter bound as the feature editor's ƒ binds it: editFields' bind, the core's own — its
+// value written as the reference in the one place it lands, or refused.)
+function bound(doc: StudioDoc, command: string, first: number, given: Bound): StudioDoc {
+  let nodes = doc.nodes;
+  for (const { option, parameter } of given) {
+    const at = BINDS[command]?.[option];
+    if (!at) throw refuse('PARAMETER_UNBINDABLE', `${command}'s ${option} can't take a parameter (in the studio its options that do are ${bindable(command)})`);
+    const field = editFields(nodes, first + at[0], doc.parameters).find(f => f.key === at[1]) as BindableField | undefined;
+    const next = field?.bind(nodes, parameter);
+    if (!next) throw refuse('PARAMETER_UNBINDABLE', `${command}'s ${option} doesn't land as it is in one place here, so it can't take ${parameter} (a box's w or d only while its x or y is 0)`);
+    nodes = next;
+  }
+  return { ...doc, nodes };
 }
 
 function bodyOf(doc: StudioDoc, key: string): BodyResult {
@@ -73,4 +112,21 @@ export const studioBackend: PartBackend<StudioDoc> = {
   mass: (doc, body, density) => massOf(bodyOf(doc, body), density),
   step: stepOf,
   meshes: meshesOf,
+  parameters: doc => doc.parameters,
+  withParameters(doc, parameters) {
+    const next = { ...doc, parameters };
+    if (next.nodes.length) bodiesOf(next);
+    return next;
+  },
+  features: doc => withIds(doc).nodes.map((n, i, all) => ({ id: n.id!, kind: n.kind, label: featureLabel(n, i, all) })),
+  suppress(doc, id, suppressed) {
+    // (The History panel's toggle, App.tsx: the flag added, or the key taken away; never on a sketch, a split or a separate.)
+    const i = doc.nodes.findIndex(n => n.id === id), node = doc.nodes[i];
+    if (node.kind === 'sketch' || node.kind === 'split' || node.kind === 'separate') throw refuse('UNAVAILABLE', `a ${node.kind} can't be suppressed (the History offers no toggle for it)`);
+    if (!!node.suppressed === suppressed) return doc;
+    const { suppressed: _s, ...rest } = node; void _s;
+    const next = { ...doc, nodes: doc.nodes.map((x, k) => k !== i ? x : suppressed ? { ...x, suppressed: true as const } : rest as ModelNode) };
+    bodiesOf(next);
+    return next;
+  },
 };

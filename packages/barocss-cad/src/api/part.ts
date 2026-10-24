@@ -11,6 +11,7 @@ import {
   booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
   type BooleanCommand, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
   type HoleOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
+  type Bound, type Resolved, isParam,
 } from './spec.js';
 import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
 import { Location, type Sketch } from './sketch.js';
@@ -32,6 +33,31 @@ export interface PartBackend<D> {
   /** Every body of the part as one STEP AP214 file. */
   step(doc: D, name: string): string;
   meshes(doc: D): MeshData[];
+  /** The document's parameters (R7.4d), and the document with them replaced, evaluated (its refusal, typed). */
+  parameters(doc: D): Readonly<Record<string, number>>;
+  withParameters(doc: D, parameters: Record<string, number>): D;
+  /** Its features by stable id, in order. */
+  features(doc: D): FeatureInfo[];
+  /** The feature suppressed or not (the studio's History toggle), evaluated; refused where the document can't hold it. */
+  suppress(doc: D, id: string, suppressed: boolean): D;
+}
+
+/** A feature as `features()` lists it: its stable id, kind and the studio's label for it. */
+export interface FeatureInfo { readonly id: string; readonly kind: string; readonly label: string }
+
+/** A parameter's name, as the studio's Parameters panel takes one: a letter, then letters, digits and _, up to 32. */
+const PARAMETER_NAME = /^[A-Za-z_][A-Za-z0-9_]{0,31}$/;
+
+/**
+ * `withParameters(doc, edits) → doc` (R7.4d, api-conventions §4): a document's parameters given new values — each must
+ * be one it has, each value a finite number — as the Parameters panel writes a value (the order kept). Pure; the
+ * document is evaluated by whoever uses it.
+ */
+export function withParameters<D extends { readonly parameters: Readonly<Record<string, number>> }>(doc: D, edits: Readonly<Record<string, number>>): D {
+  const unknown = Object.keys(edits).filter(k => !(k in doc.parameters));
+  if (unknown.length) throw refuse('PARAMETER_UNKNOWN', `no parameter ${unknown.join(', ')}; the parameters are ${Object.keys(doc.parameters).join(', ') || 'none'}`);
+  for (const [k, v] of Object.entries(edits)) if (typeof v !== 'number' || !Number.isFinite(v)) throw refuse('VALUE', `${k} takes a number, not ${String(v)}`);
+  return { ...doc, parameters: { ...doc.parameters, ...edits } };
 }
 
 /**
@@ -73,6 +99,30 @@ export class Part<D> {
     return this.next(this.#doc, name);
   }
 
+  /** `parameter`: a named value the part's dimensions can take (`param(name)`), added or set — the Parameters panel's. */
+  parameter(name: string, value: number): this {
+    if (typeof name !== 'string' || !PARAMETER_NAME.test(name)) throw refuse('PARAMETER_NAME', `a parameter's name starts with a letter and has letters, digits and _ (up to 32), not ${JSON.stringify(name)}`);
+    if (typeof value !== 'number' || !Number.isFinite(value)) throw refuse('VALUE', `${name} takes a number, not ${String(value)}`);
+    return this.next(this.backend.withParameters(this.#doc, { ...this.backend.parameters(this.#doc), [name]: value }), this.#focus);
+  }
+
+  /** The part's parameters and their values. */
+  parameters(): Record<string, number> { return { ...this.backend.parameters(this.#doc) }; }
+
+  /** The same part with parameters given new values (see the `withParameters` function), evaluated again. */
+  withParameters(edits: Readonly<Record<string, number>>): this {
+    return this.next(this.backend.withParameters(this.#doc, withParameters({ parameters: this.backend.parameters(this.#doc) }, edits).parameters), this.#focus);
+  }
+
+  /** The part's features by stable id (`n3`, `fillet1` …), in order: the last is the one a verb just added. */
+  features(): FeatureInfo[] { return this.backend.features(this.#doc); }
+
+  /** A feature suppressed (left out of the model, kept in its history) or not, by its id — the History panel's toggle. */
+  suppressed(id: string, suppressed = true): this {
+    if (!this.features().some(f => f.id === id)) throw refuse('FEATURE_UNKNOWN', `no feature ${id}; the features are ${this.features().map(f => f.id).join(', ') || 'none'}`);
+    return this.next(this.backend.suppress(this.#doc, id, suppressed), null);
+  }
+
   /** The body a verb acts on: the chosen one, else the part's one body. */
   protected target(): string {
     if (this.#focus !== null) return this.#focus;
@@ -83,16 +133,16 @@ export class Part<D> {
   }
 
   /** `box`: a w × d × h block with its least corner at (x, y, z), a body of its own. */
-  box(options: BoxOptions): this { return this.#make(boxSpec(options)); }
+  box(options: BoxOptions): this { return this.#make(this.#spec(options, o => boxSpec(o))); }
 
   /** `cylinder`: a round bar of radius r and height h standing on z about (x, y), a body of its own. */
-  cylinder(options: CylinderOptions): this { return this.#make(cylinderSpec(options)); }
+  cylinder(options: CylinderOptions): this { return this.#make(this.#spec(options, o => cylinderSpec(o))); }
 
   /** `extrude`: a finished sketch pulled along its plane's normal, a body of its own. */
-  extrude(profile: Sketch, options: ExtrudeOptions): this { return this.#make(extrudeSpec(profile, options)); }
+  extrude(profile: Sketch, options: ExtrudeOptions): this { return this.#make(this.#spec(options, o => extrudeSpec(profile, o))); }
 
   /** `revolve`: a finished sketch turned about its plane's Y axis (or X), a body of its own. */
-  revolve(profile: Sketch, options?: RevolveOptions): this { return this.#make(revolveSpec(profile, options)); }
+  revolve(profile: Sketch, options?: RevolveOptions): this { return this.#make(this.#spec(options ?? {}, o => revolveSpec(profile, o))); }
 
   /** `hole`: a round hole into the one flat face a selector picks, at (x, y) on that face's plane; through unless blind. */
   hole(face: (body: BodyQuery) => FaceQuery, options: HoleOptions): this {
@@ -100,23 +150,23 @@ export class Part<D> {
     if (picked.count !== 1) throw refuse('SELECTION_ONE', `a hole goes into one face; the selector picked ${picked.count}`);
     const [f] = picked.list();
     if (f.kind !== 'plane') throw refuse('FACE_NOT_FLAT', `a hole goes into a flat face; ${f.name} is curved`);
-    return this.#act(holeSpec(f.name, options));
+    return this.#act(this.#spec(options, o => holeSpec(f.name, o)));
   }
 
   /** `fillet`: rounds the edges a selector picks. */
-  fillet(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions): this { return this.#act(filletSpec(edges(this.select()).names(), options)); }
+  fillet(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions): this { return this.#act(this.#spec(options, o => filletSpec(edges(this.select()).names(), o))); }
 
   /** `chamfer`: cuts the edges a selector picks at 45°. */
-  chamfer(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions): this { return this.#act(chamferSpec(edges(this.select()).names(), options)); }
+  chamfer(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions): this { return this.#act(this.#spec(options, o => chamferSpec(edges(this.select()).names(), o))); }
 
   /** `shell`: hollows the body to walls t thick, leaving the faces a selector picks open — or, given no selector, closed. */
   shell(options: ShellOptions): this;
   shell(open: (body: BodyQuery) => FaceQuery, options: ShellOptions): this;
   shell(a: ShellOptions | ((body: BodyQuery) => FaceQuery), b?: ShellOptions): this {
-    if (typeof a !== 'function') return this.#act(shellSpec([], a));
+    if (typeof a !== 'function') return this.#act(this.#spec(a, o => shellSpec([], o)));
     const open = a(this.select());
     if (!open.count) throw refuse('SELECTION_EMPTY', 'the selector picked no face to leave open (a closed hollow takes no selector)');
-    return this.#act(shellSpec(open.names(), b!));
+    return this.#act(this.#spec(b!, o => shellSpec(open.names(), o)));
   }
 
   /** `union`: the body joined with a tool body. */
@@ -127,16 +177,16 @@ export class Part<D> {
   intersect(tool: Tool<this>): this { return this.#combine('intersect', tool); }
 
   /** `linear-pattern`: copies of the body in a row along an axis, joined into one body. */
-  linearPattern(options: LinearPatternOptions): this { return this.#act(linearPatternSpec(options)); }
+  linearPattern(options: LinearPatternOptions): this { return this.#act(this.#spec(options, o => linearPatternSpec(o))); }
   /** `circular-pattern`: copies of the body round an axis, joined into one body. */
-  circularPattern(options: CircularPatternOptions): this { return this.#act(circularPatternSpec(options)); }
+  circularPattern(options: CircularPatternOptions): this { return this.#act(this.#spec(options, o => circularPatternSpec(o))); }
 
   /** `mirror`: the body joined with its mirror image across a coordinate plane (through `at` on its axis). */
-  mirror(options: MirrorOptions): this { return this.#act(mirrorSpec(options)); }
+  mirror(options: MirrorOptions): this { return this.#act(this.#spec(options, o => mirrorSpec(o))); }
   /** `scale`: the body scaled uniformly about a pivot, the origin unless given. */
-  scale(options: ScaleOptions): this { return this.#act(scaleSpec(options)); }
+  scale(options: ScaleOptions): this { return this.#act(this.#spec(options, o => scaleSpec(o))); }
   /** `split`: the body cut in two by a plane, each side a body of its own (choose one with body(name)). */
-  split(options: SplitOptions): this { return this.#act(splitSpec(options)); }
+  split(options: SplitOptions): this { return this.#act(this.#spec(options, o => splitSpec(o))); }
 
   /**
    * The body placed by a Location: `rotate` about X, then Y, then Z through the origin, then `move` — the two commands,
@@ -162,6 +212,19 @@ export class Part<D> {
 
   /** Each body's display triangles, in the common mesh shape (§10.3) gpu's GeometryInput takes. */
   meshes(): MeshData[] { return this.backend.meshes(this.#doc); }
+
+  // (A verb's options with each parameter read as its number, so the spec is checked as a number is; the options given
+  // as parameters ride on the spec, and the backend binds them where its document holds the reference.)
+  #spec<O extends object>(options: O, build: (resolved: Resolved<O>) => FeatureSpec): FeatureSpec {
+    const params = this.backend.parameters(this.#doc), out = { ...options } as Record<string, unknown>, bound: { option: string; parameter: string }[] = [];
+    for (const [k, v] of Object.entries(options)) {
+      if (!isParam(v)) continue;
+      if (!(v.parameter in params)) throw refuse('PARAMETER_UNKNOWN', `no parameter ${v.parameter}; add it with parameter(name, value) (the parameters are ${Object.keys(params).join(', ') || 'none'})`);
+      out[k] = params[v.parameter]; bound.push({ option: k, parameter: v.parameter });
+    }
+    const spec = build(out as Resolved<O>);
+    return bound.length ? { ...spec, bound: bound as Bound } : spec;
+  }
 
   // (A verb that makes a body of its own: the choice stays as it was.)
   #make(spec: FeatureSpec): this { return this.next(this.backend.apply(this.#doc, spec, null), this.#focus); }
