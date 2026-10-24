@@ -29,6 +29,9 @@ export interface Environment {
    *  depth buffer blocks it — the creases and contacts the shadow map is too coarse for. `length` in world units
    *  (default a fortieth of the scene's radius), `strength` 0–1 (default 0.6). */
   contactShadows?: { length?: number; strength?: number } | false;
+  /** Bloom (G15d.2): light above `threshold` (linear, default 1: brighter than white) glowing past its edges, added at
+   *  `strength` (default 0.05) before the tone map; `knee` the threshold's soft width (default a quarter of it). */
+  bloom?: { strength?: number; threshold?: number; knee?: number } | false;
   /** Screen-space ambient occlusion: radius in world units (default a twelfth of the scene's), strength 0–2. */
   ambientOcclusion?: { radius?: number; strength?: number } | false;
   /**
@@ -196,28 +199,30 @@ export function packOutput(env: Environment, outlines: readonly Vec3[] = [], out
     f.set(ao.inverseProjection, o + 8);
     f.set([ao.radius, env.ambientOcclusion.strength ?? 1, ao.pixelsPerUnit, ao.perspective ? 1 : -1], o + 24);
   }
+  // (G15d.2: the bloom's strength; 0 off.)
+  if (env.bloom) f[o + 28] = Math.max(0, env.bloom.strength ?? 0.05);
   // (G15b: the contact shadows' projection, direction and length, strength and thickness; none: zeros.)
   if (contact && contact.strength > 0 && contact.length > 0) {
     // (It reads view positions as the occlusion does: the inverse projection, set here when the occlusion is off.)
     if (!(ao && env.ambientOcclusion)) f.set(contact.inverseProjection, o + 8);
-    f.set(contact.projection, o + 28);
-    f.set([contact.direction[0], contact.direction[1], contact.direction[2], contact.length], o + 44);
-    f.set([Math.min(1, contact.strength), contact.thickness, 0, 0], o + 48);
+    f.set(contact.projection, o + 32);
+    f.set([contact.direction[0], contact.direction[1], contact.direction[2], contact.length], o + 48);
+    f.set([Math.min(1, contact.strength), contact.thickness, 0, 0], o + 52);
   }
   // (G15d.1: balance and contrast, lift and saturation, gamma and on, gain; then the vignette. Off: zeros, and the
   // pass skips them.)
   const g = env.grading, v = env.vignette;
   if (g) {
     const wb = whiteBalance(g.temperature, g.tint), lift = g.lift ?? [0, 0, 0], gamma = g.gamma ?? [1, 1, 1], gain = g.gain ?? [1, 1, 1];
-    f.set([wb[0], wb[1], wb[2], Math.max(0, g.contrast ?? 1)], o + 52);
-    f.set([lift[0], lift[1], lift[2], Math.max(0, g.saturation ?? 1)], o + 56);
-    f.set([Math.max(1e-3, gamma[0]), Math.max(1e-3, gamma[1]), Math.max(1e-3, gamma[2]), 1], o + 60);
-    f.set([gain[0], gain[1], gain[2], 0], o + 64);
+    f.set([wb[0], wb[1], wb[2], Math.max(0, g.contrast ?? 1)], o + 56);
+    f.set([lift[0], lift[1], lift[2], Math.max(0, g.saturation ?? 1)], o + 60);
+    f.set([Math.max(1e-3, gamma[0]), Math.max(1e-3, gamma[1]), Math.max(1e-3, gamma[2]), 1], o + 64);
+    f.set([gain[0], gain[1], gain[2], 0], o + 68);
   }
   if (v && v.amount > 0) {
     const size = Math.max(0, Math.min(1, v.size ?? 0.5)), soft = Math.max(1e-3, v.softness ?? 0.5);
-    f.set([Math.min(1, v.amount), size, size + soft, 0], o + 68);
+    f.set([Math.min(1, v.amount), size, size + soft, 0], o + 72);
   }
-  f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 72);
+  f.set(outlineRect ?? [-1e9, -1e9, 1e9, 1e9], o + 76);
   return b;
 }

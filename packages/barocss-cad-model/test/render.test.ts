@@ -24,6 +24,9 @@ test('render post (G15d.1): AgX kept, the post read in range; absent, none', () 
   assert.equal(readRender({ environment: {} }).environment.post, undefined);
   assert.deepEqual(readRender({ environment: { post: { grade: 'warm', contrast: 9, saturation: -1, vignette: 0.3 } } }).environment.post, { grade: 'warm', contrast: 1.5, saturation: 0, vignette: 0.3 });
   assert.deepEqual(readRender({ environment: { post: { grade: 'sepia' } } }).environment.post, { grade: 'neutral', contrast: 1, saturation: 1, vignette: 0 });
+  // (G15d.2: bloom, 0 – 1; none when 0 or absent.)
+  assert.equal(readRender({ environment: { post: { grade: 'neutral', bloom: 4 } } }).environment.post?.bloom, 1);
+  assert.ok(!('bloom' in readRender({ environment: { post: { grade: 'neutral', bloom: 0 } } }).environment.post!));
 });
 
 test('appearance finishes (G15a): a known kind read with its scale and strength in range and its axis; coat and film in range; else none', async () => {

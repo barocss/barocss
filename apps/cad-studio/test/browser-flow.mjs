@@ -8982,6 +8982,35 @@ try {
     await page.selectOption('[aria-label="Appearance preset"]', 'look-steel');
     await page.click('.mode button:text-is("Model")');
   });
+  await check('G15d.2 bloom: a chrome box under the softboxes at twice the exposure — the Bloom slider keeps post.bloom and glows its highlights; at 0 the post leaves the document', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady(); await page.waitForTimeout(300); await press('Enter'); await idle();
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Render"]');
+    await press('Escape');
+    await page.click('.render-panel [role="tab"]:text-is("Appearance")');
+    await page.selectOption('[aria-label="Appearance preset"]', 'look-chrome');
+    await page.click('.render-panel [role="tab"]:text-is("Scene")');
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', 'softbox');
+    const slide = async (label, v) => { await page.evaluate(([l, x]) => { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); }, [label, v]); };
+    await slide('Exposure', 2);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.exposure === 2 && window.__studioDoc.render.environment.studio?.kind === 'softbox');
+    const gpu = renderer === 'webgpu', N = 64;
+    const frame = async () => { await idle(); await page.waitForTimeout(700); return page.evaluate(n => window.__studioFrame(n), N); };
+    const before = gpu ? await frame() : null;
+    await slide('Bloom', 1);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post?.bloom === 1);
+    if (gpu) {
+      const after = await frame(); await snap('g15d2-bloom');
+      // (The glow: samples brighter with it — round the highlights, onto the background.)
+      let up = 0; for (let k = 0; k < after.length; k++) if (after[k] > before[k] + 6) up++;
+      console.log(`  G15d.2: ${up} of ${after.length} samples brighter with the bloom`);
+      assert.ok(up > 60, `the bloom glows: ${up} samples brighter`);
+    }
+    await slide('Bloom', 0);
+    await page.waitForFunction(() => window.__studioDoc.render.environment.post === undefined, null, { timeout: 5000 });
+    await slide('Exposure', 1);
+    await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
+    await page.click('.mode button:text-is("Model")');
+  });
 } finally {
   await browser.close(); await server.close();
 }

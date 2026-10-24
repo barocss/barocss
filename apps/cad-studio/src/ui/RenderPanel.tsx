@@ -44,7 +44,8 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   // (G15d.1: the post, neutral until set; set back to neutral, it is dropped from the settings.)
   const post: RenderPost = env.post ?? NO_POST;
   const setPost = (patch: Partial<RenderPost>) => {
-    const next = { ...post, ...patch }, neutral = next.grade === 'neutral' && next.contrast === 1 && next.saturation === 1 && next.vignette === 0;
+    const next = { ...post, ...patch }, neutral = next.grade === 'neutral' && next.contrast === 1 && next.saturation === 1 && next.vignette === 0 && !next.bloom;
+    if (!next.bloom) delete next.bloom;
     const rest = { ...env }; delete rest.post;
     onChange({ ...render, environment: neutral ? rest : { ...rest, post: next } });
   };
@@ -191,6 +192,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {slider('Contrast', post.contrast, v => setPost({ contrast: v }), 0.5, 1.5)}
         {slider('Saturation', post.saturation, v => setPost({ saturation: v }), 0, 2)}
         {slider('Vignette', post.vignette, v => setPost({ vignette: v }))}
+        {slider('Bloom', post.bloom ?? 0, v => setPost({ bloom: v > 0 ? v : undefined }))}
         <div className="card-title" style={{ marginTop: 10 }}>CAMERA</div>
         {slider('Field of view', fov, onFov, 10, 90, 1)}
         <div className="flex flex-wrap gap-1">

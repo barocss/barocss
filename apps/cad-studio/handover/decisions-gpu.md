@@ -3820,3 +3820,43 @@ is untouched as history. The coordinator settled the scope:
 - **Bench** (loaded, 25–30, comparison only; the soft and contact shadows are on in every Render row):
   - DPR 1: render orbit 2.86 ms a submit, with the post 4.42, knurled and lacquered 3.99.
   - DPR 2: 9.96 ms. That is within the 16.7 ms Render target but the heaviest yet, at 2880×1800. A quiet run is owed.
+
+## G-R71 — G15d.2 bloom; the bench's GPU time is the passes' union, not their sum (roadmap G15d.2, G14, 2026-10-24; WIP, flow 296 not rerun)
+
+- **Bloom** (`viewer/shaders/bloom.ts`, `Environment.bloom: { strength, threshold, knee }`): a half-resolution prefilter
+  (a soft knee, a 13-tap Karis-weighted filter), then the dual filter, 4 steps down and 4 up, before the tone map. The
+  output pass adds the chain's top level. `RenderPost.bloom` (cad-model `engine/render.ts`, 0–1, absent when 0) and a
+  Bloom slider in the Render panel's Post section, up to strength 0.2.
+  - The chain is tied to its targets: it is made again for new targets, and released with them on a resize and on
+    dispose, so its prefilter never reads a destroyed scene. Its per-frame path has no nested functions
+    (`bloomPass`, `bloomGroup`, `releaseBloom`). The texel is written once per pass; the threshold and knee each frame
+    from one scratch array.
+- **"7 ms at DPR 1, 32 at DPR 2" was the bench, not the bloom.** On Chrome/Metal a pass that reads the pass before it
+  is stamped from when it was queued, so its interval holds its wait. bench-browser summed the passes' intervals.
+  - A probe (scratch, not committed) took the time from the surface pass's end to the output pass's end. Bloom adds
+    0.07–0.14 ms at 1440×900 and 0.35–0.39 ms at 2880×1800. The summed figure was 34 ms and 170–200 ms there.
+  - `timestampSample` now returns the **union** of a submit's pass intervals as `ms` (the old sum as `sumMS`).
+    Contract test updated. BENCH_PASSES's per-label figures are still each pass's own interval, so they overlap.
+  - Bench, loaded (17–22), compare only. Every row is now lower than before; the budgets were set on sums, so they are
+    loose, not wrong.
+
+| Row (union, ms a submit) | DPR 1 | DPR 2 |
+|---|---|---|
+| render: orbit 60 | 2.76 | 4.00 |
+| render: post on (AgX, grade, vignette, bloom) | 4.13 | 5.03 |
+| render: post on, knurled and lacquered | 5.74 | 4.56 |
+
+- **G14, section on the GPU, measured again with the union** (DPR 1, loaded 17.8): **5.65 ms** (≤ 6). The summed
+  passes would read 10.55. The output pass's "four times the CPU path's" (G-R54, G-R65) was its wait on the surface pass.
+  **Proposed**: drop the G14 output-pass step; keep one quiet run (load < 10) of `BENCH_ONLY='^(section|orbit)'` to
+  confirm.
+- **The 2 gpu unit failures** (viewer-cap-samples, AA true and false): the test's fake viewer had no `black` texture,
+  which the output group now binds. The test is fixed and checks that a bloom chain is released with its targets.
+- **Runs**:
+  - gpu unit 303/303, lint, type-check;
+  - viewer-bloom-browser on hardware and SwiftShader, viewer-post-browser;
+  - cad-model render 7/7, type-check; studio unit 300/300, tsc.
+  - FLOW_ONLY `^(starter|G15)` on WebGPU and WebGL2: 303 (G15d.2 bloom), 297 and 302 pass. **296 (G15d.1) failed on
+    both**, reading `__studioDoc.render.environment` of undefined, very likely because the regex left out its
+    prerequisite "render a part". **Not rerun**: the lanes stopped. Next: FLOW_ONLY `^(starter|render a part|G15d.1)`
+    on both renderers.

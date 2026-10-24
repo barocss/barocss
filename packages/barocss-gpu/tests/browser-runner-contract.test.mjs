@@ -22,9 +22,9 @@ const { parseFlowDpr, flowDisplayMatches } = helpers(flowFile, 'const flowDpr ='
 const all = [...benchCaseNames(412)], section = all.filter(name => /^section:/i.test(name));
 const passing = names => names.map(name => ({ name, ok: true }));
 
-test('unfiltered bench requires all 20 distinct named cases, including both ghost paths', () => {
-  // (17, then G-R49's two rows — typing in the HUD and placing a shape — and RS2's motion played.)
-  assert.equal(all.length, 20); assert.equal(new Set(all).size, 20);
+test('unfiltered bench requires all 23 distinct named cases, including Render and both ghost paths', () => {
+  // (The 20 modelling rows and G15d's three Render rows, including the post with bloom.)
+  assert.equal(all.length, 23); assert.equal(new Set(all).size, 23);
   assert.ok(all.includes('cloud: 412 workspace voxels, orbit 60'));
   assert.ok(all.includes('ghosted: 120 brackets, orbit 60 (sorted)'));
   assert.ok(all.includes('ghosted: 120 brackets, orbit 60 (order-independent)'));
@@ -32,6 +32,17 @@ test('unfiltered bench requires all 20 distinct named cases, including both ghos
   assert.equal(benchRowsPass(passing(all.slice(1)), all, null, true), false);
   assert.equal(benchRowsPass(passing(all.slice(1)), all.slice(1), null, true), false);
   assert.equal(benchRowsPass(passing(all), [...all.slice(1), all[1]], null, true), false);
+});
+
+test('BENCH_ONLY=render requires all three Render rows, including bloom', () => {
+  const render = all.filter(name => /^render:/i.test(name));
+  assert.deepEqual(render, [
+    'render: orbit 60',
+    'render: orbit 60, post on (AgX, warm grade, vignette, bloom)',
+    'render: orbit 60, post on, knurled and lacquered (G15a)',
+  ]);
+  assert.equal(benchRowsPass(passing(render), render, null, false), true);
+  assert.equal(benchRowsPass(passing(render.slice(0, 2)), render, null, false), false);
 });
 
 test('BENCH_ONLY=section expects exactly the selected GPU and CPU row names', () => {
@@ -60,7 +71,10 @@ test('bench retains pick parity and supports filters matching a dynamic workspac
 
 test('timestamp queries require exact used/read/pass counts and ordered nonempty pairs', () => {
   assert.equal(timestampSample([100n, 1100n, 1200n, 3200n], 4, 2).ms, 0.003);
-  assert.equal(timestampSample([100n, 200n, 150n, 250n], 4, 2).ms, 0.0002, 'overlapping passes keep their own nonnegative durations');
+  // (G15d.2: overlapping passes count once — the union of their intervals; their own durations' sum is kept as sumMS.)
+  assert.equal(timestampSample([100n, 200n, 150n, 250n], 4, 2).ms, 0.00015, 'overlapping passes: their union');
+  assert.equal(timestampSample([100n, 200n, 150n, 250n], 4, 2).sumMS, 0.0002, 'overlapping passes keep their own nonnegative durations');
+  assert.equal(timestampSample([150n, 250n, 100n, 400n, 500n, 600n], 6, 3).ms, 0.0004, 'a pass inside another, then a disjoint one');
   assert.equal(timestampSample([100n, 100n], 2, 1).valid, true, 'positive equal timestamps can quantize to zero elapsed');
   for (const [values, used, passes] of [
     [[], 0, 0], [[100n, 200n], 4, 2], [[100n, 200n, 0n, 0n], 4, 2],

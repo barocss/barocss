@@ -6,7 +6,7 @@
  * over both (G15d.1), selection outlines and sRGB encoding for the canvas.
  */
 export const MAX_OUTLINES = 8;
-export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16 + 96 + 80 + 16;
+export const OUTPUT_BYTES = 16 + MAX_OUTLINES * 16 + 32 + 64 + 16 + 16 + 96 + 80 + 16;
 export const outputWGSL = (multisampled: boolean): string => /* wgsl */ `
 struct Output {
   exposure: f32, toneMapping: u32, outlineWidth: f32, outlines: u32,
@@ -17,6 +17,8 @@ struct Output {
   // unit view depth (perspective) or per world unit (orthographic, w < 0).
   invProj: mat4x4f,
   ao: vec4f,
+  // G15d.2's bloom: its strength (0: off).
+  bloom: vec4f,
   // G15b's contact shadows: the camera's projection, the direction toward the shadow-casting light in view space and the
   // ray's length (world), the strength (0: off) and the thickness a blocker is taken to have.
   proj: mat4x4f,
@@ -33,6 +35,9 @@ struct Output {
 @group(0) @binding(1) var<uniform> output: Output;
 @group(0) @binding(2) var mask: texture_2d<u32>;
 @group(0) @binding(3) var depth: ${multisampled ? 'texture_depth_multisampled_2d' : 'texture_depth_2d'};
+// G15d.2: the bloom chain's top level (half the canvas; a black texel without bloom) and its sampler.
+@group(0) @binding(4) var bloomTex: texture_2d<f32>;
+@group(0) @binding(5) var bloomSampler: sampler;
 @vertex fn vs(@builtin(vertex_index) i: u32) -> @builtin(position) vec4f {
   let p = vec2f(f32((i << 1u) & 2u), f32(i & 2u));
   return vec4f(p * 2.0 - 1.0, 0.0, 1.0);
@@ -155,8 +160,17 @@ fn contactShadow(p: vec2i, d: f32) -> f32 {
   let bg = mix(output.top, output.bottom, at.y / size.y);
   var c = bg.rgb;
   var a = bg.a;
+  // (The bloom's light here, exposed: in the scene's light before its tone map; over the background, tone-mapped onto it.)
+  var glow = vec3f(0.0);
+  if (output.bloom.x > 0.0) { glow = textureSampleLevel(bloomTex, bloomSampler, at.xy / size, 0.0).rgb * output.bloom.x * output.exposure; }
+  if (s.a < 1.0 && output.bloom.x > 0.0) {
+    var g = glow * (1.0 - s.a);
+    if (output.toneMapping == 1u) { g = aces(g); } else if (output.toneMapping == 2u) { g = agx(g) - agx(vec3f(0.0)); }
+    c = encode(decode(c) + max(g, vec3f(0.0)));
+    a = max(a, clamp(max(g.r, max(g.g, g.b)), 0.0, 1.0));
+  }
   if (s.a > 0.0) {
-    var lin = s.rgb / s.a * output.exposure;
+    var lin = s.rgb / s.a * output.exposure + glow;
     let d = depthAt(p);
     if (output.ao.y > 0.0 && d > 0.0) { lin *= occlusion(p, d); }
     if (output.contactK.x > 0.0 && d > 0.0) { lin *= contactShadow(p, d); }

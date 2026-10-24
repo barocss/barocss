@@ -24,6 +24,9 @@ function benchCaseNames(voxels) {
     'placing: 30 pointer moves before the click',
     'orbit: 60-step drag',
     'orbit: 60 steps, body outlined',
+    'render: orbit 60',
+    'render: orbit 60, post on (AgX, warm grade, vignette, bloom)',
+    'render: orbit 60, post on, knurled and lacquered (G15a)',
     'pose: a joint of the 2R arm played',
     'motion: the 2R arm\'s motion played',
     `cloud: ${voxels} workspace voxels, orbit 60`,
@@ -42,7 +45,7 @@ function benchCaseNames(voxels) {
 
 function benchRowsPass(rows, expectedNames, picks, fullRun) {
   const names = rows.map(r => r.name);
-  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 20) &&
+  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 23) &&
     new Set(expectedNames).size === expectedNames.length &&
     names.length === expectedNames.length && new Set(names).size === names.length &&
     expectedNames.every(name => names.includes(name)) && rows.every(r => r.ok === true) &&
@@ -53,7 +56,8 @@ function timestampSample(values, used, passes) {
   if (!Number.isInteger(used) || used < 2 || used > 32 || used % 2 || used !== passes * 2 || values.length !== used) {
     return { valid: false, reason: 'missing-or-unused-query-slots' };
   }
-  let ns = 0n;
+  const pairs = [];
+  let sum = 0n;
   for (let i = 0; i < used; i += 2) {
     const start = values[i], end = values[i + 1];
     // Validate each pass's own pair. Different passes can have overlapping timestamp intervals.
@@ -61,10 +65,20 @@ function timestampSample(values, used, passes) {
       return { valid: false, reason: 'invalid-or-reversed-timestamp-pair', pair: i / 2 };
     }
     if (start === 0n && end === 0n) return { valid: false, reason: 'unused-or-unavailable-timestamp', pair: i / 2 };
-    ns += end - start;
-    if (ns > BigInt(Number.MAX_SAFE_INTEGER)) return { valid: false, reason: 'timestamp-duration-not-exactly-representable' };
+    sum += end - start;
+    if (sum > BigInt(Number.MAX_SAFE_INTEGER)) return { valid: false, reason: 'timestamp-duration-not-exactly-representable' };
+    pairs.push([start, end]);
   }
-  return { valid: true, ms: Number(ns) / 1e6 };
+  // (G15d.2: the GPU's time is the union of the passes' intervals, not their sum. On Chrome/Metal a pass that reads the
+  // one before it is stamped from when it was queued, so its interval holds its wait: nine dependent bloom passes summed
+  // to 34 ms a frame at 1440×900 where the frame's span grew 0.1 ms. `sumMS` keeps the old figure.)
+  pairs.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  let ns = 0n, from = pairs[0][0], to = pairs[0][1];
+  for (let i = 1; i < pairs.length; i++) {
+    if (pairs[i][0] > to) { ns += to - from; from = pairs[i][0]; to = pairs[i][1]; } else if (pairs[i][1] > to) to = pairs[i][1];
+  }
+  ns += to - from;
+  return { valid: true, ms: Number(ns) / 1e6, sumMS: Number(sum) / 1e6 };
 }
 
 function benchGpuTiming(b) {
@@ -217,8 +231,9 @@ const BUDGET = {
   clear: { submits: 2, avgFrameMS: 2, perFrame: 1, gpuMS: 4 },
   orbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 3 },
   orbitOutlined: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 5 },
-  // (G15d.1: the Render workspace orbited — its look (shadows, occlusion off while moving), then with the post on: AgX, the
-  // warm grade, contrast, saturation and a vignette. The post's cost: the second row's GPU time less the first's.)
+  // (G15d.1–2: the Render workspace orbited — its look (soft and contact shadows, occlusion off while moving), then with
+  // the post on: AgX, the warm grade, contrast, saturation, a vignette and bloom (G15d.2's nine half-size passes). The
+  // post's cost: the second row's GPU time less the first's.)
   renderOrbit: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
   renderOrbitPost: { submits: 64, avgFrameMS: 2, perFrame: 1, gpuMS: 8 },
   // (G15a: the same with the part knurled and lacquered — the finish's relief, four noise lookups a pixel, and the coat.)
@@ -378,9 +393,9 @@ try {
   await page.click('.render-panel [role="tab"]:text-is("Scene")');
   await page.selectOption('.render-panel [aria-label="Tone mapping"]', 'agx');
   await page.selectOption('.render-panel [aria-label="Colour grade"]', 'warm');
-  await page.evaluate(() => { for (const [l, x] of [['Contrast', 1.2], ['Saturation', 1.2], ['Vignette', 0.6]]) { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); } });
+  await page.evaluate(() => { for (const [l, x] of [['Contrast', 1.2], ['Saturation', 1.2], ['Vignette', 0.6], ['Bloom', 0.5]]) { const el = document.querySelector(`.render-panel [aria-label="${l}"]`); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(x)); el.dispatchEvent(new Event('input', { bubbles: true })); } });
   await page.waitForTimeout(800);
-  await measure('render: orbit 60, post on (AgX, warm grade, vignette)', BUDGET.renderOrbitPost, orbit60);
+  await measure('render: orbit 60, post on (AgX, warm grade, vignette, bloom)', BUDGET.renderOrbitPost, orbit60);
   await page.click('.render-panel [role="tab"]:text-is("Appearance")');
   await page.selectOption('[aria-label="Appearance preset"]', 'look-knurled-steel');
   await page.evaluate(() => { const el = document.querySelector('.render-panel [aria-label="Clear coat"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, '0.6'); el.dispatchEvent(new Event('input', { bubbles: true })); });

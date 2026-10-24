@@ -93,7 +93,7 @@ for (const withSamples of [true, false]) test(`AA ${withSamples}: cap samples ar
     createTexture(desc) { const texture = { ...desc, destroyed: false, destroy() { this.destroyed = true; }, createView() { return { texture: this }; } }; textures.push(texture); return texture; },
     createBindGroup: desc => desc,
   };
-  const viewer = Object.assign(owner(), { device, options: { antialias: withSamples }, canvas: { width: 640, height: 480 }, targets: null, pipelines: new Map([['output', { getBindGroupLayout: () => ({}) }]]), bindFrames() {} });
+  const viewer = Object.assign(owner(), { device, options: { antialias: withSamples }, canvas: { width: 640, height: 480 }, targets: null, black: device.createTexture({ label: 'viewer black' }), pipelines: new Map([['output', { getBindGroupLayout: () => ({}) }]]), bindFrames() {} });
   const first = viewer.ensureTargets();
   assert.equal(first.capFrontSamples, null, 'unsectioned frames do not allocate a full-size MSAA cap probe');
   viewer.ensureCapSamples(first);
@@ -103,7 +103,12 @@ for (const withSamples of [true, false]) test(`AA ${withSamples}: cap samples ar
   assert.equal(first.capFront.format, 'rg32float');
   assert.equal(first.capFront.sampleCount, undefined, 'single-sample ID/mask probe stays separate');
   assert.equal(viewer.ensureTargets(), first, 'unchanged size reuses the target');
+  // (G15d.2: a bloom chain made for these targets is released with them, so it never reads their destroyed scene.)
+  const level = device.createTexture({ label: 'viewer bloom 0' }), params = { destroyed: false, destroy() { this.destroyed = true; } };
+  viewer.bloomChain = { targets: first, levels: [level], params: [params] };
   viewer.canvas.width = 1280; viewer.ensureTargets();
+  assert.equal(viewer.bloomChain, null);
+  assert.equal(level.destroyed && params.destroyed, true);
   assert.equal(first.capFront.destroyed, true);
   if (withSamples) assert.equal(first.capFrontSamples.destroyed, true);
 });
