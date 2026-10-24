@@ -27,8 +27,8 @@ the plane is edge-on, and the cut faces hatched.
 
 ### Half and offset sections
 
-Each principal section's row has a **Kind**: **Full**, **Half** or **Offset (stepped)**. Both are put together from
-exact plain sections, so each part of them is exactly what a plain section or the uncut view shows there.
+Each principal section's **Kind** includes **Full**, **Half** and **Offset (stepped)**. Half and offset sections are
+put together from exact plain sections, so each part is what a plain section or the uncut view shows there.
 
 - **Half.** The section on one side of a centreline and the uncut view on the other. Set the centreline's direction,
   where it lies and which side is cut; by default it runs up the middle of the view, cut to the right. The cutting
@@ -43,6 +43,32 @@ exact plain sections, so each part of them is exactly what a plain section or th
   is on it.
 - **Not yet:** a half section's cutting line drawn over the cut half only, steps not square to the view's axis, and
   turning such sections with the drawing.
+
+### Removed and revolved sections
+
+Choose **Removed** or **Revolved** in the section's **Kind** control to show only the cut face, with its outline and
+hatch. Geometry behind the cutting plane is left out.
+
+- **Removed.** The cut face is placed apart from the views, in free room on the sheet. Its cutting line stays on the
+  view that shows the plane edge-on. The section's scale control uses **The sheet’s** scale by default, or a scale you
+  choose. Its name includes the scale when it differs from the sheet's.
+- **Moving a removed section.** With **Select** (<kbd>V</kbd>), drag inside its box, away from a dimension. Its centre
+  is saved at the new sheet position. Moving or rescaling it keeps the same cut, and its dimensions read model sizes.
+- **Revolved.** The cut face is turned a quarter turn about the cutting plane's trace and drawn on the view, centred
+  on that trace. A front section is drawn on the top view; a top or right section is drawn on the front view. It uses
+  that view's scale and has a centreline, with no separate section name or cutting line.
+- **Which sections.** A removed section can be principal or aligned. A revolved section must be principal. Neither
+  can also be half or offset, and a section cannot be both removed and revolved.
+- **The agent.** In `set_drawing`'s `sections`, `removed` holds optional `at` and `scale` fields. Its `at` is the
+  section centre, `[x, y]` in sheet mm; without it, placement is automatic. Its scale is absolute: 2 means 2:1,
+  regardless of the sheet's scale. Without it, the sheet's scale is used. A section's outer `at` still sets the cutting
+  depth in model mm. For a revolved section, set `revolved` to true instead. Invalid combinations are refused with
+  `DRAWING_OPTIONS`.
+- **Issues.** `SECTION_NO_ROOM` means a removed section has no free room. Use a larger sheet, a smaller section scale,
+  or place it by hand. `SECTION_NO_VIEW` means a revolved section has no view to receive it, so it is not drawn; use a
+  removed section to show the same cut face. These issues have no automatic fix.
+- **Turning the drawing.** Choosing another front view is refused with `SECTION_KIND` while a removed or revolved
+  section is present. Change it to **Full** first.
 
 ## Detail views
 
