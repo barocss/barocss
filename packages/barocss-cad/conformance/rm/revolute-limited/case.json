@@ -167,10 +167,10 @@
     "version": 1,
     "joints": {
      "base~arm": {
-      "lower": -1.5,
-      "upper": 1.5,
-      "effort": 2,
-      "velocity": 3
+      "lower": -85.94366926962348,
+      "upper": 85.94366926962348,
+      "effort": 2000,
+      "velocity": 171.88733853924697
      }
     }
    }
