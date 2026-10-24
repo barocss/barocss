@@ -7,6 +7,7 @@
 // schema tracks the latest: a document without these rows has none — owner, 2026-10-23.)
 import type { StudioDoc } from './doc';
 import type { FastenerSize } from '../app/fasteners';
+import { firstProblem, problem, type Problem } from './refusal';
 
 export const SIZE_FIELDS = ['d', 'pitch', 's', 'k', 'm', 'dk', 'ks', 'socket', 'wd1', 'wd2', 'wh', 'cdk', 'ck', 'csocket', 'tap'] as const;
 export const LENGTH_FIELDS = ['lengths', 'capLengths', 'cskLengths'] as const;
@@ -32,28 +33,28 @@ export const NO_SIZES = '[FASTENER_SIZE_ROW] no fastener sizes loaded — load y
 /** The refusal where a command needs a size no row gives. */
 export const noSizeRow = (size: string) => `[FASTENER_SIZE_ROW] no row for ${size} — load your fastener sizes (samples/rows/fastener-sizes.json is an example)`;
 
-/** What is wrong with a fastener size row, or null. */
-export function fastenerSizeRowProblem(r: unknown): string | null {
-  if (!r || typeof r !== 'object' || Array.isArray(r)) return 'a fastener size row is an object { id (M6), d, pitch, s, k, m, dk, ks, socket, wd1, wd2, wh, cdk, ck, csocket, tap, lengths, capLengths, cskLengths, clearance, source | estimate: true }';
+/** What is wrong with a fastener size row: none, or its one problem (FASTENER_SIZE_ROW). */
+export function checkFastenerSizeRow(r: unknown): Problem[] {
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return [problem('FASTENER_SIZE_ROW', 'a fastener size row is an object { id (M6), d, pitch, s, k, m, dk, ks, socket, wd1, wd2, wh, cdk, ck, csocket, tap, lengths, capLengths, cskLengths, clearance, source | estimate: true }')];
   const o = r as Record<string, unknown>;
-  if (typeof o.id !== 'string' || !/^M\d+(\.\d+)?$/.test(o.id)) return 'a fastener size row\'s id is its thread size, as "M6"';
+  if (typeof o.id !== 'string' || !/^M\d+(\.\d+)?$/.test(o.id)) return [problem('FASTENER_SIZE_ROW', 'a fastener size row\'s id is its thread size, as "M6"')];
   const at = `fastener size row ${o.id}`;
-  for (const k of Object.keys(o)) if (!FIELDS.has(k)) return `${at}: unknown field ${k}`;
-  for (const k of SIZE_FIELDS) if (!positive(o[k])) return `${at}: ${k} is a number of mm above 0`;
-  if (Math.abs((o.d as number) - Number(o.id.slice(1))) > 1e-9) return `${at}: d is the size's own (${o.id.slice(1)})`;
-  for (const k of LENGTH_FIELDS) if (!rising(o[k])) return `${at}: ${k} is the lengths offered, mm, shortest first`;
-  if (!rising(o.clearance) || (o.clearance as number[]).length !== 3) return `${at}: clearance is [fine, medium, coarse], mm, rising`;
-  if (o.estimate !== undefined && o.estimate !== true) return `${at}: estimate is true or left out`;
-  if (o.source !== undefined && typeof o.source !== 'string') return `${at}: source is text (where the row is from)`;
+  for (const k of Object.keys(o)) if (!FIELDS.has(k)) return [problem('FASTENER_SIZE_ROW', `${at}: unknown field ${k}`)];
+  for (const k of SIZE_FIELDS) if (!positive(o[k])) return [problem('FASTENER_SIZE_ROW', `${at}: ${k} is a number of mm above 0`)];
+  if (Math.abs((o.d as number) - Number(o.id.slice(1))) > 1e-9) return [problem('FASTENER_SIZE_ROW', `${at}: d is the size's own (${o.id.slice(1)})`)];
+  for (const k of LENGTH_FIELDS) if (!rising(o[k])) return [problem('FASTENER_SIZE_ROW', `${at}: ${k} is the lengths offered, mm, shortest first`)];
+  if (!rising(o.clearance) || (o.clearance as number[]).length !== 3) return [problem('FASTENER_SIZE_ROW', `${at}: clearance is [fine, medium, coarse], mm, rising`)];
+  if (o.estimate !== undefined && o.estimate !== true) return [problem('FASTENER_SIZE_ROW', `${at}: estimate is true or left out`)];
+  if (o.source !== undefined && typeof o.source !== 'string') return [problem('FASTENER_SIZE_ROW', `${at}: source is text (where the row is from)`)];
   const src = typeof o.source === 'string' && o.source.trim() !== '', est = o.estimate === true;
-  if (src === est) return `${at}: cite its source or say estimate: true — ${src ? 'not both' : 'never neither'}`;
-  if (o.fieldSources !== undefined && (!o.fieldSources || typeof o.fieldSources !== 'object' || Array.isArray(o.fieldSources) || Object.entries(o.fieldSources).some(([k, v]) => !ALL_FIELDS.has(k) || typeof v !== 'string'))) return `${at}: fieldSources maps a field to the text of its source`;
-  if (o.unchecked !== undefined && (!Array.isArray(o.unchecked) || o.unchecked.some(k => typeof k !== 'string' || !ALL_FIELDS.has(k)))) return `${at}: unchecked lists fields`;
-  return null;
+  if (src === est) return [problem('FASTENER_SIZE_ROW', `${at}: cite its source or say estimate: true — ${src ? 'not both' : 'never neither'}`)];
+  if (o.fieldSources !== undefined && (!o.fieldSources || typeof o.fieldSources !== 'object' || Array.isArray(o.fieldSources) || Object.entries(o.fieldSources).some(([k, v]) => !ALL_FIELDS.has(k) || typeof v !== 'string'))) return [problem('FASTENER_SIZE_ROW', `${at}: fieldSources maps a field to the text of its source`)];
+  if (o.unchecked !== undefined && (!Array.isArray(o.unchecked) || o.unchecked.some(k => typeof k !== 'string' || !ALL_FIELDS.has(k)))) return [problem('FASTENER_SIZE_ROW', `${at}: unchecked lists fields`)];
+  return [];
 }
 /** Rows added (each checked; one with an id held already replaces it). */
 export function editFastenerSizeRows(doc: StudioDoc, add: readonly unknown[]): { doc: StudioDoc } | { error: string } {
-  for (const r of add) { const p = fastenerSizeRowProblem(r); if (p) return { error: p }; }
+  for (const r of add) { const p = firstProblem(checkFastenerSizeRow(r)); if (p) return { error: p }; }
   const was = doc.fastenerSizes?.rows ?? [], incoming = add as StudioFastenerSizeRow[], ids = new Set(incoming.map(r => r.id));
   return { doc: { ...doc, fastenerSizes: { version: 1, rows: [...was.filter(r => !ids.has(r.id)), ...incoming] } } };
 }

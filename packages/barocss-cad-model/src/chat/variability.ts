@@ -3,7 +3,8 @@
 // whole (checkVariability), and a variant it names is regenerated from the master (variantOf) before it is kept.
 import type { StudioDoc } from '../engine/doc';
 import type { Binding, Input, InputValue, Variability, Variant } from '../engine/schema/variability';
-import { checkVariability, variantOf } from '../assembly/variability';
+import { checkVariability, variantOf, VARIANT_CODES } from '../assembly/variability';
+import { firstProblem, isRefusal } from '../engine/refusal';
 import type { ToolDefinition } from './api';
 import { isObj } from '../util/guards';
 
@@ -46,13 +47,13 @@ function withVariability(doc: StudioDoc, next: Variability, check: readonly stri
   const empty = !next.inputs.length && !next.variants?.length && next.active === undefined;
   const { variability: _was, ...rest } = doc; void _was;
   const out: StudioDoc = empty ? rest : { ...rest, variability: next };
-  const bad = checkVariability(out); if (bad) return bad;
+  const bad = firstProblem(checkVariability(out)); if (bad) return bad;
   // (A variant this change defines or makes active is regenerated now: one that cannot be is refused, not kept.)
   const problems: Record<string, unknown> = {};
   for (const name of check) {
     const variant = next.variants?.find(x => x.name === name); if (!variant) continue;
-    const r = variantOf(out, variant.values);
-    if ('error' in r) return `${r.error} (variant ${name})`;
+    let r: ReturnType<typeof variantOf>;
+    try { r = variantOf(out, variant.values); } catch (e) { if (isRefusal(e, ...VARIANT_CODES)) return `${e.message} (variant ${name})`; throw e; }
     if (r.problems.length) problems[name] = r.problems;
   }
   return { doc: out, problems };

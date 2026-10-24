@@ -1,0 +1,207 @@
+{
+  "id": "fuzz-20261025-49",
+  "about": "L4 fuzz robust refusal (seed 20261025, case 49), shrunk: a cylinder ∪ (a cylinder ∪ a tilted cylinder). The inner union's traced curve is split into micro edges up a ruling where it runs along it; it builds, but the part model united the union feature's first tool part with itself (D260), and that self-union was refused, an edge used 4 times. Now one body.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n1s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 4
+        },
+        {
+          "id": "n1b",
+          "kind": "extrude",
+          "sketch": "n1s",
+          "height": 3.5
+        },
+        {
+          "id": "n1",
+          "kind": "translate",
+          "target": "n1b",
+          "offset": [
+            -1,
+            0.5,
+            -1
+          ]
+        },
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.188
+        },
+        {
+          "id": "n3b",
+          "kind": "extrude",
+          "sketch": "n3s",
+          "height": 4.588
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3b",
+          "offset": [
+            1.181,
+            -1.081,
+            -2.413
+          ]
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3.623
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 3.785
+        },
+        {
+          "id": "n4r0",
+          "kind": "rotate",
+          "target": "n4b",
+          "axis": "y",
+          "angleDegrees": 346.031,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n4r1",
+          "kind": "rotate",
+          "target": "n4r0",
+          "axis": "y",
+          "angleDegrees": 315.62,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4r1",
+          "offset": [
+            2.709,
+            -1.728,
+            0.498
+          ]
+        },
+        {
+          "id": "n2",
+          "kind": "union",
+          "target": "n3",
+          "tool": "n4"
+        },
+        {
+          "id": "n0",
+          "kind": "union",
+          "target": "n1",
+          "tool": "n2"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 320.6903611543681,
+          "relTol": 0.0005112012137967994,
+          "absTol": 0.1639373018750469
+        },
+        "centroidMM": {
+          "value": [
+            0.22956117387782968,
+            -0.5949271336145333,
+            0.8104882205341577
+          ],
+          "absTol": 0.0031750629241804862
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 8.20e-2 mm³, centroid e 1.59e-3 mm",
+  "fuzz": {
+    "seed": 20261025,
+    "k": 49,
+    "status": "REFUSED",
+    "tree": {
+      "op": "union",
+      "a": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 4,
+          "h": 3.5,
+          "rot": [],
+          "move": [
+            -1,
+            0.5,
+            -1
+          ]
+        }
+      },
+      "b": {
+        "op": "union",
+        "a": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 3.188,
+            "h": 4.588,
+            "rot": [],
+            "move": [
+              1.181,
+              -1.081,
+              -2.413
+            ]
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 3.623,
+            "h": 3.785,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 346.031
+              },
+              {
+                "axis": "y",
+                "deg": 315.62
+              }
+            ],
+            "move": [
+              2.709,
+              -1.728,
+              0.498
+            ]
+          }
+        }
+      }
+    }
+  }
+}

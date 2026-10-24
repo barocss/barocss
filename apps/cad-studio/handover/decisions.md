@@ -13847,3 +13847,124 @@ until D267)").
   K15's end. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
 - cad-model 1027/1027, studio 286/286. No refusal text changed: the docs table stays.
 - No browser flow: nothing studio-visible changed.
+
+## D268 — K16 step 4: the Boolean features join their tool parts from the first over the rest (D260's fix landed) (2026-10-24)
+
+**Change (`part-model.ts`, the union / difference / intersect feature).** The tool's parts are joined as
+`tool.slice(1).reduce(…, tool[0].solid)`: every such feature no longer begins with tool[0] ∪ tool[0] (D260). 25#49
+builds (its test, "part model: a Boolean feature joins its tool parts without uniting the first with itself", also
+checks one Boolean per union feature by the profile).
+
+**D260's three dependencies, each explained before landing:**
+- `r12c-fits`: the nominal size's ulps, fixed where it is judged (D266).
+- `r10-b`: the open chain's point at its end (D267); every foot builds and matches the section oracle.
+- `r12-2`'s flat DXF: **the "49 vs 52 entities" was a misreading.** Those numbers were the byte diff's ASCII `'1'` (49)
+  and `'4'` (52), not entity counts. Both writers' outputs have the same entities (9 / 28 / 29). 36 numbers move by at
+  most 2.8e-14 mm, the tool bodies' rounding without the rebuild. The fixtures `conformance/r12/flat-dxf/{channel-hole,
+  tray-holes}/expected.*.dxf` and `oracle.*.json` are regenerated with the independent reader
+  (`DXF_ORACLE_PYTHON=~/.cache/barocss-ezdxf/bin/python node scripts/flat-dxf-fixtures.mjs`, ezdxf): an expected-value
+  change with its oracle, the geometry identical to 2.8e-14.
+
+**Fingerprint** (`scripts/r5-fingerprint.mjs`, with D269–D270 and their three corpus cases): 869 cases,
+`4e3603b7…` (from `17c1d5c4…`, 866). 354 lines changed: the tool bodies every such feature sees.
+- By where: the oracle corpus 56, the fuzz corpus 18, rb4-oracle 7, r10 6, r12 3, r12c 2, parts 1, the rest the
+  seeds' cases. Three cases added (D268's, D269's, D270's).
+- Volumes ≤ 3.6e-8 relative (fuzz-20261025-99); areas ≤ 6.8e-5 (23:70; 24:124 2.3e-5, 23:78 1.5e-5, the rest ≤ 7.9e-7),
+  the trims' fitted curves meeting at other points. 22 cases have F/E/V changes, each still valid.
+- **Status changes:** 23:13 refused → valid; 23:9 valid → refused (near-degenerate: its nudges refuse 4/4 at the old
+  tip too; left open, as the coordinator decided). 24:154 and 23:110, valid → refused on the first slice(1) tree, stay
+  valid with D269 and D270.
+- Three refusals' messages changed (another edge named): 23:100, 24:96 and `gear-helical-pair-crossing-intersect` (an RB
+  TODO).
+
+**Fuzz** (200 cases a seed): 20261025 OK 189 / REFUSED 11; 20261026 191 / 9; 20261023 190 / 10; 20261024 191 / 9, against
+15/9/11/10: 45 → 39 refusals. No WRONG, INVALID, CRASH, TIMEOUT or APPROX.
+
+**Timings.**
+- The four D240 scenes use no Boolean features; their digests are identical and the differences are noise (frames
+  11 878 / 11 017 against 11 633 / 11 165 ms; spring 3 666 / 3 319 against 3 456 / 3 359; worm 2 172 / 1 899 against
+  1 939 / 1 960; A9 4 485 / 4 358 against 4 341 / 4 568).
+- The corpus documents with union/difference/intersect features (best of 3, t260.mjs): 199 documents, 71 923 / 66 355 ms
+  and 453 Booleans before; 200 documents, 54 093 ms (one pass; the second was stopped at the account move) and 249
+  Booleans after: −18 to −25 %, in line with D260.
+
+**Open:** 23:9; an explicit `B ∪ B` of 25#49's inner body (D260); D265's list.
+
+## D269 — K16: a march past a ball's pole is cut back to it before the pole ends it (2026-10-24)
+
+**Finding.** L4 fuzz 20261024 #154 (a ball whose pole lies on a rounded box's edge between its top and its round),
+valid → refused under D268: the part model now takes box ∪ ball in that order.
+
+**Cause (`toPoles`, `src/brep/analytic-boolean.ts`).** The ball's curve with the round runs into the pole, and the march
+stopped 4.4e-4 mm past it, where the patch's side collapses. The pole put after that point made a hook: the cut passed
+the pole, turned, and came back to it. The search for the nearest point on the cut found its own end 1.8e-4 off, the
+end lay on no edge, and `mergePieces` dropped the round's open piece.
+
+**Fix.** When the march's end lies within 1000 tolerances of the pole, it is cut back while the pole lies behind its last
+point (as the march ran), and the pole is appended to what is left. The tangent is taken from the new end.
+
+**Test:** "analytic Boolean: a march past a ball's pole is cut back to it before the pole ends it", failing on the
+slice(1) tree without D269. Corpus: `robustness/corpus/fuzz/fuzz-20261024-154.json` (shrunk).
+
+## D270 — K16: a face whose loop touches its domain's side, with a hole beside it, is triangulated (2026-10-24)
+
+**Finding.** L4 fuzz 20261023 #110 ((a cylinder ∪ a ball) less a cylinder), valid → refused under D268.
+
+**Cause, two places.**
+- (a) `triangulatePinched` (`analytic-boolean.ts`), the shell volume's triangulation of a piece pinched at a vertex,
+  took the pinch only without holes. The cylinder wall's piece has a cut loop touching the seam, with the ball's own cut
+  as a hole beside it.
+- (b) `surfaceTriangles` (`src/brep/brep-tessellate.ts`). The same 3D boundary point was met twice, each run snapped to
+  its iso line on its own, a few ulps apart (6e-14). Ear clipping found no ear at the near-pinch, where an exact pinch
+  passes.
+
+**Fix.**
+- (a) Each hole goes with the counter-clockwise lobe holding its first point (`inRing`, even-odd, a module-level helper);
+  a hole held by no lobe refuses as before.
+- (b) A boundary point met again, its parameters within 1e-9 of the domain's span of the first, takes the first's.
+  Pole points are left out, and a seam's two sides, a period apart, stay as they are.
+
+**Test:** "tessellation: a face whose loop touches its domain's side, with a hole beside it, is triangulated", failing on
+the slice(1) tree without D270. Corpus: `robustness/corpus/fuzz/fuzz-20261023-110.json` (shrunk).
+
+**Checks for D268–D270 (K16 checkpoint 2, T2, in a scratch worktree at a1857acec with the patch):**
+- Kernel lint and type-check: clean.
+- Kernel suite at concurrency 4: 1680/1687, 6 skipped; the one failure is the native-split demo's Node-version assertion.
+  Against checkpoint 1's names: three new (D268's, D269's, D270's), none renamed, none gone.
+- RB: no NEW, the same 3 TODOs.
+- Fingerprint, fuzz and timings: D268 above.
+- cad-model 1028/1028, studio 286/286. No refusal text changed: the docs table stays.
+- No browser flow: nothing studio-visible changed (the flat DXF's geometry moves by ≤ 2.8e-14).
+
+## D271 — K16: the Boolean's commutativity over the fuzz's trees (an RB check, the coordinator's addition) (2026-10-24)
+
+**The check (`scripts/rb/commute.mjs`, `pnpm rb:commute`).** Every union and intersection node of the fuzz corpus's
+shrunk trees (`robustness/corpus/fuzz/*.json`, their `fuzz.tree`) and of the four seeds' generated trees (20261023–26,
+200 each, drawn as the fuzz draws them) is evaluated as A op B and as B op A, through the fuzz's worker (the node's
+output checked strictly, watertight, its mass).
+- Both must build to one volume, within the two mass methods' stated accuracy (the properties' METHOD_TOL), or, where
+  that is narrower, within the fuzz's oracle bound (max(2e, 1e-4 V)). Or both must refuse.
+- **Findings:** ONE-SIDED (one order refuses, the other builds: a robust refusal), DIFFER, EMPTY-SIDED, and BROKEN
+  (either order INVALID, CRASH or TIMEOUT). Known ones are listed in `robustness/commute-todo.json` and marked TODO;
+  any other exits 1.
+- It also judges every Boolean node's own body. The fuzz judges only a tree's root, so an intermediate body failing
+  the strict check went unseen.
+
+**First run** (at 6374a7351, jobs 4, 195 s): 837 trees, 2 456 nodes. SAME 2 412, BOTH-REFUSED 37, ONE-SIDED 1,
+DIFFER 0, EMPTY-SIDED 0, BROKEN 6. That is 7 findings in 6 trees, all unions:
+
+| Node | A ∪ B | B ∪ A |
+|---|---|---|
+| 23:114 r.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 23:170 r.a.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:51 r.c (under a pattern) | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:96 r.a.b | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:125 r.b | refused: a planar face could not be triangulated | 140.712 mm³, valid |
+| 24:165 r | refused: not a manifold solid | INVALID: a face's loops cross |
+| 24:165 r.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+
+- No volume disagreed. Order-sensitivity appears in 2 nodes (24:125 one-sided, 24:165's root).
+- The five nodes INVALID in both orders are no commutativity failure. They are intermediate bodies emitted unrefused
+  that fail the strict check ("its loops cross or touch"); later Booleans of their trees hide it from the fuzz's root
+  judgement. All 7 are recorded as TODO, and reported to the coordinator before any fix (the brief's "more than a
+  handful").

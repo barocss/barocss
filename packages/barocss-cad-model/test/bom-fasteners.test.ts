@@ -6,7 +6,7 @@ import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { bomPanelData, isBoughtLine, purchaseCsv } from '../src/bom/bom';
 import { bomView, checkBom, deriveBom } from '../src/team/assembly';
 import { withFastenerInstance } from '../src/app/fasteners';
-import { fastenerRowProblem } from '../src/engine/fastenerRows';
+import { checkFastenerRow } from '../src/engine/fastenerRows';
 import { ROWS_NOT_FROM_PERSON } from '../src/engine/rowFiles';
 import { personFile, withSampleRows } from './person-file';
 import { drawingInputs } from '../src/chat/drawing';
@@ -53,14 +53,14 @@ test('F9: the person\'s fastener row, from their file — the line named by it (
 });
 
 test('F9: a fastener row is checked — a kind, a thread size, a length for a screw and none for a nut, a source or estimate: true, nothing unknown', () => {
-  assert.equal(fastenerRowProblem(ROW), null);
-  assert.equal(fastenerRowProblem({ id: 'N6', kind: 'hex-nut', size: 'M6', estimate: true }), null);
-  assert.match(fastenerRowProblem({ ...ROW, source: undefined })!, /cite its source or say estimate: true/);
-  assert.match(fastenerRowProblem({ ...ROW, lengthMM: 0 })!, /lengthMM is a number of mm above 0/);
-  assert.match(fastenerRowProblem({ id: 'N6', kind: 'hex-nut', size: 'M6', lengthMM: 5, estimate: true })!, /has no lengthMM/);
-  assert.match(fastenerRowProblem({ ...ROW, size: '6' })!, /size is the thread's/);
-  assert.match(fastenerRowProblem({ ...ROW, kind: 'rivet' })!, /kind is one of/);
-  assert.match(fastenerRowProblem({ ...ROW, strength: '8.8' })!, /unknown field strength/);
+  assert.deepEqual(checkFastenerRow(ROW), []);
+  assert.deepEqual(checkFastenerRow({ id: 'N6', kind: 'hex-nut', size: 'M6', estimate: true }), []);
+  assert.match(checkFastenerRow({ ...ROW, source: undefined })[0].message, /cite its source or say estimate: true/);
+  assert.match(checkFastenerRow({ ...ROW, lengthMM: 0 })[0].message, /lengthMM is a number of mm above 0/);
+  assert.match(checkFastenerRow({ id: 'N6', kind: 'hex-nut', size: 'M6', lengthMM: 5, estimate: true })[0].message, /has no lengthMM/);
+  assert.match(checkFastenerRow({ ...ROW, size: '6' })[0].message, /size is the thread's/);
+  assert.match(checkFastenerRow({ ...ROW, kind: 'rivet' })[0].message, /kind is one of/);
+  assert.match(checkFastenerRow({ ...ROW, strength: '8.8' })[0].message, /unknown field strength/);
 });
 
 test('F9: on the assembly\'s sheet with balloons, the screws\' line has its balloon on a screw\'s edge; the BOM table says bought', () => {

@@ -20,8 +20,7 @@ const json = (v: unknown) => JSON.stringify(v, (_k, x: unknown) => ArrayBuffer.i
 test('R4: a skeleton bound to W, W changed and not re-solved — every export path gives the solved geometry; STEP names the authored revision', async () => {
   const r = await dispatchTool({ doc: { ...emptyDoc(), parameters: { W: 600, D: 400 } }, bodies: [] }, 'add_features', { features: [sk, frame] }, evaluate);
   assert.ok(!r.isError, r.content);
-  const authored: StudioDoc = { ...r.state.doc, parameters: { W: 800, D: 400 } }, s = resolveSkeletons(authored);
-  assert.ok('doc' in s); const solved = s.doc;
+  const authored: StudioDoc = { ...r.state.doc, parameters: { W: 800, D: 400 } }, solved = resolveSkeletons(authored).doc;
   assert.notEqual(revisionOf(authored), revisionOf(solved), 'solving moves the skeleton\'s points');
   // (The members follow W = 800 either way: the longest reaches x = 820 with the tube's half width.)
   const maxX = (d: StudioDoc) => Math.max(...partBreps(d).flatMap(b => b.brep.vertices.map(v => v.point[0])));

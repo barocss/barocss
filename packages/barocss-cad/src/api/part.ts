@@ -3,8 +3,17 @@
 // a spec once, here, and a backend writes it into its document. cad's backend (./kernel) writes CadPartDocument
 // features; cad-model's part extends this class with its studio backend and adds only the studio layer. Results come
 // from each backend's adapter onto its core, as plain data.
-import { boxSpec, filletSpec, holeSpec, type BoxOptions, type FeatureSpec, type FilletOptions, type HoleOptions } from './spec.js';
+//
+// A part of several bodies (a second box, a split, a tool for a Boolean) acts on the one `body(name)` chose; with one
+// body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
+// with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
+import {
+  booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearPatternSpec, moveSpec, revolveSpec, rotateSpec, shellSpec,
+  type BooleanCommand, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
+  type HoleOptions, type LinearPatternOptions, type RevolveOptions, type ShellOptions,
+} from './spec.js';
 import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
+import { Location, type Sketch } from './sketch.js';
 import type { MassResult, MeshData } from './core.js';
 import { refuse } from './refusal.js';
 
@@ -12,12 +21,15 @@ import { refuse } from './refusal.js';
 export interface PartBackend<D> {
   empty(): D;
   copy(doc: D): D;
-  /** The spec written into the document (a new one; the old one unchanged), or the core's refusal. */
-  apply(doc: D, spec: FeatureSpec): D;
-  /** The part's one body's edges and faces. */
-  select(doc: D): BodyQuery;
-  /** The body's mass properties at a density (g/cm³), in MMGS. */
-  mass(doc: D, densityGPerCm3: number): MassResult;
+  /** The document's bodies by name, in the core's order (the studio's keys `b1` …, the kernel's output ids). */
+  bodies(doc: D): string[];
+  /** The spec written into the document (a new one; the old one unchanged), acting on `body` (null: a verb that makes one), or the core's refusal. */
+  apply(doc: D, spec: FeatureSpec, body: string | null): D;
+  /** A body's edges and faces. */
+  select(doc: D, body: string): BodyQuery;
+  /** A body's mass properties at a density (g/cm³), in MMGS. */
+  mass(doc: D, body: string, densityGPerCm3: number): MassResult;
+  /** Every body of the part as one STEP AP214 file. */
   step(doc: D, name: string): string;
   meshes(doc: D): MeshData[];
 }
@@ -25,21 +37,59 @@ export interface PartBackend<D> {
 /** A density, the kernel's way of asking for mass (it keeps no material library; cad-model's part also takes a material id). */
 export interface Density { densityGPerCm3: number }
 
+/** A Boolean's tool: a body of the part by name, or a callback that adds the tool body to the part (`p => p.cylinder(…)`). */
+export type Tool<P> = string | ((part: P) => P);
+
+const AXES = ['x', 'y', 'z'] as const;
+
 export class Part<D> {
   readonly name: string;
   protected readonly backend: PartBackend<D>;
   readonly #doc: D;
-  constructor(backend: PartBackend<D>, name: string, doc: D) { this.backend = backend; this.name = name; this.#doc = doc; }
+  readonly #focus: string | null;
+  constructor(backend: PartBackend<D>, name: string, doc: D, focus: string | null = null) { this.backend = backend; this.name = name; this.#doc = doc; this.#focus = focus; }
 
   /** The plain document (a copy: changing it changes nothing here). */
   get doc(): D { return this.backend.copy(this.#doc); }
 
   /** A new part of this kind on another document (a subclass keeps its own kind). */
-  protected next(doc: D): this { return new (this.constructor as new (backend: PartBackend<D>, name: string, doc: D) => this)(this.backend, this.name, doc); }
+  protected next(doc: D, focus: string | null = null): this {
+    return new (this.constructor as new (backend: PartBackend<D>, name: string, doc: D, focus: string | null) => this)(this.backend, this.name, doc, focus);
+  }
   protected get document(): D { return this.#doc; }
+  /** The body chosen with body(name), or null. */
+  protected get focus(): string | null { return this.#focus; }
 
-  /** `box`: a w × d × h block with its least corner at (x, y, z). */
-  box(options: BoxOptions): this { return this.#apply(boxSpec(options)); }
+  /** The part's bodies by name, in the core's order. */
+  bodies(): string[] { return this.backend.bodies(this.#doc); }
+
+  /** The same part, its verbs acting on the body of that name (see `bodies()`). */
+  body(name: string): this {
+    const all = this.bodies();
+    if (!all.includes(name)) throw refuse('BODY_UNKNOWN', `no body ${name} in the part; its bodies are ${all.join(', ') || 'none'}`);
+    return this.next(this.#doc, name);
+  }
+
+  /** The body a verb acts on: the chosen one, else the part's one body. */
+  protected target(): string {
+    if (this.#focus !== null) return this.#focus;
+    const all = this.bodies();
+    if (all.length === 0) throw refuse('NO_BODY', 'the part has no body yet: start it with box(), cylinder(), extrude() or revolve()');
+    if (all.length > 1) throw refuse('BODY_AMBIGUOUS', `the part has ${all.length} bodies (${all.join(', ')}): choose one with body(name)`);
+    return all[0];
+  }
+
+  /** `box`: a w × d × h block with its least corner at (x, y, z), a body of its own. */
+  box(options: BoxOptions): this { return this.#make(boxSpec(options)); }
+
+  /** `cylinder`: a round bar of radius r and height h standing on z about (x, y), a body of its own. */
+  cylinder(options: CylinderOptions): this { return this.#make(cylinderSpec(options)); }
+
+  /** `extrude`: a finished sketch pulled along its plane's normal, a body of its own. */
+  extrude(profile: Sketch, options: ExtrudeOptions): this { return this.#make(extrudeSpec(profile, options)); }
+
+  /** `revolve`: a finished sketch turned about its plane's Y axis (or X), a body of its own. */
+  revolve(profile: Sketch, options?: RevolveOptions): this { return this.#make(revolveSpec(profile, options)); }
 
   /** `hole`: a round hole into the one flat face a selector picks, at (x, y) on that face's plane; through unless blind. */
   hole(face: (body: BodyQuery) => FaceQuery, options: HoleOptions): this {
@@ -47,23 +97,92 @@ export class Part<D> {
     if (picked.count !== 1) throw refuse('SELECTION_ONE', `a hole goes into one face; the selector picked ${picked.count}`);
     const [f] = picked.list();
     if (f.kind !== 'plane') throw refuse('FACE_NOT_FLAT', `a hole goes into a flat face; ${f.name} is curved`);
-    return this.#apply(holeSpec(f.name, options));
+    return this.#act(holeSpec(f.name, options));
   }
 
   /** `fillet`: rounds the edges a selector picks. */
-  fillet(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions): this { return this.#apply(filletSpec(edges(this.select()).names(), options)); }
+  fillet(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions): this { return this.#act(filletSpec(edges(this.select()).names(), options)); }
 
-  /** The part's one body's edges and faces, to look at or to select from. */
-  select(): BodyQuery { return this.backend.select(this.#doc); }
+  /** `chamfer`: cuts the edges a selector picks at 45°. */
+  chamfer(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions): this { return this.#act(chamferSpec(edges(this.select()).names(), options)); }
+
+  /** `shell`: hollows the body to walls t thick, leaving the faces a selector picks open — or, given no selector, closed. */
+  shell(options: ShellOptions): this;
+  shell(open: (body: BodyQuery) => FaceQuery, options: ShellOptions): this;
+  shell(a: ShellOptions | ((body: BodyQuery) => FaceQuery), b?: ShellOptions): this {
+    if (typeof a !== 'function') return this.#act(shellSpec([], a));
+    const open = a(this.select());
+    if (!open.count) throw refuse('SELECTION_EMPTY', 'the selector picked no face to leave open (a closed hollow takes no selector)');
+    return this.#act(shellSpec(open.names(), b!));
+  }
+
+  /** `union`: the body joined with a tool body. */
+  union(tool: Tool<this>): this { return this.#combine('union', tool); }
+  /** `difference` (the palette's Subtract): the tool body cut out of the body. */
+  subtract(tool: Tool<this>): this { return this.#combine('difference', tool); }
+  /** `intersect`: only where the body and the tool body overlap. */
+  intersect(tool: Tool<this>): this { return this.#combine('intersect', tool); }
+
+  /** `linear-pattern`: copies of the body in a row along an axis, joined into one body. */
+  linearPattern(options: LinearPatternOptions): this { return this.#act(linearPatternSpec(options)); }
+  /** `circular-pattern`: copies of the body round an axis, joined into one body. */
+  circularPattern(options: CircularPatternOptions): this { return this.#act(circularPatternSpec(options)); }
+
+  /**
+   * The body placed by a Location: `rotate` about X, then Y, then Z through the origin, then `move` — the two commands,
+   * one node each for every part of the placement that isn't zero.
+   */
+  moved(location: Location): this {
+    if (!(location instanceof Location)) throw refuse('VALUE', 'moved() takes a Location (Location.of({ positionMM, rotationDeg }), Location.at(…))');
+    const r = location.rotationDeg, p = location.positionMM;
+    let out = this.next(this.#doc, this.#focus);
+    for (const k of [0, 1, 2] as const) if (r[k] !== 0) out = out.#act(rotateSpec(AXES[k], r[k]));
+    if (p[0] !== 0 || p[1] !== 0 || p[2] !== 0) out = out.#act(moveSpec([p[0], p[1], p[2]]));
+    return out;
+  }
+
+  /** The body's edges and faces, to look at or to select from. */
+  select(): BodyQuery { return this.backend.select(this.#doc, this.target()); }
 
   /** The body's mass properties at a density, in MMGS. */
-  mass(density: Density): MassResult { return this.backend.mass(this.#doc, density.densityGPerCm3); }
+  mass(density: Density): MassResult { return this.backend.mass(this.#doc, this.target(), density.densityGPerCm3); }
 
-  /** The part as one STEP AP214 file, named after the part unless another name is given. */
+  /** The part (every body) as one STEP AP214 file, named after the part unless another name is given. */
   step(name: string = this.name): string { return this.backend.step(this.#doc, name); }
 
   /** Each body's display triangles, in the common mesh shape (§10.3) gpu's GeometryInput takes. */
   meshes(): MeshData[] { return this.backend.meshes(this.#doc); }
 
-  #apply(spec: FeatureSpec): this { return this.next(this.backend.apply(this.#doc, spec)); }
+  // (A verb that makes a body of its own: the choice stays as it was.)
+  #make(spec: FeatureSpec): this { return this.next(this.backend.apply(this.#doc, spec, null), this.#focus); }
+
+  // (A verb acting on the body: the choice follows it to the body that replaces it — the one new body, when the chosen
+  // one is gone — and is dropped when no single body does.)
+  #act(spec: FeatureSpec): this {
+    const body = this.target(), before = this.bodies(), doc = this.backend.apply(this.#doc, spec, body);
+    if (this.#focus === null) return this.next(doc, null);
+    const after = this.backend.bodies(doc), made = after.filter(b => !before.includes(b));
+    return this.next(doc, after.includes(this.#focus) ? this.#focus : made.length === 1 ? made[0] : null);
+  }
+
+  #combine(command: BooleanCommand, tool: Tool<this>): this {
+    const body = this.target();
+    if (typeof tool === 'string') {
+      if (tool === body) throw refuse('VALUE', `a Boolean takes two bodies; ${tool} is the body itself`);
+      if (!this.bodies().includes(tool)) throw refuse('BODY_UNKNOWN', `no body ${tool} in the part; its bodies are ${this.bodies().join(', ')}`);
+      return this.#act(booleanSpec(command, tool));
+    }
+    if (typeof tool !== 'function') throw refuse('VALUE', 'a Boolean\'s tool is a body\'s name or a callback adding it (p => p.cylinder(…))');
+    // (The tool built in this part's own document, so its nodes take the next ids, as the studio makes a second body
+    // before combining the two: exactly one new body, the chosen one still there.)
+    const before = this.bodies(), built = tool(this.next(this.#doc, null));
+    if (!(built instanceof Part)) throw refuse('VALUE', 'a Boolean\'s tool callback returns the part with the tool body added');
+    const after = built.bodies(), made = after.filter(b => !before.includes(b));
+    if (!after.includes(body)) throw refuse('VALUE', `the tool callback changed the body ${body} itself; it only adds the tool`);
+    if (made.length !== 1) throw refuse('SELECTION_ONE', `a Boolean's tool callback adds one body; it added ${made.length}`);
+    return built.next(built.#doc, body).#act(booleanSpec(command, made[0])).#refocus(this.#focus);
+  }
+
+  // (After a Boolean built on a chosen body: keep the choice only if there was one.)
+  #refocus(was: string | null): this { return was === null ? this.next(this.#doc, null) : this; }
 }

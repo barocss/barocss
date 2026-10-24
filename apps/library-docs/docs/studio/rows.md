@@ -13,6 +13,9 @@ where it came from, or saying it is an estimate.
 - **Placed parts inherit them.** A placed part uses the rows of the document it is placed in.
 - **Rows in use stay.** A row something uses stays loaded. A frame section row, when edited, moves every frame
   built on it.
+  - Removing a ring, O-ring, bearing, connector, drive or mount row that a feature uses is refused with
+    `[ROW_IN_USE]`, for example `[ROW_IN_USE] ring row R1 is used by a retaining ring: remove the ring first`.
+  - Removing a row that isn't loaded is refused with `[ROW_UNKNOWN]`.
 
 ## Row kinds
 

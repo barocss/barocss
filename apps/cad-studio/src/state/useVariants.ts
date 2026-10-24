@@ -6,7 +6,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { InputValue } from '@barocss/cad-model/engine/schema/variability';
 import type { Problem } from '@barocss/cad-model/assembly/mates';
-import { variantOf } from '@barocss/cad-model/assembly/variability';
+import { variantOf, VARIANT_CODES } from '@barocss/cad-model/assembly/variability';
+import { isRefusal } from '@barocss/cad-model/engine/refusal';
 
 export type Values = Record<string, InputValue>;
 /**
@@ -38,8 +39,9 @@ export function useVariants(doc: StudioDoc): VariantsState {
   const base = useMemo<Values>(() => v ? { ...Object.fromEntries(v.inputs.map(i => [i.name, i.default])), ...(active?.values ?? {}) } : {}, [v, active]);
   const out = useMemo(() => {
     if (!v) return { shown: doc, problems: [] as Problem[], error: null };
-    const values = { ...base, ...working }, r = variantOf(doc, values);
-    return 'error' in r ? { shown: doc, problems: [] as Problem[], error: r.error } : { shown: r.doc, problems: r.problems, error: null };
+    const values = { ...base, ...working };
+    try { const r = variantOf(doc, values); return { shown: r.doc, problems: r.problems, error: null }; }
+    catch (e) { if (isRefusal(e, ...VARIANT_CODES)) return { shown: doc, problems: [] as Problem[], error: e.message }; throw e; }
   }, [doc, v, base, working]);
   const showing = out.shown === doc ? null : active && !Object.keys(working).some(k => working[k] !== active.values[k]) ? active.name : `${active?.name ?? MASTER}, edited`;
   return { base, working, setWorking, ...out, showing };

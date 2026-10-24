@@ -1,5 +1,6 @@
 // Capabilities issued by the person's conversation input. Tool arguments cannot mint one.
 import { sha256Hex } from '../util/digest';
+import { refusal } from './refusal';
 
 export interface RowFileInput { name: string; text: string; turn: number }
 export interface RowFileSource { filename: string; suppliedBy: 'person'; turn: number; sha256: string }
@@ -10,13 +11,13 @@ const bytes = (s: string) => new TextEncoder().encode(s);
 
 /** Called only by the browser's user input or the server restoring that input, never a tool. */
 export function receivePersonRowFiles(conversation: string, inputs: readonly RowFileInput[], turnCount: number): PersonRowFiles {
-  if (!/^[a-f0-9]{24}$/.test(conversation)) throw new Error('Invalid row-file conversation.');
-  if (!Array.isArray(inputs) || inputs.length > 32) throw new Error('At most 32 row files per conversation.');
+  if (!/^[a-f0-9]{24}$/.test(conversation)) throw refusal('ROW_FILES', 'Invalid row-file conversation.');
+  if (!Array.isArray(inputs) || inputs.length > 32) throw refusal('ROW_FILES', 'At most 32 row files per conversation.');
   let total = 0;
   const files = inputs.map(input => {
-    if (!input || Object.keys(input).some(k => !['name', 'text', 'turn'].includes(k)) || typeof input.name !== 'string' || !/^[^/\\]{1,160}\.json$/i.test(input.name) || [...input.name].some(c => c.charCodeAt(0) < 32) || typeof input.text !== 'string' || !Number.isInteger(input.turn) || input.turn < 1 || input.turn > turnCount) throw new Error('A row file needs a JSON filename, text and its user conversation turn.');
+    if (!input || Object.keys(input).some(k => !['name', 'text', 'turn'].includes(k)) || typeof input.name !== 'string' || !/^[^/\\]{1,160}\.json$/i.test(input.name) || [...input.name].some(c => c.charCodeAt(0) < 32) || typeof input.text !== 'string' || !Number.isInteger(input.turn) || input.turn < 1 || input.turn > turnCount) throw refusal('ROW_FILES', 'A row file needs a JSON filename, text and its user conversation turn.');
     const content = bytes(input.text); total += content.length;
-    if (content.length > 262144 || total > 1048576) throw new Error('Row files are limited to 256 KiB each and 1 MiB per conversation.');
+    if (content.length > 262144 || total > 1048576) throw refusal('ROW_FILES', 'Row files are limited to 256 KiB each and 1 MiB per conversation.');
     JSON.parse(input.text);
     const sha256 = sha256Hex(content), source = Object.freeze({ filename: input.name, suppliedBy: 'person' as const, turn: input.turn, sha256 });
     const id = `rows-${sha256Hex(bytes(JSON.stringify([conversation, input.name, input.turn, sha256])))}`;

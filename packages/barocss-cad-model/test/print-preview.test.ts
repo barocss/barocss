@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyDoc, rectanglePart, withNode, type PrintPreviewSettings, type StudioDoc } from '../src/engine/doc';
 import { readStudioDoc } from '../src/engine/migrate';
-import { printPreviewProblem } from '../src/engine/printPreview';
+import { checkPrintPreview } from '../src/engine/printPreview';
+import { firstProblem } from '../src/engine/refusal';
 import { encodeStudioFile, isContainer, readStudioFile } from '../src/engine/container';
 import { meshNodeBlobs } from '../src/engine/blobs';
 import { evaluateDoc } from '../src/engine/evaluate';
@@ -15,7 +16,7 @@ test('G23: preview-only JSON Save/Open preserves omissions, zero and false witho
     { version: 1, layer: Number.MAX_SAFE_INTEGER, layerMM: 0.15, supports: true, printed: true },
   ];
   for (const value of values) {
-    assert.equal(printPreviewProblem(value), null);
+    assert.equal(firstProblem(checkPrintPreview(value)), null);
     const doc: StudioDoc = { ...rectanglePart(4, 3, 2), printPreview: value }, before = JSON.stringify(doc);
     const read = readStudioDoc(before); assert.ok('doc' in read, JSON.stringify(read));
     assert.deepEqual(read.doc.printPreview, value); assert.equal('print' in read.doc, false);
@@ -56,15 +57,15 @@ test('G23: version, safe layer index, finite positive thickness and boolean flag
     ...['supports', 'printed'].flatMap(key => [0, 1, 'false', null].map(value => ({ version: 1, [key]: value }))),
     { version: 1, direction: [0, 0, 1] },
   ];
-  assert.equal(printPreviewProblem(undefined), null, 'the optional field may be absent');
+  assert.equal(firstProblem(checkPrintPreview(undefined)), null, 'the optional field may be absent');
   for (const value of invalid) {
-    assert.match(printPreviewProblem(value)!, /^\[PRINT_PREVIEW_INPUT\] printPreview:/);
+    assert.match(firstProblem(checkPrintPreview(value))!, /^\[PRINT_PREVIEW_INPUT\] printPreview:/);
     const text = JSON.stringify({ ...emptyDoc(), printPreview: value }), read = readStudioDoc(text);
     assert.ok('error' in read && read.error.startsWith('[PRINT_PREVIEW_INPUT] printPreview:'), text);
     const file = await readStudioFile(new TextEncoder().encode(text));
     assert.ok('error' in file && file.error.startsWith('[PRINT_PREVIEW_INPUT] printPreview:'), text);
   }
-  for (const layerMM of [Number.MIN_VALUE, Number.MAX_VALUE]) assert.equal(printPreviewProblem({ version: 1, layer: 0, layerMM }), null, 'no unrequested thickness bounds');
+  for (const layerMM of [Number.MIN_VALUE, Number.MAX_VALUE]) assert.equal(firstProblem(checkPrintPreview({ version: 1, layer: 0, layerMM })), null, 'no unrequested thickness bounds');
 });
 
 test('G23: placed documents and pending revisions use the same read refusal without filling missing controls', () => {

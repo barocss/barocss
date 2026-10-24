@@ -5,7 +5,7 @@ import { commands, type Ctx } from '../src/app/commands';
 import { editFields } from '../src/app/editFields';
 import { bearingHousingValue } from '../src/app/shaftCommands';
 import { emptyDoc, withNode, type ModelNode, type PartInstance, type StudioDoc } from '../src/engine/doc';
-import { bearingContextOf, bearingDependencyKey, bearingHousingRefProblem } from '../src/engine/bearingContext';
+import { bearingContextOf, bearingDependencyKey, checkBearingHousingRef } from '../src/engine/bearingContext';
 import { contentKey, evaluationKey, rememberedEvaluate } from '../src/engine/evalMemo';
 import { readStudioDoc } from '../src/engine/migrate';
 import { readStudioFile, encodeStudioFile } from '../src/engine/container';
@@ -153,7 +153,7 @@ test('A9-7 Save/Open stores the link, rebuilds current context, and rejects ambi
   const opened = await readStudioFile(encodeStudioFile(root)); assert.ok('doc' in opened);
   assert.equal(report(scoped(opened.doc)).housing!.covered, true);
   assert.equal(bearingContextOf(opened.doc.instances![1].doc), undefined);
-  for (const bad of [null, { part: 'p1', body: 'n1' }, { part: 'p1', body: 'b1', index: 1 }, { part: '', body: 'b1' }]) assert.ok(bearingHousingRefProblem(bad));
+  for (const bad of [null, { part: 'p1', body: 'n1' }, { part: 'p1', body: 'b1', index: 1 }, { part: '', body: 'b1' }]) assert.equal(checkBearingHousingRef(bad).length, 1);
   const both = JSON.parse(json); both.instances[1].doc.nodes[1].housing = 0;
   const refused = readStudioDoc(JSON.stringify(both)); assert.ok('error' in refused); assert.match(refused.error, /mutually exclusive/);
 });

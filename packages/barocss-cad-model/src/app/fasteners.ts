@@ -12,6 +12,7 @@ import { fastenerSizesOf, NO_SIZES, noSizeRow } from '../engine/fastenerSizeRows
 import { bodyKeyFor } from '../engine/ids';
 import type { Command, Ctx, HandleSpec, PlacedHole, Values } from './commands';
 import { nextFreeId } from '../util/ids';
+import { coded, refusal } from '../engine/refusal';
 
 export type FastenerKind = 'hex-bolt' | 'socket-screw' | 'csk-screw' | 'hex-nut' | 'washer';
 export interface FastenerSize {
@@ -115,16 +116,16 @@ export function fastenerNodes(doc: StudioDoc, v: Values, sizes: FastenerSizes = 
   return { ...out, bodies };
 }
 function buildFastener(doc: StudioDoc, v: Values, sizes: FastenerSizes): { doc: StudioDoc; extra: { node: number; name: string }[] } {
-  const size = sizes[String(v.size)]; if (!size) throw new Error(noSizeRow(String(v.size)));
+  const size = sizes[String(v.size)]; if (!size) throw coded('FASTENER_SIZE_ROW', noSizeRow(String(v.size)));
   const x = Number(v.x), y = Number(v.y), z = Number(v.z), len = Number(v.length), at = (h: number) => (h ? { from: h } : {}), kind = String(v.kind);
-  if (![x, y, z].every(Number.isFinite)) throw new Error('Give the fastener a position (X, Y and Z in mm).');
+  if (![x, y, z].every(Number.isFinite)) throw refusal('FASTENER_POSITION', 'Give the fastener a position (X, Y and Z in mm).');
   const ls = lengthsOf(kind, size);
-  if (threaded(kind) && !ls.includes(len)) throw new Error(`${String(v.size)} ${kind === 'hex-bolt' ? 'bolts' : 'screws'} come ${ls[0]}–${ls[ls.length - 1]} mm long (${ls.join(', ')}).`);
+  if (threaded(kind) && !ls.includes(len)) throw refusal('FASTENER_LENGTH', `${String(v.size)} ${kind === 'hex-bolt' ? 'bolts' : 'screws'} come ${ls[0]}–${ls[ls.length - 1]} mm long (${ls.join(', ')}).`);
   const nut = threaded(kind) && v.joint === 'nut', grip = Number(v.grip);
   if (nut) {
-    if (!(grip > 0) || !Number.isFinite(grip)) throw new Error('Give the joint its grip: the thickness the bolt clamps (mm).');
+    if (!(grip > 0) || !Number.isFinite(grip)) throw refusal('FASTENER_GRIP', 'Give the joint its grip: the thickness the bolt clamps (mm).');
     const need = nutJointNeed(size, grip);
-    if (len < need) throw new Error(`${String(v.size)} × ${len} is too short for this joint: it needs ${need} mm (grip ${grip} + washer ${size.wh} + nut ${size.m} + 2 pitches) — ${ls.find(l => l >= need) ?? 'longer than the catalogue has'}.`);
+    if (len < need) throw refusal('FASTENER_LENGTH', `${String(v.size)} × ${len} is too short for this joint: it needs ${need} mm (grip ${grip} + washer ${size.wh} + nut ${size.m} + 2 pitches) — ${ls.find(l => l >= need) ?? 'longer than the catalogue has'}.`);
   }
   let d = doc;
   const add = (n: Parameters<typeof withNode>[1]) => { d = withNode(d, n); return d.nodes.length - 1; }, extra: { node: number; name: string }[] = [];

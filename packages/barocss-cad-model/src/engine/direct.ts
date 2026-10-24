@@ -7,6 +7,7 @@ import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildMultiSect
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 import { nextFreeId } from '../util/ids';
+import { refusal } from './refusal';
 
 export interface DirectObject {
   id: string; name: string; source: string; geometry: string; hidden?: boolean;
@@ -26,7 +27,7 @@ export function modelOf(text: string): Model {
   let m = compiled.get(text);
   if (!m) {
     const r = compileCadModel(text, { sourceVersion: 0 });
-    if (!r.ok) throw new Error(r.diagnostics.map(d => d.message).join('; ') || 'The CAD source does not compile.');
+    if (!r.ok) throw refusal('DIRECT_SOURCE', r.diagnostics.map(d => d.message).join('; ') || 'The CAD source does not compile.');
     m = r.model; compiled.set(text, m);
     if (compiled.size > 256) compiled.delete(compiled.keys().next().value!);
   }
@@ -36,7 +37,7 @@ export function modelOf(text: string): Model {
 /** An object's curve or surface. */
 export function geometryOf(d: DirectGeometry, o: DirectObject): Curve | Surface {
   const g = modelOf(d.sources[o.source]).objects.find(x => x.id === o.geometry);
-  if (!g || (g.kind !== 'curve' && g.kind !== 'surface')) throw new Error(`${o.name} is not a curve or a surface of its source.`);
+  if (!g || (g.kind !== 'curve' && g.kind !== 'surface')) throw refusal('DIRECT_PICK', `${o.name} is not a curve or a surface of its source.`);
   return g as Curve | Surface;
 }
 
@@ -53,7 +54,7 @@ const fresh = (used: Set<string>, stem: string) => { const id = nextFreeId(`${st
 export function importSource(d: DirectGeometry, text: string, label: string): DirectGeometry {
   const model = modelOf(text), used = usedIds(d), key = fresh(new Set(Object.keys(d.sources)), 'src');
   const objects = model.objects.filter(o => o.kind === 'curve' || o.kind === 'surface').map(o => ({ id: fresh(used, 'obj'), name: `${label} · ${o.id}`, source: key, geometry: o.id }));
-  if (!objects.length) throw new Error('This CAD source has no curves or surfaces.');
+  if (!objects.length) throw refusal('DIRECT_SOURCE', 'This CAD source has no curves or surfaces.');
   return { sources: { ...d.sources, [key]: text }, objects: [...d.objects, ...objects] };
 }
 
@@ -66,16 +67,16 @@ export function importIGESFile(d: DirectGeometry, text: string, label: string): 
   let r;
   try { r = importIGES(text, { sourceId: id, modelName: id, idPrefix: id, maximumEntities: 16, maximumRecords: 8192 }); }
   catch (e) {
-    if (e instanceof IGESImportError) throw new Error(`This IGES file cannot be read (${e.code}): only untransformed NURBS curves and surfaces (entities 126 and 128) in mm, at most 16, are read so far. ${e.message.replace(/^Native IGES import: /, '')}`);
+    if (e instanceof IGESImportError) throw refusal('IGES_READ', `This IGES file cannot be read (${e.code}): only untransformed NURBS curves and surfaces (entities 126 and 128) in mm, at most 16, are read so far. ${e.message.replace(/^Native IGES import: /, '')}`);
     throw e;
   }
   // (The result is a frozen snapshot: its source is read out as plain text.)
   return { direct: importSource(d, String(r.source), label), curves: Number(r.report.curveCount), surfaces: Number(r.report.surfaceCount) };
 }
 
-const object = (d: DirectGeometry, id: string) => { const o = d.objects.find(x => x.id === id); if (!o) throw new Error('No such object.'); return o; };
-const curveOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'curve') throw new Error('Pick a curve.'); return g; };
-const surfaceOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'surface') throw new Error('Pick a surface.'); return g; };
+const object = (d: DirectGeometry, id: string) => { const o = d.objects.find(x => x.id === id); if (!o) throw refusal('DIRECT_PICK', 'No such object.'); return o; };
+const curveOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'curve') throw refusal('DIRECT_PICK', 'Pick a curve.'); return g; };
+const surfaceOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'surface') throw refusal('DIRECT_PICK', 'Pick a surface.'); return g; };
 
 /** Add a result source with new objects; hide the objects they came from. */
 function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string }[]): DirectGeometry {
@@ -150,7 +151,7 @@ export const directOps = {
   },
   elevateCurveDegree(d: DirectGeometry, id: string) {
     const o = object(d, id), c = curveOf(d, id);
-    if (c.degree >= 5) throw new Error('The curve is already degree 5, the highest raised to.');
+    if (c.degree >= 5) throw refusal('DIRECT_DEGREE', 'The curve is already degree 5, the highest raised to.');
     const r = elevateSourceCurveDegree({ source: d.sources[o.source], sourceVersion: 0, curveId: o.geometry, targetDegree: c.degree + 1, maximumObservations: 128 } as Parameters<typeof elevateSourceCurveDegree>[0]);
     return refine(d, id, r.source);
   },
@@ -182,7 +183,7 @@ export const directOps = {
    * end, in any order and either way round.
    */
   fill(d: DirectGeometry, ids: string[]) {
-    if (ids.length !== 4) throw new Error('Pick four curves that meet end to end in a loop.');
+    if (ids.length !== 4) throw refusal('DIRECT_LOOP', 'Pick four curves that meet end to end in a loop.');
     const cs = ids.map(id => curveOf(d, id)), at = (c: Curve, s: number) => { const [a, b] = curveDomain(c); return evaluateCurve(c, a + (b - a) * s); };
     const end = (c: Curve, k: 0 | 1) => at(c, k), gap = (p: readonly number[], q: readonly number[]) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
     const size = Math.max(...cs.flatMap(c => [0, 0.5, 1].map(s => gap(at(c, s), end(cs[0], 0))))), tol = 1e-4 * Math.max(1, size);
@@ -191,10 +192,10 @@ export const directOps = {
     while (left.length) {
       const last = loop[loop.length - 1], tip = end(last.c, last.flip ? 0 : 1);
       const k = left.findIndex(c => gap(end(c, 0), tip) < tol || gap(end(c, 1), tip) < tol);
-      if (k < 0) throw new Error('The four curves do not meet end to end: each must start where another ends.');
+      if (k < 0) throw refusal('DIRECT_LOOP', 'The four curves do not meet end to end: each must start where another ends.');
       const c = left.splice(k, 1)[0]; loop.push({ c, flip: gap(end(c, 0), tip) >= tol });
     }
-    if (gap(end(loop[3].c, loop[3].flip ? 0 : 1), end(loop[0].c, 0)) >= tol) throw new Error('The curves do not close into a loop.');
+    if (gap(end(loop[3].c, loop[3].flip ? 0 : 1), end(loop[0].c, 0)) >= tol) throw refusal('DIRECT_LOOP', 'The curves do not close into a loop.');
     const side = (k: number) => (s: number) => at(loop[k].c, loop[k].flip ? 1 - s : s);
     // Bottom C0(u) = side 0, right D1(v) = side 1, top C2(u) = side 2 backwards, left D0(v) = side 3 backwards.
     const C0 = side(0), D1 = side(1), C2 = (u: number) => side(2)(1 - u), D0 = (v: number) => side(3)(1 - v);
@@ -209,7 +210,7 @@ export const directOps = {
   },
   /** The surface run on past one of its edges along its tangent there by `distance` mm (re-fitted as a bicubic B-spline). */
   extendSurface(d: DirectGeometry, id: string, edge: 'u-min' | 'u-max' | 'v-min' | 'v-max', distance: number) {
-    if (!(distance > 0)) throw new Error('Extend by a positive distance.');
+    if (!(distance > 0)) throw refusal('DIRECT_VALUE', 'Extend by a positive distance.');
     // (12 rows of the surface and 4 beyond it, 16 across: the most poles a surface takes each way.)
     const s = surfaceOf(d, id), dom = surfaceDomain(s), n = 11, across = 15, extra = 4, alongU = edge.startsWith('u'), atMax = edge.endsWith('max');
     const [a0, a1] = alongU ? dom.u : dom.v, [b0, b1] = alongU ? dom.v : dom.u;
@@ -239,7 +240,7 @@ export const directOps = {
   /** The curve without its interior knot nearest `u`, when it stays within `tol` mm; refused when the knot carries shape. */
   removeCurveKnot(d: DirectGeometry, id: string, u: number, tol: number) {
     const c = curveOf(d, id), r = removeCurveKnotPlain({ degree: c.degree, knots: [...c.knots], points: c.controlPoints.map(p => [p[0], p[1], p[2]] as [number, number, number]), weights: [...c.weights] }, u, tol);
-    if (!r) throw new Error(`That knot cannot come out without moving the curve more than ${tol} mm (or it has none inside).`);
+    if (!r) throw refusal('DIRECT_KNOT', `That knot cannot come out without moving the curve more than ${tol} mm (or it has none inside).`);
     return add(d, [id], curvesSource('knot', [r]), [{ geometry: 'c1', name: `${nameOf(d, id)} · knot removed` }]);
   },
   /** Move, turn or scale objects in place: each to a new source with its transformed geometry. */
@@ -264,18 +265,18 @@ export const directOps = {
     return directOps.transform(d, ids, p => aboutCentre(R, p));
   },
   scale(d: DirectGeometry, ids: string[], k: number) {
-    if (!(k > 0)) throw new Error('A scale is a positive factor.');
+    if (!(k > 0)) throw refusal('DIRECT_VALUE', 'A scale is a positive factor.');
     return directOps.transform(d, ids, p => aboutCentre([k, 0, 0, 0, k, 0, 0, 0, k], p));
   },
   /** Stretched along X, Y and Z by their own factors, about each object's centre. */
   stretch(d: DirectGeometry, ids: string[], k: [number, number, number]) {
-    if (!k.every(x => x > 0)) throw new Error('Each stretch is a positive factor.');
+    if (!k.every(x => x > 0)) throw refusal('DIRECT_VALUE', 'Each stretch is a positive factor.');
     return directOps.transform(d, ids, p => aboutCentre([k[0], 0, 0, 0, k[1], 0, 0, 0, k[2]], p));
   },
   /** Sheared: `along` moves by `k` times the distance along `by` (x += k·y for along x, by y), about each centre. */
   shear(d: DirectGeometry, ids: string[], along: 'x' | 'y' | 'z', by: 'x' | 'y' | 'z', k: number) {
-    if (along === by) throw new Error('A shear moves one axis by another: pick two different axes.');
-    if (!Number.isFinite(k)) throw new Error('Give the shear a factor.');
+    if (along === by) throw refusal('DIRECT_VALUE', 'A shear moves one axis by another: pick two different axes.');
+    if (!Number.isFinite(k)) throw refusal('DIRECT_VALUE', 'Give the shear a factor.');
     const R = [1, 0, 0, 0, 1, 0, 0, 0, 1]; R['xyz'.indexOf(along) * 3 + 'xyz'.indexOf(by)] = k;
     return directOps.transform(d, ids, p => aboutCentre(R, p));
   },
@@ -285,12 +286,12 @@ export const directOps = {
   },
   rename(d: DirectGeometry, id: string, name: string) {
     const n = name.trim();
-    if (!n) throw new Error('A name is needed.');
+    if (!n) throw refusal('DIRECT_VALUE', 'A name is needed.');
     return { ...d, objects: d.objects.map(o => o.id === id ? { ...o, name: n } : o) };
   },
   /** A surface through 2–15 curves of the same degree and knots, in selection order (cubic across them when there are enough). */
   loft(d: DirectGeometry, ids: string[]) {
-    if (ids.length < 2 || ids.length > 15) throw new Error('Loft through 2 to 15 curves.');
+    if (ids.length < 2 || ids.length > 15) throw refusal('DIRECT_LOFT', 'Loft through 2 to 15 curves.');
     // (Each section its own id: curves from different sources may share one.)
     const used = usedIds(d), sections = compatible(d, ids).map(g => ({ ...g, id: fresh(used, 'section') })), n = sections.length;
     const r = buildMultiSectionLoftSurface(sections, sections.map((_, i) => i / (n - 1)), {
@@ -310,7 +311,7 @@ export const directOps = {
  */
 function compatible(d: DirectGeometry, ids: string[]): Curve[] {
   const doms = ids.map(id => curveDomain(curveOf(d, id)));
-  if (doms.some(t => Math.abs(t[0] - doms[0][0]) > 1e-12 || Math.abs(t[1] - doms[0][1]) > 1e-12)) throw new Error('The curves run over different parameter ranges: trim or rebuild them to one range first.');
+  if (doms.some(t => Math.abs(t[0] - doms[0][0]) > 1e-12 || Math.abs(t[1] - doms[0][1]) > 1e-12)) throw refusal('DIRECT_RANGE', 'The curves run over different parameter ranges: trim or rebuild them to one range first.');
   let w = d;
   const top = Math.max(...ids.map(id => curveOf(w, id).degree));
   for (const id of ids) while (curveOf(w, id).degree < top) w = directOps.elevateCurveDegree(w, id);
@@ -330,7 +331,7 @@ function compatible(d: DirectGeometry, ids: string[]): Curve[] {
 /** Where a curve crosses the plane `axis` = `at`: its parameters and points (sampled, then bisected to 1e-12). */
 export function curvePlaneCrossings(d: DirectGeometry, id: string, axis: 'x' | 'y' | 'z', at: number): { t: number; point: [number, number, number] }[] {
   const c = curveOf(d, id), [t0, t1] = curveDomain(c), k = 'xyz'.indexOf(axis), f = (t: number) => evaluateCurve(c, t)[k] - at, N = 512, out: { t: number; point: [number, number, number] }[] = [];
-  if (Array.from({ length: 33 }, (_, i) => f(t0 + (t1 - t0) * i / 32)).every(v => Math.abs(v) < 1e-9)) throw new Error(`The curve lies in the plane ${axis.toUpperCase()} = ${at}: it does not cross it.`);
+  if (Array.from({ length: 33 }, (_, i) => f(t0 + (t1 - t0) * i / 32)).every(v => Math.abs(v) < 1e-9)) throw refusal('DIRECT_PLANE', `The curve lies in the plane ${axis.toUpperCase()} = ${at}: it does not cross it.`);
   let pt = t0, pf = f(t0);
   if (Math.abs(pf) < 1e-12) out.push({ t: t0, point: [...evaluateCurve(c, t0)] as [number, number, number] });
   for (let i = 1; i <= N; i++) {
@@ -366,8 +367,8 @@ export function surfaceIntersection(d: DirectGeometry, a: string, b: string): { 
   const lo = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), hi = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k]))), diag = Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) || 1;
   let chains;
   try { chains = intersectPatches(pa, pb, { step: diag / 120, tolerance: 1e-6 * diag }); }
-  catch (e) { if (e instanceof SurfaceIntersectionError) throw new Error(`These surfaces cannot be intersected: ${e.message.replace(/^Surface intersection: /, '')}.`); throw e; }
-  if (!chains.length) throw new Error('These surfaces do not meet.');
+  catch (e) { if (e instanceof SurfaceIntersectionError) throw refusal('DIRECT_INTERSECT', `These surfaces cannot be intersected: ${e.message.replace(/^Surface intersection: /, '')}.`); throw e; }
+  if (!chains.length) throw refusal('DIRECT_INTERSECT', 'These surfaces do not meet.');
   const num = (v: number) => String(Math.round(v * 1e9) / 1e9);
   const curves = chains.slice(0, 16).map((ch, k) => {
     const ps = [...ch.points, ...(ch.closed ? [ch.points[0]] : [])], step = Math.max(1, Math.ceil((ps.length - 1) / 63)), poly = ps.filter((_, i) => i % step === 0 || i === ps.length - 1);
@@ -382,7 +383,7 @@ export function surfaceIntersection(d: DirectGeometry, a: string, b: string): { 
 function freshPrefix(used: Set<string>, stem: string, max = 20): string {
   for (let i = 1; ; i++) {
     const p = `${stem}${i}`;
-    if (p.length > max) throw new Error('No free id prefix.');
+    if (p.length > max) throw refusal('DIRECT_ID', 'No free id prefix.');
     if (![...used].some(id => id.startsWith(p))) { used.add(p); return p; }
   }
 }
@@ -485,8 +486,8 @@ export function analyzeSurface(d: DirectGeometry, id: string, u: number, v: numb
 /** The visible curves and surfaces as one IGES file (at most 16; named by their object ids). */
 export function directIGES(d: DirectGeometry, name = 'barocss_part'): string {
   const visible = d.objects.filter(o => !o.hidden);
-  if (!visible.length) throw new Error('There are no visible curves or surfaces to export.');
-  if (visible.length > 16) throw new Error('IGES export takes at most 16 curves and surfaces: hide some first.');
+  if (!visible.length) throw refusal('IGES_EXPORT', 'There are no visible curves or surfaces to export.');
+  if (visible.length > 16) throw refusal('IGES_EXPORT', 'IGES export takes at most 16 curves and surfaces: hide some first.');
   const objects = visible.map(o => ({ ...geometryOf(d, o), id: o.id }));
   const model: Model = { name: name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_').slice(0, 64) || 'part', version: 0, lengthUnit: 'mm', objects };
   return exportIGES(model, objects.map(o => o.id)).iges;

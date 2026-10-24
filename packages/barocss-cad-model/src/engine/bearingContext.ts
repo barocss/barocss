@@ -3,6 +3,7 @@ import { type ModelNode, type StudioDoc } from './doc';
 import { placementOf } from './placement';
 import type { HousingPose } from './bearingHousing';
 import { bodyNodeOf } from './ids';
+import { problem, refusal, refused, type Problem } from './refusal';
 
 export interface BearingHousingRef { part: string; body: string }
 /** Optional host/part-dispatch input for the existing bearing command and feature editor. */
@@ -12,21 +13,22 @@ export interface BearingAssemblyContext { owner: string; ownerPose: HousingPose;
 const contextKey = Symbol('bearingAssemblyContext');
 type ContextualDoc = StudioDoc & { [contextKey]?: BearingAssemblyContext };
 const basePose = (): HousingPose => ({ m: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [0, 0, 0] });
-function bad(detail: string): never { throw new Error(`[BEARING_HOUSING_REFERENCE] ${detail}`); }
+function bad(detail: string): never { throw refusal('BEARING_HOUSING_REFERENCE', detail); }
 
-export function bearingHousingRefProblem(value: unknown): string | null {
-  if (value === undefined) return null;
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return '[BEARING_HOUSING_REFERENCE] housingRef must be {part, body}';
+/** What is wrong with a housingRef: none, or its one problem; undefined means absent. */
+export function checkBearingHousingRef(value: unknown): Problem[] {
+  if (value === undefined) return [];
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return [problem('BEARING_HOUSING_REFERENCE', 'housingRef must be {part, body}')];
   const ref = value as Record<string, unknown>;
-  if (Object.keys(ref).some(k => k !== 'part' && k !== 'body') || typeof ref.part !== 'string' || !ref.part.trim() || typeof ref.body !== 'string' || !/^b\d+(?:_(?:negative|positive|part\d+))?$/.test(ref.body)) return '[BEARING_HOUSING_REFERENCE] housingRef needs an existing part id and stable body key';
-  return null;
+  if (Object.keys(ref).some(k => k !== 'part' && k !== 'body') || typeof ref.part !== 'string' || !ref.part.trim() || typeof ref.body !== 'string' || !/^b\d+(?:_(?:negative|positive|part\d+))?$/.test(ref.body)) return [problem('BEARING_HOUSING_REFERENCE', 'housingRef needs an existing part id and stable body key')];
+  return [];
 }
 
 /** Read the proposed field without a fallback to a local numeric index. */
 export function bearingHousingRef(node: ModelNode): BearingHousingRef | undefined {
   if (node.kind !== 'bearing') return undefined;
-  const ref = (node as ModelNode & { housingRef?: BearingHousingRef }).housingRef, problem = bearingHousingRefProblem(ref);
-  if (problem) throw new Error(problem);
+  const ref = (node as ModelNode & { housingRef?: BearingHousingRef }).housingRef, [why] = checkBearingHousingRef(ref);
+  if (why) throw refused(why);
   if (ref && node.housing !== undefined) bad('housing and housingRef are mutually exclusive');
   return ref;
 }
@@ -73,7 +75,7 @@ export function bearingPartView(child: StudioDoc, root: StudioDoc, owner: string
   const occurrence = context.targets.find(t => t.part === owner);
   if (!occurrence) {
     if (!child.nodes.some(n => bearingHousingRef(n))) return child;
-    throw new Error(`[BEARING_HOUSING_SCOPE] no immediate owner occurrence ${owner}`);
+    throw refusal('BEARING_HOUSING_SCOPE', `no immediate owner occurrence ${owner}`);
   }
   return withBearingContext(child, { owner, ownerPose: occurrence.pose, targets: context.targets.map(t => t.part === owner ? { ...t, doc: withoutContext(child) } : t) });
 }
@@ -86,7 +88,7 @@ export function bearingHousingTarget(doc: StudioDoc, ref: BearingHousingRef): Be
   const target = context.targets.find(t => t.part === ref.part);
   if (!target) bad(`housing part ${ref.part} no longer exists`);
   if (target.hidden) bad(`housing part ${ref.part} is hidden`);
-  if (target.doc.instances?.length) throw new Error('[BEARING_HOUSING_SCOPE] a nested housing occurrence needs an explicit addressing contract');
+  if (target.doc.instances?.length) throw refusal('BEARING_HOUSING_SCOPE', 'a nested housing occurrence needs an explicit addressing contract');
   const body = bodyNodeOf(target.doc.nodes, ref.body);
   if (!body || target.doc.nodes[body.node].suppressed) bad(`housing body ${ref.part}/${ref.body} no longer exists`);
   return target;
@@ -100,7 +102,7 @@ export function bearingDependencyKey(doc: StudioDoc): string | undefined {
   if (!context) bad('the housing link needs its current assembly and owner occurrence');
   const visiting: string[] = [], done = new Set<string>();
   const walk = (part: string, source: StudioDoc): void => {
-    if (visiting.includes(part)) throw new Error(`[BEARING_HOUSING_CYCLE] ${[...visiting, part].join(' -> ')}`);
+    if (visiting.includes(part)) throw refusal('BEARING_HOUSING_CYCLE', [...visiting, part].join(' -> '));
     if (done.has(part)) return;
     visiting.push(part);
     for (const node of source.nodes) {
@@ -119,21 +121,21 @@ export function bearingDependencyKey(doc: StudioDoc): string | undefined {
   return JSON.stringify({ owner: context.owner, ownerPose: context.ownerPose, refs, targets: relevant });
 }
 
-/** Shape validation only; current identity and exact geometry are checked during evaluation. */
-export function documentBearingHousingProblem(value: unknown, path = ''): string | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+/** Shape validation only; current identity and exact geometry are checked during evaluation: the first problem. */
+export function checkDocumentBearingHousing(value: unknown, path = ''): Problem[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
   const doc = value as Record<string, unknown>;
   for (const [i, raw] of (Array.isArray(doc.nodes) ? doc.nodes : []).entries()) {
     if (!raw || typeof raw !== 'object' || raw.kind !== 'bearing') continue;
-    const problem = bearingHousingRefProblem(raw.housingRef);
-    if (problem) return `${problem} (${path}nodes[${i}])`;
-    if (raw.housingRef !== undefined && raw.housing !== undefined) return `[BEARING_HOUSING_REFERENCE] ${path}nodes[${i}]: housing and housingRef are mutually exclusive`;
+    const [why] = checkBearingHousingRef(raw.housingRef);
+    if (why) return [{ ...why, message: `${why.message} (${path}nodes[${i}])` }];
+    if (raw.housingRef !== undefined && raw.housing !== undefined) return [problem('BEARING_HOUSING_REFERENCE', `${path}nodes[${i}]: housing and housingRef are mutually exclusive`)];
   }
   for (const [i, inst] of (Array.isArray(doc.instances) ? doc.instances : []).entries()) {
-    const problem = documentBearingHousingProblem(inst?.doc, `${path}instances[${i}].doc.`); if (problem) return problem;
+    const problems = checkDocumentBearingHousing(inst?.doc, `${path}instances[${i}].doc.`); if (problems.length) return problems;
   }
   if (doc.pendingParts && typeof doc.pendingParts === 'object') for (const [id, pending] of Object.entries(doc.pendingParts)) {
-    const problem = documentBearingHousingProblem(pending?.doc, `${path}pendingParts[${JSON.stringify(id)}].doc.`); if (problem) return problem;
+    const problems = checkDocumentBearingHousing(pending?.doc, `${path}pendingParts[${JSON.stringify(id)}].doc.`); if (problems.length) return problems;
   }
-  return null;
+  return [];
 }

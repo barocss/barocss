@@ -4,12 +4,13 @@
 // it used) and renumbering the later ones; persistent face and edge names carry stable feature ids
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
-import { boundConstraints, boundRefusal, followersOf } from '../frames/skeleton';
+import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
 import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
-import { bearingHousingRefProblem } from '../engine/bearingContext';
+import { checkBearingHousingRef } from '../engine/bearingContext';
+import { firstProblem, isRefusal } from '../engine/refusal';
 import { isObj, isVec3 } from '../util/guards';
 
 type Spec = Record<string, string>;
@@ -146,8 +147,8 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     if (!Array.isArray(node.constraints)) return 'skeleton.constraints: a list of 3D constraints ({"kind": "length", "segment": k, "value": mm} …)';
     if ((node.points as unknown[][]).some(p => p.some(v => typeof v !== 'number'))) return 'skeleton: a skeleton with constraints has numbers for its points (the solver moves them)';
     // (O140: a length's, distance's or angle's value may be a parameter's: checked as it is now.)
-    const b = boundConstraints(node.constraints as BoundConstraint3D[], parameters);
-    if ('error' in b) return b.error;
+    let b: ReturnType<typeof boundConstraints>;
+    try { b = boundConstraints(node.constraints as BoundConstraint3D[], parameters); } catch (e) { if (isRefusal(e, ...SKELETON_CODES)) return e.message; throw e; }
     const why = boundRefusal(node.points as V3[], node.segments as [number, number][], b);
     if (why) return `[SKETCH3D_INPUT] skeleton.${why}`;
   }
@@ -170,7 +171,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
   if (type.startsWith('enum:')) return type.slice(5).split('|').includes(String(v)) ? null : `one of ${type.slice(5).split('|').join(', ')}`;
   switch (type) {
     case 'any': return null;
-    case 'housing-ref': return bearingHousingRefProblem(v);
+    case 'housing-ref': return firstProblem(checkBearingHousingRef(v));
     case 'positive-index': return typeof v === 'number' && Number.isSafeInteger(v) && v >= 1 ? null : 'a positive safe integer';
     case 'shaft-node': return typeof v === 'number' && Number.isInteger(v) && nodes[v]?.kind === 'shaft' ? null : 'an existing shaft node index';
     case 'body-node': return typeof v === 'number' && Number.isInteger(v) && v >= 0 && v < nodes.length && nodes[v].kind !== 'sketch' ? null : 'an existing body node index';

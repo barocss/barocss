@@ -3,6 +3,7 @@
 // comes from a closed curve projected onto the surface (each sample to its nearest surface point);
 // the display mesh is the surface's grid clipped along the loops.
 import { closestPointOnSurface, curveDomain, curveEvaluator, surfaceDomain, surfaceEvaluator, type Curve, type Surface } from '@barocss/cad';
+import { refusal } from './refusal';
 
 type At = (u: number, v: number) => readonly number[];
 
@@ -40,7 +41,7 @@ const crossesAny = (a: readonly UV[], b: readonly UV[], self: boolean) => {
 export function projectLoop(s: Surface, c: Curve, earlier: readonly TrimLoop[] = [], samples = 160): UV[] {
   const [t0, t1] = curveDomain(c), C = curveEvaluator(c), S = surfaceEvaluator(s), ends = len3(sub3(C(t0), C(t1)));
   let size = 0; for (const p of c.controlPoints) size = Math.max(size, len3(sub3(p, c.controlPoints[0])));
-  if (ends > Math.max(1e-6, size * 1e-6)) throw new Error('The curve does not close: trim by a closed curve (a loop).');
+  if (ends > Math.max(1e-6, size * 1e-6)) throw refusal('TRIM_CURVE', 'The curve does not close: trim by a closed curve (a loop).');
   // Seeds from a grid of the surface, then each sample from the one before (the loop moves smoothly).
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), G = 24, grid: { uv: UV; p: number[] }[] = [];
   for (let i = 0; i <= G; i++) for (let j = 0; j <= G; j++) { const uv: UV = [u0 + (u1 - u0) * i / G, v0 + (v1 - v0) * j / G]; grid.push({ uv, p: S(uv[0], uv[1]) as number[] }); }
@@ -53,9 +54,9 @@ export function projectLoop(s: Surface, c: Curve, earlier: readonly TrimLoop[] =
     if (prev) { const fromGrid = nearest(s, p, seed); if (fromGrid.gap < best.gap - 1e-9) best = fromGrid; }
     out.push(best.uv); prev = best.uv;
   }
-  if (crossesAny(out, out, true)) throw new Error('The curve crosses itself on the surface: trim by a simple loop.');
-  if (Math.abs(area(out)) < (u1 - u0) * (v1 - v0) * 1e-6) throw new Error('The curve encloses nothing on the surface (it lies along it edge-on, or off its edge).');
-  for (const l of earlier) if (crossesAny(out, l.uv, false)) throw new Error('The curve crosses an earlier trim of the surface.');
+  if (crossesAny(out, out, true)) throw refusal('TRIM_CURVE', 'The curve crosses itself on the surface: trim by a simple loop.');
+  if (Math.abs(area(out)) < (u1 - u0) * (v1 - v0) * 1e-6) throw refusal('TRIM_CURVE', 'The curve encloses nothing on the surface (it lies along it edge-on, or off its edge).');
+  for (const l of earlier) if (crossesAny(out, l.uv, false)) throw refusal('TRIM_CURVE', 'The curve crosses an earlier trim of the surface.');
   return out;
 }
 
