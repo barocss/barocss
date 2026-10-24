@@ -50,6 +50,7 @@ test('refusals: the facade\'s own codes, the kernel\'s passed through with the f
   assert.throws(() => part().box(10, 10, 10).mass(-1), e => e instanceof BarocssError && e.code === 'DENSITY');
   // A fillet too large for its walls: the kernel's refusal, with the feature it came from.
   assert.throws(() => part().box(10, 10, 10).fillet(body => body.edges().along('z'), 50).mass(2.7),
-    e => e instanceof BarocssError && e.where === 'evaluate' && e.details?.feature === 'fillet1' && /^\[[A-Z_]+\] /.test(e.message));
+    e => e instanceof BarocssError && e.code === 'RADIUS_EXCEEDS_FACE' && e.where === 'evaluate' && e.details?.feature === 'fillet1'
+      && e.message.startsWith('[RADIUS_EXCEEDS_FACE] '));
   // #endregion refusals
 });
