@@ -1,20 +1,17 @@
-// R7.5 (cad-model's facade): the one place the assembly facade calls the core's assembly functions — the mate solver
-// (assembly/mates.ts), the face tables, the variability (O11), the robot's joint tree and frames (O12). Each change is
-// written the way the agent's tool writes it (chat/assembly.ts add_part, place_part, add_mate; chat/variability.ts
-// set_inputs, set_variants; chat/robot.ts set_frames), then the assembly is solved again as the tools solve it. The
-// tools are async (they take an evaluator); these are their writes, done in sync over the core's sync functions. When
-// the core gains them as `verb(doc, options) → doc` functions (api-conventions §3), this file calls those instead.
-import { BarocssError, bracketedCode, refuse, type Vec3 } from '@barocss/cad/api';
-import { emptyDoc, placedDoc, type PartInstance, type StudioDoc } from '../engine/doc';
-import { BASE, KIND_LABEL, kindsFor, mateRefusal, solveAssembly, type Mate, type MateKind } from '../assembly/mates';
+// R7.5 (cad-model's facade): the one place the assembly facade calls the core's assembly functions — since R7.3c the
+// assembly's edits are core functions (assembly/edit.ts: addPart, placePart, addMate, withFrames, the very writes the
+// agent's add_part, place_part, add_mate and set_frames make), and the variability (O11), the robot's joint tree and
+// frames (O12), the placed parts' meshes. A core refusal is the core's BarocssError, passed through as it is (§7).
+import { BarocssError, bracketedCode, type Vec3 } from '@barocss/cad/api';
+import { emptyDoc, placedDoc, type StudioDoc } from '../engine/doc';
+import { BASE, type MateKind } from '../assembly/mates';
 import { tablesFor } from '../assembly/faces';
 import { variantOf } from '../assembly/variability';
 import { runVariabilityTool } from '../chat/variability';
-import { jointTreeOf, readRobot, type RobotSettings } from '../robot/joints';
+import { jointTreeOf } from '../robot/joints';
 import type { FrameSettings } from '../robot/frames';
 import { eulerOf } from '../engine/placement';
-import { nextFreeId } from '../util/ids';
-import { solveDoc } from '../assembly/edit';
+import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from '../assembly/edit';
 import { bodiesOf, meshesOf, type MeshData } from './core';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
@@ -23,42 +20,21 @@ type XYZ = [number, number, number];
 /** A core refusal in a tool's words (`[CODE] …`, or a sentence): its code the bracketed one, else ASSEMBLY. */
 const fromTool = (message: string) => new BarocssError(bracketedCode(message) ?? 'ASSEMBLY', message, 'evaluate');
 
-/** The document after a change, solved again from the placements before it (the tools' `changed`). */
-const solved = (before: StudioDoc, next: StudioDoc) => solveDoc(next, before.instances).doc;
-
-/** add_part: a part placed by a rotation and a move, its document the given one (the tool's is empty or a copy). */
+/** add_part (assembly/edit.ts addPart): a part placed by a rotation and a move, its document the given one. */
 export function addPartDoc(doc: StudioDoc, name: string, partDoc: StudioDoc, position: XYZ, rotation: XYZ, grounded: boolean): { doc: StudioDoc; id: string } {
-  const instances = doc.instances ?? [], id = nextFreeId('p', new Set(instances.map(i => i.id)));
-  const inst: PartInstance = { id, name, doc: partDoc, position, rotation, ...(grounded ? { grounded: true } : {}) };
-  return { doc: solved(doc, { ...doc, instances: [...instances, inst] }), id };
+  const r = addPart(doc, { name, doc: partDoc, position, rotation, grounded });
+  return { doc: r.doc, id: r.id };
 }
 
-/** place_part: a part's placement and grounding (`undefined` keeps each). */
+/** place_part (placePart): a part's placement and grounding (`undefined` keeps each). */
 export function placePartDoc(doc: StudioDoc, id: string, o: { position?: XYZ; rotation?: XYZ; grounded?: boolean }): StudioDoc {
-  const instances = doc.instances ?? [], inst = instances.find(i => i.id === id)!, mates = doc.mates ?? [];
-  const by = mates.filter(m => m.b.part === inst.id);
-  if (o.grounded === true && by.length) throw fromTool(`${by.length} mate${by.length > 1 ? 's' : ''} move ${inst.name}; delete ${by.length > 1 ? 'them' : 'it'} first, or fix the other part.`);
-  const next: PartInstance = { ...inst, position: o.position ?? inst.position, rotation: o.rotation ?? inst.rotation, ...(o.grounded === undefined ? {} : { grounded: o.grounded ? true : undefined }) };
-  return solved(doc, { ...doc, instances: instances.map(i => i.id === inst.id ? next : i) });
+  return placePart(doc, { part: id, ...o }).doc;
 }
 
-/** add_mate: a mate between faces of two parts (b moves; a fixed b and a free a swap), checked, solved, or refused. */
+/** add_mate (addMate): a mate between faces of two parts (b moves; a fixed b and a free a swap), checked, solved, or refused. */
 export function addMateDoc(doc: StudioDoc, kind: MateKind, a: { part: string; face: string }, b: { part: string; face: string }, o: { distance?: number; angle?: number; flip?: boolean }): { doc: StudioDoc; id: string } {
-  const instances = doc.instances ?? [], mates = doc.mates ?? [];
-  if (!KIND_LABEL[kind]) throw refuse('VALUE', `a mate's kind is one of ${Object.keys(KIND_LABEL).join(', ')}, not ${String(kind)}`);
-  if (a.part === b.part) throw fromTool('Both faces are on the same part; mate faces of two different parts.');
-  const fixed = (p: string) => p === BASE || !!instances.find(i => i.id === p)?.grounded;
-  if (fixed(b.part)) { if (fixed(a.part)) throw fromTool('Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
-  const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a, b,
-    ...(kind === 'distance' ? { distance: Number(o.distance) } : {}), ...(kind === 'angle' ? { angle: Number(o.angle) } : {}), ...(kind !== 'concentric' && o.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof o.flip === 'boolean' ? { flip: o.flip } : {}) };
-  const list = [...mates, mate], tables = tablesFor(doc), fa = tables(mate.a.part)?.[mate.a.face], fb = tables(mate.b.part)?.[mate.b.face];
-  const missing = [!fa && mate.a, !fb && mate.b].filter(Boolean) as { part: string; face: string }[];
-  if (missing.length) throw refuse('SELECTION_UNKNOWN', `${missing.map(r => `"${r.face}" is not a flat or round face of ${r.part}`).join('; ')}`);
-  const why = mateRefusal(mate, fa, fb);
-  if (why) throw fromTool(`${why}${fa && fb ? ` (these faces admit: ${kindsFor(fa, fb).join(', ')})` : ''}`);
-  const r = solveAssembly(instances, list, tables, instances), problem = r.problems.find(p => p.mate === mate.id);
-  if (problem) throw fromTool(problem.reason);
-  return { doc: solved(doc, { ...doc, instances: r.instances, mates: list }), id: mate.id };
+  const r = addMate(doc, { kind, a, b, ...o });
+  return { doc: r.doc, id: r.mate.id };
 }
 
 /** set_inputs and set_variants (O11): the variability written, every variant regenerated to check it. */
@@ -80,20 +56,11 @@ function treeOf(doc: StudioDoc) {
   return jointTreeOf(s.doc, { instances: s.doc.instances ?? [], problems: s.problems }, tablesFor(s.doc), p => gears.get(p) ?? []);
 }
 
-/** set_frames (O12): tool and sensor frames on links, added, replaced or (null) removed, each checked on the tree. */
+/** set_frames (O12, withFrames): tool and sensor frames on links, added, replaced or (null) removed, each checked on the tree. */
 export function framesDoc(doc: StudioDoc, frames: Record<string, FrameSettings | null>): StudioDoc {
-  const was = readRobot(doc.robot), all: Record<string, FrameSettings> = { ...(was.frames ?? {}) };
-  for (const [name, f] of Object.entries(frames)) {
-    if (f === null) { if (!all[name]) throw fromTool(`[FRAME_NAME] no frame ${name} to remove (frames: ${Object.keys(all).join(', ') || 'none'})`); delete all[name]; continue; }
-    all[name] = { link: f.link, ...(f.position !== undefined ? { position: [...f.position] } : {}), ...(f.rotation !== undefined ? { rotation: [...f.rotation] } : {}), ...(f.kind ? { kind: f.kind } : {}) };
-  }
-  const { frames: _f, ...rest } = was; void _f;
-  const next: RobotSettings = { ...rest, ...(Object.keys(all).length ? { frames: all } : {}) };
-  const named = new Set(Object.keys(frames)), bad = treeOf({ ...doc, robot: next }).problems.find(p => p.frame !== undefined && named.has(p.frame));
-  if (bad) throw fromTool(bad.message);
-  const robot = next.base || next.joints || next.frames ? next : undefined, out = { ...doc };
-  if (robot) out.robot = robot; else delete out.robot;
-  return out;
+  const next = withFrames(doc, frames);
+  checkFramesOn(treeOf(next), Object.keys(frames));
+  return next;
 }
 
 /** Each frame's world pose at the solved pose (mm, degrees about X, then Y, then Z). */

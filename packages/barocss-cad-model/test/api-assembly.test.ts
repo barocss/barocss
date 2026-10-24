@@ -116,7 +116,7 @@ test('the assembly\'s refusals are typed: the facade\'s own, and the core\'s pas
     assert.match(e.code, /^INPUT_/);
     assert.deepEqual([e.code, e.message, e.where], [core.code, core.message, core.where]);
   }
-  // A concentric mate between flat faces: the solver's refusal, in its words.
+  // A concentric mate between flat faces: the core's refusal (assembly/edit.ts addMate), passed through as it is.
   const e = refusal(() => two().addMate('concentric', { part: 'base', face: b => b.faces().facing('+z') }, { part: 'pin', face: b => b.faces().facing('-z') }));
-  assert.ok(e instanceof BarocssError); assert.equal(e.where, 'evaluate');
+  assert.ok(e instanceof BarocssError); assert.equal(e.code, 'MATE_FACES');
 });

@@ -317,9 +317,10 @@ the body chooser, the sketch node and the evaluation at each verb.
   - `framePoses()`: each frame's world pose from the joint tree;
   - `meshes()`: `base/<body>`, `<part>/<body>`, each part where it stands;
   - `part(name)`: a studio part in its own coordinates.
-- **One adapter, src/api/assemblyCore.ts.** The tools are async (they take an evaluator), but none of their writes
-  needs one. So the adapter does the same writes in sync, over the core's sync functions: `solveAssembly`, `tablesFor`,
-  `mateRefusal`, `runVariabilityTool`, `variantOf`, `jointTreeOf`, `placedDoc`.
+- **One adapter, src/api/assemblyCore.ts.** Since R7.3c the assembly's edits are core functions (assembly/edit.ts:
+  `addPart`, `placePart`, `addMate`, `withFrames` with `checkFramesOn`), the very writes the agent's tools make. The
+  adapter calls them, and their coded refusals (`MATE_FACES`, `NO_PART` …) pass through as they are. It also uses
+  `runVariabilityTool`, `variantOf`, `jointTreeOf` and `placedDoc`.
 - **The oracle** (test/api-assembly.test.ts, 4/4):
   - A plate with a bore and a pin, mated concentric and flush, with an input driving the flush distance, a variant and
     a tool frame. Its `.doc` equals, byte for byte, what the agent's tools write for the same calls: `add_part`, the
