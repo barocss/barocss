@@ -67,11 +67,9 @@ export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variant
   return out.doc;
 }
 
-/** A variant (O11): the master regenerated with these input values (the master itself unchanged), or the refusal. */
+/** A variant (O11): the master regenerated with these input values (the master itself unchanged); the core's refusal, a BarocssError, passed through as it is. */
 export function variantDoc(doc: StudioDoc, values: Record<string, number | boolean | string>): StudioDoc {
-  const r = variantOf(doc, values);
-  if ('error' in r) throw fromTool(r.error);
-  return r.doc;
+  return variantOf(doc, values).doc;
 }
 
 // (The joint tree as chat/robot.ts treeOfDoc builds it, each part's gears from its own evaluation.)
