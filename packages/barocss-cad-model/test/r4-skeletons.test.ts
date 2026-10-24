@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dispatchTool } from '../src/chat/tools';
-import { brepsFor, evaluatePart, partBreps, stepFor, stlFor, baseBodyFaces } from '../src/engine/evaluate';
+import { brepsFor, evaluatePart, partBreps, exportStudioStep, stlFor, baseBodyFaces } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { resolveSkeletons } from '../src/frames/skeleton';
 import { revisionOf } from '../src/util/revision';
@@ -31,8 +31,7 @@ test('R4: a skeleton bound to W, W changed and not re-solved — every export pa
   assert.equal(json(baseBodyFaces(authored)), json(baseBodyFaces(solved)));
   const e = evaluatePart(solved, 1); assert.ok(e.ok);
   for (const b of e.bodies) assert.equal(json(stlFor(authored, b.key)), json(stlFor(solved, b.key)), b.key);
-  const a = stepFor(authored, 'p'), b = stepFor(solved, 'p');
-  assert.ok(!('error' in a) && !('error' in b));
+  const a = exportStudioStep(authored, { name: 'p' }), b = exportStudioStep(solved, { name: 'p' });
   const body = (t: string) => t.replace(/FILE_NAME\([^;]*;/, '').replace(/FILE_DESCRIPTION\([^;]*;/, '');
   assert.equal(body(a.text), body(b.text), 'the same geometry in the STEP');
   assert.equal(a.source, revisionOf(authored), 'the STEP names the authored document\'s revision');

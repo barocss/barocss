@@ -402,7 +402,7 @@ export function partSnapshot(doc: StudioDoc, build: (part: CadPartDocument) => C
   const taken = new Map<string, CadPartSnapshot>();
   const read = (source: StudioDoc, make: (part: CadPartDocument) => CadPartSnapshot): CadPartSnapshot => {
     source = resolveShopTree(source);
-    // (Geometry is always built from the solved skeletons, here, whoever calls; provenance — stepFor's source revision —
+    // (Geometry is always built from the solved skeletons, here, whoever calls; provenance — exportStudioStep's source revision —
     // is always the authored document's, the one a saved file hashes to. Both on purpose: see test/r4-skeletons.test.ts.)
     source = resolveSkeletons(source).doc;
     bearingDependencyKey(source);

@@ -99,7 +99,7 @@ export function tessellateSurface(surface: Surface, options: TessellationOptions
     requireValue(Number.isFinite(length) && length > 0, 'Cancelling or zero incident preview normals');
     for (let axis = 0; axis < 3; axis++) normals[vertex * 3 + axis] /= length;
   }
-  const packet: PreviewPacket = { version: 0, surfaceId: surface.id, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min: minimum, max: maximum } };
+  const packet: PreviewPacket = { version: 0, surfaceId: surface.id, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min: minimum, max: maximum } };
   validatePreviewPacket(packet);
   let maxSampledDeviationMM = 0;
   const probes = [[0.5, 0.5], [0.25, 0.25], [0.25, 0.75], [0.75, 0.25], [0.75, 0.75]];

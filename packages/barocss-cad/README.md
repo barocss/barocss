@@ -798,7 +798,7 @@ Counts are integers 2..64 in each direction. The product is at most 4096 vertice
 All counts and native geometry are validated before mesh allocation.
 
 The packet is a plain JSON-compatible object with version 0, surfaceId, revision,
-lengthUnit `mm`, coordinateSystem `right-handed-y-up`, winding `ccw`, flat numeric
+lengthUnit `mm`, coordinateSystem `right-handed-z-up`, winding `ccw`, flat numeric
 positions/normals/indices/parameters, and bounds `{ min, max }`. No axis conversion
 is applied: XYZ values retain the native coordinates. The host must interpret
 those coordinates under the declared convention; this API does not infer a CAD
@@ -1374,7 +1374,7 @@ generated geometry throws instead of adopting a partial packet.
 N>=4 uses N vertices/N-2 triangles. Triangle3 adds one deterministic display
 centroid to meet the existing four-vertex packet minimum and emits three
 positive-Z triangles. No packet schema/minimum change is made. Normals are+Z,
-units stay mm/right-handed-y-up/ccw and bounds come from actual output positions.
+units stay mm/right-handed-z-up/ccw and bounds come from actual output positions.
 The completed actual packet passes the original native packet validator.
 
 The report names source Curve/derived mesh/revision, source/output counts and
@@ -2638,7 +2638,7 @@ candidate curved-shell display/solid certification remain deferred.
 owns the actual circle-prism candidate and calls its unchanged canonical gate.
 Exact options require distinct native-ID/Model-name ASCII meshID1..64, integer
 revision0..2147483647 and k2..32. Returns owned packet/faceRanges/edgePaths/
-edgeProvenance/report under unchanged PreviewPacket0/mm/right-handed-y-up/ccw.
+edgeProvenance/report under unchanged PreviewPacket0/mm/right-handed-z-up/ccw.
 Input bounds32768values/depth14/arrays128/records24/strings128 stay unchanged.
 
 N=4*k native parameter samplesj/k retain original caps' world Curves and

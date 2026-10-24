@@ -2,7 +2,6 @@
 // works them out for aluminium; both scale with density), inertia about its centre of mass or another
 // point (the parallel-axis rule), and several bodies' combined mass and centre of mass.
 import type { BodyResult } from '../engine/evaluate';
-import { boundsOf } from '../engine/bounds';
 
 type V3 = [number, number, number];
 /** g/cm³: the density the kernel's mass and inertia are for (aluminium); a material's figures scale by its own over this. */
@@ -26,10 +25,6 @@ export function inertiaAbout(inertia: number[][], massG: number, centroid: V3, a
 export function combined(parts: { massG: number; centroid: V3 }[]): { massG: number; centroid: V3 } | null {
   const M = parts.reduce((t, p) => t + p.massG, 0); if (!(M > 0)) return null;
   return { massG: M, centroid: [0, 1, 2].map(k => parts.reduce((t, p) => t + p.massG * p.centroid[k], 0) / M) as V3 };
-}
-export function boxOf(bodies: readonly BodyResult[]): { min: V3; max: V3 } | null {
-  if (!bodies.length) return null;
-  return boundsOf(bodies);
 }
 /** A figure to three significant digits (no exponent below a million). */
 export const sig3 = (v: number, scale = 0) => { if (v === 0 || Math.abs(v) < 1e-6 * scale) return '0'; const p = Math.pow(10, Math.max(0, 2 - Math.floor(Math.log10(Math.abs(v))))); return String(Math.round(v * p) / p); };

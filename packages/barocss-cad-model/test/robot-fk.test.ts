@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { evaluatePart } from '../src/engine/evaluate';
 import type { StudioDoc } from '../src/engine/doc';
 import { tablesFor } from '../src/assembly/faces';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { dispatchTool } from '../src/chat/tools';
 import { treeOfDoc } from '../src/chat/robot';
 import { jointTreeOf, type Joint, type JointTree } from '../src/robot/joints';

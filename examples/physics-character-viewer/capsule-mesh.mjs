@@ -38,7 +38,7 @@ export function createCapsulePacket() {
   }
   const packet = {
     version: 0, surfaceId: 'capsule-derived', revision: 0, lengthUnit: 'mm',
-    coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max },
+    coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max },
   };
   validatePreviewPacket(packet);
   return { modelId: 'physics-character', packet };

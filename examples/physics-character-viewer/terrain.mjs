@@ -93,7 +93,7 @@ export function createTerrain(fixture) {
     }
     const packet = {
       version: 0, surfaceId: `terrain_${boxIndex}_derived`, revision: 0, lengthUnit: 'mm',
-      coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max },
+      coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max },
     };
     validatePreviewPacket(packet);
     const sourceFile = `terrain-box-${boxIndex}.cad`;

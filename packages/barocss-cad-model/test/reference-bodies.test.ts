@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluatePart, stepFor } from '../src/engine/evaluate';
+import { evaluatePart, exportStudioStep } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { chordOf, datumWorld, readReferences, referenceLocal, verdictOf, verifyDatums } from '../src/chat/references';
@@ -25,7 +25,7 @@ async function blockStep(): Promise<string> {
   let s: ChatState = { doc: emptyDoc(), bodies: [] };
   s = (await ok(s, 'run_command', { command: 'box', values: { w: 40, d: 30, h: 10, x: 0, y: 0, z: 0 } })).state;
   s = (await ok(s, 'run_command', { command: 'hole', faces: ['n1.top'], values: { d: 8, x: 12, y: 15 } })).state;
-  const r = stepFor(s.doc, 'block'); assert.ok('text' in r); return r.text;
+  const r = exportStudioStep(s.doc, { name: 'block' }); return r.text;
 }
 /** The part: a 10 mm cube at the origin. */
 async function cube(): Promise<ChatState> { return (await ok({ doc: emptyDoc(), bodies: [] }, 'run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } })).state; }
@@ -66,7 +66,7 @@ test('datums from a STEP reference\'s faces against their closed forms (1e-9): t
 test('the reference is locked: no feature may use it (REFERENCE_LOCKED), it is not in the tree, the mass, the facts or the STEP export', async () => {
   const step = await blockStep();
   let s = await cube();
-  const before = { nodes: JSON.stringify(s.doc.nodes), mass: JSON.parse((await ok(s, 'mass_properties', {})).content), step: stepFor(s.doc, 'p') };
+  const before = { nodes: JSON.stringify(s.doc.nodes), mass: JSON.parse((await ok(s, 'mass_properties', {})).content), step: exportStudioStep(s.doc, { name: 'p' }) };
   s = (await ok(s, 'add_reference', { name: 'block', step })).state;
   const face = (await referenceLocal(readReferences(s.doc.references).references[0], evaluate))[0].mesh.faces[0].name;
   assert.match(face, /^ref1\./);
@@ -79,7 +79,7 @@ test('the reference is locked: no feature may use it (REFERENCE_LOCKED), it is n
   assert.equal(JSON.stringify(s.doc.nodes), before.nodes, 'not a node of the part');
   assert.deepEqual(JSON.parse((await ok(s, 'mass_properties', {})).content), before.mass, 'not in the mass');
   assert.equal(s.bodies.length, 1);
-  const after = stepFor(s.doc, 'p'); assert.ok('text' in after && 'text' in before.step && unstamped(after.text) === unstamped(before.step.text), 'not in the STEP export');
+  const after = exportStudioStep(s.doc, { name: 'p' }); assert.ok(unstamped(after.text) === unstamped(before.step.text), 'not in the STEP export');
   const g = JSON.parse((await ok(s, 'get_references', {})).content);
   assert.ok(g.references[0].id === 'ref1' && g.references[0].faces.length >= 7 && g.references[0].kind === 'step', JSON.stringify(g.references[0]).slice(0, 300));
 });

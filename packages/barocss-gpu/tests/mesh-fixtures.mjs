@@ -3,7 +3,7 @@ export const meshOptions = { mmToSceneUnit: 0.25, translate: [-1.125, -1.5, -0.5
 export function packet(surfaceId, positions, normals, indices, parameters, revision = 0) {
   const min = [0, 1, 2].map((axis) => Math.min(...positions.filter((_, i) => i % 3 === axis)));
   const max = [0, 1, 2].map((axis) => Math.max(...positions.filter((_, i) => i % 3 === axis)));
-  return { version: 0, surfaceId, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max } };
+  return { version: 0, surfaceId, revision, lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw', positions, normals, indices, parameters, bounds: { min, max } };
 }
 // Literal asymmetric patch: U-major rows and a non-square UV domain.
 export const asymmetric = packet('flat_patch', [1,2,2, 2,9,2, 7,3,2, 8,10,2], [0,0,1, 0,0,1, 0,0,1, 0,0,1], [0,2,1, 2,3,1], [-2,4, -2,6, 3,4, 3,6], 7);

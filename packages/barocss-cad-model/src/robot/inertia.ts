@@ -15,8 +15,11 @@ import { rotationMatrix } from '../engine/placement';
 import type { JointTree } from './joints';
 import { KERNEL_DENSITY } from '../app/mass';
 
-export type Mat3 = [number, number, number, number, number, number, number, number, number];
-export type V3 = [number, number, number];
+// (The one Mat3, engine/placement's: 9 numbers, row-major, its columns the frame's axes.)
+import type { Mat3 } from '../engine/placement';
+export type { Mat3 };
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+export type V3 = import('../engine/vec3').Vec3;
 export interface Frame { /** Origin, in the part's coordinates (mm). */ origin: V3; /** Axes as columns, in the part's coordinates. */ R: Mat3 }
 export type InertiaCode = 'NO_BODY' | 'NO_VOLUME' | 'NOT_SPD' | 'TRIANGLE' | 'MATERIAL_ASSUMED';
 export interface LinkInertia {

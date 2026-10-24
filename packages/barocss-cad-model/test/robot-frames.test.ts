@@ -6,7 +6,7 @@ import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 import type { PartInstance, StudioDoc } from '../src/engine/doc';
 import { mjcfOfDoc, robotOfDoc, urdfOfDoc } from '../src/chat/robot';
 import { dispatchTool, runTool, type ChatState } from '../src/chat/tools';
-import { solveDoc } from '../src/chat/assembly';
+import { solveDoc } from '../src/assembly/edit';
 import { forwardKinematics, type Motion } from '../src/robot/fk';
 import { framePoses } from '../src/robot/frames';
 import { frameTarget, frameTool, solveIk } from '../src/robot/ik';

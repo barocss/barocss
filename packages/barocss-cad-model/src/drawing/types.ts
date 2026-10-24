@@ -15,7 +15,9 @@ export const isSectionRef = (v: string): v is SectionRef => /^section:[A-Z]{1,2}
 export const sectionLetter = (v: SectionRef) => v.slice(8);
 /** A dimension's view read from a file: a view, or a section's letter. */
 export const isDimView = (v: unknown): v is DimView => typeof v === 'string' && ((VIEW_IDS as readonly string[]).includes(v) || isSectionRef(v));
-export type Vec3 = [number, number, number];
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+import type { Vec3 } from '../engine/vec3';
+export type { Vec3 };
 export type XY = [number, number];
 
 /**

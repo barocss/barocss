@@ -10,7 +10,9 @@ import type { Sig } from '../engine/references';
 import { dot, cross, add, sub, len } from '../engine/vec3';
 import { axisAngle, clean, DEG, eulerOf, matMul, rotationMatrix, type Mat3 } from '../engine/placement';
 
-export type Vec3 = [number, number, number];
+// (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
+import type { Vec3 } from '../engine/vec3';
+export type { Vec3 };
 export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
 /** `sig`: the face's geometry when it was picked; `was`: its name before a re-match (engine/references.ts). */

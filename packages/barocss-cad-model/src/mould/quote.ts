@@ -5,7 +5,7 @@
 // moulder's. Open — an unstated material, quantity, pull or finish, a failing rule — is said, and the package is not
 // called complete while anything is.
 import type { StudioDoc } from '../engine/doc';
-import { stepFor, type BodyResult } from '../engine/evaluate';
+import { exportStudioStep, type BodyResult } from '../engine/evaluate';
 import { lookOf, partMaterial } from '../app/bodies';
 import { massBoundOf, massProperties } from '../analysis/analysis';
 import { materialData, processProfile } from '../library/materials';
@@ -68,7 +68,8 @@ export async function quotePackage(doc: StudioDoc, bodies: readonly BodyResult[]
   if (o.quantity !== undefined && !(Number.isInteger(o.quantity) && o.quantity > 0)) return { error: '"quantity" is a whole number above 0' };
   const name = o.name ?? 'part', profile = processProfile('injection')!, t = (k: string) => profile.thresholds[k];
   const rep = await printability(doc, bodies, evaluate, { ...(o.direction ? { direction: o.direction } : {}), ...(o.finish ? { finish: o.finish } : {}), ...(o.sides ? { sides: o.sides } : {}) });
-  const step = stepFor(doc, name);
+  let step: ReturnType<typeof exportStudioStep> | { error: string };
+  try { step = exportStudioStep(doc, { name }); } catch (e) { step = { error: e instanceof Error ? e.message : String(e) }; }
   // The request: what was asked and what the part is, every limit with its source.
   const { id, mixed } = partMaterial(doc, bodies), m = id ? materialData(id) : undefined;
   const own = !!id && bodies.every(b => lookOf(doc, b).material === id);

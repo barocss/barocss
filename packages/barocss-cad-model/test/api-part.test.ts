@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, BarocssError, StudioPart } from '../src/api';
 import { type StudioDoc } from '../src/engine/doc';
-import { evaluateDoc, stepFor } from '../src/engine/evaluate';
+import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
 import { bodyMass } from '../src/app/mass';
 import { runTool, type ChatState } from '../src/chat/tools';
 
@@ -32,7 +32,7 @@ const bracket = () => part('bracket')
   .hole(body => body.faces().facing('+z'), { d: 8, x: 20, y: 20 })
   .fillet(body => body.edges().along('z'), { radius: 2 });
 
-// (stepFor stamps the export's time in FILE_NAME; the two runs are compared without it.)
+// (exportStudioStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = (text: string) => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
 
 test('the facade writes the hand-written document, byte for byte', () => {
@@ -69,8 +69,7 @@ test('its mass, meshes and STEP are the core functions\' on that document, byte 
   const [mesh] = bracket().meshes();
   assert.equal(mesh.key, body.key);
   assert.deepEqual([Buffer.from(mesh.positions.buffer), Buffer.from(mesh.normals.buffer), Buffer.from(mesh.indices.buffer)], [Buffer.from(body.mesh.positions.buffer), Buffer.from(body.mesh.normals.buffer), Buffer.from(body.mesh.indices.buffer)]);
-  const core = stepFor(doc, 'bracket');
-  assert.ok('text' in core);
+  const core = exportStudioStep(doc, { name: 'bracket' });
   assert.equal(unstamped(bracket().step()), unstamped(core.text));
 });
 

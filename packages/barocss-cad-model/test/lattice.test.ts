@@ -1,7 +1,7 @@
 import { marchingTetrahedra, meshVolume, voxelInsideFlags } from '@barocss/cad';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluatePart, stepFor, type BodyResult } from '../src/engine/evaluate';
+import { evaluatePart, exportStudioStep, type BodyResult } from '../src/engine/evaluate';
 import { emptyDoc, type StudioDoc } from '../src/engine/doc';
 import { dispatchTool, type ChatState } from '../src/chat/tools';
 import { interference, massProperties } from '../src/analysis/analysis';
@@ -91,14 +91,14 @@ test('STEP leaves the infill out and says so (by its role, not its name); 3MF an
   const e = await evaluate(out); assert.ok(e.ok);
   const lats = e.bodies.filter(b => b.role === 'infill'), solids = (t: string) => (t.match(/=\s*(MANIFOLD_SOLID_BREP|BREP_WITH_VOIDS|TESSELLATED_SOLID)\(/g) ?? []).length;
   assert.ok(lats.length >= 1 && lats.length === e.bodies.length - 1, 'every lattice piece is infill, the shell not');
-  const step = stepFor(out, 'part'); assert.ok('text' in step, JSON.stringify(step));
+  const step = exportStudioStep(out, { name: 'part' });
   assert.equal(solids(step.text), 1, 'the shell alone'); assert.doesNotMatch(step.text, /TRIANGULATED_FACE|TESSELLATED_SHELL/);
   assert.match(step.omitted?.join(' ') ?? '', /lattice infill not included \(.+\); 3MF carries it/);
   // (Without the role, the same doc's STEP carries every piece.)
-  const plain = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, role: undefined } : n) }, all = stepFor(plain, 'part'); assert.ok('text' in all);
+  const plain = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, role: undefined } : n) }, all = exportStudioStep(plain, { name: 'part' });
   assert.equal(solids(all.text), 1 + lats.length); assert.equal(all.omitted, undefined);
   // (Renamed: still left out.)
-  const renamed = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, name: 'my infill' } : n) }, r = stepFor(renamed, 'part'); assert.ok('text' in r);
+  const renamed = { ...out, nodes: out.nodes.map(n => n.kind === 'mesh' ? { ...n, name: 'my infill' } : n) }, r = exportStudioStep(renamed, { name: 'part' });
   assert.equal(solids(r.text), 1);
   // (3MF: an object for the shell and each piece; the mass: every body, the lattice's volume in it.)
   const model = threeMfModelOf(out, [{ doc: out, bodies: e.bodies }], 'part'); assert.ok(typeof model !== 'string', String(model));
