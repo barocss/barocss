@@ -100,3 +100,32 @@ full Studio browser flow on WebGPU and WebGL2. Keep prior failures and classify 
 never report them as PASS. The final acceptance decision must cite the exact suite results and unresolved exceptions.
 No product merge occurs with an unexplained required failure or incomplete consumer contract. When qualified, adopt
 R7 and its related lanes together in one serial local window with --no-ff and docs checks. P2 stays held.
+
+## Confirmed producer interface supplements
+
+The following signatures were agreed with their producers after the initial contract checkpoint. They are dependencies,
+not evidence that implementation has passed.
+
+- Outer `robot/units.ts`: jointSettingsIn(type,s), jointSettingsOut(type,s), jointTreeOut(tree),
+  jointValuesIn/Out(tree,values), moveLimitsIn(tree,key,limits). Existing verbs exports of jointValuesIn/Out remain
+  re-exports. Public joint-tree projection converts mixed coupling scale and offsets by both joint types.
+- Outer `robot/verbs.ts` sweepOf adds optional `rawContactValues: Readonly<Record<string,number>>` outside `reply`.
+  This internal value precedes radian rounding. Public tool and API project it once using jointValuesOut;
+  no raw-radian alias is emitted in the public JSON. Do not convert an already r6-rounded radian contact to degrees.
+- Kernel `@barocss/cad/internal/native-si-mass`: readNativeSIInertia(props:MassProperties) returns
+  `{ok:true,inertia:NativeSITensor,density:number}` or
+  `{ok:false,code:'NATIVE_SI_PROVENANCE_UNAVAILABLE',reason:'untracked'|'revolved'|'transformed'|'combined'|'difference'}`.
+  Density is the actual original g/cm³. Kernel owns source/dist package-local wiring; no runtime dependency is added.
+  Target native pins must not count unavailable plus a silent fallback as a successful byte-preservation check.
+  Preserve existing general native-export support and disclose unsupported provenance paths separately.
+- Kernel also migrates stored RobotSettings in its conformance/frozen input documents; low-level radian test vectors
+  stay internal radians. Native output pins are unchanged. Outer migrates its own stored samples and fixtures.
+- PrintLayers and its Omit-based PrintSummary: layerMM `{mm,basis}` becomes layerHeight `{value,basis}`;
+  limit `{deg,basis}` becomes overhangLimit `{value,basis}`; supportVolumeMM3 becomes supportVolume.
+  Values, basis flags and lazy layer(k) behavior are unchanged. GPU mechanical scope follows the exact producer.
+- Fit producer lowerUM/upperUM/clearanceMinUM/clearanceMaxUM becomes lower/upper/clearanceMin/clearanceMax in mm.
+  Drawing formatters remove their former divide1000 exactly once; e.g.18µm remains printed as+0.018mm.
+  Root browser-flow has two owned fit-row fixtures and public RD2/RD3 payload/reply migrations to reconcile.
+
+The native Split demo currently asserts Node22.23.3 while the selected host toolchain is22.22.0. This is an existing
+required-check failure under the selected runtime. Record its exact cause and resolution; it is not an aggregate PASS.
