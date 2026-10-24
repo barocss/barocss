@@ -332,12 +332,6 @@ export function App() {
   const [palette, setPalette] = useState(false);
   // (G12a: the chat column's open state and width, kept per viewer; collapsed when the window narrows past what fits.)
   const layout = useLayout(), chat = layout.chatOpen, setChat = layout.setChatOpen;
-  // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
-  // one step's open or drag does not carry into the next.)
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    (window as unknown as { __studioLayoutReset: () => void }).__studioLayoutReset = () => { layout.setChatOpen(false); layout.setChatWidth(CHAT_DEFAULT); layout.setDockSheet(false); };
-  }, [layout.setChatOpen, layout.setChatWidth, layout.setDockSheet]);
   // Closing chat keeps pending approvals usable; a new conversation explicitly clears/revokes this ref.
   const chatRowFiles = useRef<PersonRowFiles | undefined>(undefined);
   // (The references' bodies in their own coordinates, the keep-outs' solids, and the keep-outs' verdicts, A6.3.)
@@ -1752,6 +1746,16 @@ export function App() {
   };
   /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
   const [stepAsk, setStepAsk] = useState(false);
+  // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
+  // one step's open or drag does not carry into the next; and no toast — G12f: one left from an earlier step met the view
+  // cube in the layout step. The recovery card is only hidden, its copy kept; a question's toast closed is cancelled.)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __studioLayoutReset: () => void }).__studioLayoutReset = () => {
+      layout.setChatOpen(false); layout.setChatWidth(CHAT_DEFAULT); layout.setDockSheet(false);
+      setToast(null); setRecovery(null); setCascade(null); setMeshAsk(null); setRepairAsk(null); setStepAsk(false);
+    };
+  }, [layout.setChatOpen, layout.setChatWidth, layout.setDockSheet]);
   const exportStepFile = async (meshes?: 'auto' | 'tessellated' | 'planar') => {
     // (An infill body is left out of STEP, O60: it asks nothing.)
     if (!meshes && bodies.some(b => b.family === 'faceted' && b.role !== 'infill')) { setStepAsk(true); return; }
