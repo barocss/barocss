@@ -1,5 +1,6 @@
 <script setup>
 import BooleanWalkthrough from '../../.vitepress/components/BooleanWalkthrough.vue';
+import BooleanStages from '../../.vitepress/components/BooleanStages.vue';
 </script>
 
 # B-rep, robustness and refusals
@@ -35,6 +36,14 @@ For the cylinder at its initial centre (8, 5) with radius 3, the wall meets the 
 The inside/outside rule then selects regions, and their 10 mm height turns the selected area into volume.
 
 <BooleanWalkthrough />
+
+### Build the result in 3D, one stage at a time
+
+Choose a fixed 3D example and an operation below. Start at **Input solids**, then follow the five pictures to the final
+shape. Drag the large view to rotate it. The same camera direction is used for every picture, so you can compare the cuts.
+These fixed cases have separate dimensions from the moving section example above.
+
+<BooleanStages />
 
 ### A checked code example
 
@@ -156,6 +165,39 @@ For a mesh target with a native tool, the mixed algorithm limits the expensive f
 
 This path preserves the mesh representation of the input. It does not turn a scanned surface into an exact smooth
 surface. The nearby-triangle limit and the facet-expansion limit above apply to different stages.
+
+### More complex shapes: what changes
+
+The five 3D examples show three sources of complexity:
+
+- **Different height ranges.** Two offset boxes do not use one shared section for the whole height. In the first 3D
+  example the levels are 0, 2, 10 and 12 mm. Only the middle interval contains both solids. Its overlap is
+  5 × 7 × 8 = 280 mm³. Rebuilding the boundary must also close the steps at Z = 2 and Z = 10.
+- **Several loops and bodies.** The plate example uses `A − (B₁ ∪ B₂)`. Its cap is one outer rectangle with two inner
+  circles. The hole walls must connect the two caps with reversed cutter-side orientation. The plate remains one body;
+  its intersection with the two cutters has two bodies. A single feature result can therefore contain several bodies.
+- **A section that changes continuously.** Tilting a circular cutter makes elliptical cuts on the plate caps. For the
+  30° cutter shown above, each ellipse has semiaxes 2 / cos 30° ≈ 2.309 mm and 2 mm. Its centre is at
+  X = (Z − 4) tan 30°: about −2.309 mm on the bottom and +2.309 mm on the top. One constant XY section is insufficient.
+
+The **crossing cylinders** example goes further. Their wall equations are `x² + y² = 16` and `y² + z² = 6.25`.
+Subtracting them gives `x² − z² = 9.75`. Points on their common curve must satisfy both original equations.
+The curve runs through space on two curved faces. Each cylinder needs its own angle/height coordinates to split its
+face domain. The final model retains cylindrical surfaces bounded by these spatial curves; the viewer displays triangles.
+
+For a general pair of smooth B-spline or NURBS faces, a single circle or ellipse formula may not exist. The kernel uses
+candidate patches, refinement and tracing as described in [Curved B-reps](#3-curved-b-reps-intersect-the-surfaces-and-trim-their-face-domains).
+A surface intersection point must lie on both surfaces: `Sₐ(u,v) = Sᵦ(s,t)`. Tracing uses both parameter pairs.
+The cross product of their surface normals gives a tangent direction when those normals are not parallel.
+Tangencies, small loops, seams and a curve leaving a trimmed domain need separate handling. Unsupported cases can refuse.
+
+For scanned or faceted shapes, use the [mixed mesh path](#4-mesh-with-a-native-tool-process-the-nearby-mesh).
+A dense scan has many candidate triangles; clipping the nearby region limits the work. A mesh cutter still has planar
+facets. Adding display triangles does not recover an exact cylinder or smooth surface from that mesh.
+
+Boolean order also matters. `A − (B ∪ C)` cuts both tools from A. `(A − B) ∪ C` adds C after the first cut.
+An empty result, a disconnected result, a cavity and an invalid self-touching boundary are different outcomes.
+A successful picture for one fixed case does not establish support for all inputs of that surface family.
 
 ### Result names, contact and tolerances
 
