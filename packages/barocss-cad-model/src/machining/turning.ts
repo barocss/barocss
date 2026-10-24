@@ -18,12 +18,12 @@ const nameOf = (m: DisplayMesh, f: number) => m.faces[f].name.split('+')[0];
 
 export interface TurnedHole { readonly kind: 'on-axis' | 'axial' | 'radial' | 'angled'; readonly diameter: number; readonly faces: readonly string[] }
 export interface Groove { readonly faces: readonly string[]; readonly width: number; readonly depth: number }
-export interface Point { readonly face: string; readonly includedDeg: number }
+export interface Point { readonly face: string; readonly includedAngle: number }
 export interface Turning {
   /** The turning axis (a point on it, its unit direction), or null when no exact cylinder gives one. */
   readonly axis: { readonly c: readonly number[]; readonly a: readonly number[] } | null;
-  readonly area: number; readonly turnedMM2: number; readonly offAxis: readonly { readonly face: string; readonly area: number }[];
-  readonly diameter: number; readonly length: number; readonly minOuterDiameterMM: number | null;
+  readonly area: number; readonly turnedArea: number; readonly offAxis: readonly { readonly face: string; readonly area: number }[];
+  readonly diameter: number; readonly length: number; readonly minOuterDiameter: number | null;
   readonly grooves: readonly Groove[]; readonly idGrooves: number; readonly holes: readonly TurnedHole[]; readonly points: readonly Point[];
 }
 const radial = (p: V, c: V, a: V) => { const d = [p[0] - c[0], p[1] - c[1], p[2] - c[2]], s = dot(d, a); return [d[0] - s * a[0], d[1] - s * a[1], d[2] - s * a[2]]; };
@@ -46,7 +46,7 @@ export function turningOf(doc: StudioDoc, bodies: readonly BodyResult[], holes: 
   const areas = bodies.map(b => faceAreas(b.mesh));
   bodies.forEach((b, k) => { for (const f of b.mesh.faces) { const e = f.exact; if (e?.kind !== 'cylinder') continue; const a = unit(e.a), l = lines.find(x => coaxial({ c: e.c, a }, x.c, x.a)); if (l) l.area += areas[k][f.index]; else lines.push({ c: [e.c[0], e.c[1], e.c[2]], a, area: areas[k][f.index] }); } });
   const best = [...lines].sort((x, y) => y.area - x.area)[0];
-  if (!best) return { axis: null, area: areas.flat().reduce((s, x) => s + x, 0), turnedMM2: 0, offAxis: [], diameter: 0, length: 0, minOuterDiameterMM: null, grooves: [], idGrooves: 0, holes: [], points: [] };
+  if (!best) return { axis: null, area: areas.flat().reduce((s, x) => s + x, 0), turnedArea: 0, offAxis: [], diameter: 0, length: 0, minOuterDiameter: null, grooves: [], idGrooves: 0, holes: [], points: [] };
   const big = [0, 1, 2].reduce((q, k) => Math.abs(best.a[k]) > Math.abs(best.a[q]) ? k : q, 0), a = best.a[big] < 0 ? best.a.map(x => -x) : best.a, c = best.c;
   let area = 0, turned = 0, rMax = 0, lo = Infinity, hi = -Infinity;
   const off = new Map<string, number>(), outer: { faces: string[]; r: number; lo: number; hi: number }[] = [], points: Point[] = [];
@@ -76,7 +76,7 @@ export function turningOf(doc: StudioDoc, bodies: readonly BodyResult[], holes: 
         // (Not at the apex, where a cone's normal is not defined.)
         if (r > 1e-6) { if (s < sMin) sMin = s; if (s > sMax) sMax = s; } if (r < rMin) rMin = r;
       }
-      if (sMax - sMin <= 1e-6 && sMin > 1e-6 && sMax < 1 - 1e-6 && rMin <= 1e-6) points.push({ face: nameOf(m, f.index), includedDeg: 2 * Math.asin(sMin) * 180 / Math.PI });
+      if (sMax - sMin <= 1e-6 && sMin > 1e-6 && sMax < 1 - 1e-6 && rMin <= 1e-6) points.push({ face: nameOf(m, f.index), includedAngle: 2 * Math.asin(sMin) * 180 / Math.PI });
     }
   }
   // Outside grooves: a profile step smaller than its two neighbours along the axis.
@@ -96,8 +96,8 @@ export function turningOf(doc: StudioDoc, bodies: readonly BodyResult[], holes: 
     turnedHoles.push({ kind, diameter: h.steps[0].diameter, faces: h.steps[0].faces });
     if (kind === 'on-axis') idGrooves += h.steps.filter(s => s.reachMM === null).length;
   }
-  return { axis: { c, a }, area: area, turnedMM2: turned, offAxis: [...off.entries()].map(([face, A]) => ({ face, area: A })).sort((x, y) => y.area - x.area),
-    diameter: 2 * rMax, length: hi - lo, minOuterDiameterMM: outer.length ? 2 * Math.min(...outer.map(s => s.r)) : null, grooves, idGrooves, holes: turnedHoles, points };
+  return { axis: { c, a }, area: area, turnedArea: turned, offAxis: [...off.entries()].map(([face, A]) => ({ face, area: A })).sort((x, y) => y.area - x.area),
+    diameter: 2 * rMax, length: hi - lo, minOuterDiameter: outer.length ? 2 * Math.min(...outer.map(s => s.r)) : null, grooves, idGrooves, holes: turnedHoles, points };
 }
 /** Each display face's area. */
 function faceAreas(m: DisplayMesh): number[] {

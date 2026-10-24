@@ -35,17 +35,17 @@ const job = (extra = {}) => ({ request: 1, sourceKey: 1, meshes: [mesh()], layer
 test('actual Model summary is reused across lazy layers; absent height/direction retain estimate/default', { timeout: 30000 }, async t => {
   const f = await workerFixture(t), a = await f.send(job()), b = await f.send(job({ request: 2, layer: 5 }));
   assert.equal(a.display.summary.version, 'print-layers-v1'); assert.equal(a.display.summary.count, 10);
-  assert.equal(a.display.summary.directionSource, 'default'); assert.deepEqual(a.display.summary.layerMM, { mm: 0.2, basis: 'estimate' });
+  assert.equal(a.display.summary.directionSource, 'default'); assert.deepEqual(a.display.summary.layerHeight, { value: 0.2, basis: 'estimate' });
   assert.equal(a.display.summaryKey, b.display.summaryKey); assert.equal(b.display.layer.k, 5); assert.ok(Math.abs(b.display.layer.z - 1.1) < 1e-9);
-  assert.ok(Math.abs(b.display.topMM - 1.2) < 1e-9); assert.ok(b.display.layer.contours.length > 0);
+  assert.ok(Math.abs(b.display.top - 1.2) < 1e-9); assert.ok(b.display.layer.contours.length > 0);
   assert.deepEqual(a.display.supportMesh, b.display.supportMesh);
-  const c = await f.send(job({ request: 3, layer: 999 })); assert.equal(c.display.layer.k, 9); assert.equal(c.display.topMM, 2);
+  const c = await f.send(job({ request: 3, layer: 999 })); assert.equal(c.display.layer.k, 9); assert.equal(c.display.top, 2);
 });
 
 test('source/direction changes produce a new actual summary and rigid bed transform', { timeout: 30000 }, async t => {
   const f = await workerFixture(t), a = await f.send(job()), b = await f.send(job({ request: 2, sourceKey: 2, direction: [1, 0, 0], layerHeight: 0.5 }));
   assert.notEqual(a.display.summaryKey, b.display.summaryKey); assert.equal(b.display.summary.count, 4);
-  assert.equal(b.display.summary.directionSource, 'given'); assert.deepEqual(b.display.summary.layerMM, { mm: 0.5, basis: 'set' });
+  assert.equal(b.display.summary.directionSource, 'given'); assert.deepEqual(b.display.summary.layerHeight, { value: 0.5, basis: 'set' });
   const m = b.display.summary.modelToBed; assert.deepEqual([m[2], m[6], m[10]], [1, 0, 0]);
   assert.equal(b.display.layer.k, 0); assert.ok(Math.abs(b.display.layer.z - 0.25) < 1e-9);
 });
