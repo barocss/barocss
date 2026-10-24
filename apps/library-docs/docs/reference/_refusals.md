@@ -2,74 +2,281 @@
 
 ### The kernel (`@barocss/cad`)
 
-| Code | Raised in | For example |
+| Code | Declared or raised in | For example |
 |---|---|---|
-| `[APPROX_TOLERANCE_NOT_MET]` | `blend` | a slab's two sheets do not settle on one grid of cells |
-| `[ARC_MEMBER]` | `part` | a curved end corner requires a two-member mitre |
-| `[BEAD_ANGLE]` | `part` | … meets its face at …° from square: fillets on oblique ends are not modelled yet |
-| `[BEAD_KIND]` | `part` | a cap sits flush with its member's outline: it is welded by a corner weld, not a fillet (its seam is in its endCap report) |
-| `[BEAD_SEAM_NOT_PLANAR]` | `part` | … is trimmed to an envelope or a body: its complete seam is not one plane's loop |
-| `[BEAD_SHARED_UNSUPPORTED]` | `part` | sharing is supported only on endpoint beads |
-| `[BEAD_SIZE]` | `part` | …: a leg of … mm does not fit its … (a concave round or the bore's rounds under the leg) |
-| `[BEND_ANGLE]` | `frame-sheet`, `part` | path point … is in line with its neighbours: no bend there |
-| `[BEND_DOES_NOT_FIT]` | `frame-sheet`, `part` | path points … and … coincide |
-| `[BEND_RADIUS]` | `part` | an authored corner conflicts with a consumed bend point |
-| `[BEND_TABLE]` | `part` | … |
-| `[BEND_TABLE_MISS]` | `part` | …: … |
-| `[BUTT_NOT_ON_A_FACE]` | `part` | … at an edge of its section, not a face (turn one, or mitre) |
-| `[BUTT_ON_CURVED_MEMBER]` | `part` | a butt cannot use a curved member as a planar face |
-| `[BUTT_ON_OPEN_SIDE]` | `part` | …: its end spans … to … mm along the through member's section …, but the side …… of that section has material only at …: a gap would be left (trim it to the … |
-| `[CAP_END]` | `part` | member …'s … is cut by a …: a cap sits on a square end |
-| `[CORNER_ANGLE]` | `part` | point …: member … runs along member … |
-| `[CORNER_NOT_A_JOINT]` | `part` | point …: no member ends there |
-| `[CORNER_NOT_CLEAR]` | `part` | the relief at … meets more than the plate's corner |
-| `[CORNER_NOT_SQUARE]` | `part` | the corner … is …°: corner reliefs are made at square corners yet |
-| `[DENSITY]` | `frame-sheet` | a density above 0 kg/m³ is needed (…) |
-| `[EDGE_NOT_SHEET]` | `part` | … is not straight: a flange goes on a straight edge |
-| `[FLANGES_COLLIDE]` | `part` | the flange on … or its cut into the plate meets the sheet's other bends or flanges: keep it at least its setback (… mm) from them |
-| `[GAP_SIZE]` | `part` | gaps on curved frames are not supported |
-| `[GUSSET_FIT]` | `part` | member … meets the gusset at an edge of its section, not a face (turn the member a quarter, or leave the gusset out) |
-| `[INVALID_INPUT]` | `part` | … |
-| `[MATE_INCOMPATIBLE]` | `part` | … is straight: a worm's wheel is helical, at the worm's lead angle |
-| `[MEMBERS_CLASH]` | `part` | members … and … both run through point … |
-| `[MEMBER_DUPLICATE]` | `part` | segments … and … join the same two points |
-| `[MESH_WALL_THIN]` | `mesh` | the offset comes … mm from the mesh at (…), more than 1 % thinner than the wall … mm: the mesh is too coarse there for its offset |
-| `[MITRE_SECTIONS_DIFFER]` | `part` | point …: members … and … would not meet face to face on the mitre (different sections, or turned differently); give a butt |
-| `[NOTCH_CUTTER]` | `part` | notch cutters on curved frames are not supported |
-| `[NOT_A_MEMBER]` | `frame-sheet` | … is not a frame member |
-| `[NOT_A_SHEET]` | `part` | the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not) |
-| `[OBSTRUCTED_ABOVE]` | `part` | material … mm above … over the hole at (…, …): a blind hole from that face would cut it |
-| `[OFFSET_FOLDS]` | `blend`, `mesh` | face … curves more tightly than the wall at (…, …): its radius there … mm, the wall … mm — the offset turns over |
-| `[OPENING_AT_A_VERTEX]` | `blend` | the … … times round the vertex at (…): the wall's ends would touch there; … |
-| `[RADIUS_EXCEEDS_FACE]` | `part` | edge …: … … mm is too large for walls of … and … mm |
-| `[REFERENCE_MOVED]` | `part` | … … … is no longer the … it named (was at …, now at ……) |
-| `[RELIEF_REQUIRED]` | `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
-| `[SECTION_DIMENSIONS]` | `frame-sheet` | … |
-| `[SECTION_TABLE]` | `part` | … |
-| `[SECTION_TABLE_MISS]` | `part` | …: … |
-| `[SEGMENT_ZERO_LENGTH]` | `part` | a member runs from its start to its end: they are … mm apart |
-| `[SHEET_CROSSES_ITSELF]` | `frame-sheet` | the sheet's section meets itself: … and … near (…, …) |
-| `[SHEET_IN_PIECES]` | `part` | the flange on … and its reliefs leave the sheet in … pieces: move it, or its neighbour, further from the corner |
-| `[SHELL_FACE_KIND]` | `blend` | face … is not an untrimmed patch, a plane or a cylinder beside a sharp edge: shelling it is not supported yet |
-| `[SHELL_MESH_NOT_CLOSED]` | `mesh` | the mesh is not closed and wound one way at its edge (…) to (…): repair it first |
-| `[SHELL_NOT_CLOSED]` | `blend` | a wall of … mm cannot be closed on this body: … |
-| `[SHELL_OPENING_NOT_PLANAR]` | `blend` | the opened face … lies beside a smooth region and is not a plane: opening there is not supported yet |
-| `[SHELL_PLANE_NOT_BOUNDING]` | `blend` | face … is a plane the body crosses (a step, a pocket, a boss's base), at a sharp edge beside a smooth region: not supported yet |
-| `[SHELL_REGIONS_SHARP]` | `blend` | faces … and … of two smooth regions meet at a sharp edge (at …): shelling there is not supported yet |
-| `[SHELL_VARIABLE_RADIUS]` | `part` | … varies its radius along a curved edge (…): its hollow's radius along the chain is not the outer one's less the wall; not supported yet |
-| `[SHELL_WALL_UNION]` | `blend` | the wall's … slabs do not join in any order tried: … |
-| `[SKELETON_OVERLAP]` | `part` | segments … and … lie on one line and share … mm of it |
-| `[TRIM_EMPTY]` | `part` | member …: the plane lies at or past its other end |
-| `[TRIM_LEAVES_PIECES]` | `part` | cut at its corners, member … is in … pieces |
-| `[TRIM_MISSES]` | `part` | member … does not reach the body it is trimmed to |
-| `[TRIM_PARALLEL]` | `part` | member … runs along the plane it is trimmed to |
-| `[VERTEX_BLEND_UNSUPPORTED]` | `blend` | … finished edges meet at (…), the two ways round; blending more than three there is not supported yet |
-| `[WALL_NEAR_RADIUS]` | `blend` | a wall of … mm on … (radius … mm) leaves a core … mm across its offset: make the wall the radius or more (all wall) or at least 0.01 mm less |
-| `[WALL_TOO_THIN]` | `blend`, `mesh` | the wall of … mm inside face … comes … mm from face …: the body is thinner than twice the wall there |
+| `[AFFINE]` | `core/error-codes.ts (declared)` | — |
+| `[APPROX_TOLERANCE_NOT_MET]` | `blend`, `core/error-codes.ts (declared)` | a slab's two sheets do not settle on one grid of cells |
+| `[ARC]` | `core/error-codes.ts (declared)` | — |
+| `[ARC_MEMBER]` | `core/error-codes.ts (declared)`, `part` | a curved end corner requires a two-member mitre |
+| `[ARITHMETIC]` | `core/error-codes.ts (declared)` | — |
+| `[ASSOCIATION]` | `core/error-codes.ts (declared)` | — |
+| `[AXIS]` | `core/error-codes.ts (declared)` | — |
+| `[BAD_ENTITY]` | `core/error-codes.ts (declared)` | — |
+| `[BAD_NAME]` | `core/error-codes.ts (declared)` | — |
+| `[BAD_TEXT]` | `core/error-codes.ts (declared)` | — |
+| `[BAND]` | `core/error-codes.ts (declared)` | — |
+| `[BASIS]` | `core/error-codes.ts (declared)` | — |
+| `[BEAD_ANGLE]` | `core/error-codes.ts (declared)`, `part` | … meets its face at …° from square: fillets on oblique ends are not modelled yet |
+| `[BEAD_KIND]` | `core/error-codes.ts (declared)`, `part` | a cap sits flush with its member's outline: it is welded by a corner weld, not a fillet (its seam is in its endCap report) |
+| `[BEAD_SEAM_NOT_PLANAR]` | `core/error-codes.ts (declared)`, `part` | … is trimmed to an envelope or a body: its complete seam is not one plane's loop |
+| `[BEAD_SHARED_UNSUPPORTED]` | `core/error-codes.ts (declared)`, `part` | sharing is supported only on endpoint beads |
+| `[BEAD_SIZE]` | `core/error-codes.ts (declared)`, `part` | …: a leg of … mm does not fit its … (a concave round or the bore's rounds under the leg) |
+| `[BELT_GEOMETRY]` | `core/error-codes.ts (declared)` | — |
+| `[BEND_ANGLE]` | `core/error-codes.ts (declared)`, `frame-sheet`, `part` | path point … is in line with its neighbours: no bend there |
+| `[BEND_DOES_NOT_FIT]` | `core/error-codes.ts (declared)`, `frame-sheet`, `part` | path points … and … coincide |
+| `[BEND_NOT_CYLINDRICAL]` | `core/error-codes.ts (declared)` | — |
+| `[BEND_RADIUS]` | `core/error-codes.ts (declared)`, `part` | an authored corner conflicts with a consumed bend point |
+| `[BEND_TABLE]` | `core/error-codes.ts (declared)`, `part` | … |
+| `[BEND_TABLE_MISS]` | `core/error-codes.ts (declared)`, `part` | …: … |
+| `[BINDING]` | `core/error-codes.ts (declared)` | — |
+| `[BLOCK_CYCLE]` | `core/error-codes.ts (declared)` | — |
+| `[BODY]` | `core/error-codes.ts (declared)` | — |
+| `[BOOLEAN]` | `core/error-codes.ts (declared)` | — |
+| `[BORE_INTERSECTION]` | `core/error-codes.ts (declared)` | — |
+| `[BOUNDARY]` | `core/error-codes.ts (declared)` | — |
+| `[BRANCH]` | `core/error-codes.ts (declared)` | — |
+| `[BREP_EULER]` | `core/error-codes.ts (declared)` | — |
+| `[BUDGET]` | `core/error-codes.ts (declared)` | — |
+| `[BUTT_NOT_ON_A_FACE]` | `core/error-codes.ts (declared)`, `part` | … at an edge of its section, not a face (turn one, or mitre) |
+| `[BUTT_ON_CURVED_MEMBER]` | `core/error-codes.ts (declared)`, `part` | a butt cannot use a curved member as a planar face |
+| `[BUTT_ON_OPEN_SIDE]` | `core/error-codes.ts (declared)`, `part` | …: its end spans … to … mm along the through member's section …, but the side …… of that section has material only at …: a gap would be left (trim it to the … |
+| `[CAM_UNDERCUT]` | `core/error-codes.ts (declared)` | — |
+| `[CAP]` | `core/error-codes.ts (declared)` | — |
+| `[CAPABILITY]` | `core/error-codes.ts (declared)` | — |
+| `[CAP_END]` | `core/error-codes.ts (declared)`, `part` | member …'s … is cut by a …: a cap sits on a square end |
+| `[CHART]` | `core/error-codes.ts (declared)` | — |
+| `[CLOSURE]` | `core/error-codes.ts (declared)` | — |
+| `[CODEC]` | `core/error-codes.ts (declared)` | — |
+| `[COILS_OVERLAP]` | `core/error-codes.ts (declared)` | — |
+| `[COLLAPSE]` | `core/error-codes.ts (declared)` | — |
+| `[COMPILATION]` | `core/error-codes.ts (declared)` | — |
+| `[CONDITION]` | `core/error-codes.ts (declared)` | — |
+| `[CONDITIONING]` | `core/error-codes.ts (declared)` | — |
+| `[CONFLICT]` | `core/error-codes.ts (declared)` | — |
+| `[CONNECTED]` | `core/error-codes.ts (declared)` | — |
+| `[CONNECTOR_FIT]` | `core/error-codes.ts (declared)` | — |
+| `[CONNECTOR_PLACEMENT]` | `core/error-codes.ts (declared)` | — |
+| `[CONSTRUCTION]` | `core/error-codes.ts (declared)` | — |
+| `[CONTACT]` | `core/error-codes.ts (declared)` | — |
+| `[CONTACT_LEAVES_FACE]` | `core/error-codes.ts (declared)` | — |
+| `[CONTINUITY]` | `core/error-codes.ts (declared)` | — |
+| `[CONVEXITY]` | `core/error-codes.ts (declared)` | — |
+| `[CORNER_ANGLE]` | `core/error-codes.ts (declared)`, `part` | point …: member … runs along member … |
+| `[CORNER_NOT_A_JOINT]` | `core/error-codes.ts (declared)`, `part` | point …: no member ends there |
+| `[CORNER_NOT_CLEAR]` | `core/error-codes.ts (declared)`, `part` | the relief at … meets more than the plate's corner |
+| `[CORNER_NOT_SQUARE]` | `core/error-codes.ts (declared)`, `part` | the corner … is …°: corner reliefs are made at square corners yet |
+| `[COVERAGE]` | `core/error-codes.ts (declared)` | — |
+| `[CROSSING]` | `core/error-codes.ts (declared)` | — |
+| `[CURVED_ARRANGEMENT]` | `brep`, `core/error-codes.ts (declared)` | … |
+| `[CUT]` | `core/error-codes.ts (declared)` | — |
+| `[CUT_ACROSS_BEND]` | `core/error-codes.ts (declared)` | — |
+| `[CUT_LIST]` | `core/error-codes.ts (declared)` | — |
+| `[CYCLE]` | `core/error-codes.ts (declared)` | — |
+| `[DEGENERATE]` | `core/error-codes.ts (declared)` | — |
+| `[DEGENERATE_GEOMETRY]` | `core/error-codes.ts (declared)` | — |
+| `[DEGREE]` | `core/error-codes.ts (declared)` | — |
+| `[DENSITY]` | `core/error-codes.ts (declared)`, `frame-sheet` | a density above 0 g/cm³ is needed (…) |
+| `[DEPENDENCY]` | `core/error-codes.ts (declared)` | — |
+| `[DERIVATIVE]` | `core/error-codes.ts (declared)` | — |
+| `[DIMENSION]` | `core/error-codes.ts (declared)` | — |
+| `[DIRECTORY]` | `core/error-codes.ts (declared)` | — |
+| `[DISTANCE]` | `core/error-codes.ts (declared)` | — |
+| `[DIVISION_ZERO]` | `core/error-codes.ts (declared)` | — |
+| `[DOMAIN]` | `core/error-codes.ts (declared)` | — |
+| `[DUPLICATE]` | `core/error-codes.ts (declared)` | — |
+| `[DUPLICATE_NAME]` | `core/error-codes.ts (declared)` | — |
+| `[EDGE_NOT_SHEET]` | `core/error-codes.ts (declared)`, `part` | … is not straight: a flange goes on a straight edge |
+| `[EMBEDDING]` | `core/error-codes.ts (declared)` | — |
+| `[EXPRESSION]` | `core/error-codes.ts (declared)` | — |
+| `[EXTRUSION]` | `core/error-codes.ts (declared)` | — |
+| `[FACE]` | `core/error-codes.ts (declared)` | — |
+| `[FIELD]` | `core/error-codes.ts (declared)` | — |
+| `[FILE]` | `core/error-codes.ts (declared)` | — |
+| `[FILL_RANGE]` | `core/error-codes.ts (declared)` | — |
+| `[FIT_FACE]` | `core/error-codes.ts (declared)` | — |
+| `[FIT_PAIR]` | `core/error-codes.ts (declared)` | — |
+| `[FIT_TABLE]` | `core/error-codes.ts (declared)` | — |
+| `[FIT_TABLE_MISS]` | `core/error-codes.ts (declared)` | — |
+| `[FLANGES_COLLIDE]` | `core/error-codes.ts (declared)`, `part` | the flange on … or its cut into the plate meets the sheet's other bends or flanges: keep it at least its setback (… mm) from them |
+| `[FLAT_OVERLAPS]` | `core/error-codes.ts (declared)` | — |
+| `[FORMAT]` | `core/error-codes.ts (declared)` | — |
+| `[FRAME]` | `core/error-codes.ts (declared)` | — |
+| `[FUNCTION_ARGUMENT]` | `core/error-codes.ts (declared)` | — |
+| `[FUNCTION_CAPTURE]` | `core/error-codes.ts (declared)` | — |
+| `[FUNCTION_RECURSION]` | `core/error-codes.ts (declared)` | — |
+| `[FUNCTION_REFERENCE]` | `core/error-codes.ts (declared)` | — |
+| `[FUNCTION_TYPE]` | `core/error-codes.ts (declared)` | — |
+| `[GAP_SIZE]` | `core/error-codes.ts (declared)`, `part` | gaps on curved frames are not supported |
+| `[GEOMETRY]` | `core/error-codes.ts (declared)` | — |
+| `[GLAND_DIMENSIONS]` | `core/error-codes.ts (declared)` | — |
+| `[GLOBAL]` | `core/error-codes.ts (declared)` | — |
+| `[GRAPH]` | `core/error-codes.ts (declared)` | — |
+| `[GROOVE_DIMENSIONS]` | `core/error-codes.ts (declared)` | — |
+| `[GUSSET_FIT]` | `core/error-codes.ts (declared)`, `part` | member … meets the gusset at an edge of its section, not a face (turn the member a quarter, or leave the gusset out) |
+| `[HIERARCHY]` | `core/error-codes.ts (declared)` | — |
+| `[HOLE_DIMENSIONS]` | `core/error-codes.ts (declared)` | — |
+| `[IDEAL_MODEL]` | `core/error-codes.ts (declared)` | — |
+| `[IDENTITY]` | `core/error-codes.ts (declared)` | — |
+| `[INCIDENCE]` | `core/error-codes.ts (declared)` | — |
+| `[INPUT]` | `core/error-codes.ts (declared)` | — |
+| `[INSERTION]` | `core/error-codes.ts (declared)` | — |
+| `[INTERVAL]` | `core/error-codes.ts (declared)` | — |
+| `[INVALID_DOCUMENT]` | `core/error-codes.ts (declared)` | — |
+| `[INVALID_INPUT]` | `core/error-codes.ts (declared)`, `part` | … |
+| `[INVOLUTE_INTERFERENCE]` | `core/error-codes.ts (declared)` | — |
+| `[ISO]` | `core/error-codes.ts (declared)` | — |
+| `[JSON]` | `core/error-codes.ts (declared)` | — |
+| `[KEYSEAT_DIMENSIONS]` | `core/error-codes.ts (declared)` | — |
+| `[KEY_FIT]` | `core/error-codes.ts (declared)` | — |
+| `[KIND]` | `core/error-codes.ts (declared)` | — |
+| `[KNOTS]` | `core/error-codes.ts (declared)` | — |
+| `[LEG_OVERLAP]` | `core/error-codes.ts (declared)` | — |
+| `[LIMIT]` | `core/error-codes.ts (declared)` | — |
+| `[LOCAL]` | `core/error-codes.ts (declared)` | — |
+| `[LOCALITY]` | `core/error-codes.ts (declared)` | — |
+| `[LOFT]` | `core/error-codes.ts (declared)` | — |
+| `[MASS]` | `core/error-codes.ts (declared)` | — |
+| `[MATERIAL]` | `core/error-codes.ts (declared)` | — |
+| `[MATE_INCOMPATIBLE]` | `core/error-codes.ts (declared)`, `part` | … is straight: a worm's wheel is helical, at the worm's lead angle |
+| `[MATRIX]` | `core/error-codes.ts (declared)` | — |
+| `[MEMBERS_CLASH]` | `core/error-codes.ts (declared)`, `part` | members … and … both run through point … |
+| `[MEMBER_DUPLICATE]` | `core/error-codes.ts (declared)`, `part` | segments … and … join the same two points |
+| `[MESH]` | `core/error-codes.ts (declared)` | — |
+| `[MESH_BREP]` | `core/error-codes.ts (declared)`, `mesh` | … |
+| `[MESH_WALL_THIN]` | `core/error-codes.ts (declared)`, `mesh` | the offset comes … mm from the mesh at (…), more than 1 % thinner than the wall … mm: the mesh is too coarse there for its offset |
+| `[METRIC]` | `core/error-codes.ts (declared)` | — |
+| `[MITRE_SECTIONS_DIFFER]` | `core/error-codes.ts (declared)`, `part` | point …: members … and … would not meet face to face on the mitre (different sections, or turned differently); give a butt |
+| `[NATIVE]` | `core/error-codes.ts (declared)` | — |
+| `[NATIVE_CAPACITY]` | `core/error-codes.ts (declared)` | — |
+| `[NESTING]` | `core/error-codes.ts (declared)` | — |
+| `[NONCONVERGENCE]` | `core/error-codes.ts (declared)` | — |
+| `[NON_NORMAL_CUT]` | `core/error-codes.ts (declared)` | — |
+| `[NORMAL]` | `core/error-codes.ts (declared)` | — |
+| `[NOTCH_CUTTER]` | `core/error-codes.ts (declared)`, `part` | notch cutters on curved frames are not supported |
+| `[NOT_A_MEMBER]` | `core/error-codes.ts (declared)`, `frame-sheet` | … is not a frame member |
+| `[NOT_A_SHEET]` | `core/error-codes.ts (declared)`, `part` | the target is not sheet metal: made by a sheet feature (its holes and cuts carry it; moves, patterns and unions do not) |
+| `[NOT_FINITE]` | `core/error-codes.ts (declared)` | — |
+| `[NUMBER]` | `core/error-codes.ts (declared)` | — |
+| `[NUMERICAL]` | `core/error-codes.ts (declared)` | — |
+| `[OBSERVATION]` | `core/error-codes.ts (declared)` | — |
+| `[OBSTRUCTED_ABOVE]` | `core/error-codes.ts (declared)`, `part` | material … mm above … over the hole at (…, …): a blind hole from that face would cut it |
+| `[OFFSET_FOLDS]` | `blend`, `core/error-codes.ts (declared)`, `mesh` | face … curves more tightly than the wall at (…, …): its radius there … mm, the wall … mm — the offset turns over |
+| `[OPENING_AT_A_VERTEX]` | `blend`, `core/error-codes.ts (declared)` | the … … times round the vertex at (…): the wall's ends would touch there; … |
+| `[ORIENTATION]` | `core/error-codes.ts (declared)` | — |
+| `[OWNED]` | `core/error-codes.ts (declared)` | — |
+| `[OWNERSHIP]` | `core/error-codes.ts (declared)` | — |
+| `[PAIR]` | `core/error-codes.ts (declared)` | — |
+| `[PARAMETER]` | `core/error-codes.ts (declared)` | — |
+| `[PARENT]` | `core/error-codes.ts (declared)` | — |
+| `[PARTITION]` | `core/error-codes.ts (declared)` | — |
+| `[PIN_FIT]` | `core/error-codes.ts (declared)` | — |
+| `[PLACEMENT]` | `core/error-codes.ts (declared)` | — |
+| `[PLANAR_ARRANGEMENT]` | `brep`, `core/error-codes.ts (declared)` | … |
+| `[POSE]` | `core/error-codes.ts (declared)` | — |
+| `[PRISMATIC_SOLID]` | `core/error-codes.ts (declared)`, `features` | … |
+| `[PROFILE]` | `core/error-codes.ts (declared)` | — |
+| `[PROFILE_BUDGET_EXCEEDED]` | `core/error-codes.ts (declared)` | — |
+| `[QUERY]` | `core/error-codes.ts (declared)` | — |
+| `[R12_NEEDS_TOLERANCE]` | `core/error-codes.ts (declared)` | — |
+| `[R12_UNSUPPORTED]` | `core/error-codes.ts (declared)` | — |
+| `[RADIUS_EXCEEDS_FACE]` | `core/error-codes.ts (declared)`, `part` | edge …: … … mm is too large for walls of … and … mm |
+| `[RANGE]` | `core/error-codes.ts (declared)` | — |
+| `[RECIPE]` | `core/error-codes.ts (declared)` | — |
+| `[RECORD]` | `core/error-codes.ts (declared)` | — |
+| `[REFERENCE]` | `core/error-codes.ts (declared)` | — |
+| `[REFERENCE_MOVED]` | `core/error-codes.ts (declared)`, `part` | … … … is no longer the … it named (was at …, now at ……) |
+| `[REGION]` | `core/error-codes.ts (declared)` | — |
+| `[REGULARITY]` | `core/error-codes.ts (declared)` | — |
+| `[RELIEF_REQUIRED]` | `core/error-codes.ts (declared)`, `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
+| `[REPRESENTABILITY]` | `core/error-codes.ts (declared)` | — |
+| `[REQUEST]` | `core/error-codes.ts (declared)` | — |
+| `[REVISION]` | `core/error-codes.ts (declared)` | — |
+| `[RIM_INTERSECTION]` | `core/error-codes.ts (declared)` | — |
+| `[RING_FIT]` | `core/error-codes.ts (declared)` | — |
+| `[ROOT_TRANSITION_UNVALIDATED]` | `core/error-codes.ts (declared)` | — |
+| `[RULED]` | `core/error-codes.ts (declared)` | — |
+| `[SEAT_ABUTMENT]` | `core/error-codes.ts (declared)` | — |
+| `[SEAT_FIT]` | `core/error-codes.ts (declared)` | — |
+| `[SECTION]` | `core/error-codes.ts (declared)` | — |
+| `[SECTION_DIMENSIONS]` | `core/error-codes.ts (declared)`, `frame-sheet` | … |
+| `[SECTION_TABLE]` | `core/error-codes.ts (declared)`, `part` | … |
+| `[SECTION_TABLE_MISS]` | `core/error-codes.ts (declared)`, `part` | …: … |
+| `[SEGMENT_ZERO_LENGTH]` | `core/error-codes.ts (declared)`, `part` | a member runs from its start to its end: they are … mm apart |
+| `[SELECTION]` | `core/error-codes.ts (declared)` | — |
+| `[SELF_INTERSECTION]` | `core/error-codes.ts (declared)` | — |
+| `[SEW]` | `brep`, `core/error-codes.ts (declared)` | … |
+| `[SHAFT_STEPS]` | `core/error-codes.ts (declared)` | — |
+| `[SHEET_CROSSES_ITSELF]` | `core/error-codes.ts (declared)`, `frame-sheet` | the sheet's section meets itself: … and … near (…, …) |
+| `[SHEET_IN_PIECES]` | `core/error-codes.ts (declared)`, `part` | the flange on … and its reliefs leave the sheet in … pieces: move it, or its neighbour, further from the corner |
+| `[SHELL]` | `core/error-codes.ts (declared)` | — |
+| `[SHELL_FACE_KIND]` | `blend`, `core/error-codes.ts (declared)` | face … is not an untrimmed patch, a plane or a cylinder beside a sharp edge: shelling it is not supported yet |
+| `[SHELL_MESH_NOT_CLOSED]` | `core/error-codes.ts (declared)`, `mesh` | the mesh is not closed and wound one way at its edge (…) to (…): repair it first |
+| `[SHELL_NOT_CLOSED]` | `blend`, `core/error-codes.ts (declared)` | a wall of … mm cannot be closed on this body: … |
+| `[SHELL_OPENING_NOT_PLANAR]` | `blend`, `core/error-codes.ts (declared)` | the opened face … lies beside a smooth region and is not a plane: opening there is not supported yet |
+| `[SHELL_PLANE_NOT_BOUNDING]` | `blend`, `core/error-codes.ts (declared)` | face … is a plane the body crosses (a step, a pocket, a boss's base), at a sharp edge beside a smooth region: not supported yet |
+| `[SHELL_REGIONS_SHARP]` | `blend`, `core/error-codes.ts (declared)` | faces … and … of two smooth regions meet at a sharp edge (at …): shelling there is not supported yet |
+| `[SHELL_VARIABLE_RADIUS]` | `core/error-codes.ts (declared)`, `part` | … varies its radius along a curved edge (…): its hollow's radius along the chain is not the outer one's less the wall; not supported yet |
+| `[SHELL_WALL_UNION]` | `blend`, `core/error-codes.ts (declared)` | the wall's … slabs do not join in any order tried: … |
+| `[SKELETON_OVERLAP]` | `core/error-codes.ts (declared)`, `part` | segments … and … lie on one line and share … mm of it |
+| `[SLAB]` | `core/error-codes.ts (declared)` | — |
+| `[SOLID]` | `core/error-codes.ts (declared)` | — |
+| `[SOLID_MASS]` | `brep`, `core/error-codes.ts (declared)` | … |
+| `[SOLVER]` | `core/error-codes.ts (declared)` | — |
+| `[SOURCE]` | `core/error-codes.ts (declared)` | — |
+| `[SPAN]` | `core/error-codes.ts (declared)` | — |
+| `[SQUEEZE_RANGE]` | `core/error-codes.ts (declared)` | — |
+| `[STAGNATION]` | `core/error-codes.ts (declared)` | — |
+| `[STALE]` | `core/error-codes.ts (declared)` | — |
+| `[STATIONS]` | `core/error-codes.ts (declared)` | — |
+| `[STRETCH_RANGE]` | `core/error-codes.ts (declared)` | — |
+| `[STRUCTURE]` | `core/error-codes.ts (declared)` | — |
+| `[SUPPORT]` | `core/error-codes.ts (declared)` | — |
+| `[SURFACE_INTERSECTION]` | `core/error-codes.ts (declared)` | — |
+| `[SYNTAX]` | `core/error-codes.ts (declared)` | — |
+| `[TANGENCY]` | `core/error-codes.ts (declared)` | — |
+| `[TANGENT_FACES]` | `core/error-codes.ts (declared)` | — |
+| `[TARGET]` | `core/error-codes.ts (declared)` | — |
+| `[TEXT_TOO_LONG]` | `core/error-codes.ts (declared)` | — |
+| `[TOOTH_FORM]` | `core/error-codes.ts (declared)` | — |
+| `[TOO_FEW]` | `core/error-codes.ts (declared)` | — |
+| `[TOPOLOGY]` | `core/error-codes.ts (declared)` | — |
+| `[TRANSLATION]` | `core/error-codes.ts (declared)` | — |
+| `[TRIANGULATION]` | `core/error-codes.ts (declared)` | — |
+| `[TRIM]` | `core/error-codes.ts (declared)` | — |
+| `[TRIMMING_INTERFERENCE]` | `core/error-codes.ts (declared)` | — |
+| `[TRIM_EMPTY]` | `core/error-codes.ts (declared)`, `part` | member …: the plane lies at or past its other end |
+| `[TRIM_LEAVES_PIECES]` | `core/error-codes.ts (declared)`, `part` | cut at its corners, member … is in … pieces |
+| `[TRIM_MISSES]` | `core/error-codes.ts (declared)`, `part` | member … does not reach the body it is trimmed to |
+| `[TRIM_PARALLEL]` | `core/error-codes.ts (declared)`, `part` | member … runs along the plane it is trimmed to |
+| `[TROCHOID_INTERFERENCE]` | `core/error-codes.ts (declared)` | — |
+| `[TYPE]` | `core/error-codes.ts (declared)` | — |
+| `[UNCERTAINTY]` | `core/error-codes.ts (declared)` | — |
+| `[UNDERCUT]` | `core/error-codes.ts (declared)` | — |
+| `[UNIT]` | `core/error-codes.ts (declared)` | — |
+| `[UNKNOWN_BLOCK]` | `core/error-codes.ts (declared)` | — |
+| `[UNKNOWN_LAYER]` | `core/error-codes.ts (declared)` | — |
+| `[UNKNOWN_LINETYPE]` | `core/error-codes.ts (declared)` | — |
+| `[UNKNOWN_STYLE]` | `core/error-codes.ts (declared)` | — |
+| `[UNSUPPORTED]` | `core/error-codes.ts (declared)` | — |
+| `[UNSUPPORTED_GEAR_KIND]` | `core/error-codes.ts (declared)` | — |
+| `[UNSUPPORTED_PROFILE_SHIFT]` | `core/error-codes.ts (declared)` | — |
+| `[UNSUPPORTED_SPRING_KIND]` | `core/error-codes.ts (declared)` | — |
+| `[UNSUPPORTED_TOOTH_FORM]` | `core/error-codes.ts (declared)` | — |
+| `[UV]` | `core/error-codes.ts (declared)` | — |
+| `[VALUE]` | `core/error-codes.ts (declared)` | — |
+| `[VERSION]` | `core/error-codes.ts (declared)` | — |
+| `[VERTEX_BLEND_UNSUPPORTED]` | `blend`, `core/error-codes.ts (declared)` | … finished edges meet at (…), the two ways round; blending more than three there is not supported yet |
+| `[VOLUME]` | `core/error-codes.ts (declared)` | — |
+| `[WALL_NEAR_RADIUS]` | `blend`, `core/error-codes.ts (declared)` | a wall of … mm on … (radius … mm) leaves a core … mm across its offset: make the wall the radius or more (all wall) or at least 0.01 mm less |
+| `[WALL_TOO_THIN]` | `blend`, `core/error-codes.ts (declared)`, `mesh` | the wall of … mm inside face … comes … mm from face …: the body is thinner than twice the wall there |
+| `[WEIGHTS]` | `core/error-codes.ts (declared)` | — |
+| `[WIDTH]` | `core/error-codes.ts (declared)` | — |
+| `[WORK]` | `core/error-codes.ts (declared)` | — |
+| `[XY_AFFINE_SKETCH_PRISM]` | `core/error-codes.ts (declared)` | — |
 
 ### The document model (`@barocss/cad-model`)
 
-| Code | Raised in | For example |
+| Code | Declared or raised in | For example |
 |---|---|---|
 | `[ACTUATOR_INPUT]` | `robot` | unit "…" is not known (…) |
 | `[ALIGN_PICK]` | `app` | Pick the face of the body to move. |
@@ -320,7 +527,7 @@
 
 ### The studio
 
-| Code | Raised in | For example |
+| Code | Declared or raised in | For example |
 |---|---|---|
 | `[BEARING_EDIT_SCOPE]` | `app` | … |
 | `[STORAGE_CHANGED]` | `storage` | … changed since it was read |
