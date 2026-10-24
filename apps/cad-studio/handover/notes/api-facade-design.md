@@ -51,10 +51,8 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
   - **Planned (growth):** `cylinder`, `chamfer`, `union`, `subtract`, `intersect`, `split`, patterns, sketches, a body
     chooser, and placements.
   - cad-model's part adds the studio layer: materials, rows, instances, assemblies.
-  - `mass` differs in its argument today:
-    - cad takes `mass(densityGPerCm3)`, a number, because the kernel has no material library;
-    - cad-model takes `mass(material)`, a library id;
-    - the next growth step makes them `mass({ densityGPerCm3 })` and `mass(material | { densityGPerCm3 })`.
+  - `mass` reads the same in both: cad takes `mass({ densityGPerCm3 })`, because the kernel has no material library.
+    cad-model takes `mass(material | { densityGPerCm3 })`.
 - **The same selectors.** `edges().along('z')`, `faces().facing('+z')`, `on`, `sortBy`, `first`/`last` and `names()` are
   one shared selector module over a common edge/face record.
   - cad fills that record from the B-rep (each `BrepEdge.name`, and its curve as a line or not).
@@ -70,9 +68,10 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
 import { part } from '@barocss/cad/api';
 import { scene, show } from '@barocss/gpu/api';
 
-const bracket = part('bracket').box(80, 40, 10).hole({ at: [20, 20], diameterMM: 8 })
-  .fillet(b => b.edges().along('z'), 2);
-bracket.mass(2.7);                       // g/cm³ in, MMGS out
+const bracket = part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 })
+  .hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
+  .fillet(b => b.edges().along('z'), { radiusMM: 2 });
+bracket.mass({ densityGPerCm3: 2.7 });   // MMGS out
 bracket.step();
 
 const view = scene()
@@ -122,50 +121,67 @@ show(viewer, view);                      // viewer.clear(), lights, add(...) per
 
 ## The same bracket, three ways
 
-An 80 × 40 × 10 block, a Ø8 hole through it at (20, 20), and its four vertical edges rounded R2. All three give the
-same document, byte for byte (test/api-part.test.ts).
+An 80 × 40 × 10 block, a Ø8 hole through its top at (20, 20), and its four vertical edges rounded R2. All three give the
+same StudioDoc, byte for byte (test/api-part.test.ts).
 
-**1. The raw document (JSON):**
+**1. The raw document (JSON),** as the studio's commands write it:
+- the box's `made` (its values remembered, so picking it edits them again);
+- the hole's `face` (D148);
+- the fillet's `sigs` (each edge's geometry where it was picked, engine/references.ts).
+
 ```json
-{ "format": "barocss-cad-model", "schema": 3, "units": "mm", "parameters": {}, "outputs": {…},
+{ "format": "barocss-cad-model", "schema": 3, "units": "mm", "parameters": {},
   "nodes": [
     { "kind": "sketch", "profile": "rectangle", "min": [0, 0], "max": [80, 40], "id": "n0" },
-    { "kind": "extrude", "sketch": 0, "height": 10, "id": "n1" },
-    { "kind": "hole", "parent": { "node": 1, "side": "solid" }, "center": [20, 20], "radius": 4, "id": "n2" },
+    { "kind": "extrude", "sketch": 0, "height": 10, "id": "n1", "made": { "command": "box", "values": { "w": 80, "d": 40, "h": 10, "x": 0, "y": 0, "z": 0 } } },
+    { "kind": "hole", "parent": { "node": 1, "side": "solid" }, "radius": 4, "center": [20, 20], "face": "n1.top", "id": "n2" },
     { "kind": "fillet", "parent": { "node": 2, "side": "solid" },
-      "edges": ["n1.side0|n1.side1", "n1.side0|n1.side3", "n1.side1|n1.side2", "n1.side2|n1.side3"], "radius": 2, "id": "n3" } ] }
+      "edges": ["n1.side0|n1.side1", "n1.side0|n1.side3", "n1.side1|n1.side2", "n1.side2|n1.side3"], "radius": 2, "id": "n3",
+      "sigs": { "n1.side0|n1.side1": { "k": "line", "p": [80, 0, 5], "d": [0, 0, 1], "s": 10 }, … } } ],
+  "outputs": { "b3": { "node": 3, "side": "solid" } }, "nextId": 4 }
 ```
 
-**2. The core functions:**
-```ts
-import { rectanglePart, withNode } from '@barocss/cad-model/engine/doc';
-import { evaluateDoc, stepFor } from '@barocss/cad-model/engine/evaluate';
-import { bodyMass } from '@barocss/cad-model/app/mass';
-
-let doc = rectanglePart(80, 40, 10);
-doc = withNode(doc, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [20, 20], radius: 4 });
-doc = withNode(doc, { kind: 'fillet', parent: { node: 2, side: 'solid' },
-  edges: ['n1.side0|n1.side1', 'n1.side0|n1.side3', 'n1.side1|n1.side2', 'n1.side2|n1.side3'], radius: 2 });
-const r = evaluateDoc(doc, 1);                     // { ok, bodies } or { ok: false, error }
-const mass = r.ok ? bodyMass(r.bodies[0], 2.7) : null;
-const step = stepFor(doc, 'bracket');              // { text, source } or { error }
+**2. The agent's v2 commands** (`features.command`, i.e. run_command):
+```json
+{ "command": "box",    "values": { "w": 80, "d": 40, "h": 10, "x": 0, "y": 0, "z": 0 } }
+{ "command": "hole",   "faces": ["n1.top"], "values": { "type": "through", "d": 8, "x": 20, "y": 20 } }
+{ "command": "fillet", "edges": ["n1.side0|n1.side1", "n1.side0|n1.side3", "n1.side1|n1.side2", "n1.side2|n1.side3"], "values": { "radius": 2 } }
 ```
-To write it this way you have to know the node indices (`node: 2`), the persistent edge names, the density of the
-material, and two different ways of failing.
+To write it this way, you need the faces' and edges' persistent names, and you have to read each result to find them.
 
-**3. The facade:**
+**3. The facade.** The same command names, and the same values with units in their names (§12):
 ```ts
 import { part } from '@barocss/cad-model/api';
 
 const bracket = part('bracket')
-  .box(80, 40, 10)
-  .hole({ at: [20, 20], diameterMM: 8 })
-  .fillet(body => body.edges().along('z'), 2);
+  .box({ wMM: 80, dMM: 40, hMM: 10 })
+  .hole(body => body.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 })
+  .fillet(body => body.edges().along('z'), { radiusMM: 2 });
 
-bracket.doc;               // the JSON above
-bracket.mass('al6061');    // { volumeMM3, massG, centroidMM, inertiaGMM2 }: the core's numbers, in MMGS
-bracket.step();            // the core's STEP text
+bracket.doc;                              // the JSON above
+bracket.mass('al6061');                   // or mass({ densityGPerCm3: 2.7 }): { volumeMM3, massG, centroidMM, inertiaGMM2 }
+bracket.step();                           // the core's STEP text
 ```
+For the kernel alone, `@barocss/cad/api`'s `part()` takes the same chain and writes a CadPartDocument instead:
+- the features are `sketch1`, `extrude1`, `hole1` (with `face: 'extrude1.top'`) and `fillet1`;
+- `mass()` takes `{ densityGPerCm3 }`.
+
+## R7.4a: one part implementation, the agent's vocabulary
+
+- **One part (`@barocss/cad/api` `Part<D>`, §11).**
+  - Each verb validates its options once and becomes a document-neutral `FeatureSpec` (cad/src/api/spec.ts): the v2
+    command name, its `values`, and the face or edges by persistent name.
+  - A `PartBackend<D>` writes the spec into its document and gives that core's results.
+  - **cad's backend** (cad/src/api/kernel.ts) writes CadPartDocument features. The hole carries its face and axis as
+    the studio writes them.
+  - **cad-model's backend** (cad-model/src/api/studio.ts) runs the studio's own command, as run_command does: names
+    resolved (`resolveNames`), the command's defaults patched (`patchValues`), the values checked (`checkValues`),
+    `build`, and the new references signed (`captureSignatures`, as every commit does).
+  - `StudioPart extends Part<StudioDoc>` adds only the studio layer. Today that's `mass(material | { densityGPerCm3 })`.
+- **No forked feature code.** A part verb is added once, in cad's `Part` plus a spec. The studio backend needs nothing
+  new for a verb whose v2 command exists. The kernel backend writes that verb's kernel feature.
+- **The oracle, per facade:** `.doc` equals its own hand-written document; for cad-model, it also equals what the
+  agent's run_command writes for the same commands. Its results equal its core's, byte for byte.
 
 ## Object types
 
@@ -224,9 +240,8 @@ These come later, in this order, each with the same oracle:
     cad-model from its display mesh.
   - Without it, `edges().along('z')` on a holed plate also picks the hole's half-cylinder joints, and the kernel refuses
     the fillet with TANGENT_FACES, since there's no corner to round.
-- **Pending argument shape (next growth step):** cad's `mass(densityGPerCm3)` becomes `mass({ densityGPerCm3 })`, and
-  cad-model's accepts `mass(material | { densityGPerCm3 })`. The verb then reads the same in both, and a bare number
-  can't be mistaken for a material id.
+- **The mass argument (done in R7.4a):** cad takes `mass({ densityGPerCm3 })`, and cad-model takes
+  `mass(material | { densityGPerCm3 })`, so a bare number can't be mistaken for a material id.
 
 ## Stable ids and names (the FeatureScript point)
 
@@ -279,7 +294,7 @@ doesn't build on it. Nothing outside cad calls it. R7.3 retires it once the faca
 | Old method (`CadShape` / `CadModel`) | Tests using it | Facade |
 |---|---|---|
 | `rectangle(...).extrude(h)` | 29 | **slice 1**: `part().box(w, d, h)` (a rectangle sketch extruded); a general `sketch().rectangle()` comes in step 2 |
-| `hole({ center, radius })` | 17 | **slice 1**: `.hole({ at, diameterMM, depthMM? })` |
+| `hole({ center, radius })` | 17 | **slice 1**: `.hole(face selector, { dMM, xMM, yMM, type?, depthMM? })` |
 | `edges({ parallelTo, at }).one()` + `chamfer(edge, d)` | 22 / 21 | **slice 1** has the selectors (`along`, `sortBy`, `first`/`last`, `on`). `.chamfer(select, d)` comes in step 1, beside `.fillet` |
 | `massProperties(output, { densityKgPerM3 })` | 1 (modeling-mass) | **slice 1**: `.mass(material)`, by material id, in MMGS |
 | `exportStl(output)` | 1 (modeling-stl) | **slice 1** (cad): `.stl()`, from the output's own `exportStl` |
@@ -360,3 +375,31 @@ retires modeling.ts.
   - the selectors return the core's names, and the top face's edges include the hole's rim under its two names;
   - the refusals are typed, the facade's own and the kernel's passed through.
 - cad-model `tsc` and eslint are clean.
+
+## Hand-over (2026-10-24, API lane stopped after R7.4a)
+
+Nothing is in progress. Everything above is committed and its checks pass. For the next session:
+
+- **The next work is R7.4b.** Its parts are cylinder, sketch → extrude/revolve, chamfer, shell, union/subtract/intersect,
+  patterns, a body chooser, Plane and Location, and a selector-stability test: after an upstream edit is re-evaluated,
+  the same named edge is still picked, or the facade gives a typed refusal.
+  - For each new verb, add a `FeatureSpec` case and its option builder in cad/src/api/spec.ts, the verb on `Part` in
+    cad/src/api/part.ts, and the kernel features in cad/src/api/kernel.ts.
+  - cad-model's studio backend needs no change for a verb whose v2 command exists, as long as the spec's `values` keys
+    are the command's.
+  - Test both oracles per verb: the hand-written document, and, for cad-model, the agent's run_command output.
+- **Keep core calls in the adapters:** cad/src/api/core.ts, cad-model/src/api/core.ts and studio.ts. R7.3a/b, which
+  moves the cores to `BarocssError` and MMGS, then changes only those files:
+  - cad-model's `massOf` then drops its ×1000;
+  - cad's drops its kg conversions;
+  - the facades' `BarocssError` becomes a re-export of the core's.
+- **Tests:**
+  - cad: `node --test test/api-part.test.mjs` after a build (`node scripts/tool.mjs build:fast`, or `pnpm build:library`);
+  - cad-model: `node scripts/test.mjs api-part`;
+  - gpu: `node --test tests/api-scene.test.mjs`, and, after both packages' build:library,
+    `CHROME=… PW_DIR=… node --test tests/api-show-browser.test.mjs`.
+- **Traps:**
+  - a bare `npx tsc` in packages/barocss-gpu overwrites dist/index.js with an unbundled file, so run `build:library`
+    before the browser test;
+  - stepFor and exportStep stamp the time, so tests mask FILE_NAME's stamp;
+  - the studio backend sets no autonomy; the run_command comparison test sets `CAD_AUTONOMY=3` and restores it.

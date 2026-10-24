@@ -5,7 +5,7 @@
 export type RefusalWhere = 'facade' | 'evaluate' | 'export';
 
 /** The facades' own codes; a core refusal keeps the core's code. */
-export type FacadeCode = 'NO_BODY' | 'BODY_AMBIGUOUS' | 'BOX_NOT_FIRST' | 'SELECTION_EMPTY' | 'MATERIAL_UNKNOWN' | 'MASS_UNKNOWN' | 'DENSITY';
+export type FacadeCode = 'NO_BODY' | 'BODY_AMBIGUOUS' | 'SELECTION_EMPTY' | 'SELECTION_ONE' | 'SELECTION_UNKNOWN' | 'FACE_NOT_FLAT' | 'VALUE' | 'UNAVAILABLE' | 'MATERIAL_UNKNOWN' | 'MASS_UNKNOWN' | 'DENSITY';
 
 export class BarocssError extends Error {
   readonly code: string;

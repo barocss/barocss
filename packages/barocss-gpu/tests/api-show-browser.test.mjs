@@ -41,7 +41,7 @@ test('a facade-built part shows through show() in a real Viewer, Z-up, at its ow
       const gpu = await import('/gpu.js');
       const { scene, show } = await import('/gpu/api/index.js');
       const { part } = await import('/cad/api/index.js');
-      const bracket = part('bracket').box(80, 40, 10).hole({ at: [20, 20], diameterMM: 8 }).fillet(b => b.edges().along('z'), 2);
+      const bracket = part('bracket').box({ wMM: 80, dMM: 40, hMM: 10 }).hole(b => b.faces().facing('+z'), { dMM: 8, xMM: 20, yMM: 20 }).fillet(b => b.edges().along('z'), { radiusMM: 2 });
       const meshes = bracket.meshes();
       const viewer = await gpu.createViewer(document.getElementById('c'), { pixelRatio: 1, controls: false });
       show(viewer, scene().add(meshes, { color: '#c8ccd2' }).background('#102030'));

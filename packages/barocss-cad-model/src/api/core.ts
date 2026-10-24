@@ -6,13 +6,11 @@ import { evaluateDoc, stepFor, type BodyResult } from '../engine/evaluate';
 import { bodyMass } from '../app/mass';
 import { fromEvaluation, fromExport, refuse } from './refusal';
 
-export type Vec3 = [number, number, number];
 
 /** A body's display triangles: its key, positions and normals (x, y, z per vertex) and indices — the shape gpu's GeometryInput takes. */
-export interface MeshData { key: string; positions: Float32Array; normals: Float32Array; indices: Uint32Array }
+export type { MeshData, MassResult } from '@barocss/cad/api';
+import type { MeshData, MassResult } from '@barocss/cad/api';
 
-/** A body's mass properties in a material, in MMGS (api-conventions.md §2): mm³, g, mm, and g·mm² about the centre of mass. */
-export interface MassResult { volumeMM3: number; massG: number; centroidMM: Vec3; inertiaGMM2: number[][] }
 
 // (The evaluation's revision tag: the facade keeps no revision history of its own; the core's evaluation memo keys on the document.)
 const REVISION = 0;

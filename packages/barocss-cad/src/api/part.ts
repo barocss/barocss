@@ -1,87 +1,69 @@
-// R7 (cad's facade): a kernel part as an immutable object over a CadPartDocument. Every method returns a new Part and
-// leaves this one as it was; every modelling method appends kernel features and computes no geometry of its own.
-// `.doc` is always the plain CadPartDocument (format 'barocss-cad-part'). Results come from the kernel through ./core.
-// The same verbs as cad-model's part (`box`, `hole`, `fillet`, `mass`, `step`, `meshes`), on the kernel's document.
-import type { CadPartDocument, CadPartFeature, CadPartOutput } from '../part/part-model.js';
-import { massOf, meshOf, outputsOf, selectionOf, stepOf, stlOf, type MassResult, type MeshData } from './core.js';
-import type { BodyQuery, EdgeQuery } from './select.js';
+// R7 (the facades): the one part implementation (api-conventions.md §11). A part is an immutable object over a
+// document; every verb — named for the agent's v2 command, its options the command's values with units (§12) — becomes
+// a spec once, here, and a backend writes it into its document. cad's backend (./kernel) writes CadPartDocument
+// features; cad-model's part extends this class with its studio backend and adds only the studio layer. Results come
+// from each backend's adapter onto its core, as plain data.
+import { boxSpec, filletSpec, holeSpec, type BoxOptions, type FeatureSpec, type FilletOptions, type HoleOptions } from './spec.js';
+import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
+import type { MassResult, MeshData } from './core.js';
 import { refuse } from './refusal.js';
 
-export interface HoleOptions {
-  /** The hole's centre on the body's sketch plane (mm). */
-  at: [number, number];
-  diameterMM: number;
-  /** A blind hole's depth (mm); left out, the hole goes through. */
-  depthMM?: number;
+/** What a document kind provides the part: its empty document, how a spec is written into it, and its core's results. */
+export interface PartBackend<D> {
+  empty(): D;
+  copy(doc: D): D;
+  /** The spec written into the document (a new one; the old one unchanged), or the core's refusal. */
+  apply(doc: D, spec: FeatureSpec): D;
+  /** The part's one body's edges and faces. */
+  select(doc: D): BodyQuery;
+  /** The body's mass properties at a density (g/cm³), in MMGS. */
+  mass(doc: D, densityGPerCm3: number): MassResult;
+  step(doc: D, name: string): string;
+  meshes(doc: D): MeshData[];
 }
 
-const emptyDocument = (): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [] });
+/** A density, the kernel's way of asking for mass (it keeps no material library; cad-model's part also takes a material id). */
+export interface Density { densityGPerCm3: number }
 
-export class Part {
+export class Part<D> {
   readonly name: string;
-  readonly #doc: CadPartDocument;
-  constructor(name: string, doc: CadPartDocument) { this.name = name; this.#doc = doc; }
+  protected readonly backend: PartBackend<D>;
+  readonly #doc: D;
+  constructor(backend: PartBackend<D>, name: string, doc: D) { this.backend = backend; this.name = name; this.#doc = doc; }
 
-  /** The plain CadPartDocument (a copy: changing it changes nothing here). */
-  get doc(): CadPartDocument { return structuredClone(this.#doc); }
+  /** The plain document (a copy: changing it changes nothing here). */
+  get doc(): D { return this.backend.copy(this.#doc); }
 
-  /** A width × depth × height block (mm) with its corner at the origin: a rectangle sketch and its extrude — the first body of an empty part. */
-  box(widthMM: number, depthMM: number, heightMM: number): Part {
-    if (this.#doc.features.length) throw refuse('BOX_NOT_FIRST', 'a box starts an empty part; this part has features already');
-    const sketch = this.#id('sketch');
-    return this.#with({ id: sketch, kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [widthMM, depthMM] })
-      .#with({ id: `extrude${sketch.slice('sketch'.length)}`, kind: 'extrude', sketch, height: heightMM });
+  /** A new part of this kind on another document (a subclass keeps its own kind). */
+  protected next(doc: D): this { return new (this.constructor as new (backend: PartBackend<D>, name: string, doc: D) => this)(this.backend, this.name, doc); }
+  protected get document(): D { return this.#doc; }
+
+  /** `box`: a w × d × h block with its least corner at (x, y, z). */
+  box(options: BoxOptions): this { return this.#apply(boxSpec(options)); }
+
+  /** `hole`: a round hole into the one flat face a selector picks, at (x, y) on that face's plane; through unless blind. */
+  hole(face: (body: BodyQuery) => FaceQuery, options: HoleOptions): this {
+    const picked = face(this.select());
+    if (picked.count !== 1) throw refuse('SELECTION_ONE', `a hole goes into one face; the selector picked ${picked.count}`);
+    const [f] = picked.list();
+    if (f.kind !== 'plane') throw refuse('FACE_NOT_FLAT', `a hole goes into a flat face; ${f.name} is curved`);
+    return this.#apply(holeSpec(f.name, options));
   }
 
-  /** A round hole into the body, through it unless a depth is given. */
-  hole(options: HoleOptions): Part {
-    const target = this.#target();
-    return this.#with({ id: this.#id('hole'), kind: 'hole', target, center: options.at, radius: options.diameterMM / 2, ...(options.depthMM !== undefined ? { depth: options.depthMM } : {}) });
-  }
+  /** `fillet`: rounds the edges a selector picks. */
+  fillet(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions): this { return this.#apply(filletSpec(edges(this.select()).names(), options)); }
 
-  /** Rounds the edges a selector picks on the current body. */
-  fillet(select: (body: BodyQuery) => EdgeQuery, radiusMM: number): Part {
-    const target = this.#target(), edges = select(selectionOf(this.#single())).names();
-    if (!edges.length) throw refuse('SELECTION_EMPTY', 'the selector picked no edge to fillet');
-    return this.#with({ id: this.#id('fillet'), kind: 'fillet', target, edges, radius: radiusMM });
-  }
+  /** The part's one body's edges and faces, to look at or to select from. */
+  select(): BodyQuery { return this.backend.select(this.#doc); }
 
-  /** The current body's edges and faces, to look at or to select from. */
-  select(): BodyQuery { return selectionOf(this.#single()); }
-
-  /** The body's mass properties at a density (g/cm³; the kernel keeps no material library), in MMGS. */
-  mass(densityGPerCm3: number): MassResult { return massOf(this.#single(), densityGPerCm3); }
+  /** The body's mass properties at a density, in MMGS. */
+  mass(density: Density): MassResult { return this.backend.mass(this.#doc, density.densityGPerCm3); }
 
   /** The part as one STEP AP214 file, named after the part unless another name is given. */
-  step(name: string = this.name): string { return stepOf(this.#single(), name); }
+  step(name: string = this.name): string { return this.backend.step(this.#doc, name); }
 
-  /** The part as binary STL. */
-  stl(): Uint8Array { return stlOf(this.#single()); }
+  /** Each body's display triangles, in the common mesh shape (§10.3) gpu's GeometryInput takes. */
+  meshes(): MeshData[] { return this.backend.meshes(this.#doc); }
 
-  /** Each body's display triangles, in the shape gpu's GeometryInput takes. */
-  meshes(): MeshData[] { return outputsOf(this.#doc).map(meshOf); }
-
-  #with(feature: CadPartFeature): Part { return new Part(this.name, { ...this.#doc, features: [...this.#doc.features, feature] }); }
-
-  // (A new feature's id: its kind and the next free number — sketch1, extrude1, hole1 …)
-  #id(kind: string): string {
-    const taken = new Set(this.#doc.features.map(f => f.id));
-    let n = 1;
-    while (taken.has(`${kind}${n}`)) n++;
-    return `${kind}${n}`;
-  }
-
-  // (The output a feature acts on: the part's one output. Several bodies need a body chooser, which comes later.)
-  #single(): CadPartOutput {
-    if (!this.#doc.features.length) throw refuse('NO_BODY', 'the part has no body yet: start it with box()');
-    const outputs = outputsOf(this.#doc);
-    if (outputs.length === 0) throw refuse('NO_BODY', 'the part has no body yet: start it with box()');
-    if (outputs.length > 1) throw refuse('BODY_AMBIGUOUS', `the part has ${outputs.length} bodies; this slice acts on a part of one`);
-    return outputs[0];
-  }
-
-  #target(): string { return this.#single().id; }
+  #apply(spec: FeatureSpec): this { return this.next(this.backend.apply(this.#doc, spec)); }
 }
-
-/** A new, empty kernel part. */
-export function part(name = 'part'): Part { return new Part(name, emptyDocument()); }
