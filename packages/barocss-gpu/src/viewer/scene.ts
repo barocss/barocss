@@ -1,6 +1,6 @@
 // The viewer's scene objects (R2c: moved out of viewer.ts as they were, viewer.ts the facade): materials and their
 // options, image textures, geometry kept on the CPU and its GPU buffers, meshes and their object blocks.
-import { BarocssError } from '../core/barocss-error.js';
+import { ViewerError } from './viewer-error.js';
 import type { MeshCost } from './viewer.js';
 import { transformBox, unionBox, type Box3 } from './bounds.js';
 import { prepareScalars, segmentInstances, vertexColors, fillVertexColors, type PreparedGeometry } from './geometry.js';
@@ -9,9 +9,7 @@ import { linear, parseColor, type Color } from './lights.js';
 import { identity, multiply, normalMatrixInto, srgbToLinear, type Mat4, type Vec3 } from './math.js';
 import { type SurfaceShader } from './shaders.js';
 import type { Viewer } from './viewer.js';
-export class ViewerError extends BarocssError {
-  constructor(readonly code: 'WEBGPU_UNAVAILABLE' | 'NO_ADAPTER' | 'NO_CONTEXT' | 'SHADER' | 'PIPELINE' | 'DISPOSED' | 'DEVICE_LOST', message: string) { super(code, message); this.name = 'ViewerError'; }
-}
+export { ViewerError, type ViewerErrorCode } from './viewer-error.js';
 
 export interface Material {
   color?: Color;
@@ -123,7 +121,7 @@ export interface ColorMap { stops: readonly (readonly [number, Color])[]; below?
 /** A colour map as the GPU takes it: its ramp's 256 sRGB texels and its 16 parameters (range, bands, missing, below, above). */
 export function packColorMap(map: ColorMap): { ramp: Uint8Array; params: Float32Array } {
   const stops = map.stops.map(([v, c]) => [v, linear(parseColor(c))] as const);
-  if (stops.length < 2 || stops.some(([v], i) => !Number.isFinite(v) || (i > 0 && !(v > stops[i - 1][0])))) throw new RangeError('A colour map needs two or more stops at rising finite values');
+  if (stops.length < 2 || stops.some(([v], i) => !Number.isFinite(v) || (i > 0 && !(v > stops[i - 1][0])))) throw new ViewerError('COLOR_MAP_INVALID', 'A colour map needs two or more stops at rising finite values');
   const lo = stops[0][0], hi = stops[stops.length - 1][0], ramp = new Uint8Array(256 * 4), encode = (x: number) => Math.round(Math.min(1, Math.max(0, x <= 0.0031308 ? x * 12.92 : 1.055 * Math.pow(x, 1 / 2.4) - 0.055)) * 255);
   for (let i = 0; i < 256; i++) {
     const v = lo + ((hi - lo) * i) / 255;
@@ -147,10 +145,10 @@ export const INSTANCE_STRIDE = 68;
 /** @internal (R2c: used by the viewer too.) */
 export function packInstances(input: InstancesInput): { count: number; data: ArrayBuffer; matrices: Float64Array[] } {
   const t = input.transforms, count = t.length / 16;
-  if (!Number.isInteger(count) || count < 1) throw new RangeError('instances.transforms must hold 16 numbers per instance');
+  if (!Number.isInteger(count) || count < 1) throw new ViewerError('INSTANCES_INVALID', 'instances.transforms must hold 16 numbers per instance');
   const data = new ArrayBuffer(count * INSTANCE_STRIDE), f = new DataView(data), matrices: Float64Array[] = [];
   const k = input.colors ? (input.colors.length === count * 4 ? 4 : input.colors.length === count * 3 ? 3 : 0) : 0;
-  if (input.colors && !k) throw new RangeError('instances.colors must hold three or four numbers per instance');
+  if (input.colors && !k) throw new ViewerError('INSTANCES_INVALID', 'instances.colors must hold three or four numbers per instance');
   for (let i = 0; i < count; i++) {
     const m = Float64Array.from({ length: 16 }, (_, j) => t[i * 16 + j]);
     matrices.push(m);
@@ -173,7 +171,7 @@ export class Geometry {
   get bounds(): Box3 | null { return this.data.bounds; }
   /** Replace the vertex colours (sRGB, three or four per vertex): per-face highlights, say. */
   setColors(colors: ArrayLike<number> | null): void {
-    if (this.data.contour) throw new RangeError('A contour has no vertex colours');
+    if (this.data.contour) throw new ViewerError('GEOMETRY_INVALID', 'A contour has no vertex colours');
     this.data.colors = vertexColors(colors ?? undefined, this.data.vertexCount);
     if (this.gpu?.colors) this.gpu.device.queue.writeBuffer(this.gpu.colors, 0, this.data.colors);
     else if (this.gpu) this.gpu.device.queue.writeBuffer(this.gpu.positions, 0, new Uint8Array(segmentInstances(this.data)));
@@ -184,15 +182,15 @@ export class Geometry {
    * that range sent to the GPU: a face's highlight changed without re-sending the rest of the colours.
    */
   fillColors(first: number, count: number, color: ArrayLike<number>): void {
-    if (this.data.topology !== 'triangles') throw new RangeError('Only triangle geometry has a colour range');
+    if (this.data.topology !== 'triangles') throw new ViewerError('GEOMETRY_INVALID', 'Only triangle geometry has a colour range');
     fillVertexColors(this.data.colors, first, count, color);
     if (this.gpu?.colors && count) this.gpu.device.queue.writeBuffer(this.gpu.colors, 4 * first, this.data.colors, 4 * first, 4 * count);
     this.owner.requestRender();
   }
   /** Replace the texture coordinates (two per vertex) of a triangle geometry: a colour map's placement. */
   setUVs(uvs: ArrayLike<number>): void {
-    if (this.data.topology !== 'triangles') throw new RangeError('Only triangle geometry has texture coordinates');
-    if (uvs.length !== this.data.vertexCount * 2) throw new RangeError('uvs must hold two numbers per vertex');
+    if (this.data.topology !== 'triangles') throw new ViewerError('GEOMETRY_INVALID', 'Only triangle geometry has texture coordinates');
+    if (uvs.length !== this.data.vertexCount * 2) throw new ViewerError('GEOMETRY_INVALID', 'uvs must hold two numbers per vertex');
     this.data.uvs = Float32Array.from(uvs);
     // (Drawn with the shared zeros until now: its own buffer from here.)
     if (this.gpu && !this.gpu.ownUVs) { this.gpu.uvs = this.gpu.device.createBuffer({ size: Math.max(4, this.data.uvs.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'uvs' }); this.gpu.ownUVs = true; }
@@ -279,7 +277,7 @@ export class Mesh {
 
   /** Copies of the mesh, each with its own transform (after the mesh's) and colour; null: a single mesh. */
   setInstances(input: InstancesInput | null): void {
-    if (input && this.geometry.topology !== 'triangles') throw new RangeError('Only triangle meshes can be instanced');
+    if (input && this.geometry.topology !== 'triangles') throw new ViewerError('INSTANCES_INVALID', 'Only triangle meshes can be instanced');
     this.instances?.buffer?.destroy();
     this.instances = input ? { ...packInstances(input), buffer: null, device: null } : null;
     this.worldBox = undefined;
@@ -290,7 +288,7 @@ export class Mesh {
 
   get transform(): Mat4 { return this._transform; }
   set transform(m: ArrayLike<number>) {
-    if (m.length !== 16) throw new RangeError('A transform has 16 numbers (column-major)');
+    if (m.length !== 16) throw new ViewerError('TRANSFORM_INVALID', 'A transform has 16 numbers (column-major)');
     this._transform = Float64Array.from(m); this.worldBox = undefined; this.owner.sceneMoved(); this.touch();
   }
   get material(): Readonly<Material> { return this._material; }
@@ -307,7 +305,7 @@ export class Mesh {
       if (same) return have;
     }
     const out = new Float32Array(16);
-    if (p) { if (p.length > 16) throw new RangeError('A shader material has at most 16 params'); for (let i = 0; i < p.length; i++) out[i] = p[i]; }
+    if (p) { if (p.length > 16) throw new ViewerError('MATERIAL_INVALID', 'A shader material has at most 16 params'); for (let i = 0; i < p.length; i++) out[i] = p[i]; }
     return this._params = out;
   }
   get visible(): boolean { return this._visible; }

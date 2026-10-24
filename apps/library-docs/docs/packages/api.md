@@ -73,6 +73,9 @@ Each verb makes a body of its own, or acts on the part's body.
 | `union(tool)`, `subtract(tool)`, `intersect(tool)` | `union`, `difference`, `intersect` | Combines the body with a tool body |
 | `linearPattern({ axis, spacing, count })` | `linear-pattern` | Copies in a row, joined into one body |
 | `circularPattern({ axis?, count, span?, px?, py? })` | `circular-pattern` | Copies round an axis, joined into one body |
+| `mirror({ plane, at? })` | `mirror` | Joins the body with its image across the plane `'yz'`, `'xz'` or `'xy'`, through `at` on its axis (0 unless given) |
+| `scale({ factor, pivot? })` | `scale` | Scales the body by the factor, about the pivot (the origin unless given) |
+| `split({ axis, at })`, `split({ normal, at })` | `split` | Cuts the body in two by a plane, each side a body of its own |
 | `moved(location)` | `rotate`, then `move` | Turns the body about X, then Y, then Z through the origin, then moves it |
 
 - **Each verb evaluates its result.** A feature the core refuses is refused at its verb, with the core's code, and the
@@ -80,6 +83,10 @@ Each verb makes a body of its own, or acts on the part's body.
 - **Patterns.** About X or Y the copies are quarter turns, 2 to 4 of them; anything else is refused, typed.
 - **No `rotate` verb.** The studio's rotate command turns about the body's centre by default, and the kernel's about
   the origin. `moved()` always turns about the origin.
+- **Mirror and scale** work about the origin unless given `at` or `pivot`. A mirror plane off the origin is written as
+  the studio writes it: a move, the mirror, and a move back.
+
+<<< @/../samples/cad-api.test.mjs#transforms
 
 ### Sketches, planes and locations
 
@@ -173,6 +180,47 @@ ways, and all three give one document, byte for byte. The sample checks each aga
 
 <<< @/../samples/cad-model-api.test.mjs#material
 
+## Parameters, configurations and suppression
+
+A parameter is a named value in the document's `parameters`, and a dimension follows it as the documents' own
+reference, `{ parameter: 'W' }`. `param('W')` writes one. Both parts write the document a person would make: the kernel
+part writes the reference into its feature, and the studio part binds it as the studio's feature editor does.
+
+<<< @/../samples/cad-api.test.mjs#kernel-parameters
+
+- **`parameter(name, value)`** adds or sets a parameter. A name is a letter, then letters, digits and `_`, up to 32.
+  `parameters()` lists them.
+- **`withParameters({ name: value })`** returns a new part at the new values. It's re-evaluated at its next result,
+  and its features keep the faces and edges they stored. `withParameters(doc, edits)` does the same to a plain document.
+- **Which options can follow a parameter.** Only one that lands as it is in one place in the document, the same rule
+  as the studio's feature editor:
+  - `box`: `w` and `d` while `x` and `y` are 0, and `h`;
+  - `cylinder`: `x`, `y` and `h` (not `r`: the studio's editor edits the diameter);
+  - `extrude`: `h`; `hole`: `x` and `y` (not `d`: the hole is stored by its radius);
+  - `fillet`: `radius`; `chamfer`: `distance`; `shell`: `t`; `linearPattern`: `spacing`; `split`: `at`;
+  - in the studio part also `revolve`'s `deg`, `linearPattern`'s `count` and `scale`'s `factor`, which a kernel
+    document holds as plain numbers.
+
+  Any other option given a parameter is refused with `PARAMETER_UNBINDABLE`, naming the ones that bind. A number is
+  never written in its place. Sketch sizes and a `Location` take numbers only.
+
+<<< @/../samples/cad-model-api.test.mjs#parameters
+
+- **Configurations** are the studio part's saved sets of parameter values. `configuration(name)` saves the current
+  values, as the Parameters panel's Save; `withConfiguration(name)` applies them, as its Apply; `configurations()` lists
+  them.
+
+<<< @/../samples/cad-model-api.test.mjs#configurations
+
+- **Features and suppression.** `features()` lists each feature's `{ id, kind, label }`, the last one being the feature
+  the last verb added. `suppressed(id)` switches a feature off and `suppressed(id, false)` back on, as the History
+  panel's toggle does. A sketch, a split or a separate can't be switched off. It's the studio part's: the kernel
+  document has no suppression yet, so the kernel part refuses it with `UNAVAILABLE`.
+
+<<< @/../samples/cad-model-api.test.mjs#suppression
+
+- **No expressions.** Neither document can store one, such as `W / 2`, so a dimension follows one parameter as it is.
+
 ## Assemblies
 
 `assembly(name, base?)` is an immutable assembly over the studio document. The base part is fixed at the origin.
@@ -209,9 +257,9 @@ Placed parts are instances, each with its own document, and mates relate their f
 - **The facade's own codes,** checked before the core:
   - the part: `NO_BODY`, `BODY_AMBIGUOUS`, `BODY_UNKNOWN`, `SELECTION_EMPTY`, `SELECTION_ONE` (a hole's selector picked
     more than one face, or a tool callback added more than one body), `FACE_NOT_FLAT`, `VALUE` (a value out of its
-    range or type) and `DENSITY`;
+    range or type), `DENSITY`, `PARAMETER_NAME`, `PARAMETER_UNKNOWN`, `PARAMETER_UNBINDABLE` and `FEATURE_UNKNOWN`;
   - the studio part: `SELECTION_UNKNOWN` (a name not on the part), `UNAVAILABLE` (the studio's command can't run here),
-    `MATERIAL_UNKNOWN` and `MASS_UNKNOWN`;
+    `MATERIAL_UNKNOWN`, `MASS_UNKNOWN` and `CONFIGURATION_UNKNOWN`;
   - the assembly: `NAME_TAKEN` and `PART_UNKNOWN`.
 - **The core's refusals pass through** with their own code and words. A kernel refusal keeps the feature it came from
   in `details.feature`; a studio one keeps the core's own words in `details.friendly`. A fillet too large for its walls
@@ -268,6 +316,7 @@ A scene is an immutable description of meshes, each with its material, lights, a
 
 ## Not in the facades yet
 
-- **Part features:** split, mirror and parameters.
+- **Expressions** in dimensions, and feature names of your own: the stable ids (`n3`, `fillet1`) serve.
+- **Suppression in the kernel part,** until the kernel document carries it.
 - **Rows:** reading a person's rows file. Under the rows rule the facade never writes rows.
 - **More of the assembly,** as listed under [Assemblies](#assemblies).

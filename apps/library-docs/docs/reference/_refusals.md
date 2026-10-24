@@ -42,6 +42,7 @@
 | `[OFFSET_FOLDS]` | `blend`, `mesh` | face … curves more tightly than the wall at (…, …): its radius there … mm, the wall … mm — the offset turns over |
 | `[OPENING_AT_A_VERTEX]` | `blend` | the … … times round the vertex at (…): the wall's ends would touch there; … |
 | `[RADIUS_EXCEEDS_FACE]` | `part` | edge …: … … mm is too large for walls of … and … mm |
+| `[REFERENCE_MOVED]` | `part` | … … … is no longer the … it named (was at …, now at ……) |
 | `[RELIEF_REQUIRED]` | `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
 | `[SECTION_DIMENSIONS]` | `frame-sheet` | … |
 | `[SECTION_TABLE]` | `part` | … |

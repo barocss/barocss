@@ -186,10 +186,10 @@ export class Viewer {
   get clipPlanes(): readonly Readonly<{ normal: Vec3; offset: number }>[] | null { return this.clip?.planes ?? null; }
   set clipPlanes(list: readonly ClipPlane[] | null) {
     if (!list || !list.length) { this.clip = null; this.requestRender(); return; }
-    if (list.length > MAX_CLIP_PLANES) throw new RangeError(`At most ${MAX_CLIP_PLANES} clip planes`);
+    if (list.length > MAX_CLIP_PLANES) throw new ViewerError('CLIP_INVALID', `At most ${MAX_CLIP_PLANES} clip planes`);
     const planes = list.map(p => {
       const l = Math.hypot(p.normal[0], p.normal[1], p.normal[2]);
-      if (!(l > 0) || !Number.isFinite(l) || !Number.isFinite(p.offset)) throw new RangeError('A clip plane needs a normal and a finite offset');
+      if (!(l > 0) || !Number.isFinite(l) || !Number.isFinite(p.offset)) throw new ViewerError('CLIP_INVALID', 'A clip plane needs a normal and a finite offset');
       return { normal: [p.normal[0] / l, p.normal[1] / l, p.normal[2] / l] as Vec3, offset: p.offset / l };
     });
     this.clip = { normal: planes[0].normal, offset: planes[0].offset, cap: parseColor(list.find(p => p.cap)?.cap, [0.85, 0.7, 0.35]), planes, cutout: this._cutout };
@@ -766,8 +766,8 @@ export class Viewer {
   /** A texture from an image, canvas, bitmap or RGBA bytes, for Material.map. */
   createTexture(source: TextureSource, options: TextureOptions = {}): ImageTexture {
     this.alive();
-    if (!(source.width > 0 && source.height > 0)) throw new RangeError('A texture needs a width and height');
-    if ('data' in source && source.data.length !== source.width * source.height * 4) throw new RangeError('Texture data must hold width × height RGBA bytes');
+    if (!(source.width > 0 && source.height > 0)) throw new ViewerError('TEXTURE_INVALID', 'A texture needs a width and height');
+    if ('data' in source && source.data.length !== source.width * source.height * 4) throw new ViewerError('TEXTURE_INVALID', 'Texture data must hold width × height RGBA bytes');
     const t = new ImageTexture(source, { srgb: options.srgb ?? true, mipmaps: options.mipmaps ?? true, wrap: options.wrap ?? 'repeat', filter: options.filter ?? 'linear' }, this);
     this.textures.add(t);
     return t;
@@ -878,7 +878,7 @@ export class Viewer {
   /** Set the canvas backing size in device pixels (with autoResize false; capped at the device's texture size). */
   setSize(width: number, height: number): void {
     const max = this.device?.limits.maxTextureDimension2D ?? 8192;
-    if (!(width >= 1 && height >= 1)) throw new RangeError('A backing size is at least 1 × 1');
+    if (!(width >= 1 && height >= 1)) throw new ViewerError('SIZE_INVALID', 'A backing size is at least 1 × 1');
     const w = Math.min(max, Math.round(width)), h = Math.min(max, Math.round(height));
     if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
     this.requestRender();

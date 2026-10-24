@@ -3282,3 +3282,116 @@ The work stopped here for the owner's move to another place.
   - Studio tsc 0 and eslint 0 (with R7.3d's kernel patch applied in the lane's tree; this branch is cut before R7.3d).
 - **Branch**: `claude/gpu-g14-handle-2026-10-24`, cut at 3801e2d9f (before R7.3d), so it can merge ahead of the R7.3d
   pair. The lane branch merges it too.
+
+## G-R57 — R7.3a batch 3: gpu's public-input refusals coded (roadmap R7.3a, 2026-10-24; in progress, by area)
+
+The coordinator's plan from the classification (`gpu-throws-classified.md` in the lanes' shared notes):
+- Of the 101 plain throws in gpu's src, 61 refuse a caller's input on a public path, 28 are invariants or unreachable,
+  and 12 are wrapped as causes or turned into diagnostics.
+- The 61 become coded BarocssErrors, area by area, one commit each.
+- Shared helpers stay plain. Where they are public through an entry, the entry wraps them, keeping the RangeError as
+  the cause, so the seven flows that check `cause instanceof RangeError` stay true.
+- (b) and (c) are unchanged. Refusals that fire when a frame or a pick runs stay where they fire.
+- **Later, "verify, then remove"**: 17 (b) sites the classifier called dead: face-highlight 6, edge-overlay 1,
+  boolean-shell-scene-input 8, requireSceneExecution 2. Not verified: face-highlight is still imported by
+  object-highlight.
+
+**1. The viewer** (32 sites):
+- ViewerError moves into its own module, `viewer/viewer-error.ts` (re-exported where it was, from viewer/scene.ts and
+  the viewer entry), so geometry, lights and math refuse with it without an import cycle. Its code union is
+  `ViewerErrorCode`, exported from the viewer entry; GpuErrorCode takes it through ViewerError as before.
+- New codes, each `[CODE] ` followed by the old words:
+
+| Code | Sites |
+|---|---|
+| GEOMETRY_INVALID | geometry.ts' input checks (15: positions, indices, topology counts, normals, faces, edges, uvs, labels, colours, a colour range, scalar fields); Geometry's setColors/colour range/uvs (scene.ts, 4) |
+| INSTANCES_INVALID | instance transforms or colours of the wrong length; instancing a non-triangle mesh (3) |
+| TRANSFORM_INVALID | a transform that isn't 16 numbers (1) |
+| COLOR_MAP_INVALID | fewer than two stops, or stops not rising (1) |
+| COLOR_INVALID | not a hex colour (lights.ts, at frame time, 1) |
+| MATERIAL_INVALID | a shader material with more than 16 params (at frame time, 1) |
+| CLIP_INVALID | more clip planes than allowed; a plane without a normal or a finite offset (2) |
+| TEXTURE_INVALID | a texture without a size; data not width × height RGBA (2) |
+| SIZE_INVALID | a backing size under 1 × 1 (1) |
+| MATRIX_SINGULAR | `invert` of a matrix with no inverse (1) |
+
+- The class was RangeError; it's ViewerError now. Nothing in gpu's tests, the gpu-scene flows, the studio or cad-model
+  checks these as RangeError (the classifier's search, rechecked). The tests' message regexes are unanchored.
+- **Found, for the coordinator**: the published package has two copies of the viewer's classes. `@barocss/gpu` is a
+  bundle (dist/index.js) and `@barocss/gpu/viewer` is tsc's unbundled output (dist/viewer/), so `instanceof` across
+  the two entries fails (a ViewerError from one is not the other's BarocssError). This predates batch 3; the studio
+  uses src and is unaffected. barocss-error.test compares within the viewer entry and says why.
+- **Runs** (with R7.3d's kernel patch applied in the lane's tree, uncommitted; without it gpu's build stops at tsc):
+  gpu tsc 0, eslint 0, unit 202/202 (barocss-error.test 6, a new MATRIX_SINGULAR case); test:browser 29/29 on hardware
+  and 29/29 on SwiftShader; studio tsc 0, studio unit 286/286.
+
+**2. The mesh and scene entries** (24 sites, wrapped at their entries):
+- `core/input-error.ts`: `GpuInputError`, its codes, `recoded(code, error)` and `refusing(code, fn)`. `refusing` is
+  applied once per entry, at load, in src/index.ts. A plain Error from the entry becomes a GpuInputError of the code,
+  with the same words and the plain one as its cause. A BarocssError, and anything that isn't an Error, passes through.
+- Inside the package the plain functions are still used. So the engine and native paths wrap the shared validators as
+  before, and the seven flows that check `cause instanceof RangeError` are unchanged.
+
+| Code | Entry | The sites it covers |
+|---|---|---|
+| SCENE_INVALID | parseScene, compileScene | scene/scene.ts:8 (the source version); gpu-data.ts' 12 record and object checks, through compileScene's admission |
+| MESH_PACKET_INVALID | validatePreviewPacket | mesh-packet.ts:33 |
+| MESH_OPTIONS_INVALID | validateMeshOptions | the options' camera (camera.ts:17), lighting (mesh-lighting.ts, 6) and transform |
+| MESH_INVALID | prepareMesh | the packet's and the options' checks |
+| CAMERA_INVALID | validateMeshCamera, prepareCamera | camera.ts:17 |
+| FACE_PREVIEW_INVALID | prepareKernelFacePreview, resolveKernelFaceReference | kernel-face-preview.ts:20 and its record reads |
+| PRIMITIVE_FRAME_INVALID | preparePrimitiveSceneFrame | mesh-scene-transform.ts:19, gpu-compiler.ts:60 (requireMeshExecution) and the packet, camera and lighting checks under it |
+
+- **preparePrimitiveSceneFrame recodes in its own catch, not through `refusing`.** Its flow checks that an error the
+  caller's own input throws (a Proxy trap's sentinel, while the frame record is read) passes through as the very same
+  object. So once the input is read, a plain refusal is recoded. What the read itself throws passes through, as before.
+- Changed check: primitive-frame-preflight-flow's six `RangeError` expectations now expect a GpuInputError of
+  PRIMITIVE_FRAME_INVALID, with the RangeError as its cause and its message as the cause's after the code.
+- **Runs** (R7.3d's kernel patch applied in the lane's tree, uncommitted): gpu tsc 0, eslint 0, unit 203/203
+  (barocss-error.test 7: an entry's coded refusal with its cause; a coded refusal passing through); test:consumer 3/3;
+  gpu-scene flows 65/65; test:browser 29/29 on hardware; studio tsc 0.
+- **Found while checking**: R7.3c's readonly Vec3 breaks packages/barocss-viewer's type-check (34 errors, all of them
+  gpu's readonly Vec3 meeting barocss-viewer's own mutable `Vec3` aliases; 0 with gpu's Vec3 mutable). It went to the
+  coordinator with a proposed fix in barocss-viewer only.
+
+**3. Boolean buffers and the BVH** (5 sites):
+- BOOLEAN_BUFFERS_INVALID: prepareCoplanarBooleanBuffers and prepareBooleanShellBuffers are wrapped in index.ts. That
+  covers native-mesh-buffers.ts:6 and 46, coplanar-boolean-buffers.ts:29 and boolean-shell-buffers.ts:22. axis-box,
+  which wraps the same helpers in its own `child()`, is unchanged.
+- GPU_BVH_DEPTH: packBvh (computeExperimental) throws a GpuInputError in place. Its message is byte-identical to
+  before (`[GPU_BVH_DEPTH] the hierarchy is … deep; …`), so the studio's access map shows the same words.
+- **Runs** (R7.3d now merged on integration; the kernel's half was applied locally): gpu tsc 0, eslint 0, unit
+  204/204, consumer 3/3, gpu-scene flows 65/65, test:browser 29/29 on hardware and on SwiftShader; studio tsc 0,
+  cad-interop tsc 0.
+
+**Batch 3's codes, for the docs lane's refusal table**:
+- ViewerError: GEOMETRY_INVALID, INSTANCES_INVALID, TRANSFORM_INVALID, COLOR_MAP_INVALID, COLOR_INVALID,
+  MATERIAL_INVALID, CLIP_INVALID, TEXTURE_INVALID, SIZE_INVALID, MATRIX_SINGULAR.
+- GpuInputError: SCENE_INVALID, MESH_PACKET_INVALID, MESH_OPTIONS_INVALID, MESH_INVALID, CAMERA_INVALID,
+  FACE_PREVIEW_INVALID, PRIMITIVE_FRAME_INVALID, BOOLEAN_BUFFERS_INVALID, GPU_BVH_DEPTH.
+- All are in GpuErrorCode (`ViewerErrorCode`, `GpuInputErrorCode`). Each message is `[CODE] ` followed by the old
+  words.
+- After batch 3, gpu's src keeps 40 plain throws: 28 invariants or unreachable and 12 wrapped as causes. That's by
+  design.
+
+## G-R58 — Open reads `.barocad` as the only curve and surface source; another file is named with what Open reads (owner, 2026-10-24)
+
+- **The owner**: ".barocad 하나만 우리는 가지고 있어도 될 것 같아." `.cad` is a generic extension other CAD programs
+  use. The studio took such a file for our source, parsed it, and failed.
+- **The change** (App.tsx):
+  - The Model file input's accept list drops `.cad`.
+  - open() takes only `/\.barocad$/i` as a source, and strips only that from the name.
+  - A file whose extension Open doesn't read is now refused before the model reader is tried. Before, it reached
+    readStudioFile and failed with the reader's words. The toast says "Can't open <name>", with `OPEN_READS`: "Open reads
+    models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your
+    part is unchanged."
+  - A file without an extension is still tried as a model, as before.
+- **Nothing else reads or writes `.cad`**: not in the studio's src or test, cad-model's src, or the fixtures (lid,
+  study and warp are `.barocad`). The one mention is apps/library-docs/docs/studio/files.md:21, which lists `.cad`
+  beside `.barocad`. That's for the docs lane.
+- **Flow**: a new step, the last (288, so no other step's number moves). It checks the accept list, opens
+  `bracket.cad`, and expects the toast's name and words and the part unchanged.
+  - FLOW_ONLY `^(Open: a \.cad|import a \.barocad source|open a STEP file)` on WebGPU: 46, 49 and 288 pass.
+  - 49 is the `.barocad` import; 46 is STEP and its refusal of a bad .step.
+- **Runs**: studio tsc 0, eslint 0 on App.tsx. Not run: studio unit (the change is in App's open path, which only the
+  flow reaches); WebGL2 (renderer-independent).
