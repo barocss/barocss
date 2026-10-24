@@ -27,12 +27,12 @@ export interface ScalarMap {
 export type MapKind = 'thickness' | 'draft' | 'access';
 
 /** Where the thickness map's thresholds come from (the moulding rules'): the process's thinnest wall and adjacent-wall ratio, the material's range's low end. */
-export interface ThicknessLimits { minWallMM: number | null; materialLowMM: number | null; ratio: number }
+export interface ThicknessLimits { minWall: number | null; materialMin: number | null; ratio: number }
 
 /** The limits for a part's bodies by its process and their materials (IM4's rules, as the outer lane named them, O-G6). */
 export function thicknessLimits(doc: StudioDoc, body: BodyResult): ThicknessLimits {
   const profile = processProfile(doc.process), id = materialIdOf(doc, body), range = id && doc.process === 'injection' ? materialData(id)?.wall?.injection : undefined;
-  return { minWallMM: profile?.thresholds.minWall?.value ?? null, materialLowMM: range ? range[0] : null, ratio: profile?.thresholds.adjacentWallRatio?.value ?? 0.6 };
+  return { minWall: profile?.thresholds.minWall?.value ?? null, materialMin: range ? range[0] : null, ratio: profile?.thresholds.adjacentWallRatio?.value ?? 0.6 };
 }
 
 /**
@@ -45,7 +45,7 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
   const w = wallSamples(body), values = new Float32Array(w.local.length);
   for (let t = 0; t < values.length; t++) values[t] = Number.isFinite(w.local[t]) ? w.local[t] : NaN;
   const report = wallsOf(doc, [body], limits.ratio)[0], nominal = report?.nominal ?? 1, limit = nominal / limits.ratio;
-  const hi = Math.max(2 * nominal, report?.thick95 ?? 0, 1e-6), thin = Math.max(limits.minWallMM ?? 0, limits.materialLowMM ?? 0);
+  const hi = Math.max(2 * nominal, report?.thick95 ?? 0, 1e-6), thin = Math.max(limits.minWall ?? 0, limits.materialMin ?? 0);
   // (Hard edges at the thresholds: two stops a hair apart.)
   const eps = 1e-6 * hi, stops: [number, string][] = [];
   if (thin > 0 && thin < nominal) stops.push([0, '#d7301f'], [thin, '#d7301f'], [thin + eps, '#c2e699']);
@@ -54,8 +54,8 @@ export function thicknessMap(doc: StudioDoc, body: BodyResult, limits: Thickness
   if (limit < hi) stops.push([limit, '#fd8d3c'], [limit + eps, '#7b3294'], [hi, '#7b3294']);
   else stops.push([hi, '#fd8d3c']);
   const thresholds: ScalarMap['thresholds'] = [];
-  if (limits.minWallMM !== null) thresholds.push({ value: limits.minWallMM, label: 'the process\'s thinnest' });
-  if (limits.materialLowMM !== null) thresholds.push({ value: limits.materialLowMM, label: 'the material\'s range' });
+  if (limits.minWall !== null) thresholds.push({ value: limits.minWall, label: 'the process\'s thinnest' });
+  if (limits.materialMin !== null) thresholds.push({ value: limits.materialMin, label: 'the material\'s range' });
   thresholds.push({ value: nominal, label: 'nominal' }, { value: limit, label: `thick (nominal / ${limits.ratio})` });
   return {
     body: body.key, per: 'triangle', values, unit: 'mm', range: [0, hi],
