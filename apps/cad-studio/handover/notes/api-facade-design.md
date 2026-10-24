@@ -45,9 +45,16 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
 - **Results are plain data from the core, in MMGS,** with the unit in the name: `volumeMM3`, `massG`, `centroidMM`,
   `inertiaGMM2`. The kernel's mass is in kg and kg/m³ today, so cad's adapter converts until R7.3 moves the core.
 - **Errors:** one `BarocssError { code, message, where?, details? }`, with core refusals passed through with their codes.
-- **The same verbs.**
-  - cad's part and cad-model's part share `box`, `cylinder`, `hole`, `fillet`, `chamfer`, `union`, `subtract`, `mass`,
-    `step` and `meshes`. cad-model's part adds the studio layer: material, rows, instances.
+- **The same verbs.** cad's part and cad-model's part use the same words.
+  - **Built in both (slice 1):** `box`, `hole`, `fillet`, `select` (the selectors), `mass`, `step` and `meshes`.
+    cad also has `stl`.
+  - **Planned (growth):** `cylinder`, `chamfer`, `union`, `subtract`, `intersect`, `split`, patterns, sketches, a body
+    chooser, and placements.
+  - cad-model's part adds the studio layer: materials, rows, instances, assemblies.
+  - `mass` differs in its argument today:
+    - cad takes `mass(densityGPerCm3)`, a number, because the kernel has no material library;
+    - cad-model takes `mass(material)`, a library id;
+    - the next growth step makes them `mass({ densityGPerCm3 })` and `mass(material | { densityGPerCm3 })`.
 - **The same selectors.** `edges().along('z')`, `faces().facing('+z')`, `on`, `sortBy`, `first`/`last` and `names()` are
   one shared selector module over a common edge/face record.
   - cad fills that record from the B-rep (each `BrepEdge.name`, and its curve as a line or not).
@@ -61,16 +68,18 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
 **How the three fit together:**
 ```ts
 import { part } from '@barocss/cad/api';
-import { scene } from '@barocss/gpu/api';
+import { scene, show } from '@barocss/gpu/api';
 
 const bracket = part('bracket').box(80, 40, 10).hole({ at: [20, 20], diameterMM: 8 })
   .fillet(b => b.edges().along('z'), 2);
-bracket.mass('al6061');                  // MMGS
+bracket.mass(2.7);                       // g/cm³ in, MMGS out
 bracket.step();
 
-const view = scene().add(bracket.meshes(), { color: '#c8ccd2' }).light('sun');
-view.data;                               // plain description
-await view.showIn(viewer);               // viewer.clear(), viewer.add(...) per mesh, lights, fit()
+const view = scene()
+  .add(bracket.meshes(), { color: '#c8ccd2' })
+  .light({ kind: 'directional', direction: [-0.4, -0.6, -1] });   // a Light, in the Viewer's own terms (Z-up)
+view.data;                               // { frame: 'z-up', meshes, lights } — the plain description
+show(viewer, view);                      // viewer.clear(), lights, add(...) per mesh, fit()
 ```
 - `part().meshes()`, in cad and in cad-model, returns `{ key, positions, normals, indices }` per body. That structurally
   matches gpu's `GeometryInput`, so neither package imports the other.
@@ -95,15 +104,17 @@ await view.showIn(viewer);               // viewer.clear(), viewer.add(...) per 
   equal the kernel's on it.
 
 **gpu's facade** is one immutable `Scene`:
-- the methods are `add(meshes, material?)`, `light(kind, options?)`, `camera(options)` and `background(value)`;
+- the methods are `add(meshes, material?)`, `light(light)` (a Light object in the Viewer's own terms: directional,
+  point or spot) and `background(value)`. There's no `camera()` yet. The Viewer's own camera frames the scene through
+  `fit()`;
 - `.data` is the plain description;
-- `showIn(viewer)` presents it through today's Viewer methods only.
+- `show(viewer, scene)`, a function rather than a Viewer method, presents it through today's Viewer methods only.
 - **The oracle:** `.data` round-trips through JSON, apart from the mesh arrays. A browser check through the gpu lane's
   harness shows the bracket drawn, with the viewer's `sceneBounds()` equal to the part's bounds.
 
 **Order:**
 1. cad's slice (the same bracket);
-2. gpu's slice (the scene and `showIn`);
+2. gpu's slice (the scene and `show`);
 3. the shared selector module;
 4. growth in both part facades;
 5. assemblies (cad-model);
