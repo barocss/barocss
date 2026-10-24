@@ -54,6 +54,10 @@ package's own browser tests drive it in Chrome.
     light is softened.
   - Contact shadows: `environment.contactShadows: { length?, strength? }` darkens where the depth buffer blocks a short
     ray toward the shadow-casting light, in the creases the shadow map is too coarse for.
+  - Bloom: `environment.bloom: { strength?, threshold?, knee? }` adds a glow from pixels above a linear-light threshold
+    before tone mapping. Defaults are strength 0.05, threshold 1 and a soft knee one quarter of the threshold. Set
+    `bloom` to false, omit it, or set strength to 0 to turn it off. A half-resolution prefilter and a downsample/upsample
+    chain spread the highlights; the targets are recreated on resize and released with the viewer.
   - 4× MSAA, exposure and ACES tone mapping in a linear half-float pipeline.
   - Clip planes and cap hatching for sections.
 

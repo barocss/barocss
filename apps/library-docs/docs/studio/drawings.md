@@ -15,6 +15,26 @@ so it follows every change; the dimensions and notes you add are kept with it.
 - Beside your REV, the title block's **SRC** line names the document revision the sheet was drawn from, in every
   export of the sheet. See [Revisions and sources](/guide/concepts#revisions-and-sources).
 
+### Title blocks and revision history
+
+- **Title block** chooses **Basic** or **Extended**. Basic keeps the original layout. Extended adds **Organization**,
+  **Drawing number**, **Drawn by**, **Checked by**, **Material** and **Finish** under **Title block fields**.
+  These are entered text, not values taken from the part's material or process. The templates make no standards claim.
+- The extended block needs more sheet space. Long values are reduced in size and then shortened with an ellipsis to
+  fit their cell; the full text stays in the document. Switching back to Basic keeps the fields for later use.
+- **Revision history** stores records you enter. Set the drawing's revision, enter **Date**, **Change** and optionally
+  **By**, then click **Record revision**. This also turns on **Revision table**. Each revision label can appear once,
+  with at most 50 records. **Remove** deletes one record; clearing the table checkbox hides the table and keeps its records.
+- The table shows revision, date, description and author in the order entered. It uses the same placement and issue
+  checks as other drawing tables. The fields and table are included in the sheet's SVG, DXF and PDF exports.
+- Changing the active revision or clicking **Next revision** does not add a history record. A record does not change
+  the active revision or establish approval. **Checked by** is also entered text, not a recorded approval action.
+- The agent sets `titleBlock` and `revisions` through `drawing.set` (`set_drawing`). The title block has a `template`
+  of `basic` or `extended`, plus optional `organization`, `number`, `drawnBy`, `checkedBy`, `material` and `finish`.
+  It replaces the previous title block. Each revision record has `revision`, `date` (`YYYY-MM-DD`), `description`
+  and optional `by`. The list replaces the history; `[]` clears it, and omission keeps it. To show it, include a table
+  with `from: 'revisions'`. Invalid fields, dates, duplicate labels and multiline text are refused with `DRAWING_OPTIONS`.
+
 ## Sections
 
 **Add section** places a cut through the part: section A–A, B–B and on, each with its cutting line in the view where

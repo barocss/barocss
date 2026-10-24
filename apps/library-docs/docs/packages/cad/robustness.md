@@ -2,15 +2,169 @@
 
 ## Booleans, fillets and offsets on exact surfaces
 
-Every output of a part is one B-rep, with its faces on exact surfaces and its edges on exact curves.
+Each solid output is a B-rep: surfaces, boundary curves and the topology that joins them. Native faces retain their
+surfaces; mesh inputs retain faceted faces. The Boolean algorithm depends on that representation.
 
-- **Booleans.** `union`, `difference` and `intersect` work three ways, by what the inputs are:
-  - **planar bodies** take exact polyhedral Booleans;
-  - **curved bodies** take analytic Booleans: planes and cylinders at any angle exactly, and other surfaces, such as
-    revolved cones and tori or B-splines, by tracing their intersection curves onto both surfaces;
-  - **mesh bodies** take faceted Booleans of their own.
+- **Booleans.** `union`, `difference` and `intersect` use a prismatic, polyhedral, analytic or mixed mesh path, as
+  described below.
 - **Fillets and chamfers** roll a ball along the named edges, or cut them back, on the exact faces either side.
 - **Offsets.** `shell`, `thicken` and `draft` offset or tilt faces on their surfaces.
+
+## Boolean operations
+
+Let A be the target body and B the tool body. The operation selects the solid material to keep:
+
+| Document feature | Object API method | Material kept |
+|---|---|---|
+| `union` | `union(tool)` | Material in A or B, counting the overlap once |
+| `difference` | `subtract(tool)` | Material in A that is outside B; reversing A and B changes the result |
+| `intersect` | `intersect(tool)` | Material common to A and B |
+
+For two 10 × 10 × 10 mm cubes offset 5 mm along X, the overlap is 5 × 10 × 10 = 500 mm³. The union is
+1000 + 1000 − 500 = 1500 mm³; the difference and intersection are each 500 mm³. This example runs with the site's
+samples and checks the three resulting bodies' validity:
+
+<<< @/../samples/cad-robust.test.mjs#boolean-import
+
+The helper below is an independent volume oracle for these boxes. Their planar display triangles have integer
+coordinates. Summing signed tetrahedra with integer arithmetic checks the volumes without a floating-point equality
+test on the mass result. It is not a general volume method for curved bodies or non-integer meshes.
+
+<<< @/../samples/cad-robust.test.mjs#integer-mesh-volume
+
+<<< @/../samples/cad-robust.test.mjs#boolean-operations
+
+The callback adds the tool to the target's document. Each operation returns a new part. See
+[Several bodies](/packages/api#several-bodies) for tools by body name and the callback rules.
+
+An intersection of disjoint solids is empty. Empty operands keep the set rules: union with empty keeps the other
+operand, subtracting empty keeps A, and intersection with empty is empty. An empty target minus B stays empty.
+
+## How the kernel chooses the algorithm
+
+The part evaluator chooses from the current representations, rather than from the feature's name alone. A rotated
+or imported body can therefore take a different path from an upright extrusion.
+
+| Inputs | Path |
+|---|---|
+| Both represented as Z-prismatic solids | Split into height intervals; run a 2D Boolean on each pair of sections |
+| Both have planar faces with straight edges | Try the exact rational polyhedral Boolean |
+| Other native B-reps | Intersect surface pairs, split their face domains, classify and stitch the retained pieces |
+| A mesh target with a native tool | Cut out the mesh region near the tool, process it with the native tool and rejoin the far mesh |
+
+The mixed path also handles union and intersection with the mesh on the tool side, by swapping operands. Subtraction
+keeps operand order. A native target minus a mesh tool, or two mesh operands, instead expands facet faces into planar
+triangles before the remaining dispatch. This expansion is limited to 16,000 triangles per expanded operand in a
+normal evaluation; a preview can set a lower limit. Larger cases are refused.
+
+### 1. Z-prismatic solids: Boolean sections, then rebuild the boundary
+
+A prismatic solid is a stack of height intervals. Each interval has a constant XY section made of lines and circular
+arcs, including holes.
+
+1. Collect every bottom and top height from both operands and sort the distinct levels.
+2. For each interval between adjacent levels, read A's and B's sections. Run the requested 2D Boolean on them.
+3. In the 2D arrangement, split curves at their crossings and merge coincident pieces. Order the directed edges around
+   each vertex, trace regions and propagate winding counts from the outside region. Select regions by the operation.
+4. Merge adjacent height intervals with equal sections. Build walls from their boundary curves, and horizontal caps
+   where the section changes. Join shared edges into shells and assign cavity shells to their containing solids.
+
+Circular boundaries stay circular. Their intersections can be irrational numbers, so the 2D arrangement uses
+binary64 arithmetic and the scale-dependent numeric tolerance. This reduction avoids a general 3D surface-intersection
+search; it does not make every coordinate calculation rational or error-free.
+
+### 2. Planar polyhedra: split, classify and stitch with rational arithmetic
+
+This path works on planar faces bounded by straight edges, including non-convex faces, holes and cavities.
+
+1. For each pair of faces that meet, compute the intersection of their planes. Clip that line to both faces to obtain
+   cut segments. Coplanar faces cut each other along their boundary edges.
+2. Split each face by its cut segments using a planar arrangement.
+3. Classify an interior point of each face piece against the other solid. Ray-crossing parity decides inside or
+   outside; a degenerate ray is retried. Coincident pieces are also classified by their orientation.
+4. Keep the pieces selected by the operation. Reverse retained tool-side pieces for subtraction, so cavity walls face
+   the right way. Split T-junctions, join matching edges and form shells. Negative-volume shells become cavities of
+   the smallest containing shell.
+
+Coordinates enter as their exact binary64 values, converted to integer fractions with `BigInt`. The polyhedral path
+uses exact rational predicates and intersections for those values. Results return to stored numeric coordinates;
+this does not recover precision already lost before the operation.
+
+A nominally planar face rotated in floating-point arithmetic can have corners that are no longer exactly coplanar.
+Only the `NOT_PLANAR_WITHIN_FLOAT` failure retries the pair through the analytic path. Other polyhedral failures are
+passed through.
+
+### 3. Curved B-reps: intersect the surfaces and trim their face domains
+
+The analytic path retains each face's surface and changes the boundary that trims it. It first rejects face pairs
+whose bounding boxes do not meet, then computes cuts for the remaining pairs.
+
+- Plane/plane and supported plane/cylinder or cylinder/cylinder pairs use their geometric intersection formulas.
+  Their curves can be lines, circles, ellipses or parametrised branches.
+- General surface pairs use a surface-intersection search. Coarse patch triangles supply candidate starting points.
+  Each point is refined onto both surfaces. A predictor follows the intersection tangent, the cross product of the
+  two surface normals; a Newton corrector returns the point to both surfaces. Tracing continues in both directions
+  until it reaches a domain boundary or closes a loop.
+- Each cut is mapped into both faces' 2D parameter domains. A plane uses a local plane frame; a cylinder uses angle
+  scaled by radius and axial height; a general surface uses scaled U/V coordinates. The curve arrangement splits each
+  trimmed domain into pieces.
+- The pieces are classified against the other solid and selected as below. Matching boundary pieces are joined into
+  shells. The code handles coincident surfaces separately, so their boundaries are not kept twice.
+
+| Operation | Pieces away from coincident boundaries |
+|---|---|
+| Union | Keep each operand's pieces outside the other |
+| Intersection | Keep each operand's pieces inside the other |
+| Difference A − B | Keep A's outside pieces and B's inside pieces; reverse B's pieces |
+
+For a same-oriented coincident patch, union and intersection retain one copy. Difference removes that shared patch;
+an oppositely oriented contact on A is handled separately. Tangencies need additional classification and manifold checks.
+
+The surface remains a native surface, but a general intersection edge can be a fitted cubic Bézier chain. The path
+uses binary64 calculations, Newton iteration and numeric tolerances; it is not an exact-arithmetic solution for every
+NURBS pair. A tighter requested edge fit is checked and can refuse the result; it does not relax topology tolerances.
+
+### 4. Mesh with a native tool: process the nearby mesh
+
+For a mesh target with a native tool, the mixed algorithm limits the expensive face operation to the affected region:
+
+1. Split the mesh against a padded box around the tool. Keep the far triangles aside and cap the nearby region for
+   the Boolean.
+2. Convert the nearby triangles to planar faces and run the analytic Boolean with the native tool. A normal evaluation
+   admits at most 16,000 nearby mesh triangles; the total mesh can be larger. Open or self-intersecting meshes are refused.
+3. Tessellate the nearby result, remove temporary caps and join it to the far mesh. Intersection discards the far mesh.
+4. Repair boundary T-junctions and rebuild the facet body. Restore native tool surfaces on the faces that came from
+   them; the rim against the mesh remains a polyline with recorded chord-deviation tolerances.
+
+This path preserves the mesh representation of the input. It does not turn a scanned surface into an exact smooth
+surface. The nearby-triangle limit and the facet-expansion limit above apply to different stages.
+
+### Result names, contact and tolerances
+
+Retained faces keep their source names. Split pieces receive `#k` suffixes, and edges are named from their two faces.
+These names let later operations refer to the result, subject to the reference checks described under
+[Names](/packages/cad/modeling#names).
+
+Separate lumps that meet only at an edge or point can remain separate bodies in one output. A single boundary that
+touches itself and cannot form a manifold solid is refused. A tolerance used to compare points is different from a
+recorded edge-fit error; neither is a licence to accept an unsupported topology.
+
+Display tessellation density controls the display and STL. It does not select the native Boolean algorithm. The mesh
+path has its own sampling and tolerance work because a mesh is already part of its input.
+
+### Implementation map
+
+These are the current source paths under `packages/barocss-cad/src/`:
+
+| Source | Responsibility |
+|---|---|
+| `part/part-model.ts` | Dispatch, empty operands, planar retry and mixed mesh operand order |
+| `features/prismatic-solid.ts` | Height intervals and B-rep reconstruction |
+| `brep/curved-arrangement.ts` | Line, arc and parametric-curve arrangements in 2D |
+| `brep/polyhedral-boolean.ts` | Rational planar intersections, classification and shell assembly |
+| `brep/analytic-boolean.ts` | Surface cuts, face-domain splitting, classification and stitching |
+| `intersect/surface-intersection.ts` | Predictor/corrector intersection tracing |
+| `mesh/facet-boolean.ts` | Nearby mesh/native processing and reconstruction |
 
 ## Strict validity and typed refusals
 
@@ -34,7 +188,8 @@ An operation the kernel can't complete correctly throws a `CadPartError` instead
 
 <<< @/../samples/cad-robust.test.mjs#refusals
 
-The kernel doesn't return an approximate body in place of a refusal.
+An unsupported native operation is refused instead of silently replacing the body with a display mesh. Supported
+curve fitting and mesh operations keep their own numeric tolerances, as described above.
 
 ## Touching lumps as separate bodies
 
