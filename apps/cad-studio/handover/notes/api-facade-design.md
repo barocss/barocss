@@ -375,3 +375,31 @@ retires modeling.ts.
   - the selectors return the core's names, and the top face's edges include the hole's rim under its two names;
   - the refusals are typed, the facade's own and the kernel's passed through.
 - cad-model `tsc` and eslint are clean.
+
+## Hand-over (2026-10-24, API lane stopped after R7.4a)
+
+Nothing is in progress. Everything above is committed and its checks pass. For the next session:
+
+- **The next work is R7.4b.** Its parts are cylinder, sketch → extrude/revolve, chamfer, shell, union/subtract/intersect,
+  patterns, a body chooser, Plane and Location, and a selector-stability test: after an upstream edit is re-evaluated,
+  the same named edge is still picked, or the facade gives a typed refusal.
+  - For each new verb, add a `FeatureSpec` case and its option builder in cad/src/api/spec.ts, the verb on `Part` in
+    cad/src/api/part.ts, and the kernel features in cad/src/api/kernel.ts.
+  - cad-model's studio backend needs no change for a verb whose v2 command exists, as long as the spec's `values` keys
+    are the command's.
+  - Test both oracles per verb: the hand-written document, and, for cad-model, the agent's run_command output.
+- **Keep core calls in the adapters:** cad/src/api/core.ts, cad-model/src/api/core.ts and studio.ts. R7.3a/b, which
+  moves the cores to `BarocssError` and MMGS, then changes only those files:
+  - cad-model's `massOf` then drops its ×1000;
+  - cad's drops its kg conversions;
+  - the facades' `BarocssError` becomes a re-export of the core's.
+- **Tests:**
+  - cad: `node --test test/api-part.test.mjs` after a build (`node scripts/tool.mjs build:fast`, or `pnpm build:library`);
+  - cad-model: `node scripts/test.mjs api-part`;
+  - gpu: `node --test tests/api-scene.test.mjs`, and, after both packages' build:library,
+    `CHROME=… PW_DIR=… node --test tests/api-show-browser.test.mjs`.
+- **Traps:**
+  - a bare `npx tsc` in packages/barocss-gpu overwrites dist/index.js with an unbundled file, so run `build:library`
+    before the browser test;
+  - stepFor and exportStep stamp the time, so tests mask FILE_NAME's stamp;
+  - the studio backend sets no autonomy; the run_command comparison test sets `CAD_AUTONOMY=3` and restores it.
