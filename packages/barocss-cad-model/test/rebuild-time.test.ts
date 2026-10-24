@@ -7,18 +7,18 @@ import { rebuildReport } from '../src/team/rebuild';
 import { dispatchTool } from '../src/chat/tools';
 import { outputSchemaOf, validate } from '../src/chat/contract';
 
-test('Kernel profile seconds survive the actual mesh wire clone unchanged; public evaluation time converts raw ms only once', () => {
+test('Kernel and evaluation seconds survive the actual mesh wire clone without another conversion', () => {
   const doc = rectanglePart(14, 19, 6), result = rebuildFromScratch(doc, 31); assert.ok(result.ok && result.rebuild);
   const profile = result.rebuild.profile;
   for (const p of Object.values(profile)) { assert.ok(Number.isFinite(p.wallTime) && p.wallTime >= 0); assert.equal('ms' in p, false); }
   const packed = new MeshSender().pack('evaluate', result), clone = new MeshReceiver().unpack('evaluate', structuredClone(packed.result)); assert.ok(clone.ok && clone.rebuild);
-  assert.deepEqual(clone.rebuild, result.rebuild); assert.equal(clone.ms, result.ms);
+  assert.deepEqual(clone.rebuild, result.rebuild); assert.equal(clone.wallTime, result.wallTime);
   const report = rebuildReport(doc, clone)!;
   for (const f of report.features) { assert.equal(f.wallTime, profile[f.id].wallTime, 'Kernel seconds are not divided again'); assert.equal('ms' in f, false); }
-  assert.equal(report.evaluationTime, result.ms / 1000);
+  assert.equal(report.evaluationTime, result.wallTime);
   assert.equal(report.builtTime, report.features.filter(f => f.state === 'built').reduce((sum, f) => sum + f.wallTime, 0));
   assert.equal('evaluationMs' in report || 'builtMs' in report, false);
-  const [id] = Object.keys(profile), controlled = { ...clone, ms: 2500, rebuild: { evaluated: [id], reused: [], profile: { [id]: { wallTime: .125, calls: profile[id].calls } } } };
+  const [id] = Object.keys(profile), controlled = { ...clone, wallTime: 2.5, rebuild: { evaluated: [id], reused: [], profile: { [id]: { wallTime: .125, calls: profile[id].calls } } } };
   const known = rebuildReport(doc, controlled)!;
   assert.deepEqual([known.evaluationTime, known.builtTime, known.features[0].wallTime], [2.5, .125, .125]);
   assert.deepEqual(result.bodies, clone.bodies, 'no body values changed by time reporting');

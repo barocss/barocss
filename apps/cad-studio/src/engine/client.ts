@@ -63,7 +63,7 @@ export class EngineClient {
       if (slot !== undefined && event.data.result) {
         this.slots.delete(event.data.id);
         try { (event.data as { result: EvalResult }).result = this.meshesIn.unpack(slot, event.data.result); }
-        catch (e) { (event.data as { result: EvalResult }).result = { ok: false, revision: 0, error: { title: 'Evaluation lost', hint: 'Evaluate again.', detail: e instanceof Error ? e.message : String(e) }, ms: 0 }; }
+        catch (e) { (event.data as { result: EvalResult }).result = { ok: false, revision: 0, error: { title: 'Evaluation lost', hint: 'Evaluate again.', detail: e instanceof Error ? e.message : String(e) }, wallTime: 0 }; }
       }
       const source = this.nativeSources.get(event.data.id);
       this.nativeSources.delete(event.data.id);
@@ -86,7 +86,7 @@ export class EngineClient {
   restart(): void {
     this.worker.terminate();
     const error = { title: 'Stopped', hint: 'The computation was stopped.', detail: '' };
-    const cancelled = { result: { ok: false, revision: 0, error, ms: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped' };
+    const cancelled = { result: { ok: false, revision: 0, error, wallTime: 0 }, step: { error: 'cancelled' }, drawing: { ok: false, error }, bytes: null, error: 'stopped', why: 'stopped' };
     this.progress.clear();
     for (const resolve of this.pending.values()) resolve(cancelled);
     // (The lanes are kept: a request waiting on one comes back as the refusal above, "Stopped", as before O9.)
