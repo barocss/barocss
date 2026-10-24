@@ -8,7 +8,7 @@ import { tslotInterfaces } from '../frames/interfaces';
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
 import { tableOf, withDatums } from '../assembly/faces';
-import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateKind, type Vec3 } from '../assembly/mates';
+import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateFace, type MateKind, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import type { ToolDefinition } from './api';
 import { addDocLibrary, addLibraryPartToBody, libraries, libraryInstance, registerDocLibraries, snapByInterfaces } from '../library/libraries';
@@ -43,13 +43,21 @@ function placedBounds(inst: PartInstance, min: Vec3, max: Vec3) {
   return { min: lo.map(r3), max: hi.map(r3) };
 }
 
-/** The mateable faces of a part: flat ones (normal) and round ones (axis, radius), in its own coordinates. */
+/** The mateable faces of a part: flat ones (normal), round ones (axis, radius), spheres, cones, then straight and circular edges (O24 c), in its own coordinates. */
 function mateFaces(table: FaceTable, cap = 40) {
   const entries = Object.entries(table);
-  const list = entries.slice(0, cap).map(([name, f]) => f.kind === 'plane'
-    ? { name, kind: 'flat', normal: f.normal.map(r3), point: f.point.map(r3) }
-    : { name, kind: f.outer ? 'round (outer: shaft, pin)' : 'round (inner: hole, bore)', axis: f.axis.map(r3), through: f.point.map(r3), radius: r3(f.radius) });
+  const list = entries.slice(0, cap).map(([name, f]) => mateFaceListed(name, f));
   return entries.length > cap ? { faces: list, more: entries.length - cap } : { faces: list };
+}
+function mateFaceListed(name: string, f: MateFace) {
+  switch (f.kind) {
+    case 'plane': return { name, kind: 'flat', normal: f.normal.map(r3), point: f.point.map(r3) };
+    case 'cylinder': return { name, kind: f.outer ? 'round (outer: shaft, pin)' : 'round (inner: hole, bore)', axis: f.axis.map(r3), through: f.point.map(r3), radius: r3(f.radius) };
+    case 'sphere': return { name, kind: f.outer ? 'sphere (outer: ball)' : 'sphere (inner: socket)', centre: f.point.map(r3), radius: r3(f.radius) };
+    case 'cone': return { name, kind: f.outer ? 'cone (outer)' : 'cone (inner: countersink, seat)', apex: f.point.map(r3), axis: f.axis.map(r3), half_angle: r3(f.half * 180 / Math.PI) };
+    case 'line': return { name, kind: 'straight edge', from: f.point.map(r3), direction: f.axis.map(r3), length: r3(f.length) };
+    case 'circle': return { name, kind: f.ends ? 'circular edge (arc)' : 'circular edge', centre: f.point.map(r3), normal: f.axis.map(r3), radius: r3(f.radius) };
+  }
 }
 
 /** FRe (O120): a part's T-slot frame members' interfaces, for snap_part (`<body>.<id>`: role ⇄ what it accepts). */

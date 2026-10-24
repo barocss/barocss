@@ -10,6 +10,7 @@ import { pathTo } from './ik';
 import type { Joint, JointTree, Loop } from './joints';
 import { rotationMatrix } from '../engine/placement';
 import { tablesFor } from '../assembly/faces';
+import { solvedFaces } from '../assembly/mates';
 import { solveDoc } from '../assembly/edit';
 import { refusal } from '../engine/refusal';
 
@@ -108,7 +109,8 @@ type V3 = [number, number, number];
 /** A loop mate's term: rows of residual, world at the solved pose. `p`: points on a (home world); `o`, `d` on b. */
 export interface LoopTerm { mate: string; kind: 'line' | 'plane' | 'normal' | 'angle' | 'point'; a: string; b: string; p: V3[]; n: V3; o: V3; d: V3; at0: number }
 const ROWS = { line: 6, plane: 1, normal: 3, angle: 1, point: 9 } as const;
-export const termRows = (terms: readonly LoopTerm[]) => terms.reduce((n, t) => n + ROWS[t.kind], 0);
+/** (A point term holds each of its points: three for a lock, one for a ball, O24 c.) */
+export const termRows = (terms: readonly LoopTerm[]) => terms.reduce((n, t) => n + (t.kind === 'point' ? 3 * t.p.length : ROWS[t.kind]), 0);
 export const LOOP_RESIDUAL_MM = 1e-9;
 const STEP_TURN = (5 * Math.PI) / 180, STEP_SLIDE = 5, MIN_STEP = 1e-3 / 5, LOOP_ITER = 60;
 
@@ -129,16 +131,21 @@ export function loopTermsOf(doc: StudioDoc, tree: JointTree): LoopTerm[] {
       out.push({ ...base, kind: 'point', p: [o, worldP(m.b.part, [20, 0, 0]), worldP(m.b.part, [0, 20, 0])], o, d: [0, 0, 0] });
       continue;
     }
-    const fa = tables(m.a.part)?.[m.a.face], fb = tables(m.b.part)?.[m.b.face];
-    if (fa?.kind === 'cylinder' && fb?.kind === 'cylinder' && m.kind === 'concentric') {
+    const fa0 = tables(m.a.part)?.[m.a.face], fb0 = tables(m.b.part)?.[m.b.face], sf = fa0 && fb0 ? solvedFaces(m.kind, fa0, fb0) : null;
+    const fa = sf?.a, fb = sf?.b, kind = sf?.as ?? m.kind;
+    if (fa?.kind === 'sphere' && fb?.kind === 'sphere' && kind === 'concentric') {
+      // (O24 c: a ball closing a loop — b's centre where a carries it.)
+      const o = worldP(m.b.part, fb.point);
+      out.push({ ...base, kind: 'point', p: [o], o, d: [0, 0, 0] });
+    } else if (fa?.kind === 'cylinder' && fb?.kind === 'cylinder' && kind === 'concentric') {
       const p0 = worldP(m.a.part, fa.point), ax = worldV(m.a.part, fa.axis);
       out.push({ ...base, kind: 'line', p: [p0, [p0[0] + 20 * ax[0], p0[1] + 20 * ax[1], p0[2] + 20 * ax[2]]], o: worldP(m.b.part, fb.point), d: worldV(m.b.part, fb.axis) });
-    } else if (fa?.kind === 'plane' && fb?.kind === 'plane' && (m.kind === 'coincident' || m.kind === 'distance' || m.kind === 'angle')) {
+    } else if (fa?.kind === 'plane' && fb?.kind === 'plane' && (kind === 'coincident' || kind === 'distance' || kind === 'angle')) {
       const pa = worldP(m.a.part, fa.point), na = worldV(m.a.part, fa.normal), o = worldP(m.b.part, fb.point), nb = worldV(m.b.part, fb.normal);
-      if (m.kind === 'angle') { out.push({ ...base, kind: 'angle', p: [], n: na, o, d: nb, at0: dot3(na, nb) }); continue; }
+      if (kind === 'angle') { out.push({ ...base, kind: 'angle', p: [], n: na, o, d: nb, at0: dot3(na, nb) }); continue; }
       out.push({ ...base, kind: 'plane', p: [pa], o, d: nb, at0: dot3([pa[0] - o[0], pa[1] - o[1], pa[2] - o[2]], nb) });
       out.push({ ...base, kind: 'normal', p: [], n: na, o, d: nb });
-    } else throw refusal('LOOP_MATE_UNSUPPORTED', `${id} (${m.kind} between ${m.a.part}.${m.a.face} and ${m.b.part}.${m.b.face}) closes a loop, and no loop closure holds that mate yet: concentric round faces, coincident, distance or angle between flat faces, and lock do`);
+    } else throw refusal('LOOP_MATE_UNSUPPORTED', `${id} (${m.kind} between ${m.a.part}.${m.a.face} and ${m.b.part}.${m.b.face}) closes a loop, and no loop closure holds that mate yet: concentric round faces, edges, cones or spheres, coincident, distance or angle between flat faces, and lock do`);
   }
   return out;
 }

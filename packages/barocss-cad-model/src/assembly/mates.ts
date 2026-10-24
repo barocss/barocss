@@ -37,19 +37,52 @@ export interface Mate {
   rel?: { position: Vec3; rotation: Vec3 };
 }
 
-/** A face's exact geometry in its part's own coordinates. */
+/**
+ * A face's (or an edge's) exact geometry in its part's own coordinates. O24 (c): besides flat and round faces, a
+ * sphere (its centre), a cone (its apex, the axis toward its base, the half-angle in radians), a straight edge (its
+ * start, its direction, its length) and a circular edge (its centre, its normal, its radius; an arc's ends). A flat
+ * face's `centre` is its area centroid; a round face's or a cone's `span` its extent along the axis from `point`.
+ */
 export type MateFace =
-  | { kind: 'plane'; point: Vec3; normal: Vec3 }
-  | { kind: 'cylinder'; point: Vec3; axis: Vec3; radius: number; outer: boolean };
+  | { kind: 'plane'; point: Vec3; normal: Vec3; centre?: Vec3 }
+  | { kind: 'cylinder'; point: Vec3; axis: Vec3; radius: number; outer: boolean; span?: [number, number] }
+  | { kind: 'sphere'; point: Vec3; radius: number; outer: boolean }
+  | { kind: 'cone'; point: Vec3; axis: Vec3; half: number; outer: boolean; span?: [number, number] }
+  | { kind: 'line'; point: Vec3; axis: Vec3; length: number }
+  | { kind: 'circle'; point: Vec3; axis: Vec3; radius: number; ends?: [Vec3, Vec3] };
 export type FaceTable = Record<string, MateFace>;
 
 export const BASE = 'base';
 export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock', cam: 'Cam' };
 export const mateLabel = (mate: Mate, index: number) => `${KIND_LABEL[mate.kind]} ${index + 1}`;
 
+/** A face or edge with an axis (a round face, a cone, a circular or straight edge): concentric reads its line. */
+const axial = (f: MateFace) => f.kind === 'cylinder' || f.kind === 'cone' || f.kind === 'circle' || f.kind === 'line';
 /** Which mates a pair of faces admits. */
-export const kindsFor = (a: MateFace, b: MateFace): MateKind[] =>
-  [...(a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance', 'angle'] as MateKind[] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric', 'tangent'] as MateKind[] : ['tangent'] as MateKind[]), ...(b.kind === 'plane' ? ['cam'] as MateKind[] : [])];
+export function kindsFor(a: MateFace, b: MateFace): MateKind[] {
+  const out: MateKind[] = [];
+  if (a.kind === 'plane' && b.kind === 'plane') out.push('coincident', 'distance', 'angle');
+  else if (a.kind === 'cylinder' && b.kind === 'cylinder') out.push('concentric', 'tangent');
+  else if (a.kind === 'line' && b.kind === 'line') out.push('coincident', 'concentric');
+  else if (axial(a) && axial(b) || a.kind === 'sphere' && b.kind === 'sphere') out.push('concentric');
+  else if (a.kind === 'plane' && b.kind === 'line' || a.kind === 'line' && b.kind === 'plane') out.push('coincident');
+  else if (a.kind === 'plane' && (b.kind === 'cylinder' || b.kind === 'sphere') || (a.kind === 'cylinder' || a.kind === 'sphere') && b.kind === 'plane') out.push('tangent');
+  if (b.kind === 'plane') out.push('cam');
+  return out;
+}
+
+/**
+ * A mate's two faces as the solver and the joint tree take them (O24 c): the kinds that read only a line become a
+ * round face of radius 0 on it — concentric with a cone, a circular or a straight edge (a cone: its apex on its axis);
+ * an edge on a face (coincident) a radius-0 round face tangent to it; two edges coincident, concentric. The mate's
+ * kind is the one solved (`as`). Two spheres concentric and a sphere tangent to a face stay spheres.
+ */
+export function solvedFaces(kind: MateKind, a: MateFace, b: MateFace): { as: MateKind; a: MateFace; b: MateFace } {
+  const line = (f: MateFace): MateFace => f.kind === 'cone' || f.kind === 'circle' || f.kind === 'line' ? { kind: 'cylinder', point: f.point, axis: f.axis, radius: 0, outer: true } : f;
+  if (kind === 'concentric') return { as: kind, a: line(a), b: line(b) };
+  if (kind === 'coincident' && (a.kind === 'line' || b.kind === 'line')) return { as: a.kind === 'line' && b.kind === 'line' ? 'concentric' : 'tangent', a: line(a), b: line(b) };
+  return { as: kind, a, b };
+}
 
 // ── Small exact vector and rotation helpers (row-major 3 × 3) ──
 const mul = (a: Vec3, s: number): Vec3 => [a[0] * s, a[1] * s, a[2] * s];
@@ -76,6 +109,7 @@ function turnOnto(from: Vec3, to: Vec3): Mat3 {
 /** A face moved by a placement (R, t). */
 function placeFace(f: MateFace, R: Mat3, t: Vec3): MateFace {
   return f.kind === 'plane' ? { kind: 'plane', point: add(apply(R, f.point), t), normal: apply(R, f.normal) }
+    : f.kind === 'sphere' ? { ...f, point: add(apply(R, f.point), t) }
     : { ...f, point: add(apply(R, f.point), t), axis: apply(R, f.axis) };
 }
 
@@ -105,8 +139,9 @@ const degBetween = (c: number) => Math.acos(Math.max(-1, Math.min(1, c))) / DEG;
 export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace | undefined): string | null {
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
   const kinds = kindsFor(fa, fb);
-  if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two round faces (a hole, a pin).'
-    : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
+  if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two faces or edges with an axis (a hole, a pin, a cone, a circular or straight edge), or two spheres.'
+    : mate.kind === 'tangent' ? 'Tangent needs a round face or a sphere, and a flat face; or two round faces.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.'
+    : mate.kind === 'coincident' ? 'Coincident needs two flat faces, a straight edge and a flat face, or two straight edges.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
   if (mate.kind === 'distance' && !Number.isFinite(mate.distance ?? NaN)) return 'Enter a distance.';
   if (mate.kind === 'angle' && !(Number.isFinite(mate.angle ?? NaN) && mate.angle! >= 0 && mate.angle! <= 180)) return 'Enter an angle from 0° to 180°.';
   return null;
@@ -124,7 +159,8 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
   const byId = new Map(instances.map(i => [i.id, i]));
   const name = (part: string) => part === BASE ? 'the base part' : byId.get(part)?.name ?? part;
   // Static checks: both parts present and different, the moving one free, both faces there and suited.
-  const valid: Mate[] = [];
+  // (`faces`: each mate's two faces as solved — an edge or a cone as a radius-0 round face, solvedFaces.)
+  const valid: Mate[] = [], faces = new Map<string, ReturnType<typeof solvedFaces>>();
   for (const m of mates) {
     if (m.a.part !== BASE && !byId.has(m.a.part) || !byId.has(m.b.part) && m.b.part !== BASE) { problems.push({ mate: m.id, reason: 'One of its parts was removed.' }); continue; }
     if (m.a.part === m.b.part) { problems.push({ mate: m.id, reason: 'Both faces are on the same part.' }); continue; }
@@ -136,9 +172,11 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     if (why) { problems.push({ mate: m.id, reason: why }); continue; }
     // (A cam mate holds nothing here: the follower's own mates place it; the joint tree couples it, robot/cam.ts.)
     if (m.kind === 'cam') continue;
-    valid.push(m);
+    const sf = solvedFaces(m.kind, ta[m.a.face], tb[m.b.face]);
+    faces.set(m.id, sf); valid.push(sf.as === m.kind ? m : { ...m, kind: sf.as });
   }
-  const label = (m: Mate) => mateLabel(m, mates.indexOf(m));
+  const label = (m: Mate) => { const k = mates.findIndex(x => x.id === m.id); return mateLabel(mates[k], k); };
+  const fixedFace = (m: Mate) => faces.get(m.id)!.a, movingFace = (m: Mate) => faces.get(m.id)!.b;
   // Placements as solved so far (the base part at the origin).
   const placed = new Map<string, { R: Mat3; t: Vec3 }>([[BASE, { R: IDENTITY, t: [0, 0, 0] }]]);
   const moved = new Set(valid.map(m => m.b.part));
@@ -166,7 +204,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
             const R2 = matMul(placed.get(m.a.part)!.R, rotationMatrix(m.rel!.rotation)), t2 = add(apply(placed.get(m.a.part)!.R, m.rel!.position), placed.get(m.a.part)!.t);
             if (R2.some((v, k) => Math.abs(v - R[k]) > DIR_TOL) || len(sub(t2, t)) > POS_TOL) why = `it holds ${name(id)} somewhere else.`;
           } else {
-            const one = solveOne(at, [{ mate: m, fixed: placeFace(tables(m.a.part)![m.a.face], placed.get(m.a.part)!.R, placed.get(m.a.part)!.t), moving: tables(id)![m.b.face] }], label, name(id));
+            const one = solveOne(at, [{ mate: m, fixed: placeFace(fixedFace(m), placed.get(m.a.part)!.R, placed.get(m.a.part)!.t), moving: movingFace(m) }], label, name(id));
             const turn = degBetween((one.R[0] * R[0] + one.R[1] * R[1] + one.R[2] * R[2] + one.R[3] * R[3] + one.R[4] * R[4] + one.R[5] * R[5] + one.R[6] * R[6] + one.R[7] * R[7] + one.R[8] * R[8] - 1) / 2), off = len(sub(one.t, t));
             if (one.problems.length) why = one.problems[0].reason;
             else if (turn > 1e-6 || off > POS_TOL) why = `it holds ${name(id)} ${off > POS_TOL ? `${fmtNum(off)} mm` : ''}${off > POS_TOL && turn > 1e-6 ? ' and ' : ''}${turn > 1e-6 ? `${fmtNum(turn)}°` : ''} from where this mate puts it.`;
@@ -179,7 +217,7 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
       const inst = carried(byId.get(id)!, own[0].a.part, placed.get(own[0].a.part)!, before);
       const r = solveOne(inst, own.map(m => {
         const ref = placed.get(m.a.part)!;
-        return { mate: m, fixed: placeFace(tables(m.a.part)![m.a.face], ref.R, ref.t), moving: tables(id)![m.b.face] };
+        return { mate: m, fixed: placeFace(fixedFace(m), ref.R, ref.t), moving: movingFace(m) };
       }), label, name(id));
       problems.push(...r.problems);
       placed.set(id, { R: r.R, t: r.t }); freedom[id] = r.freedom;
@@ -221,8 +259,10 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   const free = (t: Term) => t.mate.kind === 'concentric' && t.mate.flip === undefined || roundPair(t);
   // Angles and flat-to-round tangents hold a direction at an angle to another (a cone), not onto it: they come after.
   const cone = (t: Term) => t.mate.kind === 'angle' || t.mate.kind === 'tangent' && !roundPair(t);
-  const angles = terms.filter(cone);
-  for (const term of [...terms.filter(t => !free(t) && !cone(t)), ...terms.filter(free)]) {
+  // (A sphere's mates hold its centre only: no direction.)
+  const turning = terms.filter(t => t.fixed.kind !== 'sphere' && t.moving.kind !== 'sphere');
+  const angles = turning.filter(cone);
+  for (const term of [...turning.filter(t => !free(t) && !cone(t)), ...turning.filter(free)]) {
     const { u, v: v0 } = directionOf(term);
     const misfit = (v: Vec3): string | null => {
       if (frame) {
@@ -261,7 +301,7 @@ function solveOne(inst: PartInstance, terms: Term[], label: (m: Mate) => string,
   let turns = frame ? 0 : dirs.length ? 1 : 3;
   for (const term of angles) {
     // An angle: the moving normal at `angle` to the partner's (opposed); a tangent: the axis square to the face's normal.
-    const dirOf = (f: MateFace) => f.kind === 'plane' ? f.normal : f.axis;
+    const dirOf = (f: MateFace) => f.kind === 'plane' ? f.normal : (f as Cylinder).axis;
     const u = dirOf(term.moving), n = dirOf(term.fixed);
     const w = term.mate.kind === 'angle' && !planesAligned(term.mate) ? mul(n, -1) : n, c = term.mate.kind === 'angle' ? Math.cos((term.mate.angle ?? 0) * DEG) : 0, a = apply(R, u);
     const fixedBy = dirs.map(d => label(d.mate)).filter((x, i, all) => all.indexOf(x) === i).join(' and ') || 'the angle before it';
@@ -451,14 +491,16 @@ function rowsOf(term: Term, R: Mat3): { g: Vec3; h: number }[] {
   if (term.mate.kind === 'tangent') {
     // The axis a radius off the face: in front of it (flip: behind).
     const side = term.mate.flip ? -1 : 1;
-    if (f.kind === 'plane' && m.kind === 'cylinder') return [{ g: f.normal, h: dot(f.normal, f.point) + side * m.radius - dot(f.normal, apply(R, m.point)) }];
-    if (f.kind === 'cylinder' && m.kind === 'plane') { const n = apply(R, m.normal); return [{ g: n, h: dot(n, f.point) - side * f.radius - dot(n, apply(R, m.point)) }]; }
+    if (f.kind === 'plane' && (m.kind === 'cylinder' || m.kind === 'sphere')) return [{ g: f.normal, h: dot(f.normal, f.point) + side * m.radius - dot(f.normal, apply(R, m.point)) }];
+    if ((f.kind === 'cylinder' || f.kind === 'sphere') && m.kind === 'plane') { const n = apply(R, m.normal); return [{ g: n, h: dot(n, f.point) - side * f.radius - dot(n, apply(R, m.point)) }]; }
     return []; // two round faces: not linear, placed after the linear mates (placeRound)
   }
   if (f.kind === 'plane' && m.kind === 'plane') {
     const d = term.mate.kind === 'distance' ? term.mate.distance ?? 0 : 0;
     return [{ g: f.normal, h: dot(f.normal, f.point) + d - dot(f.normal, apply(R, m.point)) }];
   }
+  // Two spheres' centres together, in all three directions.
+  if (f.kind === 'sphere') return ([[1, 0, 0], [0, 1, 0], [0, 0, 1]] as Vec3[]).map(e => ({ g: e, h: dot(e, f.point) - dot(e, apply(R, m.point)) }));
   // The moving axis point on the fixed axis: no offset across it, in two directions.
   return perpendiculars((f as Cylinder).axis).map(e => ({ g: e, h: dot(e, f.point) - dot(e, apply(R, m.point)) }));
 }

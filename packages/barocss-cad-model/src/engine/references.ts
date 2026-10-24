@@ -145,11 +145,19 @@ function unsigned(doc: StudioDoc): boolean {
   return false;
 }
 
-/** A mate face as a signature: a plane's point and normal, a cylinder's axis point, direction (one way) and radius. */
+/**
+ * A mate face as a signature: a plane's point and normal, a cylinder's axis point, direction (one way) and radius; a
+ * sphere's centre and radius; a cone's apex, axis and half-angle; an edge's middle (a circle's centre), direction one
+ * way and length or radius (O24 c).
+ */
 function mateSignature(f: MateFace): Signature {
   if (f.kind === 'plane') return { kind: 'plane', at: f.point, dir: f.normal, size: 0 };
-  const a = f.axis, k = Math.abs(a[0]) > 1e-12 ? 0 : Math.abs(a[1]) > 1e-12 ? 1 : 2, s = a[k] < 0 ? -1 : 1;
-  return { kind: f.outer ? 'cylinder' : 'bore', at: f.point, dir: [a[0] * s, a[1] * s, a[2] * s], size: 0, radius: f.radius };
+  if (f.kind === 'sphere') return { kind: f.outer ? 'sphere' : 'socket', at: f.point, dir: null, size: 0, radius: f.radius };
+  const a = f.axis, k = Math.abs(a[0]) > 1e-12 ? 0 : Math.abs(a[1]) > 1e-12 ? 1 : 2, s = a[k] < 0 ? -1 : 1, d: Vec3 = [a[0] * s, a[1] * s, a[2] * s];
+  if (f.kind === 'cone') return { kind: f.outer ? 'cone' : 'cone-seat', at: f.point, dir: f.axis, size: 0, radius: f.half };
+  if (f.kind === 'line') return { kind: 'edge-line', at: [f.point[0] + a[0] * f.length / 2, f.point[1] + a[1] * f.length / 2, f.point[2] + a[2] * f.length / 2], dir: d, size: f.length };
+  if (f.kind === 'circle') return { kind: 'edge-circle', at: f.point, dir: d, size: 0, radius: f.radius };
+  return { kind: f.outer ? 'cylinder' : 'bore', at: f.point, dir: d, size: 0, radius: f.radius };
 }
 
 /** The faces' (or edges') signatures a reference is matched among. */
