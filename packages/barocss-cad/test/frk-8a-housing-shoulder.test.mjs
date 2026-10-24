@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, seatedBearing, BearingError, evaluateCadPart } from '../dist/index.js';
+import { shaftSolid, seatedBearing, isBearingError, evaluateCadPart } from '../dist/index.js';
 
 // FRk8a (D181): D158's housing shoulder against the row's Da max, found from the housing's faces. The row is D139's B1
 // (the NSK 6204 page: d 20, D 47, B 14, r 1; da 25–26.5, Da max 42, ra max 1), a test row citing it. The housings are
@@ -8,7 +8,7 @@ import { shaftSolid, seatedBearing, BearingError, evaluateCadPart } from '../dis
 const ROW = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'B1 (D139): the NSK 6204 page' };
 const I = { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
-const code = c => e => e instanceof BearingError && e.code === c;
+const code = c => e => isBearingError(e) && e.code === c;
 /** The shaft of R12c.4's tests: Ø25 × 30, then the Ø20 seat from z 30; a ring groove 0.2 mm beyond the bearing's 14. */
 function shaft() {
   const s = shaftSolid({ steps: [{ diameterMM: 25, lengthMM: 30 }, { diameterMM: 20, lengthMM: 50, grooves: [{ diameterMM: 19, widthMM: 1.3, atMM: 14.2 }] }] }, { id: 's' });

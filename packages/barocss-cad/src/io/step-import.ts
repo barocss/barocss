@@ -20,7 +20,7 @@ import { facetBrepFromTriangles, facetBrepsFromTriangles } from '../mesh/facet-b
 import { withCavities } from '../brep/brep-glue.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
 import { classifyPointInFacets } from '../mesh/facet-bvh.js';
-import { MeshBrepError } from '../mesh/mesh-brep.js';
+import { isMeshBrepError } from '../mesh/mesh-brep.js';
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
@@ -578,7 +578,7 @@ function tessellatedBreps(data: Map<number, Entity>, id: string): Brep[] {
     if (!m.shell) {
       try { return facetBrepFromTriangles(m.positions, m.indices, o); }
       catch (e) {
-        if (!(e instanceof MeshBrepError) || !/not closed|more than one piece|pieces/.test(e.message)) throw e;
+        if (!(isMeshBrepError(e)) || !/not closed|more than one piece|pieces/.test(e.message)) throw e;
         // (A closed hollow solid — a mesh shelled, R11.3, D114 — in pieces: the largest its outside, the others its voids.)
         if (!/not closed/.test(e.message)) {
           const pieces = facetBrepsFromTriangles(m.positions, m.indices, o).map(b => ({ b, v: Math.abs(brepMassProperties(b, 1).volumeMM3) })).sort((x, y) => y.v - x.v);

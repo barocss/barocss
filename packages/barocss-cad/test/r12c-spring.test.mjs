@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compressionSpring, springDimensions, springSolidPitch, helicalSweep, SpringError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
+import { compressionSpring, springDimensions, springSolidPitch, helicalSweep, isSpringError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1a (D153): the helical sweep of the exact normal-plane circle, and compression springs (D139's stage), against
@@ -14,7 +14,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.abs(want), `${what}: ${got} vs ${want} (rel ${Math.abs(got - want) / Math.abs(want)})`);
 const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
-const code = c => e => e instanceof SpringError && e.code === c;
+const code = c => e => isSpringError(e) && e.code === c;
 
 /** The centreline's z(φ) by D153's law: runs of constant pitch, or the smoothstep 3t² − 2t³ between two pitches. */
 function centreline(R, runs, z0) {

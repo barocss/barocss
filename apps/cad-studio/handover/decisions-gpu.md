@@ -3615,3 +3615,28 @@ is untouched as history. The coordinator settled the scope:
   - The earlier 5.68 was the outlier; the overrun is steady.
   - Next, as agreed (G-R54): the output pass first. It costs four times the CPU path's for the same pixels, likely the
     cap samples' resolve (G7's antialiased caps) or SSAO over the cut faces. A step of its own.
+
+## G-R66 — RS2, checkpoint 2: a motion and the Render turntable exported as WebM video (2026-10-24)
+
+- **What**: a "Video" button in the Joints card's Motion row (aria "Export motion video") and in the Render
+  Timeline (aria "Export animation video"). Each downloads a WebM: `<file>-<motion>.webm`, `<file>-render.webm`.
+- **How** (`viewport/recordVideo.ts`, `viewport/webm.ts`, no dependency):
+  - Frame i is drawn by the caller (the motion's pose at i/30 s through `showMotionAt`, or the turntable's time),
+    shown, copied into an even-sized OffscreenCanvas, and encoded with WebCodecs' VideoEncoder (VP9, else VP8)
+    with its own timestamp i/fps. A key frame every 60.
+  - Our WebM writer: EBML header, Segment with Info (1 ms timecodes, Duration), one video track, Clusters of
+    SimpleBlocks (a new cluster at each key frame or 30 s). No Cues; ffprobe and players read it without them.
+  - Why not MediaRecorder: it times frames by the wall clock. On WebGL2 under a software renderer a 2.07 s motion
+    came out 12.9 s long. Explicit timestamps keep the motion's timing however slow a frame is.
+  - WebGL2 keeps no buffer past a frame (`preserveDrawingBuffer: false`), so the renderer's `drawNow()` draws
+    again just before the canvas is read. `capture()` uses it too.
+  - The motion freezes (no playback) while it records; the turntable stops playing and starts from the current
+    camera.
+- **Flow**:
+  - 292 (new): a motion and a 1 s turntable exported. ffprobe reads vp8/vp9, frames = ceil(T·30)+1, duration
+    within 0.05 s of frames/30, and the last frame is not blank (ffmpeg gray spread > 3). Both renderers.
+  - 289: Iso + Frame all before the post-contact part, and the red count on a 320 grid. WebGPU's contact mark is
+    a 2 px outline, which the 160 grid stepped over after step 48's view (17 red samples).
+  - FLOW_ONLY `^(RS|render a part)` (1, 48, 289–292): all pass on WebGPU and on WebGL2.
+- **Runs**: studio tsc 0, eslint 0, unit 287/287 (webm.test.ts: header, DocType, codec, pixel size, clusters,
+  block bytes).

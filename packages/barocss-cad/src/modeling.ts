@@ -51,7 +51,7 @@ import { signedJson } from './xy-affine-prism-feature-document-internal.js';
 import { modelingGraphKey as graphKey, modelingNodeParameters as nodeParameters, modelingReusablePrefix as reusablePrefix } from './modeling-regeneration-internal.js';
 import { resolveModelDimension, ModelDimensionError, ModelDimensionLimits } from './modeling-dimension-internal.js';
 import type { ModelDimension as Dimension } from './modeling-dimension-internal.js';
-import { KernelError } from './core/barocss-error.js';
+import { isFrom, KernelError } from './core/barocss-error.js';
 
 export type CadModelErrorCode = 'INPUT' | 'PARAMETER' | 'OWNERSHIP' | 'CAPABILITY' | 'SELECTION' | 'FORMAT' | 'BUDGET' | 'NATIVE';
 export class CadModelError extends KernelError {
@@ -378,7 +378,8 @@ function loopProfile(segments: readonly LoopSegment[], parameters: Readonly<Reco
   const input: ProfileSegmentInput[] = segments.map(s => s.kind === 'arc' ? { kind: 'arc', start: xy(s.start), center: xy(s.center), direction: s.direction } : { kind: 'line', start: xy(s.start) });
   try { return runModelingProfile({ operation: 'loop', segments: input }); }
   catch (cause) {
-    const code = cause instanceof Error && cause.name === 'ExtrudedProfileError' ? (cause as Error & { code: string }).code : undefined;
+    // (The extruded profile's refusal told by its source, so this module need not import the profile builder.)
+    const code = isFrom<string>(cause, 'extruded-profile') ? cause.code : undefined;
     if (code !== undefined) throw new CadModelError(code === 'BUDGET' ? 'BUDGET' : code === 'INPUT' ? 'PARAMETER' : 'CAPABILITY', 'loop', cause instanceof Error ? cause.message : 'Profile refused', cause);
     throw cause;
   }

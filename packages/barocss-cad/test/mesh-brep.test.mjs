@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brepFromTriangles, readObj, readStl, encodeBinaryStl, brepMassProperties, checkBrep, MeshBrepError, exportStep } from '../dist/index.js';
+import { brepFromTriangles, readObj, readStl, encodeBinaryStl, brepMassProperties, checkBrep, isMeshBrepError, exportStep } from '../dist/index.js';
 
 // A 20 × 10 × 5 box as an OBJ: six quads, wound outward.
 const BOX_OBJ = `# box
@@ -48,9 +48,9 @@ test('STL in and out: a binary file round-trips, an ASCII one reads; a plate wit
 
 test('a mesh that does not close, or crosses itself in winding, is refused with the reason', () => {
   const { positions, indices } = readObj(BOX_OBJ);
-  assert.throws(() => brepFromTriangles(positions, indices.slice(0, -3)), e => e instanceof MeshBrepError && /not closed: 3 edges/.test(e.message));
+  assert.throws(() => brepFromTriangles(positions, indices.slice(0, -3)), e => isMeshBrepError(e) && /not closed: 3 edges/.test(e.message));
   const bad = indices.slice(); [bad[1], bad[2]] = [bad[2], bad[1]];
-  assert.throws(() => brepFromTriangles(positions, bad), e => e instanceof MeshBrepError && /not consistently wound|not closed/.test(e.message));
+  assert.throws(() => brepFromTriangles(positions, bad), e => isMeshBrepError(e) && /not consistently wound|not closed/.test(e.message));
   assert.throws(() => readStl(new TextEncoder().encode('hello')), /neither a binary STL/);
   assert.throws(() => readObj('v 0 0 0\nf 1 2 3'), /does not have/);
 });

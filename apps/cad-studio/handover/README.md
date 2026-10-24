@@ -142,6 +142,7 @@ window at it, see `notes/claude-resume-2026-10-23/`.
 | K16 closing record: refusals 45 → 38 over four seeds, no findings; commutativity 2 456 nodes, one one-sided TODO (24:125); open: 24:125, 23:114's root (needs a non-manifold intermediate), 23:9, B ∪ B, K15's list; fingerprint chain 6fe8417d → 17c1d5c4 → 4e3603b7 → dbc1ad33 | D276 | done |
 | O19 (kernel): fillet/chamfer/shell/draft take an optional `expect` (each stored name's signature, rematch.ts's shape); a name now resolving to other geometry refuses `[REFERENCE_MOVED]`, never builds elsewhere | D277 | done (kernel 1719/1726, names +4, fingerprint dbc1ad33 byte-identical, cad-model 1051; refusal table regenerated) |
 | R7.3a batch 2 part 1 (kernel): CAD_ERROR_CODES (269) and CAD_REFUSAL_CODES (64) in src/core/error-codes.ts; a part-model refusal's `code` is its message's bracketed code, its category in details.category; no text change | D278 | done (kernel 1725/1732, fingerprint 49f1fac8: 42 refusals' code field only, conformance 42 fixtures, cad-model 1066, studio 286) |
+| R7.3a batch 2 part 2 (kernel): 21 live per-module error classes folded into module refusals (factory + guard, details.source, named BarocssError); 8 kept as classes; the 141 in the 284 files reachable only through exports left for R7.3d | D279 | done (kernel 1725/1732, names unchanged, fingerprint 49f1fac8 byte-identical, RB, cad-model 1089, studio 286, samples 36/36) |
 
 ### Kernel lane: hand-over at FRk8b (account change, 2026-10-22) — read this block first
 

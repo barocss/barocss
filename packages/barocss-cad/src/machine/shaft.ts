@@ -24,12 +24,13 @@ import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic } from '../brep/analytic-boolean.js';
 import { transformBrep } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type ShaftDiagnosticCode = 'INVALID_INPUT' | 'SHAFT_STEPS' | 'KEYSEAT_DIMENSIONS' | 'GROOVE_DIMENSIONS' | 'HOLE_DIMENSIONS';
-export class ShaftError extends KernelError {
-  constructor(readonly code: ShaftDiagnosticCode, detail: string) { super(`shaft: ${detail}`); this.name = 'ShaftError'; }
-}
+/** This module's refusal (R7.3a batch 2: the ShaftError class folded, D279): a BarocssError, `details.source` 'shaft'. */
+export const shaftError = (code: ShaftDiagnosticCode, detail: string) => kernelRefusal('shaft', code, `shaft: ${detail}`) as KernelError & { readonly code: ShaftDiagnosticCode };
+/** Whether something thrown is this module's refusal. */
+export const isShaftError = (e: unknown): e is KernelError & { readonly code: ShaftDiagnosticCode } => isFrom<ShaftDiagnosticCode>(e, 'shaft');
 export interface ShaftGroove { readonly diameterMM: number; readonly widthMM: number; readonly atMM: number }
 export interface ShaftKeyseat { readonly widthMM: number; readonly depthMM: number; readonly lengthMM: number; readonly offsetMM: number; readonly ends?: 'square' | 'end-mill' | 'disc'; readonly cutterRadiusMM?: number; readonly angleDeg?: number }
 export interface ShaftHole { readonly diameterMM: number; readonly atMM: number; readonly angleDeg?: number }
@@ -61,7 +62,7 @@ export interface ShaftReport {
   readonly manufacturingValidated: false;
 }
 
-const fail = (code: ShaftDiagnosticCode, detail: string): never => { throw new ShaftError(code, detail); };
+const fail = (code: ShaftDiagnosticCode, detail: string): never => { throw shaftError(code, detail); };
 const pos = (v: unknown, what: string, code: ShaftDiagnosticCode): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : fail(code, `${what} must be a number of mm above 0`));
 const nonneg = (v: unknown, what: string, code: ShaftDiagnosticCode): number => (v === undefined ? 0 : typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : fail(code, `${what} must be a number of mm, 0 or more`));
 const ang = (v: unknown, what: string, dflt: number): number => (v === undefined ? dflt : typeof v === 'number' && Number.isFinite(v) ? v : fail('INVALID_INPUT', `${what} must be a number of degrees`));

@@ -1,7 +1,7 @@
 // R5.3 (D225): the part model's shell and thicken features, moved out of part-model.ts's operation() as they were
 // there. `shellOf` stays in part-model.ts and comes in the helpers. The dispatcher calls `shellOperation` for those kinds.
 import { BrepError } from '../brep/brep-core.js';
-import { MeshBrepError } from '../mesh/mesh-brep.js';
+import { isMeshBrepError } from '../mesh/mesh-brep.js';
 import { type Point } from '../types.js';
 import { thickenSolid } from '../brep/thicken-solid.js';
 import { validateSurface } from '../core/math.js';
@@ -24,7 +24,7 @@ export function shellOperation(f: CadPartFeature & Record<string, unknown>, t: T
         catch (cause) {
           const m = cause instanceof BrepError ? /CAPABILITY: shell: (.*)$/s.exec(cause.message) : null;
           if (m) fail('CAPABILITY', m[1]);
-          if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('GEOMETRY', cause.message);
+          if (cause instanceof RangeError || isMeshBrepError(cause)) fail('GEOMETRY', cause.message);
           throw cause;
         }
       };

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
 
 // R12b.3 (D134): straight bevel gears — the spherical involute, standard proportions (the cones through the apex),
 // spherical ends. Oracles written here, apart from gear-bevel.ts: the spherical involute and the tooth's thickness by
@@ -122,7 +122,7 @@ test('undercut by the exact spherical condition, built here in space — the gre
     for (let i = 0; i < 200; i++) { const s = (a + b) / 2; if (dot(C(s), eTh) > -Math.sin(thA)) a = s; else b = s; }
     const reach = (a + b) / 2, undercut = reach > sT;
     let refused = false, message = '';
-    try { bevelGear({ moduleMM: m, teeth: z, mateTeeth: zm, shaftAngleDeg: S, faceWidthMM: 4 }); } catch (e) { assert.ok(e instanceof GearError); if (e.code === 'UNSUPPORTED_PROFILE_SHIFT') { refused = true; message = e.message; } else throw e; }
+    try { bevelGear({ moduleMM: m, teeth: z, mateTeeth: zm, shaftAngleDeg: S, faceWidthMM: 4 }); } catch (e) { assert.ok(isGearError(e)); if (e.code === 'UNSUPPORTED_PROFILE_SHIFT') { refused = true; message = e.message; } else throw e; }
     assert.equal(refused, undercut, `z${z}/${zm} Σ${S}: the crown reaches ${reach}, the base cone at ${sT}`);
     if (refused) assert.match(message, new RegExp(`virtual spur gear has ${(z / Math.cos(G.delta)).toFixed(2)} teeth`));
     rows.push(`${z}/${zm} Σ${S}: z_v ${(z / Math.cos(G.delta)).toFixed(2)}, reach ${(reach * G.Re).toFixed(4)} vs ${(sT * G.Re).toFixed(4)} mm ${undercut ? 'undercut' : 'clear'}`);
@@ -133,7 +133,7 @@ test('undercut by the exact spherical condition, built here in space — the gre
 });
 
 test('refusals and warnings, each with its code', () => {
-  const code = (spec, c, re) => assert.throws(() => bevelGear({ moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 10, ...spec }), e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
+  const code = (spec, c, re) => assert.throws(() => bevelGear({ moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 10, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
   code({ teeth: 40, mateTeeth: 20, shaftAngleDeg: 120 }, 'UNSUPPORTED_GEAR_KIND', /crown gear/);
   code({ teeth: 60, mateTeeth: 20, shaftAngleDeg: 120 }, 'UNSUPPORTED_GEAR_KIND', /internal bevel/);
   code({ pressureAngleDeg: 25 }, 'UNSUPPORTED_GEAR_KIND'); code({ profileShiftCoefficient: 0.2 }, 'UNSUPPORTED_GEAR_KIND', /Gleason/); code({ system: 'gleason' }, 'UNSUPPORTED_GEAR_KIND', /Gleason/);

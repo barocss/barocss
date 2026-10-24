@@ -28,13 +28,14 @@ import { arcCurve, extrudedProfile, lineCurve, reversed } from './gear.js';
 import { evaluateCurve } from '../core/math.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { transformBrep } from '../brep/brep-transform.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type DriveCode = 'INVALID_INPUT' | 'UNSUPPORTED_TOOTH_FORM' | 'TOOTH_FORM' | 'BELT_GEOMETRY';
-export class DriveError extends KernelError {
-  constructor(readonly code: DriveCode, detail: string) { super(`drive: ${detail}`); this.name = 'DriveError'; }
-}
-const fail = (code: DriveCode, detail: string): never => { throw new DriveError(code, detail); };
+/** This module's refusal (R7.3a batch 2: the DriveError class folded, D279): a BarocssError, `details.source` 'drive'. */
+export const driveError = (code: DriveCode, detail: string) => kernelRefusal('drive', code, `drive: ${detail}`) as KernelError & { readonly code: DriveCode };
+/** Whether something thrown is this module's refusal. */
+export const isDriveError = (e: unknown): e is KernelError & { readonly code: DriveCode } => isFrom<DriveCode>(e, 'drive');
+const fail = (code: DriveCode, detail: string): never => { throw driveError(code, detail); };
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 const r6 = (x: number) => +x.toFixed(6);
 const TAU = 2 * Math.PI;

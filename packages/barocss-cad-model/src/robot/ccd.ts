@@ -28,6 +28,8 @@ export interface TimedSweep {
   /** Each sample's least clearance over the pairs, as [t, mm], in time order. */
   clearanceProfile: [number, number][];
   segments: TimedSegment[]; samples: number; skipped: SweepResult['skipped'];
+  /** O22: pairs checked without their designed seat. */
+  designed: SweepResult['designed'];
 }
 
 /** The clearance counted as contact (mm) for the time of impact. */
@@ -69,7 +71,7 @@ export function timeAt(profile: Profile | null, s: number): number {
 
 /** The path swept, segment by segment: clear, or its first contact in time; the least clearance and the profile along it. */
 export function sweepTimed(tree: JointTree, links: readonly SweepLink[], path: TimedPath, o: { maxSamples?: number } = {}): TimedSweep {
-  const segments = timePath(tree, path), clearanceProfile: [number, number][] = [], skipped: SweepResult['skipped'] = [];
+  const segments = timePath(tree, path), clearanceProfile: [number, number][] = [], skipped: SweepResult['skipped'] = [], designed: SweepResult['designed'] = [];
   let min: TimedSweep['minClearance'] = null, samples = 0;
   for (let k = 0; k < segments.length; k++) {
     const g = segments[k], trace: [number, number][] = [];
@@ -77,9 +79,10 @@ export function sweepTimed(tree: JointTree, links: readonly SweepLink[], path: T
     const r = sweepPath(tree, links, g.from, g.to, { tolerance: CCD_TOLERANCE, trace, ...(o.maxSamples ? { maxSamples: o.maxSamples } : {}) });
     samples += r.samples;
     for (const s of r.skipped) if (!skipped.some(x => x.links[0] === s.links[0] && x.links[1] === s.links[1])) skipped.push(s);
+    for (const s of r.designed) if (!designed.some(x => x.links[0] === s.links[0] && x.links[1] === s.links[1])) designed.push(s);
     for (const [s, mm] of trace) clearanceProfile.push([g.t0 + timeAt(g.profile, s), mm]);
     if (r.minClearance && (!min || r.minClearance.mm < min.mm)) min = { mm: r.minClearance.mm, t: g.t0 + timeAt(g.profile, r.minClearance.s), links: r.minClearance.links };
-    if (r.contact) return { clear: false, toi: g.t0 + timeAt(g.profile, r.contact.s), segment: k, links: r.contact.links, values: r.contact.values, minClearance: min, clearanceProfile, segments, samples, skipped };
+    if (r.contact) return { clear: false, toi: g.t0 + timeAt(g.profile, r.contact.s), segment: k, links: r.contact.links, values: r.contact.values, minClearance: min, clearanceProfile, segments, samples, skipped, designed };
   }
-  return { clear: true, minClearance: min, clearanceProfile, segments, samples, skipped };
+  return { clear: true, minClearance: min, clearanceProfile, segments, samples, skipped, designed };
 }

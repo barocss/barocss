@@ -10,11 +10,7 @@
 // same hand as its space gear; an internal pair is of one hand).
 import type { Brep } from '../brep/brep-core.js';
 import type { Curve } from '../types.js';
-import {
-  GearError, inv, spurGearDimensions, spurGearProfile, extrudedProfile, helixTwist, arcCurve, reversed, safeId, exactProfile, segmentsCross, pointSegment, orient,
-  flankPoles, flankDeviation, bezierKnots, envelopeBreaks, envelopePoles, envelopeDeviation,
-  type Envelope, type GearDiagnostic, type SpurGearSpec, type SpurGearReport,
-} from './gear.js';
+import { gearError, isGearError, inv, spurGearDimensions, spurGearProfile, extrudedProfile, helixTwist, arcCurve, reversed, safeId, exactProfile, segmentsCross, pointSegment, orient, flankPoles, flankDeviation, bezierKnots, envelopeBreaks, envelopePoles, envelopeDeviation, type Envelope, type GearDiagnostic, type SpurGearSpec, type SpurGearReport } from './gear.js';
 import type { Point } from '../types.js';
 
 /** Version 0 of the internal gear's inputs (lengths in mm). */
@@ -122,9 +118,9 @@ function largestTipRadius(rb0: number, ra0: number, psi0: number, m: number): nu
 interface Shaper { readonly z0: number; readonly x0: number; readonly rho: number; readonly ac: number; readonly alphaC: number; readonly ra0: number; readonly rf: number; readonly S: ShaperRoot; readonly rStart: number; readonly crossing: boolean; readonly thetaJ: number }
 function shaperOf(spec: InternalGearSpec, m: number, z2: number, r2: number, rb2: number, ra2: number, psiS: number, alpha: number): Shaper {
   const c = spec.cutter;
-  if (!c || !(Number.isInteger(c.teeth) && c.teeth >= 8 && c.teeth <= z2 - 4)) throw new GearError('INVALID_INPUT', `a shaper-cut ring needs its cutter's teeth: a whole number from 8 to ${z2 - 4}`);
+  if (!c || !(Number.isInteger(c.teeth) && c.teeth >= 8 && c.teeth <= z2 - 4)) throw gearError('INVALID_INPUT', `a shaper-cut ring needs its cutter's teeth: a whole number from 8 to ${z2 - 4}`);
   const z0 = c.teeth, x0 = c.profileShiftCoefficient ?? 0;
-  if (!(Number.isFinite(x0) && x0 >= MIN_SHIFT && x0 <= MAX_SHIFT)) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `the cutter's shift ${x0}: from ${MIN_SHIFT} to ${MAX_SHIFT}`);
+  if (!(Number.isFinite(x0) && x0 >= MIN_SHIFT && x0 <= MAX_SHIFT)) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `the cutter's shift ${x0}: from ${MIN_SHIFT} to ${MAX_SHIFT}`);
   const r0 = m * z0 / 2, rb0 = r0 * Math.cos(alpha), ra0 = r0 + (1.25 + x0) * m, psi0 = m * (Math.PI / 2 + 2 * x0 * Math.tan(alpha)) / (2 * r0) + inv(alpha);
   // (The tip radius: the toolmaker's; by default the basic rack's 0.38 m, or 80% of the largest the cutter's tip holds
   // when that is less — a pinion cutter's 1.25 m addendum leaves a narrow tip. Either way an estimate, said so.)
@@ -132,27 +128,27 @@ function shaperOf(spec: InternalGearSpec, m: number, z2: number, r2: number, rb2
   // The cutting distance, the cutter's tooth filling the ring's space on their pitch circles: z2 (ψ_s − inv α_c) =
   // z0 (ψ0 − inv α_c), so inv α_c = (z2 ψ_s − z0 ψ0)/(z2 − z0); a_c = m (z2 − z0) cos α / (2 cos α_c).
   const target = (z2 * psiS - z0 * psi0) / (z2 - z0);
-  if (!(target > 0)) throw new GearError('SELF_INTERSECTION', 'the cutter does not fit the ring\'s spaces');
+  if (!(target > 0)) throw gearError('SELF_INTERSECTION', 'the cutter does not fit the ring\'s spaces');
   let w = alpha;
-  for (let i = 0; i < 60; i++) { const dw = (inv(w) - target) / (Math.tan(w) ** 2); w -= dw; if (!(w > 0 && w < Math.PI / 2)) throw new GearError('SELF_INTERSECTION', 'no cutting pressure angle for this cutter'); if (Math.abs(dw) < 1e-15) break; }
+  for (let i = 0; i < 60; i++) { const dw = (inv(w) - target) / (Math.tan(w) ** 2); w -= dw; if (!(w > 0 && w < Math.PI / 2)) throw gearError('SELF_INTERSECTION', 'no cutting pressure angle for this cutter'); if (Math.abs(dw) < 1e-15) break; }
   const ac = m * (z2 - z0) / 2 * Math.cos(alpha) / Math.cos(w), rw2 = ac * z2 / (z2 - z0), rf = ac + ra0;
   // The cutter's own limits, as K1 tabulates them (Table 4.8; the trimming condition reproduces its boundary, D133):
   // fed in radially it must not trim the ring's teeth; and the ring's tips must meet its involute, not below its base.
   const aa0 = Math.acos(rb0 / ra0), aa2 = Math.acos(rb2 / ra2), q = (Math.cos(aa0) / Math.cos(aa2)) ** 2;
   const t1 = Math.asin(Math.sqrt(Math.max(0, (1 - q) / (1 - (z0 / z2) ** 2)))), t2 = Math.asin(Math.sqrt(Math.max(0, (1 / q - 1) / ((z2 / z0) ** 2 - 1))));
   const trim = (t1 + inv(aa0) - inv(w)) - (z2 / z0) * (t2 + inv(aa2) - inv(w));
-  if (!(trim >= 0)) throw new GearError('TRIMMING_INTERFERENCE', `a ${z0}-tooth cutter fed in radially trims the ${z2}-tooth ring's teeth (K1 Table 4.8's limit): a cutter of fewer teeth, or more ring teeth`);
+  if (!(trim >= 0)) throw gearError('TRIMMING_INTERFERENCE', `a ${z0}-tooth cutter fed in radially trims the ${z2}-tooth ring's teeth (K1 Table 4.8's limit): a cutter of fewer teeth, or more ring teeth`);
   const invM = z0 / z2 - (1 - Math.tan(aa2) / Math.tan(w));
-  if (!(invM >= 0)) throw new GearError('INVOLUTE_INTERFERENCE', `the ring's tips meet a ${z0}-tooth cutter below its base circle: their corners would be cut away (a ring shift x2 > 0, or more cutter teeth)`);
+  if (!(invM >= 0)) throw gearError('INVOLUTE_INTERFERENCE', `the ring's tips meet a ${z0}-tooth cutter below its base circle: their corners would be cut away (a ring shift x2 > 0, or more cutter teeth)`);
   // The tip round: its centre at ra0 − ρ from the cutter's, ρ off the right flank (the cutter's tooth centred on +Y):
   // on the flank's inward offset, by bisection in the roll.
   const flank = (t: number): [number, number, number, number] => { const a = Math.PI / 2 - psi0 + t - Math.atan(t), rr = rb0 * Math.sqrt(1 + t * t), b = Math.PI / 2 - psi0 + t; return [rr * Math.cos(a), ac + rr * Math.sin(a), Math.sin(b), -Math.cos(b)]; };
   const tTip = Math.sqrt((ra0 / rb0) ** 2 - 1), want = ra0 - rho, offR = (t: number) => { const f = flank(t); return Math.hypot(f[0] - rho * f[2], f[1] - rho * f[3] - ac); };
-  if (!(rho > 0 && offR(0) < want && offR(tTip) > want)) throw new GearError('INVALID_INPUT', `cutter tip radius ${rho} mm does not fit the cutter's tooth`);
+  if (!(rho > 0 && offR(0) < want && offR(tTip) > want)) throw gearError('INVALID_INPUT', `cutter tip radius ${rho} mm does not fit the cutter's tooth`);
   let lo = 0, hi = tTip;
   for (let i = 0; i < 200 && hi - lo > 1e-15; i++) { const mid = (lo + hi) / 2; if (offR(mid) < want) lo = mid; else hi = mid; }
   const fl = flank((lo + hi) / 2), qx = fl[0] - rho * fl[2], qy = fl[1] - rho * fl[3], tx = fl[0], ty = fl[1];
-  if (!(qx > 0)) throw new GearError('INVALID_INPUT', `cutter tip radius ${rho} mm: the cutter's two tip rounds meet (at most ${largestTipRadius(rb0, ra0, psi0, m).toFixed(4)} mm for this cutter)`);
+  if (!(qx > 0)) throw gearError('INVALID_INPUT', `cutter tip radius ${rho} mm: the cutter's two tip rounds meet (at most ${largestTipRadius(rb0, ra0, psi0, m).toFixed(4)} mm for this cutter)`);
   // φRoot: the round's centre on the line of centres (its angle about the cutter's centre π/2); then the turn at which it
   // touches at its tangent point with the flank — the contact normal along the round's radius to it — by a scan and bisection.
   const chi = Math.atan2(qy - ac, qx), k = z2 / z0, phiRoot = (Math.PI / 2 - chi) / k;
@@ -164,7 +160,7 @@ function shaperOf(spec: InternalGearSpec, m: number, z2: number, r2: number, rb2
   let a0 = phiRoot, g0 = g(a0), phiF = NaN;
   const span = 6 * Math.PI / z2;
   for (let i = 1; i <= 3000; i++) { const b = phiRoot - span * i / 3000, gb = g(b); if (Math.sign(gb) !== Math.sign(g0)) { let l = b, h = a0; for (let j = 0; j < 200 && Math.abs(h - l) > 1e-16; j++) { const mid = (l + h) / 2; if (Math.sign(g(mid)) === Math.sign(gb)) l = mid; else h = mid; } phiF = (l + h) / 2; break; } a0 = b; g0 = gb; }
-  if (!Number.isFinite(phiF)) throw new GearError('SELF_INTERSECTION', 'the cutter\'s round never meets the ring\'s flank');
+  if (!Number.isFinite(phiF)) throw gearError('SELF_INTERSECTION', 'the cutter\'s round never meets the ring\'s flank');
   S.phiEnd = phiF;
   // Where the fillet meets the ring's involute: at the flank's tangent point, or — the round's envelope crossing the
   // involute first — at the crossing (the involute beyond it cut away).
@@ -181,8 +177,8 @@ function shaperOf(spec: InternalGearSpec, m: number, z2: number, r2: number, rb2
   }
   S.phiEnd = end;
   const pe = S.point(end), rStart = Math.hypot(pe[0], pe[1]), p0 = S.point(phiRoot), thetaJ = Math.atan2(p0[1], p0[0]);
-  if (!(rStart > ra2)) throw new GearError('SELF_INTERSECTION', 'the cutter cuts the ring\'s whole flank away');
-  for (let i = 0; i <= 64; i++) { const p = S.point(phiRoot + (end - phiRoot) * i / 64), an = Math.atan2(p[1], p[0]); if (!(an > Math.PI / 2 - Math.PI / z2 && an <= Math.PI / 2 + 1e-12)) throw new GearError('SELF_INTERSECTION', 'the cutter cuts through the ring\'s tooth'); }
+  if (!(rStart > ra2)) throw gearError('SELF_INTERSECTION', 'the cutter cuts the ring\'s whole flank away');
+  for (let i = 0; i <= 64; i++) { const p = S.point(phiRoot + (end - phiRoot) * i / 64), an = Math.atan2(p[1], p[0]); if (!(an > Math.PI / 2 - Math.PI / z2 && an <= Math.PI / 2 + 1e-12)) throw gearError('SELF_INTERSECTION', 'the cutter cuts through the ring\'s tooth'); }
   void r2;
   return { z0, x0, rho, ac, alphaC: w, ra0, rf, S, rStart, crossing, thetaJ };
 }
@@ -197,39 +193,39 @@ function spaceSpecOf(spec: InternalGearSpec): SpurGearSpec {
     ...(spec.pressureAngleDeg === undefined ? {} : { pressureAngleDeg: spec.pressureAngleDeg }), profileShiftCoefficient: x2 + 0.25, toothThicknessReductionMM: red, ...(spec.profileToleranceMM === undefined ? {} : { profileToleranceMM: spec.profileToleranceMM }) };
 }
 
-/** The ring's dimensions and input checks (refusals thrown, as GearError, in the ring's own terms). */
+/** The ring's dimensions and input checks (refusals thrown, as gearError, in the ring's own terms). */
 export function internalGearDimensions(spec: InternalGearSpec): {
   r: number; rb: number; ra: number; rf: number; rim: number; mn: number; mt: number; alpha: number; alphaN: number; beta: number; x: number;
   space: SpurGearSpec; sd: ReturnType<typeof spurGearDimensions>; spaceWidth: number; pitch: number; shaper?: Shaper;
 } {
   const z = spec.teeth, x = spec.profileShiftCoefficient ?? 0;
-  if (!(Number.isInteger(z) && z >= 8 && z <= 200)) throw new GearError('INVALID_INPUT', 'an internal gear takes a whole number of teeth from 8 to 200');
-  if (!Number.isFinite(x)) throw new GearError('INVALID_INPUT', 'profileShiftCoefficient must be a number');
-  if (!(x >= MIN_SHIFT && x <= MAX_SHIFT)) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `an internal gear's profile shift ${x}: from ${MIN_SHIFT} to ${MAX_SHIFT} in this stage`);
+  if (!(Number.isInteger(z) && z >= 8 && z <= 200)) throw gearError('INVALID_INPUT', 'an internal gear takes a whole number of teeth from 8 to 200');
+  if (!Number.isFinite(x)) throw gearError('INVALID_INPUT', 'profileShiftCoefficient must be a number');
+  if (!(x >= MIN_SHIFT && x <= MAX_SHIFT)) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `an internal gear's profile shift ${x}: from ${MIN_SHIFT} to ${MAX_SHIFT} in this stage`);
   const j = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(j) && j >= 0)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
+  if (!(Number.isFinite(j) && j >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
   const space = spaceSpecOf(spec);
-  if (!((space.toothThicknessReductionMM ?? 0) >= 0)) throw new GearError('INVALID_INPUT', `a thickness reduction of ${j} mm: at most ${(j + (space.toothThicknessReductionMM ?? 0)).toFixed(6)} mm in this stage (a quarter of the shift's tan α)`);
+  if (!((space.toothThicknessReductionMM ?? 0) >= 0)) throw gearError('INVALID_INPUT', `a thickness reduction of ${j} mm: at most ${(j + (space.toothThicknessReductionMM ?? 0)).toFixed(6)} mm in this stage (a quarter of the shift's tan α)`);
   let sd: ReturnType<typeof spurGearDimensions>;
   try { sd = spurGearDimensions(space); }
   catch (cause) {
-    if (!(cause instanceof GearError)) throw cause;
-    if (cause.code === 'SELF_INTERSECTION') throw new GearError('SELF_INTERSECTION', `the ring's spaces come to a point below its root circle (${z} teeth${x ? `, x = ${x}` : ''})`);
-    if (cause.code === 'UNSUPPORTED_PROFILE_SHIFT') throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth at x = ${x} are outside this stage`);
+    if (!(isGearError(cause))) throw cause;
+    if (cause.code === 'SELF_INTERSECTION') throw gearError('SELF_INTERSECTION', `the ring's spaces come to a point below its root circle (${z} teeth${x ? `, x = ${x}` : ''})`);
+    if (cause.code === 'UNSUPPORTED_PROFILE_SHIFT') throw gearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth at x = ${x} are outside this stage`);
     throw cause;
   }
   const r = sd.r, rb = sd.rb, mn = sd.mn, ra = r - (1 - x) * mn;
   const shaperCut = spec.rootPolicy === 'shaper-cut';
-  if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-corner' && !shaperCut) throw new GearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-corner' or 'shaper-cut'`);
-  if (!shaperCut && spec.cutter !== undefined) throw new GearError('INVALID_INPUT', "a cutter belongs to a shaper-cut root (rootPolicy 'shaper-cut')");
-  if (shaperCut && sd.beta !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', 'a shaper-cut root on a helical ring is not in this stage: give it the schematic root');
+  if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-corner' && !shaperCut) throw gearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-corner' or 'shaper-cut'`);
+  if (!shaperCut && spec.cutter !== undefined) throw gearError('INVALID_INPUT', "a cutter belongs to a shaper-cut root (rootPolicy 'shaper-cut')");
+  if (shaperCut && sd.beta !== 0) throw gearError('UNSUPPORTED_GEAR_KIND', 'a shaper-cut root on a helical ring is not in this stage: give it the schematic root');
   // The ring's tip must stand on the involute: above its base circle (K1: z2 > 34 unshifted at 20°).
-  if (!(ra >= rb)) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `the ring's tip circle Ø${(2 * ra).toFixed(4)} falls inside its base circle Ø${(2 * rb).toFixed(4)} (${z} teeth${x ? ` at x = ${x}` : ''}): a shift of at least x = ${(1 - (r - rb) / mn).toFixed(3)} lifts it`);
+  if (!(ra >= rb)) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `the ring's tip circle Ø${(2 * ra).toFixed(4)} falls inside its base circle Ø${(2 * rb).toFixed(4)} (${z} teeth${x ? ` at x = ${x}` : ''}): a shift of at least x = ${(1 - (r - rb) / mn).toFixed(3)} lifts it`);
   // (A shaper-cut ring's root is the cutter's: a_c + its tip radius ra0, D133.)
   const shaper = shaperCut ? shaperOf(spec, mn, z, r, rb, ra, sd.psi, sd.alpha) : undefined, rf = shaper ? shaper.rf : r + (1.25 + x) * mn;
   const R = spec.rimDiameterMM / 2, rimMin = spec.minimumRimMM ?? mn;
-  if (!(Number.isFinite(R) && R > 0)) throw new GearError('INVALID_INPUT', 'rimDiameterMM must be a number of mm above 0');
-  if (!(R >= rf + rimMin)) throw new GearError('RIM_INTERSECTION', `a rim of Ø${spec.rimDiameterMM} mm leaves less than the ${rimMin} mm rim beyond the root circle (Ø${(2 * rf).toFixed(3)} mm): at least Ø${(2 * (rf + rimMin)).toFixed(3)} (a geometric margin, not a strength check)`);
+  if (!(Number.isFinite(R) && R > 0)) throw gearError('INVALID_INPUT', 'rimDiameterMM must be a number of mm above 0');
+  if (!(R >= rf + rimMin)) throw gearError('RIM_INTERSECTION', `a rim of Ø${spec.rimDiameterMM} mm leaves less than the ${rimMin} mm rim beyond the root circle (Ø${(2 * rf).toFixed(3)} mm): at least Ø${(2 * (rf + rimMin)).toFixed(3)} (a geometric margin, not a strength check)`);
   return { r, rb, ra, rf, rim: R, mn, mt: sd.mt, alpha: sd.alpha, alphaN: sd.alphaN, beta: sd.beta, x, space, sd, spaceWidth: sd.toothThicknessMM, pitch: sd.circularPitchMM, ...(shaper ? { shaper } : {}) };
 }
 
@@ -251,7 +247,7 @@ export function internalGear(spec: InternalGearSpec, options: { readonly id?: st
   let prof: ReturnType<typeof spurGearProfile>;
   try { prof = spurGearProfile(d.space); }
   catch (cause) {
-    if (cause instanceof GearError && cause.code === 'SELF_INTERSECTION') throw new GearError('SELF_INTERSECTION', `the ring's teeth come to a point at their tips (${z} teeth)`);
+    if (isGearError(cause) && cause.code === 'SELF_INTERSECTION') throw gearError('SELF_INTERSECTION', `the ring's teeth come to a point at their tips (${z} teeth)`);
     throw cause;
   }
   // The space gear's pieces, turned by −π/z and named as the ring's: its tooth k is the ring's space before tooth k
@@ -302,15 +298,15 @@ function mirroredY(c: Curve): Curve { return { ...c, controlPoints: c.controlPoi
  */
 function shaperCutRing(spec: InternalGearSpec, d: ReturnType<typeof internalGearDimensions>, id: string): { brep: Brep; report: InternalGearReport } {
   const sh = d.shaper!, z = spec.teeth, rb = d.rb, psiS = d.sd.psi, tol = spec.profileToleranceMM ?? 1e-4 * d.mn;
-  if (!(Number.isFinite(tol) && tol > 0)) throw new GearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
   // The involute, as few pieces as the tolerance asks (at most five), from the tip circle to the fillet's start.
   const t0 = Math.sqrt(Math.max(0, (d.ra / rb) ** 2 - 1)), t1 = Math.sqrt((sh.rStart / rb) ** 2 - 1);
   let N = 1, dev = flankDeviation(rb, t0, t1, 1);
   while (dev > tol && N < MAX_PIECES) dev = flankDeviation(rb, t0, t1, ++N);
-  if (dev > tol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a ring flank within ${tol} mm of the involute needs more than ${MAX_PIECES} cubic pieces`);
+  if (dev > tol) throw gearError('PROFILE_BUDGET_EXCEEDED', `a ring flank within ${tol} mm of the involute needs more than ${MAX_PIECES} cubic pieces`);
   let NF = 1, breaks = envelopeBreaks(sh.S, 1), fdev = envelopeDeviation(sh.S, breaks);
   while (fdev > tol && NF < MAX_FILLET_PIECES) { breaks = envelopeBreaks(sh.S, ++NF); fdev = envelopeDeviation(sh.S, breaks); }
-  if (fdev > tol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a ring fillet within ${tol} mm of the cutter's envelope needs more than ${MAX_FILLET_PIECES} cubic pieces`);
+  if (fdev > tol) throw gearError('PROFILE_BUDGET_EXCEEDED', `a ring fillet within ${tol} mm of the cutter's envelope needs more than ${MAX_FILLET_PIECES} cubic pieces`);
   const faces = Math.ceil(NF / MAX_PIECES), crv = (P: Point[], n: number): Curve => ({ kind: 'curve', id: 'q', degree: 3, knots: bezierKnots(n), controlPoints: P, weights: P.map(() => 1) });
   // One space's pieces, its frame (counter-clockwise round the ring's centre): right involute out, right fillet out,
   // root, left fillet in, left involute in, the tip arc to the next space.
@@ -348,9 +344,9 @@ function shaperCutRing(spec: InternalGearSpec, d: ReturnType<typeof internalGear
  * at one angle and of one hand (an internal pair); else MATE_INCOMPATIBLE.
  */
 function compatible(p: ReturnType<typeof spurGearDimensions>, d: ReturnType<typeof internalGearDimensions>): void {
-  if (p.mn !== d.mn) throw new GearError('MATE_INCOMPATIBLE', `modules ${p.mn} and ${d.mn} mm do not mesh`);
-  if (p.alphaN !== d.alphaN) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
-  if (p.beta !== d.beta) throw new GearError('MATE_INCOMPATIBLE', p.beta === 0 || d.beta === 0 ? 'a spur gear does not mesh with a helical ring, nor a helical gear with a straight one' : Math.abs(p.beta) !== Math.abs(d.beta) ? 'helix angles differ' : 'an internal pair is of one hand: the pinion and the ring both right or both left');
+  if (p.mn !== d.mn) throw gearError('MATE_INCOMPATIBLE', `modules ${p.mn} and ${d.mn} mm do not mesh`);
+  if (p.alphaN !== d.alphaN) throw gearError('MATE_INCOMPATIBLE', 'pressure angles differ');
+  if (p.beta !== d.beta) throw gearError('MATE_INCOMPATIBLE', p.beta === 0 || d.beta === 0 ? 'a spur gear does not mesh with a helical ring, nor a helical gear with a straight one' : Math.abs(p.beta) !== Math.abs(d.beta) ? 'helix angles differ' : 'an internal pair is of one hand: the pinion and the ring both right or both left');
 }
 /**
  * The internal pair's centre distance without backlash: unshifted m_t(z2 − z1)/2; shifted from inv α_w = 2 tan α_n (x2 − x1)/(z2 − z1) + inv α_t
@@ -363,12 +359,12 @@ export function internalGearCenterDistance(pinion: SpurGearSpec, ring: InternalG
 }
 function workingDistance(pinion: SpurGearSpec, ring: InternalGearSpec, p: ReturnType<typeof spurGearDimensions>, d: ReturnType<typeof internalGearDimensions>): number {
   const z1 = pinion.teeth, z2 = ring.teeth, dz = z2 - z1, aRef = d.mt * dz / 2, dx = d.x - (pinion.profileShiftCoefficient ?? 0);
-  if (!(dz > 0)) throw new GearError('MATE_INCOMPATIBLE', `a ${z1}-tooth pinion does not fit inside a ${z2}-tooth ring`);
+  if (!(dz > 0)) throw gearError('MATE_INCOMPATIBLE', `a ${z1}-tooth pinion does not fit inside a ${z2}-tooth ring`);
   if (dx === 0) return aRef;
   const target = 2 * Math.tan(d.alphaN) * dx / dz + inv(d.alpha);
-  if (!(target > 0)) throw new GearError('MATE_INCOMPATIBLE', `shifts differing by ${dx} on ${z2} − ${z1} teeth leave no working pressure angle`);
+  if (!(target > 0)) throw gearError('MATE_INCOMPATIBLE', `shifts differing by ${dx} on ${z2} − ${z1} teeth leave no working pressure angle`);
   let w = d.alpha;
-  for (let i = 0; i < 50; i++) { const dw = (inv(w) - target) / (Math.tan(w) ** 2); w -= dw; if (!(w > 0 && w < Math.PI / 2)) throw new GearError('MATE_INCOMPATIBLE', 'no working pressure angle for these shifts'); if (Math.abs(dw) < 1e-15) break; }
+  for (let i = 0; i < 50; i++) { const dw = (inv(w) - target) / (Math.tan(w) ** 2); w -= dw; if (!(w > 0 && w < Math.PI / 2)) throw gearError('MATE_INCOMPATIBLE', 'no working pressure angle for these shifts'); if (Math.abs(dw) < 1e-15) break; }
   return aRef * Math.cos(d.alpha) / Math.cos(w);
 }
 
@@ -452,9 +448,9 @@ function pairCheck(pinion: SpurGearSpec, ring: InternalGearSpec, options: Intern
   const p = spurGearDimensions(pinion), d = internalGearDimensions(ring);
   compatible(p, d);
   const z1 = pinion.teeth, z2 = ring.teeth, m = d.mt, alpha = d.alpha, a0 = workingDistance(pinion, ring, p, d), a = options.centerDistanceMM ?? a0;
-  if (!(Number.isFinite(a) && a > 0)) throw new GearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm above 0');
+  if (!(Number.isFinite(a) && a > 0)) throw gearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm above 0');
   const cw = m * (z2 - z1) / 2 * Math.cos(alpha) / a;
-  if (!(cw < 1)) throw new GearError('MATE_INCOMPATIBLE', `at ${a} mm no working pressure angle`);
+  if (!(cw < 1)) throw gearError('MATE_INCOMPATIBLE', `at ${a} mm no working pressure angle`);
   const alphaW = Math.acos(cw), rw1 = a * z1 / (z2 - z1), rw2 = a * z2 / (z2 - z1);
   // On the working pitch circles: the ring's space 2 rw2 (ψ_s − inv α_w) (ψ_s its space gear's half tooth at the base),
   // the pinion's tooth 2 rw1 (ψ1 − inv α_w).
@@ -652,9 +648,9 @@ export function pinionTurnInside(ring: PlacedInternalGear, pinionTeeth: number, 
 /** The pair checks for a pinion inside a ring as placed: the centre distance and the relative phase from where they stand and how they are turned. */
 export function checkPlacedInternalGears(ring: PlacedInternalGear, pinion: { readonly spec: SpurGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }, options: Omit<InternalGearPairOptions, 'centerDistanceMM' | 'relativePhaseDeg'> = {}): PlacedInternalGearPairCheck {
   const overlap = Math.min(ring.from + ring.spec.faceWidthMM, pinion.from + pinion.spec.faceWidthMM) - Math.max(ring.from, pinion.from);
-  if (!(overlap > 0)) throw new GearError('MATE_INCOMPATIBLE', `the faces do not overlap along the axes (${overlap.toFixed(6)} mm)`);
+  if (!(overlap > 0)) throw gearError('MATE_INCOMPATIBLE', `the faces do not overlap along the axes (${overlap.toFixed(6)} mm)`);
   const dx = pinion.center[0] - ring.center[0], dy = pinion.center[1] - ring.center[1], a = Math.hypot(dx, dy);
-  if (!(a > 0)) throw new GearError('MATE_INCOMPATIBLE', 'the pinion stands on the ring\'s axis');
+  if (!(a > 0)) throw gearError('MATE_INCOMPATIBLE', 'the pinion stands on the ring\'s axis');
   const phi = Math.atan2(dy, dx), z1 = pinion.spec.teeth, z2 = ring.spec.teeth, pitch = 2 * Math.PI / z2;
   // (Helical: both at the height where their faces begin to overlap, each turned along its helix — of one hand.)
   const zRef = Math.max(ring.from, pinion.from), d = internalGearDimensions(ring.spec), p = spurGearDimensions(pinion.spec);

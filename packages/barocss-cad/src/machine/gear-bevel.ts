@@ -29,7 +29,7 @@
 // gear's twist.
 import { buildBrep, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import type { Curve, Point, Surface } from '../types.js';
-import { GearError, arcCurve, reversed, safeId, segmentsCross, orient, pointSegment, bezierKnots, type GearDiagnostic } from './gear.js';
+import { gearError, arcCurve, reversed, safeId, segmentsCross, orient, pointSegment, bezierKnots, type GearDiagnostic } from './gear.js';
 import { cross as cross3, dot as dot3 } from '../core/vec3.js';
 
 /** Version 0 of the straight bevel gear's inputs (lengths in mm, at the heel). */
@@ -135,7 +135,7 @@ function conicPieces(cb: number, sb: number, t0: number, t1: number, N: number):
     const ta = t0 + (t1 - t0) * k / N, tb = t0 + (t1 - t0) * (k + 1) / N;
     stereoImage(cb, sb, ta, a); stereoImage(cb, sb, tb, b);
     const det = a[2] * b[3] - a[3] * b[2], rx = b[0] - a[0], ry = b[1] - a[1], l = (rx * b[3] - ry * b[2]) / det, mu = (a[2] * ry - a[3] * rx) / det;
-    if (!(l > 0 && mu > 0)) throw new GearError('PROFILE_BUDGET_EXCEEDED', 'a flank piece has no convex conic fit');
+    if (!(l > 0 && mu > 0)) throw gearError('PROFILE_BUDGET_EXCEEDED', 'a flank piece has no convex conic fit');
     const P1 = [a[0] + l * a[2], a[1] + l * a[3]], M = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     let lo = ta, hi = tb; const f0 = crossing(cb, sb, lo, M, P1, q) > 0;
     for (let i = 0; i < 80; i++) { const c = (lo + hi) / 2; if ((crossing(cb, sb, c, M, P1, q) > 0) === f0) lo = c; else hi = c; }
@@ -176,7 +176,7 @@ function liftedCurve(C: readonly Conic[], j0: number, j1: number, turn: number, 
       let X = 0, Y = 0, Q = 0, WW = 0;
       for (let i = 0; i <= 2; i++) { const f = PRODUCT[e][i]; if (!f) continue; const j = e - i; X += f * U[i] * W[j]; Y += f * V[i] * W[j]; Q += f * (U[i] * U[j] + V[i] * V[j]); WW += f * W[i] * W[j]; }
       const H = WW + Q;
-      if (!(H > 0)) throw new GearError('SELF_INTERSECTION', 'a flank\'s lifted weight is not positive');
+      if (!(H > 0)) throw gearError('SELF_INTERSECTION', 'a flank\'s lifted weight is not positive');
       pts.push([2 * X / H, 2 * Y / H, (WW - Q) / H]); wts.push(H);
     }
     if (k < j1 - 1) knots.push(k - j0 + 1, k - j0 + 1, k - j0 + 1, k - j0 + 1);
@@ -217,51 +217,51 @@ function stereoSphere(sid: string, R: number, a: number, inward: boolean): Surfa
 /** The gear's dimensions and the values the solid and the pair checks need; refusals as typed errors. */
 export function bevelGearDimensions(spec: BevelGearSpec) {
   const m = spec.moduleMM, z = spec.teeth, zm = spec.mateTeeth, b = spec.faceWidthMM, SigmaDeg = spec.shaftAngleDeg ?? 90;
-  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw new GearError('INVALID_INPUT', 'moduleMM must be a number of mm above 0, at most 100');
-  if (!(Number.isInteger(z) && z >= MIN_TEETH && z <= MAX_TEETH)) throw new GearError('INVALID_INPUT', `teeth must be a whole number from ${MIN_TEETH} to ${MAX_TEETH}`);
-  if (!(Number.isInteger(zm) && zm >= MIN_TEETH && zm <= MAX_TEETH)) throw new GearError('INVALID_INPUT', `mateTeeth must be a whole number from ${MIN_TEETH} to ${MAX_TEETH}`);
-  if (!(Number.isFinite(SigmaDeg) && SigmaDeg > 0 && SigmaDeg < 180)) throw new GearError('INVALID_INPUT', 'shaftAngleDeg must be above 0 and below 180°');
-  if ((spec.pressureAngleDeg ?? 20) !== 20) throw new GearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${spec.pressureAngleDeg}°: only 20° in this stage`);
-  if (spec.system !== undefined && spec.system !== 'standard') throw new GearError('UNSUPPORTED_GEAR_KIND', `the ${String(spec.system)} system: only the standard proportions (addendum m, dedendum 1.25 m, the cones through the apex) in this stage — the Gleason uniform-clearance system and its shifts are not built`);
-  if ((spec.profileShiftCoefficient ?? 0) !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', `profile shift ${spec.profileShiftCoefficient}: a bevel gear's shifts belong to the Gleason system, not built in this stage`);
-  if ((spec.offsetMM ?? 0) !== 0) throw new GearError('UNSUPPORTED_GEAR_KIND', `an offset of ${spec.offsetMM} mm makes a hypoid pair: not built in this stage`);
+  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw gearError('INVALID_INPUT', 'moduleMM must be a number of mm above 0, at most 100');
+  if (!(Number.isInteger(z) && z >= MIN_TEETH && z <= MAX_TEETH)) throw gearError('INVALID_INPUT', `teeth must be a whole number from ${MIN_TEETH} to ${MAX_TEETH}`);
+  if (!(Number.isInteger(zm) && zm >= MIN_TEETH && zm <= MAX_TEETH)) throw gearError('INVALID_INPUT', `mateTeeth must be a whole number from ${MIN_TEETH} to ${MAX_TEETH}`);
+  if (!(Number.isFinite(SigmaDeg) && SigmaDeg > 0 && SigmaDeg < 180)) throw gearError('INVALID_INPUT', 'shaftAngleDeg must be above 0 and below 180°');
+  if ((spec.pressureAngleDeg ?? 20) !== 20) throw gearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${spec.pressureAngleDeg}°: only 20° in this stage`);
+  if (spec.system !== undefined && spec.system !== 'standard') throw gearError('UNSUPPORTED_GEAR_KIND', `the ${String(spec.system)} system: only the standard proportions (addendum m, dedendum 1.25 m, the cones through the apex) in this stage — the Gleason uniform-clearance system and its shifts are not built`);
+  if ((spec.profileShiftCoefficient ?? 0) !== 0) throw gearError('UNSUPPORTED_GEAR_KIND', `profile shift ${spec.profileShiftCoefficient}: a bevel gear's shifts belong to the Gleason system, not built in this stage`);
+  if ((spec.offsetMM ?? 0) !== 0) throw gearError('UNSUPPORTED_GEAR_KIND', `an offset of ${spec.offsetMM} mm makes a hypoid pair: not built in this stage`);
   const sp = spec.spiral;
   if (sp !== undefined) {
-    if (sp.trace !== undefined && sp.trace !== 'circular') throw new GearError('UNSUPPORTED_GEAR_KIND', `a${sp.trace === 'epicycloidal' ? 'n epicycloidal (face-hobbed)' : ` ${String(sp.trace)}`} tooth trace: only the circular (face-milled) one in this stage`);
-    if (!(Number.isFinite(sp.angleDeg) && sp.angleDeg > 0 && sp.angleDeg <= 45)) throw new GearError('INVALID_INPUT', `spiral angle ${sp.angleDeg}°: above 0, at most 45° in this stage`);
-    if (sp.hand !== 'right' && sp.hand !== 'left') throw new GearError('INVALID_INPUT', "a spiral bevel gear needs its hand, 'right' or 'left'");
-    if (!(Number.isFinite(sp.cutterRadiusMM) && sp.cutterRadiusMM > 0)) throw new GearError('INVALID_INPUT', 'the spiral\'s cutterRadiusMM must be a number of mm above 0');
+    if (sp.trace !== undefined && sp.trace !== 'circular') throw gearError('UNSUPPORTED_GEAR_KIND', `a${sp.trace === 'epicycloidal' ? 'n epicycloidal (face-hobbed)' : ` ${String(sp.trace)}`} tooth trace: only the circular (face-milled) one in this stage`);
+    if (!(Number.isFinite(sp.angleDeg) && sp.angleDeg > 0 && sp.angleDeg <= 45)) throw gearError('INVALID_INPUT', `spiral angle ${sp.angleDeg}°: above 0, at most 45° in this stage`);
+    if (sp.hand !== 'right' && sp.hand !== 'left') throw gearError('INVALID_INPUT', "a spiral bevel gear needs its hand, 'right' or 'left'");
+    if (!(Number.isFinite(sp.cutterRadiusMM) && sp.cutterRadiusMM > 0)) throw gearError('INVALID_INPUT', 'the spiral\'s cutterRadiusMM must be a number of mm above 0');
   }
   // (Spiral: the section's pressure angle is the transverse one at the mean point.)
   const betaM = sp ? sp.angleDeg * Math.PI / 180 : 0, alpha = sp ? Math.atan(Math.tan(ALPHA) / Math.cos(betaM)) : ALPHA;
   const Sigma = SigmaDeg * Math.PI / 180, delta = Math.atan2(Math.sin(Sigma), zm / z + Math.cos(Sigma));
-  if (!(delta < Math.PI / 2 - 1e-9)) throw new GearError('UNSUPPORTED_GEAR_KIND', `a pitch angle of ${(delta * 180 / Math.PI).toFixed(4)}°: ${delta < Math.PI / 2 + 1e-9 ? 'a crown gear' : 'an internal bevel gear'} is not built in this stage (below 90° only)`);
+  if (!(delta < Math.PI / 2 - 1e-9)) throw gearError('UNSUPPORTED_GEAR_KIND', `a pitch angle of ${(delta * 180 / Math.PI).toFixed(4)}°: ${delta < Math.PI / 2 + 1e-9 ? 'a crown gear' : 'an internal bevel gear'} is not built in this stage (below 90° only)`);
   const Re = m * z / (2 * Math.sin(delta));
-  if (!(Number.isFinite(b) && b > 0 && b < Re)) throw new GearError('INVALID_INPUT', `faceWidthMM must be above 0 and below the cone distance ${Re.toFixed(4)} mm`);
+  if (!(Number.isFinite(b) && b > 0 && b < Re)) throw gearError('INVALID_INPUT', `faceWidthMM must be above 0 and below the cone distance ${Re.toFixed(4)} mm`);
   const Ri = Re - b, thA = Math.atan(m / Re), thF = Math.atan(1.25 * m / Re), tipPolar = delta + thA, rootPolar = delta - thF;
-  if (!(rootPolar > 0)) throw new GearError('SELF_INTERSECTION', `the root cone (${(rootPolar * 180 / Math.PI).toFixed(4)}°) reaches past the axis`);
+  if (!(rootPolar > 0)) throw gearError('SELF_INTERSECTION', `the root cone (${(rootPolar * 180 / Math.PI).toFixed(4)}°) reaches past the axis`);
   const sb = Math.sin(delta) * Math.cos(alpha), deltaB = Math.asin(sb), cb = Math.cos(deltaB);
   // Undercut, by the exact spherical condition (derived here, D134): the generating crown gear (δ = 90°, its base cone
   // 90° − α) reaches from the pitch point along the great circle of action by asin(sin θa / sin α) (its tip cone at
   // 90° + θa, θa = atan(m/Re), its working depth m as the basic rack's); undercut when that passes the gear's base-cone
   // tangent point, acos(cos δ / cos δb) from the pitch point.
   const toBase = Math.acos(Math.min(1, Math.cos(delta) / cb)), reach = Math.asin(Math.min(1, Math.sin(thA) / Math.sin(alpha))), zv = z / Math.cos(delta);
-  if (reach > toBase + 1e-12) throw new GearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth on a ${(delta * 180 / Math.PI).toFixed(4)}° pitch cone are undercut by the generating crown gear (exact spherical condition: it reaches ${(reach * Re).toFixed(4)} mm along the line of action at the heel, the base cone is ${(toBase * Re).toFixed(4)} mm away); Tredgold's virtual spur gear has ${zv.toFixed(2)} teeth (an estimate: 17.1 and fewer are undercut). A shift (the Gleason system) is not built in this stage: more teeth on this gear, or fewer on its mate`);
+  if (reach > toBase + 1e-12) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth on a ${(delta * 180 / Math.PI).toFixed(4)}° pitch cone are undercut by the generating crown gear (exact spherical condition: it reaches ${(reach * Re).toFixed(4)} mm along the line of action at the heel, the base cone is ${(toBase * Re).toFixed(4)} mm away); Tredgold's virtual spur gear has ${zv.toFixed(2)} teeth (an estimate: 17.1 and fewer are undercut). A shift (the Gleason system) is not built in this stage: more teeth on this gear, or fewer on its mate`);
   const red = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(red) && red >= 0)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
+  if (!(Number.isFinite(red) && red >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
   const s = Math.PI * m / 2 - red;
-  if (!(s > 0)) throw new GearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no tooth (the heel's tooth is ${(Math.PI * m / 2).toFixed(4)} mm)`);
+  if (!(s > 0)) throw gearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no tooth (the heel's tooth is ${(Math.PI * m / 2).toFixed(4)} mm)`);
   // Half the tooth's azimuth at the pitch cone s / (2 Re sin δ) = s / (m z), the involute's base point that much plus
   // its own azimuth at δ from the tooth's middle (as a spur gear's s/d + inv α).
   const psiB = s / (m * z) + involuteAzimuth(cb, sb, delta), tipHalf = psiB - involuteAzimuth(cb, sb, tipPolar);
-  if (!(tipHalf > 0)) throw new GearError('SELF_INTERSECTION', 'the tooth comes to a point below its tip cone');
+  if (!(tipHalf > 0)) throw gearError('SELF_INTERSECTION', 'the tooth comes to a point below its tip cone');
   const startPolar = Math.max(deltaB, rootPolar), rootHalf = psiB - (startPolar > deltaB ? involuteAzimuth(cb, sb, startPolar) : 0), step = 2 * Math.PI / z;
-  if (!(step - 2 * rootHalf > 1e-9)) throw new GearError('SELF_INTERSECTION', 'neighbouring teeth meet at the root');
+  if (!(step - 2 * rootHalf > 1e-9)) throw gearError('SELF_INTERSECTION', 'neighbouring teeth meet at the root');
   const bd = spec.boreDiameterMM ?? 0, rim = spec.minimumRimMM ?? m;
-  if (!(Number.isFinite(bd) && bd >= 0)) throw new GearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
+  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
   // (The bore within the root cone at the toe, less the rim: the cylinder then meets only the two end spheres.)
   const boreMax = 2 * (Ri * Math.sin(rootPolar) - rim);
-  if (bd > 0 && !(bd <= boreMax)) throw new GearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${rim} mm rim below the root cone at the toe (Ø${(2 * Ri * Math.sin(rootPolar)).toFixed(3)} mm there): at most Ø${Math.max(0, boreMax).toFixed(3)} (a geometric margin, not a strength check)`);
+  if (bd > 0 && !(bd <= boreMax)) throw gearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${rim} mm rim below the root cone at the toe (Ø${(2 * Ri * Math.sin(rootPolar)).toFixed(3)} mm there): at most Ø${Math.max(0, boreMax).toFixed(3)} (a geometric margin, not a strength check)`);
   const trace = sp ? spiralTrace(Re, Ri, betaM, sp.cutterRadiusMM, sp.hand === 'right' ? 1 : -1, delta) : null;
   return { m, z, zm, b, Sigma, delta, deltaB, sb, cb, Re, Ri, thA, thF, tipPolar, rootPolar, startPolar, psiB, tipHalf, rootHalf, step, red, s, zv, bore: bd / 2, toBase, alpha, trace };
 }
@@ -283,7 +283,7 @@ function spiralTrace(Re: number, Ri: number, betaM: number, rc: number, h: numbe
   // (The spiral angle within (0°, 90°) over the whole face, sampled — else the trace turns back or runs along a circle.)
   for (let i = 0; i <= 32; i++) {
     const R = Ri + (Re - Ri) * i / 32, sb = spiralSin(T, R);
-    if (!(sb > 1e-6 && sb < 1 - 1e-6)) throw new GearError('INVALID_INPUT', `a cutter radius of ${rc} mm takes the spiral angle to ${sb >= 1 ? '90°' : '0°'} or past it within the face (at ${R.toFixed(4)} mm from the apex): ${sb >= 1 ? 'a larger' : 'another'} cutter radius, or a smaller spiral angle`);
+    if (!(sb > 1e-6 && sb < 1 - 1e-6)) throw gearError('INVALID_INPUT', `a cutter radius of ${rc} mm takes the spiral angle to ${sb >= 1 ? '90°' : '0°'} or past it within the face (at ${R.toFixed(4)} mm from the apex): ${sb >= 1 ? 'a larger' : 'another'} cutter radius, or a smaller spiral angle`);
   }
   return T;
 }
@@ -401,20 +401,20 @@ const swept = (p: Point, g: readonly number[], H: number): Point => [g[0] * p[0]
  */
 export function bevelGear(spec: BevelGearSpec, options: { readonly id?: string } = {}): { brep: Brep; report: BevelGearReport } {
   const id = safeId(options.id ?? 'bevel'), g = bevelGearDimensions(spec), tol = spec.profileToleranceMM ?? 1e-4 * g.m;
-  if (!(Number.isFinite(tol) && tol > 0)) throw new GearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
   // (A spiral gear's tolerance is shared: three quarters the section's fit, a quarter the twist's — their sum within it.)
   const T = g.trace, secTol = T ? 0.75 * tol : tol, twistTol = tol - secTol;
   const t0 = g.startPolar > g.deltaB ? rollAt(g.cb, g.sb, g.startPolar) : 0, t1 = rollAt(g.cb, g.sb, g.tipPolar);
   let N = 1, P = conicPieces(g.cb, g.sb, t0, t1, 1), dev = conicDeviation(g.cb, g.sb, P, g.Re);
   while (dev > secTol && N < MAX_PIECES) { P = conicPieces(g.cb, g.sb, t0, t1, ++N); dev = conicDeviation(g.cb, g.sb, P, g.Re); }
-  if (dev > secTol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `a flank within ${secTol} mm of the spherical involute needs more than ${MAX_PIECES} conic pieces (${MAX_PIECES} come to ${dev.toExponential(2)} mm)`);
+  if (dev > secTol) throw gearError('PROFILE_BUDGET_EXCEEDED', `a flank within ${secTol} mm of the spherical involute needs more than ${MAX_PIECES} conic pieces (${MAX_PIECES} come to ${dev.toExponential(2)} mm)`);
   // The twist (spiral): as few cubic pieces along the cone as keep G within its share, at most five to an axial segment.
   let K = 0, Sg = 1, Nt = 1, twistDev = 0;
   if (T) {
     K = 1; while (twistDeviation(T, g.Ri, g.Re, K) > twistTol && K < MAX_TWIST_PER_SEGMENT * MAX_SEGMENTS) K++;
     Sg = Math.ceil(K / MAX_TWIST_PER_SEGMENT); Nt = Math.ceil(K / Sg);
     for (let j = 0; j < Sg; j++) twistDev = Math.max(twistDev, twistDeviation(T, g.Ri + (g.Re - g.Ri) * j / Sg, g.Ri + (g.Re - g.Ri) * (j + 1) / Sg, Nt));
-    if (twistDev > twistTol) throw new GearError('PROFILE_BUDGET_EXCEEDED', `the spiral's twist within ${twistTol.toExponential(2)} mm needs more than ${MAX_SEGMENTS} axial segments of ${MAX_TWIST_PER_SEGMENT} cubic pieces`);
+    if (twistDev > twistTol) throw gearError('PROFILE_BUDGET_EXCEEDED', `the spiral's twist within ${twistTol.toExponential(2)} mm needs more than ${MAX_SEGMENTS} axial segments of ${MAX_TWIST_PER_SEGMENT} cubic pieces`);
   }
   // (Degree 4 a piece on the sphere: at most three pieces, 13 poles, to a face.)
   const F = Math.ceil(N / PIECES_PER_FACE), meridian = g.rootPolar < g.deltaB, list: Side[] = [];
@@ -490,16 +490,16 @@ export interface BevelGearPairCheck {
 }
 
 function compatible(g1: BevelGearSpec, g2: BevelGearSpec, a: BevelGearDimensions, b: BevelGearDimensions): void {
-  if (a.m !== b.m) throw new GearError('MATE_INCOMPATIBLE', `the modules differ (${a.m} and ${b.m} mm)`);
-  if (a.Sigma !== b.Sigma) throw new GearError('MATE_INCOMPATIBLE', `the shaft angles differ (${(a.Sigma * 180 / Math.PI)}° and ${(b.Sigma * 180 / Math.PI)}°)`);
-  if (g1.mateTeeth !== g2.teeth || g2.mateTeeth !== g1.teeth) throw new GearError('MATE_INCOMPATIBLE', `each gear's mateTeeth must be the other's teeth (${g1.teeth} with mate ${g1.mateTeeth}, ${g2.teeth} with mate ${g2.mateTeeth}): their pitch cones are another pair's`);
+  if (a.m !== b.m) throw gearError('MATE_INCOMPATIBLE', `the modules differ (${a.m} and ${b.m} mm)`);
+  if (a.Sigma !== b.Sigma) throw gearError('MATE_INCOMPATIBLE', `the shaft angles differ (${(a.Sigma * 180 / Math.PI)}° and ${(b.Sigma * 180 / Math.PI)}°)`);
+  if (g1.mateTeeth !== g2.teeth || g2.mateTeeth !== g1.teeth) throw gearError('MATE_INCOMPATIBLE', `each gear's mateTeeth must be the other's teeth (${g1.teeth} with mate ${g1.mateTeeth}, ${g2.teeth} with mate ${g2.mateTeeth}): their pitch cones are another pair's`);
   // (A spiral pair shares its tooth trace: one spiral angle, cutter radius and face width, the hands opposite.)
   const s1 = g1.spiral, s2 = g2.spiral;
-  if (!!s1 !== !!s2) throw new GearError('MATE_INCOMPATIBLE', 'a spiral bevel gear meshes with a spiral one, a straight with a straight');
+  if (!!s1 !== !!s2) throw gearError('MATE_INCOMPATIBLE', 'a spiral bevel gear meshes with a spiral one, a straight with a straight');
   if (s1 && s2) {
-    if (s1.hand === s2.hand) throw new GearError('MATE_INCOMPATIBLE', `both are ${s1.hand}-handed: a spiral bevel pair is of opposite hands`);
-    if (s1.angleDeg !== s2.angleDeg || s1.cutterRadiusMM !== s2.cutterRadiusMM) throw new GearError('MATE_INCOMPATIBLE', `the spirals differ (${s1.angleDeg}° on r_c ${s1.cutterRadiusMM} mm and ${s2.angleDeg}° on ${s2.cutterRadiusMM} mm): a pair shares its tooth trace`);
-    if (a.b !== b.b) throw new GearError('MATE_INCOMPATIBLE', `the face widths differ (${a.b} and ${b.b} mm): a spiral pair shares its tooth trace, through the mean point`);
+    if (s1.hand === s2.hand) throw gearError('MATE_INCOMPATIBLE', `both are ${s1.hand}-handed: a spiral bevel pair is of opposite hands`);
+    if (s1.angleDeg !== s2.angleDeg || s1.cutterRadiusMM !== s2.cutterRadiusMM) throw gearError('MATE_INCOMPATIBLE', `the spirals differ (${s1.angleDeg}° on r_c ${s1.cutterRadiusMM} mm and ${s2.angleDeg}° on ${s2.cutterRadiusMM} mm): a pair shares its tooth trace`);
+    if (a.b !== b.b) throw gearError('MATE_INCOMPATIBLE', `the face widths differ (${a.b} and ${b.b} mm): a spiral pair shares its tooth trace, through the mean point`);
   }
 }
 
@@ -757,9 +757,9 @@ export function checkPlacedBevelGears(g1: PlacedBevelGear, g2: PlacedBevelGear, 
   const a1 = bevelGearDimensions(g1.spec), a2 = bevelGearDimensions(g2.spec);
   compatible(g1.spec, g2.spec, a1, a2);
   const apart = Math.hypot(g2.apex[0] - g1.apex[0], g2.apex[1] - g1.apex[1], g2.apex[2] - g1.apex[2]);
-  if (apart > 1e-6 * a1.Re) throw new GearError('MATE_INCOMPATIBLE', `the apexes are ${apart.toFixed(6)} mm apart: a bevel pair shares its apex`);
+  if (apart > 1e-6 * a1.Re) throw gearError('MATE_INCOMPATIBLE', `the apexes are ${apart.toFixed(6)} mm apart: a bevel pair shares its apex`);
   const Z1 = unit3(g1.axis), Z2 = unit3(g2.axis), angle = Math.acos(Math.max(-1, Math.min(1, dot3(Z1, Z2))));
-  if (Math.abs(angle - a1.Sigma) > 1e-9) throw new GearError('MATE_INCOMPATIBLE', `the axes are ${(angle * 180 / Math.PI).toFixed(6)}° apart, not the shaft angle ${(a1.Sigma * 180 / Math.PI)}°`);
+  if (Math.abs(angle - a1.Sigma) > 1e-9) throw gearError('MATE_INCOMPATIBLE', `the axes are ${(angle * 180 / Math.PI).toFixed(6)}° apart, not the shaft angle ${(a1.Sigma * 180 / Math.PI)}°`);
   const k = dot3(Z2, Z1), d = unit3([Z2[0] - k * Z1[0], Z2[1] - k * Z1[1], Z2[2] - k * Z1[2]]);
   const P: Point = [Math.cos(a1.delta) * Z1[0] + Math.sin(a1.delta) * d[0], Math.cos(a1.delta) * Z1[1] + Math.sin(a1.delta) * d[1], Math.cos(a1.delta) * Z1[2] + Math.sin(a1.delta) * d[2]];
   const X1 = unit3(g1.xAxis), Y1 = cross3(Z1, X1), X2 = unit3(g2.xAxis), Y2 = cross3(Z2, X2);

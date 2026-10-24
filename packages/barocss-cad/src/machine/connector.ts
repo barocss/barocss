@@ -15,13 +15,14 @@ import { brepMassProperties } from '../brep/solid-mass.js';
 import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
 import { evaluateCadPart } from '../part/part-model.js';
 import { cross } from '../core/vec3.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type ConnectorCode = 'INVALID_INPUT' | 'CONNECTOR_PLACEMENT' | 'CONNECTOR_FIT';
-export class ConnectorError extends KernelError {
-  constructor(readonly code: ConnectorCode, detail: string) { super(`connector: ${detail}`); this.name = 'ConnectorError'; }
-}
-const fail = (code: ConnectorCode, detail: string): never => { throw new ConnectorError(code, detail); };
+/** This module's refusal (R7.3a batch 2: the ConnectorError class folded, D279): a BarocssError, `details.source` 'connector'. */
+export const connectorError = (code: ConnectorCode, detail: string) => kernelRefusal('connector', code, `connector: ${detail}`) as KernelError & { readonly code: ConnectorCode };
+/** Whether something thrown is this module's refusal. */
+export const isConnectorError = (e: unknown): e is KernelError & { readonly code: ConnectorCode } => isFrom<ConnectorCode>(e, 'connector');
+const fail = (code: ConnectorCode, detail: string): never => { throw connectorError(code, detail); };
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 const r6 = (x: number) => +x.toFixed(6);
 

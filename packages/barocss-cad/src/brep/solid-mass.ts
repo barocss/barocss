@@ -10,7 +10,7 @@ import { facetIntegrals } from '../mesh/facet-patch.js';
 import type { Brep } from './brep-core.js';
 import type { PrismaticSolid } from '../features/prismatic-solid.js';
 import type { Point } from '../types.js';
-import { KernelError } from '../core/barocss-error.js';
+import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export interface SolidMassProperties {
   readonly volumeMM3: number; readonly massKG: number; readonly centroidMM: Point;
@@ -24,13 +24,16 @@ export interface SolidMassProperties {
    */
   readonly volumeBoundMM3?: number;
 }
-export class SolidMassError extends KernelError { constructor(detail: string) { super('Mass properties: ' + detail, { code: 'SOLID_MASS' }); this.name = 'SolidMassError'; } }
+/** This module's refusal (R7.3a batch 2: the SolidMassError class folded, D279): a BarocssError, `details.source` 'solid-mass'. */
+export const solidMassError = (detail: string) => kernelRefusal('solid-mass', 'SOLID_MASS', 'Mass properties: ' + detail) as KernelError & { readonly code: 'SOLID_MASS' };
+/** Whether something thrown is this module's refusal. */
+export const isSolidMassError = (e: unknown): e is KernelError & { readonly code: 'SOLID_MASS' } => isFrom<'SOLID_MASS'>(e, 'solid-mass');
 
 /** From volume integrals [V, ∫x, ∫y, ∫z, ∫x², ∫y², ∫z², ∫xy, ∫xz, ∫yz] in mm-powers. */
 export function solidMassFromIntegrals(I: readonly number[], density: number, method: SolidMassProperties['method']): SolidMassProperties {
-  if (!(typeof density === 'number' && Number.isFinite(density) && density > 0)) throw new SolidMassError('a positive finite density is required');
+  if (!(typeof density === 'number' && Number.isFinite(density) && density > 0)) throw solidMassError('a positive finite density is required');
   const [V, X, Y, Z, XX, YY, ZZ, XY, XZ, YZ] = I;
-  if (!(V > 0)) throw new SolidMassError('the solid has no positive volume');
+  if (!(V > 0)) throw solidMassError('the solid has no positive volume');
   const c: Point = [X / V, Y / V, Z / V], k = density * 1e-15;
   const xx = XX - V * c[0] * c[0], yy = YY - V * c[1] * c[1], zz = ZZ - V * c[2] * c[2];
   const xy = XY - V * c[0] * c[1], xz = XZ - V * c[0] * c[2], yz = YZ - V * c[1] * c[2];
@@ -144,7 +147,7 @@ function meshIntegrals(brep: Brep, segmentsPerQuarter: number): number[] {
  * average, each inertia turns with its piece (R I Rᵀ) and moves to the common centroid (parallel axes).
  */
 export function combineMassProperties(parts: readonly { readonly props: SolidMassProperties; readonly axes: readonly [Point, Point, Point]; readonly offset: Point }[]): SolidMassProperties {
-  if (!parts.length) throw new SolidMassError('no pieces to combine');
+  if (!parts.length) throw solidMassError('no pieces to combine');
   const world = parts.map(({ props, axes, offset }) => {
     const R = [0, 1, 2].map(i => [axes[0][i], axes[1][i], axes[2][i]]), c = props.centroidMM;
     const centroid = [0, 1, 2].map(i => offset[i] + R[i][0] * c[0] + R[i][1] * c[1] + R[i][2] * c[2]) as Point;

@@ -14,10 +14,7 @@
 // ellipse a = ρ / cos β along the rack, b = ρ across (the normal section's circle, cut at β), exact as a rational arc.
 import type { Brep } from '../brep/brep-core.js';
 import type { Curve } from '../types.js';
-import {
-  GearError, inv, spurGearDimensions, extrudedProfile, safeId, lineCurve, exactProfile, teethNear, nearSegments, segmentsCross, segmentDistance, pointSegment, orient,
-  type GearDiagnostic, type SpurGearSpec,
-} from './gear.js';
+import { gearError, inv, spurGearDimensions, extrudedProfile, safeId, lineCurve, exactProfile, teethNear, nearSegments, segmentsCross, segmentDistance, pointSegment, orient, type GearDiagnostic, type SpurGearSpec } from './gear.js';
 
 /** Version 0 of the rack's inputs (lengths in mm). */
 export interface SpurRackSpec {
@@ -57,37 +54,37 @@ export interface SpurRackReport {
 
 const MAX_RACK_TEETH = 500;
 
-/** The rack's dimensions and its input checks (refusals thrown, as GearError). */
+/** The rack's dimensions and its input checks (refusals thrown, as gearError). */
 export function spurRackDimensions(spec: SpurRackSpec): SpurRackReport & { alpha: number; alphaN: number; s: number; mn: number; beta: number; shear: number; fillet?: RackFillet } {
   const n = spec.teeth, H = spec.heightMM, helical = spec.helixAngleDeg !== undefined && spec.helixAngleDeg !== 0;
   let m: number, beta = 0;
   if (helical) {
     const bd = spec.helixAngleDeg!;
-    if (spec.moduleMM !== undefined) throw new GearError('INVALID_INPUT', 'a helical rack takes normalModuleMM (the normal module), not moduleMM');
-    if (!(Number.isFinite(bd) && bd > 0 && bd <= 45)) throw new GearError('UNSUPPORTED_GEAR_KIND', `helix angle ${bd}°: from above 0 to 45° in this stage`);
-    if (spec.hand !== 'right' && spec.hand !== 'left') throw new GearError('INVALID_INPUT', "a helical rack needs its hand, 'right' or 'left'");
+    if (spec.moduleMM !== undefined) throw gearError('INVALID_INPUT', 'a helical rack takes normalModuleMM (the normal module), not moduleMM');
+    if (!(Number.isFinite(bd) && bd > 0 && bd <= 45)) throw gearError('UNSUPPORTED_GEAR_KIND', `helix angle ${bd}°: from above 0 to 45° in this stage`);
+    if (spec.hand !== 'right' && spec.hand !== 'left') throw gearError('INVALID_INPUT', "a helical rack needs its hand, 'right' or 'left'");
     m = spec.normalModuleMM as number; beta = (spec.hand === 'right' ? 1 : -1) * bd * Math.PI / 180;
   } else {
-    if (spec.normalModuleMM !== undefined || spec.hand !== undefined) throw new GearError('INVALID_INPUT', 'normalModuleMM and hand belong to a helical rack: give helixAngleDeg too (a straight rack takes moduleMM)');
+    if (spec.normalModuleMM !== undefined || spec.hand !== undefined) throw gearError('INVALID_INPUT', 'normalModuleMM and hand belong to a helical rack: give helixAngleDeg too (a straight rack takes moduleMM)');
     m = spec.moduleMM as number;
   }
-  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw new GearError('INVALID_INPUT', `${helical ? 'normalModuleMM' : 'moduleMM'} must be a number of mm above 0, at most 100`);
-  if (!(Number.isInteger(n) && n >= 1 && n <= MAX_RACK_TEETH)) throw new GearError('INVALID_INPUT', `teeth must be a whole number from 1 to ${MAX_RACK_TEETH}`);
-  if (!(Number.isFinite(spec.faceWidthMM) && spec.faceWidthMM > 0 && spec.faceWidthMM <= 10000)) throw new GearError('INVALID_INPUT', 'faceWidthMM must be a number of mm above 0');
+  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw gearError('INVALID_INPUT', `${helical ? 'normalModuleMM' : 'moduleMM'} must be a number of mm above 0, at most 100`);
+  if (!(Number.isInteger(n) && n >= 1 && n <= MAX_RACK_TEETH)) throw gearError('INVALID_INPUT', `teeth must be a whole number from 1 to ${MAX_RACK_TEETH}`);
+  if (!(Number.isFinite(spec.faceWidthMM) && spec.faceWidthMM > 0 && spec.faceWidthMM <= 10000)) throw gearError('INVALID_INPUT', 'faceWidthMM must be a number of mm above 0');
   const alphaDeg = spec.pressureAngleDeg ?? 20;
-  if (alphaDeg !== 20) throw new GearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${alphaDeg}°: only 20° in this stage`);
+  if (alphaDeg !== 20) throw gearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${alphaDeg}°: only 20° in this stage`);
   // (Helical: the transverse section — pitch π m_t, pressure angle α_t, heights in m_n — sliding along the rack as it
   // rises: −tan β for a right-hand label, +tan β for a left.)
   const cb = Math.cos(beta), alpha = Math.atan(Math.tan(alphaDeg * Math.PI / 180) / cb), ha = m, hf = 1.25 * m, p = Math.PI * m / cb, t = Math.tan(alpha), shear = -Math.tan(beta);
-  if (!(Number.isFinite(H) && H >= hf + m)) throw new GearError('INVALID_INPUT', `heightMM must be at least the dedendum and a rim of one module, ${(hf + m).toFixed(4)} mm (a geometric margin, not a strength check)`);
+  if (!(Number.isFinite(H) && H >= hf + m)) throw gearError('INVALID_INPUT', `heightMM must be at least the dedendum and a rim of one module, ${(hf + m).toFixed(4)} mm (a geometric margin, not a strength check)`);
   const red = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(red) && red >= 0)) throw new GearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
+  if (!(Number.isFinite(red) && red >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
   const s = p / 2 - red, tip = s - 2 * ha * t, root = p - s - 2 * hf * t;
-  if (!(tip > 0)) throw new GearError('SELF_INTERSECTION', 'the rack tooth comes to a point below its tip line');
-  if (!(root > 0)) throw new GearError('SELF_INTERSECTION', 'neighbouring rack teeth meet at the root');
+  if (!(tip > 0)) throw gearError('SELF_INTERSECTION', 'the rack tooth comes to a point below its tip line');
+  if (!(root > 0)) throw gearError('SELF_INTERSECTION', 'neighbouring rack teeth meet at the root');
   const filleted = spec.rootPolicy === 'filleted';
-  if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-corner' && !filleted) throw new GearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-corner' or 'filleted'`);
-  if (!filleted && spec.rootFilletRadiusMM !== undefined) throw new GearError('INVALID_INPUT', "rootFilletRadiusMM belongs to a filleted root (rootPolicy 'filleted')");
+  if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-corner' && !filleted) throw gearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-corner' or 'filleted'`);
+  if (!filleted && spec.rootFilletRadiusMM !== undefined) throw gearError('INVALID_INPUT', "rootFilletRadiusMM belongs to a filleted root (rootPolicy 'filleted')");
   const fillet = filleted ? rackFillet(spec.rootFilletRadiusMM ?? 0.38 * m, beta, alpha, hf, root) : undefined;
   return { generator: filleted ? 'spur-rack@1' : 'spur-rack@0', lengthMM: n * p, pitchMM: p, toothThicknessMM: s, tipWidthMM: tip, rootWidthMM: root, addendumMM: ha, dedendumMM: hf,
     ...(fillet ? { rootFillet: { radiusMM: fillet.rho, flankEndDepthMM: fillet.depth } } : {}),
@@ -105,7 +102,7 @@ export interface RackFillet { readonly rho: number; readonly a: number; readonly
 function rackFillet(rho: number, beta: number, alpha: number, hf: number, rootWidth: number): RackFillet {
   const a = beta ? rho / Math.cos(beta) : rho, b = rho, t = Math.tan(alpha), ca = Math.cos(alpha), sa = Math.sin(alpha);
   const reach = beta ? Math.sqrt(a * a * ca * ca + b * b * sa * sa) : rho, k = reach / rho, rhoMax = rootWidth / (2 * (k / ca - t));
-  if (!(Number.isFinite(rho) && rho > 0 && rho < rhoMax)) throw new GearError('INVALID_INPUT', `rootFilletRadiusMM must be above 0 and below ${rhoMax.toFixed(6)} mm (where the two fillets of a gap meet)`);
+  if (!(Number.isFinite(rho) && rho > 0 && rho < rhoMax)) throw gearError('INVALID_INPUT', `rootFilletRadiusMM must be above 0 and below ${rhoMax.toFixed(6)} mm (where the two fillets of a gap meet)`);
   // The centre: b above the root line and, from the flank's foot, along the root by reach / cos α − b tan α.
   const dx = reach / ca - b * t, thetaT = Math.PI + Math.atan(b / a * t);
   return { rho, a, b, dx, thetaT, depth: hf - b - b * Math.sin(thetaT) };
@@ -195,11 +192,11 @@ const rackCache = new Map<string, SpurRackPairCheck>();
 function rackCheck(gear: SpurGearSpec, rack: SpurRackSpec, options: SpurRackPairOptions): SpurRackPairCheck {
   const g = spurGearDimensions(gear), k = spurRackDimensions(rack);
   // (Helical: the rack as the z → ∞ gear of the pair — the same β, the opposite hand; checked in the transverse plane.)
-  if (g.mn !== k.mn) throw new GearError('MATE_INCOMPATIBLE', `modules ${g.mn} and ${k.mn} mm do not mesh`);
-  if (g.alphaN !== k.alphaN) throw new GearError('MATE_INCOMPATIBLE', 'pressure angles differ');
-  if (g.beta !== -k.beta) throw new GearError('MATE_INCOMPATIBLE', g.beta === 0 || k.beta === 0 ? 'a straight rack does not mesh with a helical gear, nor a helical rack with a spur gear' : Math.abs(g.beta) !== Math.abs(k.beta) ? 'helix angles differ' : 'a rack of the same hand as the gear does not mesh (the rack carries the opposite hand, as the z → ∞ gear of an external pair)');
+  if (g.mn !== k.mn) throw gearError('MATE_INCOMPATIBLE', `modules ${g.mn} and ${k.mn} mm do not mesh`);
+  if (g.alphaN !== k.alphaN) throw gearError('MATE_INCOMPATIBLE', 'pressure angles differ');
+  if (g.beta !== -k.beta) throw gearError('MATE_INCOMPATIBLE', g.beta === 0 || k.beta === 0 ? 'a straight rack does not mesh with a helical gear, nor a helical rack with a spur gear' : Math.abs(g.beta) !== Math.abs(k.beta) ? 'helix angles differ' : 'a rack of the same hand as the gear does not mesh (the rack carries the opposite hand, as the z → ∞ gear of an external pair)');
   const m = g.mn, alpha = g.alpha, x = gear.profileShiftCoefficient ?? 0, D0 = g.r + x * m, D = options.centerDistanceMM ?? D0;
-  if (!(Number.isFinite(D) && D > g.rb)) throw new GearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm beyond the base circle');
+  if (!(Number.isFinite(D) && D > g.rb)) throw gearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm beyond the base circle');
   const dd = D - D0, t = Math.tan(alpha), sa = Math.sin(alpha);
   // The gear's reference circle rolls on the rack's line D − r above its pitch line, where the rack's space is wider
   // by 2(D − r) tan α: backlash p − s_rack − s_gear + 2(D − r) tan α, with s_gear = 2r(ψ − inv α) (zero for a shifted
@@ -326,10 +323,10 @@ export interface PlacedSpurRackCheck extends SpurRackPairCheck { readonly rackPh
  */
 export function checkPlacedSpurRack(gear: { readonly spec: SpurGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }, rack: PlacedSpurRack, options: Omit<SpurRackPairOptions, 'centerDistanceMM' | 'rackPhaseMM'> = {}): PlacedSpurRackCheck {
   const overlap = Math.min(gear.from + gear.spec.faceWidthMM, rack.from + rack.spec.faceWidthMM) - Math.max(gear.from, rack.from);
-  if (!(overlap > 0)) throw new GearError('MATE_INCOMPATIBLE', `the faces do not overlap along the axis (${overlap.toFixed(6)} mm)`);
+  if (!(overlap > 0)) throw gearError('MATE_INCOMPATIBLE', `the faces do not overlap along the axis (${overlap.toFixed(6)} mm)`);
   const ex = Math.cos(rack.angle), ey = Math.sin(rack.angle), qx = gear.center[0] - rack.origin[0], qy = gear.center[1] - rack.origin[1];
   const u = qx * ex + qy * ey, D = -qx * ey + qy * ex;
-  if (!(D > 0)) throw new GearError('MATE_INCOMPATIBLE', 'the rack\'s teeth face away from the gear');
+  if (!(D > 0)) throw gearError('MATE_INCOMPATIBLE', 'the rack\'s teeth face away from the gear');
   // (Helical: both taken at the same height, where their faces begin to overlap — the gear's section turned along its
   // helix, the rack's slid along its shear.)
   const g = spurGearDimensions(gear.spec), k = spurRackDimensions(rack.spec), r = g.r, p = Math.PI * g.mt, zRef = Math.max(gear.from, rack.from);

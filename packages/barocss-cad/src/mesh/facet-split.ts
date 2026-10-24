@@ -9,7 +9,7 @@
 import { BrepError, isFacetFace, mergeBreps, type Brep } from '../brep/brep-core.js';
 import { triangulatePolygonWithHoles } from '../brep/brep-tessellate.js';
 import { facetBrepsFromTriangles, weldVertices } from './facet-brep.js';
-import { MeshBrepError } from './mesh-brep.js';
+import { isMeshBrepError } from './mesh-brep.js';
 import type { FacetPatch, Point } from '../types.js';
 import { cross as crossOf } from '../core/vec3.js';
 
@@ -249,7 +249,7 @@ function sideBrep(P: Float64Array, T: number[], G: number[], s: Soup, id: string
     const pieces = facetBrepsFromTriangles(Q, I, { id, groups: G, groupName, maximumTriangles: Infinity, weldMM: weld, open: s.open });
     return pieces.length === 1 ? pieces[0] : mergeBreps(pieces, { family: 'mesh', id });
   } catch (cause) {
-    if (cause instanceof MeshBrepError) throw new BrepError('GEOMETRY', `facet split: a side does not close (${cause.message})`);
+    if (isMeshBrepError(cause)) throw new BrepError('GEOMETRY', `facet split: a side does not close (${cause.message})`);
     throw cause;
   }
 }

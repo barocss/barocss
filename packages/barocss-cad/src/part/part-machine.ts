@@ -1,17 +1,17 @@
 // R5.3 (D222): the machine-element features of the part model — connectors, O-rings, bearings, keys, rings, pins,
 // keyways, shafts, springs, drives, cams and threads — moved out of part-model.ts's operation() as they were there. The
 // dispatcher calls `machineOperation` for those kinds.
-import { type BearingCode, BearingError, type BearingFitClasses, type BearingRow, bearingRowProblem, seatedBearing } from '../machine/bearing.js';
+import { type BearingCode, isBearingError, type BearingFitClasses, type BearingRow, bearingRowProblem, seatedBearing } from '../machine/bearing.js';
 import { type Brep } from '../brep/brep-core.js';
-import { type CamCode, CamError, type CamLaw, type CamReport, type CamSpec, discCam } from '../machine/cam.js';
-import { type ConnectorCode, ConnectorError, type ConnectorRow, connectorBody, connectorOpening } from '../machine/connector.js';
-import { type DriveCode, DriveError, type DriveRow, beltBand, couplingEnvelope, pulley, sprocket } from '../machine/drive.js';
+import { type CamCode, isCamError, type CamLaw, type CamReport, type CamSpec, discCam } from '../machine/cam.js';
+import { type ConnectorCode, isConnectorError, type ConnectorRow, connectorBody, connectorOpening } from '../machine/connector.js';
+import { type DriveCode, isDriveError, type DriveRow, beltBand, couplingEnvelope, pulley, sprocket } from '../machine/drive.js';
 import { type FitTable } from '../machine/fits.js';
-import { type GlandCode, GlandError, type GlandRanges, type ORingRow, glandCut, oringInGland } from '../machine/oring.js';
-import { type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, SpringError, type SpringReport, type SpringSpec, compressionSpring, hookedSpring, springDimensions } from '../machine/spring.js';
-import { type KeyFitClasses, type KeywayReport, type ShaftPartCode, ShaftPartError, keySolid, keywayCut, pinSolid, ringSolid } from '../machine/shaft-parts.js';
-import { MeshBrepError } from '../mesh/mesh-brep.js';
-import { type ShaftDiagnosticCode, ShaftError, type ShaftSpec, shaftSolid } from '../machine/shaft.js';
+import { type GlandCode, isGlandError, type GlandRanges, type ORingRow, glandCut, oringInGland } from '../machine/oring.js';
+import { type HookedSpringReport, type HookedSpringSpec, type SpringDiagnosticCode, isSpringError, type SpringReport, type SpringSpec, compressionSpring, hookedSpring, springDimensions } from '../machine/spring.js';
+import { type KeyFitClasses, type KeywayReport, type ShaftPartCode, isShaftPartError, keySolid, keywayCut, pinSolid, ringSolid } from '../machine/shaft-parts.js';
+import { isMeshBrepError } from '../mesh/mesh-brep.js';
+import { type ShaftDiagnosticCode, isShaftError, type ShaftSpec, shaftSolid } from '../machine/shaft.js';
 import { type XY } from '../brep/curved-arrangement.js';
 import { threadSolid } from '../machine/thread-solid.js';
 import { transformBrep } from '../brep/brep-transform.js';
@@ -47,7 +47,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       return () => {
         let made: ReturnType<typeof connectorOpening> | undefined;
         try { made = connectorOpening(brepOf(target[0], at), spec, at); }
-        catch (cause) { if (cause instanceof ConnectorError) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
+        catch (cause) { if (isConnectorError(cause)) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connector: made!.report }] };
       };
     }
@@ -57,7 +57,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       return () => {
         let made: ReturnType<typeof connectorBody> | undefined;
         try { made = connectorBody(brepOf(gp!, at), gp!.connector!, at); }
-        catch (cause) { if (cause instanceof ConnectorError) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
+        catch (cause) { if (isConnectorError(cause)) fail(CONNECTOR_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^connector: /, '')}`); throw cause; }
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, connectorBody: { row: gp!.connector!.row, overlapMM3: made!.overlapMM3 } }] };
       };
     }
@@ -74,7 +74,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       return () => {
         let made: ReturnType<typeof glandCut> | undefined;
         try { made = glandCut(brepOf(target[0], at), spec, at); }
-        catch (cause) { if (cause instanceof GlandError) fail(GLAND_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gland: /, '')}`); throw cause; }
+        catch (cause) { if (isGlandError(cause)) fail(GLAND_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^gland: /, '')}`); throw cause; }
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, gland: made!.report, glandPlace: made!.place }] };
       };
     }
@@ -98,7 +98,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       return () => {
         let made: ReturnType<typeof seatedBearing> | undefined;
         try { made = seatedBearing(f.row as BearingRow, { report: sp!.shaft!, place: sp!.shaftPlace!, brep: brepOf(sp!, String(f.shaft)) }, { step: f.step as number, against: f.against as 'start' | 'end', ...(housing ? { housing: brepOf(housing, String(f.housing)) } : {}), ...(fit ? { fit } : {}) }, at); }
-        catch (cause) { if (cause instanceof BearingError) fail(BEARING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^bearing: /, '')}`); throw cause; }
+        catch (cause) { if (isBearingError(cause)) fail(BEARING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^bearing: /, '')}`); throw cause; }
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, bearing: made!.report }] };
       };
     }
@@ -109,7 +109,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const placed = { report: sp!.shaft!, place: sp!.shaftPlace! };
       const index = (v: unknown, what: string) => { if (!Number.isInteger(v) || (v as number) < 1) fail('INPUT', `${what} must be a number from 1`); return v as number; };
       const optDim = (v: unknown, what: string) => v === undefined ? undefined : dim(v as CadPartDim, what, true);
-      const partFail = (cause: unknown): never => { if (cause instanceof ShaftPartError) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; };
+      const partFail = (cause: unknown): never => { if (isShaftPartError(cause)) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; };
       let hub: KeywayReport | undefined;
       if (f.kind === 'key' && f.hub !== undefined) { const h = ref(f.hub, 'hub').result, hp = h.kind === 'solid' && h.parts.length === 1 ? h.parts[0] : undefined; if (!hp?.keyway) fail('REFERENCE', `${String(f.hub)} is not a keyway`); hub = hp!.keyway; }
       const fit = f.kind === 'key' && f.fit !== undefined ? (isRecord(f.fit) && Array.isArray((f.fit as Record<string, unknown>).tables) && typeof (f.fit as Record<string, unknown>).key === 'string' ? f.fit as unknown as KeyFitClasses : fail('INPUT', 'fit must be { tables, key, seat?, hub? }')) : undefined;
@@ -131,7 +131,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       return () => {
         let made: ReturnType<typeof keywayCut> | undefined;
         try { made = keywayCut(brepOf(target[0], at), { face: f.face as string, widthMM: b, depthMM: t2, ...(f.angle !== undefined ? { angleDeg: f.angle as number } : {}) }, at); }
-        catch (cause) { if (cause instanceof ShaftPartError) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; }
+        catch (cause) { if (isShaftPartError(cause)) fail(SHAFT_PART_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft part: /, '')}`); throw cause; }
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made!.brep }, keyway: made!.report }] };
       };
     }
@@ -156,7 +156,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (deg(f.rotation, 'rotation') ?? 0) * Math.PI / 180;
       return () => {
         let made: ReturnType<typeof shaftSolid> | undefined;
-        try { made = shaftSolid(spec, { id: at }); } catch (cause) { if (cause instanceof ShaftError) fail(SHAFT_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft: /, '')}`); throw cause; }
+        try { made = shaftSolid(spec, { id: at }); } catch (cause) { if (isShaftError(cause)) fail(SHAFT_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^shaft: /, '')}`); throw cause; }
         const cs = Math.cos(turn), sn = Math.sin(turn);
         const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, shaft: made!.report, shaftPlace: { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] } }] };
@@ -173,7 +173,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
         ...(f.hand !== undefined ? { hand: f.hand as SpringSpec['hand'] } : {}), ...(f.ends !== undefined ? { ends: f.ends as SpringSpec['ends'] } : {}), ...(f.endCoils !== undefined ? { endCoils: num('endCoils') } : {}), ...(f.transition !== undefined ? { transitionDeg: num('transition') } : {}),
         ...(f.shearModulus !== undefined ? { shearModulusMPa: num('shearModulus'), ...(f.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(f.load !== undefined ? { loadN: num('load') } : {}), ...(f.profileTolerance !== undefined ? { profileToleranceMM: num('profileTolerance') } : {}),
         ...(f.type !== undefined ? { type: f.type as SpringSpec['type'] } : {}), ...(f.body !== undefined ? { body: f.body as SpringSpec['body'] } : {}), ...(f.wireSection !== undefined ? { wire: f.wireSection as SpringSpec['wire'] } : {}) };
-      const springFail = (cause: unknown): never => { if (cause instanceof SpringError) fail(SPRING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^spring: /, '')}`); throw cause; };
+      const springFail = (cause: unknown): never => { if (isSpringError(cause)) fail(SPRING_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^spring: /, '')}`); throw cause; };
       const hooked = f.type === 'extension' || f.type === 'torsion';
       if (!hooked && (f.hooks !== undefined || f.bendRadius !== undefined || f.loopRadius !== undefined || f.loopAngle !== undefined || f.initialTension !== undefined || f.legLengths !== undefined || f.youngsModulus !== undefined || f.moment !== undefined)) fail('INPUT', 'hooks, bends, loops, initial tension, legs, E and a moment belong to an extension or a torsion spring (give its type)');
       if (f.youngsModulusEstimate !== undefined && typeof f.youngsModulusEstimate !== 'boolean') fail('INPUT', 'youngsModulusEstimate must be true or false');
@@ -213,7 +213,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       };
       return () => {
         let made: { brep: Brep; part: Record<string, unknown> } | undefined;
-        try { made = make(); } catch (cause) { if (cause instanceof DriveError) fail(DRIVE_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^drive: /, '')}`); throw cause; }
+        try { made = make(); } catch (cause) { if (isDriveError(cause)) fail(DRIVE_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^drive: /, '')}`); throw cause; }
         const cs = Math.cos(turn), sn = Math.sin(turn);
         const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, ...made!.part }] };
@@ -236,7 +236,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const c = f.center === undefined ? [0, 0] : xy(f.center as CadPartPoint2, 'center'), z0 = f.from === undefined ? 0 : dim(f.from as CadPartDim, 'from'), turn = (num('rotation') ?? 0) * Math.PI / 180;
       return () => {
         let made: { readonly brep: Brep; readonly report: CamReport } | undefined;
-        try { made = discCam(spec, { id: at }); } catch (cause) { if (cause instanceof CamError) fail(CAM_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^cam: /, '')}`); throw cause; }
+        try { made = discCam(spec, { id: at }); } catch (cause) { if (isCamError(cause)) fail(CAM_CODES[cause.code], `[${cause.code}] ${cause.message.replace(/^cam: /, '')}`); throw cause; }
         const cs = Math.cos(turn), sn = Math.sin(turn);
         const brep = turn || c[0] || c[1] || z0 ? transformBrep(made!.brep, { matrix: [cs, -sn, 0, sn, cs, 0, 0, 0, 1], offset: [c[0], c[1], z0] }) : made!.brep;
         return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, cam: made!.report }] };
@@ -253,7 +253,7 @@ export function machineOperation(f: CadPartFeature & Record<string, unknown>, t:
       const form = (f.form as 'faceted' | 'helical' | undefined) ?? 'faceted';
       return () => {
         try { return one({ kind: 'brep', brep: threadSolid({ id: at, diameter: d, pitch: p, center: c, seat, form, ...(length === undefined ? {} : { length }), ...(hex ? { hex } : {}) }) }); }
-        catch (cause) { if (cause instanceof RangeError || cause instanceof MeshBrepError) fail('PARAMETER', cause.message); throw cause; }
+        catch (cause) { if (cause instanceof RangeError || isMeshBrepError(cause)) fail('PARAMETER', cause.message); throw cause; }
       };
     }
   }

@@ -1,9 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, tessellateExtrudedProfileSolid,
-  exportExtrudedProfileSolidStl, ExtrudedProfileError, evaluateCurve, cad, CadModelError,
-} from '../dist/index.js';
+import { buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, tessellateExtrudedProfileSolid, exportExtrudedProfileSolidStl, isExtrudedProfileError, evaluateCurve, cad, CadModelError } from '../dist/index.js';
 
 const slot = (l = 40, r = 6) => [
   { kind: 'line', start: [0, -r] },
@@ -75,7 +72,7 @@ test('full circle loop, clockwise input and a concave arc notch', () => {
 });
 
 test('refusals are typed: self-intersection, off-circle arc, degenerate input', () => {
-  const code = f => { try { f(); return 'none'; } catch (e) { assert.ok(e instanceof ExtrudedProfileError, String(e)); return e.code; } };
+  const code = f => { try { f(); return 'none'; } catch (e) { assert.ok(isExtrudedProfileError(e), String(e)); return e.code; } };
   assert.equal(code(() => buildProfileLoop([{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [10, 10] }, { kind: 'line', start: [10, 0] }, { kind: 'line', start: [0, 10] }])), 'SELF_INTERSECTION');
   assert.equal(code(() => buildProfileLoop([{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [10, 0], center: [10, 5], direction: 'ccw' }, { kind: 'line', start: [10, 12] }])), 'GEOMETRY');
   assert.equal(code(() => buildProfileLoop([{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [0, 0] }, { kind: 'line', start: [5, 5] }])), 'GEOMETRY');

@@ -116,6 +116,10 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.joints` | `get_joints` | — the assembly as links and joints from its base link |
 | `assembly.frames` | `set_frames` | frames: {name: {link, position?, rotation?, kind?} \| null} — tool and sensor frames |
 | `assembly.pose` | `forward_kinematics` | values: {joint key: radians \| mm} — where each part is |
+| `assembly.set_pose` | `set_pose` | values: {joint key: degrees \| mm} — the robot shown there, nothing stored |
+| `assembly.waypoint` | `set_waypoint` | motion, values?, at?, remove?, limits? — a stored motion's waypoints (degrees, mm) |
+| `assembly.check_path` | `check_path` | motion — a stored motion checked for contact along its timing |
+| `assembly.play` | `play_motion` | motion, samples? — a stored motion's poses over time |
 | `assembly.inertia` | `link_inertia` | — each link's mass, centre of mass and inertia (SI, link frame) |
 | `assembly.urdf` | `export_urdf` | name? — the robot as URDF, checked |
 | `assembly.mjcf` | `export_mjcf` | name? — the robot as a MuJoCo MJCF model, checked |

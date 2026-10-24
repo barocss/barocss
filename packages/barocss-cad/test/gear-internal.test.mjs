@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { internalGear, internalGearDimensions, internalGearCenterDistance, checkInternalGearPair, checkPlacedInternalGears, evaluateCadPart, GearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { internalGear, internalGearDimensions, internalGearCenterDistance, checkInternalGearPair, checkPlacedInternalGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
 
 // R12b.2a (D132): internal gears built directly, and the internal pair's checks. The oracles here are written apart from
 // gear.ts and gear-internal.ts: the ring's outline and area from the analytic involute, K1's internal example (Table
@@ -83,7 +83,7 @@ test('the ring as a solid (refused at the previous HEAD, no such generator): val
 });
 
 test('refusals: a tip inside the base circle (naming the shift that lifts it), a rim too thin, a shift out of range, a reduction too large, too few teeth; pairs that do not mesh', () => {
-  const code = (fn, c, re) => assert.throws(fn, e => e instanceof GearError && e.code === c && (!re || re.test(e.message)), String(fn));
+  const code = (fn, c, re) => assert.throws(fn, e => isGearError(e) && e.code === c && (!re || re.test(e.message)), String(fn));
   const g = { moduleMM: 2, teeth: 30, faceWidthMM: 8, rimDiameterMM: 90 };
   let lift = 0;
   assert.throws(() => internalGear(g), e => { const m = /a shift of at least x = (-?[\d.]+)/.exec(e.message); lift = m ? Number(m[1]) : NaN; return e.code === 'UNSUPPORTED_PROFILE_SHIFT' && m !== null; });

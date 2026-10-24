@@ -8338,9 +8338,12 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', post);
     await page.waitForFunction(() => window.__studioDoc?.instances?.length === 3 && window.__studioInstanceBounds?.().length === 3, null, { timeout: 20000 }); await idle();
     await page.waitForSelector('[aria-label="Joint base~a value"]', { timeout: 20000 });
+    // (Its own view, framed: a camera left by an earlier step — New part keeps it — would make the links small.)
+    await page.click('.views button:text-is("Iso")'); await page.click('.views button[title="Frame all (F)"]'); await page.waitForTimeout(400);
     await slide('Joint base~a value', 2);
     await page.waitForSelector('[aria-label="Motion"] [aria-label="Play motion"]:not([disabled])', { timeout: 20000 });
-    const reds = async () => { const px = await page.evaluate(() => window.__studioFrame(160)); let n = 0; for (let i = 0; i < px.length; i += 3) if (px[i] > 170 && px[i + 1] < 120 && px[i + 2] < 120) n++; return n; };
+    // (A dense grid: WebGPU's mark is a 2 px outline, which a coarse one steps over.)
+    const reds = async () => { const px = await page.evaluate(() => window.__studioFrame(320)); let n = 0; for (let i = 0; i < px.length; i += 3) if (px[i] > 170 && px[i + 1] < 120 && px[i + 2] < 120) n++; return n; };
     await page.click('[aria-label="Play motion"]');
     await page.waitForSelector('[aria-label="Motion contact"]', { timeout: 20000 });
     assert.match(await page.locator('[aria-label="Motion contact"]').innerText(), /^Contact .*post.* at t \d+\.\d{2} s$/);
@@ -8411,6 +8414,46 @@ try {
       await snap('rs1-arm-6r-motion');
       await page.selectOption('[aria-label="Motion speed"]', '1');
     }
+  });
+
+  // ---- RS2 (2): the recorder — the motion's video at its own timing, the Render turntable's over its duration -------
+  await check('RS2 video: a motion and a Render turntable exported as WebM — ffprobe reads its codec, its frames at 30 a second and the motion\'s length; not blank', async () => {
+    const fs = await import('node:fs'), file = join(out, 'rs2-video-6r.bcad');
+    const d = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/arm-6r/robot.bcad'), 'utf8'));
+    fs.writeFileSync(file, JSON.stringify(d));
+    await page.setInputFiles('input[aria-label="Model file"]', file);
+    await page.waitForSelector('[aria-label="Joint l5~l6 value"]', { timeout: 30000 }); await idle();
+    await page.evaluate(() => { const el = document.querySelector('[aria-label="Joint l5~l6 value"]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(Math.PI / 2)); el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForSelector('[aria-label="Export motion video"]:not([disabled])', { timeout: 20000 });
+    const T = +/\/ ([\d.]+) s$/.exec(await page.locator('[aria-label="Motion time readout"]').innerText())[1];
+    const webm = async (button, name) => {
+      const download = page.waitForEvent('download', { timeout: 60000 }), t0 = Date.now();
+      await page.click(`[aria-label="${button}"]`);
+      const got = await download, path = join(out, name); await got.saveAs(path);
+      const bytes = fs.readFileSync(path);
+      assert.match(got.suggestedFilename(), /\.webm$/);
+      assert.deepEqual([...bytes.subarray(0, 4)], [0x1a, 0x45, 0xdf, 0xa3], `${name}: a WebM (EBML) file`);
+      assert.ok(bytes.length > 4000, `${name}: ${bytes.length} bytes`);
+      // (ffprobe, an independent reader: the codec, the frames decoded and the length; ffmpeg's last frame not one colour.)
+      const { execFileSync } = await import('node:child_process');
+      const probe = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name,width,height,nb_read_frames:format=duration', '-of', 'json', path], { encoding: 'utf8' }));
+      const st = probe.streams[0], px = execFileSync('ffmpeg', ['-v', 'error', '-sseof', '-0.2', '-i', path, '-frames:v', '1', '-vf', 'scale=32:32', '-f', 'rawvideo', '-pix_fmt', 'gray', '-'], { maxBuffer: 1 << 20 });
+      const mean = px.reduce((a, b) => a + b, 0) / px.length, spread = Math.sqrt(px.reduce((a, b) => a + (b - mean) ** 2, 0) / px.length);
+      return { codec: st.codec_name, frames: +st.nb_read_frames, duration: +probe.format.duration, spread, took: (Date.now() - t0) / 1000 };
+    };
+    const v = await webm('Export motion video', 'rs2-motion.webm');
+    console.log(`  RS2 video: ${JSON.stringify(v)} for a ${T} s motion`);
+    assert.ok(/^vp[89]$/.test(v.codec), `a VP8 or VP9 stream: ${v.codec}`);
+    assert.equal(v.frames, Math.ceil(T * 30) + 1, 'a frame each 1/30 s over the motion, its end included');
+    assert.ok(Math.abs(v.duration - (Math.ceil(T * 30) + 1) / 30) < 0.05, `the motion's own length, however long the frames took to draw (${v.took.toFixed(1)} s): ${v.duration}`);
+    assert.ok(v.spread > 3, `its last frame shows the model, not one colour: ${v.spread.toFixed(1)}`);
+    // (The Render workspace: a 1 s turntable, recorded by the same recorder.)
+    await page.click('[aria-label="Joints home"]');
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('[aria-label="Timeline"]', { timeout: 20000 });
+    await page.fill('[aria-label="Duration"]', '1'); if (!(await page.isChecked('[aria-label="Turntable"]'))) await page.check('[aria-label="Turntable"]');
+    const r = await webm('Export animation video', 'rs2-turntable.webm');
+    assert.equal(r.frames, 31, 'the 1 s turntable at 30 a second'); assert.ok(r.spread > 3, 'not one colour');
+    await page.click('.mode button:text-is("Model")');
   });
 } finally {
   await browser.close(); await server.close();

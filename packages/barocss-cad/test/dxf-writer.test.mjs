@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { writeDxf, dxfNumber, dxfText, dxfHatchLines, DxfWriteError, DXF_WRITER_VERSION } from '../dist/index.js';
+import { writeDxf, dxfNumber, dxfText, dxfHatchLines, isDxfWriteError, DXF_WRITER_VERSION } from '../dist/index.js';
 import { caseRuns } from './dxf-cases.mjs';
 
 // R11b (O1): the DXF writer. Each conformance case (conformance/r11b/<case>/case.json) is written under each of
@@ -162,7 +162,7 @@ for (const name of cases) {
 
 test('R12: the solid hatch is refused; curves need a tolerance; a polyline no finer than it allows', () => {
   const c = JSON.parse(readFileSync(join(root, 'entities/case.json'), 'utf8')), doc = c.input.document;
-  assert.throws(() => writeDxf(doc, { version: 'AC1009', r12ChordTolerance: 1e-3 }), e => e instanceof DxfWriteError && e.code === 'R12_UNSUPPORTED');
+  assert.throws(() => writeDxf(doc, { version: 'AC1009', r12ChordTolerance: 1e-3 }), e => isDxfWriteError(e) && e.code === 'R12_UNSUPPORTED');
   const ellipse = { units: 'mm', entities: [{ type: 'ellipse', center: [0, 0], major: [10, 0], ratio: 0.5, start: 0, end: 2 * Math.PI }] };
   assert.throws(() => writeDxf(ellipse, { version: 'AC1009' }), e => e.code === 'R12_NEEDS_TOLERANCE');
   const coarse = writeDxf(ellipse, { version: 'AC1009', r12ChordTolerance: 0.1 }).report, fine = writeDxf(ellipse, { version: 'AC1009', r12ChordTolerance: 1e-4 }).report;
@@ -176,7 +176,7 @@ test('R12: the solid hatch is refused; curves need a tolerance; a polyline no fi
 
 test('typed refusals for what cannot be written as given', () => {
   const line = (x = {}) => ({ type: 'line', a: [0, 0], b: [1, 1], ...x });
-  const refused = (doc, code) => assert.throws(() => writeDxf({ units: 'mm', ...doc }), e => e instanceof DxfWriteError && e.code === code && e.message.startsWith(`DXF [${code}]`), code);
+  const refused = (doc, code) => assert.throws(() => writeDxf({ units: 'mm', ...doc }), e => isDxfWriteError(e) && e.code === code && e.message.startsWith(`DXF [${code}]`), code);
   refused({ entities: [line({ layer: 'NOPE' })] }, 'UNKNOWN_LAYER');
   refused({ entities: [line({ linetype: 'DOTS' })] }, 'UNKNOWN_LINETYPE');
   refused({ layers: [{ name: 'A', linetype: 'DOTS' }], entities: [] }, 'UNKNOWN_LINETYPE');
