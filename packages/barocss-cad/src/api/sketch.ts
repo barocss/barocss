@@ -5,9 +5,9 @@
 // node carries in both documents (rectangle, circle, polygon or a loop of lines and arcs). The facade writes them into
 // sketch, translate and rotate nodes; it computes no geometry of its own.
 import { refuse } from './refusal.js';
+import type { Vec3 } from './select.js';
 
 export type Vec2 = readonly [number, number];
-export type Vec3 = readonly [number, number, number];
 
 /** A plane as the documents store it: its origin (mm), its normal and its X axis (unit vectors, square to each other). */
 export interface PlaneData { readonly origin: Vec3; readonly normal: Vec3; readonly xAxis: Vec3 }

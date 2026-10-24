@@ -11,9 +11,8 @@ import type { Viewer, BackgroundInput, Material } from '../viewer/viewer.js';
 import type { GeometryInput } from '../viewer/geometry.js';
 import type { Light } from '../viewer/lights.js';
 import type { Projection } from '../viewer/camera.js';
+import type { Vec3 } from '../core/geometry-types.js';
 import { refuse } from './refusal.js';
-
-type Vec3 = [number, number, number];
 
 /** A mesh as data: GeometryInput's fields, a key to name it by, and its material — a Material, or a scene material's id. */
 export interface SceneMesh extends GeometryInput { key?: string; material?: Material | string }
