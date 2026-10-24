@@ -2,6 +2,7 @@
 import { inheritRowSources, rowEntries, rowKey, validRowSupplies, type RowKind, type RowSupply } from './rowSources';
 import type { StudioDoc } from './doc';
 import { bearingAssemblyView, bearingPartView, withoutBearingContext } from './bearingContext';
+import { refusal } from './refusal';
 
 export type ShopRowKind = 'machining-stock' | 'frame-stock' | 'section' | 'fit' | 'bearing' | 'oring' | 'ring' | 'drive' | 'connector' | 'fastener-size' | 'casting-rule' | 'mount';
 export interface ShopRowProvenance { kind: ShopRowKind; id: string; origin: 'local' | 'inherited' | 'override'; fileSourceStatus?: 'matched' | 'changed' | 'not-recorded'; fileSources?: readonly RowSupply[] }
@@ -103,7 +104,7 @@ export function flattenShopView(doc: StudioDoc): StudioDoc {
   const section = (s: import('./doc').MemberSection): import('./doc').MemberSection => {
     if (s.kind !== 'library') return s;
     const row = doc.frames?.sections?.find(r => r.id === s.id);
-    if (!row) throw new Error(`[FRAME_SECTION_UNKNOWN] no section row ${s.id}`);
+    if (!row) throw refusal('FRAME_SECTION_UNKNOWN', `no section row ${s.id}`);
     return row.section;
   };
   const nodes = doc.nodes.map(n => n.kind === 'frame' ? { ...n, section: section(n.section), ...(n.overrides ? { overrides: n.overrides.map(o => o.section ? { ...o, section: section(o.section) } : o) } : {}) } : n.kind === 'frame-member' ? { ...n, section: section(n.section) } : n);
@@ -113,7 +114,7 @@ export function flattenShopView(doc: StudioDoc): StudioDoc {
     const check = (kind: keyof typeof parentRows, id: string) => {
       const own = kind === 'fits' ? child.fits?.tables : child[kind]?.rows;
       const row = own?.find(r => r.id === id), above = parentRows[kind]?.find(r => r.id === id);
-      if (row && (!above || JSON.stringify(row) !== JSON.stringify(above))) throw new Error(`[SHOP_ROWS_FLATTEN_SCOPE] nested part ${inst.id} references distinct ${kind} row ${id}; flattening must retain its row context`);
+      if (row && (!above || JSON.stringify(row) !== JSON.stringify(above))) throw refusal('SHOP_ROWS_FLATTEN_SCOPE', `nested part ${inst.id} references distinct ${kind} row ${id}; flattening must retain its row context`);
     };
     for (const n of child.nodes) {
       if (n.kind === 'bearing') check('bearings', n.row);

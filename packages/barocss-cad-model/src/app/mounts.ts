@@ -10,6 +10,7 @@ import { mountRowsOf, NO_MOUNTS, noMountRow, patternPoints, type StudioMountRow 
 import type { BodyResult } from '../engine/evaluate';
 import { refOf } from './bodyRef';
 import type { Command, Ctx, Values } from './commands';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const }, no = (reason: string) => ({ ok: false as const, reason });
 type Axis = 'x' | 'y' | 'z';
@@ -55,24 +56,24 @@ export function mountNodes(ctx: Ctx, v: Values): StudioDoc {
   const rows = mountRowsOf(ctx.doc);
   if (!rows.size) throw new Error(NO_MOUNTS);
   const row = rows.get(String(v.row)); if (!row) throw new Error(noMountRow(String(v.row), [...rows.keys()]));
-  if (ctx.selection.faces.length !== 1) throw new Error('[MOUNT_FACE] select the flat face the mount goes on');
+  if (ctx.selection.faces.length !== 1) throw refusal('MOUNT_FACE', 'select the flat face the mount goes on');
   const f = ctx.selection.faces[0], body = ctx.bodies[f.body], face = body?.mesh.faces[f.face], fa = face && face.kind === 'plane' ? faceAxis(face.normal) : null;
-  if (!body || !face || !fa) throw new Error('[MOUNT_FACE] a mount goes on a flat face facing ±X, ±Y or ±Z');
+  if (!body || !face || !fa) throw refusal('MOUNT_FACE', 'a mount goes on a flat face facing ±X, ±Y or ±Z');
   if (row.bearing !== undefined) {
     const b = ctx.doc.bearings?.rows.find(r => r.id === row.bearing);
-    if (!b) throw new Error(`[MOUNT_ROW] mount row ${row.id} names bearing row ${row.bearing}, not loaded — load your bearing rows`);
-    if (Math.abs(b.boreMM - row.shaftMM) > 1e-9) throw new Error(`[MOUNT_RANGE] mount row ${row.id}: its bearing ${row.bearing}'s bore Ø${b.boreMM} is not its shaft Ø${row.shaftMM}`);
+    if (!b) throw refusal('MOUNT_ROW', `mount row ${row.id} names bearing row ${row.bearing}, not loaded — load your bearing rows`);
+    if (Math.abs(b.boreMM - row.shaftMM) > 1e-9) throw refusal('MOUNT_RANGE', `mount row ${row.id}: its bearing ${row.bearing}'s bore Ø${b.boreMM} is not its shaft Ø${row.shaftMM}`);
   }
   const turn = Number(v.turn ?? 0);
-  if (!TURNS.includes(String(turn))) throw new Error('[MOUNT_RANGE] turn is 0, 90, 180 or 270 (degrees)');
+  if (!TURNS.includes(String(turn))) throw refusal('MOUNT_RANGE', 'turn is 0, 90, 180 or 270 (degrees)');
   const [a, b] = PLANE[fa.axis], x = Number(v.x), y = Number(v.y), pilot = v.pilot === 'recess' ? 'recess' : 'through';
-  if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error('[MOUNT_RANGE] x and y are the output axis on the face (mm)');
+  if (!Number.isFinite(x) || !Number.isFinite(y)) throw refusal('MOUNT_RANGE', 'x and y are the output axis on the face (mm)');
   const cut = mountCuts(row, x, y, turn, pilot), ext = faceExtent(body, f.face, fa.k, a, b, fa.side), tol = 1e-6;
   // (Every cut within the face, and a recess shallower than the body behind it.)
   const inside = (c: readonly number[], ra: number, rb: number) => c[0] - ra >= ext.lo[0] - tol && c[0] + ra <= ext.hi[0] + tol && c[1] - rb >= ext.lo[1] - tol && c[1] + rb <= ext.hi[1] + tol;
-  for (const h of cut.holes) if (!inside(h.c, h.d / 2, h.d / 2)) throw new Error(`[MOUNT_RANGE] ${row.id}'s ${h.what} (Ø${r6(h.d)} at ${r6(h.c[0])}, ${r6(h.c[1])}) is off the face (${r6(ext.lo[0])}…${r6(ext.hi[0])} × ${r6(ext.lo[1])}…${r6(ext.hi[1])})`);
-  for (const h of cut.holes) if (h.depth !== undefined && !(h.depth < ext.depth - tol)) throw new Error(`[MOUNT_RANGE] ${row.id}'s ${h.what} (${h.depth} deep) is as deep as the face's ${r6(ext.depth)} mm: mount it through`);
-  if (cut.body) { const [w, h] = cut.body.turn % 180 ? [cut.body.h, cut.body.w] : [cut.body.w, cut.body.h]; if (!inside(cut.body.c, w / 2, h / 2)) throw new Error(`[MOUNT_RANGE] ${row.id}'s body cut-out (${r6(w)} × ${r6(h)}) is off the face`); }
+  for (const h of cut.holes) if (!inside(h.c, h.d / 2, h.d / 2)) throw refusal('MOUNT_RANGE', `${row.id}'s ${h.what} (Ø${r6(h.d)} at ${r6(h.c[0])}, ${r6(h.c[1])}) is off the face (${r6(ext.lo[0])}…${r6(ext.hi[0])} × ${r6(ext.lo[1])}…${r6(ext.hi[1])})`);
+  for (const h of cut.holes) if (h.depth !== undefined && !(h.depth < ext.depth - tol)) throw refusal('MOUNT_RANGE', `${row.id}'s ${h.what} (${h.depth} deep) is as deep as the face's ${r6(ext.depth)} mm: mount it through`);
+  if (cut.body) { const [w, h] = cut.body.turn % 180 ? [cut.body.h, cut.body.w] : [cut.body.w, cut.body.h]; if (!inside(cut.body.c, w / 2, h / 2)) throw refusal('MOUNT_RANGE', `${row.id}'s body cut-out (${r6(w)} × ${r6(h)}) is off the face`); }
   const where = { ...(fa.axis === 'z' ? {} : { axis: fa.axis }), ...(fa.side === 'min' ? { side: fa.side } : {}), face: face.name.split('+')[0] };
   const made = { command: 'mount', values: { row: row.id, x, y, turn: String(turn), pilot, face: where.face } };
   let doc = ctx.doc, parent = refOf(body);

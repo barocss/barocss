@@ -245,8 +245,8 @@ function partResult(doc: StudioDoc, snapshot: CadPartSnapshot, revision: number,
   const faceTable = faceTableFrom(snapshot.outputs); rememberFaceTable(doc, faceTable);
   return { ok: true, revision, bodies, ms: performance.now() - t0, faceTable, shopRows };
 }
-/** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved), or their refusal. */
-function skeletonsNow(doc: StudioDoc): StudioDoc { const r = resolveSkeletons(doc); if ('error' in r) throw new Error(r.error); return r.doc; }
+/** The document with its parameter-bound skeletons solved for its parameters now (O140; the same document when none moved); their refusal thrown. */
+function skeletonsNow(doc: StudioDoc): StudioDoc { return resolveSkeletons(doc).doc; }
 export function evaluateDoc(doc: StudioDoc, revision: number, quality = 8): EvalResult {
   const shopRows = provenanceOfTree(doc);
   const t0 = performance.now();

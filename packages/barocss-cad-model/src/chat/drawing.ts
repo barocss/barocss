@@ -1,8 +1,9 @@
-import { manufacturingDrawingProperties, manufacturingDrawingProblem, withManufacturingDrawing } from '../drawing/options';
+import { manufacturingDrawingProperties, checkManufacturingDrawing, withManufacturingDrawing } from '../drawing/options';
+import { firstProblem, isRefusal } from '../engine/refusal';
 // The agent's drawing tools (R14.5, O6): the same Auto layout, issue list and tolerance suggestions the Drawing
 // workspace offers, on the document's drawing. Reading tools change nothing; the others change the drawing, which an
 // agent can only propose (`propose` with them as ops; D41): the user accepts it in the studio.
-import { drawingDocument, drawingSource, drawingScopeOf, drawingScopeProblem, changeDrawingScope, drawsMadeOnly, type DrawingScope } from '../drawing/scope';
+import { drawingDocument, drawingSource, drawingScopeOf, checkDrawingScope, changeDrawingScope, drawsMadeOnly, type DrawingScope } from '../drawing/scope';
 import { elementNotes, partElements, withElementNotes, withElements } from '../drawing/elementCallouts';
 import { followedStale, staleText } from '../frames/skeleton';
 import { fitMiss, withFit } from '../drawing/fits';
@@ -102,7 +103,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
   const original = readDrawing(doc.drawing);
   let settings = original;
   if (name === 'set_drawing' && args.scope !== undefined) {
-    const why = drawingScopeProblem(args.scope); if (why) return { error: why };
+    const why = firstProblem(checkDrawingScope(args.scope)); if (why) return { error: why };
     try { settings = changeDrawingScope(original, args.scope as DrawingScope); } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
   }
   const i = drawingInputs(doc, settings);
@@ -192,9 +193,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       if (typeof args.title === 'string' && args.title.trim()) s.title = args.title.trim().slice(0, 80);
       // Freeze the pre-change scope before BOM/balloons can affect legacy scope inference.
       s = { ...s, scope: drawingScopeOf(i.settings) };
-      const options = withManufacturingDrawing(s, args);
-      if (typeof options === 'string') return { error: options };
-      s = options;
+      try { s = withManufacturingDrawing(s, args); } catch (e) { if (isRefusal(e, 'DRAWING_SECTION_REFERENCES')) return { error: e.message }; throw e; }
       // Sections, weld symbols and source tables need their new projection/meta for this result too.
       const updated = drawingInputs(doc, s);
       if (typeof updated === 'string') return { error: updated };
@@ -213,9 +212,9 @@ function setDrawingProblem(args: Record<string, unknown>): string | null {
   if (unknown) return `[DRAWING_OPTIONS] Unknown drawing setting ${unknown}.`;
   const choices: Record<string, readonly unknown[]> = { sheet: ['A4', 'A3'], projection: ['third', 'first'], front: ['y-', 'x+', 'y+', 'x-'], tolerancing: ['plus-minus', 'geometric'], response_format: ['auto', 'concise', 'detailed'] };
   for (const [key, values] of Object.entries(choices)) if (key in args && !values.includes(args[key])) return `[DRAWING_OPTIONS] ${key} must be one of ${values.join(', ')}.`;
-  if ('scope' in args) { const why = drawingScopeProblem(args.scope); if (why) return why; }
+  if ('scope' in args) { const why = firstProblem(checkDrawingScope(args.scope)); if (why) return why; }
   if ('scale' in args && args.scale !== 'auto' && (typeof args.scale !== 'number' || !SCALES.includes(args.scale))) return '[DRAWING_OPTIONS] scale must be a standard numeric scale or "auto".';
   for (const key of ['title', 'because']) if (key in args && typeof args[key] !== 'string') return `[DRAWING_OPTIONS] ${key} must be a string.`;
   if ('views' in args && (!Array.isArray(args.views) || !args.views.every(v => VIEW_IDS.includes(v)) || new Set(args.views).size !== args.views.length)) return '[DRAWING_OPTIONS] views must be unique front/top/right/iso names.';
-  return manufacturingDrawingProblem(args);
+  return firstProblem(checkManufacturingDrawing(args));
 }

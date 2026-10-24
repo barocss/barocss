@@ -9,7 +9,7 @@ import { instanceEvaluationCurrent, instanceEvaluationSources } from './viewport
 import { contentKey } from '@barocss/cad-model/engine/evalMemo';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
-import { resolveSkeletons } from '@barocss/cad-model/frames/skeleton';
+import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
 import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
 import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
 import { MATERIALS } from '@barocss/cad-model/library/materials';
@@ -50,7 +50,8 @@ import { useCamPreview } from './viewport/camPreview';
 import type { CamOptions } from './viewport/camDisplay';
 import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
 import { printOptionsOf, printSourceMeshes, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
-import { documentPrintPreviewProblem } from '@barocss/cad-model/engine/printPreview';
+import { checkDocumentPrintPreview } from '@barocss/cad-model/engine/printPreview';
+import { firstProblem, isRefusal } from '@barocss/cad-model/engine/refusal';
 import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
 import { CutListDialog } from './ui/CutListDialog';
@@ -2309,7 +2310,7 @@ export function App() {
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioClearance: () => unknown }).__studioClearance = () => clearanceDisplay; }, [clearanceDisplay]);
 
   const printMeshes = useMemo(() => printSourceMeshes(doc, bodies), [bodies, doc.bodies, doc.nodes]);
-  const printInputProblem = useMemo(() => documentPrintPreviewProblem(doc), [doc]);
+  const printInputProblem = useMemo(() => firstProblem(checkDocumentPrintPreview(doc)), [doc]);
   const printOptions = useMemo<PrintOptions>(() => printInputProblem ? { layer: 0, supports: true, printed: true } : printOptionsOf(doc, printing?.thresholds.maxOverhangDeg.value), [printInputProblem, doc.printPreview, doc.print, printing]);
   const printReason = printInputProblem ?? (rendering || drawing ? 'Print layers are available in Model view.'
     : doc.instances?.some(i => !i.hidden) ? 'Print layers currently support root part solids. Placed assemblies are not supported.'
@@ -2484,8 +2485,9 @@ export function App() {
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => {
           // (O140: the skeletons bound to a parameter re-solved with it — a conflict refused, the parameter named, nothing changed.)
-          const r = resolveSkeletons({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) });
-          if ('error' in r) { setToast({ title: 'That value does not hold', hint: r.error.replace(/^\[\w+\] /, ''), detail: 'The parameters are as they were.' }); return; }
+          let r: ReturnType<typeof resolveSkeletons>;
+          try { r = resolveSkeletons({ ...doc, ...p, ...(p.configurations ? {} : { configurations: undefined }) }); }
+          catch (e) { if (!isRefusal(e, ...SKELETON_CODES)) throw e; setToast({ title: 'That value does not hold', hint: e.message.replace(/^\[\w+\] /, ''), detail: 'The parameters are as they were.' }); return; }
           commit(r.doc);
         }} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
       {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}

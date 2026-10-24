@@ -16,7 +16,7 @@ import type { PartInstance, StudioDoc } from '../engine/doc';
 import { BASE, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
-import { exportNames, frameProblem, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
+import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
 
 export const ROBOT_VERSION = 1;
 export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';
@@ -273,7 +273,7 @@ export function jointTree(input: TreeInput): JointTree {
   // (O12: each frame on its link, or its refusal among the problems.)
   const frames: ToolFrame[] = [], partIds = new Set(parts), names = settings.frames ? exportNames({ links, joints }) : null;
   for (const [name, f] of Object.entries(settings.frames ?? {})) {
-    const why = frameProblem(name, f, { links }, partIds, names!);
+    const [why] = checkFrame(name, f, { links }, partIds, names!);
     if (why) problems.push({ ...why, frame: name, parts: [f.link] }); else frames.push(resolveFrame(name, f, placed.get(f.link)!));
   }
   return { version: 1, base, links, joints, loops, couplings, problems, notes, ...(frames.length ? { frames } : {}) };

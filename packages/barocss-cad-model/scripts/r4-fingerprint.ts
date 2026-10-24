@@ -79,7 +79,7 @@ for (const root of ROOTS) for (const p of files(join(repo, root))) {
 // (O11: each variability fixture's master and its variants, regenerated from it.)
 for (const [name, master] of await o11Masters(repo)) {
   docs.push([`o11/${name}/master`, master]);
-  for (const v of master.variability?.variants ?? []) docs.push([`o11/${name}/${v.name}`, async () => { const r = variantNamed(master, v.name); if ('error' in r) throw new Error(r.error); return r.doc; }]);
+  for (const v of master.variability?.variants ?? []) docs.push([`o11/${name}/${v.name}`, async () => variantNamed(master, v.name).doc]);
 }
 // (O14: a plate with each kind of mount cut into it from the sample rows.)
 for (const [name, values] of O14_MOUNTS) docs.push([`o14/${name}`, () => mountedPlate(values)]);
