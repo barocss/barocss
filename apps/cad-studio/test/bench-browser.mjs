@@ -24,6 +24,9 @@ function benchCaseNames(voxels) {
     'placing: 30 pointer moves before the click',
     'orbit: 60-step drag',
     'orbit: 60 steps, body outlined',
+    'render: orbit 60',
+    'render: orbit 60, post on (AgX, warm grade, vignette, bloom)',
+    'render: orbit 60, post on, knurled and lacquered (G15a)',
     'pose: a joint of the 2R arm played',
     'motion: the 2R arm\'s motion played',
     `cloud: ${voxels} workspace voxels, orbit 60`,
@@ -42,7 +45,7 @@ function benchCaseNames(voxels) {
 
 function benchRowsPass(rows, expectedNames, picks, fullRun) {
   const names = rows.map(r => r.name);
-  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 20) &&
+  return expectedNames.length > 0 && (!fullRun || expectedNames.length === 23) &&
     new Set(expectedNames).size === expectedNames.length &&
     names.length === expectedNames.length && new Set(names).size === names.length &&
     expectedNames.every(name => names.includes(name)) && rows.every(r => r.ok === true) &&

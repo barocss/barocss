@@ -22,9 +22,9 @@ const { parseFlowDpr, flowDisplayMatches } = helpers(flowFile, 'const flowDpr ='
 const all = [...benchCaseNames(412)], section = all.filter(name => /^section:/i.test(name));
 const passing = names => names.map(name => ({ name, ok: true }));
 
-test('unfiltered bench requires all 20 distinct named cases, including both ghost paths', () => {
-  // (17, then G-R49's two rows — typing in the HUD and placing a shape — and RS2's motion played.)
-  assert.equal(all.length, 20); assert.equal(new Set(all).size, 20);
+test('unfiltered bench requires all 23 distinct named cases, including Render and both ghost paths', () => {
+  // (The 20 modelling rows and G15d's three Render rows, including the post with bloom.)
+  assert.equal(all.length, 23); assert.equal(new Set(all).size, 23);
   assert.ok(all.includes('cloud: 412 workspace voxels, orbit 60'));
   assert.ok(all.includes('ghosted: 120 brackets, orbit 60 (sorted)'));
   assert.ok(all.includes('ghosted: 120 brackets, orbit 60 (order-independent)'));
@@ -32,6 +32,17 @@ test('unfiltered bench requires all 20 distinct named cases, including both ghos
   assert.equal(benchRowsPass(passing(all.slice(1)), all, null, true), false);
   assert.equal(benchRowsPass(passing(all.slice(1)), all.slice(1), null, true), false);
   assert.equal(benchRowsPass(passing(all), [...all.slice(1), all[1]], null, true), false);
+});
+
+test('BENCH_ONLY=render requires all three Render rows, including bloom', () => {
+  const render = all.filter(name => /^render:/i.test(name));
+  assert.deepEqual(render, [
+    'render: orbit 60',
+    'render: orbit 60, post on (AgX, warm grade, vignette, bloom)',
+    'render: orbit 60, post on, knurled and lacquered (G15a)',
+  ]);
+  assert.equal(benchRowsPass(passing(render), render, null, false), true);
+  assert.equal(benchRowsPass(passing(render.slice(0, 2)), render, null, false), false);
 });
 
 test('BENCH_ONLY=section expects exactly the selected GPU and CPU row names', () => {
