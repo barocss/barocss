@@ -26,6 +26,11 @@ test('engine.bcad is the build\'s, byte for byte', () => {
 
 test('it passes the brief\'s checks (the sweep in run.mjs)', async t => {
   const r = await checkEngine(JSON.parse(committed), { sweep: false });
+  const serialized = JSON.stringify(r);
+  assert.doesNotMatch(serialized, /"(?:ms|treeMs)"\s*:/);
+  for (const item of [r, ...r.checks]) {
+    assert.ok(Number.isFinite(item.duration) && item.duration >= 0, JSON.stringify(item));
+  }
   t.diagnostic(JSON.stringify(r.figures));
   assert.ok(r.ok, JSON.stringify(r.checks.filter(c => !c.ok)));
   assert.deepEqual(r.checks.map(c => c.id), ['parts', 'solves', 'cycle', 'timing', 'masses', 'balance', 'outputs']);
@@ -34,6 +39,9 @@ test('it passes the brief\'s checks (the sweep in run.mjs)', async t => {
   // Independent bore/stroke volume: pi/4 * 56^2 * 50, in mm^3. Figures are rounded to 0.001.
   assert.equal(r.figures.displacement, Math.round(Math.PI / 4 * 56 ** 2 * 50 * 1000) / 1000);
   assert.equal(r.figures.camRatio, 0.5);
+  assert.equal(r.figures.findings, 5);
+  assert.equal(r.figures.camWaiting, 11);
+  assert.equal(r.figures.camPackages, 0);
 });
 
 test('the piston pin and P1 mass helper keep independent tube values in MMGS', t => {
