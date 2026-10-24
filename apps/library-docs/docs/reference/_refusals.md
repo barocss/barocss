@@ -109,7 +109,11 @@
 | `[CASTING_RULE_ROW]` | `engine` | no … rules loaded — load your casting rules (samples/rows/casting-rules.json is an example) |
 | `[CASTING_SHRINK]` | `api`, `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
 | `[CONFIRM_IS_THE_USERS]` | `chat/part` | …: only the user confirms a requirement, in the studio; leave "confirmed" and "said" out. |
+| `[CONNECTOR_INVALID]` | `assembly` | A connector is an object with point, offset, turn and flip. |
+| `[CONNECTOR_KIND]` | `assembly` | A cam or lock mate cannot carry connectors. |
+| `[CONNECTOR_POINT]` | `assembly` | Point … is not available on …. |
 | `[CONNECTOR_ROW_UNKNOWN]` | `engine` | an opening names the connector row "…", which the document's connector rows do not hold (rows: …) |
+| `[CONNECTOR_UNAVAILABLE]` | `assembly` | This face has no computed area centre. |
 | `[CONTAINER_DAMAGED]` | `engine` | the file is cut short |
 | `[CONTAINER_NEWER]` | `engine` | this file was saved by a newer cad-studio (container version …; this one reads …) |
 | `[CURVED_BODY]` | `print` | the part has … curved face… and …: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3) |

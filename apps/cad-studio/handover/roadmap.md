@@ -18,7 +18,7 @@ section current.
 | Lane | Now | Next | Then |
 |---|---|---|---|
 | Kernel | R7.7b on the branch claude/kernel-r73b-r77b; R7.3b is committed there (`82c8acaec`, D280) and **held out of integration** until the window: it removes CadPartOutput's and CadPartSnapshot's methods, which cad-model (engine/evaluate.ts, engine/bodyNotes.ts) and the docs samples still call. R7.3a done for cad (D278 `f1da68dc1`; the fold D279) | R7.3b + R7.7b in one window with outer's R7.7a steps 2/4, API's R7.7d and docs, all branched from the kernel's branch; PG-3 (profile the engine head and spring) | R7.3d (284 of 401 files reachable only through exports), K17 |
-| Outer | O24(c) reference tables and spherical constraints adopted (`55b83d559`, merge `fe189cc47`); focused native and Chromium/file checks pass. Earlier O24(a), RS6 and PG-4/5/6/8 stay done | O24(b) connectors, then O24(d)/(e); R7.7a steps 2/4 in the coordinated window | P1-L3 live runs when P1's build is done |
+| Outer | O24(b) mate connectors adopted (`67a5622cd`, merge `ec7e1ff9a`), after O24(c); focused native/file/browser proof qualified, aggregate verification pending | R7.7a steps 2/4 at fixed base `c9cd4a8ca` plus the explicit verified O24(b) supplement | O24(d)/(e) after R7 consumer qualification |
 | GPU | G15d.2 bloom adopted (`621c7dc6f`, merge `cba255347`). G14 quiet section samples give mixed results (5.89 ms PASS, 7.43 ms FAIL against 6 ms); an excluded run ended above load 10. No new code checkpoint | Keep G14: separate surface/cap/output contributions before choosing an optimization; then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
 | API | P2 checkpoint `7a30ddcac` is held on its lane: focused tests 20/20 and types pass, but the product command exits 1 for missing connector and board-screw rows (PG-11/12); manufacturing, fit and interference remain unverified. P1 milestone 3 stays done (merge `af4384170`) | Finish P2 qualification; then P3, P4 | R7.7d after the cores' renames |
 | Docs | Boolean algorithms and an independently checked integer-box example documented; adopted DR-5, bloom and O24(c) coverage reconciled (`aad2acd0d`, merge `b2e6aacb2`); lane samples 51/51, focused model 20/20, docs check and build pass; post-merge docs check passes | Document adopted DR-6a; R7.6 part 2 and R7.7 consumers after the coordinated R7 window | the Later list |
@@ -59,7 +59,9 @@ Do not carry P2 or unrelated feature WIP into those branches. Coordinator retain
 explicit App/chat/node-bench/mesh-bench leases; Docs owns its candidate generators/text; Drawings owns its omitted
 consumers. GPU receives a read-only consumer-impact review under the owner's no-render-code-change instruction.
 Final qualification occurs on an isolated assembled consumer aggregate; source-ready patches are not product
-acceptance. No preparation branch is merged into product while any required consumer checkpoint is unqualified.
+acceptance. The later adopted O24(b) checkpoint `67a5622cd` is an explicit Outer supplement to the
+fixed base, not a base rewrite: Outer must reconcile it in its R7 branch and the aggregate must include it before
+promotion. No unverified connector WIP is authorized by this supplement. No preparation branch is merged into product while any required consumer checkpoint is unqualified.
 
 **R7.3b/R7.7b: HOLD.** Do not merge the kernel checkpoint alone. The window starts only when all five participants
 have immutable compatible checkpoints and their required checks are recorded:
