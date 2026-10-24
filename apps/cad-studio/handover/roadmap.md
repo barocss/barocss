@@ -10,6 +10,20 @@ coordinator, verification tiers) is in `notes/claude-resume-2026-10-23/`.
 
 **The goal (owner):** AI takes a brief to a manufacturable, buyable product. A9 is the first end-to-end run of that path.
 
+## Order now (2026-10-24, owner: "로드맵 제대로 정해서 진행해줘")
+
+Each lane works its queue top to bottom. The coordinator merges every checkpoint, runs check:docs, and keeps this
+section current.
+
+| Lane | Now | Next | Then |
+|---|---|---|---|
+| Kernel | K16, the Boolean self-union (D260) | R7.3a (cad's errors) | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
+| Outer | R7.3a (cad-model's errors) | R7.3c (one mass, bounds and STEP function) | the R7.3b follow-up in cad-model (`bodyMass` in g·mm²), then the Later list |
+| GPU | G13, robot frames in the viewport; the ghost's overlapping volume labels | R7.3a (gpu's errors) | R7.3c (gpu's vectors), R7.3d (the packet tag), G14 (measure, then decide) |
+| API | R7.4a (cad-model's part wraps cad's; v2 command names) | R7.4b (part growth, the selector-stability test) | R7.5, R7.5b, then R7.6 with the docs lane |
+| Docs | follow each merge, as the coordinator routes it | R7.6 | the Later list |
+| Coordinator | merges; S9 rerun after K16 and G13 | a window at each track boundary | the owner's open decisions (below) |
+
 ## Where we are
 
 Integration is `review/cad-gpu-engine-2026-10-14`, local only (tip in `git log`; last window 9b4e90f3e, see S9).
