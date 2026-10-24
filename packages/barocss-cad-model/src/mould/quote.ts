@@ -24,7 +24,7 @@ export interface QuoteRequest {
   material: { id: string; label: string; basis: 'body' | 'brief' } | null;
   finish: { id: string; label: string; draftMin: number } | null; pull: [number, number, number] | null; quantity: number | null;
   /** `volumeBasis` (O179): the volume is partly from the mesh — how far it and the mass may be off; an estimate. */
-  part: { size: [number, number, number]; volume: number; mass: number | null; bodies: number; volumeBasis?: { method: 'tessellated'; bound: number | null; massBoundG: number | null } };
+  part: { size: [number, number, number]; volume: number; mass: number | null; bodies: number; volumeBasis?: { method: 'tessellated'; bound: number | null; massBound: number | null } };
   tolerance: { value: number; perLength: number; source: string } | null; shrink: number | null;
   limits: { largestPartSize: [number, number, number] } | null;
   note: string;
@@ -34,7 +34,7 @@ function volumeBasisOfBodies(doc: StudioDoc, bodies: readonly BodyResult[]): { v
   const t = bodies.filter(b => b.volumeBasis);
   if (!t.length) return {};
   const v = t.some(b => b.volumeBasis!.bound === null) ? null : r6(t.reduce((s, b) => s + b.volumeBasis!.bound!, 0)), g = massBoundOf(doc, bodies);
-  return { volumeBasis: { method: 'tessellated', bound: v, massBoundG: g === null ? null : r6(g) } };
+  return { volumeBasis: { method: 'tessellated', bound: v, massBound: g === null ? null : r6(g) } };
 }
 export interface QuoteManifest { format: 'barocss-quote'; version: 1; files: { path: string; sha256: string; bytes: number }[]; open: string[]; complete: boolean }
 const ENC = new TextEncoder(), json = (v: unknown) => JSON.stringify(v, null, 1) + '\n', r6 = (v: number) => Math.round(v * 1e6) / 1e6 + 0;
@@ -50,7 +50,7 @@ function page(name: string, req: QuoteRequest, rep: PrintabilityReport, open: re
     `| finish | ${req.finish ? `${req.finish.label}: at least ${req.finish.draftMin}° draft` : '**not set**'} |`,
     `| pull | ${req.pull ? req.pull.join(', ') : '**not set**'} |`,
     `| quantity | ${req.quantity ?? '**not stated**'} |`,
-    `| part | ${req.part.size.join(' × ')} mm, ${req.part.volume} mm³${req.part.mass !== null ? `, ${req.part.mass} g` : ''}${req.part.volumeBasis ? ` (an estimate from the mesh: ± ${req.part.volumeBasis.bound ?? '?'} mm³${req.part.volumeBasis.massBoundG !== null && req.part.mass !== null ? `, ± ${req.part.volumeBasis.massBoundG} g` : ''})` : ''} |`,
+    `| part | ${req.part.size.join(' × ')} mm, ${req.part.volume} mm³${req.part.mass !== null ? `, ${req.part.mass} g` : ''}${req.part.volumeBasis ? ` (an estimate from the mesh: ± ${req.part.volumeBasis.bound ?? '?'} mm³${req.part.volumeBasis.massBound !== null && req.part.mass !== null ? `, ± ${req.part.volumeBasis.massBound} g` : ''})` : ''} |`,
     `| tolerance | ${req.tolerance ? `±${req.tolerance.value} mm + ${req.tolerance.perLength} mm/mm (${req.tolerance.source})` : '—'} |`,
     `| shrink | ${req.shrink ?? 'no sourced value for this material'} |`, '',
     '## Manufacturability (IM1–IM5)', '', '| rule | status | |', '|---|---|---|', ...rep.rules.map(row), '',

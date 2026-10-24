@@ -61,6 +61,8 @@ test('IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-
   assert.ok(serializedRequest.limits);
   assert.deepEqual(Object.keys(serializedRequest.limits), ['largestPartSize']);
   assert.equal(Object.hasOwn(serializedRequest.limits, 'largestPartMM'), false);
+  assert.equal(Object.hasOwn(r.part, 'volumeBasis'), false);
+  assert.equal(Object.hasOwn(serializedRequest.part, 'volumeBasis'), false);
   assert.deepEqual(r.part.size, [60, 40, 25]);
   assert.ok(Math.abs(r.part.volume - volume) <= 1e-6 * volume, `${r.part.volume} vs ${volume}`);
   assert.ok(Math.abs(r.part.mass! - volume * materialData('abs')!.density / 1000) <= 2e-3, String(r.part.mass));
