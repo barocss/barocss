@@ -14373,3 +14373,8 @@ them changed.
 - At the commit's parent 88deb6df7 the samples are 47/48. The failing one, cad-model-api's "rows from a person's file,
   then a fastener from them", fails on that tip without this change too: not this change's.
 - No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+**Where the change is in history:** the fold's code (69 files under `packages/barocss-cad`) is in `44cb23283`, the
+coordinator's roadmap commit. The patch was applied in the shared integration worktree for its last check, and that
+commit took the working tree with it. The patch and the commit's cad diff are identical. `a152dee7e` holds this record
+and the README row. Integration is never rewritten, so the two stay as they are; read them together as D279.
