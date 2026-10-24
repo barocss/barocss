@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, outputOf } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const circle = (id, r) => ({ id, kind: 'sketch', profile: 'circle', center: [0, 0], radius: r });
@@ -31,7 +31,7 @@ test('tessellation: a cylinder face keeps no triangle whose corners all lie on o
     circle('cs', 1.465), { id: 'cb', kind: 'extrude', sketch: 'cs', height: 2.223 }, { id: 'c', kind: 'translate', target: 'cb', offset: [1.418, -0.382, 1.519] },
     { id: 'r', kind: 'intersect', target: 'a', tool: 'c' }]);
   for (const [name, doc] of [['fuzz 5', five], ['fuzz 118', crossed]]) {
-    const brep = evaluateCadPart(doc).output('r').brep;
+    const brep = outputOf(evaluateCadPart(doc), 'r').brep;
     assert.equal(openEdges(brep, tessellateBrep(brep, { segmentsPerQuarter: 8 })), 0, name);
   }
   for (const name of ['notch-v-tee', 'notch-holesaw-tee']) {

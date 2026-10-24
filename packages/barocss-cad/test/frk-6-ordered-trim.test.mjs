@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Session } from 'node:inspector';
-import { evaluateCadPart, booleanAnalytic, brepMassProperties, cutPiece, cutList, cutListCsv } from '../dist/index.js';
+import { evaluateCadPart, booleanAnalytic, brepMassProperties, cutPiece, cutList, cutListCsv, massPropertiesOf, checkOutput } from '../dist/index.js';
 
 const ROUND = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 6 };
 const A = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9);
@@ -11,7 +11,7 @@ const frame = (more = {}) => ({
   segments: [[0, 4], [1, 5], [2, 6], [3, 7], [4, 5], [5, 6], [6, 7], [7, 4]], ...more,
 });
 const run = f => evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [f] });
-const volume = o => o.massProperties(1).volumeMM3;
+const volume = o => massPropertiesOf(o).volume;
 const near = (got, want, label) => assert.ok(Math.abs(got - want) <= 1e-9 * Math.max(1, Math.abs(want)), `${label}: ${got} vs ${want}`);
 
 // Observe the real private dispatch without adding a product API or replacing a
@@ -92,16 +92,16 @@ test('FRk6 the ordinary rounded ordered table uses capped tools and preserves D1
   assert.ok(delta > 227 && delta < 228, 'D126 leg-round sliver is retained, not removed by the opposite stub');
   const expected = [A * 720, A * 720, A * 720, A * 720, A * 560 + 2 * bonus, A * 360 + 2 * bonus - delta, A * 560 + 2 * bonus - delta, A * 360 + 2 * bonus - 2 * delta];
   assert.equal(s.outputs.length, 8);
-  s.outputs.forEach((o, i) => { near(volume(o), expected[i], `member ${i}`); assert.equal(o.bodyCount, 1); assert.equal(o.validate().valid, true); });
-  const pieces = s.outputs.map(o => cutPiece(o)), list = cutList(pieces, { densityKgPerM3: 7850 });
+  s.outputs.forEach((o, i) => { near(volume(o), expected[i], `member ${i}`); assert.equal(o.bodyCount, 1); assert.equal(checkOutput(o).valid, true); });
+  const pieces = s.outputs.map(o => cutPiece(o)), list = cutList(pieces, { density: 7.85 });
   assert.equal(list.totals.quantity, 8);
   pieces.forEach((p, i) => { near(p.volumeMM3, expected[i], `cut piece ${i}`); assert.equal(p.fromVolume, i >= 4); });
-  near(list.totals.massKG, expected.reduce((a, b) => a + b, 0) * 7850e-9, 'cut-list total mass');
+  near(list.totals.mass, expected.reduce((a, b) => a + b, 0) * 7.85e-3, 'cut-list total mass');
   const csv = cutListCsv(list); s.outputs.forEach(o => assert.ok(csv.includes(o.id), `CSV retains ${o.id}`));
   let welded = s.outputs[0].brep;
   for (const o of s.outputs.slice(1)) welded = booleanAnalytic(welded, o.brep, 'union');
   assert.equal(welded.bodies.length, 1);
-  near(brepMassProperties(welded, 1).volumeMM3, expected.reduce((a, b) => a + b, 0), 'welded table sum');
+  near(brepMassProperties(welded, 1).volume, expected.reduce((a, b) => a + b, 0), 'welded table sum');
   t.diagnostic(`observed Boolean calls=${booleans}; D126 bonus=${bonus}, last-rail delta=${delta}`);
 });
 

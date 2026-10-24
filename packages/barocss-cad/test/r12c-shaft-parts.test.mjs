@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, keySolid, keywayCut, ringSolid, pinSolid, isShaftPartError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { shaftSolid, keySolid, keywayCut, ringSolid, pinSolid, isShaftPartError, checkBrep, brepMassProperties, evaluateCadPart, outputOf } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.3b (D157): a key in its keyseat and the hub's keyway, a retaining ring in its groove, a pin in its cross hole.
@@ -9,15 +9,15 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 // placements by the bounds. Sizes: D139's K1 (6 × 6, t1 3.5, t2 2.8 for shafts 17–22) and R1 (Ø19 × 1.30, ring 1.20 on
 // Ø20) as test values; the fit rows below are test values flagged estimates.
 
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
 const code = c => e => isShaftPartError(e) && e.code === c;
 const I = { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const shaft = (ends = 'end-mill') => shaftSolid({ steps: [{ diameterMM: 20, lengthMM: 40, keyseats: [{ widthMM: 6, depthMM: 3.5, lengthMM: 18, offsetMM: 5, ends }], grooves: [{ diameterMM: 19, widthMM: 1.3, atMM: 30 }] }, { diameterMM: 25, lengthMM: 30 }], holes: [{ diameterMM: 4, atMM: 55 }] }, { id: 's' });
 /** A hub: Ø40 outside, a Ø20 bore, 18 long from z 5 (over the seat). */
-const hubBody = (dx = 0) => evaluateCadPart(D([{ id: 'o', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20, plane: { origin: [0, 0, 5], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: 18 },
-  { id: 'b', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'be', kind: 'extrude', sketch: 'b', height: 40 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'be' }])).output('h').brep;
+const hubBody = (dx = 0) => outputOf(evaluateCadPart(D([{ id: 'o', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20, plane: { origin: [0, 0, 5], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: 18 },
+  { id: 'b', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 10, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'be', kind: 'extrude', sketch: 'b', height: 40 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'be' }])), 'h').brep;
 const FITS = [{ id: 'key-fits', rows: [{ class: 'N9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', overMM: 3, upToMM: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', overMM: 3, upToMM: 6, upperUM: 0, lowerUM: -30, estimate: true }] }];
 
 test('R12c.3b key and hub keyway: a round-ended 6 × 6 × 18 key in the end-milled seat — (l − b)bh + π(b/2)²h; the keyway removes L·∫((r + t2) − √(r² − v²)); 2.5 above the shaft, 0.3 under the keyway\'s floor (S0)', () => {
@@ -91,7 +91,7 @@ test('R12c.3b part model: a shaft turned and moved, its key, a hub with its keyw
     { id: 'r', kind: 'retaining-ring', shaft: 's', groove: 1, thickness: 1.2, outerDiameter: 24, row: { shaftDiameter: 20, grooveDiameter: 19, estimate: true } },
     { id: 'p', kind: 'pin', shaft: 's', hole: 1 }];
   const snap = evaluateCadPart(D(feats));
-  const k = snap.output('k'), r = snap.output('r'), p = snap.output('p'), kw = snap.output('kw');
+  const k = outputOf(snap, 'k'), r = outputOf(snap, 'r'), p = outputOf(snap, 'p'), kw = outputOf(snap, 'kw');
   near(k.key.hub.topClearanceMM, 0.3, 1e-12, 'clearance'); assert.equal(r.ring.estimate, true); assert.equal(p.pin.lengthMM, 25); assert.equal(kw.keyway.angleDeg, 90);
   // Turned 90° about Z and moved to (50, 0, 10): the key on +Y at 6.5–12.5 from the axis, z 15–33.
   const kb = brepBounds(k.brep); near(kb.min[1], 6.5, 1e-9, 'key on +Y'); near(kb.min[2], 15, 1e-9, 'key z'); near((kb.min[0] + kb.max[0]) / 2, 50, 1e-9, 'key x');

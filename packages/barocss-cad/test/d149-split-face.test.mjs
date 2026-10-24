@@ -19,7 +19,7 @@ const circle = (c, r, a0 = 0) => {
   const at = k => [c[0] + r * Math.cos(a0 + k * Math.PI / 4) / (k % 2 ? W : 1), c[1] + r * Math.sin(a0 + k * Math.PI / 4) / (k % 2 ? W : 1), c[2]];
   return { kind: 'curve', id: 'k', degree: 2, knots: [0, 0, 0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1, 1, 1], controlPoints: Array.from({ length: 9 }, (_, k) => at(k)), weights: Array.from({ length: 9 }, (_, k) => k % 2 ? W : 1) };
 };
-const volume = b => brepMassProperties(b, 1).volumeMM3;
+const volume = b => brepMassProperties(b, 1).volume;
 const code = f => { try { f(); return 'ok'; } catch (e) { return (/\[([A-Z_]+)\]/.exec(e.message) ?? [, e.message])[1]; } };
 const near = (a, b, rel, what) => assert.ok(Math.abs(a - b) <= rel * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
 /** The result's faces named as the input's, except the split face's pieces. */

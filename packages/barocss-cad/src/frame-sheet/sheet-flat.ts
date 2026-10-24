@@ -328,7 +328,7 @@ function checkVolume(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, devAr
     if (m.kind === 'plane') want += c.T * a;
     else want += c.T * a * (m.inner + c.T / 2) / m.rn;
   }
-  const V = brepMassProperties(c.brep, 1).volumeMM3;
+  const V = brepMassProperties(c.brep, 1).volume;
   if (!(Math.abs(V - want) <= 1e-7 * Math.max(Math.abs(V), 1))) throw flatPatternError('NOT_A_SHEET', `the body is not a sheet ${fmt(c.T)} mm thick: its volume ${fmt(V)} mm³ against ${fmt(want)} mm³ for its skin`);
 }
 

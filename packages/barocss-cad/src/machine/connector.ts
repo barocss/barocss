@@ -13,7 +13,7 @@ import type { Point } from '../types.js';
 import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
 import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { cross } from '../core/vec3.js';
 import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
@@ -85,10 +85,10 @@ function prism(id: string, s: ConnectorSection, z0: number, height: number, tag:
     { id: `${sub}s`, kind: 'sketch', profile: 'loop', segments: segs, plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, sideTags: { outer: segs.map((_, i) => `${tag}${i + 1}`) } },
     { id: sub, kind: 'extrude', sketch: `${sub}s`, height }] };
   const prefix = `${sub}.side[`;
-  return transformBrep(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+  return transformBrep(outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
     nm => nm.split('|').map(q => q.startsWith(prefix) ? `${id}.${q.slice(prefix.length, q.indexOf(']'))}${q.slice(q.indexOf(']') + 1)}` : q.startsWith(`${sub}.`) ? `${id}.${tag}.${q.slice(sub.length + 1)}` : q).join('|'));
 }
-const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volume;
 const unit = (v: readonly number[]): Point => { const n = Math.hypot(v[0], v[1], v[2]); return [v[0] / n, v[1] / n, v[2] / n]; };
 /** The opening's frame on a face of outward normal n at `origin`: x the face's width direction turned `rotationDeg` about n. */
 export function connectorFrame(origin: readonly number[], normal: readonly number[], rotationDeg = 0): { readonly origin: Point; readonly x: Point; readonly y: Point; readonly z: Point } {

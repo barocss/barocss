@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, sketch, Plane, Location, BarocssError } from '../dist/api/index.js';
-import { evaluateCadPart, exportStep } from '../dist/index.js';
+import { evaluateCadPart, exportStep, massPropertiesOf } from '../dist/index.js';
 
 const doc = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const tags = n => ({ outer: Array.from({ length: n }, (_, k) => `e${k + 1}`) });
@@ -89,8 +89,8 @@ const mirroredDoc = () => doc([
 const CASES = [['plate', plate, plateDoc], ['cup', cup, cupDoc], ['ring', ring, ringDoc], ['pegged', pegged, peggedDoc], ['tabs', tabs, tabsDoc], ['mirrored', mirrored, mirroredDoc]];
 // (exportStep stamps the export's time in FILE_NAME; the two runs are compared without it.)
 const unstamped = text => text.replace(/'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d'/g, "'stamp'");
-// (MMGS, api-conventions.md §2, from the kernel's kg units: its density in kg/m³ is g/cm³ × 1000.)
-const mmgs = m => ({ volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroidMM: [...m.centroidMM], inertiaGMM2: m.inertiaCentroidKgM2.map(row => row.map(v => v * 1e9)) });
+// (The kernel's mass is MMGS since R7.3b: the facade's result shape over it, nothing converted.)
+const mmgs = m => ({ volumeMM3: m.volume, massG: m.mass, centroidMM: [...m.centroid], inertiaGMM2: m.inertia.map(row => [...row]) });
 
 for (const [name, built, hand] of CASES) {
   test(`${name}: the facade writes the hand-written CadPartDocument, byte for byte`, () => {
@@ -99,8 +99,8 @@ for (const [name, built, hand] of CASES) {
   test(`${name}: its bodies, mass and STEP are the kernel's own on that document`, () => {
     const outputs = evaluateCadPart(hand()).outputs, p = built();
     assert.deepEqual(p.bodies(), outputs.map(o => o.id));
-    for (const o of outputs) assert.equal(JSON.stringify(p.body(o.id).mass({ density: 1.2 })), JSON.stringify(mmgs(o.massProperties(1200))));
-    const step = outputs.length === 1 ? outputs[0].exportStep({ name }) : exportStep(outputs.map(o => o.brep), { name });
+    for (const o of outputs) assert.equal(JSON.stringify(p.body(o.id).mass({ density: 1.2 })), JSON.stringify(mmgs(massPropertiesOf(o, 1.2))));
+    const step = outputs.length === 1 ? exportStep(outputs[0], { name }) : exportStep(outputs.map(o => o.brep), { name });
     assert.equal(unstamped(p.step()), unstamped(step));
   });
 }

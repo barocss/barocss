@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, exportStep, importStep } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, exportStep, importStep, massPropertiesOf } from '../dist/index.js';
 import { brepMassProperties } from '../dist/brep/solid-mass.js';
 import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
 
@@ -49,10 +49,10 @@ test('R11.3 mesh bodies shelled: polyhedra exactly their sharp-join insets, the 
     ['pocket', POCKET, 0.9, 20400 - (38.2 * 28.2 * 18.2 - 21.8 * 11.8 * 18), [0.9, 1.1]],
   ];
   for (const [name, m, t, exact, [lo, hi]] of cases) {
-    const o = out(shell(m.P, m.I, t)), r = checkBrep(o.brep, { strict: true }), v = o.massProperties(1), what = `${name} t ${t}`;
+    const o = out(shell(m.P, m.I, t)), r = checkBrep(o.brep, { strict: true }), v = massPropertiesOf(o), what = `${name} t ${t}`;
     assert.equal(r.valid, true, `${what}: ${r.issues}`);
     assert.equal(o.brep.shells.length, 2, what);
-    assert.ok(Math.abs(v.volumeMM3 / exact - 1) < 1e-12, `${what}: ${v.volumeMM3} vs ${exact}`);
+    assert.ok(Math.abs(v.volume / exact - 1) < 1e-12, `${what}: ${v.volume} vs ${exact}`);
     assert.equal(o.shell.wallMM, t);
     assert.ok(Math.abs(o.shell.wallMinMM - lo) < 1e-9 && Math.abs(o.shell.wallMaxMM - hi) < 1e-9, `${what}: wall ${o.shell.wallMinMM} … ${o.shell.wallMaxMM}`);
   }
@@ -64,16 +64,16 @@ test('R11.3 a mesh sphere shelled: the wall it achieves within its normals\' spr
     assert.equal(r.valid, true, `${what}: ${r.issues}`);
     assert.equal(o.brep.shells.length, 2, what);
     assert.ok(o.shell.wallMinMM >= t * (1 - spread) && o.shell.wallMaxMM <= t * (1 + spread), `${what}: ${o.shell.wallMinMM} … ${o.shell.wallMaxMM}`);
-    assert.ok(o.massProperties(1).volumeMM3 > 0 && o.massProperties(1).volumeMM3 < out([mesh(m.P, m.I)]).massProperties(1).volumeMM3, what);
+    assert.ok(massPropertiesOf(o).volume > 0 && massPropertiesOf(o).volume < massPropertiesOf(out([mesh(m.P, m.I)])).volume, what);
   }
 });
 
 test('R11.3 a hollow mesh body through STEP and back, planar and tessellated: its void kept (HEAD wrote both shells as one, refused on reading)', () => {
-  const ball = icosphere(10, 3), o = out(shell(ball.P, ball.I, 1)), v = o.massProperties(1).volumeMM3;
+  const ball = icosphere(10, 3), o = out(shell(ball.P, ball.I, 1)), v = massPropertiesOf(o).volume;
   for (const meshes of ['planar', 'tessellated']) {
     const back = importStep(exportStep(o.brep, { meshes }));
     assert.equal(back.shells.length, 2, meshes);
-    assert.ok(Math.abs(brepMassProperties(back, 1).volumeMM3 / v - 1) < 1e-9, meshes);
+    assert.ok(Math.abs(brepMassProperties(back, 1).volume / v - 1) < 1e-9, meshes);
   }
 });
 
@@ -95,7 +95,7 @@ test('R11.3 thicken refuses its fold by name: a quarter cylinder R 10 thickened 
   refused(thicken(21, 'both'), 'CAPABILITY', /\[OFFSET_FOLDS\] face t curves more tightly than the wall .*the wall 10\.5 mm/);
   // Within the radius, or away from the axis: made (a sampled mesh, so the volume is near the exact one).
   for (const [t, side, exact] of [[9, 'normal', Math.PI / 4 * (100 - 1) * 10], [12, 'reverse', Math.PI / 4 * (22 * 22 - 100) * 10], [19, 'both', Math.PI / 4 * (19.5 ** 2 - 0.5 ** 2) * 10]]) {
-    const v = out(thicken(t, side)).massProperties(1).volumeMM3;
+    const v = massPropertiesOf(out(thicken(t, side))).volume;
     assert.ok(Math.abs(v / exact - 1) < 2e-3, `${t} ${side}: ${v} vs ${exact}`);
   }
 });

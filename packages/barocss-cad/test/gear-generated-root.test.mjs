@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurGearDimensions, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { spurGear, spurGearDimensions, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain, outputOf } from '../dist/index.js';
 
 // R12b.1a (D130): the generated root — the root the basic rack cuts (its tip rounded by ρ, 0.38 m by default), generator
 // spur-gear@1. Every check here is against an oracle written in this file, apart from gear.ts: the tool's true signed
@@ -169,7 +169,7 @@ test('the form circle by the textbook formula; the root circle; an undercut gear
 test('the volume is the exact generated profile\'s area × the face width (the area from this file\'s own envelope and involute), within the measured fits', () => {
   for (const [m, z, x, red] of CASES) {
     const b = 6, { brep, report } = spurGear({ moduleMM: m, teeth: z, faceWidthMM: b, profileShiftCoefficient: x, toothThicknessReductionMM: red, rootPolicy: 'generated' }), T = tool(m, z, x, red);
-    const want = generatedArea(T) * b, got = brepMassProperties(brep, 1).volumeMM3;
+    const want = generatedArea(T) * b, got = brepMassProperties(brep, 1).volume;
     // (Each flank's and fillet's area moves by at most its deviation times its length.)
     const slack = 2 * z * (report.profileDeviationMM * 1.25 * m + report.generatedRoot.filletDeviationMM * 1.5 * m) * b + 1e-9 * want;
     close(got, want, slack, `m${m} z${z} x${x} volume`);
@@ -219,17 +219,17 @@ test('refusals: a tip radius that leaves no flat, fewer than six teeth, a tip ra
   assert.equal(spurGearDimensions({ ...g, teeth: 12 }).root.undercut, true);
   // The part model: spur-gear@1 is the generated root; toolTipRadius only with it; an unknown generator is CAPABILITY.
   const feat = extra => D([{ id: 'g', kind: 'spur-gear', module: 2, teeth: 14, faceWidth: 5, ...extra }]);
-  const out = evaluateCadPart(feat({ generator: 'spur-gear@1', toolTipRadius: 0.6 })).output('g');
+  const out = outputOf(evaluateCadPart(feat({ generator: 'spur-gear@1', toolTipRadius: 0.6 })), 'g');
   assert.equal(out.gear.rootPolicy, 'generated'); assert.equal(out.gear.generatedRoot.toolTipRadiusMM, 0.6); assert.equal(out.gear.generatedRoot.undercut, true);
   assert.ok(out.brep.faces.some(f => f.name === 'g.filletL#1'));
-  assert.throws(() => evaluateCadPart(feat({ toolTipRadius: 0.6 })).output('g'), e => e.code === 'INPUT' && /toolTipRadius/.test(e.message));
-  assert.throws(() => evaluateCadPart(feat({ generator: 'spur-gear@2' })).output('g'), e => e.code === 'CAPABILITY');
-  assert.throws(() => evaluateCadPart(feat({})).output('g'), e => e.code === 'CAPABILITY' && /UNSUPPORTED_PROFILE_SHIFT/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(feat({ toolTipRadius: 0.6 })), 'g'), e => e.code === 'INPUT' && /toolTipRadius/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(feat({ generator: 'spur-gear@2' })), 'g'), e => e.code === 'CAPABILITY');
+  assert.throws(() => outputOf(evaluateCadPart(feat({})), 'g'), e => e.code === 'CAPABILITY' && /UNSUPPORTED_PROFILE_SHIFT/.test(e.message));
 });
 
 test('STEP out and back: the same volume, the fillets\' names', () => {
   const { brep } = spurGear({ moduleMM: 2, teeth: 16, faceWidthMM: 8, boreDiameterMM: 8, rootPolicy: 'generated' }, { id: 'g' });
   const back = importStep(exportStep([brep], { name: 'gear' }));
-  close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip');
+  close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip');
   assert.ok(back.faces.some(f => f.name === 'g.filletL#1') && back.faces.some(f => f.name === 'g.filletR#16'));
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf, massPropertiesOf } from '../dist/index.js';
 import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 import { evaluateCurve } from '../dist/core/math.js';
 import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
@@ -58,11 +58,11 @@ test('R11.2c-1 a filleted pipe tee shelled with its three ends opened: the kept 
         else if (/^b\.side0/.test(face.name)) { const a = cylinderArea(body, face, branch, r); A += a; V += a * (t - t * t / (2 * r)); }
         else { const x = patchBand(face, t); A += x.A; V += x.V; }
       }
-      const o = out(shell(R, r, f, t)), report = checkBrep(o.brep, { strict: true }), m = o.massProperties(1), what = `R ${R} r ${r} f ${f} t ${t}`;
+      const o = out(shell(R, r, f, t)), report = checkBrep(o.brep, { strict: true }), m = massPropertiesOf(o), what = `R ${R} r ${r} f ${f} t ${t}`;
       assert.equal(report.valid, true, `${what}: ${report.issues}`);
       assert.equal(o.brep.shells.length, 1, what);
       assert.equal(m.method, 'quadrature', what);
-      assert.ok(Math.abs(m.volumeMM3 - V) <= A * 1e-6 * 60, `${what}: ${m.volumeMM3} vs ${V} (${(m.volumeMM3 - V) / V})`);
+      assert.ok(Math.abs(m.volume - V) <= A * 1e-6 * 60, `${what}: ${m.volume} vs ${V} (${(m.volume - V) / V})`);
       // The kept faces keep their names; the hollow's are named after them; no end face is left.
       const names = o.brep.faces.map(x => x.name);
       for (const n of ENDS) assert.ok(!names.includes(n), `${what}: ${n}`);

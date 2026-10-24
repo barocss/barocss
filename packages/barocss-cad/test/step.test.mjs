@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, exportStep, importStep, checkBrep, brepMassProperties, BrepError } from '../dist/index.js';
+import { evaluateCadPart, exportStep, importStep, checkBrep, brepMassProperties, BrepError, massPropertiesOf } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const rect = (id, x0, y0, x1, y1) => ({ id, kind: 'sketch', profile: 'rectangle', min: [x0, y0], max: [x1, y1] });
-const volume = b => brepMassProperties(b, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+const volume = b => brepMassProperties(b, 1, { segmentsPerQuarter: 32 }).volume;
 const box = [rect('s', 0, 0, 30, 20), { id: 'e', kind: 'extrude', sketch: 's', height: 8 }];
 const parts = {
   'a holed plate': D([...box, { id: 'h', kind: 'hole', target: 'e', center: [15, 10], radius: 4 }]),
@@ -17,7 +17,7 @@ const parts = {
 
 test('STEP export is well formed AP214 and round-trips every part exactly (validity, faces, names, volume)', () => {
   for (const [name, doc] of Object.entries(parts)) {
-    const o = evaluateCadPart(doc).outputs.at(-1), text = o.exportStep({ name: 'part' });
+    const o = evaluateCadPart(doc).outputs.at(-1), text = exportStep(o, { name: 'part' });
     // Structure: header and schema, every instance terminated, every reference defined.
     assert.match(text, /^ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION/);
     assert.match(text, /FILE_SCHEMA\(\('AUTOMOTIVE_DESIGN \{ 1 0 10303 214 1 1 1 1 \}'\)\);/);
@@ -68,7 +68,7 @@ test('STEP from other systems: analytic surfaces, closed circles, seams and pole
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.deepEqual(b.faces.map(f => f.name).sort(), faces, name);
     // The mesh's own error at 48 segments a quarter (about 2e-4 for a circle).
-    assert.ok(near(brepMassProperties(b, 1000, { segmentsPerQuarter: 48 }).volumeMM3, expected, 5e-4), `${name}: ${brepMassProperties(b, 1000, { segmentsPerQuarter: 48 }).volumeMM3} vs ${expected}`);
+    assert.ok(near(brepMassProperties(b, 1, { segmentsPerQuarter: 48 }).volume, expected, 5e-4), `${name}: ${brepMassProperties(b, 1, { segmentsPerQuarter: 48 }).volume} vs ${expected}`);
     assert.ok(b.edges.every(e => e.vertices[0] !== e.vertices[1]), `${name}: no closed edges`);
     const again = importStep(exportStep(b));
     assert.equal(checkBrep(again).valid, true, `${name}: written back and read again`);
@@ -77,13 +77,13 @@ test('STEP from other systems: analytic surfaces, closed circles, seams and pole
   const k = (10 - 3 * pi) / (12 - 3 * pi), corner = 1 - pi / 4;
   const holed = evaluateCadPart(D([{ id: 'i', kind: 'import', step: holedBoxStep() }, { id: 'h', kind: 'hole', target: 'i', center: [8, 8], radius: 2 }])).outputs[0];
   assert.equal(checkBrep(holed.brep).valid, true);
-  assert.ok(near(holed.massProperties(1000).volumeMM3, 12000 - 160 * pi - 40 * pi, 1e-4));
+  assert.ok(near(massPropertiesOf(holed, 1).volume, 12000 - 160 * pi - 40 * pi, 1e-4));
   assert.ok(holed.brep.faces.some(f => f.name === 'i.hole#1') && holed.brep.faces.some(f => f.name.startsWith('h.')), 'imported faces are prefixed by the feature id');
   const rim = evaluateCadPart(D([{ id: 'i', kind: 'import', step: holedBoxStep() }, { id: 'f', kind: 'fillet', target: 'i', edges: ['i.hole#1|i.top'], radius: 1 }])).outputs[0];
   assert.equal(checkBrep(rim.brep).valid, true);
-  assert.ok(near(rim.massProperties(1000).volumeMM3, 12000 - 160 * pi - 2 * pi * (4 + k) * corner, 1e-4), String(rim.massProperties(1000).volumeMM3));
+  assert.ok(near(massPropertiesOf(rim, 1).volume, 12000 - 160 * pi - 2 * pi * (4 + k) * corner, 1e-4), String(massPropertiesOf(rim, 1).volume));
   const chamfered = evaluateCadPart(D([{ id: 'i', kind: 'import', step: cylinderStep() }, { id: 'c', kind: 'chamfer', target: 'i', edges: ['i.top|i.wall#1'], distance: 1 }])).outputs[0];
-  assert.ok(near(chamfered.massProperties(1000).volumeMM3, 250 * pi - 2 * pi * (5 - 1 / 3) * 0.5, 5e-4), String(chamfered.massProperties(1000).volumeMM3)); // (the 32-per-quarter mesh's error)
+  assert.ok(near(massPropertiesOf(chamfered, 1).volume, 250 * pi - 2 * pi * (5 - 1 / 3) * 0.5, 5e-4), String(massPropertiesOf(chamfered, 1).volume)); // (the 32-per-quarter mesh's error)
   // What cannot be read yet is refused by name.
   assert.throws(() => evaluateCadPart(D([{ id: 'i', kind: 'import', step: "ISO-10303-21;\nDATA;\n#1=OFFSET_SURFACE('',#5,1.,.F.);\n#2=MANIFOLD_SOLID_BREP('',#3);\n#3=CLOSED_SHELL('',(#4));\n#4=ADVANCED_FACE('',(),#1,.T.);\nENDSEC;" }])),
     e => e.code === 'CAPABILITY' && /OFFSET_SURFACE surfaces are not supported yet/.test(e.message));
@@ -101,7 +101,7 @@ test('a STEP file with several solids: one body by default, each solid its own p
   const each = evaluateCadPart(D([{ id: 'i', kind: 'import', step: text, each: true }])).outputs;
   assert.deepEqual(each.map(o => o.id), ['i/0', 'i/1']);
   for (const o of each) assert.equal(checkBrep(o.brep).valid, true);
-  assert.deepEqual(each.map(o => +o.massProperties(1000).volumeMM3.toFixed(6)), [500, 144]);
+  assert.deepEqual(each.map(o => +massPropertiesOf(o, 1).volume.toFixed(6)), [500, 144]);
   // A part takes features on its own.
   const moved = evaluateCadPart(D([{ id: 'i', kind: 'import', step: text, each: true }, { id: 't', kind: 'translate', target: 'i/1', offset: [0, 0, 10] }])).outputs;
   assert.deepEqual(moved.map(o => o.id), ['i/0', 't']);
@@ -115,8 +115,8 @@ test('curved bodies read back from STEP keep their exact volume (quadrature over
     ['a torus and a rod joined', D([...tor, rect('b', -1, -1, 1, 1), { id: 'e', kind: 'extrude', sketch: 'b', height: 40 }, { id: 'u', kind: 'union', target: 'r', tool: 'e' }]), 2 * Math.PI ** 2 * 30 * 25 + 160],
   ];
   for (const [name, doc, exact] of cases) {
-    const o = evaluateCadPart(doc).outputs.at(-1), back = evaluateCadPart(D([{ id: 'i', kind: 'import', step: o.exportStep({ name: 'x' }) }])).outputs[0].massProperties(1000);
+    const o = evaluateCadPart(doc).outputs.at(-1), back = massPropertiesOf(evaluateCadPart(D([{ id: 'i', kind: 'import', step: exportStep(o, { name: 'x' }) }])).outputs[0], 1);
     assert.equal(back.method, 'quadrature', name);
-    assert.ok(Math.abs(back.volumeMM3 - exact) <= 1e-9 * exact, `${name}: ${back.volumeMM3} vs ${exact}`);
+    assert.ok(Math.abs(back.volume - exact) <= 1e-9 * exact, `${name}: ${back.volume} vs ${exact}`);
   }
 });

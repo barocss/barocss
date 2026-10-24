@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, evaluateSurface, evaluateCurve, curveDomain, surfaceDomain, evaluateSurfaceCurvature, buildBrep, checkBrep, brepMassProperties, nurbsOf } from '../dist/index.js';
+import { evaluateCadPart, evaluateSurface, evaluateCurve, curveDomain, surfaceDomain, evaluateSurfaceCurvature, buildBrep, checkBrep, brepMassProperties, nurbsOf, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 
 // R11 S0 (D105): the feasibility checkpoint before general shell and offset. The research note's R11.1–R11.3
@@ -11,7 +11,7 @@ import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 // the body's own topology (a closed smooth body's cavity, no Boolean), against Steiner's formula.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const vol = features => out(features).massProperties(1).volumeMM3;
+const vol = features => massPropertiesOf(out(features)).volume;
 const yzAt = x => ({ origin: [x, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }), xz = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const refused = (features, code, pattern) => assert.throws(() => out(features), e => (e.details?.category ?? e.code) === code && pattern.test(e.message), String(pattern));
 const pol = (c, r, a) => [c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)];
@@ -94,8 +94,8 @@ test('R11 S0 then and now: a slab grown across a smooth edge into a concave face
     // Not grown across the smooth edges: the slabs meet there in one plane (the normal at the contact), coincident side
     // walls the analytic Boolean takes exactly.
     const fixed = out([...body, ...hand(t, false)]);
-    assert.equal(fixed.validate().valid, true);
-    assert.ok(Math.abs(fixed.massProperties(1).volumeMM3 / exact(t) - 1) < 1e-12, `not grown, t ${t}`);
+    assert.equal(checkOutput(fixed).valid, true);
+    assert.ok(Math.abs(massPropertiesOf(fixed).volume / exact(t) - 1) < 1e-12, `not grown, t ${t}`);
   }
   // (At S0 the error grew with the wall: 7.9 % at t 2.5.)
   const t = 2.5, now = vol([...body, { id: 'sh', kind: 'shell', target: 'f', thickness: t }]);
@@ -116,8 +116,8 @@ test('R11 S0 then and now: a cylinder slab past a concave junction — a rod thi
   const fixed = out([...body, ...handShell('u', t, [rect(-20 - t, -o, 20 + t, t), rect(20 - t, -t, 20 + o, 10 + t), rect(-20 - o, -t, -20 + t, 10 + t),
     rect(r - t, 10 - t, 20 + t, 10 + d), rect(r, 10 - d, 20 + o, 10 + o), rect(-20 - t, 10 - t, -r + t, 10 + d), rect(-20 - o, 10 - d, -r, 10 + o),
     sector([0, 10], 0, r + d, 0, Math.PI), sector([0, 10], r - Math.min(d, r / 2), r + o, 0, Math.PI)], [-20, 0, 20, 10 + r])]);
-  assert.equal(fixed.validate().valid, true);
-  assert.ok(Math.abs(fixed.massProperties(1).volumeMM3 / exact - 1) < 1e-12, `${fixed.massProperties(1).volumeMM3} vs ${exact}`);
+  assert.equal(checkOutput(fixed).valid, true);
+  assert.ok(Math.abs(massPropertiesOf(fixed).volume / exact - 1) < 1e-12, `${massPropertiesOf(fixed).volume} vs ${exact}`);
   // A thicker rod (r 5, t 1): the hollow under the sharp (intersection) join is the eroded box and the disc of r − t about
   // the axis above z = 10 − t. At S0 the wall was 1.1 % over even that join's: the rod slab's outer band, carried round past
   // the junction by its angular growth t / (r − t), lay inside the plate. Now exact (R11.1a, D106).
@@ -248,7 +248,7 @@ function torusCage(n, m, R = 20, r = 6) {
 test('R11 S0 (R11.2) a closed SubD body\'s cavity as its faces offset and fitted on its own topology, no Boolean: Steiner\'s V − At + Mt² − (2πχ/3)t³', () => {
   const made = [];
   for (const [name, cage, t, s, chi, fitBound, volBound] of [['cube (24 caps, C1 knots)', CUBE, 0.5, 6, 2, 2e-5, 5e-6], ['torus 8 × 6', torusCage(8, 6), 1, 6, 0, 1e-4, 1e-5]]) {
-    const o = out([{ id: 's', kind: 'subd', cage }]), b = o.brep, V = o.massProperties(1).volumeMM3, { A, M, K } = steiner(b);
+    const o = out([{ id: 's', kind: 'subd', cage }]), b = o.brep, V = massPropertiesOf(o).volume, { A, M, K } = steiner(b);
     assert.ok(Math.abs(K / (2 * Math.PI) - chi) < 1e-4, `${name}: χ ${K / 2 / Math.PI}`);
     const expected = V - A * t + M * t * t - K / 3 * t ** 3;
     // The exact offset (not fitted) encloses Steiner's volume: the oracle holds on this body.
@@ -269,7 +269,7 @@ test('R11 S0 (R11.2) a closed SubD body\'s cavity as its faces offset and fitted
   // (b) at S0 the kernel's quadrature did not take these fitted faces as whole patches (their edges lie within the fit's
   // tolerance of the patch boundaries, not on them): its mass of the cube's cavity was 7.7e-5 off the faces' own integral.
   // D110: the whole-patch test takes an edge within its own tolerance — the same to rounding.
-  const { inner, faces } = made[0], mass = brepMassProperties(inner, 1).volumeMM3, own = enclosed(faces.map(x => ({ S: x.F, sense: x.sense })));
+  const { inner, faces } = made[0], mass = brepMassProperties(inner, 1).volume, own = enclosed(faces.map(x => ({ S: x.F, sense: x.sense })));
   assert.ok(Math.abs(mass / own - 1) < 1e-12, `${mass} vs ${own}`);
 });
 

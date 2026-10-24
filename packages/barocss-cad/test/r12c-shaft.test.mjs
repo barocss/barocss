@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, isShaftError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
+import { shaftSolid, isShaftError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep, outputOf } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.3a (D156): shafts. Oracles written here, none of them the kernel's:
@@ -11,7 +11,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 // - disc-cutter run-out: l·A(R − t1) + 2∫_0^e A(r_c − √(R_c² − u²)) du, e = √(R_c² − (R_c − t1)²) (quadrature);
 // - a cross hole of radius ρ through a cylinder R: ∫_{−ρ}^{ρ} 4√(ρ² − x²)√(R² − x²) dx (x = ρ sin θ, quadrature).
 
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want} (off ${Math.abs(got - want)})`);
 const code = c => e => isShaftError(e) && e.code === c;
 const GL = (() => { const n = 24, x = [], w = []; for (let i = 0; i < n; i++) { let t = Math.cos(Math.PI * (i + 0.75) / (n + 0.5)), dp = 0; for (let it = 0; it < 100; it++) { let p0 = 1, p1 = t; for (let k = 2; k <= n; k++) { const p2 = ((2 * k - 1) * t * p1 - (k - 1) * p0) / k; p0 = p1; p1 = p2; } dp = n * (t * p1 - p0) / (t * t - 1); const s = p1 / dp; t -= s; if (Math.abs(s) < 1e-16) break; } x.push(t); w.push(2 / ((1 - t * t) * dp * dp)); } return { x, w }; })();
@@ -97,7 +97,7 @@ test('R12c.3a refusals: SHAFT_STEPS, KEYSEAT_DIMENSIONS, GROOVE_DIMENSIONS, HOLE
 
 test('R12c.3a part model: the `shaft` kind placed on its axis, a parameter for a diameter; its report; the codes mapped', () => {
   const D = (f, p = {}) => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: p, features: f });
-  const out = evaluateCadPart(D([{ id: 's', kind: 'shaft', steps: [{ diameter: { parameter: 'd' }, length: 30, keyseats: [{ width: 6, depth: 3.5, length: 18, offset: 5, ends: 'square' }] }, { diameter: 25, length: 20 }], chamfers: [0.5, 0.5], center: [40, 10], from: 5, rotation: 90 }], { d: 20 })).output('s');
+  const out = outputOf(evaluateCadPart(D([{ id: 's', kind: 'shaft', steps: [{ diameter: { parameter: 'd' }, length: 30, keyseats: [{ width: 6, depth: 3.5, length: 18, offset: 5, ends: 'square' }] }, { diameter: 25, length: 20 }], chamfers: [0.5, 0.5], center: [40, 10], from: 5, rotation: 90 }], { d: 20 })), 's');
   assert.equal(out.shaft.generator, 'shaft@0'); assert.equal(out.shaft.keyseats[0].widthMM, 6);
   const b = brepBounds(out.brep); near(b.min[2], 5, 1e-9, 'from'); near(b.max[2], 55, 1e-9, 'to'); near((b.min[0] + b.max[0]) / 2, 40, 1e-9, 'x');
   // (Turned 90°: the seat on +Y, so the +Y side is the cut one.)

@@ -21,7 +21,7 @@ import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
 import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { evaluateCurve, curveDomain } from '../core/math.js';
 import { lookupFit, FitError, type FitLimit, type FitTable } from './fits.js';
 import type { PlacedShaft } from './shaft-parts.js';
@@ -99,11 +99,11 @@ export function bearingEnvelope(row: BearingRow, id: string): Brep {
     { id: `${sub}s`, kind: 'sketch', profile: 'loop', segments: segs, plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }, sideTags: { outer: tags } },
     { id: sub, kind: 'revolve', sketch: `${sub}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }] };
   const prefix = `${sub}.side[`;
-  return transformBrep(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+  return transformBrep(outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
     nm => nm.split('|').map(q => q.startsWith(prefix) ? `${id}.${q.slice(prefix.length, q.indexOf(']'))}${q.slice(q.indexOf(']') + 1)}` : q).join('|'));
 }
 
-const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volume;
 /** What the Boolean takes of `body` where `tool` stands (V(body) − V(body − tool)). */
 function overlapOf(body: Brep, tool: Brep): number {
   const v0 = vol(body);

@@ -38,8 +38,8 @@ test('exact oracles (D25): closed forms reproduced; a fixed slice of the familie
   const cases = [...['x', 'y', 'z'].flatMap(axis => [80.79, 89.99].map(angle => cylinderBoxCase(RB4_CYLINDER, RB4_BOX, axis, angle, 'intersect'))),
     cylinderBoxCase(RB4_CYLINDER, RB4_BOX, 'x', 80.79, 'difference'), cylinderBoxCase(grazing(RB4_CYLINDER, RB4_BOX, 'x', 30, 1e-2), RB4_BOX, 'x', 30, 'intersect'), crossedCase(2.371, 1.583, 45)];
   for (const c of cases) {
-    const [o] = cad.evaluateCadPart(D(c.features)).outputs, m = o.massProperties(1);
-    assert.ok(Math.abs(m.volumeMM3 - c.volume) <= Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), `${JSON.stringify(c.features.at(-2))}: ${m.volumeMM3} vs ${c.volume}`);
-    assert.ok(Math.hypot(...m.centroidMM.map((x, k) => x - c.centroid[k])) <= Math.max(1e-6, 1e-11 / c.volume), `centroid ${m.centroidMM} vs ${c.centroid}`);
+    const [o] = cad.evaluateCadPart(D(c.features)).outputs, m = cad.massPropertiesOf(o);
+    assert.ok(Math.abs(m.volume - c.volume) <= Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), `${JSON.stringify(c.features.at(-2))}: ${m.volume} vs ${c.volume}`);
+    assert.ok(Math.hypot(...m.centroid.map((x, k) => x - c.centroid[k])) <= Math.max(1e-6, 1e-11 / c.volume), `centroid ${m.centroid} vs ${c.centroid}`);
   }
 });

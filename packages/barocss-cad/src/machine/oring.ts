@@ -17,7 +17,7 @@ import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
 import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { lookupFit, FitError, type FitTable } from './fits.js';
 import type { Point } from '../types.js';
 import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
@@ -129,7 +129,7 @@ export interface GlandPlace { readonly origin: Point; readonly axis: Point; read
 /** A part document's solid: one sketch extruded along its plane's normal. */
 function prism(id: string, sketch: Record<string, unknown>, height: number): Brep {
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: `${id}s`, kind: 'sketch', ...sketch }, { id, kind: 'extrude', sketch: `${id}s`, height }] };
-  return evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(id).brep;
+  return outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), id).brep;
 }
 const ring = (r: number) => [{ kind: 'arc', start: [r, 0], center: [0, 0], direction: 'ccw' }, { kind: 'arc', start: [-r, 0], center: [0, 0], direction: 'ccw' }];
 const frameOf = (origin: Point, a: Point): BrepAffine => {
@@ -137,7 +137,7 @@ const frameOf = (origin: Point, a: Point): BrepAffine => {
   const v: Point = [a[1] * u[2] - a[2] * u[1], a[2] * u[0] - a[0] * u[2], a[0] * u[1] - a[1] * u[0]];
   return { matrix: [u[0], v[0], a[0], u[1], v[1], a[1], u[2], v[2], a[2]], offset: origin };
 };
-const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = (b: Brep) => brepMassProperties(b, 1, { quadratureSegments: 12 }).volume;
 
 /** The gland's groove cut into `target` at its face, with the gland's check. */
 export function glandCut(target: Brep, spec: GlandSpec & { readonly face: string; readonly atMM?: number; readonly centerMM?: Point }, id: string): { readonly brep: Brep; readonly report: GlandReport; readonly place: GlandPlace } {
@@ -187,7 +187,7 @@ export function oringInGland(report: GlandReport, place: GlandPlace, id: string)
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: `${sub}s`, kind: 'sketch', profile: 'circle', center: [Rc, place.ringCenterAlongMM], radius: rs, plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
     { id: sub, kind: 'revolve', sketch: `${sub}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }] };
-  const local = transformBrep(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split(`${sub}.`).join(`${id}.`));
+  const local = transformBrep(outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, n => n.split(`${sub}.`).join(`${id}.`));
   // What squeezes it, in the gland's frame: beyond the bore (piston), beyond the groove's bottom (rod), above the face (face).
   let keep: Brep, overlap = 0;
   if (report.kind === 'piston') keep = prism(`${id}__b`, { profile: 'circle', center: [0, 0], radius: report.sealDiameterMM! / 2, plane: { origin: [0, 0, place.ringCenterAlongMM - 2 * rs - 1], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, 4 * rs + 2);

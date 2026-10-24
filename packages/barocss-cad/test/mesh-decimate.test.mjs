@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { decimateMesh, meshDistance, evaluateCadPart, CadPartError } from '../dist/index.js';
+import { decimateMesh, meshDistance, evaluateCadPart, CadPartError, outputOf, checkOutput, massPropertiesOf } from '../dist/index.js';
 
 // R9 (M4, D85): QEM decimation — feature lines kept (open edges, groups, creases), never a fold or a broken manifold,
 // the distance measured both ways.
@@ -144,10 +144,10 @@ test('R9 stopped by an error bound: no collapse past it (its quadric bound), sai
 test('R9 the decimate feature: a gridded mesh box as far as it goes (its 12 triangles), its faces keeping their names, a valid solid with its report; refused on an exact body and without a target', () => {
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const b = gridBox(10), mesh = { id: 'm', kind: 'mesh', positions: b.positions, indices: b.indices, representation: 'facets' };
-  const src = evaluateCadPart(D([mesh])).output('m'), out = evaluateCadPart(D([mesh, { id: 'd', kind: 'decimate', target: 'm', triangles: 4 }])).output('d');
-  assert.equal(out.validate().valid, true);
+  const src = outputOf(evaluateCadPart(D([mesh])), 'm'), out = outputOf(evaluateCadPart(D([mesh, { id: 'd', kind: 'decimate', target: 'm', triangles: 4 }])), 'd');
+  assert.equal(checkOutput(out).valid, true);
   assert.deepEqual(out.brep.faces.map(f => f.name).sort(), src.brep.faces.map(f => f.name).sort());
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - 1000) < 1e-9);
+  assert.ok(Math.abs(massPropertiesOf(out).volume - 1000) < 1e-9);
   assert.equal(out.decimate.trianglesAfter, 12); assert.equal(out.representation, 'faceted');
   const refused = (features, code, msg) => assert.throws(() => evaluateCadPart(D(features)), e => e instanceof CadPartError && e.code === code && msg.test(e.message));
   refused([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'e', kind: 'extrude', sketch: 's', height: 5 }, { id: 'd', kind: 'decimate', target: 'e', ratio: 0.5 }], 'CAPABILITY', /mesh body/);

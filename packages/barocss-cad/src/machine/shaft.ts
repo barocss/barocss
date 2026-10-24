@@ -23,7 +23,7 @@
 import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic } from '../brep/analytic-boolean.js';
 import { transformBrep } from '../brep/brep-transform.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
 export type ShaftDiagnosticCode = 'INVALID_INPUT' | 'SHAFT_STEPS' | 'KEYSEAT_DIMENSIONS' | 'GROOVE_DIMENSIONS' | 'HOLE_DIMENSIONS';
@@ -157,7 +157,7 @@ function section(spec: ShaftSpec): { segs: Seg[]; names: string[]; z: number[]; 
 /** A tool's part document: one sketch (`profile`) extruded `height` along its plane's normal. */
 function tool(id: string, sketch: Record<string, unknown>, height: number): Brep {
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: `${id}s`, kind: 'sketch', ...sketch }, { id, kind: 'extrude', sketch: `${id}s`, height }] };
-  return evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(id).brep;
+  return outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), id).brep;
 }
 const turnZ = (b: Brep, deg: number): Brep => { if (!deg) return b; const c = Math.cos(deg * Math.PI / 180), s = Math.sin(deg * Math.PI / 180); return transformBrep(b, { matrix: [c, -s, 0, s, c, 0, 0, 0, 1] }); };
 const renamed = (b: Brep, name: string): Brep => transformBrep(b, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, () => name);
@@ -171,7 +171,7 @@ export function shaftSolid(spec: ShaftSpec, options: { readonly id?: string } = 
     { id: `${sub}s`, kind: 'sketch', profile: 'loop', segments: segs, plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }, sideTags: { outer: names.map(tagOf) } },
     { id: sub, kind: 'revolve', sketch: `${sub}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }] };
   const prefix = `${sub}.side[`;
-  let brep = transformBrep(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+  let brep = transformBrep(outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
     nm => nm.split('|').map(p => p.startsWith(prefix) ? `${id}.${nameOf(p.slice(prefix.length, p.indexOf(']')))}${p.slice(p.indexOf(']') + 1)}` : p).join('|'));
   // Keyseats, in order over the steps.
   const keyseats: ShaftKeyseatReport[] = [];

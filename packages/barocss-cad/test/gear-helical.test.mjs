@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurRack, checkPlacedSpurRack, spurGear, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkSpurGearRack, checkPlacedSpurGears, evaluateCadPart, evaluateSurface, isGearError, checkBrep, brepMassProperties, exportStep, importStep } from '../dist/index.js';
+import { spurRack, checkPlacedSpurRack, spurGear, spurGearDimensions, spurGearPairNominal, spurGearCenterDistance, checkSpurGearPair, checkSpurGearRack, checkPlacedSpurGears, evaluateCadPart, evaluateSurface, isGearError, checkBrep, brepMassProperties, exportStep, importStep, outputOf } from '../dist/index.js';
 
 // R6a.5c (issue #2167, D59): helical gears — normal module and pressure angle, helix angle and hand; the transverse
 // involute turned along the helix.
@@ -76,7 +76,7 @@ test('the helical solid: valid; the flanks turned along the helix within the mea
     // the flank fit as for spur gears.)
     const area = transverseArea(spec.normalModuleMM, spec.teeth, spec.helixAngleDeg, spec.profileShiftCoefficient ?? 0, spec.toothThicknessReductionMM ?? 0) - Math.PI * ((spec.boreDiameterMM ?? 0) / 2) ** 2;
     const eps = h.twistDeviationMM / (d.ra), want = area * spec.faceWidthMM, slack = want * (2 * eps + eps * eps) + 2 * spec.teeth * report.profileDeviationMM * 2.5 * d.mn * spec.faceWidthMM;
-    close(brepMassProperties(brep, 1).volumeMM3, want, slack, `${spec.teeth} teeth β ${spec.helixAngleDeg} volume`);
+    close(brepMassProperties(brep, 1).volume, want, slack, `${spec.teeth} teeth β ${spec.helixAngleDeg} volume`);
     const names = brep.faces.map(f => f.name);
     assert.ok(names.includes('h.flankL#1') && names.includes(`h.tip#${spec.teeth}`) && names.includes('h.face1'));
     if (segments > 1) assert.ok(names.includes('h.flankL#1.2') && names.includes(`h.root#${spec.teeth}.2`), 'the second axial segment');
@@ -85,7 +85,7 @@ test('the helical solid: valid; the flanks turned along the helix within the mea
     assert.ok(tops.length > 0 && tops.every(e => [e.curve.controlPoints[0], e.curve.controlPoints.at(-1)].every(p => Math.hypot(p[0], p[1]) <= d.ra + 1e-9)));
   }
   const { brep } = spurGear(KHK1, { id: 'h' }), back = importStep(exportStep([brep], { name: 'helical' }));
-  close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip');
+  close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip');
 });
 
 test('helical refusals: a module with a helix angle (normalModuleMM named), no hand, β past 45°, undercut by the virtual tooth number, a twist past the axial budget; pairs of the same hand, of other angles, spur with helical; a helical gear with a straight rack', () => {
@@ -107,7 +107,7 @@ test('a meshing helical gear in the part model: opposite hand at the transverse 
   const g1 = rot => ({ id: 'a', kind: 'spur-gear', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 18, faceWidth: 6, thicknessReduction: 0.05, rotation: rot, center: [5, 3] });
   const g2 = (mesh, extra = {}) => ({ id: 'b', kind: 'spur-gear', normalModule: 2, helixAngle: 20, hand: 'left', teeth: 18, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'a', ...mesh }, ...extra });
   for (const [rot, dir, phase, crossed] of [[0, 0, 0, false], [7, 30, 0, false], [7, 30, 3, true]]) {
-    const r = evaluateCadPart(D([g1(rot), g2({ direction: dir, phase })])), A = r.output('a'), B = r.output('b');
+    const r = evaluateCadPart(D([g1(rot), g2({ direction: dir, phase })])), A = outputOf(r, 'a'), B = outputOf(r, 'b');
     close(Math.hypot(B.gearPlacement.center[0] - 5, B.gearPlacement.center[1] - 3), 18 * 2 / Math.cos(Math.PI / 9), 1e-9, 'a');
     const n = [0, 1.5, 3, 4.5, 6].map(z => crossings(section(A.brep, z, B.gearPlacement.center, 23), section(B.brep, z, A.gearPlacement.center, 23)));
     assert.equal(n.every(k => k > 0), crossed, `${rot} ${dir} ${phase}: ${n}`); if (!crossed) assert.ok(n.every(k => k === 0));
@@ -125,7 +125,7 @@ test('the helical rack (D60): the z → ∞ gear of the pair — the gear\'s β,
   close(report.helix.shear, Math.tan(Math.PI / 9), 1e-15, 'shear'); close(report.pitchMM, 2 * Math.PI / Math.cos(Math.PI / 9), 1e-12, 'transverse pitch');
   // (A sheared prism: the transverse area × b, the area the straight rack's with the transverse pitch and α_t.)
   const at = Math.atan(Math.tan(Math.PI / 9) / Math.cos(Math.PI / 9)), T = Math.tan(at), p = report.pitchMM, s = p / 2, tooth = ((s - 4 * T) + (s + 5 * T)) / 2 * 4.5;
-  close(brepMassProperties(brep, 1).volumeMM3, (10 * p * (8 - 2.5) + 10 * tooth) * 8, 1e-9 * 10 * p * 8 * 8, 'volume');
+  close(brepMassProperties(brep, 1).volume, (10 * p * (8 - 2.5) + 10 * tooth) * 8, 1e-9 * 10 * p * 8 * 8, 'volume');
   // With a gear: the same β of the opposite hand meshes; the rack's checks in the transverse plane, εβ = b sin β / (π m_n).
   const g = { normalModuleMM: 2, helixAngleDeg: 20, hand: 'right', teeth: 18, faceWidthMM: 8 };
   const c = checkSpurGearRack(g, { ...k, teeth: 20 });
@@ -136,7 +136,7 @@ test('the helical rack (D60): the z → ∞ gear of the pair — the gear\'s β,
   // In the part model: the hand derived, verified by the solids' sections.
   const gear = rot => ({ id: 'g', kind: 'spur-gear', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 18, faceWidth: 8, thicknessReduction: 0.05, rotation: rot, center: [5, 3] });
   const rack = mesh => ({ id: 'k', kind: 'spur-rack', teeth: 12, faceWidth: 8, height: 8, thicknessReduction: 0.05, mesh: { gear: 'g', ...mesh } });
-  const run = (feats, near = 25) => { const r = evaluateCadPart(D(feats)), G = r.output('g'), K = r.output('k'), cg = G.gearPlacement.center; return { K, G, n: [0, 2, 4, 6, 8].map(z => crossings(section(G.brep, z, cg, 30), section(K.brep, z, cg, near))) }; };
+  const run = (feats, near = 25) => { const r = evaluateCadPart(D(feats)), G = outputOf(r, 'g'), K = outputOf(r, 'k'), cg = G.gearPlacement.center; return { K, G, n: [0, 2, 4, 6, 8].map(z => crossings(section(G.brep, z, cg, 30), section(K.brep, z, cg, near))) }; };
   for (const [rot, dir, phase, crossed] of [[0, -90, 0, false], [7, 30, 0, false], [7, -90, 0.6, true]]) {
     const { K, G, n } = run([gear(rot), rack({ direction: dir, phase })]);
     assert.equal(K.rackPlacement.spec.hand, 'left'); assert.equal(K.rack.helix.hand, 'left');

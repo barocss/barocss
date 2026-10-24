@@ -581,7 +581,7 @@ function tessellatedBreps(data: Map<number, Entity>, id: string): Brep[] {
         if (!(isMeshBrepError(e)) || !/not closed|more than one piece|pieces/.test(e.message)) throw e;
         // (A closed hollow solid — a mesh shelled, R11.3, D114 — in pieces: the largest its outside, the others its voids.)
         if (!/not closed/.test(e.message)) {
-          const pieces = facetBrepsFromTriangles(m.positions, m.indices, o).map(b => ({ b, v: Math.abs(brepMassProperties(b, 1).volumeMM3) })).sort((x, y) => y.v - x.v);
+          const pieces = facetBrepsFromTriangles(m.positions, m.indices, o).map(b => ({ b, v: Math.abs(brepMassProperties(b, 1).volume) })).sort((x, y) => y.v - x.v);
           // (Only pieces inside the largest are voids; lumps apart are the file's to name as bodies of their own.)
           if (pieces.slice(1).every(p => classifyPointInFacets(pieces[0].b, p.b.vertices[0].point) === 'inside')) return pieces.slice(1).reduce((acc, p) => withCavities(acc, p.b, { family: 'step', id: m.id }), pieces[0].b);
           throw e;

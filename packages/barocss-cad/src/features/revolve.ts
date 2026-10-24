@@ -237,8 +237,9 @@ export function revolveProfile(input: RevolveInput): Brep {
  * the φ integrals done exactly and the profile moments ∫∫ hᵐρᵏ dA by Green's theorem (Gauss–Legendre
  * on each segment: exact for lines, far below rounding for arcs).
  */
-export function revolveMassProperties(input: RevolveInput, densityKgPerM3: number): { volumeMM3: number; massKG: number; centroidMM: Point; inertiaCentroidKgM2: [[number, number, number], [number, number, number], [number, number, number]]; method: 'closed-form' } {
-  if (!(densityKgPerM3 > 0 && Number.isFinite(densityKgPerM3))) throw new BrepError('INPUT', 'a positive finite density is required');
+/** The revolved solid's mass properties in closed form (MMGS: density g/cm³; R7.3b). */
+export function revolveMassProperties(input: RevolveInput, density: number): { volume: number; mass: number; centroid: Point; inertia: [[number, number, number], [number, number, number], [number, number, number]]; method: 'closed-form' } {
+  if (!(density > 0 && Number.isFinite(density))) throw new BrepError('INPUT', 'a positive finite density is required');
   const alpha = input.angleDegrees * Math.PI / 180, [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy);
   let D: Point = [dx / dl, dy / dl, 0], S: Point = [-D[1], D[0], 0]; const Z: Point = [0, 0, 1], A0: Point = [input.axis.origin[0], input.axis.origin[1], 0];
   const loops = profileLoops(input), loop = loops[0];
@@ -270,11 +271,11 @@ export function revolveMassProperties(input: RevolveInput, densityKgPerM3: numbe
   const V = alpha * moment(0, 1), Ih = alpha * moment(1, 1), Ia = c1 * moment(0, 2), Ib = s1 * moment(0, 2);
   const Ihh = alpha * moment(2, 1), Iaa = cc * moment(0, 3), Ibb = ss * moment(0, 3), Iha = c1 * moment(1, 2), Ihb = s1 * moment(1, 2), Iab = sc * moment(0, 3);
   const ch = Ih / V, ca = Ia / V, cb = Ib / V;
-  const k = densityKgPerM3 * 1e-15;
+  const k = density * 1e-3;
   const hh = Ihh - V * ch * ch, aa = Iaa - V * ca * ca, bb = Ibb - V * cb * cb, ha = Iha - V * ch * ca, hb = Ihb - V * ch * cb, ab = Iab - V * ca * cb;
   // Local inertia tensor (products stored as −∫xy dm), rotated to world: columns D, S, Z.
   const L = [[k * (aa + bb), -k * ha, -k * hb], [-k * ha, k * (hh + bb), -k * ab], [-k * hb, -k * ab, k * (hh + aa)]], R = [D, S, Z];
   const world = [0, 1, 2].map(i => [0, 1, 2].map(j => { let v = 0; for (let p = 0; p < 3; p++) for (let q = 0; q < 3; q++) v += R[p][i] * L[p][q] * R[q][j]; return v; })) as [[number, number, number], [number, number, number], [number, number, number]];
   const centroid = add(add(A0, scale(D, ch)), add(scale(S, ca), scale(Z, cb)));
-  return { volumeMM3: V, massKG: densityKgPerM3 * V * 1e-9, centroidMM: centroid, inertiaCentroidKgM2: world, method: 'closed-form' };
+  return { volume: V, mass: density * V * 1e-3, centroid, inertia: world, method: 'closed-form' };
 }

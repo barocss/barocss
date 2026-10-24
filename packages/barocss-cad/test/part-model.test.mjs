@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, checkBrep, brepMassProperties, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, loadCadPart, emptyCadPart, CadPartError, checkBrep, brepMassProperties, tessellateBrep, reevaluate, outputOf, saveCadPart, massPropertiesOf, checkOutput, exportStl } from '../dist/index.js';
 
 const D = (features, parameters = {}) => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters, features });
 const rect = (id, x0, y0, x1, y1) => ({ id, kind: 'sketch', profile: 'rectangle', min: [x0, y0], max: [x1, y1] });
 const circle = (id, cx, cy, r) => ({ id, kind: 'sketch', profile: 'circle', center: [cx, cy], radius: r });
 const extrude = (id, sketch, height, from) => ({ id, kind: 'extrude', sketch, height, ...(from === undefined ? {} : { from }) });
 const pi = Math.PI;
-const volume = o => o.massProperties(1).volumeMM3;
+const volume = o => massPropertiesOf(o).volume;
 const close = (a, b, rel = 1e-9) => Math.abs(a - b) <= rel * Math.max(1, Math.abs(b));
 const refused = (doc, code, pattern) => assert.throws(() => evaluateCadPart(doc), e => e instanceof CadPartError && (e.details?.category ?? e.code) === code && pattern.test(e.message), pattern.source);
 
@@ -47,12 +47,12 @@ test('persistent names follow the authored features and survive parameter edits'
   for (const expected of ['plate.top', 'plate.bottom', 'plate.side0', 'plate.side1', 'plate.side2', 'plate.side3', 'round.face']) assert.ok(faces.includes(expected), expected);
   assert.ok(faces.some(n => n.startsWith('bore.side0')), 'the hole wall is named by the hole');
   // Width, thickness and hole position change; the topology and so every name stays.
-  const b = a.withParameters({ w: 90, t: 12, x: 40 });
+  const b = reevaluate(a, { parameters: { w: 90, t: 12, x: 40 } });
   assert.deepEqual(names(b.outputs[0]), faces);
   assert.deepEqual(b.outputs[0].brep.edges.map(e => e.name).sort(), a.outputs[0].brep.edges.map(e => e.name).sort());
   assert.ok(close(volume(b.outputs[0]), 90 * 40 * 12 - 16 * pi * 12 - (25 - 25 * pi / 4) * 12));
   // Only the features downstream of the edit are recomputed.
-  const c = a.withParameters({ x: 30 });
+  const c = reevaluate(a, { parameters: { x: 30 } });
   assert.deepEqual(c.recomputation.reused, ['plate']);
   assert.deepEqual(c.recomputation.evaluated, ['bore', 'round']);
   // Names stay unique and appear in the checker's naming check.
@@ -63,7 +63,7 @@ test('persistent names follow the authored features and survive parameter edits'
 test('references, parts and outputs', () => {
   const s = evaluateCadPart(D([rect('s', 0, 0, 10, 10), extrude('a', 's', 5), { id: 'sp', kind: 'split', target: 'a', axis: 'x', at: 4 }, { id: 'h', kind: 'hole', target: 'sp/1', center: [7, 5], radius: 1 }]));
   assert.deepEqual(s.outputs.map(o => o.id), ['sp/0', 'h']);
-  assert.ok(close(volume(s.output('sp/0')), 200) && close(volume(s.output('h')), 300 - 5 * pi));
+  assert.ok(close(volume(outputOf(s, 'sp/0')), 200) && close(volume(outputOf(s, 'h')), 300 - 5 * pi));
   assert.deepEqual(s.features.find(f => f.id === 'h').dependencies, ['sp']);
   // A difference that cuts a bar in two keeps both bodies in one output; removing everything leaves none.
   const two = evaluateCadPart(D([rect('s', 0, 0, 30, 10), extrude('a', 's', 5), rect('t', 10, -5, 20, 15), extrude('b', 't', 7, -1), { id: 'd', kind: 'difference', target: 'a', tool: 'b' }]));
@@ -71,7 +71,7 @@ test('references, parts and outputs', () => {
   const none = evaluateCadPart(D([rect('s', 0, 0, 20, 10), extrude('a', 's', 5), rect('t', -1, -1, 21, 11), extrude('b', 't', 7, -1), { id: 'd', kind: 'difference', target: 'a', tool: 'b' }]));
   assert.equal(none.outputs.length, 0);
   // Save and load give the same document and results.
-  const again = loadCadPart(s.save());
+  const again = loadCadPart(saveCadPart(s));
   assert.deepEqual(again.document, s.document);
   assert.deepEqual(again.outputs.map(o => [o.id, volume(o)]), s.outputs.map(o => [o.id, volume(o)]));
   assert.deepEqual(evaluateCadPart(emptyCadPart()).outputs, []);
@@ -142,17 +142,17 @@ test('smooth loft through three or more sections: C1 sides through every section
   const sq = (id, h) => rect(id, -h, -h, h, h), loft = secs => ({ id: 'L', kind: 'loft', smooth: true, sections: secs.map(([sketch, z]) => ({ sketch, z })) });
   // Sections changing linearly: the smooth sides are the ruled ones — a frustum exactly.
   const frustum = evaluateCadPart(D([sq('a', 10), sq('b', 7.5), sq('c', 5), loft([['a', 0], ['b', 6], ['c', 12]])])).outputs[0];
-  assert.ok(close(frustum.massProperties(1000).volumeMM3, 2800, 1e-12));
+  assert.ok(close(massPropertiesOf(frustum, 1).volume, 2800, 1e-12));
   for (const [name, f] of [['a circle, a square, a circle', [circle('a', 0, 0, 8), sq('b', 5), circle('c', 0, 0, 4), loft([['a', 0], ['b', 8], ['c', 14]])]],
     ['a vase of four circles', [circle('a', 0, 0, 6), circle('b', 0, 0, 10), circle('c', 0, 0, 5), circle('d', 0, 0, 7), loft([['a', 0], ['b', 6], ['c', 14], ['d', 20]])]]]) {
-    const o = evaluateCadPart(D(f)).outputs[0], report = checkBrep(o.brep), m = o.massProperties(1000);
+    const o = evaluateCadPart(D(f)).outputs[0], report = checkBrep(o.brep), m = massPropertiesOf(o, 1);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.equal(m.method, 'quadrature');
     // One side per edge from the bottom to the top, through every section.
     assert.equal(o.brep.faces.filter(x => /side/.test(x.name)).length, o.brep.edges.filter(e => /bottom/.test(e.name)).length, name);
-    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
-    assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 3e-4 * m.volumeMM3, `${name}: ${mesh.volumeMM3} vs ${m.volumeMM3}`);
-    assert.ok(Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-2, `${name}: centroid`);
+    const mesh = brepMassProperties(o.brep, 1, { segmentsPerQuarter: 64 });
+    assert.ok(Math.abs(mesh.volume - m.volume) < 3e-4 * m.volume, `${name}: ${mesh.volume} vs ${m.volume}`);
+    assert.ok(Math.hypot(...m.centroid.map((c, k) => c - mesh.centroid[k])) < 1e-2, `${name}: centroid`);
     const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positionsMM, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
     for (let k = 0; k < t.indices.length; k += 3) for (let e = 0; e < 3; e++) directed.add(key(t.indices[k + e]) + '>' + key(t.indices[k + (e + 1) % 3]));
     for (const d of directed) { const [x, y] = d.split('>'); assert.ok(directed.has(y + '>' + x), `${name}: open ${d}`); }
@@ -242,14 +242,14 @@ test('shell revolved and swept bodies: the section eroded and made again, exact 
     ['a pipe closed at both ends', shell(pipe, 'w', 1), pi * (9 * L - 4 * (L - 2)), [2, 0]],
   ];
   for (const [name, doc, exact, [shells, genus]] of cases) {
-    const o = evaluateCadPart(doc).outputs.at(-1), report = checkBrep(o.brep), m = o.massProperties(1000);
+    const o = evaluateCadPart(doc).outputs.at(-1), report = checkBrep(o.brep), m = massPropertiesOf(o, 1);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.deepEqual(report.topology.map(t => [t.shells, t.genus]), [[shells, genus]], name);
     assert.equal(m.method, 'closed-form', name);
-    assert.ok(close(m.volumeMM3, exact, 1e-10), `${name}: ${m.volumeMM3} vs ${exact}`);
-    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 32 });
-    assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 1e-3 * m.volumeMM3 && Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-2, `${name}: mesh`);
-    for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertiaCentroidKgM2[i][i] - mesh.inertiaCentroidKgM2[i][i]) < 2e-3 * m.inertiaCentroidKgM2[i][i], `${name}: inertia ${i}`);
+    assert.ok(close(m.volume, exact, 1e-10), `${name}: ${m.volume} vs ${exact}`);
+    const mesh = brepMassProperties(o.brep, 1, { segmentsPerQuarter: 32 });
+    assert.ok(Math.abs(mesh.volume - m.volume) < 1e-3 * m.volume && Math.hypot(...m.centroid.map((c, k) => c - mesh.centroid[k])) < 1e-2, `${name}: mesh`);
+    for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertia[i][i] - mesh.inertia[i][i]) < 2e-3 * m.inertia[i][i], `${name}: inertia ${i}`);
   }
   assert.ok(evaluateCadPart(cases[0][1]).outputs.at(-1).brep.faces.some(f => /^sh\.in\d*\.side/.test(f.name)));
   refused(shell([cup[0], { ...cup[1], angleDegrees: 180 }], 'r', 2), 'CAPABILITY', /a full turn/);
@@ -307,16 +307,16 @@ test('shell bodies with cones and tori joined to others: slabs turned about thei
 
 test('moved parts keep their exact mass: a loft turned about X and scaled', () => {
   const loft = [rect('a', 0, 0, 20, 10), circle('b', 10, 5, 3), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 12 }] }];
-  const at = evaluateCadPart(D(loft)).outputs[0].massProperties(1000);
-  const o = evaluateCadPart(D([...loft, { id: 'r', kind: 'rotate', target: 'L', axis: 'x', angleDegrees: 90, pivot: [1, 2, 3] }, { id: 'k', kind: 'scale', target: 'r', factor: 1.5 }])).outputs[0], m = o.massProperties(1000);
+  const at = massPropertiesOf(evaluateCadPart(D(loft)).outputs[0], 1);
+  const o = evaluateCadPart(D([...loft, { id: 'r', kind: 'rotate', target: 'L', axis: 'x', angleDegrees: 90, pivot: [1, 2, 3] }, { id: 'k', kind: 'scale', target: 'r', factor: 1.5 }])).outputs[0], m = massPropertiesOf(o, 1);
   assert.equal(m.method, 'quadrature');
-  assert.ok(close(m.volumeMM3, at.volumeMM3 * 1.5 ** 3, 1e-12));
+  assert.ok(close(m.volume, at.volume * 1.5 ** 3, 1e-12));
   // x ↦ 1.5·(R(x − p) + p): the centroid moves so, the inertia turns (y and z swap) and grows 1.5⁵.
-  const p = [1, 2, 3], c = at.centroidMM, turned = [c[0] - p[0], -(c[2] - p[2]), c[1] - p[1]].map((x, i) => 1.5 * (x + p[i]));
-  assert.ok(Math.hypot(...m.centroidMM.map((x, i) => x - turned[i])) < 1e-9);
-  assert.ok(close(m.inertiaCentroidKgM2[1][1], at.inertiaCentroidKgM2[2][2] * 1.5 ** 5, 1e-9) && close(m.inertiaCentroidKgM2[2][2], at.inertiaCentroidKgM2[1][1] * 1.5 ** 5, 1e-9));
-  const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
-  assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 3e-4 * m.volumeMM3);
+  const p = [1, 2, 3], c = at.centroid, turned = [c[0] - p[0], -(c[2] - p[2]), c[1] - p[1]].map((x, i) => 1.5 * (x + p[i]));
+  assert.ok(Math.hypot(...m.centroid.map((x, i) => x - turned[i])) < 1e-9);
+  assert.ok(close(m.inertia[1][1], at.inertia[2][2] * 1.5 ** 5, 1e-9) && close(m.inertia[2][2], at.inertia[1][1] * 1.5 ** 5, 1e-9));
+  const mesh = brepMassProperties(o.brep, 1, { segmentsPerQuarter: 64 });
+  assert.ok(Math.abs(mesh.volume - m.volume) < 3e-4 * m.volume);
 });
 
 test('box edges filleted in loops at any size and place: mitres where two meet, a clear refusal where they cannot fit', () => {
@@ -347,13 +347,13 @@ test('sweep: a profile along straight runs and bends, exact mass, joined into on
     const o = evaluateCadPart(doc).outputs[0], report = checkBrep(o.brep);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.deepEqual(report.topology.map(t => t.genus), [genus], name);
-    const m = o.massProperties(1000);
+    const m = massPropertiesOf(o, 1);
     assert.equal(m.method, genus === 1 ? 'quadrature' : 'closed-form', name);
-    assert.ok(close(m.volumeMM3, expected, 1e-12), `${name}: ${m.volumeMM3} vs ${expected}`);
+    assert.ok(close(m.volume, expected, 1e-12), `${name}: ${m.volume} vs ${expected}`);
     // The closed form agrees with the body's own fine mesh.
-    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
-    assert.ok(Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-3, `${name}: centroid`);
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(Math.abs(m.inertiaCentroidKgM2[i][j] - mesh.inertiaCentroidKgM2[i][j]) < 1e-3 * m.inertiaCentroidKgM2[i][i] + 1e-14, `${name}: inertia ${i}${j}`);
+    const mesh = brepMassProperties(o.brep, 1, { segmentsPerQuarter: 64 });
+    assert.ok(Math.hypot(...m.centroid.map((c, k) => c - mesh.centroid[k])) < 1e-3, `${name}: centroid`);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(Math.abs(m.inertia[i][j] - mesh.inertia[i][j]) < 1e-3 * m.inertia[i][i] + 1e-14, `${name}: inertia ${i}${j}`);
   }
   // Consecutive pieces are glued in their shared section (a seam named by the sides it parts); a
   // section off the origin that a Boolean union of the pieces could not join.
@@ -363,7 +363,7 @@ test('sweep: a profile along straight runs and bends, exact mass, joined into on
   // A glued pipe takes further Booleans: united with a mounting plate it stands on.
   const plated = evaluateCadPart(D([circle('s', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 's', path: [straight(8), bend(20, 90, 'x'), straight(8)] }, rect('r', -10, -10, 10, 10), extrude('p', 'r', 4, -4), { id: 'u', kind: 'union', target: 'w', tool: 'p' }])).outputs.at(-1);
   assert.equal(checkBrep(plated.brep).valid, true);
-  assert.ok(close(plated.massProperties(1000).volumeMM3, 9 * pi * (16 + 10 * pi) + 1600, 1e-3));
+  assert.ok(close(massPropertiesOf(plated, 1).volume, 9 * pi * (16 + 10 * pi) + 1600, 1e-3));
   refused(sweep(tube, [bend(1, 90, 'x')]), 'PARAMETER', /reaches the bend's axis/);
   refused(sweep(tube, [{ kind: 'twist' }]), 'INPUT', /straight or bend/);
 });
@@ -386,14 +386,14 @@ test('loft: ruled sections at heights, exact volumes, quadrature mass, watertigh
     const o = evaluateCadPart(D(features)).outputs.at(-1), report = checkBrep(o.brep);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.deepEqual(report.topology.map(t => t.genus), [0], name);
-    const m = o.massProperties(1000);
+    const m = massPropertiesOf(o, 1);
     assert.equal(m.method, 'quadrature', name);
-    if (exact !== null) assert.ok(close(m.volumeMM3, exact, 1e-12), `${name}: ${m.volumeMM3} vs ${exact}`);
+    if (exact !== null) assert.ok(close(m.volume, exact, 1e-12), `${name}: ${m.volume} vs ${exact}`);
     // The quadrature agrees with the body's own fine mesh, which is watertight.
-    const mesh = brepMassProperties(o.brep, 1000, { segmentsPerQuarter: 64 });
-    assert.ok(Math.abs(mesh.volumeMM3 - m.volumeMM3) < 3e-4 * m.volumeMM3, `${name}: mesh ${mesh.volumeMM3} vs ${m.volumeMM3}`);
-    assert.ok(Math.hypot(...m.centroidMM.map((c, k) => c - mesh.centroidMM[k])) < 1e-3 * Math.cbrt(m.volumeMM3), `${name}: centroid`);
-    for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertiaCentroidKgM2[i][i] - mesh.inertiaCentroidKgM2[i][i]) < 1e-3 * m.inertiaCentroidKgM2[i][i], `${name}: inertia ${i}`);
+    const mesh = brepMassProperties(o.brep, 1, { segmentsPerQuarter: 64 });
+    assert.ok(Math.abs(mesh.volume - m.volume) < 3e-4 * m.volume, `${name}: mesh ${mesh.volume} vs ${m.volume}`);
+    assert.ok(Math.hypot(...m.centroid.map((c, k) => c - mesh.centroid[k])) < 1e-3 * Math.cbrt(m.volume), `${name}: centroid`);
+    for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertia[i][i] - mesh.inertia[i][i]) < 1e-3 * m.inertia[i][i], `${name}: inertia ${i}`);
     const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positionsMM, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
     for (let k = 0; k < t.indices.length; k += 3) for (let e = 0; e < 3; e++) directed.add(key(t.indices[k + e]) + '>' + key(t.indices[k + (e + 1) % 3]));
     for (const d of directed) { const [x, y] = d.split('>'); assert.ok(directed.has(y + '>' + x), `${name}: open ${d}`); }
@@ -419,11 +419,11 @@ test('refusals name the feature and the reason', () => {
   const ell = [{ id: 'l', kind: 'sketch', profile: 'polygon', points: [[0, 0], [30, 0], [30, 5], [5, 5], [5, 20], [0, 20]] }, extrude('a', 'l', 4)];
   // (The inner edges' fillet, refused here at first — 'inside corner of their face' — rolls round the inner upright edge
   // since R10.3a, D92: r10-3a.test.mjs.)
-  assert.equal(evaluateCadPart(D([...ell, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side2|a.top', 'a.side3|a.top'], radius: 1 }])).outputs.at(-1).validate().valid, true);
+  assert.equal(checkOutput(evaluateCadPart(D([...ell, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side2|a.top', 'a.side3|a.top'], radius: 1 }])).outputs.at(-1)).valid, true);
   refused(D([...plate, circle('c', 5, 5, 3), extrude('b', 'c', 4, 5), { id: 'u', kind: 'union', target: 'a', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['b.side0#1|b.top'], radius: 3 }]), 'PARAMETER', /full round/);
   // Any angle about X or Y: the plate leaves the upright family and keeps its volume.
   const tipped = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45, pivot: [5, 5, 2.5] }])).outputs[0];
-  assert.notEqual(tipped.representation, 'upright'); assert.ok(close(tipped.massProperties(1000).volumeMM3, 500));
+  assert.notEqual(tipped.representation, 'upright'); assert.ok(close(massPropertiesOf(tipped, 1).volume, 500));
   assert.ok(close(tipped.brep.vertices.reduce((m, v) => Math.max(m, v.point[2]), -Infinity), 2.5 + Math.hypot(5, 2.5) * Math.sin(Math.PI / 4 + Math.atan2(2.5, 5))), 'its top corner where a 45° turn puts it');
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);
@@ -433,16 +433,16 @@ test('refusals name the feature and the reason', () => {
 
 test('mass properties: closed form for upright bodies agrees with mesh integration; STL is well formed', () => {
   const s = evaluateCadPart(D([rect('s', 0, 0, 60, 40), extrude('e', 's', 8), { id: 'h', kind: 'hole', target: 'e', center: [15, 20], radius: 4 }, circle('c', 40, 20, 6), extrude('b', 'c', 10, 8), { id: 'u', kind: 'union', target: 'h', tool: 'b' }]));
-  const o = s.outputs[0], exact = o.massProperties(2700), mesh = brepMassProperties(o.brep, 2700, { segmentsPerQuarter: 64 });
+  const o = s.outputs[0], exact = massPropertiesOf(o, 2.7), mesh = brepMassProperties(o.brep, 2.7, { segmentsPerQuarter: 64 });
   assert.equal(exact.method, 'closed-form'); assert.equal(mesh.method, 'quadrature');
-  assert.ok(close(exact.volumeMM3, 19200 - 128 * pi + 360 * pi));
-  assert.ok(close(mesh.volumeMM3, exact.volumeMM3, 1e-4));
-  for (let k = 0; k < 3; k++) assert.ok(Math.abs(mesh.centroidMM[k] - exact.centroidMM[k]) < 1e-3, `centroid ${k}`);
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(Math.abs(mesh.inertiaCentroidKgM2[i][j] - exact.inertiaCentroidKgM2[i][j]) <= 1e-4 * exact.inertiaCentroidKgM2[0][0], `inertia ${i}${j}`);
+  assert.ok(close(exact.volume, 19200 - 128 * pi + 360 * pi));
+  assert.ok(close(mesh.volume, exact.volume, 1e-4));
+  for (let k = 0; k < 3; k++) assert.ok(Math.abs(mesh.centroid[k] - exact.centroid[k]) < 1e-3, `centroid ${k}`);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) assert.ok(Math.abs(mesh.inertia[i][j] - exact.inertia[i][j]) <= 1e-4 * exact.inertia[0][0], `inertia ${i}${j}`);
   // A box's inertia in closed form: m(b² + c²)/12.
-  const box = evaluateCadPart(D([rect('s', 0, 0, 20, 10), extrude('e', 's', 5)])).outputs[0].massProperties(1000), m = 1000 * 1000e-9;
-  assert.ok(close(box.inertiaCentroidKgM2[0][0], m * (100 + 25) / 12 * 1e-6) && close(box.inertiaCentroidKgM2[2][2], m * (400 + 100) / 12 * 1e-6) && Math.abs(box.inertiaCentroidKgM2[0][1]) < 1e-18);
-  const stl = o.exportStl({ segmentsPerQuarter: 8 }), view = new DataView(stl.buffer, stl.byteOffset), n = view.getUint32(80, true);
+  const box = massPropertiesOf(evaluateCadPart(D([rect('s', 0, 0, 20, 10), extrude('e', 's', 5)])).outputs[0], 1), m = 1000 * 1e-3; // g: 1000 mm³ at 1 g/cm³
+  assert.ok(close(box.inertia[0][0], m * (100 + 25) / 12) && close(box.inertia[2][2], m * (400 + 100) / 12) && Math.abs(box.inertia[0][1]) < 1e-9);
+  const stl = exportStl(o, { segmentsPerQuarter: 8 }), view = new DataView(stl.buffer, stl.byteOffset), n = view.getUint32(80, true);
   assert.equal(stl.length, 84 + 50 * n);
   assert.equal(n, tessellateBrep(o.brep, { segmentsPerQuarter: 8 }).indices.length / 3);
 });
@@ -461,10 +461,10 @@ test('planes and cylinders of any axis: cross holes, side holes, pins and bars (
       2000 * pi + 960 - 4 * 2 * (3 * Math.sqrt(91) + 100 * Math.asin(0.3))],
   ];
   for (const [name, doc, expected] of cases) {
-    const o = evaluateCadPart(doc).outputs[0], m = o.massProperties(1), report = checkBrep(o.brep);
+    const o = evaluateCadPart(doc).outputs[0], m = massPropertiesOf(o), report = checkBrep(o.brep);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.equal(m.method, o.representation === 'upright' ? 'closed-form' : 'quadrature', name);
-    assert.ok(Math.abs(m.volumeMM3 - expected) < 3e-4 * expected, `${name}: ${m.volumeMM3} vs ${expected}`);
+    assert.ok(Math.abs(m.volume - expected) < 3e-4 * expected, `${name}: ${m.volume} vs ${expected}`);
     assert.ok(o.brep.faces.every(f => f.name) && o.brep.edges.every(e => e.name), name);
     assert.ok(o.brep.faces.some(f => f.name.startsWith(name.includes('pin') ? 'p.side0' : name.includes('bar') ? 'k.side0' : 'h.side0')), `${name}: the cylinder wall keeps its feature name`);
   }
@@ -476,12 +476,12 @@ test('planes and cylinders of any axis: cross holes, side holes, pins and bars (
   const holed = x => D([...plate, { id: 'h', kind: 'hole', target: 'e', center: [x, 10], radius: 2 }, { id: 'c', kind: 'chamfer', target: 'h', edges: ['e.side3|e.top'], distance: 2 }]);
   const chamfered = evaluateCadPart(holed(30)).outputs[0];
   assert.equal(checkBrep(chamfered.brep).valid, true);
-  assert.ok(Math.abs(chamfered.massProperties(1).volumeMM3 - (8000 - 40 * pi - 40)) < 3e-4 * 8000);
+  assert.ok(Math.abs(massPropertiesOf(chamfered).volume - (8000 - 40 * pi - 40)) < 3e-4 * 8000);
   // Next to the hole the wedge (legs 2, along y) and the hole overlap: ∫ (2 − x)·2√(4 − (x − 3)²) over 1 ≤ x ≤ 2.
   let overlap = 0; for (let i = 0, n = 4000; i < n; i++) { const x = 1 + (i + 0.5) / n; overlap += (2 - x) * 2 * Math.sqrt(Math.max(0, 4 - (x - 3) ** 2)) / n; }
   const near = evaluateCadPart(holed(3)).outputs[0];
   assert.equal(checkBrep(near.brep).valid, true);
-  assert.ok(Math.abs(near.massProperties(1).volumeMM3 - (8000 - 40 * pi - 40 + overlap)) < 3e-4 * 8000, String(near.massProperties(1).volumeMM3));
+  assert.ok(Math.abs(massPropertiesOf(near).volume - (8000 - 40 * pi - 40 + overlap)) < 3e-4 * 8000, String(massPropertiesOf(near).volume));
   // A missed side hole is refused by name.
   refused(D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'x', center: [50, 5], radius: 2 }]), 'SELECTION', /along x misses the target/);
 });
@@ -495,12 +495,12 @@ test('ellipse and quartic trims: slanted bodies, cross-drilled bosses, partial p
   // Removed: the x-cylinder (r 2) inside the boss (r 6): ∫ 2√(4 − y²) · 2√(36 − y²) dy over |y| ≤ 2.
   let crossed = 0; for (let i = 0, n = 4000; i < n; i++) { const y = -2 + 4 * (i + 0.5) / n; crossed += 2 * Math.sqrt(4 - y * y) * 2 * Math.sqrt(36 - y * y) * 4 / n; }
   const expected = 8000 + 36 * pi * 12 - crossed;
-  assert.ok(Math.abs(o.massProperties(1).volumeMM3 - expected) < 3e-4 * expected, `${o.massProperties(1).volumeMM3} vs ${expected}`);
+  assert.ok(Math.abs(massPropertiesOf(o).volume - expected) < 3e-4 * expected, `${massPropertiesOf(o).volume} vs ${expected}`);
   assert.ok(o.brep.faces.some(f => f.name === 'x.side0#1' || f.name === 'x.side0') && o.brep.faces.some(f => f.name.startsWith('b.side0')));
   // A plate turned 30° about z with a hole along x through it (ellipses on the hole wall).
   const turned = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'e', axis: 'z', angleDegrees: 30, pivot: [20, 10, 0] }, { id: 'h', kind: 'hole', target: 'r', axis: 'x', center: [10, 5], radius: 2 }])).outputs[0];
   assert.equal(checkBrep(turned.brep).valid, true);
-  assert.ok(turned.massProperties(1).volumeMM3 < 8000 && turned.massProperties(1).volumeMM3 > 8000 - 4 * pi * 60);
+  assert.ok(massPropertiesOf(turned).volume < 8000 && massPropertiesOf(turned).volume > 8000 - 4 * pi * 60);
 });
 
 test('sketch planes: profiles drawn on a face, a vertical plane at any heading or a tilted plane grow along its normal', () => {
@@ -509,42 +509,42 @@ test('sketch planes: profiles drawn on a face, a vertical plane at any heading o
   // A boss on the +X side face (x = 40): sketch X along +Y, Y up, grown 5 mm outward.
   const side = { origin: [40, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
   let snap = evaluateCadPart(D([...box, { ...circle('c', 10, 5, 3), plane: side }, extrude('b', 'c', 5), { id: 'u', kind: 'union', target: 'e', tool: 'b' }]));
-  let out = snap.output('u'), b = bounds(out);
+  let out = outputOf(snap, 'u'), b = bounds(out);
   assert.ok(close(volume(out), 8000 + 45 * pi, 1e-4), String(volume(out)));
   assert.ok(close(b.max[0], 45) && close(b.min[1], 0) && close(b.max[2], 10), JSON.stringify(b));
   assert.deepEqual(checkBrep(out.brep).problems ?? [], []);
   // A cut through the front face (y = 0, normal −Y): a negative height goes into the material.
   const front = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
   snap = evaluateCadPart(D([...box, { ...rect('r', 15, 2, 25, 8), plane: front }, extrude('t', 'r', -20), { id: 'd', kind: 'difference', target: 'e', tool: 't' }]));
-  out = snap.output('d');
+  out = outputOf(snap, 'd');
   assert.ok(close(volume(out), 8000 - 10 * 6 * 20, 1e-9), String(volume(out)));
   // The top face with a 30° spin: still upright, exact.
   const top = { origin: [20, 10, 10], normal: [0, 0, 1], xAxis: [Math.cos(pi / 6), Math.sin(pi / 6), 0] };
   snap = evaluateCadPart(D([...box, { ...rect('p', -5, -2, 5, 2), plane: top }, extrude('k', 'p', 3), { id: 'u', kind: 'union', target: 'e', tool: 'k' }]));
-  out = snap.output('u');
+  out = outputOf(snap, 'u');
   assert.equal(out.representation, 'upright');
   assert.ok(close(volume(out), 8000 + 120, 1e-9) && close(bounds(out).max[2], 13));
   // A vertical plane facing 30° from +X; a revolve and a loft on a side plane.
   const heading = { origin: [0, 0, 0], normal: [Math.cos(pi / 6), Math.sin(pi / 6), 0], xAxis: [-Math.sin(pi / 6), Math.cos(pi / 6), 0] };
-  out = evaluateCadPart(D([{ ...rect('q', 0, 0, 4, 2), plane: heading }, extrude('w', 'q', 6)])).output('w');
+  out = outputOf(evaluateCadPart(D([{ ...rect('q', 0, 0, 4, 2), plane: heading }, extrude('w', 'q', 6)])), 'w');
   assert.ok(close(volume(out), 48, 1e-9) && close(bounds(out).max[2], 2, 1e-9));
-  out = evaluateCadPart(D([{ ...rect('v', 2, 0, 4, 3), plane: side }, { id: 'rv', kind: 'revolve', sketch: 'v', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])).output('rv');
+  out = outputOf(evaluateCadPart(D([{ ...rect('v', 2, 0, 4, 3), plane: side }, { id: 'rv', kind: 'revolve', sketch: 'v', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])), 'rv');
   assert.ok(close(volume(out), pi * (16 - 4) * 3, 1e-6), String(volume(out)));
   assert.ok(close(bounds(out).min[2], 0, 1e-9) && close(bounds(out).max[2], 3, 1e-9), JSON.stringify(bounds(out)));
-  out = evaluateCadPart(D([{ ...rect('l0', 0, 0, 4, 4), plane: side }, { ...rect('l1', 1, 1, 3, 3), plane: side },
-    { id: 'lf', kind: 'loft', sections: [{ sketch: 'l0', z: 0 }, { sketch: 'l1', z: 6 }] }])).output('lf');
+  out = outputOf(evaluateCadPart(D([{ ...rect('l0', 0, 0, 4, 4), plane: side }, { ...rect('l1', 1, 1, 3, 3), plane: side },
+    { id: 'lf', kind: 'loft', sections: [{ sketch: 'l0', z: 0 }, { sketch: 'l1', z: 6 }] }])), 'lf');
   assert.ok(close(bounds(out).min[0], 40) && close(bounds(out).max[0], 46), JSON.stringify(bounds(out)));
   // A plane tilted 30° about X: Booleans, finishes and shells stay exact (planar B-rep).
   const c30 = Math.cos(pi / 6), s30 = Math.sin(pi / 6), tilt = z => ({ origin: [0, 0, z], normal: [0, -s30, c30], xAxis: [1, 0, 0] });
   const big = [rect('pl', -20, -20, 40, 40), extrude('pe', 'pl', 40)], tilted = z => [{ ...rect('ts', 0, 0, 20, 10), plane: tilt(z) }, extrude('te', 'ts', 5)];
-  out = evaluateCadPart(D([...big, ...tilted(15), { id: 'td', kind: 'difference', target: 'pe', tool: 'te' }])).output('td');
+  out = outputOf(evaluateCadPart(D([...big, ...tilted(15), { id: 'td', kind: 'difference', target: 'pe', tool: 'te' }])), 'td');
   assert.equal(out.representation, 'planar');
   assert.ok(close(volume(out), 144000 - 1000, 1e-12), String(volume(out)));
-  out = evaluateCadPart(D([...tilted(15), { id: 'tc', kind: 'chamfer', target: 'te', edges: ['te.side0|te.top'], distance: 1 }])).output('tc');
+  out = outputOf(evaluateCadPart(D([...tilted(15), { id: 'tc', kind: 'chamfer', target: 'te', edges: ['te.side0|te.top'], distance: 1 }])), 'tc');
   assert.ok(close(volume(out), 990, 1e-12));
-  out = evaluateCadPart(D([...tilted(15), { id: 'ts2', kind: 'shell', target: 'te', thickness: 1, open: ['te.top'] }])).output('ts2');
+  out = outputOf(evaluateCadPart(D([...tilted(15), { id: 'ts2', kind: 'shell', target: 'te', thickness: 1, open: ['te.top'] }])), 'ts2');
   assert.ok(close(volume(out), 424, 1e-12));
-  assert.ok(close(bounds(evaluateCadPart(D(tilted(15))).output('te')).max[2], 15 + 10 * s30 + 5 * c30, 1e-9));
+  assert.ok(close(bounds(outputOf(evaluateCadPart(D(tilted(15))), 'te')).max[2], 15 + 10 * s30 + 5 * c30, 1e-9));
   // Mixed loft planes and a non-perpendicular axis are refused.
   refused(D([{ ...rect('x', 0, 0, 1, 1), plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [0, 1, 1] } }]), 'INPUT', /perpendicular/);
   refused(D([{ ...rect('a', 0, 0, 4, 4), plane: side }, rect('b', 1, 1, 3, 3), { id: 'lf', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 6 }] }]), 'INPUT', /same plane/);
@@ -554,7 +554,7 @@ test('sketch regions and holes: one extrude makes a windowed plate and a separat
   const square = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(start => ({ kind: 'line', start }));
   const ring = (cx, cy, r) => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
   const plate = { ...rect('s', 0, 0, 60, 40), regions: [square(70, 0, 80, 10)], holes: [square(10, 10, 20, 30), ring(40, 20, 5)] };
-  const out = evaluateCadPart(D([plate, extrude('e', 's', 4)])).output('e');
+  const out = outputOf(evaluateCadPart(D([plate, extrude('e', 's', 4)])), 'e');
   assert.equal(out.representation, 'upright');
   assert.ok(close(volume(out), (2400 + 100 - 200 - 25 * pi) * 4, 1e-9), String(volume(out)));
   const names = out.brep.faces.map(f => f.name);
@@ -563,7 +563,7 @@ test('sketch regions and holes: one extrude makes a windowed plate and a separat
   assert.equal(out.bodyCount, 2, 'the plate and the boss');
   // On a side plane too; other features take one loop.
   const side = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
-  const onSide = evaluateCadPart(D([{ ...rect('t', 0, 0, 20, 10), plane: side, holes: [ring(10, 5, 2)] }, extrude('w', 't', 3)])).output('w');
+  const onSide = outputOf(evaluateCadPart(D([{ ...rect('t', 0, 0, 20, 10), plane: side, holes: [ring(10, 5, 2)] }, extrude('w', 't', 3)])), 'w');
   assert.ok(close(volume(onSide), (200 - 4 * pi) * 3, 1e-9));
   refused(D([plate, { id: 'd', kind: 'extrude', sketch: 's', height: 4, draft: 5 }]), 'CAPABILITY', /drafted extrude takes one loop/);
   refused(D([plate, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }]), 'CAPABILITY', /revolve takes one outer loop with optional holes \(no regions\)/);
@@ -576,9 +576,9 @@ test('sketch regions and holes: one extrude makes a windowed plate and a separat
 test('fillet volume is exact at any radius, up to the wall height (quadrature over the round)', () => {
   for (const r of [4, 15, 16]) {
     const o = evaluateCadPart(D([rect('s', 0, 0, 32, 32), extrude('e', 's', 16), { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.top'], radius: r }])).outputs.at(-1);
-    const m = o.massProperties(1000), exact = 32 * 32 * 16 - (r * r - pi * r * r / 4) * 32;
+    const m = massPropertiesOf(o, 1), exact = 32 * 32 * 16 - (r * r - pi * r * r / 4) * 32;
     assert.equal(m.method, 'quadrature');
-    assert.ok(close(m.volumeMM3, exact, 1e-9), `R${r}: ${m.volumeMM3} vs ${exact}`);
+    assert.ok(close(m.volume, exact, 1e-9), `R${r}: ${m.volume} vs ${exact}`);
   }
 });
 
@@ -587,7 +587,7 @@ test('revolve about any axis in the sketch plane: a square turned about a 45° l
   // The square's centre (2, 2) lies √2·2 from the line y = x − 0 … here the axis runs along (1, −1) through (0, 0).
   const o = evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [1, -1] }, angleDegrees: 360 }])).outputs[0];
   // Pappus: area 8 × 2π × the centroid's distance from the axis (|2 + 2| / √2 = 2√2).
-  assert.ok(close(o.massProperties(1000).volumeMM3, 8 * 2 * pi * 2 * Math.SQRT2, 1e-6), String(o.massProperties(1000).volumeMM3));
+  assert.ok(close(massPropertiesOf(o, 1).volume, 8 * 2 * pi * 2 * Math.SQRT2, 1e-6), String(massPropertiesOf(o, 1).volume));
   assert.throws(() => evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [0, 0] } }])), /axis must be/);
 });
 
@@ -595,7 +595,7 @@ test('separate: a bar cut in two becomes two parts, each a body; a body in one p
   const doc = [rect('s', 0, 0, 30, 10), extrude('a', 's', 5), rect('t', 10, -5, 20, 15), extrude('b', 't', 7, -1), { id: 'd', kind: 'difference', target: 'a', tool: 'b' }];
   const r = evaluateCadPart(D([...doc, { id: 'p', kind: 'separate', target: 'd' }]));
   assert.deepEqual(r.outputs.map(o => [o.id, o.bodyCount]), [['p/0', 1], ['p/1', 1]]);
-  assert.ok(close(volume(r.output('p/0')) + volume(r.output('p/1')), 2 * 10 * 10 * 5));
+  assert.ok(close(volume(outputOf(r, 'p/0')) + volume(outputOf(r, 'p/1')), 2 * 10 * 10 * 5));
   // Each piece goes on on its own: a hole in one of them.
   const h = evaluateCadPart(D([...doc, { id: 'p', kind: 'separate', target: 'd' }, { id: 'h', kind: 'hole', target: 'p/1', center: [25, 5], radius: 1 }]));
   assert.deepEqual(h.outputs.map(o => o.id), ['p/0', 'h']);
@@ -607,7 +607,7 @@ test('split across an oblique plane: a mitre x + y = at, a tilted cut through a 
   const bar = [rect('s', 0, 0, 20, 10), extrude('a', 's', 5)];
   const m = evaluateCadPart(D([...bar, { id: 'm', kind: 'split', target: 'a', normal: [1, 1, 0], at: 15 }]));
   assert.deepEqual(m.outputs.map(o => o.id), ['m/0', 'm/1']);
-  const v0 = volume(m.output('m/0')), v1 = volume(m.output('m/1'));
+  const v0 = volume(outputOf(m, 'm/0')), v1 = volume(outputOf(m, 'm/1'));
   assert.ok(close(v0 + v1, 1000, 1e-9), `${v0} + ${v1}`);
   // Past the line from (5, 10) to (15, 0): the quadrilateral (15, 0) (20, 0) (20, 10) (5, 10), area 100.
   assert.ok(close(v1, 100 * 5, 1e-9), String(v1));
@@ -616,10 +616,10 @@ test('split across an oblique plane: a mitre x + y = at, a tilted cut through a 
   const plate = [rect('s', 0, 0, 40, 20), extrude('a', 's', 10), { id: 'h', kind: 'hole', target: 'a', center: [20, 10], radius: 3 }];
   const t = evaluateCadPart(D([...plate, { id: 't', kind: 'split', target: 'h', normal: [1, 0, 1], at: 25 }]));
   // (Each half to the quadrature's accuracy over Boolean-trimmed faces; the halves are mirror images.)
-  for (const k of ['t/0', 't/1']) assert.ok(close(volume(t.output(k)), (8000 - 90 * pi) / 2, 1e-5), `${k}: ${volume(t.output(k))}`);
+  for (const k of ['t/0', 't/1']) assert.ok(close(volume(outputOf(t, k)), (8000 - 90 * pi) / 2, 1e-5), `${k}: ${volume(outputOf(t, k))}`);
   // A normal along one axis is that axis: −2x = −8 is x = 4, and /0 (−2x below −8) is the side past it.
   const x = evaluateCadPart(D([...bar, { id: 'x', kind: 'split', target: 'a', normal: [-2, 0, 0], at: -8 }]));
-  assert.ok(close(volume(x.output('x/0')), 800) && close(volume(x.output('x/1')), 200));
+  assert.ok(close(volume(outputOf(x, 'x/0')), 800) && close(volume(outputOf(x, 'x/1')), 200));
   refused(D([...bar, { id: 'n', kind: 'split', target: 'a', normal: [1, 1, 0], at: 40 }]), 'SELECTION', /does not cross/);
   refused(D([...bar, { id: 'z', kind: 'split', target: 'a', normal: [0, 0, 0], at: 1 }]), 'INPUT', /must not be zero/);
 });
@@ -630,27 +630,27 @@ test('a long chain of features evaluates and is reused: no key spells out what i
   let last = 'e';
   for (let k = 0; k < 120; k++) { F.push({ id: 'h' + k, kind: 'hole', target: last, center: [3 + k * 3.2, 20], radius: 1 }); last = 'h' + k; }
   const snap = evaluateCadPart(D(F));
-  assert.ok(close(volume(snap.output(last)), 400 * 40 * 10 - 120 * pi * 10, 1e-9));
-  const same = snap.withDocument(D(F));
+  assert.ok(close(volume(outputOf(snap, last)), 400 * 40 * 10 - 120 * pi * 10, 1e-9));
+  const same = reevaluate(snap, { document: D(F) });
   assert.equal(same.recomputation.evaluated.length, 0);
-  const edited = snap.withDocument(D(F.map((f, i) => i === F.length - 1 ? { ...f, radius: 1.2 } : f)));
+  const edited = reevaluate(snap, { document: D(F.map((f, i) => i === F.length - 1 ? { ...f, radius: 1.2 } : f)) });
   assert.deepEqual(edited.recomputation.evaluated, [last]);
   // An input that changed is not reused through: editing the plate rebuilds every hole on it.
-  const plate = snap.withDocument(D(F.map(f => f.id === 'e' ? { ...f, height: 12 } : f)));
+  const plate = reevaluate(snap, { document: D(F.map(f => f.id === 'e' ? { ...f, height: 12 } : f)) });
   assert.equal(plate.recomputation.evaluated.length, 121);
 });
 
 test('draft: side faces turned about their line on the bottom, in (material off) or out (added), by volume', () => {
   const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)], t = Math.tan(10 * pi / 180);
-  const one = evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: 10 }])).output('d');
+  const one = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: 10 }])), 'd');
   assert.ok(close(volume(one), 4000 - 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(one)));
   assert.deepEqual(checkBrep(one.brep).issues, []);
   // Two opposite sides: twice the wedge. Two that meet are refused (their wedges would need a mitre).
-  const two = evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side2'], angleDegrees: 10 }])).output('d');
+  const two = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side2'], angleDegrees: 10 }])), 'd');
   assert.ok(close(volume(two), 4000 - 2 * 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(two)));
   refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side1'], angleDegrees: 10 }]), 'CAPABILITY', /meet along an edge/);
   // Out: the same wedge added.
-  const out = evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: -10 }])).output('d');
+  const out = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: -10 }])), 'd');
   assert.ok(close(volume(out), 4000 + 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(out)));
   refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.top'], angleDegrees: 5 }]), 'CAPABILITY', /square to the pull/);
   refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.nope'], angleDegrees: 5 }]), 'REFERENCE', /no face e\.nope/);
@@ -663,7 +663,7 @@ test('hole: a 90° countersink is cut with the hole, along any axis and from eit
   for (const axis of ['x', 'y', 'z']) for (const side of ['min', 'max']) {
     const hole = { id: 'h', kind: 'hole', target: 'b', center: [20, 20], radius: r, axis, side };
     const plain = evaluateCadPart(D([...cube, hole])).outputs[0], csk = evaluateCadPart(D([...cube, { ...hole, countersink: 2 * R }])).outputs[0];
-    assert.ok(Math.abs(plain.massProperties(1).volumeMM3 - csk.massProperties(1).volumeMM3 - extra) < 1e-3, `${axis} ${side}`);
+    assert.ok(Math.abs(massPropertiesOf(plain).volume - massPropertiesOf(csk).volume - extra) < 1e-3, `${axis} ${side}`);
     assert.equal(checkBrep(csk.brep).issues.length, 0);
     assert.ok(csk.brep.faces.some(f => /^h\.countersink-/.test(f.name ?? '')), 'the cone faces are the hole’s');
   }
@@ -686,7 +686,7 @@ test('cylinder walls touching at a point from inside: built in either order, the
   for (const c of cases) for (const [a, b] of [[c.across, c.down], [c.down, c.across]]) {
     const out = evaluateCadPart(D([...c.base, { ...a, id: 'h1', target: 'e' }, { ...b, id: 'h2', target: 'h1' }])).outputs[0];
     assert.equal(checkBrep(out.brep).issues.length, 0);
-    const v = out.massProperties(1).volumeMM3;
+    const v = massPropertiesOf(out).volume;
     assert.ok(Math.abs(v - c.exact) <= 1e-5 * c.exact, `${v} vs ${c.exact}`);
   }
   // The larger cylinder turned about its own axis (its seams moved off the touch) and subtracted as a body.
@@ -696,7 +696,7 @@ test('cylinder walls touching at a point from inside: built in either order, the
       : [...cube, ...tube(deg), { id: 'd', kind: 'difference', target: 'e', tool: 'v' }, { ...across, id: 'h', target: 'd' }];
     const out = evaluateCadPart(D(f)).outputs.at(-1);
     assert.equal(checkBrep(out.brep).issues.length, 0);
-    assert.ok(Math.abs(out.massProperties(1).volumeMM3 - cases[1].exact) <= 1e-5 * cases[1].exact, `${deg}° ${first} first: ${out.massProperties(1).volumeMM3}`);
+    assert.ok(Math.abs(massPropertiesOf(out).volume - cases[1].exact) <= 1e-5 * cases[1].exact, `${deg}° ${first} first: ${massPropertiesOf(out).volume}`);
   }
   // Equal radii with meeting axes (the mitre the fillets make) still join.
   const big = cases[1].down;

@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { finishBrepEdges, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, BrepError, evaluateCadPart } from '../dist/index.js';
+import { finishBrepEdges, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, BrepError, evaluateCadPart, massPropertiesOf, checkOutput, surfaceAreaOf } from '../dist/index.js';
 import { openEdgesByBody } from '../scripts/rb/stages.mjs';
 
 const pi = Math.PI, corner = r => r * r * (1 - pi / 4), k = (10 - 3 * pi) / (12 - 3 * pi);
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
 const prism = (outer, h, tag) => brepFromPrismatic(prismaticFromProfile({ outer, heightMM: h, tag }), { id: tag });
-const volume = b => brepMassProperties(b, 1000, { segmentsPerQuarter: 48 }).volumeMM3;
+const volume = b => brepMassProperties(b, 1, { segmentsPerQuarter: 48 }).volume;
 const near = (a, b, rel) => Math.abs(a - b) <= rel * Math.abs(b);
 function watertight(b) {
   const m = tessellateBrep(b, { segmentsPerQuarter: 16 }), p = m.positionsMM, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
@@ -90,13 +90,13 @@ test('every edge of a box filleted: strictly valid, watertight, volume and area 
   for (const r of [0.5, 2, 4.9]) {
     const A = a - 2 * r, B = b - 2 * r, C = c - 2 * r;
     const volume = A * B * C + 2 * r * (A * B + B * C + A * C) + pi * r * r * (A + B + C) + 4 / 3 * pi * r ** 3, area = 2 * (A * B + B * C + A * C) + 2 * pi * r * (A + B + C) + 4 * pi * r * r;
-    const o = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }])).outputs[0], m = o.massProperties(1), v = o.validate();
+    const o = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }])).outputs[0], m = massPropertiesOf(o), v = checkOutput(o);
     assert.equal(v.valid, true, `r ${r}: ${v.issues[0]}`); assert.ok(v.maximumEdgeSurfaceGapMM < 1e-8);
     assert.equal(openEdgesByBody(o.brep, tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `r ${r} watertight`);
     // (The corner patches hold their ball's pole, where the quadrature over their trimmed domains is least
     // accurate: 5e-5, shrinking with finer quadrature; the geometry itself is exact to 1e-9.)
-    assert.ok(Math.abs(m.volumeMM3 - volume) <= 5e-5 * volume, `r ${r} volume ${m.volumeMM3} vs ${volume}`);
-    assert.ok(Math.abs(o.surfaceArea() - area) <= 5e-5 * area, `r ${r} area ${o.surfaceArea()} vs ${area}`);
-    m.centroidMM.forEach((x, k) => assert.ok(Math.abs(x - [a / 2, b / 2, c / 2][k]) < 5e-4, `r ${r} centroid ${m.centroidMM}`));
+    assert.ok(Math.abs(m.volume - volume) <= 5e-5 * volume, `r ${r} volume ${m.volume} vs ${volume}`);
+    assert.ok(Math.abs(surfaceAreaOf(o) - area) <= 5e-5 * area, `r ${r} area ${surfaceAreaOf(o)} vs ${area}`);
+    m.centroid.forEach((x, k) => assert.ok(Math.abs(x - [a / 2, b / 2, c / 2][k]) < 5e-4, `r ${r} centroid ${m.centroid}`));
   }
 });

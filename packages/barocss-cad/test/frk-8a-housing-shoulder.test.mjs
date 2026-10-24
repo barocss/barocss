@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, seatedBearing, isBearingError, evaluateCadPart } from '../dist/index.js';
+import { shaftSolid, seatedBearing, isBearingError, evaluateCadPart, outputOf } from '../dist/index.js';
 
 // FRk8a (D181): D158's housing shoulder against the row's Da max, found from the housing's faces. The row is D139's B1
 // (the NSK 6204 page: d 20, D 47, B 14, r 1; da 25–26.5, Da max 42, ra max 1), a test row citing it. The housings are
@@ -17,8 +17,8 @@ function shaft() {
 /** A housing turned about +Z from an (r, z) profile: the Ø47 seat over z 30–46, and its shoulder of radius rs at z 30 (below) or z 44 (above). */
 function housing(rs, at = 'start') {
   const prof = at === 'start' ? [[rs, 26], [35, 26], [35, 46], [23.5, 46], [23.5, 30], [rs, 30]] : [[23.5, 26], [35, 26], [35, 48], [rs, 48], [rs, 44], [23.5, 44]];
-  return evaluateCadPart(D([{ id: 'hs', kind: 'sketch', profile: 'loop', segments: prof.map(start => ({ kind: 'line', start })), plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
-    { id: 'h', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])).output('h').brep;
+  return outputOf(evaluateCadPart(D([{ id: 'hs', kind: 'sketch', profile: 'loop', segments: prof.map(start => ({ kind: 'line', start })), plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
+    { id: 'h', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])), 'h').brep;
 }
 
 test('FRk8a the housing\'s shoulder from its faces: Ø40 and Ø41.5 (Da max 42 less 2 and 0.5) found at the bearing\'s located face and held; Ø42.5 (Da max + 0.5) refused SEAT_ABUTMENT', () => {
@@ -46,6 +46,6 @@ test('FRk8a through the part model: the bearing\'s report carries the housing\'s
     { id: 'hs', kind: 'sketch', profile: 'loop', segments: [[rs, 26], [35, 26], [35, 46], [23.5, 46], [23.5, 30], [rs, 30]].map(start => ({ kind: 'line', start })), plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
     { id: 'h', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
     { id: 'b', kind: 'bearing', row: ROW, shaft: 's', step: 2, against: 'start', housing: 'h' }];
-  assert.deepEqual(evaluateCadPart(D(feats(20))).output('b').bearing.housing.shoulder, { at: 'start', diameterMM: 40 });
+  assert.deepEqual(outputOf(evaluateCadPart(D(feats(20))), 'b').bearing.housing.shoulder, { at: 'start', diameterMM: 40 });
   assert.throws(() => evaluateCadPart(D(feats(21.25))), e => e.code === 'GEOMETRY' && e.message.includes('[SEAT_ABUTMENT]'));
 });

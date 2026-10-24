@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { worm, wormDimensions, wormWheelSpec, checkWormPair, checkPlacedWormPair, spurGear, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { worm, wormDimensions, wormWheelSpec, checkWormPair, checkPlacedWormPair, spurGear, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain, outputOf, checkOutput } from '../dist/index.js';
 
 // R12b.5 (D136): cylindrical worms (ZI, ZA) and their cylindrical wheel. Oracles written here, apart from gear-worm.ts:
 // the section's half-thickness by this file's own formulas (the involute of r1 cos α_t, or the Archimedean spiral of a
@@ -94,7 +94,7 @@ test('the worm (refused at the previous HEAD: no worm): ZI and ZA, valid; K1\'s 
       const resid = Math.max(...axial.map(q => Math.abs(q.z - mz - slope * (q.r - mr))));
       close(Math.abs(Math.atan(slope)), G.ax, 1e-4, 'ZA axial side at α_x'); assert.ok(resid <= 2 * fit / Math.sin(G.ax) + 1e-9, `ZA axial side straight within ${resid}`);
     }
-    const { A, P } = sectionArea(G), want = (A - (c.bore ? Math.PI * c.bore * c.bore / 4 : 0)) * c.L, got = brepMassProperties(brep, 1).volumeMM3;
+    const { A, P } = sectionArea(G), want = (A - (c.bore ? Math.PI * c.bore * c.bore / 4 : 0)) * c.L, got = brepMassProperties(brep, 1).volume;
     close(got, want, P * c.L * fit + 1e-7 * want, `${c.form} z1 ${c.z1} volume`);
     t.diagnostic(`${c.form} m_x ${c.m} z1 ${c.z1} d1 ${c.d1} ${c.hand ?? 'right'} L ${c.L}: γ ${dm.leadAngleDeg.toFixed(5)}°, ${report.flankPieces} flank piece(s) on ${report.flankFaces} face(s) ${report.profileDeviationMM.toExponential(2)}, twist ${report.twist.turns.toFixed(3)} turns in ${report.twist.pieces} pieces / ${report.twist.axialSegments} segments ${tw.toExponential(2)}; sampled ${worst.toExponential(2)}, α_n off ${pa.toExponential(2)}; V ${got.toFixed(3)} vs ${want.toFixed(3)} (${((got - want) / want).toExponential(2)}); ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
   }
@@ -176,13 +176,13 @@ test('the part model: K1\'s wheel (a helical spur gear at γ) and its worm by me
     { id: 'w', kind: 'worm', starts: 2, length: 60, form: 'ZA', thicknessReduction: j / 2, mesh: { gear: 'g', direction: dir, phase } }];
   const rows = [];
   for (const [rot, dir] of SURVEY ? [[0, -90], [5, 30], [-7, 200]] : [[5, 30]]) {
-    const M = evaluateCadPart(D(feats(rot, dir))), g = M.output('g'), w = M.output('w'), pw = w.wormPlacement, pg = g.gearPlacement;
+    const M = evaluateCadPart(D(feats(rot, dir))), g = outputOf(M, 'g'), w = outputOf(M, 'w'), pw = w.wormPlacement, pg = g.gearPlacement;
     // From the wheel: m_x 3, d1 44; square to it, 67 mm off, in its mid-plane.
     close(pw.spec.axialModuleMM, 3, 1e-12, 'm_x from the wheel'); close(pw.spec.diameterMM, 44, 1e-9, 'd1 from the wheel'); assert.equal(pw.spec.hand, 'right');
     const mid = pw.origin.map((x, i) => x + pw.axis[i] * 30), phi = dir * Math.PI / 180;
     close(Math.hypot(mid[0] - 10, mid[1] - 5), 67, 1e-9, 'a'); close(mid[2], 12, 1e-12, 'mid-plane'); close(pw.axis[2], 0, 1e-15, 'square'); close(Math.atan2(mid[1] - 5, mid[0] - 10), Math.atan2(Math.sin(phi), Math.cos(phi)), 1e-12, 'direction');
     const chk = checkPlacedWormPair(pg, pw, { mode: 'verdict' }); assert.equal(chk.relativePhaseDeg, 0); assert.equal(chk.interference, false);
-    assert.equal(g.validate().valid, true); assert.equal(w.validate().valid, true);
+    assert.equal(checkOutput(g).valid, true); assert.equal(checkOutput(w).valid, true);
     const pair = checkWormPair(pw.spec, pg.spec), Mp = [10 + 45 * Math.cos(phi), 5 + 45 * Math.sin(phi), 12];
     for (const cOff of SURVEY ? [0, -20 / 3, 20 / 3] : [0, 20 / 3]) {
       const A = planeSection(g.brep, 12 + cOff, Mp, 22), B = planeSection(w.brep, 12 + cOff, Mp, 22), r = clearance(A, B), want = pair.planes.find(p => Math.abs(p.offsetMM - cOff) < 1e-9).minimumClearanceMM;
@@ -195,13 +195,13 @@ test('the part model: K1\'s wheel (a helical spur gear at γ) and its worm by me
     }
   }
   // A phase off: the B-reps' mid-plane sections cross.
-  const Mo = evaluateCadPart(D(feats(0, -90, 60))), Ao = planeSection(Mo.output('g').brep, 12, [10, 5 - 45, 12], 22), Bo = planeSection(Mo.output('w').brep, 12, [10, 5 - 45, 12], 22);
+  const Mo = evaluateCadPart(D(feats(0, -90, 60))), Ao = planeSection(outputOf(Mo, 'g').brep, 12, [10, 5 - 45, 12], 22), Bo = planeSection(outputOf(Mo, 'w').brep, 12, [10, 5 - 45, 12], 22);
   assert.equal(clearance(Ao, Bo).crossed, true, 'a phase off crosses');
   // Refusals in the part model: a straight wheel, a worm of the other hand.
-  assert.throws(() => evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /straight/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])).output('w'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', module: 3, teeth: 30, faceWidth: 20 }, feats(0, 0)[1]])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /straight/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], hand: 'left' }])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'w', kind: 'worm', axialModule: 3, starts: 2, diameter: 44, hand: 'right', length: 60, form: 'ZK' }])), 'w'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
   const { brep } = worm({ ...w0, boreDiameterMM: 12 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'worm' }));
-  close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
+  close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
   t.diagnostic(rows.join('; '));
 });

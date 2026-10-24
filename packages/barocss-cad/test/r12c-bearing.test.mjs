@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, isBearingError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { shaftSolid, seatedBearing, bearingEnvelope, bearingRowProblem, isBearingError, checkBrep, brepMassProperties, evaluateCadPart, outputOf } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.4 (D158): bearing envelopes from the user's rows, on a shaft's seat and in a housing. The row is D139's B1 (the
@@ -9,7 +9,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 // construction: the rectangle less four corner squares plus quarter discs, 19800.6522 mm³); the abutment rules by
 // arithmetic on the row; the fits' clearances (hole − shaft) by arithmetic; no overlap by volumes.
 
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
 const code = c => e => isBearingError(e) && e.code === c;
 const I = { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] };
@@ -64,8 +64,8 @@ test('R12c.4 refusals: SEAT_ABUTMENT for a shoulder outside da min…da max, a f
 
 test('R12c.4 housing and fits: a Ø47 bore on the axis covers it, no overlap; k5 on the shaft against the bore\'s [0, −10] is interference −21…−2, H7 in the housing against the OD\'s [0, −11] clearance 0…+36 (arithmetic, test rows)', () => {
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
-  const housing = (dx, z0 = 28, h = 20) => evaluateCadPart(D([{ id: 'o', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 35, plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: h },
-    { id: 'c', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 23.5, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 100 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'ce' }])).output('h').brep;
+  const housing = (dx, z0 = 28, h = 20) => outputOf(evaluateCadPart(D([{ id: 'o', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 35, plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: h },
+    { id: 'c', kind: 'sketch', profile: 'circle', center: [dx, 0], radius: 23.5, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 100 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'ce' }])), 'h').brep;
   const row = { ...ROW, boreDeviationUM: [0, -10], outsideDeviationUM: [0, -11] };
   const b = seatedBearing(row, shaft(), { step: 2, against: 'start', housing: housing(0), fit: { tables: FITS, shaft: 'k5', housing: 'H7' } }, 'b');
   // (A plain through bore has no shoulder: FRk8a says so, D181.)
@@ -86,7 +86,7 @@ test('R12c.4 part model: a shaft turned and moved, a bearing on its seat and in 
     { id: 'o', kind: 'sketch', profile: 'circle', center: [60, 0], radius: 35, plane: { origin: [0, 0, 33], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'oe', kind: 'extrude', sketch: 'o', height: 20 },
     { id: 'c', kind: 'sketch', profile: 'circle', center: [60, 0], radius: 23.5, plane: { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 100 }, { id: 'h', kind: 'difference', target: 'oe', tool: 'ce' },
     { id: 'b', kind: 'bearing', row: ROW, shaft: 's', step: 2, against: 'start', housing: 'h' }];
-  const snap = evaluateCadPart(D(feats)), b = snap.output('b'), bb = brepBounds(b.brep);
+  const snap = evaluateCadPart(D(feats)), b = outputOf(snap, 'b'), bb = brepBounds(b.brep);
   near(bb.min[2], 35, 1e-9, 'z'); near((bb.min[0] + bb.max[0]) / 2, 60, 1e-9, 'x'); assert.equal(b.bearing.seat.located, 'ring groove 1'); assert.equal(b.bearing.housing.covered, true);
   assert.ok(snap.outputs.some(o => o.id === 's') && snap.outputs.some(o => o.id === 'h'), 'the shaft and the housing stay outputs');
   const refused = (patch, c, tag) => assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'b' ? { ...f, ...patch } : f))), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);

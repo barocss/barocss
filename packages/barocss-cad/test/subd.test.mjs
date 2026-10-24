@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subdBrep, subdReport, tessellateBrep, evaluateSurfaceD1, SubdError, checkBrep, brepMassProperties, brepSurfaceArea, evaluateCadPart, exportStep, importStep, evaluateSurface } from '../dist/index.js';
+import { subdBrep, subdReport, tessellateBrep, evaluateSurfaceD1, SubdError, checkBrep, brepMassProperties, brepSurfaceArea, evaluateCadPart, exportStep, importStep, evaluateSurface, outputOf, checkOutput, massPropertiesOf } from '../dist/index.js';
 import { openEdges } from '../scripts/rb/stages.mjs';
 import { tessellateBrepWithParameters } from '../dist/brep/brep-tessellate.js';
 
 // SD1 (R5, D51): a regular SubD cage as its exact limit surface, bicubic B-spline faces built from the cage's topology.
 // The check that does not trust the construction: one Catmull–Clark step (written here, apart from it) gives a cage
 // with the same limit surface, so the same volume and area.
-const vol = b => brepMassProperties(b, 1).volumeMM3;
+const vol = b => brepMassProperties(b, 1).volume;
 function torusCage(n, m, R = 20, r = 6) {
   const positions = [], faces = [];
   for (let i = 0; i < n; i++) for (let j = 0; j < m; j++) { const u = 2 * Math.PI * i / n, v = 2 * Math.PI * j / m; positions.push((R + r * Math.cos(v)) * Math.cos(u), (R + r * Math.cos(v)) * Math.sin(u), r * Math.sin(v)); }
@@ -103,19 +103,19 @@ test('refusals: bad cages INPUT (a bowtie, a face of two sides, an unknown verte
 test('part model: the subd feature — a solid with its patches named, a STEP round trip of its B-spline faces, a cube cage of caps', () => {
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const r = evaluateCadPart(D([{ id: 'ring', kind: 'subd', cage: torusCage(16, 8) }]));
-  const o = r.output('ring');
-  assert.equal(o.representation, 'curved'); assert.equal(o.validate().valid, true);
+  const o = outputOf(r, 'ring');
+  assert.equal(o.representation, 'curved'); assert.equal(checkOutput(o).valid, true);
   assert.ok(o.brep.faces.every(f => /^ring\.patch\d+$/.test(f.name)));
   const back = importStep(exportStep([o.brep], { name: 'ring' }));
-  assert.ok(Math.abs(vol(back) / o.massProperties(1).volumeMM3 - 1) < 1e-9);
+  assert.ok(Math.abs(vol(back) / massPropertiesOf(o).volume - 1) < 1e-9);
   // (SD2: a cube cage, extraordinary everywhere, is a solid of caps.)
-  const cube = evaluateCadPart(D([{ id: 'c', kind: 'subd', cage: CUBE }])).output('c');
-  assert.equal(cube.validate().valid, true); assert.ok(cube.brep.faces.every(f => /^c\.cap\d+_\d+$/.test(f.name)));
+  const cube = outputOf(evaluateCadPart(D([{ id: 'c', kind: 'subd', cage: CUBE }])), 'c');
+  assert.equal(checkOutput(cube).valid, true); assert.ok(cube.brep.faces.every(f => /^c\.cap\d+_\d+$/.test(f.name)));
   assert.throws(() => evaluateCadPart(D([{ id: 'c', kind: 'subd', cage: { positions: [], faces: 'x' } }])), e => e.code === 'INPUT');
   // A Boolean with it goes through the analytic path (B-spline faces).
   const cut = evaluateCadPart(D([{ id: 'ring', kind: 'subd', cage: torusCage(16, 8) }, { id: 'c', kind: 'split', target: 'ring', axis: 'z', at: 0 }]));
   assert.equal(cut.outputs.length, 2);
-  assert.ok(Math.abs(cut.outputs.reduce((s, x) => s + x.massProperties(1).volumeMM3, 0) / o.massProperties(1).volumeMM3 - 1) < 1e-6);
+  assert.ok(Math.abs(cut.outputs.reduce((s, x) => s + massPropertiesOf(x).volume, 0) / massPropertiesOf(o).volume - 1) < 1e-6);
 });
 
 // ---- SD2 (R7, D78): extraordinary vertices, n-gons and darts ---------------------------------------------------------
@@ -205,7 +205,7 @@ test('SD2 a cube cage (every vertex valence 3): one step, 24 G1 caps named by fa
   assert.ok(b.faces.every(f => f.surface.knotsU.join() === '0,0,0,0,0.25,0.25,1,1,1,1'));
   const v = vol(b), want = extrapolated(CUBE);
   assert.ok(Math.abs(v / want - 1) < 2e-3, `${v} vs the limit ${want}`);
-  assert.ok(brepMassProperties(b, 1).centroidMM.every(x => Math.abs(x - 5) < 1e-9));
+  assert.ok(brepMassProperties(b, 1).centroid.every(x => Math.abs(x - 5) < 1e-9));
   const back = importStep(exportStep([b], { name: 'c' }));
   assert.ok(Math.abs(vol(back) / v - 1) < 1e-9);
   // The cage wound inward is turned outward.

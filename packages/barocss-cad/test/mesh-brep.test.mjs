@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brepFromTriangles, readObj, readStl, encodeBinaryStl, brepMassProperties, checkBrep, isMeshBrepError, exportStep } from '../dist/index.js';
+import { brepFromTriangles, readObj, readStl, encodeBinaryStl, brepMassProperties, checkBrep, isMeshBrepError, exportStep, outputOf, massPropertiesOf } from '../dist/index.js';
 
 // A 20 × 10 × 5 box as an OBJ: six quads, wound outward.
 const BOX_OBJ = `# box
 v 0 0 0\nv 20 0 0\nv 20 10 0\nv 0 10 0\nv 0 0 5\nv 20 0 5\nv 20 10 5\nv 0 10 5
 f 1 4 3 2\nf 5 6 7 8\nf 1 2 6 5\nf 2 3 7 6\nf 3 4 8 7\nf 4 1 5 8\n`;
-const volume = b => brepMassProperties(b, 1, { segmentsPerQuarter: 4, quadratureSegments: 0 }).volumeMM3;
+const volume = b => brepMassProperties(b, 1, { segmentsPerQuarter: 4, quadratureSegments: 0 }).volume;
 
 test('a closed mesh becomes a planar solid: coplanar triangles one face, the volume exact', () => {
   const { positions, indices } = readObj(BOX_OBJ);
@@ -60,8 +60,8 @@ test('a mesh feature in a part: a solid with faces named after it, a hole drille
   const { positions, indices } = readObj(BOX_OBJ);
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const part = evaluateCadPart(D([{ id: 'm', kind: 'mesh', positions, indices }, { id: 'h', kind: 'hole', target: 'm', center: [10, 5], radius: 2 }]));
-  const out = part.output('h');
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - (1000 - Math.PI * 4 * 5)) < 1e-6);
+  const out = outputOf(part, 'h');
+  assert.ok(Math.abs(massPropertiesOf(out).volume - (1000 - Math.PI * 4 * 5)) < 1e-6);
   assert.ok(out.brep.faces.some(f => /^m\.facet\d+$/.test(f.name ?? '')));
   assert.throws(() => evaluateCadPart(D([{ id: 'm', kind: 'mesh', positions, indices: indices.slice(0, -3) }])), /not closed/);
 });

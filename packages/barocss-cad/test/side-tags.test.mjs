@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, CadPartError } from '../dist/index.js';
+import { evaluateCadPart, CadPartError, outputOf, checkOutput, massPropertiesOf } from '../dist/index.js';
 
 // R10a (D86): a sketch's `sideTags` name the walls of every body made of it `side[<tag>]` — extrude (upright and
 // drafted), revolve, loft, sweep — and a sketch without them keeps its positional names (D16).
@@ -8,7 +8,7 @@ const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', pa
 const names = o => [...new Set(o.brep.faces.map(f => (f.name ?? '').replace(/#\d+$/, '')))].sort();
 const tagged = (points, tags = ['a', 'b', 'c', 'd'], extra = {}) => ({ id: 's', kind: 'sketch', profile: 'polygon', points, sideTags: { outer: tags }, ...extra });
 const box = [[0, 0], [20, 0], [20, 10], [0, 10]], ring = [[5, 0], [15, 0], [15, 10], [5, 10]];
-const out = (features, id) => { const o = evaluateCadPart(D(features)).output(id); assert.equal(o.validate().valid, true, o.validate().issues[0]); return o; };
+const out = (features, id) => { const o = outputOf(evaluateCadPart(D(features)), id); assert.equal(checkOutput(o).valid, true, checkOutput(o).issues[0]); return o; };
 
 test('R10a every generator names the sketch\'s sides by their tags: extrude, drafted, revolve, loft, sweep (each piece), holes; a clockwise sketch by its authored order', () => {
   const sides = p => ['a', 'b', 'c', 'd'].map(t => `${p}.side[${t}]`);
@@ -35,7 +35,7 @@ test('R10a a vertex inserted keeps the other sides\' names, and a fillet on a ta
   const after = names(out([tagged([[0, 0], [10, -2], [20, 0], [20, 10], [0, 10]], ['a', 'x', 'b', 'c', 'd']), { id: 'e', kind: 'extrude', sketch: 's', height: 5 }], 'e'));
   assert.deepEqual(after.filter(n => n !== 'e.side[x]'), before);
   const f = out([tagged(box), { id: 'e', kind: 'extrude', sketch: 's', height: 5 }, { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side[b]|e.side[c]'], radius: 2 }], 'f');
-  assert.ok(Math.abs(f.massProperties(1).volumeMM3 - (1000 - (1 - Math.PI / 4) * 4 * 5)) < 1e-6);
+  assert.ok(Math.abs(massPropertiesOf(f).volume - (1000 - (1 - Math.PI / 4) * 4 * 5)) < 1e-6);
   assert.deepEqual(names(out([{ id: 's', kind: 'sketch', profile: 'polygon', points: box }, { id: 'e', kind: 'extrude', sketch: 's', height: 5 }], 'e')), ['e.bottom', 'e.side0', 'e.side1', 'e.side2', 'e.side3', 'e.top']);
   const refused = (sideTags, msg) => assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'polygon', points: box, sideTags }])), e => e instanceof CadPartError && e.code === 'INPUT' && msg.test(e.message));
   refused({ outer: ['a', 'a', 'c', 'd'] }, /a is given twice/);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compressionSpring, springDimensions, springSolidPitch, helicalSweep, isSpringError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
+import { compressionSpring, springDimensions, springSolidPitch, helicalSweep, isSpringError, checkBrep, brepMassProperties, evaluateSurface, surfaceDomain, evaluateCadPart, exportStep, importStep, outputOf } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1a (D153): the helical sweep of the exact normal-plane circle, and compression springs (D139's stage), against
@@ -13,7 +13,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 // - k = Gd⁴/(8D³n_a) by the wire's torsion energy; τ by Wahl's factor; the solid pitch by brute-force least distance.
 
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.abs(want), `${what}: ${got} vs ${want} (rel ${Math.abs(got - want) / Math.abs(want)})`);
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 const code = c => e => isSpringError(e) && e.code === c;
 
 /** The centreline's z(φ) by D153's law: runs of constant pitch, or the smoothstep 3t² − 2t³ between two pitches. */
@@ -191,7 +191,7 @@ test('R12c.1a refusals: INVALID_INPUT, COILS_OVERLAP (pitch d is below the solid
 test('R12c.1a part model: the `spring` kind placed on its axis, its report on the output; refusals mapped with their codes', () => {
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: { d: 2 }, features });
   const snap = evaluateCadPart(D([{ id: 's', kind: 'spring', wire: { parameter: 'd' }, diameter: 20, activeCoils: 6, pitch: 5, center: [30, -5], from: 4, rotation: 90, shearModulus: 79300, shearModulusEstimate: true }]));
-  const out = snap.output('s'), b = brepBounds(out.brep);
+  const out = outputOf(snap, 's'), b = brepBounds(out.brep);
   assert.equal(out.spring.generator, 'spring@0'); assert.equal(out.spring.dimensions.shearModulusEstimate, true);
   near(out.spring.dimensions.rateNPerMM, 79300 * 16 / (8 * 8000 * 6), 1e-12, 'rate');
   assert.ok(Math.abs(b.min[2] - 4) <= 1e-9 && Math.abs(b.max[2] - 4 - out.spring.dimensions.freeLengthMM) <= 1e-9);

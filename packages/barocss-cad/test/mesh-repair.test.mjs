@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { diagnoseMesh, repairMesh, selfIntersections, facetBrepFromTriangles, facetBrepsFromTriangles, checkBrep, evaluateCadPart, CadPartError, DEFAULT_REPAIR } from '../dist/index.js';
+import { diagnoseMesh, repairMesh, selfIntersections, facetBrepFromTriangles, facetBrepsFromTriangles, checkBrep, evaluateCadPart, CadPartError, DEFAULT_REPAIR, outputOf, massPropertiesOf } from '../dist/index.js';
 
 // M3 (R3.4): the broken set — a hole, flipped triangles, a fin, floaters, degenerate and duplicate triangles, crossing
 // shells, an open sheet — each diagnosed, repaired by explicit steps, with the report it should give.
@@ -147,8 +147,8 @@ test('an open sheet in a part: no mass and no Booleans, each refused with its re
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'mesh', positions: P, indices: I, representation: 'facets' }])), /encloses nothing|not closed/);
   const snap = evaluateCadPart(D([{ id: 's', kind: 'mesh', positions: P, indices: I, representation: 'facets', open: true }]));
-  assert.equal(snap.output('s').brep.bodies[0].kind, 'sheet');
-  assert.throws(() => snap.output('s').massProperties(1), /encloses no volume/);
+  assert.equal(outputOf(snap, 's').brep.bodies[0].kind, 'sheet');
+  assert.throws(() => massPropertiesOf(outputOf(snap, 's')), /encloses no volume/);
   assert.throws(() => evaluateCadPart(D([{ id: 's', kind: 'mesh', positions: P, indices: I, representation: 'facets', open: true }, { id: 'h', kind: 'hole', target: 's', center: [5, 5], radius: 1 }])), /need a closed solid: this mesh is open/);
 });
 

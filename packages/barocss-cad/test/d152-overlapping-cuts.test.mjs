@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, curveEvaluator, curveDomain } from '../dist/index.js';
+import { evaluateCadPart, curveEvaluator, curveDomain, checkOutput, outputOf } from '../dist/index.js';
 import { intersectSegments } from '../dist/brep/curved-arrangement.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -31,7 +31,7 @@ test('D152: two curve cuts along each other share only their run\'s ends; crossi
 test('D152: the 6° bevel corner — 23 edges for its 9 faces (was 258), each exact edge one piece, none a sliver', () => {
   const c = JSON.parse(readFileSync(join(import.meta.dirname, '../conformance/bp/bevel-6deg-corner.json'), 'utf8'));
   const o = evaluateCadPart(c.input.partDocument).outputs.at(-1), b = o.brep;
-  assert.equal(o.validate().valid, true);
+  assert.equal(checkOutput(o).valid, true);
   assert.equal(b.faces.length, 9);
   assert.ok(b.edges.length <= 30, `${b.edges.length} edges`);
   const names = b.edges.map(e => (e.name ?? '').replace(/#\d+$/, ''));
@@ -45,7 +45,7 @@ test('D152 survey (GEAR_SURVEY=1): the whole 16/20 pair at 4° and 6° — 48 an
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const gears = phase => [{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 16, mateTeeth: 20, faceWidth: 6, thicknessReduction: 0.05, rotation: 0, center: [5, -3], from: 2 }, { id: 'w', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 16, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'p', direction: 0, phase } }];
   for (const [phase, most] of [[4, 60], [6, 70]]) {
-    const o = evaluateCadPart(D([...gears(phase), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i');
-    assert.equal(o.validate().valid, true); assert.ok(o.brep.edges.length <= most, `${phase}°: ${o.brep.edges.length} edges`);
+    const o = outputOf(evaluateCadPart(D([...gears(phase), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])), 'i');
+    assert.equal(checkOutput(o).valid, true); assert.ok(o.brep.edges.length <= most, `${phase}°: ${o.brep.edges.length} edges`);
   }
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, flatPattern, flatPatternDxf, writeDxf, importStep } from '../dist/index.js';
+import { evaluateCadPart, flatPattern, flatPatternDxf, writeDxf, importStep, flatPatternOf, massPropertiesOf, exportStep } from '../dist/index.js';
 
 // R12.2 (D117): the flat pattern. Oracles, none computed by the unfolder:
 // - the K-factor's area identity: the flat's area is V/T (V the kernel's volume) plus (K − ½)·T per unit of bend angle
@@ -37,7 +37,7 @@ test('R12.2 a channel with a hole: the flat by the textbook length and the K-fac
   const T = 1.5, R = 2, K = 0.44, W = 25, r = 4, th = Math.PI / 2, o = out(channel({ T, R, K, W, r }));
   // The hole is a cut by difference: the sheet's report carried on.
   assert.equal(o.sheet.fixedFace, 'c.leg0.a');
-  const f = o.flatPattern(), V = o.massProperties(1).volumeMM3, L = 30 + 40 + 30 - 2 * BD(th, R, T, K);
+  const f = flatPatternOf(o), V = massPropertiesOf(o).volume, L = 30 + 40 + 30 - 2 * BD(th, R, T, K);
   close(f.box.max[0], L, 1e-12, 'flat length'); close(f.box.max[1], W, 1e-12, 'flat width');
   close(f.areaMM2, L * W - Math.PI * r * r, 1e-12, 'area by closed form');
   close(f.areaMM2, V / T + (K - 0.5) * T * 2 * th * W, 1e-11, 'area identity');
@@ -54,11 +54,11 @@ test('R12.2 a channel with a hole: the flat by the textbook length and the K-fac
     close(Math.abs(b.tangents[1][0][0] - b.tangents[0][0][0]), BA, 1e-12, 'strip');
   }
   // From the other skin: the same flat seen from behind, the bends up.
-  const g = o.flatPattern({ fixedFace: 'c.leg1.b' });
+  const g = flatPatternOf(o, { fixedFace: 'c.leg1.b' });
   close(g.areaMM2, f.areaMM2, 1e-12, 'either skin'); close(g.box.max[0], L, 1e-12, 'length from the other skin');
   assert.ok(g.bends.every(b => b.direction === 'up'));
   // Another K: the length and area move by (K' − K)·T·θ a bend.
-  const k = o.flatPattern({ kFactor: 0.33 });
+  const k = flatPatternOf(o, { kFactor: 0.33 });
   close(k.box.max[0], 100 - 2 * BD(th, R, T, 0.33), 1e-12, 'K 0.33');
 });
 
@@ -66,10 +66,10 @@ test('R12.2 an L at any angle: its flat is the outside less BD; through STEP (no
   const T = 2, R = 3, K = 0.4, A = 50, B = 35;
   for (const deg of [30, 60, 90, 120, 150]) {
     const th = deg * Math.PI / 180, o = out([{ id: 'c', kind: 'sheet-contour', path: [[0, 0], [A, 0], [A + B * Math.cos(th), B * Math.sin(th)]], side: 'left', width: 20, thickness: T, bendRadius: R, kFactor: K }]);
-    const f = o.flatPattern();
+    const f = flatPatternOf(o);
     close(f.box.max[0], A + B - BD(th, R, T, K), 1e-12, `${deg}°`); close(f.areaMM2, 20 * (A + B - BD(th, R, T, K)), 1e-12, `${deg}° area`);
     close(f.bends[0].angleDegrees, deg, 1e-9, 'angle');
-    const back = importStep(o.exportStep()), g = flatPattern(back, { thicknessMM: T, kFactor: K });
+    const back = importStep(exportStep(o)), g = flatPattern(back, { thicknessMM: T, kFactor: K });
     close(g.areaMM2, f.areaMM2, 1e-9, `${deg}° through STEP`); close(g.box.max[0], f.box.max[0], 1e-9, `${deg}° length through STEP`);
   }
 });
@@ -77,7 +77,7 @@ test('R12.2 an L at any angle: its flat is the outside less BD; through STEP (no
 test('R12.2 a tray of four flanges (united, so T and K given): the area identity with holes and with no gap at the corners; a notch through a bend', () => {
   const T = 1.5, K = 0.44;
   for (const opts of [{ holes: true }, { g: 0 }]) {
-    const t = tray({ T, ...opts }), o = out(t.feats), f = flatPattern(o.brep, { thicknessMM: T, kFactor: K, fixedFace: 'pe.top' }), V = o.massProperties(1).volumeMM3;
+    const t = tray({ T, ...opts }), o = out(t.feats), f = flatPattern(o.brep, { thicknessMM: T, kFactor: K, fixedFace: 'pe.top' }), V = massPropertiesOf(o).volume;
     close(f.areaMM2, V / T + (K - 0.5) * T * Math.PI / 2 * t.bendWidth, 1e-11, JSON.stringify(opts));
     // Seen from the plate's top the flanges come up; from its bottom they go down.
     assert.equal(f.bends.length, 4); assert.ok(f.bends.every(b => b.direction === 'up'));
@@ -88,7 +88,7 @@ test('R12.2 a tray of four flanges (united, so T and K given): the area identity
   // A notch through an L's corner, square to the sheet (walls along and across the bend): a window across the bend's strip.
   const R = 3, T2 = 2, o = out([{ id: 'c', kind: 'sheet-contour', path: [[0, 40], [0, 0], [40, 0]], side: 'left', width: 30, thickness: T2, bendRadius: R, kFactor: K },
     { id: 'n', kind: 'sketch', profile: 'rectangle', min: [-1, -1], max: [10, 10], plane: { origin: [0, 0, 12], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'ne', kind: 'extrude', sketch: 'n', height: 6 }, { id: 'd', kind: 'difference', target: 'c', tool: 'ne' }]);
-  const f = o.flatPattern(), L = 80 - BD(Math.PI / 2, R, T2, K), notch = (10 - (R + T2)) * 2 + Math.PI / 2 * (R + K * T2);
+  const f = flatPatternOf(o), L = 80 - BD(Math.PI / 2, R, T2, K), notch = (10 - (R + T2)) * 2 + Math.PI / 2 * (R + K * T2);
   close(f.areaMM2, 30 * L - 6 * notch, 1e-12, 'notched L');
   assert.equal(f.loops.length, 2);
 });
@@ -96,12 +96,12 @@ test('R12.2 a tray of four flanges (united, so T and K given): the area identity
 test('R12.2 refusals: a slanted cut (NON_NORMAL_CUT), a boss or a wrong thickness (NOT_A_SHEET), a cone (BEND_NOT_CYLINDRICAL), a flat covering itself (FLAT_OVERLAPS), a body not made as sheet', () => {
   const plate = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50] }, { id: 'b', kind: 'sheet-base', sketch: 's', thickness: 2, bendRadius: 2, kFactor: 0.44 }];
   const tilted = out([...plate, { id: 'h', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4, plane: { origin: [40, 25, -5], normal: [0.3, 0, 1], xAxis: [1, 0, -0.3] } }, { id: 'he', kind: 'extrude', sketch: 'h', height: 12 }, { id: 'd', kind: 'difference', target: 'b', tool: 'he' }]);
-  assert.throws(() => tilted.flatPattern(), e => e.code === 'GEOMETRY' && /^d: \[NON_NORMAL_CUT\] he\.side0#\d meets the sheet's face b\.(bottom|top) [\d.]+° off square/.test(e.message));
+  assert.throws(() => flatPatternOf(tilted), e => e.code === 'GEOMETRY' && /^d: \[NON_NORMAL_CUT\] he\.side0#\d meets the sheet's face b\.(bottom|top) [\d.]+° off square/.test(e.message));
   const boss = out([...plate, { id: 'q', kind: 'sketch', profile: 'rectangle', min: [10, 10], max: [20, 20] }, { id: 'qe', kind: 'extrude', sketch: 'q', height: 5 }, { id: 'u', kind: 'union', target: 'b', tool: 'qe' }]);
   assert.throws(() => flatPattern(boss.brep, { thicknessMM: 2, kFactor: 0.44 }), e => e.code === 'NOT_A_SHEET' && /qe\.top lies 5 mm from the skin face b\.bottom, not the sheet's 2 mm/.test(e.message));
   assert.throws(() => flatPattern(out(plate).brep, { thicknessMM: 3, kFactor: 0.44 }), e => e.code === 'NOT_A_SHEET' && /lies 2 mm from the skin face/.test(e.message));
   // (A union keeps no sheet's rules: the output says so, the kernel's flatPattern takes them.)
-  assert.throws(() => boss.flatPattern(), e => e.code === 'CAPABILITY' && /not made as sheet metal/.test(e.message));
+  assert.throws(() => flatPatternOf(boss), e => e.code === 'CAPABILITY' && /not made as sheet metal/.test(e.message));
   // A thin parallelogram swept round a bend: its skin turns on a cone.
   const a = Math.PI / 6, W = 20, T = 2, pts = [[0, 0], [W * Math.cos(a), W * Math.sin(a)], [W * Math.cos(a) - T * Math.sin(a), W * Math.sin(a) + T * Math.cos(a)], [-T * Math.sin(a), T * Math.cos(a)]];
   const cone = out([{ id: 'p', kind: 'sketch', profile: 'polygon', points: pts }, { id: 'sw', kind: 'sweep', sketch: 'p', path: [{ kind: 'straight', length: 20 }, { kind: 'bend', radius: 30, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 20 }] }]);
@@ -114,11 +114,11 @@ test('R12.2 refusals: a slanted cut (NON_NORMAL_CUT), a boss or a wrong thicknes
   };
   assert.throws(() => flatPattern(window(30).brep, { thicknessMM: T3, kFactor: 0.44 }), e => e.code === 'FLAT_OVERLAPS' && /the flat covers itself near/.test(e.message));
   const fits = window(10), f = flatPattern(fits.brep, { thicknessMM: T3, kFactor: 0.44 });
-  close(f.areaMM2, fits.massProperties(1).volumeMM3 / T3 + (0.44 - 0.5) * T3 * Math.PI / 2 * 26, 1e-11, 'window flange that fits');
+  close(f.areaMM2, massPropertiesOf(fits).volume / T3 + (0.44 - 0.5) * T3 * Math.PI / 2 * 26, 1e-11, 'window flange that fits');
 });
 
 test('R12.2 the flat\'s DXF: the outline on OUTLINE, each bend\'s centre line dashed on BEND_UP or BEND_DOWN with a note on BEND_NOTES', () => {
-  const o = out(channel()), f = o.flatPattern(), doc = flatPatternDxf(f), by = l => doc.entities.filter(e => e.layer === l);
+  const o = out(channel()), f = flatPatternOf(o), doc = flatPatternDxf(f), by = l => doc.entities.filter(e => e.layer === l);
   assert.deepEqual(doc.layers.map(l => l.name), ['OUTLINE', 'BEND_UP', 'BEND_DOWN', 'BEND_NOTES']);
   assert.deepEqual(by('OUTLINE').map(e => e.type), ['line', 'line', 'line', 'line', 'circle']);
   assert.equal(by('BEND_DOWN').length, 2); assert.equal(by('BEND_UP').length, 0);

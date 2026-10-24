@@ -418,7 +418,7 @@
       }
     ],
     "cutList": {
-      "densityKgPerM3": 7850,
+      "density": 7.85,
       "absTol": 1e-9,
       "rows": [
         {
@@ -442,7 +442,7 @@
               "bevelDegrees": 0
             }
           ],
-          "massKG": 3.4854000000000003
+          "mass": 3485.4
         },
         {
           "quantity": 2,
@@ -465,7 +465,7 @@
               "bevelDegrees": 0
             }
           ],
-          "massKG": 2.09124
+          "mass": 2091.24
         },
         {
           "quantity": 4,
@@ -490,7 +490,7 @@
               "bevelDegrees": 0
             }
           ],
-          "massKG": 2.5443420000000003
+          "mass": 2544.3420000000006
         },
         {
           "quantity": 2,
@@ -513,7 +513,7 @@
               "bevelDegrees": 0
             }
           ],
-          "massKG": 3.345984
+          "mass": 3345.984
         },
         {
           "quantity": 2,
@@ -536,13 +536,13 @@
               "bevelDegrees": 0
             }
           ],
-          "massKG": 1.9518240000000002
+          "mass": 1951.8240000000003
         }
       ],
       "totals": {
         "quantity": 12,
         "axisLengthMM": 9160,
-        "massKG": 31.926264
+        "mass": 31926.264
       }
     },
     "stepRoundTrip": {

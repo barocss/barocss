@@ -45,7 +45,7 @@ test('robustness: a prismatic crescent\'s touch along its tangent line is KNOWN,
     assert.ok(rows.every(r => /:(OK|KNOWN)$/.test(r)), `${name}: ${rows}`);
   }
   // Only a prismatic solid's: the same body from any other source is not one.
-  const brep = cad.evaluateCadPart(cases[0][1]).output('d').brep;
+  const brep = cad.outputOf(cad.evaluateCadPart(cases[0][1]), 'd').brep;
   assert.ok(crescentContacts(brep));
   assert.equal(crescentContacts({ ...brep, source: { ...brep.source, family: 'analytic-boolean' } }), null);
 });

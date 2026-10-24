@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spurGear, spurRack, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { spurGear, spurRack, checkSpurGearPair, checkSpurGearRack, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain, outputOf } from '../dist/index.js';
 
 // R12b.1b (D131): the generated root on helical gears — in the transverse plane the normal rack's tip round, a cylinder
 // along the tooth at β to the axis, is an ellipse (a = ρ / cos β along the pitch line, b = ρ across) — and the rack part's
@@ -120,7 +120,7 @@ test('the transverse form circle by the textbook formula with the ellipse\'s tan
     const rs = report.generatedRoot.formDiameterMM / 2;
     if (!e.undercut) close(rs, e.rForm, 1e-9 * mn, `mn${mn} z${z} β${beta}: form circle`);
     else { const p = envelopeAt(T, e.thEnd); close(rs, Math.hypot(p[0], p[1]), 1e-8 * mn, `mn${mn} z${z} β${beta}: the crossing`); assert.equal(report.diagnostics[0].code, 'UNDERCUT'); }
-    const A = transverseArea(T), tw = report.helix.twistDeviationMM / T.ra, want = A * b, got = brepMassProperties(brep, 1).volumeMM3;
+    const A = transverseArea(T), tw = report.helix.twistDeviationMM / T.ra, want = A * b, got = brepMassProperties(brep, 1).volume;
     const slack = 2 * z * (report.profileDeviationMM * 1.25 * mn + report.generatedRoot.filletDeviationMM * 1.5 * mn) * b + (2 * tw + tw * tw) * want + 1e-9 * want;
     close(got, want, slack, `mn${mn} z${z} β${beta} volume`);
   }
@@ -149,7 +149,7 @@ test('the rack\'s root fillet (spur-rack@1): straight and helical, valid; its vo
     assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues?.[0]); assert.equal(report.generator, 'spur-rack@1'); assert.deepEqual(report.diagnostics, []);
     close(report.rootFillet.flankEndDepthMM, 1.25 * m - R * (1 - Math.sin(AN)), 1e-12, 'the flank\'s end');
     const want = rackArea({ m, n, H: Hh, betaDeg, red, rho: R }) * 7;
-    close(brepMassProperties(brep, 1).volumeMM3, want, 1e-9 * want, `rack m${m} n${n} β${betaDeg} volume`);
+    close(brepMassProperties(brep, 1).volume, want, 1e-9 * want, `rack m${m} n${n} β${betaDeg} volume`);
     // The arcs at z 0: on the ellipse (x − cx)²/a² + (y − cy)²/b² = 1, a = ρ / cos β; their ends' tangents along the root line and the flank.
     const cb = Math.cos(betaDeg * Math.PI / 180), a = R / cb, t = Math.tan(Math.atan(TAN / cb));
     for (const { name, curve } of profileCurves(brep).filter(c => /fillet[LR]#/.test(c.name))) {
@@ -183,16 +183,16 @@ test('a filleted rack with a generated gear: the usable contact ratio stops wher
   close(max, 0.943821, 1e-6, 'the largest fillet');
   code({ ...rack, toothThicknessReductionMM: 0, rootPolicy: 'filleted', rootFilletRadiusMM: max + 1e-6 }, 'INVALID_INPUT', /below 0\.943821/);
   code({ ...rack, rootFilletRadiusMM: 0.5 }, 'INVALID_INPUT', /filleted/);
-  const out = evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 6, faceWidth: 5, height: 8, generator: 'spur-rack@1', rootFillet: 0.6 }])).output('k');
+  const out = outputOf(evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 6, faceWidth: 5, height: 8, generator: 'spur-rack@1', rootFillet: 0.6 }])), 'k');
   assert.equal(out.rack.rootFillet.radiusMM, 0.6); assert.ok(out.brep.faces.some(x => x.name === 'k.filletR#1'));
-  assert.throws(() => evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 6, faceWidth: 5, height: 8, rootFillet: 0.6 }])).output('k'), e => e.code === 'INPUT');
-  assert.throws(() => evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 6, faceWidth: 5, height: 8, generator: 'spur-rack@2' }])).output('k'), e => e.code === 'CAPABILITY');
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 6, faceWidth: 5, height: 8, rootFillet: 0.6 }])), 'k'), e => e.code === 'INPUT');
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'k', kind: 'spur-rack', module: 2, teeth: 6, faceWidth: 5, height: 8, generator: 'spur-rack@2' }])), 'k'), e => e.code === 'CAPABILITY');
   // A helical generated gear in the part model, and STEP out and back for it and a filleted helical rack.
-  const g = evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 18, faceWidth: 8, generator: 'spur-gear@1' }])).output('g');
+  const g = outputOf(evaluateCadPart(D([{ id: 'g', kind: 'spur-gear', normalModule: 2, helixAngle: 20, hand: 'right', teeth: 18, faceWidth: 8, generator: 'spur-gear@1' }])), 'g');
   assert.equal(g.gear.rootPolicy, 'generated'); assert.ok(g.brep.faces.some(x => x.name === 'g.filletL#1'));
   for (const brep of [g.brep, spurRack({ normalModuleMM: 2, helixAngleDeg: 20, hand: 'left', teeth: 6, faceWidthMM: 8, heightMM: 8, rootPolicy: 'filleted' }, { id: 'k' }).brep]) {
     const back = importStep(exportStep([brep], { name: 'x' }));
-    close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip');
+    close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip');
     assert.ok(back.faces.some(x => /fillet/.test(x.name)));
   }
 });

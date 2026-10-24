@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkFit, fitLimits, lookupFit, fitTableProblem, faceGeometry, FitError } from '../dist/index.js';
+import { evaluateCadPart, checkFit, fitLimits, lookupFit, fitTableProblem, faceGeometry, FitError, outputOf } from '../dist/index.js';
 
 // R12c.2 (D155): fits from the user's tables, never computed (D139 S0: ISO 286's factor reproduces 55 of 91 IT values).
 // Oracles written here:
@@ -24,7 +24,7 @@ function pair(e = 0) {
     { id: 'bs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 25 }, { id: 'bore', kind: 'extrude', sketch: 'bs', height: 20 },
     { id: 'r', kind: 'difference', target: 'ring', tool: 'bore' },
     { id: 'ss', kind: 'sketch', profile: 'circle', center: [e, 0], radius: 25, plane: { origin: [0, 0, -5], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'shaft', kind: 'extrude', sketch: 'ss', height: 30 }]));
-  return { hole: s.output('r').brep, shaft: s.output('shaft').brep };
+  return { hole: outputOf(s, 'r').brep, shaft: outputOf(s, 'shaft').brep };
 }
 /** The common area of circles of radii a and b, centres e apart. */
 function lens(a, b, e) {
@@ -51,7 +51,7 @@ test('R12c.2 a nominal size is judged to 1e-6 mm, as it is named: a Ø50 bore me
   // (A face's radius comes back from its arc's control points with their rounding: a Ø50 cylinder's side measures
   // 25.000000000000007. Unsnapped, the range's end decided the row on those ulps: FIT_TABLE_MISS "at Ø50 mm".)
   const s = evaluateCadPart(D([{ id: 'bs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 25 }, { id: 'bore', kind: 'extrude', sketch: 'bs', height: 20 }]));
-  const measured = s.output('bore').brep.faces.map(f => faceGeometry(f)).filter(g => g.kind === 'cylinder').map(g => 2 * g.r);
+  const measured = outputOf(s, 'bore').brep.faces.map(f => faceGeometry(f)).filter(g => g.kind === 'cylinder').map(g => 2 * g.r);
   for (const size of [...measured, 50 + 1.4210854715202004e-14, 50 - 1.4210854715202004e-14, 50.0000004]) {
     const l = lookupFit([F2], 'H8', size);
     assert.deepEqual([l.nominalMM, l.row, l.minMM, l.maxMM], [50, 0, 50, 50.039], `Ø${size}`);
@@ -106,7 +106,7 @@ test('R12c.2 checkFit refusals: a face that is no cylinder, a hole\'s face given
   assert.throws(() => checkFit([F2], { brep: hole, face: 'ring.side0#1', class: 'H7' }, { brep: shaft, face: 'shaft.side0#1', class: 'k6' }), code('FIT_FACE'));
   const s = evaluateCadPart(D([{ id: 'ss', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 24 }, { id: 'thin', kind: 'extrude', sketch: 'ss', height: 30 },
     { id: 'fs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 25, plane: { origin: [0, 0, 40], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'far', kind: 'extrude', sketch: 'fs', height: 10 }]));
-  assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H7' }, { brep: s.output('thin').brep, face: 'thin.side0#1', class: 'k6' }), e => code('FIT_PAIR')(e) && /one nominal size/.test(e.message));
-  assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H7' }, { brep: s.output('far').brep, face: 'far.side0#1', class: 'k6' }), e => code('FIT_PAIR')(e) && /do not overlap/.test(e.message));
+  assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H7' }, { brep: outputOf(s, 'thin').brep, face: 'thin.side0#1', class: 'k6' }), e => code('FIT_PAIR')(e) && /one nominal size/.test(e.message));
+  assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H7' }, { brep: outputOf(s, 'far').brep, face: 'far.side0#1', class: 'k6' }), e => code('FIT_PAIR')(e) && /do not overlap/.test(e.message));
   assert.throws(() => checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H6' }, { brep: shaft, face: 'shaft.side0#1', class: 'k6' }), code('FIT_TABLE_MISS'));
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hookedSpring, springSolidPitch, isSpringError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep } from '../dist/index.js';
+import { hookedSpring, springSolidPitch, isSpringError, checkBrep, brepMassProperties, evaluateCadPart, exportStep, importStep, outputOf } from '../dist/index.js';
 import { brepBounds } from '../dist/brep/brep-bounds.js';
 
 // R12c.1b (D154): extension springs (machine-loop and crossover hooks) and torsion springs (tangent legs), against
@@ -14,7 +14,7 @@ import { brepBounds } from '../dist/brep/brep-bounds.js';
 // - the close-wound pitch: neighbouring turns d + 2·tol apart, by brute force.
 
 const near = (got, want, rel, what) => assert.ok(Math.abs(got - want) <= rel * Math.abs(want), `${what}: ${got} vs ${want} (rel ${Math.abs(got - want) / Math.abs(want)})`);
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 const code = c => e => isSpringError(e) && e.code === c;
 const add = (a, b) => a.map((x, i) => x + b[i]), sub = (a, b) => a.map((x, i) => x - b[i]), scl = (a, s) => a.map(x => x * s), dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
 const unit = a => scl(a, 1 / Math.hypot(...a));
@@ -126,7 +126,7 @@ test('R12c.1b part model: the `spring` kind with type extension or torsion, plac
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const snap = evaluateCadPart(D([{ id: 'e', kind: 'spring', type: 'extension', wire: 2, diameter: 20, activeCoils: 6, center: [40, 0], from: 5, shearModulus: 79300, shearModulusEstimate: true, initialTension: 4 },
     { id: 't', kind: 'spring', type: 'torsion', wire: 2, diameter: 20, activeCoils: 5.25, center: [-40, 0], legLengths: [15, 25], youngsModulus: 206000, youngsModulusEstimate: true, moment: 500 }]));
-  const e = snap.output('e'), t = snap.output('t');
+  const e = outputOf(snap, 'e'), t = outputOf(snap, 't');
   assert.equal(e.spring.type, 'extension'); assert.equal(e.spring.dimensions.shearModulusEstimate, true); assert.equal(e.spring.dimensions.initialTensionN, 4);
   assert.equal(t.spring.type, 'torsion'); assert.equal(t.spring.dimensions.youngsModulusEstimate, true);
   const eb = brepBounds(e.brep); assert.ok(eb.min[2] < 5 && eb.max[2] > 5 + e.spring.dimensions.bodyLengthMM && Math.abs((eb.min[0] + eb.max[0]) / 2 - 40) < 2, 'its coil from z 5 about (40, 0), the hooks beyond');

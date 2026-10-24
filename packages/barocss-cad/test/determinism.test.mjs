@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf } from '../dist/index.js';
 import { setRingStations } from '../dist/blend/rolling-ball.js';
 
 // D101: no state outlives an evaluation. Each model, evaluated alone, after the others and again, gives the same
@@ -41,7 +41,7 @@ const print = ([name, make, stations]) => {
   try {
     const o = out(make()), h = createHash('sha256');
     for (const v of o.brep.vertices) h.update(new Uint8Array(Float64Array.from(v.point).buffer));
-    return `${name} ${o.brep.faces.length} ${o.massProperties(1).volumeMM3} ${h.digest('hex')}`;
+    return `${name} ${o.brep.faces.length} ${massPropertiesOf(o).volume} ${h.digest('hex')}`;
   } catch (e) { return `${name} refused ${e.code}: ${e.message}`; }
   finally { setRingStations(null); }
 };

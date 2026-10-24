@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, brepMassProperties } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, brepMassProperties, massPropertiesOf } from '../dist/index.js';
 
 const sweep = bends => evaluateCadPart({
   format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {},
@@ -17,14 +17,14 @@ function near(actual, expected, scale, label) {
 // Integrate the annular sector r=7..9, y=-1..1, theta=0..angle with dV=r dr dy dtheta.
 // x=8-r*cos(theta), z=r*sin(theta). No kernel geometry or mass routine supplies the oracle.
 function sectorMass(angle, density) {
-  const volumeMM3 = 32 * angle, massKG = volumeMM3 * density * 1e-9;
+  const volume = 32 * angle, mass = volume * density * 1e-3;
   const radialMean = 193 / 24, radialSecond = 65;
   const dx = -radialMean * Math.sin(angle) / angle, z = radialMean * (1 - Math.cos(angle)) / angle;
   const xx = radialSecond * (0.5 + Math.sin(2 * angle) / (4 * angle)) - dx * dx;
   const zz = radialSecond * (0.5 - Math.sin(2 * angle) / (4 * angle)) - z * z;
   const xz = -radialSecond * Math.sin(angle) ** 2 / (2 * angle) - dx * z;
-  const k = massKG * 1e-6;
-  return { volumeMM3, massKG, centroidMM: [8 + dx, 0, z], inertiaCentroidKgM2: [
+  const k = mass;
+  return { volume, mass, centroid: [8 + dx, 0, z], inertia: [
     [k * (1 / 3 + zz), 0, -k * xz],
     [0, k * (xx + zz), 0],
     [-k * xz, 0, k * (xx + 1 / 3)],
@@ -32,11 +32,11 @@ function sectorMass(angle, density) {
 }
 
 function checkMass(actual, expected, label) {
-  near(actual.volumeMM3, expected.volumeMM3, expected.volumeMM3, `${label} volume`);
-  near(actual.massKG, expected.massKG, expected.massKG, `${label} mass`);
+  near(actual.volume, expected.volume, expected.volume, `${label} volume`);
+  near(actual.mass, expected.mass, expected.mass, `${label} mass`);
   for (let i = 0; i < 3; i++) {
-    near(actual.centroidMM[i], expected.centroidMM[i], 8, `${label} centroid ${i}`);
-    for (let j = 0; j < 3; j++) near(actual.inertiaCentroidKgM2[i][j], expected.inertiaCentroidKgM2[i][j], expected.inertiaCentroidKgM2[1][1], `${label} inertia ${i}${j}`);
+    near(actual.centroid[i], expected.centroid[i], 8, `${label} centroid ${i}`);
+    for (let j = 0; j < 3; j++) near(actual.inertia[i][j], expected.inertia[i][j], expected.inertia[1][1], `${label} inertia ${i}${j}`);
   }
 }
 
@@ -45,8 +45,8 @@ test('overlapping fifth bend has the final annulus mass, centroid and inertia, a
     const out = sweep(bends);
     assert.deepEqual(checkBrep(out.brep).issues, []);
     assert.equal(out.bodyCount, 1);
-    for (const density of [1, 7850]) {
-      const mass = out.massProperties(density), expected = sectorMass(2 * Math.PI, density);
+    for (const density of [1, 7.85]) {
+      const mass = massPropertiesOf(out, density), expected = sectorMass(2 * Math.PI, density);
       checkMass(mass, expected, `${bends} bends`);
       checkMass(mass, brepMassProperties(out.brep, density), `${bends} bends B-rep`);
     }
@@ -56,8 +56,8 @@ test('overlapping fifth bend has the final annulus mass, centroid and inertia, a
 test('non-overlapping two-bend control retains closed-form mass and the semicircle inertia tensor', () => {
   const out = sweep(2);
   assert.deepEqual(checkBrep(out.brep).issues, []);
-  const mass = out.massProperties(7850);
+  const mass = massPropertiesOf(out, 7.85);
   assert.equal(mass.method, 'closed-form');
-  checkMass(mass, sectorMass(Math.PI, 7850), 'two bends');
-  checkMass(mass, brepMassProperties(out.brep, 7850), 'two bends B-rep');
+  checkMass(mass, sectorMass(Math.PI, 7.85), 'two bends');
+  checkMass(mass, brepMassProperties(out.brep, 7.85), 'two bends B-rep');
 });

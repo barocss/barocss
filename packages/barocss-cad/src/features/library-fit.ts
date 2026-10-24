@@ -6,7 +6,7 @@ import { booleanAnalytic } from '../brep/analytic-boolean.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
 import { transformBrep } from '../brep/brep-transform.js';
 import type { Brep } from '../brep/brep-core.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { CadLibraryError, evaluateLibraryExpression, instantiateLibraryPart, parseLibraryExpression, type CadLibrary, type CadLibraryFit, type CadLibraryFitEnd, type CadLibraryInterface } from './library.js';
 import { cross as crossOf } from '../core/vec3.js';
 
@@ -48,7 +48,7 @@ function buildEnd(lib: CadLibrary, end: CadLibraryFitEnd, prefix: string): Built
   const itf = inst.interfaces.find(i => i.id === end.interface);
   if (!itf) throw new CadLibraryError('REFERENCE', `${lib.manifest.id}/${end.part}`, `interface ${end.interface} is not there for these values`);
   const result = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: inst.features });
-  return { breps: inst.outputs.map(o => result.output(o).brep), itf, warnings: inst.warnings, values: inst.values };
+  return { breps: inst.outputs.map(o => outputOf(result, o).brep), itf, warnings: inst.warnings, values: inst.values };
 }
 
 /**
@@ -79,7 +79,7 @@ function overlapOf(a: readonly Brep[], b: readonly Brep[], p: LibraryPlacement):
   let overlap = 0;
   for (const bb of b) {
     const moved = transformBrep(bb, { matrix: p.rotation as [number, number, number, number, number, number, number, number, number], offset: p.translation });
-    for (const ab of a) { const common = booleanAnalytic(ab, moved, 'intersection'); if (common.bodies.length) overlap += brepMassProperties(common, 1).volumeMM3; }
+    for (const ab of a) { const common = booleanAnalytic(ab, moved, 'intersection'); if (common.bodies.length) overlap += brepMassProperties(common, 1).volume; }
   }
   return overlap;
 }

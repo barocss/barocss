@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea, subdReport, flatPattern, cutPiece, cutList, checkFit } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, exportStep, importStep, checkBrep, brepMassProperties, brepSurfaceArea, subdReport, flatPattern, cutPiece, cutList, checkFit, massPropertiesOf, checkOutput, surfaceAreaOf, flatPatternOf } from '../dist/index.js';
 import { openEdges } from '../scripts/rb/stages.mjs';
 
 // Every conformance case (conformance/<step>/*.json) against this kernel: see conformance/README.md.
@@ -23,16 +23,16 @@ for (const file of cases) {
     const outputs = evaluateCadPart(c.input.partDocument).outputs;
     assert.equal(outputs.length, c.expect.outputs.length, 'outputs');
     c.expect.outputs.forEach((want, k) => {
-      const o = outputs[k], m = o.massProperties(1), report = o.validate();
+      const o = outputs[k], m = massPropertiesOf(o), report = checkOutput(o);
       assert.equal(report.valid, true, report.issues[0]);
-      assert.ok(Math.abs(m.volumeMM3 - want.volumeMM3.value) <= Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0), `output ${k} volume ${m.volumeMM3} vs ${want.volumeMM3.value}`);
-      m.centroidMM.forEach((x, i) => assert.ok(Math.abs(x - want.centroidMM.value[i]) <= want.centroidMM.absTol, `output ${k} centroid ${m.centroidMM} vs ${want.centroidMM.value}`));
+      assert.ok(Math.abs(m.volume - want.volumeMM3.value) <= Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0), `output ${k} volume ${m.volume} vs ${want.volumeMM3.value}`);
+      m.centroid.forEach((x, i) => assert.ok(Math.abs(x - want.centroidMM.value[i]) <= want.centroidMM.absTol, `output ${k} centroid ${m.centroid} vs ${want.centroidMM.value}`));
       assert.equal(o.bodyCount, want.bodies, `output ${k} bodies`);
       assert.deepEqual(report.topology.map(t => ({ shells: t.shells, genus: t.genus })), want.topology, `output ${k} topology`);
       const names = o.brep.faces.map(f => base(f.name ?? f.id));
       if (want.faceNames) assert.deepEqual([...new Set(names)].sort(), want.faceNames, `output ${k} face names`);
       if (want.faceNamePattern) assert.ok(names.every(n => new RegExp(want.faceNamePattern).test(n)), `output ${k} face names match ${want.faceNamePattern}`);
-      if (want.areaMM2) assert.ok(Math.abs(o.surfaceArea() - want.areaMM2.value) <= want.areaMM2.relTol * want.areaMM2.value, `output ${k} area ${o.surfaceArea()} vs ${want.areaMM2.value}`);
+      if (want.areaMM2) assert.ok(Math.abs(surfaceAreaOf(o) - want.areaMM2.value) <= want.areaMM2.relTol * want.areaMM2.value, `output ${k} area ${surfaceAreaOf(o)} vs ${want.areaMM2.value}`);
       if (want.decimate) {
         // A decimated mesh's report (R9, D85): no more triangles than said, the measured distance both ways within its bound.
         assert.ok(o.decimate && o.decimate.trianglesAfter <= want.decimate.trianglesAtMost, `output ${k} decimated to ${o.decimate?.trianglesAfter} triangles`);
@@ -65,7 +65,7 @@ for (const file of cases) {
         // A weldment plate's report (FRk1, D165): a gusset's or an end cap's area, volume and seams.
         const r = o[want.plate.kind], w = want.plate, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} ${w.kind} ${what}: ${x} vs ${y}`);
         assert.ok(r, `output ${k} has no ${w.kind} report`);
-        close(r.areaMM2, w.areaMM2, 'area'); close(r.volumeMM3, m.volumeMM3, 'volume');
+        close(r.areaMM2, w.areaMM2, 'area'); close(r.volumeMM3, m.volume, 'volume');
         if (w.seams) { assert.equal(r.seams.length, w.seams.length); w.seams.forEach((x, i) => close(r.seams[i].lengthMM, x, `seam ${i}`)); }
         if (w.seam !== undefined) close(r.seam.lengthMM, w.seam, 'seam');
       }
@@ -73,12 +73,12 @@ for (const file of cases) {
         // A weld bead's report (FRk2, D166): its leg, its seam and the part of it flush, the members it meets, its volume.
         const r = o.bead, w = want.bead, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} bead ${what}: ${x} vs ${y}`);
         assert.ok(r, `output ${k} has no bead report`);
-        close(r.legMM, w.legMM, 'leg'); close(r.seam.lengthMM, w.seam, 'seam'); close(r.seam.flushMM, w.flush, 'flush'); close(r.volumeMM3, m.volumeMM3, 'volume');
+        close(r.legMM, w.legMM, 'leg'); close(r.seam.lengthMM, w.seam, 'seam'); close(r.seam.flushMM, w.flush, 'flush'); close(r.volumeMM3, m.volume, 'volume');
         assert.deepEqual(r.meets, w.meets, `output ${k} bead meets`);
       }
       if (want.flat) {
         // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).
-        const w = want.flat, opts = w.options ?? {}, make = () => opts.thicknessMM !== undefined ? flatPattern(o.brep, opts) : o.flatPattern(opts);
+        const w = want.flat, opts = w.options ?? {}, make = () => opts.thicknessMM !== undefined ? flatPattern(o.brep, opts) : flatPatternOf(o, opts);
         if (w.error) assert.throws(make, e => e.code === w.error.code && e.message.includes(w.error.messageIncludes), `output ${k} flat refused`);
         else {
           const f = make();
@@ -114,21 +114,21 @@ for (const file of cases) {
     }
     if (c.expect.cutList) {
       // A frame's cut list (FR4a, D127): its rows in order — quantity, pieces, axis length, long point, each end's cut, mass — and the totals.
-      const w = c.expect.cutList, list = cutList(outputs.filter(o => o.member).map(cutPiece), { densityKgPerM3: w.densityKgPerM3 }), close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `cut list ${what}: ${x} vs ${y}`);
+      const w = c.expect.cutList, list = cutList(outputs.filter(o => o.member).map(o => cutPiece(o)), { density: w.density }), close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `cut list ${what}: ${x} vs ${y}`);
       assert.equal(list.rows.length, w.rows.length, 'cut list rows');
       w.rows.forEach((r, i) => {
         const g = list.rows[i];
         assert.deepEqual([g.quantity, g.pieces, g.fromVolume], [r.quantity, r.pieces, r.fromVolume], `row ${i}`);
-        close(g.axisLengthMM, r.axisLengthMM, `row ${i} axis`); close(g.longPointMM, r.longPointMM, `row ${i} long point`); close(g.massKG, r.massKG, `row ${i} mass`);
+        close(g.axisLengthMM, r.axisLengthMM, `row ${i} axis`); close(g.longPointMM, r.longPointMM, `row ${i} long point`); close(g.mass, r.mass, `row ${i} mass`);
         r.ends.forEach((e, k) => { assert.equal(g.ends[k].kind, e.kind, `row ${i} end ${k}`); close(g.ends[k].mitreDegrees, e.mitreDegrees, `row ${i} end ${k} mitre`); close(g.ends[k].bevelDegrees, e.bevelDegrees, `row ${i} end ${k} bevel`); });
       });
-      assert.equal(list.totals.quantity, w.totals.quantity); close(list.totals.axisLengthMM, w.totals.axisLengthMM, 'total length'); close(list.totals.massKG, w.totals.massKG, 'total mass');
+      assert.equal(list.totals.quantity, w.totals.quantity); close(list.totals.axisLengthMM, w.totals.axisLengthMM, 'total length'); close(list.totals.mass, w.totals.mass, 'total mass');
     }
     if (c.expect.stepRoundTrip) {
       const back = importStep(exportStep(outputs.map(o => o.brep), { name: c.id })), r = checkBrep(back, { strict: true }), tol = c.expect.stepRoundTrip.relTol;
       assert.equal(r.valid, true, `round trip: ${r.issues[0]}`);
-      const v0 = outputs.reduce((s, o) => s + o.massProperties(1).volumeMM3, 0), a0 = outputs.reduce((s, o) => s + o.surfaceArea(), 0);
-      assert.ok(Math.abs(brepMassProperties(back, 1).volumeMM3 - v0) <= tol * v0, 'round-trip volume');
+      const v0 = outputs.reduce((s, o) => s + massPropertiesOf(o).volume, 0), a0 = outputs.reduce((s, o) => s + surfaceAreaOf(o), 0);
+      assert.ok(Math.abs(brepMassProperties(back, 1).volume - v0) <= tol * v0, 'round-trip volume');
       assert.ok(Math.abs(brepSurfaceArea(back) - a0) <= tol * a0, 'round-trip area');
     }
   });

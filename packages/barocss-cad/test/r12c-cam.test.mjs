@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, isCamError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { camLaw, camLawPeaks, camMotion, camProfile, discCam, CAM_LAWS, isCamError, checkBrep, brepMassProperties, evaluateCadPart, outputOf } from '../dist/index.js';
 
 // R12c.6a (D160): disc cams and followers. Oracles written here, apart from the kernel's code:
 // - the laws: f(0) = 0, f(1) = 1, f' and f'' against central differences of f, the peaks against dense sampling; the
@@ -109,7 +109,7 @@ test('R12c.6a S0\'s cam: base 20, roller 5, cycloidal rise 8 over 120°, dwells 
   let area = 0; const G = 40000;
   for (let i = 0; i < G; i++) { const th = TAU * i / G, p = prof(th), e = 1e-5, a = prof(th - e), c = prof(th + e); area += 0.5 * (p[0] * (c[1] - a[1]) - p[1] * (c[0] - a[0])) / (2 * e) * TAU / G; }
   // (Clockwise in θ: the area's sign turned.)
-  const V = brepMassProperties(brep, 1).volumeMM3;
+  const V = brepMassProperties(brep, 1).volume;
   near(V, -area * 10, TAU * 35 * report.profileDeviationMM * 10 + 1e-3, 'volume');
   assert.ok(report.profileDeviationMM <= report.profileToleranceMM && report.profileToleranceMM === 2e-3);
   assert.equal(report.profilePieces, brep.faces.filter(f => /#\d+$/.test(f.name)).length);
@@ -226,9 +226,9 @@ test('R12c.6a refusals: uniform motion\'s corner, a roller larger than the pitch
 
 test('R12c.6a part model: the `cam` kind placed and turned, its report on the output; refusals with their codes; camMotion reads the law', () => {
   const f = { id: 'k', kind: 'cam', base: 20, roller: 5, follower: 'roller', thickness: 10, bore: 8, center: [30, -5], from: 2, rotation: 90, segments: [{ angle: 120, to: 8, law: 'cycloidal' }, { angle: 60 }, { angle: 120, to: 0, law: 'cycloidal' }, { angle: 60 }] };
-  const out = evaluateCadPart(D([f])).output('k');
+  const out = outputOf(evaluateCadPart(D([f])), 'k');
   assert.equal(out.cam.generator, 'cam@0'); near(out.cam.curvature.leastPitchRadiusMM, 23.690158, 1e-6, 'ρ');
-  const V = brepMassProperties(out.brep, 1).volumeMM3, V0 = brepMassProperties(discCam(S0).brep, 1).volumeMM3;
+  const V = brepMassProperties(out.brep, 1).volume, V0 = brepMassProperties(discCam(S0).brep, 1).volume;
   near(V, V0 - Math.PI * 16 * 10, 1e-3, 'the bore');
   assert.ok(out.brep.faces.some(x => x.name === 'k.bore#1') && out.brep.faces.some(x => x.name === 'k.rise1#1'));
   const refused = (g, c, tag) => assert.throws(() => evaluateCadPart(D([{ ...f, ...g }])), e => (e.details?.category ?? e.code) === c && e.message.includes(`[${tag}]`), tag);

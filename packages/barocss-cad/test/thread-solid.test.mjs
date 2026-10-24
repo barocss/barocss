@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError, CadPartLimits, exportStep, threadSolid, brepMassProperties, readStl, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, isoThreadRadius, checkBrep, CadPartError, CadPartLimits, exportStep, threadSolid, brepMassProperties, readStl, tessellateBrep, massPropertiesOf, exportStl } from '../dist/index.js';
 
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 /** π · length · the mean of r² over a pitch: the volume of the exact (unfaceted) threaded rod. */
@@ -17,16 +17,16 @@ test('the ISO 68-1 basic profile: crest P/8 at the major diameter, root P/4 at d
 test('modelled threads: a rod, a hex head bolt and a hex nut, each one valid faceted solid of the right volume', () => {
   const rod = evaluateCadPart(D([{ id: 'r', kind: 'thread', diameter: 8, pitch: 1.25, length: 20 }])).outputs[0];
   assert.deepEqual(checkBrep(rod.brep).issues, []);
-  const v = rod.massProperties(1).volumeMM3, want = exactRod(8, 1.25, 20);
+  const v = massPropertiesOf(rod).volume, want = exactRod(8, 1.25, 20);
   assert.ok(Math.abs(v - want) / want < 0.01, `${v} vs ${want} (faceting within 1%)`);
   const bolt = evaluateCadPart(D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 30, center: [5, 6], seat: 10, hex: { across: 13, height: 5.3 } }])).outputs[0];
-  const bb = bolt.massProperties(1), hexArea = Math.sqrt(3) / 2 * 13 * 13;
-  assert.ok(Math.abs(bb.volumeMM3 - (exactRod(8, 1.25, 30) + hexArea * 5.3)) / bb.volumeMM3 < 0.01);
-  assert.ok(Math.abs(bb.centroidMM[0] - 5) < 0.05 && Math.abs(bb.centroidMM[1] - 6) < 0.05);
+  const bb = massPropertiesOf(bolt), hexArea = Math.sqrt(3) / 2 * 13 * 13;
+  assert.ok(Math.abs(bb.volume - (exactRod(8, 1.25, 30) + hexArea * 5.3)) / bb.volume < 0.01);
+  assert.ok(Math.abs(bb.centroid[0] - 5) < 0.05 && Math.abs(bb.centroid[1] - 6) < 0.05);
   const nut = evaluateCadPart(D([{ id: 'n', kind: 'thread', diameter: 8, pitch: 1.25, hex: { across: 13, height: 6.8, internal: true } }])).outputs[0];
   assert.deepEqual(checkBrep(nut.brep).issues, []);
   // Hex less a bore slightly wider than the rod's thread (the clearance).
-  const nv = nut.massProperties(1).volumeMM3, bore = exactRod(8.08, 1.25, 6.8);
+  const nv = massPropertiesOf(nut).volume, bore = exactRod(8.08, 1.25, 6.8);
   assert.ok(nv > hexArea * 6.8 - exactRod(8, 1.25, 6.8) - 10 && nv < hexArea * 6.8 - bore * 0.97, String(nv));
   assert.throws(() => evaluateCadPart(D([{ id: 'x', kind: 'thread', diameter: 8, pitch: 5, length: 10 }])), e => e instanceof CadPartError && /pitch below half/.test(e.message));
 });
@@ -39,7 +39,7 @@ test('a modelled M8 bolt round-trips through STEP: the export reopens with the s
   const back = evaluateCadPart(D([{ id: 'i', kind: 'import', step }])).outputs[0];
   assert.equal(checkBrep(back.brep).issues.length, 0);
   assert.equal(back.brep.faces.length, bolt.brep.faces.length);
-  const v0 = bolt.massProperties(1).volumeMM3, v1 = back.massProperties(1).volumeMM3;
+  const v0 = massPropertiesOf(bolt).volume, v1 = massPropertiesOf(back).volume;
   assert.ok(Math.abs(v1 - v0) <= 1e-9 * v0, `${v1} vs ${v0}`);
   // The faces keep their names, under the import's id.
   const names = b => b.faces.map(f => f.name).sort();
@@ -55,7 +55,7 @@ test('helical threads (internal form): a bolt and a nut of B-spline faces, water
     assert.equal(checkBrep(b).issues.length, 0);
     assert.ok(b.faces.length < 200, `${b.faces.length} faces`);
     // Quarter-turn cubic spans: within 3e-4 of the exact ISO-profile volume (the facets: about 2e-3).
-    const v = brepMassProperties(b, 1).volumeMM3;
+    const v = brepMassProperties(b, 1).volume;
     assert.ok(Math.abs(v - exact) <= 3e-4 * exact, `${v} vs ${exact}`);
   }
   assert.deepEqual(bolt.faces.filter(f => !/\.thread#/.test(f.name)).map(f => f.name).sort(), ['b.end', 'b.head', 'b.hex0', 'b.hex1', 'b.hex2', 'b.hex3', 'b.hex4', 'b.hex5', 'b.seat']);
@@ -78,7 +78,7 @@ test('helical threads tessellate watertight by exact position, and their STL too
   for (const req of [{ diameter: 8, pitch: 1.25, length: 30, hex: { across: 13, height: 5.3 } }, { diameter: 8, pitch: 1.25, hex: { across: 13, height: 6.8, internal: true } }, { diameter: 6, pitch: 1, length: 12 }]) {
     const b = threadSolid({ id: 't', ...req }), m = tessellateBrep(b, { segmentsPerQuarter: 8 });
     assert.equal(open(m.positionsMM, m.indices), 0, JSON.stringify(req));
-    const out = evaluateCadPart(D([{ id: 't', kind: 'thread', ...req, form: 'helical' }])).outputs[0], soup = readStl(out.exportStl());
+    const out = evaluateCadPart(D([{ id: 't', kind: 'thread', ...req, form: 'helical' }])).outputs[0], soup = readStl(exportStl(out));
     assert.equal(open(soup, Array.from({ length: soup.length / 3 }, (_, k) => k)), 0, `STL ${JSON.stringify(req)}`);
   }
 });

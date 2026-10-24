@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { draftedExtrusion, evaluateCadPart, checkBrep, tessellateBrep, CadPartError } from '../dist/index.js';
+import { draftedExtrusion, evaluateCadPart, checkBrep, tessellateBrep, CadPartError, massPropertiesOf } from '../dist/index.js';
 
 const pi = Math.PI, tan = d => Math.tan(d * pi / 180);
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
@@ -46,7 +46,7 @@ test('extrude with draft in the part model: up and down, then holes and fillets 
   for (const [height, from, z] of [[10, 0, [0, 10]], [-10, 5, [-5, 5]]]) {
     const o = evaluateCadPart(D([s, { id: 'e', kind: 'extrude', sketch: 's', height, from, draft: 5 }])).outputs[0], zs = o.brep.vertices.map(v => v.point[2]);
     assert.equal(checkBrep(o.brep).valid, true);
-    assert.ok(near(o.massProperties(1).volumeMM3, exact, 1e-9), String(o.massProperties(1).volumeMM3));
+    assert.ok(near(massPropertiesOf(o).volume, exact, 1e-9), String(massPropertiesOf(o).volume));
     assert.deepEqual([Math.min(...zs), Math.max(...zs)], z);
   }
   // Fillets along sloping walls: one edge, and two meeting at a corner (their mitre).

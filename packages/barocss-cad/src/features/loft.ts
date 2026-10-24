@@ -8,7 +8,7 @@
 // Gauss quadrature across, and to rounding along the (rational) edges by 24-point quadrature.
 import { buildBrep, lineCurve, BrepError, type Brep, type BrepFaceInput } from '../brep/brep-core.js';
 import { buildProfileLoop, capSurface, type ProfileSegmentInput } from './extruded-profile-solid.js';
-import { solidMassFromIntegrals, type SolidMassProperties } from '../brep/solid-mass.js';
+import { solidMassFromIntegrals, type MassProperties } from '../brep/solid-mass.js';
 import type { Curve, Point, Surface } from '../types.js';
 import { gauss } from '../core/quadrature.js';
 
@@ -56,7 +56,7 @@ function at(b: Bezier, s: number): [XY, XY] {
   return [[x, y], [(dX - x * dW) / W, (dY - y * dW) / W]];
 }
 
-export function loftSolid(input: LoftInput): { brep: Brep; mass: (densityKgPerM3: number) => SolidMassProperties } {
+export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: number) => MassProperties } {
   const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: ${detail}`); };
   const S = input.sections;
   if (S.length < 2) fail('needs at least two sections');
@@ -154,7 +154,7 @@ function taggedSides(src0: readonly number[], tags: readonly string[] | undefine
   for (const g of src0) count.set(g, (count.get(g) ?? 0) + 1);
   return src0.map(g => { const k = (seen.get(g) ?? 0) + 1; seen.set(g, k); return count.get(g)! > 1 ? `side[${tags[g]}]#${k}` : `side[${tags[g]}]`; });
 }
-function smoothLoft(rows: Bezier[][], z: number[], id: string, nm: string, tagged: string[] | null = null): { brep: Brep; mass: (densityKgPerM3: number) => SolidMassProperties } {
+function smoothLoft(rows: Bezier[][], z: number[], id: string, nm: string, tagged: string[] | null = null): { brep: Brep; mass: (density: number) => MassProperties } {
   const K = rows.length - 1, n = rows[0].length, v = z.map(x => (x - z[0]) / (z[K] - z[0]));
   type H = [number, number, number, number];
   const hom = (p: XY, zz: number, w: number): H => [p[0] * w, p[1] * w, zz * w, w];

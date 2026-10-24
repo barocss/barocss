@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { bevelGear, bevelGearDimensions, checkBevelGearPair, checkPlacedBevelGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain, outputOf } from '../dist/index.js';
 
 // R12b.4 (D135): spiral bevel gears, the ideal conjugate — flagged as an ideal model. Oracles written here, apart from
 // gear-bevel.ts: the circular tooth trace built on the crown plane (the cutter's circle through the mean point at the
@@ -113,7 +113,7 @@ test('the spiral bevel gear (refused at the previous HEAD: no spiral), the ideal
     const fl = brep.faces.find(f => f.name === 'g.flankL#1'), { u, v } = surfaceDomain(fl.surface), toe = evaluateSurface(fl.surface, (u[0] + u[1]) / 2, v[0]), last = brep.faces.find(f => f.name === (S > 1 ? `g.flankL#1.${S}` : 'g.flankL#1')), heel = evaluateSurface(last.surface, (u[0] + u[1]) / 2, surfaceDomain(last.surface).v[1]);
     assert.equal(Math.sign(wrap(Math.atan2(heel[1], heel[0]) - Math.atan2(toe[1], toe[0]))), c.hand === 'right' ? 1 : -1, `${c.hand} hand`);
     // The volume: every sphere's section is the straight one turned, so its area is kept: (Re³ − Ri³)/3 × Ω, less the bore, within the fits (perimeter × b × their distance).
-    const { I, L } = sectionArea(G), b2 = G.bore, want = I * (G.Re ** 3 - G.Ri ** 3) / 3 - (b2 > 0 ? 2 * Math.PI / 3 * ((G.Re ** 3 - (G.Re ** 2 - b2 ** 2) ** 1.5) - (G.Ri ** 3 - (G.Ri ** 2 - b2 ** 2) ** 1.5)) : 0), got = brepMassProperties(brep, 1).volumeMM3;
+    const { I, L } = sectionArea(G), b2 = G.bore, want = I * (G.Re ** 3 - G.Ri ** 3) / 3 - (b2 > 0 ? 2 * Math.PI / 3 * ((G.Re ** 3 - (G.Re ** 2 - b2 ** 2) ** 1.5) - (G.Ri ** 3 - (G.Ri ** 2 - b2 ** 2) ** 1.5)) : 0), got = brepMassProperties(brep, 1).volume;
     close(got, want, L * G.Re * c.b * fit + 1e-7 * want, `z${c.z}/${c.zm} volume`);
     t.diagnostic(`m${c.m} z${c.z}/${c.zm} Σ${c.S ?? 90}° β_m ${c.beta}° ${c.hand} r_c ${c.rc}: β ${sp.spiralAngleAtToeDeg.toFixed(3)}°…${sp.spiralAngleAtHeelDeg.toFixed(3)}°, α_t ${sp.transversePressureAngleDeg.toFixed(5)}° (α_n ${sp.normalPressureAngleAtToeDeg.toFixed(3)}°…${sp.normalPressureAngleAtHeelDeg.toFixed(3)}°), twist ${sp.twistDeg.toFixed(4)}° in ${sp.twistPieces} piece(s) / ${S} segment(s) within ${tw.toExponential(2)}, section ${report.flankPieces} conic(s) ${report.profileDeviationMM.toExponential(2)}; sampled ${worst.toExponential(2)}; V ${got.toFixed(4)} vs ${want.toFixed(4)} (${((got - want) / want).toExponential(2)}), ${brep.faces.length} faces, ${ms.toFixed(1)} ms`);
   }
@@ -215,7 +215,7 @@ test('the part model: a spiral pinion and its mate by mesh, their B-reps cut by 
     { id: 'w', kind: 'bevel-gear', module: 3, teeth: 40, mateTeeth: 20, faceWidth: 20, thicknessReduction: j / 2, spiral: { angle: 35, hand: 'right', cutterRadius: 60 }, mesh: { gear: 'p', direction: 25, phase } }];
   const G1 = geom({ m: 3, z: 20, zm: 40, b: 20, beta: 35, hand: 'left', rc: 60 }), apex = [4, -2, 3], rows = [];
   const run = (rot, phase) => {
-    const M = evaluateCadPart(D(feats(rot, phase))), a = M.output('p'), w = M.output('w'), pa = a.bevelGearPlacement, pw = w.bevelGearPlacement;
+    const M = evaluateCadPart(D(feats(rot, phase))), a = outputOf(M, 'p'), w = outputOf(M, 'w'), pa = a.bevelGearPlacement, pw = w.bevelGearPlacement;
     // The pitch line: at δ1 from the pinion's axis toward the mate's; the gnomonic plane's axes there.
     const Z1 = pa.axis, k = dot(pw.axis, Z1), dd = sub(pw.axis, Z1.map(x => x * k)), dn = dd.map(x => x / norm(dd)), P = Z1.map((x, i) => Math.cos(G1.delta) * x + Math.sin(G1.delta) * dn[i]);
     const e1 = cross(P, dn).map(x => x / norm(cross(P, dn))), e2 = cross(P, e1);
@@ -242,12 +242,12 @@ test('the part model: a spiral pinion and its mate by mesh, their B-reps cut by 
   }
   // A phase off by 4°: the sections cross on some sphere.
   const off = run(0, 4).out; assert.ok(off.some(r => r.crossed), 'a phase off crosses');
-  if (SURVEY) assert.throws(() => evaluateCadPart(D([...feats(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
+  if (SURVEY) assert.throws(() => outputOf(evaluateCadPart(D([...feats(0), { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }])), 'i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   // The part model's refusals: a mate of the same hand; a spiral without its hand.
-  assert.throws(() => evaluateCadPart(D([feats(0)[0], { ...feats(0)[1], spiral: { angle: 35, hand: 'left', cutterRadius: 60 } }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /opposite hands/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ ...feats(0)[0], spiral: { angle: 35, cutterRadius: 60 } }])).output('p'), e => (e.details?.category ?? e.code) === 'INPUT' && /hand/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([feats(0)[0], { ...feats(0)[1], spiral: { angle: 35, hand: 'left', cutterRadius: 60 } }])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /opposite hands/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ ...feats(0)[0], spiral: { angle: 35, cutterRadius: 60 } }])), 'p'), e => (e.details?.category ?? e.code) === 'INPUT' && /hand/.test(e.message));
   // STEP: the volume and names back.
   const { brep } = bevelGear(specOf({ m: 3, z: 20, zm: 40, b: 20, bore: 10, beta: 35, hand: 'left', rc: 60 }), { id: 's' }), back = importStep(exportStep([brep], { name: 'spiral' }));
-  close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
+  close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.flankL#1')); assert.equal(checkBrep(back).valid, true);
   t.diagnostic(rows.join('; '));
 });

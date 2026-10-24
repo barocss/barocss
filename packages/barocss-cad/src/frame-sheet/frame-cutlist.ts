@@ -3,6 +3,7 @@ import type { FrameEndReport, FrameMemberReport } from './frame-section.js';
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { dot } from '../core/vec3.js';
 import { KernelError } from '../core/barocss-error.js';
+import { massPropertiesOf, type CadPartOutput } from '../part/part-model.js';
 
 // FR4a (D127): a frame's cut list. Each member as a piece to cut — its axis length (the centroidal line between its two
 // end planes, in closed form where both ends are planes; else its volume over its section's area), its long point (its
@@ -37,8 +38,8 @@ export interface CutPiece {
   readonly longPointMM: number;
   readonly volumeMM3: number;
   readonly ends: readonly [CutEnd, CutEnd];
-  /** Its own material and density (kg/m³), where the caller gives one (a body's material): grouped by it, its mass by it. */
-  readonly material?: string; readonly densityKgPerM3?: number;
+  /** Its own material and density (g/cm³), where the caller gives one (a body's material): grouped by it, its mass by it. */
+  readonly material?: string; readonly density?: number;
 }
 /** One row of a cut list: identical pieces. */
 export interface CutRow {
@@ -46,12 +47,13 @@ export interface CutRow {
   readonly material?: string;
   readonly axisLengthMM: number; readonly fromVolume: boolean; readonly longPointMM: number; readonly ends: readonly [CutEnd, CutEnd];
   /** A piece's mass: ρ·A·L (closed form) where both ends are planes, else ρ·V (the body's volume); and the row's. */
-  readonly massKG: number; readonly totalMassKG: number;
+  /** Each piece's mass and the row's (g, R7.3b). */
+  readonly mass: number; readonly totalMass: number;
 }
 export interface CutList {
   readonly rows: readonly CutRow[];
-  readonly totals: { readonly quantity: number; readonly axisLengthMM: number; readonly massKG: number };
-  readonly densityKgPerM3: number; readonly material?: string;
+  readonly totals: { readonly quantity: number; readonly axisLengthMM: number; readonly mass: number };
+  readonly density: number; readonly material?: string;
 }
 
 /** A cut list refused: its message starts with `[CODE]`. */
@@ -99,11 +101,11 @@ function extentAlong(brep: Brep, u: V3): number {
 }
 
 /** A frame member's output as a piece to cut; refused `[NOT_A_MEMBER]` for a body that is no member. */
-export function cutPiece(output: { readonly id: string; readonly brep: Brep; readonly member?: FrameMemberReport; massProperties(density: number): { readonly volumeMM3: number } }, options?: { readonly volumeMM3?: number }): CutPiece {
+export function cutPiece(output: CadPartOutput & { readonly member?: FrameMemberReport }, options?: { readonly volume?: number }): CutPiece {
   const m = output.member;
   if (!m) throw new CutListError(`[NOT_A_MEMBER] ${output.id} is not a frame member`);
   // (The volume when the caller has it already: the body's own mass, worked out once.)
-  const ends = m.ends ?? [], start = ends.find(e => e.end === 'start'), end = ends.find(e => e.end === 'end'), volume = (typeof options === 'object' ? options?.volumeMM3 : undefined) ?? output.massProperties(1).volumeMM3;
+  const ends = m.ends ?? [], start = ends.find(e => e.end === 'start'), end = ends.find(e => e.end === 'end'), volume = (typeof options === 'object' ? options?.volume : undefined) ?? massPropertiesOf(output).volume;
   const s0 = endAt(start, m, 0), s1 = endAt(end, m, 1), planar = s0 !== null && s1 !== null && ends.every(e => PLANE_KINDS.has(e.kind) || (e.kind === 'trim' && !!e.plane));
   const square = (which: 'start' | 'end', point: number): FrameEndReport => ({ end: which, kind: 'square', point });
   return {
@@ -120,36 +122,36 @@ const endKey = (e: CutEnd) => `${e.kind === 'through' ? 'square' : e.kind}:${r6(
  * The cut list of pieces (FR4a, D127): identical pieces on one row — the same section (mirrored apart), axis length and
  * long point to 1e-6 mm, and end cuts (kind, mitre and bevel to 1e-6°; as an unordered pair where the piece is reversible,
  * in order where it is not); a piece with an end that is no plane also by its volume (to 1e-3 mm³). In first-seen
- * order; pieces of different materials apart. Mass by each piece's density, else `densityKgPerM3` (kg/m³) — the caller's.
+ * order; pieces of different materials apart. Mass (g) by each piece's density, else `density` (g/cm³), the caller's.
  */
-export function cutList(pieces: readonly CutPiece[], options: { readonly densityKgPerM3: number; readonly material?: string }): CutList {
-  const rhoOf = (p: CutPiece) => p.densityKgPerM3 ?? options.densityKgPerM3;
-  for (const r of [options.densityKgPerM3, ...pieces.map(rhoOf)]) if (!(r > 0) || !Number.isFinite(r)) throw new CutListError(`[DENSITY] a density above 0 kg/m³ is needed (${r})`);
-  const rows: { key: string; row: { item: number; section: string; mirrored: boolean; material?: string; pieces: string[]; axisLengthMM: number; fromVolume: boolean; longPointMM: number; ends: readonly [CutEnd, CutEnd]; massKG: number } }[] = [];
+export function cutList(pieces: readonly CutPiece[], options: { readonly density: number; readonly material?: string }): CutList {
+  const rhoOf = (p: CutPiece) => p.density ?? options.density;
+  for (const r of [options.density, ...pieces.map(rhoOf)]) if (!(r > 0) || !Number.isFinite(r)) throw new CutListError(`[DENSITY] a density above 0 g/cm³ is needed (${r})`);
+  const rows: { key: string; row: { item: number; section: string; mirrored: boolean; material?: string; pieces: string[]; axisLengthMM: number; fromVolume: boolean; longPointMM: number; ends: readonly [CutEnd, CutEnd]; mass: number } }[] = [];
   for (const p of pieces) {
     const ends = [endKey(p.ends[0]), endKey(p.ends[1])], pair = p.reversible ? [...ends].sort().join('|') : ends.join('|'), rho = rhoOf(p), material = p.material ?? options.material;
     const curveKey = p.curve ? [p.curve.kind, r6(p.curve.radiusMM), r6(p.curve.angleDegrees), ...p.curve.straightLengthsMM.map(r6)].join(':') : '';
     const key = [curveKey, p.section, p.mirrored, material ?? '', rho, r6(p.axisLengthMM), r6(p.longPointMM), pair, p.fromVolume ? (Math.round(p.volumeMM3 * 1e3) / 1e3).toFixed(3) : ''].join('#');
     const hit = rows.find(r => r.key === key);
     if (hit) { hit.row.pieces.push(p.id); continue; }
-    const massKG = rho * (p.fromVolume ? p.volumeMM3 : p.areaMM2 * p.axisLengthMM) * 1e-9;
-    rows.push({ key, row: { item: rows.length + 1, section: p.section, mirrored: p.mirrored, ...(material ? { material } : {}), pieces: [p.id], axisLengthMM: p.axisLengthMM, fromVolume: p.fromVolume, longPointMM: p.longPointMM, ends: p.ends, massKG } });
+    const mass = rho * (p.fromVolume ? p.volumeMM3 : p.areaMM2 * p.axisLengthMM) * 1e-3;
+    rows.push({ key, row: { item: rows.length + 1, section: p.section, mirrored: p.mirrored, ...(material ? { material } : {}), pieces: [p.id], axisLengthMM: p.axisLengthMM, fromVolume: p.fromVolume, longPointMM: p.longPointMM, ends: p.ends, mass } });
   }
-  const out = rows.map(({ row }) => ({ ...row, quantity: row.pieces.length, totalMassKG: row.massKG * row.pieces.length }));
+  const out = rows.map(({ row }) => ({ ...row, quantity: row.pieces.length, totalMass: row.mass * row.pieces.length }));
   return {
-    rows: out, densityKgPerM3: options.densityKgPerM3, ...(options.material ? { material: options.material } : {}),
-    totals: { quantity: out.reduce((n, r) => n + r.quantity, 0), axisLengthMM: out.reduce((n, r) => n + r.axisLengthMM * r.quantity, 0), massKG: out.reduce((n, r) => n + r.totalMassKG, 0) },
+    rows: out, density: options.density, ...(options.material ? { material: options.material } : {}),
+    totals: { quantity: out.reduce((n, r) => n + r.quantity, 0), axisLengthMM: out.reduce((n, r) => n + r.axisLengthMM * r.quantity, 0), mass: out.reduce((n, r) => n + r.totalMass, 0) },
   };
 }
 
-/** A cut list as CSV (RFC 4180 quoting; lengths in mm to 1e-3, angles to 1e-3°, mass in kg to 1e-6). */
+/** A cut list as CSV (RFC 4180 quoting; lengths in mm to 1e-3, angles to 1e-3°, mass shown in kg to 1e-6, a person's unit for a cut list). */
 export function cutListCsv(list: CutList): string {
   const q = (s: string) => /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   const n = (x: number | null, d: number) => x === null ? '' : String(Math.round(x * 10 ** d) / 10 ** d);
   const originalCut = (e: CutEnd) => e.kind === 'square' || e.kind === 'through' ? 'square' : e.mitreDegrees === null ? e.kind : `${e.kind} ${n(e.mitreDegrees, 3)}°${e.bevelDegrees ? ` / bevel ${n(e.bevelDegrees, 3)}°` : ''}`;
   const cut = (e: CutEnd) => originalCut(e) + (e.gapMM ? ` / gap ${n(e.gapMM, 3)} mm` : '') + (e.notch ? e.notch.kind === 'holesaw' ? ` / holesaw diameter ${n(e.notch.diameterMM, 3)} mm offset ${n(e.notch.offsetMM, 3)} mm` : ` / v depth ${n(e.notch.depthMM, 3)} mm angle ${n(e.notch.angleDegrees, 3)}°` : '');
   const lines = ['item,quantity,section,material,axis length (mm),long point (mm),start cut,end cut,mass each (kg),mass (kg),pieces'];
-  for (const r of list.rows) lines.push([String(r.item), String(r.quantity), q(r.section + (r.mirrored ? ' (mirrored)' : '')), q(r.material ?? list.material ?? ''), n(r.axisLengthMM, 3) + (r.fromVolume ? ' (by volume)' : ''), n(r.longPointMM, 3), q(cut(r.ends[0])), q(cut(r.ends[1])), n(r.massKG, 6), n(r.totalMassKG, 6), q(r.pieces.join(' '))].join(','));
-  lines.push(['total', String(list.totals.quantity), '', '', n(list.totals.axisLengthMM, 3), '', '', '', '', n(list.totals.massKG, 6), ''].join(','));
+  for (const r of list.rows) lines.push([String(r.item), String(r.quantity), q(r.section + (r.mirrored ? ' (mirrored)' : '')), q(r.material ?? list.material ?? ''), n(r.axisLengthMM, 3) + (r.fromVolume ? ' (by volume)' : ''), n(r.longPointMM, 3), q(cut(r.ends[0])), q(cut(r.ends[1])), n(r.mass / 1000, 6), n(r.totalMass / 1000, 6), q(r.pieces.join(' '))].join(','));
+  lines.push(['total', String(list.totals.quantity), '', '', n(list.totals.axisLengthMM, 3), '', '', '', '', n(list.totals.mass / 1000, 6), ''].join(','));
   return lines.join('\n') + '\n';
 }

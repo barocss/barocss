@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { revolveProfile, revolveMassProperties, booleanAnalytic, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, evaluateCadPart, BrepError } from '../dist/index.js';
+import { revolveProfile, revolveMassProperties, booleanAnalytic, brepFromPrismatic, prismaticFromProfile, transformBrep, checkBrep, tessellateBrep, brepMassProperties, evaluateCadPart, BrepError, massPropertiesOf, outputOf } from '../dist/index.js';
 
 const pi = Math.PI;
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
@@ -60,12 +60,12 @@ test('revolved solids: exact rational surfaces, closed-form mass, watertight reg
     if (expected !== null) assert.ok(near(m.volume, expected, 2e-3), `${name}: mesh ${m.volume} vs ${expected}`);
   }
   const pinch = { profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 2] }, { kind: 'line', start: [4, 6] }], axis: yAxis, angleDegrees: 90 };
-  assert.ok(near(mesh(revolveProfile(pinch), 32).volume, revolveMassProperties(pinch, 1000).volumeMM3, 2e-3));
+  assert.ok(near(mesh(revolveProfile(pinch), 32).volume, revolveMassProperties(pinch, 1).volume, 2e-3));
   // A cone tip needs no refinement: its normal there depends on the direction it is approached from.
   assert.ok(mesh(revolveProfile({ profile: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [4, 0] }, { kind: 'line', start: [0, 6] }], axis: yAxis, angleDegrees: 360 }), 32).triangles < 1000);
   const input = { id: 't', profile: circle(6, 0, 2), axis: yAxis, angleDegrees: 360 };
-  const mass = revolveMassProperties(input, 1000);
-  assert.ok(near(mass.volumeMM3, TORUS, 1e-12), `closed-form torus volume ${mass.volumeMM3}`);
+  const mass = revolveMassProperties(input, 1);
+  assert.ok(near(mass.volume, TORUS, 1e-12), `closed-form torus volume ${mass.volume}`);
   // A torus tessellates as a regular grid: 2 × 64 × 64 triangles at 16 segments per quarter.
   assert.equal(mesh(torus(), 16).triangles, 8192);
   // The profile may not cross the axis, touch it inside a segment, or pinch a full turn to a point.
@@ -111,7 +111,7 @@ test('freeform Booleans: tori and cones against planes, cylinders and each other
     const r = booleanAnalytic(a, b, op), report = checkBrep(r);
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     assert.equal(report.topology.length, shells, `${name}: ${report.topology.length} bodies`);
-    const m = mesh(r, 16), v = brepMassProperties(r, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+    const m = mesh(r, 16), v = brepMassProperties(r, 1, { segmentsPerQuarter: 32 }).volume;
     assert.ok(m.watertight, `${name}: watertight`);
     if (expected !== null) assert.ok(near(v, expected, rel), `${name}: ${v} vs ${expected}`);
     volumes.set(name, v);
@@ -124,7 +124,7 @@ test('freeform Booleans: tori and cones against planes, cylinders and each other
     const r = booleanAnalytic(torus(), seams, op), report = checkBrep(r);
     assert.equal(report.valid, true, `seams crossing, ${op}: ${report.issues}`);
     assert.ok(mesh(r, 16).watertight, `seams crossing, ${op}: watertight`);
-    vol[op] = brepMassProperties(r, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+    vol[op] = brepMassProperties(r, 1, { segmentsPerQuarter: 32 }).volume;
   }
   assert.ok(near(vol.intersection + vol.difference, TORUS, 2e-3) && near(vol.intersection + vol.union, 2 * TORUS, 2e-3), JSON.stringify(vol));
 });
@@ -134,16 +134,16 @@ test('part model: a revolved body is curved, keeps its closed-form mass and take
   const ring = { id: 's', kind: 'sketch', profile: 'circle', center: [6, 0], radius: 2 };
   const one = evaluateCadPart(D([ring, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }])).outputs[0];
   assert.equal(one.representation, 'curved');
-  assert.ok(near(one.massProperties(1000).volumeMM3, TORUS, 1e-12));
+  assert.ok(near(massPropertiesOf(one, 1).volume, TORUS, 1e-12));
   assert.equal(checkBrep(one.brep).valid, true);
-  const cut = evaluateCadPart(D([ring, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } },
+  const cut = outputOf(evaluateCadPart(D([ring, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } },
     { id: 'b', kind: 'sketch', profile: 'rectangle', min: [-10, -10], max: [10, 10] }, { id: 'e', kind: 'extrude', sketch: 'b', height: 10, from: 1 },
-    { id: 'd', kind: 'difference', target: 'r', tool: 'e' }])).output('d');
+    { id: 'd', kind: 'difference', target: 'r', tool: 'e' }])), 'd');
   assert.equal(checkBrep(cut.brep).valid, true);
-  assert.ok(near(cut.massProperties(1000).volumeMM3, TORUS - torusAbove(1), 2e-3), `${cut.massProperties(1000).volumeMM3}`);
+  assert.ok(near(massPropertiesOf(cut, 1).volume, TORUS - torusAbove(1), 2e-3), `${massPropertiesOf(cut, 1).volume}`);
   assert.ok(cut.brep.faces.some(f => f.name.startsWith('r.side')) && cut.brep.faces.some(f => f.name.startsWith('e.')), 'faces keep their feature names');
   const half = evaluateCadPart(D([ring, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 }])).outputs[0];
-  assert.ok(near(half.massProperties(1000).volumeMM3, TORUS / 4, 1e-12));
+  assert.ok(near(massPropertiesOf(half, 1).volume, TORUS / 4, 1e-12));
 });
 
 test('cones against any plane: conic cuts in closed form (hyperbolas beside the axis, ellipses at an angle)', () => {
@@ -151,8 +151,8 @@ test('cones against any plane: conic cuts in closed form (hyperbolas beside the 
   const tilt = (b, deg) => { const c = Math.cos(deg * Math.PI / 180), s = Math.sin(deg * Math.PI / 180); return transformBrep(b, { matrix: [1, 0, 0, 0, c, -s, 0, s, c], offset: [0, 4, 0] }); };
   const V = Math.PI * 14 / 3 * (144 + 48 + 16);
   for (const [name, B] of [['a box beside the axis', box([3, -5, -20], [20, 30, 20])], ['a slab tilted 30°', tilt(box([-30, -2, -30], [30, 2, 30]), 30)], ['a half space tilted 60°', tilt(box([-30, 0, -30], [30, 30, 30]), 60)]]) {
-    const vol = op => { const r = booleanAnalytic(k, B, op), report = checkBrep(r); assert.equal(report.valid, true, `${name} ${op}: ${report.issues}`); return brepMassProperties(r, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
-    const u = vol('union'), i = vol('intersection'), d = vol('difference'), vb = brepMassProperties(B, 1000).volumeMM3;
+    const vol = op => { const r = booleanAnalytic(k, B, op), report = checkBrep(r); assert.equal(report.valid, true, `${name} ${op}: ${report.issues}`); return brepMassProperties(r, 1, { segmentsPerQuarter: 32 }).volume; };
+    const u = vol('union'), i = vol('intersection'), d = vol('difference'), vb = brepMassProperties(B, 1).volume;
     // Volume identities, to the 32-per-quarter mesh's error.
     assert.ok(Math.abs(u + i - V - vb) < 2e-3 * V && Math.abs(d + i - V) < 2e-3 * V, `${name}: ${u} ${i} ${d}`);
   }
@@ -165,7 +165,7 @@ test('a plane turned off a cylinder\'s axis by rounding meets it in rulings (fou
   const cyl = transformBrep(revolveProfile({ id: 'v', profile: [[0, 0], [r, 0], [r, h], [0, h]].map(p => ({ kind: 'line', start: p })), axis: yAxis, angleDegrees: 360 }), { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [2.5, 2, 0] });
   const c = 0.851120938799842, s = 0.5249696634439706, turned = transformBrep(box([-2.5, -0.5, -5.5], [2, 3, 2]), { matrix: [c, 0, s, 0, 1, 0, -s, 0, c], offset: [0, 0, 0] });
   const V = Math.PI * r * r * h, VB = 4.5 * 3.5 * 7.5;
-  const vol = op => { const out = booleanAnalytic(cyl, turned, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
+  const vol = op => { const out = booleanAnalytic(cyl, turned, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1, { segmentsPerQuarter: 32 }).volume; };
   const u = vol('union'), i = vol('intersection'), d = vol('difference');
   assert.ok(Math.abs(u + i - V - VB) < 2e-3 * V && Math.abs(d + i - V) < 2e-3 * V, `${u} ${i} ${d}`);
 });
@@ -176,8 +176,8 @@ test('a curve crossing between two faces is traced on both, short pieces by an e
   const cone = transformBrep(revolveProfile({ id: 'k', profile: [[0, 0], [5.068465637974441, 0], [5.760948109556921, 3.028882715385407], [0, 3.028882715385407]].map(p => ({ kind: 'line', start: p })), axis: yAxis, angleDegrees: 360 }), { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1], offset: [0, 3, 1.5] });
   const ring = revolveProfile({ id: 't', profile: [{ kind: 'arc', start: [8.793091643601656, 0], center: [7.069483011960983, 0], direction: 'ccw' }], axis: yAxis, angleDegrees: 360 });
   const tilted = transformBrep(transformBrep(ring, { matrix: [0, 1, 0, 1, 0, 0, 0, 0, 1], offset: [-0.5, 1.5, -4] }), { matrix: [0.7330749320581729, -0.6801478839104811, 0, 0.6801478839104811, 0.7330749320581729, 0, 0, 0, 1], offset: [0, 0, 0] });
-  const vol = op => { const out = booleanAnalytic(cone, tilted, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
-  const u = vol('union'), i = vol('intersection'), d = vol('difference'), va = brepMassProperties(cone, 1000, { segmentsPerQuarter: 32 }).volumeMM3, vb = brepMassProperties(tilted, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+  const vol = op => { const out = booleanAnalytic(cone, tilted, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1, { segmentsPerQuarter: 32 }).volume; };
+  const u = vol('union'), i = vol('intersection'), d = vol('difference'), va = brepMassProperties(cone, 1, { segmentsPerQuarter: 32 }).volume, vb = brepMassProperties(tilted, 1, { segmentsPerQuarter: 32 }).volume;
   assert.ok(Math.abs(u + i - va - vb) < 2e-3 * vb && Math.abs(d + i - va) < 2e-3 * va, `${u} ${i} ${d}`);
 });
 
@@ -187,7 +187,7 @@ test('a shell of general faces is told outer or cavity by several probes (found 
   const R = 4.517572878859937, sph = transformBrep(revolveProfile({ id: 's', profile: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], axis: yAxis, angleDegrees: 360 }), { matrix: [1, 0, 0, 0, 0, -1, 0, 1, 0], offset: [1.5, 3, 1.5] });
   const ring = revolveProfile({ id: 't', profile: [{ kind: 'arc', start: [6.8041005856357515, 0], center: [5.5994085585698485, 0], direction: 'ccw' }], axis: yAxis, angleDegrees: 360 });
   const c = 0.8226396590005198, sn = 0.5685630936312245, tilted = transformBrep(transformBrep(ring, { matrix: [0, 1, 0, 1, 0, 0, 0, 0, 1], offset: [0.5, -0.5, 3] }), { matrix: [c, 0, sn, 0, 1, 0, -sn, 0, c], offset: [0, 0, 0] });
-  const vol = op => { const out = booleanAnalytic(sph, tilted, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1000, { segmentsPerQuarter: 32 }).volumeMM3; };
+  const vol = op => { const out = booleanAnalytic(sph, tilted, op), report = checkBrep(out); assert.equal(report.valid, true, `${op}: ${report.issues}`); return brepMassProperties(out, 1, { segmentsPerQuarter: 32 }).volume; };
   const u = vol('union'), i = vol('intersection'), d = vol('difference'), va = 4 / 3 * pi * R ** 3;
   assert.ok(Math.abs(d + i - va) < 3e-3 * va && u > va, `${u} ${i} ${d}`);
 });
@@ -210,7 +210,7 @@ test('freeform faces on one surface: copies, turned copies and overlapping parti
     assert.equal(report.valid, true, `${name}: ${report.issues}`);
     if (expected === 0) { assert.equal(r.faces.length, 0, name); continue; }
     assert.ok(mesh(r, 16).watertight, `${name}: watertight`);
-    const v = brepMassProperties(r, 1000, { segmentsPerQuarter: 32 }).volumeMM3;
+    const v = brepMassProperties(r, 1, { segmentsPerQuarter: 32 }).volume;
     assert.ok(near(v, expected, 2e-3), `${name}: ${v} vs ${expected}`);
   }
 });

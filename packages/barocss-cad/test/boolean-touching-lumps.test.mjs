@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, tessellateBrep, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, checkBrep, massPropertiesOf, outputOf } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
@@ -37,7 +37,7 @@ test('Booleans: lumps touching along a line are separate bodies, numbered as lum
   const by = w => Object.fromEntries(w.lumps.map(l => [l.from.includes('f') ? 'shell' : 'can', l.volume]));
   const [x, y] = ways.map(by);
   for (const k of ['shell', 'can']) assert.ok(Math.abs(x[k] - y[k]) <= 1e-9 * x[k], `${k}: ${x[k]} vs ${y[k]}`);
-  const q = oracle(ways[0].tree, 192, 6), V = ways[0].o.massProperties(1).volumeMM3;
+  const q = oracle(ways[0].tree, 192, 6), V = massPropertiesOf(ways[0].o).volume;
   assert.ok(Math.abs(V - q.volumeMM3) <= 3 * q.e + 1e-6, `${V} vs the oracle ${q.volumeMM3} ± ${q.e}`);
 });
 
@@ -52,7 +52,7 @@ test('Booleans: upright lumps touching along an edge or at a point are separate 
     ['corner to corner', D([...box('a', [0, 0], [10, 10], 0, 5), ...box('b', [10, 10], [20, 20], 5, 5), { id: 'u', kind: 'union', target: 'a', tool: 'b' }]), 'u', 1000],
   ];
   for (const [name, doc, out, exact] of cases) {
-    const o = evaluateCadPart(doc).output(out), l = lumps(o), V = o.massProperties(1).volumeMM3;
+    const o = outputOf(evaluateCadPart(doc), out), l = lumps(o), V = massPropertiesOf(o).volume;
     assert.equal(o.bodyCount, 2, name);
     assert.ok(Math.abs(V - exact) <= 1e-9 * exact, `${name}: ${V} vs ${exact}`);
     assert.ok(Math.abs(l[0].volume + l[1].volume - exact) <= 1e-2 * exact, `${name}: mesh ${l[0].volume} + ${l[1].volume}`);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf, checkOutput } from '../dist/index.js';
 
 // D97: a straight edge between two planes finished past a round already made. Its reach check (planeReach) counted
 // only convex finishes, and walked on across a smooth edge onto another surface: a concave fillet or chamfer there
@@ -32,12 +32,12 @@ const concave = r => {
 };
 
 test('D97 an oblique step, its riser\'s top rounded 4, the inner edge filleted 7 and 12 — past the 6 mm of flat riser: the ball rolls over onto the round; the added volume the closed-form section × 40 to 1e-7 (built 3.3 % and 121 % over before, the section on the riser carried on)', () => {
-  const body = step(true), o0 = out(body), v0 = o0.massProperties(1).volumeMM3, inner = at(o0.brep, 15, 10);
+  const body = step(true), o0 = out(body), v0 = massPropertiesOf(o0).volume, inner = at(o0.brep, 15, 10);
   for (const r of [7, 12]) {
     const o = out([...body, finish('fillet', 'g', inner, r)]);
-    assert.equal(o.validate().valid, true, `r ${r}`);
+    assert.equal(checkOutput(o).valid, true, `r ${r}`);
     assert.equal(o.bodyCount, 1);
-    const got = o.massProperties(1).volumeMM3 - v0, exact = concave(r) * 40;
+    const got = massPropertiesOf(o).volume - v0, exact = concave(r) * 40;
     assert.ok(Math.abs(got / exact - 1) < 1e-7, `r ${r}: ${got} vs ${exact} (${got / exact - 1})`);
     const [rep] = o.fillet;
     assert.ok(rep && rep.contactMM <= 2.5e-7 && rep.sectionMM <= 1e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
@@ -46,14 +46,14 @@ test('D97 an oblique step, its riser\'s top rounded 4, the inner edge filleted 7
 
 test('D97 convex: a block with oblique ends, its bottom edge on y = 0 rounded 8, the top edge filleted 2.5, 3 and 4 — past the 2 mm of flat wall: the ball rolls round onto the round; the removed volume the closed-form section × 40 to 1e-7 (refused RADIUS_EXCEEDS_FACE before)', () => {
   const box = [{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [40, 0], [40 + 30 * t, 30], [30 * t, 30]] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
-  const body = [...box, { id: 'g', kind: 'fillet', target: 'e', edges: [at(out(box).brep, 0, 0)], radius: 8 }], o0 = out(body), v0 = o0.massProperties(1).volumeMM3, top = at(o0.brep, 0, 10);
+  const body = [...box, { id: 'g', kind: 'fillet', target: 'e', edges: [at(out(box).brep, 0, 0)], radius: 8 }], o0 = out(body), v0 = massPropertiesOf(o0).volume, top = at(o0.brep, 0, 10);
   for (const r of [2.5, 3, 4]) {
     // The ball inside, touching the top and the round (centre (8, 8)) from within: |C − O| = 8 − r.
     const O = [8, 8], C = [8 - Math.sqrt((8 - r) ** 2 - (2 - r) ** 2), 10 - r], d = 8 - r, T = [O[0] + 8 * (C[0] - O[0]) / d, O[1] + 8 * (C[1] - O[1]) / d];
     const exact = 40 * (shoelace([[C[0], 10], [0, 10], [0, 8], T]) + segment(8, Math.atan2(O[1] - T[1], O[0] - T[0])) - segment(r, Math.PI / 2 + Math.atan2(C[1] - T[1], C[0] - T[0])));
     const o = out([...body, finish('fillet', 'g', top, r)]);
-    assert.equal(o.validate().valid, true, `r ${r}`);
-    const got = v0 - o.massProperties(1).volumeMM3;
+    assert.equal(checkOutput(o).valid, true, `r ${r}`);
+    const got = v0 - massPropertiesOf(o).volume;
     assert.ok(Math.abs(got / exact - 1) < 1e-7, `r ${r}: ${got} vs ${exact} (${got / exact - 1})`);
   }
 });
@@ -63,10 +63,10 @@ test('D97 refusals, none built wrong: the concave chamfer 8 past the round (RADI
     const body = step(oblique), o0 = out(body), inner = at(o0.brep, 15, 10);
     assert.throws(() => out([...body, finish('chamfer', 'g', inner, 8)]), e => (e.details?.category ?? e.code) === 'PARAMETER' && /\[RADIUS_EXCEEDS_FACE\].*walls of 6 and 15 mm/.test(e.message), `chamfer, oblique ${oblique}`);
     // (The fillet 8 past the round, refused at D97 where the Boolean could not close it, builds since R10.B: r10-b.test.mjs.)
-    const got = out([...body, finish('fillet', 'g', inner, 5)]).massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3;
+    const got = massPropertiesOf(out([...body, finish('fillet', 'g', inner, 5)])).volume - massPropertiesOf(o0).volume;
     assert.ok(Math.abs(got / ((1 - Math.PI / 4) * 25 * 40) - 1) < (oblique ? 2e-7 : 1e-9), `fillet 5, oblique ${oblique}: ${got}`);
     // (At oblique ends too since D98: the wedge ends in the end face's plane.)
-    const chamfer = out([...body, finish('chamfer', 'g', inner, 5)]).massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3;
+    const chamfer = massPropertiesOf(out([...body, finish('chamfer', 'g', inner, 5)])).volume - massPropertiesOf(o0).volume;
     assert.ok(Math.abs(chamfer / (12.5 * 40) - 1) < 1e-9, `chamfer 5, oblique ${oblique}: ${chamfer}`);
   }
 });

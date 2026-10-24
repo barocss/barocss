@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CAD_KERNEL_VERSION, loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart, checkLibraryFit } from '../dist/index.js';
+import { CAD_KERNEL_VERSION, loadCadLibrary, instantiateLibraryPart, parseLibraryExpression, evaluateLibraryExpression, CadLibraryError, evaluateCadPart, checkLibraryFit, outputOf, massPropertiesOf } from '../dist/index.js';
 
 // LIB1 (D61): libraries as data — a manifest, parts with sourced (or estimated) parameters, variants, a recipe of
 // part-model features with safe expressions; checked on load; instantiated to features.
@@ -67,9 +67,9 @@ test('loading and instantiating: defaults, variants, values given; derived param
   assert.deepEqual(big.warnings, ['t = 5 mm is an estimate', 'Mounting plate: simplified internals — not for structural calculation']);
   assert.deepEqual(big.interfaces, [{ id: 'top', role: 'mount-face', accepts: ['foot'], frame: { origin: [40, 30, 5], z: [0, 0, 1], x: [1, 0, 0] }, faces: { plane: 'P1_p.top' } }]);
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: big.features };
-  const out = evaluateCadPart(doc).output('P1_f');
+  const out = outputOf(evaluateCadPart(doc), 'P1_f');
   // (Less the hole and the 0.5 mm chamfer along the 80 mm edge.)
-  assert.ok(Math.abs(out.massProperties(1).volumeMM3 - (80 * 60 * 5 - Math.PI * 2.25 ** 2 * 5 - 0.125 * 80)) < 1e-6, String(out.massProperties(1).volumeMM3));
+  assert.ok(Math.abs(massPropertiesOf(out).volume - (80 * 60 * 5 - Math.PI * 2.25 ** 2 * 5 - 0.125 * 80)) < 1e-6, String(massPropertiesOf(out).volume));
   // Defaults, a value given (no estimate warned for it), and a hole left out by `when`: the chamfer then refused as an output.
   const small = instantiateLibraryPart(lib, 'plate', { params: { t: 2 } });
   // (The chamfer left out, w < 60: the output is the body it would have changed, the hole's.)

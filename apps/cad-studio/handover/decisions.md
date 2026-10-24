@@ -14378,3 +14378,68 @@ them changed.
 coordinator's roadmap commit. The patch was applied in the shared integration worktree for its last check, and that
 commit took the working tree with it. The patch and the commit's cad diff are identical. `a152dee7e` holds this record
 and the README row. Integration is never rewritten, so the two stay as they are; read them together as D279.
+
+## D280 — R7.3b (kernel): results as data, mass in MMGS (2026-10-24)
+
+**On branch `claude/kernel-r73b-r77b`**, the coordinator's one merge window, with R7.7b next on the same branch; the
+outer, API and docs lanes branch from it. Design: `notes/r73b-r77b` in the shared notes, approved.
+
+**Mass in MMGS** (api-conventions §2).
+- `MassProperties` (was `SolidMassProperties`) is `{ volume mm³, mass g, centroid mm, inertia g·mm² about the centroid,
+  method, volumeBound? }`. A density is in g/cm³:
+  - `mass = ρ · V · 1e-3`;
+  - inertia = `ρ · 1e-3 ·` the second moments in mm⁵.
+- Live everywhere: `brepMassProperties`, `prismaticMassProperties`, `solidMassFromIntegrals`, `combineMassProperties`
+  (parallel axes in mm and g), `revolveMassProperties`, loft, the part model's hollowed and moved masses.
+- The cut list: `CutPiece.density`, a row's `mass` and `totalMass`, `totals.mass` in g, `cutList(pieces, { density })`,
+  `cutPiece(output, { volume? })`. The CSV still shows kg, a person's unit for a cut list.
+- The legacy createCadModel surface keeps its own kg types until R7.3d.
+
+**Results as data** (§4).
+- `CadPartOutput` and `CadPartSnapshot` have no methods. The new functions are on the main entry:
+
+  | Was | Now |
+  |---|---|
+  | `o.massProperties(ρ kg/m³)` | `massPropertiesOf(o, ρ g/cm³ = 1)` |
+  | `o.surfaceArea()` | `surfaceAreaOf(o)` |
+  | `o.validate()` | `checkOutput(o)` |
+  | `o.exportStl(options)` | `exportStl(o, options)` |
+  | `o.exportStep(options)` | `exportStep(o, options)` (exportStep also takes B-reps, as before) |
+  | `o.flatPattern(options)` | `flatPatternOf(o, options)` |
+  | `s.output(id)` | `outputOf(s, id)` |
+  | `s.withParameters(e)` | `reevaluate(s, { parameters: e })` |
+  | `s.withDocument(d)` | `reevaluate(s, { document: d })` |
+  | `s.save()` | `saveCadPart(s)` |
+
+- What a function needs beyond the data (the part an output was made from, its cached validation, area and flats; a
+  snapshot's cache and options) is in module WeakMaps. An output made elsewhere falls back to its B-rep.
+
+**Call sites.**
+- The kernel's tests and scripts were rewritten by a TS-checker codemod, which changed only receivers typed
+  CadPartOutput, CadPartSnapshot or MassProperties, and untyped ones in files that do not use the legacy API.
+- Where a unit made the oracle's numbers move, the oracle's factors went to g, the formulas kept: frk3-oracle, fr-s0,
+  frk-4-revolve, shared-seam, mass-polyhedral, sweep-mass-overlap, freeform, the part model's box inertia, fr-4a's cut
+  list.
+- conformance/fr's four cut-list cases expect `density` 7.85 and masses in g: the same closed forms (ρ·A·L), in g.
+- Densities given as numbers in tests went ÷1000, with 1 kept as the volume-only density.
+- The API lane's src/api/core.ts and its test/api-verbs and api-part helpers changed only to drop their kg → g
+  conversions; their result shapes are theirs (R7.7d).
+
+**Fingerprint** (`scripts/r5-fingerprint.mjs` reads `checkOutput` and `massPropertiesOf`): 869 cases, `5bef43bd…` (from
+`49f1fac8…`).
+- Every body's mass record changed, and nothing else did: refusals, F/E/V, areas, validity and meshes are
+  byte-identical.
+- In the mass records:
+  - the names went volumeMM3 → volume, massKG → mass, centroidMM → centroid, inertiaCentroidKgM2 → inertia;
+  - the mass is ×1e6 exactly (density 1 kg/m³ → 1 g/cm³, kg → g), and the inertia ×1e12 (to 3.5e-16 relative);
+  - volumes and methods are bit-identical;
+  - two frame bodies' centroids moved ≤ 1.1e-13 mm (accept-bent-rail, frame-tangent-bend: combineMassProperties
+    weights by mass in g now).
+
+**Checks** (scratch worktree at d32c34bbb + the change):
+- cad tsc, eslint and build clean.
+- Kernel suite at concurrency 4: 1725/1732, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names identical.
+- RB: no NEW, 2 TODOs. Properties pass. Fuzz 20261024: OK 193 / REFUSED 7 as before. Commutativity (corpus): SAME 29.
+- Not run here: cad-model, the studio, the docs samples. Their call sites move in the window (the break list goes to the
+  coordinator).

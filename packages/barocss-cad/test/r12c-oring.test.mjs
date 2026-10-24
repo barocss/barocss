@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, isGlandError, checkBrep, brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, isGlandError, checkBrep, brepMassProperties, evaluateCadPart, outputOf } from '../dist/index.js';
 
 // R12c.5 (D159): O-ring glands. The ring row is D139's O1 (AS568-214: CS 3.53, ID 24.99 — the Global O-Ring chart), a
 // test row citing it; the gland is S0's (groove Ø25.5, bore Ø31.1, 4.7 wide); the other rings and the fit rows are test
@@ -12,7 +12,7 @@ import { glandCheck, glandCut, oringInGland, oringRowProblem, O2_RANGES, isGland
 //   2πR'A (its chord square to the axis);
 // - the groove's removal π(R² − r²)w (radial), π((R + w)² − R²)h (face).
 
-const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volumeMM3;
+const vol = brep => brepMassProperties(brep, 1, { quadratureSegments: 12 }).volume;
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
 const code = c => e => isGlandError(e) && e.code === c;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
@@ -61,7 +61,7 @@ test('R12c.5 squeeze at the fit\'s extremes: the bore H8 and the groove h9 (test
 });
 
 test('R12c.5 piston gland cut and its ring: π(R² − r²)w removed; the torus 2π²R\'r\'²; the free ring\'s overlap with the bore by Pappus on its segment (S0: 136.48580)', () => {
-  const piston = evaluateCadPart(D(cyl('pe', 15.5, 20))).output('pe').brep;
+  const piston = outputOf(evaluateCadPart(D(cyl('pe', 15.5, 20))), 'pe').brep;
   const g = glandCut(piston, { kind: 'piston', ring: O1, grooveDiameterMM: 25.5, widthMM: 4.7, sealDiameterMM: 31.1, face: 'pe.side0', atMM: 6 }, 'gl');
   assert.equal(checkBrep(g.brep).valid, true);
   near(vol(piston) - vol(g.brep), Math.PI * (15.5 ** 2 - 12.75 ** 2) * 4.7, 1e-6, 'groove'); assert.ok(g.brep.faces.some(f => f.name.startsWith('gl.groove')));
@@ -76,7 +76,7 @@ test('R12c.5 piston gland cut and its ring: π(R² − r²)w removed; the torus 
 test('R12c.5 rod and face glands: their grooves and the rings\' overlaps — a rod\'s ring on the rod against the groove\'s bottom 2π(R\' + ȳ)A (D163), under a flange 2πR\'A', () => {
   const ring = { id: 'r1', insideDiameterMM: 19.5, crossSectionMM: 2.62, estimate: true };
   // A housing Ø40 with a Ø20 bore, 20 long; the rod Ø20; the groove's bottom Ø24.2 (h 2.1), 3.6 wide.
-  const housing = evaluateCadPart(D(cyl('hs', 20, 20, 0, 10))).output('hsh').brep;
+  const housing = outputOf(evaluateCadPart(D(cyl('hs', 20, 20, 0, 10))), 'hsh').brep;
   const rod = glandCut(housing, { kind: 'rod', ring, grooveDiameterMM: 24.2, widthMM: 3.6, sealDiameterMM: 20, face: 'hsb.side0', atMM: 8 }, 'rg');
   assert.equal(checkBrep(rod.brep).valid, true); near(vol(housing) - vol(rod.brep), Math.PI * (12.1 ** 2 - 100) * 3.6, 1e-6, 'rod groove');
   // (The ring stretched on the rod Ø20 rests on it; the groove's bottom Ø24.2 displaces its outer side — D163's fix:
@@ -86,7 +86,7 @@ test('R12c.5 rod and face glands: their grooves and the rings\' overlaps — a r
   near(ro.overlapMM3, 2 * Math.PI * (Rs + sr.y) * sr.A, 1e-6, 'rod overlap');
   near(vol(ro.brep), 2 * Math.PI ** 2 * (ring.insideDiameterMM / 2 + ring.crossSectionMM / 2) * (ring.crossSectionMM / 2) ** 2, 1e-6, 'the free ring\'s volume kept');
   // A plate 80 × 80 × 10; a face groove about its top's centre, inner Ø30, 4 wide, 2.6 deep, for O1.
-  const plate = evaluateCadPart(D([{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-40, -40], max: [40, 40] }, { id: 'pl', kind: 'extrude', sketch: 'ps', height: 10 }])).output('pl').brep;
+  const plate = outputOf(evaluateCadPart(D([{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-40, -40], max: [40, 40] }, { id: 'pl', kind: 'extrude', sketch: 'ps', height: 10 }])), 'pl').brep;
   const fg = glandCut(plate, { kind: 'face', ring: { ...O1, insideDiameterMM: 29.5 }, grooveDiameterMM: 30, widthMM: 4, depthMM: 2.6, face: 'pl.top', centerMM: [0, 0, 10] }, 'fg');
   assert.equal(checkBrep(fg.brep).valid, true); near(vol(plate) - vol(fg.brep), Math.PI * (19 ** 2 - 15 ** 2) * 2.6, 1e-6, 'face groove');
   const fo = oringInGland(fg.report, fg.place, 'fr'), fr = fg.report.stretchedCrossSectionMM / 2, FR = 15 + fr, sf = segment(fr, 2.6 - fr);
@@ -95,14 +95,14 @@ test('R12c.5 rod and face glands: their grooves and the rings\' overlaps — a r
 });
 
 test('R12c.5 cut refusals: a piston gland on a bore, a groove off its face, a groove through a thin wall; the part model with its codes', () => {
-  const tube = evaluateCadPart(D(cyl('t', 15.5, 20, 0, 13))).output('th').brep;
+  const tube = outputOf(evaluateCadPart(D(cyl('t', 15.5, 20, 0, 13))), 'th').brep;
   const g = { kind: 'piston', ring: O1, grooveDiameterMM: 25.5, widthMM: 4.7, sealDiameterMM: 31.1 };
   assert.throws(() => glandCut(tube, { ...g, face: 'tb.side0', atMM: 6 }, 'x'), e => code('GLAND_DIMENSIONS')(e) && /is a bore/.test(e.message));
   assert.throws(() => glandCut(tube, { ...g, face: 't.side0', atMM: 18 }, 'x'), e => code('GLAND_DIMENSIONS')(e) && /runs off the face/.test(e.message));
   assert.throws(() => glandCut(tube, { ...g, face: 't.side0', atMM: 6 }, 'x'), e => code('GLAND_DIMENSIONS')(e) && /through the part's wall/.test(e.message));
   const feats = [...cyl('pe', 15.5, 20), { id: 'gl', kind: 'oring-gland', target: 'pe', face: 'pe.side0', gland: 'piston', ring: { id: '214', insideDiameter: 24.99, crossSection: 3.53, source: 'O1' }, groove: { diameter: 25.5, width: 4.7, at: 6 }, seal: 31.1 }, { id: 'or', kind: 'oring', gland: 'gl' }];
   const snap = evaluateCadPart(D(feats));
-  assert.equal(snap.output('gl').gland.kind, 'piston'); near(snap.output('or').oring.overlapMM3, 136.48580, 1e-4, 'the ring\'s overlap');
+  assert.equal(outputOf(snap, 'gl').gland.kind, 'piston'); near(outputOf(snap, 'or').oring.overlapMM3, 136.48580, 1e-4, 'the ring\'s overlap');
   assert.throws(() => evaluateCadPart(D(feats.map(f => f.id === 'gl' ? { ...f, seal: 25 } : f))), e => e.code === 'GEOMETRY' && e.message.includes('[GLAND_DIMENSIONS]'));
   assert.throws(() => evaluateCadPart(D([...feats, { id: 'x', kind: 'oring', gland: 'pe' }])), e => e.code === 'REFERENCE');
 });

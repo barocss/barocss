@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, brepMassProperties, spurGear, spurGearDimensions, isGearError } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, brepMassProperties, spurGear, spurGearDimensions, isGearError, outputOf } from '../dist/index.js';
 import { twistDeviation } from '../dist/machine/gear.js';
 
 // R12b S0 (D129): the feasibility checkpoint before internal, bevel and worm gears and the tool-generated root. No
@@ -118,12 +118,12 @@ test('R12b S0 today: an internal gear is an annulus less a "space gear" (a spur 
     { id: 's', kind: 'spur-gear', module: m, teeth: z, faceWidth: b + 2, from: -1, profileShift: 0.25, thicknessReduction: red },
     { id: 'ring', kind: 'difference', target: 'e', tool: 's' },
   ]);
-  const t0 = performance.now(), brep = evaluateCadPart(doc).output('ring').brep, ms = performance.now() - t0;
+  const t0 = performance.now(), brep = outputOf(evaluateCadPart(doc), 'ring').brep, ms = performance.now() - t0;
   assert.equal(brep.bodies.length, 1); assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues?.[0]);
   // The volume: (πR² − the space gear's exact area) × b, the exact area by the analytic outline here (200 000 chords
   // round it), within the generator's measured flank deviation over 2z flanks.
   const area = polygonArea(gearOutline({ m, z, x: 0.25, red, F: 1500 })), dev = spurGear({ moduleMM: m, teeth: z, faceWidthMM: b, profileShiftCoefficient: 0.25, toothThicknessReductionMM: red }).report.profileDeviationMM;
-  const want = (Math.PI * R * R - area) * b, got = brepMassProperties(brep, 1).volumeMM3;
+  const want = (Math.PI * R * R - area) * b, got = brepMassProperties(brep, 1).volume;
   close(got, want, 2 * z * dev * 2.25 * m * b + 1e-6 * want, 'ring volume');
   // The ring's inner faces are the space gear's, its flanks the involute's (concave towards the ring's material).
   const names = brep.faces.map(f => f.name);

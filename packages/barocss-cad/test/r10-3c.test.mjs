@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, checkOutput, massPropertiesOf } from '../dist/index.js';
 
 // R10.3c (D94): R10.1's closed-form tools ending at a cylinder across the edge — a rod's feet on a round plate, ending at
 // its rim — run past and are cut by that cylinder, near that end only (they stopped square before: 1.7–6.5 % too much on
@@ -28,15 +28,15 @@ test('R10.3c a rod across a round plate, its feet filleted (R10.1\'s translation
   for (const [deg, r] of [[0, 1], [45, 1], [60, 1.5], [90, 2], [25, 2]]) {
     const body = across(deg), o0 = out(body), feet = o0.brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name)).map(e => e.name);
     const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: feet, radius: r }]);
-    assert.equal(o.validate().valid, true, `${deg}° r ${r}`);
-    const got = o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3, exact = onDisc(R, r);
+    assert.equal(checkOutput(o).valid, true, `${deg}° r ${r}`);
+    const got = massPropertiesOf(o).volume - massPropertiesOf(o0).volume, exact = onDisc(R, r);
     assert.ok(Math.abs(got / exact - 1) < 1e-6, `${deg}° r ${r}: ${got} vs ${exact} (${got / exact - 1})`);
   }
   // At 10° one foot's ends lie across the rim's seams (x = ±20): those stop square at their vertices, as before.
   const body = across(10), o0 = out(body), feet = o0.brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name)).map(e => e.name);
   const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: feet, radius: 1 }]);
-  assert.equal(o.validate().valid, true);
-  const got = o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3, exact = onDisc(R, 1);
+  assert.equal(checkOutput(o).valid, true);
+  const got = massPropertiesOf(o).volume - massPropertiesOf(o0).volume, exact = onDisc(R, 1);
   assert.ok(got > exact && got < 1.02 * exact, `${got} vs ${exact}`);
 });
 

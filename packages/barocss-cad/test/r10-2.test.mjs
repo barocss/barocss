@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, brepMassProperties, checkBrep, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { finishBrepEdges } from '../dist/blend/edge-finish.js';
 import { setRingStations } from '../dist/blend/rolling-ball.js';
 
@@ -29,7 +29,7 @@ test('R10.2a the general path against the closed forms: a boss\'s foot (concave)
     const o0 = out(body), exact = out([...body, fillet(o0.id, edge, 2)]), reports = [];
     const general = finishBrepEdges(o0.brep, [edge], 2, 'fillet', 'f', { general: true, reports });
     assert.equal(checkBrep(general).valid, true, what);
-    const v0 = o0.massProperties(1).volumeMM3, ve = exact.massProperties(1).volumeMM3 - v0, vg = brepMassProperties(general, 1).volumeMM3 - v0;
+    const v0 = massPropertiesOf(o0).volume, ve = massPropertiesOf(exact).volume - v0, vg = brepMassProperties(general, 1).volume - v0;
     // (The loft follows the true sections to its reported deviation, so the fillet's volume to about that over its area.)
     assert.ok(Math.abs(vg / ve - 1) < rel, `${what}: ${vg} vs ${ve} (${vg / ve - 1})`);
     assert.equal(reports.length, 1);
@@ -41,14 +41,14 @@ test('R10.2a a pipe tee and crossing rods (no closed form): valid, the fillet\'s
   const cross = [...tee().slice(0, 2), { id: 'bs', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 3, plane: { origin: [0, 0, -15], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 30 }, { id: 'u', kind: 'union', target: 'a', tool: 'b' }];
   for (const [what, body, r] of [['tee', tee(), 2], ['crossing rods', cross, 1]]) {
     const o0 = out(body), edge = junction(body), o = out([...body, fillet('u', edge, r)]);
-    assert.equal(o.validate().valid, true, what);
-    const [rep] = o.fillet, added = o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3;
+    assert.equal(checkOutput(o).valid, true, what);
+    const [rep] = o.fillet, added = massPropertiesOf(o).volume - massPropertiesOf(o0).volume;
     assert.ok(rep.edges.length > 1 && rep.edges.includes(edge), `${what}: the loop's ${rep.edges.length} edges`);
     assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.ballMM < 1e-8 && rep.sectionMM < 1e-6, `${what}: ${JSON.stringify(rep)}`);
     assert.ok(added > 0, `${what}: a concave fillet adds material (${added})`);
     // A finer loft (twice the stations) agrees.
     setRingStations(2 * rep.stations);
-    try { const fine = out([...body, fillet('u', edge, r)]).massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3; assert.ok(Math.abs(fine / added - 1) < 1e-6, `${what}: ${added} vs ${fine}`); }
+    try { const fine = massPropertiesOf(out([...body, fillet('u', edge, r)])).volume - massPropertiesOf(o0).volume; assert.ok(Math.abs(fine / added - 1) < 1e-6, `${what}: ${added} vs ${fine}`); }
     finally { setRingStations(null); }
     assert.equal(o.brep.faces.filter(f => /^f\.face#\d+$/.test(f.name)).length, rep.patches, `${what}: one fillet face a patch`);
   }
@@ -75,8 +75,8 @@ test('R10.2 the pipe clamp\'s lug as a B-rep (the coordinator\'s probe): each lu
   assert.deepEqual(edges.map(e => e.curve.degree === 1 ? 'ruling' : 'arc').sort(), ['arc', 'arc', 'ruling', 'ruling']);
   for (const e of edges) {
     const o = out([...lug, fillet('c', e.name, 2)]);
-    assert.equal(o.validate().valid, true, e.name);
-    assert.ok(o.massProperties(1).volumeMM3 > o0.massProperties(1).volumeMM3, e.name);
+    assert.equal(checkOutput(o).valid, true, e.name);
+    assert.ok(massPropertiesOf(o).volume > massPropertiesOf(o0).volume, e.name);
   }
-  assert.equal(evaluateCadPart(D([...lug, { id: 'f', kind: 'fillet', target: 'c', edges: edges.map(e => e.name), radius: 2 }])).outputs.at(-1).validate().valid, true);
+  assert.equal(checkOutput(evaluateCadPart(D([...lug, { id: 'f', kind: 'fillet', target: 'c', edges: edges.map(e => e.name), radius: 2 }])).outputs.at(-1)).valid, true);
 });

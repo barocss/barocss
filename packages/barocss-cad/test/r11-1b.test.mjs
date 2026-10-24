@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, brepMassProperties } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, brepMassProperties, massPropertiesOf } from '../dist/index.js';
 import { generalShell } from '../dist/blend/general-shell.js';
 
 // R11.1b (D107): a plane's slab grows across a concave edge between two planes as far as the two offsets reach before
@@ -9,13 +9,13 @@ import { generalShell } from '../dist/blend/general-shell.js';
 // one switch for the other (the owner's decision, D106). Every case is a closed form; each was wrong on HEAD.
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const out = features => evaluateCadPart(D(features)).outputs.at(-1);
-const vol = features => out(features).massProperties(1).volumeMM3;
+const vol = features => massPropertiesOf(out(features)).volume;
 const shell = (features, target, t) => out([...features, { id: 'sh', kind: 'shell', target, thickness: t }]);
 const yzAt = x => ({ origin: [x, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] });
 const exactly = (o, expected, what, rel = 1e-12) => {
   const report = checkBrep(o.brep, { strict: true });
   assert.equal(report.valid, true, `${what}: ${report.issues}`);
-  const v = o.massProperties(1).volumeMM3;
+  const v = massPropertiesOf(o).volume;
   assert.ok(Math.abs(v / expected - 1) < rel, `${what}: ${v} vs ${expected} (${(v - expected) / expected})`);
 };
 const area = P => P.reduce((a, p, i) => { const q = P[(i + 1) % P.length]; return a + (p[0] * q[1] - q[0] * p[1]) / 2; }, 0);
@@ -50,19 +50,19 @@ test('R11.1b a vertex where three concave edges meet: a box\'s notched corner sh
 
 test('R11.1b the join is one switch: an arc join gives an L-prism the upright route\'s rounds, a rod on a plate its rounds; a vertex of concave edges refused under it', () => {
   const t = 2, H = 20, L = [{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [40, 0], [40, 10], [10, 10], [10, 30], [0, 30]] }, { id: 'e', kind: 'extrude', sketch: 's', height: H }];
-  const upright = shell(L, 'e', t).massProperties(1).volumeMM3, general = [...L, { id: 'b', kind: 'sketch', profile: 'rectangle', min: [2, 2], max: [5, 5], plane: yzAt(0) }, { id: 'be', kind: 'extrude', sketch: 'b', height: 3 }, { id: 'bm', kind: 'translate', target: 'be', offset: [3, 0, 0] }, { id: 'u', kind: 'union', target: 'e', tool: 'bm' }];
+  const upright = massPropertiesOf(shell(L, 'e', t)).volume, general = [...L, { id: 'b', kind: 'sketch', profile: 'rectangle', min: [2, 2], max: [5, 5], plane: yzAt(0) }, { id: 'be', kind: 'extrude', sketch: 'b', height: 3 }, { id: 'bm', kind: 'translate', target: 'be', offset: [3, 0, 0] }, { id: 'u', kind: 'union', target: 'e', tool: 'bm' }];
   const sharpInset = (40 - 2 * t) * (10 - 2 * t) + (10 - 2 * t) * (30 - 2 * t) - (10 - 2 * t) ** 2, body = out(general).brep;
   // The upright route erodes the section in 2D: a round t²(1 − π/4) at the L's inside corner.
   assert.ok(Math.abs(upright / (12000 - (sharpInset + t * t * (1 - Math.PI / 4)) * (H - 2 * t)) - 1) < 1e-12);
   // The general route: sharp by default (as the part's shell gives it), the upright route's value under the arc join.
   const sharp = generalShell(body, t, new Set(), 'g'), arc = generalShell(body, t, new Set(), 'g', 'arc');
   for (const x of [sharp, arc]) assert.equal(checkBrep(x, { strict: true }).valid, true);
-  assert.ok(Math.abs(brepMassProperties(sharp, 1).volumeMM3 / (12000 - sharpInset * (H - 2 * t)) - 1) < 1e-12);
-  assert.ok(Math.abs(brepMassProperties(arc, 1).volumeMM3 / upright - 1) < 1e-12);
+  assert.ok(Math.abs(brepMassProperties(sharp, 1).volume / (12000 - sharpInset * (H - 2 * t)) - 1) < 1e-12);
+  assert.ok(Math.abs(brepMassProperties(arc, 1).volume / upright - 1) < 1e-12);
   // A rod R 5 half sunk in a plate at t 1: each junction's sharp corner (the kite E, E − t·n, the offsets' meeting point,
   // along the rod's offset circle back to E − t·n) gives way to the quarter disc of the wall about E, over L − 2t.
   const rod = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -20], max: [40, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 }, { id: 'c', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 5, plane: yzAt(0) }, { id: 'ce', kind: 'extrude', sketch: 'c', height: 40 }, { id: 'u', kind: 'union', target: 'pe', tool: 'ce' }];
-  const T = 1, rb = out(rod).brep, sharpRod = brepMassProperties(generalShell(rb, T, new Set(), 'r'), 1).volumeMM3, arcRod = brepMassProperties(generalShell(rb, T, new Set(), 'r', 'arc'), 1).volumeMM3;
+  const T = 1, rb = out(rod).brep, sharpRod = brepMassProperties(generalShell(rb, T, new Set(), 'r'), 1).volume, arcRod = brepMassProperties(generalShell(rb, T, new Set(), 'r', 'arc'), 1).volume;
   const cy = Math.sqrt(15), kitePolygon = Math.abs(area([[5, 10], [5, 9], [cy, 9], [4, 10]])), alpha = Math.asin(1 / 4), kite = kitePolygon - 8 * (alpha - Math.sin(alpha));
   assert.ok(Math.abs(arcRod / (sharpRod - 2 * (kite - Math.PI / 4) * 38) - 1) < 1e-12, `${arcRod}`);
   // A vertex of concave edges: the arc join's ball would meet its edges' rounds tangentially — refused by name.

@@ -20,7 +20,7 @@
 import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
 import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { fitLimits, type FitLimits, type FitTable } from './fits.js';
 import type { ShaftReport } from './shaft.js';
 import type { Point } from '../types.js';
@@ -58,7 +58,7 @@ export interface PinReport { readonly hole: number; readonly diameterMM: number;
 /** A tool's part document: one sketch extruded `height` along its plane's normal. */
 function prism(id: string, sketch: Record<string, unknown>, height: number): Brep {
   const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: `${id}s`, kind: 'sketch', ...sketch }, { id, kind: 'extrude', sketch: `${id}s`, height }] };
-  return evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(id).brep;
+  return outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), id).brep;
 }
 const named = (b: Brep, name: string): Brep => transformBrep(b, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] }, () => name);
 /** A part's faces renamed from its tool's id to its own (`<tool>.top` → `<id>.top`). */

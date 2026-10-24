@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildBrep, lineCurve, checkBrep, evaluateCadPart } from '../dist/index.js';
+import { buildBrep, lineCurve, checkBrep, evaluateCadPart, checkOutput } from '../dist/index.js';
 
 // A sheet of one planar face bounded by line edges through `pts` (in order), on the plane z = 0 unless `surface` is given.
 function sheet(pts, { surface, tol } = {}) {
@@ -100,6 +100,6 @@ test('strict L0 at a pole: an edge along a sphere patch\'s meridian from its pol
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
   const box = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
   const edges = evaluateCadPart(D(box)).outputs[0].brep.edges.map(e => e.name);
-  const r = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0].validate();
+  const r = checkOutput(evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: 2 }])).outputs[0]);
   assert.equal(r.valid, true, r.issues[0]); assert.ok(r.maximumEdgeSurfaceGapMM < 1e-8, `${r.maximumEdgeSurfaceGapMM}`);
 });

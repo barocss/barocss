@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, faceGeometry, booleanAnalytic, brepMassProperties } from '../dist/index.js';
+import { evaluateCadPart, faceGeometry, booleanAnalytic, brepMassProperties, massPropertiesOf, outputOf, checkOutput } from '../dist/index.js';
 
 // FR3a (D125): the planar Boolean's fix, and two-member corners. Oracles written here: a prism cut by planes holds
 // A × (its centroidal axis between them); a mitre's end angle θ = acos(u1·m) and its long point L + c·tan θ; a butt's
@@ -12,7 +12,7 @@ const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot = (a, b) => a
 const near = (got, want, tol, what) => assert.ok(Math.abs(got - want) <= tol * Math.max(1, Math.abs(want)), `${what}: ${got} vs ${want} (${Math.abs(got - want) / Math.max(1, Math.abs(want))})`);
 const SHARP = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 0 }, A_SHARP = 1600 - 34 * 34;
 const ROUND = { kind: 'rect-tube', width: 40, height: 40, wall: 3, outerRadius: 6 }, A_ROUND = 1600 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9);
-const volume = o => o.massProperties(1).volumeMM3;
+const volume = o => massPropertiesOf(o).volume;
 /** All the members united by the analytic Boolean: one body when they meet face to face, its volume their sum. */
 function welded(outputs) { let b = outputs[0].brep; for (const o of outputs.slice(1)) b = booleanAnalytic(b, o.brep, 'union'); return b; }
 
@@ -26,8 +26,8 @@ test('FR3a the planar route: a sharp tube on a 120° corner is split, and two mi
     { id: 'ac', kind: 'split', target: 'a', normal: m, at: dot(m, p) }, { id: 'bc', kind: 'split', target: 'b', normal: m, at: dot(m, p) },
     { id: 'w', kind: 'union', target: 'ac/0', tool: 'bc/1' },
   ];
-  const w = run(feats).output('w');
-  near(volume(w), A_SHARP * 350, 1e-12, 'the welded pair'); assert.equal(w.bodyCount, 1); assert.ok(w.validate().valid);
+  const w = outputOf(run(feats), 'w');
+  near(volume(w), A_SHARP * 350, 1e-12, 'the welded pair'); assert.equal(w.bodyCount, 1); assert.ok(checkOutput(w).valid);
 });
 
 test('FR3a mitres: a 600 × 400 rectangle of sharp tubes — each A·L, 45° ends, long points L + b; the four meet face to face (welded: one body, their sum)', () => {
@@ -35,7 +35,7 @@ test('FR3a mitres: a 600 × 400 rectangle of sharp tubes — each A·L, 45° end
   const snap = run([{ id: 'f', kind: 'frame', points, segments, section: SHARP, corners: { default: 'mitre' } }]);
   snap.outputs.forEach((o, k) => {
     const [i, j] = segments[k], L = len(sub(points[j], points[i])), u = o.member.axis;
-    near(volume(o), A_SHARP * L, 1e-12, `member ${k} volume`); assert.equal(o.bodyCount, 1); assert.ok(o.validate().valid, `member ${k}`);
+    near(volume(o), A_SHARP * L, 1e-12, `member ${k} volume`); assert.equal(o.bodyCount, 1); assert.ok(checkOutput(o).valid, `member ${k}`);
     const along = o.brep.vertices.map(v => dot(sub(v.point, points[i]), u));
     near(Math.max(...along) - Math.min(...along), L + 40, 1e-12, `member ${k} long point`);
     assert.deepEqual(o.member.ends.map(e => [e.end, e.kind, e.point]), [['start', 'mitre', i], ['end', 'mitre', j]]);
@@ -45,7 +45,7 @@ test('FR3a mitres: a 600 × 400 rectangle of sharp tubes — each A·L, 45° end
     assert.equal(cut.length, 2, `member ${k} cut faces`); cut.forEach(g => near(Math.abs(dot(g.n, u)), Math.SQRT1_2, 1e-12, `member ${k} cut`));
   });
   const all = welded(snap.outputs);
-  assert.equal(all.bodies.length, 1); near(brepMassProperties(all, 1).volumeMM3, A_SHARP * 2000, 1e-12, 'welded');
+  assert.equal(all.bodies.length, 1); near(brepMassProperties(all, 1).volume, A_SHARP * 2000, 1e-12, 'welded');
 });
 
 test('FR3a a mitre at 120° and one out of the plane (a 3D corner), round-cornered tubes: A·L, θ = acos(u1·m), long point L + (b/2)tan θ, the pair meets face to face', () => {
@@ -61,7 +61,7 @@ test('FR3a a mitre at 120° and one out of the plane (a 3D corner), round-corner
     const along = a.brep.vertices.map(v => dot(v.point, u1));
     near(Math.max(...along), L1 + 20 * Math.tan(theta), 1e-12, `${name} long point`);
     const w = booleanAnalytic(a.brep, b.brep, 'union');
-    assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volumeMM3, A_ROUND * (L1 + L2), 1e-8, `${name} welded`);
+    assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, A_ROUND * (L1 + L2), 1e-8, `${name} welded`);
   }
 });
 
@@ -76,7 +76,7 @@ test('FR3a butts: square and at 60° — the through member runs on (b/2)·sin �
     assert.deepEqual([t.member.ends[1].kind, o.member.ends[1].kind], ['through', 'butt']);
     near(t.member.ends[1].extendedMM, run0, 1e-12, `${deg}° run on`); near(o.member.ends[1].angleDegrees, 90 - deg, 1e-9, `${deg}° butt angle`);
     const w = welded(snap.outputs);
-    assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volumeMM3, A_SHARP * (400 + run0 + L - short), 1e-12, `${deg}° welded`);
+    assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, A_SHARP * (400 + run0 + L - short), 1e-12, `${deg}° welded`);
   }
   // By default the larger section runs through: a 50 × 50 × 4 leg under a 40 × 40 × 3 rail.
   const big = { kind: 'rect-tube', width: 50, height: 50, wall: 4, outerRadius: 0 }, A_BIG = 2500 - 42 * 42;

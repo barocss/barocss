@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
@@ -15,11 +15,11 @@ function openEdges(mesh) {
   return [...uses.values()].filter(n => n !== 2).length;
 }
 function check(name, tree, method) {
-  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = o.massProperties(1), q = oracle(tree, 256, 6);
-  assert.equal(o.validate().valid, true, `${name}: valid`);
+  const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = massPropertiesOf(o), q = oracle(tree, 256, 6);
+  assert.equal(checkOutput(o).valid, true, `${name}: valid`);
   assert.equal(openEdges(tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `${name}: watertight`);
   if (method) assert.equal(m.method, method, name);
-  assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+  assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-9, `${name}: ${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
 }
 
 test('mass: a ball\'s face cut by two planes a few hundredths from its pole is integrated with its strips (L4 fuzz 20261025 case 24, D245)', () => {

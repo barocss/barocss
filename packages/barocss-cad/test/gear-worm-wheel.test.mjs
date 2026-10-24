@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { throatedWormWheel, checkThroatedWormPair, checkPlacedThroatedPair, checkWormPair, wormWheelSpec, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain } from '../dist/index.js';
+import { throatedWormWheel, checkThroatedWormPair, checkPlacedThroatedPair, checkWormPair, wormWheelSpec, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateSurface, surfaceDomain, outputOf, checkOutput } from '../dist/index.js';
 
 // R12b.6 (D137): the throated wheel of a ZA worm, attempted. Oracles written here, apart from gear-worm-wheel.ts: the
 // hob's section in each plane square to the wheel's axis (this file's own carrying of the worm's thread along its
@@ -151,23 +151,23 @@ test('the part model: a worm-wheel (throated) and its worm by mesh — m_x, d1 a
     { id: 'g', kind: 'worm-wheel', worm: { axialModule: 3, starts: 2, diameter: 44, hand: 'right' }, teeth: 30, faceWidth: 20, bore: 20, center: [10, 5], from: 2, rotation: rot },
     { id: 'w', kind: 'worm', starts: 2, length: 60, form: 'ZA', thicknessReduction: 0.05, mesh: { gear: 'g', direction: dir, phase } }];
   for (const [rot, dir] of SURVEY ? [[0, -90], [5, 30], [-7, 200]] : [[5, 30]]) {
-    const M = evaluateCadPart(D(feats(rot, dir))), g = M.output('g'), w = M.output('w'), pw = w.wormPlacement;
+    const M = evaluateCadPart(D(feats(rot, dir))), g = outputOf(M, 'g'), w = outputOf(M, 'w'), pw = w.wormPlacement;
     close(pw.spec.axialModuleMM, 3, 0, 'm_x'); close(pw.spec.diameterMM, 44, 0, 'd1'); assert.equal(pw.spec.hand, 'right');
     const mid = pw.origin.map((x, i) => x + pw.axis[i] * 30); close(Math.hypot(mid[0] - 10, mid[1] - 5), 67, 1e-9, 'a'); close(mid[2], 12, 1e-12, 'mid-plane'); close(pw.axis[2], 0, 1e-15, 'square');
-    assert.equal(g.validate().valid, true); assert.equal(w.validate().valid, true);
+    assert.equal(checkOutput(g).valid, true); assert.equal(checkOutput(w).valid, true);
     assert.ok(g.wormWheel && g.wormWheelPlacement);
     const chk = checkPlacedThroatedPair(g.wormWheelPlacement, pw, { mode: 'verdict', samples: 8 }); assert.equal(chk.relativePhaseDeg, 0); assert.equal(chk.interference, false);
   }
   // The volume: (∫ the section's area along the face, Simpson over 10 planes, this file's sections) less the bore.
   const n = 10, h = 20 / n; let I = 0;
   for (let k = 0; k <= n; k++) I += (k === 0 || k === n ? 1 : k % 2 ? 4 : 2) * sectionArea(G, -10 + h * k);
-  const want = I * h / 3 - Math.PI * 100 * 20, got = brepMassProperties(evaluateCadPart(D(feats(0, 0))).output('g').brep, 1).volumeMM3;
+  const want = I * h / 3 - Math.PI * 100 * 20, got = brepMassProperties(outputOf(evaluateCadPart(D(feats(0, 0))), 'g').brep, 1).volume;
   close(got, want, 2e-5 * want, 'volume');
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])).output('w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], form: 'ZI' }])), 'w'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
   // STEP (the survey: writing it takes about 15 s — its tessellated copy of 724 curved faces, D137).
   if (SURVEY) {
     const { brep } = throatedWormWheel({ worm: W, teeth: 30, faceWidthMM: 20, boreDiameterMM: 20 }, { id: 's' }), back = importStep(exportStep([brep], { name: 'wheel' }));
-    close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.tip#1')); assert.equal(checkBrep(back).valid, true);
+    close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip'); assert.ok(back.faces.some(f => f.name === 's.tip#1')); assert.equal(checkBrep(back).valid, true);
   }
   t.diagnostic(`volume ${got.toFixed(3)} vs ${want.toFixed(3)} (${((got - want) / want).toExponential(2)})`);
 });

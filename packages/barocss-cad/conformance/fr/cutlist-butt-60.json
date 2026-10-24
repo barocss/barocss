@@ -108,7 +108,7 @@
       }
     ],
     "cutList": {
-      "densityKgPerM3": 7850,
+      "density": 7.85,
       "absTol": 1e-9,
       "rows": [
         {
@@ -131,7 +131,7 @@
               "bevelDegrees": 0
             }
           ],
-          "massKG": 1.4545288988470058
+          "mass": 1454.5288988470058
         },
         {
           "quantity": 1,
@@ -153,13 +153,13 @@
               "bevelDegrees": 0
             }
           ],
-          "massKG": 0.9651281348706593
+          "mass": 965.1281348706593
         }
       ],
       "totals": {
         "quantity": 2,
         "axisLengthMM": 694.2264973081037,
-        "massKG": 2.419657033717665
+        "mass": 2419.657033717665
       }
     }
   },

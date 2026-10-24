@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { internalGear, checkInternalGearPair, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { internalGear, checkInternalGearPair, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain, outputOf } from '../dist/index.js';
 
 // R12b.2b (D133): the shaper-cut internal root — the ring's root the pinion-type cutter generates. Oracles written here,
 // apart from gear-internal.ts: the cutter as a closed outline (its involute flanks, tip rounds and tip arc) rolled inside
@@ -173,7 +173,7 @@ test('the volume against the area of the boundary built here (the cutter rolled,
   for (let i = 0; i <= n; i++) { const a = aJ + (Math.PI / 2 - aJ) * i / n; right.push([C.rf * Math.cos(a), C.rf * Math.sin(a)]); }
   const mirror = ([x, y]) => [-x, y], pts = [...right, ...right.slice().reverse().map(mirror), [0, 0]];
   let A = 0; for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; A += p[0] * q[1] - q[0] * p[1]; }
-  const hole = Math.abs(A) / 2 * z2, want = (Math.PI * R * R - hole) * b, got = brepMassProperties(brep, 1).volumeMM3;
+  const hole = Math.abs(A) / 2 * z2, want = (Math.PI * R * R - hole) * b, got = brepMassProperties(brep, 1).volume;
   const slack = 2 * z2 * (report.profileDeviationMM * 2.25 * m + report.shaperRoot.filletDeviationMM * 1.5 * m) * b + 1e-9 * want;
   close(got, want, slack, 'ring volume');
   // Refusals: helical; a cutter missing; a cutter too large; a tip radius the cutter's tooth cannot hold; a cutter without the policy.
@@ -188,9 +188,9 @@ test('the volume against the area of the boundary built here (the cutter rolled,
   assert.deepEqual(internalGear({ ...base, cutter: { teeth: 30, tipRadiusMM: 0.5 } }).report.diagnostics, []);
   // The part model: internal-gear@1 with its cutter; a pinion inside it, clear.
   const r = evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 60, faceWidth: 4, rim: 150, profileShift: 0.5, thicknessReduction: 0.05, generator: 'internal-gear@1', cutter: { teeth: 24 } }, { id: 'p', kind: 'spur-gear', module: 2, teeth: 24, faceWidth: 4, thicknessReduction: 0.05, mesh: { gear: 'r' }, generator: 'spur-gear@1' }]));
-  assert.equal(r.output('r').internalGear.rootPolicy, 'shaper-cut'); assert.ok(r.output('r').brep.faces.some(f => f.name === 'r.filletL#1'));
-  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 60, faceWidth: 4, rim: 150, generator: 'internal-gear@1' }])).output('r'), e => e.code === 'INPUT' && /cutter/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 60, faceWidth: 4, rim: 150, cutter: { teeth: 24 } }])).output('r'), e => e.code === 'INPUT');
+  assert.equal(outputOf(r, 'r').internalGear.rootPolicy, 'shaper-cut'); assert.ok(outputOf(r, 'r').brep.faces.some(f => f.name === 'r.filletL#1'));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 60, faceWidth: 4, rim: 150, generator: 'internal-gear@1' }])), 'r'), e => e.code === 'INPUT' && /cutter/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 60, faceWidth: 4, rim: 150, cutter: { teeth: 24 } }])), 'r'), e => e.code === 'INPUT');
   const back = importStep(exportStep([brep], { name: 'ring' }));
-  close(brepMassProperties(back, 1).volumeMM3, got, 1e-6 * got, 'round trip'); assert.ok(back.faces.some(f => /fillet/.test(f.name)));
+  close(brepMassProperties(back, 1).volume, got, 1e-6 * got, 'round trip'); assert.ok(back.faces.some(f => /fillet/.test(f.name)));
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { closestPointOnSurface, surfaceSeedGrid, surfaceEvaluator, surfaceDomain, evaluateCadPart } from '../dist/index.js';
+import { closestPointOnSurface, surfaceSeedGrid, surfaceEvaluator, surfaceDomain, evaluateCadPart, outputOf } from '../dist/index.js';
 
 // K11 (D211): a point off a patch whose foot lies on the patch's edge. The oracle is a dense scan of the domain, polished by
 // shrinking windows (independent of Gauss–Newton).
@@ -21,7 +21,7 @@ test('K11: a foot on a torus patch\'s edge, from a point off it farther than its
   // (A torus R 20, r 4 about Y: four biquadratic patches. Past an edge the foot is on it; there the step solved in both
   // parameters and clamped kept pointing out, its free part crawled, and where distance × curvature exceeds 1 the step grew
   // from the rounding noise: 30 steps, the foot up to 5e-4 mm short of the nearest.)
-  const faces = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'c', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 4 }, { id: 't', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' } }] }).output('t').brep.faces.map(f => f.surface);
+  const faces = outputOf(evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'c', kind: 'sketch', profile: 'circle', center: [20, 0], radius: 4 }, { id: 't', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' } }] }), 't').brep.faces.map(f => f.surface);
   const r = rng(5); let edge = 0, capped = 0;
   for (const s of faces) {
     const S = surfaceEvaluator(s), { u: U, v: V } = surfaceDomain(s), grid = surfaceSeedGrid(s);

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, checkOutput, massPropertiesOf } from '../dist/index.js';
 import { oracle } from '../scripts/rb/fuzz-oracle.mjs';
 import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 
@@ -19,10 +19,10 @@ function openEdges(o) {
 function builds(name, node) {
   const q = oracle(node, 256, 6);
   for (const [order, n] of [['A ∪ B', node], ['B ∪ A', swapped(node)]]) {
-    const { document, root } = documentOf(n), o = evaluateCadPart(document).outputs.find(x => x.id === root), report = o.validate(), m = o.massProperties(1);
+    const { document, root } = documentOf(n), o = evaluateCadPart(document).outputs.find(x => x.id === root), report = checkOutput(o), m = massPropertiesOf(o);
     assert.equal(report.valid, true, `${name}, ${order}: ${report.issues[0]}`);
     assert.equal(openEdges(o), 0, `${name}, ${order}: watertight`);
-    assert.ok(Math.abs(m.volumeMM3 - q.volumeMM3) <= 3 * q.e + 1e-4 * q.volumeMM3, `${name}, ${order}: ${m.volumeMM3} vs the oracle ${q.volumeMM3} ± ${q.e}`);
+    assert.ok(Math.abs(m.volume - q.volumeMM3) <= 3 * q.e + 1e-4 * q.volumeMM3, `${name}, ${order}: ${m.volume} vs the oracle ${q.volumeMM3} ± ${q.e}`);
   }
 }
 function refuses(name, node, words) {

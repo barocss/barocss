@@ -3,7 +3,7 @@
 // build:library: node scripts/conformance-gen.mjs. Review the diff: a changed value is a changed contract.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { evaluateCadPart, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, massPropertiesOf, surfaceAreaOf } from '../dist/index.js';
 
 const out = resolve(import.meta.dirname, '../conformance/r2');
 const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
@@ -27,8 +27,8 @@ const bilinear = (p00, p01, p10, p11) => ({ degreeU: 1, degreeV: 1, knotsU: [0, 
 /** Expected outputs measured on this kernel (volume to relTol, centroid to absTol). */
 function measured(doc, relTol, absTol, names) {
   const outputs = evaluateCadPart(doc).outputs.map(o => {
-    const m = o.massProperties(1), topo = checkBrep(o.brep).topology;
-    const row = { volumeMM3: { value: +m.volumeMM3.toPrecision(12), relTol }, centroidMM: { value: m.centroidMM.map(x => +x.toFixed(9)), absTol }, bodies: o.bodyCount, topology: topo.map(t => ({ shells: t.shells, genus: t.genus })) };
+    const m = massPropertiesOf(o), topo = checkBrep(o.brep).topology;
+    const row = { volumeMM3: { value: +m.volume.toPrecision(12), relTol }, centroidMM: { value: m.centroid.map(x => +x.toFixed(9)), absTol }, bodies: o.bodyCount, topology: topo.map(t => ({ shells: t.shells, genus: t.genus })) };
     if (names === 'list') row.faceNames = [...new Set(o.brep.faces.map(f => base(f.name ?? f.id)))].sort();
     else if (names) row.faceNamePattern = names;
     return row;
@@ -121,7 +121,7 @@ const cylinder = D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0]
 writeRb3({ id: 'rb3-cylinder', step: 'RB3', decisions: ['D20'], about: 'A Ø10 × 10 cylinder: volume 250π, area 150π, centroid on its axis halfway up; the STEP round trip keeps them.',
   input: { partDocument: cylinder }, expect: { outputs: [{ volumeMM3: { value: 250 * pi, relTol: 1e-12 }, centroidMM: { value: [0, 0, 5], absTol: 1e-9 }, areaMM2: { value: 150 * pi, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(cylinder, 0, 0, 'list').outputs[0].faceNames }], stepRoundTrip: { relTol: 1e-9 } }, oracle: 'closed form' });
 const helicalBolt = D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 20, hex: { across: 13, height: 5.3 }, form: 'helical' }]);
-const hb = measured(helicalBolt, 1e-9, 1e-6, 'list'); hb.outputs[0].areaMM2 = { value: +evaluateCadPart(helicalBolt).outputs[0].surfaceArea().toPrecision(12), relTol: 1e-9 };
+const hb = measured(helicalBolt, 1e-9, 1e-6, 'list'); hb.outputs[0].areaMM2 = { value: +surfaceAreaOf(evaluateCadPart(helicalBolt).outputs[0]).toPrecision(12), relTol: 1e-9 };
 writeRb3({ id: 'rb3-helical-bolt-roundtrip', step: 'RB3', decisions: ['D20', 'D16'], about: 'A helical M8 × 20 bolt: its area over the exact B-spline faces, kept with its volume through STEP.',
   input: { partDocument: helicalBolt }, expect: { ...hb, stepRoundTrip: { relTol: 1e-6 } }, oracle: 'this kernel (area by tensor Gauss over whole patches)' });
 const branches = D([...slab, { id: 'h0', kind: 'hole', target: 'e', center: [10, 10], radius: 2 }, { id: 'h1', kind: 'hole', target: 'e', center: [30, 10], radius: 2 }]);

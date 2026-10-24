@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, flatPattern, lookupBend, rowKFactor, bendTableProblem } from '../dist/index.js';
+import { evaluateCadPart, flatPattern, lookupBend, rowKFactor, bendTableProblem, flatPatternOf, exportStep } from '../dist/index.js';
 
 // R12.4 (D120): bend tables in the part. Oracles from the definitions: a row's deduction or allowance is what the flat
 // must honour — the flat of an L, its legs to the outer sharp, is A + B − BD for the row's BD exactly, A + B − (2·OSSB −
@@ -22,7 +22,7 @@ test('R12.4 a row\'s deduction, allowance or K is what the flat honours: A + B �
   ] };
   assert.equal(bendTableProblem(table), null);
   for (const [deg, flat, r] of [[90, A + B - 4.2, R], [120, A + B - (2 * OSSB(2 * Math.PI / 3, R, T) - 7.5), R]]) {
-    const o = out([L(deg, { bendTable: table }, r)]), f = o.flatPattern(), b = o.sheet.bends[0];
+    const o = out([L(deg, { bendTable: table }, r)]), f = flatPatternOf(o), b = o.sheet.bends[0];
     close(f.box.max[0], flat, 1e-12, `${deg}° flat`);
     close(b.deductionMM, deg === 90 ? 4.2 : 2 * OSSB(2 * Math.PI / 3, R, T) - 7.5, 1e-12, `${deg}° BD in the report`);
     assert.deepEqual(b.table, { table: 't', rows: [deg === 90 ? 0 : 1], how: 'exact', estimate: deg !== 90 });
@@ -30,7 +30,7 @@ test('R12.4 a row\'s deduction, allowance or K is what the flat honours: A + B �
     assert.equal(o.sheet.kFactor, undefined); assert.equal(f.kFactor, undefined);
   }
   // A K row for any angle (R 6): its K at 60° and 150°.
-  for (const deg of [60, 150]) { const th = deg * Math.PI / 180, BD = 2 * OSSB(th, 6, T) - th * (6 + 0.45 * T); close(out([L(deg, { bendTable: table }, 6)]).flatPattern().box.max[0], A + B - BD, 1e-12, `K row ${deg}°`); }
+  for (const deg of [60, 150]) { const th = deg * Math.PI / 180, BD = 2 * OSSB(th, 6, T) - th * (6 + 0.45 * T); close(flatPatternOf(out([L(deg, { bendTable: table }, 6)])).box.max[0], A + B - BD, 1e-12, `K row ${deg}°`); }
   // K from BA and from BD by hand.
   close(rowKFactor(table.rows[1]), (7.5 / (2 * Math.PI / 3) - 3) / 2, 1e-15, 'K from BA');
   close(rowKFactor(table.rows[0]), ((2 * OSSB(Math.PI / 2, 3, 2) - 4.2) / (Math.PI / 2) - 3) / 2, 1e-15, 'K from BD');
@@ -52,17 +52,17 @@ test('R12.4 between rows: linear in R (rows for any angle), bilinear in R and th
   close(lookupBend(free, 1.5, 2.5, 1).kFactor, 0.33 + 0.75 * 0.09, 1e-15, 'linear in R');
   // The flat of an L at R 3, 90° on the grid: A + B − (2·OSSB − θ(R + K·T)) with that K.
   const o = out([L(90, { bendTable: grid })]), th = Math.PI / 2;
-  close(o.flatPattern().box.max[0], A + B - (2 * OSSB(th, 3, 2) - th * (3 + want * 2)), 1e-12, 'flat on the grid');
+  close(flatPatternOf(o).box.max[0], A + B - (2 * OSSB(th, 3, 2) - th * (3 + want * 2)), 1e-12, 'flat on the grid');
 });
 
 test('R12.4 a sheet built on a table: a flange looks up its own radius and angle; the flat bend by bend; a STEP body with the table given', () => {
   const table = { id: 'p', sources, rows: [{ thicknessMM: 1.5, radiusMM: 1.5, kFactor: 0.4, source: 'shop' }, { thicknessMM: 1.5, radiusMM: 4, kFactor: 0.46, source: 'shop' }] };
   const plate = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [80, 50] }, { id: 'b', kind: 'sheet-base', sketch: 's', thickness: 1.5, bendRadius: 1.5, bendTable: table }];
   const o = out([...plate, { id: 'f1', kind: 'sheet-flange', target: 'b', edge: 'b.side1|b.top', length: 20 }, { id: 'f2', kind: 'sheet-flange', target: 'f1', edge: 'b.side3|b.top', length: 20, bendRadius: 4 }]);
-  const f = o.flatPattern(), th = Math.PI / 2, BD = (r, k) => 2 * (r + 1.5) - th * (r + k * 1.5);
+  const f = flatPatternOf(o), th = Math.PI / 2, BD = (r, k) => 2 * (r + 1.5) - th * (r + k * 1.5);
   close(f.box.max[0], 80 + 20 - BD(1.5, 0.4) + 20 - BD(4, 0.46), 1e-12, 'flat with two radii');
   assert.deepEqual(f.bends.map(b => [b.name, +b.kFactor.toFixed(12)]).sort(), [['f1.bend', 0.4], ['f2.bend', 0.46]]);
-  const back = flatPattern(evaluateCadPart(D([{ id: 'i', kind: 'import', step: o.exportStep() }])).outputs[0].brep, { thicknessMM: 1.5, bendTable: table });
+  const back = flatPattern(evaluateCadPart(D([{ id: 'i', kind: 'import', step: exportStep(o) }])).outputs[0].brep, { thicknessMM: 1.5, bendTable: table });
   close(back.box.max[0], f.box.max[0], 1e-9, 'through STEP');
 });
 

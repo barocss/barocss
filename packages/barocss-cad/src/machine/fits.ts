@@ -20,7 +20,7 @@
 import type { Brep } from '../brep/brep-core.js';
 import { booleanAnalytic, faceGeometry } from '../brep/analytic-boolean.js';
 import { brepMassProperties } from '../brep/solid-mass.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import type { Point } from '../types.js';
 import { KernelError } from '../core/barocss-error.js';
 
@@ -154,7 +154,7 @@ function cylinder(id: string, p: Point, a: Point, r: number, L: number): Brep {
     { id: `${id}s`, kind: 'sketch', profile: 'circle', center: [0, 0], radius: r, plane: { origin: p, normal: a, xAxis } },
     { id, kind: 'extrude', sketch: `${id}s`, height: L },
   ] };
-  return evaluateCadPart(doc as Parameters<typeof evaluateCadPart>[0]).output(id).brep;
+  return outputOf(evaluateCadPart(doc as Parameters<typeof evaluateCadPart>[0]), id).brep;
 }
 
 /** A hole face and a shaft face: their limits and the pair at MMC and LMC by the analytic Boolean. */
@@ -178,7 +178,7 @@ export function checkFit(tables: readonly FitTable[], hole: FitFace, shaft: FitF
     const p0 = at(H, lo), sp: Point = [p0[0] + d[0] - H.a[0] * along, p0[1] + d[1] - H.a[1] * along, p0[2] + d[2] - H.a[2] * along];
     const pin = cylinder(`${tag}s`, sp, H.a, rs, L), bore = cylinder(`${tag}h`, at(H, lo - 1), H.a, rh, L + 2);
     let overlap = 0;
-    try { const x = booleanAnalytic(pin, bore, 'difference'); overlap = x.bodies.length ? brepMassProperties(x, 1, { quadratureSegments: 12 }).volumeMM3 : 0; }
+    try { const x = booleanAnalytic(pin, bore, 'difference'); overlap = x.bodies.length ? brepMassProperties(x, 1, { quadratureSegments: 12 }).volume : 0; }
     catch (cause) { if (!(cause instanceof Error && /empty|no solid|nothing/i.test(cause.message))) throw cause; }
     return { holeMM, shaftMM, overlapMM3: Math.max(0, overlap), coaxialMM3: coaxial };
   };

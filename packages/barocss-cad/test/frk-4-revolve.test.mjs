@@ -17,8 +17,8 @@ function oracle(pieces, degrees, rho) {
   const V=a*r,c=[a*hr/V,Math.sin(a)*r2/V,(1-Math.cos(a))*r2/V];
   const cc=a/2+Math.sin(2*a)/4,ss=a/2-Math.sin(2*a)/4,sc=Math.sin(a)**2/2;
   const Q=[[a*hhr,Math.sin(a)*hr2,(1-Math.cos(a))*hr2],[Math.sin(a)*hr2,cc*r3,sc*r3],[(1-Math.cos(a))*hr2,sc*r3,ss*r3]];
-  const C=Q.map((row,i)=>row.map((q,j)=>q-V*c[i]*c[j])), trace=C[0][0]+C[1][1]+C[2][2], k=rho*1e-15;
-  return {V,c,mass:rho*V*1e-9,I:C.map((row,i)=>row.map((q,j)=>k*((i===j?trace:0)-q)))};
+  const C=Q.map((row,i)=>row.map((q,j)=>q-V*c[i]*c[j])), trace=C[0][0]+C[1][1]+C[2][2], k=rho*1e-3;
+  return {V,c,mass:rho*V*1e-3,I:C.map((row,i)=>row.map((q,j)=>k*((i===j?trace:0)-q)))};
 }
 function check(profile,holes,pieces,degrees) {
   const input={id:'r',profile,holes,axis:{origin:[0,0],direction:[1,0]},angleDegrees:degrees};
@@ -28,12 +28,12 @@ function check(profile,holes,pieces,degrees) {
     const cap=b.faces.find(f=>f.name===`r.${end}`);assert.ok(cap);
     const capLoops=b.loops.filter(l=>l.face===cap.id);assert.equal(capLoops.length,holes.length+1);assert.equal(capLoops.filter(l=>l.kind==='inner').length,holes.length);
   }
-  const rho=7850,w=oracle(pieces,degrees,rho), closed=revolveMassProperties(input,rho), actual=brepMassProperties(b,rho);
+  const rho=7.85,w=oracle(pieces,degrees,rho), closed=revolveMassProperties(input,rho), actual=brepMassProperties(b,rho);
   for(const [kind,m] of [['closed',closed],['native',actual]]) {
-    near(m.volumeMM3,w.V,`${kind} Pappus volume`);near(m.massKG,w.mass,`${kind} mass`);
-    m.centroidMM.forEach((x,i)=>near(x,w.c[i],`${kind} c${i}`));
+    near(m.volume,w.V,`${kind} Pappus volume`);near(m.mass,w.mass,`${kind} mass`);
+    m.centroid.forEach((x,i)=>near(x,w.c[i],`${kind} c${i}`));
     const scale=Math.max(...w.I.flat().map(Math.abs));
-    m.inertiaCentroidKgM2.forEach((row,i)=>row.forEach((x,j)=>near(x,w.I[i][j],`${kind} I${i}${j}`,1e-12,scale)));
+    m.inertia.forEach((row,i)=>row.forEach((x,j)=>near(x,w.I[i][j],`${kind} I${i}${j}`,1e-12,scale)));
   }
   return b;
 }
@@ -49,7 +49,7 @@ test('FRk4 two offset bores preserve nonzero product moments, winding and persis
   const b=revolveProfile(input);assertValidBrep(b);
   for(const tag of ['a','b','c','d','e','f','g','h']) assert.ok(b.faces.some(f=>f.name===`tagged.side[${tag}]`));
   const clockwise={...input,holes:[rect(0,100,24,34).reverse()]};
-  near(revolveMassProperties(clockwise,1).volumeMM3,revolveMassProperties(input,1).volumeMM3,'authored winding');
+  near(revolveMassProperties(clockwise,1).volume,revolveMassProperties(input,1).volume,'authored winding');
 });
 test('FRk4 bore refusal: outside, touching, crossing, overlapping, nested; no Boolean repair',()=>{
   const p=rect(0,100,30,40), base={profile:p,axis:{origin:[0,0],direction:[1,0]},angleDegrees:90};

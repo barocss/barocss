@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { exportStep, importStep, stepMeshes, stepValidationProperties, facetBrepFromTriangles, brepMassProperties, brepSurfaceArea, checkBrep, evaluateCadPart, MESH_PLANAR_TRIANGLES, CadPartLimits, stepTessellatedChars } from '../dist/index.js';
+import { exportStep, importStep, stepMeshes, stepValidationProperties, facetBrepFromTriangles, brepMassProperties, brepSurfaceArea, checkBrep, evaluateCadPart, MESH_PLANAR_TRIANGLES, CadPartLimits, stepTessellatedChars, outputOf, massPropertiesOf } from '../dist/index.js';
 
 // AP242 tessellated STEP (R3.5): mesh bodies written as triangulated faces (or planar faces, for older readers) and
 // read back as facet faces with their names; mixed files with B-rep solids beside them.
@@ -22,7 +22,7 @@ function cylinder(r, h, n) {
   for (let i = 0; i < n; i++) I.push(0, lo(i + 1), lo(i), 1, hi(i), hi(i + 1), lo(i), lo(i + 1), hi(i + 1), lo(i), hi(i + 1), hi(i));
   return { P, I };
 }
-const props = b => { const m = brepMassProperties(b, 1); return { v: m.volumeMM3, c: m.centroidMM, a: brepSurfaceArea(b) }; };
+const props = b => { const m = brepMassProperties(b, 1); return { v: m.volume, c: m.centroid, a: brepSurfaceArea(b) }; };
 
 test('tessellated: a mesh body out as AP242 triangulated faces and back — volume, area, centroid and face names the same', () => {
   const { P, I } = cylinder(5, 10, 48), b = facetBrepFromTriangles(P, I, { id: 'm' });
@@ -54,13 +54,13 @@ test('auto: planar faces up to the threshold (any reader), tessellated above; pl
 
 test('mixed: a B-rep solid and a mesh body in one file (the convergent case) — both read back', () => {
   const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
-  const plate = evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'p', kind: 'extrude', sketch: 's', height: 5 }])).output('p').brep;
+  const plate = outputOf(evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'p', kind: 'extrude', sketch: 's', height: 5 }])), 'p').brep;
   const ball = sphere(5, 24, 12, [20, 10, 20]), mesh = facetBrepFromTriangles(ball.P, ball.I, { id: 'ball' });
   const text = exportStep([plate, mesh], { meshes: 'tessellated' });
   assert.match(text, /ADVANCED_FACE/); assert.match(text, /TRIANGULATED_FACE/); assert.match(text, /SHAPE_REPRESENTATION_RELATIONSHIP/);
   const back = importStep(text);
   assert.equal(back.bodies.length, 2);
-  const v = brepMassProperties(back, 1).volumeMM3, want = brepMassProperties(plate, 1).volumeMM3 + brepMassProperties(mesh, 1).volumeMM3;
+  const v = brepMassProperties(back, 1).volume, want = brepMassProperties(plate, 1).volume + brepMassProperties(mesh, 1).volume;
   assert.ok(Math.abs(v - want) < 1e-6 * want, `${v} vs ${want}`);
   assert.equal(stepMeshes(text), null, 'a file with B-rep solids: not a mesh file');
 });
@@ -89,7 +89,7 @@ test('size caps (D49): past stepBytes only when the excess is tessellated, never
   // A mesh file past 32 MiB (its coordinates list padded with spaces, which STEP allows between tokens) reads.
   const big = step.replace('COORDINATES_LIST(', `COORDINATES_LIST(${' '.repeat(CadPartLimits.stepBytes)}`);
   assert.ok(big.length > CadPartLimits.stepBytes);
-  assert.ok(Math.abs(part(big).output('i').massProperties(1000).volumeMM3 - part(step).output('i').massProperties(1000).volumeMM3) < 1e-9);
+  assert.ok(Math.abs(massPropertiesOf(outputOf(part(big), 'i'), 1).volume - massPropertiesOf(outputOf(part(step), 'i'), 1).volume) < 1e-9);
   // The same excess outside the meshes (a B-rep file that size) is refused, saying how much.
   const brepish = step.replace('DATA;', `DATA;\n/*${' '.repeat(CadPartLimits.stepBytes)}*/`);
   assert.throws(() => part(brepish), /larger than 32 MiB outside its meshes \(32\.0 MiB\)/);

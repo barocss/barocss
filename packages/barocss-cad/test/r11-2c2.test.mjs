@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf } from '../dist/index.js';
+import { evaluateCadPart, checkBrep, evaluateSurfaceCurvature, nurbsOf, massPropertiesOf } from '../dist/index.js';
 import { evaluateSurfaceD1 } from '../dist/core/derivatives.js';
 import { evaluateCurve } from '../dist/core/math.js';
 import { tessellateBrep } from '../dist/brep/brep-tessellate.js';
@@ -48,16 +48,16 @@ test('R11.2c-2 a box with a conic-filleted edge shelled closed and open at the b
   // A − Pt + t²(Σ cot(α/2) + ½∫κ ds) = A − Pt + (3 + π/4)t² (the wall below the conic's least radius, 2.12 mm);
   // with the bottom open, A − (P − 30)t + (1 + π/4)t² (only the top right corner between two kept sides).
   // (The body's own volume is 40 A: a check on the quadrature.)
-  assert.ok(Math.abs(A / (out(BOX).massProperties(1).volumeMM3 / 40) - 1) < 1e-9 && P > 98 && P < 99, `${A} ${P}`);
+  assert.ok(Math.abs(A / (massPropertiesOf(out(BOX)).volume / 40) - 1) < 1e-9 && P > 98 && P < 99, `${A} ${P}`);
   for (const t of [1, 2]) {
     const closed = out([...BOX, { id: 'sh', kind: 'shell', target: 'f', thickness: t }]), open = out([...BOX, { id: 'sh', kind: 'shell', target: 'f', thickness: t, open: ['e.bottom'] }]);
     valid(closed, `closed t ${t}`); valid(open, `open t ${t}`);
     assert.equal(closed.brep.shells.length, 2); assert.equal(open.brep.shells.length, 1);
     const ec = V - (40 - 2 * t) * (A - P * t + (3 + Math.PI / 4) * t * t), eo = V - (40 - 2 * t) * (A - (P - 30) * t + (1 + Math.PI / 4) * t * t);
     for (const [o, e, what] of [[closed, ec, 'closed'], [open, eo, 'open']]) {
-      const m = o.massProperties(1);
+      const m = massPropertiesOf(o);
       assert.equal(m.method, 'quadrature', what);
-      assert.ok(Math.abs(m.volumeMM3 / e - 1) < 1e-7, `${what} t ${t}: ${m.volumeMM3} vs ${e} (${(m.volumeMM3 - e) / e})`);
+      assert.ok(Math.abs(m.volume / e - 1) < 1e-7, `${what} t ${t}: ${m.volume} vs ${e} (${(m.volume - e) / e})`);
     }
   }
 });
@@ -93,9 +93,9 @@ test('R11.2c-2 the filleted pipe tee shelled closed, and with its branch\'s end 
     const o = out([...TEE, { id: 'sh', kind: 'shell', target: 'f', thickness: t, open }]), what = `open [${open}] t ${t}`;
     valid(o, what);
     assert.equal(o.brep.shells.length, open.length ? 1 : 2, what);
-    const m = o.massProperties(1), e = teeWall(t, ['a.top', 'a.bottom', 'b.top'].filter(n => !open.includes(n)));
+    const m = massPropertiesOf(o), e = teeWall(t, ['a.top', 'a.bottom', 'b.top'].filter(n => !open.includes(n)));
     assert.equal(m.method, 'quadrature', what);
-    assert.ok(Math.abs(m.volumeMM3 / e - 1) < 2e-6, `${what}: ${m.volumeMM3} vs ${e} (${(m.volumeMM3 - e) / e})`);
+    assert.ok(Math.abs(m.volume / e - 1) < 2e-6, `${what}: ${m.volume} vs ${e} (${(m.volume - e) / e})`);
     if (t === 1 && !open.length) for (const q of [8, 16]) assert.ok(tessellateBrep(o.brep, { segmentsPerQuarter: q }).indices.length > 0, `${what}: ${q} a quarter`);
   }
 });

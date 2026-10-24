@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart } from '../dist/index.js';
+import { evaluateCadPart, massPropertiesOf, outputOf } from '../dist/index.js';
 
 // A cone (r 3, h 4, apex up) less what lies past the plane x = −1: the plane trims its apex face along a hyperbola.
 const R1 = 3, H = 4, d = 1;
@@ -21,7 +21,7 @@ function exact() {
 test('mass: a face reaching its pole takes the strips of its trims away from the pole (D192)', () => {
   // (Before D192 the apex face kept its whole hyperbola's chord error, extrapolated as the square of the step: 5.3e-4
   // of the volume off. Now 5e-10, the closed form's own panels.)
-  const m = evaluateCadPart(doc).output('i').massProperties(1), V = exact();
+  const m = massPropertiesOf(outputOf(evaluateCadPart(doc), 'i')), V = exact();
   assert.equal(m.method, 'quadrature');
-  assert.ok(Math.abs(m.volumeMM3 - V) <= 1e-8 * V, `${m.volumeMM3} vs ${V}`);
+  assert.ok(Math.abs(m.volume - V) <= 1e-8 * V, `${m.volume} vs ${V}`);
 });

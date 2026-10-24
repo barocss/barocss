@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { internalGear, internalGearDimensions, internalGearCenterDistance, checkInternalGearPair, checkPlacedInternalGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain } from '../dist/index.js';
+import { internalGear, internalGearDimensions, internalGearCenterDistance, checkInternalGearPair, checkPlacedInternalGears, evaluateCadPart, isGearError, checkBrep, brepMassProperties, exportStep, importStep, evaluateCurve, curveDomain, outputOf } from '../dist/index.js';
 
 // R12b.2a (D132): internal gears built directly, and the internal pair's checks. The oracles here are written apart from
 // gear.ts and gear-internal.ts: the ring's outline and area from the analytic involute, K1's internal example (Table
@@ -60,7 +60,7 @@ test('the ring as a solid (refused at the previous HEAD, no such generator): val
     const area = Math.PI * R * R - shoelace(outline({ z: g.z, rb: g.rb, psi: g.psi, ra: g.rf, rf: g.ra }));
     // (Each flank's area moves by at most its deviation times its length; a helical ring's twist fit besides.)
     const tw = report.helix ? report.helix.twistDeviationMM / g.rf : 0, want = area * spec.faceWidthMM, slack = 2 * g.z * report.profileDeviationMM * 2.25 * g.mn * spec.faceWidthMM + (2 * tw + tw * tw) * Math.PI * g.rf ** 2 * spec.faceWidthMM + 1e-9 * want;
-    close(brepMassProperties(brep, 1).volumeMM3, want, slack, `ring z${g.z} volume`);
+    close(brepMassProperties(brep, 1).volume, want, slack, `ring z${g.z} volume`);
     close(report.dimensions.tipDiameterMM, 2 * g.ra, 1e-12, 'tip'); close(report.dimensions.rootDiameterMM, 2 * g.rf, 1e-12, 'root'); close(report.dimensions.spaceWidthMM, g.space, 1e-12, 'space');
     const names = brep.faces.map(f => f.name);
     for (const k of [1, g.z]) for (const role of ['flankL', 'flankR', 'tip', 'root']) assert.ok(names.includes(`r.${role}#${k}`), `r.${role}#${k}`);
@@ -69,7 +69,7 @@ test('the ring as a solid (refused at the previous HEAD, no such generator): val
     const tip = brep.faces.find(f => f.name === 'r.tip#1'), e = brep.edges.find(x => brep.coedges.some(c => c.edge === x.id && brep.loops.find(l => l.id === c.loop)?.face === tip.id) && x.curve.controlPoints.every(p => Math.abs(p[2]) < 1e-12));
     const [u0, u1] = curveDomain(e.curve), q = evaluateCurve(e.curve, (u0 + u1) / 2);
     close(Math.atan2(q[1], q[0]), 0, 1e-9, 'tooth 1 on +X'); close(Math.hypot(q[0], q[1]), g.ra, 1e-9, 'its tip radius');
-    t.diagnostic(`ring z${g.z}${spec.helixAngleDeg ? ` β${spec.helixAngleDeg}°` : ''}: V ${brepMassProperties(brep, 1).volumeMM3.toFixed(4)} vs ${want.toFixed(4)}, ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
+    t.diagnostic(`ring z${g.z}${spec.helixAngleDeg ? ` β${spec.helixAngleDeg}°` : ''}: V ${brepMassProperties(brep, 1).volume.toFixed(4)} vs ${want.toFixed(4)}, ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
   }
   // K1 Table 4.6 (m 3, z 16 in z 24, x1 0, x2 0.516): d2 72, db2 67.658, da2 69.096, df2 82.596; inv α_w 0.061857,
   // α_w 31.321258°, a 13.2 (K1 rounds y to 0.4000: the formula gives 13.19995).
@@ -200,47 +200,47 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
   for (let i = 0; i < 60; i++) w -= (inv(w) - target) / Math.tan(w) ** 2;
   const aw = 16 * COS / Math.cos(w);
   for (const [rot, dir] of SURVEY ? [[0, 0], [7, 30], [13.25, 200]] : [[0, 0], [13.25, 200]]) {
-    const r = evaluateCadPart(D(feats(rot, dir))), ring = r.output('r'), pin = r.output('p').gearPlacement;
+    const r = evaluateCadPart(D(feats(rot, dir))), ring = outputOf(r, 'r'), pin = outputOf(r, 'p').gearPlacement;
     close(Math.hypot(pin.center[0] - 5, pin.center[1] - 3), aw, 1e-12, 'centre distance'); close(Math.atan2(pin.center[1] - 3, pin.center[0] - 5), (dir > 180 ? dir - 360 : dir) * Math.PI / 180, 1e-12, 'direction');
     const c = checkPlacedInternalGears(ring.internalGearPlacement, pin, { mode: 'verdict' });
     close(c.relativePhaseDeg, 0, 1e-9, 'phase'); assert.equal(c.sweep.interference, false);
   }
   // The same direction, the ring turned: the pinion turns z2/z1 = 40/24 as far, the same way.
-  const a0 = evaluateCadPart(D(feats(0, 30))).output('p').gearPlacement.rotation, a7 = evaluateCadPart(D(feats(7, 30))).output('p').gearPlacement.rotation;
+  const a0 = outputOf(evaluateCadPart(D(feats(0, 30))), 'p').gearPlacement.rotation, a7 = outputOf(evaluateCadPart(D(feats(7, 30))), 'p').gearPlacement.rotation;
   close(a7 - a0, 40 / 24 * 7 * Math.PI / 180, 1e-12, 'z2/z1 the same way');
   // The exact Boolean intersection of the placed solids, apart from the sweep: none meshed, some half a pitch off.
-  assert.throws(() => evaluateCadPart(D([...feats(7, 30), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
-  if (SURVEY) { const off = evaluateCadPart(D([...feats(0, 0, 9), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'); assert.ok(brepMassProperties(off.brep, 1).volumeMM3 > 1, 'a phase off: the teeth overlap'); }
+  assert.throws(() => outputOf(evaluateCadPart(D([...feats(7, 30), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
+  if (SURVEY) { const off = outputOf(evaluateCadPart(D([...feats(0, 0, 9), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i'); assert.ok(brepMassProperties(off.brep, 1).volume > 1, 'a phase off: the teeth overlap'); }
   // Unshifted (x2 0), the ring's tip corners run into the rack-cut pinion's root fillet: the sweep crosses (formMargin
   // −2.25 mm along the line of action — elsewhere a negative formMargin passes clear: it is no verdict).
-  const un = evaluateCadPart(D(feats(0, 0, 0, 0))), unc = checkPlacedInternalGears(un.output('r').internalGearPlacement, un.output('p').gearPlacement);
+  const un = evaluateCadPart(D(feats(0, 0, 0, 0))), unc = checkPlacedInternalGears(outputOf(un, 'r').internalGearPlacement, outputOf(un, 'p').gearPlacement);
   assert.equal(unc.sweep.interference, true); assert.ok(unc.interference.formMargin < 0 && unc.interference.involuteMargin > 0);
   // At x2 0.25 without backlash the sweep crosses by 0.0118 mm at 11.254° of the pinion; turned there, the exact Boolean
   // of the two solids is not empty (apart from the sweep); with 0.05 + 0.05 it is, and at x2 0.5 without backlash too.
   const pose = (x2, red, turnDeg) => [{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 3, rim: 100, profileShift: x2, thicknessReduction: red, rotation: turnDeg * 24 / 40 }, { id: 'p', kind: 'spur-gear', module: 2, teeth: 24, faceWidth: 3, thicknessReduction: red, mesh: { gear: 'r' }, generator: 'spur-gear@1' }];
-  const z0 = evaluateCadPart(D(pose(0.25, 0, 0))), zc = checkPlacedInternalGears(z0.output('r').internalGearPlacement, z0.output('p').gearPlacement);
+  const z0 = evaluateCadPart(D(pose(0.25, 0, 0))), zc = checkPlacedInternalGears(outputOf(z0, 'r').internalGearPlacement, outputOf(z0, 'p').gearPlacement);
   assert.ok(zc.sweep.minimumClearanceMM < -0.01, String(zc.sweep.minimumClearanceMM));
   // (Their exact intersection there is flank slivers 0.0118 mm thin: before D186 it came back as a body with a face of
   // width 2e-19 mm, its loops crossing (strict L0) and its volume 5 % off its mesh's — a wrong body. Now either a body
   // valid under the strict check, or the typed graze refusal; the sweep above says they overlap.)
   try {
-    const hit = evaluateCadPart(D([...pose(0.25, 0, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i');
+    const hit = outputOf(evaluateCadPart(D([...pose(0.25, 0, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i');
     assert.ok(checkBrep(hit.brep, { strict: true }).valid, 'a body is valid under the strict check');
-    assert.ok(brepMassProperties(hit.brep, 1).volumeMM3 > 1e-4, 'the solids overlap where the sweep says');
+    assert.ok(brepMassProperties(hit.brep, 1).volume > 1e-4, 'the solids overlap where the sweep says');
   } catch (e) { if (!((e.details?.category ?? e.code) === 'GEOMETRY' && /graze within .* the sliver between them cannot be built/.test(e.message))) throw e; }
-  for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])).output('i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
-  const offCheck = checkPlacedInternalGears(evaluateCadPart(D(feats(0, 0, 9))).output('r').internalGearPlacement, evaluateCadPart(D(feats(0, 0, 9))).output('p').gearPlacement, { mode: 'verdict' });
+  for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => outputOf(evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
+  const offCheck = checkPlacedInternalGears(outputOf(evaluateCadPart(D(feats(0, 0, 9))), 'r').internalGearPlacement, outputOf(evaluateCadPart(D(feats(0, 0, 9))), 'p').gearPlacement, { mode: 'verdict' });
   assert.equal(offCheck.sweep.interference, true);
   // Refusals in the part model: another module, a feature that is no gear.
-  assert.throws(() => evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], module: 2.5 }])).output('p'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 30, faceWidth: 5, rim: 90 }])).output('r'), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /UNSUPPORTED_PROFILE_SHIFT/.test(e.message));
-  assert.throws(() => evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 5, rim: 100, generator: 'internal-gear@2' }])).output('r'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
+  assert.throws(() => outputOf(evaluateCadPart(D([feats(0, 0)[0], { ...feats(0, 0)[1], module: 2.5 }])), 'p'), e => (e.details?.category ?? e.code) === 'INPUT' && /MATE_INCOMPATIBLE/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 30, faceWidth: 5, rim: 90 }])), 'r'), e => (e.details?.category ?? e.code) === 'CAPABILITY' && /UNSUPPORTED_PROFILE_SHIFT/.test(e.message));
+  assert.throws(() => outputOf(evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 5, rim: 100, generator: 'internal-gear@2' }])), 'r'), e => (e.details?.category ?? e.code) === 'CAPABILITY');
   // A helical ring and pinion, both right-handed, in the part model: placed, clear.
   const h = evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 50, faceWidth: 6, rim: 130, thicknessReduction: 0.05 }, { id: 'p', kind: 'spur-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 20, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'r', direction: 45 }, generator: 'spur-gear@1' }]));
-  assert.equal(checkPlacedInternalGears(h.output('r').internalGearPlacement, h.output('p').gearPlacement, { mode: 'verdict' }).sweep.interference, false);
-  for (const brep of [internalGear({ moduleMM: 2, teeth: 40, faceWidthMM: 5, rimDiameterMM: 100 }, { id: 'r' }).brep, h.output('r').brep]) {
+  assert.equal(checkPlacedInternalGears(outputOf(h, 'r').internalGearPlacement, outputOf(h, 'p').gearPlacement, { mode: 'verdict' }).sweep.interference, false);
+  for (const brep of [internalGear({ moduleMM: 2, teeth: 40, faceWidthMM: 5, rimDiameterMM: 100 }, { id: 'r' }).brep, outputOf(h, 'r').brep]) {
     const back = importStep(exportStep([brep], { name: 'ring' }));
-    close(brepMassProperties(back, 1).volumeMM3, brepMassProperties(brep, 1).volumeMM3, 1e-6 * brepMassProperties(brep, 1).volumeMM3, 'round trip');
+    close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip');
     assert.ok(back.faces.some(f => f.name === 'r.flankL#1'));
   }
 });

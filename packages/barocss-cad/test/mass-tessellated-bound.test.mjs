@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { brepMassProperties, evaluateCadPart } from '../dist/index.js';
+import { brepMassProperties, evaluateCadPart, outputOf } from '../dist/index.js';
 
 test('mass: a curved body\'s tessellated mass states its volume\'s error, and the error is within it (D200)', () => {
   // A ball r 4 (closed form 4/3 π r³) and a cylinder r 3, h 5 (π r² h), the quadrature turned off: the mesh's chord
@@ -11,11 +11,11 @@ test('mass: a curved body\'s tessellated mass states its volume\'s error, and th
   const can = D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'b', kind: 'extrude', sketch: 's', height: 5 }]);
   for (const [name, doc, exact] of [['ball', ball, 4 / 3 * Math.PI * 64], ['cylinder', can, Math.PI * 45]]) {
     for (const segmentsPerQuarter of [8, 16]) {
-      const m = brepMassProperties(evaluateCadPart(doc).output('b').brep, 1, { quadratureSegments: 0, segmentsPerQuarter });
+      const m = brepMassProperties(outputOf(evaluateCadPart(doc), 'b').brep, 1, { quadratureSegments: 0, segmentsPerQuarter });
       assert.equal(m.method, 'tessellated', name);
-      assert.ok(m.volumeBoundMM3 > 0 && Math.abs(m.volumeMM3 - exact) <= m.volumeBoundMM3, `${name} at ${segmentsPerQuarter}: off ${m.volumeMM3 - exact}, bound ${m.volumeBoundMM3}`);
+      assert.ok(m.volumeBound > 0 && Math.abs(m.volume - exact) <= m.volumeBound, `${name} at ${segmentsPerQuarter}: off ${m.volume - exact}, bound ${m.volumeBound}`);
     }
   }
   // The quadrature's and exact methods carry none.
-  assert.equal(brepMassProperties(evaluateCadPart(ball).output('b').brep, 1).volumeBoundMM3, undefined);
+  assert.equal(brepMassProperties(outputOf(evaluateCadPart(ball), 'b').brep, 1).volumeBound, undefined);
 });

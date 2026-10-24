@@ -79,7 +79,7 @@ let lastTol = 1e-9;
 function volumeOf(cad, doc) {
   try {
     let tol = 1e-9, v = 0;
-    for (const o of cad.evaluateCadPart(doc).outputs) { const m = o.massProperties(1); v += m.volumeMM3; tol = Math.max(tol, METHOD_TOL[m.method] ?? 2e-3); }
+    for (const o of cad.evaluateCadPart(doc).outputs) { const m = cad.massPropertiesOf(o); v += m.volume; tol = Math.max(tol, METHOD_TOL[m.method] ?? 2e-3); }
     lastTol = tol; return v;
   } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
 }
@@ -188,13 +188,13 @@ export function properties(cad) {
       let outputs; try { outputs = cad.evaluateCadPart(D(c.features)).outputs; } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
       if (c.volume <= 0) return outputs.length === 0 || { outputs: outputs.length, exact: 0 };
       if (outputs.length !== 1) return { outputs: outputs.length, exact: c.volume };
-      const m = outputs[0].massProperties(1), tol = Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), off = Math.hypot(...m.centroidMM.map((x, k) => x - c.centroid[k]));
-      return (Math.abs(m.volumeMM3 - c.volume) <= tol && off <= Math.max(1e-6, 1e-11 / c.volume)) || { volume: m.volumeMM3, exact: c.volume, centroidOff: off, method: m.method };
+      const m = cad.massPropertiesOf(outputs[0]), tol = Math.max(VOLUME_TOL.relTol * c.volume, VOLUME_TOL.absTol), off = Math.hypot(...m.centroid.map((x, k) => x - c.centroid[k]));
+      return (Math.abs(m.volume - c.volume) <= tol && off <= Math.max(1e-6, 1e-11 / c.volume)) || { volume: m.volume, exact: c.volume, centroidOff: off, method: m.method };
     } },
     { name: 'mass by quadrature and by a finer and finer tessellation agree (the chord error falls)', ...pairs, prop: v => {
       let o; try { o = cad.evaluateCadPart(op(v, 'union')).outputs; } catch (cause) { if (cause?.name && !['TypeError', 'RangeError', 'ReferenceError', 'Error'].includes(cause.name)) return 'skip'; throw cause; }
       for (const out of o) {
-        const exact = out.massProperties(1).volumeMM3, coarse = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 8 }).volumeMM3, fine = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 32 }).volumeMM3;
+        const exact = cad.massPropertiesOf(out).volume, coarse = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 8 }).volume, fine = cad.brepMassProperties(out.brep, 1, { quadratureSegments: 0, segmentsPerQuarter: 32 }).volume;
         const ec = Math.abs(coarse - exact), ef = Math.abs(fine - exact);
         if (!(ef <= ec + 1e-9 * exact && ef <= 2e-3 * exact)) return { exact, coarse, fine };
       }

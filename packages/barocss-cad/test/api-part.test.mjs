@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { part, BarocssError } from '../dist/api/index.js';
-import { evaluateCadPart, tessellateBrep } from '../dist/index.js';
+import { evaluateCadPart, tessellateBrep, massPropertiesOf, exportStep, exportStl } from '../dist/index.js';
 
 // The bracket by hand: an 80 × 40 × 10 block, a Ø8 hole through it at (20, 20), its four vertical edges rounded R2.
 const handWritten = () => ({
@@ -30,12 +30,12 @@ test('the facade writes the hand-written CadPartDocument, byte for byte', () => 
 });
 
 test('its mass, STEP, STL and meshes are the kernel\'s own on that document, byte for byte', () => {
-  const [output] = evaluateCadPart(handWritten()).outputs, m = output.massProperties(2700);
-  // (MMGS, api-conventions.md §2: the kernel's kg and kg·m² × 1000 and × 1e9; its density in kg/m³ is g/cm³ × 1000.)
-  const expected = { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroidMM: [...m.centroidMM], inertiaGMM2: m.inertiaCentroidKgM2.map(row => row.map(v => v * 1e9)) };
+  const [output] = evaluateCadPart(handWritten()).outputs, m = massPropertiesOf(output, 2.7);
+  // (The kernel's mass is MMGS since R7.3b: the facade's result shape over it, nothing converted.)
+  const expected = { volumeMM3: m.volume, massG: m.mass, centroidMM: [...m.centroid], inertiaGMM2: m.inertia.map(row => [...row]) };
   assert.equal(JSON.stringify(bracket().mass({ density: 2.7 })), JSON.stringify(expected));
-  assert.equal(unstamped(bracket().step()), unstamped(output.exportStep({ name: 'bracket' })));
-  assert.deepEqual(Buffer.from(bracket().stl()), Buffer.from(output.exportStl()));
+  assert.equal(unstamped(bracket().step()), unstamped(exportStep(output, { name: 'bracket' })));
+  assert.deepEqual(Buffer.from(bracket().stl()), Buffer.from(exportStl(output)));
   const [mesh] = bracket().meshes(), t = tessellateBrep(output.brep);
   assert.equal(mesh.key, output.id);
   // (The common mesh shape, §10.3: the kernel's Float64 positions and normals as Float32.)

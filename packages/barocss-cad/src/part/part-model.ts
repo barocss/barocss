@@ -23,7 +23,7 @@ import { booleanPolyhedra } from '../brep/polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline } from '../brep/analytic-boolean.js';
 import { faceReach, finishBrepEdges } from '../blend/edge-finish.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
-import { exportStep, stepTessellatedChars } from '../io/step.js';
+import { stepTessellatedChars } from '../io/step.js';
 import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
 import { facetBrepFromTriangles, weldVertices } from '../mesh/facet-brep.js';
 import { splitFacetBrep, type FacetSplitResult } from '../mesh/facet-split.js';
@@ -56,7 +56,7 @@ import { transformBrep, quarterTurn, type BrepAffine } from '../brep/brep-transf
 import { curveDomain, evaluateCurve } from '../core/math.js';
 import { planar, tessellateBrep } from '../brep/brep-tessellate.js';
 import { rayHit, triangleBvh } from '../mesh/triangle-bvh.js';
-import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type SolidMassProperties } from '../brep/solid-mass.js';
+import { combineMassProperties, prismaticMassProperties, brepMassProperties, brepSurfaceArea, isSolidMassError, type MassProperties } from '../brep/solid-mass.js';
 import { glueAtSharedFace, withCavities } from '../brep/brep-glue.js';
 import { loftSolid } from '../features/loft.js';
 import { generalShell } from '../blend/general-shell.js';
@@ -64,7 +64,7 @@ import { offsetCavity, offsetShell, smoothOffsetBody } from '../blend/offset-cav
 import { regionShell } from '../blend/region-shell.js';
 import { meshInnerOffset, type MeshShellReport } from '../mesh/mesh-offset.js';
 import { bendAllowance, bendDeduction, flangeSection, lookupBend, outsideSetback, type BendTable, type BendTableUse, type SheetReport } from '../frame-sheet/sheet-metal.js';
-import { flatPattern as flatPatternOf, isFlatPatternError, type FlatPattern } from '../frame-sheet/sheet-flat.js';
+import { flatPattern as sheetFlatPattern, isFlatPatternError, type FlatPattern } from '../frame-sheet/sheet-flat.js';
 import { isExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from '../features/extruded-profile-solid.js';
 import { loopArea, loopPerimeter, type BeadReport, type EndCapReport, type GussetReport, type WeldmentSeam, type BeadJointRef, type BeadSharedComponent, type BeadSharedSeam } from '../frame-sheet/frame-weldment.js';
 import { FRAME_ANCHORS, isFrameSectionError, anchorPoint, frameSection, loopBox, type FrameAnchor, type FrameEndReport, type FrameMemberReport, type FrameNotchReport, type FrameSectionSpec } from '../frame-sheet/frame-section.js';
@@ -588,19 +588,7 @@ export interface CadPartOutput {
   readonly representation: 'upright' | 'planar' | 'curved' | 'faceted';
   readonly brep: Brep;
   readonly bodyCount: number;
-  massProperties(densityKgPerM3: number): SolidMassProperties;
-  /** Binary STL (little-endian, 80-byte header) of the display tessellation. */
-  exportStl(options?: { readonly segmentsPerQuarter?: number }): Uint8Array;
-  /** STEP AP214 (exact B-rep: planes, B-spline surfaces and curves) of this output. */
-  exportStep(options?: { readonly name?: string }): string;
-  /**
-   * The L0 validation of this output (checkBrep with `strict`): topology, and edges on their surfaces, loops
-   * that do not cross, no slivers, tolerances under the cap. Worked out on first call; an imported STEP body
-   * is reported here rather than refused.
-   */
-  validate(): BrepCheckReport;
-  /** The surface area (mm²) over the exact surfaces (brepSurfaceArea). */
-  surfaceArea(): number;
+  // (R7.3b: its results are functions over it — massPropertiesOf, surfaceAreaOf, checkOutput, exportStl, exportStep, flatPatternOf.)
   /** A generated gear's report: its dimensions, the measured flank deviation, its diagnostics (R6a). */
   readonly gear?: SpurGearReport;
   /** A gear's placement (spec, centre, face plane, turn; the gear it meshes with). */
@@ -652,13 +640,6 @@ export interface CadPartOutput {
   readonly gusset?: GussetReport; readonly endCap?: EndCapReport;
   /** A fillet weld bead's report (FRk2, D166): its joint, leg, seam and volume. */
   readonly bead?: BeadReport;
-  /**
-   * A sheet's flat pattern (R12.2, D117): its skin developed from `fixedFace` (default the sheet's own: a plate's top, a
-   * profile's first leg on its path), bends at R + K·T (`kFactor`, default the sheet's). Refused (GEOMETRY, its code in
-   * the message: NOT_A_SHEET, NON_NORMAL_CUT, BEND_NOT_CYLINDRICAL, FLAT_OVERLAPS; CAPABILITY: CUT_ACROSS_BEND) where it
-   * is no sheet, or for a body made without the sheet's rules (`flatPattern` of the kernel takes T and K for those).
-   */
-  flatPattern(options?: { readonly fixedFace?: string; readonly kFactor?: number }): FlatPattern;
 }
 export interface CadPartSnapshot {
   readonly document: CadPartDocument;
@@ -669,12 +650,7 @@ export interface CadPartSnapshot {
   readonly recomputation: { readonly evaluated: readonly string[]; readonly reused: readonly string[] };
   /** With `profile`: each feature's cost, by id (a reused feature's is its lookup). */
   readonly profile?: Readonly<Record<string, CadPartFeatureProfile>>;
-  output(id: string): CadPartOutput;
-  /** Re-evaluates with new parameter values; unchanged features are reused. */
-  withParameters(edits: Readonly<Record<string, number>>): CadPartSnapshot;
-  /** Evaluates another document, reusing every feature whose resolved definition is unchanged. */
-  withDocument(document: CadPartDocument): CadPartSnapshot;
-  save(): string;
+  // (R7.3b: outputOf, reevaluate and saveCadPart over it.)
 }
 /**
  * `stepBytes`: an imported STEP file's text. A STEP file is read whole, and a solid of many faces holds
@@ -704,7 +680,7 @@ export type Solid = { readonly kind: 'upright'; readonly solid: PrismaticSolid }
 interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly string[]; readonly size: number; readonly id: string; /** A variable radius (D100), the radius at points of the edges. */ readonly radii?: readonly { readonly at: Point; readonly radius: number }[] }
 /** `moved`: the part this one is a moved (turned, mirrored, uniformly scaled) copy of, for shell. */
 export interface Part {
-  readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => SolidMassProperties;
+  readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => MassProperties;
   readonly history?: { readonly base: PrismaticSolid; readonly finishes: readonly Finish[] };
   readonly moved?: { readonly from: Part; readonly m: BrepAffine['matrix']; readonly o: Point };
   /** How a revolved or swept body was made (shell erodes its section and makes it again). */
@@ -1050,18 +1026,30 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
   const snapshot: CadPartSnapshot = {
     document: deepFreeze(doc), outputs: Object.freeze(outputs), features: deepFreeze(features), recomputation: deepFreeze({ evaluated, reused: reusedIds }),
     ...(profile ? { profile: Object.freeze(profile) } : undefined),
-    output(id: string) { const o = outputs.find(x => x.id === id); if (!o) throw new CadPartError('REFERENCE', null, `no output ${id}`); return o; },
-    withParameters(edits) {
-      const parameters = { ...doc.parameters };
-      for (const [k, v] of Object.entries(edits)) { if (!Object.hasOwn(parameters, k)) throw new CadPartError('PARAMETER', null, `unknown parameter ${k}`); parameters[k] = v; }
-      return evaluateCadPart({ ...doc, parameters }, cache, options);
-    },
-    withDocument(next) { return evaluateCadPart(next, cache, options); },
-    // (A mesh's typed arrays written as plain arrays.)
-    save: () => JSON.stringify(doc, (_, v) => isMeshArray(v) ? Array.from(v) : v) + '\n',
   };
+  snapshotState.set(snapshot, { cache, ...(options ? { options } : {}) });
   return Object.freeze(snapshot);
 }
+
+/** A snapshot's evaluation cache and options, so a re-evaluation reuses what it can (R7.3b). */
+const snapshotState = new WeakMap<CadPartSnapshot, { readonly cache: Cache | undefined; readonly options?: CadPartEvaluationOptions }>();
+/** The output of a snapshot by id; refused, REFERENCE, when there is none. */
+export function outputOf(snapshot: CadPartSnapshot, id: string): CadPartOutput {
+  const o = snapshot.outputs.find(x => x.id === id); if (!o) throw new CadPartError('REFERENCE', null, `no output ${id}`); return o;
+}
+/**
+ * A snapshot evaluated again: with new parameter values (`parameters`, each one the document declares), or another
+ * document (`document`); every feature whose resolved definition is unchanged is reused.
+ */
+export function reevaluate(snapshot: CadPartSnapshot, change: { readonly parameters: Readonly<Record<string, number>> } | { readonly document: CadPartDocument }): CadPartSnapshot {
+  const st = snapshotState.get(snapshot), doc = snapshot.document;
+  if ('document' in change) return evaluateCadPart(change.document, st?.cache, st?.options);
+  const parameters = { ...doc.parameters };
+  for (const [k, v] of Object.entries(change.parameters)) { if (!Object.hasOwn(parameters, k)) throw new CadPartError('PARAMETER', null, `unknown parameter ${k}`); parameters[k] = v; }
+  return evaluateCadPart({ ...doc, parameters }, st?.cache, st?.options);
+}
+/** A snapshot's document as saved text (a mesh's typed arrays written as plain arrays). */
+export const saveCadPart = (snapshot: CadPartSnapshot): string => JSON.stringify(snapshot.document, (_, v) => isMeshArray(v) ? Array.from(v) : v) + '\n';
 
 /** Parses and evaluates a saved part document. */
 export function loadCadPart(text: string): CadPartSnapshot {
@@ -1129,7 +1117,7 @@ function bendK(rules: { readonly kFactor?: number; readonly bendTable?: BendTabl
   return r;
 }
 /** A solid's volume by its exact surfaces (quadrature where curved): the flange's collision test. */
-const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : brepMassProperties(s.brep, 1).volumeMM3;
+const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : brepMassProperties(s.brep, 1).volume;
 /**
  * An edge flange on a sheet (R12.3, D118; see the feature): its edge's frame (x out across the edge, y up from the picked
  * skin, z along the edge), the plate trimmed and relieved, the flange's section extruded and united; refused where it
@@ -1771,7 +1759,7 @@ function unionAll(list: Solid[], at: string): Solid {
   while (level.length > 1) { const next: Solid[] = []; for (let i = 0; i < level.length; i += 2) next.push(i + 1 < level.length ? boolean(level[i], level[i + 1], 'union', at) : level[i]); level = next; }
   return level[0];
 }
-const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8, quadratureSegments: 0 }).volumeMM3 : 0;
+const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8, quadratureSegments: 0 }).volume : 0;
 
 function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: (n: string) => string): Solid {
   // Upright solids stay upright when XY maps by a similarity and Z only scales and shifts.
@@ -2331,7 +2319,7 @@ function placeMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   // (A sketch section: its area and centroid by a unit prism's exact mass.)
   if (area === undefined || centroid === undefined) {
     const m = prismaticMassProperties(prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), heightMM: 1, fromMM: 0 }), 1);
-    area = m.volumeMM3; centroid = [m.centroidMM[0], m.centroidMM[1]];
+    area = m.volume; centroid = [m.centroid[0], m.centroid[1]];
   }
   const box = shape.box ?? loopBox(shape.outer), u = snapUnit(scale(sub(o.end, o.start), 1 / o.L)), F = memberFrame(u, o.up, o.roll);
   // (The section point on the line: the anchor's, less the offset the section is moved by.)
@@ -2405,7 +2393,7 @@ function buildCurvedMember(given: MemberShape, path: FrameCurvePath, o: MemberLo
   const arcPrefix = path.indices.length > 1 ? `${o.at}.bend` : o.at;
   const renameArc = (n: string) => n.replace(`${o.at}_arc`.replace(/\./g, '_'), arcPrefix).replace(/\.side\[role(\d+)\]/g, (_, i: string) => `.${roleNames[Number(i)]}`);
   let brep = transformBrep(revolveProfile(input), { matrix, offset: origin }, renameArc);
-  const masses: { local: (density: number) => SolidMassProperties; axes: [Point, Point, Point]; offset: Point }[] = [{ local: density => revolveMassProperties(input, density), axes: [F.x, F.y, tangent], offset: origin }];
+  const masses: { local: (density: number) => MassProperties; axes: [Point, Point, Point]; offset: Point }[] = [{ local: density => revolveMassProperties(input, density), axes: [F.x, F.y, tangent], offset: origin }];
   const rotate = (v: Point): Point => add(add(scale(v, Math.cos(theta)), scale(cross(path.normal!, v), Math.sin(theta))), scale(path.normal!, dot(path.normal!, v) * (1 - Math.cos(theta))));
   const pieces: Brep[] = [];
   const prismAt = (start: Point, L: number, x: Point, y: Point, z: Point, suffix: string): Brep => {
@@ -2899,7 +2887,7 @@ function sharedBeadPath(a: BeadCandidate, b: BeadCandidate, pair: SharedBeadPair
     return t >= -1e-9 && t <= 1 + 1e-9 && len(sub(v, add(u, scale(d, t)))) <= MEMBER_MIN_MM;
   }));
   if (!expected.every(u => vertices.some(v => len(sub(v, u)) <= MEMBER_MIN_MM)) || !vertices.every(onEdge)) return null;
-  const V = brepMassProperties(pair.overlap, 1).volumeMM3, want = len(sub(q, p)) * z * z / 2;
+  const V = brepMassProperties(pair.overlap, 1).volume, want = len(sub(q, p)) * z * z / 2;
   if (Math.abs(V - want) > 1e-9 * Math.max(1, want)) return null;
   return [p, q];
 }
@@ -2910,14 +2898,14 @@ function ownedEndpointBead(candidate: BeadCandidate, overlap: Brep, seam: Omit<B
   const R = Math.max(1, ...brep.vertices.map(v => len(sub(v.point, midpoint)))) + 1, id = candidate.feature.id.replace(/\./g, '_');
   const half = obliqueHalf(midpoint, n, x, y, R, !below, `${id}_ownership`);
   const unowned = boolean({ kind: 'brep', brep: overlap }, half, 'intersection', `${id}_unowned`);
-  const removed = volumeOfSolid(unowned), ownedSharedVolumeMM3 = brepMassProperties(overlap, 1).volumeMM3 - removed;
+  const removed = volumeOfSolid(unowned), ownedSharedVolumeMM3 = brepMassProperties(overlap, 1).volume - removed;
   const parts = splitBodies(brep).map((body, i) => {
     const shared = booleanAnalytic(body, overlap, 'intersection', { id: `${id}_shared${i}` });
     if (!shared.bodies.length) return prefixedIds(body, `exclusive${i}:`);
     const kept = boolean({ kind: 'brep', brep: body }, unowned, 'difference', `${id}_owned${i}`);
     return prefixedIds(brepOf({ solid: kept }, `${id}_owned${i}`), `owned${i}:`);
   });
-  const owned = mergeBreps(parts, { family: 'weld-bead', id }), volumeMM3 = brepMassProperties(owned, 1).volumeMM3;
+  const owned = mergeBreps(parts, { family: 'weld-bead', id }), volumeMM3 = brepMassProperties(owned, 1).volume;
   if (Math.abs(volumeMM3 - (nominal.bead!.nominalVolumeMM3 - removed)) > 1e-9 * Math.max(1, volumeMM3)) throw new CadPartError('GEOMETRY', candidate.feature.id, 'owned partition did not preserve exclusive material');
   return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: owned }, bead: { ...nominal.bead!, volumeMM3, sharedSeams: [{ ...seam, ownedSharedVolumeMM3 }] } }] };
 }
@@ -2986,7 +2974,7 @@ function planEndpointBeads(features: readonly CadPartFeature[], byMember: Readon
     try {
       const path = sharedBeadPath(a, b, pair);
       if (!path) { refuse('BEAD_SHARED_UNSUPPORTED', 'requires equal legs, outer sharp square ends and one complete straight triangular shared prism'); continue; }
-      const lengthMM = len(sub(path[1], path[0])), nominalSharedVolumeMM3 = brepMassProperties(pair.overlap!, 1).volumeMM3;
+      const lengthMM = len(sub(path[1], path[0])), nominalSharedVolumeMM3 = brepMassProperties(pair.overlap!, 1).volume;
       const id = JSON.stringify(['shared-seam-v1', frame, joints]), refs = joints as [BeadJointRef, BeadJointRef];
       // Commit both planned results together. A partition error leaves neither nominal participant available.
       const results = group.map((c, i) => ownedEndpointBead(c, pair.overlap!, { id, joints: refs, pathMM: path, lengthMM, ownedInterval: i === 0 ? [0, 0.5] : [0.5, 1], nominalSharedVolumeMM3 }));
@@ -3093,12 +3081,12 @@ function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Res
     return { solid: affine(p.solid, m, o), moved: { from: p, m, o }, ...(exact ? { mass: (d: number) => movedMass(exact(d), m, o) } : {}) };
   }) };
 }
-function movedMass(p: SolidMassProperties, m: BrepAffine['matrix'], o: Point): SolidMassProperties {
+function movedMass(p: MassProperties, m: BrepAffine['matrix'], o: Point): MassProperties {
   const k = Math.cbrt(Math.abs(m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6]))), R = m.map(x => x / k);
-  const c = p.centroidMM, I = p.inertiaCentroidKgM2, k5 = k ** 5;
+  const c = p.centroid, I = p.inertia, k5 = k ** 5;
   const RIRt = [0, 1, 2].map(i => [0, 1, 2].map(j => { let sum = 0; for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) sum += R[3 * i + a] * I[a][b] * R[3 * j + b]; return sum * k5; })) as [[number, number, number], [number, number, number], [number, number, number]];
-  return { volumeMM3: p.volumeMM3 * k ** 3, massKG: p.massKG * k ** 3, method: p.method, inertiaCentroidKgM2: RIRt,
-    centroidMM: [0, 1, 2].map(i => m[3 * i] * c[0] + m[3 * i + 1] * c[1] + m[3 * i + 2] * c[2] + o[i]) as Point };
+  return { volume: p.volume * k ** 3, mass: p.mass * k ** 3, method: p.method, inertia: RIRt,
+    centroid: [0, 1, 2].map(i => m[3 * i] * c[0] + m[3 * i + 1] * c[1] + m[3 * i + 2] * c[2] + o[i]) as Point };
 }
 function rotation(axis: CadPartAxis, deg: number, pivot: Point): { m: BrepAffine['matrix']; o: Point } {
   let m: BrepAffine['matrix'];
@@ -3122,7 +3110,7 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
  * plane, a radius to its side), each placed where the last one ended; the pieces meet in whole
  * cross-sections and are joined.
  */
-function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY, sideTags?: readonly string[]): { brep: Brep; mass: (density: number) => SolidMassProperties } {
+function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY, sideTags?: readonly string[]): { brep: Brep; mass: (density: number) => MassProperties } {
   if (profiling) profiling.sweeps++;
   // The path runs through the profile's centroid (or a given point): the profile is moved there, the body back.
   const centre = through ?? buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
@@ -3132,7 +3120,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   const place = (b: Brep, k: number): Brep => transformBrep(b, { matrix: [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]], offset: [o[0], o[1], o[2]] }, n => n.split(`${at}_s${k}`).join(`${at}.s${k}`));
   const rot = (v: Point, d: Point, t: number): Point => add(add(scale(v, Math.cos(t)), scale(cross(d, v), Math.sin(t))), scale(d, dot(d, v) * (1 - Math.cos(t))));
   // Each piece's mass in its own frame; these add only when the pieces are glued without overlap.
-  const pieces: Brep[] = [], masses: { local: (density: number) => SolidMassProperties; axes: [Point, Point, Point]; offset: Point }[] = [];
+  const pieces: Brep[] = [], masses: { local: (density: number) => MassProperties; axes: [Point, Point, Point]; offset: Point }[] = [];
   steps.forEach((st, k) => {
     const tag = `${at}_s${k}`;
     if (st.kind === 'straight') {
@@ -3307,15 +3295,15 @@ function varyingHollow(hollow: Part, fin: Finish, base: PrismaticSolid, face: (n
   return { solid: finishEdges(hollow, names, Math.max(rLo, rHi), 'fillet', `${at}_in_${fin.id}`, fail, undefined, [{ at: lo, radius: rLo }, { at: hi, radius: rHi }]) };
 }
 
-/** A body less hollows inside it: masses and moments subtracted (inertia via the origin). */
-function massLess(outer: SolidMassProperties, inner: readonly SolidMassProperties[]): SolidMassProperties {
-  const about = (p: SolidMassProperties) => { const c = p.centroidMM.map(x => x * 1e-3), cc = c[0] ** 2 + c[1] ** 2 + c[2] ** 2; return p.inertiaCentroidKgM2.map((row, i) => row.map((v, j) => v + p.massKG * ((i === j ? cc : 0) - c[i] * c[j]))); };
-  const m = outer.massKG - inner.reduce((a, p) => a + p.massKG, 0), V = outer.volumeMM3 - inner.reduce((a, p) => a + p.volumeMM3, 0);
-  const c = [0, 1, 2].map(i => (outer.massKG * outer.centroidMM[i] - inner.reduce((a, p) => a + p.massKG * p.centroidMM[i], 0)) / m) as Point;
+/** A body less hollows inside it: masses and moments subtracted (inertia via the origin; mm and g). */
+function massLess(outer: MassProperties, inner: readonly MassProperties[]): MassProperties {
+  const about = (p: MassProperties) => { const c = p.centroid, cc = c[0] ** 2 + c[1] ** 2 + c[2] ** 2; return p.inertia.map((row, i) => row.map((v, j) => v + p.mass * ((i === j ? cc : 0) - c[i] * c[j]))); };
+  const m = outer.mass - inner.reduce((a, p) => a + p.mass, 0), V = outer.volume - inner.reduce((a, p) => a + p.volume, 0);
+  const c = [0, 1, 2].map(i => (outer.mass * outer.centroid[i] - inner.reduce((a, p) => a + p.mass * p.centroid[i], 0)) / m) as Point;
   const T = about(outer); for (const p of inner) about(p).forEach((row, i) => row.forEach((v, j) => { T[i][j] -= v; }));
-  const cm = c.map(x => x * 1e-3), cc = cm[0] ** 2 + cm[1] ** 2 + cm[2] ** 2;
-  const I = T.map((row, i) => row.map((v, j) => v - m * ((i === j ? cc : 0) - cm[i] * cm[j]))) as [[number, number, number], [number, number, number], [number, number, number]];
-  return { volumeMM3: V, massKG: m, centroidMM: c, inertiaCentroidKgM2: I, method: outer.method };
+  const cc = c[0] ** 2 + c[1] ** 2 + c[2] ** 2;
+  const I = T.map((row, i) => row.map((v, j) => v - m * ((i === j ? cc : 0) - c[i] * c[j]))) as [[number, number, number], [number, number, number], [number, number, number]];
+  return { volume: V, mass: m, centroid: c, inertia: I, method: outer.method };
 }
 /** A ring of section segments as profile segments (each from its start). */
 const profileOfRing = (ring: readonly CurveSegment2[]): ProfileSegmentInput[] => ring.map(g => {
@@ -3630,36 +3618,51 @@ function buildBrepLocal(pts: Point[], edges: { id: string; v: [number, number] }
 }
 
 // ---- outputs --------------------------------------------------------------------------------------------
+/** What an output's functions need beyond its data: the part it was made from, and its worked-out values. */
+interface OutputState { readonly part: Part; validated?: BrepCheckReport; area?: number; readonly flats: Map<string, FlatPattern> }
+const outputState = new WeakMap<CadPartOutput, OutputState>();
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
-  let validated: BrepCheckReport | undefined, area: number | undefined;
-  const flats = new Map<string, FlatPattern>();
-  return Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {}),
-    massProperties(density: number) {
-      // (An open mesh, a sheet, encloses nothing: no mass, said so rather than worked out from an open surface.)
-      if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', id, 'an open mesh (a sheet) encloses no volume: it has no mass');
-      return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 });
-    },
-    exportStl(options: { readonly segmentsPerQuarter?: number } = {}) { return stl(brep, options.segmentsPerQuarter ?? 16); },
-    exportStep(options: { readonly name?: string } = {}) { return exportStep(brep, { name: options.name ?? id }); },
-    validate() { return validated ??= checkBrep(brep, { strict: true }); },
-    surfaceArea() { return area ??= brepSurfaceArea(brep); },
-    flatPattern(options: { readonly fixedFace?: string; readonly kFactor?: number } = {}) {
-      const s = part.sheet;
-      if (!s) throw new CadPartError('CAPABILITY', id, 'not made as sheet metal: give its thickness and K-factor to the kernel\'s flatPattern');
-      // (A K given here, else the sheet's K, else its bend table bend by bend.)
-      const k = options.kFactor ?? s.kFactor, key = `${options.fixedFace ?? s.fixedFace}|${k ?? 'table'}`;
-      const hit = flats.get(key); if (hit) return hit;
-      try {
-        const flat = flatPatternOf(brep, { thicknessMM: s.thicknessMM, ...(k !== undefined ? { kFactor: k } : { bendTable: s.bendTable! }), fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
-        flats.set(key, flat); return flat;
-      } catch (cause) {
-        if (isFlatPatternError(cause)) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);
-        throw cause;
-      }
-    },
+  const output: CadPartOutput = Object.freeze({
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {})
   });
+  outputState.set(output, { part, flats: new Map() });
+  return output;
+}
+/** An output not made by evaluateCadPart (a copy, a deserialised one): its state from its B-rep alone. */
+const stateOf = (o: CadPartOutput): OutputState => { let st = outputState.get(o); if (!st) { st = { part: { solid: { kind: 'brep', brep: o.brep }, brep: o.brep }, flats: new Map() }; outputState.set(o, st); } return st; };
+
+/**
+ * An output's mass properties (R7.3b, MMGS): `density` in g/cm³ (1 by default); volume mm³, mass g, centroid mm,
+ * inertia g·mm² about the centroid. An open mesh (a sheet) encloses nothing: refused.
+ */
+export function massPropertiesOf(output: CadPartOutput, density = 1): MassProperties {
+  const { part } = stateOf(output), brep = output.brep;
+  if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', output.id, 'an open mesh (a sheet) encloses no volume: it has no mass');
+  return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 });
+}
+/** An output's surface area (mm²) over its exact surfaces (brepSurfaceArea), worked out once. */
+export function surfaceAreaOf(output: CadPartOutput): number { const st = stateOf(output); return st.area ??= brepSurfaceArea(output.brep); }
+/**
+ * An output's L0 validation (checkBrep with `strict`): topology, edges on their surfaces, loops that do not cross, no
+ * slivers, tolerances under the cap. Worked out once; an imported STEP body is reported here rather than refused.
+ */
+export function checkOutput(output: CadPartOutput): BrepCheckReport { const st = stateOf(output); return st.validated ??= checkBrep(output.brep, { strict: true }); }
+/** Binary STL (little-endian, 80-byte header) of an output's display tessellation. */
+export function exportStl(output: CadPartOutput, options: { readonly segmentsPerQuarter?: number } = {}): Uint8Array { return stl(output.brep, options.segmentsPerQuarter ?? 16); }
+/** A sheet-metal output's flat pattern: its fixed face and K-factor as made unless given, else its bend table bend by bend. */
+export function flatPatternOf(output: CadPartOutput, options: { readonly fixedFace?: string; readonly kFactor?: number } = {}): FlatPattern {
+  const st = stateOf(output), s = st.part.sheet, id = output.id;
+  if (!s) throw new CadPartError('CAPABILITY', id, 'not made as sheet metal: give its thickness and K-factor to the kernel\'s flatPattern');
+  const k = options.kFactor ?? s.kFactor, key = `${options.fixedFace ?? s.fixedFace}|${k ?? 'table'}`;
+  const hit = st.flats.get(key); if (hit) return hit;
+  try {
+    const flat = sheetFlatPattern(output.brep, { thicknessMM: s.thicknessMM, ...(k !== undefined ? { kFactor: k } : { bendTable: s.bendTable! }), fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
+    st.flats.set(key, flat); return flat;
+  } catch (cause) {
+    if (isFlatPatternError(cause)) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);
+    throw cause;
+  }
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
   const mesh = tessellateBrep(brep, { segmentsPerQuarter });

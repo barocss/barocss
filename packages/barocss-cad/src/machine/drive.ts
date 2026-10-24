@@ -26,7 +26,7 @@ import type { Brep } from '../brep/brep-core.js';
 import type { Curve, Point } from '../types.js';
 import { arcCurve, extrudedProfile, lineCurve, reversed } from './gear.js';
 import { evaluateCurve } from '../core/math.js';
-import { evaluateCadPart } from '../part/part-model.js';
+import { evaluateCadPart, outputOf } from '../part/part-model.js';
 import { transformBrep } from '../brep/brep-transform.js';
 import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
 
@@ -240,7 +240,7 @@ function revolved(id: string, segs: { kind: 'line' | 'arc'; start: V2; center?: 
     { id: `${sub}s`, kind: 'sketch', profile: 'loop', segments: segs.map(s => s.kind === 'line' ? { kind: 'line', start: s.start } : { kind: 'arc', start: s.start, center: s.center, direction: 'ccw' }), plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }, sideTags: { outer: segs.map(s => s.tag) } },
     { id: sub, kind: 'revolve', sketch: `${sub}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }] };
   const prefix = `${sub}.side[`;
-  return transformBrep(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]).output(sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+  return transformBrep(outputOf(evaluateCadPart(doc as unknown as Parameters<typeof evaluateCadPart>[0]), sub).brep, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
     nm => nm.split('|').map(q => q.startsWith(prefix) ? `${id}.${q.slice(prefix.length, q.indexOf(']'))}${q.slice(q.indexOf(']') + 1)}` : q).join('|'));
 }
 /**

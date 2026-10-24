@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, brepMassProperties, checkBrep } from '../dist/index.js';
+import { evaluateCadPart, brepMassProperties, checkBrep, massPropertiesOf, checkOutput } from '../dist/index.js';
 import { finishBrepEdges } from '../dist/blend/edge-finish.js';
 
 // R10.2b (D90): the rolling-ball fillet of an open chain. Its tool is capped at its ends: where the body ends past a
@@ -29,7 +29,7 @@ test('R10.2b against closed forms, the general path forced: a groove along the p
   ]) {
     const o0 = out(body), reports = [], g = finishBrepEdges(o0.brep, [rim(body)], 1, 'fillet', 'f', { general: true, reports });
     assert.equal(checkBrep(g).valid, true, what);
-    const got = sign * (brepMassProperties(g, 1).volumeMM3 - o0.massProperties(1).volumeMM3), exact = section(1) * length;
+    const got = sign * (brepMassProperties(g, 1).volume - massPropertiesOf(o0).volume), exact = section(1) * length;
     assert.ok(Math.abs(got / exact - 1) < rel, `${what}: ${got} vs ${exact} (${got / exact - 1})`);
     assert.ok(reports[0].contactMM <= 2.5e-7 && reports[0].normalDeg < 1e-3, `${what}: ${JSON.stringify(reports[0])}`);
   }
@@ -41,11 +41,11 @@ test('R10.2b an oblique groove (a rod tilted 10° about Y: its rims ellipse arcs
   const body = across('difference', 'y', 10, plateFrom(8, 32)), edges = out(body).brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name));
   for (const side of [1, -1]) {
     const edge = edges.find(e => Math.sign(e.curve.controlPoints[0][1]) === side).name, o = out([...body, fillet('g', [edge], 1)]);
-    assert.equal(o.validate().valid, true, `y ${side}`);
+    assert.equal(checkOutput(o).valid, true, `y ${side}`);
     assert.equal(o.bodyCount, 1, `y ${side}`);
     const [rep] = o.fillet;
     assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM < 2e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
-    assert.ok(o.massProperties(1).volumeMM3 < out(body).massProperties(1).volumeMM3, 'a convex fillet removes material');
+    assert.ok(massPropertiesOf(o).volume < massPropertiesOf(out(body)).volume, 'a convex fillet removes material');
   }
 });
 
@@ -54,12 +54,12 @@ test('R10.1\'s closed-form tools end where an oblique end face is: a rib turned 
   for (const deg of [0, 10, 25]) {
     const body = rib(deg), o0 = out(body), feet = o0.brep.edges.filter(e => /r0\.side/.test(e.name) && /pe\.top/.test(e.name) && e.curve.degree === 1).map(e => e.name);
     const o = out([...body, fillet('u', feet, 1)]), exact = feet.length * (1 - Math.PI / 4) * 40 / Math.cos(deg * Math.PI / 180);
-    assert.equal(o.validate().valid, true, `${deg}°`);
-    assert.ok(Math.abs((o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3) / exact - 1) < 2e-7, `${deg}°`);
+    assert.equal(checkOutput(o).valid, true, `${deg}°`);
+    assert.ok(Math.abs((massPropertiesOf(o).volume - massPropertiesOf(o0).volume) / exact - 1) < 2e-7, `${deg}°`);
   }
   // The rod lying across at 10° by R10.1's translational tool: the same cut ends.
   const body = across('union', 'z', 10), o0 = out(body), o = out([...body, fillet('g', [rim(body)], 1)]);
-  assert.ok(Math.abs((o.massProperties(1).volumeMM3 - o0.massProperties(1).volumeMM3) / (section(1) * 40 / Math.cos(Math.PI / 18)) - 1) < 2e-6);
+  assert.ok(Math.abs((massPropertiesOf(o).volume - massPropertiesOf(o0).volume) / (section(1) * 40 / Math.cos(Math.PI / 18)) - 1) < 2e-6);
 });
 
 // (An end square on a face — the rod lying straight across, forced — was refused here; it builds since R10.B: r10-b.test.mjs.)
