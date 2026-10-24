@@ -12,6 +12,7 @@ import type { EvalResult } from '../engine/evaluate';
 import { bearingHousingRef } from '../engine/bearingContext';
 import { r6 } from '../util/round';
 import { evaluateTree } from '../assembly/instances';
+import { refusal } from '../engine/refusal';
 
 /** A made element's line (merged as the bought ones are): what the panel offers to mark bought. */
 export interface MadeLine { item: string; parts: string[]; qty: number; kind: string; size: string; row: string | null; override: boolean }
@@ -27,7 +28,7 @@ export async function bomPanelData(doc: StudioDoc, evaluate: Evaluate, name = 't
 /** The panel's data from evaluations given at once (the chat's drawings: synchronous). */
 export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => EvalResult | null, name = 'this part'): BomPanelData {
   const check = (d: StudioDoc): void => {
-    if (d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) { const result = evaluate(d); if (!result?.ok) throw new Error(`[BEARING_HOUSING_EVALUATION] ${result ? JSON.stringify(result.error) : 'no evaluation result'}`); }
+    if (d.nodes.some(n => !n.suppressed && bearingHousingRef(n))) { const result = evaluate(d); if (!result?.ok) throw refusal('BEARING_HOUSING_EVALUATION', `${result ? JSON.stringify(result.error) : 'no evaluation result'}`); }
     for (const i of d.instances ?? []) check(i.doc);
   };
   const shopRows = provenanceOfTree(doc);

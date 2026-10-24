@@ -910,12 +910,14 @@ export interface ModelFrameBend { point: number; radius: Dim }
 export const frameSegmentEnds = (segment: ModelFrameSegment): [number, number] => Array.isArray(segment) ? segment : [segment.from, segment.to];
 
 type FrameNode = Extract<ModelNode, { kind: 'frame' }>;
+/** The refusals of a frame's following geometry. */
+export type FrameGeometryCode = 'FRAME_SKELETON_UNKNOWN' | 'FRAME_SKELETON_POINT' | 'FRAME_SKETCH_UNKNOWN' | 'FRAME_SKETCH_CURVED' | 'FRAME_PART_SCOPE' | 'FRAME_PART_UNKNOWN' | 'FRAME_PART_FEATURE_GONE';
 /**
  * FRf (O121): a frame's points and segments — its own, or those it follows: a skeleton's, or a sketch's straight edges
  * (a rectangle's four, a polygon's, an outline of lines) lifted by the sketch's plane, its parameters' values read now.
  * A source that is not there, not a skeleton or sketch, curved, or a segment naming no point: refused, typed.
  */
-export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}, parts?: readonly PartInstance[] | null): { points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[] } | { code: string; error: string } {
+export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, parameters: Readonly<Record<string, number>> = {}, parts?: readonly PartInstance[] | null): { points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[] } | { code: FrameGeometryCode; error: string } {
   if (!node.follows) return { points: node.points, segments: node.segments };
   if ('part' in node.follows) return partSketchGeometry(node.follows, parts);
   const at = followsIndex(node.follows)!, src = nodes[at];
@@ -933,7 +935,7 @@ export function frameGeometry(nodes: readonly ModelNode[], node: FrameNode, para
  * and placed by the instance's rotation and position now. `parts` null: the frame is inside a placed part, which follows
  * its own part's features only (a sibling's would need each part evaluated with its siblings: not built).
  */
-function partSketchGeometry(f: { part: string; sketch: string }, parts: readonly PartInstance[] | null | undefined): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+function partSketchGeometry(f: { part: string; sketch: string }, parts: readonly PartInstance[] | null | undefined): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: FrameGeometryCode; error: string } {
   if (parts === null) return { code: 'FRAME_PART_SCOPE', error: `a placed part's frame follows only its own part's features, not ${f.part}'s sketch (that needs each part evaluated with its siblings)` };
   const inst = (parts ?? []).find(i => i.id === f.part);
   if (!inst) return { code: 'FRAME_PART_UNKNOWN', error: `the frame follows a sketch of part ${f.part}, which the assembly does not hold (parts: ${(parts ?? []).map(i => i.id).join(', ') || 'none'})` };
@@ -946,7 +948,7 @@ function partSketchGeometry(f: { part: string; sketch: string }, parts: readonly
   return { points, segments: g.segments };
 }
 /** A sketch's straight edges lifted by its plane: a rectangle's four, a polygon's, an outline of lines (FRf). */
-function sketchEdges(src: Extract<ModelNode, { kind: 'sketch' }>, at: number, parameters: Readonly<Record<string, number>>): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: string; error: string } {
+function sketchEdges(src: Extract<ModelNode, { kind: 'sketch' }>, at: number, parameters: Readonly<Record<string, number>>): { points: [Dim, Dim, Dim][]; segments: [number, number][] } | { code: FrameGeometryCode; error: string } {
   const v = (d: Dim) => typeof d === 'number' ? d : parameters[d.parameter] ?? NaN;
   let uv: [number, number][];
   if (src.profile === 'rectangle') { const [a, b] = [src.min.map(v), src.max.map(v)]; uv = [[a[0], a[1]], [b[0], a[1]], [b[0], b[1]], [a[0], b[1]]]; }

@@ -8,6 +8,7 @@ import { FASTENER_KINDS } from '../app/fasteners';
 import type { StudioDoc } from '../engine/doc';
 import { GENERAL_TOLERANCE, POSITION_ESTIMATE_MM } from '../drawing/tolerance';
 import { MATERIALS_DATA } from '../library/materials';
+import { refusal } from '../engine/refusal';
 
 export type Licence = 'facts' | 'own' | 'CC0-1.0' | 'CC-BY-4.0' | 'public-domain' | 'MIT' | (string & {});
 /** The licences a table's data may carry: facts (values as read), our own, and permissive ones. */
@@ -110,11 +111,11 @@ export function tablesOf(doc: Pick<StudioDoc, 'fastenerSizes'>): { tables: StdTa
 /** A value (or a row's values) with its sources. */
 export function lookup(tableId: string, row: string, field: string | undefined, doc: Pick<StudioDoc, 'fastenerSizes'>): { table: string; row: string; unit: string; standards: string[]; values: Record<string, number | readonly number[]>; sources: Record<string, StdSource> } {
   const { tables, sources } = tablesOf(doc), t = tables.find(x => x.id === tableId);
-  if (!t) throw Object.assign(new Error(`[NO_TABLE] no table ${tableId}; tables: ${tables.map(x => x.id).join(', ')}`), { code: 'NO_TABLE' });
+  if (!t) throw refusal('NO_TABLE', `no table ${tableId}; tables: ${tables.map(x => x.id).join(', ')}`);
   const r = t.rows[row];
-  if (!r) throw Object.assign(new Error(`[NO_ROW] ${tableId} has no ${row}; rows: ${Object.keys(t.rows).join(', ') || (t.id === 'fasteners-metric-coarse' ? 'none loaded (load your fastener sizes)' : 'none')}`), { code: 'NO_ROW' });
+  if (!r) throw refusal('NO_ROW', `${tableId} has no ${row}; rows: ${Object.keys(t.rows).join(', ') || (t.id === 'fasteners-metric-coarse' ? 'none loaded (load your fastener sizes)' : 'none')}`);
   const fields = field ? [field] : Object.keys(r);
-  if (field && !(field in r)) throw Object.assign(new Error(`[NO_ROW] ${tableId} ${row} has no field ${field}; fields: ${Object.keys(r).join(', ')}`), { code: 'NO_ROW' });
+  if (field && !(field in r)) throw refusal('NO_ROW', `${tableId} ${row} has no field ${field}; fields: ${Object.keys(r).join(', ')}`);
   return { table: t.id, row, unit: t.unit, standards: t.standards, values: Object.fromEntries(fields.map(f => [f, r[f]])), sources: Object.fromEntries(fields.map(f => [f, sourceOf(t.rowSources?.[row]?.[f] ?? t.fieldSources[f], sources)!])) };
 }
 

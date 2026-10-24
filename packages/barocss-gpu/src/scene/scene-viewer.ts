@@ -38,7 +38,8 @@ export interface SceneView {
 }
 
 export class SceneViewError extends BarocssError {
-  constructor(readonly diagnostics: GpuDiagnostic[]) { super('scene-view', diagnostics.map(d => `${d.code}: ${d.message}`).join('; ') || 'Scene refused'); this.name = 'SceneViewError'; }
+  declare readonly code: 'SCENE_VIEW';
+  constructor(readonly diagnostics: GpuDiagnostic[]) { super('SCENE_VIEW', diagnostics.map(d => `${d.code}: ${d.message}`).join('; ') || 'Scene refused'); this.name = 'SceneViewError'; }
 }
 
 /** Source 1 (rotation and the further primitives) when its header says so. */

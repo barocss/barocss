@@ -35,6 +35,7 @@ import { moveOp, renameIds } from './remap';
 import { modelHash } from './spec';
 import { moveOps, proposalOf, type ChatState, type Evaluate } from './tools';
 import { isObj } from '../util/guards';
+import { refusal } from '../engine/refusal';
 
 /** The fields a turn's op may write besides features, parameters, body outputs and looks, proposals and history. */
 const OWN = new Set<string>(['format', 'schema', 'units', 'nextId', 'nodes', 'outputs', 'parameters', 'bodies', 'proposals', 'history']);
@@ -283,9 +284,9 @@ export async function mergeTurn(base: StudioDoc, now: StudioDoc, patch: TurnPatc
   }
   if (!doc) {
     r = await run(true);
-    if (!r) throw new Error('The evaluation was superseded while the chat turn was merged.');
+    if (!r) throw refusal('MERGE_SUPERSEDED', 'The evaluation was superseded while the chat turn was merged.');
     const d = docOf(r.w);
-    if (!('doc' in d)) throw new Error(`The merged part names ${d.missing.join(', ')}, which it does not have.`);
+    if (!('doc' in d)) throw refusal('MERGE_MISSING', `The merged part names ${d.missing.join(', ')}, which it does not have.`);
     doc = d.doc; bodies = r.bodies;
     if (!r.applied.length) { const e = await evaluate(doc); if (e?.ok) bodies = e.bodies; }
   }

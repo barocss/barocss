@@ -24,7 +24,7 @@ export const NativeSurfaceUV01FrameDiagnosticCode = Object.freeze({
 export type NativeSurfaceUV01FrameDiagnosticCode = typeof NativeSurfaceUV01FrameDiagnosticCode[keyof typeof NativeSurfaceUV01FrameDiagnosticCode];
 export class NativeSurfaceUV01FrameError extends BarocssError {
   constructor(readonly code: NativeSurfaceUV01FrameDiagnosticCode, message: string, cause?: unknown) {
-    super(code, message.slice(0, 1024));
+    super(code, message, { maxLength: 1024 });
     this.name = 'NativeSurfaceUV01FrameError';
     if (arguments.length >= 3) Object.defineProperty(this, 'cause', { value: cause, configurable: true, writable: true });
   }

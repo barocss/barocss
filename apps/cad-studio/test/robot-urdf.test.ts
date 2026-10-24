@@ -10,7 +10,7 @@ import { treeOfDoc, urdfOfDoc } from '@barocss/cad-model/chat/robot';
 import { forwardKinematics } from '@barocss/cad-model/robot/fk';
 import { convexHull, HullError, symmetricEigen3 } from '@barocss/cad';
 import { rpyOf, type UrdfResult } from '@barocss/cad-model/robot/urdf';
-import { parseXml, readUrdf, urdfFk, XmlError } from '@barocss/cad-model/robot/urdfCheck';
+import { parseXml, readUrdf, urdfFk } from '@barocss/cad-model/robot/urdfCheck';
 import type { Mat3 } from '@barocss/cad-model/robot/inertia';
 import { cliMain } from '../server/cadCli';
 
@@ -66,7 +66,7 @@ test('the convex hull: a cube with points inside — 12 triangles, volume 1, clo
 test('the XML reader: elements, attributes, comments, entities; typed errors with their place', () => {
   const x = parseXml('<?xml version="1.0"?>\n<!-- a -->\n<robot name="a &amp; b"><link name=\'l\'/><joint name="j"><parent link="l"/></joint></robot>');
   assert.deepEqual([x.name, x.attrs.name, x.children.map(c => c.name), x.children[1].children[0].attrs.link], ['robot', 'a & b', ['link', 'joint'], 'l']);
-  for (const bad of ['<robot>', '<robot></link>', '<a/><b/>', '<robot x="1" x="2"/>', '<robot name="&nope;"/>', '<robot><!-- open </robot>']) assert.throws(() => parseXml(bad), XmlError, bad);
+  for (const bad of ['<robot>', '<robot></link>', '<a/><b/>', '<robot x="1" x="2"/>', '<robot name="&nope;"/>', '<robot><!-- open </robot>']) assert.throws(() => parseXml(bad), { code: 'XML_MALFORMED' }, bad);
 });
 
 test('the export read back: the URDF spec\'s structure, the joints, the inertials as RM3, the meshes named and present', async () => {

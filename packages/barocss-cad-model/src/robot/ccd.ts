@@ -8,6 +8,7 @@
 import type { JointTree } from './joints';
 import { at, sCurve, trapezoid, type Profile, type ProfileKind } from './profile';
 import { sweepPath, type SweepLink, type SweepResult } from './sweep';
+import { refusal } from '../engine/refusal';
 
 export interface JointLimits { v: number; a: number; j?: number }
 export interface TimedPath {
@@ -28,14 +29,13 @@ export interface TimedSweep {
   clearanceProfile: [number, number][];
   segments: TimedSegment[]; samples: number; skipped: SweepResult['skipped'];
 }
-export class CcdError extends Error { constructor(message: string) { super(message); this.name = 'CcdError'; } }
 
 /** The clearance counted as contact (mm) for the time of impact. */
 export const CCD_TOLERANCE = 1e-9;
 
 /** The segments' timing: each one's normalised profile over distance 1, its limits the tightest joint's. */
 export function timePath(tree: JointTree, path: TimedPath): TimedSegment[] {
-  if (path.waypoints.length < 2) throw new CcdError('a path needs at least two waypoints');
+  if (path.waypoints.length < 2) throw refusal('PATH_TOO_SHORT', 'a path needs at least two waypoints');
   const keys = tree.joints.filter(j => j.type !== 'fixed' && !j.mimic).map(j => j.key), out: TimedSegment[] = [];
   let t = 0;
   for (let k = 0; k + 1 < path.waypoints.length; k++) {
@@ -44,7 +44,7 @@ export function timePath(tree: JointTree, path: TimedPath): TimedSegment[] {
     for (const key of keys) {
       const d = Math.abs((to[key] ?? 0) - (from[key] ?? 0)); if (!(d > 0)) continue;
       const l = path.limits[key] ?? path.limits.default;
-      if (!l || !(l.v > 0 && l.a > 0) || (path.profile === 's-curve' && !((l.j ?? 0) > 0))) throw new CcdError(`joint ${key} has no ${path.profile === 's-curve' ? 'velocity, acceleration and jerk' : 'velocity and acceleration'} limits above 0`);
+      if (!l || !(l.v > 0 && l.a > 0) || (path.profile === 's-curve' && !((l.j ?? 0) > 0))) throw refusal('LIMITS_MISSING', `joint ${key} has no ${path.profile === 's-curve' ? 'velocity, acceleration and jerk' : 'velocity and acceleration'} limits above 0`);
       v = Math.min(v, l.v / d); a = Math.min(a, l.a / d); if (l.j !== undefined) j = Math.min(j, l.j / d);
     }
     const profile = v === Infinity ? null : path.profile === 's-curve' ? sCurve(1, v, a, j) : trapezoid(1, v, a);

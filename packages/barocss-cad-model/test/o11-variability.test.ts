@@ -27,9 +27,9 @@ async function record(doc: StudioDoc): Promise<string> {
     ...(doc.instances?.length ? { clearance: json({ ...clearanceMap(await assemblyPlacedBodies(doc, evaluate)), timing: undefined }) } : {}) });
 }
 const fresh = async (doc: StudioDoc) => { forgetSnapshots(); return record(doc); };
-const docOf = (r: ReturnType<typeof variantOf>): StudioDoc => { assert.ok('doc' in r, 'error' in r ? r.error : ''); return r.doc; };
+const docOf = (r: ReturnType<typeof variantOf>): StudioDoc => r.doc;
 async function oracle(master: StudioDoc, a: string, b: string) {
-  assert.equal(checkVariability(master), null);
+  assert.deepEqual(checkVariability(master), []);
   assert.equal(docOf(variantOf(master, {})), master, 'every value at its default: the master itself');
   const A = docOf(variantNamed(master, a)), B = docOf(variantNamed(master, b));
   assert.notEqual(json(A.nodes) + json(A.instances) + json(A.parameters), json(master.nodes) + json(master.instances) + json(master.parameters), `${a} changes the part`);
@@ -75,7 +75,7 @@ test('O11: no cycle by construction; a mate loop reached through a mate input is
     { id: 'm2', kind: 'coincident', a: { part: 'b', face: 'n1.top' }, b: { part: 'a', face: 'n1.bottom' } },
   ];
   const doc: StudioDoc = { ...rectanglePart(64, 32, 8), instances: [a, b], mates, variability: { version: 1, inputs: [{ name: 'gap', type: 'number', default: 2, bindings: [{ to: 'mate', mate: 'm1', field: 'distance' }] }] } };
-  const r = variantOf(doc, { gap: 7 }); assert.ok('doc' in r);
+  const r = variantOf(doc, { gap: 7 });
   const solver = solveAssembly([a, b], r.doc.mates!, tablesFor(r.doc), [a, b]).problems;
   assert.deepEqual(r.problems, solver);
   assert.ok(r.problems.length && r.problems.every(p => /closes a loop/.test(p.reason)), JSON.stringify(r.problems));
@@ -99,14 +99,14 @@ test('O11: each refusal typed, naming what it refers to', () => {
     [withInputs([{ name: 'c', type: 'choice', choices: [{ value: 'a' }, { value: 'b' }], default: 'a', bindings: [{ to: 'component', instance: 'pin', options: { a: { like: 'pin' }, b: { like: 'ghost' } } }] }]), /^\[INPUT_CHOICE\] c = "b": no placed part ghost/],
     [withInputs([n({ to: 'parameter', part: 'base', parameter: 't' })], { variants: [{ name: 'v', values: { x: 99 } }], active: 'w' }), /^\[VARIANT_UNKNOWN\] no variant w/],
   ];
-  for (const [d, want] of cases) assert.match(checkVariability(d) ?? 'null', want);
+  for (const [d, want] of cases) assert.match(checkVariability(d)[0]?.message ?? 'null', want);
   // (A shipped part that does not build where it is placed — here its hole wider than the cap; a part needing the
   // person's rows that are not loaded comes back the same way — is refused when chosen, typed, with the reason.)
   const cap = withInputs([{ name: 'c', type: 'choice', choices: [{ value: 'a' }, { value: 'b' }], default: 'a', bindings: [{ to: 'component', instance: 'pin', options: { a: { like: 'pin' }, b: { library: 'tslot-20', part: 'end-cap', params: { hole: 40 } } } }] }]);
-  assert.equal(checkVariability(cap), null);
-  assert.match((variantOf(cap, { c: 'b' }) as { error: string }).error ?? 'built', /^\[INPUT_CHOICE\] c = "b": tslot-20\/end-cap (does not build here|:)/);
+  assert.deepEqual(checkVariability(cap), []);
+  assert.throws(() => variantOf(cap, { c: 'b' }), { message: /^\[INPUT_CHOICE\] c = "b": tslot-20\/end-cap (does not build here|:)/ });
   const good = withInputs([n({ to: 'parameter', part: 'base', parameter: 't' }, { min: 4, max: 12, unit: 'mm' })]);
-  assert.match((variantOf(good, { x: 20 }) as { error: string }).error, /^\[INPUT_RANGE\] x = 20: a number from 4 to 12 mm/);
-  assert.match((variantOf(good, { y: 5 }) as { error: string }).error, /^\[INPUT_NAME\] no input y/);
-  assert.match((variantNamed(good, 'none') as { error: string }).error, /^\[VARIANT_UNKNOWN\] no variant none/);
+  assert.throws(() => variantOf(good, { x: 20 }), { message: /^\[INPUT_RANGE\] x = 20: a number from 4 to 12 mm/ });
+  assert.throws(() => variantOf(good, { y: 5 }), { message: /^\[INPUT_NAME\] no input y/ });
+  assert.throws(() => variantNamed(good, 'none'), { message: /^\[VARIANT_UNKNOWN\] no variant none/ });
 });

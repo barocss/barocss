@@ -10,7 +10,7 @@ import { receivePersonRowFiles } from '../src/engine/rowFiles';
 import { validRowSupplies } from '../src/engine/rowSources';
 import { mountCommand } from '../src/app/mounts';
 import type { Ctx } from '../src/app/commands';
-import { editMountRows, mountRowProblem, MOUNT_LIMITS, type StudioMountRow } from '../src/engine/mountRows';
+import { editMountRows, checkMountRow, MOUNT_LIMITS, type StudioMountRow } from '../src/engine/mountRows';
 
 // O14: mounts from the person's datasheet rows. The sample rows check; the validator's limits refuse, typed; rows load
 // only from a person's file (rows rule b), with receipts; a NEMA 17, a servo (a test row: no datasheet sample), a pillow
@@ -34,7 +34,7 @@ async function mounted(doc: StudioDoc, values: Record<string, unknown>) {
 const at = <T>(level: number, f: () => Promise<T>) => { const was = process.env.CAD_AUTONOMY; process.env.CAD_AUTONOMY = String(level); return f().finally(() => { if (was === undefined) delete process.env.CAD_AUTONOMY; else process.env.CAD_AUTONOMY = was; }); };
 
 test('O14: the sample rows check; the validator refuses what is outside its limits, typed and named', () => {
-  for (const r of [...SAMPLE.rows, SERVO]) assert.equal(mountRowProblem(r), null, r.id);
+  for (const r of [...SAMPLE.rows, SERVO]) assert.deepEqual(checkMountRow(r), [], r.id);
   assert.deepEqual(SAMPLE.rows.map(r => r.id), ['nema17', 'nema23', 'ucp204', 'ucfl204']);
   // (A row with a source cites its maker's page; an estimate lists every field unchecked, and says where each number is from.)
   for (const r of SAMPLE.rows) assert.ok(r.source ? /https:\/\/.*read 2026-10-24/.test(r.source) : r.estimate && r.unchecked!.length === 6 && Object.keys(r.fieldSources!).length >= 4, r.id);
@@ -50,7 +50,7 @@ test('O14: the sample rows check; the validator refuses what is outside its limi
     [{ ...n17, torque: 1 }, /unknown field torque/],
     [{ ...n17, holes: { pattern: 'circle', pcdMM: 40, count: 20, diameterMM: 3 } }, /count \(2–12\)/],
   ];
-  for (const [r, want] of bad) { const p = mountRowProblem(r); assert.ok(p?.startsWith('[MOUNT_RANGE] mount row nema17') || p?.startsWith('[MOUNT_RANGE] mount row servo-test'), String(p)); assert.match(p!, want); }
+  for (const [r, want] of bad) { const p = checkMountRow(r)[0]?.message; assert.ok(p?.startsWith('[MOUNT_RANGE] mount row nema17') || p?.startsWith('[MOUNT_RANGE] mount row servo-test'), String(p)); assert.match(p!, want); }
 });
 
 test('O14: rows load only from a person\'s file, with receipts; a row a mount uses stays', async () => {

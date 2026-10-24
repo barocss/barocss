@@ -3,6 +3,7 @@
 // palette's prefills are estimates for a first try, said so in their labels, and every one is a field to change.
 import { sectionLabel, withNode, type FrameAnchor, type FrameCorners, type FrameNotch, type MemberSection, type ModelNode } from '../engine/doc';
 import type { Command, Ctx, Field, Values } from './commands';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const };
 const KINDS = [{ value: 'rect-tube', label: 'Rectangular tube' }, { value: 'round-tube', label: 'Round tube' }, { value: 'angle', label: 'Angle' }, { value: 'channel', label: 'Channel' }, { value: 'i-beam', label: 'I/H beam' }, { value: 'tslot', label: 'T-slot (20 class)' }];
@@ -46,9 +47,9 @@ export function sectionOf(v: Values): MemberSection {
     case 'channel': return { kind: 'channel', height: n('h'), width: n('w'), web: n('tw'), flange: n('tf'), rootRadius: n('r1'), toeRadius: n('toe'), flangeSlope: n('slope') };
     case 'i-beam': return { kind: 'i-beam', height: n('h'), width: n('w'), web: n('tw'), flange: n('tf'), rootRadius: n('r1'), toeRadius: n('toe'), flangeSlope: n('slope') };
     case 'tslot': return v.cells === '2' ? { kind: 'tslot', cells: 2, ...TSLOT } : { kind: 'tslot', cells: 1, openSlots: 4, ...TSLOT };
-    case 'library': if (v.row) return { kind: 'library', id: String(v.row) }; throw new Error('Pick a row of your section library.');
+    case 'library': if (v.row) return { kind: 'library', id: String(v.row) }; throw refusal('FRAME_SECTION_PICK', 'Pick a row of your section library.');
   }
-  throw new Error('Pick a section kind.');
+  throw refusal('FRAME_SECTION_PICK', 'Pick a section kind.');
 }
 
 /** The section's fields still at the palette's estimate: a radius left at its prefill, and the T-slot's slot sizes. */
@@ -84,7 +85,7 @@ export const memberCommand: Command = {
   },
   build: (ctx, v) => {
     const start = (['x0', 'y0', 'z0'] as const).map(k => Number(v[k])) as [number, number, number], end = (['x1', 'y1', 'z1'] as const).map(k => Number(v[k])) as [number, number, number];
-    if (!(Math.hypot(end[0] - start[0], end[1] - start[1], end[2] - start[2]) > 0)) throw new Error('Give the member a start and an end apart.');
+    if (!(Math.hypot(end[0] - start[0], end[1] - start[1], end[2] - start[2]) > 0)) throw refusal('FRAME_MEMBER', 'Give the member a start and an end apart.');
     const roll = Number(v.roll) || 0, anchor = String(v.anchor) as FrameAnchor;
     const section = sectionOf(v), estimates = estimatesOf(v);
     if (v.path !== undefined && v.path !== 'straight') {
@@ -93,7 +94,7 @@ export const memberCommand: Command = {
       if (v.path === 'centerarc') return withNode(ctx.doc, { kind: 'frame', ...common, points: [start, end], segments: [{ from: 0, to: 1, center: point(['cx', 'cy', 'cz']) }] });
       if (v.path === 'througharc') return withNode(ctx.doc, { kind: 'frame', ...common, points: [start, end, point(['vx', 'vy', 'vz'])], segments: [{ from: 0, to: 1, through: 2 }] });
       if (v.path === 'tangentbend') return withNode(ctx.doc, { kind: 'frame', ...common, points: [start, point(['bx', 'by', 'bz']), end], segments: [[0, 1], [1, 2]], bends: [{ point: 1, radius: Number(v.radius) }] });
-      throw new Error('Pick a straight member, an arc by center or through a point, or a tangent bend.');
+      throw refusal('FRAME_MEMBER', 'Pick a straight member, an arc by center or through a point, or a tangent bend.');
     }
     const node: ModelNode = { kind: 'frame-member', section, start, end, ...(anchor !== 'centroid' ? { anchor } : {}), ...(roll ? { roll } : {}), ...(estimates.length ? { estimates } : {}) };
     return withNode(ctx.doc, node);
@@ -169,10 +170,10 @@ export const frameCommand: Command = {
     return [{ label: 'Edges', text: s ? `${s.segments.length} edge${s.segments.length === 1 ? '' : 's'}, ${s.points.length} points` : 'pick straight edges', done: !!s }];
   },
   build: (ctx, v) => {
-    for (const key of ['gap', 'branchOffset', 'notchPoint', 'notchDiameter', 'notchOffset', 'notchDepth', 'notchAngle']) if (v[key] !== undefined && !Number.isFinite(Number(v[key]))) throw new Error(`${key} must be a finite number.`);
+    for (const key of ['gap', 'branchOffset', 'notchPoint', 'notchDiameter', 'notchOffset', 'notchDepth', 'notchAngle']) if (v[key] !== undefined && !Number.isFinite(Number(v[key]))) throw refusal('FRAME_VALUE', `${key} must be a finite number.`);
     const sk = v.skeleton === 'edges' ? edgesSkeleton(ctx) : presetSkeleton(String(v.skeleton), Number(v.W), Number(v.D), Number(v.H), [Number(v.x), Number(v.y), Number(v.z)]);
-    if (!sk) throw new Error('Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset.');
-    if (preset(v) && !(Number(v.W) > 0 && Number(v.D) > 0 && (!['table', 'box'].includes(String(v.skeleton)) || Number(v.H) > 0))) throw new Error('Give the skeleton a width, a depth and a height above 0.');
+    if (!sk) throw refusal('FRAME_SKELETON_PICK', 'Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset.');
+    if (preset(v) && !(Number(v.W) > 0 && Number(v.D) > 0 && (!['table', 'box'].includes(String(v.skeleton)) || Number(v.H) > 0))) throw refusal('FRAME_VALUE', 'Give the skeleton a width, a depth and a height above 0.');
     const roll = Number(v.roll) || 0, anchor = String(v.anchor) as FrameAnchor, estimates = estimatesOf(v);
     const corners = (['mitre', 'butt', 'none'].includes(String(v.corners)) ? v.corners : 'mitre') as 'mitre' | 'butt' | 'none';
     const multi = v.multi === 'none' ? 'none' : 'order', tee = (['butt', 'cope', 'none'].includes(String(v.tee)) ? v.tee : 'butt') as 'butt' | 'cope' | 'none';
@@ -183,11 +184,11 @@ export const frameCommand: Command = {
     const finish: FrameCorners = { default: corners, multi, tee, ...(gap !== 0 ? { gap } : {}) };
     if (notchKind !== 'none') {
       const point = Number(v.notchPoint ?? 0) === 0 ? v.skeleton === 'l' ? 1 : v.skeleton === 'tee' ? 3 : 0 : Number(v.notchPoint) - 1;
-      if (!Number.isInteger(point) || point < 0 || point >= sk.points.length) throw new Error('Give the notch an existing joint point number.');
+      if (!Number.isInteger(point) || point < 0 || point >= sk.points.length) throw refusal('FRAME_NOTCH', 'Give the notch an existing joint point number.');
       let notch: FrameNotch;
       if (notchKind === 'holesaw') notch = { kind: 'holesaw', diameter: Number(v.notchDiameter), offset: Number(v.notchOffset ?? 0) };
       else if (notchKind === 'v') notch = { kind: 'v', depth: Number(v.notchDepth), angle: Number(v.notchAngle) };
-      else throw new Error('Pick no notch, a hole saw or a V notch.');
+      else throw refusal('FRAME_NOTCH', 'Pick no notch, a hole saw or a V notch.');
       finish.at = [{ point, kind: 'cope', through: 0, notch }];
     }
     const node: ModelNode = { kind: 'frame', points: sk.points, segments: sk.segments, section: sectionOf(v), ...(anchor !== 'centroid' ? { anchor } : {}), ...(roll ? { roll } : {}), corners: finish, ...(estimates.length ? { estimates } : {}) };

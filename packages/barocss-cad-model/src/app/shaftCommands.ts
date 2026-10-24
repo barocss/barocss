@@ -3,8 +3,9 @@
 // estimates for a first try, said so in their labels — key and ring sizes come from the user's own rows (none built in).
 import { featureLabel, leafBodies, withNode, type ModelNode } from '../engine/doc';
 import { bodyKeyFor } from '../engine/ids';
-import { bearingContextOf, bearingHousingRefProblem, type BearingAssemblyContext, type BearingAssemblyInput, type BearingHousingRef } from '../engine/bearingContext';
+import { bearingContextOf, checkBearingHousingRef, type BearingAssemblyContext, type BearingAssemblyInput, type BearingHousingRef } from '../engine/bearingContext';
 import { ringRowsFor } from '../engine/rings';
+import { refusal, refused } from '../engine/refusal';
 import type { Command, Ctx, Field, Values } from './commands';
 
 const ok = { ok: true as const };
@@ -131,11 +132,11 @@ export const bearingHousingValue = (ref: BearingHousingRef): string => `part:${J
 export function bearingHousingPatch(value: string): { housing?: number; housingRef?: BearingHousingRef } {
   if (value === 'none') return {};
   if (value.startsWith('part:')) {
-    let ref: unknown; try { ref = JSON.parse(value.slice(5)); } catch { throw new Error('[BEARING_HOUSING_REFERENCE] invalid Housing choice'); }
-    const why = bearingHousingRefProblem(ref); if (why || !ref) throw new Error(why ?? '[BEARING_HOUSING_REFERENCE] invalid Housing choice');
+    let ref: unknown; try { ref = JSON.parse(value.slice(5)); } catch { throw refusal('BEARING_HOUSING_REFERENCE', 'invalid Housing choice'); }
+    const [why] = checkBearingHousingRef(ref); if (why) throw refused(why); if (!ref) throw refusal('BEARING_HOUSING_REFERENCE', 'invalid Housing choice');
     return { housingRef: ref as BearingHousingRef };
   }
-  if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value))) throw new Error('[BEARING_HOUSING_REFERENCE] invalid local Housing index');
+  if (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value))) throw refusal('BEARING_HOUSING_REFERENCE', 'invalid local Housing index');
   return { housing: Number(value) };
 }
 export function bearingHousingOptions(nodes: readonly ModelNode[], assembly?: BearingAssemblyInput, context?: BearingAssemblyContext): { value: string; label: string }[] {

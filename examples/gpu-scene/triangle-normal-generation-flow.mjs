@@ -217,7 +217,7 @@ for (const [name, gpu] of providers) {
     assert(error instanceof gpu.TriangleGeometryError, label + ': actual public error');
     assert.equal(error.code, code, label);
     assert.equal(error.name, 'TriangleGeometryError');
-    assert(error.message.startsWith('Triangle geometry: ')); assert(error.message.length <= 1024);
+    assert(error.message.startsWith(`[${code}] Triangle geometry: `)); assert(error.message.length <= 1024);
     if (cause !== undefined) assert.strictEqual(error.cause, cause, label + ': original cause');
     if (text !== undefined) assert(error.message.includes(text), label + ': diagnostic detail');
     if (label === 'incident_face_disagreement') assert(error.cause instanceof RangeError);

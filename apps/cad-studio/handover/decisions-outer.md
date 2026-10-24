@@ -8450,3 +8450,162 @@ regression can be pinned to one of them.
 - After R7.3a, the queue goes on to R7.3c (one mass and one bounds function; `stepFor` becomes
   `exportStudioStep(doc, options)` with `timestamp` in options; readonly vectors across packages), then R7.3b's
   cad-model follow-up (bodyMass inertia in g·mm²) once the kernel's lands.
+
+## R7.3a batch 1 closed — validators, coded throws and operations on one shape, no text changed (2026-10-24)
+
+**Done (4a2e534e9, on integration a1857acec).**
+- Before it, step 1's tree (a1857acec) was checked again: fingerprint 1125c4eb… (152 documents), cad-model 1028/1028,
+  studio 286/286.
+- **Validators → `check…(x): Problem[]`** (none, or the first problem), for those whose texts carry a code:
+  checkDrawingScope, checkManufacturingDrawing, checkPrintPreview, checkDocumentPrintPreview, checkBearingHousingRef,
+  checkDocumentBearingHousing, checkMountRow, checkFrame (`Problem<FrameCode>`), checkValue, checkVariability,
+  checkSkeletonEdit, checkPartDelete, checkPartEdit.
+  - A caller that kept a string uses `firstProblem()`; one that threw throws `refused(problem)`.
+  - `Problem` is generic in its code (`Problem<C>`), so a validator can say which codes it returns.
+- **The 43 `throw new Error('[CODE] …')`** are `refusal('CODE', '…')`. frameGeometry's two `[${code}]` throws are too,
+  its codes typed as `FrameGeometryCode`.
+- **`refusal()` writes the prefix itself.** BarocssError's constructor drops the first `[CODE] ` it finds anywhere in
+  the message. So step 1's `refusal(code, text)` would have dropped a nested refusal's own `[CODE] ` (for example
+  BEARING_HOUSING_EVALUATION quoting an evaluation error). `refusal()` now passes `[CODE] text`, so the text is byte for
+  byte what was written. `coded(code, text)` is for a text written already, such as NO_SIZES.
+- **Operations throw instead of returning `{ error }`:**
+  - variantOf and variantNamed, with `VARIANT_CODES`;
+  - boundConstraints, solvedSkeleton and resolveSkeletons, with `SKELETON_CODES`; resolveSkeletons rethrows with the
+    feature named, as its old text did;
+  - withManufacturingDrawing, with DRAWING_SECTION_REFERENCES.
+
+  Their callers catch only those codes and show the same text: the chat tools, part.ts's evaluated view,
+  useVariants, App's parameter change, the skeleton editor and its draft diagnosis. Anything else is rethrown, as before.
+- **Kept on purpose:**
+  - frameGeometry's `{ code, error }`: a query that seven callers branch on, not a refusal;
+  - readStudioDoc's `{ error }`: a reader's result;
+  - the chat tools' `{ error }` outcomes: the tool layer, per §6.
+- **Moved to batch 2:** the row validators whose texts have no code (ring, fastener, fastener size, casting rule), and
+  editRows' texts.
+- **Studio call sites moved with the change** (the GPU lane's files named):
+  - `viewport/printSettings.ts` and `App.tsx`: one import, the print check, the parameter change;
+  - `state/useVariants.ts`, `skeleton/skeletonTool.ts`, `skeleton/useSkeletonEditor.tsx`.
+- **The fingerprint's `message(e)` records `${e.name}`,** and BarocssError's name differs from Error's. No recorded
+  document throws (the records have no `threw`), so nothing moved. A refusal that starts throwing where a document is
+  recorded would show the name: watch for it in batch 2.
+- **Verified (T2):**
+  - fingerprint **1125c4eb… byte-identical** (152 documents);
+  - cad-model 1028/1028, studio 286/286 (TEST_CONCURRENCY=4, scratch worktree);
+  - tsc (model, studio); eslint 0 errors (20 old warnings).
+  - Flow not run: no UI text or step changed.
+
+## R7.3a batch 2 closed — every cad-model refusal coded, each moved text recorded (2026-10-24)
+
+**Done (7ccc22dd9, merged with integration 4ff6208b7 as 437125dab).**
+- **The rule for every moved text:** after = `[CODE] ` + before, nothing else in the words changes. Three exceptions:
+  - XmlError's text is `[XML_MALFORMED] XML at N: …`, with N in `details.at` as well.
+  - A `.bcad` that can't be read keeps the container's code in front:
+    `[CONTAINER_DAMAGED] This model file could not be read: the file is cut short.` (it was
+    `This model file could not be read: the file is cut short.`).
+  - editRows' two texts are `[ROW_UNKNOWN] no <noun> … to remove (…)` and `[ROW_IN_USE] <noun> … <used>`.
+- **The seven classes folded:** ActuatorError, CcdError, ProfileError, ModelReadError, XmlError, ContainerError and
+  SketchDxfError. Nothing caught them by class; the only `instanceof`, studio test robot-urdf's, now checks
+  `{ code: 'XML_MALFORMED' }`.
+- **94 throws coded.** Those whose shared text was already coded (NO_SIZES and noSizeRow, NO_MOUNTS and noMountRow,
+  ROWS_NOT_FROM_PERSON) are thrown with `coded()`, their text unchanged.
+- **Kept plain Errors, as internal invariants rather than refusals:**
+  - `chat/contract.ts:98` (an unclassified tool);
+  - `engine/wireDoc.ts:96` and `engine/meshWire.ts:44` (the worker wire);
+  - `engine/evaluate.ts:349, :548` (a bead with no origin body);
+  - `engine/part.ts:77` (a skeleton sent to the kernel);
+  - the test scenarios' setup in `team/parts.ts:101` and `team/boardScenario.ts:35`.
+- **Row validators:** `checkRingRow`, `checkFastenerRow`, `checkFastenerSizeRow` and `checkCastingRuleRow` return
+  `Problem[]` (RING_ROW, FASTENER_ROW, FASTENER_SIZE_ROW, CASTING_RULE_ROW). editRows' `RowEdit.problem` stays
+  `string | null`, because the kernel's row validators feed it too; cad-model's pass through `firstProblem`.
+- **What is left of §6 in cad-model:**
+  - the row editors' `{ doc } | { error }` results, which the chat's load_rows and the studio's row panels read;
+  - readStudioDoc's `{ error }`, a reader's result.
+
+  Both go with R7.3c's assembly core functions, where the same callers move.
+- **The refusal table:** `apps/library-docs/scripts/refusals.mjs` (approved by the coordinator) also reads
+  `refusal|problem|coded('CODE', …)` calls, with an upper-snake literal code. The output format and module column are
+  unchanged.
+  - `_refusals.md` is regenerated: 145 → 254 codes, none gone.
+  - It brings back step 1's codes, which had dropped out (the robot, print, team, chat and DXF ones).
+  - The kernel's coming pattern (core/barocss-error.ts) isn't on integration yet; the scraper reads it once it is.
+- **Fingerprint lines moved: none.** It is 1125c4eb… byte-identical (152 documents), because no recorded document
+  reaches a batch-2 text.
+- **The moved texts by code:** count, files, the text before (after = `[CODE] ` + it).
+
+| Code | Files | n | Before |
+|---|---|---|---|
+| ACTUATOR_INPUT | `robot/actuators.ts` | 2 | unit "…" is not known (…); the dwell is a time of 0 s or more |
+| ALIGN_PICK | `app/alignCommand.ts` | 2 | Pick the face of the body to move.; Click the flat face of another body to put it on (or choose the floor). |
+| ALIGN_TURN | `app/alignCommand.ts` | 1 | The faces must face along X, Y or Z for the body to be turned onto it: turn it first … |
+| CAP_PICK | `app/weldmentCommands.ts` | 1 | (an expression: p) |
+| CASTING_RULE_ROW | `engine/castingRuleRows.ts` | 16 | a casting rule row is an object { id, process, key, value, unit, description, source } …; a casting rule row needs an id; …: process is one of …; …: allowance is shrink or machining (or left out, for a limit); …: unknown field …; … |
+| CONTAINER_DAMAGED | `engine/container.ts` | 5 | the file is cut short; a mesh chunk is malformed; a mesh chunk does not match its hash (……): the file is damaged; the file has no document |
+| CONTAINER_NEWER | `engine/container.ts` | 1 | this file was saved by a newer cad-studio (container version …; this one reads …) |
+| DECIMATE_KEEP | `app/commands.ts` | 1 | Keep between 1 and 99% of the triangles. |
+| DIRECT_DEGREE | `engine/direct.ts` | 1 | The curve is already degree 5, the highest raised to. |
+| DIRECT_ID | `engine/direct.ts` | 1 | No free id prefix. |
+| DIRECT_INTERSECT | `engine/direct.ts` | 2 | These surfaces cannot be intersected: ….; These surfaces do not meet. |
+| DIRECT_KNOT | `engine/direct.ts` | 1 | That knot cannot come out without moving the curve more than … mm (or it has none inside). |
+| DIRECT_LOFT | `engine/direct.ts` | 1 | Loft through 2 to 15 curves. |
+| DIRECT_LOOP | `engine/direct.ts` | 3 | Pick four curves that meet end to end in a loop.; The four curves do not meet end to end: each must start where another ends.; The curves do not close into a loop. |
+| DIRECT_PICK | `engine/direct.ts` | 4 | … is not a curve or a surface of its source.; No such object.; Pick a curve.; Pick a surface. |
+| DIRECT_PLANE | `engine/direct.ts` | 1 | The curve lies in the plane … = …: it does not cross it. |
+| DIRECT_RANGE | `engine/direct.ts` | 1 | The curves run over different parameter ranges: trim or rebuild them to one range first. |
+| DIRECT_SOURCE | `engine/direct.ts` | 2 | (an expression: r.diagnostics.map(d => d.message); This CAD source has no curves or surfaces. |
+| DIRECT_VALUE | `engine/direct.ts` | 6 | Extend by a positive distance.; A scale is a positive factor.; Each stretch is a positive factor.; A shear moves one axis by another: pick two different axes.; Give the shear a factor.; A name is needed. |
+| DRAFT_ANGLE | `app/commands.ts` | 1 | A draft angle is not 0 and below 45° in size. |
+| DRAFT_PICK | `app/commands.ts` | 1 | (an expression: d) |
+| FACE_DISTANCE | `app/profileCommands.ts` | 1 | Give the face a distance to move: out (+) or in (−). |
+| FASTENER_GRIP | `app/fasteners.ts` | 1 | Give the joint its grip: the thickness the bolt clamps (mm). |
+| FASTENER_LENGTH | `app/fasteners.ts` | 2 | … … come …–… mm long (…).; … × … is too short for this joint: it needs … mm (grip … + washer … + nut … + 2 … |
+| FASTENER_POSITION | `app/fasteners.ts` | 1 | Give the fastener a position (X, Y and Z in mm). |
+| FASTENER_ROW | `engine/fastenerRows.ts` | 11 | a fastener row is an object { id, kind, size, lengthMM (a screw or bolt), source \| …; a fastener row needs an id; …: unknown field …; …: kind is one of …; …: size is the thread's, as "M6"; …: a …'s lengthMM is a number of mm above 0; …: a … has no lengthMM; … |
+| FASTENER_SIZE_ROW | `app/commands.ts`, `app/fasteners.ts`, `engine/fastenerSizeRows.ts` | 14 | (an expression: noSizeRow(String(v.thread); (an expression: noSizeRow(String(v.size); a fastener size row is an object { id (M6), d, pitch, s, k, m, dk, ks, socket, wd1, …; a fastener size row\'s id is its thread size, as "M6"; …: unknown field …; … |
+| FILLET_CHAIN | `app/commands.ts` | 1 | A varying radius needs the picked edges to form one open chain: its two ends take the … |
+| FRAME_MEMBER | `app/frameCommands.ts` | 2 | Give the member a start and an end apart.; Pick a straight member, an arc by center or through a point, or a tangent bend. |
+| FRAME_NOTCH | `app/frameCommands.ts` | 2 | Give the notch an existing joint point number.; Pick no notch, a hole saw or a V notch. |
+| FRAME_SECTION_PICK | `app/frameCommands.ts` | 2 | Pick a row of your section library.; Pick a section kind. |
+| FRAME_SKELETON_PICK | `app/frameCommands.ts` | 1 | Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset. |
+| FRAME_VALUE | `app/frameCommands.ts` | 2 | … must be a finite number.; Give the skeleton a width, a depth and a height above 0. |
+| GEAR_PICK | `app/primitives.ts` | 1 | Select one spur gear or internal gear to mesh with. |
+| GUSSET_PICK | `app/weldmentCommands.ts` | 1 | (an expression: p) |
+| HOLE_PATTERN | `app/commands.ts` | 3 | A hole pattern has 2 to 64 holes.; The row’s step must be longer than the hole’s diameter, or the holes run into each other.; Put the first hole away from the circle’s centre: the copies turn round it. |
+| HOLE_SIZE | `app/commands.ts` | 2 | The counterbore must be wider than the hole.; The countersink must be wider than the hole. |
+| IGES_EXPORT | `engine/direct.ts` | 2 | There are no visible curves or surfaces to export.; IGES export takes at most 16 curves and surfaces: hide some first. |
+| IGES_READ | `engine/direct.ts` | 1 | This IGES file cannot be read (…): only untransformed NURBS curves and surfaces … |
+| LIBRARY_ID | `library/libraries.ts` | 2 | … is a built-in library: give yours another id; … is a … library: give this one another id |
+| LIBRARY_UNKNOWN | `library/libraries.ts` | 1 | No library … (libraries: …) |
+| LIMITS_BAD | `robot/profile.ts` | 2 | a trapezoid needs velocity and acceleration limits above 0; an S-curve needs velocity, acceleration and jerk limits above 0 |
+| LIMITS_MISSING | `robot/ccd.ts`, `robot/dynamics.ts` | 2 | joint … has no … limits above 0; an S-curve needs a jerk limit for each moving joint |
+| LOFT_SECTIONS | `app/profileCommands.ts` | 1 | (an expression: s.error) |
+| MERGE_MISSING | `chat/merge.ts` | 1 | The merged part names …, which it does not have. |
+| MERGE_SUPERSEDED | `chat/merge.ts` | 1 | The evaluation was superseded while the chat turn was merged. |
+| MESH_NOT_LOADED | `engine/container.ts`, `engine/part.ts` | 2 | the mesh data …… is not loaded: it cannot be saved; The mesh's data (……) is not loaded: open the file it was saved in again |
+| MODEL_READ | `robot/modelCheck.ts` | 11 | …: … numbers expected, got "…"; … is missing or not a number; not an SDF 1.11 document (<… version="…">); no <model>; link …: its pose is not in the model frame; link …: an inertial frame turned from the link's is not read; … |
+| MOUNT_ROW | `app/mounts.ts` | 2 | (an expression: NO_MOUNTS); (an expression: noMountRow(String(v.row) |
+| NO_CHANGE | `app/alignCommand.ts` | 1 | It is already there. |
+| PATH_TOO_SHORT | `robot/ccd.ts` | 1 | a path needs at least two waypoints |
+| PRIMITIVE_SIZE | `app/primitives.ts` | 4 | The tube radius must be smaller than the ring radius.; The inner radius must be smaller than the outer one. |
+| RING_ROW | `engine/rings.ts` | 9 | a ring row is an object { id, shaftDiameterMM, grooveDiameterMM, grooveWidthMM, source …; a ring row needs an id; …: unknown field …; …: designation is text; …: … must be a number of mm above 0; …: the groove's Ø… must be below the shaft's Ø…; … |
+| ROWS_NOT_FROM_PERSON | `engine/rowSources.ts` | 1 | (an expression: ROWS_NOT_FROM_PERSON) |
+| ROW_FILES | `engine/rowFiles.ts` | 4 | Invalid row-file conversation.; At most 32 row files per conversation.; A row file needs a JSON filename, text and its user conversation turn.; Row files are limited to 256 KiB each and 1 MiB per conversation. |
+| SHEET_PICK | `app/sheetCommands.ts` | 3 | Pick one finished sketch.; Pick one straight edge of a sheet.; Pick a corner edge of a sheet. |
+| SHEET_VALUE | `app/sheetCommands.ts` | 6 | Give the sheet a thickness and a bend radius above 0.; The K-factor lies from 0 (the inner face) to 1 (the outer face); 0.3–0.5 is usual.; Give the profile a base, a leg, a width (and a lip) above 0.; An L bends between 0 and 180°.; … |
+| SKETCH_PARAMETER | `sketch/dxf.ts` | 1 | The sketch uses the parameter “…”, which has no value. |
+| SPLIT_PLANE | `app/commands.ts` | 1 | Give the plane a direction: its normal must not be zero. |
+| SWEEP_PATH | `app/profileCommands.ts` | 1 | (an expression: path) |
+| TRIM_CURVE | `engine/trim.ts` | 4 | The curve does not close: trim by a closed curve (a loop).; The curve crosses itself on the surface: trim by a simple loop.; The curve encloses nothing on the surface (it lies along it edge-on, or off its edge).; … |
+| XML_MALFORMED | `robot/urdfCheck.ts` | 1 | XML at …: … |
+| ZIP_LIMIT | `io/zip.ts` | 3 | zip: … entries (at most 65 535 without ZIP64); zip: … is past 4 GiB (no ZIP64); zip: the archive is past 4 GiB (no ZIP64) |
+
+- **Verified (T2):**
+  - cad-model 1028/1028, studio 286/286 (scratch worktree, TEST_CONCURRENCY=4);
+  - the affected model files 315/315 before the commit;
+  - after merging the tip: facade tests 25/25, studio tsc clean, check:docs passes (33 pages, 595 labels);
+  - cad-model tsc: one error, `src/api/assemblyCore.ts:73`, batch 1's variantOf meeting R7.5 (the API lane's, routed);
+  - eslint 0 errors.
+  - Not run: the flow, the kernel suite, RB.
+    - The flow's only step on a moved text is O139's ring rows. It matches `/used by a retaining ring/` without an
+      anchor, so it holds with `[ROW_IN_USE]` in front.
+    - The studio's row panels (RingRows) show the error as the toast's hint, code included, as coded row refusals
+      already did. Stripping it there is the panels' call, a follow-up.

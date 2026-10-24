@@ -13,7 +13,7 @@ export const SourceSceneBoundsDiagnosticCode = Object.freeze({
 export type SourceSceneBoundsDiagnosticCode = typeof SourceSceneBoundsDiagnosticCode[keyof typeof SourceSceneBoundsDiagnosticCode];
 export class SourceSceneBoundsError extends BarocssError {
   constructor(readonly code: SourceSceneBoundsDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Source scene bounds: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, 'Source scene bounds: ' + detail, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'SourceSceneBoundsError';
   }
 }

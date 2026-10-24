@@ -7,6 +7,7 @@
 import type { StudioDoc } from './doc';
 import { CAST_FAMILIES, MATERIALS_DATA, processProfile, type CastFamily, type CastingAllowances, type MachiningClass, type ProcessProfile, type ProcessThreshold, type WebSource } from '../library/materials';
 import { isObj } from '../util/guards';
+import { firstProblem, problem, type Problem } from './refusal';
 
 type CastingProcess = 'die-casting' | 'sand-casting';
 const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'sand-casting'];
@@ -29,39 +30,39 @@ const FIELDS = {
   machining: new Set(['id', 'process', 'allowance', 'class', 'label', 'bands', 'page']),
 };
 
-/** What is wrong with a casting rule row, or null. */
-export function castingRuleRowProblem(r: unknown): string | null {
-  if (!isObj(r)) return 'a casting rule row is an object { id, process, key, value, unit, description, source } or a pattern allowance table { id, process, allowance: shrink | machining, … }';
-  if (typeof r.id !== 'string' || !r.id.trim()) return 'a casting rule row needs an id';
+/** What is wrong with a casting rule row: none, or its one problem (CASTING_RULE_ROW). */
+export function checkCastingRuleRow(r: unknown): Problem[] {
+  if (!isObj(r)) return [problem('CASTING_RULE_ROW', 'a casting rule row is an object { id, process, key, value, unit, description, source } or a pattern allowance table { id, process, allowance: shrink | machining, … }')];
+  if (typeof r.id !== 'string' || !r.id.trim()) return [problem('CASTING_RULE_ROW', 'a casting rule row needs an id')];
   const at = `casting rule row ${r.id}`;
-  if (!CASTING_PROCESSES.includes(r.process as CastingProcess)) return `${at}: process is one of ${CASTING_PROCESSES.join(', ')}`;
+  if (!CASTING_PROCESSES.includes(r.process as CastingProcess)) return [problem('CASTING_RULE_ROW', `${at}: process is one of ${CASTING_PROCESSES.join(', ')}`)];
   const shape = r.allowance === undefined ? 'limit' : r.allowance === 'shrink' || r.allowance === 'machining' ? r.allowance : null;
-  if (!shape) return `${at}: allowance is shrink or machining (or left out, for a limit)`;
-  for (const k of Object.keys(r)) if (!FIELDS[shape].has(k)) return `${at}: unknown field ${k}`;
+  if (!shape) return [problem('CASTING_RULE_ROW', `${at}: allowance is shrink or machining (or left out, for a limit)`)];
+  for (const k of Object.keys(r)) if (!FIELDS[shape].has(k)) return [problem('CASTING_RULE_ROW', `${at}: unknown field ${k}`)];
   if (shape === 'limit') {
-    if (typeof r.key !== 'string' || !/^[A-Za-z]\w*$/.test(r.key)) return `${at}: key names the limit (as zincWallMinMM)`;
-    if (typeof r.value !== 'number' || !Number.isFinite(r.value)) return `${at}: value is a number`;
-    for (const k of ['unit', 'description', 'source'] as const) if (typeof r[k] !== 'string' || !(r[k] as string).trim()) return `${at}: ${k} is text`;
-    if (r.page !== undefined && !pageOk(r.page)) return `${at}: page is { url (https), read (YYYY-MM-DD), label, note? }`;
-    return null;
+    if (typeof r.key !== 'string' || !/^[A-Za-z]\w*$/.test(r.key)) return [problem('CASTING_RULE_ROW', `${at}: key names the limit (as zincWallMinMM)`)];
+    if (typeof r.value !== 'number' || !Number.isFinite(r.value)) return [problem('CASTING_RULE_ROW', `${at}: value is a number`)];
+    for (const k of ['unit', 'description', 'source'] as const) if (typeof r[k] !== 'string' || !(r[k] as string).trim()) return [problem('CASTING_RULE_ROW', `${at}: ${k} is text`)];
+    if (r.page !== undefined && !pageOk(r.page)) return [problem('CASTING_RULE_ROW', `${at}: page is { url (https), read (YYYY-MM-DD), label, note? }`)];
+    return [];
   }
-  if (typeof r.label !== 'string' || !r.label.trim()) return `${at}: label is text`;
-  if (!pageOk(r.page) || !(r.page.note ?? '').trim()) return `${at}: an allowance table names its page (url, read, label) and, in its note, how its units are read`;
-  if (!Array.isArray(r.bands) || !r.bands.length || !r.bands.every(isObj)) return `${at}: bands is a list`;
+  if (typeof r.label !== 'string' || !r.label.trim()) return [problem('CASTING_RULE_ROW', `${at}: label is text`)];
+  if (!pageOk(r.page) || !(r.page.note ?? '').trim()) return [problem('CASTING_RULE_ROW', `${at}: an allowance table names its page (url, read, label) and, in its note, how its units are read`)];
+  if (!Array.isArray(r.bands) || !r.bands.length || !r.bands.every(isObj)) return [problem('CASTING_RULE_ROW', `${at}: bands is a list`)];
   if (shape === 'shrink') {
-    if (!CAST_FAMILIES.includes(r.family as CastFamily)) return `${at}: family is one of ${CAST_FAMILIES.join(', ')}`;
+    if (!CAST_FAMILIES.includes(r.family as CastFamily)) return [problem('CASTING_RULE_ROW', `${at}: family is one of ${CAST_FAMILIES.join(', ')}`)];
     const bands = r.bands as Record<string, unknown>[], ends = bands.map(b => b.upToFt);
-    if (ends.at(-1) !== null || ends.slice(0, -1).some((e, k) => typeof e !== 'number' || !(e > 0) || (k > 0 && !(e > (ends[k - 1] as number)))) || bands.some(b => typeof b.inPerFt !== 'number' || !(b.inPerFt > 0) || Object.keys(b).some(x => x !== 'upToFt' && x !== 'inPerFt'))) return `${at}: shrink bands rise by upToFt (the last null: over it), each inPerFt above 0`;
-    return null;
+    if (ends.at(-1) !== null || ends.slice(0, -1).some((e, k) => typeof e !== 'number' || !(e > 0) || (k > 0 && !(e > (ends[k - 1] as number)))) || bands.some(b => typeof b.inPerFt !== 'number' || !(b.inPerFt > 0) || Object.keys(b).some(x => x !== 'upToFt' && x !== 'inPerFt'))) return [problem('CASTING_RULE_ROW', `${at}: shrink bands rise by upToFt (the last null: over it), each inPerFt above 0`)];
+    return [];
   }
-  if (!MACHINING.includes(r.class as string)) return `${at}: class is one of ${MACHINING.join(', ')}`;
+  if (!MACHINING.includes(r.class as string)) return [problem('CASTING_RULE_ROW', `${at}: class is one of ${MACHINING.join(', ')}`)];
   const bands = r.bands as Record<string, unknown>[];
-  if (bands.some((b, k) => typeof b.in !== 'number' || !(b.in > 0) || typeof b.upToIn !== 'number' || !(b.upToIn > (k ? bands[k - 1].upToIn as number : 0)) || Object.keys(b).some(x => x !== 'upToIn' && x !== 'in'))) return `${at}: machining bands rise by upToIn, each in above 0`;
-  return null;
+  if (bands.some((b, k) => typeof b.in !== 'number' || !(b.in > 0) || typeof b.upToIn !== 'number' || !(b.upToIn > (k ? bands[k - 1].upToIn as number : 0)) || Object.keys(b).some(x => x !== 'upToIn' && x !== 'in'))) return [problem('CASTING_RULE_ROW', `${at}: machining bands rise by upToIn, each in above 0`)];
+  return [];
 }
 /** Rows added (each checked; one with an id held already replaces it). */
 export function editCastingRuleRows(doc: StudioDoc, add: readonly unknown[]): { doc: StudioDoc } | { error: string } {
-  for (const r of add) { const p = castingRuleRowProblem(r); if (p) return { error: p }; }
+  for (const r of add) { const p = firstProblem(checkCastingRuleRow(r)); if (p) return { error: p }; }
   const was = doc.castingRules?.rows ?? [], incoming = add as StudioCastingRuleRow[], ids = new Set(incoming.map(r => r.id));
   return { doc: { ...doc, castingRules: { version: 1, rows: [...was.filter(r => !ids.has(r.id)), ...incoming] } } };
 }

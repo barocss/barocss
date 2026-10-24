@@ -70,8 +70,17 @@
 
 | Code | Raised in | For example |
 |---|---|---|
-| `[BAD_KEEPOUT]` | `chat` | clearance is a distance of 0 mm or more. |
+| `[ACTUATOR_INPUT]` | `robot` | unit "…" is not known (…) |
+| `[ALIGN_PICK]` | `app` | Pick the face of the body to move. |
+| `[ALIGN_TURN]` | `app` | The faces must face along X, Y or Z for the body to be turned onto it: turn it first (Rotate). |
+| `[APPROVAL_IS_THE_USERS]` | `team` | …: only the user moves a baseline |
+| `[BAD_CONNECTOR]` | `print` | a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d …, length …, count …, fit …, wall …) |
+| `[BAD_KEEPOUT]` | `chat` | …'s solid could not be made |
 | `[BAD_REFERENCE]` | `chat` | a reference has a name. |
+| `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
+| `[BAD_VALUE]` | `chat` | … is a size above 0 mm |
+| `[BAD_VALUES]` | `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
+| `[BASELINE_FROZEN]` | `team` | … is …: it is never changed; draft a new baseline with … as its parent |
 | `[BEAD_ACCOUNTING_INCOMPLETE]` | `frames` | no complete welded-part quantity: … |
 | `[BEAD_SHARED_CONTEXT]` | `chat/part`, `frames` | frames.beadOwnership: expected {version:1, policy:"equal-length"} or null to remove it |
 | `[BEARING_HOUSING_CYCLE]` | `engine` | … |
@@ -81,6 +90,11 @@
 | `[BEARING_HOUSING_SCOPE]` | `engine` | no immediate owner occurrence … |
 | `[BEARING_ROW_UNKNOWN]` | `engine` | a bearing names the row "…", which the document's bearing rows do not hold (rows: …) |
 | `[BEND_TABLE]` | `chat` | … |
+| `[BOM_INVALID]` | `team` | … |
+| `[BOOLEAN_REFUSED]` | `print` | a cavity (… triangles) could not be taken from the part even simplified to h/10: …; a coarser h makes a smaller cavity mesh |
+| `[BOUND]` | `chat` | a sketch point is bound to a parameter: change the parameter instead |
+| `[BRANCH_FLIP]` | `robot` | … at … rad closes on the other branch: not the one the linkage was assembled in |
+| `[CAP_PICK]` | `app` | … |
 | `[CASTING_ALLOWANCE]` | `chat/part` | allowance is mm a machined face, 0 to 100: …. |
 | `[CASTING_FACE]` | `casting`, `chat/part` | marked machined but not on the part: … |
 | `[CASTING_GATE]` | `chat/part` | gate is a point [x, y, z] (mm) on the part, where the metal comes in. |
@@ -88,6 +102,27 @@
 | `[CASTING_SHRINK]` | `chat/part` | shrink is a ratio (mm/mm), 0 to 0.1 (0.013 is 1.3 %): …. |
 | `[CONFIRM_IS_THE_USERS]` | `chat/part` | …: only the user confirms a requirement, in the studio; leave "confirmed" and "said" out. |
 | `[CONNECTOR_ROW_UNKNOWN]` | `engine` | an opening names the connector row "…", which the document's connector rows do not hold (rows: …) |
+| `[CONTAINER_DAMAGED]` | `engine` | the file is cut short |
+| `[CONTAINER_NEWER]` | `engine` | this file was saved by a newer cad-studio (container version …; this one reads …) |
+| `[CURVED_BODY]` | `print` | the part has … curved face… and …: a mesh cavity in a curved body needs the kernel's mixed facet–analytic Booleans (F3) |
+| `[DATUM_FIT]` | `chat` | … is not flat: its vertices are up to … mm off the best plane (at most … mm) |
+| `[DECIDED]` | `team` | … is already … |
+| `[DECIMATE_KEEP]` | `app` | Keep between 1 and 99% of the triangles. |
+| `[DIRECTION_NOT_AXIS]` | `print` | the print direction (…) is not along X, Y or Z |
+| `[DIRECT_DEGREE]` | `engine` | The curve is already degree 5, the highest raised to. |
+| `[DIRECT_ID]` | `engine` | No free id prefix. |
+| `[DIRECT_INTERSECT]` | `engine` | These surfaces cannot be intersected: …. |
+| `[DIRECT_KNOT]` | `engine` | That knot cannot come out without moving the curve more than … mm (or it has none inside). |
+| `[DIRECT_LOFT]` | `engine` | Loft through 2 to 15 curves. |
+| `[DIRECT_LOOP]` | `engine` | Pick four curves that meet end to end in a loop. |
+| `[DIRECT_PICK]` | `engine` | … is not a curve or a surface of its source. |
+| `[DIRECT_PLANE]` | `engine` | The curve lies in the plane … = …: it does not cross it. |
+| `[DIRECT_RANGE]` | `engine` | The curves run over different parameter ranges: trim or rebuild them to one range first. |
+| `[DIRECT_SOURCE]` | `engine` | This CAD source has no curves or surfaces. |
+| `[DIRECT_VALUE]` | `engine` | Extend by a positive distance. |
+| `[DRAFT_ANGLE]` | `app` | A draft angle is not 0 and below 45° in size. |
+| `[DRAFT_PICK]` | `app` | … |
+| `[DRAIN_NO_ROOM]` | `print` | a drain of Ø… at (…) does not fit inside the part's bottom |
 | `[DRAWING_OPTIONS]` | `chat`, `drawing` | Unknown drawing setting …. |
 | `[DRAWING_SCOPE]` | `drawing` | scope is {kind: part, part?: id} or {kind: assembly} |
 | `[DRAWING_SCOPE_AUTO]` | `chat` | automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained |
@@ -95,20 +130,45 @@
 | `[DRAWING_SECTION_REFERENCES]` | `drawing` | A changed or removed section has dimensions. Keep its definition or remove those dimensions explicitly first. |
 | `[DRIVE_ROW_UNKNOWN]` | `engine` | a … names the drive row "…", which the document's drive rows do not hold (rows: …) |
 | `[DRIVE_WHEELS]` | `engine` | a belt runs on two sprockets or pulleys: feature … is … |
-| `[FASTENER_SIZE_ROW]` | `engine` | no fastener sizes loaded — load your fastener sizes (samples/rows/fastener-sizes.json is an example) |
+| `[DWG_NOT_READ]` | `sketch` | this is a DWG file (AutoCAD …), and the studio reads DXF, not DWG. … |
+| `[DXF_EMPTY]` | `sketch` | no profile geometry (… entities…) |
+| `[DXF_MALFORMED]` | `sketch` | an odd number of lines: a group code without its value |
+| `[DXF_NESTED]` | `sketch` | a loop inside a hole (at (…, …) mm): an island in a hole is a sketch of its own |
+| `[DXF_OPEN]` | `sketch` | the profile is not closed at (…, …) mm: an edge ends there with nothing joining it… |
+| `[DXF_UNSUPPORTED]` | `sketch` | $INSUNITS …: only inches, feet, millimetres, centimetres and metres are read |
+| `[FACE_DISTANCE]` | `app` | Give the face a distance to move: out (+) or in (−). |
+| `[FASTENER_GRIP]` | `app` | Give the joint its grip: the thickness the bolt clamps (mm). |
+| `[FASTENER_LENGTH]` | `app` | … … come …–… mm long (…). |
+| `[FASTENER_POSITION]` | `app` | Give the fastener a position (X, Y and Z in mm). |
+| `[FASTENER_ROW]` | `engine` | a fastener row is an object { id, kind, size, lengthMM (a screw or bolt), source \| estimate: true } |
+| `[FASTENER_SIZE_ROW]` | `app`, `engine` | no fastener sizes loaded — load your fastener sizes (samples/rows/fastener-sizes.json is an example) |
+| `[FILLET_CHAIN]` | `app` | A varying radius needs the picked edges to form one open chain: its two ends take the two radii. |
 | `[FIT_FACE]` | `chat/part`, `engine` | … carries no tolerance class: give hole_class / shaft_class, or set the face's class first. |
 | `[FIT_TABLE]` | `engine` | … |
 | `[FRAME_KERF]` | `chat/part` | kerf is mm, 0 to 20. |
 | `[FRAME_LINK_MISSING]` | `chat`, `robot` | frame …: "link" is the part it is on ("base" or a part id) |
 | `[FRAME_LINK_STALE]` | `robot` | frame …: … is not a link of the robot as it stands (not joined to the base link). Mate it, put the frame on a link, or remove it (set_frames {"…": null}) |
-| `[FRAME_NAME]` | `chat`, `robot` | no frame … to remove (frames: …) |
+| `[FRAME_MEMBER]` | `app` | Give the member a start and an end apart. |
+| `[FRAME_NAME]` | `api`, `chat`, `robot` | no frame … to remove (frames: …) |
+| `[FRAME_NOTCH]` | `app` | Give the notch an existing joint point number. |
 | `[FRAME_PART_IN_USE]` | `frames` | … holds the sketch… … that … follow…: give those frames their own points, or delete them, first. |
 | `[FRAME_POSE]` | `chat`, `robot` | frame …: {link, position?, rotation?, kind?} |
 | `[FRAME_SECTION_IN_USE]` | `frames` | …: give those another section first. |
+| `[FRAME_SECTION_PICK]` | `app` | Pick a row of your section library. |
 | `[FRAME_SECTION_ROW]` | `frames` | two rows with one id. |
 | `[FRAME_SECTION_UNKNOWN]` | `chat`, `engine`, `frames` | no row "…" in the section library (rows: …) |
 | `[FRAME_SKELETON_IN_USE]` | `chat`, `frames` | feature … (a …) is followed by …: give those frames their own points, or delete them, first. |
+| `[FRAME_SKELETON_PICK]` | `app` | Pick straight edges (of a layout box or sketch) for the skeleton, or choose a preset. |
 | `[FRAME_STOCK_ROW]` | `chat` | row …: an id and a source (where the length comes from: your shop, a page) are needed. |
+| `[FRAME_VALUE]` | `app` | … must be a finite number. |
+| `[GEAR_PICK]` | `app` | Select one spur gear or internal gear to mesh with. |
+| `[GONE]` | `chat` | …'s features are no longer in the part |
+| `[GRID_TOO_FINE]` | `print` | … nodes at h … mm, over …: take h ≥ … mm |
+| `[GUSSET_PICK]` | `app` | … |
+| `[HOLE_PATTERN]` | `app` | A hole pattern has 2 to 64 holes. |
+| `[HOLE_SIZE]` | `app` | The counterbore must be wider than the hole. |
+| `[IGES_EXPORT]` | `engine` | There are no visible curves or surfaces to export. |
+| `[IGES_READ]` | `engine` | This IGES file cannot be read (…): only untransformed NURBS curves and surfaces (entities 126 and 128) in mm, at most 16, are read so far. … |
 | `[INPUT_CHOICE]` | `assembly` | …: … is not one of its choices |
 | `[INPUT_CONFLICT]` | `assembly` | … is driven by … and …: one input a target |
 | `[INPUT_DEFAULT]` | `assembly` | …: the master is the default variant |
@@ -116,14 +176,43 @@
 | `[INPUT_RANGE]` | `assembly` | … = …: true or false |
 | `[INPUT_TARGET]` | `assembly` | …: … has no parameter … |
 | `[INPUT_TYPE]` | `assembly`, `chat` | … (…) cannot drive … |
+| `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
+| `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
+| `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
+| `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
+| `[LOFT_SECTIONS]` | `app` | … |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
+| `[MERGE_MISSING]` | `chat` | The merged part names …, which it does not have. |
+| `[MERGE_SUPERSEDED]` | `chat` | The evaluation was superseded while the chat turn was merged. |
+| `[MESH_NOT_LOADED]` | `engine` | the mesh data …… is not loaded: it cannot be saved |
+| `[MODEL_READ]` | `robot` | …: … numbers expected, got "…" |
 | `[MOUNT_FACE]` | `app` | select the flat face the mount goes on |
 | `[MOUNT_RANGE]` | `app`, `engine` | mount row …: its bearing …'s bore Ø… is not its shaft Ø… |
 | `[MOUNT_ROW]` | `app`, `engine` | mount row … names bearing row …, not loaded — load your bearing rows |
-| `[NO_REFERENCE]` | `chat` | no reference …; references: …. |
+| `[NOTHING_TO_HOLLOW]` | `print` | no point of the part is deeper than the wall (… mm): it is thinner than … mm everywhere |
+| `[NOT_HOLLOW]` | `print` | the lattice fills a part hollowed by Hollow for printing (its exact shell): hollow the part first |
+| `[NOT_NEEDED]` | `print` | the part (… mm) fits … as it is |
+| `[NOT_ONE_LOOP]` | `robot` | a planar loop has three moving joints round it besides its pin; this one has … |
+| `[NOT_PLANAR]` | `robot` | … is not a turn about the pin's axis direction |
+| `[NOT_READ]` | `chat` | … could not be read: … |
+| `[NO_BASELINE]` | `team` | no baseline …; baselines: … |
+| `[NO_CHANGE]` | `app`, `team` | It is already there. |
+| `[NO_CLOSURE]` | `robot` | … at … rad: the loop does not close (its pin … mm apart after … steps) |
+| `[NO_DRAFT]` | `chat` | no draft dimension …; … |
+| `[NO_ECR]` | `team` | no ECR …; ECRs: … |
+| `[NO_FRAME]` | `robot` | no frame … on the tree (frames: …) |
+| `[NO_JOINTS]` | `robot` | nothing moves link … |
+| `[NO_LATTICE]` | `print` | no lattice is left in the cavity at L …, k … |
+| `[NO_LINK]` | `robot` | no link … on the tree |
+| `[NO_PIN]` | `robot` | the loop … has no concentric mate to close on |
+| `[NO_PRINTER]` | `print` | choose a printer first: the split is for its build volume |
+| `[NO_RANGE]` | `robot` | slide … has no limits: its range is not known |
+| `[NO_REFERENCE]` | `chat` | … has no face …; its faces: … |
+| `[NO_ROOM]` | `print` | the part could not be cut |
 | `[NO_ROW]` | `standards` | … … has no field …; fields: … |
 | `[NO_RUN]` | `team` | … is not a run for … … |
 | `[NO_TABLE]` | `standards` | no table …; tables: … |
+| `[ONE_BODY]` | `print` | hollowing takes a part of one body; this one has … |
 | `[ORING_ROW_UNKNOWN]` | `engine` | a gland names the O-ring row "…", which the document's O-ring rows do not hold (rows: …) |
 | `[OUTPUT_BUNDLE_INCOMPLETE]` | `chat` | … |
 | `[OUTPUT_BUNDLE_INVALID]` | `chat` | … |
@@ -131,28 +220,48 @@
 | `[OUTPUT_FAILED]` | `chat` | … |
 | `[OUTPUT_INPUT]` | `chat` | … |
 | `[OUTPUT_STALE]` | `chat` | Expected document revision …, current …. |
+| `[PATH_TOO_SHORT]` | `robot` | a path needs at least two waypoints |
+| `[PRIMITIVE_SIZE]` | `app` | The tube radius must be smaller than the ring radius. |
 | `[PRINT_PREVIEW_INPUT]` | `engine` | …: … |
 | `[REFERENCE_LOCKED]` | `chat` | … is a reference: the user removes it, in the studio. |
+| `[RESULT_NOT_OK]` | `team` | … cites …, which is ……: not a result to approve on |
+| `[RING_ROW]` | `engine` | a ring row is an object { id, shaftDiameterMM, grooveDiameterMM, grooveWidthMM, source \| estimate: true } |
 | `[RING_ROW_UNKNOWN]` | `engine` | a retaining ring names the row "…", which the document's ring rows do not hold (rows: …) |
 | `[ROWS_INPUT]` | `chat` | feature is only for a bend table. |
 | `[ROWS_KIND]` | `chat` | Use a row kind from describe features.load_rows. |
 | `[ROWS_NOT_FROM_PERSON]` | `engine` | Load a JSON file attached or pasted by the person in this conversation. Agent-written rows and suppliedBy claims are not accepted. |
+| `[ROW_FILES]` | `engine` | Invalid row-file conversation. |
+| `[ROW_IN_USE]` | `engine` | … … … |
+| `[ROW_UNKNOWN]` | `engine` | no … … to remove (…: …) |
 | `[SECTION_TABLE]` | `frames` | … |
+| `[SHEET_PICK]` | `app` | Pick one finished sketch. |
+| `[SHEET_VALUE]` | `app` | Give the sheet a thickness and a bend radius above 0. |
 | `[SHOP_ROWS_FLATTEN_SCOPE]` | `engine` | nested part … references distinct … row …; flattening must retain its row context |
 | `[SHOP_ROW_INHERITED_REMOVE]` | `engine` | cannot remove inherited ….… rows … from this part; change the parent rows |
 | `[SHRINK_POROSITY]` | `casting` | … hot spot… not fed from the gate through sections at least as thick (Chvorinov: they freeze last, cut off): … — feed … (a riser, a gate there) or make the … |
 | `[SKETCH3D_CONFLICT]` | `frames` | the skeleton's constraints cannot all hold: …. …Change or remove one of them. |
 | `[SKETCH3D_INPUT]` | `chat`, `frames` | skeleton.… |
 | `[SKETCH3D_PARAMETER]` | `frames` | constraint … (…) is bound to the parameter …, which the document does not have (parameters: …) |
+| `[SKETCH_PARAMETER]` | `sketch` | The sketch uses the parameter “…”, which has no value. |
 | `[SOURCE_NOT_SAID]` | `chat/part` | …: "…" is not in what the user wrote this conversation; quote their words exactly, or say it is assumed. |
+| `[SPLIT_PLANE]` | `app` | Give the plane a direction: its normal must not be zero. |
+| `[STALE_BASELINE]` | `team` | … was drafted on another state: … changed since; draft it again |
+| `[STALE_ECR]` | `team` | … was opened on the interfaces at …; they are at …: open it again on them |
+| `[STALE_RESULT]` | `team` | … cites …: its freshness cannot be read without evaluating the part |
 | `[STATED_KEPT]` | `chat/part` | … was … ("…"): an assumption does not … it. |
 | `[STOCK_ALLOWANCE]` | `chat/part` | allowance is mm a face, 0 to 100. |
 | `[STOCK_ROW]` | `chat` | row …: an id and a source (where the size comes from: your shop, a page) are needed. |
+| `[SWEEP_PATH]` | `app` | … |
+| `[TOO_BIG_TWO_WAYS]` | `print` | no split along one axis makes …'s pieces: the part (… mm) is too big two ways |
+| `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |
+| `[UNDRAINED]` | `print` | the lattice leaves empty regions undrained after … drains: take a larger cell or a finer voxel |
 | `[UNKNOWN_ARGUMENT]` | `chat` | … takes no …: its arguments are ….… |
 | `[VARIANT_UNKNOWN]` | `assembly`, `chat` | no variant … (variants: …) |
 | `[WELD_FIELD]` | `chat/part` | weld … (…): no field "…" (joint, kind, size, allRound, inner, notes). |
 | `[WELD_JOINT_UNKNOWN]` | `chat/part` | weld …: no joint "…" (joints: …). Use weld_list's ids. |
 | `[WELD_NO_JOINTS]` | `chat/part` | the part has no weld joints: frame members meeting at a corner, a butt or a face. |
+| `[XML_MALFORMED]` | `robot` | XML at …: … |
+| `[ZIP_LIMIT]` | `io` | zip: … entries (at most 65 535 without ZIP64) |
 
 ### The studio
 

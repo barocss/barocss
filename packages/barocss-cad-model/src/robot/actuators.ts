@@ -22,18 +22,18 @@ import type { JointTree } from './joints';
 import { coordinates, massMatrix, moveMotion, moveState, rnea, STANDARD_GRAVITY, type LinkBody, type MoveLimits, type MoveMotion } from './dynamics';
 import type { V3 } from './inertia';
 import type { ProfileKind, Segment } from './profile';
+import { refusal } from '../engine/refusal';
 
 /** Where a value comes from: a product page read in the browser (its URL, the date read, the page's own label), a
  * value derived from sourced ones (how), or an estimate (why, and what would replace it). */
 export type Source = { page: string; read: string; label: string } | { derived: string } | { estimate: string };
 export interface Value { v: number; unit: string; src: Source }
-export class ActuatorError extends Error { constructor(message: string) { super(message); this.name = 'ActuatorError'; } }
 
 /** Units as the pages give them, to SI (speeds stay in rpm, as every page gives them). */
 const UNITS: Record<string, number> = { V: 1, rpm: 1, Nm: 1, 'N·m': 1, mNm: 1e-3, Ncm: 1e-2, A: 1, mA: 1e-3, 'kg·m²': 1, 'gcm²': 1e-7, 'kgcm²': 1e-4, 'mNm/A': 1e-3, 'Nm/A': 1, 'rpm/mNm': 1e3, 'rpm/Nm': 1, kg: 1, g: 1e-3, '%': 1e-2, h: 1, '': 1 };
 export function si(x: Value): number {
   const f = UNITS[x.unit];
-  if (f === undefined) throw new ActuatorError(`unit "${x.unit}" is not known (${Object.keys(UNITS).filter(Boolean).join(', ')})`);
+  if (f === undefined) throw refusal('ACTUATOR_INPUT', `unit "${x.unit}" is not known (${Object.keys(UNITS).filter(Boolean).join(', ')})`);
   return x.v * f;
 }
 export const isEstimate = (x: Value) => 'estimate' in x.src;
@@ -237,7 +237,7 @@ function checks(d: Drive, m: Motor, r: Reducer, T: Totals, cycle: number, jLoad:
  */
 export function sizeActuators(tree: JointTree, bodies: ReadonlyMap<string, LinkBody>, q0: Readonly<Record<string, number>>, q1: Readonly<Record<string, number>>, kind: ProfileKind, limits: (key: string) => MoveLimits, opts: SizeOptions = {}): Sizing {
   const g = opts.g ?? [0, 0, -STANDARD_GRAVITY], dwell = opts.dwell ?? 0, motors = opts.motors ?? MOTORS, reducers = opts.reducers ?? REDUCERS;
-  if (!(dwell >= 0) || !Number.isFinite(dwell)) throw new ActuatorError('the dwell is a time of 0 s or more');
+  if (!(dwell >= 0) || !Number.isFinite(dwell)) throw refusal('ACTUATOR_INPUT', 'the dwell is a time of 0 s or more');
   const out = moveMotion(tree, q0, q1, kind, limits), back = moveMotion(tree, q1, q0, kind, limits), tracks = [track(tree, bodies, out, g), track(tree, bodies, back, g)];
   const moveS = out.profile?.duration ?? 0, cycleS = 2 * moveS + 2 * dwell;
   const zero = Object.fromEntries(out.keys.map(k => [k, 0])), hold = [rnea(tree, bodies, q1, zero, zero, g), rnea(tree, bodies, q0, zero, zero, g)];

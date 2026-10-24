@@ -2,6 +2,7 @@
 // its message the person-readable "[CODE] …" text the agent and the docs' refusal table read; and validators' Problems,
 // returned, never thrown. The codes are one union (CadModelCode), so the table can be made from the type.
 import { BarocssError } from '@barocss/cad/api';
+import type { FrameGeometryCode } from './doc';
 
 export { BarocssError };
 
@@ -21,16 +22,59 @@ export type CadModelCode =
   | 'REFERENCE_LOCKED' | 'BAD_REFERENCE' | 'NO_REFERENCE' | 'DATUM_FIT' | 'BAD_KEEPOUT' | 'NOT_READ'
   | 'SYNTAX' | 'UNKNOWN_NAME' | 'TYPE' | 'LIMIT' | 'REFUSED'
   // sketch
-  | 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY' | 'DWG_NOT_READ';
+  | 'DXF_MALFORMED' | 'DXF_UNSUPPORTED' | 'DXF_OPEN' | 'DXF_NESTED' | 'DXF_EMPTY' | 'DWG_NOT_READ'
+  // drawing
+  | 'DRAWING_SCOPE' | 'DRAWING_SCOPE_REFERENCES' | 'DRAWING_OPTIONS' | 'DRAWING_SECTION_REFERENCES'
+  // frames (weldments) following a sketch, a skeleton or a part
+  | FrameGeometryCode | 'FRAME_SKELETON_IN_USE' | 'FRAME_PART_IN_USE'
+  // 3D sketches (skeletons) and their bound values
+  | 'SKETCH3D_PARAMETER' | 'SKETCH3D_INPUT' | 'SKETCH3D_CONFLICT'
+  // robot frames
+  | 'FRAME_NAME' | 'FRAME_LINK_MISSING' | 'FRAME_LINK_STALE' | 'FRAME_POSE'
+  // assembly inputs and variants
+  | 'INPUT_RANGE' | 'INPUT_TYPE' | 'INPUT_TARGET' | 'INPUT_CHOICE' | 'INPUT_NAME' | 'INPUT_CONFLICT' | 'INPUT_DEFAULT' | 'VARIANT_UNKNOWN'
+  // print preview
+  | 'PRINT_PREVIEW_INPUT'
+  // bearings and their housings
+  | 'BEARING_HOUSING_REFERENCE' | 'BEARING_HOUSING_SCOPE' | 'BEARING_HOUSING_CYCLE' | 'BEARING_HOUSING_POSE' | 'BEARING_HOUSING_EVALUATION'
+  // rows
+  | 'MOUNT_RANGE' | 'MOUNT_FACE' | 'MOUNT_ROW' | 'FRAME_SECTION_UNKNOWN' | 'ORING_ROW_UNKNOWN' | 'CONNECTOR_ROW_UNKNOWN' | 'BEARING_ROW_UNKNOWN'
+  | 'RING_ROW_UNKNOWN' | 'DRIVE_ROW_UNKNOWN' | 'DRIVE_WHEELS' | 'FIT_FACE' | 'SHOP_ROWS_FLATTEN_SCOPE' | 'NO_TABLE' | 'NO_ROW'
+  // team
+  | 'NO_RUN'
+  // robot motion, actuators and the readers of the exports
+  | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'PATH_TOO_SHORT' | 'ACTUATOR_INPUT' | 'MODEL_READ' | 'XML_MALFORMED'
+  // files
+  | 'MESH_NOT_LOADED' | 'CONTAINER_NEWER' | 'CONTAINER_DAMAGED'
+  // sketch export
+  | 'SKETCH_PARAMETER'
+  // the studio's commands (a pick, a value)
+  | 'ALIGN_PICK' | 'ALIGN_TURN' | 'HOLE_SIZE' | 'HOLE_PATTERN' | 'DRAFT_PICK' | 'DRAFT_ANGLE' | 'FILLET_CHAIN' | 'DECIMATE_KEEP'
+  | 'SPLIT_PLANE' | 'FACE_DISTANCE' | 'LOFT_SECTIONS' | 'SWEEP_PATH' | 'PRIMITIVE_SIZE' | 'GEAR_PICK'
+  | 'FASTENER_POSITION' | 'FASTENER_LENGTH' | 'FASTENER_GRIP' | 'FASTENER_SIZE_ROW'
+  | 'FRAME_SECTION_PICK' | 'FRAME_MEMBER' | 'FRAME_VALUE' | 'FRAME_SKELETON_PICK' | 'FRAME_NOTCH' | 'GUSSET_PICK' | 'CAP_PICK'
+  | 'SHEET_PICK' | 'SHEET_VALUE'
+  // direct (NURBS) editing and IGES
+  | 'DIRECT_SOURCE' | 'DIRECT_PICK' | 'DIRECT_DEGREE' | 'DIRECT_LOOP' | 'DIRECT_VALUE' | 'DIRECT_KNOT' | 'DIRECT_LOFT' | 'DIRECT_RANGE'
+  | 'DIRECT_PLANE' | 'DIRECT_INTERSECT' | 'DIRECT_ID' | 'IGES_READ' | 'IGES_EXPORT' | 'TRIM_CURVE'
+  // the person's row files, libraries, archives, the chat's merge
+  | 'ROWS_NOT_FROM_PERSON' | 'ROW_FILES' | 'ROW_UNKNOWN' | 'ROW_IN_USE' | 'RING_ROW' | 'FASTENER_ROW' | 'CASTING_RULE_ROW' | 'LIBRARY_ID' | 'LIBRARY_UNKNOWN' | 'ZIP_LIMIT' | 'MERGE_SUPERSEDED' | 'MERGE_MISSING';
 
 /** A validator's finding: its code, the "[CODE] …" sentence, and where in the input (a field or a path), when it says. */
-export interface Problem { code: CadModelCode; message: string; where?: string }
+export interface Problem<C extends CadModelCode = CadModelCode> { code: C; message: string; where?: string }
 
-/** A refusal to throw: its message "[CODE] message" — the text written before R7.3a, byte for byte. */
-export const refusal = (code: CadModelCode, message: string, details?: Record<string, unknown>): BarocssError => new BarocssError(code, message, undefined, details);
+/** A refusal to throw: its message "[CODE] message" — the text written before R7.3a, byte for byte. (The prefix is
+ *  written here, so a message that quotes the same code further on — a nested refusal's words — keeps them.) */
+export const refusal = (code: CadModelCode, message: string, details?: Record<string, unknown>): BarocssError => new BarocssError(code, `[${code}] ${message}`, undefined, details);
+
+/** A refusal whose text is written already, "[CODE] …" (a shared constant's, a builder's): its text as it is. */
+export const coded = (code: CadModelCode, text: string): BarocssError => new BarocssError(code, text);
+
+/** A validator's problem, thrown: its message as it is. */
+export const refused = (p: Problem): BarocssError => new BarocssError(p.code, p.message);
 
 /** A validator's problem, its message "[CODE] message". */
-export const problem = (code: CadModelCode, message: string, where?: string): Problem => ({ code, message: `[${code}] ${message}`, ...(where !== undefined ? { where } : {}) });
+export const problem = <C extends CadModelCode>(code: C, message: string, where?: string): Problem<C> => ({ code, message: `[${code}] ${message}`, ...(where !== undefined ? { where } : {}) });
 
 /** Whether something thrown is one of cad-model's refusals (with this code, when given). */
 export const isRefusal = (e: unknown, ...codes: CadModelCode[]): e is BarocssError & { code: CadModelCode } =>

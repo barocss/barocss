@@ -1,11 +1,12 @@
 // A9-7's geometry seam only. Assembly references and their saved schema are separate.
 import { seatedBearing, transformBrep, type BearingFitClasses, type BearingRow, type Brep, type BrepAffine, type PlacedShaft } from '@barocss/cad';
+import { refusal } from './refusal';
 
 /** The existing placementOf result: local point -> assembly point, row-major rigid rotation. */
 export interface HousingPose { m: readonly number[]; t: readonly number[] }
 
 function checkedPose(pose: HousingPose, label: string): void {
-  const bad = () => { throw new Error(`[BEARING_HOUSING_POSE] ${label} must be a finite rigid pose`); };
+  const bad = () => { throw refusal('BEARING_HOUSING_POSE', `${label} must be a finite rigid pose`); };
   if (!pose || !Array.isArray(pose.m) || !Array.isArray(pose.t) || pose.m.length !== 9 || pose.t.length !== 3 || ![...pose.m, ...pose.t].every(Number.isFinite)) bad();
   const m = pose.m;
   for (let i = 0; i < 3; i++) for (let j = i; j < 3; j++) {
@@ -25,7 +26,7 @@ export function relativeHousingPose(owner: HousingPose, target: HousingPose): Br
     for (let j = 0; j < 3; j++) matrix[3 * i + j] = a[i] * b[j] + a[3 + i] * b[3 + j] + a[6 + i] * b[6 + j];
     offset[i] = a[i] * delta[0] + a[3 + i] * delta[1] + a[6 + i] * delta[2];
   }
-  if (![...matrix, ...offset].every(Number.isFinite)) throw new Error('[BEARING_HOUSING_POSE] the relative housing pose is not finite');
+  if (![...matrix, ...offset].every(Number.isFinite)) throw refusal('BEARING_HOUSING_POSE', 'the relative housing pose is not finite');
   return { matrix, offset };
 }
 
@@ -37,7 +38,7 @@ export function bearingInExternalHousing(input: {
   target?: { readonly brep: Brep; readonly pose: HousingPose };
   step: number; against: 'start' | 'end'; fit?: BearingFitClasses; id: string;
 }): ReturnType<typeof seatedBearing> {
-  if (!input.target?.brep) throw new Error('[BEARING_HOUSING_REFERENCE] the current exact housing body is required');
+  if (!input.target?.brep) throw refusal('BEARING_HOUSING_REFERENCE', 'the current exact housing body is required');
   const housing = transformBrep(input.target.brep, relativeHousingPose(input.ownerPose, input.target.pose));
   return seatedBearing(input.row, input.shaft, { step: input.step, against: input.against, housing, ...(input.fit ? { fit: input.fit } : {}) }, input.id);
 }

@@ -13,8 +13,8 @@ export type EngineMaterialBindingsDiagnosticCode =
   typeof EngineMaterialBindingsDiagnosticCode[keyof typeof EngineMaterialBindingsDiagnosticCode];
 export class EngineMaterialBindingsError extends BarocssError {
   constructor(readonly code: EngineMaterialBindingsDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine material bindings: ' + detail).slice(0, 1024),
-      cause === undefined ? undefined : { cause });
+    super(code, 'Engine material bindings: ' + detail,
+      cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineMaterialBindingsError';
   }
 }

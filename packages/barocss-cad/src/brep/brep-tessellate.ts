@@ -951,6 +951,15 @@ function surfaceTriangles(face: Brep['faces'][number], rings: Point[][], step: n
     ringSizes.push(pts.length - before);
   }
   rings = []; { let o = 0; for (const n of ringSizes) { rings.push(pts.slice(o, o + n)); o += n; } }
+  // (One boundary point met twice — a cut's loop touching the domain's side there, each run snapped to its iso line on its
+  // own — takes one parameter pair: a few ulps apart, ear clipping found no ear at the near-pinch, where an exact one
+  // passes. A seam's two sides lie a period apart and stay as they are. L4 fuzz 20261023 #110, D270.)
+  { const first = new Map<string, number>(), close = 1e-9 * (U[1] - U[0] + V[1] - V[0]);
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i]; if (polar3.has(p)) continue;
+      const k = `${p[0]},${p[1]},${p[2]}`, j = first.get(k);
+      if (j === undefined) first.set(k, i); else if (Math.abs(uv[i][0] - uv[j][0]) <= close && Math.abs(uv[i][1] - uv[j][1]) <= close) uv[i] = uv[j];
+    } }
   const flat = (q: XY): XY => [q[0] * ku, q[1] * kv];
   // The boundary must lie on the surface (a curve off it would be projected, not tessellated): within 1e-5 of the face's
   // size, or its edges' own tolerance where that is more.

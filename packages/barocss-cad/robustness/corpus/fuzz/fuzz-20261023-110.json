@@ -1,0 +1,247 @@
+{
+  "id": "fuzz-20261023-110",
+  "about": "L4 fuzz (seed 20261023, case 110), shrunk: (a cylinder ∪ a ball) less a cylinder, the ball through the small cylinder's wall line and bottom plane. Built through the part model's self-union (D260); without it refused: a piece's loop touching its domain's side with a hole beside it (the Boolean's shell volume), and a face's point met twice a few ulps apart (the tessellation, D270). Now one body.",
+  "input": {
+    "partDocument": {
+      "format": "barocss-cad-part",
+      "version": 1,
+      "units": "mm",
+      "parameters": {},
+      "features": [
+        {
+          "id": "n2s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 1
+        },
+        {
+          "id": "n2b",
+          "kind": "extrude",
+          "sketch": "n2s",
+          "height": 4
+        },
+        {
+          "id": "n2",
+          "kind": "translate",
+          "target": "n2b",
+          "offset": [
+            -2,
+            2,
+            2
+          ]
+        },
+        {
+          "id": "n3s",
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "line",
+              "start": [
+                0,
+                -2
+              ]
+            },
+            {
+              "kind": "arc",
+              "start": [
+                0,
+                2
+              ],
+              "center": [
+                0,
+                0
+              ],
+              "direction": "cw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "normal": [
+              0,
+              -1,
+              0
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "id": "n3b",
+          "kind": "revolve",
+          "sketch": "n3s",
+          "axis": {
+            "origin": [
+              0,
+              0
+            ],
+            "direction": "y"
+          },
+          "angleDegrees": 360
+        },
+        {
+          "id": "n3r0",
+          "kind": "rotate",
+          "target": "n3b",
+          "axis": "y",
+          "angleDegrees": 90,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n3",
+          "kind": "translate",
+          "target": "n3r0",
+          "offset": [
+            -2,
+            3,
+            2
+          ]
+        },
+        {
+          "id": "n1",
+          "kind": "union",
+          "target": "n2",
+          "tool": "n3"
+        },
+        {
+          "id": "n4s",
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3
+        },
+        {
+          "id": "n4b",
+          "kind": "extrude",
+          "sketch": "n4s",
+          "height": 8
+        },
+        {
+          "id": "n4r0",
+          "kind": "rotate",
+          "target": "n4b",
+          "axis": "x",
+          "angleDegrees": 180,
+          "pivot": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "n4",
+          "kind": "translate",
+          "target": "n4r0",
+          "offset": [
+            -2,
+            -1,
+            1
+          ]
+        },
+        {
+          "id": "n0",
+          "kind": "difference",
+          "target": "n1",
+          "tool": "n4"
+        }
+      ]
+    }
+  },
+  "expect": {
+    "outputs": [
+      {
+        "volumeMM3": {
+          "value": 40.85006184861148,
+          "relTol": 0.0017294405589594925,
+          "absTol": 0.07064775379699248
+        },
+        "centroidMM": {
+          "value": [
+            -2.0000086887377573,
+            2.809167466080061,
+            2.532628370336403
+          ],
+          "absTol": 0.003227394366170388
+        }
+      }
+    ]
+  },
+  "oracle": "scripts/rb/fuzz-oracle.mjs: z rays, a turned 128² lattice at 6 shifts, e 3.53e-2 mm³, centroid e 1.61e-3 mm",
+  "fuzz": {
+    "seed": 20261023,
+    "k": 110,
+    "status": "REFUSED",
+    "tree": {
+      "op": "difference",
+      "a": {
+        "op": "union",
+        "a": {
+          "leaf": {
+            "kind": "cyl",
+            "r": 1,
+            "h": 4,
+            "rot": [],
+            "move": [
+              -2,
+              2,
+              2
+            ]
+          }
+        },
+        "b": {
+          "leaf": {
+            "kind": "sphere",
+            "r": 2,
+            "rot": [
+              {
+                "axis": "y",
+                "deg": 90
+              }
+            ],
+            "move": [
+              -2,
+              3,
+              2
+            ]
+          }
+        }
+      },
+      "b": {
+        "leaf": {
+          "kind": "cyl",
+          "r": 3,
+          "h": 8,
+          "rot": [
+            {
+              "axis": "x",
+              "deg": 180
+            }
+          ],
+          "move": [
+            -2,
+            -1,
+            1
+          ]
+        }
+      }
+    }
+  }
+}

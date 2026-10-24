@@ -7,6 +7,7 @@ import { rotationMatrix } from '../engine/placement';
 import type { Motion } from './fk';
 import type { Mat3, V3 } from './inertia';
 import type { JointTree } from './joints';
+import { problem, type Problem } from '../engine/refusal';
 
 export interface FrameSettings { link: string; position?: readonly number[]; rotation?: readonly number[]; kind?: 'tool' | 'sensor' }
 /** A frame resolved on the tree: its local pose and its world pose at the solved pose (R columns its axes, o mm). */
@@ -39,17 +40,17 @@ export function readFrames(raw: unknown): Record<string, FrameSettings> | undefi
   return Object.keys(out).length ? out : undefined;
 }
 
-/** Why a frame cannot be on the tree (typed, naming it), or null. `parts`: every part id of the document. */
-export function frameProblem(name: string, f: FrameSettings, tree: Pick<JointTree, 'links'>, parts: ReadonlySet<string>, names: ReturnType<typeof exportNames>): { code: FrameCode; message: string } | null {
-  if (!FRAME_NAME.test(name)) return { code: 'FRAME_NAME', message: `[FRAME_NAME] "${name}": a frame's name is letters, digits and _ (not starting with a digit), as every export writes it` };
+/** Why a frame cannot be on the tree (typed, naming it): none, or its one problem. `parts`: every part id of the document. */
+export function checkFrame(name: string, f: FrameSettings, tree: Pick<JointTree, 'links'>, parts: ReadonlySet<string>, names: ReturnType<typeof exportNames>): Problem<FrameCode>[] {
+  if (!FRAME_NAME.test(name)) return [problem('FRAME_NAME', `"${name}": a frame's name is letters, digits and _ (not starting with a digit), as every export writes it`)];
   // (After the exporters' own naming: the frame's link beside the links, its fixed joint `<name>_fixed` beside the joints.)
   const link = names.links.get(name), joint = names.joints.get(`${name}_fixed`);
-  if (link !== undefined) return { code: 'FRAME_NAME', message: `[FRAME_NAME] "${name}" is the export name of link ${link}: name the frame differently` };
-  if (joint !== undefined) return { code: 'FRAME_NAME', message: `[FRAME_NAME] "${name}": its fixed joint ${name}_fixed is the export name of joint ${joint}: name the frame differently` };
-  if (!parts.has(f.link)) return { code: 'FRAME_LINK_MISSING', message: `[FRAME_LINK_MISSING] frame ${name}: no part ${f.link} in the assembly (parts: ${[...parts].join(', ')}). Put it on a link, or remove it (set_frames {"${name}": null})` };
-  if (!tree.links.some(l => l.part === f.link)) return { code: 'FRAME_LINK_STALE', message: `[FRAME_LINK_STALE] frame ${name}: ${f.link} is not a link of the robot as it stands (not joined to the base link). Mate it, put the frame on a link, or remove it (set_frames {"${name}": null})` };
-  if ((f.position !== undefined && !finite3(f.position)) || (f.rotation !== undefined && !finite3(f.rotation))) return { code: 'FRAME_POSE', message: `[FRAME_POSE] frame ${name}: "position" (mm) and "rotation" (degrees about X, then Y, then Z) are three finite numbers, in ${f.link}'s own coordinates` };
-  return null;
+  if (link !== undefined) return [problem('FRAME_NAME', `"${name}" is the export name of link ${link}: name the frame differently`)];
+  if (joint !== undefined) return [problem('FRAME_NAME', `"${name}": its fixed joint ${name}_fixed is the export name of joint ${joint}: name the frame differently`)];
+  if (!parts.has(f.link)) return [problem('FRAME_LINK_MISSING', `frame ${name}: no part ${f.link} in the assembly (parts: ${[...parts].join(', ')}). Put it on a link, or remove it (set_frames {"${name}": null})`)];
+  if (!tree.links.some(l => l.part === f.link)) return [problem('FRAME_LINK_STALE', `frame ${name}: ${f.link} is not a link of the robot as it stands (not joined to the base link). Mate it, put the frame on a link, or remove it (set_frames {"${name}": null})`)];
+  if ((f.position !== undefined && !finite3(f.position)) || (f.rotation !== undefined && !finite3(f.rotation))) return [problem('FRAME_POSE', `frame ${name}: "position" (mm) and "rotation" (degrees about X, then Y, then Z) are three finite numbers, in ${f.link}'s own coordinates`)];
+  return [];
 }
 
 /** A frame's world pose at the solved pose: its part's placement, then its local pose. */
