@@ -2,6 +2,6 @@
 // The core (engine/, app/ …) stays the source of truth; see apps/cad-studio/handover/notes/api-facade-design.md and
 // apps/cad-studio/handover/api-conventions.md §7.
 export { part, Part, type HoleOptions } from './part';
-export type { MassResult } from './core';
-export { BodyQuery, EdgeQuery, FaceQuery, type AxisName, type Direction, type EdgeInfo, type FaceInfo } from './select';
+export type { MassResult, MeshData } from './core';
+export { BodyQuery, EdgeQuery, FaceQuery, meshSelection, type AxisName, type Direction, type EdgeInfo, type FaceInfo } from './select';
 export { BarocssError, type FacadeCode, type RefusalWhere } from './refusal';

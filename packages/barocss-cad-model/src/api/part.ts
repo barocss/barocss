@@ -5,8 +5,8 @@
 import { emptyDoc, leafBodies, rectanglePart, withNode, type BodyRef, type StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { MATERIALS } from '../library/materials';
-import { bodiesOf, massOf, stepOf, type MassResult } from './core';
-import { BodyQuery, type EdgeQuery } from './select';
+import { bodiesOf, massOf, meshesOf, stepOf, type MassResult, type MeshData } from './core';
+import { meshSelection, type BodyQuery, type EdgeQuery } from './select';
 import { refuse } from './refusal';
 
 export interface HoleOptions {
@@ -57,6 +57,9 @@ export class Part {
   /** The part as one STEP AP214 file (the core's exact solids), named after the part unless another name is given. */
   step(name: string = this.name): string { return stepOf(this.#doc, name); }
 
+  /** Each body's display triangles, in the shape gpu's GeometryInput takes. */
+  meshes(): MeshData[] { return meshesOf(this.#doc); }
+
   #with(node: Parameters<typeof withNode>[1]): Part { return new Part(this.name, withNode(this.#doc, node)); }
 
   // (The body a feature acts on: the part's one leaf body. Several bodies need a body chooser, which comes later.)
@@ -72,7 +75,7 @@ export class Part {
     return bodiesOf(this.#doc)[0];
   }
 
-  #query(): BodyQuery { return new BodyQuery(this.#single().mesh); }
+  #query(): BodyQuery { return meshSelection(this.#single().mesh); }
 }
 
 /** A new, empty part. */
