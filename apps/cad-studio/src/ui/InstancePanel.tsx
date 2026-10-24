@@ -21,7 +21,8 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, o
       <div className="card-title">PART INSTANCE</div>
       <Field label="Name" value={inst.name} text onCommit={v => onChange({ ...inst, name: String(v) })} />
       <div className="kv">Bodies <b>{bodies ? bodies.length : '…'}</b></div>
-      {volume !== undefined && <div className="kv">Volume <b>{fmt(Math.round(volume))} mm³</b></div>}
+      {/* (O18: while a body's mass is still being worked out, "…", not a partial sum.) */}
+      {volume !== undefined && <div className="kv">Volume <b>{bodies!.some(b => b.massRef !== undefined) ? '…' : `${fmt(Math.round(volume))} mm³`}</b></div>}
       {inst.part && <>
         <div className="kv">Definition <b>Rev {inst.part.rev}{shared > 1 ? ` · shared by ${shared}` : ''}</b></div>
         {inst.part.source && <div className="kv muted small">From {inst.part.source}</div>}

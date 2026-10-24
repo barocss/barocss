@@ -19,7 +19,7 @@ import { rejectProposal, stripHistory } from '@barocss/cad-model/chat/proposals'
 import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
 import type { ProposalPart } from '@barocss/cad-model/chat/tools';
 import { candidatesFor, captureSignatures, confirmReference, markedReferences, verifyReferences, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
-import { evaluateDoc, type BodyResult } from '@barocss/cad-model/engine/evaluate';
+import { evaluateDoc, placedMassFields, type BodyResult } from '@barocss/cad-model/engine/evaluate';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
@@ -173,6 +173,42 @@ const DrawingWorkspace = lazy(() => import('./ui/DrawingWorkspace').then(m => ({
 const RenderPanel = lazy(() => import('./ui/RenderPanel').then(m => ({ default: m.RenderPanel })));
 const DirectPanel = lazy(() => import('./ui/DirectPanel').then(m => ({ default: m.DirectPanel })));
 const emptyDirect = (): DirectGeometry => ({ sources: {}, objects: [] });
+/** O11: whether a change touches anything of the document but its variability (fields compared as objects: an edit makes new ones). */
+function changesBeyondVariability(a: StudioDoc, b: StudioDoc): boolean {
+  const x = a as unknown as Record<string, unknown>, y = b as unknown as Record<string, unknown>;
+  for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) if (k !== 'variability' && x[k] !== y[k]) return true;
+  return false;
+}
+type MassFields = Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'>;
+/** O18: the same bodies to draw — each key and mesh as before (only masses may differ). */
+function sameMeshes(a: readonly BodyResult[], b: readonly BodyResult[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i].mesh !== b[i].mesh || a[i].key !== b[i].key) return false;
+  return true;
+}
+/** O18: bodies with the masses that came for their refs (placed by their massPlace); the same array when none did. */
+function withMasses(bodies: BodyResult[], got: ReadonlyMap<number, MassFields>): BodyResult[] {
+  let out: BodyResult[] | null = null;
+  for (let i = 0; i < bodies.length; i++) {
+    const b = bodies[i], f = b.massRef !== undefined ? got.get(b.massRef) : undefined; if (!f) continue;
+    const { massRef: _ref, massPlace, ...rest } = b; void _ref;
+    (out ??= bodies.slice())[i] = { ...rest, ...placedMassFields(f, massPlace ?? []) };
+  }
+  return out ?? bodies;
+}
+/** A mesh's content, cheaply (its counts, its bounds and a weighted sum of its positions), once a mesh: the ghost's
+ *  "the same body as before" — by its key and this, as the volume told it before masses came after the reply (O18). */
+const meshSigs = new WeakMap<object, string>();
+function meshSig(m: BodyResult['mesh']): string {
+  let sig = meshSigs.get(m);
+  if (sig === undefined) {
+    let sum = 0; const p = m.positions;
+    for (let i = 0; i < p.length; i++) sum += p[i] * ((i % 7) + 1);
+    sig = `${p.length}:${m.indices.length}:${Math.round(sum * 1e3)}`; meshSigs.set(m, sig);
+  }
+  return sig;
+}
 /** Where the Browser mounts (G12b): the dock's top section, or the stage's left as before. */
 const BROWSER_PLACEMENT = 'dock' as 'dock' | 'left';
 
@@ -270,7 +306,18 @@ export function App() {
   // (The bottom row: the view bar measured, the history bar beside it or stacked above it.)
   const cornerRight = useRef<HTMLDivElement>(null), [stripWidth, setStripWidth] = useState(0), [historyNatural, setHistoryNatural] = useState(0);
   const bottomRow = useBottomRow(cornerRight, stripWidth, BROWSER_PLACEMENT === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT, historyNatural);
-  const [doc, setDoc] = useState<StudioDoc>(starterDoc);
+  const [doc, setDocState] = useState<StudioDoc>(starterDoc);
+  // (O11: one guard where every edit of the document lands. While a variant is shown, a change of anything but the
+  // document's variability is refused — said as start() says it — and the undo entry it asked for dropped; a whole
+  // document (opened, new) is always taken. Undo, redo and the system's own updates write the state directly.)
+  const docNow = useRef(doc); docNow.current = doc;
+  const shownVariant = useRef<string | null>(null), undoFor = useRef<{ doc: StudioDoc; marker: number | null } | null>(null);
+  const setDoc = (next: StudioDoc, whole = false) => {
+    const entry = undoFor.current; undoFor.current = null;
+    if (!whole && shownVariant.current && changesBeyondVariability(docNow.current, next)) { setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' }); return; }
+    if (entry) { setUndo(u => [...u.slice(-49), entry]); setRedo([]); }
+    docNow.current = next; setDocState(next);
+  };
   const [marker, setMarker] = useState<number | null>(null);
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
   const [redo, setRedo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
@@ -304,6 +351,14 @@ export function App() {
   const [instanceSel, setInstanceSel] = useState<string[]>([]);
   // (Each entry keeps the instance it was evaluated for; `key` changes whenever its bodies are evaluated anew.)
   const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>>(new Map());
+  // O18 (P): the worker replies without the bodies' masses and posts them after, by mass ref; each body still waiting
+  // gets its own B-rep's (placed by its massPlace) — never another revision's, whose B-rep has its own ref.
+  useEffect(() => engine.onMasses(masses => {
+    const got = new Map(masses.map(m => [m.ref, m.fields]));
+    setBodies(bs => withMasses(bs, got));
+    setInstanceBodies(map => { let next: typeof map | null = null; for (const [id, e] of map) { const bs = withMasses(e.bodies, got); if (bs !== e.bodies) (next ??= new Map(map)).set(id, { ...e, bodies: bs }); } return next ?? map; });
+  }), [engine]);
+  const massReady = useMemo(() => !bodies.some(b => b.massRef !== undefined) && ![...instanceBodies.values()].some(e => e.bodies.some(b => b.massRef !== undefined)), [bodies, instanceBodies]);
   const instanceRun = useRef(0);
   const partInput = useRef<HTMLInputElement>(null);
   /** Selected direct curves and surfaces (by object id). */
@@ -539,7 +594,7 @@ export function App() {
   // Dev/test hook: the flow test reads the accepted document.
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioDoc: StudioDoc }).__studioDoc = doc; }, [doc]);
   // (Dev/test: the bodies as evaluated for the document shown — exact volumes and centroids, for checks to their tolerance.)
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioBodies: () => unknown }).__studioBodies = () => ({ fresh: bodiesFor === evaluated, bodies: bodies.map(b => ({ key: b.key, volumeMM3: b.volumeMM3, centroid: b.centroid ?? null })) }); });
+  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioBodies: () => unknown }).__studioBodies = () => ({ fresh: bodiesFor === evaluated, bodies: bodies.map(b => ({ key: b.key, volumeMM3: b.volumeMM3, centroid: b.centroid ?? null, massRef: b.massRef ?? null })), massReady, colored: shownBodies.flatMap((b, i) => bodyColors.has(i) ? [b.key] : []) }); });
   // (Dev/test: what is picked, as the commands see it.)
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSelection: unknown }).__studioSelection = { selection, bodies: bodies.length, active: active?.cmd.id ?? null, sketch: !!sketch, measure: !!measure }; });
   // Dev/test hooks: select an edge or a face by its persistent name (canvas picks are not reproducible).
@@ -588,7 +643,7 @@ export function App() {
   // (FRf2, O125: and the placed parts, when a frame follows a part's sketch — not otherwise, so moving parts does not re-evaluate the base.)
   // (O11: what is evaluated and shown is the shown variant — the master itself unless a variant or edited values are
   // shown — regenerated from the master, which is never written by it.)
-  const variants = useVariants(doc), shownDoc = variants.shown;
+  const variants = useVariants(doc), shownDoc = variants.shown; shownVariant.current = variants.showing;
   const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
     try { return contentKey(shownDoc); }
@@ -655,7 +710,7 @@ export function App() {
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
-  const pushUndo = () => { setUndo(u => [...u.slice(-49), { doc, marker }]); setRedo([]); };
+  const pushUndo = () => { undoFor.current = { doc, marker }; };
   // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.
   // `whole`: a new or opened document, nothing of the one before carried into it.)
   const commit = useCallback((next: StudioDoc, capture = true, whole = false) => {
@@ -668,7 +723,7 @@ export function App() {
     if (!whole) next = carryOver(next, was, doc);
     // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
     if (capture) next = captureSignatures(next, bodies);
-    setDoc(next); setMarker(null); setDirty(true); setEditNode(null);
+    setDoc(next, whole); setMarker(null); setDirty(true); setEditNode(null);
     // An empty document has no bodies; clear them now so defaults are not computed from the old model.
     if (!Object.keys(next.outputs).length) { setBodies([]); claimBodies.current = true; setSelection(emptySel); }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
@@ -776,13 +831,13 @@ export function App() {
     const result = await engine.part(bearingFaceInput(doc, owner, input), revision.current++, 'read');
     return result.ok ? result.faceTable ?? null : null;
   }, [doc, engine]);
-  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, commit: commitAssembly, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
+  const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc: setDocState, commit: commitAssembly, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
   // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
   const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
     p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
   // (Every placed part evaluated with its bodies: until then the robot's masses, exports and sweeps wait, RM6 — a part
   // not yet evaluated is not massless.)
-  const robotReady = (doc.instances ?? []).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
+  const robotReady = massReady && (doc.instances ?? []).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
   // Each link's mass properties (RM3): the bodies as placed (world), so each part's placement is the identity here.
   const linkInertias = useMemo(() => !jointTree || !robotReady ? undefined : treeInertia(jointTree, p => {
     if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
@@ -1203,13 +1258,13 @@ export function App() {
   };
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
-    setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
+    setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
   }, [undo, doc, marker, cancel]);
   // (The latest undo, for a toast made before the change it takes back was committed.)
   const undoNow = useRef(doUndo); undoNow.current = doUndo;
   const doRedo = useCallback(() => {
     if (!redo.length) return; const last = redo[redo.length - 1];
-    setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDoc(last.doc); setMarker(last.marker); cancel();
+    setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
   }, [redo, doc, marker, cancel]);
 
   // Deleting a feature (with the sketches only it used): later features, mates and drawing dimensions follow.
@@ -1727,7 +1782,7 @@ export function App() {
     const v = await verifyReferences(opened, r.bodies, d => engine.part(d, revision.current++, 'refs'));
     setRefProblems(v.problems);
     if (!v.changes.length && !v.problems.length) return;
-    setDoc(cur => {
+    setDocState(cur => {
       if (cur.nodes !== opened.nodes && JSON.stringify(cur.nodes) !== JSON.stringify(opened.nodes)) return cur;
       const next = { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) };
       // Reference checking must not restore older print controls after a newer user change.
@@ -1788,6 +1843,7 @@ export function App() {
   /** The quote package (IM6, O82): the part as STEP, its moulding report and the request, one zip; what is open said. */
   const exportQuote = async () => {
     if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
+    if (!massReady) { setToast({ title: 'Not written yet', hint: 'The part\'s masses are still being worked out: export in a moment.', detail: '' }); return; }
     const q = await quotePackage(doc, bodies, async d => evaluateDoc(d, 0), { name: fileName });
     if ('error' in q) { setToast({ title: 'No quote package', hint: q.error, detail: '' }); return; }
     downloadBytes(q.zip, `${fileName}-quote.zip`, 'application/zip');
@@ -1884,7 +1940,12 @@ export function App() {
     ...selection.edges.flatMap(e => { const n = bodies[e.body]?.mesh.edges[e.edge]?.names[0]; return n ? [{ kind: 'edge' as const, name: n }] : []; }),
     ...selection.bodies.flatMap(b => bodies[b] ? [{ kind: 'body' as const, name: bodies[b].key }] : []),
   ].slice(0, 12).filter(() => fresh), [selection, bodies, fresh]);
-  const shownBodies = bodyDrag ? bodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : bodies);
+  // (O18: the viewport keeps the bodies it has while only their masses come — the same meshes, the same array — so a mass
+  // patch is no change of what is drawn: WebGPU rebuilt the part on a new array and left the copies sharing its shapes out.)
+  const drawnRef = useRef(bodies);
+  if (!sameMeshes(drawnRef.current, bodies)) drawnRef.current = bodies;
+  const drawnBodies = drawnRef.current;
+  const shownBodies = bodyDrag ? drawnBodies : previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : drawnBodies);
   // The Render workspace's animated offsets on the bodies shown: each by its body's key — an exact section's piece by the
   // body it was cut from (G19.5: by index they fell on other bodies once the section left some out or split them).
   const animatedOffsets = useMemo(() => {
@@ -1900,8 +1961,8 @@ export function App() {
   const bodyColors = useMemo(() => {
     // (A proposal's ghost: the bodies it adds or changes — not tinted while the engine draws its two-colour overlay, G12.)
     const overlaid = !!ghost && proposalOverlay?.method === 'boolean';
-    const had = ghost ? new Set(bodies.map(b => `${b.key}:${Math.round(b.volumeMM3 ?? 0)}`)) : null;
-    const fresh = (b: BodyResult) => { if (had) return !had.has(`${b.key}:${Math.round(b.volumeMM3 ?? 0)}`); const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
+    const had = ghost ? new Set(bodies.map(b => `${b.key}:${meshSig(b.mesh)}`)) : null;
+    const fresh = (b: BodyResult) => { if (had) return !had.has(`${b.key}:${meshSig(b.mesh)}`); const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
     return new Map(shownBodies.flatMap((b, i) => { const c = lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) && !overlaid ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
   }, [shownBodies, doc, previewBodies, previewNodes, evaluated.nodes.length, ghost, bodies, proposalOverlay]);
   const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
@@ -2578,18 +2639,19 @@ export function App() {
             </span></div>
             <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { commit(withLook(doc, b, { hidden: !e.target.checked })); if (!e.target.checked) setSelection(emptySel); }} /></label>
             <label className="kv"><span>Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
-            {b.volumeMM3 !== null && <div className="kv">Volume <b>{fmt(Math.round(b.volumeMM3))} mm³</b></div>}
+            {/* (O18: a mass still being worked out reads "…", never 0 or the last revision's.) */}
+            {b.volumeMM3 !== null ? <div className="kv">Volume <b>{fmt(Math.round(b.volumeMM3))} mm³</b></div> : b.massRef !== undefined ? <div className="kv">Volume <b aria-label="Mass pending">…</b></div> : null}
             {/* (O179: a volume the kernel found from the mesh, said so with its bound — its mass is as good.) */}
             {b.volumeMM3 !== null && b.volumeBasis && <div className="kv warn" aria-label="Volume basis" title="The kernel could not integrate this body: its volume, mass and centre of mass are from the display mesh">From the mesh <b>± {b.volumeBasis.boundMM3 === null ? '?' : fmt(Math.round(b.volumeBasis.boundMM3 * 10) / 10)} mm³</b></div>}
             {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density; return <>
-              {b.volumeMM3 !== null && <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * own.gPerCm3 / 100) / 10)} g</b></div>}
+              {b.volumeMM3 !== null ? <div className="kv">Mass <b>{fmt(Math.round(b.volumeMM3 * own.gPerCm3 / 100) / 10)} g</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
               {/* The body's own material (the default for new bodies stays the studio's). */}
               <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === (briefMaterial(doc) ?? material) ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
               {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
             </>; })()}
             {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, sizes = fastenerSizesOf(doc), t = made?.command === 'fastener' ? fastenerThread(made.values, sizes) : null;
               return t ? <><div className="kv">Part <b>{fastenerName(made!.values, sizes)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal sizes from your fastener rows — check the standard before manufacture.</div></> : null; })()}
-            {b.centroid && <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>}
+            {b.centroid ? <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div> : b.massRef !== undefined ? <div className="kv">Centre of mass <b>…</b></div> : null}
             {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.gPerCm3); if (!mp) return null;
               const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.massG, mp.centroid, [0, 0, 0]) : mp.inertia;
               return <>
@@ -2607,11 +2669,13 @@ export function App() {
             <PointTest mesh={b.mesh} />
             {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
           </div>; })}
-          {selBodies.length > 1 && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
+          {selBodies.length > 1 && selBodies.some(b => b.massRef !== undefined) && <div className="kv">Together <b aria-label="Mass pending">…</b></div>}
+          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(selBodies);
             return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
               <div className="kv">Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></div></> : null; })()}
         </>}
-        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(bodies);
+        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && !massReady && <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div><div className="kv">Mass <b aria-label="Mass pending">…</b></div></div>}
+        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).gPerCm3); return m ? [m] : []; }), c = combined(parts), box = boxOf(bodies);
           return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
             <div className="kv">Mass <b>{fmt(Math.round(c.massG * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
@@ -2677,7 +2741,7 @@ export function App() {
         <input ref={fileInput} aria-label="Model file" type="file" accept=".bcad,.json,.step,.stp,.stl,.obj,.igs,.iges,.barocad,.cad,.dwg" hidden onChange={e => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
       </header></Profiler>
       <div className="stage">
-      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
+      <SceneViewport ref={viewport} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
         direct={directShown} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={underlaysShown} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : null} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
@@ -2957,7 +3021,8 @@ export function App() {
             <div className="proposal-title"><b>{p.id}</b> {p.title} <span className={'risk-badge ' + p.risk.level} title={`${p.risk.features_touched} features touched · ${p.risk.references_broken} references broken${p.risk.hard_requirements_changed.length ? ` · hard requirements ${p.risk.hard_requirements_changed.join(', ')}` : ''}${p.risk.approval.length ? ` · always needs approval: ${p.risk.approval.join(', ')}` : ''}`}>{p.risk.level} risk</span></div>
             <div className="muted">{stale ? <b className="stale">stale · </b> : p.rebased ? 'rebased · ' : ''}{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''}{p.risk.approval.length ? ` · needs you (${p.risk.approval.join(', ')})` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
             {p.plan && <div className="proposal-plan">{p.plan}</div>}
-            {shown && fresh && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
+            {shown && fresh && !massReady && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">…</span></div>}
+            {shown && fresh && massReady && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
             {shown && ghost.parts.length > 1 && <div className="proposal-parts" role="group" aria-label={`${p.id} features`}>{ghost.parts.map(q => <label key={q.id} className={'proposal-part ' + q.kind}>
               <input type="checkbox" aria-label={`Keep ${q.id}`} disabled={q.kind === 'deleted' || proposalBusy} checked={!ghost.leaveOut.includes(q.id)} onChange={e => void tickPart(q.id, e.currentTarget.checked)} />
               <span className="mono">{q.id}</span> {q.kind === 'added' ? '+' : q.kind === 'changed' ? '~' : '−'} {q.label}</label>)}</div>}
