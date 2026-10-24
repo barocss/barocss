@@ -47,7 +47,7 @@ test('FRk1 seams as weld joints: the gusset\'s on each member (105, 85), the cap
   const doc = part(), bodies = evaluated(doc).bodies, w = weldList(doc, bodies);
   const key = (node: number) => bodies.find(b => b.ref?.node === node && !b.cutPiece)!.key, m = bodies.filter(b => b.cutPiece).map(b => b.key);
   const plates = w.joints.filter(j => j.kind === 'gusset' || j.kind === 'cap');
-  assert.deepEqual(plates.map(j => [j.id, j.kind, j.seamMM, j.end, j.weld.kind, j.weld.size, j.weld.sizeBasis, j.seamBasis]), [
+  assert.deepEqual(plates.map(j => [j.id, j.kind, j.seamLength, j.end, j.weld.kind, j.weld.size, j.weld.sizeBasis, j.seamBasis]), [
     [`${key(1)}.${m[0]}`, 'gusset', 105, null, 'fillet', 3, 'estimate', 'exact'],
     [`${key(1)}.${m[1]}`, 'gusset', 85, null, 'fillet', 3, 'estimate', 'exact'],
     // (A cap sits flush with its member's outline: a corner weld by default, not a fillet — FRk2's rule.)
