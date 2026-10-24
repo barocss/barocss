@@ -45,7 +45,7 @@ The six dedicated Works are separate; the older Codex worktrees are not their wo
 The worktrees above are under `/Users/user/github/barocss/barocss/.claude/worktrees/`. Integration remains
 `barocss-cad-gpu-review-efbb2c`, branch `review/cad-gpu-engine-2026-10-14`.
 
-**R7.3b/R7.7b: HOLD.** Do not merge the kernel checkpoint alone. The window starts only when all four participants
+**R7.3b/R7.7b: HOLD.** Do not merge the kernel checkpoint alone. The window starts only when all five participants
 have immutable compatible checkpoints and their required checks are recorded:
 
 - Kernel: R7.3b/R7.7b qualification at `93c4f1e91` is in progress. Native-split's known Node-version assertion is a
@@ -54,6 +54,9 @@ have immutable compatible checkpoints and their required checks are recorded:
 - API: R7.7d is not ready. P2 checkpoint `7a30ddcac` is preserved on its lane; its product check still exits 1.
 - Docs: the ordinary docs checkpoint is adopted; R7 sample/field/unit migration has not started and needs the fixed
   coordinated source checkpoint. An ordinary docs pass does not establish R7 readiness.
+- Drawings: its owned consumers still read the old spring report fields in `drawing/elementTables.ts` and
+  `drawing/auto.ts`, and `tessellateBrep(...).positionsMM` in `drawing/section.ts`. Outer's migration proposal excludes
+  these owned files. Drawings needs its own compatible R7 consumer checkpoint in the same window.
 
 The coordinator must record the complete immutable set and shared field/unit map before the serial window. Verify
 all consumers together before describing the R7 aggregate as integrated. Keep qualified independent milestones
