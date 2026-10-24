@@ -19,7 +19,7 @@ section current.
 |---|---|---|---|
 | Kernel | K16: apply `notes/claude-resume-2026-10-24/wip/k16-slice1-d269-d270.patch`, T2, commit; the commutativity property; the closing record | R7.3a (cad's errors) | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
 | Outer | R7.3a (cad-model's errors): step 1 in, full suites and fingerprint to run, then the rest | R7.3c (one mass, bounds and STEP function) | the R7.3b follow-up in cad-model (`bodyMass` in g·mm²), then the Later list |
-| GPU | R7.3a: batch 1 in as WIP (test:browser to run), then batch 2 | R7.3c (gpu's vectors) | R7.3c (gpu's vectors), R7.3d (the packet tag), G14 (measure, then decide) |
+| GPU | R7.3a: batch 1 browser-verified (`ee5d032ad`, test:browser 28/28 on both adapters), batch 2 now | R7.3c (gpu's vectors) | R7.3c (gpu's vectors), R7.3d (the packet tag), G14 (measure, then decide) |
 | API | R7.4b (part growth, the selector-stability test); R7.4a done | R7.5 | R7.5, R7.5b, then R7.6 with the docs lane |
 | Docs | follow each merge, as the coordinator routes it | R7.6 | the Later list |
 | Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
