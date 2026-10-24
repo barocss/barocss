@@ -20,7 +20,7 @@ section current.
 | Kernel | K16: checkpoint 2 in (`6374a7351`: slice(1) D268, D269, D270; T2); the commutativity property (count first); the closing record | R7.3a (cad's errors) | R7.3b (results as data, MMGS), R7.3d (createCadModel, old document versions, the packet tag with GPU) |
 | Outer | R7.3a (cad-model's errors): step 1 in, full suites and fingerprint to run, then the rest | O19 (stored edge names checked), R7.3c (one mass, bounds and STEP function; the rotate pivot default) | the R7.3b follow-up in cad-model (`bodyMass` in g·mm²), then the Later list |
 | GPU | R7.3a: batch 1 browser-verified (`ee5d032ad`, test:browser 28/28 on both adapters), batch 2 now | R7.3c (gpu's vectors) | R7.3c (gpu's vectors), R7.3d (the packet tag), G14 (measure, then decide) |
-| API | R7.5 (the assembly facade); R7.4b done (`5cd3af988`, merge 887f638fd) | R7.5b | R7.6 with the docs lane |
+| API | R7.5b (gpu facade growth; the GPU lane reviews); R7.5 done (`2e96fcdef`, merge 8571ceff3) | R7.6 with the docs lane | the Later list |
 | Docs | follow each merge, as the coordinator routes it | R7.6 | the Later list |
 | Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
 
@@ -180,7 +180,7 @@ Order inside a lane is lowest risk first: duplicate copies, then hot-path alloca
 | R7.3d | kernel + GPU | **Legacy out** (§8, §10.1): createCadModel retired once `@barocss/cad/api` covers its tests; the ~30 `evaluate…Document`/`…FeatureGraph` old-version paths; the y-up packet tag renamed in gpu and the kernel's core/packet.ts together |
 | R7.4a | API | **One part implementation** (§11): cad-model's `part()` wraps cad's; verbs and options on the v2 command names (§12); the oracle unchanged |
 | R7.4b | API | **done** (`5cd3af988`, merge 887f638fd; api tests 21/21 in each package). **Part growth**: cylinder, sketch → extrude/revolve, chamfer, shell, union/subtract/intersect, patterns, a body chooser; Plane/Location; a selector-stability test (an upstream edit re-evaluated, the same named edge still picked or a typed refusal) |
-| R7.5 | API | **Assembly facade** (cad-model): placing parts, mates, inputs and variants (O11), frames (O12) |
+| R7.5 | API | **done** (`2e96fcdef`, merge 8571ceff3; cad-model api 25/25). Finding 7 (add_part, place_part, add_mate and set_frames write inline in async tool handlers; make them `verb(doc, options) → doc` core functions both the tools and the facade call) goes to the outer lane with R7.3c. **Assembly facade** (cad-model): placing parts, mates, inputs and variants (O11), frames (O12) |
 | R7.5b | API (GPU reviews) | **gpu facade growth**: materials by id (§10.6), edges as lines, a camera view; `show()` browser check on both backends |
 | R7.6 | docs + API | **Docs on the facades**: samples rewritten on them, the Object API page out of experimental, the API inventory in check:docs as a drift check on §1–§12 |
 
