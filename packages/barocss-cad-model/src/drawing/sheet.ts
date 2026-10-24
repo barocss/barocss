@@ -103,7 +103,7 @@ const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
 /** `sections` (O148 X1): each section's projection and cut-face rings (view coordinates), drawn where the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameterMM?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameter?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -237,7 +237,7 @@ const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] 
  * revolved one: its cut face on the view REVOLVED_ON names (revolvedPlacement), a centreline along the trace 3 mm past
  * it, no name; its dimensions drawn there.
  */
-function apartSections(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: readonly SheetSectionPlaced[], sections: readonly SheetSection[], cutting: ReadonlyMap<string, MarkGroup>, callout?: (edge: string, diameterMM?: number) => string | null): { groups: MarkGroup[]; placed: SheetSectionPlaced[]; boxes: Rect[]; missing: NonNullable<Sheet['sectionsMissing']>; resolved: Map<string, Resolved> } {
+function apartSections(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: readonly SheetSectionPlaced[], sections: readonly SheetSection[], cutting: ReadonlyMap<string, MarkGroup>, callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; placed: SheetSectionPlaced[]; boxes: Rect[]; missing: NonNullable<Sheet['sectionsMissing']>; resolved: Map<string, Resolved> } {
   const groups: MarkGroup[] = [], placed: SheetSectionPlaced[] = [], boxes: Rect[] = [], missing: NonNullable<Sheet['sectionsMissing']> = [], resolved = new Map<string, Resolved>();
   const taken = takenOf(layout, [...before, ...cutting.values()], placedSections.map(x => x.placement.box));
   for (const s of sectionsOf(settings)) {
@@ -298,7 +298,7 @@ const DETAIL_LABEL = 7, DETAIL_GAP = 4;
  * clipped and hatched as the section's), the circle round it; its dimensions resolved on that projection; its name
  * `DETAIL B (5:1)` under them.
  */
-function detailGroups(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], callout?: (edge: string, diameterMM?: number) => string | null): { groups: MarkGroup[]; details: { detail: SheetDetail; box: Rect }[]; missing: NonNullable<Sheet['detailsMissing']>; resolved: Map<string, Resolved> } {
+function detailGroups(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; details: { detail: SheetDetail; box: Rect }[]; missing: NonNullable<Sheet['detailsMissing']>; resolved: Map<string, Resolved> } {
   const groups: MarkGroup[] = [], details: { detail: SheetDetail; box: Rect }[] = [], missing: NonNullable<Sheet['detailsMissing']> = [], resolved = new Map<string, Resolved>();
   const taken = takenOf(layout, before, placedSections.map(x => x.placement.box));
   for (const d of settings.details ?? []) {
@@ -476,7 +476,7 @@ function tableContentOf(t: DrawingTable, contentOf?: (t: DrawingTable) => TableC
  * What a dimension reads: a diameter on a hole its callout, and `count` before it (`4× Ø6.6 THRU`, `3× 20`) in
  * place of a callout's own count (R14.1, O2).
  */
-export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string, diameterMM?: number) => string | null): string {
+export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string, diameter?: number) => string | null): string {
   // (D155: the diameter measured goes with it — a face's fit class reads its limits at that size, drawing/fits.ts.)
   const base = (r.kind === 'diameter' && callout ? callout(r.dim.edge, 2 * r.radius) : null) ?? r.text;
   return r.dim.count ? `${r.dim.count}× ${base.replace(/^\d+× /, '')}` : base;

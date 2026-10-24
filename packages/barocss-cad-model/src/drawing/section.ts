@@ -3,7 +3,7 @@
 // drawings is the front's — Y = y for the default front from −Y; R14.3b: X = ±y or Y = −y for the others). The kernel's
 // split cuts each body the plane crosses (the far side is kept); a body wholly behind the plane stays whole, one wholly
 // in front goes. The cut faces (planar faces on the plane) come back as rings in view coordinates, to hatch.
-import { evaluateCadPart, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature, type ProjectedCurve, type ProjectedEdge } from '@barocss/cad';
+import { evaluateCadPart, outputOf, faceGeometry, projectBrepHiddenLines, tessellateBrep, type Brep, type BrepProjection, type CadPartFeature, type ProjectedCurve, type ProjectedEdge } from '@barocss/cad';
 import { clipProjectionOutside, clipRingsOutside, type ViewBreak } from './breaks';
 import { bodyKeyOf, toPartDocument, withBeadRetry } from '../engine/part';
 import { boughtOutputIds } from '../engine/evaluate';
@@ -33,7 +33,7 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
     const cuts: CadPartFeature[] = [], keep: string[] = [], body: number[] = [];
     outputs.forEach((o, n) => {
       if (skip?.has(o.id)) return;
-      const X = tessellateBrep(o.brep, { segmentsPerQuarter: 4 }).positionsMM;
+      const X = tessellateBrep(o.brep, { segmentsPerQuarter: 4 }).positions;
       let lo = Infinity, hi = -Infinity; for (let i = 0; i < X.length; i += 3) { const v = X[i] * d[0] + X[i + 1] * d[1] + X[i + 2] * d[2]; lo = Math.min(lo, v); hi = Math.max(hi, v); }
       const tol = 1e-6 * Math.max(1, Math.abs(hi), Math.abs(lo));
       if (hi <= y + tol) return; // wholly in front of the plane
@@ -46,7 +46,7 @@ export function sectionOf(doc: StudioDoc, y: number, orientation: Orientation = 
     });
     if (!keep.length) return { ok: false, error: axis ? `Nothing of the part lies behind ${axis.toUpperCase()} = ${at}.` : `Nothing of the part lies behind the plane at ${y} along [${d.map(x => +x.toFixed(6)).join(', ')}].` };
     const cut = evaluateCadPart({ ...part, features: [...part.features, ...cuts] });
-    const breps = keep.map(id => cut.output(id).brep);
+    const breps = keep.map(id => outputOf(cut, id).brep);
     const projection = projectBrepHiddenLines(breps, frame.view);
     const rings: XY[][] = [], ringBodies: number[] = [];
     breps.forEach((b, i) => { for (const r of principal ? cutRings(b, at, projection, principal.k) : planeRings(b, d, y, projection)) { rings.push(r); ringBodies.push(body[i]); } });
@@ -165,7 +165,7 @@ export function cutRings(brep: Brep, y: number, pr: BrepProjection, k: 0 | 1 | 2
 const AXES: readonly (readonly [number, number, number])[] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 /** The loops of a B-rep's faces on the plane dot(p, d) = y (`d` a unit vector; O178: an aligned section's), as rings in the projection's view coordinates. */
 export function planeRings(brep: Brep, d: readonly number[], y: number, pr: BrepProjection): XY[][] {
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 16 }), samples = new Map(mesh.edges.map(e => [e.edgeId, e.pointsMM]));
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 16 }), samples = new Map(mesh.edges.map(e => [e.edgeId, e.points]));
   const loops = new Map(brep.loops.map(l => [l.id, l])), coedges = new Map(brep.coedges.map(c => [c.id, c]));
   const P = (x: number, yy: number, z: number): XY => [x * pr.right[0] + yy * pr.right[1] + z * pr.right[2], x * pr.up[0] + yy * pr.up[1] + z * pr.up[2]];
   const rings: XY[][] = [];

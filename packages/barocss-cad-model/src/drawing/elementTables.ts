@@ -26,7 +26,7 @@ export function elementsSource(ctx: Ctx): TableContent | { error: string } {
     title: 'MACHINE ELEMENTS',
     columns: [{ key: 'item', label: 'ITEM' }, { key: 'kind', label: 'KIND' }, { key: 'size', label: 'SIZE', unit: 'mm' }, { key: 'row', label: 'ROW' }, { key: 'source', label: 'SOURCE' },
       { key: 'bought', label: 'BOUGHT' }, { key: 'est', label: 'EST.' }, { key: 'mass', label: 'MASS', unit: 'g', digits: 1 }],
-    rows: lines.map(l => [l.item, l.kind, l.size, l.row?.id ?? null, [l.row ? (l.row.source ?? (l.row.estimate ? 'estimate' : '')) : '', l.catalogue ?? ''].filter(Boolean).join(' · ') || null, `${l.bought ? 'bought' : 'made'}${l.boughtBy === 'override' ? ' (set)' : ''}`, l.estimate ? 'est.' : '', l.massG]),
+    rows: lines.map(l => [l.item, l.kind, l.size, l.row?.id ?? null, [l.row ? (l.row.source ?? (l.row.estimate ? 'estimate' : '')) : '', l.catalogue ?? ''].filter(Boolean).join(' · ') || null, `${l.bought ? 'bought' : 'made'}${l.boughtBy === 'override' ? ' (set)' : ''}`, l.estimate ? 'est.' : '', l.mass]),
     notes: [...lines.filter(l => l.estimate).map(l => `${l.item}: ${l.why.join('; ')}`), 'Sizes and rows are yours (none built in); bought or made by kind unless set; not validated for manufacturing'],
   };
 }
@@ -38,12 +38,12 @@ export function springsSource(ctx: Ctx): TableContent | { error: string } {
   const notes: string[] = [];
   const rows = springs.map(b => {
     const r = b.element.report, d = r.dimensions, item = itemOf(ctx.doc, b), compression = r.type === 'compression';
-    const G = d.shearModulusMPa, E = 'youngsModulusMPa' in d ? d.youngsModulusMPa : undefined;
+    const G = d.shearModulus, E = 'youngsModulus' in d ? d.youngsModulus : undefined;
     if (G !== undefined) notes.push(`${item}: G ${+G.toFixed(0)} MPa${d.shearModulusEstimate ? ', an estimate' : ''}`);
     if (E !== undefined) notes.push(`${item}: E ${+E.toFixed(0)} MPa${'youngsModulusEstimate' in d && d.youngsModulusEstimate ? ', an estimate' : ''}`);
-    if ('torsionalRateNmmPerDeg' in d && d.torsionalRateNmmPerDeg !== undefined) notes.push(`${item}: torsional rate ${+d.torsionalRateNmmPerDeg.toPrecision(4)} N·mm/°`);
-    return [item, r.type, d.wireDiameterMM, d.meanDiameterMM, d.outerDiameterMM, d.activeCoils, 'totalCoils' in d ? d.totalCoils : null, 'freeLengthMM' in d ? d.freeLengthMM : d.bodyLengthMM, d.pitchMM,
-      'solidHeightMM' in d ? d.solidHeightMM : null, compression ? r.ends : r.hooks ?? null, r.hand, d.rateNPerMM ?? null];
+    if ('torsionalRate' in d && d.torsionalRate !== undefined) notes.push(`${item}: torsional rate ${+d.torsionalRate.toPrecision(4)} N·mm/°`);
+    return [item, r.type, d.wireDiameter, d.meanDiameter, d.outerDiameter, d.activeCoils, 'totalCoils' in d ? d.totalCoils : null, 'freeLength' in d ? d.freeLength : d.bodyLength, d.pitch,
+      'solidHeight' in d ? d.solidHeight : null, compression ? r.ends : r.hooks ?? null, r.hand, d.rate ?? null];
   });
   return {
     title: 'SPRING DATA',
@@ -66,7 +66,7 @@ export function glandsSource(ctx: Ctx): TableContent | { error: string } {
     const r = g.ranges;
     notes.add(`Judged by: squeeze ${r.squeezePercent[0]}–${r.squeezePercent[1]} %, fill ${r.fillPercent[0]}–${r.fillPercent[1]} %, stretch up to ${r.stretchMaxPercent} %${r.source ? ` — ${r.source}` : ''}${r.estimate ? ' (an estimate)' : ''}`);
     for (const w of g.warnings) notes.add(`${item}: ${w.message}`);
-    return [item, g.kind, g.ring, g.insideDiameterMM, g.crossSectionMM, g.grooveDiameterMM, g.widthMM, g.depthMM, g.stretchPercent, g.squeezePercent, g.squeezeStretchedPercent, g.fillStretchedPercent];
+    return [item, g.kind, g.ring, g.insideDiameter, g.crossSection, g.grooveDiameter, g.width, g.depth, g.stretchPercent, g.squeezePercent, g.squeezeStretchedPercent, g.fillStretchedPercent];
   });
   return {
     title: 'O-RING GLANDS',
