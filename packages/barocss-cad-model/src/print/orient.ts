@@ -50,8 +50,8 @@ export function searchOrientation(mesh: DisplayMesh, table: FaceTable, limit: nu
     const o = overhangOf(mesh, table, limit, b);
     let top = -Infinity, bottom = Infinity; for (let i = 0; i < P.length; i += 3) { const t = P[i] * b[0] + P[i + 1] * b[1] + P[i + 2] * b[2]; if (t > top) top = t; if (t < bottom) bottom = t; }
     const height = top - bottom;
-    const terms = { support: 0, overhang: o.totalMM2 / area, height: height / diag, contact: o.bedMM2 / area };
-    return { index, direction: b, overhangArea: o.totalMM2, height: height, contactArea: o.bedMM2, terms, score: weights.overhang * terms.overhang + weights.height * terms.height - weights.contact * terms.contact, bottom };
+    const terms = { support: 0, overhang: o.overhangArea / area, height: height / diag, contact: o.contactArea / area };
+    return { index, direction: b, overhangArea: o.overhangArea, height: height, contactArea: o.contactArea, terms, score: weights.overhang * terms.overhang + weights.height * terms.height - weights.contact * terms.contact, bottom };
   });
   const short = [...cheap].sort(order).slice(0, 8);
   const bvh = triangleBvh(mesh.positions, mesh.indices), Ix = mesh.indices;

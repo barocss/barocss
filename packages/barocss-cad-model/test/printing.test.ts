@@ -36,24 +36,26 @@ const over = (doc: StudioDoc, limit = 45, dir?: [number, number, number]) => { c
 
 test('AM2 overhang map: a box on the bed none (its bottom on the bed, left out); a T\'s arms their undersides exactly (300 mm²); a slope 60° from the vertical counted against 45°, one 30° not; built along −X another answer; a lying cylinder\'s lower quarter-turn band, by its display triangles, said approximate', () => {
   const box = over(rectanglePart(20, 20, 10));
-  assert.deepEqual([box.totalMM2, box.faces.length], [0, 0]); assert.ok(Math.abs(box.bedMM2 - 400) < 1e-6);
+  assert.deepEqual([box.overhangArea, box.faces.length], [0, 0]); assert.ok(Math.abs(box.contactArea - 400) < 1e-6);
   let t = withNode(emptyDoc(), { kind: 'sketch', profile: 'rectangle', min: [15, 0], max: [25, 10] });
   t = withNode(t, { kind: 'extrude', sketch: 0, height: 20 });
   t = withNode(t, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 10] });
   t = withNode(t, { kind: 'extrude', sketch: 2, height: 5, from: 20 });
   t = withNode(t, { kind: 'union', left: { node: 1, side: 'solid' }, right: { node: 3, side: 'solid' } });
   const T = over(t);
-  assert.ok(Math.abs(T.totalMM2 - 300) < 1e-6, String(T.totalMM2)); assert.ok(T.faces.every(f => f.exact && Math.abs(f.worstDeg - 90) < 1e-9)); assert.equal(T.approximate, false);
+  assert.ok(Math.abs(T.overhangArea - 300) < 1e-6, String(T.overhangArea)); assert.ok(T.faces.every(f => f.exact && Math.abs(f.worstAngle - 90) < 1e-9)); assert.equal(T.approximate, false);
+  assert.equal('totalMM2' in T || 'bedMM2' in T, false);
+  assert.ok(T.faces.every(f => !('worstDeg' in f)));
   const slope = (deg: number) => { const h = 10 / Math.tan(deg * Math.PI / 180); return { h, doc: raw([{ id: 'lib1_s', kind: 'sketch', profile: 'polygon', points: [[0, 0], [10, 0], [20, h], [0, h]], plane: XZ }, { id: 'lib1_x', kind: 'extrude', sketch: 'lib1_s', height: 10 }], 'lib1_x') }; };
   const s60 = slope(60), r60 = over(s60.doc);
-  assert.ok(Math.abs(r60.totalMM2 - Math.hypot(10, s60.h) * 10) < 1e-4, String(r60.totalMM2)); assert.ok(Math.abs(r60.faces[0].worstDeg - 60) < 1e-4);
-  assert.equal(over(slope(30).doc).totalMM2, 0);
+  assert.ok(Math.abs(r60.overhangArea - Math.hypot(10, s60.h) * 10) < 1e-4, String(r60.overhangArea)); assert.ok(Math.abs(r60.faces[0].worstAngle - 60) < 1e-4);
+  assert.equal(over(slope(30).doc).overhangArea, 0);
   // Built along −X (the part on its side): the 20 × 10 face at x 0 is on the bed now, the T's column end overhangs.
   const side = over(t, 45, [-1, 0, 0]);
-  assert.ok(side.bedMM2 > 0 && side.totalMM2 > 0);
+  assert.ok(side.contactArea > 0 && side.overhangArea > 0);
   // A cylinder R 5 lying along Y (its axis 5 up): the band within 45° of straight down, 5 × π/2 × 20 = 157.08, by triangles.
   const cyl = over(raw([{ id: 'lib1_c', kind: 'sketch', profile: 'circle', center: [0, 5], radius: 5, plane: XZ }, { id: 'lib1_x', kind: 'extrude', sketch: 'lib1_c', height: 20 }], 'lib1_x'));
-  assert.equal(cyl.approximate, true); assert.ok(Math.abs(cyl.totalMM2 / (5 * Math.PI / 2 * 20) - 1) < 0.03, String(cyl.totalMM2));
+  assert.equal(cyl.approximate, true); assert.ok(Math.abs(cyl.overhangArea / (5 * Math.PI / 2 * 20) - 1) < 0.03, String(cyl.overhangArea));
 });
 
 test('AM2 overhang_area as a requirement: FDM measures it; powder (SLS) has no limit — none; moulding is not printing — unknown; no process — unknown', async () => {
@@ -147,7 +149,7 @@ test('AM4 orientation: a T prints on its flat side (whole outline on the bed, lo
   assert.ok(typeof r !== 'string');
   assert.ok(Math.abs(Math.abs(r.best.direction[1]) - 1) < 1e-9, JSON.stringify(r.best)); assert.equal(r.best.supportVolume, 0); assert.equal(r.best.overhangArea, 0); assert.equal(r.best.height, 10); assert.ok(Math.abs(r.best.contactArea - 400) < 1e-6);
   const up = overhangOf(b.mesh, faceTableOf(t), 45, [0, 0, 1]), down = overhangOf(b.mesh, faceTableOf(t), 45, [0, 0, -1]);
-  assert.ok(Math.abs(up.totalMM2 - 300) < 1e-6, String(up.totalMM2)); assert.equal(down.totalMM2, 0); assert.ok(r.candidates >= 64);
+  assert.ok(Math.abs(up.overhangArea - 300) < 1e-6, String(up.overhangArea)); assert.equal(down.overhangArea, 0); assert.ok(r.candidates >= 64);
   assert.equal(r.top.length, 3); assert.ok(r.top.every((x, i) => i === 0 || x.score >= r.top[i - 1].score));
   assert.deepEqual(r.weights, { support: 2, overhang: 1, height: 0.5, contact: 0.5 });
   assert.ok(r.top.every(x => ['support', 'overhang', 'height', 'contact'].every(k => Number.isFinite((x.terms as unknown as Record<string, number>)[k]))));
