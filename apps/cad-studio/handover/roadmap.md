@@ -18,10 +18,10 @@ section current.
 | Lane | Now | Next | Then |
 |---|---|---|---|
 | Kernel | R7.7b on the branch claude/kernel-r73b-r77b; R7.3b is committed there (`82c8acaec`, D280) and **held out of integration** until the window: it removes CadPartOutput's and CadPartSnapshot's methods, which cad-model (engine/evaluate.ts, engine/bodyNotes.ts) and the docs samples still call. R7.3a done for cad (D278 `f1da68dc1`; the fold D279) | R7.3b + R7.7b in one window with outer's R7.7a steps 2/4, API's R7.7d and docs, all branched from the kernel's branch; PG-3 (profile the engine head and spring) | R7.3d (284 of 401 files reachable only through exports), K17 |
-| Outer | O24 (b)–(e); O24 (a) PG-5 (cam mate), RS6 (motions close their loops), PG-8/PG-4 (lock_part, locked gears couple) and PG-6 (running fits) done (merge 2fff42cb9) | R7.7a steps 2/4 on the kernel's branch | P1-L3 live runs when P1's build is done |
-| GPU | G15d.2 bloom WIP `5281db29e` is under qualification, not merged; its G15d.1 prerequisite-preserving browser flow must be reconciled first. G15b parts 3–4 done (merge `3e305ea01`) | G14 quiet measurement (load < 10), then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
-| API | P2; P1 milestone 3 done (merge af4384170: the engine's outputs and the facade's outputs layer; gaps PG-9, PG-10) | P3, P4 | R7.7d after the cores' renames |
-| Docs | Merged outputs and P1 milestone 3 documented (`b5175a082`, integration `1942950a4`); docs check, samples 50/50 and build pass on the lane; post-merge docs check passes | R7.6 part 2 and R7.7 consumers after the coordinated R7 window; describe new qualified features after adoption | the Later list |
+| Outer | O24(c) reference tables and spherical constraints adopted (`55b83d559`, merge `fe189cc47`); focused native and Chromium/file checks pass. Earlier O24(a), RS6 and PG-4/5/6/8 stay done | O24(b) connectors, then O24(d)/(e); R7.7a steps 2/4 in the coordinated window | P1-L3 live runs when P1's build is done |
+| GPU | G15d.2 bloom adopted (`621c7dc6f`, merge `cba255347`); post-merge docs check passes. Loaded DPR 1/2 Render benches pass as comparisons, not isolated bloom cost or G15 acceptance | G14 quiet measurement (load < 10), then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
+| API | P2 checkpoint `7a30ddcac` is held on its lane: focused tests 20/20 and types pass, but the product command exits 1 for missing connector and board-screw rows (PG-11/12); manufacturing, fit and interference remain unverified. P1 milestone 3 stays done (merge `af4384170`) | Finish P2 qualification; then P3, P4 | R7.7d after the cores' renames |
+| Docs | Outputs/P1 milestone 3 and DR-4 section forms documented (`b4206b6b4`, merge `e8b109052`); docs check, DR-4 6/6, samples 50/50 and build pass on the lane; post-merge docs check passes | R7.6 part 2 and R7.7 consumers after the coordinated R7 window; describe new qualified features after adoption | the Later list |
 | Drawings (CG5) | DR-4 removed and revolved sections adopted (`c694d8945`, integration `c8400355d`); post-merge docs check passes; DR-5 title blocks and revision tables in progress in the dedicated Work | DR-6 full GD&T | DR-7 presets and inch display, DR-8 drawing sets |
 | Data (CG6) | idle: VA-1/VA-2 done (merge df8761f1e); what is left (sharing, comments, multi-user) waits on the owner | — | — |
 | Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3); the 2026-10-24 night merges (2fff42cb9, af4384170, df8761f1e, 816c2263b, 3e305ea01) checked by cad-model/studio tsc and the merged areas' tests only (cad-model 40/40, studio 21/21); gpu build:library in the integration worktree passes again after the untracked stale G18.2 draft src/engine-uv-material-wgsl.ts was moved aside to ~/.cache/barocss-preserved/2026-10-24-integration-untracked/ (GPU lane: superseded by material/engine-uv-repeating-material-wgsl.ts) | P1-L3 after P1's scripted build (owner-approved budget); route AI-eval's AE-1..AE-19 (notes/ai-eval-2026-10-24.md) | the owner's open decisions (below) |
@@ -50,8 +50,8 @@ have immutable compatible checkpoints and their required checks are recorded:
 
 - Kernel: R7.3b/R7.7b qualification at `93c4f1e91` is in progress. Native-split's known Node-version assertion is a
   recorded failure, not a green full suite. The rename map and MMGS value conversions both need consumer review.
-- Outer: R7.7a steps 2/4 are not ready. O24(c) is under correction and qualification first.
-- API: R7.7d is not ready. P2 remains under correction and qualification first.
+- Outer: O24(c) is adopted, but R7.7a steps 2/4 remain a proposal. The consumer migration is not ready.
+- API: R7.7d is not ready. P2 checkpoint `7a30ddcac` is preserved on its lane; its product check still exits 1.
 - Docs: the ordinary docs checkpoint is adopted; R7 sample/field/unit migration has not started and needs the fixed
   coordinated source checkpoint. An ordinary docs pass does not establish R7 readiness.
 
@@ -234,6 +234,8 @@ Gaps found (PG-n, added as they're found):
 | PG-6 | outer | sweep_path checks display meshes (quality 8: chord 0.135 mm at r 28), so a 0.1 mm piston fit reads as contact at 0° (workaround: sweep at quality 24); the sweep needs a tolerance tied to the fits, or exact geometry near contact | P1 assembly |
 | PG-7 | outer (O24 a) — **done** (`15bb4e98d`, merge 06dd90883) | A slider-crank loop (slides and chains in the loop) refused by closureOf ([NOT_ONE_LOOP], it takes three turning joints only); the API lane's check.ts closes it by damped Gauss–Newton on the loop's own mates (720° in 5° steps, residual 1e-10 mm), a reference to lift | P1 assembly |
 | PG-8 | outer | The agent can't lock a part (add_mate writes no rel); the facade's lockDoc mirrors the studio's Lock and can move into assembly/edit.ts | P1 assembly |
+| PG-11 | owner / API | P2 has no person-supplied connector rows; its USB opening is a stand-in. Product check refuses with P2_CONNECTOR_ROWS_REQUIRED | P2 checkpoint `7a30ddcac` |
+| PG-12 | owner / API | P2 board screws require length 5, absent from the loaded sample rows; unthreaded stand-ins do not establish a bought fit. Product check refuses with P2_FASTENER_ROWS_REQUIRED | P2 checkpoint `7a30ddcac` |
 
 ### Photoreal rendering G15 (owner, 2026-10-24)
 
@@ -436,6 +438,7 @@ evidence files.
 
 ## Waiting on the owner
 
+- P2 connector and M3 length-5 board-screw rows from a source supplied by the owner (PG-11/12). The current product check exits 1 and the stand-ins remain marked. · ko: P2 커넥터·M3 길이 5 기판 나사용 행 자료 (PG-11/12)
 - O11's UI: fold part-level configurations into the assembly's variants (F) or keep them separate in Parameters (K). Built as K for now; F is an adapter change. The outer lane's mock: one Variants card in the dock listing Master, variants and (under F) part configs with a source chip. · ko: O11 UI — 부품 구성(configurations)을 조립품 변형에 합칠지(F) 따로 둘지(K) (지금은 K로 구현)
 - Two PDFs for O14's sample mount rows: Bondtech's 17HS datasheet (NEMA 17 pilot) and a NEMA 23 maker drawing; until then both rows are estimates, every field unchecked. · ko: O14 견본 장착 행용 PDF 2개 (NEMA 17·23 치수) 다운로드 허락
 - One live chat turn to check whether the CLI emits thinking deltas for O17c's reasoning display (O17c is built to tolerate their absence and marked unverified until then). · ko: O17c 생각 과정 표시 확인용 실제 채팅 1턴 (허락 필요)

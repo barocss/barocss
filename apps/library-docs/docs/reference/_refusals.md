@@ -200,7 +200,7 @@
 | `[LIMITS_BAD]` | `robot` | a trapezoid needs velocity and acceleration limits above 0 |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
-| `[LOOP_MATE_UNSUPPORTED]` | `robot` | … (… between ….… and ….…) closes a loop, and no loop closure holds that mate yet: concentric round faces, coincident, distance or angle between flat faces, … |
+| `[LOOP_MATE_UNSUPPORTED]` | `robot` | … (… between ….… and ….…) closes a loop, and no loop closure holds that mate yet: concentric round faces, edges, cones or spheres, coincident, distance or … |
 | `[LOOP_OPEN]` | `api` | the robot has a closed loop (…); a motion's poses do not close it yet, so it is not played or checked |
 | `[LOOP_PASSIVE]` | `robot` | the loop… … degree… of freedom: give … of …, and the rest are solved (… given) |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
