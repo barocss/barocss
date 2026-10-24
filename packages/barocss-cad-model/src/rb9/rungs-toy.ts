@@ -39,12 +39,12 @@ export const RUNG11: Rung = {
     const ordered = [...bodies].sort((a, b) => a.mesh.bounds.min[2] - b.mesh.bounds.min[2]), axle = ordered[0], ring = ordered[1];
     const two = bodies.length === 2;
     const s: ChatState = { doc, bodies: [...bodies] };
-    const fit = JSON.parse((await dispatchTool(s, 'interference', {}, evaluate as never)).content) as { pairs?: { overlap_mm3?: number }[] };
+    const fit = JSON.parse((await dispatchTool(s, 'interference', {}, evaluate as never)).content) as { pairs?: { overlap?: number }[] };
     const print = JSON.parse((await dispatchTool(s, 'check_printability', {}, evaluate as never)).content) as { rules?: { rule?: string; id?: string; status: string }[] };
     const gaps = two ? gapsOf(axle, ring) : null, inRange = (v: number | null) => v !== null && v >= FIT - 1e-9 && v <= 2 * FIT + 1e-9;
     const escapes = two ? captivity([axle], [ring]) : [];
     return [
-      holds('solids', two && !!fit.pairs && fit.pairs.every(x => x.overlap_mm3 === undefined), [bodies.length, fit.pairs], 'two solids, not meeting'),
+      holds('solids', two && !!fit.pairs && fit.pairs.every(x => x.overlap === undefined), [bodies.length, fit.pairs], 'two solids, not meeting'),
       holds('gaps', !!gaps && inRange(gaps.bore) && inRange(gaps.below) && inRange(gaps.above), gaps, `every facing gap in [${FIT}, ${2 * FIT}] mm (the FDM fit gap)`),
       holds('print', !!print.rules?.length && print.rules.every(r => r.status !== 'fail'), print.rules?.filter(r => r.status === 'fail').map(r => r.id ?? r.rule), 'the FDM rules, none failing'),
       holds('captive', escapes.length === 6 && escapes.every(e => e.captive), escapes.map(e => [e.direction, e.captive, +e.travel.toFixed(4)]), 'the ring cannot slide out along ±X, ±Y or ±Z'),
