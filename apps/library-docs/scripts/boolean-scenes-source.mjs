@@ -1,5 +1,5 @@
 // Fixed teaching cases. Geometry is evaluated from the native kernel, then tessellated for display only.
-import { evaluateCadPart, tessellateBrep } from '@barocss/cad';
+import { evaluateCadPart, tessellateBrep, checkOutput, massPropertiesOf } from '@barocss/cad';
 const doc = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
 const box = (id, min, max, z = 0, h = 10) => [
   { id: `${id}s`, kind: 'sketch', profile: 'rectangle', min, max },
@@ -39,14 +39,14 @@ export const CASES = [
     a: 'A: radius 4, axis Z, Z [−6,6] mm', b: 'B: radius 2.5, axis X, X [−6,6] mm',
     equation: 'x² + y² = 16; y² + z² = 6.25 ⇒ x² − z² = 9.75',
     detail: 'The intersection is a spatial curve on both cylindrical walls. It is not one flat circle. The kernel maps the same curve into each cylinder’s angle/height domain before splitting and joining the retained surfaces.',
-    features: [...cylinder('a', [0, 0], 4, -6, 12), ...cylinder('raw', [0, 0], 2.5, -6, 12), { id: 'b', kind: 'rotate', target: 'raw', axis: 'y', angleDegrees: 90, pivot: [0, 0, 0] }],
+    features: [...cylinder('a', [0, 0], 4, -6, 12), ...cylinder('raw', [0, 0], 2.5, -6, 12), { id: 'b', kind: 'rotate', target: 'raw', axis: 'y', angle: 90, pivot: [0, 0, 0] }],
     fieldA: p => cylField(p, [0, 0], 4, -6, 12), fieldB: p => cylField([-p[2], p[1], p[0]], [0, 0], 2.5, -6, 12),
   },
   { id: 'oblique', title: 'An oblique bore', path: 'Native curved B-rep · plane/cylinder cuts',
     a: 'A: X/Y [−6,6], Z [0,8] mm', b: 'B: radius 2, length 24 mm; tilted 30° about Y; centred at (0,0,4)',
     equation: 'Top/bottom ellipse: u² / (2 / cos 30°)² + y² / 2² = 1',
     detail: 'The tilted cylinder is no longer a Z-prismatic solid. Plane/cylinder intersection curves become ellipses on the caps. Map each curve into both face domains, split them, then classify and stitch the selected patches.',
-    features: [...box('a', [-6, -6], [6, 6], 0, 8), ...cylinder('raw', [0, 0], 2, -12, 24), { id: 'tilt', kind: 'rotate', target: 'raw', axis: 'y', angleDegrees: 30, pivot: [0, 0, 0] }, { id: 'b', kind: 'translate', target: 'tilt', offset: [0, 0, 4] }],
+    features: [...box('a', [-6, -6], [6, 6], 0, 8), ...cylinder('raw', [0, 0], 2, -12, 24), { id: 'tilt', kind: 'rotate', target: 'raw', axis: 'y', angle: 30, pivot: [0, 0, 0] }, { id: 'b', kind: 'translate', target: 'tilt', offset: [0, 0, 4] }],
     fieldA: p => boxField(p, [-6, -6, 0], [6, 6, 8]),
     fieldB: p => { const q = [Math.cos(Math.PI / 6) * p[0] - 0.5 * (p[2] - 4), p[1], 0.5 * p[0] + Math.cos(Math.PI / 6) * (p[2] - 4)]; return cylField(q, [0, 0], 2, -12, 24); },
   },
@@ -54,14 +54,14 @@ export const CASES = [
 const round = v => Number(v.toFixed(8)); // Display storage only. Native predicates and tolerances stay unchanged.
 function pack(output) {
   const mesh = tessellateBrep(output.brep, { segmentsPerQuarter: 12 });
-  return { positions: Array.from(mesh.positionsMM, round), normals: Array.from(mesh.normals, round), indices: Array.from(mesh.indices),
+  return { positions: Array.from(mesh.positions, round), normals: Array.from(mesh.normals, round), indices: Array.from(mesh.indices),
     patches: mesh.faces.map(f => {
       const sum = [0, 0, 0];
       for (let i = f.vertexOffset; i < f.vertexOffset + f.vertexCount; i++) for (let k = 0; k < 3; k++) sum[k] += mesh.normals[3 * i + k];
       const length = Math.hypot(...sum);
       return { start: f.indexOffset, count: f.indexCount, normal: length > 1e-6 ? sum.map(v => round(v / length)) : Array.from(mesh.normals.slice(3 * f.vertexOffset, 3 * f.vertexOffset + 3), round) };
     }),
-    lines: mesh.edges.map(e => Array.from(e.pointsMM, round)) };
+    lines: mesh.edges.map(e => Array.from(e.points, round)) };
 }
 export function evaluateCase(c) {
   const inputs = evaluateCadPart(doc(c.features));
@@ -69,9 +69,9 @@ export function evaluateCase(c) {
   const result = {};
   for (const operation of ['union', 'difference', 'intersect']) {
     const [output] = evaluateCadPart(doc([...c.features, { id: 'result', kind: operation, target: 'a', tool: 'b' }])).outputs;
-    const valid = output.validate();
+    const valid = checkOutput(output);
     if (!valid.valid) throw new Error(`${c.id}/${operation}: ${JSON.stringify(valid.issues)}`);
-    result[operation] = { mesh: pack(output), volume: output.massProperties(1).volumeMM3, bodies: output.bodyCount, faces: output.brep.faces.length };
+    result[operation] = { mesh: pack(output), volume: massPropertiesOf(output, 1).volume, bodies: output.bodyCount, faces: output.brep.faces.length };
   }
   const cuts = result.intersect.mesh.lines.filter(line => {
     const points = Array.from({ length: line.length / 3 }, (_, i) => line.slice(i * 3, i * 3 + 3));
