@@ -25,7 +25,7 @@ test('a facade-built part shows through show() in a real Viewer, Z-up, at its ow
     if (req.url === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.url === '/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end(page); return; }
     if (req.url === '/gpu.js') { js(res, await readFile(bundle)); return; }
-    if (/^\/gpu\/api\/[\w.-]+\.js$/.test(req.url)) { js(res, await readFile(path.join(gpuDist, req.url.slice(5)))); return; }
+    if (/^\/gpu\/(api|core)\/[\w.-]+\.js$/.test(req.url)) { js(res, await readFile(path.join(gpuDist, req.url.slice(5)))); return; }
     if (/^\/cad\/[\w./-]+\.js$/.test(req.url) && !req.url.includes('..')) { js(res, await readFile(path.join(cadDist, req.url.slice(5)))); return; }
     res.writeHead(404); res.end();
   });

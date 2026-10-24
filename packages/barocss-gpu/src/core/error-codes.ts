@@ -1,5 +1,5 @@
 // gpu's refusal codes as one union (api-conventions.md §6, R7.3a): each error class's `code`, so the docs' refusal table
-// can be read from types. Its spellings are the classes' own until R7.3a's second step makes them upper-snake.
+// can be read from types, every one upper-snake (R7.3a batch 2).
 import type { AxisBoxBooleanBufferError } from '../boolean/axis-box-boolean-buffers.js';
 import type { GPUError } from './gpu-error.js';
 import type { EngineCameraRayError } from '../engine/engine-camera-ray.js';
@@ -73,3 +73,9 @@ export type GpuErrorCode =
   | InstanceType<typeof SourceSceneBoundsError>['code']
   | InstanceType<typeof ViewerError>['code']
   | 'MESH_INVALID' | 'LIGHT_INVALID';
+
+/** The codes that are not upper-snake: `never`, which tsc checks below (a lower-case or hyphenated code fails the build). */
+export type NonUpperSnakeGpuErrorCode<T extends string = GpuErrorCode> =
+  T extends Uppercase<T> ? (T extends `${string}-${string}` | `${string} ${string}` ? T : never) : T;
+const everyCodeUpperSnake: [NonUpperSnakeGpuErrorCode] extends [never] ? true : NonUpperSnakeGpuErrorCode = true;
+void everyCodeUpperSnake;

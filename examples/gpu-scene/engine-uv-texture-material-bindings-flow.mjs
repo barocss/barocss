@@ -106,7 +106,7 @@ for (const provider of providers) {
   async function retention() { assert.equal(getters, 0); for (const saved of retained) { assert.equal(hash(signed(observe(saved.result))), saved.signature); for (const file of saved.files) assert.equal(hash(await readFile(file.path)), file.sha256); } }
   async function refuse(name, edit, code, inspect) {
     const request = base(gpu); edit(request); let error; try { gpu.prepareEngineUVTextureMaterialBindings(request.scene, request.catalog, request.material); } catch (caught) { error = caught; }
-    assert.ok(error instanceof gpu.EngineUVTextureMaterialBindingsError, name); assert.equal(error.code, code, name); assert.ok(error.message.startsWith('Engine UV texture material bindings: ')); assert.ok(error.message.length <= 1024); inspect?.(error);
+    assert.ok(error instanceof gpu.EngineUVTextureMaterialBindingsError, name); assert.equal(error.code, code, name); assert.ok(error.message.startsWith(`[${code}] Engine UV texture material bindings: `)); assert.ok(error.message.length <= 1024); inspect?.(error);
     failures.push({ name, code: error.code, message: error.message, cause: error.cause instanceof Error ? { name: error.cause.name, code: error.cause.code ?? null, causeCode: error.cause.cause?.code ?? null } : null }); refused++; await retention();
   }
   const local = error => assert.equal(Object.hasOwn(error, 'cause'), false);

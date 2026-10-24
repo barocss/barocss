@@ -561,10 +561,20 @@ function toPoles(chain: IntersectionChain, fa: GFace, fb: GFace, boxA: readonly 
       if (f.surf.kind !== 'nurbs') continue;
       const pole = f.surf.poles.find(o => len(sub(o.point, x)) > tol && len(sub(o.point, x)) <= reach && offSurface(g, o.point, 10 * tol) <= tol);
       if (!pole) continue;
-      const own = (end ? (f === fa ? uvA : uvB)[i] : (f === fa ? uvA : uvB)[0]), at: XY = pole.along === 0 ? [own[0], pole.at] : [pole.at, own[1]], other = to2(g, pole.point);
+      // (A march that ran a little past the pole before it stopped — 4.4e-4 mm, where the patch's side collapses to it — is
+      // cut back to its point nearest the pole first. The pole put after the overshoot made a hook: the cut passed the
+      // pole, turned and came back to it, and the search for the nearest point on it found its own end 1.8e-4 off, so the
+      // end lay on no edge and the piece's ring stayed open. Only a short overshoot, within 1000 tolerances. L4 fuzz
+      // 20261024 #154, D269.)
+      // (Past it: the pole behind the last point, as the march ran.)
+      let k = i;
+      const behind = (j: number, from: number) => dot(sub(points[j], points[from]), sub(pole.point, points[j])) < 0;
+      if (len(sub(x, pole.point)) <= 1000 * tol) { if (end) while (k > 1 && behind(k, k - 1)) k--; else while (k < points.length - 2 && behind(k, k + 1)) k++; }
+      const own = (f === fa ? uvA : uvB)[k], at: XY = pole.along === 0 ? [own[0], pole.at] : [pole.at, own[1]], other = to2(g, pole.point);
       const [pa, pb] = f === fa ? [at, other] : [other, at];
       if (!inBox(pa, boxA, tol) || !inBox(pb, boxB, tol)) continue;
-      const t = unit(end ? sub(pole.point, x) : sub(x, pole.point));
+      if (k !== i) { const [s0, s1] = end ? [0, k + 1] : [k, points.length]; points = points.slice(s0, s1); tangents = tangents.slice(s0, s1); uvA = uvA.slice(s0, s1); uvB = uvB.slice(s0, s1); }
+      const y = points[end ? points.length - 1 : 0], t = unit(end ? sub(pole.point, y) : sub(y, pole.point));
       if (end) { points = [...points, pole.point]; tangents = [...tangents, t]; uvA = [...uvA, pa]; uvB = [...uvB, pb]; }
       else { points = [pole.point, ...points]; tangents = [t, ...tangents]; uvA = [pa, ...uvA]; uvB = [pb, ...uvB]; }
       break;
@@ -577,11 +587,12 @@ const inBox = (p: XY, box: readonly [XY, XY], tol: number) => p[0] >= box[0][0] 
  * A piece's sampled domain polygon triangulated; one whose outer ring passes a point twice — a piece pinched at a vertex,
  * two lobes meeting there within the tolerance — is cut there into simple rings, each triangulated; a lobe turning
  * the other way (a hole touching the boundary at that point) is triangulated reversed and counts negatively. (Ear clipping failed on the pinch. L4
- * fuzz 137, D209.)
+ * fuzz 137, D209.) A hole goes with the lobe it lies in (a cylinder wall's piece whose cut loop touches the seam, with the
+ * ball's own cut as a hole beside it: L4 fuzz 20261023 #110, D270).
  */
 function triangulatePinched(outer: readonly XY[], holes: readonly (readonly XY[])[], tol: number): [number, number, number][] {
   try { return triangulatePolygonWithHoles(outer, holes); } catch (e) {
-    if (!(e instanceof BrepError) || holes.length) throw e;
+    if (!(e instanceof BrepError)) throw e;
     const rings: number[][] = [], stack: number[] = [];
     for (let i = 0; i < outer.length; i++) {
       const at = stack.findIndex(k => Math.hypot(outer[k][0] - outer[i][0], outer[k][1] - outer[i][1]) <= tol);
@@ -590,15 +601,25 @@ function triangulatePinched(outer: readonly XY[], holes: readonly (readonly XY[]
     }
     rings.push(stack);
     if (rings.length < 2) throw e;
-    const out: [number, number, number][] = [];
-    for (const r of rings) {
+    const out: [number, number, number][] = [], areas = rings.map(r => { let area = 0; for (let i = 0; i < r.length; i++) { const a = outer[r[i]], b = outer[r[(i + 1) % r.length]]; area += a[0] * b[1] - b[0] * a[1]; } return area; });
+    // (Each hole with the counter-clockwise lobe holding its first point; its indices are the caller's, after the outer ring's.)
+    const owner = holes.map(h => rings.findIndex((r, k) => areas[k] > 0 && inRing(h[0], r, outer)));
+    if (owner.some(k => k < 0)) throw e;
+    const starts: number[] = []; let at = outer.length; for (const h of holes) { starts.push(at); at += h.length; }
+    rings.forEach((r, k) => {
       // (A lobe turning the other way is a hole touching the boundary there: its triangles count negatively.)
-      let area = 0; for (let i = 0; i < r.length; i++) { const a = outer[r[i]], b = outer[r[(i + 1) % r.length]]; area += a[0] * b[1] - b[0] * a[1]; }
-      const ring = area < 0 ? [...r].reverse() : r;
-      for (const [a, b, c] of triangulatePolygonWithHoles(ring.map(k => outer[k]), [])) out.push(area < 0 ? [ring[a], ring[c], ring[b]] : [ring[a], ring[b], ring[c]]);
-    }
+      const area = areas[k], ring = area < 0 ? [...r].reverse() : r, mine = holes.map((_, j) => j).filter(j => owner[j] === k);
+      const index = [...ring, ...mine.flatMap(j => holes[j].map((_, i) => starts[j] + i))];
+      for (const [a, b, c] of triangulatePolygonWithHoles(ring.map(q => outer[q]), mine.map(j => holes[j]))) out.push(area < 0 ? [index[a], index[c], index[b]] : [index[a], index[b], index[c]]);
+    });
     return out;
   }
+}
+/** Whether p lies inside the ring of `pts` indexed by `ring` (even-odd). */
+function inRing(p: XY, ring: readonly number[], pts: readonly XY[]): boolean {
+  let c = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const a = pts[ring[i]], b = pts[ring[j]]; if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; }
+  return c;
 }
 /** A curve's parameter range cut where it crosses a cylinder face's domain seam (θ = ref ± π), so each piece maps continuously. */
 function seamRanges(f: GFace, at: (t: number) => P3, lo: number, hi: number): [number, number][] {

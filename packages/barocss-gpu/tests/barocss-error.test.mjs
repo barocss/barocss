@@ -1,27 +1,53 @@
 // R7.3a (api-conventions.md §6): every gpu refusal is one BarocssError — each error class of the package is one, keeping
-// its own name, code and message (the codes' spellings and the messages' bracketed prefix are R7.3a's second step).
+// its own name; its code is upper-snake (tsc checks the union, core/error-codes.ts) and its message reads `[CODE] …`
+// (batch 2). A diagnostic, which carries its code as a field, keeps the plain words.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as gpu from '../dist/index.js';
 
-test('every exported error class is a BarocssError, its name, code and message kept', () => {
+test('every exported error class is a BarocssError, its name kept, its message `[CODE] …`', () => {
   const classes = Object.entries(gpu).filter(([name, v]) => typeof v === 'function' && /Error$/.test(name) && name !== 'BarocssError');
   assert.ok(classes.length >= 25, `error classes exported: ${classes.length}`);
   for (const [name, C] of classes) assert.ok(C.prototype instanceof gpu.BarocssError, `${name} is a BarocssError`);
   // (Each shape of constructor: a code and a detail, a message alone, diagnostics.)
   const tri = new gpu.TriangleGeometryError('POSITIONS', 'three numbers a vertex');
   assert.ok(tri instanceof gpu.BarocssError && tri instanceof Error);
-  assert.equal(tri.name, 'TriangleGeometryError'); assert.equal(tri.code, 'POSITIONS'); assert.equal(tri.message, 'Triangle geometry: three numbers a vertex');
+  assert.equal(tri.name, 'TriangleGeometryError'); assert.equal(tri.code, 'POSITIONS'); assert.equal(tri.message, '[POSITIONS] Triangle geometry: three numbers a vertex');
   const g = new gpu.GPUError('no device');
-  assert.equal(g.code, 'gpu'); assert.equal(g.message, 'no device'); assert.equal(g.name, 'GPUError');
+  assert.equal(g.code, 'GPU'); assert.equal(g.message, '[GPU] no device'); assert.equal(g.name, 'GPUError');
   const s = new gpu.SceneError([{ line: 2, column: 3, message: 'expected a number' }]);
-  assert.ok(s instanceof gpu.BarocssError); assert.equal(s.code, 'scene'); assert.equal(s.message, '2:3: expected a number');
+  assert.ok(s instanceof gpu.BarocssError); assert.equal(s.code, 'SCENE'); assert.equal(s.message, '[SCENE] 2:3: expected a number');
+  assert.equal(new gpu.SceneViewError([{ code: 'STATE', severity: 'error', message: 'disposed', range: null }]).message, '[SCENE_VIEW] STATE: disposed');
   const c = new gpu.EngineSceneError('LIMIT', 'too many meshes', new Error('inner'));
   assert.equal(c.cause.message, 'inner');
 });
 
-test('BarocssError itself: code, message, where and details as given', () => {
+test('the classes that cap a refusal at 1024 characters cap the whole message, its code included', () => {
+  const long = new gpu.EngineRaycastError('INPUT', 'x'.repeat(2000));
+  assert.equal(long.message.length, 1024); assert.ok(long.message.startsWith('[INPUT] Engine raycast: xxx'));
+  assert.equal(new gpu.EngineRaycastError('INPUT', 'short').message, '[INPUT] Engine raycast: short');
+});
+
+test('BarocssError itself: code, message, where and details as given; the prefix written once', () => {
   const e = new gpu.BarocssError('MESH_INVALID', '[MESH_INVALID] no positions', { where: 'facade', details: { key: 'a' } });
   assert.deepEqual([e.name, e.code, e.message, e.where, e.details], ['BarocssError', 'MESH_INVALID', '[MESH_INVALID] no positions', 'facade', { key: 'a' }]);
+  assert.equal(new gpu.BarocssError('MESH_INVALID', 'no positions').message, '[MESH_INVALID] no positions');
   assert.equal(new gpu.BarocssError('X', 'm').where, undefined);
+});
+
+test('refusalText: the words without the refusal\'s own code; a diagnostic keeps them plain', () => {
+  assert.equal(gpu.refusalText(new gpu.GPUError('no device')), 'no device');
+  assert.equal(gpu.refusalText(new Error('[GPU] not ours')), '[GPU] not ours');
+  const compiled = gpu.compileMeshMaterial('@material {');
+  assert.equal(compiled.ok, false);
+  for (const d of compiled.diagnostics) assert.doesNotMatch(d.message, /^\[[A-Z_]+\] /, JSON.stringify(d));
+});
+
+test('a cause given as undefined is kept as one; none given, none kept (the classes that record a thrown undefined)', () => {
+  const given = new gpu.EngineUVTextureMaterialBindingsError('INPUT', 'x', undefined);
+  assert.ok(Object.hasOwn(given, 'cause')); assert.equal(given.cause, undefined);
+  assert.equal(Object.hasOwn(new gpu.EngineUVTextureMaterialBindingsError('INPUT', 'x'), 'cause'), false);
+  assert.ok(Object.hasOwn(new gpu.NativePointLightsError('INPUT', 'x', undefined), 'cause'));
+  assert.equal(Object.hasOwn(new gpu.NativePointLightsError('INPUT', 'x'), 'cause'), false);
+  assert.equal(Object.hasOwn(new gpu.EngineRaycastError('INPUT', 'x', undefined), 'cause'), false);
 });

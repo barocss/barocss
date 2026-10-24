@@ -3065,3 +3065,76 @@ The work stopped here for the owner's move to another place.
   - R7.3d: the `right-handed-y-up` tag renamed, with the kernel lane (§10.1).
   - G14, measure then decide: section's GPU time 8.8 ms against 6; the copies dropped on a rebuild with identical
     meshes (O18); the step-48 order dependency.
+
+## G-R52 — R7.3a batch 1 browser-verified (a harness 404 found); batch 2: upper-snake codes, `[CODE] …` messages (roadmap R7.3a, 2026-10-24)
+
+- **Batch 1 in the browser** (ee5d032ad, merged as 1c20848d9):
+  - **Found**: batch 1 broke gpu's `test:browser`. viewer/ and api/ import `../core/barocss-error.js`, and the
+    harnesses serve exact routes (the viewer's built modules under `/viewer/…`, the facade's `/gpu/api/…`), so the
+    import 404'd and the module failed to load: 5 of 28 on hardware (api-show, viewer-browser, the three cap-aa tests).
+    The studio was not affected (its Vite resolves the package; the window's flow 287/287 stands); no studio harness
+    serves dist/viewer.
+  - Fix, tests only: each viewer harness (and the costs bench) also serves `/core/barocss-error.js`; api-show's route
+    takes `core/`. Then 28/28 on hardware and 28/28 with VIEWER_ADAPTER=swiftshader.
+- **Batch 2** (this commit):
+  - **Codes upper-snake.** Ten codes in four classes were not: ViewerError's `webgpu-unavailable`, `no-adapter`,
+    `no-context`, `shader`, `pipeline`, `disposed`, `device-lost` → `WEBGPU_UNAVAILABLE` …; GPUError `gpu` → `GPU`,
+    SceneError `scene` → `SCENE`, SceneViewError `scene-view` → `SCENE_VIEW`. The other 31 classes' codes were already
+    upper-snake (`INPUT`, `BUDGET` …).
+    - GPUError, SceneError and SceneViewError declare their code's literal type (`declare readonly code: 'GPU'`), so
+      `GpuErrorCode` is a union of literals, not `string`.
+    - `core/error-codes.ts` checks it with tsc: `NonUpperSnakeGpuErrorCode` must be `never`. Checked by adding
+      `'oops-x'` to the union: tsc fails, as it should.
+    - Codes stay per class, not package-unique: `INPUT` is the code of about 30 classes. Whether the docs table needs
+      them unique (`ENGINE_RAYCAST_INPUT` …) is the coordinator's call; nothing reads them that way today.
+  - **Messages `[CODE] …`.** gpu's BarocssError writes the prefix, as cad's facade class does, once (a message already
+    carrying its code keeps it once; the facade's `refuse()` is unchanged).
+    - The 27 classes that cap a refusal at 1024 characters pass `maxLength: 1024`, and the base class caps the whole
+      message, its prefix included. So the flows' `message.length <= 1024` checks stand unchanged.
+    - `refusalText(error)` (exported) gives the words without the refusal's own code. It is used where a refusal's text
+      moves into a diagnostic that carries the code as its own field, or into another refusal under that one's code:
+      mesh-material's six compile catches, material-viewer, gpu-compiler's diagnostic (its `code(message)` guess reads
+      the words), scene-front's three primitive checks, material-evaluation ×2 and scene-parameter-source. So a
+      diagnostic's message is the same text as before, and a wrapped refusal reads `[OUTER] words`, never
+      `[OUTER] [INNER] words`.
+  - **A batch-1 regression, fixed**: seven classes record a cause given as `undefined` as an own `cause` (the native
+    lights' four `arguments.length > 2`, the two WebGPU frames' and the UV-texture bindings' variadic cause). Batch 1's
+    base class dropped an undefined cause, and the uv-texture-material-bindings flow's "a thrown undefined is the cause"
+    check failed. The base class now keeps a cause whenever the key is given; the other classes leave the key out when
+    they have none, as before. A unit test checks both.
+  - **The studio's call sites**, all checked, none changed:
+    - RenderPanel's scene and material errors show compile diagnostics (`compileGpu`, `materialShader`): data, whose
+      messages keep their words (above).
+    - gpuRenderer's `showScene` catch drops the refusal (the panel shows the diagnostics); `createViewer`'s rejection in
+      Viewport falls back to WebGL2 without showing it.
+    - useGpuMaps shows a compute error's message, but compute throws plain `Error`s, not gpu's classes.
+    - Nothing in apps/cad-studio/src or test matches a gpu code or class name.
+  - **Tests**: barocss-error.test (5): `[CODE] …` per constructor shape, the 1024 cap with the prefix, the prefix once,
+    `refusalText`, a diagnostic plain, the undefined cause. Four gpu-scene flows checked the old text and now check the
+    code too: engine-transform-clip, engine-uv-texture-material-bindings and triangle-normal-generation
+    (`startsWith('[${code}] Header: ')`), native-surface-uv01-geometry (the exact `[NORMALIZATION] …`). viewer-browser's
+    disposed check reads `DISPOSED`.
+- **Runs** (this worktree, at the batch's tree):
+  - gpu tsc 0, eslint 0, unit 198/198, examples/gpu-scene flows 65/65, `test:browser` 28/28 on hardware and 28/28 with
+    VIEWER_ADAPTER=swiftshader (its viewer-browser case rerun after the `DISPOSED` fix). Only three of the nine browser
+    files read VIEWER_ADAPTER (viewer-browser, scene-viewer-browser, api-show); the other six run on hardware both times.
+  - Studio tsc 0 (no studio file changed).
+  - Studio flow, FLOW_ONLY `^(render a part|surface analysis|G12:|G13:|G16:|G17:|G19\.|G20\.2|K2 FRk5|G3 display
+    modes|G22 clearance|G23 )` (the steps on either renderer, plus Render's and the analysis' gpu compiles), port 52691:
+    WebGPU 17/18 and WebGL2 17/18. The one failure on both, 280 (G3 display modes), is a FLOW_ONLY prerequisite: its
+    Mount needs the mount rows that step 91 (O14 / O16, the Library's shop rows) loads, so the Mount stayed open and
+    the display-mode select was disabled. Rerun with `^(O14 / O16: the Library|G3 display modes)`: 91 and 280 pass on
+    both renderers.
+  - Not run: the full flow on either renderer (the coordinator's window at the end of R7.3); studio unit.
+- **Left open, for the coordinator**:
+  - The `{ ok: false, diagnostics }` compile results (mesh-material, scene-viewer, gpu-compiler) stay data results, as in
+    G-R51.
+  - 101 plain `throw new Error/RangeError/TypeError` remain in gpu's src (geometry.ts 15, gpu-data.ts 15, viewer/scene.ts
+    10 …). Several are causes the classes wrap, and flows check them as `RangeError`. Whether they become BarocssErrors is
+    a batch 3 decision.
+- **For R7.3d (the packet tag)**: `right-handed-y-up` is not meaningless everywhere. gpu's primitive geometries and the
+  engine scene are authored in scene units with a real Y axis (cylinder-geometry: "a generic Y-axis mesh"; capsule,
+  cone, plane, torus alike), so there the tag is true. The misleading one is the mm mesh packet from CAD (cad's
+  core/packet.ts and its seven preview builders, gpu's mesh-packet.ts, gpu-compiler and kernel-face-preview), which is
+  Z-up data. The same tag also sits in packages/barocss-cad-interop (its packet, three and babylon hosts, which are Y-up
+  engines), packages/barocss-viewer, the physics examples and pinned evidence JSON. The scope is the coordinator's call.

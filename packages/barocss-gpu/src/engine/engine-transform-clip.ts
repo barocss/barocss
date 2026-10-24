@@ -12,7 +12,7 @@ export const EngineTransformClipDiagnosticCode = Object.freeze({
 export type EngineTransformClipDiagnosticCode = typeof EngineTransformClipDiagnosticCode[keyof typeof EngineTransformClipDiagnosticCode];
 export class EngineTransformClipError extends BarocssError {
   constructor(readonly code: EngineTransformClipDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine transform clip: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, 'Engine transform clip: ' + detail, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineTransformClipError';
   }
 }

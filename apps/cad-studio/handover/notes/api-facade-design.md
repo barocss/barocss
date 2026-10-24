@@ -1,7 +1,8 @@
 # The object facade (R7): design note and first slice
 
-Status, 2026-10-24: there's one working slice in each of the three packages. The facades grow only after the owner
-has seen them. The API lane wrote this note, and the coordinator reconciles it with R7.1 (the API inventory) and R7.2
+Status, 2026-10-24: there's one working slice in each of the three packages, and the part facades have grown (R7.4b:
+cylinder, sketches on planes, chamfer, shell, Booleans, patterns, the body chooser, Location). The owner approved the
+growth with the conventions. The API lane wrote this note, and the coordinator reconciles it with R7.1 (the API inventory) and R7.2
 (the conventions).
 
 - **`@barocss/cad/api`:** `part().box().hole().fillet(selector)` over `CadPartDocument`, with `.doc`, `.mass(g/cm³)`,
@@ -48,8 +49,10 @@ and gpu's come next, and they wait for the coordinator to confirm the paths.
 - **The same verbs.** cad's part and cad-model's part use the same words.
   - **Built in both (slice 1):** `box`, `hole`, `fillet`, `select` (the selectors), `mass`, `step` and `meshes`.
     cad also has `stl`.
-  - **Planned (growth):** `cylinder`, `chamfer`, `union`, `subtract`, `intersect`, `split`, patterns, sketches, a body
-    chooser, and placements.
+  - **Built in both (R7.4b):** `cylinder`, `extrude` and `revolve` of a `sketch()` on a `Plane`, `chamfer`, `shell`,
+    `union`, `subtract`, `intersect`, `linearPattern`, `circularPattern`, `moved(Location)`, and the body chooser
+    `bodies()` / `body(name)`. See "R7.4b: part growth, as built".
+  - **Planned:** `split`, `mirror`, parameters, assemblies (R7.5).
   - cad-model's part adds the studio layer: materials, rows, instances, assemblies.
   - `mass` reads the same in both: cad takes `mass({ densityGPerCm3 })`, because the kernel has no material library.
     cad-model takes `mass(material | { densityGPerCm3 })`.
@@ -183,6 +186,134 @@ For the kernel alone, `@barocss/cad/api`'s `part()` takes the same chain and wri
 - **The oracle, per facade:** `.doc` equals its own hand-written document; for cad-model, it also equals what the
   agent's run_command writes for the same commands. Its results equal its core's, byte for byte.
 
+## R7.4b: part growth, as built
+
+Every verb below is written once, in cad's `Part` and a spec (cad/src/api/spec.ts). Its kernel features are in
+cad/src/api/kernel.ts. The studio backend (cad-model/src/api/studio.ts) runs the studio's own command, so it needed only
+the body chooser, the sketch node and the evaluation at each verb.
+
+| Verb | v2 command, values | Kernel features | Studio nodes (through the command) |
+|---|---|---|---|
+| `cylinder({ rMM, hMM, xMM?, yMM?, zMM? })` | `cylinder` r, h, x, y, z | circle `sketch` + `extrude` | the same, `made` remembered |
+| `extrude(sketch, { hMM, draftDeg? })` | `extrude` h, draft | the sketch + `extrude` (`draft` when not 0) | the sketch as add_features writes it, then `extrude` |
+| `revolve(sketch, { axis?, angleDeg? })` | `revolve` axis, deg | the sketch + `revolve` (`axis: { origin: [0, 0], direction }`) | the sketch, then `revolve` |
+| `chamfer(edges, { distanceMM })` | `chamfer` distance | `chamfer` | `chamfer`, signed |
+| `shell(open?, { tMM })` | `shell` t; the faces to open, or the body for a closed hollow | `shell` (`open` when given) | `shell`, signed |
+| `union` / `subtract` / `intersect(tool)` | `union` / `difference` / `intersect`, bodies [body, tool] | `{ target, tool }` | `{ left, right }`, or `{ parent, tool }` |
+| `linearPattern({ axis, spacingMM, count })` | `linear-pattern` axis, spacing, count | `linear-pattern` | `linear-pattern` |
+| `circularPattern({ axis?, count, spanDeg?, pxMM?, pyMM? })` | `circular-pattern` axis, count, span, px, py | `circular-pattern`, its step the studio's | `circular-pattern` |
+| `moved(Location)` | `rotate` (each of X, Y, Z not 0, pivot the origin), then `move` | `rotate`, `translate` | `rotate` (pivot written), `translate` |
+
+- **Sketches** (cad/src/api/sketch.ts) are replicad's chain in our data:
+  - `sketch(plane?)` gives `.rectangle({ wMM, dMM, xMM?, yMM? })`, `.circle({ rMM, xMM?, yMM? })`, `.polygon(points)`, or
+    `.moveTo(p).lineTo(p).arcTo(p, { center, direction? }).close()`, a `loop` of lines and arcs.
+  - A `Sketch` is immutable. Its `.data` is the profile a sketch node carries, the same in both documents.
+  - **Every side is tagged** `e1 …` (`sideTags`, D86), as the studio's sketcher tags the sketches it draws. The walls are
+    named `side[e<k>]`, so a vertex inserted later in the sketcher keeps the other names. Commands' sketches (box,
+    cylinder) stay positional, as D86 has them.
+- **Plane** (build123d's): `Plane.XY`, `Plane.XZ` (normal −Y, so its Y is world Z), `Plane.YZ`, `.offset(dMM)` and
+  `Plane.of({ origin, normal, xAxis })`, which refuses vectors that aren't unit and square. `.data` is the documents'
+  plane shape. A sketch on XY through the origin stores no plane, as the studio writes it.
+- **Location** (build123d's): `Location.of({ positionMM, rotationDeg })` and `Location.at(p)`. It's the documents' Pose
+  (conventions §10.2), rotated about X, then Y, then Z, through the origin, then moved. R7.5 places parts with it.
+- **The body chooser.**
+  - `bodies()` lists the part's bodies in the core's order: the studio's keys (`b1`, `b3` …), the kernel's output ids
+    (`extrude1`, `fillet1` …).
+  - `body(name)` returns the same part with its verbs, `select()` and `mass()` acting on that body. `.doc` doesn't
+    change: the choice is the facade's view, never written.
+  - The choice follows its body through a verb that replaces it: after `body('b3').fillet(…)` it's the fillet's body.
+  - With one body there's nothing to choose. With several and no choice, a verb refuses `BODY_AMBIGUOUS`.
+  - `step()` writes every body; `meshes()` gives every body.
+- **Booleans.** The tool is a body of the part by name (`.union('b4')`), or a callback that adds it
+  (`.subtract(p => p.cylinder(…))`).
+  - The callback builds in the part's own document, so the tool's nodes take the next ids. That's what the studio does
+    when a person makes a second body and then combines the two.
+  - It must add exactly one body and leave the chosen one; otherwise `SELECTION_ONE` or `VALUE`.
+  - Two separate parts aren't combined: merging two documents would renumber one's ids, and so its names.
+- **`subtract`, not `difference`.** It's §12's one exception besides `box`: the v2 command is `difference`, and the
+  palette's label, the brief and the roadmap say Subtract.
+- **Each verb evaluates its result,** in both backends, as run_command's accept does. A feature the core refuses is
+  refused at its verb with the core's code (the kernel's `details.feature` names it), and the part is unchanged.
+- **Continuing a document:** `part(name, doc)` takes a saved document, or another part's `.doc`. It's evaluated once,
+  and the verbs add to it. The stability test uses it.
+- **No `rotate` verb yet.** The studio's rotate command pivots on the body's centre by default; the kernel's, on the
+  origin. A facade default would have to pick one. `moved()` always writes the origin.
+- **Patterns join their copies** (`result: 'one'`, the studio's default). The kernel has no separate copies. About X or
+  Y the copies are quarter turns, 2 to 4 of them; anything else is refused, where the studio would quietly use 90° and
+  at most 4.
+
+**The oracle:**
+- **cad** (test/api-verbs.test.mjs, 13/13): five parts cover every verb.
+  - Plate: a box, a cylinder subtracted, the top's edges chamfered.
+  - Cup: a revolve on XZ, shelled with the top open.
+  - Ring: a circular pattern, a linear pattern, `moved`.
+  - Pegged: two bodies, the chooser, union by name, intersect by callback.
+  - Tabs: a drafted loop on an offset plane, and a quarter revolve on YZ.
+  - Each `.doc` equals the hand-written CadPartDocument byte for byte. Each body's mass and the STEP equal the kernel's
+    on it.
+  - Also tested: the chooser, the values' immutability, and 13 typed refusals, the kernel's own among them.
+- **cad-model** (test/api-verbs.test.ts, 15/15, with api-part.test.ts 6/6): the same five parts.
+  - Each `.doc` equals what the agent's run_command and add_features write for the same calls, byte for byte:
+    signatures, `made` and all.
+  - Ring and Tabs, which have no signed references, also equal a hand-written StudioDoc.
+  - Each body's mass and the STEP equal the core functions' (`bodyMass`, `stepFor`).
+- **Selector stability** (cad test/api-stability.test.mjs, 3/3; cad-model's three in api-verbs.test.ts):
+  1. **A dimension edit upstream** (the box 80 → 60 wide): the stored names are exactly what the selector picks on the
+     edited body. The far edges are at x = 60, and the part lost exactly the 20 × 40 × 10 slab, so every corner is
+     still rounded.
+  2. **A vertex inserted upstream,** as the studio's sketcher does it (a new tag, the others kept): the stored
+     `side[e2]|side[e3]` is still the corner at (40, 40). The volume equals a fresh build of the new outline that picks
+     (40, 40) again.
+  3. **An edit that takes the edges away** (the rectangle made a circle): a typed refusal, `[SELECTION] … no edge named
+     …`, from `part(name, doc)`, naming the feature in the kernel. Never another edge.
+
+## R7.5: the assembly facade, as built
+
+`@barocss/cad-model/api`'s `assembly(name, base?)` is an immutable assembly over the StudioDoc:
+- **The base part** is fixed at the origin. It's the given studio part's document, or empty.
+- **Placed parts** are instances, each with its own document. Mates relate their faces.
+- **The verbs carry the v2 `assembly` actions' names** (§12). Each writes what the action's tool writes, and the
+  assembly is solved again after it:
+  - `addPart(name, part, { at?, grounded? })` is `add_part`. The part's document goes in as it is; the tool's is empty
+    or a copy, and the agent then builds it with part-scoped tools.
+  - `place(name, { at?, grounded? })` is `place_part`.
+  - `addMate(kind, a, b, { distanceMM?, angleDeg?, flip? })` is `add_mate`. Each end is `{ part, face }`:
+    - the part is `'base'` or a placed part by the name it was added with;
+    - the face is a selector picking one face, or a face name.
+
+    A fixed second part and a free first one swap, as in the studio. The solver's refusals pass through.
+  - `inputs({ name: input | null })` and `variants({ name: values | null }, active?)` are O11's `set_inputs` and
+    `set_variants`. They take the core's own input shape, with bindings by part and mate id (`parts()` lists the ids;
+    mates are `m1` … in order).
+  - `frames({ name: { link, at?, kind? } | null })` is O12's `set_frames`. The link is a part by name. `at` is a
+    Location in that part's own coordinates.
+- **Results are plain data:**
+  - `parts()`;
+  - `placements()`: each placed part's id, name, `positionMM`, `rotationDeg` and grounding;
+  - `problems()`: the unmet mates;
+  - `variant(values)`: an assembly over `variantOf`'s document, the master unchanged;
+  - `framePoses()`: each frame's world pose from the joint tree;
+  - `meshes()`: `base/<body>`, `<part>/<body>`, each part where it stands;
+  - `part(name)`: a studio part in its own coordinates.
+- **One adapter, src/api/assemblyCore.ts.** The tools are async (they take an evaluator), but none of their writes
+  needs one. So the adapter does the same writes in sync, over the core's sync functions: `solveAssembly`, `tablesFor`,
+  `mateRefusal`, `runVariabilityTool`, `variantOf`, `jointTreeOf`, `placedDoc`.
+- **The oracle** (test/api-assembly.test.ts, 4/4):
+  - A plate with a bore and a pin, mated concentric and flush, with an input driving the flush distance, a variant and
+    a tool frame. Its `.doc` equals, byte for byte, what the agent's tools write for the same calls: `add_part`, the
+    pin's own `run_command` with `part: p1`, two `add_mate`, `set_inputs`, `set_variants` and `set_frames`, through
+    `dispatchTool`. That's the ungated dispatcher, because an agent proposes assembly changes (D41) and an accepted
+    proposal replays this.
+  - The placements equal `solveDoc`'s; the pin stands at (20, 20, 0). The variant equals `variantOf`'s, with the pin
+    raised 5 mm. The frame poses equal `treeOfDoc`'s, the tip at (20, 20, 30). The meshes equal each placed document's
+    evaluation.
+  - Also tested: immutability, `part()` and `place()`, and typed refusals: the facade's own (`NAME_TAKEN`,
+    `PART_UNKNOWN`, `SELECTION_ONE`, `VALUE`), and the core's (`FRAME_LINK_STALE`, `INPUT_DEFAULT`, the solver's
+    refusal of a concentric mate between flat faces).
+- **Not in R7.5:** editing a placed part in place (the agent's part-scoped path also resolves shop rows and refreshes
+  followed frames); delete and edit of parts and mates; library parts and snaps; joints and kinematics; STEP and BOM of
+  an assembly.
+
 ## Object types
 
 | Type | What it is | Built on |
@@ -192,14 +323,14 @@ For the kernel alone, `@barocss/cad/api`'s `part()` takes the same chain and wri
 | `EdgeQuery`, `FaceQuery` | typed, immutable selections: filter, sort, take | the mesh's `straight`, `axis`, `faces`, `normal`, `centroid`, `names` |
 | `BarocssError` | one typed error in the conventions' shape (§6): `code`, `message`, `where`, `details` (the core's own words under `details.friendly`) | the core's `FriendlyError` and `stepFor`'s `{ error }` |
 
-These come later, in this order, each with the same oracle:
-- **More part features:** cylinder; sketches and extrude; chamfer; shell; patterns; mirror; Booleans between parts with
-  `.union()` and `.subtract()`, since TS has no operator overloading.
-- **A body chooser:** `part.body(name)` for parts of several bodies.
-- **`Sketch`:** the replicad-style chain `sketch().lineTo().arc().close()` on a `Plane`.
-- **`Plane` and `Location`:** objects of their own, as in build123d. They map to `DocPlane` and to an instance's
-  placement.
-- **`Assembly`:** `assembly().place(part, location).mate(…)`. Variants come through O11's `variability`.
+Built in R7.4b (see its section): more part features (cylinder, sketches with extrude and revolve, chamfer, shell,
+patterns, `.union()`, `.subtract()` and `.intersect()`, since TS has no operator overloading); the body chooser
+`part.body(name)`; `Sketch`, the replicad-style chain on a `Plane`; `Plane` and `Location`.
+
+These come later, each with the same oracle:
+- **More of the assembly:** editing a placed part in place, deletes and edits, library parts, joints (R7.5 built the
+  rest; see its section).
+- **More part features:** split, mirror, parameters.
 - **Rows:** reading a person's rows file. Under rows rule (b) the facade never writes rows.
 
 ## How it maps onto the core
@@ -284,6 +415,30 @@ These come later, in this order, each with the same oracle:
    `exportStep`, which supports one (io/step.ts). A pass-through option would let the facade and the docs' samples
    give byte-stable STEP.
 
+4. **Positional side names remap silently** (R7.4b, both cores). A sketch without `sideTags` names its walls by
+   position (`side1`), D86's old form, which commands and add_features still write. Insert a polygon vertex upstream and
+   a fillet's stored `side1|side2` rounds another corner, with no refusal. Measured: the square's (40, 40) fillet moved
+   to (40, 0) after a point went into its first side, the same in the kernel and the studio.
+   - The studio's fillet node carries `sigs`, each edge's geometry where it was picked, and evaluation doesn't compare
+     them. The edit tool's rematch (engine/rematch.ts) does, but a document edited elsewhere skips it.
+   - Proposed, for the outer lane: refuse, typed, when a stored edge's signature no longer matches the edge of that
+     name.
+   - The facade's sketches are tagged, so documents it builds aren't exposed.
+5. **The studio's `rotate` pivots on the body's centre by default; the kernel's, on the origin.** One verb, two
+   defaults. Noted for R7.3c, one function per concept.
+6. **Closed curves are counted differently.** In the studio's display, a cylinder's rim is one edge with two names and
+   its side is one face. In the kernel's B-rep they're two half-edges and two half-faces. So a count-based selector
+   (`curved().last(1)`) picks the whole rim in cad-model but half of it in cad. Selecting by geometry (`where`,
+   `sortBy`, `facing`) reads the same in both. Making cad's `brepSelection` merge them, as the display does, is open in
+   this lane; it would change cad's R7.4a counts (the top face's edges 6 → 5).
+
+7. **The assembly tools' writes aren't core functions** (R7.5, outer lane). add_part, place_part, add_mate and
+   set_frames write their changes inline in async tool handlers (chat/assembly.ts, chat/robot.ts), though none of the
+   writes awaits anything. The facade's adapter (src/api/assemblyCore.ts) mirrors them in sync, held to them byte for
+   byte by its test.
+   - Proposed for R7.3c: `addPart(doc, options)`, `placePart`, `addMate` and `setFrames` as `verb(doc, options) → doc`
+     core functions (§3), with the tools and the adapter both calling them.
+
 ## The kernel's old object API (`createCadModel`) and what replaces it
 
 `packages/barocss-cad/src/modeling.ts` has `createCadModel()` with `CadModel`, `CadShape` and `CadSketch`. It's a
@@ -336,7 +491,8 @@ retires modeling.ts.
     display rule);
   - core.ts (the adapter: `evaluateCadPart`, the output's `massProperties`, `exportStep`, `exportStl` and
     `tessellateBrep`; kg → g and kg·m² → g·mm²);
-  - refusal.ts (`BarocssError`, `FacadeCode`, `bracketedCode`).
+  - refusal.ts (`BarocssError`, `FacadeCode`, `bracketedCode`);
+  - sketch.ts (R7.4b: `Plane`, `Location`, `sketch()` and `Sketch`).
 - **test/api-part.test.mjs, 5/5:**
   - the document equals the hand-written CadPartDocument;
   - mass, STEP (with the stamp masked), STL bytes and the meshes' arrays equal `evaluateCadPart`'s own outputs;
@@ -376,26 +532,25 @@ retires modeling.ts.
   - the refusals are typed, the facade's own and the kernel's passed through.
 - cad-model `tsc` and eslint are clean.
 
-## Hand-over (2026-10-24, API lane stopped after R7.4a)
+## Hand-over (2026-10-24, after R7.4b)
 
-Nothing is in progress. Everything above is committed and its checks pass. For the next session:
+R7.4b and R7.5 are committed and their checks pass. The next work is R7.5b (gpu's growth), then R7.6 with the docs lane.
 
-- **The next work is R7.4b.** Its parts are cylinder, sketch → extrude/revolve, chamfer, shell, union/subtract/intersect,
-  patterns, a body chooser, Plane and Location, and a selector-stability test: after an upstream edit is re-evaluated,
-  the same named edge is still picked, or the facade gives a typed refusal.
-  - For each new verb, add a `FeatureSpec` case and its option builder in cad/src/api/spec.ts, the verb on `Part` in
-    cad/src/api/part.ts, and the kernel features in cad/src/api/kernel.ts.
+- **A new part verb:** add a `FeatureSpec` case and its option builder in cad/src/api/spec.ts, the verb on `Part` in
+  cad/src/api/part.ts, and the kernel features in cad/src/api/kernel.ts.
   - cad-model's studio backend needs no change for a verb whose v2 command exists, as long as the spec's `values` keys
-    are the command's.
-  - Test both oracles per verb: the hand-written document, and, for cad-model, the agent's run_command output.
+    are the command's. `namesOf` in studio.ts says which faces, edges and bodies the command is given.
+  - Test both oracles per verb: the hand-written document, and, for cad-model, the agent's run_command and add_features
+    output (test/api-verbs.test.ts's `agent` calls).
 - **Keep core calls in the adapters:** cad/src/api/core.ts, cad-model/src/api/core.ts and studio.ts. R7.3a/b, which
   moves the cores to `BarocssError` and MMGS, then changes only those files:
   - cad-model's `massOf` then drops its ×1000;
   - cad's drops its kg conversions;
   - the facades' `BarocssError` becomes a re-export of the core's.
 - **Tests:**
-  - cad: `node --test test/api-part.test.mjs` after a build (`node scripts/tool.mjs build:fast`, or `pnpm build:library`);
-  - cad-model: `node scripts/test.mjs api-part`;
+  - cad: `node --test test/api-*.test.mjs` after a build (`node scripts/tool.mjs build:fast`, or `pnpm build:library`,
+    which cad-model's tsc needs for the `.d.ts`);
+  - cad-model: `node scripts/test.mjs api-` (api-part, api-verbs, api-assembly);
   - gpu: `node --test tests/api-scene.test.mjs`, and, after both packages' build:library,
     `CHROME=… PW_DIR=… node --test tests/api-show-browser.test.mjs`.
 - **Traps:**

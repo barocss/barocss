@@ -10,7 +10,7 @@ export const EngineSceneFrustumDiagnosticCode = Object.freeze({
 export type EngineSceneFrustumDiagnosticCode = typeof EngineSceneFrustumDiagnosticCode[keyof typeof EngineSceneFrustumDiagnosticCode];
 export class EngineSceneFrustumError extends BarocssError {
   constructor(readonly code: EngineSceneFrustumDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine scene frustum: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, 'Engine scene frustum: ' + detail, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineSceneFrustumError';
   }
 }

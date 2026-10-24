@@ -11,7 +11,7 @@ export type AxisBoxBooleanBufferDiagnosticCode='INPUT'|'BUDGET'|'NATIVE'|'BINDIN
 export class AxisBoxBooleanBufferError extends BarocssError {
  readonly code:AxisBoxBooleanBufferDiagnosticCode;
  constructor(code:AxisBoxBooleanBufferDiagnosticCode,detail:string,cause?:unknown){
-  super(code, ('Axis-box Boolean buffers: '+detail).slice(0,1024),cause===undefined?undefined:{cause});
+  super(code, 'Axis-box Boolean buffers: '+detail,cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
   this.name='AxisBoxBooleanBufferError';this.code=code;
  }
 }
