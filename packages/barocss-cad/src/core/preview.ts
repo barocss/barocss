@@ -12,7 +12,7 @@ export interface ApproximationReport {
   probeCount: number;
   domain: { u: [number, number]; v: [number, number] };
   normalMethod: 'area-weighted-incident-triangle';
-  maxSampledDeviationMM: number;
+  maxSampledDeviation: number;
   certified: false;
 }
 function requireValue(condition: boolean, message: string): asserts condition {
@@ -115,5 +115,5 @@ export function tessellateSurface(surface: Surface, options: TessellationOptions
   }
   return { packet, report: { grid: { countU, countV }, vertexCount, triangleCount: cellCount * 2, cellCount, probeCount: cellCount * 5,
     domain: { u: [samples[0][0].u, samples[countU - 1][0].u], v: [samples[0][0].v, samples[0][countV - 1].v] },
-    normalMethod: 'area-weighted-incident-triangle', maxSampledDeviationMM, certified: false } };
+    normalMethod: 'area-weighted-incident-triangle', maxSampledDeviation: maxSampledDeviationMM, certified: false } };
 }

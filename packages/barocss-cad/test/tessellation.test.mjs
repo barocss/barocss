@@ -195,7 +195,7 @@ function checkPacket(result, surface, countU, countV, oracle) {
   assert.equal(report.certified, false);
   const independent = audit(result, oracle, probes);
   assert.equal(independent.count, report.probeCount);
-  close(report.maxSampledDeviationMM, independent.maximum, 1e-10);
+  close(report.maxSampledDeviation, independent.maximum, 1e-10);
   return { ...independent, analyticVertexDeviationMM };
 }
 
@@ -236,8 +236,8 @@ test('quarter-cylinder topology, analytic positions, U/V orientation and finite 
     oracle: 'analytic rational quadratic circle plus independent plane/barycentric/edge triangle distance',
     normalConvention: 'U cross V; radially positive for this open cylindrical patch, without a closed-solid claim',
     probeOffsets: probes, denseOffsets: offsets, additionalNonProbeOffsets: extraOffsets,
-    coarse: { grid: coarse.report.grid, revision: coarse.packet.revision, reportMaximumMM: coarse.report.maxSampledDeviationMM, ...coarseAudit },
-    fine: { grid: fine.report.grid, revision: fine.packet.revision, reportMaximumMM: fine.report.maxSampledDeviationMM, ...fineAudit },
+    coarse: { grid: coarse.report.grid, revision: coarse.packet.revision, reportMaximumMM: coarse.report.maxSampledDeviation, ...coarseAudit },
+    fine: { grid: fine.report.grid, revision: fine.packet.revision, reportMaximumMM: fine.report.maxSampledDeviation, ...fineAudit },
     coarseDense, fineDense, coarseNonProbe, fineNonProbe, certified: false,
     limitations: 'Finite sampled distances and analytic fixture checks only; no certified global bound, exact derivative normals, closed solid or GPU pixel claim',
   });
@@ -251,7 +251,7 @@ test('asymmetric affine plane retains domain, U/V ordering, exact bounds and are
   const unitNormal = scale(normal, 1 / norm(normal));
   for (let index = 0; index < result.report.vertexCount; index++) pointClose(pointAt(result.packet.normals, index), unitNormal, 1e-12);
   assert.ok(independent.maximum < 1e-12);
-  retainAudit('asymmetric-plane', { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviationMM, ...independent, certified: false });
+  retainAudit('asymmetric-plane', { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviation, ...independent, certified: false });
 });
 
 test('shared asymmetric flat literal replays without a GPU or native geometry dependency', () => {
@@ -270,7 +270,7 @@ test('shared asymmetric flat literal replays without a GPU or native geometry de
     indices: [0, 2, 1, 2, 3, 1], parameters: [-2, 4, -2, 6, 3, 4, 3, 6],
     bounds: { min: [1, 2, 2], max: [8, 10, 2] },
   });
-  assert.ok(report.maxSampledDeviationMM < 1e-12);
+  assert.ok(report.maxSampledDeviation < 1e-12);
   validatePreviewPacket(packet);
 });
 
@@ -285,7 +285,7 @@ test('weighted nonplanar patch retains rational weighting and independently meas
   const wrong = tessellateSurface(nonrational, { countU: 7, countV: 6, revision: 19 });
   assert.throws(() => checkPacket(wrong, weightedPatch, 7, 6, (u, v) => bilinearPoint(weightedPatch, u, v)), assert.AssertionError);
   assert.ok(independent.maximum > 0);
-  retainAudit('weighted-nonplanar', { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviationMM, ...independent, certified: false });
+  retainAudit('weighted-nonplanar', { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviation, ...independent, certified: false });
 });
 
 test('deterministic JSON packets own arrays and preserve frozen input geometry', () => {
@@ -396,7 +396,7 @@ test('committed preview sources independently match analytic positions and trian
     const compiled = compileCadModel(source,{sourceVersion:0});assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));const surface=compiled.model.objects[0];
     const result = tessellateSurface(surface, { countU, countV, revision: 19 });
     const independent = checkPacket(result, surface, countU, countV, (u, v) => bilinearPoint(surface, u, v));
-    retainAudit(name, { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviationMM, ...independent, certified: false });
+    retainAudit(name, { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviation, ...independent, certified: false });
   }
 });
 
@@ -419,4 +419,11 @@ test('defensive packet copies retain caller ownership and reject host getter dat
   assert.throws(() => copyPreviewPacket(accessorArray));
   assert.equal(calls, 0);
   assert.throws(() => copyPreviewPacket({ ...original, url: 'https://example.invalid' }));
+});
+
+test('R7 preview report uses canonical deviation in mm without an old-name alias', () => {
+  const { report } = tessellateSurface(plane, { countU: 3, countV: 3, revision: 0 });
+  assert.equal(Number.isFinite(report.maxSampledDeviation), true);
+  assert.equal(Object.hasOwn(report, 'maxSampledDeviationMM'), false);
+  assert.equal(JSON.parse(JSON.stringify(report)).maxSampledDeviation, report.maxSampledDeviation);
 });
