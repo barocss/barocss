@@ -96,7 +96,7 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'check_path',
-    description: 'Checks a stored motion (set_waypoint) for contact between the robot\'s links along its timing, as sweep_path checks a move (certified, not sampled): clear, or the first contact (its time in s, segment, the two links, the joint values there in degrees and mm), the least clearance (mm, when and between which links), the motion\'s duration and the samples taken. Refused, typed, when the motion is unknown (MOTION_UNKNOWN) or cannot play (LIMITS_MISSING, JOINT_LIMIT, …). Changes nothing.',
+    description: 'Checks a stored motion (set_waypoint) for contact between the robot\'s links along its timing, as sweep_path checks a move (certified, not sampled): clear, or the first contact (its time in s, segment, the two links, the joint values there in degrees and mm), the least clearance (mm, when and between which links), the motion\'s duration and the samples taken. Meshing gears\' teeth and a planar loop pin\'s shared face are designed contact, not contact; anything else between them is. Refused, typed, when the motion is unknown (MOTION_UNKNOWN), cannot play (LIMITS_MISSING, JOINT_LIMIT, …) or the robot has a closed loop (LOOP_OPEN: not closed along a motion yet). Changes nothing.',
     input_schema: { type: 'object', properties: { motion: { type: 'string' } }, required: ['motion'], additionalProperties: false },
   },
   {

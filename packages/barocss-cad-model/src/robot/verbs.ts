@@ -73,7 +73,7 @@ export function poseOf(view: RobotView, values: Readonly<Record<string, number>>
 /** sweep_path's reply: a straight joint move checked for contact between the links. */
 export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {
   const r = sweepPath(t, sweepLinksOf(view, t), from, to);
-  return { reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped },
+  return { reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), s: r6(r.minClearance.s), links: r.minClearance.links } : null, samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
     summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
 }
 const sig10 = (v: number) => Number(v.toPrecision(10)) + 0;
@@ -176,6 +176,8 @@ export function withWaypoint(view: RobotView, o: { motion: string; values?: Read
 }
 /** The motion's timed path, checked as it will play (its limits the motion's own: LIMITS_MISSING without them). */
 function playable(t: JointTree, m: Motion) {
+  // (O22: a motion names joint values; nothing closes a loop along it yet, so its poses would leave the loop open — refused, not shown wrong.)
+  if (t.loops.length) throw refusal('LOOP_OPEN', `the robot has a closed loop (${t.loops.map(l => l.parts.join('–')).join(', ')}); a motion's poses do not close it yet, so it is not played or checked`);
   m.path.waypoints.forEach((w, k) => checkLimits(t, w, `${m.name}, waypoint ${k}: `));
   const path = timedPathOf(t, m.path), bad = checkPath(t, path);
   if (bad.length) throw refused(bad[0]);
@@ -186,7 +188,7 @@ export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf
   const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), r = sweepTimed(t, sweepLinksOf(view, t), path);
   const contact = r.clear ? undefined : { t_s: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
   return { motion: name, duration_s: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
-    min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), t_s: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped };
+    min_clearance: r.minClearance ? { mm: r6(r.minClearance.mm), t_s: r6(r.minClearance.t), links: r.minClearance.links } : null, samples: r.samples, skipped: r.skipped, designed: r.designed };
 }
 /** play: a motion's poses at `samples` even times (poseAt, as the studio plays it): each time, the values (degrees, mm) and the links' placements. */
 export function playMotion(view: RobotView, name: string, samples = 30, t: JointTree = treeOf(view)) {

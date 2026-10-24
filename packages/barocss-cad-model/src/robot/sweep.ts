@@ -11,8 +11,19 @@
 // kernel's exact `meshClearance`, K3).
 // Parent and child are not checked (they meet at their joint by design, as simulators do), nor pairs whose relative
 // pose the path does not change (said so if they touch).
+// O22: two links seated together by design are checked without that seat, as the clearance map's `designed` state
+// keeps a seat apart from a clash; anything else between them is still a contact.
+// - Meshing gears (a coupling): each gear's zone is its triangles inside its tip cylinder over its teeth's face width;
+//   zone against zone (the teeth) is the coupling's to hold, by its phase, and every other triangle pair is checked.
+//   Two bare gears have nothing else: the pair is left out, said so.
+// - A loop's pin (a closure) in a planar loop: every joint between the two links turns about an axis parallel to the
+//   pin's (or slides across it), so each point keeps its place along that axis. Two triangles whose extents along it
+//   meet at most at a plane can only touch, never cross: only the triangles within the slab both links fill are
+//   checked. Stacked links (a face shared, no slab) cannot meet and are left out, said so; a part of one reaching
+//   into the other's slab (a post) is checked as any other.
 import type { BodyResult } from '../engine/evaluate';
 import type { JointTree } from './joints';
+import { spurGearDimensions } from '@barocss/cad';
 import { forwardKinematics, type Motion } from './fk';
 import { convexDistance, meshClearance } from '@barocss/cad';
 
@@ -27,9 +38,103 @@ export interface SweepResult {
   samples: number;
   /** Pairs checked, and those left out (parent and child; no relative motion). */
   pairs: [string, string][]; skipped: { links: [string, string]; why: string }[];
+  /** O22: pairs checked without their designed seat (meshing gears' teeth, a loop pin's shared face), and how. */
+  designed: { links: [string, string]; why: string }[];
 }
 
 const TOL = 1e-6;
+type V3 = readonly [number, number, number];
+/**
+ * A designed seat between two links: the triangle sets (index triples) still checked against each other, the first
+ * of each pair on `first`; `probes`: a triangle of a link whose centre, inside the other link, is a contact too.
+ */
+interface Seat { why: string; first: string; checks: [Uint32Array, Uint32Array][]; probes: { link: string; tri: Uint32Array }[] }
+
+/** A gear link's triangles split at its tip cylinder about the joint's axis, over the axial span its teeth have. */
+function splitGear(l: SweepLink, o: V3, n: V3, ra: number, rf: number): { zone: Uint32Array; rest: Uint32Array } {
+  const P = l.positions, I = l.indices, nv = P.length / 3, rho = new Float64Array(nv), h = new Float64Array(nv), tol = 1e-6 * Math.max(1, ra);
+  let lo = Infinity, hi = -Infinity;
+  for (let v = 0; v < nv; v++) {
+    const x = P[v * 3] - o[0], y = P[v * 3 + 1] - o[1], z = P[v * 3 + 2] - o[2], a = x * n[0] + y * n[1] + z * n[2];
+    h[v] = a; rho[v] = Math.hypot(x - a * n[0], y - a * n[1], z - a * n[2]);
+    if (rho[v] >= rf - tol && rho[v] <= ra + tol) { lo = Math.min(lo, a); hi = Math.max(hi, a); }
+  }
+  const zone: number[] = [], rest: number[] = [];
+  for (let k = 0; k < I.length; k += 3) {
+    let inZone = true;
+    for (let e = 0; e < 3; e++) { const v = I[k + e]; if (rho[v] > ra + tol || h[v] < lo - tol || h[v] > hi + tol) { inZone = false; break; } }
+    (inZone ? zone : rest).push(I[k], I[k + 1], I[k + 2]);
+  }
+  return { zone: Uint32Array.from(zone), rest: Uint32Array.from(rest) };
+}
+/** Each point's extent along n: [min, max]. */
+function extent(P: ArrayLike<number>, n: V3): [number, number] {
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i < P.length; i += 3) { const a = P[i] * n[0] + P[i + 1] * n[1] + P[i + 2] * n[2]; if (a < lo) lo = a; if (a > hi) hi = a; }
+  return [lo, hi];
+}
+/** A link's triangles reaching into the open slab (lo, hi) along n. */
+function inSlab(l: SweepLink, n: V3, lo: number, hi: number): Uint32Array {
+  const P = l.positions, I = l.indices, out: number[] = [];
+  for (let k = 0; k < I.length; k += 3) {
+    let a = Infinity, b = -Infinity;
+    for (let e = 0; e < 3; e++) { const v = I[k + e] * 3, h = P[v] * n[0] + P[v + 1] * n[1] + P[v + 2] * n[2]; if (h < a) a = h; if (h > b) b = h; }
+    if (b > lo + TOL && a < hi - TOL) out.push(I[k], I[k + 1], I[k + 2]);
+  }
+  return Uint32Array.from(out);
+}
+/** Whether every joint between two links moves them in the plane across n: turns about axes along it, slides across it. */
+function planar(tree: JointTree, a: string, b: string, n: V3): boolean {
+  const pa = pathOf(tree, a), pb = pathOf(tree, b), common = new Set(pa.filter(k => pb.includes(k)));
+  for (const key of [...pa, ...pb]) {
+    if (common.has(key)) continue;
+    const j = tree.joints.find(x => x.key === key)!, d = Math.abs(j.axis[0] * n[0] + j.axis[1] * n[1] + j.axis[2] * n[2]);
+    if (j.type === 'fixed') continue;
+    if (j.type === 'prismatic' ? d > 1e-9 : Math.abs(d - 1) > 1e-9) return false;
+  }
+  return true;
+}
+/** O22: the designed seats between the links, by pair (`a|b`, both orders): meshing gears and planar loop pins; null: none to check. */
+function seatsOf(tree: JointTree, byId: ReadonlyMap<string, SweepLink>): Map<string, Seat | { why: string; skip: true }> {
+  const out = new Map<string, Seat | { why: string; skip: true }>();
+  for (const c of tree.couplings) {
+    const jl = tree.joints.find(j => j.key === c.leader), jf = tree.joints.find(j => j.key === c.follower), a = jl && byId.get(jl.child), b = jf && byId.get(jf.child);
+    if (!jl || !jf || !a || !b) continue;
+    const da = spurGearDimensions(c.g1.spec), db = spurGearDimensions(c.g2.spec), sa = splitGear(a, jl.origin, jl.axis, da.ra, da.rf), sb = splitGear(b, jf.origin, jf.axis, db.ra, db.rf);
+    const why = `meshing gears (${c.leader} drives ${c.follower}): their teeth are the coupling's to hold, by its phase`;
+    const seat = !sa.rest.length && !sb.rest.length ? { why: `${why}; nothing else on either`, skip: true as const }
+      : { why, first: a.link, checks: [[sa.rest, b.indices], [sa.zone, sb.rest]] as [Uint32Array, Uint32Array][], probes: [...(sa.rest.length ? [{ link: a.link, tri: sa.rest.subarray(0, 3) }] : []), ...(sb.rest.length ? [{ link: b.link, tri: sb.rest.subarray(0, 3) }] : [])] };
+    out.set(`${a.link}|${b.link}`, seat); out.set(`${b.link}|${a.link}`, seat);
+  }
+  for (const loop of tree.loops) {
+    const [x, y] = loop.parts, a = byId.get(x), b = byId.get(y), j = tree.joints.find(k => k.child === x);
+    if (!a || !b || !j || !planar(tree, x, y, j.axis)) continue;
+    const n = j.axis, [la, ha] = extent(a.positions, n), [lb, hb] = extent(b.positions, n), lo = Math.max(la, lb), hi = Math.min(ha, hb);
+    const ia = hi - lo > 2 * TOL ? inSlab(a, n, lo, hi) : new Uint32Array(), ib = hi - lo > 2 * TOL ? inSlab(b, n, lo, hi) : new Uint32Array();
+    const why = `a planar loop's pin (${loop.mates.join(', ')}): each keeps its place along the pin's axis`;
+    const seat = !ia.length || !ib.length ? { why: `${why}, and they share no slab along it (stacked), so they cannot meet`, skip: true as const }
+      : { why: `${why}: only what both fill along it checked`, first: x, checks: [[ia, ib]] as [Uint32Array, Uint32Array][], probes: [{ link: x, tri: ia.subarray(0, 3) }, { link: y, tri: ib.subarray(0, 3) }] };
+    out.set(`${x}|${y}`, seat); out.set(`${y}|${x}`, seat);
+  }
+  return out;
+}
+/** A seat's contact: an edge of one checked set through a triangle of the other, or a probe's centre inside the other link. */
+function seatMeets(seat: Seat, A: string, PA: Float64Array, IA: Uint32Array, PB: Float64Array, IB: Uint32Array): boolean {
+  const flip = seat.first !== A;
+  for (const [s1, s2] of seat.checks) if (flip ? piercesAny(PA, s2, PB, s1) : piercesAny(PA, s1, PB, s2)) return true;
+  for (const p of seat.probes) {
+    const mine = p.link === A, P = mine ? PA : PB, t = p.tri, cx = (P[t[0] * 3] + P[t[1] * 3] + P[t[2] * 3]) / 3, cy = (P[t[0] * 3 + 1] + P[t[1] * 3 + 1] + P[t[2] * 3 + 1]) / 3, cz = (P[t[0] * 3 + 2] + P[t[1] * 3 + 2] + P[t[2] * 3 + 2]) / 3;
+    if (mine ? inside(cx, cy, cz, PB, IB) : inside(cx, cy, cz, PA, IA)) return true;
+  }
+  return false;
+}
+/** A seat's clearance: the least over its checked sets. */
+function seatClearance(seat: Seat, A: string, PA: Float64Array, PB: Float64Array): number {
+  const flip = seat.first !== A;
+  let d = Infinity;
+  for (const [s1, s2] of seat.checks) { if (!s1.length || !s2.length) continue; const m = flip ? meshClearance(PA, s2, PB, s1).distanceMM : meshClearance(PA, s1, PB, s2).distanceMM; if (m < d) d = m; }
+  return d;
+}
 /** A pose's points: the home points moved (into `out`). */
 function moved(m: Motion, home: ArrayLike<number>, out: Float64Array): Float64Array {
   const R = m.R, t = m.t;
@@ -74,9 +179,13 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
   for (const j of tree.joints) dq.set(j.key, j.mimic ? Math.abs(j.mimic.multiplier) * Math.abs((q1[j.mimic.joint] ?? 0) - (q0[j.mimic.joint] ?? 0)) : Math.abs((q1[j.key] ?? 0) - (q0[j.key] ?? 0)));
   const parentOf = new Map(tree.joints.map(j => [j.child, j.parent])), pairs: [string, string][] = [], skipped: SweepResult['skipped'] = [], rate = new Map<string, number>();
   const ids = links.map(l => l.link), reach = new Map(ids.map(id => [id, reaches(tree, id, byId.get(id)!.hull)]));
+  const seats = seatsOf(tree, byId), designed: SweepResult['designed'] = [];
   for (let a = 0; a < ids.length; a++) for (let b = a + 1; b < ids.length; b++) {
     const A = ids[a], B = ids[b], pair: [string, string] = [A, B];
     if (partParent(parentOf, A) === B || partParent(parentOf, B) === A) { skipped.push({ links: pair, why: 'parent and child (they meet at their joint)' }); continue; }
+    const seat = seats.get(`${A}|${B}`);
+    if (seat && 'skip' in seat) { skipped.push({ links: pair, why: seat.why }); continue; }
+    if (seat) designed.push({ links: pair, why: seat.why });
     const pa = pathOf(tree, A), pb = pathOf(tree, B), common = new Set(pa.filter(k => pb.includes(k)));
     let r = 0;
     for (const k of pa) if (!common.has(k)) r += dq.get(k)! * reach.get(A)!.get(k)!;
@@ -93,16 +202,16 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
     for (const l of links) { const m = fk.motions.get(l.link)!, p = posed.get(l.link)!; moved(m, l.hull, p.hull); moved(m, l.positions, p.mesh); }
     let step = Infinity, limiting: [string, string] | null = null, least = Infinity;
     for (const [A, B] of pairs) {
-      const pa = posed.get(A)!, pb = posed.get(B)!, r = rate.get(`${A}|${B}`)!;
+      const pa = posed.get(A)!, pb = posed.get(B)!, r = rate.get(`${A}|${B}`)!, seat = seats.get(`${A}|${B}`) as Seat | undefined;
       let d = convexDistance(pa.hull, pb.hull);
       if (d <= tol) {
-        // (The hulls meet: the meshes decide — in contact, or their own least distance.)
+        // (The hulls meet: the meshes decide — in contact, or their own least distance; a gear seat without zone against zone.)
         const la = byId.get(A)!, lb = byId.get(B)!;
-        if (meshesMeet(pa.mesh, la.indices, pb.mesh, lb.indices)) {
+        if (seat ? seatMeets(seat, A, pa.mesh, la.indices, pb.mesh, lb.indices) : meshesMeet(pa.mesh, la.indices, pb.mesh, lb.indices)) {
           if (r === 0 && s === 0) { skipped.push({ links: [A, B], why: 'in contact where the path starts and not moved by it' }); rate.set(`${A}|${B}`, -1); continue; }
-          return { contact: { s, values: fk.values, links: [A, B] }, clear: false, minClearance: { mm: 0, s, links: [A, B] }, samples, pairs, skipped };
+          return { contact: { s, values: fk.values, links: [A, B] }, clear: false, minClearance: { mm: 0, s, links: [A, B] }, samples, pairs, skipped, designed };
         }
-        d = meshClearance(pa.mesh, la.indices, pb.mesh, lb.indices).distanceMM;
+        d = seat ? seatClearance(seat, A, pa.mesh, pb.mesh) : meshClearance(pa.mesh, la.indices, pb.mesh, lb.indices).distanceMM;
       }
       if (r < 0) continue;
       if (!min || d < min.mm) min = { mm: d, s, links: [A, B] };
@@ -113,12 +222,12 @@ export function sweepPath(tree: JointTree, links: readonly SweepLink[], from: Re
     if (s >= 1) break;
     // (A step too small to make progress: the clearance is all but nothing — met, to the tolerance.)
     if (!(step > 1e-12) || samples >= cap) {
-      if (limiting) return { contact: { s, values: fk.values, links: limiting }, clear: false, minClearance: min, samples, pairs, skipped };
+      if (limiting) return { contact: { s, values: fk.values, links: limiting }, clear: false, minClearance: min, samples, pairs, skipped, designed };
       break;
     }
     s = Math.min(1, s + step);
   }
-  return { clear: true, minClearance: min, samples, pairs, skipped };
+  return { clear: true, minClearance: min, samples, pairs, skipped, designed };
 }
 
 // ── Meshes: the exact contact test and the least distance (triangle against triangle, boxes first) ──
@@ -142,6 +251,10 @@ const boxApart = (a: Float64Array, b: Float64Array) => {
 };
 /** Whether two closed meshes interpenetrate: an edge of one through a triangle of the other, or one wholly inside the other. */
 export function meshesMeet(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: ArrayLike<number>, IB: ArrayLike<number>): boolean {
+  return piercesAny(PA, IA, PB, IB) || inside(PA[0], PA[1], PA[2], PB, IB) || inside(PB[0], PB[1], PB[2], PA, IA);
+}
+/** Whether an edge of one set of triangles passes through the inside of a triangle of the other. */
+function piercesAny(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: ArrayLike<number>, IB: ArrayLike<number>): boolean {
   const na = IA.length / 3, nb = IB.length / 3;
   for (let i = 0; i < na; i++) {
     load(tA, PA, IA, i);
@@ -155,7 +268,7 @@ export function meshesMeet(PA: ArrayLike<number>, IA: ArrayLike<number>, PB: Arr
       }
     }
   }
-  return inside(PA[0], PA[1], PA[2], PB, IB) || inside(PB[0], PB[1], PB[2], PA, IA);
+  return false;
 }
 /** A point inside a closed mesh, by the parity of a ray's crossings (an oblique ray, off every edge and corner). */
 function inside(x: number, y: number, z: number, P: ArrayLike<number>, I: ArrayLike<number>): boolean {

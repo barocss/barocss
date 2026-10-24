@@ -20,6 +20,7 @@ import { readMjcf, mjcfFk } from '../src/robot/mjcfCheck';
 import { readUrdf } from '../src/robot/urdfCheck';
 import { readRobot } from '../src/robot/joints';
 import { samples } from '../scripts/robot-samples';
+import { dispatchTool } from '../src/chat/tools';
 
 const DIR = resolve(resolve(import.meta.dirname, '..'), 'samples/robots');
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
@@ -112,6 +113,16 @@ test('RS1: FK at 20 poses each against the closed form (the chain\'s product of 
   const two = (await opened('arm-2r')).tree, q1 = Math.PI / 3, at = forwardKinematics(two, { 'base~a': q1 }).motions.get('a')!, o = two.joints[1].origin;
   const p = [0, 1, 2].map(i => at.R[i * 3] * o[0] + at.R[i * 3 + 1] * o[1] + at.R[i * 3 + 2] * o[2] + at.t[i]);
   assert.ok(Math.abs(p[0] - (20 + 40 * Math.cos(q1))) < 1e-9 && Math.abs(p[1] - (20 + 40 * Math.sin(q1))) < 1e-9, JSON.stringify(p));
+});
+
+test('RS1 (O22): every sample\'s demo motion passes check_path clear along its timing; the four-bar refused, its loop not closed along a motion (LOOP_OPEN)', async () => {
+  for (const s of index()) {
+    const o = await opened(s.id), m = readRobot(o.doc.robot).motions![0];
+    const out = await dispatchTool({ doc: o.doc, bodies: o.bodies }, 'check_path', { motion: m.name }, evaluate);
+    if (o.tree.loops.length) { assert.ok(out.isError, s.id); assert.match(out.content, /\[LOOP_OPEN\]/); continue; }
+    assert.ok(!out.isError, `${s.id}: ${out.content}`);
+    const j = JSON.parse(out.content); assert.equal(j.clear, true, `${s.id} ${m.name}: ${out.content.slice(0, 300)}`);
+  }
 });
 
 test('RS1: the four-bar closes its loop through its demo motion (the pins meet to 1e-9 mm)', async () => {

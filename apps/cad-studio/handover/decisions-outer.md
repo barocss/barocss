@@ -8950,6 +8950,10 @@ fillets round a closed curve loop, were refused "The kernel could not build this
   - matchSignature doesn't read `n`, so re-matching on open is unchanged.
 - **The trade-off, for now:** closed rims and merged faces get no kernel check, while single-name edges and faces keep
   it. The vertex-insert refusal holds.
+- **Fingerprint (the coordinator checked it after fc3fde052):** two records moved, rb9/product-brief/0 and /2, and in
+  them only `step.text`'s hash. Bodies, breps, brepsMade, keys, rebuild and stl are identical. Both briefs end in a
+  fillet (n6, R0.5) whose stored signature now carries `n`. That changes the document's canonical JSON, and with it the
+  source revision in the STEP header — the same mechanism as step 3's weld record.
 - **Follow-up (logged):** signatures per kernel name, taken from each piece's own geometry, so that a display element
   carries one signature per name. That would restore the check for rims and merged faces.
 - **The kernel lane** had started a distance-to-samples change in part-expect.ts. The coordinator asked it to drop
@@ -9033,3 +9037,51 @@ fillets round a closed curve loop, were refused "The kernel could not build this
     - play_motion against poseAt at the same times, with the first and last waypoints met.
   - Changed: tool-contract runs the three read tools; the studio chat test lists the four handlers.
 - **Verified (T1):** rs1, rs2, rs3, robot-*, tool-contract and toolset 103/103; tsc; eslint 0 errors.
+
+## O22 — designed contact in the collision sweep: meshing gears and planar loop pins; LOOP_OPEN for looped motions (2026-10-24)
+
+The docs lane found (RS4) that three samples' demo motions report contact from t = 0: gripper and gear-joint (meshing
+gears) and four-bar (its coupler and rocker, pinned by the loop closure). The sweep skipped only parent and child
+pairs. The coordinator scheduled it as O22.
+- **robot/sweep.ts:** sweepPath now reads designed seats from the tree, so the agent's tools, the studio's Check path
+  (App.tsx, no change there) and the harness all get them. The result gains
+  `designed: [{links, why}]`; sweepTimed, sweep_path and check_path pass it on.
+  - **Meshing gears (a coupling):**
+    - Each gear's zone is its triangles inside its tip cylinder (spurGearDimensions' ra) about its joint's axis, over
+      the axial span its teeth have.
+    - Zone against zone (teeth on teeth) is the coupling's to hold, by its phase. Every other triangle pair is still
+      checked.
+    - Two bare gears have nothing else, so the pair is left out, with the reason given.
+  - **A planar loop's pin (a closure):**
+    - Every joint between the two links turns about an axis parallel to the pin's axis (or slides across it), so
+      each point keeps its place along that axis. Two triangles whose extents along it meet at most at a plane can
+      only touch, never cross.
+    - So only the triangles inside the slab both links fill are checked. Stacked links share no slab and are left out:
+      they cannot meet.
+    - A part of one reaching into the other's slab (a post) is checked as any other pair.
+    - A loop that is not planar, or interleaved links with no stacking, are checked as any other pair.
+  - **Rejected first approach:** checking stacked pins a 1e-4 mm gap apart along the axis. It stalled conservative
+    advancement (step = gap / rate, 20,000 samples) and ended in a false contact.
+- **LOOP_OPEN (new code):** nothing closes a loop along a motion — not poseAt, not the sweep, not the studio's playback.
+  - The four-bar's demo motion turns the crank while crank~coupler and base~rocker stay at 0, so its poses are open
+    chain.
+  - check_path and play_motion therefore refuse a robot that has a loop (a typed refusal rather than a wrong result).
+  - The proposed follow-up, RS5: motions close their loops, with closeLoop per pose in poseAt (the RS1 test already
+    closes the four-bar along its demo values) and a sweep over the closed path. The studio's playback and Check path
+    have the same gap; that part is the GPU lane's.
+- **Tests:**
+  - New, test/o22-designed-contact.test.ts (3 tests):
+    - **Gears:** the bare gripper is clear both ways and its gear pair is left out with the reason. An arm on the left
+      finger, outside its tip circle, swung −90° hits the right gear at 0.927296 rad. The closed form is
+      90° − asin((ra + 2) / 40) = 0.927295 rad, and the test allows from it up to one pitch angle past it. Swung +90°,
+      the arm is clear.
+    - **Loop pin:** the bare four-bar is clear both ways and the stacked pair is left out with the reason. A post on
+      the rocker is hit by the coupler one way, clear the other way (designed, checked), and a post where the coupler
+      already lies is a contact at s = 0.
+    - **LOOP_OPEN:** check_path and play_motion refuse the four-bar.
+  - RS1 extended: every sample's demo motion passes check_path clear, except the four-bar, which is refused with
+    LOOP_OPEN.
+- **The samples' check_path results:** arm-2r, scara, arm-6r, gantry-ppp (after RS3 (b)'s fix), pan-tilt, gripper and
+  gear-joint are clear; four-bar is refused with LOOP_OPEN.
+- **Docs:** _refusals.md regenerated.
+- **Verified (T1):** o22, rs1–3, robot-*, tool-contract and toolset; tsc; eslint 0 errors.
