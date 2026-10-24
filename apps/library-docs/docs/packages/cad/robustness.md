@@ -1,3 +1,7 @@
+<script setup>
+import BooleanWalkthrough from '../../.vitepress/components/BooleanWalkthrough.vue';
+</script>
+
 # B-rep, robustness and refusals
 
 ## Booleans, fillets and offsets on exact surfaces
@@ -19,6 +23,20 @@ Let A be the target body and B the tool body. The operation selects the solid ma
 | `union` | `union(tool)` | Material in A or B, counting the overlap once |
 | `difference` | `subtract(tool)` | Material in A that is outside B; reversing A and B changes the result |
 | `intersect` | `intersect(tool)` | Material common to A and B |
+
+### From numbers to a solid result
+
+Start with a box whose X, Y and Z coordinates each run from 0 to 10 mm. Its six plane boundaries enclose 1000 mm³.
+The tool is another box, or a cylinder defined by its XY centre, radius and height. Move B along X and choose an
+operation. The solid view shows the inputs; the XY view shows the material selected by the operation.
+
+For the cylinder at its initial centre (8, 5) with radius 3, the wall meets the box's X = 10 plane where
+`(10 − 8)² + (y − 5)² = 9`: at Y = 5 ± √5, or about 2.764 and 7.236 mm. These crossing points split the boundaries.
+The inside/outside rule then selects regions, and their 10 mm height turns the selected area into volume.
+
+<BooleanWalkthrough />
+
+### A checked code example
 
 For two 10 × 10 × 10 mm cubes offset 5 mm along X, the overlap is 5 × 10 × 10 = 500 mm³. The union is
 1000 + 1000 − 500 = 1500 mm³; the difference and intersection are each 500 mm³. This example runs with the site's

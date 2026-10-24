@@ -13,7 +13,7 @@
 // (export, RM4, writes metres); joint values are 0 at the pose the mates solve to.
 import { checkPlacedSpurGears, spurGearDimensions, type GearPlacement } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
-import { BASE, solvedFaces, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
+import { BASE, mateFacesOf, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
 import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
@@ -296,7 +296,7 @@ export function jointTree(input: TreeInput): JointTree {
   // (PG-6: the running fits — every concentric mate's two round faces, where the solver put them.)
   const fits: Fit[] = [];
   for (const m of input.mates) {
-    if (m.kind !== 'concentric' || failed.has(m.id)) continue;
+    if (m.kind !== 'concentric' || m.a.at !== undefined || m.b.at !== undefined || failed.has(m.id)) continue;
     const fa = input.tables(m.a.part)?.[m.a.face], fb = input.tables(m.b.part)?.[m.b.face], A = placed.get(m.a.part), B = placed.get(m.b.part);
     if (fa?.kind !== 'cylinder' || fb?.kind !== 'cylinder' || !A || !B) continue;
     fits.push({ mate: m.id, a: m.a.part, b: m.b.part, pa: add(apply(A.R, fa.point), A.t), da: unit(apply(A.R, fa.axis)), ra: fa.radius, pb: add(apply(B.R, fb.point), B.t), db: unit(apply(B.R, fb.axis)), rb: fb.radius });
@@ -327,7 +327,7 @@ function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed:
     if (m.kind === 'lock') { rows.push(...mateRows(m, null as never, null as never, L)); continue; }
     const fa = tables(m.a.part)?.[m.a.face], fb = tables(m.b.part)?.[m.b.face];
     if (!fa || !fb) continue;
-    const sf = solvedFaces(m.kind, fa, fb);
+    const sf = mateFacesOf(m, { a: fa, b: fb });
     rows.push(...mateRows(sf.as === m.kind ? m : { ...m, kind: sf.as }, worldFace(sf.a, placed.get(m.a.part)!), worldFace(sf.b, placed.get(m.b.part)!), L));
   }
   return motionOf(freeTwists(rows, L));

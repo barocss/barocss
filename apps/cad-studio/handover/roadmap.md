@@ -18,10 +18,10 @@ section current.
 | Lane | Now | Next | Then |
 |---|---|---|---|
 | Kernel | R7.7b on the branch claude/kernel-r73b-r77b; R7.3b is committed there (`82c8acaec`, D280) and **held out of integration** until the window: it removes CadPartOutput's and CadPartSnapshot's methods, which cad-model (engine/evaluate.ts, engine/bodyNotes.ts) and the docs samples still call. R7.3a done for cad (D278 `f1da68dc1`; the fold D279) | R7.3b + R7.7b in one window with outer's R7.7a steps 2/4, API's R7.7d and docs, all branched from the kernel's branch; PG-3 (profile the engine head and spring) | R7.3d (284 of 401 files reachable only through exports), K17 |
-| Outer | O24(c) reference tables and spherical constraints adopted (`55b83d559`, merge `fe189cc47`); focused native and Chromium/file checks pass. Earlier O24(a), RS6 and PG-4/5/6/8 stay done | O24(b) connectors, then O24(d)/(e); R7.7a steps 2/4 in the coordinated window | P1-L3 live runs when P1's build is done |
+| Outer | O24(b) mate connectors adopted (`67a5622cd`, merge `ec7e1ff9a`), after O24(c); focused native/file/browser proof qualified, aggregate verification pending | R7.7a steps 2/4 at fixed base `c9cd4a8ca` plus the explicit verified O24(b) supplement | O24(d)/(e) after R7 consumer qualification |
 | GPU | G15d.2 bloom adopted (`621c7dc6f`, merge `cba255347`). G14 quiet section samples give mixed results (5.89 ms PASS, 7.43 ms FAIL against 6 ms); an excluded run ended above load 10. No new code checkpoint | Keep G14: separate surface/cap/output contributions before choosing an optimization; then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
-| API | P2 checkpoint `7a30ddcac` is held on its lane: focused tests 20/20 and types pass, but the product command exits 1 for missing connector and board-screw rows (PG-11/12); manufacturing, fit and interference remain unverified. P1 milestone 3 stays done (merge `af4384170`) | Finish P2 qualification; then P3, P4 | R7.7d after the cores' renames |
-| Docs | Boolean algorithms and an independently checked integer-box example documented; adopted DR-5, bloom and O24(c) coverage reconciled (`aad2acd0d`, merge `b2e6aacb2`); lane samples 51/51, focused model 20/20, docs check and build pass; post-merge docs check passes | Document adopted DR-6a; R7.6 part 2 and R7.7 consumers after the coordinated R7 window | the Later list |
+| API | P2 qualification source preserved at `490d9ea6c` on its original branch; product remains NOT VERIFIED and unmerged (rows/manufacturing/interference gaps). R7 API branch starts at `c9cd4a8ca` without P2 | R7.7d facade fields/units and consumer qualification; then resume P2 qualification | P3/P4 only after their dependencies and P2 readiness |
+| Docs | Boolean algorithms and interactive code-native figures adopted (`5237df391`, merge `11f8bdbb2`), with DR-5/bloom/O24(c) coverage; lane samples 54/54, build and desktop/mobile checks pass. Figure comparisons use declared 0.001 mm³ display precision, not a kernel tolerance change | R7 docs migration at `c9cd4a8ca` plus explicit `5237df391` supplement; product adoption held | R7.6 part 2 after coordinated R7 qualification |
 | Drawings (CG5) | DR-6a control characteristics/modifiers adopted (`c31386e9a`, merge `c5f144e72`); DR-5 stays done. DR-6 as a whole remains incomplete; focused lane browser, native, contract and DXF checks pass | DR-6b face datum features; then targets and standalone/composite frames in bounded slices | DR-7 presets and inch display, DR-8 drawing sets |
 | Data (CG6) | idle: VA-1/VA-2 done (merge df8761f1e); what is left (sharing, comments, multi-user) waits on the owner | — | — |
 | Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3); the 2026-10-24 night merges (2fff42cb9, af4384170, df8761f1e, 816c2263b, 3e305ea01) checked by cad-model/studio tsc and the merged areas' tests only (cad-model 40/40, studio 21/21); gpu build:library in the integration worktree passes again after the untracked stale G18.2 draft src/engine-uv-material-wgsl.ts was moved aside to ~/.cache/barocss-preserved/2026-10-24-integration-untracked/ (GPU lane: superseded by material/engine-uv-repeating-material-wgsl.ts) | P1-L3 after P1's scripted build (owner-approved budget); route AI-eval's AE-1..AE-19 (notes/ai-eval-2026-10-24.md) | the owner's open decisions (below) |
@@ -45,15 +45,35 @@ The six dedicated Works are separate; the older Codex worktrees are not their wo
 The worktrees above are under `/Users/user/github/barocss/barocss/.claude/worktrees/`. Integration remains
 `barocss-cad-gpu-review-efbb2c`, branch `review/cad-gpu-engine-2026-10-14`.
 
+**Fixed R7 preparation base:** `c9cd4a8caa98b51570e7e02aaa94d637a523061d`, branch
+`codex/cad-r7-preparation-20261024`, worktree `codex-r7-preparation-20261024` under the worktree directory above.
+This isolated base combines adopted product code `af40fbbe87be51232c85c9a7be41a3c7c1d11c4e` and kernel
+`a9d777a7ebdd2e0fc09b2a11689182f41a0c95bc`. It is preparation only, not consumer-qualified or product-adopted.
+The owner's direct Kernel-chat request on 2026-10-24 authorizes fixing this base and preparing consumer migrations.
+The base's `notes/r7-window-2026-10-24/README.md`, `ownership.json` and `field-map.json` fix the 354 contextual
+renames, MMGS contracts, final spring rule and exact shared-file leases.
+
+Outer/API/Docs/Drawings were instructed to preserve the current direct task's source on its original branch first,
+then use their existing worktrees with `codex/cad-r7-{outer,api,docs,drawings}-20261024` branches at that exact base.
+Do not carry P2 or unrelated feature WIP into those branches. Coordinator retains browser-flow; Outer receives
+explicit App/chat/node-bench/mesh-bench leases; Docs owns its candidate generators/text; Drawings owns its omitted
+consumers. GPU receives a read-only consumer-impact review under the owner's no-render-code-change instruction.
+Final qualification occurs on an isolated assembled consumer aggregate; source-ready patches are not product
+acceptance. The later adopted O24(b) checkpoint `67a5622cd` is an explicit Outer supplement to the
+fixed base, not a base rewrite: Outer must reconcile it in its R7 branch and the aggregate must include it before
+promotion. No unverified connector WIP is authorized by this supplement. The later adopted Boolean figure checkpoint `5237df391` is an explicit Docs supplement under
+the same rule. Preserve any R7 WIP before merging it in the Docs branch, port its facade field reads, and qualify
+both supplements in the final aggregate. The immutable base itself does not move. No preparation branch is merged into product while any required consumer checkpoint is unqualified.
+
 **R7.3b/R7.7b: HOLD.** Do not merge the kernel checkpoint alone. The window starts only when all five participants
 have immutable compatible checkpoints and their required checks are recorded:
 
-- Kernel: R7.3b/R7.7b qualification at `93c4f1e91` is in progress. Native-split's known Node-version assertion is a
-  recorded failure, not a green full suite. The rename map and MMGS value conversions both need consumer review.
-- Outer: O24(c) is adopted, but R7.7a steps 2/4 remain a proposal. The consumer migration is not ready.
-- API: R7.7d is not ready. P2 checkpoint `7a30ddcac` is preserved on its lane; its product check still exits 1.
-- Docs: the ordinary docs checkpoint is adopted; R7 sample/field/unit migration has not started and needs the fixed
-  coordinated source checkpoint. An ordinary docs pass does not establish R7 readiness.
+- Kernel: immutable source `a9d777a7e` is qualified with limits. The known Node-version assertion failure, six skips,
+  three strict-fingerprint refusal-name differences and two old RB TODOs remain explicit. Contract review is assigned.
+- Outer: R7.7a steps 2/4 are assigned at the fixed base after preserving O24(b). No verified migration receipt yet.
+- API: R7.7d is assigned at the fixed base after preserving P2. P2 product adoption stays held; no verified R7 receipt yet.
+- Docs: R7 sample/field/unit migration is assigned after preserving the owner's Boolean diagram work. Ordinary docs
+  passes do not establish R7 readiness; no verified R7 consumer receipt yet.
 - Drawings: its owned consumers still read the old spring report fields in `drawing/elementTables.ts` and
   `drawing/auto.ts`, and `tessellateBrep(...).positionsMM` in `drawing/section.ts`. Outer's migration proposal excludes
   these owned files. Drawings needs its own compatible R7 consumer checkpoint in the same window.
