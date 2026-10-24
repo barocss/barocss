@@ -198,9 +198,9 @@ positions in mm and rotations in degrees.
 #### Robot unit boundaries
 
 ::: warning R7 contract preparation
-This section records the confirmed R7 public contract. Three documentation samples check stored turn/slide settings,
-pose conversion and a same-type gear mimic on the combined angular implementation. Public mass, gravity and motion
-reports still need their Phase B implementation and runtime checks. The full contract is not yet product-qualified.
+This section records the confirmed R7 public contract. The samples check the combined angular and B1 mass/gravity
+implementation. B2 duty/consistency reports and the remaining field changes are pending. The full R7 contract is not
+yet product-qualified.
 :::
 
 Use degrees for turning joints and mm for sliding joints. Resolve the joint type before you convert a value.
@@ -226,19 +226,25 @@ that drives a slide, a public multiplier of 0.1 mm/degree and an offset of 2 mm 
 reverse relation, 10 degrees/mm and an offset of 5 degrees give 35 degrees at 3 mm. Convert both the multiplier and
 offset when you pass between public and internal units. Apply the same joint-type rule to cam and contact values.
 
-**Public reports.** Use the following names and units for `Robot.inertia()` and corresponding agent reports:
+**Public reports.** `Robot.inertia()` returns `{ links }`. Each link uses these fields, as does its agent report:
 
 | Field | Public unit |
 |---|---|
-| `mass` | g |
-| `centroid` | mm |
-| `inertia`, principal `moments` | g·mm² |
-| Frame `origin` | mm |
+| `links[i].mass` | g |
+| `links[i].centroid` | mm |
+| `links[i].inertia`, `links[i].principal.moments` | g·mm² |
+| `links[i].frame.origin` | mm |
+| `links[i].bodies[j].mass` | g |
 
 For `Robot.gravity(values, g)`, supply `g` in mm/s². The default is `[0, 0, -9806.65]`, which preserves the existing
-9.80665 m/s² physical value. An explicit input of `[0, 0, -9810]` selects 9.81 m/s² instead. Public gravity magnitudes
-use the name `gravity` and the same unit. Turning effort is in N·mm, and slide effort is in N. A report's `peak` and
-`rms` retain unit metadata so the reader can distinguish these quantities. Density remains g/cm³.
+9.80665 m/s² physical value. An explicit input of `[0, 0, -9810]` selects 9.81 m/s² instead. The reply's `gravity` is
+the magnitude in mm/s². It is not a returned vector. `torques` and `generalized` contain the holding moment or force
+by joint key. Read `units[key]`: a turn uses N·mm, and a slide uses N. Density remains g/cm³.
+
+A motion report uses `joints[key].peak`, `rms` and `unit` for moment or force. Its `distance`, `peakVelocity`,
+`peakAcceleration` and `peakJerk` use degrees or mm and the corresponding time derivatives. `at` is in seconds.
+These motion fields are separate from a gravity reply. The object facade exposes `path()` for motion; it has no
+`move()` or `size()` method.
 
 Public durations and timestamps use seconds. This includes `duration`, `time`, `at`, `moveDuration`, `cycleDuration`
 and `dwell`. `evaluationTime`, `builtTime` and `wallTime` convert former millisecond values by dividing by 1000.
@@ -248,8 +254,46 @@ For a physical reference, take a solid 10 × 10 × 10 mm cube at density 2.7 g/c
 [5, 5, 5] mm and each diagonal centroidal inertia is 45 g·mm². With the explicit test input `[0, 0, -9810]` mm/s²,
 its weight is 0.026487 N.
 With its centre 5 mm perpendicular to a hinge axis, the holding torque magnitude is 0.132435 N·mm. The corresponding
-native SI values are 0.0027 kg, [0.005, 0.005, 0.005] m and 4.5 × 10⁻⁸ kg·m². These closed-form values are independent
-test inputs; they do not report a completed robot runtime check.
+native SI values are 0.0027 kg, [0.005, 0.005, 0.005] m and 4.5 × 10⁻⁸ kg·m². The cube samples below check mass,
+inertia and slide force against these independent values. The hypothetical 5 mm hinge is a calculation only; the
+tested hinge below uses a drilled arm with a 20 mm lever.
+
+#### Physical report examples
+
+The cube uses aluminium `al6061`, whose density is 2.7 g/cm³. The code calls the object facade, and compares its
+reply to closed-form values. The expected values are not taken from a conversion helper.
+
+<<< @/../samples/robot-public-reports.test.mjs#import
+
+<<< @/../samples/robot-public-reports.test.mjs#cube
+
+<<< @/../samples/robot-public-reports.test.mjs#cube-report
+
+The gravity input is a vector, and the returned `gravity` is its magnitude. A cube with no joint can check that
+magnitude, but supplies no joint holding-force result:
+
+<<< @/../samples/robot-public-reports.test.mjs#gravity
+
+Add two perpendicular plane mates to constrain a second cube to a vertical slide. Its holding force is
+0.026477955 N at the default gravity and 0.026487 N at the explicit 9810 mm/s². A 20 mm displacement does not change
+its weight:
+
+<<< @/../samples/robot-public-reports.test.mjs#slide
+
+<<< @/../samples/robot-public-reports.test.mjs#slide-force
+
+For turning effort, use a 20 × 20 × 80 mm aluminium block. It has two blind bores of radius 4 mm and depth 8 mm,
+and two transverse bores of radius 4 mm and length 20 mm. None intersect. The concentric and plane mates make a
+hinge about +Y. The block's centre is 20 mm above that hinge at home. At 90 degrees, the lever is perpendicular to
+gravity. The holding moment is negative about +Y, in N·mm:
+
+<<< @/../samples/robot-public-reports.test.mjs#arm
+
+<<< @/../samples/robot-public-reports.test.mjs#arm-torque
+
+The samples also check a real sweep's initial contact at 45 degrees and −12.5 mm. A separate unit projection
+fixture covers all four turn/slide mimic combinations. That fixture checks conversion; it does not demonstrate
+four physically assembled coupling mechanisms. B2 duty/consistency and remaining field changes need later checks.
 
 [Native export files](#exporting) retain their format-specific SI units. Their frozen bytes need a separate check
 from public JSON quantities. Explicit source catalogue records such as `{ v, unit, src }` retain their source units

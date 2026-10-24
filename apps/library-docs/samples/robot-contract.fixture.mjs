@@ -1,5 +1,6 @@
 // Independent inputs for the confirmed R7 public contract at 77d5ac1bca0042c0a086f83f26ad602ad14e3af8.
-// Only jointCase is consumed by the angular runtime samples. Other cases await their producer/API bindings.
+// Angular samples consume jointCase/couplingCases; report samples consume cube mass/inertia and explicit gravity/force.
+// The hypothetical cube lever torque, native SI and timeCases remain reference inputs without runtime bindings.
 // No production conversion helper supplies these expected values.
 export const jointCase = {
   sample: 'scara',
