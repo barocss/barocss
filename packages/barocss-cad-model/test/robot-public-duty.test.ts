@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { JointTree } from '../src/robot/joints';
-import { readDuty } from '../src/chat/robot';
+import { readDuty } from '../src/robot/native/duty';
 import { dutyJson } from '../src/robot/reports';
 
 const tree: JointTree = { version: 1, base: 'base', links: [], joints: [
