@@ -1,6 +1,6 @@
 # barocss CAD roadmap
 
-Current as of 2026-10-23, after the Codex import. This file is the one place for **what we do, in what order, and
+Current as of 2026-10-24, after the Claude-to-Codex lane handover. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
 `codex/cad-coordinator-handover-20261022`.
 
@@ -19,12 +19,45 @@ section current.
 |---|---|---|---|
 | Kernel | R7.7b on the branch claude/kernel-r73b-r77b; R7.3b is committed there (`82c8acaec`, D280) and **held out of integration** until the window: it removes CadPartOutput's and CadPartSnapshot's methods, which cad-model (engine/evaluate.ts, engine/bodyNotes.ts) and the docs samples still call. R7.3a done for cad (D278 `f1da68dc1`; the fold D279) | R7.3b + R7.7b in one window with outer's R7.7a steps 2/4, API's R7.7d and docs, all branched from the kernel's branch; PG-3 (profile the engine head and spring) | R7.3d (284 of 401 files reachable only through exports), K17 |
 | Outer | O24 (b)–(e); O24 (a) PG-5 (cam mate), RS6 (motions close their loops), PG-8/PG-4 (lock_part, locked gears couple) and PG-6 (running fits) done (merge 2fff42cb9) | R7.7a steps 2/4 on the kernel's branch | P1-L3 live runs when P1's build is done |
-| GPU | G15d.2 bloom: WIP `14f9bccdf` on the lane branch, not merged (7 ms GPU at DPR 1, 32 at DPR 2; 2 gpu unit failures not yet looked at); G15b parts 3–4 done (merge 3e305ea01: PCSS soft shadows, contact shadows, the Render workspace's soft sun) | the G14 output-pass step (when load < 10), G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
+| GPU | G15d.2 bloom WIP `5281db29e` is under qualification, not merged; its G15d.1 prerequisite-preserving browser flow must be reconciled first. G15b parts 3–4 done (merge `3e305ea01`) | G14 quiet measurement (load < 10), then G15d.3 → G15c → G15d.4 | G15-accept on the P1 engine |
 | API | P2; P1 milestone 3 done (merge af4384170: the engine's outputs and the facade's outputs layer; gaps PG-9, PG-10) | P3, P4 | R7.7d after the cores' renames |
-| Docs | the merged features' text: the agent's version actions (CG6 VA-1/VA-2), the cam mate, lock_part and closed-loop motions (O24 (a), RS6), the Render workspace's soft shadows (G15b); "Projects and versions" and drawings DR-1–DR-3 done (merge 6ce4c195f) | the P1 showcase page when P1 lands; R7.6 part 2 after R7.3 | the Later list |
-| Drawings (CG5) | DR-4 revolved and removed sections; DR-1–DR-3 done (merge 20085bd98) | DR-5 title blocks and revision tables → DR-6 full GD&T | DR-7 presets and inch display, DR-8 drawing sets |
+| Docs | Merged outputs and P1 milestone 3 documented (`b5175a082`, integration `1942950a4`); docs check, samples 50/50 and build pass on the lane; post-merge docs check passes | R7.6 part 2 and R7.7 consumers after the coordinated R7 window; describe new qualified features after adoption | the Later list |
+| Drawings (CG5) | DR-4 removed and revolved sections adopted (`c694d8945`, integration `c8400355d`); post-merge docs check passes; DR-5 title blocks and revision tables in progress in the dedicated Work | DR-6 full GD&T | DR-7 presets and inch display, DR-8 drawing sets |
 | Data (CG6) | idle: VA-1/VA-2 done (merge df8761f1e); what is left (sharing, comments, multi-user) waits on the owner | — | — |
 | Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3); the 2026-10-24 night merges (2fff42cb9, af4384170, df8761f1e, 816c2263b, 3e305ea01) checked by cad-model/studio tsc and the merged areas' tests only (cad-model 40/40, studio 21/21); gpu build:library in the integration worktree passes again after the untracked stale G18.2 draft src/engine-uv-material-wgsl.ts was moved aside to ~/.cache/barocss-preserved/2026-10-24-integration-untracked/ (GPU lane: superseded by material/engine-uv-repeating-material-wgsl.ts) | P1-L3 after P1's scripted build (owner-approved budget); route AI-eval's AE-1..AE-19 (notes/ai-eval-2026-10-24.md) | the owner's open decisions (below) |
+
+## Codex lane ownership and R7 readiness (2026-10-24)
+
+The owner transferred the Claude branches to Codex on this machine. This supersedes protocol.md's 2026-10-23
+Claude-ownership prohibition. Work stays local. Each lane uses its existing worktree and branch. This coordinator
+alone merges immutable qualified checkpoints with `--no-ff`, one at a time, and runs the docs check after each merge.
+The six dedicated Works are separate; the older Codex worktrees are not their working directories.
+
+| Lane | Work chat | Existing worktree | Branch |
+|---|---|---|---|
+| Kernel | 01a16e2f-fd09-7ea3-b47e-e1243e1b3498 | studio-constraints-371737 | claude/kernel-r73b-r77b |
+| Outer | 01a16e30-2fb2-7a31-8011-258896c32342 | studio-mates-cbde0e | claude/cad-outer-lane-531d5a |
+| GPU | 01a16e30-68c5-7ae2-a500-33133dc9b2b4 | compassionate-turing-e88276 | claude/gpu-lane-2026-10-23 |
+| API | 01a16e30-a0fe-7ea3-b7d9-944480088a55 | confident-fermi-29a815 | claude/api-lane-2026-10-24 |
+| Docs | 01a16e30-d6e2-7030-a266-fdeb12dc9b9f | fervent-hopper-d9c6b2 | claude/fervent-hopper-d9c6b2 |
+| Drawings | 01a16e31-1757-7e83-b62c-436a517d1dc7 | cad-drawings-cg5 | claude/drawings-cg5 |
+
+The worktrees above are under `/Users/user/github/barocss/barocss/.claude/worktrees/`. Integration remains
+`barocss-cad-gpu-review-efbb2c`, branch `review/cad-gpu-engine-2026-10-14`.
+
+**R7.3b/R7.7b: HOLD.** Do not merge the kernel checkpoint alone. The window starts only when all four participants
+have immutable compatible checkpoints and their required checks are recorded:
+
+- Kernel: R7.3b/R7.7b qualification at `93c4f1e91` is in progress. Native-split's known Node-version assertion is a
+  recorded failure, not a green full suite. The rename map and MMGS value conversions both need consumer review.
+- Outer: R7.7a steps 2/4 are not ready. O24(c) is under correction and qualification first.
+- API: R7.7d is not ready. P2 remains under correction and qualification first.
+- Docs: the ordinary docs checkpoint is adopted; R7 sample/field/unit migration has not started and needs the fixed
+  coordinated source checkpoint. An ordinary docs pass does not establish R7 readiness.
+
+The coordinator must record the complete immutable set and shared field/unit map before the serial window. Verify
+all consumers together before describing the R7 aggregate as integrated. Keep qualified independent milestones
+moving while the R7 window is held. Do not broaden focused proof into full browser, product or release acceptance.
 
 ## Where we are
 
@@ -222,7 +255,7 @@ Order (agreed with the GPU lane, 2026-10-24): after RS2 — G15d.1, then G15a, G
 
 The owner asked "상용 수준으로 갈려면 로드맵에 더 많이 추가해야하는 것들이 있어?". Compared with SolidWorks, Fusion and Onshape, by what the studio's own docs list today. The owner: "CG1·CG2(모델링), CG5(도면), CG6(파일 저장·버전)부터 로드맵 순서에 넣고 진행해줘." Those four are ordered (below); the rest wait. FEM/CAE and PCB stay off the roadmap by earlier decisions.
 
-Order and owners: **CG1/CG2** — kernel (the geometry: loft with rails and non-parallel sections, boundary surfaces, variable/face fillets, draft from any direction and a parting line, rib, emboss and text, wrap, helical threads and helices, feature patterns, face move/delete/replace, thicken/offset/knit/trim/extend) right after the R7.3b + R7.7b window and before R7.3d; outer adds the studio commands and v2 actions per feature as the kernel lands it; GPU adds pickers where a new reference kind needs one. **CG5** (drawings) — the new drawings lane (session "CG5 도면 줄", branch claude/drawings-cg5, worktree cad-drawings-cg5, flow port 52791, decisions-drawings.md DR-n; it owns cad-model src/drawing/** and the Drawing workspace): DR-1 detail views (**done**, merge eea20c995) → DR-2 broken views (**done**, merge c5da2fa32) → DR-3 half and offset sections (**done**, merge 20085bd98) → DR-4 revolved and removed sections → DR-5 title blocks and revision tables → DR-6 full GD&T → DR-7 ISO/ASME presets (style values only) and inch display → DR-8 drawing sets. **CG6** (storage and versions) — V1–V3, S1, S2 **done** (merge ad45714cc: the version log, compare, three-way merge; a project folder on disk or in the browser's private file system; the Project & versions card; Save and autosave into a project); S3 **done** (merge 1dd6254c9: branches and merge in the card, compare tint fallback, new parts detach from the project's file); S4 **done** (merge 93e70b1ba: placed parts linked to project files, changed ones offered through Revision waiting / Accept); next the agent's version actions; sharing/comments and multi-user editing wait on the owner (a server, accounts, hosting); the docs lane writes "Projects and versions". The new data lane (session "CG6 데이터 줄", decisions-data.md DA-n, flow port 52891): a project folder on disk (File System Access, fallback), autosave, named versions with restore and compare, branches with typed merge conflicts; sharing/comments and multi-user later. Design first.
+Order and owners: **CG1/CG2** — kernel (the geometry: loft with rails and non-parallel sections, boundary surfaces, variable/face fillets, draft from any direction and a parting line, rib, emboss and text, wrap, helical threads and helices, feature patterns, face move/delete/replace, thicken/offset/knit/trim/extend) right after the R7.3b + R7.7b window and before R7.3d; outer adds the studio commands and v2 actions per feature as the kernel lands it; GPU adds pickers where a new reference kind needs one. **CG5** (drawings) — the new drawings lane (session "CG5 도면 줄", branch claude/drawings-cg5, worktree cad-drawings-cg5, flow port 52791, decisions-drawings.md DR-n; it owns cad-model src/drawing/** and the Drawing workspace): DR-1 detail views (**done**, merge eea20c995) → DR-2 broken views (**done**, merge c5da2fa32) → DR-3 half and offset sections (**done**, merge 20085bd98) → DR-4 revolved and removed sections (**done**, merge `c8400355d`) → DR-5 title blocks and revision tables → DR-6 full GD&T → DR-7 ISO/ASME presets (style values only) and inch display → DR-8 drawing sets. **CG6** (storage and versions) — V1–V3, S1, S2 **done** (merge ad45714cc: the version log, compare, three-way merge; a project folder on disk or in the browser's private file system; the Project & versions card; Save and autosave into a project); S3 **done** (merge 1dd6254c9: branches and merge in the card, compare tint fallback, new parts detach from the project's file); S4 **done** (merge 93e70b1ba: placed parts linked to project files, changed ones offered through Revision waiting / Accept); next the agent's version actions; sharing/comments and multi-user editing wait on the owner (a server, accounts, hosting); the docs lane writes "Projects and versions". The new data lane (session "CG6 데이터 줄", decisions-data.md DA-n, flow port 52891): a project folder on disk (File System Access, fallback), autosave, named versions with restore and compare, branches with typed merge conflicts; sharing/comments and multi-user later. Design first.
 
 | # | Area | Gap |
 |---|---|---|
