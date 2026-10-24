@@ -33,7 +33,7 @@ test('O-G6 draftSamples: a cone drafted 3° — every vertex of its side 3 withi
   }
   // (The exact values before Float32: draftField's own minimum and maximum on the side, 3 to 1e-9.)
   const side = draftField(CONE, [b], [0, 0, 1], 1).faces.find(x => x.face === 'n1.side0')!;
-  assert.ok(Math.abs(side.minDeg - 3) <= 1e-9 && Math.abs(side.max - 3) <= 1e-9);
+  assert.ok(Math.abs(side.min - 3) <= 1e-9 && Math.abs(side.max - 3) <= 1e-9);
 });
 
 test('O-G6 draftSamples: its sign changes on exactly the faces draftField calls straddling — a cylinder across the pull, a drafted box, a cone, pulled along Z and X', () => {
@@ -96,7 +96,7 @@ test('O-G6 castingDraftLimits: an A380 die casting\'s least and achievable draft
   // (O7c: the casting rules are the sample rows, loaded as the person loads them.)
   const doc = withSampleRows({ ...withLook(plain, b0, { material: 'a380' }), process: 'die-casting', mould: { version: 1 as const, pull: [0, 0, 1] as [number, number, number] } }, 'casting-rules');
   const bodies = bodiesOf(doc), lim = castingDraftLimits(doc, bodies, die);
-  assert.ok(lim && lim.minDeg > 0 && (lim.recDeg === null || lim.recDeg >= lim.minDeg), JSON.stringify(lim));
+  assert.ok(lim && lim.draftMin > 0 && (lim.draftRecommended === null || lim.draftRecommended >= lim.draftMin), JSON.stringify(lim));
   const rule = castability(doc, bodies, die).rules.find(r => r.id === 'draft')!;
-  assert.ok(rule.limit === lim!.minDeg || rule.limit === lim!.recDeg, `${rule.limit} vs ${JSON.stringify(lim)}`);
+  assert.ok(rule.limit === lim!.draftMin || rule.limit === lim!.draftRecommended, `${rule.limit} vs ${JSON.stringify(lim)}`);
 });

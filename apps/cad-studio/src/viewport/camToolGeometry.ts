@@ -3,7 +3,7 @@ import type { CamGeometry } from './camDisplay';
 import { camToolBottom } from './camHeightfield';
 
 // G23 CNC (G-R3, from Codex's source 5c9f861f): the declared tool as a revolved mesh at a local tip of [0, 0, 0], its
-// axis +Z — the cutting profile up the flute, then the shank. The Model's shankMM is a diameter, so the shank's length
+// axis +Z — the cutting profile up the flute, then the shank. The Model's shankDiameter is a diameter, so the shank's length
 // is shown as one diameter, a visual estimate said; no holder is invented.
 
 export const CAM_TOOL_SECTORS = 64;
@@ -12,10 +12,10 @@ export interface CamToolGeometry {
   flute: CamGeometry;
   shank: CamGeometry;
   /** Display chord sag only, not machining accuracy. */
-  angularChordMM: number;
-  noseChordMM: number;
-  /** Visual axial extension; Model shankMM is a diameter, not an authored length. */
-  shankExtensionMM: number;
+  angularChordError: number;
+  noseChordError: number;
+  /** Visual axial extension; Model shankDiameter is a diameter, not an authored length. */
+  shankExtension: number;
 }
 
 interface Ring { radius: number; z: number; radial: number; axial: number }
@@ -50,7 +50,7 @@ function revolved(rings: Ring[], bottomRadius: number, topRadius: number, top: n
 
 /** Full declared cutting profile and shank, at a local tip of [0,0,0], with no holder. */
 export function camToolGeometry(tool: ToolShape): CamToolGeometry {
-  const { kind, diameter: diameter, cornerMM: corner, fluteMM: flute, shankMM: shank } = tool, radius = diameter / 2;
+  const { kind, diameter: diameter, cornerRadius: corner, fluteLength: flute, shankDiameter: shank } = tool, radius = diameter / 2;
   if (!['flat', 'ball', 'bull'].includes(kind) || ![diameter, corner, flute, shank].every(Number.isFinite) || diameter <= 0 || flute <= 0 || shank <= 0
     || (kind === 'flat' && corner !== 0) || (kind === 'ball' && Math.abs(corner - radius) > 1e-9 * Math.max(1, radius))
     || (kind === 'bull' && !(corner > 0 && corner <= radius)) || flute < corner) throw new Error('CAM display: unsupported tool dimensions or rounded nose longer than its flute');
@@ -65,7 +65,7 @@ export function camToolGeometry(tool: ToolShape): CamToolGeometry {
   return {
     flute: revolved(rings, kind === 'flat' ? radius : radius - corner, radius, flute),
     shank: revolved([{ radius: shankRadius, z: flute, radial: 1, axial: 0 }, { radius: shankRadius, z: shankTop, radial: 1, axial: 0 }], shankRadius, shankRadius, shankTop),
-    angularChordMM: Math.max(radius, shankRadius) * (1 - Math.cos(Math.PI / CAM_TOOL_SECTORS)),
-    noseChordMM: corner * (1 - Math.cos(Math.PI / (4 * CAM_TOOL_NOSE_RINGS))), shankExtensionMM: shank,
+    angularChordError: Math.max(radius, shankRadius) * (1 - Math.cos(Math.PI / CAM_TOOL_SECTORS)),
+    noseChordError: corner * (1 - Math.cos(Math.PI / (4 * CAM_TOOL_NOSE_RINGS))), shankExtension: shank,
   };
 }

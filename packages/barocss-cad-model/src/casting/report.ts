@@ -21,7 +21,7 @@ export const CASTING_PROCESSES: readonly CastingProcess[] = ['die-casting', 'san
 /** The casting summary: the material and its family, and the tolerance where one is read. */
 export interface CastingSummary {
   readonly material: string | null; readonly family: CastFamily | null;
-  readonly tolerance: { readonly mm: number; readonly source: string; readonly page: string } | null;
+  readonly tolerance: { readonly value: number; readonly source: string; readonly page: string } | null;
   /** The faces under the least draft, and under the achievable one (by name). */
   readonly steep: readonly string[]; readonly underRecommended: readonly string[];
   /** IM8b (O108): the pattern's shrinkage and the machining allowance (null: not known), and the faces it goes on. */
@@ -43,11 +43,11 @@ const faceNames = (fs: readonly DraftFace[]) => fs.map(f => f.face).slice(0, 40)
  * the casting report's draft rule judges by — with their pages; null when the material, its family or the limit is not
  * known (the report then says why). One material for the part, as the report takes it.
  */
-export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): { minDeg: number; recDeg: number | null; source: string } | null {
+export function castingDraftLimits(doc: StudioDoc, bodies: readonly BodyResult[], profile: ProcessProfile): { draftMin: number; draftRecommended: number | null; source: string } | null {
   profile = castingProfileOf(doc, profile.id) ?? profile; // (O7c: the limits are the document's rows.)
   const { id } = partMaterial(doc, bodies), family = id ? materialData(id)?.castFamily ?? null : null;
   const dMin = family ? limitOf(profile, family, 'DraftMinDeg') : undefined, dRec = family ? limitOf(profile, family, 'DraftRecDeg') : undefined;
-  return dMin ? { minDeg: dMin.value, recDeg: dRec?.value ?? null, source: pageOf(dMin) } : null;
+  return dMin ? { draftMin: dMin.value, draftRecommended: dRec?.value ?? null, source: pageOf(dMin) } : null;
 }
 
 /** The casting report for a die- or sand-casting profile; `direction` overrides the mould's pull. */
@@ -69,12 +69,12 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   rules.push(pull ? { id: 'pull', level: 'feasible', status: 'pass', message: `the pull direction (the mould opens along it): ${pull.map(v => +v.toFixed(6)).join(', ')}` }
     : { id: 'pull', level: 'feasible', status: 'unknown', message: 'the pull direction', why: 'no pull direction is given or set (the mould\'s opening): none is assumed' });
   // Walls: the thinnest against the family's least (fails) and typical (warns).
-  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnestMM !== null).sort((a, b) => a.thinnestMM! - b.thinnestMM!)[0];
+  const walls = wallsOf(doc, bodies, 0.6), thin = walls.filter(w => w.thinnest !== null).sort((a, b) => a.thinnest! - b.thinnest!)[0];
   const wMin = family ? limitOf(profile, family, 'WallMinMM') : undefined, wRec = family ? limitOf(profile, family, 'WallRecMM') : undefined;
   if (!thin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: 'the thinnest wall', why: 'no wall measured' });
-  else if (!wMin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnestMM!)} mm`, why: noFamily ?? `no least wall for a ${family} alloy in ${profile.label.toLowerCase()} was read: set yours, or ask your caster` });
+  else if (!wMin) rules.push({ id: 'wall', level: 'feasible', status: 'unknown', message: `the thinnest wall, ${r3(thin.thinnest!)} mm`, why: noFamily ?? `no least wall for a ${family} alloy in ${profile.label.toLowerCase()} was read: set yours, or ask your caster` });
   else {
-    const w = thin.thinnestMM!, below = w < wMin.value - 1e-9, under = !below && !!wRec && w < wRec.value - 1e-9;
+    const w = thin.thinnest!, below = w < wMin.value - 1e-9, under = !below && !!wRec && w < wRec.value - 1e-9;
     rules.push({ id: 'wall', level: below ? 'feasible' : 'recommended', status: below ? 'fail' : under ? 'warn' : 'pass',
       message: `the thinnest wall, ${r3(w)} mm, against a ${family} alloy's least ${wMin.value} mm${wRec ? ` and typical ${wRec.value} mm` : ''}`, value: r3(w), limit: under ? wRec!.value : wMin.value, unit: 'mm', source: pageOf(under ? wRec! : wMin), entities: [thin.body] });
   }
@@ -87,7 +87,7 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
     steep = field.filter(f => f.cls === 'steep');
     const straddle = field.filter(f => f.cls === 'straddle');
     underRec = dRec ? draftField(doc, bodies, pull, dRec.value).faces.filter(f => f.cls === 'steep' && !steep.some(s => s.face === f.face && s.body === f.body)) : [];
-    const least = field.length ? Math.min(...field.map(f => f.steepestDeg)) : 0;
+    const least = field.length ? Math.min(...field.map(f => f.steepest)) : 0;
     rules.push({ id: 'draft', level: steep.length ? 'feasible' : 'recommended', status: steep.length ? 'fail' : straddle.length || underRec.length ? 'warn' : 'pass',
       message: `every face's draft (its exact normal), the least ${r3(least)}°, against a ${family} alloy's least ${dMin.value}°${dRec ? ` and achievable ${dRec.value}°` : ''}${steep.length ? `: ${steep.length} under the least` : ''}${underRec.length ? `; ${underRec.length} under the achievable` : ''}${straddle.length ? `; ${straddle.length} straddle the pull (a parting line crosses them, IM5)` : ''}`,
       value: r3(least), limit: steep.length || !dRec ? dMin.value : dRec.value, unit: 'deg', source: pageOf(steep.length || !dRec ? dMin : dRec), entities: faceNames([...steep, ...underRec, ...straddle]) });
@@ -129,7 +129,7 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   const tol = family ? limitOf(profile, family, 'TolMM') : undefined;
   rules.push(tol ? { id: 'tolerance', level: 'recommended', status: 'pass', message: `a ${family} alloy holds about ±${tol.value} mm (${tol.page?.label ?? tol.description})`, value: tol.value, unit: 'mm', source: pageOf(tol) }
     : { id: 'tolerance', level: 'recommended', status: 'unknown', message: 'the general tolerance', why: noFamily ?? `no ${profile.label.toLowerCase()} tolerance for a ${family} alloy was read from a public page: ask your caster` });
-  const casting: CastingSummary = { material: id, family, tolerance: tol ? { mm: tol.value, source: tol.source, page: pageOf(tol) } : null, steep: faceNames(steep), underRecommended: faceNames(underRec),
+  const casting: CastingSummary = { material: id, family, tolerance: tol ? { value: tol.value, source: tol.source, page: pageOf(tol) } : null, steep: faceNames(steep), underRecommended: faceNames(underRec),
     shrink: shrink?.ok ? shrinkView(shrink) : null, machining: machining?.ok ? machiningView(machining) : null, machined: marked.found.filter(f => f.flat).map(f => f.name), solidification: sol };
   return { process: profile.id, direction: pull, rules, casting };
 }

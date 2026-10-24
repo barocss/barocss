@@ -35,28 +35,28 @@ function boxMesh(min: number[], max: number[]): CamPartMesh {
   return { positions, indices: [0, 2, 1, 1, 2, 3, 4, 5, 6, 5, 7, 6, 0, 1, 4, 1, 5, 4, 2, 6, 3, 3, 6, 7, 0, 4, 2, 2, 4, 6, 1, 3, 5, 3, 7, 5] };
 }
 
-const flat = (d = 6, flute = 3 * d): ToolShape => ({ kind: 'flat', diameter: d, cornerMM: 0, fluteMM: flute, shankMM: d, basis: { diameter: 'given', shape: 'given' } });
+const flat = (d = 6, flute = 3 * d): ToolShape => ({ kind: 'flat', diameter: d, cornerRadius: 0, fluteLength: flute, shankDiameter: d, basis: { diameter: 'given', shape: 'given' } });
 const IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-const program = (moves: Move[], frame = IDENTITY, safe = 40): SetupProgram => ({ setup: '+Z', frame, axis: [frame[2], frame[6], frame[10]], safeZ: { mm: safe, basis: 'estimate' }, entry: { rampDeg: 3, basis: 'estimate', rule: '' }, moves, passes: [] });
+const program = (moves: Move[], frame = IDENTITY, safe = 40): SetupProgram => ({ setup: '+Z', frame, axis: [frame[2], frame[6], frame[10]], safeZ: { value: safe, basis: 'estimate' }, entry: { rampAngle: 3, basis: 'estimate', rule: '' }, moves, passes: [] });
 const box = (min: [number, number, number], max: [number, number, number]): StockSolid => ({ kind: 'box', min, max });
 
 test('the tool profile: flat 0 across, a ball\'s and a bull\'s nose exact; a mismatched corner or a flute shorter than the nose refused', () => {
   assert.equal(camToolBottom(flat(), 2.9), 0);
-  const ball: ToolShape = { ...flat(), kind: 'ball', cornerMM: 3 };
+  const ball: ToolShape = { ...flat(), kind: 'ball', cornerRadius: 3 };
   for (const r of [0, 1, 2, 3]) assert.ok(Math.abs(camToolBottom(ball, r) - (3 - Math.sqrt(9 - r * r))) < 1e-12, `ball at ${r}`);
-  const bull: ToolShape = { ...flat(), kind: 'bull', cornerMM: 1 };
+  const bull: ToolShape = { ...flat(), kind: 'bull', cornerRadius: 1 };
   assert.equal(camToolBottom(bull, 1.5), 0, 'a bull is flat inside its corner');
   assert.ok(Math.abs(camToolBottom(bull, 2.5) - (1 - Math.sqrt(1 - 0.25))) < 1e-12);
   assert.equal(camToolBottom(flat(), 3.01), Infinity, 'outside the tool');
-  assert.throws(() => camToolBottom({ ...ball, cornerMM: 2 }, 0), /CAM_TOOL/);
-  assert.throws(() => camToolBottom({ ...flat(), cornerMM: 1 }, 0), /CAM_TOOL/);
-  assert.throws(() => camToolBottom({ ...ball, fluteMM: 2 }, 0), /shorter than the rounded nose/);
+  assert.throws(() => camToolBottom({ ...ball, cornerRadius: 2 }, 0), /CAM_TOOL/);
+  assert.throws(() => camToolBottom({ ...flat(), cornerRadius: 1 }, 0), /CAM_TOOL/);
+  assert.throws(() => camToolBottom({ ...ball, fluteLength: 2 }, 0), /shorter than the rounded nose/);
   // (The mesh: the flute's last ring is the full radius at the flute's length; the shank one diameter long, an estimate.)
   const g = camToolGeometry(ball);
-  assert.equal(g.shankExtensionMM, 6);
+  assert.equal(g.shankExtension, 6);
   let top = 0; for (let i = 2; i < g.flute.positions.length; i += 3) top = Math.max(top, g.flute.positions[i]);
   assert.ok(Math.abs(top - 18) < 1e-6);
-  assert.ok(g.angularChordMM > 0 && g.noseChordMM > 0);
+  assert.ok(g.angularChordError > 0 && g.noseChordError > 0);
 });
 
 test('the setup frame: its inverse turns machine points back exactly for every Model setup; skew and reflection refused', async () => {
@@ -82,7 +82,7 @@ test('stock: a box and a bar along the machine Z are fields; a bar across it, a 
   assert.doesNotThrow(() => new CamHeightfield(box([-10, -10, 0], [10, 10, 10]), program(moves), flat()));
   const bar: StockSolid = { kind: 'cylinder', start: [0, 0, 0], axis: [0, 0, 1], length: 20, diameter: 30 };
   const field = new CamHeightfield(bar, program(moves), flat(), 0.5), pristine = field.evaluate(0);
-  assert.equal(pristine.removedMM3, 0);
+  assert.equal(pristine.removedVolume, 0);
   assert.throws(() => new CamHeightfield({ ...bar, axis: [1, 0, 0] }, program(moves), flat()), /CAM_STOCK/);
   assert.throws(() => new CamHeightfield(box([0, 0, 0], [10, 0, 10]), program(moves), flat()), /CAM_STOCK/);
   assert.throws(() => new CamHeightfield(box([0, 0, 0], [1000, 1000, 10]), program(moves), flat(1)), /CAM_GRID/, 'a Ø1 tool on a 1000 mm block at the 192-cell cap');
@@ -93,17 +93,17 @@ test('stock: a box and a bar along the machine Z are fields; a bar across it, a 
 test('the field cuts only feeds, plunges and ramps; a prefix rebuilds from pristine stock; a buried flute and too much work are refused', () => {
   const stock = box([0, 0, 0], [40, 40, 10]);
   const rapids = new CamHeightfield(stock, program([{ kind: 'rapid', a: [20, 20, 5], b: [30, 20, 5] }, { kind: 'retract', a: [30, 20, 5], b: [30, 20, 40] }]), flat());
-  assert.equal(rapids.evaluate(2).removedMM3, 0, 'rapids and retracts never cut, even below the top');
+  assert.equal(rapids.evaluate(2).removedVolume, 0, 'rapids and retracts never cut, even below the top');
   // (A plunge 4 deep, then a feed 20 along x: a slot 6 wide.)
   const slot = program([{ kind: 'plunge', a: [10, 20, 40], b: [10, 20, 6] }, { kind: 'feed', a: [10, 20, 6], b: [30, 20, 6] }, { kind: 'retract', a: [30, 20, 6], b: [30, 20, 40] }]);
   const field = new CamHeightfield(stock, slot, flat(), 0.5);
   const end = field.evaluate(3), half = field.evaluate(1.5), none = field.evaluate(0);
-  assert.equal(none.removedMM3, 0);
+  assert.equal(none.removedVolume, 0);
   // (The slot's exact volume: 20 × 6 plus the two half-discs, 4 deep; the field takes less, by a band no wider than its uncertainty.)
-  const exact = (20 * 6 + Math.PI * 9) * 4, band = (2 * 20 + 2 * Math.PI * 3) * end.lateralUncertaintyMM * 4;
-  assert.ok(end.removedMM3 <= exact + 1e-6 && end.removedMM3 >= exact - band, `${end.removedMM3} in [${exact - band}, ${exact}]`);
-  assert.ok(half.removedMM3 > none.removedMM3 && half.removedMM3 < end.removedMM3, 'half the feed: between');
-  assert.equal(field.evaluate(1.5).removedMM3, half.removedMM3, 'scrubbing back gives the same field: it starts from pristine stock');
+  const exact = (20 * 6 + Math.PI * 9) * 4, band = (2 * 20 + 2 * Math.PI * 3) * end.lateralUncertainty * 4;
+  assert.ok(end.removedVolume <= exact + 1e-6 && end.removedVolume >= exact - band, `${end.removedVolume} in [${exact - band}, ${exact}]`);
+  assert.ok(half.removedVolume > none.removedVolume && half.removedVolume < end.removedVolume, 'half the feed: between');
+  assert.equal(field.evaluate(1.5).removedVolume, half.removedVolume, 'scrubbing back gives the same field: it starts from pristine stock');
   assert.throws(() => field.evaluate(3.5), /CAM_PROGRESS/);
   // (A flute 2 long fed 6 under the top: the cut would be a sealed void.)
   const buried = new CamHeightfield(stock, program([{ kind: 'feed', a: [10, 20, 4], b: [30, 20, 4] }]), flat(6, 2));
@@ -118,13 +118,13 @@ test('the Model\'s CNC8 pocket: the cut area, end to end, is the pocket\'s less 
   assert.ok('kind' in p.stock && p.stock.kind === 'box', JSON.stringify(p.stock));
   const field = new CamHeightfield(p.stock, s, p.tool, 0.5), end = field.evaluate(s.moves.length), top = p.stock.max[2];
   // (Each cut cell goes down to the floor at z 12, from the stock's top.)
-  const area = end.removedMM3 / (top - 12), corners = 4 * (1 - Math.PI / 4) * 9, band = (2 * (50 + 30)) * end.lateralUncertaintyMM;
+  const area = end.removedVolume / (top - 12), corners = 4 * (1 - Math.PI / 4) * 9, band = (2 * (50 + 30)) * end.lateralUncertainty;
   assert.ok(area <= 1500 + 1e-6, `area ${area} > 1500`);
   assert.ok(area >= 1500 - corners - band, `area ${area} < ${1500 - corners - band}`);
-  assert.ok(end.nx <= 192 && end.ny <= 192 && end.cellMM >= 0.5);
+  assert.ok(end.nx <= 192 && end.ny <= 192 && end.cellPitch >= 0.5);
   // (The prefix only grows: removal at quarter steps never shrinks.)
   let last = -1;
-  for (const q of [0, 0.25, 0.5, 0.75, 1]) { const r = field.evaluate(q * s.moves.length).removedMM3; assert.ok(r >= last - 1e-9); last = r; }
+  for (const q of [0, 0.25, 0.5, 0.75, 1]) { const r = field.evaluate(q * s.moves.length).removedVolume; assert.ok(r >= last - 1e-9); last = r; }
 });
 
 test('overlay drawings: world coordinates through the setup\'s inverse, identities kept while their inputs are, and cleared on null', async () => {
@@ -160,20 +160,20 @@ test('overcut: a slot through a solid part is overcut by all it removes; one rea
   const slot = program([{ kind: 'plunge', a: [10, 20, 40], b: [10, 20, 6] }, { kind: 'feed', a: [10, 20, 6], b: [30, 20, 6] }, { kind: 'retract', a: [30, 20, 6], b: [30, 20, 40] }]);
   const solid = new CamHeightfield(stock, slot, flat(), 0.5, [boxMesh([0, 0, 0], [40, 40, 10])]).evaluate(3);
   assert.ok(solid.overcutCells > 0);
-  assert.ok(Math.abs(solid.overcutMM3 - solid.removedMM3) < 1e-6, `${solid.overcutMM3} vs ${solid.removedMM3}`);
+  assert.ok(Math.abs(solid.overcutVolume - solid.removedVolume) < 1e-6, `${solid.overcutVolume} vs ${solid.removedVolume}`);
   // (A part whose top is the slot's floor, 6: the slot only reaches it — within the tolerance, not overcut.)
   const floor = new CamHeightfield(stock, slot, flat(), 0.5, [boxMesh([0, 0, 0], [40, 40, 6 - CAM_OVERCUT_TOLERANCE_MM / 2])]).evaluate(3);
   assert.equal(floor.overcutCells, 0);
   // (A part 2 under the stock's top beside the slot only, x 32 to 40: the slot ends at x 33, so the tool's end enters it.)
   const beside = new CamHeightfield(stock, slot, flat(), 0.5, [boxMesh([32, 0, 0], [40, 40, 8])]).evaluate(3);
-  assert.ok(beside.overcutCells > 0 && beside.overcutMM3 < solid.overcutMM3);
+  assert.ok(beside.overcutCells > 0 && beside.overcutVolume < solid.overcutVolume);
 });
 
 test('end to end: the Model\'s CNC8 pocket program, cut through its own part, never enters it and leaves the pocket\'s floor reached', async () => {
   const { pkg, meshes } = await pocketBuilt(), s = pkg.setups[0];
   const end = new CamHeightfield(pkg.stock as StockSolid, s, pkg.tool, 0.5, meshes).evaluate(s.moves.length);
-  assert.ok(end.removedMM3 > 0);
-  assert.equal(end.overcutCells, 0, `the pocket program gouges ${end.overcutCells} cells, ${end.overcutMM3} mm³`);
+  assert.ok(end.removedVolume > 0);
+  assert.equal(end.overcutCells, 0, `the pocket program gouges ${end.overcutCells} cells, ${end.overcutVolume} mm³`);
   assert.equal(end.overcut.positions.length, 0);
   // (Every cut cell is down to the floor, z 12, or above it: the remaining stock's lowest top in the pocket is the floor.)
   let low = Infinity; const g = end.geometry, n = g.normals!;

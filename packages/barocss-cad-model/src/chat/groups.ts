@@ -47,7 +47,7 @@ export const GROUPS: Record<string, Group> = {
       interference: ['interference', 'bodies? — overlap and clearance'],
       section: ['section', 'axis, at'],
       wall: ['wall_thickness', 'body?, below?'],
-      draft: ['draft', 'body?, pull?, min_deg?'],
+      draft: ['draft', 'body?, pull?, draftMin?'],
       fit_clearance: ['fit_clearance', 'hole?, shaft?, hole_class?, shaft_class?, size? — a hole–shaft fit\u2019s limits and clearance from your fit tables (D155)'],
       rebuild: ['rebuild_report', '— each feature\'s build time and kernel calls; mate loops'],
       welds: ['weld_list', '— the frame\'s weld joints, seams from the geometry, sizes yours or estimated (FRd1)'],

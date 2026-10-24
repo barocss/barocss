@@ -55,8 +55,8 @@ export const RUNG9: Rung = {
     const [ox, oy] = [(w - num(p, 'a')) / 2, (d - num(p, 'b')) / 2];
     const ko = await onCopy(doc, bodies, evaluate, [['add_keepout', { name: 'components', box: { frame: { origin: [ox, oy, t + hs + BOARD], normal: [0, 0, 1], xAxis: [1, 0, 0] }, size: [num(p, 'a'), num(p, 'b'), num(p, 'c')] }, clearance: 1 }], ['check_keepouts', {}]]) as { results?: { verdict: string; clearance_mm?: number }[] };
     // (The vents: the right wall cut at mid-thickness loses n slots — between their obround and rectangular areas.)
-    const sec = await onCopy(doc, bodies, evaluate, [['section', { axis: 'x', at: w - t / 2 }]]) as { cut?: { body: string; cut_area_mm2: number }[] };
-    const area = sec.cut ? sec.cut.reduce((s, x) => s + x.cut_area_mm2, 0) : null, n = num(p, 'n'), sl = num(p, 'sl'), lost = area === null ? null : d * h - area;
+    const sec = await onCopy(doc, bodies, evaluate, [['section', { axis: 'x', at: w - t / 2 }]]) as { cut?: { body: string; cutArea: number }[] };
+    const area = sec.cut ? sec.cut.reduce((s, x) => s + x.cutArea, 0) : null, n = num(p, 'n'), sl = num(p, 'sl'), lost = area === null ? null : d * h - area;
     const wall = await studioChecks(doc, evaluate, [{ id: 'min-wall', source: `FDM walls ≥ ${fdm.minWall.value} mm`, hard: true, check: { op: '>=', query: { fn: 'min_wall' }, value: fdm.minWall.value } } as never], { process: 'fdm' });
     const out: Outcome[] = [boxIs('box', bodies, [w, d, h]), holds('solids', bodies.length === 1, bodies.length, 'one solid'),
       holds('standoffs', standoffs.every(Boolean), standoffs.map(Boolean), `four Ø${2 * r} standoffs ${hs} tall on the board's holes`),

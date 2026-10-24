@@ -31,14 +31,14 @@ test('G6 the thickness map: one value a display triangle, the wall samples\' loc
   // (No process: the nominal and the thick limit at the default ratio 0.6; the range [0, max(2 × nominal, thick95)].)
   const nominal = m.thresholds.find(x => x.label === 'nominal')!.value;
   assert.ok(Math.abs(nominal - 2) < 0.05 && Math.abs(nominal - report.nominal!) < 1e-12, `nominal ${nominal}`);
-  assert.deepEqual(m.range, [0, Math.max(2 * nominal, report.thick95MM ?? 0)]);
+  assert.deepEqual(m.range, [0, Math.max(2 * nominal, report.thick95 ?? 0)]);
   assert.deepEqual(m.thresholds.map(x => x.label), ['nominal', 'thick (nominal / 0.6)']);
   assert.ok(Math.abs(m.thresholds[1].value - nominal / 0.6) < 1e-12);
   // Moulded: the process's thinnest wall marked, and red under it.
   const moulded = { ...doc, process: 'injection' }, mm = thicknessMap(moulded, b), lim = thicknessLimits(moulded, b);
-  assert.ok(lim.minWallMM !== null && mm.thresholds.some(x => x.label === 'the process\'s thinnest' && x.value === lim.minWallMM), JSON.stringify(mm.thresholds));
+  assert.ok(lim.minWall !== null && mm.thresholds.some(x => x.label === 'the process\'s thinnest' && x.value === lim.minWall), JSON.stringify(mm.thresholds));
   assert.equal(lim.ratio, processProfile('injection')!.thresholds.adjacentWallRatio?.value ?? 0.6);
-  if (lim.minWallMM! < nominal) assert.deepEqual(mm.legend.stops.slice(0, 2).map(x => x[1]), ['#d7301f', '#d7301f']);
+  if (lim.minWall! < nominal) assert.deepEqual(mm.legend.stops.slice(0, 2).map(x => x[1]), ['#d7301f', '#d7301f']);
 });
 
 test('G6 the mould\'s view: IM7\'s plate with a Ø10 hole along +Z — one flat closed loop; its halves 48000 and the block less the part less that (as the tooling\'s, 1e-6); none without a pull', () => {
@@ -105,7 +105,7 @@ test('G6 the renderer: a body\'s field set once per map and cleared; the mould\'
 test('G6 the draft map (O-G6\'s draftSamples): a box along +Z — its walls 0°, its top +90°, its bottom −90°; marks at ± the finish\'s least draft; none without a finish', () => {
   const d = holedPlate(), [b] = bodiesOf(d), limits = draftLimits(d, [b])!;
   const finish = processProfile('injection')!.finishes!.find(f => f.id === 'smooth')!;
-  assert.deepEqual(limits, { minDeg: finish.draftMinDeg, recDeg: finish.draftRecDeg ?? null });
+  assert.deepEqual(limits, { draftMin: finish.draftMin, draftRecommended: finish.draftRecommended ?? null });
   const m = draftMap(d, b, [0, 0, 1], limits), P = b.mesh.positions, N = b.mesh.normals;
   assert.equal(m.per, 'vertex'); assert.equal(m.values.length, P.length / 3);
   let walls = 0, tops = 0, bottoms = 0;
@@ -116,8 +116,8 @@ test('G6 the draft map (O-G6\'s draftSamples): a box along +Z — its walls 0°,
     else if (nz < -0.999) { assert.ok(Math.abs(m.values[v] + 90) < 1e-6); bottoms++; }
   }
   assert.ok(walls && tops && bottoms);
-  assert.deepEqual(m.thresholds.map(t => t.value), [-finish.draftMinDeg, finish.draftMinDeg]);
-  assert.deepEqual(m.range, [-2 * finish.draftMinDeg, 2 * finish.draftMinDeg]);
+  assert.deepEqual(m.thresholds.map(t => t.value), [-finish.draftMin, finish.draftMin]);
+  assert.deepEqual(m.range, [-2 * finish.draftMin, 2 * finish.draftMin]);
   // No finish: the diverging map alone, ±10°.
   const bare = { ...d, mould: { version: 1 as const, pull: [0, 0, 1] as [number, number, number] } };
   assert.equal(draftLimits(bare, [b]), null);
