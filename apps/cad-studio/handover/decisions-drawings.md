@@ -73,3 +73,42 @@ Newest last. Branch `claude/drawings-cg5`; the coordinator merges.
   64 × 32 × 8 box's corner on A3 (auto 5:1 on the sheet's 2:1), its square 2·scale·r exactly, rescaled, dragged 20 mm, in
   the SVG, removed. Checks at the checkpoint: cad-model 1108/1108, studio 287/287, docs samples 49/49, tsc and eslint of
   both packages, FLOW_ONLY='DR-1' (steps 1, 205) on WebGPU. Not run: the full flow, WebGL2.
+
+## DR-2 — broken views: a band along a model axis left out of every orthographic view that shows it (2026-10-24)
+
+- **What**: `src/drawing/breaks.ts` (new); layout, `toSheet`/`fromSheet`, sheet, issues, options and agent paths.
+  - **Settings**: `DrawingSettings.breaks?: DrawingBreak[]`, each `{ axis: 'x' | 'y' | 'z', from, to }` in model mm.
+    Read permissively (`readBreaks`: valid ones, none meeting an earlier one on its axis); set_drawing refuses a
+    reversed one or two that meet on one axis (`DRAWING_OPTIONS`).
+  - **Model terms, not per view**: a break applies to every orthographic view (front, top, right) whose horizontal or
+    vertical axis is the break's (`viewBreaksOf`, its interval cut to the view's extent), and to their principal
+    sections, so the views and sections stay in projection; a view looking along the axis, the isometric view and
+    aligned sections are not broken.
+  - **Mapping**: a placement carries its breaks (`ViewPlacement.breaks`, view coordinates, each with `gap` =
+    `BREAK_GAP` (6 sheet mm) / scale). `toSheet` maps a view point through them before the scale: past a band shifted
+    back by the band less the gap, inside it squeezed linearly to the gap (so the map is continuous and `fromSheet`
+    inverts it). Everything drawn through `toSheet` — dimensions, centre marks, datums, leaders, balloons, cutting
+    planes, the 3D annotations through `fromSheet` — follows; a dimension across a break reads its true length while
+    drawn shorter.
+  - **Curves**: the views' and sections' pieces are clipped outside each band (`clipProjectionOutside`): lines by their
+    parameter at the band's sides, arcs (circles and ellipses alike) where A cos t + B sin t = w − c in closed form,
+    polylines into runs; cut rings split at each band by half-planes (`clipRingsOutside`).
+  - **Layout**: the column and row spans are computed per candidate scale through the breaks (the gap in model mm
+    depends on it), so Auto takes the larger scale a broken part allows; without breaks the layout is as before.
+  - **Marks**: at each side of each gap a thin line across the view, 2 mm past its box, with a small zig-zag at the
+    middle.
+  - **Issues**: `BREAK_NO_VIEW` (warning; fix `remove-break`) when a break shortens no shown view.
+  - **Agent**: `set_drawing` takes `breaks` (list replaces; [] clears); the v2 hint gains `breaks?: [{axis,from,to}]`.
+  - **Studio**: the BREAKS card — Add break (the middle third of the part's longest axis, whole mm, `suggestBreak`),
+    each break's axis and ends, remove; a change that would reverse a break or make two meet is refused with a toast.
+- **Why model terms**: a break chosen per view would let the front and top views disagree about where X 450 is; in
+  model terms one interval serves every view that shows the axis and projection holds by construction.
+- **Not in DR-2**: breaks in the isometric view, curved (S-break) symbols for round bars, a break inside a detail.
+- **Evidence**: `test/drawing-breaks.test.ts`, 8 tests — the coordinate map and its inverse at hand-computed points;
+  a line split at ±5, a circle's arcs at ±π/3 and ±2π/3 and an ellipse's at acos(±¼) in closed form; a 500 × 20 × 20
+  bar with a Ø8 hole at X 450 broken X 100–400 at 1:2: the front and top views 0.5·200 + 6 = 106 mm long and in
+  projection at X 0, 50, 100, 400, 450, 500, the right view whole, the top edge in pieces 0–50 and 56–106, the break
+  lines at 50 and 56, the hole at 81; a dimension across it reading 500 with arrow tips 106 apart; Auto on A4
+  without the isometric view 1:5 whole (500s + 20s + 22 ≤ 249) and 1:1 broken; a broken section's cut face in two
+  parts in projection; BREAK_NO_VIEW and its fix; set_drawing; the DXF read back by ezdxf (the two edge pieces at
+  their shifted places, no whole edge). Flow step "broken views (CG5 DR-2)".

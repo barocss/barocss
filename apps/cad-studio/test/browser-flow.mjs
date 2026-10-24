@@ -5426,6 +5426,32 @@ try {
       await page.waitForFunction(() => !window.__studioDoc.drawing?.details && !(window.__studioDrawing?.()?.details ?? []).length, null, { timeout: 20000 });
     } finally { await page.click('.mode button:text-is("Model")'); }
   });
+  await check('broken views (CG5 DR-2): a 500 mm bar, Add break, its ends typed, the front and top views shortened in projection, removed', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('500'); await field('Depth Y').fill('20'); await field('Height Z').fill('20'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
+    await page.waitForFunction(() => /Box 500×20×20/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
+    try {
+      await page.click('.mode button:text-is("Drawing")');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
+      await page.click('[aria-label="Add break"]');
+      // (The middle third of the longest axis: X 167 to 333.)
+      await page.waitForFunction(() => !!window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+      assert.deepEqual((await doc()).drawing.breaks, [{ axis: 'x', from: 167, to: 333 }]);
+      await page.fill('[aria-label="Break 1 from"]', '100'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDoc.drawing?.breaks?.[0]?.from === 100, null, { timeout: 20000 });
+      await page.fill('[aria-label="Break 1 to"]', '400'); await press('Enter');
+      await page.waitForFunction(() => window.__studioDrawing?.()?.breaks?.front?.[0]?.to === 400, null, { timeout: 20000 });
+      const d = await page.evaluate(() => window.__studioDrawing());
+      // (Drawn 200 mm of the 500 at the sheet's scale, plus the 6 mm gap; the top view with it, the right view whole.)
+      const w = (id) => d.boxes[id][2] - d.boxes[id][0];
+      assert.ok(Math.abs(w('front') - (200 * d.scale + 6)) < 1e-9 && Math.abs(w('top') - w('front')) < 1e-9, `${w('front')} at ${d.scale}`);
+      assert.ok(!d.breaks.right && Math.abs(w('right') - 20 * d.scale) < 1e-9);
+      assert.deepEqual(d.issues.filter(x => /BREAK|OVERLAP|OFF_SHEET/.test(x.code)).map(x => x.code), []);
+      await snap('broken-bar');
+      await page.click('[aria-label="Remove break 1"]');
+      await page.waitForFunction(() => !window.__studioDoc.drawing?.breaks && !window.__studioDrawing?.()?.breaks?.front, null, { timeout: 20000 });
+    } finally { await page.click('.mode button:text-is("Model")'); }
+  });
   await check('dimensions on sections (O148 X2): the shaft-and-hub file; B–B through the keyseat (Z 15); Auto-dimension puts b 6 and d − t1 16.5 on it with no DIM_ON_HIDDEN; the dimension tool snaps on the section', async () => {
     const fs = await import('node:fs');
     await openModel(join(root, '../../packages/barocss-cad-model/test/fixtures/shaft-hub-keyseat.bcad'), 5); await idle();
