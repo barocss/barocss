@@ -21,8 +21,8 @@ test('a document: built, evaluated, written as STEP, saved and read back', async
   const result = evaluateDoc(doc, 1);          // the core: the bodies, their display meshes and masses
   assert.ok(result.ok);
   const [body] = result.bodies;
-  assert.ok(Math.abs(body.volumeMM3 - (40 * 20 * 5 - Math.PI * 9 * 5)) < 1e-6);
-  assert.equal(plate.mass('al6061').volumeMM3, body.volumeMM3);
+  assert.ok(Math.abs(body.volume - (40 * 20 * 5 - Math.PI * 9 * 5)) < 1e-6);
+  assert.equal(plate.mass('al6061').volume, body.volume);
 
   const step = exportStudioStep(doc, { name: 'plate' }); // the exact solids, naming the revision they came from
   assert.equal(step.source, revisionOf(doc));

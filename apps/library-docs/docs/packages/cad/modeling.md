@@ -18,7 +18,7 @@ A part is a `barocss-cad-part` document:
 - **Features in order.** Each feature has an `id` and a `kind`, and names the features it builds on by their ids:
   `sketch`, `target`, `tool`.
 - **Dimensions.** A dimension is a number, or `{ "parameter": "name" }` bound to one of the document's parameters.
-- **Units.** Lengths are millimetres, and Z is up.
+- **Units.** Lengths are millimetres. Public and document angles are degrees. Z is up.
 - **The reference.** The full set of kinds and their fields is the `CadPartFeature` type, which the package exports.
 
 The kinds, by family:
@@ -62,12 +62,15 @@ emptyCadPart(): CadPartDocument
 
 A snapshot holds:
 
-- `outputs`: the parts no later feature consumes, in feature order. `output(id)` gets one by id.
+- `outputs`: the parts no later feature consumes, in feature order. `outputOf(snapshot, id)` gets one by id.
 - `features`: each feature's id, kind and dependencies.
 - `recomputation`: the features computed in this evaluation, and those reused unchanged.
-- `withParameters(edits)`: evaluates again with new parameter values, reusing unchanged features.
-- `withDocument(document)`: evaluates another document, reusing every feature whose definition is unchanged.
-- `save()`: the document as text.
+
+Snapshots and outputs are plain data. Import these functions from `@barocss/cad`:
+
+- `reevaluate(snapshot, { parameters: edits })`: evaluates new parameter values and reuses unchanged features.
+- `reevaluate(snapshot, { document })`: evaluates another document and reuses unchanged features.
+- `saveCadPart(snapshot)`: returns the document as text.
 
 <<< @/../samples/cad-part.test.mjs#edit
 
@@ -80,17 +83,30 @@ Each output is one body, or several with `bodyCount`, as a B-rep (`brep`).
   - `planar`;
   - `curved`;
   - `faceted`: a mesh body.
-- **Mass properties.** `massProperties(densityKgPerM3)` returns:
-  - `volumeMM3`, `massKG` and `centroidMM`;
-  - `inertiaCentroidKgM2`, the inertia about the centroid;
+- **Mass properties.** `massPropertiesOf(output, density)` takes density in g/cm³ and returns:
+  - `volume` in mm³, `mass` in g and `centroid` in mm;
+  - `inertia` in g·mm², about the centroid;
   - `method`: `closed-form`, `planar-exact`, `quadrature` or `tessellated`. A tessellated result carries
-    `volumeBoundMM3`, its estimated error.
-- **Validity.** `validate()` gives the strict validity report: `valid`, the first `issues`, the counts and topology, and
+    `volumeBound`, its estimated volume error in mm³.
+- **Validity.** `checkOutput(output)` gives the strict validity report: `valid`, the first `issues`, the counts and topology, and
   the largest gaps.
-- **Surface area.** `surfaceArea()` is in mm², over the exact surfaces.
-- **STEP.** `exportStep({ name })` writes the exact B-rep as STEP AP214.
-- **STL.** `exportStl({ segmentsPerQuarter })` writes the display tessellation as binary STL.
+- **Surface area.** `surfaceAreaOf(output)` is in mm², over the exact surfaces.
+- **STEP.** `exportStep(output, { name })` writes the exact B-rep as STEP AP214.
+- **STL.** `exportStl(output, { segmentsPerQuarter })` writes the display tessellation as binary STL.
 - **Reports.** Gears, racks and other generated parts carry a report of their own, such as `gear`.
+
+### A numerical unit check
+
+For a 10 × 10 × 10 mm cube at density 2.7 g/cm³:
+
+- Volume is 1000 mm³.
+- Mass is 1000 × 2.7 / 1000 = 2.7 g.
+- The centroid is [5, 5, 5] mm.
+- Each diagonal centroidal inertia is 2.7 × (10² + 10²) / 12 = 45 g·mm². Off-diagonal terms are zero.
+
+The kernel already returns these units. Do not convert its mass or inertia a second time.
+
+<<< @/../samples/cad-mmgs.test.mjs#mass
 
 ## Tessellation
 

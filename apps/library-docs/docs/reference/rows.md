@@ -15,8 +15,8 @@ explains why, and what uses each kind.
   all.
 - **Sources.** Every row names its `source`, or is marked `"estimate": true`. Where a kind requires a source, an
   estimate isn't enough.
-- **Units.** Most fields name their unit: `MM` is millimetres, `UM` micrometres, `Deg` degrees. Fastener sizes are in
-  millimetres.
+- **Units.** Lengths are in millimetres. Angles are in degrees. Fields ending in `UM` are in micrometres,
+  including fit and bearing deviations. The mount row fields are listed separately below.
 - **Validation.** A row is checked when it is loaded. A row with a missing or out-of-range value is refused, and the
   refusal says which row and why.
 - **Provenance.** Each loaded row keeps a receipt naming its file, its turn in the conversation and the file's SHA-256.
@@ -50,7 +50,7 @@ Bought screws, bolts, nuts and washers, as your supplier lists them:
 - `id`;
 - `kind`: `hex-bolt`, `socket-screw`, `csk-screw`, `hex-nut` or `washer`;
 - `size`, such as `M6`;
-- `lengthMM`, for screws and bolts;
+- `length`, for screws and bolts;
 - optional `designation`, `partNumber` and `supplier`;
 - `source` or `estimate`.
 
@@ -71,25 +71,25 @@ A `page` is `{ url, read, label }`: the address, the date read, and the page's o
 Fit tables. Each table has an `id`, optional `sources` (`{ id, label, url?, read?, note? }`) and `rows`. Each row is:
 
 - `class`: an ISO 286 class such as `H7` or `g6`;
-- `overMM` and `upToMM`: the size range, over < size ≤ up to;
+- `over` and `upTo`: the size range, over < size ≤ up to;
 - `upperUM` and `lowerUM`: the deviations;
 - and `source` or `estimate`.
 
 ### `bearings`
 
 - `id`, optional `designation`;
-- `boreMM`, `outsideMM`, `widthMM`, optional `chamferMM`;
-- the shoulder limits `daMinMM`, `daMaxMM`, `DaMaxMM`, `raMaxMM`;
+- `bore`, `outside`, `width`, optional `chamfer`;
+- the shoulder limits `daMin`, `daMax`, `DaMax`, `raMax`;
 - the deviations `boreDeviationUM` and `outsideDeviationUM`, each `[upper, lower]`;
 - `source` or `estimate`.
 
 ### `orings`
 
-`id`, optional `dash`, `insideDiameterMM`, `crossSectionMM`, and `source` or `estimate`.
+`id`, optional `dash`, `insideDiameter`, `crossSection`, and `source` or `estimate`.
 
 ### `rings`
 
-Retaining rings: `id`, optional `designation`, `shaftDiameterMM`, `grooveDiameterMM`, `grooveWidthMM`, and `source` or
+Retaining rings: `id`, optional `designation`, `shaftDiameter`, `grooveDiameter`, `grooveWidth`, and `source` or
 `estimate`.
 
 ### `drives`
@@ -98,20 +98,20 @@ Belts, chains and couplings, by `kind`:
 
 | `kind` | Required | Optional |
 |---|---|---|
-| `chain` | `pitchMM`, `rollerDiameterMM` | `innerWidthMM`, `plateHeightMM` |
-| `timing-belt` | `pitchMM`, `pitchLineOffsetMM`, `groove` | `thicknessMM` |
-| `v-belt` | `angleDeg`, `datumWidthMM`, `aboveDatumMM`, `belowDatumMM`, `spacingMM`, `edgeMM` | `thicknessMM` |
-| `flat-belt` | `widthMM`, `thicknessMM` | — |
-| `coupling` | `boreMM`, `outsideMM`, `lengthMM` | `type`, `boreStepMM`, `partNumber`, `supplier` |
+| `chain` | `pitch`, `rollerDiameter` | `innerWidth`, `plateHeight` |
+| `timing-belt` | `pitch`, `pitchLineOffset`, `groove` | `thickness` |
+| `v-belt` | `angle`, `datumWidth`, `aboveDatum`, `belowDatum`, `spacing`, `edge` | `thickness` |
+| `flat-belt` | `width`, `thickness` | — |
+| `coupling` | `bore`, `outside`, `length` | `type`, `boreStep`, `partNumber`, `supplier` |
 
 Each also has an `id`, and `source` or `estimate`.
 
 ### `connectors`
 
 - `id`, optional `name`;
-- `opening`: `{ shape, widthMM, heightMM, cornerRadiusMM?, depthMM }`, where `shape` is `stadium`, `rect` or `round`;
-- an optional mating `body` (the same section, with `lengthMM`);
-- an optional `keepOut`: `{ marginMM, depthMM }`;
+- `opening`: `{ shape, width, height, cornerRadius?, depth }`, where `shape` is `stadium`, `rect` or `round`;
+- an optional mating `body` (the same section, with `length`);
+- an optional `keepOut`: `{ margin, depth }`;
 - `source` or `estimate`.
 
 ### `sections`
@@ -155,14 +155,14 @@ Stock for machining, each with a `source`:
 
 ### `frame-stock`
 
-Stock lengths for frame members: `id`, `lengthMM`, optional `count` and `section`, and `source`.
+Stock lengths for frame members: `id`, `length`, optional `count` and `section`, and `source`.
 
 ### `bend`
 
 A sheet-metal bend table. It has an `id`, optional `material` and `sources`, and `rows`. Each row is:
 
-- `thicknessMM` and `radiusMM`, with optional `angleDegrees`;
-- one of `kFactor`, `allowanceMM` or `deductionMM`;
+- `thickness` and `radius`, with optional `angle`;
+- one of `kFactor`, `allowance` or `deduction`;
 - `source` or `estimate`.
 
 ## The shipped samples

@@ -2,7 +2,7 @@
 // a typed refusal naming the feature. The robustness page includes the #region blocks. Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluateCadPart, CadPartError } from '@barocss/cad';
+import { evaluateCadPart, CadPartError, checkOutput } from '@barocss/cad';
 // #region boolean-import
 import { part as cadPart } from '@barocss/cad/api';
 // #endregion boolean-import
@@ -49,7 +49,7 @@ test('Boolean set operations: two overlapping cubes have union 1500, difference 
   assert.equal(integerMeshVolume(common), 500);
   assert.equal(integerMeshVolume(target), 1000); // the input is unchanged
   // #endregion boolean-operations
-  for (const p of [joined, cut, common]) assert.equal(evaluateCadPart(p.doc).outputs[0].validate().valid, true);
+  for (const p of [joined, cut, common]) assert.equal(checkOutput(evaluateCadPart(p.doc).outputs[0]).valid, true);
 });
 
 test('two blocks touching along an edge: one output, two separate valid bodies', () => {
@@ -58,7 +58,7 @@ test('two blocks touching along an edge: one output, two separate valid bodies',
     { id: 'u', kind: 'union', target: 'a', tool: 'b' }]));
   const [joined] = snapshot.outputs;
   assert.equal(joined.bodyCount, 2);              // not welded along the shared edge
-  assert.equal(joined.validate().valid, true);
+  assert.equal(checkOutput(joined).valid, true);
   // #endregion touching
 });
 
