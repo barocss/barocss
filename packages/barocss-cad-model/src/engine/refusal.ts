@@ -41,7 +41,24 @@ export type CadModelCode =
   | 'MOUNT_RANGE' | 'MOUNT_FACE' | 'MOUNT_ROW' | 'FRAME_SECTION_UNKNOWN' | 'ORING_ROW_UNKNOWN' | 'CONNECTOR_ROW_UNKNOWN' | 'BEARING_ROW_UNKNOWN'
   | 'RING_ROW_UNKNOWN' | 'DRIVE_ROW_UNKNOWN' | 'DRIVE_WHEELS' | 'FIT_FACE' | 'SHOP_ROWS_FLATTEN_SCOPE' | 'NO_TABLE' | 'NO_ROW'
   // team
-  | 'NO_RUN';
+  | 'NO_RUN'
+  // robot motion, actuators and the readers of the exports
+  | 'LIMITS_BAD' | 'LIMITS_MISSING' | 'PATH_TOO_SHORT' | 'ACTUATOR_INPUT' | 'MODEL_READ' | 'XML_MALFORMED'
+  // files
+  | 'MESH_NOT_LOADED' | 'CONTAINER_NEWER' | 'CONTAINER_DAMAGED'
+  // sketch export
+  | 'SKETCH_PARAMETER'
+  // the studio's commands (a pick, a value)
+  | 'ALIGN_PICK' | 'ALIGN_TURN' | 'HOLE_SIZE' | 'HOLE_PATTERN' | 'DRAFT_PICK' | 'DRAFT_ANGLE' | 'FILLET_CHAIN' | 'DECIMATE_KEEP'
+  | 'SPLIT_PLANE' | 'FACE_DISTANCE' | 'LOFT_SECTIONS' | 'SWEEP_PATH' | 'PRIMITIVE_SIZE' | 'GEAR_PICK'
+  | 'FASTENER_POSITION' | 'FASTENER_LENGTH' | 'FASTENER_GRIP' | 'FASTENER_SIZE_ROW'
+  | 'FRAME_SECTION_PICK' | 'FRAME_MEMBER' | 'FRAME_VALUE' | 'FRAME_SKELETON_PICK' | 'FRAME_NOTCH' | 'GUSSET_PICK' | 'CAP_PICK'
+  | 'SHEET_PICK' | 'SHEET_VALUE'
+  // direct (NURBS) editing and IGES
+  | 'DIRECT_SOURCE' | 'DIRECT_PICK' | 'DIRECT_DEGREE' | 'DIRECT_LOOP' | 'DIRECT_VALUE' | 'DIRECT_KNOT' | 'DIRECT_LOFT' | 'DIRECT_RANGE'
+  | 'DIRECT_PLANE' | 'DIRECT_INTERSECT' | 'DIRECT_ID' | 'IGES_READ' | 'IGES_EXPORT' | 'TRIM_CURVE'
+  // the person's row files, libraries, archives, the chat's merge
+  | 'ROWS_NOT_FROM_PERSON' | 'ROW_FILES' | 'ROW_UNKNOWN' | 'ROW_IN_USE' | 'RING_ROW' | 'FASTENER_ROW' | 'CASTING_RULE_ROW' | 'LIBRARY_ID' | 'LIBRARY_UNKNOWN' | 'ZIP_LIMIT' | 'MERGE_SUPERSEDED' | 'MERGE_MISSING';
 
 /** A validator's finding: its code, the "[CODE] …" sentence, and where in the input (a field or a path), when it says. */
 export interface Problem<C extends CadModelCode = CadModelCode> { code: C; message: string; where?: string }
@@ -49,6 +66,9 @@ export interface Problem<C extends CadModelCode = CadModelCode> { code: C; messa
 /** A refusal to throw: its message "[CODE] message" — the text written before R7.3a, byte for byte. (The prefix is
  *  written here, so a message that quotes the same code further on — a nested refusal's words — keeps them.) */
 export const refusal = (code: CadModelCode, message: string, details?: Record<string, unknown>): BarocssError => new BarocssError(code, `[${code}] ${message}`, undefined, details);
+
+/** A refusal whose text is written already, "[CODE] …" (a shared constant's, a builder's): its text as it is. */
+export const coded = (code: CadModelCode, text: string): BarocssError => new BarocssError(code, text);
 
 /** A validator's problem, thrown: its message as it is. */
 export const refused = (p: Problem): BarocssError => new BarocssError(p.code, p.message);

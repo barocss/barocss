@@ -13,7 +13,8 @@ import type { JointTree } from './joints';
 import { applyTo, forwardKinematics } from './fk';
 import { linkFrames, linkInertia, type Mat3, type V3 } from './inertia';
 import { pathOf } from './sweep';
-import { onSegment, sCurve, trapezoid, ProfileError, type Profile, type ProfileKind, type Segment } from './profile';
+import { onSegment, sCurve, trapezoid, type Profile, type ProfileKind, type Segment } from './profile';
+import { refusal } from '../engine/refusal';
 
 export const STANDARD_GRAVITY = 9.80665;
 /** A link's mass (kg) and its centre of mass at home (world, mm). */
@@ -202,7 +203,7 @@ export function moveMotion(tree: JointTree, q0: Readonly<Record<string, number>>
   let v = Infinity, a = Infinity, jk = Infinity;
   for (const k of keys) { const D = Math.abs(dq[k]); if (!D) continue; const l = limits(k); v = Math.min(v, l.velocity / D); a = Math.min(a, l.acceleration / D); jk = Math.min(jk, (l.jerk ?? Infinity) / D); }
   if (!Number.isFinite(v)) return { keys, q0, dq, profile: null };
-  if (kind === 's-curve' && !Number.isFinite(jk)) throw new ProfileError('an S-curve needs a jerk limit for each moving joint');
+  if (kind === 's-curve' && !Number.isFinite(jk)) throw refusal('LIMITS_MISSING', 'an S-curve needs a jerk limit for each moving joint');
   return { keys, q0, dq, profile: kind === 'trapezoid' ? trapezoid(1, v, a) : sCurve(1, v, a, jk) };
 }
 /** The joints' values, rates and accelerations at time t within one segment of the move (by its own polynomial). */

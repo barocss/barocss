@@ -3,6 +3,7 @@
 // (GUSSET_FIT, CAP_END). Legs, clip and thickness are the user's: the palette's values are a first try, no data.
 import { frameGeometry, withNode, type Dim, type ModelNode } from '../engine/doc';
 import type { Command, Ctx, Field } from './commands';
+import { refusal } from '../engine/refusal';
 
 const ok = { ok: true as const };
 const no = (reason: string) => ({ ok: false as const, reason });
@@ -64,7 +65,7 @@ const gussetCommand: Command = {
   defaults: () => ({ l1: 100, l2: 100, t: 5, clip: 10, offset: 0, along: '1' }),
   build: (ctx, v) => {
     const p = gussetPick(ctx);
-    if (typeof p === 'string') throw new Error(p);
+    if (typeof p === 'string') throw refusal('GUSSET_PICK', p);
     const clip = Number(v.clip) || 0, offset = Number(v.offset) || 0;
     return withNode(ctx.doc, { kind: 'gusset', frame: p.index, point: p.point, members: p.members, ...(p.pass !== undefined ? { along: Number(v.along) < 0 ? -1 : 1 } : {}), legs: [Number(v.l1), Number(v.l2)], thickness: Number(v.t), ...(clip ? { clip } : {}), ...(offset ? { offset } : {}) });
   },
@@ -84,7 +85,7 @@ const endCapCommand: Command = {
   defaults: () => ({ end: 'end', fit: 'over', t: 4 }),
   build: (ctx, v) => {
     const p = capPick(ctx);
-    if (typeof p === 'string') throw new Error(p);
+    if (typeof p === 'string') throw refusal('CAP_PICK', p);
     return withNode(ctx.doc, { kind: 'end-cap', frame: p.index, member: p.member, end: v.end === 'start' ? 'start' : 'end', fit: v.fit === 'inset' ? 'inset' : 'over', thickness: Number(v.t) });
   },
 };

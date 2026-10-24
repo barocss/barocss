@@ -4,13 +4,15 @@
 // a different composition from RM2's product of exponentials, so the two checked against each other test the export.
 // External checkers (check_urdf, MuJoCo, PyBullet) are test oracles outside the product (scripts/urdf-oracle.py).
 import { symmetricEigenvalues3 } from './eigen';
+import { refusal } from '../engine/refusal';
 
-export class XmlError extends Error { constructor(message: string, readonly at: number) { super(`XML at ${at}: ${message}`); this.name = 'XmlError'; } }
+/** A malformed XML input, where it is: "[XML_MALFORMED] XML at N: …", N in `details.at`. */
+export const xmlError = (message: string, at: number) => refusal('XML_MALFORMED', `XML at ${at}: ${message}`, { at });
 export interface XmlNode { name: string; attrs: Record<string, string>; children: XmlNode[]; /** Its text, trimmed (with `{ text: true }`: SDF keeps its values there). */ text?: string }
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
 const unescape = (s: string, at: number) => s.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (_, e: string) => {
   if (e[0] === '#') return String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10));
-  if (!(e in ENTITIES)) throw new XmlError(`unknown entity &${e};`, at);
+  if (!(e in ENTITIES)) throw xmlError(`unknown entity &${e};`, at);
   return ENTITIES[e];
 });
 
@@ -23,30 +25,30 @@ export function parseXml(text: string, o: { text?: boolean } = {}): XmlNode {
   while (i < text.length) {
     const lt = text.indexOf('<', i);
     if (lt < 0) break;
-    if (text.slice(i, lt).trim() && stack.length === 1) throw new XmlError('text outside the root element', i);
+    if (text.slice(i, lt).trim() && stack.length === 1) throw xmlError('text outside the root element', i);
     if (o.text && stack.length > 1) { const t = text.slice(i, lt).trim(); if (t) { const n = stack[stack.length - 1]; n.text = (n.text ?? '') + unescape(t, i); } }
     i = lt;
-    if (text.startsWith('<!--', i)) { const e = text.indexOf('-->', i + 4); if (e < 0) throw new XmlError('a comment is not closed', i); i = e + 3; continue; }
-    if (text.startsWith('<?', i)) { const e = text.indexOf('?>', i + 2); if (e < 0) throw new XmlError('a declaration is not closed', i); i = e + 2; continue; }
-    if (text.startsWith('<!', i)) throw new XmlError('DOCTYPE and CDATA are not read', i);
+    if (text.startsWith('<!--', i)) { const e = text.indexOf('-->', i + 4); if (e < 0) throw xmlError('a comment is not closed', i); i = e + 3; continue; }
+    if (text.startsWith('<?', i)) { const e = text.indexOf('?>', i + 2); if (e < 0) throw xmlError('a declaration is not closed', i); i = e + 2; continue; }
+    if (text.startsWith('<!', i)) throw xmlError('DOCTYPE and CDATA are not read', i);
     if (text[i + 1] === '/') {
       const e = text.indexOf('>', i), name = text.slice(i + 2, e).trim(), open = stack.pop();
-      if (!open || open.name !== name || stack.length < 1) throw new XmlError(`</${name}> closes ${open ? `<${open.name}>` : 'nothing'}`, i);
+      if (!open || open.name !== name || stack.length < 1) throw xmlError(`</${name}> closes ${open ? `<${open.name}>` : 'nothing'}`, i);
       i = e + 1; continue;
     }
     const m = /^<([A-Za-z_][\w.:-]*)((?:\s+[A-Za-z_][\w.:-]*\s*=\s*(?:"[^"]*"|'[^']*'))*)\s*(\/?)>/.exec(text.slice(i));
-    if (!m) throw new XmlError('a malformed tag', i);
+    if (!m) throw xmlError('a malformed tag', i);
     const node: XmlNode = { name: m[1], attrs: {}, children: [] };
     for (const a of m[2].matchAll(/([A-Za-z_][\w.:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)) {
-      if (a[1] in node.attrs) throw new XmlError(`attribute ${a[1]} twice`, i);
+      if (a[1] in node.attrs) throw xmlError(`attribute ${a[1]} twice`, i);
       node.attrs[a[1]] = unescape(a[2] ?? a[3], i);
     }
     stack[stack.length - 1].children.push(node);
     if (!m[3]) stack.push(node);
     i += m[0].length;
   }
-  if (stack.length !== 1) throw new XmlError(`<${stack[stack.length - 1].name}> is not closed`, text.length);
-  if (top.children.length !== 1) throw new XmlError(`${top.children.length} root elements`, 0);
+  if (stack.length !== 1) throw xmlError(`<${stack[stack.length - 1].name}> is not closed`, text.length);
+  if (top.children.length !== 1) throw xmlError(`${top.children.length} root elements`, 0);
   return top.children[0];
 }
 

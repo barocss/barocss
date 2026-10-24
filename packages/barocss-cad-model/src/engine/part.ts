@@ -467,7 +467,7 @@ function meshArrays(node: { positions?: number[]; indices?: number[]; blob?: { p
   if (node.blob) {
     // (Single-precision positions as stored: the kernel widens them when it reads them, D45.)
     const p = getBlob(node.blob.positions), i = getBlob(node.blob.indices);
-    if (!(p instanceof Float64Array || p instanceof Float32Array) || !(i instanceof Uint32Array)) throw new Error(`The mesh's data (${(p ? node.blob.indices : node.blob.positions).slice(0, 12)}…) is not loaded: open the file it was saved in again`);
+    if (!(p instanceof Float64Array || p instanceof Float32Array) || !(i instanceof Uint32Array)) throw refusal('MESH_NOT_LOADED', `The mesh's data (${(p ? node.blob.indices : node.blob.positions).slice(0, 12)}…) is not loaded: open the file it was saved in again`);
     return { positions: p, indices: i };
   }
   const P = node.positions ?? [], I = node.indices ?? [];
