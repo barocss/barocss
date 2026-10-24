@@ -83,7 +83,7 @@ export function LibraryPanel({ doc, onCommit, onError, onClose, onQuote }: { doc
         <option value="">Not set</option>{PULLS.map(p => <option key={p.id} value={p.id}>{p.id}</option>)}</NativeSelect></label>}
     {processProfile(doc.process)?.finishes && <>
       <label className={FIELD}><span>Finish</span><NativeSelect className={CONTROL} aria-label="Mould finish" value={doc.mould?.finish ?? ''} onChange={ev => onCommit(withMould(doc, { finish: ev.target.value || undefined }))}>
-        <option value="">Not set</option>{processProfile(doc.process)!.finishes!.map(f => <option key={f.id} value={f.id}>{f.label} · ≥ {f.draftMinDeg}°</option>)}</NativeSelect></label>
+        <option value="">Not set</option>{processProfile(doc.process)!.finishes!.map(f => <option key={f.id} value={f.id}>{f.label} · ≥ {f.draftMin}°</option>)}</NativeSelect></label>
       {onQuote && <div className="flex flex-wrap gap-1"><Button variant="ghost" aria-label="Quote package" title="The part as STEP, the manufacturability report and the request (material, finish, pull, quantity) in one zip: no price, what is open said" onClick={onQuote}>Quote package</Button></div>}
     </>}
     {/* (O7e: the person's fastener sizes — their file or the shipped sample; fasteners and tapped holes need them.) */}
