@@ -27,6 +27,8 @@ export interface MotionControls {
   onPlay(): void; onPause(): void; onTime(t: number): void; onLoop(on: boolean): void; onSpeed(speed: number): void;
   /** The document's saved motions by name, the one chosen (null: the draft), and saving the draft under a name. */
   saved: readonly string[]; choice: string | null; onChoose(name: string | null): void; onSave(name: string): void;
+  /** A WebM of the motion at its own timing (RS2), and whether one is being recorded. */
+  onExportVideo?(): void; exporting?: boolean;
 }
 const SPEEDS = [0.25, 0.5, 1, 2];
 /** A frame as the card reads it out (O12). */
@@ -112,6 +114,8 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         <NativeSelect className={CONTROL} aria-label="Motion speed" value={String(motion.speed)} onChange={e => motionControls.onSpeed(Number(e.target.value))} style={{ width: 64 }}>
           {SPEEDS.map(v => <option key={v} value={String(v)}>{v}×</option>)}
         </NativeSelect>
+        {motionControls.onExportVideo && <Button variant="ghost" aria-label="Export motion video" disabled={!ready || !(motion.duration > 0) || motionControls.exporting}
+          title="A WebM video of the motion from its start to its end, at its own timing (30 frames a second)" onClick={motionControls.onExportVideo}>{motionControls.exporting ? 'Recording…' : 'Video'}</Button>}
         {motion.contact && <div className="hud-error basis-full" role="status" aria-label="Motion contact">{motion.contact}</div>}
         {motionControls.choice === null && <MotionSave saved={motionControls.saved} disabled={!(motion.duration > 0)} onSave={motionControls.onSave} />}
       </div>}
