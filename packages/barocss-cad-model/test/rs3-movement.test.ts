@@ -84,7 +84,7 @@ test('RS3 check_path: the SCARA\'s pick clear along its timing, its duration the
   assert.equal(json.clear, true, out.content); assert.equal(json.contact, undefined);
   assert.ok(json.min_clearance === null || json.min_clearance.mm > 0);
   const pick = readRobot(s.doc.robot).motions!.find(m => m.name === 'pick')!, path = timedPathOf(tree, pick.path);
-  near(json.duration_s, duration(path), 1e-6);
+  near(json.duration, duration(path), 1e-6);
   // (The closed form: each segment one trapezoid on its tightest joint — a distance d at v, a reaches v when d ≥ v²/a.)
   let T = 0;
   for (let i = 1; i < pick.path.waypoints.length; i++) {
@@ -94,7 +94,7 @@ test('RS3 check_path: the SCARA\'s pick clear along its timing, its duration the
       return d === 0 ? 0 : d >= l.velocity ** 2 / l.acceleration ? d / l.velocity + l.velocity / l.acceleration : 2 * Math.sqrt(d / l.acceleration);
     }));
   }
-  near(json.duration_s, T, 1e-6);
+  near(json.duration, T, 1e-6);
   // (Limits in degrees: the sample's default 90 deg/s is 90° a second on each turn, not 90 rad/s.)
   near(path.limits['base~arm1']!.v, 90 * DEG); near(path.limits['arm2~quill']!.v, 60);
   // (The gantry's box clear too: its ram goes up, not down into the X carriage it rides above.)
@@ -109,9 +109,9 @@ test('RS3 play_motion: the stored motion\'s poses at even times, each poseAt\'s 
   const m = readRobot(s.doc.robot).motions![0], path = timedPathOf(tree, m.path), T = duration(path);
   const { out, json } = await call(s, 'play_motion', { motion: m.name, samples: 7 });
   assert.ok(!out.isError && !out.changed, out.content);
-  near(json.duration_s, T, 1e-6); assert.equal(json.samples.length, 7);
-  json.samples.forEach((f: { t_s: number; values: Record<string, number>; links: unknown }, k: number) => {
-    near(f.t_s, (T * k) / 6, 1e-6);
+  near(json.duration, T, 1e-6); assert.equal(json.samples.length, 7);
+  json.samples.forEach((f: { time: number; values: Record<string, number>; links: unknown }, k: number) => {
+    near(f.time, (T * k) / 6, 1e-6);
     const q = poseAt(tree, path, (T * k) / 6);
     for (const [key, v] of Object.entries(q)) near(f.values[key], v / DEG, 1e-6);
     assert.deepEqual(f.links, poseOf(view, q).reply.links);
