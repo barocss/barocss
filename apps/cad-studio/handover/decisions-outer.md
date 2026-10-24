@@ -9085,3 +9085,53 @@ pairs. The coordinator scheduled it as O22.
   gear-joint are clear; four-bar is refused with LOOP_OPEN.
 - **Docs:** _refusals.md regenerated.
 - **Verified (T1):** o22, rs1–3, robot-*, tool-contract and toolset; tsc; eslint 0 errors.
+
+## P1-L3 (harness) — a live AI run of a product brief on Codex, prepared and dry-run only (2026-10-24)
+
+The owner: P1-L3 may run on Codex ("AI 실행하는건 codex 로 해줘도 돼"), with no token cap ("codex 는 토큰 상관 없이 쓸
+수 있어"). The harness is ready. No live run has been made; it waits for the coordinator to say P1's scripted build is
+complete.
+- **The choice: Codex directly, not O15's chat-server path.** `codex exec --json` is one process with a JSONL event
+  stream, which is simpler to make deterministic and to log than the claude-CLI chat turn.
+- **server/liveRun/codexRun.ts, scripts/live-run.mjs:**
+  - **The runs:** each run gets a fresh folder holding the same start (part.bcad), the byte-identical brief on stdin
+    (its sha256 recorded) and nothing kept between runs (`--ephemeral`).
+  - **The tools:**
+    - cad-mcp (server/cadDoc.ts, the v2 tools, `--autonomy 4`) on that folder's part.bcad is the only MCP server. It is
+      bundled once per series, so every run talks to the same build.
+    - The user's config and rules are ignored (`--ignore-user-config --ignore-rules`), so the owner's plugins and MCP
+      servers are left out.
+    - The sandbox is read-only and the working root is the empty run folder.
+    - Codex's built-ins are disabled (verified with `codex features list`): shell_tool, plugins, apps, browser_use(_external),
+      computer_use, in_app_browser, image_generation, memories, skill_search, tool_suggest, code_mode_host, goals; and
+      `web_search="disabled"`.
+  - **Model:** gpt-6.1-sol with reasoning high, named in the harness (the owner's Codex default), since the user config is
+    ignored.
+  - **Off-contract:** any event item that is neither a cad tool call nor the model's own text (a command_execution,
+    another server's tool) fails the run.
+  - **Caps:** a tool-call cap (default 400) and a wall clock (default 60 min). Either one ends the run, killing the run's
+    own process group, Codex and its MCP server. There are no dollar caps on Codex (the owner).
+  - **Per run, on disk:** events.jsonl (each event stamped as it arrived), stderr, the last message, codex-args.json,
+    check.json, and records.json: turns, tool calls (tool, refused, ms), tokens summed from `turn.completed`, how the
+    run ended (completed, tool-cap, wall-clock, failed, error) and the result.
+  - **The judgment:** only a fresh run of the brief's own oracle, `--check '["cmd", …, "{doc}"]'`, on the part the run
+    saved. Exit 0 passes. Its stdout is kept, as JSON when it is.
+  - **The series:** a series stops when Codex never ran (it refused at once).
+  - **A live run** needs `--live` and `CAD_LIVE_RUN=1`.
+- **Open:**
+  - `unified_exec` cannot be turned off, by `--disable` or by `features.*`. With shell_tool off it may not be offered at
+    all. If it is, the read-only sandbox, the empty working root and the off-contract rule cover it: a run that uses it
+    fails.
+  - Codex's event format comes from its `exec --json` events (thread.started, turn.started/completed/failed,
+    item.started/completed; mcp_tool_call, agent_message, reasoning). The first live run confirms it, and readEvents
+    reads unknown kinds as off-contract.
+  - A headless run has no person to accept proposals, so assembly changes are proposed and the agent accepts them
+    itself. The brief must say so; the API lane writes it.
+  - The API lane provides the brief and the oracle command. Its contract is exit 0 = every P1 check passes, with JSON
+    on stdout.
+- **Test (dry run):** test/p1-l3-live-run.test.ts, 3 tests. test/fixtures/scripted-codex.mjs stands in for codex; it
+  starts the configured MCP server and reports its calls as Codex's events.
+  - The arguments and the event reading.
+  - A pass, an oracle failure (cad-cli check, exit 3) and an off-contract shell call, each judged afresh.
+  - The tool-call cap and the wall clock: a run killed at 1.5 s, not waited out.
+- **Verified (T1):** p1-l3 3/3, a scripted run through scripts/live-run.mjs, studio tsc, eslint 0 errors.
