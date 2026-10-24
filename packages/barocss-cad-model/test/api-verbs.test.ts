@@ -215,3 +215,21 @@ test('stability: an edit that takes the named edges away — a typed refusal, ne
   assert.equal(e.code, 'SELECTION'); assert.equal(e.where, 'evaluate');
   assert.match(e.message, /^\[SELECTION\] no edge named n1\.side0\|n1\.side1/);
 });
+
+// R7.5b, materials by id (api-conventions §10.6) and display lines (§10.3): a body's material set as the agent's
+// set_material sets it, carried on its meshes with its display lines, and its mass in that material.
+test('material(id): what set_material writes; the meshes carry the id and the display lines; mass() reads it', async () => {
+  const p = part('m').box({ wMM: 10, dMM: 10, hMM: 10 }).material('al6061');
+  const agent = await agentDoc([['run_command', { command: 'box', values: { w: 10, d: 10, h: 10, x: 0, y: 0, z: 0 } }], ['set_material', { material: 'al6061' }]]);
+  assert.equal(JSON.stringify(p.doc), JSON.stringify(agent));
+  const r = evaluateDoc(agent, 1); assert.ok(r.ok);
+  const [mesh] = p.meshes();
+  assert.equal(mesh.material, 'al6061');
+  assert.deepEqual(Buffer.from(mesh.lines!.buffer), Buffer.from(r.bodies[0].mesh.edgeLines.buffer));
+  assert.equal(JSON.stringify(p.mass()), JSON.stringify(p.mass('al6061')));
+  // (Two bodies, one chosen: only its material is set; with none it is the brief's, else refused.)
+  const two = part('t').box({ wMM: 10, dMM: 10, hMM: 10 }).cylinder({ rMM: 2, hMM: 10, xMM: 30 }).body('b3').material('steel');
+  assert.deepEqual(two.meshes().map(m => m.material), [undefined, 'steel']);
+  assert.throws(() => two.body('b1').mass(), e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
+  assert.throws(() => part().box({ wMM: 1, dMM: 1, hMM: 1 }).material('unobtainium'), e => e instanceof BarocssError && e.code === 'MATERIAL_UNKNOWN');
+});
