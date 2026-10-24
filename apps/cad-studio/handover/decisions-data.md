@@ -105,3 +105,36 @@ merges.
   studio's own deletion path drops them; S3 runs the merged document through the same check before keeping it).
   Conflict codes built from a variable (`PARAMETER_BOTH`, `ITEM_EDITED_BOTH`, `FIELD_BOTH`) are not in the scraped
   refusal table until it reads code unions (R7.3).
+
+## DA-4 — storage: one store interface, a project as plain files, compare-and-set tags (2026-10-24)
+
+- **What**: `apps/cad-studio/src/storage/` — `store.ts` (the interface, paths, codes), `memoryStore.ts`,
+  `handleStore.ts`, `project.ts`, `access.ts`. Not wired into App.tsx yet (S1b, after the coordinator's OK).
+  - `ProjectStore { kind, name, list(dir?), read(path), write(path, bytes, { expect }), remove(path) }`. Paths are the
+    project's: relative, `/`-separated, no `..`, empty part, reserved device name or a character a common file system
+    refuses (`STORAGE_PATH`).
+  - **Tags.** Every file has a tag (a folder: size and time; a cloud: its ETag). A write may expect a tag, or `null`
+    for "no file yet"; anything else there is refused, `STORAGE_CHANGED`, and nothing is written. This is the hook for
+    a second tab or program now and for several people later: no locks, the loser re-reads and merges (DA-3).
+  - **Backends.** `handleStore(dir, kind)` over a directory handle: the person's folder from `showDirectoryPicker`
+    (Chromium) or, where there is none, the browser's private file system (`navigator.storage.getDirectory()`,
+    `projects/<name>`), which every current browser has. One code for both. `createWritable` commits a file whole on
+    close; a browser without it refuses `STORAGE_UNAVAILABLE`. `memoryStore` for tests and where neither exists (Save
+    then downloads, as today). The last picked folder's handle is kept in IndexedDB (`studio.projects`) for Reopen;
+    access is asked again on a click.
+  - **Layout** (`project.ts`): `<part>.bcad` as Save writes it; `.barocss/versions/<part>.json` the log without
+    documents; `.barocss/snapshots/<key>.bcad` each version's document, written once (never rewritten, so a copy or a
+    sync of the folder can't corrupt one); `.barocss/autosave/<part>.bcad`. A log is written documents first, then the
+    log naming them (O9's rule for recovery); read back, it is checked whole (`checkVersions`) and refused, never shown
+    half, when a document is missing. Autosave is offered only while it differs from the saved file.
+  - Every file is the .bcad container unchanged (engine/container.ts): mesh arrays travel by hash as in a saved file.
+- **Why**: plain files the person can see, copy and put under their own sync; write-once documents make the folder
+  safe to sync; the tag makes concurrent writers visible instead of silent.
+- **Oracle**: one contract test run against both stores (the handle store over an in-test stand-in that answers the
+  browser's calls and error names), the project's files on both, a mesh-container fixture written and read back
+  byte-identical as a container; and a real Chrome run (scratch script, not committed) on the private file system:
+  part, two versions and autosave written, a second handle (as after a reload) reads them all back equal, a stale tag
+  refused `STORAGE_CHANGED`, the project listed and then removed.
+- **Not covered yet**: the folder picker itself (a native dialog a headless browser cannot drive; the same handle
+  calls as the private file system). Large histories load every version's document when the log is read; lazy
+  loading waits for a measured need.
