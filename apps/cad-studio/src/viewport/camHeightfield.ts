@@ -49,14 +49,14 @@ export function camSetupToWorld(frame: ArrayLike<number>): Float64Array {
   return m;
 }
 function checkTool(tool: ToolShape): void {
-  if (!['flat', 'ball', 'bull'].includes(tool.kind) || ![tool.diameterMM, tool.cornerMM, tool.fluteMM, tool.shankMM].every(Number.isFinite) || tool.diameterMM <= 0 || tool.fluteMM <= 0 || tool.shankMM <= 0) refuse('TOOL', 'Tool diameter, flute length and shank diameter must be finite positive distances.');
-  const r = tool.diameterMM / 2;
+  if (!['flat', 'ball', 'bull'].includes(tool.kind) || ![tool.diameter, tool.cornerMM, tool.fluteMM, tool.shankMM].every(Number.isFinite) || tool.diameter <= 0 || tool.fluteMM <= 0 || tool.shankMM <= 0) refuse('TOOL', 'Tool diameter, flute length and shank diameter must be finite positive distances.');
+  const r = tool.diameter / 2;
   if (tool.kind === 'flat' ? tool.cornerMM !== 0 : tool.kind === 'ball' ? Math.abs(tool.cornerMM - r) > EPS : !(tool.cornerMM > 0 && tool.cornerMM <= r)) refuse('TOOL', 'The declared corner radius does not match the flat, ball or bull profile.');
   if (tool.fluteMM < tool.cornerMM) refuse('TOOL', 'The flute is shorter than the rounded nose.');
 }
 /** The cutting profile's height above the tip at a radius from the axis (Infinity outside the tool). */
 function bottom(tool: ToolShape, radius: number): number {
-  const r = tool.diameterMM / 2;
+  const r = tool.diameter / 2;
   if (radius < 0 || radius > r || !Number.isFinite(radius)) return Infinity;
   if (tool.kind === 'flat') return 0;
   const c = tool.cornerMM, q = Math.max(0, radius - (r - c));
@@ -164,8 +164,8 @@ export class CamHeightfield {
     this.dx = (hi[0] - lo[0]) / this.nx; this.dy = (hi[1] - lo[1]) / this.ny;
     this.x0 = lo[0]; this.y0 = lo[1]; this.z0 = lo[2]; this.z1 = hi[2];
     this.pitch = Math.max(this.dx, this.dy); this.halfDiagonal = Math.hypot(this.dx, this.dy) / 2;
-    if (tool.diameterMM / 2 <= this.halfDiagonal) refuse('GRID', 'The tool is too small to cover one conservative cell at the effective grid pitch.');
-    this.spacing = Math.min(this.pitch / 2, tool.diameterMM / 8, tool.fluteMM / 2);
+    if (tool.diameter / 2 <= this.halfDiagonal) refuse('GRID', 'The tool is too small to cover one conservative cell at the effective grid pitch.');
+    this.spacing = Math.min(this.pitch / 2, tool.diameter / 8, tool.fluteMM / 2);
     const n = this.nx * this.ny;
     this.inside = new Uint8Array(n); this.cx = new Float64Array(n); this.cy = new Float64Array(n); this.area = new Float64Array(n);
     for (let y = 0; y < this.ny; y++) for (let x = 0; x < this.nx; x++) {
@@ -211,7 +211,7 @@ export class CamHeightfield {
   evaluate(progress: number): CamRemoval {
     const moves = this.setup.moves;
     if (!Number.isFinite(progress) || progress < 0 || progress > moves.length) refuse('PROGRESS', 'Progress must be a completed-move count plus a fraction within the selected setup.');
-    const heights = new Float64Array(this.inside.length).fill(this.z1), radius = this.tool.diameterMM / 2, flute = this.tool.fluteMM;
+    const heights = new Float64Array(this.inside.length).fill(this.z1), radius = this.tool.diameter / 2, flute = this.tool.fluteMM;
     let samples = 0, visits = 0;
     for (let index = 0; index < moves.length && index < progress; index++) {
       const move = moves[index];

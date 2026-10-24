@@ -24,7 +24,7 @@ export function ClearancePanel({ near, onNear, display, reason, labels }: {
     {!!display?.pairs.length && <ul style={{ maxHeight: 190, overflowY: 'auto', paddingLeft: 16, margin: '4px 0' }}>{display.pairs.map(pair => <li key={pair.a + '|' + pair.b} data-clearance-state={clearancePairState(pair)} style={{ padding: '3px 0' }}>
       <span>{pairName(pair.a, labels)} / {pairName(pair.b, labels)}</span><br />
       <strong>{clearancePairLabel(pair)}</strong> · mesh gap {numeric(pair.minGapMM)} mm
-      {pair.overlap && 'volumeMM3' in pair.overlap && <> · overlap {numeric(pair.overlap.volumeMM3)} mm³</>}
+      {pair.overlap && 'volume' in pair.overlap && <> · overlap {numeric(pair.overlap.volume)} mm³</>}
       {pair.designed && <div>Source: {pair.designed}</div>}
       {pair.overlap && 'refused' in pair.overlap && <div>{pair.overlap.refused}</div>}
     </li>)}</ul>}

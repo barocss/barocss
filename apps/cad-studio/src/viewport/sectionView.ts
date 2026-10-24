@@ -164,14 +164,14 @@ export function mergeMeshes(a: DisplayMesh, b: DisplayMesh): DisplayMesh {
 export function mergeBodies(pieces: readonly BodyResult[]): BodyResult {
   if (pieces.length === 1) return pieces[0];
   const sum = (f: (b: BodyResult) => number | null) => pieces.every(b => f(b) !== null) ? pieces.reduce((v, b) => v + f(b)!, 0) : null;
-  const volume = sum(b => b.volumeMM3), mass = sum(b => b.massG);
-  const centroid = volume && pieces.every(b => b.centroid && b.volumeMM3 !== null) ? [0, 1, 2].map(k => pieces.reduce((v, b) => v + b.centroid![k] * b.volumeMM3!, 0) / volume) as [number, number, number] : undefined;
+  const volume = sum(b => b.volume), mass = sum(b => b.mass);
+  const centroid = volume && pieces.every(b => b.centroid && b.volume !== null) ? [0, 1, 2].map(k => pieces.reduce((v, b) => v + b.centroid![k] * b.volume!, 0) / volume) as [number, number, number] : undefined;
   // (The area and inertia of the whole are not the pieces' sum — the faces between them are inside — so left out.)
-  const { areaMM2: _a, areaBasis: _b, inertia: _i, pieces: _p, volumeBasis: _v, ...first } = pieces[0];
+  const { area: _a, areaBasis: _b, inertia: _i, pieces: _p, volumeBasis: _v, ...first } = pieces[0];
   void _a; void _b; void _i; void _p; void _v;
   // (O179: the volume is the pieces' sum, so it is from the mesh when any piece's is — their bounds summed, never the first's alone.)
-  const fromMesh = pieces.filter(b => b.volumeBasis), basis = fromMesh.length ? { volumeBasis: { method: 'tessellated' as const, boundMM3: fromMesh.some(b => b.volumeBasis!.boundMM3 === null) ? null : fromMesh.reduce((v, b) => v + b.volumeBasis!.boundMM3!, 0) } } : {};
-  return { ...first, mesh: pieces.map(b => b.mesh).reduce(mergeMeshes), volumeMM3: volume, massG: mass, ...(centroid ? { centroid } : {}), ...basis };
+  const fromMesh = pieces.filter(b => b.volumeBasis), basis = fromMesh.length ? { volumeBasis: { method: 'tessellated' as const, bound: fromMesh.some(b => b.volumeBasis!.bound === null) ? null : fromMesh.reduce((v, b) => v + b.volumeBasis!.bound!, 0) } } : {};
+  return { ...first, mesh: pieces.map(b => b.mesh).reduce(mergeMeshes), volume: volume, mass: mass, ...(centroid ? { centroid } : {}), ...basis };
 }
 /** The exact section's bodies, one a source body (its pieces merged), and each one's source body's key. */
 export function exactBodies(bodies: readonly BodyResult[], kept: readonly string[], from: readonly string[]): { bodies: BodyResult[]; from: Map<string, string> } {

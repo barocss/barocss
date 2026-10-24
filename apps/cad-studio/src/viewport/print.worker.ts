@@ -28,7 +28,7 @@ self.onmessage = (event: MessageEvent<PrintRequest>) => {
       }
       const k = Math.min(job.layer, model.count - 1), layer = model.layer(k);
       const { layer: lazyLayer, ...summary } = model; void lazyLayer;
-      const display: PrintDisplay = { request: job.request, summaryKey, summary, layer, supportMesh: supportMesh!, topMM: Math.min(model.heightMM, (k + 1) * model.layerMM.mm), supports: true, printed: true };
+      const display: PrintDisplay = { request: job.request, summaryKey, summary, layer, supportMesh: supportMesh!, topMM: Math.min(model.height, (k + 1) * model.layerMM.mm), supports: true, printed: true };
       if (latest === job.request) self.postMessage({ request: job.request, display } satisfies PrintReply);
     } catch (error) {
       if (latest === job.request) self.postMessage({ request: job.request, error: error instanceof Error ? error.message : String(error) } satisfies PrintReply);

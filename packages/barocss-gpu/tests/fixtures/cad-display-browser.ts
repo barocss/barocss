@@ -30,7 +30,7 @@ export function boxBody(key: string, size: Vec3 = [20, 20, 20], center: Vec3 = [
     }
     indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
     const centroid = [...center] as Vec3; centroid[axis] += sign * size[axis] / 2;
-    faces.push({ index: fi, id: 'native-' + fi, name: 'native-' + fi, kind: 'plane', normal, centroid, areaMM2: size[u] * size[v] });
+    faces.push({ index: fi, id: 'native-' + fi, name: 'native-' + fi, kind: 'plane', normal, centroid, area: size[u] * size[v] });
     for (let k = 0; k < 4; k++) {
       const a = corners[k], b = corners[(k + 1) % 4], id = [a.join(','), b.join(',')].sort().join('/');
       const had = edges.get(id); if (had) had.faces.push(fi); else edges.set(id, { a, b, faces: [fi] });
@@ -42,7 +42,7 @@ export function boxBody(key: string, size: Vec3 = [20, 20, 20], center: Vec3 = [
     edges: list.map((e, i) => ({ index: i, a: e.a, b: e.b, faces: e.faces as [number, number], straight: true, axis: (['x', 'y', 'z'] as const).find((_, k) => e.a[k] !== e.b[k]) ?? null, names: e.faces.map(x => 'native-' + x) })),
     bounds: { min: center.map((x, k) => x - size[k] / 2) as Vec3, max: center.map((x, k) => x + size[k] / 2) as Vec3 },
   };
-  return { key, family: 'planar', mesh, volumeMM3: size[0] * size[1] * size[2], massG: null };
+  return { key, family: 'planar', mesh, volume: size[0] * size[1] * size[2], mass: null };
 }
 /** Test packets use the production convention: bodies already placed in world space, placement only for sharing. */
 export function instanceMatrix(angle = 0, center: Vec3 = [0, 0, 0]): Float64Array {
@@ -149,7 +149,7 @@ async function dataURL(blob: Blob): Promise<string> { return new Promise((resolv
 /** Real CAD evaluation fixtures: analytic cylinder and half-disc revolve sphere, never facet imports. */
 export function curvedBodies(): { name: string; body: BodyResult }[] {
   let sphere = withNode(emptyDoc(), { kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -6], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 6] }] });
-  sphere = withNode(sphere, { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 });
+  sphere = withNode(sphere, { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 });
   return [{ name: 'cylinder', doc: cylinderPart(6, 12) }, { name: 'sphere', doc: sphere }].map(({ name, doc }) => {
     const result = evaluateDoc(doc, 1);
     if (!result.ok || result.bodies.length !== 1) throw new Error('Actual curved CAD fixture evaluation failed: ' + name);

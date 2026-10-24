@@ -27,12 +27,12 @@ export function CamPanel({ options, onOptions, state, reason }: {
     <label>Grid <input aria-label="CNC grid pitch (mm)" type="number" min="0.05" step="0.1" value={options.cellMM} style={{ width: 64 }}
       onChange={e => { const n = e.target.valueAsNumber; if (Number.isFinite(n) && n > 0) onOptions({ cellMM: n }); }} /> mm asked</label>
     <div>
-      <label><input type="checkbox" aria-label="Set the CNC tool" checked={!!tool} onChange={e => setTool(e.target.checked ? { kind: pkg?.tool.kind ?? 'flat', diameterMM: pkg?.tool.diameterMM ?? 6 } : null)} /> Set tool</label>
+      <label><input type="checkbox" aria-label="Set the CNC tool" checked={!!tool} onChange={e => setTool(e.target.checked ? { kind: pkg?.tool.kind ?? 'flat', diameter: pkg?.tool.diameter ?? 6 } : null)} /> Set tool</label>
       {tool && <>
         <select aria-label="CNC tool shape" value={tool.kind ?? 'flat'} onChange={e => setTool({ kind: e.target.value as ToolShape['kind'], cornerMM: undefined })}>{KINDS.map(k => <option key={k} value={k}>{k}</option>)}</select>
-        <input aria-label="CNC tool diameter (mm)" type="number" min="0.1" step="0.5" value={tool.diameterMM ?? pkg?.tool.diameterMM ?? 6} style={{ width: 56 }}
-          onChange={e => { const n = e.target.valueAsNumber; if (Number.isFinite(n) && n > 0) setTool({ diameterMM: n }); }} /> Ø mm
-        {tool.kind === 'bull' && <><input aria-label="CNC tool corner radius (mm)" type="number" min="0.05" step="0.25" value={tool.cornerMM ?? (tool.diameterMM ?? 6) / 4} style={{ width: 56 }}
+        <input aria-label="CNC tool diameter (mm)" type="number" min="0.1" step="0.5" value={tool.diameter ?? pkg?.tool.diameter ?? 6} style={{ width: 56 }}
+          onChange={e => { const n = e.target.valueAsNumber; if (Number.isFinite(n) && n > 0) setTool({ diameter: n }); }} /> Ø mm
+        {tool.kind === 'bull' && <><input aria-label="CNC tool corner radius (mm)" type="number" min="0.05" step="0.25" value={tool.cornerMM ?? (tool.diameter ?? 6) / 4} style={{ width: 56 }}
           onChange={e => { const n = e.target.valueAsNumber; if (Number.isFinite(n) && n > 0) setTool({ cornerMM: n }); }} /> r mm</>}
       </>}
     </div>
@@ -43,7 +43,7 @@ export function CamPanel({ options, onOptions, state, reason }: {
     <div className="legend-chips"><span className="legend-chip"><i style={{ background: '#e0a030' }} />stock left</span><span className="legend-chip"><i style={{ background: '#f02120' }} />cut below the part</span><span className="legend-chip"><i style={{ background: '#9aa0a8' }} />the part</span></div>
     <details className="panel-details"><summary>Details</summary>
     {pkg?.banner && <div>{pkg.banner}</div>}
-    {pkg && <div>Tool {pkg.tool.kind} Ø{+pkg.tool.diameterMM.toFixed(3)} · corner {+pkg.tool.cornerMM.toFixed(3)} · flute {+pkg.tool.fluteMM.toFixed(3)} · shank Ø{+pkg.tool.shankMM.toFixed(3)} ({pkg.tool.basis.shape === 'given' ? 'given' : 'estimated'}; the shank's length shown as one diameter, an estimate; no holder)</div>}
+    {pkg && <div>Tool {pkg.tool.kind} Ø{+pkg.tool.diameter.toFixed(3)} · corner {+pkg.tool.cornerMM.toFixed(3)} · flute {+pkg.tool.fluteMM.toFixed(3)} · shank Ø{+pkg.tool.shankMM.toFixed(3)} ({pkg.tool.basis.shape === 'given' ? 'given' : 'estimated'}; the shank's length shown as one diameter, an estimate; no holder)</div>}
     {d && <div>Removed {d.removal.removedMM3.toFixed(1)} mm³ (a grid estimate) · grid {d.removal.nx} × {d.removal.ny} at {mm(d.removal.cellMM)} · samples every {mm(d.removal.sampleMM)} · ±{mm(d.removal.lateralUncertaintyMM)} across
       {'kind' in pkg!.stock && <> · stock {pkg!.stock.kind}</>} · safe Z {mm(d.setup.safeZ.mm, 2)} (an estimate)</div>}
     {pkg && pkg.skipped.length > 0 && <details><summary>{pkg.skipped.length} feature{pkg.skipped.length === 1 ? '' : 's'} not machined</summary>
