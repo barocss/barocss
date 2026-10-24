@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 export type Vec3 = [number, number, number];
 export type RGB = [number, number, number];
 export interface SceneObject {
@@ -56,10 +57,10 @@ export interface SceneDiagnostic {
   start: number;
   end: number;
 }
-export class SceneError extends Error {
+export class SceneError extends BarocssError {
   readonly diagnostics: SceneDiagnostic[];
   constructor(diagnostics: SceneDiagnostic[]) {
-    super(diagnostics.map((item) => `${item.line}:${item.column}: ${item.message}`).join('\n'));
+    super('scene', diagnostics.map((item) => `${item.line}:${item.column}: ${item.message}`).join('\n'));
     this.name = 'SceneError';
     this.diagnostics = diagnostics;
   }

@@ -1,5 +1,6 @@
 // The viewer's scene objects (R2c: moved out of viewer.ts as they were, viewer.ts the facade): materials and their
 // options, image textures, geometry kept on the CPU and its GPU buffers, meshes and their object blocks.
+import { BarocssError } from '../core/barocss-error.js';
 import type { MeshCost } from './viewer.js';
 import { transformBox, unionBox, type Box3 } from './bounds.js';
 import { prepareScalars, segmentInstances, vertexColors, fillVertexColors, type PreparedGeometry } from './geometry.js';
@@ -8,8 +9,8 @@ import { linear, parseColor, type Color } from './lights.js';
 import { identity, multiply, normalMatrixInto, srgbToLinear, type Mat4, type Vec3 } from './math.js';
 import { type SurfaceShader } from './shaders.js';
 import type { Viewer } from './viewer.js';
-export class ViewerError extends Error {
-  constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(message); this.name = 'ViewerError'; }
+export class ViewerError extends BarocssError {
+  constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(code, message); this.name = 'ViewerError'; }
 }
 
 export interface Material {

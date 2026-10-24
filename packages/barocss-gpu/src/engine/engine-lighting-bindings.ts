@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord } from '../mesh/gpu-data.js';
 import { prepareEngineScene } from './engine-scene.js';
 import type { PreparedEngineScene } from './engine-scene.js';
@@ -11,9 +12,9 @@ export const EngineLightingBindingsDiagnosticCode = Object.freeze({
 } as const);
 export type EngineLightingBindingsDiagnosticCode =
   typeof EngineLightingBindingsDiagnosticCode[keyof typeof EngineLightingBindingsDiagnosticCode];
-export class EngineLightingBindingsError extends Error {
+export class EngineLightingBindingsError extends BarocssError {
   constructor(readonly code: EngineLightingBindingsDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Engine lighting bindings: ' + detail).slice(0, 1024),
+    super(code, ('Engine lighting bindings: ' + detail).slice(0, 1024),
       cause === undefined ? undefined : { cause });
     this.name = 'EngineLightingBindingsError';
   }

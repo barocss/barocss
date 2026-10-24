@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import {compileGpu} from './gpu-compiler.js';
 import type {GpuExecution} from './gpu-compiler.js';
 import {prepareCamera,validateMeshCamera} from './camera.js';
@@ -8,9 +9,9 @@ import {freezeGpuData,ownRecord} from './gpu-data.js';
 import type {RGB,Vec3} from '../scene/scene.js';
 
 export type MixedDepthDiagnosticCode='INPUT'|'VERSION'|'BUDGET'|'SOURCE'|'PROFILE'|'CAMERA'|'NATIVE'|'GPU'|'DISPOSED'|'CONTEXT';
-export class MixedDepthError extends Error {
+export class MixedDepthError extends BarocssError {
   constructor(public readonly code:MixedDepthDiagnosticCode,message:string,cause?:unknown){
-    super(message,cause===undefined?undefined:{cause});this.name='MixedDepthError';
+    super(code, message,cause===undefined?undefined:{cause});this.name='MixedDepthError';
   }
 }
 export interface MixedDepthSurfaceV0 {ref:{modelId:string;geometryId:string};packet:PreviewPacket;color:RGB}

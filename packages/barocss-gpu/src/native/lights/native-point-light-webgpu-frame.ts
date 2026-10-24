@@ -1,3 +1,4 @@
+import { BarocssError } from '../../core/barocss-error.js';
 import { preparePrimitiveSceneFrame } from '../../mesh/primitive-frame-preflight.js';
 import type { PrimitiveSceneCpuFrameV0 } from '../../mesh/primitive-frame-preflight.js';
 import { prepareNativePointLightProgramWGSL } from './native-point-light-program-wgsl.js';
@@ -15,9 +16,9 @@ export const NativePointLightWebGPUDiagnosticCode = Object.freeze({
   RENDER: 'RENDER', STATE: 'STATE', BUSY: 'BUSY',
 } as const);
 export type NativePointLightWebGPUDiagnosticCode = typeof NativePointLightWebGPUDiagnosticCode[keyof typeof NativePointLightWebGPUDiagnosticCode];
-export class NativePointLightWebGPUError extends Error {
+export class NativePointLightWebGPUError extends BarocssError {
   constructor(readonly code: NativePointLightWebGPUDiagnosticCode, message: string, ...cause: [] | [unknown]) {
-    super(message.slice(0, 1024), cause.length ? { cause: cause[0] } : undefined);
+    super(code, message.slice(0, 1024), cause.length ? { cause: cause[0] } : undefined);
     this.name = 'NativePointLightWebGPUError';
   }
 }

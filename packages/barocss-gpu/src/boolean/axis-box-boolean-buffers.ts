@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import {tessellateSurface,validateAxisBoxSolidBoolean} from '@barocss/cad';
 import type {AxisBoxSolidBooleanResult,Surface} from '@barocss/cad';
 import {freezeGpuData,ownRecord} from '../mesh/gpu-data.js';
@@ -7,10 +8,10 @@ import {convertMeshCoordinate,validateMeshGeometry} from '../mesh/mesh-packet.js
 import type {Vec3} from '../scene/scene.js';
 
 export type AxisBoxBooleanBufferDiagnosticCode='INPUT'|'BUDGET'|'NATIVE'|'BINDING'|'CONVERSION';
-export class AxisBoxBooleanBufferError extends Error {
+export class AxisBoxBooleanBufferError extends BarocssError {
  readonly code:AxisBoxBooleanBufferDiagnosticCode;
  constructor(code:AxisBoxBooleanBufferDiagnosticCode,detail:string,cause?:unknown){
-  super(('Axis-box Boolean buffers: '+detail).slice(0,1024),cause===undefined?undefined:{cause});
+  super(code, ('Axis-box Boolean buffers: '+detail).slice(0,1024),cause===undefined?undefined:{cause});
   this.name='AxisBoxBooleanBufferError';this.code=code;
  }
 }

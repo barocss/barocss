@@ -1,3 +1,4 @@
+import { BarocssError } from '../../core/barocss-error.js';
 import { ownRecord, copyGpuData, freezeGpuData } from '../../mesh/gpu-data.js';
 import type { RGB, Vec3 } from '../../scene/scene-types.js';
 
@@ -8,9 +9,9 @@ export const NativeDirectionalLightsDiagnosticCode = Object.freeze({
 export type NativeDirectionalLightsDiagnosticCode =
   typeof NativeDirectionalLightsDiagnosticCode[keyof typeof NativeDirectionalLightsDiagnosticCode];
 
-export class NativeDirectionalLightsError extends Error {
+export class NativeDirectionalLightsError extends BarocssError {
   constructor(readonly code: NativeDirectionalLightsDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Native directional lights: ' + detail).slice(0, 1024),
+    super(code, ('Native directional lights: ' + detail).slice(0, 1024),
       arguments.length > 2 ? { cause } : undefined);
     this.name = 'NativeDirectionalLightsError';
   }
