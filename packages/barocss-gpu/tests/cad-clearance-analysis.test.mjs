@@ -22,8 +22,8 @@ const move = (x, y, z) => Float64Array.from([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
 const nativeMesh = () => ({ positions: new Float32Array([0, 0, 0, 9, 0, 0, 0, 9, 0]), normals: new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]), indices: new Uint32Array([0, 1, 2]), faceOfVertex: new Float32Array([37, 37, 37]), faces: [{ index: 37, id: 'native-37' }], edgeLines: new Float32Array(), edgeOfSegment: new Float32Array(), edges: [], bounds: { min: [0, 0, 0], max: [9, 9, 0] } });
 const body = (key, placement = pose()) => ({ key, mesh: nativeMesh(), brep: null, pose: placement });
 const band = () => ({ positions: new Float32Array([0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0]), indices: new Uint32Array([0, 1, 2, 0, 2, 3]), field: new Float32Array([0, 0.25, 1, 2]) });
-const pair = (changes = {}) => ({ a: 'arm/body', b: 'base/body', state: 'contact', minGapMM: 0, closest: { a: [0, 0, 0], b: [0, 0, 0], faceA: 'native-37', faceB: 'native-37' }, pose: 'a-pose.b-pose', overlap: { pending: true }, ...changes });
-const map = (pairs = [pair()]) => ({ version: api.CLEARANCE_MAP_VERSION, revision: 'current-revision', near: { mm: 1, source: 'input' }, pairs, pending: pairs.filter(p => p.overlap && 'pending' in p.overlap).length, timing: { pruneMS: 0, clearanceMS: 0, bandMS: 0 } });
+const pair = (changes = {}) => ({ a: 'arm/body', b: 'base/body', state: 'contact', minGap: 0, closest: { a: [0, 0, 0], b: [0, 0, 0], faceA: 'native-37', faceB: 'native-37' }, pose: 'a-pose.b-pose', overlap: { pending: true }, ...changes });
+const map = (pairs = [pair()]) => ({ version: api.CLEARANCE_MAP_VERSION, revision: 'current-revision', near: { value: 1, source: 'input' }, pairs, pending: pairs.filter(p => p.overlap && 'pending' in p.overlap).length, timing: { pruneMS: 0, clearanceMS: 0, bandMS: 0 } });
 const fill = (changes = {}) => ({ a: 'arm/body', b: 'base/body', revision: 'current-revision', pose: 'a-pose.b-pose', overlap: { volume: 2, mesh: nativeMesh() }, ...changes });
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-6, `${actual} expected ${expected}`);
 
@@ -184,7 +184,7 @@ test('matching fills apply actual Model transitions once while retaining indepen
 
 test('near overlay vertices retain the exact independent band fields instead of native mesh indexing', () => {
   const a = band(), b = band(); b.field = new Float32Array([1, 0.5, 0.25, 0]);
-  const current = map([pair({ state: 'near', minGapMM: 0.1, overlap: undefined, band: { a, b } })]);
+  const current = map([pair({ state: 'near', minGap: 0.1, overlap: undefined, band: { a, b } })]);
   const bodies = [body('arm/body', pose([10, 0, 0])), body('base/body', pose([0, 20, 0]))], before = snapshot({ current, bodies });
   const result = api.clearanceOverlays(current, bodies); assert.equal(result.length, 2);
   for (const [index, original] of [a, b].entries()) {
@@ -220,8 +220,8 @@ test('pending, refused and designed outputs retain Model classification and expl
 });
 
 test('designed fill stays designed unless Model squeeze limit classifies excess overlap; refused fill remains unclassified', () => {
-  for (const [squeezeMM3, volume, expected] of [[undefined, 2, 'designed'], [3, 2, 'designed'], [1, 2, 'overlap']]) {
-    const current = map([pair({ state: 'designed', designed: 'source fit', ...(squeezeMM3 === undefined ? {} : { squeezeMM3 }) })]);
+  for (const [squeezeVolume, volume, expected] of [[undefined, 2, 'designed'], [3, 2, 'designed'], [1, 2, 'overlap']]) {
+    const current = map([pair({ state: 'designed', designed: 'source fit', ...(squeezeVolume === undefined ? {} : { squeezeVolume }) })]);
     assert.equal(api.acceptClearanceFill(current, fill({ overlap: { volume: volume, mesh: nativeMesh() } }), 7, 7), true);
     assert.equal(current.pairs[0].state, expected); assert.equal(current.pairs[0].designed, 'source fit'); assert.equal(api.clearancePairState(current.pairs[0]), expected);
   }
