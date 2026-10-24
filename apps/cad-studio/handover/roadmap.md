@@ -22,7 +22,7 @@ section current.
 | GPU | R7.3a: batch 1 in as WIP (test:browser to run), then batch 2 | R7.3c (gpu's vectors) | R7.3c (gpu's vectors), R7.3d (the packet tag), G14 (measure, then decide) |
 | API | R7.4b (part growth, the selector-stability test); R7.4a done | R7.5 | R7.5, R7.5b, then R7.6 with the docs lane |
 | Docs | follow each merge, as the coordinator routes it | R7.6 | the Later list |
-| Coordinator | merges; S9 rerun after K16 and G13 | a window at each track boundary | the owner's open decisions (below) |
+| Coordinator | merges (S9 done at `16eabdd8e`) | a window at each track boundary | the owner's open decisions (below) |
 
 ## Where we are
 
@@ -31,7 +31,7 @@ Integration is `review/cad-gpu-engine-2026-10-14`, local only (tip in `git log`;
 | | |
 |---|---|
 | Content | develop (#2185) + Codex's work squashed (`99da385a1`, no evidence files) + the GPU lint fix |
-| Last fully verified commit | `9fec9950c`, 2026-10-22: full flow 264/264 |
+| Last fully verified commit | `16eabdd8e`, 2026-10-24: the full window and the full flow 287/287 (S9) |
 | Integration window at `99da385a1` | builds and tsc pass; gpu 179/179; kernel 1597/1608 (4 real failures); model 902/915; studio 166/187; studio lint 1 error (fixed since); browser flow not run |
 
 Done, per area (see the logs):
@@ -65,7 +65,7 @@ moved to Later.
 | S4 | **done** O151, O152. Failures still left after S1 and S2 | outer | Each fixed or assigned with a cause |
 | S5 | Kernel failures from the window: frk-3's dropped oracle, stale S0 expectations, sweep dropping holes | kernel | **done**: D176 `b0e22e572`. The V notch moves to K1 |
 | S6 | Studio lint | GPU | **done**: `59582a911` |
-| S9 | Window and full browser flow at one commit | coordinator | The new "last fully verified" commit. **Window at 9b4e90f3e (2026-10-24, after R5 and G12a):** builds, types, lint, model 993/993, studio 274/274, gpu 189/189, kernel 1648/1655 (only the native-split test, as before), RB and props pass; flow 276/280, failing 72 and 273 (G12a, with the GPU lane), 207 (test fixed in d2d62a94e, outer) and 252 (GPU, G12). S9 closes when a rerun of those four passes. Earlier, window at 218c5604a: builds, types, lint, model 964, studio 250, gpu 189, kernel 1640/1647 (the Node pin), RB no NEW, properties pass; flow 269/272 (144, 166 fixed after it in cf8ce8fd9; 258 on WebGPU with the GPU lane). Next window after O7b and D206 |
+| S9 | Window and full browser flow at one commit | coordinator | **done** at `16eabdd8e` (2026-10-24, the new account's first window): builds, types and lint pass; model 1028/1028, studio 286/286, gpu 195/195, kernel 1677/1684 (6 skipped; the one failure is the known native-split test), RB no new finding (the three graze/helical TODOs as before), properties pass; full browser flow 287/287 on WebGPU. Not covered: the K16 patch (not committed yet), gpu `test:browser` after R7.3a batch 1, the flow on WebGL2. The new "last fully verified" commit. **Earlier, window at 9b4e90f3e (2026-10-24, after R5 and G12a):** builds, types, lint, model 993/993, studio 274/274, gpu 189/189, kernel 1648/1655 (only the native-split test, as before), RB and props pass; flow 276/280, failing 72 and 273 (G12a, with the GPU lane), 207 (test fixed in d2d62a94e, outer) and 252 (GPU, G12). S9 closes when a rerun of those four passes. Earlier, window at 218c5604a: builds, types, lint, model 964, studio 250, gpu 189, kernel 1640/1647 (the Node pin), RB no NEW, properties pass; flow 269/272 (144, 166 fixed after it in cf8ce8fd9; 258 on WebGPU with the GPU lane). Next window after O7b and D206 |
 
 Moved out of Phase 0:
 - the V notch precision regression goes to K1 (same quadrature file as FRk6);
