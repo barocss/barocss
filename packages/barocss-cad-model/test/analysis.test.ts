@@ -38,7 +38,7 @@ test('interference: an overlap by its volume; apart, the clearance', async () =>
 test('section, wall thickness and draft of a plate', async () => {
   const s = await stateOf(rectanglePart(40, 20, 8));
   const sec = await call(s, 'section', { axis: 'x', at: 10 });
-  assert.deepEqual([sec.cut[0].body, sec.cut[0].cut_area_mm2, sec.cut[0].regions], ['b1', 160, 1]);
+  assert.deepEqual([sec.cut[0].body, sec.cut[0].cutArea, sec.cut[0].regions], ['b1', 160, 1]);
   assert.match(parse((await runTool(s, 'section', { axis: 'z', at: 50 }, evaluate)).content).error, /cuts no body/);
   const wall = await call(s, 'wall_thickness', {});
   assert.equal(wall.thinnest_mm, 8);
