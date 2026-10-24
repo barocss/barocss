@@ -110,7 +110,7 @@ export const GROUPS: Record<string, Group> = {
   image: {
     title: 'Image',
     about: 'A traced picture (a character, logo, icon) as solids.',
-    actions: { layers: ['get_image_layers', 'image?'], extrude: ['extrude_image_layer', 'width_mm, height, image?, layer?, base?, orientation?, at?, y?'], inflate: ['inflate_image_layer', 'width_mm, depth, image?, layer?, mode?, body_depth?, orientation?, at?, y?'] },
+    actions: { layers: ['get_image_layers', 'image?'], extrude: ['extrude_image_layer', 'width, height, image?, layer?, base?, orientation?, at?, y?'], inflate: ['inflate_image_layer', 'width, depth, image?, layer?, mode?, body_depth?, orientation?, at?, y?'] },
   },
   describe: { title: 'Describe', about: '', actions: {} },
 };
