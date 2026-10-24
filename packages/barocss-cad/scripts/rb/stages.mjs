@@ -187,10 +187,10 @@ export function runCase(cad, file, started) {
     // An incoming STEP's own validation properties (CAx-IF) against what was read.
     if (isStep && mass) stage('gvp', () => {
       const g = cad.stepValidationProperties(text);
-      if (g.volumeMM3 === undefined && g.areaMM2 === undefined && g.centroidMM === undefined) return { detail: 'no validation properties' };
+      if (g.volume === undefined && g.area === undefined && g.centroid === undefined) return { detail: 'no validation properties' };
       const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 16 }), P = mesh.positions, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
       for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], P[i + k]); hi[k] = Math.max(hi[k], P[i + k]); }
-      const c = cad.compareValidationProperties(g, { volumeMM3: mass.volume, areaMM2: cad.brepSurfaceArea(brep), centroidMM: mass.centroid, box: { min: lo, max: hi } });
+      const c = cad.compareValidationProperties(g, { volume: mass.volume, area: cad.brepSurfaceArea(brep), centroid: mass.centroid, box: { min: lo, max: hi } });
       return c.ok ? {} : { status: 'WRONG', detail: ['volume', 'area', 'centroid'].filter(k => c[k] && !c[k].ok).map(k => `${k} off by ${c[k].difference.toExponential(2)} (limit ${c[k].limit.toExponential(2)})`).join('; ') };
     });
     results.push({ report, mass, bodyCount: b.bodyCount ?? brep.bodies.length, brep });
@@ -200,9 +200,9 @@ export function runCase(cad, file, started) {
     for (let k = 0; k < results.length; k++) {
       const r = results[k], want = expect.outputs[k];
       if (!r.mass || !r.report) return { status: 'WRONG', detail: `output ${k} has no mass or report` };
-      const dv = Math.abs(r.mass.volume - want.volumeMM3.value);
-      if (dv > Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0)) return { status: 'WRONG', detail: `output ${k} volume ${r.mass.volume} vs ${want.volumeMM3.value}` };
-      if (r.mass.centroid.some((x, i) => Math.abs(x - want.centroidMM.value[i]) > want.centroidMM.absTol)) return { status: 'WRONG', detail: `output ${k} centroid ${r.mass.centroid} vs ${want.centroidMM.value}` };
+      const dv = Math.abs(r.mass.volume - want.volume.value);
+      if (dv > Math.max(want.volume.relTol * Math.abs(want.volume.value), want.volume.absTol ?? 0)) return { status: 'WRONG', detail: `output ${k} volume ${r.mass.volume} vs ${want.volume.value}` };
+      if (r.mass.centroid.some((x, i) => Math.abs(x - want.centroid.value[i]) > want.centroid.absTol)) return { status: 'WRONG', detail: `output ${k} centroid ${r.mass.centroid} vs ${want.centroid.value}` };
       // (A case may leave its body count and topology unsaid: an L4 fuzz finding knows its oracle's volume and centroid only, D188.)
       if (want.bodies !== undefined && r.bodyCount !== want.bodies) return { status: 'WRONG', detail: `output ${k} bodies ${r.bodyCount} vs ${want.bodies}` };
       const topo = JSON.stringify(r.report.topology.map(t => ({ shells: t.shells, genus: t.genus })));

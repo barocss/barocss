@@ -553,7 +553,8 @@ export interface HookedSpringDimensions {
   readonly rate?: number; readonly shearModulus?: number; readonly shearModulusEstimate?: boolean; readonly wahlFactor?: number; readonly initialTension?: number;
   readonly load?: { readonly force: number; readonly extension?: number; readonly shearStress: number };
   /** Torsion: k = Ed⁴/(64Dn) per radian and per degree, the free angle between the legs, at a moment: the turn and σ = K_b 32M/(πd³). */
-  readonly torsionalRateNmmPerRad?: number; readonly torsionalRate?: number; readonly youngsModulus?: number; readonly youngsModulusEstimate?: boolean;
+  /** Torsional stiffness in N·mm per degree. */
+  readonly torsionalRate?: number; readonly youngsModulus?: number; readonly youngsModulusEstimate?: boolean;
   readonly legAngle?: number; readonly legLengths?: readonly [number, number]; readonly bendingFactor?: number;
   readonly moment?: { readonly moment: number; readonly turn?: number; readonly bendingStress: number };
   /** The least distance found between the centrelines of pieces that are not neighbours (sampled), against d. */
@@ -645,7 +646,7 @@ export function hookedSpring(spec: HookedSpringSpec, options: { readonly id?: st
     wireDiameter: d, meanDiameter: D, outerDiameter: D + d, innerDiameter: D - d, springIndex: C, activeCoils: n, pitch: p, helixAngle: Math.atan(p / (Math.PI * D)) * 180 / Math.PI,
     bodyLength: n * p + 2 * a * gp, wireLength: wire, ...(inside !== undefined ? { lengthInsideHooks: inside } : {}),
     ...(type === 'extension' ? { wahlFactor: KW, initialTension: Fi, ...(rate !== undefined ? { rate: rate, shearModulus: G, ...(spec.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(load ? { load } : {}) } : {}),
-    ...(type === 'torsion' ? { bendingFactor: Kb, legAngle: frac * 360, legLengths: [legs[0], legs[1]] as const, ...(krad !== undefined ? { torsionalRateNmmPerRad: krad, torsionalRate: krad * Math.PI / 180, youngsModulus: E, ...(spec.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(moment ? { moment } : {}) } : {}),
+    ...(type === 'torsion' ? { bendingFactor: Kb, legAngle: frac * 360, legLengths: [legs[0], legs[1]] as const, ...(krad !== undefined ? { torsionalRate: krad * Math.PI / 180, youngsModulus: E, ...(spec.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(moment ? { moment } : {}) } : {}),
     leastClearance: least,
   };
   return { brep, report: { generator: 'spring@0', type, ...(hooks ? { hooks } : {}), hand, dimensions: dims, sweep: { pieces: coil.pieces, segments: coil.segments, profileDeviation: coil.deviation, profileTolerance: P.tol, minCurvatureRadius: Math.min(P.minRho, bend, ...(hooks === 'crossover' ? [loopRadius] : [])) }, manufacturingValidated: false, diagnostics: [] } };

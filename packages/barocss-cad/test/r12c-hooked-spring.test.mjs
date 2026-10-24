@@ -93,7 +93,9 @@ test('R12c.1b torsion: tangent legs at both ends — V = πa²(S + ℓ0 + ℓ1),
   near(dm.legAngle, 90, 1e-9, 'a quarter turn over whole coils');
   // A uniform moment along the coil's wire (length πDn): θ = M L/(E I), I = πd⁴/64, so k = M/θ.
   const I = Math.PI * d ** 4 / 64, theta = M * Math.PI * 20 * n / (E * I);
-  near(dm.torsionalRateNmmPerRad, M / theta, 1e-12, 'torsional rate'); near(dm.moment.turn, theta * 180 / Math.PI, 1e-12, 'turn');
+  const turn = theta * 180 / Math.PI;
+  near(dm.torsionalRate, M / turn, 1e-12, 'torsional rate per degree'); near(dm.moment.turn, turn, 1e-12, 'turn');
+  assert.equal(Object.hasOwn(dm, 'torsionalRateNmmPerRad'), false, 'the public result exposes only the per-degree rate');
   const C = 10, Kb = (4 * C * C - C - 1) / (4 * C * (C - 1));
   near(dm.moment.bendingStress, Kb * 32 * M / (Math.PI * 8), 1e-12, 'bending stress');
   // The legs run along the coil's tangent: the end leg's tip is ℓ1 along it from the coil's end.

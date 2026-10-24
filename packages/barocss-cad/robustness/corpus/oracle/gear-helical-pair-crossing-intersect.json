@@ -46,11 +46,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 24.1495,
           "relTol": 0.001
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             19.14239,
             -0.33067,
