@@ -599,6 +599,91 @@ retires modeling.ts.
 - **The retirement itself** is the kernel lane's commit: modeling.ts, its tests, fixtures and evidence. This map and the
   coverage test are what it checks against.
 
+## Parameters, configurations and suppression: the design (R7.4d, proposed 2026-10-24, before code)
+
+The coordinator's brief: write the studio's existing parameter, configuration and suppression nodes, with no scheme of
+the facade's own; `withParameters` as a function over the document (§4); named features and suppression with it.
+
+**What the documents and tools hold today** (checked against the source):
+- **Parameters** are `doc.parameters: Record<string, number>`, the same in a StudioDoc and a CadPartDocument. A
+  dimension that uses one is the documents' own `Dim = number | { parameter: string }` (engine/doc.ts; the kernel's
+  `CadPartDim`). Neither document has an expression: `{ parameter }` is the only reference.
+- **Who writes them:**
+  - The studio's Parameters panel writes `parameters`, and renames or deletes them in every node and configuration
+    that uses them.
+  - The feature editor's ƒ binds one value through the core's `editFields(nodes, i, parameters).bind(nodes, name)`
+    (app/editFields.ts). It binds only a field whose value lands as it is in one place. A hole's `d` is stored as a
+    radius and can't bind. A box's `w` binds only while `x` is 0, because the sketch then holds `x + w` as two
+    numbers.
+  - **The agent has no action that creates or sets a parameter.** It can write `{ parameter }` in a raw node
+    (add_features, edit_feature with a whole feature), and O11's inputs bind parameters, but nothing makes one.
+    That's for the outer lane, or the owner.
+- **Configurations** are the studio's part-level `doc.configurations: Record<name, Record<parameter, number>>`. The
+  panel's Save writes `{ ...parameters }`; its Apply writes back the values of the parameters still there. The kernel
+  document has none.
+- **Suppression** is a node's `suppressed: true` in the studio. The History panel's toggle adds or removes it, and
+  isn't offered on a sketch, a split or a separate. The studio's lowering (engine/part.ts `toPartDocument`) leaves
+  suppressed features out. The kernel document has no such flag.
+- **Feature names** are the stable ids: `n3` in the studio, `fillet1` in the kernel. The studio keeps no
+  person-written feature names.
+
+**The facade, as proposed:**
+1. **A value that names a parameter** is the documents' own shape, `{ parameter: 'W' }`, or `param('W')` for short.
+   Any option a verb's table lists may take one: `box({ w: param('W'), d: 40, h: 10 })`.
+2. **`part.parameter(name, value)`** adds or sets `doc.parameters[name]`, by the panel's name rule (a letter, then
+   letters, digits and `_`, up to 32). In both packages.
+3. **Writing a bound value.**
+   - **The studio backend** runs the command with the parameter's current number, so it checks, builds and signs the
+     node as it always does. Then it binds each option given as a parameter with the core's own `editFields(…).bind`,
+     the ƒ editor's function. The `.doc` is then the document a person makes in the studio, byte for byte, `made`'s
+     remembered numbers included.
+   - **The kernel backend** writes `{ parameter }` into the same leaf of its feature.
+   - **Both use one table of the options that bind**, the studio editor's:
+     - box: `w` and `d` (while `x` and `y` are 0), `h`;
+     - cylinder: `x`, `y`, `h` (not `r`: the editor's field is the diameter);
+     - extrude: the rectangle's `w` and `d`, and `h`;
+     - revolve: `deg`;
+     - hole: `x`, `y` (not `d`);
+     - fillet: `radius`; chamfer: `distance`; shell: `t`;
+     - linearPattern: `spacing`, `count`;
+     - moved: each rotation angle, and each position;
+     - scale: `factor`; split: `at`.
+   - Anything else given as a parameter is refused, typed: `PARAMETER_UNBINDABLE`, naming the option and the ones
+     that bind. A number is never silently written in its place. That covers circularPattern's `count`, mirror's
+     `at` (written twice, ±), a box `x` or `y`, a hole's `d` and a cylinder's `r`.
+4. **`withParameters(doc, { W: 60 }) → doc`** is a function over the plain document (§4), in both packages. The part
+   method `part.withParameters(edits)` returns a new part on it.
+   - An unknown name or a value that isn't finite is refused: `PARAMETER_UNKNOWN`, `VALUE`.
+   - It's re-evaluated at the next result. The stored names stay (the stability test gains a parameter edit).
+   - No core function sets parameters today (the panel writes the field itself). So the function lives in the
+     facade's adapter until the outer lane takes it into the core, and then the panel calls it too.
+5. **Configurations, studio only:**
+   - `part.configuration(name)` saves the current values, as the panel's Save.
+   - `part.withConfiguration(name)` applies them, as its Apply. That's sugar over `withParameters`.
+   - `CONFIGURATION_UNKNOWN` refuses a name it doesn't have.
+6. **Features and suppression:**
+   - `part.features()` lists `{ id, kind, label }`, the studio's `featureLabel`. Its last entry is the feature a verb
+     just added, so `part.features().at(-1).id` names it for later.
+   - `part.suppressed(id, true | false)` is the History's toggle, in the studio. A sketch, split or separate is
+     refused, as the menu doesn't offer it. A suppression the core then can't evaluate comes back as its refusal,
+     typed, and the part is unchanged.
+   - In the kernel facade it's refused (`UNAVAILABLE`) until the kernel document carries `suppressed`. That's the
+     kernel lane's call: the studio's lowering shows how.
+7. **Not in R7.4d:**
+   - **Expressions** (the old `dimension.add`, `dimension.scale`): neither document can store one. Computing the
+     number in the facade would bake it in with no live link, so it's not done. An expression `Dim` is a schema
+     change for the kernel and outer lanes, and a decision for the owner.
+   - **Person-written feature names** (the old named chamfer): the ids serve.
+
+**Oracles:**
+- **Studio:** `.doc` is byte-equal to the document made through the studio's own functions. That's the panel's writes
+  for parameters and configurations, `editFields(…).bind` for each binding, and the History toggle's write for
+  suppression.
+- **Kernel:** `.doc` is byte-equal to a hand-written CadPartDocument with `{ parameter }` leaves.
+- **Both:** a part at `withParameters({ W: 60 })` has the volume and centroid of the same part built with 60. A
+  suppressed fillet gives the unfilleted body's volume.
+- **The stability test** gains a parameter edit: the same named edges are still picked.
+
 ## Out of scope
 
 - Agent tools. They stay JSON.
