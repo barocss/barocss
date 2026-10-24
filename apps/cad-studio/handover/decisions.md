@@ -14322,3 +14322,54 @@ O19 wiring and R7.7a step 3):
 - At the parent: kernel api, error-codes, barocss-error, conformance and o19 tests 310/310; cad-model tsc 0 and
   1066/1066 (its O19 checks read `REFERENCE_MOVED` as before); studio tsc 0 and 286/286.
 - No refusal text changed: the docs table stays. No flow: nothing studio-visible.
+
+## D279 — R7.3a batch 2 (kernel), part 2: the live per-module error classes folded into module refusals (2026-10-24)
+
+**Scope** (option 4(a), narrowed by reachability; the coordinator agreed).
+- Only 117 of cad's 401 source files are reachable by imports from the live engine: `src/part/part-model.ts`, `src/api`
+  and `src/io`. The other **284 files** are reachable only through `index.ts` exports: createCadModel, the old
+  document versions, the native "proof" APIs (convex-planar-*, xy-affine-*, translated-strip, paired, exact-proof, the
+  wide-curve operations). They hold 141 of the 171 error classes. That count is the size of R7.3d's audit: each module
+  there retires (and its class with it) or stays, and a kept one is folded then.
+- Of the 30 live classes, 8 stay named classes, because something outside the live engine tells them apart by class:
+  - CadPartError, BrepError, FitError, IGESImportError, SubdError, SurfaceIntersectionError (cad-model and the studio);
+  - HullError (cad-model);
+  - NativeCurvatureError and NativeSecondDerivativeError (examples/cad-nurbs' demos and cad-interop's examples check
+    `instanceof` and `name`);
+  - CadAstError (a structured diagnostic, with its range and object, returned by compileCadModel).
+- The other **21 are folded**: BearingError, CamError, ConnectorError, CurvedArrangementError, DriveError,
+  DxfWriteError, ExtrudedProfileError, FacetBooleanError, FlatPatternError, FrameSectionError, GearError, GlandError,
+  MeshBrepError, PlanarArrangementError, PrismaticSolidError, SewError, ShaftError, ShaftPartError, SheetMetalError,
+  SolidMassError, SpringError.
+
+**The fold.**
+- `src/core/barocss-error.ts`:
+  - `kernelRefusal(source, code, message, cause?)`: a KernelError named `BarocssError`, its code, its message as the
+    module writes it, `details.source` naming the module;
+  - `isFrom(e, source)`.
+- Each folded class becomes a factory and a guard in its module:
+  `gearError(code, detail)` (the same message the class wrote, e.g. `gear: …`) and `isGearError(e)`. The guard is what
+  the 46 catch sites that told modules apart by class use now: the part model mapping a gear's codes, the facet Boolean
+  catching the mesh builder, and so on. Codes of two modules share names (INPUT …), so `source`, not the code, says
+  whose a refusal is.
+- The main entry exports the factories and guards in place of the classes. No message text changes, and every code is
+  as before.
+- The folded errors' `name` is `BarocssError`. The fingerprint records only the part model's refusals, which are
+  CadPartErrors, so it does not move.
+- Legacy `modeling.ts` told the extruded profile's refusal by its class name, so as not to import the profile builder
+  (its tests' bundle traps forbid it). It now tells it by `isFrom(…, 'extruded-profile')`.
+- `test/error-codes.test.mjs` also reads each `kernelRefusal(…) as … { code: C }` factory's C, so the folded modules'
+  codes stay in `CAD_ERROR_CODES`.
+
+**Tests:** `assert.throws(…, XError)` and `instanceof XError` in the kernel's tests became the guards; nothing else in
+them changed.
+
+**Checks** (in a scratch worktree at 553edb8a8 + the change):
+- cad tsc and eslint clean.
+- Kernel suite at concurrency 4: 1725/1732, 6 skipped, the one failure the native-split demo's Node-version assertion.
+  Names identical to part 1's run.
+- R5 fingerprint byte-identical: 869 cases `49f1fac8…`. RB: no NEW, the same 2 TODOs.
+- cad-model 1089/1089, studio 286/286, the docs samples 36/36.
+- At the commit's parent 88deb6df7 the samples are 47/48. The failing one, cad-model-api's "rows from a person's file,
+  then a fastener from them", fails on that tip without this change too: not this change's.
+- No refusal text changed: the docs table stays. No flow: nothing studio-visible.
