@@ -58,9 +58,10 @@ export interface SceneDiagnostic {
   end: number;
 }
 export class SceneError extends BarocssError {
+  declare readonly code: 'SCENE';
   readonly diagnostics: SceneDiagnostic[];
   constructor(diagnostics: SceneDiagnostic[]) {
-    super('scene', diagnostics.map((item) => `${item.line}:${item.column}: ${item.message}`).join('\n'));
+    super('SCENE', diagnostics.map((item) => `${item.line}:${item.column}: ${item.message}`).join('\n'));
     this.name = 'SceneError';
     this.diagnostics = diagnostics;
   }

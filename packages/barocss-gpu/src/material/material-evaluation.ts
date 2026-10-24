@@ -1,4 +1,4 @@
-import { BarocssError } from '../core/barocss-error.js';
+import { BarocssError, refusalText } from '../core/barocss-error.js';
 import {
   MeshMaterialError, validateMeshMaterialBinding,
   validateEngineUVMaterialBinding, validateEngineUVRepeatingMaterialBinding, validateDiscreteMeshMaterialIR,
@@ -16,7 +16,7 @@ export type AuthoredMaterialEvaluationDiagnosticCode =
   typeof AuthoredMaterialEvaluationDiagnosticCode[keyof typeof AuthoredMaterialEvaluationDiagnosticCode];
 export class AuthoredMaterialEvaluationError extends BarocssError {
   constructor(readonly code: AuthoredMaterialEvaluationDiagnosticCode, message: string, readonly cause?: unknown) {
-    super(code, message.slice(0, 1024)); this.name = 'AuthoredMaterialEvaluationError';
+    super(code, message, { maxLength: 1024 }); this.name = 'AuthoredMaterialEvaluationError';
   }
 }
 type Material = MeshMaterialIR | EngineUVMaterialIR | EngineUVRepeatingMaterialIR;
@@ -182,7 +182,7 @@ export function evaluateAuthoredMaterial(input: unknown): AuthoredMaterialSample
   } catch (cause) {
     const code = cause instanceof MeshMaterialError && cause.code === 'UNIFORM' ? CODE.UNIFORM
       : cause instanceof MeshMaterialError && cause.code === 'BUDGET' ? CODE.BUDGET : CODE.MATERIAL;
-    throw new AuthoredMaterialEvaluationError(code, cause instanceof Error ? cause.message : 'Material reconstruction refused', cause);
+    throw new AuthoredMaterialEvaluationError(code, cause instanceof Error ? refusalText(cause) : 'Material reconstruction refused', cause);
   }
   for (const uniform of binding.material.uniforms) {
     check(uniform.name !== '__proto__' && Object.hasOwn(binding.uniforms, uniform.name)
@@ -250,7 +250,7 @@ export function evaluateDiscreteAuthoredMaterial(input: unknown): DiscreteAuthor
   try { material = validateDiscreteMeshMaterialIR(data.material); }
   catch (cause) {
     const code = cause instanceof MeshMaterialError && cause.code === 'BUDGET' ? CODE.BUDGET : CODE.MATERIAL;
-    throw new AuthoredMaterialEvaluationError(code, cause instanceof MeshMaterialError ? cause.message : 'Discrete material reconstruction refused', cause);
+    throw new AuthoredMaterialEvaluationError(code, cause instanceof MeshMaterialError ? refusalText(cause) : 'Discrete material reconstruction refused', cause);
   }
   check(Object.keys(overrides).every(name => material.uniforms.some(uniform => uniform.name === name)), CODE.UNIFORM, 'Unknown discrete uniform override');
   const uniforms = Object.fromEntries(material.uniforms.map(uniform => {

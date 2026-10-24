@@ -386,7 +386,7 @@ test('viewer renders, picks, orbits, resizes and recovers in WebGPU', { timeout:
       viewer.dispose(); viewer.dispose();
       try { viewer.add(window.t.box(1, 1, 1)); return 'added'; } catch (e) { return e.code; }
     });
-    assert.equal(disposed, 'disposed');
+    assert.equal(disposed, 'DISPOSED');
     assert.deepEqual(errors, []);
   } finally { await browser.close(); await server.close(); }
 });

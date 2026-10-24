@@ -5,7 +5,7 @@ import type { Model, Surface, PreviewPacket, ApproximationReport } from '@barocs
 export type NativeSurfaceUV01GeometryCode = 'INPUT' | 'BUDGET' | 'SOURCE' | 'SELECTOR' | 'NATIVE' | 'NORMALIZATION';
 export class NativeSurfaceUV01GeometryError extends BarocssError {
  constructor(readonly code: NativeSurfaceUV01GeometryCode, message: string, readonly start = 0, readonly end = 0, cause?: unknown) {
-  super(code, message.slice(0, 1024), cause === undefined ? undefined : { cause });
+  super(code, message, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
   this.name = 'NativeSurfaceUV01GeometryError';
  }
 }

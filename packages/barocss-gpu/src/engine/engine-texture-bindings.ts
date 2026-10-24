@@ -13,8 +13,8 @@ export type EngineTextureBindingsDiagnosticCode =
 export class EngineTextureBindingsError extends BarocssError {
   readonly code: EngineTextureBindingsDiagnosticCode;
   constructor(code: EngineTextureBindingsDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine texture bindings: ' + detail).slice(0, 1024),
-      cause === undefined ? undefined : { cause });
+    super(code, 'Engine texture bindings: ' + detail,
+      cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineTextureBindingsError'; this.code = code;
   }
 }

@@ -313,12 +313,12 @@ export class Viewer {
 
   private async start(): Promise<void> {
     const gpu = gpuOf();
-    if (!gpu) throw new ViewerError('webgpu-unavailable', 'WebGPU is not available in this browser');
+    if (!gpu) throw new ViewerError('WEBGPU_UNAVAILABLE', 'WebGPU is not available in this browser');
     const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' });
-    if (!adapter) throw new ViewerError('no-adapter', 'No WebGPU adapter');
+    if (!adapter) throw new ViewerError('NO_ADAPTER', 'No WebGPU adapter');
     const device = await adapter.requestDevice();
     const context = this.canvas.getContext('webgpu') as unknown as CanvasContext | null;
-    if (!context) throw new ViewerError('no-context', 'The canvas has no WebGPU context (is it used by another context?)');
+    if (!context) throw new ViewerError('NO_CONTEXT', 'The canvas has no WebGPU context (is it used by another context?)');
     this.device = device; this.context = context; this.format = gpu.getPreferredCanvasFormat();
     device.onuncapturederror = e => this.report(e.error.message);
     context.configure({ device, format: this.format, alphaMode: this.background ? 'opaque' : 'premultiplied', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC });
@@ -380,7 +380,7 @@ export class Viewer {
       if (checked.has(m)) continue;
       checked.add(m);
       const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
-      if (errors.length) throw new ViewerError('shader', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
+      if (errors.length) throw new ViewerError('SHADER', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
     }
     const frameLayout = d.createBindGroupLayout({ entries: [
       { binding: 0, visibility: 3, buffer: { type: 'uniform' } },
@@ -608,7 +608,7 @@ export class Viewer {
     const results = await Promise.allSettled(jobs);
     const scope = await d.popErrorScope();
     const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
-    if (failed || scope) throw new ViewerError('pipeline', String(failed ? (failed.reason as Error)?.message ?? failed.reason : scope!.message));
+    if (failed || scope) throw new ViewerError('PIPELINE', String(failed ? (failed.reason as Error)?.message ?? failed.reason : scope!.message));
   }
 
   private growObjects(slots: number): void {
@@ -1868,7 +1868,7 @@ export class Viewer {
     else console.error('[barocss viewer]', message); // eslint-disable-line no-console
   }
 
-  private alive(): void { if (this.disposed) throw new ViewerError('disposed', 'The viewer has been disposed'); }
+  private alive(): void { if (this.disposed) throw new ViewerError('DISPOSED', 'The viewer has been disposed'); }
 
   /** Release the device, every buffer and texture, and the canvas listeners. */
   dispose(): void {

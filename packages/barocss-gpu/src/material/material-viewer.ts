@@ -2,6 +2,7 @@
 // shader materials: compiled by the package's material compiler, lowered to WGSL, with the helper the
 // lowering calls and the uniforms' defaults as params. A source with surface_u01/surface_v01 reads the
 // geometry's uvs; one with uv_u/uv_v (and fract: the repeating UV profile, G18.2) reads them as engine_uv.
+import { refusalText } from '../core/barocss-error.js';
 import { MeshMaterialError, compileEngineUVRepeatingMaterial, compileMeshMaterial, compileNativeSurfaceUV01Material, type MeshMaterialBinding, type MeshMaterialDiagnostic } from './mesh-material.js';
 import { lowerEngineUVRepeatingMaterialWGSL } from './engine-uv-repeating-material-wgsl.js';
 import { lowerMeshMaterialWGSL } from './mesh-material-wgsl.js';
@@ -35,7 +36,7 @@ export function materialShader(source: string, params: Readonly<Record<string, n
     }
   } catch (e) {
     if (!(e instanceof MeshMaterialError)) throw e;
-    return { ok: false, diagnostics: [{ code: e.code, message: e.message, start: 0, end: source.length }] };
+    return { ok: false, diagnostics: [{ code: e.code, message: refusalText(e), start: 0, end: source.length }] };
   }
   const uniforms = lowered.uniformLayout.map(u => ({ name: u.name, min: u.min, max: u.max, default: u.default, index: u.index }));
   const values = new Array(16).fill(0);

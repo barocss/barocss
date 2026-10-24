@@ -147,7 +147,7 @@ for (const provider of providers) {
     if (f.cause) assert.strictEqual(error.cause, f.cause);
     if (f.diagnostic) { assert.deepEqual(error.cause, f.diagnostic); frozen(error.cause); assert.equal(error.start, f.diagnostic[0].range.start); assert.equal(error.end, f.diagnostic[0].range.end); }
     if (f.nativeCause) { assert.ok(error.cause instanceof RangeError); assert.equal(error.cause.message, 'Collapsed or nonfinite preview triangle'); assert.equal(error.start, 0); assert.equal(error.end, 0); }
-    if (f.localNormalization) { assert.equal(error.cause, undefined); assert.equal(error.message, 'Native Surface UV01 domain requires finite positive represented widths'); assert.equal(error.start, 0); assert.equal(error.end, 0); }
+    if (f.localNormalization) { assert.equal(error.cause, undefined); assert.equal(error.message, '[NORMALIZATION] Native Surface UV01 domain requires finite positive represented widths'); assert.equal(error.start, 0); assert.equal(error.end, 0); }
     await retention(); refused++; failures.push({ label: f.label, code: error.code, message: error.message, start: error.start, end: error.end,
       cause: error.cause instanceof Error ? { name: error.cause.name, message: error.cause.message } : error.cause ?? null, previousSourceNativeRawUVNormalizedBuffersAndFilesRetained: true });
   }

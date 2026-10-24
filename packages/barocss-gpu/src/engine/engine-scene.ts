@@ -16,7 +16,7 @@ export type EngineSceneDiagnosticCode = typeof EngineSceneDiagnosticCode[keyof t
 export class EngineSceneError extends BarocssError {
   readonly code: EngineSceneDiagnosticCode;
   constructor(code: EngineSceneDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine scene: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, 'Engine scene: ' + detail, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineSceneError'; this.code = code;
   }
 }

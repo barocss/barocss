@@ -899,7 +899,14 @@ Done:
      - G25 analyses on the GPU for interactive speed: wall thickness and tool access by GPU rays (display only; the exact values stay the kernel's), and a scan-versus-CAD deviation colour map.
      - After G25 (coordinator, 2026-10-22, unless G20 needs the same machinery first): antialiased cap edges — the caps' probe and cap test per MSAA sample (G19.4's limit).
      - Later, when measured need appears: GPU occlusion culling for very large assemblies (G14's thresholds), progressive photoreal rendering and turntable / exploded-animation video export.
-   - **GPU lane: hand-over (account change, 2026-10-22).** Full block in `handover/decisions-gpu.md` (last section).
+   - **GPU lane, now (2026-10-24, the new account):** branch `claude/gpu-lane-2026-10-23`, worktree
+     `.claude/worktrees/compassionate-turing-e88276`; the current record is the last G-R section of
+     `handover/decisions-gpu.md`.
+     - Done: R7.3a's gpu part, batch 1 (browser-verified at ee5d032ad) and batch 2 (upper-snake codes, `[CODE] …`
+       messages, G-R52).
+     - Next: R7.3c (gpu's Vec3, Mat3 and Mat4 at the boundary), R7.3d (the packet tag, scope with the coordinator and
+       the kernel), G14 (measure, then decide).
+   - **GPU lane: hand-over (account change, 2026-10-22), history.** Full block in `handover/decisions-gpu.md`.
      - Last done: G20.1 (02ebc9a7a).
      - In progress: G20.2, committed as WIP. 3d85e6793 is the gpu probe fix, 398683cb6 the studio cut-out; their
        commit messages list what is unverified.

@@ -11,7 +11,7 @@ export type EngineRaycastDiagnosticCode = typeof EngineRaycastDiagnosticCode[key
 export class EngineRaycastError extends BarocssError {
   readonly code: EngineRaycastDiagnosticCode;
   constructor(code: EngineRaycastDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine raycast: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, 'Engine raycast: ' + detail, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineRaycastError'; this.code = code;
   }
 }

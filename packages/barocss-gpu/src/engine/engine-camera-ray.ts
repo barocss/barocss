@@ -11,7 +11,7 @@ export const EngineCameraRayDiagnosticCode = Object.freeze({
 export type EngineCameraRayDiagnosticCode = typeof EngineCameraRayDiagnosticCode[keyof typeof EngineCameraRayDiagnosticCode];
 export class EngineCameraRayError extends BarocssError {
   constructor(readonly code: EngineCameraRayDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine camera ray: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, 'Engine camera ray: ' + detail, cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineCameraRayError';
   }
 }

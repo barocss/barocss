@@ -13,8 +13,8 @@ export type EngineOpacityBindingsDiagnosticCode =
 
 export class EngineOpacityBindingsError extends BarocssError {
   constructor(readonly code: EngineOpacityBindingsDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine opacity bindings: ' + detail).slice(0, 1024),
-      cause === undefined ? undefined : { cause });
+    super(code, 'Engine opacity bindings: ' + detail,
+      cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineOpacityBindingsError';
   }
 }

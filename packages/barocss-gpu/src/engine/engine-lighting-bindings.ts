@@ -14,8 +14,8 @@ export type EngineLightingBindingsDiagnosticCode =
   typeof EngineLightingBindingsDiagnosticCode[keyof typeof EngineLightingBindingsDiagnosticCode];
 export class EngineLightingBindingsError extends BarocssError {
   constructor(readonly code: EngineLightingBindingsDiagnosticCode, detail: string, cause?: unknown) {
-    super(code, ('Engine lighting bindings: ' + detail).slice(0, 1024),
-      cause === undefined ? undefined : { cause });
+    super(code, 'Engine lighting bindings: ' + detail,
+      cause === undefined ? { maxLength: 1024 } : { cause, maxLength: 1024 });
     this.name = 'EngineLightingBindingsError';
   }
 }

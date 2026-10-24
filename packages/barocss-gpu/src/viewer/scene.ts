@@ -10,7 +10,7 @@ import { identity, multiply, normalMatrixInto, srgbToLinear, type Mat4, type Vec
 import { type SurfaceShader } from './shaders.js';
 import type { Viewer } from './viewer.js';
 export class ViewerError extends BarocssError {
-  constructor(readonly code: 'webgpu-unavailable' | 'no-adapter' | 'no-context' | 'shader' | 'pipeline' | 'disposed' | 'device-lost', message: string) { super(code, message); this.name = 'ViewerError'; }
+  constructor(readonly code: 'WEBGPU_UNAVAILABLE' | 'NO_ADAPTER' | 'NO_CONTEXT' | 'SHADER' | 'PIPELINE' | 'DISPOSED' | 'DEVICE_LOST', message: string) { super(code, message); this.name = 'ViewerError'; }
 }
 
 export interface Material {

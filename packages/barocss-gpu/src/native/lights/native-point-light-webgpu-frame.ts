@@ -18,7 +18,7 @@ export const NativePointLightWebGPUDiagnosticCode = Object.freeze({
 export type NativePointLightWebGPUDiagnosticCode = typeof NativePointLightWebGPUDiagnosticCode[keyof typeof NativePointLightWebGPUDiagnosticCode];
 export class NativePointLightWebGPUError extends BarocssError {
   constructor(readonly code: NativePointLightWebGPUDiagnosticCode, message: string, ...cause: [] | [unknown]) {
-    super(code, message.slice(0, 1024), cause.length ? { cause: cause[0] } : undefined);
+    super(code, message, cause.length ? { cause: cause[0], maxLength: 1024 } : { maxLength: 1024 });
     this.name = 'NativePointLightWebGPUError';
   }
 }
