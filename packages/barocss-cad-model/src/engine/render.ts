@@ -24,7 +24,9 @@ export interface RenderEnvironment {
   /** Hemisphere ambient strength. */
   ambient: number;
   exposure: number;
-  toneMapping: 'none' | 'aces';
+  toneMapping: 'none' | 'aces' | 'agx';
+  /** G15d.1's post: a colour grade, contrast and saturation (1 unchanged) and a vignette (0 none – 1); absent, none. */
+  post?: RenderPost;
   occlusion: boolean;
   /** A shadow catcher under the part. */
   ground: boolean;
@@ -33,6 +35,7 @@ export interface RenderEnvironment {
   /** Image-based lighting: an equirectangular environment image (a data URL; its top row overhead) lighting the part, and its brightness. */
   map?: { image: string; intensity: number };
 }
+export interface RenderPost { grade: 'neutral' | 'warm' | 'cool'; contrast: number; saturation: number; vignette: number }
 export interface RenderCamera { target: [number, number, number]; distance: number; yaw: number; pitch: number; fovY: number; ortho: boolean }
 export interface RenderSettings {
   version: 1;
@@ -130,6 +133,11 @@ export function readAppearance(v: unknown, fallback: Appearance): Appearance {
     ...(typeof obj(o.texture).image === 'string' && /^data:image\//.test(obj(o.texture).image as string) ? { texture: { image: obj(o.texture).image as string, scale: num(obj(o.texture).scale, 0.1, 10000, 20) } } : {}) };
 }
 
+function readPost(v: unknown): RenderPost {
+  const o = obj(v);
+  return { grade: o.grade === 'warm' || o.grade === 'cool' ? o.grade : 'neutral', contrast: num(o.contrast, 0.5, 1.5, 1), saturation: num(o.saturation, 0, 2, 1), vignette: num(o.vignette, 0, 1, 0) };
+}
+
 /** Render settings from a saved document (anything missing or out of range takes the default). */
 export function readRender(v: unknown): RenderSettings {
   const d = defaultRender(), o = obj(v);
@@ -150,7 +158,8 @@ export function readRender(v: unknown): RenderSettings {
     environment: {
       top: hex(env.top, d.environment.top), bottom: hex(env.bottom, d.environment.bottom),
       ambient: num(env.ambient, 0, 4, d.environment.ambient), exposure: num(env.exposure, 0.05, 8, d.environment.exposure),
-      toneMapping: env.toneMapping === 'none' ? 'none' : 'aces',
+      toneMapping: env.toneMapping === 'none' || env.toneMapping === 'agx' ? env.toneMapping : 'aces',
+      ...(env.post && typeof env.post === 'object' ? { post: readPost(env.post) } : {}),
       occlusion: env.occlusion !== false, ground: env.ground !== false, grid: env.grid === true, edges: env.edges === true,
       ...(typeof obj(env.map).image === 'string' && /^data:image\//.test(obj(env.map).image as string) ? { map: { image: obj(env.map).image as string, intensity: num(obj(env.map).intensity, 0, 8, 1) } } : {}),
     },
