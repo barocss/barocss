@@ -8,7 +8,9 @@ import { evaluatePart } from '@barocss/cad-model/engine/evaluate';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { readStudioDoc } from '@barocss/cad-model/engine/migrate';
 import { readStudioFile } from '@barocss/cad-model/engine/container';
-import { robotCheckOfDoc, robotSizeOfDoc } from '@barocss/cad-model/chat/robot';
+import { robotCheckOfDoc, robotSizeOfDoc, treeOfDoc } from '@barocss/cad-model/chat/robot';
+import { jointSettingsIn } from '@barocss/cad-model/robot/units';
+import { dutyJson } from '@barocss/cad-model/robot/reports';
 import type { Duty } from '@barocss/cad-model/robot/harness';
 import { capability } from '@barocss/cad-model/robot/sizer';
 import { MOTORS, REDUCERS } from '@barocss/cad-model/robot/actuators';
@@ -27,7 +29,7 @@ const P1 = { 'base~l1': 1, 'l1~l2': 0.9, 'l2~l3': 0.6 }, P2 = { 'base~l1': -0.8,
 /** The brief: arm-3r between two poses, 0.5 s dwells, 20 000 h, at 6 rad/s and 60 rad/s². */
 const BRIEF: Duty = { moves: [{ from: {}, to: P1, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }, { from: P1, to: P2, profile: 'trapezoid', limits: { velocity: 6, acceleration: 60 }, dwell_s: 0.5 }], life_h: 20000 };
 function undersized(): { doc: StudioDoc; duty: Duty } {
-  const doc = arm(), joints = Object.fromEntries(Object.entries(doc.robot!.joints!).map(([k, v]) => [k, { ...v, velocity: 1, effort: 1 }]));
+  const doc = arm(), joints = Object.fromEntries(Object.entries(doc.robot!.joints!).map(([k, v]) => [k, { ...v, velocity: 180 / Math.PI, effort: 1000 }]));
   return { doc: { ...doc, robot: { version: 1, joints } }, duty: { ...BRIEF, actuators: { 'base~l1': on(100), 'l1~l2': on(100), 'l2~l3': on(100) } } };
 }
 
@@ -42,7 +44,7 @@ test('from an undersized start to every margin above 0 within 10 rounds, one cha
   assert.ok(sized.trace.every(t => t.margin === null || t.margin <= 0), JSON.stringify(sized.trace));
   // (Every joint's ratings within its final actuator's capability: none rated past what its pair can give.)
   for (const [k, a] of Object.entries(sized.duty.actuators!)) {
-    const cap = capability(MOTORS.find(m => m.id === a.motor)!, REDUCERS.find(r => r.id === a.reducer)!), j = out.robot!.joints![k];
+    const cap = capability(MOTORS.find(m => m.id === a.motor)!, REDUCERS.find(r => r.id === a.reducer)!), j = jointSettingsIn('revolute', out.robot!.joints![k]);
     assert.ok(j.velocity! <= cap.velocity + 1e-9 && j.effort! <= cap.effort + 1e-9, `${k}: ${JSON.stringify(j)} vs ${JSON.stringify(cap)}`);
   }
   // (Saved and opened again, a fresh harness run on the sized document and duty.)
@@ -70,9 +72,13 @@ test('cad-cli robot-size writes the sized design and its duty; cad-cli robot-che
     let o = '', e = ''; child.stdout.on('data', c => { o += c; }); child.stderr.on('data', c => { e += c; }); child.on('close', code => ok({ code: code ?? -1, out: o, err: e }));
   });
   try {
-    writeFileSync(join(tmp, 'start.bcad'), JSON.stringify(doc)); writeFileSync(join(tmp, 'brief.json'), JSON.stringify(duty));
+    const tree = await treeOfDoc(doc, await bodiesOf(doc), evaluate);
+    writeFileSync(join(tmp, 'start.bcad'), JSON.stringify(doc)); writeFileSync(join(tmp, 'brief.json'), JSON.stringify(dutyJson(tree, duty)));
     const s = await run(['robot-size', join(tmp, 'start.bcad'), join(tmp, 'brief.json'), '-o', join(tmp, 'sized.bcad')]);
     assert.equal(s.code, 0, s.err + s.out); assert.equal(JSON.parse(s.out).ok, true);
+    const publicDuty = JSON.parse(readFileSync(join(tmp, 'sized.duty.json'), 'utf8'));
+    assert.ok('serviceLife' in publicDuty && !('life_h' in publicDuty));
+    assert.ok(publicDuty.moves.every((m: Record<string, unknown>) => 'dwell' in m && !('dwell_s' in m)));
     const c = await run(['robot-check', join(tmp, 'sized.bcad'), join(tmp, 'sized.duty.json')]);
     assert.equal(c.code, 0, c.out.slice(0, 400)); assert.equal(JSON.parse(c.out).ok, true);
     assert.ok('doc' in await readStudioFile(new Uint8Array(readFileSync(join(tmp, 'sized.bcad')))));

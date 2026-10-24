@@ -145,10 +145,13 @@ These omissions were found after the354-row inventory; that inventory is not a c
 |---|---|---|
 | T-slot row sizeMM | cellSize | mm unchanged; row size remains its string name. Kernel producer then Outer table converter and fixtures. Remove the sizeMM whitelist; no alias. |
 | CadPartFeatureProfile.ms | wallTime | seconds, retain original measured elapsed milliseconds and divide1000; Kernel producer, Outer rebuild/worker/UI consumers. |
+| EvalResult.ms | wallTime | seconds, same evaluation interval divided1000 once, success and failure. This is a public engine subpath and worker result; API Work owns the explicit temporary producer/consumer lease. Rebuild evaluationTime then passes through wallTime, while human ms display multiplies1000. |
 | DecimateReport.ms | wallTime | seconds, divide1000; keep measurement sites, geometry and numeric bounds. |
 | ApproximationReport.maxSampledDeviationMM | maxSampledDeviation | mm unchanged; Kernel producer and exact GPU tessellation consumers. |
 | P1 Check/EngineCheck.ms | duration | seconds, existing rounded-ms resolution divided1000; API-owned P1 reports only. |
 | P1 treeMs | treeTime | seconds, divide1000; preserve P1 physical outputs and scope, no new sweep campaign. |
+| OrientResult.ms and orient_for_print.ms | wallTime | seconds for the existing elapsed interval; preserve the tool's millisecond rounding resolution before dividing1000. Separate Outer mechanical/print checkpoint, not the API EvalResult lease. |
+| orient_for_print support_mm3/overhang_mm2/height_mm/contact_mm2 | supportVolume/overhangArea/height/contactArea | same mm-based values and existing public rounding; preserve scoring, candidate choice and direction. |
 | Public coupling g1/g2.rotation | rotation | raw internal GearPlacement radians to detached public degrees. Outer shared projection; no independent API helper. |
 
 RevolveOptions.deg is a natural option name explicitly allowed by api-conventions section2; do not rename it through
@@ -159,3 +162,25 @@ one-time mm-to-µm formatting; this does not change the public fit JSON's mm con
 P1 timing verification uses the existing --check --no-sweep flow and existing regressions. Its full files:true build
 report runtime is NOT RUN here; do not add a sweep, new execution option or test seam to turn this rename into a
 product campaign. Existing manufacturing findings and person-row waits remain.
+
+## Follow-up ownership and qualification prerequisites (2026-10-25)
+
+The T-slot Model importer temporary Kernel lease is complete at1d832089f and returned to Outer.
+The API Work now has a temporary EvalResult time lease at944c49d1f90c4b656d265f1dab662573d58a0db0.
+Its submitted12-file plan covers the producer, mesh wire, client/worker synthesized failures, Rebuild projection,
+App display and matching tests. Outer excludes those time fields while implementing B2. The lease is returned
+after its immutable checkpoint. Other telemetry fields are not renamed through an unscoped substitution.
+
+B2 preserves the approved dimensionless names inertia_ratio_max and joint_limits. Its public harness projector
+converts unrounded margin values and limits before applying the established public rounding. A private WeakMap
+may retain those values at the existing atMost/range/actuator/sweep construction sites. Core JSON, arithmetic,
+rounding, decisions, normalized margins, source and tolerances stay unchanged. Untracked clones do not silently
+acquire unrounded provenance. Sized.trace.change remains explicitly labelled human text.
+
+Package-consumer qualification must use the actual archive produced from the current package metadata and
+strictly compare the packed name/version/private fields with that source. Retain no-runtime-dependencies,
+all runtime and external TypeScript assertions, and the existing compiler flags and DOM libraries. Run external
+consumers in their actual scratch context; do not import unrelated repository ambient types. Do not create
+an archive under an obsolete name or alter package metadata to satisfy a stale test. Only the explicitly leased
+consumer driver and its matching metadata/archive/context helpers may change. Keep each original failure.
+These are implementation and verification assignments, not completed gates or product adoption.
