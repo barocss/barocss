@@ -5,7 +5,7 @@ export const MAX_DIRECTIONAL = 4, MAX_POINT = 8, MAX_SPOT = 4;
 /** Clip planes at most (G19: a box section's six). */
 export const MAX_CLIP_PLANES = 6;
 export const FRAME_BYTES = 160 + MAX_DIRECTIONAL * 32 + MAX_POINT * 32 + MAX_SPOT * 64 + 80 + 16 + 96 + 16 + MAX_CLIP_PLANES * 16;
-export const OBJECT_BYTES = 208, OBJECT_STRIDE = 256;
+export const OBJECT_BYTES = 256, OBJECT_STRIDE = 256;
 
 /** The WGSL every program starts with (internal: its frame and object blocks, its helpers). */
 export const common = /* wgsl */ `
@@ -51,6 +51,11 @@ struct Object {
   // Its cap's hatch (G19.3): the lines' angle (cos, sin) in the cap plane's axes (hatchAcross), their spacing in world
   // units; w 1 when on.
   hatch: vec4f,
+  // G15a: the surface's finish — kind (0 none, from 1 as SURFACE_FINISHES), scale, strength, clearcoat; its axis (mesh
+  // frame) and the coat's roughness; its origin (mesh frame) and the oil film.
+  finish: vec4f,
+  finishAxis: vec4f,
+  finishOrigin: vec4f,
 }
 @group(0) @binding(0) var<uniform> frame: Frame;
 @group(0) @binding(1) var shadowMap: texture_depth_2d;
