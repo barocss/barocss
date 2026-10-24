@@ -8883,3 +8883,48 @@ The owner asked for more robot samples and joint motion ("로봇 관련해서 �
   - checkPath's refusals;
   - degrees ⇄ radians and robot.motions read back.
 - **Verified (T1):** rs2 4/4; tsc; eslint 0 errors.
+
+## RS1 — eight sample robots, ready to open, each with a demo motion (2026-10-24)
+
+The coordinator approved the place and format: `packages/barocss-cad-model/samples/robots/<id>.bcad`, as plain JSON
+(no mesh data), with `index.json` [{ id, title, about, file }] for the GPU lane's Samples list. The package already
+exports `./samples/*`.
+- **The generator:** `scripts/robot-samples.ts`, run with `node scripts/robot-samples.mjs`.
+  - It builds each robot from blocks with holes, joined by the studio's mates: a turn is a hole concentric plus a face
+    coincident, and a slide is two square face pairs coincident.
+  - Four start from the kernel's RM conformance robots: chain-2r, arm-6r, four-bar and urdf-gears.
+  - There is no rows data (rule b).
+  - Every moving joint gets an estimated rating, which the exports need: turns 2 N·m and 180°/s, slides 50 N and
+    100 mm/s.
+  - Each sample has one demo motion in robot.motions, in degrees or mm.
+- **The samples:**
+
+| id | what | joints | motion |
+|---|---|---|---|
+| arm-2r | 2R planar arm | turn, turn (±150°), 40 mm apart | wave |
+| scara | SCARA | turn, turn, slide (±40 mm), turn | pick |
+| arm-6r | 6R arm | six turns (Z Y Y Z Y Z) | reach |
+| gantry-ppp | Cartesian gantry | slides X (0–200), Y (0–120), Z (±40) | box |
+| pan-tilt | pan-tilt camera head | pan Z (±170°), tilt X (±60°), a sensor frame `camera` | look around |
+| gripper | gear-coupled gripper | the left finger turns (±30°); the right one follows it, multiplier −1 | grip |
+| four-bar | four-bar linkage | crank, coupler, rocker (one loop) | crank |
+| gear-joint | gear-driven joint | 20 : 30, the follower at −2/3 | turn |
+
+- **The gripper's coupling.** A rack and pinion between two sliding fingers isn't a coupling the joint tree knows:
+  gear couplings tie two turning joints on one link by their spur gears. So the fingers pivot on two meshing 20-tooth
+  gears. A parallel-jaw gripper (rack and pinion, or a linkage) is a follow-up.
+- **Test:** test/rs1-samples.test.ts, 6 tests:
+  - the files equal what the script writes, and match index.json;
+  - each joint tree (types, the followers' multipliers, the camera frame), with no problems, and its motion passes
+    checkPath with a duration > 0;
+  - FK at 20 poses per open-chain sample against the chain's product of exponentials, written in the test from the
+    home axes (Rodrigues), to 1e-9 mm;
+  - by hand: the gantry's ram moves by (10, 20, −5), and the 2R's elbow is at 20 + 40 cos q;
+  - the four-bar's loop closes through its motion's angles, the pins within 1e-9 mm;
+  - MJCF (all eight) and URDF (the seven open chains) exported and read back by our readers, FK through the files
+    equal to ours to 1e-12 m;
+  - check_urdf on every URDF, and MuJoCo 3.3.0's mj_kinematics of every MJCF against our reader's, to 1e-9. Both
+    ran here; the test skips when neither is installed. The helper is `scripts/robot-fk-oracle.py`, which reads JSON
+    and writes JSON, and nothing is committed from it.
+- The fingerprint doesn't read samples/ (its roots are the fixtures and conformance), so nothing in it moves.
+- **Verified (T1):** rs1 6/6, rs2 4/4; tsc; eslint 0 errors.
