@@ -13935,3 +13935,36 @@ the slice(1) tree without D270. Corpus: `robustness/corpus/fuzz/fuzz-20261023-11
 - Fingerprint, fuzz and timings: D268 above.
 - cad-model 1028/1028, studio 286/286. No refusal text changed: the docs table stays.
 - No browser flow: nothing studio-visible changed (the flat DXF's geometry moves by ≤ 2.8e-14).
+
+## D271 — K16: the Boolean's commutativity over the fuzz's trees (an RB check, the coordinator's addition) (2026-10-24)
+
+**The check (`scripts/rb/commute.mjs`, `pnpm rb:commute`).** Every union and intersection node of the fuzz corpus's
+shrunk trees (`robustness/corpus/fuzz/*.json`, their `fuzz.tree`) and of the four seeds' generated trees (20261023–26,
+200 each, drawn as the fuzz draws them) is evaluated as A op B and as B op A, through the fuzz's worker (the node's
+output checked strictly, watertight, its mass).
+- Both must build to one volume, within the two mass methods' stated accuracy (the properties' METHOD_TOL), or, where
+  that is narrower, within the fuzz's oracle bound (max(2e, 1e-4 V)). Or both must refuse.
+- **Findings:** ONE-SIDED (one order refuses, the other builds: a robust refusal), DIFFER, EMPTY-SIDED, and BROKEN
+  (either order INVALID, CRASH or TIMEOUT). Known ones are listed in `robustness/commute-todo.json` and marked TODO;
+  any other exits 1.
+- It also judges every Boolean node's own body. The fuzz judges only a tree's root, so an intermediate body failing
+  the strict check went unseen.
+
+**First run** (at 6374a7351, jobs 4, 195 s): 837 trees, 2 456 nodes. SAME 2 412, BOTH-REFUSED 37, ONE-SIDED 1,
+DIFFER 0, EMPTY-SIDED 0, BROKEN 6. That is 7 findings in 6 trees, all unions:
+
+| Node | A ∪ B | B ∪ A |
+|---|---|---|
+| 23:114 r.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 23:170 r.a.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:51 r.c (under a pattern) | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:96 r.a.b | INVALID: a face's loops cross | INVALID: a face's loops cross |
+| 24:125 r.b | refused: a planar face could not be triangulated | 140.712 mm³, valid |
+| 24:165 r | refused: not a manifold solid | INVALID: a face's loops cross |
+| 24:165 r.a | INVALID: a face's loops cross | INVALID: a face's loops cross |
+
+- No volume disagreed. Order-sensitivity appears in 2 nodes (24:125 one-sided, 24:165's root).
+- The five nodes INVALID in both orders are no commutativity failure. They are intermediate bodies emitted unrefused
+  that fail the strict check ("its loops cross or touch"); later Booleans of their trees hide it from the fuzz's root
+  judgement. All 7 are recorded as TODO, and reported to the coordinator before any fix (the brief's "more than a
+  handful").
