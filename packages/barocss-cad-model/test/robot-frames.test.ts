@@ -9,7 +9,7 @@ import { dispatchTool, runTool, type ChatState } from '../src/chat/tools';
 import { solveDoc } from '../src/chat/assembly';
 import { forwardKinematics, type Motion } from '../src/robot/fk';
 import { framePoses } from '../src/robot/frames';
-import { frameTarget, frameTool, IkError, solveIk } from '../src/robot/ik';
+import { frameTarget, frameTool, solveIk } from '../src/robot/ik';
 import { workspaceMap } from '../src/robot/workspace';
 import { mjcfFk, readMjcf } from '../src/robot/mjcfCheck';
 import { readUrdf, urdfFk } from '../src/robot/urdfCheck';
@@ -18,6 +18,7 @@ import { exportSdf } from '../src/robot/sdf';
 import { exportUsd } from '../src/robot/usd';
 import { rotationMatrix } from '../src/engine/placement';
 import type { JointTree } from '../src/robot/joints';
+import { isRefusal } from '../src/engine/refusal';
 
 // O12: tool and sensor frames on links — a TCP on arm-6r's last link, a camera on its third — kept beside the joints.
 // FK moves each with its link; URDF, SDF and MJCF read back by our own readers put each frame where RM2's FK does at 21
@@ -123,7 +124,7 @@ test('O12: IK to a frame\'s pose reaches it, in pose and in position mode; the w
       if (mode === 'pose') assert.ok(Math.max(...got.R.map((v, i) => Math.abs(v - want.R[i]))) < 2e-3, `${name}: its axes too`);
     }
   }
-  assert.throws(() => frameTarget(tree, 'gripper', { R: new Float64Array(9), t: new Float64Array(3) }), (e: unknown) => e instanceof IkError && e.code === 'NO_FRAME');
+  assert.throws(() => frameTarget(tree, 'gripper', { R: new Float64Array(9), t: new Float64Array(3) }), (e: unknown) => isRefusal(e) && e.code === 'NO_FRAME');
   const t = frameTool(tree, 'tcp');
   assert.deepEqual(workspaceMap(tree, { frame: 'tcp', samples: 300, h: 20 }), workspaceMap(tree, { link: t.link, tool: t.tool, samples: 300, h: 20 }));
 });

@@ -10,6 +10,23 @@ continue the barocss CAD work: the coordinator and all five lanes.
 4. `../../roadmap.md` (the plan; its Item index gives every item's title);
 5. `../../api-conventions.md` (R7.2), for anyone touching public APIs.
 
+## 0. Final state at the account move (2026-10-24): read this first
+
+The owner stopped every lane ("일단 지금 하던거 다 멈추라고 그래, 다음 계정이 이어서 할테니") and asked for a push. Every
+lane branch is merged into integration, and integration and the lane branches are pushed to `origin`.
+
+| Lane | Last commit | State | First thing for the next session |
+|---|---|---|---|
+| Kernel | integration `b54bae6d8` (K16 checkpoint 1, T2-verified) | K16 checkpoint 2 is a **patch, not committed**: `wip/k16-slice1-d269-d270.patch`, holding slice(1), D269, D270, the flat-DXF fixtures and 3 corpus cases. It applies cleanly on `4cf580ff6`. Its final T2 has not run. `wip/kernel-status.md` has the detail. | `git apply` the patch, run T2, write D268–D270, commit. Then the commutativity RB property, K16's closing record, then R7.3a, R7.3b and R7.3d. |
+| Outer | `13de1d345` | R7.3a step 1 is committed: `engine/refusal.ts` and the 12 coded classes on BarocssError, with no text change. **The full cad-model and studio suites and the fingerprint weren't run** (baseline `1125c4eb`). | Run the full suites and the fingerprint at the merge. Then continue R7.3a as decisions-outer.md's "R7.3a in progress" lists. |
+| GPU | `9cb4df21f` | R7.3a batch 1 is a WIP commit: gpu's own BarocssError, with all 35 classes on it. Unit tests pass 195/195. **test:browser hasn't run.** | After CAD's and gpu's build:library, run `pnpm test:browser` in packages/barocss-gpu, on hardware and with `VIEWER_ADAPTER=swiftshader`. Then batch 2 (UPPER_SNAKE). See G-R51. |
+| API | `53462e1b4` | R7.4a is done and verified. | R7.4b, per api-facade-design.md's "Hand-over". |
+| Docs | `a52a116dc` | The samples are on R7.4a's verbs. test:samples passes 24/24, and check:docs and build pass. | Follow the merges as they're routed, then R7.6. |
+
+**Not verified at the tip** (`4cf580ff6` and later): the full browser flow, which last passed 287/287 at G13; the
+cad-model and studio full suites after R7.3a step 1; and gpu test:browser after its batch 1. The next coordinator's
+first job is a window (§3.4) on the pushed tip.
+
 ## 1. Where everything is
 
 - **Repository:** `/Users/user/github/barocss/barocss` (pnpm workspace). Everything is local: no push, PR or publish

@@ -1,12 +1,13 @@
+import { BarocssError } from '../core/barocss-error.js';
 import {compileCadModel,sampleCurve} from '@barocss/cad';
 import type {Curve,Model,Point} from '@barocss/cad';
 import {freezeGpuData,ownRecord} from './gpu-data.js';
 
 export type UniformCurvePreviewDiagnosticCode='INPUT'|'BUDGET'|'SOURCE'|'PROFILE'|'NATIVE'|'RECONSTRUCTION';
-export class UniformCurvePreviewError extends Error {
+export class UniformCurvePreviewError extends BarocssError {
  readonly code:UniformCurvePreviewDiagnosticCode;
  constructor(code:UniformCurvePreviewDiagnosticCode,message:string,cause?:unknown){
-  super(message,cause===undefined?undefined:{cause});this.name='UniformCurvePreviewError';this.code=code;
+  super(code, message,cause===undefined?undefined:{cause});this.name='UniformCurvePreviewError';this.code=code;
  }
 }
 export interface UniformCurvePreviewInput {source:string;count:number}

@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord } from '../mesh/gpu-data.js';
 import { validateMeshCamera } from '../mesh/camera.js';
 import type { MeshCamera } from '../mesh/camera.js';
@@ -8,9 +9,9 @@ export const EngineCameraRayDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', CAMERA: 'CAMERA', RANGE: 'RANGE', NUMERICAL: 'NUMERICAL',
 } as const);
 export type EngineCameraRayDiagnosticCode = typeof EngineCameraRayDiagnosticCode[keyof typeof EngineCameraRayDiagnosticCode];
-export class EngineCameraRayError extends Error {
+export class EngineCameraRayError extends BarocssError {
   constructor(readonly code: EngineCameraRayDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Engine camera ray: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, ('Engine camera ray: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
     this.name = 'EngineCameraRayError';
   }
 }

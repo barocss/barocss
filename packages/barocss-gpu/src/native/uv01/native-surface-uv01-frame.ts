@@ -1,3 +1,4 @@
+import { BarocssError } from '../../core/barocss-error.js';
 import { prepareNativeSurfaceUV01MaterialBinding } from './native-surface-uv01-binding.js';
 import type { PreparedNativeSurfaceUV01Binding } from './native-surface-uv01-binding.js';
 import type { NativeSurfaceUV01GeometryRequest } from './native-surface-uv01-geometry.js';
@@ -21,9 +22,9 @@ export const NativeSurfaceUV01FrameDiagnosticCode = Object.freeze({
   BINDING: 'BINDING', PROGRAM: 'PROGRAM', FRAME: 'FRAME', REPRESENTATION: 'REPRESENTATION',
 } as const);
 export type NativeSurfaceUV01FrameDiagnosticCode = typeof NativeSurfaceUV01FrameDiagnosticCode[keyof typeof NativeSurfaceUV01FrameDiagnosticCode];
-export class NativeSurfaceUV01FrameError extends Error {
+export class NativeSurfaceUV01FrameError extends BarocssError {
   constructor(readonly code: NativeSurfaceUV01FrameDiagnosticCode, message: string, cause?: unknown) {
-    super(message.slice(0, 1024));
+    super(code, message.slice(0, 1024));
     this.name = 'NativeSurfaceUV01FrameError';
     if (arguments.length >= 3) Object.defineProperty(this, 'cause', { value: cause, configurable: true, writable: true });
   }

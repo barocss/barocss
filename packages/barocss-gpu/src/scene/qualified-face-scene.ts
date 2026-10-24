@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import {compileCadModel,validateFaceBundle,tessellateSurface} from '@barocss/cad';
 import type {FaceBundle,Surface} from '@barocss/cad';
 import {validateMeshCamera} from '../mesh/camera.js';
@@ -7,8 +8,8 @@ import {freezeGpuData,ownRecord} from '../mesh/gpu-data.js';
 import type {RGB,Vec3} from './scene.js';
 
 export type QualifiedFaceSceneDiagnosticCode='INPUT'|'VERSION'|'BUDGET'|'SOURCE'|'SOURCE_BINDING'|'NATIVE'|'GPU'|'DISPOSED'|'CONTEXT';
-export class QualifiedFaceSceneError extends Error {
-  constructor(public readonly code:QualifiedFaceSceneDiagnosticCode,message:string,cause?:unknown){super(message,cause===undefined?undefined:{cause});this.name='QualifiedFaceSceneError';}
+export class QualifiedFaceSceneError extends BarocssError {
+  constructor(public readonly code:QualifiedFaceSceneDiagnosticCode,message:string,cause?:unknown){super(code, message,cause===undefined?undefined:{cause});this.name='QualifiedFaceSceneError';}
 }
 export interface QualifiedFaceAssetV0 {sourceId:string;source:string;face:FaceBundle;color:RGB}
 /** Independent original source/Face assets; this does not create global Shell or Solid topology. */

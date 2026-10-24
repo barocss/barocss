@@ -21,9 +21,9 @@ import { stepLengthUnit } from '../engine/stepUnits';
 import { isVec3 as isV3 } from '../util/guards';
 import { nextFreeId } from '../util/ids';
 import { boundsOf } from '../engine/bounds';
-import type { Evaluate, Placement, Reference, Datum, KeepoutShape, Keepout, ReferenceSet, ReferenceCode, Verdict, KeepoutResult } from '../engine/schema/references';
+import { REFERENCE_CODES, type Evaluate, type Placement, type Reference, type Datum, type KeepoutShape, type Keepout, type ReferenceSet, type Verdict, type KeepoutResult } from '../engine/schema/references';
+import { isRefusal, refusal } from '../engine/refusal';
 
-export class ReferenceError extends Error { constructor(public code: ReferenceCode, message: string) { super(`[${code}] ${message}`); this.name = 'ReferenceError'; } }
 
 export const readReferences = (raw: unknown): ReferenceSet => {
   const r = raw as ReferenceSet | undefined;
@@ -50,7 +50,7 @@ const matrixOf = (at: Placement) => rotationMatrix(at.rotation) as unknown as nu
 /** A reference's bodies in its own coordinates (unplaced), keyed by its id. */
 export async function referenceLocal(ref: Reference, evaluate: Evaluate): Promise<BodyResult[]> {
   const r = await evaluate(referenceDoc(ref));
-  if (!r?.ok) throw new ReferenceError('NOT_READ', `${ref.name} could not be read: ${r ? r.error.detail : 'no result'}`);
+  if (!r?.ok) throw refusal('NOT_READ', `${ref.name} could not be read: ${r ? r.error.detail : 'no result'}`);
   return r.bodies.map((b, j) => ({ ...b, key: r.bodies.length > 1 ? `${ref.id}_part${j}` : ref.id }));
 }
 /** A reference's bodies where it is placed (copies). */
@@ -139,24 +139,24 @@ export function datumFromFace(local: readonly BodyResult[], refId: string, face:
     if (!f) continue;
     if (kind === 'plane') {
       const fit = fitPlane(b.mesh, f.index);
-      if (fit.residual > FIT_TOLERANCE) throw new ReferenceError('DATUM_FIT', `${face} is not flat: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best plane (at most ${FIT_TOLERANCE} mm)`);
+      if (fit.residual > FIT_TOLERANCE) throw refusal('DATUM_FIT', `${face} is not flat: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best plane (at most ${FIT_TOLERANCE} mm)`);
       return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, normal: fit.normal, xAxis: xAxisFor(fit.normal), residualMM: fit.residual };
     }
     if (kind === 'axis') {
-      if (f.kind !== 'curved') throw new ReferenceError('DATUM_FIT', `${face} is flat: an axis comes from a cylindrical face`);
+      if (f.kind !== 'curved') throw refusal('DATUM_FIT', `${face} is flat: an axis comes from a cylindrical face`);
       const fit = fitCylinder(b.mesh, f.index);
-      if (!(fit.residual <= FIT_TOLERANCE)) throw new ReferenceError('DATUM_FIT', `${face} is not a cylinder: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best one (at most ${FIT_TOLERANCE} mm)`);
+      if (!(fit.residual <= FIT_TOLERANCE)) throw refusal('DATUM_FIT', `${face} is not a cylinder: its vertices are up to ${fit.residual.toPrecision(3)} mm off the best one (at most ${FIT_TOLERANCE} mm)`);
       return { id, name, kind, of: { reference: refId, face }, origin: fit.origin, direction: fit.direction, radius: fit.radius, residualMM: fit.residual };
     }
     return { id, name, kind, of: { reference: refId, face }, origin: f.centroid.slice() as Vec3 };
   }
-  throw new ReferenceError('NO_REFERENCE', `${refId} has no face ${face}; its faces: ${local.flatMap(b => b.mesh.faces.map(x => x.name)).slice(0, 40).join(', ')}`);
+  throw refusal('NO_REFERENCE', `${refId} has no face ${face}; its faces: ${local.flatMap(b => b.mesh.faces.map(x => x.name)).slice(0, 40).join(', ')}`);
 }
 /** A point datum at a reference's vertex nearest a given point (its local coordinates), within 1 mm. */
 export function datumAtVertex(local: readonly BodyResult[], refId: string, near: Vec3, id: string, name: string): Datum {
   let best: Vec3 | null = null, d = Infinity;
   for (const b of local) for (const e of b.mesh.edges) for (const v of [e.a, e.b]) { const k = Math.hypot(v[0] - near[0], v[1] - near[1], v[2] - near[2]); if (k < d) { d = k; best = v.slice() as Vec3; } }
-  if (!best || d > 1) throw new ReferenceError('NO_REFERENCE', `no vertex of ${refId} within 1 mm of [${near.join(', ')}] (nearest ${d.toPrecision(3)} mm)`);
+  if (!best || d > 1) throw refusal('NO_REFERENCE', `no vertex of ${refId} within 1 mm of [${near.join(', ')}] (nearest ${d.toPrecision(3)} mm)`);
   return { id, name, kind: 'point', of: { reference: refId, vertex: best }, origin: best };
 }
 
@@ -264,7 +264,7 @@ export async function checkKeepouts(doc: StudioDoc, bodies: readonly BodyResult[
     if (only?.keepout && k.id !== only.keepout) continue;
     const probe = withKeepout(doc, k), r = await evaluate(probe.doc);
     const kb = r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(probe.doc.nodes, probe.node)) : undefined;
-    if (!kb) throw new ReferenceError('BAD_KEEPOUT', `${k.id}'s solid could not be made`);
+    if (!kb) throw refusal('BAD_KEEPOUT', `${k.id}'s solid could not be made`);
     const kIdx = Uint32Array.from(kb.mesh.indices);
     for (const b of bodies) {
       if (only?.body && b.key !== only.body) continue;
@@ -310,8 +310,8 @@ export function datumToFace(d: Datum, mesh: DisplayMesh, face: number): { distan
 /** A datum plane as a sketch plane (the part's coordinates). */
 export function datumPlane(set: ReferenceSet, id: string): DocPlane {
   const d0 = set.datums.find(x => x.id === id);
-  if (!d0) throw new ReferenceError('NO_REFERENCE', `no datum ${id}; datums: ${set.datums.map(x => x.id).join(', ') || 'none'}`);
-  if (d0.kind !== 'plane') throw new ReferenceError('NO_REFERENCE', `${id} is a datum ${d0.kind}, not a plane`);
+  if (!d0) throw refusal('NO_REFERENCE', `no datum ${id}; datums: ${set.datums.map(x => x.id).join(', ') || 'none'}`);
+  if (d0.kind !== 'plane') throw refusal('NO_REFERENCE', `${id} is a datum ${d0.kind}, not a plane`);
   const d = datumWorld(set, d0);
   return { origin: d.origin, normal: d.normal!, xAxis: d.xAxis ?? xAxisFor(d.normal!) };
 }
@@ -450,7 +450,7 @@ export async function runReferenceTool(doc: StudioDoc, bodies: readonly BodyResu
     if (!set.datums.some(d => d.id === iid) && !set.keepouts.some(k => k.id === iid)) return { error: `No datum or keep-out ${String(iid)}; datums: ${set.datums.map(d => d.id).join(', ') || 'none'}; keep-outs: ${set.keepouts.map(k => k.id).join(', ') || 'none'}.` };
     return { doc: put({ ...set, datums: set.datums.filter(d => d.id !== iid), keepouts: set.keepouts.filter(k => k.id !== iid) }), content: { ok: true, deleted: iid }, changed: true, summary: `deleted ${String(iid)}` };
   } catch (e) {
-    if (e instanceof ReferenceError) return { error: e.message };
+    if (isRefusal(e, ...REFERENCE_CODES)) return { error: e.message };
     throw e;
   }
 }

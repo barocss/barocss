@@ -9,6 +9,7 @@ import type { StudioDoc } from '../engine/doc';
 import { interfacesRevision, readInterfaces, type Interfaces } from './interfaces';
 import type { Lease, PartPatch } from './parts';
 import { digestOf, partDigests } from '../util/digest';
+import { refusal } from '../engine/refusal';
 
 export interface EcrChange { item: string; kind: 'added' | 'removed' | 'changed'; parts: string[] }
 export interface EcrImpact { parts: string[]; requirements: string[]; openPatches: string[]; leases: string[] }
@@ -18,7 +19,6 @@ export interface EcrPin { interfaces: string; parts: Record<string, string>; rec
 export interface Ecr { id: string; by: string; base: string; next: Interfaces; changes: EcrChange[]; impact: EcrImpact; status: 'open' | 'approved' | 'rejected'; decided?: { by: 'user'; at: string }; reason?: string; pin?: EcrPin }
 export interface EcrLog { version: 1; ecrs: Ecr[] }
 export type EcrCode = 'NO_CHANGE' | 'STALE_ECR' | 'NO_ECR' | 'DECIDED' | 'APPROVAL_IS_THE_USERS';
-export class EcrError extends Error { constructor(public code: EcrCode, message: string) { super(`[${code}] ${message}`); this.name = 'EcrError'; } }
 
 // ——— the user's channel: decisions no role can write
 /** A user decision: minted only by the studio's UI and the CLI scenario runner (from its top-level user decisions), kept
@@ -66,7 +66,7 @@ export function impactOf(doc: StudioDoc, changes: readonly EcrChange[], open: re
 /** An ECR opened by a role (the Architect, a Part agent): the interfaces it proposes, its changes and impact computed; nothing changed yet. */
 export function openEcr(doc: StudioDoc, by: string, next: Interfaces, o: { open?: readonly PartPatch[]; leases?: ReadonlyMap<string, Lease>; reason?: string } = {}): { doc: StudioDoc; ecr: Ecr } {
   const cur = readInterfaces(doc.interfaces), changes = interfaceChanges(cur, next);
-  if (!changes.length) throw new EcrError('NO_CHANGE', 'the interfaces proposed are the ones in force');
+  if (!changes.length) throw refusal('NO_CHANGE', 'the interfaces proposed are the ones in force');
   const log = readEcrs(doc.ecrs), ecr: Ecr = { id: `ECR${log.ecrs.length + 1}`, by, base: interfacesRevision(doc), next, changes, impact: impactOf(doc, changes, o.open ?? [], o.leases ?? new Map()), status: 'open', ...(o.reason ? { reason: o.reason } : {}) };
   return { doc: { ...doc, ecrs: { version: 1, ecrs: [...log.ecrs, ecr] } }, ecr };
 }
@@ -74,11 +74,11 @@ export function openEcr(doc: StudioDoc, by: string, next: Interfaces, o: { open?
 /** The user decides an ECR. Approved: the interfaces become its proposal and the leases it touches expire. Rejected: nothing changes. Anyone else: refused. */
 export function decideEcr(doc: StudioDoc, id: string, approve: boolean, who: UserToken | { by: string; at: string }, leases: ReadonlyMap<string, Lease>): { doc: StudioDoc; leases: Map<string, Lease>; ecr: Ecr } {
   // (The user is who the channel says, not who a value claims: a role's {by: "user"} is refused.)
-  if (!isUserToken(who)) throw new EcrError('APPROVAL_IS_THE_USERS', `${who.by === 'user' ? 'a decision claiming to be the user\'s, not from the user\'s channel (the studio, the CLI\'s user decisions)' : who.by}: only the user decides an ECR`);
+  if (!isUserToken(who)) throw refusal('APPROVAL_IS_THE_USERS', `${who.by === 'user' ? 'a decision claiming to be the user\'s, not from the user\'s channel (the studio, the CLI\'s user decisions)' : who.by}: only the user decides an ECR`);
   const log = readEcrs(doc.ecrs), ecr = log.ecrs.find(e => e.id === id);
-  if (!ecr) throw new EcrError('NO_ECR', `no ECR ${id}; ECRs: ${log.ecrs.map(e => `${e.id} (${e.status})`).join(', ') || 'none'}`);
-  if (ecr.status !== 'open') throw new EcrError('DECIDED', `${id} is already ${ecr.status}`);
-  if (approve && ecr.base !== interfacesRevision(doc)) throw new EcrError('STALE_ECR', `${id} was opened on the interfaces at ${ecr.base}; they are at ${interfacesRevision(doc)}: open it again on them`);
+  if (!ecr) throw refusal('NO_ECR', `no ECR ${id}; ECRs: ${log.ecrs.map(e => `${e.id} (${e.status})`).join(', ') || 'none'}`);
+  if (ecr.status !== 'open') throw refusal('DECIDED', `${id} is already ${ecr.status}`);
+  if (approve && ecr.base !== interfacesRevision(doc)) throw refusal('STALE_ECR', `${id} was opened on the interfaces at ${ecr.base}; they are at ${interfacesRevision(doc)}: open it again on them`);
   const was: Ecr = { ...ecr, status: approve ? 'approved' : 'rejected', decided: { by: 'user', at: who.at } };
   const decided: Ecr = approve ? pinned(was, partDigests(doc)) : was;
   const ecrs = { version: 1 as const, ecrs: log.ecrs.map(e => (e.id === id ? decided : e)) };

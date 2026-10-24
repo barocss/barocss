@@ -6,7 +6,7 @@ import { featureLabel, prefixDoc, withNode, type ModelNode, type StudioDoc } fro
 import { loadPersonRows } from '../rows';
 import { ROWS_NOT_FROM_PERSON } from '../../engine/rowFiles';
 import type { RowKind } from '../../engine/rowDefinitions';
-import { datumPlane, readReferences, ReferenceError } from '../references';
+import { datumPlane, readReferences } from '../references';
 import { checkNode, deleteFeature } from '../features';
 import { withLook } from '../../app/bodies';
 import { MATERIALS } from '../../library/materials';
@@ -21,6 +21,8 @@ import { type ChatState, type Evaluate, type ToolOutcome, type PartHandler, json
 import { isObj, isVec3 } from '../../util/guards';
 import { mountRowsOf } from '../../engine/mountRows';
 import { mountAxis } from '../../app/mounts';
+import { isRefusal } from '../../engine/refusal';
+import { REFERENCE_CODES } from '../../engine/schema/references';
 
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
 // (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with
@@ -166,7 +168,7 @@ async function addFeaturesTool(state: ChatState, args: Record<string, unknown>, 
   // (A sketch on a datum plane, A6.3: "plane": {"datum": id} is that plane, in the part's coordinates.)
   for (const [k, node] of list.entries()) {
     const pl = isObj(node) ? (node as Record<string, unknown>).plane : undefined;
-    if (isObj(pl) && typeof pl.datum === 'string') { try { list[k] = { ...(node as object), plane: datumPlane(readReferences(doc.references), pl.datum) }; } catch (e) { return fail(state, e instanceof ReferenceError ? e.message : String(e)); } }
+    if (isObj(pl) && typeof pl.datum === 'string') { try { list[k] = { ...(node as object), plane: datumPlane(readReferences(doc.references), pl.datum) }; } catch (e) { return fail(state, isRefusal(e, ...REFERENCE_CODES) ? e.message : String(e)); } }
   }
   const solves: Record<string, unknown>[] = [];
   for (const [k, node] of list.entries()) {

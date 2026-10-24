@@ -1,10 +1,11 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { engineUVTextureSamplingHelpers } from './material-texture-shader-body.js';
 
 /** Bounded CPU material compiler. No DOM, WebGL, eval or caller GLSL. */
 export type MeshMaterialCode='SYNTAX'|'TYPE'|'RANGE'|'BUDGET'|'INPUT'|'IR'|'UNIFORM';
 export interface MeshMaterialDiagnostic {code:MeshMaterialCode;message:string;start:number;end:number}
-export class MeshMaterialError extends Error {
- constructor(readonly code:MeshMaterialCode,message:string,readonly start=0,readonly end=0){super(message);this.name='MeshMaterialError';}
+export class MeshMaterialError extends BarocssError {
+ constructor(readonly code:MeshMaterialCode,message:string,readonly start=0,readonly end=0){super(code, message);this.name='MeshMaterialError';}
 }
 export interface MeshMaterialUniform {name:string;type:'float';min:number;max:number;default:number}
 type MaterialExpression<Input, ExtraCall extends string=never>=

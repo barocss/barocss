@@ -12,6 +12,7 @@ import { readInterfaces, type Interfaces } from './interfaces';
 import { freshnessOf, type Result } from './freshness';
 import type { Evaluate } from '../chat/tools';
 import { incompleteBeadReason } from '../frames/beadAccounting';
+import { refusal } from '../engine/refusal';
 
 export type BaselineState = 'draft' | 'review' | 'approved' | 'rejected';
 export interface Pins { interfaces: string; bom: string; parts: Record<string, string> }
@@ -27,7 +28,6 @@ export interface Baseline {
 }
 export interface BaselineLog { version: 1; baselines: Baseline[] }
 export type BaselineCode = 'APPROVAL_IS_THE_USERS' | 'BAD_TRANSITION' | 'BASELINE_FROZEN' | 'STALE_BASELINE' | 'STALE_RESULT' | 'RESULT_NOT_OK' | 'NO_BASELINE' | 'BOM_INVALID';
-export class BaselineError extends Error { constructor(public code: BaselineCode, message: string) { super(`[${code}] ${message}`); this.name = 'BaselineError'; } }
 export const readBaselines = (raw: unknown): BaselineLog => { const r = raw as BaselineLog | undefined; return r && r.version === 1 && Array.isArray(r.baselines) ? r : { version: 1, baselines: [] }; };
 
 const recordDigest = (b: Omit<Baseline, 'digest'> | Baseline) => { const { digest: _d, ...rest } = b as Baseline; void _d; return digestOf(rest); };
@@ -40,10 +40,10 @@ const withLog = (doc: StudioDoc, baselines: Baseline[]): StudioDoc => ({ ...doc,
  */
 export function draftBaseline(doc: StudioDoc, bom: Bom, view: BomView, o: { parent?: string; cites?: readonly Result[] } = {}): { doc: StudioDoc; baseline: Baseline } {
   const problems = checkBom(view, bom);
-  if (problems.length) throw new BaselineError('BOM_INVALID', problems.join('; '));
+  if (problems.length) throw refusal('BOM_INVALID', problems.join('; '));
   const log = readBaselines(doc.baselines), parent = o.parent ? log.baselines.find(b => b.id === o.parent) : undefined;
-  if (o.parent && !parent) throw new BaselineError('NO_BASELINE', `no baseline ${o.parent}`);
-  if (parent && (parent.state === 'draft' || parent.state === 'review')) throw new BaselineError('BAD_TRANSITION', `${parent.id} is still ${parent.state}: a baseline follows a decided one`);
+  if (o.parent && !parent) throw refusal('NO_BASELINE', `no baseline ${o.parent}`);
+  if (parent && (parent.state === 'draft' || parent.state === 'review')) throw refusal('BAD_TRANSITION', `${parent.id} is still ${parent.state}: a baseline follows a decided one`);
   const interfaces = readInterfaces(doc.interfaces), content = JSON.parse(JSON.stringify({ bom, interfaces })) as Baseline['content'];
   const baseline = sealed({ id: `BL${log.baselines.length + 1}`, kind: 'bom', parent: parent?.id ?? null, parentDigest: parent?.digest ?? null, state: 'draft', content, pins: { interfaces: digestOf(content.interfaces), bom: digestOf(content.bom), parts: partDigests(doc) }, ...(o.cites?.length ? { cites: JSON.parse(JSON.stringify(o.cites)) as Result[] } : {}), moves: [] });
   return { doc: withLog(doc, [...log.baselines, baseline]), baseline };
@@ -65,20 +65,20 @@ export function changedSince(doc: StudioDoc, b: Baseline): string[] {
  * or not current (STALE_RESULT, its changed inputs or unresolved faces named) — `evaluate` reads them again.
  */
 export async function moveBaseline(doc: StudioDoc, id: string, to: BaselineState, who: UserToken | { by: string; at: string }, evaluate?: Evaluate): Promise<{ doc: StudioDoc; baseline: Baseline }> {
-  if (!isUserToken(who)) throw new BaselineError('APPROVAL_IS_THE_USERS', `${who.by === 'user' ? 'a decision claiming to be the user\'s, not from the user\'s channel' : who.by}: only the user moves a baseline`);
+  if (!isUserToken(who)) throw refusal('APPROVAL_IS_THE_USERS', `${who.by === 'user' ? 'a decision claiming to be the user\'s, not from the user\'s channel' : who.by}: only the user moves a baseline`);
   const log = readBaselines(doc.baselines), b = log.baselines.find(x => x.id === id);
-  if (!b) throw new BaselineError('NO_BASELINE', `no baseline ${id}; baselines: ${log.baselines.map(x => `${x.id} (${x.state})`).join(', ') || 'none'}`);
-  if (b.state === 'approved' || b.state === 'rejected') throw new BaselineError('BASELINE_FROZEN', `${id} is ${b.state}: it is never changed; draft a new baseline with ${id} as its parent`);
-  if (!NEXT[b.state].includes(to)) throw new BaselineError('BAD_TRANSITION', `${id} is ${b.state}: it moves to ${NEXT[b.state].join(' or ')}, not ${to}`);
+  if (!b) throw refusal('NO_BASELINE', `no baseline ${id}; baselines: ${log.baselines.map(x => `${x.id} (${x.state})`).join(', ') || 'none'}`);
+  if (b.state === 'approved' || b.state === 'rejected') throw refusal('BASELINE_FROZEN', `${id} is ${b.state}: it is never changed; draft a new baseline with ${id} as its parent`);
+  if (!NEXT[b.state].includes(to)) throw refusal('BAD_TRANSITION', `${id} is ${b.state}: it moves to ${NEXT[b.state].join(' or ')}, not ${to}`);
   if (to === 'approved') {
     const incomplete = incompleteBeadReason(b.content.bom.beadAccounting);
-    if (incomplete) throw new BaselineError('RESULT_NOT_OK', `${id}: ${incomplete}`);
-    const changed = changedSince(doc, b); if (changed.length) throw new BaselineError('STALE_BASELINE', `${id} was drafted on another state: ${changed.join(', ')} changed since; draft it again`);
+    if (incomplete) throw refusal('RESULT_NOT_OK', `${id}: ${incomplete}`);
+    const changed = changedSince(doc, b); if (changed.length) throw refusal('STALE_BASELINE', `${id} was drafted on another state: ${changed.join(', ')} changed since; draft it again`);
     for (const r of b.cites ?? []) {
-      if (r.status !== 'ok') throw new BaselineError('RESULT_NOT_OK', `${id} cites ${r.id}, which is ${r.status}${r.why ? ` (${r.why})` : ''}: not a result to approve on`);
-      if (!evaluate) throw new BaselineError('STALE_RESULT', `${id} cites ${r.id}: its freshness cannot be read without evaluating the part`);
+      if (r.status !== 'ok') throw refusal('RESULT_NOT_OK', `${id} cites ${r.id}, which is ${r.status}${r.why ? ` (${r.why})` : ''}: not a result to approve on`);
+      if (!evaluate) throw refusal('STALE_RESULT', `${id} cites ${r.id}: its freshness cannot be read without evaluating the part`);
       const f = await freshnessOf(r, doc, evaluate);
-      if (f.state !== 'current') throw new BaselineError('STALE_RESULT', `${id} cites ${r.id}, ${f.state}: ${f.state === 'stale' ? `${f.changed.join(', ')} changed since` : f.unresolved.map(u => u.message).join('; ')}; run it again and draft a new baseline`);
+      if (f.state !== 'current') throw refusal('STALE_RESULT', `${id} cites ${r.id}, ${f.state}: ${f.state === 'stale' ? `${f.changed.join(', ')} changed since` : f.unresolved.map(u => u.message).join('; ')}; run it again and draft a new baseline`);
     }
   }
   const { digest: _d, ...rest } = b; void _d;

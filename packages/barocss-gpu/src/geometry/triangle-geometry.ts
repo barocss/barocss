@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord } from '../mesh/gpu-data.js';
 import { validateMeshGeometry } from '../mesh/mesh-packet.js';
 import type { Vec3 } from '../scene/scene-types.js';
@@ -9,10 +10,10 @@ export const TriangleGeometryDiagnosticCode = Object.freeze({
 export type TriangleGeometryDiagnosticCode =
   typeof TriangleGeometryDiagnosticCode[keyof typeof TriangleGeometryDiagnosticCode];
 
-export class TriangleGeometryError extends Error {
+export class TriangleGeometryError extends BarocssError {
   readonly code: TriangleGeometryDiagnosticCode;
   constructor(code: TriangleGeometryDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Triangle geometry: ' + detail).slice(0, 1024),
+    super(code, ('Triangle geometry: ' + detail).slice(0, 1024),
       cause === undefined ? undefined : { cause });
     this.name = 'TriangleGeometryError';
     this.code = code;

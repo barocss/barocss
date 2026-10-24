@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { parseAffineSceneAst } from './scene-front.js';
 import type { AffineSceneAst, SceneAst, SceneToken, SourceRange } from './scene-front.js';
 import { lowerAffineSceneAst } from './affine-scene-source.js';
@@ -8,12 +9,12 @@ import { copyGpuData, freezeGpuData } from '../mesh/gpu-data.js';
 
 export type SceneParameterCode = 'INPUT' | 'SYNTAX' | 'TYPE' | 'RANGE' | 'BUDGET' | 'SCENE';
 export interface SceneParameterDiagnostic extends SourceRange { code: SceneParameterCode; message: string }
-export class SceneParameterSourceError extends Error {
+export class SceneParameterSourceError extends BarocssError {
   readonly diagnostics: SceneParameterDiagnostic[];
   constructor(readonly code: SceneParameterCode, diagnostics: SceneParameterDiagnostic[], cause?: unknown) {
     const owned = diagnostics.map(d => ({ code: d.code, message: d.message.slice(0, 1024),
       start: d.start, end: d.end, line: d.line, column: d.column }));
-    super(owned.map(d => `${d.line}:${d.column}: ${d.message}`).join('\n').slice(0, 1024),
+    super(code, owned.map(d => `${d.line}:${d.column}: ${d.message}`).join('\n').slice(0, 1024),
       cause === undefined ? undefined : { cause });
     this.name = 'SceneParameterSourceError';
     this.diagnostics = freezeGpuData(owned);

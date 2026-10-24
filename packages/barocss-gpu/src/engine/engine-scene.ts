@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import { ownRecord } from '../mesh/gpu-data.js';
 import { prepareTriangleGeometry, TriangleGeometryError } from '../geometry/triangle-geometry.js';
 import type { TriangleGeometryV0, PreparedTriangleGeometry } from '../geometry/triangle-geometry.js';
@@ -12,10 +13,10 @@ export const EngineSceneDiagnosticCode = Object.freeze({
   TRANSFORM: 'TRANSFORM', GEOMETRY: 'GEOMETRY', REPRESENTATION: 'REPRESENTATION', CAMERA: 'CAMERA',
 } as const);
 export type EngineSceneDiagnosticCode = typeof EngineSceneDiagnosticCode[keyof typeof EngineSceneDiagnosticCode];
-export class EngineSceneError extends Error {
+export class EngineSceneError extends BarocssError {
   readonly code: EngineSceneDiagnosticCode;
   constructor(code: EngineSceneDiagnosticCode, detail: string, cause?: unknown) {
-    super(('Engine scene: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
+    super(code, ('Engine scene: ' + detail).slice(0, 1024), cause === undefined ? undefined : { cause });
     this.name = 'EngineSceneError'; this.code = code;
   }
 }

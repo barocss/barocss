@@ -1,3 +1,4 @@
+import { BarocssError } from '../core/barocss-error.js';
 import {
   MeshMaterialError, validateMeshMaterialBinding,
   validateEngineUVMaterialBinding, validateEngineUVRepeatingMaterialBinding, validateDiscreteMeshMaterialIR,
@@ -13,9 +14,9 @@ export const AuthoredMaterialEvaluationDiagnosticCode = Object.freeze({
 } as const);
 export type AuthoredMaterialEvaluationDiagnosticCode =
   typeof AuthoredMaterialEvaluationDiagnosticCode[keyof typeof AuthoredMaterialEvaluationDiagnosticCode];
-export class AuthoredMaterialEvaluationError extends Error {
+export class AuthoredMaterialEvaluationError extends BarocssError {
   constructor(readonly code: AuthoredMaterialEvaluationDiagnosticCode, message: string, readonly cause?: unknown) {
-    super(message.slice(0, 1024)); this.name = 'AuthoredMaterialEvaluationError';
+    super(code, message.slice(0, 1024)); this.name = 'AuthoredMaterialEvaluationError';
   }
 }
 type Material = MeshMaterialIR | EngineUVMaterialIR | EngineUVRepeatingMaterialIR;

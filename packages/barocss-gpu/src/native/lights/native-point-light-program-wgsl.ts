@@ -1,3 +1,4 @@
+import { BarocssError } from '../../core/barocss-error.js';
 import { copyGpuData, freezeGpuData } from '../../mesh/gpu-data.js';
 import { prepareNativePointLights } from './native-point-lights.js';
 import type { NativePointLightsV0 } from './native-point-lights.js';
@@ -9,9 +10,9 @@ import { pointLightProgramWGSLBody } from './point-light-program-wgsl-body.js';
 import type { Vec3, RGB } from '../../scene/scene-types.js';
 
 export type NativePointLightProgramWGSLCode = 'INPUT' | 'LIGHTS' | 'MATERIAL' | 'REPRESENTATION' | 'BUDGET';
-export class NativePointLightProgramWGSLError extends Error {
+export class NativePointLightProgramWGSLError extends BarocssError {
   constructor(readonly code: NativePointLightProgramWGSLCode, detail: string, cause?: unknown) {
-    super(('Native point light WGSL program: ' + detail).slice(0, 1024),
+    super(code, ('Native point light WGSL program: ' + detail).slice(0, 1024),
       arguments.length > 2 ? { cause } : undefined);
     this.name = 'NativePointLightProgramWGSLError';
   }
