@@ -361,7 +361,7 @@ The identical GPU/CAD JSON-compatible contract is:
 ```js
 {
   version: 0, surfaceId: 'surface', revision: 0,
-  lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+  lengthUnit: 'mm', coordinateSystem: 'right-handed-z-up', winding: 'ccw',
   positions: [/* flat XYZ in mm */], normals: [/* flat unit XYZ */],
   indices: [/* triangle indices */], parameters: [/* flat CAD-domain UV */],
   bounds: { min: [/* XYZ */], max: [/* XYZ */] }
