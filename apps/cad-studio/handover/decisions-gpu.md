@@ -3203,5 +3203,43 @@ The work stopped here for the owner's move to another place.
     up, Chamfer refused).
   - Step 74 passes alone.
   - **Decisions proposed**: (a) New part puts the camera back to the default view; this is user-visible, so it is the
-    coordinator's call. (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
+    coordinator's call. **The coordinator's answer: not now.** It stays a possible later UX item, so it doesn't hide (b). (b) Find the 2.9 px release move and fix it: a handle should not move when it's let go. (c) The
     flow's steps 96, 193 and 217 don't need to change.
+- **O18's placed copies dropped on a rebuild with identical meshes** (measure first):
+  - The outer lane's work-round (App's `sameMeshes`, 2aae36ec3) was taken out in this worktree only, for the runs, then
+    put back (nothing committed).
+  - FLOW_ONLY `^O10 (frame costs|Rebuild)` and `^(AM7|O10 (frame costs|Rebuild))` on WebGPU: all pass (285, 286, and
+    AM7a and AM7b before them). The frame costs list the 10 bodies with the 8 copies by their keys in every display
+    mode. **Not reproduced at 540df6a71.**
+  - Why it can't come from gpuRenderer.setBodies today: it keys bodies by their mesh signature (content), keeps every
+    body whose signature is unchanged, and returns at once when all are. A new array of the same meshes rebuilds
+    nothing. The instances are keyed the same way (setInstances). So "should the renderer key on mesh identity" is
+    answered: it already keys on content, which covers identity.
+  - **Decision proposed**: close the item. Keep the work-round: it also saves the App's re-render on a mass patch. If a
+    full window shows the copies missing again, its O10 steps will catch it.
+
+## G-R56 — G14 (b): a handle drag measured from where it began; the release no longer moves the section handle (roadmap G14, 2026-10-24)
+
+- **Cause** (G-R54's cause 2): Viewport's handle drag measured each step with `dragAlong(from, pointer, hd.at, …)` and
+  `dragIn(…)`, linearised at the handle's *current* point.
+  - On WebGPU, SceneViewport hands Viewport the section's live handles, drawn where the plane now is, in every frame of
+    the drag. So each step measured from the point one frame back, and the release measured from yet another point.
+  - In perspective, the same pointer then gives a slightly different value. At step 74's zoom after step 48, that flipped
+    a 0.5 mm snap: the plane was committed half a millimetre back from where it was shown, and the handle moved 2.9 px
+    on release.
+- **Fix** (`viewport/Viewport.tsx`): the drag keeps the handle's point as the drag began (`handleAt`) and measures every
+  step and the release from it. The move gizmo already did this (`origin`, "measured from the gizmo where the drag
+  began"). Arcs, which add up their turn step by step about a fixed centre, are unchanged.
+- **Runs**:
+  - FLOW_ONLY `^(render a part|section view|a selected box shows its dimension|drag a surface pole|drag a part
+    instance|drag a dimension handle|Hole: drag its centre|a box under a fillet keeps up|O9:|G19\.|G20\.2|G16:|G17:)`:
+    every handle-drag step passes on WebGPU and on WebGL2 (32, 64, 66, 69, 74, 271–277), and **74 passes after 48**:
+    the order dependency is gone at its cause.
+  - 50, 58 and 270 failed in that selection on both renderers. Rerun with their prerequisites,
+    `^(import a \.barocad source|drag a surface pole|place another part as an instance|drag a part instance|G16:)`, all
+    six pass on both. 50 needs 49's imported surface and 58 needs 57's instance.
+  - 270 (G16) is another camera carry-over: it passes after 49/57 and failed after the G19 steps. That is the New-part
+    camera item (G-R54 (a)), left for later.
+  - Studio tsc 0 and eslint 0 (with R7.3d's kernel patch applied in the lane's tree; this branch is cut before R7.3d).
+- **Branch**: `claude/gpu-g14-handle-2026-10-24`, cut at 3801e2d9f (before R7.3d), so it can merge ahead of the R7.3d
+  pair. The lane branch merges it too.
