@@ -10,7 +10,8 @@ growth with the conventions. The API lane wrote this note, and the coordinator r
 - **`@barocss/cad-model/api`:** the same chain over `StudioDoc`, with `.mass(material)`, `.step()` and `.meshes()`. It
   uses cad's selectors and error.
 - **`@barocss/gpu/api`:** an immutable `scene()` and `show(viewer, scene)`. The coordinate frame is settled: Z-up, as
-  given. The browser check runs through the gpu lane's harness.
+  given. Since R7.5b it also has materials by id, display lines and a camera view, checked in Chrome on both WebGPU
+  adapters.
 
 ## What it is
 
@@ -314,6 +315,53 @@ the body chooser, the sketch node and the evaluation at each verb.
   followed frames); delete and edit of parts and mates; library parts and snaps; joints and kinematics; STEP and BOM of
   an assembly.
 
+## R7.5b: gpu's facade grown, as built
+
+- **Materials by id (§10.6).**
+  - `scene().material(id, look)` registers a Material (gpu's own type) under an id. Use the material id a part's body
+    names (`al6061`) or one of your own.
+  - `add(meshes)` gives each mesh the scene material its `material` id names. `add(meshes, id)` gives them all one
+    registered material, and `add(meshes, look)` a Material outright.
+  - `.data` keeps the id on the mesh and the looks under `materials`, so it stays JSON-plain. `show()` resolves the ids.
+  - cad-model's `.meshes()` now carry each body's material id (`materialIdOf`: its own, else the brief's).
+  - `StudioPart.material(id)` sets it as the agent's `set_material` writes it, byte for byte (tested). `mass()` with no
+    argument then weighs the body in it.
+  - **Not decided: a built-in look per material id** (al6061's colour and so on). O75 keeps looks (`look-aluminium`)
+    and material ids apart on purpose, and gpu has no materials table. So nothing is built in. Whether gpu should
+    carry default looks for the 18 library ids is a question for the owner and the GPU lane.
+- **Display lines.**
+  - Each facade mesh carries `lines`: its display edges as segment pairs, in mm, Z up.
+    - In cad they're the B-rep's edges the selectors offer, seams and tangent joints left out (`brepLines`, shared with
+      `brepSelection`).
+    - In cad-model they're the display mesh's `edgeLines`.
+  - `scene().add(meshes, material?, { lines: true | Material })` also adds each mesh's lines as `topology: 'lines'`
+    geometry, keyed `<key>/lines`. `true` uses `LINE_MATERIAL`, thin and dark.
+  - **The field is `lines`, not §10.3's `edges`.** GeometryInput already has `edges`: an id per line segment. A
+    facade mesh handed straight to `viewer.add` would have its lines misread as ids. The coordinator may want §10.3's
+    wording to match.
+- **A camera view.**
+  - `scene().camera('iso' | 'front' | 'back' | 'right' | 'left' | 'top' | 'bottom' | { direction, up? }, { projection?, fovYDeg? })`.
+    The top and bottom views keep +Y up, the rest +Z.
+  - `show()` sets the Viewer camera's projection, field of view and up, and puts the eye along the direction. Then
+    `fit()` frames the scene, keeping that direction. This uses the camera's public fields only.
+  - `CAMERA_INVALID` refuses an unknown view, a zero vector, an up along the direction, or a bad projection or field of
+    view.
+- **Tests:**
+  - gpu tests/api-scene.test.mjs 7/7 (the 4 before, plus materials by id, lines and the camera, on the Viewer
+    stand-in).
+  - gpu tests/api-show-browser.test.mjs 2/2 on both WebGPU adapters, the hardware one and SwiftShader
+    (`VIEWER_ADAPTER=swiftshader`). The second test draws a plate with a bore from the top, orthographic:
+    - its top is drawn in al6061's registered look;
+    - the bore's middle shows the background;
+    - a display line lies on the bore's rim.
+  - cad test/api-verbs.test.mjs gains the lines test: a box has 12 segments; a cylinder has its two rims, no seam.
+  - cad-model api-verbs.test.ts gains `material()` against set_material, the meshes' id and lines, and `mass()`.
+  - The browser test's server now serves all of gpu's dist. Since R7.3a, `api/refusal.js` imports
+    `core/barocss-error.js`, so the first browser test failed after the merge until this fix.
+- **gpu's code union:** gpu's facade codes now include `MATERIAL_UNKNOWN`, `MATERIAL_INVALID` and `CAMERA_INVALID`
+  (`SceneCode`). gpu's `GpuErrorCode` (core/error-codes.ts, GPU lane) lists `'MESH_INVALID' | 'LIGHT_INVALID'` by
+  hand. Routed: let it read `SceneCode` instead.
+
 ## Object types
 
 | Type | What it is | Built on |
@@ -439,6 +487,12 @@ These come later, each with the same oracle:
    - Proposed for R7.3c: `addPart(doc, options)`, `placePart`, `addMate` and `setFrames` as `verb(doc, options) → doc`
      core functions (§3), with the tools and the adapter both calling them.
 
+8. **gpu's `GpuErrorCode` lists the facade's codes by hand** (GPU lane, core/error-codes.ts). R7.5b adds three. Proposed:
+   `| SceneCode` from api/refusal.ts, so the docs table follows the facade.
+9. **§10.3 names the display lines `edges`,** which collides with GeometryInput's per-segment `edges` ids. The facades
+   use `lines` (coordinator: the conventions' wording).
+10. **No built-in look per material id** (owner and GPU lane). See R7.5b.
+
 ## The kernel's old object API (`createCadModel`) and what replaces it
 
 `packages/barocss-cad/src/modeling.ts` has `createCadModel()` with `CadModel`, `CadShape` and `CadSketch`. It's a
@@ -532,9 +586,12 @@ retires modeling.ts.
   - the refusals are typed, the facade's own and the kernel's passed through.
 - cad-model `tsc` and eslint are clean.
 
-## Hand-over (2026-10-24, after R7.4b)
+## Hand-over (2026-10-24, after R7.5b)
 
-R7.4b and R7.5 are committed and their checks pass. The next work is R7.5b (gpu's growth), then R7.6 with the docs lane.
+R7.4b, R7.5 and R7.5b are committed and their checks pass.
+- **The next work is R7.6, with the docs lane:** the docs' samples on the facades, the Object API page out of
+  experimental, and the API inventory in check:docs.
+- **The owner's open question:** a built-in look per material id.
 
 - **A new part verb:** add a `FeatureSpec` case and its option builder in cad/src/api/spec.ts, the verb on `Part` in
   cad/src/api/part.ts, and the kernel features in cad/src/api/kernel.ts.
@@ -552,7 +609,9 @@ R7.4b and R7.5 are committed and their checks pass. The next work is R7.5b (gpu'
     which cad-model's tsc needs for the `.d.ts`);
   - cad-model: `node scripts/test.mjs api-` (api-part, api-verbs, api-assembly);
   - gpu: `node --test tests/api-scene.test.mjs`, and, after both packages' build:library,
-    `CHROME=… PW_DIR=… node --test tests/api-show-browser.test.mjs`.
+    `CHROME=… PW_DIR=… node --test tests/api-show-browser.test.mjs`, once more with `VIEWER_ADAPTER=swiftshader`.
+    Take a heavy slot first: `~/.claude/local-mods/barocss-lanes-guard/bin/gate.sh acquire heavy 1200 "<label>"`, then
+    `release`.
 - **Traps:**
   - a bare `npx tsc` in packages/barocss-gpu overwrites dist/index.js with an unbundled file, so run `build:library`
     before the browser test;

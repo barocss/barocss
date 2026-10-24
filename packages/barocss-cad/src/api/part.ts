@@ -57,6 +57,8 @@ export class Part<D> {
     return new (this.constructor as new (backend: PartBackend<D>, name: string, doc: D, focus: string | null) => this)(this.backend, this.name, doc, focus);
   }
   protected get document(): D { return this.#doc; }
+  /** The body chosen with body(name), or null. */
+  protected get focus(): string | null { return this.#focus; }
 
   /** The part's bodies by name, in the core's order. */
   bodies(): string[] { return this.backend.bodies(this.#doc); }
