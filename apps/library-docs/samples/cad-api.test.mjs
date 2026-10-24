@@ -1,11 +1,11 @@
 // The kernel's object facade (`@barocss/cad/api`): the bracket over a CadPartDocument, its `.doc` the very document
 // written by hand, its mass, STEP and STL the kernel's own; sketches on planes, two bodies chosen and combined, patterns
-// and a Location; the display lines; the refusals typed. The Object API page includes the #region blocks.
+// and a Location; mirror, scale and split; parameters; the display lines; the refusals typed. The Object API page includes the #region blocks.
 // Run: pnpm test:samples
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // #region import
-import { part, sketch, Plane, Location, BarocssError } from '@barocss/cad/api';
+import { part, sketch, Plane, Location, param, withParameters, BarocssError } from '@barocss/cad/api';
 // #endregion import
 import { evaluateCadPart } from '@barocss/cad';
 
@@ -115,4 +115,37 @@ test('the meshes carry their display lines', () => {
   const [mesh] = part().box({ w: 10, d: 20, h: 30 }).meshes();
   assert.equal(mesh.lines.length, 12 * 2 * 3);   // the box's 12 edges, each a segment of two points
   // #endregion lines
+});
+
+test('mirror, scale and split', () => {
+  // #region transforms
+  const block = () => part().box({ w: 10, d: 20, h: 5 });
+  const both = block().mirror({ plane: 'yz' });             // joined with its image across x = 0: 20 × 20 × 5
+  const big = block().scale({ factor: 2 });                 // about the origin: 20 × 40 × 10
+  const halves = block().split({ axis: 'x', at: 4 });       // cut across x = 4, each side a body
+  // #endregion transforms
+  const volume = p => p.mass({ density: 1 }).volumeMM3, near = (a, b) => Math.abs(a - b) < 1e-6 * b;
+  assert.ok(near(volume(both), 20 * 20 * 5));
+  assert.ok(near(volume(big), 20 * 40 * 10));
+  assert.deepEqual(halves.bodies().map(n => Math.round(volume(halves.body(n)))).sort((x, y) => x - y), [4 * 20 * 5, 6 * 20 * 5]);
+});
+
+test('parameters: named values a dimension follows, edited by withParameters', () => {
+  // #region kernel-parameters
+  // An 80 × 40 × 10 plate, its width W and its corners' radius R parameters.
+  const plate = part('plate').parameter('W', 80).parameter('R', 2)
+    .box({ w: param('W'), d: 40, h: 10 })
+    .fillet(body => body.edges().along('z'), { radius: param('R') });
+  assert.deepEqual(plate.doc.parameters, { W: 80, R: 2 });
+  assert.deepEqual(plate.doc.features[0].max, [{ parameter: 'W' }, 40]);   // the document's own reference
+
+  const narrow = plate.withParameters({ W: 60 });           // a new part; the plate is unchanged
+  assert.deepEqual(withParameters(plate.doc, { W: 60 }).parameters, { W: 60, R: 2 });   // the same, on a plain document
+  // A 60-wide plate with its four corners rounded 2.
+  const expected = 60 * 40 * 10 - 4 * (2 ** 2 - Math.PI * 2 ** 2 / 4) * 10;
+  assert.ok(Math.abs(narrow.mass({ density: 1 }).volumeMM3 - expected) < 1e-6 * expected);
+  // #endregion kernel-parameters
+  // A value the kernel document holds as a plain number can't follow a parameter: refused, never baked in.
+  assert.throws(() => plate.parameter('K', 2).scale({ factor: param('K') }),
+    e => e instanceof BarocssError && e.code === 'PARAMETER_UNBINDABLE');
 });
