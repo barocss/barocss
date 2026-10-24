@@ -66,7 +66,7 @@ test('O22 loop pin: the four-bar\'s stacked coupler and rocker are no contact (l
 test('O22 → RS6: check_path and play_motion close a robot\'s loop along its motion (the four-bar; LOOP_OPEN retired)', async () => {
   const doc = open('four-bar'), r = await evaluate(doc); assert.ok(r.ok);
   const check = JSON.parse((await dispatchTool({ doc, bodies: r.bodies }, 'check_path', { motion: 'crank' }, evaluate)).content);
-  assert.equal(check.clear, true, JSON.stringify(check).slice(0, 300)); assert.ok(check.loops.chords >= 240 && check.loops.chord_residual_mm < 1e-2, JSON.stringify(check.loops));
+  assert.equal(check.clear, true, JSON.stringify(check).slice(0, 300)); assert.ok(check.loops.chords >= 240 && check.loops.chordResidual < 1e-2, JSON.stringify(check.loops));
   const play = JSON.parse((await dispatchTool({ doc, bodies: r.bodies }, 'play_motion', { motion: 'crank', samples: 5 }, evaluate)).content);
   assert.ok(play.samples.some((f: { values: Record<string, number> }) => Math.abs(f.values['base~rocker']) > 1), 'the rocker follows the crank');
 });

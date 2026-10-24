@@ -16,7 +16,7 @@ test('O10: profile gives every feature its wall time and kernel calls; without i
   assert.ok(Object.isFrozen(p));
   assert.deepEqual(Object.keys(p).sort(), document.features.map(f => f.id).sort());
   for (const [id, e] of Object.entries(p)) {
-    assert.ok(Number.isFinite(e.ms) && e.ms >= 0, `${id} ms`);
+    assert.ok(Number.isFinite(e.wallTime) && e.wallTime >= 0, `${id} wallTime seconds`);
     assert.ok(Object.isFrozen(e.calls) && Object.values(e.calls).every(n => Number.isInteger(n) && n >= 0), `${id} calls`);
   }
   const kind = id => document.features.find(f => f.id === id).kind, of = k => Object.entries(p).filter(([id]) => kind(id) === k).map(([, e]) => e.calls);
@@ -29,4 +29,16 @@ test('O10: profile gives every feature its wall time and kernel calls; without i
   // Kept through a re-evaluation, reused features included.
   const again = reevaluate(timed, { document: document });
   assert.deepEqual(Object.keys(again.profile).sort(), Object.keys(p).sort());
+});
+
+test('R7 profile wallTime is seconds from the unchanged two clock samples', t => {
+  let next = 1000;
+  const clock = t.mock.method(performance, 'now', () => { const value = next; next += 250; return value; });
+  const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }] };
+  const result = evaluateCadPart(doc, undefined, { profile: true });
+  assert.equal(clock.mock.callCount(), 2);
+  assert.equal(result.profile.s.wallTime, 0.25);
+  assert.equal(Object.hasOwn(result.profile.s, 'ms'), false);
+  assert.deepEqual(Object.keys(result.profile.s), ['wallTime', 'calls']);
+  assert.equal(JSON.parse(JSON.stringify(result.profile)).s.wallTime, 0.25);
 });

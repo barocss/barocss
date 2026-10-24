@@ -25,10 +25,22 @@ export interface Unknown { check: string; joint?: string; move?: number; code: U
 export interface Consistency { check: string; move: number; at: 'from' | 'to'; ok: boolean; value: number; tol: number }
 export interface HarnessReport { ok: boolean; margins: Margin[]; unknowns: Unknown[]; consistency: Consistency[]; least: { check: string; joint?: string; move?: number; margin: number } | null; actuators: Record<string, { motor: string; reducer: string }[]>; notes: string[] }
 
+// Raw quantities for the public unit projection only. The core report retains its original rounded values.
+const rawMargins = new WeakMap<Margin, { value: number; limit: number; unit: string; publishedValue: number; publishedLimit: number }>();
+function trackedMargin(margin: Margin, value: number, limit: number): Margin {
+  rawMargins.set(margin, { value, limit, unit: margin.unit, publishedValue: margin.value, publishedLimit: margin.limit });
+  return margin;
+}
+/** Internal projection lookup: clones and edited quantity fields do not acquire raw provenance. */
+export function marginQuantitiesOf(margin: Margin): { readonly value: number; readonly limit: number } | undefined {
+  const raw = rawMargins.get(margin);
+  return raw && raw.unit === margin.unit && Object.is(raw.publishedValue, margin.value) && Object.is(raw.publishedLimit, margin.limit) ? raw : undefined;
+}
+
 const r9 = (v: number) => (Number.isFinite(v) ? Math.round(v * 1e9) / 1e9 + 0 : v);
 const atMost = (check: string, value: number, limit: number, unit: string, source: string, o: { joint?: string; move?: number; detail?: string } = {}): Margin => {
   const margin = limit ? (limit - value) / Math.abs(limit) : value <= 0 ? 0 : -Infinity;
-  return { check, ...(o.joint ? { joint: o.joint } : {}), ...(o.move !== undefined ? { move: o.move } : {}), value: r9(value), limit: r9(limit), unit, margin: r9(margin), source, ok: margin > 0, ...(o.detail ? { detail: o.detail } : {}) };
+  return trackedMargin({ check, ...(o.joint ? { joint: o.joint } : {}), ...(o.move !== undefined ? { move: o.move } : {}), value: r9(value), limit: r9(limit), unit, margin: r9(margin), source, ok: margin > 0, ...(o.detail ? { detail: o.detail } : {}) }, value, limit);
 };
 const limitsOf = (m: DutyMove) => (k: string): MoveLimits => (m.joint_limits?.[k] ?? m.limits)!;
 
@@ -51,7 +63,7 @@ export function checkDesign(tree: JointTree, bodies: ReadonlyMap<string, LinkBod
       else if (l?.lower === undefined || l.upper === undefined) unknowns.push({ check: 'joint range', joint: k, move: i, code: 'LIMITS_MISSING', why: `${k} has no lower and upper limit` });
       else for (const [end, q] of [['from', m.from[k] ?? 0], ['to', m.to[k] ?? 0]] as const) {
         const span = l.upper - l.lower, slack = Math.min(q - l.lower, l.upper - q), near = q - l.lower < l.upper - q ? l.lower : l.upper;
-        margins.push({ check: 'joint range', joint: k, move: i, value: r9(q), limit: r9(near), unit, margin: r9(slack / span), source: 'robot.joints', ok: slack > 0, detail: end });
+        margins.push(trackedMargin({ check: 'joint range', joint: k, move: i, value: r9(q), limit: r9(near), unit, margin: r9(slack / span), source: 'robot.joints', ok: slack > 0, detail: end }, q, near));
       }
       const vPeak = Math.max(out.joints[k].vPeak, back.joints[k].vPeak), peak = Math.max(out.joints[k].peak, back.joints[k].peak, Math.abs(holds[0][k]), Math.abs(holds[1][k]));
       if (vPeak > 0) { if (l?.velocity === undefined) unknowns.push({ check: 'joint velocity', joint: k, move: i, code: 'LIMITS_MISSING', why: `${k} has no velocity rating` }); else margins.push(atMost('joint velocity', vPeak, l.velocity, `${unit}/s`, 'robot.joints', { joint: k, move: i })); }
@@ -74,14 +86,14 @@ export function checkDesign(tree: JointTree, bodies: ReadonlyMap<string, LinkBod
       (used[k] ??= []).push({ motor: pair.m.id, reducer: pair.r.id });
       for (const c of checkPair(tree, bodies, m.from, m.to, m.profile, lim, k, pair.m, pair.r, o)) {
         if (c.name === 'reducer life L10' && duty.life_h === undefined) continue;
-        margins.push({ check: c.name, joint: k, move: i, value: r9(c.value), limit: r9(c.limit), unit: c.unit, margin: r9(c.margin), source: `${pair.m.id} + ${pair.r.id} (${c.limitSource})`, ok: c.ok && c.margin > 0 });
+        margins.push(trackedMargin({ check: c.name, joint: k, move: i, value: r9(c.value), limit: r9(c.limit), unit: c.unit, margin: r9(c.margin), source: `${pair.m.id} + ${pair.r.id} (${c.limitSource})`, ok: c.ok && c.margin > 0 }, c.value, c.limit));
       }
     }
     // ——— RM6: the sweep
     if (sweep) {
       const s = sweepPath(tree, sweep, m.from, m.to), req = duty.clearance_mm ?? 0;
-      if (!s.clear) margins.push({ check: 'sweep', move: i, value: 0, limit: r9(req), unit: 'mm', margin: -1, source: 'RM6', ok: false, detail: `contact ${s.contact!.links.join('–')} at s ${r9(s.contact!.s)}` });
-      else { const mm = s.minClearance?.mm ?? Infinity; margins.push({ check: 'sweep', move: i, value: r9(mm), limit: r9(req), unit: 'mm', margin: r9((mm - req) / Math.max(req, 1)), source: 'RM6', ok: mm > req, ...(s.minClearance ? { detail: `least ${s.minClearance.links.join('–')} at s ${r9(s.minClearance.s)}` } : {}) }); }
+      if (!s.clear) margins.push(trackedMargin({ check: 'sweep', move: i, value: 0, limit: r9(req), unit: 'mm', margin: -1, source: 'RM6', ok: false, detail: `contact ${s.contact!.links.join('–')} at s ${r9(s.contact!.s)}` }, 0, req));
+      else { const mm = s.minClearance?.mm ?? Infinity; margins.push(trackedMargin({ check: 'sweep', move: i, value: r9(mm), limit: r9(req), unit: 'mm', margin: r9((mm - req) / Math.max(req, 1)), source: 'RM6', ok: mm > req, ...(s.minClearance ? { detail: `least ${s.minClearance.links.join('–')} at s ${r9(s.minClearance.s)}` } : {}) }, mm, req)); }
     }
     // ——— consistency: RNEA's holding torques against RD1's; the mass matrix SPD
     for (const [at, q] of [['from', m.from], ['to', m.to]] as const) {

@@ -48,7 +48,8 @@ export const BRIEF = {
   step: 5,
 };
 
-export interface Check { id: string; ok: boolean; detail: string; ms: number }
+/** Durations are seconds, retaining the clock's existing millisecond rounding. */
+export interface Check { id: string; ok: boolean; detail: string; duration: number }
 export interface EngineFigures {
   stroke?: number; bore?: number; displacement?: number; crankRadius?: number;
   mass?: number; reciprocating?: number; rotating?: number; counterweightMoment?: number; balanceFactor?: number;
@@ -59,7 +60,7 @@ export interface EngineFigures {
 export interface PartOutputs { part: string; process: string | null; dimensions: number; drawingErrors: string[]; findings: string[]; cam?: 'made' | 'waiting' | string }
 /** An output file, when the check is asked to keep them (`files`): its path under the outputs' folder and its bytes or text. */
 export interface OutputFile { path: string; data: string | Uint8Array }
-export interface EngineCheck { ok: boolean; checks: Check[]; figures: EngineFigures; parts?: PartOutputs[]; files?: OutputFile[]; ms: number }
+export interface EngineCheck { ok: boolean; checks: Check[]; figures: EngineFigures; parts?: PartOutputs[]; files?: OutputFile[]; duration: number }
 
 // ── parts, by name ──
 interface Role { role: string; min: number; test: (name: string) => boolean }
@@ -391,7 +392,7 @@ const timed = <T>(checks: Check[], id: string, run: () => { ok: boolean; detail:
   const t0 = performance.now();
   let r: { ok: boolean; detail: string; value?: T };
   try { r = run(); } catch (e) { r = { ok: false, detail: e instanceof Error ? e.message : String(e) }; }
-  checks.push({ id, ok: r.ok, detail: r.detail, ms: Math.round(performance.now() - t0) });
+  checks.push({ id, ok: r.ok, detail: r.detail, duration: Math.round(performance.now() - t0) / 1000 });
   return r.value;
 };
 
@@ -415,7 +416,7 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; step?: n
     const t = treeOf(view), bad = [...solvedR.problems.map(p => `${p.mate}: ${p.reason}`), ...t.problems.map(p => `[${p.code}] ${p.message}`)];
     return { ok: !bad.length, detail: bad.length ? bad.slice(0, 4).join(' · ') : `${(doc.mates ?? []).length} mates solve; ${t.joints.filter(j => j.type !== 'fixed').length} moving joints, ${t.loops.length} loop(s), ${t.couplings.length} gear coupling(s)`, value: t };
   });
-  if (!tree) return { ok: false, checks, figures, ms: Math.round(performance.now() - t0) };
+  if (!tree) return { ok: false, checks, figures, duration: Math.round(performance.now() - t0) / 1000 };
   const driver = tree.joints.find(j => turning(j) && j.child === crankId);
   const rodJoint = tree.joints.find(j => turning(j) && j.parent === crankId && (j.child === rodId || j.child.startsWith(`${rodId}__`)));
   const crankR = driver && rodJoint ? Math.hypot(...perp(sub(rodJoint.origin, driver.origin), unit(driver.axis))) : undefined;
@@ -512,10 +513,10 @@ export async function checkEngine(doc: StudioDoc, o: { sweep?: boolean; step?: n
     const t1 = performance.now(), r = await outputsOf(doc, masses, o.files ? (files = []) : null);
     parts = r.parts;
     Object.assign(figures, r.figures);
-    checks.push({ id: 'outputs', ok: !r.problems.length, detail: r.problems.length ? r.problems.slice(0, 6).join('; ') : r.detail, ms: Math.round(performance.now() - t1) });
+    checks.push({ id: 'outputs', ok: !r.problems.length, detail: r.problems.length ? r.problems.slice(0, 6).join('; ') : r.detail, duration: Math.round(performance.now() - t1) / 1000 });
   }
 
-  return { ok: checks.every(c => c.ok), checks, figures, ...(parts ? { parts } : {}), ...(files ? { files } : {}), ms: Math.round(performance.now() - t0) };
+  return { ok: checks.every(c => c.ok), checks, figures, ...(parts ? { parts } : {}), ...(files ? { files } : {}), duration: Math.round(performance.now() - t0) / 1000 };
 }
 
 // ── outputs: each made part's, and the assembly's BOM ──
