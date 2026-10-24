@@ -3580,3 +3580,38 @@ is untouched as history. The coordinator settled the scope:
   - "Save as motion" and a select of the document's saved motions (RobotSettings.motions);
   - RS1's Samples group;
   - the video export, as its own checkpoint.
+
+## G-R65 — RS2 part 2 (saved motions, outer's core) and RS1's studio side (the Samples group); G14's section, measured again (2026-10-24)
+
+- **RS2 part 2** (a79d3df3f, WIP until this checkpoint verified it):
+  - The motion module uses outer's core, `@barocss/cad-model/robot/motion`: `poseAt(tree, path, t)` and
+    `duration(path)`. The core times a path once per path object. The local adapter is gone; `pathLimits` and
+    `draftPath` stay.
+  - **Choosing**: the Motion row's "Motion choice" select lists the draft ("Draft: home → waypoints → this pose") and
+    the document's saved motions (`RobotSettings.motions`) by name. A saved one is timed through `timedPathOf` (the
+    document keeps degrees and mm; poseAt and the sweep take radians). Its length shows before it plays. A choice
+    changed stops the motion; a saved motion gone from the document returns the card to the draft.
+  - **Saving**: with the draft chosen, "Motion name" and "Save as motion" keep it in the document as
+    `{ name, path: motionOf(tree, draft) }`. A motion of the same name is replaced. It's an undo step, the file is
+    dirty, and the saved one is chosen.
+  - The shown pose and the play state stay UI-only: not stored, no undo.
+- **RS1's studio side**: a "SAMPLES · ROBOTS" group in the Templates menu.
+  - It lists outer's `packages/barocss-cad-model/samples/robots/index.json` (8 samples, title and about).
+  - "Open sample <title>" opens the sample's `.bcad` through Open's own path (`open(file)`). Every sample opens with its
+    demo motion in the Joints card.
+  - `app/samples.ts` reads the index when the studio loads (`import.meta.glob`, eager). A document loads only when it's
+    opened: each is its own lazy chunk in the build.
+- **Flow** (appended, numbers kept):
+  - 290 — Save as motion on the 6R arm. "quarter" is saved with l5~l6 at 90 (degrees) and chosen. From home it plays to
+    the quarter turn (TCP at G13's point, 63, 105). Undo removes it and the card returns to the draft.
+  - 291 — each of the 8 samples opens from Templates → Samples with its own demo motion (the name its file gives:
+    wave, pick, reach, box, look around, grip, crank, turn) and no refusal. The 6R arm's "reach" plays to its end at 2×.
+  - FLOW_ONLY `^RS[12]:` (289, 290, 291): all pass on WebGPU and on WebGL2.
+- **Runs**: studio tsc 0, eslint 0, unit 286/286, vite build (the samples in their own chunks).
+- **G14, section on the GPU, measured again** (load 12 → 18, so "LOADED" again, the quietest run so far):
+  - 8.05 ms a submit against the budget of 6: surface 3.07, output 2.85, cap front samples 1.20, cap front 0.50,
+    shadow 0.26, light probe 0.18.
+  - The CPU path: surface 0.73, output 0.70.
+  - The earlier 5.68 was the outlier; the overrun is steady.
+  - Next, as agreed (G-R54): the output pass first. It costs four times the CPU path's for the same pixels, likely the
+    cap samples' resolve (G7's antialiased caps) or SSAO over the cut faces. A step of its own.

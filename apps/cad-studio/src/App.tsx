@@ -38,7 +38,8 @@ import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { poseKinematics, useJoints } from './state/useJoints';
-import { pathLimits } from './state/motion';
+import { draftPath, pathLimits, timedMotion } from './state/motion';
+import { motionOf, timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
 import { JointsPanelLive } from './ui/JointsPanelLive';
@@ -149,6 +150,7 @@ import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
 import { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from '@barocss/cad-model/engine/meshImport';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
 import { BUILT_IN, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
+import { ROBOT_SAMPLES, robotSampleFile } from './app/samples';
 import { bodyMass, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { boundsOf } from '@barocss/cad-model/engine/bounds';
 import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
@@ -877,7 +879,10 @@ export function App() {
   // section's copies, the clearance check; elsewhere SceneViewport and the Joints card do, not the App.)
   const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
   const { poseStore, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
-    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown } = useJoints(jointTree, posesInApp);
+    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown,
+    motionChoice, setMotionChoice } = useJoints(jointTree, posesInApp, doc.robot?.motions);
+  // (RS2: the saved motion chosen, its length before it plays — timed once per choice.)
+  const chosenDuration = useMemo(() => { const m = motionChoice === null || !jointTree ? undefined : doc.robot?.motions?.find(x => x.name === motionChoice); try { return m && jointTree ? timedMotion(timedPathOf(jointTree, m.path)).duration : undefined; } catch { return undefined; } }, [motionChoice, jointTree, doc.robot?.motions]);
   // (RS2: a motion frozen is swept once, as Check path sweeps — the links as placed — for its first contact: the time of
   // impact and the two links, tinted from that time on as it plays.)
   useEffect(() => {
@@ -2570,7 +2575,16 @@ export function App() {
         onValue={(k, v) => { stopMotion(); setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { stopMotion(); setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={k => { stopMotion(); setJointPlaying(k); }} links={linkInertias}
         motionState={{ time: motionTime, motion, waypoints: jointWaypoints, playing: motionPlaying, loop: motionLoop, speed: motionSpeed,
           contact: contactShown && motionContact ? `Contact ${jointTree.links.find(x => x.id === motionContact.links[0])?.name ?? motionContact.links[0]} – ${jointTree.links.find(x => x.id === motionContact.links[1])?.name ?? motionContact.links[1]} at t ${motionContact.toi.toFixed(2)} s` : null,
-          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed } }}
+          chosenDuration,
+          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed,
+            saved: (doc.robot?.motions ?? []).map(m => m.name), choice: motionChoice, onChoose: setMotionChoice,
+            // (The draft kept in the document: replacing one of the same name; an undo step, the file dirty.)
+            onSave: name => {
+              let path; try { path = motionOf(jointTree, draftPath(jointTree, jointWaypoints, poseStore.get())); } catch (e) { setToast({ title: 'Could not save the motion', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+              pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) };
+              robot.motions = [...(robot.motions ?? []).filter(m => m.name !== name), { name, path }];
+              setDoc({ ...doc, robot }); setDirty(true); setMotionChoice(name);
+            } } }}
         onExportUrdf={() => {
           // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
           const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
@@ -2785,6 +2799,12 @@ export function App() {
             {[...BUILT_IN.map(t => ({ name: t.name, doc: t.doc(), own: false })), ...savedTemplates().map(t => ({ ...t, own: true }))].map(t => <div key={(t.own ? 'own:' : '') + t.name} className="tpl-row">
               <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { replaceDoc({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setFileName('Untitled'); setTemplatesOpen(false); setTimeout(() => viewport.current?.fit(), 300); }}>{t.name}</Button>
               {t.own && <ToolIconButton size="tiny" aria-label={`Remove template ${t.name}`} onClick={() => { removeTemplate(t.name); setTemplatesOpen(false); }}><Icon name="close" small /></ToolIconButton>}
+            </div>)}
+            {/* (RS1: the robot samples, each with a demo motion in its Joints card; opened as Open opens a file.) */}
+            {ROBOT_SAMPLES.length > 0 && <div className="card-title mt-1" aria-label="Samples">SAMPLES · ROBOTS</div>}
+            {ROBOT_SAMPLES.map(r => <div key={'sample:' + r.id} className="tpl-row">
+              <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`Open sample ${r.title}`} title={r.about}
+                onClick={() => { setTemplatesOpen(false); void robotSampleFile(r).then(open, e => setToast({ title: 'Could not open the sample', hint: e instanceof Error ? e.message : String(e), detail: '' })); }}>{r.title}</Button>
             </div>)}
             <div className="tpl-row add"><Input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
               <Button variant="ghost" size="sm" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</Button></div>

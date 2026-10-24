@@ -22,7 +22,7 @@ section current.
 | GPU | RS2 part 2 (outer's robot/motion, Save as motion; a79d3df3f to verify), RS1's Samples group, the motion video; RS2 part 1 done (merge 553edb8a8) | G15 in order: G15d.1 → G15a → G15b → G15d.2–3 → G15c → G15d.4, accepted on the P1 engine render | the quiet section run |
 | API | the facade on engine/parameters.ts and robot/verbs.ts; RS5's poseAt and motions; P1 milestone 2 (assembly, slider-crank, 2:1 train, cycle sweep, balance); P1 milestone 1 done (merge 6b8a42ba1) | P1 milestone 3 (outputs), then P2, P3, P4 | R7.7d after the cores' renames |
 | Docs | RS4 part 1 now (the robots page per RS1 sample, shots; RS2's playback once part 2 lands); R7.6 part 1 done | the P1 showcase page when P1 lands; R7.6 part 2 after R7.3 | the Later list |
-| Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3) | a live brief → product run after P1, if the owner gives a budget | the owner's open decisions (below) |
+| Coordinator | merges; the periodic roadmap review (every ~3 h); the next window at R7.3's end (last fully verified 1f43a0818; full flow 288/288 at dc4b196e3) | P1-L3 after P1's scripted build (owner-approved budget) | the owner's open decisions (below) |
 
 ## Where we are
 
@@ -31,7 +31,7 @@ Integration is `review/cad-gpu-engine-2026-10-14`, local only (tip in `git log`;
 | | |
 |---|---|
 | Content | develop (#2185) + Codex's work squashed (`99da385a1`, no evidence files) + the GPU lint fix |
-| Flow at dc4b196e3 | the full flow on WebGPU 288/288 (the O19 regression fixed). Lanes paused at their usage limits (2026-10-24 evening): to merge — outer RS3 (a) on its tip, GPU RS2 part 1 `b7869913d` (not a79d3df3f, unverified), API's branch tip 26d268974 (integration merge only); kernel's fold is a patch in the shared notes (r73a-b2-part2-fold-wip.patch, unverified); outer reports rb9/product-brief/0 and /2 moved in the R4 fingerprint after fc3fde052 — to check |
+| Flow at dc4b196e3 | the full flow on WebGPU 288/288 (the O19 regression fixed). Lanes paused at their usage limits (2026-10-24 evening): to merge — outer RS3 (a) on its tip, GPU RS2 part 1 `b7869913d` (not a79d3df3f, unverified), API's branch tip 26d268974 (integration merge only); kernel's fold is a patch in the shared notes (r73a-b2-part2-fold-wip.patch, unverified); rb9/product-brief/0 and /2's R4 records after fc3fde052: checked by the coordinator — only the STEP text's hash moves (the fillet node's stored signature gains `n`, so the document revision in the STEP header changes); bodies, B-reps, keys, rebuild and STL identical |
 | WebGL2 | the full flow on WebGL2 at a90db6fa3 (GPU lane): 286/288, the two failures O19's regression (176, 183), fixed in dc4b196e3 |
 | Last fully verified commit | `1f43a0818`, 2026-10-24, after K16 (a track boundary): builds, types, lint, model 1051/1051, studio 286/286, gpu 201/201, kernel 1715/1722 (only native-split), RB and props pass, full flow 287/287 on WebGPU. Before it: `16eabdd8e` (S9) |
 | Integration window at `99da385a1` | builds and tsc pass; gpu 179/179; kernel 1597/1608 (4 real failures); model 902/915; studio 166/187; studio lint 1 error (fixed since); browser flow not run |
@@ -146,6 +146,7 @@ Moved out of Phase 0:
 | O20 | outer | **done** (`650c75873`, merge 730ab70ea: givenValues on the agent's and facade's path; split's and mirror's at, a tapped hole's Ø, a fastener's length — now refused when not offered; the derive list pinned). **The agent's given values kept through a command's derive** (found by the API lane, 2026-10-24): run_command split with `{axis: 'x', at: 2}` on a 10 mm box builds at 5 (the middle), no warning — split's `derive` in app/commands.ts moves `at` whenever the axis is among the changed keys, and runTool passes every given key as changed. Exit: a given value is never replaced (split and every other command with a derive audited), each with an agent-path test |
 | O21 | outer | **done** (merge dc4b196e3: engine/parameters.ts, set_parameters as features.parameters, 23,682 of 25,000 per turn). **The agent can make and set parameters** (found by the API lane in R7.4d's design): no v2 action creates or sets a named parameter today (only raw `{ parameter }` nodes and O11's assembly inputs); a `set_parameters`-style action (create, set, bind through editFields' rule), the per-turn budget kept; plus a core `withParameters(doc, edits) → doc` that the tool and the facade both call. After R7.7a |
 | K17 | kernel | **A suppressed flag in the part document** (R7.4d): the studio's History toggle has `suppressed: true`, the kernel document has none, so the kernel facade refuses suppression (UNAVAILABLE). Low priority, after R7.3 |
+| O22 | outer | **Designed contact isn't a collision in check path** (found by the docs lane in RS4): the samples' demo motions sweep clear for arm-2r, scara, arm-6r and pan-tilt, but gripper and gear-joint (meshing gears) and four-bar (the loop-closure pin) report contact from s 0, because the sweep skips only parent–child pairs; and gantry-ppp's ram really meets its X carriage (sample geometry). Exit: gear-meshed pairs and loop-closure pins treated as designed contact (as the clearance map's "designed"), a real crash between them still reported (tested); the gantry sample fixed; RS1's test requires every demo motion to pass check_path clear |
 | K10 | kernel | **done** D188–D196: RB5 fuzz harness; empty operands; six INVALID fixed; the KNOWN crescent; refusal triage |
 | K10b | kernel | **done** D197–D210, D206 (fuzz s1 refusals 31 → 16, s2 29 → 14; INVALID 0, WRONG 0 on both; touching lumps are separate bodies). the 17 robust refusals of valid inputs (D197 on), then the 8 near-degenerate; separate lumps on exact contact as separate bodies |
 | K11 | kernel | **done** D211 (turningOf 8.1 → 4.4 s; D1 calls 4.22 M → 1.40 M). F5's remainder (the turning report's first-derivative evaluations) |
@@ -178,6 +179,8 @@ Each product is built end to end — parts, assembly, mates and motion, mass, in
 | P2 | API, gaps to owners | **An electronics enclosure**: a handheld device's two-part moulded housing with bosses, snap fits, ribs, a battery bay, connector openings from connector rows, a heat sink with fins, the board as a sized placeholder | thin walls, draft, moulding DFM, connector rows, fits between halves, an exploded assembly |
 | P3 | API, gaps to owners | **A large machine**: a gantry CNC router — a welded frame, linear rails, carriages, a gantry, motor mounts from mount rows, ball screws, many fasteners (hundreds of parts) | scale (opening, evaluation and display time with hundreds of parts), frames and the cut list, mounts, the BOM at size, the drawing set |
 | P4 | API (+ outer for sizing), gaps to owners | **A real 6-axis robot arm**: link castings, joint housings for strain-wave gearboxes, motor mounts, bearings, a cable path, a tool flange | robot-size and robot-check on real link masses, motion (RS2), URDF/MJCF read back, manufacturing outputs of each link |
+
+| P1-L3 | outer (harness, the agent side), API (the brief and the oracle from P1's build) | **A live AI run of the engine brief** (owner, 2026-10-24: "P1(엔진) 스크립트 버전이 끝나면 실제 AI 실행을 해봐. 예산은 모두 합쳐 US$25 이하, 한 번에 US$8을 넘으면 멈춰."): after P1's scripted build is done, Codex (owner, 2026-10-24: "AI 실행하는건 codex 로 해줘도 돼"; `codex exec` 0.156.1 with cad-mcp as its MCP server), or the studio chat's default model through O15's harness gets the engine brief and works through the v2 tools only; success is judged by a fresh harness run against P1's own checks (parts, mechanism, masses, outputs), never the model's word; every place it fails or works around becomes a PG item; usage logged per run; on Codex no token cap (owner, 2026-10-24: "codex 는 토큰 상관 없이 쓸 수 있어"), so several runs are fine; **on Claude at most US$25 in all, a run stopped past US$8** |
 
 Gaps found (PG-n, added as they're found):
 
@@ -292,6 +295,7 @@ evidence files.
 - **R6** — Triage the stale examples/gpu-scene flows · ko: 오래된 gpu-scene 예제 흐름 정리 (고치거나 은퇴)
 - **R7** — API consistency and an object facade over the core · ko: API 일관성 정리와 객체형 겉 API
 - **P1** — A real product: single-cylinder four-stroke engine · ko: 실제 제품: 단기통 4행정 엔진
+- **P1-L3** — A live AI run of the engine brief (≤ US$25, a run stopped past US$8) · ko: 실제 AI로 엔진 브리프 만들기 (총 25달러 이하, 1회 8달러 넘으면 중단)
 - **P2** — A real product: electronics enclosure · ko: 실제 제품: 전자기기 외함
 - **P3** — A real product: large machine (gantry CNC router) · ko: 실제 제품: 대형 기계 (갠트리 CNC 라우터)
 - **P4** — A real product: 6-axis robot arm · ko: 실제 제품: 실제 6축 로봇 팔
@@ -325,6 +329,7 @@ evidence files.
 - **O16** — Panel contents tidied for the dock · ko: 도킹 안 패널 내용 정리 (BOM 표 폭, 긴 설명 접기, 문구 스타일 통일)
 - **O17** — The chat on the AI SDK (useChat over our SSE, shadcn AI components, scripted chats for flows) · ko: AI SDK 기반 채팅 (기존 SSE 위의 useChat, shadcn AI 컴포넌트, 흐름 검사용 대본 채팅)
 - **O18** — Mass on request (the worker sends mass only when asked) · ko: 질량은 요청할 때만 계산 (열기 시간 단축)
+- **O22** — Designed contact (meshing gears, loop pins) isn't a collision in check path; the gantry sample fixed · ko: 경로 검사에서 설계된 접촉(맞물린 기어, 고리 핀)은 충돌로 보지 않기; 갠트리 샘플 수정
 - **O21** — The agent can make and set parameters · ko: 에이전트가 매개변수를 만들고 값을 바꿀 수 있게
 - **K17** — A suppressed flag in the part document · ko: 부품 문서에 피처 억제 표시
 - **O20** — The agent's given values kept through a command's derive (split's at) · ko: 명령의 자동 계산이 에이전트가 준 값을 덮어쓰지 않게 (분할 위치)
@@ -356,6 +361,7 @@ evidence files.
 - **New part resets the camera** (G14, G-R54/G-R56): a new part keeps the last part's saved view today, so flow steps 74 and 270 depend on what ran before; a user-visible change, so later. · ko: 새 부품을 만들면 시점을 기본값으로 (흐름 순서 의존 해소, 화면 동작 변화라 나중에)
 - **After G25, when need is measured:** occlusion culling, progressive photoreal rendering, turntable and explode video. · ko: 가려진 물체 생략, 점진 사실적 렌더링, 회전·분해 영상 (필요가 확인되면)
 - **Publication:** gpu's entries — **done** (merge 9f66ec3e4, G-R61: tsc-only build, one module graph, a tarball consumer test) — (`@barocss/gpu` was one bundle, `@barocss/gpu/viewer` unbundled tsc output, so each has its own Viewer, ViewerError and BarocssError and `instanceof` fails across them; GPU lane, after R7.7c: bundles with the shared core external, a consumer test), the cad-model package build, the docs inventory (`check:docs` drift for @barocss/gpu), the A6.5 legal review, release. Only when the owner asks. · ko: cad-model 패키지 빌드, 문서 목록, 법률 검토, 릴리스 (오너가 요청할 때만)
+- **A gallery site of prompts and their results** (owner, 2026-10-24: planned, not now): users' prompts with the models the AI made, renders and per-element scores; the AI evaluation stores its runs gallery-ready in ~/.cache/barocss-ai-eval/ (prompt, .bcad, a render, score.json, an index) so the site can read them. · ko: 사용자 프롬프트와 결과물을 모은 갤러리 사이트 (나중에)
 - **After the whole roadmap:** the full spec and conformance suite, and a fresh-AI reimplementation test (owner's experiment). · ko: 전체 명세와 적합성 시험, 새 AI가 다시 구현해 보는 실험
 
 ## Waiting on the owner
@@ -369,7 +375,6 @@ evidence files.
 - Permissions and budgets: RD3 PDFs, RB6/RB8 downloads, live-model runs, the A6.5 legal review. · ko: 허락과 예산: RD3 PDF, RB6/RB8 다운로드, 실제 모델 실행, 법률 검토
 - The 3MF slicer check (open the exported 3MF in PrusaSlicer or Bambu). · ko: 3MF를 슬라이서(PrusaSlicer, Bambu)에서 열어 확인
 - Dimension expressions (`W/2 + 3`) in documents: today a value is a number or `{ parameter }`, neither document stores an expression; adding one is a schema change for the kernel and the studio. · ko: 문서에 치수 식(W/2+3 같은)을 저장할지 (지금은 숫자나 매개변수 이름만)
-- A live run of the goal itself: give the studio's agent a product brief (P1's engine, or A9's shaft assembly) and see whether it reaches a manufacturable, buyable product through the v2 tools, judged by a fresh harness run; needs a token budget (like O15's ≤ US$25). · ko: 목표 자체의 실제 실행 — 에이전트에게 제품 브리프를 주고 만들게 하기 (토큰 예산 필요)
 - P1's rows (PG-2): a rows file for the spark plug thread (M14 × 1.25) and the engine's main bearings, from a source the owner supplies; until then stand-ins. · ko: 엔진용 행 파일 (점화 플러그 M14×1.25 나사, 메인 베어링) — 사람이 준 자료 필요
 - A built-in display look per material id (al6061's colour, …) in gpu, or scenes keep registering their own looks (today: none; O75 keeps look ids apart from material ids; R7.5b finding 10; the GPU lane recommends none in gpu: looks stay with the app or the person). · ko: 재료 id마다 기본 표시 모양(색)을 gpu에 둘지, 장면이 직접 등록할지
 
