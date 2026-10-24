@@ -226,16 +226,16 @@ test('FR S0: a rectangular frame of four mitred tubes — the cut list by closed
   const t0 = performance.now(), snap = run(feats), ms = performance.now() - t0;
   const rows = ids.map((id, k) => {
     const o = outputOf(snap, id), p0 = corners[k], u = unit(sub(corners[(k + 1) % 4], p0)), along = vertices(o.brep).map(v => dot(sub(v, p0), u));
-    return { length: Math.hypot(...sub(corners[(k + 1) % 4], p0)), longPoint: Math.max(...along) - Math.min(...along), massKG: massPropertiesOf(o, STEEL).mass };
+    return { length: Math.hypot(...sub(corners[(k + 1) % 4], p0)), longPoint: Math.max(...along) - Math.min(...along), mass: massPropertiesOf(o, STEEL).mass };
   });
   for (const [k, row] of rows.entries()) {
     const L = k % 2 ? H : W;
     // (The kernel's quadrature mass on the round corners cut at 45°, about 3e-9: the cut list's ρ·A·L is the closed form.)
-    near(row.longPoint, L + b, 1e-12, `long point ${k}`); near(row.massKG, STEEL * s.area * L * 1e-3, 1e-8, `mass ${k}`);
+    near(row.longPoint, L + b, 1e-12, `long point ${k}`); near(row.mass, STEEL * s.area * L * 1e-3, 1e-8, `mass ${k}`);
   }
   // Grouped by (section, length, end angles): two of W and two of H; the frame's mass the sum.
   const groups = new Map(); for (const r of rows) { const key = r.length.toFixed(6); groups.set(key, (groups.get(key) ?? 0) + 1); }
   assert.deepEqual([...groups.values()], [2, 2]);
-  near(rows.reduce((a, r) => a + r.massKG, 0), STEEL * s.area * 2 * (W + H) * 1e-3, 1e-8, 'frame mass');
+  near(rows.reduce((a, r) => a + r.mass, 0), STEEL * s.area * 2 * (W + H) * 1e-3, 1e-8, 'frame mass');
   assert.ok(ms < 5000, `${ms} ms`);
 });

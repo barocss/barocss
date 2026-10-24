@@ -15,13 +15,13 @@ const area = regions => regions.reduce((s, r) => s + curveRegionArea(r), 0);
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
 const circle = (cx, cy, r) => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
 const slot = (x0, x1, y, r) => [{ kind: 'line', start: [x0, y - r] }, { kind: 'arc', start: [x1, y - r], center: [x1, y], direction: 'ccw' }, { kind: 'line', start: [x1, y + r] }, { kind: 'arc', start: [x0, y + r], center: [x0, y], direction: 'ccw' }];
-const box = (x0, y0, z0, x1, y1, z1) => prismaticFromProfile({ outer: rect(x0, y0, x1, y1), heightMM: z1 - z0, fromMM: z0 });
-const cyl = (cx, cy, r, z0, z1) => prismaticFromProfile({ outer: circle(cx, cy, r), heightMM: z1 - z0, fromMM: z0 });
+const box = (x0, y0, z0, x1, y1, z1) => prismaticFromProfile({ outer: rect(x0, y0, x1, y1), height: z1 - z0, from: z0 });
+const cyl = (cx, cy, r, z0, z1) => prismaticFromProfile({ outer: circle(cx, cy, r), height: z1 - z0, from: z0 });
 const U = (a, b) => booleanPrismatic(a, b, 'union'), D = (a, b) => booleanPrismatic(a, b, 'difference'), I = (a, b) => booleanPrismatic(a, b, 'intersection');
 
 /** Signed mesh volume and whether every directed mesh edge is matched by as many reversed ones. */
 function meshOf(brep, segmentsPerQuarter) {
-  const m = tessellateBrep(brep, { segmentsPerQuarter }), p = m.positionsMM, ix = m.indices, he = new Map(), key = q => p[q * 3] + ',' + p[q * 3 + 1] + ',' + p[q * 3 + 2];
+  const m = tessellateBrep(brep, { segmentsPerQuarter }), p = m.positions, ix = m.indices, he = new Map(), key = q => p[q * 3] + ',' + p[q * 3 + 1] + ',' + p[q * 3 + 2];
   let volume = 0;
   for (let t = 0; t < ix.length; t += 3) {
     const [a, b, c] = [ix[t] * 3, ix[t + 1] * 3, ix[t + 2] * 3];
@@ -95,7 +95,7 @@ test('prismatic Booleans give valid B-reps with exact volumes, curved walls and 
     ['through hole', D(plate, cyl(20, 15, 4, -1, 6)), 6000 - 80 * pi, [[1, 8, 1]]],
     ['boss', U(plate, cyl(10, 10, 3, 5, 8)), 6000 + 27 * pi, [[1, 9, 0]]],
     ['counterbore', D(D(plate, cyl(30, 15, 6, 2, 6)), cyl(30, 15, 3, -1, 6)), 6000 - 36 * pi * 3 - 9 * pi * 2, [[1, 11, 1]]],
-    ['slot pocket', D(plate, prismaticFromProfile({ outer: slot(10, 25, 15, 3), heightMM: 3, fromMM: 2 })), 6000 - (90 + 9 * pi) * 3, [[1, 11, 0]]],
+    ['slot pocket', D(plate, prismaticFromProfile({ outer: slot(10, 25, 15, 3), height: 3, from: 2 })), 6000 - (90 + 9 * pi) * 3, [[1, 11, 0]]],
     ['cavity', D(box(0, 0, 0, 30, 30, 30), box(10, 10, 10, 20, 20, 20)), 26000, [[2, 12, 0]]],
     ['cylindrical cavity', D(box(0, 0, 0, 30, 30, 30), cyl(15, 15, 5, 10, 20)), 27000 - 250 * pi, [[2, 10, 0]]],
     ['island in a cavity', U(D(box(0, 0, 0, 30, 30, 30), box(5, 5, 5, 25, 25, 25)), box(10, 10, 10, 20, 20, 20)), 20000, [[2, 12, 0], [1, 6, 0]]],
@@ -128,7 +128,7 @@ test('random prismatic Booleans: volume identities, point classification, valid 
   const prism = () => {
     const k = ri(0, 2), z0 = ri(-3, 3), h = ri(1, 5);
     const outer = k === 0 ? circle(ri(-6, 6), ri(-6, 6), ri(1, 6)) : k === 1 ? (() => { const x = ri(-8, 4), y = ri(-8, 4); return rect(x, y, x + ri(1, 8), y + ri(1, 8)); })() : (() => { const x = ri(-6, 3); return slot(x, x + ri(1, 5), ri(-5, 5), ri(1, 3)); })();
-    return prismaticFromProfile({ outer, heightMM: h, fromMM: z0 });
+    return prismaticFromProfile({ outer, height: h, from: z0 });
   };
   let built = 0;
   for (let k = 0; k < 90; k++) {
@@ -155,7 +155,7 @@ test('random prismatic Booleans: volume identities, point classification, valid 
 });
 
 test('caps whose curves are tangent inside each other tessellate watertight (found by fuzzing)', () => {
-  const slotP = (x0, x1, y, r, z0, z1) => prismaticFromProfile({ outer: slot(x0, x1, y, r), heightMM: z1 - z0, fromMM: z0 });
+  const slotP = (x0, x1, y, r, z0, z1) => prismaticFromProfile({ outer: slot(x0, x1, y, r), height: z1 - z0, from: z0 });
   const cases = [
     // A circle internally tangent to a slot's end arc, and the slot's side line tangent there too.
     I(U(cyl(2, -3, 3, 0, 3), slotP(2, 3, -2, 2, 0, 4)), slotP(-1, 4, 2, 3, 1, 5)),
@@ -177,7 +177,7 @@ test('arcs tangent inside each other sample on one angular grid: crescents of an
   const crescent = (ti, to) => {
     const p = [2 + 3 * Math.cos(ti), 3 * Math.sin(ti)], q = [5 * Math.cos(to), 5 * Math.sin(to)], d = [q[0] - p[0], q[1] - p[1]];
     const P1 = [p[0] - 10 * d[0], p[1] - 10 * d[1]], P2 = [q[0] + 10 * d[0], q[1] + 10 * d[1]], f = 20 / Math.hypot(...d), n = [-d[1] * f, d[0] * f];
-    const cutter = prismaticFromProfile({ outer: [P1, P2, [P2[0] + n[0], P2[1] + n[1]], [P1[0] + n[0], P1[1] + n[1]]].map(start => ({ kind: 'line', start })), heightMM: 6, fromMM: -1 });
+    const cutter = prismaticFromProfile({ outer: [P1, P2, [P2[0] + n[0], P2[1] + n[1]], [P1[0] + n[0], P1[1] + n[1]]].map(start => ({ kind: 'line', start })), height: 6, from: -1 });
     return brepFromPrismatic(D(D(cyl(0, 0, 5, 0, 4), cyl(2, 0, 3, -1, 5)), cutter));
   };
   assert.ok(meshOf(crescent(0.54, 0.40), 2).watertight, 'the configuration that failed before');

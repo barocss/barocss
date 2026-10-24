@@ -21,7 +21,7 @@ function oracle(pieces, degrees, rho) {
   return {V,c,mass:rho*V*1e-3,I:C.map((row,i)=>row.map((q,j)=>k*((i===j?trace:0)-q)))};
 }
 function check(profile,holes,pieces,degrees) {
-  const input={id:'r',profile,holes,axis:{origin:[0,0],direction:[1,0]},angleDegrees:degrees};
+  const input={id:'r',profile,holes,axis:{origin:[0,0],direction:[1,0]},angle:degrees};
   const b=revolveProfile(input), report=assertValidBrep(b); assert.equal(report.valid,true);assert.equal(b.bodies.length,1);
   assert.equal(b.shells.length,degrees===360?1+holes.length:1);
   if(degrees<360) for(const end of ['start','end']) {
@@ -45,23 +45,23 @@ test('FRk4 direct round tube: toroidal bore walls, independent V/C/all9I',()=>{
 });
 test('FRk4 two offset bores preserve nonzero product moments, winding and persistent tags',()=>{
   for(const deg of [110,360]) check(rect(0,100,60,40),[circle(-12,96,5),rect(10,105,9,11)],[rectangle(0,100,60,40),disk(-12,96,5,-1),rectangle(10,105,9,11,-1)],deg);
-  const input={id:'tagged',profile:rect(0,100,30,40),holes:[rect(0,100,24,34)],sideTags:['a','b','c','d'],holeTags:[['e','f','g','h']],axis:{origin:[0,0],direction:[1,0]},angleDegrees:90};
+  const input={id:'tagged',profile:rect(0,100,30,40),holes:[rect(0,100,24,34)],sideTags:['a','b','c','d'],holeTags:[['e','f','g','h']],axis:{origin:[0,0],direction:[1,0]},angle:90};
   const b=revolveProfile(input);assertValidBrep(b);
   for(const tag of ['a','b','c','d','e','f','g','h']) assert.ok(b.faces.some(f=>f.name===`tagged.side[${tag}]`));
   const clockwise={...input,holes:[rect(0,100,24,34).reverse()]};
   near(revolveMassProperties(clockwise,1).volume,revolveMassProperties(input,1).volume,'authored winding');
 });
 test('FRk4 bore refusal: outside, touching, crossing, overlapping, nested; no Boolean repair',()=>{
-  const p=rect(0,100,30,40), base={profile:p,axis:{origin:[0,0],direction:[1,0]},angleDegrees:90};
+  const p=rect(0,100,30,40), base={profile:p,axis:{origin:[0,0],direction:[1,0]},angle:90};
   const bad=[[rect(40,100,4,4)],[rect(13,100,4,4)],[rect(15,100,5,5)],[circle(0,100,5),circle(4,100,5)],[circle(0,100,8),circle(0,100,3)]];
   for(const holes of bad) for(const fn of [revolveProfile,x=>revolveMassProperties(x,1)]) assert.throws(()=>fn({...base,holes}),/revolve:.*(bore|bores)/);
 });
 test('FRk4 no-hole behavior remains identical when holes is empty',()=>{
-  const input={id:'plain',profile:rect(0,100,30,40),axis:{origin:[0,0],direction:[1,0]},angleDegrees:120};
+  const input={id:'plain',profile:rect(0,100,30,40),axis:{origin:[0,0],direction:[1,0]},angle:120};
   assert.deepEqual(revolveProfile({...input,holes:[]}),revolveProfile(input));
   assert.deepEqual(revolveMassProperties({...input,holes:[]},1),revolveMassProperties(input,1));
 });
 test('FRk4 hollow tags reject collisions and wrong list sizes instead of ambiguous face names',()=>{
-  const input={id:'tags',profile:rect(0,100,30,40),holes:[rect(0,100,24,34)],sideTags:['a','b','c','d'],holeTags:[['e','f','g','h']],axis:{origin:[0,0],direction:[1,0]},angleDegrees:90};
+  const input={id:'tags',profile:rect(0,100,30,40),holes:[rect(0,100,24,34)],sideTags:['a','b','c','d'],holeTags:[['e','f','g','h']],axis:{origin:[0,0],direction:[1,0]},angle:90};
   for(const holeTags of [[['a','f','g','h']],[['e','f']],[['e','f','g','?']],[]]) for(const fn of [revolveProfile,x=>revolveMassProperties(x,1)]) assert.throws(()=>fn({...input,holeTags}),/revolve:.*(tags|Tags)/);
 });

@@ -38,7 +38,7 @@ test('tessellated: a mesh body out as AP242 triangulated faces and back — volu
   assert.ok(Math.abs(p1.v - p0.v) < 1e-9 * p0.v && Math.abs(p1.a - p0.a) < 1e-9 * p0.a && p1.c.every((x, k) => Math.abs(x - p0.c[k]) < 1e-9));
   // The validation properties are written for it too.
   const gvp = stepValidationProperties(text);
-  assert.ok(Math.abs(gvp.volumeMM3 - p0.v) < 1e-6 * p0.v);
+  assert.ok(Math.abs(gvp.volume - p0.v) < 1e-6 * p0.v);
 });
 
 test('auto: planar faces up to the threshold (any reader), tessellated above; planar forced and tessellated forced both read back', () => {

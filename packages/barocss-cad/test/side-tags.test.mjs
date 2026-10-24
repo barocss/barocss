@@ -21,7 +21,7 @@ test('R10a every generator names the sketch\'s sides by their tags: extrude, dra
   assert.deepEqual(names(out([tagged(box), { id: 'e', kind: 'extrude', sketch: 's', height: 5, draft: 5 }], 'e')), ['e.bottom', ...sides('e'), 'e.top'].sort());
   assert.deepEqual(names(out([tagged(ring), { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }], 'r')), sides('r'));
   assert.deepEqual(names(out([tagged(box), { ...tagged([[2, 2], [18, 2], [18, 8], [2, 8]], ['p', 'q', 'r', 't']), id: 's2' }, { id: 'l', kind: 'loft', sections: [{ sketch: 's', z: 0 }, { sketch: 's2', z: 10 }] }], 'l')), ['l.bottom', ...sides('l'), 'l.top'].sort());
-  assert.deepEqual(names(out([tagged(box), { id: 'w', kind: 'sweep', sketch: 's', path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 30, angleDegrees: 90, toward: 'x' }] }], 'w')),
+  assert.deepEqual(names(out([tagged(box), { id: 'w', kind: 'sweep', sketch: 's', path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 30, angle: 90, toward: 'x' }] }], 'w')),
     ['w.s0.bottom', ...sides('w.s0'), 'w.s1.end', ...sides('w.s1')].sort());
   const hole = [{ kind: 'arc', start: [7, 5], center: [5, 5], direction: 'ccw' }];
   assert.ok(names(out([tagged(box, ['a', 'b', 'c', 'd'], { holes: [hole], sideTags: { outer: ['a', 'b', 'c', 'd'], holes: [['h']] } }), { id: 'e', kind: 'extrude', sketch: 's', height: 5 }], 'e')).includes('e.side[h]'));

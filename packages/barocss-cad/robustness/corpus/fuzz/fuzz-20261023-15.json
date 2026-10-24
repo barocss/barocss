@@ -58,7 +58,7 @@
           "kind": "rotate",
           "target": "n2b",
           "axis": "x",
-          "angleDegrees": 90,
+          "angle": 90,
           "pivot": [
             0,
             0,
@@ -70,7 +70,7 @@
           "kind": "rotate",
           "target": "n2r0",
           "axis": "z",
-          "angleDegrees": 90,
+          "angle": 90,
           "pivot": [
             0,
             0,

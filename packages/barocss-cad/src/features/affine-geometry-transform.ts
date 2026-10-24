@@ -21,13 +21,13 @@ export class AffineGeometryTransformError extends KernelError {
 export type CadAffineMatrix3x4 = [number, number, number, number, number, number, number, number, number, number, number, number];
 export interface AffineGeometryTransformOptions { geometryId: string; maximumObservations: number }
 type D1State<T> = { status: 'evaluated'; value: T } | { status: 'native-refused'; reason: string; nativeErrorName: string };
-type PointObservation = { originalPointMM: Point; expectedPointMM: Point; actualPointMM: Point; differenceMM: number };
+type PointObservation = { originalPoint: Point; expectedPoint: Point; actualPoint: Point; difference: number };
 export type AffineGeometryTransformObservation =
   PointObservation & { kind: 'curve'; parameter: number; originalD1: D1State<CurveD1Result>; targetD1: D1State<CurveD1Result>;
-    expectedDerivativeMM: Point | null; relativeDerivativeDifference: number | null }
+    expectedDerivative: Point | null; relativeDerivativeDifference: number | null }
   | PointObservation & { kind: 'surface'; u: number; v: number; originalD1: D1State<SurfaceD1Result>; targetD1: D1State<SurfaceD1Result>;
-    expectedDuMM: Point | null; expectedDvMM: Point | null; relativeDuDifference: number | null; relativeDvDifference: number | null;
-    expectedCrossMM2: Point | null; actualCrossMM2: Point | null; relativeCrossDifference: number | null; crossDegenerate: boolean | null };
+    expectedDu: Point | null; expectedDv: Point | null; relativeDuDifference: number | null; relativeDvDifference: number | null;
+    expectedCross: Point | null; actualCross: Point | null; relativeCrossDifference: number | null; crossDegenerate: boolean | null };
 export interface AffineGeometryTransformReport {
   schema: 'barocss-native-affine-geometry-transform'; version: 0; originalId: string; geometryId: string; kind: 'curve' | 'surface'; lengthUnit: 'mm'; sourceFrame: 'authored-xyz-no-axis-conversion';
   matrixRoles: { order: 'row-major-three-by-four-column-vector'; linearUnit: 'dimensionless'; translationUnit: 'mm' };
@@ -35,11 +35,11 @@ export interface AffineGeometryTransformReport {
   domains: { curve: [number, number] | null; u: [number, number] | null; v: [number, number] | null };
   samples: { curve: number[]; u: number[]; v: number[] };
   unrepresentedMidpointIntervals: { curve: { domain: [number, number]; attemptedParameter: number }[]; u: { domain: [number, number]; attemptedParameter: number }[]; v: { domain: [number, number]; attemptedParameter: number }[] };
-  coefficientMappings: { controlPoint: [number] | [number, number]; originalPointMM: Point; targetPointMM: Point;
+  coefficientMappings: { controlPoint: [number] | [number, number]; originalPoint: Point; targetPoint: Point;
     axes: { axis: number; row: [number, number, number, number]; terms: [number, number, number, number]; value: number; policy: 'identity-axis-bit-copy' | 'guarded-affine-dot' }[] }[];
   observationCount: number; observations: AffineGeometryTransformObservation[]; originalD0EvaluationCount: number; targetD0EvaluationCount: number;
   originalD1AttemptCount: number; targetD1AttemptCount: number; derivativeComparisonCount: number; derivativeRefusalCount: number; derivativeSourceRefusalCounts: { original: number; target: number };
-  maximumPointDifferenceMM: number; maximumRelativeDerivativeDifference: number | null; maximumRelativeCrossDifference: number | null; degenerateCrossObservationCount: number;
+  maximumPointDifference: number; maximumRelativeDerivativeDifference: number | null; maximumRelativeCrossDifference: number | null; degenerateCrossObservationCount: number;
   geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   quality: { authority: 'actual-native-control-coefficients-and-original-parameter-evaluators'; basisWeightsAndParameterBitsPreserved: true;
     coefficientPolicy: 'guarded-affine-dot-with-unit-axis-zero-translation-bit-copy'; parameterOrderPreserved: true;
@@ -51,15 +51,15 @@ export interface AffineGeometryTransformReport {
     ownership: 'copied-cpu-data-gc-no-renderer-resources' };
   budgetFailure: 'atomic-refusal-no-partial-transformed-native-geometry';
   limits: { maximumCurveDegree: 5; maximumCurvePoles: 64; maximumSurfaceAxisPoles: 16; maximumSurfacePoles: 256; maximumCurveSamples: 127;
-    maximumSurfaceAxisSamples: 31; maximumObservations: 961; linearCoefficientAbs: 1000; translationAbsMM: 10000; coordinateAbsMM: 10000; parameterAbs: 10000;
-    authoredIdCharacters: 48; pointComparisonMM: 1e-7; relativeD1Comparison: 1e-7; determinantRelativeThreshold: number;
+    maximumSurfaceAxisSamples: 31; maximumObservations: 961; linearCoefficientAbs: 1000; translationAbs: 10000; coordinateAbs: 10000; parameterAbs: 10000;
+    authoredIdCharacters: 48; pointComparison: 1e-7; relativeD1Comparison: 1e-7; determinantRelativeThreshold: number;
     inputValues: 32768; inputDepth: 8; inputArrayElements: 128; inputRecordFields: 16; inputStringCharacters: 128;
     ownValues: 1048576; ownDepth: 40; arrayElements: 8192; recordFields: 64; sourceStringCharacters: 262144 };
 }
 export interface AffineGeometryTransformResult { original: Curve | Surface; matrix: CadAffineMatrix3x4; options: AffineGeometryTransformOptions; geometry: Curve | Surface;
   source: string; sourceVersion: 0; model: Model; report: AffineGeometryTransformReport }
 
-const CODE = AffineGeometryTransformDiagnosticCode, TOLERANCE = CadNumericPolicy.linearToleranceMM;
+const CODE = AffineGeometryTransformDiagnosticCode, TOLERANCE = CadNumericPolicy.linearTolerance;
 function check(condition: boolean, code: AffineGeometryTransformDiagnosticCode, detail: string, cause?: unknown): asserts condition {
   if (!condition) throw new AffineGeometryTransformError(code, detail, cause);
 }
@@ -192,7 +192,7 @@ export function transformNativeGeometryAffine(originalInput: Curve | Surface, ma
   const coefficientMappings: AffineGeometryTransformReport['coefficientMappings'] = [];
   const mapCoefficient = (point: Point, controlPoint: [number] | [number, number]): Point => {
     const mapped = mapPoint(matrix, point, true); check(mapped.point.every(value => Math.abs(value) <= 10000), CODE.REPRESENTABILITY, 'generated native XYZ exceeds10000mm');
-    coefficientMappings.push({ controlPoint, originalPointMM: point, targetPointMM: mapped.point, axes: mapped.axes }); return mapped.point;
+    coefficientMappings.push({ controlPoint, originalPoint: point, targetPoint: mapped.point, axes: mapped.axes }); return mapped.point;
   };
   const geometry = copyCadData(original); geometry.id = geometryId;
   if (geometry.kind === 'curve' && original.kind === 'curve') geometry.controlPoints = original.controlPoints.map((point, i) => mapCoefficient(point, [i]));
@@ -209,7 +209,7 @@ export function transformNativeGeometryAffine(originalInput: Curve | Surface, ma
   const pointBinding = (sourcePoint: Point, targetPoint: Point): PointObservation => {
     const expectedPointMM = mapPoint(matrix, sourcePoint, true).point, differenceMM = distance(expectedPointMM, targetPoint);
     check(differenceMM <= TOLERANCE, CODE.BINDING, 'actual native target point does not match affine original point');
-    maximumPointDifferenceMM = Math.max(maximumPointDifferenceMM, differenceMM); return { originalPointMM: sourcePoint, expectedPointMM, actualPointMM: targetPoint, differenceMM };
+    maximumPointDifferenceMM = Math.max(maximumPointDifferenceMM, differenceMM); return { originalPoint: sourcePoint, expectedPoint: expectedPointMM, actualPoint: targetPoint, difference: differenceMM };
   };
   const recordRelative = (actual: Point, expected: Point): number => {
     const value = relative(actual, expected); check(value <= TOLERANCE, CODE.BINDING, 'actual native transformed derivative does not match linear original derivative');
@@ -231,7 +231,7 @@ export function transformNativeGeometryAffine(originalInput: Curve | Surface, ma
     matchStates(originalD1, targetD1, sourceCause, targetCause); let expectedDerivativeMM: Point | null = null, relativeDerivativeDifference: number | null = null;
     if (originalD1.status === 'evaluated' && targetD1.status === 'evaluated') { expectedDerivativeMM = mapPoint(matrix, originalD1.value.derivative, false).point;
       relativeDerivativeDifference = recordRelative(targetD1.value.derivative, expectedDerivativeMM); }
-    observations.push({ kind: 'curve', parameter, ...pointBinding(sourcePoint, targetPoint), originalD1, targetD1, expectedDerivativeMM, relativeDerivativeDifference });
+    observations.push({ kind: 'curve', parameter, ...pointBinding(sourcePoint, targetPoint), originalD1, targetD1, expectedDerivative: expectedDerivativeMM, relativeDerivativeDifference });
   }
   if (original.kind === 'surface' && geometry.kind === 'surface') for (const u of uSamples.values) for (const v of vSamples.values) {
     originalD0EvaluationCount++; const sourcePoint = native(() => evaluateSurface(original, u, v), 'actual original Surface point');
@@ -250,8 +250,8 @@ export function transformNativeGeometryAffine(originalInput: Curve | Surface, ma
       maximumRelativeCrossDifference = Math.max(maximumRelativeCrossDifference ?? 0, relativeCrossDifference);
       crossDegenerate = Math.hypot(...actualCrossMM2) === 0 || Math.hypot(...expectedCrossMM2) === 0; if (crossDegenerate) degenerateCrossObservationCount++;
     }
-    observations.push({ kind: 'surface', u, v, ...pointBinding(sourcePoint, targetPoint), originalD1, targetD1, expectedDuMM, expectedDvMM, relativeDuDifference, relativeDvDifference,
-      expectedCrossMM2, actualCrossMM2, relativeCrossDifference, crossDegenerate });
+    observations.push({ kind: 'surface', u, v, ...pointBinding(sourcePoint, targetPoint), originalD1, targetD1, expectedDu: expectedDuMM, expectedDv: expectedDvMM, relativeDuDifference, relativeDvDifference,
+      expectedCross: expectedCrossMM2, actualCross: actualCrossMM2, relativeCrossDifference, crossDegenerate });
   }
   const report: AffineGeometryTransformReport = {
     schema: 'barocss-native-affine-geometry-transform', version: 0, originalId: original.id, geometryId, kind: original.kind, lengthUnit: 'mm', sourceFrame: 'authored-xyz-no-axis-conversion',
@@ -261,7 +261,7 @@ export function transformNativeGeometryAffine(originalInput: Curve | Surface, ma
     samples: { curve: curveSamples.values, u: uSamples.values, v: vSamples.values }, unrepresentedMidpointIntervals: { curve: curveSamples.gaps, u: uSamples.gaps, v: vSamples.gaps },
     coefficientMappings, observationCount, observations, originalD0EvaluationCount, targetD0EvaluationCount, originalD1AttemptCount, targetD1AttemptCount,
     derivativeComparisonCount, derivativeRefusalCount, derivativeSourceRefusalCounts: { original: originalRefusalCount, target: targetRefusalCount },
-    maximumPointDifferenceMM, maximumRelativeDerivativeDifference, maximumRelativeCrossDifference, degenerateCrossObservationCount,
+    maximumPointDifference: maximumPointDifferenceMM, maximumRelativeDerivativeDifference, maximumRelativeCrossDifference, degenerateCrossObservationCount,
     geometricValidity: 'not-certified', topologyCertified: false, solid: false,
     quality: { authority: 'actual-native-control-coefficients-and-original-parameter-evaluators', basisWeightsAndParameterBitsPreserved: true,
       coefficientPolicy: 'guarded-affine-dot-with-unit-axis-zero-translation-bit-copy', parameterOrderPreserved: true,
@@ -271,7 +271,7 @@ export function transformNativeGeometryAffine(originalInput: Curve | Surface, ma
       regularityCertified: false, topologyOrientationCertified: false, globalShapeErrorCertified: false, globalBinary64ErrorCertified: false, manufacturingToleranceCertified: false,
       sourceObjectLimitUnchanged: 16, ownership: 'copied-cpu-data-gc-no-renderer-resources' }, budgetFailure: 'atomic-refusal-no-partial-transformed-native-geometry',
     limits: { maximumCurveDegree: 5, maximumCurvePoles: 64, maximumSurfaceAxisPoles: 16, maximumSurfacePoles: 256, maximumCurveSamples: 127, maximumSurfaceAxisSamples: 31,
-      maximumObservations: 961, linearCoefficientAbs: 1000, translationAbsMM: 10000, coordinateAbsMM: 10000, parameterAbs: 10000, authoredIdCharacters: 48, pointComparisonMM: 1e-7,
+      maximumObservations: 961, linearCoefficientAbs: 1000, translationAbs: 10000, coordinateAbs: 10000, parameterAbs: 10000, authoredIdCharacters: 48, pointComparison: 1e-7,
       relativeD1Comparison: 1e-7, determinantRelativeThreshold: 128 * Number.EPSILON, inputValues: 32768, inputDepth: 8, inputArrayElements: 128, inputRecordFields: 16, inputStringCharacters: 128,
       ownValues: 1048576, ownDepth: 40, arrayElements: 8192, recordFields: 64, sourceStringCharacters: 262144 }
   };

@@ -14,7 +14,7 @@ const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `$
 const vol = b => brepMassProperties(b, 1, { quadratureSegments: 16 }).volume;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const RHS = { id: 'rhs-a', kind: 'rect-tube', estimate: true, rows: [{ size: '40x40x3', width: 40, height: 40, wall: 3, outerRadius: 6, innerRadius: 3 }, { size: '60x40x4', width: 60, height: 40, wall: 4, outerRadius: 8, innerRadius: 4, source: 'a test row with its own source' }] };
-const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware", the connector dimensions table' };
+const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, body: { shape: 'stadium', width: 8.25, height: 2.4, length: 6.51 }, keepOut: { margin: 1, depth: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware", the connector dimensions table' };
 const PANEL = [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 10 }];
 const stadium = (w, h) => (w - h) * h + Math.PI * h * h / 4;
 
@@ -49,10 +49,10 @@ test('R12c.7 connector rows checked: a source or an estimate, shapes, a body no 
   assert.equal(connectorRowProblem(U1), null);
   const bad = (r, re) => assert.match(String(connectorRowProblem(r)), re);
   bad({ ...U1, source: undefined }, /never neither/); bad({ ...U1, opening: { ...U1.opening, shape: 'oval' } }, /stadium, rect or round/);
-  bad({ ...U1, opening: { ...U1.opening, widthMM: 2 } }, /width 2 is at least its height/); bad({ ...U1, body: { ...U1.body, widthMM: 9 } }, /larger than its opening/);
-  bad({ ...U1, keepOut: { marginMM: 1 } }, /keepOut must be/); bad({ ...U1, pins: 24 }, /unknown field pins/);
+  bad({ ...U1, opening: { ...U1.opening, width: 2 } }, /width 2 is at least its height/); bad({ ...U1, body: { ...U1.body, width: 9 } }, /larger than its opening/);
+  bad({ ...U1, keepOut: { margin: 1 } }, /keepOut must be/); bad({ ...U1, pins: 24 }, /unknown field pins/);
   near(connectorSectionArea(U1.opening), stadium(8.34, 2.56), 1e-12, 'stadium area');
-  near(connectorSectionArea({ shape: 'rect', widthMM: 10, heightMM: 4, cornerRadiusMM: 1 }), 40 - (4 - Math.PI), 1e-12, 'rounded rect');
+  near(connectorSectionArea({ shape: 'rect', width: 10, height: 4, cornerRadius: 1 }), 40 - (4 - Math.PI), 1e-12, 'rounded rect');
 });
 
 test('R12c.7 U1\'s USB-C opening in a panel\'s top: the removal A·6.2, the body seated (A_b·6.51), the gaps 0.045 and 0.080, 0.31 standing out, touching nothing; the keep-out in front of it; turned 90°', () => {
@@ -60,8 +60,8 @@ test('R12c.7 U1\'s USB-C opening in a panel\'s top: the removal A·6.2, the body
   const o = outputOf(s, 'o'), b = outputOf(s, 'b'), r = o.connector;
   assert.equal(checkBrep(o.brep).valid, true); assert.equal(checkBrep(b.brep).valid, true);
   near(vol(o.brep), 8000 - stadium(8.34, 2.56) * 6.2, 1e-7, 'the panel less the opening'); near(vol(b.brep), stadium(8.25, 2.4) * 6.51, 1e-9, 'the body');
-  near(r.body.gapWidthMM, 0.045, 1e-12, 'gap across the width'); near(r.body.gapHeightMM, 0.08, 1e-12, 'gap across the height'); near(r.body.standsOutMM, 0.31, 1e-12, 'stands out');
-  assert.equal(b.connectorBody.overlapMM3, 0);
+  near(r.body.gapWidth, 0.045, 1e-12, 'gap across the width'); near(r.body.gapHeight, 0.08, 1e-12, 'gap across the height'); near(r.body.standsOut, 0.31, 1e-12, 'stands out');
+  assert.equal(b.connectorBody.overlap, 0);
   // The body's top at z 10 − 6.2 + 6.51.
   const zs = b.brep.vertices.map(v => v.point[2]); near(Math.max(...zs), 10.31, 1e-9, 'its top'); near(Math.min(...zs), 3.8, 1e-9, 'its bottom');
   // (From the body's front, 0.31 out of the face: the plug fills the space up to there.)
@@ -74,7 +74,7 @@ test('R12c.7 U1\'s USB-C opening in a panel\'s top: the removal A·6.2, the body
 });
 
 test('R12c.7 refusals: a square-cornered body in a stadium opening overlaps the panel by its corners beyond the round ends (CONNECTOR_FIT, the overlap by Simpson); an opening off its face or on a curved face (CONNECTOR_PLACEMENT)', () => {
-  const sq = { ...U1, body: { shape: 'rect', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 } };
+  const sq = { ...U1, body: { shape: 'rect', width: 8.25, height: 2.4, length: 6.51 } };
   // Each end: x from a = (8.34 − 2.56)/2 to the body's half-width 4.125, the body's |y| ≤ 1.2 outside the end's circle (r 1.28).
   const a = (8.34 - 2.56) / 2, r = 1.28, f = x => 2 * Math.max(0, 1.2 - Math.sqrt(Math.max(0, r * r - (x - a) ** 2)));
   let A = 0; const N = 20000, h = (4.125 - a) / N; for (let i = 0; i < N; i++) { const x = a + i * h; A += h / 6 * (f(x) + 4 * f(x + h / 2) + f(x + h)); }

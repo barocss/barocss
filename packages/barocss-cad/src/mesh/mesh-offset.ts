@@ -16,10 +16,10 @@ const at = (p: readonly number[]) => p.map(x => +x.toFixed(4)).join(', ');
 
 export interface MeshShellReport {
   /** The wall asked for (mm). */
-  readonly wallMM: number;
+  readonly wall: number;
   /** The wall the offset achieves: the least and largest distance from it to the mesh's surface (mm). */
-  readonly wallMinMM: number;
-  readonly wallMaxMM: number;
+  readonly wallMin: number;
+  readonly wallMax: number;
   /** Triangles of the cavity (the mesh's own). */
   readonly triangles: number;
 }
@@ -88,7 +88,7 @@ export function meshInnerOffset(P: Float64Array, I: Uint32Array, t: number): { p
   if (crossing.count) refuse(`[WALL_TOO_THIN] the wall's inner surface meets itself or the mesh's surface at (${at(crossing.at[0])}) (${crossing.count} crossings): the body is thinner than twice the wall there`);
   const wall = meshDistanceRange(Q, I, P, I);
   if (wall.minMM < 0.99 * t) refuse(`[MESH_WALL_THIN] the offset comes ${+wall.minMM.toPrecision(6)} mm from the mesh at (${at(wall.minAt!)}), more than 1 % thinner than the wall ${t} mm: the mesh is too coarse there for its offset`);
-  return { positions: Q, report: { wallMM: t, wallMinMM: wall.minMM, wallMaxMM: wall.maxMM, triangles: nt } };
+  return { positions: Q, report: { wall: t, wallMin: wall.minMM, wallMax: wall.maxMM, triangles: nt } };
 }
 
 /** A triangle's angle at corner a (between b and c). */

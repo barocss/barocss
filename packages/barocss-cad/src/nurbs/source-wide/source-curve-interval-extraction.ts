@@ -85,7 +85,7 @@ type Shared = {
   refinedPoleIndex: number;
   lowerPoleIndex: number;
   upperPoleIndex: number;
-  pointMM: Point;
+  point: Point;
   weight: number;
 };
 type D1State = { status: 'evaluated'; value: CurveD1Result } |
@@ -97,7 +97,7 @@ type CutWitness = {
   refined: Provider;
   lower: Provider;
   upper: Provider;
-  maximumPointDifferenceMM: number;
+  maximumPointDifference: number;
   relativeInputLowerDifference: number | null;
   relativeInputUpperDifference: number | null;
   relativeLowerUpperDifference: number;
@@ -138,9 +138,9 @@ type Provenance = {
 };
 type Observation = {
   parameter: number;
-  originalPointMM: Point;
-  pointMM: Point;
-  pointDifferenceMM: number;
+  originalPoint: Point;
+  point: Point;
+  pointDifference: number;
   originalD1: D1State;
   outputD1: D1State;
   relativeDerivativeDifference: number | null;
@@ -167,9 +167,9 @@ export interface SourceCurveIntervalExtractionReport {
   fileSizes: { request: Size; result: Size };
   stations: number[];
   observations: Observation[];
-  maximumPointDifferenceMM: number;
+  maximumPointDifference: number;
   maximumRelativeDerivativeDifference: number;
-  maximumCutPointDifferenceMM: number;
+  maximumCutPointDifference: number;
   directCounts: {
     originalCompileCount: 1; candidateCompileCount: 1;
     cutStageCount: number; coefficientInsertionCallCount: number; insertedKnotCount: number;
@@ -201,8 +201,8 @@ export interface SourceCurveIntervalExtractionReport {
     maximumInsertionsPerCut: 5; maximumTotalInsertions: 10; maximumHelperCalls: 2;
     maximumObservations: 256; maximumProfileObservations: 129; maximumCutWitnesses: 2;
     maximumNativeAttempts: 532; maximumPatches: 3; maximumModelObjects: 16;
-    coordinateAbsMM: 10000; minimumWeight: 0.000001; maximumWeight: 1000000;
-    maximumReplacementLiteralCharacters: 512; maximumPointDifferenceMM: 1e-7;
+    coordinateAbs: 10000; minimumWeight: 0.000001; maximumWeight: 1000000;
+    maximumReplacementLiteralCharacters: 512; maximumPointDifference: 1e-7;
     maximumRelativeDerivativeDifference: 1e-7; sourceUTF16: 262144; sourceUTF8: 262144;
     maximumFileUTF16: 2097152; maximumFileUTF8: 2097152;
     ownValues: 1048576; ownDepth: 64; arrayElements: 8192; recordFields: 64;
@@ -685,7 +685,7 @@ export function extractSourceCurveInterval(input: SourceCurveIntervalExtractionR
     const relativeLowerUpperDifference = relativeDifference(lowerValue.d1.value.derivative,
       upperValue.d1.value.derivative, inputValue.d1.status === 'evaluated');
     return { parameter, input: inputValue, refined: refinedValue, lower: lowerValue, upper: upperValue,
-      maximumPointDifferenceMM, relativeInputLowerDifference, relativeInputUpperDifference,
+      maximumPointDifference: maximumPointDifferenceMM, relativeInputLowerDifference, relativeInputUpperDifference,
       relativeLowerUpperDifference };
   };
   const stages: Stage[] = [];
@@ -721,7 +721,7 @@ export function extractSourceCurveInterval(input: SourceCurveIntervalExtractionR
       CODE.BINDING, 'Actual native child domains must match original-unit cut planning');
     const common = cut.sharedRefinedPoleIndex;
     const shared: Shared = { refinedPoleIndex: common, lowerPoleIndex: common, upperPoleIndex: 0,
-      pointMM: pointCopy(refined.controlPoints[common]), weight: refined.weights[common] };
+      point: pointCopy(refined.controlPoints[common]), weight: refined.weights[common] };
     check(same(lower.controlPoints[common], upper.controlPoints[0]) &&
       Object.is(lower.weights[common], upper.weights[0]), CODE.BINDING,
     'Both child endpoint stored coefficients must share exact copied bits');
@@ -815,7 +815,7 @@ export function extractSourceCurveInterval(input: SourceCurveIntervalExtractionR
     const originalD1 = d1(originalCurve, parameter), outputD1 = d1(curve, parameter);
     const relativeDerivativeDifference = originalD1.status === 'evaluated' && outputD1.status === 'evaluated' ?
       relativeDifference(originalD1.value.derivative, outputD1.value.derivative) : null;
-    return { parameter, originalPointMM, pointMM, pointDifferenceMM, originalD1, outputD1,
+    return { parameter, originalPoint: originalPointMM, point: pointMM, pointDifference: pointDifferenceMM, originalD1, outputD1,
       relativeDerivativeDifference };
   });
   const c = stages.length, m = observations.length;
@@ -844,9 +844,9 @@ export function extractSourceCurveInterval(input: SourceCurveIntervalExtractionR
     cutStageCount: c, coefficientInsertionCallCount, insertedKnotCount, patchCount: 3,
     sourceSizes: { original: originalSize, candidate: candidateSize },
     fileSizes: { request: requestSize, result: { utf16: 0, utf8: 0 } }, stations, observations,
-    maximumPointDifferenceMM: Math.max(...observations.map(value => value.pointDifferenceMM)),
+    maximumPointDifference: Math.max(...observations.map(value => value.pointDifference)),
     maximumRelativeDerivativeDifference: Math.max(0, ...observations.map(value => value.relativeDerivativeDifference ?? 0)),
-    maximumCutPointDifferenceMM: Math.max(...stages.map(stage => stage.witness.maximumPointDifferenceMM)),
+    maximumCutPointDifference: Math.max(...stages.map(stage => stage.witness.maximumPointDifference)),
     directCounts: {
       originalCompileCount: 1, candidateCompileCount: 1, cutStageCount: c,
       coefficientInsertionCallCount, insertedKnotCount, nativeCurveValidationCount, domainQueryCount,
@@ -873,8 +873,8 @@ export function extractSourceCurveInterval(input: SourceCurveIntervalExtractionR
       maximumKnots: 70, maximumCuts: 2, maximumInsertionsPerCut: 5, maximumTotalInsertions: 10,
       maximumHelperCalls: 2, maximumObservations: 256, maximumProfileObservations: 129,
       maximumCutWitnesses: 2, maximumNativeAttempts: 532, maximumPatches: 3, maximumModelObjects: 16,
-      coordinateAbsMM: 10000, minimumWeight: 0.000001, maximumWeight: 1000000,
-      maximumReplacementLiteralCharacters: 512, maximumPointDifferenceMM: 1e-7,
+      coordinateAbs: 10000, minimumWeight: 0.000001, maximumWeight: 1000000,
+      maximumReplacementLiteralCharacters: 512, maximumPointDifference: 1e-7,
       maximumRelativeDerivativeDifference: 1e-7, sourceUTF16: 262144, sourceUTF8: 262144,
       maximumFileUTF16: 2097152, maximumFileUTF8: 2097152, ownValues: 1048576, ownDepth: 64,
       arrayElements: 8192, recordFields: 64, keyCharacters: 128, stringCharacters: 262144,

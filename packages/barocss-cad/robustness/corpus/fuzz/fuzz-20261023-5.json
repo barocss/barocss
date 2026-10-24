@@ -65,7 +65,7 @@
           "kind": "rotate",
           "target": "n2f",
           "axis": "y",
-          "angleDegrees": 278.779,
+          "angle": 278.779,
           "pivot": [
             0,
             0,
@@ -77,7 +77,7 @@
           "kind": "rotate",
           "target": "n2r0",
           "axis": "y",
-          "angleDegrees": 264.014,
+          "angle": 264.014,
           "pivot": [
             0,
             0,

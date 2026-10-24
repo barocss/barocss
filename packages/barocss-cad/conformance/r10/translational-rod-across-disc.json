@@ -67,7 +67,7 @@
           "kind": "rotate",
           "target": "c0",
           "axis": "z",
-          "angleDegrees": 45,
+          "angle": 45,
           "pivot": [
             0,
             0,
@@ -96,11 +96,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 14594.080159345349,
           "relTol": 1e-7
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -1.4526849051545565e-11,
             -5.7611945227074675e-12,

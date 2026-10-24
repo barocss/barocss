@@ -87,11 +87,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 55391.511407,
           "relTol": 0.000001
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -108,11 +108,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 14242.976989,
           "relTol": 0.000001
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             42.927956,
             0,
@@ -129,11 +129,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 14242.976989,
           "relTol": 0.000001
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -21.463978,
             37.176701,
@@ -150,11 +150,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 14242.976989,
           "relTol": 0.000001
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -21.463978,
             -37.176701,
@@ -171,11 +171,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 27839.735907,
           "relTol": 0.000001
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,

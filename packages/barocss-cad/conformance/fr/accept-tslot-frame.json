@@ -205,11 +205,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 105912.7881988345,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             9.047165587735567e-17,
             1.1393087373208746e-16,
@@ -226,11 +226,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 105912.7881988345,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             400,
             1.1393087373208746e-16,
@@ -247,11 +247,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 105912.7881988345,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             400,
             300,
@@ -268,11 +268,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 105912.7881988345,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             9.047165587735567e-17,
             300,
@@ -289,11 +289,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 80493.71903111422,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             200,
             -1.1393087373208746e-16,
@@ -310,11 +310,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 80493.71903111422,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             200,
             300,
@@ -331,11 +331,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 59311.16139134733,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1.1393087373208746e-16,
             150,
@@ -352,11 +352,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 59311.16139134733,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             400,
             150,
@@ -373,11 +373,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 80493.71903111422,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             200,
             -1.1393087373208746e-16,
@@ -394,11 +394,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 80493.71903111422,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             200,
             300,
@@ -415,11 +415,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 59311.16139134733,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1.1393087373208746e-16,
             150,
@@ -436,11 +436,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 59311.16139134733,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             400,
             150,
@@ -469,19 +469,19 @@
             "n0/2",
             "n0/3"
           ],
-          "axisLengthMM": 500,
-          "longPointMM": 500,
+          "axisLength": 500,
+          "longPoint": 500,
           "fromVolume": false,
           "ends": [
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             }
           ],
           "mass": 285.9645281368532
@@ -494,19 +494,19 @@
             "n0/8",
             "n0/9"
           ],
-          "axisLengthMM": 380,
-          "longPointMM": 380,
+          "axisLength": 380,
+          "longPoint": 380,
           "fromVolume": false,
           "ends": [
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             }
           ],
           "mass": 217.33304138400842
@@ -519,19 +519,19 @@
             "n0/10",
             "n0/11"
           ],
-          "axisLengthMM": 280,
-          "longPointMM": 280,
+          "axisLength": 280,
+          "longPoint": 280,
           "fromVolume": false,
           "ends": [
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             }
           ],
           "mass": 160.1401357566378
@@ -539,7 +539,7 @@
       ],
       "totals": {
         "quantity": 12,
-        "axisLengthMM": 4640,
+        "axisLength": 4640,
         "mass": 2653.750821109998
       }
     },

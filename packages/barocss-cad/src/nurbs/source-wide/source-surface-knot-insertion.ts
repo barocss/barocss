@@ -52,9 +52,9 @@ type D1State = { status: 'evaluated'; value: SurfaceD1Result } |
 type Observation = {
   u: number;
   v: number;
-  originalPointMM: Point;
-  refinedPointMM: Point;
-  pointDifferenceMM: number;
+  originalPoint: Point;
+  refinedPoint: Point;
+  pointDifference: number;
   originalD1: D1State;
   refinedD1: D1State;
   relativeDuDifference: number | null;
@@ -106,7 +106,7 @@ export interface SourceSurfaceKnotInsertionReport {
   fileSizes: { request: Size; result: Size };
   stations: { u: number[]; v: number[] };
   observations: Observation[];
-  maximumPointDifferenceMM: number;
+  maximumPointDifference: number;
   maximumRelativeDuDifference: number;
   maximumRelativeDvDifference: number;
   directCounts: {
@@ -140,8 +140,8 @@ export interface SourceSurfaceKnotInsertionReport {
     maximumInsertions: 1; maximumStrips: 16; maximumSelectedStations: 32;
     maximumOtherStations: 31; maximumObservations: 1024; maximumProfileObservations: 992;
     maximumNativeAttempts: 3968; maximumPatches: 3; maximumModelObjects: 16;
-    coordinateAbsMM: 10000; minimumWeight: 0.000001; maximumWeight: 1000000;
-    maximumReplacementLiteralCharacters: 512; maximumPointDifferenceMM: 1e-7;
+    coordinateAbs: 10000; minimumWeight: 0.000001; maximumWeight: 1000000;
+    maximumReplacementLiteralCharacters: 512; maximumPointDifference: 1e-7;
     maximumRelativeDerivativeDifference: 1e-7; sourceUTF16: 262144; sourceUTF8: 262144;
     maximumFileUTF16: 4194304; maximumFileUTF8: 4194304;
     ownValues: 1048576; ownDepth: 64; arrayElements: 8192; recordFields: 64;
@@ -606,7 +606,7 @@ export function insertSourceSurfaceKnot(input: SourceSurfaceKnotInsertionRequest
       relativeDuDifference = relativeDifference(originalD1.value.du, refinedD1.value.du);
       relativeDvDifference = relativeDifference(originalD1.value.dv, refinedD1.value.dv);
     }
-    return { u, v, originalPointMM, refinedPointMM, pointDifferenceMM, originalD1, refinedD1,
+    return { u, v, originalPoint: originalPointMM, refinedPoint: refinedPointMM, pointDifference: pointDifferenceMM, originalD1, refinedD1,
       relativeDuDifference, relativeDvDifference };
   }));
   check(observations.length === m && surfaceD0Count === 2 * m && surfaceD1AttemptCount === 2 * m &&
@@ -631,7 +631,7 @@ export function insertSourceSurfaceKnot(input: SourceSurfaceKnotInsertionRequest
     knot: request.knot, priorMultiplicity, refinedMultiplicity, stripCount: strips.length, patchCount: 3,
     sourceSizes: { original: originalSize, candidate: candidateSize },
     fileSizes: { request: requestSize, result: { utf16: 0, utf8: 0 } }, stations, observations,
-    maximumPointDifferenceMM: Math.max(...observations.map(value => value.pointDifferenceMM)),
+    maximumPointDifference: Math.max(...observations.map(value => value.pointDifference)),
     maximumRelativeDuDifference: Math.max(0, ...observations.map(value => value.relativeDuDifference ?? 0)),
     maximumRelativeDvDifference: Math.max(0, ...observations.map(value => value.relativeDvDifference ?? 0)),
     directCounts: {
@@ -658,9 +658,9 @@ export function insertSourceSurfaceKnot(input: SourceSurfaceKnotInsertionRequest
       maximumOtherPoles: 16, maximumTotalPoles: 256, maximumKnotsPerAxis: 22, maximumInsertions: 1,
       maximumStrips: 16, maximumSelectedStations: 32, maximumOtherStations: 31,
       maximumObservations: 1024, maximumProfileObservations: 992, maximumNativeAttempts: 3968,
-      maximumPatches: 3, maximumModelObjects: 16, coordinateAbsMM: 10000,
+      maximumPatches: 3, maximumModelObjects: 16, coordinateAbs: 10000,
       minimumWeight: 0.000001, maximumWeight: 1000000, maximumReplacementLiteralCharacters: 512,
-      maximumPointDifferenceMM: 1e-7, maximumRelativeDerivativeDifference: 1e-7,
+      maximumPointDifference: 1e-7, maximumRelativeDerivativeDifference: 1e-7,
       sourceUTF16: 262144, sourceUTF8: 262144, maximumFileUTF16: 4194304, maximumFileUTF8: 4194304,
       ownValues: 1048576, ownDepth: 64, arrayElements: 8192, recordFields: 64,
       keyCharacters: 128, stringCharacters: 262144, identifierCharacters: 48,

@@ -95,7 +95,7 @@ test('FRk6 the ordinary rounded ordered table uses capped tools and preserves D1
   s.outputs.forEach((o, i) => { near(volume(o), expected[i], `member ${i}`); assert.equal(o.bodyCount, 1); assert.equal(checkOutput(o).valid, true); });
   const pieces = s.outputs.map(o => cutPiece(o)), list = cutList(pieces, { density: 7.85 });
   assert.equal(list.totals.quantity, 8);
-  pieces.forEach((p, i) => { near(p.volumeMM3, expected[i], `cut piece ${i}`); assert.equal(p.fromVolume, i >= 4); });
+  pieces.forEach((p, i) => { near(p.volume, expected[i], `cut piece ${i}`); assert.equal(p.fromVolume, i >= 4); });
   near(list.totals.mass, expected.reduce((a, b) => a + b, 0) * 7.85e-3, 'cut-list total mass');
   const csv = cutListCsv(list); s.outputs.forEach(o => assert.ok(csv.includes(o.id), `CSV retains ${o.id}`));
   let welded = s.outputs[0].brep;

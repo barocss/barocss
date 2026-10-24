@@ -32,7 +32,7 @@ test('R10.5 a box\'s top edge (convex, square planes) from r0 to r1 linearly: (1
     assert.equal(checkOutput(o).valid, true, what);
     assert.ok(Math.abs(got / exact - 1) < 1e-9, `${what}: ${got} vs ${exact} (${got / exact - 1})`);
     const [rep] = o.fillet;
-    assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM <= 1e-6, JSON.stringify(rep));
+    assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.section <= 1e-6, JSON.stringify(rep));
   }
 });
 
@@ -59,7 +59,7 @@ test('R10.5 a boss\'s foot (a closed circle) at 1, 2, 1, 2 round it (and 0.5, 3)
     for (let i = 0; i < n; i++) { const q = 4 * (i + 0.5) / n, k = Math.floor(q), t = q - k, y0 = k % 2 ? rb : ra, y1 = k % 2 ? ra : rb; exact += M(y0 + (y1 - y0) * (3 * t * t - 2 * t ** 3)) * 2 * Math.PI / n; }
     const got = massPropertiesOf(o).volume - v0;
     assert.ok(Math.abs(got / exact - 1) < 1e-7, `${ra}/${rb}: ${got} vs ${exact} (${got / exact - 1})`);
-    assert.ok(o.fillet[0].normalDeg < 1e-3, JSON.stringify(o.fillet[0]));
+    assert.ok(o.fillet[0].normal < 1e-3, JSON.stringify(o.fillet[0]));
   }
 });
 
@@ -67,7 +67,7 @@ test('R10.5 on curved faces (an oblique groove\'s rim, ellipse arcs between a pl
   const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
   const body = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
     { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 },
-    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
+    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angle: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
   // (The rim is two edges, its halves either side of the cylinder's seam; the radii at its two ends.)
   const o0 = out(body), v0 = massPropertiesOf(o0).volume, rims = o0.brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0);
   const pts = rims.flatMap(e => [e.curve.controlPoints[0], e.curve.controlPoints.at(-1)]), ends = pts.filter(p => pts.filter(q => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1e-9).length === 1).sort((a, b) => a[0] - b[0]);
@@ -76,7 +76,7 @@ test('R10.5 on curved faces (an oblique groove\'s rim, ellipse arcs between a pl
   const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: rim.name, radii }]);
   assert.equal(checkOutput(o).valid, true);
   const [rep] = o.fillet, removed = v0 - massPropertiesOf(o).volume;
-  assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM <= 2e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
+  assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.section <= 2e-6 && rep.ball < 1e-8, JSON.stringify(rep));
   setRingStations(2 * rep.stations);
   // (To 1e-6 of the fillet since D102: no sliver of the run past is left at the trimmed end at any count.)
   try { const fine = v0 - massPropertiesOf(out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: rim.name, radii }])).volume; assert.ok(Math.abs(fine / removed - 1) < 1e-6, `${removed} vs ${fine}`); }
@@ -101,7 +101,7 @@ test('D102 the same fillet at any station count (150–400): no sliver at the tr
   const yz = { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] };
   const body = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [8, -20], max: [32, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 },
     { id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 },
-    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
+    { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angle: 10, pivot: [20, 0, 10] }, { id: 'g', kind: 'difference', target: 'pe', tool: 'c' }];
   const rims = out(body).brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0);
   const pts = rims.flatMap(e => [e.curve.controlPoints[0], e.curve.controlPoints.at(-1)]), ends = pts.filter(p => pts.filter(q => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1e-9).length === 1).sort((a, b) => a[0] - b[0]);
   const fil = { id: 'f', kind: 'fillet', target: 'g', edges: rims.map(e => e.name), radii: [{ at: ends[0], radius: 0.6 }, { at: ends[1], radius: 1.2 }] };

@@ -22,16 +22,16 @@ export type FlatSegment =
   | { readonly kind: 'line'; readonly a: XY; readonly b: XY }
   | { readonly kind: 'arc'; readonly center: XY; readonly radius: number; readonly start: XY; readonly end: XY; readonly ccw: boolean }
   | { readonly kind: 'spline'; readonly degree: number; readonly knots: readonly number[]; readonly control: readonly XY[]; readonly weights: readonly number[] };
-/** A closed loop of the outline; `outer` for the boundary, else a hole. `areaMM2`: signed (outer counter-clockwise). */
-export interface FlatLoop { readonly outer: boolean; readonly segments: readonly FlatSegment[]; readonly areaMM2: number }
+/** A closed loop of the outline; `outer` for the boundary, else a hole. `area`: signed (outer counter-clockwise). */
+export interface FlatLoop { readonly outer: boolean; readonly segments: readonly FlatSegment[]; readonly area: number }
 /** A bend in the flat: its strip between its tangent lines, its centre line, which way it folds, its data. */
 export interface FlatBend {
   readonly name: string;
   /** `up`: towards the viewer (the flat is seen from the fixed face's outside), `down`: away. */
   readonly direction: 'up' | 'down';
-  readonly angleDegrees: number; readonly radiusMM: number; readonly kFactor: number;
+  readonly angle: number; readonly radius: number; readonly kFactor: number;
   /** The developed width θ(R + K·T). */
-  readonly allowanceMM: number;
+  readonly allowance: number;
   readonly centre: readonly [XY, XY]; readonly tangents: readonly [readonly [XY, XY], readonly [XY, XY]];
   readonly faces: readonly string[];
   /** Its K from a bend table (R12.4, D120): the rows used. */
@@ -39,12 +39,12 @@ export interface FlatBend {
 }
 export interface FlatPattern {
   /** One K for every bend, or each bend's from a table (then undefined here, each bend's own). */
-  readonly thicknessMM: number; readonly kFactor?: number;
+  readonly thickness: number; readonly kFactor?: number;
   /** The face the flat lies in the plane of (its outside towards the viewer). */
   readonly fixedFace: string;
   readonly loops: readonly FlatLoop[]; readonly bends: readonly FlatBend[];
   /** The flat's area (outer loop less holes) and its box (the flat is moved so its box starts at 0, 0). */
-  readonly areaMM2: number; readonly box: { readonly min: XY; readonly max: XY };
+  readonly area: number; readonly box: { readonly min: XY; readonly max: XY };
 }
 export type FlatPatternErrorCode = 'NOT_A_SHEET' | 'NON_NORMAL_CUT' | 'BEND_NOT_CYLINDRICAL' | 'FLAT_OVERLAPS' | 'CUT_ACROSS_BEND' | 'BEND_TABLE_MISS';
 /** A refusal: its message starts with its `[CODE]`. */
@@ -53,7 +53,7 @@ export const flatPatternError = (code: FlatPatternErrorCode, detail: string) => 
 export const isFlatPatternError = (e: unknown): e is KernelError & { readonly code: FlatPatternErrorCode } => isFrom<FlatPatternErrorCode>(e, 'flat-pattern');
 export interface FlatPatternOptions {
   /** One K-factor for every bend, or a bend table giving each bend's by its T, inner R and angle (R12.4): one of them. */
-  readonly thicknessMM: number; readonly kFactor?: number; readonly bendTable?: BendTable;
+  readonly thickness: number; readonly kFactor?: number; readonly bendTable?: BendTable;
   /** The fixed face by name (its pieces `#k`: the largest); else the largest planar face. */
   readonly fixedFace?: string;
   /** Names for the bends, matched by a face of theirs (the sheet report's: `bend<k>` for others). */
@@ -134,7 +134,7 @@ const nameOf = (c: Ctx, f: string) => c.faces.get(f)!.name ?? f;
 
 /** The flat pattern of a sheet-metal body (see the top of this file); refusals typed (flatPatternError). */
 export function flatPattern(brep: Brep, options: FlatPatternOptions): FlatPattern {
-  const T = options.thicknessMM, table = options.bendTable ?? null, K = options.kFactor ?? 0.5;
+  const T = options.thickness, table = options.bendTable ?? null, K = options.kFactor ?? 0.5;
   if ((options.kFactor === undefined) === (table === null)) throw flatPatternError('NOT_A_SHEET', 'a flat needs a K-factor or a bend table (one of them)');
   if (!(T > 0) || !(K >= 0 && K <= 1)) throw flatPatternError('NOT_A_SHEET', 'a flat needs a thickness above 0 and a K-factor from 0 to 1');
   let size = 1;
@@ -166,7 +166,7 @@ export function flatPattern(brep: Brep, options: FlatPatternOptions): FlatPatter
   const box = boxOf(loops), dx = -box.min[0], dy = -box.min[1];
   const moved = loops.map(l => ({ ...l, segments: l.segments.map(s => shift(s, dx, dy)) }));
   const movedBends = bends.map(b => ({ ...b, centre: [sh(b.centre[0], dx, dy), sh(b.centre[1], dx, dy)] as const, tangents: [[sh(b.tangents[0][0], dx, dy), sh(b.tangents[0][1], dx, dy)] as const, [sh(b.tangents[1][0], dx, dy), sh(b.tangents[1][1], dx, dy)] as const] as const }));
-  return { thicknessMM: T, ...(table ? {} : { kFactor: K }), fixedFace: nameOf(c, fixed), loops: moved, bends: movedBends, areaMM2: loops.reduce((s, l) => s + l.areaMM2, 0), box: { min: [0, 0], max: [box.max[0] + dx, box.max[1] + dy] } };
+  return { thickness: T, ...(table ? {} : { kFactor: K }), fixedFace: nameOf(c, fixed), loops: moved, bends: movedBends, area: loops.reduce((s, l) => s + l.area, 0), box: { min: [0, 0], max: [box.max[0] + dx, box.max[1] + dy] } };
 }
 
 /** The fixed face: the named one (its largest piece), else the largest planar face. */
@@ -358,11 +358,11 @@ function outline(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, devArea: 
       if (seen.has(cid)) throw flatPatternError('NOT_A_SHEET', 'the skin\'s boundary does not close into loops');
     }
     const merged = mergeRuns(segs, c.tol);
-    loops.push({ outer: false, segments: merged, areaMM2: merged.reduce((s, x) => s + green(x), 0) });
+    loops.push({ outer: false, segments: merged, area: merged.reduce((s, x) => s + green(x), 0) });
   }
   let big = 0;
-  loops.forEach((l, i) => { if (Math.abs(l.areaMM2) > Math.abs(loops[big].areaMM2)) big = i; });
-  if (!loops.length || !(loops[big].areaMM2 > 0)) throw flatPatternError('NOT_A_SHEET', 'the developed skin has no outer boundary');
+  loops.forEach((l, i) => { if (Math.abs(l.area) > Math.abs(loops[big].area)) big = i; });
+  if (!loops.length || !(loops[big].area > 0)) throw flatPatternError('NOT_A_SHEET', 'the developed skin has no outer boundary');
   return loops.map((l, i) => ({ ...l, outer: i === big }));
 }
 /** Whether a coedge's edge lies between two skin faces (inside the flat, not on its outline). */
@@ -476,7 +476,7 @@ function bendsOf(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, names: re
     const g = c.geo.get(faces[0])! as Extract<FaceGeometry, { kind: 'cylinder' }>;
     const named = names.find(b => b.faces.some(x => names_.includes(baseName(x))));
     k++;
-    out.push({ name: named?.name ?? `bend${k}`, direction: g.out === 1 ? 'down' : 'up', angleDegrees: theta * 180 / Math.PI, radiusMM: inner, kFactor: m.k, ...(m.use ? { table: m.use } : {}), allowanceMM: theta * m.rn,
+    out.push({ name: named?.name ?? `bend${k}`, direction: g.out === 1 ? 'down' : 'up', angle: theta * 180 / Math.PI, radius: inner, kFactor: m.k, ...(m.use ? { table: m.use } : {}), allowance: theta * m.rn,
       centre: [devAt(m, s0, (w0 + w1) / 2), devAt(m, s1, (w0 + w1) / 2)], tangents: [[devAt(m, s0, w0), devAt(m, s1, w0)], [devAt(m, s0, w1), devAt(m, s1, w1)]], faces: [...new Set(names_)].sort() });
   }
   return out;
@@ -528,7 +528,7 @@ function checkOverlaps(c: Ctx, skin: Set<string>, maps: Map<string, DevMap>, loo
     // Its largest triangle's centre.
     let best = -1, at: V = [0, 0, 0];
     for (let t = mf.indexOffset; t < mf.indexOffset + mf.indexCount; t += 3) {
-      const p = [0, 1, 2].map(k => { const i = 3 * mesh.indices[t + k]; return [mesh.positionsMM[i], mesh.positionsMM[i + 1], mesh.positionsMM[i + 2]] as V; });
+      const p = [0, 1, 2].map(k => { const i = 3 * mesh.indices[t + k]; return [mesh.positions[i], mesh.positions[i + 1], mesh.positions[i + 2]] as V; });
       const a = len(cross(sub(p[1], p[0]), sub(p[2], p[0])));
       if (a > best) { best = a; at = scl(add(add(p[0], p[1]), p[2]), 1 / 3); }
     }
@@ -583,14 +583,14 @@ function faceGreen(c: Ctx, fid: string, m: DevMap): number {
  * The flat as a DXF document for the writer (R11b): its outline on OUTLINE, each bend's centre line on BEND_UP or
  * BEND_DOWN (dashed), and a note at its middle on BEND_NOTES (`UP 90° R1.5`), in mm.
  */
-export function flatPatternDxf(flat: FlatPattern, options: { readonly textHeightMM?: number } = {}): DxfDocument {
-  const entities: DxfEntity[] = [], h = options.textHeightMM ?? 2.5;
+export function flatPatternDxf(flat: FlatPattern, options: { readonly textHeight?: number } = {}): DxfDocument {
+  const entities: DxfEntity[] = [], h = options.textHeight ?? 2.5;
   for (const l of flat.loops) for (const s of l.segments) {
     if (s.kind === 'line') entities.push({ type: 'line', a: s.a, b: s.b, layer: 'OUTLINE' });
     else if (s.kind === 'arc') {
       const deg = (p: XY) => Math.atan2(p[1] - s.center[1], p[0] - s.center[0]) * 180 / Math.PI, closed = Math.hypot(s.start[0] - s.end[0], s.start[1] - s.end[1]) === 0;
       if (closed) entities.push({ type: 'circle', center: s.center, radius: s.radius, layer: 'OUTLINE' });
-      else { const [a, b] = s.ccw ? [s.start, s.end] : [s.end, s.start]; entities.push({ type: 'arc', center: s.center, radius: s.radius, startDeg: norm360(deg(a)), endDeg: norm360(deg(b)), layer: 'OUTLINE' }); }
+      else { const [a, b] = s.ccw ? [s.start, s.end] : [s.end, s.start]; entities.push({ type: 'arc', center: s.center, radius: s.radius, start: norm360(deg(a)), end: norm360(deg(b)), layer: 'OUTLINE' }); }
     } else entities.push({ type: 'spline', degree: s.degree, knots: s.knots, control: s.control, ...(s.weights.every(w => w === 1) ? {} : { weights: s.weights }), layer: 'OUTLINE' });
   }
   for (const b of flat.bends) {
@@ -598,7 +598,7 @@ export function flatPatternDxf(flat: FlatPattern, options: { readonly textHeight
     entities.push({ type: 'line', a: p, b: q, layer });
     let ang = Math.atan2(q[1] - p[1], q[0] - p[0]) * 180 / Math.PI;
     if (ang > 90.000001 || ang <= -90) ang = ang > 0 ? ang - 180 : ang + 180;
-    entities.push({ type: 'text', at: mid, height: h, text: `${b.direction.toUpperCase()} ${+b.angleDegrees.toFixed(2)}° R${+b.radiusMM.toFixed(3)}`, rotationDeg: +ang.toFixed(9), align: 'center', layer: 'BEND_NOTES' });
+    entities.push({ type: 'text', at: mid, height: h, text: `${b.direction.toUpperCase()} ${+b.angle.toFixed(2)}° R${+b.radius.toFixed(3)}`, rotation: +ang.toFixed(9), align: 'center', layer: 'BEND_NOTES' });
   }
   return {
     units: 'mm',

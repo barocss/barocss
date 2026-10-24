@@ -8,7 +8,7 @@ const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', pa
 const leaf = (kind, dims, rot, move) => ({ leaf: { kind, ...dims, rot: rot.map(([axis, deg]) => ({ axis, deg })), move } });
 /** Each body of an output: its face-name prefixes (the features its faces come from) and its mesh volume; strict validity; watertight body by body. */
 function lumps(o) {
-  const b = o.brep, mesh = tessellateBrep(b, { segmentsPerQuarter: 16 }), P = mesh.positionsMM, shellBody = new Map(b.shells.map(s => [s.id, s.body]));
+  const b = o.brep, mesh = tessellateBrep(b, { segmentsPerQuarter: 16 }), P = mesh.positions, shellBody = new Map(b.shells.map(s => [s.id, s.body]));
   assert.equal(checkBrep(b, { strict: true }).valid, true, checkBrep(b, { strict: true }).issues[0]);
   return b.bodies.map(body => {
     const faces = new Set(b.faces.filter(f => shellBody.get(f.shell) === body.id).map(f => f.id)), uses = new Map();
@@ -45,7 +45,7 @@ test('Booleans: upright lumps touching along an edge or at a point are separate 
   const box = (id, min, max, z0, h) => [{ id: `${id}s`, kind: 'sketch', profile: 'rectangle', min, max, plane: { origin: [0, 0, z0], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id, kind: 'extrude', sketch: `${id}s`, height: h }];
   const cases = [
     // Two copies of a 5 × 4 × 2 box turned 120° about a corner on the axis: they share that corner's edge. 40 + 40.
-    ['pattern corner on the axis', D([...box('b', [0, 0], [5, 4], 0, 2), { id: 'p', kind: 'circular-pattern', target: 'b', axis: 'z', angleDegrees: 120, count: 2, pivot: [0, 0, 0] }]), 'p', 80],
+    ['pattern corner on the axis', D([...box('b', [0, 0], [5, 4], 0, 2), { id: 'p', kind: 'circular-pattern', target: 'b', axis: 'z', angle: 120, count: 2, pivot: [0, 0, 0] }]), 'p', 80],
     // A box and a cylinder r 2 tangent to its side along a line (L4 fuzz 92): 2 × 3 × 4 + π · 4 · 8.
     ['cylinder along a side', D([...box('b', [0, -2], [2, 1], -2, 4), { id: 'cs', kind: 'sketch', profile: 'circle', center: [-2, -2], radius: 2, plane: { origin: [0, 0, -5], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 8 }, { id: 'u', kind: 'union', target: 'b', tool: 'c' }]), 'u', 24 + 32 * Math.PI],
     // Two boxes meeting at a corner: 10 × 10 × 5 twice.

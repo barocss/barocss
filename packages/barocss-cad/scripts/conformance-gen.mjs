@@ -28,7 +28,7 @@ const bilinear = (p00, p01, p10, p11) => ({ degreeU: 1, degreeV: 1, knotsU: [0, 
 function measured(doc, relTol, absTol, names) {
   const outputs = evaluateCadPart(doc).outputs.map(o => {
     const m = massPropertiesOf(o), topo = checkBrep(o.brep).topology;
-    const row = { volumeMM3: { value: +m.volume.toPrecision(12), relTol }, centroidMM: { value: m.centroid.map(x => +x.toFixed(9)), absTol }, bodies: o.bodyCount, topology: topo.map(t => ({ shells: t.shells, genus: t.genus })) };
+    const row = { volume: { value: +m.volume.toPrecision(12), relTol }, centroid: { value: m.centroid.map(x => +x.toFixed(9)), absTol }, bodies: o.bodyCount, topology: topo.map(t => ({ shells: t.shells, genus: t.genus })) };
     if (names === 'list') row.faceNames = [...new Set(o.brep.faces.map(f => base(f.name ?? f.id)))].sort();
     else if (names) row.faceNamePattern = names;
     return row;
@@ -59,11 +59,11 @@ const cube = [bilinear(c(0, 0, 0), c(0, 10, 0), c(10, 0, 0), c(10, 10, 0)), bili
   bilinear(c(0, 10, 0), c(0, 10, 10), c(10, 10, 0), c(10, 10, 10)), bilinear(c(0, 0, 0), c(0, 0, 10), c(0, 10, 0), c(0, 10, 10)), bilinear(c(10, 0, 0), c(10, 10, 0), c(10, 0, 10), c(10, 10, 10))];
 const sewDoc = D([{ id: 's', kind: 'sew', surfaces: cube }]);
 write({ id: 'r2-sewn-cube', step: 'R2', decisions: ['D14'], about: 'Six bilinear patches, some facing in, sewn into a closed 10 mm cube facing out.',
-  input: { partDocument: sewDoc }, expect: { outputs: [{ volumeMM3: { value: 1000, relTol: 1e-12 }, centroidMM: { value: [5, 5, 5], absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(sewDoc, 0, 0, 'list').outputs[0].faceNames }] }, oracle: 'closed form' });
+  input: { partDocument: sewDoc }, expect: { outputs: [{ volume: { value: 1000, relTol: 1e-12 }, centroid: { value: [5, 5, 5], absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(sewDoc, 0, 0, 'list').outputs[0].faceNames }] }, oracle: 'closed form' });
 const disc = [{ id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 10 }, { id: 'ts', kind: 'sketch', profile: 'rectangle', min: [-2, -2], max: [2, 2] }, { id: 't', kind: 'extrude', sketch: 'ts', height: 6, from: 8 }, { id: 'u', kind: 'union', target: 'c', tool: 't' }];
 const v = 250 * Math.PI + 64, cz = (250 * Math.PI * 5 + 64 * 12) / v;
 write({ id: 'r2-cylinder-block-union', step: 'R2', decisions: ['D10'], about: 'A Ø10 × 10 cylinder with a 4 × 4 block rising through its top: volume 250π + 64.',
-  input: { partDocument: D(disc) }, expect: { outputs: [{ volumeMM3: { value: v, relTol: 1e-8 }, centroidMM: { value: [0, 0, cz], absTol: 1e-6 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(D(disc), 0, 0, 'list').outputs[0].faceNames }] }, oracle: 'closed form' });
+  input: { partDocument: D(disc) }, expect: { outputs: [{ volume: { value: v, relTol: 1e-8 }, centroid: { value: [0, 0, cz], absTol: 1e-6 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(D(disc), 0, 0, 'list').outputs[0].faceNames }] }, oracle: 'closed form' });
 const bolt = D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 24, hex: { across: 13, height: 5.3 } }]);
 write({ id: 'r2-thread-bolt-m8', step: 'R2', decisions: ['D8'], about: 'The default (faceted) M8 × 24 hex bolt: one closed body.',
   input: { partDocument: bolt }, expect: measured(bolt, 1e-9, 1e-6, null), oracle: 'this kernel (faceted helix; the ISO-profile volume is 2e-3 away by design)' });
@@ -105,7 +105,7 @@ const topEdges = evaluateCadPart(filletTop).outputs[0].brep.edges.map(e => e.nam
   // Closed form: each straight run loses (1 − π/4) r² a unit length; each mitred top corner keeps an eighth
   // of the bicylinder (2r³/3 of its r³ cube).
   const r = 4, volume = 12000 - (1 - Math.PI / 4) * r * r * (2 * (40 - 2 * r) + 2 * (30 - 2 * r)) - 4 * r ** 3 / 3, e = watertight(filleted, 1e-9, 1e-6, 'list');
-  e.outputs[0].volumeMM3 = { value: volume, relTol: 1e-7 };
+  e.outputs[0].volume = { value: volume, relTol: 1e-7 };
   writeRb2({ id: 'rb2-fillet-top-edges', step: 'RB2', decisions: ['D18', 'D23'], about: 'A box with its four top edges filleted (radius 4): strictly valid (edges on their surfaces), watertight, its volume the closed form.',
     input: { partDocument: filleted }, expect: e, oracle: 'closed form for the volume (straight runs and bicylinder corners); this kernel for the centroid' });
 }
@@ -116,12 +116,12 @@ const writeRb3 = c => writeFileSync(join(rb3, `${c.id.replace(/^rb3-/, '')}.json
 const pi = Math.PI, slab = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 10 }];
 const holedBox = D([...slab, { id: 'h', kind: 'hole', target: 'e', center: [20, 15], radius: 5 }]);
 writeRb3({ id: 'rb3-holed-box', step: 'RB3', decisions: ['D20'], about: 'A 40 × 30 × 10 block with a Ø10 hole through its middle: volume 12000 − 250π, area 3800 + 50π, centroid at its middle; the STEP round trip keeps them.',
-  input: { partDocument: holedBox }, expect: { outputs: [{ volumeMM3: { value: 12000 - 250 * pi, relTol: 1e-12 }, centroidMM: { value: [20, 15, 5], absTol: 1e-9 }, areaMM2: { value: 3800 + 50 * pi, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 1 }], faceNames: measured(holedBox, 0, 0, 'list').outputs[0].faceNames }], stepRoundTrip: { relTol: 1e-9 } }, oracle: 'closed form' });
+  input: { partDocument: holedBox }, expect: { outputs: [{ volume: { value: 12000 - 250 * pi, relTol: 1e-12 }, centroid: { value: [20, 15, 5], absTol: 1e-9 }, area: { value: 3800 + 50 * pi, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 1 }], faceNames: measured(holedBox, 0, 0, 'list').outputs[0].faceNames }], stepRoundTrip: { relTol: 1e-9 } }, oracle: 'closed form' });
 const cylinder = D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'c', kind: 'extrude', sketch: 's', height: 10 }]);
 writeRb3({ id: 'rb3-cylinder', step: 'RB3', decisions: ['D20'], about: 'A Ø10 × 10 cylinder: volume 250π, area 150π, centroid on its axis halfway up; the STEP round trip keeps them.',
-  input: { partDocument: cylinder }, expect: { outputs: [{ volumeMM3: { value: 250 * pi, relTol: 1e-12 }, centroidMM: { value: [0, 0, 5], absTol: 1e-9 }, areaMM2: { value: 150 * pi, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(cylinder, 0, 0, 'list').outputs[0].faceNames }], stepRoundTrip: { relTol: 1e-9 } }, oracle: 'closed form' });
+  input: { partDocument: cylinder }, expect: { outputs: [{ volume: { value: 250 * pi, relTol: 1e-12 }, centroid: { value: [0, 0, 5], absTol: 1e-9 }, area: { value: 150 * pi, relTol: 1e-12 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(cylinder, 0, 0, 'list').outputs[0].faceNames }], stepRoundTrip: { relTol: 1e-9 } }, oracle: 'closed form' });
 const helicalBolt = D([{ id: 'b', kind: 'thread', diameter: 8, pitch: 1.25, length: 20, hex: { across: 13, height: 5.3 }, form: 'helical' }]);
-const hb = measured(helicalBolt, 1e-9, 1e-6, 'list'); hb.outputs[0].areaMM2 = { value: +surfaceAreaOf(evaluateCadPart(helicalBolt).outputs[0]).toPrecision(12), relTol: 1e-9 };
+const hb = measured(helicalBolt, 1e-9, 1e-6, 'list'); hb.outputs[0].area = { value: +surfaceAreaOf(evaluateCadPart(helicalBolt).outputs[0]).toPrecision(12), relTol: 1e-9 };
 writeRb3({ id: 'rb3-helical-bolt-roundtrip', step: 'RB3', decisions: ['D20', 'D16'], about: 'A helical M8 × 20 bolt: its area over the exact B-spline faces, kept with its volume through STEP.',
   input: { partDocument: helicalBolt }, expect: { ...hb, stepRoundTrip: { relTol: 1e-6 } }, oracle: 'this kernel (area by tensor Gauss over whole patches)' });
 const branches = D([...slab, { id: 'h0', kind: 'hole', target: 'e', center: [10, 10], radius: 2 }, { id: 'h1', kind: 'hole', target: 'e', center: [30, 10], radius: 2 }]);
@@ -132,7 +132,7 @@ writeRb3({ id: 'rb3-two-bodies-one-step', step: 'RB3', decisions: ['D20'], about
   const r = 3, A = 40 - 2 * r, B = 30 - 2 * r, C = 10 - 2 * r, edges = evaluateCadPart(D(slab)).outputs[0].brep.edges.map(e => e.name), doc = D([...slab, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }]);
   const volume = A * B * C + 2 * r * (A * B + B * C + A * C) + pi * r * r * (A + B + C) + 4 / 3 * pi * r ** 3, area = 2 * (A * B + B * C + A * C) + 2 * pi * r * (A + B + C) + 4 * pi * r * r;
   writeRb3({ id: 'rb3-fillet-all-edges', step: 'RB3', decisions: ['D22'], about: 'A 40 × 30 × 10 block with every edge filleted at r = 3: the rounded box (corner balls), strictly valid and watertight.',
-    input: { partDocument: doc }, expect: { outputs: [{ volumeMM3: { value: volume, relTol: 5e-5 }, centroidMM: { value: [20, 15, 5], absTol: 5e-4 }, areaMM2: { value: area, relTol: 5e-5 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(doc, 0, 0, 'list').outputs[0].faceNames, tessellation: { segmentsPerQuarter: 8, watertight: true } }], stepRoundTrip: { relTol: 1e-6 } },
+    input: { partDocument: doc }, expect: { outputs: [{ volume: { value: volume, relTol: 5e-5 }, centroid: { value: [20, 15, 5], absTol: 5e-4 }, area: { value: area, relTol: 5e-5 }, bodies: 1, topology: [{ shells: 1, genus: 0 }], faceNames: measured(doc, 0, 0, 'list').outputs[0].faceNames, tessellation: { segmentsPerQuarter: 8, watertight: true } }], stepRoundTrip: { relTol: 1e-6 } },
     oracle: 'closed form (inner box + slabs + quarter-cylinders + ball); the tolerance is the quadrature over the trimmed corner patches, which hold their ball\'s pole (geometry exact to 1e-9)' });
 }
 console.log('written to', out, 'and', rb1, 'and', rb2, 'and', rb3);

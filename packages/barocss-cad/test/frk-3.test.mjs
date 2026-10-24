@@ -19,7 +19,7 @@ function axes(start,end,up,roll=0) {
 function check(section,more={}) {
   const start=more.start??[0,0,0], end=more.end??[0,0,1000], L=Math.hypot(...end.map((x,i)=>x-start[i])), rho=7.85;
   const want=prismOracle(section,L,rho), o=run(section,more), m=massPropertiesOf(o, rho), R=axes(start,end,more.up??[0,1,0],more.roll??0);
-  near(o.member.areaMM2,want.A,'area'); want.c.forEach((x,i)=>near(o.member.centroid[i],i===0&&more.mirror?-x:x,'section centroid'));
+  near(o.member.area,want.A,'area'); want.c.forEach((x,i)=>near(o.member.centroid[i],i===0&&more.mirror?-x:x,'section centroid'));
   near(m.volume,want.volume,'volume'); near(m.mass,want.mass,'mass');
   // Default centroid anchor. Origin + offset and x mirror are checked independently.
   const anchor=more.anchor==='origin'?want.c:[0,0], offset=more.offset??[0,0], local=[(more.mirror?-1:1)*anchor[0]+offset[0],anchor[1]+offset[1],L/2];
@@ -59,8 +59,8 @@ test('FRk3 I role contract survives zero arcs; rounded channel adds only toes',(
 test('FRk3 parameters, re-edit, JSON fresh evaluation, table direct equivalence and strict whole table fields',()=>{
   const section={...CASES[0],flangeSlope:{parameter:'k'},toeRadius:{parameter:'r'}},doc=D([member(section)],{k:.14,r:4.5});
   const s=evaluateCadPart(doc), changed=reevaluate(s, { parameters: {k:.08,r:3} });
-  near(outputOf(s, 'm').member.areaMM2,sectionOracle(CASES[0]).A,'parameter');
-  near(outputOf(changed, 'm').member.areaMM2,sectionOracle({...CASES[0],flangeSlope:.08,toeRadius:3}).A,'re-edit');
+  near(outputOf(s, 'm').member.area,sectionOracle(CASES[0]).A,'parameter');
+  near(outputOf(changed, 'm').member.area,sectionOracle({...CASES[0],flangeSlope:.08,toeRadius:3}).A,'re-edit');
   assert.deepEqual(outputOf(evaluateCadPart(JSON.parse(JSON.stringify(doc))), 'm').member,outputOf(s, 'm').member);
   for(const direct of [CASES[0],CASES[5],CASES[6]]) {
     const {kind,...dims}=direct,table={id:'synthetic-frk3',kind,estimate:true,rows:[{size:'test',...dims}]};

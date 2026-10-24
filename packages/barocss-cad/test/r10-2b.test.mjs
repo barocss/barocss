@@ -16,7 +16,7 @@ const plate = [{ id: 'p', kind: 'sketch', profile: 'rectangle', min: [0, -20], m
 const plateFrom = (x0, x1) => [{ ...plate[0], min: [x0, -20], max: [x1, 20] }, plate[1]];
 const rod = [{ id: 'cs', kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 60, from: -10 }];
 /** A rod (radius 4, its axis at the plate's top) cut from the plate (a groove) or joined to it, turned `deg` about `axis` through the plate's middle. */
-const across = (op, axis, deg, slab = plate) => [...slab, ...rod, ...(deg ? [{ id: 'c', kind: 'rotate', target: 'c0', axis, angleDegrees: deg, pivot: [20, 0, 10] }] : []), { id: 'g', kind: op, target: 'pe', tool: deg ? 'c' : 'c0' }];
+const across = (op, axis, deg, slab = plate) => [...slab, ...rod, ...(deg ? [{ id: 'c', kind: 'rotate', target: 'c0', axis, angle: deg, pivot: [20, 0, 10] }] : []), { id: 'g', kind: op, target: 'pe', tool: deg ? 'c' : 'c0' }];
 const rim = body => out(body).brep.edges.find(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name) && e.curve.controlPoints[0][1] > 0).name;
 const fillet = (target, edges, radius) => ({ id: 'f', kind: 'fillet', target, edges, radius });
 // The section between the plate's top and the rod, r 1 (the R10.1 closed form: the triangle less two sectors).
@@ -31,7 +31,7 @@ test('R10.2b against closed forms, the general path forced: a groove along the p
     assert.equal(checkBrep(g).valid, true, what);
     const got = sign * (brepMassProperties(g, 1).volume - massPropertiesOf(o0).volume), exact = section(1) * length;
     assert.ok(Math.abs(got / exact - 1) < rel, `${what}: ${got} vs ${exact} (${got / exact - 1})`);
-    assert.ok(reports[0].contactMM <= 2.5e-7 && reports[0].normalDeg < 1e-3, `${what}: ${JSON.stringify(reports[0])}`);
+    assert.ok(reports[0].contact <= 2.5e-7 && reports[0].normal < 1e-3, `${what}: ${JSON.stringify(reports[0])}`);
   }
 });
 
@@ -44,13 +44,13 @@ test('R10.2b an oblique groove (a rod tilted 10° about Y: its rims ellipse arcs
     assert.equal(checkOutput(o).valid, true, `y ${side}`);
     assert.equal(o.bodyCount, 1, `y ${side}`);
     const [rep] = o.fillet;
-    assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM < 2e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
+    assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.section < 2e-6 && rep.ball < 1e-8, JSON.stringify(rep));
     assert.ok(massPropertiesOf(o).volume < massPropertiesOf(out(body)).volume, 'a convex fillet removes material');
   }
 });
 
 test('R10.1\'s closed-form tools end where an oblique end face is: a rib turned 10° and 25° on a plate, its concave feet filleted — (1 − π/4) r² × 40 / cos θ a foot, to rounding (they stopped square before, 0.6–1.5 % over)', () => {
-  const rib = deg => [...plate, { id: 'rs', kind: 'sketch', profile: 'rectangle', min: [-10, -2], max: [50, 2] }, { id: 'r0', kind: 'extrude', sketch: 'rs', height: 6, from: 10 }, ...(deg ? [{ id: 'r', kind: 'rotate', target: 'r0', axis: 'z', angleDegrees: deg, pivot: [20, 0, 10] }] : []), { id: 'u', kind: 'union', target: 'pe', tool: deg ? 'r' : 'r0' }];
+  const rib = deg => [...plate, { id: 'rs', kind: 'sketch', profile: 'rectangle', min: [-10, -2], max: [50, 2] }, { id: 'r0', kind: 'extrude', sketch: 'rs', height: 6, from: 10 }, ...(deg ? [{ id: 'r', kind: 'rotate', target: 'r0', axis: 'z', angle: deg, pivot: [20, 0, 10] }] : []), { id: 'u', kind: 'union', target: 'pe', tool: deg ? 'r' : 'r0' }];
   for (const deg of [0, 10, 25]) {
     const body = rib(deg), o0 = out(body), feet = o0.brep.edges.filter(e => /r0\.side/.test(e.name) && /pe\.top/.test(e.name) && e.curve.degree === 1).map(e => e.name);
     const o = out([...body, fillet('u', feet, 1)]), exact = feet.length * (1 - Math.PI / 4) * 40 / Math.cos(deg * Math.PI / 180);

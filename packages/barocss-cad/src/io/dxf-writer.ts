@@ -31,12 +31,12 @@ export interface DxfLinetype { name: string; description: string; pattern: reado
 export interface DxfTextStyle { name: string; font: string }
 /** A boundary loop of a hatch: closed, `bulges[i]` the bulge of the side from point i to point i + 1. */
 export interface DxfHatchLoop { points: readonly DxfXY[]; bulges?: readonly number[] }
-/** `lines`: a family of parallel lines `spacing` apart at `angleDeg`, one through `origin` (default 0, 0). */
-export type DxfHatchFill = { kind: 'solid' } | { kind: 'lines'; angleDeg: number; spacing: number; origin?: DxfXY };
+/** `lines`: a family of parallel lines `spacing` apart at `angle`, one through `origin` (default 0, 0). */
+export type DxfHatchFill = { kind: 'solid' } | { kind: 'lines'; angle: number; spacing: number; origin?: DxfXY };
 /** The definition points of a dimension (drawing coordinates). */
 export type DxfDimensionGeometry =
-  /** `p1`, `p2`: the measured points; `line`: a point on the dimension line; `angleDeg`: the dimension line's direction. */
-  | { kind: 'linear'; p1: DxfXY; p2: DxfXY; line: DxfXY; angleDeg: number }
+  /** `p1`, `p2`: the measured points; `line`: a point on the dimension line; `angle`: the dimension line's direction. */
+  | { kind: 'linear'; p1: DxfXY; p2: DxfXY; line: DxfXY; angle: number }
   | { kind: 'aligned'; p1: DxfXY; p2: DxfXY; line: DxfXY }
   /** The two lines (each start → end) and a point on the dimension arc. */
   | { kind: 'angular'; line1: readonly [DxfXY, DxfXY]; line2: readonly [DxfXY, DxfXY]; arc: DxfXY }
@@ -47,8 +47,8 @@ interface DxfEntityBase { layer?: string; linetype?: string; color?: number }
 export type DxfEntity = DxfEntityBase & (
   | { type: 'line'; a: DxfXY; b: DxfXY }
   | { type: 'circle'; center: DxfXY; radius: number }
-  /** Counter-clockwise from `startDeg` to `endDeg`. */
-  | { type: 'arc'; center: DxfXY; radius: number; startDeg: number; endDeg: number }
+  /** Counter-clockwise from `start` to `end`. */
+  | { type: 'arc'; center: DxfXY; radius: number; start: number; end: number }
   /** `major`: the major semi-axis from the centre; `ratio`: minor / major (0, 1]; counter-clockwise from parameter `start` to `end` (radians). */
   | { type: 'ellipse'; center: DxfXY; major: DxfXY; ratio: number; start: number; end: number }
   /** `bulges[i]`: tan(sweep / 4) of the side from point i to i + 1 (positive counter-clockwise). */
@@ -56,13 +56,13 @@ export type DxfEntity = DxfEntityBase & (
   /** A NURBS curve: `knots` = control points + degree + 1, nondecreasing; `weights` (all positive) make it rational. */
   | { type: 'spline'; degree: number; knots: readonly number[]; control: readonly DxfXY[]; weights?: readonly number[] }
   /** One line of text; `at` is its baseline point at the `align` side. */
-  | { type: 'text'; at: DxfXY; height: number; text: string; rotationDeg?: number; align?: 'left' | 'center' | 'right'; style?: string }
+  | { type: 'text'; at: DxfXY; height: number; text: string; rotation?: number; align?: 'left' | 'center' | 'right'; style?: string }
   /** Lines of text (\n between them), `at` the top left corner. */
-  | { type: 'mtext'; at: DxfXY; height: number; text: string; rotationDeg?: number; style?: string }
+  | { type: 'mtext'; at: DxfXY; height: number; text: string; rotation?: number; style?: string }
   /** A filled triangle or quadrilateral, its corners in order round it. */
   | { type: 'solid'; points: readonly DxfXY[] }
   | { type: 'hatch'; loops: readonly DxfHatchLoop[]; fill: DxfHatchFill }
-  | { type: 'insert'; block: string; at: DxfXY; scale?: number; rotationDeg?: number }
+  | { type: 'insert'; block: string; at: DxfXY; scale?: number; rotation?: number }
   /** `block`: what the dimension shows (lines, solids, text) in drawing coordinates; `text`: its text as shown; `measurement`: the measured value. */
   | { type: 'dimension'; geometry: DxfDimensionGeometry; block: readonly DxfEntity[]; text: string; textAt: DxfXY; measurement?: number });
 export interface DxfBlock { name: string; base?: DxfXY; entities: readonly DxfEntity[] }
@@ -211,7 +211,7 @@ function checkEntity(e: DxfEntity, ctx: Context, inBlock: boolean): void {
   switch (e.type) {
     case 'line': finite(e.a, 'line start'); finite(e.b, 'line end'); return;
     case 'circle': finite(e.center, 'circle centre'); positive(e.radius, 'circle radius'); return;
-    case 'arc': finite(e.center, 'arc centre'); positive(e.radius, 'arc radius'); num(e.startDeg, 'arc start'); num(e.endDeg, 'arc end'); return;
+    case 'arc': finite(e.center, 'arc centre'); positive(e.radius, 'arc radius'); num(e.start, 'arc start'); num(e.end, 'arc end'); return;
     case 'ellipse':
       finite(e.center, 'ellipse centre'); finite(e.major, 'ellipse axis'); num(e.start, 'ellipse start'); num(e.end, 'ellipse end');
       if (!(Math.hypot(e.major[0], e.major[1]) > 0) || !(e.ratio > 0 && e.ratio <= 1)) throw dxfWriteError('BAD_ENTITY', `ellipse axis ${e.major} ratio ${e.ratio}`);
@@ -233,7 +233,7 @@ function checkEntity(e: DxfEntity, ctx: Context, inBlock: boolean): void {
       return;
     }
     case 'text': case 'mtext':
-      finite(e.at, `${e.type} point`); positive(e.height, `${e.type} height`); if (e.rotationDeg !== undefined) num(e.rotationDeg, `${e.type} rotation`);
+      finite(e.at, `${e.type} point`); positive(e.height, `${e.type} height`); if (e.rotation !== undefined) num(e.rotation, `${e.type} rotation`);
       if (e.style !== undefined && !ctx.styles.has(e.style)) throw dxfWriteError('UNKNOWN_STYLE', `text style ${JSON.stringify(e.style)}`);
       if (typeof e.text !== 'string') throw dxfWriteError('BAD_TEXT', 'text is not a string');
       if (e.type === 'text' && dxfText(e.text, false).length > TEXT_CHUNK) throw dxfWriteError('TEXT_TOO_LONG', `a TEXT of ${e.text.length} characters (at most ${TEXT_CHUNK} written; use mtext)`);
@@ -246,17 +246,17 @@ function checkEntity(e: DxfEntity, ctx: Context, inBlock: boolean): void {
     case 'hatch':
       if (!e.loops.length) throw dxfWriteError('BAD_ENTITY', 'a hatch without loops');
       for (const l of e.loops) { if (l.points.length < 3 && !(l.points.length === 2 && l.bulges?.some(b => b !== 0))) throw dxfWriteError('BAD_ENTITY', 'a hatch loop needs three points (or two with a bulge)'); l.points.forEach((p, i) => finite(p, `hatch point ${i}`)); bulges(l.bulges, l.points.length, 'hatch loop'); }
-      if (e.fill.kind === 'lines') { num(e.fill.angleDeg, 'hatch angle'); positive(e.fill.spacing, 'hatch spacing'); if (e.fill.origin) finite(e.fill.origin, 'hatch origin'); }
+      if (e.fill.kind === 'lines') { num(e.fill.angle, 'hatch angle'); positive(e.fill.spacing, 'hatch spacing'); if (e.fill.origin) finite(e.fill.origin, 'hatch origin'); }
       else if (e.fill.kind !== 'solid') throw dxfWriteError('BAD_ENTITY', 'hatch fill');
       return;
     case 'insert':
       if (!ctx.blocks.has(e.block)) throw dxfWriteError('UNKNOWN_BLOCK', `insert of ${JSON.stringify(e.block)}`);
-      finite(e.at, 'insert point'); if (e.scale !== undefined) positive(e.scale, 'insert scale'); if (e.rotationDeg !== undefined) num(e.rotationDeg, 'insert rotation');
+      finite(e.at, 'insert point'); if (e.scale !== undefined) positive(e.scale, 'insert scale'); if (e.rotation !== undefined) num(e.rotation, 'insert rotation');
       return;
     case 'dimension': {
       if (inBlock) throw dxfWriteError('BAD_ENTITY', 'a dimension inside a block');
       const g = e.geometry;
-      if (g.kind === 'linear' || g.kind === 'aligned') { finite(g.p1, 'dimension point'); finite(g.p2, 'dimension point'); finite(g.line, 'dimension line point'); if (g.kind === 'linear') num(g.angleDeg, 'dimension angle'); }
+      if (g.kind === 'linear' || g.kind === 'aligned') { finite(g.p1, 'dimension point'); finite(g.p2, 'dimension point'); finite(g.line, 'dimension line point'); if (g.kind === 'linear') num(g.angle, 'dimension angle'); }
       else if (g.kind === 'angular') { for (const p of [...g.line1, ...g.line2, g.arc]) finite(p, 'angular dimension point'); }
       else if (g.kind === 'diameter') { finite(g.rim, 'diameter point'); finite(g.opposite, 'diameter point'); }
       else if (g.kind === 'radius') { finite(g.center, 'radius centre'); finite(g.rim, 'radius point'); }
@@ -365,8 +365,8 @@ function curvePolyline(c: Curve, tol: number): { points: [number, number][]; dev
 }
 
 /** Lines of a line hatch over straight-sided loops (even–odd), the family through `origin`. */
-export function dxfHatchLines(loops: readonly DxfHatchLoop[], angleDeg: number, spacing: number, origin: DxfXY = [0, 0]): [DxfXY, DxfXY][] {
-  const a = angleDeg * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a), [ox, oy] = origin;
+export function dxfHatchLines(loops: readonly DxfHatchLoop[], angle: number, spacing: number, origin: DxfXY = [0, 0]): [DxfXY, DxfXY][] {
+  const a = angle * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a), [ox, oy] = origin;
   // In coordinates about the origin turned by −angle the lines are horizontal, at multiples of the spacing.
   const rs = loops.map(l => l.points.map(p => [ca * (p[0] - ox) + sa * (p[1] - oy), -sa * (p[0] - ox) + ca * (p[1] - oy)] as [number, number]));
   let lo = Infinity, hi = -Infinity;
@@ -400,7 +400,7 @@ const IDENTITY: Xf = [1, 0, 0, 1, 0, 0];
 function put(box: Box, t: Xf, x: number, y: number): void { box.add(t[0] * x + t[1] * y + t[4], t[2] * x + t[3] * y + t[5]); }
 /** `t` after an insert's own map: the block's base to `at`, scaled and turned. */
 function insertXf(t: Xf, e: Extract<DxfEntity, { type: 'insert' }>, base: DxfXY): Xf {
-  const k = e.scale ?? 1, r = (e.rotationDeg ?? 0) * Math.PI / 180, c = k * Math.cos(r), s = k * Math.sin(r);
+  const k = e.scale ?? 1, r = (e.rotation ?? 0) * Math.PI / 180, c = k * Math.cos(r), s = k * Math.sin(r);
   const a = c, b = -s, cc = s, d = c, ex = e.at[0] - (c * base[0] - s * base[1]), fy = e.at[1] - (s * base[0] + c * base[1]);
   return [t[0] * a + t[1] * cc, t[0] * b + t[1] * d, t[2] * a + t[3] * cc, t[2] * b + t[3] * d, t[0] * ex + t[1] * fy + t[4], t[2] * ex + t[3] * fy + t[5]];
 }
@@ -489,7 +489,7 @@ function writeEntity(w: Writer, e: DxfEntity): void {
     case 'arc':
       head(w, 'ARC', e, 'AcDbCircle'); o.xyz(10, e.center); o.g(40, e.radius);
       if (!r12) o.g(100, 'AcDbArc');
-      o.g(50, deg(e.startDeg)); o.g(51, deg(e.endDeg));
+      o.g(50, deg(e.start)); o.g(51, deg(e.end));
       return;
     case 'ellipse': {
       if (r12) { r12Curve(w, e, { kind: 'ellipse', e }); w.ctx.r12.ellipses++; return; }
@@ -510,15 +510,15 @@ function writeEntity(w: Writer, e: DxfEntity): void {
       for (const p of e.control) o.xyz(10, p);
       return;
     }
-    case 'text': writeText(w, e, e.at, e.height, e.text, e.rotationDeg ?? 0, e.align, e.style); return;
+    case 'text': writeText(w, e, e.at, e.height, e.text, e.rotation ?? 0, e.align, e.style); return;
     case 'mtext': {
-      const a = (e.rotationDeg ?? 0) * Math.PI / 180;
+      const a = (e.rotation ?? 0) * Math.PI / 180;
       if (r12) {
         // One TEXT a line; the first line's top at `at` (cap height taken as the text height), 5/3 of the height apart (MTEXT's own spacing).
         w.ctx.r12.mtexts++;
         e.text.split('\n').forEach((line, k) => {
           const down = e.height * (1 + k * 5 / 3);
-          writeText(w, e, [e.at[0] + Math.sin(a) * down, e.at[1] - Math.cos(a) * down], e.height, line, e.rotationDeg ?? 0, 'left', e.style);
+          writeText(w, e, [e.at[0] + Math.sin(a) * down, e.at[1] - Math.cos(a) * down], e.height, line, e.rotation ?? 0, 'left', e.style);
         });
         return;
       }
@@ -538,7 +538,7 @@ function writeEntity(w: Writer, e: DxfEntity): void {
         if (e.fill.kind === 'solid') throw dxfWriteError('R12_UNSUPPORTED', 'a solid hatch (R12 has no HATCH; write AC1015 or give the fill as solids)');
         if (e.loops.some(l => l.bulges?.some(b => b !== 0))) throw dxfWriteError('R12_UNSUPPORTED', 'a hatch with arc sides (R12 has no HATCH)');
         w.ctx.r12.hatches++;
-        for (const [a, b] of dxfHatchLines(e.loops, e.fill.angleDeg, e.fill.spacing, e.fill.origin)) writeEntity(w, { type: 'line', a, b, layer: e.layer, ...(e.linetype !== undefined ? { linetype: e.linetype } : {}), ...(e.color !== undefined ? { color: e.color } : {}) });
+        for (const [a, b] of dxfHatchLines(e.loops, e.fill.angle, e.fill.spacing, e.fill.origin)) writeEntity(w, { type: 'line', a, b, layer: e.layer, ...(e.linetype !== undefined ? { linetype: e.linetype } : {}), ...(e.color !== undefined ? { color: e.color } : {}) });
         return;
       }
       head(w, 'HATCH', e, 'AcDbHatch');
@@ -554,9 +554,9 @@ function writeEntity(w: Writer, e: DxfEntity): void {
       o.g(75, 0); o.g(76, solid ? 1 : 0);
       if (e.fill.kind === 'lines') {
         // The pattern line as DXF stores it: already turned and scaled, its offset to the next line in drawing coordinates.
-        const a = e.fill.angleDeg * Math.PI / 180;
-        o.g(52, deg(e.fill.angleDeg)); o.g(41, e.fill.spacing); o.g(77, 0); o.g(78, 1);
-        o.g(53, deg(e.fill.angleDeg)); o.g(43, e.fill.origin?.[0] ?? 0); o.g(44, e.fill.origin?.[1] ?? 0); o.g(45, -Math.sin(a) * e.fill.spacing); o.g(46, Math.cos(a) * e.fill.spacing); o.g(79, 0);
+        const a = e.fill.angle * Math.PI / 180;
+        o.g(52, deg(e.fill.angle)); o.g(41, e.fill.spacing); o.g(77, 0); o.g(78, 1);
+        o.g(53, deg(e.fill.angle)); o.g(43, e.fill.origin?.[0] ?? 0); o.g(44, e.fill.origin?.[1] ?? 0); o.g(45, -Math.sin(a) * e.fill.spacing); o.g(46, Math.cos(a) * e.fill.spacing); o.g(79, 0);
       }
       o.g(98, 0);
       return;
@@ -564,7 +564,7 @@ function writeEntity(w: Writer, e: DxfEntity): void {
     case 'insert':
       head(w, 'INSERT', e, 'AcDbBlockReference'); o.g(2, e.block); o.xyz(10, e.at);
       if (e.scale !== undefined && e.scale !== 1) { o.g(41, e.scale); o.g(42, e.scale); o.g(43, e.scale); }
-      if (e.rotationDeg) o.g(50, deg(e.rotationDeg));
+      if (e.rotation) o.g(50, deg(e.rotation));
       return;
     case 'dimension': {
       const g = e.geometry, name = w.dimBlocks[w.dimIndex++];
@@ -579,7 +579,7 @@ function writeEntity(w: Writer, e: DxfEntity): void {
       if (g.kind === 'linear' || g.kind === 'aligned') {
         if (!r12) o.g(100, 'AcDbAlignedDimension');
         o.xyz(13, g.p1); o.xyz(14, g.p2);
-        if (g.kind === 'linear') { o.g(50, deg(g.angleDeg)); if (!r12) o.g(100, 'AcDbRotatedDimension'); }
+        if (g.kind === 'linear') { o.g(50, deg(g.angle)); if (!r12) o.g(100, 'AcDbRotatedDimension'); }
       } else if (g.kind === 'angular') {
         if (!r12) o.g(100, 'AcDb2LineAngularDimension');
         o.xyz(13, g.line1[0]); o.xyz(14, g.line1[1]); o.xyz(15, g.line2[0]); o.xyz(16, g.arc);

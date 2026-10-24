@@ -29,7 +29,7 @@
           "kind": "rotate",
           "target": "n1b",
           "axis": "x",
-          "angleDegrees": 270,
+          "angle": 270,
           "pivot": [
             0,
             0,

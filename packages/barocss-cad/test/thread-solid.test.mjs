@@ -77,7 +77,7 @@ test('helical threads tessellate watertight by exact position, and their STL too
   const open = (P, I) => { const key = i => `${P[3 * i]},${P[3 * i + 1]},${P[3 * i + 2]}`, uses = new Map(); for (let t = 0; t < I.length; t += 3) for (let k = 0; k < 3; k++) { const a = key(I[t + k]), b = key(I[t + (k + 1) % 3]), e = a < b ? a + '|' + b : b + '|' + a; uses.set(e, (uses.get(e) ?? 0) + 1); } let n = 0; for (const u of uses.values()) if (u !== 2) n++; return n; };
   for (const req of [{ diameter: 8, pitch: 1.25, length: 30, hex: { across: 13, height: 5.3 } }, { diameter: 8, pitch: 1.25, hex: { across: 13, height: 6.8, internal: true } }, { diameter: 6, pitch: 1, length: 12 }]) {
     const b = threadSolid({ id: 't', ...req }), m = tessellateBrep(b, { segmentsPerQuarter: 8 });
-    assert.equal(open(m.positionsMM, m.indices), 0, JSON.stringify(req));
+    assert.equal(open(m.positions, m.indices), 0, JSON.stringify(req));
     const out = evaluateCadPart(D([{ id: 't', kind: 'thread', ...req, form: 'helical' }])).outputs[0], soup = readStl(exportStl(out));
     assert.equal(open(soup, Array.from({ length: soup.length / 3 }, (_, k) => k)), 0, `STL ${JSON.stringify(req)}`);
   }

@@ -29,7 +29,7 @@
           "kind": "rotate",
           "target": "n2b",
           "axis": "y",
-          "angleDegrees": 180,
+          "angle": 180,
           "pivot": [
             0,
             0,
@@ -41,7 +41,7 @@
           "kind": "rotate",
           "target": "n2r0",
           "axis": "y",
-          "angleDegrees": 270,
+          "angle": 270,
           "pivot": [
             0,
             0,
@@ -121,7 +121,7 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n3",
@@ -172,7 +172,7 @@
           "kind": "rotate",
           "target": "n4f",
           "axis": "z",
-          "angleDegrees": 90,
+          "angle": 90,
           "pivot": [
             0,
             0,
@@ -184,7 +184,7 @@
           "kind": "rotate",
           "target": "n4r0",
           "axis": "z",
-          "angleDegrees": 180,
+          "angle": 180,
           "pivot": [
             0,
             0,

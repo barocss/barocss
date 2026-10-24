@@ -56,7 +56,7 @@ test('R9 a gridded box (1 200 triangles) decimates to its 12: the corners exactl
   assert.deepEqual([r.report.trianglesAfter, r.report.verticesAfter, r.report.stoppedBy], [12, 8, 'exhausted']);
   assert.deepEqual([...pointSet(r.positions)].sort(), ['0,0,0', '0,0,10', '0,10,0', '0,10,10', '10,0,0', '10,0,10', '10,10,0', '10,10,10']);
   assert.ok(Math.abs(closedVolume(r.positions, r.indices) - 1000) < 1e-9);
-  assert.ok(r.report.distance.hausdorffMM < 1e-12 && r.report.boundMM < 1e-12, JSON.stringify(r.report.distance));
+  assert.ok(r.report.distance.hausdorff < 1e-12 && r.report.bound < 1e-12, JSON.stringify(r.report.distance));
 });
 
 test('R9 a sphere (20 480 triangles, r 10): to a tenth and a fiftieth — closed, wound as before, near the original (measured both ways, the same as meshDistance finds); the same result every run', () => {
@@ -67,10 +67,10 @@ test('R9 a sphere (20 480 triangles, r 10): to a tenth and a fiftieth — closed
     assert.ok(r.report.trianglesAfter <= Math.floor(ratio * 20480) && r.report.trianglesAfter >= Math.floor(ratio * 20480) - 1); assert.equal(r.report.stoppedBy, 'target');
     const v = closedVolume(r.positions, r.indices);
     assert.ok(v > 0 && Math.abs(v / v0 - 1) < 0.02, `${v} vs ${v0}`);
-    assert.ok(d.hausdorffMM < within, `${ratio}: ${d.hausdorffMM} mm`);
-    assert.equal(d.toResultMaxMM, meshDistance(s.positions, s.indices, r.positions, r.indices).maxMM);
-    assert.equal(d.toOriginalMaxMM, meshDistance(r.positions, r.indices, s.positions, s.indices).maxMM);
-    assert.ok(d.rmsMM < d.hausdorffMM && d.samples > 0);
+    assert.ok(d.hausdorff < within, `${ratio}: ${d.hausdorff} mm`);
+    assert.equal(d.toResultMax, meshDistance(s.positions, s.indices, r.positions, r.indices).max);
+    assert.equal(d.toOriginalMax, meshDistance(r.positions, r.indices, s.positions, s.indices).max);
+    assert.ok(d.rms < d.hausdorff && d.samples > 0);
   }
   const a = decimateMesh(s.positions, s.indices, { ratio: 0.1, measure: false }), b = decimateMesh(s.positions, s.indices, { ratio: 0.1, measure: false });
   assert.deepEqual([...a.positions], [...b.positions]); assert.deepEqual([...a.indices], [...b.indices]);
@@ -90,11 +90,11 @@ function inward(P, I) {
 test('R9 a noisy sphere (each vertex off by up to ±2.5%): as a scan (no crease angle) to a twentieth — closed, every triangle facing out, within 0.6 mm; with the 40° crease angle the noise is creases: it stops early, nothing turned past 95°', () => {
   const s = icosphere(10, 5, 0.05);
   assert.equal(inward(s.positions, s.indices).n, 0);
-  const r = decimateMesh(s.positions, s.indices, { ratio: 0.05, featureDegrees: 180 });
+  const r = decimateMesh(s.positions, s.indices, { ratio: 0.05, feature: 180 });
   assert.ok(r.report.trianglesAfter <= 1024 && r.report.stoppedBy === 'target');
   assert.ok(closedVolume(r.positions, r.indices) > 0.9 * closedVolume(s.positions, s.indices));
   assert.equal(inward(r.positions, r.indices).n, 0);
-  assert.ok(r.report.distance.hausdorffMM < 0.6, String(r.report.distance.hausdorffMM));
+  assert.ok(r.report.distance.hausdorff < 0.6, String(r.report.distance.hausdorff));
   assert.ok(r.report.refused.flip > 0, 'folds were refused');
   const c = decimateMesh(s.positions, s.indices, { ratio: 0.05 });
   assert.equal(c.report.stoppedBy, 'exhausted'); assert.ok(c.report.trianglesAfter > 10000);
@@ -135,8 +135,8 @@ test('R9 an open sheet keeps its boundary: flat, two triangles and its four corn
 });
 
 test('R9 stopped by an error bound: no collapse past it (its quadric bound), said so', () => {
-  const s = icosphere(10, 5), r = decimateMesh(s.positions, s.indices, { maxErrorMM: 0.05 });
-  assert.equal(r.report.stoppedBy, 'error'); assert.ok(r.report.boundMM <= 0.05);
+  const s = icosphere(10, 5), r = decimateMesh(s.positions, s.indices, { maxError: 0.05 });
+  assert.equal(r.report.stoppedBy, 'error'); assert.ok(r.report.bound <= 0.05);
   assert.ok(r.report.trianglesAfter < 20480 && r.report.trianglesAfter > 200, String(r.report.trianglesAfter));
   assert.throws(() => decimateMesh([0, 0], [0, 1, 2]), RangeError);
 });

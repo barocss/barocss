@@ -19,16 +19,16 @@ export interface SheetBendReport {
   readonly name: string;
   /** Its concave face (radius R) and its convex face (radius R + T). */
   readonly inner: string; readonly outer: string;
-  readonly radiusMM: number; readonly angleDegrees: number;
+  readonly radius: number; readonly angle: number;
   /** The bend's axis, through its centre along the sheet's width. */
   readonly axis: { readonly origin: Point; readonly direction: Point };
-  readonly allowanceMM: number; readonly setbackMM: number; readonly deductionMM: number;
+  readonly allowance: number; readonly setback: number; readonly deduction: number;
   /** Its K-factor: the sheet's, or its bend table's for its T, R and angle (R12.4), with the rows used. */
   readonly kFactor: number; readonly table?: BendTableUse;
 }
 /** A sheet-metal body's rules and bends (R12.1, D116). */
 export interface SheetReport {
-  readonly thicknessMM: number; readonly bendRadiusMM: number;
+  readonly thickness: number; readonly bendRadius: number;
   /** One K-factor for every bend, or (R12.4, D120) a bend table giving each bend's by its T, R and angle: one of them. */
   readonly kFactor?: number; readonly bendTable?: BendTable;
   /** The face its flat lies in by default (R12.2): a plate's `top`, a profile's `leg0.a`. */
@@ -227,13 +227,13 @@ export function flangeSection(id: string, thickness: number, radius: number, ang
 /** Where a table's values come from: a named source (its page, the date it was read), cited by id from its rows. */
 export interface BendTableSource { readonly id: string; readonly label: string; readonly url?: string; readonly read?: string; readonly note?: string }
 /**
- * One row: a sheet T thick bent at inner radius R (at `angleDegrees`, or at any angle for a K row without one) has
- * K-factor `kFactor`, or bend allowance `allowanceMM`, or bend deduction `deductionMM` (one of them; the last two need the
+ * One row: a sheet T thick bent at inner radius R (at `angle`, or at any angle for a K row without one) has
+ * K-factor `kFactor`, or bend allowance `allowance`, or bend deduction `deduction` (one of them; the last two need the
  * angle). It cites a `source` by id, or says `estimate: true` — never neither.
  */
 export interface BendTableRow {
-  readonly thicknessMM: number; readonly radiusMM: number; readonly angleDegrees?: number;
-  readonly kFactor?: number; readonly allowanceMM?: number; readonly deductionMM?: number;
+  readonly thickness: number; readonly radius: number; readonly angle?: number;
+  readonly kFactor?: number; readonly allowance?: number; readonly deduction?: number;
   readonly source?: string; readonly estimate?: boolean;
 }
 /** A bend table carried in the part (R12.4): its rows and the sources they cite. */
@@ -244,13 +244,14 @@ export interface BendTableUse { readonly table: string; readonly rows: readonly 
 /** A row's K-factor: given, or from its allowance (K = (BA/θ − R)/T) or its deduction (BA = 2·OSSB − BD). */
 export function rowKFactor(row: BendTableRow): number {
   if (row.kFactor !== undefined) return row.kFactor;
-  const th = (row.angleDegrees ?? NaN) * Math.PI / 180, T = row.thicknessMM, R = row.radiusMM;
-  const ba = row.allowanceMM !== undefined ? row.allowanceMM : 2 * outsideSetback(th, R, T) - row.deductionMM!;
+  const th = (row.angle ?? NaN) * Math.PI / 180, T = row.thickness, R = row.radius;
+  const ba = row.allowance !== undefined ? row.allowance : 2 * outsideSetback(th, R, T) - row.deduction!;
   return (ba / th - R) / T;
 }
 const near = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
 
 /** Why a bend table is not usable, or null: its shape, its rows' values and citations, no row twice. */
+const BEND_ROW_FIELDS = ['thickness', 'radius', 'angle', 'kFactor', 'allowance', 'deduction', 'source', 'estimate'];
 export function bendTableProblem(t: unknown): string | null {
   if (!t || typeof t !== 'object') return 'a bend table is { id, rows, sources? }';
   const b = t as BendTable;
@@ -262,16 +263,17 @@ export function bendTableProblem(t: unknown): string | null {
   for (let i = 0; i < b.rows.length; i++) {
     const r = b.rows[i], at = `row ${i}`;
     if (!r || typeof r !== 'object') return `${at} must be an object`;
-    for (const k of ['thicknessMM', 'radiusMM'] as const) if (typeof r[k] !== 'number' || !(r[k] > 0) || !Number.isFinite(r[k])) return `${at}: ${k} must be above 0`;
-    if (r.angleDegrees !== undefined && !(typeof r.angleDegrees === 'number' && r.angleDegrees > 0 && r.angleDegrees < 180)) return `${at}: angleDegrees must lie in (0, 180)`;
-    const given = (['kFactor', 'allowanceMM', 'deductionMM'] as const).filter(k => r[k] !== undefined);
-    if (given.length !== 1 || given.some(k => typeof r[k] !== 'number' || !Number.isFinite(r[k]!))) return `${at}: give one of kFactor, allowanceMM, deductionMM`;
-    if (given[0] !== 'kFactor' && r.angleDegrees === undefined) return `${at}: an allowance or a deduction holds at an angle: give angleDegrees`;
+    for (const k of Object.keys(r)) if (!BEND_ROW_FIELDS.includes(k)) return `${at}: unknown field ${k}`;
+    for (const k of ['thickness', 'radius'] as const) if (typeof r[k] !== 'number' || !(r[k] > 0) || !Number.isFinite(r[k])) return `${at}: ${k} must be above 0`;
+    if (r.angle !== undefined && !(typeof r.angle === 'number' && r.angle > 0 && r.angle < 180)) return `${at}: angle must lie in (0, 180)`;
+    const given = (['kFactor', 'allowance', 'deduction'] as const).filter(k => r[k] !== undefined);
+    if (given.length !== 1 || given.some(k => typeof r[k] !== 'number' || !Number.isFinite(r[k]!))) return `${at}: give one of kFactor, allowance, deduction`;
+    if (given[0] !== 'kFactor' && r.angle === undefined) return `${at}: an allowance or a deduction holds at an angle: give angle`;
     if (r.source === undefined && r.estimate !== true) return `${at}: cite a source, or say estimate: true`;
     if (r.source !== undefined && !ids.has(r.source)) return `${at}: no source ${r.source} in the table`;
     const k = rowKFactor(r);
     if (!(k >= 0 && k <= 1)) return `${at}: its K-factor ${+k.toFixed(6)} lies outside the sheet (0 to 1)`;
-    if (seen.some(o => near(o.thicknessMM, r.thicknessMM) && near(o.radiusMM, r.radiusMM) && (o.angleDegrees === undefined ? r.angleDegrees === undefined : r.angleDegrees !== undefined && near(o.angleDegrees, r.angleDegrees)))) return `${at}: T ${r.thicknessMM}, R ${r.radiusMM}${r.angleDegrees !== undefined ? `, ${r.angleDegrees}°` : ''} is given twice`;
+    if (seen.some(o => near(o.thickness, r.thickness) && near(o.radius, r.radius) && (o.angle === undefined ? r.angle === undefined : r.angle !== undefined && near(o.angle, r.angle)))) return `${at}: T ${r.thickness}, R ${r.radius}${r.angle !== undefined ? `, ${r.angle}°` : ''} is given twice`;
     seen.push(r);
   }
   return null;
@@ -283,21 +285,21 @@ export function bendTableProblem(t: unknown): string | null {
  * table's rows: a miss, said why.
  */
 export function lookupBend(t: BendTable, thickness: number, radius: number, angle: number): { use: BendTableUse; kFactor: number } | { miss: string } {
-  const deg = angle * 180 / Math.PI, rows = t.rows.map((r, i) => ({ r, i, k: rowKFactor(r) })).filter(x => near(x.r.thicknessMM, thickness));
+  const deg = angle * 180 / Math.PI, rows = t.rows.map((r, i) => ({ r, i, k: rowKFactor(r) })).filter(x => near(x.r.thickness, thickness));
   const fmt = (x: number) => String(+x.toFixed(6));
   if (!rows.length) return { miss: `table ${t.id} has no row for ${fmt(thickness)} mm` };
   const est = (xs: { r: BendTableRow }[]) => xs.some(x => x.r.estimate === true);
   const done = (xs: { r: BendTableRow; i: number }[], k: number, how: 'exact' | 'interpolated') => ({ kFactor: k, use: { table: t.id, rows: xs.map(x => x.i), how, estimate: est(xs) } });
-  const angled = rows.filter(x => x.r.angleDegrees !== undefined), free = rows.filter(x => x.r.angleDegrees === undefined);
-  const exact = angled.find(x => near(x.r.radiusMM, radius) && near(x.r.angleDegrees!, deg)) ?? free.find(x => near(x.r.radiusMM, radius));
+  const angled = rows.filter(x => x.r.angle !== undefined), free = rows.filter(x => x.r.angle === undefined);
+  const exact = angled.find(x => near(x.r.radius, radius) && near(x.r.angle!, deg)) ?? free.find(x => near(x.r.radius, radius));
   if (exact) return done([exact], exact.k, 'exact');
   // Bilinear in R and the angle over the nearest values either side, all four rows there (fewer where one matches).
   if (angled.length) {
-    const rs = [...new Set(angled.map(x => x.r.radiusMM))].sort((a, b) => a - b), as = [...new Set(angled.map(x => x.r.angleDegrees!))].sort((a, b) => a - b);
+    const rs = [...new Set(angled.map(x => x.r.radius))].sort((a, b) => a - b), as = [...new Set(angled.map(x => x.r.angle!))].sort((a, b) => a - b);
     const side = (vals: number[], v: number): [number, number] | null => { const e = vals.find(x => near(x, v)); if (e !== undefined) return [e, e]; const lo = vals.filter(x => x < v).pop(), hi = vals.find(x => x > v); return lo !== undefined && hi !== undefined ? [lo, hi] : null; };
     const R2 = side(rs, radius), A2 = side(as, deg);
     if (R2 && A2) {
-      const at = (r: number, a: number) => angled.find(x => near(x.r.radiusMM, r) && near(x.r.angleDegrees!, a));
+      const at = (r: number, a: number) => angled.find(x => near(x.r.radius, r) && near(x.r.angle!, a));
       const c = [at(R2[0], A2[0]), at(R2[1], A2[0]), at(R2[0], A2[1]), at(R2[1], A2[1])];
       if (c.every(Boolean)) {
         const u = R2[1] > R2[0] ? (radius - R2[0]) / (R2[1] - R2[0]) : 0, v = A2[1] > A2[0] ? (deg - A2[0]) / (A2[1] - A2[0]) : 0;
@@ -307,8 +309,8 @@ export function lookupBend(t: BendTable, thickness: number, radius: number, angl
     }
   }
   if (free.length) {
-    const lo = free.filter(x => x.r.radiusMM < radius).sort((a, b) => b.r.radiusMM - a.r.radiusMM)[0], hi = free.filter(x => x.r.radiusMM > radius).sort((a, b) => a.r.radiusMM - b.r.radiusMM)[0];
-    if (lo && hi) { const u = (radius - lo.r.radiusMM) / (hi.r.radiusMM - lo.r.radiusMM); return done([lo, hi], (1 - u) * lo.k + u * hi.k, 'interpolated'); }
+    const lo = free.filter(x => x.r.radius < radius).sort((a, b) => b.r.radius - a.r.radius)[0], hi = free.filter(x => x.r.radius > radius).sort((a, b) => a.r.radius - b.r.radius)[0];
+    if (lo && hi) { const u = (radius - lo.r.radius) / (hi.r.radius - lo.r.radius); return done([lo, hi], (1 - u) * lo.k + u * hi.k, 'interpolated'); }
   }
   return { miss: `table ${t.id} has no rows round ${fmt(thickness)} mm, R ${fmt(radius)} mm, ${fmt(deg)}° (an exact row, or rows either side in R${angled.length ? ' and in the angle' : ''})` };
 }

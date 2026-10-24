@@ -65,11 +65,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 126246.90049407734,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -86,11 +86,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6276.3893421169305,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -107,17 +107,17 @@
         ],
         "plate": {
           "kind": "endCap",
-          "areaMM2": 1569.0973355292326,
+          "area": 1569.0973355292326,
           "seam": 149.6991118430775,
           "absTol": 1e-9
         }
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6889.6460032938485,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -134,7 +134,7 @@
         ],
         "plate": {
           "kind": "endCap",
-          "areaMM2": 1148.2743338823082,
+          "area": 1148.2743338823082,
           "seam": 130.84955592153875,
           "absTol": 1e-9
         }

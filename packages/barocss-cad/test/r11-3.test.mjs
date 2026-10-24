@@ -32,7 +32,7 @@ function icosphere(R, levels) {
   return { P: P.flatMap(p => p.map(x => x * R)), I: F.flat() };
 }
 /** An exact body's tessellation as a mesh. */
-const meshOf = features => { const m = tessellateBrep(out(features).brep, { segmentsPerQuarter: 4 }); return { P: m.positionsMM, I: m.indices }; };
+const meshOf = features => { const m = tessellateBrep(out(features).brep, { segmentsPerQuarter: 4 }); return { P: m.positions, I: m.indices }; };
 /** A U-prism (40 × 20 section, a slot 10 wide down to 2 mm above the bottom) 30 long; a box with a blind pocket. */
 const U = meshOf([{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [40, 0], [40, 20], [25, 20], [25, 2], [15, 2], [15, 20], [0, 20]], plane: xz }, { id: 'e', kind: 'extrude', sketch: 's', height: 30 }]);
 const POCKET = meshOf([{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 30] }, { id: 'e', kind: 'extrude', sketch: 's', height: 20 }, { id: 'p', kind: 'sketch', profile: 'rectangle', min: [10, 10], max: [30, 20] }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 30, from: 2 }, { id: 'd', kind: 'difference', target: 'e', tool: 'pe' }]);
@@ -53,8 +53,8 @@ test('R11.3 mesh bodies shelled: polyhedra exactly their sharp-join insets, the 
     assert.equal(r.valid, true, `${what}: ${r.issues}`);
     assert.equal(o.brep.shells.length, 2, what);
     assert.ok(Math.abs(v.volume / exact - 1) < 1e-12, `${what}: ${v.volume} vs ${exact}`);
-    assert.equal(o.shell.wallMM, t);
-    assert.ok(Math.abs(o.shell.wallMinMM - lo) < 1e-9 && Math.abs(o.shell.wallMaxMM - hi) < 1e-9, `${what}: wall ${o.shell.wallMinMM} … ${o.shell.wallMaxMM}`);
+    assert.equal(o.shell.wall, t);
+    assert.ok(Math.abs(o.shell.wallMin - lo) < 1e-9 && Math.abs(o.shell.wallMax - hi) < 1e-9, `${what}: wall ${o.shell.wallMin} … ${o.shell.wallMax}`);
   }
 });
 
@@ -63,7 +63,7 @@ test('R11.3 a mesh sphere shelled: the wall it achieves within its normals\' spr
     const m = icosphere(10, levels), o = out(shell(m.P, m.I, t)), r = checkBrep(o.brep, { strict: true }), what = `level ${levels} t ${t}`;
     assert.equal(r.valid, true, `${what}: ${r.issues}`);
     assert.equal(o.brep.shells.length, 2, what);
-    assert.ok(o.shell.wallMinMM >= t * (1 - spread) && o.shell.wallMaxMM <= t * (1 + spread), `${what}: ${o.shell.wallMinMM} … ${o.shell.wallMaxMM}`);
+    assert.ok(o.shell.wallMin >= t * (1 - spread) && o.shell.wallMax <= t * (1 + spread), `${what}: ${o.shell.wallMin} … ${o.shell.wallMax}`);
     assert.ok(massPropertiesOf(o).volume > 0 && massPropertiesOf(o).volume < massPropertiesOf(out([mesh(m.P, m.I)])).volume, what);
   }
 });

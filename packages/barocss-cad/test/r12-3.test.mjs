@@ -22,7 +22,7 @@ const flange = (o = {}) => ({ id: 'fl', kind: 'sheet-flange', target: 'b', edge:
 
 test('R12.3a an edge flange in each position, at 30°–150°, measured outer, inner or from the tangent: the textbook flat and volume', () => {
   for (const position of ['material-inside', 'material-outside', 'bend-outside']) for (const deg of [30, 90, 120, 150]) for (const measure of ['outer', 'inner', 'tangent']) {
-    const th = deg * Math.PI / 180, tn = Math.tan(th / 2), o = out([...plate, flange({ angleDegrees: deg, position, measure })]);
+    const th = deg * Math.PI / 180, tn = Math.tan(th / 2), o = out([...plate, flange({ angle: deg, position, measure })]);
     assert.equal(checkOutput(o).valid, true, `${position} ${deg}° ${measure}`);
     // The outer sharp past the edge; the outer length to it; the straight leg; what the bend takes back of the plate.
     const past = position === 'material-inside' ? 0 : position === 'material-outside' ? T * tn : (R + T) * tn;
@@ -32,12 +32,12 @@ test('R12.3a an edge flange in each position, at 30°–150°, measured outer, i
     close(f.box.max[0], A + past + Lout - BD(th), 1e-12, `${what} flat length`); close(f.box.max[1], B, 1e-12, `${what} flat width`);
     close(massPropertiesOf(o).volume, A * B * T - taken * T * B + B * (th * T * (R + T / 2) + leg * T), 1e-11, `${what} volume`);
     assert.deepEqual(f.bends.map(b => [b.name, b.direction]), [['fl.bend', 'up']]);
-    close(f.bends[0].angleDegrees, deg, 1e-9, 'angle');
+    close(f.bends[0].angle, deg, 1e-9, 'angle');
   }
   // Its own radius; the report gains the bend, by its definitions.
   const o = out([...plate, flange({ bendRadius: 4 })]), b = o.sheet.bends.at(-1), th = Math.PI / 2;
-  assert.deepEqual({ name: b.name, inner: b.inner, outer: b.outer, r: b.radiusMM }, { name: 'fl.bend', inner: 'fl.bend.inner', outer: 'fl.bend.outer', r: 4 });
-  close(b.allowanceMM, th * (4 + K * T), 1e-12, 'BA'); close(b.deductionMM, BD(th, 4), 1e-12, 'BD');
+  assert.deepEqual({ name: b.name, inner: b.inner, outer: b.outer, r: b.radius }, { name: 'fl.bend', inner: 'fl.bend.inner', outer: 'fl.bend.outer', r: 4 });
+  close(b.allowance, th * (4 + K * T), 1e-12, 'BA'); close(b.deduction, BD(th, 4), 1e-12, 'BD');
   close(flatPatternOf(o).box.max[0], A + 20 - BD(th, 4), 1e-12, 'own radius');
   assert.deepEqual(b.axis.direction.map(Math.abs), [0, 1, 0]);
 });
@@ -51,7 +51,7 @@ test('R12.3a part width: a rectangular, an obround or no relief at each end insi
     assert.equal(checkOutput(o).valid, true, JSON.stringify(relief));
     close(V, A * B * T - t * T * fw - cut * T + fw * (th * T * (R + T / 2) + (20 - t) * T), 1e-11, `volume ${JSON.stringify(relief)}`);
     const f = flatPatternOf(o);
-    close(f.areaMM2, V / T + (K - 0.5) * T * th * fw, 1e-11, `flat area ${JSON.stringify(relief)}`);
+    close(f.area, V / T + (K - 0.5) * T * th * fw, 1e-11, `flat area ${JSON.stringify(relief)}`);
     assert.equal(f.loops.length, 1);
   }
   // A relief wider than its offset does not fit; the offsets may not leave nothing.
@@ -71,7 +71,7 @@ test('R12.3a a tray: four flanges in turn, each 10 mm short of the corners with 
   const o = out([...plate, fl('f1', 'b', 'b.side0|b.top'), fl('f2', 'f1', 'b.side1|b.top'), fl('f3', 'f2', 'b.side2|b.top'), fl('f4', 'f3', 'b.side3|b.top')]);
   assert.equal(checkOutput(o).valid, true);
   const V = massPropertiesOf(o).volume, f = flatPatternOf(o), widths = 2 * (A + B) - 8 * g;
-  close(f.areaMM2, V / T + (K - 0.5) * T * Math.PI / 2 * widths, 1e-11, 'tray flat');
+  close(f.area, V / T + (K - 0.5) * T * Math.PI / 2 * widths, 1e-11, 'tray flat');
   assert.deepEqual(f.bends.map(b => [b.name, b.direction]).sort(), [['f1.bend', 'up'], ['f2.bend', 'up'], ['f3.bend', 'up'], ['f4.bend', 'up']]);
   // The volume: each flange takes back its trim and two reliefs and adds its section.
   const t = (R + T), per = (L) => -(t * T * (L - 2 * g)) - 2 * T * T * (t + T) + (L - 2 * g) * (Math.PI / 2 * T * (R + T / 2) + (20 - t) * T);
@@ -83,7 +83,7 @@ test('R12.3a a tray: four flanges in turn, each 10 mm short of the corners with 
 
 test('R12.3a refusals: flanges running into each other at a corner (FLANGES_COLLIDE), an edge that is not the sheet\'s (EDGE_NOT_SHEET), a target that is no sheet, a hem, a flange inside its setback, a plate too narrow for the bend', () => {
   // Two neighbouring flanges leaning in (135°, 30 long) cross each other above the corner (the S0 tray's silent overlap).
-  const lean = { angleDegrees: 135, length: 30 };
+  const lean = { angle: 135, length: 30 };
   refused([...plate, flange({ id: 'f1', edge: 'b.side0|b.top', ...lean }), flange({ id: 'f2', target: 'f1', ...lean })], 'GEOMETRY', /\[FLANGES_COLLIDE\] the flange on b\.side1\|b\.top runs into the sheet: [\d.e+-]+ mm³ of it overlaps/);
   // Square, the second flange's trim 2 mm from the corner reaches the first one's bend (its setback 3 mm).
   const rel = { kind: 'rectangular', width: T, depth: T };
@@ -95,17 +95,17 @@ test('R12.3a refusals: flanges running into each other at a corner (FLANGES_COLL
   const holed = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [A, B], holes: [[{ kind: 'arc', start: [45, 25], center: [40, 25], direction: 'ccw' }]] }, plate[1]];
   refused([...holed, flange({ edge: 'b.hole0.side0#1|b.top' })], 'PARAMETER', /\[EDGE_NOT_SHEET\] b\.hole0\.side0#1\|b\.top is not straight/);
   refused([...plate, flange({ edge: 'b.side9|b.top' })], 'SELECTION', /no edge named b\.side9\|b\.top/);
-  refused([...plate, flange({ angleDegrees: 180 })], 'PARAMETER', /\[BEND_ANGLE\] a flange bends between 0 and 180°/);
+  refused([...plate, flange({ angle: 180 })], 'PARAMETER', /\[BEND_ANGLE\] a flange bends between 0 and 180°/);
   refused([...plate, flange({ length: 2 })], 'PARAMETER', /\[BEND_DOES_NOT_FIT\] a flange 2 mm long \(outer\) is within its bend's setback of 3 mm/);
   const narrow = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [2, B] }, plate[1]];
   refused([...narrow, flange()], 'PARAMETER', /\[BEND_DOES_NOT_FIT\] the sheet is 2 mm deep behind b\.side1\|b\.top; the bend takes 3 mm of it/);
 });
 
 test('R12.3a the sheet\'s report is dropped, never carried stale, past a move, a turn, a mirror, a pattern or a union: the flat then needs T and K, and a flange refuses', () => {
-  const base = [...plate, flange()], ref = out(base), area = flatPatternOf(ref).areaMM2;
+  const base = [...plate, flange()], ref = out(base), area = flatPatternOf(ref).area;
   const after = [
     { id: 'm', kind: 'translate', target: 'fl', offset: [7, -3, 11] },
-    { id: 'm', kind: 'rotate', target: 'fl', axis: 'x', angleDegrees: 30 },
+    { id: 'm', kind: 'rotate', target: 'fl', axis: 'x', angle: 30 },
     { id: 'm', kind: 'mirror', target: 'fl', plane: 'yz', keep: false },
     { id: 'm', kind: 'linear-pattern', target: 'fl', axis: 'x', spacing: 200, count: 2 },
     { id: 'q', kind: 'sketch', profile: 'rectangle', min: [200, 0], max: [210, 10] }, { id: 'qe', kind: 'extrude', sketch: 'q', height: 5 },
@@ -117,7 +117,7 @@ test('R12.3a the sheet\'s report is dropped, never carried stale, past a move, a
     refused([...base, op, { id: 'f2', kind: 'sheet-flange', target: 'm', edge: 'b.side3|b.top', length: 10 }], 'CAPABILITY', /\[NOT_A_SHEET\] the target is not sheet metal/);
   }
   // Moved or turned, the body unfolds again from its own B-rep with T and K given: the same flat.
-  for (const op of [after[0], after[1]]) close(flatPattern(out([...base, op]).brep, { thicknessMM: T, kFactor: K }).areaMM2, area, 1e-11, `${op.kind} then unfolded`);
+  for (const op of [after[0], after[1]]) close(flatPattern(out([...base, op]).brep, { thickness: T, kFactor: K }).area, area, 1e-11, `${op.kind} then unfolded`);
   // A union with another body: no report either.
   const u = out([...base, after[4], after[5], { id: 'u', kind: 'union', target: 'fl', tool: 'qe' }]);
   assert.equal(u.sheet, undefined);
@@ -144,7 +144,7 @@ test('R12.3b corner reliefs: a square s × s or a round quarter of radius s off 
     // Each flange on its edge's length less two reliefs: the plate less the reliefs and trims, plus the sections.
     const V = A * B * T - 4 * cut(s) * T + [A, B, A, B].reduce((v, L) => v - t * T * (L - 2 * s) + (L - 2 * s) * (th * T * (R + T / 2) + (20 - t) * T), 0);
     close(massPropertiesOf(o).volume, V, 1e-11, `${shape} ${s} box volume`);
-    close(f.areaMM2, massPropertiesOf(o).volume / T + (K - 0.5) * T * th * (2 * (A + B) - 8 * s), 1e-11, `${shape} ${s} flat area`);
+    close(f.area, massPropertiesOf(o).volume / T + (K - 0.5) * T * th * (2 * (A + B) - 8 * s), 1e-11, `${shape} ${s} flat area`);
   }
   // Short of the setback (3 mm), the second flange's trim reaches the first one's bend.
   assert.throws(() => out([...plate, ...reliefs('square', 2), ...flanges('c3')]), e => (e.details?.category ?? e.code) === 'GEOMETRY' && /\[FLANGES_COLLIDE\]/.test(e.message));

@@ -94,10 +94,10 @@ export function admit(input: unknown): XYNumericalSketchDocumentV0 {
     if (k === 'fixed') return { id: name, kind: k, pointId: ref(a.pointId, pointIds, p), target: xy(a.target, p) };
     if (k === 'coincident') return { id: name, kind: k, pointA: ref(a.pointA, pointIds, p), pointB: ref(a.pointB, pointIds, p) };
     if (k === 'horizontal' || k === 'vertical') return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p) };
-    if (k === 'length') { check(typeof a.lengthMM === 'number' && a.lengthMM >= .001 && a.lengthMM <= 20000 * Math.SQRT2, 'UNSUPPORTED', 'Length must be [0.001,20000sqrt(2)] mm', p); return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p), lengthMM: a.lengthMM }; }
+    if (k === 'length') { check(typeof a.lengthMM === 'number' && a.lengthMM >= .001 && a.lengthMM <= 20000 * Math.SQRT2, 'UNSUPPORTED', 'Length must be [0.001,20000sqrt(2)] mm', p); return { id: name, kind: k, segmentId: ref(a.segmentId, segmentIds, p), length: a.lengthMM }; }
     if (k === 'equal-length') { const segmentA = ref(a.segmentA, segmentIds, p), segmentB = ref(a.segmentB, segmentIds, p); check(segmentA !== segmentB, 'REFERENCE', 'Two distinct segments required', p); return { id: name, kind: k, segmentA, segmentB }; }
     check(typeof a.angleRad === 'number' && a.angleRad > -Math.PI && a.angleRad <= Math.PI, 'UNSUPPORTED', 'Signed angle must be (-pi,pi] radians', p);
-    return { id: name, kind: 'signed-angle', segmentA: ref(a.segmentA, segmentIds, p), segmentB: ref(a.segmentB, segmentIds, p), angleRad: a.angleRad };
+    return { id: name, kind: 'signed-angle', segmentA: ref(a.segmentA, segmentIds, p), segmentB: ref(a.segmentB, segmentIds, p), angle: a.angleRad };
   });
   const branchGuards = list(d.branchGuards, 0, big ? 32 : 16, '$.branchGuards').map((v, i): XYNumericalSketchBranchGuard => {
     const p = '$.branchGuards[' + i + ']'; check(v !== null && typeof v === 'object' && !Array.isArray(v), 'INVALID_DOCUMENT', 'Guard record required', p);

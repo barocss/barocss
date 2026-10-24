@@ -7,7 +7,7 @@ test('mass: a curved body\'s tessellated mass states its volume\'s error, and th
   // error is no longer silent.
   const D = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
   const ball = D([{ id: 's', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -4] }, { kind: 'arc', start: [0, 4], center: [0, 0], direction: 'cw' }], plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
-    { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }]);
+    { id: 'b', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }]);
   const can = D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 3 }, { id: 'b', kind: 'extrude', sketch: 's', height: 5 }]);
   for (const [name, doc, exact] of [['ball', ball, 4 / 3 * Math.PI * 64], ['cylinder', can, Math.PI * 45]]) {
     for (const segmentsPerQuarter of [8, 16]) {

@@ -39,7 +39,7 @@ test('FR3a mitres: a 600 × 400 rectangle of sharp tubes — each A·L, 45° end
     const along = o.brep.vertices.map(v => dot(sub(v.point, points[i]), u));
     near(Math.max(...along) - Math.min(...along), L + 40, 1e-12, `member ${k} long point`);
     assert.deepEqual(o.member.ends.map(e => [e.end, e.kind, e.point]), [['start', 'mitre', i], ['end', 'mitre', j]]);
-    o.member.ends.forEach(e => near(e.angleDegrees, 45, 1e-12, `member ${k} ${e.end} angle`));
+    o.member.ends.forEach(e => near(e.angle, 45, 1e-12, `member ${k} ${e.end} angle`));
     // The cut faces by name, at 45° to the line.
     const cut = o.brep.faces.filter(f => /^f\.m\d\.(start|end)\.mitre/.test(f.name)).map(f => faceGeometry(f));
     assert.equal(cut.length, 2, `member ${k} cut faces`); cut.forEach(g => near(Math.abs(dot(g.n, u)), Math.SQRT1_2, 1e-12, `member ${k} cut`));
@@ -57,7 +57,7 @@ test('FR3a a mitre at 120° and one out of the plane (a 3D corner), round-corner
     const [a, b] = snap.outputs, L1 = 200, L2 = len(sub(p2, points[1]));
     // (Round corners cut obliquely: the kernel's quadrature mass, about 1e-9.)
     near(volume(a), A_ROUND * L1, 1e-8, `${name} a`); near(volume(b), A_ROUND * L2, 1e-8, `${name} b`);
-    near(a.member.ends[1].angleDegrees, theta * 180 / Math.PI, 1e-12, `${name} θ`);
+    near(a.member.ends[1].angle, theta * 180 / Math.PI, 1e-12, `${name} θ`);
     const along = a.brep.vertices.map(v => dot(v.point, u1));
     near(Math.max(...along), L1 + 20 * Math.tan(theta), 1e-12, `${name} long point`);
     const w = booleanAnalytic(a.brep, b.brep, 'union');
@@ -74,7 +74,7 @@ test('FR3a butts: square and at 60° — the through member runs on (b/2)·sin �
     const [t, o] = snap.outputs, run0 = 20 * Math.sin(phi), short = 20 / Math.sin(phi);
     near(volume(t), A_SHARP * (400 + run0), 1e-12, `${deg}° through`); near(volume(o), A_SHARP * (L - short), 1e-12, `${deg}° butt`);
     assert.deepEqual([t.member.ends[1].kind, o.member.ends[1].kind], ['through', 'butt']);
-    near(t.member.ends[1].extendedMM, run0, 1e-12, `${deg}° run on`); near(o.member.ends[1].angleDegrees, 90 - deg, 1e-9, `${deg}° butt angle`);
+    near(t.member.ends[1].extended, run0, 1e-12, `${deg}° run on`); near(o.member.ends[1].angle, 90 - deg, 1e-9, `${deg}° butt angle`);
     const w = welded(snap.outputs);
     assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, A_SHARP * (400 + run0 + L - short), 1e-12, `${deg}° welded`);
   }

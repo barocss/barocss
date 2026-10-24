@@ -25,25 +25,25 @@ test('Euler operators change V, E, F, L, S as defined and keep Euler–Poincaré
 
 test('profiles with holes extrude through Euler operators: genus = holes, no vertex caps', () => {
   const cases = [
-    [{ outer: rect(0, 0, 80, 40), holes: [circle(20, 20, 6), circle(60, 20, 8)], heightMM: 5 }, { V: 16, E: 24, F: 10, L: 14, G: 2 }],
-    [{ outer: rect(0, 0, 100, 50), holes: [slot(15, 45, 25, 6), rect(60, 10, 85, 40)], heightMM: 8, fromMM: 2 }, { V: 24, E: 36, F: 14, L: 18, G: 2 }],
-    [{ outer: ngon(200, 50), heightMM: 3 }, { V: 400, E: 600, F: 202, L: 202, G: 0 }],
-    [{ outer: [[0, 0], [30, 0], [30, 10], [10, 10], [10, 25], [0, 25]].map(p => ({ kind: 'line', start: p })), heightMM: 5 }, { V: 12, E: 18, F: 8, L: 8, G: 0 }],
-    [{ outer: circle(0, 0, 20), holes: [circle(0, 0, 8)], heightMM: 4 }, { V: 8, E: 12, F: 6, L: 8, G: 1 }],
+    [{ outer: rect(0, 0, 80, 40), holes: [circle(20, 20, 6), circle(60, 20, 8)], height: 5 }, { V: 16, E: 24, F: 10, L: 14, G: 2 }],
+    [{ outer: rect(0, 0, 100, 50), holes: [slot(15, 45, 25, 6), rect(60, 10, 85, 40)], height: 8, from: 2 }, { V: 24, E: 36, F: 14, L: 18, G: 2 }],
+    [{ outer: ngon(200, 50), height: 3 }, { V: 400, E: 600, F: 202, L: 202, G: 0 }],
+    [{ outer: [[0, 0], [30, 0], [30, 10], [10, 10], [10, 25], [0, 25]].map(p => ({ kind: 'line', start: p })), height: 5 }, { V: 12, E: 18, F: 8, L: 8, G: 0 }],
+    [{ outer: circle(0, 0, 20), holes: [circle(0, 0, 8)], height: 4 }, { V: 8, E: 12, F: 6, L: 8, G: 1 }],
   ];
   for (const [input, expected] of cases) {
     const t = assertValidBrep(extrudeProfileWithHoles(input)).topology[0];
     assert.deepEqual({ V: t.vertices, E: t.edges, F: t.faces, L: t.loops, G: t.genus }, expected, JSON.stringify(expected));
   }
   const refused = input => { try { extrudeProfileWithHoles(input); return 'none'; } catch (e) { assert.ok(isExtrudedProfileError(e)); return e.message; } };
-  assert.match(refused({ outer: rect(0, 0, 50, 50), holes: [circle(20, 25, 8), circle(28, 25, 8)], heightMM: 5 }), /overlap/);
-  assert.match(refused({ outer: rect(0, 0, 50, 50), holes: [circle(48, 25, 8)], heightMM: 5 }), /not strictly inside/);
-  assert.match(refused({ outer: rect(0, 0, 50, 50), heightMM: 0 }), /positive/);
+  assert.match(refused({ outer: rect(0, 0, 50, 50), holes: [circle(20, 25, 8), circle(28, 25, 8)], height: 5 }), /overlap/);
+  assert.match(refused({ outer: rect(0, 0, 50, 50), holes: [circle(48, 25, 8)], height: 5 }), /not strictly inside/);
+  assert.match(refused({ outer: rect(0, 0, 50, 50), height: 0 }), /positive/);
 });
 
 /** Watertight (every directed edge once, with its opposite) and the mesh's signed volume. */
 function closedVolume(mesh) {
-  const p = mesh.positionsMM, I = mesh.indices, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Map(); let vol = 0;
+  const p = mesh.positions, I = mesh.indices, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Map(); let vol = 0;
   for (let t = 0; t < I.length; t += 3) {
     const k = [key(I[t]), key(I[t + 1]), key(I[t + 2])];
     for (let e = 0; e < 3; e++) { const d = k[e] + '>' + k[(e + 1) % 3]; directed.set(d, (directed.get(d) ?? 0) + 1); }
@@ -62,14 +62,14 @@ test('B-rep tessellation is watertight, outward and converges to the exact volum
     [m(x => x.build({ b: x.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10) })), Math.PI * 250, 1e-3],
     [m(x => { const a = x.sketch.rectangle({ width: 16, height: 16 }).extrude(16), b = x.sketch.rectangle({ min: [16, 0], max: [32, 8] }).extrude(16); return x.build({ b: a.union(b) }); }), 4096 + 2048, 1e-12],
     [m(x => x.build({ b: x.sketch.loop(slot(0, 40, 0, 6)).extrude(5) })), (480 + Math.PI * 36) * 5, 1e-3],
-    [extrudeProfileWithHoles({ outer: rect(0, 0, 80, 40), holes: [circle(20, 20, 6), circle(60, 20, 8)], heightMM: 5 }), (3200 - Math.PI * 100) * 5, 1e-4],
-    [extrudeProfileWithHoles({ outer: rect(0, 0, 100, 50), holes: [slot(15, 45, 25, 6), rect(60, 10, 85, 40)], heightMM: 8 }), (5000 - 360 - Math.PI * 36 - 750) * 8, 1e-4],
+    [extrudeProfileWithHoles({ outer: rect(0, 0, 80, 40), holes: [circle(20, 20, 6), circle(60, 20, 8)], height: 5 }), (3200 - Math.PI * 100) * 5, 1e-4],
+    [extrudeProfileWithHoles({ outer: rect(0, 0, 100, 50), holes: [slot(15, 45, 25, 6), rect(60, 10, 85, 40)], height: 8 }), (5000 - 360 - Math.PI * 36 - 750) * 8, 1e-4],
   ];
   for (const [brep, exact, tolerance] of cases) {
     const mesh = tessellateBrep(brep, { segmentsPerQuarter: 32 }), vol = closedVolume(mesh);
     assert.ok(Math.abs(vol - exact) / exact < tolerance, `${brep.source.family}: ${vol} vs ${exact}`);
     assert.equal(mesh.faces.length, brep.faces.length); assert.equal(mesh.edges.length, brep.edges.length);
-    assert.equal(mesh.normals.length, mesh.positionsMM.length);
+    assert.equal(mesh.normals.length, mesh.positions.length);
   }
   // Finer sampling converges: the cylinder's relative error falls ~16× from 8 to 32 per quarter.
   const cyl = cases[2][0], e8 = Math.abs(closedVolume(tessellateBrep(cyl, { segmentsPerQuarter: 8 })) - Math.PI * 250), e32 = Math.abs(closedVolume(tessellateBrep(cyl, { segmentsPerQuarter: 32 })) - Math.PI * 250);
@@ -86,7 +86,7 @@ test('planar triangulation with many holes covers exactly the face area', () => 
 });
 
 test('faces whose edges leave their surface are refused, not guessed', () => {
-  const brep = structuredClone(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), heightMM: 5 }));
+  const brep = structuredClone(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), height: 5 }));
   const curved = brep.faces.find(f => f.surface.degreeU === 2);
   // A wall whose straight side becomes a curve: three curved sides, no pair of rails…
   const loop = brep.loops.find(l => l.id === curved.loops[0]), straight = loop.coedges.map(id => brep.coedges.find(c => c.id === id)).find(c => brep.edges.find(e => e.id === c.edge).curve.degree === 1);
@@ -95,8 +95,8 @@ test('faces whose edges leave their surface are refused, not guessed', () => {
   // …on a surface that is no longer a circular cylinder (a pole moved off the circle).
   curved.surface = { ...curved.surface, controlPoints: curved.surface.controlPoints.map((row, i) => i === 1 ? row.map(p => [p[0] + 2, p[1], p[2]]) : row) };
   assert.throws(() => tessellateBrep(brep), e => e instanceof BrepError && /does not lie on its surface/.test(e.message));
-  const broken = structuredClone(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), heightMM: 5 }));
+  const broken = structuredClone(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), height: 5 }));
   broken.loops[0].coedges.splice(1, 0, 'extra');
   assert.throws(() => tessellateBrep(broken), e => e instanceof BrepError && /missing/.test(e.message));
-  assert.equal(checkBrep(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), heightMM: 5 })).valid, true);
+  assert.equal(checkBrep(extrudeProfileWithHoles({ outer: slot(0, 40, 0, 6), height: 5 })).valid, true);
 });

@@ -23,11 +23,11 @@ export interface WideReversedCurveReport {
     frame: 'authored-xyz-no-axis-conversion'; representation: 'native-curve-not-wire-topology' };
   originalCurveId: string; curveId: string; degree: number; poleCount: number; knotCount: number; domain: [number, number];
   observationCount: number; guardCount: number; observations: CurveReversalObservation[]; guards: CurveReversalGuardObservation[];
-  maximumPointDifferenceMM: number; maximumRelativeDerivativeDifference: number;
+  maximumPointDifference: number; maximumRelativeDerivativeDifference: number;
   geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
-  inputProfile: { degreeRange: [1, 3]; poleRange: [2, 64]; maximumKnots: 70; coordinateAbsMM: 10000;
+  inputProfile: { degreeRange: [1, 3]; poleRange: [2, 64]; maximumKnots: 70; coordinateAbs: 10000;
     weightRange: [1e-6, 1e6]; positive: true; clamped: true; nonperiodic: true };
-  quality: { pointComparisonMM: 1e-7; relativeD1Comparison: 1e-7; localObservationsOnly: true;
+  quality: { pointComparison: 1e-7; relativeD1Comparison: 1e-7; localObservationsOnly: true;
     globalShapeErrorCertified: false; globalBinary64ErrorCertified: false; manufacturingToleranceCertified: false;
     controlAndWeightBitsPreserved: true; generatedInteriorKnotBitsCertified: false; doubleReversalBitsCertified: false;
     derivativeSemantics: 'native-c0-guards-unchanged-no-g1-g2-claim';
@@ -131,12 +131,12 @@ export function reverseCurveWide(curveInput: Curve, inputOptions: CurveReversalO
       frame: 'authored-xyz-no-axis-conversion', representation: 'native-curve-not-wire-topology' },
     originalCurveId: original.id, curveId, degree: original.degree, poleCount: geometry.curve.controlPoints.length,
     knotCount: geometry.curve.knots.length, domain: geometry.domain, observationCount: geometry.observations.length, guardCount: geometry.guards.length,
-    observations: geometry.observations, guards: geometry.guards, maximumPointDifferenceMM: geometry.maximumPointDifferenceMM,
+    observations: geometry.observations, guards: geometry.guards, maximumPointDifference: geometry.maximumPointDifferenceMM,
     maximumRelativeDerivativeDifference: geometry.maximumRelativeDerivativeDifference,
     geometricValidity: 'not-certified', topologyCertified: false, solid: false,
-    inputProfile: { degreeRange: [1, 3], poleRange: [2, 64], maximumKnots: 70, coordinateAbsMM: 10000,
+    inputProfile: { degreeRange: [1, 3], poleRange: [2, 64], maximumKnots: 70, coordinateAbs: 10000,
       weightRange: [1e-6, 1e6], positive: true, clamped: true, nonperiodic: true },
-    quality: { pointComparisonMM: 1e-7, relativeD1Comparison: 1e-7, localObservationsOnly: true,
+    quality: { pointComparison: 1e-7, relativeD1Comparison: 1e-7, localObservationsOnly: true,
       globalShapeErrorCertified: false, globalBinary64ErrorCertified: false, manufacturingToleranceCertified: false,
       controlAndWeightBitsPreserved: true, generatedInteriorKnotBitsCertified: false, doubleReversalBitsCertified: false,
       derivativeSemantics: 'native-c0-guards-unchanged-no-g1-g2-claim',

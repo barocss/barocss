@@ -7,7 +7,7 @@ import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 const leaf = (kind, dims, rot, move) => ({ leaf: { kind, ...dims, rot: rot.map(([axis, deg]) => ({ axis, deg })), move } });
 /** Mesh edges (by position) not used exactly twice. */
 function openEdges(mesh) {
-  const P = mesh.positionsMM, uses = new Map();
+  const P = mesh.positions, uses = new Map();
   for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
     const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
     uses.set(e, (uses.get(e) ?? 0) + 1);

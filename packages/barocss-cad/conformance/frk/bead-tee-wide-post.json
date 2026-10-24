@@ -86,11 +86,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 972800,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -107,11 +107,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 204240,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             270,
             0,
@@ -128,11 +128,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 756,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             40.98809523809524,
             0,
@@ -148,7 +148,7 @@
           }
         ],
         "bead": {
-          "legMM": 3,
+          "leg": 3,
           "seam": 160,
           "flush": 0,
           "meets": [

@@ -224,7 +224,7 @@ const shaftProfile = () => {
   let V = 0; for (const [x0, x1, r] of [[0, 30, 12.5], [30, 44, 10], [44, 45.3, 9.5], [45.3, 80, 10]]) V += Math.PI * r * r * (x1 - x0);
   return { pts, V };
 };
-const shaftDoc = () => [{ id: 'p', kind: 'sketch', profile: 'polygon', points: shaftProfile().pts }, { id: 'sh', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'x' }, angleDegrees: 360 }];
+const shaftDoc = () => [{ id: 'p', kind: 'sketch', profile: 'polygon', points: shaftProfile().pts }, { id: 'sh', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'x' }, angle: 360 }];
 
 test('R12c S0 shafts: steps and a ring groove by revolve (Pappus, exact), a keyseat by a Boolean (the disc segment, closed form; end-milled ends by quadrature)', t => {
   const base = outputOf(run(shaftDoc()), 'sh'); near(massPropertiesOf(base).volume, shaftProfile().V, 1e-12, 'stepped shaft with groove');
@@ -270,7 +270,7 @@ test('R12c S0 bearings: a 6204 envelope (corners r 1) on the shaft\'s seat again
   // (Bottom corners: the square spans y0…y0 + r, the quarter disc's centroid at y0 + r − k; top: y1 − r…y1, at y1 − r + k.)
   const My = Ay + 2 * (-(r * r) * (y0 + r / 2) + Math.PI * r * r / 4 * (y0 + r - k)) + 2 * (-(r * r) * (y1 - r / 2) + Math.PI * r * r / 4 * (y1 - r + k));
   const want = 2 * Math.PI * My;
-  const doc = [...shaftDoc(), { id: 'b', kind: 'sketch', profile: 'loop', segments: seg }, { id: 'brg', kind: 'revolve', sketch: 'b', axis: { origin: [0, 0], direction: 'x' }, angleDegrees: 360 }, { id: 'x', kind: 'difference', target: 'sh', tool: 'brg' }];
+  const doc = [...shaftDoc(), { id: 'b', kind: 'sketch', profile: 'loop', segments: seg }, { id: 'brg', kind: 'revolve', sketch: 'b', axis: { origin: [0, 0], direction: 'x' }, angle: 360 }, { id: 'x', kind: 'difference', target: 'sh', tool: 'brg' }];
   near(massPropertiesOf(at(doc, 'brg')).volume, want, 1e-11, '6204 envelope (Pappus)');
   // On its seat (bore = seat, face on the shoulder): the shaft keeps its volume — no overlap. (The seat runs 30…44; the
   // shoulder Ø25 lies inside the abutment band da 25…26.5, its corner sharp — any fillet ≤ ra max 1 clears the r 1 corner.)
@@ -292,7 +292,7 @@ test('R12c S0 O-rings: AS568-214 on a piston gland — the torus exact, the free
   // bore displaces — a circular segment of the section, chord at c = Db/2 − Rs from its centre, swept about the axis:
   // A = r'² acos(c/r') − c√(r'² − c²), its centroid ȳ = (2/3)(r'² − c²)^{3/2}/A beyond the centre, V = 2π(Rs + ȳ)A.
   const c = Db / 2 - Rs, A = rs * rs * Math.acos(c / rs) - c * Math.sqrt(rs * rs - c * c), yb = 2 / 3 * (rs * rs - c * c) ** 1.5 / A, want = 2 * Math.PI * (Rs + yb) * A;
-  const ringDoc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [Rs, 0], radius: rs }, { id: 'or', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }];
+  const ringDoc = [{ id: 'c', kind: 'sketch', profile: 'circle', center: [Rs, 0], radius: rs }, { id: 'or', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }];
   const sleeve = [{ id: 'so', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20, plane: { origin: [0, -5, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } }, { id: 'soe', kind: 'extrude', sketch: 'so', height: 10 },
     { id: 'si', kind: 'sketch', profile: 'circle', center: [0, 0], radius: Db / 2, plane: { origin: [0, -6, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } }, { id: 'sie', kind: 'extrude', sketch: 'si', height: 12 }, { id: 'sl', kind: 'difference', target: 'soe', tool: 'sie' }];
   const t0 = performance.now(); let got, why = '';

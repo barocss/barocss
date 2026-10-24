@@ -40,7 +40,7 @@ test('D97 an oblique step, its riser\'s top rounded 4, the inner edge filleted 7
     const got = massPropertiesOf(o).volume - v0, exact = concave(r) * 40;
     assert.ok(Math.abs(got / exact - 1) < 1e-7, `r ${r}: ${got} vs ${exact} (${got / exact - 1})`);
     const [rep] = o.fillet;
-    assert.ok(rep && rep.contactMM <= 2.5e-7 && rep.sectionMM <= 1e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
+    assert.ok(rep && rep.contact <= 2.5e-7 && rep.section <= 1e-6 && rep.ball < 1e-8, JSON.stringify(rep));
   }
 });
 

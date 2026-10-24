@@ -43,16 +43,16 @@
             ],
             "rows": [
               {
-                "thicknessMM": 2,
-                "radiusMM": 3,
-                "angleDegrees": 90,
-                "deductionMM": 4.2,
+                "thickness": 2,
+                "radius": 3,
+                "angle": 90,
+                "deduction": 4.2,
                 "source": "shop"
               },
               {
-                "thicknessMM": 2,
-                "radiusMM": 3,
-                "angleDegrees": 120,
+                "thickness": 2,
+                "radius": 3,
+                "angle": 120,
                 "kFactor": 0.42,
                 "source": "shop"
               }

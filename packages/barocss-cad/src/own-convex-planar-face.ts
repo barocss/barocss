@@ -44,7 +44,7 @@ export interface ConvexPlanarFaceUVClassification {
   classification:'inside'|'boundary'|'outside'|'outside-domain';uv:[number,number];pointMM:Point|null;faceNormal:Point|null;
   halfspaces:number[];boundaries:ConvexPlanarFaceBoundaryClassification[];
 }
-const LABEL='Own convex planar Face',TOL=CadNumericPolicy.linearToleranceMM;
+const LABEL='Own convex planar Face',TOL=CadNumericPolicy.linearTolerance;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {

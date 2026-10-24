@@ -71,11 +71,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 275280,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             290,
             0,
@@ -92,11 +92,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 257520,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             0,
             0,
@@ -113,11 +113,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 29437.5,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             60.6687898089172,
             0,
@@ -134,7 +134,7 @@
         ],
         "plate": {
           "kind": "gusset",
-          "areaMM2": 5887.5,
+          "area": 5887.5,
           "seams": [
             105,
             85

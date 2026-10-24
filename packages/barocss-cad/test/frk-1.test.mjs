@@ -26,11 +26,11 @@ test('FRk1 a gusset in a mitred L: on both members\' inner faces (their lines\' 
     // On the inner faces: the horizontal member's top at z 20, the vertical one's +x face at x 20; centred on y 0.
     const P = g.brep.vertices.map(v => v.point), span = i => [Math.min(...P.map(p => p[i])), Math.max(...P.map(p => p[i]))];
     assert.deepEqual([span(0), span(1), span(2)], [[20, 140], [-2.5, 2.5], [20, 120]], name);
-    assert.deepEqual([r.frame, r.point, r.members, r.legsMM, r.thicknessMM, r.clipMM, r.offsetMM], ['f', 1, [0, 1], [120, 100], 5, 15, 0]);
-    near(r.angleDegrees, 90, 1e-12, 'angle'); near(r.areaMM2, (120 * 100 - 225) / 2, 1e-12, 'area'); near(r.volumeMM3, volume(g), 1e-12, 'its volume');
+    assert.deepEqual([r.frame, r.point, r.members, r.legs, r.thickness, r.clip, r.offset], ['f', 1, [0, 1], [120, 100], 5, 15, 0]);
+    near(r.angle, 90, 1e-12, 'angle'); near(r.area, (120 * 100 - 225) / 2, 1e-12, 'area'); near(r.volume, volume(g), 1e-12, 'its volume');
     assert.deepEqual(r.plane.normal.map(x => Math.abs(x)), [0, 1, 0]);
     assert.deepEqual(r.outline.map(p => p.map(x => +x.toFixed(9))), [[35, 0, 20], [140, 0, 20], [20, 0, 120], [20, 0, 35]]);
-    assert.deepEqual(r.seams, [{ member: 0, lengthMM: 105, face: 'f.m0.top' }, { member: 1, lengthMM: 85, face: 'f.m1.top' }]);
+    assert.deepEqual(r.seams, [{ member: 0, length: 105, face: 'f.m0.top' }, { member: 1, length: 85, face: 'f.m1.top' }]);
     // Faces by role: on each member, the free edge, the clip, the two sides.
     assert.deepEqual([...new Set(g.brep.faces.map(f => f.name))].sort(), ['g.back', 'g.clip', 'g.free', 'g.front', 'g.on.m0', 'g.on.m1']);
     const [m0, m1] = s.outputs.filter(o => o.member), w = welded([m0.brep, m1.brep, g.brep]);
@@ -76,14 +76,14 @@ test('FRk1 end caps: over a square end (the section\'s outline, A_env·t) and in
   near(volume(top), env * 4, 1e-12, 'the cap over'); near(volume(foot), bore * 6, 1e-12, 'the plug');
   near(massPropertiesOf(top).centroid[2], 302, 1e-12, 'the cap on the end'); near(massPropertiesOf(foot).centroid[2], 3, 1e-12, 'the plug in the bore, flush');
   const r = top.endCap;
-  assert.deepEqual([r.frame, r.member, r.end, r.fit, r.thicknessMM], ['f', 0, 'end', 'over', 4]);
-  near(r.areaMM2, env, 1e-12, 'area'); near(r.seam.lengthMM, Penv, 1e-12, 'its seam'); assert.equal(r.seam.exact, true);
+  assert.deepEqual([r.frame, r.member, r.end, r.fit, r.thickness], ['f', 0, 'end', 'over', 4]);
+  near(r.area, env, 1e-12, 'area'); near(r.seam.length, Penv, 1e-12, 'its seam'); assert.equal(r.seam.exact, true);
   assert.deepEqual([r.plane.origin, r.plane.normal], [[0, 0, 300], [0, 0, 1]]);
-  near(foot.endCap.seam.lengthMM, Pbore, 1e-12, 'the plug\'s seam'); assert.deepEqual(foot.endCap.plane.normal, [0, 0, -1]);
+  near(foot.endCap.seam.length, Pbore, 1e-12, 'the plug\'s seam'); assert.deepEqual(foot.endCap.plane.normal, [0, 0, -1]);
   for (const o of [top, foot]) { const w = welded([m.brep, o.brep]); assert.equal(w.bodies.length, 1); near(brepMassProperties(w, 1).volume, volume(m) + volume(o), 1e-10, `${o.id} welded`); }
   // A round tube's cap (a circle); the helpers against the closed forms.
   const c = outputOf(run([{ id: 'f', kind: 'frame', points: [[0, 0, 0], [100, 0, 0]], segments: [[0, 1]], section: { kind: 'round-tube', diameter: 30, wall: 2 } }, { id: 'c', kind: 'end-cap', frame: 'f', member: 0, end: 'end', fit: 'over', thickness: 3 }]), 'c');
-  near(volume(c), Math.PI * 225 * 3, 1e-12, 'a round cap'); near(c.endCap.seam.lengthMM, 30 * Math.PI, 1e-12, 'its seam');
+  near(volume(c), Math.PI * 225 * 3, 1e-12, 'a round cap'); near(c.endCap.seam.length, 30 * Math.PI, 1e-12, 'its seam');
   near(loopArea([{ kind: 'arc', start: [5, 0], center: [0, 0], direction: 'cw' }]), 25 * Math.PI, 1e-15, 'a clockwise circle');
   near(loopPerimeter([{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [3, 0] }, { kind: 'line', start: [3, 4] }]), 12, 1e-15, 'a triangle');
   // An ordered table's leg runs through at its top (to z 720 under 40 × 40 rails): its cap sits there.

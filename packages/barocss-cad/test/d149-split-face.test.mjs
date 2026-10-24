@@ -10,7 +10,7 @@ import { faceIntegrals, oracleVolume, domainArea, distanceToSurface, bezierThrou
 // on the face within the tolerance.
 
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
-const prism = (outer, z0, z1, id) => brepFromPrismatic(prismaticFromProfile({ outer, heightMM: z1 - z0, fromMM: z0, tag: id }), { id });
+const prism = (outer, z0, z1, id) => brepFromPrismatic(prismaticFromProfile({ outer, height: z1 - z0, from: z0, tag: id }), { id });
 const line = (p, q) => ({ kind: 'curve', id: 'l', degree: 1, knots: [0, 0, 1, 1], controlPoints: [p, q], weights: [1, 1] });
 const bezier = cp => ({ kind: 'curve', id: 'b', degree: cp.length - 1, knots: [...cp.map(() => 0), ...cp.map(() => 1)], controlPoints: cp, weights: cp.map(() => 1) });
 const W = Math.SQRT1_2;
@@ -143,7 +143,7 @@ test('D149 S0: a biquadratic face split along an isoparametric curve, a diagonal
 
 test('D149 S0: isoclines on a cone and a sphere (revolved general faces) — quarter areas in closed form, through the poles', () => {
   const tri = [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [10, 0] }, { kind: 'line', start: [4, 20] }, { kind: 'line', start: [0, 20] }];
-  const cone = revolveProfile({ id: 'k', profile: tri, axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+  const cone = revolveProfile({ id: 'k', profile: tri, axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
   const frustum = Math.PI * 20 / 3 * (100 + 40 + 16), quarter = Math.PI * 14 * Math.hypot(6, 20) / 4;
   near(oracleVolume(cone), frustum, 1e-10, 'the oracle on the frustum');
   const k = splitFaceAlongIsocline(cone, 'k.side1#1', [1, 0, 0]);
@@ -152,7 +152,7 @@ test('D149 S0: isoclines on a cone and a sphere (revolved general faces) — qua
   for (const p of k.pieces) near(faceIntegrals(k.brep, p.name).area, quarter, 1e-10, p.name);
   near(oracleVolume(k.brep), frustum, 1e-10, 'cone: volume');
   edgesOnSurface(k.brep, k.pieces.map(p => p.name), cone.faces.find(f => f.name === 'k.side1#1').surface);
-  const sphere = revolveProfile({ id: 's', profile: [{ kind: 'arc', start: [0, -10], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 10] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+  const sphere = revolveProfile({ id: 's', profile: [{ kind: 'arc', start: [0, -10], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, 10] }], axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
   // Across the axis: a meridian pole to pole; along it: the equator. Each piece a quarter sphere, 100π.
   for (const pull of [[1, 0, 0], [0, 1, 0]]) {
     const r = splitFaceAlongIsocline(sphere, 's.side0#1', pull);
@@ -185,7 +185,7 @@ test('D149: refusals — off the surface, off the face, along the boundary, an o
   assert.equal(code(() => splitFaceAlongIsocline(bumped(), 'n.surface0', [0, 0, 1])), 'NO_ISOCLINE');
   // Inputs.
   assert.equal(code(() => splitFaceAlongCurve(b, 'b.nope', line([10, 0, 10], [25, 30, 10]))), 'NO_FACE');
-  const cyl = revolveProfile({ id: 'r', profile: rect(0, 0, 10, 20), axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+  const cyl = revolveProfile({ id: 'r', profile: rect(0, 0, 10, 20), axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
   assert.equal(code(() => splitFaceAlongIsocline(cyl, 'r.side1', [1, 0, 0])), 'AMBIGUOUS');
   assert.equal(code(() => splitFaceAlongIsocline(b, 'b.top', [0, 0, 0])), 'PULL');
   assert.equal(code(() => splitFaceAlongCurve(b, 'b.top', [])), 'CURVES');

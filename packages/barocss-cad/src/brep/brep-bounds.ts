@@ -80,6 +80,6 @@ export function brepBounds(brep: Brep): { min: Point; max: Point } {
     if (whole(f)) { patchInto(f.surface, lo, hi); continue; }
     rest.add(f.id);
   }
-  if (rest.size) { const P = tessellateBrepWithParameters(brep, { segmentsPerQuarter: 16 }, rest).mesh.positionsMM; for (let i = 0; i + 2 < P.length; i += 3) grow(lo, hi, [P[i], P[i + 1], P[i + 2]]); }
+  if (rest.size) { const P = tessellateBrepWithParameters(brep, { segmentsPerQuarter: 16 }, rest).mesh.positions; for (let i = 0; i + 2 < P.length; i += 3) grow(lo, hi, [P[i], P[i + 1], P[i + 2]]); }
   return { min: lo as Point, max: hi as Point };
 }

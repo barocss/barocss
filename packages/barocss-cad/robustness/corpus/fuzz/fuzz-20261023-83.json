@@ -97,14 +97,14 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n2r0",
           "kind": "rotate",
           "target": "n2b",
           "axis": "x",
-          "angleDegrees": 278.514,
+          "angle": 278.514,
           "pivot": [
             0,
             0,

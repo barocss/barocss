@@ -20,10 +20,10 @@ test('features evaluate on the B-rep with exact volumes; every output is valid w
     ['fillet of a convex corner', D([rect('s', 0, 0, 20, 10), extrude('e', 's', 5), { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.side1'], radius: 3 }]), 1000 - (9 - 9 * pi / 4) * 5, 'upright'],
     ['fillet of a concave corner', D([{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 5], [5, 5], [5, 20], [0, 20]] }, extrude('e', 's', 3), { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side2|e.side3'], radius: 2 }]), 525 + (4 - pi) * 3, 'upright'],
     ['chamfers: two vertical edges and a top edge', D([rect('s', 0, 0, 20, 10), extrude('e', 's', 5), { id: 'c', kind: 'chamfer', target: 'e', edges: ['e.side0|e.side1', 'e.side1|e.side2', 'e.side3|e.top'], distance: 1 }]), 990, 'planar'],
-    ['rotated about X, then a Boolean (exact polyhedral)', D([rect('s', 0, 0, 10, 10), extrude('a', 's', 30), { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 90 }, rect('t', -5, -40, 15, 5), extrude('b', 't', 5), { id: 'u', kind: 'union', target: 'b', tool: 'r' }]), 6000, 'planar'],
-    ['scale, move, rotate about Z by 30°', D([rect('s', 0, 0, 10, 10), extrude('a', 's', 5), { id: 'k', kind: 'scale', target: 'a', factor: 2 }, { id: 't', kind: 'translate', target: 'k', offset: [1, 2, 3] }, { id: 'r', kind: 'rotate', target: 't', axis: 'z', angleDegrees: 30 }]), 4000, 'upright'],
+    ['rotated about X, then a Boolean (exact polyhedral)', D([rect('s', 0, 0, 10, 10), extrude('a', 's', 30), { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angle: 90 }, rect('t', -5, -40, 15, 5), extrude('b', 't', 5), { id: 'u', kind: 'union', target: 'b', tool: 'r' }]), 6000, 'planar'],
+    ['scale, move, rotate about Z by 30°', D([rect('s', 0, 0, 10, 10), extrude('a', 's', 5), { id: 'k', kind: 'scale', target: 'a', factor: 2 }, { id: 't', kind: 'translate', target: 'k', offset: [1, 2, 3] }, { id: 'r', kind: 'rotate', target: 't', axis: 'z', angle: 30 }]), 4000, 'upright'],
     ['mirror kept: one body', D([{ id: 's', kind: 'sketch', profile: 'polygon', points: [[0, 0], [10, 0], [10, 5], [5, 10], [0, 10]] }, extrude('a', 's', 3), { id: 'm', kind: 'mirror', target: 'a', plane: 'yz', keep: true }]), 525, 'upright'],
-    ['circular pattern of bosses', D([circle('c', 20, 0, 3), extrude('p', 'c', 4), { id: 'cp', kind: 'circular-pattern', target: 'p', axis: 'z', angleDegrees: 60, count: 6 }]), 216 * pi, 'upright'],
+    ['circular pattern of bosses', D([circle('c', 20, 0, 3), extrude('p', 'c', 4), { id: 'cp', kind: 'circular-pattern', target: 'p', axis: 'z', angle: 60, count: 6 }]), 216 * pi, 'upright'],
     ['linear pattern of a holed plate', D([rect('s', 0, 0, 10, 10), extrude('e', 's', 2), { id: 'h', kind: 'hole', target: 'e', center: [5, 5], radius: 1 }, { id: 'p', kind: 'linear-pattern', target: 'h', axis: 'x', spacing: 10, count: 3 }]), 3 * (200 - 2 * pi), 'upright'],
     ['slot outline (lines and arcs)', D([{ id: 's', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -2] }, { kind: 'arc', start: [10, -2], center: [10, 0], direction: 'ccw' }, { kind: 'line', start: [10, 2] }, { kind: 'arc', start: [0, 2], center: [0, 0], direction: 'ccw' }] }, extrude('e', 's', 3)]), (40 + 4 * pi) * 3, 'upright'],
   ];
@@ -153,7 +153,7 @@ test('smooth loft through three or more sections: C1 sides through every section
     const mesh = brepMassProperties(o.brep, 1, { segmentsPerQuarter: 64 });
     assert.ok(Math.abs(mesh.volume - m.volume) < 3e-4 * m.volume, `${name}: ${mesh.volume} vs ${m.volume}`);
     assert.ok(Math.hypot(...m.centroid.map((c, k) => c - mesh.centroid[k])) < 1e-2, `${name}: centroid`);
-    const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positionsMM, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
+    const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positions, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
     for (let k = 0; k < t.indices.length; k += 3) for (let e = 0; e < 3; e++) directed.add(key(t.indices[k + e]) + '>' + key(t.indices[k + (e + 1) % 3]));
     for (const d of directed) { const [x, y] = d.split('>'); assert.ok(directed.has(y + '>' + x), `${name}: open ${d}`); }
   }
@@ -203,7 +203,7 @@ test('shell after fillets and chamfers: the hollow takes the same finishes, offs
   const trayOf = (more, target) => volume(evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges: bottom, radius: 4 }, ...more, { id: 'sh', kind: 'shell', target, thickness: 2, open: ['e.top'] }])).outputs.at(-1));
   const still = trayOf([], 'f');
   // (Turned, its mesh differs, and so does the quadrature's small error along the mitred trims.)
-  assert.ok(close(trayOf([{ id: 'r', kind: 'rotate', target: 'f', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [5, 6, 7] }], 't'), still, 1e-5));
+  assert.ok(close(trayOf([{ id: 'r', kind: 'rotate', target: 'f', axis: 'y', angle: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [5, 6, 7] }], 't'), still, 1e-5));
   assert.ok(close(trayOf([{ id: 'm', kind: 'mirror', target: 'f', plane: 'xz' }], 'm'), still, 1e-9));
   const big = evaluateCadPart(D([...box, { id: 'k', kind: 'scale', target: 'e', factor: 2 }, { id: 'sh', kind: 'shell', target: 'k', thickness: 4, open: ['e.top'] }])).outputs.at(-1);
   assert.ok(close(volume(big), 8 * (48000 - 56 * 36 * 18), 1e-12));
@@ -229,9 +229,9 @@ test('shell stepped bodies: a boss on a plate, an overhang; the hollow at z is t
 });
 
 test('shell revolved and swept bodies: the section eroded and made again, exact with closed-form mass', () => {
-  const cup = [{ id: 'p', kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]] }, { id: 'r', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }];
-  const ring = [circle('c', 20, 0, 5), { id: 'r', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }];
-  const pipe = [circle('c', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 'c', path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 20, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 10 }] }];
+  const cup = [{ id: 'p', kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]] }, { id: 'r', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }];
+  const ring = [circle('c', 20, 0, 5), { id: 'r', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }];
+  const pipe = [circle('c', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 'c', path: [{ kind: 'straight', length: 10 }, { kind: 'bend', radius: 20, angle: 90, toward: 'x' }, { kind: 'straight', length: 10 }] }];
   const L = 20 + 10 * pi, shell = (body, target, thickness, open) => D([...body, { id: 'sh', kind: 'shell', target, thickness, ...(open ? { open } : {}) }]);
   const cases = [
     // The cup's wall (side1) and floor (side0) 2 thick; open at the top (side2).
@@ -252,17 +252,17 @@ test('shell revolved and swept bodies: the section eroded and made again, exact 
     for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertia[i][i] - mesh.inertia[i][i]) < 2e-3 * m.inertia[i][i], `${name}: inertia ${i}`);
   }
   assert.ok(evaluateCadPart(cases[0][1]).outputs.at(-1).brep.faces.some(f => /^sh\.in\d*\.side/.test(f.name)));
-  refused(shell([cup[0], { ...cup[1], angleDegrees: 180 }], 'r', 2), 'CAPABILITY', /a full turn/);
+  refused(shell([cup[0], { ...cup[1], angle: 180 }], 'r', 2), 'CAPABILITY', /a full turn/);
   refused(shell(pipe, 'w', 1, ['w.s1.side0']), 'CAPABILITY', /end faces/);
-  refused(shell([circle('c', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 'c', path: [{ kind: 'bend', radius: 20, angleDegrees: 90, toward: 'x' }] }], 'w', 1), 'CAPABILITY', /straight run/);
+  refused(shell([circle('c', 0, 0, 3), { id: 'w', kind: 'sweep', sketch: 'c', path: [{ kind: 'bend', radius: 20, angle: 90, toward: 'x' }] }], 'w', 1), 'CAPABILITY', /straight run/);
   refused(shell(cup, 'r', 2, ['r.side7']), 'SELECTION', /no face named r\.side7/);
 });
 
 test('shell any body of planes and cylinders: the wall as a slab per face, never thinner than the wall', () => {
   const box = [rect('s', 0, 0, 60, 40), extrude('e', 's', 20)];
-  const bracket = [rect('s', 0, 0, 40, 30), extrude('e', 's', 5), rect('w', 0, 0, 40, 20), extrude('f', 'w', 5), { id: 'r', kind: 'rotate', target: 'f', axis: 'x', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [0, 5, 0] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }];
-  const hole = [...box, circle('c', 20, 10, 5), extrude('b', 'c', 80, -10), { id: 'r', kind: 'rotate', target: 'b', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [0, 0, 30] }, { id: 'u', kind: 'difference', target: 'e', tool: 't' }];
-  const boss = [...box, circle('c', 20, 10, 6), extrude('b', 'c', 20), { id: 'r', kind: 'rotate', target: 'b', axis: 'y', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [50, 0, 30] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }];
+  const bracket = [rect('s', 0, 0, 40, 30), extrude('e', 's', 5), rect('w', 0, 0, 40, 20), extrude('f', 'w', 5), { id: 'r', kind: 'rotate', target: 'f', axis: 'x', angle: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [0, 5, 0] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }];
+  const hole = [...box, circle('c', 20, 10, 5), extrude('b', 'c', 80, -10), { id: 'r', kind: 'rotate', target: 'b', axis: 'y', angle: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [0, 0, 30] }, { id: 'u', kind: 'difference', target: 'e', tool: 't' }];
+  const boss = [...box, circle('c', 20, 10, 6), extrude('b', 'c', 20), { id: 'r', kind: 'rotate', target: 'b', axis: 'y', angle: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [50, 0, 30] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }];
   const shell = (body, t, open) => evaluateCadPart(D([...body, { id: 'sh', kind: 'shell', target: 'u', thickness: t, ...(open ? { open } : {}) }])).outputs.at(-1);
   // An L bracket (two plates joined after a turn about X): its section inset by the wall, corners sharp.
   const cases = [
@@ -292,9 +292,9 @@ test('shell bodies with cones and tori joined to others: slabs turned about thei
   const plate = [rect('s', 0, 0, 60, 40), extrude('e', 's', 8)];
   const cases = [
     // A cone frustum stood on a plate; a drafted round boss; a torus ring half sunk in a plate.
-    ['a cone on a plate', [...plate, { id: 'p', kind: 'sketch', profile: 'polygon', points: [[0, 0], [12, 0], [7, 14], [0, 14]] }, { id: 'v', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }, { id: 'r', kind: 'rotate', target: 'v', axis: 'x', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [30, 20, 6] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }], 1.5],
+    ['a cone on a plate', [...plate, { id: 'p', kind: 'sketch', profile: 'polygon', points: [[0, 0], [12, 0], [7, 14], [0, 14]] }, { id: 'v', kind: 'revolve', sketch: 'p', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }, { id: 'r', kind: 'rotate', target: 'v', axis: 'x', angle: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [30, 20, 6] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }], 1.5],
     ['a drafted boss', [...plate, circle('c', 30, 20, 8), { ...extrude('b', 'c', 10, 8), draft: 10 }, { id: 'u', kind: 'union', target: 'e', tool: 'b' }], 1.5],
-    ['a torus ring in a plate', [...plate, circle('c', 12, 0, 3), { id: 'v', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }, { id: 'r', kind: 'rotate', target: 'v', axis: 'x', angleDegrees: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [30, 20, 8] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }], 1],
+    ['a torus ring in a plate', [...plate, circle('c', 12, 0, 3), { id: 'v', kind: 'revolve', sketch: 'c', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }, { id: 'r', kind: 'rotate', target: 'v', axis: 'x', angle: 90 }, { id: 't', kind: 'translate', target: 'r', offset: [30, 20, 8] }, { id: 'u', kind: 'union', target: 'e', tool: 't' }], 1],
   ];
   for (const [name, features, t] of cases) {
     const body = evaluateCadPart(D(features)).outputs.at(-1), o = evaluateCadPart(D([...features, { id: 'sh', kind: 'shell', target: 'u', thickness: t }])).outputs.at(-1), report = checkBrep(o.brep);
@@ -308,7 +308,7 @@ test('shell bodies with cones and tori joined to others: slabs turned about thei
 test('moved parts keep their exact mass: a loft turned about X and scaled', () => {
   const loft = [rect('a', 0, 0, 20, 10), circle('b', 10, 5, 3), { id: 'L', kind: 'loft', sections: [{ sketch: 'a', z: 0 }, { sketch: 'b', z: 12 }] }];
   const at = massPropertiesOf(evaluateCadPart(D(loft)).outputs[0], 1);
-  const o = evaluateCadPart(D([...loft, { id: 'r', kind: 'rotate', target: 'L', axis: 'x', angleDegrees: 90, pivot: [1, 2, 3] }, { id: 'k', kind: 'scale', target: 'r', factor: 1.5 }])).outputs[0], m = massPropertiesOf(o, 1);
+  const o = evaluateCadPart(D([...loft, { id: 'r', kind: 'rotate', target: 'L', axis: 'x', angle: 90, pivot: [1, 2, 3] }, { id: 'k', kind: 'scale', target: 'r', factor: 1.5 }])).outputs[0], m = massPropertiesOf(o, 1);
   assert.equal(m.method, 'quadrature');
   assert.ok(close(m.volume, at.volume * 1.5 ** 3, 1e-12));
   // x ↦ 1.5·(R(x − p) + p): the centroid moves so, the inertia turns (y and z swap) and grows 1.5⁵.
@@ -334,7 +334,7 @@ test('box edges filleted in loops at any size and place: mitres where two meet, 
 test('sweep: a profile along straight runs and bends, exact mass, joined into one solid', () => {
   const tube = circle('s', 0, 0, 2), bar = { id: 's', kind: 'sketch', profile: 'rectangle', min: [-1, -2], max: [3, 2] }, A = 4 * pi;
   const sweep = (sketch, path) => D([sketch, { id: 'w', kind: 'sweep', sketch: 's', path }]);
-  const straight = length => ({ kind: 'straight', length }), bend = (radius, angleDegrees, toward) => ({ kind: 'bend', radius, angleDegrees, toward });
+  const straight = length => ({ kind: 'straight', length }), bend = (radius, angle, toward) => ({ kind: 'bend', radius, angle, toward });
   const cases = [
     ['a pipe with a 90° bend', sweep(tube, [straight(10), bend(8, 90, 'x'), straight(10)]), A * (20 + 4 * pi), 0],
     ['a U bend', sweep(tube, [straight(5), bend(6, 180, '-y'), straight(5)]), A * (10 + 6 * pi), 0],
@@ -394,7 +394,7 @@ test('loft: ruled sections at heights, exact volumes, quadrature mass, watertigh
     assert.ok(Math.abs(mesh.volume - m.volume) < 3e-4 * m.volume, `${name}: mesh ${mesh.volume} vs ${m.volume}`);
     assert.ok(Math.hypot(...m.centroid.map((c, k) => c - mesh.centroid[k])) < 1e-3 * Math.cbrt(m.volume), `${name}: centroid`);
     for (let i = 0; i < 3; i++) assert.ok(Math.abs(m.inertia[i][i] - mesh.inertia[i][i]) < 1e-3 * m.inertia[i][i], `${name}: inertia ${i}`);
-    const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positionsMM, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
+    const t = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), p = t.positions, key = i => `${p[3 * i]},${p[3 * i + 1]},${p[3 * i + 2]}`, directed = new Set();
     for (let k = 0; k < t.indices.length; k += 3) for (let e = 0; e < 3; e++) directed.add(key(t.indices[k + e]) + '>' + key(t.indices[k + (e + 1) % 3]));
     for (const d of directed) { const [x, y] = d.split('>'); assert.ok(directed.has(y + '>' + x), `${name}: open ${d}`); }
   }
@@ -422,12 +422,16 @@ test('refusals name the feature and the reason', () => {
   assert.equal(checkOutput(evaluateCadPart(D([...ell, { id: 'f', kind: 'fillet', target: 'a', edges: ['a.side2|a.top', 'a.side3|a.top'], radius: 1 }])).outputs.at(-1)).valid, true);
   refused(D([...plate, circle('c', 5, 5, 3), extrude('b', 'c', 4, 5), { id: 'u', kind: 'union', target: 'a', tool: 'b' }, { id: 'f', kind: 'fillet', target: 'u', edges: ['b.side0#1|b.top'], radius: 3 }]), 'PARAMETER', /full round/);
   // Any angle about X or Y: the plate leaves the upright family and keeps its volume.
-  const tipped = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angleDegrees: 45, pivot: [5, 5, 2.5] }])).outputs[0];
+  const tipped = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'a', axis: 'x', angle: 45, pivot: [5, 5, 2.5] }])).outputs[0];
   assert.notEqual(tipped.representation, 'upright'); assert.ok(close(massPropertiesOf(tipped, 1).volume, 500));
   assert.ok(close(tipped.brep.vertices.reduce((m, v) => Math.max(m, v.point[2]), -Infinity), 2.5 + Math.hypot(5, 2.5) * Math.sin(Math.PI / 4 + Math.atan2(2.5, 5))), 'its top corner where a 45° turn puts it');
   refused(D([...plate, { id: 'x', kind: 'split', target: 'a', axis: 'z', at: 9 }]), 'SELECTION', /does not cross/);
   refused(D([rect('s', 0, 0, { parameter: 'w' }, 10)]), 'PARAMETER', /unknown parameter w/);
   refused(D([rect('s', 0, 0, 10, 10), rect('s', 0, 0, 5, 5)]), 'FORMAT', /duplicate feature id/);
+  // R7.7b (D281): a field still named with its unit is refused by name, with the name it has now (never read as missing).
+  refused(D([rect('s', 0, 0, 10, 10), { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 }]), 'FORMAT', /angleDegrees is not a field.*it is angle/);
+  refused(D([rect('s', 0, 0, 10, 10), extrude('e', 's', 5), { id: 'f', kind: 'fillet', target: 'e', edges: ['e.side0|e.side1'], radiusMM: 1 }]), 'FORMAT', /radiusMM is not a field.*it is radius/);
+  refused(D([{ id: 'b', kind: 'sheet-base', bendTable: { id: 't', rows: [{ thicknessMM: 2, radius: 1, kFactor: 0.4, estimate: true }] } }]), 'FORMAT', /bendTable\.rows\[0\]\.thicknessMM is not a field.*it is thickness/);
   assert.throws(() => loadCadPart('{'), e => e instanceof CadPartError && (e.details?.category ?? e.code) === 'FORMAT');
 });
 
@@ -456,7 +460,7 @@ test('planes and cylinders of any axis: cross holes, side holes, pins and bars (
     ['blind side hole from x min', D([...plate, { id: 'h', kind: 'hole', target: 'e', axis: 'x', side: 'min', center: [10, 5], radius: 2, depth: 15 }]), 8000 - 4 * pi * 15],
     ['vertical and side holes that miss each other', D([...plate, { id: 'v', kind: 'hole', target: 'e', center: [30, 10], radius: 3 }, { id: 'h', kind: 'hole', target: 'v', axis: 'x', center: [4, 5], radius: 2 }]), 8000 - 9 * pi * 10 - 4 * pi * 40],
     // A pin along X half sunk into the top face, and a rotated bar through an upright cylinder.
-    ['pin along x on the top', D([...plate, circle('c', 10, 10, 3), extrude('p', 'c', 50, -5), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angleDegrees: 90, pivot: [10, 10, 10] }, { id: 'u', kind: 'union', target: 'e', tool: 'r' }]), 8000 + 9 * pi * 50 - 9 * pi / 2 * 40],
+    ['pin along x on the top', D([...plate, circle('c', 10, 10, 3), extrude('p', 'c', 50, -5), { id: 'r', kind: 'rotate', target: 'p', axis: 'y', angle: 90, pivot: [10, 10, 10] }, { id: 'u', kind: 'union', target: 'e', tool: 'r' }]), 8000 + 9 * pi * 50 - 9 * pi / 2 * 40],
     ['bar through a cylinder wall', D([circle('c', 0, 0, 10), extrude('k', 'c', 20), rect('b', -20, -3, 20, 3), extrude('bar', 'b', 4, 5), { id: 'u', kind: 'union', target: 'k', tool: 'bar' }]),
       2000 * pi + 960 - 4 * 2 * (3 * Math.sqrt(91) + 100 * Math.asin(0.3))],
   ];
@@ -498,7 +502,7 @@ test('ellipse and quartic trims: slanted bodies, cross-drilled bosses, partial p
   assert.ok(Math.abs(massPropertiesOf(o).volume - expected) < 3e-4 * expected, `${massPropertiesOf(o).volume} vs ${expected}`);
   assert.ok(o.brep.faces.some(f => f.name === 'x.side0#1' || f.name === 'x.side0') && o.brep.faces.some(f => f.name.startsWith('b.side0')));
   // A plate turned 30° about z with a hole along x through it (ellipses on the hole wall).
-  const turned = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'e', axis: 'z', angleDegrees: 30, pivot: [20, 10, 0] }, { id: 'h', kind: 'hole', target: 'r', axis: 'x', center: [10, 5], radius: 2 }])).outputs[0];
+  const turned = evaluateCadPart(D([...plate, { id: 'r', kind: 'rotate', target: 'e', axis: 'z', angle: 30, pivot: [20, 10, 0] }, { id: 'h', kind: 'hole', target: 'r', axis: 'x', center: [10, 5], radius: 2 }])).outputs[0];
   assert.equal(checkBrep(turned.brep).valid, true);
   assert.ok(massPropertiesOf(turned).volume < 8000 && massPropertiesOf(turned).volume > 8000 - 4 * pi * 60);
 });
@@ -528,7 +532,7 @@ test('sketch planes: profiles drawn on a face, a vertical plane at any heading o
   const heading = { origin: [0, 0, 0], normal: [Math.cos(pi / 6), Math.sin(pi / 6), 0], xAxis: [-Math.sin(pi / 6), Math.cos(pi / 6), 0] };
   out = outputOf(evaluateCadPart(D([{ ...rect('q', 0, 0, 4, 2), plane: heading }, extrude('w', 'q', 6)])), 'w');
   assert.ok(close(volume(out), 48, 1e-9) && close(bounds(out).max[2], 2, 1e-9));
-  out = outputOf(evaluateCadPart(D([{ ...rect('v', 2, 0, 4, 3), plane: side }, { id: 'rv', kind: 'revolve', sketch: 'v', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])), 'rv');
+  out = outputOf(evaluateCadPart(D([{ ...rect('v', 2, 0, 4, 3), plane: side }, { id: 'rv', kind: 'revolve', sketch: 'v', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }])), 'rv');
   assert.ok(close(volume(out), pi * (16 - 4) * 3, 1e-6), String(volume(out)));
   assert.ok(close(bounds(out).min[2], 0, 1e-9) && close(bounds(out).max[2], 3, 1e-9), JSON.stringify(bounds(out)));
   out = outputOf(evaluateCadPart(D([{ ...rect('l0', 0, 0, 4, 4), plane: side }, { ...rect('l1', 1, 1, 3, 3), plane: side },
@@ -585,7 +589,7 @@ test('fillet volume is exact at any radius, up to the wall height (quadrature ov
 test('revolve about any axis in the sketch plane: a square turned about a 45° line through its corner', () => {
   const sq = { id: 's', kind: 'sketch', profile: 'polygon', points: [[2, 0], [4, 2], [2, 4], [0, 2]] };
   // The square's centre (2, 2) lies √2·2 from the line y = x − 0 … here the axis runs along (1, −1) through (0, 0).
-  const o = evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [1, -1] }, angleDegrees: 360 }])).outputs[0];
+  const o = evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [1, -1] }, angle: 360 }])).outputs[0];
   // Pappus: area 8 × 2π × the centroid's distance from the axis (|2 + 2| / √2 = 2√2).
   assert.ok(close(massPropertiesOf(o, 1).volume, 8 * 2 * pi * 2 * Math.SQRT2, 1e-6), String(massPropertiesOf(o, 1).volume));
   assert.throws(() => evaluateCadPart(D([sq, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: [0, 0] } }])), /axis must be/);
@@ -642,18 +646,18 @@ test('a long chain of features evaluates and is reused: no key spells out what i
 
 test('draft: side faces turned about their line on the bottom, in (material off) or out (added), by volume', () => {
   const box = [rect('s', 0, 0, 20, 20), extrude('e', 's', 10)], t = Math.tan(10 * pi / 180);
-  const one = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: 10 }])), 'd');
+  const one = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle: 10 }])), 'd');
   assert.ok(close(volume(one), 4000 - 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(one)));
   assert.deepEqual(checkBrep(one.brep).issues, []);
   // Two opposite sides: twice the wedge. Two that meet are refused (their wedges would need a mitre).
-  const two = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side2'], angleDegrees: 10 }])), 'd');
+  const two = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side2'], angle: 10 }])), 'd');
   assert.ok(close(volume(two), 4000 - 2 * 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(two)));
-  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side1'], angleDegrees: 10 }]), 'CAPABILITY', /meet along an edge/);
+  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0', 'e.side1'], angle: 10 }]), 'CAPABILITY', /meet along an edge/);
   // Out: the same wedge added.
-  const out = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angleDegrees: -10 }])), 'd');
+  const out = outputOf(evaluateCadPart(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.side0'], angle: -10 }])), 'd');
   assert.ok(close(volume(out), 4000 + 0.5 * 10 * (10 * t) * 20, 1e-6), String(volume(out)));
-  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.top'], angleDegrees: 5 }]), 'CAPABILITY', /square to the pull/);
-  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.nope'], angleDegrees: 5 }]), 'REFERENCE', /no face e\.nope/);
+  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.top'], angle: 5 }]), 'CAPABILITY', /square to the pull/);
+  refused(D([...box, { id: 'd', kind: 'draft', target: 'e', faces: ['e.nope'], angle: 5 }]), 'REFERENCE', /no face e\.nope/);
 });
 
 test('hole: a 90° countersink is cut with the hole, along any axis and from either side', () => {
@@ -690,7 +694,7 @@ test('cylinder walls touching at a point from inside: built in either order, the
     assert.ok(Math.abs(v - c.exact) <= 1e-5 * c.exact, `${v} vs ${c.exact}`);
   }
   // The larger cylinder turned about its own axis (its seams moved off the touch) and subtracted as a body.
-  const tube = deg => [{ id: 'c', kind: 'sketch', profile: 'circle', center: [10, 10], radius: 3 }, { id: 'v0', kind: 'extrude', sketch: 'c', height: 22, from: -1 }, { id: 'v', kind: 'rotate', target: 'v0', axis: 'z', angleDegrees: deg, pivot: [10, 10, 0] }];
+  const tube = deg => [{ id: 'c', kind: 'sketch', profile: 'circle', center: [10, 10], radius: 3 }, { id: 'v0', kind: 'extrude', sketch: 'c', height: 22, from: -1 }, { id: 'v', kind: 'rotate', target: 'v0', axis: 'z', angle: deg, pivot: [10, 10, 0] }];
   for (const deg of [30, 90]) for (const across of [cases[1].across, { kind: 'hole', center: [12, 10], radius: 1, axis: 'x' }]) for (const first of ['hole', 'tube']) {
     const f = first === 'hole' ? [...cube, ...tube(deg), { ...across, id: 'h', target: 'e' }, { id: 'd', kind: 'difference', target: 'h', tool: 'v' }]
       : [...cube, ...tube(deg), { id: 'd', kind: 'difference', target: 'e', tool: 'v' }, { ...across, id: 'h', target: 'd' }];

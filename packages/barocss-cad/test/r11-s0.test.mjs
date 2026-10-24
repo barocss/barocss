@@ -198,7 +198,7 @@ function cavity(b, t, s, offsetKnots = true) {
     const [c0, c1] = curveDomain(e.curve), K = refined(e.curve.knots, Math.max(1, Math.min(2 * s, Math.floor(60 / Math.max(1, new Set(e.curve.knots).size - 1)))), offsetKnots);
     return { id: e.id, vertices: e.vertices, curve: fitCurve(K, x => x <= c0 ? vertices.get(e.vertices[0]) : x >= c1 ? vertices.get(e.vertices[1]) : along(faceOf.get(e.id), evaluateCurve(e.curve, x)), `cave_${e.id}`) };
   });
-  const inner = buildBrep({ toleranceMM: Math.max(1e-6, 2 * deviation), source: { family: 'shell', id: 'cavity' }, vertices: b.vertices.map(v => ({ id: v.id, point: vertices.get(v.id) })), edges,
+  const inner = buildBrep({ tolerance: Math.max(1e-6, 2 * deviation), source: { family: 'shell', id: 'cavity' }, vertices: b.vertices.map(v => ({ id: v.id, point: vertices.get(v.id) })), edges,
     bodies: [{ id: 'cavity', kind: 'solid', shells: b.shells.map(sh => ({ id: sh.id, closed: true, faces: sh.faces.map(fid => { const x = faces.find(q => q.f.id === fid); return { id: fid, surface: x.F, sense: x.f.sense,
       loops: x.f.loops.map(lid => { const l = loops.get(lid); return { kind: l.kind, uses: l.coedges.map(cid => ({ edge: coedges.get(cid).edge, sense: coedges.get(cid).sense })) }; }) }; }) })) }] });
   return { inner, deviation, faces: faces.map(x => ({ F: x.F, sense: x.f.sense === 'forward' ? 1 : -1 })) };
@@ -232,8 +232,8 @@ function steiner(b) {
   const faces = b.faces.map(f => ({ S: nurbsOf(f), sense: f.sense === 'forward' ? 1 : -1 })), at = { k: -Infinity, S: null, sense: 1, u: 0, v: 0 };
   const [A, M, K] = overFaces(faces, 2, (S, sense, u, v) => {
     const r = evaluateSurfaceCurvature(S, u, v), j = jacobian(S, u, v);
-    for (const k of r.principalCurvaturesPerMM) if (-sense * k > at.k) Object.assign(at, { k: -sense * k, S, sense, u, v });
-    return [j, -sense * r.meanCurvaturePerMM * j, r.gaussianCurvaturePerMM2 * j];
+    for (const k of r.principalCurvaturesPer) if (-sense * k > at.k) Object.assign(at, { k: -sense * k, S, sense, u, v });
+    return [j, -sense * r.meanCurvaturePer * j, r.gaussianCurvaturePer * j];
   });
   return { A, M, K, kmax: at.k, at };
 }

@@ -76,7 +76,7 @@ test('R10.5b G2 and a conic round a boss\'s foot (a closed circle between a plat
     { id: 'bs', kind: 'sketch', profile: 'circle', center: [0, 0], radius: R }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 15, from: 10 }, { id: 'u', kind: 'union', target: 'a', tool: 'b' }];
   const o0 = out(boss), v0 = massPropertiesOf(o0).volume, foot = o0.brep.edges.filter(e => /a\.top/.test(e.name) && /b\.side0/.test(e.name)).map(e => e.name);
   // (The loft is cubic along the circle through every other station: its sections are off the true ones by the
-  // deviation it reports, `sectionMM`; the fillet's area is under 2π (R + r) × the section's length.)
+  // deviation it reports, `section`; the fillet's area is under 2π (R + r) × the section's length.)
   const arc = curve => { let l = 0; for (let i = 1; i <= 20000; i++) { const p = curve((i - 1) / 20000), q = curve(i / 20000); l += Math.hypot(q[0] - p[0], q[1] - p[1]); } return l; };
   for (const [label, section, curve] of [['G2', { kind: 'g2' }, quartic(r, 0.5)], ['ρ 0.6', { kind: 'conic', rho: 0.6 }, conic(r, 1.5)]]) {
     const exact = 2 * Math.PI * moment(curve, R);
@@ -86,7 +86,7 @@ test('R10.5b G2 and a conic round a boss\'s foot (a closed circle between a plat
         const o = out([...boss, { id: 'f', kind: 'fillet', target: 'u', edges: foot, radius: r, section }]), got = massPropertiesOf(o).volume - v0, rep = o.fillet[0];
         assert.equal(checkOutput(o).valid, true, label);
         if (stations) assert.ok(Math.abs(got / exact - 1) < 1e-8, `${label} at ${stations}: ${got} vs ${exact} (${got / exact - 1})`);
-        else assert.ok(Math.abs(got - exact) <= rep.sectionMM * 2 * Math.PI * (R + r) * arc(curve), `${label}: ${got} vs ${exact}, deviation ${rep.sectionMM}`);
+        else assert.ok(Math.abs(got - exact) <= rep.section * 2 * Math.PI * (R + r) * arc(curve), `${label}: ${got} vs ${exact}, deviation ${rep.section}`);
       } finally { setRingStations(null); }
     }
   }

@@ -5,7 +5,7 @@
 //        → Edge (3D curve, tolerance) → Vertex (point, tolerance)
 //
 // Records live in flat id-keyed arrays so a B-rep is plain JSON. Tolerances are per entity
-// (CadNumericPolicy.linearToleranceMM of the body's scale by default), not one global constant.
+// (CadNumericPolicy.linearTolerance of the body's scale by default), not one global constant.
 import { evaluateCurve, evaluateSurface, curveDomain, surfaceDomain, validateCurve, validateSurface } from '../core/math.js';
 import { CadNumericPolicy } from '../numeric-policy.js';
 import type { Curve, FacetPatch, Point, Surface } from '../types.js';
@@ -15,9 +15,9 @@ import { facetPatchProblem, facetVectorArea } from '../mesh/facet-patch.js';
 import { closestPointOnSurface, surfaceSeedGrid, type SurfaceSeedGrid } from '../nurbs/surfaces/surface-closest.js';
 import { KernelError } from '../core/barocss-error.js';
 
-export interface BrepVertex { readonly id: string; readonly point: Point; readonly toleranceMM: number }
+export interface BrepVertex { readonly id: string; readonly point: Point; readonly tolerance: number }
 /** An edge runs along `curve` over its whole domain, from vertices[0] (domain start) to vertices[1] (domain end). */
-export interface BrepEdge { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly toleranceMM: number; readonly name?: string }
+export interface BrepEdge { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly tolerance: number; readonly name?: string }
 /**
  * One use of an edge by a loop. `forward` traverses the edge from vertices[0] to vertices[1].
  * `pcurve` (optional) is the edge in the face's (u, v) parameter space, as a curve with z = 0 and the
@@ -49,9 +49,9 @@ export interface BrepCheckReport {
   readonly counts: { readonly bodies: number; readonly shells: number; readonly faces: number; readonly loops: number; readonly coedges: number; readonly edges: number; readonly vertices: number };
   /** Euler–Poincaré per body: V − E + F − (L − F) = 2(S − G), solved for the genus G. */
   readonly topology: readonly BrepBodyTopology[];
-  readonly maximumVertexGapMM: number; readonly maximumPcurveGapMM: number;
+  readonly maximumVertexGap: number; readonly maximumPcurveGap: number;
   /** With `strict`: the largest distance of an edge's sample from a surface of a face using it (else 0). */
-  readonly maximumEdgeSurfaceGapMM: number;
+  readonly maximumEdgeSurfaceGap: number;
 }
 
 /**
@@ -181,7 +181,7 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
   const bodies = index(brep.bodies, 'body', issues), shells = index(brep.shells, 'shell', issues), faces = index(brep.faces, 'face', issues);
   const loops = index(brep.loops, 'loop', issues), coedges = index(brep.coedges, 'coedge', issues), edges = index(brep.edges, 'edge', issues), vertices = index(brep.vertices, 'vertex', issues);
   const need = <T>(map: Map<string, T>, id: string | null, what: string): T | undefined => { const v = id === null ? undefined : map.get(id); if (!v) add('reference', `${what} → missing ${id}`); return v; };
-  let maximumVertexGapMM = 0, maximumPcurveGapMM = 0;
+  let maximumVertexGap = 0, maximumPcurveGap = 0;
 
   // Persistent names, where present, are unique among faces and among edges.
   for (const list of [brep.faces, brep.edges] as const) {
@@ -205,8 +205,8 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
     const [v0, v1] = e.vertices.map(v => need(vertices, v, `edge ${e.id}`)), [t0, t1] = curveDomain(e.curve);
     for (const [v, t] of [[v0, t0], [v1, t1]] as const) {
       if (!v) continue;
-      const gap = distance(evaluateCurve(e.curve, t), v.point); maximumVertexGapMM = Math.max(maximumVertexGapMM, gap);
-      if (gap > Math.max(v.toleranceMM, e.toleranceMM)) add('geometry', `edge ${e.id} end is ${gap} mm from vertex ${v.id}`);
+      const gap = distance(evaluateCurve(e.curve, t), v.point); maximumVertexGap = Math.max(maximumVertexGap, gap);
+      if (gap > Math.max(v.tolerance, e.tolerance)) add('geometry', `edge ${e.id} end is ${gap} mm from vertex ${v.id}`);
     }
   }
 
@@ -265,8 +265,8 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
       const t = t0 + (t1 - t0) * k / (samples - 1), uv = evaluateCurve(c.pcurve, t);
       if (uv[0] < u[0] - 1e-9 || uv[0] > u[1] + 1e-9 || uv[1] < v[0] - 1e-9 || uv[1] > v[1] + 1e-9) { add('geometry', `coedge ${c.id} pcurve leaves the surface domain`); break; }
       const gap = distance(evaluateSurface(S, Math.min(u[1], Math.max(u[0], uv[0])), Math.min(v[1], Math.max(v[0], uv[1]))), evaluateCurve(edge.curve, t));
-      maximumPcurveGapMM = Math.max(maximumPcurveGapMM, gap);
-      if (gap > edge.toleranceMM) { add('geometry', `coedge ${c.id} pcurve is ${gap} mm off its edge`); break; }
+      maximumPcurveGap = Math.max(maximumPcurveGap, gap);
+      if (gap > edge.tolerance) { add('geometry', `coedge ${c.id} pcurve is ${gap} mm off its edge`); break; }
     }
   }
 
@@ -310,7 +310,7 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
     // the vector area does.)
     const disagree = dot(area, normal) * (f.sense === 'forward' ? 1 : -1) < 0;
     let reach = 0;
-    if (disagree || !planarSurface(f.surface as Surface)) { for (const c of outer.coedges) reach = Math.max(reach, edges.get(coedges.get(c)!.edge)!.toleranceMM); reach = Math.max(100 * reach, 1e-6 * Math.max(1, extent)); }
+    if (disagree || !planarSurface(f.surface as Surface)) { for (const c of outer.coedges) reach = Math.max(reach, edges.get(coedges.get(c)!.edge)!.tolerance); reach = Math.max(100 * reach, 1e-6 * Math.max(1, extent)); }
     const winds = disagree || (!planarSurface(f.surface as Surface) && wrapsWithoutPoles(f.surface as Surface, reach)) ? loopWindsInDomain(f.surface as Surface, uses, reach) : undefined;
     if (winds === undefined ? disagree : winds !== (f.sense === 'forward')) add('orientation', `face ${f.id} sense disagrees with its outer loop`);
   }
@@ -335,7 +335,7 @@ export function checkBrep(brep: Brep, options: { readonly pcurveSamples?: number
   return {
     valid: issues.length === 0, issues,
     counts: { bodies: brep.bodies.length, shells: brep.shells.length, faces: brep.faces.length, loops: brep.loops.length, coedges: brep.coedges.length, edges: brep.edges.length, vertices: brep.vertices.length },
-    topology, maximumVertexGapMM, maximumPcurveGapMM, maximumEdgeSurfaceGapMM,
+    topology, maximumVertexGap: maximumVertexGap, maximumPcurveGap: maximumPcurveGap, maximumEdgeSurfaceGap: maximumEdgeSurfaceGapMM,
   };
 }
 
@@ -355,12 +355,12 @@ export interface BrepFaceInput { readonly id: string; readonly surface: Surface 
 export interface BrepShellInput { readonly id: string; readonly faces: readonly BrepFaceInput[]; readonly closed: boolean }
 export interface BrepBuildInput {
   readonly source: Brep['source'];
-  /** (`toleranceMM` on a vertex or an edge: its own, for one that is tolerant — a fitted offset's, D110; else the B-rep's.) */
-  readonly vertices: readonly { readonly id: string; readonly point: Point; readonly toleranceMM?: number }[];
-  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly name?: string; readonly toleranceMM?: number }[];
+  /** (`tolerance` on a vertex or an edge: its own, for one that is tolerant — a fitted offset's, D110; else the B-rep's.) */
+  readonly vertices: readonly { readonly id: string; readonly point: Point; readonly tolerance?: number }[];
+  readonly edges: readonly { readonly id: string; readonly curve: Curve; readonly vertices: readonly [string, string]; readonly name?: string; readonly tolerance?: number }[];
   readonly bodies: readonly { readonly id: string; readonly kind: 'solid' | 'sheet'; readonly shells: readonly BrepShellInput[] }[];
-  /** Entity tolerance; defaults to CadNumericPolicy.linearToleranceMM at the geometry's scale. */
-  readonly toleranceMM?: number;
+  /** Entity tolerance; defaults to CadNumericPolicy.linearTolerance at the geometry's scale. */
+  readonly tolerance?: number;
 }
 
 export function buildBrep(input: BrepBuildInput): Brep {
@@ -368,7 +368,7 @@ export function buildBrep(input: BrepBuildInput): Brep {
   for (const v of input.vertices) for (const x of v.point) scale = Math.max(scale, Math.abs(x));
   // (A facet body has few vertices: its patches' extent counts too.)
   for (const b of input.bodies) for (const s of b.shells) for (const f of s.faces) if (f.surface.kind === 'facets') for (const x of f.surface.bounds) scale = Math.max(scale, Math.abs(x));
-  const tol = input.toleranceMM ?? Math.max(CadNumericPolicy.linearToleranceMM, CadNumericPolicy.relativeLinearTolerance * scale);
+  const tol = input.tolerance ?? Math.max(CadNumericPolicy.linearTolerance, CadNumericPolicy.relativeLinearTolerance * scale);
   const bodies: BrepBody[] = [], shells: BrepShell[] = [], faces: BrepFace[] = [], loops: BrepLoop[] = [], coedges: BrepCoedge[] = [];
   const mutable: { -readonly [K in keyof BrepCoedge]: BrepCoedge[K] }[] = [];
   for (const b of input.bodies) {
@@ -397,8 +397,8 @@ export function buildBrep(input: BrepBuildInput): Brep {
   for (const c of mutable) coedges.push(c);
   return {
     format: 'barocss-brep', version: 0, lengthUnit: 'mm', source: input.source, bodies, shells, faces, loops, coedges,
-    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, toleranceMM: Math.max(tol, e.toleranceMM ?? 0), ...(e.name === undefined ? {} : { name: e.name }) })),
-    vertices: input.vertices.map(v => ({ id: v.id, point: [v.point[0], v.point[1], v.point[2]] as Point, toleranceMM: Math.max(tol, v.toleranceMM ?? 0) })),
+    edges: input.edges.map(e => ({ id: e.id, curve: e.curve, vertices: [e.vertices[0], e.vertices[1]] as const, tolerance: Math.max(tol, e.tolerance ?? 0), ...(e.name === undefined ? {} : { name: e.name }) })),
+    vertices: input.vertices.map(v => ({ id: v.id, point: [v.point[0], v.point[1], v.point[2]] as Point, tolerance: Math.max(tol, v.tolerance ?? 0) })),
   };
 }
 

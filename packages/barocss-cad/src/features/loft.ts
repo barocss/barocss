@@ -70,7 +70,7 @@ export function loftSolid(input: LoftInput): { brep: Brep; mass: (density: numbe
     if (g.kind === 'line') { if (si === 0) src0.push(from); return [{ kind: 'line', a: g.start, b: g.end }]; }
     const n = Math.max(1, Math.ceil(Math.abs(g.sweep) / (Math.PI / 2) - 1e-9));
     if (si === 0) for (let k = 0; k < n; k++) src0.push(from);
-    return Array.from({ length: n }, (_, k) => ({ kind: 'arc' as const, c: g.center, r: g.radiusMM, t0: g.startAngle + g.sweep * k / n, dt: g.sweep / n }));
+    return Array.from({ length: n }, (_, k) => ({ kind: 'arc' as const, c: g.center, r: g.radius, t0: g.startAngle + g.sweep * k / n, dt: g.sweep / n }));
   }); });
   const n = Math.max(...sections.map(p => p.length));
   for (const p of sections) while (p.length < n) { let i = 0; p.forEach((q, j) => { if (lengthOf(q) > lengthOf(p[i])) i = j; }); p.splice(i, 1, ...half(p[i])); if (p === sections[0]) src0.splice(i, 1, src0[i], src0[i]); }

@@ -71,7 +71,7 @@ export interface CurveBezierSpanExtractionResult {
 }
 
 const CODE = CurveBezierSpanExtractionDiagnosticCode;
-const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
+const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = CadNumericPolicy.linearTolerance, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 function check(condition: boolean, code: CurveBezierSpanExtractionDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new CurveBezierSpanExtractionError(code, detail);
 }

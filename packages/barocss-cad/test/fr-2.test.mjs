@@ -53,7 +53,7 @@ test('FR2 overrides: the legs a heavier sharp tube rolled 45°, one rail anchore
   snap.outputs.forEach((o, k) => {
     const [i, j] = segments[k], L = len(sub(points[j], points[i]));
     near(massPropertiesOf(o).volume, (k < 4 ? A_SHS : A_RHS) * L, 1e-12, `member ${k}`);
-    if (k < 4) { near(o.member.rollDegrees, 45, 0, `leg ${k} roll`); near(Math.abs(o.member.xAxis[0]), Math.SQRT1_2, 1e-15, `leg ${k} x turned 45°`); }
+    if (k < 4) { near(o.member.roll, 45, 0, `leg ${k} roll`); near(Math.abs(o.member.xAxis[0]), Math.SQRT1_2, 1e-15, `leg ${k} x turned 45°`); }
   });
   // Rail 4 (along +X at z 700) hangs below its line: its top face on it, its centroid 20 below.
   const r = outputOf(snap, 'f/4').member;

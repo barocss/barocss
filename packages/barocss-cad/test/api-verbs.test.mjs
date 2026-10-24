@@ -26,7 +26,7 @@ const plateDoc = () => doc([
 const cup = () => part('cup').revolve(sketch(Plane.XZ).polygon([[0, 0], [20, 0], [20, 30], [0, 30]])).shell(b => b.faces().facing('+z'), { t: 2 });
 const cupDoc = () => doc([
   { id: 'sketch1', kind: 'sketch', profile: 'polygon', points: [[0, 0], [20, 0], [20, 30], [0, 30]], plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] }, sideTags: tags(4) },
-  { id: 'revolve1', kind: 'revolve', sketch: 'sketch1', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+  { id: 'revolve1', kind: 'revolve', sketch: 'sketch1', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
   // (A full turn's top: the turned side e3, a disc in two halves.)
   { id: 'shell1', kind: 'shell', target: 'revolve1', thickness: 2, open: ['revolve1.side[e3]#1', 'revolve1.side[e3]#2'] },
 ]);
@@ -37,9 +37,9 @@ const ring = () => part('ring').box({ w: 10, d: 10, h: 5, x: 20 }).circularPatte
 const ringDoc = () => doc([
   { id: 'sketch1', kind: 'sketch', profile: 'rectangle', min: [20, 0], max: [30, 10] },
   { id: 'extrude1', kind: 'extrude', sketch: 'sketch1', height: 5 },
-  { id: 'circular-pattern1', kind: 'circular-pattern', target: 'extrude1', axis: 'z', angleDegrees: 60, count: 6 },
+  { id: 'circular-pattern1', kind: 'circular-pattern', target: 'extrude1', axis: 'z', angle: 60, count: 6 },
   { id: 'linear-pattern1', kind: 'linear-pattern', target: 'circular-pattern1', axis: 'z', spacing: 10, count: 2 },
-  { id: 'rotate1', kind: 'rotate', target: 'linear-pattern1', axis: 'x', angleDegrees: 90 },
+  { id: 'rotate1', kind: 'rotate', target: 'linear-pattern1', axis: 'x', angle: 90 },
   { id: 'translate1', kind: 'translate', target: 'rotate1', offset: [0, 0, 5] },
 ]);
 
@@ -70,7 +70,7 @@ const tabsDoc = () => doc([
   { id: 'sketch1', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, 0] }, { kind: 'arc', start: [30, 0], center: [30, 10], direction: 'ccw' }, { kind: 'line', start: [30, 20] }, { kind: 'line', start: [0, 20] }], plane: { origin: [0, 0, 5], normal: [0, 0, 1], xAxis: [1, 0, 0] }, sideTags: tags(4) },
   { id: 'extrude1', kind: 'extrude', sketch: 'sketch1', height: 6, draft: 3 },
   { id: 'sketch2', kind: 'sketch', profile: 'rectangle', min: [10, 0], max: [14, 6], plane: { origin: [0, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, sideTags: tags(4) },
-  { id: 'revolve1', kind: 'revolve', sketch: 'sketch2', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 },
+  { id: 'revolve1', kind: 'revolve', sketch: 'sketch2', axis: { origin: [0, 0], direction: 'y' }, angle: 90 },
 ]);
 
 // A block mirrored across x = 12 (kept, joined), scaled ×2 about (1, 2, 3), and split across x = 20 into two bodies.

@@ -17,7 +17,7 @@ function cube(n, s = 20) {
   return { P, I };
 }
 const cylinder = (r, z0, h, cx = 10, cy = 10) => evaluateCadPart(D([{ id: 's', kind: 'sketch', profile: 'circle', center: [cx, cy], radius: r }, { id: 'c', kind: 'extrude', sketch: 's', height: h, from: z0 }])).outputs[0].brep;
-const sphere = (r, c) => evaluateCadPart(D([{ id: 'ss', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -r] }, { kind: 'arc', start: [0, r], center: [0, 0], direction: 'cw' }], plane: { origin: c, normal: [0, -1, 0], xAxis: [1, 0, 0] } }, { id: 'sp', kind: 'revolve', sketch: 'ss', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }])).outputs[0].brep;
+const sphere = (r, c) => evaluateCadPart(D([{ id: 'ss', kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -r] }, { kind: 'arc', start: [0, r], center: [0, 0], direction: 'cw' }], plane: { origin: c, normal: [0, -1, 0], xAxis: [1, 0, 0] } }, { id: 'sp', kind: 'revolve', sketch: 'ss', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }])).outputs[0].brep;
 
 test('a facet cube with a cylinder and a sphere: holes, a boss, a bite and an intersection — volumes exact, the tool faces exact, the mesh faces keep their names', () => {
   const { P, I } = cube(4), m = facetBrepFromTriangles(P, I, { id: 'm' });
@@ -40,7 +40,7 @@ test('a facet cube with a cylinder and a sphere: holes, a boss, a bite and an in
   const r = facetBoolean(m, cylinder(3, -5, 30), 'difference', { id: 'r' }), wall = r.faces.find(f => f.surface.kind !== 'facets');
   // (32 segments a quarter on r 3: the sagitta 3(1 − cos(π/128)), doubled.)
   const rims = r.edges.filter(e => e.curve.controlPoints.length > 2), sag = 2 * 3 * (1 - Math.cos(Math.PI / 128));
-  assert.ok(rims.length && rims.every(e => e.toleranceMM <= 1.01 * sag), rims.map(e => e.toleranceMM).join(' '));
+  assert.ok(rims.length && rims.every(e => e.tolerance <= 1.01 * sag), rims.map(e => e.tolerance).join(' '));
   assert.ok(wall);
 });
 

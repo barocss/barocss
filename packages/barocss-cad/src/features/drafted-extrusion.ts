@@ -14,7 +14,7 @@ export interface DraftedExtrusionInput {
   readonly profile: readonly ProfileSegmentInput[];
   readonly z0: number; readonly z1: number;
   /** Degrees, |θ| < 89: positive leans the walls into the material towards z1. */
-  readonly draftDegrees: number;
+  readonly draft: number;
   /** Face names: `${tag}.side{i}`, `${tag}.top`, `${tag}.bottom` (as an upright extrusion's). */
   readonly tag: string;
   /** The sketch's segment tags (R10a, D86): sides named `${tag}.side[t]` instead of by position. */
@@ -27,8 +27,8 @@ const fail = (detail: string): never => { throw new BrepError('GEOMETRY', 'draft
 /** The profile's segments moved `d` into the material (to the left of each), joints re-met. */
 function offsetLoop(loop: readonly ProfileSegment[], d: number): ProfileSegment[] {
   const n = loop.length, left = (s: ProfileSegment, at: 'start' | 'end'): XY => {
-    if (s.kind === 'line') { const l = s.lengthMM; return [-(s.end[1] - s.start[1]) / l, (s.end[0] - s.start[0]) / l]; }
-    const p = at === 'start' ? s.start : s.end, r: XY = [(p[0] - s.center[0]) / s.radiusMM, (p[1] - s.center[1]) / s.radiusMM];
+    if (s.kind === 'line') { const l = s.length; return [-(s.end[1] - s.start[1]) / l, (s.end[0] - s.start[0]) / l]; }
+    const p = at === 'start' ? s.start : s.end, r: XY = [(p[0] - s.center[0]) / s.radius, (p[1] - s.center[1]) / s.radius];
     return s.sweep > 0 ? [-r[0], -r[1]] : r; // counter-clockwise: the centre side
   };
   const dir = (s: ProfileSegment, at: 'start' | 'end'): XY => { const l = left(s, at); return [l[1], -l[0]]; };
@@ -48,24 +48,24 @@ function offsetLoop(loop: readonly ProfileSegment[], d: number): ProfileSegment[
     if (s.kind === 'line') {
       const len = Math.hypot(end[0] - start[0], end[1] - start[1]), along = (end[0] - start[0]) * (s.end[0] - s.start[0]) + (end[1] - start[1]) * (s.end[1] - s.start[1]);
       if (!(len > 1e-9 && along > 0)) fail('the draft closes a straight wall before the top (steeper than the profile allows)');
-      return { kind: 'line', start, end, lengthMM: len };
+      return { kind: 'line', start, end, length: len };
     }
-    const r = s.radiusMM - Math.sign(s.sweep) * d;
+    const r = s.radius - Math.sign(s.sweep) * d;
     if (!(r > 1e-9)) fail('the draft closes an arc before the top (steeper than the profile allows)');
-    return { ...s, start, end, radiusMM: r, lengthMM: Math.abs(s.sweep) * r };
+    return { ...s, start, end, radius: r, length: Math.abs(s.sweep) * r };
   });
 }
 
 export function draftedExtrusion(input: DraftedExtrusionInput): Brep {
-  const { z0, z1, tag } = input, id = input.id ?? tag, theta = input.draftDegrees * Math.PI / 180;
-  if (!(Math.abs(input.draftDegrees) < 89)) fail('the draft angle must be below 89°');
+  const { z0, z1, tag } = input, id = input.id ?? tag, theta = input.draft * Math.PI / 180;
+  if (!(Math.abs(input.draft) < 89)) fail('the draft angle must be below 89°');
   if (!(z1 > z0)) fail('the extrusion needs a positive height');
   const loop0 = buildProfileLoop(input.profile, { maximumSegments: 1024 }), built = loop0.segments;
   // A single circle becomes two halves, so every edge has two vertices.
   const bottom: ProfileSegment[] = built.length > 1 ? [...built] : (() => {
     const arc = built[0]; if (arc.kind !== 'arc') fail('a profile needs at least two segments');
-    const a = arc as Extract<ProfileSegment, { kind: 'arc' }>, half = a.sweep / 2, mid = a.startAngle + half, m: XY = [a.center[0] + a.radiusMM * Math.cos(mid), a.center[1] + a.radiusMM * Math.sin(mid)];
-    return [{ ...a, end: m, sweep: half, lengthMM: a.lengthMM / 2 }, { ...a, start: m, startAngle: mid, sweep: half, lengthMM: a.lengthMM / 2 }];
+    const a = arc as Extract<ProfileSegment, { kind: 'arc' }>, half = a.sweep / 2, mid = a.startAngle + half, m: XY = [a.center[0] + a.radius * Math.cos(mid), a.center[1] + a.radius * Math.sin(mid)];
+    return [{ ...a, end: m, sweep: half, length: a.length / 2 }, { ...a, start: m, startAngle: mid, sweep: half, length: a.length / 2 }];
   })();
   const top = offsetLoop(bottom, (z1 - z0) * Math.tan(theta)), n = bottom.length;
   const vertices: { id: string; point: Point }[] = [];
@@ -93,7 +93,7 @@ export function draftedExtrusion(input: DraftedExtrusionInput): Brep {
   for (let i = 0; i < n; i++) {
     const s = bottom[i], b = bc[i], t = tc[i];
     // Outward: to the right of the profile's travel, at the wall's middle.
-    const tangent = s.kind === 'line' ? [(s.end[0] - s.start[0]) / s.lengthMM, (s.end[1] - s.start[1]) / s.lengthMM] : (() => { const a = s.startAngle + s.sweep / 2, k = Math.sign(s.sweep); return [-Math.sin(a) * k, Math.cos(a) * k]; })();
+    const tangent = s.kind === 'line' ? [(s.end[0] - s.start[0]) / s.length, (s.end[1] - s.start[1]) / s.length] : (() => { const a = s.startAngle + s.sweep / 2, k = Math.sign(s.sweep); return [-Math.sin(a) * k, Math.cos(a) * k]; })();
     const outward: Point = [tangent[1], -tangent[0], 0];
     const surface: Surface = s.kind === 'line'
       ? { kind: 'surface', id: `${id}_f${i}`, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: [[b.controlPoints[0], t.controlPoints[0]], [b.controlPoints[1], t.controlPoints[1]]], weights: [[1, 1], [1, 1]] }

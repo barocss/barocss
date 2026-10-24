@@ -13,8 +13,8 @@ test('FRk4 named frame arcs: actual hollow one-body BRep, Pappus, analytic centr
   const roundedI=(w,h,r)=>w*h**3/12-4*((1-Math.PI/4)*r*r*(h/2-r)**2+(h/2-r)*r**3/3+r**4*(1/3-Math.PI/16));
   const J=section.kind==='round-tube'?Math.PI*(15**4-13**4)/4:roundedI(40,40,6)-roundedI(34,34,3), meanRadius=150+J/(area*150);
   near(m.centroid[0],2*meanRadius/Math.PI); near(m.centroid[1],2*meanRadius/Math.PI);near(m.centroid[2],0);
-  near(curve.radiusMM,150);near(curve.angleDegrees,90);near(curve.developedLengthMM,150*Math.PI/2);
-  const piece=cutPiece(o);near(piece.axisLengthMM,150*Math.PI/2);assert.equal(piece.fromVolume,false);near(cutList([piece],{density:7.85}).totals.axisLengthMM,150*Math.PI/2);
+  near(curve.radius,150);near(curve.angle,90);near(curve.developedLength,150*Math.PI/2);
+  const piece=cutPiece(o);near(piece.axisLength,150*Math.PI/2);assert.equal(piece.fromVolume,false);near(cutList([piece],{density:7.85}).totals.axisLength,150*Math.PI/2);
   curve.startTangent.forEach((x,i)=>near(x,[0,1,0][i]));curve.endTangent.forEach((x,i)=>near(x,[-1,0,0][i]));
  }
 });
@@ -22,7 +22,7 @@ test('FRk4 tangent bend is one hollow body, legs shortened Rtan(theta/2), stable
  const doc=D([{id:'f',kind:'frame',points:[[0,0,0],[300,0,0],[300,300,0],[0,0,500],[100,0,500]],segments:[[0,1],[1,2],[3,4]],bends:[{point:1,radius:100}],section:round,up:[0,0,1]}]);
  const s=evaluateCadPart(doc),o=s.outputs[0],m=massPropertiesOf(o, 7.85),L=400+50*Math.PI;
  assert.equal(o.id,'f/0');assert.equal(s.outputs[1].id,'f/2');assert.deepEqual(o.member.curve.segmentIndices,[0,1]);
- near(m.volume,A*L);near(o.member.lengthMM,L);near(cutPiece(o).axisLengthMM,L);assert.equal(o.bodyCount,1);assert.equal(checkOutput(o).valid,true);
+ near(m.volume,A*L);near(o.member.length,L);near(cutPiece(o).axisLength,L);assert.equal(o.bodyCount,1);assert.equal(checkOutput(o).valid,true);
  const selected=evaluateCadPart({...doc,features:[...doc.features,{id:'take',kind:'translate',target:'f/2',offset:[0,0,10]}]});assert.ok(outputOf(selected, 'take'));
 });
 test('FRk4 typed arc/bend/butt refusal boundaries',()=>{
@@ -38,12 +38,12 @@ test('FRk4 actual angled curve-end mitre: extended circular material cut to a sh
  const s=evaluateCadPart(doc),curve=s.outputs[0],straight=s.outputs[1];
  for(const o of s.outputs) {assert.equal(checkOutput(o).valid,true);assert.equal(o.bodyCount,1);assert.ok(massPropertiesOf(o, 7.85).volume>0);assert.equal(o.member.ends.filter(e=>e.kind==='mitre').length,1);}
  const a=curve.member.ends.find(e=>e.kind==='mitre'),b=straight.member.ends.find(e=>e.kind==='mitre');
- near(a.angleDegrees,22.5);near(b.angleDegrees,22.5);a.plane.normal.forEach((v,i)=>near(v,-b.plane.normal[i]));
- near(cutPiece(curve).ends[1].mitreDegrees,22.5);near(curve.member.curve.developedLengthMM,150*Math.PI/2);
+ near(a.angle,22.5);near(b.angle,22.5);a.plane.normal.forEach((v,i)=>near(v,-b.plane.normal[i]));
+ near(cutPiece(curve).ends[1].mitre,22.5);near(curve.member.curve.developedLength,150*Math.PI/2);
  assert.ok(Math.abs(massPropertiesOf(curve).volume-A*150*Math.PI/2)>1,'cut mass uses actual clipped BRep');
 });
 
 test('FRk4 part document revolve forwards sketch holes and tags as an actual annular section',()=>{
- const o=outputOf(evaluateCadPart(D([{id:'s',kind:'sketch',profile:'loop',segments:[{kind:'arc',start:[165,0],center:[150,0],direction:'ccw'}],holes:[[{kind:'arc',start:[163,0],center:[150,0],direction:'ccw'}]]},{id:'r',kind:'revolve',sketch:'s',axis:{origin:[0,0],direction:'y'},angleDegrees:90}])), 'r');
+ const o=outputOf(evaluateCadPart(D([{id:'s',kind:'sketch',profile:'loop',segments:[{kind:'arc',start:[165,0],center:[150,0],direction:'ccw'}],holes:[[{kind:'arc',start:[163,0],center:[150,0],direction:'ccw'}]]},{id:'r',kind:'revolve',sketch:'s',axis:{origin:[0,0],direction:'y'},angle:90}])), 'r');
  near(massPropertiesOf(o).volume,A*150*Math.PI/2);assert.equal(o.bodyCount,1);assert.equal(checkOutput(o).valid,true);
 });

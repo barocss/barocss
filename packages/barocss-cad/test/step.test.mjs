@@ -111,7 +111,7 @@ test('curved bodies read back from STEP keep their exact volume (quadrature over
   const tor = [{ id: 's', kind: 'sketch', profile: 'circle', center: [30, 10], radius: 5 }, { id: 'r', kind: 'revolve', sketch: 's', axis: { origin: [0, 0], direction: 'y' } }];
   const cases = [
     ['a torus', D(tor), 2 * Math.PI ** 2 * 30 * 25],
-    ['a bent pipe', D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'w', kind: 'sweep', sketch: 's', path: [{ kind: 'straight', length: 8 }, { kind: 'bend', radius: 20, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 8 }] }]), 25 * Math.PI * (16 + 10 * Math.PI)],
+    ['a bent pipe', D([{ id: 's', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5 }, { id: 'w', kind: 'sweep', sketch: 's', path: [{ kind: 'straight', length: 8 }, { kind: 'bend', radius: 20, angle: 90, toward: 'x' }, { kind: 'straight', length: 8 }] }]), 25 * Math.PI * (16 + 10 * Math.PI)],
     ['a torus and a rod joined', D([...tor, rect('b', -1, -1, 1, 1), { id: 'e', kind: 'extrude', sketch: 'b', height: 40 }, { id: 'u', kind: 'union', target: 'r', tool: 'e' }]), 2 * Math.PI ** 2 * 30 * 25 + 160],
   ];
   for (const [name, doc, exact] of cases) {

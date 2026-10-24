@@ -30,9 +30,9 @@ test('A9 opted-in ordered table: eight owned 270 mm3 beads, nominal 2880 mm3, wi
   for (const out of beads) {
     assert.ok(checkOutput(out).valid);
     near(volume(out), 270, out.id);
-    near(out.bead.volumeMM3, 270, `${out.id} report`);
-    near(out.bead.nominalVolumeMM3, 360, `${out.id} nominal`);
-    assert.deepEqual(out.bead.seam, { lengthMM: 160, flushMM: 80, exact: true });
+    near(out.bead.volume, 270, `${out.id} report`);
+    near(out.bead.nominalVolume, 360, `${out.id} nominal`);
+    assert.deepEqual(out.bead.seam, { length: 160, flush: 80, exact: true });
     assert.equal(out.bodyCount, 2);
     // Both actual supports matter: the leg and the adjacent rail, not the nominal `with` alone.
     assert.equal(out.bead.meets.length, 2);
@@ -42,7 +42,7 @@ test('A9 opted-in ordered table: eight owned 270 mm3 beads, nominal 2880 mm3, wi
     sum += volume(out);
   }
   near(sum, 2160, 'eight owned bead volumes');
-  near(beads.reduce((s, o) => s + o.bead.nominalVolumeMM3, 0), 2880, 'nominal requests');
+  near(beads.reduce((s, o) => s + o.bead.nominalVolume, 0), 2880, 'nominal requests');
   assert.equal(new Set(beads.flatMap(o => o.bead.sharedSeams.map(s => s.id))).size, 4);
   for (let a = 0; a < beads.length; a++) for (let b = a + 1; b < beads.length; b++) assert.equal(booleanAnalytic(beads[a].brep, beads[b].brep, 'intersection').bodies.length, 0, `${beads[a].id}/${beads[b].id}`);
   const welded = union(snapshot.outputs.map(o => o.brep));

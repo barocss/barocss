@@ -32,7 +32,7 @@
           "kind": "rotate",
           "target": "n3b",
           "axis": "z",
-          "angleDegrees": 193.677,
+          "angle": 193.677,
           "pivot": [
             0,
             0,
@@ -103,14 +103,14 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n4r0",
           "kind": "rotate",
           "target": "n4b",
           "axis": "y",
-          "angleDegrees": 27.948,
+          "angle": 27.948,
           "pivot": [
             0,
             0,
@@ -154,7 +154,7 @@
           "kind": "rotate",
           "target": "n5b",
           "axis": "y",
-          "angleDegrees": 202.882,
+          "angle": 202.882,
           "pivot": [
             0,
             0,
@@ -166,7 +166,7 @@
           "kind": "rotate",
           "target": "n5r0",
           "axis": "z",
-          "angleDegrees": 243.416,
+          "angle": 243.416,
           "pivot": [
             0,
             0,
@@ -210,7 +210,7 @@
           "kind": "rotate",
           "target": "n7b",
           "axis": "y",
-          "angleDegrees": 316.862,
+          "angle": 316.862,
           "pivot": [
             0,
             0,
@@ -248,7 +248,7 @@
           "kind": "rotate",
           "target": "n9b",
           "axis": "z",
-          "angleDegrees": 73.076,
+          "angle": 73.076,
           "pivot": [
             0,
             0,
@@ -260,7 +260,7 @@
           "kind": "rotate",
           "target": "n9r0",
           "axis": "z",
-          "angleDegrees": 181.357,
+          "angle": 181.357,
           "pivot": [
             0,
             0,
@@ -298,7 +298,7 @@
           "kind": "rotate",
           "target": "n10b",
           "axis": "z",
-          "angleDegrees": 6.248,
+          "angle": 6.248,
           "pivot": [
             0,
             0,
@@ -310,7 +310,7 @@
           "kind": "rotate",
           "target": "n10r0",
           "axis": "x",
-          "angleDegrees": 60.812,
+          "angle": 60.812,
           "pivot": [
             0,
             0,

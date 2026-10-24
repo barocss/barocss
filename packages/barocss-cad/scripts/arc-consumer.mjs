@@ -16,7 +16,7 @@ for(const request of requests){const result=buildXYArc(request);const compiled=c
  for(let knot=1;knot<result.report.spanCount;knot++)assert.throws(()=>evaluateCurveD1(result.curve,knot));
  const exported=exportIGES(result.model,[request.id]);const fields=exported.iges.split('\\n').filter(l=>l[72]==='P').map(l=>l.slice(0,64)).join('').split(',').slice(0,7).map(Number);assert.deepEqual(fields,[126,result.curve.controlPoints.length-1,2,0,0,0,0]);
 }
-const signed=buildXYArc({kind:'circle',id:'signed',center:[-0,-0],radius:.001});assert.ok(Object.is(signed.report.centerMM[0],-0));assert.ok(Object.is(signed.report.centerMM[1],-0));
+const signed=buildXYArc({kind:'circle',id:'signed',center:[-0,-0],radius:.001});assert.ok(Object.is(signed.report.center[0],-0));assert.ok(Object.is(signed.report.center[1],-0));
 const edited=buildXYArc({...requests[1],radius:12});assert.equal(edited.curve.id,'packed_circle');assert.deepEqual(evaluateCurve(edited.curve,0),[16,-3,0]);
 assert.throws(()=>buildXYArc({...requests[0],quadrant:4}));
 `);
@@ -24,7 +24,7 @@ assert.throws(()=>buildXYArc({...requests[0],quadrant:4}));
   writeFileSync(join(temp,'arc-types.ts'),`import {buildXYArc,compileCadModel,evaluateCurve,exportIGES} from '@barocss/cad';
 import type {XYArcRequest,XYArcResult,XYArcReport,XYPoint,Curve,Model} from '@barocss/cad';
 const center:XYPoint=[0,0];const requests:XYArcRequest[]=[{kind:'quarter-arc',id:'arc',center,radius:10,quadrant:3},{kind:'circle',id:'circle',center,radius:10}];
-for(const request of requests){const result:XYArcResult=buildXYArc(request);const report:XYArcReport=result.report;const sourceVersion:0=result.sourceVersion;const curve:Curve=result.curve;const model:Model=result.model;const plane:'xy'=report.plane;const periodic:false=report.periodic;const region:false=report.regionCertified;const solid:false=report.solid;const mm:'mm'=report.lengthUnit;const cx:XYPoint=report.centerMM;const radius:number=report.radiusMM;const spanCount:number=report.spanCount;void[compileCadModel(result.source,{sourceVersion}),evaluateCurve(curve,report.parameterDomain.min),exportIGES(model,[curve.id]),plane,periodic,region,solid,mm,cx,radius,spanCount];}
+for(const request of requests){const result:XYArcResult=buildXYArc(request);const report:XYArcReport=result.report;const sourceVersion:0=result.sourceVersion;const curve:Curve=result.curve;const model:Model=result.model;const plane:'xy'=report.plane;const periodic:false=report.periodic;const region:false=report.regionCertified;const solid:false=report.solid;const mm:'mm'=report.lengthUnit;const cx:XYPoint=report.center;const radius:number=report.radius;const spanCount:number=report.spanCount;void[compileCadModel(result.source,{sourceVersion}),evaluateCurve(curve,report.parameterDomain.min),exportIGES(model,[curve.id]),plane,periodic,region,solid,mm,cx,radius,spanCount];}
 // @ts-expect-error Only four quarter indices exist.
 buildXYArc({kind:'quarter-arc',id:'arc',center,radius:10,quadrant:4});
 // @ts-expect-error A circle has no quadrant option.

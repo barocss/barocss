@@ -71,11 +71,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6853136.319324572,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             -8.423737522965348e-15,
             1.5676626969170755e-16,
@@ -92,11 +92,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 9790194.741892245,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             1600.0000000000016,
             1.4992893786989438e-14,
@@ -113,11 +113,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 6200456.669865089,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             3000,
             -9.71906867521657e-14,

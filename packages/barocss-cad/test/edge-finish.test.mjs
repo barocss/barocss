@@ -5,11 +5,11 @@ import { openEdgesByBody } from '../scripts/rb/stages.mjs';
 
 const pi = Math.PI, corner = r => r * r * (1 - pi / 4), k = (10 - 3 * pi) / (12 - 3 * pi);
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
-const prism = (outer, h, tag) => brepFromPrismatic(prismaticFromProfile({ outer, heightMM: h, tag }), { id: tag });
+const prism = (outer, h, tag) => brepFromPrismatic(prismaticFromProfile({ outer, height: h, tag }), { id: tag });
 const volume = b => brepMassProperties(b, 1, { segmentsPerQuarter: 48 }).volume;
 const near = (a, b, rel) => Math.abs(a - b) <= rel * Math.abs(b);
 function watertight(b) {
-  const m = tessellateBrep(b, { segmentsPerQuarter: 16 }), p = m.positionsMM, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
+  const m = tessellateBrep(b, { segmentsPerQuarter: 16 }), p = m.positions, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
   for (let t = 0; t < ix.length; t += 3) for (let e = 0; e < 3; e++) { const s = key(ix[t + e]) + '>' + key(ix[t + (e + 1) % 3]); he.set(s, (he.get(s) ?? 0) + 1); }
   return [...he].every(([s, n]) => { const [x, y] = s.split('>'); return he.get(y + '>' + x) === n; });
 }
@@ -91,7 +91,7 @@ test('every edge of a box filleted: strictly valid, watertight, volume and area 
     const A = a - 2 * r, B = b - 2 * r, C = c - 2 * r;
     const volume = A * B * C + 2 * r * (A * B + B * C + A * C) + pi * r * r * (A + B + C) + 4 / 3 * pi * r ** 3, area = 2 * (A * B + B * C + A * C) + 2 * pi * r * (A + B + C) + 4 * pi * r * r;
     const o = evaluateCadPart(D([...box, { id: 'f', kind: 'fillet', target: 'e', edges, radius: r }])).outputs[0], m = massPropertiesOf(o), v = checkOutput(o);
-    assert.equal(v.valid, true, `r ${r}: ${v.issues[0]}`); assert.ok(v.maximumEdgeSurfaceGapMM < 1e-8);
+    assert.equal(v.valid, true, `r ${r}: ${v.issues[0]}`); assert.ok(v.maximumEdgeSurfaceGap < 1e-8);
     assert.equal(openEdgesByBody(o.brep, tessellateBrep(o.brep, { segmentsPerQuarter: 8 })), 0, `r ${r} watertight`);
     // (The corner patches hold their ball's pole, where the quadrature over their trimmed domains is least
     // accurate: 5e-5, shrinking with finer quadrature; the geometry itself is exact to 1e-9.)

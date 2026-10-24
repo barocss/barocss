@@ -26,22 +26,22 @@ test('FRk2 a bead on a rail butted on a wider post: the end\'s outline offset by
   near(massPropertiesOf(w).centroid[0], 40 + (160 * z ** 3 / 6 + z ** 4 / 3) / V, 1e-12, 'its centroid off the post\'s face');
   assert.equal(w.bodyCount, 1); assert.ok(checkOutput(w).valid);
   const r = w.bead;
-  assert.deepEqual([r.frame, r.on, r.kind, r.legMM, r.meets, r.corner], ['f', { member: 1, end: 'end' }, 'fillet', 3, [0], 'mitred']);
-  near(r.throatMM, z / Math.SQRT2, 1e-15, 'throat'); near(r.volumeMM3, V, 1e-12, 'its volume');
-  assert.deepEqual(r.seam, { lengthMM: 160, flushMM: 0, exact: true });
+  assert.deepEqual([r.frame, r.on, r.kind, r.leg, r.meets, r.corner], ['f', { member: 1, end: 'end' }, 'fillet', 3, [0], 'mitred']);
+  near(r.throat, z / Math.SQRT2, 1e-15, 'throat'); near(r.volume, V, 1e-12, 'its volume');
+  assert.deepEqual(r.seam, { length: 160, flush: 0, exact: true });
   const names = [...new Set(w.brep.faces.map(f => f.name))].sort();
   assert.ok(names.includes('w.fillet.top') && names.some(n => n.startsWith('w.fillet.side')) && names.some(n => n.startsWith('w.on.m1')), names.join(', '));
   const all = welded([s.outputs[0].brep, s.outputs[1].brep, w.brep]);
   assert.equal(all.bodies.length, 1); near(brepMassProperties(all, 1).volume, volume(s.outputs[0]) + volume(s.outputs[1]) + V, 1e-12, 'welded, their sum');
   // Round-cornered: the outline's arcs turn 2π in all, so c = π.
   const round = outputOf(run([tee({ ...WIDE, outerRadius: 8 }, { ...SHARP, outerRadius: 6 }), bead({ member: 1, end: 'end' })]), 'w'), P = 160 - 48 + 12 * Math.PI;
-  near(volume(round), P * z * z / 2 + Math.PI / 3 * z ** 3, 1e-11, 'round-cornered'); near(round.bead.seam.lengthMM, P, 1e-12, 'its seam');
+  near(volume(round), P * z * z / 2 + Math.PI / 3 * z ** 3, 1e-11, 'round-cornered'); near(round.bead.seam.length, P, 1e-12, 'its seam');
 });
 
 test('FRk2 the bore\'s fillet too (inner): P_i·z²/2 − (c/3)z³ inside it, sharp and round-cornered bores; a start end (a post standing on a beam)', () => {
   const sharp = outputOf(run([tee(WIDE, SHARP), bead({ member: 1, end: 'end' }, { inner: true })]), 'w');
   near(volume(sharp), 160 * 4.5 + 4 / 3 * 27 + 136 * 4.5 - 4 / 3 * 27, 1e-12, 'outer and inner');
-  assert.deepEqual(sharp.bead.seam, { lengthMM: 296, flushMM: 0, exact: true, inner: true });
+  assert.deepEqual(sharp.bead.seam, { length: 296, flush: 0, exact: true, inner: true });
   assert.equal(sharp.bodyCount, 2, 'the wall between them');
   // A 60 × 60 × 4 rail with ro 8, ri 4 (concentric): the bore's rounds above the leg.
   const rail = { kind: 'rect-tube', width: 60, height: 60, wall: 4, outerRadius: 8 }, Po = 240 - 64 + 16 * Math.PI, Pi = 208 - 32 + 8 * Math.PI;
@@ -56,7 +56,7 @@ test('FRk2 the bore\'s fillet too (inner): P_i·z²/2 − (c/3)z³ inside it, sh
 test('FRk2 flush sides: a rail as wide as its post keeps its fillets on the post\'s face — only the top and bottom runs, 40·z² (two bodies), flush 80; a leg under a mitred top\'s corner, on two rails, its outer sides flush with the frame\'s outside (360, two bodies, meets 4 and 7)', () => {
   const s = run([tee(SHARP), bead({ member: 1, end: 'end' })]), w = outputOf(s, 'w');
   near(volume(w), 40 * z * z, 1e-12, 'the top and bottom runs');
-  assert.equal(w.bodyCount, 2); assert.deepEqual(w.bead.seam, { lengthMM: 160, flushMM: 80, exact: true });
+  assert.equal(w.bodyCount, 2); assert.deepEqual(w.bead.seam, { length: 160, flush: 80, exact: true });
   near(massPropertiesOf(w).centroid[0], 20 + z / 3, 1e-12, 'on the face');
   const all = welded([s.outputs[0].brep, s.outputs[1].brep, w.brep]);
   near(brepMassProperties(all, 1).volume, volume(s.outputs[0]) + volume(s.outputs[1]) + 40 * z * z, 1e-12, 'welded, their sum');
@@ -65,7 +65,7 @@ test('FRk2 flush sides: a rail as wide as its post keeps its fillets on the post
   const t = outputOf(run([{ id: 'f', kind: 'frame', points: pts, segments: [[0, 4], [1, 5], [2, 6], [3, 7], [8, 9], [9, 10], [10, 11], [11, 8]], section: SHARP, corners: { default: 'mitre' } }, bead({ member: 0, end: 'end' })]), 'w');
   // The inner sides' runs, 40 each: (x 20, y −20…20) on rail 4 and (y 20, x −20…20) on rail 7; their corner (x, y > 20) on neither.
   near(volume(t), 2 * 40 * z * z / 2, 1e-12, 'two runs');
-  assert.deepEqual([t.bodyCount, t.bead.meets, t.bead.seam.flushMM], [2, [4, 7], 80]); assert.ok(checkOutput(t).valid);
+  assert.deepEqual([t.bodyCount, t.bead.meets, t.bead.seam.flush], [2, [4, 7], 80]); assert.ok(checkOutput(t).valid);
 });
 
 test('FRk2 a gusset\'s beads: both seams, both faces, (l − c)·z² a seam; their centroid by the four prisms\'; welded with the members and the gusset, their sum', () => {
@@ -75,7 +75,7 @@ test('FRk2 a gusset\'s beads: both seams, both faces, (l − c)·z² a seam; the
   near(volume(w), VA + VB, 1e-12, 'four runs'); assert.equal(w.bodyCount, 4);
   const c = massPropertiesOf(w).centroid;
   near(c[0], (VA * 87.5 + VB * (20 + z / 3)) / (VA + VB), 1e-12, 'x̄'); near(c[1], 0, 1e-12, 'ȳ'); near(c[2], (VA * (20 + z / 3) + VB * 77.5) / (VA + VB), 1e-12, 'z̄');
-  assert.deepEqual([w.bead.on, w.bead.meets, w.bead.seam], [{ gusset: 'g' }, [0, 1], { lengthMM: 380, flushMM: 0, exact: true }]);
+  assert.deepEqual([w.bead.on, w.bead.meets, w.bead.seam], [{ gusset: 'g' }, [0, 1], { length: 380, flush: 0, exact: true }]);
   const all = welded([...s.outputs.filter(o => o.member).map(o => o.brep), outputOf(s, 'g').brep, w.brep]);
   assert.equal(all.bodies.length, 1);
   near(brepMassProperties(all, 1).volume, s.outputs.reduce((v, o) => v + volume(o), 0), 1e-9, 'welded, their sum');

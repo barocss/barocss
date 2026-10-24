@@ -62,14 +62,14 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n1r0",
           "kind": "rotate",
           "target": "n1b",
           "axis": "y",
-          "angleDegrees": 328.805,
+          "angle": 328.805,
           "pivot": [
             0,
             0,
@@ -149,14 +149,14 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n2r0",
           "kind": "rotate",
           "target": "n2b",
           "axis": "x",
-          "angleDegrees": 103.362,
+          "angle": 103.362,
           "pivot": [
             0,
             0,
@@ -168,7 +168,7 @@
           "kind": "rotate",
           "target": "n2r0",
           "axis": "z",
-          "angleDegrees": 336.216,
+          "angle": 336.216,
           "pivot": [
             0,
             0,

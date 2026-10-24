@@ -38,8 +38,8 @@ interface IGESImportMetadata { // PRIVATE, not barrel-exported
   unitFlag: 2;
   lengthUnit: 'mm';
   modelScale: 1;
-  declaredMaximumCoordinateMM: number;
-  actualMaximumCoordinateMM: number;
+  declaredMaximumCoordinate: number;
+  actualMaximumCoordinate: number;
   records: { S: 1; G: number; D: number; P: number; T: 1 };
 }
 export interface IGESImportOptions {
@@ -110,8 +110,8 @@ export interface IGESImportReport {
   nativeIds: string[];
   duplicateDirectoryLabelCount: number; // entities minus distinct decoded labels
   fileNegativeZeroTokenCount: number; // Number(full numeric token) is Object.is(-0)
-  declaredMaximumCoordinateMM: number;
-  actualMaximumCoordinateMM: number;
+  declaredMaximumCoordinate: number;
+  actualMaximumCoordinate: number;
   directCounts: {
     recordScanCount: number;
     integerFieldParseCount: number;
@@ -191,7 +191,7 @@ export interface IGESImportReport {
     maximumSurfacePoles: 256;
     maximumSurfaceAxisKnots: 22;
     maximumModelObjects: 16;
-    coordinateAbsMM: 1000000;
+    coordinateAbs: 1000000;
     minimumWeight: 0.000001;
     maximumWeight: 1000000;
     maximumNativeIdCharacters: 48;
@@ -656,7 +656,7 @@ export function importIGES(igesInput: string, optionsInput: IGESImportOptions): 
   const sections = physicalRecords(request.iges, counts), globals = globalFields(sections, counts), entries = directories(sections, counts);
   const entities: IGESImportEntity[] = [], objects: (Curve | Surface)[] = [];
   let fileNegativeZeroTokenCount = globals.filter(field => field.kind === 'number' && Object.is(field.value, -0)).length;
-  let actualMaximumCoordinateMM = 0;
+  let actualMaximumCoordinate = 0;
   for (let index = 0; index < entries.length; index++) {
     const directory = entries[index];
     const payload = sections.P.slice(directory.parameterPointer - 1,
@@ -666,10 +666,10 @@ export function importIGES(igesInput: string, optionsInput: IGESImportOptions): 
     const decoded = entity(directory, index, tokens, request.options, counts);
     entities.push(decoded.receipt); objects.push(decoded.geometry);
     const points = decoded.geometry.kind === 'curve' ? decoded.geometry.controlPoints : decoded.geometry.controlPoints.flat();
-    for (const point of points) for (const value of point) actualMaximumCoordinateMM = Math.max(actualMaximumCoordinateMM, Math.abs(value));
+    for (const point of points) for (const value of point) actualMaximumCoordinate = Math.max(actualMaximumCoordinate, Math.abs(value));
   }
-  const declaredMaximumCoordinateMM = globals[19].value as number;
-  check(Object.is(actualMaximumCoordinateMM, declaredMaximumCoordinateMM), CODE.GLOBAL,
+  const declaredMaximumCoordinate = globals[19].value as number;
+  check(Object.is(actualMaximumCoordinate, declaredMaximumCoordinate), CODE.GLOBAL,
     'Declared Global maximumCoordinate must equal the actual imported maximum absolute Cartesian coefficient');
   check(counts.tokenScanCount === counts.numericParseCount + counts.hollerithParseCount &&
     counts.hollerithParseCount === 13 && counts.integerFieldParseCount ===
@@ -688,7 +688,7 @@ export function importIGES(igesInput: string, optionsInput: IGESImportOptions): 
   const records: IGESImportMetadata['records'] = { S: 1, G: sections.G.length, D: sections.D.length, P: sections.P.length, T: 1 };
   const metadata: IGESImportMetadata = { startText: sections.S[0].body, globals,
     parameterDelimiter: ',', recordDelimiter: ';', unitFlag: 2, lengthUnit: 'mm', modelScale: 1,
-    declaredMaximumCoordinateMM, actualMaximumCoordinateMM, records };
+    declaredMaximumCoordinate: declaredMaximumCoordinate, actualMaximumCoordinate: actualMaximumCoordinate, records };
   const report: IGESImportReport = {
     schema: 'barocss-native-iges-import-report', version: 0,
     profile: 'barocss-writer-iges53-untransformed-open-126-128', format: 'IGES 5.3 ASCII', sourceVersion: 0,
@@ -701,7 +701,7 @@ export function importIGES(igesInput: string, optionsInput: IGESImportOptions): 
     directoryPointers: entities.map(value => value.directoryPointer),
     parameterPointers: entities.map(value => value.parameterPointer), nativeIds: entities.map(value => value.nativeId),
     duplicateDirectoryLabelCount: entities.length - new Set(entities.map(value => value.label)).size,
-    fileNegativeZeroTokenCount, declaredMaximumCoordinateMM, actualMaximumCoordinateMM, directCounts: counts,
+    fileNegativeZeroTokenCount, declaredMaximumCoordinate: declaredMaximumCoordinate, actualMaximumCoordinate: actualMaximumCoordinate, directCounts: counts,
     preservation: { completeInputFile: true, directoryOrderAndOwnership: true, directoryLabelFields: true,
       parsedCoefficientBits: true, parsedDomains: true, independentWeights: true,
       sourceModelCoefficientBinding: true, nativeIdsFromDirectoryPointers: true },
@@ -720,7 +720,7 @@ export function importIGES(igesInput: string, optionsInput: IGESImportOptions): 
       maximumEntityTokens: 1082, maximumNumericTokenCharacters: 32, maximumHollerithCharacters: 256,
       maximumDegree: 5, maximumCurvePoles: 64, maximumCurveKnots: 70, maximumSurfaceAxisPoles: 16,
       maximumSurfacePoles: 256, maximumSurfaceAxisKnots: 22, maximumModelObjects: 16,
-      coordinateAbsMM: 1000000, minimumWeight: 0.000001, maximumWeight: 1000000,
+      coordinateAbs: 1000000, minimumWeight: 0.000001, maximumWeight: 1000000,
       maximumNativeIdCharacters: 48, maximumModelNameCharacters: 48, maximumIdPrefixCharacters: 32,
       maximumDecimalEmissionCount: 17120, maximumSourceLiteralCharacters: 350,
       sourceUTF16: 262144, sourceUTF8: 262144, maximumRequestFileUTF16: 1048576,

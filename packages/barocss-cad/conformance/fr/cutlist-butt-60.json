@@ -65,11 +65,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 185290.30558560582,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             208.6602540378444,
             0,
@@ -86,11 +86,11 @@
         ]
       },
       {
-        "volumeMM3": {
+        "volume": {
           "value": 122946.25921919224,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             319.71031574263304,
             140.02352458341485,
@@ -116,19 +116,19 @@
           "pieces": [
             "f/0"
           ],
-          "axisLengthMM": 417.3205080756888,
-          "longPointMM": 417.3205080756888,
+          "axisLength": 417.3205080756888,
+          "longPoint": 417.3205080756888,
           "fromVolume": false,
           "ends": [
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "through",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             }
           ],
           "mass": 1454.5288988470058
@@ -138,19 +138,19 @@
           "pieces": [
             "f/1"
           ],
-          "axisLengthMM": 276.905989232415,
-          "longPointMM": 288.4529946162075,
+          "axisLength": 276.905989232415,
+          "longPoint": 288.4529946162075,
           "fromVolume": false,
           "ends": [
             {
               "kind": "square",
-              "mitreDegrees": 0,
-              "bevelDegrees": 0
+              "mitre": 0,
+              "bevel": 0
             },
             {
               "kind": "butt",
-              "mitreDegrees": 30,
-              "bevelDegrees": 0
+              "mitre": 30,
+              "bevel": 0
             }
           ],
           "mass": 965.1281348706593
@@ -158,7 +158,7 @@
       ],
       "totals": {
         "quantity": 2,
-        "axisLengthMM": 694.2264973081037,
+        "axisLength": 694.2264973081037,
         "mass": 2419.657033717665
       }
     }

@@ -109,7 +109,7 @@ function boundedNumbers(value: unknown, limit = 10000, what = 'knots'): void {
     CODE.INPUT, `Original ${what} must be finite and within ${limit}`);
 }
 /** Coordinates use the geometry range (CadNumericPolicy); knots and parameters stay within 10000. */
-const coordinates = (value: unknown) => boundedNumbers(value, CadNumericPolicy.geometryCoordinateAbsMM, 'coordinates (mm)');
+const coordinates = (value: unknown) => boundedNumbers(value, CadNumericPolicy.geometryCoordinateAbs, 'coordinates (mm)');
 function admittedCurve(input: Curve): Curve {
   const data = exactRecord(snapshot(input), ['kind', 'id', 'degree', 'knots', 'controlPoints', 'weights']);
   boundedDegree(data.degree);

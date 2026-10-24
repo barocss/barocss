@@ -4,7 +4,7 @@ import { evaluate as evaluateLines, qr as lineQR, tolerances } from './xy-numeri
 import type { XYNumericalSketchDocumentV0, XYNumericalSketchConstraint, XYNumericalSketchResidual } from './xy-numerical-sketch.js';
 import type { XYCircularNumericalSketchDocumentV0, XYCircularNumericalSketchPoint, XYCircularNumericalSketchRadius, XYCircularNumericalSketchReport, XYCircularNumericalSketchContact } from './xy-circular-numerical-sketch.js';
 export const limits = Object.freeze({ points: 16, segments: 8, circles: 4, constraints: 32, scalarResiduals: 64, unknowns: 32, branchGuards: 16,
-  coordinateAbsMM: 10000, minimumSegmentMM: .001, minimumRadiusMM: .001, maximumRadiusMM: 10000, iterations: 100, evaluations: 1200, sourceCharacters: 262144, sourceBytes: 262144 });
+  coordinateAbs: 10000, minimumSegment: .001, minimumRadiusMM: .001, maximumRadiusMM: 10000, iterations: 100, evaluations: 1200, sourceCharacters: 262144, sourceBytes: 262144 });
 function inherited<T>(run: () => T): T {
   try { return run(); } catch (cause) { if (isNumericalError(cause)) throw new XYCircularNumericalSketchError(cause.code, 'Inherited numerical operation refused', cause.path, cause); throw new XYCircularNumericalSketchError('NUMERICAL', 'Inherited numerical operation refused', '$', cause); }
 }
@@ -43,7 +43,7 @@ export function evaluate(d: XYCircularNumericalSketchDocumentV0, x: number[]): {
       contacts.push({ constraintId: c.id, segmentId: c.segmentId, circleId: c.circleId, side: c.side, signedDistanceMM: signed, radiusMM: radius, contactParameter: t, contactXY: [x[a] + t * dx, x[a + 1] + t * dy] });
     }
     const residual = actual - target; check(Number.isFinite(residual) && row.every(Number.isFinite), 'NUMERICAL', 'Nonfinite circular residual or Jacobian');
-    jacobian.push(row); residuals.push({ constraintId: c.id, component: c.kind, actual, target, residual, unit: 'mm', tolerance: tolerances.linearMM });
+    jacobian.push(row); residuals.push({ constraintId: c.id, component: c.kind, actual, target, residual, unit: 'mm', tolerance: tolerances.linear });
   }
   const objective = residuals.reduce((sum, r) => sum + r.residual * r.residual, 0); check(Number.isFinite(objective), 'NUMERICAL', 'Nonfinite objective');
   return { jacobian, residuals, objective, contacts };

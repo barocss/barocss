@@ -39,7 +39,7 @@ test('its mass, STEP, STL and meshes are the kernel\'s own on that document, byt
   const [mesh] = bracket().meshes(), t = tessellateBrep(output.brep);
   assert.equal(mesh.key, output.id);
   // (The common mesh shape, §10.3: the kernel's Float64 positions and normals as Float32.)
-  assert.deepEqual([Buffer.from(mesh.positions.buffer), Buffer.from(mesh.normals.buffer), Buffer.from(mesh.indices.buffer)], [Buffer.from(Float32Array.from(t.positionsMM).buffer), Buffer.from(Float32Array.from(t.normals).buffer), Buffer.from(t.indices.buffer)]);
+  assert.deepEqual([Buffer.from(mesh.positions.buffer), Buffer.from(mesh.normals.buffer), Buffer.from(mesh.indices.buffer)], [Buffer.from(Float32Array.from(t.positions).buffer), Buffer.from(Float32Array.from(t.normals).buffer), Buffer.from(t.indices.buffer)]);
 });
 
 test('every method returns a new part and leaves the old one as it was', () => {

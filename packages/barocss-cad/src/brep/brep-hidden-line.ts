@@ -101,7 +101,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
   const meshes = breps.map(b => meshOf(b, perQuarter));
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (const m of meshes) {
-    const X = m.positionsMM;
+    const X = m.positions;
     for (let k = 0; k < X.length; k += 3) for (let c = 0; c < 3; c++) { lo[c] = Math.min(lo[c], X[k + c]); hi[c] = Math.max(hi[c], X[k + c]); }
   }
   const size = Number.isFinite(lo[0]) ? Math.max(1e-6, Math.hypot(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2])) : 1;
@@ -110,7 +110,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
   const faceBase: number[] = [];
   for (const m of meshes) {
     faceBase.push(faceSag.length);
-    const X = m.positionsMM, I = m.indices, N = m.normals;
+    const X = m.positions, I = m.indices, N = m.normals;
     const turn = (i: number, j: number) => { const a: Point = [N[i * 3], N[i * 3 + 1], N[i * 3 + 2]], b: Point = [N[j * 3], N[j * 3 + 1], N[j * 3 + 2]]; return Math.acos(Math.max(-1, Math.min(1, dot(a, b) / (len(a) * len(b) || 1)))); };
     for (const f of m.faces) {
       const fi = faceSag.length; let sag = 0, span = 0;
@@ -138,7 +138,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
     const facesOf = new Map<string, string[]>();
     for (const c of brep.coedges) facesOf.set(c.edge, [...(facesOf.get(c.edge) ?? []), loopFace.get(c.loop)!]);
     const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
-    const X = mesh.positionsMM, N = mesh.normals;
+    const X = mesh.positions, N = mesh.normals;
     // A face's tessellation normal at one of its vertices (by position).
     const normalAt = (faceId: string, p: Point): Point | null => {
       const f = meshFace.get(faceId); if (!f) return null;
@@ -155,7 +155,7 @@ export function projectBrepHiddenLines(breps: readonly Brep[], view: HiddenLineV
       return normalAt(faceId, p);
     };
     const geomOf = (id: string) => geometryOfFace(faceById.get(id)!);
-    const polylineOf = new Map(mesh.edges.map(e => [e.edgeId, e.pointsMM]));
+    const polylineOf = new Map(mesh.edges.map(e => [e.edgeId, e.points]));
     const vertex = new Map(brep.vertices.map(v => [v.id, v.point]));
 
     for (const edge of brep.edges) {

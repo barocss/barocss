@@ -98,7 +98,7 @@ export function brepSurfaceArea(brep: Brep, options: { readonly segmentsPerQuart
   const q = options.quadratureSegments ?? 8, Q = q > 0 ? quadrature(brep, q) : null;
   if (Q && Q[10] > 0) return Q[10];
   const curved = brep.faces.some(f => f.surface.kind === 'surface' && (f.surface.degreeU > 1 || f.surface.degreeV > 1));
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positionsMM, ix = mesh.indices;
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: curved ? options.segmentsPerQuarter ?? 64 : 1 }), p = mesh.positions, ix = mesh.indices;
   let area = 0;
   for (let t = 0; t < ix.length; t += 3) {
     const a = 3 * ix[t], b = 3 * ix[t + 1], c = 3 * ix[t + 2], ux = p[b] - p[a], uy = p[b + 1] - p[a + 1], uz = p[b + 2] - p[a + 2], vx = p[c] - p[a], vy = p[c + 1] - p[a + 1], vz = p[c + 2] - p[a + 2];
@@ -132,7 +132,7 @@ export function brepMassProperties(brep: Brep, density: number, options: { reado
 }
 /** Volume integrals over a B-rep's watertight tessellation: tetrahedra from the origin (divergence theorem). */
 function meshIntegrals(brep: Brep, segmentsPerQuarter: number): number[] {
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter }), p = mesh.positionsMM, ix = mesh.indices;
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter }), p = mesh.positions, ix = mesh.indices;
   const I = Array(10).fill(0) as number[];
   for (let t = 0; t < ix.length; t += 3) {
     const a = [p[ix[t] * 3], p[ix[t] * 3 + 1], p[ix[t] * 3 + 2]], b = [p[ix[t + 1] * 3], p[ix[t + 1] * 3 + 1], p[ix[t + 1] * 3 + 2]], c = [p[ix[t + 2] * 3], p[ix[t + 2] * 3 + 1], p[ix[t + 2] * 3 + 2]];

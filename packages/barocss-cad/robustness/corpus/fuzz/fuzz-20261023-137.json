@@ -100,14 +100,14 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n2r0",
           "kind": "rotate",
           "target": "n2b",
           "axis": "x",
-          "angleDegrees": 270,
+          "angle": 270,
           "pivot": [
             0,
             0,
@@ -119,7 +119,7 @@
           "kind": "rotate",
           "target": "n2r0",
           "axis": "y",
-          "angleDegrees": 270,
+          "angle": 270,
           "pivot": [
             0,
             0,

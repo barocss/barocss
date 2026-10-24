@@ -42,7 +42,7 @@
           "kind": "circular-pattern",
           "target": "n1",
           "axis": "z",
-          "angleDegrees": 120,
+          "angle": 120,
           "count": 2,
           "pivot": [
             -2,

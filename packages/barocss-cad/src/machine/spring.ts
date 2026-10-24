@@ -39,32 +39,32 @@ export const isSpringError = (e: unknown): e is KernelError & { readonly code: S
 
 // ---- the helical sweep -------------------------------------------------------------------------------------------------
 
-/** A run of the centreline: `turns` turns at `pitchMM`, or easing from it to `toPitchMM` (smoothstep in the angle). */
-export interface HelicalRun { readonly turns: number; readonly pitchMM: number; readonly toPitchMM?: number }
-/** Version 0 of the helical sweep: a circle swept square to a right-hand helix of radius `helixRadiusMM` about +Z. */
+/** A run of the centreline: `turns` turns at `pitch`, or easing from it to `toPitch` (smoothstep in the angle). */
+export interface HelicalRun { readonly turns: number; readonly pitch: number; readonly toPitch?: number }
+/** Version 0 of the helical sweep: a circle swept square to a right-hand helix of radius `helixRadius` about +Z. */
 export interface HelicalSweepSpec {
-  readonly helixRadiusMM: number;
+  readonly helixRadius: number;
   readonly runs: readonly HelicalRun[];
   /** The section, in the centreline's normal plane: a circle only in this stage (lines and arcs later, D139). */
-  readonly section: { readonly kind: 'circle'; readonly radiusMM: number };
+  readonly section: { readonly kind: 'circle'; readonly radius: number };
   /** The centreline's height at φ 0 (default 0); the wire starts on +X. */
-  readonly startZMM?: number;
+  readonly startZ?: number;
   /** The largest distance of the fitted surface from the exact pipe (default 1e-4 × the section's diameter). */
-  readonly profileToleranceMM?: number;
+  readonly profileTolerance?: number;
   /** The most cubic pieces along the sweep (default 1024). */
   readonly maxPieces?: number;
 }
 export interface HelicalSweepResult {
   readonly brep: Brep;
   /** The centreline's length (constant runs exactly, easing runs by 24-point Gauss–Legendre). */
-  readonly wireLengthMM: number;
+  readonly wireLength: number;
   /** The centreline's height at its end. */
-  readonly endZMM: number;
+  readonly endZ: number;
   readonly pieces: number; readonly segments: number;
   /** The measured bound on the surface's distance from the exact pipe, and the tolerance it was held to. */
-  readonly profileDeviationMM: number; readonly profileToleranceMM: number;
+  readonly profileDeviation: number; readonly profileTolerance: number;
   /** The centreline's least radius of curvature (sampled on easing runs; R(1 + (h/R)²) on constant ones). */
-  readonly minCurvatureRadiusMM: number;
+  readonly minCurvatureRadius: number;
 }
 
 interface Run { readonly phi0: number; readonly phi1: number; readonly p0: number; readonly p1: number; readonly z0: number }
@@ -141,19 +141,19 @@ function layout(r: Run, n: number): Segment[] {
 /** A sweep's runs and centreline, checked: what each range of it is built from. */
 interface Prepared { readonly R: number; readonly a: number; readonly runs: readonly Run[]; readonly tol: number; readonly budget: number; readonly wireLength: number; readonly minRho: number; readonly endZ: number; readonly end: number; readonly poles: readonly [number, number][]; readonly s0: number }
 function prepare(spec: HelicalSweepSpec): Prepared {
-  const R = spec.helixRadiusMM, a = spec.section?.radiusMM;
+  const R = spec.helixRadius, a = spec.section?.radius;
   if (spec.section?.kind !== 'circle') throw springError('UNSUPPORTED_SPRING_KIND', 'the helical sweep takes a circle section in this stage');
   if (!(Number.isFinite(R) && R > 0 && Number.isFinite(a) && a > 0)) throw springError('INVALID_INPUT', 'the helix radius and the section radius must be numbers of mm above 0');
   if (!(a < R)) throw springError('SELF_INTERSECTION', `a wire of radius ${a} mm on a helix of radius ${R} mm meets itself at the axis`);
   if (!spec.runs?.length) throw springError('INVALID_INPUT', 'a helical sweep needs at least one run');
-  const tol = spec.profileToleranceMM ?? 2e-4 * a, budget = spec.maxPieces ?? 1024;
-  if (!(Number.isFinite(tol) && tol > 0)) throw springError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  const tol = spec.profileTolerance ?? 2e-4 * a, budget = spec.maxPieces ?? 1024;
+  if (!(Number.isFinite(tol) && tol > 0)) throw springError('INVALID_INPUT', 'profileTolerance must be a number of mm above 0');
   const runs: Run[] = [];
-  let phi = 0, z = spec.startZMM ?? 0;
+  let phi = 0, z = spec.startZ ?? 0;
   for (const r of spec.runs) {
-    const p1 = r.toPitchMM ?? r.pitchMM;
-    if (!(Number.isFinite(r.turns) && r.turns > 0 && Number.isFinite(r.pitchMM) && r.pitchMM > 0 && Number.isFinite(p1) && p1 > 0)) throw springError('INVALID_INPUT', 'each run needs turns and pitches above 0');
-    const run: Run = { phi0: phi, phi1: phi + 2 * Math.PI * r.turns, p0: r.pitchMM, p1, z0: z };
+    const p1 = r.toPitch ?? r.pitch;
+    if (!(Number.isFinite(r.turns) && r.turns > 0 && Number.isFinite(r.pitch) && r.pitch > 0 && Number.isFinite(p1) && p1 > 0)) throw springError('INVALID_INPUT', 'each run needs turns and pitches above 0');
+    const run: Run = { phi0: phi, phi1: phi + 2 * Math.PI * r.turns, p0: r.pitch, p1, z0: z };
     runs.push(run); phi = run.phi1; z = zAt(run, phi)[0];
   }
   // The centreline: its length and least radius of curvature.
@@ -233,7 +233,7 @@ function disc(id: string, tag: string, P: Prepared, f: number, start: boolean, b
 /** Sweep a circle square to a helix: the wire of a coil (see the file's header). */
 export function helicalSweep(id: string, spec: HelicalSweepSpec): HelicalSweepResult {
   const P = prepare(spec), made = sweepRange(id, id, P, 0, P.end, 1, 0, [false, false]);
-  return { brep: made.brep, wireLengthMM: P.wireLength, endZMM: P.endZ, pieces: made.pieces, segments: made.segments, profileDeviationMM: made.deviation, profileToleranceMM: P.tol, minCurvatureRadiusMM: P.minRho };
+  return { brep: made.brep, wireLength: P.wireLength, endZ: P.endZ, pieces: made.pieces, segments: made.segments, profileDeviation: made.deviation, profileTolerance: P.tol, minCurvatureRadius: P.minRho };
 }
 
 // ---- compression springs -----------------------------------------------------------------------------------------------
@@ -246,47 +246,47 @@ export interface SpringSpec {
   readonly body?: 'cylindrical' | 'conical' | 'barrel' | 'variable-pitch';
   /** Only `round` wire. */
   readonly wire?: 'round' | 'rectangular';
-  readonly wireDiameterMM: number;
+  readonly wireDiameter: number;
   /** The mean coil diameter D — or the outer (D + d) or inner (D − d); exactly one. */
-  readonly meanDiameterMM?: number; readonly outerDiameterMM?: number; readonly innerDiameterMM?: number;
+  readonly meanDiameter?: number; readonly outerDiameter?: number; readonly innerDiameter?: number;
   readonly activeCoils: number;
   /** The body's pitch, or the free length L0; exactly one. */
-  readonly pitchMM?: number; readonly freeLengthMM?: number;
+  readonly pitch?: number; readonly freeLength?: number;
   readonly hand?: 'right' | 'left';
   readonly ends?: 'open' | 'closed' | 'closed-ground';
   /** Dead coils at each closed end (default 1; above 0, at most 1 in this stage: more would touch each other). */
   readonly endCoils?: number;
   /** The pitch's transition from the dead coil to the body, degrees (default 90). */
-  readonly transitionDeg?: number;
+  readonly transition?: number;
   /** The wire's shear modulus G for the rate; `shearModulusEstimate` flags a value that is an estimate (the studio's steel). */
-  readonly shearModulusMPa?: number; readonly shearModulusEstimate?: boolean;
+  readonly shearModulus?: number; readonly shearModulusEstimate?: boolean;
   /** A working load: its deflection, length and corrected shear stress are reported. */
-  readonly loadN?: number;
-  readonly profileToleranceMM?: number;
+  readonly load?: number;
+  readonly profileTolerance?: number;
 }
 export interface SpringDimensions {
-  readonly wireDiameterMM: number; readonly meanDiameterMM: number; readonly outerDiameterMM: number; readonly innerDiameterMM: number;
+  readonly wireDiameter: number; readonly meanDiameter: number; readonly outerDiameter: number; readonly innerDiameter: number;
   /** C = D/d, and Wahl's factor K_W = (4C − 1)/(4C − 4) + 0.615/C. */
   readonly springIndex: number; readonly wahlFactor: number;
   readonly activeCoils: number; readonly endCoils: number; readonly totalCoils: number;
-  readonly pitchMM: number; readonly helixAngleDeg: number; readonly freeLengthMM: number;
+  readonly pitch: number; readonly helixAngle: number; readonly freeLength: number;
   /** L0 / D. No buckling claim is made. */
   readonly slenderness: number;
   /** The least pitch keeping neighbouring turns of the centreline d apart (geometric), and the solid height at it. */
-  readonly solidPitchMM: number; readonly solidHeightMM: number;
+  readonly solidPitch: number; readonly solidHeight: number;
   /** The supplier's convention (the formula pages, S1 in D139): d·n_t with ground ends, d·(n_t + 1) otherwise. */
-  readonly supplierSolidHeightMM: number; readonly supplierSolidHeightRule: 'd·n_t' | 'd·(n_t + 1)';
+  readonly supplierSolidHeight: number; readonly supplierSolidHeightRule: 'd·n_t' | 'd·(n_t + 1)';
   /** L0 less the geometric solid height. */
-  readonly travelToSolidMM: number;
+  readonly travelToSolid: number;
   /** k = G d⁴ / (8 D³ n_a), when G is given; G and whether it is an estimate. */
-  readonly rateNPerMM?: number; readonly shearModulusMPa?: number; readonly shearModulusEstimate?: boolean;
+  readonly rate?: number; readonly shearModulus?: number; readonly shearModulusEstimate?: boolean;
   /** At the working load: deflection F/k, the length then, τ = K_W 8FD/(πd³) and the uncorrected 8FD/(πd³). */
-  readonly load?: { readonly forceN: number; readonly deflectionMM?: number; readonly lengthMM?: number; readonly shearStressMPa: number; readonly uncorrectedShearStressMPa: number };
+  readonly load?: { readonly force: number; readonly deflection?: number; readonly length?: number; readonly shearStress: number; readonly uncorrectedShearStress: number };
 }
 export interface SpringReport {
   readonly generator: 'spring@0'; readonly type: 'compression'; readonly ends: 'open' | 'closed' | 'closed-ground'; readonly hand: 'right' | 'left';
   readonly dimensions: SpringDimensions;
-  readonly sweep: Omit<HelicalSweepResult, 'brep' | 'endZMM'>;
+  readonly sweep: Omit<HelicalSweepResult, 'brep' | 'endZ'>;
   /** No fatigue, buckling, relaxation or manufacturing claim. */
   readonly manufacturingValidated: false;
   readonly diagnostics: readonly SpringDiagnostic[];
@@ -301,8 +301,8 @@ function turnGap(R: number, p: number): number {
   return Math.sqrt(4 * R * R * Math.sin(t / 2) ** 2 + h * h * t * t);
 }
 /** The geometric solid pitch: the least pitch keeping neighbouring turns of the centreline (mean diameter D) d apart. */
-export function springSolidPitch(meanDiameterMM: number, wireDiameterMM: number): number {
-  const R = meanDiameterMM / 2, d = wireDiameterMM;
+export function springSolidPitch(meanDiameter: number, wireDiameter: number): number {
+  const R = meanDiameter / 2, d = wireDiameter;
   let lo = d, hi = 2 * d;
   for (let i = 0; i < 200 && hi - lo > 1e-15 * hi; i++) { const m = (lo + hi) / 2; if (turnGap(R, m) < d) lo = m; else hi = m; }
   return hi;
@@ -316,27 +316,27 @@ function resolve(spec: SpringSpec): Resolved {
   if (spec.type !== undefined && spec.type !== 'compression') fail(spec.type === 'extension' || spec.type === 'torsion' ? 'INVALID_INPUT' : 'UNSUPPORTED_SPRING_KIND', spec.type === 'extension' || spec.type === 'torsion' ? `${spec.type} springs are hookedSpring's (compressionSpring builds compression springs)` : `${String(spec.type)} springs are not supported (compression, extension and torsion)`);
   if (spec.body !== undefined && spec.body !== 'cylindrical') fail('UNSUPPORTED_SPRING_KIND', `a ${String(spec.body)} body is not supported (cylindrical only)`);
   if (spec.wire !== undefined && spec.wire !== 'round') fail('UNSUPPORTED_SPRING_KIND', `${String(spec.wire)} wire is not supported (round only)`);
-  const d = positive(spec.wireDiameterMM, 'wireDiameterMM');
-  const given = [spec.meanDiameterMM, spec.outerDiameterMM, spec.innerDiameterMM].filter(v => v !== undefined).length;
-  if (given !== 1) fail('INVALID_INPUT', 'give exactly one of meanDiameterMM, outerDiameterMM and innerDiameterMM');
-  const D = spec.meanDiameterMM !== undefined ? positive(spec.meanDiameterMM, 'meanDiameterMM') : spec.outerDiameterMM !== undefined ? positive(spec.outerDiameterMM, 'outerDiameterMM') - d : positive(spec.innerDiameterMM, 'innerDiameterMM') + d;
+  const d = positive(spec.wireDiameter, 'wireDiameter');
+  const given = [spec.meanDiameter, spec.outerDiameter, spec.innerDiameter].filter(v => v !== undefined).length;
+  if (given !== 1) fail('INVALID_INPUT', 'give exactly one of meanDiameter, outerDiameter and innerDiameter');
+  const D = spec.meanDiameter !== undefined ? positive(spec.meanDiameter, 'meanDiameter') : spec.outerDiameter !== undefined ? positive(spec.outerDiameter, 'outerDiameter') - d : positive(spec.innerDiameter, 'innerDiameter') + d;
   if (!(D > d)) fail('INVALID_INPUT', `the mean diameter ${D} mm must exceed the wire's ${d} mm (spring index above 1)`);
   const na = positive(spec.activeCoils, 'activeCoils'), ends = spec.ends ?? 'closed-ground', hand = spec.hand ?? 'right';
   if (ends !== 'open' && ends !== 'closed' && ends !== 'closed-ground') fail('INVALID_INPUT', `ends must be open, closed or closed-ground (got ${String(ends)})`);
   if (hand !== 'right' && hand !== 'left') fail('INVALID_INPUT', `hand must be right or left (got ${String(hand)})`);
   const ne = ends === 'open' ? 0 : spec.endCoils === undefined ? 1 : positive(spec.endCoils, 'endCoils');
   if (ne > 1) fail('UNSUPPORTED_SPRING_KIND', `${ne} end coils: dead coils above 1 would touch each other, not modelled in this stage`);
-  const tau = (spec.transitionDeg === undefined ? 90 : positive(spec.transitionDeg, 'transitionDeg')) * Math.PI / 180;
-  if (ends !== 'open' && !(2 * Math.PI * ne > tau / 2)) fail('INVALID_INPUT', `the transition of ${spec.transitionDeg ?? 90}° needs more than ${(tau / (4 * Math.PI)).toFixed(4)} end coils`);
-  if (ends !== 'open' && !(2 * Math.PI * na > tau)) fail('INVALID_INPUT', `the transitions of ${spec.transitionDeg ?? 90}° need more than ${(tau / (2 * Math.PI)).toFixed(4)} active coils`);
-  if ((spec.pitchMM === undefined) === (spec.freeLengthMM === undefined)) fail('INVALID_INPUT', 'give exactly one of pitchMM and freeLengthMM');
+  const tau = (spec.transition === undefined ? 90 : positive(spec.transition, 'transition')) * Math.PI / 180;
+  if (ends !== 'open' && !(2 * Math.PI * ne > tau / 2)) fail('INVALID_INPUT', `the transition of ${spec.transition ?? 90}° needs more than ${(tau / (4 * Math.PI)).toFixed(4)} end coils`);
+  if (ends !== 'open' && !(2 * Math.PI * na > tau)) fail('INVALID_INPUT', `the transitions of ${spec.transition ?? 90}° need more than ${(tau / (2 * Math.PI)).toFixed(4)} active coils`);
+  if ((spec.pitch === undefined) === (spec.freeLength === undefined)) fail('INVALID_INPUT', 'give exactly one of pitch and freeLength');
   const ps = springSolidPitch(D, d), R = D / 2, a = d / 2, gamma = (p: number) => R / Math.hypot(R, p / (2 * Math.PI));
   let p: number, L0: number;
-  if (spec.pitchMM !== undefined) {
-    p = positive(spec.pitchMM, 'pitchMM');
+  if (spec.pitch !== undefined) {
+    p = positive(spec.pitch, 'pitch');
     L0 = ends === 'open' ? na * p + 2 * a * gamma(p) : 2 * ne * ps + na * p + (ends === 'closed' ? 2 * a * gamma(ps) : 0);
   } else {
-    L0 = positive(spec.freeLengthMM, 'freeLengthMM');
+    L0 = positive(spec.freeLength, 'freeLength');
     if (ends === 'open') { let lo = 0, hi = L0 / na; for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; if (na * m + 2 * a * gamma(m) < L0) lo = m; else hi = m; } p = (lo + hi) / 2; }
     else p = (L0 - 2 * ne * ps - (ends === 'closed' ? 2 * a * gamma(ps) : 0)) / na;
   }
@@ -349,19 +349,19 @@ export function springDimensions(spec: SpringSpec): SpringDimensions {
   const r = resolve(spec), { d, D, na, ne, p, ps, L0, ends } = r, R = D / 2, a = d / 2, C = D / d, KW = (4 * C - 1) / (4 * C - 4) + 0.615 / C, nt = na + 2 * ne;
   const gs = R / Math.hypot(R, ps / (2 * Math.PI)), solid = ends === 'closed-ground' ? nt * ps : nt * ps + 2 * a * gs, ground = ends === 'closed-ground';
   let rate: number | undefined;
-  if (spec.shearModulusMPa !== undefined) rate = positive(spec.shearModulusMPa, 'shearModulusMPa') * d ** 4 / (8 * D ** 3 * na);
+  if (spec.shearModulus !== undefined) rate = positive(spec.shearModulus, 'shearModulus') * d ** 4 / (8 * D ** 3 * na);
   let load: SpringDimensions['load'];
-  if (spec.loadN !== undefined) {
-    const F = spec.loadN;
-    if (!(Number.isFinite(F) && F >= 0)) fail('INVALID_INPUT', 'loadN must be a number of N, 0 or more');
+  if (spec.load !== undefined) {
+    const F = spec.load;
+    if (!(Number.isFinite(F) && F >= 0)) fail('INVALID_INPUT', 'load must be a number of N, 0 or more');
     const tau0 = 8 * F * D / (Math.PI * d ** 3);
-    load = { forceN: F, ...(rate ? { deflectionMM: F / rate, lengthMM: L0 - F / rate } : {}), shearStressMPa: KW * tau0, uncorrectedShearStressMPa: tau0 };
+    load = { force: F, ...(rate ? { deflection: F / rate, length: L0 - F / rate } : {}), shearStress: KW * tau0, uncorrectedShearStress: tau0 };
   }
   return {
-    wireDiameterMM: d, meanDiameterMM: D, outerDiameterMM: D + d, innerDiameterMM: D - d, springIndex: C, wahlFactor: KW,
-    activeCoils: na, endCoils: ne, totalCoils: nt, pitchMM: p, helixAngleDeg: Math.atan(p / (Math.PI * D)) * 180 / Math.PI, freeLengthMM: L0, slenderness: L0 / D,
-    solidPitchMM: ps, solidHeightMM: solid, supplierSolidHeightMM: ground ? d * nt : d * (nt + 1), supplierSolidHeightRule: ground ? 'd·n_t' : 'd·(n_t + 1)', travelToSolidMM: L0 - solid,
-    ...(rate !== undefined ? { rateNPerMM: rate, shearModulusMPa: spec.shearModulusMPa, ...(spec.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}),
+    wireDiameter: d, meanDiameter: D, outerDiameter: D + d, innerDiameter: D - d, springIndex: C, wahlFactor: KW,
+    activeCoils: na, endCoils: ne, totalCoils: nt, pitch: p, helixAngle: Math.atan(p / (Math.PI * D)) * 180 / Math.PI, freeLength: L0, slenderness: L0 / D,
+    solidPitch: ps, solidHeight: solid, supplierSolidHeight: ground ? d * nt : d * (nt + 1), supplierSolidHeightRule: ground ? 'd·n_t' : 'd·(n_t + 1)', travelToSolid: L0 - solid,
+    ...(rate !== undefined ? { rate: rate, shearModulus: spec.shearModulus, ...(spec.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}),
     ...(load ? { load } : {}),
   };
 }
@@ -386,11 +386,11 @@ function slab(id: string, half: number, z0: number, z1: number, named: 'top' | '
 export function compressionSpring(spec: SpringSpec, options: { readonly id?: string } = {}): { readonly brep: Brep; readonly report: SpringReport } {
   const id = (options.id ?? 'spring').replace(/[^A-Za-z0-9_.-]/g, '_'), dims = springDimensions(spec), r = resolve(spec);
   const { d, D, na, ne, tau, ends, hand, p, ps } = r, R = D / 2, a = d / 2, gs = R / Math.hypot(R, ps / (2 * Math.PI)), gp = R / Math.hypot(R, p / (2 * Math.PI));
-  const tt = tau / (2 * Math.PI), runs: HelicalRun[] = ends === 'open' ? [{ turns: na, pitchMM: p }]
-    : [{ turns: ne - tt / 2, pitchMM: ps }, { turns: tt, pitchMM: ps, toPitchMM: p }, { turns: na - tt, pitchMM: p }, { turns: tt, pitchMM: p, toPitchMM: ps }, { turns: ne - tt / 2, pitchMM: ps }];
+  const tt = tau / (2 * Math.PI), runs: HelicalRun[] = ends === 'open' ? [{ turns: na, pitch: p }]
+    : [{ turns: ne - tt / 2, pitch: ps }, { turns: tt, pitch: ps, toPitch: p }, { turns: na - tt, pitch: p }, { turns: tt, pitch: p, toPitch: ps }, { turns: ne - tt / 2, pitch: ps }];
   const startZ = ends === 'open' ? a * gp : ends === 'closed' ? a * gs : 0;
-  const sweepSpec: HelicalSweepSpec = { helixRadiusMM: R, runs, section: { kind: 'circle', radiusMM: a }, startZMM: startZ, ...(spec.profileToleranceMM === undefined ? {} : { profileToleranceMM: spec.profileToleranceMM }) };
-  let brep: Brep, sw: Omit<HelicalSweepResult, 'brep' | 'endZMM'>;
+  const sweepSpec: HelicalSweepSpec = { helixRadius: R, runs, section: { kind: 'circle', radius: a }, startZ: startZ, ...(spec.profileTolerance === undefined ? {} : { profileTolerance: spec.profileTolerance }) };
+  let brep: Brep, sw: Omit<HelicalSweepResult, 'brep' | 'endZ'>;
   if (ends !== 'closed-ground') { const made = helicalSweep(id, sweepSpec); brep = made.brep; sw = made; }
   else {
     // The ground ends: everything below the centreline's start height and above its end height, cut away — on the end
@@ -402,7 +402,7 @@ export function compressionSpring(spec: SpringSpec, options: { readonly id?: str
     if (!(cut < P.end / 2 - P.s0)) {
       const made = sweepRange(id, id, P, 0, P.end, 1, 0, [false, false]);
       brep = booleanAnalytic(booleanAnalytic(made.brep, g0, 'difference'), g1, 'difference');
-      sw = { wireLengthMM: P.wireLength, pieces: made.pieces, segments: made.segments, profileDeviationMM: made.deviation, profileToleranceMM: P.tol, minCurvatureRadiusMM: P.minRho };
+      sw = { wireLength: P.wireLength, pieces: made.pieces, segments: made.segments, profileDeviation: made.deviation, profileTolerance: P.tol, minCurvatureRadius: P.minRho };
     } else {
       // (The Boolean numbers a cut piece's faces `<id>.wire#1` … by position; the body's and the top piece's follow on.)
       const s0 = sweepRange(`${id}_0`, id, P, 0, cut, 1, 0, [false, true]), lo = booleanAnalytic(s0.brep, g0, 'difference', { id: `${id}_0` });
@@ -414,12 +414,12 @@ export function compressionSpring(spec: SpringSpec, options: { readonly id?: str
       const source = { family: 'spring', id }, joined = glueAtSharedFace(lo, s1.brep, source), all = joined && glueAtSharedFace(joined, hi, source);
       if (!all) throw springError('PROFILE_BUDGET_EXCEEDED', 'the ground end pieces did not meet the body at their discs');
       brep = all;
-      sw = { wireLengthMM: P.wireLength, pieces: s0.pieces + s1.pieces + s2.pieces, segments: s0.segments + s1.segments + s2.segments, profileDeviationMM: Math.max(s0.deviation, s1.deviation, s2.deviation), profileToleranceMM: P.tol, minCurvatureRadiusMM: P.minRho };
+      sw = { wireLength: P.wireLength, pieces: s0.pieces + s1.pieces + s2.pieces, segments: s0.segments + s1.segments + s2.segments, profileDeviation: Math.max(s0.deviation, s1.deviation, s2.deviation), profileTolerance: P.tol, minCurvatureRadius: P.minRho };
     }
   }
   if (hand === 'left') brep = transformBrep(brep, { matrix: [1, 0, 0, 0, -1, 0, 0, 0, 1] });
   const diagnostics: SpringDiagnostic[] = [];
-  if (dims.load?.lengthMM !== undefined && dims.load.lengthMM < dims.solidHeightMM) diagnostics.push({ code: 'COILS_OVERLAP', severity: 'warning', message: `the load of ${dims.load.forceN} N would compress it to ${dims.load.lengthMM.toFixed(3)} mm, below its solid height ${dims.solidHeightMM.toFixed(3)} mm` });
+  if (dims.load?.length !== undefined && dims.load.length < dims.solidHeight) diagnostics.push({ code: 'COILS_OVERLAP', severity: 'warning', message: `the load of ${dims.load.force} N would compress it to ${dims.load.length.toFixed(3)} mm, below its solid height ${dims.solidHeight.toFixed(3)} mm` });
   return { brep, report: { generator: 'spring@0', type: 'compression', ends, hand, dimensions: dims, sweep: sw, manufacturingValidated: false, diagnostics } };
 }
 
@@ -534,35 +534,35 @@ export interface HookedSpringSpec extends SpringSpec {
   /** Extension: the hooks at both ends (default machine-loop). */
   readonly hooks?: 'machine-loop' | 'crossover';
   /** The bends' centreline radius (default d), the crossover's loop radius (default D/2), the loops' angle (degrees; 180 machine loop, 270 crossover). */
-  readonly bendRadiusMM?: number; readonly loopRadiusMM?: number; readonly loopAngleDeg?: number;
+  readonly bendRadius?: number; readonly loopRadius?: number; readonly loopAngle?: number;
   /** Extension: the initial tension, the user's figure (no data behind it), taken off the load before the rate. */
-  readonly initialTensionN?: number;
+  readonly initialTension?: number;
   /** Torsion: the legs' lengths along the coil's tangent at its start and end (default D each). */
-  readonly legLengthsMM?: readonly [number, number];
+  readonly legLengths?: readonly [number, number];
   /** Torsion: Young's modulus E for the rate (an input; `youngsModulusEstimate` flags an estimate), a working moment (N·mm). */
-  readonly youngsModulusMPa?: number; readonly youngsModulusEstimate?: boolean; readonly momentNmm?: number;
+  readonly youngsModulus?: number; readonly youngsModulusEstimate?: boolean; readonly moment?: number;
 }
 export interface HookedSpringDimensions {
-  readonly wireDiameterMM: number; readonly meanDiameterMM: number; readonly outerDiameterMM: number; readonly innerDiameterMM: number;
-  readonly springIndex: number; readonly activeCoils: number; readonly pitchMM: number; readonly helixAngleDeg: number;
+  readonly wireDiameter: number; readonly meanDiameter: number; readonly outerDiameter: number; readonly innerDiameter: number;
+  readonly springIndex: number; readonly activeCoils: number; readonly pitch: number; readonly helixAngle: number;
   /** The coil's height (its centreline's rise plus the wire), and the wire's whole centreline length. */
-  readonly bodyLengthMM: number; readonly wireLengthMM: number;
+  readonly bodyLength: number; readonly wireLength: number;
   /** Extension: the length inside the hooks (the loops' inner extremes along the axis). */
-  readonly lengthInsideHooksMM?: number;
+  readonly lengthInsideHooks?: number;
   /** Extension: k = Gd⁴/(8D³n), the initial tension as given, at a load: the extension (F − F_i)/k, τ = K_W 8FD/(πd³). */
-  readonly rateNPerMM?: number; readonly shearModulusMPa?: number; readonly shearModulusEstimate?: boolean; readonly wahlFactor?: number; readonly initialTensionN?: number;
-  readonly load?: { readonly forceN: number; readonly extensionMM?: number; readonly shearStressMPa: number };
+  readonly rate?: number; readonly shearModulus?: number; readonly shearModulusEstimate?: boolean; readonly wahlFactor?: number; readonly initialTension?: number;
+  readonly load?: { readonly force: number; readonly extension?: number; readonly shearStress: number };
   /** Torsion: k = Ed⁴/(64Dn) per radian and per degree, the free angle between the legs, at a moment: the turn and σ = K_b 32M/(πd³). */
-  readonly torsionalRateNmmPerRad?: number; readonly torsionalRateNmmPerDeg?: number; readonly youngsModulusMPa?: number; readonly youngsModulusEstimate?: boolean;
-  readonly legAngleDeg?: number; readonly legLengthsMM?: readonly [number, number]; readonly bendingFactor?: number;
-  readonly moment?: { readonly momentNmm: number; readonly turnDeg?: number; readonly bendingStressMPa: number };
+  readonly torsionalRateNmmPerRad?: number; readonly torsionalRate?: number; readonly youngsModulus?: number; readonly youngsModulusEstimate?: boolean;
+  readonly legAngle?: number; readonly legLengths?: readonly [number, number]; readonly bendingFactor?: number;
+  readonly moment?: { readonly moment: number; readonly turn?: number; readonly bendingStress: number };
   /** The least distance found between the centrelines of pieces that are not neighbours (sampled), against d. */
-  readonly leastClearanceMM: number;
+  readonly leastClearance: number;
 }
 export interface HookedSpringReport {
   readonly generator: 'spring@0'; readonly type: 'extension' | 'torsion'; readonly hooks?: 'machine-loop' | 'crossover'; readonly hand: 'right' | 'left';
   readonly dimensions: HookedSpringDimensions;
-  readonly sweep: Omit<HelicalSweepResult, 'brep' | 'endZMM' | 'wireLengthMM'>;
+  readonly sweep: Omit<HelicalSweepResult, 'brep' | 'endZ' | 'wireLength'>;
   readonly manufacturingValidated: false;
   readonly diagnostics: readonly SpringDiagnostic[];
 }
@@ -573,31 +573,31 @@ export function hookedSpring(spec: HookedSpringSpec, options: { readonly id?: st
   if (type !== 'extension' && type !== 'torsion') return fail('INVALID_INPUT', 'hookedSpring builds extension and torsion springs');
   if (spec.body !== undefined && spec.body !== 'cylindrical') fail('UNSUPPORTED_SPRING_KIND', `a ${String(spec.body)} body is not supported (cylindrical only)`);
   if (spec.wire !== undefined && spec.wire !== 'round') fail('UNSUPPORTED_SPRING_KIND', `${String(spec.wire)} wire is not supported (round only)`);
-  if (spec.ends !== undefined || spec.endCoils !== undefined || spec.transitionDeg !== undefined) fail('INVALID_INPUT', `ends, endCoils and transitionDeg are a compression spring's (a${type === 'extension' ? 'n extension spring has hooks' : ' torsion spring has legs'})`);
-  if (spec.freeLengthMM !== undefined) fail('INVALID_INPUT', `give an ${type} spring's pitch, or leave it close-wound (no free length)`);
-  if (type === 'torsion' && (spec.hooks !== undefined || spec.initialTensionN !== undefined || spec.loopAngleDeg !== undefined || spec.loopRadiusMM !== undefined || spec.shearModulusMPa !== undefined || spec.loadN !== undefined)) fail('INVALID_INPUT', 'hooks, loops, initial tension, G and a load are an extension spring\'s (a torsion spring takes E and a moment)');
-  if (type === 'extension' && (spec.legLengthsMM !== undefined || spec.youngsModulusMPa !== undefined || spec.momentNmm !== undefined)) fail('INVALID_INPUT', 'legs, E and a moment are a torsion spring\'s');
-  const d = positive(spec.wireDiameterMM, 'wireDiameterMM'), given = [spec.meanDiameterMM, spec.outerDiameterMM, spec.innerDiameterMM].filter(v => v !== undefined).length;
-  if (given !== 1) fail('INVALID_INPUT', 'give exactly one of meanDiameterMM, outerDiameterMM and innerDiameterMM');
-  const D = spec.meanDiameterMM !== undefined ? positive(spec.meanDiameterMM, 'meanDiameterMM') : spec.outerDiameterMM !== undefined ? positive(spec.outerDiameterMM, 'outerDiameterMM') - d : positive(spec.innerDiameterMM, 'innerDiameterMM') + d;
+  if (spec.ends !== undefined || spec.endCoils !== undefined || spec.transition !== undefined) fail('INVALID_INPUT', `ends, endCoils and transition are a compression spring's (a${type === 'extension' ? 'n extension spring has hooks' : ' torsion spring has legs'})`);
+  if (spec.freeLength !== undefined) fail('INVALID_INPUT', `give an ${type} spring's pitch, or leave it close-wound (no free length)`);
+  if (type === 'torsion' && (spec.hooks !== undefined || spec.initialTension !== undefined || spec.loopAngle !== undefined || spec.loopRadius !== undefined || spec.shearModulus !== undefined || spec.initialTension !== undefined)) fail('INVALID_INPUT', 'hooks, loops, initial tension, G and a load are an extension spring\'s (a torsion spring takes E and a moment)');
+  if (type === 'extension' && (spec.legLengths !== undefined || spec.youngsModulus !== undefined || spec.moment !== undefined)) fail('INVALID_INPUT', 'legs, E and a moment are a torsion spring\'s');
+  const d = positive(spec.wireDiameter, 'wireDiameter'), given = [spec.meanDiameter, spec.outerDiameter, spec.innerDiameter].filter(v => v !== undefined).length;
+  if (given !== 1) fail('INVALID_INPUT', 'give exactly one of meanDiameter, outerDiameter and innerDiameter');
+  const D = spec.meanDiameter !== undefined ? positive(spec.meanDiameter, 'meanDiameter') : spec.outerDiameter !== undefined ? positive(spec.outerDiameter, 'outerDiameter') - d : positive(spec.innerDiameter, 'innerDiameter') + d;
   if (!(D > d)) fail('INVALID_INPUT', `the mean diameter ${D} mm must exceed the wire's ${d} mm (spring index above 1)`);
   const n = positive(spec.activeCoils, 'activeCoils'), hand = spec.hand ?? 'right', R = D / 2, a = d / 2;
   if (hand !== 'right' && hand !== 'left') fail('INVALID_INPUT', `hand must be right or left (got ${String(hand)})`);
-  const tol = spec.profileToleranceMM ?? 2e-4 * a, ps = springSolidPitch(D, d), pc = springSolidPitch(D, d + 2 * tol);
-  const p = spec.pitchMM === undefined ? pc : positive(spec.pitchMM, 'pitchMM');
+  const tol = spec.profileTolerance ?? 2e-4 * a, ps = springSolidPitch(D, d), pc = springSolidPitch(D, d + 2 * tol);
+  const p = spec.pitch === undefined ? pc : positive(spec.pitch, 'pitch');
   if (!(p >= ps)) fail('COILS_OVERLAP', `the body's pitch ${p.toFixed(6)} mm is below the geometric solid pitch ${ps.toFixed(6)} mm (D ${D}, d ${d}): neighbouring turns would overlap`);
   const hooks = type === 'extension' ? spec.hooks ?? 'machine-loop' : undefined;
   if (hooks !== undefined && hooks !== 'machine-loop' && hooks !== 'crossover') fail('INVALID_INPUT', `hooks must be machine-loop or crossover (got ${String(hooks)})`);
-  const bend = spec.bendRadiusMM === undefined ? d : positive(spec.bendRadiusMM, 'bendRadiusMM');
+  const bend = spec.bendRadius === undefined ? d : positive(spec.bendRadius, 'bendRadius');
   if (!(bend > a)) fail('SELF_INTERSECTION', `a bend of centreline radius ${bend} mm folds a wire of radius ${a} mm onto itself`);
-  const loopAngle = (spec.loopAngleDeg === undefined ? (hooks === 'crossover' ? 270 : 180) : positive(spec.loopAngleDeg, 'loopAngleDeg')) * Math.PI / 180;
-  if (loopAngle > 2 * Math.PI) fail('INVALID_INPUT', 'loopAngleDeg is at most 360');
-  const loopRadius = spec.loopRadiusMM === undefined ? R : positive(spec.loopRadiusMM, 'loopRadiusMM');
+  const loopAngle = (spec.loopAngle === undefined ? (hooks === 'crossover' ? 270 : 180) : positive(spec.loopAngle, 'loopAngle')) * Math.PI / 180;
+  if (loopAngle > 2 * Math.PI) fail('INVALID_INPUT', 'loopAngle is at most 360');
+  const loopRadius = spec.loopRadius === undefined ? R : positive(spec.loopRadius, 'loopRadius');
   if (hooks === 'crossover' && !(loopRadius > a)) fail('SELF_INTERSECTION', `a loop of radius ${loopRadius} mm folds the wire onto itself`);
-  const legs = spec.legLengthsMM ?? [D, D];
-  if (type === 'torsion' && !(legs.length === 2 && legs.every(x => Number.isFinite(x) && x > 0))) fail('INVALID_INPUT', 'legLengthsMM must be two lengths above 0');
+  const legs = spec.legLengths ?? [D, D];
+  if (type === 'torsion' && !(legs.length === 2 && legs.every(x => Number.isFinite(x) && x > 0))) fail('INVALID_INPUT', 'legLengths must be two lengths above 0');
   // The coil: the sweep from z aγ (its start disc's lowest point at 0, before the ends are added).
-  const gp = R / Math.hypot(R, p / (2 * Math.PI)), P = prepare({ helixRadiusMM: R, runs: [{ turns: n, pitchMM: p }], section: { kind: 'circle', radiusMM: a }, startZMM: a * gp, profileToleranceMM: tol });
+  const gp = R / Math.hypot(R, p / (2 * Math.PI)), P = prepare({ helixRadius: R, runs: [{ turns: n, pitch: p }], section: { kind: 'circle', radius: a }, startZ: a * gp, profileTolerance: tol });
   const kind = type === 'torsion' ? 'leg' as const : hooks!, opts = { bend, loopRadius, loopAngle, leg: 0 };
   const top = helixFrame(P, P.end), start0 = helixFrame(P, 0), bottom: Frame = { o: start0.o, e1: start0.e2, e2: start0.e1 };
   const upPieces = endPieces(top, [0, 0, 1], kind, { ...opts, leg: legs[1] }), downPieces = endPieces(bottom, [0, 0, -1], kind, { ...opts, leg: legs[0] });
@@ -633,20 +633,20 @@ export function hookedSpring(spec: HookedSpringSpec, options: { readonly id?: st
     const ext = (list: typeof chain[0], sgn: number) => { const c = list[list.length - 1]; let m = -Infinity; for (let i = 0; i <= 720; i++) m = Math.max(m, sgn * piecePoint(c.frame, c.piece, i / 720)[2]); return sgn * m; };
     inside = ext(chain[1], 1) - a - (ext(chain[0], -1) + a);
   }
-  const G = spec.shearModulusMPa === undefined ? undefined : positive(spec.shearModulusMPa, 'shearModulusMPa'), E = spec.youngsModulusMPa === undefined ? undefined : positive(spec.youngsModulusMPa, 'youngsModulusMPa');
-  const Fi = spec.initialTensionN ?? 0;
-  if (!(Number.isFinite(Fi) && Fi >= 0)) fail('INVALID_INPUT', 'initialTensionN must be a number of N, 0 or more');
+  const G = spec.shearModulus === undefined ? undefined : positive(spec.shearModulus, 'shearModulus'), E = spec.youngsModulus === undefined ? undefined : positive(spec.youngsModulus, 'youngsModulus');
+  const Fi = spec.initialTension ?? 0;
+  if (!(Number.isFinite(Fi) && Fi >= 0)) fail('INVALID_INPUT', 'initialTension must be a number of N, 0 or more');
   const rate = G === undefined ? undefined : G * d ** 4 / (8 * D ** 3 * n), krad = E === undefined ? undefined : E * d ** 4 / (64 * D * n), Kb = (4 * C * C - C - 1) / (4 * C * (C - 1));
   let load: HookedSpringDimensions['load'], moment: HookedSpringDimensions['moment'];
-  if (spec.loadN !== undefined) { const F = spec.loadN; if (!(Number.isFinite(F) && F >= 0)) fail('INVALID_INPUT', 'loadN must be a number of N, 0 or more'); load = { forceN: F, ...(rate ? { extensionMM: Math.max(0, F - Fi) / rate } : {}), shearStressMPa: KW * 8 * F * D / (Math.PI * d ** 3) }; }
-  if (spec.momentNmm !== undefined) { const M = spec.momentNmm; if (!Number.isFinite(M)) fail('INVALID_INPUT', 'momentNmm must be a number of N·mm'); moment = { momentNmm: M, ...(krad ? { turnDeg: M / krad * 180 / Math.PI } : {}), bendingStressMPa: Kb * 32 * Math.abs(M) / (Math.PI * d ** 3) }; }
+  if (spec.load !== undefined) { const F = spec.load; if (!(Number.isFinite(F) && F >= 0)) fail('INVALID_INPUT', 'load must be a number of N, 0 or more'); load = { force: F, ...(rate ? { extension: Math.max(0, F - Fi) / rate } : {}), shearStress: KW * 8 * F * D / (Math.PI * d ** 3) }; }
+  if (spec.moment !== undefined) { const M = spec.moment; if (!Number.isFinite(M)) fail('INVALID_INPUT', 'moment must be a number of N·mm'); moment = { moment: M, ...(krad ? { turn: M / krad * 180 / Math.PI } : {}), bendingStress: Kb * 32 * Math.abs(M) / (Math.PI * d ** 3) }; }
   const frac = ((n % 1) + 1) % 1;
   const dims: HookedSpringDimensions = {
-    wireDiameterMM: d, meanDiameterMM: D, outerDiameterMM: D + d, innerDiameterMM: D - d, springIndex: C, activeCoils: n, pitchMM: p, helixAngleDeg: Math.atan(p / (Math.PI * D)) * 180 / Math.PI,
-    bodyLengthMM: n * p + 2 * a * gp, wireLengthMM: wire, ...(inside !== undefined ? { lengthInsideHooksMM: inside } : {}),
-    ...(type === 'extension' ? { wahlFactor: KW, initialTensionN: Fi, ...(rate !== undefined ? { rateNPerMM: rate, shearModulusMPa: G, ...(spec.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(load ? { load } : {}) } : {}),
-    ...(type === 'torsion' ? { bendingFactor: Kb, legAngleDeg: frac * 360, legLengthsMM: [legs[0], legs[1]] as const, ...(krad !== undefined ? { torsionalRateNmmPerRad: krad, torsionalRateNmmPerDeg: krad * Math.PI / 180, youngsModulusMPa: E, ...(spec.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(moment ? { moment } : {}) } : {}),
-    leastClearanceMM: least,
+    wireDiameter: d, meanDiameter: D, outerDiameter: D + d, innerDiameter: D - d, springIndex: C, activeCoils: n, pitch: p, helixAngle: Math.atan(p / (Math.PI * D)) * 180 / Math.PI,
+    bodyLength: n * p + 2 * a * gp, wireLength: wire, ...(inside !== undefined ? { lengthInsideHooks: inside } : {}),
+    ...(type === 'extension' ? { wahlFactor: KW, initialTension: Fi, ...(rate !== undefined ? { rate: rate, shearModulus: G, ...(spec.shearModulusEstimate ? { shearModulusEstimate: true } : {}) } : {}), ...(load ? { load } : {}) } : {}),
+    ...(type === 'torsion' ? { bendingFactor: Kb, legAngle: frac * 360, legLengths: [legs[0], legs[1]] as const, ...(krad !== undefined ? { torsionalRateNmmPerRad: krad, torsionalRate: krad * Math.PI / 180, youngsModulus: E, ...(spec.youngsModulusEstimate ? { youngsModulusEstimate: true } : {}) } : {}), ...(moment ? { moment } : {}) } : {}),
+    leastClearance: least,
   };
-  return { brep, report: { generator: 'spring@0', type, ...(hooks ? { hooks } : {}), hand, dimensions: dims, sweep: { pieces: coil.pieces, segments: coil.segments, profileDeviationMM: coil.deviation, profileToleranceMM: P.tol, minCurvatureRadiusMM: Math.min(P.minRho, bend, ...(hooks === 'crossover' ? [loopRadius] : [])) }, manufacturingValidated: false, diagnostics: [] } };
+  return { brep, report: { generator: 'spring@0', type, ...(hooks ? { hooks } : {}), hand, dimensions: dims, sweep: { pieces: coil.pieces, segments: coil.segments, profileDeviation: coil.deviation, profileTolerance: P.tol, minCurvatureRadius: Math.min(P.minRho, bend, ...(hooks === 'crossover' ? [loopRadius] : [])) }, manufacturingValidated: false, diagnostics: [] } };
 }

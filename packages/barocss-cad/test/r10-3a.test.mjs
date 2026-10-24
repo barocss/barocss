@@ -31,7 +31,7 @@ test('R10.3a a box boss\'s foot, all four edges in one feature (refused before: 
     assert.ok(Math.abs(got / exact - 1) < 1e-8, `r ${r}: ${got} vs ${exact} (${got / exact - 1})`);
     const [rep] = o.fillet;
     assert.equal(rep.edges.length, 4);
-    assert.ok(rep.contactMM <= 2.5e-7 && rep.sectionMM <= 1e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
+    assert.ok(rep.contact <= 2.5e-7 && rep.section <= 1e-6 && rep.ball < 1e-8, JSON.stringify(rep));
   }
 });
 
@@ -60,7 +60,7 @@ test('R10.3a the pipe clamp\'s lug loop in one feature (the coordinator\'s probe
   assert.equal(o.bodyCount, 1);
   const [rep] = o.fillet, added = massPropertiesOf(o).volume - v0;
   assert.equal(rep.edges.length, 4);
-  assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM <= 1e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
+  assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.section <= 1e-6 && rep.ball < 1e-8, JSON.stringify(rep));
   setRingStations(2 * rep.stations);
   try { const fine = massPropertiesOf(out([...lug, fillet('c', edges, 2)])).volume - v0; assert.ok(Math.abs(fine / added - 1) < 1e-6, `${added} vs ${fine}`); }
   finally { setRingStations(null); }

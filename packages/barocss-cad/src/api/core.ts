@@ -64,7 +64,7 @@ export function stlOf(output: CadPartOutput): Uint8Array {
 /** An output's display triangles, from the kernel's tessellation (its Float64 positions and normals as the common shape's Float32). */
 export function meshOf(output: CadPartOutput): MeshData {
   const m = tessellateBrep(output.brep);
-  return { key: output.id, positions: Float32Array.from(m.positionsMM), normals: Float32Array.from(m.normals), indices: m.indices, lines: brepLines(output.brep, m) };
+  return { key: output.id, positions: Float32Array.from(m.positions), normals: Float32Array.from(m.normals), indices: m.indices, lines: brepLines(output.brep, m) };
 }
 
 /** An output's edges and faces, to select from. */

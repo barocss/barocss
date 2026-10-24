@@ -29,7 +29,7 @@
           "kind": "rotate",
           "target": "n1b",
           "axis": "y",
-          "angleDegrees": 316.862,
+          "angle": 316.862,
           "pivot": [
             0,
             0,

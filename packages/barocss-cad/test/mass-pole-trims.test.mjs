@@ -6,7 +6,7 @@ import { evaluateCadPart, massPropertiesOf, outputOf } from '../dist/index.js';
 const R1 = 3, H = 4, d = 1;
 const doc = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
   { id: 'cs', kind: 'sketch', profile: 'loop', segments: [[0, 0], [R1, 0], [0, H]].map(start => ({ kind: 'line', start })), plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
-  { id: 'cone', kind: 'revolve', sketch: 'cs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+  { id: 'cone', kind: 'revolve', sketch: 'cs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
   { id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-d, -5], max: [6, 5] }, { id: 'box', kind: 'extrude', sketch: 'bs', height: 6 },
   { id: 'i', kind: 'intersect', target: 'cone', tool: 'box' }] };
 /** The cone's volume less its part past x = −d: ∫ of the circle segment's area over z (Gauss–Legendre, 4000 panels). */

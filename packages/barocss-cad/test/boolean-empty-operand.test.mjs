@@ -16,7 +16,7 @@ test('Booleans and patterns with an empty operand: union and difference keep the
   assert.deepEqual(run({ id: 'd', kind: 'difference', target: 'none', tool: 'c' }), []);
   assert.deepEqual(run({ id: 'i', kind: 'intersect', target: 'c', tool: 'none' }), []);
   assert.deepEqual(run({ id: 'p', kind: 'linear-pattern', target: 'none', axis: 'x', spacing: 3, count: 2 }), []);
-  assert.deepEqual(run({ id: 'p', kind: 'circular-pattern', target: 'none', axis: 'z', angleDegrees: 90, count: 2 }), []);
+  assert.deepEqual(run({ id: 'p', kind: 'circular-pattern', target: 'none', axis: 'z', angle: 90, count: 2 }), []);
   // (Another feature on an empty result is still told so: the refusal stays where no algebra applies.)
   assert.throws(() => evaluateCadPart(D([...base, { id: 'm', kind: 'translate', target: 'none', offset: [1, 0, 0] }])), /none is empty/);
 });

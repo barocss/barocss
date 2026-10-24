@@ -46,14 +46,14 @@ export function documentOf(tree) {
       if (L.kind === 'hbox') features.push({ id: `${id}f`, kind: 'shell', target: body, thickness: L.t, open: L.open ? [`${body}.top`] : [] });
     } else if (L.kind === 'cyl') features.push({ id: `${id}s`, kind: 'sketch', profile: 'circle', center: [0, 0], radius: L.r }, { id: body, kind: 'extrude', sketch: `${id}s`, height: L.h });
     else if (L.kind === 'sphere') features.push({ id: `${id}s`, kind: 'sketch', profile: 'loop', segments: [{ kind: 'line', start: [0, -L.r] }, { kind: 'arc', start: [0, L.r], center: [0, 0], direction: 'cw' }], plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
-      { id: body, kind: 'revolve', sketch: `${id}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 });
+      { id: body, kind: 'revolve', sketch: `${id}s`, axis: { origin: [0, 0], direction: 'y' }, angle: 360 });
     else {
       const loop = L.r2 > 0 ? [[0, 0], [L.r1, 0], [L.r2, L.h], [0, L.h]] : [[0, 0], [L.r1, 0], [0, L.h]];
       features.push({ id: `${id}s`, kind: 'sketch', profile: 'loop', segments: loop.map(start => ({ kind: 'line', start })), plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } },
-        { id: body, kind: 'revolve', sketch: `${id}s`, axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 });
+        { id: body, kind: 'revolve', sketch: `${id}s`, axis: { origin: [0, 0], direction: 'y' }, angle: 360 });
     }
     let last = features[features.length - 1].id;
-    L.rot.forEach((r, j) => { features.push({ id: `${id}r${j}`, kind: 'rotate', target: last, axis: r.axis, angleDegrees: r.deg, pivot: [0, 0, 0] }); last = `${id}r${j}`; });
+    L.rot.forEach((r, j) => { features.push({ id: `${id}r${j}`, kind: 'rotate', target: last, axis: r.axis, angle: r.deg, pivot: [0, 0, 0] }); last = `${id}r${j}`; });
     features.push({ id, kind: 'translate', target: last, offset: L.move });
   };
   const walk = node => {
@@ -62,7 +62,7 @@ export function documentOf(tree) {
     if (node.pattern) {
       const child = walk(node.child), p = node.pattern;
       features.push(p.kind === 'linear' ? { id, kind: 'linear-pattern', target: child, axis: p.axis, spacing: p.spacing, count: p.count }
-        : { id, kind: 'circular-pattern', target: child, axis: p.axis, angleDegrees: p.deg, count: p.count, pivot: p.pivot });
+        : { id, kind: 'circular-pattern', target: child, axis: p.axis, angle: p.deg, count: p.count, pivot: p.pivot });
       return id;
     }
     const a = walk(node.a), b = walk(node.b);

@@ -18,6 +18,7 @@
 import { BrepError, buildBrep, checkBrep, isFacetFace, lineCurve, mergeBreps, nurbsOf, type Brep, type BrepCheckReport } from '../brep/brep-core.js';
 import { brepFromPrismatic, booleanPrismatic, prismaticExtrude, prismaticFromProfile, prismaticVolume, transformPrismatic, isPrismaticSolidError, type PrismaticSolid } from '../features/prismatic-solid.js';
 import { erodeSection } from '../features/section-offset.js';
+import { unitNamedField } from '../document/unit-named.js';
 import { booleanCurveRegions, curveTolerance, regionMoments, locateInRegion, sampleRing, segEnd, segReverse, isCurvedArrangementError, type CurveRegion2, type CurveSegment2, type XY } from '../brep/curved-arrangement.js';
 import { booleanPolyhedra } from '../brep/polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline } from '../brep/analytic-boolean.js';
@@ -115,8 +116,8 @@ export type CadPartFeature = Base & (
   /** Along the sketch normal (+Z) from `from` (default 0); a negative height extrudes the other way. */
   /** `draft` (degrees, |θ| < 89) leans every wall into the material away from the sketch plane. */
   | { readonly kind: 'extrude'; readonly sketch: string; readonly height: CadPartDim; readonly from?: CadPartDim; readonly draft?: number }
-  /** About an axis in the sketch plane (through `origin`, along X or Y), by angleDegrees (default 360). */
-  | { readonly kind: 'revolve'; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: 'x' | 'y' | readonly [number, number] }; readonly angleDegrees?: number }
+  /** About an axis in the sketch plane (through `origin`, along X or Y), by angle (default 360). */
+  | { readonly kind: 'revolve'; readonly sketch: string; readonly axis: { readonly origin: CadPartPoint2; readonly direction: 'x' | 'y' | readonly [number, number] }; readonly angle?: number }
   | { readonly kind: 'union' | 'difference' | 'intersect'; readonly target: string; readonly tool: string }
   /**
    * A hole along `axis` (default z) through the target, or `depth` deep from its `side` (default max:
@@ -127,14 +128,14 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'hole'; readonly target: string; readonly center: CadPartPoint2; readonly radius: CadPartDim; readonly depth?: CadPartDim; readonly axis?: CadPartAxis; readonly side?: 'min' | 'max'; /** A 90° countersink: its diameter at the face (wider than the hole). */ readonly countersink?: CadPartDim; readonly face?: string }
   | { readonly kind: 'translate'; readonly target: string; readonly offset: CadPartPoint3 }
   /** About an axis through `pivot` (default the origin) by any angle; off quarter turns about X or Y the body leaves the upright family. */
-  | { readonly kind: 'rotate'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly pivot?: CadPartPoint3 }
+  | { readonly kind: 'rotate'; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly pivot?: CadPartPoint3 }
   /** Mirror in a coordinate plane through the origin; `keep` also keeps the original (one body). */
   | { readonly kind: 'mirror'; readonly target: string; readonly plane: 'xy' | 'xz' | 'yz'; readonly keep?: boolean }
   | { readonly kind: 'scale'; readonly target: string; readonly factor: number; readonly pivot?: CadPartPoint3 }
   /** `count` copies (the original included) joined into one body. */
   | { readonly kind: 'linear-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
-  /** Copies k·angleDegrees about the axis through `pivot` (about X or Y: multiples of 90°). */
-  | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angleDegrees: number; readonly count: number; readonly pivot?: CadPartPoint3 }
+  /** Copies k·angle about the axis through `pivot` (about X or Y: multiples of 90°). */
+  | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /**
    * Parts /0 (below `at`) and /1 (above): across the plane `axis` = at, or with `normal` (any direction,
    * not necessarily unit) across the plane normal·p = at — x + y = at for [1, 1, 0], a mitre.
@@ -186,10 +187,10 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] } }
   /**
    * Draft (taper) on chosen side faces for a pull along +Z: each planar face square to Z turns about its
-   * line on the neutral plane (default: the body's bottom) by `angleDegrees` — positive leans its top
+   * line on the neutral plane (default: the body's bottom) by `angle` — positive leans its top
    * in (material taken off), negative out (material added). The faces by name.
    */
-  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angleDegrees: number; readonly neutral?: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  | { readonly kind: 'draft'; readonly target: string; readonly faces: readonly string[]; readonly angle: number; readonly neutral?: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
    * D149: one face of a part split along NURBS curves lying on it (`curves`, mm), or along its isocline n·d = 0 for the pull
    * `pull`; the face by name (a base name naming one face). The pieces are named `<face>#1`, `<face>#2` … (an isocline's +
@@ -477,7 +478,7 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'frame-member'; readonly section: CadPartSection; readonly start: CadPartPoint3; readonly end: CadPartPoint3; readonly anchor?: FrameAnchor; readonly offset?: readonly [CadPartDim, CadPartDim]; readonly roll?: number; readonly up?: CadPartPoint3 }
   /**
    * An edge flange (R12.3, D118) on a sheet (its rules from its report): on a straight `edge` between a planar skin face
-   * and a thickness face, bent `angleDegrees` (default 90, in (0, 180)) towards that skin's outside, inner radius
+   * and a thickness face, bent `angle` (default 90, in (0, 180)) towards that skin's outside, inner radius
    * `bendRadius` (default the sheet's). `length` to the outer virtual sharp (`measure` 'outer', the default), the inner
    * one ('inner'), or from the bend's tangent ('tangent'). `position`: 'material-inside' (the default: the outer virtual
    * sharp on the edge, the plate trimmed back by (R + T)·tan(θ/2)), 'material-outside' (the inner one on the edge,
@@ -496,7 +497,7 @@ export type CadPartFeature = Base & (
    * or other than the plate's corner: a flange or a cut already there, a size past the plate).
    */
   | { readonly kind: 'sheet-corner-relief'; readonly target: string; readonly corner: string; readonly shape: 'square' | 'round'; readonly size: CadPartDim }
-  | { readonly kind: 'sheet-flange'; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angleDegrees?: number; readonly bendRadius?: CadPartDim; readonly measure?: 'outer' | 'inner' | 'tangent'; readonly position?: 'material-inside' | 'material-outside' | 'bend-outside'; readonly offsets?: readonly [CadPartDim, CadPartDim]; readonly relief?: { readonly kind: 'rectangular' | 'obround'; readonly width: CadPartDim; readonly depth: CadPartDim } | { readonly kind: 'none' } }
+  | { readonly kind: 'sheet-flange'; readonly target: string; readonly edge: string; readonly length: CadPartDim; readonly angle?: number; readonly bendRadius?: CadPartDim; readonly measure?: 'outer' | 'inner' | 'tangent'; readonly position?: 'material-inside' | 'material-outside' | 'bend-outside'; readonly offsets?: readonly [CadPartDim, CadPartDim]; readonly relief?: { readonly kind: 'rectangular' | 'obround'; readonly width: CadPartDim; readonly depth: CadPartDim } | { readonly kind: 'none' } }
   /** Hollowed to walls `thickness` thick; `open` names the faces removed (the top of a box, a side). */
   | { readonly kind: 'shell'; readonly target: string; readonly thickness: CadPartDim; readonly open?: readonly string[]; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   | { readonly kind: 'chamfer'; readonly target: string; readonly edges: readonly string[]; readonly distance: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
@@ -525,7 +526,7 @@ export interface CadPartDocument {
   readonly features: readonly CadPartFeature[];
 }
 export interface CadPartLoftSection { readonly sketch: string; readonly z: CadPartDim }
-export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angleDegrees: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
+export type CadPartSweepStep = { readonly kind: 'straight'; readonly length: CadPartDim } | { readonly kind: 'bend'; readonly radius: CadPartDim; readonly angle: number; readonly toward: 'x' | '-x' | 'y' | '-y' };
 /**
  * A frame's corners (FR3a, D125): where exactly two members end at a skeleton point, `default` finishes them — `mitre`
  * (both cut on the plane halfway between them), `butt` (one runs through to cover the other, which ends on its face) or
@@ -615,7 +616,7 @@ export interface CadPartOutput {
   /** A drive element's report (R12c.6b): a sprocket's, a pulley's, a belt's or chain's, a coupling's (a bought item). */
   readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
   /** A connector's opening report (R12c.7): its frame, the body's fit, the keep-out; on a body, its overlap with the panel. */
-  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlapMM3: number };
+  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlap: number };
   /** A shaft's report: its steps, keyseats, grooves and holes (R12c.3a). */
   readonly shaft?: ShaftReport;
   /** A key's, a keyway's, a ring's or a pin's report and checks (R12c.3b). */
@@ -623,7 +624,7 @@ export interface CadPartOutput {
   /** A bearing's report: its row, seat, housing, fits and warnings (R12c.4). */
   readonly bearing?: BearingReport;
   /** An O-ring gland's check and the ring's free overlap with its sealing surface (R12c.5). */
-  readonly gland?: GlandReport; readonly oring?: { readonly ring: string; readonly overlapMM3: number; readonly stretchedCrossSectionMM: number };
+  readonly gland?: GlandReport; readonly oring?: { readonly ring: string; readonly overlap: number; readonly stretchedCrossSection: number };
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
@@ -659,7 +660,7 @@ export interface CadPartSnapshot {
  * threads. The part document's own text stays at `fileBytes`. `stepTessellatedBytes`: a file whose excess over
  * `stepBytes` is tessellated meshes (AP242: the studio's own mesh exports, scans) — see `stepSizeProblem`.
  */
-export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 128 << 20, lengthMM: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000, subdVertices: 100_000 });
+export const CadPartLimits = Object.freeze({ features: 512, parameters: 256, points: 1024, edges: 64, copies: 64, fileBytes: 4 << 20, stepBytes: 32 << 20, stepTessellatedBytes: 128 << 20, length: 10000, meshTriangles: 2_000_000, planarMeshTriangles: 100_000, subdVertices: 100_000 });
 /**
  * Why a STEP file is too large to read, or null: its text past `stepTessellatedBytes`, or what is not tessellated in
  * it (B-rep records and the rest) past `stepBytes` (D49). Tessellated records take about 13 times their text while
@@ -704,12 +705,12 @@ export interface Part {
   readonly spring?: SpringReport | HookedSpringReport;
   readonly cam?: CamReport;
   readonly sprocket?: SprocketReport; readonly pulley?: PulleyReport; readonly belt?: BeltReport; readonly coupling?: CouplingReport;
-  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlapMM3: number };
+  readonly connector?: ConnectorReport; readonly connectorBody?: { readonly row: string; readonly overlap: number };
   readonly shaft?: ShaftReport;
   readonly shaftPlace?: BrepAffine;
   readonly key?: KeyReport; readonly keyway?: KeywayReport; readonly ring?: RingReport; readonly pin?: PinReport;
   readonly bearing?: BearingReport;
-  readonly gland?: GlandReport; readonly glandPlace?: GlandPlace; readonly oring?: { readonly ring: string; readonly overlapMM3: number; readonly stretchedCrossSectionMM: number };
+  readonly gland?: GlandReport; readonly glandPlace?: GlandPlace; readonly oring?: { readonly ring: string; readonly overlap: number; readonly stretchedCrossSection: number };
   readonly subd?: SubdSummary;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
@@ -812,7 +813,7 @@ const HOLE_PLANE_AXES: readonly (readonly [number, number])[] = [[1, 2], [0, 2],
  */
 function clearanceAbove(brep: Brep, k: number, dir: 1 | -1, face: number, c: XY, r: number): number {
   if (profiling) profiling.tessellations++;
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), bvh = triangleBvh(mesh.positionsMM, mesh.indices), [a, b] = HOLE_PLANE_AXES[k];
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), bvh = triangleBvh(mesh.positions, mesh.indices), [a, b] = HOLE_PLANE_AXES[k];
   const o: Point = [0, 0, 0], d: Point = [0, 0, 0]; d[k] = dir;
   let least = Infinity;
   for (let s = 0; s < 25; s++) {
@@ -850,13 +851,15 @@ function admit(input: unknown): CadPartDocument {
   if (!isRecord(input) || input.format !== 'barocss-cad-part' || input.version !== 1 || input.units !== 'mm') fail('a barocss-cad-part version 1 document in mm is required');
   const doc = input as unknown as CadPartDocument;
   if (!isRecord(doc.parameters) || Object.keys(doc.parameters).length > CadPartLimits.parameters) fail('parameters must be an object of at most 256 entries');
-  for (const [k, v] of Object.entries(doc.parameters)) if (!ID.test(k) || typeof v !== 'number' || !Number.isFinite(v) || Math.abs(v) > CadPartLimits.lengthMM) fail(`parameter ${k} must be a finite number within ±10000`);
+  for (const [k, v] of Object.entries(doc.parameters)) if (!ID.test(k) || typeof v !== 'number' || !Number.isFinite(v) || Math.abs(v) > CadPartLimits.length) fail(`parameter ${k} must be a finite number within ±10000`);
   if (!Array.isArray(doc.features) || doc.features.length > CadPartLimits.features) fail('features must be an array of at most 512 features');
   const seen = new Set<string>();
   for (const f of doc.features) {
     if (!isRecord(f) || typeof f.id !== 'string' || !ID.test(f.id)) fail('every feature needs an id (a letter, then letters, digits, _ or -)');
     if (seen.has(f.id)) fail('duplicate feature id', f.id);
     seen.add(f.id);
+    const named = unitNamedField(f);
+    if (named) fail(`${named.path} is not a field: a length, angle or force carries no unit in its name (R7.7b, D281) — it is ${named.field}`, f.id);
   }
   return copyDocument(doc) as CadPartDocument;
 }
@@ -876,7 +879,7 @@ function meshArrayOk(v: unknown, what: 'positions' | 'indices', nv = 0): boolean
   const a = v as ArrayLike<number>, key = `${what}:${nv}`;
   if (checkedArrays.get(a as object) === key) return true;
   if (a.length % 3) return false;
-  if (what === 'positions') { for (let i = 0; i < a.length; i++) { const x = a[i]; if (typeof x !== 'number' || !Number.isFinite(x) || Math.abs(x) > CadPartLimits.lengthMM) return false; } }
+  if (what === 'positions') { for (let i = 0; i < a.length; i++) { const x = a[i]; if (typeof x !== 'number' || !Number.isFinite(x) || Math.abs(x) > CadPartLimits.length) return false; } }
   else { if (a.length / 3 > CadPartLimits.meshTriangles) return false; for (let i = 0; i < a.length; i++) { const x = a[i]; if (!Number.isInteger(x) || x < 0 || x >= nv) return false; } }
   checkedArrays.set(a as object, key);
   return true;
@@ -946,7 +949,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
     const dim = (v: CadPartDim | undefined, what: string, positive = false): number => {
       let x: unknown = v;
       if (isRecord(v)) { const name = (v as { parameter: unknown }).parameter; if (typeof name !== 'string' || !Object.hasOwn(doc.parameters, name)) fail('PARAMETER', `${what}: unknown parameter ${String(name)}`); x = doc.parameters[name as string]; }
-      if (typeof x !== 'number' || !Number.isFinite(x) || Math.abs(x) > CadPartLimits.lengthMM) fail('PARAMETER', `${what} must be a finite length within ±10000 mm`);
+      if (typeof x !== 'number' || !Number.isFinite(x) || Math.abs(x) > CadPartLimits.length) fail('PARAMETER', `${what} must be a finite length within ±10000 mm`);
       if (positive && !((x as number) > 0)) fail('PARAMETER', `${what} must be positive`);
       return x as number;
     };
@@ -1150,7 +1153,7 @@ function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: stri
   const depth = -Math.min(...faceVertices(brep, faces[frame.S].id).map(q => dot(sub(q, A), m)));
   if (trim > 0 && !(depth > trim + tol)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] the sheet is ${+depth.toFixed(6)} mm deep behind ${e.name}; the bend takes ${+trim.toFixed(6)} mm of it`);
   const F: BrepAffine['matrix'] = [m[0], n[0], w[0], m[1], n[1], w[1], m[2], n[2], w[2]];
-  const local = (outer: ProfileSegmentInput[], from: number, h: number, tag: string, names?: { outer: string[]; bottom: string; top: string }) => affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: h, fromMM: from, tag, ...(names ? { names } : {}) }) }, F, A);
+  const local = (outer: ProfileSegmentInput[], from: number, h: number, tag: string, names?: { outer: string[]; bottom: string; top: string }) => affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: h, from: from, tag, ...(names ? { names } : {}) }) }, F, A);
   // The cut into the plate, one tool (no two cuts with faces on one plane): the trim [−trim, 1] × [z0, z1] and a relief at
   // each end inside the edge, `depth` past the bend's start, as one loop across the edge (x) and along it (z), taken down
   // through the plate. (Bend outside: no trim, each relief its own loop.)
@@ -1185,7 +1188,7 @@ function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: stri
     if (cause instanceof Error && /not a manifold solid|touch along an edge/.test(cause.message)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e!.name} or its cut into the plate meets the sheet's other bends or flanges: keep it at least its setback (${+Math.max(trim, (R + T) * Math.tan(th / 2)).toFixed(6)} mm) from them`);
     throw cause;
   };
-  try { loops.forEach((outer, k) => { plate = boolean(plate, affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: T + 2, fromMM: 0, tag: k ? `${at}.relief${k}` : trim > 0 ? `${at}.trim` : `${at}.relief0` }) }, G, top), 'difference', at); }); }
+  try { loops.forEach((outer, k) => { plate = boolean(plate, affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: T + 2, from: 0, tag: k ? `${at}.relief${k}` : trim > 0 ? `${at}.trim` : `${at}.relief0` }) }, G, top), 'difference', at); }); }
   catch (cause) { collide(cause); }
   const sec = flangeSection(at, T, R, th, trim, straight), piece = local([...sec.segments], z0, z1 - z0, at, { outer: [...sec.names], bottom: `${at}.start`, top: `${at}.end` });
   // Joined at its root only: anything more is the flange running into the sheet (or another flange).
@@ -1198,7 +1201,7 @@ function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: stri
   const vp = exactVolume(plate), vf = exactVolume(piece), vu = exactVolume(out!);
   if (vp + vf - vu > 1e-8 * (vp + vf)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e.name} runs into the sheet: ${+(vp + vf - vu).toPrecision(6)} mm³ of it overlaps`);
   const c = add(A, add(scale(m, sec.center[0]), scale(n, sec.center[1])));
-  const bend = { name: `${at}.bend`, inner: `${at}.bend.inner`, outer: `${at}.bend.outer`, radiusMM: R, angleDegrees: th * 180 / Math.PI, axis: { origin: c, direction: w }, allowanceMM: bendAllowance(th, R, T, K.kFactor), setbackMM: outsideSetback(th, R, T), deductionMM: bendDeduction(th, R, T, K.kFactor), kFactor: K.kFactor, ...(K.use ? { table: K.use } : {}) };
+  const bend = { name: `${at}.bend`, inner: `${at}.bend.inner`, outer: `${at}.bend.outer`, radius: R, angle: th * 180 / Math.PI, axis: { origin: c, direction: w }, allowance: bendAllowance(th, R, T, K.kFactor), setback: outsideSetback(th, R, T), deduction: bendDeduction(th, R, T, K.kFactor), kFactor: K.kFactor, ...(K.use ? { table: K.use } : {}) };
   return { kind: 'solid', parts: [{ solid: out!, sheet: { ...sheet, bends: [...sheet.bends, bend] } }] };
 }
 /** An edge of a B-rep by its name, else by its faces' names without their piece numbers (one such edge). */
@@ -1219,7 +1222,7 @@ function edgeNamed(brep: Brep, name: string, fail: Tools['fail']): Brep['edges']
  * goes (s² T or π s² T / 4) and the sheet stays one piece.
  */
 function sheetCornerRelief(part: Part, sheet: SheetReport, at: string, corner: string, shape: 'square' | 'round', s: number, fail: Tools['fail']): Result {
-  const T = sheet.thicknessMM, brep = brepOf(part, 'target'), e = edgeNamed(brep, corner, fail);
+  const T = sheet.thickness, brep = brepOf(part, 'target'), e = edgeNamed(brep, corner, fail);
   const ends = e.curve.controlPoints, A = ends[0], B = ends[ends.length - 1], tol = 1e-9 * Math.max(1, ...A.map(Math.abs), ...B.map(Math.abs));
   if (!(e.curve.degree === 1 && ends.length === 2 && Math.abs(len(sub(B, A)) - T) <= 1e-7 * Math.max(1, T))) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not a corner of the sheet: the straight edge, ${T} mm long, between two thickness faces`);
   const d = scale(sub(B, A), 1 / len(sub(B, A))), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
@@ -1232,7 +1235,7 @@ function sheetCornerRelief(part: Part, sheet: SheetReport, at: string, corner: s
   if (!behind(faces[1].id, m1) || !behind(faces[0].id, m2)) fail('CAPABILITY', `[CORNER_NOT_SQUARE] the corner ${e.name} is not convex`);
   const X = scale(m1, -1), Y = scale(m2, -1), Z = cross(X, Y), zB = dot(sub(B, A), Z), z0 = Math.min(0, zB) - 1, z1 = Math.max(0, zB) + 1;
   const outer: ProfileSegmentInput[] = shape === 'square' ? [{ kind: 'line', start: [-1, -1] }, { kind: 'line', start: [s, -1] }, { kind: 'line', start: [s, s] }, { kind: 'line', start: [-1, s] }] : [{ kind: 'arc', start: [s, 0], center: [0, 0], direction: 'ccw' }];
-  const tool = affine({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: z1 - z0, fromMM: z0, tag: at }) }, [X[0], Y[0], Z[0], X[1], Y[1], Z[1], X[2], Y[2], Z[2]], A);
+  const tool = affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: z1 - z0, from: z0, tag: at }) }, [X[0], Y[0], Z[0], X[1], Y[1], Z[1], X[2], Y[2], Z[2]], A);
   let out: Solid;
   try { out = boolean(part.solid, tool, 'difference', at); }
   catch (cause) { if (cause instanceof Error && /not a manifold solid|touch along an edge/.test(cause.message)) fail('GEOMETRY', `[CORNER_NOT_CLEAR] the relief at ${e.name} meets more than the plate's corner`); throw cause; }
@@ -1340,13 +1343,13 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       const { outer, frame, regions, holes, tags } = sketch as Extract<Result, { kind: 'sketch' }>;
       const draft = f.draft === undefined ? 0 : f.draft as unknown;
       if (typeof draft !== 'number' || !Number.isFinite(draft) || !(Math.abs(draft) < 89)) fail('INPUT', 'draft must be a number of degrees below 89 in size');
-      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(regions ? { regions } : {}), ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), heightMM: Math.abs(h), fromMM: h > 0 ? from : from + h, tag: at }) }));
+      if (draft === 0) return placed(frame, () => one({ kind: 'upright', solid: prismaticFromProfile({ outer, ...(regions ? { regions } : {}), ...(holes ? { holes } : {}), ...(tags ? { sideTags: tags } : {}), height: Math.abs(h), from: h > 0 ? from : from + h, tag: at }) }));
       if (regions?.length || holes?.length) fail('CAPABILITY', 'a drafted extrude takes one loop (no regions or holes) yet');
       // Built upwards from the sketch plane, then turned over for a downward extrude (the walls lean
       // away from the sketch plane either way).
       return placed(frame, () => {
         let brep: Brep;
-        try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draftDegrees: draft as number, tag: at, id: at, ...(tags ? { sideTags: tags.outer } : {}) }); }
+        try { brep = draftedExtrusion({ profile: outer, z0: 0, z1: Math.abs(h), draft: draft as number, tag: at, id: at, ...(tags ? { sideTags: tags.outer } : {}) }); }
         catch (cause) { if (cause instanceof BrepError) fail(/not supported yet/.test(cause.message) ? 'CAPABILITY' : 'PARAMETER', cause.message.replace(/^B-rep: drafted extrusion: /, '')); throw cause; }
         return one({ kind: 'brep', brep: transformBrep(brep!, { matrix: [1, 0, 0, 0, 1, 0, 0, 0, h > 0 ? 1 : -1], offset: [0, 0, from] }) });
       });
@@ -1359,10 +1362,10 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       // The axis lies in the sketch plane: along its X or Y, or any direction [dx, dy] there.
       const free = Array.isArray(ax?.direction) && ax!.direction.length === 2 && ax!.direction.every(v => typeof v === 'number' && Number.isFinite(v)) && Math.hypot(...(ax!.direction as number[])) > 1e-12;
       if (!isRecord(ax) || (ax.direction !== 'x' && ax.direction !== 'y' && !free)) fail('INPUT', 'axis must be { origin: [x, y], direction: "x" | "y" | [dx, dy] }');
-      const origin = xy(ax!.origin, 'axis origin'), deg = f.angleDegrees === undefined ? 360 : f.angleDegrees as number;
-      if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angleDegrees must be in (0, 360]');
+      const origin = xy(ax!.origin, 'axis origin'), deg = f.angle === undefined ? 360 : f.angle as number;
+      if (typeof deg !== 'number' || !(deg > 0 && deg <= 360)) fail('INPUT', 'angle must be in (0, 360]');
       const rtags = (sketch as Extract<Result, { kind: 'sketch' }>).tags;
-      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (free ? ax!.direction : ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angleDegrees: deg, ...((sketch as Extract<Result, { kind: 'sketch' }>).holes?.length ? { holes: (sketch as Extract<Result, { kind: 'sketch' }>).holes } : {}), ...(rtags ? { sideTags: rtags.outer, holeTags: rtags.holes } : {}) };
+      const input = { id: at, profile: (sketch as Extract<Result, { kind: 'sketch' }>).outer, axis: { origin, direction: (free ? ax!.direction : ax!.direction === 'x' ? [1, 0] : [0, 1]) as XY }, angle: deg, ...((sketch as Extract<Result, { kind: 'sketch' }>).holes?.length ? { holes: (sketch as Extract<Result, { kind: 'sketch' }>).holes } : {}), ...(rtags ? { sideTags: rtags.outer, holeTags: rtags.holes } : {}) };
       return placed((sketch as Extract<Result, { kind: 'sketch' }>).frame, () => ({ kind: 'solid', parts: [{ solid: { kind: 'brep', brep: revolveProfile(input) }, mass: (density: number) => revolveMassProperties(input, density), revolved: input }] }));
     }
     case 'union': case 'difference': case 'intersect': {
@@ -1415,7 +1418,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         }
         const [h0, h1] = depth === null ? [lo - 1, hi + 1] : side === 'max' ? [face - depth, face + over] : [face - over, face + depth];
         const local: XY = axis === 'y' ? [c[1], c[0]] : c;
-        const cylinder = prismaticFromProfile({ outer: [{ kind: 'arc', start: [local[0] + r, local[1]], center: local, direction: 'ccw' }], heightMM: h1 - h0, fromMM: h0, tag: at });
+        const cylinder = prismaticFromProfile({ outer: [{ kind: 'arc', start: [local[0] + r, local[1]], center: local, direction: 'ccw' }], height: h1 - h0, from: h0, tag: at });
         const tool: Solid = axis === 'z' ? { kind: 'upright', solid: cylinder }
           : { kind: 'brep', brep: transformBrep(brepFromPrismatic(cylinder, { id: at + '_tool' }), { matrix: axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0] }) };
         const out = boolean(p.solid, tool, 'difference', at);
@@ -1430,7 +1433,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         // material), then carried to the hole: s along local x, depth down local z from the face, the
         // revolve's z along ±local y (the map turning, not mirroring), then the hole's axis permutation.
         const R = csk / 2, e = Math.min(0.5, R), t = R - r, down = side === 'max' ? -1 : 1;
-        const cone = revolveProfile({ id: `${at}_csk`, profile: [{ kind: 'line', start: [0, -e] }, { kind: 'line', start: [R + e, -e] }, { kind: 'line', start: [r, t] }, { kind: 'line', start: [0, t] }], axis: { origin: [0, 0], direction: [0, 1] }, angleDegrees: 360 });
+        const cone = revolveProfile({ id: `${at}_csk`, profile: [{ kind: 'line', start: [0, -e] }, { kind: 'line', start: [R + e, -e] }, { kind: 'line', start: [r, t] }, { kind: 'line', start: [0, t] }], axis: { origin: [0, 0], direction: [0, 1] }, angle: 360 });
         const M = [1, 0, 0, 0, 0, -down, 0, down, 0], P = axis === 'z' ? [1, 0, 0, 0, 1, 0, 0, 0, 1] : axis === 'x' ? [0, 0, 1, 1, 0, 0, 0, 1, 0] : [0, 1, 0, 0, 0, 1, 1, 0, 0];
         const mul = (A: number[], B: number[]) => [0, 1, 2].flatMap(i => [0, 1, 2].map(j => A[3 * i] * B[j] + A[3 * i + 1] * B[3 + j] + A[3 * i + 2] * B[6 + j]));
         const o: Point = [local[0], local[1], face], offset = [0, 1, 2].map(i => P[3 * i] * o[0] + P[3 * i + 1] * o[1] + P[3 * i + 2] * o[2]) as Point;
@@ -1443,8 +1446,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       return () => moveAll(target, [1, 0, 0, 0, 1, 0, 0, 0, 1], o);
     }
     case 'rotate': {
-      const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angleDegrees as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
-      if (typeof deg !== 'number' || !Number.isFinite(deg) || Math.abs(deg) > 3600) fail('INPUT', 'angleDegrees must be a finite number of degrees');
+      const target = solids(f.target, 'target'), axis = axisOf(f.axis), deg = f.angle as number, pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
+      if (typeof deg !== 'number' || !Number.isFinite(deg) || Math.abs(deg) > 3600) fail('INPUT', 'angle must be a finite number of degrees');
       return () => { const { m, o } = rotation(axis, deg, pivot); return moveAll(target, m, o); };
     }
     case 'mirror': {
@@ -1469,9 +1472,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       }));
     }
     case 'circular-pattern': {
-      const target = solids(f.target, 'target', true), axis = axisOf(f.axis), deg = f.angleDegrees as number, count = integer(f.count, 'count', 1, CadPartLimits.copies);
+      const target = solids(f.target, 'target', true), axis = axisOf(f.axis), deg = f.angle as number, count = integer(f.count, 'count', 1, CadPartLimits.copies);
       const pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
-      if (typeof deg !== 'number' || !Number.isFinite(deg) || deg === 0 || Math.abs(deg) > 360) fail('INPUT', 'angleDegrees must be a nonzero step of at most 360°');
+      if (typeof deg !== 'number' || !Number.isFinite(deg) || deg === 0 || Math.abs(deg) > 360) fail('INPUT', 'angle must be a nonzero step of at most 360°');
       if (axis !== 'z' && Math.round(deg / 90) * 90 !== deg) fail('CAPABILITY', 'patterns about X or Y must step by multiples of 90°');
       return () => many(target.map(p => {
         return unionAll(Array.from({ length: count }, (_, k) => k ? rotate(p.solid, axis, deg * k, pivot, n => `${n}@${k}`) : p.solid), at);
@@ -1489,8 +1492,8 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (!isRecord(st)) return fail('INPUT', `path[${i}] must be a step`);
         if (st.kind === 'straight') return { kind: 'straight', length: dim(st.length as CadPartDim, `path[${i}].length`, true) };
         if (st.kind === 'bend') {
-          const a = st.angleDegrees, toward = st.toward;
-          if (typeof a !== 'number' || !(a > 0 && a <= 180)) fail('INPUT', `path[${i}].angleDegrees must be in (0, 180]`);
+          const a = st.angle, toward = st.toward;
+          if (typeof a !== 'number' || !(a > 0 && a <= 180)) fail('INPUT', `path[${i}].angle must be in (0, 180]`);
           if (toward !== 'x' && toward !== '-x' && toward !== 'y' && toward !== '-y') fail('INPUT', `path[${i}].toward must be x, -x, y or -y`);
           return { kind: 'bend', radius: dim(st.radius as CadPartDim, `path[${i}].radius`, true), angle: a as number, toward: toward as 'x' | '-x' | 'y' | '-y' };
         }
@@ -1519,9 +1522,9 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
     }
     case 'import': case 'subd': case 'sew': case 'mesh': case 'decimate': case 'separate': return meshOperation(f, t, HELPERS);
     case 'draft': {
-      const target = solids(f.target, 'target'), names = f.faces as unknown, angle = f.angleDegrees as unknown;
+      const target = solids(f.target, 'target'), names = f.faces as unknown, angle = f.angle as unknown;
       if (!Array.isArray(names) || !names.length || names.length > CadPartLimits.edges || !names.every(x => typeof x === 'string')) fail('INPUT', 'faces must list 1 to 64 face names');
-      if (typeof angle !== 'number' || !Number.isFinite(angle) || angle === 0 || Math.abs(angle) >= 45) fail('INPUT', 'angleDegrees must be a number of degrees, not 0, below 45 in size');
+      if (typeof angle !== 'number' || !Number.isFinite(angle) || angle === 0 || Math.abs(angle) >= 45) fail('INPUT', 'angle must be a number of degrees, not 0, below 45 in size');
       if (target.length !== 1) fail('REFERENCE', 'draft one part at a time (name it as id/k)');
       const neutral = f.neutral === undefined ? undefined : dim(f.neutral as CadPartDim, 'neutral');
       return () => {
@@ -1551,7 +1554,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           const e = 1e-3 * R, wide = a > 0 ? e : 0, u0 = Math.min(...uv.map(q => q[0])) - wide, u1 = Math.max(...uv.map(q => q[0])) + wide, v0 = Math.min(...uv.map(q => q[1])) - 2 * lift, v1 = Math.max(...uv.map(q => q[1])) + wide;
           const depth = height * Math.tan(Math.abs(a)) + 1;
           const outline: ProfileSegmentInput[] = [[u0, v0], [u1, v0], [u1, v1], [u0, v1]].map(start => ({ kind: 'line', start: start as XY }));
-          const prism = affine({ kind: 'upright', solid: prismaticFromProfile({ outer: outline, heightMM: depth, fromMM: a > 0 ? 0 : -1e-3, tag: `${at}.draft` }) }, m, o);
+          const prism = affine({ kind: 'upright', solid: prismaticFromProfile({ outer: outline, height: depth, from: a > 0 ? 0 : -1e-3, tag: `${at}.draft` }) }, m, o);
           const n2: Point = [n[0] * Math.cos(a), n[1] * Math.cos(a), Math.sin(a)], side: Point = a > 0 ? n2 : [-n2[0], -n2[1], -n2[2]];
           const hz = unit(cross(side, Math.abs(side[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0])), hy = cross(side, hz), q0: Point = [ring[0][0], ring[0][1], zN - lift];
           const half = affine(boxSolid([-R, -R, 0], [R, R, R], `${at}.draft`), [hz[0], hy[0], side[0], hz[1], hy[1], side[1], hz[2], hy[2], side[2]], q0);
@@ -1707,11 +1710,11 @@ function splitFacets(s: Solid, n: Point, d: number, at: string): Solid[] {
 
 function boxSolid(min: Point, max: Point, tag: string): Solid {
   const ring: ProfileSegmentInput[] = [[min[0], min[1]], [max[0], min[1]], [max[0], max[1]], [min[0], max[1]]].map(start => ({ kind: 'line', start: start as XY }));
-  return { kind: 'upright', solid: prismaticFromProfile({ outer: ring, heightMM: max[2] - min[2], fromMM: min[2], tag }) };
+  return { kind: 'upright', solid: prismaticFromProfile({ outer: ring, height: max[2] - min[2], from: min[2], tag }) };
 }
 
 /** Upright Booleans stay upright; otherwise both bodies must be planar for the exact polyhedral Boolean. */
-function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, edgeFitToleranceMM?: number): Solid {
+function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection', at: string, edgeFitTolerance?: number): Solid {
   if (profiling) profiling.booleans++;
   if (empty(b)) return op === 'intersection' ? b : a;
   if (empty(a)) return op === 'union' ? b : a;
@@ -1732,7 +1735,7 @@ function boolean(a: Solid, b: Solid, op: 'union' | 'difference' | 'intersection'
   if (A && B && planarBrep(A) && planarBrep(B)) return { kind: 'brep', brep: planarBoolean(A, B, op, at) };
   // Planes and cylinders of any axis.
   const toBrep = (s: Solid) => s.kind === 'upright' ? brepFromPrismatic(s.solid, { id: at + '_in' }) : s.brep;
-  try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at, ...(edgeFitToleranceMM === undefined ? {} : { edgeFitToleranceMM }) }) }; }
+  try { return { kind: 'brep', brep: booleanAnalytic(toBrep(a), toBrep(b), op, { id: at, ...(edgeFitTolerance === undefined ? {} : { edgeFitTolerance: edgeFitTolerance }) }) }; }
   catch (cause) {
     if (cause instanceof BrepError && /not supported yet/.test(cause.message)) throw new CadPartError('CAPABILITY', at, cause.message.replace(/^B-rep: (analytic Boolean: )?/, ''));
     throw cause;
@@ -1819,11 +1822,11 @@ function memberShape(sec: unknown, what: string, t: Pick<Tools, 'ref' | 'dim' | 
     const r = lookupSection(section.table as SectionTable, section.size as string);
     if ('miss' in r) return t.fail('PARAMETER', `[SECTION_TABLE_MISS] ${what}: ${r.miss}`);
     const b = frameSection(r.spec), tag = `${(section.table as SectionTable).id} ${String(section.size)}${r.estimate ? ', an estimate' : r.source ? ` (${r.source})` : ''}`;
-    return { kind: r.spec.kind, label: `${tag}: ${b.label}`, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
+    return { kind: r.spec.kind, label: `${tag}: ${b.label}`, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.area, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
   }
   try {
     const b = frameSection(sectionSpec(section, t.dim, t.integer, t.fail));
-    return { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.areaMM2, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
+    return { kind: section.kind as string, label: b.label, outer: b.outer, holes: b.holes, outerNames: b.outerNames, holeNames: b.holeNames, areaMM2: b.area, centroid: b.centroid, box: b.box, ...(b.derived ? { derived: b.derived } : {}) };
   } catch (cause) { if (isFrameSectionError(cause)) return t.fail('PARAMETER', cause.message); throw cause; }
 }
 /** A section mirrored across its own y axis (x ↦ −x): its loops turned about, arcs the other way, its centroid and box with it. */
@@ -1930,14 +1933,14 @@ function frameCorners(v: unknown, points: readonly Point[], pairs: readonly (rea
         const v = r.notch as Record<string, unknown>, value = (key: string) => taggedDimension(v[key], `corners.at[${n}].notch.${key}`, 'NOTCH_CUTTER');
         if (v.kind === 'holesaw') {
           if (Object.keys(v).some(k => !['kind', 'diameter', 'offset'].includes(k))) fail('PARAMETER', '[NOTCH_CUTTER] holesaw takes diameter and optional signed offset');
-          const diameterMM = value('diameter'), offsetMM = v.offset === undefined ? 0 : value('offset');
-          if (!(diameterMM > MEMBER_MIN_MM)) fail('PARAMETER', '[NOTCH_CUTTER] holesaw diameter must be positive');
-          notch = { kind: 'holesaw', diameterMM, offsetMM };
+          const diameter = value('diameter'), offset = v.offset === undefined ? 0 : value('offset');
+          if (!(diameter > MEMBER_MIN_MM)) fail('PARAMETER', '[NOTCH_CUTTER] holesaw diameter must be positive');
+          notch = { kind: 'holesaw', diameter: diameter, offset: offset };
         } else if (v.kind === 'v') {
           if (Object.keys(v).some(k => !['kind', 'depth', 'angle'].includes(k))) fail('PARAMETER', '[NOTCH_CUTTER] v takes depth and included angle');
-          const depthMM = value('depth'), angleDegrees = value('angle');
-          if (!(depthMM > MEMBER_MIN_MM && angleDegrees > 0 && angleDegrees < 180)) fail('PARAMETER', '[NOTCH_CUTTER] v requires positive depth and included angle in (0,180) degrees');
-          notch = { kind: 'v', depthMM, angleDegrees };
+          const depth = value('depth'), angle = value('angle');
+          if (!(depth > MEMBER_MIN_MM && angle > 0 && angle < 180)) fail('PARAMETER', '[NOTCH_CUTTER] v requires positive depth and included angle in (0,180) degrees');
+          notch = { kind: 'v', depth: depth, angle: angle };
         } else fail('PARAMETER', '[NOTCH_CUTTER] cutter kind must be holesaw or v');
         if ((localGap ?? gap) > 0) fail('PARAMETER', '[NOTCH_CUTTER] positive gap with a notch cutter is not supported');
       }
@@ -2019,7 +2022,7 @@ function planTrims(plan: EndsPlan, trims: readonly FrameTrim[], points: readonly
       const n = dot(tr.plane.n, sub(tr.end ? a : b, tr.plane.o)) < 0 ? tr.plane.n : scale(tr.plane.n, -1);
       plan.cuts[k].push({ o: tr.plane.o, n, name: `${endName(tr.end)}.trim` });
       plan.report[k] = plan.report[k].filter(e => e.end !== endName(tr.end));
-      plan.report[k].push({ end: endName(tr.end), point: pairs[k][tr.end], kind: 'trim', angleDegrees: Math.acos(Math.min(1, cos)) * 180 / Math.PI, plane: { origin: tr.plane.o, normal: n } });
+      plan.report[k].push({ end: endName(tr.end), point: pairs[k][tr.end], kind: 'trim', angle: Math.acos(Math.min(1, cos)) * 180 / Math.PI, plane: { origin: tr.plane.o, normal: n } });
       continue;
     }
     for (const body of tr.body!) plan.subtract[k].push({ solid: body, name: `${endName(tr.end)}.trim`, keepFrom: here, toward: away, mustTouch: true });
@@ -2036,7 +2039,7 @@ type EndsPlan = { extend: [number, number][]; cuts: { o: Point; n: Point; name: 
 const endName = (e: 0 | 1) => e ? 'end' : 'start';
 /** A member's envelope (its outer loop filled, no bore) along its line from `from` to `to` mm past its start: what other members are trimmed to. */
 function envelopeOf(P: MemberPlace, start: Point, from: number, to: number, name: string): Solid {
-  const solid = prismaticFromProfile({ outer: P.shape.outer, heightMM: to - from, fromMM: from, tag: name, names: { outer: P.shape.outer.map(() => name), bottom: name, top: name } });
+  const solid = prismaticFromProfile({ outer: P.shape.outer, height: to - from, from: from, tag: name, names: { outer: P.shape.outer.map(() => name), bottom: name, top: name } });
   const m: BrepAffine['matrix'] = [P.F.x[0], P.F.y[0], P.u[0], P.F.x[1], P.F.y[1], P.u[1], P.F.x[2], P.F.y[2], P.u[2]];
   return (moveAll([{ solid: { kind: 'upright', solid } }], m, sectionPoint(P.F, -P.q[0], -P.q[1], start)) as Extract<Result, { kind: 'solid' }>).parts[0].solid;
 }
@@ -2173,7 +2176,7 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
       // T runs on past the point to cover O's section there.
       const runT = Math.max(0, ...boxCorners(PO, there).map(v => dot(sub(v, there), inT)));
       plan.extend[T.member][T.end] = runT;
-      plan.report[T.member].push({ end: endName(T.end), point: p, kind: 'through', with: O.member, extendedMM: runT });
+      plan.report[T.member].push({ end: endName(T.end), point: p, kind: 'through', with: O.member, extended: runT });
       teeOrButt(plan, kind === 'cope' || set?.trim === 'envelope', PT, PO, inT, inO, there, O, T.member, p, points[pairs[T.member][0]], lengths[T.member], { end: T.end }, runT, Rmax, at, fail, set?.notch, lengths[O.member]);
       continue;
     }
@@ -2186,7 +2189,7 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
     const byMember = new Map(list.map(e => [e.member, e])), first = byMember.get(order[0])!, P0 = places[first.member], in0 = first.end ? P0.u : scale(P0.u, -1);
     const run0 = Math.max(0, ...order.slice(1).flatMap(m => boxCorners(places[m], there).map(v => dot(sub(v, there), in0))));
     plan.extend[first.member][first.end] = run0;
-    plan.report[first.member].push({ end: endName(first.end), point: p, kind: 'through', with: order[1], extendedMM: run0 });
+    plan.report[first.member].push({ end: endName(first.end), point: p, kind: 'through', with: order[1], extended: run0 });
     // Each next member is trimmed to the envelopes of all before it, each as trimmed itself (its own envelope less the
     // earlier ones, the piece reaching its own way kept): exactly the space the earlier members take, no more.
     const E = 3 * Rmax + 1, taken: Solid[] = [envelopeAround(P0, points[pairs[first.member][0]], lengths[first.member], { end: first.end }, run0, E, `${at}_env${first.member}`)];
@@ -2211,10 +2214,10 @@ function planCorners(spec: CornerSpec, points: readonly Point[], pairs: readonly
 function withinEnvelope(P: MemberPlace, start: Point, point: Point): boolean {
   const v = sub(point, start), xy: XY = [dot(v, P.F.x) + P.q[0], dot(v, P.F.y) + P.q[1]];
   const outer: CurveSegment2[] = buildProfileLoop(P.shape.outer, { maximumSegments: 1024 }).segments.map(s => s.kind === 'line'
-    ? { kind: 'line', a: [...s.start], b: [...s.end] } : { kind: 'arc', c: [...s.center], r: s.radiusMM, t0: s.startAngle, sweep: s.sweep });
+    ? { kind: 'line', a: [...s.start], b: [...s.end] } : { kind: 'arc', c: [...s.center], r: s.radius, t0: s.startAngle, sweep: s.sweep });
   return locateInRegion(xy, { outer, holes: [] }, curveTolerance([outer])) !== 'out';
 }
-/** Move the actual cut planes, with matching report planes. gapMM is always the complete authored joint clearance. */
+/** Move the actual cut planes, with matching report planes. gap is always the complete authored joint clearance. */
 function applyJointGaps(plan: EndsPlan, spec: CornerSpec, points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[], fail: Tools['fail']): void {
   for (let k = 0; k < plan.report.length; k++) {
     plan.report[k] = plan.report[k].map(e => {
@@ -2226,17 +2229,17 @@ function applyJointGaps(plan: EndsPlan, spec: CornerSpec, points: readonly Point
       const cut = plan.cuts[k].find(c => c.name === `${e.end}.${e.kind}`);
       if (!cut) fail('PARAMETER', '[GAP_SIZE] the joint has no movable planar cut');
       cut!.o = origin;
-      return { ...e, gapMM: gap, plane: { origin, normal: n } };
+      return { ...e, gap: gap, plane: { origin, normal: n } };
     });
     // Both cuts together must retain a positive centroidal span; no clamping or fallback.
-    if (plan.report[k].some(e => (e.gapMM ?? 0) > 0)) {
+    if (plan.report[k].some(e => (e.gap ?? 0) > 0)) {
       const u = places[k].u, start = points[pairs[k][0]], bound: [number, number] = [0, lengths[k]];
       for (const e of plan.report[k]) {
         const end = e.end === 'start' ? 0 : 1;
         if (e.plane) {
           const n = e.plane.normal as Point, nu = dot(n, u);
           bound[end] = dot(n, sub(e.plane.origin as Point, start)) / nu;
-        } else if (e.kind === 'through') bound[end] = end ? lengths[k] + (e.extendedMM ?? 0) : -(e.extendedMM ?? 0);
+        } else if (e.kind === 'through') bound[end] = end ? lengths[k] + (e.extended ?? 0) : -(e.extended ?? 0);
       }
       if (!(bound[1] - bound[0] > MEMBER_MIN_MM)) fail('PARAMETER', '[GAP_SIZE] the joint gaps consume the member');
     }
@@ -2247,23 +2250,23 @@ function planNotch(plan: EndsPlan, notch: FrameNotchReport, PT: MemberPlace, PO:
   const W = PT.u, X = unit(cross(W, inward)), away = scale(inward, -1), projection = add(T0, scale(W, dot(sub(at, T0), W)));
   let cutter: Solid;
   if (notch.kind === 'holesaw') {
-    const r = notch.diameterMM / 2, offset = notch.offsetMM;
+    const r = notch.diameter / 2, offset = notch.offset;
     const transverse = boxCorners(PO, at).map(v => dot(sub(v, projection), X) - offset);
     if (!(r > Math.max(...transverse.map(Math.abs)) + MEMBER_MIN_MM)) fail('PARAMETER', '[NOTCH_CUTTER] holesaw does not cover the branch transverse section');
     if (!(r < length)) fail('PARAMETER', '[NOTCH_CUTTER] holesaw reaches past the branch length');
     const E = 4 * Rmax + 2 * r + Math.abs(offset) + 1, Y = cross(W, X), center = add(projection, scale(X, offset));
     const profile: ProfileSegmentInput[] = [{ kind: 'arc', start: [r, 0], center: [0, 0], direction: 'ccw' }];
-    cutter = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: profile, heightMM: 2 * E, fromMM: -E, tag: `${id}_notch${O.member}` }) }, X, Y, W, center);
+    cutter = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: profile, height: 2 * E, from: -E, tag: `${id}_notch${O.member}` }) }, X, Y, W, center);
     plan.extend[O.member][O.end] = E;
   } else {
     if (Math.abs(dot(W, inward)) > 1e-9) fail('PARAMETER', '[NOTCH_CUTTER] v cutter requires perpendicular branch and through axes');
     const extent = boxCorners(PO, at).map(v => dot(sub(v, at), X)), width = Math.max(...extent) - Math.min(...extent);
-    if (!(notch.depthMM < width && notch.depthMM < length)) fail('PARAMETER', '[NOTCH_CUTTER] v depth must be under the branch width and length');
-    const E = 4 * Rmax + notch.depthMM + 1, reach = (notch.depthMM + E) * Math.tan(notch.angleDegrees * Math.PI / 360);
-    const profile: ProfileSegmentInput[] = [[-reach, -E], [reach, -E], [0, notch.depthMM]].map(start => ({ kind: 'line', start: start as XY }));
-    cutter = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: profile, heightMM: 2 * E, fromMM: -E, tag: `${id}_notch${O.member}` }) }, X, away, cross(X, away), at);
+    if (!(notch.depth < width && notch.depth < length)) fail('PARAMETER', '[NOTCH_CUTTER] v depth must be under the branch width and length');
+    const E = 4 * Rmax + notch.depth + 1, reach = (notch.depth + E) * Math.tan(notch.angle * Math.PI / 360);
+    const profile: ProfileSegmentInput[] = [[-reach, -E], [reach, -E], [0, notch.depth]].map(start => ({ kind: 'line', start: start as XY }));
+    cutter = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: profile, height: 2 * E, from: -E, tag: `${id}_notch${O.member}` }) }, X, away, cross(X, away), at);
   }
-  plan.subtract[O.member].push({ solid: cutter, name: `${endName(O.end)}.notch`, keepFrom: at, toward: away, edgeFitToleranceMM: 1e-11 });
+  plan.subtract[O.member].push({ solid: cutter, name: `${endName(O.end)}.notch`, keepFrom: at, toward: away, edgeFitTolerance: 1e-11 });
   plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'notch', with: T, notch });
 }
 
@@ -2280,7 +2283,7 @@ function mitre(plan: EndsPlan, A: JointEnd, B: JointEnd, PA: MemberPlace, PB: Me
     const reach = reachOf(P, at);
     plan.extend[E.member][E.end] = reach * tan + reach + 1;
     plan.cuts[E.member].push({ o: at, n, name: `${endName(E.end)}.mitre` });
-    plan.report[E.member].push({ end: endName(E.end), point: p, kind: 'mitre', with: E === A ? B.member : A.member, angleDegrees: deg, plane: { origin: at, normal: n } });
+    plan.report[E.member].push({ end: endName(E.end), point: p, kind: 'mitre', with: E === A ? B.member : A.member, angle: deg, plane: { origin: at, normal: n } });
   }
 }
 /** O's end on T at a corner (T running on `on` past it) or a T-joint (T passing through): on T's box face, or to its envelope (a cope). */
@@ -2297,7 +2300,7 @@ function teeOrButt(plan: EndsPlan, envelope: boolean, PT: MemberPlace, PO: Membe
   const b = faceButt(PT, PO, inT, inO, at, `point ${p}: member ${O.member} meets member ${T}`, fail);
   plan.extend[O.member][O.end] = b.runO;
   plan.cuts[O.member].push({ o: b.face, n: scale(b.w, -1), name: `${endName(O.end)}.butt` });
-  plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'butt', with: T, angleDegrees: b.deg, plane: { origin: b.face, normal: scale(b.w, -1) } });
+  plan.report[O.member].push({ end: endName(O.end), point: p, kind: 'butt', with: T, angle: b.deg, plane: { origin: b.face, normal: scale(b.w, -1) } });
 }
 /** Two members whose lines cross inside both their lengths (not at a joint): `MEMBERS_CLASH` — one would run through the other. */
 function crossingMembers(points: readonly Point[], pairs: readonly (readonly [number, number])[], lengths: readonly number[], places: readonly MemberPlace[]): string | null {
@@ -2318,7 +2321,7 @@ function placeMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   let area = shape.areaMM2, centroid = shape.centroid;
   // (A sketch section: its area and centroid by a unit prism's exact mass.)
   if (area === undefined || centroid === undefined) {
-    const m = prismaticMassProperties(prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), heightMM: 1, fromMM: 0 }), 1);
+    const m = prismaticMassProperties(prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), height: 1, from: 0 }), 1);
     area = m.volume; centroid = [m.centroid[0], m.centroid[1]];
   }
   const box = shape.box ?? loopBox(shape.outer), u = snapUnit(scale(sub(o.end, o.start), 1 / o.L)), F = memberFrame(u, o.up, o.roll);
@@ -2388,7 +2391,7 @@ function buildCurvedMember(given: MemberShape, path: FrameCurvePath, o: MemberLo
   const d: XY = [-cy + q[1], cx - q[0]], dl = Math.hypot(...d), direction: XY = [d[0] / dl, d[1] / dl];
   const roleNames = [...(shape.outerNames ?? shape.outer.map((_, i) => `side${i}`)), ...shape.holes.flatMap((h, j) => shape.holeNames?.[j] ?? h.map((_, i) => `bore${j}.side${i}`))];
   let roleIndex = shape.outer.length;
-  const input: RevolveInput = { id: `${o.at}_arc`.replace(/\./g, '_'), profile: shape.outer, holes: shape.holes, axis: { origin: [cx, cy], direction }, angleDegrees: theta * 180 / Math.PI, sideTags: shape.outer.map((_, i) => `role${i}`), holeTags: shape.holes.map(h => h.map(() => `role${roleIndex++}`)) };
+  const input: RevolveInput = { id: `${o.at}_arc`.replace(/\./g, '_'), profile: shape.outer, holes: shape.holes, axis: { origin: [cx, cy], direction }, angle: theta * 180 / Math.PI, sideTags: shape.outer.map((_, i) => `role${i}`), holeTags: shape.holes.map(h => h.map(() => `role${roleIndex++}`)) };
   const matrix: BrepAffine['matrix'] = [F.x[0], F.y[0], tangent[0], F.x[1], F.y[1], tangent[1], F.x[2], F.y[2], tangent[2]], origin = sectionPoint(F, -q[0], -q[1], aStart);
   const arcPrefix = path.indices.length > 1 ? `${o.at}.bend` : o.at;
   const renameArc = (n: string) => n.replace(`${o.at}_arc`.replace(/\./g, '_'), arcPrefix).replace(/\.side\[role(\d+)\]/g, (_, i: string) => `.${roleNames[Number(i)]}`);
@@ -2397,7 +2400,7 @@ function buildCurvedMember(given: MemberShape, path: FrameCurvePath, o: MemberLo
   const rotate = (v: Point): Point => add(add(scale(v, Math.cos(theta)), scale(cross(path.normal!, v), Math.sin(theta))), scale(path.normal!, dot(path.normal!, v) * (1 - Math.cos(theta))));
   const pieces: Brep[] = [];
   const prismAt = (start: Point, L: number, x: Point, y: Point, z: Point, suffix: string): Brep => {
-    const prefix = `${o.at}.${suffix === 'lead' ? 'straight0' : 'straight1'}`, solid = prismaticFromProfile({ outer: shape.outer, holes: shape.holes, heightMM: L, tag: `${o.at}_${suffix}`, names: { ...(shape.outerNames ? { outer: shape.outerNames.map(n => `${prefix}.${n}`) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(n => `${prefix}.${n}`)) } : {}), bottom: `${prefix}.start`, top: `${prefix}.end` } });
+    const prefix = `${o.at}.${suffix === 'lead' ? 'straight0' : 'straight1'}`, solid = prismaticFromProfile({ outer: shape.outer, holes: shape.holes, height: L, tag: `${o.at}_${suffix}`, names: { ...(shape.outerNames ? { outer: shape.outerNames.map(n => `${prefix}.${n}`) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(n => `${prefix}.${n}`)) } : {}), bottom: `${prefix}.start`, top: `${prefix}.end` } });
     const offset = sectionPoint({ x, y }, -q[0], -q[1], start);
     masses.push({ local: density => prismaticMassProperties(solid, density), axes: [x, y, z], offset });
     return transformBrep(brepFromPrismatic(solid), { matrix: [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]], offset });
@@ -2429,10 +2432,10 @@ function buildCurvedMember(given: MemberShape, path: FrameCurvePath, o: MemberLo
       if (start) startAngle = angle; else endAngle = angle;
     }
   }
-  const developedLengthMM = lead + centroidRadius * (endAngle - startAngle) + tail;
+  const developedLength = lead + centroidRadius * (endAngle - startAngle) + tail;
   const base = buildMember(given, { ...o, ends: undefined, start: path.start, end: add(path.start, path.tangent!), L: 1 }) as Extract<Result, { kind: 'solid' }>, member = base.parts[0].member!;
-  const curve = { kind: path.indices.length > 1 ? 'bend' as const : 'arc' as const, center: C, axis: nAxis, radiusMM: path.radius!, centroidRadiusMM: centroidRadius, angleDegrees: (endAngle - startAngle) * 180 / Math.PI, startTangent: rotateAround(path.tangent!, nAxis, startAngle), endTangent: rotateAround(path.tangent!, nAxis, endAngle), developedLengthMM, segmentIndices: path.indices, straightLengthsMM: [lead, tail] as const };
-  return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass: density => o.ends?.cuts.length ? brepMassProperties(brep, density) : combineMassProperties(masses.map(m => ({ props: m.local(density), axes: m.axes, offset: m.offset }))), member: { ...member, axis: curve.startTangent, xAxis: rotateAround(member.xAxis as Point, nAxis, startAngle), yAxis: rotateAround(member.yAxis as Point, nAxis, startAngle), end: path.end, lengthMM: developedLengthMM, curve, ...(o.ends ? { ends: o.ends.report } : {}), centroidLine: { start: sub(add(C, rotateAround(radialC, nAxis, startAngle)), scale(path.tangent!, lead)), end: add(add(C, rotateAround(radialC, nAxis, endAngle)), scale(path.endTangent!, tail)) } } }] };
+  const curve = { kind: path.indices.length > 1 ? 'bend' as const : 'arc' as const, center: C, axis: nAxis, radius: path.radius!, centroidRadius: centroidRadius, angle: (endAngle - startAngle) * 180 / Math.PI, startTangent: rotateAround(path.tangent!, nAxis, startAngle), endTangent: rotateAround(path.tangent!, nAxis, endAngle), developedLength: developedLength, segmentIndices: path.indices, straightLengths: [lead, tail] as const };
+  return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep }, mass: density => o.ends?.cuts.length ? brepMassProperties(brep, density) : combineMassProperties(masses.map(m => ({ props: m.local(density), axes: m.axes, offset: m.offset }))), member: { ...member, axis: curve.startTangent, xAxis: rotateAround(member.xAxis as Point, nAxis, startAngle), yAxis: rotateAround(member.yAxis as Point, nAxis, startAngle), end: path.end, length: developedLength, curve, ...(o.ends ? { ends: o.ends.report } : {}), centroidLine: { start: sub(add(C, rotateAround(radialC, nAxis, startAngle)), scale(path.tangent!, lead)), end: add(add(C, rotateAround(radialC, nAxis, endAngle)), scale(path.endTangent!, tail)) } } }] };
 }
 
 /** How a member's ends are finished at its frame's corners (FR3a, D125): how far each end runs on, the planes it is cut by (keeping n·x < n·o), what each end is. */
@@ -2442,7 +2445,7 @@ type MemberEnds = { readonly extend: readonly [number, number]; readonly cuts: r
  * left, the one reaching farthest from `keepFrom` along `toward` (its own length's way) is kept. `mustTouch`: refused
  * `TRIM_MISSES` when nothing is taken.
  */
-type MemberSubtract = { readonly solid: Solid; readonly name: string; readonly keepFrom: Point; readonly toward: Point; readonly mustTouch?: boolean; readonly edgeFitToleranceMM?: number };
+type MemberSubtract = { readonly solid: Solid; readonly name: string; readonly keepFrom: Point; readonly toward: Point; readonly mustTouch?: boolean; readonly edgeFitTolerance?: number };
 /** A solid in several pieces: the one reaching farthest from `from` along `toward` (one piece: itself). */
 function keepFarthest(s: Solid, from: Point, toward: Point): Solid {
   if (s.kind !== 'brep') return s;
@@ -2470,11 +2473,11 @@ function farthestPiece(pieces: readonly Brep[], from: Point, toward: Point): Bre
 /** A member built: its section extruded along its line (run on past an end where a corner needs it, ends `.start`, `.end`), moved onto its line, cut at its corners, its report on it. */
 function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Point; L: number; up: Point; at: string; frame?: { member: number; from: number; to: number }; ends?: MemberEnds }): Result {
   const P = placeMember(given, o), { shape, area, centroid, u, F, q } = P, pre = (n: string) => `${o.at}.${n}`, e0 = o.ends?.extend[0] ?? 0, e1 = o.ends?.extend[1] ?? 0;
-  const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), heightMM: o.L + e0 + e1, fromMM: -e0, tag: o.at,
+  const solid = prismaticFromProfile({ outer: shape.outer, ...(shape.holes.length ? { holes: shape.holes } : {}), ...(shape.tags ? { sideTags: shape.tags } : {}), height: o.L + e0 + e1, from: -e0, tag: o.at,
     names: { ...(shape.outerNames ? { outer: shape.outerNames.map(pre) } : {}), ...(shape.holeNames ? { holes: shape.holeNames.map(h => h.map(pre)) } : {}), bottom: `${o.at}.start`, top: `${o.at}.end` } });
   const origin = sectionPoint(F, -q[0], -q[1], o.start), m: BrepAffine['matrix'] = [F.x[0], F.y[0], u[0], F.x[1], F.y[1], u[1], F.x[2], F.y[2], u[2]];
-  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, areaMM2: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, rollDegrees: o.roll, ...(o.mirror ? { mirrored: true } : {}), reversible: reversibleSection(shape, centroid), ...(o.frame ? { frame: o.frame } : {}),
-    start: o.start, end: o.end, lengthMM: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
+  const member: FrameMemberReport = { sectionKind: shape.kind, section: shape.label, area: area, centroid, ...(shape.derived ? { derived: shape.derived } : {}), anchor: o.anchor, offset: o.offset, roll: o.roll, ...(o.mirror ? { mirrored: true } : {}), reversible: reversibleSection(shape, centroid), ...(o.frame ? { frame: o.frame } : {}),
+    start: o.start, end: o.end, length: o.L, axis: u, xAxis: F.x, yAxis: F.y, ...(F.fallback ? { upFallback: F.fallback } : {}),
     centroidLine: { start: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.start), end: sectionPoint(F, centroid[0] - q[0], centroid[1] - q[1], o.end) },
     ...(o.ends ? { ends: o.ends.report } : {}) };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, origin) as Extract<Result, { kind: 'solid' }>;
@@ -2491,7 +2494,7 @@ function buildMember(given: MemberShape, o: MemberLook & { start: Point; end: Po
   if (cut.kind === 'brep' && cut.brep.bodies.length !== 1) throw new CadPartError('GEOMETRY', o.at, `[TRIM_LEAVES_PIECES] cut at its corners, member ${o.frame?.member ?? ''} is in ${cut.brep.bodies.length} pieces`);
   // Then the solids taken from it (envelopes, bodies): of the pieces left, the one reaching farthest its own way is kept.
   for (const t of o.ends.subtract) {
-    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'), t.edgeFitToleranceMM);
+    const before = t.mustTouch ? volumeOfSolid(cut) : 0, next = boolean(cut, t.solid, 'difference', `${o.at}_${t.name}`.replace(/\./g, '_'), t.edgeFitTolerance);
     if (empty(next)) throw new CadPartError('PARAMETER', o.at, `[TRIM_EMPTY] member ${o.frame?.member ?? ''}: nothing is left of it`);
     const pieces = next.kind === 'brep' ? splitBodies(next.brep) : null;
     cut = pieces && pieces.length > 1 ? { kind: 'brep', brep: farthestPiece(pieces, t.keepFrom, t.toward) } : next;
@@ -2518,9 +2521,9 @@ function endCapOf(part: Part, frame: string, k: number, end: 0 | 1, fit: 'over' 
   // Over: outside the end; inset: inside the bore, flush with the end.
   const from = (fit === 'over') === (end === 1) ? z : z - t, out = end ? 1 : -1;
   const names = fit === 'over' ? { bottom: end ? `${at}.seat` : `${at}.face`, top: end ? `${at}.face` : `${at}.seat` } : { bottom: end ? `${at}.inner` : `${at}.face`, top: end ? `${at}.face` : `${at}.inner` };
-  const solid = prismaticFromProfile({ outer: loop, heightMM: t, fromMM: from, tag: at, names });
+  const solid = prismaticFromProfile({ outer: loop, height: t, from: from, tag: at, names });
   const start = report.start as unknown as Point, { m, o } = memberAffine(P, start), A = loopArea(loop);
-  const endCap: EndCapReport = { frame, member: k, end: endName(end), fit, thicknessMM: t, areaMM2: A, volumeMM3: A * t, plane: { origin: noNegativeZero(add(start, scale(P.u, z))), normal: noNegativeZero(scale(P.u, out)) }, seam: { lengthMM: loopPerimeter(loop), exact: true } };
+  const endCap: EndCapReport = { frame, member: k, end: endName(end), fit, thickness: t, area: A, volume: A * t, plane: { origin: noNegativeZero(add(start, scale(P.u, z))), normal: noNegativeZero(scale(P.u, out)) }, seam: { length: loopPerimeter(loop), exact: true } };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, o) as Extract<Result, { kind: 'solid' }>;
   return { kind: 'solid', parts: [{ ...r.parts[0], endCap }] };
 }
@@ -2560,7 +2563,7 @@ function gussetOf(byMember: ReadonlyMap<number, Part>, g: { frame: string; point
   if (!p) return fail('PARAMETER', `[GUSSET_FIT] no member of ${g.frame} ends at point ${g.point}`);
   const arms: GussetArm[] = [];
   for (const [k, q] of byMember) {
-    const r = q.member!, s = r.start as unknown as Point, u = q.memberPlace!.place.u, L = r.lengthMM, d = dot(sub(p, s), u);
+    const r = q.member!, s = r.start as unknown as Point, u = q.memberPlace!.place.u, L = r.length, d = dot(sub(p, s), u);
     if (samePoint(s, p)) arms.push({ k, away: u, reach: L, part: q });
     else if (samePoint(r.end as unknown as Point, p)) arms.push({ k, away: scale(u, -1), reach: L, part: q });
     else if (d > MEMBER_MIN_MM && d < L - MEMBER_MIN_MM && len(sub(p, add(s, scale(u, d)))) <= MEMBER_MIN_MM) {
@@ -2586,11 +2589,11 @@ function gussetOf(byMember: ReadonlyMap<number, Part>, g: { frame: string; point
   const corners: XY[] = c > 0 ? [at2(c, 'a'), at2(l1, 'a'), at2(l2, 'b'), at2(c, 'b')] : [[xV, yV], at2(l1, 'a'), at2(l2, 'b')];
   const outer: ProfileSegmentInput[] = corners.map(start => ({ kind: 'line', start }));
   const names = [`${at}.on.m${A.k}`, `${at}.free`, `${at}.on.m${B.k}`, ...(c > 0 ? [`${at}.clip`] : [])];
-  const solid = prismaticFromProfile({ outer, heightMM: g.t, fromMM: 0, tag: at, names: { outer: names, bottom: `${at}.back`, top: `${at}.front` } });
+  const solid = prismaticFromProfile({ outer, height: g.t, from: 0, tag: at, names: { outer: names, bottom: `${at}.back`, top: `${at}.front` } });
   const m: BrepAffine['matrix'] = [A.away[0], ey[0], n[0], A.away[1], ey[1], n[1], A.away[2], ey[2], n[2]], mid = add(p, scale(n, g.offset));
-  const area = (l1 * l2 - c * c) * sin / 2, seams: WeldmentSeam[] = [{ member: A.k, lengthMM: l1 - c, ...(sa.face ? { face: sa.face } : {}) }, { member: B.k, lengthMM: l2 - c, ...(sb.face ? { face: sb.face } : {}) }];
-  const gusset: GussetReport = { frame: g.frame, point: g.point, members: [A.k, B.k], legsMM: [l1, l2], thicknessMM: g.t, clipMM: c, offsetMM: g.offset, angleDegrees: Math.atan2(sin, cos) * 180 / Math.PI,
-    plane: { origin: noNegativeZero(mid), normal: noNegativeZero(n) }, areaMM2: area, volumeMM3: area * g.t, outline: corners.map(([x, y]) => noNegativeZero(add(mid, add(scale(A.away, x), scale(ey, y))))), seams };
+  const area = (l1 * l2 - c * c) * sin / 2, seams: WeldmentSeam[] = [{ member: A.k, length: l1 - c, ...(sa.face ? { face: sa.face } : {}) }, { member: B.k, length: l2 - c, ...(sb.face ? { face: sb.face } : {}) }];
+  const gusset: GussetReport = { frame: g.frame, point: g.point, members: [A.k, B.k], legs: [l1, l2], thickness: g.t, clip: c, offset: g.offset, angle: Math.atan2(sin, cos) * 180 / Math.PI,
+    plane: { origin: noNegativeZero(mid), normal: noNegativeZero(n) }, area: area, volume: area * g.t, outline: corners.map(([x, y]) => noNegativeZero(add(mid, add(scale(A.away, x), scale(ey, y))))), seams };
   const r = moveAll([{ solid: { kind: 'upright', solid } }], m, add(p, scale(n, lo))) as Extract<Result, { kind: 'solid' }>;
   const gussetPlace: GussetPlaced = { p, n, ua: A.away, ey, ub: B.away, wb, xV, yV, s, legs: [l1, l2], clip: c, t: g.t, offset: g.offset, members: [A.k, B.k] };
   return { kind: 'solid', parts: [{ ...r.parts[0], gusset, gussetPlace }] };
@@ -2643,7 +2646,7 @@ function landingFaces(byMember: ReadonlyMap<number, Part>, self: number, E: Poin
 /** A landing face as a slab `h` deep on the end's side of its plane (−out), in the end's plane frame (a, b, a × b) at E. */
 function landingSlab(f: Landing, a: Point, b: Point, E: Point, out: Point, h: number, at: string): Solid {
   const W = cross(a, b), up = dot(W, out) < 0, line = (start: XY): ProfileSegmentInput => ({ kind: 'line', start });
-  const solid = prismaticFromProfile({ outer: f.outer.map(line), ...(f.holes.length ? { holes: f.holes.map(h2 => h2.map(line)) } : {}), heightMM: h, fromMM: up ? 0 : -h, tag: at });
+  const solid = prismaticFromProfile({ outer: f.outer.map(line), ...(f.holes.length ? { holes: f.holes.map(h2 => h2.map(line)) } : {}), height: h, from: up ? 0 : -h, tag: at });
   return placedSolid({ kind: 'upright', solid }, a, b, W, E);
 }
 /**
@@ -2779,7 +2782,7 @@ function beadDimension(v: unknown, parameters: Readonly<Record<string, number>>,
     if (typeof v.parameter !== 'string' || !Object.hasOwn(parameters, v.parameter)) throw new CadPartError('PARAMETER', at, 'leg: unknown parameter');
     x = parameters[v.parameter];
   }
-  if (typeof x !== 'number' || !Number.isFinite(x) || !(x > 0) || x > CadPartLimits.lengthMM) throw new CadPartError('PARAMETER', at, 'leg must be a finite positive length within 10000 mm');
+  if (typeof x !== 'number' || !Number.isFinite(x) || !(x > 0) || x > CadPartLimits.length) throw new CadPartError('PARAMETER', at, 'leg must be a finite positive length within 10000 mm');
   return x;
 }
 /** Actual end faces, including an unsupported ordered/curved end, provide the boundary for refusal discovery. */
@@ -2892,13 +2895,13 @@ function sharedBeadPath(a: BeadCandidate, b: BeadCandidate, pair: SharedBeadPair
   return [p, q];
 }
 /** Keep exclusive material intact and split only native bodies containing the shared prism. */
-function ownedEndpointBead(candidate: BeadCandidate, overlap: Brep, seam: Omit<BeadSharedSeam, 'ownedSharedVolumeMM3'>): Result {
-  const nominal = candidate.nominal!, brep = brepOf(nominal, candidate.feature.id), [p, q] = seam.pathMM as readonly [Point, Point];
+function ownedEndpointBead(candidate: BeadCandidate, overlap: Brep, seam: Omit<BeadSharedSeam, 'ownedSharedVolume'>): Result {
+  const nominal = candidate.nominal!, brep = brepOf(nominal, candidate.feature.id), [p, q] = seam.path as readonly [Point, Point];
   const n = unit(sub(q, p)), midpoint = scale(add(p, q), 0.5), x = candidate.end!.out, y = cross(n, x), below = seam.ownedInterval[0] === 0;
   const R = Math.max(1, ...brep.vertices.map(v => len(sub(v.point, midpoint)))) + 1, id = candidate.feature.id.replace(/\./g, '_');
   const half = obliqueHalf(midpoint, n, x, y, R, !below, `${id}_ownership`);
   const unowned = boolean({ kind: 'brep', brep: overlap }, half, 'intersection', `${id}_unowned`);
-  const removed = volumeOfSolid(unowned), ownedSharedVolumeMM3 = brepMassProperties(overlap, 1).volume - removed;
+  const removed = volumeOfSolid(unowned), ownedSharedVolume = brepMassProperties(overlap, 1).volume - removed;
   const parts = splitBodies(brep).map((body, i) => {
     const shared = booleanAnalytic(body, overlap, 'intersection', { id: `${id}_shared${i}` });
     if (!shared.bodies.length) return prefixedIds(body, `exclusive${i}:`);
@@ -2906,8 +2909,8 @@ function ownedEndpointBead(candidate: BeadCandidate, overlap: Brep, seam: Omit<B
     return prefixedIds(brepOf({ solid: kept }, `${id}_owned${i}`), `owned${i}:`);
   });
   const owned = mergeBreps(parts, { family: 'weld-bead', id }), volumeMM3 = brepMassProperties(owned, 1).volume;
-  if (Math.abs(volumeMM3 - (nominal.bead!.nominalVolumeMM3 - removed)) > 1e-9 * Math.max(1, volumeMM3)) throw new CadPartError('GEOMETRY', candidate.feature.id, 'owned partition did not preserve exclusive material');
-  return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: owned }, bead: { ...nominal.bead!, volumeMM3, sharedSeams: [{ ...seam, ownedSharedVolumeMM3 }] } }] };
+  if (Math.abs(volumeMM3 - (nominal.bead!.nominalVolume - removed)) > 1e-9 * Math.max(1, volumeMM3)) throw new CadPartError('GEOMETRY', candidate.feature.id, 'owned partition did not preserve exclusive material');
+  return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: owned }, bead: { ...nominal.bead!, volume: volumeMM3, sharedSeams: [{ ...seam, ownedSharedVolume: ownedSharedVolume }] } }] };
 }
 /** Discover the actual graph first, then plan every component before exposing either participant. */
 function planEndpointBeads(features: readonly CadPartFeature[], byMember: ReadonlyMap<number, Part>, frame: string, parameters: Readonly<Record<string, number>>): Map<string, Result | CadPartError> {
@@ -2918,7 +2921,7 @@ function planEndpointBeads(features: readonly CadPartFeature[], byMember: Readon
     try {
       if (!part || joint.member < 0) fail('REFERENCE', `${frame} has no member ${joint.member}`);
       const jointReport = part!.member?.ends?.find(e => e.end === joint.end);
-      if ((jointReport?.gapMM ?? 0) > 0 || jointReport?.kind === 'notch') fail('PARAMETER', '[BEAD_SEAM_NOT_PLANAR] positive gaps and cutter notches do not admit contact fillets');
+      if ((jointReport?.gap ?? 0) > 0 || jointReport?.kind === 'notch') fail('PARAMETER', '[BEAD_SEAM_NOT_PLANAR] positive gaps and cutter notches do not admit contact fillets');
       end = beadEndGeometry(part!, joint);
       leg = beadDimension(feature.leg, parameters, at);
       if (feature.inner !== undefined && typeof feature.inner !== 'boolean') fail('INPUT', 'inner must be true or false');
@@ -2974,10 +2977,10 @@ function planEndpointBeads(features: readonly CadPartFeature[], byMember: Readon
     try {
       const path = sharedBeadPath(a, b, pair);
       if (!path) { refuse('BEAD_SHARED_UNSUPPORTED', 'requires equal legs, outer sharp square ends and one complete straight triangular shared prism'); continue; }
-      const lengthMM = len(sub(path[1], path[0])), nominalSharedVolumeMM3 = brepMassProperties(pair.overlap!, 1).volume;
+      const lengthMM = len(sub(path[1], path[0])), nominalSharedVolume = brepMassProperties(pair.overlap!, 1).volume;
       const id = JSON.stringify(['shared-seam-v1', frame, joints]), refs = joints as [BeadJointRef, BeadJointRef];
       // Commit both planned results together. A partition error leaves neither nominal participant available.
-      const results = group.map((c, i) => ownedEndpointBead(c, pair.overlap!, { id, joints: refs, pathMM: path, lengthMM, ownedInterval: i === 0 ? [0, 0.5] : [0.5, 1], nominalSharedVolumeMM3 }));
+      const results = group.map((c, i) => ownedEndpointBead(c, pair.overlap!, { id, joints: refs, path: path, length: lengthMM, ownedInterval: i === 0 ? [0, 0.5] : [0.5, 1], nominalSharedVolume: nominalSharedVolume }));
       group.forEach((c, i) => plan.set(c.feature.id, results[i]));
     } catch (cause) {
       refuse('BEAD_SHARED_UNSUPPORTED', `owned B-rep partition failed: ${cause instanceof Error ? cause.message : String(cause)}`);
@@ -2995,10 +2998,10 @@ function planEndpointBeads(features: readonly CadPartFeature[], byMember: Readon
  */
 function endBead(byMember: ReadonlyMap<number, Part>, part: Part, frame: string, k: number, end: 0 | 1, z: number, inner: boolean, at: string, fail: Tools['fail']): Result {
   const { place: P, lengthMM: L, extend } = part.memberPlace!, report = part.member!, e = report.ends?.find(x => x.end === endName(end)), where = `member ${k}'s ${endName(end)}`;
-  if ((e?.gapMM ?? 0) > 0 || e?.kind === 'notch') fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} has a positive gap or cutter notch: contact fillets are not supported`);
+  if ((e?.gap ?? 0) > 0 || e?.kind === 'notch') fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} has a positive gap or cutter notch: contact fillets are not supported`);
   if (e?.kind === 'mitre') fail('PARAMETER', `[BEAD_KIND] ${where} is mitred: a mitre takes a groove weld (its seam only), not a fillet`);
   if (e?.kind === 'cope') fail('PARAMETER', `[BEAD_SEAM_NOT_PLANAR] ${where} is coped: its seam is no plane's loop`);
-  if (e?.angleDegrees !== undefined && Math.abs(e.angleDegrees) > 1e-9) fail('PARAMETER', `[BEAD_ANGLE] ${where} meets its face at ${+e.angleDegrees.toFixed(6)}° from square: fillets on oblique ends are not modelled yet`);
+  if (e?.angle !== undefined && Math.abs(e.angle) > 1e-9) fail('PARAMETER', `[BEAD_ANGLE] ${where} meets its face at ${+e.angle.toFixed(6)}° from square: fillets on oblique ends are not modelled yet`);
   const out = end ? P.u : scale(P.u, -1), plane = e?.plane ?? (e?.kind === 'trim' ? orderedBeadPlane(part, e, out, where, fail) : undefined);
   const start = report.start as unknown as Point, zE = plane ? dot(sub(plane.origin as Point, start), P.u) : end ? L + extend[1] : -extend[0];
   const E = add(start, scale(P.u, zE));
@@ -3013,10 +3016,10 @@ function endBead(byMember: ReadonlyMap<number, Part>, part: Part, frame: string,
   // The end's own frame: the section's x and y (swapped at a start), W out of the end; the end's plane at zP.
   const X = end ? P.F.x : P.F.y, Y = end ? P.F.y : P.F.x, o = sectionPoint(P.F, -P.q[0], -P.q[1], start), zP = end ? zE : -zE, id = at.replace(/\./g, '_');
   const drafted = (loop: readonly ProfileSegmentInput[], draft: number, tag: string): Solid => {
-    try { return placedSolid({ kind: 'brep', brep: draftedExtrusion({ profile: endLoop(loop, end), z0: zP - z, z1: zP, draftDegrees: draft, tag, id: tag.replace(/\./g, '_') }) }, X, Y, out, o); }
+    try { return placedSolid({ kind: 'brep', brep: draftedExtrusion({ profile: endLoop(loop, end), z0: zP - z, z1: zP, draft: draft, tag, id: tag.replace(/\./g, '_') }) }, X, Y, out, o); }
     catch (cause) { if (cause instanceof BrepError) return fail('PARAMETER', `[BEAD_SIZE] ${where}: a leg of ${z} mm does not fit its ${draft < 0 ? 'outline' : 'bore'} (a concave round or the bore's rounds under the leg)`); throw cause; }
   };
-  const prism = (loop: readonly ProfileSegmentInput[], from: number, h: number, tag: string): Solid => placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: endLoop(loop, end), heightMM: h, fromMM: from, tag }) }, X, Y, out, o);
+  const prism = (loop: readonly ProfileSegmentInput[], from: number, h: number, tag: string): Solid => placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer: endLoop(loop, end), height: h, from: from, tag }) }, X, Y, out, o);
   let bead = boolean(drafted(P.shape.outer, -45, `${at}.fillet`), prism(P.shape.outer, zP - z - 1, z + 1, `${at}.on.m${k}`), 'difference', id);
   if (inner) {
     if (P.shape.holes.length !== 1) fail('PARAMETER', `[BEAD_KIND] ${where}: its section has ${P.shape.holes.length ? `${P.shape.holes.length} bores` : 'no bore'}: no inner fillet to weld`);
@@ -3040,7 +3043,7 @@ function endBead(byMember: ReadonlyMap<number, Part>, part: Part, frame: string,
   if (empty(bead)) fail('PARAMETER', `[BEAD_SIZE] ${where}: no fillet is left on the faces it lands on`);
   const flush = flushLength(P.shape.outer, q => [q[0] - P.q[0], q[1] - P.q[1]], (faces.length > 1 ? mergedLandings(faces) : null) ?? faces);
   const perimeter = loopPerimeter(P.shape.outer) + (inner ? loopPerimeter(P.shape.holes[0]) : 0);
-  const bead_: BeadReport = { frame, on: { member: k, end: endName(end) }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...new Set(faces.map(f => f.k))], seam: { lengthMM: perimeter, flushMM: flush, exact: true, ...(inner ? { inner: true as const } : {}) }, volumeMM3: volumeOfSolid(bead), nominalVolumeMM3: volumeOfSolid(bead), sharedSeams: [], corner: 'mitred' };
+  const bead_: BeadReport = { frame, on: { member: k, end: endName(end) }, kind: 'fillet', leg: z, throat: z / Math.SQRT2, meets: [...new Set(faces.map(f => f.k))], seam: { length: perimeter, flush: flush, exact: true, ...(inner ? { inner: true as const } : {}) }, volume: volumeOfSolid(bead), nominalVolume: volumeOfSolid(bead), sharedSeams: [], corner: 'mitred' };
   return { kind: 'solid', parts: [{ solid: bead, bead: bead_ }] };
 }
 /**
@@ -3067,12 +3070,12 @@ function gussetBead(byMember: ReadonlyMap<number, Part>, gp: Part, frame: string
     for (const side of [1, -1]) {
       const B0 = add(S0, scale(G.n, G.offset + side * G.t / 2)), tri = [B0, add(B0, scale(G.n, side * z)), add(B0, scale(d, z))];
       const outer: ProfileSegmentInput[] = tri.map(Q => ({ kind: 'line', start: [dot(sub(Q, S0), d), dot(sub(Q, S0), m)] as XY }));
-      const piece = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer, heightMM: L, fromMM: 0, tag: `${at}.m${G.members[i]}.${side > 0 ? 'front' : 'back'}` }) }, d, m, sdir, S0);
+      const piece = placedSolid({ kind: 'upright', solid: prismaticFromProfile({ outer, height: L, from: 0, tag: `${at}.m${G.members[i]}.${side > 0 ? 'front' : 'back'}` }) }, d, m, sdir, S0);
       bead = bead ? boolean(bead, piece, 'union', id) : piece;
     }
   }
   const length = 2 * (l1 - c) + 2 * (l2 - c);
-  const bead_: BeadReport = { frame, on: { gusset }, kind: 'fillet', legMM: z, throatMM: z / Math.SQRT2, meets: [...G.members], seam: { lengthMM: length, flushMM: 0, exact: true }, volumeMM3: length * z * z / 2, nominalVolumeMM3: length * z * z / 2, sharedSeams: [], corner: 'mitred' };
+  const bead_: BeadReport = { frame, on: { gusset }, kind: 'fillet', leg: z, throat: z / Math.SQRT2, meets: [...G.members], seam: { length: length, flush: 0, exact: true }, volume: length * z * z / 2, nominalVolume: length * z * z / 2, sharedSeams: [], corner: 'mitred' };
   return { kind: 'solid', parts: [{ solid: bead!, bead: bead_ }] };
 }
 function moveAll(parts: readonly Part[], m: BrepAffine['matrix'], o: Point): Result {
@@ -3113,7 +3116,7 @@ function rotate(s: Solid, axis: CadPartAxis, deg: number, pivot: Point, rename?:
 function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly SweepStep[], at: string, fail: Tools['fail'], through?: XY, sideTags?: readonly string[]): { brep: Brep; mass: (density: number) => MassProperties } {
   if (profiling) profiling.sweeps++;
   // The path runs through the profile's centroid (or a given point): the profile is moved there, the body back.
-  const centre = through ?? buildProfileLoop(profile, { maximumSegments: 1024 }).centroidMM;
+  const centre = through ?? buildProfileLoop(profile, { maximumSegments: 1024 }).centroid;
   const outer: ProfileSegmentInput[] = profile.map(g => g.kind === 'line' ? { kind: 'line', start: [g.start[0] - centre[0], g.start[1] - centre[1]] } : { ...g, start: [g.start[0] - centre[0], g.start[1] - centre[1]], center: [g.center[0] - centre[0], g.center[1] - centre[1]] });
   let o: Point = [centre[0], centre[1], 0], x: Point = [1, 0, 0], y: Point = [0, 1, 0], z: Point = [0, 0, 1];
   // (Ids are identifiers; the pieces' faces are named `${at}.s${k}.…`.)
@@ -3124,7 +3127,7 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
   steps.forEach((st, k) => {
     const tag = `${at}_s${k}`;
     if (st.kind === 'straight') {
-      const prism = prismaticFromProfile({ outer, heightMM: st.length, tag, ...(sideTags ? { sideTags: { outer: sideTags } } : {}) });
+      const prism = prismaticFromProfile({ outer, height: st.length, tag, ...(sideTags ? { sideTags: { outer: sideTags } } : {}) });
       masses.push({ local: d => prismaticMassProperties(prism, d), axes: [x, y, z], offset: o });
       pieces.push(place(brepFromPrismatic(prism, { id: tag }), k));
       o = add(o, scale(z, st.length));
@@ -3134,10 +3137,10 @@ function sweepBrep(profile: readonly ProfileSegmentInput[], steps: readonly Swee
     const side = st.toward, sx = side === 'x' ? 1 : side === '-x' ? -1 : 0, sy = side === 'y' ? 1 : side === '-y' ? -1 : 0;
     const origin: XY = [sx * st.radius, sy * st.radius], direction: XY = sx ? [0, 1] : [1, 0];
     let turned: Brep;
-    try { turned = revolveProfile({ id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle, ...(sideTags ? { sideTags } : {}) }); }
+    try { turned = revolveProfile({ id: tag, profile: outer, axis: { origin, direction }, angle: st.angle, ...(sideTags ? { sideTags } : {}) }); }
     catch (cause) { if (cause instanceof BrepError && /axis/.test(cause.message)) fail('PARAMETER', `bend ${k}: the profile reaches the bend's axis (use a radius larger than the profile's reach towards ${side})`); throw cause; }
     pieces.push(place(turned!, k));
-    const input = { id: tag, profile: outer, axis: { origin, direction }, angleDegrees: st.angle };
+    const input = { id: tag, profile: outer, axis: { origin, direction }, angle: st.angle };
     masses.push({ local: d => revolveMassProperties(input, d), axes: [x, y, z], offset: o });
     // The frame turns about the axis by the bend's angle (z towards the side).
     const sideDir = sx ? scale(x, sx) : scale(y, sy), d = unit(cross(z, sideDir)), A = add(o, scale(sideDir, st.radius)), t = st.angle * Math.PI / 180;
@@ -3176,7 +3179,7 @@ function shellOf(part: Part, t: number, open: string[], at: string, fail: Tools[
     const mesh = facetTriangles(s.brep);
     try {
       const r = meshInnerOffset(mesh.positions, mesh.indices, t);
-      const cavity = facetBrepFromTriangles(r.positions, mesh.indices, { id: `${at}_in`, maximumTriangles: CadPartLimits.meshTriangles, groups: mesh.groups, groupName: g => `${at}.in.${mesh.names[g]}`, creaseDegrees: 180 });
+      const cavity = facetBrepFromTriangles(r.positions, mesh.indices, { id: `${at}_in`, maximumTriangles: CadPartLimits.meshTriangles, groups: mesh.groups, groupName: g => `${at}.in.${mesh.names[g]}`, crease: 180 });
       return { solid: { kind: 'brep', brep: withCavities(s.brep, cavity, { family: 'shell', id: at }) }, shell: r.report };
     } catch (cause) {
       const m = cause instanceof BrepError ? /CAPABILITY: (.*)$/s.exec(cause.message) : null;
@@ -3319,7 +3322,7 @@ function sectionRing(profile: readonly ProfileSegmentInput[], sideTags?: readonl
   const tagOf = (i: number) => sideTags ? `side[${sideTags[built.length > 1 ? (loop0.reversed ? built.length - 1 - i : i) : 0]}]` : `side${i}`;
   // A single circle is two halves (side0, side1), as the revolved body has it.
   const loop = built.length > 1 ? built : (() => { const a = built[0] as Extract<typeof built[number], { kind: 'arc' }>; return [{ ...a, sweep: a.sweep / 2 }, { ...a, startAngle: a.startAngle + a.sweep / 2, sweep: a.sweep / 2 }]; })();
-  return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: tagOf(i) } : { kind: 'arc', c: g.center, r: g.radiusMM, t0: g.startAngle, sweep: g.sweep, tag: tagOf(i) });
+  return loop.map((g, i): LineArc => g.kind === 'line' ? { kind: 'line', a: g.start, b: g.end, tag: tagOf(i) } : { kind: 'arc', c: g.center, r: g.radius, t0: g.startAngle, sweep: g.sweep, tag: tagOf(i) });
 }
 const ringsOfRegions = (rs: readonly CurveRegion2[]) => rs.flatMap(r => [r.outer, ...r.holes]);
 /** Each body of a B-rep on its own: its shells, faces, loops, coedges, edges and vertices. */
@@ -3340,7 +3343,7 @@ const renamed = (b: Brep, from: string, to: string) => transformBrep(b, { matrix
  * its mass the body's less the hollow's part inside it (also turned: closed form).
  */
 function shellRevolved(part: Part, input: RevolveInput, t: number, open: string[], at: string, fail: Tools['fail']): Part {
-  if (input.angleDegrees !== 360) fail('CAPABILITY', 'shell works on bodies turned a full turn yet (this one stops at its start and end faces)');
+  if (input.angle !== 360) fail('CAPABILITY', 'shell works on bodies turned a full turn yet (this one stops at its start and end faces)');
   const id = input.id!, ring = sectionRing(input.profile, input.sideTags), tags = new Set(ring.map(g => g.tag!)), tol = curveTolerance([ring]);
   const openTags = new Set(open.map(n => { const tag = n.startsWith(id + '.') ? n.slice(id.length + 1).replace(/#\d+$/, '') : ''; if (!tags.has(tag)) fail('SELECTION', `no face named ${n} to open; faces: ${[...tags].map(x => `${id}.${x}`).slice(0, 12).join(', ')}`); return tag; }));
   // The axis, its side the profile is on, and the mirror across it.
@@ -3362,10 +3365,10 @@ function shellRevolved(part: Part, input: RevolveInput, t: number, open: string[
   const half = booleanCurveRegions(ringsOfRegions(inner), [orient(halfPlane)], 'intersection', tol);
   if (!half.length || area(half) <= tol * tol) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this body`);
   if (half.some(r => r.holes.length)) fail('CAPABILITY', 'shell of a revolved body whose hollow section has islands is not supported yet');
-  const pieces = half.map((r, k) => ({ id: `${at}_in${k}`, profile: profileOfRing(r.outer), axis: input.axis, angleDegrees: 360 }));
+  const pieces = half.map((r, k) => ({ id: `${at}_in${k}`, profile: profileOfRing(r.outer), axis: input.axis, angle: 360 }));
   const hollow = mergeBreps(pieces.map(pc => renamed(revolveProfile(pc), `${at}_in`, `${at}.in`)), { family: 'revolve', id: `${at}_hollow` });
   // The hollow inside the body: the eroded half within the profile (an opening runs out past it).
-  const inside = booleanCurveRegions(ringsOfRegions(half), [orient(ring)], 'intersection', tol).map((r, k) => ({ id: `${at}_m${k}`, profile: profileOfRing(r.outer), axis: input.axis, angleDegrees: 360 }));
+  const inside = booleanCurveRegions(ringsOfRegions(half), [orient(ring)], 'intersection', tol).map((r, k) => ({ id: `${at}_m${k}`, profile: profileOfRing(r.outer), axis: input.axis, angle: 360 }));
   // Nothing opened: the hollow lies inside, apart from the walls — a cavity, no Boolean needed.
   const solid: Solid = openTags.size ? boolean(part.solid, { kind: 'brep', brep: hollow }, 'difference', at) : { kind: 'brep', brep: withCavities(brepOf(part, 'target'), hollow, { family: 'shell', id: at }) };
   return { solid, mass: d => massLess(revolveMassProperties(input, d), inside.map(pc => revolveMassProperties(pc, d))) };
@@ -3381,7 +3384,7 @@ function shellSwept(part: Part, swept: NonNullable<Part['swept']>, t: number, op
   const names = new Set(brep.faces.map(f => f.name ?? '')), startName = [`${at}`].length ? [...names].find(n => /\.s0\.(bottom|start)$/.test(n)) : undefined, endName = [...names].find(n => new RegExp(`\\.s${last}\\.(top|end)$`).test(n));
   for (const n of open) if (n !== startName && n !== endName) fail(names.has(n) ? 'CAPABILITY' : 'SELECTION', names.has(n) ? `only a swept body's end faces can be opened yet (${startName}, ${endName})` : `no face named ${n} to open; faces: ${[startName, endName].join(', ')}`);
   const openStart = !!startName && open.includes(startName), openEnd = !!endName && open.includes(endName);
-  const ring = sectionRing(swept.profile, swept.sideTags), tol = curveTolerance([ring]), centre = buildProfileLoop(swept.profile, { maximumSegments: 1024 }).centroidMM;
+  const ring = sectionRing(swept.profile, swept.sideTags), tol = curveTolerance([ring]), centre = buildProfileLoop(swept.profile, { maximumSegments: 1024 }).centroid;
   const inner = erodeSection([{ outer: ring, holes: [] }], t, () => false, () => 'wall', tol);
   if (!inner.length) fail('PARAMETER', `a wall of ${t} mm leaves no hollow inside this section`);
   if (inner.length > 1 || inner[0].holes.length) fail('CAPABILITY', 'shell of a swept body whose hollow section falls apart is not supported yet');
@@ -3657,7 +3660,7 @@ export function flatPatternOf(output: CadPartOutput, options: { readonly fixedFa
   const k = options.kFactor ?? s.kFactor, key = `${options.fixedFace ?? s.fixedFace}|${k ?? 'table'}`;
   const hit = st.flats.get(key); if (hit) return hit;
   try {
-    const flat = sheetFlatPattern(output.brep, { thicknessMM: s.thicknessMM, ...(k !== undefined ? { kFactor: k } : { bendTable: s.bendTable! }), fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
+    const flat = sheetFlatPattern(output.brep, { thickness: s.thickness, ...(k !== undefined ? { kFactor: k } : { bendTable: s.bendTable! }), fixedFace: options.fixedFace ?? s.fixedFace, bendNames: s.bends.map(b => ({ name: b.name, faces: [b.inner, b.outer] })) });
     st.flats.set(key, flat); return flat;
   } catch (cause) {
     if (isFlatPatternError(cause)) throw new CadPartError(cause.code === 'CUT_ACROSS_BEND' ? 'CAPABILITY' : 'GEOMETRY', id, cause.message);
@@ -3666,7 +3669,7 @@ export function flatPatternOf(output: CadPartOutput, options: { readonly fixedFa
 }
 function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
   const mesh = tessellateBrep(brep, { segmentsPerQuarter });
-  return encodeBinaryStl(mesh.positionsMM, mesh.indices, 'barocss part (mm)');
+  return encodeBinaryStl(mesh.positions, mesh.indices, 'barocss part (mm)');
 }
 
 /**

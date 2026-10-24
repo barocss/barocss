@@ -50,60 +50,60 @@ const r6 = (x: number) => +x.toFixed(6);
 
 export interface CamSegment {
   /** The cam's turn over the segment. */
-  readonly angleDeg: number;
+  readonly angle: number;
   /** The follower's position at the segment's end (mm, or the arm's degrees when oscillating); omitted: a dwell. */
   readonly to?: number;
   readonly law?: CamLaw;
 }
 export interface CamSpec {
   /** The cam's base circle (its profile's least radius). */
-  readonly baseRadiusMM: number;
+  readonly baseRadius: number;
   readonly follower: 'roller' | 'flat';
   readonly motion?: 'translating' | 'oscillating';
-  readonly rollerRadiusMM?: number;
+  readonly rollerRadius?: number;
   /** Translating: the follower's line off the cam's centre (along +x). */
-  readonly offsetMM?: number;
+  readonly offset?: number;
   /** Oscillating: the arm's pivot at (a, 0). */
-  readonly pivotDistanceMM?: number;
+  readonly pivotDistance?: number;
   /** Oscillating roller: pivot to roller centre. */
-  readonly armLengthMM?: number;
+  readonly armLength?: number;
   /** Oscillating flat face: the face's distance from the pivot toward the cam (default 0). */
-  readonly faceOffsetMM?: number;
+  readonly faceOffset?: number;
   /** Flat face: its width about the follower's line (translating) or its length from the pivot (oscillating), checked. */
-  readonly faceWidthMM?: number;
+  readonly faceWidth?: number;
   /** Starting at 0; the last segment ends at 0; their angles sum to 360°. */
   readonly segments: readonly CamSegment[];
-  readonly thicknessMM: number;
-  readonly boreDiameterMM?: number;
+  readonly thickness: number;
+  readonly boreDiameter?: number;
   /** The least rim round a bore, below the base circle; default 1 mm (geometry only: not a strength check). */
-  readonly minimumRimMM?: number;
+  readonly minimumRim?: number;
   /** Default 30° translating, 35° oscillating: a rule-of-thumb estimate, attributed to no source (the user sets their own). */
-  readonly pressureAngleLimitDeg?: number;
+  readonly pressureAngleLimit?: number;
   /** Default 1e-4 of the base radius. */
-  readonly profileToleranceMM?: number;
+  readonly profileTolerance?: number;
 }
 export interface CamSegmentReport {
   readonly index: number; readonly motion: 'rise' | 'return' | 'dwell'; readonly law?: CamLaw;
-  readonly startDeg: number; readonly endDeg: number; readonly from: number; readonly to: number;
+  readonly start: number; readonly end: number; readonly from: number; readonly to: number;
   /** Per radian of the cam's turn, in the program's units (|Δ| Cv/β, |Δ| Ca/β²). */
   readonly peakVelocity: number; readonly peakAcceleration: number;
 }
 export interface CamReport {
   readonly generator: 'cam@0'; readonly motion: 'translating' | 'oscillating'; readonly follower: 'roller' | 'flat';
-  readonly baseRadiusMM: number; readonly rollerRadiusMM?: number; readonly primeRadiusMM?: number; readonly offsetMM?: number;
-  readonly pivotDistanceMM?: number; readonly armLengthMM?: number; readonly faceOffsetMM?: number;
+  readonly baseRadius: number; readonly rollerRadius?: number; readonly primeRadius?: number; readonly offset?: number;
+  readonly pivotDistance?: number; readonly armLength?: number; readonly faceOffset?: number;
   /** Oscillating: the arm's angle at rest, ψ0. */
-  readonly restAngleDeg?: number;
+  readonly restAngle?: number;
   readonly units: 'mm' | 'deg'; readonly stroke: number;
   readonly segments: readonly CamSegmentReport[];
-  readonly pressureAngle: { readonly maxDeg: number; readonly atDeg: number; readonly limitDeg: number; readonly limitEstimate: boolean; readonly limitSource?: string };
+  readonly pressureAngle: { readonly max: number; readonly at: number; readonly limit: number; readonly limitEstimate: boolean; readonly limitSource?: string };
   /** Roller: the pitch curve's least convex radius; both: the profile's least convex radius (flat: ρ = h + h_ββ). */
-  readonly curvature: { readonly leastPitchRadiusMM?: number; readonly leastProfileRadiusMM: number; readonly atDeg: number };
+  readonly curvature: { readonly leastPitchRadius?: number; readonly leastProfileRadius: number; readonly at: number };
   /** Flat face: where it touches, along the face from the follower's line (translating) or from the pivot (oscillating). */
-  readonly faceContactMM?: readonly [number, number];
-  readonly profilePieces: number; readonly profileDeviationMM: number; readonly profileToleranceMM: number;
+  readonly faceContact?: readonly [number, number];
+  readonly profilePieces: number; readonly profileDeviation: number; readonly profileTolerance: number;
   /** The follower's position found on the built profile against the law, every half degree. */
-  readonly sweep: { readonly samples: number; readonly deviation: number; readonly deviationMM: number; readonly atDeg: number };
+  readonly sweep: { readonly samples: number; readonly deviation: number; readonly at: number };
   readonly warnings: readonly { readonly code: CamWarningCode; readonly message: string }[];
   readonly manufacturingValidated: false;
 }
@@ -150,13 +150,13 @@ function program(spec: CamSpec, k: number): Seg[] {
   let at = 0, pos = 0;
   const out: Seg[] = [];
   list.forEach((g, i) => {
-    if (!(num(g.angleDeg) && g.angleDeg > 0)) fail('INVALID_INPUT', `segment ${i + 1}: angleDeg must be a number of degrees above 0`);
+    if (!(num(g.angle) && g.angle > 0)) fail('INVALID_INPUT', `segment ${i + 1}: angle must be a number of degrees above 0`);
     if (g.to !== undefined && !num(g.to)) fail('INVALID_INPUT', `segment ${i + 1}: to must be a number`);
     if (g.to !== undefined && g.to < 0) fail('INVALID_INPUT', `segment ${i + 1}: to ${g.to} below 0 — the follower never goes below its rest on the base circle`);
     const to = g.to === undefined ? pos : g.to * k, moves = Math.abs(to - pos) > 1e-12;
     if (moves && (g.law === undefined || !CAM_LAWS.includes(g.law))) fail('INVALID_INPUT', `segment ${i + 1}: a motion needs a law (${CAM_LAWS.join(', ')})`);
     if (g.law !== undefined && !CAM_LAWS.includes(g.law)) fail('INVALID_INPUT', `segment ${i + 1}: law ${String(g.law)} is not one of ${CAM_LAWS.join(', ')}`);
-    const a = at, b = at + g.angleDeg * Math.PI / 180;
+    const a = at, b = at + g.angle * Math.PI / 180;
     out.push({ a, b, p0: pos, p1: to, ...(moves ? { law: g.law } : {}), motion: !moves ? 'dwell' : to > pos ? 'rise' : 'return' });
     at = b; pos = to;
   });
@@ -192,10 +192,10 @@ interface CamGeometry {
 }
 
 function geometry(spec: CamSpec, motion: 'translating' | 'oscillating', segs: () => Seg[]): CamGeometry {
-  const rb = spec.baseRadiusMM, k = motion === 'oscillating' ? Math.PI / 180 : 1;
+  const rb = spec.baseRadius, k = motion === 'oscillating' ? Math.PI / 180 : 1;
   if (spec.follower === 'roller') {
-    const rr = spec.rollerRadiusMM;
-    if (!(num(rr) && rr! > 0)) fail('INVALID_INPUT', 'rollerRadiusMM must be a number of mm above 0');
+    const rr = spec.rollerRadius;
+    if (!(num(rr) && rr! > 0)) fail('INVALID_INPUT', 'rollerRadius must be a number of mm above 0');
     const Rp = rb + rr!;
     const point = (C: V2, C1: V2, C2: V2, u: V2, th: number): CamPoint => {
       const Q1: V2 = [C1[0] + C[1], C1[1] - C[0]], JC1 = J(C1), Q2: V2 = [C2[0] - 2 * JC1[0] - C[0], C2[1] - 2 * JC1[1] - C[1]];
@@ -204,18 +204,18 @@ function geometry(spec: CamSpec, motion: 'translating' | 'oscillating', segs: ()
       return { K: back(Kw, th), dK: back([Q1[0] * g, Q1[1] * g], th), rho: kap < 0 ? -1 / kap - rr! : Infinity, pitchRho: kap < 0 ? -1 / kap : Infinity, phi: Math.atan2(cross(u, n), dot(u, n)) };
     };
     if (motion === 'translating') {
-      const e = spec.offsetMM ?? 0;
-      if (!num(e)) fail('INVALID_INPUT', 'offsetMM must be a number of mm');
+      const e = spec.offset ?? 0;
+      if (!num(e)) fail('INVALID_INPUT', 'offset must be a number of mm');
       if (!(Math.abs(e) < Rp)) fail('INVALID_INPUT', `an offset of ${e} mm reaches past the prime circle (R ${r6(Rp)} = base + roller)`);
       const d = Math.sqrt(Rp * Rp - e * e);
       return {
         at: (g, th) => { const [s, s1, s2] = segMotion(g, th); return point([e, d + s], [0, s1], [0, s2], [0, 1], th); },
         roller: p => [e, d + p], convexStep: (_p, dv) => dv < 0, units: 'mm', k, mmPerUnit: 1,
-        report: { rollerRadiusMM: rr, primeRadiusMM: r6(Rp), offsetMM: e },
+        report: { rollerRadius: rr, primeRadius: r6(Rp), offset: e },
       };
     }
-    const a = spec.pivotDistanceMM, l = spec.armLengthMM;
-    if (!(num(a) && a! > 0) || !(num(l) && l! > 0)) fail('INVALID_INPUT', 'an oscillating roller follower needs pivotDistanceMM and armLengthMM, numbers of mm above 0');
+    const a = spec.pivotDistance, l = spec.armLength;
+    if (!(num(a) && a! > 0) || !(num(l) && l! > 0)) fail('INVALID_INPUT', 'an oscillating roller follower needs pivotDistance and armLength, numbers of mm above 0');
     const c0 = (a! * a! + l! * l! - Rp * Rp) / (2 * a! * l!);
     if (!(c0 > -1 && c0 < 1)) fail('INVALID_INPUT', `an arm of ${l} mm about a pivot ${a} mm off the centre never reaches the prime circle (R ${r6(Rp)})`);
     const psi0 = Math.acos(c0), top = Math.max(...segs().map(g => g.p1));
@@ -226,31 +226,31 @@ function geometry(spec: CamSpec, motion: 'translating' | 'oscillating', segs: ()
         return point([a! - l! * cs, l! * sn], [l! * s1 * sn, l! * s1 * cs], [l! * (s2 * sn + s1 * s1 * cs), l! * (s2 * cs - s1 * s1 * sn)], [sn, cs], th);
       },
       roller: p => [a! - l! * Math.cos(psi0 + p), l! * Math.sin(psi0 + p)], convexStep: (_p, dv) => dv < 0, units: 'deg', k, mmPerUnit: l! * Math.PI / 180,
-      report: { rollerRadiusMM: rr, primeRadiusMM: r6(Rp), pivotDistanceMM: a, armLengthMM: l, restAngleDeg: r6(deg(psi0)) },
+      report: { rollerRadius: rr, primeRadius: r6(Rp), pivotDistance: a, armLength: l, restAngle: r6(deg(psi0)) },
     };
   }
   if (spec.follower !== 'flat') fail('INVALID_INPUT', `follower ${String(spec.follower)} is not roller or flat`);
-  if (spec.rollerRadiusMM !== undefined) fail('INVALID_INPUT', 'a flat-faced follower has no roller');
+  if (spec.rollerRadius !== undefined) fail('INVALID_INPUT', 'a flat-faced follower has no roller');
   // The envelope of the face's lines in the cam's frame (support function h at angle β, both of θ).
   const envelope = (h: number, h1: number, h2: number, be: number, b1: number, b2: number, nw: V2, w: V2, A: V2 | null): CamPoint => {
     const hb = h1 / b1, hbb = (h2 * b1 - h1 * b2) / (b1 * b1 * b1), rho = h + hbb, m: V2 = [Math.cos(be), Math.sin(be)], Jm = J(m);
     const Kw: V2 = [h * nw[0] + hb * -nw[1], h * nw[1] + hb * nw[0]];
     const ww: V2 = A ? [Kw[1] - A[1], -(Kw[0] - A[0])] : w;
     // (Along the face: from the follower's line, translating; from the pivot along the arm, oscillating.)
-    const along = A ? dot(J(nw), [Kw[0] - A[0], Kw[1] - A[1]]) : Kw[0] - (spec.offsetMM ?? 0);
+    const along = A ? dot(J(nw), [Kw[0] - A[0], Kw[1] - A[1]]) : Kw[0] - (spec.offset ?? 0);
     return { K: [h * m[0] + hb * Jm[0], h * m[1] + hb * Jm[1]], dK: [rho * b1 * Jm[0], rho * b1 * Jm[1]], rho: b1 < 0 ? rho : -Infinity, phi: Math.atan2(cross(ww, nw), dot(ww, nw)), along };
   };
   if (motion === 'translating') {
-    const e = spec.offsetMM ?? 0;
-    if (!num(e)) fail('INVALID_INPUT', 'offsetMM must be a number of mm');
+    const e = spec.offset ?? 0;
+    if (!num(e)) fail('INVALID_INPUT', 'offset must be a number of mm');
     return {
       at: (g, th) => { const [s, s1, s2] = segMotion(g, th); return envelope(rb + s, s1, s2, Math.PI / 2 - th, -1, 0, [0, 1], [0, 1], null); },
-      face: p => ({ n: [0, 1], h: rb + p }), convexStep: (_p, dv) => dv < 0, units: 'mm', k, mmPerUnit: 1, report: { offsetMM: e },
+      face: p => ({ n: [0, 1], h: rb + p }), convexStep: (_p, dv) => dv < 0, units: 'mm', k, mmPerUnit: 1, report: { offset: e },
     };
   }
-  const a = spec.pivotDistanceMM, c = spec.faceOffsetMM ?? 0;
-  if (!(num(a) && a! > 0)) fail('INVALID_INPUT', 'an oscillating flat-faced follower needs pivotDistanceMM, a number of mm above 0');
-  if (!num(c)) fail('INVALID_INPUT', 'faceOffsetMM must be a number of mm');
+  const a = spec.pivotDistance, c = spec.faceOffset ?? 0;
+  if (!(num(a) && a! > 0)) fail('INVALID_INPUT', 'an oscillating flat-faced follower needs pivotDistance, a number of mm above 0');
+  if (!num(c)) fail('INVALID_INPUT', 'faceOffset must be a number of mm');
   const s0 = (rb + c) / a!;
   if (!(s0 > 0 && s0 < 1)) fail('INVALID_INPUT', `a face ${c} mm from a pivot ${a} mm off the centre never touches the base circle (sin ψ0 = (r_b + c)/a = ${r6(s0)})`);
   const psi0 = Math.asin(s0), top = Math.max(...segs().map(g => g.p1));
@@ -264,7 +264,7 @@ function geometry(spec: CamSpec, motion: 'translating' | 'oscillating', segs: ()
     face: p => ({ n: [Math.sin(psi0 + p), Math.cos(psi0 + p)], h: a! * Math.sin(psi0 + p) - c }),
     // (The sweep's deviation in mm: the arm's angle at the pivot's distance.)
     convexStep: (p, dv) => dv * Math.cos(psi0 + p) < 0, units: 'deg', k, mmPerUnit: a! * Math.PI / 180,
-    report: { pivotDistanceMM: a, faceOffsetMM: c, restAngleDeg: r6(deg(psi0)) },
+    report: { pivotDistance: a, faceOffset: c, restAngle: r6(deg(psi0)) },
   };
 }
 
@@ -293,22 +293,22 @@ function extreme(f: (th: number) => number, a: number, b: number, n: number): { 
 
 /** The profile's pieces (counter-clockwise round the cam), the bore's, and the report. */
 export function camProfile(spec: CamSpec): { pieces: { name: string; curve: Curve }[]; bore: { name: string; curve: Curve }[]; report: CamReport; segments: readonly { motion: string; index: number }[] } {
-  const rb = spec.baseRadiusMM;
-  if (!(num(rb) && rb > 0)) fail('INVALID_INPUT', 'baseRadiusMM must be a number of mm above 0');
-  if (!(num(spec.thicknessMM) && spec.thicknessMM > 0)) fail('INVALID_INPUT', 'thicknessMM must be a number of mm above 0');
+  const rb = spec.baseRadius;
+  if (!(num(rb) && rb > 0)) fail('INVALID_INPUT', 'baseRadius must be a number of mm above 0');
+  if (!(num(spec.thickness) && spec.thickness > 0)) fail('INVALID_INPUT', 'thickness must be a number of mm above 0');
   const motion = spec.motion ?? 'translating';
   if (motion !== 'translating' && motion !== 'oscillating') fail('INVALID_INPUT', `motion ${String(motion)} is not translating or oscillating`);
-  if (spec.follower === 'roller' && spec.faceOffsetMM !== undefined) fail('INVALID_INPUT', 'a roller follower has no face offset');
-  if (motion === 'translating' && (spec.pivotDistanceMM !== undefined || spec.armLengthMM !== undefined || spec.faceOffsetMM !== undefined)) fail('INVALID_INPUT', 'a pivot, an arm and a face offset belong to an oscillating follower');
-  if (motion === 'oscillating' && spec.offsetMM !== undefined) fail('INVALID_INPUT', 'an offset belongs to a translating follower');
+  if (spec.follower === 'roller' && spec.faceOffset !== undefined) fail('INVALID_INPUT', 'a roller follower has no face offset');
+  if (motion === 'translating' && (spec.pivotDistance !== undefined || spec.armLength !== undefined || spec.faceOffset !== undefined)) fail('INVALID_INPUT', 'a pivot, an arm and a face offset belong to an oscillating follower');
+  if (motion === 'oscillating' && spec.offset !== undefined) fail('INVALID_INPUT', 'an offset belongs to a translating follower');
   const k = motion === 'oscillating' ? Math.PI / 180 : 1;
   let cached: Seg[] | undefined;
   const segs = () => cached ?? (cached = program(spec, k));
   const G = geometry(spec, motion, segs), list = segs();
-  const tol = spec.profileToleranceMM ?? 1e-4 * rb;
-  if (!(num(tol) && tol > 0)) fail('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
-  const limit = spec.pressureAngleLimitDeg ?? (motion === 'oscillating' ? 35 : 30);
-  if (!(num(limit) && limit > 0 && limit < 90)) fail('INVALID_INPUT', 'pressureAngleLimitDeg must be a number of degrees between 0 and 90');
+  const tol = spec.profileTolerance ?? 1e-4 * rb;
+  if (!(num(tol) && tol > 0)) fail('INVALID_INPUT', 'profileTolerance must be a number of mm above 0');
+  const limit = spec.pressureAngleLimit ?? (motion === 'oscillating' ? 35 : 30);
+  if (!(num(limit) && limit > 0 && limit < 90)) fail('INVALID_INPUT', 'pressureAngleLimit must be a number of degrees between 0 and 90');
   const warnings: { code: CamWarningCode; message: string }[] = [];
   const at = (th: number) => `${r6(deg(th))}°`, u = (x: number) => r6(G.units === 'deg' ? deg(x) : x);
   // Steps at the joints: of the velocity, a corner (refused); of the acceleration, infinite jerk (a warning).
@@ -319,7 +319,7 @@ export function camProfile(spec: CamSpec): { pieces: { name: string; curve: Curv
     const L = list[i], R = list[(i + 1) % list.length], [, v0, a0] = segMotion(L, L.b), [, v1, a1] = segMotion(R, R.a);
     if (Math.abs(v1 - v0) > 1e-9 * scale) {
       const where = at(L.b % (2 * Math.PI)), conv = list.map((g, j) => ({ j, dv: segMotion(list[(j + 1) % list.length], list[(j + 1) % list.length].a)[1] - segMotion(g, g.b)[1], p: g.p1 })).find(x => Math.abs(x.dv) > 1e-9 * scale && G.convexStep(x.p, x.dv));
-      if (conv) fail('CAM_UNDERCUT', `the follower's velocity steps by ${u(conv.dv)} ${G.units}/rad at ${at(list[conv.j].b % (2 * Math.PI))} (the ${list[conv.j].law ?? list[(conv.j + 1) % list.length].law ?? 'uniform'} law's end): a corner in the cam's path that no ${spec.follower === 'roller' ? 'roller' : 'flat face'} traces (its radius of curvature 0${spec.follower === 'roller' ? ` < r_r ${spec.rollerRadiusMM}` : ''}); every law but uniform starts and ends at rest`);
+      if (conv) fail('CAM_UNDERCUT', `the follower's velocity steps by ${u(conv.dv)} ${G.units}/rad at ${at(list[conv.j].b % (2 * Math.PI))} (the ${list[conv.j].law ?? list[(conv.j + 1) % list.length].law ?? 'uniform'} law's end): a corner in the cam's path that no ${spec.follower === 'roller' ? 'roller' : 'flat face'} traces (its radius of curvature 0${spec.follower === 'roller' ? ` < r_r ${spec.rollerRadius}` : ''}); every law but uniform starts and ends at rest`);
       fail('INVALID_INPUT', `the follower's velocity steps by ${u(v1 - v0)} ${G.units}/rad at ${where}: the profile would need a flat there, not built (cam@0)`);
     }
     if (Math.abs(a1 - a0) > 1e-9 * scaleA) warnings.push({ code: 'ACCELERATION_STEP', message: `ACCELERATION_STEP: the acceleration steps by ${u(a1 - a0)} ${G.units}/rad² at ${at(L.b % (2 * Math.PI))} (infinite jerk: Norton's fundamental law of cam design; the ${L.law ?? R.law} law at a dwell)` });
@@ -335,20 +335,20 @@ export function camProfile(spec: CamSpec): { pieces: { name: string; curve: Curv
     if (spec.follower === 'flat') { along = [Math.min(along[0], -extreme(th => -G.at(g, th).along!, g.a, g.b, n).value), Math.max(along[1], extreme(th => G.at(g, th).along!, g.a, g.b, n).value)]; }
   }
   if (!(leastRho > 0)) {
-    if (spec.follower === 'roller') fail('CAM_UNDERCUT', `the pitch curve's convex radius of curvature falls to ${r6(leastPitch)} mm at ${at(leastAt)}, at most the roller's r_r ${spec.rollerRadiusMM}: the profile undercuts (a larger base circle, a smaller roller or a longer rise)`);
+    if (spec.follower === 'roller') fail('CAM_UNDERCUT', `the pitch curve's convex radius of curvature falls to ${r6(leastPitch)} mm at ${at(leastAt)}, at most the roller's r_r ${spec.rollerRadius}: the profile undercuts (a larger base circle, a smaller roller or a longer rise)`);
     fail('CAM_UNDERCUT', Number.isFinite(leastRho) ? `the flat face's profile has radius of curvature ρ = h + h_ββ ${r6(leastRho)} mm ≤ 0 at ${at(leastAt)}: the face cannot follow the law (a larger base circle or a longer rise)` : `the face turns faster than the cam at ${at(leastAt)} (1 + ψ' ≤ 0): no envelope`);
   }
-  const est = spec.pressureAngleLimitDeg === undefined;
+  const est = spec.pressureAngleLimit === undefined;
   if (deg(phiMax) > limit) warnings.push({ code: 'PRESSURE_ANGLE', message: `PRESSURE_ANGLE: the pressure angle reaches ${r6(deg(phiMax))}° at ${at(phiAt)}, above ${limit}°${est ? ' (a rule of thumb, an estimate)' : ''}` });
-  const fw = spec.faceWidthMM;
-  if (fw !== undefined && !(num(fw) && fw > 0)) fail('INVALID_INPUT', 'faceWidthMM must be a number of mm above 0');
+  const fw = spec.faceWidth;
+  if (fw !== undefined && !(num(fw) && fw > 0)) fail('INVALID_INPUT', 'faceWidth must be a number of mm above 0');
   if (spec.follower === 'flat' && fw !== undefined) {
     const off = motion === 'translating' ? along[0] < -fw / 2 - 1e-9 || along[1] > fw / 2 + 1e-9 : along[0] < -1e-9 || along[1] > fw + 1e-9;
     if (off) warnings.push({ code: 'FACE_WIDTH', message: `FACE_WIDTH: the contact runs ${r6(along[0])} to ${r6(along[1])} mm ${motion === 'translating' ? 'about the follower\'s line' : 'from the pivot'}, off a face ${fw} mm ${motion === 'translating' ? 'wide' : 'long'}` });
   }
   // The bore.
-  const bd = spec.boreDiameterMM ?? 0, rim = spec.minimumRimMM ?? 1;
-  if (!(num(bd) && bd >= 0) || !(num(rim) && rim >= 0)) fail('INVALID_INPUT', 'boreDiameterMM and minimumRimMM must be numbers of mm, 0 or more');
+  const bd = spec.boreDiameter ?? 0, rim = spec.minimumRim ?? 1;
+  if (!(num(bd) && bd >= 0) || !(num(rim) && rim >= 0)) fail('INVALID_INPUT', 'boreDiameter and minimumRim must be numbers of mm, 0 or more');
   if (bd > 0 && !(bd / 2 <= rb - rim)) fail('INVALID_INPUT', `a bore of ${bd} mm leaves less than the ${rim} mm rim below the base circle (Ø${2 * rb}): at most Ø${r6(2 * (rb - rim))}`);
   // The fit: Hermite cubics in θ per segment, each segment's pieces doubled until it is within the tolerance.
   const counts = list.map(g => Math.max(2, Math.ceil(32 * (g.b - g.a) / (2 * Math.PI))));
@@ -372,7 +372,7 @@ export function camProfile(spec: CamSpec): { pieces: { name: string; curve: Curv
     if (counts.reduce((x, y) => x + y, 0) > BUDGET) fail('PROFILE_BUDGET_EXCEEDED', `the profile needs more than ${BUDGET} pieces to stay within ${tol} mm (a larger tolerance)`);
   }
   // The follower's position on the built profile every half degree, against the law.
-  const flat = poles.flat(), samples = 720, sweep = sweepBuilt(G, flat, list, samples, spec.rollerRadiusMM ?? 0);
+  const flat = poles.flat(), samples = 720, sweep = sweepBuilt(G, flat, list, samples, spec.rollerRadius ?? 0);
   // Counter-clockwise for the solid: the pieces in falling θ, each reversed.
   const names: { motion: string; index: number }[] = [], pieces: { name: string; curve: Curve }[] = [];
   const counter: Record<string, number> = {};
@@ -383,16 +383,16 @@ export function camProfile(spec: CamSpec): { pieces: { name: string; curve: Curv
   }
   const bore = bd > 0 ? [{ name: 'bore#1', curve: arcCurve('b', bd / 2, 0, -Math.PI) }, { name: 'bore#2', curve: arcCurve('b', bd / 2, -Math.PI, -Math.PI) }] : [];
   const report: CamReport = {
-    generator: 'cam@0', motion, follower: spec.follower, baseRadiusMM: rb, ...G.report, units: G.units,
+    generator: 'cam@0', motion, follower: spec.follower, baseRadius: rb, ...G.report, units: G.units,
     stroke: u(Math.max(...list.map(g => g.p1))),
     segments: list.map((g, i) => {
       const be = g.b - g.a, d = Math.abs(g.p1 - g.p0), pk = g.law ? camLawPeaks(g.law) : { cv: 0, ca: 0 };
-      return { index: i + 1, motion: g.motion, ...(g.law ? { law: g.law } : {}), startDeg: r6(deg(g.a)), endDeg: r6(deg(g.b)), from: u(g.p0), to: u(g.p1), peakVelocity: u(d * pk.cv / be), peakAcceleration: u(d * pk.ca / (be * be)) };
+      return { index: i + 1, motion: g.motion, ...(g.law ? { law: g.law } : {}), start: r6(deg(g.a)), end: r6(deg(g.b)), from: u(g.p0), to: u(g.p1), peakVelocity: u(d * pk.cv / be), peakAcceleration: u(d * pk.ca / (be * be)) };
     }),
-    pressureAngle: { maxDeg: r6(deg(phiMax)), atDeg: r6(deg(phiAt)), limitDeg: limit, limitEstimate: est, ...(est ? { limitSource: 'a rule-of-thumb estimate, attributed to no source' } : {}) },
-    curvature: { ...(spec.follower === 'roller' ? { leastPitchRadiusMM: r6(leastPitch) } : {}), leastProfileRadiusMM: r6(leastRho), atDeg: r6(deg(leastAt)) },
-    ...(spec.follower === 'flat' ? { faceContactMM: [r6(along[0]), r6(along[1])] as const } : {}),
-    profilePieces: flat.length, profileDeviationMM: deviation, profileToleranceMM: tol, sweep, warnings, manufacturingValidated: false,
+    pressureAngle: { max: r6(deg(phiMax)), at: r6(deg(phiAt)), limit: limit, limitEstimate: est, ...(est ? { limitSource: 'a rule-of-thumb estimate, attributed to no source' } : {}) },
+    curvature: { ...(spec.follower === 'roller' ? { leastPitchRadius: r6(leastPitch) } : {}), leastProfileRadius: r6(leastRho), at: r6(deg(leastAt)) },
+    ...(spec.follower === 'flat' ? { faceContact: [r6(along[0]), r6(along[1])] as const } : {}),
+    profilePieces: flat.length, profileDeviation: deviation, profileTolerance: tol, sweep, warnings, manufacturingValidated: false,
   };
   return { pieces, bore, report, segments: names };
 }
@@ -443,7 +443,7 @@ function sweepBuilt(G: CamGeometry, pieces: readonly V2[][], list: readonly Seg[
     if (Math.abs(p1 - law) > worst) { worst = Math.abs(p1 - law); worstAt = th; }
   }
   const k = G.units === 'deg' ? 180 / Math.PI : 1;
-  return { samples, deviation: worst * k, deviationMM: worst * k * G.mmPerUnit, atDeg: r6(deg(worstAt)) };
+  return { samples, deviation: worst * k * G.mmPerUnit, at: r6(deg(worstAt)) };
 }
 
 /**
@@ -453,7 +453,7 @@ function sweepBuilt(G: CamGeometry, pieces: readonly V2[][], list: readonly Seg[
 export function discCam(spec: CamSpec, options: { readonly id?: string } = {}): { brep: Brep; report: CamReport } {
   const id = options.id ?? 'cam', { pieces, bore, report } = camProfile(spec);
   const R = Math.max(...pieces.flatMap(p => p.curve.controlPoints.map(q => Math.hypot(q[0], q[1])))) + 1;
-  const brep = extrudedProfile(id, 'cam', pieces.map(p => ({ name: `${id}.${p.name}`, curve: p.curve })), bore.map(p => ({ name: `${id}.${p.name}`, curve: p.curve })), spec.thicknessMM, R);
+  const brep = extrudedProfile(id, 'cam', pieces.map(p => ({ name: `${id}.${p.name}`, curve: p.curve })), bore.map(p => ({ name: `${id}.${p.name}`, curve: p.curve })), spec.thickness, R);
   return { brep, report };
 }
 /** The follower's position under the law at θ (degrees of the cam's turn): s in the program's units, s' and s'' per radian. */

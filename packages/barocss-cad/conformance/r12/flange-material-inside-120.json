@@ -39,7 +39,7 @@
           "target": "b",
           "edge": "b.side1|b.top",
           "length": 20,
-          "angleDegrees": 120
+          "angle": 120
         }
       ]
     }
@@ -47,11 +47,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 7074.006310122857,
           "relTol": 1e-9
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             44.94938800369294,
             25,
@@ -79,20 +79,20 @@
           "fl.tip"
         ],
         "sheet": {
-          "thicknessMM": 1.5,
-          "bendRadiusMM": 1.5,
+          "thickness": 1.5,
+          "bendRadius": 1.5,
           "kFactor": 0.44,
           "absTol": 1e-9,
           "bends": [
             {
               "name": "fl.bend",
-              "angleDegrees": 120,
-              "allowanceMM": 4.523893421169302
+              "angle": 120,
+              "allowance": 4.523893421169302
             }
           ]
         },
         "flat": {
-          "areaMM2": {
+          "area": {
             "value": 4706.579428787802,
             "relTol": 1e-12
           },
@@ -108,7 +108,7 @@
             {
               "name": "fl.bend",
               "direction": "up",
-              "angleDegrees": 120
+              "angle": 120
             }
           ]
         }

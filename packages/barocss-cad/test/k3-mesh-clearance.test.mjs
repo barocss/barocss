@@ -40,7 +40,7 @@ function triTri(T, U) {
 function brute(PA, IA, PB, IB) { let best = Infinity; for (let i = 0; i < IA.length / 3; i++) for (let j = 0; j < IB.length / 3; j++) best = Math.min(best, triTri(tri(PA, IA, i), tri(PB, IB, j))); return best; }
 /** The witnesses: |pA − pB| is the distance, pA on mesh A's surface and pB on B's (to rounding). */
 function witnesses(c, PA, IA, PB, IB, what) {
-  assert.ok(Math.abs(Math.hypot(...sub(c.pointA, c.pointB)) - c.distanceMM) <= 1e-9 * Math.max(1, c.distanceMM), `${what}: |pA − pB|`);
+  assert.ok(Math.abs(Math.hypot(...sub(c.pointA, c.pointB)) - c.distance) <= 1e-9 * Math.max(1, c.distance), `${what}: |pA − pB|`);
   assert.ok(nearestDistance2(triangleBvh(PA, IA), ...c.pointA) <= 1e-18, `${what}: pA on A`);
   assert.ok(nearestDistance2(triangleBvh(PB, IB), ...c.pointB) <= 1e-18, `${what}: pB on B`);
 }
@@ -65,7 +65,7 @@ test('K3: random triangle soups, apart and crossing — equal to the all-pairs b
     const A = soup(5 + trial % 17, [0, 0, 0]), B = soup(5 + (trial * 5) % 13, [r() * 14 - 2, r() * 8, r() * 8]);
     const c = meshClearance(A.P, A.I, B.P, B.I), want = brute(A.P, A.I, B.P, B.I);
     if (want === 0) crossing++; else apart++;
-    assert.ok(Math.abs(c.distanceMM - want) <= 1e-9 * Math.max(1, want), `trial ${trial}: ${c.distanceMM} vs ${want}`);
+    assert.ok(Math.abs(c.distance - want) <= 1e-9 * Math.max(1, want), `trial ${trial}: ${c.distance} vs ${want}`);
     witnesses(c, A.P, A.I, B.P, B.I, `trial ${trial}`);
   }
   assert.ok(crossing > 5 && apart > 20, `${crossing} crossing, ${apart} apart`);
@@ -76,31 +76,31 @@ test('K3: closed forms — two boxes (the per-axis gaps), two edges crossed at r
   for (let k = 0; k < 40; k++) {
     const a = [r() * 10, r() * 10, r() * 10], b = [r() * 10, r() * 10, r() * 10], A = box(...a, ...add(a, [3, 4, 5])), B = box(...b, ...add(b, [2, 3, 2]));
     const gap = [0, 1, 2].map(i => Math.max(0, b[i] - (a[i] + [3, 4, 5][i]), a[i] - (b[i] + [2, 3, 2][i]))), c = meshClearance(A.P, A.I, B.P, B.I);
-    assert.ok(Math.abs(c.distanceMM - Math.hypot(...gap)) <= 1e-12, `boxes ${k}: ${c.distanceMM} vs ${Math.hypot(...gap)}`);
+    assert.ok(Math.abs(c.distance - Math.hypot(...gap)) <= 1e-12, `boxes ${k}: ${c.distance} vs ${Math.hypot(...gap)}`);
   }
   // A 40 × 10 × 10 bar turned 45° about X (its lower edge along X at z −5√2), and one turned 45° about Y raised 16.
   const A = turned(box(-20, -5, -5, 20, 5, 5), 'x', 45), B = turned(box(-5, -20, -5, 5, 20, 5), 'y', 45, [0, 0, 16]);
   const c = meshClearance(A.P, A.I, B.P, B.I);
-  assert.ok(Math.abs(c.distanceMM - (16 - 10 * Math.SQRT2)) <= 1e-12, `crossed edges ${c.distanceMM}`);
+  assert.ok(Math.abs(c.distance - (16 - 10 * Math.SQRT2)) <= 1e-12, `crossed edges ${c.distance}`);
   assert.ok(Math.abs(c.pointA[0]) < 1e-9 && Math.abs(c.pointA[1]) < 1e-9 && Math.abs(c.pointB[0]) < 1e-9, 'at the crossing over the origin');
   // A box inside another: its surfaces 2 apart (not 0: neither surface crosses the other).
   const outer = box(0, 0, 0, 10, 10, 10), inner = box(2, 3, 4, 7, 7, 7);
-  assert.equal(meshClearance(outer.P, outer.I, inner.P, inner.I).distanceMM, 2);
+  assert.equal(meshClearance(outer.P, outer.I, inner.P, inner.I).distance, 2);
   // Touching faces and overlapping boxes: 0.
   const t1 = box(0, 0, 0, 1, 1, 1), t2 = box(1, 0, 0, 2, 1, 1), t3 = box(0.5, 0.5, 0.5, 3, 3, 3);
-  assert.equal(meshClearance(t1.P, t1.I, t2.P, t2.I).distanceMM, 0); assert.equal(meshClearance(t1.P, t1.I, t3.P, t3.I).distanceMM, 0);
+  assert.equal(meshClearance(t1.P, t1.I, t2.P, t2.I).distance, 0); assert.equal(meshClearance(t1.P, t1.I, t3.P, t3.I).distance, 0);
 });
 
 test('K3: spheres apart — the least distance within the bumps, the brute force on coarse meshes; 28 800 × 28 800 triangles fast; distinct from the one-way meshDistance', () => {
   const A = bumpy(12, 10), B = bumpy(12, 10, 23), c = meshClearance(A.P, A.I, B.P, B.I);
-  assert.ok(Math.abs(c.distanceMM - brute(A.P, A.I, B.P, B.I)) <= 1e-12, 'coarse spheres against the brute force');
+  assert.ok(Math.abs(c.distance - brute(A.P, A.I, B.P, B.I)) <= 1e-12, 'coarse spheres against the brute force');
   witnesses(c, A.P, A.I, B.P, B.I, 'spheres');
   const FA = bumpy(120, 20), FB = bumpy(120, 20, 41), t0 = performance.now(), f = meshClearance(FA.P, FA.I, FB.P, FB.I), ms = performance.now() - t0;
   // Two spheres of radius 20 ± 0.3, centres 41 apart: between 0.4 and 1.6.
-  assert.ok(f.distanceMM > 0.39 && f.distanceMM < 1.61, String(f.distanceMM)); assert.ok(ms < 2000, `${ms} ms`);
+  assert.ok(f.distance > 0.39 && f.distance < 1.61, String(f.distance)); assert.ok(ms < 2000, `${ms} ms`);
   // The one-way R9 distance (A's samples to B, the largest) is another quantity: far larger here.
-  assert.ok(meshDistance(FA.P, FA.I, FB.P, FB.I).maxMM > 40);
+  assert.ok(meshDistance(FA.P, FA.I, FB.P, FB.I).max > 40);
   // Prebuilt trees give the same.
-  assert.equal(meshClearance(FA.P, FA.I, FB.P, FB.I, { bvhA: triangleBvh(FA.P, FA.I), bvhB: triangleBvh(FB.P, FB.I) }).distanceMM, f.distanceMM);
-  assert.equal(meshClearance(FA.P, FA.I, new Float64Array(0), new Uint32Array(0)).distanceMM, Infinity);
+  assert.equal(meshClearance(FA.P, FA.I, FB.P, FB.I, { bvhA: triangleBvh(FA.P, FA.I), bvhB: triangleBvh(FB.P, FB.I) }).distance, f.distance);
+  assert.equal(meshClearance(FA.P, FA.I, new Float64Array(0), new Uint32Array(0)).distance, Infinity);
 });

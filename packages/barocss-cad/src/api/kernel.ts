@@ -46,7 +46,7 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
     }
     case 'revolve': {
       const sketch = nextId(doc, 'sketch'), { axis, deg } = spec.values;
-      return [{ id: sketch, kind: 'sketch', ...spec.sketch } as CadPartFeature, { id: nextId(doc, 'revolve'), kind: 'revolve', sketch, axis: { origin: [0, 0], direction: axis }, angleDegrees: deg }];
+      return [{ id: sketch, kind: 'sketch', ...spec.sketch } as CadPartFeature, { id: nextId(doc, 'revolve'), kind: 'revolve', sketch, axis: { origin: [0, 0], direction: axis }, angle: deg }];
     }
     case 'hole': {
       // (As the studio's hole command writes it: the axis and side from the face's normal — Z and the far side left
@@ -72,7 +72,7 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
     }
     case 'circular-pattern': {
       const { axis, count, span, px, py } = spec.values;
-      return [{ id: nextId(doc, 'circular-pattern'), kind: 'circular-pattern', target: target(), axis, angleDegrees: axis === 'z' ? step(span, count) : 90, count, ...(axis === 'z' && (px || py) ? { pivot: [px, py, 0] } : {}) }];
+      return [{ id: nextId(doc, 'circular-pattern'), kind: 'circular-pattern', target: target(), axis, angle: axis === 'z' ? step(span, count) : 90, count, ...(axis === 'z' && (px || py) ? { pivot: [px, py, 0] } : {}) }];
     }
     case 'mirror': {
       // (As the studio writes it: the kernel mirrors across planes through the origin, so a plane elsewhere is a move
@@ -97,7 +97,7 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       return [{ id: nextId(doc, 'translate'), kind: 'translate', target: target(), offset: [spec.values.x, spec.values.y, spec.values.z] }];
     case 'rotate': {
       const { axis, angle, px, py, pz } = spec.values;
-      return [{ id: nextId(doc, 'rotate'), kind: 'rotate', target: target(), axis, angleDegrees: angle, ...(px || py || pz ? { pivot: [px, py, pz] } : {}) }];
+      return [{ id: nextId(doc, 'rotate'), kind: 'rotate', target: target(), axis, angle: angle, ...(px || py || pz ? { pivot: [px, py, pz] } : {}) }];
     }
   }
 }

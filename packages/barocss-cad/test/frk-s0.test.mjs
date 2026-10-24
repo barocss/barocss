@@ -132,8 +132,8 @@ test('FRk S0 members along arcs: a round and a round-cornered tube revolved abou
     ['round Ø30 × 2, R 150, 90°', circle(15, 150), circle(13, 150), A_RT, 150, 90],
     ['rect 20 × 40 × 2, ro 4, R 200, 60°', rr(10, 20, 4, 200), rr(8, 18, 2, 200), 800 - (4 - Math.PI) * 16 - (16 * 36 - (4 - Math.PI) * 4), 200, 60]]) {
     const t0 = performance.now();
-    const s = run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: outer, plane: XY }, { id: 'o', kind: 'revolve', sketch: 'os', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: deg },
-      { id: 'is', kind: 'sketch', profile: 'loop', segments: bore, plane: XY }, { id: 'i', kind: 'revolve', sketch: 'is', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: deg },
+    const s = run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: outer, plane: XY }, { id: 'o', kind: 'revolve', sketch: 'os', axis: { origin: [0, 0], direction: 'y' }, angle: deg },
+      { id: 'is', kind: 'sketch', profile: 'loop', segments: bore, plane: XY }, { id: 'i', kind: 'revolve', sketch: 'is', axis: { origin: [0, 0], direction: 'y' }, angle: deg },
       { id: 'm', kind: 'difference', target: 'o', tool: 'i' }]);
     const o = outputOf(s, 'm');
     near(volume(o), A * R * deg * Math.PI / 180, 1e-11, name);
@@ -142,10 +142,10 @@ test('FRk S0 members along arcs: a round and a round-cornered tube revolved abou
   }
   // S0 pinned revolve's one-loop refusal here; FRk4 (D173) gave revolve its holes, so the same tube revolved from one
   // sketch with its bore as a hole holds the same Pappus value (D176).
-  const holed = outputOf(run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: circle(15, 150), holes: [circle(13, 150)], plane: XY }, { id: 'o', kind: 'revolve', sketch: 'os', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 90 }]), 'o');
+  const holed = outputOf(run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: circle(15, 150), holes: [circle(13, 150)], plane: XY }, { id: 'o', kind: 'revolve', sketch: 'os', axis: { origin: [0, 0], direction: 'y' }, angle: 90 }]), 'o');
   near(volume(holed), A_RT * 150 * Math.PI / 2, 1e-11, 'round Ø30 × 2 revolved with its bore as a hole');
   assert.equal(holed.bodyCount, 1); assert.ok(checkOutput(holed).valid);
-  const path = [{ kind: 'straight', length: 200 }, { kind: 'bend', radius: 100, angleDegrees: 90, toward: 'x' }, { kind: 'straight', length: 150 }];
+  const path = [{ kind: 'straight', length: 200 }, { kind: 'bend', radius: 100, angle: 90, toward: 'x' }, { kind: 'straight', length: 150 }];
   const t0 = performance.now();
   const b = outputOf(run([{ id: 'os', kind: 'sketch', profile: 'loop', segments: circle(15), plane: XY }, { id: 'o', kind: 'sweep', sketch: 'os', path },
     { id: 'is', kind: 'sketch', profile: 'loop', segments: circle(13), plane: XY }, { id: 'i', kind: 'sweep', sketch: 'is', path }, { id: 'm', kind: 'difference', target: 'o', tool: 'i' }]), 'm');
@@ -197,7 +197,7 @@ test('FRk S0 the round-cornered ordered trim\'s time (D126): one corner of three
 test('FRk S0 → FRk7 the SubD display folds (D79, D84, D180): on the pipe clamp no fold reaches 25° (S0 found one sliver inside a face at 88.6°)', t => {
   const cage = JSON.parse(readFileSync(new URL('../conformance/r8/subd-pipe-clamp.json', import.meta.url), 'utf8')).input.partDocument.features[0].cage;
   const mesh = tessellateBrep(subdBrep(cage, { id: 'clamp' }), { segmentsPerQuarter: 8 });
-  const P = mesh.positionsMM, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]];
+  const P = mesh.positions, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]];
   const faceOf = new Int32Array(I.length / 3);
   mesh.faces.forEach((f, k) => { for (let tr = f.indexOffset / 3; tr < (f.indexOffset + f.indexCount) / 3; tr++) faceOf[tr] = k; });
   const edges = new Map();
@@ -221,7 +221,7 @@ test('FRk S0 → FRk7 the SubD display folds (D79, D84, D180): on the pipe clamp
 test('FRk S0 D158\'s housing shoulder: a stepped housing bore (the seat Ø47 14 deep, then Ø40) — the shoulder, the planar annulus at the seat\'s end, found from the B-rep\'s faces; its bore against a row\'s Da max is arithmetic', () => {
   // The profile in (r, z), turned about the sketch's y axis (+Z).
   const prof = [[23.5, 0], [35, 0], [35, 20], [20, 20], [20, 14], [23.5, 14]].map(start => ({ kind: 'line', start }));
-  const h = outputOf(run([{ id: 'hs', kind: 'sketch', profile: 'loop', segments: prof, plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } }, { id: 'h', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 }]), 'h');
+  const h = outputOf(run([{ id: 'hs', kind: 'sketch', profile: 'loop', segments: prof, plane: { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] } }, { id: 'h', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 }]), 'h');
   const at14 = h.brep.vertices.map(v => v.point).filter(p => Math.abs(p[2] - 14) < 1e-9).map(p => Math.hypot(p[0], p[1]));
   assert.deepEqual([...new Set(at14.map(r => +r.toFixed(9)))].sort((a, b) => a - b), [20, 23.5], 'the shoulder spans the bore Ø40 to the seat Ø47');
   const DaMax = 42;
@@ -233,7 +233,7 @@ test('FRk S0 the trimmed-face quadrature: a sphere cut by a cylinder off its axi
     // V = ∫∫ over the disk (radius a, centre at c) of 2√(R² − x² − y²), x = c + a sin u (no root at the disk's edge).
     const V = gauss(u => { const x = c + a * Math.sin(u), hw = a * Math.cos(u); return a * Math.cos(u) * gauss(y => 2 * Math.sqrt(R * R - x * x - y * y), -hw, hw, 20); }, -Math.PI / 2, Math.PI / 2, 100);
     const o = outputOf(run([{ id: 'hs', kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], plane: XY },
-      { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+      { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
       { id: 'cs', kind: 'sketch', profile: 'loop', segments: circle(a, c), plane: { origin: [0, -30, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } },
       { id: 'cyl', kind: 'extrude', sketch: 'cs', height: 60 }, { id: 'x', kind: 'intersect', target: 'sph', tool: 'cyl' }]), 'x');
     near(volume(o), V, 1e-9, `sphere R ${R} ∩ cylinder r ${a} at ${c}`);
@@ -241,7 +241,7 @@ test('FRk S0 the trimmed-face quadrature: a sphere cut by a cylinder off its axi
   if (!process.env.FR_SURVEY) return;
   const gears = [{ id: 'p', kind: 'bevel-gear', module: 2, teeth: 16, mateTeeth: 20, faceWidth: 6, thicknessReduction: 0.05, rotation: 0, center: [5, -3], from: 2 }, { id: 'w', kind: 'bevel-gear', module: 2, teeth: 20, mateTeeth: 16, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'p', direction: 0, phase: 4 } }];
   const b = outputOf(run([...gears, { id: 'i', kind: 'intersect', target: 'p', tool: 'w' }]), 'i').brep;
-  const meshVolume = mesh => { const Q = mesh.positionsMM, J = mesh.indices; let V = 0; for (let k = 0; k < J.length; k += 3) { const p = 3 * J[k], q = 3 * J[k + 1], r = 3 * J[k + 2]; V += Q[p] * (Q[q + 1] * Q[r + 2] - Q[q + 2] * Q[r + 1]) - Q[p + 1] * (Q[q] * Q[r + 2] - Q[q + 2] * Q[r]) + Q[p + 2] * (Q[q] * Q[r + 1] - Q[q + 1] * Q[r]); } return V / 6; };
+  const meshVolume = mesh => { const Q = mesh.positions, J = mesh.indices; let V = 0; for (let k = 0; k < J.length; k += 3) { const p = 3 * J[k], q = 3 * J[k + 1], r = 3 * J[k + 2]; V += Q[p] * (Q[q + 1] * Q[r + 2] - Q[q + 2] * Q[r + 1]) - Q[p + 1] * (Q[q] * Q[r + 2] - Q[q + 2] * Q[r]) + Q[p + 2] * (Q[q] * Q[r + 1] - Q[q + 1] * Q[r]); } return V / 6; };
   const kernel = brepMassProperties(b, 1).volume, meshes = [16, 32, 64].map(q => meshVolume(tessellateBrep(b, { segmentsPerQuarter: q })));
   t.diagnostic(`bevel pair at 4°: kernel ${kernel}, meshes at 16/32/64 ${meshes.join(', ')}`);
   assert.ok(kernel > meshes[2] * 1.01, 'the kernel stands 1 % or more above its mesh refined');

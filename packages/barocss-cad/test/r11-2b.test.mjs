@@ -38,7 +38,7 @@ function bands(b, t, kept) {
     for (let a = 0; a + 1 < ku.length; a++) for (let c = 0; c + 1 < kv.length; c++) for (let su = 0; su < 2; su++) for (let sv = 0; sv < 2; sv++) for (const [x, wx] of GL8) for (const [y, wy] of GL8) {
       const hu = (ku[a + 1] - ku[a]) / 2, hv = (kv[c + 1] - kv[c]) / 2, u = ku[a] + hu * (su + (x + 1) / 2), v = kv[c] + hv * (sv + (y + 1) / 2), r = evaluateSurfaceCurvature(S, u, v), d = evaluateSurfaceD1(S, u, v);
       const J = Math.hypot(...cross(d.du, d.dv)) * hu * hv / 4 * wx * wy;
-      A += J; V += (t + sg * r.meanCurvaturePerMM * t * t + r.gaussianCurvaturePerMM2 * t ** 3 / 3) * J;
+      A += J; V += (t + sg * r.meanCurvaturePer * t * t + r.gaussianCurvaturePer * t ** 3 / 3) * J;
     }
   }
   return { A, V };

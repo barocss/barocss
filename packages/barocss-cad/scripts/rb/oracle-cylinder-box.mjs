@@ -17,10 +17,10 @@ const ROT = {
 
 /**
  * The slabs lo ≤ a·p ≤ hi bounding A ∩ B but for the disc: the box's three (turned) and the cylinder's z-range.
- * `box` is { min: [x, y, z], max: [x, y, z] } before the turn; `turn` { axis, angleDegrees, pivot } or null.
+ * `box` is { min: [x, y, z], max: [x, y, z] } before the turn; `turn` { axis, angle, pivot } or null.
  */
 function slabsOf(cylinder, box, turn) {
-  const t = (turn?.angleDegrees ?? 0) * Math.PI / 180, R = ROT[turn?.axis ?? 'z'](Math.cos(t), Math.sin(t)), pv = turn?.pivot ?? [0, 0, 0];
+  const t = (turn?.angle ?? 0) * Math.PI / 180, R = ROT[turn?.axis ?? 'z'](Math.cos(t), Math.sin(t)), pv = turn?.pivot ?? [0, 0, 0];
   const slabs = [{ a: [0, 0, 1], lo: cylinder.z0, hi: cylinder.z1 }];
   for (let k = 0; k < 3; k++) {
     const a = [R[0][k], R[1][k], R[2][k]], shift = a[0] * pv[0] + a[1] * pv[1] + a[2] * pv[2] - pv[k];
@@ -149,7 +149,7 @@ function integrate(cylinder, slabs, phis, n) {
 
 /**
  * |A ∩ B| for A = { (x − cx)² + (y − cy)² ≤ r², z0 ≤ z ≤ z1 } and B the box { min ≤ p ≤ max } turned by `turn`
- * ({ axis: 'x' | 'y' | 'z', angleDegrees, pivot }; null: not turned): { volume, moment: ∫ p, centroid, error }.
+ * ({ axis: 'x' | 'y' | 'z', angle, pivot }; null: not turned): { volume, moment: ∫ p, centroid, error }.
  */
 export function cylinderBoxIntersection(cylinder, box, turn = null) {
   const slabs = slabsOf(cylinder, box, turn), phis = kinks(cylinder, slabs);
@@ -165,6 +165,6 @@ export function cylinderMass({ cx, cy, r, z0, z1 }) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const A = { cx: 2.987, cy: 2.504, r: 4.055, z0: -1.544, z1: -1.544 + 4.56 };
-  const r = cylinderBoxIntersection(A, { min: [-3.371, -3.944, 0.247], max: [1.79, 2.502, 0.247 + 4.469] }, { axis: 'x', angleDegrees: 80.79 });
+  const r = cylinderBoxIntersection(A, { min: [-3.371, -3.944, 0.247], max: [1.79, 2.502, 0.247 + 4.469] }, { axis: 'x', angle: 80.79 });
   console.log('|A ∩ B|', r.volume.toFixed(12), 'centroid', r.centroid.map(c => c.toFixed(12)).join(' '), 'error', r.error.toExponential(1));
 }

@@ -11,9 +11,9 @@ import { evaluateCadPart, checkFit, fitLimits, lookupFit, fitTableProblem, faceG
 // - off-axis by e: the overlap is L(πr_s² − A), A the two circles' common area (the lens, in closed form).
 
 const F2 = { id: 'f2-50', sources: [{ id: 'F2', label: 'Engineering fit (Wikipedia): the Ø50 worked examples', url: 'https://en.wikipedia.org/wiki/Engineering_fit', read: '2026-10-21' }], rows: [
-  { class: 'H8', overMM: 30, upToMM: 50, upperUM: 39, lowerUM: 0, source: 'F2' }, { class: 'f7', overMM: 30, upToMM: 50, upperUM: -25, lowerUM: -50, source: 'F2' },
-  { class: 'H7', overMM: 30, upToMM: 50, upperUM: 25, lowerUM: 0, source: 'F2' }, { class: 'k6', overMM: 30, upToMM: 50, upperUM: 18, lowerUM: 2, source: 'F2' },
-  { class: 'p6', overMM: 30, upToMM: 50, upperUM: 42, lowerUM: 26, source: 'F2' }, { class: 'h6', overMM: 30, upToMM: 50, upperUM: 0, lowerUM: -16, estimate: true }] };
+  { class: 'H8', over: 30, upTo: 50, upperUM: 39, lowerUM: 0, source: 'F2' }, { class: 'f7', over: 30, upTo: 50, upperUM: -25, lowerUM: -50, source: 'F2' },
+  { class: 'H7', over: 30, upTo: 50, upperUM: 25, lowerUM: 0, source: 'F2' }, { class: 'k6', over: 30, upTo: 50, upperUM: 18, lowerUM: 2, source: 'F2' },
+  { class: 'p6', over: 30, upTo: 50, upperUM: 42, lowerUM: 26, source: 'F2' }, { class: 'h6', over: 30, upTo: 50, upperUM: 0, lowerUM: -16, estimate: true }] };
 const near = (got, want, abs, what) => assert.ok(Math.abs(got - want) <= abs, `${what}: ${got} vs ${want}`);
 const code = c => e => e instanceof FitError && e.code === c;
 const D = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
@@ -39,7 +39,7 @@ test('R12c.2 fit tables: the page\'s Ø50 results by the user\'s rows — cleara
   for (const [h, s, lo, hi, kind] of cases) { const f = fitLimits([F2], h, s, 50); assert.deepEqual([f.clearanceMinUM, f.clearanceMaxUM, f.kind], [lo, hi, kind], `${h}/${s}`); }
   assert.equal(fitLimits([F2], 'H7', 'h6', 50).estimate, true);
   const l = lookupFit([F2], 'H7', 40);
-  assert.deepEqual([l.minMM, l.maxMM, l.table, l.row, l.source], [40, 40.025, 'f2-50', 2, 'F2']);
+  assert.deepEqual([l.min, l.max, l.table, l.row, l.source], [40, 40.025, 'f2-50', 2, 'F2']);
   // (over < size ≤ up to: 50 is in, 30 is not.)
   assert.throws(() => lookupFit([F2], 'H7', 30), e => code('FIT_TABLE_MISS')(e) && /load a row for H7 whose range holds 30 mm \(H7 has over 30 up to 50\)/.test(e.message));
   // A class the formula could compute is still a miss: limits are only ever loaded.
@@ -54,19 +54,19 @@ test('R12c.2 a nominal size is judged to 1e-6 mm, as it is named: a Ø50 bore me
   const measured = outputOf(s, 'bore').brep.faces.map(f => faceGeometry(f)).filter(g => g.kind === 'cylinder').map(g => 2 * g.r);
   for (const size of [...measured, 50 + 1.4210854715202004e-14, 50 - 1.4210854715202004e-14, 50.0000004]) {
     const l = lookupFit([F2], 'H8', size);
-    assert.deepEqual([l.nominalMM, l.row, l.minMM, l.maxMM], [50, 0, 50, 50.039], `Ø${size}`);
+    assert.deepEqual([l.nominal, l.row, l.min, l.max], [50, 0, 50, 50.039], `Ø${size}`);
   }
   assert.throws(() => lookupFit([F2], 'H8', 50.000001), e => code('FIT_TABLE_MISS')(e) && /at Ø50\.000001 mm/.test(e.message));
   assert.throws(() => lookupFit([F2], 'H8', 4e-7), code('FIT_FACE'));
 });
 
 test('R12c.2 fit tables refused ([FIT_TABLE]): bad class, an empty or inverted range, ranges of one class overlapping, upper below lower, no source and no estimate, an unknown source', () => {
-  const row = { class: 'H7', overMM: 30, upToMM: 50, upperUM: 25, lowerUM: 0, source: 'F2' }, t = rows => ({ id: 't', sources: [{ id: 'F2', label: 'x' }], rows });
-  const bad = [[{ ...row, class: 'Q7' }, /not a tolerance class/], [{ ...row, class: 'H' }, /not a tolerance class/], [{ ...row, upToMM: 30 }, /below up to/], [{ ...row, upperUM: -1 }, /at or above its lower/],
+  const row = { class: 'H7', over: 30, upTo: 50, upperUM: 25, lowerUM: 0, source: 'F2' }, t = rows => ({ id: 't', sources: [{ id: 'F2', label: 'x' }], rows });
+  const bad = [[{ ...row, class: 'Q7' }, /not a tolerance class/], [{ ...row, class: 'H' }, /not a tolerance class/], [{ ...row, upTo: 30 }, /below up to/], [{ ...row, upperUM: -1 }, /at or above its lower/],
     [{ ...row, source: undefined }, /never neither/], [{ ...row, estimate: true }, /not both/], [{ ...row, source: 'X' }, /not among the table's sources/], [{ ...row, extra: 1 }, /unknown field extra/]];
   for (const [r, why] of bad) assert.match(fitTableProblem(t([r])) ?? 'accepted', why, JSON.stringify(r));
-  assert.match(fitTableProblem(t([row, { ...row, overMM: 40, upToMM: 65 }])), /overlap/);
-  assert.equal(fitTableProblem(t([row, { ...row, overMM: 50, upToMM: 65 }])), null, 'adjacent ranges');
+  assert.match(fitTableProblem(t([row, { ...row, over: 40, upTo: 65 }])), /overlap/);
+  assert.equal(fitTableProblem(t([row, { ...row, over: 50, upTo: 65 }])), null, 'adjacent ranges');
   assert.match(fitTableProblem({ id: 't', rows: [] }), /at least one row/);
   assert.match(fitTableProblem('H7'), /object/);
 });
@@ -75,26 +75,26 @@ test('R12c.2 checkFit coaxial: at MMC and LMC the analytic Boolean finds πL(r_s
   const { hole, shaft } = pair(), hf = 'bore.side0#1', sf = 'shaft.side0#1', L = 20;
   for (const [h, s] of [['H8', 'f7'], ['H7', 'k6'], ['H7', 'p6'], ['H7', 'h6']]) {
     const t0 = performance.now(), c = checkFit([F2], { brep: hole, face: hf, class: h }, { brep: shaft, face: sf, class: s }), ms = performance.now() - t0;
-    near(c.lengthMM, L, 1e-9, 'overlap length'); near(c.offsetMM, 0, 1e-12, 'coaxial');
+    near(c.length, L, 1e-9, 'overlap length'); near(c.offset, 0, 1e-12, 'coaxial');
     for (const [k, m] of [['mmc', c.mmc], ['lmc', c.lmc]]) {
-      const rs = m.shaftMM / 2, rh = m.holeMM / 2, want = rs > rh ? Math.PI * L * (rs * rs - rh * rh) : 0;
-      near(m.overlapMM3, want, 1e-7 + 1e-7 * want, `${h}/${s} ${k}`);
+      const rs = m.shaft / 2, rh = m.hole / 2, want = rs > rh ? Math.PI * L * (rs * rs - rh * rh) : 0;
+      near(m.overlap, want, 1e-7 + 1e-7 * want, `${h}/${s} ${k}`);
     }
     assert.equal(c.contradicted, false);
-    t.diagnostic(`${c.message}; MMC ${c.mmc.overlapMM3.toFixed(6)} mm³, LMC ${c.lmc.overlapMM3.toFixed(6)} (${ms.toFixed(0)} ms)`);
+    t.diagnostic(`${c.message}; MMC ${c.mmc.overlap.toFixed(6)} mm³, LMC ${c.lmc.overlap.toFixed(6)} (${ms.toFixed(0)} ms)`);
   }
   // S0's figures: H7/k6 at MMC 28.2794 mm³, H7/p6 at LMC 1.5716.
-  near(checkFit([F2], { brep: hole, face: hf, class: 'H7' }, { brep: shaft, face: sf, class: 'k6' }).mmc.overlapMM3, 28.2794, 1e-4, 'S0 H7/k6 MMC');
-  near(checkFit([F2], { brep: hole, face: hf, class: 'H7' }, { brep: shaft, face: sf, class: 'p6' }).lmc.overlapMM3, 1.5716, 1e-4, 'S0 H7/p6 LMC');
+  near(checkFit([F2], { brep: hole, face: hf, class: 'H7' }, { brep: shaft, face: sf, class: 'k6' }).mmc.overlap, 28.2794, 1e-4, 'S0 H7/k6 MMC');
+  near(checkFit([F2], { brep: hole, face: hf, class: 'H7' }, { brep: shaft, face: sf, class: 'p6' }).lmc.overlap, 1.5716, 1e-4, 'S0 H7/p6 LMC');
 });
 
 test('R12c.2 checkFit off-axis: a clearance fit whose shaft stands off by more than half its least clearance is contradicted — the overlap L(πr_s² − lens)', () => {
   // H8/f7's least clearance is 25 µm: 12.5 µm a side. Off by 10 µm it clears; by 50 µm it overlaps at MMC.
   for (const [e, bad] of [[0.010, false], [0.050, true]]) {
     const { hole, shaft } = pair(e), c = checkFit([F2], { brep: hole, face: 'bore.side0#1', class: 'H8' }, { brep: shaft, face: 'shaft.side0#1', class: 'f7' });
-    near(c.offsetMM, e, 1e-12, 'offset'); assert.equal(c.contradicted, bad, c.message);
-    near(c.marginMM, 0.0125 - e, 1e-12, 'margin');
-    for (const m of [c.mmc, c.lmc]) { const want = 20 * (Math.PI * (m.shaftMM / 2) ** 2 - lens(m.holeMM / 2, m.shaftMM / 2, e)); near(m.overlapMM3, want, 1e-6 + 1e-6 * want, `overlap at e ${e}`); }
+    near(c.offset, e, 1e-12, 'offset'); assert.equal(c.contradicted, bad, c.message);
+    near(c.margin, 0.0125 - e, 1e-12, 'margin');
+    for (const m of [c.mmc, c.lmc]) { const want = 20 * (Math.PI * (m.shaft / 2) ** 2 - lens(m.hole / 2, m.shaft / 2, e)); near(m.overlap, want, 1e-6 + 1e-6 * want, `overlap at e ${e}`); }
     if (bad) assert.match(c.message, /contradicted by the geometry: at MMC the shaft overlaps the hole/);
   }
 });

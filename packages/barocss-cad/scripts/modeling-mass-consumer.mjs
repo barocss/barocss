@@ -43,7 +43,7 @@ try {
   assert.equal(dataHash(reopened.bodies), source.initialBodiesSHA256); const before = hold(reopened);
   flow.returnedLedgers.prisms = reopened.evidence.filter(e => e.kind === 'extrude').map(e => e.native.report.childNativeWork);
   flow.returnedLedgers.difference = reopened.evidence[4].native.report.directCounts;
-  const result = stage('massQueries', '6 emitted cold part density2700', () => reopened.massProperties('part', { densityKgPerM3: 2700 }), '09-cold-pocket.mass.json');
+  const result = stage('massQueries', '6 emitted cold part density2700', () => reopened.massProperties('part', { density: 2700 }), '09-cold-pocket.mass.json');
   flow.pocket = proveMass(result, reopened, 'part', 'pocket'); exactData(result, priorMass); unchanged(reopened, before);
   assert.equal(dataHash(result), source.pocket.resultSHA256); assert.equal(dataHash(result.details.native), source.pocket.nativeSHA256);
   flow.returnedLedgers.mass = result.details.native.report; flow.returnedLedgers.massRetainedParent = result.details.native.boolean.report.directCounts;

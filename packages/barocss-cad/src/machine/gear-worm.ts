@@ -26,38 +26,38 @@ import { gearError, inv, arcCurve, reversed, lineCurve, safeId, bezierKnots, fla
 /** Version 0 of a cylindrical worm's inputs (lengths in mm). */
 export interface WormSpec {
   /** The axial module m_x (the wheel's transverse module). */
-  readonly axialModuleMM: number;
+  readonly axialModule: number;
   /** Threads (starts), 1–4. */
   readonly starts: number;
   /** The reference diameter d1 (q = d1 / m_x). */
-  readonly diameterMM: number;
+  readonly diameter: number;
   readonly hand: 'right' | 'left';
   /** Along the axis. */
-  readonly lengthMM: number;
+  readonly length: number;
   /** 'ZI' (the default) or 'ZA'; 'ZN', 'ZK' and 'ZC' are refused (named). */
   readonly form?: 'ZI' | 'ZA' | 'ZN' | 'ZK' | 'ZC';
   /** 'cylindrical' only: double-enveloping (globoid) worms are refused. */
   readonly envelope?: 'cylindrical' | 'double';
   /** The normal pressure angle at the reference cylinder: 20° only. */
-  readonly pressureAngleDeg?: number;
-  readonly boreDiameterMM?: number;
+  readonly pressureAngle?: number;
+  readonly boreDiameter?: number;
   /** Thinned along the axis at the reference cylinder (backlash). */
-  readonly toothThicknessReductionMM?: number;
+  readonly toothThicknessReduction?: number;
   /** The flank fit plus the twist's, at most this; 1e-4 m_n by default. */
-  readonly profileToleranceMM?: number;
+  readonly profileTolerance?: number;
 }
 
 export interface WormReport {
   readonly generator: 'worm@0'; readonly form: 'ZI' | 'ZA'; readonly envelope: 'cylindrical';
   readonly dimensions: {
-    readonly referenceDiameterMM: number; readonly tipDiameterMM: number; readonly rootDiameterMM: number; readonly diameterQuotient: number;
-    readonly leadAngleDeg: number; readonly leadMM: number; readonly axialPitchMM: number; readonly normalModuleMM: number; readonly lengthMM: number;
+    readonly referenceDiameter: number; readonly tipDiameter: number; readonly rootDiameter: number; readonly diameterQuotient: number;
+    readonly leadAngle: number; readonly lead: number; readonly axialPitch: number; readonly normalModule: number; readonly length: number;
     /** ZI: the section's transverse pressure angle and base diameter; ZA: the axial pressure angle of its straight sides. */
-    readonly transversePressureAngleDeg?: number; readonly baseDiameterMM?: number; readonly axialPressureAngleDeg?: number;
-    readonly axialThicknessMM: number;
+    readonly transversePressureAngle?: number; readonly baseDiameter?: number; readonly axialPressureAngle?: number;
+    readonly axialThickness: number;
   };
-  readonly flankPieces: number; readonly flankFaces: number; readonly profileDeviationMM: number; readonly profileToleranceMM: number;
-  readonly twist: { readonly turns: number; readonly pieces: number; readonly axialSegments: number; readonly deviationMM: number };
+  readonly flankPieces: number; readonly flankFaces: number; readonly profileDeviation: number; readonly profileTolerance: number;
+  readonly twist: { readonly turns: number; readonly pieces: number; readonly axialSegments: number; readonly deviation: number };
   readonly manufacturingValidated: false;
   readonly diagnostics: readonly GearDiagnostic[];
 }
@@ -66,21 +66,21 @@ const ALPHA_N = 20 * Math.PI / 180, MAX_FLANK = 20, PER_FACE = 5, MAX_SEGMENTS =
 
 /** The worm's dimensions and the values the solid and the pair need; refusals typed. */
 export function wormDimensions(spec: WormSpec) {
-  const m = spec.axialModuleMM, z1 = spec.starts, d1 = spec.diameterMM, L = spec.lengthMM, form = spec.form ?? 'ZI';
+  const m = spec.axialModule, z1 = spec.starts, d1 = spec.diameter, L = spec.length, form = spec.form ?? 'ZI';
   if (form === 'ZN' || form === 'ZK' || form === 'ZC') throw gearError('UNSUPPORTED_GEAR_KIND', `a ${form} worm (${form === 'ZN' ? 'straight in the normal section' : form === 'ZK' ? 'cut by a disc' : 'concave, circular in the axial section'}): ZI and ZA only in this stage`);
   if (form !== 'ZI' && form !== 'ZA') throw gearError('INVALID_INPUT', `worm form ${String(form)}: 'ZI' or 'ZA'`);
   if (spec.envelope !== undefined && spec.envelope !== 'cylindrical') throw gearError('UNSUPPORTED_GEAR_KIND', 'a double-enveloping (globoid) worm: cylindrical worms only in this stage');
-  if ((spec.pressureAngleDeg ?? 20) !== 20) throw gearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${spec.pressureAngleDeg}°: only 20° (normal, at the reference cylinder) in this stage`);
-  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw gearError('INVALID_INPUT', 'axialModuleMM must be a number of mm above 0, at most 100');
+  if ((spec.pressureAngle ?? 20) !== 20) throw gearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${spec.pressureAngle}°: only 20° (normal, at the reference cylinder) in this stage`);
+  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw gearError('INVALID_INPUT', 'axialModule must be a number of mm above 0, at most 100');
   if (!(Number.isInteger(z1) && z1 >= 1 && z1 <= 4)) throw gearError('INVALID_INPUT', 'starts must be a whole number from 1 to 4');
   if (spec.hand !== 'right' && spec.hand !== 'left') throw gearError('INVALID_INPUT', "a worm needs its hand, 'right' or 'left'");
-  if (!(Number.isFinite(L) && L > 0 && L <= 10000)) throw gearError('INVALID_INPUT', 'lengthMM must be a number of mm above 0');
+  if (!(Number.isFinite(L) && L > 0 && L <= 10000)) throw gearError('INVALID_INPUT', 'length must be a number of mm above 0');
   const rf = d1 / 2 - 1.25 * m;
-  if (!(Number.isFinite(d1) && rf > 0)) throw gearError('INVALID_INPUT', `diameterMM must leave a root: above ${(2.5 * m).toFixed(4)} mm (2.5 m_x)`);
+  if (!(Number.isFinite(d1) && rf > 0)) throw gearError('INVALID_INPUT', `diameter must leave a root: above ${(2.5 * m).toFixed(4)} mm (2.5 m_x)`);
   const r1 = d1 / 2, ra = r1 + m, gamma = Math.atan(z1 * m / d1), p = z1 * m / 2, h = spec.hand === 'right' ? 1 : -1, mn = m * Math.cos(gamma);
   if (!(gamma <= Math.PI / 4)) throw gearError('UNSUPPORTED_GEAR_KIND', `a lead angle of ${(gamma * 180 / Math.PI).toFixed(3)}° (q ${(d1 / m).toFixed(3)} for ${z1} starts): at most 45° in this stage`);
-  const red = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(red) && red >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
+  const red = spec.toothThicknessReduction ?? 0;
+  if (!(Number.isFinite(red) && red >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReduction must be a number of mm, 0 or more');
   const sx = Math.PI * m / 2 - red;
   if (!(sx > 0)) throw gearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no thread (its axial thickness is ${(Math.PI * m / 2).toFixed(4)} mm)`);
   // The thread's half-thickness angle at r1 in the section: the axial half-thickness over p.
@@ -90,8 +90,8 @@ export function wormDimensions(spec: WormSpec) {
   const r0 = form === 'ZI' ? Math.max(rb, rf) : rf;
   if (!(psiAt(ra) > 0)) throw gearError('SELF_INTERSECTION', 'the thread comes to a point below its tip');
   if (!(Math.PI / z1 - psiAt(r0) > 1e-9)) throw gearError('SELF_INTERSECTION', 'neighbouring threads meet at the root');
-  const bd = spec.boreDiameterMM ?? 0;
-  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
+  const bd = spec.boreDiameter ?? 0;
+  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameter must be a number of mm, 0 or more');
   if (bd > 0 && !(bd / 2 <= rf - m)) throw gearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${m} mm rim below the root (Ø${(2 * rf).toFixed(3)} mm): at most Ø${Math.max(0, 2 * (rf - m)).toFixed(3)} (a geometric margin, not a strength check)`);
   return { m, z1, d1, r1, ra, rf, rb, r0, gamma, p, h, mn, L, form, red, sx, psiRef, alphaT, alphaX, psiAt, bore: bd / 2 };
 }
@@ -133,8 +133,8 @@ interface Side { readonly name: string; readonly curve: Curve }
  * `.bore#1/2`; along the axis in segments `.2` … as a helical gear's.
  */
 export function worm(spec: WormSpec, options: { readonly id?: string } = {}): { brep: Brep; report: WormReport } {
-  const id = safeId(options.id ?? 'worm'), g = wormDimensions(spec), tol = spec.profileToleranceMM ?? 1e-4 * g.mn;
-  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  const id = safeId(options.id ?? 'worm'), g = wormDimensions(spec), tol = spec.profileTolerance ?? 1e-4 * g.mn;
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileTolerance must be a number of mm above 0');
   const secTol = 0.75 * tol, twistTol = tol - secTol;
   // The flank: ZI the involute's roll t0 → t1, ZA the spiral's radius; as few pieces as the section's share asks.
   const t0 = g.form === 'ZI' ? Math.sqrt(Math.max(0, (g.r0 / g.rb) ** 2 - 1)) : g.r0, t1 = g.form === 'ZI' ? Math.sqrt((g.ra / g.rb) ** 2 - 1) : g.ra;
@@ -173,41 +173,41 @@ export function worm(spec: WormSpec, options: { readonly id?: string } = {}): { 
   const deg = (x: number) => x * 180 / Math.PI, diagnostics: GearDiagnostic[] = [];
   if (radial) diagnostics.push({ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: 'the section joins the root by radial lines from the base circle: a schematic root, not the one the thread tool cuts' });
   return { brep, report: { generator: 'worm@0', form: g.form, envelope: 'cylindrical',
-    dimensions: { referenceDiameterMM: g.d1, tipDiameterMM: 2 * g.ra, rootDiameterMM: 2 * g.rf, diameterQuotient: g.d1 / g.m, leadAngleDeg: deg(g.gamma), leadMM: 2 * Math.PI * g.p, axialPitchMM: Math.PI * g.m, normalModuleMM: g.mn, lengthMM: g.L,
-      ...(g.form === 'ZI' ? { transversePressureAngleDeg: deg(g.alphaT), baseDiameterMM: 2 * g.rb } : { axialPressureAngleDeg: deg(g.alphaX) }), axialThicknessMM: g.sx },
-    flankPieces: N, flankFaces: F, profileDeviationMM: dev, profileToleranceMM: tol, twist: { turns: g.L / (2 * Math.PI * g.p), pieces: S * NP, axialSegments: S, deviationMM: twistDev }, manufacturingValidated: false, diagnostics } };
+    dimensions: { referenceDiameter: g.d1, tipDiameter: 2 * g.ra, rootDiameter: 2 * g.rf, diameterQuotient: g.d1 / g.m, leadAngle: deg(g.gamma), lead: 2 * Math.PI * g.p, axialPitch: Math.PI * g.m, normalModule: g.mn, length: g.L,
+      ...(g.form === 'ZI' ? { transversePressureAngle: deg(g.alphaT), baseDiameter: 2 * g.rb } : { axialPressureAngle: deg(g.alphaX) }), axialThickness: g.sx },
+    flankPieces: N, flankFaces: F, profileDeviation: dev, profileTolerance: tol, twist: { turns: g.L / (2 * Math.PI * g.p), pieces: S * NP, axialSegments: S, deviation: twistDev }, manufacturingValidated: false, diagnostics } };
 }
 
 /** The cylindrical worm wheel's spec (R12b.5): a helical gear at β = γ of the worm's hand, its normal module m_x cos γ. */
-export function wormWheelSpec(w: WormSpec, wheel: { readonly teeth: number; readonly faceWidthMM: number } & Omit<SpurGearSpec, 'teeth' | 'faceWidthMM' | 'moduleMM' | 'normalModuleMM' | 'helixAngleDeg' | 'hand'>): SpurGearSpec {
+export function wormWheelSpec(w: WormSpec, wheel: { readonly teeth: number; readonly faceWidth: number } & Omit<SpurGearSpec, 'teeth' | 'faceWidth' | 'module' | 'normalModule' | 'helixAngle' | 'hand'>): SpurGearSpec {
   const g = wormDimensions(w);
-  return { ...wheel, normalModuleMM: g.mn, helixAngleDeg: g.gamma * 180 / Math.PI, hand: w.hand };
+  return { ...wheel, normalModule: g.mn, helixAngle: g.gamma * 180 / Math.PI, hand: w.hand };
 }
 
 // ——— The pair ———
 
-/** `relativePhaseDeg`: the worm turned that much past meshing. */
-export interface WormPairOptions { readonly relativePhaseDeg?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' }
+/** `relativePhase`: the worm turned that much past meshing. */
+export interface WormPairOptions { readonly relativePhase?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' }
 export interface WormPairCheck {
   /** Crossed at 90°: (d1 + d2)/2 + x m_n. */
-  readonly centerDistanceMM: number;
+  readonly centerDistance: number;
   /** z2 / z1. */
   readonly speedRatio: number;
   /** Along the worm's axis at the reference: the worm's axial reduction and the wheel's transverse one. */
-  readonly backlashMM: number;
+  readonly backlash: number;
   /** a − ra1 − rf2 and a − ra2 − rf1. */
-  readonly tipClearancesMM: readonly [number, number];
+  readonly tipClearances: readonly [number, number];
   /** In the mid-plane, the worm's axial section as a rack of addendum m_x (exact for ZA; an estimate for ZI, a crossed helical pair in point contact). */
   readonly midPlaneContactRatio: number;
   /** Where the worm's thread must reach along its axis for the wheel's tips (from the mid-plane point): the mesh zone's half-length. */
-  readonly meshZoneHalfLengthMM: number;
+  readonly meshZoneHalfLength: number;
   /**
    * Sections square to the wheel's axis — the mid-plane and ±b/3 — each swept through one axial pitch of the worm, the
    * least clearance (refined in the mid-plane; a clearance of a module or more comes back as m_x), crossings; the
    * outlines are chords, their sag reported.
    */
-  readonly planes: readonly { readonly offsetMM: number; readonly minimumClearanceMM: number; readonly interference: boolean }[];
-  readonly interference: boolean; readonly chordSagMM: number;
+  readonly planes: readonly { readonly offset: number; readonly minimumClearance: number; readonly interference: boolean }[];
+  readonly interference: boolean; readonly chordSag: number;
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
@@ -217,7 +217,7 @@ function compatible(w: WormDimensions, wheel: SpurGearSpec, d2: ReturnType<typeo
   if ((hand === 'right' ? 1 : -1) !== w.h) throw gearError('MATE_INCOMPATIBLE', `the wheel is ${hand}-handed, the worm ${w.h > 0 ? 'right' : 'left'}-handed: a worm and its wheel at 90° are of one hand`);
   if (Math.abs(beta - w.gamma) > 1e-9) throw gearError('MATE_INCOMPATIBLE', `the wheel's helix angle ${(beta * 180 / Math.PI).toFixed(5)}° is not the worm's lead angle ${(w.gamma * 180 / Math.PI).toFixed(5)}°`);
   if (Math.abs(d2.mn - w.mn) > 1e-9 * w.mn) throw gearError('MATE_INCOMPATIBLE', `the wheel's normal module ${d2.mn} is not the worm's m_x cos γ = ${w.mn}`);
-  if ((wheel.pressureAngleDeg ?? 20) !== 20) throw gearError('MATE_INCOMPATIBLE', 'the pressure angles differ');
+  if ((wheel.pressureAngle ?? 20) !== 20) throw gearError('MATE_INCOMPATIBLE', 'the pressure angles differ');
 }
 
 /**
@@ -361,13 +361,13 @@ export function checkWormPair(w: WormSpec, wheel: SpurGearSpec, options: WormPai
   // (The mid-plane: a rack of the worm's axial pitch π m_x, its working addendum m_x less the wheel's shift, at α_t2.)
   const at2 = d2.alpha, epsMid = (Math.sqrt(ra2 * ra2 - d2.rb * d2.rb) - r2 * Math.sin(at2) + (g.m - x2 * d2.mn) / Math.sin(at2)) / (Math.PI * g.m * Math.cos(at2));
   const reach = Math.sqrt(Math.max(0, ra2 * ra2 - (a - g.ra) ** 2));
-  const P: PairWork = { yLo: -ra2 - g.m, yHi: -(a - g.ra) + g.m, w: g, W: wormOutline(g), G: exactProfile(wheel, d2), a, r2, ra2, z2, twist2: Math.tan(d2.beta) / r2, verdict: options.mode === 'verdict', N: Math.max(16, options.samples ?? 64), phase: (options.relativePhaseDeg ?? 0) * Math.PI / 180, reach: reach + Math.PI * g.m };
-  const b2 = wheel.faceWidthMM, planes = [0, -b2 / 3, b2 / 3].map(c => { const d = sweepPlane(P, c, c === 0); return { offsetMM: c, minimumClearanceMM: d, interference: d < 0 }; });
+  const P: PairWork = { yLo: -ra2 - g.m, yHi: -(a - g.ra) + g.m, w: g, W: wormOutline(g), G: exactProfile(wheel, d2), a, r2, ra2, z2, twist2: Math.tan(d2.beta) / r2, verdict: options.mode === 'verdict', N: Math.max(16, options.samples ?? 64), phase: (options.relativePhase ?? 0) * Math.PI / 180, reach: reach + Math.PI * g.m };
+  const b2 = wheel.faceWidth, planes = [0, -b2 / 3, b2 / 3].map(c => { const d = sweepPlane(P, c, c === 0); return { offset: c, minimumClearance: d, interference: d < 0 }; });
   const crossed = planes.filter(x => x.interference), diagnostics: GearDiagnostic[] = [];
-  if (crossed.length) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the worm's thread and the wheel's teeth cross in the section${crossed.length > 1 ? 's' : ''} ${crossed.map(x => x.offsetMM.toFixed(3)).join(', ')} mm from the wheel's mid-plane` });
+  if (crossed.length) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the worm's thread and the wheel's teeth cross in the section${crossed.length > 1 ? 's' : ''} ${crossed.map(x => x.offset.toFixed(3)).join(', ')} mm from the wheel's mid-plane` });
   if (g.L < 2 * reach) diagnostics.push({ code: 'INVALID_INPUT', severity: 'warning', message: `the worm's ${g.L} mm is shorter than the mesh zone (${(2 * reach).toFixed(3)} mm, where the wheel's tips reach its thread): the wheel's teeth run off its ends` });
   const sag = chordSags(g, d2);
-  return { centerDistanceMM: a, speedRatio: z2 / g.z1, backlashMM: g.red + (wheel.toothThicknessReductionMM ?? 0), tipClearancesMM: tips, midPlaneContactRatio: epsMid, meshZoneHalfLengthMM: reach, planes, interference: crossed.length > 0, chordSagMM: sag, diagnostics };
+  return { centerDistance: a, speedRatio: z2 / g.z1, backlash: g.red + (wheel.toothThicknessReduction ?? 0), tipClearances: tips, midPlaneContactRatio: epsMid, meshZoneHalfLength: reach, planes, interference: crossed.length > 0, chordSag: sag, diagnostics };
 }
 
 // ——— Placed ———
@@ -376,7 +376,7 @@ export function checkWormPair(w: WormSpec, wheel: SpurGearSpec, options: WormPai
 export interface PlacedWorm { readonly spec: WormSpec; readonly origin: Point; readonly axis: Point; readonly xAxis: Point; readonly rotation: number }
 /** A wheel as placed (a helical spur gear's GearPlacement's own terms): its spec, centre, face plane and turn. */
 export interface PlacedWormWheel { readonly spec: SpurGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }
-export interface PlacedWormPairCheck extends WormPairCheck { readonly relativePhaseDeg: number }
+export interface PlacedWormPairCheck extends WormPairCheck { readonly relativePhase: number }
 
 /**
  * Where a worm meshing with `wheel` stands (R12b.5): its axis square to the wheel's, at the centre distance along the
@@ -388,12 +388,12 @@ export function wormPlacement(wheel: PlacedWormWheel, w: WormSpec, phi: number, 
   const g = wormDimensions(w), d2 = spurGearDimensions(wheel.spec);
   compatible(g, wheel.spec, d2);
   const a = g.r1 + d2.r + (wheel.spec.profileShiftCoefficient ?? 0) * d2.mn, t: Point = [-Math.sin(phi), Math.cos(phi), 0];
-  const zm = wheel.from + wheel.spec.faceWidthMM / 2, mid: Point = [wheel.center[0] + a * Math.cos(phi), wheel.center[1] + a * Math.sin(phi), zm];
+  const zm = wheel.from + wheel.spec.faceWidth / 2, mid: Point = [wheel.center[0] + a * Math.cos(phi), wheel.center[1] + a * Math.sin(phi), zm];
   return { spec: w, origin: [mid[0] - t[0] * g.L / 2, mid[1] - t[1] * g.L / 2, mid[2]], axis: t, xAxis: [-Math.cos(phi), -Math.sin(phi), 0], rotation: wormTurnFor(wheel, g, d2, phi) + phase };
 }
 /** The worm's turn meshing with the wheel as it stands: θ from the wheel's mid-plane tooth angle (in the pair's frame), less the half length's twist. */
 function wormTurnFor(wheel: PlacedWormWheel, g: WormDimensions, d2: ReturnType<typeof spurGearDimensions>, phi: number): number {
-  const z2 = wheel.spec.teeth, mid = wheel.rotation + Math.tan(d2.beta) * wheel.spec.faceWidthMM / 2 / d2.r - (phi + Math.PI / 2);
+  const z2 = wheel.spec.teeth, mid = wheel.rotation + Math.tan(d2.beta) * wheel.spec.faceWidth / 2 / d2.r - (phi + Math.PI / 2);
   // mid = −π/2 − π/z2 − h θ z1/z2 (mod 2π/z2) ⇒ θ; the worm's turn ρ = θ − h (L/2)/p.
   const theta = (-Math.PI / 2 - Math.PI / z2 - mid) * z2 / (g.h * g.z1);
   return theta - g.h * (g.L / 2) / g.p;
@@ -408,15 +408,15 @@ export function wormMatrix(p: PlacedWorm): { matrix: [number, number, number, nu
  * centre distance (else MATE_INCOMPATIBLE); the relative phase from the worm's turn against the one meshing with the
  * wheel as it stands (modulo a worm pitch's turn), then `checkWormPair`.
  */
-export function checkPlacedWormPair(wheel: PlacedWormWheel, wp: PlacedWorm, options: Omit<WormPairOptions, 'relativePhaseDeg'> = {}): PlacedWormPairCheck {
+export function checkPlacedWormPair(wheel: PlacedWormWheel, wp: PlacedWorm, options: Omit<WormPairOptions, 'relativePhase'> = {}): PlacedWormPairCheck {
   const g = wormDimensions(wp.spec), d2 = spurGearDimensions(wheel.spec);
   compatible(g, wheel.spec, d2);
   const Z = wp.axis, mid: Point = [wp.origin[0] + Z[0] * g.L / 2, wp.origin[1] + Z[1] * g.L / 2, wp.origin[2] + Z[2] * g.L / 2];
   if (Math.abs(Z[2]) > 1e-12) throw gearError('MATE_INCOMPATIBLE', 'the worm\'s axis is not square to the wheel\'s');
   const dx = mid[0] - wheel.center[0], dy = mid[1] - wheel.center[1], phi = Math.atan2(dy, dx), a = g.r1 + d2.r + (wheel.spec.profileShiftCoefficient ?? 0) * d2.mn;
-  if (Math.abs(Math.hypot(dx, dy) - a) > 1e-9 * a || Math.abs(mid[2] - (wheel.from + wheel.spec.faceWidthMM / 2)) > 1e-9 * a || Math.abs(Z[0] * Math.cos(phi) + Z[1] * Math.sin(phi)) > 1e-12) throw gearError('MATE_INCOMPATIBLE', `the worm is not at the centre distance ${a.toFixed(4)} mm in the wheel's mid-plane, its axis square to the line of centres`);
+  if (Math.abs(Math.hypot(dx, dy) - a) > 1e-9 * a || Math.abs(mid[2] - (wheel.from + wheel.spec.faceWidth / 2)) > 1e-9 * a || Math.abs(Z[0] * Math.cos(phi) + Z[1] * Math.sin(phi)) > 1e-12) throw gearError('MATE_INCOMPATIBLE', `the worm is not at the centre distance ${a.toFixed(4)} mm in the wheel's mid-plane, its axis square to the line of centres`);
   const pitch = 2 * Math.PI / g.z1, raw = wp.rotation - wormTurnFor(wheel, g, d2, phi);
   let phase = ((raw % pitch) + pitch) % pitch; if (phase < 1e-9 * pitch || pitch - phase < 1e-9 * pitch) phase = 0;
   const deg = phase * 180 / Math.PI;
-  return { ...checkWormPair(wp.spec, wheel.spec, { ...options, relativePhaseDeg: deg }), relativePhaseDeg: deg };
+  return { ...checkWormPair(wp.spec, wheel.spec, { ...options, relativePhase: deg }), relativePhase: deg };
 }

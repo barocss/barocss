@@ -51,7 +51,7 @@ function features(p, id) {
   const body = p.tilt ? `${id}0` : id, out = p.kind === 'box'
     ? [{ id: `${id}s`, kind: 'sketch', profile: 'rectangle', min: [p.x, p.y], max: [p.x + p.w, p.y + p.d] }, { id: body, kind: 'extrude', sketch: `${id}s`, height: p.h, from: p.z0 }]
     : [{ id: `${id}s`, kind: 'sketch', profile: 'circle', center: [p.x, p.y], radius: p.r }, { id: body, kind: 'extrude', sketch: `${id}s`, height: p.h, from: p.z0 }];
-  if (p.tilt) out.push({ id, kind: 'rotate', target: body, axis: p.tilt.axis, angleDegrees: p.tilt.angle, pivot: [0, 0, 0] });
+  if (p.tilt) out.push({ id, kind: 'rotate', target: body, axis: p.tilt.axis, angle: p.tilt.angle, pivot: [0, 0, 0] });
   return out;
 }
 /** Smaller versions of a primitive: integer coordinates, halved sizes, moved to the origin. */
@@ -111,7 +111,7 @@ export function properties(cad) {
     } },
     { name: 'rigid motions exact in binary64 (quarter turns, power-of-two moves) keep the volume of A∪B', ...pairs, prop: v => {
       const base = volumeOf(cad, op(v, 'union')); if (base === 'skip') return 'skip';
-      const moved = volumeOf(cad, D([...op(v, 'union').features, { id: 'R', kind: 'rotate', target: 'X', axis: 'z', angleDegrees: 90 }, { id: 'T', kind: 'translate', target: 'R', offset: [8, -4, 0.5] }, { id: 'Q', kind: 'rotate', target: 'T', axis: 'x', angleDegrees: 180 }]));
+      const moved = volumeOf(cad, D([...op(v, 'union').features, { id: 'R', kind: 'rotate', target: 'X', axis: 'z', angle: 90 }, { id: 'T', kind: 'translate', target: 'R', offset: [8, -4, 0.5] }, { id: 'Q', kind: 'rotate', target: 'T', axis: 'x', angle: 180 }]));
       if (moved === 'skip') return 'skip';
       const tol = Math.max(tolOf(cad, [op(v, 'union')]), lastTol);
       return close(moved, base, base, tol) || { base, moved, tol };

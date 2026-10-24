@@ -106,7 +106,7 @@ test('FR3b trims to a plane (an inclined floor) and to a body (a base plate, kep
   const leg = { id: 'f', kind: 'frame', points: [[0, 0, 0], [0, 0, 500]], segments: [[0, 1]], section: SHARP };
   const pl = outputOf(run([{ ...leg, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, 10], normal: [-0.2, 0, 1] } }] }]), 'f');
   near(volume(pl), A_SHARP * 490, 1e-12, 'to the plane'); assert.equal(pl.member.ends[0].kind, 'trim');
-  near(pl.member.ends[0].angleDegrees, Math.atan(0.2) * 180 / Math.PI, 1e-12, 'its angle');
+  near(pl.member.ends[0].angle, Math.atan(0.2) * 180 / Math.PI, 1e-12, 'its angle');
   // A plane below the leg's start: it is run on down to meet it (A·520).
   near(volume(outputOf(run([{ ...leg, trims: [{ member: 0, end: 'start', plane: { origin: [0, 0, -20], normal: [0, 0, 1] } }] }]), 'f')), A_SHARP * 520, 1e-12, 'run on to the plane');
   // To a body: a plate 200 × 200 from z −30 to 10; the leg starts inside it at z −20 and keeps z 10 to 500. The plate stays an output.

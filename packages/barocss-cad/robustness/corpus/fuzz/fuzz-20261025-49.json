@@ -81,7 +81,7 @@
           "kind": "rotate",
           "target": "n4b",
           "axis": "y",
-          "angleDegrees": 346.031,
+          "angle": 346.031,
           "pivot": [
             0,
             0,
@@ -93,7 +93,7 @@
           "kind": "rotate",
           "target": "n4r0",
           "axis": "y",
-          "angleDegrees": 315.62,
+          "angle": 315.62,
           "pivot": [
             0,
             0,

@@ -24,8 +24,8 @@ test('analytic Boolean: a piece whose middle lies on a plane that only touches i
 test('analytic Boolean: two lumps that only touch where a piece is re-judged are two bodies, either way round (D205)', () => {
   // A box and a cylinder r 2 tangent to its face y = 0 from outside, both turned 30° about x: half the cylinder's wall has
   // its middle on the line of touch. Refused before; now the two bodies of D204's contract, 8 · 3 · 8 + π · 4 · 4 mm³.
-  const doc = (a, b) => D([{ id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-8, 0], max: [0, 3] }, { id: 'b0', kind: 'extrude', sketch: 'bs', height: 8, from: -2 }, { id: 'b', kind: 'rotate', target: 'b0', axis: 'x', angleDegrees: 30, pivot: [0, 0, 0] },
-    { id: 'cs', kind: 'sketch', profile: 'circle', center: [-2, -2], radius: 2 }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 4, from: 1 }, { id: 'c', kind: 'rotate', target: 'c0', axis: 'x', angleDegrees: 30, pivot: [0, 0, 0] },
+  const doc = (a, b) => D([{ id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-8, 0], max: [0, 3] }, { id: 'b0', kind: 'extrude', sketch: 'bs', height: 8, from: -2 }, { id: 'b', kind: 'rotate', target: 'b0', axis: 'x', angle: 30, pivot: [0, 0, 0] },
+    { id: 'cs', kind: 'sketch', profile: 'circle', center: [-2, -2], radius: 2 }, { id: 'c0', kind: 'extrude', sketch: 'cs', height: 4, from: 1 }, { id: 'c', kind: 'rotate', target: 'c0', axis: 'x', angle: 30, pivot: [0, 0, 0] },
     { id: 'u', kind: 'union', target: a, tool: b }]);
   const exact = 8 * 3 * 8 + 16 * Math.PI;
   for (const [a, b] of [['b', 'c'], ['c', 'b']]) {

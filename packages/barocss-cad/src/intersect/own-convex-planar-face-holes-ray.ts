@@ -44,7 +44,7 @@ export interface ConvexPlanarFaceWithHolesRayResult {
   support:ConvexPlanarFaceWithHolesRaySupport;candidate:ConvexPlanarFaceWithHolesRayCandidate|null;hit:ConvexPlanarFaceWithHolesRayHit|null;
   status:ConvexPlanarFaceWithHolesRayStatus;reason:ConvexPlanarFaceWithHolesRayReason;report:ConvexPlanarFaceWithHolesRayReport;
 }
-const LABEL='Own convex planar Face with holes ray',TOL=CadNumericPolicy.linearToleranceMM;
+const LABEL='Own convex planar Face with holes ray',TOL=CadNumericPolicy.linearTolerance;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {

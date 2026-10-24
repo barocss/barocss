@@ -18,7 +18,7 @@ export interface MeshBrepOptions {
   /** The body's id (a letter, then letters, digits, _ or -; also the faces' names' prefix). */
   readonly id?: string;
   /** Corners closer than this (mm) are one vertex; default 1e-6 of the mesh's size. */
-  readonly weldMM?: number;
+  readonly weldDistance?: number;
   /** At most this many triangles (default 200 000). */
   readonly maximumTriangles?: number;
   /** Per input triangle, a group: coplanar triangles join into one face only within a group (brepFromTriangles). */
@@ -35,7 +35,7 @@ export function brepFromTriangles(positions: ArrayLike<number>, indices: ArrayLi
   let size = 0;
   for (let i = 0; i < positions.length; i++) { if (!Number.isFinite(positions[i])) throw meshBrepError('the mesh has a coordinate that is not a finite number'); size = Math.max(size, Math.abs(positions[i])); }
   // Weld: corners on one grid cell of the weld size are one vertex.
-  const weld = options.weldMM ?? Math.max(1e-9, size * 1e-6), cell = new Map<string, number>(), points: Point[] = [], remap = new Int32Array(n);
+  const weld = options.weldDistance ?? Math.max(1e-9, size * 1e-6), cell = new Map<string, number>(), points: Point[] = [], remap = new Int32Array(n);
   for (let v = 0; v < n; v++) {
     const x = positions[3 * v], y = positions[3 * v + 1], z = positions[3 * v + 2], key = `${Math.round(x / weld)},${Math.round(y / weld)},${Math.round(z / weld)}`;
     let k = cell.get(key); if (k === undefined) { k = points.length; points.push([x, y, z]); cell.set(key, k); }

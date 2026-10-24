@@ -107,7 +107,7 @@ export interface WideAdaptiveCurveSamplingResult {
 }
 
 const CODE = WideAdaptiveCurveSamplingDiagnosticCode;
-const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = CadNumericPolicy.linearToleranceMM, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
+const EPS = 64 * Number.EPSILON, POINT_TOLERANCE = CadNumericPolicy.linearTolerance, D1_TOLERANCE = CadNumericPolicy.relativeComparison;
 function check(condition: boolean, code: WideAdaptiveCurveSamplingDiagnosticCode, detail: string): asserts condition {
   if (!condition) throw new WideAdaptiveCurveSamplingError(code, detail);
 }
@@ -422,7 +422,7 @@ export function sampleCurveWideAdaptive(curveInput: Curve, inputOptions: WideAda
       refinementKind: split.provenance.refinement.kind, insertions: split.provenance.refinement.insertions,
       firstRefinedKnotIndex: split.provenance.firstRefinedKnotIndex, poleCounts: split.report.poleCounts,
       sharedCoefficient: split.provenance.shared, cutEndpoints: split.report.cutEndpoints,
-      nativeMaximumObservedDifferenceMM: split.report.maximumObservedDifferenceMM });
+      nativeMaximumObservedDifferenceMM: split.report.maximumObservedDifference });
     leafCapacity++;
     visit(split.lower, originalSpanIndex, originalSpanDomain, depth + 1);
     visit(split.upper, originalSpanIndex, originalSpanDomain, depth + 1);

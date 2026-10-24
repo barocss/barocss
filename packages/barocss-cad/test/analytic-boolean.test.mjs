@@ -5,7 +5,7 @@ import { booleanAnalytic, brepFromBody, cad, brepFromPrismatic, prismaticFromPro
 const mulberry = seed => () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
 const circle = (cx, cy, r) => [{ kind: 'arc', start: [cx + r, cy], center: [cx, cy], direction: 'ccw' }];
-const prism = (outer, z0, z1, id) => brepFromPrismatic(prismaticFromProfile({ outer, heightMM: z1 - z0, fromMM: z0, tag: id }), { id });
+const prism = (outer, z0, z1, id) => brepFromPrismatic(prismaticFromProfile({ outer, height: z1 - z0, from: z0, tag: id }), { id });
 const box = (a, b, id = 'b') => prism(rect(a[0], a[1], b[0], b[1]), a[2], b[2], id);
 /** A cylinder along x, y or z: centre (c0, c1) in the other two axes in cyclic order, over [h0, h1]. */
 function cylinder(axis, c, r, h0, h1, id = 'c') {
@@ -16,7 +16,7 @@ function cylinder(axis, c, r, h0, h1, id = 'c') {
 }
 const pi = Math.PI;
 function mesh(brep, q) {
-  const m = tessellateBrep(brep, { segmentsPerQuarter: q }), p = m.positionsMM, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
+  const m = tessellateBrep(brep, { segmentsPerQuarter: q }), p = m.positions, ix = m.indices, he = new Map(), key = i => p[i * 3] + ',' + p[i * 3 + 1] + ',' + p[i * 3 + 2];
   let volume = 0;
   for (let t = 0; t < ix.length; t += 3) {
     const [a, b, c] = [ix[t] * 3, ix[t + 1] * 3, ix[t + 2] * 3];
@@ -110,7 +110,7 @@ test('random boxes and cylinders along x, y and z: valid watertight results, vol
     return { inside: p => Math.hypot(p[others[0]] - c[0], p[others[1]] - c[1]) < r && p[k] > h0 && p[k] < h1, brep: cylinder(axis, c, r, h0, h1, id) };
   };
   const inMesh = (b, p) => {
-    const m = tessellateBrep(b, { segmentsPerQuarter: 32 }), P = m.positionsMM, ix = m.indices, d = [0.5377, 0.3138, 0.7832]; let c = 0;
+    const m = tessellateBrep(b, { segmentsPerQuarter: 32 }), P = m.positions, ix = m.indices, d = [0.5377, 0.3138, 0.7832]; let c = 0;
     for (let t = 0; t < ix.length; t += 3) {
       const A = [0, 1, 2].map(k => P[ix[t] * 3 + k]), e1 = [0, 1, 2].map(k => P[ix[t + 1] * 3 + k] - A[k]), e2 = [0, 1, 2].map(k => P[ix[t + 2] * 3 + k] - A[k]);
       const h = [d[1] * e2[2] - d[2] * e2[1], d[2] * e2[0] - d[0] * e2[2], d[0] * e2[1] - d[1] * e2[0]], a = e1[0] * h[0] + e1[1] * h[1] + e1[2] * h[2]; if (Math.abs(a) < 1e-14) continue;

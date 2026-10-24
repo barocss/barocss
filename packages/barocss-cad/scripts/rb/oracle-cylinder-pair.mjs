@@ -20,9 +20,9 @@ function gaussLegendre(n) {
   return { x, w };
 }
 
-/** |A ∩ B| for crossing axes at `angleDegrees`, radii a and b. */
-export function crossedCylinders(a, b, angleDegrees) {
-  const r = Math.min(a, b), R = Math.max(a, b), sinA = Math.sin(angleDegrees * Math.PI / 180), { x, w } = gaussLegendre(48);
+/** |A ∩ B| for crossing axes at `angle`, radii a and b. */
+export function crossedCylinders(a, b, angle) {
+  const r = Math.min(a, b), R = Math.max(a, b), sinA = Math.sin(angle * Math.PI / 180), { x, w } = gaussLegendre(48);
   let v = 0;
   // t = r sin φ, φ ∈ [−π/2, π/2]: 4 √(R² − t²) · r cos φ · r cos φ dφ.
   for (let i = 0; i < x.length; i++) { const phi = x[i] * Math.PI / 2, t = r * Math.sin(phi); v += 4 * Math.sqrt(R * R - t * t) * r * r * Math.cos(phi) ** 2 * w[i] * Math.PI / 2; }
@@ -34,14 +34,14 @@ export function crossedCylinders(a, b, angleDegrees) {
  * by the angle (pivot at the origin), both centred on the point where their axes cross. Returns the document
  * features and that point.
  */
-export function crossedCylinderFeatures({ a, b, angleDegrees, cx, cy, by }) {
-  const t = angleDegrees * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
+export function crossedCylinderFeatures({ a, b, angle, cx, cy, by }) {
+  const t = angle * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
   // B's axis before the turn: x = cx, y = by; after it, (cx, by c − z s, by s + z c), on A's axis at z = (by c − cy)/s.
   const zb = (by * c - cy) / s, meet = [cx, cy, by * s + zb * c], half = 2 * (a + b) / s + a + b;
   return { meet, features: [
     { id: 'As', kind: 'sketch', profile: 'circle', center: [cx, cy], radius: a }, { id: 'A', kind: 'extrude', sketch: 'As', height: 2 * half, from: meet[2] - half },
     { id: 'Bs', kind: 'sketch', profile: 'circle', center: [cx, by], radius: b }, { id: 'B0', kind: 'extrude', sketch: 'Bs', height: 2 * half, from: zb - half },
-    { id: 'B', kind: 'rotate', target: 'B0', axis: 'x', angleDegrees, pivot: [0, 0, 0] },
+    { id: 'B', kind: 'rotate', target: 'B0', axis: 'x', angle, pivot: [0, 0, 0] },
   ] };
 }
 

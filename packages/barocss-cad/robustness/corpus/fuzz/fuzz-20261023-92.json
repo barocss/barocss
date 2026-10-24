@@ -58,7 +58,7 @@
           "kind": "rotate",
           "target": "n2b",
           "axis": "x",
-          "angleDegrees": 180,
+          "angle": 180,
           "pivot": [
             0,
             0,

@@ -156,7 +156,7 @@ export function brepQuadratureIntegrals(brep: Brep, segmentsPerQuarter: number):
     rest.add(face.id);
   }
   if (!rest.size) return { integrals: fromCentre(I), meshed: false };
-  const { mesh, parameters, segments } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positionsMM, ix = mesh.indices;
+  const { mesh, parameters, segments } = tessellateBrepWithParameters(brep, { segmentsPerQuarter }, rest), P = mesh.positions, ix = mesh.indices;
   let dropped = 0;
   const moments = new Map<Curve, Point>(), surfaces = new Map(brep.faces.map(f => [f.id, f.surface as Surface])), faces = new Map(brep.faces.map(f => [f.id, f])), squared = Array(11).fill(0) as number[], cubed = Array(11).fill(0) as number[];
   const point = (i: number): Point => [P[i * 3], P[i * 3 + 1], P[i * 3 + 2]];
@@ -661,7 +661,7 @@ function wholePatch(face: BrepFace, maps: Maps): boolean {
   let perimeter = 0, length = 0;
   for (const s of sides) perimeter += polylineLength(s);
   for (const cid of maps.loops.get(face.loops[0])!.coedges) {
-    const edge = maps.edges.get(maps.coedges.get(cid)!.edge)!, curve = edge.curve, c = curveEvaluator(curve), [t0, t1] = curveDomain(curve), near = Math.max(tol, edge.toleranceMM);
+    const edge = maps.edges.get(maps.coedges.get(cid)!.edge)!, curve = edge.curve, c = curveEvaluator(curve), [t0, t1] = curveDomain(curve), near = Math.max(tol, edge.tolerance);
     let last: Point | null = null;
     for (let k = 0; k <= EDGE_SAMPLES; k++) {
       const p = c(t0 + (t1 - t0) * k / EDGE_SAMPLES);

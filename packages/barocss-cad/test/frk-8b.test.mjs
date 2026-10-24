@@ -77,7 +77,7 @@ test('FRk8b the sphere oracle against closed forms: a sphere\'s cap (πh²(3R �
   const XY = { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, R = 20, h = 7;
   const s = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 'hs', kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], plane: XY },
-    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
     { id: 'bs', kind: 'sketch', profile: 'rectangle', min: [-30, R - h], max: [30, 30], plane: { origin: [0, 0, -30], normal: [0, 0, 1], xAxis: [1, 0, 0] } }, { id: 'box', kind: 'extrude', sketch: 'bs', height: 60 },
     { id: 'cap', kind: 'intersect', target: 'sph', tool: 'box' }] });
   const cap = outputOf(s, 'cap').brep, want = Math.PI * h * h * (3 * R - h) / 3, V = oracleVolume(cap);
@@ -87,7 +87,7 @@ test('FRk8b the sphere oracle against closed forms: a sphere\'s cap (πh²(3R �
   const want2 = gl(u => { const xx = 9 + 6 * Math.sin(u), hw = 6 * Math.cos(u); return 6 * Math.cos(u) * gl(yy => 2 * Math.sqrt(R * R - xx * xx - yy * yy), -hw, hw, 16); }, -Math.PI / 2, Math.PI / 2, 64);
   const cut = outputOf(evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
     { id: 'hs', kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [0, -R], center: [0, 0], direction: 'ccw' }, { kind: 'line', start: [0, R] }], plane: XY },
-    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angleDegrees: 360 },
+    { id: 'sph', kind: 'revolve', sketch: 'hs', axis: { origin: [0, 0], direction: 'y' }, angle: 360 },
     { id: 'cs', kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [15, 0], center: [9, 0], direction: 'ccw' }], plane: { origin: [0, -30, 0], normal: [0, 1, 0], xAxis: [1, 0, 0] } },
     { id: 'cyl', kind: 'extrude', sketch: 'cs', height: 60 }, { id: 'x', kind: 'intersect', target: 'sph', tool: 'cyl' }] }), 'x').brep;
   const V2 = oracleVolume(cut);

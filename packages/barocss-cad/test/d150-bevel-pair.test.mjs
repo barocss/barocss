@@ -16,14 +16,14 @@ const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'li
 /** The volume inside both bodies by a voxel count over [lo, hi] at spacing h (the grid offset irrationally off the bodies' features). */
 function voxelVolume(A, B, lo, hi, h) {
   const n = [0, 1, 2].map(k => Math.ceil((hi[k] - lo[k]) / h)), o = lo.map((x, k) => x + h * [0.3183, 0.2718, 0.1414][k]);
-  const flags = br => { const t = tessellateBrep(br, { segmentsPerQuarter: 32 }); return voxelInsideFlags(t.positionsMM, t.indices, o, h, n); };
+  const flags = br => { const t = tessellateBrep(br, { segmentsPerQuarter: 32 }); return voxelInsideFlags(t.positions, t.indices, o, h, n); };
   const fa = flags(A), fb = flags(B); let c = 0; for (let i = 0; i < fa.length; i++) if (fa[i] && fb[i]) c++;
   return c * h ** 3;
 }
 
 test('D150: the 6° bevel pair\'s failing corner, cropped to a 1.6 mm box (7 and 11 faces) — its intersection valid, its volume the voxel count\'s', () => {
   const s = evaluateCadPart(D(gears(6))), c = [18.172, -3.6773, 16.515], h = 0.8;
-  const box = brepFromPrismatic(prismaticFromProfile({ outer: rect(c[0] - h, c[1] - h, c[0] + h, c[1] + h), heightMM: 2 * h, fromMM: c[2] - h, tag: 'x' }), { id: 'x' });
+  const box = brepFromPrismatic(prismaticFromProfile({ outer: rect(c[0] - h, c[1] - h, c[0] + h, c[1] + h), height: 2 * h, from: c[2] - h, tag: 'x' }), { id: 'x' });
   const a = booleanAnalytic(outputOf(s, 'p').brep, box, 'intersection'), b = booleanAnalytic(outputOf(s, 'w').brep, box, 'intersection');
   assert.deepEqual([a.faces.length, b.faces.length], [7, 11]);
   // Where the two flanks and their common toe sphere meet: the corner at (18.172013, −3.677343, 16.515141).

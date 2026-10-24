@@ -71,10 +71,10 @@ test('a cylinder: caps and side are three regions (creases at the rims, the 15°
   for (const e of b.edges) { assert.equal(e.curve.degree, 1); assert.equal(e.curve.controlPoints.length, 25); assert.equal(e.vertices[0], e.vertices[1]); }
   // Tessellated edges are exactly those vertices: no T-junctions against the facets.
   const mesh = tessellateBrep(b);
-  assert.deepEqual(mesh.edges.map(e => e.pointsMM.length / 3), [25, 25]);
+  assert.deepEqual(mesh.edges.map(e => e.points.length / 3), [25, 25]);
   assert.ok(Math.abs(mass(b).volume - meshVolume(positions, indices)) < 1e-9 * 800);
   // Finer creases split the side; a 10° turn keeps 24 sides apart.
-  assert.equal(facetBrepFromTriangles(positions, indices, { id: 'c', creaseDegrees: 10 }).faces.length, 26);
+  assert.equal(facetBrepFromTriangles(positions, indices, { id: 'c', crease: 10 }).faces.length, 26);
 });
 
 test('moved, turned and mirrored: patches mapped, a mirror turns the faces over; volume kept, the check passes', () => {
@@ -150,7 +150,7 @@ test('a mesh in pieces: each closed piece its own body (parts id/j, faces id.par
   const P = [...box.positions, ...s.positions.map((x, i) => x + (i % 3 === 0 ? 40 : 0))], I = [...box.indices, ...s.indices.map(i => i + 8)];
   const pieces = facetPieces(P, I);
   assert.deepEqual(pieces.map(p => p.triangles), [12, s.indices.length / 3]);
-  assert.ok(Math.abs(pieces[0].volumeMM3 - 1000) < 1e-9 && pieces[1].volumeMM3 < 5);
+  assert.ok(Math.abs(pieces[0].volume - 1000) < 1e-9 && pieces[1].volume < 5);
   const breps = facetBrepsFromTriangles(P, I, { id: 'k' });
   assert.equal(breps.length, 2);
   assert.ok(breps[0].faces.every(f => /^k\.part0\.region\d+$/.test(f.name)) && breps[1].faces.every(f => /^k\.part1\.region\d+$/.test(f.name)));

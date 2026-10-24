@@ -237,7 +237,7 @@ test('R12 S0 probe: the developed outline is lines and circular arcs, and the DX
     const cx = (q(a) * (m[1] - b[1]) + q(m) * (b[1] - a[1]) + q(b) * (a[1] - m[1])) / d, cy = (q(a) * (b[0] - m[0]) + q(m) * (a[0] - b[0]) + q(b) * (m[0] - a[0])) / d, r = Math.hypot(a[0] - cx, a[1] - cy);
     for (let k = 1; k < 8; k++) { const p = P(e.t0 + (e.t1 - e.t0) * k / 8); deviation = Math.max(deviation, Math.abs(Math.hypot(p[0] - cx, p[1] - cy) - r)); }
     const deg = p => Math.atan2(p[1] - cy, p[0] - cx) * 180 / Math.PI, [s, f] = turn > 0 ? [deg(a), deg(b)] : [deg(b), deg(a)];
-    entities.push({ type: 'arc', center: [cx, cy], radius: r, startDeg: s, endDeg: f, layer: 'OUTLINE' });
+    entities.push({ type: 'arc', center: [cx, cy], radius: r, start: s, end: f, layer: 'OUTLINE' });
   }
   // Each image is a line or a circle to rounding: planar edges move rigidly, a bend's end arcs develop straight.
   assert.ok(deviation < 1e-12, `${deviation}`);

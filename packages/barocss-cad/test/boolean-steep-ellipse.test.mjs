@@ -25,7 +25,7 @@ test('analytic Boolean: faces nearly along a cylinder\'s axis cut it where its t
   for (const [name, tree] of cases) {
     const { document, root } = documentOf(tree), o = evaluateCadPart(document).outputs.find(x => x.id === root), m = massPropertiesOf(o), q = oracle(tree, 256, 6);
     assert.equal(checkOutput(o).valid, true, name);
-    const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, uses = new Map();
+    const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positions, uses = new Map();
     for (let t = 0; t < mesh.indices.length; t += 3) for (let k = 0; k < 3; k++) {
       const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
       uses.set(e, (uses.get(e) ?? 0) + 1);

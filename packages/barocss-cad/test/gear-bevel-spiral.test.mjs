@@ -69,7 +69,7 @@ function sectionArea(G) {
   }
   return { I, L };
 }
-const specOf = c => ({ moduleMM: c.m, teeth: c.z, mateTeeth: c.zm, ...(c.S ? { shaftAngleDeg: c.S } : {}), faceWidthMM: c.b, ...(c.bore ? { boreDiameterMM: c.bore } : {}), ...(c.red ? { toothThicknessReductionMM: c.red } : {}), spiral: { angleDeg: c.beta, hand: c.hand, cutterRadiusMM: c.rc } });
+const specOf = c => ({ module: c.m, teeth: c.z, mateTeeth: c.zm, ...(c.S ? { shaftAngle: c.S } : {}), faceWidth: c.b, ...(c.bore ? { boreDiameter: c.bore } : {}), ...(c.red ? { toothThicknessReduction: c.red } : {}), spiral: { angle: c.beta, hand: c.hand, cutterRadius: c.rc } });
 
 const CASES = [
   { m: 3, z: 20, zm: 40, b: 20, bore: 10, beta: 35, hand: 'left', rc: 60 },
@@ -85,14 +85,14 @@ test('the spiral bevel gear (refused at the previous HEAD: no spiral), the ideal
     assert.equal(report.kind, 'spiral'); assert.equal(report.idealModel, true);
     const ideal = report.diagnostics.find(d => d.code === 'IDEAL_MODEL');
     assert.ok(ideal && ideal.severity === 'warning' && /ideal spiral bevel gear \(line contact\)/.test(ideal.message) && /not a face-milled or face-hobbed tooth — no crowning, no machine settings/.test(ideal.message), JSON.stringify(report.diagnostics));
-    close(sp.transversePressureAngleDeg, deg(G.alpha), 1e-12, 'α_t'); close(report.dimensions.baseConeAngleDeg, deg(G.db), 1e-12, 'δb of α_t');
-    if (c.m === 3 && c.z === 20) { close(sp.transversePressureAngleDeg, 23.95680, 5e-6, "K1's α_t"); close(report.dimensions.coneDistanceMM, 67.08204, 5e-6, "K1's R"); close(sp.meanConeDistanceMM, 57.08204, 5e-6, "K1's Rm"); }
+    close(sp.transversePressureAngle, deg(G.alpha), 1e-12, 'α_t'); close(report.dimensions.baseConeAngle, deg(G.db), 1e-12, 'δb of α_t');
+    if (c.m === 3 && c.z === 20) { close(sp.transversePressureAngle, 23.95680, 5e-6, "K1's α_t"); close(report.dimensions.coneDistance, 67.08204, 5e-6, "K1's R"); close(sp.meanConeDistance, 57.08204, 5e-6, "K1's Rm"); }
     // The trace: its spiral angles, the twist from the toe to the heel; ψ' = tan β / R, by a difference here.
-    close(sp.spiralAngleAtToeDeg, deg(G.tr(G.Ri).beta), 1e-9, 'β at the toe'); close(sp.spiralAngleAtHeelDeg, deg(G.tr(G.Re).beta), 1e-9, 'β at the heel'); close(G.tr(G.Rm).beta, rad(c.beta), 1e-12, 'β_m');
-    close(sp.twistDeg, deg(G.phi(G.Re) - G.phi(G.Ri)), 1e-9, 'twist');
+    close(sp.spiralAngleAtToe, deg(G.tr(G.Ri).beta), 1e-9, 'β at the toe'); close(sp.spiralAngleAtHeel, deg(G.tr(G.Re).beta), 1e-9, 'β at the heel'); close(G.tr(G.Rm).beta, rad(c.beta), 1e-12, 'β_m');
+    close(sp.twist, deg(G.phi(G.Re) - G.phi(G.Ri)), 1e-9, 'twist');
     const dR = 1e-4; close((G.tr(G.Rm + dR).psi - G.tr(G.Rm - dR).psi) / (2 * dR), Math.tan(rad(c.beta)) / G.Rm, 1e-7, "ψ' = tan β / R");
     // Every face sampled: flanks against the involute turned by φ(R); tips, roots and ends; the level radii at the segments' ends.
-    const S = sp.axialSegments, tw = sp.twistDeviationMM, fit = report.profileDeviationMM + tw;
+    const S = sp.axialSegments, tw = sp.twistDeviation, fit = report.profileDeviation + tw;
     let worst = 0, cone = 0;
     for (const f of brep.faces) {
       const name = f.name.slice(2), seg = /\.(\d+)$/.test(name) ? Number(name.match(/\.(\d+)$/)[1]) - 1 : 0, base = name.replace(/\.\d+$/, ''), tooth = Number(base.split('#')[1]), gam = G.step * (tooth - 1), { u, v } = surfaceDomain(f.surface);
@@ -115,18 +115,18 @@ test('the spiral bevel gear (refused at the previous HEAD: no spiral), the ideal
     // The volume: every sphere's section is the straight one turned, so its area is kept: (Re³ − Ri³)/3 × Ω, less the bore, within the fits (perimeter × b × their distance).
     const { I, L } = sectionArea(G), b2 = G.bore, want = I * (G.Re ** 3 - G.Ri ** 3) / 3 - (b2 > 0 ? 2 * Math.PI / 3 * ((G.Re ** 3 - (G.Re ** 2 - b2 ** 2) ** 1.5) - (G.Ri ** 3 - (G.Ri ** 2 - b2 ** 2) ** 1.5)) : 0), got = brepMassProperties(brep, 1).volume;
     close(got, want, L * G.Re * c.b * fit + 1e-7 * want, `z${c.z}/${c.zm} volume`);
-    t.diagnostic(`m${c.m} z${c.z}/${c.zm} Σ${c.S ?? 90}° β_m ${c.beta}° ${c.hand} r_c ${c.rc}: β ${sp.spiralAngleAtToeDeg.toFixed(3)}°…${sp.spiralAngleAtHeelDeg.toFixed(3)}°, α_t ${sp.transversePressureAngleDeg.toFixed(5)}° (α_n ${sp.normalPressureAngleAtToeDeg.toFixed(3)}°…${sp.normalPressureAngleAtHeelDeg.toFixed(3)}°), twist ${sp.twistDeg.toFixed(4)}° in ${sp.twistPieces} piece(s) / ${S} segment(s) within ${tw.toExponential(2)}, section ${report.flankPieces} conic(s) ${report.profileDeviationMM.toExponential(2)}; sampled ${worst.toExponential(2)}; V ${got.toFixed(4)} vs ${want.toFixed(4)} (${((got - want) / want).toExponential(2)}), ${brep.faces.length} faces, ${ms.toFixed(1)} ms`);
+    t.diagnostic(`m${c.m} z${c.z}/${c.zm} Σ${c.S ?? 90}° β_m ${c.beta}° ${c.hand} r_c ${c.rc}: β ${sp.spiralAngleAtToe.toFixed(3)}°…${sp.spiralAngleAtHeel.toFixed(3)}°, α_t ${sp.transversePressureAngle.toFixed(5)}° (α_n ${sp.normalPressureAngleAtToe.toFixed(3)}°…${sp.normalPressureAngleAtHeel.toFixed(3)}°), twist ${sp.twist.toFixed(4)}° in ${sp.twistPieces} piece(s) / ${S} segment(s) within ${tw.toExponential(2)}, section ${report.flankPieces} conic(s) ${report.profileDeviation.toExponential(2)}; sampled ${worst.toExponential(2)}; V ${got.toFixed(4)} vs ${want.toFixed(4)} (${((got - want) / want).toExponential(2)}), ${brep.faces.length} faces, ${ms.toFixed(1)} ms`);
   }
 });
 
 test('refusals: a face-hobbed trace, a hypoid offset, the spiral angle, the hand, a cutter radius the face cannot take; a pair of one hand, of other spirals or face widths, or spiral with straight', () => {
-  const base = { moduleMM: 3, teeth: 20, mateTeeth: 40, faceWidthMM: 20 }, sp = { angleDeg: 35, hand: 'left', cutterRadiusMM: 60 };
+  const base = { module: 3, teeth: 20, mateTeeth: 40, faceWidth: 20 }, sp = { angle: 35, hand: 'left', cutterRadius: 60 };
   const code = (spec, c, re) => assert.throws(() => bevelGear({ ...base, ...spec }), e => isGearError(e) && e.code === c && (!re || re.test(e.message)), `${JSON.stringify(spec)} → ${c}`);
-  code({ spiral: { ...sp, trace: 'epicycloidal' } }, 'UNSUPPORTED_GEAR_KIND', /face-hobbed/); code({ spiral: sp, offsetMM: 5 }, 'UNSUPPORTED_GEAR_KIND', /hypoid/);
-  code({ spiral: { ...sp, angleDeg: 50 } }, 'INVALID_INPUT', /45°/); code({ spiral: { ...sp, angleDeg: 0 } }, 'INVALID_INPUT'); code({ spiral: { ...sp, hand: 'up' } }, 'INVALID_INPUT', /hand/);
-  code({ spiral: { ...sp, cutterRadiusMM: 5 } }, 'INVALID_INPUT', /cutter radius of 5 mm takes the spiral angle to 0° or past it/); code({ spiral: { ...sp, cutterRadiusMM: 0 } }, 'INVALID_INPUT');
+  code({ spiral: { ...sp, trace: 'epicycloidal' } }, 'UNSUPPORTED_GEAR_KIND', /face-hobbed/); code({ spiral: sp, offset: 5 }, 'UNSUPPORTED_GEAR_KIND', /hypoid/);
+  code({ spiral: { ...sp, angle: 50 } }, 'INVALID_INPUT', /45°/); code({ spiral: { ...sp, angle: 0 } }, 'INVALID_INPUT'); code({ spiral: { ...sp, hand: 'up' } }, 'INVALID_INPUT', /hand/);
+  code({ spiral: { ...sp, cutterRadius: 5 } }, 'INVALID_INPUT', /cutter radius of 5 mm takes the spiral angle to 0° or past it/); code({ spiral: { ...sp, cutterRadius: 0 } }, 'INVALID_INPUT');
   const g = { ...base, spiral: sp }, h = { ...base, teeth: 40, mateTeeth: 20, spiral: { ...sp, hand: 'right' } };
-  for (const [a, b2, re] of [[g, { ...h, spiral: { ...h.spiral, hand: 'left' } }, /opposite hands/], [g, { ...h, spiral: { ...h.spiral, angleDeg: 30 } }, /share/], [g, { ...h, spiral: { ...h.spiral, cutterRadiusMM: 70 } }, /share/], [g, { ...h, faceWidthMM: 18 }, /face widths/], [g, { ...h, spiral: undefined }, /straight/]])
+  for (const [a, b2, re] of [[g, { ...h, spiral: { ...h.spiral, hand: 'left' } }, /opposite hands/], [g, { ...h, spiral: { ...h.spiral, angle: 30 } }, /share/], [g, { ...h, spiral: { ...h.spiral, cutterRadius: 70 } }, /share/], [g, { ...h, faceWidth: 18 }, /face widths/], [g, { ...h, spiral: undefined }, /straight/]])
     assert.throws(() => checkBevelGearPair(a, b2, { mode: 'verdict' }), e => e.code === 'MATE_INCOMPATIBLE' && re.test(e.message), JSON.stringify(b2.spiral));
 });
 
@@ -135,10 +135,10 @@ test('the pair: five spheres from the toe to the heel, each clear by its backlas
     const s1 = { ...c1, red: j / 2 }, s2 = { ...c2, red: j / 2 }, G1 = geom(s1), G2 = geom(s2), t0 = performance.now(), chk = checkBevelGearPair(specOf(s1), specOf(s2)), ms = performance.now() - t0;
     assert.equal(chk.spheres.length, 5); assert.equal(chk.sweep.interference, false);
     for (const sph of chk.spheres) {
-      const want = j * sph.coneDistanceMM / G1.Re * Math.cos(G1.alpha) / 2;
-      assert.ok(!sph.interference && sph.minimumClearanceMM >= want - 1e-9 && sph.minimumClearanceMM <= want + chk.sweep.chordSagMM * sph.coneDistanceMM / G1.Re + 1e-9, `sphere ${sph.coneDistanceMM}: ${sph.minimumClearanceMM} vs ${want}`);
+      const want = j * sph.coneDistance / G1.Re * Math.cos(G1.alpha) / 2;
+      assert.ok(!sph.interference && sph.minimumClearance >= want - 1e-9 && sph.minimumClearance <= want + chk.sweep.chordSag * sph.coneDistance / G1.Re + 1e-9, `sphere ${sph.coneDistance}: ${sph.minimumClearance} vs ${want}`);
     }
-    const off = checkBevelGearPair(specOf(s1), specOf(s2), { relativePhaseDeg: 360 / c2.z / 3, mode: 'verdict' });
+    const off = checkBevelGearPair(specOf(s1), specOf(s2), { relativePhase: 360 / c2.z / 3, mode: 'verdict' });
     assert.equal(off.sweep.interference, true);
     // ε_α: the great circle of action through P (gear 1's frame), cut by both tip cones; ε_β: Δψ over the crown pitch, by the trace here.
     const P = [Math.sin(G1.delta), 0, Math.cos(G1.delta)], eTh = [Math.cos(G1.delta), 0, -Math.sin(G1.delta)], d = [-Math.sin(G1.alpha) * eTh[0], Math.cos(G1.alpha), -Math.sin(G1.alpha) * eTh[2]];
@@ -165,10 +165,10 @@ test('the pair: five spheres from the toe to the heel, each clear by its backlas
     const e = 1e-6, n0 = cross(sub(evaluateSurface(hit.f.surface, hit.a + e, hit.b), evaluateSurface(hit.f.surface, hit.a - e, hit.b)), sub(evaluateSurface(hit.f.surface, hit.a, hit.b + e), evaluateSurface(hit.f.surface, hit.a, hit.b - e)));
     const az = Math.atan2(hit.p[1], hit.p[0]), n = dot(n0, [-Math.sin(az), Math.cos(az), 0]) > 0 ? n0 : n0.map(x => -x);
     assert.match(chk.axialThrust, new RegExp(`^gear 1 driving clockwise seen from its apex is pushed ${-n[2] > 0 ? 'away from' : 'toward'} its apex`));
-    t.diagnostic(`spiral z${c1.z}/${c2.z} β ${c1.beta}° j ${j}: spheres ${chk.spheres.map(x => x.minimumClearanceMM.toExponential(4)).join(', ')}; ε_α ${chk.idealContactRatio.toFixed(5)} (Tredgold ${chk.tredgoldContactRatio.toFixed(5)}), ε_β ${chk.faceContactRatio.toFixed(5)}, ε_γ ${chk.totalContactRatio.toFixed(5)}; ${chk.axialThrust}; ${ms.toFixed(0)} ms`);
+    t.diagnostic(`spiral z${c1.z}/${c2.z} β ${c1.beta}° j ${j}: spheres ${chk.spheres.map(x => x.minimumClearance.toExponential(4)).join(', ')}; ε_α ${chk.idealContactRatio.toFixed(5)} (Tredgold ${chk.tredgoldContactRatio.toFixed(5)}), ε_β ${chk.faceContactRatio.toFixed(5)}, ε_γ ${chk.totalContactRatio.toFixed(5)}; ${chk.axialThrust}; ${ms.toFixed(0)} ms`);
   }
   // A straight pair's thrust: each gear pushed away from its apex, either way it turns.
-  assert.equal(checkBevelGearPair({ moduleMM: 2, teeth: 20, mateTeeth: 40, faceWidthMM: 10 }, { moduleMM: 2, teeth: 40, mateTeeth: 20, faceWidthMM: 10 }, { mode: 'verdict' }).axialThrust,
+  assert.equal(checkBevelGearPair({ module: 2, teeth: 20, mateTeeth: 40, faceWidth: 10 }, { module: 2, teeth: 40, mateTeeth: 20, faceWidth: 10 }, { mode: 'verdict' }).axialThrust,
     'gear 1 driving clockwise seen from its apex is pushed away from its apex, gear 2 away from its own; gear 1 driving counter-clockwise seen from its apex is pushed away from its apex, gear 2 away from its own (directions, no load)');
 });
 
@@ -229,8 +229,8 @@ test('the part model: a spiral pinion and its mate by mesh, their B-reps cut by 
   const step = 360 / 20;
   for (const rot of SURVEY ? [0, step / 3, 2 * step / 3] : [0, step / 2]) {
     const { out, check, a, w } = run(rot, 0);
-    assert.equal(check.relativePhaseDeg, 0); assert.equal(check.sweep.interference, false);
-    const fits = a.bevelGear.profileDeviationMM + a.bevelGear.spiral.twistDeviationMM + w.bevelGear.profileDeviationMM + w.bevelGear.spiral.twistDeviationMM;
+    assert.equal(check.relativePhase, 0); assert.equal(check.sweep.interference, false);
+    const fits = a.bevelGear.profileDeviation + a.bevelGear.spiral.twistDeviation + w.bevelGear.profileDeviation + w.bevelGear.spiral.twistDeviation;
     for (const r of out) {
       const want = j * r.R / G1.Re * Math.cos(G1.alpha) / 2;
       assert.equal(r.crossed, false, `turn ${rot}° sphere ${r.R}: the sections cross`);

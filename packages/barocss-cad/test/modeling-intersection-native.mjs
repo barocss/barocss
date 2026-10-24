@@ -38,7 +38,7 @@ try {
   const mesh = tessellateConvexPlanarSolid(convexBody(initial,'overlap'), { maximumFanTriangles: 40 });
   assert.ok(mesh.report.triangleCount > 0);
   assert.equal(mesh.mesh.indices.length % 3, 0);
-  write('display.json', { namedOutput: 'overlap', vertices: mesh.mesh.positionsMM.length / 3, triangles: mesh.mesh.indices.length / 3, report: mesh.report });
+  write('display.json', { namedOutput: 'overlap', vertices: mesh.mesh.positions.length / 3, triangles: mesh.mesh.indices.length / 3, report: mesh.report });
   if (process.env.CAD_MODEL_TRANSPORT_DIR) {
     const output = resolve(process.env.CAD_MODEL_TRANSPORT_DIR); mkdirSync(output, { recursive: true });
     const body = convexBody(initial,'overlap');

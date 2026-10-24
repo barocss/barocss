@@ -20,15 +20,15 @@ test('STEP carries CAx-IF validation properties; they read back and agree with t
   assert.match(step, /MEASURE_REPRESENTATION_ITEM\('volume measure',VOLUME_MEASURE\(/);
   assert.match(step, /\(DERIVED_UNIT\(\(#\d+\)\)VOLUME_UNIT\(\)\)/);
   const g = stepValidationProperties(step), m = massPropertiesOf(o);
-  assert.ok(Math.abs(g.volumeMM3 - (12000 - 250 * pi)) < 1e-9 * 12000);
-  assert.ok(Math.abs(g.areaMM2 - (3800 + 50 * pi)) < 1e-9 * 3800);
-  assert.deepEqual(g.centroidMM.map(x => +x.toFixed(9)), m.centroid.map(x => +x.toFixed(9)));
+  assert.ok(Math.abs(g.volume - (12000 - 250 * pi)) < 1e-9 * 12000);
+  assert.ok(Math.abs(g.area - (3800 + 50 * pi)) < 1e-9 * 3800);
+  assert.deepEqual(g.centroid.map(x => +x.toFixed(9)), m.centroid.map(x => +x.toFixed(9)));
   assert.deepEqual(g.box, { min: [0, 0, 0], max: [40, 30, 10] });
   const back = importStep(step), mb = brepMassProperties(back, 1);
-  const c = compareValidationProperties(g, { volumeMM3: mb.volume, areaMM2: brepSurfaceArea(back), centroidMM: mb.centroid, box: g.box });
+  const c = compareValidationProperties(g, { volume: mb.volume, area: brepSurfaceArea(back), centroid: mb.centroid, box: g.box });
   assert.equal(c.ok, true); assert.ok(c.volume.difference < 1e-12);
   // A model 2 % smaller than the file says fails the 1 % volume limit.
-  assert.equal(compareValidationProperties(g, { volumeMM3: g.volumeMM3 * 0.98, areaMM2: g.areaMM2, centroidMM: g.centroidMM, box: g.box }).volume.ok, false);
+  assert.equal(compareValidationProperties(g, { volume: g.volume * 0.98, area: g.area, centroid: g.centroid, box: g.box }).volume.ok, false);
   assert.doesNotMatch(exportStep(o.brep, { validationProperties: false }), /geometric validation property/);
 });
 

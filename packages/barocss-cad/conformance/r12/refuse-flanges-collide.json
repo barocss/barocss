@@ -38,7 +38,7 @@
           "kind": "sheet-flange",
           "target": "b",
           "edge": "b.side0|b.top",
-          "angleDegrees": 135,
+          "angle": 135,
           "length": 30
         },
         {
@@ -46,7 +46,7 @@
           "kind": "sheet-flange",
           "target": "f1",
           "edge": "b.side1|b.top",
-          "angleDegrees": 135,
+          "angle": 135,
           "length": 30
         }
       ]

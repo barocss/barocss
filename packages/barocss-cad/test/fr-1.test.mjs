@@ -98,12 +98,12 @@ test('FR1 sections: each kind along an oblique 3D line — V = A·L by the textb
   const p0 = [10, -20, 5], p1 = [310, 140, 205], L = Math.hypot(...sub(p1, p0));
   for (const [name, section, A, c] of CASES) {
     const o = outputOf(run([member(section, p0, p1)]), 'm'), mp = massPropertiesOf(o, 7.85);
-    near(mp.volume, A * L, 1e-12, `${name} volume`); near(o.member.areaMM2, A, 1e-12, `${name} area`);
+    near(mp.volume, A * L, 1e-12, `${name} volume`); near(o.member.area, A, 1e-12, `${name} area`);
     assert.equal(mp.method, 'closed-form', name); assert.equal(o.bodyCount, 1, name); assert.ok(checkOutput(o).valid, name);
     near(o.member.centroid[0], c[0], 1e-12, `${name} centroid x`); near(o.member.centroid[1], c[1], 1e-12, `${name} centroid y`);
     // Anchored at its centroid (the default): the body's centre of mass is the line's midpoint.
     mp.centroid.forEach((x, k) => near(x, (p0[k] + p1[k]) / 2, 1e-12, `${name} centre of mass`));
-    near(o.member.lengthMM, L, 1e-15, name);
+    near(o.member.length, L, 1e-15, name);
   }
 });
 
@@ -114,7 +114,7 @@ test('FR1 the T-slot section against the tslot-20 library part (its own 3D Boole
     const want = evaluateCadPart(D(inst.features)).outputs.filter(o => inst.outputs.includes(o.feature)).reduce((s, o) => s + massPropertiesOf(o).volume, 0);
     const m = outputOf(run([member({ kind: 'tslot', size: 20, cells, ...(cells === 1 ? { openSlots: open } : {}), ...SLOT }, [0, 0, 0], [0, 0, 250], { anchor: 'origin' })]), 'm');
     near(massPropertiesOf(m).volume, want, 1e-12, `cells ${cells}, ${open} slots`);
-    near(m.member.areaMM2 * 250, want, 1e-12, `cells ${cells}, ${open} slots, area`);
+    near(m.member.area * 250, want, 1e-12, `cells ${cells}, ${open} slots, area`);
   }
 });
 

@@ -33,7 +33,7 @@ test('R10.2a the general path against the closed forms: a boss\'s foot (concave)
     // (The loft follows the true sections to its reported deviation, so the fillet's volume to about that over its area.)
     assert.ok(Math.abs(vg / ve - 1) < rel, `${what}: ${vg} vs ${ve} (${vg / ve - 1})`);
     assert.equal(reports.length, 1);
-    assert.ok(reports[0].contactMM <= 2.5e-7 && reports[0].normalDeg < 1e-3 && reports[0].ballMM < 1e-8 && reports[0].sectionMM < 1e-6, `${what}: ${JSON.stringify(reports[0])}`);
+    assert.ok(reports[0].contact <= 2.5e-7 && reports[0].normal < 1e-3 && reports[0].ball < 1e-8 && reports[0].section < 1e-6, `${what}: ${JSON.stringify(reports[0])}`);
   }
 });
 
@@ -44,7 +44,7 @@ test('R10.2a a pipe tee and crossing rods (no closed form): valid, the fillet\'s
     assert.equal(checkOutput(o).valid, true, what);
     const [rep] = o.fillet, added = massPropertiesOf(o).volume - massPropertiesOf(o0).volume;
     assert.ok(rep.edges.length > 1 && rep.edges.includes(edge), `${what}: the loop's ${rep.edges.length} edges`);
-    assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.ballMM < 1e-8 && rep.sectionMM < 1e-6, `${what}: ${JSON.stringify(rep)}`);
+    assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.ball < 1e-8 && rep.section < 1e-6, `${what}: ${JSON.stringify(rep)}`);
     assert.ok(added > 0, `${what}: a concave fillet adds material (${added})`);
     // A finer loft (twice the stations) agrees.
     setRingStations(2 * rep.stations);

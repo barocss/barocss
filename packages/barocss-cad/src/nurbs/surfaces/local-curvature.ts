@@ -17,21 +17,21 @@ export class NativeCurvatureError extends KernelError {
 }
 export interface CurveCurvatureResult {
   derivatives: CurveD2Result;
-  speedMM: number;
+  speed: number;
   unitTangent: Point;
-  curvaturePerMM: number;
-  curvatureVectorPerMM: Point;
-  radiusMM: number | null;
+  curvaturePer: number;
+  curvatureVectorPer: Point;
+  radius: number | null;
 }
 export interface SurfaceCurvatureResult {
   derivatives: SurfaceD2Result;
   unitNormal: Point;
-  normalizedMetric: { cosineUV: number; determinant: number; tangentNormsMM: [number, number] };
-  normalizedSecondFormPerMM: { uu: number; uv: number; vv: number };
-  meanCurvaturePerMM: number;
-  gaussianCurvaturePerMM2: number;
-  principalCurvaturesPerMM: [number, number];
-  umbilicDiscriminant: { scalePerMM: number; rawScaled: number; roundoffBoundScaled: number; clampedToZero: boolean };
+  normalizedMetric: { cosineUV: number; determinant: number; tangentNorms: [number, number] };
+  normalizedSecondFormPer: { uu: number; uv: number; vv: number };
+  meanCurvaturePer: number;
+  gaussianCurvaturePer: number;
+  principalCurvaturesPer: [number, number];
+  umbilicDiscriminant: { scalePer: number; rawScaled: number; roundoffBoundScaled: number; clampedToZero: boolean };
 }
 
 const CODE = NativeCurvatureDiagnosticCode;
@@ -83,13 +83,13 @@ function unit(vector: Point, norm: number): Point {
 /** Local geometric curvature in inverse millimetres; a straight regular Curve is valid. */
 export function evaluateCurveCurvature(curve: Curve, parameter: number): CurveCurvatureResult {
   const derivatives = derivative(() => evaluateCurveD2(curve, parameter));
-  const speedMM = tangentNorm(derivatives.derivative), unitTangent = unit(derivatives.derivative, speedMM);
+  const speed = tangentNorm(derivatives.derivative), unitTangent = unit(derivatives.derivative, speed);
   const tangential = dot(unitTangent, derivatives.secondDerivative);
-  const curvatureVectorPerMM = [0, 1, 2].map(axis => quotient(quotient(finite(derivatives.secondDerivative[axis]
-    - product(unitTangent[axis], tangential)), speedMM), speedMM)) as Point;
-  const curvaturePerMM = finite(Math.hypot(...curvatureVectorPerMM));
-  const radiusMM = curvaturePerMM === 0 ? null : quotient(1, curvaturePerMM);
-  return { derivatives, speedMM, unitTangent, curvaturePerMM, curvatureVectorPerMM, radiusMM };
+  const curvatureVectorPer = [0, 1, 2].map(axis => quotient(quotient(finite(derivatives.secondDerivative[axis]
+    - product(unitTangent[axis], tangential)), speed), speed)) as Point;
+  const curvaturePer = finite(Math.hypot(...curvatureVectorPer));
+  const radius = curvaturePer === 0 ? null : quotient(1, curvaturePer);
+  return { derivatives, speed: speed, unitTangent, curvaturePer: curvaturePer, curvatureVectorPer: curvatureVectorPer, radius: radius };
 }
 
 /** Native U/V-oriented local surface curvature with a disclosed discriminant rounding policy. */
@@ -111,27 +111,27 @@ export function evaluateSurfaceCurvature(surface: Surface, u: number, v: number)
   const uu = quotient(quotient(dot(unitNormal, derivatives.duu), normU), normU);
   const uv = quotient(quotient(dot(unitNormal, derivatives.duv), normU), normV);
   const vv = quotient(quotient(dot(unitNormal, derivatives.dvv), normV), normV);
-  const normalizedMetric = { cosineUV, determinant, tangentNormsMM: [normU, normV] as [number, number] };
-  const normalizedSecondFormPerMM = { uu, uv, vv };
-  const scalePerMM = Math.max(Math.abs(uu), Math.abs(uv), Math.abs(vv));
-  if (scalePerMM === 0) {
-    return { derivatives, unitNormal, normalizedMetric, normalizedSecondFormPerMM,
-      meanCurvaturePerMM: 0, gaussianCurvaturePerMM2: 0, principalCurvaturesPerMM: [0, 0],
-      umbilicDiscriminant: { scalePerMM: 0, rawScaled: 0, roundoffBoundScaled: 0, clampedToZero: false } };
+  const normalizedMetric = { cosineUV, determinant, tangentNorms: [normU, normV] as [number, number] };
+  const normalizedSecondFormPer = { uu, uv, vv };
+  const scalePer = Math.max(Math.abs(uu), Math.abs(uv), Math.abs(vv));
+  if (scalePer === 0) {
+    return { derivatives, unitNormal, normalizedMetric, normalizedSecondFormPer: normalizedSecondFormPer,
+      meanCurvaturePer: 0, gaussianCurvaturePer: 0, principalCurvaturesPer: [0, 0],
+      umbilicDiscriminant: { scalePer: 0, rawScaled: 0, roundoffBoundScaled: 0, clampedToZero: false } };
   }
-  const e = quotient(uu, scalePerMM), f = quotient(uv, scalePerMM), g = quotient(vv, scalePerMM);
+  const e = quotient(uu, scalePer), f = quotient(uv, scalePer), g = quotient(vv, scalePer);
   const h = quotient(finite(finite(e - product(2, product(cosineUV, f))) + g), product(2, determinant));
   const k = quotient(finite(product(e, g) - product(f, f)), determinant);
-  const meanCurvaturePerMM = product(scalePerMM, h);
-  const gaussianCurvaturePerMM2 = product(scalePerMM, product(scalePerMM, k));
+  const meanCurvaturePer = product(scalePer, h);
+  const gaussianCurvaturePer = product(scalePer, product(scalePer, k));
   const squaredH = product(h, h), rawScaled = finite(squaredH - k);
   const roundoffBoundScaled = product(ROUNDING, finite(Math.abs(squaredH) + Math.abs(k)));
   const clampedToZero = rawScaled < 0;
   check(!clampedToZero || Math.abs(rawScaled) <= roundoffBoundScaled,
     CODE.ARITHMETIC, 'Negative principal-curvature discriminant exceeded its declared rounding bound');
   const root = finite(Math.sqrt(clampedToZero ? 0 : rawScaled));
-  const principalCurvaturesPerMM: [number, number] = [product(scalePerMM, finite(h - root)), product(scalePerMM, finite(h + root))];
-  return { derivatives, unitNormal, normalizedMetric, normalizedSecondFormPerMM,
-    meanCurvaturePerMM, gaussianCurvaturePerMM2, principalCurvaturesPerMM,
-    umbilicDiscriminant: { scalePerMM, rawScaled, roundoffBoundScaled, clampedToZero } };
+  const principalCurvaturesPer: [number, number] = [product(scalePer, finite(h - root)), product(scalePer, finite(h + root))];
+  return { derivatives, unitNormal, normalizedMetric, normalizedSecondFormPer: normalizedSecondFormPer,
+    meanCurvaturePer: meanCurvaturePer, gaussianCurvaturePer: gaussianCurvaturePer, principalCurvaturesPer: principalCurvaturesPer,
+    umbilicDiscriminant: { scalePer: scalePer, rawScaled, roundoffBoundScaled, clampedToZero } };
 }

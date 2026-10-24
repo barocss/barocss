@@ -42,7 +42,7 @@ export interface ConvexPlanarFaceWithHolesMeshResult {
   mesh:{id:string;positionsMM:number[];normals:number[];parametersUV:number[];indices:number[];vertices:ConvexHoleMeshVertex[]};
   boundaryPaths:ConvexHoleMeshBoundaryPath[];triangulation:ConvexHoleMeshTriangulation;report:ConvexPlanarFaceWithHolesMeshReport;
 }
-const LABEL='Own convex planar hole-face material mesh',TOL=CadNumericPolicy.linearToleranceMM,EPS=64*Number.EPSILON;
+const LABEL='Own convex planar hole-face material mesh',TOL=CadNumericPolicy.linearTolerance,EPS=64*Number.EPSILON;
 function check(c:boolean,detail:string):asserts c {if(!c)throw new Error((LABEL+': '+detail).slice(0,1024));}
 function finite(n:number):number {check(Number.isFinite(n),'finite native homogeneous/Gram arithmetic required');return n;}
 function snapshot(input:unknown,results=false):unknown {

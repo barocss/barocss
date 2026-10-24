@@ -30,37 +30,37 @@ export const isGearError = (e: unknown): e is KernelError & { readonly code: Gea
 
 /** Version 0 of the spur gear's inputs (lengths in mm). */
 export interface SpurGearSpec {
-  /** A spur gear's module. (A helical gear's is `normalModuleMM`; giving this with a helix angle is refused.) */
-  readonly moduleMM?: number;
+  /** A spur gear's module. (A helical gear's is `normalModule`; giving this with a helix angle is refused.) */
+  readonly module?: number;
   /** A helical gear (R6a.5c, D59): its normal module m_n, helix angle β at the reference circle (0 < β ≤ 45°) and hand. */
-  readonly normalModuleMM?: number;
-  readonly helixAngleDeg?: number;
+  readonly normalModule?: number;
+  readonly helixAngle?: number;
   readonly hand?: 'right' | 'left';
   readonly teeth: number;
   /** The reference pressure angle (a helical gear's normal one, α_n); 20° only in this stage. */
-  readonly pressureAngleDeg?: number;
-  readonly faceWidthMM: number;
+  readonly pressureAngle?: number;
+  readonly faceWidth: number;
   /** x, the cutting rack moved out by x m (R6a.5, D57): from −0.5 to 1 (UNSUPPORTED_PROFILE_SHIFT otherwise). */
   readonly profileShiftCoefficient?: number;
   /** 0: no bore. */
-  readonly boreDiameterMM?: number;
+  readonly boreDiameter?: number;
   /** This gear's circumferential tooth thickness taken off at the reference circle (its share of a pair's backlash). */
-  readonly toothThicknessReductionMM?: number;
+  readonly toothThicknessReduction?: number;
   /**
    * How the root joins the flanks: 'schematic-radial' (the default; generator spur-gear@0) or 'generated' (R12b.1a,
-   * D130; spur-gear@1): the root the basic rack cuts, its tip rounded by `toolTipRadiusMM` — spur and (R12b.1b, D131) helical.
+   * D130; spur-gear@1): the root the basic rack cuts, its tip rounded by `toolTipRadius` — spur and (R12b.1b, D131) helical.
    */
   readonly rootPolicy?: 'schematic-radial' | 'generated';
   /** The basic rack's tip radius ρ for a generated root (default 0.38 m); it must leave a flat between the two rounds. */
-  readonly toolTipRadiusMM?: number;
+  readonly toolTipRadius?: number;
   /** The largest deviation of a fitted flank from the involute; default 1e-4 m. */
-  readonly profileToleranceMM?: number;
+  readonly profileTolerance?: number;
   /** The least rim left round a bore, below the root circle; default 1 m (geometry only: not a strength check). */
-  readonly minimumRimMM?: number;
+  readonly minimumRim?: number;
 }
 export interface SpurGearDimensions {
-  readonly referenceDiameterMM: number; readonly baseDiameterMM: number; readonly tipDiameterMM: number; readonly rootDiameterMM: number;
-  readonly circularPitchMM: number; readonly toothThicknessMM: number; readonly tipThicknessMM: number;
+  readonly referenceDiameter: number; readonly baseDiameter: number; readonly tipDiameter: number; readonly rootDiameter: number;
+  readonly circularPitch: number; readonly toothThickness: number; readonly tipThickness: number;
 }
 export interface SpurGearReport {
   readonly generator: 'spur-gear@0' | 'spur-gear@1';
@@ -70,20 +70,20 @@ export interface SpurGearReport {
   /**
    * A helical gear's (R6a.5c, D59): its normal and transverse module and pressure angle, helix angle and hand, lead,
    * the total twist over the face, and the fit of that twist — its largest deviation at the tip circle (the flank
-   * surface lies within profileDeviationMM + twistDeviationMM of the involute helicoid), the axial segments and the
+   * surface lies within profileDeviation + twistDeviation of the involute helicoid), the axial segments and the
    * cubic pieces in each.
    */
-  readonly helix?: { readonly normalModuleMM: number; readonly transverseModuleMM: number; readonly transversePressureAngleDeg: number; readonly helixAngleDeg: number; readonly hand: 'right' | 'left';
-    readonly leadMM: number; readonly twistDegrees: number; readonly twistDeviationMM: number; readonly axialSegments: number; readonly piecesPerSegment: number };
+  readonly helix?: { readonly normalModule: number; readonly transverseModule: number; readonly transversePressureAngle: number; readonly helixAngle: number; readonly hand: 'right' | 'left';
+    readonly lead: number; readonly twist: number; readonly twistDeviation: number; readonly axialSegments: number; readonly piecesPerSegment: number };
   /** Cubic pieces in each flank, and the largest measured deviation of a flank from the involute (mm). */
-  readonly flankPieces: number; readonly profileDeviationMM: number; readonly profileToleranceMM: number;
+  readonly flankPieces: number; readonly profileDeviation: number; readonly profileTolerance: number;
   readonly rootPolicy: 'schematic-radial' | 'generated'; readonly manufacturingValidated: false;
   /**
    * A generated root's (R12b.1a): the tool's tip radius; the diameter where the involute begins — the form circle, or
    * where the tool cuts the involute when `undercut`; the fillet's cubic pieces and their largest measured deviation
    * from the envelope (a bound: at the same tool position).
    */
-  readonly generatedRoot?: { readonly toolTipRadiusMM: number; readonly formDiameterMM: number; readonly undercut: boolean; readonly filletPieces: number; readonly filletDeviationMM: number };
+  readonly generatedRoot?: { readonly toolTipRadius: number; readonly formDiameter: number; readonly undercut: boolean; readonly filletPieces: number; readonly filletDeviation: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
@@ -95,30 +95,30 @@ export const inv = (phi: number) => Math.tan(phi) - phi;
 
 /** The gear's dimensions and the checks of this stage's inputs (refusals thrown, as gearError). */
 export function spurGearDimensions(spec: SpurGearSpec): SpurGearDimensions & { alpha: number; rb: number; ra: number; rf: number; r: number; psi: number; mn: number; mt: number; beta: number; alphaN: number; rs: number; root?: RackRoot } {
-  const z = spec.teeth, b = spec.faceWidthMM, helical = spec.helixAngleDeg !== undefined && spec.helixAngleDeg !== 0;
-  // Spur: `moduleMM`. Helical: the normal module, β and the hand, named so (a transverse module is never taken for it).
+  const z = spec.teeth, b = spec.faceWidth, helical = spec.helixAngle !== undefined && spec.helixAngle !== 0;
+  // Spur: `module`. Helical: the normal module, β and the hand, named so (a transverse module is never taken for it).
   let m: number, beta = 0;
   if (helical) {
-    const bd = spec.helixAngleDeg!;
-    if (spec.moduleMM !== undefined) throw gearError('INVALID_INPUT', 'a helical gear takes normalModuleMM (the normal module), not moduleMM');
+    const bd = spec.helixAngle!;
+    if (spec.module !== undefined) throw gearError('INVALID_INPUT', 'a helical gear takes normalModule (the normal module), not module');
     if (!(Number.isFinite(bd) && bd > 0 && bd <= 45)) throw gearError('UNSUPPORTED_GEAR_KIND', `helix angle ${bd}°: from above 0 to 45° in this stage (the hand gives the sense)`);
     if (spec.hand !== 'right' && spec.hand !== 'left') throw gearError('INVALID_INPUT', "a helical gear needs its hand, 'right' or 'left'");
-    m = spec.normalModuleMM as number; beta = (spec.hand === 'right' ? 1 : -1) * bd * Math.PI / 180;
+    m = spec.normalModule as number; beta = (spec.hand === 'right' ? 1 : -1) * bd * Math.PI / 180;
   } else {
-    if (spec.normalModuleMM !== undefined || spec.hand !== undefined) throw gearError('INVALID_INPUT', 'normalModuleMM and hand belong to a helical gear: give helixAngleDeg too (a spur gear takes moduleMM)');
-    m = spec.moduleMM as number;
+    if (spec.normalModule !== undefined || spec.hand !== undefined) throw gearError('INVALID_INPUT', 'normalModule and hand belong to a helical gear: give helixAngle too (a spur gear takes module)');
+    m = spec.module as number;
   }
-  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw gearError('INVALID_INPUT', `${helical ? 'normalModuleMM' : 'moduleMM'} must be a number of mm above 0, at most 100`);
+  if (!(Number.isFinite(m) && m > 0 && m <= 100)) throw gearError('INVALID_INPUT', `${helical ? 'normalModule' : 'module'} must be a number of mm above 0, at most 100`);
   if (!(Number.isInteger(z) && z >= 1)) throw gearError('INVALID_INPUT', 'teeth must be a whole number');
-  if (!(Number.isFinite(b) && b > 0 && b <= 10000)) throw gearError('INVALID_INPUT', 'faceWidthMM must be a number of mm above 0');
-  const alphaDeg = spec.pressureAngleDeg ?? 20;
+  if (!(Number.isFinite(b) && b > 0 && b <= 10000)) throw gearError('INVALID_INPUT', 'faceWidth must be a number of mm above 0');
+  const alphaDeg = spec.pressureAngle ?? 20;
   if (alphaDeg !== 20) throw gearError('UNSUPPORTED_GEAR_KIND', `pressure angle ${alphaDeg}°: only 20° in this stage`);
   const x = spec.profileShiftCoefficient ?? 0;
   if (!Number.isFinite(x)) throw gearError('INVALID_INPUT', 'profileShiftCoefficient must be a number');
   // (R12b.1a, R12b.1b: the generated root, spur and helical.)
   const generated = spec.rootPolicy === 'generated';
   if (spec.rootPolicy !== undefined && spec.rootPolicy !== 'schematic-radial' && !generated) throw gearError('INVALID_INPUT', `root policy ${String(spec.rootPolicy)}: 'schematic-radial' or 'generated'`);
-  if (!generated && spec.toolTipRadiusMM !== undefined) throw gearError('INVALID_INPUT', "toolTipRadiusMM belongs to a generated root (rootPolicy 'generated')");
+  if (!generated && spec.toolTipRadius !== undefined) throw gearError('INVALID_INPUT', "toolTipRadius belongs to a generated root (rootPolicy 'generated')");
   if (generated && z < MIN_TEETH_GENERATED) throw gearError('INVALID_INPUT', `a generated root takes at least ${MIN_TEETH_GENERATED} teeth in this stage`);
   if (!(x >= MIN_SHIFT && x <= MAX_SHIFT)) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `profile shift ${x}: from ${MIN_SHIFT} to ${MAX_SHIFT} in this stage`);
   // Helical: the transverse module and pressure angle, m_t = m_n / cos β, tan α_t = tan α_n / cos β.
@@ -127,20 +127,20 @@ export function spurGearDimensions(spec: SpurGearSpec): SpurGearDimensions & { a
   // (about 17.1 at 20° unshifted); a helical gear by its virtual tooth number z_v = z / cos³β.
   const zv = z / cb ** 3, zMin = 2 * (1 - x) / Math.sin(alphaN) ** 2;
   // (A generated root takes the undercut as the tool cuts it: the involute trimmed, said with UNDERCUT.)
-  if (zv < zMin && !generated) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth${helical ? ` (virtual ${zv.toFixed(2)} at β ${spec.helixAngleDeg}°)` : ''} at 20°${x ? ` with x = ${x}` : ' without profile shift'} are undercut (below ${zMin.toFixed(1)}): a shift of at least x = ${(1 - zv * Math.sin(alphaN) ** 2 / 2).toFixed(3)} would avoid it`);
+  if (zv < zMin && !generated) throw gearError('UNSUPPORTED_PROFILE_SHIFT', `${z} teeth${helical ? ` (virtual ${zv.toFixed(2)} at β ${spec.helixAngle}°)` : ''} at 20°${x ? ` with x = ${x}` : ' without profile shift'} are undercut (below ${zMin.toFixed(1)}): a shift of at least x = ${(1 - zv * Math.sin(alphaN) ** 2 / 2).toFixed(3)} would avoid it`);
   if (z > MAX_TEETH) throw gearError('INVALID_INPUT', `teeth at most ${MAX_TEETH} in this stage`);
   // The shifted gear cut by the standard rack (addendum m, dedendum 1.25 m) moved out by x m: tip and root move out by
   // x m, the reference tooth thickens by 2 x m tan α. (No tip shortening: that depends on the mate; the pair checks
   // report the tip clearances.)
   const d = mt * z, r = d / 2, rb = r * Math.cos(alpha), ra = r + m * (1 + x), rf = r - m * (1.25 - x);
-  const red = spec.toothThicknessReductionMM ?? 0;
-  if (!(Number.isFinite(red) && red >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReductionMM must be a number of mm, 0 or more');
+  const red = spec.toothThicknessReduction ?? 0;
+  if (!(Number.isFinite(red) && red >= 0)) throw gearError('INVALID_INPUT', 'toothThicknessReduction must be a number of mm, 0 or more');
   const s0 = mt * (Math.PI / 2 + 2 * x * Math.tan(alphaN)), s = s0 - red;
   if (!(s > 0)) throw gearError('INVALID_INPUT', `a thickness reduction of ${red} mm leaves no tooth (the reference thickness is ${s0.toFixed(4)} mm)`);
   const psi = s / d + inv(alpha), tipHalf = psi - inv(Math.acos(rb / ra));
   if (!(tipHalf > 0)) throw gearError('SELF_INTERSECTION', `the tooth comes to a point below its tip circle${x > 0 ? ` (a shift of ${x} on ${z} teeth)` : ''}`);
-  const root = generated ? rackRoot(m, z, x, red, spec.toolTipRadiusMM ?? 0.38 * m, r, rb, ra, psi, beta ? alpha : alphaN, beta, beta ? mt : m) : undefined;
-  return { referenceDiameterMM: d, baseDiameterMM: 2 * rb, tipDiameterMM: 2 * ra, rootDiameterMM: 2 * rf, circularPitchMM: Math.PI * mt, toothThicknessMM: s, tipThicknessMM: 2 * ra * tipHalf, alpha, rb, ra, rf, r, psi, mn: m, mt, beta, alphaN, rs: root ? root.rStart : Math.max(rb, rf), ...(root ? { root } : {}) };
+  const root = generated ? rackRoot(m, z, x, red, spec.toolTipRadius ?? 0.38 * m, r, rb, ra, psi, beta ? alpha : alphaN, beta, beta ? mt : m) : undefined;
+  return { referenceDiameter: d, baseDiameter: 2 * rb, tipDiameter: 2 * ra, rootDiameter: 2 * rf, circularPitch: Math.PI * mt, toothThickness: s, tipThickness: 2 * ra * tipHalf, alpha, rb, ra, rf, r, psi, mn: m, mt, beta, alphaN, rs: root ? root.rStart : Math.max(rb, rf), ...(root ? { root } : {}) };
 }
 
 /**
@@ -228,7 +228,7 @@ function rackRoot(m: number, z: number, x: number, red: number, rho: number, r: 
   // (The ellipse's reach along the flank's normal, √(a² cos² α + b² sin² α): ρ for a circle.)
   const reach = beta ? Math.sqrt(a * a * ca * ca + b * b * sa * sa) : rho, k = reach / rho;
   const rhoMax = (Math.PI * mt / 4 + red / 2 - hA * ta) / (k / ca - ta);
-  if (!(Number.isFinite(rho) && rho > 0 && rho < rhoMax)) throw gearError('INVALID_INPUT', `toolTipRadiusMM must be above 0 and below ${rhoMax.toFixed(6)} mm (where the rack's two tip rounds meet)`);
+  if (!(Number.isFinite(rho) && rho > 0 && rho < rhoMax)) throw gearError('INVALID_INPUT', `toolTipRadius must be above 0 and below ${rhoMax.toFixed(6)} mm (where the rack's two tip rounds meet)`);
   const hc = hA - rho, xc = Math.PI * mt / 4 + red / 2 - hc * ta - reach / ca, yc = r + x * m - hc, phiRoot = xc / r;
   const thetaF = beta ? -Math.atan(b / a * ta) : -alpha;
   const base: RackRoot = { rho, a, b, xc, yc, r, rb, psi, z, thetaEnd: thetaF, phiRoot, phiEnd: 0, rStart: 0, undercut: false };
@@ -404,8 +404,8 @@ export const reversed = (c: Curve): Curve => ({ ...c, controlPoints: [...c.contr
 /** The gear's profile: its curves counter-clockwise round the gear (the bore's clockwise), and its report. */
 export function spurGearProfile(spec: SpurGearSpec): { pieces: Piece[]; bore: Piece[]; report: SpurGearReport } {
   const g = spurGearDimensions(spec), m = g.mn, z = spec.teeth, root = g.root;
-  const tol = spec.profileToleranceMM ?? 1e-4 * m;
-  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileToleranceMM must be a number of mm above 0');
+  const tol = spec.profileTolerance ?? 1e-4 * m;
+  if (!(Number.isFinite(tol) && tol > 0)) throw gearError('INVALID_INPUT', 'profileTolerance must be a number of mm above 0');
   // (The involute starts at max(rb, rf) under the schematic root; at the form circle, or the undercut's crossing, under a generated one.)
   const r0 = g.rs, t0 = Math.sqrt(Math.max(0, (r0 / g.rb) ** 2 - 1)), t1 = Math.sqrt((g.ra / g.rb) ** 2 - 1);
   // As few pieces as the tolerance asks; past the budget, refused (never a looser tolerance).
@@ -456,8 +456,8 @@ export function spurGearProfile(spec: SpurGearSpec): { pieces: Piece[]; bore: Pi
     pieces.push({ role: 'root', tooth: n, curve: arcCurve('r', g.rf, gam + psiStart, step - 2 * psiStart) });
   }
   // The bore: two half circles clockwise (a hole in the face).
-  const bd = spec.boreDiameterMM ?? 0, rim = spec.minimumRimMM ?? m, bore: Piece[] = [];
-  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameterMM must be a number of mm, 0 or more');
+  const bd = spec.boreDiameter ?? 0, rim = spec.minimumRim ?? m, bore: Piece[] = [];
+  if (!(Number.isFinite(bd) && bd >= 0)) throw gearError('INVALID_INPUT', 'boreDiameter must be a number of mm, 0 or more');
   if (bd > 0) {
     if (!(bd / 2 <= g.rf - rim)) throw gearError('BORE_INTERSECTION', `a bore of ${bd} mm leaves less than the ${rim} mm rim below the root circle (Ø${(2 * g.rf).toFixed(3)} mm): at most Ø${(2 * (g.rf - rim)).toFixed(3)} (a geometric margin, not a strength check)`);
     bore.push({ role: 'bore', tooth: 1, curve: arcCurve('b', bd / 2, 0, -Math.PI) }, { role: 'bore', tooth: 2, curve: arcCurve('b', bd / 2, -Math.PI, -Math.PI) });
@@ -465,9 +465,9 @@ export function spurGearProfile(spec: SpurGearSpec): { pieces: Piece[]; bore: Pi
   const diagnostics: GearDiagnostic[] = root
     ? root.undercut ? [{ code: 'UNDERCUT', severity: 'warning', message: `undercut: the tool's tip cuts the involute away below Ø${(2 * root.rStart).toFixed(4)} mm (the base circle Ø${(2 * g.rb).toFixed(4)}); the flank starts there` }] : []
     : [{ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: radial ? 'the root joins the flanks by radial lines from the base circle and a root arc: a schematic root, not the one the cutting tool generates' : 'the flanks meet the root arc at a corner: a schematic root, not the one the cutting tool generates' }];
-  const dims: SpurGearDimensions = { referenceDiameterMM: g.referenceDiameterMM, baseDiameterMM: g.baseDiameterMM, tipDiameterMM: g.tipDiameterMM, rootDiameterMM: g.rootDiameterMM, circularPitchMM: g.circularPitchMM, toothThicknessMM: g.toothThicknessMM, tipThicknessMM: g.tipThicknessMM };
-  return { pieces, bore, report: { generator: root ? 'spur-gear@1' : 'spur-gear@0', dimensions: dims, profileShift: spec.profileShiftCoefficient ?? 0, flankPieces: N, profileDeviationMM: deviation, profileToleranceMM: tol, rootPolicy: root ? 'generated' : 'schematic-radial', manufacturingValidated: false,
-    ...(root ? { generatedRoot: { toolTipRadiusMM: root.rho, formDiameterMM: 2 * root.rStart, undercut: root.undercut, filletPieces: NF, filletDeviationMM: filletDev } } : {}), diagnostics } };
+  const dims: SpurGearDimensions = { referenceDiameter: g.referenceDiameter, baseDiameter: g.baseDiameter, tipDiameter: g.tipDiameter, rootDiameter: g.rootDiameter, circularPitch: g.circularPitch, toothThickness: g.toothThickness, tipThickness: g.tipThickness };
+  return { pieces, bore, report: { generator: root ? 'spur-gear@1' : 'spur-gear@0', dimensions: dims, profileShift: spec.profileShiftCoefficient ?? 0, flankPieces: N, profileDeviation: deviation, profileTolerance: tol, rootPolicy: root ? 'generated' : 'schematic-radial', manufacturingValidated: false,
+    ...(root ? { generatedRoot: { toolTipRadius: root.rho, formDiameter: 2 * root.rStart, undercut: root.undercut, filletPieces: NF, filletDeviation: filletDev } } : {}), diagnostics } };
 }
 
 
@@ -483,8 +483,8 @@ export function spurGear(spec: SpurGearSpec, options: { readonly id?: string } =
   const { pieces, bore, report: flat } = spurGearProfile(spec);
   // (A fillet's later faces: `filletL2#k`, `filletL3#k` — the tooth last, so a helical gear's axial segments, `#k.2`, stay apart, D131.)
   const nameOf = (p: Piece) => p.role === 'bore' ? `${id}.bore#${p.tooth}` : `${id}.${p.role}${p.part ? p.part + 1 : ''}#${p.tooth}`;
-  const g = spurGearDimensions(spec), h = helixTwist(spec, g, flat.profileToleranceMM), twist = h?.twist, report = h ? { ...flat, helix: h.helix } : flat;
-  const brep = extrudedProfile(id, 'gear', pieces.map(p => ({ name: nameOf(p), curve: p.curve })), bore.map(p => ({ name: nameOf(p), curve: p.curve })), spec.faceWidthMM, report.dimensions.tipDiameterMM / 2 + 1, twist);
+  const g = spurGearDimensions(spec), h = helixTwist(spec, g, flat.profileTolerance), twist = h?.twist, report = h ? { ...flat, helix: h.helix } : flat;
+  const brep = extrudedProfile(id, 'gear', pieces.map(p => ({ name: nameOf(p), curve: p.curve })), bore.map(p => ({ name: nameOf(p), curve: p.curve })), spec.faceWidth, report.dimensions.tipDiameter / 2 + 1, twist);
   return { brep, report };
 }
 /**
@@ -495,12 +495,12 @@ export function spurGear(spec: SpurGearSpec, options: { readonly id?: string } =
  */
 export function helixTwist(spec: SpurGearSpec, g: ReturnType<typeof spurGearDimensions>, tol: number): { twist: ProfileTwist; helix: NonNullable<SpurGearReport['helix']> } | null {
   if (g.beta === 0) return null;
-  const angle = spec.faceWidthMM * Math.tan(g.beta) / g.r;
+  const angle = spec.faceWidth * Math.tan(g.beta) / g.r;
   let K = 1; while (twistDeviation(Math.abs(angle) / K) * g.ra > tol && K <= 4 * MAX_SEGMENTS) K++;
   const S = Math.ceil(K / 4), N = Math.ceil(K / S), dev = twistDeviation(Math.abs(angle) / (S * N)) * g.ra;
   if (S > MAX_SEGMENTS || dev > tol) throw gearError('PROFILE_BUDGET_EXCEEDED', `the twist of ${(angle * 180 / Math.PI).toFixed(2)}° over the face needs more than ${MAX_SEGMENTS} axial segments to stay within ${tol} mm`);
-  return { twist: { angle, segments: S, pieces: N }, helix: { normalModuleMM: g.mn, transverseModuleMM: g.mt, transversePressureAngleDeg: g.alpha * 180 / Math.PI, helixAngleDeg: spec.helixAngleDeg!, hand: g.beta > 0 ? 'right' : 'left',
-    leadMM: 2 * Math.PI * g.r / Math.tan(Math.abs(g.beta)), twistDegrees: angle * 180 / Math.PI, twistDeviationMM: dev, axialSegments: S, piecesPerSegment: N } };
+  return { twist: { angle, segments: S, pieces: N }, helix: { normalModule: g.mn, transverseModule: g.mt, transversePressureAngle: g.alpha * 180 / Math.PI, helixAngle: spec.helixAngle!, hand: g.beta > 0 ? 'right' : 'left',
+    lead: 2 * Math.PI * g.r / Math.tan(Math.abs(g.beta)), twist: angle * 180 / Math.PI, twistDeviation: dev, axialSegments: S, piecesPerSegment: N } };
 }
 /** A feature id made safe for B-rep entity ids. */
 export const safeId = (id: string) => id.replace(/[^A-Za-z0-9_-]/g, '_').replace(/^(?=[^A-Za-z_])/, '_');
@@ -631,14 +631,14 @@ export function spurGearCenterDistance(g1: SpurGearSpec, g2: SpurGearSpec): numb
  * εα = [√(ra1² − rb1²) + √(ra2² − rb2²) − a sin α] / (π m cos α), and the backlash at that centre distance, the sum of
  * the two gears' thickness reductions. Not the pair checks (R6a.4: phase, clearance over a rotation, the usable flank).
  */
-export function spurGearPairNominal(g1: SpurGearSpec, g2: SpurGearSpec): { centerDistanceMM: number; speedRatio: number; idealContactRatio: number; axialContactRatio: number; totalContactRatio: number; backlashMM: number } {
+export function spurGearPairNominal(g1: SpurGearSpec, g2: SpurGearSpec): { centerDistance: number; speedRatio: number; idealContactRatio: number; axialContactRatio: number; totalContactRatio: number; backlash: number } {
   const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
   compatible(a1, a2);
   const mt = a1.mt, a = workingDistance(g1, g2, a1), alpha = a1.alpha, alphaW = Math.acos(mt * (g1.teeth + g2.teeth) / 2 * Math.cos(alpha) / a);
   const eps = (Math.sqrt(a1.ra ** 2 - a1.rb ** 2) + Math.sqrt(a2.ra ** 2 - a2.rb ** 2) - a * Math.sin(alphaW)) / (Math.PI * mt * Math.cos(alpha));
   // (Helical: the overlap ratio εβ = b sin β / (π m_n), b the narrower face.)
-  const epsB = Math.min(g1.faceWidthMM, g2.faceWidthMM) * Math.abs(Math.sin(a1.beta)) / (Math.PI * a1.mn);
-  return { centerDistanceMM: a, speedRatio: -g1.teeth / g2.teeth, idealContactRatio: eps, axialContactRatio: epsB, totalContactRatio: eps + epsB, backlashMM: (g1.toothThicknessReductionMM ?? 0) + (g2.toothThicknessReductionMM ?? 0) };
+  const epsB = Math.min(g1.faceWidth, g2.faceWidth) * Math.abs(Math.sin(a1.beta)) / (Math.PI * a1.mn);
+  return { centerDistance: a, speedRatio: -g1.teeth / g2.teeth, idealContactRatio: eps, axialContactRatio: epsB, totalContactRatio: eps + epsB, backlash: (g1.toothThicknessReduction ?? 0) + (g2.toothThicknessReduction ?? 0) };
 }
 
 /** The pair check's options: the centre distance (default nominal), gear 2 turned off its meshing phase, the sweep. */
@@ -647,14 +647,14 @@ export function spurGearPairNominal(g1: SpurGearSpec, g2: SpurGearSpec): { cente
  * samples, and `mode` — 'report' (default: the least clearance refined, the depth of a crossing, the convergence
  * check) or 'verdict' (pass or fail: the sweep stops at the first sample whose teeth cross, no depth, one scan).
  */
-export interface SpurGearPairOptions { readonly centerDistanceMM?: number; readonly relativePhaseDeg?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' }
+export interface SpurGearPairOptions { readonly centerDistance?: number; readonly relativePhase?: number; readonly samples?: number; readonly mode?: 'report' | 'verdict' }
 export interface SpurGearPairCheck {
-  readonly centerDistanceMM: number; readonly nominalCenterDistanceMM: number;
-  readonly workingPressureAngleDeg: number; readonly workingPitchDiametersMM: readonly [number, number];
+  readonly centerDistance: number; readonly nominalCenterDistance: number;
+  readonly workingPressureAngle: number; readonly workingPitchDiameters: readonly [number, number];
   /** Circumferential backlash at the working pitch circle, p_w − s_w1 − s_w2 (by the formula); negative: the teeth jam. */
-  readonly backlashMM: number;
+  readonly backlash: number;
   /** a − ra1 − rf2 and a − ra2 − rf1. */
-  readonly tipClearancesMM: readonly [number, number];
+  readonly tipClearances: readonly [number, number];
   /** The formula's (ideal tips, flanks down to the base circle), and the path of contact the usable flanks allow. */
   readonly idealContactRatio: number; readonly usableContactRatio: number;
   /** Helical (R6a.5c): the overlap ratio εβ = b sin β / (π m_n) over the narrower face, and εγ = the usable εα + εβ (spur: 0 and εα). */
@@ -662,7 +662,7 @@ export interface SpurGearPairCheck {
   /** Helical: which way the axial thrust goes, in words (a direction, no load). */
   readonly axialThrust?: string;
   /** One tooth period swept (the configuration repeats), at `samples` then twice as many, the least clearance refined. */
-  readonly sweep: { readonly samples: number; readonly minimumClearanceMM: number; readonly atDegrees: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimumMM: number };
+  readonly sweep: { readonly samples: number; readonly minimumClearance: number; readonly at: number; readonly interference: boolean; readonly converged: boolean; readonly coarseMinimum: number };
   readonly diagnostics: readonly GearDiagnostic[];
 }
 
@@ -679,22 +679,22 @@ export function checkSpurGearPair(g1: SpurGearSpec, g2: SpurGearSpec, options: S
   // left out of the key: the sweep is in the transverse plane and does not read them; only the axial and total contact
   // ratios do, and those are worked out again for the widths asked. The widths are checked first, as the check would.)
   const d1 = spurGearDimensions(g1); spurGearDimensions(g2);
-  const key = JSON.stringify([withoutWidth(g1), withoutWidth(g2), options.centerDistanceMM ?? null, options.relativePhaseDeg ?? 0, options.samples ?? 64, options.mode ?? 'report']);
+  const key = JSON.stringify([withoutWidth(g1), withoutWidth(g2), options.centerDistance ?? null, options.relativePhase ?? 0, options.samples ?? 64, options.mode ?? 'report']);
   let kept = pairCache.get(key);
   if (kept) { pairCache.delete(key); pairCache.set(key, kept); }
   else { kept = pairCheck(g1, g2, options); pairCache.set(key, kept); if (pairCache.size > 64) pairCache.delete(pairCache.keys().next().value!); }
-  const epsB = Math.min(g1.faceWidthMM, g2.faceWidthMM) * Math.abs(Math.sin(d1.beta)) / (Math.PI * d1.mn);
+  const epsB = Math.min(g1.faceWidth, g2.faceWidth) * Math.abs(Math.sin(d1.beta)) / (Math.PI * d1.mn);
   return epsB === kept.axialContactRatio ? kept : { ...kept, axialContactRatio: epsB, totalContactRatio: kept.usableContactRatio + epsB };
 }
-function withoutWidth(g: SpurGearSpec): Omit<SpurGearSpec, 'faceWidthMM'> { const { faceWidthMM, ...rest } = g; void faceWidthMM; return rest; }
+function withoutWidth(g: SpurGearSpec): Omit<SpurGearSpec, 'faceWidth'> { const { faceWidth: faceWidth, ...rest } = g; void faceWidth; return rest; }
 const pairCache = new Map<string, SpurGearPairCheck>();
 function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOptions): SpurGearPairCheck {
   const a1 = spurGearDimensions(g1), a2 = spurGearDimensions(g2);
   compatible(a1, a2);
   // (Helical pairs in the transverse plane: every section meshes alike, turned along the helix.)
-  const m = a1.mt, z1 = g1.teeth, z2 = g2.teeth, alpha = a1.alpha, aRef = m * (z1 + z2) / 2, a0 = workingDistance(g1, g2, a1), a = options.centerDistanceMM ?? a0;
-  const epsB = Math.min(g1.faceWidthMM, g2.faceWidthMM) * Math.abs(Math.sin(a1.beta)) / (Math.PI * a1.mn);
-  if (!(Number.isFinite(a) && a > 0)) throw gearError('INVALID_INPUT', 'centerDistanceMM must be a number of mm above 0');
+  const m = a1.mt, z1 = g1.teeth, z2 = g2.teeth, alpha = a1.alpha, aRef = m * (z1 + z2) / 2, a0 = workingDistance(g1, g2, a1), a = options.centerDistance ?? a0;
+  const epsB = Math.min(g1.faceWidth, g2.faceWidth) * Math.abs(Math.sin(a1.beta)) / (Math.PI * a1.mn);
+  if (!(Number.isFinite(a) && a > 0)) throw gearError('INVALID_INPUT', 'centerDistance must be a number of mm above 0');
   const cw = aRef * Math.cos(alpha) / a;
   if (!(cw < 1)) throw gearError('MATE_INCOMPATIBLE', `at ${a} mm the gears' base circles overlap: no working pressure angle`);
   const alphaW = Math.acos(cw), rw1 = a * z1 / (z1 + z2), rw2 = a * z2 / (z1 + z2);
@@ -713,7 +713,7 @@ function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOpti
   const helix = { axialContactRatio: epsB, totalContactRatio: usable + epsB, ...(a1.beta ? { axialThrust: `gear 1 (${a1.beta > 0 ? 'right' : 'left'}-handed) driving counter-clockwise seen from +Z is pushed toward ${a1.beta > 0 ? '+Z' : '−Z'} and gear 2 toward ${a1.beta > 0 ? '−Z' : '+Z'}; the other way round when it turns clockwise (a direction, no load)` } : {}) };
   // The sweep: gear 1 about the origin, gear 2 about (a, 0); gear 2 turned so a tooth space faces gear 1 (its teeth at
   // π − π/z2 + 2πk/z2), then by the phase given; as gear 1 turns by θ, gear 2 by −θ z1/z2.
-  const P1 = exactProfile(g1, a1), P2 = exactProfile(g2, a2), phase = (options.relativePhaseDeg ?? 0) * Math.PI / 180, base2 = Math.PI - Math.PI / z2 + phase;
+  const P1 = exactProfile(g1, a1), P2 = exactProfile(g2, a2), phase = (options.relativePhase ?? 0) * Math.PI / 180, base2 = Math.PI - Math.PI / z2 + phase;
   const verdict = options.mode === 'verdict';
   const at = (theta: number) => profileClearance(P1, theta, P2, base2 - theta * z1 / z2, a, a1.ra, a2.ra, verdict);
   const period = 2 * Math.PI / z1, N = Math.max(16, options.samples ?? 64);
@@ -722,8 +722,8 @@ function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOpti
     let least = Infinity, tAt = 0;
     for (let i = 0; i < N; i++) { const t = period * i / N, d = at(t); if (d < least) { least = d; tAt = t; } if (d < 0) break; }
     const crossed = least < 0, diagnostics: GearDiagnostic[] = crossed ? [{ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross at ${(tAt * 180 / Math.PI).toFixed(4)}° of gear 1 (the depth: a report)` }] : [];
-    return { centerDistanceMM: a, nominalCenterDistanceMM: a0, workingPressureAngleDeg: alphaW * 180 / Math.PI, workingPitchDiametersMM: [2 * rw1, 2 * rw2], backlashMM: backlash, tipClearancesMM: tips,
-      idealContactRatio: ideal, usableContactRatio: usable, ...helix, sweep: { samples: N, minimumClearanceMM: crossed ? -0 : least, atDegrees: tAt * 180 / Math.PI, interference: crossed, converged: false, coarseMinimumMM: least }, diagnostics };
+    return { centerDistance: a, nominalCenterDistance: a0, workingPressureAngle: alphaW * 180 / Math.PI, workingPitchDiameters: [2 * rw1, 2 * rw2], backlash: backlash, tipClearances: tips,
+      idealContactRatio: ideal, usableContactRatio: usable, ...helix, sweep: { samples: N, minimumClearance: crossed ? -0 : least, at: tAt * 180 / Math.PI, interference: crossed, converged: false, coarseMinimum: least }, diagnostics };
   }
   const scan = (n: number) => { let best = { d: Infinity, t: 0 }; for (let i = 0; i < n; i++) { const t = period * i / n, d = at(t); if (d < best.d) best = { d, t }; } return best; };
   const coarse = scan(N), fine = scan(2 * N), seed = fine.d < coarse.d ? fine : coarse;
@@ -736,8 +736,8 @@ function pairCheck(g1: SpurGearSpec, g2: SpurGearSpec, options: SpurGearPairOpti
   if (refined < 0) diagnostics.push({ code: 'SELF_INTERSECTION', severity: 'error', message: `the teeth cross by ${(-refined).toFixed(6)} mm at ${(tAt * 180 / Math.PI).toFixed(4)}° of gear 1` });
   if (!converged) diagnostics.push({ code: 'INVALID_INPUT', severity: 'warning', message: `the sweep did not settle (${N} samples: ${coarse.d.toExponential(3)}, ${2 * N}: ${fine.d.toExponential(3)} mm): more samples are needed` });
   if (usable + 1e-12 < ideal) diagnostics.push({ code: 'ROOT_TRANSITION_UNVALIDATED', severity: 'warning', message: `the usable flanks give a contact ratio of ${usable.toFixed(4)}, below the ideal ${ideal.toFixed(4)}` });
-  return { centerDistanceMM: a, nominalCenterDistanceMM: a0, workingPressureAngleDeg: alphaW * 180 / Math.PI, workingPitchDiametersMM: [2 * rw1, 2 * rw2], backlashMM: backlash, tipClearancesMM: tips,
-    idealContactRatio: ideal, usableContactRatio: usable, ...helix, sweep: { samples: N, minimumClearanceMM: refined, atDegrees: tAt * 180 / Math.PI, interference: refined < 0, converged, coarseMinimumMM: coarse.d }, diagnostics };
+  return { centerDistance: a, nominalCenterDistance: a0, workingPressureAngle: alphaW * 180 / Math.PI, workingPitchDiameters: [2 * rw1, 2 * rw2], backlash: backlash, tipClearances: tips,
+    idealContactRatio: ideal, usableContactRatio: usable, ...helix, sweep: { samples: N, minimumClearance: refined, at: tAt * 180 / Math.PI, interference: refined < 0, converged, coarseMinimum: coarse.d }, diagnostics };
 }
 
 /**
@@ -862,8 +862,8 @@ function depthInside(sa: Float64Array, sb: Float64Array, a: number, ra1: number,
 export interface PlacedSpurGear { readonly spec: SpurGearSpec; readonly center: readonly [number, number]; readonly from: number; readonly rotation: number }
 export interface PlacedSpurGearPairCheck extends SpurGearPairCheck {
   /** The relative phase the gears stand at (degrees, in [0, 360/z2)), and how far their faces overlap along the axis. */
-  readonly relativePhaseDeg: number;
-  readonly faceOverlapMM: number;
+  readonly relativePhase: number;
+  readonly faceOverlap: number;
 }
 
 /**
@@ -871,9 +871,9 @@ export interface PlacedSpurGearPairCheck extends SpurGearPairCheck {
  * from their turns (gear 2's turn on the line of centres, less the half-pitch offset, plus gear 1's carried through
  * the ratio, modulo gear 2's pitch angle), and the axial overlap of their faces — none is MATE_INCOMPATIBLE.
  */
-export function checkPlacedSpurGears(g1: PlacedSpurGear, g2: PlacedSpurGear, options: Omit<SpurGearPairOptions, 'centerDistanceMM' | 'relativePhaseDeg'> = {}): PlacedSpurGearPairCheck {
+export function checkPlacedSpurGears(g1: PlacedSpurGear, g2: PlacedSpurGear, options: Omit<SpurGearPairOptions, 'centerDistance' | 'relativePhase'> = {}): PlacedSpurGearPairCheck {
   const dx = g2.center[0] - g1.center[0], dy = g2.center[1] - g1.center[1], a = Math.hypot(dx, dy);
-  const overlap = Math.min(g1.from + g1.spec.faceWidthMM, g2.from + g2.spec.faceWidthMM) - Math.max(g1.from, g2.from);
+  const overlap = Math.min(g1.from + g1.spec.faceWidth, g2.from + g2.spec.faceWidth) - Math.max(g1.from, g2.from);
   if (!(overlap > 0)) throw gearError('MATE_INCOMPATIBLE', `the faces do not overlap along the axes (${overlap.toFixed(6)} mm)`);
   if (!(a > 0)) throw gearError('MATE_INCOMPATIBLE', 'the gears share an axis');
   const phi = Math.atan2(dy, dx), z1 = g1.spec.teeth, z2 = g2.spec.teeth, pitch = 2 * Math.PI / z2;
@@ -884,6 +884,6 @@ export function checkPlacedSpurGears(g1: PlacedSpurGear, g2: PlacedSpurGear, opt
   // (A phase within a rounding of a whole pitch is 0.)
   let phase = ((raw % pitch) + pitch) % pitch; if (phase < 1e-9 * pitch || pitch - phase < 1e-9 * pitch) phase = 0;
   const phaseDeg = phase * 180 / Math.PI;
-  const check = checkSpurGearPair(g1.spec, g2.spec, { ...options, centerDistanceMM: a, relativePhaseDeg: phaseDeg });
-  return { ...check, relativePhaseDeg: phaseDeg, faceOverlapMM: overlap };
+  const check = checkSpurGearPair(g1.spec, g2.spec, { ...options, centerDistance: a, relativePhase: phaseDeg });
+  return { ...check, relativePhase: phaseDeg, faceOverlap: overlap };
 }

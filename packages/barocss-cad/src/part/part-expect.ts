@@ -86,7 +86,7 @@ export function edgeSignatures(brep: Brep): Map<string, Sig> {
 
 /** Each face name's signature on a body: planar or curved, its area centroid and normal over its tessellation, its radius. */
 export function faceSignatures(brep: Brep): Map<string, Sig> {
-  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), byId = new Map(brep.faces.map(f => [f.id, f])), P = mesh.positionsMM, out = new Map<string, Sig>();
+  const mesh = tessellateBrep(brep, { segmentsPerQuarter: 8 }), byId = new Map(brep.faces.map(f => [f.id, f])), P = mesh.positions, out = new Map<string, Sig>();
   for (const mf of mesh.faces) {
     const face = byId.get(mf.faceId); if (!face?.name) continue;
     let area = 0; const c = [0, 0, 0], n = [0, 0, 0];

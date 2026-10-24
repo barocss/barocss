@@ -40,28 +40,28 @@ const shoelace = P => { let A = 0; for (let i = 0; i + 3 < P.length; i += 2) A +
  * reference circle m_t(π/2 + 2 x2 tan α_n) + j (the ring's reduction j). Its spaces as an outline (each space a "tooth"
  * of half-angle ψ at the base, from the tip circle out to the root circle, centred on 2πk/z + π/z when tooth 1 is on +X).
  */
-function ring({ mn, z, x = 0, j = 0, betaDeg = 0 }) {
-  const cb = Math.cos(betaDeg * Math.PI / 180), mt = mn / cb, at = Math.atan(TAN / cb), r = mt * z / 2, rb = r * Math.cos(at), ra = r - (1 - x) * mn, rf = r + (1.25 + x) * mn;
+function ring({ mn, z, x = 0, j = 0, beta = 0 }) {
+  const cb = Math.cos(beta * Math.PI / 180), mt = mn / cb, at = Math.atan(TAN / cb), r = mt * z / 2, rb = r * Math.cos(at), ra = r - (1 - x) * mn, rf = r + (1.25 + x) * mn;
   const space = mt * (Math.PI / 2 + 2 * x * TAN) + j, psi = space / (2 * r) + inv(at);
   return { mn, mt, at, z, x, j, r, rb, ra, rf, space, psi };
 }
 /** A pinion's outline by the textbook formulas (schematic root; the tooth s = m_t(π/2 + 2x tan α_n) − Δs). */
-function pinion({ mn, z, x = 0, red = 0, betaDeg = 0 }) {
-  const cb = Math.cos(betaDeg * Math.PI / 180), mt = mn / cb, at = Math.atan(TAN / cb), r = mt * z / 2, rb = r * Math.cos(at);
+function pinion({ mn, z, x = 0, red = 0, beta = 0 }) {
+  const cb = Math.cos(beta * Math.PI / 180), mt = mn / cb, at = Math.atan(TAN / cb), r = mt * z / 2, rb = r * Math.cos(at);
   return { mn, mt, at, z, x, r, rb, ra: r + mn * (1 + x), rf: r - mn * (1.25 - x), psi: (mt * (Math.PI / 2 + 2 * x * TAN) - red) / (2 * r) + inv(at) };
 }
 
 test('the ring as a solid (refused at the previous HEAD, no such generator): valid, one body, its volume (πR² − the analytic spaces\' area) × b; names, tooth 1 on +X; K1\'s internal example\'s dimensions', t => {
-  for (const [spec, R] of [[{ moduleMM: 2, teeth: 40, faceWidthMM: 10, rimDiameterMM: 100 }, 50], [{ moduleMM: 2, teeth: 60, faceWidthMM: 8, rimDiameterMM: 140, toothThicknessReductionMM: 0.05 }, 70], [{ moduleMM: 3, teeth: 24, faceWidthMM: 10, rimDiameterMM: 100, profileShiftCoefficient: 0.516 }, 50], [{ normalModuleMM: 2, helixAngleDeg: 20, hand: 'right', teeth: 50, faceWidthMM: 12, rimDiameterMM: 130 }, 65]]) {
+  for (const [spec, R] of [[{ module: 2, teeth: 40, faceWidth: 10, rimDiameter: 100 }, 50], [{ module: 2, teeth: 60, faceWidth: 8, rimDiameter: 140, toothThicknessReduction: 0.05 }, 70], [{ module: 3, teeth: 24, faceWidth: 10, rimDiameter: 100, profileShiftCoefficient: 0.516 }, 50], [{ normalModule: 2, helixAngle: 20, hand: 'right', teeth: 50, faceWidth: 12, rimDiameter: 130 }, 65]]) {
     const t0 = performance.now(), { brep, report } = internalGear(spec, { id: 'r' }), ms = performance.now() - t0;
     assert.equal(checkBrep(brep).valid, true, checkBrep(brep).issues?.[0]); assert.equal(brep.bodies.length, 1);
     assert.equal(report.generator, 'internal-gear@0'); assert.equal(report.diagnostics[0].code, 'ROOT_TRANSITION_UNVALIDATED');
-    const g = ring({ mn: spec.moduleMM ?? spec.normalModuleMM, z: spec.teeth, x: spec.profileShiftCoefficient ?? 0, j: spec.toothThicknessReductionMM ?? 0, betaDeg: spec.helixAngleDeg ?? 0 });
+    const g = ring({ mn: spec.module ?? spec.normalModule, z: spec.teeth, x: spec.profileShiftCoefficient ?? 0, j: spec.toothThicknessReduction ?? 0, beta: spec.helixAngle ?? 0 });
     const area = Math.PI * R * R - shoelace(outline({ z: g.z, rb: g.rb, psi: g.psi, ra: g.rf, rf: g.ra }));
     // (Each flank's area moves by at most its deviation times its length; a helical ring's twist fit besides.)
-    const tw = report.helix ? report.helix.twistDeviationMM / g.rf : 0, want = area * spec.faceWidthMM, slack = 2 * g.z * report.profileDeviationMM * 2.25 * g.mn * spec.faceWidthMM + (2 * tw + tw * tw) * Math.PI * g.rf ** 2 * spec.faceWidthMM + 1e-9 * want;
+    const tw = report.helix ? report.helix.twistDeviation / g.rf : 0, want = area * spec.faceWidth, slack = 2 * g.z * report.profileDeviation * 2.25 * g.mn * spec.faceWidth + (2 * tw + tw * tw) * Math.PI * g.rf ** 2 * spec.faceWidth + 1e-9 * want;
     close(brepMassProperties(brep, 1).volume, want, slack, `ring z${g.z} volume`);
-    close(report.dimensions.tipDiameterMM, 2 * g.ra, 1e-12, 'tip'); close(report.dimensions.rootDiameterMM, 2 * g.rf, 1e-12, 'root'); close(report.dimensions.spaceWidthMM, g.space, 1e-12, 'space');
+    close(report.dimensions.tipDiameter, 2 * g.ra, 1e-12, 'tip'); close(report.dimensions.rootDiameter, 2 * g.rf, 1e-12, 'root'); close(report.dimensions.spaceWidth, g.space, 1e-12, 'space');
     const names = brep.faces.map(f => f.name);
     for (const k of [1, g.z]) for (const role of ['flankL', 'flankR', 'tip', 'root']) assert.ok(names.includes(`r.${role}#${k}`), `r.${role}#${k}`);
     assert.ok(names.includes('r.rim#1') && names.includes('r.face0'));
@@ -69,13 +69,13 @@ test('the ring as a solid (refused at the previous HEAD, no such generator): val
     const tip = brep.faces.find(f => f.name === 'r.tip#1'), e = brep.edges.find(x => brep.coedges.some(c => c.edge === x.id && brep.loops.find(l => l.id === c.loop)?.face === tip.id) && x.curve.controlPoints.every(p => Math.abs(p[2]) < 1e-12));
     const [u0, u1] = curveDomain(e.curve), q = evaluateCurve(e.curve, (u0 + u1) / 2);
     close(Math.atan2(q[1], q[0]), 0, 1e-9, 'tooth 1 on +X'); close(Math.hypot(q[0], q[1]), g.ra, 1e-9, 'its tip radius');
-    t.diagnostic(`ring z${g.z}${spec.helixAngleDeg ? ` β${spec.helixAngleDeg}°` : ''}: V ${brepMassProperties(brep, 1).volume.toFixed(4)} vs ${want.toFixed(4)}, ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
+    t.diagnostic(`ring z${g.z}${spec.helixAngle ? ` β${spec.helixAngle}°` : ''}: V ${brepMassProperties(brep, 1).volume.toFixed(4)} vs ${want.toFixed(4)}, ${brep.faces.length} faces, ${ms.toFixed(0)} ms`);
   }
   // K1 Table 4.6 (m 3, z 16 in z 24, x1 0, x2 0.516): d2 72, db2 67.658, da2 69.096, df2 82.596; inv α_w 0.061857,
   // α_w 31.321258°, a 13.2 (K1 rounds y to 0.4000: the formula gives 13.19995).
-  const k = internalGear({ moduleMM: 3, teeth: 24, faceWidthMM: 10, rimDiameterMM: 100, profileShiftCoefficient: 0.516 }).report.dimensions;
-  close(k.referenceDiameterMM, 72, 1e-12, 'd2'); close(k.baseDiameterMM, 67.658, 5e-4, 'db2'); close(k.tipDiameterMM, 69.096, 1e-9, 'da2'); close(k.rootDiameterMM, 82.596, 1e-9, 'df2');
-  const pin = { moduleMM: 3, teeth: 16, faceWidthMM: 10, rootPolicy: 'generated' }, rg = { moduleMM: 3, teeth: 24, faceWidthMM: 10, rimDiameterMM: 100, profileShiftCoefficient: 0.516 };
+  const k = internalGear({ module: 3, teeth: 24, faceWidth: 10, rimDiameter: 100, profileShiftCoefficient: 0.516 }).report.dimensions;
+  close(k.referenceDiameter, 72, 1e-12, 'd2'); close(k.baseDiameter, 67.658, 5e-4, 'db2'); close(k.tipDiameter, 69.096, 1e-9, 'da2'); close(k.rootDiameter, 82.596, 1e-9, 'df2');
+  const pin = { module: 3, teeth: 16, faceWidth: 10, rootPolicy: 'generated' }, rg = { module: 3, teeth: 24, faceWidth: 10, rimDiameter: 100, profileShiftCoefficient: 0.516 };
   const a = internalGearCenterDistance(pin, rg), aw = Math.acos(3 * 8 / 2 * COS / a);
   close(inv(aw), 0.061857, 5e-7, 'inv α_w'); close(a, 13.2, 1e-4, 'a');
   // (K1's α_w 31.321258° follows from its a rounded to 13.2: acos(12 cos 20° / 13.2); the exact a gives 31.32092°.)
@@ -84,40 +84,40 @@ test('the ring as a solid (refused at the previous HEAD, no such generator): val
 
 test('refusals: a tip inside the base circle (naming the shift that lifts it), a rim too thin, a shift out of range, a reduction too large, too few teeth; pairs that do not mesh', () => {
   const code = (fn, c, re) => assert.throws(fn, e => isGearError(e) && e.code === c && (!re || re.test(e.message)), String(fn));
-  const g = { moduleMM: 2, teeth: 30, faceWidthMM: 8, rimDiameterMM: 90 };
+  const g = { module: 2, teeth: 30, faceWidth: 8, rimDiameter: 90 };
   let lift = 0;
   assert.throws(() => internalGear(g), e => { const m = /a shift of at least x = (-?[\d.]+)/.exec(e.message); lift = m ? Number(m[1]) : NaN; return e.code === 'UNSUPPORTED_PROFILE_SHIFT' && m !== null; });
   // (The tip r − (1 − x)m reaches the base circle at x = 1 − (r − rb)/m: 1 − 30(1 − cos 20°)/2.)
   close(lift, 1 - 30 * (1 - COS) / 2, 1e-3, 'the shift named');
   assert.equal(checkBrep(internalGear({ ...g, profileShiftCoefficient: lift + 1e-3 }).brep).valid, true);
-  code(() => internalGear({ ...g, teeth: 60, rimDiameterMM: 128 }), 'RIM_INTERSECTION', /at least Ø129\.000/);
-  code(() => internalGear({ ...g, teeth: 60, rimDiameterMM: 140, profileShiftCoefficient: 0.8 }), 'UNSUPPORTED_PROFILE_SHIFT');
-  code(() => internalGear({ ...g, teeth: 60, rimDiameterMM: 140, toothThicknessReductionMM: 0.5 }), 'INVALID_INPUT', /at most 0\.36397/);
+  code(() => internalGear({ ...g, teeth: 60, rimDiameter: 128 }), 'RIM_INTERSECTION', /at least Ø129\.000/);
+  code(() => internalGear({ ...g, teeth: 60, rimDiameter: 140, profileShiftCoefficient: 0.8 }), 'UNSUPPORTED_PROFILE_SHIFT');
+  code(() => internalGear({ ...g, teeth: 60, rimDiameter: 140, toothThicknessReduction: 0.5 }), 'INVALID_INPUT', /at most 0\.36397/);
   code(() => internalGear({ ...g, teeth: 7 }), 'INVALID_INPUT');
-  const r60 = { moduleMM: 2, teeth: 60, faceWidthMM: 8, rimDiameterMM: 140 };
-  code(() => internalGearCenterDistance({ moduleMM: 2.5, teeth: 20, faceWidthMM: 8 }, r60), 'MATE_INCOMPATIBLE', /modules/);
-  code(() => internalGearCenterDistance({ moduleMM: 2, teeth: 60, faceWidthMM: 8 }, r60), 'MATE_INCOMPATIBLE', /does not fit/);
-  const hr = { normalModuleMM: 2, helixAngleDeg: 15, hand: 'right', teeth: 60, faceWidthMM: 8, rimDiameterMM: 140 };
-  code(() => internalGearCenterDistance({ normalModuleMM: 2, helixAngleDeg: 15, hand: 'left', teeth: 20, faceWidthMM: 8 }, hr), 'MATE_INCOMPATIBLE', /one hand/);
-  code(() => internalGearCenterDistance({ moduleMM: 2, teeth: 20, faceWidthMM: 8 }, hr), 'MATE_INCOMPATIBLE', /spur gear/);
+  const r60 = { module: 2, teeth: 60, faceWidth: 8, rimDiameter: 140 };
+  code(() => internalGearCenterDistance({ module: 2.5, teeth: 20, faceWidth: 8 }, r60), 'MATE_INCOMPATIBLE', /modules/);
+  code(() => internalGearCenterDistance({ module: 2, teeth: 60, faceWidth: 8 }, r60), 'MATE_INCOMPATIBLE', /does not fit/);
+  const hr = { normalModule: 2, helixAngle: 15, hand: 'right', teeth: 60, faceWidth: 8, rimDiameter: 140 };
+  code(() => internalGearCenterDistance({ normalModule: 2, helixAngle: 15, hand: 'left', teeth: 20, faceWidth: 8 }, hr), 'MATE_INCOMPATIBLE', /one hand/);
+  code(() => internalGearCenterDistance({ module: 2, teeth: 20, faceWidth: 8 }, hr), 'MATE_INCOMPATIBLE', /spur gear/);
 });
 
 test('an internal pair: the formulas (centre distance, +z1/z2, backlash, tip clearances, the contact ratio) and the sweep — j cos α / 2 at no shift, touching at K1\'s shifted pair; a helical pair of one hand', t => {
-  const p = checkInternalGearPair({ moduleMM: 2, teeth: 24, faceWidthMM: 10 }, { moduleMM: 2, teeth: 60, faceWidthMM: 10, rimDiameterMM: 140, toothThicknessReductionMM: 0.1 });
-  close(p.centerDistanceMM, 36, 1e-12, 'a'); close(p.speedRatio, 0.4, 1e-15, 'ratio'); close(p.workingPressureAngleDeg, 20, 1e-12, 'α_w'); close(p.backlashMM, 0.1, 1e-12, 'backlash');
-  close(p.tipClearancesMM[0], 0.5, 1e-12, 'pinion tip'); close(p.tipClearancesMM[1], 0.5, 1e-12, 'ring tip');
+  const p = checkInternalGearPair({ module: 2, teeth: 24, faceWidth: 10 }, { module: 2, teeth: 60, faceWidth: 10, rimDiameter: 140, toothThicknessReduction: 0.1 });
+  close(p.centerDistance, 36, 1e-12, 'a'); close(p.speedRatio, 0.4, 1e-15, 'ratio'); close(p.workingPressureAngle, 20, 1e-12, 'α_w'); close(p.backlash, 0.1, 1e-12, 'backlash');
+  close(p.tipClearances[0], 0.5, 1e-12, 'pinion tip'); close(p.tipClearances[1], 0.5, 1e-12, 'ring tip');
   const P = pinion({ mn: 2, z: 24 }), R = ring({ mn: 2, z: 60 });
   close(p.idealContactRatio, (Math.sqrt(P.ra ** 2 - P.rb ** 2) - Math.sqrt(R.ra ** 2 - R.rb ** 2) + 36 * Math.sin(ALPHA)) / (Math.PI * 2 * COS), 1e-12, 'εα');
-  close(p.sweep.minimumClearanceMM, 0.1 * COS / 2, 1e-5, 'clearance'); assert.equal(p.sweep.interference, false); assert.equal(p.sweep.converged, true);
+  close(p.sweep.minimumClearance, 0.1 * COS / 2, 1e-5, 'clearance'); assert.equal(p.sweep.interference, false); assert.equal(p.sweep.converged, true);
   assert.deepEqual(p.diagnostics, []);
   // K1's shifted pair at its working distance, without backlash: the sweep touches (a crossing no deeper than the chords), clear.
-  const k = checkInternalGearPair({ moduleMM: 3, teeth: 16, faceWidthMM: 10, rootPolicy: 'generated' }, { moduleMM: 3, teeth: 24, faceWidthMM: 10, rimDiameterMM: 100, profileShiftCoefficient: 0.516 });
-  close(k.backlashMM, 0, 1e-12, 'K1 backlash'); assert.ok(Math.abs(k.sweep.minimumClearanceMM) < 2e-5, String(k.sweep.minimumClearanceMM));
-  t.diagnostic(`K1 16/24 x2 0.516: least ${k.sweep.minimumClearanceMM.toExponential(2)}, involute ${k.interference.involuteMargin.toFixed(4)}, trochoid ${k.interference.trochoidMargin.toFixed(4)}, trimming ${JSON.stringify(k.interference.trimming)}`);
+  const k = checkInternalGearPair({ module: 3, teeth: 16, faceWidth: 10, rootPolicy: 'generated' }, { module: 3, teeth: 24, faceWidth: 10, rimDiameter: 100, profileShiftCoefficient: 0.516 });
+  close(k.backlash, 0, 1e-12, 'K1 backlash'); assert.ok(Math.abs(k.sweep.minimumClearance) < 2e-5, String(k.sweep.minimumClearance));
+  t.diagnostic(`K1 16/24 x2 0.516: least ${k.sweep.minimumClearance.toExponential(2)}, involute ${k.interference.involuteMargin.toFixed(4)}, trochoid ${k.interference.trochoidMargin.toFixed(4)}, trimming ${JSON.stringify(k.interference.trimming)}`);
   // A helical pair (β 15°, both right-handed): in the transverse plane, j cos α_t / 2.
-  const h = checkInternalGearPair({ normalModuleMM: 2, helixAngleDeg: 15, hand: 'right', teeth: 20, faceWidthMM: 10 }, { normalModuleMM: 2, helixAngleDeg: 15, hand: 'right', teeth: 50, faceWidthMM: 10, rimDiameterMM: 130, toothThicknessReductionMM: 0.1 });
+  const h = checkInternalGearPair({ normalModule: 2, helixAngle: 15, hand: 'right', teeth: 20, faceWidth: 10 }, { normalModule: 2, helixAngle: 15, hand: 'right', teeth: 50, faceWidth: 10, rimDiameter: 130, toothThicknessReduction: 0.1 });
   const at = Math.atan(TAN / Math.cos(15 * Math.PI / 180));
-  close(h.centerDistanceMM, 2 / Math.cos(15 * Math.PI / 180) * 30 / 2, 1e-12, 'helical a'); close(h.sweep.minimumClearanceMM, 0.1 * Math.cos(at) / 2, 1e-5, 'helical clearance');
+  close(h.centerDistance, 2 / Math.cos(15 * Math.PI / 180) * 30 / 2, 1e-12, 'helical a'); close(h.sweep.minimumClearance, 0.1 * Math.cos(at) / 2, 1e-5, 'helical clearance');
   close(h.axialContactRatio, 10 * Math.sin(15 * Math.PI / 180) / (2 * Math.PI), 1e-12, 'εβ');
 });
 
@@ -157,12 +157,12 @@ test('the interference conditions against the sweep: involute and trochoid on D1
   const rows = [];
   for (const [z1, z2] of SURVEY ? [[20, 60], [24, 60], [24, 40], [28, 40], [30, 40], [31, 40], [32, 40], [34, 40], [36, 40]] : [[20, 60], [24, 60], [31, 40], [32, 40]]) {
     // (The verdict first — a crossing settles it; else the report, for a shortfall below j cos α / 2.)
-    const gp = { moduleMM: 2, teeth: z1, faceWidthMM: 10 }, gr = { moduleMM: 2, teeth: z2, faceWidthMM: 10, rimDiameterMM: 2 * z2 + 20, toothThicknessReductionMM: 2e-4 }, v = checkInternalGearPair(gp, gr, { mode: 'verdict', samples: 128 });
+    const gp = { module: 2, teeth: z1, faceWidth: 10 }, gr = { module: 2, teeth: z2, faceWidth: 10, rimDiameter: 2 * z2 + 20, toothThicknessReduction: 2e-4 }, v = checkInternalGearPair(gp, gr, { mode: 'verdict', samples: 128 });
     const c = v.sweep.interference ? v : checkInternalGearPair(gp, gr, { samples: 128 });
     const own = margins(2, z1, z2);
     close(c.interference.involuteMargin, own.involute, 1e-12, `${z1}/${z2} involute margin`); close(c.interference.trochoidMargin, own.trochoid, 1e-12, `${z1}/${z2} trochoid margin`);
     // (A breach: the teeth cross, or the least clearance falls short of j cos α / 2 by more than the chords.)
-    const breached = c.sweep.interference || c.sweep.minimumClearanceMM < 2e-4 * COS / 2 - 2e-5;
+    const breached = c.sweep.interference || c.sweep.minimumClearance < 2e-4 * COS / 2 - 2e-5;
     assert.equal(breached, own.involute < 0 || own.trochoid < 0, `${z1}/${z2}: the sweep and the conditions`);
     assert.equal(c.diagnostics.some(d => d.code === 'TROCHOID_INTERFERENCE'), own.trochoid < 0); assert.equal(c.diagnostics.some(d => d.code === 'INVOLUTE_INTERFERENCE'), own.involute < 0);
     rows.push(`${z1}/${z2} ${breached ? 'breached' : 'clear'}`);
@@ -172,7 +172,7 @@ test('the interference conditions against the sweep: involute and trochoid on D1
   // of the boundary (the margins nearest 0, 44/60 −1e-5 and 64/80 +5e-5, left out).
   const trim = [];
   for (const [z1, z2] of SURVEY ? [[20, 60], [40, 60], [42, 60], [45, 60], [46, 60], [48, 60], [20, 40], [22, 40], [26, 40], [28, 40], [30, 40], [50, 80], [60, 80], [66, 80]] : [[42, 60], [45, 60], [22, 40], [26, 40]]) {
-    const c = checkInternalGearPair({ moduleMM: 2, teeth: z1, faceWidthMM: 10 }, { moduleMM: 2, teeth: z2, faceWidthMM: 10, rimDiameterMM: 2 * z2 + 20 }, { mode: 'verdict' }), mg = trimmingMargin(2, z1, z2);
+    const c = checkInternalGearPair({ module: 2, teeth: z1, faceWidth: 10 }, { module: 2, teeth: z2, faceWidth: 10, rimDiameter: 2 * z2 + 20 }, { mode: 'verdict' }), mg = trimmingMargin(2, z1, z2);
     assert.equal(c.interference.trimming.possible, true);
     assert.equal(c.interference.trimming.interference, mg < 0, `${z1}/${z2}: the insertion and the condition (${mg})`);
     trim.push(`${z1}/${z2} ${mg.toFixed(5)} ${c.interference.trimming.interference ? 'crosses' : 'clear'}`);
@@ -180,7 +180,7 @@ test('the interference conditions against the sweep: involute and trochoid on D1
   t.diagnostic(`trimming condition vs insertion: ${trim.join(', ')}`);
   // Where they disagree — 24/40 and 25/40, the condition negative (−0.00058, −0.0029) — this file's own insertion (its own outlines, 100 offsets) agrees with the product's: clear; and crosses at 26/40, as both do. (The product's at 3000 offsets too, D132.)
   for (const [z1, cross] of SURVEY ? [[24, false], [25, false], [26, true]] : [[25, false], [26, true]]) {
-    const c = checkInternalGearPair({ moduleMM: 2, teeth: z1, faceWidthMM: 10 }, { moduleMM: 2, teeth: 40, faceWidthMM: 10, rimDiameterMM: 100 }, { mode: 'verdict' });
+    const c = checkInternalGearPair({ module: 2, teeth: z1, faceWidth: 10 }, { module: 2, teeth: 40, faceWidth: 10, rimDiameter: 100 }, { mode: 'verdict' });
     // (D133: the condition reproduces K1's Table 4.8, so the product flags trimming when either says so — here by the
     // condition; the straight path's own verdict kept apart, `sweepInterference`.)
     assert.equal(c.interference.trimming.sweepInterference, cross, `product's path ${z1}/40`); assert.equal(ownInsertion(2, z1, 40), cross, `own ${z1}/40`);
@@ -188,7 +188,7 @@ test('the interference conditions against the sweep: involute and trochoid on D1
     close(c.interference.trimming.conditionMargin, trimmingMargin(2, z1, 40), 1e-12, 'the condition\'s margin');
   }
   // A pinion whose tip circle does not fit inside the ring's cannot start concentric: radial assembly impossible.
-  const big = checkInternalGearPair({ moduleMM: 2, teeth: 36, faceWidthMM: 10 }, { moduleMM: 2, teeth: 40, faceWidthMM: 10, rimDiameterMM: 100 }, { mode: 'verdict' });
+  const big = checkInternalGearPair({ module: 2, teeth: 36, faceWidth: 10 }, { module: 2, teeth: 40, faceWidth: 10, rimDiameter: 100 }, { mode: 'verdict' });
   assert.equal(big.interference.trimming.possible, false); assert.ok(big.diagnostics.some(d => d.code === 'TRIMMING_INTERFERENCE' && /assemble it axially/.test(d.message)));
 });
 
@@ -203,7 +203,7 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
     const r = evaluateCadPart(D(feats(rot, dir))), ring = outputOf(r, 'r'), pin = outputOf(r, 'p').gearPlacement;
     close(Math.hypot(pin.center[0] - 5, pin.center[1] - 3), aw, 1e-12, 'centre distance'); close(Math.atan2(pin.center[1] - 3, pin.center[0] - 5), (dir > 180 ? dir - 360 : dir) * Math.PI / 180, 1e-12, 'direction');
     const c = checkPlacedInternalGears(ring.internalGearPlacement, pin, { mode: 'verdict' });
-    close(c.relativePhaseDeg, 0, 1e-9, 'phase'); assert.equal(c.sweep.interference, false);
+    close(c.relativePhase, 0, 1e-9, 'phase'); assert.equal(c.sweep.interference, false);
   }
   // The same direction, the ring turned: the pinion turns z2/z1 = 40/24 as far, the same way.
   const a0 = outputOf(evaluateCadPart(D(feats(0, 30))), 'p').gearPlacement.rotation, a7 = outputOf(evaluateCadPart(D(feats(7, 30))), 'p').gearPlacement.rotation;
@@ -217,18 +217,18 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
   assert.equal(unc.sweep.interference, true); assert.ok(unc.interference.formMargin < 0 && unc.interference.involuteMargin > 0);
   // At x2 0.25 without backlash the sweep crosses by 0.0118 mm at 11.254° of the pinion; turned there, the exact Boolean
   // of the two solids is not empty (apart from the sweep); with 0.05 + 0.05 it is, and at x2 0.5 without backlash too.
-  const pose = (x2, red, turnDeg) => [{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 3, rim: 100, profileShift: x2, thicknessReduction: red, rotation: turnDeg * 24 / 40 }, { id: 'p', kind: 'spur-gear', module: 2, teeth: 24, faceWidth: 3, thicknessReduction: red, mesh: { gear: 'r' }, generator: 'spur-gear@1' }];
+  const pose = (x2, red, turn) => [{ id: 'r', kind: 'internal-gear', module: 2, teeth: 40, faceWidth: 3, rim: 100, profileShift: x2, thicknessReduction: red, rotation: turn * 24 / 40 }, { id: 'p', kind: 'spur-gear', module: 2, teeth: 24, faceWidth: 3, thicknessReduction: red, mesh: { gear: 'r' }, generator: 'spur-gear@1' }];
   const z0 = evaluateCadPart(D(pose(0.25, 0, 0))), zc = checkPlacedInternalGears(outputOf(z0, 'r').internalGearPlacement, outputOf(z0, 'p').gearPlacement);
-  assert.ok(zc.sweep.minimumClearanceMM < -0.01, String(zc.sweep.minimumClearanceMM));
+  assert.ok(zc.sweep.minimumClearance < -0.01, String(zc.sweep.minimumClearance));
   // (Their exact intersection there is flank slivers 0.0118 mm thin: before D186 it came back as a body with a face of
   // width 2e-19 mm, its loops crossing (strict L0) and its volume 5 % off its mesh's — a wrong body. Now either a body
   // valid under the strict check, or the typed graze refusal; the sweep above says they overlap.)
   try {
-    const hit = outputOf(evaluateCadPart(D([...pose(0.25, 0, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i');
+    const hit = outputOf(evaluateCadPart(D([...pose(0.25, 0, zc.sweep.at), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i');
     assert.ok(checkBrep(hit.brep, { strict: true }).valid, 'a body is valid under the strict check');
     assert.ok(brepMassProperties(hit.brep, 1).volume > 1e-4, 'the solids overlap where the sweep says');
   } catch (e) { if (!((e.details?.category ?? e.code) === 'GEOMETRY' && /graze within .* the sliver between them cannot be built/.test(e.message))) throw e; }
-  for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => outputOf(evaluateCadPart(D([...pose(x2, red, zc.sweep.atDegrees), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
+  for (const [x2, red] of SURVEY ? [[0.25, 0.05], [0.5, 0]] : []) assert.throws(() => outputOf(evaluateCadPart(D([...pose(x2, red, zc.sweep.at), { id: 'i', kind: 'intersect', target: 'r', tool: 'p' }])), 'i'), e => (e.details?.category ?? e.code) === 'REFERENCE' && /no output i/.test(e.message));
   const offCheck = checkPlacedInternalGears(outputOf(evaluateCadPart(D(feats(0, 0, 9))), 'r').internalGearPlacement, outputOf(evaluateCadPart(D(feats(0, 0, 9))), 'p').gearPlacement, { mode: 'verdict' });
   assert.equal(offCheck.sweep.interference, true);
   // Refusals in the part model: another module, a feature that is no gear.
@@ -238,7 +238,7 @@ test('placed: the part model\'s ring (z 40) and a pinion (z 24) inside it (spur-
   // A helical ring and pinion, both right-handed, in the part model: placed, clear.
   const h = evaluateCadPart(D([{ id: 'r', kind: 'internal-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 50, faceWidth: 6, rim: 130, thicknessReduction: 0.05 }, { id: 'p', kind: 'spur-gear', normalModule: 2, helixAngle: 15, hand: 'right', teeth: 20, faceWidth: 6, thicknessReduction: 0.05, mesh: { gear: 'r', direction: 45 }, generator: 'spur-gear@1' }]));
   assert.equal(checkPlacedInternalGears(outputOf(h, 'r').internalGearPlacement, outputOf(h, 'p').gearPlacement, { mode: 'verdict' }).sweep.interference, false);
-  for (const brep of [internalGear({ moduleMM: 2, teeth: 40, faceWidthMM: 5, rimDiameterMM: 100 }, { id: 'r' }).brep, outputOf(h, 'r').brep]) {
+  for (const brep of [internalGear({ module: 2, teeth: 40, faceWidth: 5, rimDiameter: 100 }, { id: 'r' }).brep, outputOf(h, 'r').brep]) {
     const back = importStep(exportStep([brep], { name: 'ring' }));
     close(brepMassProperties(back, 1).volume, brepMassProperties(brep, 1).volume, 1e-6 * brepMassProperties(brep, 1).volume, 'round trip');
     assert.ok(back.faces.some(f => f.name === 'r.flankL#1'));

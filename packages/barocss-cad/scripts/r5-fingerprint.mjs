@@ -19,7 +19,7 @@ if (process.env.FP_WORKER) {
       id: b.id, fev: [brep.faces.length, brep.edges.length, brep.vertices.length], area: tryOr(() => enc(cad.brepSurfaceArea(brep))),
       validate: tryOr(() => { const r = b.brep ? cad.checkOutput(b) : cad.checkBrep(brep, { strict: true }); return { valid: r.valid, issues: r.issues }; }),
       mass: tryOr(() => enc(b.brep ? cad.massPropertiesOf(b) : cad.brepMassProperties(brep, 1))),
-      mesh: tryOr(() => { const m = cad.tessellateBrep(brep, { segmentsPerQuarter: 8 }), h = createHash('sha256'); h.update(Buffer.from(new Float64Array(m.positionsMM).buffer)); h.update(Buffer.from(new Uint32Array(m.indices).buffer)); return h.digest('hex'); }),
+      mesh: tryOr(() => { const m = cad.tessellateBrep(brep, { segmentsPerQuarter: 8 }), h = createHash('sha256'); h.update(Buffer.from(new Float64Array(m.positions).buffer)); h.update(Buffer.from(new Uint32Array(m.indices).buffer)); return h.digest('hex'); }),
     };
   }
   process.on('message', ({ k, id, file, document }) => {

@@ -70,7 +70,7 @@
           "kind": "rotate",
           "target": "c0",
           "axis": "y",
-          "angleDegrees": 10,
+          "angle": 10,
           "pivot": [
             20,
             0,

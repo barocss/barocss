@@ -62,7 +62,7 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n1",
@@ -110,7 +110,7 @@
           "kind": "rotate",
           "target": "n2f",
           "axis": "y",
-          "angleDegrees": 270,
+          "angle": 270,
           "pivot": [
             0,
             0,

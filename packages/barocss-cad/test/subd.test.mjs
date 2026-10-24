@@ -268,7 +268,7 @@ function boxCage(w, d, h, n) {
 }
 /** The largest concave fold between neighbouring triangles (a dent; 0 on a convex body tessellated well). */
 function worstFold(mesh) {
-  const P = mesh.positionsMM, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]], edges = new Map();
+  const P = mesh.positions, I = mesh.indices, key = v => `${P[3 * v]},${P[3 * v + 1]},${P[3 * v + 2]}`, pt = v => [P[3 * v], P[3 * v + 1], P[3 * v + 2]], edges = new Map();
   for (let t = 0; t < I.length / 3; t++) for (let k = 0; k < 3; k++) { const a = key(I[3 * t + k]), c = key(I[3 * t + (k + 1) % 3]), e = a < c ? `${a}|${c}` : `${c}|${a}`; if (!edges.has(e)) edges.set(e, []); edges.get(e).push(t); }
   const tri = t => { const a = pt(I[3 * t]), b = pt(I[3 * t + 1]), c = pt(I[3 * t + 2]), u = b.map((x, i) => x - a[i]), v = c.map((x, i) => x - a[i]), n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], l = Math.hypot(...n); return { n: n.map(x => x / l), c: [0, 1, 2].map(i => (a[i] + b[i] + c[i]) / 3) }; };
   let worst = 0;
@@ -296,7 +296,7 @@ test('D79 display of a SubD box: vertex normals are the surface\'s own (they wer
   assert.ok(worst < 0.01, `vertex normals ${worst}° off the surface's`);
   assert.ok(worstFold(mesh) < 25, `a ${worstFold(mesh)}° dent`);
   assert.ok(worstFold(tessellateBrep(subdBrep(boxCage(30, 20, 16, 6)), { segmentsPerQuarter: 8 })) < 45);
-  assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0);
+  assert.equal(openEdges(mesh.positions, mesh.indices), 0);
 });
 
 test('PERF3 A4 (D82): caps kept by their vertex\'s 2-ring — the same cage again has the same caps; a vertex moved outside every irregular vertex\'s 2-ring leaves them all, one inside a corner\'s changes that corner\'s only', async () => {

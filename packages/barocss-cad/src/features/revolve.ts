@@ -23,7 +23,7 @@ export interface RevolveInput {
   /** The axis: a point on it and its direction, both in the sketch plane (z = 0). */
   readonly axis: { readonly origin: XY; readonly direction: XY };
   /** 0 < angle ≤ 360; positive turns the profile from the sketch plane towards +Z. */
-  readonly angleDegrees: number;
+  readonly angle: number;
   /** The sketch's segment tags (R10a, D86): sides named `${id}.side[t]` instead of by position. */
   readonly sideTags?: readonly string[];
 }
@@ -44,7 +44,7 @@ function profileLoops(input: RevolveInput): readonly (readonly ProfileSegment[])
   }
   const rings = loops.map(loop => loop.map((s): CurveSegment2 => s.kind === 'line'
     ? { kind: 'line', a: [...s.start], b: [...s.end] }
-    : { kind: 'arc', c: [...s.center], r: s.radiusMM, t0: s.startAngle, sweep: s.sweep }));
+    : { kind: 'arc', c: [...s.center], r: s.radius, t0: s.startAngle, sweep: s.sweep }));
   const tolerance = curveTolerance(rings);
   for (let i = 1; i < rings.length; i++) {
     for (let j = 0; j < i; j++) {
@@ -60,7 +60,7 @@ function profileLoops(input: RevolveInput): readonly (readonly ProfileSegment[])
 /** Assemble the outer and bore walls directly. A partial turn shares each bore edge with a cap inner loop. */
 function revolveHollow(input: RevolveInput): Brep {
   profileLoops(input);
-  const id = input.id ?? 'revolve', full = input.angleDegrees === 360;
+  const id = input.id ?? 'revolve', full = input.angle === 360;
   const outer = revolveProfile({ ...input, holes: undefined, holeTags: undefined });
   const bores = input.holes!.map((profile, i) => revolveProfile({ ...input, id: `${id}_hole${i}`, profile, sideTags: input.holeTags?.[i], holes: undefined, holeTags: undefined }));
   const reverse = (sense: 'forward' | 'reversed'): 'forward' | 'reversed' => sense === 'forward' ? 'reversed' : 'forward';
@@ -114,7 +114,7 @@ function unitArc(sweep: number): { pts: XY[]; w: number[]; knots: number[] } {
 
 export function revolveProfile(input: RevolveInput): Brep {
   if (input.holes?.length) return revolveHollow(input);
-  const id = input.id ?? 'revolve', deg = input.angleDegrees;
+  const id = input.id ?? 'revolve', deg = input.angle;
   if (!(typeof deg === 'number' && deg > 0 && deg <= 360)) throw new BrepError('INPUT', 'revolve: the angle must be in (0, 360] degrees');
   const alpha = deg * Math.PI / 180, full = deg === 360;
   const [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy);
@@ -126,8 +126,8 @@ export function revolveProfile(input: RevolveInput): Brep {
   // A single closed arc (a circle) becomes two halves, so every profile edge has two vertices.
   const loop: ProfileSegment[] = built.length > 1 ? [...built] : (() => {
     const arc = built[0]; if (arc.kind !== 'arc') throw new BrepError('GEOMETRY', 'revolve: a profile needs at least two segments');
-    const half = arc.sweep / 2, mid = arc.startAngle + half, m: XY = [arc.center[0] + arc.radiusMM * Math.cos(mid), arc.center[1] + arc.radiusMM * Math.sin(mid)];
-    return [{ ...arc, end: m, sweep: half, lengthMM: arc.lengthMM / 2 }, { ...arc, start: m, startAngle: mid, sweep: half, lengthMM: arc.lengthMM / 2 }];
+    const half = arc.sweep / 2, mid = arc.startAngle + half, m: XY = [arc.center[0] + arc.radius * Math.cos(mid), arc.center[1] + arc.radius * Math.sin(mid)];
+    return [{ ...arc, end: m, sweep: half, length: arc.length / 2 }, { ...arc, start: m, startAngle: mid, sweep: half, length: arc.length / 2 }];
   })(), n = loop.length;
   // Profile coordinates: h along the axis, ρ off it (towards s). The profile lies on one side, ρ > 0.
   const p3 = (p: readonly number[]): Point => [p[0], p[1], p[2] ?? 0];
@@ -139,7 +139,7 @@ export function revolveProfile(input: RevolveInput): Brep {
   const axial = loop.map(seg => seg.kind === 'line' && onAxisAt(seg.start) && onAxisAt(seg.end));
   loop.forEach((seg, i) => { if (!axial[i]) for (let k = 0; k <= 64; k++) {
     const t = k / 64, p = seg.kind === 'line' ? [seg.start[0] + (seg.end[0] - seg.start[0]) * t, seg.start[1] + (seg.end[1] - seg.start[1]) * t, 0]
-      : [seg.center[0] + seg.radiusMM * Math.cos(seg.startAngle + seg.sweep * t), seg.center[1] + seg.radiusMM * Math.sin(seg.startAngle + seg.sweep * t), 0];
+      : [seg.center[0] + seg.radius * Math.cos(seg.startAngle + seg.sweep * t), seg.center[1] + seg.radius * Math.sin(seg.startAngle + seg.sweep * t), 0];
     const rho = hr(p)[1];
     if (onAxisAt(p)) { if (k === 0 || k === 64) continue; throw new BrepError('GEOMETRY', 'revolve: the profile touches the axis between its vertices'); }
     if (side && Math.sign(rho) !== side) throw new BrepError('GEOMETRY', 'revolve: the profile crosses the axis');
@@ -240,12 +240,12 @@ export function revolveProfile(input: RevolveInput): Brep {
 /** The revolved solid's mass properties in closed form (MMGS: density g/cm³; R7.3b). */
 export function revolveMassProperties(input: RevolveInput, density: number): { volume: number; mass: number; centroid: Point; inertia: [[number, number, number], [number, number, number], [number, number, number]]; method: 'closed-form' } {
   if (!(density > 0 && Number.isFinite(density))) throw new BrepError('INPUT', 'a positive finite density is required');
-  const alpha = input.angleDegrees * Math.PI / 180, [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy);
+  const alpha = input.angle * Math.PI / 180, [dx, dy] = input.axis.direction, dl = Math.hypot(dx, dy);
   let D: Point = [dx / dl, dy / dl, 0], S: Point = [-D[1], D[0], 0]; const Z: Point = [0, 0, 1], A0: Point = [input.axis.origin[0], input.axis.origin[1], 0];
   const loops = profileLoops(input), loop = loops[0];
   const hrOf = (x: number, y: number): XY => { const q: Point = [x - A0[0], y - A0[1], 0]; return [dot(q, D), dot(q, S)]; };
   // The side of the axis the profile lies on (from a point off it: a vertex may be on the axis).
-  const off = loop.map(sg => sg.kind === 'line' ? [(sg.start[0] + sg.end[0]) / 2, (sg.start[1] + sg.end[1]) / 2] : [sg.center[0] + sg.radiusMM * Math.cos(sg.startAngle + sg.sweep / 2), sg.center[1] + sg.radiusMM * Math.sin(sg.startAngle + sg.sweep / 2)]).map(([x, y]) => hrOf(x, y)[1]).find(r => Math.abs(r) > 1e-9) ?? 1;
+  const off = loop.map(sg => sg.kind === 'line' ? [(sg.start[0] + sg.end[0]) / 2, (sg.start[1] + sg.end[1]) / 2] : [sg.center[0] + sg.radius * Math.cos(sg.startAngle + sg.sweep / 2), sg.center[1] + sg.radius * Math.sin(sg.startAngle + sg.sweep / 2)]).map(([x, y]) => hrOf(x, y)[1]).find(r => Math.abs(r) > 1e-9) ?? 1;
   if (off < 0) { D = scale(D, -1); S = scale(S, -1); }
   // ∫∫ hᵐ ρᵏ dA = ∮ hᵐ⁺¹ ρᵏ / (m + 1) dρ (the profile runs counter-clockwise in x, y; in (h, ρ) the
   // orientation is the same when (D, S) is right-handed in the plane, which it is: S = D rotated +90°).
@@ -258,7 +258,7 @@ export function revolveMassProperties(input: RevolveInput, density: number): { v
         const t = (p + x) / pieces;
         let X: number, Y: number, dX: number, dY: number;
         if (seg.kind === 'line') { X = seg.start[0] + (seg.end[0] - seg.start[0]) * t; Y = seg.start[1] + (seg.end[1] - seg.start[1]) * t; dX = seg.end[0] - seg.start[0]; dY = seg.end[1] - seg.start[1]; }
-        else { const a = seg.startAngle + seg.sweep * t; X = seg.center[0] + seg.radiusMM * Math.cos(a); Y = seg.center[1] + seg.radiusMM * Math.sin(a); dX = -seg.radiusMM * Math.sin(a) * seg.sweep; dY = seg.radiusMM * Math.cos(a) * seg.sweep; }
+        else { const a = seg.startAngle + seg.sweep * t; X = seg.center[0] + seg.radius * Math.cos(a); Y = seg.center[1] + seg.radius * Math.sin(a); dX = -seg.radius * Math.sin(a) * seg.sweep; dY = seg.radius * Math.cos(a) * seg.sweep; }
         const [h, r] = hrOf(X, Y), dr = dX * S[0] + dY * S[1];
         acc += (index === 0 ? 1 : -1) * w / pieces * h ** (m + 1) * r ** k / (m + 1) * dr;
       }

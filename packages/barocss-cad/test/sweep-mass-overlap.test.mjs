@@ -6,7 +6,7 @@ const sweep = bends => evaluateCadPart({
   format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {},
   features: [
     { id: 's', kind: 'sketch', profile: 'rectangle', min: [-1, -1], max: [1, 1] },
-    { id: 'w', kind: 'sweep', sketch: 's', path: Array.from({ length: bends }, () => ({ kind: 'bend', radius: 8, angleDegrees: 90, toward: 'x' })) },
+    { id: 'w', kind: 'sweep', sketch: 's', path: Array.from({ length: bends }, () => ({ kind: 'bend', radius: 8, angle: 90, toward: 'x' })) },
   ],
 }).outputs[0];
 

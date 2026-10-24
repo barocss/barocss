@@ -9,7 +9,7 @@ import { documentOf } from '../scripts/rb/fuzz-gen.mjs';
 const swapped = n => ({ ...n, a: n.b, b: n.a });
 /** Mesh edges (by position) not used exactly twice within one body. */
 function openEdges(o) {
-  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positionsMM, shellOf = new Map(o.brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(o.brep.shells.map(s => [s.id, s.body])), uses = new Map();
+  const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: 8 }), P = mesh.positions, shellOf = new Map(o.brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(o.brep.shells.map(s => [s.id, s.body])), uses = new Map();
   for (const f of mesh.faces) for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t += 3) for (let k = 0; k < 3; k++) {
     const a = mesh.indices[t + k], b = mesh.indices[t + (k + 1) % 3], ka = `${P[3 * a]},${P[3 * a + 1]},${P[3 * a + 2]}`, kb = `${P[3 * b]},${P[3 * b + 1]},${P[3 * b + 2]}`, e = `${bodyOf.get(shellOf.get(f.faceId))}:${ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`}`;
     uses.set(e, (uses.get(e) ?? 0) + 1);

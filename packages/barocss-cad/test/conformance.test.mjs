@@ -25,71 +25,71 @@ for (const file of cases) {
     c.expect.outputs.forEach((want, k) => {
       const o = outputs[k], m = massPropertiesOf(o), report = checkOutput(o);
       assert.equal(report.valid, true, report.issues[0]);
-      assert.ok(Math.abs(m.volume - want.volumeMM3.value) <= Math.max(want.volumeMM3.relTol * Math.abs(want.volumeMM3.value), want.volumeMM3.absTol ?? 0), `output ${k} volume ${m.volume} vs ${want.volumeMM3.value}`);
-      m.centroid.forEach((x, i) => assert.ok(Math.abs(x - want.centroidMM.value[i]) <= want.centroidMM.absTol, `output ${k} centroid ${m.centroid} vs ${want.centroidMM.value}`));
+      assert.ok(Math.abs(m.volume - want.volume.value) <= Math.max(want.volume.relTol * Math.abs(want.volume.value), want.volume.absTol ?? 0), `output ${k} volume ${m.volume} vs ${want.volume.value}`);
+      m.centroid.forEach((x, i) => assert.ok(Math.abs(x - want.centroid.value[i]) <= want.centroid.absTol, `output ${k} centroid ${m.centroid} vs ${want.centroid.value}`));
       assert.equal(o.bodyCount, want.bodies, `output ${k} bodies`);
       assert.deepEqual(report.topology.map(t => ({ shells: t.shells, genus: t.genus })), want.topology, `output ${k} topology`);
       const names = o.brep.faces.map(f => base(f.name ?? f.id));
       if (want.faceNames) assert.deepEqual([...new Set(names)].sort(), want.faceNames, `output ${k} face names`);
       if (want.faceNamePattern) assert.ok(names.every(n => new RegExp(want.faceNamePattern).test(n)), `output ${k} face names match ${want.faceNamePattern}`);
-      if (want.areaMM2) assert.ok(Math.abs(surfaceAreaOf(o) - want.areaMM2.value) <= want.areaMM2.relTol * want.areaMM2.value, `output ${k} area ${surfaceAreaOf(o)} vs ${want.areaMM2.value}`);
+      if (want.area) assert.ok(Math.abs(surfaceAreaOf(o) - want.area.value) <= want.area.relTol * want.area.value, `output ${k} area ${surfaceAreaOf(o)} vs ${want.area.value}`);
       if (want.decimate) {
         // A decimated mesh's report (R9, D85): no more triangles than said, the measured distance both ways within its bound.
         assert.ok(o.decimate && o.decimate.trianglesAfter <= want.decimate.trianglesAtMost, `output ${k} decimated to ${o.decimate?.trianglesAfter} triangles`);
-        assert.ok(o.decimate.distance.hausdorffMM <= want.decimate.hausdorffMMAtMost, `output ${k} ${o.decimate.distance.hausdorffMM} mm from the original`);
+        assert.ok(o.decimate.distance.hausdorff <= want.decimate.hausdorffMMAtMost, `output ${k} ${o.decimate.distance.hausdorff} mm from the original`);
       }
       if (want.sheet) {
         // A sheet-metal body's rules and bends (R12, D116): each bend's name, angle and allowance by its definition.
         const r = o.sheet, w = want.sheet;
         assert.ok(r, `output ${k} has no sheet report`);
-        assert.deepEqual({ t: r.thicknessMM, r: r.bendRadiusMM, k: r.kFactor, n: r.bends.length }, { t: w.thicknessMM, r: w.bendRadiusMM, k: w.kFactor, n: w.bends.length }, `output ${k} sheet rules`);
+        assert.deepEqual({ t: r.thickness, r: r.bendRadius, k: r.kFactor, n: r.bends.length }, { t: w.thickness, r: w.bendRadius, k: w.kFactor, n: w.bends.length }, `output ${k} sheet rules`);
         w.bends.forEach((b, i) => {
           assert.equal(r.bends[i].name, b.name);
-          assert.ok(Math.abs(r.bends[i].angleDegrees - b.angleDegrees) <= w.absTol && Math.abs(r.bends[i].allowanceMM - b.allowanceMM) <= w.absTol, `output ${k} ${b.name}: ${r.bends[i].angleDegrees}°, BA ${r.bends[i].allowanceMM}`);
+          assert.ok(Math.abs(r.bends[i].angle - b.angle) <= w.absTol && Math.abs(r.bends[i].allowance - b.allowance) <= w.absTol, `output ${k} ${b.name}: ${r.bends[i].angle}°, BA ${r.bends[i].allowance}`);
         });
       }
       if (want.member) {
         // A structural member's report (FR1, D123): its section's area and centroid, its length, the section's frame.
         const r = o.member, w = want.member, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} member ${what}: ${x} vs ${y}`);
         assert.ok(r, `output ${k} has no member report`);
-        close(r.areaMM2, w.areaMM2, 'area'); close(r.lengthMM, w.lengthMM, 'length'); w.centroid.forEach((x, i) => close(r.centroid[i], x, 'centroid'));
+        close(r.area, w.area, 'area'); close(r.length, w.length, 'length'); w.centroid.forEach((x, i) => close(r.centroid[i], x, 'centroid'));
         for (const key of ['xAxis', 'yAxis', 'upFallback']) if (w[key]) w[key].forEach((x, i) => close(r[key][i], x, key));
         if (w.derived !== undefined) assert.deepEqual(r.derived ?? null, w.derived, `output ${k} member derived dimensions`);
         // Its ends at the frame's corners (FR3a, D125): end, kind and point in order, and each cut's angle from square.
         if (w.ends) {
           assert.deepEqual((r.ends ?? []).map(e => [e.end, e.kind, e.point]), w.ends.map(e => [e.end, e.kind, e.point]), `output ${k} member ends`);
-          w.ends.forEach((e, i) => { if (e.angleDegrees !== undefined) close(r.ends[i].angleDegrees, e.angleDegrees, `end ${i} angle`); });
+          w.ends.forEach((e, i) => { if (e.angle !== undefined) close(r.ends[i].angle, e.angle, `end ${i} angle`); });
         }
       }
       if (want.plate) {
         // A weldment plate's report (FRk1, D165): a gusset's or an end cap's area, volume and seams.
         const r = o[want.plate.kind], w = want.plate, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} ${w.kind} ${what}: ${x} vs ${y}`);
         assert.ok(r, `output ${k} has no ${w.kind} report`);
-        close(r.areaMM2, w.areaMM2, 'area'); close(r.volumeMM3, m.volume, 'volume');
-        if (w.seams) { assert.equal(r.seams.length, w.seams.length); w.seams.forEach((x, i) => close(r.seams[i].lengthMM, x, `seam ${i}`)); }
-        if (w.seam !== undefined) close(r.seam.lengthMM, w.seam, 'seam');
+        close(r.area, w.area, 'area'); close(r.volume, m.volume, 'volume');
+        if (w.seams) { assert.equal(r.seams.length, w.seams.length); w.seams.forEach((x, i) => close(r.seams[i].length, x, `seam ${i}`)); }
+        if (w.seam !== undefined) close(r.seam.length, w.seam, 'seam');
       }
       if (want.bead) {
         // A weld bead's report (FRk2, D166): its leg, its seam and the part of it flush, the members it meets, its volume.
         const r = o.bead, w = want.bead, close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `output ${k} bead ${what}: ${x} vs ${y}`);
         assert.ok(r, `output ${k} has no bead report`);
-        close(r.legMM, w.legMM, 'leg'); close(r.seam.lengthMM, w.seam, 'seam'); close(r.seam.flushMM, w.flush, 'flush'); close(r.volumeMM3, m.volume, 'volume');
+        close(r.leg, w.leg, 'leg'); close(r.seam.length, w.seam, 'seam'); close(r.seam.flush, w.flush, 'flush'); close(r.volume, m.volume, 'volume');
         assert.deepEqual(r.meets, w.meets, `output ${k} bead meets`);
       }
       if (want.flat) {
-        // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thicknessMM`).
-        const w = want.flat, opts = w.options ?? {}, make = () => opts.thicknessMM !== undefined ? flatPattern(o.brep, opts) : flatPatternOf(o, opts);
+        // A sheet's flat pattern (R12.2, D117): by the output's own rules, or with T and K given (`options.thickness`).
+        const w = want.flat, opts = w.options ?? {}, make = () => opts.thickness !== undefined ? flatPattern(o.brep, opts) : flatPatternOf(o, opts);
         if (w.error) assert.throws(make, e => e.code === w.error.code && e.message.includes(w.error.messageIncludes), `output ${k} flat refused`);
         else {
           const f = make();
-          assert.ok(Math.abs(f.areaMM2 - w.areaMM2.value) <= w.areaMM2.relTol * w.areaMM2.value, `output ${k} flat area ${f.areaMM2} vs ${w.areaMM2.value}`);
+          assert.ok(Math.abs(f.area - w.area.value) <= w.area.relTol * w.area.value, `output ${k} flat area ${f.area} vs ${w.area.value}`);
           if (w.box) f.box.max.forEach((x, i) => assert.ok(Math.abs(x - w.box.value[i]) <= w.box.absTol, `output ${k} flat box ${f.box.max} vs ${w.box.value}`));
           if (w.loops !== undefined) assert.equal(f.loops.length, w.loops, `output ${k} flat loops`);
           assert.deepEqual(f.bends.map(b => ({ name: b.name, direction: b.direction })).sort((a, b) => a.name < b.name ? -1 : 1), w.bends.map(b => ({ name: b.name, direction: b.direction })), `output ${k} flat bends`);
-          w.bends.forEach(b => assert.ok(Math.abs(f.bends.find(x => x.name === b.name).angleDegrees - b.angleDegrees) <= 1e-9, `output ${k} ${b.name} angle`));
+          w.bends.forEach(b => assert.ok(Math.abs(f.bends.find(x => x.name === b.name).angle - b.angle) <= 1e-9, `output ${k} ${b.name} angle`));
         }
       }
-      if (want.tessellation?.watertight) { const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: want.tessellation.segmentsPerQuarter }); assert.equal(openEdges(mesh.positionsMM, mesh.indices), 0, `output ${k} tessellation watertight`); }
+      if (want.tessellation?.watertight) { const mesh = tessellateBrep(o.brep, { segmentsPerQuarter: want.tessellation.segmentsPerQuarter }); assert.equal(openEdges(mesh.positions, mesh.indices), 0, `output ${k} tessellation watertight`); }
     });
     if (c.expect.subd) {
       // A SubD feature's promises (D78/D79), measured on its cage: G1 and closed seams, the caps near the limit, no
@@ -109,7 +109,7 @@ for (const file of cases) {
         if (w.error) { assert.throws(() => checkFit(w.tables, face(w.hole), face(w.shaft)), e => e.code === w.error.code && e.message.includes(w.error.messageIncludes)); continue; }
         const r = checkFit(w.tables, face(w.hole), face(w.shaft)), close = (x, y, what) => assert.ok(Math.abs(x - y) <= w.absTol * Math.max(1, Math.abs(y)), `fit ${what}: ${x} vs ${y}`);
         assert.deepEqual([r.limits.kind, r.limits.clearanceMinUM, r.limits.clearanceMaxUM, r.contradicted], [w.kind, w.clearanceUM[0], w.clearanceUM[1], w.contradicted], 'fit');
-        close(r.mmc.overlapMM3, w.mmcOverlapMM3, 'MMC overlap'); close(r.lmc.overlapMM3, w.lmcOverlapMM3, 'LMC overlap');
+        close(r.mmc.overlap, w.mmcOverlapMM3, 'MMC overlap'); close(r.lmc.overlap, w.lmcOverlapMM3, 'LMC overlap');
       }
     }
     if (c.expect.cutList) {
@@ -119,10 +119,10 @@ for (const file of cases) {
       w.rows.forEach((r, i) => {
         const g = list.rows[i];
         assert.deepEqual([g.quantity, g.pieces, g.fromVolume], [r.quantity, r.pieces, r.fromVolume], `row ${i}`);
-        close(g.axisLengthMM, r.axisLengthMM, `row ${i} axis`); close(g.longPointMM, r.longPointMM, `row ${i} long point`); close(g.mass, r.mass, `row ${i} mass`);
-        r.ends.forEach((e, k) => { assert.equal(g.ends[k].kind, e.kind, `row ${i} end ${k}`); close(g.ends[k].mitreDegrees, e.mitreDegrees, `row ${i} end ${k} mitre`); close(g.ends[k].bevelDegrees, e.bevelDegrees, `row ${i} end ${k} bevel`); });
+        close(g.axisLength, r.axisLength, `row ${i} axis`); close(g.longPoint, r.longPoint, `row ${i} long point`); close(g.mass, r.mass, `row ${i} mass`);
+        r.ends.forEach((e, k) => { assert.equal(g.ends[k].kind, e.kind, `row ${i} end ${k}`); close(g.ends[k].mitre, e.mitre, `row ${i} end ${k} mitre`); close(g.ends[k].bevel, e.bevel, `row ${i} end ${k} bevel`); });
       });
-      assert.equal(list.totals.quantity, w.totals.quantity); close(list.totals.axisLengthMM, w.totals.axisLengthMM, 'total length'); close(list.totals.mass, w.totals.mass, 'total mass');
+      assert.equal(list.totals.quantity, w.totals.quantity); close(list.totals.axisLength, w.totals.axisLength, 'total length'); close(list.totals.mass, w.totals.mass, 'total mass');
     }
     if (c.expect.stepRoundTrip) {
       const back = importStep(exportStep(outputs.map(o => o.brep), { name: c.id })), r = checkBrep(back, { strict: true }), tol = c.expect.stepRoundTrip.relTol;

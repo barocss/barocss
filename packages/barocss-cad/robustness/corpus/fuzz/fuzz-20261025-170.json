@@ -62,14 +62,14 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n3r0",
           "kind": "rotate",
           "target": "n3b",
           "axis": "z",
-          "angleDegrees": 90,
+          "angle": 90,
           "pivot": [
             0,
             0,
@@ -138,7 +138,7 @@
           "kind": "circular-pattern",
           "target": "n2",
           "axis": "z",
-          "angleDegrees": 90,
+          "angle": 90,
           "count": 2,
           "pivot": [
             -3,
@@ -151,7 +151,7 @@
           "kind": "circular-pattern",
           "target": "n1",
           "axis": "z",
-          "angleDegrees": 90,
+          "angle": 90,
           "count": 2,
           "pivot": [
             -1,

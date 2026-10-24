@@ -41,7 +41,7 @@
           "kind": "rotate",
           "target": "B0",
           "axis": "z",
-          "angleDegrees": 89.99,
+          "angle": 89.99,
           "pivot": [0, 0, 0]
         },
         {

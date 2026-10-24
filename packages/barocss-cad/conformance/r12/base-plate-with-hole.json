@@ -55,11 +55,11 @@
   "expect": {
     "outputs": [
       {
-        "volumeMM3": {
+        "volume": {
           "value": 4705.752220392306,
           "relTol": 1e-12
         },
-        "centroidMM": {
+        "centroid": {
           "value": [
             40,
             25,
@@ -67,7 +67,7 @@
           ],
           "absTol": 1e-9
         },
-        "areaMM2": {
+        "area": {
           "value": 8192.619479163588,
           "relTol": 1e-12
         },
@@ -88,8 +88,8 @@
           "b.top"
         ],
         "sheet": {
-          "thicknessMM": 1.2,
-          "bendRadiusMM": 1.2,
+          "thickness": 1.2,
+          "bendRadius": 1.2,
           "kFactor": 0.45,
           "absTol": 1e-9,
           "bends": []

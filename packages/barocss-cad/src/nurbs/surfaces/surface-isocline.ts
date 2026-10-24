@@ -16,7 +16,7 @@ export interface SurfaceIsoclineOptions {
   /** Grid cells along each domain side (default 32, 4 … 256). */
   readonly grid?: number;
   /** The largest distance (mm) of the Catmull–Rom curve through the points from the isocline (default 1e-7). */
-  readonly toleranceMM?: number;
+  readonly tolerance?: number;
   /** At most this many points in all (default 20 000). */
   readonly maxPoints?: number;
 }
@@ -84,9 +84,9 @@ export function surfaceIsoclines(surface: Surface, pull: readonly number[], opti
   validateSurface(surface);
   const l = Math.hypot(pull[0], pull[1], pull[2]);
   if (!(l > 0) || !Number.isFinite(l)) throw new RangeError('surfaceIsoclines: the pull must be a finite, nonzero vector');
-  const N = options.grid ?? 32, tol = options.toleranceMM ?? 1e-7, maxPoints = options.maxPoints ?? 20000;
+  const N = options.grid ?? 32, tol = options.tolerance ?? 1e-7, maxPoints = options.maxPoints ?? 20000;
   if (!Number.isInteger(N) || N < 4 || N > 256) throw new RangeError('surfaceIsoclines: grid must be a whole number from 4 to 256');
-  if (!(tol > 0)) throw new RangeError('surfaceIsoclines: toleranceMM must be above 0');
+  if (!(tol > 0)) throw new RangeError('surfaceIsoclines: tolerance must be above 0');
   const D = surfaceDomain(surface), F: Field = { S: surface, d: [pull[0] / l, pull[1] / l, pull[2] / l], U: D.u, V: D.v, at: surfaceEvaluator(surface) };
   const us = gridLine(D.u[0], D.u[1], N), vs = gridLine(D.v[0], D.v[1], N);
   // A degenerate domain side — collapsed to a point (a pole), or along which n·d is 0 throughout (a flat edge square to the

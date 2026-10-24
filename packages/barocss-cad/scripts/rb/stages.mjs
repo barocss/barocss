@@ -74,7 +74,7 @@ function onSegment(p, [a, b], tol) {
 export function crescentMesh(brep, mesh, c) {
   const shellOf = new Map(brep.faces.map(f => [f.id, f.shell])), bodyOf = new Map(brep.shells.map(s => [s.id, s.body])), tris = new Map();
   for (const f of mesh.faces) { const body = bodyOf.get(shellOf.get(f.faceId)), list = tris.get(body) ?? []; for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t++) list.push(mesh.indices[t]); tris.set(body, list); }
-  const open = []; for (const list of tris.values()) openEdgeList(mesh.positionsMM, list, open);
+  const open = []; for (const list of tris.values()) openEdgeList(mesh.positions, list, open);
   return open.length > 0 && open.every(u => u.n === 4 && c.segments.some(s => onSegment(u.a, s, 1e3 * c.tol) && onSegment(u.b, s, 1e3 * c.tol)));
 }
 /** Whether strict L0's issues are all a crescent's: its faces' loops touching, on faces through its coincident vertices. */
@@ -92,7 +92,7 @@ export function openEdgesByBody(brep, mesh) {
     for (let t = f.indexOffset; t < f.indexOffset + f.indexCount; t++) list.push(mesh.indices[t]);
     tris.set(body, list);
   }
-  let open = 0; for (const list of tris.values()) open += openEdges(mesh.positionsMM, list);
+  let open = 0; for (const list of tris.values()) open += openEdges(mesh.positions, list);
   return open;
 }
 /** A B-rep's size (largest coordinate of its vertices, at least 1): the scale of its tolerance cap. */
@@ -147,7 +147,7 @@ export function runCase(cad, file, started) {
       // (The strict L0 checks: an output's own validate(), or checkBrep strict for an imported body.)
       const r = b.brep ? cad.checkOutput(b) : cad.checkBrep(brep, { strict: true }), cap = gapCap(sizeOf(brep));
       if (!r.valid) return crescent && crescentIssues(brep, r.issues, crescent) ? { status: 'KNOWN', detail: `KNOWN-CRESCENT (D195): ${r.issues[0]}`, value: r } : { status: 'INVALID', detail: r.issues.slice(0, 3).join('; ') };
-      if (r.maximumVertexGapMM > cap || r.maximumPcurveGapMM > cap) return { status: 'TOL_BLOWUP', detail: `vertex gap ${r.maximumVertexGapMM}, pcurve gap ${r.maximumPcurveGapMM}, cap ${cap}` };
+      if (r.maximumVertexGap > cap || r.maximumPcurveGap > cap) return { status: 'TOL_BLOWUP', detail: `vertex gap ${r.maximumVertexGap}, pcurve gap ${r.maximumPcurveGap}, cap ${cap}` };
       return { value: r };
     });
     const mass = stage(`mass${suffix}`, () => {
@@ -157,7 +157,7 @@ export function runCase(cad, file, started) {
     });
     stage(`tessellate${suffix}`, () => {
       const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 8 });
-      if (!mesh.positionsMM.every(Number.isFinite)) return { status: 'CRASH', detail: 'a position is not finite' };
+      if (!mesh.positions.every(Number.isFinite)) return { status: 'CRASH', detail: 'a position is not finite' };
       // (Watertight body by body: separate bodies that touch share positions without sharing edges.)
       const open = openEdgesByBody(brep, mesh);
       if (open && crescent && crescentMesh(brep, mesh, crescent)) return { status: 'KNOWN', detail: `KNOWN-CRESCENT (D195): ${open} edges used four times, along the tangent line` };
@@ -188,7 +188,7 @@ export function runCase(cad, file, started) {
     if (isStep && mass) stage('gvp', () => {
       const g = cad.stepValidationProperties(text);
       if (g.volumeMM3 === undefined && g.areaMM2 === undefined && g.centroidMM === undefined) return { detail: 'no validation properties' };
-      const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 16 }), P = mesh.positionsMM, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+      const mesh = cad.tessellateBrep(brep, { segmentsPerQuarter: 16 }), P = mesh.positions, lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
       for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], P[i + k]); hi[k] = Math.max(hi[k], P[i + k]); }
       const c = cad.compareValidationProperties(g, { volumeMM3: mass.volume, areaMM2: cad.brepSurfaceArea(brep), centroidMM: mass.centroid, box: { min: lo, max: hi } });
       return c.ok ? {} : { status: 'WRONG', detail: ['volume', 'area', 'centroid'].filter(k => c[k] && !c[k].ok).map(k => `${k} off by ${c[k].difference.toExponential(2)} (limit ${c[k].limit.toExponential(2)})`).join('; ') };

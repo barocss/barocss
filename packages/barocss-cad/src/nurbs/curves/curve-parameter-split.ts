@@ -17,7 +17,7 @@ export interface CurveSplitRefinementProvenance {
   kind: 'knot-insertion' | 'direct-copy'; insertions: number; operation: CurveKnotInsertionProvenance | null;
   unchangedPoles: CurveKnotUnchangedPole[]; unchangedKnots: CurveKnotUnchangedKnot[];
 }
-export interface CurveSplitSharedCoefficient { refinedPoleIndex: number; lowerPoleIndex: number; upperPoleIndex: number; pointMM: Point; weight: number }
+export interface CurveSplitSharedCoefficient { refinedPoleIndex: number; lowerPoleIndex: number; upperPoleIndex: number; point: Point; weight: number }
 export interface CurveParameterSplitProvenance {
   kind: 'curve-parameter-split'; sourceCurveId: string; parameter: number; firstRefinedKnotIndex: number;
   refinement: CurveSplitRefinementProvenance; lower: CurveSplitChildProvenance; upper: CurveSplitChildProvenance; shared: CurveSplitSharedCoefficient;
@@ -31,11 +31,11 @@ export interface CurveParameterSplitReport {
   cutKnotGuards: { original: boolean; refined: boolean; lowerEndpoint: boolean; upperEndpoint: boolean };
   guardedKnots: { original: number[]; refined: number[]; lower: number[]; upper: number[] }; derivativeSemantics: 'native-guards-unchanged';
   shared: CurveSplitSharedCoefficient;
-  sharedCutPoints: { originalPointMM: Point; refinedPointMM: Point; lowerPointMM: Point; upperPointMM: Point; maximumObservedDifferenceMM: number };
-  observations: { side: 'lower' | 'upper'; curveId: string; parameter: number; originalPointMM: Point; refinedPointMM: Point; childPointMM: Point; originalDifferenceMM: number; refinedDifferenceMM: number }[];
-  maximumObservedDifferenceMM: number; authority: 'original-curve-coefficients'; geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
+  sharedCutPoints: { originalPoint: Point; refinedPoint: Point; lowerPoint: Point; upperPoint: Point; maximumObservedDifference: number };
+  observations: { side: 'lower' | 'upper'; curveId: string; parameter: number; originalPoint: Point; refinedPoint: Point; childPoint: Point; originalDifference: number; refinedDifference: number }[];
+  maximumObservedDifference: number; authority: 'original-curve-coefficients'; geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   limits: { maximumPoles: 16; maximumDegree: 3; authoredIdCharacters: 48; snapshotValues: 1024; snapshotDepth: 6;
-    arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 64; observationComparisonMM: number };
+    arrayElements: 64; recordFields: 8; stringCharacters: 128; maximumObservations: 64; observationComparison: number };
 }
 export interface CurveParameterSplitResult {
   original: Curve; refined: Curve; lower: Curve; upper: Curve; source: string; sourceVersion: 0; model: Model;
@@ -91,14 +91,14 @@ function admit(input: unknown): Curve {
   check(typeof data.degree === 'number' && Number.isInteger(data.degree) && data.degree >= 1 && data.degree <= 3, 'degree 1..3 required');
   check(Array.isArray(data.controlPoints) && data.controlPoints.length >= 2 && data.controlPoints.length <= 16, 'original poles 2..16 required');
   const curve = data as unknown as Curve; validateCurve(curve);
-  check(curve.controlPoints.every(p => p.every(n => Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbsMM)), 'XYZ coordinates within the geometry range +/-' + CadNumericPolicy.geometryCoordinateAbsMM + ' mm required');
+  check(curve.controlPoints.every(p => p.every(n => Math.abs(n) <= CadNumericPolicy.geometryCoordinateAbs)), 'XYZ coordinates within the geometry range +/-' + CadNumericPolicy.geometryCoordinateAbs + ' mm required');
   return curve;
 }
 function guarded(curve: Curve, parameter: number): boolean {
   const [min, max] = curveDomain(curve);
   return parameter > min && parameter < max && curve.knots.filter(k => k === parameter).length >= curve.degree;
 }
-/** Observation tolerance of the current split: CadNumericPolicy.linearToleranceMM of the curve (1e-7 mm within the modeling range). */
+/** Observation tolerance of the current split: CadNumericPolicy.linearTolerance of the curve (1e-7 mm within the modeling range). */
 let observationTolerance = 1e-7;
 function difference(a: Point, b: Point): number {
   const d = Math.hypot(...a.map((n, i) => n - b[i])); check(Number.isFinite(d) && d <= observationTolerance, 'local native point observation exceeds ' + observationTolerance + ' mm'); return d;
@@ -148,16 +148,16 @@ export function splitCurveAtParameter(input: Curve, options: CurveParameterSplit
       for (const m of child.provenance.poleMappings) check(sameData(child.curve.controlPoints[m.childPoleIndex], refined.controlPoints[m.refinedPoleIndex]) && Object.is(child.curve.weights[m.childPoleIndex], refined.weights[m.refinedPoleIndex]), 'direct child pole/weight bits must remain');
       for (const m of child.provenance.knots) check(Object.is(child.curve.knots[m.childKnotIndex], m.refinedKnotIndex === null ? parameter : refined.knots[m.refinedKnotIndex]), 'retained knots and new requested clamp signs must remain');
     }
-    const shared: CurveSplitSharedCoefficient = { refinedPoleIndex: common, lowerPoleIndex: common, upperPoleIndex: 0, pointMM: copyCadData(refined.controlPoints[common]), weight: refined.weights[common] };
+    const shared: CurveSplitSharedCoefficient = { refinedPoleIndex: common, lowerPoleIndex: common, upperPoleIndex: 0, point: copyCadData(refined.controlPoints[common]), weight: refined.weights[common] };
     check(sameData(lower.controlPoints[common], upper.controlPoints[0]) && Object.is(lower.weights[common], upper.weights[0]), 'shared child pole/weight bits must agree');
     const observations = ([{ side: 'lower' as const, curve: lower }, { side: 'upper' as const, curve: upper }]).flatMap(child => samples(child.curve).map(parameter => {
       const originalPointMM = evaluateCurve(original, parameter), refinedPointMM = evaluateCurve(refined, parameter), childPointMM = evaluateCurve(child.curve, parameter);
-      return { side: child.side, curveId: child.curve.id, parameter, originalPointMM, refinedPointMM, childPointMM, originalDifferenceMM: difference(originalPointMM, childPointMM), refinedDifferenceMM: difference(refinedPointMM, childPointMM) };
+      return { side: child.side, curveId: child.curve.id, parameter, originalPoint: originalPointMM, refinedPoint: refinedPointMM, childPoint: childPointMM, originalDifference: difference(originalPointMM, childPointMM), refinedDifference: difference(refinedPointMM, childPointMM) };
     }));
     check(observations.length <= 64, 'native observation bound exceeded');
     const originalPointMM = evaluateCurve(original, parameter), refinedPointMM = evaluateCurve(refined, parameter), lowerPointMM = evaluateCurve(lower, lowerDomain[1]), upperPointMM = evaluateCurve(upper, upperDomain[0]);
-    const sharedCutPoints = { originalPointMM, refinedPointMM, lowerPointMM, upperPointMM,
-      maximumObservedDifferenceMM: Math.max(difference(originalPointMM, lowerPointMM), difference(originalPointMM, upperPointMM), difference(refinedPointMM, lowerPointMM), difference(refinedPointMM, upperPointMM), difference(lowerPointMM, upperPointMM)) };
+    const sharedCutPoints = { originalPoint: originalPointMM, refinedPoint: refinedPointMM, lowerPoint: lowerPointMM, upperPoint: upperPointMM,
+      maximumObservedDifference: Math.max(difference(originalPointMM, lowerPointMM), difference(originalPointMM, upperPointMM), difference(refinedPointMM, lowerPointMM), difference(refinedPointMM, upperPointMM), difference(lowerPointMM, upperPointMM)) };
     const guards = (curve: Curve) => guardKnots(curve.knots, curve.degree, ...curveDomain(curve));
     return copyCadData({ original, refined, lower, upper, source, sourceVersion: 0, model: compiled.model,
       provenance: { kind: 'curve-parameter-split', sourceCurveId: original.id, parameter, firstRefinedKnotIndex: first, refinement, lower: stagedLower.provenance, upper: stagedUpper.provenance, shared },
@@ -166,9 +166,9 @@ export function splitCurveAtParameter(input: Curve, options: CurveParameterSplit
         cutEndpoints: { requested: parameter, lower: lowerDomain[1], upper: upperDomain[0], negativeZero: { requested: Object.is(parameter, -0), lower: Object.is(lowerDomain[1], -0), upper: Object.is(upperDomain[0], -0) } },
         cutKnotGuards: { original: guarded(original, parameter), refined: guarded(refined, parameter), lowerEndpoint: guarded(lower, parameter), upperEndpoint: guarded(upper, parameter) },
         guardedKnots: { original: guards(original), refined: guards(refined), lower: guards(lower), upper: guards(upper) }, derivativeSemantics: 'native-guards-unchanged', shared, sharedCutPoints, observations,
-        maximumObservedDifferenceMM: Math.max(sharedCutPoints.maximumObservedDifferenceMM, ...observations.flatMap(o => [o.originalDifferenceMM, o.refinedDifferenceMM])), authority: 'original-curve-coefficients',
+        maximumObservedDifference: Math.max(sharedCutPoints.maximumObservedDifference, ...observations.flatMap(o => [o.originalDifference, o.refinedDifference])), authority: 'original-curve-coefficients',
         geometricValidity: 'not-certified', topologyCertified: false, solid: false,
-        limits: { maximumPoles: 16, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 1024, snapshotDepth: 6, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 64, observationComparisonMM: observationTolerance } } });
+        limits: { maximumPoles: 16, maximumDegree: 3, authoredIdCharacters: 48, snapshotValues: 1024, snapshotDepth: 6, arrayElements: 64, recordFields: 8, stringCharacters: 128, maximumObservations: 64, observationComparison: observationTolerance } } });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'invalid original Curve/split options';
     throw new Error((message.startsWith(LABEL) ? message : LABEL + ': ' + message).slice(0, 1024), { cause: error });

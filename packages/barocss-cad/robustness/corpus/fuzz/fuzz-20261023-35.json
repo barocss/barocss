@@ -39,7 +39,7 @@
           "kind": "rotate",
           "target": "n1f",
           "axis": "x",
-          "angleDegrees": 48.042,
+          "angle": 48.042,
           "pivot": [
             0,
             0,
@@ -61,7 +61,7 @@
           "kind": "circular-pattern",
           "target": "n1",
           "axis": "z",
-          "angleDegrees": 79.507,
+          "angle": 79.507,
           "count": 2,
           "pivot": [
             -0.192,

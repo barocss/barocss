@@ -29,7 +29,7 @@
           "kind": "rotate",
           "target": "n3b",
           "axis": "x",
-          "angleDegrees": 332.989,
+          "angle": 332.989,
           "pivot": [
             0,
             0,
@@ -41,7 +41,7 @@
           "kind": "rotate",
           "target": "n3r0",
           "axis": "y",
-          "angleDegrees": 91.184,
+          "angle": 91.184,
           "pivot": [
             0,
             0,
@@ -156,7 +156,7 @@
             ],
             "direction": "y"
           },
-          "angleDegrees": 360
+          "angle": 360
         },
         {
           "id": "n5",

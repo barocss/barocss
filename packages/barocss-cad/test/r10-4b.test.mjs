@@ -36,7 +36,7 @@ test('R10.4b a pipe tee whose branch stands 12 high, its junction filleted 3 (re
   assert.equal(checkOutput(o).valid, true);
   assert.equal(o.bodyCount, 1);
   const [rep] = o.fillet, added = massPropertiesOf(o).volume - v0;
-  assert.ok(rep.contactMM <= 2.5e-7 && rep.normalDeg < 1e-3 && rep.sectionMM <= 1e-6 && rep.ballMM < 1e-8, JSON.stringify(rep));
+  assert.ok(rep.contact <= 2.5e-7 && rep.normal < 1e-3 && rep.section <= 1e-6 && rep.ball < 1e-8, JSON.stringify(rep));
   // The fillet meets the branch's top rim (z = 12, radius 5 about (30, 0)) along an edge of the result.
   assert.ok(o.brep.edges.some(e => /f\.face/.test(e.name) && /b\.top/.test(e.name) && [e.curve.controlPoints[0], e.curve.controlPoints.at(-1)].every(p => Math.abs(p[2] - 12) < 1e-6 && Math.abs(Math.hypot(p[0] - 30, p[1]) - 5) < 1e-6)), 'a fillet edge on the rim');
   setRingStations(2 * rep.stations);

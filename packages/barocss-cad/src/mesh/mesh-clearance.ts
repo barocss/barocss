@@ -10,7 +10,7 @@ import { triangleBvh, type TriangleBvh } from './triangle-bvh.js';
 
 export interface MeshClearance {
   /** The least distance between the two surfaces, mm (0 when they touch or cross; Infinity when either has no triangle). */
-  readonly distanceMM: number;
+  readonly distance: number;
   /** The closest points, on A and on B (equal where they cross); null when either has no triangle. */
   readonly pointA: readonly [number, number, number] | null; readonly pointB: readonly [number, number, number] | null;
   /** The two triangles they lie on (indices into each mesh), or −1. */
@@ -27,7 +27,7 @@ let stack = new Int32Array(512);
 
 /** The least distance between two meshes' surfaces (squared internally; exact up to rounding), with the closest points. */
 export function meshClearance(pa: ArrayLike<number>, ia: ArrayLike<number>, pb: ArrayLike<number>, ib: ArrayLike<number>, options: MeshClearanceOptions = {}): MeshClearance {
-  if (!(ia.length >= 3 && ib.length >= 3)) return { distanceMM: Infinity, pointA: null, pointB: null, triangleA: -1, triangleB: -1 };
+  if (!(ia.length >= 3 && ib.length >= 3)) return { distance: Infinity, pointA: null, pointB: null, triangleA: -1, triangleB: -1 };
   const A = options.bvhA ?? triangleBvh(pa, ia), B = options.bvhB ?? triangleBvh(pb, ib);
   let best = Infinity, bestA = -1, bestB = -1, top = 0;
   stack[top++] = 0; stack[top++] = 0;
@@ -62,7 +62,7 @@ export function meshClearance(pa: ArrayLike<number>, ia: ArrayLike<number>, pb: 
   return result(best, bestA, bestB);
 }
 function result(d2: number, ta: number, tb: number): MeshClearance {
-  return { distanceMM: Math.sqrt(d2), pointA: [BEST[0], BEST[1], BEST[2]], pointB: [BEST[3], BEST[4], BEST[5]], triangleA: ta, triangleB: tb };
+  return { distance: Math.sqrt(d2), pointA: [BEST[0], BEST[1], BEST[2]], pointB: [BEST[3], BEST[4], BEST[5]], triangleA: ta, triangleB: tb };
 }
 /** The squared gap between two boxes (0 when they overlap). */
 function boxGap2(X: Float64Array, a: number, Y: Float64Array, b: number): number {

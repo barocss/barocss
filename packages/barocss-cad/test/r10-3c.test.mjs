@@ -24,7 +24,7 @@ function onDisc(R, r) {
 
 test('R10.3c a rod across a round plate, its feet filleted (R10.1\'s translational tools): cut by the plate\'s rim — the two feet\'s ∫ of the section across the disc\'s chord, to 1e-6 (the tools\' cuts by the rim are fitted curves); near a seam of the rim, the ends stop square as before (valid, over)', () => {
   const R = 20, disc = [{ id: 'p', kind: 'sketch', profile: 'circle', center: [0, 0], radius: R }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 }];
-  const across = deg => [...disc, ...rod(-30), ...(deg ? [{ id: 'c', kind: 'rotate', target: 'c0', axis: 'z', angleDegrees: deg, pivot: [0, 0, 10] }] : []), { id: 'g', kind: 'union', target: 'pe', tool: deg ? 'c' : 'c0' }];
+  const across = deg => [...disc, ...rod(-30), ...(deg ? [{ id: 'c', kind: 'rotate', target: 'c0', axis: 'z', angle: deg, pivot: [0, 0, 10] }] : []), { id: 'g', kind: 'union', target: 'pe', tool: deg ? 'c' : 'c0' }];
   for (const [deg, r] of [[0, 1], [45, 1], [60, 1.5], [90, 2], [25, 2]]) {
     const body = across(deg), o0 = out(body), feet = o0.brep.edges.filter(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name)).map(e => e.name);
     const o = out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: feet, radius: r }]);
@@ -42,7 +42,7 @@ test('R10.3c a rod across a round plate, its feet filleted (R10.1\'s translation
 
 test('R10.3c refusals kept: a general fillet ending at a curved face (a tilted rod\'s foot ending at a round plate\'s rim), or square on a plane (r10-2b) — the analytic Boolean fails there on the cases tried', () => {
   const disc = [{ id: 'p', kind: 'sketch', profile: 'circle', center: [0, 0], radius: 20 }, { id: 'pe', kind: 'extrude', sketch: 'p', height: 10 }];
-  const body = [...disc, ...rod(-30), { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angleDegrees: 5, pivot: [0, 0, 10] }, { id: 'g', kind: 'union', target: 'pe', tool: 'c' }];
+  const body = [...disc, ...rod(-30), { id: 'c', kind: 'rotate', target: 'c0', axis: 'y', angle: 5, pivot: [0, 0, 10] }, { id: 'g', kind: 'union', target: 'pe', tool: 'c' }];
   const foot = out(body).brep.edges.find(e => /c0\.side0/.test(e.name) && /pe\.top/.test(e.name)).name;
   assert.throws(() => out([...body, { id: 'f', kind: 'fillet', target: 'g', edges: [foot], radius: 1 }]), e => e.code === 'CAPABILITY' && /meets a curved face/.test(e.message));
 });

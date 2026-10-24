@@ -38,7 +38,7 @@ test('R12.1 contour flange: an L at any angle, its path the outer or the inner s
     assert.deepEqual([...o.brep.faces.map(f => f.name)].sort(), ['c.back', 'c.bend1.inner', 'c.bend1.outer', 'c.end', 'c.front', 'c.leg0.a', 'c.leg0.b', 'c.leg1.a', 'c.leg1.b', 'c.start']);
     const [bend] = o.sheet.bends;
     assert.equal(o.sheet.bends.length, 1);
-    assert.ok(Math.abs(bend.angleDegrees - deg) < 1e-9);
+    assert.ok(Math.abs(bend.angle - deg) < 1e-9);
     for (const [name, r] of [[bend.inner, R], [bend.outer, R + T]]) {
       const g = faceGeometry(o.brep.faces.find(f => f.name === name)), c = bend.axis.origin, a = bend.axis.direction;
       assert.equal(g.kind, 'cylinder');
@@ -80,11 +80,11 @@ test('R12.1 sheet rules: the report gives each bend\'s allowance, setback and de
   const T = 2, R = 3, K = 0.4;
   for (const deg of [45, 90, 135]) {
     const th = deg * Math.PI / 180, o = out([contour([[0, 0], [30, 0], [30 + 25 * Math.cos(th), 25 * Math.sin(th)]], 'left', { kFactor: K })]), [b] = o.sheet.bends;
-    assert.deepEqual({ t: o.sheet.thicknessMM, r: o.sheet.bendRadiusMM, k: o.sheet.kFactor }, { t: T, r: R, k: K });
-    assert.equal(b.name, 'c.bend1'); assert.equal(b.radiusMM, R);
-    assert.ok(Math.abs(b.allowanceMM - th * (R + K * T)) < 1e-12);
-    assert.ok(Math.abs(b.setbackMM - (R + T) * Math.tan(th / 2)) < 1e-12);
-    assert.ok(Math.abs(b.deductionMM - (2 * (R + T) * Math.tan(th / 2) - th * (R + K * T))) < 1e-12);
+    assert.deepEqual({ t: o.sheet.thickness, r: o.sheet.bendRadius, k: o.sheet.kFactor }, { t: T, r: R, k: K });
+    assert.equal(b.name, 'c.bend1'); assert.equal(b.radius, R);
+    assert.ok(Math.abs(b.allowance - th * (R + K * T)) < 1e-12);
+    assert.ok(Math.abs(b.setback - (R + T) * Math.tan(th / 2)) < 1e-12);
+    assert.ok(Math.abs(b.deduction - (2 * (R + T) * Math.tan(th / 2) - th * (R + K * T))) < 1e-12);
   }
 });
 
@@ -96,7 +96,7 @@ test('R12.1 base flange: a plate from a closed sketch, holes kept, T thick eithe
     assert.ok(Math.abs(m.volume / ((4000 - 25 * Math.PI) * T) - 1) < 1e-12);
     assert.ok(Math.abs(m.centroid[2] - (reverse ? -T / 2 : T / 2)) < 1e-12);
     assert.deepEqual([...new Set(o.brep.faces.map(f => f.name.replace(/#\d+$/, '')))].sort(), ['b.bottom', 'b.hole0.side0', 'b.side0', 'b.side1', 'b.side2', 'b.side3', 'b.top']);
-    assert.deepEqual(o.sheet, { thicknessMM: T, bendRadiusMM: 1.2, kFactor: 0.45, fixedFace: 'b.top', bends: [] });
+    assert.deepEqual(o.sheet, { thickness: T, bendRadius: 1.2, kFactor: 0.45, fixedFace: 'b.top', bends: [] });
   }
 });
 
