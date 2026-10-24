@@ -18,6 +18,7 @@ import { rotationMatrix } from '../engine/placement';
 import { add, cross, dot, len, sub } from '../engine/vec3';
 import { exportNames, checkFrame, readFrames, resolveFrame, type FrameCode, type FrameSettings, type ToolFrame } from './frames';
 import { readMotions, type Motion } from './motion';
+import { camFacesOf, camLiftOf, camValue, type CamFace, type CamLift } from './cam';
 
 export const ROBOT_VERSION = 1;
 export type JointType = 'fixed' | 'revolute' | 'continuous' | 'prismatic';
@@ -40,10 +41,12 @@ export interface Joint {
   limit?: { lower?: number; upper?: number; effort?: number; velocity?: number };
   /** The mates this pair's joint is made of. */
   mates: string[];
-  /** Coupled to another joint (two meshing gears): this = multiplier × that + offset. */
+  /** Coupled to another joint (two meshing gears; a pushed follower): this = multiplier × that + offset. */
   mimic?: { joint: string; multiplier: number; offset: number };
+  /** O24 (a): a cam's follower — `mimic` names the cam's joint (multiplier 0), and this is the lift (robot/cam.ts). */
+  cam?: CamLift;
 }
-export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED' | FrameCode;
+export type RobotCode = 'NOT_CONNECTED' | 'MOTION_UNSUPPORTED' | 'BASE_UNKNOWN' | 'MATE_PROBLEM' | 'LIMITS_MISSING' | 'LIMITS_BAD' | 'GEAR_NOT_COUPLED' | 'CAM_NOT_SEATED' | 'CAM_PROFILE_UNSUPPORTED' | FrameCode;
 export interface RobotIssue { code: RobotCode; message: string; parts?: string[]; mates?: string[]; joint?: string; frame?: string }
 export interface Loop { parts: [string, string]; mates: string[]; freedom: number; message: string }
 export interface Coupling {
@@ -56,6 +59,8 @@ export interface JointTree {
   /** Pairs joined again round the graph: kept as loop closures, with their mates. */
   loops: Loop[];
   couplings: Coupling[];
+  /** O24 (a): cam mates as couplings — a turning cam's follower (kind cam), a follower pushing another (kind push). */
+  cams?: CamCoupling[];
   /** What blocks a link or a joint (typed); `notes`: what an export will need (limits) or could not couple. */
   problems: RobotIssue[]; notes: RobotIssue[];
   /** The tool and sensor frames on its links, at the solved pose (O12; absent: none set). */
@@ -191,6 +196,14 @@ export interface TreeInput {
   gears?: (part: string) => readonly GearPlacement[];
   /** The mates the solver could not meet (they make no joint). */
   mateProblems?: readonly { mate: string; reason: string }[];
+  /** A part's faces with their boundaries (its B-rep), for its cam mates (robot/cam.ts). */
+  camFaces?: (part: string) => readonly CamFace[];
+}
+/** A cam mate's coupling: the driver's joint, the follower's, and the lift's range over a turn (mm) or its ratio. */
+export interface CamCoupling {
+  kind: 'cam' | 'push'; mate: string; leader: string; follower: string; lift?: [number, number]; multiplier?: number;
+  /** The driver's and the follower's parts, the follower's contact face (world, at the solved pose), and for a cam the slab it covers along the cam's axis: the seat the sweep leaves to the mate (O22). */
+  seat: { driver: string; follower: string; p: Vec3; n: Vec3; axis?: Vec3; slab?: [number, number] };
 }
 
 /** The joint tree from the base link: links, joints (chains through dummy links), loops, gear couplings, issues. */
@@ -207,6 +220,7 @@ export function jointTree(input: TreeInput): JointTree {
   const failed = new Set((input.mateProblems ?? []).map(p => p.mate)), pairs = new Map<string, Mate[]>();
   const pairKey = (a: string, b: string) => [a, b].sort((x, y) => parts.indexOf(x) - parts.indexOf(y)).join('~');
   for (const m of input.mates) {
+    if (m.kind === 'cam') continue;
     if (failed.has(m.id)) { problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${(input.mateProblems ?? []).find(p => p.mate === m.id)!.reason}): it makes no joint.`, mates: [m.id] }); continue; }
     if (!placed.has(m.a.part) || !placed.has(m.b.part) || m.a.part === m.b.part) continue;
     const k = pairKey(m.a.part, m.b.part); (pairs.get(k) ?? pairs.set(k, []).get(k)!).push(m);
@@ -272,13 +286,14 @@ export function jointTree(input: TreeInput): JointTree {
     if ((j.type === 'prismatic' || j.type === 'revolute' || j.type === 'continuous') && (l?.effort === undefined || l.velocity === undefined)) notes.push({ code: 'LIMITS_MISSING', message: `${j.key}: no effort or velocity rating yet (export needs both).`, joint: j.key });
   }
   const couplings = input.gears ? gearCouplings(joints, placed, input.gears, notes) : [];
+  const camMates = input.mates.filter(m => m.kind === 'cam' && !failed.has(m.id)), cams = camMates.length && input.camFaces ? camCouplings(camMates, joints, placed, input.tables, input.camFaces, problems) : [];
   // (O12: each frame on its link, or its refusal among the problems.)
   const frames: ToolFrame[] = [], partIds = new Set(parts), names = settings.frames ? exportNames({ links, joints }) : null;
   for (const [name, f] of Object.entries(settings.frames ?? {})) {
     const [why] = checkFrame(name, f, { links }, partIds, names!);
     if (why) problems.push({ ...why, frame: name, parts: [f.link] }); else frames.push(resolveFrame(name, f, placed.get(f.link)!));
   }
-  return { version: 1, base, links, joints, loops, couplings, problems, notes, ...(frames.length ? { frames } : {}) };
+  return { version: 1, base, links, joints, loops, couplings, ...(cams.length ? { cams } : {}), problems, notes, ...(frames.length ? { frames } : {}) };
 }
 
 /** A pair's free motion from its mates' rows at the solved pose (b relative to a; the same freedom either way round). */
@@ -327,7 +342,58 @@ function gearCouplings(joints: Joint[], placed: Map<string, Placed>, gearsOf: (p
   return out;
 }
 
+/** The link a link is rigidly fixed to (up through fixed joints): its rigid group's first. */
+function rigidOf(joints: readonly Joint[], link: string): string {
+  for (let guard = 0; guard < joints.length; guard++) { const j = joints.find(x => x.child === link); if (!j || j.type !== 'fixed') return link; link = j.parent; }
+  return link;
+}
+/** The pair's joints ending at a part (a chain's too), in order. */
+const jointsTo = (joints: readonly Joint[], part: string) => joints.filter(j => j.child === part || j.child.startsWith(`${part}__`));
+/**
+ * O24 (a): each cam mate as a coupling. A turning cam (its part's joint a turn) drives the follower's slide by the lobe's
+ * lift; a sliding driver (a follower's own slide) pushes it linearly. Each is checked: the follower slides on the cam's
+ * carrier toward the face, its face across the cam's axis, seated on the lobe at the solved pose (CAM_NOT_SEATED), the
+ * lobe read from flats and round faces along the axis (CAM_PROFILE_UNSUPPORTED) — else a problem, never coupled.
+ */
+function camCouplings(mates: readonly Mate[], joints: Joint[], placed: Map<string, Placed>, tables: TreeInput['tables'], faces: NonNullable<TreeInput['camFaces']>, problems: RobotIssue[]): CamCoupling[] {
+  const out: CamCoupling[] = [];
+  for (const m of mates) {
+    const cam = m.a.part, fol = m.b.part, bad = (code: RobotCode, why: string) => problems.push({ code, message: `${m.id}: ${why}`, mates: [m.id], parts: [cam, fol] });
+    const jc = [...jointsTo(joints, cam)].reverse().find(j => j.type !== 'fixed'), jf = jointsTo(joints, fol).find(j => j.type === 'prismatic');
+    const P = placed.get(fol), C = placed.get(cam), ff = tables(fol)?.[m.b.face];
+    if (!jc || !jf || !P || !C || ff?.kind !== 'plane') { bad('CAM_NOT_SEATED', !jc ? `${cam} has no joint to drive a follower` : !jf ? `${fol} does not slide (a follower slides in its guide)` : `${fol}.${m.b.face} is not a flat face`); continue; }
+    if (rigidOf(joints, jointsTo(joints, fol)[0].parent) !== rigidOf(joints, jointsTo(joints, cam)[0].parent)) { bad('CAM_NOT_SEATED', `${cam} and ${fol} move on different links, so the lobe and the follower are not tied`); continue; }
+    const nf = unit(apply(P.R, ff.normal)), pf = add(apply(P.R, ff.point), P.t), u = scale(nf, -1), uw = dot(u, jf.axis);
+    if (Math.abs(uw) < 1e-9) { bad('CAM_NOT_SEATED', `${fol} slides across its face, not toward ${cam}`); continue; }
+    if (jc.type === 'prismatic') {
+      const fa = tables(cam)?.[m.a.face];
+      if (fa?.kind !== 'plane') { bad('CAM_NOT_SEATED', `${cam} slides, so it pushes with a flat face: ${m.a.face} is not one`); continue; }
+      const na = unit(apply(C.R, fa.normal)), pa = add(apply(C.R, fa.point), C.t);
+      if (Math.abs(dot(na, nf) + 1) > 1e-9 || Math.abs(dot(sub(pf, pa), na)) > 1e-6) { bad('CAM_NOT_SEATED', `${fol}.${m.b.face} is not on ${cam}.${m.a.face} at the solved pose`); continue; }
+      const multiplier = dot(jc.axis, u) / uw;
+      jf.mimic = { joint: jc.key, multiplier, offset: 0 };
+      out.push({ kind: 'push', mate: m.id, leader: jc.key, follower: jf.key, multiplier, seat: { driver: cam, follower: fol, p: pf, n: nf } });
+      continue;
+    }
+    if (Math.abs(dot(u, jc.axis)) > 1e-9) { bad('CAM_NOT_SEATED', `${fol}.${m.b.face} is not across ${cam}'s axis`); continue; }
+    const own = faces(fol).filter(f => f.name === m.b.face).flatMap(f => f.pts).map(p => add(apply(P.R, p), P.t)), along = own.map(p => dot(sub(p, jc.origin), jc.axis));
+    let lift: CamLift;
+    try {
+      lift = camLiftOf({ mate: m.id, cam, follower: jf.key, faces: faces(cam), place: p => add(apply(C.R, p as Vec3), C.t), turn: v => unit(apply(C.R, v as Vec3)), o: jc.origin, a: jc.axis, u, w: jf.axis, lo: Math.min(...along), hi: Math.max(...along) });
+    } catch (e) { bad('CAM_PROFILE_UNSUPPORTED', e instanceof Error ? e.message.replace(/^\[\w+\] [^:]+: /, '') : String(e)); continue; }
+    lift.cam = jc.key;
+    const d0 = dot(sub(pf, jc.origin), u);
+    if (Math.abs(lift.h0 - d0) > 1e-6) { bad('CAM_NOT_SEATED', `${fol}.${m.b.face} is ${(d0 - lift.h0).toFixed(6)} mm off the lobe at the solved pose`); continue; }
+    jf.mimic = { joint: jc.key, multiplier: 0, offset: 0 }; jf.cam = lift;
+    let lo = Infinity, hi = -Infinity;
+    for (let k = 0; k < 360; k++) { const v = camValue(lift, (k * Math.PI) / 180) * uw; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    out.push({ kind: 'cam', mate: m.id, leader: jc.key, follower: jf.key, lift: [Math.round(lo * 1e6) / 1e6 + 0, Math.round(hi * 1e6) / 1e6 + 0], seat: { driver: cam, follower: fol, p: pf, n: nf, axis: jc.axis, slab: [Math.min(...along) + dot(jc.origin, jc.axis), Math.max(...along) + dot(jc.origin, jc.axis)] } });
+  }
+  return out;
+}
+
 /** The tree of a document as it stands (its instances as solved, its robot settings). */
 export function jointTreeOf(doc: StudioDoc, solved: { instances: readonly PartInstance[]; problems: readonly { mate: string; reason: string }[] }, tables: TreeInput['tables'], gears?: TreeInput['gears']): JointTree {
-  return jointTree({ instances: solved.instances, mates: doc.mates ?? [], tables, settings: readRobot(doc.robot), mateProblems: solved.problems, ...(gears ? { gears } : {}) });
+  const docOf = (part: string) => part === BASE ? doc : solved.instances.find(i => i.id === part)?.doc;
+  return jointTree({ instances: solved.instances, mates: doc.mates ?? [], tables, settings: readRobot(doc.robot), mateProblems: solved.problems, ...(gears ? { gears } : {}), camFaces: part => { const d = docOf(part); return d ? camFacesOf(d) : []; } });
 }

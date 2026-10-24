@@ -278,6 +278,9 @@ export interface LoopCloser { terms: LoopTerm[]; all: string[]; free: string[]; 
 export function loopCloserOf(doc: StudioDoc, tree: JointTree): LoopCloser | null {
   if (!tree.loops.length) return null;
   const terms = loopTermsOf(doc, tree), { all, free } = loopJointsOf(tree), onPath = new Map<string, Set<string>>();
+  // (A cam's follower round a loop moves by its lobe's lift, not linearly: the closer does not hold it yet.)
+  const cam = columnsOf(tree, free).flat().map(c => tree.joints.find(j => j.key === c.key)!).find(j => j.cam);
+  if (cam) throw refusal('CAM_IN_LOOP', `${cam.key} follows a cam (${cam.cam!.mate}) and moves a closed loop: a loop through a cam is not closed yet`);
   for (const t of terms) for (const l of [t.a, t.b]) if (!onPath.has(l)) onPath.set(l, new Set(pathTo(tree, l).map(j => j.key)));
   const m = termRows(terms), r = new Float64Array(m), J = new Float64Array(m * free.length);
   evalLoop(tree, terms, {}, r, J, columnsOf(tree, free), onPath);

@@ -46,13 +46,13 @@ export const ROBOT_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'export_urdf',
-    description: 'The robot as URDF (SI; each link\'s frame at its joint with Z on the axis; joint values 0 at the solved pose; inertia from link_inertia; meshes in the link frame in metres, the convex hull for collision; a gear follower as <mimic>): the document\'s text, the mesh files it names (written beside it by the studio\'s Export URDF or cad-cli urdf), notes (loops left out, materials assumed), and our structural check of it against the URDF spec. Refused, typed, when URDF cannot hold the robot: MOTION_UNSUPPORTED, LIMITS_BAD, LIMITS_MISSING (a revolute or prismatic joint needs lower, upper, effort and velocity: set_joints), INERTIA, NO_HULL. Changes nothing.',
-    input_schema: { type: 'object', properties: { name: { type: 'string' } }, additionalProperties: false },
+    description: 'The robot as URDF (SI; each link\'s frame at its joint with Z on the axis; joint values 0 at the solved pose; inertia from link_inertia; meshes in the link frame in metres, the convex hull for collision; a gear follower as <mimic>): the document\'s text, the mesh files it names (written beside it by the studio\'s Export URDF or cad-cli urdf), notes (loops left out, materials assumed), and our structural check of it against the URDF spec. Refused, typed, when URDF cannot hold the robot: CAM_UNSUPPORTED (a cam mate\'s follower; leave_out ["cam"] writes it as a free joint, noted), MOTION_UNSUPPORTED, LIMITS_BAD, LIMITS_MISSING (a revolute or prismatic joint needs lower, upper, effort and velocity: set_joints), INERTIA, NO_HULL. Changes nothing.',
+    input_schema: { type: 'object', properties: { name: { type: 'string' }, leave_out: { type: 'array', items: { type: 'string', enum: ['cam'] } } }, additionalProperties: false },
   },
   {
     name: 'export_mjcf',
     description: 'The robot as a MuJoCo MJCF model (the same frames, inertia and meshes as export_urdf; bodies nested at their link frames, hinge and slide joints at the body origin, the base fixed in the world, gravity −9.81 on Z; a passive model: no damping, friction or actuators invented; a gear follower as an equality). The model\'s text, its mesh files, notes, and our structural check of it. Refused as export_urdf is. Changes nothing.',
-    input_schema: { type: 'object', properties: { name: { type: 'string' } }, additionalProperties: false },
+    input_schema: { type: 'object', properties: { name: { type: 'string' }, leave_out: { type: 'array', items: { type: 'string', enum: ['cam'] } } }, additionalProperties: false },
   },
   {
     name: 'sweep_path',
@@ -155,13 +155,13 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
     return { doc, content: r.reply, changed: false, summary: r.summary };
   }
   if (name === 'export_mjcf') {
-    const r = mjcfOf(view, typeof args.name === 'string' ? args.name : 'robot');
+    const r = mjcfOf(view, typeof args.name === 'string' ? args.name : 'robot', treeOf(view), { leaveOut: leaveOutOf(args) });
     if (!r.ok) return { error: `MJCF refused: ${r.refusals.map(x => `[${x.code}] ${x.message}`).join(' ')}` };
     const check = readMjcf(r.xml, new Set(r.files.map(f => f.path)));
     return { doc, content: { mjcf: r.xml, files: r.files.map(f => ({ path: f.path, bytes: f.data.length })), notes: r.notes, check: check.issues }, changed: false, summary: `MJCF: ${check.model.bodies.length} bodies${check.issues.length ? `, ${check.issues.length} issues` : ''}` };
   }
   if (name === 'export_urdf') {
-    const r = urdfOf(view, typeof args.name === 'string' ? args.name : 'robot');
+    const r = urdfOf(view, typeof args.name === 'string' ? args.name : 'robot', treeOf(view), { leaveOut: leaveOutOf(args) });
     if (!r.ok) return { error: `URDF refused: ${r.refusals.map(x => `[${x.code}] ${x.message}`).join(' ')}` };
     const check = readUrdf(r.urdf, new Set(r.files.map(f => f.path)));
     return { doc, content: { urdf: r.urdf, files: r.files.map(f => ({ path: f.path, bytes: f.data.length })), notes: r.notes, check: check.issues }, changed: false, summary: `URDF: ${check.model.links.length} links, ${check.model.joints.length} joints${check.issues.length ? `, ${check.issues.length} issues` : ''}` };
@@ -219,6 +219,8 @@ export async function runRobotTool(doc: StudioDoc, bodies: readonly BodyResult[]
 }
 
 const LIMIT_KEYS = ['velocity', 'acceleration', 'jerk'];
+/** An export's `leave_out` (O24 a): the couplings the format cannot hold, written free and noted. */
+const leaveOutOf = (args: Record<string, unknown>): 'cam'[] => (Array.isArray(args.leave_out) && args.leave_out.includes('cam') ? ['cam'] : []);
 const isValues = (v: unknown) => !!v && typeof v === 'object' && !Array.isArray(v) && Object.values(v).every(x => typeof x === 'number' && Number.isFinite(x));
 /** The movement tools' call shape (their values checked on the tree by the verbs). */
 function movementArgs(args: Record<string, unknown>): string | undefined {

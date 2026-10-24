@@ -95,6 +95,9 @@
 | `[BOOLEAN_REFUSED]` | `print` | a cavity (… triangles) could not be taken from the part even simplified to h/10: …; a coarser h makes a smaller cavity mesh |
 | `[BOUND]` | `chat` | a sketch point is bound to a parameter: change the parameter instead |
 | `[BRANCH_FLIP]` | `robot` | … at … rad closes on the other branch: not the one the linkage was assembled in |
+| `[CAM_IN_LOOP]` | `robot` | … follows a cam (…) and moves a closed loop: a loop through a cam is not closed yet |
+| `[CAM_PROFILE_UNSUPPORTED]` | `robot` | …: ….… is a flat face neither along the cam's axis nor across it: no lift is read from it |
+| `[CAM_UNSUPPORTED]` | `robot` | … follows a cam (…): motion torques through a cam are not worked out yet |
 | `[CAP_PICK]` | `app` | … |
 | `[CASTING_ALLOWANCE]` | `chat/part` | allowance is mm a machined face, 0 to 100: …. |
 | `[CASTING_FACE]` | `casting`, `chat/part` | marked machined but not on the part: … |

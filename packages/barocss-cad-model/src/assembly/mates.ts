@@ -13,7 +13,7 @@ import { axisAngle, clean, DEG, eulerOf, matMul, rotationMatrix, type Mat3 } fro
 // (R7.3c, conventions §10.2: the one Vec3, engine/vec3's.)
 import type { Vec3 } from '../engine/vec3';
 export type { Vec3 };
-export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock';
+export type MateKind = 'coincident' | 'concentric' | 'distance' | 'angle' | 'tangent' | 'lock' | 'cam';
 /** A face by its persistent B-rep name on a part: `base` (the document's own part) or an instance id. */
 /** `sig`: the face's geometry when it was picked; `was`: its name before a re-match (engine/references.ts). */
 export interface MateRef { part: string; face: string; sig?: Sig; was?: string }
@@ -25,6 +25,9 @@ export interface MateRef { part: string; face: string; sig?: Sig; was?: string }
  * measured from facing the same way), with no hold on position. `tangent`: a round face touching a flat face,
  * its axis parallel to the face and its radius in front of it (flip: behind it); or two round faces touching
  * along parallel axes, outside each other (a pin inside a hole: inside; flip swaps the two).
+ * `cam` (O24 a): b's flat face kept on a's lobe as a turns (a cam and its flat-faced follower), or on a's flat face as a
+ * slides (a follower pushing a valve) — no constraint for the solver (b's own mates place it, seated at the solved
+ * pose); the joint tree couples b's slide to a's joint (robot/cam.ts).
  * Origin planes (`origin:xy`…) have no material side: a flat mate with one lines the planes up facing the
  * same way by default, and flip opposes them.
  */
@@ -41,12 +44,12 @@ export type MateFace =
 export type FaceTable = Record<string, MateFace>;
 
 export const BASE = 'base';
-export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock' };
+export const KIND_LABEL: Record<MateKind, string> = { coincident: 'Coincident', concentric: 'Concentric', distance: 'Distance', angle: 'Angle', tangent: 'Tangent', lock: 'Lock', cam: 'Cam' };
 export const mateLabel = (mate: Mate, index: number) => `${KIND_LABEL[mate.kind]} ${index + 1}`;
 
 /** Which mates a pair of faces admits. */
 export const kindsFor = (a: MateFace, b: MateFace): MateKind[] =>
-  a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance', 'angle'] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric', 'tangent'] : ['tangent'];
+  [...(a.kind === 'plane' && b.kind === 'plane' ? ['coincident', 'distance', 'angle'] as MateKind[] : a.kind === 'cylinder' && b.kind === 'cylinder' ? ['concentric', 'tangent'] as MateKind[] : ['tangent'] as MateKind[]), ...(b.kind === 'plane' ? ['cam'] as MateKind[] : [])];
 
 // ── Small exact vector and rotation helpers (row-major 3 × 3) ──
 const mul = (a: Vec3, s: number): Vec3 => [a[0] * s, a[1] * s, a[2] * s];
@@ -103,7 +106,7 @@ export function mateRefusal(mate: Mate, fa: MateFace | undefined, fb: MateFace |
   if (!fa || !fb) return 'One of its faces is no longer on the part (a feature was edited or removed).';
   const kinds = kindsFor(fa, fb);
   if (!kinds.includes(mate.kind)) return mate.kind === 'concentric' ? 'Concentric needs two round faces (a hole, a pin).'
-    : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
+    : mate.kind === 'tangent' ? 'Tangent needs a round face, and a flat or another round face.' : mate.kind === 'cam' ? 'Cam needs a face of the cam (its lobe) and the follower\'s flat face.' : `${KIND_LABEL[mate.kind]} needs two flat faces.`;
   if (mate.kind === 'distance' && !Number.isFinite(mate.distance ?? NaN)) return 'Enter a distance.';
   if (mate.kind === 'angle' && !(Number.isFinite(mate.angle ?? NaN) && mate.angle! >= 0 && mate.angle! <= 180)) return 'Enter an angle from 0° to 180°.';
   return null;
@@ -131,6 +134,8 @@ export function solveAssembly(instances: readonly PartInstance[], mates: readonl
     if (!ta || !tb) return { instances: [...instances], problems: [], pending: true, freedom: {} };
     const why = mateRefusal(m, ta[m.a.face], tb[m.b.face]);
     if (why) { problems.push({ mate: m.id, reason: why }); continue; }
+    // (A cam mate holds nothing here: the follower's own mates place it; the joint tree couples it, robot/cam.ts.)
+    if (m.kind === 'cam') continue;
     valid.push(m);
   }
   const label = (m: Mate) => mateLabel(m, mates.indexOf(m));

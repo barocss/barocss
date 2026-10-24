@@ -12,7 +12,7 @@ import { eulerOf, rotationMatrix } from '../engine/placement';
 import { composeInto, forwardKinematics, gearPairAt } from './fk';
 import { framePoses } from './frames';
 import { treeInertia, type LinkInertia } from './inertia';
-import { exportUrdf, type UrdfResult } from './urdf';
+import { exportUrdf, withoutCams, type UrdfResult } from './urdf';
 import { exportMjcf, type MjcfClosure, type MjcfResult } from './mjcf';
 import { closeLoops, closureOfDoc, loopCloserOf } from './loop';
 import { sweepLinks, sweepPath, type SweepLink } from './sweep';
@@ -113,13 +113,16 @@ export function sizeOf(view: RobotView, mv: Move, so: { motors: readonly Motor[]
   return { sizing: cs ? cs.sizing : sizeActuators(t, bodies, mv.from, mv.to, mv.profile, mv.limits, so), coupled: cs };
 }
 /** The robot as URDF (RM4). */
-export function urdfOf(view: RobotView, name: string, t: JointTree = treeOf(view)): UrdfResult { return exportUrdf(t, partsOf(view), name); }
+export function urdfOf(view: RobotView, name: string, t: JointTree = treeOf(view), o: { leaveOut?: readonly 'cam'[] } = {}): UrdfResult {
+  const w = o.leaveOut?.includes('cam') ? withoutCams(t) : { tree: t, notes: [] }, out = exportUrdf(w.tree, partsOf(view), name);
+  return out.ok && w.notes.length ? { ...out, notes: [...out.notes, ...w.notes] } : out;
+}
 /** The robot as MJCF (RM5): each loop closed at its pin when it is a planar one; else left out and said why (RM8). */
-export function mjcfOf(view: RobotView, name: string, t: JointTree = treeOf(view)): MjcfResult {
-  const closures: MjcfClosure[] = [], left: string[] = [];
+export function mjcfOf(view: RobotView, name: string, t0: JointTree = treeOf(view), o: { leaveOut?: readonly 'cam'[] } = {}): MjcfResult {
+  const w = o.leaveOut?.includes('cam') ? withoutCams(t0) : { tree: t0, notes: [] }, t = w.tree, closures: MjcfClosure[] = [], left: string[] = [];
   for (const l of t.loops) { try { closures.push(closureOfDoc(view.doc, t, l)); } catch (e) { left.push(`${l.parts.join('–')}: ${e instanceof Error ? e.message : String(e)}`); } }
   const out = exportMjcf(t, partsOf(view), name, closures);
-  return out.ok && left.length ? { ...out, notes: [...out.notes, ...left.map(x => `loop not written (${x})`)] } : out;
+  return out.ok && (left.length || w.notes.length) ? { ...out, notes: [...out.notes, ...left.map(x => `loop not written (${x})`), ...w.notes] } : out;
 }
 
 /** set_joints' write: the base link (BASE: none) and each joint's settings (null clears them); the settings kept or dropped whole. */

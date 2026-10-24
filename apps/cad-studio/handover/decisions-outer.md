@@ -9213,3 +9213,72 @@ approved the design, which lifts the API lane's check.ts close().
 - **Next:** PG-5 (the cam mate), then RS6: poseAt, check_path and play close loops, and LOOP_OPEN goes away.
 - **Verified (T1):** o24a 5/5; robot-*, rs1–3, o22, tool-contract and toolset 113/113; tsc; eslint 0 errors; docs
   tables regenerated.
+
+## O24 (a), PG-5 — the cam mate: a flat-faced follower lifted by its lobe's support, a pushed valve; seen by pose, sweep, dynamics and exports (2026-10-24)
+
+P1's lobes are sketched arc-and-line profiles, not kernel cam nodes, and the joint tree had no cam pair. The
+coordinator approved the design: a declared `cam` mate.
+- **assembly/mates.ts:** MateKind gains `cam` (a: a face of the cam part; b: the follower's flat face).
+  - kindsFor offers it whenever b is flat, at the end of the list, so an automatic choice is unchanged.
+  - The solver holds nothing for it: the follower's own mates place it.
+  - The studio's mate list shows it, from KIND_LABEL.
+- **robot/cam.ts:**
+  - `camFacesOf(doc)`: a part's B-rep faces, each with its geometry, snapped as the face tables snap theirs, and its
+    boundary sampled (17 points per edge; a round face bounded by a closed edge is whole). Cached by content.
+  - `camLiftOf(…)`: the lobe's profile is its faces within the follower face's slab along the cam's axis.
+    - flats along the axis (their boundary points);
+    - round faces along it (an arc: centre, radius, and the span its boundary covers);
+    - end faces are skipped;
+    - anything else is refused, CAM_PROFILE_UNSUPPORTED.
+  - `camSupport` is h(θ) = max over the profile of (p − o)·R(a, −θ)u, with u the direction from the cam toward the
+    follower's face. It is exact for a flat face at any offset, and a concave stretch is bridged as a tappet bridges it.
+  - `camValue` = (h(θ) − h(0)) / (u·w); `camRate` is its central difference.
+- **robot/joints.ts, camCouplings:**
+  - **Turning driver:** the follower's slide is coupled by the lift. The joint gets `mimic` (naming the cam's joint,
+    multiplier 0) plus `cam` (the lift).
+  - **Sliding driver (a follower pushing a valve):** linear, mimic = (w_a·u)/(w_b·u).
+  - **Problems, typed, and nothing coupled:**
+    - CAM_NOT_SEATED: no driver joint; the follower doesn't slide; the face isn't flat; the two on different rigid
+      groups (compared through fixed joints); a slide across the face; the face not across the cam's axis; the face
+      off the lobe at the solved pose, by how much.
+    - CAM_PROFILE_UNSUPPORTED: the lobe's profile can't be read.
+  - `tree.cams`: {kind cam|push, mate, leader, follower, lift range (mm) or multiplier, seat}.
+- **Everything that follows a leader now handles a cam:**
+  - FK (followersInto): passes until settled, so chains work (crank → gear → cam → follower → valve).
+  - `rootOf` (fk.ts): the free root joint and the rate against it. Used by gravity's generalized fold (virtual work),
+    the mass matrix's columns and IK's Jacobian.
+  - The sweep's bound (followerBound): the lobe's reach per radian over |u·w|, through chains.
+  - checkPath: JOINT_MIMIC, "follows … (a cam)".
+  - Loop closing: CAM_IN_LOOP.
+  - Motion torques (jointRate): CAM_UNSUPPORTED, because the second derivative of the lift isn't worked out.
+  - Exports (robotParts, so URDF, MJCF, SDF and USD): CAM_UNSUPPORTED, unless `leave_out: ["cam"]` (export_urdf and
+    export_mjcf; withoutCams), which writes the follower as a free joint and notes it.
+  - The Joints card: "follows X on its cam (mate)".
+- **The sweep's cam seat (robot/sweep.ts):** the follower's face rides the lobe by design.
+  - Certified: the whole follower against the driver outside the seat (outside the face's slab; for a push, off the
+    face it meets).
+  - Crossing only, at each step with the step capped at 1/90 of the move:
+    - the follower's other triangles against the seat, with edges lying in the contact plane left out (they are the
+      contact face's own boundary);
+    - a crossing counts only at least 1e-4 mm through the plane, and 1e-4 mm inside the triangle.
+    - Why: single-precision display meshes make a graze — a lobe flat lying in the follower's plane, the face's edge
+      on the lobe — look like a crossing, and 1e-4 mm is past their precision.
+  - The pair's hulls all but meet throughout, so the seat's own sets set the step, not the hulls.
+  - **The limit, recorded:** the seat's crossing test is sampled at those steps, not certified between them, unlike the
+    rest of the sweep.
+- **The flat face's width:** the coupling doesn't check it; the support is the infinite plane's. A follower face
+  narrower than its contact excursion would be modelled too high, not as a crash.
+- **Test:** test/o24a-cam.test.ts, 4 tests.
+  - The engine's own lobe (base r 14, nose r 6 at 14 out, tangent-joined) on its shaft; a flat-faced follower sliding
+    under a grounded guide; a valve pushed by it.
+  - The lift is max(14, 14 cos θ + 6) − 20 at 72 cam angles to 1e-9 mm, the face on the lobe, and the valve with the
+    follower.
+  - get_joints' couplings; set_pose at 90° gives −6 mm; a half-turn sweep is clear, the seat said designed.
+  - Exports refused with CAM_UNSUPPORTED only; leave_out writes it free and noted.
+  - A follower 0.5 mm off the lobe: CAM_NOT_SEATED, uncoupled.
+  - A skirt under the follower's face is hit by the nose swinging toward it and clear swinging away.
+- **Not covered here:** a gear → cam chain is the same follower passes, but has no dedicated test; P1 milestone 2's own
+  check covers it.
+- **Verified (T1):** o24a-cam 4/4; robot*, rs1–3, o22, o24a, tool-contract, toolset, assembly, mates, clearance, o11, o12
+  and api-assembly 161/161; tsc (model and studio); eslint 0 errors; docs tables regenerated. The per-turn size is
+  unchanged at 24,042.
