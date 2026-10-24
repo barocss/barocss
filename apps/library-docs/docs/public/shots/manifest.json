@@ -127,6 +127,13 @@
    "bytes": 107752
   },
   {
+   "file": "studio/drawings/detail-view.jpg",
+   "page": "studio/drawings",
+   "step": "studio/drawings: a detail view",
+   "renderer": "webgpu",
+   "bytes": 101164
+  },
+  {
    "file": "studio/features/holes-on-a-circle.jpg",
    "page": "studio/features",
    "step": "studio/features: holes on a circle, a SubD box",

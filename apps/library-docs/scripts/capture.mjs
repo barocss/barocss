@@ -321,6 +321,24 @@ const steps = [
     await shot('studio/drawings', 'auto-dimension', 'studio/drawings: auto-dimension');
     await page.click('.mode button:text-is("Model")');
   }],
+  ['studio/drawings: a detail view', async () => {
+    await fresh();
+    await boxWithHole(); await press('Escape');
+    await page.click('.mode button:text-is("Drawing")'); await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 2 * WAIT });
+    await page.selectOption('[aria-label="Sheet size"]', 'A3'); await page.waitForTimeout(800);
+    // (The hole in the top view: its centre, then a point half a radius past its rim — the circle's reach.)
+    const hole = await page.evaluate(() => window.__studioDoc.nodes.find(n => n.kind === 'hole'));
+    const [cx, cy] = hole.center, reach = hole.radius * 1.5;
+    await press('e');
+    const c = await page.evaluate(([x, y]) => window.__studioDrawingAt('top', x, y), [cx, cy]);
+    const r = await page.evaluate(([x, y]) => window.__studioDrawingAt('top', x, y), [cx + reach, cy]);
+    await page.mouse.move(c.x, c.y); await page.mouse.click(c.x, c.y);
+    await page.mouse.move(r.x, r.y); await page.mouse.click(r.x, r.y);
+    await page.waitForFunction(() => window.__studioDrawing?.()?.details?.length === 1, null, { timeout: 2 * WAIT });
+    await press('v'); await page.waitForTimeout(600);
+    await shot('studio/drawings', 'detail-view', 'studio/drawings: a detail view');
+    await page.click('.mode button:text-is("Model")');
+  }],
   ['studio/robots: the Joints card', async () => {
     await fresh();
     const c = JSON.parse(readFileSync(join(studio, '../../packages/barocss-cad/conformance/rm/chain-2r/case.json'), 'utf8'));

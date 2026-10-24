@@ -25,6 +25,30 @@ the plane is edge-on, and the cut faces hatched.
   feature's axis, and its cutting line is drawn inclined.
 - **Export section DXF** writes one section on its own.
 
+## Detail views
+
+A detail view enlarges a small region of a view or a section: the parent's exact projection, cut to a circle and drawn
+at its own scale. Nothing is approximated except a section's hatch boundary.
+
+![Detail B of a plate's hole at 5:1, at the sheet's top right; its circle and letter on the top view, and the DETAILS card with its scale](/shots/studio/drawings/detail-view.jpg)
+
+- **Adding one.** The **Detail view** tool (<kbd>E</kbd>): click the centre of what to enlarge on a view or a section,
+  then how far its circle reaches. It takes the next free letter from B; A stays the front section's.
+- **What is drawn.** On the parent, a thin circle and the detail's letter. The detail itself shows the parent's hidden
+  lines and a section's hatch, inside its circle, named as `DETAIL B (5:1)`.
+- **Its scale.** **Auto** is the smallest standard scale at least twice the sheet's. Past 10:1 it is twice the sheet's.
+  The **DETAILS** card lists each detail with its scale, which you can set, and a button to remove it.
+- **Its place.** It's laid out in the first free room from the frame's top right. Drag it anywhere in its square to
+  move it.
+- **Dimensions** work in a detail as in a view. Their values come from the model, so a detail's dimension reads the true
+  size, not the enlarged one.
+- **Issues.** `DETAIL_PARENT_MISSING`, when its view or section isn't on the sheet, and `DETAIL_EMPTY`, when its circle
+  holds nothing. Both are fixed by removing the detail with its dimensions. `DETAIL_NO_ROOM` has no automatic fix.
+- **The agent** sets them with `set_drawing`'s `details`, each `{ id, view, center, radius, scale?, at? }`. A list
+  replaces the details, and `[]` clears them. A detail's parent, centre or radius can't change while it has dimensions.
+- **Not yet:** centre and thread marks inside a detail, a rectangular or jagged boundary, a detail of the isometric
+  view, and a detail on another sheet.
+
 ## Dimensions and notes
 
 ![A sheet after Auto-dimension: overall sizes, the hole's position and its callout](/shots/studio/drawings/auto-dimension.jpg)
