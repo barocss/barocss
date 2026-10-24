@@ -56,8 +56,8 @@
   "expect": {
     "before": {
       "solids": 1,
-      "volume_mm3": 6400,
-      "mass_g": 17.28,
+      "volume": 6400,
+      "mass": 17.28,
       "centroid": [
         20,
         10,
@@ -69,11 +69,11 @@
     },
     "after": {
       "solids": 1,
-      "volume_mm3": 5997.876,
+      "volume": 5997.876,
       "faces": 7
     },
     "change": {
-      "volume_mm3": -402.124,
+      "volume": -402.124,
       "faces": 1
     },
     "tolerance": 0.002

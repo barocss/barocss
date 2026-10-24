@@ -99,7 +99,8 @@ test('all eight owned bodies retain independent prism centroid and full inertia 
     });
     const V = pieces.reduce((s, p) => s + p.V, 0), C = [0, 1, 2].map(i => pieces.reduce((s, p) => s + p.V * p.c[i], 0) / V);
     const S = [0, 1, 2].map(i => [0, 1, 2].map(j => pieces.reduce((s, p) => s + p.V * (p.cov[i][j] + (p.c[i] - C[i]) * (p.c[j] - C[j])), 0)));
-    const trace = S[0][0] + S[1][1] + S[2][2], I = S.map((row, i) => row.map((v, j) => 2700e-15 * ((i === j ? trace : 0) - v)));
+    // Covariance integral S is mm⁵; aluminium density 0.0027 g/mm³ gives inertia in g·mm².
+    const density = 0.0027, trace = S[0][0] + S[1][1] + S[2][2], I = S.map((row, i) => row.map((v, j) => density * ((i === j ? trace : 0) - v)));
     const b = r.bodies.find(b => b.key === beadIdOf(`b0_part${corner.ids[owner]}`))!;
     near(b.volume!, V); near(b.mass!, V * .0027); b.centroid!.forEach((x, i) => near(x, C[i]));
     const scale = Math.max(...I.flat().map(Math.abs));

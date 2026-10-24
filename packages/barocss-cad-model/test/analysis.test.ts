@@ -20,7 +20,8 @@ test('mass properties: area, mass by material (aluminium assumed until set), ine
   const doc = withLook(s.doc, s.bodies[0], { material: 'steel' }); s = await stateOf(doc);
   [b] = (await call(s, 'mass_properties', {})).bodies;
   assert.deepEqual([b.mass, b.assumed, b.material], [50.24, false, 'Steel (mild)']);
-  const izz = 0.05024 * (0.04 ** 2 + 0.02 ** 2) / 12;
+  // Independent MMGS oracle: 50.24 g and sides in mm give g·mm².
+  const izz = 50.24 * (40 ** 2 + 20 ** 2) / 12;
   assert.ok(Math.abs(b.inertia[2][2] - izz) < 1e-6 * izz + 1e-12, String(b.inertia[2][2]));
   assert.equal(parse((await runTool(s, 'get_part_summary', {}, evaluate)).content).facts.mass_assumed, false);
 });

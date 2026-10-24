@@ -42,6 +42,7 @@ test('D168 gear area, mass, centroid and all nine moments agree with independent
     assert.ok(Math.abs(b.volume - expected.volume) <= expected.volume * 1e-12, `${part} volume/area`);
     assert.ok(Math.abs(b.volume * 2.7e-6 - expected.mass) <= expected.mass * 1e-12, `${part} mass`);
     assert.ok(b.centroid.every((v, k) => Math.abs(v - expected.centreMM[k]) <= 8 * 1e-12), `${part} centroid`);
-    assert.ok(b.inertia.flat().every((v, k) => Math.abs(v - expected.inertia[k]) <= scale * 1e-12), `${part} inertia`);
+    // The independent helper stays in SI; compare the public tensor in g·mm² (1 kg·m² = 1e9 g·mm²).
+    assert.ok(b.inertia.flat().every((v, k) => Math.abs(v - expected.inertia[k] * 1e9) <= scale * 1e9 * 1e-12), `${part} inertia`);
   }
 });
