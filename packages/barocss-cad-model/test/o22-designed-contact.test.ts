@@ -40,7 +40,7 @@ test('O22 gears: two bare meshing gears are no contact (left out, said so); an a
   // (Closed form: the arm's edge, 2 mm off its centre line, reaches the right gear's tip circle (centre 40 mm off) when
   // 40 sin φ − 2 = ra, φ the arm's angle off the line between the centres: a turn of 90° − φ. A tooth there or a gap
   // decides the last fraction, so the contact is no sooner than that and within a tooth's pitch angle.)
-  const ra = spurGearDimensions({ moduleMM: 2, teeth: 20, faceWidthMM: 8 }).ra, turn = Math.PI / 2 - Math.asin((ra + 2) / 40), at = -into.contact!.values['base~left'];
+  const ra = spurGearDimensions({ module: 2, teeth: 20, faceWidth: 8 }).ra, turn = Math.PI / 2 - Math.asin((ra + 2) / 40), at = -into.contact!.values['base~left'];
   assert.ok(at >= turn - 1e-6 && at <= turn + (2 * Math.PI) / 20, `${at} vs ${turn}`);
 });
 

@@ -64,12 +64,12 @@ export const RUNG12: Rung = {
     const rho = materialData('al6061')!.densityGPerCm3 / 1000, steel = materialData('steel')!.densityGPerCm3 / 1000, bore = Math.PI * (num(p, 'ds') / 2 + FC) ** 2, [bw, bd, bh, c, ct] = ['bw', 'bd', 'bh', 'c', 'ct'].map(k => num(p, k));
     const mass = rho * (num(p, 'P') * Q * num(p, 'tb') + 2 * (bw * bd * bh - bore * bw) + ct * c * c) + steel * Math.PI * (num(p, 'ds') / 2) ** 2 * (num(p, 'xb') + bw - 1 - num(p, 'xa'));
     const out: Outcome[] = [
-      holds('parts', insts.length === 5 && bom.parts.length === 5 && bom.parts.every(x => x.massG > 0), [insts.length, bom.parts.length], 'five parts, five BOM rows with their masses'),
+      holds('parts', insts.length === 5 && bom.parts.length === 5 && bom.parts.every(x => x.mass > 0), [insts.length, bom.parts.length], 'five parts, five BOM rows with their masses'),
       holds('placed', match.every(Boolean) && new Set(match).size === 5, Object.fromEntries(want.map((w, k) => [w.name, match[k]])), 'every part where the brief puts it (its box to 1e-4)'),
       holds('freedoms', !tree.problems.length && !tree.loops.length && insts.every(i => tree.joints.some(j => j.child === i.id)) && moving.length === 1 && (sj.type === 'continuous' || sj.type === 'revolute') && sj.child === shaft && onAxis,
         { joints: tree.joints.map(j => [j.key, j.type]), problems: tree.problems.map(x => x.code), loops: tree.loops.length }, 'one turn, the shaft\'s about the bore axis; every other part fixed'),
       holds('contacts', gate.verdict === 'pass', gate.findings.filter(f => f.code !== 'EXPECTED_CONTACT').map(f => f.code), 'no parts meeting; only the mates\' contacts'),
-      near('mass', gate.massG, mass, 5e-3),
+      near('mass', gate.mass, mass, 5e-3),
     ];
     return out;
   },

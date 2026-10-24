@@ -8,7 +8,7 @@ import { dispatchTool } from '../src/chat/tools';
 import type { StudioMountRow } from '../src/engine/mountRows';
 
 export const MOUNT_SAMPLE = JSON.parse(readFileSync(resolve(import.meta.dirname, '../samples/rows/mounts.json'), 'utf8')) as { rows: StudioMountRow[] };
-export const SERVO_TEST: StudioMountRow = { id: 'servo-test', type: 'servo', holes: { pattern: 'rect', spacingMM: [48, 10], diameterMM: 4.2 }, shaftMM: 6, shaftOffsetMM: [10, 0], shaftHeightMM: 0, bodyMM: [40, 20], clearanceMM: 0.5, estimate: true };
+export const SERVO_TEST: StudioMountRow = { id: 'servo-test', type: 'servo', holes: { pattern: 'rect', spacing: [48, 10], diameter: 4.2 }, shaft: 6, shaftOffset: [10, 0], shaftHeight: 0, body: [40, 20], clearance: 0.5, estimate: true };
 const plate = (): StudioDoc => ({ ...rectanglePart(160, 100, 10), mounts: { version: 1, rows: [...MOUNT_SAMPLE.rows, SERVO_TEST] } });
 let revision = 1;
 /** A plate with one mount on its top (the command's values), or the mount's refusal thrown. */

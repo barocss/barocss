@@ -32,7 +32,7 @@ test('D116 Sheet profile: an L, a U, a Z and a hat standing on XZ, the textbook 
   for (const shape of ['l', 'u', 'z', 'hat']) {
     const doc = cmd.build!(ctx, { ...d, shape, x: 0 }), node = doc.nodes[0], [body] = bodiesOf(doc), { path, side } = profilePath(shape, 40, 30, 12, 90);
     assert.equal(node.kind, 'sheet-contour');
-    assert.ok(Math.abs(body.volumeMM3! / (30 * 1.5 * middleLength(path, side, 1.5, 1.5)) - 1) < 1e-12, shape);
+    assert.ok(Math.abs(body.volume! / (30 * 1.5 * middleLength(path, side, 1.5, 1.5)) - 1) < 1e-12, shape);
     // Standing on XZ from y 0 to the width.
     assert.ok(Math.abs(body.mesh.bounds.min[1]) < 1e-9 && Math.abs(body.mesh.bounds.max[1] - 30) < 1e-9, shape);
     const notes = body.notes!.map(n => n.text), bends = path.length - 2;
@@ -64,7 +64,7 @@ test('D116 Sheet plate: from a finished sketch, T thick either way; offered only
   for (const side of ['up', 'down']) {
     const doc = cmd.build!(ctx, { ...cmd.defaults!(ctx), side }), [body] = bodiesOf(doc);
     assert.deepEqual(noId(doc.nodes[1]), { kind: 'sheet-base', sketch: 0, thickness: 1.5, bendRadius: 1.5, kFactor: 0.5, ...(side === 'down' ? { reverse: true } : {}) });
-    assert.ok(Math.abs(body.volumeMM3! - 80 * 50 * 1.5) < 1e-9 && Math.abs(body.centroid![2] - (side === 'down' ? -0.75 : 0.75)) < 1e-12);
+    assert.ok(Math.abs(body.volume! - 80 * 50 * 1.5) < 1e-9 && Math.abs(body.centroid![2] - (side === 'down' ? -0.75 : 0.75)) < 1e-12);
     assert.equal(featureLabel(doc.nodes[1], 1, doc.nodes), 'Sheet plate T1.5');
   }
 });
@@ -79,7 +79,7 @@ test('D116 the agent: run_command sheet-profile, and a raw sheet-contour node (i
   const path: [number, number][] = [[0, 0], [30, 0], [30, 25]], node = { kind: 'sheet-contour', path, side: 'left', width: 40, thickness: 2, bendRadius: 3, kFactor: 0.4 };
   const a = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [node] }, evaluate);
   assert.ok(!a.isError, a.content);
-  assert.ok(Math.abs(a.state.bodies[0].volumeMM3! - 40 * 2 * middleLength(path, 'left', 2, 3)) < 1e-9);
+  assert.ok(Math.abs(a.state.bodies[0].volume! - 40 * 2 * middleLength(path, 'left', 2, 3)) < 1e-9);
   // A path of one point, and a leg too short for its bend: refused, nothing added.
   const bad = await dispatchTool({ doc: emptyDoc(), bodies: [] }, 'add_features', { features: [{ ...node, path: [[0, 0]] }] }, evaluate);
   assert.ok(bad.isError && /2 to 64 \[x, y\] points/.test(bad.content), bad.content);
@@ -131,7 +131,7 @@ test('D118 Flange: offered for one straight edge of a sheet; built on a plate\'s
   // Part width: offsets and an obround relief.
   const part = cmd.build!(ctx, { ...cmd.defaults!(ctx), o0: 10, o1: 25, relief: 'obround', angle: 120 });
   // (Its relief written whole: the sheet's T for the width and depth left at 0, D119.)
-  assert.deepEqual(noId(part.nodes[2]), { kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20, angleDegrees: 120, offsets: [10, 25], relief: { kind: 'obround', width: 1.5, depth: 1.5 } });
+  assert.deepEqual(noId(part.nodes[2]), { kind: 'sheet-flange', parent: { node: 1, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20, angle: 120, offsets: [10, 25], relief: { kind: 'obround', width: 1.5, depth: 1.5 } });
   assert.ok(bodiesOf(part)[0].flat!.bends.length === 1);
   const read = readStudioDoc(JSON.stringify(part)); assert.ok('doc' in read, JSON.stringify(read)); assert.equal(read.doc.nodes[2].kind, 'sheet-flange');
   // The agent's raw node: checked, built.
@@ -154,7 +154,7 @@ test('D119 Corner relief: on a sheet plate\'s corner edge, square or round, its 
   assert.equal(featureLabel(node, 2, next.nodes), 'Corner relief round 4.5');
   assert.deepEqual(editFields(next.nodes, 2).map(f => f.key), ['size']);
   const [b] = bodiesOf(next);
-  assert.ok(Math.abs(b.volumeMM3! - (80 * 50 - Math.PI * 4.5 * 4.5 / 4) * T) < 1e-9, `${b.volumeMM3}`);
+  assert.ok(Math.abs(b.volume! - (80 * 50 - Math.PI * 4.5 * 4.5 / 4) * T) < 1e-9, `${b.volume}`);
   // Two flanges on the corner's edges, full length: built, both bends in the flat.
   let both = withNode(next, { kind: 'sheet-flange', parent: { node: 2, side: 'solid' }, edges: ['n1.side0|n1.top'], length: 20 });
   both = withNode(both, { kind: 'sheet-flange', parent: { node: 3, side: 'solid' }, edges: ['n1.side1|n1.top'], length: 20 });
@@ -177,7 +177,7 @@ test('D122 a sheet\'s bends from several flanges read apart in its notes (each b
 
 test('D120 a sheet on a bend table: its notes name the table and each bend\'s rows (an estimate among them a warning); the flat honours the row\'s deduction; no K field; the agent\'s raw node', async () => {
   const table = { id: 'shop-2mm', sources: [{ id: 'shop', label: 'the shop\'s test bends' }], rows: [
-    { thicknessMM: 2, radiusMM: 3, angleDegrees: 90, deductionMM: 4.2, source: 'shop' }, { thicknessMM: 2, radiusMM: 3, angleDegrees: 120, kFactor: 0.42, estimate: true }] };
+    { thickness: 2, radius: 3, angle: 90, deduction: 4.2, source: 'shop' }, { thickness: 2, radius: 3, angle: 120, kFactor: 0.42, estimate: true }] };
   const node = { kind: 'sheet-contour' as const, path: [[0, 0], [50, 0], [50, 35]] as [number, number][], side: 'left' as const, width: 20, thickness: 2, bendRadius: 3, bendTable: table };
   const doc = withNode(emptyDoc(), node), [b] = bodiesOf(doc);
   const notes = b.notes!.map(n => n.text);

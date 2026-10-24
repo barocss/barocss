@@ -26,7 +26,7 @@ export interface BoardScenario { case: string; step: string; note: string; seed:
 /** What a step gave, as the scenario compares it: ok, its code, the accepted part's volume, a built candidate's, a result's freshness. */
 export interface StepExpect { ok: boolean; code?: string; volume?: number | null; candidate_volume?: number; fresh?: string; duplicate?: true }
 
-const summary = (o: Outcome): StepExpect => ({ ok: o.ok, ...(o.code ? { code: o.code } : {}), volume: o.volume_mm3, ...(o.op === 'run' && o.evidence ? { candidate_volume: o.evidence.facts.volume_mm3 } : {}), ...(o.duplicate ? { duplicate: true as const } : {}) });
+const summary = (o: Outcome): StepExpect => ({ ok: o.ok, ...(o.code ? { code: o.code } : {}), volume: o.volume, ...(o.op === 'run' && o.evidence ? { candidate_volume: o.evidence.facts.volume } : {}), ...(o.duplicate ? { duplicate: true as const } : {}) });
 
 /** The scenario run on a board: each step's outcome, the board's full trace. */
 export async function runBoardScenario(sc: BoardScenario, evaluate: Evaluate, reopen?: Reopen): Promise<{ steps: StepExpect[]; outcomes: Outcome[] }> {

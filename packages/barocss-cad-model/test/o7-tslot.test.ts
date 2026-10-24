@@ -11,7 +11,7 @@ import { personFile, withSampleRows } from './person-file';
 // the sample rows (the same values) nothing is said; with a row that differs the part's notes name both, and the part's
 // shape is the same.
 
-const warnings = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok); return { volume: r.bodies.map(b => +b.volumeMM3!.toFixed(6)), notes: r.bodies.flatMap(b => (b.notes ?? []).filter(n => n.warning && /fastener size/.test(n.text)).map(n => n.text)) }; };
+const warnings = (doc: StudioDoc) => { const r = evaluateDoc(doc, 1); assert.ok(r.ok); return { volume: r.bodies.map(b => +b.volume!.toFixed(6)), notes: r.bodies.flatMap(b => (b.notes ?? []).filter(n => n.warning && /fastener size/.test(n.text)).map(n => n.text)) }; };
 
 test('O7 tslot-20 (C): the M5 values are the parts\' own; a loaded fastener size that differs is named in their notes, the shape unchanged', () => {
   const parts = ['profile', 'slot-nut-m5', 'end-cap', 'angle-bracket'] as const;

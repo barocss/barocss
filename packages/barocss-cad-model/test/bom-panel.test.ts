@@ -28,7 +28,7 @@ function part(withRow = true): StudioDoc {
   let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
   doc = { ...doc, nodes: doc.nodes.map((n, i) => i === 0 ? { ...(n as Extract<ModelNode, { kind: 'shaft' }>), holes: [{ diameter: 4, at: 80 }] } : n) };
   doc = run(doc, 'key', { bodies: [0] }, { h: 6 });
-  if (withRow) { const t = editRingRows(doc, [{ id: 'r20', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t); doc = t.doc; }
+  if (withRow) { const t = editRingRows(doc, [{ id: 'r20', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t); doc = t.doc; }
   doc = run(doc, 'retaining-ring', { bodies: [0] });
   return run(doc, 'pin', { bodies: [0] });
 }
@@ -63,7 +63,7 @@ test('the bought/made choice: written on every copy\'s node the line merges, one
 });
 
 test('A9-11: key estimates and sourced ring/bearing facts agree in panel data, purchase bytes and v2 after Save/Open', async () => {
-  const bearingRow = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, source: 'person bearing sheet', estimate: false };
+  const bearingRow = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, source: 'person bearing sheet', estimate: false };
   let bearing = cmd('shaft').build!(blank, { ...cmd('shaft').defaults!(blank), ks: 0, gs: 0, r: 0 });
   const invalid = editBearingRows(bearing, [{ ...bearingRow, estimate: true }]);
   assert.ok('error' in invalid && invalid.error.includes('not both'), 'preserve the existing exclusive source/estimate rule');

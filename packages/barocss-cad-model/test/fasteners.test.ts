@@ -25,12 +25,12 @@ test('fastener catalogue: M8 coarse pitch, ISO 4017 head, ISO 4032 nut, ISO 7089
 test('a hex bolt stands on its seat: head above, shank below; volumes of each part', () => {
   const doc = f.build!(ctx, { ...f.defaults!(ctx), kind: 'hex-bolt', size: 'M8', length: '30', x: 0, y: 0, z: 10 });
   const [b] = bodiesOf(doc), m8 = SAMPLE_SIZES.M8, hex = 3 * Math.sqrt(3) / 2 * (m8.s / Math.sqrt(3)) ** 2;
-  near(b.volumeMM3!, hex * m8.k + Math.PI * 16 * 30, 1);
+  near(b.volume!, hex * m8.k + Math.PI * 16 * 30, 1);
   assert.deepEqual([b.mesh.bounds.min[2], b.mesh.bounds.max[2]].map(v => Math.round(v * 10) / 10), [-20, 15.3]);
   assert.equal(featureLabel(doc.nodes.at(-1)!, doc.nodes.length - 1, doc.nodes), 'Bolt M8×30');
   for (const kind of ['socket-screw', 'hex-nut', 'washer']) assert.equal(bodiesOf(f.build!(ctx, { ...f.defaults!(ctx), kind, size: 'M6', length: '20', x: 0, y: 0, z: 0 })).length, 1, kind);
   const nut = bodiesOf(f.build!(ctx, { ...f.defaults!(ctx), kind: 'hex-nut', size: 'M10', x: 0, y: 0, z: 0 }))[0], m10 = SAMPLE_SIZES.M10;
-  near(nut.volumeMM3!, (3 * Math.sqrt(3) / 2 * (m10.s / Math.sqrt(3)) ** 2 - Math.PI * 25) * m10.m, 1);
+  near(nut.volume!, (3 * Math.sqrt(3) / 2 * (m10.s / Math.sqrt(3)) ** 2 - Math.PI * 25) * m10.m, 1);
 });
 
 test('a placed bolt edits as itself (five steps rebuilt in place); lengths follow the size', () => {
@@ -114,7 +114,7 @@ test('a countersunk socket screw (ISO 10642): its head sunk below the seat, flus
   // A frustum Ø13.44 → Ø6 over 3.72, less the socket, and the shank below it.
   const R = m6.cdk / 2, r = 3, k = m6.ck, frustum = Math.PI * k / 3 * (R * R + R * r + r * r), shank = Math.PI * r * r * (20 - k);
   const socket = 3 * Math.sqrt(3) / 2 * (m6.csocket / Math.sqrt(3)) ** 2 * 2 * k * 0.6 / 2;
-  near(b.volumeMM3!, frustum + shank - socket, 3);
+  near(b.volume!, frustum + shank - socket, 3);
   assert.equal(featureLabel(doc.nodes.at(-1)!, doc.nodes.length - 1, doc.nodes), 'Csk screw M6×20');
   assert.ok(fastenerFit({ ...v, joint: 'free' }, SAMPLE_SIZES).some(s => s.label === 'Head' && /countersink Ø13.44/.test(s.text)));
 });
@@ -143,7 +143,7 @@ test('a modelled thread: the bolt and its nut as helical B-spline faces, one sol
   const bolt = bodies.find(b => b.key === `b${doc.nodes.length - 1}`)!, size = SAMPLE_SIZES.M8;
   // Its volume between the root's and the major diameter's cylinders, plus the head.
   const hex = Math.sqrt(3) / 2 * size.s ** 2 * size.k, rMin = 4 - 5 / 8 * Math.sqrt(3) / 2 * 1.25;
-  assert.ok(bolt.volumeMM3! > hex + Math.PI * rMin ** 2 * 30 && bolt.volumeMM3! < hex + Math.PI * 16 * 30, String(bolt.volumeMM3));
+  assert.ok(bolt.volume! > hex + Math.PI * rMin ** 2 * 30 && bolt.volume! < hex + Math.PI * 16 * 30, String(bolt.volume));
   assert.ok(bolt.mesh.edges.length < 6000, `${bolt.mesh.edges.length} edges shown (the facets' smooth joints hidden)`);
   assert.ok(ms < 8000, `${Math.round(ms)} ms`);
   assert.match(f.steps!(ctx, v).find(s => s.label === 'Thread')!.text, /modelled: ISO 68-1/);

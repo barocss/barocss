@@ -41,14 +41,14 @@ export function FlatPatternDialog({ flat, name, onClose }: { flat: FlatPattern; 
     <Icon name="straighten" className="accent" />
     <div style={{ flex: 1, minWidth: 0 }}>
       <div className="toast-title">Flat pattern · {name}</div>
-      <div className="toast-hint">{f2(w)} × {f2(h)} mm · {flat.bends.length} bend{flat.bends.length === 1 ? '' : 's'} · T {f2(flat.thicknessMM)} mm, K {flat.kFactor} · seen from {flat.fixedFace}</div>
+      <div className="toast-hint">{f2(w)} × {f2(h)} mm · {flat.bends.length} bend{flat.bends.length === 1 ? '' : 's'} · T {f2(flat.thickness)} mm, K {flat.kFactor} · seen from {flat.fixedFace}</div>
       <svg aria-label="Flat pattern drawing" viewBox={`${f2(-m)} ${f2(-m)} ${f2(w + 2 * m)} ${f2(h + 2 * m)}`} style={{ width: '100%', maxHeight: '55vh', margin: '8px 0', background: 'var(--surface-2, transparent)' }}>
         <path d={flat.loops.map(l => loopPath(l.segments, h)).join('')} fillRule="evenodd" fill="currentColor" fillOpacity={0.08} stroke="currentColor" strokeWidth={Math.max(w, h) / 400} />
         {flat.bends.map((b, k) => {
           const [p, q] = b.centre, up = b.direction === 'up', mid = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
           return <g key={k} aria-label={`Bend ${b.direction}`}>
             <line x1={f2(p[0])} y1={f2(h - p[1])} x2={f2(q[0])} y2={f2(h - q[1])} stroke={up ? '#3fb950' : '#f85149'} strokeWidth={Math.max(w, h) / 400} strokeDasharray={`${f2(Math.max(w, h) / 80)} ${f2(Math.max(w, h) / 160)}`} />
-            <text x={f2(mid[0])} y={f2(h - mid[1])} fontSize={f2(Math.max(w, h) / 40)} textAnchor="middle" fill={up ? '#3fb950' : '#f85149'} dy="-0.4em">{`${b.direction.toUpperCase()} ${+b.angleDegrees.toFixed(2)}° R${+b.radiusMM.toFixed(3)}`}</text>
+            <text x={f2(mid[0])} y={f2(h - mid[1])} fontSize={f2(Math.max(w, h) / 40)} textAnchor="middle" fill={up ? '#3fb950' : '#f85149'} dy="-0.4em">{`${b.direction.toUpperCase()} ${+b.angle.toFixed(2)}° R${+b.radius.toFixed(3)}`}</text>
           </g>;
         })}
       </svg>

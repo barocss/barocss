@@ -16,7 +16,7 @@ import { runTool, type ChatState } from '../src/chat/tools';
 
 
 const cmd = commands.find(c => c.id === 'connector')!;
-const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, body: { shape: 'stadium', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 }, keepOut: { marginMM: 1, depthMM: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
+const U1 = { id: 'usb-c', name: 'USB-C receptacle opening', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, body: { shape: 'stadium', width: 8.25, height: 2.4, length: 6.51 }, keepOut: { margin: 1, depth: 15 }, source: 'U1 (D139): Wikipedia, "USB hardware"' };
 const stadium = (w: number, h: number) => (w - h) * h + Math.PI * h * h / 4;
 function onTop(doc: StudioDoc, values: Record<string, string | number> = {}) {
   const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail);
@@ -36,8 +36,8 @@ test('Connector opening (R12c.7): no rows, no opening; U1\'s row — the opening
   assert.deepEqual([featureLabel(o, 2, doc.nodes), featureLabel(b, 3, doc.nodes)], ['Connector opening for usb-c', 'Connector body in n2']);
   const r = evaluateDoc(doc, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const body = (kind: string) => r.ok ? r.bodies.find(x => x.ref && doc.nodes[x.ref.node].kind === kind)! : null!;
-  assert.ok(Math.abs(body('connector-opening').volumeMM3! - (8000 - stadium(8.34, 2.56) * 6.2)) < 1e-6, String(body('connector-opening').volumeMM3));
-  assert.ok(Math.abs(body('connector-body').volumeMM3! - stadium(8.25, 2.4) * 6.51) < 1e-6);
+  assert.ok(Math.abs(body('connector-opening').volume! - (8000 - stadium(8.34, 2.56) * 6.2)) < 1e-6, String(body('connector-opening').volume));
+  assert.ok(Math.abs(body('connector-body').volume! - stadium(8.25, 2.4) * 6.51) < 1e-6);
   const notes = body('connector-opening').notes!.map(n => n.text);
   assert.ok(notes.includes(`Connector opening USB-C receptacle opening (your row, U1 (D139): Wikipedia, "USB hardware"): stadium 8.34 × 2.56, 6.2 deep, ${+stadium(8.34, 2.56).toFixed(4)} mm²`), JSON.stringify(notes));
   assert.ok(notes.includes('Its body stadium 8.25 × 2.4 × 6.51: gaps 0.045 and 0.08 each side, standing 0.31 out of the face'), JSON.stringify(notes));
@@ -49,7 +49,7 @@ test('Connector opening (R12c.7): no rows, no opening; U1\'s row — the opening
 });
 
 test('Connector opening (R12c.7): moved along its width and turned; a square-cornered body refused with its title; off the face refused', () => {
-  const plate = (editConnectorRows(rectanglePart(40, 20, 10), [U1, { ...U1, id: 'sq', name: undefined, body: { shape: 'rect', widthMM: 8.25, heightMM: 2.4, lengthMM: 6.51 } }]) as { doc: StudioDoc }).doc;
+  const plate = (editConnectorRows(rectanglePart(40, 20, 10), [U1, { ...U1, id: 'sq', name: undefined, body: { shape: 'rect', width: 8.25, height: 2.4, length: 6.51 } }]) as { doc: StudioDoc }).doc;
   const moved = onTop(plate, { u: 5, rot: 90 }), o = moved.nodes[2] as Extract<ModelNode, { kind: 'connector-opening' }>;
   // (Turned 90°, its width runs along world Y: 5 along it from the centre.)
   assert.deepEqual([o.center.map(x => Math.round(x * 1e9) / 1e9), o.rotation], [[20, 15, 10], 90]);
@@ -71,7 +71,7 @@ test('Section tables (R12c.7): a table read into the section library as a row a 
   const doc = withNode((lib as { doc: StudioDoc }).doc, { kind: 'frame-member', section: { kind: 'library', id: 'rhs-a:40x40x3' }, start: [0, 0, 0], end: [0, 0, 300] });
   const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const A = 40 * 40 - (4 - Math.PI) * 36 - (34 * 34 - (4 - Math.PI) * 9);
-  assert.ok(r.ok && Math.abs(r.bodies[0].volumeMM3! - A * 300) < 1e-6 * A * 300, r.ok ? String(r.bodies[0].volumeMM3) : '');
+  assert.ok(r.ok && Math.abs(r.bodies[0].volume! - A * 300) < 1e-6 * A * 300, r.ok ? String(r.bodies[0].volume) : '');
   assert.match(String((sectionTableRows({ ...RHS, estimate: undefined }) as { error: string }).error), /^\[SECTION_TABLE\] section table rhs-a size 40x40x3: cite its source/);
 });
 

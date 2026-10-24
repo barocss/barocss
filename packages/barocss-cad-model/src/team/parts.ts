@@ -80,7 +80,7 @@ export async function integratePart(state: ChatState, patch: PartPatch, leases: 
   }
   for (const p of ifc.holePatterns.filter(x => x.parts.includes(patch.part))) { const off = holesOff(bodies, p); if (off.length) findings.push({ code: 'HOLE_OFF_PATTERN', message: `${patch.part} has no Ø${p.diameter} hole on ${p.id} at ${off.map(o => `(${o.join(', ')})`).join(', ')}` }); }
   const budget = ifc.budgets.parts?.[patch.part];
-  if (!incomplete && budget !== undefined) { const g = (massProperties(inst.doc, bodies) as { mass_g: number }[]).reduce((s, x) => s + x.mass_g, 0); if (g > budget + 1e-9) findings.push({ code: 'OVER_BUDGET', message: `${patch.part} weighs ${Number(g.toPrecision(6))} g, over its ${budget} g` }); }
+  if (!incomplete && budget !== undefined) { const g = (massProperties(inst.doc, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0); if (g > budget + 1e-9) findings.push({ code: 'OVER_BUDGET', message: `${patch.part} weighs ${Number(g.toPrecision(6))} g, over its ${budget} g` }); }
   gates.push({ gate: 'contract', verdict: findings.length ? 'fail' : 'pass', findings });
   if (findings.length) { gates.push({ gate: 'assembly', verdict: 'skipped', findings: [{ code: 'NOT_REACHED', message: 'not reached: an earlier gate failed' }] }); return done('rejected'); }
   // (The Assembly integrator, A8.4: the whole assembly with this part as it would be — parts meeting, every pattern on every built part, the total mass.)

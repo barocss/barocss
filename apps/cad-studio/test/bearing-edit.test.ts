@@ -16,8 +16,8 @@ import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepar
 
 const selection = { faces: [], edges: [], bodies: [] };
 // A row written into the test document: a fixture for the edit session, not rows an agent loaded (rule (b) governs those).
-const row = { id: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, raMaxMM: 1, source: 'A9-7 test fixture row' };
-const fit = { id: 'seat', rows: [{ class: 'H7', overMM: 30, upToMM: 50, lowerUM: 0, upperUM: 25, estimate: true }] };
+const row = { id: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, raMax: 1, source: 'A9-7 test fixture row' };
+const fit = { id: 'seat', rows: [{ class: 'H7', over: 30, upTo: 50, lowerUM: 0, upperUM: 25, estimate: true }] };
 const instance = (id: string, doc: StudioDoc, position: [number, number, number] = [0, 0, 0]): PartInstance => ({ id, name: id, doc, position, rotation: [0, 0, 0] });
 const command = (id: string) => commands.find(c => c.id === id)!;
 type Bearing = Extract<ModelNode, { kind: 'bearing' }>;
@@ -61,7 +61,7 @@ test('inherited bearing/fit rows are available for editing and validation but ne
   const readChild = read.doc.instances![0].doc;
   assert.equal(Object.hasOwn(readChild, 'bearings'), false); assert.equal(Object.hasOwn(readChild, 'fits'), false);
   assert.deepEqual(bearing(readChild.nodes, 1).housingRef, { part: 'housing', body: 'b1' });
-  const local = { ...row, outsideMM: 48, source: 'explicit local override' }, childOverride = { ...root.instances![0].doc, bearings: { version: 1, rows: [local] } } as StudioDoc;
+  const local = { ...row, outside: 48, source: 'explicit local override' }, childOverride = { ...root.instances![0].doc, bearings: { version: 1, rows: [local] } } as StudioDoc;
   const overrideRoot = { ...root, instances: root.instances!.map(i => i.id === 'bearing-a' ? { ...i, doc: childOverride } : i) };
   const override = captureBearingEditSession(overrideRoot, 'bearing-a', 1), stored = prepareBearingEdit(override, override.view.nodes.map(n => ({ ...n }))).root.instances![0].doc;
   assert.equal(stored.bearings!.rows[0], local); assert.equal(Object.hasOwn(stored, 'fits'), false);

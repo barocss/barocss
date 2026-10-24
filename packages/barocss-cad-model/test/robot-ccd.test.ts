@@ -94,7 +94,7 @@ test('two segments: out clear, then back into the post — the contact on the se
   let dense = Infinity;
   for (let k = 0; k <= 400; k++) {
     const fk = forwardKinematics(tree, { 'base~a': out * k / 400 }), P = new Map(links.map(l => { const m = fk.motions.get(l.link)!, p = new Float64Array(l.positions.length); for (let i = 0; i < p.length; i += 3) { const v = applyTo(m, [l.positions[i], l.positions[i + 1], l.positions[i + 2]]); p[i] = v[0]; p[i + 1] = v[1]; p[i + 2] = v[2]; } return [l.link, { p, i: l.indices }]; }));
-    for (const [A, B] of pairs) { const a = P.get(A)!, b = P.get(B)!; dense = Math.min(dense, meshClearance(a.p, a.i, b.p, b.i).distanceMM); }
+    for (const [A, B] of pairs) { const a = P.get(A)!, b = P.get(B)!; dense = Math.min(dense, meshClearance(a.p, a.i, b.p, b.i).distance); }
   }
   const bound = 90 * (Math.PI / 2) / 400;
   console.log(`RM9a two segments: toi ${r.toi!.toFixed(9)} s (oracle ${tStar.toFixed(9)}); segment 1 least clearance ${ours.toFixed(6)} mm vs dense ${dense.toFixed(6)} mm (± ${bound.toFixed(3)})`);
@@ -118,7 +118,7 @@ test('the 6R arm folding on an S-curve: no earlier contact in 2000 exact samples
   const pairs = rm6.pairs;
   for (let k = 0; k < 2000; k++) { const P = pose(sToi * k / 2000); for (const [A, B] of pairs) { const a = P.get(A)!, b = P.get(B)!; assert.ok(!meshesMeet(a.p, a.i, b.p, b.i), `${A}–${B} meet at s ${sToi * k / 2000} before the impact`); } }
   const P = pose(sToi), [A, B] = r.links!, a = P.get(A)!, b = P.get(B)!;
-  assert.ok(meshClearance(a.p, a.i, b.p, b.i).distanceMM <= 1e-6, 'in contact to the tolerance');
+  assert.ok(meshClearance(a.p, a.i, b.p, b.i).distance <= 1e-6, 'in contact to the tolerance');
   // (The S0's budget: twice RM6's 225 ms. RM6 itself is now ~7 ms: the kernel's meshClearance descends both meshes' trees, K3.)
   assert.ok(tCcd <= 2 * 225, `${tCcd} ms vs RM6 ${tRm6} ms`);
 });

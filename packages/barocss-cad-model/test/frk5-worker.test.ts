@@ -44,12 +44,12 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
     const direct = evaluateDoc(opened.doc, 1); assert.ok(direct.ok);
     const first = await request(opened.doc), again = await request(opened.doc);
     assert.ok(again.wire.bodies.every(b => 'meshRef' in b), 'unchanged actual worker cache reuses meshes');
-    const facts = (bodies: typeof direct.bodies) => bodies.map(b => ({ key: b.key, volume: b.volumeMM3, centroid: b.centroid, inertia: b.inertia, piece: b.cutPiece, element: b.element }));
+    const facts = (bodies: typeof direct.bodies) => bodies.map(b => ({ key: b.key, volume: b.volume, centroid: b.centroid, inertia: b.inertia, piece: b.cutPiece, element: b.element }));
     assert.deepEqual(facts(first.bodies), facts(direct.bodies)); assert.deepEqual(facts(again.bodies), facts(direct.bodies));
     assert.equal(first.bodies.length, 2); assert.ok(first.bodies.every(b => (b.pieces ?? 1) === 1));
     const edited = await dispatchTool({ doc: opened.doc, bodies: direct.bodies }, 'features', { action: 'edit', index: 0, values: { [variant.key]: variant.next } }, async doc => evaluateDoc(doc, 1));
     assert.equal(edited.isError, false, edited.content); const after = await request(edited.state.doc);
-    assert.notEqual(after.bodies[1].volumeMM3, first.bodies[1].volumeMM3, 'actual branch geometry changes');
+    assert.notEqual(after.bodies[1].volume, first.bodies[1].volume, 'actual branch geometry changes');
     assert.deepEqual(after.bodies[1].cutPiece, edited.state.bodies[1].cutPiece, 'worker retains new end metadata');
     assert.deepEqual(facts([after.bodies[0]]), facts([first.bodies[0]]), 'through member survives unchanged');
   }

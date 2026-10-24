@@ -70,11 +70,11 @@ test('tampering found on read-back, each named: a BOM quantity, the state, the i
   const tamper = (edit: (log: ReturnType<typeof readBaselines>) => void) => { const d = copy(two.doc); edit(readBaselines(d.baselines)); return verifyBaseline(d, 'BL2'); };
   assert.deepEqual(tamper(l => { l.baselines[1].content.bom.lines[0].qty = 2; }).mismatches, ['BL2: content.bom', 'BL2: record']);
   assert.deepEqual(tamper(l => { l.baselines[1].state = 'review'; }).mismatches, ['BL2: record']);
-  assert.deepEqual(tamper(l => { l.baselines[1].content.interfaces.budgets.massG = 1e6; }).mismatches, ['BL2: content.interfaces', 'BL2: record']);
+  assert.deepEqual(tamper(l => { l.baselines[1].content.interfaces.budgets.mass = 1e6; }).mismatches, ['BL2: content.interfaces', 'BL2: record']);
   assert.deepEqual(tamper(l => { l.baselines[1].pins.parts.p2 = l.baselines[1].pins.parts.p1; }).mismatches, ['BL2: record']);
   // (The parent's content changed, and its pins and digest rewritten to match: the child's parent digest still catches it.)
   const parent = tamper(l => {
-    const p = l.baselines[0]; p.content.bom.lines[0].massG += 1; p.pins.bom = digestOf(p.content.bom);
+    const p = l.baselines[0]; p.content.bom.lines[0].mass += 1; p.pins.bom = digestOf(p.content.bom);
     const { digest: _d, ...rest } = p; void _d; p.digest = digestOf(rest);
   });
   assert.deepEqual(parent.mismatches, ['BL2: parent BL1']);

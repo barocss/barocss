@@ -56,7 +56,7 @@ test('R10a a vertex inserted keeps every other side\'s name: the fillet on the c
   assert.equal(parse(r.content).rematched, undefined, 'nothing to re-match');
   assert.deepEqual((r.state.doc.nodes[2] as { edges: string[] }).edges, [was]);
   assert.deepEqual(wallNames(r.state), ['n1.side[e1]', 'n1.side[e2]', 'n1.side[e3]', 'n1.side[e4]', 'n1.side[e5]']);
-  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! - (10 * 10 * 6 - (1 - Math.PI / 4) * 4 * 6 + 10 * 6)) < 1e-6);
+  assert.ok(Math.abs(r.state.bodies[0].volume! - (10 * 10 * 6 - (1 - Math.PI / 4) * 4 * 6 + 10 * 6)) < 1e-6);
 });
 
 test('R10a a rectangle drawn from its top-right corner: its ids matched to the rectangle node\'s sides by their ends; a rounded corner keeps both edges\' ids, the arc a new one; a trim keeps the pieces\' ids by where they start', () => {
@@ -88,7 +88,7 @@ test('R10a a sketch from before (no ids) reopened: ids in the order its sides we
   assert.equal(edge, was.replace(/side(\d)/g, (_, k) => `side[e${Number(k) + 1}]`));
   assert.deepEqual(next.bodies, { b2: { faces: { 'n1.side[e1]': '#ff0000' } } });
   const r = await stateOf(next);
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - s.bodies[0].volumeMM3!) < 1e-9);
+  assert.ok(Math.abs(r.bodies[0].volume! - s.bodies[0].volume!) < 1e-9);
   // Reopened again: the node's own ids, nothing positional.
   const again = sketchShapes(next.nodes[0] as SketchNode);
   assert.deepEqual(again.shape?.ids, ['e1', 'e2', 'e3', 'e4']); assert.equal(again.positional, undefined);

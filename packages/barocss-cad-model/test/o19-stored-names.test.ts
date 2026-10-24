@@ -27,7 +27,7 @@ const rightCorner = 10 * 10 * 6 - (1 - Math.PI / 4) * 4 * 6;
 test('O19: the fillet carries its name\'s signature (sigs), written when it was picked', async () => {
   const s = await filleted(), f = s.doc.nodes[2] as { edges: string[]; sigs?: Record<string, unknown> };
   assert.ok(f.sigs && f.sigs[f.edges[0]], JSON.stringify(f));
-  assert.ok(Math.abs(s.bodies[0].volumeMM3! - rightCorner) < 1e-6);
+  assert.ok(Math.abs(s.bodies[0].volume! - rightCorner) < 1e-6);
 });
 
 test('O19: a vertex inserted upstream (the document edited elsewhere) is refused, REFERENCE_MOVED, never the other corner', async () => {
@@ -40,14 +40,14 @@ test('O19: a vertex inserted upstream (the document edited elsewhere) is refused
   const blind = { ...moved, nodes: moved.nodes.map((n, i) => i === 2 ? { ...n, sigs: undefined } as ModelNode : n) }, b = await evaluate(blind);
   assert.ok(b.ok);
   const pentagon = 10 * 10 * 6 + (10 * 2) / 2 * 6, onItsCorner = pentagon - (1 - Math.PI / 4) * 4 * 6;
-  assert.ok(Math.abs(b.bodies[0].volumeMM3! - onItsCorner) > 1e-3, 'unchecked, it rounds another corner');
+  assert.ok(Math.abs(b.bodies[0].volume! - onItsCorner) > 1e-3, 'unchecked, it rounds another corner');
 });
 
 test('O19: a dimension change that keeps the names still builds, the fillet on its corner', async () => {
   const s = await filleted(), wider = sketched(s.doc, [[0, 0], [12, 0], [12, 10], [0, 10]]);
   const r = await evaluate(wider);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - (12 * 10 * 6 - (1 - Math.PI / 4) * 4 * 6)) < 1e-6, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - (12 * 10 * 6 - (1 - Math.PI / 4) * 4 * 6)) < 1e-6, String(r.bodies[0].volume));
 });
 
 test('O19: through the agent\'s tools, the moved name is matched again by its signature (marked), and the fillet stays on its corner', async () => {
@@ -61,7 +61,7 @@ test('O19: through the agent\'s tools, the moved name is matched again by its si
   assert.equal(out.rematched![0].now, f.edges[0]);
   assert.ok(f.rematched, 'marked re-matched until confirmed');
   const prism = 10 * 10 * 6 + (10 * 2) / 2 * 6;
-  assert.ok(Math.abs(r.state.bodies[0].volumeMM3! - (prism - (1 - Math.PI / 4) * 4 * 6)) < 1e-6, String(r.state.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.state.bodies[0].volume! - (prism - (1 - Math.PI / 4) * 4 * 6)) < 1e-6, String(r.state.bodies[0].volume));
 });
 
 test('O19 (R10.2a\'s regression): a closed junction rim the display shows as one edge with eight names — filleted by any of them, it builds; its signature, shared by the eight, is not sent to the kernel', async () => {
@@ -77,7 +77,7 @@ test('O19 (R10.2a\'s regression): a closed junction rim the display shows as one
     const doc = captureSignatures(withNode(tee, { kind: 'fillet', parent: { node: 4, side: 'solid' }, edges: [name], radius: 2 } as ModelNode), s.bodies);
     assert.equal((doc.nodes[5] as { sigs: Record<string, { n?: number }> }).sigs[name].n, 8, 'marked shared');
     const r = await evaluate(doc); assert.ok(r.ok, `${name}: ${!r.ok && r.error.detail}`);
-    volumes.add(Math.round(r.bodies[0].volumeMM3! * 1e6));
+    volumes.add(Math.round(r.bodies[0].volume! * 1e6));
   }
   assert.equal(volumes.size, 1, 'the whole loop filleted, whichever name');
 });

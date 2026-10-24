@@ -23,7 +23,7 @@ test('the whole-assembly gate: clean passes with its mass; a part moved off the 
   // (Both aluminium, assumed: 60·40·10 less two Ø4 holes, and 60·40·2 less two: 2.7 g/cm³.)
   const want = 2.7e-3 * (60 * 40 * 10 - 2 * Math.PI * 4 * 10 + 60 * 40 * 2 - 2 * Math.PI * 4 * 2);
   // (massProperties gives grams to 3 decimals: each part to ±0.0005 g.)
-  assert.ok(Math.abs(ok.massG - want) <= 2 * 0.0005 + 1e-9, `${ok.massG} vs ${want}`);
+  assert.ok(Math.abs(ok.mass - want) <= 2 * 0.0005 + 1e-9, `${ok.mass} vs ${want}`);
   // (The board moved 2 mm along X — an assembly change after its acceptance: off the pattern.)
   const moved: StudioDoc = { ...doc, instances: doc.instances!.map(i => (i.id === 'p2' ? { ...i, position: [2, 0, 20] as [number, number, number] } : i)) };
   const m = await checkAssembly(moved, evaluate);

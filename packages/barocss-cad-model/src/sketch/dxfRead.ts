@@ -33,7 +33,7 @@ export interface DxfLoop { segments: LoopSegment[]; area: number; box: [number, 
 export interface DxfSketch {
   /** The regions (each a closed loop) and the holes (each inside a region), in mm. */
   regions: DxfLoop[]; holes: DxfLoop[];
-  unit: { declared: boolean; name: string; toMM: number };
+  unit: { declared: boolean; name: string; to: number };
   /** Entities left out as annotation, counted by type. */
   ignored: Record<string, number>;
   /** What the drawing shows beyond its profile, to trace over (O68): never regions, holes or dimensions. */
@@ -76,12 +76,12 @@ function readEntities(pairs: [number, string][]): { edges: Edge[]; circles: { c:
   for (let i = 0; i + 1 < pairs.length; i++) if (pairs[i][0] === 9 && pairs[i][1] === '$INSUNITS' && pairs[i + 1][0] === 70) { units = num(pairs[i + 1][1], '$INSUNITS'); declared = true; }
   const u = UNITS[units];
   if (declared && units !== 0 && !u) throw refusal('DXF_UNSUPPORTED', `$INSUNITS ${units}: only inches, feet, millimetres, centimetres and metres are read`);
-  const unit = { declared: declared && units !== 0, name: u ? u[0] : 'millimetres (none declared)', toMM: u ? u[1] : 1 };
+  const unit = { declared: declared && units !== 0, name: u ? u[0] : 'millimetres (none declared)', to: u ? u[1] : 1 };
   const start = pairs.findIndex((p, i) => p[0] === 2 && p[1] === 'ENTITIES' && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1] === 'SECTION');
   if (start < 0) throw refusal('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
   const edges: Edge[] = [], circles: { c: P; r: number }[] = [], ignored: Record<string, number> = {};
   let i = start + 1, entities = 0;
-  const k = unit.toMM;
+  const k = unit.to;
   while (i < pairs.length && !(pairs[i][0] === 0 && pairs[i][1] === 'ENDSEC')) {
     if (pairs[i][0] !== 0) { i++; continue; }
     const type = pairs[i][1]; i++;
@@ -160,7 +160,7 @@ const toSegments = (edges: readonly Edge[]): LoopSegment[] => edges.map(e => (e.
 /** A DXF drawing's profile: its regions and holes, in mm. */
 export function readDxfSketch(text: string): DxfSketch {
   const dwg = dwgRefusal(text.slice(0, 6)); if (dwg) throw dwg;
-  const { edges, circles, unit, ignored, entities } = readEntities(pairsOf(text)), underlay = readUnderlay(text, unit.toMM);
+  const { edges, circles, unit, ignored, entities } = readEntities(pairsOf(text)), underlay = readUnderlay(text, unit.to);
   // (An underlay alone needs a curve to trace: text by itself is still nothing to read.)
   const shown = underlay.polylines.length;
   if (!edges.length && !circles.length) {

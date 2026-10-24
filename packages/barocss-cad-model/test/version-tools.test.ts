@@ -21,7 +21,7 @@ const call = async (s: ChatState, action: string, args: Record<string, unknown> 
   return { ...out, body: JSON.parse(out.content) as Record<string, unknown> };
 };
 const cmd = async (s: ChatState, values: Record<string, unknown>) => { const out = await dispatchTool(s, 'features', { action: 'command', command: 'box', values }, evaluate); assert.ok(!out.isError, out.content); return out.state; };
-const volume = (s: ChatState) => Math.round(s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0));
+const volume = (s: ChatState) => Math.round(s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0));
 
 test('version actions: make, list, compare, restore — through the history tool, the log kept in the state', async () => {
   let s = await stateOf(starterDoc());

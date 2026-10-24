@@ -83,7 +83,7 @@ function sheetEdge(ctx: Parameters<Command['available']>[0]) {
   const sel = ctx.selection.edges;
   if (sel.length !== 1) return null;
   const body = ctx.bodies[sel[0].body], edge = body?.mesh.edges[sel[0].edge];
-  return body && edge && body.sheet ? { body, edge, T: body.sheet.thicknessMM } : null;
+  return body && edge && body.sheet ? { body, edge, T: body.sheet.thickness } : null;
 }
 const POSITIONS = [{ value: 'material-inside', label: 'Material inside' }, { value: 'material-outside', label: 'Material outside' }, { value: 'bend-outside', label: 'Bend outside' }];
 const MEASURES = [{ value: 'outer', label: 'Outer sharp' }, { value: 'inner', label: 'Inner sharp' }, { value: 'tangent', label: 'From the bend' }];
@@ -116,7 +116,7 @@ export const sheetFlangeCommand: Command = {
     // (Part width: its relief written whole — the kernel defaults none (D119); 0 here is the sheet's T, an estimate.)
     const partWidth = o0 > 0 || o1 > 0, relief = !partWidth ? undefined : v.relief === 'none' ? { kind: 'none' as const } : { kind: v.relief as 'rectangular' | 'obround', width: rw > 0 ? rw : p.T, depth: rd > 0 ? rd : p.T };
     const node: ModelNode = { kind: 'sheet-flange', parent: refOf(p.body), edges: [p.edge.names[0]], length,
-      ...(angle !== 90 ? { angleDegrees: angle } : {}), ...(r > 0 ? { bendRadius: r } : {}), ...(v.measure !== 'outer' ? { measure: v.measure as 'inner' | 'tangent' } : {}),
+      ...(angle !== 90 ? { angle: angle } : {}), ...(r > 0 ? { bendRadius: r } : {}), ...(v.measure !== 'outer' ? { measure: v.measure as 'inner' | 'tangent' } : {}),
       ...(v.position !== 'material-inside' ? { position: v.position as 'material-outside' | 'bend-outside' } : {}), ...(partWidth ? { offsets: [o0, o1] as [number, number] } : {}), ...(relief ? { relief } : {}) };
     return withNode(ctx.doc, node);
   },
@@ -132,7 +132,7 @@ export const sheetCornerReliefCommand: Command = {
   hint: 'Cut a square or round relief off a sheet plate\u2019s corner (pick its corner edge) so the flanges of its two edges clear each other',
   available: ctx => sheetEdge(ctx) ? ok : no('Pick the edge of a sheet plate\u2019s corner (between its two thickness faces).'),
   fields: () => [{ key: 'shape', label: 'Shape', kind: 'choice', options: [{ value: 'square', label: 'Square' }, { value: 'round', label: 'Round' }] }, { key: 'size', label: 'Size (default R + T)', kind: 'mm', min: 0.1 }],
-  defaults: ctx => { const p = sheetEdge(ctx), b = p?.body.sheet; return { shape: 'square', size: b ? +(b.bendRadiusMM + b.thicknessMM).toFixed(6) : 3 }; },
+  defaults: ctx => { const p = sheetEdge(ctx), b = p?.body.sheet; return { shape: 'square', size: b ? +(b.bendRadius + b.thickness).toFixed(6) : 3 }; },
   steps: ctx => { const p = sheetEdge(ctx); return [{ label: 'Corner', text: p ? p.edge.names[0] : 'pick a corner edge of a sheet', done: !!p }]; },
   build: (ctx, v) => {
     const p = sheetEdge(ctx); if (!p) throw refusal('SHEET_PICK', 'Pick a corner edge of a sheet.');

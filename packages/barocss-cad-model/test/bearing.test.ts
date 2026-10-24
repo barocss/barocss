@@ -15,8 +15,8 @@ import { runTool, type ChatState } from '../src/chat/tools';
 
 const blank: Ctx = { doc: emptyDoc(), bodies: [], selection: { faces: [], edges: [], bodies: [] } };
 const cmd = (id: string) => commands.find(c => c.id === id)!;
-const ROW = { id: '6204', designation: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, daMinMM: 25, daMaxMM: 26.5, DaMaxMM: 42, raMaxMM: 1, boreDeviationUM: [0, -10] as [number, number], source: 'B1 (D139)' };
-const FITS = { id: 'seat-fits', rows: [{ class: 'k5', overMM: 18, upToMM: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
+const ROW = { id: '6204', designation: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, daMin: 25, daMax: 26.5, DaMax: 42, raMax: 1, boreDeviationUM: [0, -10] as [number, number], source: 'B1 (D139)' };
+const FITS = { id: 'seat-fits', rows: [{ class: 'k5', over: 18, upTo: 30, upperUM: 11, lowerUM: 2, estimate: true }] };
 function onShaft(doc: StudioDoc, values: Record<string, string | number> = {}) {
   const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const ctx: Ctx = { doc, bodies: r.bodies, selection: { faces: [], edges: [], bodies: [r.bodies.findIndex(b => b.ref?.node === 0)] } }, c = cmd('bearing'), ok = c.available(ctx);
@@ -41,7 +41,7 @@ test('Bearing (R12c.4): no rows, no bearing; the user\'s row loaded — on the d
   assert.deepEqual(usesOf(b), [0, housing]); assert.equal(featureLabel(b, 0, doc.nodes), 'Bearing 6204 on step 1');
   const r = evaluateDoc(doc, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const body = r.ok ? r.bodies.find(x => x.ref && doc.nodes[x.ref.node].kind === 'bearing')! : null!, notes = body.notes!.map(n => n.text);
-  assert.ok(Math.abs(body.volumeMM3! - 19800.6522) < 1e-3, String(body.volumeMM3));
+  assert.ok(Math.abs(body.volume! - 19800.6522) < 1e-3, String(body.volume));
   assert.ok(notes.includes('Bearing 6204: Ø20 × Ø47 × 14, corners r 1 (your row, B1 (D139))'), JSON.stringify(notes));
   assert.ok(notes.includes('On step 1 from 16 to 30, against the Ø25 shoulder; its other side not located; no overlap with the shaft'), JSON.stringify(notes));
   assert.ok(notes.includes('In the housing\'s Ø47 bore; no overlap'), JSON.stringify(notes));
@@ -59,7 +59,7 @@ test('Bearing (R12c.4) refusals in the studio: a row removed from under it, a sh
   doc = onShaft(doc);
   const gone = evaluateDoc({ ...doc, bearings: { version: 1, rows: [] } }, 3);
   assert.ok(!gone.ok && gone.error.title === 'A bearing names a row that is not in your bearing rows', gone.ok ? 'built' : gone.error.detail);
-  const tight = evaluateDoc({ ...doc, bearings: { version: 1, rows: [{ ...ROW, daMaxMM: 24.5, daMinMM: 22 }] } }, 4);
+  const tight = evaluateDoc({ ...doc, bearings: { version: 1, rows: [{ ...ROW, daMax: 24.5, daMin: 22 }] } }, 4);
   assert.ok(!tight.ok && tight.error.title === 'The bearing does not sit right on its shoulder' && /above da max 24\.5/.test(tight.error.detail), tight.ok ? 'built' : tight.error.detail);
 });
 

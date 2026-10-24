@@ -12,7 +12,7 @@ import type { DisplayMesh, Vec3 } from '../engine/mesh';
 import { draftField, exactNormals } from './draft';
 
 export type Half = '+' | '-';
-export interface PartingLoop { body: string; points: Vec3[]; closed: boolean; lengthMM: number; /** Its extent along the pull: flat when 0 (to the mesh's single precision). */ rangeMM: [number, number]; flat: boolean }
+export interface PartingLoop { body: string; points: Vec3[]; closed: boolean; length: number; /** Its extent along the pull: flat when 0 (to the mesh's single precision). */ rangeMM: [number, number]; flat: boolean }
 export interface PartingReport {
   pull: Vec3;
   faces: { body: string; face: string; half: Half | 'split'; basis: 'draft' | 'override' | 'wall default' | 'straddle' }[];
@@ -125,7 +125,7 @@ export function partingLine(doc: StudioDoc, bodies: readonly BodyResult[], pull:
       let len = 0, lo = Infinity, hi = -Infinity;
       for (let i = 0; i < c.pts.length; i++) { const h = dot(c.pts[i], d); lo = Math.min(lo, h); hi = Math.max(hi, h); if (i) len += Math.hypot(c.pts[i][0] - c.pts[i - 1][0], c.pts[i][1] - c.pts[i - 1][1], c.pts[i][2] - c.pts[i - 1][2]); }
       if (c.closed) len += Math.hypot(c.pts[0][0] - c.pts[c.pts.length - 1][0], c.pts[0][1] - c.pts[c.pts.length - 1][1], c.pts[0][2] - c.pts[c.pts.length - 1][2]);
-      loops.push({ body: body.key, points: c.pts, closed: c.closed, lengthMM: len, rangeMM: [lo, hi], flat: hi - lo <= FLAT });
+      loops.push({ body: body.key, points: c.pts, closed: c.closed, length: len, rangeMM: [lo, hi], flat: hi - lo <= FLAT });
     }
   }
   return { pull: d, faces, split, loops };

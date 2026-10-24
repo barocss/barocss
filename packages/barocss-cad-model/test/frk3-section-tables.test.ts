@@ -15,7 +15,7 @@ const volume = (t: unknown) => {
   assert.ok(!('error' in library), 'error' in library ? library.error : '');
   const doc = withNode(library.doc, { kind: 'frame-member', section: { kind: 'library', id: converted[0].id }, start: [0, 0, 0], end: [0, 0, 300] });
   const r = evaluateDoc(doc, 1); assert.ok(r.ok, r.ok ? '' : r.error.detail);
-  return r.bodies[0].volumeMM3!;
+  return r.bodies[0].volume!;
 };
 
 test('FRk3 user I/H table preserves all seven explicit dimensions and source through library conversion and actual member evaluation', () => {

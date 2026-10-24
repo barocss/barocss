@@ -31,7 +31,7 @@ async function stateOf(doc: StudioDoc): Promise<ChatState> {
   const r = await evaluate(doc); assert.ok(r.ok, JSON.stringify(!r.ok && r.error)); return { doc, bodies: r.bodies };
 }
 const parse = (content: string) => JSON.parse(content) as Record<string, any>;
-const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
 const scratch = () => mkdtempSync(join(tmpdir(), 'cad-chat-test-'));
 
 /** An MCP client over in-memory pipes to the real tool server. */
@@ -89,7 +89,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
   // (Fit class takes a cylindrical face with a fit table loaded; Fit pair two classed faces, a bore and a pin: R12c.2, D155.)
   const tubeCmd = commandById('tube')!, cylCmd = commandById('cylinder')!, blank: Ctx = { doc: emptyDoc(), bodies: [], selection: sel({}) };
   const pinned = cylCmd.build!({ ...blank, doc: tubeCmd.build!(blank, { ...tubeCmd.defaults!(blank), r: 10, ri: 6, x: 0, y: 0, z: 0 }) }, { ...cylCmd.defaults!(blank), r: 6, x: 0, y: 0, z: -5 });
-  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', overMM: 10, upToMM: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', overMM: 10, upToMM: 18, upperUM: -6, lowerUM: -17, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
+  const fitted = await stateOf({ ...pinned, fits: { version: 1, tables: [{ id: 't', rows: [{ class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true }] }], faces: [{ face: 'n1.hole0.side0', class: 'H7' }, { face: 'n3.side0', class: 'g6' }] } });
   const faceOf = (name: string) => { const body = fitted.bodies.findIndex(b => b.mesh.faces.some(f => f.name === name)); return { body, face: fitted.bodies[body].mesh.faces.findIndex(f => f.name === name) }; };
   // (Key, Retaining ring and Pin take a shaft with a keyseat, a groove and a cross hole; Keyway a hub's bore: R12c.3b, D157.)
   const shaftCmd = commandById('shaft')!, shaftDoc = shaftCmd.build!(blank, shaftCmd.defaults!(blank));
@@ -97,13 +97,13 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const hubbed = await stateOf(tubeCmd.build!({ ...blank, doc: holed }, { ...tubeCmd.defaults!(blank), r: 20, ri: 10, h: 22, x: 0, y: 0, z: 4 }));
   const boreOf = () => { const body = hubbed.bodies.findIndex(b => b.mesh.faces.some(f => /\.hole0\.side0$/.test(f.name))); return { body, face: hubbed.bodies[body].mesh.faces.findIndex(f => /\.hole0\.side0$/.test(f.name)) }; };
   // (The drive commands take the user's drive rows; Belt or chain two sprockets of one chain row: R12c.6b, D161.)
-  const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitchMM: 12.7, rollerDiameterMM: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', widthMM: 40, thicknessMM: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', boreMM: [12, 12] as [number, number], outsideMM: 30, lengthMM: 40, estimate: true }] };
+  const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitch: 12.7, rollerDiameter: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', width: 40, thickness: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', bore: [12, 12] as [number, number], outside: 30, length: 40, estimate: true }] };
   const chained = await stateOf({ ...withNode(withNode(emptyDoc(), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [0, 0], generator: 'sprocket@0' }), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [150, 0], generator: 'sprocket@0' }), drives: driveRows });
   for (const id of CHAT_COMMANDS) {
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
     if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin' || id === 'bearing') {
       // (A bearing takes the user's rows loaded: R12c.4, D158.)
-      const withRows = id === 'bearing' ? { ...hubbed.doc, bearings: { version: 1 as const, rows: [{ id: '6204', boreMM: 20, outsideMM: 47, widthMM: 14, chamferMM: 1, estimate: true }] } } : hubbed.doc;
+      const withRows = id === 'bearing' ? { ...hubbed.doc, bearings: { version: 1 as const, rows: [{ id: '6204', bore: 20, outside: 47, width: 14, chamfer: 1, estimate: true }] } } : hubbed.doc;
       const ctx: Ctx = { doc: withRows, bodies: hubbed.bodies, selection: id === 'keyway' ? sel({ faces: [boreOf()] }) : sel({ bodies: [hubbed.bodies.findIndex(b => b.ref?.node === 0)] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
@@ -111,7 +111,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     }
     if (id === 'connector') {
       // (An opening takes one flat face and the user's connector rows: R12c.7, D162.)
-      const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', widthMM: 8.34, heightMM: 2.56, depthMM: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
+      const ctx: Ctx = { doc: { ...s.doc, connectors: { version: 1, rows: [{ id: 'u', opening: { shape: 'stadium', width: 8.34, height: 2.56, depth: 6.2 }, estimate: true }] } }, bodies: s.bodies, selection: sel({ faces: [{ body: 0, face: top.index }] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
@@ -139,7 +139,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     }
     if (id === 'oring-gland') {
       // (A gland takes one face and the user's O-ring rows loaded: R12c.5, D159.)
-      const ctx: Ctx = { doc: { ...fitted.doc, orings: { version: 1, rows: [{ id: '214', insideDiameterMM: 24.99, crossSectionMM: 3.53, estimate: true }] } }, bodies: fitted.bodies, selection: sel({ faces: [faceOf('n3.side0')] }) }, cmd = commandById(id)!;
+      const ctx: Ctx = { doc: { ...fitted.doc, orings: { version: 1, rows: [{ id: '214', insideDiameter: 24.99, crossSection: 3.53, estimate: true }] } }, bodies: fitted.bodies, selection: sel({ faces: [faceOf('n3.side0')] }) }, cmd = commandById(id)!;
       assert.ok(cmd.available(ctx).ok, id);
       assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values).filter(k => k !== 'h')), id);
       continue;
@@ -182,7 +182,7 @@ test('run_command applies the UI’s rules: availability reasons, value keys and
   assert.ok(!r.isError, r.content);
   const out = parse(r.content);
   assert.deepEqual(out.added, ['2: Hole Ø8']);
-  assert.ok(Math.abs(out.bodies[0].volume_mm3 - (64 * 32 * 8 - Math.PI * 16 * 8)) < 1e-3);
+  assert.ok(Math.abs(out.bodies[0].volume - (64 * 32 * 8 - Math.PI * 16 * 8)) < 1e-3);
   assert.ok(out.bodies[0].edges.some((e: any) => e.name === 'n1.side0|n1.side1' && e.line === 'along z'));
   assert.ok(out.bodies[0].faces.some((f: any) => f.name === 'n1.top' && f.normal[2] === 1));
 });
@@ -256,14 +256,14 @@ test('add_features checks nodes before the kernel; revolve and polygon profiles 
   assert.ok(r.isError); assert.match(parse(r.content).error, /Feature 2 of 2 \(would be index 3\)/); assert.equal(r.state, s);
   // A ring: a rectangle beside the sketch's Y axis turned a full revolution, then a triangular prism.
   r = await runTool(s, 'add_features', { features: [
-    { kind: 'sketch', profile: 'rectangle', min: [30, 0], max: [34, 6] }, { kind: 'revolve', sketch: 2, axis: 'y', angleDegrees: 360 },
+    { kind: 'sketch', profile: 'rectangle', min: [30, 0], max: [34, 6] }, { kind: 'revolve', sketch: 2, axis: 'y', angle: 360 },
     { kind: 'sketch', profile: 'polygon', points: [[0, 40], [10, 40], [0, 50]] }, { kind: 'extrude', sketch: 4, height: 3 },
   ] }, evaluate);
   assert.ok(!r.isError, r.content);
   assert.equal(r.state.bodies.length, 3);
   const ring = r.state.bodies.find(b => b.key === 'b3')!, prism = r.state.bodies.find(b => b.key === 'b5')!;
-  assert.ok(Math.abs(ring.volumeMM3! - Math.PI * (34 ** 2 - 30 ** 2) * 6) / ring.volumeMM3! < 1e-3, String(ring.volumeMM3));
-  assert.ok(Math.abs(prism.volumeMM3! - 150) < 1e-6);
+  assert.ok(Math.abs(ring.volume! - Math.PI * (34 ** 2 - 30 ** 2) * 6) / ring.volume! < 1e-3, String(ring.volume));
+  assert.ok(Math.abs(prism.volume! - 150) < 1e-6);
 });
 
 test('edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)', async () => {
@@ -379,7 +379,7 @@ test('the chat server runs the claude CLI with only the studio tools and streams
     JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'a hole.' } }, session_id: sid, parent_tool_use_id: null }),
     JSON.stringify({ type: 'assistant', message: { content: [{ type: 'text', text: 'Adding a hole.' }, { type: 'tool_use', id: 'toolu_1', name: 'mcp__cad__features', input: { action: 'command', command: 'hole', faces: ['n1.top'], values: { d: 8, x: 6, y: 6 } } }] }, session_id: sid }),
     () => writeFileSync(statePath, JSON.stringify({ doc: built, changed: true, selection: { faces: ['n1.top'], edges: [], bodies: [] } })),
-    JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: [{ type: 'text', text: JSON.stringify({ ok: true, did: 'Hole {"d":8,"x":6,"y":6}', bodies: [{ key: 'b2', volume_mm3: 15981.876 }] }) }] }] }, session_id: sid }),
+    JSON.stringify({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 'toolu_1', content: [{ type: 'text', text: JSON.stringify({ ok: true, did: 'Hole {"d":8,"x":6,"y":6}', bodies: [{ key: 'b2', volume: 15981.876 }] }) }] }] }, session_id: sid }),
     JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'Done.', session_id: sid }),
   ]);
   const work = scratch();
@@ -510,13 +510,13 @@ test('extrude_image_layer builds a relief: the silhouette base and colour layers
   let r = await runTool(s, 'extrude_image_layer', { layer: 'silhouette', width_mm: 60, height: 4 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const base = parse(r.content).bodies[0];
-  assert.ok(Math.abs(base.volume_mm3 - Math.PI * 30 ** 2 * 4) / (Math.PI * 30 ** 2 * 4) < 0.03, String(base.volume_mm3));
+  assert.ok(Math.abs(base.volume - Math.PI * 30 ** 2 * 4) / (Math.PI * 30 ** 2 * 4) < 0.03, String(base.volume));
   assert.deepEqual(base.bounds.min.map(Math.round), [0, 0, 0]); assert.deepEqual(base.bounds.max.map(Math.round), [60, 60, 4]);
   r = await runTool(s, 'extrude_image_layer', { layer: eyes.id, width_mm: 60, height: 1.5, base: 4 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;
   const eyeBody = parse(r.content).bodies.find((b: any) => b.key === 'b3');
   // Two eyes Ø6 (10 px of 140 px across 60 mm → r ≈ 4.3 mm), 1.5 thick, in the upper half, on top of the base.
-  assert.ok(Math.abs(eyeBody.volume_mm3 - 2 * Math.PI * (10 * 60 / 140) ** 2 * 1.5) / eyeBody.volume_mm3 < 0.15, String(eyeBody.volume_mm3));
+  assert.ok(Math.abs(eyeBody.volume - 2 * Math.PI * (10 * 60 / 140) ** 2 * 1.5) / eyeBody.volume < 0.15, String(eyeBody.volume));
   assert.equal(eyeBody.bounds.min[2], 4); assert.ok(eyeBody.bounds.min[1] > 30);
   r = await runTool(s, 'run_command', { command: 'union', bodies: ['b1', 'b3'] }, evaluate);
   assert.ok(!r.isError, r.content); assert.equal(r.state.bodies.length, 1);
@@ -541,7 +541,7 @@ test('inflate_image_layer rounds the silhouette into a 3D body and sets features
   assert.ok(Math.abs(body.bounds.max[0] - 60) < 0.5 && Math.abs(body.bounds.max[1] - 60) < 0.5, JSON.stringify(body.bounds));
   // Rounder than a slab of the same outline, fuller than a cone.
   const slab = Math.PI * 30 ** 2 * 24;
-  assert.ok(body.volume_mm3 > slab * 0.55 && body.volume_mm3 < slab * 0.85, String(body.volume_mm3 / slab));
+  assert.ok(body.volume > slab * 0.55 && body.volume < slab * 0.85, String(body.volume / slab));
   assert.match(parse((await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2 }, evaluate)).content).error, /body_depth/);
   r = await runTool(s, 'inflate_image_layer', { layer: id('#141414'), mode: 'bump', width_mm: 60, depth: 2, body_depth: 24 }, evaluate);
   assert.ok(!r.isError, r.content); s = r.state;

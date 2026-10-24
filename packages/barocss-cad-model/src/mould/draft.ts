@@ -15,13 +15,13 @@ export interface DraftFace {
   body: string; face: string; kind: 'plane' | 'cylinder' | 'surface' | 'facets';
   cls: DraftClass;
   /** The least and the greatest draft over the face's samples (degrees, signed by n·d). */
-  minDeg: number; maxDeg: number;
+  minDeg: number; max: number;
   /** The least |draft| (degrees): the steepest sample. */
   steepestDeg: number;
   /** Which way it releases: + along the pull, − against it, ± both (straddling), 0 neither (a wall along the pull, n·d 0 throughout). */
   side: '+' | '-' | '±' | '0';
   /** Its area, and the area whose triangle centres' exact |draft| is under the minimum (the display mesh's triangles). */
-  areaMM2: number; belowMM2: number;
+  area: number; belowMM2: number;
   /** Straddling: points of its isocline n·d = 0, on the exact surface (one per mesh edge it crosses). */
   isocline?: Vec3[];
 }
@@ -127,8 +127,8 @@ function bodyField(body: BodyResult, brep: Brep | undefined, d: Vec3, minDeg: nu
   for (const df of m.faces) {
     const f = df.index; if (!(area[f] > 0)) continue;
     const N = normals.get(f)!, pos = hi[f] > SIGN, neg = lo[f] < -SIGN, cls: DraftClass = pos && neg ? 'straddle' : steep[f] < sinMin - 1e-12 ? 'steep' : 'drafted';
-    const face: DraftFace = { body: body.key, face: df.name.split('+')[0], kind: N.kind, cls, minDeg: Math.asin(Math.max(-1, Math.min(1, lo[f]))) * DEG, maxDeg: Math.asin(Math.max(-1, Math.min(1, hi[f]))) * DEG,
-      steepestDeg: Math.asin(Math.min(1, steep[f])) * DEG, side: pos && neg ? '±' : pos ? '+' : neg ? '-' : '0', areaMM2: area[f], belowMM2: below[f] };
+    const face: DraftFace = { body: body.key, face: df.name.split('+')[0], kind: N.kind, cls, minDeg: Math.asin(Math.max(-1, Math.min(1, lo[f]))) * DEG, max: Math.asin(Math.max(-1, Math.min(1, hi[f]))) * DEG,
+      steepestDeg: Math.asin(Math.min(1, steep[f])) * DEG, side: pos && neg ? '±' : pos ? '+' : neg ? '-' : '0', area: area[f], belowMM2: below[f] };
     if (cls === 'straddle' && N.kind !== 'facets') face.isocline = isoclineOf(m, f, N, vdot, d);
     out.push(face);
   }

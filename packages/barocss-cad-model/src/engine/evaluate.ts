@@ -4,7 +4,7 @@ import { faceTableFrom, rememberFaceTable } from '../assembly/faces';
 import { fitNotes } from './fits';
 import { boughtOf, elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
-import { brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
+import { massPropertiesOf, reevaluate, exportStl, type CadPartOutput, brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
 import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
 import { lumpTouches } from './lumps';
 import { friendlyCause, type FriendlyError } from './errors';
@@ -27,10 +27,10 @@ function keyed(outputId: string, nodes: readonly ModelNode[]): { key: string; re
 }
 
 /** A volume found from the mesh, and how far it may be off (O179). */
-export interface VolumeBasis { method: 'tessellated'; boundMM3: number | null }
+export interface VolumeBasis { method: 'tessellated'; bound: number | null }
 /** The volume basis of the kernel's mass properties: a tessellated one's, with its bound; none for an exact method. */
-export function volumeBasisOf(m: { readonly method?: string; readonly volumeBoundMM3?: number }): VolumeBasis | undefined {
-  return m.method === 'tessellated' ? { method: 'tessellated', boundMM3: m.volumeBoundMM3 ?? null } : undefined;
+export function volumeBasisOf(m: { readonly method?: string; readonly volumeBound?: number }): VolumeBasis | undefined {
+  return m.method === 'tessellated' ? { method: 'tessellated', bound: m.volumeBound ?? null } : undefined;
 }
 export interface BodyResult {
   /** `b<k>` by the stable id of the feature that made it (engine/ids.ts); `ref`: that feature's node and side now. */
@@ -40,9 +40,9 @@ export interface BodyResult {
   family: string; mesh: DisplayMesh;
   /** 'infill' (O60): a print infill body (its node's role) — in the mass and 3MF, left out of STEP. */
   role?: 'infill';
-  volumeMM3: number | null; massG: number | null;
+  volume: number | null; mass: number | null;
   /**
-   * O18: the mass properties were deferred (deferMasses on): volumeMM3 and massG are null until they are worked out —
+   * O18: the mass properties were deferred (deferMasses on): volume and mass are null until they are worked out —
    * `massOfRef(massRef)` gives the fields this body would have carried. Absent: they are here (or the body has no volume).
    */
   massRef?: number;
@@ -52,16 +52,16 @@ export interface BodyResult {
    * Its surface area (mm²): the kernel's, over the exact surfaces as mass properties integrate them (`areaBasis`
    * 'exact'); the display mesh's triangles only where the kernel cannot (labelled 'display mesh', a little low on curves).
    */
-  areaMM2?: number; areaBasis?: 'exact' | 'display mesh';
+  area?: number; areaBasis?: 'exact' | 'display mesh';
   /**
    * O179 (the kernel's D200): how its volume was found when not exactly — 'tessellated', a curved body the quadrature
-   * could not integrate, from the mesh; `boundMM3` the volume's change from a mesh of half the segments (about three
+   * could not integrate, from the mesh; `bound` the volume's change from a mesh of half the segments (about three
    * times the error). Absent: exact (quadrature, planar or closed form). Its mass and centroid are as good.
    */
   volumeBasis?: VolumeBasis;
   /** Centre of mass (mm), with the volume (uniform density). */
   centroid?: [number, number, number];
-  /** Inertia about the centre of mass (kg·m², aluminium at 2700 kg/m³; scale by density for another material). */
+  /** Inertia about the centre of mass (g·mm², aluminium at 2.7 g/cm³; scale by density for another material). */
   inertia?: number[][];
   /** A body in several separate pieces (a cut right through it): how many. */
   pieces?: number;
@@ -90,7 +90,7 @@ export interface BodyResult {
   /** A frame member as a piece to cut (FR4a, D127): its axis length, long point, end cuts, volume. */
   cutPiece?: CutPiece;
   /** A sheet-metal body's rules (R12.3, D119: the studio writes them into a flange's relief, the kernel defaulting none). */
-  sheet?: { thicknessMM: number; bendRadiusMM: number; kFactor?: number; bendTable?: string };
+  sheet?: { thickness: number; bendRadius: number; kFactor?: number; bendTable?: string };
 }
 export type EvalResult =
   // (`faceTable`: the part's flat and round faces from the B-rep just built — the face table the requirement checks,
@@ -102,8 +102,8 @@ export type EvalResult =
 /** The main evaluation's rebuild (O10): the features built again and those reused, and each one's own cost (D228). */
 export interface RebuildData { evaluated: readonly string[]; reused: readonly string[]; profile: Readonly<Record<string, CadPartFeatureProfile>> }
 
-// (kg/m³, the kernel's massProperties argument: app/mass's KERNEL_DENSITY is the same aluminium in g/cm³.)
-const ALUMINIUM = 2700;
+// Density in g/cm³, matching app/mass.ts and the kernel MMGS boundary.
+const ALUMINIUM = 2.7;
 // The last successful evaluation: unchanged features are reused by the next one.
 let last: CadPartSnapshot | null = null;
 
@@ -115,7 +115,7 @@ const meshes = new WeakMap<Brep, Map<number, DisplayMesh>>();
 let sharing = false;
 /** The kept meshes handed out as they are (the worker's MeshSender copies what it sends); off: a copy each time. */
 export function shareMeshes(on: boolean): void { sharing = on; }
-const masses = new WeakMap<Brep, ReturnType<CadPartSnapshot['outputs'][number]['massProperties']> | null>();
+const masses = new WeakMap<Brep, ReturnType<typeof massPropertiesOf> | null>();
 // O18: deferred mass. With deferMasses on (the studio's worker) a body whose mass is not yet known carries a `massRef`
 // in place of its mass fields; massOfRef works them out on request, from the same cache, so they are the eager ones
 // byte for byte. A ref names its B-rep weakly: once nothing holds the B-rep (a later evaluation replaced it) it is gone.
@@ -124,21 +124,21 @@ let deferring = false;
 export function deferMasses(on: boolean): void { deferring = on; }
 const massRefs = new Map<number, WeakRef<Brep>>(), refOfBrep = new WeakMap<Brep, number>();
 let nextMassRef = 1;
-type MassProps = NonNullable<ReturnType<CadPartSnapshot['outputs'][number]['massProperties']>>;
+type MassProps = NonNullable<ReturnType<typeof massPropertiesOf>>;
 /** The body's mass fields from its mass properties (null: no positive volume). */
-function massFields(m: MassProps | null): Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> {
+function massFields(m: MassProps | null): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> {
   const basis = m ? volumeBasisOf(m) : undefined;
-  return m ? { volumeMM3: m.volumeMM3, massG: m.massKG * 1000, centroid: [m.centroidMM[0], m.centroidMM[1], m.centroidMM[2]] as [number, number, number], inertia: m.inertiaCentroidKgM2.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volumeMM3: null, massG: null };
+  return m ? { volume: m.volume, mass: m.mass, centroid: [m.centroid[0], m.centroid[1], m.centroid[2]] as [number, number, number], inertia: m.inertia.map(r => [...r]), ...(basis ? { volumeBasis: basis } : {}) } : { volume: null, mass: null };
 }
 /** A B-rep's mass properties, once (null: no positive volume). */
-function massOfBrep(o: { brep: Brep; massProperties(density: number): MassProps }): MassProps | null {
+function massOfBrep(o: CadPartOutput): MassProps | null {
   let m = masses.get(o.brep);
-  if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
+  if (m === undefined) { try { m = massPropertiesOf(o, ALUMINIUM); } catch { m = null; /* no positive volume */ } masses.set(o.brep, m); }
   return m;
 }
-/** The pending kernel outputs by B-rep (their massProperties is the output's own). */
-const pendingOutputs = new WeakMap<Brep, { brep: Brep; massProperties(density: number): MassProps }>();
-function deferredRef(o: { brep: Brep; massProperties(density: number): MassProps }): number {
+/** The pending kernel outputs by B-rep (the free mass function reads each output). */
+const pendingOutputs = new WeakMap<Brep, CadPartOutput>();
+function deferredRef(o: CadPartOutput): number {
   let r = refOfBrep.get(o.brep);
   if (r === undefined) { r = nextMassRef++; refOfBrep.set(o.brep, r); massRefs.set(r, new WeakRef(o.brep)); pendingOutputs.set(o.brep, o); }
   // (Refs whose B-rep is gone are dropped now and then, not on every body.)
@@ -149,7 +149,7 @@ function deferredRef(o: { brep: Brep; massProperties(density: number): MassProps
  * A deferred body's mass fields, as the evaluation would have given them (its placements applied, `massPlace`), or
  * undefined when its B-rep is gone.
  */
-export function massOfRef(ref: number, place: readonly { m: readonly number[]; t: readonly number[] }[] = []): Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> | undefined {
+export function massOfRef(ref: number, place: readonly { m: readonly number[]; t: readonly number[] }[] = []): Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> | undefined {
   const brep = massRefs.get(ref)?.deref(), o = brep && pendingOutputs.get(brep);
   return o ? placedMassFields(massFields(massOfBrep(o)), place) : undefined;
 }
@@ -168,9 +168,9 @@ function meshOf(brep: Brep, revision: number, quality: number): DisplayMesh {
   return { ...m, positions: m.positions.slice(), normals: m.normals.slice(), faceOfVertex: m.faceOfVertex.slice(), indices: m.indices.slice(), edgeLines: m.edgeLines.slice(), edgeOfSegment: m.edgeOfSegment.slice() };
 }
 /** The body's area fields: the kernel's exact area, else the display mesh's triangles, labelled. */
-function areaOf(A: number | null, brep: Brep, revision: number, quality: number): { areaMM2: number; areaBasis: 'exact' | 'display mesh' } {
-  if (A !== null) return { areaMM2: A, areaBasis: 'exact' };
-  return { areaMM2: meshOf(brep, revision, quality).faces.reduce((t, f) => t + f.areaMM2, 0), areaBasis: 'display mesh' };
+function areaOf(A: number | null, brep: Brep, revision: number, quality: number): { area: number; areaBasis: 'exact' | 'display mesh' } {
+  if (A !== null) return { area: A, areaBasis: 'exact' };
+  return { area: meshOf(brep, revision, quality).faces.reduce((t, f) => t + f.area, 0), areaBasis: 'display mesh' };
 }
 /** A sheet body's fields but its notes (those go in the body's one list). */
 function sheetFields(s: ReturnType<typeof sheetOf>): Omit<ReturnType<typeof sheetOf>, 'notes'> { const out = { ...s }; delete out.notes; return out; }
@@ -188,7 +188,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   const m = defer ? null : massOfBrep(o);
   let A = areas.get(o.brep);
   if (A === undefined) { try { A = brepSurfaceArea(o.brep); if (!Number.isFinite(A)) A = null; } catch { A = null; } areas.set(o.brep, A); }
-  const mass = defer ? { volumeMM3: null, massG: null, massRef: deferredRef(o) } : massFields(m);
+  const mass = defer ? { volume: null, mass: null, massRef: deferredRef(o) } : massFields(m);
   const at = keyed(o.id, doc.nodes), lib = at.ref ? doc.nodes[at.ref.node] : undefined;
   // (A library part: where it comes from, and its estimates and caveats, on the body.)
   const libNotes = lib?.kind === 'library' ? [{ text: `From ${lib.library.library} ${lib.library.version}: ${lib.library.part}${lib.library.variant ? ` (${lib.library.variant})` : ''}` }, ...lib.warnings.map(text => ({ text, warning: true })), ...fastenerLinkNotes(lib.library, fastenerSizesOf(doc)).map(text => ({ text, warning: true }))] : null;
@@ -209,12 +209,12 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.gusset ? gussetNotes(o.gusset) : []),
     ...(o.endCap ? endCapNotes(o.endCap) : []),
     ...(o.bead ? beadNotes(o.bead) : []),
-    ...(o.connectorBody ? [{ text: `Connector body for ${o.connectorBody.row}: seated in its opening, touching nothing of the panel (overlap ${+o.connectorBody.overlapMM3.toFixed(6)} mm³, by the Boolean); an envelope only` }] : []),
+    ...(o.connectorBody ? [{ text: `Connector body for ${o.connectorBody.row}: seated in its opening, touching nothing of the panel (overlap ${+o.connectorBody.overlap.toFixed(6)} mm³, by the Boolean); an envelope only` }] : []),
     ...(o.shaft ? shaftNotes(o.shaft) : []),
     ...(o.key || o.keyway || o.ring || o.pin ? shaftPartNotes(o) : []),
     ...(o.bearing ? bearingNotes(o.bearing) : []),
     ...(o.gland ? glandNotes(o.gland) : []),
-    ...(o.oring ? [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSectionMM.toFixed(4)} stretched; the free ring overlaps what squeezes it by ${+o.oring.overlapMM3.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] : []),
+    ...(o.oring ? [{ text: `O-ring ${o.oring.ring}, its section ${+o.oring.stretchedCrossSection.toFixed(4)} stretched; the free ring overlaps what squeezes it by ${+o.oring.overlap.toFixed(4)} mm³ (the squeeze's displaced volume, by the Boolean); its squeezed shape is not modelled`, warning: false }] : []),
     ...(o.bevelGear ? [...bevelGearNotes(o.bevelGear, node), ...bevelMeshNotes(o.bevelGearPlacement)] : []),
     ...(o.rack ? [...rackNotes(o.rack), ...rackMeshNotes(o.rackPlacement)] : []),
     ...(o.subd && o.subd.caps ? subdNotes(o.subd) : []),
@@ -225,13 +225,13 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   const element = elementOf(o, node);
   return { ...at, ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
     ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.bevelGear?.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}),
-    ...(o.subd && o.subd.caps ? { subd: o.subd } : {}), ...(sheet ? sheetFields(sheet) : {}), ...(o.member && m ? { cutPiece: cutPiece(o, { volumeMM3: m.volumeMM3 }) } : {}), ...(element ? { element } : {}) };
+    ...(o.subd && o.subd.caps ? { subd: o.subd } : {}), ...(sheet ? sheetFields(sheet) : {}), ...(o.member && m ? { cutPiece: cutPiece(o, { volume: m.volume }) } : {}), ...(element ? { element } : {}) };
 }
 
 /** The main part's evaluation profiles its features (O10; a reused snapshot keeps the option). */
 const PROFILED = { profile: true } as const;
 function snapshotOf(doc: StudioDoc): CadPartSnapshot {
-  return partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part, undefined, PROFILED));
+  return partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part, undefined, PROFILED));
 }
 const rebuildOf = (s: CadPartSnapshot): RebuildData | undefined => s.profile && { evaluated: s.recomputation.evaluated, reused: s.recomputation.reused, profile: s.profile };
 
@@ -290,8 +290,8 @@ const lastPreview: Record<'preview' | 'section', CadPartSnapshot | null> = { pre
 export function evaluatePreview(doc: StudioDoc, revision: number, quality = 8, slot: 'preview' | 'section' = 'preview'): EvalResult {
   const t0 = performance.now();
   try {
-    const last = lastPreview[slot], snapshot = partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
-    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volumeMM3: null, massG: null }));
+    const last = lastPreview[slot], snapshot = partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part, undefined, PREVIEW)); lastPreview[slot] = snapshot;
+    const bodies: BodyResult[] = snapshot.outputs.map(o => ({ ...keyed(o.id, doc.nodes), family: o.representation, mesh: meshOf(o.brep, revision, quality), volume: null, mass: null }));
     return { ok: true, revision, bodies, ms: performance.now() - t0 };
   } catch (cause) {
     lastPreview[slot] = null;
@@ -311,21 +311,21 @@ export function evaluatePart(doc: StudioDoc, revision: number, quality = 8, slot
   const t0 = performance.now();
   try {
     doc = skeletonsNow(doc);
-    const last = lastParts.get(slot), snapshot = partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
+    const last = lastParts.get(slot), snapshot = partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
     return partResult(doc, snapshot, revision, quality, shopRows, t0);
   } catch (cause) {
     return failed(revision, cause, t0);
   }
 }
 /** A part's bodies' volumes only (a clash probe's intersection): no mesh worked out or sent (PERF3 B12). */
-export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: FriendlyError } {
+export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok: true; volumes: { key: string; volume: number | null }[] } | { ok: false; error: FriendlyError } {
   try {
     doc = skeletonsNow(doc);
-    const last = lastParts.get(slot), snapshot = partSnapshot(doc, part => last ? last.withDocument(part) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
+    const last = lastParts.get(slot), snapshot = partSnapshot(doc, part => last ? reevaluate(last, { document: part }) : evaluateCadPart(part)); lastParts.set(slot, snapshot);
     return { ok: true, volumes: snapshot.outputs.map(o => {
       let m = masses.get(o.brep);
-      if (m === undefined) { try { m = o.massProperties(ALUMINIUM); } catch { m = null; } masses.set(o.brep, m); }
-      return { key: bodyKeyOf(o.id, doc.nodes), volumeMM3: m ? m.volumeMM3 : null };
+      if (m === undefined) { try { m = massPropertiesOf(o, ALUMINIUM); } catch { m = null; } masses.set(o.brep, m); }
+      return { key: bodyKeyOf(o.id, doc.nodes), volume: m ? m.volume : null };
     }) };
   } catch (cause) { return { ok: false, error: friendlyCause(cause) }; }
 }
@@ -340,8 +340,8 @@ export function evaluateVolumes(doc: StudioDoc, slot: PartSlot = 'probe'): { ok:
 export function evaluatePlaced(placed: StudioDoc, base: StudioDoc, place: { m: number[]; t: [number, number, number] }, revision: number, quality = 8): EvalResult {
   const t0 = performance.now();
   try {
-    const snapshot = partSnapshot(placed, part => lastPlaced ? lastPlaced.withDocument(part) : evaluateCadPart(part)); lastPlaced = snapshot;
-    const origin = partSnapshot(base, part => lastBase ? lastBase.withDocument(part) : evaluateCadPart(part)); lastBase = origin;
+    const snapshot = partSnapshot(placed, part => lastPlaced ? reevaluate(lastPlaced, { document: part }) : evaluateCadPart(part)); lastPlaced = snapshot;
+    const origin = partSnapshot(base, part => lastBase ? reevaluate(lastBase, { document: part }) : evaluateCadPart(part)); lastBase = origin;
     const bodies = snapshot.outputs.map(o => {
       // Weld records make derived bodies after placedDoc's authored transform nodes. They still need the
       // instance placement; use the exact origin output by id, rather than treating it as a moved member.
@@ -433,7 +433,7 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
   });
   const mesh = { ...src, positions, normals, edgeLines, faces, edges, bounds: { min, max } };
   const element = b.element?.kind === 'weld-bead' ? { ...b.element, report: { ...b.element.report,
-    sharedSeams: b.element.report.sharedSeams.map(s => ({ ...s, pathMM: [move(m, t, s.pathMM[0]), move(m, t, s.pathMM[1])] as const })) } } : b.element;
+    sharedSeams: b.element.report.sharedSeams.map(s => ({ ...s, path: [move(m, t, s.path[0]), move(m, t, s.path[1])] as const })) } } : b.element;
   return { ...b, mesh, ...placedMass(b, m, t), ...(b.massRef !== undefined ? { massPlace: [...(b.massPlace ?? []), { m: [...m], t: [...t] }] } : {}), ...(element ? { element } : {}) };
 }
 /** A body's centre of mass moved and its inertia turned by a placement (what it has of them). */
@@ -488,7 +488,7 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
 export function stlFor(doc: StudioDoc, key: string): Uint8Array | null {
   try {
     const output = snapshotOf(doc).outputs.find(o => bodyKeyOf(o.id, doc.nodes) === key);
-    return output ? output.exportStl() : null;
+    return output ? exportStl(output) : null;
   } catch { return null; }
 }
 
@@ -547,9 +547,9 @@ export function forgetSnapshots(): void { last = null; lastPreview.preview = nul
 /** Exact derived bead B-reps receive the same instance placement as the display path. No partition is recomputed. */
 function placedOutputs(inst: PartInstance, placed = placedDoc(inst), parent?: StudioDoc): CadPartSnapshot['outputs'] {
   const kept = placedKept.get(inst.id);
-  const snapshot = partSnapshot(placed, part => kept ? kept.placed.withDocument(part) : evaluateCadPart(part)), outputs = snapshot.outputs;
+  const snapshot = partSnapshot(placed, part => kept ? reevaluate(kept.placed, { document: part }) : evaluateCadPart(part)), outputs = snapshot.outputs;
   if (!outputs.some(o => o.bead)) { placedKept.set(inst.id, { placed: snapshot }); return outputs; }
-  const base = placedBase(inst, parent), origin = partSnapshot(base, part => kept?.origin ? kept.origin.withDocument(part) : evaluateCadPart(part)), { m, t } = placementOf(inst);
+  const base = placedBase(inst, parent), origin = partSnapshot(base, part => kept?.origin ? reevaluate(kept.origin, { document: part }) : evaluateCadPart(part)), { m, t } = placementOf(inst);
   placedKept.set(inst.id, { placed: snapshot, origin });
   return outputs.map(o => {
     if (!o.bead) return o;

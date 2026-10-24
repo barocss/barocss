@@ -22,7 +22,7 @@ const call = (s: ChatState, tool: string, args: object) => dispatchTool(s, tool,
 const ok = async (s: ChatState, tool: string, args: object) => { const r = await call(s, tool, args); assert.ok(!r.isError, `${tool}: ${r.content}`); return r; };
 const code = (content: string) => (/^\[([A-Z_]+)\]/.exec(JSON.parse(content).error ?? '') ?? [])[1];
 const near = (a: number, b: number, rel = 1e-6) => Math.abs(a - b) <= rel * Math.max(1, Math.abs(b));
-const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+const volume = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
 /** A drawing's sketch extruded 5 mm: the draft's profile as a solid. */
 async function extruded(s: ChatState) { return (await ok(s, 'add_features', { features: [{ kind: 'extrude', sketch: s.doc.nodes.length - 1, height: 5 }] })).state; }
 
@@ -49,7 +49,7 @@ test('our DXF writer\'s files (AC1015 and AC1009) read back to the same profile:
 
 test('a hand-written DXF in inches (LINE, ARC, CIRCLE, with a dimension left out and its text shown as underlay, O68): to mm, area by the closed form', async () => {
   const text = readFileSync(join(CASES, 'by-hand-inches.dxf'), 'utf8'), d = readDxfSketch(text);
-  assert.equal(d.unit.toMM, 25.4); assert.ok(d.unit.declared);
+  assert.equal(d.unit.to, 25.4); assert.ok(d.unit.declared);
   assert.deepEqual(d.ignored, { DIMENSION: 1 }); assert.deepEqual(d.underlay.counts, { TEXT: 1 });
   const r = await ok({ doc: emptyDoc(), bodies: [] }, 'import_drawing', { dxf: text, name: 'bracket' }), c = JSON.parse(r.content);
   assert.deepEqual(c.left_out, { DIMENSION: 1 });
@@ -106,13 +106,13 @@ test('a dimension confirmed at another value re-drives the features: the drawing
   // (The width at 120: the plate scaled ×2 about its corner — area ×4 — the height 80, the holes 16, unconfirmed again.)
   doc = confirmDimension(doc, 'F1.width', 120, 't2');
   let e = await evaluate(doc); assert.ok(e.ok);
-  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0), PLATE_AREA * 4 * 5 + 1), String(e.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0)));
+  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volume ?? 0), 0), PLATE_AREA * 4 * 5 + 1), String(e.bodies.reduce((v, b) => v + (b.volume ?? 0), 0)));
   const dims = readDrafts(doc.drafts).drafts[0].dims;
   assert.deepEqual(dims.map(x => [x.name, x.value, !!x.confirmed]), [['width', 120, true], ['height', 80, false], ['d1', 16, false], ['d2', 16, false]]);
   // (One hole at 10: only that loop, about its centre, now at (30, 40).)
   doc = confirmDimension(doc, 'F1.d1', 10, 't3'); e = await evaluate(doc); assert.ok(e.ok);
   const area = 120 * 80 - Math.PI * 25 - Math.PI * 64;
-  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0), area * 5 + 1), String(e.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0)));
+  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volume ?? 0), 0), area * 5 + 1), String(e.bodies.reduce((v, b) => v + (b.volume ?? 0), 0)));
   assert.throws(() => confirmDimension(doc, 'F1.d1', -1, 'x'), /BAD_VALUE/); assert.throws(() => confirmDimension(doc, 'F9.width', 1, 'x'), /NO_DRAFT/);
   void v0;
 });
@@ -135,10 +135,10 @@ test('an image draft: its width and thickness re-drive the relief (volume by clo
   s = (await ok(s, 'ask_user', { questions: [{ id: 'q1', text: 'How wide should it be?', kind: 'number', unit: 'mm', blocks: { dimension: 'F1.width' } }] })).state;
   const a = answerBatch(s.doc, { q1: 40 }, 'now'); assert.ok(!('error' in a), JSON.stringify(a));
   let e = await evaluate(a.doc); assert.ok(e.ok);
-  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0), A * 4 * 3), String(e.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0)));
+  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volume ?? 0), 0), A * 4 * 3), String(e.bodies.reduce((v, b) => v + (b.volume ?? 0), 0)));
   // (The thickness at 6: the extrusion's height.)
   const t = confirmDimension(a.doc, 'F1.thickness', 6, 'later'); e = await evaluate(t); assert.ok(e.ok);
-  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0), A * 4 * 6));
+  assert.ok(near(e.bodies.reduce((v, b) => v + (b.volume ?? 0), 0), A * 4 * 6));
   assert.equal(draftWarning(t), null);
   // (A confirmed dimension blocks nothing.)
   assert.equal(code((await call({ ...s, doc: { ...t, questions: undefined } }, 'ask_user', { questions: [{ id: 'q2', text: 'Width?', kind: 'number', blocks: { dimension: 'F1.width' } }] })).content), 'NOT_BLOCKING');

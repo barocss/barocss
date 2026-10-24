@@ -18,7 +18,7 @@ export function sectionTableRows(table: unknown): { rows: FrameSectionRow[] } | 
     // a legacy channel's absent optional fields intact; neither a catalogue size nor a slope is inferred here.
     const flanged = t.kind === 'i-beam' || t.kind === 'channel' ? lookupSection(t, size) : undefined;
     // (A T-slot's own size dimension is `sizeMM` in a table: the row's name is `size`.)
-    const section = (flanged && 'spec' in flanged ? flanged.spec : t.kind === 'tslot' ? (() => { const { sizeMM, ...rest } = dims; return { kind: t.kind, size: sizeMM, ...rest }; })() : { kind: t.kind, ...dims }) as FrameSectionRow['section'];
+    const section = (flanged && 'spec' in flanged ? flanged.spec : t.kind === 'tslot' ? (() => { const { size, ...rest } = dims; return { kind: t.kind, size: size, ...rest }; })() : { kind: t.kind, ...dims }) as FrameSectionRow['section'];
     const src = source ?? (estimate ? undefined : t.source);
     return { id: `${t.id}:${size}`, name: `${label} ${size}`, section, ...(src ? { source: src } : { estimate: true as const }) };
   }) };

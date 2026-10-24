@@ -24,8 +24,8 @@ export interface PrintLayers {
   /** Model → bed, column-major: the turn taking the direction to +Z, then down onto the bed. */
   modelToBed: number[];
   layerMM: { mm: number; basis: 'set' | 'estimate' };
-  limitDeg: { deg: number; basis: 'set' | 'estimate' };
-  count: number; heightMM: number;
+  limit: { deg: number; basis: 'set' | 'estimate' };
+  count: number; height: number;
   supportColumns: SupportColumn[];
   supportVolumeMM3: number;
   /** The contours are the display meshes' (to their chord), not the exact surfaces'. */
@@ -101,8 +101,8 @@ export function printLayers(meshes: readonly DisplayMesh[], o: { layerHeight?: n
   };
   return {
     version: PRINT_LAYERS_VERSION, direction, directionSource: o.direction ? 'given' : 'default', modelToBed,
-    layerMM: { mm: h, basis: o.layerHeight !== undefined ? 'set' : 'estimate' }, limitDeg: { deg: limit, basis: o.overhangLimit !== undefined ? 'set' : 'estimate' },
-    count, heightMM: top, supportColumns: columns, supportVolumeMM3: supportVolume, basis: 'display mesh', layer,
+    layerMM: { mm: h, basis: o.layerHeight !== undefined ? 'set' : 'estimate' }, limit: { deg: limit, basis: o.overhangLimit !== undefined ? 'set' : 'estimate' },
+    count, height: top, supportColumns: columns, supportVolumeMM3: supportVolume, basis: 'display mesh', layer,
   };
 }
 

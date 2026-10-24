@@ -60,17 +60,17 @@ test('R12b.7 the planetary set by the agent: a ring of 60, three planets of 18 a
   near(sun.center, [0, 0], 1e-12, 'the sun on the ring\'s axis');
   // Diameters by the shifted standard proportions: tip m(z + 2 + 2x), root m(z − 2.5 + 2x); the ring's tip (inside) m(z − 2 + 2x2).
   const dims = (id: string) => out(snap, id).gear!.dimensions;
-  near([dims('n1').tipDiameterMM, dims('n1').rootDiameterMM], [m * (zp + 2), m * (zp - 2.5)], 1e-12, 'planet');
-  near([dims('n4').tipDiameterMM, dims('n4').rootDiameterMM], [m * (zs + 2 + 2 * xs), m * (zs - 2.5 + 2 * xs)], 1e-12, 'sun');
-  close(out(snap, 'n0').internalGear!.dimensions.tipDiameterMM, m * (zr - 2 + 2 * x2), 1e-12, 'ring tip');
+  near([dims('n1').tipDiameter, dims('n1').rootDiameter], [m * (zp + 2), m * (zp - 2.5)], 1e-12, 'planet');
+  near([dims('n4').tipDiameter, dims('n4').rootDiameter], [m * (zs + 2 + 2 * xs), m * (zs - 2.5 + 2 * xs)], 1e-12, 'sun');
+  close(out(snap, 'n0').internalGear!.dimensions.tipDiameter, m * (zr - 2 + 2 * x2), 1e-12, 'ring tip');
   // Every pair by the full sweep of the exact profiles as placed: touching at no backlash, never crossing.
   function pairs(s: CadPartSnapshot): number[] {
     const R = out(s, 'n0').internalGearPlacement!, S = out(s, 'n4').gearPlacement!, least: number[] = [];
     for (const id of ['n1', 'n2', 'n3']) {
       const P = out(s, id).gearPlacement!, inside = checkPlacedInternalGears(R, P, { mode: 'report' }), outside = checkPlacedSpurGears(S, P, { mode: 'report' });
-      assert.ok(!inside.sweep.interference && !outside.sweep.interference, `${id}: ${inside.sweep.minimumClearanceMM}, ${outside.sweep.minimumClearanceMM}`);
-      close(inside.centerDistanceMM, aw, 1e-12, `${id} in the ring`); close(outside.centerDistanceMM, aw, 1e-12, `${id} on the sun`);
-      least.push(inside.sweep.minimumClearanceMM, outside.sweep.minimumClearanceMM);
+      assert.ok(!inside.sweep.interference && !outside.sweep.interference, `${id}: ${inside.sweep.minimumClearance}, ${outside.sweep.minimumClearance}`);
+      close(inside.centerDistance, aw, 1e-12, `${id} in the ring`); close(outside.centerDistance, aw, 1e-12, `${id} on the sun`);
+      least.push(inside.sweep.minimumClearance, outside.sweep.minimumClearance);
     }
     return least;
   }
@@ -87,11 +87,11 @@ test('R12b.7 the planetary set by the agent: a ring of 60, three planets of 18 a
   close(out(turned, 'n4').gearPlacement!.rotation - sun.rotation, -d * zr / zs, 1e-12, 'sun turned');
   for (const c of pairs(turned)) assert.ok(c >= 0, 'clear turned');
   // Each body is its gear as built alone, placed rigidly; the conformance case pins them.
-  const alone = [brepMassProperties(internalGear(out(snap, 'n0').internalGearPlacement!.spec).brep, 1).volumeMM3, ...['n1', 'n2', 'n3', 'n4'].map(id => brepMassProperties(spurGear(out(snap, id).gearPlacement!.spec).brep, 1).volumeMM3)];
-  bodies.forEach((b, k) => close(b.volumeMM3!, alone[k], 1e-9, `body ${k}`));
+  const alone = [brepMassProperties(internalGear(out(snap, 'n0').internalGearPlacement!.spec).brep, 1).volume, ...['n1', 'n2', 'n3', 'n4'].map(id => brepMassProperties(spurGear(out(snap, id).gearPlacement!.spec).brep, 1).volume)];
+  bodies.forEach((b, k) => close(b.volume!, alone[k], 1e-9, `body ${k}`));
   const centres = [[0, 0], ...planets.map(p => p.center), [0, 0]];
   caseFile('accept-planetary', state.doc, 'R12b.7 acceptance: the planetary set the agent builds (apps/cad-studio/test/fixtures/gear-planetary.calls.json) — module 2, a ring of 60 (x2 0.5, the root of a 24-tooth pinion cutter), three planets of 18 at 0°, 120° and 240°, a sun of 24 (x 0.5) meshing with the first planet, all 15 wide.',
-    { outputs: bodies.map((b, k) => ({ volumeMM3: { value: r6(b.volumeMM3!), relTol: 1e-6 }, centroidMM: { value: [r6(centres[k][0]), r6(centres[k][1]), 7.5], absTol: 1e-6 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })), stepRoundTrip: { relTol: 1e-6 } },
+    { outputs: bodies.map((b, k) => ({ volume: { value: r6(b.volume!), relTol: 1e-6 }, centroid: { value: [r6(centres[k][0]), r6(centres[k][1]), 7.5], absTol: 1e-6 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })), stepRoundTrip: { relTol: 1e-6 } },
     `Closed forms: the working centre distance (zΣ m/2) cos α / cos α_w with inv α_w = 2 tan α xΣ/zΣ + inv α, the same ${r6(aw)} mm for the ring with a planet (42, 0.5) and the sun with one (42, 0.5); the planets there at 0°, 120°, 240°, the sun on the ring's axis; zr = zs + 2zp, (zs + zr)/3 = 28. Volumes: each gear's as in its own stage's cases (r12b-internal-*, r12b-generated-*), by this kernel.`);
 });
 
@@ -103,9 +103,9 @@ test('R12b.7 the right-angle bevel pair by the agent: m3 z20 and z40 at Σ 90° 
   const snap = evaluateCadPart(toPartDocument(state.doc)), P = out(snap, 'n0'), W = out(snap, 'n1'), pp = P.bevelGearPlacement!, wp = W.bevelGearPlacement!;
   [[P.bevelGear!.dimensions, d1, z1], [W.bevelGear!.dimensions, d2, z2]].forEach(([g, delta, z], k) => {
     const dim = g as NonNullable<typeof P.bevelGear>['dimensions'], dl = delta as number;
-    close(dim.pitchAngleDeg, dl / DEG, 1e-12, `δ${k + 1}`); close(dim.coneDistanceMM, Re, 1e-12, 'Re'); close(dim.innerConeDistanceMM, Re - b, 1e-12, 'Ri');
-    close(dim.referenceDiameterMM, m * (z as number), 1e-12, 'd'); close(dim.addendumAngleDeg, ta / DEG, 1e-12, 'θa'); close(dim.dedendumAngleDeg, tf / DEG, 1e-12, 'θf');
-    close(dim.tipDiameterAtHeelMM, 2 * Re * Math.sin(dl + ta), 1e-12, 'tip at the heel'); close(dim.rootDiameterAtHeelMM, 2 * Re * Math.sin(dl - tf), 1e-12, 'root at the heel');
+    close(dim.pitchAngle, dl / DEG, 1e-12, `δ${k + 1}`); close(dim.coneDistance, Re, 1e-12, 'Re'); close(dim.innerConeDistance, Re - b, 1e-12, 'Ri');
+    close(dim.referenceDiameter, m * (z as number), 1e-12, 'd'); close(dim.addendumAngle, ta / DEG, 1e-12, 'θa'); close(dim.dedendumAngle, tf / DEG, 1e-12, 'θf');
+    close(dim.tipDiameterAtHeel, 2 * Re * Math.sin(dl + ta), 1e-12, 'tip at the heel'); close(dim.rootDiameterAtHeel, 2 * Re * Math.sin(dl - tf), 1e-12, 'root at the heel');
   });
   // One apex, the axes square; the pinion stands on Z 0 by its toe's tip edge, Ri cos(δ1 + θa) from the apex.
   near(wp.apex, pp.apex, 1e-12, 'one apex'); near(pp.axis, [0, 0, 1], 1e-15, 'pinion axis'); near(wp.axis, [1, 0, 0], 1e-15, 'the mate toward 0°');
@@ -115,18 +115,18 @@ test('R12b.7 the right-angle bevel pair by the agent: m3 z20 and z40 at Σ 90° 
   const tredgold = (Math.sqrt(rav[0] ** 2 - rbv[0] ** 2) + Math.sqrt(rav[1] ** 2 - rbv[1] ** 2) - (rv[0] + rv[1]) * Math.sin(ALPHA)) / (Math.PI * m * Math.cos(ALPHA));
   function check(s: CadPartSnapshot) {
     const c = checkPlacedBevelGears(out(s, 'n0').bevelGearPlacement!, out(s, 'n1').bevelGearPlacement!, { mode: 'report' });
-    assert.ok(!c.sweep.interference && c.sweep.minimumClearanceMM >= 0 && c.sweep.minimumClearanceMM < 1e-3 + c.sweep.chordSagMM, JSON.stringify(c.sweep));
+    assert.ok(!c.sweep.interference && c.sweep.minimumClearance >= 0 && c.sweep.minimumClearance < 1e-3 + c.sweep.chordSag, JSON.stringify(c.sweep));
     return c;
   }
   const c = check(snap);
-  close(c.speedRatio, z2 / z1, 1e-15, 'ratio'); close(c.shaftAngleDeg, 90, 1e-12, 'Σ'); close(c.tredgoldContactRatio, tredgold, 1e-9, 'Tredgold');
+  close(c.speedRatio, z2 / z1, 1e-15, 'ratio'); close(c.shaftAngle, 90, 1e-12, 'Σ'); close(c.tredgoldContactRatio, tredgold, 1e-9, 'Tredgold');
   assert.ok(Math.abs(c.idealContactRatio - tredgold) < 0.01 * tredgold, `${c.idealContactRatio} beside ${tredgold}`);
   // Turned: the pinion 9°, its mate 4.5° — and still clear.
   const turned = evaluateCadPart(toPartDocument({ ...state.doc, nodes: state.doc.nodes.map((n, k) => k === 0 ? { ...n, rotation: 9 } as typeof n : n) }));
   close(Math.abs(out(turned, 'n1').bevelGearPlacement!.rotation - wp.rotation), 9 * DEG * z1 / z2, 1e-12, 'the mate turned');
   check(turned);
   caseFile('accept-bevel-pair', state.doc, 'R12b.7 acceptance: the right-angle straight bevel pair the agent builds (apps/cad-studio/test/fixtures/gear-bevel-pair.calls.json) — module 3 at the heel, 20 and 40 teeth, face width 18, bores 12 and 20, the pinion\'s toe on Z 0.',
-    { outputs: bodies.map(x => ({ volumeMM3: { value: r6(x.volumeMM3!), relTol: 1e-6 }, centroidMM: { value: x.centroid!.map(r6), absTol: 1e-5 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })), stepRoundTrip: { relTol: 1e-6 } },
+    { outputs: bodies.map(x => ({ volume: { value: r6(x.volume!), relTol: 1e-6 }, centroid: { value: x.centroid!.map(r6), absTol: 1e-5 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })), stepRoundTrip: { relTol: 1e-6 } },
     `Closed forms: δ1 = atan(z1/z2) = ${r6(d1 / DEG)}°, δ2 = 90° − δ1, Re = m z1/(2 sin δ1) = ${r6(Re)} mm, θa = atan(m/Re), θf = atan(1.25 m/Re), the apex ${r6((Re - b) * Math.cos(d1 + ta))} mm below Z 0; the mate's axis along +X through it. Volumes and centroids by this kernel (as r12b-bevel-* for their solids).`);
 });
 
@@ -137,17 +137,17 @@ test('R12b.7 the worm reducer by the agent: a single-start ZA worm m_x 3 Ø44 an
   const a = (d1 + m * z2) / 2, d2 = m * z2, gamma = Math.atan(z1 * m / d1), Rt = a - d2 / 2 - m, Rh = d1 / 2 + m + 0.25 * m, c = b / 2;
   const snap = evaluateCadPart(toPartDocument(state.doc)), Wh = out(snap, 'n0'), Wo = out(snap, 'n1'), wheel = Wh.wormWheelPlacement!, worm = Wo.wormPlacement!;
   const w = Wo.worm!.dimensions, g = Wh.wormWheel!.dimensions;
-  close(w.leadAngleDeg, gamma / DEG, 1e-12, 'γ'); close(w.leadMM, Math.PI * m * z1, 1e-12, 'lead'); close(w.axialPressureAngleDeg!, Math.atan(Math.tan(ALPHA) / Math.cos(gamma)) / DEG, 1e-12, 'α_x');
-  near([w.tipDiameterMM, w.rootDiameterMM], [d1 + 2 * m, d1 - 2.5 * m], 1e-12, 'worm');
-  near([g.centerDistanceMM, g.referenceDiameterMM, g.throatDiameterMM, g.throatRadiusMM, g.rootDiameterMM], [a, d2, d2 + 2 * m, Rt, 2 * (a - Rh)], 1e-12, 'wheel');
+  close(w.leadAngle, gamma / DEG, 1e-12, 'γ'); close(w.lead, Math.PI * m * z1, 1e-12, 'lead'); close(w.axialPressureAngle!, Math.atan(Math.tan(ALPHA) / Math.cos(gamma)) / DEG, 1e-12, 'α_x');
+  near([w.tipDiameter, w.rootDiameter], [d1 + 2 * m, d1 - 2.5 * m], 1e-12, 'worm');
+  near([g.centerDistance, g.referenceDiameter, g.throatDiameter, g.throatRadius, g.rootDiameter], [a, d2, d2 + 2 * m, Rt, 2 * (a - Rh)], 1e-12, 'wheel');
   // At the faces, c = b/2 off the mid-plane: the tip on the throat torus, a − √(R_t² − c²); the root on the hob crest's, a − √(R_h² − c²).
-  near([g.tipDiameterAtFacesMM, g.rootDiameterAtFacesMM], [2 * (a - Math.sqrt(Rt ** 2 - c ** 2)), 2 * (a - Math.sqrt(Rh ** 2 - c ** 2))], 1e-12, 'at the faces');
+  near([g.tipDiameterAtFaces, g.rootDiameterAtFaces], [2 * (a - Math.sqrt(Rt ** 2 - c ** 2)), 2 * (a - Math.sqrt(Rh ** 2 - c ** 2))], 1e-12, 'at the faces');
   // The worm square to the wheel's axis in its mid-plane, its middle at a on the line of centres.
-  const L = Wo.worm!.dimensions.lengthMM, mid = worm.origin.map((v, k) => v + worm.axis[k] * L / 2);
+  const L = Wo.worm!.dimensions.length, mid = worm.origin.map((v, k) => v + worm.axis[k] * L / 2);
   near(mid, [a, 0, c], 1e-12, 'the worm\'s middle'); close(worm.axis[2], 0, 1e-15, 'square to the wheel\'s axis'); close(worm.axis[0], 0, 1e-15, 'square to the line of centres');
   function check(s: CadPartSnapshot) {
     const r = checkPlacedThroatedPair(out(s, 'n0').wormWheelPlacement!, out(s, 'n1').wormPlacement!, { mode: 'report', samples: 16 });
-    assert.ok(!r.interference && r.planes.length === 5 && r.planes.every(p => !p.interference && p.minimumClearanceMM <= r.touchMM), JSON.stringify(r.planes));
+    assert.ok(!r.interference && r.planes.length === 5 && r.planes.every(p => !p.interference && p.minimumClearance <= r.touch), JSON.stringify(r.planes));
     return r;
   }
   close(check(snap).speedRatio, z2 / z1, 1e-15, 'ratio');
@@ -157,6 +157,6 @@ test('R12b.7 the worm reducer by the agent: a single-start ZA worm m_x 3 Ø44 an
   check(turned);
   close(wheel.rotation, 0, 0, 'the wheel as placed');
   caseFile('accept-worm-reducer', state.doc, 'R12b.7 acceptance: the worm reducer the agent builds (apps/cad-studio/test/fixtures/gear-worm-reducer.calls.json) — a single-start right-hand ZA worm, axial module 3, Ø44, bored 12, and its throated wheel of 30 teeth, 20 wide, bored 20: 30 : 1.',
-    { outputs: bodies.map((x, k) => ({ volumeMM3: { value: r6(x.volumeMM3!), relTol: 2e-6 }, centroidMM: { value: k ? x.centroid!.map(r6) : [0, 0, c], absTol: k ? 1e-5 : 1e-6 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })) },
+    { outputs: bodies.map((x, k) => ({ volume: { value: r6(x.volume!), relTol: 2e-6 }, centroid: { value: k ? x.centroid!.map(r6) : [0, 0, c], absTol: k ? 1e-5 : 1e-6 }, bodies: 1, topology: [{ shells: 1, genus: 1 }] })) },
     `Closed forms: a = (d1 + m z2)/2 = ${a}, the worm's middle there in the wheel's mid-plane Z ${c}, its axis along Y; γ = atan(z1 m/d1), the lead π m z1; the throat d2 + 2m, R_t = a − d2/2 − m. Volumes by this kernel, as r12b-worm-wheel-pair for its wheel; the worm's centroid by this kernel (off its middle by the thread's ends, 1.6e-3 mm).`);
 });

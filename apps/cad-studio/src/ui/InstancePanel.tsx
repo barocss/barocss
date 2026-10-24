@@ -15,7 +15,7 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, o
   shared?: number; pending?: { rev: string; name: string };
   onIndependent?(): void; onRevision?(file: File): void; onAccept?(): void; onDismiss?(): void;
 }) {
-  const volume = bodies?.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+  const volume = bodies?.reduce((v, b) => v + (b.volume ?? 0), 0);
   return (
     <aside className="card props" aria-label="Instance">
       <div className="card-title">PART INSTANCE</div>

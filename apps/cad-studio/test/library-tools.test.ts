@@ -58,7 +58,7 @@ test('the acceptance flow through the agent tools: list the T-slot library, inse
   const again = (read as { doc: StudioDoc }).doc;
   for (const id of ['p1', 'p2']) {
     const [x, y] = await Promise.all([evaluate(s.doc.instances!.find(i => i.id === id)!.doc), evaluate(again.instances!.find(i => i.id === id)!.doc)]);
-    assert.ok(x?.ok && y?.ok && Math.abs(x.bodies[0].volumeMM3! - y.bodies[0].volumeMM3!) < 1e-9);
+    assert.ok(x?.ok && y?.ok && Math.abs(x.bodies[0].volume! - y.bodies[0].volume!) < 1e-9);
   }
   assert.equal(again.mates!.length, 1);
 });

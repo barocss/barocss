@@ -8,7 +8,7 @@ import { placementOf } from '../src/engine/placement';
 // massOfRef gives the fields the eager evaluation gives, byte for byte — a placed copy's moved and turned with it. A
 // body whose B-rep's mass is already known keeps it inline; a member never defers (its cut piece needs its volume).
 
-const MASS = ['volumeMM3', 'massG', 'centroid', 'inertia', 'volumeBasis'] as const;
+const MASS = ['volume', 'mass', 'centroid', 'inertia', 'volumeBasis'] as const;
 const fields = (b: Partial<BodyResult>) => JSON.stringify(Object.fromEntries(MASS.filter(k => b[k] !== undefined).map(k => [k, b[k]])));
 const inst = (id: string, doc: StudioDoc, position: [number, number, number], rotation: [number, number, number]): PartInstance => ({ id, name: id, doc, position, rotation });
 const placed = (i: PartInstance, root: StudioDoc) => { const r = evaluatePlaced(placedDoc(i, root), placedBase(i, root), placementOf(i), 1); assert.ok(r.ok); return r.bodies; };
@@ -18,7 +18,7 @@ function both(run: () => BodyResult[]) {
   forgetSnapshots(); deferMasses(true);
   let deferred: BodyResult[];
   try { deferred = run(); } finally { deferMasses(false); }
-  const asked = deferred.map(b => { assert.equal(b.volumeMM3, null); assert.equal(b.massG, null); assert.ok(b.massRef !== undefined, b.key); return fields(massOfRef(b.massRef!, b.massPlace)!); });
+  const asked = deferred.map(b => { assert.equal(b.volume, null); assert.equal(b.mass, null); assert.ok(b.massRef !== undefined, b.key); return fields(massOfRef(b.massRef!, b.massPlace)!); });
   forgetSnapshots();
   return { asked, eager: run().map(fields), deferred };
 }
@@ -38,7 +38,7 @@ test('O18: a deferred body\'s mass on request equals the eager evaluation\'s, a 
 test('O18: a B-rep whose mass is known keeps it inline; deferMasses off changes nothing', () => {
   const rod = cylinderPart(5, 30);
   forgetSnapshots(); const eager = part(rod);
-  assert.equal(eager[0].massRef, undefined); assert.ok(eager[0].volumeMM3! > 0);
+  assert.equal(eager[0].massRef, undefined); assert.ok(eager[0].volume! > 0);
   deferMasses(true);
   try { const again = part(rod); assert.equal(again[0].massRef, undefined, 'the reused B-rep\'s mass is known'); assert.equal(fields(again[0]), fields(eager[0])); }
   finally { deferMasses(false); }

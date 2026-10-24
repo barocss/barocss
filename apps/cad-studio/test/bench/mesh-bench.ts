@@ -48,7 +48,7 @@ const facets = process.env.MESH_REP === 'facets';
 const brep = welded && (facets
   ? step('facetBrepFromTriangles', () => facetBrepFromTriangles(welded.positions, welded.indices, { id: 'm', maximumTriangles: 4_000_000 }), b => ({ faces: b.faces.length, edges: b.edges.length, vertices: b.vertices.length }))
   : step('brepFromTriangles', () => brepFromTriangles(welded.positions, welded.indices, { id: 'm', maximumTriangles: 4_000_000 }), b => ({ faces: b.faces.length, edges: b.edges.length, vertices: b.vertices.length })));
-if (brep && facets) step('mass (exact, facets)', () => brepMassProperties(brep, 1000), m => ({ volume: +m.volumeMM3.toFixed(3), method: m.method }));
+if (brep && facets) step('mass (exact, facets)', () => brepMassProperties(brep, 1000), m => ({ volume: +m.volume.toFixed(3), method: m.method }));
 const display: DisplayMesh | undefined = brep ? step('display mesh (bodyMesh)', () => bodyMesh(brep, 0, 8), m => ({ triangles: m.indices.length / 3, vertices: m.positions.length / 3, faces: m.faces.length, edgeSegments: m.edgeLines.length / 6 })) : (skip('display mesh (bodyMesh)', 'no B-rep'), undefined);
 let gpu: PreparedGeometry | undefined;
 if (display) {
@@ -75,7 +75,7 @@ if (brep && booleans !== 'none') {
   const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
   for (let v = 0; v < xs.length; v += 3) for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], xs[v + k]); hi[k] = Math.max(hi[k], xs[v + k]); }
   const mid = [0, 1, 2].map(k => (lo[k] + hi[k]) / 2), span = [0, 1, 2].map(k => hi[k] - lo[k]);
-  if (booleans !== 'split') step('union with a box', () => booleanPolyhedra(b, boxBrep('box', [hi[0] - 0.15 * span[0], mid[1] - 0.1 * span[1], mid[2] - 0.6 * span[2]], [hi[0] + 0.1 * span[0], mid[1] + 0.1 * span[1], mid[2] + 0.6 * span[2]]), 'union', { id: 'u' }), r => ({ faces: r.faces.length, volume: +brepMassProperties(r, 1000).volumeMM3.toFixed(2) }));
-  if (booleans !== 'union') step('split at y = mid (one side)', () => booleanPolyhedra(b, boxBrep('half', [lo[0] - 1, mid[1] + 1e-3 * span[1], lo[2] - 1], [hi[0] + 1, hi[1] + 1, hi[2] + 1]), 'difference', { id: 's' }), r => ({ faces: r.faces.length, volume: +brepMassProperties(r, 1000).volumeMM3.toFixed(2) }));
+  if (booleans !== 'split') step('union with a box', () => booleanPolyhedra(b, boxBrep('box', [hi[0] - 0.15 * span[0], mid[1] - 0.1 * span[1], mid[2] - 0.6 * span[2]], [hi[0] + 0.1 * span[0], mid[1] + 0.1 * span[1], mid[2] + 0.6 * span[2]]), 'union', { id: 'u' }), r => ({ faces: r.faces.length, volume: +brepMassProperties(r, 1000).volume.toFixed(2) }));
+  if (booleans !== 'union') step('split at y = mid (one side)', () => booleanPolyhedra(b, boxBrep('half', [lo[0] - 1, mid[1] + 1e-3 * span[1], lo[2] - 1], [hi[0] + 1, hi[1] + 1, hi[2] + 1]), 'difference', { id: 's' }), r => ({ faces: r.faces.length, volume: +brepMassProperties(r, 1000).volume.toFixed(2) }));
 } else if (booleans !== 'none') { skip('union with a box', 'no B-rep'); skip('split at y = mid (one side)', 'no B-rep'); }
 console.log(JSON.stringify({ step: 'end', ok: true, info: true, peakHeapMB: Math.round(peakHeap / 2 ** 20), maxRSSMB: Math.round(process.resourceUsage().maxRSS / 1024) }));

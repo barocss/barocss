@@ -40,7 +40,7 @@ const READ: Record<string, JsonSchema | null> = {
   // (FR4a, D127: a frame's cut list.)
   cut_list: o({ rows: arr, totals: obj, densities: str, nesting: obj, csv: str }, ['rows', 'totals', 'densities', 'nesting']),
   // (D155: a hole–shaft fit.)
-  fit_clearance: o({ kind: str, clearanceMinUM: num, clearanceMaxUM: num, estimate: bool, hole: obj, shaft: obj, offsetMM: num, lengthMM: num, marginMM: num, mmc: obj, lmc: obj, contradicted: bool, message: str }, ['kind', 'clearanceMinUM', 'clearanceMaxUM', 'estimate', 'hole', 'shaft']),
+  fit_clearance: o({ kind: str, clearanceMinUM: num, clearanceMaxUM: num, estimate: bool, hole: obj, shaft: obj, offset: num, length: num, margin: num, mmc: obj, lmc: obj, contradicted: bool, message: str }, ['kind', 'clearanceMinUM', 'clearanceMaxUM', 'estimate', 'hole', 'shaft']),
   // (FRd1, O118: a frame's welds.)
   weld_list: o({ joints: arr, totals: obj, orphaned: arr, notes: arr }, ['joints', 'totals', 'orphaned', 'notes']),
   rebuild_report: o({ revision: str, evaluation: num, basis: str, evaluationMs: num, features: arr, built: num, builtMs: num, slowest: { type: ['string', 'null'] }, reused: num, mates: arr, loops: arr, limits: str }, ['revision', 'basis', 'evaluationMs', 'features', 'built', 'builtMs', 'slowest', 'reused', 'mates', 'loops', 'limits']),

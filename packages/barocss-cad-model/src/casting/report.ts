@@ -109,16 +109,16 @@ export function castability(doc: StudioDoc, bodies: readonly BodyResult[], profi
   // IM8c (O109): where it freezes last (the distance field's hot spots), whether each is fed from the gate, and how steep its section changes are.
   const sol = bodies.length ? solidification(bodies, doc.casting?.gate ?? null) : null;
   if (!sol || !sol.hotSpots.length) rules.push({ id: 'hot-spots', level: 'recommended', status: 'unknown', message: 'where the casting freezes last', why: sol ? 'no hot spot resolved on the grid' : 'no body' });
-  else { const big = sol.hotSpots[0]; rules.push({ id: 'hot-spots', level: 'recommended', status: 'pass', message: `${sol.hotSpots.length} hot spot${sol.hotSpots.length === 1 ? '' : 's'} (where it freezes last: the largest inscribed balls), the largest r ${big.radiusMM} mm at (${big.at.join(', ')}), modulus ≈ ${big.modulusMM} mm (an estimate from its shape, a ${big.shape}: within ${big.modulusRangeMM[0]} … ${big.modulusRangeMM[1]} mm, r/3 … r); grid ${sol.grid.h} mm`, value: big.radiusMM, unit: 'mm' }); }
+  else { const big = sol.hotSpots[0]; rules.push({ id: 'hot-spots', level: 'recommended', status: 'pass', message: `${sol.hotSpots.length} hot spot${sol.hotSpots.length === 1 ? '' : 's'} (where it freezes last: the largest inscribed balls), the largest r ${big.radius} mm at (${big.at.join(', ')}), modulus ≈ ${big.modulusMM} mm (an estimate from its shape, a ${big.shape}: within ${big.modulusRangeMM[0]} … ${big.modulusRangeMM[1]} mm, r/3 … r); grid ${sol.grid.h} mm`, value: big.radius, unit: 'mm' }); }
   if (!sol || !sol.hotSpots.length) rules.push({ id: 'feeding', level: 'recommended', status: 'unknown', message: 'the hot spots fed from the gate', why: 'no hot spot' });
   else if (!sol.gate) rules.push({ id: 'feeding', level: 'recommended', status: 'unknown', message: 'the hot spots fed from the gate', why: 'no gate is set (set_casting gate: where the metal comes in): feeding is judged from it, none is assumed' });
   else {
     const isolated = sol.hotSpots.filter(x => !x.fed);
     rules.push({ id: 'feeding', level: 'recommended', status: isolated.length ? 'warn' : 'pass',
-      message: isolated.length ? `[SHRINK_POROSITY] ${isolated.length} hot spot${isolated.length === 1 ? '' : 's'} not fed from the gate through sections at least as thick (Chvorinov: they freeze last, cut off): ${isolated.map(x => `r ${x.radiusMM} mm at (${x.at.join(', ')})`).join('; ')} — feed ${isolated.length === 1 ? 'it' : 'them'} (a riser, a gate there) or make the way thicker`
+      message: isolated.length ? `[SHRINK_POROSITY] ${isolated.length} hot spot${isolated.length === 1 ? '' : 's'} not fed from the gate through sections at least as thick (Chvorinov: they freeze last, cut off): ${isolated.map(x => `r ${x.radius} mm at (${x.at.join(', ')})`).join('; ')} — feed ${isolated.length === 1 ? 'it' : 'them'} (a riser, a gate there) or make the way thicker`
         : `every hot spot (${sol.hotSpots.length}) fed from the gate at (${sol.gate.join(', ')}) through sections at least as thick`, value: isolated.length, unit: 'hot spots' });
   }
-  const ratioMax = profile.thresholds.sectionRatioMax, nominal = walls.filter(w => w.nominalMM !== null).map(w => w.nominalMM!)[0];
+  const ratioMax = profile.thresholds.sectionRatioMax, nominal = walls.filter(w => w.nominal !== null).map(w => w.nominal!)[0];
   if (!sol || !nominal) rules.push({ id: 'section-change', level: 'recommended', status: 'unknown', message: 'the thickest section against the nominal wall', why: 'no wall measured' });
   else if (!ratioMax) rules.push({ id: 'section-change', level: 'recommended', status: 'unknown', message: `the thickest section, ${r3(2 * sol.maxRadiusMM)} mm, against the nominal wall, ${r3(nominal)} mm`, why: `no ${profile.label.toLowerCase()} section-change ratio was read from a public page` });
   else {

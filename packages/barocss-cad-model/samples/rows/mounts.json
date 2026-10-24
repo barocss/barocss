@@ -7,29 +7,29 @@
    "designation": "NEMA 17 (42 mm) stepper flange, M3 tapped holes",
    "holes": {
     "pattern": "square",
-    "spacingMM": 31,
-    "diameterMM": 3.4
+    "spacing": 31,
+    "diameter": 3.4
    },
-   "pilotMM": 22,
-   "pilotDepthMM": 2,
-   "shaftMM": 5,
-   "shaftHeightMM": 0,
-   "clearanceMM": 0.5,
+   "pilot": 22,
+   "pilotDepth": 2,
+   "shaft": 5,
+   "shaftHeight": 0,
+   "clearance": 0.5,
    "estimate": true,
    "fieldSources": {
     "holes": "spacing 31 mm and 4 × M3: Bondtech's NEMA17 product page https://www.bondtech.se/en/product/nema17-pancake-stepper-22mm/, read 2026-10-24; plate hole Ø3.4: ISO 273 medium for M3, as samples/rows/fastener-sizes.json gives it",
-    "shaftMM": "5.0 mm: https://www.bondtech.se/en/product/nema17-pancake-stepper-22mm/, read 2026-10-24",
-    "pilotMM": "an estimate: not on the product page; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
-    "pilotDepthMM": "an estimate: not on the product page; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
-    "clearanceMM": "this example's choice (0.5 mm round the pilot), not a datasheet value"
+    "shaft": "5.0 mm: https://www.bondtech.se/en/product/nema17-pancake-stepper-22mm/, read 2026-10-24",
+    "pilot": "an estimate: not on the product page; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "pilotDepth": "an estimate: not on the product page; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "clearance": "this example's choice (0.5 mm round the pilot), not a datasheet value"
    },
    "unchecked": [
     "holes",
-    "pilotMM",
-    "pilotDepthMM",
-    "shaftMM",
-    "shaftHeightMM",
-    "clearanceMM"
+    "pilot",
+    "pilotDepth",
+    "shaft",
+    "shaftHeight",
+    "clearance"
    ]
   },
   {
@@ -38,29 +38,29 @@
    "designation": "NEMA 23 (57 mm) stepper flange, Ø5 through holes",
    "holes": {
     "pattern": "square",
-    "spacingMM": 47.14,
-    "diameterMM": 5.5
+    "spacing": 47.14,
+    "diameter": 5.5
    },
-   "pilotMM": 38.1,
-   "pilotDepthMM": 1.6,
-   "shaftMM": 6.35,
-   "shaftHeightMM": 0,
-   "clearanceMM": 0.5,
+   "pilot": 38.1,
+   "pilotDepth": 1.6,
+   "shaft": 6.35,
+   "shaftHeight": 0,
+   "clearance": 0.5,
    "estimate": true,
    "fieldSources": {
     "holes": "an estimate: no maker's product page that could be read states it (one distributor's listing refused the request, 2026-10-24); the maker's dimension drawing is a PDF, pending the owner's permission to read it; plate hole Ø5.5: ISO 273 medium for M5, as samples/rows/fastener-sizes.json gives it",
-    "pilotMM": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
-    "pilotDepthMM": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
-    "shaftMM": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
-    "clearanceMM": "this example's choice (0.5 mm round the pilot), not a datasheet value"
+    "pilot": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "pilotDepth": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "shaft": "an estimate; the maker's dimension drawing is a PDF, pending the owner's permission to read it",
+    "clearance": "this example's choice (0.5 mm round the pilot), not a datasheet value"
    },
    "unchecked": [
     "holes",
-    "pilotMM",
-    "pilotDepthMM",
-    "shaftMM",
-    "shaftHeightMM",
-    "clearanceMM"
+    "pilot",
+    "pilotDepth",
+    "shaft",
+    "shaftHeight",
+    "clearance"
    ]
   },
   {
@@ -69,13 +69,13 @@
    "designation": "UCP204 pillow block (Ø20 bore, M10 bolts)",
    "holes": {
     "pattern": "circle",
-    "pcdMM": 95,
+    "pcd": 95,
     "count": 2,
-    "diameterMM": 13
+    "diameter": 13
    },
-   "shaftMM": 20,
-   "shaftHeightMM": 33.3,
-   "clearanceMM": 0,
+   "shaft": 20,
+   "shaftHeight": 33.3,
+   "clearance": 0,
    "source": "NSK UCP204D1 product page https://www.nsk.com/ph-en/engineering/ucp204d1-x-as3s.html, read 2026-10-24: d 20, H 33.3, J 95, N 13, N1 16 (mm), M10",
    "fieldSources": {
     "holes": "J 95 and N 13 (mm); the hole is a 13 × 16 slot (N1 16): cut here as Ø13 at its nominal centre"
@@ -87,16 +87,16 @@
    "designation": "UCFL204 two-bolt flange unit (Ø20 bore, M10 bolts)",
    "holes": {
     "pattern": "circle",
-    "pcdMM": 90,
+    "pcd": 90,
     "count": 2,
-    "diameterMM": 12
+    "diameter": 12
    },
-   "shaftMM": 20,
-   "shaftHeightMM": 0,
-   "clearanceMM": 1,
+   "shaft": 20,
+   "shaftHeight": 0,
+   "clearance": 1,
    "source": "NSK UCFL204D1 product page https://www.nsk.com/ph-en/engineering/ucfl204d1-x-as3s.html, read 2026-10-24: d 20, J 90, N 12 (mm), M10",
    "fieldSources": {
-    "clearanceMM": "this example's choice (1 mm round the shaft through the mounting plate), not a datasheet value"
+    "clearance": "this example's choice (1 mm round the shaft through the mounting plate), not a datasheet value"
    }
   }
  ]

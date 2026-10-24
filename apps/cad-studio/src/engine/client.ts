@@ -4,8 +4,8 @@ import { MeshReceiver, type WireResult } from '@barocss/cad-model/engine/meshWir
 import type { DisplayMesh } from '@barocss/cad-model/engine/mesh';
 /** A proposal's diff as the viewport overlays it (G12). */
 export interface ProposalOverlay {
-  added: { mesh: DisplayMesh; volumeMM3: number } | null;
-  removed: { mesh: DisplayMesh; volumeMM3: number } | null;
+  added: { mesh: DisplayMesh; volume: number } | null;
+  removed: { mesh: DisplayMesh; volume: number } | null;
   changedFaces: { name: string; kind: 'added' | 'removed' | 'changed' }[];
   method: 'boolean' | 'faces';
   why: string | null;
@@ -156,7 +156,7 @@ export class EngineClient {
         const d = data as { result?: EvalResult; diff: { added: number | null; removed: number | null; changedFaces: { name: string; kind: 'added' | 'removed' | 'changed' }[]; method: 'boolean' | 'faces'; why: string | null } | null; why: string | null };
         if (!d.diff) { resolve({ error: d.why ?? 'stopped' }); return; }
         const bodies = d.result?.ok ? d.result.bodies : [], mesh = (k: string) => bodies.find(b => b.key === k)?.mesh ?? null;
-        resolve({ added: d.diff.added !== null ? { mesh: mesh('added')!, volumeMM3: d.diff.added } : null, removed: d.diff.removed !== null ? { mesh: mesh('removed')!, volumeMM3: d.diff.removed } : null, changedFaces: d.diff.changedFaces, method: d.diff.method, why: d.diff.why });
+        resolve({ added: d.diff.added !== null ? { mesh: mesh('added')!, volume: d.diff.added } : null, removed: d.diff.removed !== null ? { mesh: mesh('removed')!, volume: d.diff.removed } : null, changedFaces: d.diff.changedFaces, method: d.diff.method, why: d.diff.why });
       });
       this.slots.set(id, 'proposalDiff');
       // (The base, then the proposal: the worker unpacks them in that order.)
@@ -166,10 +166,10 @@ export class EngineClient {
   }
 
   /** A part's bodies' volumes only, no meshes (a clash probe's intersection). */
-  volumes(doc: StudioDoc): Promise<{ ok: true; volumes: { key: string; volumeMM3: number | null }[] } | { ok: false; error: unknown }> {
+  volumes(doc: StudioDoc): Promise<{ ok: true; volumes: { key: string; volume: number | null }[] } | { ok: false; error: unknown }> {
     const id = this.next++;
     return new Promise(resolve => {
-      this.pending.set(id, data => resolve((data as { volumes?: { ok: true; volumes: { key: string; volumeMM3: number | null }[] } }).volumes ?? { ok: false, error: 'stopped' }));
+      this.pending.set(id, data => resolve((data as { volumes?: { ok: true; volumes: { key: string; volume: number | null }[] } }).volumes ?? { ok: false, error: 'stopped' }));
       this.worker.postMessage({ type: 'volumes', id, doc: this.wire.pack(doc) });
     });
   }

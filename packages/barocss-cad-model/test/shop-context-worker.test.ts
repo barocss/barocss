@@ -35,7 +35,7 @@ parentPort.on('message',data=>self.onmessage({data}));parentPort.postMessage({re
     const [reply] = await response as [{ id: number; result: Parameters<MeshReceiver['unpack']>[1] }];
     assert.equal(reply.id, id); const result: EvalResult = receiver.unpack('read', reply.result); assert.ok(result.ok);
     assert.deepEqual(result.shopRows, provenanceOfTree(view)); assert.deepEqual(result.shopRows, native.shopRows);
-    assert.equal(result.bodies[0].volumeMM3, native.bodies[0].volumeMM3); volumes.push(result.bodies[0].volumeMM3);
+    assert.equal(result.bodies[0].volume, native.bodies[0].volume); volumes.push(result.bodies[0].volume);
     assert.equal(result.shopRows?.[0].rows[0].origin, 'inherited');
   }
   assert.notEqual(volumes[0], volumes[1]); assert.equal(child.frames, undefined);

@@ -20,11 +20,11 @@ const unit = (a: V) => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / 
 const nameOf = (m: DisplayMesh, f: number) => m.faces[f].name.split('+')[0];
 
 /** An inside corner: its radius (0 sharp), its depth along the tool's axis; `reach` whether a straight tool comes down it. */
-export interface Corner { readonly body: string; readonly faces: readonly string[]; readonly radiusMM: number; readonly depthMM: number; readonly kind: 'fillet' | 'sharp'; readonly reach: boolean }
+export interface Corner { readonly body: string; readonly faces: readonly string[]; readonly radius: number; readonly depth: number; readonly kind: 'fillet' | 'sharp'; readonly reach: boolean }
 /** A sharp concave edge cut sharp (square planes, one facing open air), or angled (not square: CNC4's tool angle). */
-export interface Edge { readonly body: string; readonly faces: readonly [string, string]; readonly lengthMM: number; readonly kind: 'cut' | 'angled' }
-export interface Floor { readonly body: string; readonly face: string; readonly depthMM: number; readonly widthMM: number }
-export interface Tall { readonly body: string; readonly faces: readonly [string, string]; readonly thicknessMM: number; readonly heightMM: number | null }
+export interface Edge { readonly body: string; readonly faces: readonly [string, string]; readonly length: number; readonly kind: 'cut' | 'angled' }
+export interface Floor { readonly body: string; readonly face: string; readonly depth: number; readonly width: number }
+export interface Tall { readonly body: string; readonly faces: readonly [string, string]; readonly thickness: number; readonly height: number | null }
 export interface Cavities { readonly corners: Corner[]; readonly edges: Edge[]; readonly floors: Floor[]; readonly tall: Tall[]; readonly edgeFillets: number }
 
 /** The centre of each of a face's triangles, `off` mm along `n`. */
@@ -130,7 +130,7 @@ export function cavitiesOf(doc: StudioDoc, bodies: readonly BodyResult[], holeFa
       const mine = new Set(same.map(x => x.index));
       if (opensBeside(m, bvh, mine) || tangentOpen(m, bvh, verts, c, a, e.r, lo, hi)) { edgeFillets++; continue; }
       const mid = (lo + hi) / 2, p = [c[0] + mid * a[0], c[1] + mid * a[1], c[2] + mid * a[2]];
-      corners.push({ body: body.key, faces: [...new Set(same.map(x => nameOf(m, x.index)))], radiusMM: e.r, depthMM: hi - lo, kind: 'fillet', reach: escapes(bvh, p, a) || escapes(bvh, p, [-a[0], -a[1], -a[2]]) });
+      corners.push({ body: body.key, faces: [...new Set(same.map(x => nameOf(m, x.index)))], radius: e.r, depth: hi - lo, kind: 'fillet', reach: escapes(bvh, p, a) || escapes(bvh, p, [-a[0], -a[1], -a[2]]) });
     }
     // Sharp concave edges between planes.
     const sharp = new Map<string, { faces: [string, string]; L: number; kind: 'cut' | 'angled' | 'corner' | 'closed' }>();
@@ -154,8 +154,8 @@ export function cavitiesOf(doc: StudioDoc, bodies: readonly BodyResult[], holeFa
       if (have) have.L += L; else sharp.set(key, { faces, L, kind });
     }
     for (const s of sharp.values()) {
-      if (s.kind === 'corner' || s.kind === 'closed') corners.push({ body: body.key, faces: s.faces, radiusMM: 0, depthMM: s.L, kind: 'sharp', reach: s.kind === 'corner' });
-      else edges.push({ body: body.key, faces: s.faces, lengthMM: s.L, kind: s.kind });
+      if (s.kind === 'corner' || s.kind === 'closed') corners.push({ body: body.key, faces: s.faces, radius: 0, depth: s.L, kind: 'sharp', reach: s.kind === 'corner' });
+      else edges.push({ body: body.key, faces: s.faces, length: s.L, kind: s.kind });
     }
     // Floors: planes facing open air with a neighbour rising above them (not a hole's bottom).
     // (A neighbour rises from a floor across a concave edge — a straight one tested beside it, a curved one, a round
@@ -174,7 +174,7 @@ export function cavitiesOf(doc: StudioDoc, bodies: readonly BodyResult[], holeFa
       // (Its width across walls rising on both sides — a rising neighbour wholly at or past each side: a rib's top between
       // two walls is as wide as the walls are apart, not the rib; a step, open on a side, is not a cavity.)
       const width = narrowest(verts[f.index], n, (u, lo, hi) => rising.some(g => verts[g].every(v => dot(v, u) >= hi - 1e-6)) && rising.some(g => verts[g].every(v => dot(v, u) <= lo + 1e-6)));
-      if (width !== null) floors.push({ body: body.key, face: nameOf(m, f.index), depthMM: top - level, widthMM: width });
+      if (width !== null) floors.push({ body: body.key, face: nameOf(m, f.index), depth: top - level, width: width });
     }
   }
   // Tall features: IM4's ribs, their height across the rib face from its root (a concave edge to a face it stands on).
@@ -182,7 +182,7 @@ export function cavitiesOf(doc: StudioDoc, bodies: readonly BodyResult[], holeFa
     const body = bodies.find(b => b.key === w.body); if (!body) continue;
     const m = body.mesh, verts = vertsByFace(m);
     for (const r of w.ribs) {
-      const A = m.faces.find(f => nameOf(m, f.index) === r.faces[0] && f.exact?.kind === 'plane'); if (!A || A.exact?.kind !== 'plane') { tall.push({ body: w.body, faces: r.faces, thicknessMM: r.thicknessMM, heightMM: null }); continue; }
+      const A = m.faces.find(f => nameOf(m, f.index) === r.faces[0] && f.exact?.kind === 'plane'); if (!A || A.exact?.kind !== 'plane') { tall.push({ body: w.body, faces: r.faces, thickness: r.thickness, height: null }); continue; }
       const n = A.exact.n; let height: number | null = null, rootL = 0;
       for (const e of m.edges) {
         if (!e.straight || !(e.faces[0] === A.index || e.faces[1] === A.index)) continue;
@@ -192,7 +192,7 @@ export function cavitiesOf(doc: StudioDoc, bodies: readonly BodyResult[], holeFa
         let lo = Infinity, hi = -Infinity; for (const v of verts[A.index]) { const s = dot(v, h); lo = Math.min(lo, s); hi = Math.max(hi, s); }
         rootL = L; height = hi - lo;
       }
-      tall.push({ body: w.body, faces: r.faces, thicknessMM: r.thicknessMM, heightMM: height });
+      tall.push({ body: w.body, faces: r.faces, thickness: r.thickness, height: height });
     }
   }
   return { corners, edges, floors, tall, edgeFillets };

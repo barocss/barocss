@@ -35,18 +35,18 @@ test('RB9 rung 5 (D121): the sheet-metal L-bracket by the agent — one body; th
   assert.equal(s.bodies.length, 1);
   // The middle line: 40 + 30 less the bend's 2(R + T)·tan 45° plus its middle arc; two holes T deep.
   const mid = 40 + 30 - 2 * (R + T) + th * (R + T / 2), V = W * T * mid - 2 * Math.PI * r * r * T;
-  close(b.volumeMM3!, V, 1e-9, 'volume');
+  close(b.volume!, V, 1e-9, 'volume');
   const f = b.flat!;
   close(Math.max(...f.box.max), 70 - BD, 1e-12, 'flat length'); close(Math.min(...f.box.max), W, 1e-12, 'flat width');
   assert.equal(f.loops.length, 3);
   assert.deepEqual(f.loops.filter(l => !l.outer).map(l => l.segments.map(x => x.kind === 'arc' ? +x.radius.toFixed(12) : x.kind)), [[2.75], [2.75]]);
-  assert.deepEqual(f.bends.map(x => [x.direction, +x.angleDegrees.toFixed(9), +x.radiusMM.toFixed(12)]), [['down', 90, 1.5]]);
-  close(f.areaMM2, (70 - BD) * W - 2 * Math.PI * r * r, 1e-12, 'flat area');
+  assert.deepEqual(f.bends.map(x => [x.direction, +x.angle.toFixed(9), +x.radius.toFixed(12)]), [['down', 90, 1.5]]);
+  close(f.area, (70 - BD) * W - 2 * Math.PI * r * r, 1e-12, 'flat area');
   const text = writeDxf(flatPatternDxf(f), {}).text;
   assert.equal(text.match(/\nCIRCLE\r?\n/g)?.length, 2); assert.equal(text.match(/\nTEXT\r?\n/g)?.length, 1);
   caseFile('accept-l-bracket', s.doc, 'RB9 rung 5 (R12.5): the sheet-metal L-bracket the agent builds (test/fixtures/sheet-l-bracket.calls.json): legs 40 and 30 outside, 30 wide, 1.5 sheet, R 1.5, K 0.44, a Ø5.5 hole in each leg.',
-    { outputs: [{ volumeMM3: { value: V, relTol: 1e-9 }, centroidMM: { value: b.centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 2 }],
-      flat: { areaMM2: { value: (70 - BD) * W - 2 * Math.PI * r * r, relTol: 1e-12 }, loops: 3, bends: [{ name: 'n0.bend1', direction: 'down', angleDegrees: 90 }] } }], stepRoundTrip: { relTol: 1e-9 } },
+    { outputs: [{ volume: { value: V, relTol: 1e-9 }, centroid: { value: b.centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 2 }],
+      flat: { area: { value: (70 - BD) * W - 2 * Math.PI * r * r, relTol: 1e-12 }, loops: 3, bends: [{ name: 'n0.bend1', direction: 'down', angle: 90 }] } }], stepRoundTrip: { relTol: 1e-9 } },
     'Closed form: the middle line 70 − 2(R + T) + (π/2)(R + T/2) × 30 × T less two holes; the flat (70 − BD) × 30 less two holes. Centroid by this kernel.');
 });
 
@@ -55,16 +55,16 @@ test('RB9 rung 10 (D121): the sheet-metal PCB enclosure by the agent — corner 
   assert.equal(s.bodies.length, 1);
   // The plate less four reliefs; each flange on its edge less two reliefs: its trim off, its section on; the holes and the slot.
   const V = A * B * T - 4 * cs * cs * T + [A, B, A, B].reduce((v, L) => v - t * T * (L - 2 * cs) + (L - 2 * cs) * (th * T * (R + T / 2) + (h - t) * T), 0) - 4 * Math.PI * r * r * T - 20 * 8 * T;
-  close(b.volumeMM3!, V, 1e-9, 'volume');
+  close(b.volume!, V, 1e-9, 'volume');
   const f = b.flat!, Lx = A + 2 * (h - BD), Ly = B + 2 * (h - BD);
   close(f.box.max[0], Lx, 1e-12, 'flat length'); close(f.box.max[1], Ly, 1e-12, 'flat width');
   assert.equal(f.loops.length, 6);
   assert.deepEqual(f.bends.map(x => x.direction), ['up', 'up', 'up', 'up']);
-  close(f.areaMM2, V / T + (K - 0.5) * T * th * (2 * (A + B) - 8 * cs), 1e-11, 'flat area by the K-factor\'s identity');
+  close(f.area, V / T + (K - 0.5) * T * th * (2 * (A + B) - 8 * cs), 1e-11, 'flat area by the K-factor\'s identity');
   const doc = flatPatternDxf(f);
   assert.deepEqual(['OUTLINE', 'BEND_UP', 'BEND_DOWN', 'BEND_NOTES'].map(l => doc.entities.filter(e => e.layer === l).length), [f.loops.reduce((n, l) => n + l.segments.length, 0), 4, 0, 4]);
   caseFile('accept-pcb-enclosure', s.doc, 'RB9 rung 10 (R12.5): the sheet-metal PCB enclosure the agent builds (test/fixtures/sheet-pcb-enclosure.calls.json): 100 × 70 base, 1.5 sheet, R 1.5, K 0.44, 3 mm square corner reliefs, 25 mm flanges, four Ø3.2 holes, a 20 × 8 slot in the front flange.',
-    { outputs: [{ volumeMM3: { value: V, relTol: 1e-9 }, centroidMM: { value: b.centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 5 }],
-      flat: { areaMM2: { value: V / T + (K - 0.5) * T * th * (2 * (A + B) - 8 * cs), relTol: 1e-9 }, box: { value: [Lx, Ly], absTol: 1e-9 }, loops: 6, bends: ['n6', 'n7', 'n8', 'n9'].map(n => ({ name: `${n}.bend`, direction: 'up', angleDegrees: 90 })) } }], stepRoundTrip: { relTol: 1e-9 } },
+    { outputs: [{ volume: { value: V, relTol: 1e-9 }, centroid: { value: b.centroid, absTol: 1e-9 }, bodies: 1, topology: [{ shells: 1, genus: 5 }],
+      flat: { area: { value: V / T + (K - 0.5) * T * th * (2 * (A + B) - 8 * cs), relTol: 1e-9 }, box: { value: [Lx, Ly], absTol: 1e-9 }, loops: 6, bends: ['n6', 'n7', 'n8', 'n9'].map(n => ({ name: `${n}.bend`, direction: 'up', angle: 90 })) } }], stepRoundTrip: { relTol: 1e-9 } },
     'Closed form: the plate less the reliefs, each flange its edge less 2 × 3 long (trim off, section on), less the holes and the slot; the flat by the textbook BD and the K-factor\'s area identity on that volume. Centroid by this kernel.');
 });

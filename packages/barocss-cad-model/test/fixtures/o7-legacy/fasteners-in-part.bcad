@@ -266,7 +266,7 @@
       "kind": "revolve",
       "sketch": 13,
       "axis": "y",
-      "angleDegrees": 360,
+      "angle": 360,
       "id": "n14"
     },
     {

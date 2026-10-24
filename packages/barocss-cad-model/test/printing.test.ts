@@ -145,7 +145,7 @@ test('AM4 orientation: a T prints on its flat side (whole outline on the bed, lo
   const t = { ...tShape(), process: 'fdm' }, b = bodiesOf(t)[0];
   const r = orientPart(t, [b], faceTableOf(t), processProfile('fdm')) as ReturnType<typeof searchOrientation>;
   assert.ok(typeof r !== 'string');
-  assert.ok(Math.abs(Math.abs(r.best.direction[1]) - 1) < 1e-9, JSON.stringify(r.best)); assert.equal(r.best.supportMM3, 0); assert.equal(r.best.overhangMM2, 0); assert.equal(r.best.heightMM, 10); assert.ok(Math.abs(r.best.contactMM2 - 400) < 1e-6);
+  assert.ok(Math.abs(Math.abs(r.best.direction[1]) - 1) < 1e-9, JSON.stringify(r.best)); assert.equal(r.best.supportMM3, 0); assert.equal(r.best.overhangMM2, 0); assert.equal(r.best.height, 10); assert.ok(Math.abs(r.best.contactMM2 - 400) < 1e-6);
   const up = overhangOf(b.mesh, faceTableOf(t), 45, [0, 0, 1]), down = overhangOf(b.mesh, faceTableOf(t), 45, [0, 0, -1]);
   assert.ok(Math.abs(up.totalMM2 - 300) < 1e-6, String(up.totalMM2)); assert.equal(down.totalMM2, 0); assert.ok(r.candidates >= 64);
   assert.equal(r.top.length, 3); assert.ok(r.top.every((x, i) => i === 0 || x.score >= r.top[i - 1].score));

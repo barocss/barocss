@@ -13,7 +13,7 @@ import { isRefusal } from '../src/engine/refusal';
 
 const evaluate = async (doc: StudioDoc) => evaluatePart(doc, 1);
 const read = (content: string) => JSON.parse(content) as Record<string, any>;
-const volumeOf = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volumeMM3 ?? 0), 0);
+const volumeOf = (s: ChatState) => s.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
 const empty = (): ChatState => ({ doc: emptyDoc(), bodies: [] });
 const CASES = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/a5');
 
@@ -97,7 +97,7 @@ test('the conformance cases (conformance/a5): volumes in closed form, errors typ
     assert.ok(!out.isError, `${name}: ${out.content}`);
     assert.equal(out.state.doc.nodes.length, c.expect.features, name);
     if (c.expect.names) assert.deepEqual(r.names, c.expect.names, name);
-    assert.ok(Math.abs(volumeOf(out.state) - c.expect.volume_mm3) <= c.expect.tol, `${name}: ${volumeOf(out.state)} vs ${c.expect.volume_mm3}`);
+    assert.ok(Math.abs(volumeOf(out.state) - c.expect.volume) <= c.expect.tol, `${name}: ${volumeOf(out.state)} vs ${c.expect.volume}`);
   }
 });
 

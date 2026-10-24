@@ -21,7 +21,7 @@ test('FRk3 v2 creates I/H and channel, common editing changes geometry and Save/
     const file = await readStudioFile(encodeStudioFile(edited.state.doc)); assert.ok('doc' in file);
     assert.deepEqual(file.doc.nodes, edited.state.doc.nodes);
     const bound = { ...file.doc, parameters: { web: 7 }, nodes: file.doc.nodes.map(n => n.kind === 'frame-member' ? { ...n, section: { ...n.section, web: { parameter: 'web' } } } : n) } as StudioDoc;
-    const a = await evaluate(bound), b = await evaluate({ ...bound, parameters: { web: 8 } }); assert.ok(a.ok && b.ok); assert.notEqual(a.bodies[0].volumeMM3, b.bodies[0].volumeMM3);
+    const a = await evaluate(bound), b = await evaluate({ ...bound, parameters: { web: 8 } }); assert.ok(a.ok && b.ok); assert.notEqual(a.bodies[0].volume, b.bodies[0].volume);
   }
 });
 test('FRk3 strict v2 refuses missing explicit I fields and unknown or invalid geometry without committing', async () => {
@@ -47,6 +47,6 @@ test('FRk3 common frame/member commands emit editable explicit sections and upda
     assert.equal(out.isError, false, out.content); assert.ok(out.state.bodies.every(b => b.cutPiece));
     const f = editFields(out.state.doc.nodes, 0).find(f => f.key === 's.web'); assert.ok(f?.kind === 'number');
     const next = { ...out.state.doc, nodes: f.set(out.state.doc.nodes, 8) }, e = await evaluate(next); assert.ok(e.ok);
-    assert.notEqual(e.bodies[0].cutPiece!.volumeMM3, out.state.bodies[0].cutPiece!.volumeMM3);
+    assert.notEqual(e.bodies[0].cutPiece!.volume, out.state.bodies[0].cutPiece!.volume);
   }
 });

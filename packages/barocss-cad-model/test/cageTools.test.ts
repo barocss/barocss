@@ -23,7 +23,7 @@ function sound(s: ChatState): number {
   const node = s.doc.nodes[subdIndex(s)] as Subd, b = subdBrep(fullCage({ cage: node.cage, ...(node.mirror ? { mirror: node.mirror } : {}) }));
   assert.equal(checkBrep(b).valid, true, checkBrep(b).issues[0]);
   assert.equal(validateCage(fullCage({ cage: node.cage, ...(node.mirror ? { mirror: node.mirror } : {}) })).valid, true);
-  return s.bodies.reduce((v, x) => v + (x.volumeMM3 ?? 0), 0);
+  return s.bodies.reduce((v, x) => v + (x.volume ?? 0), 0);
 }
 
 test('R8.2 the tools listed for the agent; subd_cage and subd_select read without changing the part', async () => {

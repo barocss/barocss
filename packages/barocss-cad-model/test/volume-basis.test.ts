@@ -25,26 +25,26 @@ function tessellated(doc: StudioDoc) {
 /** The ball's body as a body whose quadrature was refused: the kernel's tessellated volume, method and bound. */
 function fallen(doc: StudioDoc): BodyResult[] {
   const m = tessellated(doc), b = bodiesOf(doc)[0];
-  return [{ ...b, volumeMM3: m.volumeMM3, massG: m.massKG * 1000, volumeBasis: volumeBasisOf(m) }];
+  return [{ ...b, volume: m.volume, mass: m.mass * 1000, volumeBasis: volumeBasisOf(m) }];
 }
 
 test('O179: the kernel\'s tessellated mass — its method and bound kept on the body; an exact method\'s none', () => {
   const doc = ball(), m = tessellated(doc), basis = volumeBasisOf(m);
-  assert.ok(basis && basis.method === 'tessellated' && basis.boundMM3! > 0, JSON.stringify(basis));
+  assert.ok(basis && basis.method === 'tessellated' && basis.bound! > 0, JSON.stringify(basis));
   // (The bound holds the error: the ball's exact volume 4/3 π r³ within it.)
-  assert.ok(Math.abs(m.volumeMM3 - 4 / 3 * Math.PI * 64) <= basis.boundMM3!, `${m.volumeMM3} vs ${4 / 3 * Math.PI * 64}, bound ${basis.boundMM3}`);
+  assert.ok(Math.abs(m.volume - 4 / 3 * Math.PI * 64) <= basis.bound!, `${m.volume} vs ${4 / 3 * Math.PI * 64}, bound ${basis.bound}`);
   // (The ball as evaluated: the quadrature's, exact — no basis on the body.)
   assert.equal(bodiesOf(doc)[0].volumeBasis, undefined);
   assert.equal(volumeBasisOf(brepMassProperties(partBreps(doc)[0].brep, 2700)), undefined);
 });
 
 test('O179: mass_properties says a tessellated volume is one, with the volume\'s and the mass\'s bound; an exact one says nothing new', () => {
-  const doc = ball(), [b] = fallen(doc), bound = b.volumeBasis!.boundMM3!;
-  const [row] = massProperties(doc, [b]) as { volume_basis?: { method: string; bound_mm3: number; mass_bound_g: number; note: string }; mass_g: number }[];
+  const doc = ball(), [b] = fallen(doc), bound = b.volumeBasis!.bound!;
+  const [row] = massProperties(doc, [b]) as { volume_basis?: { method: string; bound: number; massBound: number; note: string }; mass: number }[];
   assert.equal(row.volume_basis?.method, 'tessellated');
-  assert.ok(Math.abs(row.volume_basis!.bound_mm3 - bound) < 1e-3);
+  assert.ok(Math.abs(row.volume_basis!.bound - bound) < 1e-3);
   // (Aluminium by default, 2.70 g/cm³: the mass's bound is the volume's times it.)
-  assert.ok(Math.abs(row.volume_basis!.mass_bound_g - bound * 2.7 / 1000) < 1e-3, JSON.stringify(row.volume_basis));
+  assert.ok(Math.abs(row.volume_basis!.massBound - bound * 2.7 / 1000) < 1e-3, JSON.stringify(row.volume_basis));
   assert.match(row.volume_basis!.note, /estimate/);
   assert.equal((massProperties(doc, bodiesOf(doc))[0] as { volume_basis?: unknown }).volume_basis, undefined);
 });
@@ -56,7 +56,7 @@ test('O179: the BOM — a placed part whose mass is partly from the mesh: its li
   const evaluate = async (d: StudioDoc) => { const r = evaluateDoc(d, 1); return r.ok && d === part ? { ...r, bodies: fallen(part) } : r; };
   const bom = deriveBom(await bomView(doc, evaluate));
   const ballLine = bom.lines.find(l => l.item === 'Ball')!, plateLine = bom.lines.find(l => l.item === 'Plate')!;
-  const bound = fallen(part)[0].volumeBasis!.boundMM3! * 2.7 / 1000;
+  const bound = fallen(part)[0].volumeBasis!.bound! * 2.7 / 1000;
   assert.ok(ballLine.estimate === true && Math.abs(ballLine.massBoundG! - bound) < 1e-6, JSON.stringify(ballLine));
   assert.deepEqual([plateLine.estimate, plateLine.massBoundG], [undefined, undefined]);
   assert.ok(Math.abs(bom.totalMassBoundG! - bound) < 1e-6, String(bom.totalMassBoundG));
@@ -68,9 +68,9 @@ test('O179: the quote request — its part\'s volume and mass from the mesh, an 
   const doc: StudioDoc = { ...ball(), process: 'injection' }, bodies = fallen(doc);
   const out = await quotePackage(doc, bodies, async d => evaluateDoc(d, 1));
   assert.ok(!('error' in out), 'error' in out ? out.error : '');
-  const req = JSON.parse(new TextDecoder().decode(out.files.get(QUOTE_FILES.request))) as { part: { volumeBasis?: { method: string; boundMM3: number; massBoundG: number | null } } };
+  const req = JSON.parse(new TextDecoder().decode(out.files.get(QUOTE_FILES.request))) as { part: { volumeBasis?: { method: string; bound: number; massBoundG: number | null } } };
   assert.equal(req.part.volumeBasis?.method, 'tessellated');
-  assert.ok(Math.abs(req.part.volumeBasis!.boundMM3 - bodies[0].volumeBasis!.boundMM3!) < 1e-6);
+  assert.ok(Math.abs(req.part.volumeBasis!.bound - bodies[0].volumeBasis!.bound!) < 1e-6);
   assert.match(new TextDecoder().decode(out.files.get(QUOTE_FILES.page)), /an estimate from the mesh: ± [\d.]+ mm³/);
   // (Exact: the request as before, no volumeBasis.)
   const exact = await quotePackage(doc, bodiesOf(doc), async d => evaluateDoc(d, 1)); assert.ok(!('error' in exact));

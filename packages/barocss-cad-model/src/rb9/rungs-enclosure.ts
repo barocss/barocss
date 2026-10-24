@@ -134,7 +134,7 @@ export const RUNG8: Rung = {
     const need = (y - G) * b - 1e-3;
     const fit = await onCopy(doc, bodies, evaluate, [['interference', {}]]) as { pairs?: { overlap_mm3?: number }[] };
     // (Each hook clear of the box by the fit gap: its own triangles against the body they do not belong to.)
-    const gaps = hooks.map(h => { const pm = partMesh(bodies, h.n.prefix), other = bodies.find(x => !x.mesh.faces.some(f => f.name.startsWith(`${h.n.prefix}_`))); return pm && other ? meshClearance(pm.p, pm.i, other.mesh.positions, other.mesh.indices).distanceMM : null; });
+    const gaps = hooks.map(h => { const pm = partMesh(bodies, h.n.prefix), other = bodies.find(x => !x.mesh.faces.some(f => f.name.startsWith(`${h.n.prefix}_`))); return pm && other ? meshClearance(pm.p, pm.i, other.mesh.positions, other.mesh.indices).distance : null; });
     const flex = await studioChecks(doc, evaluate, hooks.flatMap(h => ['strain', 'yield'].map(check => ({ id: `${h.id}.${check}`, source: `${h.id} ${check}`, hard: true, check: { op: '<=', query: { fn: 'library_check', feature: h.id, check }, value: 1 } } as never))));
     return [boxIs('box', bodies, [W, D, H + tl]), holds('solids', bodies.length === 2, bodies.length, 'two solids: the box and its lid'),
       holds('hooks', hooks.length === 2 * hookYs(p).length, hooks.length, `${2 * hookYs(p).length} snap hooks`),

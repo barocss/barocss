@@ -29,12 +29,12 @@ function bandWords(lo: number | null, hi: number | null, unit: string): string {
 }
 
 /** The shrinkage for a family at the part's size: the user's ratio, else the table's band (the band's top included). */
-export function shrinkOf(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, sizeMM: number): Allowance<ShrinkAllowance> {
+export function shrinkOf(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, size: number): Allowance<ShrinkAllowance> {
   const set = doc.casting?.shrink;
   if (typeof set === 'number') return { ok: true, ratio: set, basis: 'set', band: 'yours', label: 'your shrinkage', page: null };
   const row = profile.allowances?.shrink.find(s => s.family === family);
   if (!row) return { ok: false, why: `no ${profile.label.toLowerCase()} shrinkage for a ${family} alloy was read from a public page: set yours (set_casting shrink)` };
-  const ft = sizeMM / MM_PER_FOOT, k = row.bands.findIndex(b => b.upToFt === null || ft <= b.upToFt + 1e-12), b = row.bands[k];
+  const ft = size / MM_PER_FOOT, k = row.bands.findIndex(b => b.upToFt === null || ft <= b.upToFt + 1e-12), b = row.bands[k];
   return { ok: true, ratio: b.inPerFt / 12, basis: 'table', band: bandWords(k ? row.bands[k - 1].upToFt : null, b.upToFt, 'ft'), label: row.label, page: row.page.url };
 }
 /** Each dimension's own band (X, Y, Z extents): what the table gives a pattern maker who scales each dimension by its own band. */
@@ -45,13 +45,13 @@ export function shrinkByDimension(doc: StudioDoc, profile: ProcessProfile, famil
   return out;
 }
 /** The machining allowance for a family at the part's size: the user's, else the table's (none past its last band). */
-export function machiningOf(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, sizeMM: number): Allowance<MachiningAllowance> {
+export function machiningOf(doc: StudioDoc, profile: ProcessProfile, family: CastFamily, size: number): Allowance<MachiningAllowance> {
   const set = doc.casting?.machiningAllowance;
   if (typeof set === 'number') return { ok: true, mm: set, basis: 'set', band: 'yours', label: 'your allowance', page: null };
   const cls = machiningClassOf(family), row = profile.allowances?.machining.find(m => m.class === cls);
   if (!row) return { ok: false, why: `no ${profile.label.toLowerCase()} machining allowance for ${cls === 'nonferrous' ? 'a non-ferrous metal' : `cast ${cls}`} was read from a public page: set yours (set_casting allowance)` };
-  const inch = sizeMM / MM_PER_INCH, k = row.bands.findIndex(b => inch <= b.upToIn + 1e-12);
-  if (k < 0) return { ok: false, why: `the part's ${r6(sizeMM)} mm is past the table's last band (${row.bands.at(-1)!.upToIn} in): set yours (set_casting allowance)` };
+  const inch = size / MM_PER_INCH, k = row.bands.findIndex(b => inch <= b.upToIn + 1e-12);
+  if (k < 0) return { ok: false, why: `the part's ${r6(size)} mm is past the table's last band (${row.bands.at(-1)!.upToIn} in): set yours (set_casting allowance)` };
   const b = row.bands[k];
   return { ok: true, mm: r6(b.in * MM_PER_INCH), basis: 'table', band: bandWords(k ? row.bands[k - 1].upToIn : null, b.upToIn, 'in'), label: row.label, page: row.page.url };
 }

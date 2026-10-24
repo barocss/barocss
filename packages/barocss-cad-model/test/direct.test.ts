@@ -241,7 +241,7 @@ test('Sweep along a picked curve: the newest sketch carried along it, a bent rod
   const next = sweep.build!(picked, sweep.defaults!(picked)), r = evaluateDoc(next, 1);
   assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const want = Math.PI * 4 * Math.PI / 2 * 20;
-  assert.ok(Math.abs(r.bodies[0].volumeMM3! - want) / want < 0.01, String(r.bodies[0].volumeMM3));
+  assert.ok(Math.abs(r.bodies[0].volume! - want) / want < 0.01, String(r.bodies[0].volume));
   assert.equal(featureLabel(next.nodes[1], 1, next.nodes), 'Sweep along bend · quarter');
 });
 

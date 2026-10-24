@@ -7,7 +7,7 @@ import { revisionOf } from '../util/revision';
 
 export interface HolePattern { id: string; positions: [number, number, number][]; diameter: number; /** The direction the holes run (the assembly's frame). */ axis: [number, number, number]; parts: string[] }
 export interface Envelope { id: string; part: string; min: [number, number, number]; max: [number, number, number] }
-export interface Interfaces { version: 1; datums: string[]; keepouts: string[]; holePatterns: HolePattern[]; envelopes: Envelope[]; budgets: { massG?: number; parts?: Record<string, number> } }
+export interface Interfaces { version: 1; datums: string[]; keepouts: string[]; holePatterns: HolePattern[]; envelopes: Envelope[]; budgets: { mass?: number; parts?: Record<string, number> } }
 export const readInterfaces = (raw: unknown): Interfaces => {
   const r = raw as Interfaces | undefined;
   return r && r.version === 1 ? { version: 1, datums: r.datums ?? [], keepouts: r.keepouts ?? [], holePatterns: r.holePatterns ?? [], envelopes: r.envelopes ?? [], budgets: r.budgets ?? {} } : { version: 1, datums: [], keepouts: [], holePatterns: [], envelopes: [], budgets: {} };

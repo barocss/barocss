@@ -48,8 +48,8 @@ test('CNC3 narrowest: a rectangle\'s width, a rotated one\'s, a disc\'s diameter
 test('CNC3 a pocket 50 × 30, 8 deep, corners r 5: four corners along the tool\'s axis, 5 ≥ ⅓ × 8 — pass; the floor 8 deep, 30 wide; the mutant r 2 (under 2.667) warned', async () => {
   let s = await build(pocket(50, 30, 4, 5));
   const cv = cavitiesOf(s.doc, s.bodies, new Set());
-  assert.deepEqual(cv.corners.map(c => [c.kind, +c.radiusMM.toFixed(9), +c.depthMM.toFixed(9), c.reach]), Array(4).fill(['fillet', 5, 8, true]));
-  assert.deepEqual(cv.floors.map(f => [+f.depthMM.toFixed(9), +f.widthMM.toFixed(9)]), [[8, 30]]);
+  assert.deepEqual(cv.corners.map(c => [c.kind, +c.radius.toFixed(9), +c.depth.toFixed(9), c.reach]), Array(4).fill(['fillet', 5, 8, true]));
+  assert.deepEqual(cv.floors.map(f => [+f.depth.toFixed(9), +f.width.toFixed(9)]), [[8, 30]]);
   let r = report(s);
   assert.deepEqual(['corners', 'pocket', 'feature', 'tall', 'text'].map(id => r[id].status), ['pass', 'pass', 'pass', 'pass', 'pass']);
   assert.ok(near(r.pocket.value!, 0.267, 1e-3));
@@ -59,7 +59,7 @@ test('CNC3 a pocket 50 × 30, 8 deep, corners r 5: four corners along the tool\'
 
 test('CNC3 a pocket with sharp corners: four reached along the tool\'s axis, radius 0 — warned (a rotating tool leaves its radius); its four floor edges cut sharp (the floor open to the end mill)', async () => {
   const s = await build(pocket(50, 30, 4, null)), cv = cavitiesOf(s.doc, s.bodies, new Set());
-  assert.deepEqual(cv.corners.map(c => [c.kind, c.radiusMM, +c.depthMM.toFixed(9), c.reach]), Array(4).fill(['sharp', 0, 8, true]));
+  assert.deepEqual(cv.corners.map(c => [c.kind, c.radius, +c.depth.toFixed(9), c.reach]), Array(4).fill(['sharp', 0, 8, true]));
   assert.deepEqual(cv.edges.map(e => e.kind), ['cut', 'cut', 'cut', 'cut']);
   const r = report(s);
   assert.equal(r.corners.status, 'warn'); assert.match(r.corners.message, /a sharp inside corner 8 deep \(a rotating tool leaves its radius: at least 2\.667 mm wanted\); 4 sharp edges cut sharp/);
@@ -78,9 +78,9 @@ test('CNC3 slots: 2 wide, 8 deep — 4 × (not over) passes, 2 mm warned as a sm
 test('CNC3 a shelled box (t 2) with a rib 1.2 thick, 15 high: the rib\'s height over thickness 12.5 — warned (under 4 wanted); 4 thick, 3.75 — passes; its top not a cavity (the walls 36 apart)', async () => {
   let s = await build(withRib(1.2));
   const cv = cavitiesOf(s.doc, s.bodies, new Set());
-  assert.deepEqual(cv.tall.map(t => [+t.thicknessMM.toFixed(9), +t.heightMM!.toFixed(9)]), [[1.2, 15]]);
-  assert.ok(cv.floors.every(f => f.widthMM > 2.5), JSON.stringify(cv.floors));
-  assert.ok(cv.floors.some(f => near(f.depthMM, 8) && near(f.widthMM, 36)), 'the rib\'s top: 8 below the rim, the walls 36 apart');
+  assert.deepEqual(cv.tall.map(t => [+t.thickness.toFixed(9), +t.height!.toFixed(9)]), [[1.2, 15]]);
+  assert.ok(cv.floors.every(f => f.width > 2.5), JSON.stringify(cv.floors));
+  assert.ok(cv.floors.some(f => near(f.depth, 8) && near(f.width, 36)), 'the rib\'s top: 8 below the rim, the walls 36 apart');
   let r = report(s);
   assert.equal(r.tall.status, 'warn'); assert.ok(near(r.tall.value!, 12.5, 1e-3)); assert.equal(r.feature.status, 'pass');
   assert.equal(r.corners.status, 'warn', 'the shell\'s inside corners are sharp, 23 deep');

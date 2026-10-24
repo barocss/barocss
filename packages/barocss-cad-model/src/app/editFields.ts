@@ -131,7 +131,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       break;
     case 'revolve':
       out.push(...sketchFields(nodes, node.sketch, ''));
-      number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v }));
+      number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
       break;
     case 'sweep':
       out.push(...sketchFields(nodes, node.sketch, ''));
@@ -140,7 +140,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
         if (st.kind === 'straight') number('run' + k, `Run ${k + 1}`, 'mm', n => num((step(n) as typeof st).length), (n, v) => put(n, { ...(step(n) as typeof st), length: v }));
         else {
           number('bend' + k, `Bend ${k + 1} radius`, 'mm', n => num((step(n) as typeof st).radius), (n, v) => put(n, { ...(step(n) as typeof st), radius: v }));
-          number('bendAngle' + k, `Bend ${k + 1} angle`, '°', n => (step(n) as typeof st).angleDegrees, (n, v) => put(n, { ...(step(n) as typeof st), angleDegrees: v }));
+          number('bendAngle' + k, `Bend ${k + 1} angle`, '°', n => (step(n) as typeof st).angle, (n, v) => put(n, { ...(step(n) as typeof st), angle: v }));
           out.push({ kind: 'choice', key: 'toward' + k, label: `Bend ${k + 1} toward`, options: [{ value: 'x', label: '+X' }, { value: '-x', label: '−X' }, { value: 'y', label: '+Y' }, { value: '-y', label: '−Y' }],
             get: n => (self<typeof node>(n).path[k] as typeof st).toward, set: (n, v) => replace(n, i, put(self(n), { ...(self<typeof node>(n).path[k] as typeof st), toward: v as typeof st.toward })) });
         }
@@ -519,13 +519,13 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       // (R12.3, D118: its length, angle, own radius and offsets.)
       type F = Extract<ModelNode, { kind: 'sheet-flange' }>;
       number('length', 'Length', 'mm', n => num((n as F).length), (n, v) => ({ ...(n as F), length: v }));
-      number('angle', 'Angle', '°', n => (n as F).angleDegrees ?? 90, (n, v) => ({ ...(n as F), angleDegrees: v }));
+      number('angle', 'Angle', '°', n => (n as F).angle ?? 90, (n, v) => ({ ...(n as F), angle: v }));
       if (node.offsets) [0, 1].forEach(k => number('o' + k, k ? 'Offset at end' : 'Offset at start', 'mm', n => num((n as F).offsets![k]), (n, v) => { const o = [...(n as F).offsets!] as [Dim, Dim]; o[k] = v; return { ...(n as F), offsets: o }; }));
       break;
     }
     case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
     case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
-    case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v })); break;
+    case 'draft': number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v })); break;
     case 'decimate': {
       // (R9, D85: the keep as a per cent of the triangles; a bound or crease angle of 0 is none.)
       type D = Extract<ModelNode, { kind: 'decimate' }>;
@@ -539,7 +539,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     case 'translate': [0, 1, 2].forEach(k => number('o' + k, 'Δ' + 'XYZ'[k], 'mm', n => num((n as typeof node).offset[k]), (n, v) => { const o = [...(n as typeof node).offset] as [Dim, Dim, Dim]; o[k] = v; return { ...(n as typeof node), offset: o }; })); break;
     case 'rotate':
       out.push({ kind: 'choice', key: 'axis', label: 'Axis', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
-      number('deg', 'Angle', '°', n => (n as typeof node).angleDegrees, (n, v) => ({ ...(n as typeof node), angleDegrees: v }));
+      number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
       if (node.pivot) [0, 1, 2].forEach(k => number('p' + k, 'Pivot ' + 'XYZ'[k], 'mm', n => num((n as typeof node).pivot![k]), (n, v) => { const p = [...(n as typeof node).pivot!] as [Dim, Dim, Dim]; p[k] = v; return { ...(n as typeof node), pivot: p }; }));
       break;
     case 'mirror':
@@ -552,7 +552,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: Math.round(v) }));
       break;
     case 'circular-pattern':
-      number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: Math.round(v), ...((n as typeof node).axis === 'z' ? { angleDegrees: 360 / Math.max(1, Math.round(v)) } : {}) }));
+      number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: Math.round(v), ...((n as typeof node).axis === 'z' ? { angle: 360 / Math.max(1, Math.round(v)) } : {}) }));
       break;
     case 'split':
       if (node.normal) (['x', 'y', 'z'] as const).forEach((a, k) => number('n' + a, `Normal ${a.toUpperCase()}`, undefined, n => (n as typeof node).normal?.[k] ?? 0, (n, v) => { const was = (n as typeof node).normal ?? [0, 0, 0], next = was.map((c, j) => j === k ? v : c) as [number, number, number]; return { ...(n as typeof node), normal: next }; }));
@@ -567,19 +567,19 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
 /** A pinion's working distance inside a ring (R12b.2a). */
 /** A bevel gear's mean cone distance R − b/2 (R12b.4: a spiral one's cutter radius by default, an estimate); 0 where the kernel refuses the gear. */
 function meanConeDistance(b: Extract<ModelNode, { kind: 'bevel-gear' }>): number {
-  try { const d = bevelGearDimensions({ moduleMM: num(b.module), teeth: b.teeth, mateTeeth: b.mateTeeth, shaftAngleDeg: b.shaftAngle ?? 90, faceWidthMM: num(b.faceWidth) }); return +((d.Re + d.Ri) / 2).toFixed(3); } catch { return 0; }
+  try { const d = bevelGearDimensions({ module: num(b.module), teeth: b.teeth, mateTeeth: b.mateTeeth, shaftAngle: b.shaftAngle ?? 90, faceWidth: num(b.faceWidth) }); return +((d.Re + d.Ri) / 2).toFixed(3); } catch { return 0; }
 }
 function insideDistance(ring: Extract<ModelNode, { kind: 'internal-gear' }>, b: Extract<ModelNode, { kind: 'gear' }>, nodes: Nodes): number {
   try {
-    const h = helixOf(b, nodes), m = num(ring.module), mod = h ? { normalModuleMM: m, helixAngleDeg: h.angle, hand: h.hand } : { moduleMM: m };
-    return internalGearCenterDistance({ ...mod, teeth: b.teeth, faceWidthMM: num(b.faceWidth), ...(b.profileShift ? { profileShiftCoefficient: b.profileShift } : {}), ...(b.generator === 'spur-gear@1' ? { rootPolicy: 'generated' as const } : {}) },
-      { ...(ring.helixAngle ? { normalModuleMM: m, helixAngleDeg: ring.helixAngle, hand: ring.hand ?? 'right' } : { moduleMM: m }), teeth: ring.teeth, faceWidthMM: num(ring.faceWidth), rimDiameterMM: num(ring.rim), ...(ring.profileShift ? { profileShiftCoefficient: ring.profileShift } : {}) });
+    const h = helixOf(b, nodes), m = num(ring.module), mod = h ? { normalModule: m, helixAngle: h.angle, hand: h.hand } : { module: m };
+    return internalGearCenterDistance({ ...mod, teeth: b.teeth, faceWidth: num(b.faceWidth), ...(b.profileShift ? { profileShiftCoefficient: b.profileShift } : {}), ...(b.generator === 'spur-gear@1' ? { rootPolicy: 'generated' as const } : {}) },
+      { ...(ring.helixAngle ? { normalModule: m, helixAngle: ring.helixAngle, hand: ring.hand ?? 'right' } : { module: m }), teeth: ring.teeth, faceWidth: num(ring.faceWidth), rimDiameter: num(ring.rim), ...(ring.profileShift ? { profileShiftCoefficient: ring.profileShift } : {}) });
   } catch { return 0; }
 }
 function meshDistance(a: Extract<ModelNode, { kind: 'gear' }>, b: Extract<ModelNode, { kind: 'gear' }>, nodes: Nodes): number {
   const spec = (n: Extract<ModelNode, { kind: 'gear' }>) => {
     const h = helixOf(n, nodes);
-    return { ...(h ? { normalModuleMM: num(n.module), helixAngleDeg: h.angle, hand: h.hand } : { moduleMM: num(n.module) }), teeth: n.teeth, faceWidthMM: num(n.faceWidth), ...(n.profileShift ? { profileShiftCoefficient: n.profileShift } : {}) };
+    return { ...(h ? { normalModule: num(n.module), helixAngle: h.angle, hand: h.hand } : { module: num(n.module) }), teeth: n.teeth, faceWidth: num(n.faceWidth), ...(n.profileShift ? { profileShiftCoefficient: n.profileShift } : {}) };
   };
   try { return spurGearCenterDistance(spec(a), spec(b)); } catch { return 0; }
 }

@@ -16,7 +16,7 @@ const sig4 = (v: number) => { const t = Number(v.toPrecision(4)); return Object.
 const limitText = (l: NonNullable<JointTree['joints'][number]['limit']>, type: JointType) => { const slide = type === 'prismatic', k = slide ? 1 : 180 / Math.PI; return [l.lower !== undefined && l.upper !== undefined ? (slide ? `${sig4(l.lower)} … ${sig4(l.upper)} mm` : `${sig4(l.lower * k)}° … ${sig4(l.upper * k)}°`) : '', l.effort !== undefined ? `${sig4(l.effort)} ${slide ? 'N' : 'N·m'}` : '', l.velocity !== undefined ? `${sig4(l.velocity * k)} ${slide ? 'mm/s' : '°/s'}` : ''].filter(Boolean).join(' · '); };
 
 /** A gear pair at the pose shown: its phase against home, its backlash (RM2). */
-export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlashMM: number }
+export interface GearLine { leader: string; follower: string; multiplier: number; held: boolean; backlash: number }
 const DEG = 180 / Math.PI;
 /** One decimal, a rounding of zero shown as 0.0 (not −0.0). */
 /** A torque or force to 4 significant figures, a rounding of zero as 0. */
@@ -100,7 +100,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
       {frames?.map(f => <div key={f.name} className="py-0.5 text-[11px]" aria-label={`Frame ${f.name}`} title={`${f.kind ?? 'frame'} on ${name(f.link)}: origin in mm, its Z axis as a unit vector`}>
         <div className="truncate">{f.name} <span className="muted">{f.kind ?? 'frame'} · {name(f.link)}</span></div>
         <b className="mono flex flex-wrap justify-end gap-x-1 [&>span]:whitespace-nowrap"><span>({f.o.map(mm1).join(', ')})</span>{' '}<span>· Z ({f.z.map(v => fix3(v)).join(', ')})</span></b></div>)}
-      {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlashMM.toFixed(3)} mm</span></div>)}
+      {gears.map(g => <div key={g.follower} className="kv" aria-label={`Gear pair ${g.follower}`}>Gears <b>{g.leader} → {g.follower} ×{g.multiplier.toFixed(4)}</b> <span className={g.held ? 'muted' : 'hud-error'}>{g.held ? 'mesh held' : 'teeth out of phase'} · backlash {g.backlash.toFixed(3)} mm</span></div>)}
       {/* (RS2: the motion from home through the waypoints to the pose shown, played over time; a preview, nothing saved.) */}
       {motion && motionControls && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px]" aria-label="Motion">
         <NativeSelect className={CONTROL} aria-label="Motion choice" value={motionControls.choice ?? ''} onChange={e => motionControls.onChoose(e.target.value || null)} style={{ flexBasis: '100%' }}>

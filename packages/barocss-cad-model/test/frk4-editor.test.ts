@@ -26,12 +26,12 @@ test('FRk4 common point/center/bend edits survive Save, fresh Open and parameter
     assert.equal(r.isError, false, r.content);
     const f = editFields(r.state.doc.nodes, 0).find(f => f.key === key); assert.ok(f?.kind === 'number');
     const changed = await dispatchTool(r.state, 'features', { action: 'edit', index: 0, values: { [key]: value } }, evaluate);
-    assert.equal(changed.isError, false, changed.content); assert.notEqual(changed.state.bodies[0].volumeMM3, r.state.bodies[0].volumeMM3);
+    assert.equal(changed.isError, false, changed.content); assert.notEqual(changed.state.bodies[0].volume, r.state.bodies[0].volume);
     const opened = await readStudioFile(encodeStudioFile(changed.state.doc)); assert.ok('doc' in opened); assert.deepEqual(opened.doc.nodes, changed.state.doc.nodes);
     const again = await evaluate(opened.doc); assert.ok(again.ok);
     const boundDoc = { ...opened.doc, parameters: { p: value } }, bind = editFields(boundDoc.nodes, 0, boundDoc.parameters).find(f => f.key === key) as BindableField;
     const nodes = bind.bind(boundDoc.nodes, 'p'); assert.ok(nodes);
-    const next = await evaluate({ ...boundDoc, nodes, parameters: { p: value + 5 } }); assert.ok(next.ok); assert.notEqual(next.bodies[0].volumeMM3, again.bodies[0].volumeMM3);
+    const next = await evaluate({ ...boundDoc, nodes, parameters: { p: value + 5 } }); assert.ok(next.ok); assert.notEqual(next.bodies[0].volume, again.bodies[0].volume);
   }
 });
 test('FRk4 strict v2 rejects unknown/invalid arc and bend fields and rolls back unsupported geometry', async () => {

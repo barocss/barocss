@@ -15,12 +15,12 @@ const parse = (content: string) => JSON.parse(content) as Record<string, any>;
 test('facts after a change: solids, volume, mass, centroid, box, counts, and what changed', async () => {
   const s = await stateOf(rectanglePart(40, 20, 8));
   const summary = parse((await runTool(s, 'get_part_summary', {}, evaluate)).content).facts;
-  assert.deepEqual(summary, { built: true, solids: 1, volume_mm3: 6400, mass_g: 17.28, centroid: [20, 10, 4], materials: [{ body: 'b1', material: 'Aluminium 6061', assumed: true }], mass_assumed: true, bbox: { min: [0, 0, 0], max: [40, 20, 8] }, faces: 6, edges: 12, vertices: 8 });
+  assert.deepEqual(summary, { built: true, solids: 1, volume: 6400, mass: 17.28, centroid: [20, 10, 4], materials: [{ body: 'b1', material: 'Aluminium 6061', assumed: true }], mass_assumed: true, bbox: { min: [0, 0, 0], max: [40, 20, 8] }, faces: 6, edges: 12, vertices: 8 });
   const r = await runTool(s, 'run_command', { command: 'hole', faces: [{ feature: 1, role: 'top' }], values: { d: 8, x: 20, y: 10 } }, evaluate);
   assert.ok(!r.isError, r.content);
   const out = parse(r.content), hole = Math.PI * 16 * 8;
-  assert.ok(Math.abs(out.facts.volume_mm3 - (6400 - hole)) < 1e-3);
-  assert.ok(Math.abs(out.change.volume_mm3 + hole) < 2e-3, JSON.stringify(out.change));
+  assert.ok(Math.abs(out.facts.volume - (6400 - hole)) < 1e-3);
+  assert.ok(Math.abs(out.change.volume + hole) < 2e-3, JSON.stringify(out.change));
   assert.equal(out.change.faces, 1, 'the bore'); assert.equal(out.change.bbox, undefined, 'the box is the same');
   assert.ok(out.change.edges > 0);
 });

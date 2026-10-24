@@ -6,8 +6,8 @@ import type { StudioDoc } from './doc';
 import { editRows } from './rowEdits';
 import { firstProblem, problem, type Problem } from './refusal';
 
-export interface StudioRingRow { id: string; designation?: string; shaftDiameterMM: number; grooveDiameterMM: number; grooveWidthMM: number; source?: string; estimate?: true }
-const FIELDS = new Set(['id', 'designation', 'shaftDiameterMM', 'grooveDiameterMM', 'grooveWidthMM', 'source', 'estimate']);
+export interface StudioRingRow { id: string; designation?: string; shaftDiameter: number; grooveDiameter: number; grooveWidth: number; source?: string; estimate?: true }
+const FIELDS = new Set(['id', 'designation', 'shaftDiameter', 'grooveDiameter', 'grooveWidth', 'source', 'estimate']);
 const size = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v > 0;
 
 /** What is wrong with a ring row: none, or its one problem (RING_ROW). */
@@ -17,8 +17,8 @@ export function checkRingRow(r: unknown): Problem[] {
   if (typeof o.id !== 'string' || !o.id.trim()) return [problem('RING_ROW', 'a ring row needs an id')];
   for (const k of Object.keys(o)) if (!FIELDS.has(k)) return [problem('RING_ROW', `${at}: unknown field ${k}`)];
   if (o.designation !== undefined && typeof o.designation !== 'string') return [problem('RING_ROW', `${at}: designation is text`)];
-  for (const k of ['shaftDiameterMM', 'grooveDiameterMM', 'grooveWidthMM'] as const) if (!size(o[k])) return [problem('RING_ROW', `${at}: ${k} must be a number of mm above 0`)];
-  if (!((o.grooveDiameterMM as number) < (o.shaftDiameterMM as number))) return [problem('RING_ROW', `${at}: the groove's Ø${o.grooveDiameterMM} must be below the shaft's Ø${o.shaftDiameterMM}`)];
+  for (const k of ['shaftDiameter', 'grooveDiameter', 'grooveWidth'] as const) if (!size(o[k])) return [problem('RING_ROW', `${at}: ${k} must be a number of mm above 0`)];
+  if (!((o.grooveDiameter as number) < (o.shaftDiameter as number))) return [problem('RING_ROW', `${at}: the groove's Ø${o.grooveDiameter} must be below the shaft's Ø${o.shaftDiameter}`)];
   if (o.estimate !== undefined && o.estimate !== true) return [problem('RING_ROW', `${at}: estimate is true or left out`)];
   const src = typeof o.source === 'string' && o.source.trim() !== '', est = o.estimate === true;
   if (o.source !== undefined && typeof o.source !== 'string') return [problem('RING_ROW', `${at}: source is text (where the row is from)`)];
@@ -32,7 +32,7 @@ export function editRingRows(doc: StudioDoc, add: readonly unknown[], remove: re
   return 'error' in r ? r : { doc: { ...doc, rings: { version: 1, rows: r.rows } } };
 }
 /** The rows for a groove: those of its shaft step's and groove's sizes, first (to 1e-6 mm). */
-export function ringRowsFor(doc: Pick<StudioDoc, 'rings'>, shaftDiameterMM: number, grooveDiameterMM: number): StudioRingRow[] {
+export function ringRowsFor(doc: Pick<StudioDoc, 'rings'>, shaftDiameter: number, grooveDiameter: number): StudioRingRow[] {
   const near = (a: number, b: number) => Math.abs(a - b) <= 1e-6;
-  return (doc.rings?.rows ?? []).filter(r => near(r.shaftDiameterMM, shaftDiameterMM) && near(r.grooveDiameterMM, grooveDiameterMM));
+  return (doc.rings?.rows ?? []).filter(r => near(r.shaftDiameter, shaftDiameter) && near(r.grooveDiameter, grooveDiameter));
 }

@@ -40,12 +40,12 @@ export function beltFeature(node: Extract<ModelNode, { kind: 'belt' }>, row: Dri
   };
   const a = wheel(node.wheels[0]), b = wheel(node.wheels[1]);
   if ((a.from ?? 0) !== (b.from ?? 0)) throw refusal('DRIVE_WHEELS', `the wheels stand at Z ${a.from ?? 0} and ${b.from ?? 0}: a belt runs on wheels in one plane`);
-  const R = (w: typeof a): number => w.kind === 'sprocket' ? sprocketPitchDiameter((row as ChainRow).pitchMM, w.teeth) / 2
-    : row.kind === 'timing-belt' ? timingPitchDiameter(row.pitchMM, w.teeth ?? 0) / 2 : row.kind === 'flat-belt' ? (w.diameter ?? 0) / 2 + row.thicknessMM / 2 : (w.diameter ?? 0) / 2;
+  const R = (w: typeof a): number => w.kind === 'sprocket' ? sprocketPitchDiameter((row as ChainRow).pitch, w.teeth) / 2
+    : row.kind === 'timing-belt' ? timingPitchDiameter(row.pitch, w.teeth ?? 0) / 2 : row.kind === 'flat-belt' ? (w.diameter ?? 0) / 2 + row.thickness / 2 : (w.diameter ?? 0) / 2;
   const dx = b.center[0] - a.center[0], dy = b.center[1] - a.center[1], C = Math.hypot(dx, dy);
   const across = a.kind === 'sprocket' ? a.width : a.width ?? 0;
-  const width = row.kind === 'chain' ? row.innerWidthMM ?? Math.min(5, across) : row.kind === 'flat-belt' ? row.widthMM : row.kind === 'v-belt' ? row.datumWidthMM : across;
-  const z = (a.from ?? 0) + (row.kind === 'v-belt' ? row.edgeMM - width / 2 : Math.max(0, (across - width) / 2));
+  const width = row.kind === 'chain' ? row.innerWidth ?? Math.min(5, across) : row.kind === 'flat-belt' ? row.width : row.kind === 'v-belt' ? row.datumWidth : across;
+  const z = (a.from ?? 0) + (row.kind === 'v-belt' ? row.edge - width / 2 : Math.max(0, (across - width) / 2));
   return { kind: 'belt', row, pitchRadii: [R(a), R(b)], centerDistance: C, ...(node.rounding ? { rounding: node.rounding } : {}), width, center: a.center, ...(z ? { from: z } : {}), ...(dx || dy ? { rotation: Math.atan2(dy, dx) * 180 / Math.PI } : {}), generator: node.generator };
 }
 /** The document's bearing rows and fit tables (R12c.4: a bearing's row and its seats' classes inline in its feature). */
@@ -97,18 +97,18 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
     case 'sketch': { const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; return { ...at, ...profile } as CadPartFeature; }
     case 'extrude': return { ...at, kind: 'extrude', sketch: id(node.sketch), height: node.height, ...(node.from === undefined ? {} : { from: node.from }), ...(node.draft ? { draft: node.draft } : {}) };
-    case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angleDegrees: node.angleDegrees };
+    case 'revolve': return { ...at, kind: 'revolve', sketch: id(node.sketch), axis: { origin: node.origin ?? [0, 0], direction: node.dir ?? node.axis }, angle: node.angle };
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
     case 'difference': return { ...at, kind: 'difference', target: ref(node.parent), tool: ref(node.tool) };
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };
     case 'translate': return { ...at, kind: 'translate', target: ref(node.parent), offset: node.offset };
-    case 'rotate': return { ...at, kind: 'rotate', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, ...(node.pivot ? { pivot: node.pivot } : {}) };
+    case 'rotate': return { ...at, kind: 'rotate', target: ref(node.parent), axis: node.axis, angle: node.angle, ...(node.pivot ? { pivot: node.pivot } : {}) };
     // Studio mirrors keep the original, as a mirror copy beside it.
     case 'mirror': return { ...at, kind: 'mirror', target: ref(node.parent), plane: node.plane, keep: true };
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
-    case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angleDegrees: node.angleDegrees, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
+    case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angle: node.angle, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'split': return { ...at, kind: 'split', target: ref(node.parent), ...(node.normal ? { normal: node.normal } : { axis: node.axis }), at: node.at };
     case 'separate': return { ...at, kind: 'separate', target: ref(node.parent) };
     case 'decimate': return { ...at, kind: 'decimate', target: ref(node.parent), ...(node.ratio !== undefined ? { ratio: node.ratio } : {}), ...(node.triangles !== undefined ? { triangles: node.triangles } : {}), ...(node.maxError !== undefined ? { maxError: node.maxError } : {}), ...(node.featureAngle !== undefined ? { featureAngle: node.featureAngle } : {}) };
@@ -122,7 +122,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'chamfer': return { ...at, kind: 'chamfer', target: ref(node.parent), edges: node.edges, distance: node.distance, ...expectOf(node, node.edges) };
     case 'sheet-base': return { ...at, kind: 'sheet-base', sketch: id(node.sketch), thickness: node.thickness, bendRadius: node.bendRadius, ...sheetK(node), ...(node.reverse ? { reverse: true } : {}) };
     case 'sheet-corner-relief': return { ...at, kind: 'sheet-corner-relief', target: ref(node.parent), corner: node.edges[0], shape: node.shape, size: node.size };
-    case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angleDegrees !== undefined ? { angleDegrees: node.angleDegrees } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
+    case 'sheet-flange': return { ...at, kind: 'sheet-flange', target: ref(node.parent), edge: node.edges[0], length: node.length, ...(node.angle !== undefined ? { angle: node.angle } : {}), ...(node.bendRadius !== undefined ? { bendRadius: node.bendRadius } : {}), ...(node.measure ? { measure: node.measure } : {}), ...(node.position ? { position: node.position } : {}), ...(node.offsets ? { offsets: node.offsets } : {}), ...(node.relief ? { relief: node.relief } : {}) };
     case 'frame': { const g = frameGeometry(current, node, params, partsNow); if ('code' in g) throw refusal(g.code, g.error);
       return { ...at, kind: 'frame', points: g.points, segments: g.segments, ...(node.bends !== undefined ? { bends: node.bends } : {}), section: kernelSection(node.section, id),
       ...(node.anchor ? { anchor: node.anchor } : {}), ...(node.offset ? { offset: node.offset } : {}), ...(node.roll ? { roll: node.roll } : {}), ...(node.mirror ? { mirror: true } : {}), ...(node.up ? { up: node.up } : {}),
@@ -159,7 +159,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       const row = oringRows.get(node.ring);
       if (!row) throw refusal('ORING_ROW_UNKNOWN', `a gland names the O-ring row "${node.ring}", which the document's O-ring rows do not hold (rows: ${[...oringRows.keys()].join(', ') || 'none'})`);
       const fit = node.sealClass || node.grooveClass ? { fit: { tables: fitTables, ...(node.sealClass ? { seal: node.sealClass } : {}), ...(node.grooveClass ? { groove: node.grooveClass } : {}) } } : {};
-      return { ...at, kind: 'oring-gland', target: ref(node.parent), face: node.face, gland: node.gland, ring: { id: row.id, ...(row.dash ? { dash: row.dash } : {}), insideDiameter: row.insideDiameterMM, crossSection: row.crossSectionMM, ...(row.source ? { source: row.source } : {}), ...(row.estimate ? { estimate: true } : {}) },
+      return { ...at, kind: 'oring-gland', target: ref(node.parent), face: node.face, gland: node.gland, ring: { id: row.id, ...(row.dash ? { dash: row.dash } : {}), insideDiameter: row.insideDiameter, crossSection: row.crossSection, ...(row.source ? { source: row.source } : {}), ...(row.estimate ? { estimate: true } : {}) },
         groove: { diameter: node.diameter, width: node.width, ...(node.at !== undefined ? { at: node.at } : {}), ...(node.depth !== undefined ? { depth: node.depth } : {}), ...(node.center ? { center: node.center } : {}) }, ...(node.seal !== undefined ? { seal: node.seal } : {}), ...fit };
     }
     case 'oring': return { ...at, kind: 'oring', gland: id(node.gland) };
@@ -192,7 +192,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       // (O139: the user's row it names, checked by the kernel — never a fallback; none named: an estimate.)
       const r = node.row === undefined ? null : ringRows.get(node.row);
       if (node.row !== undefined && !r) throw refusal('RING_ROW_UNKNOWN', `a retaining ring names the row "${node.row}", which the document's ring rows do not hold (rows: ${[...ringRows.keys()].join(', ') || 'none'})`);
-      const row = r ? { shaftDiameter: r.shaftDiameterMM, grooveDiameter: r.grooveDiameterMM, grooveWidth: r.grooveWidthMM, ...(r.source ? { source: r.source } : { estimate: true }) } : { estimate: true };
+      const row = r ? { shaftDiameter: r.shaftDiameter, grooveDiameter: r.grooveDiameter, grooveWidth: r.grooveWidth, ...(r.source ? { source: r.source } : { estimate: true }) } : { estimate: true };
       return { ...at, kind: 'retaining-ring', shaft: id(node.shaft), groove: node.groove, thickness: node.thickness, outerDiameter: node.outerDiameter, row };
     }
     case 'pin': return { ...at, kind: 'pin', shaft: id(node.shaft), hole: node.hole, ...(node.diameter !== undefined ? { diameter: node.diameter } : {}), ...(node.length !== undefined ? { length: node.length } : {}), ...(node.fit ? { fit: true } : {}) };
@@ -248,7 +248,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       return { ...at, kind: 'spur-gear', ...modules, teeth: node.teeth, faceWidth: node.faceWidth, generator: node.generator, ...own, ...(node.toolTipRadius !== undefined ? { toolTipRadius: node.toolTipRadius } : {}), ...(node.profileShift ? { profileShift: node.profileShift } : {}), ...(node.bore !== undefined ? { bore: node.bore } : {}), ...(node.thicknessReduction !== undefined ? { thicknessReduction: node.thicknessReduction } : {}) };
     }
     case 'sew': return { ...at, kind: 'sew', surfaces: node.surfaces, ...(node.tolerance !== undefined ? { tolerance: node.tolerance } : {}) };
-    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angleDegrees: node.angleDegrees, ...expectOf(node, node.faces) };
+    case 'draft': return { ...at, kind: 'draft', target: ref(node.parent), faces: node.faces, angle: node.angle, ...expectOf(node, node.faces) };
     case 'split-face': return { ...at, kind: 'split-face', target: ref(node.parent), face: node.face, pull: node.pull, ...(node.names ? { names: node.names } : {}) } as CadPartFeature;
     case 'fillet': return { ...at, kind: 'fillet', target: ref(node.parent), edges: node.edges, ...(node.radii ? { radii: node.radii.map(p => ({ at: p.at, radius: p.radius })) } : { radius: node.radius }), ...(node.section ? { section: node.section } : {}), ...expectOf(node, node.edges) };
   }
@@ -459,7 +459,7 @@ export function partSnapshot(doc: StudioDoc, build: (part: CadPartDocument) => C
       }
       return o;
     });
-    return { ...snapshot, outputs, output(id) { const output = outputs.find(o => o.id === id); if (!output) throw new CadPartError('REFERENCE', null, `no output ${id}`); return output; } };
+    return { ...snapshot, outputs };
   };
   return read(doc, build);
 }
@@ -516,7 +516,7 @@ function placementOf(node: Extract<ModelNode, { kind: 'library' }>): CadPartFeat
   if (!node.placement) return [];
   const steps = rotationSteps(node.placement.rotation), out: CadPartFeature[] = [];
   let target = node.outputs[0];
-  steps.forEach((s, k) => { const id = `${node.prefix}_turn${k}`; out.push({ id, kind: 'rotate', target, axis: s.axis, angleDegrees: s.angleDegrees } as CadPartFeature); target = id; });
+  steps.forEach((s, k) => { const id = `${node.prefix}_turn${k}`; out.push({ id, kind: 'rotate', target, axis: s.axis, angle: s.angle } as CadPartFeature); target = id; });
   out.push({ id: `${node.prefix}_placed`, kind: 'translate', target, offset: node.placement.position } as CadPartFeature);
   return out;
 }

@@ -119,5 +119,5 @@ export function sliderRange(j: Joint, travel = 50): { min: number; max: number; 
 export function gearPairAt(pair: { leader: string; follower: string; g1: GearPlacement; g2: GearPlacement; s1: number; s2: number }, values: Readonly<Record<string, number>>) {
   const g1 = { ...pair.g1, rotation: pair.g1.rotation + pair.s1 * (values[pair.leader] ?? 0) }, g2 = { ...pair.g2, rotation: pair.g2.rotation + pair.s2 * (values[pair.follower] ?? 0) };
   const c = checkPlacedSpurGears(g1, g2, { mode: 'verdict' });
-  return { phaseDeg: c.relativePhaseDeg, backlashMM: c.backlashMM, contactRatio: c.usableContactRatio, centerDistanceMM: c.centerDistanceMM };
+  return { phaseDeg: c.relativePhase, backlash: c.backlash, contactRatio: c.usableContactRatio, centerDistance: c.centerDistance };
 }

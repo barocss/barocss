@@ -47,10 +47,10 @@ export const rotateInertia = (I: Mat3, R: Mat3): Mat3 => mul(mul(transpose(R), I
 
 /** One body's mass (kg), centre (mm, part coordinates) and inertia about it (kg·m²) at its own material's density. */
 function bodyMass(doc: StudioDoc, b: BodyResult): { m: number; c: V3; I: Mat3; material: string; assumed: boolean } | null {
-  if (b.volumeMM3 === null || !b.centroid || !b.inertia) return null;
+  if (b.volume === null || !b.centroid || !b.inertia) return null;
   const id = materialIdOf(doc, b), mat = materialOf(id), k = mat.gPerCm3 / KERNEL_DENSITY;
-  // (Mass in kg as V · ρ · 1e-6, inertia in kg·m² as I · k: its own units and order, so not app/mass's bodyMass.)
-  return { m: b.volumeMM3 * mat.gPerCm3 * 1e-6, c: b.centroid, I: b.inertia.flat().map(x => x * k) as Mat3, material: mat.label, assumed: !id };
+  // (Mass in kg as V · ρ · 1e-6, inertia in kg·m² as I · k · 1e-9 from g·mm²: its own units and order, so not app/mass's bodyMass.)
+  return { m: b.volume * mat.gPerCm3 * 1e-6, c: b.centroid, I: b.inertia.flat().map(x => x * k * 1e-9) as Mat3, material: mat.label, assumed: !id };
 }
 
 /** A part's bodies combined (parallel axis), then in the frame: mass, centre, inertia, principal axes, the checks. */

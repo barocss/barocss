@@ -35,12 +35,12 @@ test('D168 gear area, mass, centroid and all nine moments agree with independent
     assert.ok(n.teeth === 20 || n.teeth === 30);
     assert.equal(input.bodies, undefined); assert.equal(input.brief?.material, undefined, 'existing default aluminium density');
     const expected = gearMoments(n.teeth, 48), lower = gearMoments(n.teeth, 32), scale = Math.max(...expected.inertia.map(Math.abs));
-    assert.ok(Math.abs(lower.volumeMM3 - expected.volumeMM3) <= expected.volumeMM3 * 1e-12, `${part} reference area convergence`);
+    assert.ok(Math.abs(lower.volume - expected.volume) <= expected.volume * 1e-12, `${part} reference area convergence`);
     assert.ok(lower.inertia.every((v, k) => Math.abs(v - expected.inertia[k]) <= scale * 1e-12), `${part} reference tensor convergence`);
     const e = evaluatePart(input, 1); assert.ok(e.ok && e.bodies.length === 1);
-    const b = e.bodies[0]; assert.ok(b.volumeMM3 !== null && b.centroid && b.inertia);
-    assert.ok(Math.abs(b.volumeMM3 - expected.volumeMM3) <= expected.volumeMM3 * 1e-12, `${part} volume/area`);
-    assert.ok(Math.abs(b.volumeMM3 * 2.7e-6 - expected.mass) <= expected.mass * 1e-12, `${part} mass`);
+    const b = e.bodies[0]; assert.ok(b.volume !== null && b.centroid && b.inertia);
+    assert.ok(Math.abs(b.volume - expected.volume) <= expected.volume * 1e-12, `${part} volume/area`);
+    assert.ok(Math.abs(b.volume * 2.7e-6 - expected.mass) <= expected.mass * 1e-12, `${part} mass`);
     assert.ok(b.centroid.every((v, k) => Math.abs(v - expected.centreMM[k]) <= 8 * 1e-12), `${part} centroid`);
     assert.ok(b.inertia.flat().every((v, k) => Math.abs(v - expected.inertia[k]) <= scale * 1e-12), `${part} inertia`);
   }

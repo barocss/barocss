@@ -25,9 +25,9 @@ export function rotationMatrix(rotation: readonly number[]): Mat3 {
  * turns (the kernel turns about X and Y by those only), else the same rotation exactly as Z turns between
  * quarter turns about X — R = Rz(a) · Rx(−90) · Rz(b) · Rx(90) · Rz(c), since Rx(−90) Rz(b) Rx(90) = Ry(b).
  */
-export function rotationSteps(rotation: readonly number[]): { axis: 'x' | 'y' | 'z'; angleDegrees: number }[] {
+export function rotationSteps(rotation: readonly number[]): { axis: 'x' | 'y' | 'z'; angle: number }[] {
   const quarter = (v: number) => Math.abs(v / 90 - Math.round(v / 90)) < 1e-12;
-  if (quarter(rotation[0]) && quarter(rotation[1])) return (['x', 'y', 'z'] as const).flatMap((axis, k) => rotation[k] ? [{ axis, angleDegrees: rotation[k] }] : []);
+  if (quarter(rotation[0]) && quarter(rotation[1])) return (['x', 'y', 'z'] as const).flatMap((axis, k) => rotation[k] ? [{ axis, angle: rotation[k] }] : []);
   const m = rotationMatrix(rotation);
   // Z–Y–Z angles of R: b from R22, then a and c (b at 0 or 180: one Z turn).
   const b = Math.acos(Math.max(-1, Math.min(1, m[8]))), sb = Math.sin(b);
@@ -36,8 +36,8 @@ export function rotationSteps(rotation: readonly number[]): { axis: 'x' | 'y' | 
   else if (m[8] > 0) { a = Math.atan2(m[3], m[0]); c = 0; }
   else { a = Math.atan2(-m[3], -m[0]); c = 0; }
   const deg = (r: number) => clean(r / DEG, 1e-9);
-  return [{ axis: 'z' as const, angleDegrees: deg(c) }, { axis: 'x' as const, angleDegrees: 90 }, { axis: 'z' as const, angleDegrees: deg(b) },
-    { axis: 'x' as const, angleDegrees: 270 }, { axis: 'z' as const, angleDegrees: deg(a) }].filter(s => s.angleDegrees !== 0);
+  return [{ axis: 'z' as const, angle: deg(c) }, { axis: 'x' as const, angle: 90 }, { axis: 'z' as const, angle: deg(b) },
+    { axis: 'x' as const, angle: 270 }, { axis: 'z' as const, angle: deg(a) }].filter(s => s.angle !== 0);
 }
 /** Values a hair from a round number are that number (and −0 is 0), so solved placements read cleanly. */
 export const clean = (v: number, step = 1e-9) => { const r = Math.round(v); const x = Math.abs(v - r) < step ? r : v; return x === 0 ? 0 : x; };
@@ -62,7 +62,7 @@ export function eulerOf(m: Mat3): Vec3 {
  */
 export function placementOf(inst: PartInstance): { m: number[]; t: [number, number, number] } {
   let m = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-  for (const { axis, angleDegrees } of rotationSteps(inst.rotation)) m = mul3(turnMatrix(axis, angleDegrees), m);
+  for (const { axis, angle } of rotationSteps(inst.rotation)) m = mul3(turnMatrix(axis, angle), m);
   return { m, t: [inst.position[0], inst.position[1], inst.position[2]] };
 }
 /** A turn about an axis through the origin, as the kernel's rotate feature makes it. */

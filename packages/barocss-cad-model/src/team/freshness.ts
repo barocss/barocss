@@ -226,9 +226,9 @@ export async function massResult(doc: StudioDoc, evaluate: Evaluate, run: string
   if (!b.ok) return stamp(doc, [], { ...base, status: 'failed', why: b.why });
   const incomplete = incompleteBeadReason(beadAccounting(d, b.bodies));
   if (incomplete) return stamp(doc, b.bodies, { ...base, status: 'unsupported', why: incomplete });
-  const per = massProperties(d, b.bodies) as { body: string; mass_g: number | null; assumed: boolean }[];
-  if (per.some(x => typeof x.mass_g !== 'number')) return stamp(doc, b.bodies, { ...base, status: 'unsupported', why: 'a body has no closed volume' });
-  return stamp(doc, b.bodies, { ...base, status: 'ok', number: per.reduce((s, x) => s + x.mass_g!, 0), value: per.map(x => ({ body: x.body, mass_g: x.mass_g, assumed: x.assumed })) });
+  const per = massProperties(d, b.bodies) as { body: string; mass: number | null; assumed: boolean }[];
+  if (per.some(x => typeof x.mass !== 'number')) return stamp(doc, b.bodies, { ...base, status: 'unsupported', why: 'a body has no closed volume' });
+  return stamp(doc, b.bodies, { ...base, status: 'ok', number: per.reduce((s, x) => s + x.mass!, 0), value: per.map(x => ({ body: x.body, mass: x.mass, assumed: x.assumed })) });
 }
 const IDENTITY = { origin: [0, 0, 0] as [number, number, number], R: [1, 0, 0, 0, 1, 0, 0, 0, 1] as [number, number, number, number, number, number, number, number, number] };
 /** A part's inertia about its centre (kg·m²); no body or no volume, failed. */

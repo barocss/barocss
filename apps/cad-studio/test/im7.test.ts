@@ -36,7 +36,7 @@ const moulded = (doc: StudioDoc, sides?: Record<string, Half>): StudioDoc => {
   const d: StudioDoc = { ...doc, process: 'injection', mould: { version: 1, pull: [0, 0, 1], finish: 'smooth', ...(sides ? { sides } : {}) } };
   return withLook(d, bodiesOf(d)[0], { material: 'abs' });
 };
-const sum = (bs: readonly BodyResult[]) => bs.reduce((t, b) => t + b.volumeMM3!, 0);
+const sum = (bs: readonly BodyResult[]) => bs.reduce((t, b) => t + b.volume!, 0);
 /** The plan after IM7b's isocline splits (O113): with the split document and bodies the halves are built on. */
 function mould(d: StudioDoc) {
   const b = bodiesOf(d), pull = d.mould!.pull!, sp = splitStraddles(d, b, pull, d.mould?.sides ?? {});
@@ -51,10 +51,10 @@ const holed = () => build([cmd('box', { w: 60, d: 40, h: 10, x: 0, y: 0, z: 0 })
 test('IM7 S0 a plate with a Ø10 through hole along +Z: one flat parting plane at z = 10; the hole\'s rim a shut-off (π·5² within the chord); no side core; the block 10 mm a side (an estimate)', async () => {
   const p = plan(moulded(await holed()));
   assert.ok(p.ok, JSON.stringify(p));
-  assert.deepEqual([p.plan.axis, p.plan.sign, p.plan.planeAt, p.plan.marginMM, p.plan.block], ['z', 1, 10, 10, { min: [-10, -10, -10], max: [70, 50, 20] }]);
+  assert.deepEqual([p.plan.axis, p.plan.sign, p.plan.planeAt, p.plan.margin, p.plan.block], ['z', 1, 10, 10, { min: [-10, -10, -10], max: [70, 50, 20] }]);
   assert.equal(p.plan.shutOffs.length, 1);
   const so = p.plan.shutOffs[0];
-  assert.ok(Math.abs(so.areaMM2 - Math.PI * 25) / (Math.PI * 25) < 0.02 && so.at === 10 && Math.abs(so.centroid[0] - 30) < 1e-3 && Math.abs(so.centroid[1] - 20) < 1e-3, JSON.stringify(so));
+  assert.ok(Math.abs(so.area - Math.PI * 25) / (Math.PI * 25) < 0.02 && so.at === 10 && Math.abs(so.centroid[0] - 30) < 1e-3 && Math.abs(so.centroid[1] - 20) < 1e-3, JSON.stringify(so));
   assert.deepEqual([p.plan.sideCores.length, p.plan.stuck.length], [0, 0]);
 });
 

@@ -25,7 +25,7 @@ const sprocketCommand: Command = {
     { key: 'w', label: 'Tooth width', kind: 'mm', min: 0.5 }, { key: 'seat', label: 'Seat Ø (at least the roller\'s)', kind: 'mm', min: 0.5 }, { key: 'bore', label: 'Bore Ø (0: none)', kind: 'mm', min: 0 }, ...at],
   defaults: ctx => {
     const row = rowsOf(ctx.doc, ['chain'])[0] as ChainRow, z = 17, l = sprocketLimits(row, z);
-    return { row: row.id, teeth: z, tip: r3(l.seatEdgeDiameterMM + 0.75 * (l.pointedTipDiameterMM - l.seatEdgeDiameterMM)), w: r3((row.innerWidthMM ?? 6) * 0.9), seat: row.rollerDiameterMM, bore: 0, ...beside(ctx, 10 + l.pitchDiameterMM / 2) };
+    return { row: row.id, teeth: z, tip: r3(l.seatEdgeDiameter + 0.75 * (l.pointedTipDiameter - l.seatEdgeDiameter)), w: r3((row.innerWidth ?? 6) * 0.9), seat: row.rollerDiameter, bore: 0, ...beside(ctx, 10 + l.pitchDiameter / 2) };
   },
   build: (ctx, v) => withNode(ctx.doc, { kind: 'sprocket', row: String(v.row), teeth: Math.round(Number(v.teeth)), tip: Number(v.tip), width: Number(v.w), ...(Number(v.seat) ? { seat: Number(v.seat) } : {}), ...(Number(v.bore) > 0 ? { bore: Number(v.bore) } : {}), ...place(v), generator: 'sprocket@0' }),
 };
@@ -44,7 +44,7 @@ const pulleyCommand: Command = {
       { key: 'bore', label: 'Bore Ø', kind: 'mm', min: 0 }, ...at];
   },
   defaults: ctx => {
-    const row = rowsOf(ctx.doc, ['timing-belt', 'v-belt', 'flat-belt'])[0], wide = row.kind === 'flat-belt' ? row.widthMM * 1.25 : 10;
+    const row = rowsOf(ctx.doc, ['timing-belt', 'v-belt', 'flat-belt'])[0], wide = row.kind === 'flat-belt' ? row.width * 1.25 : 10;
     return { row: row.id, teeth: 20, d: 80, n: 1, w: r3(wide), crown: 0, bore: 12, ...beside(ctx, 50) };
   },
   build: (ctx, v) => {
@@ -76,8 +76,8 @@ const beltCommand: Command = {
     if (w.row.kind === 'chain' && v.snap !== 'stay') {
       // (The distance for whole links along the line between the wheels: the second wheel moved there.)
       const A = doc.nodes[w.a] as Extract<ModelNode, { kind: 'sprocket' }>, B = doc.nodes[w.b] as Extract<ModelNode, { kind: 'sprocket' }>;
-      const dx = B.center[0] - A.center[0], dy = B.center[1] - A.center[1], C = Math.hypot(dx, dy), p = w.row.pitchMM;
-      const c = chainLinks(p, sprocketPitchDiameter(p, A.teeth) / 2, sprocketPitchDiameter(p, B.teeth) / 2, C, rounding).centerDistanceMM;
+      const dx = B.center[0] - A.center[0], dy = B.center[1] - A.center[1], C = Math.hypot(dx, dy), p = w.row.pitch;
+      const c = chainLinks(p, sprocketPitchDiameter(p, A.teeth) / 2, sprocketPitchDiameter(p, B.teeth) / 2, C, rounding).centerDistance;
       doc = { ...doc, nodes: doc.nodes.map((n, i) => i === w.b ? { ...B, center: [A.center[0] + dx / C * c, A.center[1] + dy / C * c] as [number, number] } : n) };
     }
     return withNode(doc, { kind: 'belt', row: w.row.id, wheels: [w.a, w.b], ...(w.row.kind === 'chain' && rounding === 'even' ? { rounding } : {}), generator: 'belt@0' });

@@ -79,7 +79,7 @@ test('a gear pair turns together: the follower from its leader whatever it was g
     const at = gearPairAt(c, fk.values);
     const dPhase = Math.min(Math.abs(at.phaseDeg - home.phaseDeg), 360 / 30 - Math.abs(at.phaseDeg - home.phaseDeg));
     assert.ok(dPhase < 1e-6, `phase ${at.phaseDeg} vs ${home.phaseDeg}`);
-    assert.ok(Math.abs(at.backlashMM - home.backlashMM) < 1e-9 && Math.abs(at.centerDistanceMM - 50) < 1e-9);
+    assert.ok(Math.abs(at.backlash - home.backlash) < 1e-9 && Math.abs(at.centerDistance - 50) < 1e-9);
   }
   // The wrong ratio does not hold it: the check would see the teeth move against each other.
   const wrong = gearPairAt(c, { 'base~g1': 0.3, 'base~g2': 0.3 * 20 / 30 });

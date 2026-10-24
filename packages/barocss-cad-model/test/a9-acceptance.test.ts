@@ -68,13 +68,13 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   await call('features', { action: 'command', command: 'frame', values: { skeleton: 'table', W: 400, D: 300, H: 300, x: 0, y: 0, z: 0, section: 'library', row: 'R40', corners: 'butt' } });
   await call('features', { action: 'material', material: 'steel' });
   assert.equal(s.bodies.length, 8);
-  const A = 40 ** 2 - 34 ** 2, frameVolume = s.bodies.reduce((a, b) => a + b.volumeMM3!, 0);
+  const A = 40 ** 2 - 34 ** 2, frameVolume = s.bodies.reduce((a, b) => a + b.volume!, 0);
   assert.ok(Math.abs(frameVolume - A * (4 * 320 + 2 * 360 + 2 * 260)) <= 1e-6 * frameVolume, String(frameVolume));
   assert.equal(Math.max(...s.bodies.map(b => b.mesh.bounds.max[2])), 320, 'the rails\' top');
   // (The cut list: legs 320 × 4, rails 360 × 2 and 260 × 2; nested into one S6 with FRb's rule, n − 1 kerfs a bar.)
-  const cut = await call('query', { action: 'cutlist' }) as { rows: { quantity: number; longPointMM: number }[]; nesting: { bars: { stock: string; usedMM: number; kerfMM: number; offcutMM: number }[]; unplaced: unknown[] } };
-  assert.deepEqual(cut.rows.map(r => [r.quantity, Math.round(r.longPointMM)]), [[4, 320], [2, 360], [2, 260]]);
-  assert.deepEqual(cut.nesting.bars.map(b => [b.stock, b.usedMM, b.kerfMM, b.offcutMM]), [['S6', 2520, 7 * 2, 6000 - 2520 - 7 * 2]]);
+  const cut = await call('query', { action: 'cutlist' }) as { rows: { quantity: number; longPoint: number }[]; nesting: { bars: { stock: string; used: number; kerf: number; offcut: number }[]; unplaced: unknown[] } };
+  assert.deepEqual(cut.rows.map(r => [r.quantity, Math.round(r.longPoint)]), [[4, 320], [2, 360], [2, 260]]);
+  assert.deepEqual(cut.nesting.bars.map(b => [b.stock, b.used, b.kerf, b.offcut]), [['S6', 2520, 7 * 2, 6000 - 2520 - 7 * 2]]);
   assert.deepEqual(cut.nesting.unplaced, []);
 
   // 2. Briefs per part (A9-2). The frame states purpose and material only: no weldment process (A9-12, the cut and weld
@@ -93,7 +93,7 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   await call('features', P({ action: 'command', command: 'box', values: { w: 50, d: 30, h: 8, x: 30, y: 200, z: 6 } }));
   const [plate, pocketBox] = partBodies('p1').map(b => b.key);
   await call('features', P({ action: 'command', command: 'difference', values: {}, bodies: [plate, pocketBox] }));
-  const plateVolume = partBodies('p1')[0].volumeMM3!, plateExact = 840000 - 12000 - 4 * Math.PI * 3.3 ** 2 * 14 - Math.PI * 23.5 ** 2 * 14;
+  const plateVolume = partBodies('p1')[0].volume!, plateExact = 840000 - 12000 - 4 * Math.PI * 3.3 ** 2 * 14 - Math.PI * 23.5 ** 2 * 14;
   assert.ok(Math.abs(plateVolume - plateExact) <= PITCH * plateExact, `${plateVolume} vs ${plateExact}`);
 
   // 6. The shaft (p2): the defaults, the key, and the 6204 — refused before its rows, then on step 3 against the Ø25
@@ -110,7 +110,7 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   }
   await call('features', bearingArgs);
   const shaft = partBodies('p2'), notes = shaft.flatMap(b => (b.notes ?? []).map(n => n.text));
-  assert.ok(Math.abs(shaft.find(b => b.key === 'b2')!.volumeMM3! - 19800.6522) < 1e-4, String(shaft[2].volumeMM3));
+  assert.ok(Math.abs(shaft.find(b => b.key === 'b2')!.volume! - 19800.6522) < 1e-4, String(shaft[2].volume));
   assert.ok(notes.includes('Shaft seat k5: 20.002 to 20.011 (the ring\'s tolerance is not in its row), an estimate'), JSON.stringify(notes));
   assert.ok(notes.some(n => /^Bearing 6204: Ø20 × Ø47 × 14, corners r 1 \(your row, B1 \(D139\): NSK/.test(n)), JSON.stringify(notes));
   const fit = exclude(await call('query', S({ action: 'fit_clearance', hole_class: 'H7', shaft_class: 'k6', size: 20 })));
@@ -140,8 +140,8 @@ test('A9 steps 1–7: the person\'s rows (the fixture), a brief per part, and th
   // (O160, F1: the cover's print layers are the cover's, not its bought O-ring's: 8 mm at 0.2 is 40 layers, no support —
   // the groove opens upward.)
   const layers = await call('print', C({ action: 'layers', layerHeight: 0.2 })) as { files: { text: string }[] };
-  const print = JSON.parse(layers.files[0].text) as { count: number; supportColumns: unknown[]; heightMM: number };
-  assert.deepEqual([print.count, print.supportColumns.length, +print.heightMM.toFixed(6)], [40, 0, 8]);
+  const print = JSON.parse(layers.files[0].text) as { count: number; supportColumns: unknown[]; height: number };
+  assert.deepEqual([print.count, print.supportColumns.length, +print.height.toFixed(6)], [40, 0, 8]);
 
   // 5 (the plate's CAM package, G23 B, from its own document on the base's inherited stock): the pocket's levels 11, 8, 6
   // at step-down 3 in the +Z setup; the stock a box from B1 with the allowance 1.
@@ -175,7 +175,7 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   // FRk1's oracles: a gusset (l1·l2 − c²)/2·t = 8750 mm³; a cap's plug 34·34·4 = 4624 mm³.
   for (const [leg, rail] of [['b0_part0', 'b0_part4'], ['b0_part1', 'b0_part4'], ['b0_part2', 'b0_part6'], ['b0_part3', 'b0_part6']]) await call('features', { action: 'command', command: 'gusset', values: { l1: 60, l2: 60, t: 5, clip: 10, offset: 0 }, bodies: [leg, rail] });
   for (const leg of ['b0_part0', 'b0_part1', 'b0_part2', 'b0_part3']) await call('features', { action: 'command', command: 'end-cap', values: { end: 'start', fit: 'inset', t: 4 }, bodies: [leg] });
-  const plates = s.bodies.filter(b => b.element?.kind === 'gusset' || b.element?.kind === 'end-cap').map(b => [b.element!.kind, +b.volumeMM3!.toFixed(6)]);
+  const plates = s.bodies.filter(b => b.element?.kind === 'gusset' || b.element?.kind === 'end-cap').map(b => [b.element!.kind, +b.volume!.toFixed(6)]);
   assert.deepEqual(plates, [...Array(4).fill(['gusset', (60 * 60 - 10 ** 2) / 2 * 5]), ...Array(4).fill(['end-cap', 34 * 34 * 4])]);
   // (The joints: the 8 rail ends on their legs, each gusset's two seams, each cap's.)
   const joints = (await call('query', { action: 'welds' }) as { joints: { id: string; kind: string }[] }).joints;
@@ -192,13 +192,13 @@ test('A9 steps 4 and 8: the weldment\'s gussets, caps and beads; the parts place
   for (const j of wq.joints.filter(x => x.kind === 'cap')) assert.match(j.bead?.refused ?? '', /^\[BEAD_KIND\] a cap sits flush/, j.id);
   assert.equal(s.bodies.length > 0, true, 'the part still evaluates');
   await call('features', { action: 'welds', remove: joints.filter(j => j.kind === 'cap').map(j => j.id) });
-  const welds = await call('query', { action: 'welds' }) as { joints: { id: string; bead?: { volumeMM3: number; nominalVolumeMM3: number } }[]; totals: { beads: { complete: boolean; bodyCount: number; nominalVolumeMM3: number; refusedJointIds: string[] } } };
+  const welds = await call('query', { action: 'welds' }) as { joints: { id: string; bead?: { volume: number; nominalVolume: number } }[]; totals: { beads: { complete: boolean; bodyCount: number; nominalVolume: number; refusedJointIds: string[] } } };
   // (Each rail end is the kernel's bead-tee-flush case, 360 mm³ nominal at leg 3: 8 ends, 2880. A gusset's two seams
   // (200 mm) at leg 3: 3²/2 · 200 = 900 mm³ each. Complete, none refused.)
-  const railBeads = welds.joints.filter(j => /^b0_part[4-7]\./.test(j.id)).map(j => j.bead!.nominalVolumeMM3);
+  const railBeads = welds.joints.filter(j => /^b0_part[4-7]\./.test(j.id)).map(j => j.bead!.nominalVolume);
   assert.deepEqual(railBeads, Array(8).fill(360));
-  assert.deepEqual(s.bodies.filter(b => /^bead_b[1-4]$/.test(b.key)).map(b => +b.volumeMM3!.toFixed(6)), Array(4).fill(3 ** 2 / 2 * 200));
-  assert.deepEqual([welds.totals.beads.complete, welds.totals.beads.bodyCount, welds.totals.beads.nominalVolumeMM3, welds.totals.beads.refusedJointIds], [true, 12, 8 * 360 + 4 * 900, []]);
+  assert.deepEqual(s.bodies.filter(b => /^bead_b[1-4]$/.test(b.key)).map(b => +b.volume!.toFixed(6)), Array(4).fill(3 ** 2 / 2 * 200));
+  assert.deepEqual([welds.totals.beads.complete, welds.totals.beads.bodyCount, welds.totals.beads.nominalVolume, welds.totals.beads.refusedJointIds], [true, 12, 8 * 360 + 4 * 900, []]);
 
   // 8. Placed exactly: the plate on the rails' top (z 320), its holes over the rail centres; the shaft through the bore with
   // the bearing's 14 in the plate's 14 (z 320–334); the cover on the plate over the bore, its Ø22 hole round the shaft's end.
@@ -259,17 +259,17 @@ test('A9 steps 9–11: a drawing per made part; the BOM and the purchase CSV; th
   for (const [x, y] of [[120, 10], [280, 10], [120, 290], [280, 290]]) await call('features', { action: 'command', command: 'fastener', values: { kind: 'socket-screw', size: 'M6', length: '20', joint: 'free', insert: 'instance', x, y, z: 334 } });
   assert.equal(s.doc.instances?.length, 7, 'the plate, the shaft, the cover and four screws');
   const bomOut = await call('query', { action: 'bom' }) as { files: { text: string }[] };
-  const bom = JSON.parse(bomOut.files[0].text).bom as { lines: { item: string; qty: number; kind?: string; row?: string | null; source?: string | null; estimate?: boolean; massG: number; material: string | null; member?: { section: string; lengthMM: number }; plate?: unknown }[] };
+  const bom = JSON.parse(bomOut.files[0].text).bom as { lines: { item: string; qty: number; kind?: string; row?: string | null; source?: string | null; estimate?: boolean; mass: number; material: string | null; member?: { section: string; length: number }; plate?: unknown }[] };
   const plateLine = bom.lines.find(l => l.item === 'Plate')!;
-  assert.ok(Math.abs(plateLine.massG - 801794.9075 * 2.7e-3) < 1e-2, String(plateLine.massG));
+  assert.ok(Math.abs(plateLine.mass - 801794.9075 * 2.7e-3) < 1e-2, String(plateLine.mass));
   assert.deepEqual(bom.lines.filter(l => l.kind).map(l => [l.kind, l.qty, l.row ?? null, l.estimate]), [['fastener', 4, 'SCS-M6x20', false], ['key', 1, null, true], ['bearing', 1, '6204', false], ['oring', 1, '214', false]]);
   // (O169, F10: the frame's members, a made line a cut-list row — legs 320 × 4, rails 360 × 2 and 260 × 2, steel — each
   // A · L · ρ (A = 40² − 34², the library's mild steel); the total mass the parts' and the base part's, nothing assumed.)
-  const steel = 7.85e-3, members = bom.lines.filter(l => l.member).map(l => [l.item, l.qty, l.material, +l.massG.toFixed(3)]);
+  const steel = 7.85e-3, members = bom.lines.filter(l => l.member).map(l => [l.item, l.qty, l.material, +l.mass.toFixed(3)]);
   assert.deepEqual(members, [[320, 4], [360, 2], [260, 2]].map(([L, n]) => [`rect-tube 40 × 40 × 3 × ${L}`, n, 'steel', +(n * (40 ** 2 - 34 ** 2) * L * steel).toFixed(3)]));
   // (The plates too by their material: 4 steel gussets of 8750 mm³, 4 caps of 4624 — no longer the default's density.)
-  assert.deepEqual(bom.lines.filter(l => l.plate).map(l => [l.qty, l.material, +l.massG.toFixed(3)]), [[4, 'steel', +(4 * 8750 * steel).toFixed(3)], [4, 'steel', +(4 * 4624 * steel).toFixed(3)]]);
-  const total = (JSON.parse(bomOut.files[0].text).bom as { totalMassG: number }).totalMassG, partsMass = bom.lines.filter(l => ['Plate', 'Shaft', 'Cover'].includes(l.item)).reduce((a, l) => a + l.massG, 0);
+  assert.deepEqual(bom.lines.filter(l => l.plate).map(l => [l.qty, l.material, +l.mass.toFixed(3)]), [[4, 'steel', +(4 * 8750 * steel).toFixed(3)], [4, 'steel', +(4 * 4624 * steel).toFixed(3)]]);
+  const total = (JSON.parse(bomOut.files[0].text).bom as { totalMassG: number }).totalMassG, partsMass = bom.lines.filter(l => ['Plate', 'Shaft', 'Cover'].includes(l.item)).reduce((a, l) => a + l.mass, 0);
   assert.ok(total > partsMass + members.reduce((a, m) => a + (m[3] as number), 0), `${total}: the parts, the members, and the plates and beads too`);
   const csvOut = await call('query', { action: 'purchase_csv' }) as { files: { text: string }[] }, csv = csvOut.files[0].text.trim().split('\n');
   assert.equal(csv.length, 5); assert.equal(csv[0], 'item no.,item,qty,kind,size,row,catalogue,source,estimate');

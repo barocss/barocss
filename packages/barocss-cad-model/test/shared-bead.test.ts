@@ -20,12 +20,12 @@ test('shared table through actual v2 weld edit: 8 owned 270, nominal 2880, 4 ids
   assert.equal(out.isError, false, out.content); assert.equal(calls, 1);
   const { doc, bodies } = out.state, beads = bodies.filter(b => b.element?.kind === 'weld-bead');
   assert.equal(bodies.length, 16); assert.equal(beads.length, 8);
-  for (const b of beads) { near(b.volumeMM3!, 270); assert.ok(b.element?.kind === 'weld-bead'); near(b.element.report.nominalVolumeMM3, 360);
+  for (const b of beads) { near(b.volume!, 270); assert.ok(b.element?.kind === 'weld-bead'); near(b.element.report.nominalVolume, 360);
     const s = b.element.report.sharedSeams[0]; assert.equal(s.joints.length, 2);
-    assert.equal(s.id, JSON.stringify(['shared-seam-v1', 'n0', s.joints])); near(s.lengthMM, 40); near(s.nominalSharedVolumeMM3, 180); near(s.ownedSharedVolumeMM3, 90);
+    assert.equal(s.id, JSON.stringify(['shared-seam-v1', 'n0', s.joints])); near(s.length, 40); near(s.nominalSharedVolume, 180); near(s.ownedSharedVolume, 90);
   }
   const a = weldList(doc, bodies).totals.beads!;
-  assert.equal(a.complete, true); assert.equal(a.bodyCount, 8); near(a.ownedVolumeMM3, 2160); near(a.nominalVolumeMM3, 2880); assert.equal(a.sharedSeamCount, 4);
+  assert.equal(a.complete, true); assert.equal(a.bodyCount, 8); near(a.ownedVolumeMM3, 2160); near(a.nominalVolume, 2880); assert.equal(a.sharedSeamCount, 4);
   const features = toPartDocument(doc).features.filter(f => f.kind === 'weld-bead');
   assert.equal(features.length, 8); for (const f of features) { assert.ok(f.kind === 'weld-bead'); assert.equal(f.sharing?.joints.length, 8); }
   const breps = partBreps(doc).filter(b => b.key.startsWith('bead_'));
@@ -36,8 +36,8 @@ test('unequal peer atomically refuses two joints, replans remaining manifest, an
   const doc = table(), bad: StudioDoc = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.map(w => w.joint === joints[0] ? { ...w, size: 2 } : w) } };
   const r = ok(bad), a = beadAccounting(bad, r.bodies)!;
   assert.equal(a.complete, false); assert.deepEqual(a.refusedJointIds, ['b0_part4.start', 'b0_part7.end']);
-  assert.equal(a.bodyCount, 6); near(a.ownedVolumeMM3, 1620); near(a.nominalVolumeMM3, 2160); assert.equal(a.sharedSeamCount, 3);
-  for (const b of r.bodies.filter(b => b.element?.kind === 'weld-bead')) near(b.volumeMM3!, 270);
+  assert.equal(a.bodyCount, 6); near(a.ownedVolumeMM3, 1620); near(a.nominalVolume, 2160); assert.equal(a.sharedSeamCount, 3);
+  for (const b of r.bodies.filter(b => b.element?.kind === 'weld-bead')) near(b.volume!, 270);
   const request = toPartDocument(bad).features.filter(f => f.kind === 'weld-bead');
   assert.equal(request.length, 6); for (const f of request) { assert.ok(f.kind === 'weld-bead'); assert.equal(f.sharing?.joints.length, 6); }
   for (const j of weldList(bad, r.bodies).joints.filter(j => a.refusedJointIds.includes(j.id))) {
@@ -54,7 +54,7 @@ test('default missing policy refuses all actual pairs; an authored peer removal 
   assert.ok(weldList(legacy, r.bodies).joints.every(j => j.bead && 'refused' in j.bead && /BEAD_SHARED_CONTEXT/.test(j.bead.refused)));
   const removed: StudioDoc = { ...doc, frames: { ...doc.frames!, welds: doc.frames!.welds!.filter(w => w.joint !== 'b0_part7.end') } };
   const next = ok(removed), singleton = next.bodies.find(b => b.key === beadIdOf('b0_part4.start'))!;
-  near(singleton.volumeMM3!, 360); assert.equal(beadAccounting(removed, next.bodies)!.complete, true);
+  near(singleton.volume!, 360); assert.equal(beadAccounting(removed, next.bodies)!.complete, true);
 });
 
 test('three-way actual component is refused atomically and no partial nominal survivor is emitted', () => {
@@ -101,7 +101,7 @@ test('all eight owned bodies retain independent prism centroid and full inertia 
     const S = [0, 1, 2].map(i => [0, 1, 2].map(j => pieces.reduce((s, p) => s + p.V * (p.cov[i][j] + (p.c[i] - C[i]) * (p.c[j] - C[j])), 0)));
     const trace = S[0][0] + S[1][1] + S[2][2], I = S.map((row, i) => row.map((v, j) => 2700e-15 * ((i === j ? trace : 0) - v)));
     const b = r.bodies.find(b => b.key === beadIdOf(`b0_part${corner.ids[owner]}`))!;
-    near(b.volumeMM3!, V); near(b.massG!, V * .0027); b.centroid!.forEach((x, i) => near(x, C[i]));
+    near(b.volume!, V); near(b.mass!, V * .0027); b.centroid!.forEach((x, i) => near(x, C[i]));
     const scale = Math.max(...I.flat().map(Math.abs));
     b.inertia!.forEach((row, i) => row.forEach((v, j) => assert.ok(Math.abs(v - I[i][j]) <= 1e-12 * scale, `${b.key} I${i}${j}: ${v} vs ${I[i][j]}`)));
   }

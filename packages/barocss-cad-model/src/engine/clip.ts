@@ -100,7 +100,7 @@ export function clipMesh(m: DisplayMesh, k: 0 | 1 | 2, at: number, keep: 'negati
   // Centre of the cap (its points' mean) for whatever reads face centroids.
   const centroid: Vec3 = [0, 0, 0];
   for (let v = 0; v < capCount; v++) for (let c = 0; c < 3; c++) centroid[c] += capPos[v * 3 + c] / Math.max(1, capCount);
-  const cap: DisplayFace = { index: capFace, id: 'section-cap', name: capName, kind: 'plane', normal: nCap, centroid, areaMM2: capArea };
+  const cap: DisplayFace = { index: capFace, id: 'section-cap', name: capName, kind: 'plane', normal: nCap, centroid, area: capArea };
   // Edge lines: the kept parts of each segment.
   const L = m.edgeLines, lines: number[] = [], of: number[] = [];
   for (let s = 0; s < L.length; s += 6) {

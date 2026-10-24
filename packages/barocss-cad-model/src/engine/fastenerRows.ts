@@ -13,12 +13,12 @@ export interface StudioFastenerRow {
   /** The thread size as the command names it ("M6"). */
   size: string;
   /** Length under the head (overall for a countersunk screw), mm; none for a nut or a washer. */
-  lengthMM?: number;
+  length?: number;
   designation?: string; partNumber?: string; supplier?: string;
   source?: string; estimate?: true;
 }
 const KINDS: ReadonlySet<string> = new Set(['hex-bolt', 'socket-screw', 'csk-screw', 'hex-nut', 'washer']);
-const FIELDS = new Set(['id', 'kind', 'size', 'lengthMM', 'designation', 'partNumber', 'supplier', 'source', 'estimate']);
+const FIELDS = new Set(['id', 'kind', 'size', 'length', 'designation', 'partNumber', 'supplier', 'source', 'estimate']);
 const threadedKind = (k: string) => k !== 'hex-nut' && k !== 'washer';
 
 /** What is wrong with a fastener row: none, or its one problem (FASTENER_ROW). */
@@ -29,8 +29,8 @@ export function checkFastenerRow(r: unknown): Problem[] {
   for (const k of Object.keys(o)) if (!FIELDS.has(k)) return [problem('FASTENER_ROW', `${at}: unknown field ${k}`)];
   if (typeof o.kind !== 'string' || !KINDS.has(o.kind)) return [problem('FASTENER_ROW', `${at}: kind is one of ${[...KINDS].join(', ')}`)];
   if (typeof o.size !== 'string' || !/^M\d+(\.\d+)?$/.test(o.size)) return [problem('FASTENER_ROW', `${at}: size is the thread's, as "M6"`)];
-  if (threadedKind(o.kind)) { if (!(typeof o.lengthMM === 'number' && Number.isFinite(o.lengthMM) && o.lengthMM > 0)) return [problem('FASTENER_ROW', `${at}: a ${o.kind}'s lengthMM is a number of mm above 0`)]; }
-  else if (o.lengthMM !== undefined) return [problem('FASTENER_ROW', `${at}: a ${o.kind} has no lengthMM`)];
+  if (threadedKind(o.kind)) { if (!(typeof o.length === 'number' && Number.isFinite(o.length) && o.length > 0)) return [problem('FASTENER_ROW', `${at}: a ${o.kind}'s lengthMM is a number of mm above 0`)]; }
+  else if (o.length !== undefined) return [problem('FASTENER_ROW', `${at}: a ${o.kind} has no lengthMM`)];
   for (const k of ['designation', 'partNumber', 'supplier'] as const) if (o[k] !== undefined && typeof o[k] !== 'string') return [problem('FASTENER_ROW', `${at}: ${k} is text`)];
   if (o.estimate !== undefined && o.estimate !== true) return [problem('FASTENER_ROW', `${at}: estimate is true or left out`)];
   if (o.source !== undefined && typeof o.source !== 'string') return [problem('FASTENER_ROW', `${at}: source is text (where the row is from)`)];
@@ -44,6 +44,6 @@ export function editFastenerRows(doc: StudioDoc, add: readonly unknown[], remove
   return 'error' in r ? r : { doc: { ...doc, fasteners: { version: 1, rows: r.rows } } };
 }
 /** The row a placed fastener is (its kind, size and length to 1e-6 mm), or null; two rows matching: the first. */
-export function fastenerRowFor(doc: Pick<StudioDoc, 'fasteners'>, kind: string, size: string, lengthMM?: number): StudioFastenerRow | null {
-  return (doc.fasteners?.rows ?? []).find(r => r.kind === kind && r.size === size && (!threadedKind(kind) || (lengthMM !== undefined && r.lengthMM !== undefined && Math.abs(r.lengthMM - lengthMM) <= 1e-6))) ?? null;
+export function fastenerRowFor(doc: Pick<StudioDoc, 'fasteners'>, kind: string, size: string, length?: number): StudioFastenerRow | null {
+  return (doc.fasteners?.rows ?? []).find(r => r.kind === kind && r.size === size && (!threadedKind(kind) || (length !== undefined && r.length !== undefined && Math.abs(r.length - length) <= 1e-6))) ?? null;
 }

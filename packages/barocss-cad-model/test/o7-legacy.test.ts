@@ -46,7 +46,7 @@ async function opened(doc: StudioDoc) {
   // (The same sheet with its accepted tolerances taken off: what the fastener data suggests on it at open.)
   const settings = readDrawing(doc.drawing), bare = drawingInputs(doc, { ...settings, dimensions: settings.dimensions.map(({ tol: _tol, ...d }) => d) });
   return plain({
-    bodies: bodies.map(b => ({ key: b.key, volume: b.volumeMM3 == null ? null : +b.volumeMM3.toFixed(6), faces: b.mesh.faces.length })),
+    bodies: bodies.map(b => ({ key: b.key, volume: b.volume == null ? null : +b.volume.toFixed(6), faces: b.mesh.faces.length })),
     threads: [...threadsOf(doc.nodes, sizes)],
     fastenerSteps: madeFasteners(doc).map(v => fastenerFit(v, sizes)),
     // (A placed part's sizes: the assembly's rows it inherits, its own over them.)

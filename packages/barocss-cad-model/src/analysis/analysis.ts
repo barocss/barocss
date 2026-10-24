@@ -30,12 +30,12 @@ export function massProperties(doc: StudioDoc, bodies: readonly BodyResult[]): R
     // (The kernel's inertia is for aluminium, 2.70 g/cm³: scaled to the body's density — as (x · ρ) / 2.7, an order kept
     // apart from app/mass's x · (ρ / 2.7), which rounds differently.)
     const inertia = b.inertia?.map(row => row.map(x => Number((x * rho / KERNEL_DENSITY).toPrecision(6))));
-    return { body: b.key, ...mat, volume_mm3: b.volumeMM3 === null ? null : r3(b.volumeMM3), area_mm2: r3(b.areaMM2 ?? b.mesh.faces.reduce((a, f) => a + f.areaMM2, 0)), ...(b.areaBasis === 'exact' ? {} : { area_basis: 'the display mesh\'s triangles (the kernel could not integrate it): a little low on curved faces' }),
-      mass_g: b.volumeMM3 === null ? null : r3(massGOf(b.volumeMM3, rho)),
+    return { body: b.key, ...mat, volume: b.volume === null ? null : r3(b.volume), area: r3(b.area ?? b.mesh.faces.reduce((a, f) => a + f.area, 0)), ...(b.areaBasis === 'exact' ? {} : { area_basis: 'the display mesh\'s triangles (the kernel could not integrate it): a little low on curved faces' }),
+      mass: b.volume === null ? null : r3(massGOf(b.volume, rho)),
       // (O179: a volume from the mesh is said so, with its bound and the mass's — never shown as exact.)
-      ...(b.volumeBasis ? { volume_basis: { method: b.volumeBasis.method, bound_mm3: b.volumeBasis.boundMM3 === null ? null : r3(b.volumeBasis.boundMM3), mass_bound_g: b.volumeBasis.boundMM3 === null ? null : r3(massGOf(b.volumeBasis.boundMM3, rho)), note: 'the display mesh\'s volume (the kernel could not integrate it): within the bound of the exact, an estimate' } } : {}),
+      ...(b.volumeBasis ? { volume_basis: { method: b.volumeBasis.method, bound: b.volumeBasis.bound === null ? null : r3(b.volumeBasis.bound), massBound: b.volumeBasis.bound === null ? null : r3(massGOf(b.volumeBasis.bound, rho)), note: 'the display mesh\'s volume (the kernel could not integrate it): within the bound of the exact, an estimate' } } : {}),
       centroid: b.centroid ? v3(b.centroid) : null,
-      ...(inertia ? { inertia_kg_m2_about_centroid: inertia } : {}), bbox: { min: v3(b.mesh.bounds.min), max: v3(b.mesh.bounds.max) } };
+      ...(inertia ? { inertia: inertia } : {}), bbox: { min: v3(b.mesh.bounds.min), max: v3(b.mesh.bounds.max) } };
   });
 }
 
@@ -47,8 +47,8 @@ export function massBoundOf(doc: StudioDoc, bodies: readonly BodyResult[]): numb
   let g = 0;
   for (const b of bodies) {
     if (!b.volumeBasis) continue;
-    if (b.volumeBasis.boundMM3 === null) return null;
-    g += massGOf(b.volumeBasis.boundMM3, materialOf(materialIdOf(doc, b)).gPerCm3);
+    if (b.volumeBasis.bound === null) return null;
+    g += massGOf(b.volumeBasis.bound, materialOf(materialIdOf(doc, b)).gPerCm3);
   }
   return g;
 }
@@ -61,7 +61,7 @@ function triangleAt(m: DisplayMesh, t: number): void {
 /** The smallest distance between two bodies' meshes, exactly (the kernel's `meshClearance`, K3: every triangle pair, an edge to an edge included), with its point on the first. */
 function clearance(a: DisplayMesh, b: DisplayMesh): { distance: number; at: Vec3 } {
   const c = meshClearance(a.positions, a.indices, b.positions, b.indices);
-  return { distance: c.distanceMM, at: (c.pointA ?? [0, 0, 0]) as Vec3 };
+  return { distance: c.distance, at: (c.pointA ?? [0, 0, 0]) as Vec3 };
 }
 
 /**
@@ -77,7 +77,7 @@ export async function interference(doc: StudioDoc, bodies: readonly BodyResult[]
     if (!apart) {
       const probe = withNode(doc, { kind: 'intersect', left: refOf(list[i]), right: refOf(list[j]) });
       const r = await evaluate(probe);
-      overlap = r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(probe.nodes, probe.nodes.length - 1))?.volumeMM3 ?? 0 : 0;
+      overlap = r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(probe.nodes, probe.nodes.length - 1))?.volume ?? 0 : 0;
     }
     if (overlap > 1e-6) out.push({ a: list[i].key, b: list[j].key, overlap_mm3: r3(overlap) });
     else { const c = clearance(list[i].mesh, list[j].mesh); out.push({ a: list[i].key, b: list[j].key, clearance_mm: r3(c.distance), near: v3(c.at) }); }
@@ -99,7 +99,7 @@ export async function section(doc: StudioDoc, bodies: readonly BodyResult[], eva
     const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
     const m = half?.mesh;
     if (m) for (let v = 0; v < m.faceOfVertex.length; v++) if (faces.some(f => f.index === m.faceOfVertex[v])) for (let q = 0; q < 3; q++) { lo[q] = Math.min(lo[q], m.positions[v * 3 + q]); hi[q] = Math.max(hi[q], m.positions[v * 3 + q]); }
-    return { body: c.body, cut_area_mm2: r3(faces.reduce((a, f) => a + f.areaMM2, 0)), regions: faces.length, ...(faces.length ? { box: { min: v3(lo), max: v3(hi) } } : {}) };
+    return { body: c.body, cut_area_mm2: r3(faces.reduce((a, f) => a + f.area, 0)), regions: faces.length, ...(faces.length ? { box: { min: v3(lo), max: v3(hi) } } : {}) };
   });
 }
 
@@ -179,8 +179,8 @@ function measureWalls(b: BodyResult, below?: number): Record<string, unknown> {
  * 45° of the pull) with their least draft; those under `min`.
  */
 export function draftAnalysis(doc: StudioDoc, b: BodyResult, pull: Vec3, min = 1): Record<string, unknown> {
-  const f = draftField(doc, [b], pull, min), walls = f.faces.filter(x => Math.min(Math.abs(x.minDeg), Math.abs(x.maxDeg)) < 45 || x.cls === 'straddle');
+  const f = draftField(doc, [b], pull, min), walls = f.faces.filter(x => Math.min(Math.abs(x.minDeg), Math.abs(x.max)) < 45 || x.cls === 'straddle');
   return { body: b.key, pull: v3(f.pull),
-    walls: walls.map(x => ({ face: x.face, draft_deg: r3(x.cls === 'straddle' ? 0 : Math.sign(x.maxDeg) * x.steepestDeg), min_deg: r3(x.minDeg), max_deg: r3(x.maxDeg), class: x.cls, ...(x.isocline ? { isocline_points: x.isocline.length } : {}) })),
+    walls: walls.map(x => ({ face: x.face, draft_deg: r3(x.cls === 'straddle' ? 0 : Math.sign(x.max) * x.steepestDeg), min_deg: r3(x.minDeg), max_deg: r3(x.max), class: x.cls, ...(x.isocline ? { isocline_points: x.isocline.length } : {}) })),
     under_min: walls.filter(x => x.cls !== 'drafted').map(x => x.face), note: 'exact normals (planes, cylinders, curved faces from the B-rep); straddle: n·d takes both signs, a parting line crosses it' };
 }

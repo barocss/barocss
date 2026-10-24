@@ -30,11 +30,11 @@ export interface MaterialData {
   readonly warpRisk?: number;
   /** A living-hinge material's (polypropylene's) allowable strain and thickness range; others have none. */
   readonly livingHingeStrain?: number; readonly livingHingeTMin?: number; readonly livingHingeTMax?: number;
-  readonly wallMM?: Readonly<Record<string, readonly [number, number]>>; readonly processes: readonly string[];
+  readonly wall?: Readonly<Record<string, readonly [number, number]>>; readonly processes: readonly string[];
   /** Its moulding shrink (mm/mm) where a page gives it (IM1, O77); the generic `shrink` stays the family's estimate. */
   readonly mouldShrink?: number;
   readonly estimate: boolean;
-  /** Each field's source id; a per-process wall range as `wallMM.<process>`, before `wallMM`. */
+  /** Each field's source id; a per-process wall range as `wall.<process>`, before `wall`. */
   readonly sources: Readonly<Record<string, string>>;
   /** The page each W-WEB value is from (IM1, O77): by its field's key, as in `sources`. */
   readonly pages?: Readonly<Record<string, WebSource>>;
@@ -65,7 +65,7 @@ export function checkMaterials(d: MaterialsData): string[] {
     for (const k of NUMERIC) { const v = m[k]; if (!(Number.isFinite(v) && v >= 0) || (k !== 'shrink' && k !== 'allowableStrain' && k !== 'friction' && !(v > 0))) problems.push(`${m.id}.${k}: ${v}`); }
     for (const [field, s] of Object.entries(m.sources)) if (!(s in d.sources)) problems.push(`${m.id}.${field}: unknown source ${s}`);
     for (const k of NUMERIC) if (!(k in m.sources)) problems.push(`${m.id}.${k}: no source`);
-    for (const [p, [lo, hi]] of Object.entries(m.wallMM ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wallMM.${p}: ${lo}–${hi}`);
+    for (const [p, [lo, hi]] of Object.entries(m.wall ?? {})) if (!(lo > 0 && hi > lo)) problems.push(`${m.id}.wall.${p}: ${lo}–${hi}`);
     if (m.castFamily !== undefined && (!CAST_FAMILIES.includes(m.castFamily) || m.family !== 'metal')) problems.push(`${m.id}.castFamily: ${m.castFamily}`);
   }
   // (Printing processes carry every printing threshold; printers name a known process, a positive build volume and layer.)
@@ -123,8 +123,8 @@ export function materialContext(path: string, material: MaterialData | undefined
     if (!material) return { unknown: 'the body\'s material is not set' };
     if (field === 'wallMin' || field === 'wallMax') {
       if (!profile) return { unknown: 'no process is chosen' };
-      const w = material.wallMM?.[profile.id];
-      return w ? { value: w[field === 'wallMin' ? 0 : 1], source: material.sources[`wallMM.${profile.id}`] ?? material.sources.wallMM } : { unknown: `${material.label} has no wall range for ${profile.label}` };
+      const w = material.wall?.[profile.id];
+      return w ? { value: w[field === 'wallMin' ? 0 : 1], source: material.sources[`wall.${profile.id}`] ?? material.sources.wall } : { unknown: `${material.label} has no wall range for ${profile.label}` };
     }
     const v = (material as unknown as Record<string, unknown>)[field];
     if (typeof v === 'number') return { value: v, source: material.sources[field] ?? '?' };

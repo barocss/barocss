@@ -136,12 +136,12 @@ export function plainMtext(s: string): string {
 }
 
 /** The underlay of a DXF drawing, its lengths times toMM. */
-export function readUnderlay(text: string, toMM: number, o: { detail?: boolean } = {}): Underlay {
+export function readUnderlay(text: string, to: number, o: { detail?: boolean } = {}): Underlay {
   const pairs = pairsOf(text), blocks = blocksOf(pairs);
   const start = pairs.findIndex((p, i) => p[0] === 2 && p[1] === 'ENTITIES' && pairs[i - 1]?.[0] === 0 && pairs[i - 1]?.[1] === 'SECTION');
   if (start < 0) throw refusal('DXF_MALFORMED', 'no ENTITIES section: not a DXF drawing');
   const top = entitiesOf(pairs, start + 1, p => p[0] === 0 && p[1] === 'ENDSEC').list;
-  const u: Underlay = { polylines: [], texts: [], counts: {}, left: {}, ...(o.detail ? { curves: [] } : {}) }, unit = scale(toMM, toMM);
+  const u: Underlay = { polylines: [], texts: [], counts: {}, left: {}, ...(o.detail ? { curves: [] } : {}) }, unit = scale(to, to);
   const count = (t: string) => { u.counts[t] = (u.counts[t] ?? 0) + 1; };
   const leave = (t: string, why: string) => { const l = u.left[t] ?? (u.left[t] = { count: 0, why }); l.count++; };
   const walk = (list: readonly Entity[], m: M2, inBlock: boolean, path: string[]) => {

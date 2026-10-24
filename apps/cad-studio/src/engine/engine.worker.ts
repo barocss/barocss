@@ -43,7 +43,7 @@ shareMeshes(true);
 // the worker works them out and posts them by mass ref, unplaced (the client places them by each body's massPlace — the
 // path a placed part would take, kept ready). A newer evaluation of the part drops the part's queued ones (its own reply
 // queues what it still needs), so an edit's reply never waits for an old evaluation's masses.
-export type MassReply = { masses: { ref: number; fields: Pick<BodyResult, 'volumeMM3' | 'massG' | 'centroid' | 'inertia' | 'volumeBasis'> }[] };
+export type MassReply = { masses: { ref: number; fields: Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'> }[] };
 /** How long one tick works out masses before it yields to the next request (one body at least). */
 const MASS_TICK_MS = 30;
 /** How long the worker waits with no request before it starts on masses: one body's (a spring's quadrature, ~2 s) cannot be
@@ -127,7 +127,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     try { d = proposalDiffFor(request.key, { doc: request.doc, bodies: a.bodies }, { doc: proposed!, bodies: b.bodies }); } catch (e) { why = e instanceof Error ? e.message : String(e); }
     const sides = d ? [d.added, d.removed] : [], bodies = sides.flatMap((m, i) => m ? [{ ...a.bodies[0], key: i ? 'removed' : 'added', mesh: m.mesh }] : []);
     const out = meshesOut.pack('proposalDiff', { ok: true, revision: request.revision, ms: 0, bodies });
-    (self as unknown as Worker).postMessage({ id: request.id, result: out.result, diff: d && { added: d.added ? d.added.volumeMM3 : null, removed: d.removed ? d.removed.volumeMM3 : null, changedFaces: d.changedFaces, method: d.method, why: d.why ?? null }, why }, out.transfer);
+    (self as unknown as Worker).postMessage({ id: request.id, result: out.result, diff: d && { added: d.added ? d.added.volume : null, removed: d.removed ? d.removed.volume : null, changedFaces: d.changedFaces, method: d.method, why: d.why ?? null }, why }, out.transfer);
   } else if (request.type === 'volumes') {
     (self as unknown as Worker).postMessage({ id: request.id, volumes: evaluateVolumes(request.doc) });
   } else if (request.type === 'drawing') {

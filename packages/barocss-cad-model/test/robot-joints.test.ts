@@ -142,7 +142,7 @@ test('two meshing spur gears on one carrier: the second follows the first, −z1
   assert.equal(t.couplings.length, 1);
   const c = t.couplings[0];
   assert.deepEqual([c.leader, c.follower, Math.round(c.multiplier * 1e12) / 1e12], ['base~g1', 'base~g2', Math.round(-20 / 30 * 1e12) / 1e12]);
-  assert.ok(Math.abs(c.centerDistanceMM - 50) < 1e-9 && Math.abs(c.nominalCenterDistanceMM - 50) < 1e-9, JSON.stringify(c));
+  assert.ok(Math.abs(c.centerDistance - 50) < 1e-9 && Math.abs(c.nominalCenterDistance - 50) < 1e-9, JSON.stringify(c));
   assert.deepEqual(t.joints[1].mimic, { joint: 'base~g1', multiplier: c.multiplier, offset: 0 });
 });
 

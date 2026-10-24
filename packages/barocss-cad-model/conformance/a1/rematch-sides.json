@@ -100,7 +100,7 @@
         "now": "n1.side2|n1.side3"
       }
     ],
-    "volumeMM3": 654.8495559215388
+    "volume": 654.8495559215388
   },
   "oracle": "closed forms (prism volumes; a fillet on a right-angled vertical edge takes (1 − π/4) r² h)"
 }

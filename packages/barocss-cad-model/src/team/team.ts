@@ -121,7 +121,7 @@ export function verifierView(doc: StudioDoc, bodies: readonly BodyResult[], extr
   const view = {
     revision: revisionOf(doc), brief: doc.brief ?? null, requirements: doc.requirements ?? [],
     facts: factsOf(doc, bodies), mass: massProperties(doc, bodies), boxes: bodies.map(b => ({ body: b.key, min: b.mesh.bounds.min, max: b.mesh.bounds.max })),
-    keepouts: extra.keepouts.map(k => ({ keepout: k.keepout, body: k.body, verdict: k.verdict, clearanceMM: k.clearanceMM, chordMM: k.chordMM })),
+    keepouts: extra.keepouts.map(k => ({ keepout: k.keepout, body: k.body, verdict: k.verdict, clearance: k.clearance, chordMM: k.chordMM })),
     printability: extra.print ? extra.print.rules.map(r => ({ id: r.id, status: r.status, message: r.message })) : null,
     checks: extra.spec ? { summary: extra.spec.summary, failures: extra.spec.failures, unknowns: extra.spec.unknowns } : null,
   };

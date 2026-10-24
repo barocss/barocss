@@ -18,15 +18,15 @@ type Spec = Record<string, string>;
 const SPECS: Record<string, Spec> = {
   bearing: { row: 'text', shaft: 'shaft-node', step: 'positive-index', against: 'enum:start|end', 'housing?': 'body-node', 'housingRef?': 'housing-ref', 'shaftClass?': 'text', 'housingClass?': 'text' },
   extrude: { sketch: 'sketch', height: 'dim', 'from?': 'dim', 'draft?': 'num' },
-  revolve: { sketch: 'sketch', axis: 'enum:x|y', 'origin?': 'dim2', angleDegrees: 'num' },
+  revolve: { sketch: 'sketch', axis: 'enum:x|y', 'origin?': 'dim2', angle: 'num' },
   sweep: { sketch: 'sketch', path: 'path' },
   loft: { sections: 'sections', 'smooth?': 'bool' },
   translate: { parent: 'ref', offset: 'dim3' },
-  rotate: { parent: 'ref', axis: 'enum:x|y|z', angleDegrees: 'num', 'pivot?': 'dim3' },
+  rotate: { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', 'pivot?': 'dim3' },
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
-  'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angleDegrees: 'num', count: 'count' },
+  'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', count: 'count' },
   union: { left: 'ref', right: 'ref' },
   intersect: { left: 'ref', right: 'ref' },
   difference: { parent: 'ref', tool: 'ref' },
@@ -307,7 +307,7 @@ function checkValue(v: unknown, type: string, nodes: readonly ModelNode[], param
       if (!Array.isArray(v) || !v.length) return 'a list of steps';
       for (const s of v) {
         if (isObj(s) && s.kind === 'straight' && dim(s.length)) continue;
-        if (isObj(s) && s.kind === 'bend' && dim(s.radius) && typeof s.angleDegrees === 'number' && ['x', '-x', 'y', '-y'].includes(String(s.toward))) continue;
+        if (isObj(s) && s.kind === 'bend' && dim(s.radius) && typeof s.angle === 'number' && ['x', '-x', 'y', '-y'].includes(String(s.toward))) continue;
         return 'each step is {kind:"straight", length} or {kind:"bend", radius, angleDegrees, toward: "x"|"-x"|"y"|"-y"}';
       }
       return null;

@@ -146,7 +146,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {
         const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);
-        const body = ctx.bodies.find(b => b.key === bodyKeyFor(now, index)), fid = `${featureId(now, index)}.`, inner = body?.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(s => s.startsWith(fid))).sort((a, b) => b.areaMM2 - a.areaMM2)[0];
+        const body = ctx.bodies.find(b => b.key === bodyKeyFor(now, index)), fid = `${featureId(now, index)}.`, inner = body?.mesh.faces.filter(f => f.kind === 'plane' && f.name.split('+').some(s => s.startsWith(fid))).sort((a, b) => b.area - a.area)[0];
         if (!inner || !Number.isFinite(t0 + t)) return [];
         const m = inner.normal, at = [0, 1, 2].map(k => inner.centroid[k] + m[k] * (t - t0)) as V3;
         return [{ key: 't', at, dir: [...m] as V3, min: 0.1, step: 0.5 }];

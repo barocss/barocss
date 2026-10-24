@@ -38,7 +38,7 @@ test('IM8c a plate 100 × 60 × 10: one hot spot on its mid-plane, r = 5 (within
   const s = solidification(bodiesOf(plate), [50, 30, 10]);
   assert.equal(s.hotSpots.length, 1, JSON.stringify(s.hotSpots));
   const hs = s.hotSpots[0];
-  assert.ok(Math.abs(hs.radiusMM - 5) <= s.grid.h / 2 && Math.abs(hs.at[2] - 5) <= s.grid.h && hs.shape === 'sheet' && Math.abs(hs.modulusMM - hs.radiusMM) <= 1e-3, JSON.stringify(hs));
+  assert.ok(Math.abs(hs.radius - 5) <= s.grid.h / 2 && Math.abs(hs.at[2] - 5) <= s.grid.h && hs.shape === 'sheet' && Math.abs(hs.modulusMM - hs.radius) <= 1e-3, JSON.stringify(hs));
   assert.equal(hs.fed, true);
   const r = await rules(cast(plate, [50, 30, 10]));
   assert.deepEqual([r['hot-spots'].status, r.feeding.status, r['section-change'].status], ['pass', 'pass', 'pass']);
@@ -50,7 +50,7 @@ test('IM8c the L junction (walls 4): one hot spot r = t(2 − √2) = 2.343 on t
   const far = solidification(bodies, [60, 15, T / 2], { h }), near = solidification(bodies, [0, 15, R_L], { h });
   assert.equal(far.hotSpots.length, 1, JSON.stringify(far.hotSpots));
   const hs = far.hotSpots[0];
-  assert.ok(Math.abs(hs.radiusMM - R_L) <= h / 2, `r ${hs.radiusMM} vs ${R_L}`);
+  assert.ok(Math.abs(hs.radius - R_L) <= h / 2, `r ${hs.radius} vs ${R_L}`);
   assert.ok(Math.abs(hs.at[0] - hs.at[2]) <= h && Math.abs(hs.at[0] - R_L) <= h && Math.abs(hs.at[1] - 15) <= 2, JSON.stringify(hs.at));
   assert.deepEqual([far.hotSpots[0].fed, near.hotSpots[0].fed], [false, true]);
   // (The mutant: the walls' r = 2 is under the junction's 2.343 by less than one cell of 0.4 — a floor of r − h would let
@@ -85,12 +85,12 @@ test('IM8c the unknowns, said: no gate — feeding unknown; die casting — no s
 test('IM8c the modulus from the hot spot\'s shape (O110): a plate 2r thick is a sheet, V/A ≈ r (the S0 plate 100 × 100 × 10: 4.17 against r = 5); a long round bar a line, ≈ r/2; a cube in a plate a point, ≈ r/3; always within [r/3, r], an estimate', async () => {
   const ext = (sketch: Record<string, unknown>, h: number) => withNode(withNode(emptyDoc(), sketch as never), { kind: 'extrude', sketch: 0, height: h });
   const plate = solidification(bodiesOf(ext({ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [100, 100] }, 10)), null).hotSpots[0];
-  assert.equal(plate.shape, 'sheet'); assert.equal(plate.modulusMM, plate.radiusMM);
+  assert.equal(plate.shape, 'sheet'); assert.equal(plate.modulusMM, plate.radius);
   assert.ok(Math.abs(plate.modulusMM - 100000 / 24000) <= 1, `${plate.modulusMM} against the plate's exact V/A 4.17`);
   const bar = solidification(bodiesOf(ext({ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 10 }, 200)), null).hotSpots[0];
-  assert.equal(bar.shape, 'line'); assert.ok(Math.abs(bar.modulusMM - bar.radiusMM / 2) <= 1e-3 && Math.abs(bar.radiusMM - 10) <= 1, JSON.stringify(bar));
+  assert.equal(bar.shape, 'line'); assert.ok(Math.abs(bar.modulusMM - bar.radius / 2) <= 1e-3 && Math.abs(bar.radius - 10) <= 1, JSON.stringify(bar));
   const cube = solidification(bodiesOf(await blockOnPlate()), null).hotSpots[0];
-  assert.equal(cube.shape, 'point'); assert.ok(Math.abs(cube.modulusMM - cube.radiusMM / 3) <= 1e-3, JSON.stringify(cube));
-  for (const hs of [plate, bar, cube]) assert.ok(hs.modulusRangeMM[0] <= hs.modulusMM + 1e-9 && hs.modulusMM <= hs.modulusRangeMM[1] + 1e-9 && Math.abs(hs.modulusRangeMM[0] - hs.radiusMM / 3) <= 1e-3);
+  assert.equal(cube.shape, 'point'); assert.ok(Math.abs(cube.modulusMM - cube.radius / 3) <= 1e-3, JSON.stringify(cube));
+  for (const hs of [plate, bar, cube]) assert.ok(hs.modulusRangeMM[0] <= hs.modulusMM + 1e-9 && hs.modulusMM <= hs.modulusRangeMM[1] + 1e-9 && Math.abs(hs.modulusRangeMM[0] - hs.radius / 3) <= 1e-3);
   const L1 = solidification(bodiesOf(await L()), null, { h: 0.4 }).hotSpots[0]; assert.equal(L1.shape, 'line', 'the L junction runs along its corner');
 });

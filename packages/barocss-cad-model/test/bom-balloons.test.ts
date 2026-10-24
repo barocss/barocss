@@ -31,7 +31,7 @@ function part(): StudioDoc {
   let doc = cmd('shaft').build!(blank, cmd('shaft').defaults!(blank));
   doc = { ...doc, nodes: doc.nodes.map((n, i) => i === 0 ? { ...(n as Extract<ModelNode, { kind: 'shaft' }>), holes: [{ diameter: 4, at: 80 }] } : n) };
   doc = run(doc, 'key', { bodies: [0] }, { h: 6 });
-  const t = editRingRows(doc, [{ id: 'r20', shaftDiameterMM: 20, grooveDiameterMM: 19, grooveWidthMM: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t); doc = t.doc;
+  const t = editRingRows(doc, [{ id: 'r20', shaftDiameter: 20, grooveDiameter: 19, grooveWidth: 1.3, source: 'the maker\'s sheet' }]); assert.ok('doc' in t); doc = t.doc;
   doc = run(doc, 'retaining-ring', { bodies: [0] });
   return run(doc, 'pin', { bodies: [0] });
 }
@@ -92,7 +92,7 @@ test('balloons on the front view when the iso is not shown; a line with no visib
   const doc = asm(part()), front = sheetOf(doc, { views: ['front', 'top'] });
   assert.deepEqual(front.ctx.sheet.balloons!.placed.map(p => p.view), ['front', 'front', 'front', 'front']);
   const { i, ctx } = sheetOf(doc), bom = i.meta.bom!;
-  const more = { ...bom, lines: [...bom.lines, { item: 'a part not placed', parts: ['i9'], qty: 1, material: null, massG: 0, source: null }] };
+  const more = { ...bom, lines: [...bom.lines, { item: 'a part not placed', parts: ['i9'], qty: 1, material: null, mass: 0, source: null }] };
   const missing = issueContext({ ...i, meta: { ...i.meta, bom: more } });
   assert.deepEqual(missing.sheet.balloons!.noEdge, [5]);
   assert.match(drawingIssues(missing).find(x => x.code === 'BALLOON_NO_EDGE')!.message, /^BOM line 5: no edge of its item is visible in the iso view/);

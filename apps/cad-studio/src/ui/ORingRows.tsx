@@ -18,7 +18,7 @@ export function ORingRows({ doc, onCommit, onError }: { doc: StudioDoc; onCommit
     <div className="card-title" style={{ marginTop: 8 }}>O-RINGS</div>
     {!rows.length && <RowsEmpty none="No O-ring rows" holds="JSON: dash, inside diameter, cross-section; each citing its source or marked an estimate." />}
     {rows.map(r => <div key={r.id} className={ROW} aria-label={`O-ring row ${r.id}`}>
-      <span title={r.source ?? 'an estimate'}><b>{r.dash ?? r.id}</b> <span className="muted small">ID {r.insideDiameterMM} × CS {r.crossSectionMM} · {r.source ?? 'estimate'}</span></span>
+      <span title={r.source ?? 'an estimate'}><b>{r.dash ?? r.id}</b> <span className="muted small">ID {r.insideDiameter} × CS {r.crossSection} · {r.source ?? 'estimate'}</span></span>
       <Button variant="ghost" aria-label={`Remove O-ring row ${r.id}`} title="Remove the row" onClick={() => apply([], [r.id])}><Icon name="delete" small /></Button>
     </div>)}
     <div className="flex flex-wrap gap-1">

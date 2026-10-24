@@ -58,7 +58,7 @@ test('CNC7b none loaded — unknown, STOCK_NONE_LOADED (none built in); none fit
 });
 
 test('CNC7b a bar: a turned shaft Ø20 × 52 — the thinnest bar ≥ Ø22 (Ø25 and Ø16 not taken), cut to 54 along its axis from y = −1; one too short refused', async () => {
-  const shaft = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [10, 0], [10, 52], [0, 52]] }), { kind: 'revolve', sketch: 0, axis: 'y', angleDegrees: 360 } as never);
+  const shaft = withNode(withNode(emptyDoc(), { kind: 'sketch', profile: 'polygon', points: [[0, 0], [10, 0], [10, 52], [0, 52]] }), { kind: 'revolve', sketch: 0, axis: 'y', angle: 360 } as never);
   let s = await build([stockList([{ id: 'R16', kind: 'bar', diameter: 16, source: 'the shop' }, { id: 'R25', kind: 'bar', diameter: 25, source: 'the shop' }, { id: 'R22', kind: 'bar', diameter: 22, maxLength: 1000, source: 'the shop' }])], shaft);
   const tu = turningOf(s.doc, s.bodies, holesOf(s.bodies)), r = chooseStock(s.doc, s.bodies, 'cnc-turning', tu);
   assert.ok(r.ok, JSON.stringify(r));
@@ -75,10 +75,10 @@ test('CNC7b a bar: a turned shaft Ø20 × 52 — the thinnest bar ≥ Ø22 (Ø25
 test('CNC7b the export: the stock as a body — the block 122 × 82 × 30 to 1e-6 mm³, the bar π·11²·54 within the chord; its STEP an ISO-10303-21 file', async () => {
   const s = await build([...PLATE, stockList(BLOCKS)]), r = chooseStock(s.doc, s.bodies, 'cnc-milling'); assert.ok(r.ok);
   const blk = evaluateDoc(stockDoc(r.choice), 1); assert.ok(blk.ok);
-  assert.ok(Math.abs(blk.bodies[0].volumeMM3! - 122 * 82 * 30) <= 1e-6, String(blk.bodies[0].volumeMM3));
+  assert.ok(Math.abs(blk.bodies[0].volume! - 122 * 82 * 30) <= 1e-6, String(blk.bodies[0].volume));
   const step = exportStudioStep(stockDoc(r.choice), { name: 'stock' }); assert.match(step.text, /^ISO-10303-21;/);
   const bar = stockDoc({ ...r.choice, placement: { start: [0, -1, 0], axis: [0, 1, 0], length: 54, diameter: 22 } }), be = evaluateDoc(bar, 1); assert.ok(be.ok);
-  const exact = Math.PI * 121 * 54; assert.ok(Math.abs(be.bodies[0].volumeMM3! - exact) / exact < 0.01, String(be.bodies[0].volumeMM3));
+  const exact = Math.PI * 121 * 54; assert.ok(Math.abs(be.bodies[0].volume! - exact) / exact < 0.01, String(be.bodies[0].volume));
 });
 
 test('CNC7b set_stock refuses by name: a row without a source, a block of two sides, two rows of one id, a negative allowance', async () => {

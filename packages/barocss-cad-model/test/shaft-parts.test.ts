@@ -38,13 +38,13 @@ test('Shaft parts (R12c.3b): the default shaft, a hub over its seat with a keywa
   const r = evaluateDoc(doc, 2); assert.ok(r.ok, r.ok ? '' : r.error.detail);
   const body = (kind: string) => r.ok ? r.bodies.find(b => b.ref && doc.nodes[b.ref.node].kind === kind)! : null!;
   const k = body('key'), notes = k.notes!.map(n => n.text);
-  assert.ok(Math.abs(k.volumeMM3! - (12 * 36 + Math.PI * 9 * 6)) < 1e-6, String(k.volumeMM3));
+  assert.ok(Math.abs(k.volume! - (12 * 36 + Math.PI * 9 * 6)) < 1e-6, String(k.volume));
   assert.ok(notes.some(t => t === 'Key 6 × 6 × 18 (round ends) in keyseat 1: 0 play in the seat\'s width, 0 to spare in its length; it stands 2.5 above the shaft'), JSON.stringify(notes));
   assert.ok(notes.some(t => t === 'In the hub\'s keyway: 0 play in its width, 0.3 under its floor'), JSON.stringify(notes));
   assert.ok(body('keyway').notes!.some(n => /^Keyway 6 wide, 2\.8 deep in the Ø20 bore \(its floor 12\.8 from the axis\), 22 long at 0°$/.test(n.text)));
   const ring = body('retaining-ring');
   // (The prefills: the groove's width less 0.1 thick, to its Ø + 5: 1.2 to Ø24.)
-  assert.ok(Math.abs(ring.volumeMM3! - Math.PI * (144 - 90.25) * 1.2) < 1e-6, String(ring.volumeMM3));
+  assert.ok(Math.abs(ring.volume! - Math.PI * (144 - 90.25) * 1.2) < 1e-6, String(ring.volume));
   assert.ok(ring.notes!.some(n => n.text === 'Retaining ring 1.2 thick, Ø19 to Ø24 in groove 1: 0.1 axial play') && ring.notes!.some(n => /an estimate: your ring's row/.test(n.text) && n.warning));
   assert.ok(body('pin').notes!.some(n => n.text === 'Pin Ø4 × 20 in cross hole 1 (Ø4): 0 clearance'));
   assert.equal(featureLabel(key, 0, doc.nodes), 'Key 6 high in keyseat 1');

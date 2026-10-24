@@ -49,7 +49,7 @@ test('an edge of a general fillet referenced by a later feature: a ring\'s edges
   g = withNode(g, { kind: 'extrude', sketch: 0, height: 10 });
   g = withNode(g, { kind: 'sketch', profile: 'circle', center: [0, 10], radius: 4, plane: yz });
   g = withNode(g, { kind: 'extrude', sketch: 2, height: 60, from: -10 });
-  g = withNode(g, { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angleDegrees: 10, pivot: [20, 0, 10] });
+  g = withNode(g, { kind: 'rotate', parent: { node: 3, side: 'solid' }, axis: 'y', angle: 10, pivot: [20, 0, 10] });
   g = withNode(g, { kind: 'difference', parent: { node: 1, side: 'solid' }, tool: { node: 4, side: 'solid' } });
   const rim = (await bodies(g))[0].mesh.edges.find(e => e.a[1] > 0 && e.names.some(n => /n3\.side0/.test(n) && /n1\.top/.test(n)))!.names[0];
   g = withNode(g, { kind: 'fillet', parent: { node: 5, side: 'solid' }, edges: [rim], radius: 1 });

@@ -20,7 +20,7 @@ import { editMountRows, checkMountRow, MOUNT_LIMITS, type StudioMountRow } from 
 
 const SAMPLE = JSON.parse(readFileSync(resolve(import.meta.dirname, '../samples/rows/mounts.json'), 'utf8')) as { rows: StudioMountRow[] };
 const row = (id: string) => SAMPLE.rows.find(r => r.id === id)!;
-const SERVO: StudioMountRow = { id: 'servo-test', type: 'servo', holes: { pattern: 'rect', spacingMM: [48, 10], diameterMM: 4.2 }, shaftMM: 6, shaftOffsetMM: [10, 0], shaftHeightMM: 0, bodyMM: [40, 20], clearanceMM: 0.5, estimate: true };
+const SERVO: StudioMountRow = { id: 'servo-test', type: 'servo', holes: { pattern: 'rect', spacing: [48, 10], diameter: 4.2 }, shaft: 6, shaftOffset: [10, 0], shaftHeight: 0, body: [40, 20], clearance: 0.5, estimate: true };
 let revision = 1;
 const evaluate = async (d: StudioDoc) => evaluateDoc(d, revision++);
 async function stateOf(doc: StudioDoc): Promise<ChatState> { const r = await evaluate(doc); assert.ok(r.ok, r.ok ? '' : r.error.title); return { doc, bodies: r.bodies, turnBase: doc }; }
@@ -39,16 +39,16 @@ test('O14: the sample rows check; the validator refuses what is outside its limi
   // (A row with a source cites its maker's page; an estimate lists every field unchecked, and says where each number is from.)
   for (const r of SAMPLE.rows) assert.ok(r.source ? /https:\/\/.*read 2026-10-24/.test(r.source) : r.estimate && r.unchecked!.length === 6 && Object.keys(r.fieldSources!).length >= 4, r.id);
   const n17 = row('nema17'), bad: [Record<string, unknown>, RegExp][] = [
-    [{ ...n17, holes: { ...n17.holes, diameterMM: 0.5 } }, /holes\.diameterMM is 1–30 mm/],
-    [{ ...n17, holes: { pattern: 'square', spacingMM: 3, diameterMM: 3.4 } }, /closer than their diameter/],
-    [{ ...n17, clearanceMM: MOUNT_LIMITS.clearanceMM[1] + 1 }, /clearanceMM is 0–5 mm/],
-    [{ ...n17, pilotMM: 40 }, /the pilot cut .* runs into the holes/],
-    [{ ...n17, pilotMM: 4 }, /must be wider than the shaft/],
-    [{ ...SERVO, bodyMM: [50, 20] }, /body's cut-out .* runs into the holes/],
-    [{ ...SERVO, bodyMM: undefined }, /a servo row gives its body/],
+    [{ ...n17, holes: { ...n17.holes, diameter: 0.5 } }, /holes\.diameter is 1–30 mm/],
+    [{ ...n17, holes: { pattern: 'square', spacing: 3, diameter: 3.4 } }, /closer than their diameter/],
+    [{ ...n17, clearance: MOUNT_LIMITS.clearance[1] + 1 }, /clearance is 0–5 mm/],
+    [{ ...n17, pilot: 40 }, /the pilot cut .* runs into the holes/],
+    [{ ...n17, pilot: 4 }, /must be wider than the shaft/],
+    [{ ...SERVO, body: [50, 20] }, /body's cut-out .* runs into the holes/],
+    [{ ...SERVO, body: undefined }, /a servo row gives its body/],
     [{ ...n17, estimate: undefined }, /cite its source or say estimate: true/],
     [{ ...n17, torque: 1 }, /unknown field torque/],
-    [{ ...n17, holes: { pattern: 'circle', pcdMM: 40, count: 20, diameterMM: 3 } }, /count \(2–12\)/],
+    [{ ...n17, holes: { pattern: 'circle', pcd: 40, count: 20, diameter: 3 } }, /count \(2–12\)/],
   ];
   for (const [r, want] of bad) { const p = checkMountRow(r)[0]?.message; assert.ok(p?.startsWith('[MOUNT_RANGE] mount row nema17') || p?.startsWith('[MOUNT_RANGE] mount row servo-test'), String(p)); assert.match(p!, want); }
 });
@@ -75,22 +75,22 @@ test('O14: a NEMA 17 on a plate — four Ø3.4 holes 31 apart and the Ø23 pilot
   assert.deepEqual(at(1.7), ['64.5,34.5', '64.5,65.5', '95.5,34.5', '95.5,65.5']);
   assert.deepEqual(at(11.5), ['80,50']);
   assert.ok(cyl.every(c => c.a[2] === 1));
-  const want = s.bodies[0].volumeMM3! - 10 * Math.PI * (4 * 1.7 ** 2 + 11.5 ** 2);
-  assert.ok(Math.abs(e.bodies[0].volumeMM3! - want) < 1e-6 * want, `${e.bodies[0].volumeMM3} vs ${want}`);
+  const want = s.bodies[0].volume! - 10 * Math.PI * (4 * 1.7 ** 2 + 11.5 ** 2);
+  assert.ok(Math.abs(e.bodies[0].volume! - want) < 1e-6 * want, `${e.bodies[0].volume} vs ${want}`);
   // (The last hole remembers the command: the row it came from.)
   const last = r.state.doc.nodes[r.state.doc.nodes.length - 1] as { made?: { command: string; values: Record<string, unknown>; nodes?: number } };
   assert.deepEqual([last.made?.command, last.made?.values.row, last.made?.nodes], ['mount', 'nema17', 5]);
   // (A recess its depth instead, the shaft's hole through it; turned a quarter, the pattern is the same square.)
   const rec = await mounted(plate(), { row: 'nema17', x: 80, y: 50, pilot: 'recess', turn: '90' }), e2 = await evaluate(rec.r.state.doc); assert.ok(e2.ok);
-  const v2 = s.bodies[0].volumeMM3! - 10 * Math.PI * 4 * 1.7 ** 2 - 2 * Math.PI * 11.5 ** 2 - 8 * Math.PI * 3 ** 2;
-  assert.ok(Math.abs(e2.bodies[0].volumeMM3! - v2) < 1e-6 * v2, `${e2.bodies[0].volumeMM3} vs ${v2}`);
+  const v2 = s.bodies[0].volume! - 10 * Math.PI * 4 * 1.7 ** 2 - 2 * Math.PI * 11.5 ** 2 - 8 * Math.PI * 3 ** 2;
+  assert.ok(Math.abs(e2.bodies[0].volume! - v2) < 1e-6 * v2, `${e2.bodies[0].volume} vs ${v2}`);
 });
 
 test('O14: a servo\'s body cut through, its shaft off-centre; a pillow block\'s two bolts and its axis along the face at its height; a flange unit\'s shaft through', async () => {
   const sv = await mounted(plate([SERVO]), { row: 'servo-test', x: 90, y: 50 }); assert.ok(!sv.r.isError, sv.r.content);
   const e = await evaluate(sv.r.state.doc); assert.ok(e.ok);
-  const v = sv.s.bodies[0].volumeMM3! - 10 * (41 * 21 + 4 * Math.PI * 2.1 ** 2);
-  assert.ok(Math.abs(e.bodies[0].volumeMM3! - v) < 1e-6 * v, `${e.bodies[0].volumeMM3} vs ${v}`);
+  const v = sv.s.bodies[0].volume! - 10 * (41 * 21 + 4 * Math.PI * 2.1 ** 2);
+  assert.ok(Math.abs(e.bodies[0].volume! - v) < 1e-6 * v, `${e.bodies[0].volume} vs ${v}`);
   assert.deepEqual(cylinders(e.bodies[0]).map(c => c.c.slice(0, 2).join(',')).sort(), ['104,45', '104,55', '56,45', '56,55'], 'the tabs\' holes about the body, the body 10 mm behind the shaft');
   const pb = await mounted(plate(), { row: 'ucp204', x: 80, y: 50 }); assert.ok(!pb.r.isError, pb.r.content);
   assert.deepEqual(pb.out.mount.axis, { position: [80, 50, 43.3], direction: [0, 1, 0] });
@@ -109,7 +109,7 @@ test('O14: refusals — no rows, no such row, off the face, a recess as deep as 
     [plate(), { row: 'nema17', x: 5, y: 50 }, /^\[MOUNT_RANGE\] nema17's bolt 1 .* is off the face/],
     [plate(SAMPLE.rows, 2), { row: 'nema17', x: 80, y: 50, pilot: 'recess' }, /^\[MOUNT_RANGE\] nema17's pilot recess \(2 deep\) is as deep as the face's 2 mm/],
     [plate([{ ...row('ucp204'), bearing: 'UC204' }]), { row: 'ucp204', x: 80, y: 50 }, /^\[MOUNT_ROW\] mount row ucp204 names bearing row UC204, not loaded/],
-    [{ ...plate([{ ...row('ucp204'), bearing: '6205' }]), bearings: { version: 1, rows: [{ id: '6205', boreMM: 25, outsideMM: 52, widthMM: 15, estimate: true }] } }, { row: 'ucp204', x: 80, y: 50 }, /^\[MOUNT_RANGE\] mount row ucp204: its bearing 6205's bore Ø25 is not its shaft Ø20/],
+    [{ ...plate([{ ...row('ucp204'), bearing: '6205' }]), bearings: { version: 1, rows: [{ id: '6205', bore: 25, outside: 52, width: 15, estimate: true }] } }, { row: 'ucp204', x: 80, y: 50 }, /^\[MOUNT_RANGE\] mount row ucp204: its bearing 6205's bore Ø25 is not its shaft Ø20/],
   ];
   for (const [doc, values, want] of cases) {
     const { s, r, out } = await mounted(doc, values);
@@ -153,4 +153,18 @@ test('O14: the Mount command\'s steps show the output axis the run reports (a fl
   assert.equal(axis({ row: 'nema17', x: 80, y: 50, turn: '0' }), 'at (80, 50, 10) mm, along +Z');
   assert.equal(axis({ row: 'ucp204', x: 80, y: 50, turn: '0' }), 'at (80, 50, 43.3) mm, along +Y');
   assert.equal(axis({ row: 'nema17', x: Number.NaN, y: 50 }), undefined, 'no axis until it is placed');
+});
+
+test('R7 mount rows: canonical fields keep provenance and reject former field names', () => {
+  const n17 = row('nema17');
+  assert.deepEqual(n17.unchecked, ['holes', 'pilot', 'pilotDepth', 'shaft', 'shaftHeight', 'clearance']);
+  assert.deepEqual([n17.pilot, n17.pilotDepth, n17.shaft, n17.shaftHeight, n17.clearance, n17.estimate], [22, 2, 5, 0, 0.5, true]);
+  assert.ok(n17.fieldSources?.pilot?.startsWith('an estimate:'));
+  for (const old of ['pilotMM', 'pilotDepthMM', 'shaftOffsetMM', 'shaftHeightMM', 'bodyMM']) {
+    const p = checkMountRow({ ...n17, [old]: 1 })[0];
+    assert.equal(p.code, 'MOUNT_RANGE'); assert.ok(p.message.includes(`unknown field ${old}`));
+  }
+  assert.equal(checkMountRow({ ...row('ucp204'), holes: { pattern: 'circle', pcdMM: 95, count: 2, diameter: 13 } })[0].code, 'MOUNT_RANGE');
+  assert.equal(checkMountRow({ ...n17, unchecked: ['pilotMM'] })[0].code, 'MOUNT_RANGE');
+  assert.equal(checkMountRow({ ...n17, fieldSources: { pilotMM: 'unchanged source' } })[0].code, 'MOUNT_RANGE');
 });

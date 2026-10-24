@@ -12,13 +12,13 @@ import { wallSamples } from '../analysis/analysis';
 import { faceTableOf } from '../assembly/faces';
 import { rayHit, triangleBvh, type TriangleBvh } from '@barocss/cad';
 
-export interface Rib { body: string; faces: [string, string]; thicknessMM: number }
-export interface Boss { outer: string; inner: string; wallMM: number }
-export interface InsideCorner { face: string; radiusMM: number }
-export interface SharpCorner { body: string; faces: [string, string]; lengthMM: number }
-export interface ThickSection { body: string; faces: string[]; areaMM2: number; maxMM: number }
+export interface Rib { body: string; faces: [string, string]; thickness: number }
+export interface Boss { outer: string; inner: string; wall: number }
+export interface InsideCorner { face: string; radius: number }
+export interface SharpCorner { body: string; faces: [string, string]; length: number }
+export interface ThickSection { body: string; faces: string[]; area: number; max: number }
 export interface WallReport {
-  body: string; nominalMM: number | null; thinnestMM: number | null; thick95MM: number | null;
+  body: string; nominal: number | null; thinnestMM: number | null; thick95MM: number | null;
   ribs: Rib[]; bosses: Boss[]; fillets: InsideCorner[]; sharp: SharpCorner[]; thick: ThickSection | null;
 }
 
@@ -82,7 +82,7 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
   for (const o of cyl) if (o.f.kind === 'cylinder' && o.f.outer) for (const i of cyl) {
     if (i.f.kind !== 'cylinder' || i.f.outer || !(i.f.radius < o.f.radius)) continue;
     const a = o.f.axis, b = i.f.axis, d = [i.f.point[0] - o.f.point[0], i.f.point[1] - o.f.point[1], i.f.point[2] - o.f.point[2]], s = dot(d, a);
-    if (Math.abs(Math.abs(dot(a, b)) - 1) <= 1e-9 && Math.hypot(d[0] - s * a[0], d[1] - s * a[1], d[2] - s * a[2]) <= 1e-9) bosses.push({ outer: o.n, inner: i.n, wallMM: o.f.radius - i.f.radius });
+    if (Math.abs(Math.abs(dot(a, b)) - 1) <= 1e-9 && Math.hypot(d[0] - s * a[0], d[1] - s * a[1], d[2] - s * a[2]) <= 1e-9) bosses.push({ outer: o.n, inner: i.n, wall: o.f.radius - i.f.radius });
   }
   for (const body of bodies) {
     const m = body.mesh, w = wallSamples(body), bvh = triangleBvh(m.positions, m.indices);
@@ -106,7 +106,7 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
       if (!best) continue;
       const key = [A.f, best.B.f].sort((x, y) => x - y).join(',');
       if (seen.has(key)) continue; seen.add(key);
-      if (facesInward(m, bvh, A.f, A.n) && facesInward(m, bvh, best.B.f, best.B.n)) ribs.push({ body: body.key, faces: [name(m, A.f), name(m, best.B.f)].sort() as [string, string], thicknessMM: best.s });
+      if (facesInward(m, bvh, A.f, A.n) && facesInward(m, bvh, best.B.f, best.B.n)) ribs.push({ body: body.key, faces: [name(m, A.f), name(m, best.B.f)].sort() as [string, string], thickness: best.s });
     }
     // Inside corners: concave fillets (exact cylinders facing their axis, around less than half a turn) and sharp concave edges.
     const fillets: InsideCorner[] = [], doneNames = new Set<number>();
@@ -124,7 +124,7 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
       // (Its span: the full turn less the largest gap between neighbouring angles.)
       let gap = angles.length ? angles[0] + 2 * Math.PI - angles[angles.length - 1] : 2 * Math.PI;
       for (let i = 1; i < angles.length; i++) gap = Math.max(gap, angles[i] - angles[i - 1]);
-      if (2 * Math.PI - gap < Math.PI - 1e-6) fillets.push({ face: f.name.split('+')[0], radiusMM: e.r });
+      if (2 * Math.PI - gap < Math.PI - 1e-6) fillets.push({ face: f.name.split('+')[0], radius: e.r });
     }
     const sharp: SharpCorner[] = [];
     for (const e of m.edges) {
@@ -140,7 +140,7 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
       if (dot(vp, n1) > 1e-6) {
         // (One corner a pair of faces: an edge the mesh splits in pieces is summed.)
         const faces = [name(m, e.faces[0]), name(m, e.faces[1])].sort() as [string, string], have = sharp.find(x => x.faces[0] === faces[0] && x.faces[1] === faces[1]);
-        if (have) have.lengthMM += L; else sharp.push({ body: body.key, faces, lengthMM: L });
+        if (have) have.length += L; else sharp.push({ body: body.key, faces, length: L });
       }
     }
     // Thick sections: local thickness past the nominal over the ratio.
@@ -148,9 +148,9 @@ export function wallsOf(doc: StudioDoc, bodies: readonly BodyResult[], ratio: nu
     if (nominal !== null) {
       const limit = nominal / ratio, faces = new Set<string>(); let A = 0, max = 0;
       for (let t = 0; t < w.local.length; t++) if (w.area[t] > 0 && w.local[t] > limit + 1e-9) { A += w.area[t]; max = Math.max(max, w.local[t]); faces.add(name(m, w.face[t])); }
-      if (A > 0) thick = { body: body.key, faces: [...faces].sort(), areaMM2: A, maxMM: max };
+      if (A > 0) thick = { body: body.key, faces: [...faces].sort(), area: A, max: max };
     }
-    out.push({ body: body.key, nominalMM: nominal, thinnestMM: thinnest, thick95MM: quantile(w.local, w.area, 0.95), ribs, bosses: out.length ? [] : bosses, fillets, sharp, thick });
+    out.push({ body: body.key, nominal: nominal, thinnestMM: thinnest, thick95MM: quantile(w.local, w.area, 0.95), ribs, bosses: out.length ? [] : bosses, fillets, sharp, thick });
   }
   return out;
 }
