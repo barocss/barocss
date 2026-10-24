@@ -76,7 +76,7 @@ function forward(target: Vec3, eye: Vec3): Vec3 {
   check(Number.isFinite(scale) && scale > 0, CODE.NUMERICAL, 'Camera forward scale is unsafe');
   const scaled = direction.map(n => n / scale), length = Math.hypot(...scaled);
   check(Number.isFinite(length) && length > 0, CODE.NUMERICAL, 'Camera forward length is unsafe');
-  const result = scaled.map(n => n / length) as Vec3;
+  const result = scaled.map(n => n / length) as [number, number, number];
   check(result.every(Number.isFinite), CODE.NUMERICAL, 'Camera forward is nonfinite');
   return result;
 }

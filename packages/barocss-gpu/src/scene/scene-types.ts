@@ -1,5 +1,6 @@
 import { BarocssError } from '../core/barocss-error.js';
-export type Vec3 = [number, number, number];
+import type { Vec3 } from '../core/geometry-types.js';
+export type { Vec3 };
 export type RGB = [number, number, number];
 export interface SceneObject {
   id: string;

@@ -165,7 +165,7 @@ export function prepareTriangleGeometry(input: unknown): PreparedTriangleGeometr
     + lengths.indices * (indexType === 'uint16' ? 2 : 4);
   check(bufferBytes <= MAX_BUFFER_BYTES, CODE.BUDGET, 'Derived buffer byte limit exceeded');
 
-  const minimum: Vec3 = [Infinity, Infinity, Infinity], maximum: Vec3 = [-Infinity, -Infinity, -Infinity];
+  const minimum: [number, number, number] = [Infinity, Infinity, Infinity], maximum: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (let index = 0; index < lengths.positions; index++) {
     const axis = index % 3, value = arrays.positions[index];
     minimum[axis] = Math.min(minimum[axis], value);

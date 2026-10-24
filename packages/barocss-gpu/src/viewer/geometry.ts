@@ -367,7 +367,7 @@ function rayTriangle(t: number): void {
  * positive (a plane and its flip hatch alike), u the next world axis after that component's (x → y → z → x) into the
  * plane, v = n × u. A hatch at angle θ runs along cos θ·u + sin θ·v.
  */
-export function capHatchAxes(normal: readonly number[]): { u: [number, number, number]; v: [number, number, number] } {
+export function capHatchAxes(normal: readonly number[]): { u: Vec3; v: Vec3 } {
   const m = normal.map(Math.abs), k = m[0] >= m[1] && m[0] >= m[2] ? 0 : m[1] >= m[2] ? 1 : 2;
   const l = Math.hypot(normal[0], normal[1], normal[2]) || 1, sg = normal[k] < 0 ? -1 / l : 1 / l;
   const n = [normal[0] * sg, normal[1] * sg, normal[2] * sg], j = (k + 1) % 3, d = n[j];

@@ -193,7 +193,7 @@ export function prepareNativeDirectionalLightProgramWGSL(input: unknown): Prepar
   const execution: NativeDirectionalLightProgramWGSLExecution = {
     ambientStrength: executed(lights.catalog.ambientStrength),
     lights: lights.execution.map((light, index) => ({
-      nodeId: light.nodeId, index, unitDirection: light.unitDirection.map(executed) as Vec3,
+      nodeId: light.nodeId, index, unitDirection: light.unitDirection.map(executed) as [number, number, number],
       colorLinearRGB: light.colorLinearRGB.map(executed) as RGB, intensity: light.enabled ? executed(light.intensity) : 0,
     })),
     materialUniforms: resolved.map(uniform => ({ ...uniform, value: executed(uniform.value) })),

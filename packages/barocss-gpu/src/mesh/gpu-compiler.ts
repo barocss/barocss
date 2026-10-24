@@ -1,6 +1,6 @@
 import {refusalText} from '../core/barocss-error.js';
 import {SceneError} from '../scene/scene-types.js';
-import type {AnyScene,SceneObject,SceneObject1,SceneSourceOptions} from '../scene/scene-types.js';
+import type {AnyScene,SceneObject,SceneObject1,SceneSourceOptions,Vec3} from '../scene/scene-types.js';
 import {parseSceneAst,analyzeSceneAst,freezeScene} from '../scene/scene-front.js';
 import type {SceneAst,SourceRange} from '../scene/scene-front.js';
 import {lowerSceneShaders} from './compiler.js';
@@ -11,9 +11,9 @@ import {ownRecord,copyGpuData,freezeGpuData} from './gpu-data.js';
 export type GpuCompileInput={kind:'scene';source:string;sourceVersion?:1}|{kind:'mesh';packet:PreviewPacket;options:MeshOptions};
 export interface GpuDiagnostic {code:string;severity:'error';message:string;range:SourceRange|null;objectId?:string;dataPath?:string}
 interface IRCommon {schema:'barocss-gpu-render-ir';name:string;coordinateSystem:'right-handed-y-up';background:[number,number,number]}
-interface SDFDraw {kind:'sphere'|'box';id:string;color:[number,number,number];translate:[number,number,number];radius:number;size:[number,number,number]}
+interface SDFDraw {kind:'sphere'|'box';id:string;color:[number,number,number];translate:Vec3;radius:number;size:Vec3}
 export type GpuRenderIR=(IRCommon&{schemaVersion:1;pipeline:'sdf';draws:SDFDraw[]})
- |(IRCommon&{schemaVersion:2;pipeline:'sdf';rotationOrder:'X-Y-Z';angleUnit:'deg';draws:((SDFDraw&{rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'cylinder';height:number;rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'capsule';start:[number,number,number];end:[number,number,number];rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'rounded-box';rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'torus';majorRadius:number;minorRadius:number;rotateDegrees:[number,number,number]}))[]})
+ |(IRCommon&{schemaVersion:2;pipeline:'sdf';rotationOrder:'X-Y-Z';angleUnit:'deg';draws:((SDFDraw&{rotateDegrees:Vec3})|(Omit<SDFDraw,'kind'>&{kind:'cylinder';height:number;rotateDegrees:Vec3})|(Omit<SDFDraw,'kind'>&{kind:'capsule';start:Vec3;end:Vec3;rotateDegrees:Vec3})|(Omit<SDFDraw,'kind'>&{kind:'rounded-box';rotateDegrees:Vec3})|(Omit<SDFDraw,'kind'>&{kind:'torus';majorRadius:number;minorRadius:number;rotateDegrees:Vec3}))[]})
  |(IRCommon&{schemaVersion:1;pipeline:'indexed-mesh';draws:[{kind:'indexed-mesh';id:string;packet:PreviewPacket;options:MeshOptions}]});
 export type GpuExecution={kind:'sdf';scene:AnyScene;shaders:SceneShaders}|{kind:'indexed-mesh';mesh:ReturnType<typeof lowerMesh>};
 export type GpuCompileResult={ok:true;ast:SceneAst|null;ir:GpuRenderIR;execution:GpuExecution;diagnostics:[]}|{ok:false;diagnostics:GpuDiagnostic[]};

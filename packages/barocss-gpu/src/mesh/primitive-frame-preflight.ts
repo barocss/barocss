@@ -5,7 +5,6 @@ import type {
 } from '../scene/primitive-scene.js';
 import type { MeshMaterialBinding } from '../material/mesh-material.js';
 import type { MeshSceneBounds } from './mesh-scene-transform.js';
-import type { Vec3 } from '../scene/scene.js';
 
 export type PrimitiveSceneFrameProfile = 'qualified-v2' | 'viewport-v2';
 export type PrimitiveSceneCpuFrameV0 = Omit<PrimitiveSceneFrameV0, 'particles'> & { particles: null };
@@ -104,12 +103,12 @@ export function preparePrimitiveSceneFrame(
       particles: null,
       materials: admitted.materials,
     };
-    let bounds: MeshSceneBounds | null = null, bufferBytes = 0;
+    let bounds: { min: [number, number, number]; max: [number, number, number] } | null = null, bufferBytes = 0;
     for (const primitive of primitives) {
       bufferBytes += primitive.positions.byteLength + (primitive.normals?.byteLength ?? 0)
         + (primitive.indices?.byteLength ?? 0);
       if (bounds === null) {
-        bounds = { min: [...primitive.bounds.min] as Vec3, max: [...primitive.bounds.max] as Vec3 };
+        bounds = { min: [...primitive.bounds.min] as [number, number, number], max: [...primitive.bounds.max] as [number, number, number] };
       } else {
         for (let axis = 0; axis < 3; axis++) {
           bounds.min[axis] = Math.min(bounds.min[axis], primitive.bounds.min[axis]);

@@ -166,7 +166,7 @@ export function prepareNativePointLights(input: unknown): PreparedNativePointLig
   });
   const lights: NativePointLightV0[] = admitted.map(({ data, nodeId, label, enabled, intensity, rangeScene }) => {
     const positionScene = dense(data.positionScene, 3, 'positionScene')
-      .map(value => number(value, -1e6, 1e6, 'positionScene component')) as Vec3;
+      .map(value => number(value, -1e6, 1e6, 'positionScene component')) as [number, number, number];
     const colorLinearRGB = dense(data.colorLinearRGB, 3, 'colorLinearRGB')
       .map(value => number(value, 0, 1, 'colorLinearRGB component')) as RGB;
     return { nodeId, label, enabled, positionScene, colorLinearRGB, intensity, rangeScene };

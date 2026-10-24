@@ -193,7 +193,7 @@ export function prepareNativePointLightProgramWGSL(input: unknown): PreparedNati
   const execution: NativePointLightProgramWGSLExecution = {
     ambientStrength: executed(lights.catalog.ambientStrength),
     lights: lights.execution.map((light, index) => ({
-      nodeId: light.nodeId, index, positionScene: light.positionScene.map(executed) as Vec3, rangeScene: executed(light.rangeScene),
+      nodeId: light.nodeId, index, positionScene: light.positionScene.map(executed) as [number, number, number], rangeScene: executed(light.rangeScene),
       colorLinearRGB: light.colorLinearRGB.map(executed) as RGB, intensity: light.enabled ? executed(light.intensity) : 0,
     })),
     materialUniforms: resolved.map(uniform => ({ ...uniform, value: executed(uniform.value) })),
