@@ -54,13 +54,23 @@ test('IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-
   assert.ok(serializedRequest.finish);
   assert.equal(Object.hasOwn(serializedRequest.finish, 'draftMin'), true);
   assert.equal(Object.hasOwn(serializedRequest.finish, 'minDraftDeg'), false);
+  assert.ok(serializedRequest.tolerance);
+  assert.deepEqual(Object.keys(serializedRequest.tolerance).sort(), ['perLength', 'source', 'value']);
+  assert.equal(Object.hasOwn(serializedRequest.tolerance, 'mm'), false);
+  assert.equal(Object.hasOwn(serializedRequest.tolerance, 'perMM'), false);
+  assert.ok(serializedRequest.limits);
+  assert.deepEqual(Object.keys(serializedRequest.limits), ['largestPartSize']);
+  assert.equal(Object.hasOwn(serializedRequest.limits, 'largestPartMM'), false);
+  assert.equal(Object.hasOwn(r.part, 'volumeBasis'), false);
+  assert.equal(Object.hasOwn(serializedRequest.part, 'volumeBasis'), false);
   assert.deepEqual(r.part.size, [60, 40, 25]);
   assert.ok(Math.abs(r.part.volume - volume) <= 1e-6 * volume, `${r.part.volume} vs ${volume}`);
   assert.ok(Math.abs(r.part.mass! - volume * materialData('abs')!.density / 1000) <= 2e-3, String(r.part.mass));
-  assert.deepEqual([r.tolerance, r.shrink, r.limits], [{ mm: 0.08, perMM: 0.002, source: 'https://www.protolabs.com/services/injection-molding/' }, 0.002, { largestPartMM: [751, 480, 203] }]);
+  assert.deepEqual([r.tolerance, r.shrink, r.limits], [{ value: 0.08, perLength: 0.002, source: 'https://www.protolabs.com/services/injection-molding/' }, 0.002, { largestPartSize: [751, 480, 203] }]);
   assert.match(new TextDecoder().decode(q.files.get(QUOTE_FILES.step)!), /^ISO-10303-21;/);
   const md = new TextDecoder().decode(q.files.get(QUOTE_FILES.page)!);
   assert.ok(md.includes('| finish | Light bead blast (PM-T1): at least 3° draft |'));
+  assert.ok(md.includes('| tolerance | ±0.08 mm + 0.002 mm/mm (https://www.protolabs.com/services/injection-molding/) |'));
   assert.match(md, /No price: prices are the moulder's\./); assert.match(md, /\| draft \| pass \|/); assert.match(md, /- nothing: the package is complete/);
 });
 

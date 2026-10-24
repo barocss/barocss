@@ -88,7 +88,7 @@ test('an incomplete bundle, each gap listed and never complete: a file deleted, 
   assert.deepEqual((await verifyBundle(reader(sw), evaluate)).changed, ['document.bcad: its revision is not the manifest\'s']);
   // (The baseline record rewritten consistently — content, pins and digest — and its file digest too: the manifest's anchor catches it.)
   const rb = new Map(b.files), chain = JSON.parse(new TextDecoder().decode(rb.get(BUNDLE_FILES.baseline)));
-  const top = chain.baselines[0]; top.content.bom.lines[0].qty = 1; top.content.bom.totalMassG += 1; top.pins.bom = digestOf(top.content.bom); { const { digest: _d, ...rest } = top; void _d; top.digest = digestOf(rest); }
+  const top = chain.baselines[0]; top.content.bom.lines[0].qty = 1; top.content.bom.totalMass += 1; top.pins.bom = digestOf(top.content.bom); { const { digest: _d, ...rest } = top; void _d; top.digest = digestOf(rest); }
   const cb = new TextEncoder().encode(JSON.stringify(chain)); rb.set(BUNDLE_FILES.baseline, cb);
   const m2 = JSON.parse(new TextDecoder().decode(rb.get(BUNDLE_FILES.manifest))) as Manifest; m2.files[1] = { ...m2.files[1], sha256: sha256Hex(cb), bytes: cb.length }; rb.set(BUNDLE_FILES.manifest, new TextEncoder().encode(JSON.stringify(m2)));
   assert.deepEqual((await verifyBundle(reader(rb), evaluate)).changed, ['baseline BL1: its digest is not the manifest\'s']);

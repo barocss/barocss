@@ -5,9 +5,9 @@ export interface CamRemoval {
   /** Setup-frame display mesh; never native Model geometry. */
   geometry: CamGeometry;
   /** Cells cut below the part's surface (the tool entered the part): their tops, and the volume taken from the part. */
-  overcut: CamGeometry; overcutMM3: number; overcutCells: number;
-  cellMM: number; sampleMM: number; nx: number; ny: number;
-  removedMM3: number; lateralUncertaintyMM: number;
+  overcut: CamGeometry; overcutVolume: number; overcutCells: number;
+  cellPitch: number; sampleSpacing: number; nx: number; ny: number;
+  removedVolume: number; lateralUncertainty: number;
 }
 export interface CamDisplay {
   request: number; packageKey: number;
@@ -16,6 +16,6 @@ export interface CamDisplay {
   removal: CamRemoval;
 }
 export interface CamOptions {
-  setup: number; progress: number; cellMM: number;
+  setup: number; progress: number; cellPitch: number;
   tool?: Partial<Omit<ToolShape, 'basis'>>;
 }
