@@ -70,6 +70,9 @@ export interface Density { density: number }
 export type Tool<P> = string | ((part: P) => P);
 
 const AXES = ['x', 'y', 'z'] as const;
+// (A Boolean's tool callback builds in the part's own document: there, the body a verb makes is chosen, so the verbs
+// after it — a pattern, a fillet — act on the tool being built, not on the part's other bodies. No body is named so.)
+const TOOL = '\u0000tool';
 
 export class Part<D> {
   readonly name: string;
@@ -125,6 +128,7 @@ export class Part<D> {
 
   /** The body a verb acts on: the chosen one, else the part's one body. */
   protected target(): string {
+    if (this.#focus === TOOL) throw refuse('NO_BODY', 'a Boolean\'s tool callback acts on the tool it makes: start it with box(), cylinder(), extrude() or revolve()');
     if (this.#focus !== null) return this.#focus;
     const all = this.bodies();
     if (all.length === 0) throw refuse('NO_BODY', 'the part has no body yet: start it with box(), cylinder(), extrude() or revolve()');
@@ -226,8 +230,16 @@ export class Part<D> {
     return bound.length ? { ...spec, bound: bound as Bound } : spec;
   }
 
+  /** For a part kind's own verbs (cad-model's studio commands): a spec that makes a body, and one that acts on the chosen one. */
+  protected makes(spec: FeatureSpec): this { return this.#make(spec); }
+  protected acts(spec: FeatureSpec): this { return this.#act(spec); }
+
   // (A verb that makes a body of its own: the choice stays as it was.)
-  #make(spec: FeatureSpec): this { return this.next(this.backend.apply(this.#doc, spec, null), this.#focus); }
+  #make(spec: FeatureSpec): this {
+    if (this.#focus !== TOOL) return this.next(this.backend.apply(this.#doc, spec, null), this.#focus);
+    const before = this.bodies(), doc = this.backend.apply(this.#doc, spec, null), made = this.backend.bodies(doc).filter(b => !before.includes(b));
+    return this.next(doc, made.length === 1 ? made[0] : null);
+  }
 
   // (A verb acting on the body: the choice follows it to the body that replaces it — the one new body, when the chosen
   // one is gone — and is dropped when no single body does.)
@@ -248,7 +260,7 @@ export class Part<D> {
     if (typeof tool !== 'function') throw refuse('VALUE', 'a Boolean\'s tool is a body\'s name or a callback adding it (p => p.cylinder(…))');
     // (The tool built in this part's own document, so its nodes take the next ids, as the studio makes a second body
     // before combining the two: exactly one new body, the chosen one still there.)
-    const before = this.bodies(), built = tool(this.next(this.#doc, null));
+    const before = this.bodies(), built = tool(this.next(this.#doc, TOOL));
     if (!(built instanceof Part)) throw refuse('VALUE', 'a Boolean\'s tool callback returns the part with the tool body added');
     const after = built.bodies(), made = after.filter(b => !before.includes(b));
     if (!after.includes(body)) throw refuse('VALUE', `the tool callback changed the body ${body} itself; it only adds the tool`);

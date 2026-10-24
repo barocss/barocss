@@ -40,7 +40,12 @@ type BaseSpec =
   | { readonly command: 'mirror'; readonly values: { readonly plane: 'yz' | 'xz' | 'xy'; readonly at: number } }
   | { readonly command: 'scale'; readonly values: { readonly factor: number; readonly px: number; readonly py: number; readonly pz: number } }
   | { readonly command: 'split'; readonly values: { readonly axis: AxisName; readonly at: number } | { readonly axis: 'n'; readonly nx: number; readonly ny: number; readonly nz: number; readonly at: number } }
-  | { readonly command: 'rotate'; readonly values: { readonly axis: AxisName; readonly angle: number; readonly px: number; readonly py: number; readonly pz: number } };
+  | { readonly command: 'rotate'; readonly values: { readonly axis: AxisName; readonly angle: number; readonly px: number; readonly py: number; readonly pz: number } }
+  /** P1: a studio command with no kernel feature of the same set (gears with their mesh, springs, fasteners from rows). */
+  | { readonly command: StudioCommand; readonly values: Readonly<Record<string, number | string>> };
+
+/** The studio's own commands the facade runs as they are, its values the command's (§12). */
+export type StudioCommand = 'gear' | 'gear-mesh' | 'spring' | 'fastener';
 
 /**
  * `box`: the command's values by their own names (§12). Every input is in the conventions' fixed units — lengths in mm,
@@ -166,4 +171,15 @@ export function splitSpec(o: Resolved<SplitOptions>): FeatureSpec {
     return { command: 'split', values: { axis: 'n', nx, ny, nz, at } };
   }
   return { command: 'split', values: { axis: axisName(o.axis), at } };
+}
+
+/** A studio command's spec: each value a finite number or a string, by the command's own names (its checks are its own). */
+export function studioSpec(command: StudioCommand, values: Readonly<Record<string, number | string | undefined>>): FeatureSpec {
+  const out: Record<string, number | string> = {};
+  for (const [k, v] of Object.entries(values)) {
+    if (v === undefined) continue;
+    if (typeof v === 'number' ? !Number.isFinite(v) : typeof v !== 'string') throw refuse('VALUE', `${command}'s ${k} is a number or a word, not ${String(v)}`);
+    out[k] = v;
+  }
+  return { command, values: out };
 }
