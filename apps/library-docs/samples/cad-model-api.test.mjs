@@ -23,6 +23,7 @@ test('the bracket through the facade: the core\'s document, mass and STEP', () =
 
   const mass = bracket.mass('al6061');      // { volumeMM3, massG, centroidMM, inertiaGMM2 }, in MMGS
   const step = bracket.step();              // STEP AP214 text
+  const meshes = bracket.meshes();          // [{ key, positions, normals, indices }], one a body
   // #endregion bracket
 
   // #region core
@@ -43,6 +44,8 @@ test('the bracket through the facade: the core\'s document, mass and STEP', () =
   const coreStep = stepFor(doc, 'bracket');
   assert.ok('text' in coreStep);
   assert.equal(unstamped(step), unstamped(coreStep.text));
+  assert.equal(meshes.length, 1);
+  assert.equal(meshes[0].positions.length, meshes[0].normals.length);
 });
 
 test('immutable: a method returns a new part; .doc is a copy', () => {

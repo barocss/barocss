@@ -18,7 +18,7 @@ try {
     entryPoints: tests.map(f => join(here, f)), outdir: out, bundle: true, platform: 'node', format: 'esm', target: 'node22',
     // (The samples' own paths, import.meta.dirname among them, stay as written: the bundles are told where they came from.)
     define: { 'import.meta.dirname': JSON.stringify(here) },
-    alias: { '@barocss/cad': join(repo, 'packages/barocss-cad/src/index.ts'), '@barocss/cad-model': join(repo, 'packages/barocss-cad-model/src'), '@barocss/gpu': join(repo, 'packages/barocss-gpu/src') },
+    alias: { '@barocss/cad': join(repo, 'packages/barocss-cad/src'), '@barocss/cad-model': join(repo, 'packages/barocss-cad-model/src'), '@barocss/gpu': join(repo, 'packages/barocss-gpu/src') },
     outExtension: { '.js': '.mjs' }, logLevel: 'warning',
     banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
   });
