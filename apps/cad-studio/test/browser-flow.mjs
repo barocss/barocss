@@ -4229,7 +4229,7 @@ try {
   await check('Fits (R12c.2, D155): a fit table loaded in the Library panel (none built in); a bore and a pin given H7 and g6 and declared a pair through the chat — the limits and the clearance in the notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const table = { id: 'shop-fits', rows: [{ class: 'H7', over: 10, upTo: 18, upperUM: 18, lowerUM: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upperUM: -6, lowerUM: -17, estimate: true }] };
+    const table = { id: 'shop-fits', rows: [{ class: 'H7', over: 10, upTo: 18, upper: 0.018, lower: 0, estimate: true }, { class: 'g6', over: 10, upTo: 18, upper: -0.006, lower: -0.017, estimate: true }] };
     const file = join(out, 'shop-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
     await page.click('[aria-label="Library"]');
     try {
@@ -4497,7 +4497,7 @@ try {
   await check('key width fit (O138): h9 on the key, N9 on its keyseat, JS9 on the keyway via the chat — both width fits in the key\'s notes', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
     await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc && window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
-    const table = { id: 'key-fits', rows: [{ class: 'N9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true }, { class: 'JS9', over: 3, upTo: 6, upperUM: 15, lowerUM: -15, estimate: true }, { class: 'h9', over: 3, upTo: 6, upperUM: 0, lowerUM: -30, estimate: true }] };
+    const table = { id: 'key-fits', rows: [{ class: 'N9', over: 3, upTo: 6, upper: 0, lower: -0.030, estimate: true }, { class: 'JS9', over: 3, upTo: 6, upper: 0.015, lower: -0.015, estimate: true }, { class: 'h9', over: 3, upTo: 6, upper: 0, lower: -0.030, estimate: true }] };
     const file = join(out, 'key-fits.json'); fs.writeFileSync(file, JSON.stringify(table));
     await page.click('[aria-label="Library"]');
     try { await page.setInputFiles('input[aria-label="Fit table file"]', file); await page.waitForFunction(() => window.__studioDoc.fits?.tables?.length === 1, null, { timeout: 10000 }); }
@@ -6303,12 +6303,12 @@ try {
       await new Promise((ready, failed) => { chat.stdout.on('data', d => { if (/chat server on/.test(String(d))) ready(); }); chat.on('exit', code => failed(new Error(`the chat server exited (${code})`))); });
       await page.click('[aria-label="Chat"]');
       await page.waitForFunction(() => !document.querySelector('[aria-label="Chat message"]')?.disabled, null, { timeout: 20000 });
-      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'assembly', args: { action: 'move', to: c.input.to, profile: c.input.profile, limits: c.input.limits } }];
+      const n = await page.locator('.chat-msg.assistant').count(), calls = [{ tool: 'assembly', args: { action: 'move', to: Object.fromEntries(Object.entries(c.input.to).map(([k, v]) => [k, v * 180 / Math.PI])), profile: c.input.profile, limits: Object.fromEntries(Object.entries(c.input.limits).map(([k, v]) => [k, v * 180 / Math.PI])) } }];
       await page.fill('[aria-label="Chat message"]', `script ${JSON.stringify({ calls })}`); await page.locator('[aria-label="Chat message"]').press('Enter');
       await page.waitForFunction(k => document.querySelectorAll('.chat-msg.assistant').length > k && !document.querySelector('[aria-label="Chat message"]')?.disabled, n, { timeout: 60000 });
       const line = await page.locator('.chat-tool').last().innerText();
       // (The chat lists a read tool's result as the start of its JSON: the profile and its duration first.)
-      assert.ok(line.includes(`"profile":"s-curve","duration_s":${Number(c.expect.duration_s.toPrecision(10))}`), line);
+      assert.ok(line.includes(`"profile":"s-curve","duration":${Number(c.expect.duration_s.toPrecision(10))}`), line);
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
   });
@@ -6316,7 +6316,9 @@ try {
   // ---- RD3 (O22): actuator sizing --------------------------------------------------------------------------------------
   await check('RD3: size_actuators through the real chat and tool servers on the one-joint case — the cycle\'s times as the conformance case has them, a motor and a reducer chosen with every check passed', async () => {
     const fs = await import('node:fs'), { spawn } = await import('node:child_process'), origin = new URL(url).origin;
-    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/size-1r/case.json'), 'utf8')), file = join(out, 'size-1r.bcad'), { document, ...args } = c.input;
+    const c = JSON.parse(fs.readFileSync(join(root, '../../packages/barocss-cad/conformance/rm/size-1r/case.json'), 'utf8')), file = join(out, 'size-1r.bcad'), { document, dwell_s, life_h, ...coreArgs } = c.input;
+    // This conformance case stores internal radian inputs; the public tool takes degrees and seconds.
+    const args = { ...coreArgs, to: Object.fromEntries(Object.entries(coreArgs.to).map(([k, v]) => [k, v * 180 / Math.PI])), limits: Object.fromEntries(Object.entries(coreArgs.limits).map(([k, v]) => [k, v * 180 / Math.PI])), dwell: dwell_s, serviceLife: life_h * 3600 };
     fs.writeFileSync(file, JSON.stringify(document));
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(n => window.__studioDoc?.instances?.length === n, document.instances.length, { timeout: 20000 }); await idle();
@@ -6331,7 +6333,7 @@ try {
       const line = await page.locator('.chat-tool').last().innerText();
       // (The chat lists a read tool's result as the start of its JSON: the profile and the move's and the cycle's times first.)
       const T = c.input.limits, d = Object.values(c.input.to)[0], move = d / T.velocity + T.velocity / T.acceleration;
-      assert.ok(line.includes(`"profile":"trapezoid","move_s":${Number(move.toPrecision(10))},"cycle_s":${Number((2 * move + 2 * c.input.dwell_s).toPrecision(10))}`), line);
+      assert.ok(line.includes(`"profile":"trapezoid","moveDuration":${Number(move.toPrecision(10))},"cycleDuration":${Number((2 * move + 2 * c.input.dwell_s).toPrecision(10))}`), line);
       await snap('rd3-sizing');
       await page.click('[aria-label="Close chat"]');
     } finally { chat.kill(); }
